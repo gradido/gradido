@@ -18,6 +18,15 @@ vi.mock('vue-i18n', () => ({
 // A computer unless a test says otherwise; the check itself has its own spec.
 vi.mock('@/utils/isComputer', () => ({ isComputer: vi.fn(() => true) }))
 
+/**
+ * Making a picture small has its own spec (utils/chatImage.spec.js); here it answers as a test
+ * says -- with a picture, a refusal, or not yet.
+ */
+const encoding = vi.hoisted(() => ({ encodeChatImage: vi.fn() }))
+vi.mock('@/utils/chatImage', () => ({
+  encodeChatImage: (...args) => encoding.encodeChatImage(...args),
+}))
+
 describe('ChatComposeBar', () => {
   let wrapper
 
@@ -29,6 +38,9 @@ describe('ChatComposeBar', () => {
           IMdiEmailOutline: true,
           IMdiSend: true,
           IMdiPaperclip: true,
+          IMdiImage: true,
+          IMdiFileDocument: true,
+          IMdiClose: true,
           IMdiCellphone: true,
           IMdiOpenInNew: true,
           // Shows what it holds while it is open, the footer under it. The names written on the
@@ -56,6 +68,7 @@ describe('ChatComposeBar', () => {
     document.body.innerHTML = ''
     vi.mocked(isComputer).mockClear()
     vi.mocked(isComputer).mockReturnValue(true)
+    encoding.encodeChatImage.mockReset()
   })
 
   describe('what it shows', () => {
@@ -151,7 +164,7 @@ describe('ChatComposeBar', () => {
 
       await button().trigger('click')
 
-      expect(sent()).toEqual([[{ body: 'Hallo Lena', notify: 'NONE' }]])
+      expect(sent()).toEqual([[{ body: 'Hallo Lena', notify: 'NONE', image: null }]])
     })
 
     it('asks for the mail where the box is ticked', async () => {
@@ -161,7 +174,7 @@ describe('ChatComposeBar', () => {
 
       await button().trigger('click')
 
-      expect(sent()).toEqual([[{ body: 'Hallo Lena', notify: 'EMAIL' }]])
+      expect(sent()).toEqual([[{ body: 'Hallo Lena', notify: 'EMAIL', image: null }]])
     })
 
     // The server mails the first message anyway; the request says what will happen.
@@ -171,7 +184,7 @@ describe('ChatComposeBar', () => {
 
       await button().trigger('click')
 
-      expect(sent()).toEqual([[{ body: 'Hallo Lena', notify: 'EMAIL' }]])
+      expect(sent()).toEqual([[{ body: 'Hallo Lena', notify: 'EMAIL', image: null }]])
     })
 
     /**
@@ -196,8 +209,8 @@ describe('ChatComposeBar', () => {
       await field().trigger('keydown', { key: 'Enter', ctrlKey: true })
 
       expect(sent()).toEqual([
-        [{ body: 'Hallo', notify: 'NONE' }],
-        [{ body: 'Hallo', notify: 'NONE' }],
+        [{ body: 'Hallo', notify: 'NONE', image: null }],
+        [{ body: 'Hallo', notify: 'NONE', image: null }],
       ])
     })
 
@@ -347,9 +360,15 @@ describe('ChatComposeBar', () => {
     const hint = () => wrapper.find('[data-test="chat-compose-file-hint"]')
     const openLink = () => wrapper.find('[data-test="chat-compose-file-open"]')
 
+    /** The paperclip's menu, then "Datei" (E-044, F1: with the pictures it is a menu). */
+    const chooseFileEntry = async () => {
+      await clip().trigger('click')
+      await wrapper.find('[data-test="chat-compose-file"]').trigger('click')
+    }
+
     const openHint = async (props = {}, options = {}) => {
       mountBar(props, options)
-      await clip().trigger('click')
+      await chooseFileEntry()
       return hint()
     }
 
@@ -359,15 +378,14 @@ describe('ChatComposeBar', () => {
       mountBar()
 
       const row = wrapper.find('.chat-compose-row').element
-      expect(row.firstElementChild).toBe(clip().element)
+      expect(row.firstElementChild.firstElementChild).toBe(clip().element)
       expect(
         clip().element.compareDocumentPosition(field().element) & Node.DOCUMENT_POSITION_FOLLOWING,
       ).toBeTruthy()
       expect(clip().element.tagName).toBe('BUTTON')
       expect(clip().attributes('type')).toBe('button')
-      expect(clip().attributes('aria-label')).toBe('chatThread.fileAttach')
-      expect(clip().attributes('title')).toBe('chatThread.fileAttach')
-      expect(clip().attributes('aria-haspopup')).toBe('dialog')
+      expect(clip().attributes('aria-label')).toBe('chatThread.attach')
+      expect(clip().attributes('title')).toBe('chatThread.attach')
     })
 
     // A link is an ordinary message: there is no reason to leave it out of the first one.
@@ -377,12 +395,12 @@ describe('ChatComposeBar', () => {
       expect(wrapper.find('[data-test="chat-compose-first"]').exists()).toBe(true)
     })
 
-    // E-044, F1: straight to the hint -- a menu with one entry would be a click too many.
-    it('opens the hint with one click, named as the title it has instead of a header', async () => {
+    // E-044, F1: with the pictures the paperclip is a menu, and "Datei" opens the hint.
+    it('opens the hint from the menu, named as the title it has instead of a header', async () => {
       mountBar()
       expect(hint().exists()).toBe(false)
 
-      await clip().trigger('click')
+      await chooseFileEntry()
 
       expect(hint().exists()).toBe(true)
       expect(hint().attributes('aria-label')).toBe('chatThread.fileTitle')
@@ -482,7 +500,7 @@ describe('ChatComposeBar', () => {
       await wrapper.find('[data-test="chat-compose-file-close"]').trigger('click')
 
       vi.mocked(isComputer).mockReturnValue(false)
-      await clip().trigger('click')
+      await chooseFileEntry()
 
       expect(isComputer).toHaveBeenCalledTimes(2)
       expect(wrapper.find('[data-test="chat-compose-file-tip"]').exists()).toBe(true)
@@ -494,14 +512,650 @@ describe('ChatComposeBar', () => {
       await field().setValue('Hier ist die Datei:')
       await box().setValue(true)
 
-      await clip().trigger('click')
+      await chooseFileEntry()
       await wrapper.find('[data-test="chat-compose-file-close"]').trigger('click')
 
       expect(sent()).toEqual([])
       expect(field().element.value).toBe('Hier ist die Datei:')
       expect(box().element.checked).toBe(true)
       await button().trigger('click')
-      expect(sent()).toEqual([[{ body: 'Hier ist die Datei:', notify: 'EMAIL' }]])
+      expect(sent()).toEqual([[{ body: 'Hier ist die Datei:', notify: 'EMAIL', image: null }]])
+    })
+  })
+
+  /**
+   * P7 (E-044, F1): the paperclip opens a small menu, "Bild" and "Datei". A disclosure -- the
+   * picture's entry is a file field, which may not be a menu item -- that closes on a choice, on
+   * Esc and on a press elsewhere.
+   */
+  describe('the paperclip’s menu', () => {
+    const clip = () => wrapper.find('[data-test="chat-compose-attach"]')
+    const menu = () => wrapper.find('[data-test="chat-compose-menu"]')
+    const picker = () => wrapper.find('[data-test="chat-compose-picker"]')
+    const pictureEntry = () => wrapper.find('[data-test="chat-compose-picture"]')
+    const fileEntry = () => wrapper.find('[data-test="chat-compose-file"]')
+    const isOpen = () => menu().classes().includes('is-open')
+
+    const openMenu = async (props = {}) => {
+      mountBar(props, { attachTo: document.body })
+      await clip().trigger('click')
+      await flushPromises()
+    }
+
+    it('says whether it is open, and which entries it opens', async () => {
+      mountBar()
+      expect(clip().attributes('aria-expanded')).toBe('false')
+      expect(clip().attributes('aria-controls')).toBe(menu().attributes('id'))
+      // A disclosure, not an ARIA menu: nothing announces keys a menu would have.
+      expect(clip().attributes('aria-haspopup')).toBeUndefined()
+      expect(isOpen()).toBe(false)
+
+      await clip().trigger('click')
+
+      expect(clip().attributes('aria-expanded')).toBe('true')
+      expect(isOpen()).toBe(true)
+      expect(clip().classes()).toContain('is-open')
+      expect(menu().attributes('role')).toBe('group')
+      expect(menu().attributes('aria-label')).toBe('chatThread.attach')
+    })
+
+    it('offers "Bild" and "Datei", each with its word and the line under it', async () => {
+      mountBar()
+      await clip().trigger('click')
+
+      const words = (entry) =>
+        [entry.find('.chat-compose-menu-label'), entry.find('.chat-compose-menu-hint')].map((w) =>
+          w.text(),
+        )
+      expect(words(pictureEntry())).toEqual([
+        'chatThread.attachImage',
+        'chatThread.attachImageHint',
+      ])
+      expect(words(fileEntry())).toEqual(['chatThread.attachFile', 'chatThread.attachFileHint'])
+      // Picture first, then file, as in the mockup.
+      expect(
+        pictureEntry().element.compareDocumentPosition(fileEntry().element) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy()
+      expect(fileEntry().element.tagName).toBe('BUTTON')
+      expect(fileEntry().attributes('type')).toBe('button')
+    })
+
+    /**
+     * ⛔ FOTO-04: a label for a field hidden only from the eye -- never `display: none`, never a
+     * script's click. Pictures only, and no `capture`: on a phone the picker offers the camera by
+     * itself (AS-012).
+     */
+    it('opens the device’s picker through a label, for pictures, without capture', () => {
+      mountBar()
+
+      expect(pictureEntry().element.tagName).toBe('LABEL')
+      expect(pictureEntry().attributes('for')).toBe(picker().attributes('id'))
+      expect(picker().attributes('type')).toBe('file')
+      expect(picker().attributes('accept')).toBe('image/*')
+      expect(picker().attributes('capture')).toBeUndefined()
+      expect(picker().classes()).toContain('visually-hidden')
+      expect(picker().attributes('hidden')).toBeUndefined()
+      expect(picker().attributes('style') ?? '').not.toMatch(/display/)
+      // …and the label right after its field, so the label can show the field's focus.
+      expect(picker().element.nextElementSibling).toBe(pictureEntry().element)
+    })
+
+    // ⛔ Rendered while closed: the field must still be there when the picker answers.
+    it('keeps its entries in the page while it is closed', () => {
+      mountBar()
+      expect(isOpen()).toBe(false)
+      expect(picker().exists()).toBe(true)
+      expect(fileEntry().exists()).toBe(true)
+    })
+
+    it('takes the focus in when it opens', async () => {
+      await openMenu()
+      expect(document.activeElement).toBe(picker().element)
+    })
+
+    it('closes with the paperclip again, the focus on the paperclip', async () => {
+      await openMenu()
+
+      await clip().trigger('click')
+
+      expect(isOpen()).toBe(false)
+      expect(document.activeElement).toBe(clip().element)
+    })
+
+    /**
+     * Esc closes the menu, hands the focus back -- and goes no further: the contact window closes
+     * on an Esc from anywhere inside it.
+     */
+    it('closes on Esc, the focus back on the paperclip, and keeps the Esc to itself', async () => {
+      await openMenu()
+      const heardAbove = vi.fn()
+      document.body.addEventListener('keydown', heardAbove)
+      try {
+        await picker().trigger('keydown', { key: 'Escape' })
+      } finally {
+        document.body.removeEventListener('keydown', heardAbove)
+      }
+
+      expect(isOpen()).toBe(false)
+      expect(document.activeElement).toBe(clip().element)
+      expect(heardAbove).not.toHaveBeenCalled()
+    })
+
+    // Gegenprobe: with the menu shut, Esc goes on to the window as it always did.
+    it('lets an Esc go on while it is closed', async () => {
+      mountBar({}, { attachTo: document.body })
+      const heardAbove = vi.fn()
+      document.body.addEventListener('keydown', heardAbove)
+      try {
+        await clip().trigger('keydown', { key: 'Escape' })
+      } finally {
+        document.body.removeEventListener('keydown', heardAbove)
+      }
+
+      expect(heardAbove).toHaveBeenCalledTimes(1)
+    })
+
+    /**
+     * The press alone, with the focus left where it is: a press on something that takes no focus
+     * -- a line of the thread -- does not move it, and on some devices none does. (Where the focus
+     * does leave the menu, the rule below closes it too; this one must not lean on that.)
+     */
+    it('closes on a press elsewhere, and does not take the focus anywhere', async () => {
+      await openMenu()
+      const elsewhere = document.createElement('p')
+      document.body.appendChild(elsewhere)
+      const focusedBefore = document.activeElement
+
+      elsewhere.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }))
+      await flushPromises()
+
+      expect(isOpen()).toBe(false)
+      expect(document.activeElement).toBe(focusedBefore)
+      expect(document.activeElement).not.toBe(clip().element)
+    })
+
+    // A press on the menu itself is not "elsewhere".
+    it('stays open on a press inside it', async () => {
+      await openMenu()
+
+      fileEntry().element.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }))
+      await flushPromises()
+
+      expect(isOpen()).toBe(true)
+    })
+
+    it('closes behind the focus when Tab leaves it', async () => {
+      await openMenu()
+
+      await fileEntry().trigger('focusout', { relatedTarget: field().element })
+
+      expect(isOpen()).toBe(false)
+      // …and Tab within it keeps it open.
+      await clip().trigger('click')
+      await flushPromises()
+      await picker().trigger('focusout', { relatedTarget: fileEntry().element })
+      expect(isOpen()).toBe(true)
+    })
+
+    /**
+     * ⛔ A mouse press on "Bild", as Chrome makes it (measured, P7c): the label takes no focus, so
+     * the press hands it to the nearest ancestor that does -- the contact window. The menu has to
+     * stay open through that, or the label is hidden before the button comes up and the click that
+     * opens the picker never comes.
+     */
+    it('stays open when a press on "Bild" hands the focus to what holds the menu', async () => {
+      await openMenu()
+      const holder = wrapper.element
+      holder.tabIndex = -1
+      const pressed = vi.fn()
+      picker().element.addEventListener('click', pressed)
+
+      pictureEntry().element.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }))
+      holder.focus()
+      await flushPromises()
+
+      expect(document.activeElement).toBe(holder)
+      expect(isOpen()).toBe(true)
+      await pictureEntry().trigger('click')
+      expect(pressed).toHaveBeenCalledTimes(1)
+    })
+
+    // The same where the focus goes nowhere -- the window loses it, or nothing holds the menu.
+    it('stays open when the focus goes nowhere', async () => {
+      await openMenu()
+
+      await picker().trigger('focusout', { relatedTarget: null })
+
+      expect(isOpen()).toBe(true)
+    })
+
+    /**
+     * "Bild": the label hands the press to the field, which opens the picker -- and the menu
+     * closes a moment after, in a task of its own, so the field is still in a shown menu when the
+     * picker opens. Then the focus is back on the paperclip.
+     */
+    it('closes after "Bild" is chosen, a task later, the focus back on the paperclip', async () => {
+      await openMenu()
+      const pressed = vi.fn()
+      picker().element.addEventListener('click', pressed)
+
+      await pictureEntry().trigger('click')
+
+      expect(pressed).toHaveBeenCalledTimes(1)
+      expect(isOpen()).toBe(true)
+      await new Promise((resolve) => setTimeout(resolve))
+      await flushPromises()
+      expect(isOpen()).toBe(false)
+      expect(document.activeElement).toBe(clip().element)
+    })
+
+    // The same with a key on the field: the field hears its own click.
+    it('closes the same way when "Bild" is chosen with a key', async () => {
+      await openMenu()
+
+      await picker().trigger('click')
+      await new Promise((resolve) => setTimeout(resolve))
+      await flushPromises()
+
+      expect(isOpen()).toBe(false)
+      expect(document.activeElement).toBe(clip().element)
+    })
+
+    /**
+     * "Datei": the menu closes, the focus goes to the paperclip -- the hint hands the focus back,
+     * when it closes, to what had it when it opened -- and the hint opens as before.
+     */
+    it('opens the hint with "Datei", the focus on the paperclip first', async () => {
+      await openMenu()
+      let focusedWhenHintOpened = null
+      fileEntry().element.addEventListener('click', () => {
+        queueMicrotask(() => (focusedWhenHintOpened = document.activeElement))
+      })
+
+      await fileEntry().trigger('click')
+
+      expect(isOpen()).toBe(false)
+      expect(wrapper.find('[data-test="chat-compose-file-hint"]').exists()).toBe(true)
+      expect(focusedWhenHintOpened).toBe(clip().element)
+    })
+
+    it('stops listening for presses elsewhere once it is gone', async () => {
+      await openMenu()
+      const removed = vi.spyOn(document, 'removeEventListener')
+
+      wrapper.unmount()
+
+      expect(removed).toHaveBeenCalledWith('pointerdown', expect.any(Function), true)
+      removed.mockRestore()
+      wrapper = null
+    })
+  })
+
+  /**
+   * P7: the picture chosen goes with the next message. While it is made small the bar says so;
+   * then it shows the picture as it will be sent, over the field, and the words become its caption.
+   */
+  describe('the picture that goes with a message', () => {
+    const READY = { data: 'SlBFRw==', width: 800, height: 600, bytes: 20000 }
+    const OTHER = { data: 'T1RIRVI=', width: 600, height: 800, bytes: 18000 }
+
+    const attached = () => wrapper.find('[data-test="chat-compose-attached"]')
+    const preview = () => wrapper.find('[data-test="chat-compose-attached-picture"]')
+    const words = () => wrapper.find('[data-test="chat-compose-attached-words"]')
+    const remove = () => wrapper.find('[data-test="chat-compose-attached-remove"]')
+    const problem = () => wrapper.find('[data-test="chat-compose-picture-problem"]')
+    const status = () => wrapper.find('[data-test="chat-compose-picture-status"]')
+    const clip = () => wrapper.find('[data-test="chat-compose-attach"]')
+
+    /** A promise a test settles when it wants: the picture still being made small till then. */
+    const deferred = () => {
+      const settle = {}
+      const promise = new Promise((resolve, reject) => Object.assign(settle, { resolve, reject }))
+      return { promise, ...settle }
+    }
+
+    /** What the device's picker answers with: a file on the field, and its change. */
+    const choose = async (file = new File(['JPEG'], 'photo.jpg', { type: 'image/jpeg' })) => {
+      const picker = wrapper.find('[data-test="chat-compose-picker"]')
+      Object.defineProperty(picker.element, 'files', { value: [file], configurable: true })
+      await picker.trigger('change')
+      await flushPromises()
+      return file
+    }
+
+    const chooseReady = async (ready = READY) => {
+      encoding.encodeChatImage.mockResolvedValueOnce(ready)
+      await choose()
+    }
+
+    it('says the picture is being prepared, then shows it as it will be sent', async () => {
+      mountBar()
+      const pending = deferred()
+      encoding.encodeChatImage.mockReturnValueOnce(pending.promise)
+      const file = await choose()
+
+      expect(encoding.encodeChatImage).toHaveBeenCalledWith(file)
+      expect(attached().exists()).toBe(true)
+      expect(words().text()).toBe('chatThread.imagePreparing')
+      expect(wrapper.find('.chat-compose-attached-wait').exists()).toBe(true)
+      expect(preview().exists()).toBe(false)
+      expect(remove().exists()).toBe(false)
+
+      pending.resolve(READY)
+      await flushPromises()
+
+      // The finished JPEG itself: what is seen is what goes out.
+      expect(preview().attributes('src')).toBe('data:image/jpeg;base64,SlBFRw==')
+      expect(words().text()).toBe('chatThread.imageReady chatThread.imageReadyHint')
+      expect(words().find('small').text()).toBe('chatThread.imageReadyHint')
+      expect(remove().attributes('aria-label')).toBe('chatThread.imageRemove')
+      expect(remove().attributes('title')).toBe('chatThread.imageRemove')
+      expect(remove().attributes('type')).toBe('button')
+    })
+
+    // E-044: with a picture the words are its caption, and optional.
+    it('makes the field the caption, while the picture is prepared and after', async () => {
+      mountBar()
+      expect(field().attributes('placeholder')).toBe('chatThread.placeholder {"name":"Lena"}')
+      const pending = deferred()
+      encoding.encodeChatImage.mockReturnValueOnce(pending.promise)
+      await choose()
+      expect(field().attributes('placeholder')).toBe('chatThread.imageCaption')
+
+      pending.resolve(READY)
+      await flushPromises()
+      expect(field().attributes('placeholder')).toBe('chatThread.imageCaption')
+      // …and its hidden label says the same.
+      expect(wrapper.find(`label[for="${field().attributes('id')}"]`).text()).toBe(
+        'chatThread.imageCaption',
+      )
+    })
+
+    it('sends a picture with an empty text', async () => {
+      mountBar()
+      await chooseReady()
+      expect(button().attributes('aria-disabled')).toBe('false')
+
+      await button().trigger('click')
+
+      // The picture as the server takes it: the JPEG and its size -- not the preview, not the bytes.
+      expect(sent()).toEqual([
+        [{ body: '', notify: 'NONE', image: { data: 'SlBFRw==', width: 800, height: 600 } }],
+      ])
+    })
+
+    it('sends the words as the caption, the space around them left off', async () => {
+      mountBar()
+      await chooseReady()
+      await field().setValue('  Unser Stand  ')
+
+      await button().trigger('click')
+
+      expect(sent()).toEqual([
+        [
+          {
+            body: 'Unser Stand',
+            notify: 'NONE',
+            image: { data: 'SlBFRw==', width: 800, height: 600 },
+          },
+        ],
+      ])
+    })
+
+    // Chosen for this message: nothing goes before it is ready -- not even the words.
+    it('waits while the picture is being made small', async () => {
+      mountBar()
+      encoding.encodeChatImage.mockReturnValueOnce(deferred().promise)
+      await field().setValue('Hallo')
+      await choose()
+
+      expect(button().attributes('aria-disabled')).toBe('true')
+      await button().trigger('click')
+      await field().trigger('keydown', { key: 'Enter', metaKey: true })
+      expect(sent()).toEqual([])
+    })
+
+    // One picture a message: a second one takes the first one's place.
+    it('takes a second picture in place of the first', async () => {
+      mountBar()
+      await chooseReady(READY)
+      await chooseReady(OTHER)
+
+      expect(wrapper.findAll('[data-test="chat-compose-attached-picture"]')).toHaveLength(1)
+      expect(preview().attributes('src')).toBe('data:image/jpeg;base64,T1RIRVI=')
+      await button().trigger('click')
+      expect(sent()[0][0].image).toEqual({ data: 'T1RIRVI=', width: 600, height: 800 })
+    })
+
+    // The last one chosen counts, whichever is ready first.
+    it('lets a picture go that was overtaken by one chosen after it', async () => {
+      mountBar()
+      const first = deferred()
+      const second = deferred()
+      encoding.encodeChatImage.mockReturnValueOnce(first.promise)
+      await choose()
+      encoding.encodeChatImage.mockReturnValueOnce(second.promise)
+      await choose()
+
+      second.resolve(OTHER)
+      await flushPromises()
+      first.resolve(READY)
+      await flushPromises()
+
+      expect(preview().attributes('src')).toBe('data:image/jpeg;base64,T1RIRVI=')
+      expect(words().text()).toBe('chatThread.imageReady chatThread.imageReadyHint')
+      // …nor does the earlier one's refusal speak for the later.
+      const third = deferred()
+      const fourth = deferred()
+      encoding.encodeChatImage.mockReturnValueOnce(third.promise)
+      await choose()
+      encoding.encodeChatImage.mockReturnValueOnce(fourth.promise)
+      await choose()
+      third.reject(Object.assign(new Error('x'), { problem: 'HEIC' }))
+      await flushPromises()
+      expect(problem().exists()).toBe(false)
+      expect(words().text()).toBe('chatThread.imagePreparing')
+      fourth.resolve(READY)
+      await flushPromises()
+      expect(preview().attributes('src')).toBe('data:image/jpeg;base64,SlBFRw==')
+    })
+
+    // Emptied after every choice: the same file chosen again is a change again.
+    it('lets the same file be chosen again', async () => {
+      mountBar()
+      const picker = wrapper.find('[data-test="chat-compose-picker"]').element
+      let emptied = null
+      Object.defineProperty(picker, 'value', {
+        configurable: true,
+        get: () => '',
+        set: (value) => (emptied = value),
+      })
+      await chooseReady()
+
+      expect(emptied).toBe('')
+    })
+
+    it('takes the picture off with its button, and gives the focus to the paperclip', async () => {
+      mountBar({}, { attachTo: document.body })
+      await chooseReady()
+
+      await remove().trigger('click')
+
+      expect(attached().exists()).toBe(false)
+      expect(document.activeElement).toBe(clip().element)
+      expect(field().attributes('placeholder')).toBe('chatThread.placeholder {"name":"Lena"}')
+      // Without the picture, an empty field sends nothing again.
+      expect(button().attributes('aria-disabled')).toBe('true')
+    })
+
+    /** Why a picture could not be made ready, in the bar's own words, as an alert. */
+    it('says why a picture could not be made ready', async () => {
+      const said = {}
+      for (const reason of ['SOURCE_TOO_LARGE', 'HEIC', 'FORMAT', 'NOT_SMALL_ENOUGH', undefined]) {
+        mountBar()
+        encoding.encodeChatImage.mockRejectedValueOnce(
+          Object.assign(new Error('refused'), { problem: reason }),
+        )
+        await choose()
+        said[reason ?? 'unknown'] = problem().text()
+        expect(problem().attributes('role')).toBe('alert')
+        expect(attached().exists()).toBe(false)
+        wrapper.unmount()
+      }
+      wrapper = null
+
+      expect(said).toEqual({
+        SOURCE_TOO_LARGE: 'chatThread.imageTooLarge',
+        HEIC: 'chatThread.imageHeic',
+        FORMAT: 'chatThread.imageFormat',
+        NOT_SMALL_ENOUGH: 'chatThread.imageTooBig',
+        unknown: 'chatThread.imageFormat',
+      })
+    })
+
+    // A picture chosen before stays where the next one fails: nothing took its place.
+    it('keeps the picture it had where the next one cannot be made ready', async () => {
+      mountBar()
+      await chooseReady()
+      encoding.encodeChatImage.mockRejectedValueOnce(
+        Object.assign(new Error('refused'), { problem: 'HEIC' }),
+      )
+      await choose()
+
+      expect(problem().text()).toBe('chatThread.imageHeic')
+      expect(preview().attributes('src')).toBe('data:image/jpeg;base64,SlBFRw==')
+    })
+
+    // Another go: the menu opening again, or a picture that is ready, ends the old words.
+    it('lets the words about a failed picture go with the next try', async () => {
+      mountBar()
+      encoding.encodeChatImage.mockRejectedValueOnce(
+        Object.assign(new Error('refused'), { problem: 'FORMAT' }),
+      )
+      await choose()
+      expect(problem().exists()).toBe(true)
+
+      await clip().trigger('click')
+      expect(problem().exists()).toBe(false)
+
+      await clip().trigger('click')
+      encoding.encodeChatImage.mockRejectedValueOnce(
+        Object.assign(new Error('refused'), { problem: 'FORMAT' }),
+      )
+      await choose()
+      expect(problem().exists()).toBe(true)
+      await chooseReady()
+      expect(problem().exists()).toBe(false)
+    })
+
+    // For the ear: the preview has no words a screen reader would hear on its own.
+    it('tells a screen reader how the picture stands', async () => {
+      mountBar()
+      expect(status().attributes('role')).toBe('status')
+      expect(status().text()).toBe('')
+      const pending = deferred()
+      encoding.encodeChatImage.mockReturnValueOnce(pending.promise)
+      await choose()
+      expect(status().text()).toBe('chatThread.imagePreparing')
+
+      pending.resolve(READY)
+      await flushPromises()
+      expect(status().text()).toBe('chatThread.imageReady. chatThread.imageReadyHint')
+
+      await remove().trigger('click')
+      expect(status().text()).toBe('')
+    })
+
+    describe('after sending', () => {
+      it('takes the picture off with the words once the message went through', async () => {
+        mountBar()
+        await chooseReady()
+        await field().setValue('Unser Stand')
+        await button().trigger('click')
+
+        await wrapper.setProps({ sending: true })
+        await wrapper.setProps({ sending: false })
+        await flushPromises()
+
+        expect(attached().exists()).toBe(false)
+        expect(field().element.value).toBe('')
+        expect(field().attributes('placeholder')).toBe('chatThread.placeholder {"name":"Lena"}')
+      })
+
+      // ⛔ Only what went out: a picture chosen while the message was on its way is the next one's.
+      it('keeps a picture chosen while the message was on its way', async () => {
+        mountBar()
+        await chooseReady(READY)
+        await button().trigger('click')
+        await wrapper.setProps({ sending: true })
+
+        await chooseReady(OTHER)
+        await wrapper.setProps({ sending: false })
+        await flushPromises()
+
+        expect(preview().attributes('src')).toBe('data:image/jpeg;base64,T1RIRVI=')
+      })
+
+      // …and a message without a picture takes none off.
+      it('keeps a picture chosen while a message without one was on its way', async () => {
+        mountBar()
+        await field().setValue('Hallo')
+        await button().trigger('click')
+        await wrapper.setProps({ sending: true })
+
+        await chooseReady()
+        await wrapper.setProps({ sending: false })
+        await flushPromises()
+
+        expect(field().element.value).toBe('')
+        expect(preview().attributes('src')).toBe('data:image/jpeg;base64,SlBFRw==')
+      })
+
+      it('keeps the picture and the words where the message did not go through', async () => {
+        mountBar()
+        await chooseReady()
+        await field().setValue('Unser Stand')
+        await button().trigger('click')
+
+        await wrapper.setProps({ sending: true })
+        await wrapper.setProps({ sending: false, failed: true })
+        await flushPromises()
+
+        expect(preview().attributes('src')).toBe('data:image/jpeg;base64,SlBFRw==')
+        expect(field().element.value).toBe('Unser Stand')
+      })
+
+      /**
+       * Two refusals of the server about a picture have their own words (P7a, P7b); every other
+       * failure is "not sent", as before.
+       */
+      it('says in its own words why a message with a picture was refused', async () => {
+        mountBar({ failed: true })
+        expect(wrapper.find('[data-test="chat-compose-failed"]').text()).toBe('chatThread.notSent')
+
+        await wrapper.setProps({ failedReason: 'IMAGE_NOT_ACCEPTED' })
+        expect(wrapper.find('[data-test="chat-compose-failed"]').text()).toBe(
+          'chatThread.imageNotAccepted',
+        )
+
+        await wrapper.setProps({ failedReason: 'TOO_LARGE_ACROSS_BORDER' })
+        expect(wrapper.find('[data-test="chat-compose-failed"]').text()).toBe(
+          'chatThread.imageTooLargeAcrossBorder',
+        )
+      })
+    })
+
+    /**
+     * ⛔ The picture lives in memory only: the thread's note for a restart takes the words
+     * (`draft`), and a picture chosen is not part of them (#3999; E-041, point 5).
+     */
+    it('hands the words for a restart, and never the picture', async () => {
+      mountBar()
+      await chooseReady()
+      await field().setValue('Unser Stand')
+
+      expect(wrapper.vm.draft()).toBe('Unser Stand')
     })
   })
 
@@ -597,6 +1251,33 @@ describe('ChatComposeBar', () => {
     expect(clip).toMatch(/border-radius:\s*50%/)
     expect(clip).toMatch(/background:\s*transparent/)
     expect(clip).toMatch(/color:\s*var\(--bs-secondary-color/)
+  })
+
+  /**
+   * ⛔ What only the stylesheet holds about the menu (jsdom applies no styles): a closed menu is
+   * hidden with `visibility`, never `display` -- its field has to stay rendered for the picker --
+   * its entries are a finger's size, their signs gold, and the picture's label shows its hidden
+   * field's focus.
+   */
+  it('hides a closed menu without taking it out, and draws its entries as the mockup has them', () => {
+    const code = style()
+    const rule = (selector) => code.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
+
+    expect(rule('\\.chat-compose-menu:not\\(\\.is-open\\)')).toMatch(/visibility:\s*hidden/)
+    expect(code).not.toMatch(/\.chat-compose-menu[^{]*\{[^}]*display:\s*none/)
+    expect(rule('\\.chat-compose-menu')).toMatch(/position:\s*absolute/)
+    expect(rule('\\.chat-compose-menu')).toMatch(/bottom:\s*calc\(100%/)
+    const item = rule('\\.chat-compose-menu-item')
+    const height = item.match(/min-height:\s*([\d.]+)rem/)?.[1]
+    expect(Number(height) * 16).toBeGreaterThanOrEqual(44)
+    expect(rule('\\.chat-compose-menu-icon')).toMatch(/color:\s*var\(--gold/)
+    expect(
+      rule(
+        '\\.chat-compose-menu-item:focus-visible,\\s*\\.chat-compose-picker:focus-visible \\+ \\.chat-compose-menu-item',
+      ),
+    ).toMatch(/outline:\s*2px solid/)
+    // The bar is what the menu hangs from.
+    expect(rule('\\.chat-compose')).toMatch(/position:\s*relative/)
   })
 
   /**

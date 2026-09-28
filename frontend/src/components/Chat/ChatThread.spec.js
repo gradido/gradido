@@ -8,6 +8,13 @@ import ChatThread from './ChatThread.vue'
 import ChatComposeBar from './ChatComposeBar.vue'
 import { holdChatText, takeHeldChatText } from '@/utils/chatReturn'
 import {
+  chatImage,
+  chatImageViewState,
+  closeChatImageView,
+  forgetAllChatImages,
+} from '@/composables/useChatImages'
+import ChatImageView from './ChatImageView.vue'
+import {
   chatMessagesWithMemberQuery,
   markChatConversationRead,
   newChatMessagesSince,
@@ -32,7 +39,9 @@ const beatBrings = async (...chatMessages) => {
 }
 
 // The member signed in, whose key the way back after a restart is noted under (utils/chatReturn).
-vi.mock('vuex', () => ({ useStore: () => ({ state: { gradidoID: 'me-id' } }) }))
+vi.mock('vuex', () => ({
+  useStore: () => ({ state: { gradidoID: 'me-id', username: 'Bernd' } }),
+}))
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
@@ -1114,6 +1123,66 @@ describe('ChatThread', () => {
     })
   })
 
+  /**
+   * P7: a picture of the thread, large -- over the contact window, as a dialog of its own. Who sent
+   * it as the thread names them ("Du" for one's own), the dialog's name with one's own name, when
+   * it arrived, its caption, and the button that opened it.
+   */
+  describe('a picture, large', () => {
+    const withPicture = (n, { mine = false, body = `message ${n}` } = {}) => ({
+      ...message(n, { mine }),
+      body,
+      images: [{ imageUuid: `image-${n}`, width: 800, height: 600 }],
+    })
+
+    afterEach(() => {
+      closeChatImageView()
+      forgetAllChatImages()
+    })
+
+    it('has the large view, and opens it with the picture tapped', async () => {
+      mountThread()
+      await arrive({
+        hasMore: false,
+        mutedByMe: false,
+        messages: [withPicture(1, { body: 'Der Stand' })],
+      })
+      expect(wrapper.findComponent(ChatImageView).exists()).toBe(true)
+
+      const tapped = wrapper.find('[data-test="chat-bubble-image"]')
+      await tapped.trigger('click')
+
+      expect(chatImageViewState.value).toEqual({
+        imageUuid: 'image-1',
+        width: 800,
+        height: 600,
+        who: 'Lena',
+        name: 'Lena',
+        at: message(1).createdAt,
+        caption: 'Der Stand',
+        opener: tapped.element,
+      })
+    })
+
+    // One's own: "Du" over it, one's own name in the dialog's name ("Bild von Bernd").
+    it('names one’s own picture as one’s own', async () => {
+      mountThread()
+      await arrive({
+        hasMore: false,
+        mutedByMe: false,
+        messages: [withPicture(2, { mine: true, body: '' })],
+      })
+
+      await wrapper.find('[data-test="chat-bubble-image"]').trigger('click')
+
+      expect(chatImageViewState.value).toMatchObject({
+        who: 'chatThread.you',
+        name: 'Bernd',
+        caption: '',
+      })
+    })
+  })
+
   describe('the compose bar', () => {
     // Under a thread and under a thread that has nothing yet -- and there it is the first
     // message, which goes by mail in any case (E-024).
@@ -1158,6 +1227,131 @@ describe('ChatThread', () => {
         body: 'Hallo Lena',
         notify: 'EMAIL',
       })
+    })
+
+    /**
+     * P7: the picture the bar hands over goes as `$image` -- the name the backend's request log
+     * masks (LOG-071) -- and a message without one carries no `image` at all.
+     */
+    it('sends the picture the bar hands over, and no picture where there is none', async () => {
+      const PICTURE = { data: 'SlBFRw==', width: 800, height: 600 }
+      serverSends.mockResolvedValue(ownCopy(99, ''))
+      mountThread()
+      await arrive(page([1, 2]))
+
+      bar().vm.$emit('send', { body: '', notify: 'NONE', image: PICTURE })
+      await flushPromises()
+
+      expect(serverSends).toHaveBeenCalledWith({
+        ref: { gradidoID: 'lena-id', communityUuid: 'home-uuid' },
+        body: '',
+        notify: 'NONE',
+        image: PICTURE,
+      })
+
+      serverSends.mockClear()
+      serverSends.mockResolvedValue(ownCopy(100, 'Hallo'))
+      bar().vm.$emit('send', { body: 'Hallo', notify: 'NONE', image: null })
+      await flushPromises()
+      expect(serverSends.mock.calls[0][0]).not.toHaveProperty('image')
+    })
+
+    /**
+     * Two refusals of a message with a picture have words of their own in the bar: the picture
+     * was not taken (P7a), or the text is too long to go with it to another community (P7b).
+     * Every other failure is "not sent" as before -- and a message that goes through leaves no
+     * reason behind.
+     */
+    it('tells the bar why a message with a picture was refused', async () => {
+      const PICTURE = { data: 'SlBFRw==', width: 800, height: 600 }
+      mountThread()
+      await arrive(page([1, 2]))
+      const refusedWith = async (failure) => {
+        serverSends.mockRejectedValueOnce(failure)
+        bar().vm.$emit('send', { body: 'Unser Stand', notify: 'NONE', image: PICTURE })
+        await flushPromises()
+        return [bar().props('failed'), bar().props('failedReason')]
+      }
+
+      expect(await refusedWith(new Error('CHAT_IMAGE_NOT_ACCEPTED: TOO_LARGE'))).toEqual([
+        true,
+        'IMAGE_NOT_ACCEPTED',
+      ])
+      expect(wrapper.find('[data-test="chat-compose-failed"]').text()).toBe(
+        'chatThread.imageNotAccepted',
+      )
+      expect(
+        await refusedWith(new Error('CHAT_MESSAGE_NOT_SENT: TOO_LARGE_ACROSS_BORDER')),
+      ).toEqual([true, 'TOO_LARGE_ACROSS_BORDER'])
+      expect(wrapper.find('[data-test="chat-compose-failed"]').text()).toBe(
+        'chatThread.imageTooLargeAcrossBorder',
+      )
+      expect(await refusedWith(new Error('CHAT_MESSAGE_NOT_SENT: NOT_STORED'))).toEqual([true, ''])
+      expect(wrapper.find('[data-test="chat-compose-failed"]').text()).toBe('chatThread.notSent')
+
+      await refusedWith(new Error('CHAT_IMAGE_NOT_ACCEPTED: NOT_JPEG'))
+      serverSends.mockResolvedValueOnce(ownCopy(99, 'Unser Stand'))
+      bar().vm.$emit('send', { body: 'Unser Stand', notify: 'NONE', image: PICTURE })
+      await flushPromises()
+      expect([bar().props('failed'), bar().props('failedReason')]).toEqual([false, ''])
+    })
+
+    /**
+     * One's own picture, just sent, from the JPEG made here (useChatImages): its bubble shows it
+     * without asking the server for what went out a moment ago. (The client of this spec has no
+     * `query` -- a question for it would fail, and the bubble would stay empty.)
+     */
+    it('shows one’s own picture from the JPEG just sent, without asking for it', async () => {
+      URL.createObjectURL = vi.fn(() => 'blob:own-picture')
+      URL.revokeObjectURL = vi.fn()
+      try {
+        serverSends.mockResolvedValue({
+          ...ownCopy(99, ''),
+          images: [{ imageUuid: 'own-image', width: 800, height: 600 }],
+        })
+        mountThread()
+        await arrive(page([1, 2]))
+
+        bar().vm.$emit('send', {
+          body: '',
+          notify: 'NONE',
+          image: { data: btoa('JPEG'), width: 800, height: 600 },
+        })
+        await flushPromises()
+
+        expect(chatImage('own-image')).toEqual({ state: 'ready', src: 'blob:own-picture' })
+        const last = wrapper.findAll('[data-test="chat-bubble"]').at(-1)
+        expect(last.find('[data-test="chat-bubble-image-picture"]').attributes('src')).toBe(
+          'blob:own-picture',
+        )
+      } finally {
+        forgetAllChatImages()
+        delete URL.createObjectURL
+        delete URL.revokeObjectURL
+      }
+    })
+
+    // Gegenprobe: a copy that came back without a picture keeps nothing -- and a message sent
+    // without one keeps nothing either.
+    it('keeps no picture where the copy names none', async () => {
+      URL.createObjectURL = vi.fn(() => 'blob:own-picture')
+      try {
+        serverSends.mockResolvedValue({ ...ownCopy(99, 'Hallo'), images: [] })
+        mountThread()
+        await arrive(page([1, 2]))
+
+        bar().vm.$emit('send', {
+          body: 'Hallo',
+          notify: 'NONE',
+          image: { data: btoa('JPEG'), width: 800, height: 600 },
+        })
+        await flushPromises()
+
+        expect(URL.createObjectURL).not.toHaveBeenCalled()
+      } finally {
+        forgetAllChatImages()
+        delete URL.createObjectURL
+      }
     })
 
     it('sends a null community where the member carries none', async () => {
@@ -1403,6 +1597,21 @@ describe('ChatThread', () => {
       expect(wrapper.find('[data-test="chat-thread-sent"]').text()).toBe('chatThread.sent')
     })
 
+    // The invitation is words and a link: it carries no picture, whatever it is handed.
+    it('sends no picture with an invitation', async () => {
+      serverSends.mockResolvedValue(ownCopy(99, INVITATION))
+      mountThread()
+      await arrive(page([1, 2]))
+
+      await deliver({
+        body: INVITATION,
+        notify: 'NONE',
+        image: { data: 'SlBFRw==', width: 800, height: 600 },
+      })
+
+      expect(serverSends.mock.calls[0][0]).not.toHaveProperty('image')
+    })
+
     // The first message makes the conversation, whoever sends it: the window hears of it.
     it('turns an empty thread into a conversation, as a message of the bar does', async () => {
       serverSends.mockResolvedValue(ownCopy(99, INVITATION, { notify: 'EMAIL' }))
@@ -1637,6 +1846,32 @@ describe('ChatThread', () => {
             : field.name.value,
         )
         .join(' ')
+
+    /**
+     * ⛔ `$image`, by that name (LOG-071): the backend's request log masks the variable of that
+     * name, and a picture under any other would be written into it whole, some 44,000 characters
+     * a message. Nullable, of the input the server takes.
+     */
+    it('sends the picture as $image, of the input type the server takes', () => {
+      const operation = sendChatMessage.definitions.find(
+        (definition) => definition.kind === 'OperationDefinition',
+      )
+      const variable = operation.variableDefinitions.find(
+        (definition) => definition.variable.name.value === 'image',
+      )
+      expect(variable.type.kind).toBe('NamedType')
+      expect(variable.type.name.value).toBe('ChatImageInput')
+      const argument = top(sendChatMessage).arguments.find((arg) => arg.name.value === 'image')
+      expect(argument.value.kind).toBe('Variable')
+      expect(argument.value.name.value).toBe('image')
+    })
+
+    // P7: every message names its picture -- what to fetch it by and its size, never the bytes.
+    it('asks for the picture of a message by name and size, not for the picture', () => {
+      expect(shape(messagesOf(chatMessagesWithMemberQuery).selectionSet)).toContain(
+        'images{imageUuid width height}',
+      )
+    })
 
     it('asks the page for what the thread and the bell read', () => {
       const fields = top(chatMessagesWithMemberQuery).selectionSet.selections.map(

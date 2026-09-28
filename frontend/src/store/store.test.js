@@ -10,6 +10,12 @@ import {
   startChatUpdates,
 } from '@/composables/useChatUpdates'
 import { firstLoginWindow, setFirstLoginWindowWanted } from '@/composables/useFirstLoginWindow'
+import {
+  chatImage,
+  chatImageViewState,
+  openChatImageView,
+  rememberChatImage,
+} from '@/composables/useChatImages'
 
 vi.mock('../i18n', () => ({
   default: {
@@ -440,6 +446,50 @@ describe('Vuex store', () => {
         logout({ commit, state, dispatch })
 
         expect(avatarZoomState.value).toBeNull()
+      })
+
+      /**
+       * ⛔ The pictures of the chat's messages, kept in memory for the session (useChatImages):
+       * beside the avatars, for the same reason -- the next member to sign in on this browser must
+       * not be handed the pictures of the conversations of the one before. Their addresses are
+       * given back to the browser.
+       */
+      it('lets go of the chat’s pictures', () => {
+        URL.createObjectURL = vi.fn(() => 'blob:a-picture')
+        URL.revokeObjectURL = vi.fn()
+        try {
+          rememberChatImage('image-1', btoa('JPEG'))
+          // The fixture proves itself: a picture that was never kept would pass below unforgotten.
+          expect(chatImage('image-1')).toEqual({ state: 'ready', src: 'blob:a-picture' })
+
+          logout({ commit, state, dispatch })
+
+          expect(chatImage('image-1')).toBeNull()
+          expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:a-picture')
+        } finally {
+          delete URL.createObjectURL
+          delete URL.revokeObjectURL
+        }
+      })
+
+      /**
+       * ⛔ And the picture open large, like the avatar's zoom above: its view keeps it in its own
+       * module, and the idle-timeout logout comes precisely when somebody sits looking at it.
+       */
+      it('closes the chat’s picture that is open large', () => {
+        openChatImageView({
+          imageUuid: 'image-1',
+          width: 800,
+          height: 600,
+          who: 'Lena',
+          name: 'Lena',
+        })
+        // The fixture proves itself: a view never opened would pass below unclosed.
+        expect(chatImageViewState.value).not.toBeNull()
+
+        logout({ commit, state, dispatch })
+
+        expect(chatImageViewState.value).toBeNull()
       })
 
       /**

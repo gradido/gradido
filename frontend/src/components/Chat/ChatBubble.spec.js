@@ -2,11 +2,25 @@
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { mount } from '@vue/test-utils'
-import { describe, it, expect, afterEach, vi } from 'vitest'
+import { flushPromises, mount } from '@vue/test-utils'
+import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
 import ChatBubble from './ChatBubble.vue'
+import { forgetAllChatImages, rememberChatImage } from '@/composables/useChatImages'
 import { CHAT_VIDEO_JOIN } from '@/utils/chatVideoApp'
 import { withChatVideoTopic } from '@/utils/chatVideoTopic'
+
+/**
+ * The client a picture is asked for with (ChatBubbleImage, useChatImages): each question waits for
+ * the answer a test gives it.
+ */
+const pictureServer = vi.hoisted(() => ({ asked: [] }))
+vi.mock('@vue/apollo-composable', () => ({
+  useApolloClient: () => ({
+    client: {
+      query: (options) => new Promise((resolve) => pictureServer.asked.push({ options, resolve })),
+    },
+  }),
+}))
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
@@ -755,6 +769,219 @@ describe('ChatBubble', () => {
       ).replace(/\/\*[\s\S]*?\*\//g, '')
       expect(code).toMatch(/\.chat-bubble-calendar-add:focus-visible\s*\{[^}]*outline:\s*2px solid/)
       expect(code).toMatch(/\.chat-bubble-calendar-add\s*\{[^}]*min-height:\s*2rem/)
+    })
+  })
+
+  /**
+   * P7: a message with a picture (E-044 F3/F5; the mockup, "Bilder im Faden"). The picture on top,
+   * in the room its size gives it before it has come; its caption under it in the same bubble; a
+   * tap opens it large.
+   */
+  describe('a message with a picture', () => {
+    const PICTURE = { imageUuid: 'image-7', width: 800, height: 600 }
+    const WITH = { ...THEIRS, body: 'So sieht unser Stand aus.', images: [PICTURE] }
+
+    const button = () => wrapper.find('[data-test="chat-bubble-image"]')
+    const picture = () => wrapper.find('[data-test="chat-bubble-image-picture"]')
+    const missing = () => wrapper.find('[data-test="chat-bubble-image-missing"]')
+    const answer = async (index, base64) => {
+      pictureServer.asked[index].resolve({ data: { chatMessageImage: base64 } })
+      await flushPromises()
+    }
+
+    const OriginalObserver = globalThis.IntersectionObserver
+    beforeEach(() => {
+      pictureServer.asked = []
+      URL.createObjectURL = vi.fn(() => 'blob:the-picture')
+      URL.revokeObjectURL = vi.fn()
+    })
+    afterEach(() => {
+      forgetAllChatImages()
+      delete URL.createObjectURL
+      delete URL.revokeObjectURL
+      globalThis.IntersectionObserver = OriginalObserver
+    })
+
+    /**
+     * ⛔ The room before the picture: its width and height from the message, as attributes and as
+     * proportions -- nothing below jumps when it comes. Until then a quiet surface, no spinner.
+     */
+    it('keeps the picture’s room before it has come, on a quiet surface', () => {
+      mountBubble(WITH)
+
+      expect(picture().attributes('width')).toBe('800')
+      expect(picture().attributes('height')).toBe('600')
+      expect(picture().attributes('style')).toContain('aspect-ratio: 800 / 600')
+      expect(picture().attributes('src')).toBeUndefined()
+      expect(picture().classes()).toContain('is-waiting')
+      expect(wrapper.find('.spinner-border').exists()).toBe(false)
+    })
+
+    it('shows the picture once it has come', async () => {
+      mountBubble(WITH)
+      expect(pictureServer.asked).toHaveLength(1)
+      expect(pictureServer.asked[0].options.variables).toEqual({ imageUuid: 'image-7' })
+
+      await answer(0, btoa('JPEG'))
+
+      expect(picture().attributes('src')).toBe('blob:the-picture')
+      expect(picture().classes()).not.toContain('is-waiting')
+    })
+
+    // The server gave nothing -- not there, not for this member, not any more.
+    it('says "Bild nicht verfügbar" where no picture comes, in the room it would have had', async () => {
+      mountBubble(WITH)
+
+      await answer(0, null)
+
+      expect(button().exists()).toBe(false)
+      expect(missing().text()).toBe('chatThread.imageMissing')
+      expect(missing().attributes('style')).toContain('aspect-ratio: 800 / 600')
+      // The caption stays.
+      expect(wrapper.find('.chat-message-text').text()).toBe('So sieht unser Stand aus.')
+    })
+
+    // E-044 F3: the caption under the picture, in the same bubble -- as any text, with its links.
+    it('puts the caption under the picture, in the same bubble, as any text', () => {
+      mountBubble({ ...WITH, body: 'Der Stand: https://ki-playground.gradido.net/u/Lena' })
+
+      const inside = wrapper.find('.chat-bubble')
+      expect(inside.classes()).toContain('has-image')
+      const text = inside.find('.chat-message-text')
+      expect(
+        button().element.compareDocumentPosition(text.element) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy()
+      expect(text.find('a').attributes('href')).toBe('https://ki-playground.gradido.net/u/Lena')
+    })
+
+    it('has no caption where the picture came without words', () => {
+      mountBubble({ ...WITH, body: '' })
+
+      expect(button().exists()).toBe(true)
+      expect(wrapper.find('.chat-message-text').exists()).toBe(false)
+    })
+
+    // Gegenprobe: a message without a picture is the bubble it always was.
+    it('leaves a message without a picture as it was', () => {
+      mountBubble(THEIRS)
+      expect(wrapper.find('.chat-bubble').classes()).not.toContain('has-image')
+      expect(button().exists()).toBe(false)
+      mountBubble({ ...THEIRS, images: [] })
+      expect(button().exists()).toBe(false)
+      expect(pictureServer.asked).toEqual([])
+    })
+
+    // A tap asks for it large: the thread opens the view, and gets the button for the focus.
+    it('asks for the picture large on a tap, with the button that was pressed', async () => {
+      mountBubble(WITH)
+
+      await button().trigger('click')
+
+      expect(wrapper.emitted('openImage')).toEqual([
+        [{ message: WITH, image: PICTURE, opener: button().element }],
+      ])
+    })
+
+    it('is a button that says what it does', () => {
+      mountBubble(WITH)
+
+      expect(button().element.tagName).toBe('BUTTON')
+      expect(button().attributes('type')).toBe('button')
+      expect(button().attributes('aria-label')).toBe('chatThread.imageOpen')
+      expect(button().attributes('title')).toBe('chatThread.imageOpen')
+      expect(picture().attributes('alt')).toBe('')
+    })
+
+    // One's own picture, just sent, is here already (ChatThread keeps it from the JPEG).
+    it('asks nothing for a picture that is here already', () => {
+      rememberChatImage('image-7', btoa('JPEG'))
+
+      mountBubble({ ...WITH, mine: true })
+
+      expect(pictureServer.asked).toEqual([])
+      expect(picture().attributes('src')).toBe('blob:the-picture')
+    })
+
+    /**
+     * Only the bubbles in sight fetch their picture: a long thread opened at its end does not ask
+     * for the pictures of its beginning. Without an IntersectionObserver, when it is drawn (above).
+     */
+    it('asks for the picture once its bubble is in sight', async () => {
+      const observers = []
+      globalThis.IntersectionObserver = class {
+        constructor(callback) {
+          this.callback = callback
+          this.observed = []
+          this.disconnect = vi.fn()
+          observers.push(this)
+        }
+
+        observe(element) {
+          this.observed.push(element)
+        }
+      }
+      mountBubble(WITH)
+
+      expect(pictureServer.asked).toEqual([])
+      expect(observers[0].observed).toEqual([button().element])
+
+      observers[0].callback([{ isIntersecting: false }])
+      expect(pictureServer.asked).toEqual([])
+
+      observers[0].callback([{ isIntersecting: true }])
+      expect(pictureServer.asked).toHaveLength(1)
+      expect(observers[0].disconnect).toHaveBeenCalled()
+
+      wrapper.unmount()
+      wrapper = null
+    })
+
+    it('stops watching when the bubble goes before its picture was asked for', () => {
+      const disconnect = vi.fn()
+      globalThis.IntersectionObserver = class {
+        observe() {}
+
+        disconnect() {
+          disconnect()
+        }
+      }
+      mountBubble(WITH)
+
+      wrapper.unmount()
+      wrapper = null
+
+      expect(disconnect).toHaveBeenCalled()
+      expect(pictureServer.asked).toEqual([])
+    })
+
+    const style = (file) =>
+      readFileSync(join(dirname(fileURLToPath(import.meta.url)), file), 'utf8').replace(
+        /\/\*[\s\S]*?\*\//g,
+        '',
+      )
+    const rule = (code, selector) =>
+      code.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
+
+    /**
+     * What only the stylesheet holds (jsdom lays nothing out): the bubble 16.5rem wide and never
+     * more than 80 %, little room around the picture; the picture as wide as the bubble, at most
+     * 22rem high, cut at the bottom with its top in sight (E-044 F5).
+     */
+    it('draws the bubble and the picture as the mockup has them', () => {
+      const bubbleCode = style('ChatBubble.vue')
+      expect(rule(bubbleCode, '\\.chat-bubble\\.has-image')).toMatch(/width:\s*16\.5rem/)
+      expect(rule(bubbleCode, '\\.chat-bubble\\.has-image')).toMatch(/padding:\s*0\.25rem/)
+      expect(rule(bubbleCode, '\\.chat-bubble')).toMatch(/max-width:\s*80%/)
+
+      const pictureCode = style('ChatBubbleImage.vue')
+      const img = rule(pictureCode, '\\.chat-bubble-image-picture')
+      expect(img).toMatch(/width:\s*100%/)
+      expect(img).toMatch(/max-height:\s*22rem/)
+      expect(img).toMatch(/object-fit:\s*cover/)
+      expect(img).toMatch(/object-position:\s*top/)
+      expect(rule(pictureCode, '\\.chat-bubble-image:focus-visible')).toMatch(
+        /outline:\s*2px solid/,
+      )
     })
   })
 })

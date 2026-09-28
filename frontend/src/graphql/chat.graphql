@@ -23,6 +23,11 @@
 # person's messages while it is set; false where there is no conversation yet. It comes
 # with the thread, so the bell needs no question of its own (E-017: one question on
 # opening).
+#
+# `images` (P7): the picture a message carries, named -- what to fetch it by (the server's
+# chatMessageImage) and its size, which the bubble takes its room from before it has come. Never
+# the picture itself: a page of fifty messages with pictures would carry more than a megabyte.
+# Empty for a message without one.
 query chatMessagesWithMemberQuery($ref: MemberAvatarRefInput!, $before: Int, $limit: Int) {
   chatMessagesWithMember(ref: $ref, before: $before, limit: $limit) {
     hasMore
@@ -42,6 +47,11 @@ query chatMessagesWithMemberQuery($ref: MemberAvatarRefInput!, $before: Int, $li
       deliveryState
       notify
       mailState
+      images {
+        imageUuid
+        width
+        height
+      }
     }
   }
 }
@@ -85,6 +95,11 @@ query newChatMessagesSince($afterId: Int, $limit: Int) {
       deliveryState
       notify
       mailState
+      images {
+        imageUuid
+        width
+        height
+      }
     }
   }
 }
@@ -105,8 +120,19 @@ mutation markChatConversationRead($ref: MemberAvatarRefInput!, $upToMessageId: I
 # error -- the copy comes back with `deliveryState` FAILED (E-019). An error is one of
 # CHAT_MESSAGE_NOT_SENT: TO_ONESELF | UNKNOWN_RECIPIENT | NO_WAY_TO_DELIVER | NOT_STORED, and
 # nothing was sent.
-mutation sendChatMessage($ref: MemberAvatarRefInput!, $body: String!, $notify: ChatMessageNotify!) {
-  sendChatMessage(ref: $ref, body: $body, notify: $notify) {
+#
+# `image` (P7): one picture with the message, the JPEG as base64 and its size in whole pixels
+# (utils/chatImage); with it the text may be empty. ⛔ The variable is called `$image` -- the name
+# the backend's request log masks (LOG-071). Refused as CHAT_IMAGE_NOT_ACCEPTED: EMPTY | TOO_LARGE |
+# NOT_JPEG | SIZE, or, to another community, CHAT_MESSAGE_NOT_SENT: TOO_LARGE_ACROSS_BORDER (the
+# text is too long to go with it). `images` on the copy names the picture as it was filed.
+mutation sendChatMessage(
+  $ref: MemberAvatarRefInput!
+  $body: String!
+  $notify: ChatMessageNotify!
+  $image: ChatImageInput
+) {
+  sendChatMessage(ref: $ref, body: $body, notify: $notify, image: $image) {
     id
     messageUuid
     conversationId
@@ -121,6 +147,11 @@ mutation sendChatMessage($ref: MemberAvatarRefInput!, $body: String!, $notify: C
     deliveryState
     notify
     mailState
+    images {
+      imageUuid
+      width
+      height
+    }
   }
 }
 
@@ -159,6 +190,18 @@ query chatVideoRoom($serverId: Int) {
     host
     operator
   }
+}
+
+# The picture of a chat message (P7), as base64, by the uuid a message names it by (`images`
+# above): only for a member of its conversation, while its message is not deleted -- null for
+# everything else, with nothing that tells those apart. One picture a call; the server serves ten
+# per HTTP request, and every query here is a request of its own.
+#
+# ⛔ Always asked with `fetchPolicy: 'no-cache'` (useChatImages): the cache would keep every picture
+# as some 44,000 characters of base64 for the life of the tab. The pictures are kept as bytes, in
+# memory, and let go at logout.
+query chatMessageImage($imageUuid: String!) {
+  chatMessageImage(imageUuid: $imageUuid)
 }
 
 # The servers a member may choose for a call (V5): those chatVideoRoom hands rooms out on right
