@@ -264,6 +264,9 @@ describe('UserResolver', () => {
               // A person who may create: the column default, and the sentence for every
               // account that exists (ES-021).
               creationAllowed: true,
+              // On from the start (Einstellungen › Nachrichten): the transfers stand in the
+              // conversations, and a mail goes out about one received.
+              transfersInChat: true,
               gender: null,
               salutation: null,
               creaSignature: null,

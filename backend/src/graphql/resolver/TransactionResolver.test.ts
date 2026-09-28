@@ -466,50 +466,6 @@ describe('send coins', () => {
         )
       })
     })
-    // The recipient's own switch (Einstellungen › Nachrichten, "Überweisungen im Chat und per
-    // E-Mail", on by default): switched off, no mail about a transfer received.
-    describe('the mail about a transfer received', () => {
-      const mailed = sendTransactionReceivedEmail as jest.Mock
-      const sendOne = (memo: string) =>
-        mutate({
-          mutation: sendCoins,
-          variables: {
-            recipientCommunityIdentifier: homeCom.communityUuid,
-            recipientIdentifier: 'peter@lustig.de',
-            amount: '1',
-            memo,
-          },
-        })
-
-      afterAll(async () => {
-        await User.update({ id: peter.id }, { transfersInChat: true })
-      })
-
-      it('goes out to the recipient by default', async () => {
-        mailed.mockClear()
-        await expect(sendOne('with a mail, please')).resolves.toMatchObject({
-          data: { sendCoins: true },
-          errors: undefined,
-        })
-        expect(mailed).toHaveBeenCalledWith(
-          expect.objectContaining({ email: 'peter@lustig.de', memo: 'with a mail, please' }),
-        )
-      })
-
-      it('stays at home where the recipient switched transfers off, the transfer made all the same', async () => {
-        await User.update({ id: peter.id }, { transfersInChat: false })
-        mailed.mockClear()
-        await expect(sendOne('no mail, please')).resolves.toMatchObject({
-          data: { sendCoins: true },
-          errors: undefined,
-        })
-        expect(mailed).not.toHaveBeenCalled()
-        await expect(
-          Transaction.findOne({ where: { userId: peter.id, memo: 'no mail, please' } }),
-        ).resolves.not.toBeNull()
-      })
-    })
-
     describe('send coins via gradido ID', () => {
       it('sends the coins', async () => {
         await expect(
@@ -973,6 +929,57 @@ describe('send coins', () => {
             },
           }),
         )
+      })
+    })
+
+    // The recipient's own switch (Einstellungen › Nachrichten, "Überweisungen im Chat und per
+    // E-Mail", on by default): switched off, no mail about a transfer received. Last in this
+    // block: its two transfers to peter would otherwise stand in "peter's transactions", which
+    // pins his whole list.
+    describe('the mail about a transfer received', () => {
+      const mailed = sendTransactionReceivedEmail as jest.Mock
+      const sendOne = (memo: string) =>
+        mutate({
+          mutation: sendCoins,
+          variables: {
+            recipientCommunityIdentifier: homeCom.communityUuid,
+            recipientIdentifier: 'peter@lustig.de',
+            amount: '1',
+            memo,
+          },
+        })
+
+      // The sender, whoever the block before logged in last.
+      beforeAll(async () => {
+        await mutate({ mutation: login, variables: bobData })
+      })
+
+      afterAll(async () => {
+        await User.update({ id: peter.id }, { transfersInChat: true })
+      })
+
+      it('goes out to the recipient by default', async () => {
+        mailed.mockClear()
+        await expect(sendOne('with a mail, please')).resolves.toMatchObject({
+          data: { sendCoins: true },
+          errors: undefined,
+        })
+        expect(mailed).toHaveBeenCalledWith(
+          expect.objectContaining({ email: 'peter@lustig.de', memo: 'with a mail, please' }),
+        )
+      })
+
+      it('stays at home where the recipient switched transfers off, the transfer made all the same', async () => {
+        await User.update({ id: peter.id }, { transfersInChat: false })
+        mailed.mockClear()
+        await expect(sendOne('no mail, please')).resolves.toMatchObject({
+          data: { sendCoins: true },
+          errors: undefined,
+        })
+        expect(mailed).not.toHaveBeenCalled()
+        await expect(
+          Transaction.findOne({ where: { userId: peter.id, memo: 'no mail, please' } }),
+        ).resolves.not.toBeNull()
       })
     })
   })
