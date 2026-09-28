@@ -4,7 +4,6 @@ import { AbstractRegisterUserRole } from './AbstractRegisterUser.role'
 import { CreateUser } from './createUser.schema'
 import { RegisterUserRole } from './RegisterUser.role'
 import { RegisterUserCardRole } from './RegisterUserCard.role'
-import { RegisterUserExistRole } from './RegisterUserExist.role'
 import { RegisterUserForProjectRole } from './RegisterUserForProject.role'
 import { RegisterUserFromTransactionLinkRole } from './RegisterUserFromTransactionLink.role'
 import { RegisterUserReferrerRole } from './RegisterUserReferrer.role'
@@ -33,11 +32,7 @@ function isRegistrationWithReferrerAlias(input: CreateUser): boolean {
 export async function registerUser(input: CreateUser, logger: Logger): Promise<number> {
   let role: AbstractRegisterUserRole
 
-  // check if user with email already exists?
-  const userAlreadyExist = await dbFindUserByEmail(input.email)
-  if (userAlreadyExist) {
-    role = new RegisterUserExistRole(input, userAlreadyExist)
-  } else if (isRegistrationForProject(input)) {
+  if (isRegistrationForProject(input)) {
     role = new RegisterUserForProjectRole(input)
   } else if (isRegistrationFromTransactionLink(input)) {
     role = new RegisterUserFromTransactionLinkRole(input)

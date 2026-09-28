@@ -96,8 +96,11 @@ export async function dbFindUserLoginByEmail(
   }
 }
 
-export async function dbFindUserByEmail(email: string): Promise<UserSelect | null> {
-  const rows = await drizzleDb()
+export async function dbFindUserByEmail(email: string, tx?: DrizzleTransaction | MySql2Database): Promise<UserSelect | null> {
+  if (!tx) {
+    tx = drizzleDb()
+  }
+  const rows = await tx
     .select({ user: usersTable })
     .from(usersTable)
     .innerJoin(userContactsTable, eq(usersTable.emailId, userContactsTable.id))

@@ -1,7 +1,8 @@
 import { OptInType } from '@enum/OptInType'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { UserContactType } from '@enum/UserContactType'
-import { registerAddressTransaction, sendAccountActivationEmail } from 'core'
+import { registerAddressTransaction, sendAccountActivationEmail, sendAccountMultiRegistrationEmail } from 'core'
+import { randombytes_random } from 'sodium-native'
 import {
   ALIAS_ORIGIN_ASSIGNED,
   ALIAS_ORIGIN_CHOSEN,
@@ -25,6 +26,9 @@ import {
   getHomeCommunityDrizzle,
   UserContactInsert,
   UserInsert,
+  DBDuplicateEntryError,
+  dbFindUserByEmail,
+  UserSelect,
 } from 'database'
 import { Logger } from 'log4js'
 import random from 'random-bigint'
@@ -33,12 +37,14 @@ import {
   aliasVariantsPattern,
   findFirstFreeAlias,
   primaryAliasCandidate,
+  Result,
 } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
 import { CONFIG } from '@/config'
 import { syncHumhub } from '@/graphql/resolver/util/syncHumhub'
 import { getTimeDurationObject } from '@/util/time'
 import { AbstractRegisterUserRole } from './AbstractRegisterUser.role'
+import { RegisterUserDuplicateError } from './errorTypes'
 
 /**
  * Everything a new account is made of. Moved verbatim out of `createUser` so the
@@ -112,7 +118,7 @@ export class RegisterUserRole extends AbstractRegisterUserRole {
     dbUser: UserInsert,
     logger: Logger,
     tx?: DrizzleTransaction,
-  ): Promise<number> {
+  ): Promise<Result<number, RegisterUserDuplicateError>> {
     // write user
     let insertUserResult = await dbInsertUser(dbUser, tx)
     // maybe gradido uuid collided? Shouldn't happen nearly never, so let's try one time again
@@ -132,10 +138,15 @@ export class RegisterUserRole extends AbstractRegisterUserRole {
       throw new Error('Error while saving dbUser')
     }
     this.userId = insertUserResult.value
+    
     // write user contact
     let userContact = this.prepareUserContact()
     let insertUserContactResult = await dbInsertUserContact(userContact, tx)
     if (!insertUserContactResult.success) {
+      const existingUser = await dbFindUserByEmail(this.user.email, tx)
+      if (existingUser) {
+        return { success: false, error: new RegisterUserDuplicateError(existingUser) }
+      }
       if (
         await dbIsUserContactFieldExist(
           'emailVerificationCode',
@@ -146,19 +157,15 @@ export class RegisterUserRole extends AbstractRegisterUserRole {
         // email verification code collision, we try again one time
         userContact = this.prepareUserContact()
         insertUserContactResult = await dbInsertUserContact(userContact, tx)
+      } else {
+        logger.error(`Unexpected, insert user contact failed, but email and email verification code don't collide`)
+        throw new Error('Error while saving user email contact')
       }
     }
     if (!insertUserContactResult.success) {
-      const existingUserContactId = await dbIsUserContactFieldExist('email', this.user.email, tx)
-      if (existingUserContactId) {
-        logger.error(
-          `email already exist but dbFindUserByEmail should be aware of this, userContact.id: ${existingUserContactId}`,
-        )
-      } else {
-        logger.error(
-          `email verfication code random produce two already existing codes in a row, last one: ${userContact.emailVerificationCode}`,
-        )
-      }
+      logger.error(
+       `email verfication code random produce two already existing codes in a row, last one: ${userContact.emailVerificationCode}`,
+      )
       throw new Error('Error while saving user email contact')
     }
     this.userContactId = insertUserContactResult.value
@@ -168,7 +175,7 @@ export class RegisterUserRole extends AbstractRegisterUserRole {
       logger.error(`update emailId: ${this.userContactId} for user=${this.userId} failed`)
       throw new Error('Error while updating dbUser')
     }
-    return insertUserResult.value
+    return { success: true, value: insertUserResult.value }
   }
 
   // Everybody holds a name from here on. Migration 0116 covers the members who
@@ -224,9 +231,14 @@ export class RegisterUserRole extends AbstractRegisterUserRole {
   }
 
   public async run(logger: Logger): Promise<number> {
+       
     let userId: number | null = null
     try {
-      userId = await this.storeUserAndUserContact(await this.prepareUser(), logger)
+      const storeUserAndContactResult = await this.storeUserAndUserContact(await this.prepareUser(), logger)
+      if (!storeUserAndContactResult.success) {
+        return this.userAlreadyExist(storeUserAndContactResult.error.user, logger)
+      }
+      userId = storeUserAndContactResult.value
       logger.addContext('user', userId)
       const finalAlias = await this.generateAndStoreAlias(logger)
       if ((await dbUserUpdateField(userId, 'alias', finalAlias)) !== 1) {
@@ -313,6 +325,30 @@ export class RegisterUserRole extends AbstractRegisterUserRole {
     } catch (e) {
       logger.error("registerAccount: couldn't reach out to humhub, disable for now", e)
     }
+  }
+
+  public async userAlreadyExist(existingUser: UserSelect, logger: Logger): Promise<number> {
+    logger.addContext('user', existingUser.id)
+    logger.removeContext('email')
+    // ATTENTION: this logger-message will be exactly expected during tests, next line
+    logger.info(`User already exists`)
+
+    await sendAccountMultiRegistrationEmail({
+      firstName: this.user.firstName,
+      lastName: this.user.lastName,
+      email: this.user.email,
+      language: existingUser.language, // use language of the emails owner for sending
+    })
+    await dbInsertEvent({
+      type: EventType.EMAIL_ACCOUNT_MULTIREGISTRATION,
+      affectedUserId: existingUser.id,
+      actingUserId: 0,
+    })
+    let fakeUserId = 0
+    while (!fakeUserId) {
+      fakeUserId = (randombytes_random() % (2048 * 16)) + 1
+    }
+    return fakeUserId
   }
 
   // for overloading from child classes, called before run is returning user id
