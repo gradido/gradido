@@ -166,6 +166,20 @@ describe('Login', () => {
   })
 
   describe('submit', () => {
+    // iOS kept offering the saved password after every later tap in the home-screen app
+    // (Bernd, 28.09.2026): the form went away while its field still held the focus.
+    it('releases the focused field before leaving the form', async () => {
+      const blur = vi.fn()
+      const focused = vi.spyOn(Document.prototype, 'activeElement', 'get').mockReturnValue({ blur })
+      await wrapper.find('#email-input-field').setValue('user@example.org')
+      await wrapper.find('#password-input-field').setValue('1234')
+      mockMutate.mockResolvedValue({ data: { login: { language: 'en' } } })
+      await wrapper.find('form').trigger('submit')
+      await flushPromises()
+      focused.mockRestore()
+      expect(blur).toHaveBeenCalled()
+    })
+
     describe('valid data', () => {
       beforeEach(async () => {
         await wrapper.find('#email-input-field').setValue('user@example.org')
