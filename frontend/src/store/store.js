@@ -53,7 +53,14 @@ export const mutations = {
   token: (state, token) => {
     state.token = token
     if (token) {
-      state.tokenTime = jwtDecode(token).exp
+      // When the session ends by THIS device's clock: the token's own lifetime (`exp - iat`, the
+      // server's setting) counted from now, as the answer carrying the token arrives. Not `exp`
+      // itself, which is the server's clock: a computer whose clock runs hours ahead -- a wrong
+      // time zone, the time put right by hand -- would read every session as over, and the sign-in
+      // guard (routes/guards.js) would send it back to the form on every page. A token without
+      // `iat` keeps `exp`.
+      const { exp, iat } = jwtDecode(token)
+      state.tokenTime = iat ? Math.floor(Date.now() / 1000) + (exp - iat) : exp
     } else {
       state.tokenTime = null
     }

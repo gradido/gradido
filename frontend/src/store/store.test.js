@@ -118,6 +118,20 @@ describe('Vuex store', () => {
           expect(jwtDecode).toHaveBeenCalledWith('token')
           expect(state.tokenTime).toEqual('1234')
         })
+
+        // When the session ends by this device's clock: the token's own lifetime from now. The
+        // server issued this one at 1 000 000 for an hour; the device's clock runs two hours
+        // ahead, as on a computer with a wrong time zone. By `exp` the session would be over
+        // before it began, and the sign-in guard would send the member back to the form.
+        it('counts the token lifetime from now, by the device clock', () => {
+          vi.useFakeTimers()
+          vi.setSystemTime((1000000 + 7200) * 1000)
+          jwtDecode.mockReturnValueOnce({ iat: 1000000, exp: 1003600 })
+          const state = { token: null, tokenTime: null }
+          token(state, 'token')
+          vi.useRealTimers()
+          expect(state.tokenTime).toBe(1000000 + 7200 + 3600)
+        })
       })
 
       describe('token has null value', () => {
