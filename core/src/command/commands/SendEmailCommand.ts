@@ -20,6 +20,12 @@ import {
   readChatMemberMutedAt,
   storeChatMessage,
 } from '../../logic/ChatMessage.logic'
+import {
+  acceptIncomingChatMessageImages,
+  ChatMessageImageToStore,
+  removeChatMessageImages,
+  storeIncomingChatMessageImage,
+} from '../../logic/ChatMessageImage.logic'
 import { BaseCommand } from '../BaseCommand'
 
 const createLogger = (method: string) =>
@@ -151,6 +157,9 @@ export class SendEmailCommand extends BaseCommand<
     if (!this.validate()) {
       throw new Error('Invalid command parameters')
     }
+    // P7b: the picture of a chat message is checked before anything is filed, the sender
+    // included, as the sending server checked it; one this server refuses refuses the command.
+    const pictures = this.acceptedPictures()
     // find sender user
     methodLogger.debug(
       `find sender user: ${this.sendEmailCommandParams.senderComUuid} ${this.sendEmailCommandParams.senderGradidoId}`,
@@ -200,15 +209,34 @@ export class SendEmailCommand extends BaseCommand<
         // spelling this server stores them in. A sender's uuid that is none is replaced, like
         // a missing one from an older server.
         const sentUuid = uuidv4Schema.safeParse(this.sendEmailCommandParams.messageUuid)
+        const messageUuid = sentUuid.success ? sentUuid.data : randomUUID()
         const notify = parseChatMessageNotify(this.sendEmailCommandParams.notify)
         const letter = this.sendEmailCommandParams.notify === CHAT_MESSAGE_NOTIFY_LETTER
         const recipient = {
           communityUuid: recipientUser.communityUuid,
           gradidoId: recipientUser.gradidoID,
         }
+        // P7b: the picture first, under the message's uuid, then the message -- as the sending
+        // server filed its copy. A message with a picture that cannot be filed refuses the
+        // command and is not mailed: the sender sees "not delivered" rather than a message that
+        // lacks its picture over here (E-034). A picture a delivery of the same command filed
+        // before is not taken out again.
+        const [picture] = pictures
+        let pictureFiledNow = false
+        if (picture) {
+          const filed = await storeIncomingChatMessageImage(messageUuid, picture)
+          if (!filed.success) {
+            throw new Error(
+              filed.error === 'CONTRADICTION'
+                ? 'CHAT_IMAGE_NOT_ACCEPTED: CONTRADICTION'
+                : 'CHAT_MESSAGE_NOT_STORED',
+            )
+          }
+          pictureFiledNow = filed.value === 'FILED'
+        }
         const stored = await storeChatMessage(
           {
-            messageUuid: sentUuid.success ? sentUuid.data : randomUUID(),
+            messageUuid,
             sender: { communityUuid: senderUser.communityUuid, gradidoId: senderUser.gradidoID },
             recipient,
             subject: this.sendEmailCommandParams.subject || null,
@@ -218,6 +246,12 @@ export class SendEmailCommand extends BaseCommand<
           },
           'incoming',
         )
+        if (!stored && picture) {
+          if (pictureFiledNow) {
+            await removeChatMessageImages(messageUuid)
+          }
+          throw new Error('CHAT_MESSAGE_NOT_STORED')
+        }
         // A chat message is mailed when the sender asked for it and the recipient has not muted
         // the conversation (E-024), read here, on the recipient's own server; a letter from the
         // form whatever the quiet (E-034). A message that could not be filed is mailed as before
@@ -230,7 +264,8 @@ export class SendEmailCommand extends BaseCommand<
           ? chatMessageMailState(notify, mutedAt, letter)
           : ChatMessageMailState.MAILED
         if (mailState === ChatMessageMailState.MAILED) {
-          const emailResult = await sendCustomEmail(emailParams)
+          // The mail says there is a picture, and shows none (MAIL-008), as within a community.
+          const emailResult = await sendCustomEmail({ ...emailParams, hasImage: Boolean(picture) })
           methodLogger.debug(`mailed: ${this.getEmailResult(emailResult)}`)
           // A mail that did not go out is not answered as one; the transport's report stays here.
           if (!chatMailWentOut(emailResult)) {
@@ -259,6 +294,27 @@ export class SendEmailCommand extends BaseCommand<
       methodLogger.error('Error executing SendEmailCommand:', error)
       throw error
     }
+  }
+
+  /**
+   * The picture of a chat message (P7b), checked as the sending server checked it
+   * (acceptIncomingChatMessageImages): one at most, named by a uuid, a JPEG within the limits.
+   *
+   * ⛔ A picture refused here refuses the whole command -- nothing filed, nothing mailed. The
+   * sending server checks the same before it sends, so a refusal is a bug or a forgery, and the
+   * sender is to see "not delivered" rather than a message that lacks its picture over here
+   * (E-034: the software says what happens).
+   */
+  private acceptedPictures(): ChatMessageImageToStore[] {
+    const accepted = acceptIncomingChatMessageImages(this.sendEmailCommandParams.images)
+    if (!accepted.success) {
+      const sentUuid = uuidv4Schema.safeParse(this.sendEmailCommandParams.messageUuid)
+      createLogger(`acceptedPictures`).warn(
+        `chat message picture refused: message_uuid=${sentUuid.success ? sentUuid.data : 'none'} (${accepted.error})`,
+      )
+      throw new Error(`CHAT_IMAGE_NOT_ACCEPTED: ${accepted.error}`)
+    }
+    return accepted.value
   }
 
   /**

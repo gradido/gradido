@@ -1,9 +1,10 @@
 // AI-GENERATED — not an architecture reference
 import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test'
 import * as database from 'database'
-import { uuidv4Schema } from 'shared'
+import { CHAT_IMAGE_MAX_BYTES, uuidv4Schema } from 'shared'
 import * as mails from '../../emails/sendEmailVariants'
 import * as chatMessage from '../../logic/ChatMessage.logic'
+import * as chatMessageImage from '../../logic/ChatMessageImage.logic'
 import { CommandExecutor } from '../CommandExecutor'
 import {
   chatMessageMailStateOfAnswer,
@@ -550,6 +551,214 @@ describe('SendEmailCommand, what the sending server is answered', () => {
     expect(customMail).toHaveBeenCalledTimes(1)
     expect(answer).toEqual({ success: true, data: SEND_MAIL_COMMAND_ANSWER.MAILED })
     expect(JSON.stringify(answer)).not.toContain('ben@example.org')
+  })
+})
+
+/**
+ * P7b: a chat message from another community with its picture. The picture is checked as the
+ * sending server checked it, before anything is filed; filed before its message, under the
+ * message's uuid; and the mail says there is one. Filing it runs against a database in
+ * database/src/queries/chatMessageImages.test.ts; what the command makes of each answer is held
+ * here.
+ */
+describe('SendEmailCommand, a message with a picture', () => {
+  const PICTURE_UUID = '40000000-0000-4000-8000-000000000001'
+  const OTHER_PICTURE_UUID = '40000000-0000-4000-8000-000000000002'
+  // A JPEG with something recognisable inside.
+  const JPEG = Buffer.concat([
+    Buffer.from([0xff, 0xd8]),
+    Buffer.from('a private picture of Anna and Ben'),
+    Buffer.from([0xff, 0xd9]),
+  ])
+  const filed = {
+    id: 5,
+    messageUuid: MESSAGE_UUID,
+    conversationId: 3,
+    senderCommunityUuid: SENDER_COMMUNITY,
+    senderGradidoId: SENDER.gradidoID,
+    subject: null,
+    body: 'Look at this',
+    notify: 'email',
+    deliveryState: 'delivered',
+    lastAttemptAt: null,
+    delaySeconds: null,
+    createdAt: new Date(),
+    deletedAt: null,
+  } as database.ChatMessageSelect
+  const arrived = (rest: Record<string, unknown> = {}) => ({
+    imageUuid: PICTURE_UUID,
+    width: 924,
+    height: 520,
+    data: JPEG.toString('base64'),
+    ...rest,
+  })
+  const withPicture = (
+    images: unknown[] = [arrived()],
+    rest: Partial<SendEmailCommandParams> = {},
+  ) =>
+    ({ ...params({ messageUuid: MESSAGE_UUID, memo: 'Look at this', ...rest }), images }) as object
+
+  let storePicture: ReturnType<typeof spyOn>
+  let removePictures: ReturnType<typeof spyOn>
+
+  beforeEach(() => {
+    store.mockImplementation(async () => {
+      happened.push('store')
+      return filed
+    })
+    storePicture = spyOn(chatMessageImage, 'storeIncomingChatMessageImage').mockImplementation(
+      async () => {
+        happened.push('picture')
+        return { success: true, value: 'FILED' }
+      },
+    )
+    removePictures = spyOn(chatMessageImage, 'removeChatMessageImages').mockImplementation(
+      async () => {
+        happened.push('picture out')
+      },
+    )
+    const mutedAt = spyOn(chatMessage, 'readChatMemberMutedAt').mockResolvedValue(null)
+    spies.push(storePicture, removePictures, mutedAt)
+  })
+
+  it('files the picture under the message it came with, then the message, then mails that there is one', async () => {
+    await expect(run(withPicture())).resolves.toBe(SEND_MAIL_COMMAND_ANSWER.MAILED)
+
+    expect(happened).toEqual(['picture', 'store', 'mail'])
+    expect(storePicture.mock.calls).toEqual([
+      [
+        MESSAGE_UUID,
+        { image: JPEG, width: 924, height: 520, imageUuid: PICTURE_UUID, position: 0 },
+      ],
+    ])
+    const [[message]] = store.mock.calls as [chatMessage.ChatMessageToStore][]
+    expect(message.messageUuid).toBe(MESSAGE_UUID)
+    // MAIL-008: the mail says there is a picture, and carries none.
+    expect(customMail).toHaveBeenCalledWith(
+      expect.objectContaining({ memo: 'Look at this', hasImage: true }),
+    )
+    expect(JSON.stringify(customMail.mock.calls)).not.toContain(JPEG.toString('base64'))
+    expect(removePictures).not.toHaveBeenCalled()
+  })
+
+  // E-044: a picture without a caption is a message.
+  it('files and mails a picture without a caption', async () => {
+    await run(withPicture([arrived()], { memo: '' }))
+
+    const [[message]] = store.mock.calls as [chatMessage.ChatMessageToStore][]
+    expect(message.body).toBe('')
+    expect(customMail).toHaveBeenCalledWith(expect.objectContaining({ memo: '', hasImage: true }))
+  })
+
+  // A message without a picture runs as before: no picture filed, and no word of one in the mail.
+  it('files no picture for a message without one, and mails no word of one', async () => {
+    for (const command of [params({ messageUuid: MESSAGE_UUID }), withPicture([])]) {
+      await run(command)
+    }
+
+    expect(storePicture).not.toHaveBeenCalled()
+    expect(customMail).toHaveBeenCalledTimes(2)
+    for (const [mail] of customMail.mock.calls) {
+      expect(mail).toMatchObject({ hasImage: false })
+    }
+  })
+
+  // ⛔ A picture this server refuses refuses the whole command: nothing filed -- not even a sender
+  // this server does not know yet -- and nothing mailed. The sender sees "not delivered".
+  it('refuses the command for a picture that is no JPEG, too large, too many pixels, without a uuid, or one of two -- and files and mails nothing', async () => {
+    const answers = []
+    for (const images of [
+      [arrived({ data: Buffer.from('not an image').toString('base64') })],
+      [arrived({ data: Buffer.alloc(CHAT_IMAGE_MAX_BYTES + 1, 0xff).toString('base64') })],
+      [arrived({ width: 1000, height: 501 })],
+      [arrived({ imageUuid: 'not-a-uuid' })],
+      [arrived(), arrived({ imageUuid: OTHER_PICTURE_UUID })],
+      [arrived({ data: 42 })],
+    ]) {
+      answers.push(
+        await new CommandExecutor().executeCommand(
+          new SendEmailCommand([JSON.stringify(withPicture(images))]),
+        ),
+      )
+    }
+
+    expect(answers).toEqual(
+      ['NOT_JPEG', 'TOO_LARGE', 'SIZE', 'NO_UUID', 'TOO_MANY', 'MALFORMED'].map((reason) => ({
+        success: false,
+        error: `CHAT_IMAGE_NOT_ACCEPTED: ${reason}`,
+      })),
+    )
+    expect(findUser).not.toHaveBeenCalled()
+    expect(fileSender).not.toHaveBeenCalled()
+    expect(storePicture).not.toHaveBeenCalled()
+    expect(store).not.toHaveBeenCalled()
+    expect(customMail).not.toHaveBeenCalled()
+  })
+
+  // ⛔ The same command twice: one message, one picture, no error -- and the picture the first
+  // delivery filed is not taken out again.
+  it('takes the same command twice without an error, and takes no picture out', async () => {
+    storePicture
+      .mockResolvedValueOnce({ success: true, value: 'FILED' })
+      .mockResolvedValueOnce({ success: true, value: 'FILED_BEFORE' })
+
+    await expect(run(withPicture())).resolves.toBe(SEND_MAIL_COMMAND_ANSWER.MAILED)
+    await expect(run(withPicture())).resolves.toBe(SEND_MAIL_COMMAND_ANSWER.MAILED)
+
+    expect(
+      storePicture.mock.calls.map(([messageUuid, picture]) => [messageUuid, picture.imageUuid]),
+    ).toEqual([
+      [MESSAGE_UUID, PICTURE_UUID],
+      [MESSAGE_UUID, PICTURE_UUID],
+    ])
+    expect(store).toHaveBeenCalledTimes(2)
+    expect(removePictures).not.toHaveBeenCalled()
+  })
+
+  // Another picture where the message has one already: a contradiction, refused.
+  it('refuses the command where another picture is filed in its place, and files and mails nothing', async () => {
+    storePicture.mockResolvedValue({ success: false, error: 'CONTRADICTION' })
+
+    await expect(run(withPicture([arrived({ imageUuid: OTHER_PICTURE_UUID })]))).rejects.toThrow(
+      'CHAT_IMAGE_NOT_ACCEPTED: CONTRADICTION',
+    )
+
+    expect(store).not.toHaveBeenCalled()
+    expect(removePictures).not.toHaveBeenCalled()
+    expect(customMail).not.toHaveBeenCalled()
+  })
+
+  it('refuses the command where the picture could not be filed, and files and mails nothing', async () => {
+    storePicture.mockResolvedValue({ success: false, error: 'NOT_STORED' })
+
+    await expect(run(withPicture())).rejects.toThrow('CHAT_MESSAGE_NOT_STORED')
+
+    expect(store).not.toHaveBeenCalled()
+    expect(customMail).not.toHaveBeenCalled()
+  })
+
+  // ⛔ Unlike a message without a picture, which is mailed as before the chat: a mail would tell of
+  // a picture nobody can see.
+  it('takes the picture back out and refuses the command where the message could not be filed', async () => {
+    store.mockImplementation(async () => null)
+
+    await expect(run(withPicture())).rejects.toThrow('CHAT_MESSAGE_NOT_STORED')
+
+    expect(removePictures.mock.calls).toEqual([[MESSAGE_UUID]])
+    expect(happened).toEqual(['picture', 'picture out'])
+    expect(customMail).not.toHaveBeenCalled()
+  })
+
+  // A picture an earlier delivery of the same command filed belongs to the message that delivery
+  // filed: it stays.
+  it('leaves a picture filed before where the message could not be filed this time', async () => {
+    storePicture.mockResolvedValue({ success: true, value: 'FILED_BEFORE' })
+    store.mockImplementation(async () => null)
+
+    await expect(run(withPicture())).rejects.toThrow('CHAT_MESSAGE_NOT_STORED')
+
+    expect(removePictures).not.toHaveBeenCalled()
+    expect(customMail).not.toHaveBeenCalled()
   })
 })
 
