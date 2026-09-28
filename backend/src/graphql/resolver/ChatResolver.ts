@@ -278,8 +278,10 @@ export class ChatResolver {
    *
    * A message may carry a picture (P7), checked before anything else happens -- the way the
    * avatar is checked -- and refused as CHAT_IMAGE_NOT_ACCEPTED with the reason, nothing filed.
-   * Within this community only, until the next step (P7b): to a member of another one, a message
-   * with a picture is refused, IMAGE_ACROSS_BORDER, before anything is filed or sent.
+   * To a member of another community the picture travels in the command, and the recipient's
+   * server checks and files it the same way (P7b). Where the sealed command would be larger than
+   * the other server takes -- the wallet's picture with a text made up to be heavy --, the message
+   * is refused, TOO_LARGE_ACROSS_BORDER, before anything is filed or sent.
    *
    * Whether it goes out as a mail as well: the first message between the two always does
    * (E-024, decided here against this server's own table, before anything is filed); after it,
@@ -339,12 +341,6 @@ export class ChatResolver {
       return copy
     }
 
-    // ⛔ A picture does not cross the border yet: the command carries none, and how one gets to
-    // the other server is the next step (P7b). Until then refused here, before anything is filed
-    // or sent.
-    if (images.length > 0) {
-      throw new LogError('CHAT_MESSAGE_NOT_SENT: IMAGE_ACROSS_BORDER', other.communityUuid)
-    }
     const senderCom = await getCommunityByUuid(caller.communityUuid)
     const receiverCom = await getCommunityWithFederatedCommunityByIdentifier(other.communityUuid)
     const receiverFCom = receiverCom?.federatedCommunities?.find(
@@ -374,6 +370,7 @@ export class ChatResolver {
       notify,
       requireStored: true,
       letter: false,
+      images,
     })
     if (!stored) {
       throw new LogError('CHAT_MESSAGE_NOT_SENT: NOT_STORED')

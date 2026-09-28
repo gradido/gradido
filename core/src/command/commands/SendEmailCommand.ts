@@ -95,6 +95,22 @@ export interface SendEmailCommandParams {
   // the first and last name, and the names it files are cut from the alias. No names travel
   // with a message. Servers from before P3c send no alias.
   senderAlias?: string
+  // The pictures of a chat message (P7b), one at most: they travel with the message, and this
+  // server checks and files them as the sending server did. A server from before P7b does not
+  // read the field and files the message without its picture -- a picture without a caption
+  // arrives there as an empty message. That lasts only while a release is rolled out: every
+  // server gets the same version.
+  images?: SendEmailCommandImage[]
+}
+
+/** A picture as it travels with a chat message to another community (P7b). */
+export interface SendEmailCommandImage {
+  // The name both servers file it under -- the sending server its own copy, this one its copy.
+  imageUuid: string
+  width: number
+  height: number
+  // The JPEG as base64, as the wallet uploads it.
+  data: string
 }
 export class SendEmailCommand extends BaseCommand<
   Record<string, unknown> | boolean | null | Error

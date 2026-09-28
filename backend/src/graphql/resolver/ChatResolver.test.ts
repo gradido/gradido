@@ -1115,18 +1115,84 @@ describe('sendChatMessage to a member of another community', () => {
     expect(filed.deliveryState).toBe('FAILED')
   })
 
-  // P7a: a picture stays within this community until the next step (P7b).
-  it('refuses a picture to a member of another community, and files and sends nothing', async () => {
-    peerAnswers({ success: true })
-    const messagesBefore = await allMessages()
-    const picturesBefore = await allPictures()
+  /**
+   * P7b: the picture travels in the command, under the name the own copy files it with, and the
+   * other server checks and files it as this one does. The order -- the sealed command measured,
+   * then the picture, then the copy, then the command -- is held in
+   * util/chatMessageDelivery.test.ts, where each step can be made to fail.
+   */
+  describe('with a picture', () => {
+    const picturesOfMessage = async (messageUuid: string) =>
+      (await allPictures()).filter((picture) => picture.messageUuid === messageUuid)
 
-    const res = await say(peerRef, 'Across the border', 'EMAIL', pictureOf(JPEG))
+    it('sends the picture with the message, under the name of its copy, and hands back the copy DELIVERED with it', async () => {
+      peerAnswers({ success: true, data: 'mailed' })
 
-    expect(res.errors).toEqual([new GraphQLError('CHAT_MESSAGE_NOT_SENT: IMAGE_ACROSS_BORDER')])
-    expect(rawRequest).not.toHaveBeenCalled()
-    expect(await allMessages()).toEqual(messagesBefore)
-    expect(await allPictures()).toEqual(picturesBefore)
+      const copy = await said(peerRef, 'Across the border', 'EMAIL', pictureOf(JPEG, 924, 520))
+
+      expect(copy).toMatchObject({
+        mine: true,
+        deliveryState: 'DELIVERED',
+        images: [{ imageUuid: expect.any(String), width: 924, height: 520 }],
+      })
+      expect(commands).toHaveLength(1)
+      expect(commands[0]).toMatchObject({
+        messageUuid: copy.messageUuid,
+        memo: 'Across the border',
+        images: [
+          {
+            imageUuid: copy.images[0].imageUuid,
+            width: 924,
+            height: 520,
+            data: JPEG.toString('base64'),
+          },
+        ],
+      })
+      // Written first, then delivered (E-019).
+      expect(inFlight).toEqual(['pending'])
+      const pictures = await picturesOfMessage(copy.messageUuid)
+      expect(pictures).toHaveLength(1)
+      expect(pictures[0].imageUuid).toBe(copy.images[0].imageUuid)
+      expect(pictures[0].image.equals(JPEG)).toBe(true)
+    })
+
+    // What MaxLength counts as 2000 characters, the envelope weighs as some 25 KB: with the
+    // wallet's picture, more than the other server takes.
+    it('refuses a text too heavy to cross with a picture, and files and sends nothing', async () => {
+      peerAnswers({ success: true })
+      const walletPicture = Buffer.concat([
+        JPEG,
+        Buffer.alloc(32 * 1024 - 2 * JPEG.length, 0x20),
+        JPEG,
+      ])
+      const heavy = `😀${String.fromCodePoint(0xfe0f)}`.repeat(MESSAGE_MAX_CHARS)
+      const messagesBefore = await allMessages()
+      const picturesBefore = await allPictures()
+
+      const res = await say(peerRef, heavy, 'EMAIL', pictureOf(walletPicture))
+
+      expect(res.errors).toEqual([
+        new GraphQLError('CHAT_MESSAGE_NOT_SENT: TOO_LARGE_ACROSS_BORDER'),
+      ])
+      expect(rawRequest).not.toHaveBeenCalled()
+      expect(await allMessages()).toEqual(messagesBefore)
+      expect(await allPictures()).toEqual(picturesBefore)
+    })
+
+    // E-019: a failed delivery is the copy's state -- it keeps its picture, FAILED.
+    it('hands back the copy FAILED with its picture where the other community refuses it', async () => {
+      peerAnswers({ success: false, error: 'CHAT_IMAGE_NOT_ACCEPTED: NOT_JPEG' })
+
+      const res = await say(peerRef, 'Refused over there', 'EMAIL', pictureOf(JPEG))
+
+      expect(res.errors).toBeUndefined()
+      const copy = res.data.sendChatMessage
+      expect(copy).toMatchObject({
+        deliveryState: 'FAILED',
+        images: [{ imageUuid: expect.any(String), width: 800, height: 600 }],
+      })
+      expect(await picturesOfMessage(copy.messageUuid)).toHaveLength(1)
+    })
   })
 
   // No silent true (D V03, section 1): no way to deliver is an error, and nothing is filed.
