@@ -406,7 +406,7 @@ export class ChatResolver {
     @Ctx() context: Context,
   ): Promise<string | null> {
     // ⛔ Counted in the HTTP request's budget before anything is read: a document may repeat this
-    // field under any number of aliases, some 55 KB a picture (RequestBudget).
+    // field under any number of aliases, up to 35 KB a picture (RequestBudget).
     context.requestBudget.chatImagesServed += 1
     const served = context.requestBudget.chatImagesServed
     if (served > CHAT_IMAGES_MAX_PER_REQUEST) {
