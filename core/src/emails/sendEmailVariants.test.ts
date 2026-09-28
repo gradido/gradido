@@ -980,6 +980,50 @@ describe('sendEmailVariants', () => {
       })
     })
 
+    /**
+     * A video invitation from the wallet (V4a, V5b): the room's address with the topic and, for a
+     * planned call, its time after the `#`. Shown whole, the address ran out of the card -- its
+     * tail has no `/`, the only place a mail client breaks an address (Bernd, 27.09.2026). The
+     * mail shows the room, as the thread does, and the link keeps the whole address: Jitsi takes
+     * the topic from it. Measured at the RENDERED mail.
+     */
+    describe('with a video invitation of our own', () => {
+      const room = 'https://meet.weimarnetz.de/idpdd16o81l0'
+      const planned = `${room}#config.subject=%22Videoanruf%22&gradido.start=1790686800&gradido.end=1790690400`
+      /** The address as the rendered attribute carries it: `&` as `&amp;`. */
+      const inAttribute = planned.replace(/&/g, '&amp;')
+      const escaped = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      let sent: any
+
+      beforeAll(async () => {
+        sent = await sendCustomEmail({
+          ...message,
+          subject: '',
+          memo: `📹 Videoanruf\n📅 Dienstag, 29. September 2026\n🕒 15:00–16:00 Uhr (MESZ)\nDer Raum liegt auf einem Jitsi-Server von Weimarnetz e. V. — ein Vorschlag, kein Dienst von Gradido: ${planned}`,
+        })
+      })
+
+      it('shows the room, and links the whole address', () => {
+        const html: string = sent.originalMessage.html
+        expect(html).toMatch(
+          new RegExp(`<a href="${escaped(inAttribute)}"[^>]*>${escaped(room)}</a>`),
+        )
+        expect(html).not.toContain(`>${inAttribute}<`)
+      })
+
+      it('gives the whole address in the text part, for a client without html', () => {
+        expect(sent.originalMessage.text).toContain(planned)
+      })
+
+      // Any word or address too long for its line breaks at the card's edge instead.
+      it('lets what is too long for a line break at the card’s edge', () => {
+        const html: string = sent.originalMessage.html
+        expect(html).toMatch(
+          /<span class="human-text" style="[^"]*overflow-wrap: anywhere;[^"]*word-break: break-word;/,
+        )
+      })
+    })
+
     // As in the thread: `**…**` is bold, never across a link, a lone star stays a star.
     it('shows **…** in the text in bold, as the thread does', async () => {
       const sent: any = await sendCustomEmail({
