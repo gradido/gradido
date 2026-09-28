@@ -871,6 +871,17 @@ describe('ChatBubble', () => {
       expect(pictureServer.asked).toEqual([])
     })
 
+    // A tap asks for it large: the thread opens the view, and gets the button for the focus.
+    it('asks for the picture large on a tap, with the button that was pressed', async () => {
+      mountBubble(WITH)
+
+      await button().trigger('click')
+
+      expect(wrapper.emitted('openImage')).toEqual([
+        [{ message: WITH, image: PICTURE, opener: button().element }],
+      ])
+    })
+
     it('is a button that says what it does', () => {
       mountBubble(WITH)
 

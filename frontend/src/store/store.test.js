@@ -10,7 +10,12 @@ import {
   startChatUpdates,
 } from '@/composables/useChatUpdates'
 import { firstLoginWindow, setFirstLoginWindowWanted } from '@/composables/useFirstLoginWindow'
-import { chatImage, rememberChatImage } from '@/composables/useChatImages'
+import {
+  chatImage,
+  chatImageViewState,
+  openChatImageView,
+  rememberChatImage,
+} from '@/composables/useChatImages'
 
 vi.mock('../i18n', () => ({
   default: {
@@ -465,6 +470,26 @@ describe('Vuex store', () => {
           delete URL.createObjectURL
           delete URL.revokeObjectURL
         }
+      })
+
+      /**
+       * ⛔ And the picture open large, like the avatar's zoom above: its view keeps it in its own
+       * module, and the idle-timeout logout comes precisely when somebody sits looking at it.
+       */
+      it('closes the chat’s picture that is open large', () => {
+        openChatImageView({
+          imageUuid: 'image-1',
+          width: 800,
+          height: 600,
+          who: 'Lena',
+          name: 'Lena',
+        })
+        // The fixture proves itself: a view never opened would pass below unclosed.
+        expect(chatImageViewState.value).not.toBeNull()
+
+        logout({ commit, state, dispatch })
+
+        expect(chatImageViewState.value).toBeNull()
       })
 
       /**

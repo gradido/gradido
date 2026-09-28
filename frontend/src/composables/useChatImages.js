@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { shallowReactive } from 'vue'
+import { computed, shallowReactive, shallowRef } from 'vue'
 import { chatMessageImage } from '@/graphql/chat.graphql'
 
 // The pictures of chat messages (P7), fetched when their bubble comes into sight and kept for the
@@ -120,6 +120,25 @@ export const rememberChatImage = (imageUuid, base64) => {
   const known = pictures.get(key)
   if (known?.src) URL.revokeObjectURL(known.src)
   pictures.set(key, { state: 'ready', src: addressOf(base64) })
+}
+
+/**
+ * The picture open large (ChatImageView), or null: `{ imageUuid, width, height, who, name, at,
+ * caption, opener }` -- who sent it as the view names them (`who`, "Du" for one's own) and as its
+ * title names them (`name`), when it arrived, its caption, and the button in the bubble that
+ * opened it, which gets the focus back.
+ *
+ * At module level, as useAvatarZoom keeps its face: the logout closes it wherever it is.
+ */
+const viewed = shallowRef(null)
+export const chatImageViewState = computed(() => viewed.value)
+
+export const openChatImageView = (view) => {
+  viewed.value = view
+}
+
+export const closeChatImageView = () => {
+  viewed.value = null
 }
 
 /**

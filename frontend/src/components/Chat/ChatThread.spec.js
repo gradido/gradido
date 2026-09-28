@@ -7,7 +7,13 @@ import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest
 import ChatThread from './ChatThread.vue'
 import ChatComposeBar from './ChatComposeBar.vue'
 import { holdChatText, takeHeldChatText } from '@/utils/chatReturn'
-import { chatImage, forgetAllChatImages } from '@/composables/useChatImages'
+import {
+  chatImage,
+  chatImageViewState,
+  closeChatImageView,
+  forgetAllChatImages,
+} from '@/composables/useChatImages'
+import ChatImageView from './ChatImageView.vue'
 import {
   chatMessagesWithMemberQuery,
   markChatConversationRead,
@@ -33,7 +39,9 @@ const beatBrings = async (...chatMessages) => {
 }
 
 // The member signed in, whose key the way back after a restart is noted under (utils/chatReturn).
-vi.mock('vuex', () => ({ useStore: () => ({ state: { gradidoID: 'me-id' } }) }))
+vi.mock('vuex', () => ({
+  useStore: () => ({ state: { gradidoID: 'me-id', username: 'Bernd' } }),
+}))
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
@@ -1112,6 +1120,66 @@ describe('ChatThread', () => {
 
       expect(older().exists()).toBe(false)
       expect(document.activeElement).toBe(log().element)
+    })
+  })
+
+  /**
+   * P7: a picture of the thread, large -- over the contact window, as a dialog of its own. Who sent
+   * it as the thread names them ("Du" for one's own), the dialog's name with one's own name, when
+   * it arrived, its caption, and the button that opened it.
+   */
+  describe('a picture, large', () => {
+    const withPicture = (n, { mine = false, body = `message ${n}` } = {}) => ({
+      ...message(n, { mine }),
+      body,
+      images: [{ imageUuid: `image-${n}`, width: 800, height: 600 }],
+    })
+
+    afterEach(() => {
+      closeChatImageView()
+      forgetAllChatImages()
+    })
+
+    it('has the large view, and opens it with the picture tapped', async () => {
+      mountThread()
+      await arrive({
+        hasMore: false,
+        mutedByMe: false,
+        messages: [withPicture(1, { body: 'Der Stand' })],
+      })
+      expect(wrapper.findComponent(ChatImageView).exists()).toBe(true)
+
+      const tapped = wrapper.find('[data-test="chat-bubble-image"]')
+      await tapped.trigger('click')
+
+      expect(chatImageViewState.value).toEqual({
+        imageUuid: 'image-1',
+        width: 800,
+        height: 600,
+        who: 'Lena',
+        name: 'Lena',
+        at: message(1).createdAt,
+        caption: 'Der Stand',
+        opener: tapped.element,
+      })
+    })
+
+    // One's own: "Du" over it, one's own name in the dialog's name ("Bild von Bernd").
+    it('names one’s own picture as one’s own', async () => {
+      mountThread()
+      await arrive({
+        hasMore: false,
+        mutedByMe: false,
+        messages: [withPicture(2, { mine: true, body: '' })],
+      })
+
+      await wrapper.find('[data-test="chat-bubble-image"]').trigger('click')
+
+      expect(chatImageViewState.value).toMatchObject({
+        who: 'chatThread.you',
+        name: 'Bernd',
+        caption: '',
+      })
     })
   })
 

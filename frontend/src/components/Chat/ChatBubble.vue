@@ -15,7 +15,11 @@
       <span class="visually-hidden" data-test="chat-bubble-writer">{{ writer }}</span>
       <!-- The picture a message carries (P7), on top; its caption is the text under it, in the
            same bubble (E-044 F3). One a message. -->
-      <chat-bubble-image v-if="image" :image="image" />
+      <chat-bubble-image
+        v-if="image"
+        :image="image"
+        @open="(opener) => emit('openImage', { message, image, opener })"
+      />
       <!-- The subject a message sent from the e-mail form carries, bold over the text; a
            message without one has no line for it at all, not an empty one (E-013). -->
       <div v-if="message.subject" class="chat-bubble-subject" data-test="chat-bubble-subject">
@@ -105,6 +109,12 @@ const props = defineProps({
   /** The other person's name -- what a screen reader hears over their messages. */
   alias: { type: String, default: '' },
 })
+
+/**
+ * `openImage`: the member wants the message's picture large -- `{ message, image, opener }`, the
+ * button that was pressed among them (the thread opens the view, ChatImageView).
+ */
+const emit = defineEmits(['openImage'])
 
 const { t, d } = useI18n()
 

@@ -81,6 +81,7 @@
               :key="message.id"
               :message="message"
               :alias="alias"
+              @open-image="openImage"
             />
           </ol>
         </section>
@@ -107,6 +108,9 @@
       @send="send"
     />
 
+    <!-- A picture of the thread, large (P7): a dialog of its own over the contact window. -->
+    <chat-image-view />
+
     <!-- For the ear only: "sent", or "new message from …" when one arrived by itself. Always in
          the page, so the words are announced when they are put in -- a live region that appears
          together with its text is not. -->
@@ -121,7 +125,8 @@ import { useStore } from 'vuex'
 import { useApolloClient, useMutation, useQuery } from '@vue/apollo-composable'
 import ChatBubble from '@/components/Chat/ChatBubble.vue'
 import ChatComposeBar from '@/components/Chat/ChatComposeBar.vue'
-import { rememberChatImage } from '@/composables/useChatImages'
+import ChatImageView from '@/components/Chat/ChatImageView.vue'
+import { openChatImageView, rememberChatImage } from '@/composables/useChatImages'
 import { onChatMessages, pollChatNow } from '@/composables/useChatUpdates'
 import {
   chatMessagesWithMemberQuery,
@@ -287,6 +292,25 @@ onBeforeUnmount(() => {
   document.removeEventListener('visibilitychange', noteReturn)
   dropChatReturnNote(store.state.gradidoID)
 })
+
+/**
+ * A picture large (ChatImageView): who sent it -- "Du" for one's own, the other person's name
+ * otherwise -- and, for the dialog's name ("Bild von {name}"), one's own name where it is one's own
+ * picture. When it arrived, its caption, and the button that opened it, for the focus to go back to.
+ */
+const openImage = ({ message, image, opener }) => {
+  const ownName = store.state.username || store.state.firstName || ''
+  openChatImageView({
+    imageUuid: image.imageUuid,
+    width: image.width,
+    height: image.height,
+    who: message.mine ? t('chatThread.you') : props.alias,
+    name: message.mine ? ownName : props.alias,
+    at: message.createdAt,
+    caption: message.body,
+    opener,
+  })
+}
 
 /**
  * The words a start held for this conversation, taken only when the bar can show them -- when
