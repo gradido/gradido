@@ -73,6 +73,7 @@ describe('navigation guards', () => {
     // The store is shared by the whole file. Put back everything any block sets, or a case
     // added later inherits answers that are nowhere in its own body.
     store.state.token = null
+    store.state.tokenTime = null
     store.state.creationAllowed = null
     store.state.gmsAllowed = null
     store.state.userLocation = null
@@ -141,6 +142,8 @@ describe('navigation guards', () => {
   describe('the creation area and the project account', () => {
     beforeEach(() => {
       store.state.token = 'valid-token'
+      // Signed in means a sign-in that still runs (the sign-in guard).
+      store.state.tokenTime = Math.floor(Date.now() / 1000) + 600
     })
 
     it('sends a project account from the creation area to the overview', async () => {
@@ -171,6 +174,7 @@ describe('navigation guards', () => {
     // measure nothing and pass.
     beforeEach(async () => {
       store.state.token = 'valid-token'
+      store.state.tokenTime = Math.floor(Date.now() / 1000) + 600
       store.state.gmsAllowed = true
       store.state.userLocation = place
       await router.push('/overview')
@@ -274,6 +278,8 @@ describe('navigation guards', () => {
 
     it('does not redirect to login when authorized', async () => {
       store.state.token = 'valid-token'
+      // A sign-in counts while it runs, not merely because a token is kept.
+      store.state.tokenTime = Math.floor(Date.now() / 1000) + 600
 
       // fullPath as well as path: the real router always provides it, and the guard
       // stores it so a query or hash survives the login.
@@ -297,6 +303,148 @@ describe('navigation guards', () => {
       expect(nextCalled).toBe(true)
       expect(nextArg).toBeUndefined()
     })
+
+    /**
+     * ⭐ A sign-in that has run out is no sign-in (Bernd, 28.09.2026): the reply button of a mail,
+     * clicked more than a session after the wallet was closed, opened the page with the old token,
+     * whose questions came back 403.13 -- and the logout behind them sent the member to the
+     * overview after signing in. Put away first, the old sign-in cannot set that way back.
+     */
+    describe('a sign-in that has run out', () => {
+      const authGuard = () =>
+        addedGuards.find(
+          (guard) =>
+            guard.toString().includes('requiresAuth') && guard.toString().includes('redirectPath'),
+        )
+      const link = {
+        path: '/contacts',
+        fullPath: '/contacts?with=member-1&community=community-1',
+        meta: { requiresAuth: true },
+      }
+
+      it('is put away before the link waits at the form, so the logout cannot overwrite it', async () => {
+        store.state.token = 'old-token'
+        store.state.tokenTime = Math.floor(Date.now() / 1000) - 3600
+        const order = []
+        // Done only after a turn, as an action that waits on something would be: the guard has
+        // to wait for it, not merely start it.
+        storeDispatchMock.mockImplementationOnce(async (action) => {
+          await Promise.resolve()
+          order.push(`dispatch ${action}`)
+        })
+        storeCommitMock.mockImplementation((mutation, value) => order.push(`${mutation} ${value}`))
+        let nextArg
+        await authGuard()(link, {}, (arg) => {
+          nextArg = arg
+        })
+        storeCommitMock.mockReset()
+        expect(order).toEqual([
+          'dispatch logout',
+          'redirectPath /contacts?with=member-1&community=community-1',
+        ])
+        expect(nextArg).toEqual({ path: '/login' })
+      })
+
+      it('goes to the form with the link even where clearing up after the logout fails', async () => {
+        store.state.token = 'old-token'
+        store.state.tokenTime = Math.floor(Date.now() / 1000) - 3600
+        storeDispatchMock.mockRejectedValueOnce(new Error('storage refused'))
+        let nextArg
+        await authGuard()(link, {}, (arg) => {
+          nextArg = arg
+        })
+        expect(storeCommitMock).toHaveBeenCalledWith(
+          'redirectPath',
+          '/contacts?with=member-1&community=community-1',
+        )
+        expect(nextArg).toEqual({ path: '/login' })
+      })
+
+      it('counts a token without an end as run out', async () => {
+        store.state.token = 'old-token'
+        store.state.tokenTime = null
+        let nextArg
+        await authGuard()(link, {}, (arg) => {
+          nextArg = arg
+        })
+        expect(storeDispatchMock).toHaveBeenCalledWith('logout')
+        expect(nextArg).toEqual({ path: '/login' })
+      })
+
+      it('signs nobody out who was never signed in', async () => {
+        await authGuard()(link, {}, () => {})
+        expect(storeDispatchMock).not.toHaveBeenCalled()
+        expect(storeCommitMock).toHaveBeenCalledWith(
+          'redirectPath',
+          '/contacts?with=member-1&community=community-1',
+        )
+      })
+
+      it('leaves a page without a sign-in alone, and the old token with it', async () => {
+        store.state.token = 'old-token'
+        store.state.tokenTime = Math.floor(Date.now() / 1000) - 3600
+        let nextArg = 'not called'
+        await authGuard()({ path: '/login', fullPath: '/login', meta: {} }, {}, (arg) => {
+          nextArg = arg
+        })
+        expect(nextArg).toBeUndefined()
+        expect(storeDispatchMock).not.toHaveBeenCalled()
+        expect(storeCommitMock).not.toHaveBeenCalled()
+      })
+    })
+  })
+})
+
+/**
+ * The same, through a router with the guards in their real order: the link out of a mail, opened
+ * where the sign-in ran out an hour ago, waits at the form -- with its query -- instead of the
+ * page opening with the old token. The start guard before it lets such a start through.
+ */
+describe('a link out of a mail after the sign-in ran out', () => {
+  const Page = { render: () => null }
+  const startAt = async (address, state) => {
+    const started = createRouter({
+      history: createMemoryHistory(),
+      routes: [
+        { path: '/', redirect: () => ({ path: '/login' }) },
+        { path: '/login/:code?', name: 'Login', component: Page },
+        { path: '/overview', name: 'Overview', component: Page, meta: { requiresAuth: true } },
+        { path: '/contacts', name: 'Contacts', component: Page, meta: { requiresAuth: true } },
+      ],
+    })
+    const own = { commit: vi.fn(), dispatch: vi.fn(), state: { token: null, ...state } }
+    addNavigationGuards(started, own, { query: vi.fn() })
+    await started.push(address)
+    return { at: started.currentRoute.value.fullPath, own }
+  }
+  const LINK = '/contacts?with=member-1&community=community-1'
+
+  it('goes to the form with the link kept, the old sign-in put away', async () => {
+    const { at, own } = await startAt(LINK, {
+      token: 'old-token',
+      tokenTime: Math.floor(Date.now() / 1000) - 3600,
+    })
+    expect(at).toBe('/login')
+    expect(own.dispatch).toHaveBeenCalledWith('logout')
+    expect(own.commit).toHaveBeenCalledWith('redirectPath', LINK)
+  })
+
+  it('opens the page itself while the sign-in runs', async () => {
+    const { at, own } = await startAt(LINK, {
+      token: 'running-token',
+      tokenTime: Math.floor(Date.now() / 1000) + 600,
+    })
+    expect(at).toBe(LINK)
+    expect(own.dispatch).not.toHaveBeenCalledWith('logout')
+  })
+
+  it('counts the last five seconds as over, as the start does', async () => {
+    const { at, own } = await startAt(LINK, {
+      token: 'ending-token',
+      tokenTime: Math.floor(Date.now() / 1000) + 3,
+    })
+    expect(at).toBe('/login')
+    expect(own.commit).toHaveBeenCalledWith('redirectPath', LINK)
   })
 })
 

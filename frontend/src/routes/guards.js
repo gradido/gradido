@@ -6,8 +6,8 @@ import { holdChatText, takeChatReturn } from '../utils/chatReturn'
 
 /**
  * Whether the stored session still runs: a token, and more than five seconds before it ends --
- * the margin the redeem page allows too (TransactionLink.vue). `tokenTime` is the token's `exp`,
- * in seconds.
+ * the margin the redeem page allows too (TransactionLink.vue). `tokenTime` is when the session
+ * ends by this device's clock, in seconds (the `token` mutation in store.js).
  */
 const sessionRuns = (state) =>
   Boolean(state.token) && Boolean(state.tokenTime) && state.tokenTime * 1000 - Date.now() > 5000
@@ -109,8 +109,27 @@ const addNavigationGuards = (router, store, apollo) => {
   })
 
   // handle authentication
-  router.beforeEach((to, from, next) => {
-    if (to.meta.requiresAuth && !store.state.token) {
+  //
+  // ⭐ A sign-in that has run out is no sign-in (Bernd, 28.09.2026: the reply button of a mail
+  // should lead into the conversation for every member). Only the token's presence used to be
+  // asked here, so a wallet closed more than a session ago opened the page with the old token:
+  // its first questions came back 403.13, and the logout behind them (apolloProvider.js) set
+  // the way back to the overview -- after signing in, the member stood on the overview, and the
+  // link they came with was gone. So the old sign-in is put away here first, as that logout
+  // does, and the link waits at the form like that of anybody signed out. The logout comes
+  // first because it sets the way back to the overview itself.
+  router.beforeEach(async (to, from, next) => {
+    if (to.meta.requiresAuth && !sessionRuns(store.state)) {
+      // The logout takes the token in its first commit. What can fail after that is clearing up
+      // -- storage refused in a private window, the cache -- and that must neither keep the
+      // member from the form nor lose the link: both go on either way.
+      if (store.state.token) {
+        try {
+          await store.dispatch('logout')
+        } catch {
+          // The sign-in is gone already; what failed was housekeeping.
+        }
+      }
       // fullPath, not path: it carries the query and the hash, and both are what a link
       // out of an e-mail is made of. The receipt blocks a card with ?block=<id>, the
       // reply button opens the send form in e-mail mode with ?art=email, and the
