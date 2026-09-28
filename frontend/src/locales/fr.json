@@ -1179,6 +1179,11 @@
       "system": "Suivre le réglage du système (par défaut)",
       "title": "Apparence"
     },
+    "transfersInChat": {
+      "off": "Les transferts n'apparaissent pas dans tes conversations, et tu ne reçois pas d'e-mail quand quelqu'un t'envoie des Gradido.",
+      "on": "Les transferts apparaissent dans tes conversations, et tu reçois un e-mail quand quelqu'un t'envoie des Gradido.",
+      "title": "Transferts dans le chat et par e-mail"
+    },
     "username": {
       "change-success": "Ton nom d'utilisateur a été modifié avec succès.",
       "confirm-free": "Tu as déjà porté ce nom — ce changement ne compte pas pour ton année.",

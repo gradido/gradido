@@ -200,9 +200,9 @@ describe('Vuex store', () => {
         darkMode: true,
       }
 
-      it('calls twenty-two commits', () => {
+      it('calls twenty-three commits', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenCalledTimes(22)
+        expect(commit).toHaveBeenCalledTimes(23)
       })
 
       /**
@@ -235,6 +235,18 @@ describe('Vuex store', () => {
         localCommit.mockClear()
         login({ commit: localCommit, state: {} }, commitedData)
         expect(localCommit).toHaveBeenCalledWith('creationAllowed', null)
+      })
+
+      // The transfers in the conversations (Einstellungen › Nachrichten): the member's own
+      // switch, off only where they switched it off. An answer without the field lands as null,
+      // "not known", which the thread and the settings page read as on.
+      it('stores whether the transfers stand in the conversations, and null where the answer does not say', () => {
+        const localCommit = vi.fn()
+        login({ commit: localCommit, state: {} }, { ...commitedData, transfersInChat: false })
+        expect(localCommit).toHaveBeenCalledWith('transfersInChat', false)
+        localCommit.mockClear()
+        login({ commit: localCommit, state: {} }, commitedData)
+        expect(localCommit).toHaveBeenCalledWith('transfersInChat', null)
       })
 
       // EM-013: the confirm-reminder modal derives its deadline from these two. `?? null`
@@ -347,9 +359,15 @@ describe('Vuex store', () => {
         expect(forgetLegacyMapPrefsMock).toHaveBeenCalled()
       })
 
-      it('calls twenty-three commits', () => {
+      it('calls twenty-six commits', () => {
         logout({ commit, state, dispatch })
-        expect(commit).toHaveBeenCalledTimes(25)
+        expect(commit).toHaveBeenCalledTimes(26)
+      })
+
+      // The next member on this device starts from "not known", not from the last one's switch.
+      it('forgets the switch for the transfers in the conversations', () => {
+        logout({ commit, state, dispatch })
+        expect(commit).toHaveBeenCalledWith('transfersInChat', null)
       })
 
       // ... (other logout action tests remain largely the same)

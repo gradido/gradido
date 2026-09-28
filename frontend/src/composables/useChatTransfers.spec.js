@@ -97,6 +97,16 @@ describe('useChatTransfers', () => {
     expect(hasMore.value).toBe(false)
   })
 
+  // The member's own switch (Einstellungen › Nachrichten): off, nothing is asked.
+  it('asks nothing where the member switched transfers off, and is settled at once', () => {
+    const client = clientAnswering(answer([booking(20)]))
+    const { transfers, settled, hasMore } = useChatTransfers(client, LENA, { enabled: false })
+    expect(client.query).not.toHaveBeenCalled()
+    expect(settled.value).toBe(true)
+    expect(transfers.value).toEqual([])
+    expect(hasMore.value).toBe(false)
+  })
+
   it('lets an older page that failed say so, keeping what it holds', async () => {
     const client = clientAnswering(answer([booking(20)], 30), new Error('Network error'))
     const { transfers, loadOlderTransfers } = useChatTransfers(client, LENA)

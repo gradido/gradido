@@ -72,6 +72,12 @@ export const mutations = {
   creationAllowed: (state, creationAllowed) => {
     state.creationAllowed = creationAllowed
   },
+  // Whether the transfers stand in the conversations and a mail goes out about one received
+  // (Einstellungen › Nachrichten). null = not known yet, and read as on, the column's default:
+  // a store persisted before the field existed must not hide anybody's transfers.
+  transfersInChat: (state, transfersInChat) => {
+    state.transfersInChat = transfersInChat
+  },
   humhubAllowed: (state, humhubAllowed) => {
     state.humhubAllowed = humhubAllowed
   },
@@ -156,6 +162,7 @@ export const actions = {
     // that still holds the last one's.
     commit('avatarVisibleToMembers', data.avatarVisibleToMembers ?? null)
     commit('creationAllowed', data.creationAllowed ?? null)
+    commit('transfersInChat', data.transfersInChat ?? null)
     commit('humhubAllowed', data.humhubAllowed)
     commit('gmsPublishLocation', data.gmsPublishLocation)
     commit('hasElopage', data.hasElopage)
@@ -188,6 +195,7 @@ export const actions = {
     commit('gmsAllowed', null)
     commit('avatarVisibleToMembers', null)
     commit('creationAllowed', null)
+    commit('transfersInChat', null)
     commit('humhubAllowed', null)
     commit('gmsPublishLocation', null)
     commit('hasElopage', false)
@@ -326,6 +334,7 @@ try {
       gmsAllowed: null,
       avatarVisibleToMembers: null,
       creationAllowed: null,
+      transfersInChat: null,
       humhubAllowed: null,
       gmsPublishLocation: null,
       hasElopage: false,

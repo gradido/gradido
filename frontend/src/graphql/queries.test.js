@@ -61,6 +61,7 @@ describe.each([
     'avatar',
     'avatarVisibleToMembers',
     'creationAllowed',
+    'transfersInChat',
   ])('requests the "%s" field consumed by the login action', (field) => {
     expect([...fields]).toContain(field)
   })

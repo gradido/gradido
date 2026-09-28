@@ -16,6 +16,29 @@
         <user-newsletter />
       </BCol>
     </BRow>
+    <!-- Transfers in the conversations and the mail about one received: one switch (Bernd,
+         28.09.2026: "Ein Schalter, dass Transaktionen auch Chatnachrichten und E-Mails
+         auslösen", on by default). A shop with many bookings switches it off. It saves on the
+         spot, as the switches on the visibility page do. -->
+    <BRow class="mb-5" data-test="settings-transfers-in-chat">
+      <BCol cols="12" md="6" lg="6">
+        {{ $t('settings.transfersInChat.title') }}
+        <div class="small" data-test="settings-transfers-in-chat-state">
+          {{
+            transfersInChat ? $t('settings.transfersInChat.on') : $t('settings.transfersInChat.off')
+          }}
+        </div>
+      </BCol>
+      <BCol cols="12" md="6" lg="6" class="text-end">
+        <user-settings-switch
+          :initial-value="transfersInChat"
+          :attr-name="'transfersInChat'"
+          :enabled-text="$t('settings.transfersInChat.on')"
+          :disabled-text="$t('settings.transfersInChat.off')"
+          :label="$t('settings.transfersInChat.title')"
+        />
+      </BCol>
+    </BRow>
   </settings-section>
 </template>
 <script setup>
@@ -23,6 +46,7 @@ import SettingsSection from '@/components/UserSettings/SettingsSection.vue'
 import { computed } from 'vue'
 import { useStore } from 'vuex'
 import UserNewsletter from '@/components/UserSettings/UserNewsletter.vue'
+import UserSettingsSwitch from '@/components/UserSettings/UserSettingsSwitch.vue'
 import { BRow, BCol } from 'bootstrap-vue-next'
 
 const store = useStore()
@@ -30,4 +54,7 @@ const store = useStore()
 // snapshot would leave the sentence below it saying the opposite of the switch until the
 // next reload. (It was a snapshot on the old page too.)
 const newsletterState = computed(() => store.state.newsletterState)
+// On unless the member switched it off: null is "not known yet" (a store from before the
+// field), and the column's default is on.
+const transfersInChat = computed(() => store.state.transfersInChat !== false)
 </script>

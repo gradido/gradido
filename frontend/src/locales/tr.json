@@ -1179,6 +1179,11 @@
       "system": "Sistem ayarını izle (varsayılan)",
       "title": "Görünüm"
     },
+    "transfersInChat": {
+      "off": "Transferler sohbetlerinde görünmez ve biri sana Gradido gönderdiğinde e-posta almazsın.",
+      "on": "Transferler sohbetlerinde görünür ve biri sana Gradido gönderdiğinde bir e-posta alırsın.",
+      "title": "Sohbette ve e-postayla transferler"
+    },
     "username": {
       "change-success": "Kullanıcı adın başarıyla değiştirildi.",
       "confirm-free": "Bu ad zaten sendeydi — bu değişiklik yılına sayılmaz.",

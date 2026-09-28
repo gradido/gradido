@@ -106,10 +106,12 @@ import {
   userAvatar,
   userEmailContact,
   user as userQuery,
+  userTransfersInChat,
   verifyLogin,
   verifyLoginAboutMe,
   verifyLoginAvatar,
   verifyLoginEmailContact,
+  verifyLoginTransfersInChat,
 } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
@@ -262,6 +264,9 @@ describe('UserResolver', () => {
               // A person who may create: the column default, and the sentence for every
               // account that exists (ES-021).
               creationAllowed: true,
+              // On from the start (Einstellungen › Nachrichten): the transfers stand in the
+              // conversations, and a mail goes out about one received.
+              transfersInChat: true,
               gender: null,
               salutation: null,
               creaSignature: null,
@@ -1400,6 +1405,7 @@ describe('UserResolver', () => {
                 avatar: null,
                 avatarVisibleToMembers: true,
                 creationAllowed: true,
+                transfersInChat: true,
               },
             },
           }),
@@ -2390,6 +2396,7 @@ describe('UserResolver', () => {
                 avatar: null,
                 avatarVisibleToMembers: true,
                 creationAllowed: true,
+                transfersInChat: true,
               },
             },
           }),
@@ -3502,6 +3509,80 @@ describe('UserResolver', () => {
         )
         expect(logErrorLogger.error).toBeCalledWith('401 Unauthorized')
       })
+    })
+  })
+
+  // The switch for the transfers in the conversations and the mail about one received
+  // (Einstellungen › Nachrichten, Bernd, 28.09.2026). Stored from updateUserInfos, handed to its
+  // owner, and to nobody else: `user()` hands out any member by alias to anyone logged in.
+  describe('the switch for the transfers in the conversations', () => {
+    let homeCom: DbCommunity
+    let owner: User
+
+    beforeAll(async () => {
+      await cleanDB()
+      homeCom = await writeHomeCommunityEntry()
+      owner = await userFactory(testEnv, bibiBloxberg)
+      await userFactory(testEnv, bobBaumeister)
+      await mutate({
+        mutation: login,
+        variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+      })
+    })
+
+    afterAll(async () => {
+      await cleanDB()
+    })
+
+    const stored = async () =>
+      (await User.findOneOrFail({ where: { id: owner.id } })).transfersInChat
+
+    it('is on for a new account -- the column’s default', async () => {
+      expect(await stored()).toBe(true)
+    })
+
+    // Ordered off - untouched - on, as for the picture's switch: false and "not sent" are
+    // different things, and a later save that says nothing must leave a stored no alone.
+    it('stores the member turning it off', async () => {
+      const res: any = await mutate({
+        mutation: updateUserInfos,
+        variables: { transfersInChat: false },
+      })
+      expect(res.errors).toBeUndefined()
+      expect(await stored()).toBe(false)
+    })
+
+    it('leaves a stored no alone when a later save does not mention it', async () => {
+      await mutate({ mutation: updateUserInfos, variables: {} })
+      expect(await stored()).toBe(false)
+    })
+
+    it('shows the member their own setting', async () => {
+      const res: any = await query({ query: verifyLoginTransfersInChat })
+      expect(res.data.verifyLogin.transfersInChat).toBe(false)
+    })
+
+    it('hides the setting from another logged-in member', async () => {
+      await mutate({
+        mutation: login,
+        variables: { email: 'bob@baumeister.de', password: 'Aa12345_' },
+      })
+      const res: any = await query({
+        query: userTransfersInChat,
+        variables: { identifier: owner.gradidoID, communityIdentifier: homeCom.communityUuid },
+      })
+      // The member is found -- only the field is withheld.
+      expect(res.data.user.gradidoID).toBe(owner.gradidoID)
+      expect(res.data.user.transfersInChat).toBeNull()
+    })
+
+    it('stores the member turning it back on', async () => {
+      await mutate({
+        mutation: login,
+        variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+      })
+      await mutate({ mutation: updateUserInfos, variables: { transfersInChat: true } })
+      expect(await stored()).toBe(true)
     })
   })
 

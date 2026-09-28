@@ -85,6 +85,7 @@ export class User {
       this.aboutMe = dbUser.aboutMe
       this.avatarVisibleToMembers = dbUser.avatarVisibleToMembers
       this.creationAllowed = dbUser.creationAllowed
+      this.transfersInChat = dbUser.transfersInChat
       // Not on the user row either. Whoever assembles a list of members fills it in one
       // batch; null until then, and null for good where there is nothing to show.
       this.avatarUpdatedAt = null
@@ -193,6 +194,14 @@ export class User {
   // guard is the same one, and it is still the owner it matches.
   @Field(() => Boolean, { nullable: true })
   avatarVisibleToMembers: boolean
+
+  // Whether the transfers with somebody stand in the conversation with them, and whether a mail
+  // goes out about a transfer received (Einstellungen › Nachrichten, on by default). Guarded like
+  // avatarVisibleToMembers, by a field resolver in UserResolver: a member's own setting is
+  // nobody else's to read -- `user` hands out any member by alias to everyone logged in. Null
+  // means "not yours to know"; the owner always gets a boolean, the column is NOT NULL.
+  @Field(() => Boolean, { nullable: true })
+  transfersInChat: boolean
 
   // ES-021: whether this account creates Gradido (a person) or receives thanks only (a
   // project account). Wallet and admin both read it off this shared type; the federation

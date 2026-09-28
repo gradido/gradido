@@ -530,6 +530,38 @@ describe('SendEmailCommand, what the sending server is answered', () => {
     expect(customMail).toHaveBeenCalledTimes(3)
   })
 
+  // The recipient's own switch (Einstellungen › Nachrichten, "Überweisungen im Chat und per
+  // E-Mail", on by default), read on this server: switched off, no mail about received Gradido --
+  // and the sending server is answered as ever, learning nothing about the switch.
+  it('mails nothing about received Gradido where the recipient switched transfers off', async () => {
+    findUser.mockImplementation(async (_communityUuid: string, gradidoId: string) =>
+      gradidoId.toLowerCase() === SENDER.gradidoID
+        ? SENDER
+        : ({ ...RECIPIENT, transfersInChat: false } as unknown as database.User),
+    )
+
+    const answer = await answerTo(
+      params({ mailType: 'sendTransactionReceivedEmail', amount: '10', subject: undefined }),
+    )
+
+    expect(receivedMail).not.toHaveBeenCalled()
+    expect(answer).toEqual({ success: true, data: SEND_MAIL_COMMAND_ANSWER.RECEIVED })
+  })
+
+  it('mails about received Gradido where the recipient left transfers on', async () => {
+    findUser.mockImplementation(async (_communityUuid: string, gradidoId: string) =>
+      gradidoId.toLowerCase() === SENDER.gradidoID
+        ? SENDER
+        : ({ ...RECIPIENT, transfersInChat: true } as unknown as database.User),
+    )
+
+    await answerTo(
+      params({ mailType: 'sendTransactionReceivedEmail', amount: '10', subject: undefined }),
+    )
+
+    expect(receivedMail).toHaveBeenCalledTimes(1)
+  })
+
   // The mail about received Gradido is no message: it answers RECEIVED, mailed or not.
   it('answers the mail about received Gradido with RECEIVED, not with the report', async () => {
     receivedMail.mockImplementation(async () => reported)

@@ -1179,6 +1179,11 @@
       "system": "Seguir la configuración del sistema (predeterminado)",
       "title": "Apariencia"
     },
+    "transfersInChat": {
+      "off": "Las transferencias no aparecen en tus conversaciones y no recibes ningún correo electrónico cuando alguien te envía Gradido.",
+      "on": "Las transferencias aparecen en tus conversaciones y recibes un correo electrónico cuando alguien te envía Gradido.",
+      "title": "Transferencias en el chat y por correo electrónico"
+    },
     "username": {
       "change-success": "Tu nombre de usuario se ha cambiado correctamente.",
       "confirm-free": "Ya tuviste este nombre: este cambio no cuenta para tu año.",

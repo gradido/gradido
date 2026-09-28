@@ -98,6 +98,7 @@ export const updateUserInfos = gql`
     $hideAmountGDT: Boolean
     $gmsAllowed: Boolean
     $avatarVisibleToMembers: Boolean
+    $transfersInChat: Boolean
     $gmsPublishName: PublishNameType
     $gmsLocation: Location
     $gmsPublishLocation: GmsPublishLocationType
@@ -114,6 +115,7 @@ export const updateUserInfos = gql`
       hideAmountGDT: $hideAmountGDT
       gmsAllowed: $gmsAllowed
       avatarVisibleToMembers: $avatarVisibleToMembers
+      transfersInChat: $transfersInChat
       gmsPublishName: $gmsPublishName
       gmsLocation: $gmsLocation
       gmsPublishLocation: $gmsPublishLocation
@@ -474,6 +476,7 @@ export const login = gql`
       avatar
       avatarVisibleToMembers
       creationAllowed
+      transfersInChat
     }
   }
 `

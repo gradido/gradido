@@ -1179,6 +1179,11 @@
       "system": "Segui l'impostazione del sistema (predefinito)",
       "title": "Aspetto"
     },
+    "transfersInChat": {
+      "off": "I trasferimenti non compaiono nelle tue conversazioni e non ricevi nessuna e-mail quando qualcuno ti invia Gradido.",
+      "on": "I trasferimenti compaiono nelle tue conversazioni e ricevi un'e-mail quando qualcuno ti invia Gradido.",
+      "title": "Trasferimenti nella chat e via e-mail"
+    },
     "username": {
       "change-success": "Il tuo nome utente è stato modificato con successo.",
       "confirm-free": "Questo nome lo avevi già: il cambio non conta per il tuo anno.",
