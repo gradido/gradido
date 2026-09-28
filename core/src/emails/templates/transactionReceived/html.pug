@@ -11,14 +11,16 @@ block content
     .child-left
       div(class="p_content")
         +humanText(memo)
-    //- The reply leads into the wallet's own send form, e-mail tab, with the sender
-        already filled in - not to a mailto. Two things follow from that, and both are
-        the point: neither side learns the other's address, and the reply arrives as a
-        message the software itself sends. Without the uuids there is no way back, so
-        the button is left out rather than pointed somewhere general.
+    //- The reply is written in the conversation with the sender, where the transfer stands
+        as well (Bernd, 28.09.2026: "Der Button ‚Jetzt antworten' führt dann in den
+        Gesprächsfaden"): the contact page opens the window with the member `with` names, of
+        the community `community` names - the address the chat mail's button has (P4c). Not
+        a mailto: neither side learns the other's address, and the reply arrives as a message
+        the software itself sends. Without the uuids there is no way back, so the button is
+        left out rather than pointed somewhere general.
     if senderCommunityUuid && senderUuid
       .child-right
-        a.button-5(href=`${communityURL}/send/${senderCommunityUuid}/${senderUuid}?art=email`)
+        a.button-5(href=`${communityURL}/contacts?with=${senderUuid}&community=${senderCommunityUuid}`)
           include ../includes/chatbox-icon.pug
           span #{t('emails.general.answerNow')}
 
