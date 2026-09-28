@@ -1,4 +1,5 @@
 export { CommandClient as V1_0_CommandClient } from './client/1_0/CommandClient'
+export * from './client/1_0/commandRequestBytes'
 export * from './client/1_0/logging/SendCoinsArgsLogging.view'
 export * from './client/1_0/logging/SendCoinsResultLogging.view'
 export { MemberAvatarsClient as V1_0_MemberAvatarsClient } from './client/1_0/MemberAvatarsClient'

@@ -1,5 +1,5 @@
 import { FederatedCommunity as DbFederatedCommunity } from 'database'
-import { GraphQLClient } from 'graphql-request'
+import { ClientError, GraphQLClient } from 'graphql-request'
 import { getLogger } from 'log4js'
 import { Result } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../../../config/const'
@@ -8,6 +8,29 @@ import { ensureUrlEndsWithSlash } from '../../../../util/utilities'
 import { sendCommand as sendCommandQuery } from './query/sendCommand'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.client.1_0.CommandClient`)
+
+// Longer than this, what the other side named is written as its length.
+const NAMED_ERROR_MAX_LENGTH = 1000
+
+/**
+ * What a failed request may tell the log and the caller. graphql-request's ClientError writes the
+ * whole request into its message -- the document, and the variables with the sealed command, some
+ * 100 KB with a chat picture (P7b) -- and the caller hands the error on: into the log of a failed
+ * delivery, into the answer to the form. Taken from it are the status and the first error the
+ * other side named, that one as its length where it is long.
+ */
+const requestFailure = (err: unknown): string => {
+  if (!(err instanceof ClientError)) {
+    return err instanceof Error ? err.message : 'Unknown error'
+  }
+  const named = err.response.errors?.[0]?.message
+  if (!named) {
+    return `GraphQL Error (Code: ${err.response.status})`
+  }
+  return `GraphQL Error (Code: ${err.response.status}): ${
+    named.length > NAMED_ERROR_MAX_LENGTH ? `*** ${named.length} characters` : named
+  }`
+}
 
 export class CommandClient {
   dbCom: DbFederatedCommunity
@@ -58,8 +81,10 @@ export class CommandClient {
       logger.debug('sendCommand successfully started with endpoint', this.endpoint)
       return { success: true, value: result.data.sendCommand.data ?? null }
     } catch (err) {
-      logger.error('error on sendCommand: ', err)
-      return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
+      const failure = requestFailure(err)
+      // The error itself only where it carries no request.
+      logger.error('error on sendCommand: ', err instanceof ClientError ? failure : err)
+      return { success: false, error: failure }
     }
   }
 }

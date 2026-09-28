@@ -20,7 +20,15 @@ import {
   readChatMemberMutedAt,
   storeChatMessage,
 } from '../../logic/ChatMessage.logic'
+import {
+  acceptIncomingChatMessageImages,
+  ChatMessageImageToStore,
+  chatMessageImagesForLog,
+  removeChatMessageImages,
+  storeIncomingChatMessageImage,
+} from '../../logic/ChatMessageImage.logic'
 import { BaseCommand } from '../BaseCommand'
+import { commandArgsForLog } from '../commandArgsForLog'
 
 const createLogger = (method: string) =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.command.commands.SendEmailCommand.${method}`)
@@ -95,6 +103,22 @@ export interface SendEmailCommandParams {
   // the first and last name, and the names it files are cut from the alias. No names travel
   // with a message. Servers from before P3c send no alias.
   senderAlias?: string
+  // The pictures of a chat message (P7b), one at most: they travel with the message, and this
+  // server checks and files them as the sending server did. A server from before P7b does not
+  // read the field and files the message without its picture -- a picture without a caption
+  // arrives there as an empty message. That lasts only while a release is rolled out: every
+  // server gets the same version.
+  images?: SendEmailCommandImage[]
+}
+
+/** A picture as it travels with a chat message to another community (P7b). */
+export interface SendEmailCommandImage {
+  // The name both servers file it under -- the sending server its own copy, this one its copy.
+  imageUuid: string
+  width: number
+  height: number
+  // The JPEG as base64, as the wallet uploads it.
+  data: string
 }
 export class SendEmailCommand extends BaseCommand<
   Record<string, unknown> | boolean | null | Error
@@ -111,9 +135,34 @@ export class SendEmailCommand extends BaseCommand<
 
   constructor(params: any[]) {
     const methodLogger = createLogger(`constructor`)
-    methodLogger.debug(`constructor() params=${JSON.stringify(params)}`)
+    // The debug lines write a picture as its length (P7b), the text as before.
+    if (methodLogger.isDebugEnabled()) {
+      methodLogger.debug(`constructor() params=${JSON.stringify(commandArgsForLog(params))}`)
+    }
     super(params)
     this.sendEmailCommandParams = JSON.parse(params[0]) as SendEmailCommandParams
+  }
+
+  /**
+   * The command as the debug log writes it -- the executor and the factory write the command
+   * whole (JSON.stringify): a chat message's picture as its length (P7b), in the arguments as they
+   * came and in the parameters read from them.
+   */
+  toJSON(): Record<string, unknown> {
+    return {
+      params: commandArgsForLog(this.params),
+      requiredFields: this.requiredFields,
+      sendEmailCommandParams: this.paramsForLog(),
+    }
+  }
+
+  private paramsForLog(): SendEmailCommandParams {
+    return {
+      ...this.sendEmailCommandParams,
+      images: chatMessageImagesForLog(
+        this.sendEmailCommandParams.images,
+      ) as SendEmailCommandParams['images'],
+    }
   }
 
   validate(): boolean {
@@ -128,13 +177,16 @@ export class SendEmailCommand extends BaseCommand<
 
   async execute(): Promise<string | boolean | null | Error> {
     const methodLogger = createLogger(`execute`)
-    methodLogger.debug(
-      `execute() sendEmailCommandParams=${JSON.stringify(this.sendEmailCommandParams)}`,
-    )
+    if (methodLogger.isDebugEnabled()) {
+      methodLogger.debug(`execute() sendEmailCommandParams=${JSON.stringify(this.paramsForLog())}`)
+    }
     let result: string
     if (!this.validate()) {
       throw new Error('Invalid command parameters')
     }
+    // P7b: the picture of a chat message is checked before anything is filed, the sender
+    // included, as the sending server checked it; one this server refuses refuses the command.
+    const pictures = this.acceptedPictures()
     // find sender user
     methodLogger.debug(
       `find sender user: ${this.sendEmailCommandParams.senderComUuid} ${this.sendEmailCommandParams.senderGradidoId}`,
@@ -184,15 +236,34 @@ export class SendEmailCommand extends BaseCommand<
         // spelling this server stores them in. A sender's uuid that is none is replaced, like
         // a missing one from an older server.
         const sentUuid = uuidv4Schema.safeParse(this.sendEmailCommandParams.messageUuid)
+        const messageUuid = sentUuid.success ? sentUuid.data : randomUUID()
         const notify = parseChatMessageNotify(this.sendEmailCommandParams.notify)
         const letter = this.sendEmailCommandParams.notify === CHAT_MESSAGE_NOTIFY_LETTER
         const recipient = {
           communityUuid: recipientUser.communityUuid,
           gradidoId: recipientUser.gradidoID,
         }
+        // P7b: the picture first, under the message's uuid, then the message -- as the sending
+        // server filed its copy. A message with a picture that cannot be filed refuses the
+        // command and is not mailed: the sender sees "not delivered" rather than a message that
+        // lacks its picture over here (E-034). A picture a delivery of the same command filed
+        // before is not taken out again.
+        const [picture] = pictures
+        let pictureFiledNow = false
+        if (picture) {
+          const filed = await storeIncomingChatMessageImage(messageUuid, picture)
+          if (!filed.success) {
+            throw new Error(
+              filed.error === 'CONTRADICTION'
+                ? 'CHAT_IMAGE_NOT_ACCEPTED: CONTRADICTION'
+                : 'CHAT_MESSAGE_NOT_STORED',
+            )
+          }
+          pictureFiledNow = filed.value === 'FILED'
+        }
         const stored = await storeChatMessage(
           {
-            messageUuid: sentUuid.success ? sentUuid.data : randomUUID(),
+            messageUuid,
             sender: { communityUuid: senderUser.communityUuid, gradidoId: senderUser.gradidoID },
             recipient,
             subject: this.sendEmailCommandParams.subject || null,
@@ -202,6 +273,12 @@ export class SendEmailCommand extends BaseCommand<
           },
           'incoming',
         )
+        if (!stored && picture) {
+          if (pictureFiledNow) {
+            await removeChatMessageImages(messageUuid)
+          }
+          throw new Error('CHAT_MESSAGE_NOT_STORED')
+        }
         // A chat message is mailed when the sender asked for it and the recipient has not muted
         // the conversation (E-024), read here, on the recipient's own server; a letter from the
         // form whatever the quiet (E-034). A message that could not be filed is mailed as before
@@ -214,7 +291,8 @@ export class SendEmailCommand extends BaseCommand<
           ? chatMessageMailState(notify, mutedAt, letter)
           : ChatMessageMailState.MAILED
         if (mailState === ChatMessageMailState.MAILED) {
-          const emailResult = await sendCustomEmail(emailParams)
+          // The mail says there is a picture, and shows none (MAIL-008), as within a community.
+          const emailResult = await sendCustomEmail({ ...emailParams, hasImage: Boolean(picture) })
           methodLogger.debug(`mailed: ${this.getEmailResult(emailResult)}`)
           // A mail that did not go out is not answered as one; the transport's report stays here.
           if (!chatMailWentOut(emailResult)) {
@@ -243,6 +321,37 @@ export class SendEmailCommand extends BaseCommand<
       methodLogger.error('Error executing SendEmailCommand:', error)
       throw error
     }
+  }
+
+  /**
+   * The picture of a chat message (P7b), checked as the sending server checked it
+   * (acceptIncomingChatMessageImages): one at most, named by a uuid, a JPEG within the limits --
+   * and the message named by a uuid as well (NO_MESSAGE_UUID). A picture is filed under the uuid
+   * the sending server filed its own copy under; with one made up here the two copies would not
+   * share it, and a second delivery of the command would file the message and its picture again
+   * (coderabbit on #4003). A message without a picture keeps the old way, a uuid of its own.
+   *
+   * ⛔ A picture refused here refuses the whole command -- nothing filed, nothing mailed. The
+   * sending server checks the same before it sends, so a refusal is a bug or a forgery, and the
+   * sender is to see "not delivered" rather than a message that lacks its picture over here
+   * (E-034: the software says what happens).
+   */
+  private acceptedPictures(): ChatMessageImageToStore[] {
+    const sentUuid = uuidv4Schema.safeParse(this.sendEmailCommandParams.messageUuid)
+    const refuse = (reason: string): never => {
+      createLogger(`acceptedPictures`).warn(
+        `chat message picture refused: message_uuid=${sentUuid.success ? sentUuid.data : 'none'} (${reason})`,
+      )
+      throw new Error(`CHAT_IMAGE_NOT_ACCEPTED: ${reason}`)
+    }
+    const accepted = acceptIncomingChatMessageImages(this.sendEmailCommandParams.images)
+    if (!accepted.success) {
+      return refuse(accepted.error)
+    }
+    if (accepted.value.length > 0 && !sentUuid.success) {
+      return refuse('NO_MESSAGE_UUID')
+    }
+    return accepted.value
   }
 
   /**
