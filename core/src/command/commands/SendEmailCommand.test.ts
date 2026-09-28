@@ -695,6 +695,25 @@ describe('SendEmailCommand, a message with a picture', () => {
     expect(customMail).not.toHaveBeenCalled()
   })
 
+  // coderabbit on #4003: a picture is filed under the uuid the sending server filed its copy
+  // under. Made up here, the two copies would not share it, and a second delivery would file
+  // the message and its picture again. A message without a picture still gets a uuid of its own.
+  it('refuses a picture whose message comes without a uuid, and files and mails nothing', async () => {
+    for (const messageUuid of [undefined, 'not-a-uuid', 42]) {
+      await expect(run(withPicture([arrived()], { messageUuid } as never))).rejects.toThrow(
+        'CHAT_IMAGE_NOT_ACCEPTED: NO_MESSAGE_UUID',
+      )
+    }
+
+    expect(findUser).not.toHaveBeenCalled()
+    expect(storePicture).not.toHaveBeenCalled()
+    expect(store).not.toHaveBeenCalled()
+    expect(customMail).not.toHaveBeenCalled()
+
+    await run(withPicture([], { messageUuid: 'not-a-uuid' }))
+    expect(store).toHaveBeenCalledTimes(1)
+  })
+
   // ⛔ The same command twice: one message, one picture, no error -- and the picture the first
   // delivery filed is not taken out again.
   it('takes the same command twice without an error, and takes no picture out', async () => {

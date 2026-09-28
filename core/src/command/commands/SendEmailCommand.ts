@@ -325,7 +325,11 @@ export class SendEmailCommand extends BaseCommand<
 
   /**
    * The picture of a chat message (P7b), checked as the sending server checked it
-   * (acceptIncomingChatMessageImages): one at most, named by a uuid, a JPEG within the limits.
+   * (acceptIncomingChatMessageImages): one at most, named by a uuid, a JPEG within the limits --
+   * and the message named by a uuid as well (NO_MESSAGE_UUID). A picture is filed under the uuid
+   * the sending server filed its own copy under; with one made up here the two copies would not
+   * share it, and a second delivery of the command would file the message and its picture again
+   * (coderabbit on #4003). A message without a picture keeps the old way, a uuid of its own.
    *
    * ⛔ A picture refused here refuses the whole command -- nothing filed, nothing mailed. The
    * sending server checks the same before it sends, so a refusal is a bug or a forgery, and the
@@ -333,13 +337,19 @@ export class SendEmailCommand extends BaseCommand<
    * (E-034: the software says what happens).
    */
   private acceptedPictures(): ChatMessageImageToStore[] {
+    const sentUuid = uuidv4Schema.safeParse(this.sendEmailCommandParams.messageUuid)
+    const refuse = (reason: string): never => {
+      createLogger(`acceptedPictures`).warn(
+        `chat message picture refused: message_uuid=${sentUuid.success ? sentUuid.data : 'none'} (${reason})`,
+      )
+      throw new Error(`CHAT_IMAGE_NOT_ACCEPTED: ${reason}`)
+    }
     const accepted = acceptIncomingChatMessageImages(this.sendEmailCommandParams.images)
     if (!accepted.success) {
-      const sentUuid = uuidv4Schema.safeParse(this.sendEmailCommandParams.messageUuid)
-      createLogger(`acceptedPictures`).warn(
-        `chat message picture refused: message_uuid=${sentUuid.success ? sentUuid.data : 'none'} (${accepted.error})`,
-      )
-      throw new Error(`CHAT_IMAGE_NOT_ACCEPTED: ${accepted.error}`)
+      return refuse(accepted.error)
+    }
+    if (accepted.value.length > 0 && !sentUuid.success) {
+      return refuse('NO_MESSAGE_UUID')
     }
     return accepted.value
   }
