@@ -59,6 +59,12 @@ export const mutations = {
       // time zone, the time put right by hand -- would read every session as over, and the sign-in
       // guard (routes/guards.js) would send it back to the form on every page. A token without
       // `iat` keeps `exp`.
+      //
+      // ⚠️ The lifetime, not the time left, and that holds because every token taken here is
+      // fresh from the answer that carries it: the renewal header of every answer
+      // (apolloProvider.js), and the token in /authenticate's address is replaced by the one
+      // verifyLogin's answer brings before any page opens (guards.js). A token kept from
+      // anywhere else would need its time left instead.
       const { exp, iat } = jwtDecode(token)
       state.tokenTime = iat ? Math.floor(Date.now() / 1000) + (exp - iat) : exp
     } else {

@@ -120,7 +120,16 @@ const addNavigationGuards = (router, store, apollo) => {
   // first because it sets the way back to the overview itself.
   router.beforeEach(async (to, from, next) => {
     if (to.meta.requiresAuth && !sessionRuns(store.state)) {
-      if (store.state.token) await store.dispatch('logout')
+      // The logout takes the token in its first commit. What can fail after that is clearing up
+      // -- storage refused in a private window, the cache -- and that must neither keep the
+      // member from the form nor lose the link: both go on either way.
+      if (store.state.token) {
+        try {
+          await store.dispatch('logout')
+        } catch {
+          // The sign-in is gone already; what failed was housekeeping.
+        }
+      }
       // fullPath, not path: it carries the query and the hash, and both are what a link
       // out of an e-mail is made of. The receipt blocks a card with ?block=<id>, the
       // reply button opens the send form in e-mail mode with ?art=email, and the

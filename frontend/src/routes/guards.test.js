@@ -345,6 +345,21 @@ describe('navigation guards', () => {
         expect(nextArg).toEqual({ path: '/login' })
       })
 
+      it('goes to the form with the link even where clearing up after the logout fails', async () => {
+        store.state.token = 'old-token'
+        store.state.tokenTime = Math.floor(Date.now() / 1000) - 3600
+        storeDispatchMock.mockRejectedValueOnce(new Error('storage refused'))
+        let nextArg
+        await authGuard()(link, {}, (arg) => {
+          nextArg = arg
+        })
+        expect(storeCommitMock).toHaveBeenCalledWith(
+          'redirectPath',
+          '/contacts?with=member-1&community=community-1',
+        )
+        expect(nextArg).toEqual({ path: '/login' })
+      })
+
       it('counts a token without an end as run out', async () => {
         store.state.token = 'old-token'
         store.state.tokenTime = null
