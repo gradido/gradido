@@ -190,6 +190,8 @@
     "send": "Gönder",
     "sent": "Gönderildi",
     "sentWithNote": "Gönderildi. {note}",
+    "transferReceived": "{name} sana {amount} Gradido gönderdi",
+    "transferSent": "{name} adlı üyeye {amount} Gradido gönderdin",
     "unmutedHint": "Artık sessizde değil: {name} kişisinin sohbet mesajları için yine e-posta alacaksın.",
     "unreadBadge": "{n} sohbette yeni mesaj var",
     "unreadDot": "Sohbette yeni mesajlar var",

@@ -190,6 +190,8 @@
     "send": "Send",
     "sent": "Sent",
     "sentWithNote": "Sent. {note}",
+    "transferReceived": "{name} has sent you {amount} Gradido",
+    "transferSent": "You have sent {name} {amount} Gradido",
     "unmutedHint": "No longer muted: you will get e-mails about chat messages from {name} again.",
     "unreadBadge": "{n} conversation with new messages | {n} conversations with new messages",
     "unreadDot": "New chat messages",

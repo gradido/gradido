@@ -20,6 +20,7 @@ import {
   newChatMessagesSince,
   sendChatMessage,
 } from '@/graphql/chat.graphql'
+import { transactionsQuery } from '@/graphql/transactions.graphql'
 
 /**
  * The chat's beat as the thread sees it: whoever listens, and "ask now". A test hands messages
@@ -47,6 +48,7 @@ vi.mock('vue-i18n', () => ({
   useI18n: () => ({
     t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key),
     d: (date, format) => `${format}(${date.toISOString()})`,
+    n: (value, format) => `${format}(${value})`,
   }),
 }))
 
@@ -153,12 +155,46 @@ vi.mock('@vue/apollo-composable', async () => {
       return { loading, error, mutate }
     },
     // The same cache as `update` gets: an arrival goes into the thread the way one's own copy
-    // does.
-    useApolloClient: () => ({ client: { cache } }),
+    // does. And the booking list narrowed to the person, which the transfers are asked from --
+    // that question alone: a picture's (useChatImages) finds no server here, as before.
+    useApolloClient: () => ({
+      client: {
+        cache,
+        query: (options) =>
+          options.query === transactionsQuery
+            ? bookingsAsked(options)
+            : Promise.reject(new Error('no server for this question')),
+      },
+    }),
   }
 })
 
 const LENA = { communityUuid: 'home-uuid', gradidoID: 'lena-id' }
+
+/**
+ * The booking list narrowed to the person (useChatTransfers): newest first, and `count` the
+ * number of bookings shared with them, as the server answers. Without a test's own answer: none.
+ */
+const bookingsPage = (rows, count = rows.length) => ({
+  data: { transactionList: { balance: { count }, transactions: rows } },
+})
+const bookingsAsked = vi.fn()
+const noBookings = () => bookingsAsked.mockImplementation(async () => bookingsPage([]))
+noBookings()
+
+/** A transfer between the member and Lena, at the given moment: `n` its id. */
+const booking = (n, { at, sent = false } = {}) => ({
+  id: n,
+  typeId: sent ? 'SEND' : 'RECEIVE',
+  amount: sent ? '-10' : '10',
+  balance: '100',
+  previousBalance: '90',
+  balanceDate: at,
+  memo: `memo ${n}`,
+  linkedUser: { ...LENA, communityName: 'Home', alias: 'Lena', avatarColorIndex: 1 },
+  decay: null,
+  linkId: null,
+})
 
 /** A message as the server sends it; `n` is its id, and its minute on the given day. */
 const message = (n, { day = '2026-09-22', mine = n % 2 === 0 } = {}) => ({
@@ -310,6 +346,8 @@ describe('ChatThread', () => {
   afterEach(() => {
     wrapper?.unmount()
     markRead.mockClear()
+    bookingsAsked.mockReset()
+    noBookings()
     serverSends.mockReset()
     beat.pollNow.mockClear()
     layout.hidden = false
@@ -333,6 +371,206 @@ describe('ChatThread', () => {
     await wrapper.find('[data-test="chat-compose-send"]').trigger('click')
     await flushPromises()
   }
+
+  /**
+   * The transfers between the two (Bernd, 28.09.2026: "bei einer Gradido-Transaktion ebenfalls
+   * eine Nachricht im Chat-Faden"): the booking list narrowed to this person, in the thread where
+   * they fall in time -- bubbles of their own, the mail's words bold over the memo. Nothing the
+   * chat counts goes by them: not the read pointer, not the older page, not whether the
+   * conversation exists.
+   */
+  describe('the transfers between the two', () => {
+    /** What the thread shows, in its order: a transfer as `T`, a message as its text. */
+    const shown = () =>
+      wrapper
+        .findAll('[data-test="chat-bubble"]')
+        .map((row) =>
+          row.classes().includes('chat-bubble-transfer')
+            ? 'T'
+            : row.find('.chat-message-text').text(),
+        )
+
+    it('asks the booking list narrowed to this person, newest first, past the cache', () => {
+      mountThread()
+      expect(bookingsAsked).toHaveBeenCalledWith({
+        query: transactionsQuery,
+        variables: { currentPage: 1, pageSize: 25, order: 'DESC', counterparty: LENA },
+        fetchPolicy: 'no-cache',
+      })
+    })
+
+    it('puts each transfer where it falls in time, on the side of whoever sent it', async () => {
+      bookingsAsked.mockImplementation(async () =>
+        bookingsPage([
+          booking(8, { at: '2026-09-22T10:04:30.000Z', sent: true }),
+          booking(7, { at: '2026-09-22T10:01:30.000Z' }),
+        ]),
+      )
+      mountThread()
+      await arrive(page([1, 2, 3, 4, 5]))
+
+      expect(shown()).toEqual([
+        'message 1',
+        'T',
+        'message 2',
+        'message 3',
+        'message 4',
+        'T',
+        'message 5',
+      ])
+      const [received, sent] = wrapper.findAll('.chat-bubble-transfer')
+      expect(received.classes()).toContain('chat-bubble-theirs')
+      expect(received.find('[data-test="chat-bubble-subject"]').text()).toBe(
+        'chatThread.transferReceived {"name":"Lena","amount":"decimal(10)"}',
+      )
+      expect(received.find('.memo-text').text()).toBe('memo 7')
+      expect(sent.classes()).toContain('chat-bubble-mine')
+      expect(sent.find('[data-test="chat-bubble-subject"]').text()).toBe(
+        'chatThread.transferSent {"name":"Lena","amount":"decimal(10)"}',
+      )
+    })
+
+    it('leaves out what is no transfer between the two, and a booking it holds already', async () => {
+      bookingsAsked.mockImplementation(async () =>
+        bookingsPage([
+          { ...booking(9, { at: '2026-09-22T10:09:00.000Z' }), typeId: 'DECAY', linkedUser: null },
+          booking(7, { at: '2026-09-22T10:01:30.000Z' }),
+        ]),
+      )
+      mountThread()
+      await arrive(page([1, 2]))
+
+      expect(shown()).toEqual(['message 1', 'T', 'message 2'])
+    })
+
+    it('shows a pair with transfers and no message yet as a thread; the next message is still the first', async () => {
+      bookingsAsked.mockImplementation(async () =>
+        bookingsPage([booking(7, { at: '2026-09-22T10:01:30.000Z' })]),
+      )
+      mountThread()
+      await arrive(page([]))
+
+      expect(wrapper.find('[data-test="chat-thread-empty"]').exists()).toBe(false)
+      expect(shown()).toEqual(['T'])
+      expect(bar().props('first')).toBe(true)
+      expect(wrapper.emitted('chatConversation').at(-1)[0]).toEqual({
+        exists: false,
+        mutedByMe: false,
+      })
+    })
+
+    it('says the thread is empty only once the transfers have answered', async () => {
+      let answer
+      bookingsAsked.mockImplementation(() => new Promise((resolve) => (answer = resolve)))
+      mountThread()
+      await arrive(page([]))
+      expect(wrapper.find('[data-test="chat-thread-empty"]').exists()).toBe(false)
+      expect(wrapper.find('[data-test="chat-thread-loading"]').exists()).toBe(true)
+
+      answer(bookingsPage([]))
+      await flushPromises()
+      expect(wrapper.find('[data-test="chat-thread-empty"]').exists()).toBe(true)
+    })
+
+    it('moves the read pointer by the messages alone', async () => {
+      bookingsAsked.mockImplementation(async () =>
+        bookingsPage([booking(99, { at: '2026-09-22T10:09:00.000Z' })]),
+      )
+      mountThread()
+      await arrive(page([1, 2, 3]))
+
+      expect(markRead).toHaveBeenCalledTimes(1)
+      expect(markRead).toHaveBeenCalledWith(markChatConversationRead, {
+        ref: LENA,
+        upToMessageId: 3,
+      })
+    })
+
+    // A message from before the oldest transfer asked for would stand beside transfers that are
+    // not there yet -- so it waits for them.
+    it('holds back what is older than the oldest transfer while older ones wait, and brings them', async () => {
+      bookingsAsked.mockImplementationOnce(async () =>
+        bookingsPage([booking(8, { at: '2026-09-22T10:04:30.000Z' })], 26),
+      )
+      mountThread()
+      await arrive(page([1, 2, 3, 4, 5]))
+      expect(shown()).toEqual(['T', 'message 5'])
+      expect(older().exists()).toBe(true)
+
+      bookingsAsked.mockImplementationOnce(async () =>
+        bookingsPage([booking(7, { at: '2026-09-22T10:01:30.000Z' })], 26),
+      )
+      await older().trigger('click')
+      await flushPromises()
+
+      expect(bookingsAsked).toHaveBeenLastCalledWith(
+        expect.objectContaining({ variables: expect.objectContaining({ currentPage: 2 }) }),
+      )
+      expect(server.fetchMore).not.toHaveBeenCalled()
+      expect(shown()).toEqual([
+        'message 1',
+        'T',
+        'message 2',
+        'message 3',
+        'message 4',
+        'T',
+        'message 5',
+      ])
+      expect(older().exists()).toBe(false)
+    })
+
+    it('asks for older messages where they are what the thread stops at', async () => {
+      bookingsAsked.mockImplementation(async () =>
+        bookingsPage([booking(7, { at: '2026-09-22T10:01:30.000Z' })]),
+      )
+      mountThread()
+      await arrive(page([4, 5], { hasMore: true }))
+      expect(shown()).toEqual(['message 4', 'message 5'])
+
+      server.olderPages.push(page([1, 2, 3]))
+      await older().trigger('click')
+      await flushPromises()
+
+      expect(server.fetchMore).toHaveBeenCalledTimes(1)
+      expect(bookingsAsked).toHaveBeenCalledTimes(1)
+      expect(shown()).toEqual([
+        'message 1',
+        'T',
+        'message 2',
+        'message 3',
+        'message 4',
+        'message 5',
+      ])
+    })
+
+    it('says so where older transfers did not come', async () => {
+      bookingsAsked.mockImplementationOnce(async () =>
+        bookingsPage([booking(8, { at: '2026-09-22T10:04:30.000Z' })], 26),
+      )
+      mountThread()
+      await arrive(page([1, 2, 3, 4, 5]))
+      bookingsAsked.mockImplementationOnce(async () => {
+        throw new Error('Network error')
+      })
+
+      await older().trigger('click')
+      await flushPromises()
+
+      expect(wrapper.find('[data-test="chat-thread-older-failed"]').exists()).toBe(true)
+      expect(shown()).toEqual(['T', 'message 5'])
+    })
+
+    it('shows the messages alone where the transfers could not be asked', async () => {
+      bookingsAsked.mockImplementation(async () => {
+        throw new Error('Network error')
+      })
+      mountThread()
+      await arrive(page([1, 2]))
+
+      expect(shown()).toEqual(['message 1', 'message 2'])
+      expect(older().exists()).toBe(false)
+    })
+  })
 
   /**
    * iOS starts the wallet over while the member is in another app -- SwissTransfer's, Jitsi's --

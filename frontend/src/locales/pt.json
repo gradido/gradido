@@ -190,6 +190,8 @@
     "send": "Enviar",
     "sent": "Enviada",
     "sentWithNote": "Enviada. {note}",
+    "transferReceived": "{name} enviou-te {amount} Gradido",
+    "transferSent": "Enviaste {amount} Gradido a {name}",
     "unmutedHint": "Conversa já não silenciada: voltas a receber e-mails sobre as mensagens de chat de {name}.",
     "unreadBadge": "{n} conversa com novas mensagens | {n} conversas com novas mensagens",
     "unreadDot": "Novas mensagens no chat",

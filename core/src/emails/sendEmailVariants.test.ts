@@ -844,6 +844,18 @@ describe('sendEmailVariants', () => {
       })
     })
 
+    // The reply is written in the conversation with the sender, where the transfer stands too
+    // (Bernd, 28.09.2026) -- the address the chat mail's button has (P4c). In the rendered
+    // attribute the `&` is `&amp;`, which the mail client reads as `&`.
+    it('leads the reply into the conversation with the sender, not into the send form', () => {
+      const html: string = result.originalMessage.html
+      expect(html).toContain(
+        `${CONFIG.COMMUNITY_URL}/contacts?with=3f9a1e2c-1111-4a2b-9c3d-000000000001&amp;community=aaaa1111-2222-4333-8444-555566667777`,
+      )
+      expect(html).not.toContain('/send/')
+      expect(html).not.toContain('art=email')
+    })
+
     it('makes an address in the memo a link', async () => {
       const sent: any = await sendTransactionReceivedEmail({
         firstName: 'Peter',

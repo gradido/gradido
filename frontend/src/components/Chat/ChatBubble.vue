@@ -2,7 +2,10 @@
 <template>
   <li
     class="chat-bubble-row"
-    :class="message.mine ? 'chat-bubble-mine' : 'chat-bubble-theirs'"
+    :class="[
+      message.mine ? 'chat-bubble-mine' : 'chat-bubble-theirs',
+      { 'chat-bubble-transfer': message.transfer },
+    ]"
     data-test="chat-bubble"
   >
     <!-- One message, one list item: the thread is a list (ChatThread). Own messages on the
@@ -21,12 +24,22 @@
         @open="(opener) => emit('openImage', { message, image, opener })"
       />
       <!-- The subject a message sent from the e-mail form carries, bold over the text; a
-           message without one has no line for it at all, not an empty one (E-013). -->
-      <div v-if="message.subject" class="chat-bubble-subject" data-test="chat-bubble-subject">
-        {{ message.subject }}
+           message without one has no line for it at all, not an empty one (E-013). A transfer
+           between the two (ChatThread) has the mail's words there, behind the coin. -->
+      <div
+        v-if="message.subject"
+        class="chat-bubble-subject"
+        :class="{ 'chat-bubble-transfer-head': message.transfer }"
+        data-test="chat-bubble-subject"
+      >
+        <chat-transfer-coin v-if="message.transfer" />
+        <span>{{ message.subject }}</span>
       </div>
+      <!-- A transfer's memo as the booking list shows it (MemoText): its addresses as links, its
+           stars as stars -- it is the booking's text, not a chat message. -->
+      <memo-text v-if="message.transfer" class="chat-bubble-text" :memo="message.body" />
       <!-- A picture without words has no caption, and no empty line for one. -->
-      <chat-message-text v-if="message.body" class="chat-bubble-text" :text="message.body" />
+      <chat-message-text v-else-if="message.body" class="chat-bubble-text" :text="message.body" />
       <!-- A planned video call (V5b, Bernd, 27.09.2026): offered to the member's calendar, on
            either side of the conversation -- the time comes out of the invitation's own address
            (chatVideoPlannedCall), and the calendar shows it in this member's time zone. -->
@@ -82,6 +95,8 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ChatBubbleImage from '@/components/Chat/ChatBubbleImage.vue'
 import ChatMessageText from '@/components/Chat/ChatMessageText'
+import ChatTransferCoin from '@/components/Chat/ChatTransferCoin.vue'
+import MemoText from '@/components/TransactionRows/MemoText'
 import {
   chatVideoCalendarFile,
   chatVideoCalendarFileName,
@@ -193,6 +208,21 @@ const addToCalendar = () => {
 </script>
 
 <style lang="scss" scoped>
+/* A transfer's head (Bernd, 28.09.2026): the coin before the mail's words, on their first line
+   where they take two. */
+.chat-bubble-transfer-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+}
+
+.chat-transfer-coin {
+  flex: none;
+  width: 1.35em;
+  height: 1.35em;
+  margin-top: 0.05em;
+}
+
 /* "Add to calendar" under a planned call's invitation (V5b): a small outlined pill in the gold of
    one's own bubbles, the words in the text colour. */
 .chat-bubble-calendar {
