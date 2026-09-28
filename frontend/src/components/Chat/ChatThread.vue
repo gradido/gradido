@@ -202,12 +202,17 @@ const hasMore = computed(() => Boolean(page.value?.hasMore))
  * id, not whether the conversation exists. They only stand in the thread where they fall in
  * time, as bubbles of their own.
  */
+const store = useStore()
 const {
   transfers,
   settled: transfersSettled,
   hasMore: transfersHaveMore,
   loadOlderTransfers,
-} = useChatTransfers(apolloClient, memberRef)
+} = useChatTransfers(apolloClient, memberRef, {
+  // The member's own switch (Einstellungen › Nachrichten), on unless switched off: null is a
+  // store from before the field.
+  enabled: store.state.transfersInChat !== false,
+})
 
 /**
  * ⚠️ Decided on the PAGE, not on `loading`. vue-apollo sets `loading` for a `fetchMore` too,
@@ -367,7 +372,6 @@ onBeforeUnmount(() => document.removeEventListener('visibilitychange', onVisibil
  * into sight or the thread closes -- whom it is with, and the words in the field not sent yet.
  * After such a start, the words come back into the field (`heldText`, handed over in memory).
  */
-const store = useStore()
 const composeBar = ref(null)
 const noteReturn = () => {
   if (document.hidden) {

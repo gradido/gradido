@@ -1179,6 +1179,11 @@
       "system": "Systeeminstelling volgen (standaard)",
       "title": "Weergave"
     },
+    "transfersInChat": {
+      "off": "Overboekingen verschijnen niet in je gesprekken, en je ontvangt geen email als iemand je Gradido stuurt.",
+      "on": "Overboekingen verschijnen in je gesprekken, en je ontvangt een email als iemand je Gradido stuurt.",
+      "title": "Overboekingen in de chat en per email"
+    },
     "username": {
       "change-success": "Je gebruikersnaam is succesvol gewijzigd.",
       "confirm-free": "Deze naam had je al — deze wijziging telt niet mee voor je jaar.",

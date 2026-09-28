@@ -1179,6 +1179,11 @@
       "system": "Systemeinstellung folgen (Standard)",
       "title": "Erscheinungsbild"
     },
+    "transfersInChat": {
+      "off": "Überweisungen erscheinen nicht in Deinen Gesprächen, und Du erhältst keine E-Mail, wenn Dir jemand Gradido sendet.",
+      "on": "Überweisungen erscheinen in Deinen Gesprächen, und Du erhältst eine E-Mail, wenn Dir jemand Gradido sendet.",
+      "title": "Überweisungen im Chat und per E-Mail"
+    },
     "username": {
       "change-success": "Dein Nutzername wurde erfolgreich geändert.",
       "confirm-free": "Diesen Namen hattest Du schon — die Änderung zählt nicht auf Dein Jahr.",

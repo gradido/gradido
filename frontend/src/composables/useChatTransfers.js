@@ -26,12 +26,16 @@ const isTransfer = (booking) => booking.typeId === 'SEND' || booking.typeId === 
  * answered or failed -- a failure leaves the conversation as it was without transfers, and says
  * nothing. `hasMore` where the list holds older bookings than the pages asked for.
  *
+ * `enabled`: the member's own switch (Einstellungen › Nachrichten, "Überweisungen im Chat und per
+ * E-Mail", on by default). Off, nothing is asked, and the conversation keeps to its messages.
+ *
  * @param apolloClient
  * @param {{ gradidoID: string, communityUuid: string | null }} member
+ * @param {{ enabled?: boolean }} [options]
  */
-export const useChatTransfers = (apolloClient, member) => {
+export const useChatTransfers = (apolloClient, member, { enabled = true } = {}) => {
   const transfers = ref([])
-  const settled = ref(false)
+  const settled = ref(!enabled)
   const hasMore = ref(false)
   let pages = 0
 
@@ -58,11 +62,13 @@ export const useChatTransfers = (apolloClient, member) => {
     hasMore.value = pages * CHAT_TRANSFER_PAGE_SIZE < (list?.balance?.count ?? 0)
   }
 
-  askNextPage()
-    .catch(() => {})
-    .finally(() => {
-      settled.value = true
-    })
+  if (enabled) {
+    askNextPage()
+      .catch(() => {})
+      .finally(() => {
+        settled.value = true
+      })
+  }
 
   /** The next older page; throws where it did not come, for the thread to say so. */
   const loadOlderTransfers = () => askNextPage()

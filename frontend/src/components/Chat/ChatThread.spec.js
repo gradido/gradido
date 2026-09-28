@@ -40,8 +40,11 @@ const beatBrings = async (...chatMessages) => {
 }
 
 // The member signed in, whose key the way back after a restart is noted under (utils/chatReturn).
+// And their switch for the transfers in the conversations (Einstellungen › Nachrichten), which a
+// test sets and the afterEach puts back to "not known".
+const storeState = vi.hoisted(() => ({ gradidoID: 'me-id', username: 'Bernd' }))
 vi.mock('vuex', () => ({
-  useStore: () => ({ state: { gradidoID: 'me-id', username: 'Bernd' } }),
+  useStore: () => ({ state: storeState }),
 }))
 
 vi.mock('vue-i18n', () => ({
@@ -348,6 +351,7 @@ describe('ChatThread', () => {
     markRead.mockClear()
     bookingsAsked.mockReset()
     noBookings()
+    delete storeState.transfersInChat
     serverSends.mockReset()
     beat.pollNow.mockClear()
     layout.hidden = false
@@ -558,6 +562,26 @@ describe('ChatThread', () => {
 
       expect(wrapper.find('[data-test="chat-thread-older-failed"]').exists()).toBe(true)
       expect(shown()).toEqual(['T', 'message 5'])
+    })
+
+    // Einstellungen › Nachrichten: switched off, the conversation keeps to its messages.
+    it('asks nothing, and shows the messages alone, where the member switched transfers off', async () => {
+      storeState.transfersInChat = false
+      bookingsAsked.mockImplementation(async () =>
+        bookingsPage([booking(7, { at: '2026-09-22T10:01:30.000Z' })]),
+      )
+      mountThread()
+      await arrive(page([1, 2]))
+
+      expect(bookingsAsked).not.toHaveBeenCalled()
+      expect(shown()).toEqual(['message 1', 'message 2'])
+    })
+
+    it('shows an empty conversation at once where transfers are switched off', async () => {
+      storeState.transfersInChat = false
+      mountThread()
+      await arrive(page([]))
+      expect(wrapper.find('[data-test="chat-thread-empty"]').exists()).toBe(true)
     })
 
     it('shows the messages alone where the transfers could not be asked', async () => {
