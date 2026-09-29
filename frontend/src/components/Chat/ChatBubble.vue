@@ -6,7 +6,7 @@
       message.mine ? 'chat-bubble-mine' : 'chat-bubble-theirs',
       { 'chat-bubble-transfer': message.transfer, 'chat-bubble-in-group': face },
     ]"
-    :style="face ? { '--chat-bubble-face': `${CHAT_BUBBLE_FACE_SIZE}px` } : undefined"
+    :style="face ? { '--chat-bubble-face': `${LIST_AVATAR_SIZE}px` } : undefined"
     data-test="chat-bubble"
   >
     <!-- One message, one list item: the thread is a list (ChatThread). Own messages on the
@@ -21,7 +21,7 @@
     <template v-if="face && showWriter">
       <app-avatar
         class="chat-bubble-face"
-        :size="CHAT_BUBBLE_FACE_SIZE"
+        :size="LIST_AVATAR_SIZE"
         :color="'#fff'"
         v-bind="face"
         data-test="chat-bubble-face"
@@ -123,7 +123,7 @@ import ChatTransferCoin from '@/components/Chat/ChatTransferCoin.vue'
 import MemoText from '@/components/TransactionRows/MemoText'
 import { avatarZoomBindings } from '@/composables/useAvatarZoom'
 import { memberAvatarProps } from '@/composables/useMemberAvatars'
-import { CHAT_BUBBLE_FACE_SIZE } from '@/constants'
+import { LIST_AVATAR_SIZE } from '@/constants'
 import { memberAlias } from '@/utils/gradidoAddress'
 import {
   chatVideoCalendarFile,
@@ -378,10 +378,11 @@ const addToCalendar = () => {
 
 /* In a group (P5): somebody else's messages stand in by a face and a gap, the face at the top of
    the first of a run -- beside the writer's name -- and the bubbles after it in line with it. The
-   face's size comes from the component (`--chat-bubble-face`, CHAT_BUBBLE_FACE_SIZE). */
+   face is a list's (LIST_AVATAR_SIZE, Bernd 29.09.2026: 48 px as in every list); its size comes
+   from the component (`--chat-bubble-face`). */
 .chat-bubble-in-group {
   position: relative;
-  padding-left: calc(var(--chat-bubble-face, 28px) + 0.45rem);
+  padding-left: calc(var(--chat-bubble-face, 48px) + 0.45rem);
 }
 
 .chat-bubble-face {

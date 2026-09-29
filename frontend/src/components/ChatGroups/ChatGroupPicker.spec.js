@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url'
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import ChatGroupPicker from './ChatGroupPicker.vue'
-import { LIST_AVATAR_SIZE } from '@/constants'
+import { LIST_AVATAR_SIZE, SMALL_FACE_SIZE } from '@/constants'
 
 vi.mock('@/i18n', () => ({
   default: { global: { t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key) } },
@@ -88,6 +88,9 @@ describe('ChatGroupPicker', () => {
     mountPicker({ modelValue: [CARLA.user] })
     const chips = wrapper.findAll('[data-test="chat-group-picker-chips"] li')
     expect(chips.map((chip) => chip.text())).toEqual(['CACarla-Sonne'])
+    expect(chips[0].find('.app-avatar').attributes('style')).toContain(
+      `width: ${SMALL_FACE_SIZE}px`,
+    )
   })
 
   // E-050 F2: another community's members come with P6 -- there, greyed, not to be chosen.

@@ -21,7 +21,7 @@
       data-test="chat-group-picker-chips"
     >
       <li v-for="row in chosen" :key="row.key" class="chat-group-picker-chip">
-        <app-avatar :size="CHAT_BUBBLE_FACE_SIZE" :color="'#fff'" v-bind="row.avatar" />
+        <app-avatar :size="SMALL_FACE_SIZE" :color="'#fff'" v-bind="row.avatar" />
         <span>{{ row.alias }}</span>
       </li>
     </ul>
@@ -73,7 +73,7 @@ import { computed, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppAvatar from '@/components/AppAvatar.vue'
 import { contactDisplay } from '@/components/Contacts/contactDisplay'
-import { CHAT_BUBBLE_FACE_SIZE, LIST_AVATAR_SIZE } from '@/constants'
+import { SMALL_FACE_SIZE, LIST_AVATAR_SIZE } from '@/constants'
 import { chatMemberKey } from '@/utils/chatMemberKey'
 
 /**

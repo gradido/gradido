@@ -72,7 +72,7 @@
               v-for="face in strip"
               :key="face.id"
               class="chat-group-window-strip-face"
-              :size="CHAT_BUBBLE_FACE_SIZE"
+              :size="SMALL_FACE_SIZE"
               :color="'#fff'"
               v-bind="face.avatar"
             />
@@ -137,7 +137,7 @@ import {
 } from '@/components/ChatGroups/chatGroupDisplay'
 import { fetchMemberAvatars, memberAvatarProps } from '@/composables/useMemberAvatars'
 import { useAppToast } from '@/composables/useToast'
-import { CHAT_BUBBLE_FACE_SIZE } from '@/constants'
+import { SMALL_FACE_SIZE } from '@/constants'
 import { chatGroupMembersQuery, setChatGroupMuted } from '@/graphql/chatGroups.graphql'
 import { chatMemberKey } from '@/utils/chatMemberKey'
 import { memberAlias } from '@/utils/gradidoAddress'

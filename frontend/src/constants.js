@@ -67,11 +67,12 @@ export const CONTACTS_PANEL_ROWS = 5
 export const LIST_AVATAR_SIZE = 48
 
 /**
- * The face beside somebody else's message in a group's thread (P5), in pixels: the size of the
- * mockup the group's thread was decided on (E-050) -- beside every message of theirs, where a
- * list has one face a row. Tapped, it opens the picture at full size, as every face does.
+ * A small face that is part of a control (P5), in pixels: the strip in a group window's members
+ * button, the chips of the chosen in the group picker. Not zoomable there -- the control takes the
+ * tap. The face beside a message in a group is a list's (LIST_AVATAR_SIZE): Bernd, 29.09.2026,
+ * "48 px wie jede Liste".
  */
-export const CHAT_BUBBLE_FACE_SIZE = 28
+export const SMALL_FACE_SIZE = 28
 
 /**
  * Where this wallet's layout changes from a phone to a desk, in pixels.

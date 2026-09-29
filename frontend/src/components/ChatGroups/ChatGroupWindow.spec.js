@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import ChatGroupWindow from './ChatGroupWindow.vue'
 import { chatGroupMembersQuery, setChatGroupMuted } from '@/graphql/chatGroups.graphql'
+import { SMALL_FACE_SIZE } from '@/constants'
 
 vi.mock('@/i18n', () => ({
   default: { global: { t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key) } },
@@ -210,7 +211,10 @@ describe('ChatGroupWindow', () => {
         'OM',
       ])
       expect(button.text()).toContain('chatGroup.members')
-      // The faces are the button's picture: none of them is a button of its own.
+      // The faces are the button's picture, small: none of them is a button of its own.
+      expect(button.find('.app-avatar').attributes('style')).toContain(
+        `width: ${SMALL_FACE_SIZE}px`,
+      )
       expect(button.findAll('button')).toHaveLength(0)
     })
 

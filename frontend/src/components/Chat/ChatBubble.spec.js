@@ -8,6 +8,7 @@ import ChatBubble from './ChatBubble.vue'
 import { forgetAllChatImages, rememberChatImage } from '@/composables/useChatImages'
 import { CHAT_VIDEO_JOIN } from '@/utils/chatVideoApp'
 import { withChatVideoTopic } from '@/utils/chatVideoTopic'
+import { LIST_AVATAR_SIZE } from '@/constants'
 
 /**
  * The client a picture is asked for with (ChatBubbleImage, useChatImages): each question waits for
@@ -1108,13 +1109,17 @@ describe('ChatBubble', () => {
     const face = () => wrapper.find('[data-test="chat-bubble-face"]')
     const name = () => wrapper.find('[data-test="chat-bubble-group-writer"]')
 
-    it("shows the writer's face and name over somebody else's message", () => {
+    // Bernd, 29.09.2026: "48 px wie jede Liste" -- the face of every list, and the bubbles stand
+    // in by as much.
+    it("shows the writer's face, at the size of every list, and name over somebody else's message", () => {
       mountInGroup(GROUP_THEIRS)
       expect(face().exists()).toBe(true)
       expect(face().text()).toBe('CA')
-      expect(face().attributes('style')).toContain('width: 28px')
+      expect(face().attributes('style')).toContain(`width: ${LIST_AVATAR_SIZE}px`)
+      expect(LIST_AVATAR_SIZE).toBe(48)
       expect(name().text()).toBe('Carla-Sonne')
       expect(bubble().classes()).toContain('chat-bubble-in-group')
+      expect(bubble().attributes('style')).toContain(`--chat-bubble-face: ${LIST_AVATAR_SIZE}px`)
     })
 
     // The ear hears the writer inside the bubble, as in a thread of two -- not the group's name.
