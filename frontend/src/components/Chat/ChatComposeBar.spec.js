@@ -83,6 +83,7 @@ describe('ChatComposeBar', () => {
     encoding.encodeChatImage.mockReset()
     vi.restoreAllMocks()
     vi.unstubAllGlobals()
+    vi.useRealTimers()
   })
 
   describe('what it shows', () => {
@@ -1146,6 +1147,8 @@ describe('ChatComposeBar', () => {
      * that "Bild wird vorbereitet …" is on the screen before it.
      */
     it('lets the words be painted before it makes the picture small', async () => {
+      // the bar's bound on the wait stands still here: only the frames move on
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
       const frames = []
       vi.stubGlobal('requestAnimationFrame', (callback) => frames.push(callback))
       mountBar()
@@ -1161,6 +1164,29 @@ describe('ChatComposeBar', () => {
       await flushPromises()
       expect(encoding.encodeChatImage).not.toHaveBeenCalled()
       frames.shift()()
+      await flushPromises()
+      expect(encoding.encodeChatImage).toHaveBeenCalledTimes(1)
+      expect(sent()).toHaveLength(1)
+    })
+
+    /**
+     * A page in the background draws no frames. The bar waits for them a moment only, and the
+     * message goes all the same (coderabbit, PR #4010).
+     */
+    it('sends all the same where no frame comes', async () => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+      vi.stubGlobal('requestAnimationFrame', () => 0)
+      mountBar()
+      await chooseReady()
+      encoding.encodeChatImage.mockResolvedValueOnce(JPEG)
+
+      await button().trigger('click')
+      await flushPromises()
+      vi.advanceTimersByTime(199)
+      await flushPromises()
+      expect(encoding.encodeChatImage).not.toHaveBeenCalled()
+
+      vi.advanceTimersByTime(1)
       await flushPromises()
       expect(encoding.encodeChatImage).toHaveBeenCalledTimes(1)
       expect(sent()).toHaveLength(1)

@@ -464,6 +464,12 @@ defineExpose({ draft: () => text.value })
 let submitted = null
 
 /**
+ * How long the bar waits for those two frames at most: a page in the background draws none, and
+ * the message is to go all the same (coderabbit, PR #4010).
+ */
+const PAINT_WAIT_MS = 200
+
+/**
  * Lets the browser paint "Bild wird vorbereitet …" before the picture is made small: making it
  * small holds the page for a moment, and without two frames the words would come after it.
  */
@@ -473,7 +479,13 @@ const afterPaint = () =>
       resolve()
       return
     }
-    window.requestAnimationFrame(() => window.requestAnimationFrame(() => resolve()))
+    const timer = setTimeout(resolve, PAINT_WAIT_MS)
+    window.requestAnimationFrame(() =>
+      window.requestAnimationFrame(() => {
+        clearTimeout(timer)
+        resolve()
+      }),
+    )
   })
 
 /**
