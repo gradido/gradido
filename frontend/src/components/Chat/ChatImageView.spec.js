@@ -330,7 +330,7 @@ describe('ChatImageView', () => {
     const links = code.match(
       /\n\.modal \.chat-image-view-caption a:not\(\.chat-file-card\)\s*\{([^}]*)\}/,
     )?.[1]
-    expect(links).toMatch(/color:\s*#0b9130/)
+    expect(links).toMatch(/color:\s*#3db85f/)
 
     mountView()
     openChatImageView({ ...VIEW, caption: 'Mehr dazu: https://gradido.net/de/' })

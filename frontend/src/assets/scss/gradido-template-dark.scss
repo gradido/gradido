@@ -22,7 +22,10 @@ body.dark-mode {
   --danger: #ef5350;
   --warning: #f5b539;
   --info: #4aa3df;
-  --link: #0b9130; // Gradido green, cooler + lighter than light #047006 for dark legibility
+
+  // Gradido green for dark mode, lighter than light #047006: 5.5:1 on --surface, 7.0:1 on --bg,
+  // 4.6:1 on --surface-muted (Bernd, 29.09.2026 -- #0b9130 came to 3.4:1 on the cards).
+  --link: #3db85f;
   --gold: #c58d38; // Gradido gold (decay accent) for balances + received amounts
 
   // Render native controls (the date-picker popup, scrollbars, form defaults) dark
