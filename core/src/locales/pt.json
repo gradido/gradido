@@ -31,6 +31,8 @@
       "clickToConfirm": "Clica aqui para confirmar o teu endereço de e-mail.",
       "confirmButton": "Confirmar endereço",
       "confirmHeading": "Confirmar endereço de e-mail",
+      "linkValidity": "O link é válido durante {hours} horas.\nSe a validade do link já tiver expirado, inicia sessão e pede o envio de um novo e-mail.",
+      "linkValidityWithMinutes": "O link é válido durante {hours} horas e {minutes} minutos.\nSe a validade do link já tiver expirado, inicia sessão e pede o envio de um novo e-mail.",
       "notYou": "Não sabes nada desta conta? Então ignora este e-mail — sem confirmação a conta permanece fechada.",
       "pleaseConfirm": "Confirma que este endereço é teu — só então a tua conta ficará aberta de forma permanente.",
       "subject": "Confirma o teu endereço de e-mail",

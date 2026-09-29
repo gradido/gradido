@@ -31,6 +31,8 @@
       "clickToConfirm": "Klicke bitte hier, um Deine E-Mail-Adresse zu bestätigen.",
       "confirmButton": "Adresse bestätigen",
       "confirmHeading": "E-Mail-Adresse bestätigen",
+      "linkValidity": "Der Link hat eine Gültigkeit von {hours} Stunden.\nSollte die Gültigkeit des Links bereits abgelaufen sein, melde Dich an und lasse Dir eine neue Mail senden.",
+      "linkValidityWithMinutes": "Der Link hat eine Gültigkeit von {hours} Stunden und {minutes} Minuten.\nSollte die Gültigkeit des Links bereits abgelaufen sein, melde Dich an und lasse Dir eine neue Mail senden.",
       "notYou": "Du weißt nichts von diesem Konto? Dann ignoriere diese E-Mail — ohne Bestätigung bleibt das Konto verschlossen.",
       "pleaseConfirm": "Bitte bestätige, dass diese Adresse Dir gehört — erst dann bleibt Dein Konto dauerhaft geöffnet.",
       "subject": "Bestätige Deine E-Mail-Adresse",

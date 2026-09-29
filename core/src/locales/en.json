@@ -31,6 +31,8 @@
       "clickToConfirm": "Please click here to confirm your e-mail address.",
       "confirmButton": "Confirm address",
       "confirmHeading": "Confirm e-mail address",
+      "linkValidity": "The link has a validity of {hours} hours.\nIf the validity of the link has already expired, sign in and have a new mail sent to you.",
+      "linkValidityWithMinutes": "The link has a validity of {hours} hours and {minutes} minutes.\nIf the validity of the link has already expired, sign in and have a new mail sent to you.",
       "notYou": "You know nothing about this account? Then ignore this e-mail — without confirmation the account stays locked.",
       "pleaseConfirm": "Please confirm that this address is yours — only then will your account stay open for good.",
       "subject": "Confirm your e-mail address",

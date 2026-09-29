@@ -23,11 +23,15 @@ block content
 
     //- Deliberately NO requestNewLink include: its button leads to the forgot-password
     //- page, which flips the opt-in row to RESET and would disarm this very confirm
-    //- link. Resending lives in the wallet's reminder modal instead. The validity
-    //- lines stay — they answer "how long is this link good for".
+    //- link. Resending lives in the wallet's reminder modal instead.
+    //- The validity lines are this mail's own. The general ones end in "you can have a
+    //- new link sent to you here", and "here" is the include's button, which this mail
+    //- does not have. These send the guest to sign in, where the reminder modal offers
+    //- the resend. The words are those of the wallet's confirm page for a link that no
+    //- longer works (assistedRegistration.confirm.invalid), so mail and page agree.
     if timeDurationObject.minutes == 0
-      div(class="p_content")= t('emails.general.linkValidity', { hours: timeDurationObject.hours })
+      div(class="p_content")= t('emails.assistedRegistrationConfirm.linkValidity', { hours: timeDurationObject.hours })
     else
-      div(class="p_content")= t('emails.general.linkValidityWithMinutes', { hours: timeDurationObject.hours, minutes: timeDurationObject.minutes })
+      div(class="p_content")= t('emails.assistedRegistrationConfirm.linkValidityWithMinutes', { hours: timeDurationObject.hours, minutes: timeDurationObject.minutes })
 
     div(class="p_content")= t('emails.assistedRegistrationConfirm.notYou')

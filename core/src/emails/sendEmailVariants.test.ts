@@ -321,7 +321,37 @@ describe('sendEmailVariants', () => {
           expect(result.originalMessage.html).not.toContain('reset-password')
           expect(result.originalMessage.html).not.toContain('forgot-password')
         })
+
+        // The general validity lines end in "you can have a new link sent to you here", and
+        // "here" is the requestNewLink button this mail leaves out. Its own lines send the
+        // guest to sign in, where the reminder modal offers the resend.
+        it('sends the guest to sign in rather than to a "here" it does not have', () => {
+          expect(result.originalMessage.html).toContain('The link has a validity of 24 hours.')
+          expect(result.originalMessage.html).toContain(
+            'If the validity of the link has already expired, sign in and have a new mail sent to you.',
+          )
+          expect(result.originalMessage.html).not.toContain('sent to you here')
+        })
       })
+    })
+
+    // A validity that is not whole hours takes the template's other branch.
+    it('sends the guest to sign in with a validity in hours and minutes as well', async () => {
+      const withMinutes: any = await sendAssistedRegistrationConfirmEmail({
+        firstName: 'Guest',
+        lastName: 'Person',
+        email: 'guest@example.org',
+        language: 'en',
+        confirmLink: 'http://localhost/confirm-email/9876543210',
+        timeDurationObject: { hours: 23, minutes: 30 },
+      })
+      expect(withMinutes.originalMessage.html).toContain(
+        'The link has a validity of 23 hours and 30 minutes.',
+      )
+      expect(withMinutes.originalMessage.html).toContain(
+        'If the validity of the link has already expired, sign in and have a new mail sent to you.',
+      )
+      expect(withMinutes.originalMessage.html).not.toContain('sent to you here')
     })
   })
 
