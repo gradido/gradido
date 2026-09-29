@@ -206,13 +206,7 @@ export async function dbFindUserIdByUuids(
   const rows = await drizzleDb()
     .select({ id: usersTable.id })
     .from(usersTable)
-    .where(
-      and(
-        eq(usersTable.communityUuid, communityUuid),
-        eq(usersTable.gradidoId, gradidoID),
-        isNull(usersTable.deletedAt),
-      ),
-    )
+    .where(and(eq(usersTable.communityUuid, communityUuid), eq(usersTable.gradidoId, gradidoID)))
     .limit(1)
   return rows[0]?.id ?? null
 }
@@ -233,25 +227,6 @@ export async function dbFindUserByAlias(
     )
   if (rows.length > 1) {
     throw new DBDuplicateEntryError('users', 'alias,communityUuid', `${alias},${communityUuid}`)
-  }
-  return rows[0] ?? null
-}
-
-export async function dbFindLocalUserByAlias(
-  alias: string,
-  tx?: DrizzleTransaction | MySql2Database,
-): Promise<UserSelect | null> {
-  if (!tx) {
-    tx = drizzleDb()
-  }
-  const rows = await tx
-    .select()
-    .from(usersTable)
-    .where(
-      and(eq(usersTable.alias, alias), eq(usersTable.foreign, false), isNull(usersTable.deletedAt)),
-    )
-  if (rows.length > 1) {
-    throw new DBDuplicateEntryError('users', 'alias,foreign', `${alias},false`)
   }
   return rows[0] ?? null
 }

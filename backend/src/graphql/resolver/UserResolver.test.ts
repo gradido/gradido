@@ -494,21 +494,18 @@ describe('UserResolver', () => {
         }
       })
 
-      // The guest left both password fields empty: a classic account, with its referrer.
-      it('opens a classic account when the code comes without a password', async () => {
+      // A table code opens an account with a password: without one it is refused, and no
+      // account is opened - not even a classic one.
+      it('refuses a code without a password, and opens no account', async () => {
         jest.clearAllMocks()
-        await register('nopassword@table.de', { referrerAlias: 'MeisterBob', presenceCode: code() })
+        const result = await register('nopassword@table.de', {
+          referrerAlias: 'MeisterBob',
+          presenceCode: code(),
+        })
 
-        await expect(registered('nopassword@table.de')).resolves.toEqual(
-          expect.objectContaining({
-            passwordEncryptionType: PasswordEncryptionType.NO_PASSWORD,
-            referrerId: bob.id,
-          }),
-        )
-        expect(sendAccountActivationEmail).toBeCalledWith(
-          expect.objectContaining({ email: 'nopassword@table.de' }),
-        )
-        expect(sendAssistedRegistrationConfirmEmail).not.toBeCalled()
+        expect(result.errors).toEqual([new GraphQLError('Presence code requires a password')])
+        await noAccount('nopassword@table.de')
+        expect(sendAccountActivationEmail).not.toBeCalled()
       })
 
       // The member who showed the code deleted their account inside the ten minutes: the seal

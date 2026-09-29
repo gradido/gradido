@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 
-import { asc, eq, inArray, like, or, sql } from 'drizzle-orm'
+import { and, asc, eq, inArray, isNull, like, or, sql } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import { Order, Result } from 'shared'
 import { EntityManager, FindOptionsWhere, MoreThan } from 'typeorm'
@@ -12,7 +12,7 @@ import {
   UserAlias as DbUserAlias,
 } from '../entity'
 import { DBDuplicateEntryError, DBInsertFailed, isDuplicateEntry } from '../errorTypes'
-import { UserAliasInsert, userAliasesTable } from '../schemas'
+import { UserAliasInsert, UserSelect, userAliasesTable, usersTable } from '../schemas'
 
 /**
  * Every name a member owns lives here; `users.alias` marks the current one. Taking a
@@ -116,6 +116,33 @@ export async function dbRemoveUserAlias(userAliasId: number): Promise<number> {
     return rows[0] ? rows[0].affectedRows : 0
   }
   return 0
+}
+
+/**
+ * The member of this community who owns this name - their current alias or one they held
+ * before, since a name stays its owner's. Null for a name nobody here owns, and for a deleted
+ * member. `alias` is unique in user_aliases, so there is at most one.
+ */
+export async function dbFindLocalUserByAlias(
+  alias: string,
+  tx?: DrizzleTransaction | MySql2Database,
+): Promise<UserSelect | null> {
+  if (!tx) {
+    tx = drizzleDb()
+  }
+  const rows = await tx
+    .select({ user: usersTable })
+    .from(userAliasesTable)
+    .innerJoin(usersTable, eq(userAliasesTable.userId, usersTable.id))
+    .where(
+      and(
+        eq(userAliasesTable.alias, alias),
+        eq(usersTable.foreign, false),
+        isNull(usersTable.deletedAt),
+      ),
+    )
+    .limit(1)
+  return rows[0]?.user ?? null
 }
 
 /** Every name this member owns, current one included. */

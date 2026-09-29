@@ -25,7 +25,6 @@ import {
   dbCountUnconfirmedVouchedAccounts,
   dbFindGmsAllowedLocalUserIds,
   dbFindLatestArrival,
-  dbFindLocalUserByAlias,
   dbFindReferrerAlias,
   dbFindUserByEmail,
   dbFindUserIdByUuids,
@@ -1171,36 +1170,6 @@ describe('user.queries', () => {
           )
           expect(inside).toBe(await dbCountUnconfirmedVouchedAccounts(bob.id))
         })
-      })
-    })
-
-    describe('dbFindLocalUserByAlias', () => {
-      it('finds a member of this community by their alias, whatever the capitalisation', async () => {
-        expect((await dbFindLocalUserByAlias(bobBaumeister.alias!))?.id).toBe(bob.id)
-        expect((await dbFindLocalUserByAlias(bobBaumeister.alias!.toUpperCase()))?.id).toBe(bob.id)
-      })
-
-      it('finds nobody for an alias nobody holds', async () => {
-        expect(await dbFindLocalUserByAlias('nobody-here')).toBeNull()
-      })
-
-      it('finds no deleted member', async () => {
-        const gone = await userFactory({ ...bibiBloxberg, alias: 'bibi-gone' })
-        await DbUser.softRemove(gone)
-        expect(await dbFindLocalUserByAlias('bibi-gone')).toBeNull()
-      })
-
-      it('finds no cached member of another community', async () => {
-        const stranger = DbUser.create()
-        stranger.foreign = true
-        stranger.alias = 'far-away'
-        stranger.gradidoID = '11111111-2222-4333-8444-555555555555'
-        stranger.communityUuid = '99999999-2222-4333-8444-555555555555'
-        stranger.firstName = 'Far'
-        stranger.lastName = 'Away'
-        await DbUser.save(stranger)
-
-        expect(await dbFindLocalUserByAlias('far-away')).toBeNull()
       })
     })
 

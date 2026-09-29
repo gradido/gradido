@@ -5,6 +5,7 @@ import {
   User as DbUser,
 } from '..'
 import { AppDatabase } from '../AppDatabase'
+import { DBDuplicateEntryError } from '../errorTypes'
 import { createCommunity } from '../seeds/community'
 import { userFactory, userFactoryBulk } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
@@ -13,6 +14,7 @@ import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 import {
   dbCountChosenAliasesSince,
   dbFindAliasOwner,
+  dbFindLocalUserByAlias,
   dbFindOldestChosenAliasSince,
   dbFindOwnAlias,
   dbInsertUserAlias,
@@ -73,6 +75,91 @@ describe('userAliases.queries', () => {
     it('does not find a name that belongs to somebody else', async () => {
       await insertAlias(peter.id, 'peter-one', ALIAS_ORIGIN_CHOSEN)
       expect(await dbFindOwnAlias(bibi.id, 'peter-one')).toBeNull()
+    })
+  })
+
+  // The unique key on user_aliases.alias is what registration and the name change rely on:
+  // a taken name comes back as DBDuplicateEntryError, and a name matches at most one member.
+  describe('dbInsertUserAlias', () => {
+    it('stores a name and returns the id of its row', async () => {
+      const result = await dbInsertUserAlias({
+        userId: bibi.id,
+        alias: 'bibi-new',
+        origin: ALIAS_ORIGIN_CHOSEN,
+      })
+      expect(result).toEqual({ success: true, value: expect.any(Number) })
+    })
+
+    it('refuses a name somebody else holds', async () => {
+      await insertAlias(bibi.id, 'taken-name', ALIAS_ORIGIN_CHOSEN)
+      expect(
+        await dbInsertUserAlias({
+          userId: peter.id,
+          alias: 'taken-name',
+          origin: ALIAS_ORIGIN_CHOSEN,
+        }),
+      ).toEqual({ success: false, error: expect.any(DBDuplicateEntryError) })
+    })
+
+    it('refuses it in another capitalisation too', async () => {
+      await insertAlias(bibi.id, 'Taken-Name', ALIAS_ORIGIN_CHOSEN)
+      expect(
+        await dbInsertUserAlias({
+          userId: peter.id,
+          alias: 'tAKEN-nAME',
+          origin: ALIAS_ORIGIN_CHOSEN,
+        }),
+      ).toEqual({ success: false, error: expect.any(DBDuplicateEntryError) })
+    })
+
+    it('refuses the same name a second time for its own owner', async () => {
+      await insertAlias(bibi.id, 'bibi-once', ALIAS_ORIGIN_CHOSEN)
+      expect(
+        await dbInsertUserAlias({
+          userId: bibi.id,
+          alias: 'bibi-once',
+          origin: ALIAS_ORIGIN_ASSIGNED,
+        }),
+      ).toEqual({ success: false, error: expect.any(DBDuplicateEntryError) })
+    })
+  })
+
+  describe('dbFindLocalUserByAlias', () => {
+    it('finds the member by their current alias, whatever the capitalisation', async () => {
+      expect((await dbFindLocalUserByAlias(bibiBloxberg.alias!))?.id).toBe(bibi.id)
+      expect((await dbFindLocalUserByAlias(bibiBloxberg.alias!.toLowerCase()))?.id).toBe(bibi.id)
+    })
+
+    // A name stays its owner's: an address printed before a rename still leads to them.
+    it('finds the member by a name they held before', async () => {
+      await insertAlias(bibi.id, 'bibi-was', ALIAS_ORIGIN_CHOSEN)
+      expect((await dbFindLocalUserByAlias('bibi-was'))?.id).toBe(bibi.id)
+    })
+
+    it('finds nobody for a name nobody owns', async () => {
+      expect(await dbFindLocalUserByAlias('nobody-here')).toBeNull()
+    })
+
+    it('finds no deleted member, by none of their names', async () => {
+      await insertAlias(bibi.id, 'bibi-was', ALIAS_ORIGIN_CHOSEN)
+      await DbUser.softRemove(bibi)
+
+      expect(await dbFindLocalUserByAlias(bibiBloxberg.alias!)).toBeNull()
+      expect(await dbFindLocalUserByAlias('bibi-was')).toBeNull()
+    })
+
+    it('finds no cached member of another community', async () => {
+      const stranger = DbUser.create()
+      stranger.foreign = true
+      stranger.alias = 'far-away'
+      stranger.gradidoID = '11111111-2222-4333-8444-555555555555'
+      stranger.communityUuid = '99999999-2222-4333-8444-555555555555'
+      stranger.firstName = 'Far'
+      stranger.lastName = 'Away'
+      await DbUser.save(stranger)
+      await insertAlias(stranger.id, 'far-away', ALIAS_ORIGIN_CHOSEN)
+
+      expect(await dbFindLocalUserByAlias('far-away')).toBeNull()
     })
   })
 
