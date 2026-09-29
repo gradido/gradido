@@ -1,9 +1,10 @@
 // AI-GENERATED — not an architecture reference
-import { and, eq, exists, sql } from 'drizzle-orm'
+import { and, asc, eq, exists, sql } from 'drizzle-orm'
 import { VoidResult } from 'shared'
 import { drizzleDb } from '../AppDatabase'
 import { DBNotFoundError } from '../errorTypes'
 import {
+  ChatConversationMemberRole,
   ChatConversationMemberSelect,
   chatConversationMembersTable,
   chatMessagesTable,
@@ -48,10 +49,11 @@ export async function dbSelectChatConversationMember(
 }
 
 /**
- * Puts these members into the conversation. A member who is in it already stays as they are:
- * the primary key (conversation, community, member) catches the second row and the statement
- * changes nothing -- their role, joined_at and read pointer included. That is what lets this
- * run with every message and not only with the first.
+ * Puts these members into the conversation, in the role given -- a plain member unless said
+ * otherwise; the founder of a group goes in as its owner (P5). A member who is in it already
+ * stays as they are: the primary key (conversation, community, member) catches the second row
+ * and the statement changes nothing -- their role, joined_at and read pointer included. That is
+ * what lets this run with every message and not only with the first.
  *
  * One statement per member, not one for all of them. Two first messages written at the same
  * moment, one from each side, put the same two members in -- in opposite order. A single
@@ -65,6 +67,7 @@ export async function dbSelectChatConversationMember(
 export async function dbInsertChatConversationMembers(
   conversationId: number,
   members: ChatMemberRef[],
+  role: ChatConversationMemberRole = 'member',
 ): Promise<void> {
   for (const member of members) {
     await drizzleDb()
@@ -73,6 +76,7 @@ export async function dbInsertChatConversationMembers(
         conversationId,
         communityUuid: member.communityUuid,
         gradidoId: member.gradidoId,
+        role,
       })
       .onDuplicateKeyUpdate({
         set: { conversationId: sql`${chatConversationMembersTable.conversationId}` },
@@ -227,6 +231,79 @@ export async function dbUpdateChatConversationMemberMuted(
   const result = await drizzleDb()
     .update(chatConversationMembersTable)
     .set({ mutedAt })
+    .where(memberRow(conversationId, member))
+  const firstRow = result[0]
+  if (firstRow && firstRow.affectedRows === 1) {
+    return { success: true }
+  }
+  return {
+    success: false,
+    error: ChatConversationMemberNotFound(
+      `conversation_id = ${conversationId} and member = ${member.communityUuid}/${member.gradidoId}`,
+    ),
+  }
+}
+
+/**
+ * The members of a conversation, each with their role, since when they are in it, their read
+ * pointer and their mute mark -- the longest-standing first (P5: who takes over from an owner who
+ * leaves), members who joined in the same moment by their pair, so that the order is the same on
+ * every call.
+ */
+export async function dbSelectChatConversationMembers(
+  conversationId: number,
+): Promise<ChatConversationMemberSelect[]> {
+  return drizzleDb()
+    .select()
+    .from(chatConversationMembersTable)
+    .where(eq(chatConversationMembersTable.conversationId, conversationId))
+    .orderBy(
+      asc(chatConversationMembersTable.joinedAt),
+      asc(chatConversationMembersTable.communityUuid),
+      asc(chatConversationMembersTable.gradidoId),
+    )
+}
+
+/**
+ * Takes the member out of the conversation (P5: leaving a group, or being taken out of it). Their
+ * messages stay: they are the group's, and name their sender by the pair. From now on the member
+ * reads nothing new of it (dbSelectChatMessagesSince goes by the member's own rows).
+ *
+ * DBNotFoundError when the member is not in the conversation; nothing is written then.
+ */
+export async function dbDeleteChatConversationMember(
+  conversationId: number,
+  member: ChatMemberRef,
+): Promise<VoidResult<DBNotFoundError>> {
+  const result = await drizzleDb()
+    .delete(chatConversationMembersTable)
+    .where(memberRow(conversationId, member))
+  const firstRow = result[0]
+  if (firstRow && firstRow.affectedRows === 1) {
+    return { success: true }
+  }
+  return {
+    success: false,
+    error: ChatConversationMemberNotFound(
+      `conversation_id = ${conversationId} and member = ${member.communityUuid}/${member.gradidoId}`,
+    ),
+  }
+}
+
+/**
+ * Gives the member another role in the conversation (P5: owner, moderator, member). Who may do
+ * that is the caller's to decide (backend, ChatGroup.logic). DBNotFoundError when the member is
+ * not in the conversation; nothing is written then. Writing the role the member has already is
+ * a success: mysql2 connects with FOUND_ROWS, so `affectedRows` counts the matched row.
+ */
+export async function dbUpdateChatConversationMemberRole(
+  conversationId: number,
+  member: ChatMemberRef,
+  role: ChatConversationMemberRole,
+): Promise<VoidResult<DBNotFoundError>> {
+  const result = await drizzleDb()
+    .update(chatConversationMembersTable)
+    .set({ role })
     .where(memberRow(conversationId, member))
   const firstRow = result[0]
   if (firstRow && firstRow.affectedRows === 1) {

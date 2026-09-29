@@ -20,6 +20,7 @@ import { SearchUsersResult, UserAdmin } from '@model/UserAdmin'
 import { UserContact } from '@model/UserContact'
 import { UserLocationResult } from '@model/UserLocationResult'
 import {
+  decodeJpegImage,
   ensureUrlEndsWithSlash,
   sendAccountActivationEmail,
   sendResetPasswordEmail,
@@ -86,8 +87,6 @@ import {
   ALIAS_QUOTA_WINDOW_MS,
   AVATAR_FULL_MAX_BYTES,
   AVATAR_SMALL_MAX_BYTES,
-  JPEG_END_BYTES,
-  JPEG_MAGIC_BYTES,
   languageSchema,
   MemberAvatarPayload,
   parseOrThrowFirstIssue,
@@ -120,6 +119,7 @@ import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { canEmailResend, isEmailVerificationCodeValid } from '@/data/EmailVerificationCode.logic'
+import { findableWithoutPlace } from '@/data/Location.logic'
 import {
   MEMBER_AVATARS_FULL_MAX_PER_REQUEST,
   MEMBER_AVATARS_MAX_REFS,
@@ -681,6 +681,7 @@ export class UserResolver {
       humhubAllowed,
       gmsAllowed,
       avatarVisibleToMembers,
+      transfersInChat,
       gmsPublishName,
       humhubPublishName,
       gmsLocation,
@@ -703,12 +704,29 @@ export class UserResolver {
       humhubAllowed: humhubAllowed !== undefined,
       gmsAllowed: gmsAllowed !== undefined,
       avatarVisibleToMembers: avatarVisibleToMembers !== undefined,
+      transfersInChat: transfersInChat !== undefined,
       gmsPublishName: gmsPublishName !== undefined,
       humhubPublishName: humhubPublishName !== undefined,
       gmsLocation: gmsLocation !== undefined,
       gmsPublishLocation: gmsPublishLocation !== undefined,
       aboutMe: aboutMe !== undefined,
     })
+
+    // Switching findable on needs a place: the GMS cannot hold a member it cannot place
+    // (GmsUser refuses to build one), and migration 0140 switched every member without one
+    // off. Refused before anything is written, and as a code - the wallet says it in the
+    // member's words.
+    if (
+      findableWithoutPlace(
+        gmsAllowed,
+        user.gmsAllowed,
+        Point2Location(user.location as Point),
+        gmsLocation,
+      )
+    ) {
+      logger.warn('refused to switch findable on without a location')
+      throw new LogError('GMS_LOCATION_REQUIRED')
+    }
 
     const updateUserInGMS = compareGmsRelevantUserSettings(user, updateUserInfosArgs)
     // Read before the update overwrites it: gmsAllowed going true -> false is the
@@ -730,6 +748,7 @@ export class UserResolver {
       humhubAllowed,
       gmsAllowed,
       avatarVisibleToMembers,
+      transfersInChat,
       gmsPublishName: gmsPublishName?.valueOf(),
       humhubPublishName: humhubPublishName?.valueOf(),
       gmsPublishLocation: gmsPublishLocation?.valueOf(),
@@ -930,35 +949,24 @@ export class UserResolver {
    * Decodes and checks one rendition. Named in the error so a member over budget learns
    * WHICH picture was refused — with two of them in one request, "too large" on its own
    * sends whoever reads it looking in the wrong place.
+   *
+   * The check itself is decodeJpegImage in `core`, the one a picture in a chat message goes
+   * through as well: one picture module for both, the seam at which Gradido 2 is to move
+   * both kinds of picture at once (E-041). The words stay the avatar's own.
    */
   private decodeAvatar(image: string, which: string, maxBytes: number): Buffer {
-    const bytes = Buffer.from(image, 'base64')
-
-    if (bytes.length === 0) {
+    const decoded = decodeJpegImage(image, maxBytes)
+    if (decoded.success) {
+      return decoded.value
+    }
+    const { reason, bytes } = decoded.error
+    if (reason === 'EMPTY') {
       throw new LogError(`Avatar image (${which}) is empty`)
     }
-    if (bytes.length > maxBytes) {
-      throw new LogError(`Avatar image (${which}) too large`, {
-        bytes: bytes.length,
-        max: maxBytes,
-      })
+    if (reason === 'TOO_LARGE') {
+      throw new LogError(`Avatar image (${which}) too large`, { bytes, max: maxBytes })
     }
-    // Buffer.from ignores anything it cannot decode instead of failing, so "it decoded"
-    // says nothing about what arrived. The markers do.
-    //
-    // Both ends, not just the start: on the opening marker alone a three-byte payload of
-    // ff d8 00 passes, so the column would take arbitrary data from anyone willing to
-    // prefix it. This is still not format validation -- only a decoder could say whether
-    // what lies between is a picture -- and a decoder is what this design keeps out of
-    // the backend on purpose.
-    const startsRight = bytes[0] === JPEG_MAGIC_BYTES[0] && bytes[1] === JPEG_MAGIC_BYTES[1]
-    const endsRight =
-      bytes[bytes.length - 2] === JPEG_END_BYTES[0] && bytes[bytes.length - 1] === JPEG_END_BYTES[1]
-    if (!startsRight || !endsRight) {
-      throw new LogError(`Avatar image (${which}) is not a JPEG`)
-    }
-
-    return bytes
+    throw new LogError(`Avatar image (${which}) is not a JPEG`)
   }
 
   /**
@@ -1714,6 +1722,20 @@ export class UserResolver {
       return null
     }
     return user.avatarVisibleToMembers ?? null
+  }
+
+  /**
+   * Whether the transfers with somebody stand in the conversation, and whether a mail goes out
+   * about a transfer received -- the member's own switch, and guarded like the one above: what a
+   * member decided about their own messages is nobody else's to read. The deliveries read it in
+   * the backend, where they decide whether to mail; no client is told about somebody else's.
+   */
+  @FieldResolver(() => Boolean, { nullable: true })
+  transfersInChat(@Root() user: User, @Ctx() context: Context): boolean | null {
+    if (context.user?.id !== user.id) {
+      return null
+    }
+    return user.transfersInChat ?? null
   }
 
   /**

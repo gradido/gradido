@@ -6,12 +6,21 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest'
 import ChatThread from './ChatThread.vue'
 import ChatComposeBar from './ChatComposeBar.vue'
+import { holdChatText, takeHeldChatText } from '@/utils/chatReturn'
+import {
+  chatImage,
+  chatImageViewState,
+  closeChatImageView,
+  forgetAllChatImages,
+} from '@/composables/useChatImages'
+import ChatImageView from './ChatImageView.vue'
 import {
   chatMessagesWithMemberQuery,
   markChatConversationRead,
   newChatMessagesSince,
   sendChatMessage,
 } from '@/graphql/chat.graphql'
+import { transactionsQuery } from '@/graphql/transactions.graphql'
 
 /**
  * The chat's beat as the thread sees it: whoever listens, and "ask now". A test hands messages
@@ -30,10 +39,25 @@ const beatBrings = async (...chatMessages) => {
   await flushPromises()
 }
 
+// The member signed in, whose key the way back after a restart is noted under (utils/chatReturn).
+// And their switch for the transfers in the conversations (Einstellungen › Nachrichten), which a
+// test sets and the afterEach puts back to "not known".
+const storeState = vi.hoisted(() => ({ gradidoID: 'me-id', username: 'Bernd' }))
+vi.mock('vuex', () => ({
+  useStore: () => ({ state: storeState }),
+}))
+
+// The face beside somebody else's message in a group (P5) can open large (useAvatarZoom), and its
+// words come from the app's i18n instance.
+vi.mock('@/i18n', () => ({
+  default: { global: { t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key) } },
+}))
+
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
     t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key),
     d: (date, format) => `${format}(${date.toISOString()})`,
+    n: (value, format) => `${format}(${value})`,
   }),
 }))
 
@@ -140,12 +164,46 @@ vi.mock('@vue/apollo-composable', async () => {
       return { loading, error, mutate }
     },
     // The same cache as `update` gets: an arrival goes into the thread the way one's own copy
-    // does.
-    useApolloClient: () => ({ client: { cache } }),
+    // does. And the booking list narrowed to the person, which the transfers are asked from --
+    // that question alone: a picture's (useChatImages) finds no server here, as before.
+    useApolloClient: () => ({
+      client: {
+        cache,
+        query: (options) =>
+          options.query === transactionsQuery
+            ? bookingsAsked(options)
+            : Promise.reject(new Error('no server for this question')),
+      },
+    }),
   }
 })
 
 const LENA = { communityUuid: 'home-uuid', gradidoID: 'lena-id' }
+
+/**
+ * The booking list narrowed to the person (useChatTransfers): newest first, and `count` the
+ * number of bookings shared with them, as the server answers. Without a test's own answer: none.
+ */
+const bookingsPage = (rows, count = rows.length) => ({
+  data: { transactionList: { balance: { count }, transactions: rows } },
+})
+const bookingsAsked = vi.fn()
+const noBookings = () => bookingsAsked.mockImplementation(async () => bookingsPage([]))
+noBookings()
+
+/** A transfer between the member and Lena, at the given moment: `n` its id. */
+const booking = (n, { at, sent = false } = {}) => ({
+  id: n,
+  typeId: sent ? 'SEND' : 'RECEIVE',
+  amount: sent ? '-10' : '10',
+  balance: '100',
+  previousBalance: '90',
+  balanceDate: at,
+  memo: `memo ${n}`,
+  linkedUser: { ...LENA, communityName: 'Home', alias: 'Lena', avatarColorIndex: 1 },
+  decay: null,
+  linkId: null,
+})
 
 /** A message as the server sends it; `n` is its id, and its minute on the given day. */
 const message = (n, { day = '2026-09-22', mine = n % 2 === 0 } = {}) => ({
@@ -266,7 +324,16 @@ describe('ChatThread', () => {
     wrapper = mount(ChatThread, {
       props: { member, alias: 'Lena' },
       global: {
-        stubs: { IMdiChatOutline: true, IMdiEmailOutline: true, IMdiSend: true },
+        stubs: {
+          IMdiChatOutline: true,
+          IMdiEmailOutline: true,
+          IMdiSend: true,
+          // The compose bar's paperclip and its hint (Paket D); the hint has its own spec.
+          IMdiPaperclip: true,
+          IMdiCellphone: true,
+          IMdiOpenInNew: true,
+          BModal: true,
+        },
       },
       ...options,
     })
@@ -288,6 +355,9 @@ describe('ChatThread', () => {
   afterEach(() => {
     wrapper?.unmount()
     markRead.mockClear()
+    bookingsAsked.mockReset()
+    noBookings()
+    delete storeState.transfersInChat
     serverSends.mockReset()
     beat.pollNow.mockClear()
     layout.hidden = false
@@ -311,6 +381,326 @@ describe('ChatThread', () => {
     await wrapper.find('[data-test="chat-compose-send"]').trigger('click')
     await flushPromises()
   }
+
+  /**
+   * The transfers between the two (Bernd, 28.09.2026: "bei einer Gradido-Transaktion ebenfalls
+   * eine Nachricht im Chat-Faden"): the booking list narrowed to this person, in the thread where
+   * they fall in time -- bubbles of their own, the mail's words bold over the memo. Nothing the
+   * chat counts goes by them: not the read pointer, not the older page, not whether the
+   * conversation exists.
+   */
+  describe('the transfers between the two', () => {
+    /** What the thread shows, in its order: a transfer as `T`, a message as its text. */
+    const shown = () =>
+      wrapper
+        .findAll('[data-test="chat-bubble"]')
+        .map((row) =>
+          row.classes().includes('chat-bubble-transfer')
+            ? 'T'
+            : row.find('.chat-message-text').text(),
+        )
+
+    it('asks the booking list narrowed to this person, newest first, past the cache', () => {
+      mountThread()
+      expect(bookingsAsked).toHaveBeenCalledWith({
+        query: transactionsQuery,
+        variables: { currentPage: 1, pageSize: 25, order: 'DESC', counterparty: LENA },
+        fetchPolicy: 'no-cache',
+      })
+    })
+
+    it('puts each transfer where it falls in time, on the side of whoever sent it', async () => {
+      bookingsAsked.mockImplementation(async () =>
+        bookingsPage([
+          booking(8, { at: '2026-09-22T10:04:30.000Z', sent: true }),
+          booking(7, { at: '2026-09-22T10:01:30.000Z' }),
+        ]),
+      )
+      mountThread()
+      await arrive(page([1, 2, 3, 4, 5]))
+
+      expect(shown()).toEqual([
+        'message 1',
+        'T',
+        'message 2',
+        'message 3',
+        'message 4',
+        'T',
+        'message 5',
+      ])
+      const [received, sent] = wrapper.findAll('.chat-bubble-transfer')
+      expect(received.classes()).toContain('chat-bubble-theirs')
+      expect(received.find('[data-test="chat-bubble-subject"]').text()).toBe(
+        'chatThread.transferReceived {"name":"Lena","amount":"decimal(10)"}',
+      )
+      expect(received.find('.memo-text').text()).toBe('memo 7')
+      expect(sent.classes()).toContain('chat-bubble-mine')
+      expect(sent.find('[data-test="chat-bubble-subject"]').text()).toBe(
+        'chatThread.transferSent {"name":"Lena","amount":"decimal(10)"}',
+      )
+    })
+
+    it('leaves out what is no transfer between the two, and a booking it holds already', async () => {
+      bookingsAsked.mockImplementation(async () =>
+        bookingsPage([
+          { ...booking(9, { at: '2026-09-22T10:09:00.000Z' }), typeId: 'DECAY', linkedUser: null },
+          booking(7, { at: '2026-09-22T10:01:30.000Z' }),
+        ]),
+      )
+      mountThread()
+      await arrive(page([1, 2]))
+
+      expect(shown()).toEqual(['message 1', 'T', 'message 2'])
+    })
+
+    it('shows a pair with transfers and no message yet as a thread; the next message is still the first', async () => {
+      bookingsAsked.mockImplementation(async () =>
+        bookingsPage([booking(7, { at: '2026-09-22T10:01:30.000Z' })]),
+      )
+      mountThread()
+      await arrive(page([]))
+
+      expect(wrapper.find('[data-test="chat-thread-empty"]').exists()).toBe(false)
+      expect(shown()).toEqual(['T'])
+      expect(bar().props('first')).toBe(true)
+      expect(wrapper.emitted('chatConversation').at(-1)[0]).toEqual({
+        exists: false,
+        mutedByMe: false,
+      })
+    })
+
+    it('says the thread is empty only once the transfers have answered', async () => {
+      let answer
+      bookingsAsked.mockImplementation(() => new Promise((resolve) => (answer = resolve)))
+      mountThread()
+      await arrive(page([]))
+      expect(wrapper.find('[data-test="chat-thread-empty"]').exists()).toBe(false)
+      expect(wrapper.find('[data-test="chat-thread-loading"]').exists()).toBe(true)
+
+      answer(bookingsPage([]))
+      await flushPromises()
+      expect(wrapper.find('[data-test="chat-thread-empty"]').exists()).toBe(true)
+    })
+
+    it('moves the read pointer by the messages alone', async () => {
+      bookingsAsked.mockImplementation(async () =>
+        bookingsPage([booking(99, { at: '2026-09-22T10:09:00.000Z' })]),
+      )
+      mountThread()
+      await arrive(page([1, 2, 3]))
+
+      expect(markRead).toHaveBeenCalledTimes(1)
+      expect(markRead).toHaveBeenCalledWith(markChatConversationRead, {
+        ref: LENA,
+        upToMessageId: 3,
+      })
+    })
+
+    // A message from before the oldest transfer asked for would stand beside transfers that are
+    // not there yet -- so it waits for them.
+    it('holds back what is older than the oldest transfer while older ones wait, and brings them', async () => {
+      bookingsAsked.mockImplementationOnce(async () =>
+        bookingsPage([booking(8, { at: '2026-09-22T10:04:30.000Z' })], 26),
+      )
+      mountThread()
+      await arrive(page([1, 2, 3, 4, 5]))
+      expect(shown()).toEqual(['T', 'message 5'])
+      expect(older().exists()).toBe(true)
+
+      bookingsAsked.mockImplementationOnce(async () =>
+        bookingsPage([booking(7, { at: '2026-09-22T10:01:30.000Z' })], 26),
+      )
+      await older().trigger('click')
+      await flushPromises()
+
+      expect(bookingsAsked).toHaveBeenLastCalledWith(
+        expect.objectContaining({ variables: expect.objectContaining({ currentPage: 2 }) }),
+      )
+      expect(server.fetchMore).not.toHaveBeenCalled()
+      expect(shown()).toEqual([
+        'message 1',
+        'T',
+        'message 2',
+        'message 3',
+        'message 4',
+        'T',
+        'message 5',
+      ])
+      expect(older().exists()).toBe(false)
+    })
+
+    it('asks for older messages where they are what the thread stops at', async () => {
+      bookingsAsked.mockImplementation(async () =>
+        bookingsPage([booking(7, { at: '2026-09-22T10:01:30.000Z' })]),
+      )
+      mountThread()
+      await arrive(page([4, 5], { hasMore: true }))
+      expect(shown()).toEqual(['message 4', 'message 5'])
+
+      server.olderPages.push(page([1, 2, 3]))
+      await older().trigger('click')
+      await flushPromises()
+
+      expect(server.fetchMore).toHaveBeenCalledTimes(1)
+      expect(bookingsAsked).toHaveBeenCalledTimes(1)
+      expect(shown()).toEqual([
+        'message 1',
+        'T',
+        'message 2',
+        'message 3',
+        'message 4',
+        'message 5',
+      ])
+    })
+
+    it('says so where older transfers did not come', async () => {
+      bookingsAsked.mockImplementationOnce(async () =>
+        bookingsPage([booking(8, { at: '2026-09-22T10:04:30.000Z' })], 26),
+      )
+      mountThread()
+      await arrive(page([1, 2, 3, 4, 5]))
+      bookingsAsked.mockImplementationOnce(async () => {
+        throw new Error('Network error')
+      })
+
+      await older().trigger('click')
+      await flushPromises()
+
+      expect(wrapper.find('[data-test="chat-thread-older-failed"]').exists()).toBe(true)
+      expect(shown()).toEqual(['T', 'message 5'])
+    })
+
+    // Einstellungen › Nachrichten: switched off, the conversation keeps to its messages.
+    it('asks nothing, and shows the messages alone, where the member switched transfers off', async () => {
+      storeState.transfersInChat = false
+      bookingsAsked.mockImplementation(async () =>
+        bookingsPage([booking(7, { at: '2026-09-22T10:01:30.000Z' })]),
+      )
+      mountThread()
+      await arrive(page([1, 2]))
+
+      expect(bookingsAsked).not.toHaveBeenCalled()
+      expect(shown()).toEqual(['message 1', 'message 2'])
+    })
+
+    it('shows an empty conversation at once where transfers are switched off', async () => {
+      storeState.transfersInChat = false
+      mountThread()
+      await arrive(page([]))
+      expect(wrapper.find('[data-test="chat-thread-empty"]').exists()).toBe(true)
+    })
+
+    it('shows the messages alone where the transfers could not be asked', async () => {
+      bookingsAsked.mockImplementation(async () => {
+        throw new Error('Network error')
+      })
+      mountThread()
+      await arrive(page([1, 2]))
+
+      expect(shown()).toEqual(['message 1', 'message 2'])
+      expect(older().exists()).toBe(false)
+    })
+  })
+
+  /**
+   * iOS starts the wallet over while the member is in another app -- SwissTransfer's, Jitsi's --
+   * and a start goes to the overview (Bernd, 27.09.2026: "not in the dialog thread any more"). So
+   * the thread notes whom it is with as the page goes out of sight, and lets the note go as the
+   * page comes back or the thread closes (utils/chatReturn); the start opens it again.
+   */
+  describe('the way back into it after a restart', () => {
+    const note = () => window.localStorage.getItem('chat-return:me-id')
+    afterEach(() => {
+      window.localStorage.removeItem('chat-return:me-id')
+      takeHeldChatText({ gradidoID: '' })
+    })
+
+    it('notes whom it is with as the page goes out of sight, and not before', () => {
+      mountThread()
+      expect(note()).toBeNull()
+
+      pageHidden(true)
+      expect(JSON.parse(note())).toEqual({
+        gradidoID: 'lena-id',
+        communityUuid: 'home-uuid',
+        at: expect.any(Number),
+      })
+    })
+
+    it('lets the note go as the page comes back into sight', () => {
+      mountThread()
+      pageHidden(true)
+      pageHidden(false)
+      expect(note()).toBeNull()
+    })
+
+    it('lets the note go as the thread closes', () => {
+      mountThread()
+      pageHidden(true)
+      wrapper.unmount()
+      wrapper = null
+      expect(note()).toBeNull()
+    })
+
+    /**
+     * ⭐ And the words in the field not sent yet (Bernd, 27.09.2026: "I write a text and then want
+     * to attach a file -- the text would be gone"). Only while the page is out of sight: they go
+     * with the note when it comes back.
+     */
+    it('notes the words in the field not sent yet with it', async () => {
+      mountThread()
+      await arrive(page([1, 2]))
+      await field().setValue('Hier ist die Datei:')
+      pageHidden(true)
+      expect(JSON.parse(note()).text).toBe('Hier ist die Datei:')
+
+      pageHidden(false)
+      expect(note()).toBeNull()
+    })
+
+    // After the start that opened this conversation again (routes/guards.js), in memory.
+    it('brings back the words a start held for it, into the field', async () => {
+      holdChatText({ gradidoID: 'lena-id', text: 'Hier ist die Datei:' })
+      mountThread()
+      await arrive(page([1, 2]))
+
+      expect(field().element.value).toBe('Hier ist die Datei:')
+    })
+
+    /**
+     * ⛔ Taken only when the bar can show them. A first page that fails shows no bar; the words
+     * wait, and the next opening of the window brings them (coderabbit, PR #3999).
+     */
+    it('keeps the held words while the first page fails, for the next opening', async () => {
+      holdChatText({ gradidoID: 'lena-id', text: 'Hier ist die Datei:' })
+      mountThread()
+      server.error.value = new Error('Network error')
+      server.loading.value = false
+      await flushPromises()
+      expect(wrapper.find('[data-test="chat-thread-error"]').exists()).toBe(true)
+      wrapper.unmount()
+
+      mountThread()
+      await arrive(page([1, 2]))
+      expect(field().element.value).toBe('Hier ist die Datei:')
+    })
+
+    // Words for a first message: the conversation holds nothing yet, and the bar is there.
+    it('brings them back into a conversation that holds nothing yet', async () => {
+      holdChatText({ gradidoID: 'lena-id', text: 'Hallo Lena!' })
+      mountThread()
+      await arrive(page([]))
+      expect(field().element.value).toBe('Hallo Lena!')
+    })
+
+    it('leaves the field empty where the words were held for somebody else', async () => {
+      holdChatText({ gradidoID: 'anna-id', text: 'Hier ist die Datei:' })
+      mountThread()
+      await arrive(page([1, 2]))
+
+      expect(field().element.value).toBe('')
+    })
+  })
 
   describe('the question it asks', () => {
     // KF-004: the person is named by the pair; the page is the server's own default of 50.
@@ -821,6 +1211,34 @@ describe('ChatThread', () => {
       expect(wrapper.find('[data-test="chat-thread-empty"]').exists()).toBe(true)
     })
 
+    /**
+     * ⛔ Falle 1 of the groups (P5): the same writer, but in a group. Its conversation is the
+     * group's, and an empty thread that took it for theirs would show the group's messages as the
+     * conversation of two.
+     */
+    it('takes no first message the same person wrote in a group', async () => {
+      mountThread()
+      await arrive(page([]))
+
+      await beatBrings({ ...message(1), conversationId: 41, groupUuid: 'group-uuid' })
+
+      expect(bubbleTexts()).toEqual([])
+      expect(wrapper.find('[data-test="chat-thread-empty"]').exists()).toBe(true)
+    })
+
+    // Gegenprobe, in one answer: the group's message first, their own to the member behind it.
+    it('takes their first message to the member past one they wrote in a group', async () => {
+      mountThread()
+      await arrive(page([]))
+
+      await beatBrings(
+        { ...message(1), conversationId: 41, groupUuid: 'group-uuid' },
+        message(3, { mine: false }),
+      )
+
+      expect(bubbleTexts()).toEqual(['message 3'])
+    })
+
     it('keeps what arrives before the first page, and hangs it in once the page is there', async () => {
       mountThread()
       await beatBrings(message(11))
@@ -1001,6 +1419,66 @@ describe('ChatThread', () => {
     })
   })
 
+  /**
+   * P7: a picture of the thread, large -- over the contact window, as a dialog of its own. Who sent
+   * it as the thread names them ("Du" for one's own), the dialog's name with one's own name, when
+   * it arrived, its caption, and the button that opened it.
+   */
+  describe('a picture, large', () => {
+    const withPicture = (n, { mine = false, body = `message ${n}` } = {}) => ({
+      ...message(n, { mine }),
+      body,
+      images: [{ imageUuid: `image-${n}`, width: 800, height: 600 }],
+    })
+
+    afterEach(() => {
+      closeChatImageView()
+      forgetAllChatImages()
+    })
+
+    it('has the large view, and opens it with the picture tapped', async () => {
+      mountThread()
+      await arrive({
+        hasMore: false,
+        mutedByMe: false,
+        messages: [withPicture(1, { body: 'Der Stand' })],
+      })
+      expect(wrapper.findComponent(ChatImageView).exists()).toBe(true)
+
+      const tapped = wrapper.find('[data-test="chat-bubble-image"]')
+      await tapped.trigger('click')
+
+      expect(chatImageViewState.value).toEqual({
+        imageUuid: 'image-1',
+        width: 800,
+        height: 600,
+        who: 'Lena',
+        name: 'Lena',
+        at: message(1).createdAt,
+        caption: 'Der Stand',
+        opener: tapped.element,
+      })
+    })
+
+    // One's own: "Du" over it, one's own name in the dialog's name ("Bild von Bernd").
+    it('names one’s own picture as one’s own', async () => {
+      mountThread()
+      await arrive({
+        hasMore: false,
+        mutedByMe: false,
+        messages: [withPicture(2, { mine: true, body: '' })],
+      })
+
+      await wrapper.find('[data-test="chat-bubble-image"]').trigger('click')
+
+      expect(chatImageViewState.value).toMatchObject({
+        who: 'chatThread.you',
+        name: 'Bernd',
+        caption: '',
+      })
+    })
+  })
+
   describe('the compose bar', () => {
     // Under a thread and under a thread that has nothing yet -- and there it is the first
     // message, which goes by mail in any case (E-024).
@@ -1045,6 +1523,131 @@ describe('ChatThread', () => {
         body: 'Hallo Lena',
         notify: 'EMAIL',
       })
+    })
+
+    /**
+     * P7: the picture the bar hands over goes as `$image` -- the name the backend's request log
+     * masks (LOG-071) -- and a message without one carries no `image` at all.
+     */
+    it('sends the picture the bar hands over, and no picture where there is none', async () => {
+      const PICTURE = { data: 'SlBFRw==', width: 800, height: 600 }
+      serverSends.mockResolvedValue(ownCopy(99, ''))
+      mountThread()
+      await arrive(page([1, 2]))
+
+      bar().vm.$emit('send', { body: '', notify: 'NONE', image: PICTURE })
+      await flushPromises()
+
+      expect(serverSends).toHaveBeenCalledWith({
+        ref: { gradidoID: 'lena-id', communityUuid: 'home-uuid' },
+        body: '',
+        notify: 'NONE',
+        image: PICTURE,
+      })
+
+      serverSends.mockClear()
+      serverSends.mockResolvedValue(ownCopy(100, 'Hallo'))
+      bar().vm.$emit('send', { body: 'Hallo', notify: 'NONE', image: null })
+      await flushPromises()
+      expect(serverSends.mock.calls[0][0]).not.toHaveProperty('image')
+    })
+
+    /**
+     * Two refusals of a message with a picture have words of their own in the bar: the picture
+     * was not taken (P7a), or the text is too long to go with it to another community (P7b).
+     * Every other failure is "not sent" as before -- and a message that goes through leaves no
+     * reason behind.
+     */
+    it('tells the bar why a message with a picture was refused', async () => {
+      const PICTURE = { data: 'SlBFRw==', width: 800, height: 600 }
+      mountThread()
+      await arrive(page([1, 2]))
+      const refusedWith = async (failure) => {
+        serverSends.mockRejectedValueOnce(failure)
+        bar().vm.$emit('send', { body: 'Unser Stand', notify: 'NONE', image: PICTURE })
+        await flushPromises()
+        return [bar().props('failed'), bar().props('failedReason')]
+      }
+
+      expect(await refusedWith(new Error('CHAT_IMAGE_NOT_ACCEPTED: TOO_LARGE'))).toEqual([
+        true,
+        'IMAGE_NOT_ACCEPTED',
+      ])
+      expect(wrapper.find('[data-test="chat-compose-failed"]').text()).toBe(
+        'chatThread.imageNotAccepted',
+      )
+      expect(
+        await refusedWith(new Error('CHAT_MESSAGE_NOT_SENT: TOO_LARGE_ACROSS_BORDER')),
+      ).toEqual([true, 'TOO_LARGE_ACROSS_BORDER'])
+      expect(wrapper.find('[data-test="chat-compose-failed"]').text()).toBe(
+        'chatThread.imageTooLargeAcrossBorder',
+      )
+      expect(await refusedWith(new Error('CHAT_MESSAGE_NOT_SENT: NOT_STORED'))).toEqual([true, ''])
+      expect(wrapper.find('[data-test="chat-compose-failed"]').text()).toBe('chatThread.notSent')
+
+      await refusedWith(new Error('CHAT_IMAGE_NOT_ACCEPTED: NOT_JPEG'))
+      serverSends.mockResolvedValueOnce(ownCopy(99, 'Unser Stand'))
+      bar().vm.$emit('send', { body: 'Unser Stand', notify: 'NONE', image: PICTURE })
+      await flushPromises()
+      expect([bar().props('failed'), bar().props('failedReason')]).toEqual([false, ''])
+    })
+
+    /**
+     * One's own picture, just sent, from the JPEG made here (useChatImages): its bubble shows it
+     * without asking the server for what went out a moment ago. (The client of this spec has no
+     * `query` -- a question for it would fail, and the bubble would stay empty.)
+     */
+    it('shows one’s own picture from the JPEG just sent, without asking for it', async () => {
+      URL.createObjectURL = vi.fn(() => 'blob:own-picture')
+      URL.revokeObjectURL = vi.fn()
+      try {
+        serverSends.mockResolvedValue({
+          ...ownCopy(99, ''),
+          images: [{ imageUuid: 'own-image', width: 800, height: 600 }],
+        })
+        mountThread()
+        await arrive(page([1, 2]))
+
+        bar().vm.$emit('send', {
+          body: '',
+          notify: 'NONE',
+          image: { data: btoa('JPEG'), width: 800, height: 600 },
+        })
+        await flushPromises()
+
+        expect(chatImage('own-image')).toEqual({ state: 'ready', src: 'blob:own-picture' })
+        const last = wrapper.findAll('[data-test="chat-bubble"]').at(-1)
+        expect(last.find('[data-test="chat-bubble-image-picture"]').attributes('src')).toBe(
+          'blob:own-picture',
+        )
+      } finally {
+        forgetAllChatImages()
+        delete URL.createObjectURL
+        delete URL.revokeObjectURL
+      }
+    })
+
+    // Gegenprobe: a copy that came back without a picture keeps nothing -- and a message sent
+    // without one keeps nothing either.
+    it('keeps no picture where the copy names none', async () => {
+      URL.createObjectURL = vi.fn(() => 'blob:own-picture')
+      try {
+        serverSends.mockResolvedValue({ ...ownCopy(99, 'Hallo'), images: [] })
+        mountThread()
+        await arrive(page([1, 2]))
+
+        bar().vm.$emit('send', {
+          body: 'Hallo',
+          notify: 'NONE',
+          image: { data: btoa('JPEG'), width: 800, height: 600 },
+        })
+        await flushPromises()
+
+        expect(URL.createObjectURL).not.toHaveBeenCalled()
+      } finally {
+        forgetAllChatImages()
+        delete URL.createObjectURL
+      }
     })
 
     it('sends a null community where the member carries none', async () => {
@@ -1290,6 +1893,21 @@ describe('ChatThread', () => {
       expect(wrapper.find('[data-test="chat-thread-sent"]').text()).toBe('chatThread.sent')
     })
 
+    // The invitation is words and a link: it carries no picture, whatever it is handed.
+    it('sends no picture with an invitation', async () => {
+      serverSends.mockResolvedValue(ownCopy(99, INVITATION))
+      mountThread()
+      await arrive(page([1, 2]))
+
+      await deliver({
+        body: INVITATION,
+        notify: 'NONE',
+        image: { data: 'SlBFRw==', width: 800, height: 600 },
+      })
+
+      expect(serverSends.mock.calls[0][0]).not.toHaveProperty('image')
+    })
+
     // The first message makes the conversation, whoever sends it: the window hears of it.
     it('turns an empty thread into a conversation, as a message of the bar does', async () => {
       serverSends.mockResolvedValue(ownCopy(99, INVITATION, { notify: 'EMAIL' }))
@@ -1524,6 +2142,32 @@ describe('ChatThread', () => {
             : field.name.value,
         )
         .join(' ')
+
+    /**
+     * ⛔ `$image`, by that name (LOG-071): the backend's request log masks the variable of that
+     * name, and a picture under any other would be written into it whole, some 44,000 characters
+     * a message. Nullable, of the input the server takes.
+     */
+    it('sends the picture as $image, of the input type the server takes', () => {
+      const operation = sendChatMessage.definitions.find(
+        (definition) => definition.kind === 'OperationDefinition',
+      )
+      const variable = operation.variableDefinitions.find(
+        (definition) => definition.variable.name.value === 'image',
+      )
+      expect(variable.type.kind).toBe('NamedType')
+      expect(variable.type.name.value).toBe('ChatImageInput')
+      const argument = top(sendChatMessage).arguments.find((arg) => arg.name.value === 'image')
+      expect(argument.value.kind).toBe('Variable')
+      expect(argument.value.name.value).toBe('image')
+    })
+
+    // P7: every message names its picture -- what to fetch it by and its size, never the bytes.
+    it('asks for the picture of a message by name and size, not for the picture', () => {
+      expect(shape(messagesOf(chatMessagesWithMemberQuery).selectionSet)).toContain(
+        'images{imageUuid width height}',
+      )
+    })
 
     it('asks the page for what the thread and the bell read', () => {
       const fields = top(chatMessagesWithMemberQuery).selectionSet.selections.map(

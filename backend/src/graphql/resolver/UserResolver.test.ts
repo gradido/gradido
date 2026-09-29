@@ -101,10 +101,12 @@ import {
   userAvatar,
   userEmailContact,
   user as userQuery,
+  userTransfersInChat,
   verifyLogin,
   verifyLoginAboutMe,
   verifyLoginAvatar,
   verifyLoginEmailContact,
+  verifyLoginTransfersInChat,
 } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
@@ -918,6 +920,7 @@ describe('UserResolver', () => {
                 avatar: null,
                 avatarVisibleToMembers: true,
                 creationAllowed: true,
+                transfersInChat: true,
               },
             },
           }),
@@ -1513,6 +1516,53 @@ describe('UserResolver', () => {
           })
         })
 
+        // Findable needs a place: the GMS cannot hold a member it cannot place, and migration
+        // 0140 switched every member without one off. The member here has no location yet -
+        // the case below gives them one, and there the same switch goes through.
+        describe('findable without a location', () => {
+          it('is refused with a code, and nothing of the save is written', async () => {
+            const [before] = await User.find()
+            expect(before.location).toBeNull()
+            jest.clearAllMocks()
+
+            await expect(
+              mutate({
+                mutation: updateUserInfos,
+                variables: { gmsAllowed: true, aboutMe: 'Ich baue Moebel aus Altholz.' },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                errors: [new GraphQLError('GMS_LOCATION_REQUIRED')],
+              }),
+            )
+
+            const after = await User.findOneOrFail({ where: { id: before.id } })
+            expect(after.gmsAllowed).toBe(before.gmsAllowed)
+            expect(after.aboutMe).toBe(before.aboutMe)
+            expect(updateUserInfosLogger.warn).toBeCalledWith(
+              'refused to switch findable on without a location',
+            )
+          })
+
+          // Only the switch from off to on is asked. A member left findable without a place,
+          // before this rule, still saves the rest - with the setting sent along as it is.
+          it('lets a member already findable without one save the rest', async () => {
+            const [member] = await User.find()
+            await User.update({ id: member.id }, { gmsAllowed: true })
+
+            const result = await mutate({
+              mutation: updateUserInfos,
+              variables: { gmsAllowed: true, aboutMe: 'Ich repariere Fahrraeder.' },
+            })
+
+            expect(result.errors).toBeUndefined()
+            const after = await User.findOneOrFail({ where: { id: member.id } })
+            expect(after.aboutMe).toBe('Ich repariere Fahrraeder.')
+            expect(after.gmsAllowed).toBe(true)
+            expect(after.location).toBeNull()
+          })
+        })
+
         describe('with gms location', () => {
           const loc = new Location()
           loc.longitude = 9.573224
@@ -1861,6 +1911,7 @@ describe('UserResolver', () => {
                 avatar: null,
                 avatarVisibleToMembers: true,
                 creationAllowed: true,
+                transfersInChat: true,
               },
             },
           }),
@@ -2973,6 +3024,80 @@ describe('UserResolver', () => {
         )
         expect(logErrorLogger.error).toBeCalledWith('401 Unauthorized')
       })
+    })
+  })
+
+  // The switch for the transfers in the conversations and the mail about one received
+  // (Einstellungen › Nachrichten, Bernd, 28.09.2026). Stored from updateUserInfos, handed to its
+  // owner, and to nobody else: `user()` hands out any member by alias to anyone logged in.
+  describe('the switch for the transfers in the conversations', () => {
+    let homeCom: DbCommunity
+    let owner: User
+
+    beforeAll(async () => {
+      await cleanDB()
+      homeCom = await writeHomeCommunityEntry()
+      owner = await userFactory(testEnv, bibiBloxberg)
+      await userFactory(testEnv, bobBaumeister)
+      await mutate({
+        mutation: login,
+        variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+      })
+    })
+
+    afterAll(async () => {
+      await cleanDB()
+    })
+
+    const stored = async () =>
+      (await User.findOneOrFail({ where: { id: owner.id } })).transfersInChat
+
+    it('is on for a new account -- the column’s default', async () => {
+      expect(await stored()).toBe(true)
+    })
+
+    // Ordered off - untouched - on, as for the picture's switch: false and "not sent" are
+    // different things, and a later save that says nothing must leave a stored no alone.
+    it('stores the member turning it off', async () => {
+      const res: any = await mutate({
+        mutation: updateUserInfos,
+        variables: { transfersInChat: false },
+      })
+      expect(res.errors).toBeUndefined()
+      expect(await stored()).toBe(false)
+    })
+
+    it('leaves a stored no alone when a later save does not mention it', async () => {
+      await mutate({ mutation: updateUserInfos, variables: {} })
+      expect(await stored()).toBe(false)
+    })
+
+    it('shows the member their own setting', async () => {
+      const res: any = await query({ query: verifyLoginTransfersInChat })
+      expect(res.data.verifyLogin.transfersInChat).toBe(false)
+    })
+
+    it('hides the setting from another logged-in member', async () => {
+      await mutate({
+        mutation: login,
+        variables: { email: 'bob@baumeister.de', password: 'Aa12345_' },
+      })
+      const res: any = await query({
+        query: userTransfersInChat,
+        variables: { identifier: owner.gradidoID, communityIdentifier: homeCom.communityUuid },
+      })
+      // The member is found -- only the field is withheld.
+      expect(res.data.user.gradidoID).toBe(owner.gradidoID)
+      expect(res.data.user.transfersInChat).toBeNull()
+    })
+
+    it('stores the member turning it back on', async () => {
+      await mutate({
+        mutation: login,
+        variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+      })
+      await mutate({ mutation: updateUserInfos, variables: { transfersInChat: true } })
+      expect(await stored()).toBe(true)
     })
   })
 

@@ -6,6 +6,7 @@ import { buildSchema } from 'type-graphql'
 import { isAuthorized } from './directive/isAuthorized'
 import { AssistedRegistrationResolver } from './resolver/AssistedRegistrationResolver'
 import { BalanceResolver } from './resolver/BalanceResolver'
+import { ChatGroupResolver } from './resolver/ChatGroupResolver'
 import { ChatResolver } from './resolver/ChatResolver'
 import { ChatVideoServerResolver } from './resolver/ChatVideoServerResolver'
 import { CommunityResolver } from './resolver/CommunityResolver'
@@ -40,6 +41,7 @@ export const schema = async (): Promise<GraphQLSchema> => {
     resolvers: [
       AssistedRegistrationResolver,
       BalanceResolver,
+      ChatGroupResolver,
       ChatResolver,
       ChatVideoServerResolver,
       CommunityResolver,

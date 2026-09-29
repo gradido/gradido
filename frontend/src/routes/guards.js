@@ -1,6 +1,32 @@
+import { START_LOCATION } from 'vue-router'
 import { verifyLogin } from '../graphql/queries'
 import { clearApolloCache } from '../plugins/apolloCache'
 import { mayFind } from '../utils/matchingPosition'
+import { holdChatText, takeChatReturn } from '../utils/chatReturn'
+
+/**
+ * Whether the stored session still runs: a token, and more than five seconds before it ends --
+ * the margin the redeem page allows too (TransactionLink.vue). `tokenTime` is when the session
+ * ends by this device's clock, in seconds (the `token` mutation in store.js).
+ */
+const sessionRuns = (state) =>
+  Boolean(state.token) && Boolean(state.tokenTime) && state.tokenTime * 1000 - Date.now() > 5000
+
+/** Whether a route is the overview, however its address was written (the record decides). */
+const isOverview = (to) => to.matched[to.matched.length - 1]?.path === '/overview'
+
+/**
+ * The conversation with `partner` in the contact window, the way the mail's reply opens it (P4c)
+ * -- or a group's window, the way the group's mails open it (`?group=`, P5).
+ */
+const conversationWith = (partner) => ({
+  path: '/contacts',
+  query: partner.groupUuid
+    ? { group: partner.groupUuid }
+    : partner.communityUuid
+      ? { with: partner.gradidoID, community: partner.communityUuid }
+      : { with: partner.gradidoID },
+})
 
 const addNavigationGuards = (router, store, apollo) => {
   // handle publisherId
@@ -49,9 +75,66 @@ const addNavigationGuards = (router, store, apollo) => {
     }
   })
 
-  // handle authentication
+  // A wallet that starts while its session still runs does not ask for the sign-in again. On an
+  // iPhone's home screen the wallet starts over whenever iOS wants its memory for another app --
+  // SwissTransfer's for an upload, Jitsi's for a call -- and it came back on the sign-in form
+  // with the session still running (Bernd, 26. and 27.09.2026). So a start on the sign-in page,
+  // or on `/`, which leads there, goes on at once: with a redeem code to its link, as the sign-in
+  // itself does (Login.vue), otherwise to the overview. Not to `redirectPath`: it is written for
+  // somebody signed out, so with a session running it can only be left over from before.
+  //
+  // ⛔ Only when the wallet STARTS there (a new start, a reload, an address from outside). A way
+  // into the sign-in page from inside the running wallet keeps the form, so signing in over an
+  // open session stays possible -- after a registration on a phone where somebody is still
+  // signed in, its "Sign in" leads to the form, and Login.vue clears the cache for exactly that.
+  // And not with `?project=`: that page signs in FOR a project and hands the member over to it,
+  // which going on would skip.
+  //
+  // ⭐ And back into the conversation (Bernd, 27.09.2026: "not in the dialog thread any more"):
+  // where a thread was open as the wallet went out of sight and did not come back, the start on
+  // the sign-in page, on `/` or on the overview -- where iOS starts the app from the home screen
+  // -- opens that conversation again (utils/chatReturn). The note serves the one start after it,
+  // whatever that start becomes, so it is taken first: without a running session the member signs
+  // in anew, and a conversation from before is nowhere to come back to. The words not sent yet go
+  // to that conversation's field in memory, and only where the start opens it -- never through
+  // the address, which the browser keeps in its history.
   router.beforeEach((to, from, next) => {
-    if (to.meta.requiresAuth && !store.state.token) {
+    if (from !== START_LOCATION) return next()
+    const back = takeChatReturn(store.state.gradidoID)
+    if (to.query.project || !sessionRuns(store.state)) return next()
+    if (to.name === 'Login' && to.params.code) {
+      return next({ name: 'Redeem', params: { code: to.params.code }, query: to.query })
+    }
+    if (to.name !== 'Login' && !isOverview(to)) return next()
+    if (back) {
+      holdChatText(back)
+      return next(conversationWith(back))
+    }
+    return to.name === 'Login' ? next({ path: '/overview' }) : next()
+  })
+
+  // handle authentication
+  //
+  // ⭐ A sign-in that has run out is no sign-in (Bernd, 28.09.2026: the reply button of a mail
+  // should lead into the conversation for every member). Only the token's presence used to be
+  // asked here, so a wallet closed more than a session ago opened the page with the old token:
+  // its first questions came back 403.13, and the logout behind them (apolloProvider.js) set
+  // the way back to the overview -- after signing in, the member stood on the overview, and the
+  // link they came with was gone. So the old sign-in is put away here first, as that logout
+  // does, and the link waits at the form like that of anybody signed out. The logout comes
+  // first because it sets the way back to the overview itself.
+  router.beforeEach(async (to, from, next) => {
+    if (to.meta.requiresAuth && !sessionRuns(store.state)) {
+      // The logout takes the token in its first commit. What can fail after that is clearing up
+      // -- storage refused in a private window, the cache -- and that must neither keep the
+      // member from the form nor lose the link: both go on either way.
+      if (store.state.token) {
+        try {
+          await store.dispatch('logout')
+        } catch {
+          // The sign-in is gone already; what failed was housekeeping.
+        }
+      }
       // fullPath, not path: it carries the query and the hash, and both are what a link
       // out of an e-mail is made of. The receipt blocks a card with ?block=<id>, the
       // reply button opens the send form in e-mail mode with ?art=email, and the

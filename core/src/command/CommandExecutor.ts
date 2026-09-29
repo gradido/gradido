@@ -8,6 +8,7 @@ import { CommandResult } from '../graphql/model/CommandResult'
 import { EncryptedTransferArgs } from '../graphql/model/EncryptedTransferArgs'
 import { Command } from './Command'
 import { CommandFactory } from './CommandFactory'
+import { commandArgsForLog } from './commandArgsForLog'
 
 const createLogger = (method: string) =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.command.CommandExecutor.${method}`)
@@ -47,8 +48,15 @@ export class CommandExecutor {
         methodLogger.error(errmsg)
         throw new Error(errmsg)
       }
+      // The debug lines write a chat message's picture as its length (P7b): the arguments through
+      // commandArgsForLog, the command through its own toJSON (SendEmailCommand).
       if (methodLogger.isDebugEnabled()) {
-        methodLogger.debug(`executeEncryptedCommand() commandArgs=${JSON.stringify(commandArgs)}`)
+        methodLogger.debug(
+          `executeEncryptedCommand() commandArgs=${JSON.stringify({
+            ...commandArgs,
+            commandArgs: commandArgsForLog(commandArgs.commandArgs),
+          })}`,
+        )
       }
       const command = CommandFactory.getInstance().createCommand(
         commandArgs.commandName,

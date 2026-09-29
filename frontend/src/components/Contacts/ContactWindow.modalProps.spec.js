@@ -27,11 +27,24 @@ const source = readFileSync(
   'utf8',
 )
 
-/** The names written on one opening tag, as kebab-case names; `v-model` is `model-value`. */
+/**
+ * The names written on one opening tag, as kebab-case names; `v-model` is `model-value`. A
+ * listener keeps its `@` (`@shown`): it is held against the EVENTS the library declares, not its
+ * props. An undeclared one is the same silent trap -- with `inheritAttrs: false` it lands on the
+ * markup as a native listener for an event that never comes (V4a listens for `shown`).
+ */
 const namesOn = (tagBody) =>
-  [...tagBody.matchAll(/(?:^|\s)(?::|@)?([a-z][a-z0-9-]*)(?==|\s|$)/g)].map((m) =>
-    m[1] === 'v-model' ? 'model-value' : m[1],
+  [...tagBody.matchAll(/(?:^|\s)(:|@)?([a-z][a-z0-9-]*)(?==|\s|$)/g)].map((m) =>
+    m[2] === 'v-model' ? 'model-value' : m[1] === '@' ? `@${m[2]}` : m[2],
   )
+
+/** What the installed BModal declares: its props and its events. */
+const declaredProps = Object.keys(BModal.props ?? {})
+const declaredEvents = [...(BModal.emits ?? [])]
+const isDeclared = (name) =>
+  name.startsWith('@')
+    ? declaredEvents.includes(name.slice(1))
+    : declaredProps.includes(camel(name))
 
 /** Everything written on the window's `<BModal …>` opening tag -- the first in the file. */
 const modalAttributes = () => {
@@ -63,13 +76,12 @@ describe('ContactWindow and the modal it opens', () => {
      * down rather than assumed.
      */
     const OURS = ['data-test', 'body-class', 'class', 'aria-label']
-    const declared = Object.keys(BModal.props ?? {})
-    expect(declared.length, 'could not read BModal props from the package').toBeGreaterThan(0)
+    expect(declaredProps.length, 'could not read BModal props from the package').toBeGreaterThan(0)
 
     const unknown = modalAttributes()
       .filter((name) => !OURS.includes(name))
       .filter((name) => !name.startsWith('update:'))
-      .filter((name) => !declared.includes(camel(name)))
+      .filter((name) => !isDeclared(name))
 
     expect(unknown).toEqual([])
   })
@@ -128,29 +140,39 @@ describe('ContactWindow and the modal it opens', () => {
   })
 
   /**
-   * The question before a video call (V2) is a second dialog in this file, and the same two
-   * rules hold for it: only names the library declares, and a name of its own where it has no
-   * header to be named by.
+   * The question before a video call (V2) is a second dialog in this file, and the question
+   * before joining one (V4b) a third; the same two rules hold for them: only names the library
+   * declares, and a name of its own where there is no header to be named by.
    */
   it('holds every dialog in the file to the names the library declares', () => {
     const OURS = ['data-test', 'body-class', 'class', 'aria-label']
-    const declared = Object.keys(BModal.props ?? {})
     const tags = allModalTags()
 
-    expect(tags, 'the window and the question before a call').toHaveLength(2)
+    expect(tags, 'the window and the questions before starting and joining a call').toHaveLength(3)
     for (const written of tags) {
       const unknown = written
         .filter((name) => !OURS.includes(name))
         .filter((name) => !name.startsWith('update:'))
-        .filter((name) => !declared.includes(camel(name)))
+        .filter((name) => !isDeclared(name))
       expect(unknown).toEqual([])
     }
+  })
+
+  /**
+   * V4a: the question waits for `shown` before it lets the topic field into the tab order
+   * (ContactWindow, `videoAskOpened`). The event is the library's, so it is held here by the
+   * name the package declares -- and a misspelt listener would be caught as an unknown name.
+   */
+  it('listens for an event the library declares, and it reads the events at all', () => {
+    expect(declaredEvents, 'could not read BModal events from the package').toContain('shown')
+    expect(allModalTags()[1]).toContain('@shown')
+    expect(isDeclared('@shwon')).toBe(false)
   })
 
   it('names every dialog that has no header', () => {
     const headless = allModalTags().filter((written) => written.includes('no-header'))
 
-    expect(headless).toHaveLength(2)
+    expect(headless).toHaveLength(3)
     for (const written of headless) expect(written).toContain('aria-label')
   })
 })

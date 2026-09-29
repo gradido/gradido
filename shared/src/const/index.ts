@@ -110,6 +110,35 @@ export const AVATAR_SMALL_MAX_BYTES = 10 * 1024
 export const JPEG_MAGIC_BYTES = [0xff, 0xd8]
 export const JPEG_END_BYTES = [0xff, 0xd9]
 
+// chat: a picture in a chat message (P7). One size for every picture, within this community and
+// across its border (E-046). To a member of another community the picture travels inside the
+// command that carries its message, and the federation module takes a request of 100 KB at most
+// (express.json() without a limit, federation/src/server/createServer.ts). The command is
+// encrypted and signed on its way (shared/src/jwt/JWT.ts), which costs some 2.5 KB and 2.37 bytes
+// for every byte of the picture (measured 27.09.2026): the wallet's 32 KB come to some 80 KB, and
+// a text of MESSAGE_MAX_CHARS characters fits beside them -- emoji and quotation marks, which
+// weigh the most, included. Only a text made up to be heavy does not: 2000 emoji or control
+// characters, each with a variation selector, which MaxLength counts as one character with it.
+// The sending server measures the finished request and refuses it before anything is filed
+// (commandRequestBytes in core).
+//
+// Within this community the picture travels as base64 in the same mutation as the text, under
+// express's 100 KB as well (backend/src/server/createServer.ts), as the two avatar renditions do,
+// and there is more room: 35 KB arrive as 47,788 characters of base64, the text is at most
+// 18,000 bytes (chatImageBudget.test.ts says which characters and holds the sum), the query
+// around them some hundred bytes.
+//
+// A backstop, as the avatar's limits are: the wallet encodes the picture under 32 KB (an area of
+// 800 x 600). That target belongs to the wallet, as AVATAR_*_TARGET_BYTES do.
+export const CHAT_IMAGE_MAX_BYTES = 35 * 1024
+// Width and height are the sender's word -- without a decoder the server cannot measure them,
+// only bound them. The wallet's pictures have the area of 800 x 600 whatever their format: a
+// long screenshot comes to about 393 x 1220, a panorama to 924 x 520.
+export const CHAT_IMAGE_MAX_SIDE = 4096
+// The area of 800 x 600 (480,000 pixels), rounded up: a picture scaled to that area in the
+// wallet may come out a little over it (924 x 520 = 480,480).
+export const CHAT_IMAGE_MAX_PIXELS = 500_000
+
 // alias: how often a member may pick a name, and over what stretch. Four a year is
 // not a tidiness rule -- it is the brake against somebody cycling through near-misses
 // of a popular name to catch payments meant for its owner. The confirmation dialog

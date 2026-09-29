@@ -36,6 +36,19 @@
       "subject": "Bevestig je e-mailadres",
       "title": "Je Gradido-account is klaar"
     },
+    "chatGroupAdded": {
+      "inTheGroup": "in de groep chatten {memberCount} leden met elkaar. Alle leden zien je gebruikersnaam.",
+      "leaveAnyTime": "Je kunt de groep op elk moment in je Gradido-account dempen of verlaten.",
+      "openGroup": "Groep openen",
+      "subject": "Je zit nu in de groep ‘{groupTitle}’",
+      "title": "{adderAlias} heeft je toegevoegd aan de groep ‘{groupTitle}’"
+    },
+    "chatGroupMessage": {
+      "announcement": "{senderAlias} heeft een bericht als aankondiging naar alle leden van de groep gestuurd.",
+      "muteHint": "Geen aankondigingen meer per e-mail? Tik in je Gradido-account in de groep op het belletje.",
+      "subject": "Aankondiging van {senderAlias} in ‘{groupTitle}’",
+      "title": "{senderAlias} schrijft in ‘{groupTitle}’"
+    },
     "contribution": {
       "toSeeContributionsAndMessages": "Je vindt je bijdragen aan het algemeen welzijn en de bijbehorende berichten in je Gradido-account."
     },
@@ -72,6 +85,7 @@
     },
     "customEmail": {
       "haveReceivedMessageFrom": "je hebt zojuist een bericht ontvangen van {senderAlias}",
+      "imageNote": "📷 Het bericht bevat een afbeelding – je ziet die in het gesprek.",
       "title": "{senderAlias} heeft je een bericht gestuurd"
     },
     "emailChangeConfirm": {

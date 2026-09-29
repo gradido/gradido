@@ -2,9 +2,32 @@
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { mount } from '@vue/test-utils'
-import { describe, it, expect, afterEach, vi } from 'vitest'
+import { flushPromises, mount } from '@vue/test-utils'
+import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
 import ChatBubble from './ChatBubble.vue'
+import { forgetAllChatImages, rememberChatImage } from '@/composables/useChatImages'
+import { CHAT_VIDEO_JOIN } from '@/utils/chatVideoApp'
+import { withChatVideoTopic } from '@/utils/chatVideoTopic'
+import { LIST_AVATAR_SIZE } from '@/constants'
+
+/**
+ * The client a picture is asked for with (ChatBubbleImage, useChatImages): each question waits for
+ * the answer a test gives it.
+ */
+const pictureServer = vi.hoisted(() => ({ asked: [] }))
+vi.mock('@vue/apollo-composable', () => ({
+  useApolloClient: () => ({
+    client: {
+      query: (options) => new Promise((resolve) => pictureServer.asked.push({ options, resolve })),
+    },
+  }),
+}))
+
+// The face beside somebody else's message in a group (P5) can open large (useAvatarZoom), and its
+// words come from the app's i18n instance.
+vi.mock('@/i18n', () => ({
+  default: { global: { t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key) } },
+}))
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
@@ -54,7 +77,14 @@ describe('ChatBubble', () => {
   const mountBubble = (message, alias = 'Lena') => {
     wrapper = mount(ChatBubble, {
       props: { message, alias },
-      global: { stubs: { IMdiEmailOutline: { template: '<i data-test="envelope" />' } } },
+      global: {
+        stubs: {
+          IMdiEmailOutline: { template: '<i data-test="envelope" />' },
+          IMdiCalendarPlusOutline: true,
+          IMdiFileDocumentOutline: true,
+          IMdiOpenInNew: true,
+        },
+      },
     })
     return wrapper
   }
@@ -102,6 +132,335 @@ describe('ChatBubble', () => {
   it("shows the text, with its bold runs, through the chat's own text component", () => {
     mountBubble({ ...THEIRS, body: 'Das ist **wichtig**.' })
     expect(wrapper.find('.chat-message-text strong').text()).toBe('wichtig')
+  })
+
+  /**
+   * V4a: a video room's link shows its server and room; the topic's encoded addition stays out of
+   * sight -- the invitation names the topic in words above it. The link goes to the whole address,
+   * addition and all: that is what gives the meeting its title.
+   */
+  it("shows a video room's link without the topic's addition, and leads to the whole address", () => {
+    const room = 'https://meet.ffmuc.net/k7m2x9q4t8wz'
+    const address = `${room}#config.subject=%22Gespr%C3%A4ch%20%C3%BCber%20B%C3%A4ume%22`
+    mountBubble({
+      ...THEIRS,
+      body: `📹 Videoanruf: Gespräch über Bäume\nDer Raum liegt auf einem Jitsi-Server von Freifunk München — ein Vorschlag, kein Dienst von Gradido: ${address}`,
+    })
+
+    const link = wrapper.find('.chat-message-text a')
+    expect(link.text()).toBe(room)
+    expect(link.attributes('href')).toBe(address)
+    expect(wrapper.find('.chat-message-text').text()).not.toContain('config.subject')
+  })
+
+  // Only that one addition: an address with anything else after `#` is shown as it is.
+  it.each([
+    'https://gradido.net/de/faq#konto',
+    'https://meet.ffmuc.net/k7m2x9q4t8wz#config.subject=x&config.startWithAudioMuted=true',
+  ])('shows any other address whole: %s', (address) => {
+    mountBubble({ ...THEIRS, body: `Schau mal: ${address}` })
+
+    const link = wrapper.find('.chat-message-text a')
+    expect(link.text()).toBe(address)
+    expect(link.attributes('href')).toBe(address)
+  })
+
+  /**
+   * V4b: on a computer a click on the link of an invitation of our own asks first -- through the
+   * question the contact window provides (`CHAT_VIDEO_JOIN`), here a stand-in that notes what it
+   * was handed. The device is the browser's to say (chatVideoApp): a stand-in for `matchMedia`
+   * that answers the one question asked, where jsdom has none -- the state every other test runs
+   * in, and the phone's answer.
+   */
+  describe('the question before joining a call', () => {
+    const ROOM = 'https://meet.ffmuc.net/k7m2x9q4t8wz'
+    const ADDRESS = `${ROOM}#config.subject=%22Gespr%C3%A4ch%20%C3%BCber%20B%C3%A4ume%22`
+    const INVITATION = `📹 Videoanruf: Gespräch über Bäume\nDer Raum liegt auf einem Jitsi-Server von Freifunk München — ein Vorschlag, kein Dienst von Gradido: ${ADDRESS}`
+
+    let asked
+    const mountAsking = (message, { provided = true } = {}) => {
+      asked = []
+      wrapper = mount(ChatBubble, {
+        props: { message, alias: 'Lena' },
+        global: {
+          provide: provided ? { [CHAT_VIDEO_JOIN]: (roomUrl) => asked.push(roomUrl) } : {},
+          stubs: { IMdiEmailOutline: true },
+        },
+      })
+    }
+    const onA = ({ computer }) => {
+      vi.stubGlobal('matchMedia', (query) => ({
+        matches: query === '(pointer: fine) and (hover: hover)' && computer,
+      }))
+    }
+    const links = () => wrapper.findAll('.chat-message-text a')
+    /** A click as the member makes it; `false` where the page claimed it (preventDefault). */
+    const click = (init = {}) =>
+      links()[0].element.dispatchEvent(
+        new MouseEvent('click', { bubbles: true, cancelable: true, button: 0, ...init }),
+      )
+
+    afterEach(() => {
+      vi.unstubAllGlobals()
+    })
+
+    it('asks instead of opening, on a computer, and hands over the whole address', () => {
+      onA({ computer: true })
+      mountAsking({ ...THEIRS, body: INVITATION })
+
+      expect(click()).toBe(false)
+      expect(asked).toEqual([ADDRESS])
+    })
+
+    // The link stays the room's: copy, the middle button and a new tab work as on any link.
+    it('stays one link to the room, with no second way beside it', () => {
+      onA({ computer: true })
+      mountAsking({ ...THEIRS, body: INVITATION })
+
+      expect(links()).toHaveLength(1)
+      expect(links()[0].attributes('href')).toBe(ADDRESS)
+      expect(links()[0].attributes('target')).toBe('_blank')
+      expect(links()[0].attributes('rel')).toBe('noopener noreferrer')
+      expect(links()[0].text()).toBe(ROOM)
+      expect(wrapper.find('.chat-message-text').text().endsWith(ROOM)).toBe(true)
+    })
+
+    it("asks in one's own bubble too", () => {
+      onA({ computer: true })
+      mountAsking({ ...OWN, body: INVITATION })
+
+      expect(click()).toBe(false)
+      expect(asked).toEqual([ADDRESS])
+    })
+
+    it.each([
+      ['Ctrl', { ctrlKey: true }],
+      ['Cmd', { metaKey: true }],
+      ['Shift', { shiftKey: true }],
+      ['Alt', { altKey: true }],
+      ['another button', { button: 1 }],
+    ])('leaves a click with %s to the browser', (_, init) => {
+      onA({ computer: true })
+      mountAsking({ ...THEIRS, body: INVITATION })
+
+      expect(click(init)).toBe(true)
+      expect(asked).toEqual([])
+    })
+
+    // Phones and tablets: Jitsi's own page offers its app there.
+    it('opens the room straight away on a phone or a tablet', () => {
+      onA({ computer: false })
+      mountAsking({ ...THEIRS, body: INVITATION })
+
+      expect(click()).toBe(true)
+      expect(asked).toEqual([])
+    })
+
+    // Asked at the click, nothing kept: a drawing made on a phone still asks on a computer.
+    it('asks the device at the click, not at the drawing', () => {
+      onA({ computer: false })
+      mountAsking({ ...THEIRS, body: INVITATION })
+
+      onA({ computer: true })
+      expect(click()).toBe(false)
+      expect(asked).toEqual([ADDRESS])
+    })
+
+    it('stays a plain link where no window provides the question', () => {
+      onA({ computer: true })
+      mountAsking({ ...THEIRS, body: INVITATION }, { provided: false })
+
+      expect(click()).toBe(true)
+    })
+
+    it.each([
+      ['a page', 'https://gradido.net/de/faq#konto'],
+      ['a room with a second setting', `${ADDRESS}&config.startWithAudioMuted=true`],
+      ['a room over http', ADDRESS.replace('https:', 'http:')],
+    ])("does not ask for somebody else's address: %s", (_, address) => {
+      onA({ computer: true })
+      mountAsking({ ...THEIRS, body: `Schau mal: ${address}` })
+
+      expect(click()).toBe(true)
+      expect(asked).toEqual([])
+    })
+  })
+
+  /**
+   * Paket D (E-042, E-044): Gradido stores no files. A link to files on SwissTransfer comes as an
+   * ordinary message, and the thread shows it as a file card in place of the address; the words
+   * around it stay.
+   */
+  describe('a link to files on SwissTransfer', () => {
+    const LINK = 'https://www.swisstransfer.com/d/7f3a9c2e-5b1d-4e8a-9c3f-2d6b8a1e4f70'
+    const card = () => wrapper.find('[data-test="chat-file-card"]')
+    const text = () => wrapper.find('.chat-message-text')
+    /** What the text is made of, in order: its text as it stands, and its elements by class. */
+    const pieces = () =>
+      [...text().element.childNodes].map((node) =>
+        node.nodeType === Node.TEXT_NODE ? node.textContent : `<${node.className}>`,
+      )
+
+    it('becomes a card in place of the address, leading there in a tab of its own', () => {
+      mountBubble({ ...THEIRS, body: `Hier ist die Datei:\n${LINK}` })
+
+      expect(card().element.tagName).toBe('A')
+      expect(card().attributes('href')).toBe(LINK)
+      expect(card().attributes('target')).toBe('_blank')
+      expect(card().attributes('rel')).toBe('noopener noreferrer')
+      expect(card().text()).toContain('chatThread.fileCard')
+      expect(wrapper.find('[data-test="chat-file-card-where"]').text()).toBe(
+        'swisstransfer.com/d/7f3a9c2e-5b1d-4e8a-9c3f-2d6b8a1e4f70',
+      )
+      // The card is the one link: the address does not stand in the text beside it.
+      expect(wrapper.findAll('.chat-message-text a')).toHaveLength(1)
+      expect(text().text()).not.toContain('https://')
+    })
+
+    /**
+     * The four more (Bernd, 27.09.2026): the same card, naming the service, over host and path.
+     * The query carries the link's key -- it goes with the tap and stays out of sight.
+     */
+    it.each([
+      [
+        'Dropbox',
+        'https://www.dropbox.com/scl/fi/k7m2x9q4t8wzp3n6r1v5c/Bericht.pdf?rlkey=q2w3e4r5t6y7u8i9o0p1a2s3d&dl=0',
+        'dropbox.com/scl/fi/k7m2x9q4t8wzp3n6r1v5c/Bericht.pdf',
+      ],
+      [
+        'Google Drive',
+        'https://drive.google.com/file/d/1QwErTyUiOpAsDfGhJkLzXcVbNm123456/view?usp=drive_link',
+        'drive.google.com/file/d/1QwErTyUiOpAsDfGhJkLzXcVbNm123456/view',
+      ],
+      [
+        'OneDrive',
+        'https://1drv.ms/u/c/1a2b3c4d5e6f7a8b/EQwErTyUiOpAsDfGhJkLzXcBQwErTyUiOp?e=AbC123',
+        '1drv.ms/u/c/1a2b3c4d5e6f7a8b/EQwErTyUiOpAsDfGhJkLzXcBQwErTyUiOp',
+      ],
+      ['WeTransfer', 'https://we.tl/t-Qw3Er5Ty7U', 'we.tl/t-Qw3Er5Ty7U'],
+    ])('is a card for a link to %s, naming it', (service, address, where) => {
+      mountBubble({ ...THEIRS, body: `Hier ist die Datei:\n${address}` })
+
+      expect(card().attributes('href')).toBe(address)
+      expect(card().find('.chat-file-card-title').text()).toBe(
+        `chatThread.fileCard ${JSON.stringify({ service })}`,
+      )
+      expect(wrapper.find('[data-test="chat-file-card-where"]').text()).toBe(where)
+      expect(pieces()).toEqual(['Hier ist die Datei:', '<chat-file-card>'])
+    })
+
+    // In one's own bubble the same.
+    it("is a card in one's own bubble too", () => {
+      mountBubble({ ...OWN, body: LINK })
+      expect(card().attributes('href')).toBe(LINK)
+    })
+
+    // SwissTransfer's app shares a transfer from its second host: the same card, naming that host.
+    it("is a card for a link of SwissTransfer's app, naming the app's host", () => {
+      const appLink = 'https://swisstransfer.infomaniak.com/dl/018f6c2b-9c8d-7e6f-8a5b-4c3d2e1f0a9b'
+      mountBubble({ ...THEIRS, body: `Hier ist die Datei:\n${appLink}` })
+
+      expect(card().attributes('href')).toBe(appLink)
+      expect(wrapper.find('[data-test="chat-file-card-where"]').text()).toBe(
+        'swisstransfer.infomaniak.com/dl/018f6c2b-9c8d-7e6f-8a5b-4c3d2e1f0a9b',
+      )
+      expect(pieces()).toEqual(['Hier ist die Datei:', '<chat-file-card>'])
+    })
+
+    // ⛔ The bubble keeps a message's own line breaks: a break after the link would stand as an
+    // empty line under the card, a blank line before it as one over it (measured in the probe,
+    // 27.09.2026). The space right next to the card goes, whatever it is.
+    it('keeps the words around it, without the space right next to it', () => {
+      mountBubble({ ...THEIRS, body: `Hier ist die Datei:\n${LINK}\nViel Freude damit!` })
+      expect(pieces()).toEqual(['Hier ist die Datei:', '<chat-file-card>', 'Viel Freude damit!'])
+    })
+
+    // Only the space right next to the card: the message's own lines elsewhere stay as written.
+    it('leaves the line breaks elsewhere in the message as they are', () => {
+      mountBubble({ ...THEIRS, body: `Erste Zeile\n\nZweite Zeile: ${LINK}` })
+      expect(pieces()).toEqual(['Erste Zeile\n\nZweite Zeile:', '<chat-file-card>'])
+    })
+
+    // Gegenprobe: around any other link, and in a message without a card, nothing is taken away.
+    it('leaves the space around any other link as it was written', () => {
+      mountBubble({ ...THEIRS, body: '  Schau mal:\nhttps://gradido.net/de/\nDanke  ' })
+      expect(pieces()).toEqual(['  Schau mal:\n', '<>', '\nDanke  '])
+    })
+
+    it('is the card and nothing else where the message is the link alone', () => {
+      mountBubble({ ...OWN, body: `  ${LINK}\n` })
+      expect(pieces()).toEqual(['<chat-file-card>'])
+    })
+
+    it('gives every link its own card, and nothing is left between them', () => {
+      const other = 'https://www.swisstransfer.com/dl/Ab3dE5fG'
+      mountBubble({ ...OWN, body: `${LINK}\n\n${other}` })
+
+      expect(pieces()).toEqual(['<chat-file-card>', '<chat-file-card>'])
+      expect(
+        wrapper.findAll('[data-test="chat-file-card"]').map((each) => each.attributes('href')),
+      ).toEqual([LINK, other])
+    })
+
+    it.each([
+      ['a link to another service', 'https://www.filemail.com/d/qwertyuiopasdfg'],
+      // Nextcloud runs on any address (Bernd, 27.09.2026: an ordinary link).
+      ['a Nextcloud share', 'https://cloud.example.org/s/aBcDeFgHiJkLmNo'],
+      ['a page of SwissTransfer that is no download', 'https://www.swisstransfer.com/de/faq'],
+      ['a SwissTransfer link with a query', `${LINK}?password=123`],
+      ['a host that only looks like it', 'https://swisstransfer.com.example.org/d/7f3a9c2e'],
+      ['another service of Infomaniak', 'https://kdrive.infomaniak.com/dl/7f3a9c2e'],
+    ])('leaves %s an ordinary link, whole, with the words around it', (_, address) => {
+      mountBubble({ ...THEIRS, body: `Schau mal: ${address}` })
+
+      expect(card().exists()).toBe(false)
+      const link = wrapper.find('.chat-message-text a')
+      expect(link.text()).toBe(address)
+      expect(link.attributes('href')).toBe(address)
+      expect(text().text()).toBe(`Schau mal: ${address}`)
+    })
+
+    // A video invitation is somebody else's link here: it stays as V4a built it.
+    it('leaves a video invitation as it was', () => {
+      const room = 'https://meet.ffmuc.net/k7m2x9q4t8wz'
+      const address = `${room}#config.subject=%22Videoanruf%22`
+      mountBubble({ ...OWN, body: `📹 Videoanruf\nDer Raum: ${address}` })
+
+      expect(card().exists()).toBe(false)
+      expect(wrapper.find('.chat-message-text a').text()).toBe(room)
+      expect(wrapper.find('.chat-message-text a').attributes('href')).toBe(address)
+    })
+
+    // ⛔ The words around the card come from the other side of the conversation: they stay text.
+    it('sets nothing as markup, beside the card as elsewhere', () => {
+      mountBubble({ ...THEIRS, body: `<img src=x onerror=alert(1)> ${LINK} <b>fett</b>` })
+
+      expect(text().find('img').exists()).toBe(false)
+      expect(text().find('b').exists()).toBe(false)
+      expect(pieces()).toEqual(['<img src=x onerror=alert(1)>', '<chat-file-card>', '<b>fett</b>'])
+    })
+
+    /**
+     * ⛔ Nothing is asked of SwissTransfer before somebody taps the card: no request, no preview
+     * picture -- a request would tell a third party that the message was opened (Notiz 23.09. §5).
+     */
+    it('asks SwissTransfer nothing: no request, no picture', () => {
+      const fetched = vi.fn()
+      vi.stubGlobal('fetch', fetched)
+      const opened = vi.spyOn(XMLHttpRequest.prototype, 'open')
+      try {
+        mountBubble({ ...THEIRS, body: `Hier ist die Datei:\n${LINK}` })
+
+        expect(card().exists()).toBe(true)
+        expect(fetched).not.toHaveBeenCalled()
+        expect(opened).not.toHaveBeenCalled()
+        expect(card().findAll('img')).toHaveLength(0)
+        expect(card().attributes('style')).toBeUndefined()
+      } finally {
+        vi.unstubAllGlobals()
+        opened.mockRestore()
+      }
+    })
   })
 
   // E-018: the time is when it arrived here, as a machine-readable <time> and a short one to
@@ -326,5 +685,503 @@ describe('ChatBubble', () => {
         rule.selectors.includes('.chat-bubble-not-mailed') && /overflow-wrap/.test(rule.body),
     )
     expect(line?.body).toMatch(/overflow-wrap:\s*anywhere/)
+  })
+
+  /**
+   * V5b (Bernd, 27.09.2026): a planned video call is offered to the member's calendar -- on
+   * either side of the conversation, the time out of the invitation's own address, the calendar
+   * showing it in this member's time zone.
+   */
+  describe('a planned video call', () => {
+    const ROOM = 'https://meet.systemli.org/q2w3e4r5t6y7'
+    const START = new Date('2026-09-30T13:00:00.000Z')
+    const END = new Date('2026-09-30T14:00:00.000Z')
+    const PLANNED = withChatVideoTopic(ROOM, 'Projektbesprechung', { start: START, end: END })
+    const INVITATION = `📹 Videoanruf: Projektbesprechung\n📅 Mittwoch, 30. September 2026\n🕒 15:00–16:00 Uhr (MESZ)\nDer Raum liegt auf einem Jitsi-Server von Systemli — ein Vorschlag, kein Dienst von Gradido: ${PLANNED}`
+    const calendar = () => wrapper.find('[data-test="chat-bubble-calendar"]')
+
+    let blobs
+    let saved
+    afterEach(() => {
+      delete URL.createObjectURL
+      delete URL.revokeObjectURL
+      vi.restoreAllMocks()
+    })
+
+    const lendObjectAddresses = () => {
+      blobs = []
+      saved = []
+      URL.createObjectURL = (blob) => {
+        blobs.push(blob)
+        return 'blob:calendar'
+      }
+      URL.revokeObjectURL = vi.fn()
+      vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function () {
+        saved.push(this.download)
+      })
+    }
+
+    const text = (blob) =>
+      new Promise((resolve) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(reader.result)
+        reader.readAsText(blob)
+      })
+
+    it.each([
+      ['one’s own', true],
+      ['the other person’s', false],
+    ])('offers it to the calendar under %s invitation', (_, mine) => {
+      mountBubble({ ...(mine ? OWN : THEIRS), body: INVITATION })
+
+      expect(calendar().exists()).toBe(true)
+      expect(calendar().element.tagName).toBe('BUTTON')
+      expect(calendar().attributes('type')).toBe('button')
+      expect(calendar().text()).toBe('chatThread.videoAddToCalendar')
+    })
+
+    it('offers nothing under a call now, or under any other message', () => {
+      for (const body of [
+        `📹 Videoanruf. Der Raum liegt …: ${withChatVideoTopic(ROOM, 'Videoanruf')}`,
+        'Hättest Du noch Rosmarin übrig?',
+        `Schau mal: ${ROOM}`,
+      ]) {
+        mountBubble({ ...THEIRS, body })
+        expect(calendar().exists(), body).toBe(false)
+        wrapper.unmount()
+      }
+      wrapper = null
+    })
+
+    it('saves the call: its time, the topic and the other person as its title, the message as its note', async () => {
+      lendObjectAddresses()
+      mountBubble({ ...THEIRS, body: INVITATION }, 'Lena')
+
+      await calendar().trigger('click')
+
+      expect(saved).toEqual(['Projektbesprechung-2026-09-30.ics'])
+      const file = (await text(blobs[0])).replace(/\r\n /g, '')
+      expect(file).toContain('DTSTART:20260930T130000Z\r\n')
+      expect(file).toContain('DTEND:20260930T140000Z\r\n')
+      expect(file).toContain('SUMMARY:Projektbesprechung – Lena\r\n')
+      expect(file).toContain(`URL:${PLANNED}\r\n`)
+      expect(file).toContain('UID:q2w3e4r5t6y7-1790773200@gradido\r\n')
+      expect(file).toContain('DESCRIPTION:📹 Videoanruf: Projektbesprechung\\n📅 Mittwoch')
+    })
+
+    it('draws the button with a focus ring of its own, in the stylesheet', () => {
+      const code = readFileSync(
+        join(dirname(fileURLToPath(import.meta.url)), 'ChatBubble.vue'),
+        'utf8',
+      ).replace(/\/\*[\s\S]*?\*\//g, '')
+      expect(code).toMatch(/\.chat-bubble-calendar-add:focus-visible\s*\{[^}]*outline:\s*2px solid/)
+      expect(code).toMatch(/\.chat-bubble-calendar-add\s*\{[^}]*min-height:\s*2rem/)
+    })
+  })
+
+  /**
+   * P7: a message with a picture (E-044 F3/F5; the mockup, "Bilder im Faden"). The picture on top,
+   * in the room its size gives it before it has come; its caption under it in the same bubble; a
+   * tap opens it large.
+   */
+  /**
+   * A transfer between the two (ChatThread, Bernd, 28.09.2026): "formatiert wie eine E-Mail, nur
+   * etwas kürzer" -- the mail's words bold behind the coin, the booking's memo under them, on the
+   * side of whoever sent it.
+   */
+  describe('a transfer', () => {
+    const TRANSFER = {
+      key: 'transfer-12',
+      transfer: true,
+      mine: false,
+      createdAt: '2026-09-28T07:41:00.000Z',
+      subject: 'Lena hat Dir 10,00 Gradido gesendet',
+      body: 'Danke für den **Rosmarin**: https://x.org/rezept',
+    }
+
+    it('shows the mail’s words bold behind the coin, and the memo under them', () => {
+      mountBubble(TRANSFER)
+      const row = wrapper.find('[data-test="chat-bubble"]')
+      expect(row.classes()).toEqual(
+        expect.arrayContaining(['chat-bubble-transfer', 'chat-bubble-theirs']),
+      )
+      const head = wrapper.find('[data-test="chat-bubble-subject"]')
+      expect(head.classes()).toContain('chat-bubble-transfer-head')
+      expect(head.text()).toBe('Lena hat Dir 10,00 Gradido gesendet')
+      const coin = head.find('svg.chat-transfer-coin')
+      expect(coin.attributes('aria-hidden')).toBe('true')
+      expect(coin.html()).toContain('currentColor')
+      expect(wrapper.find('[data-test="chat-bubble-time"]').text()).toBe(
+        'time(2026-09-28T07:41:00.000Z)',
+      )
+    })
+
+    // The booking's text as the booking list shows it: its address a link, its stars stars.
+    it('shows the memo as the booking list does, not as a chat message', () => {
+      mountBubble(TRANSFER)
+      const memo = wrapper.find('.chat-bubble-text')
+      expect(memo.classes()).toContain('memo-text')
+      expect(memo.text()).toBe('Danke für den **Rosmarin**: https://x.org/rezept')
+      expect(memo.find('a').attributes('href')).toBe('https://x.org/rezept')
+      expect(memo.find('strong').exists()).toBe(false)
+      expect(wrapper.find('.chat-message-text').exists()).toBe(false)
+    })
+
+    it('stands on one’s own side where one sent it, without a word about a mail', () => {
+      mountBubble({ ...TRANSFER, mine: true, subject: 'Du hast Lena 10,00 Gradido gesendet' })
+      expect(wrapper.find('[data-test="chat-bubble"]').classes()).toContain('chat-bubble-mine')
+      expect(wrapper.find('[data-test="chat-bubble-writer"]').text()).toBe('chatThread.you:')
+      expect(wrapper.find('[data-test="envelope"]').exists()).toBe(false)
+      expect(wrapper.find('[data-test="chat-bubble-state"]').exists()).toBe(false)
+      expect(wrapper.find('[data-test="chat-bubble-not-mailed"]').exists()).toBe(false)
+    })
+
+    it('keeps an ordinary message as it was: no coin, its own text', () => {
+      mountBubble({ ...OWN, subject: 'Samstag' })
+      expect(wrapper.find('[data-test="chat-bubble"]').classes()).not.toContain(
+        'chat-bubble-transfer',
+      )
+      expect(wrapper.find('svg.chat-transfer-coin').exists()).toBe(false)
+      expect(wrapper.find('.chat-message-text').exists()).toBe(true)
+    })
+
+    it('puts the coin on the first line of the words, in the stylesheet', () => {
+      const code = readFileSync(
+        join(dirname(fileURLToPath(import.meta.url)), 'ChatBubble.vue'),
+        'utf8',
+      ).replace(/\/\*[\s\S]*?\*\//g, '')
+      expect(code).toMatch(
+        /\.chat-bubble-transfer-head\s*\{[^}]*display:\s*flex;[^}]*align-items:\s*flex-start/,
+      )
+      expect(code).toMatch(/\.chat-transfer-coin\s*\{[^}]*width:\s*1\.35em;[^}]*height:\s*1\.35em/)
+    })
+  })
+
+  describe('a message with a picture', () => {
+    const PICTURE = { imageUuid: 'image-7', width: 800, height: 600 }
+    const WITH = { ...THEIRS, body: 'So sieht unser Stand aus.', images: [PICTURE] }
+
+    const button = () => wrapper.find('[data-test="chat-bubble-image"]')
+    const picture = () => wrapper.find('[data-test="chat-bubble-image-picture"]')
+    const missing = () => wrapper.find('[data-test="chat-bubble-image-missing"]')
+    const answer = async (index, base64) => {
+      pictureServer.asked[index].resolve({ data: { chatMessageImage: base64 } })
+      await flushPromises()
+    }
+
+    const OriginalObserver = globalThis.IntersectionObserver
+    beforeEach(() => {
+      pictureServer.asked = []
+      URL.createObjectURL = vi.fn(() => 'blob:the-picture')
+      URL.revokeObjectURL = vi.fn()
+    })
+    afterEach(() => {
+      forgetAllChatImages()
+      delete URL.createObjectURL
+      delete URL.revokeObjectURL
+      globalThis.IntersectionObserver = OriginalObserver
+    })
+
+    /**
+     * ⛔ The room before the picture: its width and height from the message, as attributes and as
+     * proportions -- nothing below jumps when it comes. Until then a quiet surface, no spinner.
+     */
+    it('keeps the picture’s room before it has come, on a quiet surface', () => {
+      mountBubble(WITH)
+
+      expect(picture().attributes('width')).toBe('800')
+      expect(picture().attributes('height')).toBe('600')
+      expect(picture().attributes('style')).toContain('aspect-ratio: 800 / 600')
+      expect(picture().attributes('src')).toBeUndefined()
+      expect(picture().classes()).toContain('is-waiting')
+      expect(wrapper.find('.spinner-border').exists()).toBe(false)
+    })
+
+    it('shows the picture once it has come', async () => {
+      mountBubble(WITH)
+      expect(pictureServer.asked).toHaveLength(1)
+      expect(pictureServer.asked[0].options.variables).toEqual({ imageUuid: 'image-7' })
+
+      await answer(0, btoa('JPEG'))
+
+      expect(picture().attributes('src')).toBe('blob:the-picture')
+      expect(picture().classes()).not.toContain('is-waiting')
+    })
+
+    // The server gave nothing -- not there, not for this member, not any more.
+    it('says "Bild nicht verfügbar" where no picture comes, in the room it would have had', async () => {
+      mountBubble(WITH)
+
+      await answer(0, null)
+
+      expect(button().exists()).toBe(false)
+      expect(missing().text()).toBe('chatThread.imageMissing')
+      expect(missing().attributes('style')).toContain('aspect-ratio: 800 / 600')
+      // The caption stays.
+      expect(wrapper.find('.chat-message-text').text()).toBe('So sieht unser Stand aus.')
+    })
+
+    // E-044 F3: the caption under the picture, in the same bubble -- as any text, with its links.
+    it('puts the caption under the picture, in the same bubble, as any text', () => {
+      mountBubble({ ...WITH, body: 'Der Stand: https://ki-playground.gradido.net/u/Lena' })
+
+      const inside = wrapper.find('.chat-bubble')
+      expect(inside.classes()).toContain('has-image')
+      const text = inside.find('.chat-message-text')
+      expect(
+        button().element.compareDocumentPosition(text.element) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy()
+      expect(text.find('a').attributes('href')).toBe('https://ki-playground.gradido.net/u/Lena')
+    })
+
+    it('has no caption where the picture came without words', () => {
+      mountBubble({ ...WITH, body: '' })
+
+      expect(button().exists()).toBe(true)
+      expect(wrapper.find('.chat-message-text').exists()).toBe(false)
+    })
+
+    // Gegenprobe: a message without a picture is the bubble it always was.
+    it('leaves a message without a picture as it was', () => {
+      mountBubble(THEIRS)
+      expect(wrapper.find('.chat-bubble').classes()).not.toContain('has-image')
+      expect(button().exists()).toBe(false)
+      mountBubble({ ...THEIRS, images: [] })
+      expect(button().exists()).toBe(false)
+      expect(pictureServer.asked).toEqual([])
+    })
+
+    // A tap asks for it large: the thread opens the view, and gets the button for the focus.
+    it('asks for the picture large on a tap, with the button that was pressed', async () => {
+      mountBubble(WITH)
+
+      await button().trigger('click')
+
+      expect(wrapper.emitted('openImage')).toEqual([
+        [{ message: WITH, image: PICTURE, opener: button().element }],
+      ])
+    })
+
+    it('is a button that says what it does', () => {
+      mountBubble(WITH)
+
+      expect(button().element.tagName).toBe('BUTTON')
+      expect(button().attributes('type')).toBe('button')
+      expect(button().attributes('aria-label')).toBe('chatThread.imageOpen')
+      expect(button().attributes('title')).toBe('chatThread.imageOpen')
+      expect(picture().attributes('alt')).toBe('')
+    })
+
+    // One's own picture, just sent, is here already (ChatThread keeps it from the JPEG).
+    it('asks nothing for a picture that is here already', () => {
+      rememberChatImage('image-7', btoa('JPEG'))
+
+      mountBubble({ ...WITH, mine: true })
+
+      expect(pictureServer.asked).toEqual([])
+      expect(picture().attributes('src')).toBe('blob:the-picture')
+    })
+
+    /**
+     * Only the bubbles in sight fetch their picture: a long thread opened at its end does not ask
+     * for the pictures of its beginning. Without an IntersectionObserver, when it is drawn (above).
+     */
+    it('asks for the picture once its bubble is in sight', async () => {
+      const observers = []
+      globalThis.IntersectionObserver = class {
+        constructor(callback) {
+          this.callback = callback
+          this.observed = []
+          this.disconnect = vi.fn()
+          observers.push(this)
+        }
+
+        observe(element) {
+          this.observed.push(element)
+        }
+      }
+      mountBubble(WITH)
+
+      expect(pictureServer.asked).toEqual([])
+      expect(observers[0].observed).toEqual([button().element])
+
+      observers[0].callback([{ isIntersecting: false }])
+      expect(pictureServer.asked).toEqual([])
+
+      observers[0].callback([{ isIntersecting: true }])
+      expect(pictureServer.asked).toHaveLength(1)
+      expect(observers[0].disconnect).toHaveBeenCalled()
+
+      wrapper.unmount()
+      wrapper = null
+    })
+
+    it('stops watching when the bubble goes before its picture was asked for', () => {
+      const disconnect = vi.fn()
+      globalThis.IntersectionObserver = class {
+        observe() {}
+
+        disconnect() {
+          disconnect()
+        }
+      }
+      mountBubble(WITH)
+
+      wrapper.unmount()
+      wrapper = null
+
+      expect(disconnect).toHaveBeenCalled()
+      expect(pictureServer.asked).toEqual([])
+    })
+
+    const style = (file) =>
+      readFileSync(join(dirname(fileURLToPath(import.meta.url)), file), 'utf8').replace(
+        /\/\*[\s\S]*?\*\//g,
+        '',
+      )
+    const rule = (code, selector) =>
+      code.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
+
+    /**
+     * What only the stylesheet holds (jsdom lays nothing out): the bubble 16.5rem wide and never
+     * more than 80 %, little room around the picture; the picture as wide as the bubble, at most
+     * 22rem high, cut at the bottom with its top in sight (E-044 F5).
+     */
+    it('draws the bubble and the picture as the mockup has them', () => {
+      const bubbleCode = style('ChatBubble.vue')
+      expect(rule(bubbleCode, '\\.chat-bubble\\.has-image')).toMatch(/width:\s*16\.5rem/)
+      expect(rule(bubbleCode, '\\.chat-bubble\\.has-image')).toMatch(/padding:\s*0\.25rem/)
+      expect(rule(bubbleCode, '\\.chat-bubble')).toMatch(/max-width:\s*80%/)
+
+      const pictureCode = style('ChatBubbleImage.vue')
+      const img = rule(pictureCode, '\\.chat-bubble-image-picture')
+      expect(img).toMatch(/width:\s*100%/)
+      expect(img).toMatch(/max-height:\s*22rem/)
+      expect(img).toMatch(/object-fit:\s*cover/)
+      expect(img).toMatch(/object-position:\s*top/)
+      expect(rule(pictureCode, '\\.chat-bubble-image:focus-visible')).toMatch(
+        /outline:\s*2px solid/,
+      )
+    })
+  })
+
+  /**
+   * In a group (P5) the side no longer says who wrote a message: somebody else's has their face
+   * at its left and their name over it -- over the first of a run of theirs -- and an announcement
+   * is marked for everybody (E-050 F5).
+   */
+  describe('in a group', () => {
+    const CARLA = {
+      communityUuid: 'home-uuid',
+      gradidoID: 'carla-id',
+      alias: 'Carla-Sonne',
+      avatarColorIndex: 3,
+      avatarUpdatedAt: null,
+    }
+    const GROUP_THEIRS = {
+      ...THEIRS,
+      conversationId: 41,
+      groupUuid: 'cafe-uuid',
+      sender: { communityUuid: 'home-uuid', gradidoID: 'carla-id' },
+      senderUser: CARLA,
+      announcement: false,
+    }
+    const GROUP_OWN = {
+      ...OWN,
+      conversationId: 41,
+      groupUuid: 'cafe-uuid',
+      senderUser: { ...CARLA, gradidoID: 'me-id', alias: 'Bernd' },
+      announcement: false,
+    }
+
+    const mountInGroup = (message, { showWriter = true } = {}) => {
+      wrapper = mount(ChatBubble, {
+        props: { message, alias: 'Gradido-Café Berlin', inGroup: true, showWriter },
+        global: {
+          stubs: {
+            IMdiEmailOutline: { template: '<i data-test="envelope" />' },
+            IMdiCalendarPlusOutline: true,
+          },
+        },
+      })
+      return wrapper
+    }
+    const face = () => wrapper.find('[data-test="chat-bubble-face"]')
+    const name = () => wrapper.find('[data-test="chat-bubble-group-writer"]')
+
+    // Bernd, 29.09.2026: "48 px wie jede Liste" -- the face of every list, and the bubbles stand
+    // in by as much.
+    it("shows the writer's face, at the size of every list, and name over somebody else's message", () => {
+      mountInGroup(GROUP_THEIRS)
+      expect(face().exists()).toBe(true)
+      expect(face().text()).toBe('CA')
+      expect(face().attributes('style')).toContain(`width: ${LIST_AVATAR_SIZE}px`)
+      expect(LIST_AVATAR_SIZE).toBe(48)
+      expect(name().text()).toBe('Carla-Sonne')
+      expect(bubble().classes()).toContain('chat-bubble-in-group')
+      expect(bubble().attributes('style')).toContain(`--chat-bubble-face: ${LIST_AVATAR_SIZE}px`)
+    })
+
+    // The ear hears the writer inside the bubble, as in a thread of two -- not the group's name.
+    it('names the writer for the ear, and hides the visible name from it', () => {
+      mountInGroup(GROUP_THEIRS)
+      expect(wrapper.find('[data-test="chat-bubble-writer"]').text()).toBe('Carla-Sonne:')
+      expect(name().attributes('aria-hidden')).toBe('true')
+    })
+
+    it('shows neither further down a run, and keeps the bubble in line', () => {
+      mountInGroup(GROUP_THEIRS, { showWriter: false })
+      expect(face().exists()).toBe(false)
+      expect(name().exists()).toBe(false)
+      expect(bubble().classes()).toContain('chat-bubble-in-group')
+      expect(wrapper.find('[data-test="chat-bubble-writer"]').text()).toBe('Carla-Sonne:')
+    })
+
+    it("shows no face and no name at one's own message", () => {
+      mountInGroup(GROUP_OWN)
+      expect(face().exists()).toBe(false)
+      expect(name().exists()).toBe(false)
+      expect(bubble().classes()).not.toContain('chat-bubble-in-group')
+      expect(wrapper.find('[data-test="chat-bubble-writer"]').text()).toBe('chatThread.you:')
+    })
+
+    // A writer whose users row is gone: the pair stands in, and the name is their id.
+    it('names a writer the server could not name by their id', () => {
+      mountInGroup({ ...GROUP_THEIRS, senderUser: null })
+      expect(name().text()).toBe('carla-id')
+      expect(face().exists()).toBe(true)
+    })
+
+    it("marks somebody else's announcement, for everybody who reads it", () => {
+      mountInGroup({ ...GROUP_THEIRS, announcement: true })
+      expect(wrapper.find('[data-test="chat-bubble-announcement"]').text()).toBe(
+        'chatGroup.announcement',
+      )
+      wrapper.unmount()
+      mountInGroup(GROUP_THEIRS)
+      expect(wrapper.find('[data-test="chat-bubble-announcement"]').exists()).toBe(false)
+    })
+
+    // One's own announcement says so at the envelope: what was asked for, never who got it.
+    it("says at one's own envelope that it went as an announcement", () => {
+      mountInGroup({ ...GROUP_OWN, notify: 'EMAIL', announcement: true })
+      const mailed = wrapper.find('[data-test="chat-bubble-mailed"]')
+      expect(mailed.attributes('aria-label')).toBe('chatGroup.announced')
+      expect(wrapper.find('[data-test="chat-bubble-announcement"]').exists()).toBe(false)
+    })
+
+    // Gegenprobe: in a thread of two nothing of it -- no face, no name, the envelope's own word.
+    it('draws a message of two as before', () => {
+      mountBubble({ ...THEIRS, senderUser: CARLA, announcement: true })
+      expect(wrapper.find('[data-test="chat-bubble-face"]').exists()).toBe(false)
+      expect(wrapper.find('[data-test="chat-bubble-group-writer"]').exists()).toBe(false)
+      expect(wrapper.find('[data-test="chat-bubble-announcement"]').exists()).toBe(false)
+      expect(wrapper.find('[data-test="chat-bubble-writer"]').text()).toBe('Lena:')
+      wrapper.unmount()
+      mountBubble({ ...OWN, notify: 'EMAIL' })
+      expect(wrapper.find('[data-test="chat-bubble-mailed"]').attributes('aria-label')).toBe(
+        'chatThread.mailed',
+      )
+    })
   })
 })

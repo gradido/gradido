@@ -641,6 +641,26 @@ export const userAboutMe = gql`
   }
 `
 
+// The switch for the transfers in the conversations, asked for on its own like aboutMe: the
+// member's own view, and the `user` query that hands out anybody by alias.
+export const verifyLoginTransfersInChat = gql`
+  query {
+    verifyLogin {
+      gradidoID
+      transfersInChat
+    }
+  }
+`
+
+export const userTransfersInChat = gql`
+  query ($identifier: String!, $communityIdentifier: String!) {
+    user(identifier: $identifier, communityIdentifier: $communityIdentifier) {
+      gradidoID
+      transfersInChat
+    }
+  }
+`
+
 export const thankYouCardPaymentTarget = gql`
   query ($code: String!) {
     thankYouCardPaymentTarget(code: $code) {
@@ -784,6 +804,11 @@ export const chatMessagesWithMember = gql`
         deliveryState
         notify
         mailState
+        images {
+          imageUuid
+          width
+          height
+        }
       }
     }
   }
@@ -810,15 +835,121 @@ export const newChatMessagesSince = gql`
         deliveryState
         notify
         mailState
+        images {
+          imageUuid
+          width
+          height
+        }
       }
     }
   }
 `
 
-export const chatVideoRoom = gql`
+/** The fields of a chat group as the wallet reads them (P5). */
+const chatGroupFields = `
+  groupUuid
+  conversationId
+  title
+  communityName
+  createdBy {
+    gradidoID
+    alias
+  }
+  createdAt
+  role
+  joinedAt
+  mutedByMe
+  memberCount
+  unreadMessages
+  lastMessageAt
+`
+
+export const chatGroups = gql`
   query {
-    chatVideoRoom {
+    chatGroups {
+      ${chatGroupFields}
+    }
+  }
+`
+
+export const chatGroupMembers = gql`
+  query ($groupUuid: String!) {
+    chatGroupMembers(groupUuid: $groupUuid) {
+      user {
+        communityUuid
+        gradidoID
+        alias
+        firstName
+        lastName
+        communityName
+        avatarColorIndex
+        avatarUpdatedAt
+        deletedAt
+      }
+      role
+      joinedAt
+    }
+  }
+`
+
+export const chatGroupMessages = gql`
+  query ($groupUuid: String!, $before: Int, $limit: Int) {
+    chatGroupMessages(groupUuid: $groupUuid, before: $before, limit: $limit) {
+      hasMore
+      mutedByMe
+      messages {
+        id
+        messageUuid
+        conversationId
+        groupUuid
+        sender {
+          communityUuid
+          gradidoID
+        }
+        senderUser {
+          gradidoID
+          alias
+          firstName
+          deletedAt
+        }
+        mine
+        subject
+        body
+        createdAt
+        deliveryState
+        notify
+        mailState
+        announcement
+        images {
+          imageUuid
+          width
+          height
+        }
+      }
+    }
+  }
+`
+
+export const chatMessageImage = gql`
+  query ($imageUuid: String!) {
+    chatMessageImage(imageUuid: $imageUuid)
+  }
+`
+
+export const chatVideoRoom = gql`
+  query ($serverId: Int) {
+    chatVideoRoom(serverId: $serverId) {
       url
+      host
+      operator
+    }
+  }
+`
+
+export const chatVideoServerChoices = gql`
+  query {
+    chatVideoServerChoices {
+      id
       host
       operator
     }

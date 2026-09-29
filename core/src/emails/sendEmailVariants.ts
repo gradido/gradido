@@ -392,6 +392,63 @@ export const sendTransactionReceivedEmail = (
   })
 }
 
+/**
+ * The mail to a member taken into a chat group (P5, E-049): who took them in, the group's name,
+ * how many are in it, and the way in -- the contact page opens the group (`/contacts?group=`).
+ * Sent once, when the member is taken in; the member can leave the group or mute it there.
+ *
+ * `adderAlias`: who took them in -- an alias, never a real name (the recipient may not know
+ * them). Nothing of the group but its uuid goes into the log -- sendEmailTranslated writes the
+ * names of the values, not the values.
+ */
+export const sendChatGroupAddedEmail = (
+  data: EmailCommonData & {
+    adderAlias: string
+    groupTitle: string
+    groupUuid: string
+    memberCount: number
+  },
+): Promise<Record<string, unknown> | boolean | null | Error> => {
+  createLogger().debug(`sendChatGroupAddedEmail(group=${data.groupUuid})`)
+  return sendEmailTranslated({
+    receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
+    template: 'chatGroupAdded',
+    locals: { ...data, ...getEmailCommonLocales() },
+  })
+}
+
+/**
+ * The mail about an announcement in a chat group (P5, E-024): a message its owner or a moderator
+ * sent to every member as a mail as well. It reaches the members who did not mute the group; who
+ * those are is the caller's to decide. The reply is written in the group, where the button leads
+ * (`/contacts?group=`, E-049) -- there the member can also mute it.
+ *
+ * `hasImage` as in sendCustomEmail: a line says there is a picture, and the mail shows none
+ * (MAIL-008). Neither the text nor the group's name goes into the log -- sendEmailTranslated
+ * writes the names of the values, not the values.
+ */
+export const sendChatGroupMessageEmail = (
+  data: EmailCommonData & {
+    senderAlias: string
+    groupTitle: string
+    groupUuid: string
+    memo: string
+    hasImage?: boolean
+  },
+): Promise<Record<string, unknown> | boolean | null | Error> => {
+  createLogger().debug(`sendChatGroupMessageEmail(group=${data.groupUuid})`)
+  return sendEmailTranslated({
+    receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
+    template: 'chatGroupMessage',
+    locals: { ...data, hasImage: data.hasImage ?? false, ...getEmailCommonLocales() },
+  })
+}
+
+/**
+ * `hasImage`: the message carries a picture (P7). The mail says so in a line of its own and
+ * shows none -- the mail is the nudge, the conversation the content (MAIL-008) -- and a picture
+ * without a caption is a message with no text to show.
+ */
 export const sendCustomEmail = (
   data: EmailCommonData & {
     senderAlias: string
@@ -399,16 +456,19 @@ export const sendCustomEmail = (
     memo: string
     senderUuid?: string
     senderCommunityUuid?: string
+    hasImage?: boolean
   },
 ): Promise<Record<string, unknown> | boolean | null | Error> => {
-  const logger = createLogger()
-  logger.debug(`sendCustomEmail(data=${JSON.stringify(data)})`)
+  // The sender's uuid and nothing of the message -- neither its text nor its subject nor the
+  // address it goes to (coderabbit on #4012).
+  createLogger().debug(`sendCustomEmail(sender=${data.senderUuid ?? 'unknown'})`)
   return sendEmailTranslated({
     receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
     template: 'customEmail',
     locals: {
       ...data,
       subject: data.subject,
+      hasImage: data.hasImage ?? false,
       ...getEmailCommonLocales(),
     },
   })

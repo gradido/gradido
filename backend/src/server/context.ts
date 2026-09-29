@@ -23,12 +23,18 @@ export interface RequestBudget {
   memberAvatarsFullServed: number
   // Other communities asked by memberAvatars, capped at MEMBER_AVATARS_RELAYS_MAX_PER_REQUEST.
   memberAvatarsRelayed: number
-  // Pages of a chat thread (chatMessagesWithMember), capped at CHAT_MESSAGE_PAGES_MAX_PER_REQUEST.
+  // Pages of a chat thread or of a group (chatMessagesWithMember, chatGroupMessages), capped
+  // together at CHAT_MESSAGE_PAGES_MAX_PER_REQUEST.
   chatMessagePagesServed: number
+  // Lists of groups and of their members (chatGroups, chatGroupMembers), capped together at
+  // CHAT_GROUP_LISTS_MAX_PER_REQUEST.
+  chatGroupListsServed: number
   // What is new in the chat (newChatMessagesSince), capped at CHAT_UPDATES_MAX_PER_REQUEST.
   chatUpdatesServed: number
   // Video rooms handed out (chatVideoRoom), capped at CHAT_VIDEO_ROOMS_MAX_PER_REQUEST.
   chatVideoRoomsServed: number
+  // Pictures of chat messages (chatMessageImage), capped at CHAT_IMAGES_MAX_PER_REQUEST.
+  chatImagesServed: number
 }
 
 /** A budget with nothing spent. The context function creates one per HTTP request. */
@@ -36,8 +42,10 @@ export const newRequestBudget = (): RequestBudget => ({
   memberAvatarsFullServed: 0,
   memberAvatarsRelayed: 0,
   chatMessagePagesServed: 0,
+  chatGroupListsServed: 0,
   chatUpdatesServed: 0,
   chatVideoRoomsServed: 0,
+  chatImagesServed: 0,
 })
 
 export interface Context {

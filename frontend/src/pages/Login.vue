@@ -152,6 +152,10 @@ const onSubmit = handleSubmit(async (values) => {
     // stale address into the store again. What keeps it fresh AFTERWARDS is the
     // `/authenticate` guard, which commits the address from a real `verifyLogin` answer.
     store.commit('email', values.email)
+    // Release the field before the page changes under it: in the iPhone's home-screen app, iOS
+    // kept offering the saved password after every later tap (Bernd, 28.09.2026) -- the form
+    // went away while its field still held the focus.
+    document.activeElement?.blur()
     // await loader.hide()
     if (store.state.project) {
       const result = await mutateHumhubAutoLogin({

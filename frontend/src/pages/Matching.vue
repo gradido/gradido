@@ -197,7 +197,8 @@
         />
       </div>
 
-      <!-- Findable toggle — title on the switch's line, hint below as explanation -->
+      <!-- Findable toggle — title on the switch's line, hint below as explanation. Without
+           a home it is held, and the hint says what is missing. -->
       <div class="border-top mt-4 pt-3 page-text">
         <div class="d-flex align-items-center justify-content-end gap-3">
           <span class="fw-bold">{{ $t('matching.position.findable') }}</span>
@@ -205,13 +206,18 @@
             defer
             :initial-value="store.state.gmsAllowed"
             attr-name="gmsAllowed"
+            :label="$t('matching.position.findable')"
+            :locked="findableLocked"
+            :not-allowed-text="$t('matching.position.needsHome')"
             :enabled-text="$t('matching.position.findableOn')"
             :disabled-text="$t('matching.position.findableOff')"
             @value-changed="onPickFindable"
           />
         </div>
         <div class="small text-muted text-end mt-1">
-          {{ $t('matching.position.findableHint') }}
+          {{
+            homeMissing ? $t('matching.position.needsHome') : $t('matching.position.findableHint')
+          }}
         </div>
       </div>
 
@@ -220,7 +226,11 @@
         <span v-if="positionDirty" class="small text-muted">
           {{ $t('matching.position.unsaved') }}
         </span>
-        <BButton variant="gradido" :disabled="!positionDirty" @click="showSaveConfirm = true">
+        <BButton
+          variant="gradido"
+          :disabled="!positionDirty || findableWithoutHome"
+          @click="showSaveConfirm = true"
+        >
           {{ $t('matching.save') }}
         </BButton>
       </div>
@@ -645,6 +655,22 @@ const positionDirty = computed(
     draftPosition.value !== null || draftAccuracy.value !== null || draftFindable.value !== null,
 )
 
+// Findable needs a home: one the member saved, or one just picked on the map. The GMS
+// cannot place a member without one - the backend refuses to build them over there
+// ("Missing Location") and refuses the setting itself (GMS_LOCATION_REQUIRED) - so the
+// switch is held until there is a home, and save never carries findable on its own.
+const hasHome = computed(() => hasPosition.value || draftPosition.value !== null)
+// Not said before the location query has answered: until then nobody knows, and "set your
+// home first" would reach members who have one.
+const homeMissing = computed(() => userLocationLoaded.value && !hasHome.value)
+const findableAfterSave = computed(() => draftFindable.value ?? Boolean(store.state.gmsAllowed))
+// Only the way on is held. A member who is findable without a home - saved before the
+// server refused it - can still switch it off.
+const findableLocked = computed(() => homeMissing.value && !findableAfterSave.value)
+// What save would leave behind. Also true while the location is unknown, so a switch
+// turned on in that moment waits for the answer rather than going out alone.
+const findableWithoutHome = computed(() => findableAfterSave.value && !hasHome.value)
+
 function onPickPosition(coords) {
   const cur = userLocation.value
   if (cur && Math.abs(coords.lat - cur.lat) < 1e-7 && Math.abs(coords.lng - cur.lng) < 1e-7) {
@@ -703,7 +729,14 @@ async function confirmSavePosition() {
     clearDrafts()
     toastSuccess(t('settings.GMS.location.updateSuccess'))
   } catch (error) {
-    toastError(error.message)
+    // This page does not send findable without a home: the switch holds and save stays off.
+    // The rule is the server's all the same, and should the two ever read a home
+    // differently, the member gets the sentence rather than the bare code.
+    toastError(
+      error.message?.includes('GMS_LOCATION_REQUIRED')
+        ? t('matching.position.needsHome')
+        : error.message,
+    )
   }
 }
 

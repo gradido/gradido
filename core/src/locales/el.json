@@ -36,6 +36,19 @@
       "subject": "Επιβεβαίωσε τη διεύθυνση email σου",
       "title": "Ο λογαριασμός σου Gradido είναι έτοιμος"
     },
+    "chatGroupAdded": {
+      "inTheGroup": "στην ομάδα γράφουν μεταξύ τους {memberCount} μέλη. Όλα τα μέλη βλέπουν το όνομα χρήστη σου.",
+      "leaveAnyTime": "Μπορείς οποιαδήποτε στιγμή να θέσεις την ομάδα σε σίγαση ή να αποχωρήσεις από αυτήν στον λογαριασμό σου Gradido.",
+      "openGroup": "Άνοιξε την ομάδα",
+      "subject": "Είσαι πλέον στην ομάδα «{groupTitle}»",
+      "title": "{adderAlias} σε πρόσθεσε στην ομάδα «{groupTitle}»"
+    },
+    "chatGroupMessage": {
+      "announcement": "{senderAlias} έστειλε ένα μήνυμα ως ανακοίνωση σε όλα τα μέλη της ομάδας.",
+      "muteHint": "Δεν θέλεις άλλες ανακοινώσεις με email; Πάτησε το καμπανάκι στην ομάδα, στον λογαριασμό σου Gradido.",
+      "subject": "Ανακοίνωση στην ομάδα «{groupTitle}» από {senderAlias}",
+      "title": "{senderAlias} γράφει στην ομάδα «{groupTitle}»"
+    },
     "contribution": {
       "toSeeContributionsAndMessages": "Τις συνεισφορές σου στο κοινό καλό και τα σχετικά μηνύματα θα τις βρεις στον λογαριασμό σου στο Gradido."
     },
@@ -72,6 +85,7 @@
     },
     "customEmail": {
       "haveReceivedMessageFrom": "μόλις έλαβες ένα μήνυμα από {senderAlias}",
+      "imageNote": "📷 Το μήνυμα περιέχει μια εικόνα – τη βλέπεις στη συνομιλία.",
       "title": "{senderAlias} σου έστειλε ένα μήνυμα"
     },
     "emailChangeConfirm": {

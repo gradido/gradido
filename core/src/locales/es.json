@@ -36,6 +36,19 @@
       "subject": "Confirma tu dirección de correo electrónico",
       "title": "Tu cuenta de Gradido está lista"
     },
+    "chatGroupAdded": {
+      "inTheGroup": "en el grupo, {memberCount} miembros se escriben entre sí. Todos los miembros ven tu nombre de usuario.",
+      "leaveAnyTime": "Puedes silenciar o abandonar el grupo en cualquier momento desde tu cuenta de Gradido.",
+      "openGroup": "Abrir grupo",
+      "subject": "Ahora estás en el grupo «{groupTitle}»",
+      "title": "{adderAlias} te ha añadido al grupo «{groupTitle}»"
+    },
+    "chatGroupMessage": {
+      "announcement": "{senderAlias} ha enviado un mensaje como anuncio a todos los miembros del grupo.",
+      "muteHint": "¿No quieres recibir más anuncios por correo electrónico? Toca la campana del grupo en tu cuenta de Gradido.",
+      "subject": "Anuncio de {senderAlias} en «{groupTitle}»",
+      "title": "{senderAlias} escribe en «{groupTitle}»"
+    },
     "contribution": {
       "toSeeContributionsAndMessages": "Encontrarás tus contribuciones al bien común y los mensajes relacionados en tu cuenta de Gradido."
     },
@@ -72,6 +85,7 @@
     },
     "customEmail": {
       "haveReceivedMessageFrom": "acabas de recibir un mensaje de {senderAlias}",
+      "imageNote": "📷 El mensaje contiene una imagen – la ves en la conversación.",
       "title": "{senderAlias} te ha enviado un mensaje"
     },
     "emailChangeConfirm": {

@@ -28,9 +28,13 @@ export const sendEmailTranslated = async ({
   locals: Record<string, unknown>
 }): Promise<Record<string, unknown> | boolean | null | Error> => {
   // TODO: test the calling order of 'i18n.setLocale' for example: language of logging 'en', language of email receiver 'es', reset language of current user 'de'
-  logger.debug(`sendEmailTranslated(receiver=${JSON.stringify(receiver, null, 2)})`)
-  logger.debug(`sendEmailTranslated(template=${JSON.stringify(template, null, 2)})`)
-  logger.debug(`sendEmailTranslated(locals=${JSON.stringify(locals, null, 2)})`)
+  // What a mail is -- its template, the first letters of the address as the info line below has
+  // them, the NAMES of its values -- and none of the values: they carry what members wrote (a
+  // chat message, its subject, a group's name), names and addresses, and the links with a key in
+  // them (password reset, activation, address change). Coderabbit on #4012.
+  logger.debug(
+    `sendEmailTranslated(to=${receiver.to.substring(0, 3)}...${receiver.cc ? ', cc' : ''}, template=${template}, locals=${Object.keys(locals).join(',')})`,
+  )
   if (!CONFIG.EMAIL) {
     logger.info(`Emails are disabled via config...`)
     return null

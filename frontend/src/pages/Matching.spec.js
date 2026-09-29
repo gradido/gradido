@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { createStore } from 'vuex'
 import { createI18n } from 'vue-i18n'
@@ -8,6 +8,7 @@ import { createI18n } from 'vue-i18n'
 import { BButton, BCol, BRow } from 'bootstrap-vue-next'
 import de from '@/locales/de.json'
 import Matching from './Matching.vue'
+import UserSettingsSwitch from '@/components/UserSettings/UserSettingsSwitch'
 import { listMatchingEntries, userLocationQuery, verifyLogin } from '@/graphql/queries'
 
 const push = vi.fn()
@@ -27,6 +28,9 @@ vi.mock('vue-router', () => ({
 // answers every query the same cannot tell whether the page asked for the right
 // one.
 const handlers = new Map()
+// Shared, so a test can read what the page said, and answer a save the way the server would.
+const toast = vi.hoisted(() => ({ error: vi.fn(), success: vi.fn() }))
+const mutate = vi.hoisted(() => vi.fn())
 const fire = (document, data) => handlers.get(document)?.result?.({ data })
 
 vi.mock('@vue/apollo-composable', () => ({
@@ -43,11 +47,11 @@ vi.mock('@vue/apollo-composable', () => ({
       },
     }
   },
-  useMutation: () => ({ mutate: vi.fn().mockResolvedValue({}) }),
+  useMutation: () => ({ mutate }),
 }))
 
 vi.mock('@/composables/useToast', () => ({
-  useAppToast: () => ({ toastError: vi.fn(), toastSuccess: vi.fn() }),
+  useAppToast: () => ({ toastError: toast.error, toastSuccess: toast.success }),
 }))
 
 vi.mock('@/composables/useEntryDraft', () => ({
@@ -95,9 +99,10 @@ let wrapper = null
 // BModal is stubbed away by default - it teleports, and its content would show up
 // in page.text() for every test whether the dialog is open or not. A test that
 // needs to look inside one passes its own stub.
-const mountPage = (tab = 'entries', extraStubs = {}) => {
+const mountPage = (tab = 'entries', extraStubs = {}, options = {}) => {
   currentTab = tab
   wrapper = mount(Matching, {
+    ...options,
     global: {
       plugins: [store, i18n],
       components: { BButton, BRow, BCol },
@@ -119,6 +124,10 @@ const openModals = { BModal: { template: '<div class="modal-stub"><slot /></div>
 beforeEach(() => {
   handlers.clear()
   push.mockClear()
+  toast.error.mockClear()
+  toast.success.mockClear()
+  mutate.mockReset()
+  mutate.mockResolvedValue({})
   window.localStorage.clear()
   // The store is shared by the whole file; put it back so no case inherits the answers of
   // the one before it.
@@ -434,6 +443,149 @@ describe('Matching', () => {
       await page.vm.$nextTick()
 
       expect(saveButton(page).attributes('disabled')).toBeDefined()
+    })
+
+    // Findable needs a home (Bernd, 27.09.2026): the GMS cannot place a member without one,
+    // so the switch holds, the hint beneath it says what is missing, and save never carries
+    // findable on its own. The map opens on the community's point for a member without a
+    // home, and the house standing there is not one.
+    describe('for a member without a home', () => {
+      const noHome = {
+        userLocation: null,
+        communityLocation: { latitude: 48.1, longitude: 11.5 },
+      }
+      const findableSwitch = (page) => page.findComponent(UserSettingsSwitch)
+      const hint = (page) => page.find('.border-top .text-end.small').text()
+
+      const openWithoutHome = async (extraStubs = {}, options = {}) => {
+        store.state.gmsAllowed = false
+        const page = mountPage('position', extraStubs, options)
+        fire(userLocationQuery, { userLocation: noHome })
+        await page.vm.$nextTick()
+        return page
+      }
+
+      it('holds the findable switch and says why beneath it', async () => {
+        const page = await openWithoutHome()
+
+        expect(findableSwitch(page).props('locked')).toBe(true)
+        expect(findableSwitch(page).props('notAllowedText')).toBe(de.matching.position.needsHome)
+        expect(hint(page)).toBe(de.matching.position.needsHome)
+      })
+
+      it('frees the switch as soon as a home is picked on the map', async () => {
+        const page = await openWithoutHome()
+        page
+          .findComponent(UserLocationMapStub)
+          .vm.$emit('update:userPosition', { lat: 49, lng: 12 })
+        await page.vm.$nextTick()
+
+        expect(findableSwitch(page).props('locked')).toBe(false)
+        expect(hint(page)).toBe(de.matching.position.findableHint)
+      })
+
+      // Until the location has answered nobody knows, and "set your home first" would
+      // reach members who have one.
+      it('says nothing about a missing home before the location has answered', () => {
+        store.state.gmsAllowed = false
+        const page = mountPage('position')
+
+        expect(findableSwitch(page).props('locked')).toBe(false)
+        expect(hint(page)).toBe(de.matching.position.findableHint)
+      })
+
+      // The pin is picked, findable goes on, and then the pin comes back to where the map
+      // opened - most easily by searching a place that lands on the community's point. The
+      // draft is gone then, and findable must not go out alone.
+      it('keeps save off while findable would go out without a home', async () => {
+        const page = await openWithoutHome()
+        const map = page.findComponent(UserLocationMapStub)
+        map.vm.$emit('update:userPosition', { lat: 49, lng: 12 })
+        await page.vm.$nextTick()
+        findableSwitch(page).vm.$emit('value-changed', true)
+        await page.vm.$nextTick()
+        expect(saveButton(page).attributes('disabled')).toBeUndefined()
+
+        map.vm.$emit('update:userPosition', { lat: 48.1, lng: 11.5 })
+        await page.vm.$nextTick()
+
+        expect(saveButton(page).attributes('disabled')).toBeDefined()
+        expect(hint(page)).toBe(de.matching.position.needsHome)
+      })
+
+      // Only the way on is held. Somebody findable without a home - saved before the server
+      // refused it - has to be able to leave.
+      it('lets a member switch off who is findable without one', async () => {
+        const page = await openWithoutHome()
+        store.state.gmsAllowed = true
+        await page.vm.$nextTick()
+        expect(findableSwitch(page).props('locked')).toBe(false)
+
+        findableSwitch(page).vm.$emit('value-changed', false)
+        await page.vm.$nextTick()
+
+        expect(saveButton(page).attributes('disabled')).toBeUndefined()
+      })
+
+      // The wire between the page and the real switch, which the cases above cannot see:
+      // they stub the switch and read what it was handed.
+      it('answers a tap on the real switch with the reason, and it stays off', async () => {
+        const page = await openWithoutHome(
+          { UserSettingsSwitch: false },
+          { attachTo: document.body },
+        )
+        const input = findableSwitch(page).find('input')
+
+        await input.trigger('click')
+
+        expect(input.element.checked).toBe(false)
+        expect(toast.error).toHaveBeenCalledWith(de.matching.position.needsHome)
+        expect(saveButton(page).attributes('disabled')).toBeDefined()
+        // Its name, which the words beside it do not give it.
+        expect(input.attributes('aria-label')).toBe(de.matching.position.findable)
+      })
+    })
+
+    // The server refuses findable without a home as well (GMS_LOCATION_REQUIRED). This page
+    // does not send it, but should the two ever disagree, the member reads the sentence.
+    describe('when the server refuses findable', () => {
+      const confirmOnly = {
+        BModal: {
+          props: ['modelValue'],
+          template:
+            '<div v-if="modelValue" class="modal-stub"><slot /><slot name="footer" /></div>',
+        },
+      }
+      const saveWith = async (error) => {
+        store.state.gmsAllowed = false
+        const page = mountPage('position', confirmOnly)
+        fire(userLocationQuery, { userLocation: location })
+        await page.vm.$nextTick()
+        page.findComponent(UserSettingsSwitch).vm.$emit('value-changed', true)
+        await page.vm.$nextTick()
+        mutate.mockRejectedValueOnce(error)
+
+        await saveButton(page).trigger('click')
+        const confirm = page
+          .find('.modal-stub')
+          .findAll('button')
+          .find((button) => button.text() === de.matching.save)
+        await confirm.trigger('click')
+        await flushPromises()
+      }
+
+      it('says what is missing instead of the code', async () => {
+        await saveWith(new Error('GMS_LOCATION_REQUIRED'))
+
+        expect(mutate).toHaveBeenCalledWith({ gmsAllowed: true })
+        expect(toast.error).toHaveBeenCalledWith(de.matching.position.needsHome)
+      })
+
+      it('passes any other failure on as it came', async () => {
+        await saveWith(new Error('something else'))
+
+        expect(toast.error).toHaveBeenCalledWith('something else')
+      })
     })
   })
 })

@@ -23,6 +23,15 @@
 # person's messages while it is set; false where there is no conversation yet. It comes
 # with the thread, so the bell needs no question of its own (E-017: one question on
 # opening).
+#
+# `images` (P7): the picture a message carries, named -- what to fetch it by (the server's
+# chatMessageImage) and its size, which the bubble takes its room from before it has come. Never
+# the picture itself: a page of fifty messages with pictures would carry more than a megabyte.
+# Empty for a message without one.
+#
+# `groupUuid`, `senderUser`, `announcement` (P5): null, null and false in a conversation of two --
+# asked all the same, so that every document of a message asks the one shape a group's message has
+# too (`chatGroupMessageFields`, chatGroups.graphql): the beat's arrivals go into either thread.
 query chatMessagesWithMemberQuery($ref: MemberAvatarRefInput!, $before: Int, $limit: Int) {
   chatMessagesWithMember(ref: $ref, before: $before, limit: $limit) {
     hasMore
@@ -31,10 +40,19 @@ query chatMessagesWithMemberQuery($ref: MemberAvatarRefInput!, $before: Int, $li
       id
       messageUuid
       conversationId
+      groupUuid
       sender {
         communityUuid
         gradidoID
       }
+      senderUser {
+        communityUuid
+        gradidoID
+        alias
+        avatarColorIndex
+        avatarUpdatedAt
+      }
+      announcement
       mine
       subject
       body
@@ -42,6 +60,11 @@ query chatMessagesWithMemberQuery($ref: MemberAvatarRefInput!, $before: Int, $li
       deliveryState
       notify
       mailState
+      images {
+        imageUuid
+        width
+        height
+      }
     }
   }
 }
@@ -63,8 +86,15 @@ query chatMessagesWithMemberQuery($ref: MemberAvatarRefInput!, $before: Int, $li
 # threads drop a message whose id they already hold, so an answer that brings one twice does
 # no harm.
 #
-# The fields of `messages` are the ones of a message of the thread, one for one: an arrival is
-# hung into the same list and drawn by the same bubble.
+# The fields of `messages` are the ones of a message of the thread with one person AND of a
+# group's thread (`chatGroupMessageFields`, chatGroups.graphql), one for one: an arrival is hung
+# into either list and drawn by the same bubble, and a field missing here would leave a hole in
+# the list it lands in. `chatMessageFields.spec.js` holds the documents against each other.
+#
+# `groupUuid` (P5): the group a message was written in, null in a conversation of two. ⛔ It is
+# what keeps a group's message out of the thread with its writer: an empty thread with a person
+# takes its conversation from the first message that person writes, and without it a message they
+# wrote in a group would be taken for one (build plan P5, Falle 1).
 query newChatMessagesSince($afterId: Int, $limit: Int) {
   newChatMessagesSince(afterId: $afterId, limit: $limit) {
     latestId
@@ -74,10 +104,19 @@ query newChatMessagesSince($afterId: Int, $limit: Int) {
       id
       messageUuid
       conversationId
+      groupUuid
       sender {
         communityUuid
         gradidoID
       }
+      senderUser {
+        communityUuid
+        gradidoID
+        alias
+        avatarColorIndex
+        avatarUpdatedAt
+      }
+      announcement
       mine
       subject
       body
@@ -85,6 +124,11 @@ query newChatMessagesSince($afterId: Int, $limit: Int) {
       deliveryState
       notify
       mailState
+      images {
+        imageUuid
+        width
+        height
+      }
     }
   }
 }
@@ -105,15 +149,35 @@ mutation markChatConversationRead($ref: MemberAvatarRefInput!, $upToMessageId: I
 # error -- the copy comes back with `deliveryState` FAILED (E-019). An error is one of
 # CHAT_MESSAGE_NOT_SENT: TO_ONESELF | UNKNOWN_RECIPIENT | NO_WAY_TO_DELIVER | NOT_STORED, and
 # nothing was sent.
-mutation sendChatMessage($ref: MemberAvatarRefInput!, $body: String!, $notify: ChatMessageNotify!) {
-  sendChatMessage(ref: $ref, body: $body, notify: $notify) {
+#
+# `image` (P7): one picture with the message, the JPEG as base64 and its size in whole pixels
+# (utils/chatImage); with it the text may be empty. ⛔ The variable is called `$image` -- the name
+# the backend's request log masks (LOG-071). Refused as CHAT_IMAGE_NOT_ACCEPTED: EMPTY | TOO_LARGE |
+# NOT_JPEG | SIZE, or, to another community, CHAT_MESSAGE_NOT_SENT: TOO_LARGE_ACROSS_BORDER (the
+# text is too long to go with it). `images` on the copy names the picture as it was filed.
+mutation sendChatMessage(
+  $ref: MemberAvatarRefInput!
+  $body: String!
+  $notify: ChatMessageNotify!
+  $image: ChatImageInput
+) {
+  sendChatMessage(ref: $ref, body: $body, notify: $notify, image: $image) {
     id
     messageUuid
     conversationId
+    groupUuid
     sender {
       communityUuid
       gradidoID
     }
+    senderUser {
+      communityUuid
+      gradidoID
+      alias
+      avatarColorIndex
+      avatarUpdatedAt
+    }
+    announcement
     mine
     subject
     body
@@ -121,6 +185,11 @@ mutation sendChatMessage($ref: MemberAvatarRefInput!, $body: String!, $notify: C
     deliveryState
     notify
     mailState
+    images {
+      imageUuid
+      width
+      height
+    }
   }
 }
 
@@ -139,10 +208,13 @@ mutation setChatConversationMuted($ref: MemberAvatarRefInput!, $muted: Boolean!)
 # person as an ordinary chat message (sendChatMessage above). The fields are the ones the
 # backend's seed asks for (backend/src/seeds/graphql/queries.ts).
 #
-# ⛔ No variable, and EVERY call hands out another room -- so it is always asked with
-# `fetchPolicy: 'no-cache'`. The cache keys an answer by query and variables; with none, a second
-# call would be answered out of the cache with the first room, and two conversations would share
-# one.
+# `serverId` (V5): the server the member chose, an `id` of chatVideoServerChoices below; left out,
+# one of the servers that answer, at random. A chosen server no longer to be had is
+# CHAT_VIDEO_SERVER_UNAVAILABLE -- the server hands out no other in its place.
+#
+# ⛔ EVERY call hands out another room -- so it is always asked with `fetchPolicy: 'no-cache'`.
+# The cache keys an answer by query and variables; a second call with the same (or none) would be
+# answered out of the cache with the first room, and two conversations would share one.
 #
 # ⛔ The address is the call's secret: whoever has it can join. It goes into the message and into
 # the window that opens the room -- into no log and no store (the vuex store is written whole
@@ -150,9 +222,33 @@ mutation setChatConversationMuted($ref: MemberAvatarRefInput!, $muted: Boolean!)
 #
 # CHAT_VIDEO_NO_SERVER where no server passed the last check, or the first check after the
 # server started is not through yet.
-query chatVideoRoom {
-  chatVideoRoom {
+query chatVideoRoom($serverId: Int) {
+  chatVideoRoom(serverId: $serverId) {
     url
+    host
+    operator
+  }
+}
+
+# The picture of a chat message (P7), as base64, by the uuid a message names it by (`images`
+# above): only for a member of its conversation, while its message is not deleted -- null for
+# everything else, with nothing that tells those apart. One picture a call; the server serves ten
+# per HTTP request, and every query here is a request of its own.
+#
+# ⛔ Always asked with `fetchPolicy: 'no-cache'` (useChatImages): the cache would keep every picture
+# as some 44,000 characters of base64 for the life of the tab. The pictures are kept as bytes, in
+# memory, and let go at logout.
+query chatMessageImage($imageUuid: String!) {
+  chatMessageImage(imageUuid: $imageUuid)
+}
+
+# The servers a member may choose for a call (V5): those chatVideoRoom hands rooms out on right
+# now -- ticked in the admin page's list and passed the last check --, in the list's order. The
+# same list for everybody, but not for long: a check every ten minutes may take a server out, so
+# it is asked with `fetchPolicy: 'network-only'` whenever the choice is shown.
+query chatVideoServerChoices {
+  chatVideoServerChoices {
+    id
     host
     operator
   }

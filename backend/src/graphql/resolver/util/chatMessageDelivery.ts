@@ -1,16 +1,22 @@
 // AI-GENERATED — not an architecture reference
 import {
   CHAT_MESSAGE_NOTIFY_LETTER,
+  ChatMessageImageAccepted,
   chatMailWentOut,
   chatMessageMailState,
   chatMessageMailStateOfAnswer,
+  commandRequestBytes,
+  commandRequestFits,
   EncryptedTransferArgs,
   readChatMemberMutedAt,
   recordChatMessageDelivery,
   recordChatMessageMailState,
+  removeChatMessageImages,
   SendEmailCommand,
+  SendEmailCommandParams,
   sendCustomEmail,
   storeChatMessage,
+  storeChatMessageImages,
   V1_0_CommandClient,
 } from 'core'
 import {
@@ -25,6 +31,7 @@ import { CommandJwtPayloadType, encryptAndSign, uuidv4Schema } from 'shared'
 import { randombytes_random } from 'sodium-native'
 import { v4 as uuidv4 } from 'uuid'
 import { PublishNameLogic } from '@/data/PublishName.logic'
+import { LogError } from '@/server/LogError'
 
 /*
  * The two ways a message between two members leaves this server, shared by the form "send an
@@ -56,6 +63,12 @@ export interface ChatMessageLocalDelivery {
   requireStored: boolean
   /** True for the form: a letter, mailed whatever the recipient's quiet (E-034, A3). */
   letter: boolean
+  /**
+   * The pictures of a chat message (P7), checked already (acceptChatMessageImage) -- one at most
+   * today. Only with `requireStored`: a picture is part of the row that is the message. None for
+   * the form.
+   */
+  images?: ChatMessageImageAccepted[]
 }
 
 /**
@@ -69,6 +82,13 @@ export interface ChatMessageLocalDelivery {
  * mail (E-034, `mail_state`): MAILED where one went out, MUTED where one was asked for and the
  * recipient muted the conversation, nothing where none was asked for -- or where none went out:
  * the recipient has no address, mail is switched off, or the transport failed.
+ *
+ * ⛔ A message with pictures (P7): the pictures first, under the message's uuid, then the
+ * message. Where the pictures could not be filed, nothing is filed and nothing mailed; where the
+ * message could not be filed, its pictures are taken back out. A picture without its message is
+ * seen by nobody -- it is handed out only with its message --, a message without its picture
+ * would be an empty bubble. Both tables are Drizzle's, and nothing in the house runs a Drizzle
+ * transaction yet: this order stands in for one.
  */
 export async function deliverChatMessageLocally({
   senderUser,
@@ -78,14 +98,26 @@ export async function deliverChatMessageLocally({
   notify,
   requireStored,
   letter,
+  images = [],
 }: ChatMessageLocalDelivery): Promise<ChatMessageSelect | null> {
   const recipient = {
     communityUuid: recipientUser.communityUuid,
     gradidoId: recipientUser.gradidoID,
   }
+  // The pictures are filed under it before the message is.
+  const messageUuid = uuidv4()
+  if (
+    images.length > 0 &&
+    !(await storeChatMessageImages(
+      messageUuid,
+      images.map((picture, position) => ({ ...picture, imageUuid: uuidv4(), position })),
+    ))
+  ) {
+    return null
+  }
   const stored = await storeChatMessage(
     {
-      messageUuid: uuidv4(),
+      messageUuid,
       sender: { communityUuid: senderUser.communityUuid, gradidoId: senderUser.gradidoID },
       recipient,
       subject,
@@ -95,6 +127,9 @@ export async function deliverChatMessageLocally({
     },
     'local',
   )
+  if (!stored && images.length > 0) {
+    await removeChatMessageImages(messageUuid)
+  }
   if (!stored && requireStored) {
     return null
   }
@@ -115,6 +150,8 @@ export async function deliverChatMessageLocally({
       memo: body,
       senderUuid: senderUser.gradidoID,
       senderCommunityUuid: senderUser.communityUuid,
+      // The mail says there is a picture, and shows none (MAIL-008).
+      hasImage: images.length > 0,
     })
     // Nor where the transport did not take it (coderabbit on #3982).
     if (!chatMailWentOut(sent)) {
@@ -148,6 +185,13 @@ export interface ChatMessageBorderDelivery {
   requireStored: boolean
   /** True for the form: a letter, which the recipient's server mails whatever the quiet. */
   letter: boolean
+  /**
+   * The pictures of a chat message (P7b), checked already (acceptChatMessageImage) -- one at most
+   * today. They travel in the command, and the recipient's server checks and files them as this
+   * one does. Only with `requireStored`: a picture is part of the row that is the message. None
+   * for the form.
+   */
+  images?: ChatMessageImageAccepted[]
 }
 
 /**
@@ -160,12 +204,25 @@ export interface ChatMessageBorderDelivery {
  * a delivery that never starts -- and only for a recipient named by gradido id in a community
  * with a uuid: the receiving server looks the recipient up by nothing else.
  *
+ * ⛔ The sealed command is measured before anything is filed or sent. The federation module takes
+ * a request of 100 KB at most, and a picture comes close to it: the wallet's picture with an
+ * ordinary text fits (CHAT_IMAGE_MAX_BYTES says by how much), with a text made up to be heavy it
+ * does not -- MaxLength counts characters, the envelope weighs bytes. Such a message is refused,
+ * TOO_LARGE_ACROSS_BORDER, rather than filed as sent and then refused by the other server with a
+ * bare 413.
+ *
+ * A message with pictures (P7b): the pictures first, under the message's uuid and under the
+ * names the command gives them, then the own copy -- as deliverChatMessageLocally does. Where the
+ * pictures could not be filed, nothing is filed and nothing sent; where the own copy could not
+ * be, its pictures are taken back out. A delivery that fails leaves the copy with its pictures,
+ * FAILED, as any other message (E-019).
+ *
  * Hands back the own copy with the state it has now, or null where none was filed, and the
  * error the other community answered with, or null. The copy says what the other server answered
  * became of the mail (E-034, `mail_state`): MAILED or MUTED, nothing where it answered neither --
  * no mail asked for, a server from before P3c, a failed delivery. A failed delivery is not
- * thrown: what to make of it is the caller's. Throws only where the command cannot be sealed --
- * before anything is filed or sent.
+ * thrown: what to make of it is the caller's. Throws only where the command cannot be sealed, or
+ * would be too large -- before anything is filed or sent.
  */
 export async function deliverChatMessageAcrossBorder({
   senderUser,
@@ -179,65 +236,99 @@ export async function deliverChatMessageAcrossBorder({
   notify,
   requireStored,
   letter,
+  images = [],
 }: ChatMessageBorderDelivery): Promise<{ stored: ChatMessageSelect | null; error: string | null }> {
   // The id both copies are filed under: this server's below, the receiving server's from the
-  // payload.
+  // payload. The same for the pictures: named before the command is sealed.
   const messageUuid = uuidv4()
+  const pictures = images.map((picture, position) => ({
+    ...picture,
+    imageUuid: uuidv4(),
+    position,
+  }))
   const handshakeID = randombytes_random().toString()
+  const params: SendEmailCommandParams = {
+    mailType: 'sendCustomEmail',
+    senderComUuid: senderUser.communityUuid,
+    senderGradidoId: senderUser.gradidoID,
+    receiverComUuid: receiverComIdentifier,
+    receiverGradidoId: recipientGradidoId,
+    subject: subject ?? '',
+    memo: body,
+    messageUuid,
+    // What the receiving server files a sender it does not know yet with (E-034): the alias,
+    // no names -- a transfer files its sender with no more than that (SendEmailCommandParams).
+    // Without an alias, no field.
+    ...(senderUser.alias ? { senderAlias: senderUser.alias } : {}),
+    // A letter says so, and a chat message only a wish for no mail. A command without
+    // `notify` is mailed by every server, one from before the chat included
+    // (parseChatMessageNotify), so 'email' needs no field. A server from before P3c reads
+    // 'letter' as 'email' and asks the quiet, as it did for the form until now (accepted,
+    // E-034).
+    ...(letter
+      ? { notify: CHAT_MESSAGE_NOTIFY_LETTER }
+      : notify === ChatMessageNotify.NONE
+        ? { notify }
+        : {}),
+    // P7b: the pictures travel with the message, as base64 -- as the wallet uploads them. Without
+    // a picture, no field.
+    ...(pictures.length > 0
+      ? {
+          images: pictures.map(({ imageUuid, width, height, image }) => ({
+            imageUuid,
+            width,
+            height,
+            data: image.toString('base64'),
+          })),
+        }
+      : {}),
+  }
   const payload = new CommandJwtPayloadType(
     handshakeID,
     SendEmailCommand.SEND_MAIL_COMMAND,
     SendEmailCommand.name,
-    [
-      JSON.stringify({
-        mailType: 'sendCustomEmail',
-        senderComUuid: senderUser.communityUuid,
-        senderGradidoId: senderUser.gradidoID,
-        receiverComUuid: receiverComIdentifier,
-        receiverGradidoId: recipientGradidoId,
-        subject: subject ?? '',
-        memo: body,
-        messageUuid,
-        // What the receiving server files a sender it does not know yet with (E-034): the alias,
-        // no names -- a transfer files its sender with no more than that (SendEmailCommandParams).
-        // Without an alias, no field.
-        ...(senderUser.alias ? { senderAlias: senderUser.alias } : {}),
-        // A letter says so, and a chat message only a wish for no mail. A command without
-        // `notify` is mailed by every server, one from before the chat included
-        // (parseChatMessageNotify), so 'email' needs no field. A server from before P3c reads
-        // 'letter' as 'email' and asks the quiet, as it did for the form until now (accepted,
-        // E-034).
-        ...(letter
-          ? { notify: CHAT_MESSAGE_NOTIFY_LETTER }
-          : notify === ChatMessageNotify.NONE
-            ? { notify }
-            : {}),
-      }),
-    ],
+    [JSON.stringify(params)],
   )
   const jws = await encryptAndSign(payload, senderCom.privateJwtKey!, receiverCom.publicJwtKey!)
   const args = new EncryptedTransferArgs()
   args.publicKey = senderCom.publicKey.toString('hex')
   args.jwt = jws
   args.handshakeID = handshakeID
+  // ⛔ Measured sealed, as it will go out, before anything is filed or sent.
+  if (!commandRequestFits(args)) {
+    throw new LogError('CHAT_MESSAGE_NOT_SENT: TOO_LARGE_ACROSS_BORDER', commandRequestBytes(args))
+  }
 
-  const ownCopy =
+  // The own copy only for a recipient the receiving server can look up (see above).
+  const recipient =
     receiverCom.communityUuid &&
     uuidv4Schema.safeParse(receiverCom.communityUuid).success &&
     uuidv4Schema.safeParse(recipientGradidoId).success
-      ? await storeChatMessage(
-          {
-            messageUuid,
-            sender: { communityUuid: senderUser.communityUuid, gradidoId: senderUser.gradidoID },
-            recipient: { communityUuid: receiverCom.communityUuid, gradidoId: recipientGradidoId },
-            subject,
-            body,
-            notify,
-            deliveryState: ChatMessageDeliveryState.PENDING,
-          },
-          'outgoing',
-        )
+      ? { communityUuid: receiverCom.communityUuid, gradidoId: recipientGradidoId }
       : null
+  if (
+    pictures.length > 0 &&
+    !(recipient && (await storeChatMessageImages(messageUuid, pictures)))
+  ) {
+    return { stored: null, error: null }
+  }
+  const ownCopy = recipient
+    ? await storeChatMessage(
+        {
+          messageUuid,
+          sender: { communityUuid: senderUser.communityUuid, gradidoId: senderUser.gradidoID },
+          recipient,
+          subject,
+          body,
+          notify,
+          deliveryState: ChatMessageDeliveryState.PENDING,
+        },
+        'outgoing',
+      )
+    : null
+  if (!ownCopy && pictures.length > 0) {
+    await removeChatMessageImages(messageUuid)
+  }
   if (!ownCopy && requireStored) {
     return { stored: null, error: null }
   }

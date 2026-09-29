@@ -6,6 +6,7 @@ import { getLogger } from 'config-schema/test/testSetup'
 import { CONFIG as CORE_CONFIG, sendCustomEmail } from 'core'
 import {
   AppDatabase,
+  chatMessageImagesTable,
   chatMessagesTable,
   Community as DbCommunity,
   FederatedCommunity as DbFederatedCommunity,
@@ -16,7 +17,13 @@ import {
 import { eq } from 'drizzle-orm'
 import { GraphQLError } from 'graphql'
 import { GraphQLClient } from 'graphql-request'
-import { CommandJwtPayloadType, createKeyPair, verifyAndDecrypt } from 'shared'
+import {
+  CHAT_IMAGE_MAX_BYTES,
+  CommandJwtPayloadType,
+  createKeyPair,
+  MESSAGE_MAX_CHARS,
+  verifyAndDecrypt,
+} from 'shared'
 import { v4 as uuidv4 } from 'uuid'
 import { chatVideoServerPool } from '@/apis/jitsi/chatVideoServerPool'
 import { probeJitsiServer } from '@/apis/jitsi/jitsiProbe'
@@ -33,8 +40,10 @@ import {
   setChatConversationMuted,
 } from '@/seeds/graphql/mutations'
 import {
+  chatMessageImage,
   chatMessagesWithMember,
   chatVideoRoom,
+  chatVideoServerChoices,
   contactList,
   newChatMessagesSince,
 } from '@/seeds/graphql/queries'
@@ -384,13 +393,23 @@ type ChatRef = { communityUuid: string | null; gradidoID: string }
 const mailed = () => (sendCustomEmail as jest.Mock).mock.calls.map(([data]) => data)
 const clearMails = () => (sendCustomEmail as jest.Mock).mockClear()
 
-/** Writes in the chat to `to`, as whoever is logged in. */
-const say = (to: ChatRef, body: string, notify: 'EMAIL' | 'NONE'): Promise<any> =>
-  mutate({ mutation: sendChatMessage, variables: { ref: to, body, notify } })
+type ChatPicture = { data: string; width: number; height: number }
+
+/** Writes in the chat to `to`, as whoever is logged in -- with a picture, where one is given. */
+const say = (
+  to: ChatRef,
+  body: string,
+  notify: 'EMAIL' | 'NONE',
+  image?: ChatPicture,
+): Promise<any> =>
+  mutate({
+    mutation: sendChatMessage,
+    variables: { ref: to, body, notify, ...(image ? { image } : {}) },
+  })
 
 /** The same, where it must go through: the sender's own copy. */
-const said = async (to: ChatRef, body: string, notify: 'EMAIL' | 'NONE') => {
-  const res = await say(to, body, notify)
+const said = async (to: ChatRef, body: string, notify: 'EMAIL' | 'NONE', image?: ChatPicture) => {
+  const res = await say(to, body, notify, image)
   expect(res.errors).toBeUndefined()
   return res.data.sendChatMessage
 }
@@ -414,6 +433,18 @@ const pageWith = async (to: ChatRef) => {
 /** Every message this server has filed. */
 const allMessages = () =>
   AppDatabase.getInstance().getDrizzleDataSource().select().from(chatMessagesTable)
+
+/** Every picture this server has filed. */
+const allPictures = () =>
+  AppDatabase.getInstance().getDrizzleDataSource().select().from(chatMessageImagesTable)
+
+// The smallest thing the server takes as a JPEG: the start marker, a few bytes, the end marker.
+const JPEG = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0xff, 0xd9])
+const pictureOf = (bytes: Buffer, width = 800, height = 600): ChatPicture => ({
+  data: bytes.toString('base64'),
+  width,
+  height,
+})
 
 describe('sendChatMessage and setChatConversationMuted without a login', () => {
   beforeAll(() => resetToken())
@@ -672,6 +703,178 @@ describe('sendChatMessage refused', () => {
 })
 
 /**
+ * P7a: a picture in a chat message, within this community. Checked before anything is filed
+ * (acceptChatMessageImage), filed before its message, under the message's uuid. The order and
+ * the taking back of a picture whose message could not be filed are held in
+ * util/chatMessageDelivery.test.ts, where a failure can be brought about.
+ */
+describe('sendChatMessage with a picture', () => {
+  beforeAll(() => loginAs('peter@lustig.de'))
+  beforeEach(() => clearMails())
+  afterAll(() => resetToken())
+
+  const picturesOf = async (messageUuid: string) =>
+    (await allPictures()).filter((picture) => picture.messageUuid === messageUuid)
+
+  it('files the message and its picture, the picture under the message', async () => {
+    const copy = await said(ref(raeuber), 'Look at this', 'EMAIL', pictureOf(JPEG, 393, 1220))
+
+    expect(copy).toMatchObject({ mine: true, body: 'Look at this', deliveryState: 'DELIVERED' })
+    // The mail says there is a picture, and carries none (MAIL-008).
+    expect(mailed()).toEqual([
+      expect.objectContaining({
+        email: 'raeuber@hotzenplotz.de',
+        memo: 'Look at this',
+        hasImage: true,
+      }),
+    ])
+    const pictures = await picturesOf(copy.messageUuid)
+    expect(pictures).toHaveLength(1)
+    expect(pictures[0]).toMatchObject({
+      position: 0,
+      width: 393,
+      height: 1220,
+      mimeType: 'image/jpeg',
+    })
+    expect(pictures[0].image.equals(JPEG)).toBe(true)
+  })
+
+  // E-044, "Bildunterschrift (freiwillig)": a picture without a caption is a message.
+  it('takes a picture without a caption', async () => {
+    const copy = await said(ref(raeuber), '', 'NONE', pictureOf(JPEG))
+
+    expect(copy.body).toBe('')
+    expect(await picturesOf(copy.messageUuid)).toHaveLength(1)
+  })
+
+  it('refuses a caption of more than 2000 characters all the same', async () => {
+    const res = await say(ref(raeuber), 'x'.repeat(MESSAGE_MAX_CHARS + 1), 'EMAIL', pictureOf(JPEG))
+    expect(res.errors?.[0]?.message).toContain('Argument Validation Error')
+  })
+
+  it('refuses a picture that is empty, too large, no JPEG, or too many pixels -- and files and mails nothing', async () => {
+    const tooLarge = Buffer.concat([JPEG, Buffer.alloc(CHAT_IMAGE_MAX_BYTES, 0x20), JPEG])
+    const messagesBefore = await allMessages()
+    const picturesBefore = await allPictures()
+
+    for (const [picture, reason] of [
+      [pictureOf(Buffer.alloc(0)), 'EMPTY'],
+      [pictureOf(tooLarge), 'TOO_LARGE'],
+      [pictureOf(Buffer.from('not an image')), 'NOT_JPEG'],
+      [pictureOf(JPEG, 1000, 501), 'SIZE'],
+    ] as [ChatPicture, string][]) {
+      const res = await say(ref(raeuber), 'Look at this', 'EMAIL', picture)
+      expect(res.errors).toEqual([new GraphQLError(`CHAT_IMAGE_NOT_ACCEPTED: ${reason}`)])
+    }
+    expect(await allMessages()).toEqual(messagesBefore)
+    expect(await allPictures()).toEqual(picturesBefore)
+    expect(mailed()).toEqual([])
+  })
+
+  it('refuses a side out of bounds where the argument arrives', async () => {
+    const res = await say(ref(raeuber), 'Look at this', 'EMAIL', pictureOf(JPEG, 0, 600))
+    expect(res.errors?.[0]?.message).toContain('Argument Validation Error')
+  })
+})
+
+/**
+ * P7a: the pictures on the messages -- in all three answers that carry messages -- and the
+ * picture itself (chatMessageImage), for the members of the conversation and nobody else.
+ */
+describe('the pictures of a message', () => {
+  let copy: any
+  let withoutPicture: any
+
+  /** What chatMessageImage answers `email` about `imageUuid`. */
+  const pictureAs = async (email: string, imageUuid: string) => {
+    await loginAs(email)
+    const res: any = await query({ query: chatMessageImage, variables: { imageUuid } })
+    expect(res.errors).toBeUndefined()
+    return res.data.chatMessageImage
+  }
+
+  beforeAll(async () => {
+    await loginAs('bob@baumeister.de')
+    copy = await said(ref(raeuber), 'A picture for you', 'NONE', pictureOf(JPEG, 924, 520))
+    withoutPicture = await said(ref(raeuber), 'And a word without one', 'NONE')
+  })
+  afterAll(() => resetToken())
+
+  it('names the picture in the copy the sender gets back, and none where there is none', () => {
+    expect(copy.images).toEqual([{ imageUuid: expect.any(String), width: 924, height: 520 }])
+    expect(withoutPicture.images).toEqual([])
+  })
+
+  it('names it on the page of each of the two', async () => {
+    await loginAs('bob@baumeister.de')
+    const mine = (await pageWith(ref(raeuber))).messages.find((m: any) => m.id === copy.id)
+    await loginAs('raeuber@hotzenplotz.de')
+    const theirs = (await pageWith(ref(bob))).messages.find((m: any) => m.id === copy.id)
+
+    expect(mine.images).toEqual(copy.images)
+    expect(theirs.images).toEqual(copy.images)
+  })
+
+  it('names it in what is new', async () => {
+    await loginAs('raeuber@hotzenplotz.de')
+    const res: any = await query({
+      query: newChatMessagesSince,
+      variables: { afterId: copy.id - 1 },
+    })
+    expect(res.errors).toBeUndefined()
+
+    const [message, next] = res.data.newChatMessagesSince.messages
+    expect(message.id).toBe(copy.id)
+    expect(message.images).toEqual(copy.images)
+    expect(next.id).toBe(withoutPicture.id)
+    expect(next.images).toEqual([])
+  })
+
+  it('hands the picture to each of the two members of the conversation', async () => {
+    const base64 = JPEG.toString('base64')
+    expect(await pictureAs('bob@baumeister.de', copy.images[0].imageUuid)).toBe(base64)
+    expect(await pictureAs('raeuber@hotzenplotz.de', copy.images[0].imageUuid)).toBe(base64)
+  })
+
+  it('hands nothing to somebody outside the conversation, nor for a uuid no picture has', async () => {
+    expect(await pictureAs('bibi@bloxberg.de', copy.images[0].imageUuid)).toBeNull()
+    expect(await pictureAs('bob@baumeister.de', uuidv4())).toBeNull()
+    expect(await pictureAs('bob@baumeister.de', 'no uuid')).toBeNull()
+  })
+
+  // ⛔ One picture a call, and a document may repeat the field under any number of aliases:
+  // the request's budget counts them (CHAT_IMAGES_MAX_PER_REQUEST).
+  it('answers ten pictures in one request, and refuses the eleventh', async () => {
+    await loginAs('bob@baumeister.de')
+    const pictures = (count: number) =>
+      `query ($imageUuid: String!) { ${Array.from(
+        { length: count },
+        (_, n) => `picture${n}: chatMessageImage(imageUuid: $imageUuid)`,
+      ).join(' ')} }`
+    const variables = { imageUuid: copy.images[0].imageUuid }
+
+    const ten: any = await query({ query: pictures(10), variables })
+    expect(ten.errors).toBeUndefined()
+    expect(Object.keys(ten.data)).toHaveLength(10)
+    const eleven: any = await query({ query: pictures(11), variables })
+    expect(eleven.errors?.map((error: any) => error.message)).toEqual([
+      'Too many chat pictures requested at once',
+    ])
+  })
+
+  it('hands nothing once the message is marked deleted', async () => {
+    await AppDatabase.getInstance()
+      .getDrizzleDataSource()
+      .update(chatMessagesTable)
+      .set({ deletedAt: new Date() })
+      .where(eq(chatMessagesTable.messageUuid, copy.messageUuid))
+
+    expect(await pictureAs('bob@baumeister.de', copy.images[0].imageUuid)).toBeNull()
+    expect(await pictureAs('raeuber@hotzenplotz.de', copy.images[0].imageUuid)).toBeNull()
+  })
+})
+
+/**
  * EM-013: an address never confirmed, past its grace period, acts outward no more -- the right
  * is on RESTRICTED_WHILE_UNCONFIRMED, as SEND_COINS is for the form. Asking for quiet stays.
  */
@@ -707,6 +910,13 @@ describe('an unconfirmed account past its grace period', () => {
   it('may not ask for a video room either -- also while servers answer', async () => {
     await videoServersChecked(true)
     expect((await query({ query: chatVideoRoom })).errors).toEqual([
+      new GraphQLError('401 Unauthorized'),
+    ])
+  })
+
+  it('may not ask which servers there are to choose from either (V5)', async () => {
+    await videoServersChecked(true)
+    expect((await query({ query: chatVideoServerChoices })).errors).toEqual([
       new GraphQLError('401 Unauthorized'),
     ])
   })
@@ -903,6 +1113,86 @@ describe('sendChatMessage to a member of another community', () => {
     // The row says the same.
     const filed = (await pageWith(peerRef)).messages.find((m: any) => m.id === copy.id)
     expect(filed.deliveryState).toBe('FAILED')
+  })
+
+  /**
+   * P7b: the picture travels in the command, under the name the own copy files it with, and the
+   * other server checks and files it as this one does. The order -- the sealed command measured,
+   * then the picture, then the copy, then the command -- is held in
+   * util/chatMessageDelivery.test.ts, where each step can be made to fail.
+   */
+  describe('with a picture', () => {
+    const picturesOfMessage = async (messageUuid: string) =>
+      (await allPictures()).filter((picture) => picture.messageUuid === messageUuid)
+
+    it('sends the picture with the message, under the name of its copy, and hands back the copy DELIVERED with it', async () => {
+      peerAnswers({ success: true, data: 'mailed' })
+
+      const copy = await said(peerRef, 'Across the border', 'EMAIL', pictureOf(JPEG, 924, 520))
+
+      expect(copy).toMatchObject({
+        mine: true,
+        deliveryState: 'DELIVERED',
+        images: [{ imageUuid: expect.any(String), width: 924, height: 520 }],
+      })
+      expect(commands).toHaveLength(1)
+      expect(commands[0]).toMatchObject({
+        messageUuid: copy.messageUuid,
+        memo: 'Across the border',
+        images: [
+          {
+            imageUuid: copy.images[0].imageUuid,
+            width: 924,
+            height: 520,
+            data: JPEG.toString('base64'),
+          },
+        ],
+      })
+      // Written first, then delivered (E-019).
+      expect(inFlight).toEqual(['pending'])
+      const pictures = await picturesOfMessage(copy.messageUuid)
+      expect(pictures).toHaveLength(1)
+      expect(pictures[0].imageUuid).toBe(copy.images[0].imageUuid)
+      expect(pictures[0].image.equals(JPEG)).toBe(true)
+    })
+
+    // What MaxLength counts as 2000 characters, the envelope weighs as some 25 KB: with the
+    // wallet's picture, more than the other server takes.
+    it('refuses a text too heavy to cross with a picture, and files and sends nothing', async () => {
+      peerAnswers({ success: true })
+      const walletPicture = Buffer.concat([
+        JPEG,
+        Buffer.alloc(32 * 1024 - 2 * JPEG.length, 0x20),
+        JPEG,
+      ])
+      const heavy = `😀${String.fromCodePoint(0xfe0f)}`.repeat(MESSAGE_MAX_CHARS)
+      const messagesBefore = await allMessages()
+      const picturesBefore = await allPictures()
+
+      const res = await say(peerRef, heavy, 'EMAIL', pictureOf(walletPicture))
+
+      expect(res.errors).toEqual([
+        new GraphQLError('CHAT_MESSAGE_NOT_SENT: TOO_LARGE_ACROSS_BORDER'),
+      ])
+      expect(rawRequest).not.toHaveBeenCalled()
+      expect(await allMessages()).toEqual(messagesBefore)
+      expect(await allPictures()).toEqual(picturesBefore)
+    })
+
+    // E-019: a failed delivery is the copy's state -- it keeps its picture, FAILED.
+    it('hands back the copy FAILED with its picture where the other community refuses it', async () => {
+      peerAnswers({ success: false, error: 'CHAT_IMAGE_NOT_ACCEPTED: NOT_JPEG' })
+
+      const res = await say(peerRef, 'Refused over there', 'EMAIL', pictureOf(JPEG))
+
+      expect(res.errors).toBeUndefined()
+      const copy = res.data.sendChatMessage
+      expect(copy).toMatchObject({
+        deliveryState: 'FAILED',
+        images: [{ imageUuid: expect.any(String), width: 800, height: 600 }],
+      })
+      expect(await picturesOfMessage(copy.messageUuid)).toHaveLength(1)
+    })
   })
 
   // No silent true (D V03, section 1): no way to deliver is an error, and nothing is filed.
@@ -1236,6 +1526,12 @@ describe('chatVideoRoom', () => {
         expect.objectContaining({ errors: [new GraphQLError('401 Unauthorized')] }),
       )
     })
+
+    it('answers 401 for the servers to choose from as well (V5)', async () => {
+      expect(await query({ query: chatVideoServerChoices })).toEqual(
+        expect.objectContaining({ errors: [new GraphQLError('401 Unauthorized')] }),
+      )
+    })
   })
 
   describe('logged in', () => {
@@ -1266,6 +1562,44 @@ describe('chatVideoRoom', () => {
       await videoServersChecked(false)
       const res: any = await query({ query: chatVideoRoom })
       expect(res.errors?.map((error: any) => error.message)).toEqual(['CHAT_VIDEO_NO_SERVER'])
+    })
+
+    // V5: the servers to choose from, and a room on the one chosen.
+    it('lists the servers of the list that passed, in its order, with the id a room is asked on', async () => {
+      await videoServersChecked(true)
+      const res: any = await query({ query: chatVideoServerChoices })
+      expect(res.errors).toBeUndefined()
+      const listed = res.data.chatVideoServerChoices
+      expect(listed.map((choice: any) => `https://${choice.host}/`)).toEqual(
+        CHAT_VIDEO_SERVERS_DEFAULT.map((server) => server.baseUrl),
+      )
+      expect(listed.map((choice: any) => choice.operator)).toEqual(
+        CHAT_VIDEO_SERVERS_DEFAULT.map((server) => server.operator),
+      )
+      expect(new Set(listed.map((choice: any) => choice.id)).size).toBe(listed.length)
+    })
+
+    it('lists none where no server passed the last check', async () => {
+      await videoServersChecked(false)
+      const res: any = await query({ query: chatVideoServerChoices })
+      expect(res).toEqual(expect.objectContaining({ data: { chatVideoServerChoices: [] } }))
+    })
+
+    it('hands out the room on the server chosen, and answers CHAT_VIDEO_SERVER_UNAVAILABLE for one not to be had', async () => {
+      await videoServersChecked(true)
+      const listed = ((await query({ query: chatVideoServerChoices })) as any).data
+        .chatVideoServerChoices
+      const chosen = listed[2]
+      for (let call = 0; call < 5; call++) {
+        const res: any = await query({ query: chatVideoRoom, variables: { serverId: chosen.id } })
+        expect(res.errors).toBeUndefined()
+        expect(res.data.chatVideoRoom.host).toBe(chosen.host)
+      }
+      const missing = Math.max(...listed.map((choice: any) => choice.id)) + 1000
+      const res: any = await query({ query: chatVideoRoom, variables: { serverId: missing } })
+      expect(res.errors?.map((error: any) => error.message)).toEqual([
+        'CHAT_VIDEO_SERVER_UNAVAILABLE',
+      ])
     })
 
     // ⛔ One call cannot limit how often a document repeats the field under aliases -- the

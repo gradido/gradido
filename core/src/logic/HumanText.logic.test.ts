@@ -61,6 +61,42 @@ describe('humanTextParts', () => {
   })
 })
 
+/**
+ * A video invitation from the wallet: the room's address, after its `#` the topic (V4a) and, for
+ * a planned call, its start and end (V5b). The mail shows the room, as the wallet's thread does;
+ * the link keeps the whole address.
+ */
+describe('humanTextParts with a video invitation', () => {
+  const ROOM = 'https://meet.weimarnetz.de/idpdd16o81l0'
+  const PLANNED = `${ROOM}#config.subject=%22Videoanruf%22&gradido.start=1790686800&gradido.end=1790690400`
+  const NOW = `${ROOM}#config.subject=%22Lesekreis%22`
+
+  it('shows the room of a planned call, the whole address its link', () => {
+    expect(humanTextParts(`Der Raum: ${PLANNED}`)).toEqual([
+      { type: 'text', value: 'Der Raum: ' },
+      { type: 'url', value: PLANNED, shown: ROOM },
+    ])
+  })
+
+  it('shows the room of a call now, with its topic alone', () => {
+    expect(humanTextParts(NOW)).toEqual([{ type: 'url', value: NOW, shown: ROOM }])
+  })
+
+  // Somebody else's address, or one no wallet of ours writes: it shows whole.
+  it('shows every other address whole, a `#` of somebody else’s too', () => {
+    for (const address of [
+      'https://x.org/a#section',
+      `${ROOM}#config.subject=%22x%22&config.startWithAudioMuted=true`,
+      `${ROOM}#config.subject=%22x%22&gradido.start=1790686800`,
+      `${ROOM}#config.subject=%22x%22&gradido.start=9999999999999&gradido.end=99999999999999`,
+      `${ROOM}#a#config.subject=%22x%22`,
+      ROOM,
+    ]) {
+      expect(humanTextParts(address)).toEqual([{ type: 'url', value: address }])
+    }
+  })
+})
+
 describe('humanTextParts with bold', () => {
   it('makes a run between two pairs of stars bold, and drops the stars', () => {
     expect(humanTextParts('We meet **at ten**, ok?', { bold: true })).toEqual([
@@ -110,6 +146,31 @@ describe('the patterns are the wallet’s', () => {
 
   it('for e-mail addresses', () => {
     expect(walletPattern('EMAIL_PATTERN')).toBe(EMAIL_PATTERN.toString())
+  })
+
+  // The wallet builds this rule from two pieces (`SCHEDULE`, `OWN_ADDITION`), so it is held by
+  // what it does rather than by its text: the wallet's module has no imports of its own and is
+  // loaded here as it is. The same addresses in, the same text out.
+  it('for the addition of a video invitation', async () => {
+    const { withoutChatVideoTopic } = await import(
+      path.join(__dirname, '../../../frontend/src/utils/chatVideoTopic.js')
+    )
+    const room = 'https://meet.weimarnetz.de/idpdd16o81l0'
+    for (const address of [
+      `${room}#config.subject=%22Videoanruf%22&gradido.start=1790686800&gradido.end=1790690400`,
+      `${room}#config.subject=%22Lesekreis%22`,
+      `${room}#config.subject=`,
+      `${room}#config.subject=%22x%22&config.startWithAudioMuted=true`,
+      `${room}#config.subject=%22x%22&gradido.start=1790686800`,
+      `${room}#config.subject=%22x%22&gradido.start=soon&gradido.end=1790690400`,
+      `${room}#config.subject=%22x%22&gradido.start=9999999999999&gradido.end=99999999999999`,
+      `${room}#a#config.subject=%22x%22`,
+      'https://x.org/a#section',
+      room,
+    ]) {
+      const [part] = humanTextParts(address)
+      expect(part.shown ?? part.value).toBe(withoutChatVideoTopic(address))
+    }
   })
 
   it('for bold', () => {

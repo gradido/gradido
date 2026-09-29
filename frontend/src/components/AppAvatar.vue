@@ -6,8 +6,11 @@
   <component
     :is="opensPicture ? 'button' : 'div'"
     ref="root"
-    class="app-avatar d-flex justify-content-center align-items-center rounded-circle"
-    :class="{ 'app-avatar-quiet': quiet && !src, 'app-avatar-zoomable': opensPicture }"
+    class="app-avatar d-flex justify-content-center align-items-center"
+    :class="[
+      shape === 'rounded' ? 'app-avatar-rounded' : 'rounded-circle',
+      { 'app-avatar-quiet': quiet && !src, 'app-avatar-zoomable': opensPicture },
+    ]"
     :type="opensPicture ? 'button' : undefined"
     :aria-label="opensPicture ? zoomLabel : undefined"
     :style="{
@@ -115,6 +118,13 @@ const props = defineProps({
   zoomLabel: {
     type: String,
     default: '',
+  },
+  // The outline: a circle for a person, a square with rounded corners for a group of people
+  // (chat groups, P5) -- so a group in a list of people is told apart before its name is read.
+  // Anything but 'rounded' is the circle every caller before it had.
+  shape: {
+    type: String,
+    default: 'circle',
   },
 })
 
@@ -255,6 +265,13 @@ const textColor = computed(() => {
    double slash is not a comment to it -- the build dies with "Invalid empty selector". */
 .app-avatar {
   overflow: hidden;
+}
+
+/* A group (P5): a square with rounded corners, a quarter of its side and a little more -- the
+   mockup's measure, round enough to belong with the circles beside it, square enough not to be
+   taken for one. A percentage, so the 28, 48 and 64 pixel sizes keep the same shape. */
+.app-avatar-rounded {
+  border-radius: 26%;
 }
 
 /* A button that has to look exactly like the div it replaces -- every one of these undoes

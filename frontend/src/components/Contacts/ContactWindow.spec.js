@@ -5,13 +5,21 @@ import { dirname, join } from 'node:path'
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
 import ContactWindow from './ContactWindow.vue'
-import { chatVideoRoom } from '@/graphql/chat.graphql'
+import { chatVideoRoom, chatVideoServerChoices } from '@/graphql/chat.graphql'
+import { withChatVideoTopic } from '@/utils/chatVideoTopic'
+import { CHAT_VIDEO_JOIN } from '@/utils/chatVideoApp'
 
 const pushSpy = vi.fn()
 
 vi.mock('vue-router', () => ({
   useRouter: () => ({ push: pushSpy }),
 }))
+/**
+ * The one word the window fills in by itself, the video call's default topic (V4a), as a word:
+ * it goes into the room's address, and a test reads it there. A test may change it for a
+ * language of its own. Every other text shows its key and its values.
+ */
+const words = vi.hoisted(() => ({ 'chatThread.videoTopicDefault': 'Videoanruf' }))
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
     t: (key, values) =>
@@ -19,8 +27,10 @@ vi.mock('vue-i18n', () => ({
         ? `${key}:${values}`
         : values
           ? `${key} ${JSON.stringify(values)}`
-          : key,
+          : (words[key] ?? key),
     d: (date, format) => `${format}(${date.toISOString()})`,
+    // The language the day and the time zone of a planned call are written in (V5b).
+    locale: { value: 'de' },
   }),
 }))
 vi.mock('@/i18n', () => ({
@@ -34,8 +44,9 @@ vi.mock('@/config', () => ({
 }))
 // The signed-in member's community, which a member without one is read as (LOG-036). In
 // capitals, as a server may write it: the thread's key is in lower case either way.
+// And the member signed in on this device, whose tick the box "Start in the Jitsi app" keeps (V4b).
 vi.mock('vuex', () => ({
-  useStore: () => ({ state: { communityUuid: 'HOME-UUID' } }),
+  useStore: () => ({ state: { communityUuid: 'HOME-UUID', gradidoID: 'me-id' } }),
 }))
 
 /** What the server answers to `setChatConversationMuted`; a test decides, or makes it throw. */
@@ -45,9 +56,19 @@ const serverMutes = vi.fn()
  * throw. Called with the whole options, so a test can say how it was asked.
  */
 const serverRooms = vi.fn()
+/**
+ * What the server answers to the question which servers there are to choose from (V5,
+ * `client.query` as well): a test decides; unanswered, the choice is "at random" only.
+ */
+const serverChoices = vi.fn()
 vi.mock('@vue/apollo-composable', () => ({
   useMutation: () => ({ mutate: (variables) => serverMutes(variables) }),
-  useApolloClient: () => ({ client: { query: (options) => serverRooms(options) } }),
+  useApolloClient: () => ({
+    client: {
+      query: (options) =>
+        options.query === chatVideoServerChoices ? serverChoices(options) : serverRooms(options),
+    },
+  }),
 }))
 
 /**
@@ -109,8 +130,9 @@ describe('ContactWindow', () => {
           // Shows what it holds while it is open, the footer under it -- the window itself is
           // always open here; the question before a video call opens and closes.
           BModal: {
+            name: 'BModal',
             props: { modelValue: Boolean },
-            emits: ['update:modelValue'],
+            emits: ['update:modelValue', 'shown'],
             template: '<div v-if="modelValue"><slot /><slot name="footer" /></div>',
           },
           // Renders its slot, says where it leads, and does what the real link's own click
@@ -125,13 +147,21 @@ describe('ContactWindow', () => {
           IMdiBellOutline: true,
           IMdiBellOffOutline: true,
           IMdiVideoOutline: true,
+          IMdiCogOutline: true,
+          IMdiLinkVariant: true,
+          IMdiCheck: true,
+          IMdiServerOutline: true,
+          IMdiCalendarPlusOutline: true,
           // The thread reads the server; its own spec is about that. Here it only has to say
           // whom it was made for, count how often it was made, and take a video invitation
-          // (`deliver`, which the real one exposes) for whom it was made.
+          // (`deliver`, which the real one exposes) for whom it was made. And it takes the
+          // question before joining a call that the window provides, as the text of a message
+          // does (ChatMessageText), so that a test can click an invitation's link through it.
           ChatThread: {
             name: 'ChatThread',
             props: { member: Object, alias: String, memberKey: String },
             emits: ['chatConversation'],
+            inject: { join: { from: CHAT_VIDEO_JOIN, default: null } },
             mounted() {
               threadsMade.push(this.member.gradidoID)
             },
@@ -162,6 +192,7 @@ describe('ContactWindow', () => {
     pushSpy.mockClear()
     serverMutes.mockReset()
     serverRooms.mockReset()
+    serverChoices.mockReset()
     threadDelivers.mockReset()
     toastSuccess.mockClear()
     toastError.mockClear()
@@ -805,6 +836,13 @@ describe('ContactWindow', () => {
       host: 'meet.ffmuc.net',
       operator: 'Freifunk München (Freie Netze München e. V.)',
     }
+    /**
+     * The room with the default topic added (V4a) -- the form tried on two servers (Notiz §12).
+     * Every call carries a topic: this is the address the invitation, the room's window and the
+     * link in the dialog get when the field is left as it is.
+     */
+    const ROOM_WITH_DEFAULT = 'https://meet.ffmuc.net/k7m2x9q4t8wz#config.subject=%22Videoanruf%22'
+    const topicField = () => wrapper.find('[data-test="contact-window-video-topic"]')
 
     /**
      * The room's window as `window.open` hands it back: it can be sent to an address and
@@ -917,6 +955,89 @@ describe('ContactWindow', () => {
       expect(inDialog('email').element.checked).toBe(false)
     })
 
+    // V4a: the topic, filled in with the default for every question -- so "Start call" stays the
+    // one click it was -- and nothing of the last question kept.
+    it('fills the topic in with the default, and again for every question', async () => {
+      await asked()
+      expect(topicField().element.value).toBe('Videoanruf')
+
+      await topicField().setValue('Lesekreis')
+      await inDialog('cancel').trigger('click')
+      await camera().trigger('click')
+
+      expect(topicField().element.value).toBe('Videoanruf')
+    })
+
+    // Between the title and the sentence: a named text field, forty characters at most (the
+    // topic stands encoded in the link), and under it the hint about who can read it -- tied to
+    // the field, so a screen reader says it with the field.
+    it('offers a named field for the topic, with the hint tied to it', async () => {
+      await asked()
+
+      const field = topicField()
+      const label = wrapper.find(`label[for="${field.attributes('id')}"]`)
+      const hint = inDialog('topic-hint')
+      expect(field.element.tagName).toBe('INPUT')
+      expect(field.attributes('type')).toBe('text')
+      expect(field.attributes('id')).toBeTruthy()
+      expect(label.text()).toBe('chatThread.videoTopic')
+      expect(hint.text()).toBe('chatThread.videoTopicHint')
+      expect(hint.attributes('id')).toBeTruthy()
+      expect(field.attributes('aria-describedby')).toBe(hint.attributes('id'))
+      expect(field.attributes('autocomplete')).toBe('off')
+
+      const order = [...dialog().element.querySelectorAll('[data-test]')].map((element) =>
+        element.getAttribute('data-test'),
+      )
+      expect(order.indexOf('contact-window-video-title')).toBeLessThan(
+        order.indexOf('contact-window-video-topic'),
+      )
+      expect(order.indexOf('contact-window-video-topic-hint')).toBeLessThan(
+        order.indexOf('contact-window-video-body'),
+      )
+    })
+
+    /**
+     * ⛔ No focus of its own. The real dialog's focus trap focuses the first element Tab reaches
+     * as it switches on -- measured in Chrome, the field had the focus for 70 ms of every opening,
+     * enough for a phone's keyboard. So the field is out of the tab order until the dialog says it
+     * is open (`shown`); a tap focuses it all the same, and afterwards Tab reaches it.
+     */
+    it('keeps the field out of the tab order until the question is open, for every question', async () => {
+      const question = () =>
+        wrapper
+          .findAllComponents({ name: 'BModal' })
+          .find((modal) => modal.attributes('data-test') === 'contact-window-video-dialog')
+      await asked()
+      expect(topicField().attributes('tabindex')).toBe('-1')
+
+      question().vm.$emit('shown')
+      await flushPromises()
+      expect(topicField().attributes('tabindex')).toBeUndefined()
+
+      await inDialog('cancel').trigger('click')
+      await camera().trigger('click')
+      expect(topicField().attributes('tabindex')).toBe('-1')
+    })
+
+    it('takes forty characters in the field', async () => {
+      await asked()
+
+      expect(topicField().attributes('maxlength')).toBe('40')
+    })
+
+    // Typing replaces the default: the field marks what it holds when it gets the focus.
+    it('marks the topic when the field gets the focus', async () => {
+      await asked()
+      const field = topicField().element
+      field.setSelectionRange(3, 3)
+
+      await topicField().trigger('focus')
+
+      expect(field.selectionStart).toBe(0)
+      expect(field.selectionEnd).toBe('Videoanruf'.length)
+    })
+
     it('lets the question go on cancel, and makes no room', async () => {
       browserOpens()
       await asked()
@@ -975,7 +1096,7 @@ describe('ContactWindow', () => {
       expect(threadDelivers).toHaveBeenCalledTimes(1)
       expect(threadDelivers).toHaveBeenCalledWith(
         {
-          body: `chatThread.videoInvite ${JSON.stringify({ operator: ROOM.operator, url: ROOM.url })}`,
+          body: `chatThread.videoInvite ${JSON.stringify({ operator: ROOM.operator, url: ROOM_WITH_DEFAULT })}`,
           notify: 'NONE',
         },
         'carla-id',
@@ -992,7 +1113,121 @@ describe('ContactWindow', () => {
       await start()
 
       expect(threadDelivers.mock.calls[0][0].body).toBe(
-        `chatThread.videoInvite ${JSON.stringify({ operator: ROOM.host, url: ROOM.url })}`,
+        `chatThread.videoInvite ${JSON.stringify({ operator: ROOM.host, url: ROOM_WITH_DEFAULT })}`,
+      )
+    })
+
+    /**
+     * A topic of one's own (V4a): the invitation names it in words, on a line of its own, and
+     * the address carries it for Jitsi -- the SAME address in the invitation and in the room's
+     * window, made once.
+     */
+    it('names a topic of its own in the invitation, and sends the room to the same address', async () => {
+      const topic = 'Lesekreis „Momo“'
+      const address = withChatVideoTopic(ROOM.url, topic)
+      browserOpens()
+      serverRooms.mockResolvedValue({ data: { chatVideoRoom: ROOM } })
+      threadDelivers.mockResolvedValue(true)
+      await asked()
+      await topicField().setValue(topic)
+
+      await start()
+
+      expect(address).not.toBe(ROOM_WITH_DEFAULT)
+      expect(threadDelivers.mock.calls[0][0].body).toBe(
+        `chatThread.videoInviteTopic ${JSON.stringify({ topic, operator: ROOM.operator, url: address })}`,
+      )
+      expect(room.location.href).toBe(address)
+    })
+
+    it('offers the same address as a link where the browser held the window back', async () => {
+      const topic = 'Gespräch über Bäume'
+      browserOpens(null)
+      serverRooms.mockResolvedValue({ data: { chatVideoRoom: ROOM } })
+      threadDelivers.mockResolvedValue(true)
+      await asked()
+      await topicField().setValue(topic)
+
+      await start()
+
+      const address = withChatVideoTopic(ROOM.url, topic)
+      expect(threadDelivers.mock.calls[0][0].body).toContain(JSON.stringify(address))
+      expect(inDialog('open').attributes('href')).toBe(address)
+    })
+
+    // The address never goes without its addition (V4b will know an invitation by it): an
+    // emptied field, or one of spaces only, is the default.
+    it.each([
+      ['emptied', ''],
+      ['holding only spaces', '   '],
+    ])('takes the default where the field is %s', async (_, typed) => {
+      browserOpens()
+      serverRooms.mockResolvedValue({ data: { chatVideoRoom: ROOM } })
+      threadDelivers.mockResolvedValue(true)
+      await asked()
+      await topicField().setValue(typed)
+
+      await start()
+
+      expect(threadDelivers.mock.calls[0][0].body).toBe(
+        `chatThread.videoInvite ${JSON.stringify({ operator: ROOM.operator, url: ROOM_WITH_DEFAULT })}`,
+      )
+      expect(room.location.href).toBe(ROOM_WITH_DEFAULT)
+    })
+
+    it('trims the topic it sends', async () => {
+      browserOpens()
+      serverRooms.mockResolvedValue({ data: { chatVideoRoom: ROOM } })
+      threadDelivers.mockResolvedValue(true)
+      await asked()
+      await topicField().setValue('  Lesekreis  ')
+
+      await start()
+
+      expect(room.location.href).toBe(withChatVideoTopic(ROOM.url, 'Lesekreis'))
+    })
+
+    // What the field said at the press is the call's topic: typing while the room is on its way
+    // changes nothing about the invitation that goes out.
+    it('takes the topic as the field held it at the press', async () => {
+      browserOpens()
+      const offer = held()
+      serverRooms.mockReturnValue(offer.promise)
+      threadDelivers.mockResolvedValue(true)
+      await asked()
+      await topicField().setValue('Lesekreis')
+
+      await inDialog('start').trigger('click')
+      await topicField().setValue('Etwas anderes')
+      offer.release({ data: { chatVideoRoom: ROOM } })
+      await flushPromises()
+
+      const address = withChatVideoTopic(ROOM.url, 'Lesekreis')
+      expect(threadDelivers.mock.calls[0][0].body).toBe(
+        `chatThread.videoInviteTopic ${JSON.stringify({ topic: 'Lesekreis', operator: ROOM.operator, url: address })}`,
+      )
+      expect(room.location.href).toBe(address)
+    })
+
+    // The default in the words of the moment -- in English "Video call": it fills the field, and
+    // as the default it leaves the invitation reading as it always did.
+    it('fills in the default, and knows it, in the words of the moment', async () => {
+      browserOpens()
+      serverRooms.mockResolvedValue({ data: { chatVideoRoom: ROOM } })
+      threadDelivers.mockResolvedValue(true)
+      words['chatThread.videoTopicDefault'] = 'Video call'
+      try {
+        await asked()
+        expect(topicField().element.value).toBe('Video call')
+        await start()
+      } finally {
+        words['chatThread.videoTopicDefault'] = 'Videoanruf'
+      }
+
+      const address = withChatVideoTopic(ROOM.url, 'Video call')
+      expect(address).toContain('#config.subject=%22Video%20call%22')
+      expect(threadDelivers.mock.calls[0][0].body).toBe(
+        `chatThread.videoInvite ${JSON.stringify({ operator: ROOM.operator, url: address })}`,
       )
     })
 
@@ -1033,7 +1268,7 @@ describe('ContactWindow', () => {
       delivery.release(true)
       await flushPromises()
 
-      expect(room.location.href).toBe(ROOM.url)
+      expect(room.location.href).toBe(ROOM_WITH_DEFAULT)
       expect(room.close).not.toHaveBeenCalled()
       expect(dialog().exists()).toBe(false)
     })
@@ -1093,7 +1328,7 @@ describe('ContactWindow', () => {
 
       expect(opens).toHaveBeenCalledTimes(2)
       expect(threadDelivers).toHaveBeenCalledTimes(1)
-      expect(room.location.href).toBe(ROOM.url)
+      expect(room.location.href).toBe(ROOM_WITH_DEFAULT)
     })
 
     /**
@@ -1112,7 +1347,7 @@ describe('ContactWindow', () => {
       const link = inDialog('open')
       expect(dialog().exists()).toBe(true)
       expect(link.text()).toBe('chatThread.videoOpen')
-      expect(link.attributes('href')).toBe(ROOM.url)
+      expect(link.attributes('href')).toBe(ROOM_WITH_DEFAULT)
       expect(link.attributes('target')).toBe('_blank')
       expect(link.attributes('rel')).toBe('noopener noreferrer')
       expect(inDialog('start').exists()).toBe(false)
@@ -1135,7 +1370,7 @@ describe('ContactWindow', () => {
       await flushPromises()
 
       expect(room.location.href).toBe('')
-      expect(inDialog('open').attributes('href')).toBe(ROOM.url)
+      expect(inDialog('open').attributes('href')).toBe(ROOM_WITH_DEFAULT)
       expect(dialog().exists()).toBe(true)
     })
 
@@ -1222,12 +1457,12 @@ describe('ContactWindow', () => {
 
       expect(opens).toHaveBeenCalledTimes(2)
       expect(threadDelivers).toHaveBeenCalledTimes(1)
-      expect(room.location.href).toBe(ROOM.url)
+      expect(room.location.href).toBe(ROOM_WITH_DEFAULT)
 
       first.release({ data: { chatVideoRoom: { ...ROOM, url: 'https://meet.ffmuc.net/late' } } })
       await flushPromises()
       expect(threadDelivers).toHaveBeenCalledTimes(1)
-      expect(room.location.href).toBe(ROOM.url)
+      expect(room.location.href).toBe(ROOM_WITH_DEFAULT)
     })
 
     // Another person is another conversation: a question about a call with the one before would
@@ -1247,7 +1482,7 @@ describe('ContactWindow', () => {
      * vuex store is written whole into localStorage). The store this window reads is a stand-in
      * without `commit` or `dispatch`: a write would throw.
      */
-    it('writes the address into no log and no storage', async () => {
+    it('writes the address into no log and no storage, nor the topic that goes with it', async () => {
       const logs = ['log', 'info', 'warn', 'error', 'debug'].map((level) =>
         vi.spyOn(console, level),
       )
@@ -1256,12 +1491,1540 @@ describe('ContactWindow', () => {
       serverRooms.mockResolvedValue({ data: { chatVideoRoom: ROOM } })
       threadDelivers.mockResolvedValue(true)
       await asked()
+      await topicField().setValue('Lesekreis Momo')
 
       await start()
 
-      expect(inDialog('open').attributes('href')).toBe(ROOM.url)
+      expect(inDialog('open').attributes('href')).toBe(
+        withChatVideoTopic(ROOM.url, 'Lesekreis Momo'),
+      )
       const written = [...logs, ...stores].flatMap((spy) => spy.mock.calls.flat().map(String))
-      expect(written.filter((line) => line.includes('k7m2x9q4t8wz'))).toEqual([])
+      expect(written.filter((line) => /k7m2x9q4t8wz|Momo/.test(line))).toEqual([])
+    })
+
+    /**
+     * V4b: on a computer a box under "Start call" -- "Start in the Jitsi app" (Bernd, 26.09.2026):
+     * ticked, the same call, and once the invitation went out the room is handed to the app. The
+     * box keeps what it was left at, for the member on this device (chatVideoApp). Whether this
+     * is a computer is the browser's to say: a stand-in for `matchMedia` that answers the one
+     * question asked. jsdom has none -- the phone's answer, the state every test above runs in.
+     */
+    /**
+     * V5 (Bernd, 27.09.2026): a gear at the left of the two buttons -- the server, and the room's
+     * link for people outside the thread. "Zurück · Planen": the server chosen counts at once and
+     * stays, per member on this device, as the box "Start in the Jitsi app" does.
+     */
+    describe('the gear', () => {
+      const gear = () => inDialog('gear')
+      const serverField = () => inDialog('server')
+      const options = () => serverField().findAll('option')
+      /** Where this device keeps the member's server: the store's member, `me-id`. */
+      const KEY = 'chat-video-server:me-id'
+      /** The servers the server names to choose from (chatVideoServerChoices), in its order. */
+      const CHOICES = [
+        { id: 1, host: 'meet.ffmuc.net', operator: 'Freifunk München (Freie Netze München e. V.)' },
+        { id: 2, host: 'meet.systemli.org', operator: 'Systemli' },
+        { id: 7, host: 'meet.example.org', operator: null },
+      ]
+      const SYSTEMLI = {
+        url: 'https://meet.systemli.org/q2w3e4r5t6y7',
+        host: 'meet.systemli.org',
+        operator: 'Systemli',
+      }
+      const FFMUC = {
+        url: 'https://meet.ffmuc.net/z9x8c7v6b5n4',
+        host: 'meet.ffmuc.net',
+        operator: CHOICES[0].operator,
+      }
+
+      /** The clipboard as the browser offers it; a test decides whether it refuses. */
+      let clipboard
+      beforeEach(() => {
+        serverChoices.mockResolvedValue({ data: { chatVideoServerChoices: CHOICES } })
+        clipboard = vi.fn().mockResolvedValue(undefined)
+        Object.defineProperty(navigator, 'clipboard', {
+          value: { writeText: clipboard },
+          configurable: true,
+        })
+      })
+
+      afterEach(() => {
+        delete navigator.clipboard
+        localStorage.clear()
+      })
+
+      /** The question open, the list of servers in. */
+      const askedWithChoices = async (options = {}) => {
+        await asked(options)
+        await flushPromises()
+      }
+
+      /** The gear's view open, and what it asked for in. */
+      const inSettings = async () => {
+        await gear().trigger('click')
+        await flushPromises()
+      }
+
+      it('stands at the left of the two buttons: a button a keyboard reaches, named by what it opens', async () => {
+        await askedWithChoices()
+
+        const footer = [...dialog().element.querySelectorAll('button')].map((button) =>
+          button.getAttribute('data-test'),
+        )
+        expect(footer.slice(0, 3)).toEqual([
+          'contact-window-video-gear',
+          'contact-window-video-cancel',
+          'contact-window-video-start',
+        ])
+        expect(gear().attributes('type')).toBe('button')
+        expect(gear().attributes('tabindex')).toBeUndefined()
+        expect(gear().attributes('aria-label')).toBe('chatThread.videoSettings')
+        expect(gear().attributes('title')).toBe('chatThread.videoSettings')
+        expect(gear().attributes('aria-disabled')).toBe('false')
+      })
+
+      // Phones as well: the server and the link are no computer's business alone (the box is).
+      it('stands on a phone as well', async () => {
+        vi.stubGlobal('matchMedia', () => ({ matches: false }))
+        await askedWithChoices()
+
+        expect(gear().exists()).toBe(true)
+        expect(wrapper.find('[data-test="chat-video-app-box"]').exists()).toBe(false)
+        vi.unstubAllGlobals()
+      })
+
+      // A check every ten minutes may take a server out or bring it back.
+      it('asks for the servers to choose from with every question, past the cache', async () => {
+        await askedWithChoices()
+        await inDialog('cancel').trigger('click')
+        await camera().trigger('click')
+
+        expect(serverChoices).toHaveBeenCalledTimes(2)
+        expect(serverChoices).toHaveBeenCalledWith({
+          query: chatVideoServerChoices,
+          fetchPolicy: 'network-only',
+        })
+      })
+
+      it('shows its view in the question\'s place: the title, the topic, the servers, and only "Back"', async () => {
+        await askedWithChoices()
+        await topicField().setValue('Lesekreis')
+
+        await inSettings()
+
+        expect(inDialog('settings-title').text()).toBe(
+          'chatThread.videoSettingsTitle {"name":"Carla-Sonne"}',
+        )
+        expect(inDialog('settings-topic').text()).toBe(
+          'chatThread.videoTopicLine {"topic":"Lesekreis"}',
+        )
+        expect(options().map((option) => option.text())).toEqual([
+          'chatThread.videoServerRandom',
+          'meet.ffmuc.net – Freifunk München (Freie Netze München e. V.)',
+          'meet.systemli.org – Systemli',
+          'meet.example.org',
+        ])
+        expect(wrapper.find(`label[for="${serverField().attributes('id')}"]`).text()).toBe(
+          'chatThread.videoServer',
+        )
+        expect(inDialog('title').exists()).toBe(false)
+        expect(topicField().exists()).toBe(false)
+        expect(inDialog('start').exists()).toBe(false)
+        expect(inDialog('cancel').exists()).toBe(false)
+        expect(gear().exists()).toBe(false)
+        expect(inDialog('back').text()).toBe('back')
+      })
+
+      it('names the default topic where the field was emptied', async () => {
+        await askedWithChoices()
+        await topicField().setValue('   ')
+
+        await inSettings()
+
+        expect(inDialog('settings-topic').text()).toBe(
+          'chatThread.videoTopicLine {"topic":"Videoanruf"}',
+        )
+      })
+
+      it('returns to the question on "Back", the topic as it was', async () => {
+        await askedWithChoices()
+        await topicField().setValue('Lesekreis')
+        await inSettings()
+
+        await inDialog('back').trigger('click')
+
+        expect(inDialog('title').exists()).toBe(true)
+        expect(topicField().element.value).toBe('Lesekreis')
+        expect(inDialog('settings-title').exists()).toBe(false)
+      })
+
+      it('focuses the field as its view opens, and the gear again on "Back"', async () => {
+        const focused = vi.spyOn(HTMLElement.prototype, 'focus')
+        await askedWithChoices()
+
+        await inSettings()
+        expect(focused.mock.contexts.at(-1)).toBe(serverField().element)
+
+        await inDialog('back').trigger('click')
+        await flushPromises()
+        expect(focused.mock.contexts.at(-1)).toBe(gear().element)
+      })
+
+      it('offers "at random" first, chosen where nothing is remembered', async () => {
+        await askedWithChoices()
+        await inSettings()
+
+        expect(options()[0].element.selected).toBe(true)
+      })
+
+      it('remembers the server chosen at once, for this member on this device; "at random" forgets it', async () => {
+        localStorage.setItem('chat-video-server:other-id', '1')
+        await askedWithChoices()
+        await inSettings()
+
+        await options()[2].setSelected()
+        expect(localStorage.getItem(KEY)).toBe('2')
+
+        await options()[0].setSelected()
+        expect(localStorage.getItem(KEY)).toBeNull()
+        expect(localStorage.getItem('chat-video-server:other-id')).toBe('1')
+      })
+
+      it('names the server remembered in the question, and starts the call on it', async () => {
+        localStorage.setItem(KEY, '2')
+        browserOpens()
+        serverRooms.mockResolvedValue({ data: { chatVideoRoom: SYSTEMLI } })
+        threadDelivers.mockResolvedValue(true)
+        await askedWithChoices()
+
+        expect(inDialog('server-chosen').text()).toBe(
+          'chatThread.videoServerChosen {"host":"meet.systemli.org"}',
+        )
+        await start()
+
+        expect(serverRooms).toHaveBeenCalledTimes(1)
+        expect(serverRooms).toHaveBeenCalledWith({
+          query: chatVideoRoom,
+          variables: { serverId: 2 },
+          fetchPolicy: 'no-cache',
+        })
+        const address = withChatVideoTopic(SYSTEMLI.url, 'Videoanruf')
+        expect(threadDelivers.mock.calls[0][0].body).toBe(
+          `chatThread.videoInvite ${JSON.stringify({ operator: 'Systemli', url: address })}`,
+        )
+        expect(room.location.href).toBe(address)
+      })
+
+      it('shows the server remembered as chosen in its view', async () => {
+        localStorage.setItem(KEY, '7')
+        await askedWithChoices()
+        await inSettings()
+
+        expect(options()[3].element.selected).toBe(true)
+      })
+
+      // A server switched off or not answering since: the call goes at random, as before, and the
+      // choice stays for when it is back.
+      it('goes at random where the server remembered is not to be had, and keeps it remembered', async () => {
+        localStorage.setItem(KEY, '5')
+        browserOpens()
+        serverRooms.mockResolvedValue({ data: { chatVideoRoom: ROOM } })
+        threadDelivers.mockResolvedValue(true)
+        await askedWithChoices()
+
+        expect(inDialog('server-chosen').exists()).toBe(false)
+        await start()
+
+        expect(serverRooms).toHaveBeenCalledWith({ query: chatVideoRoom, fetchPolicy: 'no-cache' })
+        expect(serverRooms.mock.calls[0][0]).not.toHaveProperty('variables')
+        expect(localStorage.getItem(KEY)).toBe('5')
+      })
+
+      it('goes at random where the list could not be had', async () => {
+        localStorage.setItem(KEY, '2')
+        serverChoices.mockRejectedValue(new Error('Network error'))
+        browserOpens()
+        serverRooms.mockResolvedValue({ data: { chatVideoRoom: ROOM } })
+        threadDelivers.mockResolvedValue(true)
+        await askedWithChoices()
+
+        await start()
+
+        expect(serverRooms.mock.calls[0][0]).not.toHaveProperty('variables')
+        expect(room.location.href).toBe(ROOM_WITH_DEFAULT)
+      })
+
+      // A press before the list is in still goes to the server remembered.
+      it('waits for the list before a quick press decides the server', async () => {
+        localStorage.setItem(KEY, '2')
+        const list = held()
+        serverChoices.mockReturnValue(list.promise)
+        browserOpens()
+        serverRooms.mockResolvedValue({ data: { chatVideoRoom: SYSTEMLI } })
+        threadDelivers.mockResolvedValue(true)
+        await asked()
+
+        inDialog('start').element.click()
+        await flushPromises()
+        expect(serverRooms).not.toHaveBeenCalled()
+
+        list.release({ data: { chatVideoServerChoices: CHOICES } })
+        await flushPromises()
+        expect(serverRooms.mock.calls[0][0].variables).toEqual({ serverId: 2 })
+      })
+
+      /**
+       * ⛔ The room is asked for as the view opens, so that the clipboard is written in the click
+       * itself: Safari does not count a write after a round trip as one in answer to a tap. The
+       * press is dispatched by hand and nothing is awaited before the clipboard is looked at.
+       */
+      it('asks for the room as its view opens, and copies the whole link in the click', async () => {
+        localStorage.setItem(KEY, '2')
+        serverRooms.mockResolvedValue({ data: { chatVideoRoom: SYSTEMLI } })
+        await askedWithChoices()
+        await topicField().setValue('Lesekreis')
+
+        await inSettings()
+        expect(serverRooms).toHaveBeenCalledTimes(1)
+        expect(serverRooms.mock.calls[0][0].variables).toEqual({ serverId: 2 })
+
+        inDialog('copy').element.click()
+        const link = withChatVideoTopic(SYSTEMLI.url, 'Lesekreis')
+        expect(clipboard).toHaveBeenCalledWith(link)
+
+        await flushPromises()
+        expect(inDialog('copy').text()).toBe('chatThread.videoLinkCopied')
+        expect(inDialog('link').text()).toBe(link)
+        expect(serverRooms).toHaveBeenCalledTimes(1)
+      })
+
+      it('awaits the room where it is not in yet, and copies it then', async () => {
+        const offer = held()
+        serverRooms.mockReturnValue(offer.promise)
+        await askedWithChoices()
+        await inSettings()
+
+        inDialog('copy').element.click()
+        expect(clipboard).not.toHaveBeenCalled()
+
+        offer.release({ data: { chatVideoRoom: ROOM } })
+        await flushPromises()
+        expect(clipboard).toHaveBeenCalledWith(ROOM_WITH_DEFAULT)
+        expect(serverRooms).toHaveBeenCalledTimes(1)
+      })
+
+      // The people the link went to and the person invited meet in the same room.
+      it('sends the room it copied, when the call is started from this question', async () => {
+        localStorage.setItem(KEY, '2')
+        browserOpens()
+        serverRooms.mockResolvedValue({ data: { chatVideoRoom: SYSTEMLI } })
+        threadDelivers.mockResolvedValue(true)
+        await askedWithChoices()
+        await inSettings()
+        await inDialog('copy').trigger('click')
+        await flushPromises()
+        await inDialog('back').trigger('click')
+
+        await start()
+
+        expect(serverRooms).toHaveBeenCalledTimes(1)
+        expect(room.location.href).toBe(withChatVideoTopic(SYSTEMLI.url, 'Videoanruf'))
+      })
+
+      it('shows the link where the browser refuses the clipboard, and does not say it was copied', async () => {
+        clipboard.mockRejectedValue(new Error('NotAllowedError'))
+        serverRooms.mockResolvedValue({ data: { chatVideoRoom: ROOM } })
+        await askedWithChoices()
+        await inSettings()
+
+        await inDialog('copy').trigger('click')
+        await flushPromises()
+
+        expect(inDialog('link').text()).toBe(ROOM_WITH_DEFAULT)
+        expect(inDialog('copy').text()).toBe('chatThread.videoCopyLink')
+      })
+
+      it('shows the link where there is no clipboard at all', async () => {
+        delete navigator.clipboard
+        serverRooms.mockResolvedValue({ data: { chatVideoRoom: ROOM } })
+        await askedWithChoices()
+        await inSettings()
+
+        await inDialog('copy').trigger('click')
+        await flushPromises()
+
+        expect(inDialog('link').text()).toBe(ROOM_WITH_DEFAULT)
+        expect(inDialog('copy').text()).toBe('chatThread.videoCopyLink')
+      })
+
+      // Another server is another room: the link copied for the last one is not this one's.
+      it('lets the link go when another server is chosen, and asks for a room on that one', async () => {
+        localStorage.setItem(KEY, '2')
+        browserOpens()
+        serverRooms
+          .mockResolvedValueOnce({ data: { chatVideoRoom: SYSTEMLI } })
+          .mockResolvedValueOnce({ data: { chatVideoRoom: FFMUC } })
+        threadDelivers.mockResolvedValue(true)
+        await askedWithChoices()
+        await inSettings()
+        await inDialog('copy').trigger('click')
+        await flushPromises()
+
+        await options()[1].setSelected()
+        await flushPromises()
+
+        expect(inDialog('link').exists()).toBe(false)
+        expect(inDialog('copy').text()).toBe('chatThread.videoCopyLink')
+        expect(serverRooms.mock.calls[1][0].variables).toEqual({ serverId: 1 })
+        await inDialog('back').trigger('click')
+        await start()
+        expect(serverRooms).toHaveBeenCalledTimes(2)
+        expect(room.location.href).toBe(withChatVideoTopic(FFMUC.url, 'Videoanruf'))
+      })
+
+      // A copy still waiting for the last server's room would put that room on the clipboard while
+      // the new server is shown -- and the call would go to another room (coderabbit, #3994).
+      it('lets a copy on its way go when another server is chosen', async () => {
+        localStorage.setItem(KEY, '2')
+        const late = held()
+        serverRooms
+          .mockReturnValueOnce(late.promise)
+          .mockResolvedValueOnce({ data: { chatVideoRoom: FFMUC } })
+        await askedWithChoices()
+        await inSettings()
+        inDialog('copy').element.click()
+
+        await options()[1].setSelected()
+        late.release({ data: { chatVideoRoom: SYSTEMLI } })
+        await flushPromises()
+
+        expect(clipboard).not.toHaveBeenCalled()
+        expect(inDialog('link').exists()).toBe(false)
+        expect(inDialog('copy').text()).toBe('chatThread.videoCopyLink')
+
+        await inDialog('copy').trigger('click')
+        await flushPromises()
+        expect(clipboard).toHaveBeenCalledWith(withChatVideoTopic(FFMUC.url, 'Videoanruf'))
+      })
+
+      it('says so where the chosen server is no longer to be had, at the start', async () => {
+        localStorage.setItem(KEY, '2')
+        browserOpens()
+        serverRooms.mockRejectedValue(new Error('CHAT_VIDEO_SERVER_UNAVAILABLE'))
+        await askedWithChoices()
+
+        await start()
+
+        expect(inDialog('problem').text()).toBe('chatThread.videoServerGone')
+        expect(room.close).toHaveBeenCalledTimes(1)
+        expect(threadDelivers).not.toHaveBeenCalled()
+      })
+
+      it('says so in its view where the chosen server is no longer to be had, and copies nothing', async () => {
+        localStorage.setItem(KEY, '2')
+        serverRooms.mockRejectedValue(new Error('CHAT_VIDEO_SERVER_UNAVAILABLE'))
+        await askedWithChoices()
+        await inSettings()
+
+        await inDialog('copy').trigger('click')
+        await flushPromises()
+
+        expect(inDialog('settings-problem').text()).toBe('chatThread.videoServerGone')
+        expect(clipboard).not.toHaveBeenCalled()
+        expect(inDialog('link').exists()).toBe(false)
+        // Asked anew at the press: a failed asking is not kept.
+        expect(serverRooms).toHaveBeenCalledTimes(2)
+      })
+
+      it('says there is no server where none answers, at "Copy link"', async () => {
+        serverRooms.mockRejectedValue(new Error('CHAT_VIDEO_NO_SERVER'))
+        await askedWithChoices()
+        await inSettings()
+
+        await inDialog('copy').trigger('click')
+        await flushPromises()
+
+        expect(inDialog('settings-problem').text()).toBe('chatThread.videoNoServer')
+      })
+
+      it('lets the sentence go on "Back"', async () => {
+        serverRooms.mockRejectedValue(new Error('CHAT_VIDEO_NO_SERVER'))
+        await askedWithChoices()
+        await inSettings()
+        await inDialog('copy').trigger('click')
+        await flushPromises()
+
+        await inDialog('back').trigger('click')
+
+        expect(inDialog('problem').exists()).toBe(false)
+      })
+
+      it('waits while a call is being made, as the start button does', async () => {
+        browserOpens()
+        serverRooms.mockReturnValue(held().promise)
+        await askedWithChoices()
+        await inDialog('start').trigger('click')
+
+        expect(gear().attributes('aria-disabled')).toBe('true')
+        await gear().trigger('click')
+        expect(inDialog('settings-title').exists()).toBe(false)
+      })
+
+      it('lets the room go with the question: the next question asks for another', async () => {
+        serverRooms.mockResolvedValue({ data: { chatVideoRoom: ROOM } })
+        await askedWithChoices()
+        await inSettings()
+        await inDialog('back').trigger('click')
+        await inDialog('cancel').trigger('click')
+
+        await camera().trigger('click')
+        await flushPromises()
+        await inSettings()
+
+        expect(serverRooms).toHaveBeenCalledTimes(2)
+        expect(inDialog('link').exists()).toBe(false)
+      })
+
+      // Closed while its view is open -- Escape, or a tap beside the dialog: the next question
+      // opens on the question.
+      it('opens on the question, not on its view, the next time', async () => {
+        const question = () =>
+          wrapper
+            .findAllComponents({ name: 'BModal' })
+            .find((modal) => modal.attributes('data-test') === 'contact-window-video-dialog')
+        await askedWithChoices()
+        await inSettings()
+
+        question().vm.$emit('update:modelValue', false)
+        await flushPromises()
+        await camera().trigger('click')
+
+        expect(inDialog('title').exists()).toBe(true)
+        expect(inDialog('settings-title').exists()).toBe(false)
+      })
+
+      // ⛔ The address is the call's secret: only the server's id is kept on the device.
+      it('keeps the room out of every store: only the server chosen stays', async () => {
+        serverRooms.mockResolvedValue({ data: { chatVideoRoom: SYSTEMLI } })
+        await askedWithChoices()
+        await inSettings()
+        await options()[2].setSelected()
+        await flushPromises()
+        await inDialog('copy').trigger('click')
+        await flushPromises()
+
+        expect({ ...localStorage }).toEqual({ [KEY]: '2' })
+        expect(JSON.stringify({ ...sessionStorage })).not.toContain('q2w3e4r5t6y7')
+      })
+    })
+
+    /**
+     * V5b (Bernd, 27.09.2026): "aus einem Pickup-Kalender ein Datum und eine Uhrzeit von bis" in
+     * the gear's view, "Bei Planen werden dann die Sitzungsdaten in die Chat-Bubble eingetragen",
+     * and the calendar file of the same call. The tests run in UTC (TZ=UTC): the fields' own time
+     * is UTC here.
+     */
+    describe('planning a call', () => {
+      const KEY = 'chat-video-server:me-id'
+      const CHOICES = [
+        { id: 1, host: 'meet.ffmuc.net', operator: 'Freifunk München (Freie Netze München e. V.)' },
+        { id: 2, host: 'meet.systemli.org', operator: 'Systemli' },
+      ]
+      const SYSTEMLI = {
+        url: 'https://meet.systemli.org/q2w3e4r5t6y7',
+        host: 'meet.systemli.org',
+        operator: 'Systemli',
+      }
+      const START = new Date('2026-09-30T15:00:00.000Z')
+      const END = new Date('2026-09-30T16:00:00.000Z')
+      /** The time of the call as the plan's words carry it: the day, and the key with the times. */
+      const TIME = `chatThread.videoPlannedTime ${JSON.stringify({
+        from: `time(${START.toISOString()})`,
+        to: `time(${END.toISOString()})`,
+        zone: 'UTC',
+      })}`
+      const DAY = 'Mittwoch, 30. September 2026'
+      const field = (name) => inDialog(name)
+      const gear = () => inDialog('gear')
+
+      let clipboard
+      beforeEach(() => {
+        serverChoices.mockResolvedValue({ data: { chatVideoServerChoices: CHOICES } })
+        clipboard = vi.fn().mockResolvedValue(undefined)
+        Object.defineProperty(navigator, 'clipboard', {
+          value: { writeText: clipboard },
+          configurable: true,
+        })
+        localStorage.setItem(KEY, '2')
+      })
+
+      afterEach(() => {
+        delete navigator.clipboard
+        localStorage.clear()
+      })
+
+      /** The gear's view open, the list of servers in. */
+      const inSettings = async ({ exists = true } = {}) => {
+        await asked({ exists })
+        await flushPromises()
+        await gear().trigger('click')
+        await flushPromises()
+      }
+
+      /** The fields filled as a member fills them: the day, the start (the end follows), the end. */
+      const when = async ({ day = '2026-09-30', from = '15:00', to } = {}) => {
+        await field('day').setValue(day)
+        await field('from').setValue(from)
+        await field('from').trigger('change')
+        if (to !== undefined) await field('to').setValue(to)
+      }
+
+      const plan = async () => {
+        await field('plan').trigger('click')
+        await flushPromises()
+      }
+
+      it('offers a day, a start and an end under the server, each named, empty', async () => {
+        await inSettings()
+
+        for (const [name, type, label] of [
+          ['day', 'date', 'chatThread.videoDate'],
+          ['from', 'time', 'chatThread.videoFrom'],
+          ['to', 'time', 'chatThread.videoTo'],
+        ]) {
+          const input = field(name)
+          expect(input.attributes('type'), name).toBe(type)
+          expect(input.element.value, name).toBe('')
+          expect(wrapper.find(`label[for="${input.attributes('id')}"]`).text()).toBe(label)
+        }
+        expect(field('from').attributes('step')).toBe('300')
+        expect(field('day').attributes('min')).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+        const group = field('day').element.closest('[role="group"]')
+        expect(
+          group.querySelector(`#${group.getAttribute('aria-labelledby')}`).textContent.trim(),
+        ).toBe('chatThread.videoWhen')
+      })
+
+      it('names the time zone the fields mean', async () => {
+        await inSettings()
+
+        expect(field('when-hint').text()).toBe('chatThread.videoWhenHint {"zone":"UTC"}')
+      })
+
+      it('empties the day and the times again for the next question', async () => {
+        await inSettings()
+        await when({ to: '17:00' })
+        await field('back').trigger('click')
+        await inDialog('cancel').trigger('click')
+
+        await camera().trigger('click')
+        await flushPromises()
+        await gear().trigger('click')
+
+        expect(field('day').element.value).toBe('')
+        expect(field('from').element.value).toBe('')
+        expect(field('to').element.value).toBe('')
+      })
+
+      it('puts the end an hour after the start, and keeps an end chosen by hand', async () => {
+        await inSettings()
+
+        await when({ from: '15:00' })
+        expect(field('to').element.value).toBe('16:00')
+
+        await field('to').setValue('17:30')
+        await field('from').setValue('16:00')
+        await field('from').trigger('change')
+        expect(field('to').element.value).toBe('17:30')
+
+        await field('from').setValue('18:00')
+        await field('from').trigger('change')
+        expect(field('to').element.value).toBe('19:00')
+
+        await field('from').setValue('23:30')
+        await field('from').trigger('change')
+        expect(field('to').element.value).toBe('23:59')
+      })
+
+      it.each([
+        ['no day', { day: '' }],
+        ['the end before the start', { to: '14:00' }],
+      ])('says what is missing where %s, and sends nothing', async (_, fields) => {
+        serverRooms.mockResolvedValue({ data: { chatVideoRoom: SYSTEMLI } })
+        threadDelivers.mockResolvedValue(true)
+        await inSettings()
+        await when(fields)
+        serverRooms.mockClear()
+
+        await plan()
+
+        expect(field('settings-problem').text()).toBe('chatThread.videoPlanIncomplete')
+        expect(serverRooms).not.toHaveBeenCalled()
+        expect(threadDelivers).not.toHaveBeenCalled()
+        expect(dialog().exists()).toBe(true)
+      })
+
+      it('sends the invitation with the day and the time, on the server chosen, opens no room, and closes', async () => {
+        browserOpens()
+        serverRooms.mockResolvedValue({ data: { chatVideoRoom: SYSTEMLI } })
+        threadDelivers.mockResolvedValue(true)
+        await inSettings()
+        await when()
+
+        await plan()
+
+        const url = withChatVideoTopic(SYSTEMLI.url, 'Videoanruf', { start: START, end: END })
+        expect(url).toContain('&gradido.start=1790780400&gradido.end=1790784000')
+        expect(threadDelivers).toHaveBeenCalledTimes(1)
+        expect(threadDelivers).toHaveBeenCalledWith(
+          {
+            body: `chatThread.videoInvitePlanned ${JSON.stringify({ date: DAY, time: TIME, operator: 'Systemli', url })}`,
+            notify: 'NONE',
+          },
+          'carla-id',
+        )
+        expect(serverRooms).toHaveBeenCalledWith({
+          query: chatVideoRoom,
+          variables: { serverId: 2 },
+          fetchPolicy: 'no-cache',
+        })
+        expect(opens).not.toHaveBeenCalled()
+        expect(dialog().exists()).toBe(false)
+      })
+
+      it('names a topic of its own on a line of its own', async () => {
+        serverRooms.mockResolvedValue({ data: { chatVideoRoom: SYSTEMLI } })
+        threadDelivers.mockResolvedValue(true)
+        await asked()
+        await flushPromises()
+        await topicField().setValue('Lesekreis')
+        await gear().trigger('click')
+        await flushPromises()
+        await when()
+
+        await plan()
+
+        const url = withChatVideoTopic(SYSTEMLI.url, 'Lesekreis', { start: START, end: END })
+        expect(threadDelivers.mock.calls[0][0].body).toBe(
+          `chatThread.videoInvitePlannedTopic ${JSON.stringify({ topic: 'Lesekreis', date: DAY, time: TIME, operator: 'Systemli', url })}`,
+        )
+      })
+
+      // The people the link went to and the person invited meet in one room.
+      it('sends the room a copied link already went out for', async () => {
+        serverRooms.mockResolvedValue({ data: { chatVideoRoom: SYSTEMLI } })
+        threadDelivers.mockResolvedValue(true)
+        await inSettings()
+        await field('copy').trigger('click')
+        await flushPromises()
+        await when()
+
+        await plan()
+
+        expect(serverRooms).toHaveBeenCalledTimes(1)
+        expect(threadDelivers.mock.calls[0][0].body).toContain(SYSTEMLI.url)
+      })
+
+      it('offers the question’s box, and sends by mail as well where it is ticked', async () => {
+        serverRooms.mockResolvedValue({ data: { chatVideoRoom: SYSTEMLI } })
+        threadDelivers.mockResolvedValue(true)
+        await asked()
+        await flushPromises()
+        await inDialog('email').setValue(true)
+        await gear().trigger('click')
+        await flushPromises()
+
+        expect(field('plan-body').text()).toBe('chatThread.videoPlanBody {"name":"Carla-Sonne"}')
+        expect(field('plan-email').element.checked).toBe(true)
+        await when()
+        await plan()
+
+        expect(threadDelivers.mock.calls[0][0].notify).toBe('EMAIL')
+      })
+
+      // E-024: the first message of a pair goes by mail in any case -- nothing to choose.
+      it('says the first message goes by mail as well, and offers no box for it', async () => {
+        serverRooms.mockResolvedValue({ data: { chatVideoRoom: SYSTEMLI } })
+        threadDelivers.mockResolvedValue(true)
+        await inSettings({ exists: false })
+
+        expect(field('plan-body').text()).toBe('chatThread.videoPlanFirst {"name":"Carla-Sonne"}')
+        expect(field('plan-email').exists()).toBe(false)
+        await when()
+        await plan()
+        expect(threadDelivers.mock.calls[0][0].notify).toBe('EMAIL')
+      })
+
+      it('waits while the invitation is on its way: a second press, the server, the link and the file wait too', async () => {
+        const saved = vi.fn()
+        URL.createObjectURL = saved
+        const delivery = held()
+        serverRooms.mockResolvedValue({ data: { chatVideoRoom: SYSTEMLI } })
+        threadDelivers.mockReturnValue(delivery.promise)
+        await inSettings()
+        await when()
+
+        await plan()
+        expect(field('plan').attributes('aria-disabled')).toBe('true')
+        expect(field('server').element.disabled).toBe(true)
+        await plan()
+        await field('copy').trigger('click')
+        await field('calendar').trigger('click')
+        await flushPromises()
+
+        expect(threadDelivers).toHaveBeenCalledTimes(1)
+        expect(clipboard).not.toHaveBeenCalled()
+        expect(saved).not.toHaveBeenCalled()
+        delivery.release(true)
+        await flushPromises()
+        expect(dialog().exists()).toBe(false)
+        delete URL.createObjectURL
+      })
+
+      // The member's own presses just before "Plan" are not let go by it: the same room either way.
+      it('lets a copy pressed just before it finish, in the same room', async () => {
+        const room = held()
+        serverRooms.mockReturnValue(room.promise)
+        threadDelivers.mockResolvedValue(true)
+        await inSettings()
+        await when()
+
+        await field('copy').trigger('click')
+        await plan()
+        room.release({ data: { chatVideoRoom: SYSTEMLI } })
+        await flushPromises()
+
+        expect(serverRooms).toHaveBeenCalledTimes(1)
+        expect(clipboard).toHaveBeenCalledWith(withChatVideoTopic(SYSTEMLI.url, 'Videoanruf'))
+        expect(threadDelivers.mock.calls[0][0].body).toContain(SYSTEMLI.url)
+        expect(dialog().exists()).toBe(false)
+      })
+
+      it('names the server’s address where it has no operator', async () => {
+        serverRooms.mockResolvedValue({ data: { chatVideoRoom: { ...SYSTEMLI, operator: null } } })
+        threadDelivers.mockResolvedValue(true)
+        await inSettings()
+        await when()
+
+        await plan()
+
+        expect(threadDelivers.mock.calls[0][0].body).toContain('"operator":"meet.systemli.org"')
+      })
+
+      it('says so where the invitation did not go out, and stays', async () => {
+        serverRooms.mockResolvedValue({ data: { chatVideoRoom: SYSTEMLI } })
+        threadDelivers.mockResolvedValue(false)
+        await inSettings()
+        await when()
+
+        await plan()
+
+        expect(field('settings-problem').text()).toBe('chatThread.videoNotSent')
+        expect(field('plan').attributes('aria-disabled')).toBe('false')
+        expect(dialog().exists()).toBe(true)
+      })
+
+      it('says so where the chosen server is no longer to be had', async () => {
+        serverRooms.mockRejectedValue(new Error('CHAT_VIDEO_SERVER_UNAVAILABLE'))
+        threadDelivers.mockResolvedValue(true)
+        await inSettings()
+        await when()
+
+        await plan()
+
+        expect(field('settings-problem').text()).toBe('chatThread.videoServerGone')
+        expect(threadDelivers).not.toHaveBeenCalled()
+      })
+
+      describe('the calendar file', () => {
+        let blobs
+        let saved
+        beforeEach(() => {
+          blobs = []
+          URL.createObjectURL = (blob) => {
+            blobs.push(blob)
+            return 'blob:calendar'
+          }
+          URL.revokeObjectURL = vi.fn()
+          saved = []
+          vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function () {
+            saved.push(this.download)
+          })
+        })
+
+        afterEach(() => {
+          delete URL.createObjectURL
+          delete URL.revokeObjectURL
+        })
+
+        const text = (blob) =>
+          new Promise((resolve) => {
+            const reader = new FileReader()
+            reader.onload = () => resolve(reader.result)
+            reader.readAsText(blob)
+          })
+
+        it('saves the planned call: its time, its title, the invitation as its note, the room -- and sends nothing', async () => {
+          serverRooms.mockResolvedValue({ data: { chatVideoRoom: SYSTEMLI } })
+          await inSettings()
+          await when()
+
+          await field('calendar').trigger('click')
+          await flushPromises()
+
+          expect(saved).toEqual(['Videoanruf-2026-09-30.ics'])
+          const file = (await text(blobs[0])).replace(/\r\n /g, '')
+          const url = withChatVideoTopic(SYSTEMLI.url, 'Videoanruf', { start: START, end: END })
+          expect(file).toContain('DTSTART:20260930T150000Z\r\n')
+          expect(file).toContain('DTEND:20260930T160000Z\r\n')
+          expect(file).toContain('SUMMARY:Videoanruf – Carla-Sonne\r\n')
+          expect(file).toContain(`URL:${url}\r\n`)
+          expect(file).toContain('UID:q2w3e4r5t6y7-1790780400@gradido\r\n')
+          expect(file).toContain('DESCRIPTION:chatThread.videoInvitePlanned')
+          expect(threadDelivers).not.toHaveBeenCalled()
+          expect(dialog().exists()).toBe(true)
+        })
+
+        it('says what is missing without a day, and saves nothing', async () => {
+          await inSettings()
+
+          await field('calendar').trigger('click')
+          await flushPromises()
+
+          expect(field('settings-problem').text()).toBe('chatThread.videoPlanIncomplete')
+          expect(saved).toEqual([])
+        })
+      })
+
+      // The suite's clock is UTC, which knows neither summer nor winter time: on a clock in Berlin
+      // the fields mean Berlin's time, and the zone named is the one of the day chosen.
+      describe('on a clock in Berlin', () => {
+        beforeEach(() => {
+          process.env.TZ = 'Europe/Berlin'
+        })
+
+        afterEach(() => {
+          process.env.TZ = 'UTC'
+        })
+
+        it('names the zone of the day chosen: summer time in September, winter time in December', async () => {
+          await inSettings()
+
+          await when({ day: '2026-09-30' })
+          expect(field('when-hint').text()).toBe('chatThread.videoWhenHint {"zone":"MESZ"}')
+          await field('day').setValue('2026-12-02')
+          expect(field('when-hint').text()).toBe('chatThread.videoWhenHint {"zone":"MEZ"}')
+        })
+
+        it('sends the time the fields show on that clock, its zone named', async () => {
+          serverRooms.mockResolvedValue({ data: { chatVideoRoom: SYSTEMLI } })
+          threadDelivers.mockResolvedValue(true)
+          await inSettings()
+          await when()
+
+          await plan()
+
+          const start = new Date('2026-09-30T13:00:00.000Z')
+          const end = new Date('2026-09-30T14:00:00.000Z')
+          const url = withChatVideoTopic(SYSTEMLI.url, 'Videoanruf', { start, end })
+          expect(url).toContain('&gradido.start=1790773200&gradido.end=1790776800')
+          const time = `chatThread.videoPlannedTime ${JSON.stringify({
+            from: `time(${start.toISOString()})`,
+            to: `time(${end.toISOString()})`,
+            zone: 'MESZ',
+          })}`
+          expect(threadDelivers.mock.calls[0][0].body).toBe(
+            `chatThread.videoInvitePlanned ${JSON.stringify({ date: DAY, time, operator: 'Systemli', url })}`,
+          )
+        })
+      })
+
+      it('gives the waiting look to "Plan" as well, in the stylesheet', () => {
+        const code = readFileSync(
+          join(dirname(fileURLToPath(import.meta.url)), 'ContactWindow.vue'),
+          'utf8',
+        ).replace(/\/\*[\s\S]*?\*\//g, '')
+        expect(code).toMatch(/\.contact-window-video-plan\[aria-disabled='true'\]/)
+        expect(code).toMatch(/\n\.contact-window-video-when\s*\{[^}]*grid-template-columns/)
+        // On a phone the day takes a row of its own, and the two times share the next.
+        expect(code).toMatch(
+          /@media \(width <= 420px\)\s*\{[^@]*\.contact-window-video-when-day\s*\{[^}]*grid-column:\s*1 \/ -1/,
+        )
+      })
+    })
+
+    describe('the box "Start in the Jitsi app"', () => {
+      const onAComputer = () => {
+        vi.stubGlobal('matchMedia', (query) => ({
+          matches: query === '(pointer: fine) and (hover: hover)',
+        }))
+      }
+      const box = () => wrapper.find('[data-test="chat-video-app-box"]')
+      const buttons = () =>
+        dialog()
+          .findAll('button')
+          .map((b) => b.attributes('data-test'))
+      const missed = () => wrapper.find('[data-test="chat-video-app-missed"]')
+      /** The same room as the app's address (chatVideoApp), with the default topic. */
+      const APP_ROOM = 'jitsi-meet://meet.ffmuc.net/k7m2x9q4t8wz#config.subject=%22Videoanruf%22'
+      /** Where this device keeps the member's tick: the store's member, `me-id`. */
+      const KEY = 'chat-video-in-app:me-id'
+
+      /** The links the page followed -- the app's address goes by one (openInJitsiApp). */
+      let followed
+      beforeEach(() => {
+        followed = []
+        vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function () {
+          followed.push(this.href)
+        })
+        // The page has the focus when the member presses: a sign can come.
+        vi.spyOn(document, 'hasFocus').mockReturnValue(true)
+      })
+
+      afterEach(() => {
+        vi.unstubAllGlobals()
+        vi.useRealTimers()
+        localStorage.clear()
+      })
+
+      /** The question on a computer, the box ticked, and a call that will go through. */
+      const tickedAndReady = async ({ exists = true } = {}) => {
+        browserOpens()
+        serverRooms.mockResolvedValue({ data: { chatVideoRoom: ROOM } })
+        threadDelivers.mockResolvedValue(true)
+        onAComputer()
+        await asked({ exists })
+        await box().setValue(true)
+      }
+
+      it('stands under "Start call" on a computer, empty, with no third button', async () => {
+        onAComputer()
+        await asked()
+
+        // The gear at the left is no way of starting (V5).
+        expect(buttons()).toEqual([
+          'contact-window-video-gear',
+          'contact-window-video-cancel',
+          'contact-window-video-start',
+        ])
+        expect(box().element.type).toBe('checkbox')
+        expect(box().element.checked).toBe(false)
+        const label = box().element.closest('label')
+        expect(label.textContent.trim()).toBe('chatThread.videoStartInApp')
+        expect(label.getAttribute('title')).toBe('chatThread.videoInAppHint')
+        // After the start button, on a line of its own at the right.
+        expect(
+          inDialog('start').element.compareDocumentPosition(box().element) &
+            Node.DOCUMENT_POSITION_FOLLOWING,
+        ).toBeTruthy()
+        expect(label.parentElement.classList).toContain('w-100')
+        expect(label.parentElement.classList).toContain('justify-content-end')
+      })
+
+      // Phones and tablets: Jitsi's own page offers its app there.
+      it('is not there on a phone', async () => {
+        vi.stubGlobal('matchMedia', () => ({ matches: false }))
+        localStorage.setItem(KEY, '1')
+        await asked()
+
+        expect(box().exists()).toBe(false)
+        expect(buttons()).toEqual([
+          'contact-window-video-gear',
+          'contact-window-video-cancel',
+          'contact-window-video-start',
+        ])
+      })
+
+      // A tick kept from a computer changes nothing where the box is not offered.
+      it("goes the browser's way on a phone, whatever the device keeps", async () => {
+        vi.stubGlobal('matchMedia', () => ({ matches: false }))
+        localStorage.setItem(KEY, '1')
+        browserOpens()
+        serverRooms.mockResolvedValue({ data: { chatVideoRoom: ROOM } })
+        threadDelivers.mockResolvedValue(true)
+        await asked()
+
+        await start()
+
+        expect(opens).toHaveBeenCalledTimes(1)
+        expect(room.location.href).toBe(ROOM_WITH_DEFAULT)
+        expect(followed).toEqual([])
+      })
+
+      it('is ticked where the member left it ticked on this device', async () => {
+        localStorage.setItem(KEY, '1')
+        onAComputer()
+        await asked()
+
+        expect(box().element.checked).toBe(true)
+      })
+
+      // ⛔ The tick as it is now, at once -- not the state before the click.
+      it("keeps the member's tick at once, and forgets it once the box is emptied", async () => {
+        onAComputer()
+        await asked()
+
+        await box().setValue(true)
+        expect(localStorage.getItem(KEY)).toBe('1')
+
+        await box().setValue(false)
+        expect(localStorage.getItem(KEY)).toBeNull()
+      })
+
+      it('is empty where only somebody else on this device left it ticked', async () => {
+        localStorage.setItem('chat-video-in-app:somebody-else', '1')
+        onAComputer()
+        await asked()
+
+        expect(box().element.checked).toBe(false)
+      })
+
+      /**
+       * ⛔ No window: the room is opened in the app, not in a tab. Asked for past the cache, and
+       * sent through the thread with the topic and the wish -- the invitation the browser's way
+       * sends, word for word.
+       */
+      it("opens no window, and sends the invitation the browser's way sends", async () => {
+        const topic = 'Lesekreis „Momo“'
+        await tickedAndReady({ exists: true })
+        await topicField().setValue(topic)
+        await inDialog('email').setValue(true)
+
+        await start()
+
+        expect(opens).not.toHaveBeenCalled()
+        expect(serverRooms).toHaveBeenCalledTimes(1)
+        expect(serverRooms).toHaveBeenCalledWith({ query: chatVideoRoom, fetchPolicy: 'no-cache' })
+        expect(threadDelivers).toHaveBeenCalledTimes(1)
+        expect(threadDelivers).toHaveBeenCalledWith(
+          {
+            body: `chatThread.videoInviteTopic ${JSON.stringify({ topic, operator: ROOM.operator, url: withChatVideoTopic(ROOM.url, topic) })}`,
+            notify: 'EMAIL',
+          },
+          'carla-id',
+        )
+        const inApp = threadDelivers.mock.calls[0]
+        wrapper.unmount()
+
+        await asked({ exists: true })
+        await box().setValue(false)
+        await topicField().setValue(topic)
+        await inDialog('email').setValue(true)
+        await start()
+        expect(threadDelivers.mock.calls[1]).toEqual(inApp)
+      })
+
+      // The first message of a pair asks for a mail here too (E-024).
+      it('asks for a mail with the first message', async () => {
+        await tickedAndReady({ exists: false })
+
+        await start()
+
+        expect(threadDelivers.mock.calls[0][0].notify).toBe('EMAIL')
+      })
+
+      // ⛔ A room nobody else knows is not entered: the app gets it once the invitation is out.
+      it('hands the room to the app once the invitation went out, and not before', async () => {
+        await tickedAndReady()
+        const delivery = held()
+        threadDelivers.mockReturnValue(delivery.promise)
+
+        await inDialog('start').trigger('click')
+        await flushPromises()
+        expect(followed).toEqual([])
+
+        delivery.release(true)
+        await flushPromises()
+        expect(followed).toEqual([APP_ROOM])
+      })
+
+      it('hands it over with a topic of its own', async () => {
+        await tickedAndReady()
+        await topicField().setValue('Lesekreis „Momo“')
+
+        await start()
+
+        expect(followed).toEqual([
+          'jitsi-meet://meet.ffmuc.net/k7m2x9q4t8wz#config.subject=%22Lesekreis%20%E2%80%9EMomo%5C%22%22',
+        ])
+      })
+
+      it('waits until the app takes the focus from the page, and closes then', async () => {
+        await tickedAndReady()
+
+        await start()
+        expect(dialog().exists()).toBe(true)
+        expect(inDialog('start').attributes('aria-disabled')).toBe('true')
+
+        window.dispatchEvent(new Event('blur'))
+        await flushPromises()
+        expect(dialog().exists()).toBe(false)
+      })
+
+      it('closes where the page is hidden behind the app', async () => {
+        await tickedAndReady()
+        await start()
+
+        vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden')
+        document.dispatchEvent(new Event('visibilitychange'))
+        await flushPromises()
+
+        expect(dialog().exists()).toBe(false)
+      })
+
+      /**
+       * No sign within three seconds -- the app did not open, or not so that the page could tell
+       * (chatVideoApp): the question says so and offers the room in the browser and the app's
+       * download page. Not a moment before the three seconds are up.
+       */
+      it('says so where no sign comes within three seconds, and offers the room in the browser', async () => {
+        vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+        await tickedAndReady()
+        await start()
+
+        vi.advanceTimersByTime(2999)
+        await flushPromises()
+        expect(missed().exists()).toBe(false)
+        expect(inDialog('start').attributes('aria-disabled')).toBe('true')
+
+        vi.advanceTimersByTime(1)
+        await flushPromises()
+        expect(missed().exists()).toBe(true)
+        expect(missed().find('[role="alert"]').text()).toBe('chatThread.videoAppMissed')
+        const inBrowser = missed().find('[data-test="chat-video-app-missed-room"]')
+        expect(inBrowser.attributes('href')).toBe(ROOM_WITH_DEFAULT)
+        expect(inBrowser.attributes('target')).toBe('_blank')
+        expect(inBrowser.attributes('rel')).toBe('noopener noreferrer')
+        expect(missed().find('[data-test="chat-video-app-download"]').attributes('href')).toBe(
+          'https://jitsi.org/downloads/',
+        )
+        expect(inDialog('open').exists()).toBe(false)
+        expect(buttons()).toEqual(['contact-window-video-close'])
+        expect(opens).not.toHaveBeenCalled()
+      })
+
+      // Where the page has no focus when the room goes, no sign can come: as before, it closes.
+      it('closes at once where the page has no focus to lose', async () => {
+        await tickedAndReady()
+        document.hasFocus.mockReturnValue(false)
+
+        await start()
+
+        expect(followed).toEqual([APP_ROOM])
+        expect(dialog().exists()).toBe(false)
+      })
+
+      // Should the room unexpectedly be no address the app takes, the room in the browser.
+      it('offers the room in the browser where the room is no address for the app', async () => {
+        await tickedAndReady()
+        serverRooms.mockResolvedValue({
+          data: { chatVideoRoom: { ...ROOM, url: 'https://meet.ffmuc.net/' } },
+        })
+
+        await start()
+
+        expect(followed).toEqual([])
+        expect(missed().exists()).toBe(false)
+        expect(inDialog('open').attributes('href')).toBe(
+          'https://meet.ffmuc.net/#config.subject=%22Videoanruf%22',
+        )
+        expect(buttons()).toEqual(['contact-window-video-close'])
+      })
+
+      it.each([
+        [
+          'no video server can be had',
+          () => serverRooms.mockRejectedValue(new Error('CHAT_VIDEO_NO_SERVER')),
+          'chatThread.videoNoServer',
+        ],
+        [
+          'the room could not be had',
+          () => serverRooms.mockRejectedValue(new Error('Network error')),
+          'chatThread.videoNotSent',
+        ],
+        [
+          'the invitation did not go out',
+          () => threadDelivers.mockResolvedValue(false),
+          'chatThread.videoNotSent',
+        ],
+      ])(
+        'says so where %s, with no window to close and nothing handed over',
+        async (_, server, sentence) => {
+          await tickedAndReady()
+          server()
+
+          await start()
+
+          expect(opens).not.toHaveBeenCalled()
+          expect(followed).toEqual([])
+          expect(inDialog('problem').text()).toBe(sentence)
+          expect(inDialog('problem').attributes('role')).toBe('alert')
+          expect(buttons()).toEqual([
+            'contact-window-video-gear',
+            'contact-window-video-cancel',
+            'contact-window-video-start',
+          ])
+          expect(box().element.checked).toBe(true)
+        },
+      )
+
+      // Nothing of it twice: not while the room is on its way, not while the app is awaited.
+      it('takes no second press while the call is made or the app awaited', async () => {
+        await tickedAndReady()
+        const offer = held()
+        serverRooms.mockReturnValue(offer.promise)
+
+        await inDialog('start').trigger('click')
+        await inDialog('start').trigger('click')
+        offer.release({ data: { chatVideoRoom: ROOM } })
+        await flushPromises()
+        await inDialog('start').trigger('click')
+        await flushPromises()
+
+        expect(serverRooms).toHaveBeenCalledTimes(1)
+        expect(threadDelivers).toHaveBeenCalledTimes(1)
+        expect(followed).toEqual([APP_ROOM])
+      })
+
+      it('forgets the room and the sentence once the dialog is closed, and keeps the tick', async () => {
+        vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+        await tickedAndReady()
+        await start()
+        vi.advanceTimersByTime(3000)
+        await flushPromises()
+        expect(missed().exists()).toBe(true)
+
+        await inDialog('close').trigger('click')
+        await camera().trigger('click')
+
+        expect(missed().exists()).toBe(false)
+        expect(inDialog('open').exists()).toBe(false)
+        expect(buttons()).toEqual([
+          'contact-window-video-gear',
+          'contact-window-video-cancel',
+          'contact-window-video-start',
+        ])
+        expect(box().element.checked).toBe(true)
+      })
+
+      it('stops waiting for the app once the dialog is closed', async () => {
+        vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+        await tickedAndReady()
+        await start()
+
+        await inDialog('cancel').trigger('click')
+        vi.advanceTimersByTime(3000)
+        await flushPromises()
+        await camera().trigger('click')
+
+        expect(missed().exists()).toBe(false)
+        expect(buttons()).toEqual([
+          'contact-window-video-gear',
+          'contact-window-video-cancel',
+          'contact-window-video-start',
+        ])
+      })
+
+      // The call's secret, the app's address as well; the storage holds the tick and no more.
+      it('writes neither address into a log, and nothing but the tick into storage', async () => {
+        const logs = ['log', 'info', 'warn', 'error', 'debug'].map((level) =>
+          vi.spyOn(console, level),
+        )
+        const stores = vi.spyOn(Storage.prototype, 'setItem')
+        await tickedAndReady()
+
+        await start()
+
+        expect(followed).toEqual([APP_ROOM])
+        const written = logs.flatMap((spy) => spy.mock.calls.flat().map(String))
+        expect(written.filter((line) => /k7m2x9q4t8wz/.test(line))).toEqual([])
+        expect(stores.mock.calls).toEqual([[KEY, '1']])
+      })
+    })
+
+    /**
+     * V4b: a click on the link of a video invitation in the thread, on a computer, asks first
+     * (ChatMessageText) -- through the question this window provides. The thread stand-in takes
+     * what the window provides, as the text of a message does.
+     */
+    describe('the question before joining a call', () => {
+      const joinDialog = () => wrapper.find('[data-test="contact-window-video-join-dialog"]')
+      const inJoin = (name) => wrapper.find(`[data-test="contact-window-video-join${name}"]`)
+      const box = () => joinDialog().find('[data-test="chat-video-app-box"]')
+      const missed = () => joinDialog().find('[data-test="chat-video-app-missed"]')
+      const joinButtons = () =>
+        joinDialog()
+          .findAll('button')
+          .map((b) => b.attributes('data-test'))
+      const APP_ROOM = 'jitsi-meet://meet.ffmuc.net/k7m2x9q4t8wz#config.subject=%22Videoanruf%22'
+      const KEY = 'chat-video-in-app:me-id'
+
+      let followed
+      beforeEach(() => {
+        followed = []
+        vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function () {
+          followed.push(this.href)
+        })
+        vi.spyOn(document, 'hasFocus').mockReturnValue(true)
+        vi.stubGlobal('matchMedia', (query) => ({
+          matches: query === '(pointer: fine) and (hover: hover)',
+        }))
+      })
+
+      afterEach(() => {
+        vi.unstubAllGlobals()
+        vi.useRealTimers()
+        localStorage.clear()
+      })
+
+      /** The window open, and the thread handing it the link of an invitation. */
+      const clicked = async (roomUrl = ROOM_WITH_DEFAULT) => {
+        mountWindow()
+        await threadSays({ exists: true, mutedByMe: false })
+        wrapper.findComponent({ name: 'ChatThread' }).vm.join(roomUrl)
+        await flushPromises()
+      }
+
+      it('opens where the thread hands it the link of an invitation, cut short', async () => {
+        await clicked()
+
+        expect(joinDialog().exists()).toBe(true)
+        const title = 'chatThread.videoJoinTitle {"name":"Carla-Sonne"}'
+        expect(inJoin('-title').text()).toBe(title)
+        expect(joinDialog().attributes('aria-label')).toBe(title)
+        expect(joinButtons()).toEqual([
+          'contact-window-video-join-cancel',
+          'contact-window-video-join',
+        ])
+        expect(inJoin('').text()).toBe('chatThread.videoJoin')
+        expect(box().element.checked).toBe(false)
+        // No topic, no sentence, no mail: the question and its answers.
+        expect(joinDialog().find('input[type="text"]').exists()).toBe(false)
+        expect(joinDialog().findAll('input[type="checkbox"]')).toHaveLength(1)
+        expect(dialog().exists()).toBe(false)
+      })
+
+      it('joins in a window of its own where the box is empty, in the click', async () => {
+        const opens = vi.spyOn(window, 'open').mockImplementation(() => null)
+        await clicked()
+
+        await inJoin('').trigger('click')
+
+        expect(opens).toHaveBeenCalledTimes(1)
+        expect(opens).toHaveBeenCalledWith(ROOM_WITH_DEFAULT, '_blank', 'noopener,noreferrer')
+        expect(followed).toEqual([])
+        expect(joinDialog().exists()).toBe(false)
+      })
+
+      it('hands the room to the app where the box is ticked, and closes once the app has the focus', async () => {
+        const opens = vi.spyOn(window, 'open')
+        localStorage.setItem(KEY, '1')
+        await clicked()
+        expect(box().element.checked).toBe(true)
+
+        await inJoin('').trigger('click')
+        expect(followed).toEqual([APP_ROOM])
+        expect(opens).not.toHaveBeenCalled()
+        expect(joinDialog().exists()).toBe(true)
+        expect(inJoin('').attributes('aria-disabled')).toBe('true')
+
+        window.dispatchEvent(new Event('blur'))
+        await flushPromises()
+        expect(joinDialog().exists()).toBe(false)
+      })
+
+      it('says so where no sign comes within three seconds, with the room in the browser', async () => {
+        vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+        localStorage.setItem(KEY, '1')
+        await clicked()
+
+        await inJoin('').trigger('click')
+        vi.advanceTimersByTime(2999)
+        await flushPromises()
+        expect(missed().exists()).toBe(false)
+
+        vi.advanceTimersByTime(1)
+        await flushPromises()
+        expect(missed().find('[role="alert"]').text()).toBe('chatThread.videoAppMissed')
+        expect(missed().find('[data-test="chat-video-app-missed-room"]').attributes('href')).toBe(
+          ROOM_WITH_DEFAULT,
+        )
+        expect(joinButtons()).toEqual(['contact-window-video-join-close'])
+
+        await inJoin('-close').trigger('click')
+        expect(joinDialog().exists()).toBe(false)
+      })
+
+      it('takes no second press while the app is awaited', async () => {
+        localStorage.setItem(KEY, '1')
+        await clicked()
+
+        await inJoin('').trigger('click')
+        await inJoin('').trigger('click')
+
+        expect(followed).toEqual([APP_ROOM])
+      })
+
+      // One box in both questions, one memory.
+      it('shares the box with the start: ticked in one, ticked in the other', async () => {
+        await clicked()
+        await box().setValue(true)
+        expect(localStorage.getItem(KEY)).toBe('1')
+        await inJoin('-cancel').trigger('click')
+
+        await camera().trigger('click')
+
+        expect(dialog().find('[data-test="chat-video-app-box"]').element.checked).toBe(true)
+      })
+
+      it('lets go of the room when cancelled, and asks anew for the next link', async () => {
+        const opens = vi.spyOn(window, 'open').mockImplementation(() => null)
+        await clicked()
+        await inJoin('-cancel').trigger('click')
+        expect(joinDialog().exists()).toBe(false)
+        expect(opens).not.toHaveBeenCalled()
+
+        const next = 'https://meet.ffmuc.net/p3r5t7v9x2z4#config.subject=%22Videoanruf%22'
+        wrapper.findComponent({ name: 'ChatThread' }).vm.join(next)
+        await flushPromises()
+        await inJoin('').trigger('click')
+
+        expect(opens).toHaveBeenCalledWith(next, '_blank', 'noopener,noreferrer')
+      })
+
+      it('stops waiting for the app once it is closed', async () => {
+        vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+        localStorage.setItem(KEY, '1')
+        await clicked()
+        await inJoin('').trigger('click')
+
+        await inJoin('-cancel').trigger('click')
+        vi.advanceTimersByTime(3000)
+        await flushPromises()
+        wrapper.findComponent({ name: 'ChatThread' }).vm.join(ROOM_WITH_DEFAULT)
+        await flushPromises()
+
+        expect(missed().exists()).toBe(false)
+        expect(joinButtons()).toEqual([
+          'contact-window-video-join-cancel',
+          'contact-window-video-join',
+        ])
+      })
+
+      // The call's secret: in no log and no storage.
+      it('writes the room into no log and no storage', async () => {
+        const logs = ['log', 'info', 'warn', 'error', 'debug'].map((level) =>
+          vi.spyOn(console, level),
+        )
+        const stores = vi.spyOn(Storage.prototype, 'setItem')
+        vi.spyOn(window, 'open').mockImplementation(() => null)
+        await clicked()
+
+        await inJoin('').trigger('click')
+
+        const written = [...logs, stores].flatMap((spy) => spy.mock.calls.flat().map(String))
+        expect(written.filter((line) => /k7m2x9q4t8wz/.test(line))).toEqual([])
+      })
     })
   })
 
@@ -1299,6 +3062,45 @@ describe('ContactWindow', () => {
   })
 
   /**
+   * The call's buttons wait -- `aria-disabled`, so a keyboard keeps its place -- and look it: "Start
+   * call" while a call is being made, "Join call" while the Jitsi app is awaited (V4b). jsdom draws
+   * nothing, so the stylesheet says it; comments stripped first.
+   */
+  it("gives the call's buttons their waiting look, in the stylesheet", () => {
+    const code = styleOf('ContactWindow.vue')
+    const style = code.slice(code.indexOf('<style'))
+    const rules = [...style.matchAll(/([^{}]+)\{([^}]*)\}/g)].map(([, selectors, body]) => ({
+      selectors: selectors.split(',').map((selector) => selector.trim()),
+      body,
+    }))
+
+    for (const button of ['start', 'join', 'gear']) {
+      const waiting = rules.find((rule) =>
+        rule.selectors.includes(`.contact-window-video-${button}[aria-disabled='true']`),
+      )
+      expect(waiting?.body, button).toMatch(/opacity:\s*0\.65/)
+    }
+  })
+
+  /**
+   * The gear (V5): at the left end of the footer, the other buttons pushed to the right, a hit
+   * area as high as they are, and a focus ring of its own -- a plain button has none. jsdom lays
+   * nothing out and draws no outlines, so the stylesheet says it; comments stripped first.
+   */
+  it('puts the gear at the left of the footer, as high as the buttons, with a focus ring, in the stylesheet', () => {
+    const code = styleOf('ContactWindow.vue')
+    const rule = (selector) => code.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
+
+    const gear = rule('\\.contact-window-video-gear')
+    expect(gear).toMatch(/margin-right:\s*auto/)
+    expect(gear).toMatch(/width:\s*2\.875rem/)
+    expect(gear).toMatch(/height:\s*2\.875rem/)
+    expect(gear).toMatch(/background:\s*transparent/)
+    expect(rule('\\.contact-window-video-gear:focus-visible')).toMatch(/outline:\s*2px solid/)
+    expect(rule('\\.contact-window-video-link')).toMatch(/overflow-wrap:\s*anywhere/)
+  })
+
+  /**
    * ⛔ The marks at the right end of the send row, with the empty stretch before them, and never
    * squeezed: where the row is too narrow, the word gets smaller first (`is-tight`), and past
    * that the marks go to a line of their own rather than out of the window. A name too long for
@@ -1324,7 +3126,8 @@ describe('ContactWindow', () => {
    * not do it (French, Dutch, Russian, Greek), set closer (Bernd, the same morning, "B"): a
    * smaller font, less room inside the button, the marks and the row's gap closer. Each in a rule
    * of its own; the map's rules stay as they are (held above), and each tight value is held
-   * against the one it replaces.
+   * against the one it replaces -- the button's own measure in the window's own rule since it
+   * was set smaller than the map's (29.09.2026). Above and below it keeps that measure.
    */
   it('sets the tight row closer than its own measure, in the stylesheet', () => {
     const code = styleOf('ContactWindow.vue')
@@ -1333,13 +3136,19 @@ describe('ContactWindow', () => {
       Number(body(selector).match(new RegExp(`(?:^|;|\\s)${property}:\\s*([\\d.]+)(px|rem)?`))?.[1])
     const paddingX = (selector) =>
       Number(body(selector).match(/(?:^|;|\s)padding:\s*[\d.]+px\s+([\d.]+)px/)?.[1])
+    const paddingY = (selector) =>
+      Number(body(selector).match(/(?:^|;|\s)padding:\s*([\d.]+)px\s+[\d.]+px/)?.[1])
+    const own = '\\.contact-window-send \\.send-btn'
+    const tight = '\\.contact-window-send\\.is-tight \\.send-btn'
 
-    expect(px('\\.send-btn', 'font-size'), 'the button lost its own size').toBe(15)
-    expect(px('\\.contact-window-send\\.is-tight \\.send-btn', 'font-size')).toBeLessThan(15)
-    expect(paddingX('\\.send-btn')).toBe(14)
-    expect(paddingX('\\.contact-window-send\\.is-tight \\.send-btn')).toBeLessThan(14)
+    expect(px(own, 'font-size'), 'the button lost its own size').toBe(14)
+    expect(px(tight, 'font-size')).toBeLessThan(14)
+    expect(paddingX(own)).toBe(14)
+    expect(paddingX(tight)).toBeLessThan(14)
+    expect(paddingY(own)).toBe(7)
+    expect(paddingY(tight)).toBe(7)
     expect(px('\\.send-btn', 'gap')).toBe(8)
-    expect(px('\\.contact-window-send\\.is-tight \\.send-btn', 'gap')).toBeLessThan(8)
+    expect(px(tight, 'gap')).toBeLessThan(8)
     expect(px('\\.contact-window-send', 'gap')).toBe(10)
     expect(px('\\.contact-window-send\\.is-tight', 'gap')).toBeLessThan(10)
     // 0.5rem between the marks, 8px at the root size; closer when tight.
@@ -1472,7 +3281,9 @@ describe('ContactWindow', () => {
    * 24.09.2026). The map's profile window (MatchProfile.vue) and this one each carry the rules,
    * so the spec holds them against each other with the one difference swapped in -- the gold,
    * which it takes from the compose bar's send button, so the window's two gold buttons cannot
-   * drift apart either.
+   * drift apart either. Flat again since 29.09.2026 ("wieder das etwas dunklere Gold ohne
+   * Verlauf … so wie auch unten der Kreis bei dem Absende-Button"), after two days in the
+   * gradient of the house's golden buttons.
    */
   it("sends with the map profile's button, in the gold of the compose bar's send button", () => {
     const rule = (file, name) =>
@@ -1490,6 +3301,29 @@ describe('ContactWindow', () => {
       expect(there, `MatchProfile lost .${name}`).toBeDefined()
       expect(rule('ContactWindow.vue', name), `.${name}`).toBe(there.replaceAll('#178d81', gold))
     }
+  })
+
+  /**
+   * "Dabei ist „Gradido senden“ ja nur eine von vielen Optionen, wenn auch eine der wichtigsten"
+   * (Bernd, 29.09.2026, "A"): in this window the button is set smaller than the map's -- a
+   * smaller font, less room above and below, a smaller coin -- in the window's own rules, which
+   * outweigh the map's. On the map it is one of the profile window's two ways and keeps its
+   * measure (the rules held against MatchProfile above).
+   */
+  it("sets the button smaller than the map's, in the stylesheet", () => {
+    const code = styleOf('ContactWindow.vue')
+    const body = (selector) => code.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
+    const own = body('\\.contact-window-send \\.send-btn')
+    const coin = body('\\.contact-window-send \\.send-coin')
+
+    expect(own).toMatch(/(?:^|;|\s)font-size:\s*14px;/)
+    expect(own).toMatch(/(?:^|;|\s)padding:\s*7px 14px;/)
+    expect(coin).toMatch(/(?:^|;|\s)width:\s*18px;/)
+    expect(coin).toMatch(/(?:^|;|\s)height:\s*18px;/)
+    // The map's measure, which these rules outweigh.
+    expect(body('\\.send-btn')).toMatch(/(?:^|;|\s)font-size:\s*15px;/)
+    expect(body('\\.send-btn')).toMatch(/(?:^|;|\s)padding:\s*10px 14px;/)
+    expect(body('\\.send-coin')).toMatch(/(?:^|;|\s)width:\s*20px;/)
   })
 
   // "Schmal" (Bernd, 24.09.2026): the button keeps the width of its word, so something can

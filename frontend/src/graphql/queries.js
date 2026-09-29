@@ -81,6 +81,10 @@ export const verifyLogin = gql`
       # mutation: whichever of the two a member arrives through has to be able to answer
       # the menu, and one of them is always the first thing they arrive through.
       creationAllowed
+      # Whether the transfers stand in the conversations -- the member's own switch under
+      # Einstellungen › Nachrichten, which ChatThread reads. Here AND on the login mutation,
+      # for the reason above.
+      transfersInChat
     }
   }
 `

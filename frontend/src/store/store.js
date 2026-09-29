@@ -7,12 +7,14 @@ import i18n from '../i18n'
 import { clearEntryDraft } from '../composables/useEntryDraft'
 import { closeAvatarZoom } from '../composables/useAvatarZoom'
 import { forgetAllMemberAvatars } from '../composables/useMemberAvatars'
+import { closeChatImageView, forgetAllChatImages } from '../composables/useChatImages'
 import { forgetFavorites } from '../composables/useFavorites'
 import { forgetContactsPanel } from '../composables/useContactsPanel'
 import { stopChatUpdates } from '../composables/useChatUpdates'
 import { forgetParkedAmount } from '../composables/useParkedAmount'
 import { forgetFirstLoginWindows } from '../composables/useFirstLoginWindow'
 import { forgetLegacyMapPrefs } from '../utils/matchingPrefs'
+import { forgetChatReturn } from '../utils/chatReturn'
 import { clearApolloCache } from '../plugins/apolloCache'
 
 // Dedicated localStorage key mirroring state.themeMode. The pre-paint script in
@@ -51,7 +53,20 @@ export const mutations = {
   token: (state, token) => {
     state.token = token
     if (token) {
-      state.tokenTime = jwtDecode(token).exp
+      // When the session ends by THIS device's clock: the token's own lifetime (`exp - iat`, the
+      // server's setting) counted from now, as the answer carrying the token arrives. Not `exp`
+      // itself, which is the server's clock: a computer whose clock runs hours ahead -- a wrong
+      // time zone, the time put right by hand -- would read every session as over, and the sign-in
+      // guard (routes/guards.js) would send it back to the form on every page. A token without
+      // `iat` keeps `exp`.
+      //
+      // ⚠️ The lifetime, not the time left, and that holds because every token taken here is
+      // fresh from the answer that carries it: the renewal header of every answer
+      // (apolloProvider.js), and the token in /authenticate's address is replaced by the one
+      // verifyLogin's answer brings before any page opens (guards.js). A token kept from
+      // anywhere else would need its time left instead.
+      const { exp, iat } = jwtDecode(token)
+      state.tokenTime = iat ? Math.floor(Date.now() / 1000) + (exp - iat) : exp
     } else {
       state.tokenTime = null
     }
@@ -69,6 +84,12 @@ export const mutations = {
   // (a store persisted before the field existed, or a login answer that does not carry it).
   creationAllowed: (state, creationAllowed) => {
     state.creationAllowed = creationAllowed
+  },
+  // Whether the transfers stand in the conversations and a mail goes out about one received
+  // (Einstellungen › Nachrichten). null = not known yet, and read as on, the column's default:
+  // a store persisted before the field existed must not hide anybody's transfers.
+  transfersInChat: (state, transfersInChat) => {
+    state.transfersInChat = transfersInChat
   },
   humhubAllowed: (state, humhubAllowed) => {
     state.humhubAllowed = humhubAllowed
@@ -154,6 +175,7 @@ export const actions = {
     // that still holds the last one's.
     commit('avatarVisibleToMembers', data.avatarVisibleToMembers ?? null)
     commit('creationAllowed', data.creationAllowed ?? null)
+    commit('transfersInChat', data.transfersInChat ?? null)
     commit('humhubAllowed', data.humhubAllowed)
     commit('gmsPublishLocation', data.gmsPublishLocation)
     commit('hasElopage', data.hasElopage)
@@ -186,6 +208,7 @@ export const actions = {
     commit('gmsAllowed', null)
     commit('avatarVisibleToMembers', null)
     commit('creationAllowed', null)
+    commit('transfersInChat', null)
     commit('humhubAllowed', null)
     commit('gmsPublishLocation', null)
     commit('hasElopage', false)
@@ -217,6 +240,10 @@ export const actions = {
     // the throw would take every following line of this action with it. Of the two, the
     // faces are the ones that must not survive a logout.
     forgetAllMemberAvatars()
+    // And the pictures of the chat's messages, for the same reason: they are kept in memory for
+    // the session (useChatImages), and the next member to sign in on this browser must not be
+    // handed the pictures of the conversations of the one before.
+    forgetAllChatImages()
     // Same reason, same moment: the hearts are one member's, not the device's.
     forgetFavorites()
     // And the contacts the right-hand column holds, which name the people this member has
@@ -234,11 +261,18 @@ export const actions = {
     // line that face and its owner's id stayed in memory for the life of the tab, through
     // the next member's sign-in, which is the one thing the paragraph above forbids.
     closeAvatarZoom()
+    // And the chat's picture open large, for the same reason: the view keeps it in its own
+    // module (useChatImages), and a logout while somebody looks at a picture -- the idle timeout
+    // -- would leave it there, and its sender's name, for the next member.
+    closeChatImageView()
     // Which first-login window had the screen, for the same reason: that module outlives
     // this action, and the next member on this browser must meet their own windows rather
     // than find all three silenced by a question the last member left unanswered.
     forgetFirstLoginWindows()
     forgetParkedAmount(signedOutMember)
+    // The conversation to come back to after a restart (utils/chatReturn): whoever signs out is
+    // not taken back into it, even where the idle timeout signs out a wallet left in a thread.
+    forgetChatReturn(signedOutMember)
     // ⛔ Only what the FLAT prefix left behind, and only the nameless keys -- the ones the
     // map wrote for the whole device before 10.09.2026, when it had nobody in the key. The
     // member's own settings are keyed by their gradidoID and stay: a radius and a look are
@@ -313,6 +347,7 @@ try {
       gmsAllowed: null,
       avatarVisibleToMembers: null,
       creationAllowed: null,
+      transfersInChat: null,
       humhubAllowed: null,
       gmsPublishLocation: null,
       hasElopage: false,

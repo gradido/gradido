@@ -22,6 +22,9 @@ export const RESTRICTED_WHILE_UNCONFIRMED = [
   // A chat message acts outward, as the form "send an e-mail" does behind SEND_COINS. Muting a
   // conversation stays open (READ_OWN_CHAT): asking for quiet is self-management.
   RIGHTS.SEND_CHAT_MESSAGE,
+  // Taking somebody into a chat group mails them (P5). Leaving one stays open (READ_OWN_CHAT),
+  // as muting does.
+  RIGHTS.MANAGE_CHAT_GROUPS,
   RIGHTS.CREATE_TRANSACTION_LINK,
   RIGHTS.REDEEM_TRANSACTION_LINK,
   RIGHTS.DISBURSE_TRANSACTION_LINK,

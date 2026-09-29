@@ -81,6 +81,7 @@ export const updateUserInfos = gql`
     $gmsAllowed: Boolean
     $humhubAllowed: Boolean
     $avatarVisibleToMembers: Boolean
+    $transfersInChat: Boolean
     $gmsLocation: Location
     $gmsPublishLocation: GmsPublishLocationType
     $aboutMe: String
@@ -97,6 +98,7 @@ export const updateUserInfos = gql`
       gmsAllowed: $gmsAllowed
       humhubAllowed: $humhubAllowed
       avatarVisibleToMembers: $avatarVisibleToMembers
+      transfersInChat: $transfersInChat
       gmsLocation: $gmsLocation
       gmsPublishLocation: $gmsPublishLocation
       aboutMe: $aboutMe
@@ -276,6 +278,8 @@ export const login = gql`
       # ES-021: whether this account creates (a person) or receives thanks only (a project
       # account). The "Create" menu item hangs on it.
       creationAllowed
+      # The transfers in the conversations, the member's own switch (see verifyLogin).
+      transfersInChat
       role
       hideAmountGDD
       hideAmountGDT

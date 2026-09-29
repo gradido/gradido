@@ -36,6 +36,19 @@
       "subject": "Confirm your e-mail address",
       "title": "Your Gradido account is ready"
     },
+    "chatGroupAdded": {
+      "inTheGroup": "{memberCount} members write to each other in the group. All members see your username.",
+      "leaveAnyTime": "You can mute or leave the group in your Gradido account at any time.",
+      "openGroup": "Open group",
+      "subject": "You are now in the group “{groupTitle}”",
+      "title": "{adderAlias} has added you to the group “{groupTitle}”"
+    },
+    "chatGroupMessage": {
+      "announcement": "{senderAlias} has sent a message to all members of the group as an announcement.",
+      "muteHint": "No more announcements by email? Tap the bell in the group in your Gradido account.",
+      "subject": "Announcement in “{groupTitle}” from {senderAlias}",
+      "title": "{senderAlias} writes in “{groupTitle}”"
+    },
     "contribution": {
       "toSeeContributionsAndMessages": "You will find your common good contributions and the messages about them in your Gradido account."
     },
@@ -72,6 +85,7 @@
     },
     "customEmail": {
       "haveReceivedMessageFrom": "you have just received a message from {senderAlias}",
+      "imageNote": "📷 The message contains a picture – you can see it in the conversation.",
       "title": "{senderAlias} has sent you a message"
     },
     "emailChangeConfirm": {

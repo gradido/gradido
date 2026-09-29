@@ -36,6 +36,19 @@
       "subject": "E-posta adresini onayla",
       "title": "Gradido hesabın hazır"
     },
+    "chatGroupAdded": {
+      "inTheGroup": "grupta {memberCount} üye birbiriyle yazışıyor. Tüm üyeler senin kullanıcı adını görür.",
+      "leaveAnyTime": "Grubu istediğin zaman Gradido hesabından sessize alabilir ya da gruptan çıkabilirsin.",
+      "openGroup": "Grubu aç",
+      "subject": "Artık “{groupTitle}” grubundasın",
+      "title": "{adderAlias} seni “{groupTitle}” grubuna ekledi"
+    },
+    "chatGroupMessage": {
+      "announcement": "{senderAlias}, grubun tüm üyelerine duyuru olarak bir mesaj gönderdi.",
+      "muteHint": "Artık e-postayla duyuru almak istemiyor musun? Gradido hesabında gruptaki zile dokun.",
+      "subject": "“{groupTitle}” grubunda {senderAlias} kişisinden duyuru",
+      "title": "{senderAlias}, “{groupTitle}” grubunda yazıyor"
+    },
     "contribution": {
       "toSeeContributionsAndMessages": "Ortak yarara katkılarını ve ilgili mesajları Gradido hesabında bulabilirsin."
     },
@@ -72,6 +85,7 @@
     },
     "customEmail": {
       "haveReceivedMessageFrom": "az önce {senderAlias} tarafından bir mesaj aldın",
+      "imageNote": "📷 Mesajda bir görsel var – onu sohbette görebilirsin.",
       "title": "{senderAlias} sana bir mesaj gönderdi"
     },
     "emailChangeConfirm": {

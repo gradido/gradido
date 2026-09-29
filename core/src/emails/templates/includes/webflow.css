@@ -113,9 +113,18 @@ h2 {
    ⚠️ Word-based clients (Outlook on Windows) support `white-space` poorly, so there the
    breaks may still collapse. Unmeasured - nobody here has Outlook. The alternative is
    emitting <br> per line, which every client renders; it is a bigger change and it
-   leaves the way the rest of the software does this. Worth revisiting if it is reported. */
+   leaves the way the rest of the software does this. Worth revisiting if it is reported.
+
+   A word or an address too long for a line breaks at the card's edge, instead of running
+   out of it (Bernd, 27.09.2026). A mail client breaks an address only after a `/`, and a
+   link with a long tail without one ran past the border. `anywhere` still takes the usual
+   places first -- spaces, the `/` -- and cuts inside a piece only where that piece fits on no
+   line of its own. `word-break: break-word` does the same in the clients that do not know
+   `anywhere` yet (Apple Mail before macOS 12.3). Unmeasured in Outlook on Windows, as above. */
 .human-text {
   white-space: pre-line;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .p_content{

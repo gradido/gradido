@@ -2,6 +2,7 @@
 import {
   ChatMessageSelect,
   User as DbUser,
+  dbSelectChatMessageImageInfos,
   dbSelectChatMessagesSince,
   dbSelectChatUnreadSummary,
 } from 'database'
@@ -19,6 +20,10 @@ jest.mock('database', () => {
     ...originalModule,
     dbSelectChatUnreadSummary: jest.fn(),
     dbSelectChatMessagesSince: jest.fn(),
+    dbSelectChatMessageImageInfos: jest.fn(),
+    // No group among these conversations: the messages here are between two members (P5 asks
+    // for every page and update which of its conversations are groups).
+    dbSelectChatGroupUuids: jest.fn(async () => new Map()),
   }
 })
 
@@ -28,6 +33,9 @@ const MAX = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
 
 const summary = dbSelectChatUnreadSummary as jest.MockedFunction<typeof dbSelectChatUnreadSummary>
 const since = dbSelectChatMessagesSince as jest.MockedFunction<typeof dbSelectChatMessagesSince>
+const infos = dbSelectChatMessageImageInfos as jest.MockedFunction<
+  typeof dbSelectChatMessageImageInfos
+>
 
 /** A request of Lena's, with a budget of its own. */
 const lenasRequest = (): Context => ({
@@ -61,6 +69,8 @@ const ask = (afterId: number | null, limit: number | null = null) =>
 beforeEach(() => {
   summary.mockReset()
   since.mockReset()
+  infos.mockReset()
+  infos.mockResolvedValue([])
 })
 
 describe('newChatMessagesSince, what the resolver decides itself', () => {
@@ -132,5 +142,29 @@ describe('newChatMessagesSince, what the resolver decides itself', () => {
       { afterId: 0, limit: CHAT_UPDATE_MESSAGES_DEFAULT },
     )
     expect(summary).toHaveBeenCalledWith({ communityUuid: HOME, gradidoId: LENA })
+  })
+
+  // P7: the pictures of everything handed out, in one query -- never one per message.
+  it('asks for the pictures of the messages it hands out in one query, and hands them on', async () => {
+    summary.mockResolvedValue({ latestId: 60, unreadConversations: 1 })
+    since.mockResolvedValue({ messages: [fromMax(11), fromMax(12)], hasMore: false })
+    const PICTURE = '40000000-0000-4000-8000-000000000012'
+    infos.mockResolvedValue([
+      {
+        imageUuid: PICTURE,
+        messageUuid: fromMax(12).messageUuid,
+        position: 0,
+        width: 924,
+        height: 520,
+      },
+    ])
+
+    const update = await ask(10)
+
+    expect(infos.mock.calls).toEqual([[[fromMax(11).messageUuid, fromMax(12).messageUuid]]])
+    expect(update.messages.map((message) => message.images)).toEqual([
+      [],
+      [{ imageUuid: PICTURE, width: 924, height: 520 }],
+    ])
   })
 })

@@ -1,0 +1,21 @@
+extend ../layout.pug
+
+//- A member was taken into a chat group (P5, E-049): sent once, to them. The group's name is a
+    member's own writing and is escaped, as every value set with `=` is.
+block content
+  h2= t('emails.chatGroupAdded.title', { adderAlias, groupTitle })
+  .text-block
+    include ../includes/salutation.pug
+    p= t('emails.chatGroupAdded.inTheGroup', { memberCount })
+  .content
+    h2= groupTitle
+    //- The way in is the group itself: the contact page opens its window with the group the
+        address names. Leaving and muting are there too.
+    .child-right
+      a.button-5(href=`${communityURL}/contacts?group=${groupUuid}`)
+        include ../includes/chatbox-icon.pug
+        span #{t('emails.chatGroupAdded.openGroup')}
+    div(class="p_content")
+      = t('emails.chatGroupAdded.leaveAnyTime')
+
+  a.button-3(href=`${communityURL}/transactions`) #{t('emails.general.toAccount')}

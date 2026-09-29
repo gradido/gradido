@@ -1,7 +1,8 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import addNavigationGuards from './guards'
-import { createRouter, createWebHistory } from 'vue-router'
+import { createMemoryHistory, createRouter, createWebHistory } from 'vue-router'
 import { verifyLogin } from '../graphql/queries'
+import { takeHeldChatText } from '../utils/chatReturn'
 
 vi.mock('../graphql/queries', () => ({
   verifyLogin: 'mocked-verify-login-query',
@@ -72,6 +73,7 @@ describe('navigation guards', () => {
     // The store is shared by the whole file. Put back everything any block sets, or a case
     // added later inherits answers that are nowhere in its own body.
     store.state.token = null
+    store.state.tokenTime = null
     store.state.creationAllowed = null
     store.state.gmsAllowed = null
     store.state.userLocation = null
@@ -140,6 +142,8 @@ describe('navigation guards', () => {
   describe('the creation area and the project account', () => {
     beforeEach(() => {
       store.state.token = 'valid-token'
+      // Signed in means a sign-in that still runs (the sign-in guard).
+      store.state.tokenTime = Math.floor(Date.now() / 1000) + 600
     })
 
     it('sends a project account from the creation area to the overview', async () => {
@@ -170,6 +174,7 @@ describe('navigation guards', () => {
     // measure nothing and pass.
     beforeEach(async () => {
       store.state.token = 'valid-token'
+      store.state.tokenTime = Math.floor(Date.now() / 1000) + 600
       store.state.gmsAllowed = true
       store.state.userLocation = place
       await router.push('/overview')
@@ -271,8 +276,25 @@ describe('navigation guards', () => {
       )
     })
 
+    // The group's mails (P5) lead to `/contacts?group=`: after the sign-in, to that group.
+    it("keeps the group of a group's mail for after the sign-in", async () => {
+      const to = {
+        path: '/contacts',
+        fullPath: '/contacts?group=cafe-uuid',
+        meta: { requiresAuth: true },
+      }
+      const authGuard = addedGuards.find(
+        (guard) =>
+          guard.toString().includes('requiresAuth') && guard.toString().includes('redirectPath'),
+      )
+      await authGuard(to, {}, () => {})
+      expect(storeCommitMock).toHaveBeenCalledWith('redirectPath', '/contacts?group=cafe-uuid')
+    })
+
     it('does not redirect to login when authorized', async () => {
       store.state.token = 'valid-token'
+      // A sign-in counts while it runs, not merely because a token is kept.
+      store.state.tokenTime = Math.floor(Date.now() / 1000) + 600
 
       // fullPath as well as path: the real router always provides it, and the guard
       // stores it so a query or hash survives the login.
@@ -295,6 +317,358 @@ describe('navigation guards', () => {
 
       expect(nextCalled).toBe(true)
       expect(nextArg).toBeUndefined()
+    })
+
+    /**
+     * ⭐ A sign-in that has run out is no sign-in (Bernd, 28.09.2026): the reply button of a mail,
+     * clicked more than a session after the wallet was closed, opened the page with the old token,
+     * whose questions came back 403.13 -- and the logout behind them sent the member to the
+     * overview after signing in. Put away first, the old sign-in cannot set that way back.
+     */
+    describe('a sign-in that has run out', () => {
+      const authGuard = () =>
+        addedGuards.find(
+          (guard) =>
+            guard.toString().includes('requiresAuth') && guard.toString().includes('redirectPath'),
+        )
+      const link = {
+        path: '/contacts',
+        fullPath: '/contacts?with=member-1&community=community-1',
+        meta: { requiresAuth: true },
+      }
+
+      it('is put away before the link waits at the form, so the logout cannot overwrite it', async () => {
+        store.state.token = 'old-token'
+        store.state.tokenTime = Math.floor(Date.now() / 1000) - 3600
+        const order = []
+        // Done only after a turn, as an action that waits on something would be: the guard has
+        // to wait for it, not merely start it.
+        storeDispatchMock.mockImplementationOnce(async (action) => {
+          await Promise.resolve()
+          order.push(`dispatch ${action}`)
+        })
+        storeCommitMock.mockImplementation((mutation, value) => order.push(`${mutation} ${value}`))
+        let nextArg
+        await authGuard()(link, {}, (arg) => {
+          nextArg = arg
+        })
+        storeCommitMock.mockReset()
+        expect(order).toEqual([
+          'dispatch logout',
+          'redirectPath /contacts?with=member-1&community=community-1',
+        ])
+        expect(nextArg).toEqual({ path: '/login' })
+      })
+
+      it('goes to the form with the link even where clearing up after the logout fails', async () => {
+        store.state.token = 'old-token'
+        store.state.tokenTime = Math.floor(Date.now() / 1000) - 3600
+        storeDispatchMock.mockRejectedValueOnce(new Error('storage refused'))
+        let nextArg
+        await authGuard()(link, {}, (arg) => {
+          nextArg = arg
+        })
+        expect(storeCommitMock).toHaveBeenCalledWith(
+          'redirectPath',
+          '/contacts?with=member-1&community=community-1',
+        )
+        expect(nextArg).toEqual({ path: '/login' })
+      })
+
+      it('counts a token without an end as run out', async () => {
+        store.state.token = 'old-token'
+        store.state.tokenTime = null
+        let nextArg
+        await authGuard()(link, {}, (arg) => {
+          nextArg = arg
+        })
+        expect(storeDispatchMock).toHaveBeenCalledWith('logout')
+        expect(nextArg).toEqual({ path: '/login' })
+      })
+
+      it('signs nobody out who was never signed in', async () => {
+        await authGuard()(link, {}, () => {})
+        expect(storeDispatchMock).not.toHaveBeenCalled()
+        expect(storeCommitMock).toHaveBeenCalledWith(
+          'redirectPath',
+          '/contacts?with=member-1&community=community-1',
+        )
+      })
+
+      it('leaves a page without a sign-in alone, and the old token with it', async () => {
+        store.state.token = 'old-token'
+        store.state.tokenTime = Math.floor(Date.now() / 1000) - 3600
+        let nextArg = 'not called'
+        await authGuard()({ path: '/login', fullPath: '/login', meta: {} }, {}, (arg) => {
+          nextArg = arg
+        })
+        expect(nextArg).toBeUndefined()
+        expect(storeDispatchMock).not.toHaveBeenCalled()
+        expect(storeCommitMock).not.toHaveBeenCalled()
+      })
+    })
+  })
+})
+
+/**
+ * The same, through a router with the guards in their real order: the link out of a mail, opened
+ * where the sign-in ran out an hour ago, waits at the form -- with its query -- instead of the
+ * page opening with the old token. The start guard before it lets such a start through.
+ */
+describe('a link out of a mail after the sign-in ran out', () => {
+  const Page = { render: () => null }
+  const startAt = async (address, state) => {
+    const started = createRouter({
+      history: createMemoryHistory(),
+      routes: [
+        { path: '/', redirect: () => ({ path: '/login' }) },
+        { path: '/login/:code?', name: 'Login', component: Page },
+        { path: '/overview', name: 'Overview', component: Page, meta: { requiresAuth: true } },
+        { path: '/contacts', name: 'Contacts', component: Page, meta: { requiresAuth: true } },
+      ],
+    })
+    const own = { commit: vi.fn(), dispatch: vi.fn(), state: { token: null, ...state } }
+    addNavigationGuards(started, own, { query: vi.fn() })
+    await started.push(address)
+    return { at: started.currentRoute.value.fullPath, own }
+  }
+  const LINK = '/contacts?with=member-1&community=community-1'
+
+  it('goes to the form with the link kept, the old sign-in put away', async () => {
+    const { at, own } = await startAt(LINK, {
+      token: 'old-token',
+      tokenTime: Math.floor(Date.now() / 1000) - 3600,
+    })
+    expect(at).toBe('/login')
+    expect(own.dispatch).toHaveBeenCalledWith('logout')
+    expect(own.commit).toHaveBeenCalledWith('redirectPath', LINK)
+  })
+
+  it('opens the page itself while the sign-in runs', async () => {
+    const { at, own } = await startAt(LINK, {
+      token: 'running-token',
+      tokenTime: Math.floor(Date.now() / 1000) + 600,
+    })
+    expect(at).toBe(LINK)
+    expect(own.dispatch).not.toHaveBeenCalledWith('logout')
+  })
+
+  it('counts the last five seconds as over, as the start does', async () => {
+    const { at, own } = await startAt(LINK, {
+      token: 'ending-token',
+      tokenTime: Math.floor(Date.now() / 1000) + 3,
+    })
+    expect(at).toBe('/login')
+    expect(own.commit).toHaveBeenCalledWith('redirectPath', LINK)
+  })
+})
+
+/**
+ * A wallet that starts on the sign-in page while its session still runs goes on (Bernd, 26. and
+ * 27.09.2026: the wallet on an iPhone's home screen starts over when another app needs the
+ * memory, and came back on the form). Each case builds a router of its own, because what counts
+ * is whether the wallet STARTS there: a router's first navigation comes from START_LOCATION,
+ * every later one from inside the wallet.
+ */
+describe('a start with a running session', () => {
+  const now = () => Math.floor(Date.now() / 1000)
+  const RUNNING = { token: 'running-token', tokenTime: now() + 600 }
+  const Page = { render: () => null }
+
+  /** A router with the real records that matter here, started at `address` with `state`. */
+  const startAt = async (address, state) => {
+    const started = createRouter({
+      history: createMemoryHistory(),
+      routes: [
+        { path: '/', redirect: () => ({ path: '/login' }) },
+        { path: '/login/:code?', name: 'Login', component: Page },
+        { path: '/overview', name: 'Overview', component: Page, meta: { requiresAuth: true } },
+        { path: '/contacts', name: 'Contacts', component: Page, meta: { requiresAuth: true } },
+        { path: '/redeem/:code', name: 'Redeem', component: Page },
+        { path: '/register/:code?', name: 'Register', component: Page },
+      ],
+    })
+    const own = { commit: vi.fn(), dispatch: vi.fn(), state: { token: null, ...state } }
+    addNavigationGuards(started, own, { query: vi.fn() })
+    await started.push(address)
+    return started
+  }
+  const whereAfter = async (address, state) =>
+    (await startAt(address, state)).currentRoute.value.fullPath
+
+  it('goes on from the sign-in page to the overview', async () => {
+    expect(await whereAfter('/login', RUNNING)).toBe('/overview')
+  })
+
+  it('goes on from /, which leads to the sign-in page', async () => {
+    expect(await whereAfter('/', RUNNING)).toBe('/overview')
+  })
+
+  // As the sign-in itself does (Login.vue): a redeem code goes on to its link, with its query.
+  it('takes a redeem code on to its link, with the query', async () => {
+    expect(await whereAfter('/login/abc123?referrer=Anna-Sonne', RUNNING)).toBe(
+      '/redeem/abc123?referrer=Anna-Sonne',
+    )
+  })
+
+  // `redirectPath` is written for somebody signed out; with a session running it is left over.
+  it('goes to the overview, not to a place left over from an earlier sign-in', async () => {
+    expect(await whereAfter('/login', { ...RUNNING, redirectPath: '/transactions' })).toBe(
+      '/overview',
+    )
+  })
+
+  it.each([
+    ['no token', { token: null, tokenTime: now() + 600 }],
+    ['a token without an end', { token: 'running-token', tokenTime: null }],
+    ['a session that has ended', { token: 'running-token', tokenTime: now() - 60 }],
+    // The margin the redeem page allows too (TransactionLink.vue).
+    ['the last five seconds of a session', { token: 'running-token', tokenTime: now() + 3 }],
+  ])('keeps the form with %s', async (_, state) => {
+    expect(await whereAfter('/login', state)).toBe('/login')
+  })
+
+  // That page signs in FOR a project and hands the member over to it (Login.vue).
+  it('keeps the form for a sign-in for a project', async () => {
+    expect(await whereAfter('/login?project=probe', RUNNING)).toBe('/login?project=probe')
+  })
+
+  // ⛔ Signing in over an open session stays possible from inside the wallet: after a
+  // registration on a phone where somebody is still signed in, "Sign in" leads to the form.
+  it('keeps the form on a way in from inside the running wallet', async () => {
+    const started = await startAt('/register', RUNNING)
+    await started.push('/login')
+    expect(started.currentRoute.value.fullPath).toBe('/login')
+  })
+
+  it('leaves every other start as it was', async () => {
+    expect(await whereAfter('/register', RUNNING)).toBe('/register')
+    expect(await whereAfter('/redeem/abc123', RUNNING)).toBe('/redeem/abc123')
+  })
+
+  /**
+   * ⭐ Back into the conversation (Bernd, 27.09.2026: "not in the dialog thread any more"): where
+   * a thread was open as the wallet went out of sight and did not come back, it left a note
+   * (utils/chatReturn), and the start opens that conversation again.
+   */
+  describe('with a conversation to come back to', () => {
+    const ME = { ...RUNNING, gradidoID: 'me-id' }
+    const note = (value = {}, me = 'me-id') =>
+      window.localStorage.setItem(
+        `chat-return:${me}`,
+        JSON.stringify({
+          gradidoID: 'anna-id',
+          communityUuid: 'other-uuid',
+          at: Date.now(),
+          ...value,
+        }),
+      )
+    const noted = (me = 'me-id') => window.localStorage.getItem(`chat-return:${me}`)
+    const ANNA_THREAD = '/contacts?with=anna-id&community=other-uuid'
+    afterEach(() => {
+      window.localStorage.clear()
+      takeHeldChatText({ gradidoID: '' })
+    })
+
+    it.each(['/login', '/', '/overview'])('opens it again from a start on %s', async (address) => {
+      note()
+      expect(await whereAfter(address, ME)).toBe(ANNA_THREAD)
+    })
+
+    // ⭐ The words not sent yet (Bernd, 27.09.2026) go to that conversation's field in memory:
+    // an address would put them in the browser's history.
+    it('hands the words not sent yet to that conversation, never through the address', async () => {
+      note({ text: 'Hier ist die Datei:' })
+      const at = await whereAfter('/login', ME)
+
+      expect(at).toBe(ANNA_THREAD)
+      expect(decodeURIComponent(at)).not.toContain('Datei')
+      expect(takeHeldChatText({ gradidoID: 'anna-id' })).toBe('Hier ist die Datei:')
+    })
+
+    it('holds no words where the start does not open the conversation', async () => {
+      note({ text: 'Hier ist die Datei:' })
+      await whereAfter('/login', { ...ME, tokenTime: now() - 60 })
+      expect(takeHeldChatText({ gradidoID: 'anna-id' })).toBe('')
+
+      note({ text: 'Hier ist die Datei:' })
+      await whereAfter('/register', ME)
+      expect(takeHeldChatText({ gradidoID: 'anna-id' })).toBe('')
+    })
+
+    // A group's thread (P5) comes back as the group's mails open it.
+    it("opens a group's window again, with its words held for it", async () => {
+      window.localStorage.setItem(
+        'chat-return:me-id',
+        JSON.stringify({ groupUuid: 'cafe-uuid', at: Date.now(), text: 'Bis Samstag' }),
+      )
+      expect(await whereAfter('/overview', ME)).toBe('/contacts?group=cafe-uuid')
+      expect(takeHeldChatText({ groupUuid: 'cafe-uuid' })).toBe('Bis Samstag')
+    })
+
+    it('names no community for a conversation in this one', async () => {
+      note({ communityUuid: null })
+      expect(await whereAfter('/overview', ME)).toBe('/contacts?with=anna-id')
+    })
+
+    it('comes back to it once: the note goes with the start', async () => {
+      note()
+      await whereAfter('/login', ME)
+      expect(noted()).toBeNull()
+      expect(await whereAfter('/login', ME)).toBe('/overview')
+    })
+
+    it('lets an hour-old note go', async () => {
+      note({ at: Date.now() - 60 * 60 * 1000 - 1000 })
+      expect(await whereAfter('/overview', ME)).toBe('/overview')
+      expect(noted()).toBeNull()
+    })
+
+    // One browser serves several members.
+    it("does not take another member's conversation", async () => {
+      note({}, 'other-member')
+      expect(await whereAfter('/login', ME)).toBe('/overview')
+      expect(noted('other-member')).not.toBeNull()
+    })
+
+    // Without a running session the member signs in anew; a conversation from before is nowhere
+    // to come back to, and the note goes all the same.
+    it('lets the note go where the session has ended, and shows the form', async () => {
+      note()
+      expect(await whereAfter('/login', { ...ME, tokenTime: now() - 60 })).toBe('/login')
+      expect(noted()).toBeNull()
+    })
+
+    it('lets a redeem code go first', async () => {
+      note()
+      expect(await whereAfter('/login/abc123', ME)).toBe('/redeem/abc123')
+      expect(noted()).toBeNull()
+    })
+
+    it('keeps the form for a sign-in for a project, and lets the note go', async () => {
+      note()
+      expect(await whereAfter('/login?project=probe', ME)).toBe('/login?project=probe')
+      expect(noted()).toBeNull()
+    })
+
+    // The note serves the one start after it, whatever that start becomes.
+    it('is let go by a start anywhere else, which it leaves as it was', async () => {
+      note()
+      const started = await startAt('/register', ME)
+      expect(started.currentRoute.value.fullPath).toBe('/register')
+      expect(noted()).toBeNull()
+
+      await started.push('/overview')
+      expect(started.currentRoute.value.fullPath).toBe('/overview')
+    })
+
+    // Only a start: on the way from page to page nothing is taken, and nothing opens.
+    it('is not taken on a way from inside the running wallet', async () => {
+      const started = await startAt('/register', ME)
+      note()
+      await started.push('/overview')
+      expect(started.currentRoute.value.fullPath).toBe('/overview')
+      expect(noted()).not.toBeNull()
     })
   })
 })

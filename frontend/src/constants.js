@@ -67,6 +67,14 @@ export const CONTACTS_PANEL_ROWS = 5
 export const LIST_AVATAR_SIZE = 48
 
 /**
+ * A small face that is part of a control (P5), in pixels: the strip in a group window's members
+ * button, the chips of the chosen in the group picker. Not zoomable there -- the control takes the
+ * tap. The face beside a message in a group is a list's (LIST_AVATAR_SIZE): Bernd, 29.09.2026,
+ * "48 px wie jede Liste".
+ */
+export const SMALL_FACE_SIZE = 28
+
+/**
  * Where this wallet's layout changes from a phone to a desk, in pixels.
  *
  * ⛔ 1025, NOT Bootstrap's own 992. `assets/scss/custom/gradido-custom/_grid-breakpoint.scss`

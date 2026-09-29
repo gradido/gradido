@@ -252,19 +252,24 @@ export const executeTransaction = async (
     } finally {
       await queryRunner.release()
     }
-    await sendTransactionReceivedEmail({
-      firstName: recipient.firstName,
-      lastName: recipient.lastName,
-      email: recipient.emailContact.email,
-      language: recipient.language,
-      memo,
-      senderAlias: new PublishNameLogic(sender).getPublicAlias(),
-      // The reply button in the mail leads to the send form with the sender filled in,
-      // so the mail carries these instead of the sender's e-mail address.
-      senderUuid: sender.gradidoID,
-      senderCommunityUuid: sender.communityUuid,
-      transactionAmount: amount,
-    })
+    // The recipient's own switch (Einstellungen › Nachrichten, "Überweisungen im Chat und per
+    // E-Mail", on by default): switched off, no mail about a transfer received. Only a stored
+    // no holds it back.
+    if (recipient.transfersInChat !== false) {
+      await sendTransactionReceivedEmail({
+        firstName: recipient.firstName,
+        lastName: recipient.lastName,
+        email: recipient.emailContact.email,
+        language: recipient.language,
+        memo,
+        senderAlias: new PublishNameLogic(sender).getPublicAlias(),
+        // The reply button in the mail opens the conversation with the sender, so the mail
+        // carries these instead of the sender's e-mail address.
+        senderUuid: sender.gradidoID,
+        senderCommunityUuid: sender.communityUuid,
+        transactionAmount: amount,
+      })
+    }
     if (transactionLink) {
       const recipientCom = await getCommunityName(recipient.communityUuid)
       // Whether this account came into being by redeeming THIS link -- asked of the

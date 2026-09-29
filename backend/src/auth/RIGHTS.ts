@@ -95,12 +95,19 @@ export enum RIGHTS {
   // The chat (E-023): reading the messages of a conversation the caller is a member of, and
   // writing two marks on the caller's own member row in it -- the read pointer and the mute
   // mark (E-024). It reaches no conversation the caller is not in -- ChatResolver finds the
-  // conversation by the pair of the caller and the other member.
+  // conversation by the pair of the caller and the other member, ChatGroupResolver a group by
+  // the caller's own member row in it (P5). Leaving a group, which takes out that row and no
+  // other, is under this key as well.
   READ_OWN_CHAT = 'READ_OWN_CHAT',
   // Writing a chat message to ONE other member, here or in another community. It acts
   // outward -- the counterpart of SEND_COINS, which guards the form "send an e-mail" -- and so
   // it is on RESTRICTED_WHILE_UNCONFIRMED as well.
   SEND_CHAT_MESSAGE = 'SEND_CHAT_MESSAGE',
+  // Opening a chat group and running it (P5): taking members in -- each gets a mail --, taking
+  // them out, naming moderators, renaming. What a member may do in a given group, their role
+  // there decides (ChatGroup.logic.ts); this key only says that the account may do it at all.
+  // Leaving a group is not behind it: that is READ_OWN_CHAT's, like the mute mark.
+  MANAGE_CHAT_GROUPS = 'MANAGE_CHAT_GROUPS',
   // The first creation (ES-002..ES-011): reading one's own state, saving one's own
   // entries, skipping the window. Every call reaches the caller's own process only; the
   // confirmation in the SIGNER's name happens inside the interaction, not behind this key.

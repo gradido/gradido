@@ -8,7 +8,7 @@
          about it went out or the recipient's mute held it back (E-019, E-034). The wallet adds
          nothing to it. -->
     <p
-      v-if="state === 'error'"
+      v-if="view === 'error'"
       class="chat-thread-box chat-thread-quiet"
       data-test="chat-thread-error"
     >
@@ -16,12 +16,12 @@
     </p>
 
     <div
-      v-else-if="state === 'empty'"
+      v-else-if="view === 'empty'"
       class="chat-thread-box chat-thread-quiet"
       data-test="chat-thread-empty"
     >
       <i-mdi-chat-outline class="chat-thread-empty-icon" aria-hidden="true" />
-      <p class="mb-0">{{ t('chatThread.empty') }}</p>
+      <p class="mb-0">{{ emptyWords }}</p>
     </div>
 
     <!-- ⛔ A named region, not a live one -- and it stays one now that the other side's
@@ -34,17 +34,17 @@
          Focusable, because it scrolls and a keyboard has to be able to scroll it -- and
          what can be focused needs a name, which is what the label is for. -->
     <div
-      v-else-if="state === 'thread'"
+      v-else-if="view === 'thread'"
       ref="scroller"
       class="chat-thread-box chat-thread-scroll"
       role="region"
-      :aria-label="t('chatThread.label', { name: alias })"
+      :aria-label="threadLabel"
       tabindex="0"
       data-test="chat-thread-log"
       @scroll="noteWhereTheReaderIs"
     >
       <div ref="content" class="chat-thread-content">
-        <div v-if="hasMore" class="chat-thread-older">
+        <div v-if="hasMore || transfersHaveMore" class="chat-thread-older">
           <!-- ⚠️ `aria-disabled`, not `disabled`: a focused button that is disabled loses its
                focus in Chrome, and a keyboard that pressed it would be nowhere once the page
                is in. The click handler turns a second press away instead. -->
@@ -69,8 +69,9 @@
           </p>
         </div>
 
-        <!-- A day, then its messages. The date stands above the first message of every day
-             the thread reaches into, the first one included. -->
+        <!-- A day, then its messages -- and the transfers between the two, where they fall in
+             time (Bernd, 28.09.2026). The date stands above the first message of every day the
+             thread reaches into, the first one included. -->
         <section v-for="day in days" :key="day.key" class="chat-thread-day-group">
           <h3 class="chat-thread-day" data-test="chat-thread-day">
             <time :datetime="day.key">{{ d(day.date, 'short') }}</time>
@@ -78,9 +79,12 @@
           <ol class="chat-thread-list">
             <chat-bubble
               v-for="message in day.messages"
-              :key="message.id"
+              :key="message.key ?? message.id"
               :message="message"
-              :alias="alias"
+              :alias="inGroup ? groupTitle : alias"
+              :in-group="inGroup"
+              :show-writer="runStarts.has(message.id)"
+              @open-image="openImage"
             />
           </ol>
         </section>
@@ -95,14 +99,25 @@
          condition holds for both, so it is not made anew when the first message turns the
          one into the other, and the keyboard stays in its field. Not while loading and not
          where the thread could not be loaded -- there is nothing to answer yet. -->
+    <!-- In a group (P5) there is no first message to go by mail -- the mail "taken in" was the
+         first word -- and the box is the announcement, the owner's and the moderators' only. -->
     <chat-compose-bar
-      v-if="state === 'thread' || state === 'empty'"
-      :name="alias"
-      :first="state === 'empty'"
+      v-if="view === 'thread' || view === 'empty'"
+      ref="composeBar"
+      :name="inGroup ? groupTitle : alias"
+      :first="!inGroup && state === 'empty'"
+      :group="inGroup"
+      :can-announce="canAnnounce"
+      :announce-to="announceTo"
       :sending="sending"
       :failed="sendFailed"
+      :failed-reason="sendRefusal"
+      :initial-text="heldText"
       @send="send"
     />
+
+    <!-- A picture of the thread, large (P7): a dialog of its own over the contact window. -->
+    <chat-image-view />
 
     <!-- For the ear only: "sent", or "new message from …" when one arrived by itself. Always in
          the page, so the words are announced when they are put in -- a live region that appears
@@ -114,23 +129,47 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useStore } from 'vuex'
 import { useApolloClient, useMutation, useQuery } from '@vue/apollo-composable'
 import ChatBubble from '@/components/Chat/ChatBubble.vue'
 import ChatComposeBar from '@/components/Chat/ChatComposeBar.vue'
+import ChatImageView from '@/components/Chat/ChatImageView.vue'
+import { openChatImageView, rememberChatImage } from '@/composables/useChatImages'
+import { useChatTransfers } from '@/composables/useChatTransfers'
 import { onChatMessages, pollChatNow } from '@/composables/useChatUpdates'
+import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
 import {
   chatMessagesWithMemberQuery,
   markChatConversationRead,
   sendChatMessage,
 } from '@/graphql/chat.graphql'
+import {
+  chatGroupMessagesQuery,
+  markChatGroupRead,
+  sendChatGroupMessage,
+} from '@/graphql/chatGroups.graphql'
+import { chatImageRefusal } from '@/utils/chatImage'
+import { managesChatGroup } from '@/utils/chatGroupRoles'
 import { chatMemberKey } from '@/utils/chatMemberKey'
+import { CHAT_NOTIFY_EMAIL } from '@/utils/chatNotify'
+import { dropChatReturnNote, noteChatReturn, takeHeldChatText } from '@/utils/chatReturn'
+import { memberAlias } from '@/utils/gradidoAddress'
 
 /** How many messages a page holds -- the server's own default, written out. */
 const PAGE_SIZE = 50
 
 const props = defineProps({
-  /** The other person, named by the pair (KF-004): `{ gradidoID, communityUuid }`. */
-  member: { type: Object, required: true },
+  /**
+   * The other person, named by the pair (KF-004): `{ gradidoID, communityUuid }`. Null in a
+   * group's thread, which is named by `group` instead.
+   */
+  member: { type: Object, default: null },
+  /**
+   * The group this is the thread of (P5), as `chatGroupsQuery` delivers it: its uuid, the
+   * conversation its messages carry, its name, the member's own part in it, how many are in it.
+   * Null in the thread with one person. One of the two is given; the thread takes it once.
+   */
+  group: { type: Object, default: null },
   /** Their name, for the thread's accessible name and the writer of their messages. */
   alias: { type: String, default: '' },
   /**
@@ -150,7 +189,7 @@ const props = defineProps({
  */
 const emit = defineEmits(['chatConversation'])
 
-const { t, d } = useI18n()
+const { t, d, n } = useI18n()
 
 /**
  * The pair, taken ONCE. The thread is made when the window opens and gone when it closes
@@ -158,10 +197,29 @@ const { t, d } = useI18n()
  * never has to follow a member that changes under it. A `communityUuid` of null is this
  * community, as the server reads it.
  */
-const memberRef = {
-  gradidoID: props.member.gradidoID,
-  communityUuid: props.member.communityUuid ?? null,
-}
+/**
+ * A group's thread (P5) or the thread with one person -- taken once, as the pair is: the group's
+ * window gives the thread a new key for another group, as the contact window does for another
+ * person.
+ */
+const inGroup = props.group !== null
+const groupUuid = props.group?.groupUuid ?? null
+
+const memberRef = inGroup
+  ? null
+  : {
+      gradidoID: props.member.gradidoID,
+      communityUuid: props.member.communityUuid ?? null,
+    }
+
+/**
+ * What the two kinds of thread are asked by, and the names their answers come under: a group by
+ * its uuid (chatGroups.graphql), a person by the pair. Everything else -- pages, arrivals, one's
+ * own copy, the read pointer -- goes the same way for both.
+ */
+const THREAD = inGroup
+  ? { query: chatGroupMessagesQuery, page: 'chatGroupMessages', copy: 'sendChatGroupMessage' }
+  : { query: chatMessagesWithMemberQuery, page: 'chatMessagesWithMember', copy: 'sendChatMessage' }
 
 /**
  * ⛔ `network-only`: every opening asks the server. A window that showed the answer of the
@@ -170,17 +228,78 @@ const memberRef = {
  * cache, and that is what `fetchMore` merges older pages into; the cache is emptied at
  * logout, so nothing of it reaches the next member on this device.
  */
-const threadVariables = { ref: memberRef, limit: PAGE_SIZE }
-const { result, error, fetchMore } = useQuery(chatMessagesWithMemberQuery, threadVariables, {
+const threadVariables = inGroup
+  ? { groupUuid, limit: PAGE_SIZE }
+  : { ref: memberRef, limit: PAGE_SIZE }
+const { result, error, fetchMore } = useQuery(THREAD.query, threadVariables, {
   fetchPolicy: 'network-only',
 })
-const { mutate: markRead } = useMutation(markChatConversationRead)
-const { mutate: sendToServer } = useMutation(sendChatMessage)
+const { mutate: markRead } = useMutation(inGroup ? markChatGroupRead : markChatConversationRead)
+const { mutate: sendToServer } = useMutation(inGroup ? sendChatGroupMessage : sendChatMessage)
 const { client: apolloClient } = useApolloClient()
 
-const page = computed(() => result.value?.chatMessagesWithMember ?? null)
+const page = computed(() => result.value?.[THREAD.page] ?? null)
 const messages = computed(() => page.value?.messages ?? [])
 const hasMore = computed(() => Boolean(page.value?.hasMore))
+
+/**
+ * The transfers between the two (useChatTransfers), beside the messages and apart from them:
+ * nothing the chat counts goes by them -- not the read pointer, not the page before the smallest
+ * id, not whether the conversation exists. They only stand in the thread where they fall in
+ * time, as bubbles of their own.
+ */
+const store = useStore()
+const {
+  transfers,
+  settled: transfersSettled,
+  hasMore: transfersHaveMore,
+  loadOlderTransfers,
+} = useChatTransfers(apolloClient, memberRef, {
+  // The member's own switch (Einstellungen › Nachrichten), on unless switched off: null is a
+  // store from before the field. Never in a group: a transfer is between two (E-050 F6).
+  enabled: !inGroup && store.state.transfersInChat !== false,
+})
+
+/** The group's name, where this is a group's thread (P5). */
+const groupTitle = computed(() => props.group?.title ?? '')
+
+/** The thread's name for the ear: whom it is with -- or which group it is. */
+const threadLabel = computed(() =>
+  inGroup
+    ? t('chatGroup.label', { name: groupTitle.value })
+    : t('chatThread.label', { name: props.alias }),
+)
+
+/**
+ * Whether the member opened the group: then everybody else in it had the mail "taken in" from
+ * them, and the empty thread says so (the mockup). Anybody else reads only that nothing is written
+ * yet -- they were taken in by somebody, or came later.
+ */
+const openedByMe = computed(
+  () =>
+    inGroup &&
+    Boolean(props.group.createdBy?.gradidoID) &&
+    // By the Gradido ID alone, as the group's window asks it: in P5 every member is of this
+    // community (E-026).
+    props.group.createdBy.gradidoID.toLowerCase() ===
+      String(store.state.gradidoID ?? '').toLowerCase(),
+)
+
+/** What an empty thread says. Two written-out keys each, for the i18n lint. */
+const emptyWords = computed(() => {
+  if (!inGroup) return t('chatThread.empty')
+  return openedByMe.value ? t('chatGroup.emptyOpened') : t('chatGroup.empty')
+})
+
+/**
+ * Whether the bar offers the announcement (E-050 F5): the owner and the moderators -- and only
+ * where anybody else is in the group to announce to. Read off the group as the window holds it, so
+ * a part changed while the window is open counts at once.
+ */
+const announceTo = computed(() => (inGroup ? Math.max(0, props.group.memberCount - 1) : 0))
+const canAnnounce = computed(
+  () => inGroup && managesChatGroup(props.group.role) && announceTo.value > 0,
+)
 
 /**
  * ⚠️ Decided on the PAGE, not on `loading`. vue-apollo sets `loading` for a `fetchMore` too,
@@ -193,6 +312,79 @@ const state = computed(() => {
   return 'loading'
 })
 
+const at = (iso) => new Date(iso).getTime()
+
+/**
+ * A transfer as a bubble (Bernd, 28.09.2026): "formatiert wie eine E-Mail, nur etwas kürzer" --
+ * the mail's own words bold over it ("Frank-Tisch hat Dir 10,00 Gradido gesendet"; for the one
+ * who sent it "Du hast Bernd 10,00 Gradido gesendet"), the booking's memo under them. On the
+ * side of whoever sent it, as a message is.
+ */
+const transferBubble = (booking) => {
+  const mine = booking.typeId === 'SEND'
+  const amount = n(Math.abs(Number(booking.amount)), 'decimal')
+  return {
+    key: `transfer-${booking.id}`,
+    transfer: true,
+    mine,
+    createdAt: booking.balanceDate,
+    subject: mine
+      ? t('chatThread.transferSent', { name: props.alias, amount })
+      : t('chatThread.transferReceived', { name: props.alias, amount }),
+    body: booking.memo,
+  }
+}
+
+/**
+ * How far back the thread can be shown without a gap: while either list has older pages, not
+ * past the oldest thing it holds -- a message from before the oldest transfer asked for would
+ * stand beside transfers that are not there yet. "Load older" moves it back.
+ */
+const horizon = computed(() => {
+  const limits = []
+  if (hasMore.value && messages.value.length) limits.push(at(messages.value[0].createdAt))
+  if (transfersHaveMore.value && transfers.value.length) {
+    limits.push(at(transfers.value[0].balanceDate))
+  }
+  return limits.length ? Math.max(...limits) : -Infinity
+})
+
+/**
+ * The messages in their own order (E-018) with the transfers between them, each before the first
+ * message that came after it -- from the horizon on.
+ */
+const timeline = computed(() => {
+  const due = transfers.value.filter((booking) => at(booking.balanceDate) >= horizon.value)
+  const shown = []
+  let next = 0
+  for (const message of messages.value) {
+    const when = at(message.createdAt)
+    if (when < horizon.value) continue
+    while (next < due.length && at(due[next].balanceDate) < when) {
+      shown.push(transferBubble(due[next]))
+      next += 1
+    }
+    shown.push(message)
+  }
+  while (next < due.length) {
+    shown.push(transferBubble(due[next]))
+    next += 1
+  }
+  return shown
+})
+
+/**
+ * What the box shows. The chat's own state (`state`) goes by the messages -- whether the
+ * conversation exists, whether the next message is the first -- and the box by all it holds: a
+ * pair with transfers and no message yet has a thread to show. "Empty" waits for the transfers,
+ * so the empty box does not stand for a moment over transfers on their way.
+ */
+const view = computed(() => {
+  if (state.value === 'error' || state.value === 'loading') return state.value
+  if (timeline.value.length > 0) return 'thread'
+  return transfersSettled.value ? 'empty' : 'loading'
+})
+
 /** The local calendar day of a message: what the date line above a day names. */
 const dayKey = (date) =>
   [
@@ -202,12 +394,13 @@ const dayKey = (date) =>
   ].join('-')
 
 /**
- * The messages, a day at a time. Nothing is sorted: they come in the order they arrived on
- * this server (E-018), and an older page is put in front of the ones already there.
+ * The timeline, a day at a time. The messages are not sorted: they come in the order they
+ * arrived on this server (E-018), an older page in front of the ones already there, and the
+ * transfers stand between them by their time.
  */
 const days = computed(() => {
   const groups = []
-  for (const message of messages.value) {
+  for (const message of timeline.value) {
     const date = new Date(message.createdAt)
     const key = dayKey(date)
     const last = groups[groups.length - 1]
@@ -219,6 +412,45 @@ const days = computed(() => {
   }
   return groups
 })
+
+/**
+ * In a group (P5): the messages that begin a run of the same writer within a day. The face and the
+ * name stand over those, and the bubbles after them go without (ChatBubble) -- a date line begins
+ * a new run. One's own messages end a run and begin none.
+ */
+const runStarts = computed(() => {
+  const starts = new Set()
+  if (!inGroup) return starts
+  for (const day of days.value) {
+    let before = null
+    for (const message of day.messages) {
+      const writer = message.mine ? null : chatMemberKey(message.sender)
+      if (writer && writer !== before) starts.add(message.id)
+      before = writer
+    }
+  }
+  return starts
+})
+
+/**
+ * The faces of the writers in a group's thread (P5), asked the way the lists ask for theirs:
+ * whoever's picture is not on this device yet, in one question; the bubbles draw them from the
+ * store (memberAvatarProps). One's own messages carry no face.
+ */
+if (inGroup) {
+  watch(
+    messages,
+    (list) => {
+      const writers = new Map()
+      for (const message of list) {
+        const writer = message.senderUser
+        if (!message.mine && writer?.gradidoID) writers.set(chatMemberKey(writer), writer)
+      }
+      if (writers.size > 0) fetchMemberAvatars(apolloClient, [...writers.values()])
+    },
+    { immediate: true },
+  )
+}
 
 /**
  * The highest id that was on screen while the page was out of sight -- read by nobody yet, so
@@ -248,7 +480,8 @@ const markShown = (upToMessageId, { quiet = false } = {}) => {
   }
   unseenUpTo = 0
   const options = quiet ? { context: { renewSession: false } } : undefined
-  Promise.resolve(markRead({ ref: memberRef, upToMessageId }, options))
+  const pointer = inGroup ? { groupUuid, upToMessageId } : { ref: memberRef, upToMessageId }
+  Promise.resolve(markRead(pointer, options))
     .then(() => pollChatNow())
     .catch(() => {})
 }
@@ -259,6 +492,78 @@ const onVisibility = () => {
 }
 document.addEventListener('visibilitychange', onVisibility)
 onBeforeUnmount(() => document.removeEventListener('visibilitychange', onVisibility))
+
+/**
+ * The way back into this conversation, should iOS start the wallet over while the member is in
+ * another app (utils/chatReturn): noted as the page goes out of sight, let go as it comes back
+ * into sight or the thread closes -- whom it is with, and the words in the field not sent yet.
+ * After such a start, the words come back into the field (`heldText`, handed over in memory).
+ */
+const composeBar = ref(null)
+/** Whom the way back leads to: the person by the pair, a group by its uuid. */
+const returnTo = inGroup ? { groupUuid } : memberRef
+const noteReturn = () => {
+  if (document.hidden) {
+    noteChatReturn(store.state.gradidoID, returnTo, composeBar.value?.draft() ?? '')
+  } else {
+    dropChatReturnNote(store.state.gradidoID)
+  }
+}
+document.addEventListener('visibilitychange', noteReturn)
+onBeforeUnmount(() => {
+  document.removeEventListener('visibilitychange', noteReturn)
+  dropChatReturnNote(store.state.gradidoID)
+})
+
+/**
+ * Whoever wrote a message that is not one's own: the other person in a thread of two; in a group
+ * the writer the server named with the message -- their alias, or their id where they have none
+ * (memberAlias), also for a member who has left the group since.
+ */
+const writerOf = (message) =>
+  inGroup
+    ? memberAlias(
+        message.senderUser?.alias,
+        message.senderUser?.gradidoID ?? message.sender?.gradidoID,
+      )
+    : props.alias
+
+/**
+ * A picture large (ChatImageView): who sent it -- "Du" for one's own, the other person's name
+ * otherwise -- and, for the dialog's name ("Bild von {name}"), one's own name where it is one's own
+ * picture. When it arrived, its caption, and the button that opened it, for the focus to go back to.
+ */
+const openImage = ({ message, image, opener }) => {
+  const ownName = store.state.username || store.state.firstName || ''
+  openChatImageView({
+    imageUuid: image.imageUuid,
+    width: image.width,
+    height: image.height,
+    who: message.mine ? t('chatThread.you') : writerOf(message),
+    name: message.mine ? ownName : writerOf(message),
+    at: message.createdAt,
+    caption: message.body,
+    opener,
+  })
+}
+
+/**
+ * The words a start held for this conversation, taken only when the bar can show them -- when
+ * the first page is in. Before that they stay where the start put them: a first page that fails
+ * shows no bar, and the next opening of the window takes them (coderabbit, PR #3999). A watcher
+ * runs before the render it belongs to, so the bar is made with them.
+ */
+const heldText = ref('')
+let heldTaken = false
+watch(
+  state,
+  (now) => {
+    if (heldTaken || (now !== 'thread' && now !== 'empty')) return
+    heldTaken = true
+    heldText.value = takeHeldChatText(returnTo)
+  },
+  { immediate: true },
+)
 
 /**
  * The read pointer on opening, to the highest id the first page brought (E-017: the marker is
@@ -339,7 +644,7 @@ const noteWhereTheReaderIs = () => {
 
 // The newest message is the one at the bottom, and that is where a thread opens.
 watch(
-  state,
+  view,
   (now, before) => {
     if (now === 'thread' && before !== 'thread') scrollToNewest()
   },
@@ -385,7 +690,7 @@ let focusWasOnOlder = false
  * it at all.
  */
 watch(
-  messages,
+  timeline,
   () => {
     const box = scroller.value
     // One's own message, at the bottom: the thread goes down to it (the sender asked it to
@@ -397,9 +702,11 @@ watch(
     }
     if (box) box.scrollTop = box.scrollHeight - placeFromBottom
     placeFromBottom = null
-    // The button goes once the first message is in. Focus that stood on it would fall out
-    // of the window; it goes to the thread instead, where the keyboard was.
-    if (focusWasOnOlder && !hasMore.value) box?.focus({ preventScroll: true })
+    // The button goes once the first message and the first transfer are in. Focus that stood
+    // on it would fall out of the window; it goes to the thread instead, where the keyboard was.
+    if (focusWasOnOlder && !hasMore.value && !transfersHaveMore.value) {
+      box?.focus({ preventScroll: true })
+    }
     focusWasOnOlder = false
     // What arrived while the older page was on its way, now that the reader's place is kept.
     takeWaitingArrivals()
@@ -409,21 +716,34 @@ watch(
 
 /** An older page in front of the one on screen. */
 const withOlderPage = (previous, { fetchMoreResult }) => {
-  const older = fetchMoreResult?.chatMessagesWithMember
+  const older = fetchMoreResult?.[THREAD.page]
   if (!older) return previous
   return {
     ...previous,
-    chatMessagesWithMember: {
-      ...previous.chatMessagesWithMember,
+    [THREAD.page]: {
+      ...previous[THREAD.page],
       hasMore: older.hasMore,
-      messages: [...older.messages, ...previous.chatMessagesWithMember.messages],
+      messages: [...older.messages, ...previous[THREAD.page].messages],
     },
   }
 }
 
-/** The page before the smallest id on screen; the watcher above keeps the reader's place. */
+/**
+ * The page before the smallest id on screen, and the older transfers -- from whichever list the
+ * horizon stands at, both where it stands at both; the watcher above keeps the reader's place.
+ */
 const loadOlder = async (event) => {
-  if (loadingOlder.value || messages.value.length === 0) return
+  if (loadingOlder.value) return
+  const oldestMessage =
+    hasMore.value && messages.value.length ? at(messages.value[0].createdAt) : -Infinity
+  const oldestTransfer =
+    transfersHaveMore.value && transfers.value.length
+      ? at(transfers.value[0].balanceDate)
+      : -Infinity
+  const olderMessages =
+    hasMore.value && messages.value.length > 0 && oldestMessage >= oldestTransfer
+  const olderTransfers = transfersHaveMore.value && oldestTransfer >= oldestMessage
+  if (!olderMessages && !olderTransfers) return
   const box = scroller.value
   followNewest = false
   placeFromBottom = box ? box.scrollHeight - box.scrollTop : null
@@ -431,10 +751,15 @@ const loadOlder = async (event) => {
   loadingOlder.value = true
   olderFailed.value = false
   try {
-    await fetchMore({
-      variables: { before: Math.min(...messages.value.map((message) => message.id)) },
-      updateQuery: withOlderPage,
-    })
+    await Promise.all([
+      olderMessages
+        ? fetchMore({
+            variables: { before: Math.min(...messages.value.map((message) => message.id)) },
+            updateQuery: withOlderPage,
+          })
+        : null,
+      olderTransfers ? loadOlderTransfers() : null,
+    ])
   } catch {
     olderFailed.value = true
     placeFromBottom = null
@@ -466,11 +791,11 @@ const arrivalsFor = (thread, chatMessages) => {
  * to this server (E-018). The same way into the same list as one's own copy (`withOwnCopy`).
  */
 const withArrivals = (current, arrivals) => {
-  const thread = current?.chatMessagesWithMember
+  const thread = current?.[THREAD.page]
   if (!thread || arrivals.length === 0) return undefined
   return {
     ...current,
-    chatMessagesWithMember: {
+    [THREAD.page]: {
       ...thread,
       messages: [...thread.messages, ...arrivals].sort((a, b) => a.id - b.id),
     },
@@ -484,27 +809,37 @@ const withArrivals = (current, arrivals) => {
  * while this one was on its way can have been stored first, and then stands before it.
  */
 const withOwnCopy = (current, own) => {
-  const thread = current?.chatMessagesWithMember
+  const thread = current?.[THREAD.page]
   if (!thread) return undefined
   return withArrivals(current, arrivalsFor(thread, [own]))
 }
 
 /**
- * Which conversation the arrivals are to be looked for in: the one the messages on screen
- * name, or -- in a thread that holds none yet -- the one this person's first message names,
+ * Which conversation the arrivals are to be looked for in. A group's is known from the start (P5):
+ * the conversation its messages carry. The thread with a person takes the one the messages on
+ * screen name, or -- in a thread that holds none yet -- the one this person's first message names,
  * known by the pair of its writer.
+ *
+ * ⛔ Not a message they wrote in a group (`groupUuid`, build plan P5 Falle 1): it has the same
+ * writer, and an empty thread would take the group's conversation for theirs -- the group's
+ * messages would then stand in the thread of two.
  *
  * ⚠️ One's own message written into an empty thread from another device names no recipient,
  * so it cannot be told from one to somebody else; it shows with the next opening.
  */
-const chatConversationFor = (chatMessages) =>
-  messages.value[0]?.conversationId ??
-  chatMessages.find(
-    (message) =>
-      !message.mine &&
-      chatMemberKey(message.sender) === (props.memberKey || chatMemberKey(props.member)),
-  )?.conversationId ??
-  null
+const chatConversationFor = (chatMessages) => {
+  if (inGroup) return props.group.conversationId
+  return (
+    messages.value[0]?.conversationId ??
+    chatMessages.find(
+      (message) =>
+        !message.mine &&
+        !message.groupUuid &&
+        chatMemberKey(message.sender) === (props.memberKey || chatMemberKey(props.member)),
+    )?.conversationId ??
+    null
+  )
+}
 
 /**
  * Messages handed on by the beat, held until the page can take them: while the first page is
@@ -523,17 +858,16 @@ const takeWaitingArrivals = () => {
   if (ours.length === 0) return
 
   let added = []
-  apolloClient.cache.updateQuery(
-    { query: chatMessagesWithMemberQuery, variables: threadVariables },
-    (current) => {
-      if (!current?.chatMessagesWithMember) return undefined
-      added = arrivalsFor(current.chatMessagesWithMember, ours)
-      return withArrivals(current, added)
-    },
-  )
-  // Only what the other side wrote is news: one's own copies arrive too, and say nothing.
-  if (!added.some((message) => !message.mine)) return
-  announce(t('chatThread.arrived', { name: props.alias }))
+  apolloClient.cache.updateQuery({ query: THREAD.query, variables: threadVariables }, (current) => {
+    if (!current?.[THREAD.page]) return undefined
+    added = arrivalsFor(current[THREAD.page], ours)
+    return withArrivals(current, added)
+  })
+  // Only what the other side wrote is news: one's own copies arrive too, and say nothing. In a
+  // group, who wrote the last of them.
+  const theirs = added.filter((message) => !message.mine)
+  if (theirs.length === 0) return
+  announce(t('chatThread.arrived', { name: writerOf(theirs[theirs.length - 1]) }))
   markShown(Math.max(...added.map((message) => message.id)), { quiet: true })
 }
 
@@ -560,6 +894,11 @@ const messagesUnderway = ref(0)
 const sending = computed(() => messagesUnderway.value > 0)
 /** The bar's last message did not go through; the bar keeps its text and says so. */
 const sendFailed = ref(false)
+/**
+ * Why, where the server refused it for its picture (chatImageRefusal): IMAGE_NOT_ACCEPTED or
+ * TOO_LARGE_ACROSS_BORDER -- the bar has words of its own for these two. Empty otherwise.
+ */
+const sendRefusal = ref('')
 /** What the status says to a screen reader: a message has gone, or one has arrived. */
 const sentNotice = ref('')
 
@@ -583,7 +922,9 @@ const announce = async (text) => {
 const noticeFor = (own) => {
   if (own?.deliveryState === 'FAILED') return t('chatThread.failed')
   if (own?.deliveryState === 'PENDING') return t('chatThread.pending')
-  if (own?.mailState === 'MUTED') {
+  // Not in a group: the note names the one recipient whose mute held the mail back, and a group's
+  // announcement has many -- its copy carries no mail state (P5a; coderabbit, #4013).
+  if (!inGroup && own?.mailState === 'MUTED') {
     return t('chatThread.sentWithNote', {
       note: t('chatThread.notMailedMuted', { name: props.alias }),
     })
@@ -594,7 +935,12 @@ const noticeFor = (own) => {
 /**
  * Sends one message and hangs the answer -- one's own copy -- under the thread: the one way out
  * of here, for the bar's messages (`send`) and the window's video invitation (`deliver`). The
- * status says what became of it. Never throws: the server's copy, or null where it gave none.
+ * status says what became of it. Never throws: `{ own, refusal }` -- the server's copy, or null
+ * where it gave none, and then what the refusal was about where it was about a picture.
+ *
+ * A picture (P7) goes as `$image` -- ⛔ the name the backend's request log masks (LOG-071): under
+ * any other name some 44,000 characters of it would be written to the log with every message.
+ * Without one, no `image` at all, rather than a null nobody asked for.
  *
  * ⛔ Into the query's own answer in the cache, not a list of its own and not by asking the
  * server again. Measured with Apollo 3.14 and vue-apollo 4.2 before building: a `network-only`
@@ -605,29 +951,45 @@ const noticeFor = (own) => {
  * ⚠️ It leaves the count of messages on their way to its callers: the bar's `sendFailed` has to
  * change in the same synchronous step as `sending` (see `send`).
  */
-const post = async ({ body, notify }) => {
+/**
+ * Where a message goes, and what the sender asked for about mail. In a group (P5) the bar's box is
+ * the announcement (E-050 F5): EMAIL from the bar is `announce` -- by mail to every member but
+ * the sender who has not muted the group. With a person it is the wish for this one message.
+ */
+const sendTo = (notify) =>
+  inGroup ? { groupUuid, announce: notify === CHAT_NOTIFY_EMAIL } : { ref: memberRef, notify }
+
+const post = async ({ body, notify, image = null }) => {
   sentNotice.value = ''
   // Whoever writes wants to see what they wrote: back to the bottom, even from further up.
   followNewest = true
   try {
     const answer = await sendToServer(
-      { ref: memberRef, body, notify },
+      {
+        ...sendTo(notify),
+        body,
+        ...(image ? { image } : {}),
+      },
       {
         update: (cache, { data }) => {
-          const own = data?.sendChatMessage
+          const own = data?.[THREAD.copy]
           if (!own) return
-          cache.updateQuery(
-            { query: chatMessagesWithMemberQuery, variables: threadVariables },
-            (current) => withOwnCopy(current, own),
+          // One's own picture from the JPEG just sent (useChatImages): its bubble, drawn with the
+          // copy below, shows it without asking the server for what went out from here. Before
+          // the copy is written, so the bubble finds it when it is made.
+          const filed = own.images?.[0]
+          if (filed) rememberChatImage(filed.imageUuid, image?.data)
+          cache.updateQuery({ query: THREAD.query, variables: threadVariables }, (current) =>
+            withOwnCopy(current, own),
           )
         },
       },
     )
-    const own = answer?.data?.sendChatMessage ?? null
+    const own = answer?.data?.[THREAD.copy] ?? null
     if (own) sentNotice.value = noticeFor(own)
-    return own
-  } catch {
-    return null
+    return { own, refusal: null }
+  } catch (error) {
+    return { own: null, refusal: chatImageRefusal(error) }
   }
 }
 
@@ -648,11 +1010,12 @@ const send = async (message) => {
   if (sending.value) return
   messagesUnderway.value += 1
   sendFailed.value = false
-  let own = null
+  let outcome = { own: null, refusal: null }
   try {
-    own = await post(message)
+    outcome = await post(message)
   } finally {
-    sendFailed.value = own === null
+    sendFailed.value = outcome.own === null
+    sendRefusal.value = outcome.refusal ?? ''
     messagesUnderway.value -= 1
   }
 }
@@ -670,14 +1033,16 @@ const send = async (message) => {
  * arrived is not known here, and the bubble says "not delivered yet" beside it.
  * The enum NAMES, as the bubble compares them.
  *
+ * It carries no picture: the invitation is words and a link.
+ *
  * @param {{ body: string, notify: 'EMAIL' | 'NONE' }} message
  * @returns {Promise<boolean>}
  */
-const deliver = async (message) => {
+const deliver = async ({ body, notify }) => {
   messagesUnderway.value += 1
   let own = null
   try {
-    own = await post(message)
+    own = (await post({ body, notify })).own
   } finally {
     messagesUnderway.value -= 1
   }

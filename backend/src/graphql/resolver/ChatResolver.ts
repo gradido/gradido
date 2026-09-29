@@ -1,5 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { ChatMessagesWithMemberArgs } from '@arg/ChatMessagesWithMemberArgs'
+import { ChatVideoRoomArgs } from '@arg/ChatVideoRoomArgs'
 import { MarkChatConversationReadArgs } from '@arg/MarkChatConversationReadArgs'
 import { NewChatMessagesSinceArgs } from '@arg/NewChatMessagesSinceArgs'
 import { SendChatMessageArgs } from '@arg/SendChatMessageArgs'
@@ -9,12 +10,14 @@ import { ChatMessage } from '@model/ChatMessage'
 import { ChatMessagePage } from '@model/ChatMessagePage'
 import { ChatUpdate } from '@model/ChatUpdate'
 import { ChatVideoRoom } from '@model/ChatVideoRoom'
+import { ChatVideoServerChoice } from '@model/ChatVideoServerChoice'
 import { ApiVersionType, CommandClientFactory, chatMessageNotify, V1_0_CommandClient } from 'core'
 import {
   ChatConversationSelect,
   ChatMemberRef,
   dbFindDirectChatConversation,
   dbSelectChatConversationMember,
+  dbSelectChatMessageImageForMember,
   dbSelectChatMessagesPage,
   dbSelectChatMessagesSince,
   dbSelectChatUnreadSummary,
@@ -26,33 +29,34 @@ import {
 } from 'database'
 import { getLogger } from 'log4js'
 import { uuidv4Schema } from 'shared'
-import { Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
+import { Arg, Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
 import { chatVideoServerPool } from '@/apis/jitsi/chatVideoServerPool'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import {
+  CHAT_IMAGES_MAX_PER_REQUEST,
   CHAT_MESSAGE_PAGES_MAX_PER_REQUEST,
   CHAT_MESSAGES_PAGE_DEFAULT,
   CHAT_UPDATE_MESSAGES_DEFAULT,
   CHAT_UPDATES_MAX_PER_REQUEST,
   isSameChatMember,
 } from '@/data/ChatConversation.logic'
-import { CHAT_VIDEO_ROOMS_MAX_PER_REQUEST, chatVideoRoomName } from '@/data/ChatVideoServer.logic'
+import {
+  CHAT_VIDEO_ROOMS_MAX_PER_REQUEST,
+  ChatVideoServer,
+  chatVideoRoomName,
+} from '@/data/ChatVideoServer.logic'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import {
   deliverChatMessageAcrossBorder,
   deliverChatMessageLocally,
 } from './util/chatMessageDelivery'
+import { chatMessagesOf } from './util/chatMessagesOf'
+import { acceptedPicture, callerOf } from './util/chatRequest'
 import { isHomeCommunity, resolveCommunityUuid } from './util/communities'
 
 const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.ChatResolver`)
-
-/** The caller as a conversation member knows them: the pair, never users.id. */
-const callerOf = (context: Context): ChatMemberRef => {
-  const user = getUser(context)
-  return { communityUuid: user.communityUuid, gradidoId: user.gradidoID }
-}
 
 /**
  * The direct conversation of the caller with the member `ref` names, or null -- also for
@@ -77,15 +81,23 @@ const directChatConversationWith = async (
   return dbFindDirectChatConversation(caller, other)
 }
 
+/** A fresh room on `server`; the log gets the host, never the room name. */
+const roomOn = ({ baseUrl, host, operator, prefix }: ChatVideoServer): ChatVideoRoom => {
+  createLogger().trace(`chat video room handed out on ${host}`)
+  return new ChatVideoRoom(`${baseUrl}${chatVideoRoomName(prefix)}`, host, operator)
+}
+
 /**
  * The chat: the thread with one contact and the caller's marks in it -- the read pointer and
  * the mute mark (P2a, P3a) --, writing to that contact (P3a), what is new across all the
- * caller's conversations (P4a), and a video room to send (V1). The form "send an e-mail" still
- * writes through sendEmail, into the same conversation (P1).
+ * caller's conversations (P4a), and a video room to send (V1), on a server the member may
+ * choose (V5). The form "send an e-mail" still writes through sendEmail, into the same
+ * conversation (P1).
  *
- * What this resolver writes to the log carries no subject, no text and no room name: a refused
- * page, update or room budget with its count, a refused message with its reason, a failed
- * delivery with the other side's answer, and the host a room was handed out on.
+ * What this resolver writes to the log carries no subject, no text, no room name and no picture:
+ * a refused page, update or room budget with its count, a refused message with its reason, a
+ * refused picture with its reason and its numbers, a failed delivery with the other side's
+ * answer, and the host a room was handed out on.
  */
 @Resolver()
 export class ChatResolver {
@@ -121,7 +133,7 @@ export class ChatResolver {
     // conversation is nobody's business but theirs (E-024).
     const me = await dbSelectChatConversationMember(conversation.id, caller)
     return new ChatMessagePage(
-      page.messages.map((row) => new ChatMessage(row, caller)),
+      await chatMessagesOf(page.messages, caller),
       page.hasMore,
       Boolean(me?.mutedAt),
     )
@@ -181,7 +193,7 @@ export class ChatResolver {
       // goes on right after it.
       last ? last.id : summary.latestId,
       summary.unreadConversations,
-      news.messages.map((row) => new ChatMessage(row, caller)),
+      await chatMessagesOf(news.messages, caller),
       news.hasMore,
     )
   }
@@ -215,6 +227,13 @@ export class ChatResolver {
    * reads it. For a member of this community the copy is the one row both of them read; for a
    * member of another community it goes out as a command, and the copy says how that went.
    *
+   * A message may carry a picture (P7), checked before anything else happens -- the way the
+   * avatar is checked -- and refused as CHAT_IMAGE_NOT_ACCEPTED with the reason, nothing filed.
+   * To a member of another community the picture travels in the command, and the recipient's
+   * server checks and files it the same way (P7b). Where the sealed command would be larger than
+   * the other server takes -- the wallet's picture with a text made up to be heavy --, the message
+   * is refused, TOO_LARGE_ACROSS_BORDER, before anything is filed or sent.
+   *
    * Whether it goes out as a mail as well: the first message between the two always does
    * (E-024, decided here against this server's own table, before anything is filed); after it,
    * what the sender asked for -- unless the recipient muted the conversation. The copy carries
@@ -233,9 +252,10 @@ export class ChatResolver {
   @Authorized([RIGHTS.SEND_CHAT_MESSAGE])
   @Mutation(() => ChatMessage)
   async sendChatMessage(
-    @Args() { ref, body, notify: requested }: SendChatMessageArgs,
+    @Args() { ref, body, notify: requested, image }: SendChatMessageArgs,
     @Ctx() context: Context,
   ): Promise<ChatMessage> {
+    const images = image ? [acceptedPicture(image)] : []
     const senderUser = getUser(context)
     const caller = callerOf(context)
     const other = {
@@ -263,11 +283,13 @@ export class ChatResolver {
         notify,
         requireStored: true,
         letter: false,
+        images,
       })
       if (!stored) {
         throw new LogError('CHAT_MESSAGE_NOT_SENT: NOT_STORED')
       }
-      return new ChatMessage(stored, caller)
+      const [copy] = await chatMessagesOf([stored], caller)
+      return copy
     }
 
     const senderCom = await getCommunityByUuid(caller.communityUuid)
@@ -299,6 +321,7 @@ export class ChatResolver {
       notify,
       requireStored: true,
       letter: false,
+      images,
     })
     if (!stored) {
       throw new LogError('CHAT_MESSAGE_NOT_SENT: NOT_STORED')
@@ -308,7 +331,40 @@ export class ChatResolver {
         `chat message not delivered: message_uuid=${stored.messageUuid} (${error})`,
       )
     }
-    return new ChatMessage(stored, caller)
+    const [copy] = await chatMessagesOf([stored], caller)
+    return copy
+  }
+
+  /**
+   * A picture of a chat message (P7), as base64: for a member of the conversation of its
+   * message, while the message is not marked deleted (dbSelectChatMessageImageForMember). Null
+   * for everything else -- no such picture, somebody who is not in the conversation, a deleted
+   * message, something that is no uuid --, with nothing that tells these apart.
+   *
+   * The way the avatar's picture comes (memberAvatarFull; E-041, point 5): GraphQL, base64, one
+   * picture per call. An address of its own with a cache header belongs to Gradido 2.
+   *
+   * Nothing of the picture is written to the log; the request log leaves the answer out
+   * (plugins.ts).
+   */
+  @Authorized([RIGHTS.READ_OWN_CHAT])
+  @Query(() => String, { nullable: true })
+  async chatMessageImage(
+    @Arg('imageUuid', () => String) imageUuid: string,
+    @Ctx() context: Context,
+  ): Promise<string | null> {
+    // ⛔ Counted in the HTTP request's budget before anything is read: a document may repeat this
+    // field under any number of aliases, up to 35 KB a picture (RequestBudget).
+    context.requestBudget.chatImagesServed += 1
+    const served = context.requestBudget.chatImagesServed
+    if (served > CHAT_IMAGES_MAX_PER_REQUEST) {
+      throw new LogError('Too many chat pictures requested at once', served)
+    }
+    if (!uuidv4Schema.safeParse(imageUuid).success) {
+      return null
+    }
+    const found = await dbSelectChatMessageImageForMember(imageUuid, callerOf(context))
+    return found.success ? found.value.toString('base64') : null
   }
 
   /**
@@ -353,10 +409,14 @@ export class ChatResolver {
    * No server passed the last check, or the first check after a start is not through yet:
    * CHAT_VIDEO_NO_SERVER. The log gets the host, never the room name -- whoever knows it can
    * join the call.
+   *
+   * With `serverId` (V5): on the server the member chose -- one of chatVideoServerChoices -- and
+   * on no other. Where that one is no longer to be had (switched off, not answering since the
+   * choice was shown, gone from the list): CHAT_VIDEO_SERVER_UNAVAILABLE, and the wallet says so.
    */
   @Authorized([RIGHTS.SEND_CHAT_MESSAGE])
   @Query(() => ChatVideoRoom)
-  chatVideoRoom(@Ctx() context: Context): ChatVideoRoom {
+  chatVideoRoom(@Args() { serverId }: ChatVideoRoomArgs, @Ctx() context: Context): ChatVideoRoom {
     // ⛔ Counted in the HTTP request's budget, as the pages are: a document may repeat this field
     // under any number of aliases (RequestBudget).
     context.requestBudget.chatVideoRoomsServed += 1
@@ -364,12 +424,34 @@ export class ChatResolver {
     if (served > CHAT_VIDEO_ROOMS_MAX_PER_REQUEST) {
       throw new LogError('Too many chat video rooms requested at once', served)
     }
+    if (serverId != null) {
+      const wanted = chatVideoServerPool.pickServer(serverId)
+      if (!wanted) {
+        throw new LogError('CHAT_VIDEO_SERVER_UNAVAILABLE', serverId)
+      }
+      return roomOn(wanted.server)
+    }
     const chosen = chatVideoServerPool.pick()
     if (!chosen) {
       throw new LogError('CHAT_VIDEO_NO_SERVER')
     }
-    const { baseUrl, host, operator, prefix } = chosen.server
-    createLogger().trace(`chat video room handed out on ${host}`)
-    return new ChatVideoRoom(`${baseUrl}${chatVideoRoomName(prefix)}`, host, operator)
+    return roomOn(chosen.server)
+  }
+
+  /**
+   * The servers a member may choose for a call (V5): those chatVideoRoom hands rooms out on
+   * right now -- ticked in the admin page's list and passed the last check --, in the list's
+   * order. Empty where there is none, as before the first check is through. Asked afresh
+   * whenever the choice is shown: a check every ten minutes may take a server out or bring it
+   * back.
+   *
+   * Behind SEND_CHAT_MESSAGE, as the room is: the choice is for a call to be started.
+   */
+  @Authorized([RIGHTS.SEND_CHAT_MESSAGE])
+  @Query(() => [ChatVideoServerChoice])
+  chatVideoServerChoices(): ChatVideoServerChoice[] {
+    return chatVideoServerPool
+      .choices()
+      .map(({ id, server }) => new ChatVideoServerChoice(id, server.host, server.operator))
   }
 }

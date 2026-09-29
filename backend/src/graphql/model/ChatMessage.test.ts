@@ -1,5 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { ChatMessage } from '@model/ChatMessage'
+import { User } from '@model/User'
 import { ChatMessageSelect } from 'database'
 
 const HOME = '11111111-1111-4111-8111-111111111111'
@@ -73,6 +74,53 @@ describe('ChatMessage', () => {
     expect(new ChatMessage(annasMessage, shouting)).toMatchObject({
       mine: true,
       deliveryState: 'failed',
+    })
+  })
+
+  // P5: the group sorts the message into the group, never into the thread with its writer, and
+  // the writer comes with it for the name and the face.
+  it('carries the group and its writer for a message written in a group', () => {
+    const anna = new User(null)
+    anna.gradidoID = ANNA.gradidoId
+    anna.alias = 'anna'
+    const groupUuid = '20000000-0000-4000-8000-000000000002'
+    const message = new ChatMessage(annasMessage, BEN, [], { groupUuid, senderUser: anna })
+    expect(message.groupUuid).toBe(groupUuid)
+    expect(message.senderUser).toBe(anna)
+    expect(message).toMatchObject({ mine: false, conversationId: 3 })
+  })
+
+  it('carries neither in a direct conversation', () => {
+    const message = new ChatMessage(annasMessage, BEN)
+    expect(message.groupUuid).toBeNull()
+    expect(message.senderUser).toBeNull()
+  })
+
+  // P5b: an announcement is marked in the thread for every member -- they got the mail, or could
+  // have -- while the wish behind a message of two stays the sender's (E-024).
+  describe('an announcement', () => {
+    const groupUuid = '20000000-0000-4000-8000-000000000002'
+    const inGroup = (row: ChatMessageSelect, reader: typeof ANNA) =>
+      new ChatMessage(row, reader, [], { groupUuid, senderUser: null })
+
+    it('is one for every member of the group, the writer and the others', () => {
+      expect(inGroup(annasMessage, ANNA).announcement).toBe(true)
+      expect(inGroup(annasMessage, BEN).announcement).toBe(true)
+      // What she asked for stays hers all the same.
+      expect(inGroup(annasMessage, BEN).notify).toBeNull()
+    })
+
+    it('is none where no mail was asked for', () => {
+      const plain = { ...annasMessage, notify: 'none' as const }
+      expect(inGroup(plain, ANNA).announcement).toBe(false)
+      expect(inGroup(plain, BEN).announcement).toBe(false)
+    })
+
+    // ⛔ A mail wished for in a conversation of two is no announcement, and it stays the
+    // sender's: Ben reads no mark of it.
+    it('is never one in a direct conversation', () => {
+      expect(new ChatMessage(annasMessage, BEN).announcement).toBe(false)
+      expect(new ChatMessage(annasMessage, ANNA).announcement).toBe(false)
     })
   })
 })

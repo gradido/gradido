@@ -10,6 +10,12 @@ import {
   startChatUpdates,
 } from '@/composables/useChatUpdates'
 import { firstLoginWindow, setFirstLoginWindowWanted } from '@/composables/useFirstLoginWindow'
+import {
+  chatImage,
+  chatImageViewState,
+  openChatImageView,
+  rememberChatImage,
+} from '@/composables/useChatImages'
 
 vi.mock('../i18n', () => ({
   default: {
@@ -39,6 +45,11 @@ vi.mock('../utils/matchingPrefs', async () => {
 const { forgetParkedAmountMock } = vi.hoisted(() => ({ forgetParkedAmountMock: vi.fn() }))
 vi.mock('../composables/useParkedAmount', () => ({
   forgetParkedAmount: forgetParkedAmountMock,
+}))
+
+const { forgetChatReturnMock } = vi.hoisted(() => ({ forgetChatReturnMock: vi.fn() }))
+vi.mock('../utils/chatReturn', () => ({
+  forgetChatReturn: forgetChatReturnMock,
 }))
 
 vi.mock('jwt-decode', () => ({
@@ -106,6 +117,20 @@ describe('Vuex store', () => {
           token(state, 'token')
           expect(jwtDecode).toHaveBeenCalledWith('token')
           expect(state.tokenTime).toEqual('1234')
+        })
+
+        // When the session ends by this device's clock: the token's own lifetime from now. The
+        // server issued this one at 1 000 000 for an hour; the device's clock runs two hours
+        // ahead, as on a computer with a wrong time zone. By `exp` the session would be over
+        // before it began, and the sign-in guard would send the member back to the form.
+        it('counts the token lifetime from now, by the device clock', () => {
+          vi.useFakeTimers()
+          vi.setSystemTime((1000000 + 7200) * 1000)
+          jwtDecode.mockReturnValueOnce({ iat: 1000000, exp: 1003600 })
+          const state = { token: null, tokenTime: null }
+          token(state, 'token')
+          vi.useRealTimers()
+          expect(state.tokenTime).toBe(1000000 + 7200 + 3600)
         })
       })
 
@@ -189,9 +214,9 @@ describe('Vuex store', () => {
         darkMode: true,
       }
 
-      it('calls twenty-two commits', () => {
+      it('calls twenty-three commits', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenCalledTimes(22)
+        expect(commit).toHaveBeenCalledTimes(23)
       })
 
       /**
@@ -224,6 +249,18 @@ describe('Vuex store', () => {
         localCommit.mockClear()
         login({ commit: localCommit, state: {} }, commitedData)
         expect(localCommit).toHaveBeenCalledWith('creationAllowed', null)
+      })
+
+      // The transfers in the conversations (Einstellungen › Nachrichten): the member's own
+      // switch, off only where they switched it off. An answer without the field lands as null,
+      // "not known", which the thread and the settings page read as on.
+      it('stores whether the transfers stand in the conversations, and null where the answer does not say', () => {
+        const localCommit = vi.fn()
+        login({ commit: localCommit, state: {} }, { ...commitedData, transfersInChat: false })
+        expect(localCommit).toHaveBeenCalledWith('transfersInChat', false)
+        localCommit.mockClear()
+        login({ commit: localCommit, state: {} }, commitedData)
+        expect(localCommit).toHaveBeenCalledWith('transfersInChat', null)
       })
 
       // EM-013: the confirm-reminder modal derives its deadline from these two. `?? null`
@@ -317,6 +354,7 @@ describe('Vuex store', () => {
         dispatch.mockClear()
         forgetParkedAmountMock.mockClear()
         forgetLegacyMapPrefsMock.mockClear()
+        forgetChatReturnMock.mockClear()
       })
 
       /**
@@ -335,9 +373,15 @@ describe('Vuex store', () => {
         expect(forgetLegacyMapPrefsMock).toHaveBeenCalled()
       })
 
-      it('calls twenty-three commits', () => {
+      it('calls twenty-six commits', () => {
         logout({ commit, state, dispatch })
-        expect(commit).toHaveBeenCalledTimes(25)
+        expect(commit).toHaveBeenCalledTimes(26)
+      })
+
+      // The next member on this device starts from "not known", not from the last one's switch.
+      it('forgets the switch for the transfers in the conversations', () => {
+        logout({ commit, state, dispatch })
+        expect(commit).toHaveBeenCalledWith('transfersInChat', null)
       })
 
       // ... (other logout action tests remain largely the same)
@@ -380,6 +424,23 @@ describe('Vuex store', () => {
         expect(forgetParkedAmountMock).toHaveBeenCalledWith('user-one')
       })
 
+      /**
+       * The way back into a conversation after a restart (utils/chatReturn) goes with the member:
+       * whoever signs out is not taken back into it -- not where the idle timeout signs out a
+       * wallet left in a thread either. Keyed by who is leaving, read before the clear, for the
+       * reason the test above gives.
+       */
+      it('lets the way back into a conversation go, keyed by who is leaving', () => {
+        const localState = { themeMode: 'dark', gradidoID: 'user-one' }
+        const applyingCommit = vi.fn((mutation, value) => {
+          if (mutation === 'gradidoID') localState.gradidoID = value
+        })
+        logout({ commit: applyingCommit, state: localState, dispatch })
+
+        expect(localState.gradidoID).toBeNull()
+        expect(forgetChatReturnMock).toHaveBeenCalledWith('user-one')
+      })
+
       it('commits redirectPath', () => {
         logout({ commit, state, dispatch })
         expect(commit).toHaveBeenCalledWith('redirectPath', '/overview')
@@ -417,6 +478,50 @@ describe('Vuex store', () => {
         logout({ commit, state, dispatch })
 
         expect(avatarZoomState.value).toBeNull()
+      })
+
+      /**
+       * ⛔ The pictures of the chat's messages, kept in memory for the session (useChatImages):
+       * beside the avatars, for the same reason -- the next member to sign in on this browser must
+       * not be handed the pictures of the conversations of the one before. Their addresses are
+       * given back to the browser.
+       */
+      it('lets go of the chat’s pictures', () => {
+        URL.createObjectURL = vi.fn(() => 'blob:a-picture')
+        URL.revokeObjectURL = vi.fn()
+        try {
+          rememberChatImage('image-1', btoa('JPEG'))
+          // The fixture proves itself: a picture that was never kept would pass below unforgotten.
+          expect(chatImage('image-1')).toEqual({ state: 'ready', src: 'blob:a-picture' })
+
+          logout({ commit, state, dispatch })
+
+          expect(chatImage('image-1')).toBeNull()
+          expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:a-picture')
+        } finally {
+          delete URL.createObjectURL
+          delete URL.revokeObjectURL
+        }
+      })
+
+      /**
+       * ⛔ And the picture open large, like the avatar's zoom above: its view keeps it in its own
+       * module, and the idle-timeout logout comes precisely when somebody sits looking at it.
+       */
+      it('closes the chat’s picture that is open large', () => {
+        openChatImageView({
+          imageUuid: 'image-1',
+          width: 800,
+          height: 600,
+          who: 'Lena',
+          name: 'Lena',
+        })
+        // The fixture proves itself: a view never opened would pass below unclosed.
+        expect(chatImageViewState.value).not.toBeNull()
+
+        logout({ commit, state, dispatch })
+
+        expect(chatImageViewState.value).toBeNull()
       })
 
       /**
