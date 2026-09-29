@@ -54,10 +54,18 @@
             <!-- At the size of every list, and it opens large where there is a picture: it stands
                  outside any button here. -->
             <app-avatar :size="LIST_AVATAR_SIZE" :color="'#fff'" v-bind="row.avatar" />
-            <span class="chat-group-member-words">
-              <span class="chat-group-member-name" data-test="chat-group-member-name">
-                {{ row.name }}
-              </span>
+            <div class="chat-group-member-words">
+              <!-- Somebody else's name leads to them (E-053) -- the page knows whether they are a
+                   contact: their window over this one, else the send form. One's own is words. -->
+              <div class="chat-group-member-name" data-test="chat-group-member-name">
+                <name
+                  v-if="!row.me"
+                  :linked-user="row.member.user"
+                  :with-community="false"
+                  @open="emit('openMember', $event)"
+                />
+                <template v-else>{{ row.name }}</template>
+              </div>
               <span
                 v-if="row.member.user.communityName"
                 class="chat-group-member-sub"
@@ -65,7 +73,7 @@
               >
                 {{ row.member.user.communityName }}
               </span>
-            </span>
+            </div>
             <span
               v-if="row.part"
               class="chat-group-member-part"
@@ -208,6 +216,7 @@ import { useMutation } from '@vue/apollo-composable'
 import { BButton, BModal } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
 import ChatGroupPicker from '@/components/ChatGroups/ChatGroupPicker.vue'
+import Name from '@/components/TransactionRows/Name.vue'
 import {
   CHAT_GROUP_TITLE_MAX,
   chatGroupPartMark,
@@ -249,7 +258,11 @@ const props = defineProps({
   contacts: { type: Array, required: true },
 })
 
-const emit = defineEmits(['update:modelValue', 'changed', 'left'])
+/**
+ * `changed`: a step went through, the window asks for the members again. `left`: the member left
+ * the group. `openMember`: somebody else's name was tapped (E-053) -- the user of that row.
+ */
+const emit = defineEmits(['update:modelValue', 'changed', 'left', 'openMember'])
 
 const { t } = useI18n()
 const store = useStore()
@@ -285,12 +298,14 @@ const rows = computed(() =>
   props.members.map((member, index) => {
     const base = memberAvatarProps(member.user)
     const alias = memberAlias(member.user.alias, member.user.gradidoID)
+    const me = isMe(member.user)
     return {
       member,
       index,
       id: chatMemberKey(member.user),
       alias,
-      name: isMe(member.user) ? t('chatGroup.memberYou', { name: alias }) : alias,
+      me,
+      name: me ? t('chatGroup.memberYou', { name: alias }) : alias,
       part: chatGroupPartMark(member.role, { t }),
       avatar: { ...base, ...avatarZoomBindings(member.user, base) },
       touchable: touchable(member),

@@ -85,6 +85,7 @@
               :in-group="inGroup"
               :show-writer="runStarts.has(message.id)"
               @open-image="openImage"
+              @open-member="emit('openMember', $event)"
             />
           </ol>
         </section>
@@ -186,8 +187,10 @@ const props = defineProps({
  * `{ exists, mutedByMe }`, and again whenever either changes (the first message makes it
  * exist). The window draws its bell from it: one question on opening answers both the thread
  * and the bell (E-017), the window does not ask a second time.
+ *
+ * `openMember`: in a group, the writer whose name was tapped over their message (E-053).
  */
-const emit = defineEmits(['chatConversation'])
+const emit = defineEmits(['chatConversation', 'openMember'])
 
 const { t, d, n } = useI18n()
 

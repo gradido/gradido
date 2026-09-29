@@ -205,6 +205,13 @@
     "renameTitle": "Rinomina il gruppo",
     "since": "Gruppo da {date}",
     "unmutedHint": "Non più silenziato: gli annunci di {name} ti arrivano di nuovo via e-mail.",
+    "videoAskBody": "Tutti i membri del gruppo riceveranno il link in un messaggio.",
+    "videoAskTitle": "Avviare una videochiamata nel gruppo {name}?",
+    "videoByEmail": "Invito via e-mail a tutti",
+    "videoCall": "Avvia una videochiamata nel gruppo {name}",
+    "videoJoinTitle": "Partecipare alla videochiamata nel gruppo {name}?",
+    "videoPlanBody": "Tutti i membri del gruppo riceveranno l'invito in un messaggio.",
+    "videoSettingsTitle": "Impostazioni della videochiamata nel gruppo {name}",
     "youAreMember": "Sei membro",
     "youAreModerator": "Sei moderatore",
     "youAreOwner": "Sei il proprietario"

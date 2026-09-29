@@ -116,6 +116,21 @@ describe('ChatGroupMembers', () => {
       expect(row('anna-id').find('[data-test="chat-group-member-part"]').exists()).toBe(false)
     })
 
+    // E-053: somebody else's name leads to them -- the page decides where (their window, or the
+    // send form). One's own is words, and nothing else in the row moves.
+    it('leads to somebody else by their name, not to oneself', async () => {
+      mountDialog()
+      const link = row('carla-id').find('[data-test="member-name-open"]')
+      expect(link.element.tagName).toBe('BUTTON')
+      expect(link.text()).toBe('Carla-Sonne')
+      expect(row('me-id').find('[data-test="member-name-open"]').exists()).toBe(false)
+
+      await link.trigger('click')
+      expect(wrapper.emitted('openMember')).toEqual([[MEMBERS[2].user]])
+      expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+      expect(find('chat-group-member-menu').exists()).toBe(false)
+    })
+
     it('shows every face at the size of the lists', () => {
       mountDialog()
       expect(row('anna-id').find('.app-avatar').attributes('style')).toContain(
