@@ -727,6 +727,11 @@ const copyVideoLink = async () => {
   const serverId = videoServer.value?.id ?? null
   let room = videoRoomAsked?.serverId === serverId ? videoRoomAsked.room : null
   if (!room) {
+    // The server chosen is known once the list is in (V5): a press before that waits for it, as
+    // "Start call" and "Plan" do -- else the link would name a room at random and the invitation
+    // then another one (coderabbit, #4015). A room already in is copied in the click, above.
+    await videoChoicesLoading
+    if (attempt !== videoAttempt) return
     const answer = await askVideoRoom()
     if (attempt !== videoAttempt) return
     if (!answer.room) {
@@ -782,6 +787,9 @@ const saveVideoCalendar = async () => {
   }
   const attempt = videoAttempt
   const topic = videoTopicShown.value
+  // The server chosen, once the list is in -- as "Copy link" (coderabbit, #4015).
+  await videoChoicesLoading
+  if (attempt !== videoAttempt) return
   const { room: offered, error } = await askVideoRoom()
   if (attempt !== videoAttempt) return
   if (!offered) {
@@ -1056,9 +1064,12 @@ const joinVideoCall = () => {
   })
 }
 
-// Nothing keeps watching for the Jitsi app's sign once the questions are gone with their window.
+// Gone with the window -- closed while a call was on its way, too: the question is let go as a
+// cancel lets it go (`forgetVideoCall`): a room's window not sent anywhere yet closes, nothing on
+// its way is taken up, and no watch for the Jitsi app starts or stays behind (coderabbit, #4015).
+// The question before joining lets go of its watch as well.
 onBeforeUnmount(() => {
-  stopVideoAppWatch?.()
+  forgetVideoCall()
   stopJoinAppWatch?.()
 })
 

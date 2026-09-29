@@ -891,6 +891,26 @@ describe('ContactWindow', () => {
       expect(camera().exists()).toBe(true)
     })
 
+    // coderabbit, #4015: the window closed while the invitation was on its way -- the call is let
+    // go as a cancel lets it go: the empty window closes, and no room is entered afterwards.
+    it('lets the call go when the window is gone while the invitation is on its way', async () => {
+      browserOpens()
+      serverRooms.mockResolvedValue({ data: { chatVideoRoom: ROOM } })
+      const delivery = held()
+      threadDelivers.mockReturnValue(delivery.promise)
+      await asked()
+      await inDialog('start').trigger('click')
+      await flushPromises()
+      expect(threadDelivers).toHaveBeenCalledTimes(1)
+
+      wrapper.unmount()
+      expect(room.close).toHaveBeenCalled()
+
+      delivery.release(true)
+      await flushPromises()
+      expect(room.location.href).toBe('')
+    })
+
     it('is gone again for the next person, until their thread has spoken', async () => {
       mountWindow()
       await threadSays({ exists: true, mutedByMe: false })
@@ -1813,6 +1833,28 @@ describe('ContactWindow', () => {
         expect(serverRooms).toHaveBeenCalledTimes(1)
       })
 
+      // coderabbit, #4015: a press before the list is in waits for it -- else the link would name a
+      // room at random, and the call started afterwards another one.
+      it('waits for the list before it copies a link, so link and call share the room', async () => {
+        localStorage.setItem(KEY, '2')
+        const list = held()
+        serverChoices.mockReturnValue(list.promise)
+        serverRooms.mockResolvedValue({ data: { chatVideoRoom: SYSTEMLI } })
+        await asked()
+        await inSettings()
+
+        inDialog('copy').element.click()
+        await flushPromises()
+        expect(serverRooms).not.toHaveBeenCalled()
+        expect(clipboard).not.toHaveBeenCalled()
+
+        list.release({ data: { chatVideoServerChoices: CHOICES } })
+        await flushPromises()
+        expect(serverRooms).toHaveBeenCalledTimes(1)
+        expect(serverRooms.mock.calls[0][0].variables).toEqual({ serverId: 2 })
+        expect(clipboard).toHaveBeenCalledWith(withChatVideoTopic(SYSTEMLI.url, 'Videoanruf'))
+      })
+
       // The people the link went to and the person invited meet in the same room.
       it('sends the room it copied, when the call is started from this question', async () => {
         localStorage.setItem(KEY, '2')
@@ -2385,6 +2427,26 @@ describe('ContactWindow', () => {
           expect(dialog().exists()).toBe(true)
         })
 
+        // coderabbit, #4015: as "Copy link" -- the file names the room the call will take.
+        it('waits for the list before it saves, so the file names the room of the call', async () => {
+          const list = held()
+          serverChoices.mockReturnValue(list.promise)
+          serverRooms.mockResolvedValue({ data: { chatVideoRoom: SYSTEMLI } })
+          await inSettings()
+          await when()
+
+          await field('calendar').trigger('click')
+          await flushPromises()
+          expect(serverRooms).not.toHaveBeenCalled()
+          expect(saved).toEqual([])
+
+          list.release({ data: { chatVideoServerChoices: CHOICES } })
+          await flushPromises()
+          expect(serverRooms).toHaveBeenCalledTimes(1)
+          expect(serverRooms.mock.calls[0][0].variables).toEqual({ serverId: 2 })
+          expect(saved).toEqual(['Videoanruf-2026-09-30.ics'])
+        })
+
         it('says what is missing without a day, and saves nothing', async () => {
           await inSettings()
 
@@ -2709,6 +2771,25 @@ describe('ContactWindow', () => {
 
         expect(vi.getTimerCount()).toBe(waiting - 1)
         expect(removed).toHaveBeenCalledWith('blur', expect.any(Function))
+      })
+
+      // coderabbit, #4015: gone before the invitation went out -- no wait for the app starts after.
+      it('starts no wait for the app when the window is gone before the invitation went out', async () => {
+        vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+        await tickedAndReady()
+        const delivery = held()
+        threadDelivers.mockReturnValue(delivery.promise)
+        await start()
+        const waiting = vi.getTimerCount()
+        const added = vi.spyOn(window, 'addEventListener')
+
+        wrapper.unmount()
+        delivery.release(true)
+        await flushPromises()
+
+        expect(vi.getTimerCount()).toBe(waiting)
+        expect(added).not.toHaveBeenCalledWith('blur', expect.any(Function))
+        expect(followed).toEqual([])
       })
 
       // Where the page has no focus when the room goes, no sign can come: as before, it closes.
