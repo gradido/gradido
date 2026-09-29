@@ -205,6 +205,13 @@
     "renameTitle": "Naam van de groep wijzigen",
     "since": "Groep sinds {date}",
     "unmutedHint": "Niet meer gedempt: aankondigingen uit {name} komen weer per e-mail.",
+    "videoAskBody": "Iedereen in de groep krijgt de link als bericht.",
+    "videoAskTitle": "Videogesprek in de groep {name} starten?",
+    "videoByEmail": "Uitnodiging per e-mail aan iedereen",
+    "videoCall": "Videogesprek in de groep {name} starten",
+    "videoJoinTitle": "Aan het videogesprek in de groep {name} deelnemen?",
+    "videoPlanBody": "Iedereen in de groep krijgt de uitnodiging als bericht.",
+    "videoSettingsTitle": "Instellingen voor het videogesprek in de groep {name}",
     "youAreMember": "Je bent lid",
     "youAreModerator": "Je bent moderator",
     "youAreOwner": "Je bent eigenaar"
