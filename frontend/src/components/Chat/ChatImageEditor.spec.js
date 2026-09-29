@@ -15,6 +15,13 @@ vi.mock('vue-i18n', () => ({
   }),
 }))
 
+/** "Sichern" has its own spec (utils/chatImageSave.spec.js); here it answers as a test says. */
+const saving = vi.hoisted(() => ({ chatImageFile: vi.fn(), saveChatImageFile: vi.fn() }))
+vi.mock('@/utils/chatImageSave', () => ({
+  chatImageFile: (...args) => saving.chatImageFile(...args),
+  saveChatImageFile: (...args) => saving.saveChatImageFile(...args),
+}))
+
 /**
  * BModal as far as the editor uses it: shown while its model is true, the events a test fires
  * itself (`shown`, `hidden`, and `update:modelValue` for an Esc). The names written on the real tag
@@ -64,6 +71,8 @@ describe('ChatImageEditor', () => {
 
   beforeEach(() => {
     recordDrawing()
+    saving.chatImageFile.mockReset()
+    saving.saveChatImageFile.mockReset()
   })
   afterEach(() => {
     wrapper?.unmount()
@@ -88,7 +97,12 @@ describe('ChatImageEditor', () => {
       attachTo: document.body,
       props: { modelValue: true, source: PHOTO, edit: CHAT_IMAGE_UNEDITED, ...props },
       global: {
-        stubs: { BModal: BModalStub, IBiArrowClockwise: true, IBiSymmetryVertical: true },
+        stubs: {
+          BModal: BModalStub,
+          IBiArrowClockwise: true,
+          IBiSymmetryVertical: true,
+          IMdiTrayArrowDown: true,
+        },
       },
     })
     return wrapper
@@ -263,6 +277,156 @@ describe('ChatImageEditor', () => {
 
       expect(mirror.attributes('aria-pressed')).toBe('true')
       expect((await finish()).mirrored).toBe(true)
+    })
+  })
+
+  /** "Sichern" (E-047, point 5): the picture as it is now, in full quality, to this device. */
+  describe('saving', () => {
+    const saveButton = () => wrapper.find('[data-test="chat-image-editor-save"]')
+    const words = () => wrapper.find('[data-test="chat-image-editor-saved"]')
+    const FILE = new File(['JPEG'], 'Gradido-2026-09-29-07-05.jpg', { type: 'image/jpeg' })
+
+    /** A promise a test settles when it wants. */
+    const deferred = () => {
+      const settle = {}
+      const promise = new Promise((resolve, reject) => Object.assign(settle, { resolve, reject }))
+      return { promise, ...settle }
+    }
+
+    it('saves the picture as it is now', async () => {
+      mountEditor()
+      await shape('square').trigger('click')
+      saving.chatImageFile.mockResolvedValueOnce(FILE)
+      saving.saveChatImageFile.mockResolvedValueOnce('downloaded')
+      expect(saveButton().text()).toBe('chatThread.imageSave')
+
+      await saveButton().trigger('click')
+      await flushPromises()
+
+      expect(saving.chatImageFile).toHaveBeenCalledWith(PHOTO, {
+        ...CHAT_IMAGE_UNEDITED,
+        shape: 'square',
+      })
+      expect(saving.saveChatImageFile).toHaveBeenCalledWith(FILE)
+      expect(words().text()).toBe('chatThread.imageSaved')
+      expect(words().attributes('role')).toBe('status')
+      // in the readout's place, which steps back while the words are there
+      expect(wrapper.find('[data-test="chat-image-editor-readout"]').classes()).toContain(
+        'is-quiet',
+      )
+      // Saving hands nothing back and closes nothing: the member goes on editing or sends.
+      expect(wrapper.emitted('done')).toBeUndefined()
+      expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+    })
+
+    // After the share sheet, the sheet was the answer; a change of mind says nothing either.
+    it('says nothing after the share sheet, or where the member closed it', async () => {
+      mountEditor()
+      for (const outcome of ['shared', 'cancelled']) {
+        saving.chatImageFile.mockResolvedValueOnce(FILE)
+        saving.saveChatImageFile.mockResolvedValueOnce(outcome)
+        await saveButton().trigger('click')
+        await flushPromises()
+        expect(words().text()).toBe('')
+      }
+    })
+
+    /**
+     * Where the sheet wanted a tap of its own, the button asks for one -- and that tap hands over
+     * the file made for the first, without making it again.
+     */
+    it('asks for a second tap where the sheet wanted one, and hands over the same file', async () => {
+      mountEditor()
+      saving.chatImageFile.mockResolvedValueOnce(FILE)
+      saving.saveChatImageFile.mockResolvedValueOnce('again').mockResolvedValueOnce('shared')
+
+      await saveButton().trigger('click')
+      await flushPromises()
+      expect(saveButton().text()).toBe('chatThread.imageSaveAgain')
+
+      await saveButton().trigger('click')
+      await flushPromises()
+      expect(saving.chatImageFile).toHaveBeenCalledTimes(1)
+      expect(saving.saveChatImageFile.mock.calls).toEqual([[FILE], [FILE]])
+      expect(saveButton().text()).toBe('chatThread.imageSave')
+    })
+
+    // A change after that first tap makes the file anew: it has to show what the picture shows.
+    it('makes the file anew once the picture was changed', async () => {
+      mountEditor()
+      saving.chatImageFile.mockResolvedValue(FILE)
+      saving.saveChatImageFile.mockResolvedValueOnce('again').mockResolvedValueOnce('downloaded')
+      await saveButton().trigger('click')
+      await flushPromises()
+
+      await wrapper.find('[data-test="chat-image-editor-mirror"]').trigger('click')
+      expect(saveButton().text()).toBe('chatThread.imageSave')
+      await saveButton().trigger('click')
+      await flushPromises()
+
+      expect(saving.chatImageFile).toHaveBeenCalledTimes(2)
+      expect(saving.chatImageFile.mock.calls[1][1]).toMatchObject({ mirrored: true })
+    })
+
+    it('says so where the picture could not be saved', async () => {
+      mountEditor()
+      saving.chatImageFile.mockRejectedValueOnce(new Error('encode'))
+
+      await saveButton().trigger('click')
+      await flushPromises()
+
+      expect(words().text()).toBe('chatThread.imageSaveFailed')
+      expect(saving.saveChatImageFile).not.toHaveBeenCalled()
+    })
+
+    // The words belong to the picture as it was saved: a change lets them go.
+    it('lets the words go with the next change', async () => {
+      mountEditor()
+      saving.chatImageFile.mockResolvedValueOnce(FILE)
+      saving.saveChatImageFile.mockResolvedValueOnce('downloaded')
+      await saveButton().trigger('click')
+      await flushPromises()
+      expect(words().text()).toBe('chatThread.imageSaved')
+
+      await wrapper.find('[data-test="chat-image-editor-turn"]').trigger('click')
+
+      expect(words().text()).toBe('')
+      expect(wrapper.find('[data-test="chat-image-editor-readout"]').classes()).not.toContain(
+        'is-quiet',
+      )
+    })
+
+    /**
+     * A status that comes into the page together with its words is not read out by every screen
+     * reader: it is there, empty, from the start.
+     */
+    it('has its status line in the page before it speaks', () => {
+      mountEditor()
+
+      expect(words().exists()).toBe(true)
+      expect(words().attributes('role')).toBe('status')
+      expect(words().text()).toBe('')
+      expect(wrapper.find('[data-test="chat-image-editor-readout"]').classes()).not.toContain(
+        'is-quiet',
+      )
+    })
+
+    // One at a time: a second press while the file is being made does nothing.
+    it('waits while it is saving', async () => {
+      mountEditor()
+      const pending = deferred()
+      saving.chatImageFile.mockReturnValueOnce(pending.promise)
+      saving.saveChatImageFile.mockResolvedValue('downloaded')
+
+      await saveButton().trigger('click')
+      expect(saveButton().attributes('disabled')).toBeDefined()
+      await saveButton().trigger('click')
+      pending.resolve(FILE)
+      await flushPromises()
+
+      expect(saving.chatImageFile).toHaveBeenCalledTimes(1)
+      expect(saving.saveChatImageFile).toHaveBeenCalledTimes(1)
+      expect(saveButton().attributes('disabled')).toBeUndefined()
     })
   })
 
@@ -446,6 +610,13 @@ describe('ChatImageEditor', () => {
     )
     expect(rule('\\.chat-image-editor-stage')).toMatch(/touch-action:\s*none/)
     expect(rule('\\.chat-image-editor-frame')).toMatch(/box-shadow:\s*0 0 0 100vmax/)
+    // The readout and the status share one cell, in one size of type: the stage never moves when
+    // "Sichern" speaks, nor when its words go with the next move of a finger.
+    expect(rule('\\.chat-image-editor-lines')).toMatch(/display:\s*grid/)
+    expect(rule('\\.chat-image-editor-lines > \\*')).toMatch(/grid-area:\s*1 \/ 1/)
+    expect(rule('\\.chat-image-editor-readout\\.is-quiet')).toMatch(/visibility:\s*hidden/)
+    const size = (selector) => rule(selector).match(/font-size:\s*([^;]+);/)?.[1]
+    expect(size('\\.chat-image-editor-saved')).toBe(size('\\.chat-image-editor-readout'))
   })
 
   /**

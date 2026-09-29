@@ -79,9 +79,22 @@
       </div>
 
       <div class="chat-image-editor-controls">
-        <p class="chat-image-editor-readout" data-test="chat-image-editor-readout">
-          {{ readout }}
-        </p>
+        <!-- The cutout's size, and in its place how "Sichern" went while there is something to say:
+             saved as a download, or not at all (after the share sheet the sheet was the answer).
+             One line for both, so the stage keeps its size and the picture stays under the finger;
+             the status is always in the page, so a screen reader hears it when it speaks. -->
+        <div class="chat-image-editor-lines">
+          <p
+            class="chat-image-editor-readout"
+            :class="{ 'is-quiet': !!saveWords }"
+            data-test="chat-image-editor-readout"
+          >
+            {{ readout }}
+          </p>
+          <p class="chat-image-editor-saved" role="status" data-test="chat-image-editor-saved">
+            {{ saveWords }}
+          </p>
+        </div>
         <div class="chat-image-editor-shapes" role="group" :aria-label="t('chatThread.imageShape')">
           <button
             v-for="shape in SHAPES"
@@ -127,6 +140,19 @@
             <i-bi-symmetry-vertical class="chat-image-editor-tool-icon" aria-hidden="true" />
             {{ t('chatThread.imageMirror') }}
           </button>
+          <!-- "Sichern" (E-047, point 5): the edited picture in full quality on this device. -->
+          <button
+            type="button"
+            class="chat-image-editor-tool"
+            :disabled="saving"
+            data-test="chat-image-editor-save"
+            @click="save"
+          >
+            <i-mdi-tray-arrow-down class="chat-image-editor-tool-icon" aria-hidden="true" />
+            {{
+              saveResult === 'again' ? t('chatThread.imageSaveAgain') : t('chatThread.imageSave')
+            }}
+          </button>
         </div>
       </div>
     </div>
@@ -149,6 +175,7 @@ import {
   turnChatImage,
   zoomChatImage,
 } from '@/utils/chatImageEdit'
+import { chatImageFile, saveChatImageFile } from '@/utils/chatImageSave'
 
 const props = defineProps({
   /** Whether the editor is open (v-model). */
@@ -399,6 +426,47 @@ const onWheel = (event) => {
   draft.value = zoomChatImage(draft.value, draft.value.zoom - event.deltaY * 0.002)
 }
 
+/** "Sichern" at work: the file is being made or handed over. */
+const saving = ref(false)
+/** How the last "Sichern" went (utils/chatImageSave), or 'failed'; null after any change. */
+const saveResult = ref(null)
+/**
+ * The file made for "Sichern", kept only where the share sheet asked for a second tap -- that tap
+ * hands it over at once, without making it again.
+ */
+let fileToSave = null
+
+watch(draft, () => {
+  fileToSave = null
+  saveResult.value = null
+})
+
+const saveWords = computed(() => {
+  if (saveResult.value === 'downloaded') return t('chatThread.imageSaved')
+  if (saveResult.value === 'failed') return t('chatThread.imageSaveFailed')
+  return ''
+})
+
+/**
+ * The picture as it is now, in full quality, to this device (utils/chatImageSave). One at a time:
+ * the button waits (`disabled`) while it saves.
+ */
+const save = async () => {
+  if (!props.source) return
+  saving.value = true
+  try {
+    if (!fileToSave) fileToSave = await chatImageFile(props.source, draft.value)
+    const outcome = await saveChatImageFile(fileToSave)
+    saveResult.value = outcome
+    if (outcome !== 'again') fileToSave = null
+  } catch {
+    saveResult.value = 'failed'
+    fileToSave = null
+  } finally {
+    saving.value = false
+  }
+}
+
 /** The keyboard's way to what a finger does: the arrows move the picture, + and - size it. */
 const onStageKey = (event) => {
   const step = frameRect.value.width * KEY_STEP
@@ -546,11 +614,31 @@ const onStageKey = (event) => {
   padding: 0.6rem 0.9rem calc(1rem + env(safe-area-inset-bottom, 0px));
 }
 
+/* The readout and how "Sichern" went share the grid's one cell, in the same size of type. */
+.chat-image-editor-lines {
+  display: grid;
+}
+
+.chat-image-editor-lines > * {
+  grid-area: 1 / 1;
+}
+
 .chat-image-editor-readout {
   margin: 0;
   color: #b9b8b2;
   font-size: 0.8rem;
   font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.chat-image-editor-readout.is-quiet {
+  visibility: hidden;
+}
+
+.chat-image-editor-saved {
+  margin: 0;
+  color: #f1f0ec;
+  font-size: 0.8rem;
   text-align: center;
 }
 
@@ -639,6 +727,11 @@ const onStageKey = (event) => {
 .chat-image-editor-tool[aria-pressed='true'] {
   border-color: #c58d38;
   color: #f3d9a8;
+}
+
+.chat-image-editor-tool:disabled {
+  opacity: 0.6;
+  cursor: progress;
 }
 
 .chat-image-editor-tool-icon {
