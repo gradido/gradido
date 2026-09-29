@@ -43,6 +43,7 @@ let query: ApolloServerTestClient['query']
 let db: AppDatabase
 let communityUuid: string
 let bob: DbUser
+let bibi: DbUser
 
 /**
  * An account opened at the referrer's table, in the state `registerAccount` leaves it in when
@@ -88,7 +89,7 @@ beforeAll(async () => {
   query = testEnv.query
   db = testEnv.db
   await cleanDB()
-  await userFactory(testEnv, bibiBloxberg)
+  bibi = await userFactory(testEnv, bibiBloxberg)
   bob = await userFactory(testEnv, bobBaumeister)
   // No user name: the seed gives him none.
   await userFactory(testEnv, peterLustig)
@@ -110,8 +111,8 @@ describe('PresenceCodeResolver', () => {
     })
   })
 
-  // The query takes no argument: what comes back is minted for the caller's own name.
-  it("mints a code for the caller's own name and this community, good for ten minutes", async () => {
+  // The query takes no argument: what comes back is minted for the caller.
+  it('mints a code for the caller and this community, good for ten minutes', async () => {
     await loginAs('bibi@bloxberg.de')
     const before = Date.now()
     const { data, errors } = await query({ query: presenceCode })
@@ -119,9 +120,8 @@ describe('PresenceCodeResolver', () => {
 
     expect(errors).toBeUndefined()
     const { code, alias, expiresAt, remainingMs } = data.presenceCode
-    expect(verifyPresenceCode(code, 'BBB', communityUuid)).toBe(true)
-    expect(verifyPresenceCode(code, 'MeisterBob', communityUuid)).toBe(false)
-    // The name the code is sealed for, so the wallet builds the link from it.
+    expect(verifyPresenceCode(code, communityUuid)).toBe(bibi.id)
+    // The name of the address the card links to, with the code on it.
     expect(alias).toBe('BBB')
     const expiry = new Date(expiresAt).getTime()
     const validMs = PRESENCE_CODE_VALID_MINUTES * 60 * 1000
@@ -169,7 +169,7 @@ describe('PresenceCodeResolver', () => {
       const { data, errors } = await query({ query: presenceCode })
 
       expect(errors).toBeUndefined()
-      expect(verifyPresenceCode(data.presenceCode.code, 'MeisterBob', communityUuid)).toBe(true)
+      expect(verifyPresenceCode(data.presenceCode.code, communityUuid)).toBe(bob.id)
     } finally {
       await DbUser.update(bob.id, { creationAllowed: true })
     }
@@ -213,7 +213,7 @@ describe('PresenceCodeResolver', () => {
     it('lists three unconfirmed guests with their names, and mints a code', async () => {
       const answer = await askAs('bibi@bloxberg.de')
 
-      expect(verifyPresenceCode(answer.code, 'BBB', communityUuid)).toBe(true)
+      expect(verifyPresenceCode(answer.code, communityUuid)).toBe(bibi.id)
       expect(answer.unconfirmedGuests).toEqual(
         [1, 2, 3].map((n) => ({
           firstName: `Vorname${n}`,
@@ -240,7 +240,7 @@ describe('PresenceCodeResolver', () => {
       await DbUserContact.update(contact.id, { emailChecked: true })
       const answer = await askAs('bibi@bloxberg.de')
 
-      expect(verifyPresenceCode(answer.code, 'BBB', communityUuid)).toBe(true)
+      expect(verifyPresenceCode(answer.code, communityUuid)).toBe(bibi.id)
       expect(aliases(answer)).toHaveLength(PRESENCE_MAX_UNCONFIRMED - 1)
       expect(aliases(answer)).not.toContain('tischgast1')
     })
@@ -352,7 +352,7 @@ describe('PresenceCodeResolver', () => {
       const { data, errors } = await query({ query: presenceCode })
 
       expect(errors).toBeUndefined()
-      expect(verifyPresenceCode(data.presenceCode.code, guest.alias, communityUuid)).toBe(true)
+      expect(verifyPresenceCode(data.presenceCode.code, communityUuid)).toBe(guest.id)
     })
   })
 })

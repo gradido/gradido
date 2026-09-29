@@ -587,17 +587,20 @@ describe('Register', () => {
       expect(await sent(page)).not.toHaveProperty('presenceCode')
     })
 
-    // It is the code of the member the guest came from: without that name there is none.
-    it('takes no code without the name it belongs to, and nothing that is not a code', async () => {
-      for (const query of [
-        { presence: inTenMinutes() },
-        { referrer: 'MeisterBob', presence: 'not-a-code' },
-      ]) {
-        const page = await pageAt(query)
+    // The code names the member by itself: without the name it still counts, only the strip
+    // above the form has nobody to name.
+    it('takes a code without the name, and names nobody above the form', async () => {
+      const page = await pageAt({ presence: inTenMinutes() })
 
-        expect(passwordFields(page)).toBe(false)
-        expect(page.find('[data-test="register-presence-expired"]').exists()).toBe(false)
-      }
+      expect(passwordFields(page)).toBe(true)
+      expect(page.find('[data-test="register-shown-by"]').exists()).toBe(false)
+    })
+
+    it('takes nothing that is not a code', async () => {
+      const page = await pageAt({ referrer: 'MeisterBob', presence: 'not-a-code' })
+
+      expect(passwordFields(page)).toBe(false)
+      expect(page.find('[data-test="register-presence-expired"]').exists()).toBe(false)
     })
 
     /**

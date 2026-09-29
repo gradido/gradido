@@ -8,6 +8,7 @@ jest.mock('database', () => ({
   dbFindTransactionLinkByCode: jest.fn(),
   dbFindUserAliasesWithRegex: jest.fn(),
   dbFindUserByEmail: jest.fn(),
+  dbFindUserById: jest.fn(),
   dbFindUserWithContactById: jest.fn(),
   dbHomeCommunityGetUuid: jest.fn(),
   dbInsertEvent: jest.fn(),
@@ -58,6 +59,7 @@ import {
   dbFindTransactionLinkByCode,
   dbFindUserAliasesWithRegex,
   dbFindUserByEmail,
+  dbFindUserById,
   dbFindUserWithContactById,
   dbHomeCommunityGetUuid,
   dbInsertEvent,
@@ -406,11 +408,15 @@ describe('RegisterUserForProjectRole', () => {
 describe('RegisterUserCardRole', () => {
   const tx = { execute: jest.fn() }
   const cardInput = () =>
-    input({ presenceCode: '1700000000.abc', password: 'Aa1!aaaa', referrerAlias: 'PeterL' })
+    input({
+      presenceCode: '1700000000.AbCdEfGhIjKlMnOpQrStUv',
+      password: 'Aa1!aaaa',
+      referrerAlias: 'PeterL',
+    })
 
   beforeEach(() => {
-    mocked(verifyPresenceCode).mockReturnValue(true)
-    mocked(dbFindLocalUserByAlias).mockResolvedValue({ id: REFERRER_ID } as UserSelect)
+    mocked(verifyPresenceCode).mockReturnValue(REFERRER_ID)
+    mocked(dbFindUserById).mockResolvedValue({ id: REFERRER_ID } as UserSelect)
     mocked(dbCountUnconfirmedVouchedAccounts).mockResolvedValue(0)
     mocked(encryptPassword).mockResolvedValue(123n)
     mocked(drizzleDb).mockReturnValue({
@@ -440,6 +446,25 @@ describe('RegisterUserCardRole', () => {
     })
   })
 
+  // The code names the member; the address the guest came from is not asked.
+  it('takes the member from the code, not from the address', async () => {
+    await new RegisterUserCardRole(
+      input({ presenceCode: '1700000000.AbCdEfGhIjKlMnOpQrStUv', password: 'Aa1!aaaa' }),
+    ).run(logger)
+
+    expect(verifyPresenceCode).toHaveBeenCalledWith(
+      '1700000000.AbCdEfGhIjKlMnOpQrStUv',
+      COMMUNITY_UUID,
+      expect.any(Date),
+    )
+    expect(dbFindUserById).toHaveBeenCalledWith(REFERRER_ID)
+    expect(dbFindLocalUserByAlias).not.toHaveBeenCalled()
+    expect(dbInsertUser).toHaveBeenCalledWith(
+      expect.objectContaining({ referrerId: REFERRER_ID }),
+      tx,
+    )
+  })
+
   // The password exists already, so the set-password page would be the wrong door (EM-013).
   it('asks only to confirm the address', async () => {
     await new RegisterUserCardRole(cardInput()).run(logger)
@@ -453,7 +478,7 @@ describe('RegisterUserCardRole', () => {
   })
 
   it('refuses an invalid code before anything is stored', async () => {
-    mocked(verifyPresenceCode).mockReturnValue(false)
+    mocked(verifyPresenceCode).mockReturnValue(null)
 
     await expect(new RegisterUserCardRole(cardInput()).run(logger)).rejects.toThrow(
       'Presence code invalid or expired',
@@ -471,7 +496,7 @@ describe('RegisterUserCardRole', () => {
   })
 
   it('refuses when the member behind the code is gone', async () => {
-    mocked(dbFindLocalUserByAlias).mockResolvedValue(null)
+    mocked(dbFindUserById).mockResolvedValue(null)
 
     await expect(new RegisterUserCardRole(cardInput()).run(logger)).rejects.toThrow(
       'Presence code invalid or expired',

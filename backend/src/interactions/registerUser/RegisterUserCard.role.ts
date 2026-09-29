@@ -3,6 +3,7 @@ import {
   DbUser,
   DrizzleTransaction,
   dbCountUnconfirmedVouchedAccounts,
+  dbFindUserById,
   dbInsertEvent,
   dbUserUpdatePassword,
   drizzleDb,
@@ -19,9 +20,10 @@ import { encryptPassword } from '@/password/PasswordEncryptor'
 import { getTimeDurationObject } from '@/util/time'
 import { CreateUser } from './createUser.schema'
 import { RegisterUserDuplicateError } from './errorTypes'
-import { RegisterUserReferrerRole } from './RegisterUserReferrer.role'
+import { RegisterUserRole } from './RegisterUser.role'
 
-export class RegisterUserCardRole extends RegisterUserReferrerRole {
+export class RegisterUserCardRole extends RegisterUserRole {
+  private referrerId: number | null = null
   private presenceCode: string
   private password: string
   private gradidoIdByPasswordStart: string | null = null
@@ -40,24 +42,25 @@ export class RegisterUserCardRole extends RegisterUserReferrerRole {
     this.password = user.password
   }
 
+  // The code names the member who showed it; the address the guest came from is not asked.
+  // Checked before the address is looked at, like everything about the code.
+  public async prepareUser(): Promise<UserInsert> {
+    const dbUser = await super.prepareUser()
+    const referrerId = verifyPresenceCode(this.presenceCode, dbUser.communityUuid, this.startDate)
+    // Deleted after showing the code: without the member, nobody vouches.
+    const referrer = referrerId ? await dbFindUserById(referrerId) : null
+    if (!referrer) {
+      throw new Error('Presence code invalid or expired')
+    }
+    dbUser.referrerId = referrer.id
+    this.referrerId = referrer.id
+    return dbUser
+  }
+
   public async storeUserAndUserContact(
     dbUser: UserInsert,
     logger: Logger,
   ): Promise<Result<number, RegisterUserDuplicateError>> {
-    // The code must be the one shown by the member whose address the guest came from.
-    // Its own answer, not "expired": the seal is bound to this community, so without it
-    // every code fails the check - and the guest would be told to fetch a fresh one, which
-    // fails the same way. `presenceCode` says the same when it cannot mint one.
-    const presenceValid = verifyPresenceCode(
-      this.presenceCode,
-      this.user.referrerAlias ?? '',
-      dbUser.communityUuid,
-      this.startDate,
-    )
-    if (!presenceValid) {
-      throw new Error('Presence code invalid or expired')
-    }
-
     dbUser.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
     // it take some time, let it run in parallel
     this.gradidoIdByPasswordStart = dbUser.gradidoId

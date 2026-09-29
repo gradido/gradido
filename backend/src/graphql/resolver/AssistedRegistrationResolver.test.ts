@@ -62,6 +62,7 @@ const PASSWORD = 'Aa12345_'
 let mutate: ApolloServerTestClient['mutate']
 let db: AppDatabase
 let communityUuid: string
+let bob: DbUser
 
 const loginAs = (email: string, password = PASSWORD) =>
   mutate({ mutation: login, variables: { email, password } })
@@ -82,7 +83,7 @@ const openAtTheTable = async (email: string): Promise<DbUser> => {
       lastName: 'Person',
       language: 'de',
       referrerAlias: 'MeisterBob',
-      presenceCode: mintPresenceCode('MeisterBob', communityUuid).code,
+      presenceCode: mintPresenceCode(bob.id, communityUuid).code,
       password: PASSWORD,
     },
   })
@@ -114,7 +115,7 @@ beforeAll(async () => {
   db = testEnv.db
   await cleanDB()
   communityUuid = (await writeHomeCommunityEntry()).communityUuid as string
-  await userFactory(testEnv, bobBaumeister)
+  bob = await userFactory(testEnv, bobBaumeister)
 })
 
 afterAll(async () => {

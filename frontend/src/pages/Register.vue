@@ -198,13 +198,13 @@ const redeemCode = ref(params.code)
 // refuses the registration over anything else, a reserved word included.
 const referrerAlias = isValidUsername(String(query.referrer ?? '')) ? String(query.referrer) : null
 
-// E-017, the table code: the card the guest scanned carried `?presence=<expiry>.<seal>`, and the
+// E-017, the table code: the card the guest scanned carried `?presence=<expiry>.<block>`, and the
 // public page handed it on. Only its expiry is read here, to decide whether the form offers a
-// password; the server checks the seal when the form is sent. Decided once, when the page
-// opens -- fields do not vanish while somebody is typing. It is the code of the member the
-// guest came from, so without that name there is no code to speak of.
+// password; the server opens the block when the form is sent, and takes from it who showed the
+// code. Decided once, when the page opens -- fields do not vanish while somebody is typing. The
+// name in `referrer` only names that member in the strip above the form.
 const presence = String(query.presence ?? '')
-const hasPresence = !!referrerAlias && /^\d+\.[A-Za-z0-9_-]+$/.test(presence)
+const hasPresence = /^\d+\.[A-Za-z0-9_-]+$/.test(presence)
 const presenceActive = hasPresence && Number(presence.split('.')[0]) * 1000 > Date.now()
 const presenceExpiredOnArrival = hasPresence && !presenceActive
 const presenceFailed = ref(false)

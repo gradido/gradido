@@ -33,7 +33,8 @@ describe('createUserSchema', () => {
 
   it('accepts a presence code only in its shape', () => {
     expect(
-      createUserSchema.safeParse({ ...valid, presenceCode: '1700000000.abc_-9' }).success,
+      createUserSchema.safeParse({ ...valid, presenceCode: '1700000000.AbCdEfGhIjKlMnOpQrSt_-' })
+        .success,
     ).toBe(true)
     expect(createUserSchema.safeParse({ ...valid, presenceCode: 'nonsense' }).success).toBe(false)
   })

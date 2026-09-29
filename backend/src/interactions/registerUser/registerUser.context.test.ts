@@ -50,7 +50,7 @@ describe('registerUser', () => {
 
   it('registers with a table code', async () => {
     const user = input({
-      presenceCode: '1700000000.abc',
+      presenceCode: '1700000000.AbCdEfGhIjKlMnOpQrStUv',
       password: 'Aa1!aaaa',
       referrerAlias: 'PeterL',
     })

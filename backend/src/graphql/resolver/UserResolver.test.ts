@@ -369,10 +369,11 @@ describe('UserResolver', () => {
     describe('the table code (presenceCode)', () => {
       const PASSWORD = 'Aa12345_'
       let bob: User
+      let hawking: User
       let homeCom: DbCommunity
 
-      const code = (alias = 'MeisterBob', now = new Date()): string =>
-        mintPresenceCode(alias, homeCom.communityUuid as string, now).code
+      const code = (userId = bob.id, now = new Date()): string =>
+        mintPresenceCode(userId, homeCom.communityUuid as string, now).code
 
       const register = (email: string, extra: Record<string, string>) =>
         mutate({
@@ -391,7 +392,7 @@ describe('UserResolver', () => {
         homeCom = await writeHomeCommunityEntry()
         bob = await userFactory(testEnv, bobBaumeister)
         // A deleted member who still holds a name.
-        await userFactory(testEnv, { ...stephenHawking, alias: 'BlackHoles' })
+        hawking = await userFactory(testEnv, { ...stephenHawking, alias: 'BlackHoles' })
         jest.clearAllMocks()
         resetToken()
       })
@@ -468,24 +469,29 @@ describe('UserResolver', () => {
         })
       })
 
-      // The code is checked against the address the guest came from: it has to be the code
-      // of that member, and there has to be one.
-      it('refuses the code of another member, and a code without an address to come from', async () => {
+      // The code names the member who showed it; the address the guest came from only names
+      // them on the page. Another address, or none at all, changes nothing.
+      it('takes the member from the code, whatever address came along', async () => {
         const elsewhere = await register('elsewhere@table.de', {
           referrerAlias: 'SomebodyElse',
-          presenceCode: code('MeisterBob'),
+          presenceCode: code(),
           password: PASSWORD,
         })
         const nowhere = await register('nowhere@table.de', {
-          presenceCode: code('MeisterBob'),
+          presenceCode: code(),
           password: PASSWORD,
         })
 
         for (const result of [elsewhere, nowhere]) {
-          expect(result.errors).toEqual([new GraphQLError('Presence code invalid or expired')])
+          expect(result.errors).toBeUndefined()
         }
-        await noAccount('elsewhere@table.de')
-        await noAccount('nowhere@table.de')
+        for (const email of ['elsewhere@table.de', 'nowhere@table.de']) {
+          const guest = await registered(email)
+          expect(guest.referrerId).toBe(bob.id)
+          // Deleted again, so the vouching limit below counts Bob's guests as it expects: a
+          // deleted guest account frees its place.
+          await User.update({ id: guest.id }, { deletedAt: new Date() })
+        }
       })
 
       // The guest left both password fields empty: a classic account, with its referrer.
@@ -510,7 +516,7 @@ describe('UserResolver', () => {
       // The member is looked up before the address, so a taken one gets the same answer.
       it('refuses the code of a member who has gone meanwhile, whatever the address, and opens no account', async () => {
         jest.clearAllMocks()
-        const orphan = { referrerAlias: 'BlackHoles', presenceCode: code('BlackHoles') }
+        const orphan = { referrerAlias: 'BlackHoles', presenceCode: code(hawking.id) }
         const free = await register('orphan@table.de', { ...orphan, password: PASSWORD })
         const taken = await register('bob@baumeister.de', { ...orphan, password: PASSWORD })
 
