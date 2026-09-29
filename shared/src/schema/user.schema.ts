@@ -31,6 +31,15 @@ export const RESERVED_ALIAS = [
   'unknown',
 ]
 
+// At least 8 characters, with a lower and an upper case letter, a digit and one other character,
+// and no whitespace. The same rules as the wallet's password field (validation-rules.js).
+export const passwordSchema = z
+  .string()
+  .regex(
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9 \t\n\r])[^ \t\n\r]{8,}$/,
+    'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character, and no spaces!',
+  )
+
 export const aliasSchema = z
   .string()
   .min(3, 'Given alias is too short')

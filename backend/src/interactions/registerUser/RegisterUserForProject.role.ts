@@ -1,26 +1,21 @@
 import { sendAccountActivationEmail } from 'core'
 import { DbUser, dbFindProjectBrandingByAlias, ProjectBrandingSelect } from 'database'
 import { Logger } from 'log4js'
+import { parseOrThrowFirstIssue } from 'shared'
 import { CONFIG } from '@/config'
 import { getTimeDurationObject } from '@/util/time'
-import { CreateUser } from './createUser.schema'
+import { CreateUser, ProjectRegistration, projectRegistrationSchema } from './createUser.schema'
 import { RegisterUserRole } from './RegisterUser.role'
 
-export class RegisterUserForProjectRole extends RegisterUserRole {
-  private project: string
+export class RegisterUserForProjectRole extends RegisterUserRole<ProjectRegistration> {
   private projectBrandingPromise: Promise<ProjectBrandingSelect | undefined>
 
-  constructor(user: CreateUser) {
-    if (!user.project) {
-      throw new Error('Missing project Code')
-    }
-
-    super(user)
-    this.project = user.project
+  constructor(createUserInput: CreateUser) {
+    super(parseOrThrowFirstIssue(projectRegistrationSchema, createUserInput))
   }
 
   public async run(logger: Logger): Promise<number> {
-    this.projectBrandingPromise = dbFindProjectBrandingByAlias(this.project)
+    this.projectBrandingPromise = dbFindProjectBrandingByAlias(this.user.project)
     return super.run(logger)
   }
 
@@ -32,7 +27,7 @@ export class RegisterUserForProjectRole extends RegisterUserRole {
       lastName,
       email,
       language,
-      activationLink: `${activationLink}?project=${this.project}`,
+      activationLink: `${activationLink}?project=${this.user.project}`,
       timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
       logoUrl: projectBranding?.logoUrl,
     })

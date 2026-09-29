@@ -7,34 +7,30 @@ import {
   EventType,
   UserInsert,
 } from 'database'
+import { parseOrThrowFirstIssue } from 'shared'
 import { CONFIG } from '@/config'
 import { getTimeDurationObject } from '@/util/time'
-import { CreateUser } from './createUser.schema'
+import { CreateUser, RedeemRegistration, redeemRegistrationSchema } from './createUser.schema'
 import { RegisterUserRole } from './RegisterUser.role'
 
-export class RegisterUserFromTransactionLinkRole extends RegisterUserRole {
-  private redeemCode: string
+export class RegisterUserFromTransactionLinkRole extends RegisterUserRole<RedeemRegistration> {
   private contributionLinkId: number | null = null
   private transactionLinkId: number | null = null
 
-  constructor(user: CreateUser) {
-    super(user)
-    if (!user.redeemCode) {
-      throw new Error('Missing redeem code')
-    }
-    this.redeemCode = user.redeemCode
+  constructor(createUserInput: CreateUser) {
+    super(parseOrThrowFirstIssue(redeemRegistrationSchema, createUserInput))
   }
 
   public async prepareUser(): Promise<UserInsert> {
     const dbUser = await super.prepareUser()
-    if (this.redeemCode.match(/^CL-/)) {
-      const contributionLinkId = await dbFindContributionLinkIdByCode(this.redeemCode)
+    if (this.user.redeemCode.match(/^CL-/)) {
+      const contributionLinkId = await dbFindContributionLinkIdByCode(this.user.redeemCode)
       if (contributionLinkId) {
         dbUser.contributionLinkId = contributionLinkId
         this.contributionLinkId = contributionLinkId
       }
     } else {
-      const transactionLink = await dbFindTransactionLinkByCode(this.redeemCode)
+      const transactionLink = await dbFindTransactionLinkByCode(this.user.redeemCode)
       if (transactionLink) {
         dbUser.referrerId = transactionLink.userId
         this.transactionLinkId = transactionLink.id
@@ -50,7 +46,7 @@ export class RegisterUserFromTransactionLinkRole extends RegisterUserRole {
       lastName,
       email,
       language,
-      activationLink: `${activationLink}/${this.redeemCode}`,
+      activationLink: `${activationLink}/${this.user.redeemCode}`,
       timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
     })
     if (result instanceof Error) {

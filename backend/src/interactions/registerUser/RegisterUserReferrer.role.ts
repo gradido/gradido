@@ -1,23 +1,19 @@
 import { dbFindLocalUserByAlias, dbInsertEvent, EventType, UserInsert } from 'database'
-import { CreateUser } from './createUser.schema'
+import { parseOrThrowFirstIssue } from 'shared'
+import { CreateUser, ReferrerRegistration, referrerRegistrationSchema } from './createUser.schema'
 import { RegisterUserRole } from './RegisterUser.role'
 
-export class RegisterUserReferrerRole extends RegisterUserRole {
-  protected referrerAlias: string
+export class RegisterUserReferrerRole extends RegisterUserRole<ReferrerRegistration> {
   protected referrerId: number | null = null
 
-  constructor(user: CreateUser) {
-    super(user)
-    if (!user.referrerAlias) {
-      throw new Error('Missing referrer alias')
-    }
-    this.referrerAlias = user.referrerAlias
+  constructor(createUserInput: CreateUser) {
+    super(parseOrThrowFirstIssue(referrerRegistrationSchema, createUserInput))
   }
 
   public async prepareUser(): Promise<UserInsert> {
     const [dbUser, referrer] = await Promise.all([
       super.prepareUser(),
-      dbFindLocalUserByAlias(this.referrerAlias),
+      dbFindLocalUserByAlias(this.user.referrerAlias),
     ])
     if (referrer) {
       dbUser.referrerId = referrer.id

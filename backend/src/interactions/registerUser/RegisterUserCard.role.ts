@@ -13,40 +13,33 @@ import {
 } from 'database'
 import { sql } from 'drizzle-orm'
 import { Logger } from 'log4js'
-import { PasswordEncryptionType, Result } from 'shared'
+import { PasswordEncryptionType, parseOrThrowFirstIssue, Result } from 'shared'
 import { CONFIG } from '@/config'
 import { PRESENCE_MAX_UNCONFIRMED, verifyPresenceCode } from '@/data/PresenceCode.logic'
 import { encryptPassword } from '@/password/PasswordEncryptor'
 import { getTimeDurationObject } from '@/util/time'
-import { CreateUser } from './createUser.schema'
+import { CardRegistration, CreateUser, cardRegistrationSchema } from './createUser.schema'
 import { RegisterUserDuplicateError } from './errorTypes'
 import { RegisterUserRole } from './RegisterUser.role'
 
-export class RegisterUserCardRole extends RegisterUserRole {
+export class RegisterUserCardRole extends RegisterUserRole<CardRegistration> {
   private referrerId: number | null = null
-  private presenceCode: string
-  private password: string
   private gradidoIdByPasswordStart: string | null = null
   private passwordEncryptionPromise: Promise<bigint> | null = null
 
-  constructor(user: CreateUser) {
-    if (!user.presenceCode) {
-      throw new Error('Missing presence Code')
-    }
-    if (!user.password) {
-      throw new Error('Presence code requires a password')
-    }
-
-    super(user)
-    this.presenceCode = user.presenceCode
-    this.password = user.password
+  constructor(createUserInput: CreateUser) {
+    super(parseOrThrowFirstIssue(cardRegistrationSchema, createUserInput))
   }
 
   // The code names the member who showed it; the address the guest came from is not asked.
   // Checked before the address is looked at, like everything about the code.
   public async prepareUser(): Promise<UserInsert> {
     const dbUser = await super.prepareUser()
-    const referrerId = verifyPresenceCode(this.presenceCode, dbUser.communityUuid, this.startDate)
+    const referrerId = verifyPresenceCode(
+      this.user.presenceCode,
+      dbUser.communityUuid,
+      this.startDate,
+    )
     // Deleted after showing the code: without the member, nobody vouches.
     const referrer = referrerId ? await dbFindUserById(referrerId) : null
     if (!referrer) {
@@ -64,7 +57,7 @@ export class RegisterUserCardRole extends RegisterUserRole {
     dbUser.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
     // it take some time, let it run in parallel
     this.gradidoIdByPasswordStart = dbUser.gradidoId
-    this.passwordEncryptionPromise = encryptPassword(dbUser, this.password)
+    this.passwordEncryptionPromise = encryptPassword(dbUser, this.user.password)
     return await drizzleDb().transaction(
       async (tx: DrizzleTransaction) => {
         const referrerId = dbUser.referrerId
@@ -140,7 +133,7 @@ export class RegisterUserCardRole extends RegisterUserRole {
     }
     let passwordHash: bigint = 0n
     if (this.gradidoIdByPasswordStart !== user.gradidoId) {
-      passwordHash = await encryptPassword(user, this.password)
+      passwordHash = await encryptPassword(user, this.user.password)
     } else {
       passwordHash = await this.passwordEncryptionPromise
     }

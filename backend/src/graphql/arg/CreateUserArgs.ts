@@ -49,10 +49,9 @@ export class CreateUserArgs {
   @IsString()
   presenceCode?: string | null
 
-  // Only together with a valid table code; without one the resolver refuses it rather than
-  // dropping it. Length and strength are checked there too (`isValidPassword`), not by a
-  // validator here: the resolver answers with the message the form knows, a validator on the
-  // argument with a raw "Argument Validation Error".
+  // Only together with a table code. Length and strength are checked by `passwordSchema` (shared)
+  // in createUserSchema, not by a validator here: the schema answers with the message the form
+  // knows, a validator on the argument with a raw "Argument Validation Error".
   @Field(() => String, { nullable: true })
   @IsString()
   password?: string | null

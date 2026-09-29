@@ -775,7 +775,7 @@ describe('UserResolver', () => {
           expect.objectContaining({
             errors: [
               new GraphQLError(
-                'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
+                'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character, and no spaces!',
               ),
             ],
           }),
@@ -784,7 +784,7 @@ describe('UserResolver', () => {
 
       it('logs the error thrown', () => {
         expect(logErrorLogger.error).toBeCalledWith(
-          'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
+          'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character, and no spaces!',
         )
       })
     })
@@ -1621,7 +1621,7 @@ describe('UserResolver', () => {
               expect.objectContaining({
                 errors: [
                   new GraphQLError(
-                    'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
+                    'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character, and no spaces!',
                   ),
                 ],
               }),

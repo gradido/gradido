@@ -20,11 +20,6 @@ if (CONFIG.USE_CRYPTO_WORKER === true) {
   })
 }
 
-// We will reuse this for changePassword
-export const isValidPassword = (password: string): boolean => {
-  return !!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9 \\t\\n\\r]).{8,}$/)
-}
-
 /**
  * @param salt
  * @param password

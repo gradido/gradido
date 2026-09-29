@@ -90,6 +90,8 @@ import {
   JPEG_MAGIC_BYTES,
   languageSchema,
   MemberAvatarPayload,
+  parseOrThrowFirstIssue,
+  passwordSchema,
   Result,
   updateAllDefinedAndChanged,
 } from 'shared'
@@ -128,7 +130,6 @@ import {
 import { PublishNameLogic } from '@/data/PublishName.logic'
 import { createUserSchema } from '@/interactions/registerUser'
 import { registerUser } from '@/interactions/registerUser/registerUser.context'
-import { isValidPassword } from '@/password/EncryptorUtils'
 import { encryptPassword, fakeVerifyPassword, verifyPassword } from '@/password/PasswordEncryptor'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
@@ -437,12 +438,7 @@ export class UserResolver {
     }
     logger.info(`createUser(${infos.join(', ')})`)
 
-    const createUserDataParseResult = createUserSchema.safeParse(args)
-    if (!createUserDataParseResult.success) {
-      // return first error like before in code
-      throw new Error(createUserDataParseResult.error.issues[0].message)
-    }
-    return (await registerUser(createUserDataParseResult.data, logger)) !== 0
+    return (await registerUser(parseOrThrowFirstIssue(createUserSchema, args), logger)) !== 0
   }
 
   @Authorized([RIGHTS.SEND_RESET_PASSWORD_EMAIL])
@@ -516,10 +512,9 @@ export class UserResolver {
     const logger = createLogger('setPassword')
     logger.info(`setPassword...`)
     // Validate Password
-    if (!isValidPassword(password)) {
-      throw new LogError(
-        'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
-      )
+    const validPassword = passwordSchema.safeParse(password)
+    if (!validPassword.success) {
+      throw new LogError(validPassword.error.issues[0].message)
     }
     // load code
     // A pending e-mail change carries a code of the same kind, but that code confirms an
@@ -752,12 +747,11 @@ export class UserResolver {
 
     if (password && passwordNew) {
       // Validate Password
-      if (!isValidPassword(passwordNew)) {
+      const validPassword = passwordSchema.safeParse(passwordNew)
+      if (!validPassword.success) {
         // TODO: log which rule(s) wasn't met
         logger.warn('try to set invalid password')
-        throw new Error(
-          'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
-        )
+        throw new Error(validPassword.error.issues[0].message)
       }
 
       if (!(await verifyPassword(user, password))) {

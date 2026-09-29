@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import { aliasSchema, firstNameSchema } from './user.schema'
+import { aliasSchema, firstNameSchema, passwordSchema } from './user.schema'
 
 describe('validate alias', () => {
   describe('alias contains invalid characters', () => {
@@ -137,5 +137,34 @@ describe('validate first name', () => {
   // TODO: fix this
   it.skip('use chinese symbols', () => {
     expect(() => firstNameSchema.parse('张三')).not.toThrowError()
+  })
+})
+
+describe('passwordSchema', () => {
+  it('takes eight characters with a lower and an upper case letter, a digit and another character', () => {
+    expect(passwordSchema.safeParse('Aa1!aaaa').success).toBe(true)
+    expect(passwordSchema.safeParse('Aa12345_').success).toBe(true)
+  })
+
+  it('refuses a password that misses one of them, with the message the form knows', () => {
+    for (const weak of ['Aa1!aaa', 'aa1!aaaa', 'AA1!AAAA', 'Aa!aaaaa', 'Aa1aaaaa']) {
+      const result = passwordSchema.safeParse(weak)
+      expect(result.success).toBe(false)
+      if (!result.success) {
+        expect(result.error.issues[0].message).toBe(
+          'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character, and no spaces!',
+        )
+      }
+    }
+  })
+
+  it('refuses whitespace, even where the rest would do', () => {
+    for (const whitespace of [' ', '\t', '\n', '\r']) {
+      expect(passwordSchema.safeParse(`Aa1!aaa${whitespace}`).success).toBe(false)
+    }
+  })
+
+  it('counts a backslash as the special character', () => {
+    expect(passwordSchema.safeParse('Aa1\\aaaa').success).toBe(true)
   })
 })

@@ -4,11 +4,14 @@ import {
   emailSchema,
   firstNameSchema,
   lastNameSchema,
+  passwordSchema,
 } from 'shared'
 import { z } from 'zod'
 import { presenceCodeSchema } from '@/data/PresenceCode.logic'
-import { isValidPassword } from '@/password/EncryptorUtils'
 
+// Everything a registration may bring. Which of the optional fields it brings decides the
+// variant (registerUser.context); each variant parses again with its own schema below, in
+// which the fields it lives on are required.
 export const createUserSchema = z.object({
   alias: aliasSchema.nullish(),
   email: emailSchema,
@@ -20,14 +23,29 @@ export const createUserSchema = z.object({
   project: z.string().nullish(),
   referrerAlias: aliasSchema.nullish(),
   presenceCode: presenceCodeSchema.nullish(),
-  password: z
-    .string()
-    .refine((pwd: string) => isValidPassword(pwd), {
-      message:
-        'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
-    })
-    .nullish(), // TODO: move isValidPassword altogether to shared as schema
+  password: passwordSchema.nullish(),
 })
 
 export type CreateUserInput = z.input<typeof createUserSchema>
 export type CreateUser = z.infer<typeof createUserSchema>
+
+export const projectRegistrationSchema = createUserSchema.extend({ project: z.string() })
+export type ProjectRegistration = z.infer<typeof projectRegistrationSchema>
+
+export const redeemRegistrationSchema = createUserSchema.extend({ redeemCode: z.string() })
+export type RedeemRegistration = z.infer<typeof redeemRegistrationSchema>
+
+export const referrerRegistrationSchema = createUserSchema.extend({ referrerAlias: aliasSchema })
+export type ReferrerRegistration = z.infer<typeof referrerRegistrationSchema>
+
+// The table code opens an account with a password, so it comes with one.
+export const cardRegistrationSchema = createUserSchema.extend({
+  presenceCode: presenceCodeSchema,
+  password: z
+    .string({
+      required_error: 'Presence code requires a password',
+      invalid_type_error: 'Presence code requires a password',
+    })
+    .pipe(passwordSchema),
+})
+export type CardRegistration = z.infer<typeof cardRegistrationSchema>

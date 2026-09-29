@@ -48,6 +48,7 @@ import { CONFIG } from '@/config'
 import { syncHumhub } from '@/graphql/resolver/util/syncHumhub'
 import { getTimeDurationObject } from '@/util/time'
 import { AbstractRegisterUserRole } from './AbstractRegisterUser.role'
+import { CreateUser } from './createUser.schema'
 import { RegisterUserDuplicateError } from './errorTypes'
 
 /**
@@ -62,7 +63,9 @@ import { RegisterUserDuplicateError } from './errorTypes'
  * defaulted. A password is used only by the table code (RegisterUserCardRole).
  */
 
-export class RegisterUserRole extends AbstractRegisterUserRole {
+export class RegisterUserRole<
+  T extends CreateUser = CreateUser,
+> extends AbstractRegisterUserRole<T> {
   protected userId: number | null = null
   protected userContactId: number | null = null
   protected userAliasId: number | null = null

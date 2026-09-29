@@ -1,5 +1,10 @@
 // AI-GENERATED — not an architecture reference
-import { createUserSchema } from './createUser.schema'
+import { parseOrThrowFirstIssue } from 'shared'
+import {
+  cardRegistrationSchema,
+  createUserSchema,
+  referrerRegistrationSchema,
+} from './createUser.schema'
 
 const valid = {
   email: 'Bernd@Example.com',
@@ -26,7 +31,7 @@ describe('createUserSchema', () => {
     expect(result.success).toBe(false)
     if (!result.success) {
       expect(result.error.issues[0].message).toBe(
-        'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
+        'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character, and no spaces!',
       )
     }
   })
@@ -37,5 +42,48 @@ describe('createUserSchema', () => {
         .success,
     ).toBe(true)
     expect(createUserSchema.safeParse({ ...valid, presenceCode: 'nonsense' }).success).toBe(false)
+  })
+})
+
+describe('the schemas of the variants', () => {
+  const code = '1700000000.AbCdEfGhIjKlMnOpQrStUv'
+
+  // The table code opens an account with a password: without one the registration is refused,
+  // with a message that says why, not a bare type error.
+  it('refuses a table code without a password, and says why', () => {
+    for (const password of [undefined, null]) {
+      expect(() =>
+        parseOrThrowFirstIssue(cardRegistrationSchema, { ...valid, presenceCode: code, password }),
+      ).toThrow('Presence code requires a password')
+    }
+  })
+
+  it('refuses a weak password with a table code the same way as without one', () => {
+    expect(() =>
+      parseOrThrowFirstIssue(cardRegistrationSchema, {
+        ...valid,
+        presenceCode: code,
+        password: 'weak',
+      }),
+    ).toThrow(/^Please enter a valid password/)
+  })
+
+  it('hands on what it parsed, with the fields of the variant filled', () => {
+    const registration = parseOrThrowFirstIssue(cardRegistrationSchema, {
+      ...valid,
+      presenceCode: code,
+      password: 'Aa1!aaaa',
+    })
+    expect(registration).toEqual(
+      expect.objectContaining({
+        email: 'bernd@example.com',
+        presenceCode: code,
+        password: 'Aa1!aaaa',
+      }),
+    )
+  })
+
+  it('needs the field a variant lives on', () => {
+    expect(() => parseOrThrowFirstIssue(referrerRegistrationSchema, valid)).toThrow()
   })
 })
