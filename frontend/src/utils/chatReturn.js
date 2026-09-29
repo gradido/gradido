@@ -22,6 +22,9 @@ import { MESSAGE_MAX_CHARS } from '@/validationSchemas'
  * they would stand in the browser's history, where they outlive the moment they belonged to
  * (the reason useEntryDraft gives).
  *
+ * ⭐ And a group's thread the same way (P5): the note names the group by its uuid instead of a
+ * person by the pair, and the start opens it as the group's mails do (`/contacts?group=`).
+ *
  * ⛔ Key `chat-return:<gradidoID>` of the member signed in, never one shared key: one browser
  * serves several members (chatVideoApp). Not in the vuex store, which is written whole to
  * localStorage on every mutation.
@@ -36,21 +39,30 @@ const keyOf = (gradidoID) => (gradidoID ? `${KEY_PREFIX}${gradidoID}` : null)
 /** Words worth keeping: a field of spaces is an empty field. */
 const wordsIn = (text) => (typeof text === 'string' && text.trim() !== '' ? text : '')
 
+/** Whom a note or a thread names: a group by its uuid (P5), else a person by the pair. */
+const whomOf = (partner) =>
+  partner?.groupUuid
+    ? { groupUuid: partner.groupUuid }
+    : partner?.gradidoID
+      ? { gradidoID: partner.gradidoID, communityUuid: partner.communityUuid ?? null }
+      : null
+
 /**
  * @param {string | null | undefined} me the member signed in
- * @param {{ gradidoID: string, communityUuid?: string | null }} partner whom the thread is with
+ * @param {{ gradidoID: string, communityUuid?: string | null } | { groupUuid: string }} partner
+ *   whom the thread is with: a person by the pair, or a group by its uuid
  * @param {string} [text] the words in the field not sent yet, as they stand there
  */
 export const noteChatReturn = (me, partner, text = '') => {
   const key = keyOf(me)
-  if (!key || !partner?.gradidoID) return
+  const whom = whomOf(partner)
+  if (!key || !whom) return
   const words = wordsIn(text).slice(0, MESSAGE_MAX_CHARS)
   try {
     window.localStorage.setItem(
       key,
       JSON.stringify({
-        gradidoID: partner.gradidoID,
-        communityUuid: partner.communityUuid ?? null,
+        ...whom,
         at: Date.now(),
         ...(words ? { text: words } : {}),
       }),
@@ -72,22 +84,30 @@ const samePerson = (a, b) =>
 /**
  * Hands the words of a note to the field of that conversation, when the start opens it.
  *
- * @param {{ gradidoID: string, text?: string }} note what `takeChatReturn` gave
+ * @param {{ gradidoID?: string, groupUuid?: string, text?: string }} note what `takeChatReturn`
+ *   gave
  */
 export const holdChatText = (note) => {
   const words = wordsIn(note?.text)
-  held = words && note?.gradidoID ? { gradidoID: note.gradidoID, text: words } : null
+  const whom = whomOf(note)
+  held = words && whom ? { ...whom, text: words } : null
 }
+
+/** Whether a thread is the one the held words belong to: the same group, or the same person. */
+const sameThread = (heldFor, partner) =>
+  heldFor.groupUuid
+    ? samePerson(heldFor.groupUuid, partner?.groupUuid)
+    : !partner?.groupUuid && samePerson(heldFor.gradidoID, partner?.gradidoID)
 
 /**
  * The words held for the thread with `partner`, once. Whatever thread asks, the words stop
  * waiting: they belong to the first thread after the start, and only if it is theirs.
  *
- * @param {{ gradidoID: string }} partner whom the thread is with
+ * @param {{ gradidoID: string } | { groupUuid: string }} partner whom the thread is with
  * @returns {string} the words, or '' where none wait for this conversation
  */
 export const takeHeldChatText = (partner) => {
-  const words = held && samePerson(held.gradidoID, partner?.gradidoID) ? held.text : ''
+  const words = held && sameThread(held, partner) ? held.text : ''
   held = null
   return words
 }
@@ -124,9 +144,10 @@ export const forgetChatReturn = (me) => {
  * Reads the note and lets it go in one, so a start comes back to it once.
  *
  * @param {string | null | undefined} me the member signed in
- * @returns {{ gradidoID: string, communityUuid: string | null, text: string } | null} whom the
- *   thread was with, and the words not sent yet ('' where there were none); null where there is
- *   no note, where it is too old, or where it is not a note at all
+ * @returns {{ gradidoID: string, communityUuid: string | null, text: string } |
+ *   { groupUuid: string, text: string } | null} whom the thread was with -- a person by the pair,
+ *   a group by its uuid --, and the words not sent yet ('' where there were none); null where
+ *   there is no note, where it is too old, or where it is not a note at all
  */
 export const takeChatReturn = (me) => {
   const key = keyOf(me)
@@ -144,8 +165,12 @@ export const takeChatReturn = (me) => {
   } catch {
     return null
   }
-  if (typeof note?.gradidoID !== 'string' || note.gradidoID === '') return null
+  const isGroup = typeof note?.groupUuid === 'string' && note.groupUuid !== ''
+  if (!isGroup && (typeof note?.gradidoID !== 'string' || note.gradidoID === '')) return null
   if (typeof note.at !== 'number' || !(Date.now() - note.at <= CHAT_RETURN_MAX_AGE_MS)) return null
+  if (isGroup) {
+    return { groupUuid: note.groupUuid, text: wordsIn(note.text).slice(0, MESSAGE_MAX_CHARS) }
+  }
   const community = note.communityUuid
   return {
     gradidoID: note.gradidoID,

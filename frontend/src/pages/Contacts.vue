@@ -260,10 +260,12 @@ onGroups(({ data }) => {
   groups.value = data.chatGroups
   groupsLoaded.value = true
   groupsFailed.value = false
+  openAskedGroup()
 })
 onGroupsError(() => {
   groupsLoaded.value = true
   groupsFailed.value = groups.value.length === 0
+  groupAsked = null
 })
 
 /**
@@ -382,8 +384,9 @@ const route = useRoute()
 const router = useRouter()
 const askedFor = route.query.with
 const askedCommunity = route.query.community
-if (askedFor !== undefined || askedCommunity !== undefined) {
-  const { with: _with, community: _community, ...rest } = route.query
+const askedGroup = route.query.group
+if (askedFor !== undefined || askedCommunity !== undefined || askedGroup !== undefined) {
+  const { with: _with, community: _community, group: _group, ...rest } = route.query
   router.replace({ query: rest })
 }
 if (typeof askedFor === 'string' && askedFor !== '') {
@@ -392,6 +395,27 @@ if (typeof askedFor === 'string' && askedFor !== '') {
     communityUuid:
       typeof askedCommunity === 'string' && askedCommunity !== '' ? askedCommunity : null,
   })
+}
+
+/**
+ * `/contacts?group=<uuid>` opens that group's window (P5) -- the address the group's mails point
+ * to (E-049), also after the sign-in (the guard keeps the whole address as the way back), and the
+ * one a start comes back to after iOS started the wallet over (utils/chatReturn). Read once, and
+ * taken out of the address with the other two, above.
+ *
+ * Opened only for a group the member is in: it is looked for in the member's own list, once that
+ * has answered. A group the member is not in -- or no longer, or that does not exist -- opens
+ * nothing and says nothing, as `?with=` does for somebody who is no contact. Nor over something
+ * the member opened in the meantime.
+ */
+let groupAsked =
+  typeof askedGroup === 'string' && askedGroup !== '' ? askedGroup.toLowerCase() : null
+const openAskedGroup = () => {
+  const wanted = groupAsked
+  groupAsked = null
+  if (!wanted || groupWindowOpen.value || windowOpen.value) return
+  const group = groups.value.find((held) => held.groupUuid.toLowerCase() === wanted)
+  if (group) openGroup(group)
 }
 
 const needle = computed(() => search.value.trim().toLowerCase())

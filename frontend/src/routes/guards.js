@@ -15,12 +15,17 @@ const sessionRuns = (state) =>
 /** Whether a route is the overview, however its address was written (the record decides). */
 const isOverview = (to) => to.matched[to.matched.length - 1]?.path === '/overview'
 
-/** The conversation with `partner` in the contact window, the way the mail's reply opens it (P4c). */
+/**
+ * The conversation with `partner` in the contact window, the way the mail's reply opens it (P4c)
+ * -- or a group's window, the way the group's mails open it (`?group=`, P5).
+ */
 const conversationWith = (partner) => ({
   path: '/contacts',
-  query: partner.communityUuid
-    ? { with: partner.gradidoID, community: partner.communityUuid }
-    : { with: partner.gradidoID },
+  query: partner.groupUuid
+    ? { group: partner.groupUuid }
+    : partner.communityUuid
+      ? { with: partner.gradidoID, community: partner.communityUuid }
+      : { with: partner.gradidoID },
 })
 
 const addNavigationGuards = (router, store, apollo) => {

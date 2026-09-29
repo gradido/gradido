@@ -576,6 +576,88 @@ describe('Contacts page', () => {
       expect(wrapper.find('[data-test="contacts-groups-count"]').exists()).toBe(false)
     })
 
+    /**
+     * `/contacts?group=<uuid>`: the address the group's mails point to (E-049), and where a start
+     * comes back to a group's thread after iOS started the wallet over.
+     */
+    describe('opened with the address of a group', () => {
+      const groupWindow = () => wrapper.find('[data-test="chat-group-window"]')
+
+      it("opens the group's window once the member's groups are in", async () => {
+        route.query = { group: 'group-2' }
+        mountPage()
+        expect(groupWindow().attributes('data-open')).toBe('false')
+        fire('chatGroupsQuery', { chatGroups: [group(1), group(2)] })
+        await nextTick()
+        expect(groupWindow().attributes('data-open')).toBe('true')
+        expect(groupWindow().attributes('data-group')).toBe('group-2')
+      })
+
+      // As the server compares a uuid, and as a mail program may write it -- both ways round.
+      it('finds the group without regard to case', async () => {
+        route.query = { group: 'GROUP-2' }
+        mountPage()
+        fire('chatGroupsQuery', { chatGroups: [group(1), group(2)] })
+        await nextTick()
+        expect(groupWindow().attributes('data-group')).toBe('group-2')
+        wrapper.unmount()
+
+        route.query = { group: 'group-3' }
+        mountPage()
+        fire('chatGroupsQuery', { chatGroups: [group(1), { ...group(3), groupUuid: 'GROUP-3' }] })
+        await nextTick()
+        expect(groupWindow().attributes('data-group')).toBe('GROUP-3')
+      })
+
+      it('takes it out of the address at once, and leaves the rest', () => {
+        route.query = { group: 'group-2', art: 'x' }
+        mountPage()
+        expect(routerReplace).toHaveBeenCalledWith({ query: { art: 'x' } })
+      })
+
+      // Not a member of it (any longer), or no such group: nothing opens, nothing is said.
+      it('opens nothing for a group the member is not in', async () => {
+        route.query = { group: 'someone-elses' }
+        mountPage()
+        fire('chatGroupsQuery', { chatGroups: [group(1)] })
+        await nextTick()
+        expect(groupWindow().attributes('data-open')).toBe('false')
+        expect(toastError).not.toHaveBeenCalled()
+      })
+
+      // Once: a list asked again later (the beat) does not open it over what the member does.
+      it('opens it once, not with every list that comes after', async () => {
+        route.query = { group: 'group-2' }
+        mountPage()
+        fire('chatGroupsQuery', { chatGroups: [group(1)] })
+        await nextTick()
+        fire('chatGroupsQuery', { chatGroups: [group(1), group(2)] })
+        await nextTick()
+        expect(groupWindow().attributes('data-open')).toBe('false')
+      })
+
+      it('lets the address go where the groups could not be loaded', async () => {
+        route.query = { group: 'group-2' }
+        mountPage()
+        handlers.get('chatGroupsQuery').error(new Error('offline'))
+        fire('chatGroupsQuery', { chatGroups: [group(2)] })
+        await nextTick()
+        expect(groupWindow().attributes('data-open')).toBe('false')
+      })
+
+      it('does not open over the person the member tapped in the meantime', async () => {
+        route.query = { group: 'group-2' }
+        mountPage()
+        fire('contactListQuery', { contactList: { count: 1, contacts: [person(1)] } })
+        await nextTick()
+        await wrapper.find('[data-test="contact-row"]').trigger('click')
+        fire('chatGroupsQuery', { chatGroups: [group(2)] })
+        await nextTick()
+        expect(groupWindow().attributes('data-open')).toBe('false')
+        expect(wrapper.find('[data-test="contact-window"]').attributes('data-open')).toBe('true')
+      })
+    })
+
     describe('a new group', () => {
       const createDialog = () => wrapper.find('[data-test="chat-group-create"]')
 

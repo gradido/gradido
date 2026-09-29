@@ -10,6 +10,7 @@ import {
   sendChatGroupMessage,
 } from '@/graphql/chatGroups.graphql'
 import { transactionsQuery } from '@/graphql/transactions.graphql'
+import { holdChatText } from '@/utils/chatReturn'
 
 /**
  * A group's thread (P5): ChatThread in its group's kind. What it shares with the thread of two --
@@ -437,6 +438,41 @@ describe('ChatThread in a group', () => {
       mountThread({ createdBy: null })
       await arrive(page([]))
       expect(wrapper.find('[data-test="chat-thread-empty"]').text()).toBe('chatGroup.empty')
+    })
+  })
+
+  /**
+   * The way back after iOS started the wallet over (utils/chatReturn): a group's thread is noted
+   * by the group's uuid, and a start that comes back to it hands its words to this field.
+   */
+  describe('the way back into the group', () => {
+    const pageHidden = (value) => {
+      Object.defineProperty(document, 'hidden', { configurable: true, get: () => value })
+      document.dispatchEvent(new Event('visibilitychange'))
+    }
+    afterEach(() => {
+      delete document.hidden
+      window.localStorage.clear()
+    })
+
+    it('notes the group, with the words not sent yet, as the page goes out of sight', async () => {
+      mountThread()
+      await arrive(page([message(1)]))
+      await wrapper.find('[data-test="chat-compose-field"]').setValue('Bis Samstag')
+      pageHidden(true)
+      expect(JSON.parse(window.localStorage.getItem('chat-return:me-id'))).toMatchObject({
+        groupUuid: 'cafe-uuid',
+        text: 'Bis Samstag',
+      })
+      pageHidden(false)
+      expect(window.localStorage.getItem('chat-return:me-id')).toBeNull()
+    })
+
+    it('takes the words a start held for this group into its field', async () => {
+      holdChatText({ groupUuid: 'cafe-uuid', text: 'Bis Samstag' })
+      mountThread()
+      await arrive(page([message(1)]))
+      expect(wrapper.find('[data-test="chat-compose-field"]').element.value).toBe('Bis Samstag')
     })
   })
 
