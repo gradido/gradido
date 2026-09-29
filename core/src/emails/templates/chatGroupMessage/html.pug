@@ -1,0 +1,30 @@
+extend ../layout.pug
+
+//- An announcement in a chat group (P5, E-024): the owner or a moderator sent a message to every
+    member as a mail as well; only members who did not mute the group get it. Bold as in the
+    thread, as the chat's mail does it (customEmail).
+block content
+  h2= t('emails.chatGroupMessage.title', { senderAlias, groupTitle })
+  .text-block
+    include ../includes/salutation.pug
+    p= t('emails.chatGroupMessage.announcement', { senderAlias })
+  .content
+    h2= t('emails.general.message')
+    .child-left
+      //- A picture is not in the mail (MAIL-008); a line says there is one -- the line the
+          chat's mail has.
+      if hasImage
+        div(class="p_content")
+          = t('emails.customEmail.imageNote')
+      if memo
+        div(class="p_content")
+          +humanText(memo, { bold: true })
+    //- The reply is written in the group (E-049), and the bell to mute it is there too.
+    .child-right
+      a.button-5(href=`${communityURL}/contacts?group=${groupUuid}`)
+        include ../includes/chatbox-icon.pug
+        span #{t('emails.general.answerNow')}
+    div(class="p_content")
+      = t('emails.chatGroupMessage.muteHint')
+
+  a.button-3(href=`${communityURL}/transactions`) #{t('emails.general.toAccount')}
