@@ -845,6 +845,90 @@ export const newChatMessagesSince = gql`
   }
 `
 
+/** The fields of a chat group as the wallet reads them (P5). */
+const chatGroupFields = `
+  groupUuid
+  conversationId
+  title
+  communityName
+  createdBy {
+    gradidoID
+    alias
+  }
+  createdAt
+  role
+  joinedAt
+  mutedByMe
+  memberCount
+  unreadMessages
+  lastMessageAt
+`
+
+export const chatGroups = gql`
+  query {
+    chatGroups {
+      ${chatGroupFields}
+    }
+  }
+`
+
+export const chatGroupMembers = gql`
+  query ($groupUuid: String!) {
+    chatGroupMembers(groupUuid: $groupUuid) {
+      user {
+        communityUuid
+        gradidoID
+        alias
+        firstName
+        lastName
+        communityName
+        avatarColorIndex
+        avatarUpdatedAt
+        deletedAt
+      }
+      role
+      joinedAt
+    }
+  }
+`
+
+export const chatGroupMessages = gql`
+  query ($groupUuid: String!, $before: Int, $limit: Int) {
+    chatGroupMessages(groupUuid: $groupUuid, before: $before, limit: $limit) {
+      hasMore
+      mutedByMe
+      messages {
+        id
+        messageUuid
+        conversationId
+        groupUuid
+        sender {
+          communityUuid
+          gradidoID
+        }
+        senderUser {
+          gradidoID
+          alias
+          firstName
+          deletedAt
+        }
+        mine
+        subject
+        body
+        createdAt
+        deliveryState
+        notify
+        mailState
+        images {
+          imageUuid
+          width
+          height
+        }
+      }
+    }
+  }
+`
+
 export const chatMessageImage = gql`
   query ($imageUuid: String!) {
     chatMessageImage(imageUuid: $imageUuid)

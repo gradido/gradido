@@ -5,30 +5,19 @@ import { MarkChatConversationReadArgs } from '@arg/MarkChatConversationReadArgs'
 import { NewChatMessagesSinceArgs } from '@arg/NewChatMessagesSinceArgs'
 import { SendChatMessageArgs } from '@arg/SendChatMessageArgs'
 import { SetChatConversationMutedArgs } from '@arg/SetChatConversationMutedArgs'
-import { ChatImageInput } from '@input/ChatImageInput'
 import { MemberAvatarRefInput } from '@input/MemberAvatarRefInput'
 import { ChatMessage } from '@model/ChatMessage'
 import { ChatMessagePage } from '@model/ChatMessagePage'
 import { ChatUpdate } from '@model/ChatUpdate'
 import { ChatVideoRoom } from '@model/ChatVideoRoom'
 import { ChatVideoServerChoice } from '@model/ChatVideoServerChoice'
-import {
-  ApiVersionType,
-  acceptChatMessageImage,
-  ChatMessageImageAccepted,
-  CommandClientFactory,
-  chatMessageNotify,
-  V1_0_CommandClient,
-} from 'core'
+import { ApiVersionType, CommandClientFactory, chatMessageNotify, V1_0_CommandClient } from 'core'
 import {
   ChatConversationSelect,
   ChatMemberRef,
-  ChatMessageImageInfo,
-  ChatMessageSelect,
   dbFindDirectChatConversation,
   dbSelectChatConversationMember,
   dbSelectChatMessageImageForMember,
-  dbSelectChatMessageImageInfos,
   dbSelectChatMessagesPage,
   dbSelectChatMessagesSince,
   dbSelectChatUnreadSummary,
@@ -63,15 +52,11 @@ import {
   deliverChatMessageAcrossBorder,
   deliverChatMessageLocally,
 } from './util/chatMessageDelivery'
+import { chatMessagesOf } from './util/chatMessagesOf'
+import { acceptedPicture, callerOf } from './util/chatRequest'
 import { isHomeCommunity, resolveCommunityUuid } from './util/communities'
 
 const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.ChatResolver`)
-
-/** The caller as a conversation member knows them: the pair, never users.id. */
-const callerOf = (context: Context): ChatMemberRef => {
-  const user = getUser(context)
-  return { communityUuid: user.communityUuid, gradidoId: user.gradidoID }
-}
 
 /**
  * The direct conversation of the caller with the member `ref` names, or null -- also for
@@ -94,40 +79,6 @@ const directChatConversationWith = async (
     return null
   }
   return dbFindDirectChatConversation(caller, other)
-}
-
-/**
- * The messages of these rows as `caller` reads them, each with what is known about its pictures
- * (P7) -- read in ONE query for all of them, never one per message. A picture is matched to its
- * message by the message's uuid the way the columns compare it, without regard to case.
- */
-const chatMessagesOf = async (
-  rows: ChatMessageSelect[],
-  caller: ChatMemberRef,
-): Promise<ChatMessage[]> => {
-  const infos = await dbSelectChatMessageImageInfos(rows.map((row) => row.messageUuid))
-  const byMessage = new Map<string, ChatMessageImageInfo[]>()
-  for (const info of infos) {
-    const key = info.messageUuid.toLowerCase()
-    byMessage.set(key, [...(byMessage.get(key) ?? []), info])
-  }
-  return rows.map(
-    (row) => new ChatMessage(row, caller, byMessage.get(row.messageUuid.toLowerCase()) ?? []),
-  )
-}
-
-/**
- * The picture of a message as it came in (acceptChatMessageImage), or the refusal:
- * CHAT_IMAGE_NOT_ACCEPTED with the reason -- EMPTY, TOO_LARGE, NOT_JPEG or SIZE. The log gets
- * the numbers, never the picture.
- */
-const acceptedPicture = (image: ChatImageInput): ChatMessageImageAccepted => {
-  const accepted = acceptChatMessageImage(image)
-  if (!accepted.success) {
-    const { reason, bytes, width, height } = accepted.error
-    throw new LogError(`CHAT_IMAGE_NOT_ACCEPTED: ${reason}`, { bytes, width, height })
-  }
-  return accepted.value
 }
 
 /** A fresh room on `server`; the log gets the host, never the room name. */

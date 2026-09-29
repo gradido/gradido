@@ -27,6 +27,9 @@ jest.mock('database', () => {
     dbSelectChatConversationMember: jest.fn(),
     dbSelectChatMessagesPage: jest.fn(),
     dbSelectChatMessageImageInfos: jest.fn(),
+    // No group among these conversations: the messages here are between two members (P5 asks
+    // for every page and update which of its conversations are groups).
+    dbSelectChatGroupUuids: jest.fn(async () => new Map()),
     dbSelectChatMessageImageForMember: jest.fn(),
   }
 })

@@ -677,6 +677,68 @@ export const setChatConversationMuted = gql`
   }
 `
 
+export const createChatGroup = gql`
+  mutation ($title: String!, $members: [MemberAvatarRefInput!]!) {
+    createChatGroup(title: $title, members: $members) {
+      groupUuid
+      conversationId
+      title
+      communityName
+      createdBy {
+        gradidoID
+        alias
+      }
+      role
+      memberCount
+      unreadMessages
+      lastMessageAt
+      mutedByMe
+    }
+  }
+`
+
+export const sendChatGroupMessage = gql`
+  mutation ($groupUuid: String!, $body: String!, $announce: Boolean!, $image: ChatImageInput) {
+    sendChatGroupMessage(groupUuid: $groupUuid, body: $body, announce: $announce, image: $image) {
+      id
+      messageUuid
+      conversationId
+      groupUuid
+      sender {
+        communityUuid
+        gradidoID
+      }
+      senderUser {
+        gradidoID
+        alias
+      }
+      mine
+      subject
+      body
+      deliveryState
+      notify
+      mailState
+      images {
+        imageUuid
+        width
+        height
+      }
+    }
+  }
+`
+
+export const markChatGroupRead = gql`
+  mutation ($groupUuid: String!, $upToMessageId: Int!) {
+    markChatGroupRead(groupUuid: $groupUuid, upToMessageId: $upToMessageId)
+  }
+`
+
+export const setChatGroupMuted = gql`
+  mutation ($groupUuid: String!, $muted: Boolean!) {
+    setChatGroupMuted(groupUuid: $groupUuid, muted: $muted)
+  }
+`
+
 export const addFavorite = gql`
   mutation ($ref: MemberAvatarRefInput!) {
     addFavorite(ref: $ref)
