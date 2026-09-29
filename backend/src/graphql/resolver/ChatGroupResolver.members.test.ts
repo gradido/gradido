@@ -166,6 +166,9 @@ const resolver = () => new ChatGroupResolver()
 
 beforeEach(() => {
   jest.clearAllMocks()
+  // Answers queued for one call and not taken would reach the next test.
+  allRows.mockReset()
+  setRole.mockReset().mockResolvedValue({ success: true })
   findGroup.mockResolvedValue(group)
   lenaIs('owner', [row(MAX, 'member', at(2)), row(NORA, 'member', at(3))])
   contacts.mockResolvedValue({
@@ -383,6 +386,7 @@ describe('leaveChatGroup', () => {
 
   it('leaves the group without anybody where the owner was the last one', async () => {
     lenaIs('owner', [])
+    allRows.mockResolvedValueOnce([row(LENA, 'owner', at(1))]).mockResolvedValueOnce([])
     expect(await leave()).toBe(true)
     expect(setRole).not.toHaveBeenCalled()
     expect(remove).toHaveBeenCalledWith(group.id, pair(LENA))
@@ -392,6 +396,34 @@ describe('leaveChatGroup', () => {
     myRow.mockResolvedValue(null)
     expect(await leave()).toBe(false)
     expect(remove).not.toHaveBeenCalled()
+  })
+
+  // coderabbit on #4012: two leaves at the same moment can take out the owner and the one it
+  // hands the group to. Every leave looks once more when it is done.
+  it('hands a group left without an owner to its successor, after any member leaves', async () => {
+    // Nora has been in it longer, and Max is a moderator: the moderator takes over.
+    lenaIs('member', [row(NORA, 'member', at(2)), row(MAX, 'moderator', at(3))])
+    allRows.mockResolvedValueOnce([row(NORA, 'member', at(2)), row(MAX, 'moderator', at(3))])
+    expect(await leave()).toBe(true)
+    expect(setRole).toHaveBeenCalledWith(group.id, expect.objectContaining(pair(MAX)), 'owner')
+    expect(remove.mock.invocationCallOrder[0]).toBeLessThan(setRole.mock.invocationCallOrder[0])
+  })
+
+  it("hands it on once more where the owner's successor went at the same moment", async () => {
+    lenaIs('owner', [row(MAX, 'moderator', at(2)), row(NORA, 'member', at(3))])
+    setRole.mockResolvedValueOnce({ success: false, error: new Error('DB_NOT_FOUND') })
+    allRows
+      .mockResolvedValueOnce([
+        row(LENA, 'owner', at(1)),
+        row(MAX, 'moderator', at(2)),
+        row(NORA, 'member', at(3)),
+      ])
+      .mockResolvedValueOnce([row(NORA, 'member', at(3))])
+    expect(await leave()).toBe(true)
+    expect(setRole.mock.calls).toEqual([
+      [group.id, expect.objectContaining(pair(MAX)), 'owner'],
+      [group.id, expect.objectContaining(pair(NORA)), 'owner'],
+    ])
   })
 })
 

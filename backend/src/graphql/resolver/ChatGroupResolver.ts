@@ -160,6 +160,32 @@ const chatGroupOfCaller = async (
 }
 
 /**
+ * Hands a group whose members are left without an owner to its successor (chatGroupSuccessor,
+ * E-050 F4): the longest-standing moderator, otherwise the longest-standing member. Nothing where
+ * the group has an owner, or nobody left. `left` is who has just left it.
+ *
+ * ⛔ The repair for two members leaving at the same moment -- the owner, and the one it hands the
+ * group to: that one can be gone by the time it is made owner, or leave right after it was, and
+ * the group would keep its members and lose its owner for good -- nobody could name moderators
+ * again. There is no lock to prevent it (nothing in the house runs a Drizzle transaction yet), so
+ * every leave looks once more when it is done; whichever finishes last sees the group as it stays
+ * (coderabbit on #4012).
+ */
+const handOwnerlessChatGroupOn = async (conversationId: number, left: ChatMemberRef) => {
+  const members = await dbSelectChatConversationMembers(conversationId)
+  if (members.some((member) => member.role === 'owner')) {
+    return
+  }
+  const successor = chatGroupSuccessor(members, left)
+  if (successor) {
+    await dbUpdateChatConversationMemberRole(conversationId, successor, 'owner')
+    createLogger().warn(
+      `chat group without an owner handed on: conversation_id=${conversationId} to=${successor.gradidoId}`,
+    )
+  }
+}
+
+/**
  * The members `refs` name, checked for a group of this community (P5, E-049), each once and as
  * their users row spells their pair: a member of this community -- OTHER_COMMUNITY --, a contact
  * of the caller -- NOT_A_CONTACT: somebody they share an event with (KF-012), the whole contact
@@ -529,9 +555,13 @@ export class ChatGroupResolver {
   /**
    * The caller leaves a group -- every member may (E-049). Where the owner leaves, the group goes
    * to the longest-standing moderator, otherwise to the longest-standing member
-   * (chatGroupSuccessor, E-050 F4), and that before the owner's row is taken out: never a group
-   * of members without an owner. Where the owner was the last one, the group stays behind without
-   * anybody, seen by nobody. False where the caller is not in the group; nothing is written then.
+   * (chatGroupSuccessor, E-050 F4), and that before the owner's row is taken out. Where the owner
+   * was the last one, the group stays behind without anybody, seen by nobody. False where the
+   * caller is not in the group; nothing is written then.
+   *
+   * Every leave, the owner's or not, then looks whether the group still has an owner and hands it
+   * on where it has none (handOwnerlessChatGroupOn): two leaves at the same moment can otherwise
+   * take the owner and the successor out together.
    *
    * Behind READ_OWN_CHAT, not MANAGE_CHAT_GROUPS: it takes out the caller's own row and mails
    * nobody -- an account with an unconfirmed address may leave, as it may mute.
@@ -556,7 +586,9 @@ export class ChatGroupResolver {
         await dbUpdateChatConversationMemberRole(found.group.id, successor, 'owner')
       }
     }
-    return (await dbDeleteChatConversationMember(found.group.id, caller)).success
+    const left = await dbDeleteChatConversationMember(found.group.id, caller)
+    await handOwnerlessChatGroupOn(found.group.id, caller)
+    return left.success
   }
 
   /**

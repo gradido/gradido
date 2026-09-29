@@ -13,6 +13,7 @@ import {
   chatMessagesTable,
   User as DbUser,
   UserContact as DbUserContact,
+  dbUpdateChatConversationMemberRole,
   User,
 } from 'database'
 import { GraphQLError } from 'graphql'
@@ -754,6 +755,29 @@ describe('the members of a group change', () => {
       gradidoID: bibi.gradidoID,
       alias: 'BBB',
     })
+  })
+
+  // coderabbit on #4012: two leaves at the same moment can take out the owner and its successor.
+  // Brought about directly here: the group loses its owner, then its moderator leaves.
+  it('hands a group left without an owner on at the next leave', async () => {
+    await loginAs('bob@baumeister.de')
+    const res: any = await membersOf(cafe.groupUuid)
+    const rows = res.data.chatGroupMembers
+    const owner = rows.find((row: any) => row.role === 'OWNER').user
+    const moderator = rows.find((row: any) => row.role === 'MODERATOR').user
+    const emailOf = (member: any) =>
+      member.gradidoID === bob.gradidoID ? 'bob@baumeister.de' : 'peter@lustig.de'
+    await dbUpdateChatConversationMemberRole(
+      cafe.conversationId,
+      { communityUuid: owner.communityUuid, gradidoId: owner.gradidoID },
+      'member',
+    )
+    await loginAs(emailOf(moderator))
+    const left = await change(leaveChatGroup, { groupUuid: cafe.groupUuid })
+    expect(left.data.leaveChatGroup).toBe(true)
+    await loginAs(emailOf(owner))
+    const [group] = (await groupsOfCaller()).filter((row: any) => row.groupUuid === cafe.groupUuid)
+    expect(group).toMatchObject({ role: 'OWNER', memberCount: 1 })
   })
 
   it('answers false to a member of another group who wants to leave it', async () => {
