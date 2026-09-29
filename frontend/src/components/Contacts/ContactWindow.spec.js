@@ -944,6 +944,10 @@ describe('ContactWindow', () => {
 
       expect(inDialog('body').text()).toBe('chatThread.videoAskBody {"name":"Carla-Sonne"}')
       expect(inDialog('email').element.checked).toBe(false)
+      // The compose bar's words -- a group's question says "to everybody" instead (E-053).
+      expect(inDialog('email').element.closest('label').textContent.trim()).toBe(
+        'chatThread.alsoByEmail',
+      )
     })
 
     it('empties the box again for the next question', async () => {

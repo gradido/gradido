@@ -150,7 +150,7 @@
         class="mt-3"
         box-test="chat-video-plan-email"
       >
-        {{ $t('chatThread.alsoByEmail') }}
+        {{ boxWords }}
       </ChatCheck>
     </template>
     <template v-else>
@@ -224,7 +224,7 @@
           class="mt-3"
           box-test="chat-video-email"
         >
-          {{ $t('chatThread.alsoByEmail') }}
+          {{ boxWords }}
         </ChatCheck>
         <!-- `role="alert"`: said when it is put in -- whoever cannot see the dialog would
            otherwise hear nothing after the press. -->
@@ -379,14 +379,22 @@ import {
 } from '@/utils/chatVideoCalendar'
 
 const props = defineProps({
-  /** Whom the call is with: the person's name, as the window shows it. */
+  /** Whom the call is with: the person's name, or the group's, as the window shows it. */
   name: { type: String, required: true },
+  /**
+   * A group's call (E-053): the questions speak of the group, the invitation goes to everybody in
+   * it, and the box -- where it is offered -- sends it to all of them by mail, as an announcement.
+   */
+  group: { type: Boolean, default: false },
   /**
    * Whether the next message is the first of a pair: it goes by mail in any case (E-024), and the
    * questions say so instead of offering the box.
    */
   first: { type: Boolean, default: false },
-  /** Whether the questions offer the box that sends the invitation by mail as well. */
+  /**
+   * Whether the questions offer the box that sends the invitation by mail as well -- in a group
+   * the owner's and the moderators' only (E-050 F5), and not where nobody else is in it.
+   */
   canMail: { type: Boolean, default: false },
   /**
    * The window's way into its thread: sends one message (`{ body, notify }`) and says whether it
@@ -399,20 +407,32 @@ const { t, d, locale } = useI18n()
 const store = useStore()
 const { client: apolloClient } = useApolloClient()
 
-/** What the questions say about who gets the invitation. Two written-out keys each, for the lint. */
-const askBody = computed(() =>
-  props.first
+/**
+ * What the questions say about who gets the invitation, and the box's words. Written-out keys each,
+ * for the lint: a person's, or a group's (E-053).
+ */
+const askBody = computed(() => {
+  if (props.group) return t('chatGroup.videoAskBody')
+  return props.first
     ? t('chatThread.videoAskFirst', { name: props.name })
-    : t('chatThread.videoAskBody', { name: props.name }),
-)
-const planBody = computed(() =>
-  props.first
+    : t('chatThread.videoAskBody', { name: props.name })
+})
+const planBody = computed(() => {
+  if (props.group) return t('chatGroup.videoPlanBody')
+  return props.first
     ? t('chatThread.videoPlanFirst', { name: props.name })
-    : t('chatThread.videoPlanBody', { name: props.name }),
+    : t('chatThread.videoPlanBody', { name: props.name })
+})
+const boxWords = computed(() =>
+  props.group ? t('chatGroup.videoByEmail') : t('chatThread.alsoByEmail'),
 )
 
 /** The question's title, and its name for the ear. */
-const videoAskTitle = computed(() => t('chatThread.videoAskTitle', { name: props.name }))
+const videoAskTitle = computed(() =>
+  props.group
+    ? t('chatGroup.videoAskTitle', { name: props.name })
+    : t('chatThread.videoAskTitle', { name: props.name }),
+)
 
 /** The question before a call is open. */
 const videoAsking = ref(false)
@@ -465,7 +485,11 @@ let stopVideoAppWatch = null
  * thread -- in the question's own dialog, in place of its content, until "Back".
  */
 const videoSettings = ref(false)
-const videoSettingsTitle = computed(() => t('chatThread.videoSettingsTitle', { name: props.name }))
+const videoSettingsTitle = computed(() =>
+  props.group
+    ? t('chatGroup.videoSettingsTitle', { name: props.name })
+    : t('chatThread.videoSettingsTitle', { name: props.name }),
+)
 const videoServerFieldId = `${videoTopicId}-server`
 const videoServerField = ref(null)
 const videoGear = ref(null)
@@ -972,7 +996,11 @@ const startVideoCall = async () => {
 
 /** The question before joining a call is open. */
 const videoJoining = ref(false)
-const videoJoinTitle = computed(() => t('chatThread.videoJoinTitle', { name: props.name }))
+const videoJoinTitle = computed(() =>
+  props.group
+    ? t('chatGroup.videoJoinTitle', { name: props.name })
+    : t('chatThread.videoJoinTitle', { name: props.name }),
+)
 /**
  * The room of the invitation whose link was clicked. ⛔ The call's secret, as `videoRoomToOpen`:
  * here only while the question is open, in no store and no log.
