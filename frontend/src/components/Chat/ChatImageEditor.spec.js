@@ -411,6 +411,123 @@ describe('ChatImageEditor', () => {
       )
     })
 
+    /**
+     * The file kept for a second tap belongs to its picture. Another picture opens with the same
+     * untouched edit, and its file is made anew (coderabbit, PR #4010).
+     */
+    it('forgets the file kept for a second tap when another picture opens', async () => {
+      const OTHER = { image: { name: 'other' }, width: 3000, height: 4000 }
+      mountEditor()
+      saving.chatImageFile.mockResolvedValue(FILE)
+      saving.saveChatImageFile.mockResolvedValueOnce('again').mockResolvedValueOnce('shared')
+      await saveButton().trigger('click')
+      await flushPromises()
+      expect(saveButton().text()).toBe('chatThread.imageSaveAgain')
+
+      await wrapper.setProps({ modelValue: false })
+      await wrapper.setProps({ source: OTHER, modelValue: true })
+      expect(saveButton().text()).toBe('chatThread.imageSave')
+      await saveButton().trigger('click')
+      await flushPromises()
+
+      expect(saving.chatImageFile).toHaveBeenCalledTimes(2)
+      expect(saving.chatImageFile.mock.calls[1][0]).toEqual(OTHER)
+    })
+
+    // And where the picture is replaced while the editor is open, the same.
+    it('forgets the file kept for a second tap when its picture is replaced', async () => {
+      const OTHER = { image: { name: 'other' }, width: 3000, height: 4000 }
+      mountEditor()
+      saving.chatImageFile.mockResolvedValue(FILE)
+      saving.saveChatImageFile.mockResolvedValueOnce('again')
+      await saveButton().trigger('click')
+      await flushPromises()
+
+      await wrapper.setProps({ source: OTHER })
+
+      expect(saveButton().text()).toBe('chatThread.imageSave')
+    })
+
+    /**
+     * A change while the sheet still answers: its answer belongs to the picture as it was, and
+     * nothing is kept for a second tap.
+     */
+    it('keeps nothing for a second tap where the picture changed meanwhile', async () => {
+      mountEditor()
+      const answer = deferred()
+      saving.chatImageFile.mockResolvedValue(FILE)
+      saving.saveChatImageFile.mockReturnValueOnce(answer.promise)
+
+      await saveButton().trigger('click')
+      await flushPromises()
+      await wrapper.find('[data-test="chat-image-editor-mirror"]').trigger('click')
+      answer.resolve('again')
+      await flushPromises()
+
+      expect(saveButton().text()).toBe('chatThread.imageSave')
+      saving.saveChatImageFile.mockResolvedValueOnce('downloaded')
+      await saveButton().trigger('click')
+      await flushPromises()
+      expect(saving.chatImageFile).toHaveBeenCalledTimes(2)
+    })
+
+    // The words belong to one opening: the next one starts without them.
+    it('opens again without the words of the last time', async () => {
+      mountEditor()
+      saving.chatImageFile.mockResolvedValueOnce(FILE)
+      saving.saveChatImageFile.mockResolvedValueOnce('downloaded')
+      await saveButton().trigger('click')
+      await flushPromises()
+      expect(words().text()).toBe('chatThread.imageSaved')
+
+      await wrapper.setProps({ modelValue: false })
+      await wrapper.setProps({ modelValue: true })
+
+      expect(words().text()).toBe('')
+    })
+
+    /**
+     * A change while the file is being made leaves that file behind: it shows the picture as it
+     * was, not as the screen shows it now (coderabbit, PR #4010).
+     */
+    it('leaves a file behind that was made before a change', async () => {
+      mountEditor()
+      const pending = deferred()
+      saving.chatImageFile.mockReturnValueOnce(pending.promise)
+      saving.saveChatImageFile.mockResolvedValue('again')
+
+      await saveButton().trigger('click')
+      await wrapper.find('[data-test="chat-image-editor-mirror"]').trigger('click')
+      pending.resolve(FILE)
+      await flushPromises()
+
+      expect(saving.saveChatImageFile).not.toHaveBeenCalled()
+      expect(words().text()).toBe('')
+      expect(saveButton().text()).toBe('chatThread.imageSave')
+      expect(saveButton().attributes('disabled')).toBeUndefined()
+
+      // the next press makes the file of the mirrored picture
+      saving.chatImageFile.mockResolvedValueOnce(FILE)
+      await saveButton().trigger('click')
+      await flushPromises()
+      expect(saving.chatImageFile.mock.calls[1][1]).toMatchObject({ mirrored: true })
+    })
+
+    // Where making it fails after a change, the failure is the old picture's: nothing is said.
+    it('says nothing of a failure that came after a change', async () => {
+      mountEditor()
+      const pending = deferred()
+      saving.chatImageFile.mockReturnValueOnce(pending.promise)
+
+      await saveButton().trigger('click')
+      await wrapper.find('[data-test="chat-image-editor-turn"]').trigger('click')
+      pending.reject(new Error('encode'))
+      await flushPromises()
+
+      expect(words().text()).toBe('')
+      expect(saveButton().attributes('disabled')).toBeUndefined()
+    })
+
     // One at a time: a second press while the file is being made does nothing.
     it('waits while it is saving', async () => {
       mountEditor()

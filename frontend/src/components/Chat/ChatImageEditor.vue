@@ -436,7 +436,12 @@ const saveResult = ref(null)
  */
 let fileToSave = null
 
-watch(draft, () => {
+/*
+ * The words and the file kept for a second tap belong to the picture as the screen shows it: a
+ * change lets them go, and so do another picture and every opening and closing. A new picture
+ * opens with the same untouched edit, which is no change of `draft` (coderabbit, PR #4010).
+ */
+watch([draft, () => props.source, () => props.modelValue], () => {
   fileToSave = null
   saveResult.value = null
 })
@@ -449,18 +454,25 @@ const saveWords = computed(() => {
 
 /**
  * The picture as it is now, in full quality, to this device (utils/chatImageSave). One at a time:
- * the button waits (`disabled`) while it saves.
+ * the button waits (`disabled`) while it saves. A change while the file is being made leaves that
+ * file behind, as it shows the picture as it was (coderabbit, PR #4010).
  */
 const save = async () => {
   if (!props.source) return
+  const source = props.source
+  const edit = draft.value
+  /** Whether the screen still shows the picture this file is made of. */
+  const unchanged = () => props.source === source && draft.value === edit
   saving.value = true
   try {
-    if (!fileToSave) fileToSave = await chatImageFile(props.source, draft.value)
-    const outcome = await saveChatImageFile(fileToSave)
+    const file = fileToSave ?? (await chatImageFile(source, edit))
+    if (!unchanged()) return
+    const outcome = await saveChatImageFile(file)
+    if (!unchanged()) return
     saveResult.value = outcome
-    if (outcome !== 'again') fileToSave = null
+    fileToSave = outcome === 'again' ? file : null
   } catch {
-    saveResult.value = 'failed'
+    if (unchanged()) saveResult.value = 'failed'
     fileToSave = null
   } finally {
     saving.value = false
