@@ -3,11 +3,12 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { flushPromises, mount } from '@vue/test-utils'
-import { describe, it, expect, afterEach, vi } from 'vitest'
+import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
 import { BModal } from 'bootstrap-vue-next'
 import ChatComposeBar from './ChatComposeBar.vue'
 import { SWISSTRANSFER_URL } from '@/utils/chatFileLink'
 import { isComputer } from '@/utils/isComputer'
+import { CHAT_IMAGE_UNEDITED } from '@/utils/chatImageEdit'
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
@@ -19,11 +20,12 @@ vi.mock('vue-i18n', () => ({
 vi.mock('@/utils/isComputer', () => ({ isComputer: vi.fn(() => true) }))
 
 /**
- * Making a picture small has its own spec (utils/chatImage.spec.js); here it answers as a test
- * says -- with a picture, a refusal, or not yet.
+ * Opening a picture and making it small have their own spec (utils/chatImage.spec.js); here they
+ * answer as a test says -- with a picture, a refusal, or not yet.
  */
-const encoding = vi.hoisted(() => ({ encodeChatImage: vi.fn() }))
+const encoding = vi.hoisted(() => ({ openChatImage: vi.fn(), encodeChatImage: vi.fn() }))
 vi.mock('@/utils/chatImage', () => ({
+  openChatImage: (...args) => encoding.openChatImage(...args),
   encodeChatImage: (...args) => encoding.encodeChatImage(...args),
 }))
 
@@ -39,8 +41,17 @@ describe('ChatComposeBar', () => {
           IMdiSend: true,
           IMdiPaperclip: true,
           IMdiImage: true,
+          IMdiCamera: true,
           IMdiFileDocument: true,
           IMdiClose: true,
+          IMdiPencil: true,
+          // The editor has its own spec; here it shows what it was given and answers as a test says.
+          ChatImageEditor: {
+            name: 'ChatImageEditor',
+            props: ['modelValue', 'source', 'edit'],
+            emits: ['update:modelValue', 'done'],
+            template: '<div data-test="chat-image-editor-stub" />',
+          },
           IMdiCellphone: true,
           IMdiOpenInNew: true,
           // Shows what it holds while it is open, the footer under it. The names written on the
@@ -68,7 +79,11 @@ describe('ChatComposeBar', () => {
     document.body.innerHTML = ''
     vi.mocked(isComputer).mockClear()
     vi.mocked(isComputer).mockReturnValue(true)
+    encoding.openChatImage.mockReset()
     encoding.encodeChatImage.mockReset()
+    vi.restoreAllMocks()
+    vi.unstubAllGlobals()
+    vi.useRealTimers()
   })
 
   describe('what it shows', () => {
@@ -493,16 +508,19 @@ describe('ChatComposeBar', () => {
       expect(tip.text()).toBe('chatThread.fileAppTip')
     })
 
-    // Asked when the hint opens, nothing kept: the next opening asks again.
+    /**
+     * Asked when the hint opens, nothing kept: the next opening asks again. (The menu the hint is
+     * chosen from asks as well, for its camera: two questions each time.)
+     */
     it('asks whether this is a computer each time the hint opens', async () => {
       await openHint()
-      expect(isComputer).toHaveBeenCalledTimes(1)
+      expect(isComputer).toHaveBeenCalledTimes(2)
       await wrapper.find('[data-test="chat-compose-file-close"]').trigger('click')
 
       vi.mocked(isComputer).mockReturnValue(false)
       await chooseFileEntry()
 
-      expect(isComputer).toHaveBeenCalledTimes(2)
+      expect(isComputer).toHaveBeenCalledTimes(4)
       expect(wrapper.find('[data-test="chat-compose-file-tip"]').exists()).toBe(true)
     })
 
@@ -534,6 +552,8 @@ describe('ChatComposeBar', () => {
     const picker = () => wrapper.find('[data-test="chat-compose-picker"]')
     const pictureEntry = () => wrapper.find('[data-test="chat-compose-picture"]')
     const fileEntry = () => wrapper.find('[data-test="chat-compose-file"]')
+    const cameraEntry = () => wrapper.find('[data-test="chat-compose-camera"]')
+    const cameraField = () => wrapper.find('[data-test="chat-compose-camera-field"]')
     const isOpen = () => menu().classes().includes('is-open')
 
     const openMenu = async (props = {}) => {
@@ -583,8 +603,7 @@ describe('ChatComposeBar', () => {
 
     /**
      * ⛔ FOTO-04: a label for a field hidden only from the eye -- never `display: none`, never a
-     * script's click. Pictures only, and no `capture`: on a phone the picker offers the camera by
-     * itself (AS-012).
+     * script's click. Pictures only, and no `capture` on "Bild": the camera has its own entry.
      */
     it('opens the device’s picker through a label, for pictures, without capture', () => {
       mountBar()
@@ -599,6 +618,93 @@ describe('ChatComposeBar', () => {
       expect(picker().attributes('style') ?? '').not.toMatch(/display/)
       // …and the label right after its field, so the label can show the field's focus.
       expect(picker().element.nextElementSibling).toBe(pictureEntry().element)
+    })
+
+    /**
+     * E-047: "Foto aufnehmen" first, on a phone or a tablet -- a field with `capture`, which their
+     * camera app answers, the back camera first; hidden only from the eye and opened by its label,
+     * like "Bild".
+     */
+    it('offers the camera first on a phone or a tablet', async () => {
+      vi.mocked(isComputer).mockReturnValue(false)
+      mountBar()
+      await clip().trigger('click')
+
+      const words = [
+        cameraEntry().find('.chat-compose-menu-label'),
+        cameraEntry().find('.chat-compose-menu-hint'),
+      ].map((w) => w.text())
+      expect(words).toEqual(['chatThread.attachCamera', 'chatThread.attachCameraHint'])
+      expect(cameraEntry().element.tagName).toBe('LABEL')
+      expect(cameraEntry().attributes('for')).toBe(cameraField().attributes('id'))
+      expect(cameraField().attributes('type')).toBe('file')
+      expect(cameraField().attributes('accept')).toBe('image/*')
+      expect(cameraField().attributes('capture')).toBe('environment')
+      expect(cameraField().classes()).toContain('visually-hidden')
+      expect(cameraField().attributes('style') ?? '').not.toMatch(/display/)
+      expect(cameraField().element.nextElementSibling).toBe(cameraEntry().element)
+      // Its own field and its own name, not "Bild"'s.
+      expect(cameraField().attributes('id')).not.toBe(picker().attributes('id'))
+      // First, before "Bild".
+      expect(
+        cameraEntry().element.compareDocumentPosition(pictureEntry().element) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy()
+    })
+
+    // ⛔ Bernd, 29.09.2026: "Es ist nur wichtig, dass im Computer dann keine Kamera-Option zu sehen ist."
+    it('offers no camera on a computer, not even hidden', async () => {
+      vi.mocked(isComputer).mockReturnValue(true)
+      mountBar()
+      await clip().trigger('click')
+
+      expect(cameraEntry().exists()).toBe(false)
+      expect(cameraField().exists()).toBe(false)
+      expect(wrapper.findAll('input[capture]')).toHaveLength(0)
+      expect(pictureEntry().exists()).toBe(true)
+    })
+
+    // Asked when the menu opens: before that, nothing is known and nothing is offered.
+    it('asks whether this is a computer when the menu opens', async () => {
+      vi.mocked(isComputer).mockReturnValue(false)
+      mountBar()
+      expect(isComputer).not.toHaveBeenCalled()
+
+      await clip().trigger('click')
+
+      expect(isComputer).toHaveBeenCalledTimes(1)
+      expect(cameraEntry().exists()).toBe(true)
+    })
+
+    // The focus goes into the first entry: the camera where there is one.
+    it('takes the focus to the camera where it offers one', async () => {
+      vi.mocked(isComputer).mockReturnValue(false)
+      await openMenu()
+
+      expect(document.activeElement).toBe(cameraField().element)
+    })
+
+    /**
+     * ⛔ The camera's field stays in the page when the menu closes: the camera app answers after the
+     * menu is gone, and a field that is gone would never hear the photo.
+     */
+    it('keeps the camera’s field when it closes, and takes the photo as a picture', async () => {
+      vi.mocked(isComputer).mockReturnValue(false)
+      await openMenu()
+      await cameraField().trigger('click')
+      await new Promise((resolve) => setTimeout(resolve))
+      await flushPromises()
+      expect(isOpen()).toBe(false)
+      expect(document.activeElement).toBe(clip().element)
+
+      const photo = new File(['JPEG'], 'image.jpg', { type: 'image/jpeg' })
+      Object.defineProperty(cameraField().element, 'files', { value: [photo], configurable: true })
+      encoding.openChatImage.mockResolvedValueOnce({ image: {}, width: 4032, height: 3024 })
+      await cameraField().trigger('change')
+      await flushPromises()
+
+      expect(encoding.openChatImage).toHaveBeenCalledWith(photo)
+      expect(wrapper.find('[data-test="chat-compose-attached"]').exists()).toBe(true)
     })
 
     // ⛔ Rendered while closed: the field must still be there when the picker answers.
@@ -793,12 +899,16 @@ describe('ChatComposeBar', () => {
   })
 
   /**
-   * P7: the picture chosen goes with the next message. While it is made small the bar says so;
-   * then it shows the picture as it will be sent, over the field, and the words become its caption.
+   * P7: the picture chosen goes with the next message. While it is opened the bar says so; then it
+   * shows the picture over the field, and the words become its caption. Since E-047 it stays whole
+   * until the message is sent, and only then is it made small.
    */
   describe('the picture that goes with a message', () => {
-    const READY = { data: 'SlBFRw==', width: 800, height: 600, bytes: 20000 }
-    const OTHER = { data: 'T1RIRVI=', width: 600, height: 800, bytes: 18000 }
+    /** Pictures as openChatImage hands them on: the decoded one and its size. */
+    const READY = { image: { name: 'ready' }, width: 4000, height: 3000 }
+    const OTHER = { image: { name: 'other' }, width: 3000, height: 4000 }
+    /** What encodeChatImage makes of one when it is sent: the JPEG and its size. */
+    const JPEG = { data: 'SlBFRw==', width: 800, height: 600, bytes: 20000 }
 
     const attached = () => wrapper.find('[data-test="chat-compose-attached"]')
     const preview = () => wrapper.find('[data-test="chat-compose-attached-picture"]')
@@ -808,7 +918,45 @@ describe('ChatComposeBar', () => {
     const status = () => wrapper.find('[data-test="chat-compose-picture-status"]')
     const clip = () => wrapper.find('[data-test="chat-compose-attach"]')
 
-    /** A promise a test settles when it wants: the picture still being made small till then. */
+    /**
+     * jsdom has no 2D context: each canvas gets a recording one, and remembers what was drawn on it
+     * last -- so a test can ask which picture the preview shows, and how it was placed.
+     */
+    const recordDrawing = () =>
+      vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(function () {
+        const canvas = this
+        canvas.steps = []
+        const record =
+          (name) =>
+          (...args) =>
+            canvas.steps.push([name, ...args])
+        return {
+          save: record('save'),
+          restore: record('restore'),
+          translate: record('translate'),
+          scale: record('scale'),
+          rotate: record('rotate'),
+          drawImage: (image, ...args) => {
+            canvas.shown = image
+            canvas.steps.push(['drawImage', image, ...args])
+          },
+        }
+      })
+    const shown = () => preview().element.shown
+
+    // Every picture test draws: jsdom's canvas would only complain that it cannot.
+    beforeEach(() => {
+      recordDrawing()
+    })
+
+    // The two frames the bar waits before it makes a picture small pass at once here.
+    const framesPassAtOnce = () =>
+      vi.stubGlobal('requestAnimationFrame', (callback) => {
+        callback()
+        return 0
+      })
+
+    /** A promise a test settles when it wants: the picture still being opened till then. */
     const deferred = () => {
       const settle = {}
       const promise = new Promise((resolve, reject) => Object.assign(settle, { resolve, reject }))
@@ -825,17 +973,24 @@ describe('ChatComposeBar', () => {
     }
 
     const chooseReady = async (ready = READY) => {
-      encoding.encodeChatImage.mockResolvedValueOnce(ready)
+      encoding.openChatImage.mockResolvedValueOnce(ready)
       await choose()
     }
 
-    it('says the picture is being prepared, then shows it as it will be sent', async () => {
+    /** The send button pressed with a picture: made small, as the test says. */
+    const sendWith = async (jpeg = JPEG) => {
+      encoding.encodeChatImage.mockResolvedValueOnce(jpeg)
+      await button().trigger('click')
+      await flushPromises()
+    }
+
+    it('says the picture is being opened, then shows it', async () => {
       mountBar()
       const pending = deferred()
-      encoding.encodeChatImage.mockReturnValueOnce(pending.promise)
+      encoding.openChatImage.mockReturnValueOnce(pending.promise)
       const file = await choose()
 
-      expect(encoding.encodeChatImage).toHaveBeenCalledWith(file)
+      expect(encoding.openChatImage).toHaveBeenCalledWith(file)
       expect(attached().exists()).toBe(true)
       expect(words().text()).toBe('chatThread.imagePreparing')
       expect(wrapper.find('.chat-compose-attached-wait').exists()).toBe(true)
@@ -845,8 +1000,9 @@ describe('ChatComposeBar', () => {
       pending.resolve(READY)
       await flushPromises()
 
-      // The finished JPEG itself: what is seen is what goes out.
-      expect(preview().attributes('src')).toBe('data:image/jpeg;base64,SlBFRw==')
+      expect(preview().element.tagName).toBe('CANVAS')
+      expect(preview().attributes('aria-hidden')).toBe('true')
+      expect(shown()).toBe(READY.image)
       expect(words().text()).toBe('chatThread.imageReady chatThread.imageReadyHint')
       expect(words().find('small').text()).toBe('chatThread.imageReadyHint')
       expect(remove().attributes('aria-label')).toBe('chatThread.imageRemove')
@@ -854,12 +1010,53 @@ describe('ChatComposeBar', () => {
       expect(remove().attributes('type')).toBe('button')
     })
 
+    /**
+     * ⛔ Kept whole until the message is sent (E-047, point 6): choosing opens the picture, it does
+     * not make it small -- the editor and "Sichern" need it in full quality.
+     */
+    it('makes the picture small only when the message is sent', async () => {
+      framesPassAtOnce()
+      mountBar()
+      await chooseReady()
+      expect(encoding.encodeChatImage).not.toHaveBeenCalled()
+
+      await sendWith()
+
+      expect(encoding.encodeChatImage).toHaveBeenCalledTimes(1)
+      expect(encoding.encodeChatImage).toHaveBeenCalledWith(READY, CHAT_IMAGE_UNEDITED)
+    })
+
+    /**
+     * The preview is drawn from the picture as chosen, the cutout filling its square from the middle
+     * -- the same drawing the editor and the picture sent use.
+     */
+    it('draws the preview from the picture, filling the square', async () => {
+      mountBar()
+      await chooseReady()
+
+      const canvas = preview().element
+      expect([canvas.width, canvas.height]).toEqual([56, 56])
+      const steps = canvas.steps
+      expect(steps[1]).toEqual(['translate', 28, 28])
+      // 4000 x 3000 into 56 x 56: the height fills it, the sides run over
+      expect(steps[2][1]).toBeCloseTo(56 / 3000, 6)
+      expect(steps[2][2]).toBeCloseTo(56 / 3000, 6)
+      expect(steps.find((step) => step[0] === 'drawImage')).toEqual([
+        'drawImage',
+        READY.image,
+        -2000,
+        -1500,
+        4000,
+        3000,
+      ])
+    })
+
     // E-044: with a picture the words are its caption, and optional.
-    it('makes the field the caption, while the picture is prepared and after', async () => {
+    it('makes the field the caption, while the picture is opened and after', async () => {
       mountBar()
       expect(field().attributes('placeholder')).toBe('chatThread.placeholder {"name":"Lena"}')
       const pending = deferred()
-      encoding.encodeChatImage.mockReturnValueOnce(pending.promise)
+      encoding.openChatImage.mockReturnValueOnce(pending.promise)
       await choose()
       expect(field().attributes('placeholder')).toBe('chatThread.imageCaption')
 
@@ -873,24 +1070,26 @@ describe('ChatComposeBar', () => {
     })
 
     it('sends a picture with an empty text', async () => {
+      framesPassAtOnce()
       mountBar()
       await chooseReady()
       expect(button().attributes('aria-disabled')).toBe('false')
 
-      await button().trigger('click')
+      await sendWith()
 
-      // The picture as the server takes it: the JPEG and its size -- not the preview, not the bytes.
+      // The picture as the server takes it: the JPEG and its size -- not the picture, not the bytes.
       expect(sent()).toEqual([
         [{ body: '', notify: 'NONE', image: { data: 'SlBFRw==', width: 800, height: 600 } }],
       ])
     })
 
     it('sends the words as the caption, the space around them left off', async () => {
+      framesPassAtOnce()
       mountBar()
       await chooseReady()
       await field().setValue('  Unser Stand  ')
 
-      await button().trigger('click')
+      await sendWith()
 
       expect(sent()).toEqual([
         [
@@ -903,10 +1102,10 @@ describe('ChatComposeBar', () => {
       ])
     })
 
-    // Chosen for this message: nothing goes before it is ready -- not even the words.
-    it('waits while the picture is being made small', async () => {
+    // Chosen for this message: nothing goes before it is open -- not even the words.
+    it('waits while the picture is being opened', async () => {
       mountBar()
-      encoding.encodeChatImage.mockReturnValueOnce(deferred().promise)
+      encoding.openChatImage.mockReturnValueOnce(deferred().promise)
       await field().setValue('Hallo')
       await choose()
 
@@ -916,26 +1115,129 @@ describe('ChatComposeBar', () => {
       expect(sent()).toEqual([])
     })
 
+    /**
+     * Made small when it is sent, the bar says so meanwhile -- and a second press does not send it
+     * twice. What was pressed is what goes, words included.
+     */
+    it('says the picture is being prepared while it is made small, and sends it once', async () => {
+      framesPassAtOnce()
+      mountBar()
+      await chooseReady()
+      await field().setValue('Unser Stand')
+      const pending = deferred()
+      encoding.encodeChatImage.mockReturnValueOnce(pending.promise)
+
+      await button().trigger('click')
+      await flushPromises()
+      expect(words().text()).toBe('chatThread.imagePreparing')
+      expect(status().text()).toBe('chatThread.imagePreparing')
+      expect(button().attributes('aria-disabled')).toBe('true')
+      await button().trigger('click')
+      await field().trigger('keydown', { key: 'Enter', metaKey: true })
+
+      pending.resolve(JPEG)
+      await flushPromises()
+      expect(sent()).toHaveLength(1)
+      expect(sent()[0][0]).toMatchObject({ body: 'Unser Stand' })
+      expect(encoding.encodeChatImage).toHaveBeenCalledTimes(1)
+    })
+
+    /**
+     * Making a picture small holds the page for a moment: the bar lets two frames pass first, so
+     * that "Bild wird vorbereitet …" is on the screen before it.
+     */
+    it('lets the words be painted before it makes the picture small', async () => {
+      // the bar's bound on the wait stands still here: only the frames move on
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+      const frames = []
+      vi.stubGlobal('requestAnimationFrame', (callback) => frames.push(callback))
+      mountBar()
+      await chooseReady()
+      encoding.encodeChatImage.mockResolvedValueOnce(JPEG)
+
+      await button().trigger('click')
+      await flushPromises()
+      expect(words().text()).toBe('chatThread.imagePreparing')
+      expect(encoding.encodeChatImage).not.toHaveBeenCalled()
+
+      frames.shift()()
+      await flushPromises()
+      expect(encoding.encodeChatImage).not.toHaveBeenCalled()
+      frames.shift()()
+      await flushPromises()
+      expect(encoding.encodeChatImage).toHaveBeenCalledTimes(1)
+      expect(sent()).toHaveLength(1)
+    })
+
+    /**
+     * A page in the background draws no frames. The bar waits for them a moment only, and the
+     * message goes all the same (coderabbit, PR #4010).
+     */
+    it('sends all the same where no frame comes', async () => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+      vi.stubGlobal('requestAnimationFrame', () => 0)
+      mountBar()
+      await chooseReady()
+      encoding.encodeChatImage.mockResolvedValueOnce(JPEG)
+
+      await button().trigger('click')
+      await flushPromises()
+      vi.advanceTimersByTime(199)
+      await flushPromises()
+      expect(encoding.encodeChatImage).not.toHaveBeenCalled()
+
+      vi.advanceTimersByTime(1)
+      await flushPromises()
+      expect(encoding.encodeChatImage).toHaveBeenCalledTimes(1)
+      expect(sent()).toHaveLength(1)
+    })
+
+    /**
+     * Where the picture cannot be made small enough when it is sent, the bar says so and keeps the
+     * picture and the words: nothing went.
+     */
+    it('says so where the picture cannot be made small enough, and keeps it and the words', async () => {
+      framesPassAtOnce()
+      mountBar()
+      await chooseReady()
+      await field().setValue('Unser Stand')
+      encoding.encodeChatImage.mockRejectedValueOnce(
+        Object.assign(new Error('refused'), { problem: 'NOT_SMALL_ENOUGH' }),
+      )
+
+      await button().trigger('click')
+      await flushPromises()
+
+      expect(sent()).toEqual([])
+      expect(problem().text()).toBe('chatThread.imageTooBig')
+      expect(problem().attributes('role')).toBe('alert')
+      expect(shown()).toBe(READY.image)
+      expect(field().element.value).toBe('Unser Stand')
+      expect(button().attributes('aria-disabled')).toBe('false')
+    })
+
     // One picture a message: a second one takes the first one's place.
     it('takes a second picture in place of the first', async () => {
+      framesPassAtOnce()
       mountBar()
       await chooseReady(READY)
       await chooseReady(OTHER)
 
       expect(wrapper.findAll('[data-test="chat-compose-attached-picture"]')).toHaveLength(1)
-      expect(preview().attributes('src')).toBe('data:image/jpeg;base64,T1RIRVI=')
-      await button().trigger('click')
+      expect(shown()).toBe(OTHER.image)
+      await sendWith({ data: 'T1RIRVI=', width: 600, height: 800, bytes: 18000 })
+      expect(encoding.encodeChatImage.mock.calls[0][0]).toBe(OTHER)
       expect(sent()[0][0].image).toEqual({ data: 'T1RIRVI=', width: 600, height: 800 })
     })
 
-    // The last one chosen counts, whichever is ready first.
+    // The last one chosen counts, whichever is open first.
     it('lets a picture go that was overtaken by one chosen after it', async () => {
       mountBar()
       const first = deferred()
       const second = deferred()
-      encoding.encodeChatImage.mockReturnValueOnce(first.promise)
+      encoding.openChatImage.mockReturnValueOnce(first.promise)
       await choose()
-      encoding.encodeChatImage.mockReturnValueOnce(second.promise)
+      encoding.openChatImage.mockReturnValueOnce(second.promise)
       await choose()
 
       second.resolve(OTHER)
@@ -943,14 +1245,14 @@ describe('ChatComposeBar', () => {
       first.resolve(READY)
       await flushPromises()
 
-      expect(preview().attributes('src')).toBe('data:image/jpeg;base64,T1RIRVI=')
+      expect(shown()).toBe(OTHER.image)
       expect(words().text()).toBe('chatThread.imageReady chatThread.imageReadyHint')
       // …nor does the earlier one's refusal speak for the later.
       const third = deferred()
       const fourth = deferred()
-      encoding.encodeChatImage.mockReturnValueOnce(third.promise)
+      encoding.openChatImage.mockReturnValueOnce(third.promise)
       await choose()
-      encoding.encodeChatImage.mockReturnValueOnce(fourth.promise)
+      encoding.openChatImage.mockReturnValueOnce(fourth.promise)
       await choose()
       third.reject(Object.assign(new Error('x'), { problem: 'HEIC' }))
       await flushPromises()
@@ -958,7 +1260,103 @@ describe('ChatComposeBar', () => {
       expect(words().text()).toBe('chatThread.imagePreparing')
       fourth.resolve(READY)
       await flushPromises()
-      expect(preview().attributes('src')).toBe('data:image/jpeg;base64,SlBFRw==')
+      expect(shown()).toBe(READY.image)
+    })
+
+    /** E-047: the pencil opens the editor -- a choice beside the picture, never a step on the way. */
+    describe('the editor', () => {
+      const editor = () => wrapper.findComponent({ name: 'ChatImageEditor' })
+      const pencil = () => wrapper.find('[data-test="chat-compose-attached-edit"]')
+
+      it('offers to edit the picture with a pencil, once it is open', async () => {
+        mountBar()
+        const pending = deferred()
+        encoding.openChatImage.mockReturnValueOnce(pending.promise)
+        await choose()
+        expect(pencil().exists()).toBe(false)
+
+        pending.resolve(READY)
+        await flushPromises()
+
+        expect(pencil().element.tagName).toBe('BUTTON')
+        expect(pencil().attributes('type')).toBe('button')
+        expect(pencil().attributes('aria-label')).toBe('chatThread.imageEdit')
+        expect(pencil().attributes('title')).toBe('chatThread.imageEdit')
+        expect(editor().props('modelValue')).toBe(false)
+      })
+
+      it('opens the editor with the picture and what was done to it', async () => {
+        mountBar()
+        await chooseReady()
+
+        await pencil().trigger('click')
+
+        expect(editor().props('modelValue')).toBe(true)
+        expect(editor().props('source')).toBe(READY)
+        expect(editor().props('edit')).toEqual(CHAT_IMAGE_UNEDITED)
+      })
+
+      // A press on the picture itself opens it too; the pencil is the one the keyboard reaches.
+      it('opens it with a press on the picture as well', async () => {
+        mountBar()
+        await chooseReady()
+
+        await preview().trigger('click')
+
+        expect(editor().props('modelValue')).toBe(true)
+        expect(preview().attributes('tabindex')).toBeUndefined()
+      })
+
+      /** "Fertig": the preview shows what was done, and the message sends it. */
+      it('shows and sends what the editor hands back', async () => {
+        framesPassAtOnce()
+        mountBar()
+        await chooseReady()
+        await pencil().trigger('click')
+        const turned = { ...CHAT_IMAGE_UNEDITED, turn: 90, shape: 'square' }
+
+        editor().vm.$emit('done', turned)
+        editor().vm.$emit('update:modelValue', false)
+        await flushPromises()
+
+        expect(editor().props('modelValue')).toBe(false)
+        expect(preview().element.steps).toContainEqual(['rotate', Math.PI / 2])
+        await pencil().trigger('click')
+        expect(editor().props('edit')).toEqual(turned)
+        await editor().vm.$emit('update:modelValue', false)
+
+        await sendWith()
+        expect(encoding.encodeChatImage).toHaveBeenCalledWith(READY, turned)
+      })
+
+      // "Abbrechen" or Esc: the picture stays as it was.
+      it('keeps the picture as it was where the editor closes without "Fertig"', async () => {
+        framesPassAtOnce()
+        mountBar()
+        await chooseReady()
+        await pencil().trigger('click')
+
+        editor().vm.$emit('update:modelValue', false)
+        await flushPromises()
+        await sendWith()
+
+        expect(editor().props('modelValue')).toBe(false)
+        expect(encoding.encodeChatImage).toHaveBeenCalledWith(READY, CHAT_IMAGE_UNEDITED)
+      })
+
+      // A second picture starts unedited: what was done belonged to the first.
+      it('starts a second picture unedited', async () => {
+        mountBar()
+        await chooseReady()
+        editor().vm.$emit('done', { ...CHAT_IMAGE_UNEDITED, turn: 180 })
+        await flushPromises()
+
+        await chooseReady(OTHER)
+        await pencil().trigger('click')
+
+        expect(editor().props('source')).toBe(OTHER)
+        expect(editor().props('edit')).toEqual(CHAT_IMAGE_UNEDITED)
+      })
     })
 
     // Emptied after every choice: the same file chosen again is a change again.
@@ -989,12 +1387,12 @@ describe('ChatComposeBar', () => {
       expect(button().attributes('aria-disabled')).toBe('true')
     })
 
-    /** Why a picture could not be made ready, in the bar's own words, as an alert. */
-    it('says why a picture could not be made ready', async () => {
+    /** Why a picture could not be opened, in the bar's own words, as an alert. */
+    it('says why a picture could not be opened', async () => {
       const said = {}
-      for (const reason of ['SOURCE_TOO_LARGE', 'HEIC', 'FORMAT', 'NOT_SMALL_ENOUGH', undefined]) {
+      for (const reason of ['SOURCE_TOO_LARGE', 'HEIC', 'FORMAT', undefined]) {
         mountBar()
-        encoding.encodeChatImage.mockRejectedValueOnce(
+        encoding.openChatImage.mockRejectedValueOnce(
           Object.assign(new Error('refused'), { problem: reason }),
         )
         await choose()
@@ -1009,28 +1407,27 @@ describe('ChatComposeBar', () => {
         SOURCE_TOO_LARGE: 'chatThread.imageTooLarge',
         HEIC: 'chatThread.imageHeic',
         FORMAT: 'chatThread.imageFormat',
-        NOT_SMALL_ENOUGH: 'chatThread.imageTooBig',
         unknown: 'chatThread.imageFormat',
       })
     })
 
     // A picture chosen before stays where the next one fails: nothing took its place.
-    it('keeps the picture it had where the next one cannot be made ready', async () => {
+    it('keeps the picture it had where the next one cannot be opened', async () => {
       mountBar()
       await chooseReady()
-      encoding.encodeChatImage.mockRejectedValueOnce(
+      encoding.openChatImage.mockRejectedValueOnce(
         Object.assign(new Error('refused'), { problem: 'HEIC' }),
       )
       await choose()
 
       expect(problem().text()).toBe('chatThread.imageHeic')
-      expect(preview().attributes('src')).toBe('data:image/jpeg;base64,SlBFRw==')
+      expect(shown()).toBe(READY.image)
     })
 
-    // Another go: the menu opening again, or a picture that is ready, ends the old words.
+    // Another go: the menu opening again, or a picture that is open, ends the old words.
     it('lets the words about a failed picture go with the next try', async () => {
       mountBar()
-      encoding.encodeChatImage.mockRejectedValueOnce(
+      encoding.openChatImage.mockRejectedValueOnce(
         Object.assign(new Error('refused'), { problem: 'FORMAT' }),
       )
       await choose()
@@ -1040,7 +1437,7 @@ describe('ChatComposeBar', () => {
       expect(problem().exists()).toBe(false)
 
       await clip().trigger('click')
-      encoding.encodeChatImage.mockRejectedValueOnce(
+      encoding.openChatImage.mockRejectedValueOnce(
         Object.assign(new Error('refused'), { problem: 'FORMAT' }),
       )
       await choose()
@@ -1055,7 +1452,7 @@ describe('ChatComposeBar', () => {
       expect(status().attributes('role')).toBe('status')
       expect(status().text()).toBe('')
       const pending = deferred()
-      encoding.encodeChatImage.mockReturnValueOnce(pending.promise)
+      encoding.openChatImage.mockReturnValueOnce(pending.promise)
       await choose()
       expect(status().text()).toBe('chatThread.imagePreparing')
 
@@ -1069,10 +1466,11 @@ describe('ChatComposeBar', () => {
 
     describe('after sending', () => {
       it('takes the picture off with the words once the message went through', async () => {
+        framesPassAtOnce()
         mountBar()
         await chooseReady()
         await field().setValue('Unser Stand')
-        await button().trigger('click')
+        await sendWith()
 
         await wrapper.setProps({ sending: true })
         await wrapper.setProps({ sending: false })
@@ -1085,16 +1483,17 @@ describe('ChatComposeBar', () => {
 
       // ⛔ Only what went out: a picture chosen while the message was on its way is the next one's.
       it('keeps a picture chosen while the message was on its way', async () => {
+        framesPassAtOnce()
         mountBar()
         await chooseReady(READY)
-        await button().trigger('click')
+        await sendWith()
         await wrapper.setProps({ sending: true })
 
         await chooseReady(OTHER)
         await wrapper.setProps({ sending: false })
         await flushPromises()
 
-        expect(preview().attributes('src')).toBe('data:image/jpeg;base64,T1RIRVI=')
+        expect(shown()).toBe(OTHER.image)
       })
 
       // …and a message without a picture takes none off.
@@ -1109,20 +1508,21 @@ describe('ChatComposeBar', () => {
         await flushPromises()
 
         expect(field().element.value).toBe('')
-        expect(preview().attributes('src')).toBe('data:image/jpeg;base64,SlBFRw==')
+        expect(shown()).toBe(READY.image)
       })
 
       it('keeps the picture and the words where the message did not go through', async () => {
+        framesPassAtOnce()
         mountBar()
         await chooseReady()
         await field().setValue('Unser Stand')
-        await button().trigger('click')
+        await sendWith()
 
         await wrapper.setProps({ sending: true })
         await wrapper.setProps({ sending: false, failed: true })
         await flushPromises()
 
-        expect(preview().attributes('src')).toBe('data:image/jpeg;base64,SlBFRw==')
+        expect(shown()).toBe(READY.image)
         expect(field().element.value).toBe('Unser Stand')
       })
 

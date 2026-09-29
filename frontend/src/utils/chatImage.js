@@ -5,10 +5,15 @@ import {
   encodeUnderTarget,
   isHeicFileName,
 } from '@/utils/avatarImage'
+import { CHAT_IMAGE_UNEDITED, chatImageCut, drawChatImageCut } from '@/utils/chatImageEdit'
 
 // A picture in a chat message (P7) is made small here, in the browser, before it goes anywhere
 // (E-041, E-046): the server gets a finished JPEG as base64 in one mutation, the way the avatar
 // goes (P-011), and never an original.
+//
+// Two steps since the pictures can be edited (E-047): `openChatImage` decodes the file the member
+// chose and keeps it whole -- the editor turns, mirrors and cuts it, and "Sichern" saves it in full
+// quality -- and `encodeChatImage` makes the edited picture small only when the message is sent.
 //
 // ★ The re-encoding is also what keeps a phone photo's EXIF data -- the GPS position among it --
 // off the server: the canvas carries pixels only, and the JPEG it writes has no EXIF at all
@@ -73,8 +78,8 @@ export const chatImageRefusal = (error) => {
  * The size a picture is drawn at, in whole pixels: its own proportions, the area given (the
  * first round's, or a smaller one), never larger than it is, and no side past the server's bound.
  *
- * ⛔ Fitted, never cropped (E-041): a chat picture has no frame it must fill. Whoever wants a
- * part of a photo cuts it on the phone, before it comes here.
+ * ⛔ Fitted, never cropped: a chat picture has no frame it must fill. What is cut away, the member
+ * cuts in the editor (E-047); this only makes smaller what they kept.
  */
 export const chatImageSize = (width, height, area = CHAT_IMAGE_AREA) => {
   const scale = Math.min(
@@ -88,9 +93,11 @@ export const chatImageSize = (width, height, area = CHAT_IMAGE_AREA) => {
 }
 
 /**
- * Reads the file the way the avatar's cropper does -- a FileReader, then an Image -- and
- * resolves with the decoded picture. Rejects where the browser cannot decode it: a desktop
- * browser and an iPhone's HEIC, or a file that is no picture.
+ * Decodes the file the member chose and resolves with the picture. Rejects where the browser
+ * cannot decode it: a desktop browser and an iPhone's HEIC, or a file that is no picture.
+ *
+ * Through an object URL, let go as soon as the picture has come: the picture stays in memory while
+ * it is edited, and a data URL would keep the whole file a second time, as text.
  *
  * The browser turns a photo the way its EXIF says (`image-orientation: from-image`, the default
  * in current browsers), so `naturalWidth` and `naturalHeight` are the photo as it is seen, and the
@@ -98,55 +105,30 @@ export const chatImageSize = (width, height, area = CHAT_IMAGE_AREA) => {
  */
 export const readChatImageFile = (file) =>
   new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onerror = () => reject(reader.error ?? new Error('read'))
-    reader.onload = () => {
-      const image = new Image()
-      image.onload = () => resolve(image)
-      image.onerror = () => reject(new Error('decode'))
-      image.src = reader.result
+    const address = URL.createObjectURL(file)
+    const image = new Image()
+    image.onload = () => {
+      URL.revokeObjectURL(address)
+      resolve(image)
     }
-    reader.readAsDataURL(file)
+    image.onerror = () => {
+      URL.revokeObjectURL(address)
+      reject(new Error('decode'))
+    }
+    image.src = address
   })
 
 /**
- * Draws the picture onto a canvas of the size given, in one step from the decoded source -- not
- * through a smaller copy, which would blur it twice. White under it: a PNG's transparent parts
- * would otherwise come out black in the JPEG (as the avatar's applyCrop says).
- */
-export const drawChatImage = (image, width, height) => {
-  const canvas = document.createElement('canvas')
-  canvas.width = width
-  canvas.height = height
-  const context = canvas.getContext('2d')
-  context.fillStyle = '#ffffff'
-  context.fillRect(0, 0, width, height)
-  context.imageSmoothingEnabled = true
-  context.imageSmoothingQuality = 'high'
-  context.drawImage(image, 0, 0, width, height)
-  return canvas
-}
-
-/**
- * A picture the member chose, made ready for a chat message: fitted into the area of 800 x 600
- * and encoded as JPEG under 32 KB -- the quality lowered step by step first (85 to 45 %, the
- * avatar's steps), and where that is not enough, the size (E-041).
+ * The picture the member chose, opened for editing and sending: `{ image, width, height }`, the
+ * decoded picture and its size as seen. Rejects with a ChatImageError.
  *
- * Resolves with `{ data, width, height, bytes }`: the JPEG as base64 without a data URI's head,
- * its size in whole pixels (the server's ChatImageInput takes integers only, LOG-071), and its
- * bytes. Rejects with a ChatImageError.
- *
- * `read`, `draw` and `encode` are there for the spec -- jsdom decodes and paints nothing -- and
- * default to the ones above and the avatar's encoder.
+ * `read` is there for the spec -- jsdom decodes nothing -- and defaults to the one above.
  *
  * @param {File} file
  */
-export const encodeChatImage = async (
-  file,
-  { read = readChatImageFile, draw = drawChatImage, encode = encodeUnderTarget } = {},
-) => {
-  // Before anything is read: a file is read into memory whole, and decoding it costs several
-  // times its size again (AVATAR_SOURCE_MAX_BYTES says why 20 MB).
+export const openChatImage = async (file, { read = readChatImageFile } = {}) => {
+  // Before anything is read: decoding a file costs several times its size in memory
+  // (AVATAR_SOURCE_MAX_BYTES says why 20 MB).
   if (file.size > AVATAR_SOURCE_MAX_BYTES) throw new ChatImageError('SOURCE_TOO_LARGE')
 
   let image
@@ -155,15 +137,64 @@ export const encodeChatImage = async (
   } catch {
     throw new ChatImageError(isHeicFileName(file.name) ? 'HEIC' : 'FORMAT')
   }
-  const sourceWidth = image.naturalWidth
-  const sourceHeight = image.naturalHeight
-  if (!(sourceWidth > 0 && sourceHeight > 0)) throw new ChatImageError('FORMAT')
+  const width = image.naturalWidth
+  const height = image.naturalHeight
+  if (!(width > 0 && height > 0)) throw new ChatImageError('FORMAT')
+  return { image, width, height }
+}
 
+/**
+ * Draws the edited picture onto a canvas of the size given, in one step from the decoded source
+ * -- not through a smaller copy, which would blur it twice. White under it: a PNG's transparent
+ * parts would otherwise come out black in the JPEG (as the avatar's applyCrop says).
+ *
+ * @param {{ image: CanvasImageSource, width: number, height: number }} source
+ * @param {typeof CHAT_IMAGE_UNEDITED} edit
+ */
+export const drawChatImage = (source, edit, width, height) => {
+  const canvas = document.createElement('canvas')
+  canvas.width = width
+  canvas.height = height
+  const context = canvas.getContext('2d')
+  context.fillStyle = '#ffffff'
+  context.fillRect(0, 0, width, height)
+  context.imageSmoothingEnabled = true
+  context.imageSmoothingQuality = 'high'
+  drawChatImageCut(context, source.image, source.width, source.height, edit, {
+    x: 0,
+    y: 0,
+    width,
+    height,
+  })
+  return canvas
+}
+
+/**
+ * The edited picture made ready for a chat message, when it is sent (E-047, point 6): fitted into
+ * the area of 800 x 600 and encoded as JPEG under 32 KB -- the quality lowered step by step first
+ * (85 to 45 %, the avatar's steps), and where that is not enough, the size (E-041).
+ *
+ * Resolves with `{ data, width, height, bytes }`: the JPEG as base64 without a data URI's head,
+ * its size in whole pixels (the server's ChatImageInput takes integers only, LOG-071), and its
+ * bytes. Rejects with a ChatImageError.
+ *
+ * `draw` and `encode` are there for the spec -- jsdom paints nothing -- and default to the one above
+ * and the avatar's encoder.
+ *
+ * @param {{ image: CanvasImageSource, width: number, height: number }} source from openChatImage
+ * @param {typeof CHAT_IMAGE_UNEDITED} edit what the member did in the editor
+ */
+export const encodeChatImage = async (
+  source,
+  edit = CHAT_IMAGE_UNEDITED,
+  { draw = drawChatImage, encode = encodeUnderTarget } = {},
+) => {
+  const cut = chatImageCut(source.width, source.height, edit)
   let area = CHAT_IMAGE_AREA
   for (let round = 0; round < CHAT_IMAGE_ROUNDS; round += 1) {
-    const { width, height } = chatImageSize(sourceWidth, sourceHeight, area)
+    const { width, height } = chatImageSize(cut.width, cut.height, area)
     const encoded = encode(
-      draw(image, width, height),
+      draw(source, edit, width, height),
       CHAT_IMAGE_TARGET_BYTES,
       AVATAR_QUALITY_STEPS,
     )

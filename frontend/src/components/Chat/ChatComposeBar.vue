@@ -10,21 +10,25 @@
     </p>
 
     <!-- The picture that goes with the next message (the mockup, "Bild gewählt, vor dem Senden"):
-         while it is made small, a quiet square and "Bild wird vorbereitet …"; then the picture as
-         it will be sent -- the finished JPEG, not the original -- with "Bild" and "Wird mit Deiner
-         Nachricht gesendet.", and a round button to take it off. -->
+         while it is opened, and again while it is made small for sending, a quiet square and "Bild
+         wird vorbereitet …"; otherwise the picture as it will go -- drawn from the picture as
+         chosen, cut as the member cut it (E-047) -- with "Bild" and "Wird mit Deiner Nachricht
+         gesendet.", and a round button to take it off. -->
     <div
       v-if="preparing || picture"
       class="chat-compose-attached"
       data-test="chat-compose-attached"
     >
       <span v-if="preparing" class="chat-compose-attached-wait" aria-hidden="true" />
-      <img
+      <!-- A press on the picture opens the editor as the pencil does; the pencil is the one the
+           keyboard and a screen reader reach, so the picture is not a second stop. -->
+      <canvas
         v-else
-        :src="picture.src"
-        alt=""
+        ref="thumb"
         class="chat-compose-attached-picture"
+        aria-hidden="true"
         data-test="chat-compose-attached-picture"
+        @click="openEditor"
       />
       <div class="chat-compose-attached-words" data-test="chat-compose-attached-words">
         <template v-if="preparing">{{ t('chatThread.imagePreparing') }}</template>
@@ -33,6 +37,18 @@
           <small>{{ t('chatThread.imageReadyHint') }}</small>
         </template>
       </div>
+      <!-- "Bild bearbeiten" (E-047): turn, mirror, cut -- a choice, never a step on the way. -->
+      <button
+        v-if="!preparing"
+        type="button"
+        class="chat-compose-attached-remove chat-compose-attached-edit"
+        :aria-label="t('chatThread.imageEdit')"
+        :title="t('chatThread.imageEdit')"
+        data-test="chat-compose-attached-edit"
+        @click="openEditor"
+      >
+        <i-mdi-pencil class="chat-compose-attached-remove-icon" aria-hidden="true" />
+      </button>
       <button
         v-if="!preparing"
         type="button"
@@ -48,10 +64,11 @@
 
     <div class="chat-compose-row">
       <!-- The paperclip (E-042, E-044 F1): with the pictures (P7) it opens a small menu above it,
-           "Bild — Foto oder Bildschirmfoto" and "Datei — über SwissTransfer, bis 50 GB". A sign
-           without a word: the paperclip is the learnt exception to E-033; the words are in the
-           menu. Also with the first message of a conversation -- a picture or a link is an
-           ordinary message.
+           "Bild — Foto oder Bildschirmfoto" and "Datei — über SwissTransfer, bis 50 GB", and on a
+           phone or a tablet "Foto aufnehmen — mit der Kamera" first (E-047). A sign without a
+           word: the paperclip is the learnt exception to E-033; the words are in the menu. Also
+           with the first message of a conversation -- a picture or a link is an ordinary
+           message.
 
            ⚠️ A disclosure, not an ARIA menu, and so no `aria-haspopup`: the picture's entry is a
            file field, and a file field may not take the role of a menu item -- a "menu" that is
@@ -92,11 +109,36 @@
           :aria-label="t('chatThread.attach')"
           data-test="chat-compose-menu"
         >
+          <!-- "Foto aufnehmen" (E-047): the same kind of field with `capture`, which a phone and a
+               tablet answer with their camera app -- the back camera first, the app itself can turn
+               round. A computer's browser takes no notice of `capture` and would open the same
+               dialog as "Bild": there is no such entry there at all (Bernd, 29.09.2026: "Es ist nur
+               wichtig, dass im Computer dann keine Kamera-Option zu sehen ist."). -->
+          <template v-if="offersCamera">
+            <input
+              :id="cameraId"
+              ref="camera"
+              type="file"
+              accept="image/*"
+              capture="environment"
+              class="chat-compose-picker visually-hidden"
+              data-test="chat-compose-camera-field"
+              @click="closeMenuOnceChosen"
+              @change="takePicture"
+            />
+            <label :for="cameraId" class="chat-compose-menu-item" data-test="chat-compose-camera">
+              <i-mdi-camera class="chat-compose-menu-icon" aria-hidden="true" />
+              <span class="chat-compose-menu-words">
+                <span class="chat-compose-menu-label">{{ t('chatThread.attachCamera') }}</span>
+                <span class="chat-compose-menu-hint">{{ t('chatThread.attachCameraHint') }}</span>
+              </span>
+            </label>
+          </template>
           <!-- ⛔ A label for a file field that is hidden only from the eye (FOTO-04): a field set to
                `display: none` and opened with `input.click()` did nothing at all in an embedded
                frame. The label opens the field without a line of script; the field stays in the tab
-               order, and the label beside it shows its focus. No `capture`: on a phone the picker
-               offers the camera and the photos by itself (AS-012). -->
+               order, and the label beside it shows its focus. No `capture` on this one: here the
+               picker offers the photos and the files. -->
           <input
             :id="pickerId"
             ref="picker"
@@ -219,6 +261,14 @@
       {{ pictureStatus }}
     </p>
 
+    <!-- The picture's editor (E-047): a dialog of its own over the contact window. -->
+    <chat-image-editor
+      v-model="editorOpen"
+      :source="picture?.source ?? null"
+      :edit="picture?.edit ?? CHAT_IMAGE_UNEDITED"
+      @done="applyEdit"
+    />
+
     <!-- The hint behind the paperclip (E-042, E-044): Gradido stores no files, SwissTransfer
          carries them -- three steps, what the service is, and the way there. Built as the question
          before a video call is (ContactWindow): no header, the title in the body and therefore a
@@ -276,7 +326,9 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, useId,
 import { useI18n } from 'vue-i18n'
 import { BButton, BModal } from 'bootstrap-vue-next'
 import { SWISSTRANSFER_URL } from '@/utils/chatFileLink'
-import { encodeChatImage } from '@/utils/chatImage'
+import { encodeChatImage, openChatImage } from '@/utils/chatImage'
+import { CHAT_IMAGE_UNEDITED, chatImageCut, drawChatImageCut } from '@/utils/chatImageEdit'
+import ChatImageEditor from '@/components/Chat/ChatImageEditor.vue'
 import { chatNotifyFor } from '@/utils/chatNotify'
 import { isComputer } from '@/utils/isComputer'
 import { MESSAGE_MAX_CHARS, message as messageSchema } from '@/validationSchemas'
@@ -332,10 +384,11 @@ const text = ref(props.initialText)
 const alsoByEmail = ref(false)
 
 /**
- * The picture that goes with the next message (P7): `{ data, width, height, bytes, src }` --
- * the finished JPEG (utils/chatImage) and, as `src`, the same bytes for the preview: what is seen
- * is what goes out. Null without one; one picture a message, a second one takes the first one's
- * place.
+ * The picture that goes with the next message (P7): `{ source, edit }` -- the picture as chosen,
+ * decoded and whole (utils/chatImage, `openChatImage`), and what the member did to it in the
+ * editor (utils/chatImageEdit). It is made small only when the message is sent (E-047, point 6);
+ * until then it stays in full quality, for the editor and for "Sichern". Null without one; one
+ * picture a message, a second one takes the first one's place.
  *
  * ⛔ In memory only. It does not come back after iOS starts the wallet over, as the words do
  * (#3999, `draft` below): a chat picture is never put into the device's storage (E-041, point 5),
@@ -344,7 +397,7 @@ const alsoByEmail = ref(false)
  * of Vue's reactivity.
  */
 const picture = shallowRef(null)
-/** A picture is being made small; the button waits for it. */
+/** A picture is being opened, or made small for sending; the button waits for it. */
 const preparing = ref(false)
 /** Why the last picture chosen could not be made ready (ChatImageError), or null. */
 const pictureProblem = ref(null)
@@ -410,17 +463,66 @@ defineExpose({ draft: () => text.value })
  */
 let submitted = null
 
-const submit = () => {
+/**
+ * How long the bar waits for those two frames at most: a page in the background draws none, and
+ * the message is to go all the same (coderabbit, PR #4010).
+ */
+const PAINT_WAIT_MS = 200
+
+/**
+ * Lets the browser paint "Bild wird vorbereitet …" before the picture is made small: making it
+ * small holds the page for a moment, and without two frames the words would come after it.
+ */
+const afterPaint = () =>
+  new Promise((resolve) => {
+    if (typeof window.requestAnimationFrame !== 'function') {
+      resolve()
+      return
+    }
+    const timer = setTimeout(resolve, PAINT_WAIT_MS)
+    window.requestAnimationFrame(() =>
+      window.requestAnimationFrame(() => {
+        clearTimeout(timer)
+        resolve()
+      }),
+    )
+  })
+
+/**
+ * Sends what is in the bar as the press found it. A picture is made small here, and only here
+ * (E-047, point 6): cut as the member cut it, under 32 KB (utils/chatImage). Where it cannot be,
+ * the bar says so and keeps the picture and the words.
+ */
+const submit = async () => {
   if (!canSend.value) return
-  submitted = { text: text.value, alsoByEmail: alsoByEmail.value, picture: picture.value }
-  emit('send', {
+  const pressed = {
+    text: text.value,
     body: body.value,
+    alsoByEmail: alsoByEmail.value,
+    picture: picture.value,
+  }
+  let image = null
+  if (pressed.picture) {
+    preparing.value = true
+    pictureProblem.value = null
+    try {
+      await afterPaint()
+      const ready = await encodeChatImage(pressed.picture.source, pressed.picture.edit)
+      image = { data: ready.data, width: ready.width, height: ready.height }
+    } catch (error) {
+      pictureProblem.value = error?.problem ?? 'FORMAT'
+      return
+    } finally {
+      preparing.value = false
+    }
+  }
+  submitted = { text: pressed.text, alsoByEmail: pressed.alsoByEmail, picture: pressed.picture }
+  emit('send', {
+    body: pressed.body,
     // The enum NAMES the server takes, by the rule the contact window's video invitation
     // follows too (utils/chatNotify.js).
-    notify: chatNotifyFor({ first: props.first, alsoByEmail: alsoByEmail.value }),
-    image: picture.value
-      ? { data: picture.value.data, width: picture.value.width, height: picture.value.height }
-      : null,
+    notify: chatNotifyFor({ first: props.first, alsoByEmail: pressed.alsoByEmail }),
+    image,
   })
 }
 
@@ -454,7 +556,10 @@ const pictureStatus = computed(() => {
  */
 let pictureRound = 0
 
-/** The picture the device's picker answered with, made ready for the message (utils/chatImage). */
+/**
+ * The picture the device's picker answered with, opened for the message: decoded and kept whole
+ * (utils/chatImage), not edited yet.
+ */
 const takePicture = async (event) => {
   const input = event.target
   const file = input.files?.[0]
@@ -465,9 +570,9 @@ const takePicture = async (event) => {
   pictureProblem.value = null
   preparing.value = true
   try {
-    const ready = await encodeChatImage(file)
+    const source = await openChatImage(file)
     if (round !== pictureRound) return
-    picture.value = { ...ready, src: `data:image/jpeg;base64,${ready.data}` }
+    picture.value = { source, edit: CHAT_IMAGE_UNEDITED }
   } catch (error) {
     if (round !== pictureRound) return
     // A picture chosen before stays: nothing has taken its place.
@@ -483,17 +588,76 @@ const removePicture = () => {
   clip.value?.focus({ preventScroll: true })
 }
 
+/** The editor (E-047): open while the member turns, mirrors or cuts the picture. */
+const editorOpen = ref(false)
+
+const openEditor = () => {
+  if (picture.value && !preparing.value) editorOpen.value = true
+}
+
+/** "Fertig": the picture keeps what was done to it -- the preview shows it, the message sends it. */
+const applyEdit = (edit) => {
+  if (picture.value) picture.value = { ...picture.value, edit }
+}
+
+/** The preview's square, in CSS pixels (the stylesheet's 3.5rem). */
+const THUMB = 56
+const thumb = ref(null)
+
 /**
- * The paperclip's menu (E-044, F1): "Bild" and "Datei". It closes when an entry is chosen, on Esc
- * and on a press anywhere else; the focus goes into it when it opens and back to the paperclip
- * when it closes by a choice or by Esc. A press elsewhere leaves the focus where the press put it.
+ * Draws the preview: the cutout, filling the square from its middle, at the screen's own
+ * resolution (at most twice, as the avatar's preview). The same drawing as the editor's and the
+ * picture that is sent (drawChatImageCut), so the three show the same part.
+ */
+const drawThumb = () => {
+  const canvas = thumb.value
+  const chosen = picture.value
+  if (!canvas || !chosen) return
+  const size = Math.round(THUMB * Math.min(2, window.devicePixelRatio || 1))
+  canvas.width = size
+  canvas.height = size
+  const context = canvas.getContext('2d')
+  if (!context) return
+  const { source, edit } = chosen
+  const cut = chatImageCut(source.width, source.height, edit)
+  const scale = Math.max(size / cut.width, size / cut.height)
+  const width = cut.width * scale
+  const height = cut.height * scale
+  context.imageSmoothingEnabled = true
+  context.imageSmoothingQuality = 'high'
+  drawChatImageCut(context, source.image, source.width, source.height, edit, {
+    x: (size - width) / 2,
+    y: (size - height) / 2,
+    width,
+    height,
+  })
+}
+watch([picture, preparing], async () => {
+  await nextTick()
+  drawThumb()
+})
+
+/**
+ * The paperclip's menu (E-044, F1): "Foto aufnehmen" on a phone or a tablet (E-047), "Bild" and
+ * "Datei". It closes when an entry is chosen, on Esc and on a press anywhere else; the focus goes
+ * into it when it opens and back to the paperclip when it closes by a choice or by Esc. A press
+ * elsewhere leaves the focus where the press put it.
  */
 const menuId = `${id}-attach-menu`
 const pickerId = `${id}-picker`
+const cameraId = `${id}-camera`
 const attachArea = ref(null)
 const clip = ref(null)
 const picker = ref(null)
+const camera = ref(null)
 const menuOpen = ref(false)
+
+/**
+ * Whether "Foto aufnehmen" is in the menu: not on a computer (isComputer), where `capture` does
+ * nothing. Asked when the menu opens and kept after it closes -- the camera's field has to stay in
+ * the page while the camera app is open, as "Bild"'s does while the picker is.
+ */
+const offersCamera = ref(false)
 
 const closeMenuOnPressElsewhere = (event) => {
   if (!attachArea.value?.contains(event.target)) closeMenu()
@@ -502,10 +666,12 @@ const closeMenuOnPressElsewhere = (event) => {
 const openMenu = async () => {
   // Another go: what went wrong with the last picture is said no longer.
   pictureProblem.value = null
+  offersCamera.value = !isComputer()
   menuOpen.value = true
   document.addEventListener('pointerdown', closeMenuOnPressElsewhere, true)
   await nextTick()
-  picker.value?.focus({ preventScroll: true })
+  // Into the first entry: the camera where there is one.
+  ;(offersCamera.value ? camera : picker).value?.focus({ preventScroll: true })
 }
 
 const closeMenu = ({ focusClip = false } = {}) => {
@@ -680,11 +846,7 @@ watch(
   border-radius: 0.5rem;
 }
 
-.chat-compose-attached-picture {
-  object-fit: cover;
-}
-
-/* While it is made small: a quiet square in its place, no spinner. */
+/* While it is opened or made small: a quiet square in its place, no spinner. */
 .chat-compose-attached-wait {
   background: var(--border, #dee2e6);
 }
@@ -738,6 +900,16 @@ watch(
 .chat-compose-attached-remove:focus-visible {
   outline: 2px solid var(--success, #047006);
   outline-offset: 2px;
+}
+
+/* The pencil: an action the member may take, so it has a rim; the cross only takes away. */
+.chat-compose-attached-edit {
+  border: 1px solid var(--border, #dee2e6);
+  color: var(--bs-body-color);
+}
+
+.chat-compose-attached-picture {
+  cursor: pointer;
 }
 
 .chat-compose-attached-remove-icon {
