@@ -433,7 +433,7 @@ describe('writing in a group', () => {
     await loginAs('bibi@bloxberg.de')
     const copy = await wrote(cafe.groupUuid, 'Wir treffen uns im Café.', true)
     // What was asked for, never who got a mail (E-024).
-    expect(copy).toMatchObject({ notify: 'EMAIL', mailState: null })
+    expect(copy).toMatchObject({ notify: 'EMAIL', mailState: null, announcement: true })
     await mailsSent()
     const mails = announcements()
     expect(mails.map((mail) => mail.email).sort()).toEqual(['bob@baumeister.de', 'peter@lustig.de'])
@@ -445,6 +445,19 @@ describe('writing in a group', () => {
       hasImage: false,
     })
     clearMails()
+  })
+
+  // P5b: every member reads the mark -- the mail went to them, or could have -- and still not
+  // the sender's wish itself (E-024).
+  it('marks the announcement for the other members too, as the only thing of the wish', async () => {
+    await loginAs('bob@baumeister.de')
+    const page = await pageOf(cafe.groupUuid)
+    const announced = page.messages.find(
+      (message: any) => message.body === 'Wir treffen uns im Café.',
+    )
+    expect(announced).toMatchObject({ mine: false, announcement: true, notify: null })
+    const plain = page.messages.find((message: any) => message.body === 'Samstag um 14 Uhr?')
+    expect(plain).toMatchObject({ announcement: false })
   })
 
   it('mails no announcement to a member who muted the group', async () => {

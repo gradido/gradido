@@ -276,6 +276,21 @@ describe('navigation guards', () => {
       )
     })
 
+    // The group's mails (P5) lead to `/contacts?group=`: after the sign-in, to that group.
+    it("keeps the group of a group's mail for after the sign-in", async () => {
+      const to = {
+        path: '/contacts',
+        fullPath: '/contacts?group=cafe-uuid',
+        meta: { requiresAuth: true },
+      }
+      const authGuard = addedGuards.find(
+        (guard) =>
+          guard.toString().includes('requiresAuth') && guard.toString().includes('redirectPath'),
+      )
+      await authGuard(to, {}, () => {})
+      expect(storeCommitMock).toHaveBeenCalledWith('redirectPath', '/contacts?group=cafe-uuid')
+    })
+
     it('does not redirect to login when authorized', async () => {
       store.state.token = 'valid-token'
       // A sign-in counts while it runs, not merely because a token is kept.
@@ -579,6 +594,16 @@ describe('a start with a running session', () => {
       note({ text: 'Hier ist die Datei:' })
       await whereAfter('/register', ME)
       expect(takeHeldChatText({ gradidoID: 'anna-id' })).toBe('')
+    })
+
+    // A group's thread (P5) comes back as the group's mails open it.
+    it("opens a group's window again, with its words held for it", async () => {
+      window.localStorage.setItem(
+        'chat-return:me-id',
+        JSON.stringify({ groupUuid: 'cafe-uuid', at: Date.now(), text: 'Bis Samstag' }),
+      )
+      expect(await whereAfter('/overview', ME)).toBe('/contacts?group=cafe-uuid')
+      expect(takeHeldChatText({ groupUuid: 'cafe-uuid' })).toBe('Bis Samstag')
     })
 
     it('names no community for a conversation in this one', async () => {

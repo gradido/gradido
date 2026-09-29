@@ -9,6 +9,54 @@
       data-test="contacts-search"
     />
 
+    <!-- The member's chat groups (P5), in a section of their own above the favourites (E-050
+         F1a) -- as soon as they are in, whether or not the contacts are, and with "Neue Gruppe"
+         also while there is none. A search narrows them by their name, and where it leaves none
+         the section steps aside for the contacts it found. -->
+    <section
+      v-if="groupsShown"
+      class="mb-4"
+      aria-labelledby="contacts-groups-heading"
+      data-test="contacts-groups"
+    >
+      <div class="contacts-groups-head page-text mb-2">
+        <h2 id="contacts-groups-heading" class="h6 text-uppercase text-muted mb-0">
+          {{ $t('chatGroup.heading') }}
+          <span v-if="groupRows.length" class="fw-normal ms-2" data-test="contacts-groups-count">
+            {{ $t('chatGroup.count', groupRows.length) }}
+          </span>
+        </h2>
+        <button
+          type="button"
+          class="contacts-groups-new"
+          data-test="contacts-groups-new"
+          @click="createOpen = true"
+        >
+          <i-mdi-plus aria-hidden="true" />
+          {{ $t('chatGroup.new') }}
+        </button>
+      </div>
+      <div
+        v-if="groupRows.length"
+        class="bg-white gradido-border-radius app-box-shadow px-3"
+        data-test="contacts-groups-list"
+      >
+        <chat-group-row
+          v-for="group in groupRows"
+          :key="group.groupUuid"
+          :group="group"
+          @open="openGroup"
+        />
+      </div>
+      <!-- A failed request is not an empty list, here as for the contacts. -->
+      <div v-else-if="groupsFailed" class="text-muted small page-text" data-test="groups-error">
+        {{ $t('chatGroup.notReachable') }}
+      </div>
+      <div v-else class="text-muted small page-text" data-test="groups-none">
+        {{ $t('chatGroup.none') }}
+      </div>
+    </section>
+
     <div v-if="!loaded" class="text-center py-3" data-test="contacts-loading">
       <BSpinner small />
     </div>
@@ -105,6 +153,14 @@
 
     <!-- One window for the page, not one per row (KF-010). -->
     <contact-window v-model="windowOpen" :contact="selected" />
+    <!-- And one for a group (P5), the same way, and the dialog that opens one. -->
+    <chat-group-window
+      v-model="groupWindowOpen"
+      :group="openedGroup"
+      :contacts="contacts"
+      @changed="reloadGroups"
+    />
+    <chat-group-create v-model="createOpen" :contacts="contacts" @created="groupCreated" />
   </div>
 </template>
 
@@ -113,6 +169,9 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useApolloClient, useQuery } from '@vue/apollo-composable'
 import { BFormInput, BPagination, BSpinner } from 'bootstrap-vue-next'
+import ChatGroupCreate from '@/components/ChatGroups/ChatGroupCreate.vue'
+import ChatGroupRow from '@/components/ChatGroups/ChatGroupRow.vue'
+import ChatGroupWindow from '@/components/ChatGroups/ChatGroupWindow.vue'
 import ContactRow from '@/components/Contacts/ContactRow.vue'
 import ContactsEmpty from '@/components/Contacts/ContactsEmpty.vue'
 import ContactWindow from '@/components/Contacts/ContactWindow.vue'
@@ -120,6 +179,7 @@ import { useContactWindow } from '@/composables/useContactWindow'
 import { usePagerFit } from '@/composables/usePagerFit'
 import { onContactListRefresh } from '@/composables/useContactsPanel'
 import { contactListQuery } from '@/graphql/contacts.graphql'
+import { chatGroupsQuery } from '@/graphql/chatGroups.graphql'
 import { ensureFavorites, isFavorite } from '@/composables/useFavorites'
 import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
 import { useAppToast } from '@/composables/useToast'
@@ -180,6 +240,92 @@ onError((error) => {
 })
 
 /**
+ * The member's chat groups (P5), asked with the list. `network-only` for the reason the list
+ * gives, and one more: the query takes no variables, so it has one cache key for whoever signs
+ * in -- the cache is emptied at logout, and every opening of the page asks the server anyway.
+ *
+ * ⚠️ No toast where it fails: the contacts' request says so already when the server cannot be
+ * reached, and a second toast for the same failure says nothing new. The section says it in its
+ * own line instead, only while there is no list to show.
+ */
+const groups = ref([])
+const groupsLoaded = ref(false)
+const groupsFailed = ref(false)
+
+const { onResult: onGroups, onError: onGroupsError } = useQuery(chatGroupsQuery, null, {
+  fetchPolicy: 'network-only',
+})
+onGroups(({ data }) => {
+  if (!data?.chatGroups) return
+  groups.value = data.chatGroups
+  groupsLoaded.value = true
+  groupsFailed.value = false
+  openAskedGroup()
+})
+onGroupsError(() => {
+  groupsLoaded.value = true
+  groupsFailed.value = groups.value.length === 0
+  groupAsked = null
+})
+
+/**
+ * The group's window (P5): which group is open, by its uuid, and the newest the list has of it --
+ * so a name, a part or a mute mark that changed shows in the open window once the list is asked
+ * again. Let go when the window closes, as the contact window lets its contact go.
+ */
+const groupWindowOpen = ref(false)
+const openedGroupUuid = ref(null)
+const openedGroup = computed(
+  () => groups.value.find((group) => group.groupUuid === openedGroupUuid.value) ?? null,
+)
+const openGroup = (group) => {
+  openedGroupUuid.value = group.groupUuid
+  groupWindowOpen.value = true
+}
+watch(groupWindowOpen, (isOpen) => {
+  if (!isOpen) openedGroupUuid.value = null
+})
+// A group the list no longer holds -- the member left it, or was taken out -- closes its window
+// rather than leave it open around nothing.
+watch(openedGroup, (group) => {
+  if (!group && groupWindowOpen.value) groupWindowOpen.value = false
+})
+
+/**
+ * "Neue Gruppe" (P5): the dialog, and what follows a group opened in it -- it stands in the list at
+ * once, its window opens, and the list is asked again for the server's order.
+ */
+const createOpen = ref(false)
+const groupCreated = (group) => {
+  groups.value = [group, ...groups.value.filter((held) => held.groupUuid !== group.groupUuid)]
+  groupsLoaded.value = true
+  openGroup(group)
+  reloadGroups()
+}
+
+/**
+ * The groups asked again, the way the list is (`reloadList` below): a message arrived or was
+ * read, and the dot or the order of a group moved. Quiet, and only the newest answer counts.
+ */
+let groupReloads = 0
+const reloadGroups = async () => {
+  const mine = ++groupReloads
+  try {
+    const { data } = await apolloClient.query({
+      query: chatGroupsQuery,
+      fetchPolicy: 'network-only',
+      context: { renewSession: false },
+    })
+    if (mine !== groupReloads || !data?.chatGroups) return
+    groups.value = data.chatGroups
+    groupsLoaded.value = true
+    groupsFailed.value = false
+  } catch {
+    // The groups as they were.
+  }
+}
+
+/**
  * The list asked again, because the right-hand column's is (useContactsPanel): a transfer went
  * through, or chat messages arrived (useChatUpdates). The server orders the contacts by the last
  * exchange, so somebody who just wrote comes to the top -- the wallet keeps no book of its own.
@@ -210,7 +356,12 @@ const reloadList = async () => {
     // The list as it was.
   }
 }
-onBeforeUnmount(onContactListRefresh(reloadList))
+onBeforeUnmount(
+  onContactListRefresh(() => {
+    reloadList()
+    reloadGroups()
+  }),
+)
 
 const rowKey = (contact) => memberKey(contact.user)
 
@@ -233,8 +384,9 @@ const route = useRoute()
 const router = useRouter()
 const askedFor = route.query.with
 const askedCommunity = route.query.community
-if (askedFor !== undefined || askedCommunity !== undefined) {
-  const { with: _with, community: _community, ...rest } = route.query
+const askedGroup = route.query.group
+if (askedFor !== undefined || askedCommunity !== undefined || askedGroup !== undefined) {
+  const { with: _with, community: _community, group: _group, ...rest } = route.query
   router.replace({ query: rest })
 }
 if (typeof askedFor === 'string' && askedFor !== '') {
@@ -245,10 +397,42 @@ if (typeof askedFor === 'string' && askedFor !== '') {
   })
 }
 
+/**
+ * `/contacts?group=<uuid>` opens that group's window (P5) -- the address the group's mails point
+ * to (E-049), also after the sign-in (the guard keeps the whole address as the way back), and the
+ * one a start comes back to after iOS started the wallet over (utils/chatReturn). Read once, and
+ * taken out of the address with the other two, above.
+ *
+ * Opened only for a group the member is in: it is looked for in the member's own list, once that
+ * has answered. A group the member is not in -- or no longer, or that does not exist -- opens
+ * nothing and says nothing, as `?with=` does for somebody who is no contact. Nor over something
+ * the member opened in the meantime.
+ */
+let groupAsked =
+  typeof askedGroup === 'string' && askedGroup !== '' ? askedGroup.toLowerCase() : null
+const openAskedGroup = () => {
+  const wanted = groupAsked
+  groupAsked = null
+  if (!wanted || groupWindowOpen.value || windowOpen.value) return
+  const group = groups.value.find((held) => held.groupUuid.toLowerCase() === wanted)
+  if (group) openGroup(group)
+}
+
 const needle = computed(() => search.value.trim().toLowerCase())
 const matches = (contact) =>
   !needle.value ||
   `${contact.user.alias ?? ''} ${contact.user.gradidoID}`.toLowerCase().includes(needle.value)
+
+// The groups the search leaves: a word narrows them by their name, as it narrows the contacts
+// by theirs. The section stands while there is a group to show -- and, with no search, once the
+// server has answered: with "Neue Gruppe", and a line that says there is none yet or that they
+// could not be loaded.
+const groupRows = computed(() =>
+  groups.value.filter((group) => !needle.value || group.title.toLowerCase().includes(needle.value)),
+)
+const groupsShown = computed(
+  () => groupRows.value.length > 0 || (groupsLoaded.value && !needle.value),
+)
 
 // Read through the composable, not the `favorite` flag the server sent: a heart given on
 // this page has to move the person up at once, without a refetch.
@@ -309,5 +493,34 @@ watch(
    and a block that alone floats to the middle looks misplaced rather than deliberate. */
 .contacts {
   max-width: 450px;
+}
+
+/* The groups' heading with "Neue Gruppe" at the right end of its line (the mockup). */
+.contacts-groups-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem 0.75rem;
+}
+
+/* A quiet outlined pill in the house's gold, as "+ Mitglieder hinzufügen" in the group's members;
+   at least a finger's height. */
+.contacts-groups-new {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 2.25rem;
+  padding: 0.2rem 0.85rem;
+  border: 1px solid var(--gold, #c58d38);
+  border-radius: 1.2rem;
+  background: transparent;
+  color: var(--bs-body-color);
+  font-size: 0.85rem;
+}
+
+.contacts-groups-new:focus-visible {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: 2px;
 }
 </style>

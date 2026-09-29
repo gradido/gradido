@@ -8,6 +8,7 @@ import ChatBubble from './ChatBubble.vue'
 import { forgetAllChatImages, rememberChatImage } from '@/composables/useChatImages'
 import { CHAT_VIDEO_JOIN } from '@/utils/chatVideoApp'
 import { withChatVideoTopic } from '@/utils/chatVideoTopic'
+import { LIST_AVATAR_SIZE } from '@/constants'
 
 /**
  * The client a picture is asked for with (ChatBubbleImage, useChatImages): each question waits for
@@ -20,6 +21,12 @@ vi.mock('@vue/apollo-composable', () => ({
       query: (options) => new Promise((resolve) => pictureServer.asked.push({ options, resolve })),
     },
   }),
+}))
+
+// The face beside somebody else's message in a group (P5) can open large (useAvatarZoom), and its
+// words come from the app's i18n instance.
+vi.mock('@/i18n', () => ({
+  default: { global: { t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key) } },
 }))
 
 vi.mock('vue-i18n', () => ({
@@ -1054,6 +1061,126 @@ describe('ChatBubble', () => {
       expect(img).toMatch(/object-position:\s*top/)
       expect(rule(pictureCode, '\\.chat-bubble-image:focus-visible')).toMatch(
         /outline:\s*2px solid/,
+      )
+    })
+  })
+
+  /**
+   * In a group (P5) the side no longer says who wrote a message: somebody else's has their face
+   * at its left and their name over it -- over the first of a run of theirs -- and an announcement
+   * is marked for everybody (E-050 F5).
+   */
+  describe('in a group', () => {
+    const CARLA = {
+      communityUuid: 'home-uuid',
+      gradidoID: 'carla-id',
+      alias: 'Carla-Sonne',
+      avatarColorIndex: 3,
+      avatarUpdatedAt: null,
+    }
+    const GROUP_THEIRS = {
+      ...THEIRS,
+      conversationId: 41,
+      groupUuid: 'cafe-uuid',
+      sender: { communityUuid: 'home-uuid', gradidoID: 'carla-id' },
+      senderUser: CARLA,
+      announcement: false,
+    }
+    const GROUP_OWN = {
+      ...OWN,
+      conversationId: 41,
+      groupUuid: 'cafe-uuid',
+      senderUser: { ...CARLA, gradidoID: 'me-id', alias: 'Bernd' },
+      announcement: false,
+    }
+
+    const mountInGroup = (message, { showWriter = true } = {}) => {
+      wrapper = mount(ChatBubble, {
+        props: { message, alias: 'Gradido-Café Berlin', inGroup: true, showWriter },
+        global: {
+          stubs: {
+            IMdiEmailOutline: { template: '<i data-test="envelope" />' },
+            IMdiCalendarPlusOutline: true,
+          },
+        },
+      })
+      return wrapper
+    }
+    const face = () => wrapper.find('[data-test="chat-bubble-face"]')
+    const name = () => wrapper.find('[data-test="chat-bubble-group-writer"]')
+
+    // Bernd, 29.09.2026: "48 px wie jede Liste" -- the face of every list, and the bubbles stand
+    // in by as much.
+    it("shows the writer's face, at the size of every list, and name over somebody else's message", () => {
+      mountInGroup(GROUP_THEIRS)
+      expect(face().exists()).toBe(true)
+      expect(face().text()).toBe('CA')
+      expect(face().attributes('style')).toContain(`width: ${LIST_AVATAR_SIZE}px`)
+      expect(LIST_AVATAR_SIZE).toBe(48)
+      expect(name().text()).toBe('Carla-Sonne')
+      expect(bubble().classes()).toContain('chat-bubble-in-group')
+      expect(bubble().attributes('style')).toContain(`--chat-bubble-face: ${LIST_AVATAR_SIZE}px`)
+    })
+
+    // The ear hears the writer inside the bubble, as in a thread of two -- not the group's name.
+    it('names the writer for the ear, and hides the visible name from it', () => {
+      mountInGroup(GROUP_THEIRS)
+      expect(wrapper.find('[data-test="chat-bubble-writer"]').text()).toBe('Carla-Sonne:')
+      expect(name().attributes('aria-hidden')).toBe('true')
+    })
+
+    it('shows neither further down a run, and keeps the bubble in line', () => {
+      mountInGroup(GROUP_THEIRS, { showWriter: false })
+      expect(face().exists()).toBe(false)
+      expect(name().exists()).toBe(false)
+      expect(bubble().classes()).toContain('chat-bubble-in-group')
+      expect(wrapper.find('[data-test="chat-bubble-writer"]').text()).toBe('Carla-Sonne:')
+    })
+
+    it("shows no face and no name at one's own message", () => {
+      mountInGroup(GROUP_OWN)
+      expect(face().exists()).toBe(false)
+      expect(name().exists()).toBe(false)
+      expect(bubble().classes()).not.toContain('chat-bubble-in-group')
+      expect(wrapper.find('[data-test="chat-bubble-writer"]').text()).toBe('chatThread.you:')
+    })
+
+    // A writer whose users row is gone: the pair stands in, and the name is their id.
+    it('names a writer the server could not name by their id', () => {
+      mountInGroup({ ...GROUP_THEIRS, senderUser: null })
+      expect(name().text()).toBe('carla-id')
+      expect(face().exists()).toBe(true)
+    })
+
+    it("marks somebody else's announcement, for everybody who reads it", () => {
+      mountInGroup({ ...GROUP_THEIRS, announcement: true })
+      expect(wrapper.find('[data-test="chat-bubble-announcement"]').text()).toBe(
+        'chatGroup.announcement',
+      )
+      wrapper.unmount()
+      mountInGroup(GROUP_THEIRS)
+      expect(wrapper.find('[data-test="chat-bubble-announcement"]').exists()).toBe(false)
+    })
+
+    // One's own announcement says so at the envelope: what was asked for, never who got it.
+    it("says at one's own envelope that it went as an announcement", () => {
+      mountInGroup({ ...GROUP_OWN, notify: 'EMAIL', announcement: true })
+      const mailed = wrapper.find('[data-test="chat-bubble-mailed"]')
+      expect(mailed.attributes('aria-label')).toBe('chatGroup.announced')
+      expect(wrapper.find('[data-test="chat-bubble-announcement"]').exists()).toBe(false)
+    })
+
+    // Gegenprobe: in a thread of two nothing of it -- no face, no name, the envelope's own word.
+    it('draws a message of two as before', () => {
+      mountBubble({ ...THEIRS, senderUser: CARLA, announcement: true })
+      expect(wrapper.find('[data-test="chat-bubble-face"]').exists()).toBe(false)
+      expect(wrapper.find('[data-test="chat-bubble-group-writer"]').exists()).toBe(false)
+      expect(wrapper.find('[data-test="chat-bubble-announcement"]').exists()).toBe(false)
+      expect(wrapper.find('[data-test="chat-bubble-writer"]').text()).toBe('Lena:')
+      wrapper.unmount()
+      mountBubble({ ...OWN, notify: 'EMAIL' })
+      expect(wrapper.find('[data-test="chat-bubble-mailed"]').attributes('aria-label')).toBe(
+        'chatThread.mailed',
       )
     })
   })

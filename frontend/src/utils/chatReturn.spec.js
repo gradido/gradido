@@ -175,6 +175,50 @@ describe('chatReturn', () => {
     })
   })
 
+  /**
+   * A group's thread (P5): the note names the group by its uuid, and the words go back to that
+   * group's field -- never to the thread with a person, nor the other way round.
+   */
+  describe('in a group', () => {
+    const CAFE = { groupUuid: 'cafe-uuid' }
+
+    it('notes the group by its uuid, and nothing of a person', () => {
+      noteChatReturn('me-id', { ...CAFE, gradidoID: 'anna-id' }, 'Bis Samstag')
+      expect(JSON.parse(stored())).toEqual({ groupUuid: 'cafe-uuid', at: NOW, text: 'Bis Samstag' })
+    })
+
+    it('gives the group back, with the words, and lets the note go', () => {
+      noteChatReturn('me-id', CAFE, 'Bis Samstag')
+      expect(takeChatReturn('me-id')).toEqual({ groupUuid: 'cafe-uuid', text: 'Bis Samstag' })
+      expect(stored()).toBeNull()
+    })
+
+    it('lets an hour-old note of a group go, as one of a person', () => {
+      noteChatReturn('me-id', CAFE)
+      vi.setSystemTime(NOW + CHAT_RETURN_MAX_AGE_MS + 1)
+      expect(takeChatReturn('me-id')).toBeNull()
+    })
+
+    it('hands the words to that group, without regard to case, once', () => {
+      holdChatText({ ...CAFE, text: 'Bis Samstag' })
+      expect(takeHeldChatText({ groupUuid: 'CAFE-UUID' })).toBe('Bis Samstag')
+      expect(takeHeldChatText(CAFE)).toBe('')
+    })
+
+    it('gives another group, and a person, nothing', () => {
+      holdChatText({ ...CAFE, text: 'Bis Samstag' })
+      expect(takeHeldChatText({ groupUuid: 'garten-uuid' })).toBe('')
+      holdChatText({ ...CAFE, text: 'Bis Samstag' })
+      expect(takeHeldChatText(ANNA)).toBe('')
+    })
+
+    // The other way round: a person's words never land in a group's field.
+    it("gives a group nothing of a person's words", () => {
+      holdChatText({ ...ANNA, text: 'Hier ist die Datei:' })
+      expect(takeHeldChatText({ ...CAFE, gradidoID: 'anna-id' })).toBe('')
+    })
+  })
+
   // The page came back into sight, or the thread closed: the note goes. Words a start holds stay
   // for the thread that has not taken them yet -- one whose first page failed (coderabbit, #3999).
   describe('dropChatReturnNote', () => {

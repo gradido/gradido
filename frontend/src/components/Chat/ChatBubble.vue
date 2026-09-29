@@ -4,14 +4,37 @@
     class="chat-bubble-row"
     :class="[
       message.mine ? 'chat-bubble-mine' : 'chat-bubble-theirs',
-      { 'chat-bubble-transfer': message.transfer },
+      { 'chat-bubble-transfer': message.transfer, 'chat-bubble-in-group': face },
     ]"
+    :style="face ? { '--chat-bubble-face': `${LIST_AVATAR_SIZE}px` } : undefined"
     data-test="chat-bubble"
   >
     <!-- One message, one list item: the thread is a list (ChatThread). Own messages on the
          right, the other person's on the left (E-014); in a conversation of two there is no
          face at the bubble -- whose it is, the side says. (Inside the item, not above it: a
-         comment beside the root would make two roots in development.) -->
+         comment beside the root would make two roots in development.)
+
+         In a group (P5) the side no longer says who: somebody else's message has their face at
+         its left and their name over it -- over the first of a run of theirs, as messengers do,
+         the bubbles after it in line with it (the mockup). The name is for the eye: the ear hears
+         it inside the bubble, as in a thread of two. -->
+    <template v-if="face && showWriter">
+      <app-avatar
+        class="chat-bubble-face"
+        :size="LIST_AVATAR_SIZE"
+        :color="'#fff'"
+        v-bind="face"
+        data-test="chat-bubble-face"
+      />
+      <div class="chat-bubble-writer" aria-hidden="true" data-test="chat-bubble-group-writer">
+        {{ writerName }}
+      </div>
+    </template>
+    <!-- An announcement (E-050 F5): it went to everybody by mail, or could have -- marked for all
+         who read it, as in the mockup. Read out before the message it belongs to. -->
+    <div v-if="announced" class="chat-bubble-announcement" data-test="chat-bubble-announcement">
+      {{ t('chatGroup.announcement') }}
+    </div>
     <div class="chat-bubble" :class="{ 'has-image': image }">
       <!-- ⛔ The side is the ONLY thing that says who wrote a message, and a screen reader
            does not see sides. So the writer is named in words, for the ear only. -->
@@ -62,8 +85,8 @@
           v-if="mailed"
           class="chat-bubble-mailed"
           role="img"
-          :aria-label="t('chatThread.mailed')"
-          :title="t('chatThread.mailed')"
+          :aria-label="mailedWords"
+          :title="mailedWords"
           data-test="chat-bubble-mailed"
         >
           <i-mdi-email-outline aria-hidden="true" />
@@ -93,10 +116,15 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import AppAvatar from '@/components/AppAvatar.vue'
 import ChatBubbleImage from '@/components/Chat/ChatBubbleImage.vue'
 import ChatMessageText from '@/components/Chat/ChatMessageText'
 import ChatTransferCoin from '@/components/Chat/ChatTransferCoin.vue'
 import MemoText from '@/components/TransactionRows/MemoText'
+import { avatarZoomBindings } from '@/composables/useAvatarZoom'
+import { memberAvatarProps } from '@/composables/useMemberAvatars'
+import { LIST_AVATAR_SIZE } from '@/constants'
+import { memberAlias } from '@/utils/gradidoAddress'
 import {
   chatVideoCalendarFile,
   chatVideoCalendarFileName,
@@ -119,10 +147,21 @@ const MAIL_MAILED = 'MAILED'
 const MAIL_MUTED = 'MUTED'
 
 const props = defineProps({
-  /** One message of chatMessagesWithMemberQuery. */
+  /** One message of chatMessagesWithMemberQuery -- or of chatGroupMessagesQuery in a group. */
   message: { type: Object, required: true },
-  /** The other person's name -- what a screen reader hears over their messages. */
+  /**
+   * The other person's name -- what a screen reader hears over their messages. In a group, the
+   * group's name (a planned call's calendar entry is named after it); the writer of a message
+   * comes with the message there.
+   */
   alias: { type: String, default: '' },
+  /** Whether the message stands in a group's thread (P5): then who wrote it is shown at it. */
+  inGroup: { type: Boolean, default: false },
+  /**
+   * In a group: whether the face and the name stand over this message -- the first of a run by
+   * the same writer. The thread decides it; it knows the message before.
+   */
+  showWriter: { type: Boolean, default: true },
 })
 
 /**
@@ -133,8 +172,47 @@ const emit = defineEmits(['openImage'])
 
 const { t, d } = useI18n()
 
+/**
+ * Who wrote a message of somebody else in a group (P5), as the server named them with it; null in
+ * a thread of two, and for one's own. Where their users row is gone the pair stands in, and the
+ * face shows no letters.
+ */
+const groupWriter = computed(() => {
+  if (!props.inGroup || props.message.mine) return null
+  return (
+    props.message.senderUser ?? {
+      gradidoID: props.message.sender?.gradidoID,
+      communityUuid: props.message.sender?.communityUuid ?? null,
+    }
+  )
+})
+
+/** The name over and in a message: "Du", the writer in a group, the other person otherwise. */
+const writerName = computed(() => {
+  if (props.message.mine) return t('chatThread.you')
+  const user = groupWriter.value
+  return user ? memberAlias(user.alias, user.gradidoID) : props.alias
+})
+
 /** "You:" or the other person's name, with the colon a listener hears as a pause. */
-const writer = computed(() => `${props.message.mine ? t('chatThread.you') : props.alias}:`)
+const writer = computed(() => `${writerName.value}:`)
+
+/**
+ * The writer's face beside their message in a group, through the helper every list uses: letters
+ * from the alias, colour from the digit the server sent, the picture where there is one -- and then
+ * it opens large, as every face does. Null where no face stands (a thread of two, one's own).
+ */
+const face = computed(() => {
+  const user = groupWriter.value
+  if (!user) return null
+  const base = memberAvatarProps(user)
+  return { ...base, ...avatarZoomBindings(user, base) }
+})
+
+/** Somebody else's announcement in a group (E-050 F5): the mark over it. */
+const announced = computed(
+  () => props.inGroup && !props.message.mine && Boolean(props.message.announcement),
+)
 
 const arrived = computed(() => new Date(props.message.createdAt))
 const arrivedIso = computed(() => arrived.value.toISOString())
@@ -171,6 +249,14 @@ const mailed = computed(() => {
   if (props.message.mailState) return false
   return props.message.notify === NOTIFY_EMAIL && !stateWord.value
 })
+
+/**
+ * What the envelope says. In a group (P5) one's own mail was an announcement to all (E-050 F5): the
+ * bubble says what was asked for, never who got it (E-024).
+ */
+const mailedWords = computed(() =>
+  props.inGroup ? t('chatGroup.announced') : t('chatThread.mailed'),
+)
 
 /**
  * The line where no mail went out because the recipient muted the conversation (E-034). There is
@@ -288,6 +374,47 @@ const addToCalendar = () => {
 .chat-bubble-theirs .chat-bubble {
   background: var(--surface-muted, #f2f4f6);
   border-bottom-left-radius: 0.3rem;
+}
+
+/* In a group (P5): somebody else's messages stand in by a face and a gap, the face at the top of
+   the first of a run -- beside the writer's name -- and the bubbles after it in line with it. The
+   face is a list's (LIST_AVATAR_SIZE, Bernd 29.09.2026: 48 px as in every list); its size comes
+   from the component (`--chat-bubble-face`). */
+.chat-bubble-in-group {
+  position: relative;
+  padding-left: calc(var(--chat-bubble-face, 48px) + 0.45rem);
+}
+
+.chat-bubble-face {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* The writer's name over the first of their run: small and muted, on one line however long -- on
+   the window's own surface, where the muted grey reads in both modes (the date line's measure). */
+.chat-bubble-writer {
+  max-width: 80%;
+  margin: 0 0 0.1rem 0.35rem;
+  overflow: hidden;
+  color: var(--bs-secondary-color, #6c757d);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* "Ankündigung" over somebody else's announcement: a small pill in the gold of one's own bubbles,
+   the word in the text colour, as "In den Kalender" is drawn. */
+.chat-bubble-announcement {
+  margin: 0 0 0.15rem 0.35rem;
+  padding: 0 0.5rem;
+  border: 1px solid var(--gold, #c58d38);
+  border-radius: 1rem;
+  color: var(--bs-body-color);
+  font-size: 0.7rem;
+  line-height: 1.5;
 }
 
 /* One's own: a gold rim on a light gold surface (the mockup, E-029). The gold is the

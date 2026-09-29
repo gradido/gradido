@@ -170,7 +170,13 @@ describe('sendChatGroupMessage, what the resolver decides itself', () => {
     expect(insert).toHaveBeenCalledWith(
       expect.objectContaining({ conversationId: group.id, body: TEXT, notify: 'none' }),
     )
-    expect(copy).toMatchObject({ mine: true, groupUuid: GROUP, notify: 'none', mailState: null })
+    expect(copy).toMatchObject({
+      mine: true,
+      groupUuid: GROUP,
+      notify: 'none',
+      mailState: null,
+      announcement: false,
+    })
     expect(copy.senderUser?.gradidoID).toBe(LENA)
     await mailsSent()
     expect(allRows).not.toHaveBeenCalled()
@@ -203,7 +209,7 @@ describe('sendChatGroupMessage, what the resolver decides itself', () => {
       hasImage: false,
     })
     // The copy says what was asked for, never who got a mail (E-024).
-    expect(copy).toMatchObject({ notify: 'email', mailState: null })
+    expect(copy).toMatchObject({ notify: 'email', mailState: null, announcement: true })
   })
 
   it("mails an announcement of the group's owner as well", async () => {

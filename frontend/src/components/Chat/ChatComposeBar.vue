@@ -210,8 +210,12 @@
 
     <!-- The sender's wish for THIS message (E-024): empty by default, and empty again after
          every message sent -- a mail is the exception somebody asks for, not a setting. A real
-         checkbox with its word beside it (E-029: a symbol without a word is not read by many). -->
-    <div v-if="!first" class="chat-compose-options">
+         checkbox with its word beside it (E-029: a symbol without a word is not read by many).
+
+         In a group (P5) it is the announcement (E-050 F5): by mail to every member but the sender
+         who has not muted the group -- the owner's and the moderators' only, and only where
+         anybody else is in the group. -->
+    <div v-if="boxShown" class="chat-compose-options">
       <!-- The box and its word as ONE thing, the box inside its label: a long word (in
            Russian the whole sentence) wraps beside the box instead of the row putting the
            word on a line of its own under an empty-looking box. -->
@@ -222,8 +226,8 @@
           class="chat-compose-check-box"
           data-test="chat-compose-email"
         />
-        <span class="chat-compose-check-text">
-          {{ alsoByEmail ? t('chatThread.alsoByEmailTo', { name }) : t('chatThread.alsoByEmail') }}
+        <span class="chat-compose-check-text" data-test="chat-compose-email-words">
+          {{ boxWords }}
         </span>
       </label>
       <!-- No sentence beside it on what an empty box means: the desk has the phone's label and
@@ -361,6 +365,12 @@ const props = defineProps({
    * over (utils/chatReturn). Read once, when the bar is made.
    */
   initialText: { type: String, default: '' },
+  /** A group's bar (P5): `name` is the group's, and the box is the announcement. */
+  group: { type: Boolean, default: false },
+  /** In a group: whether the member may announce -- the owner and the moderators (E-050 F5). */
+  canAnnounce: { type: Boolean, default: false },
+  /** In a group: how many would get the announcement at most -- everybody but the sender. */
+  announceTo: { type: Number, default: 0 },
 })
 
 const emit = defineEmits(['send'])
@@ -403,11 +413,31 @@ const preparing = ref(false)
 const pictureProblem = ref(null)
 
 /** With a picture, the words are its caption, and optional (E-044). */
-const placeholder = computed(() =>
-  picture.value || preparing.value
-    ? t('chatThread.imageCaption')
-    : t('chatThread.placeholder', { name: props.name }),
-)
+const placeholder = computed(() => {
+  if (picture.value || preparing.value) return t('chatThread.imageCaption')
+  return props.group
+    ? t('chatGroup.placeholder', { name: props.name })
+    : t('chatThread.placeholder', { name: props.name })
+})
+
+/** Whether the box stands: not before the first message of two, and in a group for those who may. */
+const boxShown = computed(() => (props.group ? props.canAnnounce : !props.first))
+
+/**
+ * The box's words, which say what a tick does. Ticked, they name who it goes to: the person, or --
+ * in a group -- how many at most (the sender does not learn who muted, E-024). Written-out keys,
+ * for the i18n lint.
+ */
+const boxWords = computed(() => {
+  if (props.group) {
+    return alsoByEmail.value
+      ? t('chatGroup.announceTo', { n: props.announceTo }, props.announceTo)
+      : t('chatGroup.announce')
+  }
+  return alsoByEmail.value
+    ? t('chatThread.alsoByEmailTo', { name: props.name })
+    : t('chatThread.alsoByEmail')
+})
 
 /** What is sent: the text without the space around it. */
 const body = computed(() => text.value.trim())
@@ -498,7 +528,9 @@ const submit = async () => {
   const pressed = {
     text: text.value,
     body: body.value,
-    alsoByEmail: alsoByEmail.value,
+    // Only a box that stands counts: one ticked by a moderator who is none any more, since the
+    // group's window told the bar, is no wish.
+    alsoByEmail: alsoByEmail.value && boxShown.value,
     picture: picture.value,
   }
   let image = null
