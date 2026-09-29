@@ -1,6 +1,8 @@
 // AI-GENERATED — not an architecture reference
 import { afterEach, beforeAll, describe, expect, it, jest, mock } from 'bun:test'
+import { getLogger } from '../../../config-schema/test/testSetup.bun'
 import { CONFIG } from '../config'
+import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
 import * as sendEmailTranslatedApi from './sendEmailTranslated'
 import { sendChatGroupAddedEmail, sendChatGroupMessageEmail } from './sendEmailVariants'
 
@@ -178,6 +180,36 @@ describe('the mails of a chat group', () => {
       expect(html).toContain('The message contains a picture')
       expect(html).not.toMatch(/<img[^>]*data:image\/jpeg/)
     })
+  })
+
+  // Coderabbit on #4012: the group's uuid and the names of the values, never its name or the text.
+  it('writes neither the group name nor the text nor the address into the log', async () => {
+    const loggers = ['sendEmailVariants', 'sendEmailTranslated'].map((name) =>
+      getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.emails.${name}`),
+    )
+    const levels = ['trace', 'debug', 'info', 'warn', 'error']
+    for (const logger of loggers) {
+      for (const level of levels) {
+        logger[level].mockClear()
+      }
+    }
+    const group = { groupTitle: 'Selbsthilfe Amstetten', groupUuid }
+    await sendChatGroupAddedEmail({ ...recipient, ...group, adderAlias: 'bibi', memberCount: 5 })
+    await sendChatGroupMessageEmail({
+      ...recipient,
+      ...group,
+      senderAlias: 'bibi',
+      memo: 'Treffen am Samstag bei Anna',
+    })
+    const logged = loggers
+      .flatMap((logger) => levels.flatMap((level) => logger[level].mock.calls))
+      .flat()
+      .map(String)
+      .join('\n')
+    expect(logged).toContain(groupUuid)
+    for (const secret of ['Amstetten', 'Treffen am Samstag', recipient.email, recipient.lastName]) {
+      expect(logged).not.toContain(secret)
+    }
   })
 
   // Both mails come in each of the ten languages: a key missing in one of them would put the

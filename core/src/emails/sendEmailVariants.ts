@@ -398,7 +398,8 @@ export const sendTransactionReceivedEmail = (
  * Sent once, when the member is taken in; the member can leave the group or mute it there.
  *
  * `adderAlias`: who took them in -- an alias, never a real name (the recipient may not know
- * them). Nothing of the group but its uuid goes into this function's log.
+ * them). Nothing of the group but its uuid goes into the log -- sendEmailTranslated writes the
+ * names of the values, not the values.
  */
 export const sendChatGroupAddedEmail = (
   data: EmailCommonData & {
@@ -423,7 +424,8 @@ export const sendChatGroupAddedEmail = (
  * (`/contacts?group=`, E-049) -- there the member can also mute it.
  *
  * `hasImage` as in sendCustomEmail: a line says there is a picture, and the mail shows none
- * (MAIL-008). Neither the text nor the group's name goes into this function's log.
+ * (MAIL-008). Neither the text nor the group's name goes into the log -- sendEmailTranslated
+ * writes the names of the values, not the values.
  */
 export const sendChatGroupMessageEmail = (
   data: EmailCommonData & {
@@ -457,8 +459,9 @@ export const sendCustomEmail = (
     hasImage?: boolean
   },
 ): Promise<Record<string, unknown> | boolean | null | Error> => {
-  const logger = createLogger()
-  logger.debug(`sendCustomEmail(data=${JSON.stringify(data)})`)
+  // The sender's uuid and nothing of the message -- neither its text nor its subject nor the
+  // address it goes to (coderabbit on #4012).
+  createLogger().debug(`sendCustomEmail(sender=${data.senderUuid ?? 'unknown'})`)
   return sendEmailTranslated({
     receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
     template: 'customEmail',
