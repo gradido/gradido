@@ -250,6 +250,14 @@ describe('ChatThread in a group', () => {
   })
 
   // A transfer is between two (E-050 F6): no booking list is asked in a group.
+  // E-053: the name over a message leads to its writer; the thread hands them to the window.
+  it('hands the writer whose name was tapped on to the window', async () => {
+    mountThread()
+    await arrive(page([message(1, { writer: 'anna' })]))
+    await bubbles()[0].vm.$emit('openMember', WRITERS.anna)
+    expect(wrapper.emitted('openMember')).toEqual([[WRITERS.anna]])
+  })
+
   it('asks for no transfers', async () => {
     mountThread()
     await arrive(page([message(1)]))

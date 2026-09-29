@@ -54,12 +54,23 @@ const modalAttributes = () => {
 }
 
 /**
- * Every `<BModal …>` opening tag in the file, the window's and the question before a video call
- * (V2) -- the comments taken out first, so a tag named in prose is not read as one.
+ * The questions before starting and joining a call (V2, V4b) stand in a component of their own
+ * since E-053 (ChatVideoCall), which this window renders: they are read with it.
+ */
+const videoSource = readFileSync(
+  join(dirname(fileURLToPath(import.meta.url)), '../Chat/ChatVideoCall.vue'),
+  'utf8',
+)
+
+/**
+ * Every `<BModal …>` opening tag of the window and of its questions before a video call, in this
+ * order -- the comments taken out first, so a tag named in prose is not read as one.
  */
 const allModalTags = () =>
-  [...source.replace(/<!--[\s\S]*?-->/g, '').matchAll(/<BModal\b([\s\S]*?)>/g)].map((m) =>
-    namesOn(m[1]),
+  [source, videoSource].flatMap((text) =>
+    [...text.replace(/<!--[\s\S]*?-->/g, '').matchAll(/<BModal\b([\s\S]*?)>/g)].map((m) =>
+      namesOn(m[1]),
+    ),
   )
 
 const camel = (name) => name.replace(/-([a-z])/g, (unused, letter) => letter.toUpperCase())
@@ -140,8 +151,8 @@ describe('ContactWindow and the modal it opens', () => {
   })
 
   /**
-   * The question before a video call (V2) is a second dialog in this file, and the question
-   * before joining one (V4b) a third; the same two rules hold for them: only names the library
+   * The question before a video call (V2) is a second dialog, and the question before joining
+   * one (V4b) a third (both in ChatVideoCall since E-053); the same two rules hold for them: only names the library
    * declares, and a name of its own where there is no header to be named by.
    */
   it('holds every dialog in the file to the names the library declares', () => {
@@ -160,7 +171,7 @@ describe('ContactWindow and the modal it opens', () => {
 
   /**
    * V4a: the question waits for `shown` before it lets the topic field into the tab order
-   * (ContactWindow, `videoAskOpened`). The event is the library's, so it is held here by the
+   * (ChatVideoCall, `videoAskOpened`). The event is the library's, so it is held here by the
    * name the package declares -- and a misspelt listener would be caught as an unknown name.
    */
   it('listens for an event the library declares, and it reads the events at all', () => {

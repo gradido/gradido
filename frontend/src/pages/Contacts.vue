@@ -159,6 +159,7 @@
       :group="openedGroup"
       :contacts="contacts"
       @changed="reloadGroups"
+      @open-member="openGroupMember"
     />
     <chat-group-create v-model="createOpen" :contacts="contacts" @created="groupCreated" />
   </div>
@@ -168,6 +169,7 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useApolloClient, useQuery } from '@vue/apollo-composable'
+import { useStore } from 'vuex'
 import { BFormInput, BPagination, BSpinner } from 'bootstrap-vue-next'
 import ChatGroupCreate from '@/components/ChatGroups/ChatGroupCreate.vue'
 import ChatGroupRow from '@/components/ChatGroups/ChatGroupRow.vue'
@@ -184,7 +186,9 @@ import { ensureFavorites, isFavorite } from '@/composables/useFavorites'
 import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
 import { useAppToast } from '@/composables/useToast'
 import { PAGE_SIZE } from '@/constants'
+import { chatMemberKey } from '@/utils/chatMemberKey'
 import { memberKey } from '@/utils/gradidoAddress'
+import { SEND_TYPES } from '@/utils/sendTypes'
 
 /**
  * The whole list in one answer, then favourites, search and pages on this device.
@@ -290,6 +294,30 @@ watch(groupWindowOpen, (isOpen) => {
 watch(openedGroup, (group) => {
   if (!group && groupWindowOpen.value) groupWindowOpen.value = false
 })
+
+/**
+ * A member named in a group -- in its list of members, or over their message (E-053). Where they
+ * are a contact, their contact window opens OVER the group's: closing it leads back into the
+ * group. Otherwise the send form, with their community and name (Gradido, or an e-mail one tab
+ * over), where a first word to them begins; the page and the group's window go with it.
+ *
+ * Who is a contact is this page's list, by the pair without regard to case -- the group's members
+ * are all of this community in P5 (E-026), and a missing community is this one.
+ */
+const store = useStore()
+const openGroupMember = (user) => {
+  if (!user?.gradidoID) return
+  const home = store.state.communityUuid
+  const key = chatMemberKey(user, home)
+  const contact = contacts.value.find((held) => chatMemberKey(held.user, home) === key)
+  if (contact) {
+    open(contact)
+    return
+  }
+  const community = user.communityUuid ?? home
+  if (!community) return
+  router.push({ path: `/send/${community}/${user.gradidoID}`, query: { art: SEND_TYPES.send } })
+}
 
 /**
  * "Neue Gruppe" (P5): the dialog, and what follows a group opened in it -- it stands in the list at
