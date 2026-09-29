@@ -167,3 +167,48 @@ describe('sendEmailTranslated', () => {
     })
   })
 })
+
+// Coderabbit on #4012: the log gets what a mail is -- its template and the names of its values --
+// and none of the values: no text a member wrote, no group name, no name, no address, no link
+// with a key in it.
+describe('the log of a mail', () => {
+  const values = {
+    memo: 'Treffen am Samstag bei Anna',
+    subject: 'Über Samstag',
+    groupTitle: 'Selbsthilfe Amstetten',
+    firstName: 'Peter',
+    lastName: 'Lustig',
+    email: 'peter@lustig.de',
+    resetLink: 'https://gradido.net/reset-password/a1b2c3d4e5',
+  }
+  const logged = (): string =>
+    ['trace', 'debug', 'info', 'warn', 'error']
+      .flatMap((level) => logger[level].mock.calls)
+      .flat()
+      .map(String)
+      .join('\n')
+
+  beforeEach(async () => {
+    jest.clearAllMocks()
+    CONFIG.EMAIL = true
+    CONFIG.EMAIL_TEST_MODUS = false
+    await sendEmailTranslated({
+      receiver: { to: 'Peter Lustig <peter@lustig.de>', cc: 'support@gradido.net' },
+      template: 'chatGroupMessage',
+      locals: { language: 'de', ...values },
+    })
+  })
+
+  it('names the template and the values the mail carries', () => {
+    expect(logged()).toContain('template=chatGroupMessage')
+    expect(logged()).toContain('memo,subject,groupTitle')
+  })
+
+  it('writes none of the values', () => {
+    for (const value of Object.values(values)) {
+      expect(logged()).not.toContain(value)
+    }
+    expect(logged()).not.toContain('a1b2c3d4e5')
+    expect(logged()).not.toContain('support@gradido.net')
+  })
+})

@@ -36,6 +36,19 @@
       "subject": "Подтвердите ваш адрес электронной почты",
       "title": "Ваш аккаунт Gradido готов"
     },
+    "chatGroupAdded": {
+      "inTheGroup": "участников в группе: {memberCount}. Все они видят ваше имя пользователя.",
+      "leaveAnyTime": "Вы можете в любой момент отключить уведомления группы или выйти из неё в своём аккаунте Gradido.",
+      "openGroup": "Открыть группу",
+      "subject": "Теперь вы в группе «{groupTitle}»",
+      "title": "Пользователь {adderAlias} добавил вас в группу «{groupTitle}»"
+    },
+    "chatGroupMessage": {
+      "announcement": "пользователь {senderAlias} отправил сообщение всем участникам группы как объявление.",
+      "muteHint": "Не хотите больше получать объявления по электронной почте? Нажмите на колокольчик в группе в своём аккаунте Gradido.",
+      "subject": "Объявление в группе «{groupTitle}» от {senderAlias}",
+      "title": "{senderAlias} пишет в группе «{groupTitle}»"
+    },
     "contribution": {
       "toSeeContributionsAndMessages": "Ваши вклады в общее благо и сообщения к ним вы найдёте в вашем аккаунте Gradido."
     },

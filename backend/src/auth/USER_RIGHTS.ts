@@ -73,6 +73,9 @@ export const USER_RIGHTS = [
   // "send an e-mail": it acts outward. Not on RESTRICTED_FOR_PROJECT_ACCOUNT -- a project
   // account does not create (ES-021), and it writes like anybody else.
   RIGHTS.SEND_CHAT_MESSAGE,
+  // Opening and running a chat group (P5). On RESTRICTED_WHILE_UNCONFIRMED: taking somebody in
+  // sends them a mail. Not on RESTRICTED_FOR_PROJECT_ACCOUNT, as writing is not.
+  RIGHTS.MANAGE_CHAT_GROUPS,
   // The first creation: status, submit and skip all act on the caller's own process. Also
   // on RESTRICTED_WHILE_UNCONFIRMED: inside the 24-hour window (EM-013) it is open, after
   // it the whole window closes with the other value-creating rights.

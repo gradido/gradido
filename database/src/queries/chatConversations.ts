@@ -1,8 +1,10 @@
 // AI-GENERATED — not an architecture reference
-import { and, eq, isNull, ne, or, sql } from 'drizzle-orm'
+import { and, eq, inArray, isNull, ne, or, sql } from 'drizzle-orm'
 import { alias as aliasedTable } from 'drizzle-orm/mysql-core'
+import { VoidResult } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
 import { drizzleDb } from '../AppDatabase'
+import { DBNotFoundError } from '../errorTypes'
 import {
   ChatConversationSelect,
   chatConversationMembersTable,
@@ -11,6 +13,8 @@ import {
 } from '../schemas/drizzle.schema'
 import { ChatMemberRef, dbInsertChatConversationMembers } from './chatConversationMembers'
 import { dbSelectUsersByUuids } from './user'
+
+const ChatGroupNotFound = (where: string) => new DBNotFoundError('chat_conversations', where)
 
 /**
  * The key of the direct conversation between two members: each as `communityUuid/gradidoId`,
@@ -163,4 +167,159 @@ export async function dbSelectDirectChatContactsByMember(member: ChatMemberRef) 
       unreadChatMessages: conversation.unreadChatMessages,
     }
   })
+}
+
+/**
+ * A group (P5) by the uuid it is known by -- to the wallet, and in the links of its mails -- or
+ * null: no such conversation, or one that is not a group. The uuid of a direct conversation does
+ * not make it a group.
+ */
+export async function dbFindChatGroupByUuid(
+  groupUuid: string,
+): Promise<ChatConversationSelect | null> {
+  const rows = await drizzleDb()
+    .select()
+    .from(chatConversationsTable)
+    .where(
+      and(
+        eq(chatConversationsTable.conversationUuid, groupUuid),
+        eq(chatConversationsTable.kind, 'group'),
+      ),
+    )
+    .limit(1)
+  return rows.at(0) ?? null
+}
+
+/**
+ * Opens a group (P5): its row, with the community it lives in (E-026: the founder's) and who
+ * opened it. The members go in separately (dbInsertChatConversationMembers), the founder as the
+ * owner.
+ *
+ * The uuid is the caller's: the group is known by it from the first moment on. A second group
+ * under the same uuid is a bug in the caller -- the unique key refuses the row, and that is
+ * thrown (AGENTS.md, programmer error). Not wrapped in Result: with valid input it always hands
+ * back the row.
+ */
+export async function dbInsertChatGroup(group: {
+  groupUuid: string
+  title: string
+  homeCommunityUuid: string
+  createdBy: ChatMemberRef
+}): Promise<ChatConversationSelect> {
+  await drizzleDb().insert(chatConversationsTable).values({
+    conversationUuid: group.groupUuid,
+    kind: 'group',
+    homeCommunityUuid: group.homeCommunityUuid,
+    title: group.title,
+    createdByCommunityUuid: group.createdBy.communityUuid,
+    createdByGradidoId: group.createdBy.gradidoId,
+  })
+  const row = await dbFindChatGroupByUuid(group.groupUuid)
+  if (!row) {
+    throw new Error(`chat_conversations: no group ${group.groupUuid} right after writing it`)
+  }
+  return row
+}
+
+/**
+ * Gives the group another name. DBNotFoundError where no group has this id -- a direct
+ * conversation has none to change; nothing is written then. Writing the name it has already is a
+ * success: mysql2 connects with FOUND_ROWS, so `affectedRows` counts the matched row.
+ */
+export async function dbUpdateChatGroupTitle(
+  conversationId: number,
+  title: string,
+): Promise<VoidResult<DBNotFoundError>> {
+  const result = await drizzleDb()
+    .update(chatConversationsTable)
+    .set({ title })
+    .where(
+      and(eq(chatConversationsTable.id, conversationId), eq(chatConversationsTable.kind, 'group')),
+    )
+  const firstRow = result[0]
+  if (firstRow && firstRow.affectedRows === 1) {
+    return { success: true }
+  }
+  return { success: false, error: ChatGroupNotFound(`id = ${conversationId} and kind = 'group'`) }
+}
+
+/**
+ * Which of these conversations are groups, by id, and the uuid each is known by. A message
+ * carries its group's uuid (P5), so that the wallet sorts it into the group -- never into the
+ * thread with its sender, which an empty thread would otherwise take it for. One query for a
+ * whole page or update; direct conversations are not in the answer.
+ */
+export async function dbSelectChatGroupUuids(
+  conversationIds: number[],
+): Promise<Map<number, string>> {
+  const ids = [...new Set(conversationIds)]
+  if (ids.length === 0) {
+    return new Map()
+  }
+  const rows = await drizzleDb()
+    .select({ id: chatConversationsTable.id, groupUuid: chatConversationsTable.conversationUuid })
+    .from(chatConversationsTable)
+    .where(and(inArray(chatConversationsTable.id, ids), eq(chatConversationsTable.kind, 'group')))
+  return new Map(rows.map((row) => [row.id, row.groupUuid]))
+}
+
+/**
+ * The groups this member is in (P5), with what the list and the group's window show of each: who
+ * opened it, the member's own role and mute mark, since when they are in it, how many members it
+ * has, how many messages wait unread for this member, and when the latest one arrived here
+ * (E-018).
+ *
+ * Unread as everywhere in the chat: above the member's own read pointer, written by somebody
+ * else, not marked deleted (dbSelectChatUnreadSummary counts it per conversation, this per
+ * message). The latest message is the top entry of the group in the index on
+ * (conversation_id, id), read one step backwards from its end, not with max() (P4a: max() in a
+ * correlated subquery reads the group's whole range).
+ *
+ * Newest activity first -- the latest message, or the opening of a group without one.
+ */
+export async function dbSelectChatGroupsByMember(member: ChatMemberRef) {
+  const me = aliasedTable(chatConversationMembersTable, 'me')
+  const ofThisGroup = sql`${chatMessagesTable.conversationId} = ${chatConversationsTable.id}`
+  const aboveMyPointer = sql`${chatMessagesTable.id} > coalesce(${me.lastReadMessageId}, 0)`
+  const writtenByMe = sql`${chatMessagesTable.senderCommunityUuid} = ${me.communityUuid} and ${chatMessagesTable.senderGradidoId} = ${me.gradidoId}`
+  const groups = await drizzleDb()
+    .select({
+      id: chatConversationsTable.id,
+      groupUuid: chatConversationsTable.conversationUuid,
+      title: chatConversationsTable.title,
+      homeCommunityUuid: chatConversationsTable.homeCommunityUuid,
+      createdAt: chatConversationsTable.createdAt,
+      createdByCommunityUuid: chatConversationsTable.createdByCommunityUuid,
+      createdByGradidoId: chatConversationsTable.createdByGradidoId,
+      role: me.role,
+      joinedAt: me.joinedAt,
+      mutedAt: me.mutedAt,
+      memberCount:
+        sql`(select count(*) from ${chatConversationMembersTable} where ${chatConversationMembersTable.conversationId} = ${chatConversationsTable.id})`.mapWith(
+          Number,
+        ),
+      unreadMessages:
+        sql`(select count(*) from ${chatMessagesTable} where ${ofThisGroup} and ${aboveMyPointer} and ${chatMessagesTable.deletedAt} is null and not (${writtenByMe}))`.mapWith(
+          Number,
+        ),
+      // Null for a group without a message yet: decoded the column's way where there is one.
+      lastMessageAt:
+        sql`(select ${chatMessagesTable.createdAt} from ${chatMessagesTable} where ${ofThisGroup} and ${chatMessagesTable.deletedAt} is null order by ${chatMessagesTable.id} desc limit 1)`.mapWith(
+          (value): Date | null =>
+            value === null ? null : (chatMessagesTable.createdAt.mapFromDriverValue(value) as Date),
+        ),
+    })
+    .from(chatConversationsTable)
+    .innerJoin(
+      me,
+      and(
+        eq(me.conversationId, chatConversationsTable.id),
+        eq(me.communityUuid, member.communityUuid),
+        eq(me.gradidoId, member.gradidoId),
+      ),
+    )
+    .where(eq(chatConversationsTable.kind, 'group'))
+  const lastActivity = (group: (typeof groups)[number]) =>
+    (group.lastMessageAt ?? group.createdAt).getTime()
+  return groups.sort((a, b) => lastActivity(b) - lastActivity(a) || b.id - a.id)
 }

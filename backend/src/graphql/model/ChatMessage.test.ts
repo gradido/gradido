@@ -1,5 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { ChatMessage } from '@model/ChatMessage'
+import { User } from '@model/User'
 import { ChatMessageSelect } from 'database'
 
 const HOME = '11111111-1111-4111-8111-111111111111'
@@ -74,5 +75,24 @@ describe('ChatMessage', () => {
       mine: true,
       deliveryState: 'failed',
     })
+  })
+
+  // P5: the group sorts the message into the group, never into the thread with its writer, and
+  // the writer comes with it for the name and the face.
+  it('carries the group and its writer for a message written in a group', () => {
+    const anna = new User(null)
+    anna.gradidoID = ANNA.gradidoId
+    anna.alias = 'anna'
+    const groupUuid = '20000000-0000-4000-8000-000000000002'
+    const message = new ChatMessage(annasMessage, BEN, [], { groupUuid, senderUser: anna })
+    expect(message.groupUuid).toBe(groupUuid)
+    expect(message.senderUser).toBe(anna)
+    expect(message).toMatchObject({ mine: false, conversationId: 3 })
+  })
+
+  it('carries neither in a direct conversation', () => {
+    const message = new ChatMessage(annasMessage, BEN)
+    expect(message.groupUuid).toBeNull()
+    expect(message.senderUser).toBeNull()
   })
 })

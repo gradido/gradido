@@ -677,6 +677,108 @@ export const setChatConversationMuted = gql`
   }
 `
 
+export const createChatGroup = gql`
+  mutation ($title: String!, $members: [MemberAvatarRefInput!]!) {
+    createChatGroup(title: $title, members: $members) {
+      groupUuid
+      conversationId
+      title
+      communityName
+      createdBy {
+        gradidoID
+        alias
+      }
+      role
+      memberCount
+      unreadMessages
+      lastMessageAt
+      mutedByMe
+    }
+  }
+`
+
+export const sendChatGroupMessage = gql`
+  mutation ($groupUuid: String!, $body: String!, $announce: Boolean!, $image: ChatImageInput) {
+    sendChatGroupMessage(groupUuid: $groupUuid, body: $body, announce: $announce, image: $image) {
+      id
+      messageUuid
+      conversationId
+      groupUuid
+      sender {
+        communityUuid
+        gradidoID
+      }
+      senderUser {
+        gradidoID
+        alias
+      }
+      mine
+      subject
+      body
+      deliveryState
+      notify
+      mailState
+      images {
+        imageUuid
+        width
+        height
+      }
+    }
+  }
+`
+
+export const addChatGroupMembers = gql`
+  mutation ($groupUuid: String!, $members: [MemberAvatarRefInput!]!) {
+    addChatGroupMembers(groupUuid: $groupUuid, members: $members) {
+      groupUuid
+      title
+      role
+      memberCount
+    }
+  }
+`
+
+export const removeChatGroupMember = gql`
+  mutation ($groupUuid: String!, $member: MemberAvatarRefInput!) {
+    removeChatGroupMember(groupUuid: $groupUuid, member: $member)
+  }
+`
+
+export const leaveChatGroup = gql`
+  mutation ($groupUuid: String!) {
+    leaveChatGroup(groupUuid: $groupUuid)
+  }
+`
+
+export const setChatGroupModerator = gql`
+  mutation ($groupUuid: String!, $member: MemberAvatarRefInput!, $moderator: Boolean!) {
+    setChatGroupModerator(groupUuid: $groupUuid, member: $member, moderator: $moderator)
+  }
+`
+
+export const renameChatGroup = gql`
+  mutation ($groupUuid: String!, $title: String!) {
+    renameChatGroup(groupUuid: $groupUuid, title: $title) {
+      groupUuid
+      title
+      role
+      memberCount
+    }
+  }
+`
+
+export const markChatGroupRead = gql`
+  mutation ($groupUuid: String!, $upToMessageId: Int!) {
+    markChatGroupRead(groupUuid: $groupUuid, upToMessageId: $upToMessageId)
+  }
+`
+
+export const setChatGroupMuted = gql`
+  mutation ($groupUuid: String!, $muted: Boolean!) {
+    setChatGroupMuted(groupUuid: $groupUuid, muted: $muted)
+  }
+`
+
 export const addFavorite = gql`
   mutation ($ref: MemberAvatarRefInput!) {
     addFavorite(ref: $ref)

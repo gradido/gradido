@@ -1,6 +1,8 @@
 import { afterEach, beforeAll, describe, expect, it, jest, mock } from 'bun:test'
 import { GradidoUnit } from 'shared'
+import { getLogger } from '../../../config-schema/test/testSetup.bun'
 import { CONFIG } from '../config'
+import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
 import * as sendEmailTranslatedApi from './sendEmailTranslated'
 import {
   sendAccountActivationEmail,
@@ -1111,6 +1113,29 @@ describe('sendEmailVariants', () => {
       const html = sent.originalMessage.html
       expect(html).toMatch(/<strong[^>]*>&lt;img src=x onerror=alert\(1\)&gt;<\/strong>/)
       expect(html).not.toMatch(/<img[^>]*onerror/)
+    })
+
+    // Coderabbit on #4012: the sender's uuid and the names of the values, never the message.
+    it('writes neither the text nor the subject nor the address into the log', async () => {
+      const loggers = ['sendEmailVariants', 'sendEmailTranslated'].map((name) =>
+        getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.emails.${name}`),
+      )
+      const levels = ['trace', 'debug', 'info', 'warn', 'error']
+      for (const logger of loggers) {
+        for (const level of levels) {
+          logger[level].mockClear()
+        }
+      }
+      await sendCustomEmail({ ...message, subject: 'About Saturday' })
+      const logged = loggers
+        .flatMap((logger) => levels.flatMap((level) => logger[level].mock.calls))
+        .flat()
+        .map(String)
+        .join('\n')
+      expect(logged).toContain(message.senderUuid)
+      for (const secret of [message.memo, 'About Saturday', message.email, message.lastName]) {
+        expect(logged).not.toContain(secret)
+      }
     })
   })
 

@@ -769,7 +769,18 @@ export type FirstCreationInsert = typeof firstCreationsTable.$inferInsert
 // code may write, and a value added here reaches both. The union is what the writers need: they write plain
 // strings (`'delivered'`, in core and in sendEmail), which a TypeScript enum would refuse.
 export type ChatConversationKind = 'direct' | 'group'
-export type ChatConversationMemberRole = 'owner' | 'moderator' | 'member'
+/**
+ * A member's part in a group (P5, E-050 F4); in a direct conversation both are 'member'. An
+ * object and a union like the three states below: the backend registers the object as the
+ * GraphQL enum ChatGroupRole (graphql/enum/ChatGroupRole.ts).
+ */
+export const ChatConversationMemberRole = {
+  OWNER: 'owner',
+  MODERATOR: 'moderator',
+  MEMBER: 'member',
+} as const
+export type ChatConversationMemberRole =
+  (typeof ChatConversationMemberRole)[keyof typeof ChatConversationMemberRole]
 /** What the sender asked for: 'email' means the message goes out as a mail as well. */
 export const ChatMessageNotify = { EMAIL: 'email', NONE: 'none' } as const
 export type ChatMessageNotify = (typeof ChatMessageNotify)[keyof typeof ChatMessageNotify]

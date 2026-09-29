@@ -7,6 +7,7 @@ import { Field, Int, ObjectType } from 'type-graphql'
 import { isSameChatMember } from '@/data/ChatConversation.logic'
 import { ChatMessageImage } from './ChatMessageImage'
 import { MemberRef } from './MemberRef'
+import { User } from './User'
 
 /**
  * One message of a conversation, as the member reading it may see it.
@@ -23,8 +24,16 @@ export class ChatMessage {
   /**
    * `images`: what is known about the message's pictures (dbSelectChatMessageImageInfos), in
    * their order -- read for a whole page at once by the caller, never one query per message.
+   *
+   * `group`: for a message written in a group (P5), the group's uuid and who wrote it -- read for
+   * a whole page at once as well (chatMessagesOf). Null in a direct conversation.
    */
-  constructor(row: ChatMessageSelect, reader: ChatMemberRef, images: ChatMessageImageInfo[] = []) {
+  constructor(
+    row: ChatMessageSelect,
+    reader: ChatMemberRef,
+    images: ChatMessageImageInfo[] = [],
+    group: { groupUuid: string; senderUser: User | null } | null = null,
+  ) {
     const sender = { communityUuid: row.senderCommunityUuid, gradidoId: row.senderGradidoId }
     this.id = row.id
     this.messageUuid = row.messageUuid
@@ -38,6 +47,8 @@ export class ChatMessage {
     this.notify = this.mine ? row.notify : null
     this.mailState = this.mine ? (row.mailState ?? null) : null
     this.images = images.map((info) => new ChatMessageImage(info))
+    this.groupUuid = group?.groupUuid ?? null
+    this.senderUser = group?.senderUser ?? null
   }
 
   /**
@@ -51,12 +62,34 @@ export class ChatMessage {
   @Field(() => String)
   messageUuid: string
 
-  /** The conversation it belongs to -- one per pair, sorted into threads by it later (P4). */
+  /**
+   * The conversation it belongs to -- one per pair, or one per group (P5): what the wallet sorts
+   * it into its thread by.
+   */
   @Field(() => Int)
   conversationId: number
 
+  /**
+   * The group the message was written in (P5), by the uuid the group is known by; null in a
+   * direct conversation. ⛔ What keeps a group's message out of the thread with its sender: an
+   * empty thread takes its conversation from the first message the other member writes, and
+   * without this a message they wrote in a group would be taken for one.
+   */
+  @Field(() => String, { nullable: true })
+  groupUuid: string | null
+
   @Field(() => MemberRef)
   sender: MemberRef
+
+  /**
+   * Who wrote a message in a group (P5), with what the wallet shows beside it -- the same `User`
+   * model the contact list carries: alias, colour digit, the date of the picture, and no real
+   * name (NU-019). Also for a member who has left the group since, and for one who deleted their
+   * account (AS-009 leaves them the name). Null in a direct conversation, where the thread knows
+   * the other member already -- and where the sender's users row is gone.
+   */
+  @Field(() => User, { nullable: true })
+  senderUser: User | null
 
   /** Whether the member reading wrote it. */
   @Field(() => Boolean)

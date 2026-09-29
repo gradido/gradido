@@ -36,6 +36,19 @@
       "subject": "Bestätige Deine E-Mail-Adresse",
       "title": "Dein Gradido-Konto ist eingerichtet"
     },
+    "chatGroupAdded": {
+      "inTheGroup": "In der Gruppe schreiben {memberCount} Mitglieder miteinander. Alle Mitglieder sehen Deinen Nutzernamen.",
+      "leaveAnyTime": "Du kannst die Gruppe in Deinem Gradido-Konto jederzeit stumm schalten oder verlassen.",
+      "openGroup": "Gruppe öffnen",
+      "subject": "Du bist jetzt in der Gruppe „{groupTitle}“",
+      "title": "{adderAlias} hat Dich in die Gruppe „{groupTitle}“ aufgenommen"
+    },
+    "chatGroupMessage": {
+      "announcement": "{senderAlias} hat eine Nachricht als Ankündigung an alle Mitglieder der Gruppe geschickt.",
+      "muteHint": "Keine Ankündigungen mehr per E-Mail? Tippe in Deinem Gradido-Konto in der Gruppe auf die Glocke.",
+      "subject": "Ankündigung in „{groupTitle}“ von {senderAlias}",
+      "title": "{senderAlias} schreibt in „{groupTitle}“"
+    },
     "contribution": {
       "toSeeContributionsAndMessages": "Deine Gemeinwohl-Beiträge und die Nachrichten dazu findest Du in Deinem Gradido-Konto."
     },

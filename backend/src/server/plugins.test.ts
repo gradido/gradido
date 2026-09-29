@@ -50,6 +50,17 @@ describe('the request log', () => {
     expect(text).toContain('"subject": "***"')
   })
 
+  // P5: the name of a group can say who is in it -- and the text of its messages is a `body`.
+  it("writes no chat group's name", () => {
+    const text = logged({
+      title: 'Selbsthilfe Trauer Amstetten',
+      members: [{ communityUuid: 'c', gradidoID: 'g' }],
+    })
+    expect(text).not.toContain('Trauer')
+    expect(text).toContain('"title": "***"')
+    expect(text).toContain('"gradidoID": "g"')
+  })
+
   // P7: one member's picture for another -- and some 80,000 characters in every line that carried
   // it. What is left of it is its size.
   it('writes no picture of a chat message, only its size', () => {
