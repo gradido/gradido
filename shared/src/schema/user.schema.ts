@@ -55,10 +55,13 @@ export const firstNameSchema = z
   .string()
   .min(3, 'First name is too short')
   .max(255, 'First name is too long')
-  .regex(VALID_NAME_REGEX)
+// Off for now: VALID_NAME_REGEX would refuse about one in eight of today's names. Whether and
+// how names are restricted is an open question of its own.
+// .regex(VALID_NAME_REGEX)
 
 export const lastNameSchema = z
   .string()
   .min(2, 'Last name is too short')
   .max(255, 'Last name is too long')
-  .regex(VALID_NAME_REGEX)
+// Off for now, see firstNameSchema.
+// .regex(VALID_NAME_REGEX)

@@ -49,22 +49,6 @@ export async function dbInsertUserContact(
   }
 }
 
-/*
-
-export async function dbInsertUser(user: UserInsert, tx?: DrizzleTransaction | MySql2Database):
-  Promise<Result<number, DBInsertFailed<UserInsert>>> {
-  if (!tx) {
-    tx = drizzleDb()
-  }
-  const rows = await tx.insert(usersTable).values(user)
-  const firstRow = rows[0]
-  if (firstRow && firstRow.affectedRows === 1) {
-    return { success: true, value: firstRow.insertId }
-  }
-  return { success: false, error: userInsertFailed(user) }
-}
-*/
-
 /**
  * Every address this member has CONFIRMED, oldest first. A pending change is left out on
  * purpose: an address that was merely typed in must not answer anything on the member's
@@ -96,7 +80,7 @@ export async function dbIsUserContactFieldExist<K extends keyof UserContactInser
   if (!tx) {
     tx = drizzleDb()
   }
-  const rows = await drizzleDb()
+  const rows = await tx
     .select({ id: userContactsTable.id })
     .from(userContactsTable)
     .where(eq(userContactsTable[field], value))

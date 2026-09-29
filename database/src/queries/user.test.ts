@@ -1182,14 +1182,16 @@ describe('user.queries', () => {
         expect(await dbFindUserByEmail('unknown@example.org')).toBeNull()
       })
 
-      it('finds no deleted member', async () => {
+      // A deleted member still holds their address - the row stays, and `email` is unique - so
+      // a registration with it has to answer as for any taken address, not collide.
+      it('finds a deleted member too', async () => {
         const gone = await userFactory({
           email: 'gone@example.org',
           firstName: 'Gone',
           lastName: 'Member',
         })
         await DbUser.softRemove(gone)
-        expect(await dbFindUserByEmail('gone@example.org')).toBeNull()
+        expect((await dbFindUserByEmail('gone@example.org'))?.id).toBe(gone.id)
       })
     })
 

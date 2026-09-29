@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 
-import { and, asc, eq, inArray, isNull, like, or, sql } from 'drizzle-orm'
+import { and, eq, inArray, isNull } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import { Order, Result } from 'shared'
 import { EntityManager, FindOptionsWhere, MoreThan } from 'typeorm'
@@ -150,35 +150,11 @@ export async function dbFindAliasesByUser(userId: number): Promise<DbUserAlias[]
   return DbUserAlias.find({ where: { userId }, order: { createdAt: Order.ASC } })
 }
 
-export async function dbFindUserAliasesWithPrefix(
-  prefix: string,
-  limit: number,
-): Promise<string[]> {
-  const rows = await drizzleDb()
-    .select({ a: userAliasesTable.alias })
-    .from(userAliasesTable)
-    .where(like(userAliasesTable.alias, `${prefix}%`))
-    .orderBy(asc(userAliasesTable.alias))
-    .limit(limit)
-
-  return rows.map((row) => row.a)
-}
-
-// Every alias matching at least one of the patterns, in one round trip. REGEXP follows the
-// column's collation (utf8mb4_unicode_ci), so the match is case-insensitive - as the unique
-// key is. The patterns go in as bound parameters, never spliced into the statement.
-// REGEXP cannot use the index, so this scans user_aliases once, however many patterns.
-export async function dbFindUserAliasesWithRegex(regexes: string[]): Promise<string[]> {
-  if (!regexes.length) {
-    return []
-  }
-  const rows = await drizzleDb()
-    .select({ alias: userAliasesTable.alias })
-    .from(userAliasesTable)
-    .where(or(...regexes.map((regex) => sql`${userAliasesTable.alias} REGEXP ${regex}`)))
-  return rows.map((row) => row.alias)
-}
-
+/**
+ * The names out of these that somebody holds, in the spelling they are stored in. The unique
+ * key on `alias` answers each one - no scan, however large the table. The column compares
+ * case-insensitively, so `berndh` finds `BerndH`.
+ */
 export async function dbFindUserAliasesExisting(userAliases: string[]): Promise<string[]> {
   const rows = await drizzleDb()
     .select({ a: userAliasesTable.alias })

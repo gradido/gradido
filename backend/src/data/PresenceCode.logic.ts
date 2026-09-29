@@ -153,4 +153,5 @@ export const verifyPresenceCode = (
   return Number(userId)
 }
 
+// TODO: replace with valibot schema after update to typescript 5 is possible
 export const presenceCodeSchema = z.string().regex(PRESENCE_CODE_SHAPE)

@@ -13,7 +13,7 @@ import {
   DBDuplicateEntryError,
   DbUser,
   DrizzleTransaction,
-  dbFindUserAliasesWithRegex,
+  dbFindUserAliasesExisting,
   dbFindUserByEmail,
   dbFindUserWithContactById,
   dbHomeCommunityGetUuid,
@@ -38,7 +38,7 @@ import { Logger } from 'log4js'
 import random from 'random-bigint'
 import {
   aliasCandidates,
-  aliasVariantsPattern,
+  aliasVariants,
   findFirstFreeAlias,
   primaryAliasCandidate,
   Result,
@@ -224,9 +224,7 @@ export class RegisterUserRole<
     // from here on the name is built by the system: a proposal, even if one was chosen
     origin = ALIAS_ORIGIN_ASSIGNED
     const aliasCandidatesArray = aliasCandidates(firstName, lastName, email, userId)
-    const existingAliases = await dbFindUserAliasesWithRegex(
-      aliasCandidatesArray.map(aliasVariantsPattern),
-    )
+    const existingAliases = await dbFindUserAliasesExisting(aliasVariants(aliasCandidatesArray))
 
     const aliasCandidate = findFirstFreeAlias(existingAliases, aliasCandidatesArray)
     if (aliasCandidate) {

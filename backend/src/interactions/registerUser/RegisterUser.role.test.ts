@@ -6,7 +6,7 @@ jest.mock('database', () => ({
   dbFindLocalUserByAlias: jest.fn(),
   dbFindProjectBrandingByAlias: jest.fn(),
   dbFindTransactionLinkByCode: jest.fn(),
-  dbFindUserAliasesWithRegex: jest.fn(),
+  dbFindUserAliasesExisting: jest.fn(),
   dbFindUserByEmail: jest.fn(),
   dbFindUserById: jest.fn(),
   dbFindUserWithContactById: jest.fn(),
@@ -58,7 +58,7 @@ import {
   dbFindLocalUserByAlias,
   dbFindProjectBrandingByAlias,
   dbFindTransactionLinkByCode,
-  dbFindUserAliasesWithRegex,
+  dbFindUserAliasesExisting,
   dbFindUserByEmail,
   dbFindUserById,
   dbFindUserWithContactById,
@@ -135,7 +135,7 @@ beforeEach(() => {
   mocked(dbInsertUserContact).mockResolvedValue({ success: true, value: CONTACT_ID })
   mocked(dbUserUpdateField).mockResolvedValue(1)
   mocked(dbInsertUserAlias).mockResolvedValue({ success: true, value: ALIAS_ID })
-  mocked(dbFindUserAliasesWithRegex).mockResolvedValue([])
+  mocked(dbFindUserAliasesExisting).mockResolvedValue([])
   mocked(dbFindUserWithContactById).mockResolvedValue(storedUser)
   mocked(sendAccountActivationEmail).mockResolvedValue({})
   mocked(sendAssistedRegistrationConfirmEmail).mockResolvedValue({})
@@ -189,13 +189,13 @@ describe('RegisterUserRole', () => {
         userId: USER_ID,
         origin: ALIAS_ORIGIN_ASSIGNED,
       })
-      expect(dbFindUserAliasesWithRegex).not.toHaveBeenCalled()
+      expect(dbFindUserAliasesExisting).not.toHaveBeenCalled()
       expect(dbUserUpdateField).toHaveBeenCalledWith(USER_ID, 'alias', 'BerndH')
     })
 
     it('walks on to the next name when that is taken, in its own spelling', async () => {
       mocked(dbInsertUserAlias).mockResolvedValueOnce(duplicateAlias('BerndH'))
-      mocked(dbFindUserAliasesWithRegex).mockResolvedValue(['berndh'])
+      mocked(dbFindUserAliasesExisting).mockResolvedValue(['berndh'])
 
       await new RegisterUserRole(input()).run(logger)
 

@@ -2,6 +2,8 @@ import { emailSchema, uuidv4Schema } from 'shared'
 import { z } from 'zod'
 import { PasswordEncryptionType } from '@/graphql/enum/PasswordEncryptionType'
 
+// TODO: replace with valibot schema after update to typescript 5 is possible
+
 export const passwordDataSchema = z
   .object({
     id: z.number().positive().nullish(),

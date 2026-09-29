@@ -92,39 +92,28 @@ const numberedAlias = (candidate: string, suffix: number): string =>
   candidate.slice(0, ALIAS_MAX_CHARS - String(suffix).length) + suffix
 
 /**
- * A regex matching the candidate and every numbered variant `findFirstFreeAlias` builds
- * from it - including the ones where the digits cut the candidate short to stay within
- * ALIAS_MAX_CHARS. Candidates are alphanumeric (`transliterateForAlias`), so nothing
- * needs escaping.
+ * Every name `findFirstFreeAlias` may hand out, in the order it tries them: every candidate as
+ * it is first, only then each with 1..99 appended - cut short to stay within ALIAS_MAX_CHARS.
+ * `BerndHue` and `BerndHo` are easier to tell apart than `BerndH1` and `BerndH2`.
+ *
+ * Also what the caller asks the database about, so the names looked up and the names chosen
+ * from are the same list.
  */
-export function aliasVariantsPattern(candidate: string): string {
-  const oneDigit = candidate.slice(0, ALIAS_MAX_CHARS - 1)
-  const twoDigits = candidate.slice(0, ALIAS_MAX_CHARS - 2)
-  return `^(${candidate}|${oneDigit}[0-9]|${twoDigits}[0-9]{2})$`
+export function aliasVariants(candidates: string[]): string[] {
+  const variants = [...candidates]
+  for (const candidate of candidates) {
+    for (let suffix = 1; suffix <= 99; suffix++) {
+      variants.push(numberedAlias(candidate, suffix))
+    }
+  }
+  return variants
 }
 
 export function findFirstFreeAlias(existing: string[], candidates: string[]): string | null {
   // The unique key on user_aliases.alias is case-insensitive (utf8mb4_unicode_ci), so the
   // comparison is too. What is returned keeps its spelling: `BerndH`, not `berndh`.
   const taken = new Set(existing.map((alias) => alias.toLowerCase()))
-  const isFree = (alias: string) => !taken.has(alias.toLowerCase())
-
-  // Every candidate as it is first, only then with 1..99 appended: `BerndHue` and
-  // `BerndHo` are easier to tell apart than `BerndH1` and `BerndH2`.
-  for (const candidate of candidates) {
-    if (isFree(candidate)) {
-      return candidate
-    }
-  }
-  for (const candidate of candidates) {
-    for (let suffix = 1; suffix <= 99; suffix++) {
-      const numbered = numberedAlias(candidate, suffix)
-      if (isFree(numbered)) {
-        return numbered
-      }
-    }
-  }
-  return null
+  return aliasVariants(candidates).find((alias) => !taken.has(alias.toLowerCase())) ?? null
 }
 
 // The default generated alias, tried first because it is free in most cases. The same

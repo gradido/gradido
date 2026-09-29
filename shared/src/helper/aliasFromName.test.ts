@@ -1,7 +1,7 @@
 import {
   aliasCandidates,
   aliasStemFromEmail,
-  aliasVariantsPattern,
+  aliasVariants,
   findFirstFreeAlias,
   primaryAliasCandidate,
   transliterateForAlias,
@@ -192,30 +192,34 @@ describe('primaryAliasCandidate', () => {
   })
 })
 
-describe('aliasVariantsPattern', () => {
-  // Every variant findFirstFreeAlias may hand out must match, or a taken one is missed.
-  const variants = (candidate: string): string[] => {
-    const all = [candidate]
-    for (let suffix = 1; suffix <= 99; suffix++) {
-      all.push(candidate.slice(0, 20 - String(suffix).length) + suffix)
+describe('aliasVariants', () => {
+  it('lists every candidate first, then each numbered from 1 to 99', () => {
+    const variants = aliasVariants(['BerndH', 'BerndHue'])
+
+    expect(variants).toHaveLength(2 + 2 * 99)
+    expect(variants.slice(0, 4)).toEqual(['BerndH', 'BerndHue', 'BerndH1', 'BerndH2'])
+    expect(variants[2 + 98]).toBe('BerndH99')
+    expect(variants[2 + 99]).toBe('BerndHue1')
+  })
+
+  // The digits never push a name past ALIAS_MAX_CHARS: they take the place of its last letters.
+  it('cuts a long candidate short for its number', () => {
+    const variants = aliasVariants(['MaximilianSchwarzene'])
+
+    expect(variants).toContain('MaximilianSchwarzen1')
+    expect(variants).toContain('MaximilianSchwarze99')
+    for (const variant of variants) {
+      expect(variant.length).toBeLessThanOrEqual(20)
     }
-    return all
-  }
+  })
 
-  it.each(['abc', 'Maximiliana1234567', 'Maximiliana12345678', 'MaximilianSchwarzene'])(
-    'matches every variant of %s',
-    (candidate) => {
-      const regex = new RegExp(aliasVariantsPattern(candidate))
-      for (const variant of variants(candidate)) {
-        expect(variant).toMatch(regex)
-      }
-    },
-  )
+  // What the database is asked about and what findFirstFreeAlias chooses from must not drift.
+  it('holds exactly the names findFirstFreeAlias may hand out, in its order', () => {
+    const candidates = ['BerndH', 'BerndHue']
+    const variants = aliasVariants(candidates)
 
-  it('matches no longer name that merely starts with the candidate', () => {
-    const regex = new RegExp(aliasVariantsPattern('abc'))
-    expect('abc123').not.toMatch(regex)
-    expect('abcd').not.toMatch(regex)
-    expect('xabc').not.toMatch(regex)
+    for (let taken = 0; taken < variants.length; taken++) {
+      expect(findFirstFreeAlias(variants.slice(0, taken), candidates)).toBe(variants[taken])
+    }
   })
 })

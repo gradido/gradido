@@ -9,6 +9,8 @@ import {
 import { z } from 'zod'
 import { presenceCodeSchema } from '@/data/PresenceCode.logic'
 
+// TODO: replace with valibot schema after update to typescript 5 is possible
+
 // Everything a registration may bring. Which of the optional fields it brings decides the
 // variant (registerUser.context); each variant parses again with its own schema below, in
 // which the fields it lives on are required.

@@ -96,6 +96,13 @@ export async function dbFindUserLoginByEmail(
   }
 }
 
+/**
+ * The member whose account address this is, or null.
+ *
+ * ⛔ Deleted accounts INCLUDED, deliberately: a deleted member still holds their address - the
+ * row stays, and `user_contacts.email` is unique - so a registration with it has to find them
+ * and answer as for any taken address, instead of colliding on the insert.
+ */
 export async function dbFindUserByEmail(
   email: string,
   tx?: DrizzleTransaction | MySql2Database,
@@ -209,26 +216,6 @@ export async function dbFindUserIdByUuids(
     .where(and(eq(usersTable.communityUuid, communityUuid), eq(usersTable.gradidoId, gradidoID)))
     .limit(1)
   return rows[0]?.id ?? null
-}
-
-export async function dbFindUserByAlias(
-  alias: string,
-  communityUuid: string,
-): Promise<UserSelect | null> {
-  const rows = await drizzleDb()
-    .select()
-    .from(usersTable)
-    .where(
-      and(
-        eq(usersTable.alias, alias),
-        eq(usersTable.communityUuid, communityUuid),
-        isNull(usersTable.deletedAt),
-      ),
-    )
-  if (rows.length > 1) {
-    throw new DBDuplicateEntryError('users', 'alias,communityUuid', `${alias},${communityUuid}`)
-  }
-  return rows[0] ?? null
 }
 
 // referrerId is userId from person which is the referrer of all this unconfirmed accounts

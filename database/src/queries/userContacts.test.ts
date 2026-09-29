@@ -289,6 +289,21 @@ describe('the user_contacts queries registration uses', () => {
     })
   })
 
+  // The registration asks inside its transaction: a contact written there and not yet committed
+  // is seen through `tx`, and only through it.
+  it('asks over the transaction it is given', async () => {
+    await drizzleDb().transaction(async (tx) => {
+      const result = await dbInsertUserContact(newContact('pending@contact.test', 555n), tx)
+      if (!result.success) {
+        throw result.error
+      }
+      expect(await dbIsUserContactFieldExist('email', 'pending@contact.test', tx)).toBe(
+        result.value,
+      )
+      expect(await dbIsUserContactFieldExist('email', 'pending@contact.test')).toBe(0)
+    })
+  })
+
   it('removes a contact for good', async () => {
     const result = await dbInsertUserContact(newContact('removed@contact.test', 444n))
     if (!result.success) {

@@ -17,6 +17,7 @@ import {
   dbFindLocalUserByAlias,
   dbFindOldestChosenAliasSince,
   dbFindOwnAlias,
+  dbFindUserAliasesExisting,
   dbInsertUserAlias,
   dbMarkAliasAdopted,
 } from './userAliases'
@@ -121,6 +122,20 @@ describe('userAliases.queries', () => {
           origin: ALIAS_ORIGIN_ASSIGNED,
         }),
       ).toEqual({ success: false, error: expect.any(DBDuplicateEntryError) })
+    })
+  })
+
+  describe('dbFindUserAliasesExisting', () => {
+    it('names those of the names somebody holds, in their stored spelling', async () => {
+      await insertAlias(bibi.id, 'BerndH', ALIAS_ORIGIN_CHOSEN)
+      await insertAlias(peter.id, 'BerndHue1', ALIAS_ORIGIN_CHOSEN)
+
+      const found = await dbFindUserAliasesExisting(['berndh', 'BerndHue', 'BERNDHUE1'])
+      expect(found.sort()).toEqual(['BerndH', 'BerndHue1'])
+    })
+
+    it('finds nothing where nobody holds any of them', async () => {
+      expect(await dbFindUserAliasesExisting(['nobody-here', 'nor-here'])).toEqual([])
     })
   })
 

@@ -18,6 +18,20 @@ describe('createUserSchema', () => {
     expect(createUserSchema.parse(valid).email).toBe('bernd@example.com')
   })
 
+  // Only the lengths are checked for now; the character check is off (see firstNameSchema).
+  it('takes names of any characters, within their lengths', () => {
+    for (const [firstName, lastName] of [
+      ['Guest1', 'Hans@Home'],
+      ['M. J.', "O'Brien "],
+      ['김민수', '王李'],
+    ]) {
+      expect(createUserSchema.safeParse({ ...valid, firstName, lastName }).success).toBe(true)
+    }
+    for (const names of [{ firstName: 'Al' }, { lastName: '王' }, { firstName: 'a'.repeat(256) }]) {
+      expect(createUserSchema.safeParse({ ...valid, ...names }).success).toBe(false)
+    }
+  })
+
   it('falls back to the default language instead of refusing an unknown one', () => {
     expect(createUserSchema.parse({ ...valid, language: 'xx' }).language).toBe('de')
   })

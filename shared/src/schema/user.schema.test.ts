@@ -108,7 +108,8 @@ describe('validate alias', () => {
 
 describe('validate first name', () => {
   describe('first name contains invalid characters', () => {
-    it('throws and logs an error', () => {
+    // TODO: the character check is off until it is decided whether and how names are restricted
+    it.skip('throws and logs an error', () => {
       expect(() => firstNameSchema.parse('<script>//malicious code</script>')).toThrowError(
         expect.objectContaining(
           expect.arrayContaining([
