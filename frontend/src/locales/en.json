@@ -140,6 +140,18 @@
       "text": "To find other members in your area, enter your location on the map now!"
     }
   },
+  "chatGroup": {
+    "count": "{n} group | {n} groups",
+    "heading": "Groups",
+    "memberCount": "{n} member | {n} members",
+    "moderator": "Moderator",
+    "muted": "Muted",
+    "notReachable": "The groups could not be loaded.",
+    "owner": "Owner",
+    "youAreMember": "You are a member",
+    "youAreModerator": "You are a moderator",
+    "youAreOwner": "You are the owner"
+  },
   "chatThread": {
     "alsoByEmail": "Also by e-mail",
     "alsoByEmailTo": "Also by e-mail to {name}",

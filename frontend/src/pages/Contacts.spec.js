@@ -40,9 +40,12 @@ vi.mock('@/graphql/contacts.graphql', () => ({
   favoriteListQuery: 'favoriteListQuery',
   contactByMemberQuery: 'contactByMemberQuery',
 }))
+vi.mock('@/graphql/chatGroups.graphql', () => ({
+  chatGroupsQuery: 'chatGroupsQuery',
+}))
 vi.mock('@vue/apollo-composable', () => ({
-  useQuery: (document) => {
-    const handler = { result: null, error: null }
+  useQuery: (document, variables, options) => {
+    const handler = { result: null, error: null, options }
     handlers.set(document, handler)
     return {
       onResult: (callback) => {
@@ -114,6 +117,13 @@ describe('Contacts page', () => {
             emits: ['open'],
             template:
               '<div data-test="contact-row" @click="$emit(\'open\', contact)">{{ contact.user.alias }}</div>',
+          },
+          // Emits `open` as the real row does; its own drawing is its spec's business.
+          ChatGroupRow: {
+            props: ['group'],
+            emits: ['open'],
+            template:
+              '<div data-test="chat-group-row" @click="$emit(\'open\', group)">{{ group.title }}</div>',
           },
           // ⚠️ Stubbed, and it has to be: the real window reaches for `useRouter`, and this
           // file installs no router -- which arrives as "Need to install with `app.use`",
@@ -490,6 +500,203 @@ describe('Contacts page', () => {
       await flushPromises()
 
       expect(apolloQuery.mock.calls.some(([o]) => o.query === 'contactListQuery')).toBe(false)
+    })
+  })
+
+  /**
+   * The member's chat groups (P5): a section of their own above the favourites (E-050 F1a),
+   * asked with the list and again whenever the list is.
+   */
+  describe('the groups', () => {
+    const group = (n, extra = {}) => ({
+      groupUuid: `group-${n}`,
+      conversationId: 40 + n,
+      title: `Gruppe ${n}`,
+      communityName: 'Home',
+      role: 'MEMBER',
+      mutedByMe: false,
+      memberCount: 3,
+      unreadMessages: 0,
+      lastMessageAt: null,
+      ...extra,
+    })
+    const groupRows = () =>
+      wrapper
+        .findAll('[data-test="contacts-groups"] [data-test="chat-group-row"]')
+        .map((r) => r.text())
+
+    it('shows them above the favourites, in the order the server sent them', async () => {
+      rememberFavorites([{ communityUuid: 'home', gradidoID: 'id-1' }])
+      mountPage()
+      fire('contactListQuery', { contactList: { count: 2, contacts: [person(1), person(2)] } })
+      fire('chatGroupsQuery', { chatGroups: [group(2), group(1)] })
+      await nextTick()
+
+      expect(groupRows()).toEqual(['Gruppe 2', 'Gruppe 1'])
+      expect(wrapper.find('[data-test="contacts-groups-count"]').text()).toBe('chatGroup.count:2')
+      // Above the favourites, in the page's own order.
+      const html = wrapper.html()
+      expect(html.indexOf('data-test="contacts-groups"')).toBeLessThan(
+        html.indexOf('data-test="contacts-favorites"'),
+      )
+    })
+
+    // No variables, so one cache key for whoever signs in: never answered out of the cache.
+    it('asks the server on every opening of the page', () => {
+      mountPage()
+      expect(handlers.get('chatGroupsQuery').options).toEqual({ fetchPolicy: 'network-only' })
+    })
+
+    it('shows no section where the member is in no group', async () => {
+      mountPage()
+      fire('contactListQuery', { contactList: { count: 1, contacts: [person(1)] } })
+      fire('chatGroupsQuery', { chatGroups: [] })
+      await nextTick()
+      expect(wrapper.find('[data-test="contacts-groups"]').exists()).toBe(false)
+    })
+
+    // A member with no contact left can still be in a group somebody took them into.
+    it('shows them also where the member has no contact', async () => {
+      mountPage()
+      fire('contactListQuery', { contactList: { count: 0, contacts: [] } })
+      fire('chatGroupsQuery', { chatGroups: [group(1)] })
+      await nextTick()
+      expect(groupRows()).toEqual(['Gruppe 1'])
+      expect(wrapper.find('[data-test="contacts-empty"]').exists()).toBe(true)
+    })
+
+    it('narrows them by their name as one types, and steps aside where none matches', async () => {
+      mountPage()
+      fire('contactListQuery', { contactList: { count: 1, contacts: [person(1)] } })
+      fire('chatGroupsQuery', {
+        chatGroups: [group(1, { title: 'Gradido-Café Berlin' }), group(2, { title: 'Garten' })],
+      })
+      await nextTick()
+
+      await wrapper.find('[data-test="contacts-search"]').setValue('CAFÉ')
+      expect(groupRows()).toEqual(['Gradido-Café Berlin'])
+      expect(wrapper.find('[data-test="contacts-groups-count"]').text()).toBe('chatGroup.count:1')
+
+      await wrapper.find('[data-test="contacts-search"]').setValue('zzz')
+      expect(wrapper.find('[data-test="contacts-groups"]').exists()).toBe(false)
+    })
+
+    // A failed request is not "no groups" -- and the contacts' own failure is toasted already.
+    it('says so where they cannot be loaded, without a toast of its own', async () => {
+      mountPage()
+      fire('contactListQuery', { contactList: { count: 1, contacts: [person(1)] } })
+      handlers.get('chatGroupsQuery').error(new Error('offline'))
+      await nextTick()
+      expect(wrapper.find('[data-test="groups-error"]').text()).toBe('chatGroup.notReachable')
+      expect(toastError).not.toHaveBeenCalled()
+    })
+
+    describe('when the list may have changed', () => {
+      it('asks for them again, quietly, and shows the new order', async () => {
+        mountPage()
+        fire('chatGroupsQuery', { chatGroups: [group(1), group(2)] })
+        await nextTick()
+        answers.set('chatGroupsQuery', () => ({ data: { chatGroups: [group(2), group(1)] } }))
+
+        refreshContactsPanel({ query: vi.fn() })
+        await flushPromises()
+
+        expect(groupRows()).toEqual(['Gruppe 2', 'Gruppe 1'])
+        const asked = apolloQuery.mock.calls
+          .map(([o]) => o)
+          .find((o) => o.query === 'chatGroupsQuery')
+        expect(asked).toEqual({
+          query: 'chatGroupsQuery',
+          fetchPolicy: 'network-only',
+          // ⛔ Nobody did anything on this page: the session clock stays where it was.
+          context: { renewSession: false },
+        })
+      })
+
+      it('keeps them on screen where the question fails', async () => {
+        mountPage()
+        fire('chatGroupsQuery', { chatGroups: [group(1)] })
+        await nextTick()
+        answers.set('chatGroupsQuery', () => Promise.reject(new Error('offline')))
+
+        refreshContactsPanel({ query: vi.fn() })
+        await flushPromises()
+
+        expect(groupRows()).toEqual(['Gruppe 1'])
+        expect(wrapper.find('[data-test="groups-error"]').exists()).toBe(false)
+      })
+
+      it('shows them once a question again succeeds after the first one failed', async () => {
+        mountPage()
+        handlers.get('chatGroupsQuery').error(new Error('offline'))
+        await nextTick()
+        expect(wrapper.find('[data-test="groups-error"]').exists()).toBe(true)
+        answers.set('chatGroupsQuery', () => ({ data: { chatGroups: [group(1)] } }))
+
+        refreshContactsPanel({ query: vi.fn() })
+        await flushPromises()
+
+        expect(wrapper.find('[data-test="groups-error"]').exists()).toBe(false)
+        expect(groupRows()).toEqual(['Gruppe 1'])
+      })
+
+      // ⚠️ With no group in the answer: rows would cover a failure left standing, an empty list
+      // does not -- "could not be loaded" over a list that loaded is the defect to catch.
+      it('lets the failure go once a question answers, also where there is no group', async () => {
+        mountPage()
+        handlers.get('chatGroupsQuery').error(new Error('offline'))
+        await nextTick()
+        expect(wrapper.find('[data-test="groups-error"]').exists()).toBe(true)
+        answers.set('chatGroupsQuery', () => ({ data: { chatGroups: [] } }))
+
+        refreshContactsPanel({ query: vi.fn() })
+        await flushPromises()
+
+        expect(wrapper.find('[data-test="groups-error"]').exists()).toBe(false)
+      })
+
+      it('lets the failure go once the page query answers after all', async () => {
+        mountPage()
+        handlers.get('chatGroupsQuery').error(new Error('offline'))
+        await nextTick()
+        fire('chatGroupsQuery', { chatGroups: [] })
+        await nextTick()
+        expect(wrapper.find('[data-test="groups-error"]').exists()).toBe(false)
+      })
+
+      it('keeps the newest answer when two cross', async () => {
+        mountPage()
+        fire('chatGroupsQuery', { chatGroups: [group(1), group(2)] })
+        await nextTick()
+        const pending = []
+        answers.set(
+          'chatGroupsQuery',
+          () =>
+            new Promise((resolve) => {
+              pending.push(resolve)
+            }),
+        )
+        refreshContactsPanel({ query: vi.fn() })
+        refreshContactsPanel({ query: vi.fn() })
+
+        pending[1]({ data: { chatGroups: [group(2), group(1)] } })
+        await flushPromises()
+        pending[0]({ data: { chatGroups: [group(1), group(2)] } })
+        await flushPromises()
+
+        expect(groupRows()).toEqual(['Gruppe 2', 'Gruppe 1'])
+      })
+
+      it('stops asking when the page goes', async () => {
+        mountPage()
+        wrapper.unmount()
+        wrapper = null
+
+        refreshContactsPanel({ query: vi.fn() })
+        await flushPromises()
+
+        expect(apolloQuery.mock.calls.some(([o]) => o.query === 'chatGroupsQuery')).toBe(false)
+      })
     })
   })
 

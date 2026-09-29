@@ -9,6 +9,34 @@
       data-test="contacts-search"
     />
 
+    <!-- The member's chat groups (P5), in a section of their own above the favourites (E-050
+         F1a) -- as soon as they are in, whether or not the contacts are. A search narrows them by
+         their name, and where it leaves none the section steps aside for the contacts it found. -->
+    <section
+      v-if="groupsShown"
+      class="mb-4"
+      aria-labelledby="contacts-groups-heading"
+      data-test="contacts-groups"
+    >
+      <h2 id="contacts-groups-heading" class="h6 text-uppercase text-muted mb-2 page-text">
+        {{ $t('chatGroup.heading') }}
+        <span v-if="groupRows.length" class="fw-normal ms-2" data-test="contacts-groups-count">
+          {{ $t('chatGroup.count', groupRows.length) }}
+        </span>
+      </h2>
+      <div
+        v-if="groupRows.length"
+        class="bg-white gradido-border-radius app-box-shadow px-3"
+        data-test="contacts-groups-list"
+      >
+        <chat-group-row v-for="group in groupRows" :key="group.groupUuid" :group="group" />
+      </div>
+      <!-- A failed request is not an empty list, here as for the contacts. -->
+      <div v-else-if="groupsFailed" class="text-muted small page-text" data-test="groups-error">
+        {{ $t('chatGroup.notReachable') }}
+      </div>
+    </section>
+
     <div v-if="!loaded" class="text-center py-3" data-test="contacts-loading">
       <BSpinner small />
     </div>
@@ -113,6 +141,7 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useApolloClient, useQuery } from '@vue/apollo-composable'
 import { BFormInput, BPagination, BSpinner } from 'bootstrap-vue-next'
+import ChatGroupRow from '@/components/ChatGroups/ChatGroupRow.vue'
 import ContactRow from '@/components/Contacts/ContactRow.vue'
 import ContactsEmpty from '@/components/Contacts/ContactsEmpty.vue'
 import ContactWindow from '@/components/Contacts/ContactWindow.vue'
@@ -120,6 +149,7 @@ import { useContactWindow } from '@/composables/useContactWindow'
 import { usePagerFit } from '@/composables/usePagerFit'
 import { onContactListRefresh } from '@/composables/useContactsPanel'
 import { contactListQuery } from '@/graphql/contacts.graphql'
+import { chatGroupsQuery } from '@/graphql/chatGroups.graphql'
 import { ensureFavorites, isFavorite } from '@/composables/useFavorites'
 import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
 import { useAppToast } from '@/composables/useToast'
@@ -180,6 +210,51 @@ onError((error) => {
 })
 
 /**
+ * The member's chat groups (P5), asked with the list. `network-only` for the reason the list
+ * gives, and one more: the query takes no variables, so it has one cache key for whoever signs
+ * in -- the cache is emptied at logout, and every opening of the page asks the server anyway.
+ *
+ * ⚠️ No toast where it fails: the contacts' request says so already when the server cannot be
+ * reached, and a second toast for the same failure says nothing new. The section says it in its
+ * own line instead, only while there is no list to show.
+ */
+const groups = ref([])
+const groupsFailed = ref(false)
+
+const { onResult: onGroups, onError: onGroupsError } = useQuery(chatGroupsQuery, null, {
+  fetchPolicy: 'network-only',
+})
+onGroups(({ data }) => {
+  if (!data?.chatGroups) return
+  groups.value = data.chatGroups
+  groupsFailed.value = false
+})
+onGroupsError(() => {
+  groupsFailed.value = groups.value.length === 0
+})
+
+/**
+ * The groups asked again, the way the list is (`reloadList` below): a message arrived or was
+ * read, and the dot or the order of a group moved. Quiet, and only the newest answer counts.
+ */
+let groupReloads = 0
+const reloadGroups = async () => {
+  const mine = ++groupReloads
+  try {
+    const { data } = await apolloClient.query({
+      query: chatGroupsQuery,
+      fetchPolicy: 'network-only',
+      context: { renewSession: false },
+    })
+    if (mine !== groupReloads || !data?.chatGroups) return
+    groups.value = data.chatGroups
+    groupsFailed.value = false
+  } catch {
+    // The groups as they were.
+  }
+}
+
+/**
  * The list asked again, because the right-hand column's is (useContactsPanel): a transfer went
  * through, or chat messages arrived (useChatUpdates). The server orders the contacts by the last
  * exchange, so somebody who just wrote comes to the top -- the wallet keeps no book of its own.
@@ -210,7 +285,12 @@ const reloadList = async () => {
     // The list as it was.
   }
 }
-onBeforeUnmount(onContactListRefresh(reloadList))
+onBeforeUnmount(
+  onContactListRefresh(() => {
+    reloadList()
+    reloadGroups()
+  }),
+)
 
 const rowKey = (contact) => memberKey(contact.user)
 
@@ -249,6 +329,16 @@ const needle = computed(() => search.value.trim().toLowerCase())
 const matches = (contact) =>
   !needle.value ||
   `${contact.user.alias ?? ''} ${contact.user.gradidoID}`.toLowerCase().includes(needle.value)
+
+// The groups the search leaves: a word narrows them by their name, as it narrows the contacts
+// by theirs. The section stands while there is a group to show -- or, with no search, where
+// they could not be loaded, to say so.
+const groupRows = computed(() =>
+  groups.value.filter((group) => !needle.value || group.title.toLowerCase().includes(needle.value)),
+)
+const groupsShown = computed(
+  () => groupRows.value.length > 0 || (groupsFailed.value && !needle.value),
+)
 
 // Read through the composable, not the `favorite` flag the server sent: a heart given on
 // this page has to move the person up at once, without a refetch.

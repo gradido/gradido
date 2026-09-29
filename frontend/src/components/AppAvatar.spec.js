@@ -1,9 +1,14 @@
 // AI-GENERATED — not an architecture reference
 
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi } from 'vitest'
 import AppAvatar from './AppAvatar.vue'
 import { AVATAR_COLOR_PALETTE, avatarPaletteEntry } from '@/utils/avatarColor'
+
+const here = dirname(fileURLToPath(import.meta.url))
 
 const circleStyle = (wrapper) => wrapper.find('.app-avatar').attributes('style') ?? ''
 
@@ -108,6 +113,43 @@ describe('AppAvatar', () => {
       const wrapper = mount(AppAvatar, { props: { name: null, initials: 'BE' } })
 
       expect(wrapper.find('span').text()).toBe('BE')
+    })
+  })
+
+  /**
+   * The outline (P5): a circle for a person, a square with rounded corners for a group. Both
+   * cases side by side, because the promise of the prop is that a caller which does not pass it
+   * keeps the circle -- every caller before the groups.
+   */
+  describe('the outline', () => {
+    const classes = (props) => mount(AppAvatar, { props }).find('.app-avatar').classes()
+
+    it('is a circle where none is asked for', () => {
+      expect(classes({ initials: 'BE' })).toContain('rounded-circle')
+      expect(classes({ initials: 'BE' })).not.toContain('app-avatar-rounded')
+    })
+
+    it('is a square with rounded corners for a group', () => {
+      const group = classes({ initials: 'GB', shape: 'rounded' })
+      expect(group).toContain('app-avatar-rounded')
+      expect(group).not.toContain('rounded-circle')
+    })
+
+    // Anything the component does not know is the circle, not a square without corners.
+    it('stays a circle for a shape it does not know', () => {
+      expect(classes({ initials: 'BE', shape: 'hexagon' })).toContain('rounded-circle')
+    })
+
+    // ⚠️ Read from the source, since jsdom lays nothing out: the class has to round the corners,
+    // or a group's square would be a plain square beside the circles. Comments out first, so a
+    // radius that is only described does not count.
+    it('rounds the corners of the square', () => {
+      const source = readFileSync(join(here, 'AppAvatar.vue'), 'utf8').replace(
+        /\/\*[\s\S]*?\*\//g,
+        '',
+      )
+      const rule = /\.app-avatar-rounded\s*\{([^}]*)\}/.exec(source)
+      expect(rule?.[1]).toMatch(/border-radius:\s*26%/)
     })
   })
 

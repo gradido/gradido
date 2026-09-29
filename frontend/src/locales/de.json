@@ -140,6 +140,18 @@
       "text": "Um andere Mitglieder in Deinem Umkreis zu finden, trage jetzt Deinen Standort auf der Karte ein!"
     }
   },
+  "chatGroup": {
+    "count": "{n} Gruppe | {n} Gruppen",
+    "heading": "Gruppen",
+    "memberCount": "{n} Mitglied | {n} Mitglieder",
+    "moderator": "Moderator",
+    "muted": "Stumm geschaltet",
+    "notReachable": "Die Gruppen konnten nicht geladen werden.",
+    "owner": "Inhaber",
+    "youAreMember": "Du bist Mitglied",
+    "youAreModerator": "Du bist Moderator",
+    "youAreOwner": "Du bist Inhaber"
+  },
   "chatThread": {
     "alsoByEmail": "Auch per E-Mail",
     "alsoByEmailTo": "Auch per E-Mail an {name}",

@@ -1,0 +1,41 @@
+# AI-GENERATED — not an architecture reference
+
+# A chat group (P5) as one of its members sees it: its name, where it lives and who opened it,
+# the member's own part in it -- role, mute mark, since when --, how many are in it, what waits
+# unread for them and when the latest message arrived.
+#
+# ⛔ The fields the backend's seeds ask for (backend/src/seeds/graphql/queries.ts, `chatGroups`),
+# and `documents.test.ts` holds this document against the schema. `role` comes as the enum NAME
+# (OWNER, MODERATOR, MEMBER). `createdBy` is null where the opener's users row is gone.
+#
+# A fragment, because the list and the answers of the changes that return a group (anlegen,
+# aufnehmen, umbenennen) feed the same window: a field asked for in one and forgotten in another
+# would leave the window drawing the group differently depending on where it came from.
+fragment chatGroupFields on ChatGroup {
+  groupUuid
+  conversationId
+  title
+  communityName
+  createdBy {
+    communityUuid
+    gradidoID
+    alias
+  }
+  createdAt
+  role
+  joinedAt
+  mutedByMe
+  memberCount
+  unreadMessages
+  lastMessageAt
+}
+
+# The member's groups in the server's order: newest activity first -- the latest message, or the
+# opening of a group without one (dbSelectChatGroupsByMember). ⛔ No variables, so one cache key
+# for whoever is signed in: asked with `network-only` wherever it is shown, and the cache is
+# emptied at logout.
+query chatGroupsQuery {
+  chatGroups {
+    ...chatGroupFields
+  }
+}
