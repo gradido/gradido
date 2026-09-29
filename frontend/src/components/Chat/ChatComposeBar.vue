@@ -20,12 +20,15 @@
       data-test="chat-compose-attached"
     >
       <span v-if="preparing" class="chat-compose-attached-wait" aria-hidden="true" />
+      <!-- A press on the picture opens the editor as the pencil does; the pencil is the one the
+           keyboard and a screen reader reach, so the picture is not a second stop. -->
       <canvas
         v-else
         ref="thumb"
         class="chat-compose-attached-picture"
         aria-hidden="true"
         data-test="chat-compose-attached-picture"
+        @click="openEditor"
       />
       <div class="chat-compose-attached-words" data-test="chat-compose-attached-words">
         <template v-if="preparing">{{ t('chatThread.imagePreparing') }}</template>
@@ -34,6 +37,18 @@
           <small>{{ t('chatThread.imageReadyHint') }}</small>
         </template>
       </div>
+      <!-- "Bild bearbeiten" (E-047): turn, mirror, cut -- a choice, never a step on the way. -->
+      <button
+        v-if="!preparing"
+        type="button"
+        class="chat-compose-attached-remove chat-compose-attached-edit"
+        :aria-label="t('chatThread.imageEdit')"
+        :title="t('chatThread.imageEdit')"
+        data-test="chat-compose-attached-edit"
+        @click="openEditor"
+      >
+        <i-mdi-pencil class="chat-compose-attached-remove-icon" aria-hidden="true" />
+      </button>
       <button
         v-if="!preparing"
         type="button"
@@ -246,6 +261,14 @@
       {{ pictureStatus }}
     </p>
 
+    <!-- The picture's editor (E-047): a dialog of its own over the contact window. -->
+    <chat-image-editor
+      v-model="editorOpen"
+      :source="picture?.source ?? null"
+      :edit="picture?.edit ?? CHAT_IMAGE_UNEDITED"
+      @done="applyEdit"
+    />
+
     <!-- The hint behind the paperclip (E-042, E-044): Gradido stores no files, SwissTransfer
          carries them -- three steps, what the service is, and the way there. Built as the question
          before a video call is (ContactWindow): no header, the title in the body and therefore a
@@ -305,6 +328,7 @@ import { BButton, BModal } from 'bootstrap-vue-next'
 import { SWISSTRANSFER_URL } from '@/utils/chatFileLink'
 import { encodeChatImage, openChatImage } from '@/utils/chatImage'
 import { CHAT_IMAGE_UNEDITED, chatImageCut, drawChatImageCut } from '@/utils/chatImageEdit'
+import ChatImageEditor from '@/components/Chat/ChatImageEditor.vue'
 import { chatNotifyFor } from '@/utils/chatNotify'
 import { isComputer } from '@/utils/isComputer'
 import { MESSAGE_MAX_CHARS, message as messageSchema } from '@/validationSchemas'
@@ -550,6 +574,18 @@ const takePicture = async (event) => {
 const removePicture = () => {
   picture.value = null
   clip.value?.focus({ preventScroll: true })
+}
+
+/** The editor (E-047): open while the member turns, mirrors or cuts the picture. */
+const editorOpen = ref(false)
+
+const openEditor = () => {
+  if (picture.value && !preparing.value) editorOpen.value = true
+}
+
+/** "Fertig": the picture keeps what was done to it -- the preview shows it, the message sends it. */
+const applyEdit = (edit) => {
+  if (picture.value) picture.value = { ...picture.value, edit }
 }
 
 /** The preview's square, in CSS pixels (the stylesheet's 3.5rem). */
@@ -852,6 +888,16 @@ watch(
 .chat-compose-attached-remove:focus-visible {
   outline: 2px solid var(--success, #047006);
   outline-offset: 2px;
+}
+
+/* The pencil: an action the member may take, so it has a rim; the cross only takes away. */
+.chat-compose-attached-edit {
+  border: 1px solid var(--border, #dee2e6);
+  color: var(--bs-body-color);
+}
+
+.chat-compose-attached-picture {
+  cursor: pointer;
 }
 
 .chat-compose-attached-remove-icon {

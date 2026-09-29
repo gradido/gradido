@@ -44,6 +44,14 @@ describe('ChatComposeBar', () => {
           IMdiCamera: true,
           IMdiFileDocument: true,
           IMdiClose: true,
+          IMdiPencil: true,
+          // The editor has its own spec; here it shows what it was given and answers as a test says.
+          ChatImageEditor: {
+            name: 'ChatImageEditor',
+            props: ['modelValue', 'source', 'edit'],
+            emits: ['update:modelValue', 'done'],
+            template: '<div data-test="chat-image-editor-stub" />',
+          },
           IMdiCellphone: true,
           IMdiOpenInNew: true,
           // Shows what it holds while it is open, the footer under it. The names written on the
@@ -1227,6 +1235,102 @@ describe('ChatComposeBar', () => {
       fourth.resolve(READY)
       await flushPromises()
       expect(shown()).toBe(READY.image)
+    })
+
+    /** E-047: the pencil opens the editor -- a choice beside the picture, never a step on the way. */
+    describe('the editor', () => {
+      const editor = () => wrapper.findComponent({ name: 'ChatImageEditor' })
+      const pencil = () => wrapper.find('[data-test="chat-compose-attached-edit"]')
+
+      it('offers to edit the picture with a pencil, once it is open', async () => {
+        mountBar()
+        const pending = deferred()
+        encoding.openChatImage.mockReturnValueOnce(pending.promise)
+        await choose()
+        expect(pencil().exists()).toBe(false)
+
+        pending.resolve(READY)
+        await flushPromises()
+
+        expect(pencil().element.tagName).toBe('BUTTON')
+        expect(pencil().attributes('type')).toBe('button')
+        expect(pencil().attributes('aria-label')).toBe('chatThread.imageEdit')
+        expect(pencil().attributes('title')).toBe('chatThread.imageEdit')
+        expect(editor().props('modelValue')).toBe(false)
+      })
+
+      it('opens the editor with the picture and what was done to it', async () => {
+        mountBar()
+        await chooseReady()
+
+        await pencil().trigger('click')
+
+        expect(editor().props('modelValue')).toBe(true)
+        expect(editor().props('source')).toBe(READY)
+        expect(editor().props('edit')).toEqual(CHAT_IMAGE_UNEDITED)
+      })
+
+      // A press on the picture itself opens it too; the pencil is the one the keyboard reaches.
+      it('opens it with a press on the picture as well', async () => {
+        mountBar()
+        await chooseReady()
+
+        await preview().trigger('click')
+
+        expect(editor().props('modelValue')).toBe(true)
+        expect(preview().attributes('tabindex')).toBeUndefined()
+      })
+
+      /** "Fertig": the preview shows what was done, and the message sends it. */
+      it('shows and sends what the editor hands back', async () => {
+        framesPassAtOnce()
+        mountBar()
+        await chooseReady()
+        await pencil().trigger('click')
+        const turned = { ...CHAT_IMAGE_UNEDITED, turn: 90, shape: 'square' }
+
+        editor().vm.$emit('done', turned)
+        editor().vm.$emit('update:modelValue', false)
+        await flushPromises()
+
+        expect(editor().props('modelValue')).toBe(false)
+        expect(preview().element.steps).toContainEqual(['rotate', Math.PI / 2])
+        await pencil().trigger('click')
+        expect(editor().props('edit')).toEqual(turned)
+        await editor().vm.$emit('update:modelValue', false)
+
+        await sendWith()
+        expect(encoding.encodeChatImage).toHaveBeenCalledWith(READY, turned)
+      })
+
+      // "Abbrechen" or Esc: the picture stays as it was.
+      it('keeps the picture as it was where the editor closes without "Fertig"', async () => {
+        framesPassAtOnce()
+        mountBar()
+        await chooseReady()
+        await pencil().trigger('click')
+
+        editor().vm.$emit('update:modelValue', false)
+        await flushPromises()
+        await sendWith()
+
+        expect(editor().props('modelValue')).toBe(false)
+        expect(encoding.encodeChatImage).toHaveBeenCalledWith(READY, CHAT_IMAGE_UNEDITED)
+      })
+
+      // A second picture starts unedited: what was done belonged to the first.
+      it('starts a second picture unedited', async () => {
+        mountBar()
+        await chooseReady()
+        editor().vm.$emit('done', { ...CHAT_IMAGE_UNEDITED, turn: 180 })
+        await flushPromises()
+
+        await chooseReady(OTHER)
+        await pencil().trigger('click')
+
+        expect(editor().props('source')).toBe(OTHER)
+        expect(editor().props('edit')).toEqual(CHAT_IMAGE_UNEDITED)
+      })
     })
 
     // Emptied after every choice: the same file chosen again is a change again.
