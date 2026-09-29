@@ -127,3 +127,74 @@ mutation markChatGroupRead($groupUuid: String!, $upToMessageId: Int!) {
 mutation setChatGroupMuted($groupUuid: String!, $muted: Boolean!) {
   setChatGroupMuted(groupUuid: $groupUuid, muted: $muted)
 }
+
+# The members of a group (P5), the longest-standing first, as the other members see them: the same
+# `User` shape the contact list carries -- alias, community, colour digit, the date of the picture,
+# no real name (NU-019) --, their part and since when. ⛔ Nothing about their mute mark or their
+# read pointer: those are each member's own (E-024, E-008). CHAT_GROUP_NOT_FOUND for somebody who
+# is not in the group.
+query chatGroupMembersQuery($groupUuid: String!) {
+  chatGroupMembers(groupUuid: $groupUuid) {
+    user {
+      communityUuid
+      communityName
+      gradidoID
+      alias
+      avatarColorIndex
+      avatarUpdatedAt
+    }
+    role
+    joinedAt
+  }
+}
+
+# Opens a group (P5): the member who opens it is its owner, the members named are taken in -- only
+# the member's own contacts of this community (E-049, E-050 F2; the server checks it) -- and each
+# of them gets the mail "Du bist jetzt in der Gruppe". Refused as CHAT_GROUP_NOT_CREATED: TITLE |
+# OTHER_COMMUNITY | NOT_A_CONTACT | UNKNOWN_MEMBER | FULL, and then nothing is opened.
+#
+# ⛔ The name goes as `$title` -- the name the backend's request log masks.
+mutation createChatGroup($title: String!, $members: [MemberAvatarRefInput!]!) {
+  createChatGroup(title: $title, members: $members) {
+    ...chatGroupFields
+  }
+}
+
+# Takes the members named into the group -- the owner's and the moderators' (E-050 F4) -- each with
+# the mail "Du bist jetzt in der Gruppe". CHAT_GROUP_NOT_CHANGED: NOT_ALLOWED | OTHER_COMMUNITY |
+# NOT_A_CONTACT | UNKNOWN_MEMBER | FULL.
+mutation addChatGroupMembers($groupUuid: String!, $members: [MemberAvatarRefInput!]!) {
+  addChatGroupMembers(groupUuid: $groupUuid, members: $members) {
+    ...chatGroupFields
+  }
+}
+
+# Takes one member out: the owner anybody, a moderator a plain member (E-050 F4). Their messages
+# stay in the thread. CHAT_GROUP_NOT_CHANGED: NOT_ALLOWED | NOT_A_MEMBER.
+mutation removeChatGroupMember($groupUuid: String!, $member: MemberAvatarRefInput!) {
+  removeChatGroupMember(groupUuid: $groupUuid, member: $member)
+}
+
+# The member leaves the group. An owner who leaves hands it on: to the longest-standing moderator,
+# else to the longest-standing member.
+mutation leaveChatGroup($groupUuid: String!) {
+  leaveChatGroup(groupUuid: $groupUuid)
+}
+
+# Makes a member a moderator, or takes it back -- the owner's only, at most two moderators
+# (E-050 F4). CHAT_GROUP_NOT_CHANGED: NOT_ALLOWED | NOT_A_MEMBER | TOO_MANY_MODERATORS.
+mutation setChatGroupModerator(
+  $groupUuid: String!
+  $member: MemberAvatarRefInput!
+  $moderator: Boolean!
+) {
+  setChatGroupModerator(groupUuid: $groupUuid, member: $member, moderator: $moderator)
+}
+
+# Renames the group -- the owner's and the moderators'. CHAT_GROUP_NOT_CHANGED: NOT_ALLOWED | TITLE.
+# ⛔ `$title`, for the request log's mask, as above.
+mutation renameChatGroup($groupUuid: String!, $title: String!) {
+  renameChatGroup(groupUuid: $groupUuid, title: $title) {
+    ...chatGroupFields
+  }
+}

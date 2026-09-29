@@ -1,11 +1,15 @@
 // AI-GENERATED — not an architecture reference
 import { describe, it, expect } from 'vitest'
 import {
+  CHAT_GROUP_TITLE_MAX,
   chatGroupAvatar,
   chatGroupLetters,
   chatGroupMeta,
   chatGroupOwnPart,
   chatGroupPartMark,
+  chatGroupRefusal,
+  chatGroupTitle,
+  isChatGroupTitle,
 } from './chatGroupDisplay'
 import {
   CHAT_GROUP_MEMBER,
@@ -135,6 +139,53 @@ describe('chatGroupDisplay', () => {
         'MODERATOR',
         'MEMBER',
       ])
+    })
+  })
+
+  describe('a refusal of the server', () => {
+    const said = (message) => chatGroupRefusal(new Error(message), { t })
+
+    it('is said in the words for its reason', () => {
+      expect(said('CHAT_GROUP_NOT_CREATED: TITLE')).toBe('chatGroup.refusedTitle')
+      expect(said('CHAT_GROUP_NOT_CREATED: OTHER_COMMUNITY')).toBe(
+        'chatGroup.refusedOtherCommunity',
+      )
+      expect(said('CHAT_GROUP_NOT_CHANGED: NOT_A_CONTACT')).toBe('chatGroup.refusedNotAContact')
+      expect(said('CHAT_GROUP_NOT_CHANGED: UNKNOWN_MEMBER')).toBe('chatGroup.refusedUnknownMember')
+      expect(said('CHAT_GROUP_NOT_CREATED: FULL')).toBe('chatGroup.refusedFull')
+      expect(said('CHAT_GROUP_NOT_CHANGED: NOT_ALLOWED')).toBe('chatGroup.refusedNotAllowed')
+      expect(said('CHAT_GROUP_NOT_CHANGED: NOT_A_MEMBER')).toBe('chatGroup.refusedNotAMember')
+      expect(said('CHAT_GROUP_NOT_CHANGED: TOO_MANY_MODERATORS')).toBe(
+        'chatGroup.refusedTooManyModerators',
+      )
+    })
+
+    // Gone, or no longer in it: the server does not tell the two apart, and neither do the words.
+    it('says a group is gone where the server does not find it for the member', () => {
+      expect(said('GraphQL error: CHAT_GROUP_NOT_FOUND')).toBe('chatGroup.refusedNotFound')
+    })
+
+    // A reason this wallet does not know, no connection, a right not given yet (401).
+    it('is the general sentence for anything else', () => {
+      expect(said('CHAT_GROUP_NOT_CHANGED: SOMETHING_NEW')).toBe('chatGroup.refused')
+      expect(said('401 Unauthorized')).toBe('chatGroup.refused')
+      expect(chatGroupRefusal(null, { t })).toBe('chatGroup.refused')
+    })
+  })
+
+  // The server's rule (ChatGroup.logic): white space made one, trimmed, 1 to 100 characters.
+  describe("a group's name", () => {
+    it('is what the server keeps of what was typed', () => {
+      expect(chatGroupTitle('  Gradido   Café\n Berlin ')).toBe('Gradido Café Berlin')
+    })
+
+    it('has one to a hundred characters, an emoji counted as one', () => {
+      expect(isChatGroupTitle('   ')).toBe(false)
+      expect(isChatGroupTitle('G')).toBe(true)
+      expect(isChatGroupTitle('x'.repeat(CHAT_GROUP_TITLE_MAX))).toBe(true)
+      expect(isChatGroupTitle('x'.repeat(CHAT_GROUP_TITLE_MAX + 1))).toBe(false)
+      expect(isChatGroupTitle('🌻'.repeat(CHAT_GROUP_TITLE_MAX))).toBe(true)
+      expect(CHAT_GROUP_TITLE_MAX).toBe(100)
     })
   })
 })

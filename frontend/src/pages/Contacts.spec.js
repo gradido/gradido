@@ -118,6 +118,14 @@ describe('Contacts page', () => {
             template:
               '<div data-test="contact-row" @click="$emit(\'open\', contact)">{{ contact.user.alias }}</div>',
           },
+          // Emits `created` as the real dialog does once a group is opened.
+          ChatGroupCreate: {
+            name: 'ChatGroupCreate',
+            props: ['modelValue', 'contacts'],
+            emits: ['update:modelValue', 'created'],
+            template:
+              '<div data-test="chat-group-create" :data-open="String(modelValue)" :data-contacts="contacts.length" />',
+          },
           // Emits `open` as the real row does; its own drawing is its spec's business.
           ChatGroupRow: {
             props: ['group'],
@@ -128,7 +136,7 @@ describe('Contacts page', () => {
           // The group's window, as the contact window below: its contents are its own spec's.
           ChatGroupWindow: {
             name: 'ChatGroupWindow',
-            props: ['modelValue', 'group'],
+            props: ['modelValue', 'group', 'contacts'],
             emits: ['update:modelValue', 'changed'],
             template:
               '<div data-test="chat-group-window" :data-open="String(modelValue)" :data-group="group?.groupUuid ?? \'\'" :data-title="group?.title ?? \'\'" @click="$emit(\'changed\')" />',
@@ -555,12 +563,53 @@ describe('Contacts page', () => {
       expect(handlers.get('chatGroupsQuery').options).toEqual({ fetchPolicy: 'network-only' })
     })
 
-    it('shows no section where the member is in no group', async () => {
+    // "Neue Gruppe" is the way to a first group, so the section stands without one -- once the
+    // server has answered, and not before.
+    it('offers a new group, and says there is none yet, where the member is in no group', async () => {
       mountPage()
+      expect(wrapper.find('[data-test="contacts-groups"]').exists()).toBe(false)
       fire('contactListQuery', { contactList: { count: 1, contacts: [person(1)] } })
       fire('chatGroupsQuery', { chatGroups: [] })
       await nextTick()
-      expect(wrapper.find('[data-test="contacts-groups"]').exists()).toBe(false)
+      expect(wrapper.find('[data-test="groups-none"]').text()).toBe('chatGroup.none')
+      expect(wrapper.find('[data-test="contacts-groups-new"]').exists()).toBe(true)
+      expect(wrapper.find('[data-test="contacts-groups-count"]').exists()).toBe(false)
+    })
+
+    describe('a new group', () => {
+      const createDialog = () => wrapper.find('[data-test="chat-group-create"]')
+
+      it('opens the dialog with the contacts the page holds', async () => {
+        mountPage()
+        fire('contactListQuery', { contactList: { count: 2, contacts: [person(1), person(2)] } })
+        fire('chatGroupsQuery', { chatGroups: [] })
+        await nextTick()
+        expect(createDialog().attributes('data-open')).toBe('false')
+
+        await wrapper.find('[data-test="contacts-groups-new"]').trigger('click')
+
+        expect(createDialog().attributes('data-open')).toBe('true')
+        expect(createDialog().attributes('data-contacts')).toBe('2')
+      })
+
+      // The new group stands in the list at once, its window opens, and the list is asked again.
+      it('opens the window on the group just opened, and asks for the list again', async () => {
+        mountPage()
+        fire('chatGroupsQuery', { chatGroups: [group(1)] })
+        await nextTick()
+        answers.set('chatGroupsQuery', () => ({ data: { chatGroups: [group(9), group(1)] } }))
+
+        await wrapper.findComponent({ name: 'ChatGroupCreate' }).vm.$emit('created', group(9))
+        await nextTick()
+
+        expect(groupRows()[0]).toBe('Gruppe 9')
+        const groupWindow = wrapper.find('[data-test="chat-group-window"]')
+        expect(groupWindow.attributes('data-open')).toBe('true')
+        expect(groupWindow.attributes('data-group')).toBe('group-9')
+        await flushPromises()
+        expect(apolloQuery.mock.calls.some(([o]) => o.query === 'chatGroupsQuery')).toBe(true)
+        expect(groupRows()).toEqual(['Gruppe 9', 'Gruppe 1'])
+      })
     })
 
     // A member with no contact left can still be in a group somebody took them into.

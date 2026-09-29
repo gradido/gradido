@@ -1,11 +1,11 @@
 // AI-GENERATED — not an architecture reference
 import { flushPromises, mount } from '@vue/test-utils'
-import { describe, it, expect, afterEach, vi } from 'vitest'
+import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import ChatGroupWindow from './ChatGroupWindow.vue'
-import { setChatGroupMuted } from '@/graphql/chatGroups.graphql'
+import { chatGroupMembersQuery, setChatGroupMuted } from '@/graphql/chatGroups.graphql'
 
 vi.mock('@/i18n', () => ({
   default: { global: { t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key) } },
@@ -35,8 +35,17 @@ vi.mock('@/composables/useToast', () => ({
 
 /** What the server answers to the bell: a test sets it; called with the document and variables. */
 const saved = vi.hoisted(() => vi.fn())
+/** The members' question (chatGroupMembersQuery): a test sets the answer. */
+const asked = vi.hoisted(() => vi.fn())
 vi.mock('@vue/apollo-composable', () => ({
   useMutation: (document) => ({ mutate: (variables) => saved(document, variables) }),
+  useApolloClient: () => ({ client: { query: (options) => asked(options) } }),
+}))
+
+const facesAsked = vi.hoisted(() => vi.fn())
+vi.mock('@/composables/useMemberAvatars', async (importOriginal) => ({
+  ...(await importOriginal()),
+  fetchMemberAvatars: (...args) => facesAsked(...args),
 }))
 
 const GROUP = {
@@ -53,6 +62,26 @@ const GROUP = {
   unreadMessages: 0,
   lastMessageAt: null,
 }
+
+const member = (gradidoID, alias, role) => ({
+  user: {
+    communityUuid: 'home-uuid',
+    communityName: 'KI Playground',
+    gradidoID,
+    alias,
+    avatarColorIndex: 1,
+    avatarUpdatedAt: null,
+  },
+  role,
+  joinedAt: '2026-09-27T10:00:00.000Z',
+})
+const MEMBERS = [
+  member('anna-id', 'Anna-Sonne', 'OWNER'),
+  member('me-id', 'Bernd', 'MODERATOR'),
+  member('carla-id', 'Carla-Sonne', 'MEMBER'),
+  member('emma-id', 'Oma-Emma', 'MEMBER'),
+  member('kons-id', 'Konstantin', 'MEMBER'),
+]
 
 describe('ChatGroupWindow', () => {
   let wrapper
@@ -82,6 +111,14 @@ describe('ChatGroupWindow', () => {
             props: ['group'],
             template: '<div data-test="thread" :data-group="group?.groupUuid" />',
           },
+          // The members' dialog has its own spec; here: what it is handed, and what it says back.
+          ChatGroupMembers: {
+            name: 'ChatGroupMembers',
+            props: ['modelValue', 'group', 'members', 'loaded', 'contacts'],
+            emits: ['update:modelValue', 'changed', 'left'],
+            template:
+              '<div data-test="members-dialog" :data-open="String(modelValue)" :data-count="members.length" />',
+          },
         },
       },
     })
@@ -91,8 +128,14 @@ describe('ChatGroupWindow', () => {
   const find = (test) => wrapper.find(`[data-test="${test}"]`)
   const bell = () => find('chat-group-window-bell')
 
+  beforeEach(() => {
+    asked.mockImplementation(async () => ({ data: { chatGroupMembers: MEMBERS } }))
+  })
+
   afterEach(() => {
     wrapper?.unmount()
+    asked.mockReset()
+    facesAsked.mockClear()
     saved.mockReset()
     toastSuccess.mockClear()
     toastError.mockClear()
@@ -136,6 +179,114 @@ describe('ChatGroupWindow', () => {
       expect(find('chat-group-window-meta').text()).toBe(
         'chatGroup.since {"date":"monthAndYear(2026-09-27T10:00:00.000Z)"}',
       )
+    })
+  })
+
+  describe('the members', () => {
+    const dialog = () => wrapper.findComponent({ name: 'ChatGroupMembers' })
+
+    it('asks for them when the window opens, past the cache, and for their faces', async () => {
+      mountWindow()
+      await flushPromises()
+      expect(asked).toHaveBeenCalledWith({
+        query: chatGroupMembersQuery,
+        variables: { groupUuid: 'cafe-uuid' },
+        fetchPolicy: 'network-only',
+      })
+      expect(facesAsked.mock.calls.at(-1)[1].map((user) => user.gradidoID)).toEqual(
+        MEMBERS.map((entry) => entry.user.gradidoID),
+      )
+    })
+
+    // Up to four faces in the button, the longest-standing first; the word is the button's name.
+    it('shows up to four of them in the button', async () => {
+      mountWindow()
+      await flushPromises()
+      const button = find('chat-group-window-members')
+      expect(button.findAll('.app-avatar').map((face) => face.text())).toEqual([
+        'AN',
+        'BE',
+        'CA',
+        'OM',
+      ])
+      expect(button.text()).toContain('chatGroup.members')
+      // The faces are the button's picture: none of them is a button of its own.
+      expect(button.findAll('button')).toHaveLength(0)
+    })
+
+    it('opens the dialog with the group, its members and the contacts', async () => {
+      wrapper = mount(ChatGroupWindow, {
+        props: { modelValue: true, group: GROUP, contacts: [{ user: { gradidoID: 'x' } }] },
+        global: {
+          mocks: { $t: (key) => key },
+          stubs: {
+            BModal: { template: '<div><slot /></div>' },
+            IBiX: true,
+            ChatThread: true,
+            ChatGroupMembers: {
+              name: 'ChatGroupMembers',
+              props: ['modelValue', 'group', 'members', 'loaded', 'contacts'],
+              template: '<div />',
+            },
+          },
+        },
+      })
+      await flushPromises()
+      expect(dialog().props('modelValue')).toBe(false)
+      await find('chat-group-window-members').trigger('click')
+      expect(dialog().props()).toMatchObject({
+        modelValue: true,
+        group: GROUP,
+        loaded: true,
+        contacts: [{ user: { gradidoID: 'x' } }],
+      })
+      expect(dialog().props('members')).toHaveLength(5)
+    })
+
+    it('asks for them again, and tells the page, when the dialog changed something', async () => {
+      mountWindow()
+      await flushPromises()
+      asked.mockClear()
+      await dialog().vm.$emit('changed')
+      await flushPromises()
+      expect(asked).toHaveBeenCalledTimes(1)
+      expect(wrapper.emitted('changed')).toHaveLength(1)
+    })
+
+    it('closes, and tells the page, when the member left the group', async () => {
+      mountWindow()
+      await flushPromises()
+      await dialog().vm.$emit('left')
+      expect(wrapper.emitted('update:modelValue')).toEqual([[false]])
+      expect(wrapper.emitted('changed')).toHaveLength(1)
+    })
+
+    // Only the newest answer counts: a slow answer about the group before must not land.
+    it('keeps the answer about the group on screen when two cross', async () => {
+      const pending = []
+      asked.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            pending.push(resolve)
+          }),
+      )
+      mountWindow()
+      await wrapper.setProps({ group: { ...GROUP, groupUuid: 'garten-uuid' } })
+      pending[1]({ data: { chatGroupMembers: MEMBERS.slice(0, 2) } })
+      await flushPromises()
+      pending[0]({ data: { chatGroupMembers: MEMBERS } })
+      await flushPromises()
+      expect(find('chat-group-window-members').findAll('.app-avatar')).toHaveLength(2)
+    })
+
+    // A list asked again for the same group (the page's reload) asks no members.
+    it('does not ask again when the list only brings the same group anew', async () => {
+      mountWindow()
+      await flushPromises()
+      asked.mockClear()
+      await wrapper.setProps({ group: { ...GROUP, memberCount: 6 } })
+      await flushPromises()
+      expect(asked).not.toHaveBeenCalled()
     })
   })
 

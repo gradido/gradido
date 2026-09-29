@@ -10,20 +10,32 @@
     />
 
     <!-- The member's chat groups (P5), in a section of their own above the favourites (E-050
-         F1a) -- as soon as they are in, whether or not the contacts are. A search narrows them by
-         their name, and where it leaves none the section steps aside for the contacts it found. -->
+         F1a) -- as soon as they are in, whether or not the contacts are, and with "Neue Gruppe"
+         also while there is none. A search narrows them by their name, and where it leaves none
+         the section steps aside for the contacts it found. -->
     <section
       v-if="groupsShown"
       class="mb-4"
       aria-labelledby="contacts-groups-heading"
       data-test="contacts-groups"
     >
-      <h2 id="contacts-groups-heading" class="h6 text-uppercase text-muted mb-2 page-text">
-        {{ $t('chatGroup.heading') }}
-        <span v-if="groupRows.length" class="fw-normal ms-2" data-test="contacts-groups-count">
-          {{ $t('chatGroup.count', groupRows.length) }}
-        </span>
-      </h2>
+      <div class="contacts-groups-head page-text mb-2">
+        <h2 id="contacts-groups-heading" class="h6 text-uppercase text-muted mb-0">
+          {{ $t('chatGroup.heading') }}
+          <span v-if="groupRows.length" class="fw-normal ms-2" data-test="contacts-groups-count">
+            {{ $t('chatGroup.count', groupRows.length) }}
+          </span>
+        </h2>
+        <button
+          type="button"
+          class="contacts-groups-new"
+          data-test="contacts-groups-new"
+          @click="createOpen = true"
+        >
+          <i-mdi-plus aria-hidden="true" />
+          {{ $t('chatGroup.new') }}
+        </button>
+      </div>
       <div
         v-if="groupRows.length"
         class="bg-white gradido-border-radius app-box-shadow px-3"
@@ -39,6 +51,9 @@
       <!-- A failed request is not an empty list, here as for the contacts. -->
       <div v-else-if="groupsFailed" class="text-muted small page-text" data-test="groups-error">
         {{ $t('chatGroup.notReachable') }}
+      </div>
+      <div v-else class="text-muted small page-text" data-test="groups-none">
+        {{ $t('chatGroup.none') }}
       </div>
     </section>
 
@@ -138,8 +153,14 @@
 
     <!-- One window for the page, not one per row (KF-010). -->
     <contact-window v-model="windowOpen" :contact="selected" />
-    <!-- And one for a group (P5), the same way. -->
-    <chat-group-window v-model="groupWindowOpen" :group="openedGroup" @changed="reloadGroups" />
+    <!-- And one for a group (P5), the same way, and the dialog that opens one. -->
+    <chat-group-window
+      v-model="groupWindowOpen"
+      :group="openedGroup"
+      :contacts="contacts"
+      @changed="reloadGroups"
+    />
+    <chat-group-create v-model="createOpen" :contacts="contacts" @created="groupCreated" />
   </div>
 </template>
 
@@ -148,6 +169,7 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useApolloClient, useQuery } from '@vue/apollo-composable'
 import { BFormInput, BPagination, BSpinner } from 'bootstrap-vue-next'
+import ChatGroupCreate from '@/components/ChatGroups/ChatGroupCreate.vue'
 import ChatGroupRow from '@/components/ChatGroups/ChatGroupRow.vue'
 import ChatGroupWindow from '@/components/ChatGroups/ChatGroupWindow.vue'
 import ContactRow from '@/components/Contacts/ContactRow.vue'
@@ -227,6 +249,7 @@ onError((error) => {
  * own line instead, only while there is no list to show.
  */
 const groups = ref([])
+const groupsLoaded = ref(false)
 const groupsFailed = ref(false)
 
 const { onResult: onGroups, onError: onGroupsError } = useQuery(chatGroupsQuery, null, {
@@ -235,9 +258,11 @@ const { onResult: onGroups, onError: onGroupsError } = useQuery(chatGroupsQuery,
 onGroups(({ data }) => {
   if (!data?.chatGroups) return
   groups.value = data.chatGroups
+  groupsLoaded.value = true
   groupsFailed.value = false
 })
 onGroupsError(() => {
+  groupsLoaded.value = true
   groupsFailed.value = groups.value.length === 0
 })
 
@@ -265,6 +290,18 @@ watch(openedGroup, (group) => {
 })
 
 /**
+ * "Neue Gruppe" (P5): the dialog, and what follows a group opened in it -- it stands in the list at
+ * once, its window opens, and the list is asked again for the server's order.
+ */
+const createOpen = ref(false)
+const groupCreated = (group) => {
+  groups.value = [group, ...groups.value.filter((held) => held.groupUuid !== group.groupUuid)]
+  groupsLoaded.value = true
+  openGroup(group)
+  reloadGroups()
+}
+
+/**
  * The groups asked again, the way the list is (`reloadList` below): a message arrived or was
  * read, and the dot or the order of a group moved. Quiet, and only the newest answer counts.
  */
@@ -279,6 +316,7 @@ const reloadGroups = async () => {
     })
     if (mine !== groupReloads || !data?.chatGroups) return
     groups.value = data.chatGroups
+    groupsLoaded.value = true
     groupsFailed.value = false
   } catch {
     // The groups as they were.
@@ -362,13 +400,14 @@ const matches = (contact) =>
   `${contact.user.alias ?? ''} ${contact.user.gradidoID}`.toLowerCase().includes(needle.value)
 
 // The groups the search leaves: a word narrows them by their name, as it narrows the contacts
-// by theirs. The section stands while there is a group to show -- or, with no search, where
-// they could not be loaded, to say so.
+// by theirs. The section stands while there is a group to show -- and, with no search, once the
+// server has answered: with "Neue Gruppe", and a line that says there is none yet or that they
+// could not be loaded.
 const groupRows = computed(() =>
   groups.value.filter((group) => !needle.value || group.title.toLowerCase().includes(needle.value)),
 )
 const groupsShown = computed(
-  () => groupRows.value.length > 0 || (groupsFailed.value && !needle.value),
+  () => groupRows.value.length > 0 || (groupsLoaded.value && !needle.value),
 )
 
 // Read through the composable, not the `favorite` flag the server sent: a heart given on
@@ -430,5 +469,34 @@ watch(
    and a block that alone floats to the middle looks misplaced rather than deliberate. */
 .contacts {
   max-width: 450px;
+}
+
+/* The groups' heading with "Neue Gruppe" at the right end of its line (the mockup). */
+.contacts-groups-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem 0.75rem;
+}
+
+/* A quiet outlined pill in the house's gold, as "+ Mitglieder hinzufügen" in the group's members;
+   at least a finger's height. */
+.contacts-groups-new {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 2.25rem;
+  padding: 0.2rem 0.85rem;
+  border: 1px solid var(--gold, #c58d38);
+  border-radius: 1.2rem;
+  background: transparent;
+  color: var(--bs-body-color);
+  font-size: 0.85rem;
+}
+
+.contacts-groups-new:focus-visible {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: 2px;
 }
 </style>

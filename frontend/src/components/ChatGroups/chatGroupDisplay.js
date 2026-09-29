@@ -110,3 +110,60 @@ export const chatGroupPartMark = (role, { t }) => {
       return ''
   }
 }
+
+/**
+ * Why the server refused a change to a group (P5), in the member's words: the reason after
+ * CHAT_GROUP_NOT_CREATED or CHAT_GROUP_NOT_CHANGED, or CHAT_GROUP_NOT_FOUND -- a group that is gone,
+ * or that the member is no longer in, which the server does not tell apart. Anything else -- no
+ * connection, a right the account does not have yet (401 before the address is confirmed) --
+ * is the general sentence.
+ *
+ * ⛔ Each key written out, not built from the reason: the i18n lint counts only literal keys
+ * (Falle 6), and a reason this wallet does not know says the general sentence rather than a raw
+ * key.
+ *
+ * @param {{ message?: string } | null | undefined} error what the mutation threw
+ * @param {{ t: Function }} i18n the caller's `t`
+ */
+export const chatGroupRefusal = (error, { t }) => {
+  const message = String(error?.message ?? '')
+  if (message.includes('CHAT_GROUP_NOT_FOUND')) return t('chatGroup.refusedNotFound')
+  const reason = /CHAT_GROUP_NOT_(?:CREATED|CHANGED): ([A-Z_]+)/.exec(message)?.[1]
+  switch (reason) {
+    case 'TITLE':
+      return t('chatGroup.refusedTitle')
+    case 'OTHER_COMMUNITY':
+      return t('chatGroup.refusedOtherCommunity')
+    case 'NOT_A_CONTACT':
+      return t('chatGroup.refusedNotAContact')
+    case 'UNKNOWN_MEMBER':
+      return t('chatGroup.refusedUnknownMember')
+    case 'FULL':
+      return t('chatGroup.refusedFull')
+    case 'NOT_ALLOWED':
+      return t('chatGroup.refusedNotAllowed')
+    case 'NOT_A_MEMBER':
+      return t('chatGroup.refusedNotAMember')
+    case 'TOO_MANY_MODERATORS':
+      return t('chatGroup.refusedTooManyModerators')
+    default:
+      return t('chatGroup.refused')
+  }
+}
+
+/**
+ * What a group's name may be (the server's rule, ChatGroup.logic): its runs of white space made
+ * one, trimmed, 1 to 100 characters -- whole characters, as an emoji is one. The wallet checks it
+ * before asking, so the button waits instead of the server refusing.
+ */
+export const CHAT_GROUP_TITLE_MAX = 100
+
+export const chatGroupTitle = (typed) =>
+  String(typed ?? '')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+export const isChatGroupTitle = (typed) => {
+  const length = Array.from(chatGroupTitle(typed)).length
+  return length >= 1 && length <= CHAT_GROUP_TITLE_MAX
+}

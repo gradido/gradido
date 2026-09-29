@@ -56,8 +56,29 @@
       <!-- Since when, and who opened it -- the contact window's "Kontakt seit …" line. -->
       <div class="chat-group-window-meta" data-test="chat-group-window-meta">{{ metaLine }}</div>
 
-      <!-- The row under the figures: the marks at its right end, as in the contact window. -->
+      <!-- The row under the figures, as the contact window's send row: "Mitglieder" where the
+           contact window has "Gradido senden", the marks at its right end. -->
       <div class="chat-group-window-row">
+        <!-- The members (the mockup): up to four small faces and the word -- the faces are the
+             button's picture, not controls of their own, so none of them zooms here. -->
+        <button
+          type="button"
+          class="chat-group-window-members"
+          data-test="chat-group-window-members"
+          @click="membersOpen = true"
+        >
+          <span class="chat-group-window-strip" aria-hidden="true">
+            <app-avatar
+              v-for="face in strip"
+              :key="face.id"
+              class="chat-group-window-strip-face"
+              :size="CHAT_BUBBLE_FACE_SIZE"
+              :color="'#fff'"
+              v-bind="face.avatar"
+            />
+          </span>
+          {{ t('chatGroup.members') }}
+        </button>
         <div class="chat-group-window-marks">
           <!-- The bell: mutes the group for oneself -- no announcement reaches one by mail; the
                thread shows every message as before (E-024). No question before switching, either
@@ -85,6 +106,17 @@
       <!-- The group's thread and the bar to write in it (ChatThread in a group's kind). ⛔ Keyed by
            the group: the thread takes its group once, and another group is another thread. -->
       <chat-thread :key="group.groupUuid" class="chat-group-window-thread" :group="group" />
+
+      <!-- The members' dialog, over this window (P5). -->
+      <chat-group-members
+        v-model="membersOpen"
+        :group="group"
+        :members="members"
+        :loaded="membersLoaded"
+        :contacts="contacts"
+        @changed="membersChanged"
+        @left="left"
+      />
     </div>
   </BModal>
 </template>
@@ -93,17 +125,21 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useStore } from 'vuex'
-import { useMutation } from '@vue/apollo-composable'
+import { useApolloClient, useMutation } from '@vue/apollo-composable'
 import { BModal } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
 import ChatThread from '@/components/Chat/ChatThread.vue'
+import ChatGroupMembers from '@/components/ChatGroups/ChatGroupMembers.vue'
 import {
   chatGroupAvatar,
   chatGroupOwnPart,
   CHAT_GROUP_META_SEPARATOR,
 } from '@/components/ChatGroups/chatGroupDisplay'
+import { fetchMemberAvatars, memberAvatarProps } from '@/composables/useMemberAvatars'
 import { useAppToast } from '@/composables/useToast'
-import { setChatGroupMuted } from '@/graphql/chatGroups.graphql'
+import { CHAT_BUBBLE_FACE_SIZE } from '@/constants'
+import { chatGroupMembersQuery, setChatGroupMuted } from '@/graphql/chatGroups.graphql'
+import { chatMemberKey } from '@/utils/chatMemberKey'
 import { memberAlias } from '@/utils/gradidoAddress'
 
 /**
@@ -116,11 +152,13 @@ import { memberAlias } from '@/utils/gradidoAddress'
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
   group: { type: Object, default: null },
+  /** The contact list the page holds: whom the members' dialog may take in. */
+  contacts: { type: Array, default: () => [] },
 })
 
 /**
- * `changed`: something about the group is different now -- the member muted it, or lifted it -- and
- * the page asks for its list again, which draws the crossed bell in the row.
+ * `changed`: something about the group is different now -- muted or lifted, a member in or out, a
+ * part or the name changed, the member left -- and the page asks for its list again.
  */
 const emit = defineEmits(['update:modelValue', 'changed'])
 
@@ -128,6 +166,72 @@ const { t, d } = useI18n()
 const store = useStore()
 const { toastSuccess, toastError } = useAppToast()
 const { mutate: saveMuted } = useMutation(setChatGroupMuted)
+const { client: apolloClient } = useApolloClient()
+
+/**
+ * The group's members (chatGroupMembersQuery), asked when the window opens or comes to another
+ * group, and again after a change in the members' dialog -- the longest-standing first. Their
+ * faces are asked for as the lists ask for theirs. Only the newest answer counts.
+ */
+const members = ref([])
+const membersLoaded = ref(false)
+const membersOpen = ref(false)
+let membersAsked = 0
+
+const loadMembers = async () => {
+  const groupUuid = props.group?.groupUuid
+  if (!groupUuid) return
+  const mine = ++membersAsked
+  try {
+    const { data } = await apolloClient.query({
+      query: chatGroupMembersQuery,
+      variables: { groupUuid },
+      fetchPolicy: 'network-only',
+    })
+    if (mine !== membersAsked) return
+    members.value = data?.chatGroupMembers ?? []
+    membersLoaded.value = true
+    fetchMemberAvatars(
+      apolloClient,
+      members.value.map((member) => member.user),
+    )
+  } catch {
+    // The members as they were; the dialog says it is still asking where there are none.
+  }
+}
+
+watch(
+  () => [props.modelValue, props.group?.groupUuid],
+  ([open, groupUuid], before) => {
+    if (!open || !groupUuid) return
+    if (before && before[0] && before[1] === groupUuid) return
+    members.value = []
+    membersLoaded.value = false
+    membersOpen.value = false
+    loadMembers()
+  },
+  { immediate: true },
+)
+
+/** Up to four faces for the button: the longest-standing members, oneself included. */
+const strip = computed(() =>
+  members.value.slice(0, 4).map((member) => ({
+    id: chatMemberKey(member.user),
+    avatar: memberAvatarProps(member.user),
+  })),
+)
+
+/** The dialog changed the members or the name: both asked again. */
+const membersChanged = () => {
+  loadMembers()
+  emit('changed')
+}
+
+/** The member left the group: the window closes, and the page's list lets the group go. */
+const left = () => {
+  emit('update:modelValue', false)
+  emit('changed')
+}
 
 const avatar = computed(() => chatGroupAvatar(props.group))
 
@@ -319,6 +423,41 @@ const toggleMute = async () => {
   border-color: var(--gold, #c58d38);
   background: rgb(197 141 56 / 18%);
   color: var(--bs-body-color);
+}
+
+/* "Mitglieder" with its faces: a quiet outlined pill, the faces overlapping a little, as a group of
+   people is drawn. At least a finger's height. */
+.chat-group-window-members {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.5rem;
+  padding: 0.25rem 0.9rem 0.25rem 0.35rem;
+  border: 1px solid var(--bs-border-color, #dee2e6);
+  border-radius: 1.5rem;
+  background: transparent;
+  color: var(--bs-body-color);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.chat-group-window-members:focus-visible {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: 2px;
+}
+
+.chat-group-window-strip {
+  display: inline-flex;
+}
+
+/* Each face with a ring in the window's colour that sets it off, and each after the first a
+   third over the one before it. */
+.chat-group-window-strip-face {
+  box-shadow: 0 0 0 2px var(--surface, #fff);
+}
+
+.chat-group-window-strip-face + .chat-group-window-strip-face {
+  margin-left: -0.55rem;
 }
 
 /* The row under the figures, as the contact window's send row: its parts in one line, and on a
