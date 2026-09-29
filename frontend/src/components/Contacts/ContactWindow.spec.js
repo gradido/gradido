@@ -3126,7 +3126,8 @@ describe('ContactWindow', () => {
    * not do it (French, Dutch, Russian, Greek), set closer (Bernd, the same morning, "B"): a
    * smaller font, less room inside the button, the marks and the row's gap closer. Each in a rule
    * of its own; the map's rules stay as they are (held above), and each tight value is held
-   * against the one it replaces.
+   * against the one it replaces -- the button's own measure in the window's own rule since it
+   * was set smaller than the map's (29.09.2026). Above and below it keeps that measure.
    */
   it('sets the tight row closer than its own measure, in the stylesheet', () => {
     const code = styleOf('ContactWindow.vue')
@@ -3135,13 +3136,19 @@ describe('ContactWindow', () => {
       Number(body(selector).match(new RegExp(`(?:^|;|\\s)${property}:\\s*([\\d.]+)(px|rem)?`))?.[1])
     const paddingX = (selector) =>
       Number(body(selector).match(/(?:^|;|\s)padding:\s*[\d.]+px\s+([\d.]+)px/)?.[1])
+    const paddingY = (selector) =>
+      Number(body(selector).match(/(?:^|;|\s)padding:\s*([\d.]+)px\s+[\d.]+px/)?.[1])
+    const own = '\\.contact-window-send \\.send-btn'
+    const tight = '\\.contact-window-send\\.is-tight \\.send-btn'
 
-    expect(px('\\.send-btn', 'font-size'), 'the button lost its own size').toBe(15)
-    expect(px('\\.contact-window-send\\.is-tight \\.send-btn', 'font-size')).toBeLessThan(15)
-    expect(paddingX('\\.send-btn')).toBe(14)
-    expect(paddingX('\\.contact-window-send\\.is-tight \\.send-btn')).toBeLessThan(14)
+    expect(px(own, 'font-size'), 'the button lost its own size').toBe(14)
+    expect(px(tight, 'font-size')).toBeLessThan(14)
+    expect(paddingX(own)).toBe(14)
+    expect(paddingX(tight)).toBeLessThan(14)
+    expect(paddingY(own)).toBe(7)
+    expect(paddingY(tight)).toBe(7)
     expect(px('\\.send-btn', 'gap')).toBe(8)
-    expect(px('\\.contact-window-send\\.is-tight \\.send-btn', 'gap')).toBeLessThan(8)
+    expect(px(tight, 'gap')).toBeLessThan(8)
     expect(px('\\.contact-window-send', 'gap')).toBe(10)
     expect(px('\\.contact-window-send\\.is-tight', 'gap')).toBeLessThan(10)
     // 0.5rem between the marks, 8px at the root size; closer when tight.
@@ -3272,10 +3279,13 @@ describe('ContactWindow', () => {
   /**
    * ⛔ "Im Prinzip genauso wie im Matching, nur … in diesem dunkleren Goldton" (Bernd,
    * 24.09.2026). The map's profile window (MatchProfile.vue) and this one each carry the rules,
-   * so the spec holds them against each other with the one difference swapped in -- the gold of
-   * the border, which it takes from the compose bar's send button.
+   * so the spec holds them against each other with the one difference swapped in -- the gold,
+   * which it takes from the compose bar's send button, so the window's two gold buttons cannot
+   * drift apart either. Flat again since 29.09.2026 ("wieder das etwas dunklere Gold ohne
+   * Verlauf … so wie auch unten der Kreis bei dem Absende-Button"), after two days in the
+   * gradient of the house's golden buttons.
    */
-  it("sends with the map profile's button, its border in the gold of the compose bar's send button", () => {
+  it("sends with the map profile's button, in the gold of the compose bar's send button", () => {
     const rule = (file, name) =>
       styleOf(file)
         .match(new RegExp(`\\n\\.${name}\\s*\\{([^}]*)\\}`))?.[1]
@@ -3286,7 +3296,7 @@ describe('ContactWindow', () => {
     )?.[1]
 
     expect(gold, 'the send button lost its gold').toBeDefined()
-    for (const name of ['send-btn', 'send-coin']) {
+    for (const name of ['send-btn', 'send-gradido', 'send-coin']) {
       const there = rule('../Matching/MatchProfile.vue', name)
       expect(there, `MatchProfile lost .${name}`).toBeDefined()
       expect(rule('ContactWindow.vue', name), `.${name}`).toBe(there.replaceAll('#178d81', gold))
@@ -3294,25 +3304,26 @@ describe('ContactWindow', () => {
   })
 
   /**
-   * "Bei unseren goldenen Schaltflächen haben wir immer einen Verlauf drin" (Bernd, 27.09.2026):
-   * the button wears the gradient of the house's golden buttons -- read out of `.btn-gradido`
-   * (gradido-template.scss), which "Start call" wears, so the two cannot drift apart. The border
-   * stays for the measure the map's rules give the button, and lets the gradient through.
+   * "Dabei ist „Gradido senden“ ja nur eine von vielen Optionen, wenn auch eine der wichtigsten"
+   * (Bernd, 29.09.2026, "A"): in this window the button is set smaller than the map's -- a
+   * smaller font, less room above and below, a smaller coin -- in the window's own rules, which
+   * outweigh the map's. On the map it is one of the profile window's two ways and keeps its
+   * measure (the rules held against MatchProfile above).
    */
-  it("sends with the gradient of the house's golden buttons, in the stylesheet", () => {
-    const template = readFileSync(
-      join(dirname(fileURLToPath(import.meta.url)), '../../assets/scss/gradido-template.scss'),
-      'utf8',
-    ).replace(/\/\*[\s\S]*?\*\//g, '')
-    const house = template
-      .match(/\n\.btn-gradido\s*\{([^}]*)\}/)?.[1]
-      ?.match(/background:\s*(linear-gradient\([^;]*\));/)?.[1]
-    const button = styleOf('ContactWindow.vue').match(/\n\.send-gradido\s*\{([^}]*)\}/)?.[1] ?? ''
+  it("sets the button smaller than the map's, in the stylesheet", () => {
+    const code = styleOf('ContactWindow.vue')
+    const body = (selector) => code.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
+    const own = body('\\.contact-window-send \\.send-btn')
+    const coin = body('\\.contact-window-send \\.send-coin')
 
-    expect(house, '.btn-gradido lost its gradient').toBeDefined()
-    expect(button).toContain(`background: ${house};`)
-    expect(button).toMatch(/border-color:\s*transparent/)
-    expect(button).toMatch(/color:\s*#fff/)
+    expect(own).toMatch(/(?:^|;|\s)font-size:\s*14px;/)
+    expect(own).toMatch(/(?:^|;|\s)padding:\s*7px 14px;/)
+    expect(coin).toMatch(/(?:^|;|\s)width:\s*18px;/)
+    expect(coin).toMatch(/(?:^|;|\s)height:\s*18px;/)
+    // The map's measure, which these rules outweigh.
+    expect(body('\\.send-btn')).toMatch(/(?:^|;|\s)font-size:\s*15px;/)
+    expect(body('\\.send-btn')).toMatch(/(?:^|;|\s)padding:\s*10px 14px;/)
+    expect(body('\\.send-coin')).toMatch(/(?:^|;|\s)width:\s*20px;/)
   })
 
   // "Schmal" (Bernd, 24.09.2026): the button keeps the width of its word, so something can

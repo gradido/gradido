@@ -139,8 +139,9 @@
       </div>
 
       <!-- Sending Gradido, the one way out of this window: the map profile's button
-           (MatchProfile) with its word and its white coin, in gold instead of the map's teal
-           (Bernd, 24.09.2026) -- the gradient of the house's golden buttons (27.09.2026). Under the figures and
+           (MatchProfile) with its word and its white coin, in the flat gold of the compose bar's
+           send button instead of the map's teal (Bernd, 24.09.2026), and set smaller than the
+           map's, one way among several (29.09.2026). Under the figures and
            above the line where the thread begins. No "Send e-mail" beside it: the short mail is
            the compose bar's box, the one with a subject the send form's other tab (E-031).
 
@@ -1870,13 +1871,12 @@ onBeforeUnmount(() => {
   white-space: nowrap;
 }
 
-/* The house's golden buttons carry a gradient (Bernd, 27.09.2026: "Bei unseren goldenen
-   Schaltflächen haben wir immer einen Verlauf drin") -- the one of `.btn-gradido`
-   (gradido-template.scss), which "Start call" wears. The border stays for the button's measure
-   and lets the gradient through. */
+/* Flat, in the gold of the compose bar's send button, the gold of its own border (Bernd,
+   29.09.2026: "wieder das etwas dunklere Gold ohne Verlauf ... so wie auch unten der Kreis bei
+   dem Absende-Button"). The gradient of the house's golden buttons, worn from 27.09., made it
+   look raised and heavy, as if it had to be pressed -- where it is one way out of several. */
 .send-gradido {
-  background: linear-gradient(135deg, rgb(249 205 105 / 100%) 2%, rgb(197 141 56 / 100%) 55%);
-  border-color: transparent;
+  background: #c08935;
   color: #fff;
 }
 
@@ -1901,26 +1901,39 @@ onBeforeUnmount(() => {
    And where even set closer the word is wider than the whole row, it goes onto a second line
    rather than the button hanging out of the window (coderabbit, #3987). Measured: that is
    below 240px only -- a phone zoomed in far; from 240px up the word stands on one line in
-   every language, and the map's own rule keeps `nowrap`. */
+   every language, and the map's own rule keeps `nowrap`.
+
+   And it is set smaller than the map's (Bernd, 29.09.2026: "nur eine von vielen Optionen, wenn
+   auch eine der wichtigsten"): 14px instead of 15, 7px above and below instead of 10, the coin
+   18px instead of 20 -- 37px high instead of 44.5. On the map the button is one of the profile
+   window's two ways and keeps its measure. */
 .contact-window-send .send-btn {
   flex: 0 1 auto;
   min-width: 0;
+  padding: 7px 14px;
+  font-size: 14px;
   white-space: normal;
   overflow-wrap: anywhere;
+}
+
+.contact-window-send .send-coin {
+  width: 18px;
+  height: 18px;
 }
 
 /* The third: where a language's word makes the button too wide for the marks to fit beside
    it, the row is set closer -- there only, `fitSendRow` measures it (Bernd, 26.09.2026): a
    smaller font, less room inside the button, and the marks closer together. Measured in the
    wallet with three marks: at 320px French, Dutch, Russian and Greek did not fit with the
-   smaller font alone; set closer, all ten languages stand on one line down to 320px. */
+   smaller font alone; set closer, all ten languages stand on one line down to 320px. Above and
+   below it keeps the 7px of its own measure; only the sides are set closer. */
 .contact-window-send.is-tight {
   gap: 6px;
 }
 
 .contact-window-send.is-tight .send-btn {
   gap: 5px;
-  padding: 10px 8px;
+  padding: 7px 8px;
   font-size: 13px;
 }
 
