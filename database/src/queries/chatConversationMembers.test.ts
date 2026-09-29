@@ -6,11 +6,14 @@ import { AppDatabase, drizzleDb } from '../AppDatabase'
 import { ChatMessageSelect, chatConversationMembersTable, chatMessagesTable } from '../schemas'
 import {
   ChatMemberRef,
+  dbDeleteChatConversationMember,
   dbInsertChatConversationMembers,
   dbSelectChatConversationMember,
+  dbSelectChatConversationMembers,
   dbSelectChatUnreadSummary,
   dbUpdateChatConversationMemberLastRead,
   dbUpdateChatConversationMemberMuted,
+  dbUpdateChatConversationMemberRole,
 } from './chatConversationMembers'
 import { dbInsertChatMessage } from './chatMessages'
 
@@ -425,5 +428,77 @@ describe('dbSelectChatUnreadSummary', () => {
   it('answers the same for the member named in capitals, as the column compares', async () => {
     const shouting = { communityUuid: HOME.toUpperCase(), gradidoId: MAX.gradidoId.toUpperCase() }
     expect(await dbSelectChatUnreadSummary(shouting)).toEqual(await dbSelectChatUnreadSummary(MAX))
+  })
+})
+
+describe('roles, the list of members, and taking one out (P5)', () => {
+  // A conversation id of its own: the ones above keep their members to the end of the file.
+  const GROUP = 4741
+  const CARL = { communityUuid: HOME, gradidoId: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc' }
+  const listed = async () =>
+    (await dbSelectChatConversationMembers(GROUP)).map((row) => [row.gradidoId, row.role])
+
+  it('puts a member in with the role given', async () => {
+    await dbInsertChatConversationMembers(GROUP, [ANNA], 'owner')
+    expect(await listed()).toEqual([[ANNA.gradidoId, 'owner']])
+  })
+
+  it('keeps the role of a member who is in already, whatever role is given now', async () => {
+    await dbInsertChatConversationMembers(GROUP, [ANNA], 'member')
+    expect(await listed()).toEqual([[ANNA.gradidoId, 'owner']])
+  })
+
+  it('lists the longest-standing member first, and members of the same moment by their pair', async () => {
+    await new Promise((resolve) => setTimeout(resolve, 20))
+    await dbInsertChatConversationMembers(GROUP, [BEN, CARL])
+    expect(await listed()).toEqual([
+      [ANNA.gradidoId, 'owner'],
+      [BEN.gradidoId, 'member'],
+      [CARL.gradidoId, 'member'],
+    ])
+    // Everybody in the same moment: the pair decides, the same way on every call.
+    await db
+      .update(chatConversationMembersTable)
+      .set({ joinedAt: new Date('2026-09-29T09:00:00.000Z') })
+      .where(eq(chatConversationMembersTable.conversationId, GROUP))
+    expect((await listed()).map(([gradidoId]) => gradidoId)).toEqual([
+      ANNA.gradidoId,
+      BEN.gradidoId,
+      CARL.gradidoId,
+    ])
+  })
+
+  it("changes a member's role, and nobody else's", async () => {
+    expect(await dbUpdateChatConversationMemberRole(GROUP, BEN, 'moderator')).toEqual({
+      success: true,
+    })
+    expect(await listed()).toEqual([
+      [ANNA.gradidoId, 'owner'],
+      [BEN.gradidoId, 'moderator'],
+      [CARL.gradidoId, 'member'],
+    ])
+    // The role the member has already: a success, as mysql2 counts the matched row.
+    expect((await dbUpdateChatConversationMemberRole(GROUP, BEN, 'moderator')).success).toBe(true)
+  })
+
+  it('refuses to give a role to somebody who is not in the conversation', async () => {
+    const stranger = { communityUuid: HOME, gradidoId: uuidv4() }
+    const result = await dbUpdateChatConversationMemberRole(GROUP, stranger, 'moderator')
+    expect(result.success).toBe(false)
+    expect(await listed()).toHaveLength(3)
+  })
+
+  it('takes one member out, and nobody else', async () => {
+    expect(await dbDeleteChatConversationMember(GROUP, BEN)).toEqual({ success: true })
+    expect(await listed()).toEqual([
+      [ANNA.gradidoId, 'owner'],
+      [CARL.gradidoId, 'member'],
+    ])
+    // A second time there is nobody to take out.
+    expect((await dbDeleteChatConversationMember(GROUP, BEN)).success).toBe(false)
+  })
+
+  it('lists nobody for a conversation without members', async () => {
+    expect(await dbSelectChatConversationMembers(99999)).toEqual([])
   })
 })

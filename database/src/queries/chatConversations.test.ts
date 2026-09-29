@@ -5,16 +5,27 @@ import { v4 as uuidv4 } from 'uuid'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
 import { User as DbUser } from '../entity'
 import {
+  ChatConversationSelect,
   ChatMessageInsert,
   chatConversationMembersTable,
   chatConversationsTable,
   chatMessagesTable,
 } from '../schemas'
-import { dbUpdateChatConversationMemberLastRead } from './chatConversationMembers'
+import {
+  ChatMemberRef,
+  dbInsertChatConversationMembers,
+  dbUpdateChatConversationMemberLastRead,
+  dbUpdateChatConversationMemberMuted,
+} from './chatConversationMembers'
 import {
   dbEnsureDirectChatConversation,
+  dbFindChatGroupByUuid,
   dbFindDirectChatConversation,
+  dbInsertChatGroup,
+  dbSelectChatGroupsByMember,
+  dbSelectChatGroupUuids,
   dbSelectDirectChatContactsByMember,
+  dbUpdateChatGroupTitle,
   directChatPairKey,
 } from './chatConversations'
 import { dbInsertChatMessage } from './chatMessages'
@@ -386,5 +397,185 @@ describe('dbSelectDirectChatContactsByMember', () => {
 
   it('answers nothing for somebody without a conversation', async () => {
     expect(await dbSelectDirectChatContactsByMember(member())).toEqual([])
+  })
+})
+
+describe('groups (P5)', () => {
+  // Members of their own, so that the conversations of the tests above stay out of the answers.
+  const CARL = { communityUuid: HOME, gradidoId: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc' }
+  const DORA = { communityUuid: HOME, gradidoId: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd' }
+  const EMIL = { communityUuid: HOME, gradidoId: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee' }
+  let cafe: ChatConversationSelect
+  let choir: ChatConversationSelect
+  let carlWithEmil: ChatConversationSelect
+
+  const write = async (conversationId: number, sender: ChatMemberRef, body: string) => {
+    const stored = await dbInsertChatMessage({
+      messageUuid: uuidv4(),
+      conversationId,
+      senderCommunityUuid: sender.communityUuid,
+      senderGradidoId: sender.gradidoId,
+      subject: null,
+      body,
+      notify: 'none',
+      deliveryState: 'delivered',
+    })
+    if (!stored.success) {
+      throw stored.error
+    }
+    return stored.value
+  }
+  const groupsOf = async (member: ChatMemberRef) => dbSelectChatGroupsByMember(member)
+
+  beforeAll(async () => {
+    cafe = await dbInsertChatGroup({
+      groupUuid: uuidv4(),
+      title: 'Gradido-Café Berlin',
+      homeCommunityUuid: HOME,
+      createdBy: CARL,
+    })
+    await dbInsertChatConversationMembers(cafe.id, [CARL], 'owner')
+    await dbInsertChatConversationMembers(cafe.id, [DORA, EMIL])
+    choir = await dbInsertChatGroup({
+      groupUuid: uuidv4(),
+      title: 'Chor',
+      homeCommunityUuid: HOME,
+      createdBy: DORA,
+    })
+    await dbInsertChatConversationMembers(choir.id, [DORA], 'owner')
+    carlWithEmil = await dbEnsureDirectChatConversation(CARL, EMIL)
+  })
+  afterAll(async () => {
+    await db.delete(chatMessagesTable)
+  })
+
+  it('opens a group with its title, its home and its founder, and no pair key', () => {
+    expect(cafe).toMatchObject({
+      kind: 'group',
+      title: 'Gradido-Café Berlin',
+      homeCommunityUuid: HOME,
+      directPairKey: null,
+      createdByCommunityUuid: CARL.communityUuid,
+      createdByGradidoId: CARL.gradidoId,
+    })
+  })
+
+  it('finds a group by its uuid, written in capitals too', async () => {
+    expect((await dbFindChatGroupByUuid(cafe.conversationUuid))?.id).toBe(cafe.id)
+    expect((await dbFindChatGroupByUuid(cafe.conversationUuid.toUpperCase()))?.id).toBe(cafe.id)
+  })
+
+  it('finds no group under the uuid of a direct conversation, nor under an unknown one', async () => {
+    expect(await dbFindChatGroupByUuid(carlWithEmil.conversationUuid)).toBeNull()
+    expect(await dbFindChatGroupByUuid(uuidv4())).toBeNull()
+  })
+
+  it('refuses a second group under the same uuid', async () => {
+    await expect(
+      dbInsertChatGroup({
+        groupUuid: cafe.conversationUuid,
+        title: 'Again',
+        homeCommunityUuid: HOME,
+        createdBy: DORA,
+      }),
+    ).rejects.toThrow()
+    expect((await dbFindChatGroupByUuid(cafe.conversationUuid))?.title).toBe('Gradido-Café Berlin')
+  })
+
+  it('renames a group, and never a direct conversation', async () => {
+    expect(await dbUpdateChatGroupTitle(choir.id, 'Chor am Montag')).toEqual({ success: true })
+    expect((await dbFindChatGroupByUuid(choir.conversationUuid))?.title).toBe('Chor am Montag')
+    // The name it has already: a success, as mysql2 counts the matched row.
+    expect(await dbUpdateChatGroupTitle(choir.id, 'Chor am Montag')).toEqual({ success: true })
+
+    const refused = await dbUpdateChatGroupTitle(carlWithEmil.id, 'A direct conversation')
+    expect(refused.success).toBe(false)
+    const [direct] = await db
+      .select()
+      .from(chatConversationsTable)
+      .where(eq(chatConversationsTable.id, carlWithEmil.id))
+    expect(direct.title).toBeNull()
+  })
+
+  it('names the groups among conversation ids by their uuid, and leaves out the rest', async () => {
+    const uuids = await dbSelectChatGroupUuids([
+      cafe.id,
+      carlWithEmil.id,
+      choir.id,
+      cafe.id,
+      999999,
+    ])
+    expect([...uuids.entries()].sort(([a], [b]) => a - b)).toEqual([
+      [cafe.id, cafe.conversationUuid],
+      [choir.id, choir.conversationUuid],
+    ])
+    expect((await dbSelectChatGroupUuids([])).size).toBe(0)
+  })
+
+  it("names the groups the member is in, with the member's role, and no direct conversation", async () => {
+    const carls = await groupsOf(CARL)
+    expect(carls.map((group) => [group.groupUuid, group.role])).toEqual([
+      [cafe.conversationUuid, 'owner'],
+    ])
+    // Two groups without a message yet: the one opened later first.
+    const doras = await groupsOf(DORA)
+    expect(doras.map((group) => [group.title, group.role])).toEqual([
+      ['Chor am Montag', 'owner'],
+      ['Gradido-Café Berlin', 'member'],
+    ])
+    expect(await groupsOf({ communityUuid: HOME, gradidoId: uuidv4() })).toEqual([])
+  })
+
+  it('names who opened each group, for every member', async () => {
+    const doras = await groupsOf(DORA)
+    expect(
+      doras.map((group) => [group.title, group.createdByCommunityUuid, group.createdByGradidoId]),
+    ).toEqual([
+      ['Chor am Montag', DORA.communityUuid, DORA.gradidoId],
+      ['Gradido-Café Berlin', CARL.communityUuid, CARL.gradidoId],
+    ])
+  })
+
+  it('counts the members, and as unread the messages of others above the pointer', async () => {
+    const fromCarl = await write(cafe.id, CARL, 'Samstag um 14 Uhr?')
+    const fromDora = await write(cafe.id, DORA, 'Ich komme.')
+    const fromEmil = await write(cafe.id, EMIL, 'Ich auch.')
+
+    const [carlsCafe] = await groupsOf(CARL)
+    expect(carlsCafe).toMatchObject({ memberCount: 3, unreadMessages: 2 })
+    const doras = await groupsOf(DORA)
+    expect(doras.find((group) => group.id === cafe.id)).toMatchObject({ unreadMessages: 2 })
+
+    await dbUpdateChatConversationMemberLastRead(cafe.id, CARL, fromDora.id)
+    expect((await groupsOf(CARL))[0].unreadMessages).toBe(1)
+
+    // A message marked deleted counts for nothing, nor dates the group.
+    await db
+      .update(chatMessagesTable)
+      .set({ deletedAt: new Date() })
+      .where(eq(chatMessagesTable.id, fromEmil.id))
+    const [afterDeletion] = await groupsOf(CARL)
+    expect(afterDeletion.unreadMessages).toBe(0)
+    expect(afterDeletion.lastMessageAt?.getTime()).toBe(fromDora.createdAt.getTime())
+    expect(fromCarl.id).toBeLessThan(fromDora.id)
+  })
+
+  it('leaves the date of the latest message empty for a group without one', async () => {
+    const doras = await groupsOf(DORA)
+    expect(doras.find((group) => group.id === choir.id)?.lastMessageAt).toBeNull()
+  })
+
+  it('puts the group with the latest message first', async () => {
+    await write(choir.id, DORA, 'Probe am Montag')
+    const doras = await groupsOf(DORA)
+    expect(doras.map((group) => group.id)).toEqual([choir.id, cafe.id])
+  })
+
+  it("carries the member's own mute mark, and nobody else's", async () => {
+    const mutedAt = new Date('2026-09-29T08:00:00.000Z')
+    await dbUpdateChatConversationMemberMuted(cafe.id, DORA, mutedAt)
+    const doras = await groupsOf(DORA)
+    expect(doras.find((group) => group.id === cafe.id)?.mutedAt?.getTime()).toBe(mutedAt.getTime())
+    expect((await groupsOf(CARL))[0].mutedAt).toBeNull()
   })
 })
