@@ -13,8 +13,10 @@ import {
   chatImageSize,
   drawChatImage,
   encodeChatImage,
+  openChatImage,
   readChatImageFile,
 } from './chatImage'
+import { CHAT_IMAGE_UNEDITED } from './chatImageEdit'
 
 /**
  * jsdom decodes and paints nothing, so the procedure is measured with stand-ins: a decoded picture
@@ -23,12 +25,14 @@ import {
  * when it stops -- not what a browser's JPEG encoder makes of a photo (the probe measures that).
  */
 const picture = (naturalWidth, naturalHeight) => ({ naturalWidth, naturalHeight })
+/** A picture as openChatImage hands it on: the decoded one and its size. */
+const opened = (width, height) => ({ image: picture(width, height), width, height })
 const file = (name = 'photo.jpg', size = 3 * 1024 * 1024) => ({ name, size })
 
 /** A draw that records the sizes asked for and hands back a canvas of that size. */
 const recordingDraw = () => {
   const drawn = []
-  const draw = vi.fn((image, width, height) => {
+  const draw = vi.fn((source, edit, width, height) => {
     drawn.push([width, height])
     return { width, height }
   })
@@ -43,16 +47,14 @@ const encoderFitting = (fits) =>
     quality: 0.45,
   }))
 
-const encodeWith = (source, { name, size, fits = () => true } = {}) => {
+const encodeWith = (source, { edit = CHAT_IMAGE_UNEDITED, fits = () => true } = {}) => {
   const { draw, drawn } = recordingDraw()
   const encode = encoderFitting(fits)
-  const read = vi.fn(async () => source)
   return {
-    result: encodeChatImage(file(name, size), { read, draw, encode }),
+    result: encodeChatImage(source, edit, { draw, encode }),
     draw,
     drawn,
     encode,
-    read,
   }
 }
 
@@ -108,7 +110,7 @@ describe('chatImageSize', () => {
 
 describe('encodeChatImage', () => {
   it('fits the picture the first time where it comes under the target', async () => {
-    const { result, draw, encode, drawn } = encodeWith(picture(4000, 3000))
+    const { result, draw, encode, drawn } = encodeWith(opened(4000, 3000))
 
     await expect(result).resolves.toEqual({
       data: 'JPEG800x600',
@@ -117,7 +119,8 @@ describe('encodeChatImage', () => {
       bytes: 20000,
     })
     expect(drawn).toEqual([[800, 600]])
-    expect(draw.mock.calls[0][0]).toEqual(picture(4000, 3000))
+    expect(draw.mock.calls[0][0]).toEqual(opened(4000, 3000))
+    expect(draw.mock.calls[0][1]).toBe(CHAT_IMAGE_UNEDITED)
     // The avatar's encoder, asked with the chat's target and the avatar's steps.
     expect(encode).toHaveBeenCalledWith(
       { width: 800, height: 600 },
@@ -134,9 +137,8 @@ describe('encodeChatImage', () => {
   // The target itself is taken; a byte over it is a size smaller.
   it('takes a picture of exactly 32 KB, and not one a byte larger', async () => {
     const withBytes = (bytes) =>
-      encodeChatImage(file(), {
-        read: async () => picture(4000, 3000),
-        draw: (image, width, height) => ({ width, height }),
+      encodeChatImage(opened(4000, 3000), CHAT_IMAGE_UNEDITED, {
+        draw: (source, edit, width, height) => ({ width, height }),
         encode: (canvas) => ({
           base64: 'JPEG',
           bytes: canvas.width === 800 ? bytes : 1000,
@@ -164,8 +166,7 @@ describe('encodeChatImage', () => {
       },
     }
     const draw = vi.fn(() => canvas)
-    const result = await encodeChatImage(file(), {
-      read: async () => picture(4000, 3000),
+    const result = await encodeChatImage(opened(4000, 3000), CHAT_IMAGE_UNEDITED, {
       draw,
       encode: encodeUnderTarget,
     })
@@ -183,7 +184,7 @@ describe('encodeChatImage', () => {
 
   // E-041: where even 45 % does not fit, a size smaller -- the area times 0.8 -- not over the limit.
   it('lowers the size where even the lowest quality does not fit', async () => {
-    const { result, drawn } = encodeWith(picture(4000, 3000), {
+    const { result, drawn } = encodeWith(opened(4000, 3000), {
       fits: (canvas) => canvas.width * canvas.height <= CHAT_IMAGE_AREA * 0.64,
     })
 
@@ -196,7 +197,7 @@ describe('encodeChatImage', () => {
   })
 
   it('refuses a picture that does not fit after five sizes', async () => {
-    const { result, drawn, encode } = encodeWith(picture(4000, 3000), { fits: () => false })
+    const { result, drawn, encode } = encodeWith(opened(4000, 3000), { fits: () => false })
 
     await expect(result).rejects.toMatchObject({
       name: 'ChatImageError',
@@ -211,7 +212,7 @@ describe('encodeChatImage', () => {
 
   // Gegenprobe to the one above: a picture that fits in the fifth size is sent, not refused.
   it('takes a picture that fits in the fifth size', async () => {
-    const { result, drawn } = encodeWith(picture(4000, 3000), {
+    const { result, drawn } = encodeWith(opened(4000, 3000), {
       fits: (canvas) => canvas.width <= 512,
     })
 
@@ -221,7 +222,7 @@ describe('encodeChatImage', () => {
 
   it('keeps a portrait, a landscape and a long screenshot the way they are', async () => {
     const sizes = []
-    for (const source of [picture(3024, 4032), picture(4032, 3024), picture(1072, 3326)]) {
+    for (const source of [opened(3024, 4032), opened(4032, 3024), opened(1072, 3326)]) {
       const { result } = encodeWith(source)
       const { width, height } = await result
       sizes.push([width, height])
@@ -235,23 +236,69 @@ describe('encodeChatImage', () => {
   })
 
   it('does not make a small picture larger', async () => {
-    const { result, drawn } = encodeWith(picture(300, 200))
+    const { result, drawn } = encodeWith(opened(300, 200))
 
     await expect(result).resolves.toMatchObject({ width: 300, height: 200 })
     expect(drawn).toEqual([[300, 200]])
   })
 
   /**
-   * ⛔ Before anything is read: reading pulls the whole file into memory. 20 MB is still taken
-   * (a camera original), a byte more is not.
+   * What the member cut is what is made small: the cutout's size drives the sizes, and the draw is
+   * told the edit (E-047) -- a square cut of a landscape photo becomes a square, a quarter turn a
+   * portrait.
+   */
+  it('makes small the part the member kept, as they turned it', async () => {
+    const square = { ...CHAT_IMAGE_UNEDITED, shape: 'square' }
+    const cut = encodeWith(opened(4000, 3000), { edit: square })
+    await expect(cut.result).resolves.toMatchObject({ width: 693, height: 693 })
+    expect(cut.draw.mock.calls[0][1]).toBe(square)
+
+    const turned = encodeWith(opened(4000, 3000), { edit: { ...CHAT_IMAGE_UNEDITED, turn: 90 } })
+    await expect(turned.result).resolves.toMatchObject({ width: 600, height: 800 })
+
+    // A small cutout of a large photo is not made larger either.
+    const small = encodeWith(opened(4000, 3000), { edit: { ...CHAT_IMAGE_UNEDITED, zoom: 4 } })
+    await expect(small.result).resolves.toMatchObject({ width: 800, height: 600 })
+    const tiny = encodeWith(opened(1600, 1200), { edit: { ...CHAT_IMAGE_UNEDITED, zoom: 4 } })
+    await expect(tiny.result).resolves.toMatchObject({ width: 400, height: 300 })
+  })
+
+  // Called without an edit, the picture goes as it was chosen.
+  it('sends the picture as chosen where nothing was edited', async () => {
+    const draw = vi.fn((source, edit, width, height) => ({ width, height }))
+    await encodeChatImage(opened(4000, 3000), undefined, {
+      draw,
+      encode: encoderFitting(() => true),
+    })
+
+    expect(draw.mock.calls[0][1]).toEqual(CHAT_IMAGE_UNEDITED)
+  })
+})
+
+describe('openChatImage', () => {
+  const openWith = (source, { name, size } = {}) => {
+    const read = vi.fn(async () => source)
+    return { result: openChatImage(file(name, size), { read }), read }
+  }
+
+  it('keeps the picture whole, with its size as seen', async () => {
+    const decoded = picture(4032, 3024)
+    const { result } = openWith(decoded)
+
+    await expect(result).resolves.toEqual({ image: decoded, width: 4032, height: 3024 })
+  })
+
+  /**
+   * ⛔ Before anything is read: decoding costs several times the file's size in memory. 20 MB is
+   * still taken (a camera original), a byte more is not.
    */
   it('refuses a file over 20 MB before reading it, and takes one of 20 MB', async () => {
-    const tooLarge = encodeWith(picture(4000, 3000), { size: AVATAR_SOURCE_MAX_BYTES + 1 })
+    const tooLarge = openWith(picture(4000, 3000), { size: AVATAR_SOURCE_MAX_BYTES + 1 })
     await expect(tooLarge.result).rejects.toMatchObject({ problem: 'SOURCE_TOO_LARGE' })
     expect(tooLarge.read).not.toHaveBeenCalled()
 
-    const atTheLimit = encodeWith(picture(4000, 3000), { size: AVATAR_SOURCE_MAX_BYTES })
-    await expect(atTheLimit.result).resolves.toMatchObject({ width: 800 })
+    const atTheLimit = openWith(picture(4000, 3000), { size: AVATAR_SOURCE_MAX_BYTES })
+    await expect(atTheLimit.result).resolves.toMatchObject({ width: 4000 })
     expect(AVATAR_SOURCE_MAX_BYTES).toBe(20 * 1024 * 1024)
   })
 
@@ -265,7 +312,7 @@ describe('encodeChatImage', () => {
         throw new Error('decode')
       })
       try {
-        await encodeChatImage(file(name), { read, draw: vi.fn(), encode: vi.fn() })
+        await openChatImage(file(name), { read })
         return null
       } catch (error) {
         expect(error).toBeInstanceOf(ChatImageError)
@@ -280,10 +327,7 @@ describe('encodeChatImage', () => {
   })
 
   it('takes a picture without a size for one it cannot open', async () => {
-    const { result, draw } = encodeWith(picture(0, 0))
-
-    await expect(result).rejects.toMatchObject({ problem: 'FORMAT' })
-    expect(draw).not.toHaveBeenCalled()
+    await expect(openWith(picture(0, 0)).result).rejects.toMatchObject({ problem: 'FORMAT' })
   })
 })
 
@@ -291,6 +335,7 @@ describe('readChatImageFile', () => {
   const OriginalImage = globalThis.Image
   afterEach(() => {
     globalThis.Image = OriginalImage
+    vi.unstubAllGlobals()
   })
 
   /** An Image that decodes whatever it is given, or nothing, as a test says. */
@@ -306,29 +351,43 @@ describe('readChatImageFile', () => {
       }
     }
 
-  // The way the avatar's cropper reads: the file as a data URI, into an Image.
-  it('reads the file into an Image, as the cropper does', async () => {
+  const addresses = () => {
+    const created = vi.fn(() => 'blob:picture-1')
+    const revoked = vi.fn()
+    vi.stubGlobal('URL', { ...URL, createObjectURL: created, revokeObjectURL: revoked })
+    return { created, revoked }
+  }
+
+  // Through an object URL, let go as soon as the picture has come -- not a data URL, which would
+  // keep the whole file a second time, as text, for as long as the picture is edited.
+  it('reads the file into an Image through an object URL, and lets the URL go', async () => {
     globalThis.Image = imageThat(true)
+    const { created, revoked } = addresses()
     const chosen = new File(['JPEG'], 'photo.jpg', { type: 'image/jpeg' })
 
     const image = await readChatImageFile(chosen)
 
-    expect(image.given).toBe(`data:image/jpeg;base64,${btoa('JPEG')}`)
+    expect(created).toHaveBeenCalledWith(chosen)
+    expect(image.given).toBe('blob:picture-1')
+    expect(revoked).toHaveBeenCalledWith('blob:picture-1')
   })
 
-  it('rejects where the browser cannot decode it', async () => {
+  it('rejects where the browser cannot decode it, and lets the URL go all the same', async () => {
     globalThis.Image = imageThat(false)
+    const { revoked } = addresses()
     const chosen = new File(['?'], 'IMG_0001.HEIC', { type: 'image/heic' })
 
     await expect(readChatImageFile(chosen)).rejects.toThrow()
+    expect(revoked).toHaveBeenCalledWith('blob:picture-1')
   })
 
   // …and that rejection is the HEIC sentence, through the default reader.
   it('ends in the HEIC sentence for an iPhone photo the browser cannot open', async () => {
     globalThis.Image = imageThat(false)
+    addresses()
     const chosen = new File(['?'], 'IMG_0001.HEIC', { type: 'image/heic' })
 
-    await expect(encodeChatImage(chosen)).rejects.toMatchObject({ problem: 'HEIC' })
+    await expect(openChatImage(chosen)).rejects.toMatchObject({ problem: 'HEIC' })
   })
 })
 
@@ -339,7 +398,7 @@ describe('drawChatImage', () => {
 
   /**
    * On white, smoothed at the best quality, straight to the size asked for -- one step from the
-   * source. jsdom has no 2D context, so a recording one stands in for it.
+   * source, the cutout filling the canvas. jsdom has no 2D context, so a recording one stands in.
    */
   it('draws the source straight to the size, on white, smoothed at the best quality', () => {
     const steps = []
@@ -356,9 +415,9 @@ describe('drawChatImage', () => {
       },
     )
     vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(context)
-    const source = picture(4000, 3000)
+    const source = opened(4000, 3000)
 
-    const canvas = drawChatImage(source, 800, 600)
+    const canvas = drawChatImage(source, CHAT_IMAGE_UNEDITED, 800, 600)
 
     expect([canvas.width, canvas.height]).toEqual([800, 600])
     expect(steps).toEqual([
@@ -366,7 +425,13 @@ describe('drawChatImage', () => {
       ['fillRect', 0, 0, 800, 600],
       ['imageSmoothingEnabled=', true],
       ['imageSmoothingQuality=', 'high'],
-      ['drawImage', source, 0, 0, 800, 600],
+      ['save'],
+      ['translate', 400, 300],
+      ['scale', 0.2, 0.2],
+      ['translate', 0, 0],
+      ['rotate', 0],
+      ['drawImage', source.image, -2000, -1500, 4000, 3000],
+      ['restore'],
     ])
   })
 })

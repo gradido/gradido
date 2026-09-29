@@ -10,20 +10,21 @@
     </p>
 
     <!-- The picture that goes with the next message (the mockup, "Bild gewählt, vor dem Senden"):
-         while it is made small, a quiet square and "Bild wird vorbereitet …"; then the picture as
-         it will be sent -- the finished JPEG, not the original -- with "Bild" and "Wird mit Deiner
-         Nachricht gesendet.", and a round button to take it off. -->
+         while it is opened, and again while it is made small for sending, a quiet square and "Bild
+         wird vorbereitet …"; otherwise the picture as it will go -- drawn from the picture as
+         chosen, cut as the member cut it (E-047) -- with "Bild" and "Wird mit Deiner Nachricht
+         gesendet.", and a round button to take it off. -->
     <div
       v-if="preparing || picture"
       class="chat-compose-attached"
       data-test="chat-compose-attached"
     >
       <span v-if="preparing" class="chat-compose-attached-wait" aria-hidden="true" />
-      <img
+      <canvas
         v-else
-        :src="picture.src"
-        alt=""
+        ref="thumb"
         class="chat-compose-attached-picture"
+        aria-hidden="true"
         data-test="chat-compose-attached-picture"
       />
       <div class="chat-compose-attached-words" data-test="chat-compose-attached-words">
@@ -276,7 +277,8 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, useId,
 import { useI18n } from 'vue-i18n'
 import { BButton, BModal } from 'bootstrap-vue-next'
 import { SWISSTRANSFER_URL } from '@/utils/chatFileLink'
-import { encodeChatImage } from '@/utils/chatImage'
+import { encodeChatImage, openChatImage } from '@/utils/chatImage'
+import { CHAT_IMAGE_UNEDITED, chatImageCut, drawChatImageCut } from '@/utils/chatImageEdit'
 import { chatNotifyFor } from '@/utils/chatNotify'
 import { isComputer } from '@/utils/isComputer'
 import { MESSAGE_MAX_CHARS, message as messageSchema } from '@/validationSchemas'
@@ -332,10 +334,11 @@ const text = ref(props.initialText)
 const alsoByEmail = ref(false)
 
 /**
- * The picture that goes with the next message (P7): `{ data, width, height, bytes, src }` --
- * the finished JPEG (utils/chatImage) and, as `src`, the same bytes for the preview: what is seen
- * is what goes out. Null without one; one picture a message, a second one takes the first one's
- * place.
+ * The picture that goes with the next message (P7): `{ source, edit }` -- the picture as chosen,
+ * decoded and whole (utils/chatImage, `openChatImage`), and what the member did to it in the
+ * editor (utils/chatImageEdit). It is made small only when the message is sent (E-047, point 6);
+ * until then it stays in full quality, for the editor and for "Sichern". Null without one; one
+ * picture a message, a second one takes the first one's place.
  *
  * ⛔ In memory only. It does not come back after iOS starts the wallet over, as the words do
  * (#3999, `draft` below): a chat picture is never put into the device's storage (E-041, point 5),
@@ -344,7 +347,7 @@ const alsoByEmail = ref(false)
  * of Vue's reactivity.
  */
 const picture = shallowRef(null)
-/** A picture is being made small; the button waits for it. */
+/** A picture is being opened, or made small for sending; the button waits for it. */
 const preparing = ref(false)
 /** Why the last picture chosen could not be made ready (ChatImageError), or null. */
 const pictureProblem = ref(null)
@@ -410,17 +413,54 @@ defineExpose({ draft: () => text.value })
  */
 let submitted = null
 
-const submit = () => {
+/**
+ * Lets the browser paint "Bild wird vorbereitet …" before the picture is made small: making it
+ * small holds the page for a moment, and without two frames the words would come after it.
+ */
+const afterPaint = () =>
+  new Promise((resolve) => {
+    if (typeof window.requestAnimationFrame !== 'function') {
+      resolve()
+      return
+    }
+    window.requestAnimationFrame(() => window.requestAnimationFrame(() => resolve()))
+  })
+
+/**
+ * Sends what is in the bar as the press found it. A picture is made small here, and only here
+ * (E-047, point 6): cut as the member cut it, under 32 KB (utils/chatImage). Where it cannot be,
+ * the bar says so and keeps the picture and the words.
+ */
+const submit = async () => {
   if (!canSend.value) return
-  submitted = { text: text.value, alsoByEmail: alsoByEmail.value, picture: picture.value }
-  emit('send', {
+  const pressed = {
+    text: text.value,
     body: body.value,
+    alsoByEmail: alsoByEmail.value,
+    picture: picture.value,
+  }
+  let image = null
+  if (pressed.picture) {
+    preparing.value = true
+    pictureProblem.value = null
+    try {
+      await afterPaint()
+      const ready = await encodeChatImage(pressed.picture.source, pressed.picture.edit)
+      image = { data: ready.data, width: ready.width, height: ready.height }
+    } catch (error) {
+      pictureProblem.value = error?.problem ?? 'FORMAT'
+      return
+    } finally {
+      preparing.value = false
+    }
+  }
+  submitted = { text: pressed.text, alsoByEmail: pressed.alsoByEmail, picture: pressed.picture }
+  emit('send', {
+    body: pressed.body,
     // The enum NAMES the server takes, by the rule the contact window's video invitation
     // follows too (utils/chatNotify.js).
-    notify: chatNotifyFor({ first: props.first, alsoByEmail: alsoByEmail.value }),
-    image: picture.value
-      ? { data: picture.value.data, width: picture.value.width, height: picture.value.height }
-      : null,
+    notify: chatNotifyFor({ first: props.first, alsoByEmail: pressed.alsoByEmail }),
+    image,
   })
 }
 
@@ -454,7 +494,10 @@ const pictureStatus = computed(() => {
  */
 let pictureRound = 0
 
-/** The picture the device's picker answered with, made ready for the message (utils/chatImage). */
+/**
+ * The picture the device's picker answered with, opened for the message: decoded and kept whole
+ * (utils/chatImage), not edited yet.
+ */
 const takePicture = async (event) => {
   const input = event.target
   const file = input.files?.[0]
@@ -465,9 +508,9 @@ const takePicture = async (event) => {
   pictureProblem.value = null
   preparing.value = true
   try {
-    const ready = await encodeChatImage(file)
+    const source = await openChatImage(file)
     if (round !== pictureRound) return
-    picture.value = { ...ready, src: `data:image/jpeg;base64,${ready.data}` }
+    picture.value = { source, edit: CHAT_IMAGE_UNEDITED }
   } catch (error) {
     if (round !== pictureRound) return
     // A picture chosen before stays: nothing has taken its place.
@@ -482,6 +525,43 @@ const removePicture = () => {
   picture.value = null
   clip.value?.focus({ preventScroll: true })
 }
+
+/** The preview's square, in CSS pixels (the stylesheet's 3.5rem). */
+const THUMB = 56
+const thumb = ref(null)
+
+/**
+ * Draws the preview: the cutout, filling the square from its middle, at the screen's own
+ * resolution (at most twice, as the avatar's preview). The same drawing as the editor's and the
+ * picture that is sent (drawChatImageCut), so the three show the same part.
+ */
+const drawThumb = () => {
+  const canvas = thumb.value
+  const chosen = picture.value
+  if (!canvas || !chosen) return
+  const size = Math.round(THUMB * Math.min(2, window.devicePixelRatio || 1))
+  canvas.width = size
+  canvas.height = size
+  const context = canvas.getContext('2d')
+  if (!context) return
+  const { source, edit } = chosen
+  const cut = chatImageCut(source.width, source.height, edit)
+  const scale = Math.max(size / cut.width, size / cut.height)
+  const width = cut.width * scale
+  const height = cut.height * scale
+  context.imageSmoothingEnabled = true
+  context.imageSmoothingQuality = 'high'
+  drawChatImageCut(context, source.image, source.width, source.height, edit, {
+    x: (size - width) / 2,
+    y: (size - height) / 2,
+    width,
+    height,
+  })
+}
+watch([picture, preparing], async () => {
+  await nextTick()
+  drawThumb()
+})
 
 /**
  * The paperclip's menu (E-044, F1): "Bild" and "Datei". It closes when an entry is chosen, on Esc
@@ -680,11 +760,7 @@ watch(
   border-radius: 0.5rem;
 }
 
-.chat-compose-attached-picture {
-  object-fit: cover;
-}
-
-/* While it is made small: a quiet square in its place, no spinner. */
+/* While it is opened or made small: a quiet square in its place, no spinner. */
 .chat-compose-attached-wait {
   background: var(--border, #dee2e6);
 }
