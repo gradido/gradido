@@ -25,15 +25,18 @@ const apolloQuery = vi.fn(async (options) =>
 )
 
 /** The address the page is opened with, and where it sends the cleaned one. */
-const { route, routerReplace, toastError } = vi.hoisted(() => ({
+const { route, routerReplace, routerPush, toastError, storeState } = vi.hoisted(() => ({
   route: { query: {} },
   routerReplace: vi.fn(),
+  routerPush: vi.fn(),
   toastError: vi.fn(),
+  storeState: { communityUuid: 'home' },
 }))
 vi.mock('vue-router', () => ({
   useRoute: () => route,
-  useRouter: () => ({ replace: routerReplace }),
+  useRouter: () => ({ replace: routerReplace, push: routerPush }),
 }))
+vi.mock('vuex', () => ({ useStore: () => ({ state: storeState }) }))
 
 vi.mock('@/graphql/contacts.graphql', () => ({
   contactListQuery: 'contactListQuery',
@@ -137,7 +140,7 @@ describe('Contacts page', () => {
           ChatGroupWindow: {
             name: 'ChatGroupWindow',
             props: ['modelValue', 'group', 'contacts'],
-            emits: ['update:modelValue', 'changed'],
+            emits: ['update:modelValue', 'changed', 'openMember'],
             template:
               '<div data-test="chat-group-window" :data-open="String(modelValue)" :data-group="group?.groupUuid ?? \'\'" :data-title="group?.title ?? \'\'" @click="$emit(\'changed\')" />',
           },
@@ -738,6 +741,67 @@ describe('Contacts page', () => {
         await nextTick()
         await wrapper.findAll('[data-test="chat-group-row"]')[1].trigger('click')
       }
+
+      // E-053: a member named in the group -- in its list or over a message. A contact's window
+      // opens over the group's, so closing it leads back; anybody else is met in the send form.
+      describe('a member named in it', () => {
+        const nameIt = async (user) => {
+          await wrapper.findComponent({ name: 'ChatGroupWindow' }).vm.$emit('openMember', user)
+          await nextTick()
+        }
+        const contactWindow = () => wrapper.find('[data-test="contact-window"]')
+        const withContacts = async (contacts = [person(1), person(2)]) => {
+          await openTheSecond()
+          fire('contactListQuery', { contactList: { count: contacts.length, contacts } })
+          await nextTick()
+        }
+
+        afterEach(() => {
+          routerPush.mockReset()
+          storeState.communityUuid = 'home'
+        })
+
+        it("opens a contact's window over the group's", async () => {
+          await withContacts()
+          await nameIt({ communityUuid: 'home', gradidoID: 'id-2', alias: 'Alias2' })
+          expect(contactWindow().attributes('data-open')).toBe('true')
+          expect(contactWindow().attributes('data-who')).toBe('id-2')
+          expect(groupWindow().attributes('data-open')).toBe('true')
+          expect(routerPush).not.toHaveBeenCalled()
+        })
+
+        it('knows a contact without regard to case, either way round', async () => {
+          await withContacts([person(1), person(2, { gradidoID: 'ID-TWO', communityUuid: 'HOME' })])
+          await nameIt({ communityUuid: 'HOME', gradidoID: 'ID-1' })
+          expect(contactWindow().attributes('data-who')).toBe('id-1')
+          await nameIt({ communityUuid: 'home', gradidoID: 'id-two' })
+          expect(contactWindow().attributes('data-who')).toBe('ID-TWO')
+          expect(routerPush).not.toHaveBeenCalled()
+        })
+
+        it('leads to the send form, community and name filled in, where they are no contact', async () => {
+          await withContacts()
+          await nameIt({ communityUuid: 'home', gradidoID: 'stranger-id', alias: 'Fremd' })
+          expect(routerPush).toHaveBeenCalledWith({
+            path: '/send/home/stranger-id',
+            query: { art: 'send' },
+          })
+          expect(contactWindow().attributes('data-open')).toBe('false')
+        })
+
+        // A writer the server named by the pair alone: a missing community is this one.
+        it("takes the member's own community where none is named", async () => {
+          storeState.communityUuid = 'home'
+          await withContacts()
+          await nameIt({ communityUuid: null, gradidoID: 'id-1' })
+          expect(contactWindow().attributes('data-who')).toBe('id-1')
+          await nameIt({ communityUuid: null, gradidoID: 'stranger-id' })
+          expect(routerPush).toHaveBeenCalledWith({
+            path: '/send/home/stranger-id',
+            query: { art: 'send' },
+          })
+        })
+      })
 
       // One window for the page, as for the contacts (KF-010).
       it('opens on the group that was tapped', async () => {

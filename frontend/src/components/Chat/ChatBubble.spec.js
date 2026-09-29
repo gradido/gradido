@@ -1123,10 +1123,27 @@ describe('ChatBubble', () => {
     })
 
     // The ear hears the writer inside the bubble, as in a thread of two -- not the group's name.
-    it('names the writer for the ear, and hides the visible name from it', () => {
+    // E-053: the name over their message leads to the writer -- the page decides where. A button,
+    // heard as one; so the bubble under it leaves the name out rather than say it twice.
+    it('leads to the writer by their name, and names them once for the ear', async () => {
       mountInGroup(GROUP_THEIRS)
-      expect(wrapper.find('[data-test="chat-bubble-writer"]').text()).toBe('Carla-Sonne:')
-      expect(name().attributes('aria-hidden')).toBe('true')
+      const link = name().find('[data-test="member-name-open"]')
+      expect(link.element.tagName).toBe('BUTTON')
+      expect(link.text()).toBe('Carla-Sonne')
+      expect(name().attributes('aria-hidden')).toBeUndefined()
+      expect(wrapper.find('[data-test="chat-bubble-writer"]').exists()).toBe(false)
+
+      await link.trigger('click')
+      expect(wrapper.emitted('openMember')).toEqual([[CARLA]])
+    })
+
+    // A writer whose users row is gone: the pair the server keeps with the message still leads.
+    it('leads by the pair where the server names no user', async () => {
+      mountInGroup({ ...GROUP_THEIRS, senderUser: null })
+      await name().find('[data-test="member-name-open"]').trigger('click')
+      expect(wrapper.emitted('openMember')).toEqual([
+        [{ communityUuid: 'home-uuid', gradidoID: 'carla-id' }],
+      ])
     })
 
     it('shows neither further down a run, and keeps the bubble in line', () => {

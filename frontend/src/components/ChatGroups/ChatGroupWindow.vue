@@ -105,7 +105,12 @@
 
       <!-- The group's thread and the bar to write in it (ChatThread in a group's kind). ⛔ Keyed by
            the group: the thread takes its group once, and another group is another thread. -->
-      <chat-thread :key="group.groupUuid" class="chat-group-window-thread" :group="group" />
+      <chat-thread
+        :key="group.groupUuid"
+        class="chat-group-window-thread"
+        :group="group"
+        @open-member="emit('openMember', $event)"
+      />
 
       <!-- The members' dialog, over this window (P5). -->
       <chat-group-members
@@ -116,6 +121,7 @@
         :contacts="contacts"
         @changed="membersChanged"
         @left="left"
+        @open-member="emit('openMember', $event)"
       />
     </div>
   </BModal>
@@ -159,8 +165,11 @@ const props = defineProps({
 /**
  * `changed`: something about the group is different now -- muted or lifted, a member in or out, a
  * part or the name changed, the member left -- and the page asks for its list again.
+ *
+ * `openMember`: a member whose name was tapped, in the list or over their message (E-053). The page
+ * knows who is a contact, and leads there: their window over this one, or the send form.
  */
-const emit = defineEmits(['update:modelValue', 'changed'])
+const emit = defineEmits(['update:modelValue', 'changed', 'openMember'])
 
 const { t, d } = useI18n()
 const store = useStore()

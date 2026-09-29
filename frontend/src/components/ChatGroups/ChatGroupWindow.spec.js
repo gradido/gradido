@@ -109,14 +109,16 @@ describe('ChatGroupWindow', () => {
           IMdiBellOffOutline: { template: '<i data-test="bell-off" />' },
           // The thread has its own specs (ChatThread.group.spec.js); here: which group it gets.
           ChatThread: {
+            name: 'ChatThread',
             props: ['group'],
+            emits: ['openMember'],
             template: '<div data-test="thread" :data-group="group?.groupUuid" />',
           },
           // The members' dialog has its own spec; here: what it is handed, and what it says back.
           ChatGroupMembers: {
             name: 'ChatGroupMembers',
             props: ['modelValue', 'group', 'members', 'loaded', 'contacts'],
-            emits: ['update:modelValue', 'changed', 'left'],
+            emits: ['update:modelValue', 'changed', 'left', 'openMember'],
             template:
               '<div data-test="members-dialog" :data-open="String(modelValue)" :data-count="members.length" />',
           },
@@ -297,6 +299,22 @@ describe('ChatGroupWindow', () => {
   it('hands the thread its group', () => {
     mountWindow()
     expect(find('thread').attributes('data-group')).toBe('cafe-uuid')
+  })
+
+  // E-053: a name tapped over a message or in the list of members -- the page knows who is a
+  // contact and leads there; the window only hands the member on, and stays as it is.
+  it('hands a member named in the thread or in the list on to the page', async () => {
+    mountWindow()
+    await flushPromises()
+    const anna = { communityUuid: 'home-uuid', gradidoID: 'anna-id', alias: 'Anna-Sonne' }
+    const carla = { communityUuid: 'home-uuid', gradidoID: 'carla-id', alias: 'Carla-Sonne' }
+    const members = () => wrapper.findComponent({ name: 'ChatGroupMembers' })
+    await wrapper.findComponent({ name: 'ChatThread' }).vm.$emit('openMember', anna)
+    await find('chat-group-window-members').trigger('click')
+    await members().vm.$emit('openMember', carla)
+    expect(wrapper.emitted('openMember')).toEqual([[anna], [carla]])
+    expect(members().props('modelValue')).toBe(true)
+    expect(wrapper.emitted('update:modelValue')).toBeUndefined()
   })
 
   it('is a sheet on a phone, with no header and no footer, named after the group', () => {
