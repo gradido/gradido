@@ -26,7 +26,8 @@ export class ChatMessage {
    * their order -- read for a whole page at once by the caller, never one query per message.
    *
    * `group`: for a message written in a group (P5), the group's uuid and who wrote it -- read for
-   * a whole page at once as well (chatMessagesOf). Null in a direct conversation.
+   * a whole page at once as well (chatMessagesOf) -- and with it whether it went out as an
+   * announcement (`announcement`). Null in a direct conversation.
    */
   constructor(
     row: ChatMessageSelect,
@@ -49,6 +50,7 @@ export class ChatMessage {
     this.images = images.map((info) => new ChatMessageImage(info))
     this.groupUuid = group?.groupUuid ?? null
     this.senderUser = group?.senderUser ?? null
+    this.announcement = group !== null && row.notify === ChatMessageNotify.EMAIL
   }
 
   /**
@@ -90,6 +92,17 @@ export class ChatMessage {
    */
   @Field(() => User, { nullable: true })
   senderUser: User | null
+
+  /**
+   * Whether a message written in a group went out as an announcement (E-050 F5): by mail to every
+   * member but the sender who has not muted the group. For EVERY member, not only the sender --
+   * unlike `notify` in a conversation of two: the members got the mail or could have, so the
+   * wallet marks the message in the thread ("Ankündigung", P5b). Nothing here says who was
+   * mailed and who had muted (E-024). False in a direct conversation, where the wish stays the
+   * sender's (`notify`).
+   */
+  @Field(() => Boolean)
+  announcement: boolean
 
   /** Whether the member reading wrote it. */
   @Field(() => Boolean)

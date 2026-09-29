@@ -718,6 +718,7 @@ export const sendChatGroupMessage = gql`
       deliveryState
       notify
       mailState
+      announcement
       images {
         imageUuid
         width
