@@ -1,4 +1,7 @@
 // AI-GENERATED — not an architecture reference
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import ChatGroupMembers from './ChatGroupMembers.vue'
@@ -372,5 +375,22 @@ describe('ChatGroupMembers', () => {
     await wrapper.setProps({ modelValue: false })
     await wrapper.setProps({ modelValue: true })
     expect(title()).toBe('chatGroup.membersTitle {"n":4}')
+  })
+
+  // Measured in the bundle at 320 px (29.09.2026): beside a long name, "Moderator" and the dots,
+  // a face in a flex row shrinks unless it is told not to.
+  it('keeps the faces at their size however long the names', () => {
+    const code = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'ChatGroupMembers.vue'),
+      'utf8',
+    )
+      .split('<style')[1]
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+    const rule = [...code.matchAll(/([^{}]+)\{([^{}]*)\}/g)].find(([, selectors]) =>
+      selectors
+        .split(',')
+        .some((selector) => selector.trim() === '.chat-group-member-line .app-avatar'),
+    )
+    expect(rule?.[2]).toMatch(/flex:\s*0 0 auto/)
   })
 })

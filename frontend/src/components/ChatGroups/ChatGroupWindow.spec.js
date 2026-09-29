@@ -440,7 +440,6 @@ describe('ChatGroupWindow', () => {
       ['.chat-group-window-close:hover', '.contact-window-close:hover'],
       ['.chat-group-window-head', '.contact-window-head'],
       ['.chat-group-window-who', '.contact-window-who'],
-      ['.chat-group-window-name', '.contact-window-name'],
       ['.chat-group-window-community', '.contact-window-community'],
       ['.chat-group-window-meta', '.contact-window-meta'],
       ['.chat-group-window-marks', '.contact-window-marks'],
@@ -460,6 +459,24 @@ describe('ChatGroupWindow', () => {
     it.each(TWINS)('%s is %s', (ours, theirs) => {
       expect(contact.get(theirs), `${theirs} is gone from the contact window`).toBeTruthy()
       expect(group.get(ours)).toBe(contact.get(theirs))
+    })
+
+    // ⛔ One rule differs on purpose: a group's name wraps where a person's is cut -- it may run to
+    // 100 characters and is nowhere else to be read in full --, in the same font.
+    it("writes the name in the contact window's font, and wraps it", () => {
+      const declarations = (rule) =>
+        Object.fromEntries(
+          rule.split('; ').map((part) => part.split(':').map((half) => half.trim())),
+        )
+      const ours = declarations(group.get('.chat-group-window-name'))
+      const theirs = declarations(contact.get('.contact-window-name'))
+      for (const name of ['font-weight', 'font-size', 'line-height', 'min-width']) {
+        expect(ours[name], name).toBe(theirs[name])
+      }
+      expect(theirs['white-space']).toBe('nowrap')
+      expect(ours['white-space']).toBeUndefined()
+      expect(ours['text-overflow']).toBeUndefined()
+      expect(ours['overflow-wrap']).toBe('anywhere')
     })
   })
 })

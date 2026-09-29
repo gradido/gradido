@@ -1,4 +1,7 @@
 // AI-GENERATED — not an architecture reference
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi } from 'vitest'
 import ChatGroupRow from './ChatGroupRow.vue'
@@ -114,6 +117,51 @@ describe('ChatGroupRow', () => {
       const mark = mountRow({ mutedByMe: true }).find('[data-test="chat-group-muted"]')
       expect(mark.element.tagName).not.toBe('BUTTON')
       expect(mark.find('button').exists()).toBe(false)
+    })
+  })
+
+  /**
+   * ⛔ The dots of the group rows and the contact rows stand in one line only while the row's end
+   * is as wide as the contact row's heart column: the heart and the column's gutter. This holds
+   * the two files together -- a heart of another size moves every contact's dot.
+   */
+  describe("the heart's room", () => {
+    const rulesOf = (file) => {
+      const code = readFileSync(join(dirname(fileURLToPath(import.meta.url)), file), 'utf8')
+        .split('<style')[1]
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+      const rules = new Map()
+      for (const [, selectors, body] of code.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+        const declarations = Object.fromEntries(
+          body
+            .split(';')
+            .map((part) => part.split(':').map((half) => half.trim().replace(/\s+/g, ' ')))
+            .filter(([name]) => name),
+        )
+        for (const selector of selectors.split(',')) rules.set(selector.trim(), declarations)
+      }
+      return rules
+    }
+    const heart = rulesOf('../FavoriteHeart.vue').get('.favorite-heart-icon')
+    const row = rulesOf('ChatGroupRow.vue')
+
+    it('is the heart and the gutter', () => {
+      // the heart's em is the button's 1rem
+      const size = heart.width.replace(/em$/, '')
+      expect(heart.height).toBe(heart.width)
+      expect(row.get('.chat-group-row-end')['min-width']).toBe(
+        `calc(${size}rem + var(--bs-gutter-x, 1.5rem))`,
+      )
+    })
+
+    it("holds a crossed bell of the heart's size", () => {
+      const size = heart.width.replace(/em$/, '')
+      expect(row.get('.chat-group-row-muted-icon')).toMatchObject({
+        width: `${size}rem`,
+        height: `${size}rem`,
+      })
+      const mark = mountRow({ mutedByMe: true }).find('[data-test="chat-group-muted"]')
+      expect(mark.find('.chat-group-row-muted-icon').exists()).toBe(true)
     })
   })
 })

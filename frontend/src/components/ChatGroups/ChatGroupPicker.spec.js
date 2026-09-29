@@ -1,4 +1,7 @@
 // AI-GENERATED — not an architecture reference
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import ChatGroupPicker from './ChatGroupPicker.vue'
@@ -97,6 +100,48 @@ describe('ChatGroupPicker', () => {
       'chatGroup.pickLater {"community":"Gradido Wien"}',
     )
     expect(pick('anna-id').find('.chat-group-pick-sub').text()).toBe('KI Playground')
+  })
+
+  /**
+   * Measured in the bundle (29.09.2026): greyed with the rest of its row, the line that says why
+   * the contact cannot be chosen stood at 2.8:1 on the dark surface. The row greys its box, its
+   * face and its name, and leaves that line its colour.
+   */
+  it('greys the box, the face and the name of such a row, not the line that says why', () => {
+    const code = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'ChatGroupPicker.vue'),
+      'utf8',
+    )
+      .split('<style')[1]
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+    const greyed = [...code.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+      .filter(([, , body]) => /opacity/.test(body))
+      .flatMap(([, selectors]) => selectors.split(',').map((selector) => selector.trim()))
+    expect(greyed.sort()).toEqual([
+      '.chat-group-pick.is-off .app-avatar',
+      '.chat-group-pick.is-off .chat-group-pick-box',
+      '.chat-group-pick.is-off .chat-group-pick-name',
+    ])
+  })
+
+  // Measured in the bundle (29.09.2026): beside a name of 30 characters a face in a flex row
+  // shrinks unless it is told not to -- in a row and in a chip.
+  it('keeps the faces at their size however long the names', () => {
+    const code = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'ChatGroupPicker.vue'),
+      'utf8',
+    )
+      .split('<style')[1]
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+    const kept = [...code.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+      .filter(([, , body]) => /flex:\s*0 0 auto/.test(body))
+      .flatMap(([, selectors]) => selectors.split(',').map((selector) => selector.trim()))
+    expect(kept).toEqual(
+      expect.arrayContaining([
+        '.chat-group-pick .app-avatar',
+        '.chat-group-picker-chip .app-avatar',
+      ]),
+    )
   })
 
   // Those in the group already are not offered -- by the pair, without regard to case.

@@ -46,7 +46,7 @@
         :title="t('chatGroup.muted')"
         data-test="chat-group-muted"
       >
-        <i-mdi-bell-off-outline aria-hidden="true" />
+        <i-mdi-bell-off-outline class="chat-group-row-muted-icon" aria-hidden="true" />
       </span>
     </BCol>
   </BRow>
@@ -121,16 +121,23 @@ const meta = computed(() => chatGroupMeta(props.group, { t, d }))
   white-space: nowrap;
 }
 
-/* The end of the row keeps the heart's room where a contact has one, so the dots of the two
-   lists stand in one line. */
+/* The end of the row is as wide as the heart's column in a contact row -- the heart (FavoriteHeart:
+   1.35em of the button's 1rem) and the column's gutter --, so the dots of the two lists stand in
+   one line. Measured in the bundle (29.09.2026): with 2.25rem a group's dot stood 9.6 px to the
+   right of a contact's. */
 .chat-group-row-end {
-  min-width: 2.25rem;
+  min-width: calc(1.35rem + var(--bs-gutter-x, 1.5rem));
   text-align: center;
 }
 
 .chat-group-row-muted {
   display: inline-flex;
   color: var(--bs-secondary-color, #6c757d);
-  font-size: 1.2rem;
+}
+
+/* The crossed bell in the heart's size, so a muted group's end is no wider than a contact's. */
+.chat-group-row-muted-icon {
+  width: 1.35rem;
+  height: 1.35rem;
 }
 </style>

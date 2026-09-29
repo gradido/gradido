@@ -531,6 +531,12 @@ const go = () => {
   padding: 0.5rem 0;
 }
 
+/* The face keeps its size however long the name beside it: the name gives way. Measured in the
+   bundle at 320 px (29.09.2026): beside "Moderator" and the dots a face had shrunk to 43 px. */
+.chat-group-member-line .app-avatar {
+  flex: 0 0 auto;
+}
+
 .chat-group-member-words {
   display: flex;
   flex: 1 1 auto;

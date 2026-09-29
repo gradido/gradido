@@ -361,14 +361,15 @@ const toggleMute = async () => {
   min-width: 0;
 }
 
+/* The contact window's name in its font -- but where a person's name is cut, a group's wraps: it
+   may run to 100 characters and is nowhere else to be read in full (the list cuts it, as it cuts
+   a contact's). Measured in the bundle (29.09.2026), see the spec. */
 .chat-group-window-name {
   min-width: 0;
   font-weight: 700;
   font-size: 1.1rem;
   line-height: 1.2;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .chat-group-window-community {

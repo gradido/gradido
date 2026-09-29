@@ -163,6 +163,14 @@ const toggle = (row, checked) => {
   font-size: 0.85rem;
 }
 
+/* A face keeps its size however long the name beside it: the name gives way. Measured in the
+   bundle (29.09.2026): beside a name of 30 characters a row's face had shrunk to 31 px at 320 px
+   and to 41 px at 390. */
+.chat-group-picker-chip .app-avatar,
+.chat-group-pick .app-avatar {
+  flex: 0 0 auto;
+}
+
 .chat-group-picker-chip span {
   min-width: 0;
   overflow: hidden;
@@ -226,9 +234,16 @@ const toggle = (row, checked) => {
   font-size: 0.8rem;
 }
 
-/* Another community's contact (E-050 F2): there, but not to be chosen yet. */
+/* Another community's contact (E-050 F2): there, but not to be chosen yet. The box, the face and
+   the name are greyed; the line that says why keeps its colour -- greyed with the rest it stood at
+   2.8:1 on the dark surface (measured in the bundle, 29.09.2026). */
 .chat-group-pick.is-off {
   cursor: default;
+}
+
+.chat-group-pick.is-off .chat-group-pick-box,
+.chat-group-pick.is-off .app-avatar,
+.chat-group-pick.is-off .chat-group-pick-name {
   opacity: 0.6;
 }
 </style>
