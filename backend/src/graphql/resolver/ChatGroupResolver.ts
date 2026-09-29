@@ -1,9 +1,13 @@
 // AI-GENERATED — not an architecture reference
 import { ChatGroupArgs } from '@arg/ChatGroupArgs'
+import { ChatGroupMemberArgs } from '@arg/ChatGroupMemberArgs'
+import { ChatGroupMembersArgs } from '@arg/ChatGroupMembersArgs'
 import { ChatGroupMessagesArgs } from '@arg/ChatGroupMessagesArgs'
 import { CreateChatGroupArgs } from '@arg/CreateChatGroupArgs'
 import { MarkChatGroupReadArgs } from '@arg/MarkChatGroupReadArgs'
+import { RenameChatGroupArgs } from '@arg/RenameChatGroupArgs'
 import { SendChatGroupMessageArgs } from '@arg/SendChatGroupMessageArgs'
+import { SetChatGroupModeratorArgs } from '@arg/SetChatGroupModeratorArgs'
 import { SetChatGroupMutedArgs } from '@arg/SetChatGroupMutedArgs'
 import { MemberAvatarRefInput } from '@input/MemberAvatarRefInput'
 import { ChatGroup, ChatGroupOfMember } from '@model/ChatGroup'
@@ -15,6 +19,7 @@ import {
   ChatConversationSelect,
   ChatMemberRef,
   User as DbUser,
+  dbDeleteChatConversationMember,
   dbFindChatGroupByUuid,
   dbInsertChatConversationMembers,
   dbInsertChatGroup,
@@ -26,6 +31,8 @@ import {
   dbSelectUsersByUuids,
   dbUpdateChatConversationMemberLastRead,
   dbUpdateChatConversationMemberMuted,
+  dbUpdateChatConversationMemberRole,
+  dbUpdateChatGroupTitle,
   getHomeCommunity,
 } from 'database'
 import { getLogger } from 'log4js'
@@ -36,12 +43,18 @@ import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import {
   CHAT_MESSAGE_PAGES_MAX_PER_REQUEST,
   CHAT_MESSAGES_PAGE_DEFAULT,
+  isSameChatMember,
 } from '@/data/ChatConversation.logic'
 import {
   CHAT_GROUP_LISTS_MAX_PER_REQUEST,
   CHAT_GROUP_MAX_MEMBERS,
+  CHAT_GROUP_MAX_MODERATORS,
+  chatGroupSuccessor,
   chatGroupTitle,
   mayAnnounceInChatGroup,
+  mayAppointChatGroupModerators,
+  mayManageChatGroup,
+  mayRemoveFromChatGroup,
 } from '@/data/ChatGroup.logic'
 import { isSameCommunity } from '@/data/Community.logic'
 import { Context, getUser } from '@/server/context'
@@ -56,6 +69,7 @@ import {
 import { chatMemberKey, chatMemberUsers } from './util/chatMemberUsers'
 import { chatMessagesOf } from './util/chatMessagesOf'
 import { acceptedPicture, callerOf } from './util/chatRequest'
+import { resolveCommunityUuid } from './util/communities'
 
 const createLogger = () =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.ChatGroupResolver`)
@@ -150,8 +164,9 @@ const chatGroupOfCaller = async (
  * their users row spells their pair: a member of this community -- OTHER_COMMUNITY --, a contact
  * of the caller -- NOT_A_CONTACT: somebody they share an event with (KF-012), the whole contact
  * list read in one call, never one per member --, with an account that is not deleted --
- * UNKNOWN_MEMBER. The caller themselves is left out: they are in the group already. Refused with
- * `refusal` and the reason; the log gets the member's gradido id.
+ * UNKNOWN_MEMBER. The caller themselves is left out, and so is whoever is `alreadyIn` the group
+ * (keys of chatMemberKey): nothing is asked about them, and nothing changes for them. Refused
+ * with `refusal` and the reason; the log gets the member's gradido id.
  *
  * ⛔ Checked here, not only in the wallet: a call that goes round the wallet would otherwise take
  * strangers in, and each of them would get a mail (build plan, Falle 5).
@@ -161,6 +176,7 @@ const checkedNewMembers = async (
   refs: MemberAvatarRefInput[],
   homeCommunityUuid: string,
   refusal: string,
+  alreadyIn: Set<string> = new Set(),
 ): Promise<ChatMemberRef[]> => {
   const caller = { communityUuid: callerUser.communityUuid, gradidoId: callerUser.gradidoID }
   const wanted = new Map<string, ChatMemberRef>()
@@ -173,8 +189,9 @@ const checkedNewMembers = async (
     if (!isSameCommunity(member.communityUuid.toLowerCase(), homeCommunityUuid.toLowerCase())) {
       throw new LogError(`${refusal}: OTHER_COMMUNITY`, member.gradidoId)
     }
-    if (chatMemberKey(member) !== chatMemberKey(caller)) {
-      wanted.set(chatMemberKey(member), member)
+    const key = chatMemberKey(member)
+    if (key !== chatMemberKey(caller) && !alreadyIn.has(key)) {
+      wanted.set(key, member)
     }
   }
   if (wanted.size === 0) {
@@ -213,10 +230,17 @@ const checkedNewMembers = async (
   return members
 }
 
+/** The member a ref names, as the chat tables name members: a null community is this one. */
+const memberOf = async (ref: MemberAvatarRefInput): Promise<ChatMemberRef> => ({
+  communityUuid: await resolveCommunityUuid(ref.communityUuid),
+  gradidoId: ref.gradidoID,
+})
+
 /**
- * The chat groups of a community (P5): opening one, the list of the caller's groups, their
- * members, reading and writing in them, and the caller's marks in them -- the read pointer and
- * the mute mark (E-024). A group lives within one community in P5; members of other communities
+ * The chat groups of a community (P5): opening one, taking members in and out, naming
+ * moderators, renaming it, leaving it, the list of the caller's groups, their members, reading
+ * and writing in them, and the caller's marks in them -- the read pointer and the mute mark
+ * (E-024). A group lives within one community in P5; members of other communities
  * come with P6 (E-026).
  *
  * Who may do what in a group, their role there decides (ChatGroup.logic.ts). Who is not a member
@@ -400,6 +424,207 @@ export class ChatGroupResolver {
     }
     const [copy] = await chatMessagesOf([stored], caller)
     return copy
+  }
+
+  /**
+   * Takes members into a group (P5): for its owner and its moderators (E-050 F4), from the
+   * caller's own contacts within this community (E-049), checked as for opening one
+   * (checkedNewMembers). Whoever is in the group already is left as they are, and gets no mail;
+   * the others get "you are in the group now". They read what was written before they came, and
+   * none of it counts as unread for them: their read pointer starts at the latest message.
+   * Hands back the group as the caller's list shows it.
+   *
+   * Refused as CHAT_GROUP_NOT_CHANGED with the reason, before anything is written: NOT_ALLOWED
+   * (a plain member), OTHER_COMMUNITY, NOT_A_CONTACT, UNKNOWN_MEMBER, FULL (more than
+   * CHAT_GROUP_MAX_MEMBERS together). ⚠️ Counted before the new members are filed: two takings-in
+   * at the same moment can pass the cap by a few -- accepted, as the merker limit of P4a is.
+   *
+   * The mails are not waited for (build plan 4.4).
+   */
+  @Authorized([RIGHTS.MANAGE_CHAT_GROUPS])
+  @Mutation(() => ChatGroup)
+  async addChatGroupMembers(
+    @Args() { groupUuid, members: refs }: ChatGroupMembersArgs,
+    @Ctx() context: Context,
+  ): Promise<ChatGroup> {
+    const callerUser = getUser(context)
+    const caller = callerOf(context)
+    const { group, me } = await groupOfCallerOrFail(groupUuid, caller)
+    if (!mayManageChatGroup(me.role)) {
+      throw new LogError('CHAT_GROUP_NOT_CHANGED: NOT_ALLOWED', groupUuid)
+    }
+    const home = await getHomeCommunity()
+    if (!home?.communityUuid) {
+      throw new LogError('Home community has no uuid, cannot take members into a chat group')
+    }
+    const current = await dbSelectChatConversationMembers(group.id)
+    const members = await checkedNewMembers(
+      callerUser,
+      refs,
+      home.communityUuid,
+      'CHAT_GROUP_NOT_CHANGED',
+      new Set(current.map(chatMemberKey)),
+    )
+    if (members.length === 0) {
+      return chatGroupOfCaller(caller, group.id)
+    }
+    const memberCount = current.length + members.length
+    if (memberCount > CHAT_GROUP_MAX_MEMBERS) {
+      throw new LogError('CHAT_GROUP_NOT_CHANGED: FULL', memberCount)
+    }
+    // Read before anything is written, as the recipients of an announcement are.
+    const added = await mailableChatMembers(members)
+    const [latest] = (await dbSelectChatMessagesPage(group.id, { limit: 1 })).messages
+
+    await dbInsertChatConversationMembers(group.id, members)
+    if (latest) {
+      for (const member of members) {
+        await dbUpdateChatConversationMemberLastRead(group.id, member, latest.id)
+      }
+    }
+    createLogger().info(
+      `chat group members taken in: group=${group.conversationUuid} added=${members.length} members=${memberCount}`,
+    )
+    // biome-ignore lint/complexity/noVoid: the mails follow, the request does not wait for them
+    void mailChatGroupAdded({ group, adder: callerUser, added, memberCount })
+    return chatGroupOfCaller(caller, group.id)
+  }
+
+  /**
+   * Takes a member out of a group (E-050 F4): the owner anybody else, a moderator plain members
+   * only (mayRemoveFromChatGroup). Their messages stay in the group, under their name; the group
+   * and its pictures are closed to them from then on. No mail.
+   *
+   * Refused as CHAT_GROUP_NOT_CHANGED with the reason: NOT_A_MEMBER, NOT_ALLOWED -- also for the
+   * caller themselves, by the same rule: nobody takes out somebody of their own part. They leave
+   * instead (leaveChatGroup), the owner with a successor.
+   */
+  @Authorized([RIGHTS.MANAGE_CHAT_GROUPS])
+  @Mutation(() => Boolean)
+  async removeChatGroupMember(
+    @Args() { groupUuid, member: ref }: ChatGroupMemberArgs,
+    @Ctx() context: Context,
+  ): Promise<boolean> {
+    const caller = callerOf(context)
+    const { group, me } = await groupOfCallerOrFail(groupUuid, caller)
+    const target = await memberOf(ref)
+    if (!mayManageChatGroup(me.role)) {
+      throw new LogError('CHAT_GROUP_NOT_CHANGED: NOT_ALLOWED', groupUuid)
+    }
+    const row = await dbSelectChatConversationMember(group.id, target)
+    if (!row) {
+      throw new LogError('CHAT_GROUP_NOT_CHANGED: NOT_A_MEMBER', target.gradidoId)
+    }
+    if (!mayRemoveFromChatGroup(me.role, row.role)) {
+      throw new LogError('CHAT_GROUP_NOT_CHANGED: NOT_ALLOWED', groupUuid)
+    }
+    return (
+      await dbDeleteChatConversationMember(group.id, {
+        communityUuid: row.communityUuid,
+        gradidoId: row.gradidoId,
+      })
+    ).success
+  }
+
+  /**
+   * The caller leaves a group -- every member may (E-049). Where the owner leaves, the group goes
+   * to the longest-standing moderator, otherwise to the longest-standing member
+   * (chatGroupSuccessor, E-050 F4), and that before the owner's row is taken out: never a group
+   * of members without an owner. Where the owner was the last one, the group stays behind without
+   * anybody, seen by nobody. False where the caller is not in the group; nothing is written then.
+   *
+   * Behind READ_OWN_CHAT, not MANAGE_CHAT_GROUPS: it takes out the caller's own row and mails
+   * nobody -- an account with an unconfirmed address may leave, as it may mute.
+   */
+  @Authorized([RIGHTS.READ_OWN_CHAT])
+  @Mutation(() => Boolean)
+  async leaveChatGroup(
+    @Args() { groupUuid }: ChatGroupArgs,
+    @Ctx() context: Context,
+  ): Promise<boolean> {
+    const caller = callerOf(context)
+    const found = await groupOfCaller(groupUuid, caller)
+    if (!found) {
+      return false
+    }
+    if (found.me.role === 'owner') {
+      const successor = chatGroupSuccessor(
+        await dbSelectChatConversationMembers(found.group.id),
+        caller,
+      )
+      if (successor) {
+        await dbUpdateChatConversationMemberRole(found.group.id, successor, 'owner')
+      }
+    }
+    return (await dbDeleteChatConversationMember(found.group.id, caller)).success
+  }
+
+  /**
+   * Makes a member of a group a moderator, or a plain member again (E-050 F4): only the owner,
+   * and never more than CHAT_GROUP_MAX_MODERATORS beside them. A member who has that part already
+   * keeps it, and nothing is written.
+   *
+   * Refused as CHAT_GROUP_NOT_CHANGED with the reason: NOT_ALLOWED (anybody but the owner, and
+   * the owner's own part), NOT_A_MEMBER, TOO_MANY_MODERATORS.
+   */
+  @Authorized([RIGHTS.MANAGE_CHAT_GROUPS])
+  @Mutation(() => Boolean)
+  async setChatGroupModerator(
+    @Args() { groupUuid, member: ref, moderator }: SetChatGroupModeratorArgs,
+    @Ctx() context: Context,
+  ): Promise<boolean> {
+    const caller = callerOf(context)
+    const { group, me } = await groupOfCallerOrFail(groupUuid, caller)
+    if (!mayAppointChatGroupModerators(me.role)) {
+      throw new LogError('CHAT_GROUP_NOT_CHANGED: NOT_ALLOWED', groupUuid)
+    }
+    const target = await memberOf(ref)
+    const members = await dbSelectChatConversationMembers(group.id)
+    const row = members.find((member) => isSameChatMember(member, target))
+    if (!row) {
+      throw new LogError('CHAT_GROUP_NOT_CHANGED: NOT_A_MEMBER', target.gradidoId)
+    }
+    if (row.role === 'owner') {
+      throw new LogError('CHAT_GROUP_NOT_CHANGED: NOT_ALLOWED', groupUuid)
+    }
+    const role = moderator ? 'moderator' : 'member'
+    if (row.role === role) {
+      return true
+    }
+    const moderators = members.filter((member) => member.role === 'moderator').length
+    if (moderator && moderators >= CHAT_GROUP_MAX_MODERATORS) {
+      throw new LogError('CHAT_GROUP_NOT_CHANGED: TOO_MANY_MODERATORS', moderators)
+    }
+    return (await dbUpdateChatConversationMemberRole(group.id, row, role)).success
+  }
+
+  /**
+   * Gives a group another name (E-050 F4): its owner and its moderators. The name is kept as
+   * chatGroupTitle keeps it; refused as CHAT_GROUP_NOT_CHANGED: TITLE where nothing is left of it
+   * or it is too long, NOT_ALLOWED for a plain member. Hands back the group as the caller's list
+   * shows it. Nobody is mailed.
+   */
+  @Authorized([RIGHTS.MANAGE_CHAT_GROUPS])
+  @Mutation(() => ChatGroup)
+  async renameChatGroup(
+    @Args() { groupUuid, title: typed }: RenameChatGroupArgs,
+    @Ctx() context: Context,
+  ): Promise<ChatGroup> {
+    const caller = callerOf(context)
+    const { group, me } = await groupOfCallerOrFail(groupUuid, caller)
+    if (!mayManageChatGroup(me.role)) {
+      throw new LogError('CHAT_GROUP_NOT_CHANGED: NOT_ALLOWED', groupUuid)
+    }
+    const title = chatGroupTitle(typed)
+    if (title === null) {
+      throw new LogError('CHAT_GROUP_NOT_CHANGED: TITLE', groupUuid)
+    }
+    const renamed = await dbUpdateChatGroupTitle(group.id, title)
+    if (!renamed.success) {
+      // Found a moment ago as a group: without it now, a bug.
+      throw new LogError('CHAT_GROUP_NOT_FOUND right after finding it', group.id)
+    }
+    return chatGroupOfCaller(caller, group.id)
   }
 
   /**

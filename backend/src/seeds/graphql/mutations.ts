@@ -727,6 +727,46 @@ export const sendChatGroupMessage = gql`
   }
 `
 
+export const addChatGroupMembers = gql`
+  mutation ($groupUuid: String!, $members: [MemberAvatarRefInput!]!) {
+    addChatGroupMembers(groupUuid: $groupUuid, members: $members) {
+      groupUuid
+      title
+      role
+      memberCount
+    }
+  }
+`
+
+export const removeChatGroupMember = gql`
+  mutation ($groupUuid: String!, $member: MemberAvatarRefInput!) {
+    removeChatGroupMember(groupUuid: $groupUuid, member: $member)
+  }
+`
+
+export const leaveChatGroup = gql`
+  mutation ($groupUuid: String!) {
+    leaveChatGroup(groupUuid: $groupUuid)
+  }
+`
+
+export const setChatGroupModerator = gql`
+  mutation ($groupUuid: String!, $member: MemberAvatarRefInput!, $moderator: Boolean!) {
+    setChatGroupModerator(groupUuid: $groupUuid, member: $member, moderator: $moderator)
+  }
+`
+
+export const renameChatGroup = gql`
+  mutation ($groupUuid: String!, $title: String!) {
+    renameChatGroup(groupUuid: $groupUuid, title: $title) {
+      groupUuid
+      title
+      role
+      memberCount
+    }
+  }
+`
+
 export const markChatGroupRead = gql`
   mutation ($groupUuid: String!, $upToMessageId: Int!) {
     markChatGroupRead(groupUuid: $groupUuid, upToMessageId: $upToMessageId)

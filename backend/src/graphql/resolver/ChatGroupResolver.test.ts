@@ -21,11 +21,16 @@ import { v4 as uuidv4 } from 'uuid'
 import { CONFIG } from '@/config'
 import { userFactory } from '@/seeds/factory/user'
 import {
+  addChatGroupMembers,
   createChatGroup,
+  leaveChatGroup,
   login,
   markChatGroupRead,
+  removeChatGroupMember,
+  renameChatGroup,
   sendChatGroupMessage,
   sendChatMessage,
+  setChatGroupModerator,
   setChatGroupMuted,
 } from '@/seeds/graphql/mutations'
 import {
@@ -620,9 +625,148 @@ describe('the chat beat and the contact list', () => {
   })
 })
 
+describe('the members of a group change', () => {
+  const roleOf = async (groupUuid: string, member: User) => {
+    const res: any = await membersOf(groupUuid)
+    expect(res.errors).toBeUndefined()
+    return res.data.chatGroupMembers.find((row: any) => row.user.gradidoID === member.gradidoID)
+      ?.role
+  }
+  const change = async (mutation: any, variables: Record<string, unknown>) =>
+    (await mutate({ mutation, variables })) as any
+
+  beforeAll(async () => {
+    // Räuber becomes a contact of Bibi's: she writes to him.
+    await loginAs('bibi@bloxberg.de')
+    const res: any = await mutate({
+      mutation: sendChatMessage,
+      variables: { ref: ref(raeuber), body: 'Hallo Räuber!', notify: 'NONE' },
+    })
+    expect(res.errors).toBeUndefined()
+    clearMails()
+  })
+  afterAll(() => resetToken())
+
+  it('lets the owner take a contact in, who is mailed and finds nothing unread', async () => {
+    await loginAs('bibi@bloxberg.de')
+    const res = await change(addChatGroupMembers, {
+      groupUuid: cafe.groupUuid,
+      members: [ref(raeuber), ref(bob)],
+    })
+    expect(res.errors).toBeUndefined()
+    expect(res.data.addChatGroupMembers).toMatchObject({ memberCount: 4 })
+    await mailsSent()
+    expect(addedMails().map((mail) => mail.email)).toEqual(['raeuber@hotzenplotz.de'])
+    expect(addedMails()[0]).toMatchObject({ memberCount: 4, groupUuid: cafe.groupUuid })
+    clearMails()
+
+    await loginAs('raeuber@hotzenplotz.de')
+    const [group] = await groupsOfCaller()
+    expect(group).toMatchObject({ groupUuid: cafe.groupUuid, role: 'MEMBER', unreadMessages: 0 })
+    // What was written before he came is there to read.
+    expect((await pageOf(cafe.groupUuid)).messages).toHaveLength(4)
+  })
+
+  it('lets no plain member take anybody in', async () => {
+    await loginAs('bob@baumeister.de')
+    const res = await change(addChatGroupMembers, {
+      groupUuid: cafe.groupUuid,
+      members: [ref(bibi)],
+    })
+    expect(res.errors?.map((error: any) => error.message)).toEqual([
+      'CHAT_GROUP_NOT_CHANGED: NOT_ALLOWED',
+    ])
+  })
+
+  it('lets the owner name two moderators, and no third', async () => {
+    await loginAs('bibi@bloxberg.de')
+    for (const member of [bob, peter]) {
+      const res = await change(setChatGroupModerator, {
+        groupUuid: cafe.groupUuid,
+        member: ref(member),
+        moderator: true,
+      })
+      expect(res.data.setChatGroupModerator).toBe(true)
+    }
+    expect(await roleOf(cafe.groupUuid, bob)).toBe('MODERATOR')
+    const third = await change(setChatGroupModerator, {
+      groupUuid: cafe.groupUuid,
+      member: ref(raeuber),
+      moderator: true,
+    })
+    expect(third.errors?.map((error: any) => error.message)).toEqual([
+      'CHAT_GROUP_NOT_CHANGED: TOO_MANY_MODERATORS',
+    ])
+    expect(await roleOf(cafe.groupUuid, raeuber)).toBe('MEMBER')
+  })
+
+  it('lets a moderator take a plain member out, and no moderator', async () => {
+    await loginAs('bob@baumeister.de')
+    const moderator = await change(removeChatGroupMember, {
+      groupUuid: cafe.groupUuid,
+      member: ref(peter),
+    })
+    expect(moderator.errors?.map((error: any) => error.message)).toEqual([
+      'CHAT_GROUP_NOT_CHANGED: NOT_ALLOWED',
+    ])
+    const member = await change(removeChatGroupMember, {
+      groupUuid: cafe.groupUuid,
+      member: ref(raeuber),
+    })
+    expect(member.data.removeChatGroupMember).toBe(true)
+
+    // Out means out: no list, no page, no picture.
+    await loginAs('raeuber@hotzenplotz.de')
+    expect(await groupsOfCaller()).toEqual([])
+    const res: any = await query({
+      query: chatGroupMessages,
+      variables: { groupUuid: cafe.groupUuid },
+    })
+    expect(res.errors?.map((error: any) => error.message)).toEqual(['CHAT_GROUP_NOT_FOUND'])
+  })
+
+  it('lets a moderator rename the group, for every member', async () => {
+    await loginAs('peter@lustig.de')
+    const res = await change(renameChatGroup, {
+      groupUuid: cafe.groupUuid,
+      title: 'Gradido-Café  Mitte',
+    })
+    expect(res.errors).toBeUndefined()
+    expect(res.data.renameChatGroup).toMatchObject({ title: 'Gradido-Café Mitte' })
+    await loginAs('bob@baumeister.de')
+    expect((await groupsOfCaller())[0].title).toBe('Gradido-Café Mitte')
+  })
+
+  // E-050 F4: the longest-standing moderator takes over.
+  it("hands the owner's group on when the owner leaves, and keeps who opened it", async () => {
+    await loginAs('bibi@bloxberg.de')
+    const res = await change(leaveChatGroup, { groupUuid: cafe.groupUuid })
+    expect(res.data.leaveChatGroup).toBe(true)
+    expect((await groupsOfCaller()).map((group: any) => group.groupUuid)).not.toContain(
+      cafe.groupUuid,
+    )
+
+    await loginAs('bob@baumeister.de')
+    const members: any = await membersOf(cafe.groupUuid)
+    const parts = members.data.chatGroupMembers.map((row: any) => row.role).sort()
+    expect(parts).toEqual(['MODERATOR', 'OWNER'])
+    expect((await groupsOfCaller())[0].createdBy).toEqual({
+      gradidoID: bibi.gradidoID,
+      alias: 'BBB',
+    })
+  })
+
+  it('answers false to a member of another group who wants to leave it', async () => {
+    await loginAs('raeuber@hotzenplotz.de')
+    const res = await change(leaveChatGroup, { groupUuid: cafe.groupUuid })
+    expect(res.data.leaveChatGroup).toBe(false)
+  })
+})
+
 /**
  * EM-013: an address never confirmed, past its grace period, acts outward no more -- opening a
- * group and writing in one mail others. Reading and asking for quiet stay.
+ * group, taking somebody in and writing in one mail others. Reading, asking for quiet and leaving
+ * stay.
  */
 describe('an unconfirmed account past its grace period', () => {
   let garrick: DbUser
@@ -659,5 +803,20 @@ describe('an unconfirmed account past its grace period', () => {
   it('may still read the group and mute it', async () => {
     expect((await pageOf(group.groupUuid)).messages).toEqual([])
     expect(await mute(group.groupUuid, true)).toBe(true)
+  })
+
+  // Leaving is self-management, like muting: it takes out the account's own row, mails nobody.
+  it('may take nobody in, and may leave', async () => {
+    const res: any = await mutate({
+      mutation: addChatGroupMembers,
+      variables: { groupUuid: group.groupUuid, members: [ref(bibi)] },
+    })
+    expect(res.errors).toEqual([new GraphQLError('401 Unauthorized')])
+    const left: any = await mutate({
+      mutation: leaveChatGroup,
+      variables: { groupUuid: group.groupUuid },
+    })
+    expect(left.data.leaveChatGroup).toBe(true)
+    expect(await groupsOfCaller()).toEqual([])
   })
 })
