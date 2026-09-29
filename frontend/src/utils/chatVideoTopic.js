@@ -92,6 +92,19 @@ const OWN_ADDITION = new RegExp(`^([^#]*)#config\\.subject=([^&#]*)(?:${SCHEDULE
 export const withoutChatVideoTopic = (url) => url.replace(OWN_ADDITION, '$1')
 
 /**
+ * The address to hand on (Bernd, 29.09.2026): the room with its topic, without the time of a
+ * planned call. A link used again for another meeting brings no old date along -- a receiving
+ * wallet builds its calendar button from that time (`chatVideoPlannedCall`). It is the address
+ * "Copy link" in the gear gives, the topic's encoding character for character as the message has
+ * it. Every other address comes back as it is.
+ *
+ * @param {string} url
+ * @returns {string}
+ */
+export const withoutChatVideoTime = (url) =>
+  url.replace(OWN_ADDITION, (whole, room, value) => `${room}#config.subject=${value}`)
+
+/**
  * What an address of Gradido's own form carries (V4a, V5b): the room, the topic, and for a planned
  * call its start and end. null for every other address -- another setting, a value that is no
  * JSON string, an end not after its start.

@@ -289,8 +289,10 @@ onBeforeUnmount(closeChatImageView)
 /* A link in the caption in the dark theme's green (`--link`, gradido-template-dark.scss), in both
    themes: the view is dark in both, and the light theme's #047006 came to 2.81:1 on this ground
    (measured, P7c). Written out, as the view does not stand inside `.dark-mode` in the light theme;
-   darkModeLinkGreen.spec holds the two equal. A file card keeps its own colours on its own surface. */
-.modal .chat-image-view-caption a:not(.chat-file-card) {
+   darkModeLinkGreen.spec holds the two equal. A file card keeps its own colours on its own surface.
+   The copy button behind a video link is drawn in the link's colour (ChatVideoLinkCopy), so here
+   in the same green. */
+.modal .chat-image-view-caption :is(a:not(.chat-file-card), .chat-video-link-copy) {
   color: #3db85f;
 }
 </style>

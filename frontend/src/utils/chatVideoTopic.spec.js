@@ -4,6 +4,7 @@ import {
   CHAT_VIDEO_TOPIC_MAX,
   readChatVideoAddition,
   withChatVideoTopic,
+  withoutChatVideoTime,
   withoutChatVideoTopic,
 } from './chatVideoTopic'
 import { chatTextParts } from './chatTextParts'
@@ -234,6 +235,56 @@ describe('the time of a planned call', () => {
       ROOM,
     ]) {
       expect(readChatVideoAddition(address), address).toBeNull()
+    }
+  })
+})
+
+// Bernd, 29.09.2026: the copy button behind a video link hands on the room with its topic and
+// without a planned call's time -- a link used again for another meeting brings no old date along.
+describe('withoutChatVideoTime', () => {
+  const WHEN = {
+    start: new Date('2026-09-30T13:00:00.000Z'),
+    end: new Date('2026-09-30T14:00:00.000Z'),
+  }
+  const PLANNED = `${ROOM}#config.subject=%22Lesekreis%22&gradido.start=1790773200&gradido.end=1790776800`
+
+  it('leaves out the time of a planned call and keeps the topic as it was written', () => {
+    expect(withoutChatVideoTime(PLANNED)).toBe(`${ROOM}#config.subject=%22Lesekreis%22`)
+    for (const [, topic] of TOPICS) {
+      expect(withoutChatVideoTime(withChatVideoTopic(ROOM, topic, WHEN)), topic).toBe(
+        withChatVideoTopic(ROOM, topic),
+      )
+    }
+  })
+
+  it('leaves an address with the topic alone as it is', () => {
+    for (const [, topic] of TOPICS) {
+      const address = withChatVideoTopic(ROOM, topic)
+      expect(withoutChatVideoTime(address), topic).toBe(address)
+    }
+  })
+
+  it('hands on the topic and no time', () => {
+    expect(readChatVideoAddition(withoutChatVideoTime(PLANNED))).toEqual({
+      room: ROOM,
+      topic: 'Lesekreis',
+      start: null,
+      end: null,
+    })
+  })
+
+  // What the thread shows whole it copies whole too: somebody else's address, or one no wallet of
+  // ours writes.
+  it('leaves every other address as it is', () => {
+    for (const address of [
+      ROOM,
+      'https://gradido.net/de/faq#konto',
+      `${ROOM}#config.subject=x&config.startWithAudioMuted=true`,
+      `${ROOM}#config.subject=%22Lesekreis%22&gradido.start=1790773200`,
+      `${ROOM}#config.subject=%22Lesekreis%22&gradido.start=1790773200&gradido.end=1790776800&x=1`,
+    ]) {
+      expect(withoutChatVideoTime(address), address).toBe(address)
+      expect(withoutChatVideoTopic(address), address).toBe(address)
     }
   })
 })
