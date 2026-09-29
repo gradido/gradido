@@ -49,10 +49,11 @@
 
     <div class="chat-compose-row">
       <!-- The paperclip (E-042, E-044 F1): with the pictures (P7) it opens a small menu above it,
-           "Bild — Foto oder Bildschirmfoto" and "Datei — über SwissTransfer, bis 50 GB". A sign
-           without a word: the paperclip is the learnt exception to E-033; the words are in the
-           menu. Also with the first message of a conversation -- a picture or a link is an
-           ordinary message.
+           "Bild — Foto oder Bildschirmfoto" and "Datei — über SwissTransfer, bis 50 GB", and on a
+           phone or a tablet "Foto aufnehmen — mit der Kamera" first (E-047). A sign without a
+           word: the paperclip is the learnt exception to E-033; the words are in the menu. Also
+           with the first message of a conversation -- a picture or a link is an ordinary
+           message.
 
            ⚠️ A disclosure, not an ARIA menu, and so no `aria-haspopup`: the picture's entry is a
            file field, and a file field may not take the role of a menu item -- a "menu" that is
@@ -93,11 +94,36 @@
           :aria-label="t('chatThread.attach')"
           data-test="chat-compose-menu"
         >
+          <!-- "Foto aufnehmen" (E-047): the same kind of field with `capture`, which a phone and a
+               tablet answer with their camera app -- the back camera first, the app itself can turn
+               round. A computer's browser takes no notice of `capture` and would open the same
+               dialog as "Bild": there is no such entry there at all (Bernd, 29.09.2026: "Es ist nur
+               wichtig, dass im Computer dann keine Kamera-Option zu sehen ist."). -->
+          <template v-if="offersCamera">
+            <input
+              :id="cameraId"
+              ref="camera"
+              type="file"
+              accept="image/*"
+              capture="environment"
+              class="chat-compose-picker visually-hidden"
+              data-test="chat-compose-camera-field"
+              @click="closeMenuOnceChosen"
+              @change="takePicture"
+            />
+            <label :for="cameraId" class="chat-compose-menu-item" data-test="chat-compose-camera">
+              <i-mdi-camera class="chat-compose-menu-icon" aria-hidden="true" />
+              <span class="chat-compose-menu-words">
+                <span class="chat-compose-menu-label">{{ t('chatThread.attachCamera') }}</span>
+                <span class="chat-compose-menu-hint">{{ t('chatThread.attachCameraHint') }}</span>
+              </span>
+            </label>
+          </template>
           <!-- ⛔ A label for a file field that is hidden only from the eye (FOTO-04): a field set to
                `display: none` and opened with `input.click()` did nothing at all in an embedded
                frame. The label opens the field without a line of script; the field stays in the tab
-               order, and the label beside it shows its focus. No `capture`: on a phone the picker
-               offers the camera and the photos by itself (AS-012). -->
+               order, and the label beside it shows its focus. No `capture` on this one: here the
+               picker offers the photos and the files. -->
           <input
             :id="pickerId"
             ref="picker"
@@ -564,16 +590,26 @@ watch([picture, preparing], async () => {
 })
 
 /**
- * The paperclip's menu (E-044, F1): "Bild" and "Datei". It closes when an entry is chosen, on Esc
- * and on a press anywhere else; the focus goes into it when it opens and back to the paperclip
- * when it closes by a choice or by Esc. A press elsewhere leaves the focus where the press put it.
+ * The paperclip's menu (E-044, F1): "Foto aufnehmen" on a phone or a tablet (E-047), "Bild" and
+ * "Datei". It closes when an entry is chosen, on Esc and on a press anywhere else; the focus goes
+ * into it when it opens and back to the paperclip when it closes by a choice or by Esc. A press
+ * elsewhere leaves the focus where the press put it.
  */
 const menuId = `${id}-attach-menu`
 const pickerId = `${id}-picker`
+const cameraId = `${id}-camera`
 const attachArea = ref(null)
 const clip = ref(null)
 const picker = ref(null)
+const camera = ref(null)
 const menuOpen = ref(false)
+
+/**
+ * Whether "Foto aufnehmen" is in the menu: not on a computer (isComputer), where `capture` does
+ * nothing. Asked when the menu opens and kept after it closes -- the camera's field has to stay in
+ * the page while the camera app is open, as "Bild"'s does while the picker is.
+ */
+const offersCamera = ref(false)
 
 const closeMenuOnPressElsewhere = (event) => {
   if (!attachArea.value?.contains(event.target)) closeMenu()
@@ -582,10 +618,12 @@ const closeMenuOnPressElsewhere = (event) => {
 const openMenu = async () => {
   // Another go: what went wrong with the last picture is said no longer.
   pictureProblem.value = null
+  offersCamera.value = !isComputer()
   menuOpen.value = true
   document.addEventListener('pointerdown', closeMenuOnPressElsewhere, true)
   await nextTick()
-  picker.value?.focus({ preventScroll: true })
+  // Into the first entry: the camera where there is one.
+  ;(offersCamera.value ? camera : picker).value?.focus({ preventScroll: true })
 }
 
 const closeMenu = ({ focusClip = false } = {}) => {

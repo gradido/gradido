@@ -145,6 +145,8 @@
     "alsoByEmailTo": "Auch per E-Mail an {name}",
     "arrived": "Neue Nachricht von {name}",
     "attach": "Bild oder Datei anhängen",
+    "attachCamera": "Foto aufnehmen",
+    "attachCameraHint": "mit der Kamera",
     "attachFile": "Datei",
     "attachFileHint": "über SwissTransfer, bis 50 GB",
     "attachImage": "Bild",

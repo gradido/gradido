@@ -41,6 +41,7 @@ describe('ChatComposeBar', () => {
           IMdiSend: true,
           IMdiPaperclip: true,
           IMdiImage: true,
+          IMdiCamera: true,
           IMdiFileDocument: true,
           IMdiClose: true,
           IMdiCellphone: true,
@@ -498,16 +499,19 @@ describe('ChatComposeBar', () => {
       expect(tip.text()).toBe('chatThread.fileAppTip')
     })
 
-    // Asked when the hint opens, nothing kept: the next opening asks again.
+    /**
+     * Asked when the hint opens, nothing kept: the next opening asks again. (The menu the hint is
+     * chosen from asks as well, for its camera: two questions each time.)
+     */
     it('asks whether this is a computer each time the hint opens', async () => {
       await openHint()
-      expect(isComputer).toHaveBeenCalledTimes(1)
+      expect(isComputer).toHaveBeenCalledTimes(2)
       await wrapper.find('[data-test="chat-compose-file-close"]').trigger('click')
 
       vi.mocked(isComputer).mockReturnValue(false)
       await chooseFileEntry()
 
-      expect(isComputer).toHaveBeenCalledTimes(2)
+      expect(isComputer).toHaveBeenCalledTimes(4)
       expect(wrapper.find('[data-test="chat-compose-file-tip"]').exists()).toBe(true)
     })
 
@@ -539,6 +543,8 @@ describe('ChatComposeBar', () => {
     const picker = () => wrapper.find('[data-test="chat-compose-picker"]')
     const pictureEntry = () => wrapper.find('[data-test="chat-compose-picture"]')
     const fileEntry = () => wrapper.find('[data-test="chat-compose-file"]')
+    const cameraEntry = () => wrapper.find('[data-test="chat-compose-camera"]')
+    const cameraField = () => wrapper.find('[data-test="chat-compose-camera-field"]')
     const isOpen = () => menu().classes().includes('is-open')
 
     const openMenu = async (props = {}) => {
@@ -588,8 +594,7 @@ describe('ChatComposeBar', () => {
 
     /**
      * ⛔ FOTO-04: a label for a field hidden only from the eye -- never `display: none`, never a
-     * script's click. Pictures only, and no `capture`: on a phone the picker offers the camera by
-     * itself (AS-012).
+     * script's click. Pictures only, and no `capture` on "Bild": the camera has its own entry.
      */
     it('opens the device’s picker through a label, for pictures, without capture', () => {
       mountBar()
@@ -604,6 +609,93 @@ describe('ChatComposeBar', () => {
       expect(picker().attributes('style') ?? '').not.toMatch(/display/)
       // …and the label right after its field, so the label can show the field's focus.
       expect(picker().element.nextElementSibling).toBe(pictureEntry().element)
+    })
+
+    /**
+     * E-047: "Foto aufnehmen" first, on a phone or a tablet -- a field with `capture`, which their
+     * camera app answers, the back camera first; hidden only from the eye and opened by its label,
+     * like "Bild".
+     */
+    it('offers the camera first on a phone or a tablet', async () => {
+      vi.mocked(isComputer).mockReturnValue(false)
+      mountBar()
+      await clip().trigger('click')
+
+      const words = [
+        cameraEntry().find('.chat-compose-menu-label'),
+        cameraEntry().find('.chat-compose-menu-hint'),
+      ].map((w) => w.text())
+      expect(words).toEqual(['chatThread.attachCamera', 'chatThread.attachCameraHint'])
+      expect(cameraEntry().element.tagName).toBe('LABEL')
+      expect(cameraEntry().attributes('for')).toBe(cameraField().attributes('id'))
+      expect(cameraField().attributes('type')).toBe('file')
+      expect(cameraField().attributes('accept')).toBe('image/*')
+      expect(cameraField().attributes('capture')).toBe('environment')
+      expect(cameraField().classes()).toContain('visually-hidden')
+      expect(cameraField().attributes('style') ?? '').not.toMatch(/display/)
+      expect(cameraField().element.nextElementSibling).toBe(cameraEntry().element)
+      // Its own field and its own name, not "Bild"'s.
+      expect(cameraField().attributes('id')).not.toBe(picker().attributes('id'))
+      // First, before "Bild".
+      expect(
+        cameraEntry().element.compareDocumentPosition(pictureEntry().element) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy()
+    })
+
+    // ⛔ Bernd, 29.09.2026: "Es ist nur wichtig, dass im Computer dann keine Kamera-Option zu sehen ist."
+    it('offers no camera on a computer, not even hidden', async () => {
+      vi.mocked(isComputer).mockReturnValue(true)
+      mountBar()
+      await clip().trigger('click')
+
+      expect(cameraEntry().exists()).toBe(false)
+      expect(cameraField().exists()).toBe(false)
+      expect(wrapper.findAll('input[capture]')).toHaveLength(0)
+      expect(pictureEntry().exists()).toBe(true)
+    })
+
+    // Asked when the menu opens: before that, nothing is known and nothing is offered.
+    it('asks whether this is a computer when the menu opens', async () => {
+      vi.mocked(isComputer).mockReturnValue(false)
+      mountBar()
+      expect(isComputer).not.toHaveBeenCalled()
+
+      await clip().trigger('click')
+
+      expect(isComputer).toHaveBeenCalledTimes(1)
+      expect(cameraEntry().exists()).toBe(true)
+    })
+
+    // The focus goes into the first entry: the camera where there is one.
+    it('takes the focus to the camera where it offers one', async () => {
+      vi.mocked(isComputer).mockReturnValue(false)
+      await openMenu()
+
+      expect(document.activeElement).toBe(cameraField().element)
+    })
+
+    /**
+     * ⛔ The camera's field stays in the page when the menu closes: the camera app answers after the
+     * menu is gone, and a field that is gone would never hear the photo.
+     */
+    it('keeps the camera’s field when it closes, and takes the photo as a picture', async () => {
+      vi.mocked(isComputer).mockReturnValue(false)
+      await openMenu()
+      await cameraField().trigger('click')
+      await new Promise((resolve) => setTimeout(resolve))
+      await flushPromises()
+      expect(isOpen()).toBe(false)
+      expect(document.activeElement).toBe(clip().element)
+
+      const photo = new File(['JPEG'], 'image.jpg', { type: 'image/jpeg' })
+      Object.defineProperty(cameraField().element, 'files', { value: [photo], configurable: true })
+      encoding.openChatImage.mockResolvedValueOnce({ image: {}, width: 4032, height: 3024 })
+      await cameraField().trigger('change')
+      await flushPromises()
+
+      expect(encoding.openChatImage).toHaveBeenCalledWith(photo)
+      expect(wrapper.find('[data-test="chat-compose-attached"]').exists()).toBe(true)
     })
 
     // ⛔ Rendered while closed: the field must still be there when the picker answers.
