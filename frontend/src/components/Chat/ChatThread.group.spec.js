@@ -382,6 +382,23 @@ describe('ChatThread in a group', () => {
       })
     })
 
+    // The note about a mute that held the mail back names one recipient: never in a group, even
+    // where a copy should bring a mail state (coderabbit, #4013).
+    it('says "sent" in a group, with no note about a mute', async () => {
+      serverSends.mockImplementation(async ({ body }) => ({
+        ...message(90, { writer: 'me' }),
+        body,
+        notify: 'EMAIL',
+        mailState: 'MUTED',
+      }))
+      mountThread({ role: 'OWNER' })
+      await arrive(page([message(1)]))
+
+      await write('Samstag um 14 Uhr', { tick: true })
+
+      expect(status().text()).toBe('chatThread.sent')
+    })
+
     it("hands the bar the group's name, and no sentence about a first mail", async () => {
       mountThread()
       await arrive(page([]))

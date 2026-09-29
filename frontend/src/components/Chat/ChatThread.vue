@@ -922,7 +922,9 @@ const announce = async (text) => {
 const noticeFor = (own) => {
   if (own?.deliveryState === 'FAILED') return t('chatThread.failed')
   if (own?.deliveryState === 'PENDING') return t('chatThread.pending')
-  if (own?.mailState === 'MUTED') {
+  // Not in a group: the note names the one recipient whose mute held the mail back, and a group's
+  // announcement has many -- its copy carries no mail state (P5a; coderabbit, #4013).
+  if (!inGroup && own?.mailState === 'MUTED') {
     return t('chatThread.sentWithNote', {
       note: t('chatThread.notMailedMuted', { name: props.alias }),
     })

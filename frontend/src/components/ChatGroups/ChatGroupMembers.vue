@@ -115,6 +115,7 @@
               type="button"
               class="is-danger"
               data-test="chat-group-member-remove"
+              :aria-disabled="busy ? 'true' : 'false'"
               @click="askRemove(row)"
             >
               {{ t('chatGroup.remove') }}
@@ -401,7 +402,12 @@ const step = async (ask, then) => {
   }
 }
 
+/**
+ * The question before taking somebody out -- not while a step is on its way (coderabbit, #4013):
+ * its refusal would then stand under the question about somebody else.
+ */
 const askRemove = (row) => {
+  if (busy.value) return
   toRemove.value = row
   openView('remove')
 }
@@ -608,6 +614,12 @@ const go = () => {
 .chat-group-member-menu button.is-danger {
   border-color: var(--bs-danger, #dc3545);
   color: var(--bs-danger-text-emphasis, #b02a37);
+}
+
+/* While a step is on its way the entries wait, and look it -- as the dialog's own button does. */
+.chat-group-member-menu button[aria-disabled='true'] {
+  opacity: 0.65;
+  cursor: default;
 }
 
 /* Every control of the dialog shows where the keyboard is. */

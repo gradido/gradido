@@ -272,6 +272,34 @@ describe('ChatGroupMembers', () => {
       expect(title()).toBe('chatGroup.membersTitle {"n":4}')
     })
 
+    // coderabbit, #4013: while a moderator step is on its way, taking somebody out waits -- the
+    // step's refusal would otherwise stand under the question about somebody else.
+    it('turns taking somebody out away while a moderator step is on its way', async () => {
+      let answer
+      server.mockImplementation(
+        () =>
+          new Promise((resolve, reject) => {
+            answer = { resolve, reject }
+          }),
+      )
+      mountDialog()
+      await openMenu('anna-id')
+      await row('anna-id').find('[data-test="chat-group-member-moderator"]').trigger('click')
+      const remove = row('anna-id').find('[data-test="chat-group-member-remove"]')
+      expect(remove.attributes('aria-disabled')).toBe('true')
+      await remove.trigger('click')
+      expect(find('chat-group-members-question').exists()).toBe(false)
+
+      answer.reject(new Error('CHAT_GROUP_NOT_CHANGED: TOO_MANY_MODERATORS'))
+      await flushPromises()
+      // The refusal stands in the list, where the step was taken.
+      expect(title()).toBe('chatGroup.membersTitle {"n":4}')
+      expect(find('chat-group-members-problem').text()).toBe('chatGroup.refusedTooManyModerators')
+      expect(
+        row('anna-id').find('[data-test="chat-group-member-remove"]').attributes('aria-disabled'),
+      ).toBe('false')
+    })
+
     it('takes nobody out where the member thinks better of it', async () => {
       mountDialog()
       await openMenu('emma-id')
