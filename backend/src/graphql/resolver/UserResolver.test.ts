@@ -262,7 +262,9 @@ describe('UserResolver', () => {
 
     describe('the Gradido address the registration started at (referrerAlias)', () => {
       // "Konto anlegen" on /u/<alias> carries the alias into createUser, and its owner
-      // becomes the referrer - silently: nothing in the answer tells whether it happened.
+      // becomes the referrer - silently: for a well-formed user name nothing in the answer
+      // tells whether it belongs to anybody. Anything that is no user name is refused like any
+      // other invalid field; that tells only its shape, which is public anyway.
       let bob: User
       let link: ContributionLink
       const results: Record<string, any> = {}
@@ -282,7 +284,8 @@ describe('UserResolver', () => {
         bob = await userFactory(testEnv, bobBaumeister)
         // A deleted member who still holds a name.
         await userFactory(testEnv, { ...stephenHawking, alias: 'BlackHoles' })
-        // A member of another community, whose name exists only over there.
+        // A member of another community, whose name exists only over there: a cached copy,
+        // `foreign` like every row storeForeignUser writes.
         const otherCommunity = await DbCommunity.create({
           foreign: true,
           url: 'http://other.invalid/api/',
@@ -304,6 +307,7 @@ describe('UserResolver', () => {
           },
           otherCommunity,
         )
+        await User.update({ alias: 'FarAway' }, { foreign: true })
         const tomorrow = new Date()
         tomorrow.setDate(tomorrow.getDate() + 1)
         link = await contributionLinkFactory(testEnv, {
@@ -330,10 +334,13 @@ describe('UserResolver', () => {
         await cleanDB()
       })
 
-      it('leaves no trace for a gradido ID, although its owner exists', async () => {
-        await expect(registered('by@gradido-id.de')).resolves.toEqual(
-          expect.objectContaining({ referrerId: null }),
-        )
+      it('refuses a gradido ID, which is no user name, and opens no account', async () => {
+        expect(results['by@gradido-id.de'].errors).toEqual([
+          new GraphQLError('Given alias is too long'),
+        ])
+        await expect(
+          UserContact.findOne({ where: { email: 'by@gradido-id.de' } }),
+        ).resolves.toBeNull()
       })
 
       it('leaves no trace for a name that exists only in another community', async () => {
@@ -342,9 +349,10 @@ describe('UserResolver', () => {
         )
       })
 
-      it('answers every one of them the same way - no error, the same shape', () => {
-        expect(Object.keys(results)).toHaveLength(6)
-        for (const result of Object.values(results)) {
+      it('answers every well-formed name the same way - no error, the same shape', () => {
+        const wellFormed = Object.entries(results).filter(([email]) => email !== 'by@gradido-id.de')
+        expect(wellFormed).toHaveLength(5)
+        for (const [, result] of wellFormed) {
           expect({ data: result.data, errors: result.errors }).toEqual({
             data: { createUser: true },
             errors: undefined,
@@ -478,35 +486,6 @@ describe('UserResolver', () => {
         }
         await noAccount('elsewhere@table.de')
         await noAccount('nowhere@table.de')
-      })
-
-      it('refuses a password without a code rather than dropping it', async () => {
-        const result = await register('nocode@table.de', {
-          referrerAlias: 'MeisterBob',
-          password: PASSWORD,
-        })
-
-        expect(result.errors).toEqual([new GraphQLError('Password requires a presence code')])
-        await noAccount('nocode@table.de')
-      })
-
-      // With a redeem code, registerAccount takes the referrer from the link and never looks
-      // at the address: a made-up one would leave a password account nobody vouched for.
-      it('refuses a code together with a redeem code, a made-up one or a contribution link', async () => {
-        for (const redeemCode of ['x', 'CL-x']) {
-          const email = `redeem-${redeemCode.toLowerCase()}@table.de`
-          const result = await register(email, {
-            referrerAlias: 'MeisterBob',
-            presenceCode: code(),
-            password: PASSWORD,
-            redeemCode,
-          })
-
-          expect(result.errors).toEqual([
-            new GraphQLError('Presence code together with a redeem code'),
-          ])
-          await noAccount(email)
-        }
       })
 
       // The guest left both password fields empty: a classic account, with its referrer.

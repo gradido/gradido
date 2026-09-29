@@ -29,6 +29,10 @@ function isRegistrationWithReferrerAlias(input: CreateUser): boolean {
   return input.referrerAlias != null && input.presenceCode == null
 }
 
+// One variant per registration, in this order - whatever comes after the first that applies
+// is not looked at. A table code, and the password that comes with it, therefore counts only
+// without a project and without a redeem code; with one of them it is ignored, and no account
+// can get a password that no member vouches for.
 export async function registerUser(input: CreateUser, logger: Logger): Promise<number> {
   let role: AbstractRegisterUserRole
 

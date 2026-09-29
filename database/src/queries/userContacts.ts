@@ -41,7 +41,7 @@ export async function dbInsertUserContact(
         error: new DBDuplicateEntryError(
           'user_contacts',
           'email | email_verification_code',
-          `${userContact.email} | ${userContact.emailVerificationCode}`
+          `${userContact.email} | ${userContact.emailVerificationCode}`,
         ),
       }
     }

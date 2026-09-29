@@ -18,8 +18,8 @@ import { PRESENCE_MAX_UNCONFIRMED, verifyPresenceCode } from '@/data/PresenceCod
 import { encryptPassword } from '@/password/PasswordEncryptor'
 import { getTimeDurationObject } from '@/util/time'
 import { CreateUser } from './createUser.schema'
-import { RegisterUserReferrerRole } from './RegisterUserReferrer.role'
 import { RegisterUserDuplicateError } from './errorTypes'
+import { RegisterUserReferrerRole } from './RegisterUserReferrer.role'
 
 export class RegisterUserCardRole extends RegisterUserReferrerRole {
   private presenceCode: string
@@ -40,7 +40,10 @@ export class RegisterUserCardRole extends RegisterUserReferrerRole {
     this.password = user.password
   }
 
-  public async storeUserAndUserContact(dbUser: UserInsert, logger: Logger): Promise<Result<number, RegisterUserDuplicateError>> {
+  public async storeUserAndUserContact(
+    dbUser: UserInsert,
+    logger: Logger,
+  ): Promise<Result<number, RegisterUserDuplicateError>> {
     // The code must be the one shown by the member whose address the guest came from.
     // Its own answer, not "expired": the seal is bound to this community, so without it
     // every code fails the check - and the guest would be told to fetch a fresh one, which

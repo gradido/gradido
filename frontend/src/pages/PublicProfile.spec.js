@@ -225,6 +225,19 @@ describe('PublicProfile', () => {
     expect(wrapper.find('[data-test="public-profile-echo-hint"]').exists()).toBe(false)
   })
 
+  // A reserved word has the shape of a user name, but nobody may hold it: carried along, the
+  // server would refuse the whole registration over it.
+  it('carries nothing along and promises nothing where the address holds a reserved word', async () => {
+    for (const reserved of ['admin', 'Support']) {
+      const wrapper = await wrapperFor(reserved)
+
+      expect(wrapper.find('[data-test="public-profile-register"]').attributes('href')).toBe(
+        '/register',
+      )
+      expect(wrapper.find('[data-test="public-profile-echo-hint"]').exists()).toBe(false)
+    }
+  })
+
   /**
    * The community is named on purpose -- whoever belongs somewhere else is told so without
    * the page ever having to ask which community they are in -- and it is named under the

@@ -7,6 +7,7 @@ jest.mock('database', () => ({
   dbFindProjectBrandingByAlias: jest.fn(),
   dbFindTransactionLinkByCode: jest.fn(),
   dbFindUserAliasesWithRegex: jest.fn(),
+  dbFindUserByEmail: jest.fn(),
   dbFindUserWithContactById: jest.fn(),
   dbHomeCommunityGetUuid: jest.fn(),
   dbInsertEvent: jest.fn(),
@@ -56,6 +57,7 @@ import {
   dbFindProjectBrandingByAlias,
   dbFindTransactionLinkByCode,
   dbFindUserAliasesWithRegex,
+  dbFindUserByEmail,
   dbFindUserWithContactById,
   dbHomeCommunityGetUuid,
   dbInsertEvent,
@@ -83,7 +85,6 @@ import { encryptPassword } from '@/password/PasswordEncryptor'
 import { CreateUser, createUserSchema } from './createUser.schema'
 import { RegisterUserRole } from './RegisterUser.role'
 import { RegisterUserCardRole } from './RegisterUserCard.role'
-import { RegisterUserExistRole } from './RegisterUserExist.role'
 import { RegisterUserForProjectRole } from './RegisterUserForProject.role'
 import { RegisterUserFromTransactionLinkRole } from './RegisterUserFromTransactionLink.role'
 import { RegisterUserReferrerRole } from './RegisterUserReferrer.role'
@@ -248,23 +249,48 @@ describe('RegisterUserRole', () => {
   })
 })
 
-describe('RegisterUserExistRole', () => {
+// The address is taken: the contact insert collides, and the registration answers as if it
+// had opened an account - the answer must not tell a taken address from a free one.
+describe('RegisterUserRole with an address that is taken', () => {
   const owner = { id: 3, firstName: 'Peter', lastName: 'Lustig', language: 'en' } as UserSelect
 
-  it('tells the owner of the address, in their name and language, and opens nothing', async () => {
-    const answer = await new RegisterUserExistRole(input(), owner).run(logger)
+  beforeEach(() => {
+    mocked(dbInsertUserContact).mockResolvedValue({
+      success: false,
+      error: new DBDuplicateEntryError('user_contacts', 'email', 'bernd@example.com'),
+    })
+    mocked(dbFindUserByEmail).mockResolvedValue(owner)
+  })
 
-    expect(typeof answer).toBe('number')
+  it('answers with an id like a new account, and opens nothing', async () => {
+    const answer = await new RegisterUserRole(input()).run(logger)
+
+    // Never 0: the resolver answers `id !== 0`, so a 0 would give the taken address away.
+    expect(answer).toBeGreaterThan(0)
+    expect(dbInsertUserAlias).not.toHaveBeenCalled()
+    expect(sendAccountActivationEmail).not.toHaveBeenCalled()
+    expect(insertedEvents()).toEqual([
+      { type: EventType.EMAIL_ACCOUNT_MULTIREGISTRATION, affectedUserId: 3, actingUserId: 0 },
+    ])
+  })
+
+  // The owner reads their own name - never the one the stranger typed into the form.
+  it('tells the owner of the address, in their name and language', async () => {
+    await new RegisterUserRole(input()).run(logger)
+
     expect(sendAccountMultiRegistrationEmail).toHaveBeenCalledWith({
       firstName: 'Peter',
       lastName: 'Lustig',
       email: 'bernd@example.com',
       language: 'en',
     })
-    expect(insertedEvents()).toEqual([
-      { type: EventType.EMAIL_ACCOUNT_MULTIREGISTRATION, affectedUserId: 3, actingUserId: 0 },
-    ])
-    expect(dbInsertUser).not.toHaveBeenCalled()
+  })
+
+  // The users row is written before the contact collides; it must not stay behind.
+  it('leaves no account row behind', async () => {
+    await new RegisterUserRole(input()).run(logger)
+
+    expect(dbRemoveUser).toHaveBeenCalledWith(USER_ID, undefined)
   })
 
   // The tests of the resolver waited for exactly this line.
@@ -273,7 +299,7 @@ describe('RegisterUserExistRole', () => {
     const addContextSpy = jest.spyOn(logger, 'addContext')
     const removeContextSpy = jest.spyOn(logger, 'removeContext')
 
-    await new RegisterUserExistRole(input(), owner).run(logger)
+    await new RegisterUserRole(input()).run(logger)
 
     expect(infoSpy).toHaveBeenCalledWith('User already exists')
     expect(addContextSpy).toHaveBeenCalledWith('user', 3)
@@ -298,7 +324,8 @@ describe('RegisterUserReferrerRole', () => {
     })
   })
 
-  // Silence rule: an unknown address changes nothing - no error, and the answer is the same.
+  // An alias nobody holds changes nothing - no error, and the same answer: the registration
+  // must not tell whether a well-formed name belongs to somebody.
   it('registers as usual when nobody holds the address', async () => {
     mocked(dbFindLocalUserByAlias).mockResolvedValue(null)
 

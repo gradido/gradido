@@ -96,7 +96,10 @@ export async function dbFindUserLoginByEmail(
   }
 }
 
-export async function dbFindUserByEmail(email: string, tx?: DrizzleTransaction | MySql2Database): Promise<UserSelect | null> {
+export async function dbFindUserByEmail(
+  email: string,
+  tx?: DrizzleTransaction | MySql2Database,
+): Promise<UserSelect | null> {
   if (!tx) {
     tx = drizzleDb()
   }
@@ -660,9 +663,15 @@ export async function dbUserUpdateField<K extends UserSingleColumn>(
 }
 
 // Not a soft delete, really remove the user and his user contact from db, used in RegisterUser if something after creating user failed
-export async function dbRemoveUser(userId: number): Promise<number> {
+export async function dbRemoveUser(
+  userId: number,
+  tx?: DrizzleTransaction | MySql2Database,
+): Promise<number> {
   if (userId) {
-    const rows = await drizzleDb().delete(usersTable).where(eq(usersTable.id, userId))
+    if (!tx) {
+      tx = drizzleDb()
+    }
+    const rows = await tx.delete(usersTable).where(eq(usersTable.id, userId))
     return rows[0] ? rows[0].affectedRows : 0
   }
   return 0

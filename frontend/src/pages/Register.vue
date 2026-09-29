@@ -152,7 +152,7 @@ import { useStore } from 'vuex'
 import { useRoute } from 'vue-router'
 import { useAuthLinks } from '@/composables/useAuthLinks'
 import CONFIG from '@/config'
-import { USERNAME_REGEX } from '@/validationSchemas'
+import { isValidUsername } from '@/validationSchemas'
 import { shownValidState } from '@/validation-rules'
 
 const { toastError } = useAppToast()
@@ -195,10 +195,8 @@ const redeemCode = ref(params.code)
 // The user name from the Gradido address the registration started at: its owner becomes the
 // referrer, and the strip above the form names them. Only a user name is taken - the page
 // shows it, so anything else would put a stranger's text above the form, and the server
-// ignores anything else anyway.
-const referrerAlias = USERNAME_REGEX.test(String(query.referrer ?? ''))
-  ? String(query.referrer)
-  : null
+// refuses the registration over anything else, a reserved word included.
+const referrerAlias = isValidUsername(String(query.referrer ?? '')) ? String(query.referrer) : null
 
 // E-017, the table code: the card the guest scanned carried `?presence=<expiry>.<seal>`, and the
 // public page handed it on. Only its expiry is read here, to decide whether the form offers a

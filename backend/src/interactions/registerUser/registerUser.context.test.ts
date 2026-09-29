@@ -1,21 +1,11 @@
 // AI-GENERATED — not an architecture reference
-jest.mock('database', () => ({
-  ...jest.requireActual('database'),
-  dbFindUserByEmail: jest.fn(),
-}))
-
-import { dbFindUserByEmail, UserSelect } from 'database'
 import { getLogger } from 'log4js'
 import { CreateUser, createUserSchema } from './createUser.schema'
 import { RegisterUserRole } from './RegisterUser.role'
-import { RegisterUserExistRole } from './RegisterUserExist.role'
 import { RegisterUserForProjectRole } from './RegisterUserForProject.role'
 import { registerUser } from './registerUser.context'
 
 const logger = getLogger('test.registerUser.context')
-
-// Jest 27's types have no `jest.mocked`; this is the same, typed after the mocked function.
-const mocked = <T extends (...args: never[]) => unknown>(fn: T) => fn as jest.MockedFunction<T>
 
 const input = (extra: Record<string, unknown> = {}): CreateUser =>
   createUserSchema.parse({
@@ -34,38 +24,12 @@ async function roleChosenFor(user: CreateUser): Promise<string> {
   }
   jest.spyOn(RegisterUserRole.prototype, 'run').mockImplementation(runAs)
   jest.spyOn(RegisterUserForProjectRole.prototype, 'run').mockImplementation(runAs)
-  jest.spyOn(RegisterUserExistRole.prototype, 'run').mockImplementation(runAs)
   return (await registerUser(user, logger)) as unknown as string
 }
 
 describe('registerUser', () => {
   beforeEach(() => {
     jest.restoreAllMocks()
-    mocked(dbFindUserByEmail).mockResolvedValue(null)
-  })
-
-  it('answers a taken address without opening an account, whatever else came along', async () => {
-    mocked(dbFindUserByEmail).mockResolvedValue({
-      id: 1,
-      firstName: 'Peter',
-      lastName: 'Lustig',
-    } as UserSelect)
-    expect(await roleChosenFor(input({ project: 'garden' }))).toBe('RegisterUserExistRole')
-  })
-
-  // The answer to a taken address must not tell a table registration from a classic one.
-  it('answers a taken address the same way when a table code came along', async () => {
-    mocked(dbFindUserByEmail).mockResolvedValue({
-      id: 1,
-      firstName: 'Peter',
-      lastName: 'Lustig',
-    } as UserSelect)
-    const user = input({
-      presenceCode: '1700000000.abc',
-      password: 'Aa1!aaaa',
-      referrerAlias: 'PeterL',
-    })
-    expect(await roleChosenFor(user)).toBe('RegisterUserExistRole')
   })
 
   it('registers for a project', async () => {

@@ -414,12 +414,21 @@ describe('Register', () => {
     })
 
     // The strip reads back what came in the address, so only a user name is taken -- anything
-    // else would put a stranger's text above the form. The server would ignore it anyway.
+    // else would put a stranger's text above the form. The server would refuse it anyway.
     it('takes nothing that is not a user name', async () => {
       const page = await pageAt({ referrer: '<b>Your bank</b>' })
 
       expect(page.find('[data-test="register-shown-by"]').exists()).toBe(false)
       expect(page.find('b').exists()).toBe(false)
+      expect(await submit(page)).not.toHaveProperty('referrerAlias')
+    })
+
+    // A reserved word has the shape of a user name, but nobody may hold it, and the server would
+    // refuse the whole registration over it: /u/admin must still lead to an account.
+    it.each(['admin', 'Support'])('takes no reserved word such as %s', async (referrer) => {
+      const page = await pageAt({ referrer })
+
+      expect(page.find('[data-test="register-shown-by"]').exists()).toBe(false)
       expect(await submit(page)).not.toHaveProperty('referrerAlias')
     })
 

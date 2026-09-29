@@ -1,15 +1,20 @@
 import { OptInType } from '@enum/OptInType'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { UserContactType } from '@enum/UserContactType'
-import { registerAddressTransaction, sendAccountActivationEmail, sendAccountMultiRegistrationEmail } from 'core'
-import { randombytes_random } from 'sodium-native'
+import {
+  registerAddressTransaction,
+  sendAccountActivationEmail,
+  sendAccountMultiRegistrationEmail,
+} from 'core'
 import {
   ALIAS_ORIGIN_ASSIGNED,
   ALIAS_ORIGIN_CHOSEN,
   type AliasOrigin,
+  DBDuplicateEntryError,
   DbUser,
   DrizzleTransaction,
   dbFindUserAliasesWithRegex,
+  dbFindUserByEmail,
   dbFindUserWithContactById,
   dbHomeCommunityGetUuid,
   dbInsertEvent,
@@ -26,8 +31,6 @@ import {
   getHomeCommunityDrizzle,
   UserContactInsert,
   UserInsert,
-  DBDuplicateEntryError,
-  dbFindUserByEmail,
   UserSelect,
 } from 'database'
 import { Logger } from 'log4js'
@@ -39,6 +42,7 @@ import {
   primaryAliasCandidate,
   Result,
 } from 'shared'
+import { randombytes_random } from 'sodium-native'
 import { v4 as uuidv4 } from 'uuid'
 import { CONFIG } from '@/config'
 import { syncHumhub } from '@/graphql/resolver/util/syncHumhub'
@@ -47,19 +51,15 @@ import { AbstractRegisterUserRole } from './AbstractRegisterUser.role'
 import { RegisterUserDuplicateError } from './errorTypes'
 
 /**
- * Everything a new account is made of. Moved verbatim out of `createUser` so the
- * assisted registration (EM-013) does not grow a second copy of this flow — the two
- * callers differ in exactly two places, both switched by `passwordPlain`:
+ * The plain registration, and the flow every variant builds on: the account has no
+ * password yet, and the activation mail carries the set-password link. The variants
+ * (project, redeem code, referrer, table code) override single steps of it.
  *
- *   - `passwordPlain: null` — the classic registration: the account has no password
- *     yet, the activation mail carries the set-password link. Behaviour is 1:1 what
- *     `createUser` always did; its existing tests are the proof.
- *   - `passwordPlain` set — an assisted registration: the guest typed their password
- *     at the table, so it is set right away and the mail only asks them to CONFIRM
- *     the address (a confirm-only link, not the set-password page).
+ * An address that is taken answers here too, like a new account: the owner gets the
+ * multi-registration mail, and nothing is opened.
  *
- * The caller has already normalised the input: email trimmed and lowercased, language
- * validated, and the address checked to be free.
+ * The input comes parsed by createUserSchema: email trimmed and lowercased, language
+ * defaulted. A password is used only by the table code (RegisterUserCardRole).
  */
 
 export class RegisterUserRole extends AbstractRegisterUserRole {
@@ -138,13 +138,14 @@ export class RegisterUserRole extends AbstractRegisterUserRole {
       throw new Error('Error while saving dbUser')
     }
     this.userId = insertUserResult.value
-    
+
     // write user contact
     let userContact = this.prepareUserContact()
     let insertUserContactResult = await dbInsertUserContact(userContact, tx)
     if (!insertUserContactResult.success) {
       const existingUser = await dbFindUserByEmail(this.user.email, tx)
       if (existingUser) {
+        await dbRemoveUser(this.userId, tx)
         return { success: false, error: new RegisterUserDuplicateError(existingUser) }
       }
       if (
@@ -158,13 +159,15 @@ export class RegisterUserRole extends AbstractRegisterUserRole {
         userContact = this.prepareUserContact()
         insertUserContactResult = await dbInsertUserContact(userContact, tx)
       } else {
-        logger.error(`Unexpected, insert user contact failed, but email and email verification code don't collide`)
+        logger.error(
+          `Unexpected, insert user contact failed, but email and email verification code don't collide`,
+        )
         throw new Error('Error while saving user email contact')
       }
     }
     if (!insertUserContactResult.success) {
       logger.error(
-       `email verfication code random produce two already existing codes in a row, last one: ${userContact.emailVerificationCode}`,
+        `email verfication code random produce two already existing codes in a row, last one: ${userContact.emailVerificationCode}`,
       )
       throw new Error('Error while saving user email contact')
     }
@@ -231,10 +234,12 @@ export class RegisterUserRole extends AbstractRegisterUserRole {
   }
 
   public async run(logger: Logger): Promise<number> {
-       
     let userId: number | null = null
     try {
-      const storeUserAndContactResult = await this.storeUserAndUserContact(await this.prepareUser(), logger)
+      const storeUserAndContactResult = await this.storeUserAndUserContact(
+        await this.prepareUser(),
+        logger,
+      )
       if (!storeUserAndContactResult.success) {
         return this.userAlreadyExist(storeUserAndContactResult.error.user, logger)
       }
@@ -333,9 +338,13 @@ export class RegisterUserRole extends AbstractRegisterUserRole {
     // ATTENTION: this logger-message will be exactly expected during tests, next line
     logger.info(`User already exists`)
 
+    if (!existingUser.firstName || !existingUser.lastName) {
+      throw new Error('Missing first name and/or last name of existing user')
+    }
+
     await sendAccountMultiRegistrationEmail({
-      firstName: this.user.firstName,
-      lastName: this.user.lastName,
+      firstName: existingUser.firstName,
+      lastName: existingUser.lastName,
       email: this.user.email,
       language: existingUser.language, // use language of the emails owner for sending
     })
