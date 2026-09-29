@@ -28,6 +28,7 @@ import {
   FederatedCommunity as DbFederatedCommunity,
   dbInsertMatchingEntry,
   userFactory as dbUserFactory,
+  drizzleDb,
   EventType,
   User,
   UserAlias,
@@ -640,50 +641,76 @@ describe('UserResolver', () => {
       })
     })
 
-    // registerAccount holds its transaction's connection until it commits. Anything it wrote
-    // meanwhile over a second connection from the pool would, with enough registrations at
-    // once, leave every one of them holding one and waiting for another - and the pool waits
-    // without a time limit. The test leaves exactly one connection free, the pool's size read
-    // from the driver rather than assumed.
+    // The table code holds its transaction's connection until it commits. Anything the
+    // registration wrote meanwhile over a second connection from the pool - a query handed no
+    // `tx` - would, with enough registrations at once, leave every one of them holding one and
+    // waiting for another, and the pool waits without a time limit. Registration runs on
+    // Drizzle, so it is Drizzle's pool the test fills, leaving exactly one connection free; the
+    // pool's size is read from the driver rather than assumed.
     describe('with only one connection left in the pool', () => {
+      let bob: User
+      let homeCom: DbCommunity
+
       beforeAll(async () => {
         await cleanDB()
-        await writeHomeCommunityEntry()
+        homeCom = await writeHomeCommunityEntry()
+        bob = await userFactory(testEnv, bobBaumeister)
+        resetToken()
       })
 
       afterAll(async () => {
         await cleanDB()
       })
 
-      it('opens the account over that one connection', async () => {
-        const dataSource = db.getDataSource()
-        const { pool } = dataSource.driver as unknown as {
-          pool: { config: { connectionLimit: number } }
-        }
-        const held: QueryRunner[] = []
-        let timer: NodeJS.Timeout | undefined
-        let outcome = ''
-        try {
-          for (let i = 0; i < pool.config.connectionLimit - 1; i++) {
-            const runner = dataSource.createQueryRunner()
-            await runner.connect()
-            held.push(runner)
+      // Every connection but one held, until the registration answers or ten seconds pass.
+      const registerOverOneConnection = async (
+        registration: Record<string, unknown>,
+      ): Promise<string> => {
+        const pool = (
+          drizzleDb() as unknown as {
+            $client: {
+              getConnection(): Promise<{ release(): void }>
+              pool: { config: { connectionLimit: number } }
+            }
           }
-          outcome = await Promise.race([
-            mutate({
-              mutation: createUser,
-              variables: { ...variables, email: 'one.connection@example.org' },
-            }).then((result) => (result.errors ? String(result.errors) : 'opened')),
+        ).$client
+        const held: { release(): void }[] = []
+        let timer: NodeJS.Timeout | undefined
+        try {
+          for (let i = 0; i < pool.pool.config.connectionLimit - 1; i++) {
+            held.push(await pool.getConnection())
+          }
+          return await Promise.race([
+            mutate({ mutation: createUser, variables: registration }).then((result) =>
+              result.errors ? String(result.errors) : 'opened',
+            ),
             new Promise<string>((resolve) => {
               timer = setTimeout(() => resolve('still waiting'), 10000)
             }),
           ])
         } finally {
           clearTimeout(timer)
-          await Promise.all(held.map((runner) => runner.release()))
+          for (const connection of held) {
+            connection.release()
+          }
         }
+      }
 
-        expect(outcome).toBe('opened')
+      it('opens an account over that one connection', async () => {
+        expect(
+          await registerOverOneConnection({ ...variables, email: 'one.connection@example.org' }),
+        ).toBe('opened')
+      })
+
+      it('opens an account with the table code over that one connection', async () => {
+        expect(
+          await registerOverOneConnection({
+            ...variables,
+            email: 'one.table@example.org',
+            presenceCode: mintPresenceCode(bob.id, homeCom.communityUuid as string).code,
+            password: 'Aa12345_',
+          }),
+        ).toBe('opened')
       })
     })
   })

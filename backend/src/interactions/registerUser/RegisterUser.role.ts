@@ -23,6 +23,7 @@ import {
   dbInsertUserContact,
   dbIsUserContactFieldExist,
   dbLocalUserGradidoIdExist,
+  dbReleaseUnconfirmedEmailChangeFor,
   dbRemoveUser,
   dbRemoveUserAlias,
   dbRemoveUserContact,
@@ -151,7 +152,12 @@ export class RegisterUserRole<
         await dbRemoveUser(this.userId, tx)
         return { success: false, error: new RegisterUserDuplicateError(existingUser) }
       }
-      if (
+      // Somebody's change typed this address in and was never confirmed. That claim yields to a
+      // registration, which will have to answer mail at the address (see
+      // dbReleaseUnconfirmedEmailChangeFor) - released, and the contact written once more.
+      if (await dbReleaseUnconfirmedEmailChangeFor(this.user.email, tx)) {
+        insertUserContactResult = await dbInsertUserContact(userContact, tx)
+      } else if (
         await dbIsUserContactFieldExist(
           'emailVerificationCode',
           userContact.emailVerificationCode,
@@ -170,7 +176,7 @@ export class RegisterUserRole<
     }
     if (!insertUserContactResult.success) {
       logger.error(
-        `email verfication code random produce two already existing codes in a row, last one: ${userContact.emailVerificationCode}`,
+        `insert user contact failed on its second try too, last verification code: ${userContact.emailVerificationCode}`,
       )
       throw new Error('Error while saving user email contact')
     }

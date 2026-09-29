@@ -107,7 +107,7 @@ export async function dbFindUserByEmail(
     .select({ user: usersTable })
     .from(usersTable)
     .innerJoin(userContactsTable, eq(usersTable.emailId, userContactsTable.id))
-    .where(and(eq(userContactsTable.email, email), isNull(usersTable.deletedAt)))
+    .where(and(eq(userContactsTable.email, email)))
 
   return rows[0] ? rows[0].user : null
 }

@@ -179,8 +179,14 @@ export async function dbPurgeExpiredEmailChanges(olderThan: Date, email?: string
  * A CONFIRMED row is never touched: that address is proven, and it stays its owner's - which
  * is also why a take-back (a member's own earlier address, borrowed) survives this.
  */
-export async function dbReleaseUnconfirmedEmailChangeFor(email: string): Promise<number> {
-  const result = await drizzleDb()
+export async function dbReleaseUnconfirmedEmailChangeFor(
+  email: string,
+  tx?: DrizzleTransaction | MySql2Database,
+): Promise<number> {
+  if (!tx) {
+    tx = drizzleDb()
+  }
+  const result = await tx
     .delete(userContactsTable)
     .where(
       and(

@@ -17,6 +17,7 @@ jest.mock('database', () => ({
   dbInsertUserContact: jest.fn(),
   dbIsUserContactFieldExist: jest.fn(),
   dbLocalUserGradidoIdExist: jest.fn(),
+  dbReleaseUnconfirmedEmailChangeFor: jest.fn(),
   dbRemoveUser: jest.fn(),
   dbRemoveUserAlias: jest.fn(),
   dbRemoveUserContact: jest.fn(),
@@ -66,6 +67,8 @@ import {
   dbInsertUser,
   dbInsertUserAlias,
   dbInsertUserContact,
+  dbIsUserContactFieldExist,
+  dbReleaseUnconfirmedEmailChangeFor,
   dbRemoveUser,
   dbRemoveUserAlias,
   dbRemoveUserContact,
@@ -248,6 +251,37 @@ describe('RegisterUserRole', () => {
     await new RegisterUserRole(input()).run(logger)
 
     expect(registerAddressTransaction).toHaveBeenCalledWith(storedUser, homeCom)
+  })
+})
+
+// Somebody's change typed the address in and never confirmed it: the contact insert collides,
+// nobody holds the address as their account's, and the pending change yields to the registration.
+describe('RegisterUserRole with an address a pending change holds', () => {
+  beforeEach(() => {
+    mocked(dbInsertUserContact).mockResolvedValueOnce({
+      success: false,
+      error: new DBDuplicateEntryError('user_contacts', 'email', 'bernd@example.com'),
+    })
+    mocked(dbFindUserByEmail).mockResolvedValue(null)
+    mocked(dbReleaseUnconfirmedEmailChangeFor).mockResolvedValue(1)
+  })
+
+  it('releases the pending change and opens the account', async () => {
+    expect(await new RegisterUserRole(input()).run(logger)).toBe(USER_ID)
+
+    expect(dbReleaseUnconfirmedEmailChangeFor).toHaveBeenCalledWith('bernd@example.com', undefined)
+    expect(dbInsertUserContact).toHaveBeenCalledTimes(2)
+    expect(sendAccountActivationEmail).toHaveBeenCalled()
+    expect(sendAccountMultiRegistrationEmail).not.toHaveBeenCalled()
+  })
+
+  it('refuses when neither a change nor a verification code explains the collision', async () => {
+    mocked(dbReleaseUnconfirmedEmailChangeFor).mockResolvedValue(0)
+    mocked(dbIsUserContactFieldExist).mockResolvedValue(0)
+
+    await expect(new RegisterUserRole(input()).run(logger)).rejects.toThrow(
+      'Error while saving user email contact',
+    )
   })
 })
 

@@ -210,6 +210,21 @@ describe('userContacts.queries', () => {
       expect(await remainingEmails(['wanted@release.test'])).toEqual([])
     })
 
+    // The registration releases inside its own transaction: seen there at once, and gone
+    // for everybody only once that transaction commits.
+    it('releases inside the transaction it is given', async () => {
+      await insertContact({
+        userId: bibi.id,
+        email: 'pending@release.test',
+        emailChecked: false,
+        optInType: OptInType.EMAIL_OPT_IN_CHANGE,
+      })
+      await drizzleDb().transaction(async (tx) => {
+        expect(await dbReleaseUnconfirmedEmailChangeFor('pending@release.test', tx)).toBe(1)
+      })
+      expect(await remainingEmails(['pending@release.test'])).toEqual([])
+    })
+
     it('never touches a confirmed row or a registration', async () => {
       await insertContact({
         userId: bibi.id,
