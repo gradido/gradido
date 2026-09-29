@@ -238,6 +238,40 @@ describe('MatchingMap', () => {
     expect(rule[1]).toMatch(/contain: inline-size;/)
   })
 
+  // Over the list in the dark wallet the way back to the map stood white (Bernd, 29.09.2026).
+  // jsdom applies no scoped styles, so the rules are read in the source and held against the
+  // dark map's, whose face the switch takes there: the same ground, rim and letters, with the
+  // dark map's variables resolved.
+  it('gives the switch over the dark list the face it has over the dark map', () => {
+    const here = dirname(fileURLToPath(import.meta.url))
+    // Comments first: they name the values, and a guard that reads its own explanation proves
+    // nothing.
+    const source = readFileSync(join(here, 'MatchingMap.vue'), 'utf8').replace(
+      /\/\*[\s\S]*?\*\//g,
+      '',
+    )
+    const ruleOf = (selector) =>
+      source.match(new RegExp(`\\n${selector.replace(/[.()]/g, '\\$&')} \\{([^}]*)\\}`))?.[1]
+    const value = (body, property) => body?.match(new RegExp(`(?:^|\\s)${property}: ([^;]+);`))?.[1]
+    const darkMap = source.match(/\n\.map-shell\.look-dunkel \{([\s\S]*?)\n\}/)?.[1] ?? ''
+    const resolve = (text) => text?.replace(/var\((--[\w-]+)\)/g, (_, name) => value(darkMap, name))
+
+    const mapSwitch = ruleOf('.map-shell.look-dunkel:not(.is-list) .look-switch')
+    const mapWord = ruleOf('.map-shell.look-dunkel:not(.is-list) .look-btn:not(.is-on)')
+    const listSwitch = ruleOf('.dark-mode .map-shell.is-list .look-switch')
+    const listWord = ruleOf('.dark-mode .map-shell.is-list .look-btn:not(.is-on)')
+
+    expect(listSwitch, 'no rule for the switch over the dark list').toBeDefined()
+    expect(listWord, 'no rule for its word').toBeDefined()
+    expect(value(listSwitch, 'background')).toBe(resolve(value(mapSwitch, 'background')))
+    expect(value(listSwitch, 'box-shadow')).toBe(resolve(value(mapSwitch, 'box-shadow')))
+    expect(value(listWord, 'color')).toBe(resolve(value(mapWord, 'color')))
+    // And that there is something to compare: two missing values would be equal too.
+    expect(value(listSwitch, 'background')).toBe('rgb(22 24 29 / 92%)')
+    expect(value(listSwitch, 'box-shadow')).toBe('0 0 0 2px rgb(255 255 255 / 35%)')
+    expect(value(listWord, 'color')).toBe('#e8eaed')
+  })
+
   describe('when findability is off', () => {
     // The location query is switched off with it, so the redirect that lives in
     // that query's result — the one for "no pin yet" — can never speak. Without an

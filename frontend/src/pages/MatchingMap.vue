@@ -2291,9 +2291,10 @@ watch(mode, (value) => {
    loudest thing on it. The controls go dark with light marks, and where the other looks
    draw a dark rim round them this one draws a light rim; the gold house keeps its gold.
    The field the lens opens and the map's small print go dark with them, or they would
-   be the last white patches left. The list covers the map, so the switch keeps its
-   usual face there. Last in the file, after the plain control rules and the cluster
-   rule, to keep specificity ascending. */
+   be the last white patches left. The list covers the map, so over it the switch follows
+   the list, which follows the wallet theme: its usual face in the light wallet, this one
+   in the dark (Bernd, 29.09.2026; the last rules below). Last in the file, after the plain
+   control rules and the cluster rule, to keep specificity ascending. */
 .map-shell.look-dunkel {
   --dark-chrome: #16181d;
   --dark-hover: #262a31;
@@ -2358,6 +2359,20 @@ watch(mode, (value) => {
 
 .map-shell.look-dunkel:not(.is-list) .look-divide {
   background: var(--dark-line);
+}
+
+/* Over the list in the dark wallet the switch -- there only "Karte", the way back to the map --
+   takes the face it has over the dark map: it stood white on the dark list (Bernd, 29.09.2026,
+   "im dunklen Modus noch hell"). The same values as above, spelled out, because the variables
+   live on the dark map only; the spec holds them together. The list follows the wallet theme
+   whatever the map's look, and so does the switch over it. */
+.dark-mode .map-shell.is-list .look-switch {
+  background: rgb(22 24 29 / 92%);
+  box-shadow: 0 0 0 2px rgb(255 255 255 / 35%);
+}
+
+.dark-mode .map-shell.is-list .look-btn:not(.is-on) {
+  color: #e8eaed;
 }
 </style>
 
