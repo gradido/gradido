@@ -29,7 +29,12 @@
         class="bg-white gradido-border-radius app-box-shadow px-3"
         data-test="contacts-groups-list"
       >
-        <chat-group-row v-for="group in groupRows" :key="group.groupUuid" :group="group" />
+        <chat-group-row
+          v-for="group in groupRows"
+          :key="group.groupUuid"
+          :group="group"
+          @open="openGroup"
+        />
       </div>
       <!-- A failed request is not an empty list, here as for the contacts. -->
       <div v-else-if="groupsFailed" class="text-muted small page-text" data-test="groups-error">
@@ -133,6 +138,8 @@
 
     <!-- One window for the page, not one per row (KF-010). -->
     <contact-window v-model="windowOpen" :contact="selected" />
+    <!-- And one for a group (P5), the same way. -->
+    <chat-group-window v-model="groupWindowOpen" :group="openedGroup" @changed="reloadGroups" />
   </div>
 </template>
 
@@ -142,6 +149,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useApolloClient, useQuery } from '@vue/apollo-composable'
 import { BFormInput, BPagination, BSpinner } from 'bootstrap-vue-next'
 import ChatGroupRow from '@/components/ChatGroups/ChatGroupRow.vue'
+import ChatGroupWindow from '@/components/ChatGroups/ChatGroupWindow.vue'
 import ContactRow from '@/components/Contacts/ContactRow.vue'
 import ContactsEmpty from '@/components/Contacts/ContactsEmpty.vue'
 import ContactWindow from '@/components/Contacts/ContactWindow.vue'
@@ -231,6 +239,29 @@ onGroups(({ data }) => {
 })
 onGroupsError(() => {
   groupsFailed.value = groups.value.length === 0
+})
+
+/**
+ * The group's window (P5): which group is open, by its uuid, and the newest the list has of it --
+ * so a name, a part or a mute mark that changed shows in the open window once the list is asked
+ * again. Let go when the window closes, as the contact window lets its contact go.
+ */
+const groupWindowOpen = ref(false)
+const openedGroupUuid = ref(null)
+const openedGroup = computed(
+  () => groups.value.find((group) => group.groupUuid === openedGroupUuid.value) ?? null,
+)
+const openGroup = (group) => {
+  openedGroupUuid.value = group.groupUuid
+  groupWindowOpen.value = true
+}
+watch(groupWindowOpen, (isOpen) => {
+  if (!isOpen) openedGroupUuid.value = null
+})
+// A group the list no longer holds -- the member left it, or was taken out -- closes its window
+// rather than leave it open around nothing.
+watch(openedGroup, (group) => {
+  if (!group && groupWindowOpen.value) groupWindowOpen.value = false
 })
 
 /**

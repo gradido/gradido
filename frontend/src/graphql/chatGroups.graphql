@@ -39,3 +39,91 @@ query chatGroupsQuery {
     ...chatGroupFields
   }
 }
+
+# One message of a group's thread (P5): what a message of the thread with one person carries, and
+# who wrote it -- `senderUser`, the same `User` shape the contact list carries (alias, colour digit,
+# the date of the picture; no real name, NU-019), null where the writer's users row is gone -- and
+# whether it went out as an announcement (`announcement`), which every member reads. `groupUuid` is
+# this group's. `deliveryState`, `notify` and `mailState` are filled on one's OWN messages only, as
+# in the thread with one person; `mailState` stays null in a group (P5a: one value per row fits
+# one recipient).
+#
+# ⛔ The chat's beat (newChatMessagesSince, chat.graphql) hands arrivals into this list, so it asks
+# for every one of these fields -- `chatMessageFields.spec.js` holds the two together.
+fragment chatGroupMessageFields on ChatMessage {
+  id
+  messageUuid
+  conversationId
+  groupUuid
+  sender {
+    communityUuid
+    gradidoID
+  }
+  senderUser {
+    communityUuid
+    gradidoID
+    alias
+    avatarColorIndex
+    avatarUpdatedAt
+  }
+  announcement
+  mine
+  subject
+  body
+  createdAt
+  deliveryState
+  notify
+  mailState
+  images {
+    imageUuid
+    width
+    height
+  }
+}
+
+# A group's thread, one page at a time, oldest first within the page (E-018), as the thread with
+# one person is asked -- by the group's uuid instead of the pair. `before` is the smallest id on
+# screen; `limit` defaults to 50, and more than 100 is refused. `mutedByMe` is the member's own mark on the
+# group. A member who is not in the group (any longer) gets CHAT_GROUP_NOT_FOUND, the same answer as
+# for a group that does not exist.
+query chatGroupMessagesQuery($groupUuid: String!, $before: Int, $limit: Int) {
+  chatGroupMessages(groupUuid: $groupUuid, before: $before, limit: $limit) {
+    hasMore
+    mutedByMe
+    messages {
+      ...chatGroupMessageFields
+    }
+  }
+}
+
+# Writes one message to the group, and answers with one's OWN copy -- a message of the thread as it
+# stands. `announce`: as an announcement by mail to every member but the sender who has not muted
+# the group; only the owner and the moderators (E-050 F5), for anybody else it is
+# CHAT_MESSAGE_NOT_SENT: NOT_ALLOWED and nothing is filed. The copy says what was asked for, never
+# who got a mail (E-024).
+#
+# ⛔ The variables are called `$body` and `$image` -- the names the backend's request log masks
+# (LOG-071): under any other name the text and some 44,000 characters of a picture would be written
+# to the log with every message.
+mutation sendChatGroupMessage(
+  $groupUuid: String!
+  $body: String!
+  $announce: Boolean!
+  $image: ChatImageInput
+) {
+  sendChatGroupMessage(groupUuid: $groupUuid, body: $body, announce: $announce, image: $image) {
+    ...chatGroupMessageFields
+  }
+}
+
+# Moves one's OWN read pointer in the group up to the highest id the thread has shown (E-017). The
+# server never moves it back and takes only an id of this group.
+mutation markChatGroupRead($groupUuid: String!, $upToMessageId: Int!) {
+  markChatGroupRead(groupUuid: $groupUuid, upToMessageId: $upToMessageId)
+}
+
+# Mutes the group for oneself, or lifts it (E-024): no announcement reaches one by mail while it is
+# muted; the thread shows every message as before. Only one's own row -- nobody is told.
+mutation setChatGroupMuted($groupUuid: String!, $muted: Boolean!) {
+  setChatGroupMuted(groupUuid: $groupUuid, muted: $muted)
+}

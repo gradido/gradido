@@ -1,6 +1,7 @@
 // AI-GENERATED — not an architecture reference
 
 import { CONTACT_META_SEPARATOR } from '@/components/Contacts/contactDisplay'
+import { CHAT_GROUP_MEMBER, CHAT_GROUP_MODERATOR, CHAT_GROUP_OWNER } from '@/utils/chatGroupRoles'
 
 /**
  * How a chat group (P5) is drawn wherever it stands: its square, the line under its name, the
@@ -8,17 +9,8 @@ import { CONTACT_META_SEPARATOR } from '@/components/Contacts/contactDisplay'
  * cannot come to draw one group three ways.
  */
 
-/**
- * The parts a member plays in a group, as the server names them (the GraphQL enum
- * `ChatGroupRole`, which goes over the wire by its NAME). The wallet does not import `shared`,
- * so they are strings here, pinned by the specs.
- */
-export const CHAT_GROUP_OWNER = 'OWNER'
-export const CHAT_GROUP_MODERATOR = 'MODERATOR'
-export const CHAT_GROUP_MEMBER = 'MEMBER'
-
-/** Whether a member in this part may take people in, take them out and rename (E-050 F4). */
-export const managesChatGroup = (role) => role === CHAT_GROUP_OWNER || role === CHAT_GROUP_MODERATOR
+/** Between the parts of a group's lines -- the contact row's, so the two lists read alike. */
+export const CHAT_GROUP_META_SEPARATOR = CONTACT_META_SEPARATOR
 
 /** A letter or a digit of any script -- what may stand in a group's square. */
 const LETTER = /[\p{L}\p{N}]/u
@@ -82,7 +74,7 @@ export const chatGroupMeta = (group, { t, d }) =>
       : '',
   ]
     .filter(Boolean)
-    .join(CONTACT_META_SEPARATOR)
+    .join(CHAT_GROUP_META_SEPARATOR)
 
 /**
  * "Du bist Inhaber": the member's own part, for the window's head.

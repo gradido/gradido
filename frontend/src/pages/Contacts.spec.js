@@ -125,6 +125,14 @@ describe('Contacts page', () => {
             template:
               '<div data-test="chat-group-row" @click="$emit(\'open\', group)">{{ group.title }}</div>',
           },
+          // The group's window, as the contact window below: its contents are its own spec's.
+          ChatGroupWindow: {
+            name: 'ChatGroupWindow',
+            props: ['modelValue', 'group'],
+            emits: ['update:modelValue', 'changed'],
+            template:
+              '<div data-test="chat-group-window" :data-open="String(modelValue)" :data-group="group?.groupUuid ?? \'\'" :data-title="group?.title ?? \'\'" @click="$emit(\'changed\')" />',
+          },
           // ⚠️ Stubbed, and it has to be: the real window reaches for `useRouter`, and this
           // file installs no router -- which arrives as "Need to install with `app.use`",
           // an error that says nothing about contacts.
@@ -589,6 +597,61 @@ describe('Contacts page', () => {
       await nextTick()
       expect(wrapper.find('[data-test="groups-error"]').text()).toBe('chatGroup.notReachable')
       expect(toastError).not.toHaveBeenCalled()
+    })
+
+    describe("the group's window", () => {
+      const groupWindow = () => wrapper.find('[data-test="chat-group-window"]')
+      const openTheSecond = async () => {
+        mountPage()
+        fire('chatGroupsQuery', { chatGroups: [group(1), group(2)] })
+        await nextTick()
+        await wrapper.findAll('[data-test="chat-group-row"]')[1].trigger('click')
+      }
+
+      // One window for the page, as for the contacts (KF-010).
+      it('opens on the group that was tapped', async () => {
+        await openTheSecond()
+        expect(wrapper.findAll('[data-test="chat-group-window"]')).toHaveLength(1)
+        expect(groupWindow().attributes('data-open')).toBe('true')
+        expect(groupWindow().attributes('data-group')).toBe('group-2')
+      })
+
+      it('lets the group go when it closes', async () => {
+        await openTheSecond()
+        await wrapper
+          .findComponent({ name: 'ChatGroupWindow' })
+          .vm.$emit('update:modelValue', false)
+        await nextTick()
+        expect(groupWindow().attributes('data-open')).toBe('false')
+        expect(groupWindow().attributes('data-group')).toBe('')
+      })
+
+      // A name changed elsewhere shows in the open window once the list is asked again.
+      it('shows the newest the list has of the open group', async () => {
+        await openTheSecond()
+        fire('chatGroupsQuery', { chatGroups: [group(1), group(2, { title: 'Neuer Name' })] })
+        await nextTick()
+        expect(groupWindow().attributes('data-title')).toBe('Neuer Name')
+      })
+
+      // The member left the group, or was taken out: nothing to show a window around.
+      it('closes where the list no longer holds its group', async () => {
+        await openTheSecond()
+        fire('chatGroupsQuery', { chatGroups: [group(1)] })
+        await nextTick()
+        expect(groupWindow().attributes('data-open')).toBe('false')
+      })
+
+      // The member muted the group in its window: the crossed bell comes into the row.
+      it('asks for the groups again when something about the open group changed', async () => {
+        await openTheSecond()
+        answers.set('chatGroupsQuery', () => ({
+          data: { chatGroups: [group(1), group(2, { mutedByMe: true })] },
+        }))
+        await groupWindow().trigger('click')
+        await flushPromises()
+        expect(apolloQuery.mock.calls.some(([o]) => o.query === 'chatGroupsQuery')).toBe(true)
+      })
     })
 
     describe('when the list may have changed', () => {

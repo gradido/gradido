@@ -47,6 +47,12 @@ vi.mock('vuex', () => ({
   useStore: () => ({ state: storeState }),
 }))
 
+// The face beside somebody else's message in a group (P5) can open large (useAvatarZoom), and its
+// words come from the app's i18n instance.
+vi.mock('@/i18n', () => ({
+  default: { global: { t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key) } },
+}))
+
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
     t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key),
@@ -1203,6 +1209,34 @@ describe('ChatThread', () => {
 
       expect(bubbleTexts()).toEqual([])
       expect(wrapper.find('[data-test="chat-thread-empty"]').exists()).toBe(true)
+    })
+
+    /**
+     * ⛔ Falle 1 of the groups (P5): the same writer, but in a group. Its conversation is the
+     * group's, and an empty thread that took it for theirs would show the group's messages as the
+     * conversation of two.
+     */
+    it('takes no first message the same person wrote in a group', async () => {
+      mountThread()
+      await arrive(page([]))
+
+      await beatBrings({ ...message(1), conversationId: 41, groupUuid: 'group-uuid' })
+
+      expect(bubbleTexts()).toEqual([])
+      expect(wrapper.find('[data-test="chat-thread-empty"]').exists()).toBe(true)
+    })
+
+    // Gegenprobe, in one answer: the group's message first, their own to the member behind it.
+    it('takes their first message to the member past one they wrote in a group', async () => {
+      mountThread()
+      await arrive(page([]))
+
+      await beatBrings(
+        { ...message(1), conversationId: 41, groupUuid: 'group-uuid' },
+        message(3, { mine: false }),
+      )
+
+      expect(bubbleTexts()).toEqual(['message 3'])
     })
 
     it('keeps what arrives before the first page, and hangs it in once the page is there', async () => {

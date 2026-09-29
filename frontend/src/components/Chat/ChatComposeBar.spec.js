@@ -86,6 +86,73 @@ describe('ChatComposeBar', () => {
     vi.useRealTimers()
   })
 
+  /**
+   * A group's bar (P5): the group's name in the field, no sentence about a first mail -- the mail
+   * "taken in" was the first word -- and the box is the announcement (E-050 F5), for the owner and
+   * the moderators only.
+   */
+  describe('in a group', () => {
+    const inGroup = (props = {}) =>
+      mountBar({
+        name: 'Gradido-Café Berlin',
+        group: true,
+        canAnnounce: true,
+        announceTo: 4,
+        ...props,
+      })
+    const words = () => wrapper.find('[data-test="chat-compose-email-words"]').text()
+
+    it("puts the group's name into the field", () => {
+      inGroup()
+      expect(field().attributes('placeholder')).toBe(
+        'chatGroup.placeholder {"name":"Gradido-Café Berlin"}',
+      )
+    })
+
+    it('offers the announcement, and says how many it reaches once ticked', async () => {
+      inGroup()
+      expect(words()).toBe('chatGroup.announce')
+      await box().setValue(true)
+      expect(words()).toBe('chatGroup.announceTo {"n":4}')
+    })
+
+    it('offers no box to a plain member', () => {
+      inGroup({ canAnnounce: false })
+      expect(box().exists()).toBe(false)
+    })
+
+    // What the thread makes of it: EMAIL is the announcement, NONE a plain message.
+    it('asks for the mail where the box is ticked, and for none where it is not', async () => {
+      inGroup()
+      await field().setValue('Samstag')
+      await box().setValue(true)
+      await button().trigger('click')
+      await field().setValue('Sonntag')
+      await box().setValue(false)
+      await button().trigger('click')
+      expect(sent().map(([message]) => message.notify)).toEqual(['EMAIL', 'NONE'])
+    })
+
+    // A box ticked by a moderator who is none any more, since the window told the bar, is no wish.
+    it('sends no announcement once the box is gone', async () => {
+      inGroup()
+      await box().setValue(true)
+      await wrapper.setProps({ canAnnounce: false })
+      await field().setValue('Samstag')
+      await button().trigger('click')
+      expect(sent()[0][0].notify).toBe('NONE')
+    })
+
+    // Gegenprobe: the bar of two says what it always said.
+    it('keeps the words of a conversation of two outside a group', async () => {
+      mountBar()
+      expect(field().attributes('placeholder')).toBe('chatThread.placeholder {"name":"Lena"}')
+      expect(words()).toBe('chatThread.alsoByEmail')
+      await box().setValue(true)
+      expect(words()).toBe('chatThread.alsoByEmailTo {"name":"Lena"}')
+    })
+  })
+
   describe('what it shows', () => {
     // A field with a name a screen reader reads, a button with one, a real box with its word.
     it('names the field, the button and the box', () => {

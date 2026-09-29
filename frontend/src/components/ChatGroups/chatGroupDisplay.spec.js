@@ -1,16 +1,18 @@
 // AI-GENERATED — not an architecture reference
 import { describe, it, expect } from 'vitest'
 import {
-  CHAT_GROUP_MEMBER,
-  CHAT_GROUP_MODERATOR,
-  CHAT_GROUP_OWNER,
   chatGroupAvatar,
   chatGroupLetters,
   chatGroupMeta,
   chatGroupOwnPart,
   chatGroupPartMark,
-  managesChatGroup,
 } from './chatGroupDisplay'
+import {
+  CHAT_GROUP_MEMBER,
+  CHAT_GROUP_MODERATOR,
+  CHAT_GROUP_OWNER,
+  managesChatGroup,
+} from '@/utils/chatGroupRoles'
 
 /** `t` and `d` as a test reads them back: the key, its values, the plural number. */
 const t = (key, values) =>

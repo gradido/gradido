@@ -67,6 +67,13 @@ export const CONTACTS_PANEL_ROWS = 5
 export const LIST_AVATAR_SIZE = 48
 
 /**
+ * The face beside somebody else's message in a group's thread (P5), in pixels: the size of the
+ * mockup the group's thread was decided on (E-050) -- beside every message of theirs, where a
+ * list has one face a row. Tapped, it opens the picture at full size, as every face does.
+ */
+export const CHAT_BUBBLE_FACE_SIZE = 28
+
+/**
  * Where this wallet's layout changes from a phone to a desk, in pixels.
  *
  * ⛔ 1025, NOT Bootstrap's own 992. `assets/scss/custom/gradido-custom/_grid-breakpoint.scss`
