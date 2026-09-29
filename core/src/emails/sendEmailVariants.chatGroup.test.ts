@@ -179,4 +179,43 @@ describe('the mails of a chat group', () => {
       expect(html).not.toMatch(/<img[^>]*data:image\/jpeg/)
     })
   })
+
+  // Both mails come in each of the ten languages: a key missing in one of them would put the
+  // key itself into the mail, or the English text.
+  describe('in every language', () => {
+    const english = {
+      added: 'You are now in the group “Gradido-Café Berlin”',
+      announcement: 'Announcement in “Gradido-Café Berlin” from bibi',
+    }
+    for (const language of ['de', 'es', 'fr', 'it', 'nl', 'pt', 'ru', 'el', 'tr']) {
+      it(`comes in ${language}`, async () => {
+        const added: any = await sendChatGroupAddedEmail({
+          ...recipient,
+          language,
+          adderAlias: 'bibi',
+          groupTitle: 'Gradido-Café Berlin',
+          groupUuid,
+          memberCount: 5,
+        })
+        const announcement: any = await sendChatGroupMessageEmail({
+          ...recipient,
+          language,
+          senderAlias: 'bibi',
+          groupTitle: 'Gradido-Café Berlin',
+          groupUuid,
+          memo: 'Samstag um 14 Uhr',
+        })
+        for (const [mail, subject] of [
+          [added, english.added],
+          [announcement, english.announcement],
+        ]) {
+          expect(mail.originalMessage.subject).toContain('Gradido-Café Berlin')
+          expect(mail.originalMessage.subject).not.toBe(subject)
+          expect(mail.originalMessage.html).not.toContain('emails.')
+        }
+        expect(added.originalMessage.html).toContain('5')
+        expect(announcement.originalMessage.html).toContain('Samstag um 14 Uhr')
+      })
+    }
+  })
 })
