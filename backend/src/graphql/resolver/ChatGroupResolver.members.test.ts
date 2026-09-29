@@ -1,4 +1,6 @@
 // AI-GENERATED — not an architecture reference
+
+import { getLogger } from 'config-schema/test/testSetup'
 import { sendChatGroupAddedEmail } from 'core'
 import {
   ChatConversationMemberRole,
@@ -19,6 +21,7 @@ import {
   dbUpdateChatConversationMemberRole,
   dbUpdateChatGroupTitle,
 } from 'database'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { Context, newRequestBudget } from '@/server/context'
 import { ChatGroupResolver } from './ChatGroupResolver'
 
@@ -407,6 +410,23 @@ describe('leaveChatGroup', () => {
     expect(await leave()).toBe(true)
     expect(setRole).toHaveBeenCalledWith(group.id, expect.objectContaining(pair(MAX)), 'owner')
     expect(remove.mock.invocationCallOrder[0]).toBeLessThan(setRole.mock.invocationCallOrder[0])
+  })
+
+  // coderabbit on #4012: the log says a group was handed on only where it was.
+  it('logs a handover that happened, and none that did not', async () => {
+    const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.ChatGroupResolver`)
+    const handedOn = () =>
+      (logger.warn as jest.Mock).mock.calls.filter(([text]) => String(text).includes('handed on'))
+    lenaIs('member', [row(MAX, 'moderator', at(2))])
+    allRows.mockResolvedValueOnce([row(MAX, 'moderator', at(2))])
+    setRole.mockResolvedValueOnce({ success: false, error: new Error('DB_NOT_FOUND') })
+    await leave()
+    expect(handedOn()).toEqual([])
+
+    allRows.mockResolvedValueOnce([row(MAX, 'moderator', at(2))])
+    await leave()
+    expect(handedOn()).toHaveLength(1)
+    expect(handedOn()[0][0]).toContain(`to=${MAX}`)
   })
 
   it("hands it on once more where the owner's successor went at the same moment", async () => {

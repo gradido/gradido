@@ -177,8 +177,12 @@ const handOwnerlessChatGroupOn = async (conversationId: number, left: ChatMember
     return
   }
   const successor = chatGroupSuccessor(members, left)
-  if (successor) {
-    await dbUpdateChatConversationMemberRole(conversationId, successor, 'owner')
+  if (!successor) {
+    return
+  }
+  // The successor can be gone by now too; its own leave looks again. Logged only where it happened.
+  const handed = await dbUpdateChatConversationMemberRole(conversationId, successor, 'owner')
+  if (handed.success) {
     createLogger().warn(
       `chat group without an owner handed on: conversation_id=${conversationId} to=${successor.gradidoId}`,
     )
