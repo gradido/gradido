@@ -35,10 +35,9 @@ export class CreateUserArgs {
   @IsString()
   project?: string | null
 
-  // The alias from the Gradido address the registration started at (/u/<alias>).
-  // Deliberately without a length check: the address may carry a gradido ID instead,
-  // and a validation error here would fail the whole registration. Whatever is not
-  // alias-shaped is ignored where it is resolved (registerAccount).
+  // The alias from the Gradido address the registration started at (/u/<alias>). Checked
+  // by createUserSchema (aliasSchema), not by a validator here: the schema answers with the
+  // message the form knows. The wallet sends only a user name (Register.vue).
   @Field(() => String, { nullable: true })
   @IsString()
   referrerAlias?: string | null

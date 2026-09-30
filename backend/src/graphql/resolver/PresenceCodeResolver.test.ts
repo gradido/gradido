@@ -46,10 +46,9 @@ let bob: DbUser
 let bibi: DbUser
 
 /**
- * An account opened at the referrer's table, in the state `registerAccount` leaves it in when
- * it gets a password (`passwordPlain`): the referrer recorded, the password set, the address
- * unconfirmed. Written here directly, because nothing opens such an account over `createUser`
- * yet - the table code is only minted so far, not taken.
+ * An account opened at the referrer's table, in the state `RegisterUserCardRole` leaves it in:
+ * the referrer recorded, the password set, the address unconfirmed. Written here directly, so
+ * these tests of minting a code do not depend on the registration that takes it.
  */
 const openTableAccount = async (
   guest: { email: string; firstName: string; lastName: string; alias: string },
@@ -57,7 +56,7 @@ const openTableAccount = async (
 ): Promise<DbUser> => {
   const referrer = await DbUser.findOneOrFail({ where: { alias: referrerAlias } })
   const dbUser = await userFactory(null, { ...guest, emailChecked: false, language: 'de' })
-  // Type first, then encrypt - the derivation salts by the type, as in registerAccount.
+  // Type first, then encrypt - the derivation salts by the type, as in RegisterUserCardRole.
   dbUser.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
   dbUser.password = await encryptPassword(dbUser, PASSWORD)
   dbUser.referrerId = referrer.id
@@ -145,7 +144,7 @@ describe('PresenceCodeResolver', () => {
     })
   })
 
-  // The session loads deleted users too, and registerAccount does not find them: a code of
+  // The session loads deleted users too, and the registration does not find them: a code of
   // theirs would open accounts with nobody recorded as having vouched.
   it('mints none for a member deleted while still signed in', async () => {
     const bibi = await DbUser.findOneOrFail({ where: { alias: 'BBB' } })

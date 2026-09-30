@@ -28,17 +28,12 @@ import {
   xcomMemberAvatars,
 } from 'core'
 import {
-  ALIAS_ORIGIN_ASSIGNED,
   ALIAS_ORIGIN_CHOSEN,
-  type AliasOrigin,
   AppDatabase,
   ASSIGNABLE_ROLE_NAMES,
-  aliasExists,
   aliasOriginIsSettled,
   DBNotFoundError,
-  ContributionLink as DbContributionLink,
   DbLoginUser,
-  TransactionLink as DbTransactionLink,
   User as DbUser,
   UserContact as DbUserContact,
   UserRole as DbUserRole,
@@ -54,7 +49,6 @@ import {
   dbFindOwnAlias,
   dbFindProjectBrandingByAlias,
   dbFindProjectSpaceId,
-  dbFindUnconfirmedVouchedAccounts,
   dbFindUserAvatarFull,
   dbFindUserAvatarSmall,
   dbFindUserByEmailOrFail,
@@ -76,7 +70,6 @@ import {
   getCommunityByUuid,
   getHomeCommunity,
   getHomeCommunityDrizzle,
-  ProjectBrandingSelect,
   UserLoggingView,
 } from 'database'
 import { GraphQLResolveInfo } from 'graphql'
@@ -153,8 +146,8 @@ const db = AppDatabase.getInstance()
 const createLogger = (method: string) =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.UserResolver.${method}`)
 
-// newEmailContact and newGradidoID moved into the registerAccount interaction — the
-// account-creation flow lives there now (EM-013 shares it with the classic path).
+// The account-creation flow lives in the registerUser interaction
+// (backend/src/interactions/registerUser).
 
 export const activationLink = (verificationCode: string, logger: Logger): string => {
   logger.debug(`activationLink(${verificationCode})...`)

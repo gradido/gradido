@@ -54,10 +54,12 @@ export class RegisterUserCardRole extends RegisterUserRole<CardRegistration> {
     dbUser: UserInsert,
     logger: Logger,
   ): Promise<Result<number, RegisterUserDuplicateError>> {
-    dbUser.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
     // it take some time, let it run in parallel
     this.gradidoIdByPasswordStart = dbUser.gradidoId
-    this.passwordEncryptionPromise = encryptPassword(dbUser, this.user.password)
+    this.passwordEncryptionPromise = encryptPassword(
+      { gradidoId: dbUser.gradidoId, passwordEncryptionType: PasswordEncryptionType.GRADIDO_ID },
+      this.user.password,
+    )
     return await drizzleDb().transaction(
       async (tx: DrizzleTransaction) => {
         const referrerId = dbUser.referrerId
@@ -133,7 +135,10 @@ export class RegisterUserCardRole extends RegisterUserRole<CardRegistration> {
     }
     let passwordHash: bigint = 0n
     if (this.gradidoIdByPasswordStart !== user.gradidoId) {
-      passwordHash = await encryptPassword(user, this.user.password)
+      passwordHash = await encryptPassword(
+        { gradidoId: user.gradidoId, passwordEncryptionType: PasswordEncryptionType.GRADIDO_ID },
+        this.user.password,
+      )
     } else {
       passwordHash = await this.passwordEncryptionPromise
     }

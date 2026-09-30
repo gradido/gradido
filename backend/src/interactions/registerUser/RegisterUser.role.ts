@@ -295,7 +295,7 @@ export class RegisterUserRole<
     }
     await this.syncHumhub(dbUser, logger)
     await this.afterRun(dbUser)
-    logger.info('registerAccount() successful...')
+    logger.info('registerUser() successful...')
     return userId
   }
 
@@ -335,7 +335,7 @@ export class RegisterUserRole<
     try {
       await syncHumhub(null, user, user.gradidoId, spaceId)
     } catch (e) {
-      logger.error("registerAccount: couldn't reach out to humhub, disable for now", e)
+      logger.error("registerUser: couldn't reach out to humhub, disable for now", e)
     }
   }
 

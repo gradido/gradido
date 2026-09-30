@@ -66,7 +66,6 @@ import {
 } from '@/data/MemberAvatars.logic'
 import { mintPresenceCode, PRESENCE_MAX_UNCONFIRMED } from '@/data/PresenceCode.logic'
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
-import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
 import { encryptPassword } from '@/password/PasswordEncryptor'
 import { writeHomeCommunityEntry } from '@/seeds/community'
 import { contributionLinkFactory } from '@/seeds/factory/contributionLink'
@@ -631,6 +630,7 @@ describe('UserResolver', () => {
           const results = await Promise.all(pair.map((n) => tableGuest(n)))
 
           const errors = results.map((result) => result.errors)
+          
           expect(errors.filter((error) => error === undefined)).toHaveLength(1)
           expect(errors.filter((error) => error !== undefined)).toEqual([
             [new GraphQLError('Vouching limit reached')],
@@ -1831,9 +1831,7 @@ describe('UserResolver', () => {
 
         expect(bibi).toEqual(
           expect.objectContaining({
-            password: (
-              await SecretKeyCryptographyCreateKey(bibi.gradidoID.toString(), 'Aa12345_')
-            ).toString(),
+            password: (await encryptPassword(bibi, 'Aa12345_')).toString(),
             passwordEncryptionType: PasswordEncryptionType.GRADIDO_ID,
           }),
         )
@@ -1855,7 +1853,13 @@ describe('UserResolver', () => {
         })
         bibi = usercontact.user
         bibi.passwordEncryptionType = PasswordEncryptionType.EMAIL
-        bibi.password = await SecretKeyCryptographyCreateKey('bibi@bloxberg.de', 'Aa12345_')
+        bibi.password = await encryptPassword(
+          {
+            passwordEncryptionType: PasswordEncryptionType.EMAIL,
+            emailContact: { email: 'bibi@bloxberg.de' },
+          },
+          'Aa12345_',
+        )
 
         await bibi.save()
       })
@@ -1872,9 +1876,7 @@ describe('UserResolver', () => {
         expect(bibi).toEqual(
           expect.objectContaining({
             firstName: 'Bibi',
-            password: (
-              await SecretKeyCryptographyCreateKey(bibi.gradidoID.toString(), 'Aa12345_')
-            ).toString(),
+            password: (await encryptPassword(bibi, 'Aa12345_')).toString(),
             passwordEncryptionType: PasswordEncryptionType.GRADIDO_ID,
           }),
         )

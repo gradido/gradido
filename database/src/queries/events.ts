@@ -45,7 +45,7 @@ export async function dbFindLatestEventForAffectedUser(
  *
  * `USER_REGISTER_REDEEM` is written once, during registration, and only when a redeem
  * code was used; it carries the link that code belonged to
- * (`backend/src/interactions/registerAccount/RegisterAccount.context.ts`). Asking for the
+ * (`backend/src/interactions/registerUser/RegisterUserFromTransactionLink.role.ts`). Asking for the
  * pair is what separates "redeemed my link and is new here" from "somebody I brought
  * along once" - `users.referrer_id` cannot tell those apart, because it stays set for
  * every later link between the same two people.

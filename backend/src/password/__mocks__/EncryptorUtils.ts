@@ -1,6 +1,7 @@
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { DbUser, User } from 'database'
 import { getLogger } from 'log4js'
+import { ResourceExhausted, Result } from 'shared'
 import {
   crypto_box_SEEDBYTES,
   crypto_hash_sha512_BYTES,
@@ -17,7 +18,6 @@ import {
   crypto_shorthash_KEYBYTES,
 } from 'sodium-native'
 import { CONFIG } from '@/config'
-
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { gradidoIdOf } from '@/data/UserLogic'
 import { LogError } from '@/server/LogError'
@@ -64,10 +64,10 @@ const configLoginServerKey = Buffer.from(CONFIG.LOGIN_SERVER_KEY, 'hex')
  * @param password
  * @returns can throw an exception if worker pool is full, if more than 30 * cpu core count logins happen in a time range of 30 seconds
  */
-export const SecretKeyCryptographyCreateKey = async (
+export const SecretKeyCryptographyCreateKey = (
   salt: string,
   password: string,
-): Promise<bigint> => {
+): Result<Promise<bigint>, ResourceExhausted> => {
   try {
     logger.trace('call worker for: SecretKeyCryptographyCreateKey')
     if (configLoginServerKey.length !== crypto_shorthash_KEYBYTES) {
@@ -77,19 +77,31 @@ export const SecretKeyCryptographyCreateKey = async (
         crypto_shorthash_KEYBYTES,
       )
     }
-    return Promise.resolve(
-      SecretKeyCryptographyCreateKeyMock(
-        salt,
-        password,
-        configLoginAppSecret,
-        configLoginServerKey,
+    return {
+      success: true,
+      value: Promise.resolve(
+        SecretKeyCryptographyCreateKeyMock(
+          salt,
+          password,
+          configLoginAppSecret,
+          configLoginServerKey,
+        ),
       ),
-    )
+    }
   } catch (e) {
     // pool is throwing this error
     // throw new Error('Max queue size of ' + this.maxQueueSize + ' reached');
     // will be shown in frontend to user
-    throw new LogError('Server is full, please try again in 10 minutes.', e)
+    // throw new LogError('Server is full, please try again in 10 minutes.', e)
+    logger.warn(`Password Hashing throw: ${e}`)
+    return {
+      success: false,
+      error: new ResourceExhausted(
+        'CryptoWorkerPool',
+        'SecretKeyCryptographyCreateKey',
+        'Server is full, please try again in 10 minutes.',
+      ),
+    }
   }
 }
 

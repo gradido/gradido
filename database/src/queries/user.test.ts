@@ -27,6 +27,7 @@ import {
   dbFindLatestArrival,
   dbFindReferrerAlias,
   dbFindUserByEmail,
+  dbFindUserById,
   dbFindUserIdByUuids,
   dbFindUserLoginByEmail,
   dbFindUserWithContactById,
@@ -1214,6 +1215,16 @@ describe('user.queries', () => {
           )
           expect(await dbLocalUserGradidoIdExist(row.gradidoId)).toBe(true)
         }
+      })
+
+      // The registration writes no value for the switch: a new member has it on, by the
+      // column's default (migration 0147).
+      it('gives a new member the switch for the transfers in the conversations, on', async () => {
+        const result = await dbInsertUser(newUser())
+        if (!result.success) {
+          throw result.error
+        }
+        expect((await dbFindUserById(result.value))?.transfersInChat).toBe(true)
       })
 
       // RegisterUserRole draws a new gradido id then - the insert must answer, not throw.
