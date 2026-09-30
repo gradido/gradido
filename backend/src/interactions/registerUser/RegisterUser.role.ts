@@ -55,13 +55,13 @@ import { RegisterUserDuplicateError } from './errorTypes'
 /**
  * The plain registration, and the flow every variant builds on: the account has no
  * password yet, and the activation mail carries the set-password link. The variants
- * (project, redeem code, referrer, table code) override single steps of it.
+ * (project, redeem code, referrer, guarantor code) override single steps of it.
  *
  * An address that is taken answers here too, like a new account: the owner gets the
  * multi-registration mail, and nothing is opened.
  *
  * The input comes parsed by createUserSchema: email trimmed and lowercased, language
- * defaulted. A password is used only by the table code (RegisterUserCardRole).
+ * defaulted. A password is used only by the guarantor code (RegisterUserGuarantorRole).
  */
 
 export class RegisterUserRole<

@@ -28,6 +28,7 @@ import {
   xcomMemberAvatars,
 } from 'core'
 import {
+  AccountState,
   ALIAS_ORIGIN_CHOSEN,
   AppDatabase,
   ASSIGNABLE_ROLE_NAMES,
@@ -59,7 +60,9 @@ import {
   dbInsertEvent,
   dbInsertUserAlias,
   dbMarkAliasAdopted,
+  dbRecoverUser,
   dbReleaseUnconfirmedEmailChangeFor,
+  dbSoftRemoveUser,
   dbUpsertUserAvatar,
   dbUserUpdateField,
   dbUserUpdatePassword,
@@ -111,6 +114,7 @@ import { encode } from '@/auth/JWT'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { accountStateFromFields } from '@/data/AccountState.logic'
 import { canEmailResend, isEmailVerificationCodeValid } from '@/data/EmailVerificationCode.logic'
 import { findableWithoutPlace } from '@/data/Location.logic'
 import {
@@ -424,10 +428,10 @@ export class UserResolver {
     if (args.project) {
       infos.push(`project=${args.project}`)
     }
-    // That a table code came along, never the code itself: for ten minutes it vouches for an
+    // That a guarantor code came along, never the code itself: for ten minutes it vouches for an
     // account in a member's name. The request log masks it too (filterVariables).
-    if (args.presenceCode) {
-      infos.push('presenceCode')
+    if (args.guarantorCode) {
+      infos.push('guarantorCode')
     }
     logger.info(`createUser(${infos.join(', ')})`)
 
@@ -543,6 +547,7 @@ export class UserResolver {
 
     // Activate EMail
     userContact.emailChecked = true
+    user.accountState = AccountState.ACTIVATED
 
     // Update Password
     user.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
@@ -1488,7 +1493,7 @@ export class UserResolver {
       throw new LogError('Moderator can not delete his own account')
     }
     // soft-delete user
-    await user.softRemove()
+    await dbSoftRemoveUser(user)
     await dbInsertEvent({
       type: EventType.ADMIN_USER_DELETE,
       affectedUserId: user.id,
@@ -1504,14 +1509,21 @@ export class UserResolver {
     @Arg('userId', () => Int) userId: number,
     @Ctx() context: Context,
   ): Promise<Date | null> {
-    const user = await DbUser.findOne({ where: { id: userId }, withDeleted: true })
+    const user = await DbUser.findOne({
+      where: { id: userId },
+      withDeleted: true,
+      relations: ['emailContact'],
+    })
     if (!user) {
       throw new LogError('Could not find user with given ID', userId)
     }
     if (!user.deletedAt) {
       throw new LogError('User is not deleted')
     }
-    await user.recover()
+    await dbRecoverUser(
+      user,
+      accountStateFromFields(user, user.emailContact?.emailChecked ?? false),
+    )
     await dbInsertEvent({
       type: EventType.ADMIN_USER_UNDELETE,
       affectedUserId: user.id,

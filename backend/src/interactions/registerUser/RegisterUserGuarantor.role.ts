@@ -1,5 +1,6 @@
 import { sendAssistedRegistrationConfirmEmail } from 'core'
 import {
+  AccountState,
   DbUser,
   DrizzleTransaction,
   dbCountUnconfirmedVouchedAccounts,
@@ -15,37 +16,40 @@ import { sql } from 'drizzle-orm'
 import { Logger } from 'log4js'
 import { PasswordEncryptionType, parseOrThrowFirstIssue, Result } from 'shared'
 import { CONFIG } from '@/config'
-import { PRESENCE_MAX_UNCONFIRMED, verifyPresenceCode } from '@/data/PresenceCode.logic'
+import { GUARANTOR_LIMIT, verifyGuarantorCode } from '@/data/GuarantorCode.logic'
 import { encryptPassword } from '@/password/PasswordEncryptor'
 import { getTimeDurationObject } from '@/util/time'
-import { CardRegistration, CreateUser, cardRegistrationSchema } from './createUser.schema'
+import { CreateUser, GuarantorRegistration, guarantorRegistrationSchema } from './createUser.schema'
 import { RegisterUserDuplicateError } from './errorTypes'
 import { RegisterUserRole } from './RegisterUser.role'
 
-export class RegisterUserCardRole extends RegisterUserRole<CardRegistration> {
+export class RegisterUserGuarantorRole extends RegisterUserRole<GuarantorRegistration> {
   private referrerId: number | null = null
   private gradidoIdByPasswordStart: string | null = null
   private passwordEncryptionPromise: Promise<bigint> | null = null
 
   constructor(createUserInput: CreateUser) {
-    super(parseOrThrowFirstIssue(cardRegistrationSchema, createUserInput))
+    super(parseOrThrowFirstIssue(guarantorRegistrationSchema, createUserInput))
   }
 
   // The code names the member who showed it; the address the guest came from is not asked.
   // Checked before the address is looked at, like everything about the code.
   public async prepareUser(): Promise<UserInsert> {
     const dbUser = await super.prepareUser()
-    const referrerId = verifyPresenceCode(
-      this.user.presenceCode,
+    const referrerId = verifyGuarantorCode(
+      this.user.guarantorCode,
       dbUser.communityUuid,
       this.startDate,
     )
     // Deleted after showing the code: without the member, nobody vouches.
     const referrer = referrerId ? await dbFindUserById(referrerId) : null
     if (!referrer) {
-      throw new Error('Presence code invalid or expired')
+      throw new Error('Guarantor code invalid or expired')
     }
     dbUser.referrerId = referrer.id
+    // Acts before the address is confirmed, and counts against the referrer's GUARANTOR_LIMIT
+    // until it is. The password type stays NO_PASSWORD until afterRun stores the hash.
+    dbUser.accountState = AccountState.PARTLY_ACTIVATED_GUARANTOR
     this.referrerId = referrer.id
     return dbUser
   }
@@ -64,7 +68,7 @@ export class RegisterUserCardRole extends RegisterUserRole<CardRegistration> {
       async (tx: DrizzleTransaction) => {
         const referrerId = dbUser.referrerId
         if (!referrerId) {
-          throw new Error('Presence code invalid or expired')
+          throw new Error('Guarantor code invalid or expired')
         }
 
         // lock referrer user, next registration selecting this user must wait until we are done with this transaction
@@ -76,12 +80,12 @@ export class RegisterUserCardRole extends RegisterUserRole<CardRegistration> {
           FOR UPDATE
       `)
         // E-019: an account that can act without confirming email address at first is opened only while the member who
-        // vouches for it holds fewer than PRESENCE_MAX_UNCONFIRMED unconfirmed ones. Counted here,
+        // vouches for it holds fewer than GUARANTOR_LIMIT PARTLY_ACTIVATED_GUARANTOR ones. Counted here,
         // before the address: at the limit a taken address gets the same refusal as a free one -
         // the silence below would tell them apart - and a request over the limit never waits in
         // the member's line. Counted again in that line, where it decides: one after another per
         // member in this process, and whoever waits holds no connection.
-        if ((await dbCountUnconfirmedVouchedAccounts(referrerId, tx)) >= PRESENCE_MAX_UNCONFIRMED) {
+        if ((await dbCountUnconfirmedVouchedAccounts(referrerId, tx)) >= GUARANTOR_LIMIT) {
           throw new Error('Vouching limit reached')
         }
         // running normal RegisterUser Stuff from RegisterUserRole
@@ -120,7 +124,7 @@ export class RegisterUserCardRole extends RegisterUserRole<CardRegistration> {
     }
 
     return dbInsertEvent({
-      type: EventType.USER_REGISTER_PRESENCE,
+      type: EventType.USER_REGISTER_GUARANTOR,
       affectedUserId: userId,
       actingUserId: referrerId,
     })

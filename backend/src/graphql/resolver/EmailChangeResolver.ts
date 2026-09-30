@@ -11,6 +11,7 @@ import {
   sendEmailChangeSupportEmail,
 } from 'core'
 import {
+  AccountState,
   AppDatabase,
   User as DbUser,
   UserContact as DbUserContact,
@@ -591,6 +592,8 @@ export class EmailChangeResolver {
 
       user.emailId = pending.id
       user.emailContact = pending
+      // Its address is a confirmed one now, whichever it had before.
+      user.accountState = AccountState.ACTIVATED
       await dbSaveUser(user, manager)
 
       // EM-013: an address that was NEVER confirmed was never a key — not the GDT

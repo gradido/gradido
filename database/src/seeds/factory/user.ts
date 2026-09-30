@@ -15,6 +15,7 @@ import {
   UserContact,
   UserRole,
 } from '../../entity'
+import { AccountState } from '../../enum/AccountState'
 import { RoleNames } from '../../enum/RoleNames'
 import { getHomeCommunity } from '../../queries/communities'
 import { UserInterface } from '../users/UserInterface'
@@ -117,6 +118,11 @@ export async function createUser(
   dbUser.language = user.language ?? 'en'
   dbUser.createdAt = user.createdAt ?? new Date()
   dbUser.deletedAt = user.deletedAt ?? null
+  dbUser.accountState = dbUser.deletedAt
+    ? AccountState.DELETED
+    : user.emailChecked
+      ? AccountState.ACTIVATED
+      : AccountState.REGISTERED
   dbUser.publisherId = user.publisherId ?? 0
   dbUser.humhubAllowed = true
   dbUser.gradidoID = v4()

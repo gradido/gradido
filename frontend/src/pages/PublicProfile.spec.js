@@ -162,9 +162,9 @@ describe('PublicProfile', () => {
     expect(join.attributes('href')).toBe('/register?referrer=bernd')
   })
 
-  // E-017: the table code in the link of a live card goes on to the registration together with
+  // E-017: the guarantor code in the link of a live card goes on to the registration together with
   // the name it is sealed for. The page itself checks nothing about it (PS-011).
-  it('hands a table code on to the registration, with the name', async () => {
+  it('hands a guarantor code on to the registration, with the name', async () => {
     const wrapper = await wrapperFor('bernd', { presence: '1790000600.seal-AAAA_BBBB' })
 
     const join = new URL(

@@ -1,7 +1,6 @@
 import { sql } from 'drizzle-orm'
 import {
   bigint,
-  binary,
   boolean,
   char,
   datetime,
@@ -10,6 +9,7 @@ import {
   int,
   json,
   longtext,
+  mysqlEnum,
   mysqlTable,
   primaryKey,
   smallint,
@@ -20,6 +20,7 @@ import {
   varchar,
 } from 'drizzle-orm/mysql-core'
 
+import { AccountState } from '../enum/AccountState'
 import { customBinary, customGeometry, customGradidoUnit, customMediumBlob } from './customTypes'
 
 export const communitiesTable = mysqlTable(
@@ -445,6 +446,12 @@ export const usersTable = mysqlTable(
     gmsRegistered: boolean('gms_registered').default(false).notNull(),
     gmsRegisteredAt: datetime('gms_registered_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
     humhubAllowed: boolean('humhub_allowed').default(false).notNull(),
+    // Where the account stands, as one value (migration 0148). A MySQL ENUM: one byte a row,
+    // and a value outside the list is refused by the server in strict mode, which the Drizzle
+    // pool sets (AppDatabase). ⛔ Append only - see AccountState.
+    accountState: mysqlEnum('account_state', AccountState)
+      .default(AccountState.REGISTERED)
+      .notNull(),
   },
   (table) => [
     index('idx_users_created_id_uuid').on(table.createdAt, table.id, table.communityUuid),

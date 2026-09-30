@@ -20,6 +20,7 @@ import {
   sendResetPasswordEmail,
 } from 'core'
 import {
+  AccountState,
   ALIAS_ORIGIN_ASSIGNED,
   ALIAS_ORIGIN_CHOSEN,
   AppDatabase,
@@ -60,11 +61,11 @@ import { subscribe } from '@/apis/KlicktippController'
 import { encode } from '@/auth/JWT'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { GUARANTOR_LIMIT, mintGuarantorCode } from '@/data/GuarantorCode.logic'
 import {
   MEMBER_AVATARS_FULL_MAX_PER_REQUEST,
   MEMBER_AVATARS_RELAYS_MAX_PER_REQUEST,
 } from '@/data/MemberAvatars.logic'
-import { mintPresenceCode, PRESENCE_MAX_UNCONFIRMED } from '@/data/PresenceCode.logic'
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
 import { encryptPassword } from '@/password/PasswordEncryptor'
 import { writeHomeCommunityEntry } from '@/seeds/community'
@@ -364,18 +365,18 @@ describe('UserResolver', () => {
     })
 
     /**
-     * The table code (E-017): a guest who scanned a member's live card may choose a password
+     * The guarantor code (E-017): a guest who scanned a member's live card may choose a password
      * in the form, and the account is usable at once. Without the code nothing changes - every
      * test above runs as it did, and that is the proof.
      */
-    describe('the table code (presenceCode)', () => {
+    describe('the guarantor code (guarantorCode)', () => {
       const PASSWORD = 'Aa12345_'
       let bob: User
       let hawking: User
       let homeCom: DbCommunity
 
       const code = (userId = bob.id, now = new Date()): string =>
-        mintPresenceCode(userId, homeCom.communityUuid as string, now).code
+        mintGuarantorCode(userId, homeCom.communityUuid as string, now).code
 
       const register = (email: string, extra: Record<string, string>) =>
         mutate({
@@ -410,7 +411,7 @@ describe('UserResolver', () => {
         beforeAll(async () => {
           result = await register('carla@table.de', {
             referrerAlias: 'MeisterBob',
-            presenceCode: code(),
+            guarantorCode: code(),
             password: PASSWORD,
           })
           carla = await registered('carla@table.de')
@@ -437,7 +438,7 @@ describe('UserResolver', () => {
         it('counts it as a table registration, acted by the member who showed the code', async () => {
           await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
-              type: EventType.USER_REGISTER_PRESENCE,
+              type: EventType.USER_REGISTER_GUARANTOR,
               affectedUserId: carla.id,
               actingUserId: bob.id,
             }),
@@ -476,11 +477,11 @@ describe('UserResolver', () => {
       it('takes the member from the code, whatever address came along', async () => {
         const elsewhere = await register('elsewhere@table.de', {
           referrerAlias: 'SomebodyElse',
-          presenceCode: code(),
+          guarantorCode: code(),
           password: PASSWORD,
         })
         const nowhere = await register('nowhere@table.de', {
-          presenceCode: code(),
+          guarantorCode: code(),
           password: PASSWORD,
         })
 
@@ -492,20 +493,23 @@ describe('UserResolver', () => {
           expect(guest.referrerId).toBe(bob.id)
           // Deleted again, so the vouching limit below counts Bob's guests as it expects: a
           // deleted guest account frees its place.
-          await User.update({ id: guest.id }, { deletedAt: new Date() })
+          await User.update(
+            { id: guest.id },
+            { deletedAt: new Date(), accountState: AccountState.DELETED },
+          )
         }
       })
 
-      // A table code opens an account with a password: without one it is refused, and no
+      // A guarantor code opens an account with a password: without one it is refused, and no
       // account is opened - not even a classic one.
       it('refuses a code without a password, and opens no account', async () => {
         jest.clearAllMocks()
         const result = await register('nopassword@table.de', {
           referrerAlias: 'MeisterBob',
-          presenceCode: code(),
+          guarantorCode: code(),
         })
 
-        expect(result.errors).toEqual([new GraphQLError('Presence code requires a password')])
+        expect(result.errors).toEqual([new GraphQLError('Guarantor code requires a password')])
         await noAccount('nopassword@table.de')
         expect(sendAccountActivationEmail).not.toBeCalled()
       })
@@ -515,25 +519,26 @@ describe('UserResolver', () => {
       // The member is looked up before the address, so a taken one gets the same answer.
       it('refuses the code of a member who has gone meanwhile, whatever the address, and opens no account', async () => {
         jest.clearAllMocks()
-        const orphan = { referrerAlias: 'BlackHoles', presenceCode: code(hawking.id) }
+        const orphan = { referrerAlias: 'BlackHoles', guarantorCode: code(hawking.id) }
         const free = await register('orphan@table.de', { ...orphan, password: PASSWORD })
         const taken = await register('bob@baumeister.de', { ...orphan, password: PASSWORD })
 
         for (const result of [free, taken]) {
-          expect(result.errors).toEqual([new GraphQLError('Presence code invalid or expired')])
+          expect(result.errors).toEqual([new GraphQLError('Guarantor code invalid or expired')])
         }
         await noAccount('orphan@table.de')
         expect(sendAccountMultiRegistrationEmail).not.toBeCalled()
       })
 
       /**
-       * E-019: a member vouches for at most PRESENCE_MAX_UNCONFIRMED accounts that can act
-       * without a mailbox - with a password, unconfirmed, not deleted - with no time window.
+       * E-019: a member vouches for at most GUARANTOR_LIMIT accounts that can act
+       * without a mailbox - PARTLY_ACTIVATED_GUARANTOR: with a password, unconfirmed, not
+       * deleted - with no time window.
        * Bob already vouches for carla@table.de from above; nopassword@table.de is his too, but
        * without a password it can do nothing without the mail and does not count.
        *
        * Every count here runs from the constant, so a new limit (E-022) stays one line in
-       * PresenceCode.logic.ts: guest n is Bob's n-th guest with a password, carla the first.
+       * GuarantorCode.logic.ts: guest n is Bob's n-th guest with a password, carla the first.
        */
       describe('the vouching limit', () => {
         const guestEmail = (n: number) => `limit${n}@table.de`
@@ -542,12 +547,12 @@ describe('UserResolver', () => {
             // Letters only: a name may hold no digit (VALID_NAME_REGEX).
             firstName: `Guest${String.fromCharCode(64 + n)}`,
             referrerAlias: 'MeisterBob',
-            presenceCode: code(),
+            guarantorCode: code(),
             password: PASSWORD,
           })
 
         beforeAll(async () => {
-          for (let n = 2; n < PRESENCE_MAX_UNCONFIRMED; n++) {
+          for (let n = 2; n < GUARANTOR_LIMIT; n++) {
             expect((await tableGuest(n)).errors).toBeUndefined()
           }
         })
@@ -557,16 +562,16 @@ describe('UserResolver', () => {
         it('lets the silent answer to a taken address count for nothing', async () => {
           const taken = await register('bob@baumeister.de', {
             referrerAlias: 'MeisterBob',
-            presenceCode: code(),
+            guarantorCode: code(),
             password: PASSWORD,
           })
           expect(taken.errors).toBeUndefined()
 
-          expect((await tableGuest(PRESENCE_MAX_UNCONFIRMED)).errors).toBeUndefined()
+          expect((await tableGuest(GUARANTOR_LIMIT)).errors).toBeUndefined()
         })
 
         it('refuses one more account while the limit is unconfirmed, and opens none', async () => {
-          const next = PRESENCE_MAX_UNCONFIRMED + 1
+          const next = GUARANTOR_LIMIT + 1
           expect((await tableGuest(next)).errors).toEqual([
             new GraphQLError('Vouching limit reached'),
           ])
@@ -579,7 +584,7 @@ describe('UserResolver', () => {
           jest.clearAllMocks()
           const taken = await register('bob@baumeister.de', {
             referrerAlias: 'MeisterBob',
-            presenceCode: code(),
+            guarantorCode: code(),
             password: PASSWORD,
           })
 
@@ -592,7 +597,7 @@ describe('UserResolver', () => {
           const weeksAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)
           await User.update((await registered(guestEmail(2))).id, { createdAt: weeksAgo })
 
-          expect((await tableGuest(PRESENCE_MAX_UNCONFIRMED + 1)).errors).toEqual([
+          expect((await tableGuest(GUARANTOR_LIMIT + 1)).errors).toEqual([
             new GraphQLError('Vouching limit reached'),
           ])
         })
@@ -602,21 +607,25 @@ describe('UserResolver', () => {
         it('opens one more once one of them confirms', async () => {
           const carla = await UserContact.findOneOrFail({ where: { email: 'carla@table.de' } })
           await UserContact.update(carla.id, { emailChecked: true })
+          await User.update(carla.userId, { accountState: AccountState.ACTIVATED })
 
-          expect((await tableGuest(PRESENCE_MAX_UNCONFIRMED + 1)).errors).toBeUndefined()
-          await expect(registered(guestEmail(PRESENCE_MAX_UNCONFIRMED + 1))).resolves.toEqual(
+          expect((await tableGuest(GUARANTOR_LIMIT + 1)).errors).toBeUndefined()
+          await expect(registered(guestEmail(GUARANTOR_LIMIT + 1))).resolves.toEqual(
             expect.objectContaining({ referrerId: bob.id }),
           )
-          expect((await tableGuest(PRESENCE_MAX_UNCONFIRMED + 2)).errors).toEqual([
+          expect((await tableGuest(GUARANTOR_LIMIT + 2)).errors).toEqual([
             new GraphQLError('Vouching limit reached'),
           ])
         })
 
         // The way back through support: a dead guest account deleted in the admin frees a place.
         it('opens the next once a dead guest account is deleted', async () => {
-          await User.update((await registered(guestEmail(3))).id, { deletedAt: new Date() })
+          await User.update((await registered(guestEmail(3))).id, {
+            deletedAt: new Date(),
+            accountState: AccountState.DELETED,
+          })
 
-          expect((await tableGuest(PRESENCE_MAX_UNCONFIRMED + 2)).errors).toBeUndefined()
+          expect((await tableGuest(GUARANTOR_LIMIT + 2)).errors).toBeUndefined()
         })
 
         // Two guests at the table in the same moment, one place left: both can read one below
@@ -625,12 +634,13 @@ describe('UserResolver', () => {
         it('lets only one of two guests who register at the same moment take the last place', async () => {
           const limit4 = await UserContact.findOneOrFail({ where: { email: guestEmail(4) } })
           await UserContact.update(limit4.id, { emailChecked: true })
-          const pair = [PRESENCE_MAX_UNCONFIRMED + 3, PRESENCE_MAX_UNCONFIRMED + 4]
+          await User.update(limit4.userId, { accountState: AccountState.ACTIVATED })
+          const pair = [GUARANTOR_LIMIT + 3, GUARANTOR_LIMIT + 4]
 
           const results = await Promise.all(pair.map((n) => tableGuest(n)))
 
           const errors = results.map((result) => result.errors)
-          
+
           expect(errors.filter((error) => error === undefined)).toHaveLength(1)
           expect(errors.filter((error) => error !== undefined)).toEqual([
             [new GraphQLError('Vouching limit reached')],
@@ -643,7 +653,7 @@ describe('UserResolver', () => {
       })
     })
 
-    // The table code holds its transaction's connection until it commits. Anything the
+    // The guarantor code holds its transaction's connection until it commits. Anything the
     // registration wrote meanwhile over a second connection from the pool - a query handed no
     // `tx` - would, with enough registrations at once, leave every one of them holding one and
     // waiting for another, and the pool waits without a time limit. Registration runs on
@@ -704,12 +714,12 @@ describe('UserResolver', () => {
         ).toBe('opened')
       })
 
-      it('opens an account with the table code over that one connection', async () => {
+      it('opens an account with the guarantor code over that one connection', async () => {
         expect(
           await registerOverOneConnection({
             ...variables,
             email: 'one.table@example.org',
-            presenceCode: mintPresenceCode(bob.id, homeCom.communityUuid as string).code,
+            guarantorCode: mintGuarantorCode(bob.id, homeCom.communityUuid as string).code,
             password: 'Aa12345_',
           }),
         ).toBe('opened')
@@ -755,6 +765,10 @@ describe('UserResolver', () => {
 
       it('sets email checked to true', () => {
         expect(newUser.emailContact.emailChecked).toBeTruthy()
+      })
+
+      it('marks the account ACTIVATED', () => {
+        expect(newUser.accountState).toBe(AccountState.ACTIVATED)
       })
 
       it('updates the password', async () => {
@@ -2428,6 +2442,15 @@ describe('UserResolver', () => {
             expect(new Date(result.data.deleteUser)).toEqual(expect.any(Date))
           })
 
+          it('marks the account DELETED beside deleted_at', async () => {
+            await expect(
+              User.findOneOrFail({ where: { id: user.id }, withDeleted: true }),
+            ).resolves.toMatchObject({
+              deletedAt: expect.any(Date),
+              accountState: AccountState.DELETED,
+            })
+          })
+
           it('stores the ADMIN_USER_DELETE event in the database', async () => {
             const userConatct = await UserContact.findOneOrFail({
               where: { email: 'bibi@bloxberg.de' },
@@ -2727,6 +2750,14 @@ describe('UserResolver', () => {
                   data: { unDeleteUser: null },
                 }),
               )
+            })
+
+            // The state DELETED replaced, worked out again: bibi's address is confirmed.
+            it('brings the account back ACTIVATED', async () => {
+              await expect(User.findOneOrFail({ where: { id: user.id } })).resolves.toMatchObject({
+                deletedAt: null,
+                accountState: AccountState.ACTIVATED,
+              })
             })
 
             it('stores the ADMIN_USER_UNDELETE event in the database', async () => {

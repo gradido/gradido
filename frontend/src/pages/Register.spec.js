@@ -450,12 +450,12 @@ describe('Register', () => {
   })
 
   /**
-   * E-017, the table code: `?presence=<expiry>.<seal>` came along from the card the guest
+   * E-017, the guarantor code: `?guarantor=<expiry>.<seal>` came along from the card the guest
    * scanned. With one that has not run out, the form offers the password; the server checks
    * the seal. Every test above runs without one, unchanged -- the proof that the classic
    * registration stays as it was.
    */
-  describe('the table code', () => {
+  describe('the guarantor code', () => {
     const PASSWORD = 'Aa12345_'
     const inTenMinutes = () => `${Math.floor(Date.now() / 1000) + 600}.seal-AAAA_BBBB`
     const tenMinutesAgo = () => `${Math.floor(Date.now() / 1000) - 600}.seal-AAAA_BBBB`
@@ -470,18 +470,18 @@ describe('Register', () => {
     })
 
     const pageAt = async (query) => {
-      const presenceRouter = createRouter({
+      const guarantorRouter = createRouter({
         history: createWebHistory(),
         routes: [
           { path: '/register/:code?', name: 'Register', component: { template: '<div />' } },
         ],
       })
-      await presenceRouter.push({ name: 'Register', query })
-      await presenceRouter.isReady()
+      await guarantorRouter.push({ name: 'Register', query })
+      await guarantorRouter.isReady()
       return mount(Register, {
         global: {
           plugins: [
-            presenceRouter,
+            guarantorRouter,
             store,
             createI18n({ legacy: false, locale: 'en', messages: { en } }),
           ],
@@ -531,23 +531,23 @@ describe('Register', () => {
       page.find('#newPasswordRepeat-input-field').exists()
 
     it('offers the password, and says what it gives, with a code that has not run out', async () => {
-      const page = await pageAt({ referrer: 'MeisterBob', presence: inTenMinutes() })
+      const page = await pageAt({ referrer: 'MeisterBob', guarantor: inTenMinutes() })
 
       expect(passwordFields(page)).toBe(true)
-      expect(page.find('[data-test="register-presence-hint"]').text()).toBe(
-        en.site.signup.presenceHint.replace('{name}', 'MeisterBob'),
+      expect(page.find('[data-test="register-guarantor-hint"]').text()).toBe(
+        en.site.signup.guarantorHint.replace('{name}', 'MeisterBob'),
       )
-      expect(page.find('[data-test="register-presence-expired"]').exists()).toBe(false)
+      expect(page.find('[data-test="register-guarantor-expired"]').exists()).toBe(false)
     })
 
     it('sends the code and the password with the registration', async () => {
       const code = inTenMinutes()
-      const page = await pageAt({ referrer: 'MeisterBob', presence: code })
+      const page = await pageAt({ referrer: 'MeisterBob', guarantor: code })
 
       expect(await sent(page)).toEqual(
         expect.objectContaining({
           referrerAlias: 'MeisterBob',
-          presenceCode: code,
+          guarantorCode: code,
           password: PASSWORD,
         }),
       )
@@ -555,13 +555,13 @@ describe('Register', () => {
 
     // The account can be used at once: the answer leads to the sign-in, not to the mailbox.
     it('answers with the way to sign in', async () => {
-      const page = await pageAt({ referrer: 'MeisterBob', presence: inTenMinutes() })
+      const page = await pageAt({ referrer: 'MeisterBob', guarantor: inTenMinutes() })
       await sent(page)
 
       expect(page.findComponent({ name: 'Message' }).props()).toEqual(
         expect.objectContaining({
           headline: 'Thank you!',
-          subtitle: en.message.registerPresence,
+          subtitle: en.message.registerGuarantor,
           buttonText: en.login,
           linkTo: { name: 'Login' },
         }),
@@ -573,34 +573,34 @@ describe('Register', () => {
 
       expect(passwordFields(page)).toBe(false)
       const variables = await sent(page)
-      expect(variables).not.toHaveProperty('presenceCode')
+      expect(variables).not.toHaveProperty('guarantorCode')
       expect(variables).not.toHaveProperty('password')
     })
 
     it('gives the classic form, and says why, for a code that had run out', async () => {
-      const page = await pageAt({ referrer: 'MeisterBob', presence: tenMinutesAgo() })
+      const page = await pageAt({ referrer: 'MeisterBob', guarantor: tenMinutesAgo() })
 
-      expect(page.find('[data-test="register-presence-expired"]').text()).toBe(
-        en.site.signup.presenceExpired,
+      expect(page.find('[data-test="register-guarantor-expired"]').text()).toBe(
+        en.site.signup.guarantorExpired,
       )
       expect(passwordFields(page)).toBe(false)
-      expect(await sent(page)).not.toHaveProperty('presenceCode')
+      expect(await sent(page)).not.toHaveProperty('guarantorCode')
     })
 
     // The code names the member by itself: without the name it still counts, only the strip
     // above the form has nobody to name.
     it('takes a code without the name, and names nobody above the form', async () => {
-      const page = await pageAt({ presence: inTenMinutes() })
+      const page = await pageAt({ guarantor: inTenMinutes() })
 
       expect(passwordFields(page)).toBe(true)
       expect(page.find('[data-test="register-shown-by"]').exists()).toBe(false)
     })
 
     it('takes nothing that is not a code', async () => {
-      const page = await pageAt({ referrer: 'MeisterBob', presence: 'not-a-code' })
+      const page = await pageAt({ referrer: 'MeisterBob', guarantor: 'not-a-code' })
 
       expect(passwordFields(page)).toBe(false)
-      expect(page.find('[data-test="register-presence-expired"]').exists()).toBe(false)
+      expect(page.find('[data-test="register-guarantor-expired"]').exists()).toBe(false)
     })
 
     /**
@@ -611,16 +611,16 @@ describe('Register', () => {
       let page
 
       beforeEach(async () => {
-        page = await pageAt({ referrer: 'MeisterBob', presence: inTenMinutes() })
-        mockMutate.mockRejectedValue(new Error('GraphQL error: Presence code invalid or expired'))
+        page = await pageAt({ referrer: 'MeisterBob', guarantor: inTenMinutes() })
+        mockMutate.mockRejectedValue(new Error('GraphQL error: Guarantor code invalid or expired'))
         await fillIn(page)
         await page.find('form').trigger('submit')
         await flushPromises()
       })
 
       it('says so next to the button, and keeps what was typed', () => {
-        const failed = page.find('[data-test="register-presence-failed"]')
-        expect(failed.text()).toBe(en.site.signup.presenceFailed)
+        const failed = page.find('[data-test="register-guarantor-failed"]')
+        expect(failed.text()).toBe(en.site.signup.guarantorFailed)
         expect(failed.attributes('role')).toBe('alert')
         expect(
           failed.element.compareDocumentPosition(page.find('button[type="submit"]').element) &
@@ -641,7 +641,7 @@ describe('Register', () => {
         await page.find('form').trigger('submit')
         await flushPromises()
 
-        expect(page.find('[data-test="register-presence-failed"]').exists()).toBe(false)
+        expect(page.find('[data-test="register-guarantor-failed"]').exists()).toBe(false)
         expect(mockToastError).toHaveBeenCalledWith(`${en.error['unknown-error']} Something else`)
       })
     })
@@ -652,34 +652,34 @@ describe('Register', () => {
      * the guests confirms, the same form goes through.
      */
     it('says so next to the button when the member vouches for as many as there may be', async () => {
-      const page = await pageAt({ referrer: 'MeisterBob', presence: inTenMinutes() })
+      const page = await pageAt({ referrer: 'MeisterBob', guarantor: inTenMinutes() })
       mockMutate.mockRejectedValue(new Error('GraphQL error: Vouching limit reached'))
       await fillIn(page)
       await page.find('form').trigger('submit')
       await flushPromises()
 
-      const limit = page.find('[data-test="register-presence-limit"]')
-      expect(limit.text()).toBe(en.site.signup.presenceLimit.replace('{name}', 'MeisterBob'))
+      const limit = page.find('[data-test="register-guarantor-limit"]')
+      expect(limit.text()).toBe(en.site.signup.guarantorLimit.replace('{name}', 'MeisterBob'))
       expect(limit.attributes('role')).toBe('alert')
-      expect(page.find('[data-test="register-presence-failed"]').exists()).toBe(false)
+      expect(page.find('[data-test="register-guarantor-failed"]').exists()).toBe(false)
       expect(mockToastError).not.toHaveBeenCalled()
       expect(page.find('#registerFirstname').element.value).toBe('Max')
 
       mockMutate.mockRejectedValue(new Error('Something else'))
       await page.find('form').trigger('submit')
       await flushPromises()
-      expect(page.find('[data-test="register-presence-limit"]').exists()).toBe(false)
+      expect(page.find('[data-test="register-guarantor-limit"]').exists()).toBe(false)
     })
 
     it('toasts any other error as before', async () => {
-      const page = await pageAt({ referrer: 'MeisterBob', presence: inTenMinutes() })
+      const page = await pageAt({ referrer: 'MeisterBob', guarantor: inTenMinutes() })
       mockMutate.mockRejectedValue(new Error('Something else'))
       await fillIn(page)
       await page.find('form').trigger('submit')
       await flushPromises()
 
       expect(mockToastError).toHaveBeenCalledWith(`${en.error['unknown-error']} Something else`)
-      expect(page.find('[data-test="register-presence-failed"]').exists()).toBe(false)
+      expect(page.find('[data-test="register-guarantor-failed"]').exists()).toBe(false)
     })
 
     // Like the referrer above: an undeclared variable is dropped on the way out without an
@@ -688,7 +688,7 @@ describe('Register', () => {
       const operation = createUser.definitions[0]
       const field = operation.selectionSet.selections[0]
 
-      for (const name of ['presenceCode', 'password']) {
+      for (const name of ['guarantorCode', 'password']) {
         expect(operation.variableDefinitions.map((v) => v.variable.name.value)).toContain(name)
         const argument = field.arguments.find((a) => a.name.value === name)
         expect(argument?.value.kind).toBe('Variable')

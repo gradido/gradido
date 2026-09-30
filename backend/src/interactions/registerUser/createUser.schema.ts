@@ -7,7 +7,7 @@ import {
   passwordSchema,
 } from 'shared'
 import { z } from 'zod'
-import { presenceCodeSchema } from '@/data/PresenceCode.logic'
+import { guarantorCodeSchema } from '@/data/GuarantorCode.logic'
 
 // TODO: replace with valibot schema after update to typescript 5 is possible
 
@@ -24,7 +24,7 @@ export const createUserSchema = z.object({
   redeemCode: z.string().nullish(),
   project: z.string().nullish(),
   referrerAlias: aliasSchema.nullish(),
-  presenceCode: presenceCodeSchema.nullish(),
+  guarantorCode: guarantorCodeSchema.nullish(),
   password: passwordSchema.nullish(),
 })
 
@@ -40,14 +40,14 @@ export type RedeemRegistration = z.infer<typeof redeemRegistrationSchema>
 export const referrerRegistrationSchema = createUserSchema.extend({ referrerAlias: aliasSchema })
 export type ReferrerRegistration = z.infer<typeof referrerRegistrationSchema>
 
-// The table code opens an account with a password, so it comes with one.
-export const cardRegistrationSchema = createUserSchema.extend({
-  presenceCode: presenceCodeSchema,
+// The guarantor code opens an account with a password, so it comes with one.
+export const guarantorRegistrationSchema = createUserSchema.extend({
+  guarantorCode: guarantorCodeSchema,
   password: z
     .string({
-      required_error: 'Presence code requires a password',
-      invalid_type_error: 'Presence code requires a password',
+      required_error: 'Guarantor code requires a password',
+      invalid_type_error: 'Guarantor code requires a password',
     })
     .pipe(passwordSchema),
 })
-export type CardRegistration = z.infer<typeof cardRegistrationSchema>
+export type GuarantorRegistration = z.infer<typeof guarantorRegistrationSchema>

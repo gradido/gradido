@@ -1,8 +1,8 @@
 // AI-GENERATED — not an architecture reference
 import { parseOrThrowFirstIssue } from 'shared'
 import {
-  cardRegistrationSchema,
   createUserSchema,
+  guarantorRegistrationSchema,
   referrerRegistrationSchema,
 } from './createUser.schema'
 
@@ -36,7 +36,7 @@ describe('createUserSchema', () => {
     expect(createUserSchema.parse({ ...valid, language: 'xx' }).language).toBe('de')
   })
 
-  it('needs no password - only the table code brings one', () => {
+  it('needs no password - only the guarantor code brings one', () => {
     expect(createUserSchema.safeParse(valid).success).toBe(true)
   })
 
@@ -50,48 +50,52 @@ describe('createUserSchema', () => {
     }
   })
 
-  it('accepts a presence code only in its shape', () => {
+  it('accepts a guarantor code only in its shape', () => {
     expect(
-      createUserSchema.safeParse({ ...valid, presenceCode: '1700000000.AbCdEfGhIjKlMnOpQrSt_-' })
+      createUserSchema.safeParse({ ...valid, guarantorCode: '1700000000.AbCdEfGhIjKlMnOpQrSt_-' })
         .success,
     ).toBe(true)
-    expect(createUserSchema.safeParse({ ...valid, presenceCode: 'nonsense' }).success).toBe(false)
+    expect(createUserSchema.safeParse({ ...valid, guarantorCode: 'nonsense' }).success).toBe(false)
   })
 })
 
 describe('the schemas of the variants', () => {
   const code = '1700000000.AbCdEfGhIjKlMnOpQrStUv'
 
-  // The table code opens an account with a password: without one the registration is refused,
+  // The guarantor code opens an account with a password: without one the registration is refused,
   // with a message that says why, not a bare type error.
-  it('refuses a table code without a password, and says why', () => {
+  it('refuses a guarantor code without a password, and says why', () => {
     for (const password of [undefined, null]) {
       expect(() =>
-        parseOrThrowFirstIssue(cardRegistrationSchema, { ...valid, presenceCode: code, password }),
-      ).toThrow('Presence code requires a password')
+        parseOrThrowFirstIssue(guarantorRegistrationSchema, {
+          ...valid,
+          guarantorCode: code,
+          password,
+        }),
+      ).toThrow('Guarantor code requires a password')
     }
   })
 
-  it('refuses a weak password with a table code the same way as without one', () => {
+  it('refuses a weak password with a guarantor code the same way as without one', () => {
     expect(() =>
-      parseOrThrowFirstIssue(cardRegistrationSchema, {
+      parseOrThrowFirstIssue(guarantorRegistrationSchema, {
         ...valid,
-        presenceCode: code,
+        guarantorCode: code,
         password: 'weak',
       }),
     ).toThrow(/^Please enter a valid password/)
   })
 
   it('hands on what it parsed, with the fields of the variant filled', () => {
-    const registration = parseOrThrowFirstIssue(cardRegistrationSchema, {
+    const registration = parseOrThrowFirstIssue(guarantorRegistrationSchema, {
       ...valid,
-      presenceCode: code,
+      guarantorCode: code,
       password: 'Aa1!aaaa',
     })
     expect(registration).toEqual(
       expect.objectContaining({
         email: 'bernd@example.com',
-        presenceCode: code,
+        guarantorCode: code,
         password: 'Aa1!aaaa',
       }),
     )

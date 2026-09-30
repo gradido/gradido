@@ -35,9 +35,9 @@ jest.mock('core', () => ({
 }))
 jest.mock('@/graphql/resolver/util/syncHumhub', () => ({ syncHumhub: jest.fn() }))
 jest.mock('@/password/PasswordEncryptor', () => ({ encryptPassword: jest.fn() }))
-jest.mock('@/data/PresenceCode.logic', () => ({
-  ...jest.requireActual('@/data/PresenceCode.logic'),
-  verifyPresenceCode: jest.fn(),
+jest.mock('@/data/GuarantorCode.logic', () => ({
+  ...jest.requireActual('@/data/GuarantorCode.logic'),
+  verifyGuarantorCode: jest.fn(),
 }))
 
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
@@ -48,6 +48,7 @@ import {
   sendAssistedRegistrationConfirmEmail,
 } from 'core'
 import {
+  AccountState,
   ALIAS_ORIGIN_ASSIGNED,
   ALIAS_ORIGIN_CHOSEN,
   CommunitiesSelect,
@@ -84,14 +85,14 @@ import {
 } from 'database'
 import { getLogger } from 'log4js'
 import { CONFIG } from '@/config'
-import { PRESENCE_MAX_UNCONFIRMED, verifyPresenceCode } from '@/data/PresenceCode.logic'
+import { GUARANTOR_LIMIT, verifyGuarantorCode } from '@/data/GuarantorCode.logic'
 import { syncHumhub } from '@/graphql/resolver/util/syncHumhub'
 import { encryptPassword } from '@/password/PasswordEncryptor'
 import { CreateUser, createUserSchema } from './createUser.schema'
 import { RegisterUserRole } from './RegisterUser.role'
-import { RegisterUserCardRole } from './RegisterUserCard.role'
 import { RegisterUserForProjectRole } from './RegisterUserForProject.role'
 import { RegisterUserFromTransactionLinkRole } from './RegisterUserFromTransactionLink.role'
+import { RegisterUserGuarantorRole } from './RegisterUserGuarantor.role'
 import { RegisterUserReferrerRole } from './RegisterUserReferrer.role'
 
 const logger = getLogger('test.registerUser.role')
@@ -439,17 +440,17 @@ describe('RegisterUserForProjectRole', () => {
   })
 })
 
-describe('RegisterUserCardRole', () => {
+describe('RegisterUserGuarantorRole', () => {
   const tx = { execute: jest.fn() }
-  const cardInput = () =>
+  const guarantorInput = () =>
     input({
-      presenceCode: '1700000000.AbCdEfGhIjKlMnOpQrStUv',
+      guarantorCode: '1700000000.AbCdEfGhIjKlMnOpQrStUv',
       password: 'Aa1!aaaa',
       referrerAlias: 'PeterL',
     })
 
   beforeEach(() => {
-    mocked(verifyPresenceCode).mockReturnValue(REFERRER_ID)
+    mocked(verifyGuarantorCode).mockReturnValue(REFERRER_ID)
     mocked(dbFindUserById).mockResolvedValue({ id: REFERRER_ID } as UserSelect)
     mocked(dbCountUnconfirmedVouchedAccounts).mockResolvedValue(0)
     mocked(encryptPassword).mockResolvedValue(123n)
@@ -459,12 +460,14 @@ describe('RegisterUserCardRole', () => {
   })
 
   it('opens the account with the password, in the member’s name', async () => {
-    expect(await new RegisterUserCardRole(cardInput()).run(logger)).toBe(USER_ID)
+    expect(await new RegisterUserGuarantorRole(guarantorInput()).run(logger)).toBe(USER_ID)
 
     expect(dbInsertUser).toHaveBeenCalledWith(
       expect.objectContaining({
         referrerId: REFERRER_ID,
-        passwordEncryptionType: PasswordEncryptionType.GRADIDO_ID,
+        accountState: AccountState.PARTLY_ACTIVATED_GUARANTOR,
+        // The type follows with the hash in afterRun: without the hash the row holds no password.
+        passwordEncryptionType: PasswordEncryptionType.NO_PASSWORD,
       }),
       tx,
     )
@@ -474,7 +477,7 @@ describe('RegisterUserCardRole', () => {
       123n,
     )
     expect(insertedEvents()).toContainEqual({
-      type: EventType.USER_REGISTER_PRESENCE,
+      type: EventType.USER_REGISTER_GUARANTOR,
       affectedUserId: USER_ID,
       actingUserId: REFERRER_ID,
     })
@@ -482,11 +485,11 @@ describe('RegisterUserCardRole', () => {
 
   // The code names the member; the address the guest came from is not asked.
   it('takes the member from the code, not from the address', async () => {
-    await new RegisterUserCardRole(
-      input({ presenceCode: '1700000000.AbCdEfGhIjKlMnOpQrStUv', password: 'Aa1!aaaa' }),
+    await new RegisterUserGuarantorRole(
+      input({ guarantorCode: '1700000000.AbCdEfGhIjKlMnOpQrStUv', password: 'Aa1!aaaa' }),
     ).run(logger)
 
-    expect(verifyPresenceCode).toHaveBeenCalledWith(
+    expect(verifyGuarantorCode).toHaveBeenCalledWith(
       '1700000000.AbCdEfGhIjKlMnOpQrStUv',
       COMMUNITY_UUID,
       expect.any(Date),
@@ -501,7 +504,7 @@ describe('RegisterUserCardRole', () => {
 
   // The password exists already, so the set-password page would be the wrong door (EM-013).
   it('asks only to confirm the address', async () => {
-    await new RegisterUserCardRole(cardInput()).run(logger)
+    await new RegisterUserGuarantorRole(guarantorInput()).run(logger)
 
     expect(sendAssistedRegistrationConfirmEmail).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -512,18 +515,18 @@ describe('RegisterUserCardRole', () => {
   })
 
   it('refuses an invalid code before anything is stored', async () => {
-    mocked(verifyPresenceCode).mockReturnValue(null)
+    mocked(verifyGuarantorCode).mockReturnValue(null)
 
-    await expect(new RegisterUserCardRole(cardInput()).run(logger)).rejects.toThrow(
-      'Presence code invalid or expired',
+    await expect(new RegisterUserGuarantorRole(guarantorInput()).run(logger)).rejects.toThrow(
+      'Guarantor code invalid or expired',
     )
     expect(dbInsertUser).not.toHaveBeenCalled()
   })
 
   it('refuses when the member vouches for too many unconfirmed accounts', async () => {
-    mocked(dbCountUnconfirmedVouchedAccounts).mockResolvedValue(PRESENCE_MAX_UNCONFIRMED)
+    mocked(dbCountUnconfirmedVouchedAccounts).mockResolvedValue(GUARANTOR_LIMIT)
 
-    await expect(new RegisterUserCardRole(cardInput()).run(logger)).rejects.toThrow(
+    await expect(new RegisterUserGuarantorRole(guarantorInput()).run(logger)).rejects.toThrow(
       'Vouching limit reached',
     )
     expect(dbInsertUser).not.toHaveBeenCalled()
@@ -532,8 +535,8 @@ describe('RegisterUserCardRole', () => {
   it('refuses when the member behind the code is gone', async () => {
     mocked(dbFindUserById).mockResolvedValue(null)
 
-    await expect(new RegisterUserCardRole(cardInput()).run(logger)).rejects.toThrow(
-      'Presence code invalid or expired',
+    await expect(new RegisterUserGuarantorRole(guarantorInput()).run(logger)).rejects.toThrow(
+      'Guarantor code invalid or expired',
     )
     expect(dbInsertUser).not.toHaveBeenCalled()
   })

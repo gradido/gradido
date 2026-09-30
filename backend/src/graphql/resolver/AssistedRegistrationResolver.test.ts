@@ -8,6 +8,7 @@ import {
   sendEmailChangeSupportEmail,
 } from 'core'
 import {
+  AccountState,
   AppDatabase,
   User as DbUser,
   UserContact as DbUserContact,
@@ -15,7 +16,7 @@ import {
 } from 'database'
 import { GraphQLError } from 'graphql'
 import { CONFIG } from '@/config'
-import { mintPresenceCode } from '@/data/PresenceCode.logic'
+import { mintGuarantorCode } from '@/data/GuarantorCode.logic'
 import { writeHomeCommunityEntry } from '@/seeds/community'
 import { userFactory } from '@/seeds/factory/user'
 import {
@@ -71,7 +72,7 @@ const loginAs = (email: string, password = PASSWORD) =>
  * An account that holds a password while its address is unconfirmed - the state this
  * resolver works on. It is opened the one way there is: at the table, where a guest who
  * scanned Bob's live card chooses a password in the registration form (createUser with a
- * presence code). Checked rather than trusted: a taken address would get the silent answer
+ * guarantor code). Checked rather than trusted: a taken address would get the silent answer
  * of every registration, and no account.
  */
 const openAtTheTable = async (email: string): Promise<DbUser> => {
@@ -83,7 +84,7 @@ const openAtTheTable = async (email: string): Promise<DbUser> => {
       lastName: 'Person',
       language: 'de',
       referrerAlias: 'MeisterBob',
-      presenceCode: mintPresenceCode(bob.id, communityUuid).code,
+      guarantorCode: mintGuarantorCode(bob.id, communityUuid).code,
       password: PASSWORD,
     },
   })
@@ -94,6 +95,7 @@ const openAtTheTable = async (email: string): Promise<DbUser> => {
   })
   expect(guest.passwordEncryptionType).toBe(PasswordEncryptionType.GRADIDO_ID)
   expect(guest.emailContact.emailChecked).toBe(false)
+  expect(guest.accountState).toBe(AccountState.PARTLY_ACTIVATED_GUARANTOR)
   return guest
 }
 
@@ -181,6 +183,9 @@ describe('AssistedRegistrationResolver', () => {
 
       const reloaded = await DbUserContact.findOneOrFail({ where: { id: contact.id } })
       expect(reloaded.emailChecked).toBe(true)
+      await expect(DbUser.findOneOrFail({ where: { id: contact.userId } })).resolves.toMatchObject({
+        accountState: AccountState.ACTIVATED,
+      })
 
       const second = await mutate({
         mutation: confirmEmail,
@@ -288,6 +293,8 @@ describe('AssistedRegistrationResolver', () => {
       })
       const oldest = await dbFindOldestUserContact(guest3.id)
       expect(oldest?.email).toBe(realEmail)
+      // confirming the corrected address is what activates the account
+      expect(guest3.accountState).toBe(AccountState.ACTIVATED)
 
       // ... and the support mail must not ask to merge a typo that never reached the
       // GDT server: the typo-correction flag switches its todo text.

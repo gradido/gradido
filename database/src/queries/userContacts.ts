@@ -3,8 +3,9 @@ import { and, asc, count, eq, isNull, like, sql } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import { OptInType, Result } from 'shared'
 import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
+import { AccountState } from '../enum'
 import { DBDuplicateEntryError, DBInsertFailed, isDuplicateEntry } from '../errorTypes'
-import { UserContactInsert, userContactsTable } from '../schemas/drizzle.schema'
+import { UserContactInsert, userContactsTable, usersTable } from '../schemas/drizzle.schema'
 
 // Drizzle only. The `user_contacts` queries still on TypeORM live in
 // `./userContacts.typeorm` - the ones that take or return the entity, and the ones that join
@@ -180,4 +181,27 @@ export async function dbReleaseUnconfirmedEmailChangeFor(
       ),
     )
   return result[0]?.affectedRows ?? 0
+}
+
+/**
+ * Confirms the address of a registration and marks its owner ACTIVATED, in one statement - the
+ * address and the state are not to be seen apart, and a multi-table UPDATE is atomic without a
+ * transaction around it.
+ *
+ * Only for the current address of its account (`users.email_id`): a row the member typed in
+ * and never took over changes nothing, neither itself nor anybody's state. `updated_at` is set
+ * by the column's own ON UPDATE.
+ *
+ * @returns the rows matched: 2 (the contact and its account), also when both were confirmed
+ * already - mysql2 connects with FOUND_ROWS, so matched rows count, not changed ones. 0 means
+ * there is no such current address.
+ */
+export async function dbConfirmRegistrationContact(contactId: number): Promise<number> {
+  const rows = await drizzleDb().execute(
+    sql`UPDATE ${usersTable}, ${userContactsTable} 
+      SET ${userContactsTable.emailChecked} = true, ${usersTable.accountState} = ${AccountState.ACTIVATED}
+      WHERE ${userContactsTable.id} = ${contactId} AND ${usersTable.emailId} = ${userContactsTable.id}
+    `,
+  )
+  return rows[0] ? rows[0].affectedRows : 0
 }

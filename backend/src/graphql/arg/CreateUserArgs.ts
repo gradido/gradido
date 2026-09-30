@@ -42,13 +42,13 @@ export class CreateUserArgs {
   @IsString()
   referrerAlias?: string | null
 
-  // The table code (E-017) from the card the guest scanned, `?presence=` on the address.
+  // The guarantor code (E-017) from the card the guest scanned, `?guarantor=` on the address.
   // Checked in the resolver against `referrerAlias`, because that is whose code it must be.
   @Field(() => String, { nullable: true })
   @IsString()
-  presenceCode?: string | null
+  guarantorCode?: string | null
 
-  // Only together with a table code. Length and strength are checked by `passwordSchema` (shared)
+  // Only together with a guarantor code. Length and strength are checked by `passwordSchema` (shared)
   // in createUserSchema, not by a validator here: the schema answers with the message the form
   // knows, a validator on the argument with a raw "Argument Validation Error".
   @Field(() => String, { nullable: true })

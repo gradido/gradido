@@ -48,13 +48,13 @@ describe('registerUser', () => {
     )
   })
 
-  it('registers with a table code', async () => {
+  it('registers with a guarantor code', async () => {
     const user = input({
-      presenceCode: '1700000000.AbCdEfGhIjKlMnOpQrStUv',
+      guarantorCode: '1700000000.AbCdEfGhIjKlMnOpQrStUv',
       password: 'Aa1!aaaa',
       referrerAlias: 'PeterL',
     })
-    expect(await roleChosenFor(user)).toBe('RegisterUserCardRole')
+    expect(await roleChosenFor(user)).toBe('RegisterUserGuarantorRole')
   })
 
   it('registers at somebody’s gradido address', async () => {

@@ -7,5 +7,5 @@
  * an expiry, and a block that holds a bare expiry is no code of any type.
  */
 export enum CodeType {
-  PRESENCE = 1,
+  GUARANTOR = 1,
 }

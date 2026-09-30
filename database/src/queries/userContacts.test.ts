@@ -1,16 +1,18 @@
 // AI-GENERATED — not an architecture reference
-import { inArray } from 'drizzle-orm'
+import { eq, inArray } from 'drizzle-orm'
 import { OptInType, UserContactType } from 'shared'
 import { User as DbUser } from '..'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
+import { AccountState } from '../enum'
 import { DBDuplicateEntryError } from '../errorTypes'
-import { userContactsTable } from '../schemas'
+import { userContactsTable, usersTable } from '../schemas'
 import { createCommunity } from '../seeds/community'
 import { userFactory } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { peterLustig } from '../seeds/users/peter-lustig'
 import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 import {
+  dbConfirmRegistrationContact,
   dbFindConfirmedUserContactEmails,
   dbFindUserIdsByEmailLike,
   dbInsertUserContact,
@@ -244,6 +246,81 @@ describe('userContacts.queries', () => {
         'proven@release.test',
         'registering@release.test',
       ])
+    })
+  })
+
+  describe('dbConfirmRegistrationContact', () => {
+    let guest: DbUser
+
+    const stateOf = async (userId: number) =>
+      (
+        await drizzleDb()
+          .select({ accountState: usersTable.accountState })
+          .from(usersTable)
+          .where(eq(usersTable.id, userId))
+      )[0].accountState
+
+    const contactOf = async (contactId: number) =>
+      (
+        await drizzleDb()
+          .select({
+            emailChecked: userContactsTable.emailChecked,
+            updatedAt: userContactsTable.updatedAt,
+          })
+          .from(userContactsTable)
+          .where(eq(userContactsTable.id, contactId))
+      )[0]
+
+    beforeAll(async () => {
+      guest = await userFactory({
+        email: 'guest@confirm.test',
+        firstName: 'Guest',
+        lastName: 'Confirm',
+        emailChecked: false,
+      })
+    })
+
+    it('confirms the address and activates its owner, in one statement', async () => {
+      expect(await stateOf(guest.id)).toBe(AccountState.REGISTERED)
+
+      // Both rows of the one statement: the contact and the account.
+      expect(await dbConfirmRegistrationContact(guest.emailId!)).toBe(2)
+
+      expect(await contactOf(guest.emailId!)).toEqual({
+        emailChecked: true,
+        // Set by the column's own ON UPDATE, as a TypeORM save() did it before.
+        updatedAt: expect.any(Date),
+      })
+      expect(await stateOf(guest.id)).toBe(AccountState.ACTIVATED)
+    })
+
+    // `users.email_id` is what makes a row the member's address: a row they typed in and
+    // never took over belongs to nobody's account state.
+    it('touches nothing for a row that is not the current address of its account', async () => {
+      const typed = await insertContact({
+        userId: peter.id,
+        email: 'peter-typed@confirm.test',
+        emailChecked: false,
+        optInType: OptInType.EMAIL_OPT_IN_CHANGE,
+      })
+      const peterBefore = await stateOf(peter.id)
+
+      expect(await dbConfirmRegistrationContact(typed)).toBe(0)
+
+      expect((await contactOf(typed)).emailChecked).toBe(false)
+      expect(await stateOf(peter.id)).toBe(peterBefore)
+    })
+
+    // mysql2 connects with FOUND_ROWS: the count is of the rows matched, not changed. A second
+    // confirmation changes nothing and still counts both, so 0 means "no such current address"
+    // and nothing else.
+    it('counts both rows again for an address confirmed already', async () => {
+      expect(await dbConfirmRegistrationContact(guest.emailId!)).toBe(2)
+      expect(await stateOf(guest.id)).toBe(AccountState.ACTIVATED)
+    })
+
+    it('touches nothing for an id that does not exist', async () => {
+      expect(await dbConfirmRegistrationContact(2_000_000_000)).toBe(0)
     })
   })
 })

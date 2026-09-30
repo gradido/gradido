@@ -9,6 +9,7 @@ import {
   UserContact as DbUserContact,
 } from '..'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
+import { AccountState } from '../enum'
 import { DBDuplicateEntryError, DBInsertFailed, DBNotFoundError } from '../errorTypes'
 import { createCommunity } from '../seeds/community'
 import { creationFactory, nMonthsBefore } from '../seeds/factory/creation'
@@ -1106,7 +1107,7 @@ describe('user.queries', () => {
       const guests: DbUser[] = []
 
       // A guest who opened an account at the table: the member is the referrer, a password
-      // is set, the address is not confirmed.
+      // is set, the address is not confirmed - PARTLY_ACTIVATED_GUARANTOR.
       const tableGuest = async (n: number, referrer: DbUser): Promise<DbUser> => {
         const guest = await userFactory({
           email: `guest${n}@table.example`,
@@ -1118,6 +1119,7 @@ describe('user.queries', () => {
         await DbUser.update(guest.id, {
           referrerId: referrer.id,
           passwordEncryptionType: PasswordEncryptionType.GRADIDO_ID,
+          accountState: AccountState.PARTLY_ACTIVATED_GUARANTOR,
         })
         return guest
       }
@@ -1143,7 +1145,9 @@ describe('user.queries', () => {
           expect(await dbCountUnconfirmedVouchedAccounts(bob.id)).toBe(5)
         })
 
-        it('counts neither an account without a password nor the guests of another member', async () => {
+        // A referred account from the classic registration is REGISTERED, not
+        // PARTLY_ACTIVATED_GUARANTOR: it holds no password and cannot act before confirming.
+        it('counts neither a classic registration nor the guests of another member', async () => {
           const classic = await userFactory({
             email: 'classic@table.example',
             firstName: 'Classic',
@@ -1159,9 +1163,13 @@ describe('user.queries', () => {
 
         it('lets a guest go who confirms, and one who is deleted', async () => {
           await DbUserContact.update(guests[1].emailId!, { emailChecked: true })
+          await DbUser.update(guests[1].id, { accountState: AccountState.ACTIVATED })
           expect(await dbCountUnconfirmedVouchedAccounts(bob.id)).toBe(4)
 
-          await DbUser.update(guests[2].id, { deletedAt: new Date() })
+          await DbUser.update(guests[2].id, {
+            deletedAt: new Date(),
+            accountState: AccountState.DELETED,
+          })
           expect(await dbCountUnconfirmedVouchedAccounts(bob.id)).toBe(3)
         })
 

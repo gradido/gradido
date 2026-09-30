@@ -158,7 +158,7 @@ export const createUser = gql`
     $redeemCode: String
     $project: String
     $referrerAlias: String
-    $presenceCode: String
+    $guarantorCode: String
     $password: String
   ) {
     createUser(
@@ -170,7 +170,7 @@ export const createUser = gql`
       redeemCode: $redeemCode
       project: $project
       referrerAlias: $referrerAlias
-      presenceCode: $presenceCode
+      guarantorCode: $guarantorCode
       password: $password
     )
   }

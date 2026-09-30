@@ -27,8 +27,8 @@ const filterVariables = (variables: any) => {
   if (vars?.passwordNew) {
     vars.passwordNew = '***'
   }
-  if (vars?.presenceCode) {
-    vars.presenceCode = '***'
+  if (vars?.guarantorCode) {
+    vars.guarantorCode = '***'
   }
   // What one member writes to another: a chat message (sendChatMessage, `$body` in the wallet's
   // chat.graphql) and the subject of a letter (sendEmail, `$subject`). A chat message may carry

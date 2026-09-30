@@ -3,14 +3,14 @@ import { Logger } from 'log4js'
 import { AbstractRegisterUserRole } from './AbstractRegisterUser.role'
 import { CreateUser } from './createUser.schema'
 import { RegisterUserRole } from './RegisterUser.role'
-import { RegisterUserCardRole } from './RegisterUserCard.role'
 import { RegisterUserForProjectRole } from './RegisterUserForProject.role'
 import { RegisterUserFromTransactionLinkRole } from './RegisterUserFromTransactionLink.role'
+import { RegisterUserGuarantorRole } from './RegisterUserGuarantor.role'
 import { RegisterUserReferrerRole } from './RegisterUserReferrer.role'
 
-// assisted user registration with scanning other users gradido card or using his link (containing presenceCode)
-function isRegistrationWithCard(input: CreateUser): boolean {
-  return input.presenceCode != null
+// registration with a guarantor code: scanned from the live card of the member who vouches, or opened from their link
+function isRegistrationWithGuarantorCode(input: CreateUser): boolean {
+  return input.guarantorCode != null
 }
 
 // if it was a registration for a another project which means showing logo and forward to humhub space after register is complete
@@ -26,11 +26,11 @@ function isRegistrationFromTransactionLink(input: CreateUser): boolean {
 // The registration started at somebody's Gradido address (/u/<alias>): they become
 // the referrer. A redeem code beats the address.
 function isRegistrationWithReferrerAlias(input: CreateUser): boolean {
-  return input.referrerAlias != null && input.presenceCode == null
+  return input.referrerAlias != null && input.guarantorCode == null
 }
 
 // One variant per registration, in this order - whatever comes after the first that applies
-// is not looked at. A table code, and the password that comes with it, therefore counts only
+// is not looked at. A guarantor code, and the password that comes with it, therefore counts only
 // without a project and without a redeem code; with one of them it is ignored, and no account
 // can get a password that no member vouches for.
 export async function registerUser(input: CreateUser, logger: Logger): Promise<number> {
@@ -40,8 +40,8 @@ export async function registerUser(input: CreateUser, logger: Logger): Promise<n
     role = new RegisterUserForProjectRole(input)
   } else if (isRegistrationFromTransactionLink(input)) {
     role = new RegisterUserFromTransactionLinkRole(input)
-  } else if (isRegistrationWithCard(input)) {
-    role = new RegisterUserCardRole(input)
+  } else if (isRegistrationWithGuarantorCode(input)) {
+    role = new RegisterUserGuarantorRole(input)
   } else if (isRegistrationWithReferrerAlias(input)) {
     role = new RegisterUserReferrerRole(input)
   } else {

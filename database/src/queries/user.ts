@@ -10,6 +10,7 @@ import {
   VoidResult,
 } from 'shared'
 import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
+import { AccountState } from '../enum'
 import {
   DBDuplicateEntryError,
   DBInsertFailed,
@@ -229,13 +230,10 @@ export async function dbCountUnconfirmedVouchedAccounts(
   const rows = await tx
     .select({ count: count() })
     .from(usersTable)
-    .innerJoin(userContactsTable, eq(usersTable.emailId, userContactsTable.id))
     .where(
       and(
         eq(usersTable.referrerId, referrerId),
-        eq(userContactsTable.emailChecked, false),
-        ne(usersTable.passwordEncryptionType, PasswordEncryptionType.NO_PASSWORD),
-        isNull(usersTable.deletedAt),
+        eq(usersTable.accountState, AccountState.PARTLY_ACTIVATED_GUARANTOR),
       ),
     )
   return rows[0]?.count ?? 0
@@ -309,7 +307,12 @@ export async function dbInsertForeignUser(member: {
 }): Promise<Result<number, DBInsertFailed<{ communityUuid: string; gradidoId: string }>>> {
   await drizzleDb()
     .insert(usersTable)
-    .values({ foreign: true, communityUuid: member.communityUuid, gradidoId: member.gradidoId })
+    .values({
+      foreign: true,
+      accountState: AccountState.FOREIGN,
+      communityUuid: member.communityUuid,
+      gradidoId: member.gradidoId,
+    })
     .onDuplicateKeyUpdate({ set: { gradidoId: sql`${usersTable.gradidoId}` } })
   const rows = await drizzleDb()
     .select({ id: usersTable.id })
