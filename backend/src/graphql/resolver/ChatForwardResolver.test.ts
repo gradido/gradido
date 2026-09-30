@@ -486,6 +486,29 @@ describe('forwardChatMessage, what the resolver decides itself (E-059)', () => {
     })
   })
 
+  // coderabbit, #4028: whatever fails for one member -- here the conversation looked up.
+  it('goes on with the members after one whose copy failed, and writes no text into the log', async () => {
+    pairConversation.mockImplementation(async (_caller, other) => {
+      if (other.gradidoId === NORA) {
+        throw new Error("Failed query: select ... params: 'Der Hofflohmarkt'")
+      }
+      return { id: 30 }
+    })
+    const copies = await forward({
+      members: [
+        { gradidoID: NORA, communityUuid: HOME },
+        { gradidoID: NIKO, communityUuid: HOME },
+      ],
+    })
+    expect(copies).toHaveLength(2)
+    expect(store).toHaveBeenCalledTimes(1)
+    expect(store.mock.calls[0][0].recipient.gradidoId).toBe(NIKO)
+    const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.ChatForwardResolver`)
+    const warned = JSON.stringify((logger.warn as jest.Mock).mock.calls)
+    expect(warned).toContain(`chat message not forwarded to a member: message_uuid=${SOURCE}`)
+    expect(warned).not.toContain('Hofflohmarkt')
+  })
+
   it('goes on with the others where a copy could not be filed, and hands back those that were', async () => {
     insert.mockResolvedValue({ success: false, error: new Error('no') })
     const copies = await forward()
