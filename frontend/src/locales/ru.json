@@ -238,6 +238,7 @@
     "fileStep2": "В конце скопируйте ссылку.",
     "fileStep3": "Вставьте её сюда как сообщение.",
     "fileTitle": "Отправить файл",
+    "firstContactGreeting": "Здравствуйте, {name}",
     "firstGoesByEmail": "Первое сообщение {name} получит и по электронной почте.",
     "imageCaption": "Подпись (необязательно) …",
     "imageCut": "Фрагмент: {width} × {height} пикс.",

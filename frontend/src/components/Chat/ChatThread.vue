@@ -113,7 +113,8 @@
       :sending="sending"
       :failed="sendFailed"
       :failed-reason="sendRefusal"
-      :initial-text="heldText"
+      :initial-text="openingText"
+      :text-only="textOnly"
       @send="send"
     />
 
@@ -180,6 +181,13 @@ const props = defineProps({
    * Without it the key is made from `member` as it stands.
    */
   memberKey: { type: String, default: '' },
+  /**
+   * "Hallo …" for the field where the two have no conversation yet (E-055): the contact window
+   * hands it in when it was opened from a group. Empty otherwise.
+   */
+  greeting: { type: String, default: '' },
+  /** Only the text, no paperclip: the contact window's first form (E-055). */
+  textOnly: { type: Boolean, default: false },
 })
 
 /**
@@ -566,6 +574,15 @@ watch(
     heldText.value = takeHeldChatText(returnTo)
   },
   { immediate: true },
+)
+
+/**
+ * The words the bar begins with: what a start held for this conversation (above), or -- where
+ * the two have never written -- the greeting the window handed in (E-055). The bar reads them
+ * once, when it is made; a thread with messages begins with an empty field.
+ */
+const openingText = computed(
+  () => heldText.value || (state.value === 'empty' ? props.greeting : ''),
 )
 
 /**

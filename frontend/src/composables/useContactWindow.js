@@ -32,9 +32,22 @@ export const useContactWindow = (apolloClient = null) => {
    */
   let opening = 0
 
-  const open = (contact) => {
+  /**
+   * How the window was opened from a group (Bernd, 30.09.2026, E-055) -- a first word to a member
+   * of the group should be one tap on the arrow:
+   * - `greet`: "Hallo …" stands in the field while there is no conversation yet, contact or not;
+   * - `firstContact`: for somebody who is no contact yet, only the text -- no Gradido, no camera,
+   *   no bell, no heart, no paperclip -- until the first message makes them one (`fillIn`).
+   * Both belong to the opening: the next one sets them anew, closing lets them go.
+   */
+  const greet = ref(false)
+  const firstContact = ref(false)
+
+  const open = (contact, { fromGroup = false, known = true } = {}) => {
     opening += 1
     selected.value = contact
+    greet.value = fromGroup
+    firstContact.value = fromGroup && !known
     windowOpen.value = true
     return opening
   }
@@ -113,11 +126,40 @@ export const useContactWindow = (apolloClient = null) => {
     open(contact)
   }
 
+  /**
+   * The server's contact row in place of what the window was opened on -- once the first message
+   * to a member of a group made them a contact (E-055): the meta line, and all of the window.
+   *
+   * ⛔ `selected` directly, as in `openMember`, and only while the same opening is on screen. A
+   * failed lookup leaves the window as it stands: the conversation is there either way, and the
+   * list asks again with the next news.
+   */
+  const fillIn = async () => {
+    const member = selected.value?.user
+    if (!member?.gradidoID || !apolloClient) return
+    const mine = opening
+    const contact = await lookUpContact(member)
+    if (opening !== mine || !windowOpen.value || !contact) return
+    selected.value = contact
+    firstContact.value = false
+  }
+
   watch(windowOpen, (isOpen) => {
     if (!isOpen) {
       selected.value = null
+      greet.value = false
+      firstContact.value = false
     }
   })
 
-  return { windowOpen, selected, open, openMember, openKnownMember }
+  return {
+    windowOpen,
+    selected,
+    greet,
+    firstContact,
+    open,
+    openMember,
+    openKnownMember,
+    fillIn,
+  }
 }

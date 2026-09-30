@@ -238,6 +238,7 @@
     "fileStep2": "Στο τέλος αντίγραψε τον σύνδεσμο.",
     "fileStep3": "Επικόλλησέ τον εδώ ως μήνυμα.",
     "fileTitle": "Αποστολή αρχείου",
+    "firstContactGreeting": "Γεια σου {name}",
     "firstGoesByEmail": "Το πρώτο μήνυμα στέλνεται και μέσω email προς {name}.",
     "imageCaption": "Λεζάντα (προαιρετικά) …",
     "imageCut": "Περικοπή {width} × {height} pixel",

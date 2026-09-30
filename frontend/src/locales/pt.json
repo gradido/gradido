@@ -238,6 +238,7 @@
     "fileStep2": "No fim, copia a ligação.",
     "fileStep3": "Cola-a aqui como mensagem.",
     "fileTitle": "Enviar um ficheiro",
+    "firstContactGreeting": "Olá {name}",
     "firstGoesByEmail": "A primeira mensagem segue também por e-mail para {name}.",
     "imageCaption": "Legenda (opcional) …",
     "imageCut": "Recorte de {width} × {height} píxeis",

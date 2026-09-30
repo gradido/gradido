@@ -112,7 +112,10 @@
            on the whitespace between the elements: Vue's `whitespace: 'condense'` does not
            collapse a whitespace-only node with a newline in it to one space, it deletes it.
            The spec reads the rendered text back for exactly that. -->
-      <div class="contact-window-meta" data-test="contact-window-meta">
+      <!-- Not in the window's first form (E-055): no figures can come for somebody who is no
+           contact yet, and the line's reserved height would stand as an empty band under the
+           head (measured). It comes with the first message, together with the row below. -->
+      <div v-if="!firstForm" class="contact-window-meta" data-test="contact-window-meta">
         <template v-if="counted">
           <span>{{ metaSince }}</span>
           <!-- ⛔ Only where there are bookings. Somebody who came here over this member is
@@ -148,7 +151,14 @@
            `is-tight`: where a language's word makes the button so wide that the marks no longer
            fit beside it, the row is set closer, with a smaller font -- there only (Bernd,
            26.09.2026). See `fitSendRow`. -->
-      <div ref="sendRow" class="contact-window-send" :class="{ 'is-tight': sendTight }">
+      <!-- Not in the window's first form (E-055): somebody met in a group who is no contact yet
+           gets a first word, and only that -- the row comes with the first message. -->
+      <div
+        v-if="!firstForm"
+        ref="sendRow"
+        class="contact-window-send"
+        :class="{ 'is-tight': sendTight }"
+      >
         <button
           type="button"
           class="send-btn send-gradido"
@@ -235,6 +245,8 @@
         :member="contact.user"
         :member-key="threadKey"
         :alias="alias"
+        :greeting="greeting"
+        :text-only="firstForm"
         @chat-conversation="takeChatConversation"
       />
 
@@ -289,9 +301,23 @@ const props = defineProps({
   modelValue: { type: Boolean, default: false },
   /** What contactListQuery delivers: `{ user, firstAt, lastAt, bookings }`. */
   contact: { type: Object, default: null },
+  /**
+   * Opened from a group (E-055): "Hallo …" stands in the field while the two have no
+   * conversation yet -- a first word is one tap on the arrow.
+   */
+  greet: { type: Boolean, default: false },
+  /**
+   * Opened from a group for somebody who is no contact yet (E-055): the window's first form, only
+   * the text, until the first message makes them a contact.
+   */
+  firstContact: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['update:modelValue'])
+/**
+ * `contactMade`: the window's first form found a conversation -- the first message went out, or
+ * one was there already -- so the person is a contact now; the page puts the server's row in.
+ */
+const emit = defineEmits(['update:modelValue', 'contactMade'])
 
 const { t, d } = useI18n()
 const router = useRouter()
@@ -444,10 +470,27 @@ const chatConversationKnown = ref(false)
 const muted = ref(false)
 
 const takeChatConversation = ({ exists, mutedByMe }) => {
+  const before = chatConversation.value.exists
   chatConversationKnown.value = true
   chatConversation.value = { exists, mutedByMe }
   muted.value = mutedByMe
+  if (props.firstContact && exists && !before) emit('contactMade')
 }
+
+/**
+ * The window's first form (Bernd, 30.09.2026, E-055): somebody met in a group who is no contact
+ * yet, and no conversation between the two. Only the text is offered -- no Gradido, no camera,
+ * no bell, no heart, no paperclip --, and "Hallo …" stands in the field: the first message goes
+ * by mail as every first one does (E-024) and makes them a contact. With it the whole window is
+ * there, without closing: the row comes in, the paperclip too, and the page puts the server's
+ * contact row in (`contactMade`).
+ */
+const firstForm = computed(() => props.firstContact && !chatConversation.value.exists)
+
+/** "Hallo …", where the window was opened from a group; the thread puts it in an empty field. */
+const greeting = computed(() =>
+  props.greet ? t('chatThread.firstContactGreeting', { name: alias.value }) : '',
+)
 
 /** Nothing known about a conversation: the window came to another person. */
 const forgetChatConversation = () => {

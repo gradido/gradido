@@ -124,7 +124,7 @@
         ref="thread"
         class="chat-group-window-thread"
         :group="group"
-        @open-member="emit('openMember', $event)"
+        @open-member="openWriter"
       />
 
       <!-- The questions of a video call (ChatVideoCall), as the contact window asks them (E-053):
@@ -196,9 +196,29 @@ const props = defineProps({
  * part or the name changed, the member left -- and the page asks for its list again.
  *
  * `openMember`: a member whose name was tapped, in the list or over their message (E-053). The page
- * knows who is a contact, and leads there: their window over this one, or the send form.
+ * knows who is a contact, and opens their window over this one -- for somebody who is none yet the
+ * window's first form, a first word in one tap (E-055).
  */
 const emit = defineEmits(['update:modelValue', 'changed', 'openMember'])
+
+/**
+ * A writer named over their message carries what the message says of them -- no community name,
+ * which the list of members has. The group's own community is named with the group (it lives on
+ * its founder's server, E-008), so a writer of that community is handed on with its name: the
+ * window opened on them names their community as it does from the list (E-055). A writer of
+ * another community goes as they are.
+ */
+const openWriter = (user) => {
+  const home = props.group?.createdBy?.communityUuid
+  const sameCommunity =
+    Boolean(home) && String(user?.communityUuid ?? '').toLowerCase() === home.toLowerCase()
+  emit(
+    'openMember',
+    sameCommunity && !user.communityName
+      ? { ...user, communityName: props.group.communityName }
+      : user,
+  )
+}
 
 const { t, d } = useI18n()
 const store = useStore()

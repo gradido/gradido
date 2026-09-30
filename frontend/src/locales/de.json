@@ -238,6 +238,7 @@
     "fileStep2": "Kopiere am Ende den Link.",
     "fileStep3": "Füge ihn hier als Nachricht ein.",
     "fileTitle": "Datei senden",
+    "firstContactGreeting": "Hallo {name}",
     "firstGoesByEmail": "Die erste Nachricht geht auch per E-Mail an {name}.",
     "imageCaption": "Bildunterschrift (freiwillig) …",
     "imageCut": "Ausschnitt {width} × {height} Pixel",

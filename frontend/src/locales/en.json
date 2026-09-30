@@ -238,6 +238,7 @@
     "fileStep2": "At the end, copy the link.",
     "fileStep3": "Paste it here as a message.",
     "fileTitle": "Send a file",
+    "firstContactGreeting": "Hello {name}",
     "firstGoesByEmail": "The first message also goes to {name} by e-mail.",
     "imageCaption": "Caption (optional) …",
     "imageCut": "Cutout {width} × {height} pixels",

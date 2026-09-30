@@ -238,6 +238,7 @@
     "fileStep2": "Al final, copia el enlace.",
     "fileStep3": "Pégalo aquí como mensaje.",
     "fileTitle": "Enviar un archivo",
+    "firstContactGreeting": "Hola {name}",
     "firstGoesByEmail": "El primer mensaje también se envía por correo electrónico a {name}.",
     "imageCaption": "Pie de foto (opcional) …",
     "imageCut": "Recorte de {width} × {height} píxeles",

@@ -148,9 +148,11 @@ describe('Contacts page', () => {
           // file installs no router -- which arrives as "Need to install with `app.use`",
           // an error that says nothing about contacts.
           ContactWindow: {
-            props: ['modelValue', 'contact'],
+            name: 'ContactWindow',
+            props: ['modelValue', 'contact', 'greet', 'firstContact'],
+            emits: ['contactMade'],
             template:
-              '<div data-test="contact-window" :data-open="String(modelValue)" :data-who="contact?.user?.gradidoID ?? \'\'" />',
+              '<div data-test="contact-window" :data-open="String(modelValue)" :data-who="contact?.user?.gradidoID ?? \'\'" :data-community="contact?.user?.communityUuid ?? \'\'" :data-home="String(contact?.homeCommunity)" :data-counted="String(Boolean(contact?.firstAt))" :data-greet="String(greet)" :data-first="String(firstContact)" />',
           },
         },
       },
@@ -742,8 +744,10 @@ describe('Contacts page', () => {
         await wrapper.findAll('[data-test="chat-group-row"]')[1].trigger('click')
       }
 
-      // E-053: a member named in the group -- in its list or over a message. A contact's window
-      // opens over the group's, so closing it leads back; anybody else is met in the send form.
+      // E-053: a member named in the group -- in its list or over a message. Their window opens
+      // over the group's, so closing it leads back. E-055 (Bernd, 30.09.2026): a first word is one
+      // tap -- "Hallo …" in the field where the two have never written, and for somebody who is no
+      // contact yet the window's first form instead of the send form.
       describe('a member named in it', () => {
         const nameIt = async (user) => {
           await wrapper.findComponent({ name: 'ChatGroupWindow' }).vm.$emit('openMember', user)
@@ -761,11 +765,14 @@ describe('Contacts page', () => {
           storeState.communityUuid = 'home'
         })
 
-        it("opens a contact's window over the group's", async () => {
+        it("opens a contact's window over the group's, greeting", async () => {
           await withContacts()
           await nameIt({ communityUuid: 'home', gradidoID: 'id-2', alias: 'Alias2' })
           expect(contactWindow().attributes('data-open')).toBe('true')
           expect(contactWindow().attributes('data-who')).toBe('id-2')
+          expect(contactWindow().attributes('data-counted')).toBe('true')
+          expect(contactWindow().attributes('data-greet')).toBe('true')
+          expect(contactWindow().attributes('data-first')).toBe('false')
           expect(groupWindow().attributes('data-open')).toBe('true')
           expect(routerPush).not.toHaveBeenCalled()
         })
@@ -779,14 +786,28 @@ describe('Contacts page', () => {
           expect(routerPush).not.toHaveBeenCalled()
         })
 
-        it('leads to the send form, community and name filled in, where they are no contact', async () => {
+        it("opens the window's first form over the group's where they are no contact", async () => {
           await withContacts()
           await nameIt({ communityUuid: 'home', gradidoID: 'stranger-id', alias: 'Fremd' })
-          expect(routerPush).toHaveBeenCalledWith({
-            path: '/send/home/stranger-id',
-            query: { art: 'send' },
-          })
-          expect(contactWindow().attributes('data-open')).toBe('false')
+          expect(contactWindow().attributes('data-open')).toBe('true')
+          expect(contactWindow().attributes('data-who')).toBe('stranger-id')
+          expect(contactWindow().attributes('data-counted')).toBe('false')
+          expect(contactWindow().attributes('data-greet')).toBe('true')
+          expect(contactWindow().attributes('data-first')).toBe('true')
+          expect(contactWindow().attributes('data-home')).toBe('true')
+          expect(groupWindow().attributes('data-open')).toBe('true')
+          expect(routerPush).not.toHaveBeenCalled()
+        })
+
+        // The address line is for this community's members only (ContactWindow): a member of
+        // another one -- once groups cross the border (P6) -- is not given this one's host.
+        it('knows a member of another community as one', async () => {
+          await withContacts()
+          await nameIt({ communityUuid: 'OTHER', gradidoID: 'far-id', alias: 'Fern' })
+          expect(contactWindow().attributes('data-first')).toBe('true')
+          expect(contactWindow().attributes('data-home')).toBe('false')
+          await nameIt({ communityUuid: 'HOME', gradidoID: 'near-id', alias: 'Nah' })
+          expect(contactWindow().attributes('data-home')).toBe('true')
         })
 
         // A writer the server named by the pair alone: a missing community is this one.
@@ -796,10 +817,98 @@ describe('Contacts page', () => {
           await nameIt({ communityUuid: null, gradidoID: 'id-1' })
           expect(contactWindow().attributes('data-who')).toBe('id-1')
           await nameIt({ communityUuid: null, gradidoID: 'stranger-id' })
-          expect(routerPush).toHaveBeenCalledWith({
-            path: '/send/home/stranger-id',
-            query: { art: 'send' },
+          expect(contactWindow().attributes('data-who')).toBe('stranger-id')
+          expect(contactWindow().attributes('data-community')).toBe('home')
+          expect(routerPush).not.toHaveBeenCalled()
+        })
+
+        it("makes the first form whole with the first message: the server's row, the list anew", async () => {
+          await withContacts()
+          await nameIt({ communityUuid: 'home', gradidoID: 'stranger-id', alias: 'Fremd' })
+          const made = {
+            ...person(9),
+            user: { communityUuid: 'home', gradidoID: 'stranger-id', alias: 'Fremd' },
+          }
+          answers.set('contactByMemberQuery', () => ({
+            data: { contactList: { contacts: [made] } },
+          }))
+          answers.set('contactListQuery', () => ({
+            data: { contactList: { count: 3, contacts: [made, person(1), person(2)] } },
+          }))
+          apolloQuery.mockClear()
+
+          await wrapper.findComponent({ name: 'ContactWindow' }).vm.$emit('contactMade')
+          await flushPromises()
+
+          const asked = apolloQuery.mock.calls.map(([options]) => options)
+          expect(asked.find((o) => o.query === 'contactByMemberQuery').variables).toEqual({
+            ref: { gradidoID: 'stranger-id', communityUuid: 'home' },
           })
+          expect(asked.some((o) => o.query === 'contactListQuery')).toBe(true)
+          expect(contactWindow().attributes('data-who')).toBe('stranger-id')
+          expect(contactWindow().attributes('data-counted')).toBe('true')
+          expect(contactWindow().attributes('data-first')).toBe('false')
+          expect(rowsIn('contacts-page')).toContain('Fremd')
+        })
+
+        // Where the lookup does not get through, the window stays as it stands: the conversation
+        // is there either way, and the list asks again with the next news.
+        it('stays as it stands where the lookup fails', async () => {
+          await withContacts()
+          await nameIt({ communityUuid: 'home', gradidoID: 'stranger-id', alias: 'Fremd' })
+          answers.set('contactByMemberQuery', () => Promise.reject(new Error('offline')))
+          await wrapper.findComponent({ name: 'ContactWindow' }).vm.$emit('contactMade')
+          await flushPromises()
+          expect(contactWindow().attributes('data-open')).toBe('true')
+          expect(contactWindow().attributes('data-who')).toBe('stranger-id')
+          expect(contactWindow().attributes('data-first')).toBe('true')
+        })
+
+        // An answer that comes after the window closed, or moved on to somebody else, belongs to
+        // an opening that is over: it is put nowhere.
+        it('takes no late answer after the window closed or moved on', async () => {
+          await withContacts()
+          const made = { ...person(9), user: { communityUuid: 'home', gradidoID: 'stranger-id' } }
+          let answer
+          answers.set(
+            'contactByMemberQuery',
+            () =>
+              new Promise(
+                (resolve) =>
+                  (answer = () => resolve({ data: { contactList: { contacts: [made] } } })),
+              ),
+          )
+
+          await nameIt({ communityUuid: 'home', gradidoID: 'stranger-id', alias: 'Fremd' })
+          await wrapper.findComponent({ name: 'ContactWindow' }).vm.$emit('contactMade')
+          await wrapper
+            .findComponent({ name: 'ContactWindow' })
+            .vm.$emit('update:modelValue', false)
+          await nextTick()
+          answer()
+          await flushPromises()
+          expect(contactWindow().attributes('data-open')).toBe('false')
+          expect(contactWindow().attributes('data-who')).toBe('')
+
+          await nameIt({ communityUuid: 'home', gradidoID: 'stranger-id', alias: 'Fremd' })
+          await wrapper.findComponent({ name: 'ContactWindow' }).vm.$emit('contactMade')
+          await nameIt({ communityUuid: 'home', gradidoID: 'id-2', alias: 'Alias2' })
+          answer()
+          await flushPromises()
+          expect(contactWindow().attributes('data-who')).toBe('id-2')
+          expect(contactWindow().attributes('data-greet')).toBe('true')
+        })
+
+        // Closing lets the group's way of opening go: a row opened next is the window as always.
+        it('opens a row of the list as always after it closed', async () => {
+          await withContacts()
+          await nameIt({ communityUuid: 'home', gradidoID: 'stranger-id', alias: 'Fremd' })
+          await wrapper
+            .findComponent({ name: 'ContactWindow' })
+            .vm.$emit('update:modelValue', false)
+          await nextTick()
+          expect(contactWindow().attributes('data-greet')).toBe('false')
+          expect(contactWindow().attributes('data-first')).toBe('false')
         })
       })
 

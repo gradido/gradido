@@ -412,9 +412,37 @@ describe('ChatGroupWindow', () => {
     await wrapper.findComponent({ name: 'ChatThread' }).vm.$emit('openMember', anna)
     await find('chat-group-window-members').trigger('click')
     await members().vm.$emit('openMember', carla)
-    expect(wrapper.emitted('openMember')).toEqual([[anna], [carla]])
+    // Over her message Anna carries no community name; the group names its own (E-055).
+    expect(wrapper.emitted('openMember')).toEqual([
+      [{ ...anna, communityName: 'KI Playground' }],
+      [carla],
+    ])
     expect(members().props('modelValue')).toBe(true)
     expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+  })
+
+  // Only the group's own community is the group's to name; a writer of another goes as they are,
+  // and a name the writer carries stays theirs.
+  it("names a writer's community only where it is the group's own", async () => {
+    mountWindow()
+    await flushPromises()
+    const thread = () => wrapper.findComponent({ name: 'ChatThread' })
+    const far = { communityUuid: 'far-uuid', gradidoID: 'far-id', alias: 'Fern' }
+    const loud = {
+      communityUuid: 'HOME-UUID',
+      gradidoID: 'x-id',
+      alias: 'X',
+      communityName: 'Eigen',
+    }
+    const upper = { communityUuid: 'HOME-UUID', gradidoID: 'y-id', alias: 'Y' }
+    await thread().vm.$emit('openMember', far)
+    await thread().vm.$emit('openMember', loud)
+    await thread().vm.$emit('openMember', upper)
+    expect(wrapper.emitted('openMember')).toEqual([
+      [far],
+      [loud],
+      [{ ...upper, communityName: 'KI Playground' }],
+    ])
   })
 
   it('is a sheet on a phone, with no header and no footer, named after the group', () => {
