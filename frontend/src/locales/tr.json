@@ -141,8 +141,8 @@
     }
   },
   "chatForward": {
-    "byEmailMany": "Ayrıca e-posta ile {count} kişiye",
-    "byEmailOne": "Ayrıca e-posta ile {name} kişisine",
+    "byEmailMany": "{count} kişiye ayrıca e-posta ile",
+    "byEmailOne": "{name} kişisine ayrıca e-posta ile",
     "done": "İletildi: {names}.",
     "failed": "İletme başarısız oldu. Lütfen tekrar dene.",
     "go": "İlet",
@@ -309,7 +309,7 @@
     "loadOlder": "Daha eski mesajları yükle",
     "mailed": "Ayrıca e-posta ile",
     "menuLabel": "Mesaj",
-    "menuMore": "Bu mesaj hakkında daha fazlası",
+    "menuMore": "Bu mesaj için diğer seçenekler",
     "muteOff": "Sessizde — {name} kişisinin sohbet mesajları için e-posta yok",
     "muteOn": "Sessize al",
     "mutedHint": "Sessize alındı: {name} kişisinin sohbet mesajları için artık e-posta gelmeyecek. Yeni mesajları burada görürsün. «E-posta gönder» ile gönderilen mektuplar gelmeye devam eder.",

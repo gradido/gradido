@@ -136,7 +136,7 @@
           {{ d(arrived, 'time') }}
         </time>
       </div>
-      <!-- "More about this message" (E-059 F1): beside the bubble while the pointer is over the
+      <!-- "Options for this message" (E-059 F1): beside the bubble while the pointer is over the
            message or the keyboard is on it; on a phone out of sight, for the ear -- the tap on the
            message is the way there. -->
       <button
@@ -635,7 +635,7 @@ const copyText = async () => {
   height: 1rem;
 }
 
-/* "More about this message" (E-059 F1): beside the bubble, at its middle, on the side towards the
+/* "Options for this message" (E-059 F1): beside the bubble, at its middle, on the side towards the
    thread's middle -- seen while the pointer is over the message, the keyboard is on the sign, or
    its menu is open. 44 px to hit. */
 .chat-bubble-more {

@@ -153,7 +153,7 @@
     "search": "Cerca contatti o gruppi …",
     "title": "Inoltra",
     "to": "A chi?",
-    "words": "Le tue parole da aggiungere (facoltativo)"
+    "words": "Le tue parole da aggiungere (facoltative)"
   },
   "chatGroup": {
     "addGo": "Aggiungi",
@@ -309,7 +309,7 @@
     "loadOlder": "Carica i messaggi precedenti",
     "mailed": "Anche via e-mail",
     "menuLabel": "Messaggio",
-    "menuMore": "Altro su questo messaggio",
+    "menuMore": "Altre opzioni per questo messaggio",
     "muteOff": "Conversazione silenziata — nessuna e-mail per i messaggi in chat di {name}",
     "muteOn": "Silenzia",
     "mutedHint": "Conversazione silenziata: niente più e-mail per i messaggi in chat di {name}. I nuovi messaggi li vedi qui. Le lettere inviate con «Invia e-mail» continuano ad arrivare.",

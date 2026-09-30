@@ -309,7 +309,7 @@
     "loadOlder": "Load older messages",
     "mailed": "Also by e-mail",
     "menuLabel": "Message",
-    "menuMore": "More about this message",
+    "menuMore": "Options for this message",
     "muteOff": "Muted — no e-mails about chat messages from {name}",
     "muteOn": "Mute",
     "mutedHint": "Muted: no more e-mails about chat messages from {name}. You will see new messages here. Letters sent with “Send email” still arrive.",
