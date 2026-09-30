@@ -416,25 +416,39 @@ const hasMenu = computed(() => canForward.value || canCopy.value)
 const row = ref(null)
 const more = ref(null)
 const menuOpen = ref(false)
-/** No room above the message in the thread's box: the menu opens under it. */
+/** No room above the message in the thread: the menu opens under it. */
 const menuBelow = ref(false)
-/** The room the menu needs above the message -- two entries and their frame. */
+/**
+ * The room the menu needs above the message -- two entries and their frame: 113 px in all ten
+ * languages, at 320 and at 1280 px (measured 30.09.2026), and its gap.
+ */
 const MENU_ROOM_PX = 140
 
 const closeOnPressElsewhere = (event) => {
   if (!row.value?.contains(event.target)) closeMenu()
 }
 
+/**
+ * Over the message, or under it where the thread has no room above it: at its first messages, since
+ * the menu stands inside the scrolling thread and nothing scrolls above its beginning. Measured from
+ * the thread's beginning, not from what is in sight -- a tall picture half scrolled out at the top
+ * has its room above all the same --, and the thread then scrolls just so far that the whole menu
+ * is in sight.
+ */
 const openMenu = async () => {
   const box = row.value?.closest('.chat-thread-box')
   menuBelow.value = Boolean(
-    box && row.value.getBoundingClientRect().top - box.getBoundingClientRect().top < MENU_ROOM_PX,
+    box &&
+    row.value.getBoundingClientRect().top - box.getBoundingClientRect().top + box.scrollTop <
+      MENU_ROOM_PX,
   )
   menuOpen.value = true
   // Another message's menu closes as this one opens: the press was elsewhere for it.
   document.addEventListener('pointerdown', closeOnPressElsewhere, true)
   await nextTick()
-  row.value?.querySelector('.chat-message-menu button')?.focus({ preventScroll: true })
+  const menu = row.value?.querySelector('.chat-message-menu')
+  menu?.scrollIntoView?.({ block: 'nearest' })
+  menu?.querySelector('button')?.focus({ preventScroll: true })
 }
 
 const closeMenu = ({ focusMore = false } = {}) => {

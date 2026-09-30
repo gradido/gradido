@@ -245,6 +245,29 @@ describe('ChatBubble, the menu at a message (E-059)', () => {
     expect(menu().classes()).not.toContain('is-below')
   })
 
+  it('measures that room from the beginning of the thread, and brings the whole menu into sight', async () => {
+    const shown = []
+    Element.prototype.scrollIntoView = function (options) {
+      shown.push({ element: this, options })
+    }
+    mountBubble(THEIRS)
+    const box = document.createElement('div')
+    box.className = 'chat-thread-box'
+    box.getBoundingClientRect = () => ({ top: 100 })
+    Object.defineProperty(box, 'scrollTop', { value: 600, configurable: true })
+    wrapper.element.parentNode.replaceChild(box, wrapper.element)
+    box.appendChild(wrapper.element)
+    // A tall picture half scrolled out at the top: its top over the box's, far down the thread.
+    wrapper.element.getBoundingClientRect = () => ({ top: 20 })
+
+    await more().trigger('click')
+    await flushPromises()
+
+    expect(menu().classes()).not.toContain('is-below')
+    expect(shown).toEqual([{ element: menu().element, options: { block: 'nearest' } }])
+    delete Element.prototype.scrollIntoView
+  })
+
   describe('the line over a forwarded copy (E-059 F2)', () => {
     const line = () => wrapper.find('[data-test="chat-bubble-forwarded"]')
 
