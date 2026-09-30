@@ -281,6 +281,16 @@ describe('ContactWindow', () => {
       expect(magnifier().attributes('aria-pressed')).toBe('false')
     })
 
+    // The field goes away with the bar: the keyboard goes back to the magnifier, not nowhere.
+    it('gives the keyboard back to the magnifier when the search closes', async () => {
+      mountWindow()
+      await magnifier().trigger('click')
+      const focused = vi.spyOn(magnifier().element, 'focus')
+      await field().trigger('keydown', { key: 'Escape' })
+      await flushPromises()
+      expect(focused).toHaveBeenCalled()
+    })
+
     it('begins unsearched for another person, and after closing', async () => {
       mountWindow()
       await magnifier().trigger('click')

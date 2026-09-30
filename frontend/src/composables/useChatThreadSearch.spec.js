@@ -264,6 +264,8 @@ describe('useChatThreadSearch', () => {
     await settle()
     expect(search.currentKey.value).toBe(4)
     expect(search.result.value.count).toBe(2)
+    // Shown once: the older needle gives way instead of jumping the box there first.
+    expect(thread.shown).toEqual([4])
   })
 
   it('lets everything go when the search is emptied', async () => {
