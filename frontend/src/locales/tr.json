@@ -216,6 +216,16 @@
     "youAreModerator": "Moderatörsün",
     "youAreOwner": "Grubun sahibisin"
   },
+  "chatSearch": {
+    "capped": "Son {count} mesajda arama yapıldı.",
+    "count": "{current}/{count}",
+    "loading": "Aranıyor …",
+    "newer": "Sonraki sonuç",
+    "none": "Sonuç yok",
+    "older": "Önceki sonuç",
+    "open": "Sohbette ara",
+    "placeholder": "Ara …"
+  },
   "chatThread": {
     "alsoByEmail": "Ayrıca e-posta ile",
     "alsoByEmailTo": "{name} kişisine ayrıca e-posta ile",

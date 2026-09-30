@@ -43,6 +43,12 @@ const beatBrings = async (...chatMessages) => {
 // And their switch for the transfers in the conversations (Einstellungen › Nachrichten), which a
 // test sets and the afterEach puts back to "not known".
 const storeState = vi.hoisted(() => ({ gradidoID: 'me-id', username: 'Bernd' }))
+// The search's reading limit (E-057), small enough for a test to reach: the thread's is a thousand.
+vi.mock('@/utils/chatSearch', async (original) => ({
+  ...(await original()),
+  CHAT_SEARCH_MAX_MESSAGES: 6,
+}))
+
 vi.mock('vuex', () => ({
   useStore: () => ({ state: storeState }),
 }))
@@ -759,6 +765,178 @@ describe('ChatThread', () => {
       expect(wrapper.find('[data-test="chat-compose-attach"]').exists()).toBe(true)
       // The same bar: the words stay in their field.
       expect(field().element.value).toBe('Hallo Lena')
+    })
+  })
+
+  /**
+   * E-057 (Bernd, 30.09.2026): the window's search field hands its words in (`search`); the thread
+   * loads its older pages for them, marks the hits, stands on the newest, and says what it found.
+   */
+  describe('the search', () => {
+    const withBodies = (entries, { hasMore = false } = {}) => ({
+      hasMore,
+      mutedByMe: false,
+      messages: entries.map(([n, body]) => ({ ...message(n), body })),
+    })
+    const searched = async (search, first, older = []) => {
+      mountThread(LENA, { props: { member: LENA, alias: 'Lena', search: '' } })
+      server.olderPages.push(...older)
+      await arrive(first)
+      await wrapper.setProps({ search })
+      for (let round = 0; round < 5; round += 1) await flushPromises()
+    }
+    const found = () => wrapper.emitted('search').at(-1)[0]
+    const bubbleOf = (key) => wrapper.find(`[data-test="chat-bubble"][data-key="${key}"]`)
+    const marks = () => wrapper.findAll('mark.chat-search-mark').map((m) => m.text())
+
+    it('marks the hits and stands on the newest', async () => {
+      await searched(
+        'bank',
+        withBodies([
+          [1, 'Die Bank'],
+          [2, 'Hallo'],
+          [3, 'Bank am Weg'],
+        ]),
+      )
+
+      expect(found()).toEqual({ searching: true, count: 2, current: 2, busy: false, capped: false })
+      expect(marks()).toEqual(['Bank', 'Bank'])
+      expect(bubbleOf(3).classes()).toContain('is-search-current')
+      expect(bubbleOf(1).classes()).not.toContain('is-search-current')
+    })
+
+    it('loads the older pages for it, and searches them too', async () => {
+      await searched(
+        'bank',
+        withBodies(
+          [
+            [5, 'x'],
+            [6, 'Bank'],
+          ],
+          { hasMore: true },
+        ),
+        [
+          withBodies([
+            [1, 'Bank alt'],
+            [2, 'y'],
+          ]),
+        ],
+      )
+
+      expect(server.fetchMore).toHaveBeenCalledTimes(1)
+      expect(found()).toMatchObject({ count: 2, current: 2, busy: false })
+      expect(bubbleOf(1).find('mark').text()).toBe('Bank')
+    })
+
+    it("steps with the window's arrows", async () => {
+      await searched(
+        'bank',
+        withBodies([
+          [1, 'Bank'],
+          [2, 'x'],
+          [3, 'Bank'],
+        ]),
+      )
+      wrapper.vm.searchStep(-1)
+      await flushPromises()
+      expect(found()).toMatchObject({ current: 1 })
+      expect(bubbleOf(1).classes()).toContain('is-search-current')
+      wrapper.vm.searchStep(1)
+      await flushPromises()
+      expect(bubbleOf(3).classes()).toContain('is-search-current')
+    })
+
+    // The member pressed "load older" a moment before: the search waits for that page and goes
+    // on from there, asking for nothing twice.
+    it('waits for a page already on its way', async () => {
+      mountThread(LENA, { props: { member: LENA, alias: 'Lena', search: '' } })
+      server.olderPages.push(
+        withBodies(
+          [
+            [3, 'Bank mitte'],
+            [4, 'y'],
+          ],
+          { hasMore: true },
+        ),
+        withBodies([
+          [1, 'Bank alt'],
+          [2, 'x'],
+        ]),
+      )
+      await arrive(
+        withBodies(
+          [
+            [5, 'x'],
+            [6, 'Bank'],
+          ],
+          { hasMore: true },
+        ),
+      )
+      let release
+      server.gate = new Promise((resolve) => (release = resolve))
+      await wrapper.find('[data-test="chat-thread-older"]').trigger('click')
+      await wrapper.setProps({ search: 'bank' })
+      await flushPromises()
+      expect(server.fetchMore).toHaveBeenCalledTimes(1)
+
+      server.gate = null
+      release()
+      for (let round = 0; round < 5; round += 1) await flushPromises()
+      expect(server.fetchMore).toHaveBeenCalledTimes(2)
+      expect(found()).toMatchObject({ count: 3, current: 3, busy: false })
+    })
+
+    // coderabbit (#4025): the limit counts the transfers with the messages -- a pair with few
+    // messages and many transfers is bounded too.
+    it('counts the transfers towards the limit', async () => {
+      bookingsAsked.mockImplementation(async () =>
+        bookingsPage(
+          [41, 42, 43, 44].map((n) => booking(n, { at: `2026-09-22T09:0${n - 40}:00.000Z` })),
+          100,
+        ),
+      )
+      await searched(
+        'bank',
+        withBodies(
+          [
+            [5, 'Bank'],
+            [6, 'x'],
+          ],
+          { hasMore: true },
+        ),
+        [
+          withBodies([
+            [1, 'Bank alt'],
+            [2, 'y'],
+          ]),
+        ],
+      )
+      expect(server.fetchMore).not.toHaveBeenCalled()
+      expect(found()).toMatchObject({ count: 1, capped: true, busy: false })
+    })
+
+    it("searches the transfers' memos too", async () => {
+      bookingsAsked.mockImplementation(async () =>
+        bookingsPage([booking(40, { at: '2026-09-22T10:30:00.000Z' })]),
+      )
+      await searched(
+        'memo 40',
+        withBodies([
+          [1, 'Hallo'],
+          [2, 'Tschüss'],
+        ]),
+      )
+      expect(found()).toMatchObject({ count: 1, current: 1 })
+      expect(bubbleOf('transfer-40').find('.memo-text mark').text()).toBe('memo 40')
+    })
+
+    it('lets the marks go when the search closes', async () => {
+      await searched('bank', withBodies([[1, 'Die Bank']]))
+      await wrapper.setProps({ search: '' })
+      await flushPromises()
+      expect(marks()).toEqual([])
+      expect(bubbleOf(1).classes()).not.toContain('is-search-current')
+      expect(found()).toMatchObject({ searching: false, count: 0 })
     })
   })
 

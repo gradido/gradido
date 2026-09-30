@@ -216,6 +216,16 @@
     "youAreModerator": "Вы модератор",
     "youAreOwner": "Вы владелец"
   },
+  "chatSearch": {
+    "capped": "Поиск охватил последние {count} сообщений.",
+    "count": "{current} из {count}",
+    "loading": "Поиск …",
+    "newer": "Следующее совпадение",
+    "none": "Нет совпадений",
+    "older": "Предыдущее совпадение",
+    "open": "Поиск в переписке",
+    "placeholder": "Поиск …"
+  },
   "chatThread": {
     "alsoByEmail": "Также по электронной почте",
     "alsoByEmailTo": "{name} получит сообщение и по электронной почте",

@@ -216,6 +216,16 @@
     "youAreModerator": "You are a moderator",
     "youAreOwner": "You are the owner"
   },
+  "chatSearch": {
+    "capped": "The last {count} messages were searched.",
+    "count": "{current} of {count}",
+    "loading": "Searching …",
+    "newer": "Newer match",
+    "none": "No matches",
+    "older": "Older match",
+    "open": "Search this conversation",
+    "placeholder": "Search …"
+  },
   "chatThread": {
     "alsoByEmail": "Also by e-mail",
     "alsoByEmailTo": "Also by e-mail to {name}",

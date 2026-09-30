@@ -216,6 +216,16 @@
     "youAreModerator": "Je bent moderator",
     "youAreOwner": "Je bent eigenaar"
   },
+  "chatSearch": {
+    "capped": "De laatste {count} berichten zijn doorzocht.",
+    "count": "{current} van {count}",
+    "loading": "Zoeken …",
+    "newer": "Volgend resultaat",
+    "none": "Geen resultaten",
+    "older": "Vorig resultaat",
+    "open": "Zoeken in het gesprek",
+    "placeholder": "Zoeken …"
+  },
   "chatThread": {
     "alsoByEmail": "Ook per e-mail",
     "alsoByEmailTo": "Ook per e-mail aan {name}",

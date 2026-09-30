@@ -116,6 +116,9 @@ const STRANGER = {
  */
 let threadsMade = []
 
+/** The thread's steps between hits, as the window's arrows ask for them (E-057). */
+let searchSteps = []
+
 describe('ContactWindow', () => {
   let wrapper
 
@@ -152,6 +155,9 @@ describe('ContactWindow', () => {
           IMdiCheck: true,
           IMdiServerOutline: true,
           IMdiCalendarPlusOutline: true,
+          IMdiMagnify: true,
+          IMdiChevronUp: true,
+          IMdiChevronDown: true,
           // The thread reads the server; its own spec is about that. Here it only has to say
           // whom it was made for, count how often it was made, and take a video invitation
           // (`deliver`, which the real one exposes) for whom it was made. And it takes the
@@ -165,8 +171,9 @@ describe('ContactWindow', () => {
               memberKey: String,
               greeting: String,
               textOnly: Boolean,
+              search: String,
             },
-            emits: ['chatConversation'],
+            emits: ['chatConversation', 'search'],
             inject: { join: { from: CHAT_VIDEO_JOIN, default: null } },
             mounted() {
               threadsMade.push(this.member.gradidoID)
@@ -175,9 +182,12 @@ describe('ContactWindow', () => {
               deliver(message) {
                 return threadDelivers(message, this.member.gradidoID)
               },
+              searchStep(direction) {
+                searchSteps.push(direction)
+              },
             },
             template:
-              '<div data-test="chat-thread" :data-who="member.gradidoID" :data-community="String(member.communityUuid)" :data-alias="alias" :data-key="memberKey" :data-greeting="greeting" :data-text-only="String(textOnly)" />',
+              '<div data-test="chat-thread" :data-who="member.gradidoID" :data-community="String(member.communityUuid)" :data-alias="alias" :data-key="memberKey" :data-greeting="greeting" :data-text-only="String(textOnly)" :data-search="search" />',
           },
           AppAvatar: {
             props: ['initials'],
@@ -203,6 +213,7 @@ describe('ContactWindow', () => {
     toastSuccess.mockClear()
     toastError.mockClear()
     threadsMade = []
+    searchSteps = []
     vi.restoreAllMocks()
   })
 
@@ -213,6 +224,99 @@ describe('ContactWindow', () => {
   }
   const bell = () => wrapper.find('[data-test="contact-window-bell"]')
   const sendButton = () => wrapper.find('[data-test="contact-window-send"]')
+
+  /**
+   * E-057 (Bernd, 30.09.2026): the magnifier by the cross opens the search bar; what is typed goes
+   * to the thread, what it found comes back into the bar, and ↑ and ↓ step in it. Esc closes the
+   * search and leaves the window open; the next person begins unsearched.
+   */
+  describe('the search', () => {
+    const magnifier = () => wrapper.find('[data-test="contact-window-search"]')
+    const field = () => wrapper.find('[data-test="chat-search-field"]')
+    const thread = () => wrapper.find('[data-test="chat-thread"]')
+
+    it('opens with the magnifier by the cross, and hands what is typed to the thread', async () => {
+      mountWindow()
+      const top = wrapper.find('.contact-window-top')
+      expect(top.find('[data-test="contact-window-search"]').exists()).toBe(true)
+      expect(magnifier().attributes('aria-label')).toBe('chatSearch.open')
+      expect(magnifier().attributes('aria-pressed')).toBe('false')
+
+      await magnifier().trigger('click')
+      expect(magnifier().attributes('aria-pressed')).toBe('true')
+      await field().setValue('Bank')
+      expect(thread().attributes('data-search')).toBe('Bank')
+    })
+
+    it('shows what the thread found, and steps through it', async () => {
+      mountWindow()
+      await magnifier().trigger('click')
+      await field().setValue('Bank')
+      await wrapper
+        .findComponent({ name: 'ChatThread' })
+        .vm.$emit('search', { searching: true, count: 3, current: 3, busy: false, capped: false })
+      expect(wrapper.find('[data-test="chat-search-count"]').text()).toBe(
+        'chatSearch.count {"current":3,"count":3}',
+      )
+      await wrapper.find('[data-test="chat-search-older"]').trigger('click')
+      await field().trigger('keydown', { key: 'Enter' })
+      expect(searchSteps).toEqual([-1, -1])
+    })
+
+    it('closes on Esc and leaves the window open', async () => {
+      mountWindow()
+      await magnifier().trigger('click')
+      await field().setValue('Bank')
+      await field().trigger('keydown', { key: 'Escape' })
+      expect(wrapper.find('[data-test="chat-search"]').exists()).toBe(false)
+      expect(thread().attributes('data-search')).toBe('')
+      expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+    })
+
+    it('closes with the magnifier again', async () => {
+      mountWindow()
+      await magnifier().trigger('click')
+      await magnifier().trigger('click')
+      expect(wrapper.find('[data-test="chat-search"]').exists()).toBe(false)
+      expect(magnifier().attributes('aria-pressed')).toBe('false')
+    })
+
+    // The field goes away with the bar: the keyboard goes back to the magnifier, not nowhere.
+    it('gives the keyboard back to the magnifier when the search closes', async () => {
+      mountWindow()
+      await magnifier().trigger('click')
+      const focused = vi.spyOn(magnifier().element, 'focus')
+      await field().trigger('keydown', { key: 'Escape' })
+      await flushPromises()
+      expect(focused).toHaveBeenCalled()
+    })
+
+    it('begins unsearched for another person, and after closing', async () => {
+      mountWindow()
+      await magnifier().trigger('click')
+      await field().setValue('Bank')
+      await wrapper.setProps({ contact: STRANGER })
+      expect(wrapper.find('[data-test="chat-search"]').exists()).toBe(false)
+      expect(thread().attributes('data-search')).toBe('')
+
+      await magnifier().trigger('click')
+      await field().setValue('Bank')
+      await wrapper.setProps({ modelValue: false })
+      await wrapper.setProps({ modelValue: true })
+      expect(wrapper.find('[data-test="chat-search"]').exists()).toBe(false)
+    })
+
+    // The first form (E-055) has nothing to search yet: the magnifier comes with the conversation.
+    it('has no magnifier in the first form', async () => {
+      mountWindow(
+        { user: { ...CONTACT.user }, homeCommunity: true },
+        { greet: true, firstContact: true },
+      )
+      expect(magnifier().exists()).toBe(false)
+      await threadSays({ exists: true, mutedByMe: false })
+      expect(magnifier().exists()).toBe(true)
+    })
+  })
 
   /**
    * E-055 (Bernd, 30.09.2026): opened from a group, a first word is one tap on the arrow --

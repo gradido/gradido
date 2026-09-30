@@ -216,6 +216,16 @@
     "youAreModerator": "És moderador",
     "youAreOwner": "És o proprietário"
   },
+  "chatSearch": {
+    "capped": "A pesquisa abrangeu as últimas {count} mensagens.",
+    "count": "{current} de {count}",
+    "loading": "A pesquisar …",
+    "newer": "Resultado seguinte",
+    "none": "Sem resultados",
+    "older": "Resultado anterior",
+    "open": "Pesquisar na conversa",
+    "placeholder": "Pesquisar …"
+  },
   "chatThread": {
     "alsoByEmail": "Também por e-mail",
     "alsoByEmailTo": "Também por e-mail para {name}",

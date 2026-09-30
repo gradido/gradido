@@ -4,7 +4,11 @@
     class="chat-bubble-row"
     :class="[
       message.mine ? 'chat-bubble-mine' : 'chat-bubble-theirs',
-      { 'chat-bubble-transfer': message.transfer, 'chat-bubble-in-group': face },
+      {
+        'chat-bubble-transfer': message.transfer,
+        'chat-bubble-in-group': face,
+        'is-search-current': searchCurrent,
+      },
     ]"
     :style="face ? { '--chat-bubble-face': `${LIST_AVATAR_SIZE}px` } : undefined"
     data-test="chat-bubble"
@@ -65,7 +69,7 @@
         data-test="chat-bubble-subject"
       >
         <chat-transfer-coin v-if="message.transfer" />
-        <span>{{ message.subject }}</span>
+        <chat-search-text :text="message.subject" />
       </div>
       <!-- A transfer's memo as the booking list shows it (MemoText): its addresses as links, its
            stars as stars -- it is the booking's text, not a chat message. -->
@@ -129,6 +133,7 @@ import AppAvatar from '@/components/AppAvatar.vue'
 import ChatBubbleImage from '@/components/Chat/ChatBubbleImage.vue'
 import ChatMessageText from '@/components/Chat/ChatMessageText'
 import ChatTransferCoin from '@/components/Chat/ChatTransferCoin.vue'
+import { ChatSearchText } from '@/components/Chat/chatSearchMarks'
 import MemoText from '@/components/TransactionRows/MemoText'
 import Name from '@/components/TransactionRows/Name.vue'
 import { avatarZoomBindings } from '@/composables/useAvatarZoom'
@@ -172,6 +177,8 @@ const props = defineProps({
    * the same writer. The thread decides it; it knows the message before.
    */
   showWriter: { type: Boolean, default: true },
+  /** The hit the thread's search stands on (E-057): the bubble is ringed, its marks stronger. */
+  searchCurrent: { type: Boolean, default: false },
 })
 
 /**
@@ -523,5 +530,31 @@ const addToCalendar = () => {
 
 .chat-bubble.has-image .chat-bubble-meta {
   padding: 0 0.5rem 0.15rem;
+}
+</style>
+
+<style lang="scss">
+/* Block comments only: lightningcss parses SFC style blocks, and a double slash is not a comment
+   to it.
+
+   The hits of the thread's search (E-057), marked where they stand -- in the words, the subject,
+   a transfer's memo, a link's text. Not scoped: the marks are made by render functions
+   (chatSearchMarks) inside this bubble, which carry no scope of this file. The same warm yellow in
+   both themes, with a dark text on it, so a hit reads alike on the grey, the gold and the dark
+   bubble; the hit the search stands on in a stronger orange, and its bubble ringed. */
+.chat-bubble-row .chat-search-mark {
+  padding: 0 0.05em;
+  border-radius: 0.15em;
+  background: #ffe58f;
+  color: #1d1d1b;
+}
+
+.chat-bubble-row.is-search-current .chat-search-mark {
+  background: #ffb340;
+}
+
+.chat-bubble-row.is-search-current .chat-bubble {
+  outline: 2px solid #ffb340;
+  outline-offset: 2px;
 }
 </style>

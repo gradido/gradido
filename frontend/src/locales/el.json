@@ -216,6 +216,16 @@
     "youAreModerator": "Είσαι συντονιστής",
     "youAreOwner": "Είσαι ο κάτοχος"
   },
+  "chatSearch": {
+    "capped": "Η αναζήτηση έγινε στα τελευταία {count} μηνύματα.",
+    "count": "{current} από {count}",
+    "loading": "Αναζήτηση …",
+    "newer": "Επόμενο αποτέλεσμα",
+    "none": "Κανένα αποτέλεσμα",
+    "older": "Προηγούμενο αποτέλεσμα",
+    "open": "Αναζήτηση στη συνομιλία",
+    "placeholder": "Αναζήτηση …"
+  },
   "chatThread": {
     "alsoByEmail": "Και μέσω email",
     "alsoByEmailTo": "Και μέσω email προς {name}",
