@@ -1,8 +1,8 @@
 import { validate, version } from 'uuid'
 import { z } from 'zod'
 import { AVAILABLE_LOCALS, DEFAULT_LANGUAGE } from '../const'
-import { GradidoUnit } from '../data/GradidoUnit'
 import { Duration } from '../data/Duration'
+import { GradidoUnit } from '../data/GradidoUnit'
 
 export const uuidv4Schema = z
   .string()
