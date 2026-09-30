@@ -112,7 +112,10 @@
            on the whitespace between the elements: Vue's `whitespace: 'condense'` does not
            collapse a whitespace-only node with a newline in it to one space, it deletes it.
            The spec reads the rendered text back for exactly that. -->
-      <div class="contact-window-meta" data-test="contact-window-meta">
+      <!-- Not in the window's first form (E-055): no figures can come for somebody who is no
+           contact yet, and the line's reserved height would stand as an empty band under the
+           head (measured). It comes with the first message, together with the row below. -->
+      <div v-if="!firstForm" class="contact-window-meta" data-test="contact-window-meta">
         <template v-if="counted">
           <span>{{ metaSince }}</span>
           <!-- ⛔ Only where there are bookings. Somebody who came here over this member is

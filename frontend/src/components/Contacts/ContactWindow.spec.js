@@ -233,7 +233,9 @@ describe('ContactWindow', () => {
 
       expect(wrapper.find('[data-test="contact-window-name"]').text()).toBe('Carla-Sonne')
       expect(wrapper.find('[data-test="contact-window-community"]').text()).toBe('Gradido-Akademie')
-      expect(wrapper.find('[data-test="contact-window-meta"]').text()).toBe('')
+      // No meta line either: no figures can come before the first message (and its reserved
+      // height stood as an empty band under the head).
+      expect(wrapper.find('[data-test="contact-window-meta"]').exists()).toBe(false)
       expect(sendButton().exists()).toBe(false)
       expect(marks()).toEqual([])
       expect(thread().attributes('data-text-only')).toBe('true')
@@ -254,6 +256,7 @@ describe('ContactWindow', () => {
 
       await threadSays({ exists: true, mutedByMe: false })
       expect(sendButton().exists()).toBe(true)
+      expect(wrapper.find('[data-test="contact-window-meta"]').exists()).toBe(true)
       expect(marks()).toEqual(['contact-window-video', 'contact-window-bell', 'heart'])
       expect(thread().attributes('data-text-only')).toBe('false')
       expect(wrapper.emitted('contactMade')).toHaveLength(1)
