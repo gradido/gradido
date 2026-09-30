@@ -151,6 +151,7 @@
         :search="searchOpen ? searchTyped : ''"
         @open-member="openWriter"
         @search="takeFound"
+        @duplicate-video="videoCall?.duplicate($event)"
       />
 
       <!-- The questions of a video call (ChatVideoCall), as the contact window asks them (E-053):

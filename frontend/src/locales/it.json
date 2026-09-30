@@ -310,6 +310,8 @@
     "videoCall": "Avvia una videochiamata con {name}",
     "videoCopyLink": "Copia link",
     "videoDate": "Data",
+    "videoDuplicate": "Duplica",
+    "videoDuplicateLabel": "Duplica la videochiamata «{topic}»",
     "videoFrom": "Inizio",
     "videoInAppHint": "Apre la stanza nell'app Jitsi per computer — se è installata.",
     "videoInvite": "📹 Videochiamata. La stanza si trova su un server Jitsi gestito da {operator} — un suggerimento, non un servizio di Gradido: {url}",

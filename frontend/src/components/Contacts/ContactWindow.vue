@@ -276,6 +276,7 @@
         :search="searchOpen ? searchTyped : ''"
         @chat-conversation="takeChatConversation"
         @search="takeFound"
+        @duplicate-video="videoCall?.duplicate($event)"
       />
 
       <!-- The two questions of a video call -- starting one, and joining one from its link in the
