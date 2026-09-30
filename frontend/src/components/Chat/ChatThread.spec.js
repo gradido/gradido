@@ -702,6 +702,66 @@ describe('ChatThread', () => {
     })
   })
 
+  /**
+   * E-055 (Bernd, 30.09.2026): opened from a group, a first word is one tap on the arrow -- the
+   * window hands in "Hallo …", and the thread puts it into the field where the two have never
+   * written. In the window's first form only the text: no paperclip until there is a conversation.
+   */
+  describe('the greeting from a group', () => {
+    const greeted = (extra = {}) =>
+      mountThread(LENA, {
+        props: { member: LENA, alias: 'Lena', greeting: 'Hallo Lena', ...extra },
+      })
+
+    it('puts it into the field where the two have never written', async () => {
+      greeted()
+      await arrive(page([]))
+      expect(field().element.value).toBe('Hallo Lena')
+    })
+
+    it('leaves the field empty where they have written', async () => {
+      greeted()
+      await arrive(page([1, 2]))
+      expect(field().element.value).toBe('')
+    })
+
+    // What a start held is the member's own words: they win.
+    it('gives way to the words a start held', async () => {
+      holdChatText({ gradidoID: 'lena-id', text: 'Hier ist die Datei:' })
+      greeted()
+      await arrive(page([]))
+      expect(field().element.value).toBe('Hier ist die Datei:')
+    })
+
+    it('goes out as the first message with one press of the arrow', async () => {
+      serverSends.mockResolvedValue(ownCopy(99, 'Hallo Lena'))
+      greeted()
+      await arrive(page([]))
+
+      await wrapper.find('[data-test="chat-compose-send"]').trigger('click')
+      await flushPromises()
+
+      expect(serverSends).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ref: { gradidoID: 'lena-id', communityUuid: 'home-uuid' },
+          body: 'Hallo Lena',
+        }),
+      )
+    })
+
+    it('offers only the text in the first form, and the paperclip with the conversation', async () => {
+      greeted({ textOnly: true })
+      await arrive(page([]))
+      expect(wrapper.find('[data-test="chat-compose-attach"]').exists()).toBe(false)
+      expect(field().exists()).toBe(true)
+
+      await wrapper.setProps({ textOnly: false })
+      expect(wrapper.find('[data-test="chat-compose-attach"]').exists()).toBe(true)
+      // The same bar: the words stay in their field.
+      expect(field().element.value).toBe('Hallo Lena')
+    })
+  })
+
   describe('the question it asks', () => {
     // KF-004: the person is named by the pair; the page is the server's own default of 50.
     it('asks for the thread by the pair, fifty at a time', () => {

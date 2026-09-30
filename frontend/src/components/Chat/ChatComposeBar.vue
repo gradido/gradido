@@ -75,7 +75,10 @@
            not one would send a screen reader into keys that do nothing. The button says whether
            the entries are shown (`aria-expanded`) and which they are (`aria-controls`); Tab walks
            them, Esc closes them. -->
+      <!-- Not in the contact window's first form (E-055): a first word to somebody met in a group
+           is only the text, and the paperclip comes with the conversation. -->
       <div
+        v-if="!textOnly"
         ref="attachArea"
         class="chat-compose-attach-area"
         @keydown.esc="closeMenuByKey"
@@ -362,7 +365,8 @@ const props = defineProps({
   failedReason: { type: String, default: '' },
   /**
    * The words to begin with: what stood in the field, not sent yet, when iOS started the wallet
-   * over (utils/chatReturn). Read once, when the bar is made.
+   * over (utils/chatReturn), or "Hallo …" for a first word from a group (E-055). Read once, when
+   * the bar is made.
    */
   initialText: { type: String, default: '' },
   /** A group's bar (P5): `name` is the group's, and the box is the announcement. */
@@ -371,6 +375,8 @@ const props = defineProps({
   canAnnounce: { type: Boolean, default: false },
   /** In a group: how many would get the announcement at most -- everybody but the sender. */
   announceTo: { type: Number, default: 0 },
+  /** Only the text, no paperclip: the contact window's first form (E-055). */
+  textOnly: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['send'])

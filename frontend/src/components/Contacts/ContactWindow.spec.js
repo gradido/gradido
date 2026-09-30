@@ -119,9 +119,9 @@ let threadsMade = []
 describe('ContactWindow', () => {
   let wrapper
 
-  const mountWindow = (contact = CONTACT) => {
+  const mountWindow = (contact = CONTACT, extra = {}) => {
     wrapper = mount(ContactWindow, {
-      props: { modelValue: true, contact },
+      props: { modelValue: true, contact, ...extra },
       global: {
         mocks: {
           $t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key),
@@ -159,7 +159,13 @@ describe('ContactWindow', () => {
           // does (ChatMessageText), so that a test can click an invitation's link through it.
           ChatThread: {
             name: 'ChatThread',
-            props: { member: Object, alias: String, memberKey: String },
+            props: {
+              member: Object,
+              alias: String,
+              memberKey: String,
+              greeting: String,
+              textOnly: Boolean,
+            },
             emits: ['chatConversation'],
             inject: { join: { from: CHAT_VIDEO_JOIN, default: null } },
             mounted() {
@@ -171,7 +177,7 @@ describe('ContactWindow', () => {
               },
             },
             template:
-              '<div data-test="chat-thread" :data-who="member.gradidoID" :data-community="String(member.communityUuid)" :data-alias="alias" :data-key="memberKey" />',
+              '<div data-test="chat-thread" :data-who="member.gradidoID" :data-community="String(member.communityUuid)" :data-alias="alias" :data-key="memberKey" :data-greeting="greeting" :data-text-only="String(textOnly)" />',
           },
           AppAvatar: {
             props: ['initials'],
@@ -207,6 +213,84 @@ describe('ContactWindow', () => {
   }
   const bell = () => wrapper.find('[data-test="contact-window-bell"]')
   const sendButton = () => wrapper.find('[data-test="contact-window-send"]')
+
+  /**
+   * E-055 (Bernd, 30.09.2026): opened from a group, a first word is one tap on the arrow --
+   * "Hallo …" in the field where the two have never written. For somebody who is no contact yet
+   * the window's first form: only the text, until the first message makes them a contact.
+   */
+  describe("the window's first form, and the greeting", () => {
+    // A member of a group as the page hands them over: the pair and the name, no figures.
+    const MEMBER = { user: { ...CONTACT.user }, homeCommunity: true }
+    const thread = () => wrapper.find('[data-test="chat-thread"]')
+    const marks = () =>
+      ['contact-window-video', 'contact-window-bell', 'heart'].filter((hook) =>
+        wrapper.find(`[data-test="${hook}"]`).exists(),
+      )
+
+    it('offers only the text to somebody who is no contact yet, "Hallo …" in the field', async () => {
+      mountWindow(MEMBER, { greet: true, firstContact: true })
+
+      expect(wrapper.find('[data-test="contact-window-name"]').text()).toBe('Carla-Sonne')
+      expect(wrapper.find('[data-test="contact-window-community"]').text()).toBe('Gradido-Akademie')
+      expect(wrapper.find('[data-test="contact-window-meta"]').text()).toBe('')
+      expect(sendButton().exists()).toBe(false)
+      expect(marks()).toEqual([])
+      expect(thread().attributes('data-text-only')).toBe('true')
+      expect(thread().attributes('data-greeting')).toBe(
+        'chatThread.firstContactGreeting {"name":"Carla-Sonne"}',
+      )
+
+      // The thread found no conversation: still only the text, and nothing to say.
+      await threadSays({ exists: false, mutedByMe: false })
+      expect(sendButton().exists()).toBe(false)
+      expect(marks()).toEqual([])
+      expect(wrapper.emitted('contactMade')).toBeUndefined()
+    })
+
+    it('becomes the whole window with the first message, and says so once', async () => {
+      mountWindow(MEMBER, { greet: true, firstContact: true })
+      await threadSays({ exists: false, mutedByMe: false })
+
+      await threadSays({ exists: true, mutedByMe: false })
+      expect(sendButton().exists()).toBe(true)
+      expect(marks()).toEqual(['contact-window-video', 'contact-window-bell', 'heart'])
+      expect(thread().attributes('data-text-only')).toBe('false')
+      expect(wrapper.emitted('contactMade')).toHaveLength(1)
+
+      await threadSays({ exists: true, mutedByMe: true })
+      expect(wrapper.emitted('contactMade')).toHaveLength(1)
+    })
+
+    // The page's list was behind: the two have written already. The whole window at once, and the
+    // page is told, so that it puts the server's row in.
+    it('is the whole window at once where a conversation is there already', async () => {
+      mountWindow(MEMBER, { greet: true, firstContact: true })
+      await threadSays({ exists: true, mutedByMe: false })
+
+      expect(sendButton().exists()).toBe(true)
+      expect(wrapper.emitted('contactMade')).toHaveLength(1)
+    })
+
+    it('greets from a group a contact too, in the whole window', async () => {
+      mountWindow(CONTACT, { greet: true })
+
+      expect(sendButton().exists()).toBe(true)
+      expect(thread().attributes('data-text-only')).toBe('false')
+      expect(thread().attributes('data-greeting')).toBe(
+        'chatThread.firstContactGreeting {"name":"Carla-Sonne"}',
+      )
+      await threadSays({ exists: true, mutedByMe: false })
+      expect(wrapper.emitted('contactMade')).toBeUndefined()
+    })
+
+    it('greets nobody opened from anywhere else', () => {
+      mountWindow()
+
+      expect(thread().attributes('data-greeting')).toBe('')
+      expect(thread().attributes('data-text-only')).toBe('false')
+    })
+  })
 
   it('names the person, their community and their face', () => {
     mountWindow()

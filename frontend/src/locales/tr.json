@@ -238,6 +238,7 @@
     "fileStep2": "Yükleme bitince bağlantıyı kopyala.",
     "fileStep3": "Buraya mesaj olarak yapıştır.",
     "fileTitle": "Dosya gönder",
+    "firstContactGreeting": "Merhaba {name}",
     "firstGoesByEmail": "İlk mesaj {name} kişisine e-posta ile de gider.",
     "imageCaption": "Açıklama (isteğe bağlı) …",
     "imageCut": "Kırpma alanı {width} × {height} piksel",

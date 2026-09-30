@@ -238,6 +238,7 @@
     "fileStep2": "Kopieer aan het einde de link.",
     "fileStep3": "Plak hem hier als bericht.",
     "fileTitle": "Bestand versturen",
+    "firstContactGreeting": "Hallo {name}",
     "firstGoesByEmail": "Het eerste bericht gaat ook per e-mail naar {name}.",
     "imageCaption": "Bijschrift (optioneel) …",
     "imageCut": "Uitsnede {width} × {height} pixels",
