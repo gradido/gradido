@@ -112,7 +112,7 @@ export const memberKey = ({ communityUuid, gradidoID }) => `${communityUuid ?? '
  * Handing both out of one call is what keeps the card, the cheque and the navigation bar
  * from ever saying different things about the same person.
  *
- * The optional query goes onto the link only: the table code travels as `?presence=` (E-017)
+ * The optional query goes onto the link only: the guarantor code travels as `?guarantor=` (E-017)
  * and is never printed, so the shown line stays the address and nothing else. Empty values are
  * left out rather than written as "undefined" or "null".
  *

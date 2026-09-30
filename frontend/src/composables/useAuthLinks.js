@@ -4,14 +4,13 @@ export function useAuthLinks() {
   const route = useRoute()
 
   /**
-   * The table code (E-017) is sealed for the user name in the address it came with, and the
-   * registration checks it against `referrer`. So wherever it travels on from an address page --
-   * the page's own button, the navigation bar, the detour over the sign-in -- the name travels
-   * with it; without it the registration would drop the code without a word. Without a table
-   * code nothing changes.
+   * The guarantor code (E-017) names the member who showed it by itself; the registration page
+   * still shows their name above the form, and takes it from `referrer`. So wherever the code
+   * travels on from an address page -- the page's own button, the navigation bar, the detour
+   * over the sign-in -- the name travels with it. Without a guarantor code nothing changes.
    */
-  const tableCodeReferrer = () =>
-    route.query.presence && route.params.alias ? { referrer: route.params.alias } : {}
+  const guarantorCodeReferrer = () =>
+    route.query.guarantor && route.params.alias ? { referrer: route.params.alias } : {}
 
   /**
    * Combine current route params and query with given params and query
@@ -23,7 +22,7 @@ export function useAuthLinks() {
     return {
       name,
       params: { ...route.params, ...options.params },
-      query: { ...tableCodeReferrer(), ...route.query, ...options.query },
+      query: { ...guarantorCodeReferrer(), ...route.query, ...options.query },
     }
   }
 

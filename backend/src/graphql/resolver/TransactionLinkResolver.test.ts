@@ -871,7 +871,7 @@ describe('TransactionLinkResolver', () => {
                 where: { email: 'peter@lustig.de' },
                 relations: ['user'],
               })
-              // The registration event, in the shape `registerAccount` writes it when the
+              // The registration event, in the shape `RegisterUserFromTransactionLinkRole` writes it when the
               // account was opened with a redeem code.
               await dbInsertEvent({
                 type: EventType.USER_REGISTER_REDEEM,

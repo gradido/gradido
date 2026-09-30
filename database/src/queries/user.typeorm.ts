@@ -2,18 +2,10 @@
 // legacy code, not a architecture reference
 
 import { getLogger } from 'log4js'
-import {
-  aliasSchema,
-  emailSchema,
-  Order,
-  PasswordEncryptionType,
-  Result,
-  uuidv4Schema,
-  VoidResult,
-} from 'shared'
+import { aliasSchema, emailSchema, Order, Result, uuidv4Schema, VoidResult } from 'shared'
 import { EntityManager, In, IsNull, Like, Not, Raw } from 'typeorm'
 import { User as DbUser, UserContact as DbUserContact } from '../entity'
-import { ASSIGNABLE_ROLE_NAMES } from '../enum'
+import { AccountState, ASSIGNABLE_ROLE_NAMES } from '../enum'
 import { DBNotFoundError } from '../errorTypes'
 import { findWithCommunityIdentifier, LOG4JS_QUERIES_CATEGORY_NAME } from './index'
 import { dbFindAliasOwner } from './userAliases'
@@ -267,6 +259,29 @@ export async function dbUpdateUserPassword(
 }
 
 /**
+ * Soft deletes the member and marks them DELETED, as one write. `softRemove` alone writes
+ * `deleted_at` and nothing else, so the state goes beside it in the same transaction.
+ */
+export async function dbSoftRemoveUser(user: DbUser): Promise<void> {
+  await DbUser.getRepository().manager.transaction(async (manager) => {
+    await manager.update(DbUser, { id: user.id }, { accountState: AccountState.DELETED })
+    await manager.softRemove(user)
+  })
+}
+
+/**
+ * Brings a soft deleted member back, in `accountState` - the state DELETED replaced, which the
+ * column no longer holds, so the caller works it out. Same reason for the transaction as in
+ * `dbSoftRemoveUser`.
+ */
+export async function dbRecoverUser(user: DbUser, accountState: AccountState): Promise<void> {
+  await DbUser.getRepository().manager.transaction(async (manager) => {
+    await manager.update(DbUser, { id: user.id }, { accountState })
+    await manager.recover(user)
+  })
+}
+
+/**
  * Holds the member's row under a write lock for the rest of the caller's transaction -
  * the plain way to run "look, then change" for one member without a second request
  * slipping in between (the e-mail change: one pending change, one mail per window).
@@ -284,12 +299,12 @@ export type UnconfirmedVouchedAccount = Pick<
 
 /**
  * The accounts a member vouches for that can act without a mailbox (E-018, E-019): the member
- * is their referrer, they chose a password at registration, their address is not confirmed,
- * and they are not deleted. No time window - an account from months ago counts until it
+ * is their referrer and they are PARTLY_ACTIVATED_GUARANTOR - opened at a table, address not
+ * confirmed, not deleted. No time window - an account from months ago counts until it
  * confirms or support deletes it. Oldest first.
  *
  * One query for both uses: the list on the member's "show it to your friends" page (E-020),
- * and the count before one more table-code account is opened. A caller inside a transaction
+ * and the count before one more guarantor-code account is opened. A caller inside a transaction
  * passes its manager, so that the count reads through that transaction.
  */
 export async function dbFindUnconfirmedVouchedAccounts(
@@ -299,14 +314,11 @@ export async function dbFindUnconfirmedVouchedAccounts(
   const repository = manager ? manager.getRepository(DbUser) : DbUser.getRepository()
   return repository
     .createQueryBuilder('user')
-    .innerJoin('user.emailContact', 'contact')
     .select(['user.id', 'user.firstName', 'user.lastName', 'user.alias', 'user.createdAt'])
     .where('user.referrerId = :referrerId', { referrerId })
-    .andWhere('contact.emailChecked = :emailChecked', { emailChecked: false })
-    .andWhere('user.passwordEncryptionType <> :noPassword', {
-      noPassword: PasswordEncryptionType.NO_PASSWORD,
+    .andWhere('user.accountState = :accountState', {
+      accountState: AccountState.PARTLY_ACTIVATED_GUARANTOR,
     })
-    .andWhere('user.deletedAt IS NULL')
     .orderBy('user.createdAt', 'ASC')
     .addOrderBy('user.id', 'ASC')
     .getMany()

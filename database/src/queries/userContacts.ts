@@ -1,8 +1,11 @@
 // AI-GENERATED — not an architecture reference
-import { and, asc, eq, isNull, like, sql } from 'drizzle-orm'
-import { OptInType } from 'shared'
-import { drizzleDb } from '../AppDatabase'
-import { userContactsTable } from '../schemas/drizzle.schema'
+import { and, asc, count, eq, isNull, like, sql } from 'drizzle-orm'
+import { MySql2Database } from 'drizzle-orm/mysql2'
+import { OptInType, Result } from 'shared'
+import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
+import { AccountState } from '../enum'
+import { DBDuplicateEntryError, DBInsertFailed, isDuplicateEntry } from '../errorTypes'
+import { UserContactInsert, userContactsTable, usersTable } from '../schemas/drizzle.schema'
 
 // Drizzle only. The `user_contacts` queries still on TypeORM live in
 // `./userContacts.typeorm` - the ones that take or return the entity, and the ones that join
@@ -12,6 +15,40 @@ import { userContactsTable } from '../schemas/drizzle.schema'
 // its own (the entity has a `@DeleteDateColumn`); Drizzle adds nothing, so the reads below
 // spell that condition out. TypeORM's delete query builder never added it, so the deletes
 // below do not either.
+//
+const userContactInsertFailed = (row: UserContactInsert) =>
+  new DBInsertFailed<UserContactInsert>('user_contacts', row)
+
+export async function dbInsertUserContact(
+  userContact: UserContactInsert,
+  tx?: DrizzleTransaction | MySql2Database,
+): Promise<Result<number, DBInsertFailed<UserContactInsert> | DBDuplicateEntryError>> {
+  if (!tx) {
+    tx = drizzleDb()
+  }
+  try {
+    const rows = await tx.insert(userContactsTable).values(userContact)
+    const firstRow = rows[0]
+    if (firstRow && firstRow.affectedRows === 1) {
+      return { success: true, value: firstRow.insertId }
+    }
+    return { success: false, error: userContactInsertFailed(userContact) }
+  } catch (error) {
+    // The address or the verification code is taken already; which of the two, the caller
+    // asks with dbIsUserContactFieldExist.
+    if (isDuplicateEntry(error)) {
+      return {
+        success: false,
+        error: new DBDuplicateEntryError(
+          'user_contacts',
+          'email | email_verification_code',
+          `${userContact.email} | ${userContact.emailVerificationCode}`,
+        ),
+      }
+    }
+    throw error
+  }
+}
 
 /**
  * Every address this member has CONFIRMED, oldest first. A pending change is left out on
@@ -31,6 +68,35 @@ export async function dbFindConfirmedUserContactEmails(userId: number): Promise<
     )
     .orderBy(asc(userContactsTable.createdAt))
   return rows.map((row) => row.email)
+}
+
+export async function dbIsUserContactFieldExist<K extends keyof UserContactInsert>(
+  field: K,
+  value: UserContactInsert[K],
+  tx?: DrizzleTransaction | MySql2Database,
+): Promise<number> {
+  if (!value) {
+    throw new Error('empty value given')
+  }
+  if (!tx) {
+    tx = drizzleDb()
+  }
+  const rows = await tx
+    .select({ id: userContactsTable.id })
+    .from(userContactsTable)
+    .where(eq(userContactsTable[field], value))
+  return rows[0] ? rows[0].id : 0
+}
+
+// Not a soft delete, really remove the user from db, without side effects, used in RegisterUser if something after creating user failed
+export async function dbRemoveUserContact(userContactId: number): Promise<number> {
+  if (userContactId) {
+    const rows = await drizzleDb()
+      .delete(userContactsTable)
+      .where(eq(userContactsTable.id, userContactId))
+    return rows[0] ? rows[0].affectedRows : 0
+  }
+  return 0
 }
 
 /**
@@ -98,8 +164,14 @@ export async function dbPurgeExpiredEmailChanges(olderThan: Date, email?: string
  * A CONFIRMED row is never touched: that address is proven, and it stays its owner's - which
  * is also why a take-back (a member's own earlier address, borrowed) survives this.
  */
-export async function dbReleaseUnconfirmedEmailChangeFor(email: string): Promise<number> {
-  const result = await drizzleDb()
+export async function dbReleaseUnconfirmedEmailChangeFor(
+  email: string,
+  tx?: DrizzleTransaction | MySql2Database,
+): Promise<number> {
+  if (!tx) {
+    tx = drizzleDb()
+  }
+  const result = await tx
     .delete(userContactsTable)
     .where(
       and(
@@ -109,4 +181,27 @@ export async function dbReleaseUnconfirmedEmailChangeFor(email: string): Promise
       ),
     )
   return result[0]?.affectedRows ?? 0
+}
+
+/**
+ * Confirms the address of a registration and marks its owner ACTIVATED, in one statement - the
+ * address and the state are not to be seen apart, and a multi-table UPDATE is atomic without a
+ * transaction around it.
+ *
+ * Only for the current address of its account (`users.email_id`): a row the member typed in
+ * and never took over changes nothing, neither itself nor anybody's state. `updated_at` is set
+ * by the column's own ON UPDATE.
+ *
+ * @returns the rows matched: 2 (the contact and its account), also when both were confirmed
+ * already - mysql2 connects with FOUND_ROWS, so matched rows count, not changed ones. 0 means
+ * there is no such current address.
+ */
+export async function dbConfirmRegistrationContact(contactId: number): Promise<number> {
+  const rows = await drizzleDb().execute(
+    sql`UPDATE ${usersTable}, ${userContactsTable} 
+      SET ${userContactsTable.emailChecked} = true, ${usersTable.accountState} = ${AccountState.ACTIVATED}
+      WHERE ${userContactsTable.id} = ${contactId} AND ${usersTable.emailId} = ${userContactsTable.id}
+    `,
+  )
+  return rows[0] ? rows[0].affectedRows : 0
 }

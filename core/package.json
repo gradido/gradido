@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "database": "*",
+    "drizzle-orm": "^0.44.7",
     "email-templates": "^10.0.1",
     "esbuild": "^0.25.2",
     "i18n": "^0.15.1",

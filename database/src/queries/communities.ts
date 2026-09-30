@@ -100,6 +100,11 @@ export async function dbGetCommunityByUuid(
   return resultRows[0] ?? null
 }
 
+export async function dbHomeCommunityGetUuid(): Promise<string> {
+  const homeCom = await getHomeCommunityDrizzle()
+  return uuidv4Schema.parse(homeCom?.communityUuid)
+}
+
 /**
  * Whether the home community pays a language model to key its matching entries.
  *

@@ -1,7 +1,6 @@
 import { sql } from 'drizzle-orm'
 import {
   bigint,
-  binary,
   boolean,
   char,
   datetime,
@@ -10,6 +9,7 @@ import {
   int,
   json,
   longtext,
+  mysqlEnum,
   mysqlTable,
   primaryKey,
   smallint,
@@ -20,6 +20,7 @@ import {
   varchar,
 } from 'drizzle-orm/mysql-core'
 
+import { AccountState } from '../enum/AccountState'
 import { customBinary, customGeometry, customGradidoUnit, customMediumBlob } from './customTypes'
 
 export const communitiesTable = mysqlTable(
@@ -124,6 +125,33 @@ export const contributionsTable = mysqlTable(
 
 export type ContributionsSelect = typeof contributionsTable.$inferSelect
 export type ContributionsInsert = typeof contributionsTable.$inferInsert
+
+export const contributionLinksTable = mysqlTable('contribution_links', {
+  id: int('id', { unsigned: true }).autoincrement().primaryKey(),
+  name: varchar('name', { length: 100 }).notNull(),
+  memo: varchar('memo', { length: 512 }).notNull(),
+  validFrom: datetime('valid_from', { mode: 'date' }).notNull(),
+  validTo: datetime('valid_to', { mode: 'date' }),
+  amountLegacy: customGradidoUnit('amount_legacy'),
+  amountGdd4: customGradidoUnit('amount_gdd4'),
+  cycle: varchar('cycle', { length: 12 }).notNull().default('ONCE'),
+  maxPerCycle: int('max_per_cycle', { unsigned: true }).notNull().default(1),
+  maxAmountPerMonthLegacy: customGradidoUnit('max_amount_per_month_legacy'),
+  maxAmountPerMonthGdd4: customGradidoUnit('max_amount_per_month_gdd4'),
+  totalMaxCountOfContribution: int('total_max_count_of_contribution', {
+    unsigned: true,
+  }),
+  maxAccountBalanceLegacy: customGradidoUnit('max_account_balance_legacy'),
+  maxAccountBalanceGdd4: customGradidoUnit('max_account_balance_gdd4'),
+  minGapHours: int('min_gap_hours', { unsigned: true }),
+  createdAt: datetime('created_at', { mode: 'date' }).default(sql`current_timestamp()`).notNull(),
+  deletedAt: datetime('deleted_at', { mode: 'date' }),
+  code: varchar('code', { length: 24 }).notNull(),
+  linkEnabled: tinyint('link_enabled', { unsigned: false }).notNull().default(1),
+})
+
+export type ContributionLinksSelect = typeof contributionLinksTable.$inferSelect
+export type ContributionLinksInsert = typeof contributionLinksTable.$inferInsert
 
 // One moderator conversation with Crea in the admin chat window (CreaChat). The
 // Anthropic Messages API is stateless, so the whole exchange lives here as a JSON array
@@ -418,6 +446,12 @@ export const usersTable = mysqlTable(
     gmsRegistered: boolean('gms_registered').default(false).notNull(),
     gmsRegisteredAt: datetime('gms_registered_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
     humhubAllowed: boolean('humhub_allowed').default(false).notNull(),
+    // Where the account stands, as one value (migration 0148). A MySQL ENUM: one byte a row,
+    // and a value outside the list is refused by the server in strict mode, which the Drizzle
+    // pool sets (AppDatabase). ⛔ Append only - see AccountState.
+    accountState: mysqlEnum('account_state', AccountState)
+      .default(AccountState.REGISTERED)
+      .notNull(),
   },
   (table) => [
     index('idx_users_created_id_uuid').on(table.createdAt, table.id, table.communityUuid),

@@ -7,7 +7,15 @@ import {
 } from 'shared'
 import { v4 } from 'uuid'
 import { AppDatabase } from '../..'
-import { Community, User, UserContact, UserRole } from '../../entity'
+import {
+  ALIAS_ORIGIN_ADOPTED,
+  Community,
+  User,
+  UserAlias,
+  UserContact,
+  UserRole,
+} from '../../entity'
+import { AccountState } from '../../enum/AccountState'
 import { RoleNames } from '../../enum/RoleNames'
 import { getHomeCommunity } from '../../queries/communities'
 import { UserInterface } from '../users/UserInterface'
@@ -22,6 +30,10 @@ export async function userFactory(
   dbUser.emailId = dbUserContact.id
   dbUser.emailContact = dbUserContact
   dbUser = await dbUser.save()
+
+  if (dbUser.alias) {
+    await createUserAlias(dbUser.id, dbUser.alias)
+  }
 
   const userRole = user.role as RoleNames
   if (userRole && (userRole === RoleNames.ADMIN || userRole === RoleNames.MODERATOR)) {
@@ -39,6 +51,7 @@ export async function userFactoryBulk(
   const dbUsers: User[] = []
   const dbUserContacts: UserContact[] = []
   const dbUserRoles: UserRole[] = []
+  const dbUserAliases: UserAlias[] = []
   const lastUser = await User.findOne({ order: { id: 'DESC' }, select: ['id'], where: {} })
   const lastUserContact = await UserContact.findOne({
     order: { id: 'DESC' },
@@ -65,6 +78,9 @@ export async function userFactoryBulk(
     if (userRole && (userRole === RoleNames.ADMIN || userRole === RoleNames.MODERATOR)) {
       dbUserRoles.push(await createUserRole(dbUser.id, userRole, false))
     }
+    if (dbUser.alias) {
+      dbUserAliases.push(await createUserAlias(dbUser.id, dbUser.alias, false))
+    }
 
     userId++
     emailId++
@@ -77,10 +93,12 @@ export async function userFactoryBulk(
     const dbUsersCopy = dbUsers.map((user) => ({ ...user }))
     const dbUserContactsCopy = dbUserContacts.map((userContact) => ({ ...userContact }))
     const dbUserRolesCopy = dbUserRoles.map((userRole) => ({ ...userRole }))
+    const dbUserAliasesCopy = dbUserAliases.map((userAlias) => ({ ...userAlias }))
     await Promise.all([
       transaction.getRepository(User).insert(dbUsersCopy),
       transaction.getRepository(UserContact).insert(dbUserContactsCopy),
       transaction.getRepository(UserRole).insert(dbUserRolesCopy),
+      transaction.getRepository(UserAlias).insert(dbUserAliasesCopy),
     ])
   })
   return dbUsers
@@ -100,6 +118,11 @@ export async function createUser(
   dbUser.language = user.language ?? 'en'
   dbUser.createdAt = user.createdAt ?? new Date()
   dbUser.deletedAt = user.deletedAt ?? null
+  dbUser.accountState = dbUser.deletedAt
+    ? AccountState.DELETED
+    : user.emailChecked
+      ? AccountState.ACTIVATED
+      : AccountState.REGISTERED
   dbUser.publisherId = user.publisherId ?? 0
   dbUser.humhubAllowed = true
   dbUser.gradidoID = v4()
@@ -157,4 +180,18 @@ export async function createUserRole(
   dbUserRole.userId = userId
   dbUserRole.role = role
   return store ? dbUserRole.save() : dbUserRole
+}
+
+// Every alias a member holds has its row in `user_aliases`, as registration and migration
+// 0116 write it. `adopted`: a name that is already settled, and costs none of the four picks.
+export async function createUserAlias(
+  userId: number,
+  alias: string,
+  store: boolean = true,
+): Promise<UserAlias> {
+  const dbUserAlias = new UserAlias()
+  dbUserAlias.userId = userId
+  dbUserAlias.alias = alias
+  dbUserAlias.origin = ALIAS_ORIGIN_ADOPTED
+  return store ? dbUserAlias.save() : dbUserAlias
 }

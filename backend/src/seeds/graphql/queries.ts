@@ -735,9 +735,9 @@ export const showFriends = gql`
   }
 `
 
-export const presenceCode = gql`
+export const guarantorCode = gql`
   query {
-    presenceCode {
+    guarantorCode {
       code
       alias
       expiresAt

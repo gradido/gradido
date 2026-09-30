@@ -1,8 +1,15 @@
 import { randomUUID } from 'node:crypto'
-import { drizzle, MySql2Database } from 'drizzle-orm/mysql2'
+import { ExtractTablesWithRelations } from 'drizzle-orm'
+import { MySqlTransaction } from 'drizzle-orm/mysql-core'
+import {
+  drizzle,
+  MySql2Database,
+  MySql2PreparedQueryHKT,
+  MySql2QueryResultHKT,
+} from 'drizzle-orm/mysql2'
 import Redis from 'ioredis'
 import { getLogger } from 'log4js'
-import { Connection, createConnection, createPool, Pool } from 'mysql2/promise'
+import { createPool, Pool } from 'mysql2/promise'
 import { DataSource as DBDataSource, FileLogger } from 'typeorm'
 import { latestDbVersion } from '.'
 import { CONFIG } from './config'
@@ -162,6 +169,23 @@ export class AppDatabase {
         supportBigNumbers: true,
         bigNumberStrings: true,
       })
+      // Strict mode on every connection of this pool, whatever the server was configured with:
+      // without it MariaDB stores '' for a value outside an ENUM (users.account_state) and cuts
+      // a too long string, with a warning nobody reads. The list is MariaDB's own default since
+      // 10.2.4. A command issued here is queued on the connection ahead of its first query.
+      // On the core pool: the promise pool passes the event on with the core connection, but
+      // its typings claim a promise connection.
+      this.drizzlePool.pool.on('connection', (connection) => {
+        connection.query(
+          "SET SESSION sql_mode = 'STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'",
+          // A callback, or a failure would be an unhandled 'error' event and end the process.
+          (error: Error | null) => {
+            if (error) {
+              logger.error('Setting sql_mode on a new Drizzle connection failed:', error)
+            }
+          },
+        )
+      })
     }
   }
 
@@ -268,6 +292,12 @@ export class AppDatabase {
 
 export const getDataSource = () => AppDatabase.getInstance().getDataSource()
 export const drizzleDb = () => AppDatabase.getInstance().getDrizzleDataSource()
+export type DrizzleTransaction = MySqlTransaction<
+  MySql2QueryResultHKT,
+  MySql2PreparedQueryHKT,
+  Record<string, never>,
+  ExtractTablesWithRelations<Record<string, never>>
+>
 
 /**
  * What arrives over Redis: normally `{ sender, message }` as publish() sends it. Anything

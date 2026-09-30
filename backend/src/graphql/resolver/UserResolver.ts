@@ -10,7 +10,6 @@ import { OptInType } from '@enum/OptInType'
 import { Order } from '@enum/Order'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { PublishNameType } from '@enum/PublishNameType'
-import { UserContactType } from '@enum/UserContactType'
 import { MemberAvatarRefInput } from '@input/MemberAvatarRefInput'
 import { AdminUser, SearchAdminUsersResult } from '@model/AdminUser'
 import { AliasStatus } from '@model/AliasStatus'
@@ -23,28 +22,23 @@ import { UserLocationResult } from '@model/UserLocationResult'
 import {
   decodeJpegImage,
   ensureUrlEndsWithSlash,
-  registerAddressTransaction,
   sendAccountActivationEmail,
-  sendAccountMultiRegistrationEmail,
   sendResetPasswordEmail,
   validateAlias,
   xcomMemberAvatars,
 } from 'core'
 import {
-  ALIAS_ORIGIN_ASSIGNED,
+  AccountState,
   ALIAS_ORIGIN_CHOSEN,
-  type AliasOrigin,
   AppDatabase,
   ASSIGNABLE_ROLE_NAMES,
-  aliasExists,
   aliasOriginIsSettled,
   DBNotFoundError,
-  ContributionLink as DbContributionLink,
   DbLoginUser,
-  TransactionLink as DbTransactionLink,
   User as DbUser,
   UserContact as DbUserContact,
   UserRole as DbUserRole,
+  DrizzleTransaction,
   dbCountChosenAliasesSince,
   dbDeleteUserAvatar,
   dbEmailTaken,
@@ -56,7 +50,6 @@ import {
   dbFindOwnAlias,
   dbFindProjectBrandingByAlias,
   dbFindProjectSpaceId,
-  dbFindUnconfirmedVouchedAccounts,
   dbFindUserAvatarFull,
   dbFindUserAvatarSmall,
   dbFindUserByEmailOrFail,
@@ -67,17 +60,19 @@ import {
   dbInsertEvent,
   dbInsertUserAlias,
   dbMarkAliasAdopted,
+  dbRecoverUser,
   dbReleaseUnconfirmedEmailChangeFor,
+  dbSoftRemoveUser,
   dbUpsertUserAvatar,
   dbUserUpdateField,
   dbUserUpdatePassword,
+  drizzleDb,
   EventType,
   emailContactByUserIdQuery,
   findUserByIdentifier,
   getCommunityByUuid,
   getHomeCommunity,
   getHomeCommunityDrizzle,
-  ProjectBrandingSelect,
   UserLoggingView,
 } from 'database'
 import { GraphQLResolveInfo } from 'graphql'
@@ -88,14 +83,13 @@ import {
   ALIAS_QUOTA_WINDOW_MS,
   AVATAR_FULL_MAX_BYTES,
   AVATAR_SMALL_MAX_BYTES,
-  aliasCandidates,
-  aliasSchema,
+  languageSchema,
   MemberAvatarPayload,
-  pickFreeAlias,
+  parseOrThrowFirstIssue,
+  passwordSchema,
   Result,
   updateAllDefinedAndChanged,
 } from 'shared'
-import { randombytes_random } from 'sodium-native'
 import {
   Arg,
   Args,
@@ -111,7 +105,6 @@ import {
 } from 'type-graphql'
 import { IRestResponse } from 'typed-rest-client'
 import { EntityNotFoundError, Point } from 'typeorm'
-import { v4 as uuidv4 } from 'uuid'
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
 import { Account as HumhubAccount } from '@/apis/humhub/model/Account'
 import { GetUser } from '@/apis/humhub/model/GetUser'
@@ -121,6 +114,7 @@ import { encode } from '@/auth/JWT'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { accountStateFromFields } from '@/data/AccountState.logic'
 import { canEmailResend, isEmailVerificationCodeValid } from '@/data/EmailVerificationCode.logic'
 import { findableWithoutPlace } from '@/data/Location.logic'
 import {
@@ -130,15 +124,12 @@ import {
   splitMemberRefsByCommunity,
   XCOM_MEMBER_AVATARS_TIMEOUT_MS,
 } from '@/data/MemberAvatars.logic'
-import { inMemberLine } from '@/data/MemberLine.logic'
-import { PRESENCE_MAX_UNCONFIRMED, verifyPresenceCode } from '@/data/PresenceCode.logic'
 import { PublishNameLogic } from '@/data/PublishName.logic'
-import { registerAccount } from '@/interactions/registerAccount/RegisterAccount.context'
-import { isValidPassword } from '@/password/EncryptorUtils'
+import { createUserSchema } from '@/interactions/registerUser'
+import { registerUser } from '@/interactions/registerUser/registerUser.context'
 import { encryptPassword, fakeVerifyPassword, verifyPassword } from '@/password/PasswordEncryptor'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
-import { communityDbUser } from '@/util/communityUser'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
 import { durationInMinutesFromDates, getTimeDurationObject, printTimeDuration } from '@/util/time'
 import { authenticateGmsUserPlayground } from './util/authenticateGmsUserPlayground'
@@ -155,17 +146,12 @@ import { sendUsersToGms } from './util/sendUserToGms'
 import { syncHumhub } from './util/syncHumhub'
 import { removeUserFromGms } from './util/syncMatchingEntryToGms'
 
-const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl', 'it', 'tr', 'ru', 'pt', 'el']
-const DEFAULT_LANGUAGE = 'de'
 const db = AppDatabase.getInstance()
 const createLogger = (method: string) =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.UserResolver.${method}`)
-const isLanguage = (language: string): boolean => {
-  return LANGUAGES.includes(language)
-}
 
-// newEmailContact and newGradidoID moved into the registerAccount interaction — the
-// account-creation flow lives there now (EM-013 shares it with the classic path).
+// The account-creation flow lives in the registerUser interaction
+// (backend/src/interactions/registerUser).
 
 export const activationLink = (verificationCode: string, logger: Logger): string => {
   logger.debug(`activationLink(${verificationCode})...`)
@@ -421,203 +407,35 @@ export class UserResolver {
   }
 
   @Authorized([RIGHTS.CREATE_USER])
-  @Mutation(() => User)
+  @Mutation(() => Boolean)
   async createUser(
     @Args()
-    {
-      alias = null,
-      email,
-      firstName,
-      lastName,
-      language,
-      publisherId = null,
-      redeemCode = null,
-      project = null,
-      referrerAlias = null,
-      presenceCode = null,
-      password = null,
-    }: CreateUserArgs,
-  ): Promise<User> {
+    args: CreateUserArgs,
+  ): Promise<boolean> {
     const logger = createLogger('createUser')
-    const shortEmail = email.substring(0, 3)
+    const shortEmail = args.email.substring(0, 3)
     logger.addContext('email', shortEmail)
 
-    const shortRedeemCode = redeemCode?.substring(0, 6)
+    const shortRedeemCode = args.redeemCode?.substring(0, 6)
     const infos = []
-    infos.push(`language=${language}`)
-    if (publisherId) {
-      infos.push(`publisherId=${publisherId}`)
+    infos.push(`language=${args.language}`)
+    if (args.publisherId) {
+      infos.push(`publisherId=${args.publisherId}`)
     }
-    if (redeemCode) {
+    if (args.redeemCode) {
       infos.push(`redeemCode=${shortRedeemCode}`)
     }
-    if (project) {
-      infos.push(`project=${project}`)
+    if (args.project) {
+      infos.push(`project=${args.project}`)
     }
-    // That a table code came along, never the code itself: for ten minutes it vouches for an
+    // That a guarantor code came along, never the code itself: for ten minutes it vouches for an
     // account in a member's name. The request log masks it too (filterVariables).
-    if (presenceCode) {
-      infos.push('presenceCode')
+    if (args.guarantorCode) {
+      infos.push('guarantorCode')
     }
     logger.info(`createUser(${infos.join(', ')})`)
 
-    // TODO: wrong default value (should be null), how does graphql work here? Is it an required field?
-    // default int publisher_id = 0;
-
-    // Validate Language (no throw)
-    if (!language || !isLanguage(language)) {
-      language = DEFAULT_LANGUAGE
-    }
-
-    // E-017, the table code: a guest who scanned a member's live card may choose a password
-    // here. Every check of the code comes before the address is looked at - the member and
-    // their limit below too - so what they answer is about the code, the password and the
-    // member, and never about the address. A password without a code is refused rather than
-    // dropped: a value nobody expected must not vanish silently.
-    if (password && !presenceCode) {
-      throw new LogError('Password requires a presence code')
-    }
-    // A table code vouches through the member whose address it came with. registerAccount
-    // looks that member up only when no redeem code came along, so with one - even a made-up
-    // one - the account would get a password while nobody, or the link's owner, is recorded
-    // as having vouched. The wallet never sends both.
-    if (presenceCode && redeemCode) {
-      throw new LogError('Presence code together with a redeem code')
-    }
-    let presenceValid = false
-    let presenceCommunityUuid = ''
-    if (presenceCode) {
-      // The code must be the one shown by the member whose address the guest came from.
-      const homeCom = await getHomeCommunity()
-      if (!homeCom?.communityUuid) {
-        // Its own answer, not "expired": the seal is bound to this community, so without it
-        // every code fails the check - and the guest would be told to fetch a fresh one, which
-        // fails the same way. `presenceCode` says the same when it cannot mint one.
-        throw new LogError('No home community')
-      }
-      presenceCommunityUuid = homeCom.communityUuid
-      presenceValid = verifyPresenceCode(presenceCode, referrerAlias ?? '', presenceCommunityUuid)
-      if (!presenceValid) {
-        throw new LogError('Presence code invalid or expired')
-      }
-    }
-    if (password && !isValidPassword(password)) {
-      throw new LogError(
-        'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
-      )
-    }
-    // E-019: an account that can act without a mailbox is opened only while the member who
-    // vouches for it holds fewer than PRESENCE_MAX_UNCONFIRMED unconfirmed ones. Counted here,
-    // before the address: at the limit a taken address gets the same refusal as a free one -
-    // the silence below would tell them apart - and a request over the limit never waits in
-    // the member's line. Counted again in that line, where it decides: one after another per
-    // member in this process, and whoever waits holds no connection.
-    const refuseAtLimit = (guests: unknown[]) => {
-      if (guests.length >= PRESENCE_MAX_UNCONFIRMED) {
-        throw new LogError('Vouching limit reached')
-      }
-    }
-    let referrer: DbUser | null = null
-    if (presenceValid && password) {
-      referrer = await findUserByIdentifier(referrerAlias ?? '', presenceCommunityUuid)
-      if (!referrer) {
-        // Deleted after showing the code: without the member, nobody vouches.
-        throw new LogError('Presence code invalid or expired')
-      }
-      refuseAtLimit(await dbFindUnconfirmedVouchedAccounts(referrer.id))
-    }
-
-    // check if user with email still exists?
-    email = email.trim().toLowerCase()
-    if (await checkEmailExists(email)) {
-      const foundUser = await findUserByEmail(email)
-      logger.info('DbUser.findOne', foundUser.id)
-
-      if (foundUser) {
-        logger.addContext('user', foundUser.id)
-        logger.removeContext('email')
-        // ATTENTION: this logger-message will be exactly expected during tests, next line
-        logger.info(`User already exists`)
-        logger.info(
-          `Specified username when trying to register multiple times with this email: firstName=${firstName.substring(0, 4)}, lastName=${lastName.substring(0, 4)}`,
-        )
-
-        const user = new User(communityDbUser)
-        user.id = randombytes_random() % (2048 * 16) // TODO: for a better faking derive id from email so that it will be always the same id when the same email comes in?
-        user.gradidoID = uuidv4()
-        user.firstName = firstName
-        user.lastName = lastName
-        user.language = language
-        user.publisherId = publisherId
-        if (alias && (await validateAlias(alias))) {
-          user.alias = alias
-        }
-        logger.debug('partly faked user', { id: user.id, gradidoID: user.gradidoID })
-
-        await sendAccountMultiRegistrationEmail({
-          firstName: foundUser.firstName, // this is the real name of the email owner, but just "firstName" would be the name of the new registrant which shall not be passed to the outside
-          lastName: foundUser.lastName, // this is the real name of the email owner, but just "lastName" would be the name of the new registrant which shall not be passed to the outside
-          email,
-          language: foundUser.language, // use language of the emails owner for sending
-        })
-        await dbInsertEvent({
-          type: EventType.EMAIL_ACCOUNT_MULTIREGISTRATION,
-          affectedUserId: foundUser.id,
-          actingUserId: 0,
-        })
-
-        /* uncomment this, when you need the activation link on the console */
-        // In case EMails are disabled log the activation link for the user
-        logger.info('createUser() faked and send multi registration mail...')
-
-        return user
-      }
-    }
-    // The whole account-creation flow lives in the registerAccount interaction now —
-    // moved there verbatim so the assisted registration (EM-013) shares it instead of
-    // growing a second copy. passwordPlain: null keeps this the classic registration; a
-    // password reaches it only with a valid table code (E-017), checked above.
-    const registration = {
-      email,
-      firstName,
-      lastName,
-      language,
-      publisherId,
-      redeemCode,
-      project,
-      alias,
-      passwordPlain: presenceValid ? password : null,
-      referrerAlias,
-      // Only the table code resolves the member up here, and only then does the row have to
-      // name the same one that was counted. Everybody else leaves this null and registerAccount
-      // looks the address up as it always did.
-      referrerId: referrer?.id ?? null,
-    }
-    const openAccount = () => registerAccount(registration, logger)
-    let dbUser: DbUser
-    if (referrer) {
-      // Parallel registrations can all have read "four" above: counted again and opened one
-      // after another per member in this process, the count decides. Whoever waits holds no
-      // connection, only a promise; registerAccount commits before it returns, so the next in
-      // line counts the account just opened. A taken address never gets here - the silence
-      // above answered for it and counts nothing.
-      const referrerId = referrer.id
-      dbUser = await inMemberLine(referrerId, async () => {
-        refuseAtLimit(await dbFindUnconfirmedVouchedAccounts(referrerId))
-        return openAccount()
-      })
-    } else {
-      dbUser = await openAccount()
-    }
-    // Only the id goes into the event: no lookup of the member.
-    if (presenceValid && dbUser.referrerId) {
-      await dbInsertEvent({
-        type: EventType.USER_REGISTER_PRESENCE,
-        affectedUserId: dbUser.id,
-        actingUserId: dbUser.referrerId,
-      })
-    }
-    return new User(dbUser)
+    return (await registerUser(parseOrThrowFirstIssue(createUserSchema, args), logger)) !== 0
   }
 
   @Authorized([RIGHTS.SEND_RESET_PASSWORD_EMAIL])
@@ -691,10 +509,9 @@ export class UserResolver {
     const logger = createLogger('setPassword')
     logger.info(`setPassword...`)
     // Validate Password
-    if (!isValidPassword(password)) {
-      throw new LogError(
-        'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
-      )
+    const validPassword = passwordSchema.safeParse(password)
+    if (!validPassword.success) {
+      throw new LogError(validPassword.error.issues[0].message)
     }
     // load code
     // A pending e-mail change carries a code of the same kind, but that code confirms an
@@ -730,6 +547,7 @@ export class UserResolver {
 
     // Activate EMail
     userContact.emailChecked = true
+    user.accountState = AccountState.ACTIVATED
 
     // Update Password
     user.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
@@ -920,116 +738,113 @@ export class UserResolver {
     const oldHumhubUsername = publishNameLogic.getUserIdentifier(
       user.humhubPublishName as PublishNameType,
     )
-    const queryRunner = db.getDataSource().createQueryRunner()
-    await queryRunner.connect()
-    await queryRunner.startTransaction('REPEATABLE READ')
-    // Everything from here on runs inside the transaction that was just opened, and
-    // that is the point: before, only the save was guarded, so a rejected alias, an
-    // exhausted quota, a bad password or an unsupported language left the connection
-    // open with a REPEATABLE READ transaction still running on it.
-    try {
-      let updated = updateAllDefinedAndChanged(user, {
-        firstName,
-        lastName,
-        hideAmountGDD,
-        hideAmountGDT,
-        humhubAllowed,
-        gmsAllowed,
-        avatarVisibleToMembers,
-        transfersInChat,
-        gmsPublishName: gmsPublishName?.valueOf(),
-        humhubPublishName: humhubPublishName?.valueOf(),
-        gmsPublishLocation: gmsPublishLocation?.valueOf(),
-        aboutMe,
-      })
-      // Taking a name inserts a row and moves the marker; reclaiming one the member
-      // already owns only moves the marker. Leaving a name writes nothing - its row is
-      // already there. That is why the number of picked rows in a year is exactly how
-      // often somebody chose, and why coming back to an earlier name is free.
-      if (alias && alias !== user.alias) {
-        await validateAlias(alias, user.id)
-        const ownAlready = await dbFindOwnAlias(user.id, alias, queryRunner.manager)
-        if (!ownAlready) {
-          const since = new Date(Date.now() - ALIAS_QUOTA_WINDOW_MS)
-          const picked = await dbCountChosenAliasesSince(user.id, since, queryRunner.manager)
-          if (picked >= ALIAS_QUOTA_PER_WINDOW) {
-            logger.warn('alias quota exhausted', picked)
-            throw new LogError('ALIAS_QUOTA_EXHAUSTED')
+    let updated = updateAllDefinedAndChanged(user, {
+      firstName,
+      lastName,
+      hideAmountGDD,
+      hideAmountGDT,
+      humhubAllowed,
+      gmsAllowed,
+      avatarVisibleToMembers,
+      transfersInChat,
+      gmsPublishName: gmsPublishName?.valueOf(),
+      humhubPublishName: humhubPublishName?.valueOf(),
+      gmsPublishLocation: gmsPublishLocation?.valueOf(),
+      aboutMe,
+    })
+
+    if (language) {
+      if (!languageSchema.safeParse(language).success) {
+        logger.warn('try to set unsupported language', language)
+        throw new LogError('Given language is not a valid language or not supported')
+      }
+      user.language = language
+      updated = true
+    }
+
+    if (password && passwordNew) {
+      // Validate Password
+      const validPassword = passwordSchema.safeParse(passwordNew)
+      if (!validPassword.success) {
+        // TODO: log which rule(s) wasn't met
+        logger.warn('try to set invalid password')
+        throw new Error(validPassword.error.issues[0].message)
+      }
+
+      if (!(await verifyPassword(user, password))) {
+        logger.debug('old password is invalid')
+        throw new LogError(`Old password is invalid`)
+      }
+
+      // Save new password hash and newly encrypted private key
+      user.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
+      user.password = await encryptPassword(user, passwordNew)
+      updated = true
+    }
+
+    if (gmsLocation) {
+      user.location = Location2Point(gmsLocation)
+      updated = true
+    }
+
+    // Taking a name inserts a row and moves the marker; reclaiming one the member
+    // already owns only moves the marker. Leaving a name writes nothing - its row is
+    // already there. That is why the number of picked rows in a year is exactly how
+    // often somebody chose, and why coming back to an earlier name is free.
+    // The only change that writes two tables, so the only one in a transaction. It comes
+    // after every other check: once it has committed, nothing may refuse the request.
+    let aliasChanged = false
+    if (alias && alias !== user.alias) {
+      const userId = user.id
+      await drizzleDb().transaction(
+        async (tx: DrizzleTransaction) => {
+          await validateAlias(alias, userId, tx)
+          const ownAlready = await dbFindOwnAlias(userId, alias)
+          if (!ownAlready) {
+            const since = new Date(Date.now() - ALIAS_QUOTA_WINDOW_MS)
+            const picked = await dbCountChosenAliasesSince(userId, since)
+            if (picked >= ALIAS_QUOTA_PER_WINDOW) {
+              logger.warn('alias quota exhausted', picked)
+              throw new LogError('ALIAS_QUOTA_EXHAUSTED')
+            }
+            const inserted = await dbInsertUserAlias(
+              { userId, alias, origin: ALIAS_ORIGIN_CHOSEN },
+              tx,
+            )
+            if (!inserted.success) {
+              // taken by somebody else between the check above and this insert
+              logger.warn('alias taken while it was being set', inserted.error)
+              throw new Error('Given alias is already in use')
+            }
+            logger.debug('member took a new alias')
+          } else {
+            logger.debug('member reclaimed an alias they already owned')
           }
-          await dbInsertUserAlias(user.id, alias, ALIAS_ORIGIN_CHOSEN, queryRunner.manager)
-          logger.debug('member took a new alias')
-        } else {
-          logger.debug('member reclaimed an alias they already owned')
-        }
-        user.alias = alias
-        updated = true
-      }
+          if ((await dbUserUpdateField(userId, 'alias', alias, tx)) !== 1) {
+            logger.error(`update alias for user=${userId} failed`)
+            throw new Error('Error saving user')
+          }
+        },
+        { isolationLevel: 'repeatable read' },
+      )
+      user.alias = alias
+      aliasChanged = true
+    }
 
-      if (language) {
-        if (!isLanguage(language)) {
-          logger.warn('try to set unsupported language', language)
-          throw new LogError('Given language is not a valid language or not supported')
-        }
-        user.language = language
-        updated = true
-      }
+    // early exit if no update was made
+    if (!updated && !aliasChanged) {
+      return true
+    }
 
-      if (password && passwordNew) {
-        // Validate Password
-        if (!isValidPassword(passwordNew)) {
-          // TODO: log which rule(s) wasn't met
-          logger.warn('try to set invalid password')
-          throw new Error(
-            'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
-          )
-        }
-
-        if (!(await verifyPassword(user, password))) {
-          logger.debug('old password is invalid')
-          throw new LogError(`Old password is invalid`)
-        }
-
-        // Save new password hash and newly encrypted private key
-        user.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
-        user.password = await encryptPassword(user, passwordNew)
-        updated = true
-      }
-
-      if (gmsLocation) {
-        user.location = Location2Point(gmsLocation)
-        updated = true
-      }
-
-      // early exit if no update was made. Nothing was written, but the transaction is
-      // open all the same and has to be closed before returning - and this is the most
-      // travelled way out of the whole resolver, so a bare `return` here leaked a
-      // connection on every call that changed nothing.
-      if (!updated) {
-        await queryRunner.rollbackTransaction()
-        return true
-      }
-
+    // Everything else is one row in one table and needs no transaction.
+    if (updated) {
       try {
-        user = await queryRunner.manager.save(user).catch((error) => {
-          throw new LogError('Error while saving user', error)
-        })
-        await queryRunner.commitTransaction()
-        logger.addContext('user', user.id)
+        user = await DbUser.save(user)
       } catch (err) {
         const errorMessage = 'Error saving user'
         logger.error(errorMessage, err)
         throw new Error(errorMessage)
       }
-    } catch (err) {
-      if (queryRunner.isTransactionActive) {
-        await queryRunner.rollbackTransaction()
-      }
-      // Passed on unchanged. The wallet reads ALIAS_QUOTA_EXHAUSTED off the message to
-      // name a date instead of showing a bare code, so flattening these into one
-      // message here would take that away.
-      throw err
-    } finally {
-      await queryRunner.release()
     }
     logger.info('updateUserInfos() successfully finished...')
     logger.debug('writing User data successful...', new UserLoggingView(user))
@@ -1678,7 +1493,7 @@ export class UserResolver {
       throw new LogError('Moderator can not delete his own account')
     }
     // soft-delete user
-    await user.softRemove()
+    await dbSoftRemoveUser(user)
     await dbInsertEvent({
       type: EventType.ADMIN_USER_DELETE,
       affectedUserId: user.id,
@@ -1694,14 +1509,21 @@ export class UserResolver {
     @Arg('userId', () => Int) userId: number,
     @Ctx() context: Context,
   ): Promise<Date | null> {
-    const user = await DbUser.findOne({ where: { id: userId }, withDeleted: true })
+    const user = await DbUser.findOne({
+      where: { id: userId },
+      withDeleted: true,
+      relations: ['emailContact'],
+    })
     if (!user) {
       throw new LogError('Could not find user with given ID', userId)
     }
     if (!user.deletedAt) {
       throw new LogError('User is not deleted')
     }
-    await user.recover()
+    await dbRecoverUser(
+      user,
+      accountStateFromFields(user, user.emailContact?.emailChecked ?? false),
+    )
     await dbInsertEvent({
       type: EventType.ADMIN_USER_UNDELETE,
       affectedUserId: user.id,

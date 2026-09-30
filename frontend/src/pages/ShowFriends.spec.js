@@ -9,7 +9,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import ShowFriends from './ShowFriends.vue'
 import OwnCodeView from '@/components/QrCode/OwnCodeView'
 import { logout } from '@/graphql/mutations'
-import { presenceCode as presenceCodeQuery } from '@/graphql/presenceCode.graphql'
+import { guarantorCode as guarantorCodeQuery } from '@/graphql/guarantorCode.graphql'
 import en from '@/locales/en.json'
 import { renderQrCodeCanvas } from '@/utils/qrCode'
 
@@ -31,19 +31,19 @@ const toast = vi.hoisted(() => ({ toastSuccess: vi.fn(), toastError: vi.fn() }))
 vi.mock('@/composables/useToast', () => ({ useAppToast: () => toast }))
 
 /**
- * The table code query (E-017), as the page sees it: `useQuery`'s refs. `server` is set before
+ * The guarantor code query (E-017), as the page sees it: `useQuery`'s refs. `server` is set before
  * each mount. Unless a test says otherwise the server has no code for the member (the answer
  * is null, as for a member without a user name) -- the page shows the card of before, so the
- * tests from before the table code keep describing the card they always did.
+ * tests from before the guarantor code keep describing the card they always did.
  */
-const presenceQuery = vi.hoisted(() => ({ server: null, calls: [] }))
+const guarantorQuery = vi.hoisted(() => ({ server: null, calls: [] }))
 // The one mutation the page sends: the sign-out for a guest without a phone (ZE-013). The
 // document is kept, so a test can say which mutation it was.
 const signOut = vi.hoisted(() => ({ documents: [], mutate: vi.fn() }))
 vi.mock('@vue/apollo-composable', () => ({
   useQuery: (...args) => {
-    presenceQuery.calls.push(args)
-    return presenceQuery.server
+    guarantorQuery.calls.push(args)
+    return guarantorQuery.server
   },
   useMutation: (document) => {
     signOut.documents.push(document)
@@ -65,7 +65,7 @@ const answerWith = ({
   unconfirmedGuests = [],
   ...rest
 }) => ({
-  presenceCode: { code, alias, remainingMs, unconfirmedGuests, ...rest },
+  guarantorCode: { code, alias, remainingMs, unconfirmedGuests, ...rest },
 })
 
 // Guests who have not confirmed yet, as the server lists them (E-020): oldest first.
@@ -88,7 +88,7 @@ const shortDate = (iso) => new Intl.DateTimeFormat('en', SHORT_DATE).format(new 
  */
 const serverSays = ({ none = false, error = null, next = null, ...answer } = {}) => {
   const server = {
-    result: ref(none ? { presenceCode: null } : answer.code ? answerWith(answer) : undefined),
+    result: ref(none ? { guarantorCode: null } : answer.code ? answerWith(answer) : undefined),
     error: ref(error),
     loading: ref(false),
     refetch: vi.fn(() => {
@@ -101,7 +101,7 @@ const serverSays = ({ none = false, error = null, next = null, ...answer } = {})
       return Promise.resolve({ data: server.result.value })
     }),
   }
-  presenceQuery.server = server
+  guarantorQuery.server = server
   return server
 }
 
@@ -152,7 +152,7 @@ const openAway = async (wrapper) => {
 describe('ShowFriends', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    presenceQuery.calls = []
+    guarantorQuery.calls = []
     signOut.documents = []
     serverSays({ none: true })
     config.MATCHING_ACTIVE = true
@@ -271,8 +271,8 @@ describe('ShowFriends', () => {
    * E-017: on this page the card carries a signed stamp in its link, and whoever registers with
    * it within ten minutes may choose a password. A new one for each guest, by the button.
    */
-  describe('the table code', () => {
-    const LINK = `${ADDRESS}?presence=${CODE}`
+  describe('the guarantor code', () => {
+    const LINK = `${ADDRESS}?guarantor=${CODE}`
     const [oneMinute, minutes] = en.showFriends.here.validFor.split(' | ')
 
     // Date and the ticker only: flushPromises needs the real setTimeout.
@@ -305,9 +305,9 @@ describe('ShowFriends', () => {
     it('asks the server for a fresh code when the page opens', () => {
       mountPage()
 
-      expect(presenceQuery.calls).toHaveLength(1)
-      const [document, , options] = presenceQuery.calls[0]
-      expect(document).toBe(presenceCodeQuery)
+      expect(guarantorQuery.calls).toHaveLength(1)
+      const [document, , options] = guarantorQuery.calls[0]
+      expect(document).toBe(guarantorCodeQuery)
       expect(options).toEqual(expect.objectContaining({ fetchPolicy: 'network-only' }))
       // ⛔ Unwrapped, never compared as it stands: `enabled` is a ref, so the page follows a
       // member who confirms mid-session. A failing comparison against the ref itself makes
@@ -330,7 +330,7 @@ describe('ShowFriends', () => {
 
       const address = wrapper.find('[data-test="show-friends-address"]').text()
       expect(address).toContain('ki-playground.gradido.net/u/alice')
-      expect(address).not.toContain('presence')
+      expect(address).not.toContain('guarantor')
     })
 
     it('says how long the code is good for, and what it gives', async () => {
@@ -377,10 +377,10 @@ describe('ShowFriends', () => {
 
       expect(server.refetch).toHaveBeenCalledTimes(1)
       expect(wrapper.findComponent(OwnCodeView).props('link')).toBe(
-        `${ADDRESS}?presence=${NEXT_CODE}`,
+        `${ADDRESS}?guarantor=${NEXT_CODE}`,
       )
       expect(wrapper.find('[data-test="own-code-picture"]').attributes('src')).toBe(
-        `drawn:${ADDRESS}?presence=${NEXT_CODE}`,
+        `drawn:${ADDRESS}?guarantor=${NEXT_CODE}`,
       )
       expect(line(wrapper)).toBe(minutes.replace('{n}', '10'))
     })
@@ -405,14 +405,14 @@ describe('ShowFriends', () => {
       await flushPromises()
 
       expect(wrapper.findComponent(OwnCodeView).props('link')).toBe(ADDRESS)
-      expect(wrapper.find('[data-test="show-friends-presence"]').exists()).toBe(false)
+      expect(wrapper.find('[data-test="show-friends-guarantor"]').exists()).toBe(false)
       expect(toast.toastError).not.toHaveBeenCalled()
     })
 
     /**
      * A failed fetch is not the member's lasting state -- one dropped request at a café is
      * enough. The card falls back rather than keep the old code, and the button stays: without
-     * it the table code would be gone until the page is opened again, and nobody would notice.
+     * it the guarantor code would be gone until the page is opened again, and nobody would notice.
      */
     it('falls back when a new code cannot be fetched, and keeps the button for a new try', async () => {
       const { wrapper, server } = await mountWithCode({
@@ -436,7 +436,7 @@ describe('ShowFriends', () => {
       await flushPromises()
 
       expect(wrapper.findComponent(OwnCodeView).props('link')).toBe(
-        `${ADDRESS}?presence=${NEXT_CODE}`,
+        `${ADDRESS}?guarantor=${NEXT_CODE}`,
       )
       expect(line(wrapper)).toBe(minutes.replace('{n}', '10'))
     })
@@ -480,13 +480,13 @@ describe('ShowFriends', () => {
       const wrapper = mountPage({ username: 'alice', gradidoID: 'uuid-1', emailChecked: false })
       await flushPromises()
 
-      const [, , options] = presenceQuery.calls[0]
+      const [, , options] = guarantorQuery.calls[0]
       expect(unref(options.enabled)).toBe(false)
       expect(wrapper.findComponent(OwnCodeView).props('link')).toBe(ADDRESS)
       expect(wrapper.find('[data-test="show-friends-confirm-first"]').text()).toBe(
         en.showFriends.here.confirmFirst,
       )
-      expect(wrapper.find('[data-test="show-friends-presence"]').exists()).toBe(false)
+      expect(wrapper.find('[data-test="show-friends-guarantor"]').exists()).toBe(false)
     })
 
     // A query that is not enabled never answers, so waiting is no sign of a lost answer here:
@@ -522,7 +522,7 @@ describe('ShowFriends', () => {
       await flushPromises()
 
       expect(wrapper.find('[data-test="show-friends-confirm-first"]').exists()).toBe(false)
-      expect(unref(presenceQuery.calls[0][2].enabled)).toBe(true)
+      expect(unref(guarantorQuery.calls[0][2].enabled)).toBe(true)
     })
 
     it('says nothing about confirming to a confirmed member', async () => {
@@ -693,7 +693,7 @@ describe('ShowFriends', () => {
       await flushPromises()
 
       expect(wrapper.findComponent(OwnCodeView).props('link')).toBe(
-        `${ADDRESS}?presence=${NEXT_CODE}`,
+        `${ADDRESS}?guarantor=${NEXT_CODE}`,
       )
       expect(line(wrapper)).toBe(minutes.replace('{n}', '10'))
       expect(wrapper.find('[data-test="show-friends-limit-reached"]').exists()).toBe(false)
@@ -758,7 +758,7 @@ describe('ShowFriends', () => {
       const { wrapper } = await mountWithCode({ alias: 'alice-new' })
 
       expect(wrapper.findComponent(OwnCodeView).props('link')).toBe(
-        `https://ki-playground.gradido.net/u/alice-new?presence=${CODE}`,
+        `https://ki-playground.gradido.net/u/alice-new?guarantor=${CODE}`,
       )
       expect(wrapper.find('[data-test="show-friends-address"]').text()).toContain(
         'ki-playground.gradido.net/u/alice',
@@ -811,7 +811,7 @@ describe('ShowFriends', () => {
       vi.advanceTimersByTime(6000)
       await flushPromises()
       expect(wrapper.findComponent(OwnCodeView).props('link')).toBe(ADDRESS)
-      expect(wrapper.find('[data-test="show-friends-presence"]').exists()).toBe(false)
+      expect(wrapper.find('[data-test="show-friends-guarantor"]').exists()).toBe(false)
     })
 
     /**
@@ -867,7 +867,7 @@ describe('ShowFriends', () => {
       await flushPromises()
 
       expect(renderQrCodeCanvas).not.toHaveBeenCalled()
-      expect(wrapper.find('[data-test="show-friends-presence"]').exists()).toBe(false)
+      expect(wrapper.find('[data-test="show-friends-guarantor"]').exists()).toBe(false)
       expect(wrapper.find('[data-test="show-friends-address"]').exists()).toBe(true)
     })
 
@@ -879,7 +879,7 @@ describe('ShowFriends', () => {
       // A fresh code for another name than the store's: the form must carry the name the code
       // is sealed for, and that is the one in the answer.
       const FRESH = { code: NEXT_CODE, alias: 'alicia' }
-      const FORM = { path: '/register', query: { referrer: 'alicia', presence: NEXT_CODE } }
+      const FORM = { path: '/register', query: { referrer: 'alicia', guarantor: NEXT_CODE } }
       let registerForm
       let push
 

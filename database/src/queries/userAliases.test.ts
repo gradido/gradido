@@ -5,20 +5,31 @@ import {
   User as DbUser,
 } from '..'
 import { AppDatabase } from '../AppDatabase'
+import { DBDuplicateEntryError } from '../errorTypes'
 import { createCommunity } from '../seeds/community'
 import { userFactory, userFactoryBulk } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { peterLustig } from '../seeds/users/peter-lustig'
 import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 import {
-  dbAliasHeldByOther,
   dbCountChosenAliasesSince,
   dbFindAliasOwner,
+  dbFindLocalUserByAlias,
   dbFindOldestChosenAliasSince,
   dbFindOwnAlias,
+  dbFindUserAliasesExisting,
   dbInsertUserAlias,
   dbMarkAliasAdopted,
 } from './userAliases'
+
+// The id of the new row: inserting is not what these tests are about.
+async function insertAlias(userId: number, alias: string, origin: AliasOrigin): Promise<number> {
+  const result = await dbInsertUserAlias({ userId, alias, origin })
+  if (!result.success) {
+    throw result.error
+  }
+  return result.value
+}
 
 const db = AppDatabase.getInstance()
 
@@ -55,7 +66,7 @@ describe('userAliases.queries', () => {
 
   describe('dbFindOwnAlias', () => {
     it('finds a name the member owns', async () => {
-      await dbInsertUserAlias(bibi.id, 'bibi-one', ALIAS_ORIGIN_CHOSEN)
+      await insertAlias(bibi.id, 'bibi-one', ALIAS_ORIGIN_CHOSEN)
       const found = await dbFindOwnAlias(bibi.id, 'bibi-one')
       expect(found?.alias).toBe('bibi-one')
     })
@@ -63,36 +74,113 @@ describe('userAliases.queries', () => {
     // This is the whole of "reclaiming is free": the resolver asks whether the name is
     // already the member's before it counts anything.
     it('does not find a name that belongs to somebody else', async () => {
-      await dbInsertUserAlias(peter.id, 'peter-one', ALIAS_ORIGIN_CHOSEN)
+      await insertAlias(peter.id, 'peter-one', ALIAS_ORIGIN_CHOSEN)
       expect(await dbFindOwnAlias(bibi.id, 'peter-one')).toBeNull()
     })
   })
 
-  describe('dbAliasHeldByOther', () => {
-    beforeEach(async () => {
-      await dbInsertUserAlias(peter.id, 'taken-name', ALIAS_ORIGIN_CHOSEN)
+  // The unique key on user_aliases.alias is what registration and the name change rely on:
+  // a taken name comes back as DBDuplicateEntryError, and a name matches at most one member.
+  describe('dbInsertUserAlias', () => {
+    it('stores a name and returns the id of its row', async () => {
+      const result = await dbInsertUserAlias({
+        userId: bibi.id,
+        alias: 'bibi-new',
+        origin: ALIAS_ORIGIN_CHOSEN,
+      })
+      expect(result).toEqual({ success: true, value: expect.any(Number) })
     })
 
-    it('blocks a name somebody else left behind', async () => {
-      expect(await dbAliasHeldByOther('taken-name', bibi.id)).toBe(true)
+    it('refuses a name somebody else holds', async () => {
+      await insertAlias(bibi.id, 'taken-name', ALIAS_ORIGIN_CHOSEN)
+      expect(
+        await dbInsertUserAlias({
+          userId: peter.id,
+          alias: 'taken-name',
+          origin: ALIAS_ORIGIN_CHOSEN,
+        }),
+      ).toEqual({ success: false, error: expect.any(DBDuplicateEntryError) })
     })
 
-    // A name of one's own must not block oneself - otherwise nobody could ever take an
-    // earlier name back, which is the third of the four requirements from 2023.
-    it('does not block the owner from their own earlier name', async () => {
-      await dbInsertUserAlias(bibi.id, 'bibi-old', ALIAS_ORIGIN_CHOSEN)
-      expect(await dbAliasHeldByOther('bibi-old', bibi.id)).toBe(false)
+    it('refuses it in another capitalisation too', async () => {
+      await insertAlias(bibi.id, 'Taken-Name', ALIAS_ORIGIN_CHOSEN)
+      expect(
+        await dbInsertUserAlias({
+          userId: peter.id,
+          alias: 'tAKEN-nAME',
+          origin: ALIAS_ORIGIN_CHOSEN,
+        }),
+      ).toEqual({ success: false, error: expect.any(DBDuplicateEntryError) })
     })
 
-    it('blocks it for anyone when no member is named', async () => {
-      await dbInsertUserAlias(bibi.id, 'bibi-old', ALIAS_ORIGIN_CHOSEN)
-      expect(await dbAliasHeldByOther('bibi-old')).toBe(true)
+    it('refuses the same name a second time for its own owner', async () => {
+      await insertAlias(bibi.id, 'bibi-once', ALIAS_ORIGIN_CHOSEN)
+      expect(
+        await dbInsertUserAlias({
+          userId: bibi.id,
+          alias: 'bibi-once',
+          origin: ALIAS_ORIGIN_ASSIGNED,
+        }),
+      ).toEqual({ success: false, error: expect.any(DBDuplicateEntryError) })
+    })
+  })
+
+  describe('dbFindUserAliasesExisting', () => {
+    it('names those of the names somebody holds, in their stored spelling', async () => {
+      await insertAlias(bibi.id, 'BerndH', ALIAS_ORIGIN_CHOSEN)
+      await insertAlias(peter.id, 'BerndHue1', ALIAS_ORIGIN_CHOSEN)
+
+      const found = await dbFindUserAliasesExisting(['berndh', 'BerndHue', 'BERNDHUE1'])
+      expect(found.sort()).toEqual(['BerndH', 'BerndHue1'])
+    })
+
+    it('finds nothing where nobody holds any of them', async () => {
+      expect(await dbFindUserAliasesExisting(['nobody-here', 'nor-here'])).toEqual([])
+    })
+  })
+
+  describe('dbFindLocalUserByAlias', () => {
+    it('finds the member by their current alias, whatever the capitalisation', async () => {
+      expect((await dbFindLocalUserByAlias(bibiBloxberg.alias!))?.id).toBe(bibi.id)
+      expect((await dbFindLocalUserByAlias(bibiBloxberg.alias!.toLowerCase()))?.id).toBe(bibi.id)
+    })
+
+    // A name stays its owner's: an address printed before a rename still leads to them.
+    it('finds the member by a name they held before', async () => {
+      await insertAlias(bibi.id, 'bibi-was', ALIAS_ORIGIN_CHOSEN)
+      expect((await dbFindLocalUserByAlias('bibi-was'))?.id).toBe(bibi.id)
+    })
+
+    it('finds nobody for a name nobody owns', async () => {
+      expect(await dbFindLocalUserByAlias('nobody-here')).toBeNull()
+    })
+
+    it('finds no deleted member, by none of their names', async () => {
+      await insertAlias(bibi.id, 'bibi-was', ALIAS_ORIGIN_CHOSEN)
+      await DbUser.softRemove(bibi)
+
+      expect(await dbFindLocalUserByAlias(bibiBloxberg.alias!)).toBeNull()
+      expect(await dbFindLocalUserByAlias('bibi-was')).toBeNull()
+    })
+
+    it('finds no cached member of another community', async () => {
+      const stranger = DbUser.create()
+      stranger.foreign = true
+      stranger.alias = 'far-away'
+      stranger.gradidoID = '11111111-2222-4333-8444-555555555555'
+      stranger.communityUuid = '99999999-2222-4333-8444-555555555555'
+      stranger.firstName = 'Far'
+      stranger.lastName = 'Away'
+      await DbUser.save(stranger)
+      await insertAlias(stranger.id, 'far-away', ALIAS_ORIGIN_CHOSEN)
+
+      expect(await dbFindLocalUserByAlias('far-away')).toBeNull()
     })
   })
 
   describe('dbFindAliasOwner', () => {
     it('names who owns a name, which is what makes a printed card keep working', async () => {
-      await dbInsertUserAlias(bibi.id, 'bibi-old', ALIAS_ORIGIN_CHOSEN)
+      await insertAlias(bibi.id, 'bibi-old', ALIAS_ORIGIN_CHOSEN)
       const owner = await dbFindAliasOwner('bibi-old')
       expect(owner?.userId).toBe(bibi.id)
     })
@@ -104,8 +192,8 @@ describe('userAliases.queries', () => {
 
   describe('dbCountChosenAliasesSince', () => {
     it('counts the names the member picked', async () => {
-      await dbInsertUserAlias(bibi.id, 'pick-one', ALIAS_ORIGIN_CHOSEN)
-      await dbInsertUserAlias(bibi.id, 'pick-two', ALIAS_ORIGIN_CHOSEN)
+      await insertAlias(bibi.id, 'pick-one', ALIAS_ORIGIN_CHOSEN)
+      await insertAlias(bibi.id, 'pick-two', ALIAS_ORIGIN_CHOSEN)
       const since = new Date(Date.now() - 365 * DAY_MS)
       expect(await dbCountChosenAliasesSince(bibi.id, since)).toBe(2)
     })
@@ -113,7 +201,7 @@ describe('userAliases.queries', () => {
     // A name the system handed out is a proposal until it is adopted, so it must not
     // eat one of the four picks.
     it('does not count a name the system handed out', async () => {
-      await dbInsertUserAlias(bibi.id, 'given-one', ALIAS_ORIGIN_ASSIGNED)
+      await insertAlias(bibi.id, 'given-one', ALIAS_ORIGIN_ASSIGNED)
       const since = new Date(Date.now() - 365 * DAY_MS)
       expect(await dbCountChosenAliasesSince(bibi.id, since)).toBe(0)
     })
@@ -121,13 +209,13 @@ describe('userAliases.queries', () => {
     it('does not count a name the member merely kept', async () => {
       // Keeping the built name answers the question but is not a pick, so it must not
       // eat one of the four. This is the whole reason `adopted` exists next to `chosen`.
-      const row = await dbInsertUserAlias(bibi.id, 'bibi-kept', ALIAS_ORIGIN_ASSIGNED)
-      await dbMarkAliasAdopted(row.id)
+      const rowId = await insertAlias(bibi.id, 'bibi-kept', ALIAS_ORIGIN_ASSIGNED)
+      await dbMarkAliasAdopted(rowId)
       expect(await dbCountChosenAliasesSince(bibi.id, new Date(Date.now() - DAY_MS))).toBe(0)
     })
 
     it('does not count another member´s picks', async () => {
-      await dbInsertUserAlias(peter.id, 'pick-one', ALIAS_ORIGIN_CHOSEN)
+      await insertAlias(peter.id, 'pick-one', ALIAS_ORIGIN_CHOSEN)
       const since = new Date(Date.now() - 365 * DAY_MS)
       expect(await dbCountChosenAliasesSince(bibi.id, since)).toBe(0)
     })
@@ -135,8 +223,8 @@ describe('userAliases.queries', () => {
     // The window rolls: a pick from more than a year ago has fallen out of it and its
     // slot is free again.
     it('does not count a pick that has left the window', async () => {
-      const old = await dbInsertUserAlias(bibi.id, 'pick-old', ALIAS_ORIGIN_CHOSEN)
-      await ageRow(old.id, 400)
+      const oldId = await insertAlias(bibi.id, 'pick-old', ALIAS_ORIGIN_CHOSEN)
+      await ageRow(oldId, 400)
       const since = new Date(Date.now() - 365 * DAY_MS)
       expect(await dbCountChosenAliasesSince(bibi.id, since)).toBe(0)
     })
@@ -146,10 +234,10 @@ describe('userAliases.queries', () => {
     // What frees the next slot is this row turning a year old - which is why the page
     // can name a date rather than say "in a year".
     it('returns the earliest pick still inside the window', async () => {
-      const older = await dbInsertUserAlias(bibi.id, 'pick-a', ALIAS_ORIGIN_CHOSEN)
-      await ageRow(older.id, 300)
-      const newer = await dbInsertUserAlias(bibi.id, 'pick-b', ALIAS_ORIGIN_CHOSEN)
-      await ageRow(newer.id, 100)
+      const olderId = await insertAlias(bibi.id, 'pick-a', ALIAS_ORIGIN_CHOSEN)
+      await ageRow(olderId, 300)
+      const newerId = await insertAlias(bibi.id, 'pick-b', ALIAS_ORIGIN_CHOSEN)
+      await ageRow(newerId, 100)
 
       const since = new Date(Date.now() - 365 * DAY_MS)
       const oldest = await dbFindOldestChosenAliasSince(bibi.id, since)
@@ -164,17 +252,17 @@ describe('userAliases.queries', () => {
 
   describe('dbMarkAliasAdopted', () => {
     it('marks the row as kept, not as picked', async () => {
-      const row = await dbInsertUserAlias(bibi.id, 'bibi-keep', ALIAS_ORIGIN_ASSIGNED)
-      await dbMarkAliasAdopted(row.id)
+      const rowId = await insertAlias(bibi.id, 'bibi-keep', ALIAS_ORIGIN_ASSIGNED)
+      await dbMarkAliasAdopted(rowId)
       const after = await dbFindOwnAlias(bibi.id, 'bibi-keep')
       expect(after?.origin).toBe(ALIAS_ORIGIN_ADOPTED)
     })
 
     it('leaves created_at alone, so the row still says when they got the name', async () => {
-      const row = await dbInsertUserAlias(bibi.id, 'bibi-old', ALIAS_ORIGIN_ASSIGNED)
-      await ageRow(row.id, 400)
+      const rowId = await insertAlias(bibi.id, 'bibi-old', ALIAS_ORIGIN_ASSIGNED)
+      await ageRow(rowId, 400)
       const before = await dbFindOwnAlias(bibi.id, 'bibi-old')
-      await dbMarkAliasAdopted(row.id)
+      await dbMarkAliasAdopted(rowId)
       const after = await dbFindOwnAlias(bibi.id, 'bibi-old')
       expect(after?.createdAt.getTime()).toBe(before?.createdAt.getTime())
     })
@@ -186,14 +274,9 @@ describe('userAliases.queries', () => {
     // who only changes `Bernd` to `BERND` keeps a row nothing in TypeScript can match -
     // which is what locked them in front of the window at first login.
     it('finds the member´s own name whatever the capitalisation', async () => {
-      await dbInsertUserAlias(bibi.id, 'Bibi-Case', ALIAS_ORIGIN_CHOSEN)
+      await insertAlias(bibi.id, 'Bibi-Case', ALIAS_ORIGIN_CHOSEN)
       expect(await dbFindOwnAlias(bibi.id, 'BIBI-CASE')).not.toBeNull()
       expect(await dbFindOwnAlias(bibi.id, 'bibi-case')).not.toBeNull()
-    })
-
-    it('blocks a name somebody else holds in another capitalisation', async () => {
-      await dbInsertUserAlias(peter.id, 'Peter-Case', ALIAS_ORIGIN_CHOSEN)
-      expect(await dbAliasHeldByOther('peter-case', bibi.id)).toBe(true)
     })
   })
 })

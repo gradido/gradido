@@ -22,7 +22,7 @@ export class ShowFriendsArrival {
    * same arrival's identifier by `contactList` anyway.
    *
    * ⚠️ The community is NOT here, and the wallet must not read one out of it: an arrival
-   * is by construction a member of this community (`RegisterAccount.context` writes the
+   * is by construction a member of this community (`RegisterUserRole.prepareUser` writes the
    * home uuid on the row it creates), so the wallet pairs this with its own community and
    * the server reads a missing one as this community too (`resolveCommunityUuid`).
    */

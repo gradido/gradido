@@ -1,19 +1,25 @@
 // AI-GENERATED — not an architecture reference
-import { inArray } from 'drizzle-orm'
+import { eq, inArray } from 'drizzle-orm'
 import { OptInType, UserContactType } from 'shared'
 import { User as DbUser } from '..'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
-import { userContactsTable } from '../schemas'
+import { AccountState } from '../enum'
+import { DBDuplicateEntryError } from '../errorTypes'
+import { userContactsTable, usersTable } from '../schemas'
 import { createCommunity } from '../seeds/community'
 import { userFactory } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { peterLustig } from '../seeds/users/peter-lustig'
 import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 import {
+  dbConfirmRegistrationContact,
   dbFindConfirmedUserContactEmails,
   dbFindUserIdsByEmailLike,
+  dbInsertUserContact,
+  dbIsUserContactFieldExist,
   dbPurgeExpiredEmailChanges,
   dbReleaseUnconfirmedEmailChangeFor,
+  dbRemoveUserContact,
 } from './userContacts'
 
 /**
@@ -206,6 +212,21 @@ describe('userContacts.queries', () => {
       expect(await remainingEmails(['wanted@release.test'])).toEqual([])
     })
 
+    // The registration releases inside its own transaction: seen there at once, and gone
+    // for everybody only once that transaction commits.
+    it('releases inside the transaction it is given', async () => {
+      await insertContact({
+        userId: bibi.id,
+        email: 'pending@release.test',
+        emailChecked: false,
+        optInType: OptInType.EMAIL_OPT_IN_CHANGE,
+      })
+      await drizzleDb().transaction(async (tx) => {
+        expect(await dbReleaseUnconfirmedEmailChangeFor('pending@release.test', tx)).toBe(1)
+      })
+      expect(await remainingEmails(['pending@release.test'])).toEqual([])
+    })
+
     it('never touches a confirmed row or a registration', async () => {
       await insertContact({
         userId: bibi.id,
@@ -226,5 +247,146 @@ describe('userContacts.queries', () => {
         'registering@release.test',
       ])
     })
+  })
+
+  describe('dbConfirmRegistrationContact', () => {
+    let guest: DbUser
+
+    const stateOf = async (userId: number) =>
+      (
+        await drizzleDb()
+          .select({ accountState: usersTable.accountState })
+          .from(usersTable)
+          .where(eq(usersTable.id, userId))
+      )[0].accountState
+
+    const contactOf = async (contactId: number) =>
+      (
+        await drizzleDb()
+          .select({
+            emailChecked: userContactsTable.emailChecked,
+            updatedAt: userContactsTable.updatedAt,
+          })
+          .from(userContactsTable)
+          .where(eq(userContactsTable.id, contactId))
+      )[0]
+
+    beforeAll(async () => {
+      guest = await userFactory({
+        email: 'guest@confirm.test',
+        firstName: 'Guest',
+        lastName: 'Confirm',
+        emailChecked: false,
+      })
+    })
+
+    it('confirms the address and activates its owner, in one statement', async () => {
+      expect(await stateOf(guest.id)).toBe(AccountState.REGISTERED)
+
+      // Both rows of the one statement: the contact and the account.
+      expect(await dbConfirmRegistrationContact(guest.emailId!)).toBe(2)
+
+      expect(await contactOf(guest.emailId!)).toEqual({
+        emailChecked: true,
+        // Set by the column's own ON UPDATE, as a TypeORM save() did it before.
+        updatedAt: expect.any(Date),
+      })
+      expect(await stateOf(guest.id)).toBe(AccountState.ACTIVATED)
+    })
+
+    // `users.email_id` is what makes a row the member's address: a row they typed in and
+    // never took over belongs to nobody's account state.
+    it('touches nothing for a row that is not the current address of its account', async () => {
+      const typed = await insertContact({
+        userId: peter.id,
+        email: 'peter-typed@confirm.test',
+        emailChecked: false,
+        optInType: OptInType.EMAIL_OPT_IN_CHANGE,
+      })
+      const peterBefore = await stateOf(peter.id)
+
+      expect(await dbConfirmRegistrationContact(typed)).toBe(0)
+
+      expect((await contactOf(typed)).emailChecked).toBe(false)
+      expect(await stateOf(peter.id)).toBe(peterBefore)
+    })
+
+    // mysql2 connects with FOUND_ROWS: the count is of the rows matched, not changed. A second
+    // confirmation changes nothing and still counts both, so 0 means "no such current address"
+    // and nothing else.
+    it('counts both rows again for an address confirmed already', async () => {
+      expect(await dbConfirmRegistrationContact(guest.emailId!)).toBe(2)
+      expect(await stateOf(guest.id)).toBe(AccountState.ACTIVATED)
+    })
+
+    it('touches nothing for an id that does not exist', async () => {
+      expect(await dbConfirmRegistrationContact(2_000_000_000)).toBe(0)
+    })
+  })
+})
+
+describe('the user_contacts queries registration uses', () => {
+  let bibiId: number
+
+  beforeAll(async () => {
+    await dbDeleteAllRowsExceptMigrations()
+    await createCommunity(false)
+    bibiId = (await userFactory(bibiBloxberg)).id
+  })
+
+  const newContact = (email: string, emailVerificationCode: bigint) => ({
+    email,
+    userId: bibiId,
+    type: UserContactType.USER_CONTACT_EMAIL,
+    emailChecked: false,
+    emailOptInTypeId: OptInType.EMAIL_OPT_IN_REGISTER,
+    emailVerificationCode,
+  })
+
+  it('stores the contact, and finds it by either unique field', async () => {
+    const result = await dbInsertUserContact(newContact('new@contact.test', 111n))
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(await dbIsUserContactFieldExist('email', 'new@contact.test')).toBe(result.value)
+      expect(await dbIsUserContactFieldExist('emailVerificationCode', 111n)).toBe(result.value)
+    }
+    expect(await dbIsUserContactFieldExist('email', 'nobody@contact.test')).toBe(0)
+  })
+
+  // RegisterUserRole draws a new code on a clash - the insert must answer, not throw.
+  it('answers a taken address or a taken verification code with DBDuplicateEntryError', async () => {
+    await dbInsertUserContact(newContact('taken@contact.test', 222n))
+    expect(await dbInsertUserContact(newContact('taken@contact.test', 333n))).toEqual({
+      success: false,
+      error: expect.any(DBDuplicateEntryError),
+    })
+    expect(await dbInsertUserContact(newContact('other@contact.test', 222n))).toEqual({
+      success: false,
+      error: expect.any(DBDuplicateEntryError),
+    })
+  })
+
+  // The registration asks inside its transaction: a contact written there and not yet committed
+  // is seen through `tx`, and only through it.
+  it('asks over the transaction it is given', async () => {
+    await drizzleDb().transaction(async (tx) => {
+      const result = await dbInsertUserContact(newContact('pending@contact.test', 555n), tx)
+      if (!result.success) {
+        throw result.error
+      }
+      expect(await dbIsUserContactFieldExist('email', 'pending@contact.test', tx)).toBe(
+        result.value,
+      )
+      expect(await dbIsUserContactFieldExist('email', 'pending@contact.test')).toBe(0)
+    })
+  })
+
+  it('removes a contact for good', async () => {
+    const result = await dbInsertUserContact(newContact('removed@contact.test', 444n))
+    if (!result.success) {
+      throw result.error
+    }
+    expect(await dbRemoveUserContact(result.value)).toBe(1)
+    expect(await dbIsUserContactFieldExist('email', 'removed@contact.test')).toBe(0)
   })
 })

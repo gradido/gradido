@@ -1,41 +1,40 @@
 // AI-GENERATED — not an architecture reference
-import { PresenceCode } from '@model/PresenceCode'
+import { GuarantorCode } from '@model/GuarantorCode'
 import { dbFindUnconfirmedVouchedAccounts, getHomeCommunity } from 'database'
 import { aliasSchema } from 'shared'
 import { Authorized, Ctx, Query, Resolver } from 'type-graphql'
 import { RIGHTS } from '@/auth/RIGHTS'
-import { mintPresenceCode, PRESENCE_MAX_UNCONFIRMED } from '@/data/PresenceCode.logic'
+import { GUARANTOR_LIMIT, mintGuarantorCode } from '@/data/GuarantorCode.logic'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 
 @Resolver()
-export class PresenceCodeResolver {
+export class GuarantorCodeResolver {
   /**
-   * A fresh table code for the caller (E-017), bound to their user name and this community.
+   * A fresh guarantor code for the caller (E-017), sealing their user id for this community.
    * No argument: nobody can mint a code in somebody else's name.
    *
    * ⛔ Only a confirmed member vouches (E-018), checked here at once: an account inside its
    * grace period holds every other right (`RESTRICTED_WHILE_UNCONFIRMED` takes hold only after
    * it), and a code of its own would let one unconfirmed account open the next.
    *
-   * ⚠️ Only for a user name that `registerAccount` accepts as a referrer (`aliasSchema`). For
-   * any other name the guest would get a password while the member who vouched for them is
-   * not recorded as their referrer. And not for a member deleted while still signed in (the
-   * session loads deleted users too): `registerAccount` does not find them, so their guests
-   * would get a password with nobody recorded as having vouched.
+   * ⚠️ Only for a member with a user name: the card carries the code on the link of their
+   * Gradido address, `/u/<alias>`. And not for a member deleted while still signed in (the
+   * session loads deleted users too): the registration does not find them, and refuses the
+   * code.
    *
    * Both answer null, not an error: for a member without a user name that is the expected
    * answer on every visit, and the wallet tells it apart from a failure - it shows the card
    * without a code, and offers a new try only after a failure.
    *
    * With the member's own unconfirmed table guests (E-020). Once they are
-   * `PRESENCE_MAX_UNCONFIRMED` there is no code (E-019): the member sees it here, before a
+   * `GUARANTOR_LIMIT` there is no code (E-019): the member sees it here, before a
    * guest scans. `createUser` takes the code and counts again right before it opens an account,
    * one registration after another per member (`inMemberLine`).
    */
-  @Authorized([RIGHTS.PRESENCE_CODE])
-  @Query(() => PresenceCode, { nullable: true })
-  async presenceCode(@Ctx() context: Context): Promise<PresenceCode | null> {
+  @Authorized([RIGHTS.GUARANTOR_CODE])
+  @Query(() => GuarantorCode, { nullable: true })
+  async guarantorCode(@Ctx() context: Context): Promise<GuarantorCode | null> {
     const user = getUser(context)
     if (!user.emailContact?.emailChecked) {
       throw new LogError('Confirm your address first')
@@ -48,11 +47,11 @@ export class PresenceCodeResolver {
       throw new LogError('No home community')
     }
     const unconfirmedGuests = await dbFindUnconfirmedVouchedAccounts(user.id)
-    if (unconfirmedGuests.length >= PRESENCE_MAX_UNCONFIRMED) {
+    if (unconfirmedGuests.length >= GUARANTOR_LIMIT) {
       return { code: null, alias: user.alias, expiresAt: null, remainingMs: 0, unconfirmedGuests }
     }
     return {
-      ...mintPresenceCode(user.alias, homeCom.communityUuid),
+      ...mintGuarantorCode(user.id, homeCom.communityUuid),
       alias: user.alias,
       unconfirmedGuests,
     }

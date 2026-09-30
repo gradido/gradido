@@ -1,5 +1,5 @@
 import {
-  Community as DbCommunity,
+  CommunitiesSelect,
   Contribution as DbContribution,
   DltTransaction as DbDltTransaction,
   TransactionLink as DbTransactionLink,
@@ -9,6 +9,7 @@ import {
   getCommunityByUuid,
   getHomeCommunity,
   UserLoggingView,
+  UserSelect,
 } from 'database'
 import { getLogger } from 'log4js'
 import { IRestResponse } from 'typed-rest-client'
@@ -76,15 +77,15 @@ async function executeDltTransaction(
  * and update dltTransactionId of transaction in db with hiero transaction id
  */
 export async function registerAddressTransaction(
-  user: DbUser,
-  community: DbCommunity,
+  user: UserSelect,
+  community: CommunitiesSelect,
 ): Promise<DbDltTransaction | null> {
   if (!CONFIG.DLT_ACTIVE) {
     return Promise.resolve(null)
   }
   if (!user.id) {
     logger.error(
-      `missing id for user: ${user.gradidoID}, please call registerAddressTransaction after user.save()`,
+      `missing id for user: ${user.gradidoId}, please call registerAddressTransaction after user.save()`,
     )
     return null
   }

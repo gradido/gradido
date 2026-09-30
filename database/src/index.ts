@@ -1,7 +1,7 @@
 import { latestDbVersion } from './detectLastDBVersion'
 export { latestDbVersion }
 
-export { AppDatabase } from './AppDatabase'
+export * from './AppDatabase'
 export * from './entity'
 export * from './enum'
 export * from './errorTypes'

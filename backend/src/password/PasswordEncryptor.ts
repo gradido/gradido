@@ -1,18 +1,32 @@
 import { delay } from 'core'
 import { DbUser, User } from 'database'
+import { ResourceExhausted, Result } from 'shared'
 
 import { getUserCryptographicSalt, SecretKeyCryptographyCreateKey } from './EncryptorUtils'
+import { PasswordDataInput } from './passwordData.schema'
 
-export const encryptPassword = async (dbUser: User | DbUser, password: string): Promise<bigint> => {
+// return direct and tell if pool is exhausted, if not it will run and can't really fail!
+export function encryptPasswordSync(
+  dbUser: PasswordDataInput,
+  password: string,
+): Result<Promise<bigint>, ResourceExhausted> {
   const salt = getUserCryptographicSalt(dbUser)
   return SecretKeyCryptographyCreateKey(salt, password)
 }
 
+export function encryptPassword(dbUser: PasswordDataInput, password: string): Promise<bigint> {
+  const result = encryptPasswordSync(dbUser, password)
+  if (!result.success) {
+    throw new Error(result.error.clientMessage)
+  }
+  return result.value
+}
+
 export const verifyPassword = async (dbUser: User | DbUser, password: string): Promise<boolean> => {
-  const encryptedPassword = await encryptPassword(dbUser, password)
   if (!dbUser.password) {
     return false
   }
+  const encryptedPassword = await encryptPassword(dbUser, password)
   return dbUser.password.toString() === encryptedPassword.toString()
 }
 
