@@ -205,6 +205,13 @@
     "renameTitle": "Grubu yeniden adlandır",
     "since": "{date} tarihinden beri grup",
     "unmutedHint": "Artık sessizde değil: {name} grubundan duyurular yine e-postayla gelecek.",
+    "videoAskBody": "Gruptaki herkes bağlantıyı mesaj olarak alacak.",
+    "videoAskTitle": "{name} grubunda görüntülü görüşme başlatılsın mı?",
+    "videoByEmail": "Herkese e-postayla davet",
+    "videoCall": "{name} grubunda görüntülü görüşme başlat",
+    "videoJoinTitle": "{name} grubundaki görüntülü görüşmeye katılınsın mı?",
+    "videoPlanBody": "Gruptaki herkes daveti mesaj olarak alacak.",
+    "videoSettingsTitle": "{name} grubundaki görüntülü görüşme ayarları",
     "youAreMember": "Üyesin",
     "youAreModerator": "Moderatörsün",
     "youAreOwner": "Grubun sahibisin"

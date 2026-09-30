@@ -26,8 +26,15 @@
         v-bind="face"
         data-test="chat-bubble-face"
       />
-      <div class="chat-bubble-writer" aria-hidden="true" data-test="chat-bubble-group-writer">
-        {{ writerName }}
+      <!-- The name leads to the writer (E-053): their contact window where they are a contact, else
+           the send form -- the page decides. A control of its own beside the face, which opens
+           their picture; heard as the button it is, so the bubble below leaves the name out. -->
+      <div class="chat-bubble-writer" data-test="chat-bubble-group-writer">
+        <name
+          :linked-user="groupWriter"
+          :with-community="false"
+          @open="emit('openMember', $event)"
+        />
       </div>
     </template>
     <!-- An announcement (E-050 F5): it went to everybody by mail, or could have -- marked for all
@@ -38,7 +45,9 @@
     <div class="chat-bubble" :class="{ 'has-image': image }">
       <!-- ⛔ The side is the ONLY thing that says who wrote a message, and a screen reader
            does not see sides. So the writer is named in words, for the ear only. -->
-      <span class="visually-hidden" data-test="chat-bubble-writer">{{ writer }}</span>
+      <span v-if="!writerLinked" class="visually-hidden" data-test="chat-bubble-writer">
+        {{ writer }}
+      </span>
       <!-- The picture a message carries (P7), on top; its caption is the text under it, in the
            same bubble (E-044 F3). One a message. -->
       <chat-bubble-image
@@ -121,6 +130,7 @@ import ChatBubbleImage from '@/components/Chat/ChatBubbleImage.vue'
 import ChatMessageText from '@/components/Chat/ChatMessageText'
 import ChatTransferCoin from '@/components/Chat/ChatTransferCoin.vue'
 import MemoText from '@/components/TransactionRows/MemoText'
+import Name from '@/components/TransactionRows/Name.vue'
 import { avatarZoomBindings } from '@/composables/useAvatarZoom'
 import { memberAvatarProps } from '@/composables/useMemberAvatars'
 import { LIST_AVATAR_SIZE } from '@/constants'
@@ -168,7 +178,11 @@ const props = defineProps({
  * `openImage`: the member wants the message's picture large -- `{ message, image, opener }`, the
  * button that was pressed among them (the thread opens the view, ChatImageView).
  */
-const emit = defineEmits(['openImage'])
+/**
+ * `openImage`: a picture of the message, large (P7). `openMember`: the writer of somebody else's
+ * message in a group, named over it (E-053) -- the user the server named with it.
+ */
+const emit = defineEmits(['openImage', 'openMember'])
 
 const { t, d } = useI18n()
 
@@ -208,6 +222,12 @@ const face = computed(() => {
   const base = memberAvatarProps(user)
   return { ...base, ...avatarZoomBindings(user, base) }
 })
+
+/**
+ * Whether the writer's name stands over this bubble as the control that leads to them (E-053):
+ * then the ear hears it there, and the name in the bubble would say it twice.
+ */
+const writerLinked = computed(() => Boolean(face.value) && props.showWriter)
 
 /** Somebody else's announcement in a group (E-050 F5): the mark over it. */
 const announced = computed(

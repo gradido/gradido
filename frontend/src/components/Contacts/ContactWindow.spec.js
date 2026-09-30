@@ -827,8 +827,8 @@ describe('ContactWindow', () => {
 
   describe('the video call', () => {
     const camera = () => wrapper.find('[data-test="contact-window-video"]')
-    const dialog = () => wrapper.find('[data-test="contact-window-video-dialog"]')
-    const inDialog = (name) => wrapper.find(`[data-test="contact-window-video-${name}"]`)
+    const dialog = () => wrapper.find('[data-test="chat-video-dialog"]')
+    const inDialog = (name) => wrapper.find(`[data-test="chat-video-${name}"]`)
 
     /** A room as the server hands it out (V1): address, host, and who runs the server. */
     const ROOM = {
@@ -842,7 +842,7 @@ describe('ContactWindow', () => {
      * link in the dialog get when the field is left as it is.
      */
     const ROOM_WITH_DEFAULT = 'https://meet.ffmuc.net/k7m2x9q4t8wz#config.subject=%22Videoanruf%22'
-    const topicField = () => wrapper.find('[data-test="contact-window-video-topic"]')
+    const topicField = () => wrapper.find('[data-test="chat-video-topic"]')
 
     /**
      * The room's window as `window.open` hands it back: it can be sent to an address and
@@ -889,6 +889,26 @@ describe('ContactWindow', () => {
 
       await threadSays({ exists: true, mutedByMe: false })
       expect(camera().exists()).toBe(true)
+    })
+
+    // coderabbit, #4015: the window closed while the invitation was on its way -- the call is let
+    // go as a cancel lets it go: the empty window closes, and no room is entered afterwards.
+    it('lets the call go when the window is gone while the invitation is on its way', async () => {
+      browserOpens()
+      serverRooms.mockResolvedValue({ data: { chatVideoRoom: ROOM } })
+      const delivery = held()
+      threadDelivers.mockReturnValue(delivery.promise)
+      await asked()
+      await inDialog('start').trigger('click')
+      await flushPromises()
+      expect(threadDelivers).toHaveBeenCalledTimes(1)
+
+      wrapper.unmount()
+      expect(room.close).toHaveBeenCalled()
+
+      delivery.release(true)
+      await flushPromises()
+      expect(room.location.href).toBe('')
     })
 
     it('is gone again for the next person, until their thread has spoken', async () => {
@@ -944,6 +964,10 @@ describe('ContactWindow', () => {
 
       expect(inDialog('body').text()).toBe('chatThread.videoAskBody {"name":"Carla-Sonne"}')
       expect(inDialog('email').element.checked).toBe(false)
+      // The compose bar's words -- a group's question says "to everybody" instead (E-053).
+      expect(inDialog('email').element.closest('label').textContent.trim()).toBe(
+        'chatThread.alsoByEmail',
+      )
     })
 
     it('empties the box again for the next question', async () => {
@@ -989,12 +1013,8 @@ describe('ContactWindow', () => {
       const order = [...dialog().element.querySelectorAll('[data-test]')].map((element) =>
         element.getAttribute('data-test'),
       )
-      expect(order.indexOf('contact-window-video-title')).toBeLessThan(
-        order.indexOf('contact-window-video-topic'),
-      )
-      expect(order.indexOf('contact-window-video-topic-hint')).toBeLessThan(
-        order.indexOf('contact-window-video-body'),
-      )
+      expect(order.indexOf('chat-video-title')).toBeLessThan(order.indexOf('chat-video-topic'))
+      expect(order.indexOf('chat-video-topic-hint')).toBeLessThan(order.indexOf('chat-video-body'))
     })
 
     /**
@@ -1007,7 +1027,7 @@ describe('ContactWindow', () => {
       const question = () =>
         wrapper
           .findAllComponents({ name: 'BModal' })
-          .find((modal) => modal.attributes('data-test') === 'contact-window-video-dialog')
+          .find((modal) => modal.attributes('data-test') === 'chat-video-dialog')
       await asked()
       expect(topicField().attributes('tabindex')).toBe('-1')
 
@@ -1572,9 +1592,9 @@ describe('ContactWindow', () => {
           button.getAttribute('data-test'),
         )
         expect(footer.slice(0, 3)).toEqual([
-          'contact-window-video-gear',
-          'contact-window-video-cancel',
-          'contact-window-video-start',
+          'chat-video-gear',
+          'chat-video-cancel',
+          'chat-video-start',
         ])
         expect(gear().attributes('type')).toBe('button')
         expect(gear().attributes('tabindex')).toBeUndefined()
@@ -1813,6 +1833,28 @@ describe('ContactWindow', () => {
         expect(serverRooms).toHaveBeenCalledTimes(1)
       })
 
+      // coderabbit, #4015: a press before the list is in waits for it -- else the link would name a
+      // room at random, and the call started afterwards another one.
+      it('waits for the list before it copies a link, so link and call share the room', async () => {
+        localStorage.setItem(KEY, '2')
+        const list = held()
+        serverChoices.mockReturnValue(list.promise)
+        serverRooms.mockResolvedValue({ data: { chatVideoRoom: SYSTEMLI } })
+        await asked()
+        await inSettings()
+
+        inDialog('copy').element.click()
+        await flushPromises()
+        expect(serverRooms).not.toHaveBeenCalled()
+        expect(clipboard).not.toHaveBeenCalled()
+
+        list.release({ data: { chatVideoServerChoices: CHOICES } })
+        await flushPromises()
+        expect(serverRooms).toHaveBeenCalledTimes(1)
+        expect(serverRooms.mock.calls[0][0].variables).toEqual({ serverId: 2 })
+        expect(clipboard).toHaveBeenCalledWith(withChatVideoTopic(SYSTEMLI.url, 'Videoanruf'))
+      })
+
       // The people the link went to and the person invited meet in the same room.
       it('sends the room it copied, when the call is started from this question', async () => {
         localStorage.setItem(KEY, '2')
@@ -1991,7 +2033,7 @@ describe('ContactWindow', () => {
         const question = () =>
           wrapper
             .findAllComponents({ name: 'BModal' })
-            .find((modal) => modal.attributes('data-test') === 'contact-window-video-dialog')
+            .find((modal) => modal.attributes('data-test') === 'chat-video-dialog')
         await askedWithChoices()
         await inSettings()
 
@@ -2385,6 +2427,26 @@ describe('ContactWindow', () => {
           expect(dialog().exists()).toBe(true)
         })
 
+        // coderabbit, #4015: as "Copy link" -- the file names the room the call will take.
+        it('waits for the list before it saves, so the file names the room of the call', async () => {
+          const list = held()
+          serverChoices.mockReturnValue(list.promise)
+          serverRooms.mockResolvedValue({ data: { chatVideoRoom: SYSTEMLI } })
+          await inSettings()
+          await when()
+
+          await field('calendar').trigger('click')
+          await flushPromises()
+          expect(serverRooms).not.toHaveBeenCalled()
+          expect(saved).toEqual([])
+
+          list.release({ data: { chatVideoServerChoices: CHOICES } })
+          await flushPromises()
+          expect(serverRooms).toHaveBeenCalledTimes(1)
+          expect(serverRooms.mock.calls[0][0].variables).toEqual({ serverId: 2 })
+          expect(saved).toEqual(['Videoanruf-2026-09-30.ics'])
+        })
+
         it('says what is missing without a day, and saves nothing', async () => {
           await inSettings()
 
@@ -2440,15 +2502,16 @@ describe('ContactWindow', () => {
       })
 
       it('gives the waiting look to "Plan" as well, in the stylesheet', () => {
+        // The questions of a call stand in a component of their own since E-053.
         const code = readFileSync(
-          join(dirname(fileURLToPath(import.meta.url)), 'ContactWindow.vue'),
+          join(dirname(fileURLToPath(import.meta.url)), '../Chat/ChatVideoCall.vue'),
           'utf8',
         ).replace(/\/\*[\s\S]*?\*\//g, '')
-        expect(code).toMatch(/\.contact-window-video-plan\[aria-disabled='true'\]/)
-        expect(code).toMatch(/\n\.contact-window-video-when\s*\{[^}]*grid-template-columns/)
+        expect(code).toMatch(/\.chat-video-plan\[aria-disabled='true'\]/)
+        expect(code).toMatch(/\n\.chat-video-when\s*\{[^}]*grid-template-columns/)
         // On a phone the day takes a row of its own, and the two times share the next.
         expect(code).toMatch(
-          /@media \(width <= 420px\)\s*\{[^@]*\.contact-window-video-when-day\s*\{[^}]*grid-column:\s*1 \/ -1/,
+          /@media \(width <= 420px\)\s*\{[^@]*\.chat-video-when-day\s*\{[^}]*grid-column:\s*1 \/ -1/,
         )
       })
     })
@@ -2502,11 +2565,7 @@ describe('ContactWindow', () => {
         await asked()
 
         // The gear at the left is no way of starting (V5).
-        expect(buttons()).toEqual([
-          'contact-window-video-gear',
-          'contact-window-video-cancel',
-          'contact-window-video-start',
-        ])
+        expect(buttons()).toEqual(['chat-video-gear', 'chat-video-cancel', 'chat-video-start'])
         expect(box().element.type).toBe('checkbox')
         expect(box().element.checked).toBe(false)
         const label = box().element.closest('label')
@@ -2528,11 +2587,7 @@ describe('ContactWindow', () => {
         await asked()
 
         expect(box().exists()).toBe(false)
-        expect(buttons()).toEqual([
-          'contact-window-video-gear',
-          'contact-window-video-cancel',
-          'contact-window-video-start',
-        ])
+        expect(buttons()).toEqual(['chat-video-gear', 'chat-video-cancel', 'chat-video-start'])
       })
 
       // A tick kept from a computer changes nothing where the box is not offered.
@@ -2699,8 +2754,42 @@ describe('ContactWindow', () => {
           'https://jitsi.org/downloads/',
         )
         expect(inDialog('open').exists()).toBe(false)
-        expect(buttons()).toEqual(['contact-window-video-close'])
+        expect(buttons()).toEqual(['chat-video-close'])
         expect(opens).not.toHaveBeenCalled()
+      })
+
+      // The window closed while the app's sign was awaited: nothing is left waiting behind it --
+      // no timer, no listener (ChatVideoCall stops the watch as it goes).
+      it('leaves nothing waiting for the sign once the window is gone', async () => {
+        vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+        await tickedAndReady()
+        await start()
+        const waiting = vi.getTimerCount()
+        const removed = vi.spyOn(window, 'removeEventListener')
+
+        wrapper.unmount()
+
+        expect(vi.getTimerCount()).toBe(waiting - 1)
+        expect(removed).toHaveBeenCalledWith('blur', expect.any(Function))
+      })
+
+      // coderabbit, #4015: gone before the invitation went out -- no wait for the app starts after.
+      it('starts no wait for the app when the window is gone before the invitation went out', async () => {
+        vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+        await tickedAndReady()
+        const delivery = held()
+        threadDelivers.mockReturnValue(delivery.promise)
+        await start()
+        const waiting = vi.getTimerCount()
+        const added = vi.spyOn(window, 'addEventListener')
+
+        wrapper.unmount()
+        delivery.release(true)
+        await flushPromises()
+
+        expect(vi.getTimerCount()).toBe(waiting)
+        expect(added).not.toHaveBeenCalledWith('blur', expect.any(Function))
+        expect(followed).toEqual([])
       })
 
       // Where the page has no focus when the room goes, no sign can come: as before, it closes.
@@ -2728,7 +2817,7 @@ describe('ContactWindow', () => {
         expect(inDialog('open').attributes('href')).toBe(
           'https://meet.ffmuc.net/#config.subject=%22Videoanruf%22',
         )
-        expect(buttons()).toEqual(['contact-window-video-close'])
+        expect(buttons()).toEqual(['chat-video-close'])
       })
 
       it.each([
@@ -2759,11 +2848,7 @@ describe('ContactWindow', () => {
           expect(followed).toEqual([])
           expect(inDialog('problem').text()).toBe(sentence)
           expect(inDialog('problem').attributes('role')).toBe('alert')
-          expect(buttons()).toEqual([
-            'contact-window-video-gear',
-            'contact-window-video-cancel',
-            'contact-window-video-start',
-          ])
+          expect(buttons()).toEqual(['chat-video-gear', 'chat-video-cancel', 'chat-video-start'])
           expect(box().element.checked).toBe(true)
         },
       )
@@ -2799,11 +2884,7 @@ describe('ContactWindow', () => {
 
         expect(missed().exists()).toBe(false)
         expect(inDialog('open').exists()).toBe(false)
-        expect(buttons()).toEqual([
-          'contact-window-video-gear',
-          'contact-window-video-cancel',
-          'contact-window-video-start',
-        ])
+        expect(buttons()).toEqual(['chat-video-gear', 'chat-video-cancel', 'chat-video-start'])
         expect(box().element.checked).toBe(true)
       })
 
@@ -2818,11 +2899,7 @@ describe('ContactWindow', () => {
         await camera().trigger('click')
 
         expect(missed().exists()).toBe(false)
-        expect(buttons()).toEqual([
-          'contact-window-video-gear',
-          'contact-window-video-cancel',
-          'contact-window-video-start',
-        ])
+        expect(buttons()).toEqual(['chat-video-gear', 'chat-video-cancel', 'chat-video-start'])
       })
 
       // The call's secret, the app's address as well; the storage holds the tick and no more.
@@ -2848,8 +2925,8 @@ describe('ContactWindow', () => {
      * what the window provides, as the text of a message does.
      */
     describe('the question before joining a call', () => {
-      const joinDialog = () => wrapper.find('[data-test="contact-window-video-join-dialog"]')
-      const inJoin = (name) => wrapper.find(`[data-test="contact-window-video-join${name}"]`)
+      const joinDialog = () => wrapper.find('[data-test="chat-video-join-dialog"]')
+      const inJoin = (name) => wrapper.find(`[data-test="chat-video-join${name}"]`)
       const box = () => joinDialog().find('[data-test="chat-video-app-box"]')
       const missed = () => joinDialog().find('[data-test="chat-video-app-missed"]')
       const joinButtons = () =>
@@ -2892,10 +2969,7 @@ describe('ContactWindow', () => {
         const title = 'chatThread.videoJoinTitle {"name":"Carla-Sonne"}'
         expect(inJoin('-title').text()).toBe(title)
         expect(joinDialog().attributes('aria-label')).toBe(title)
-        expect(joinButtons()).toEqual([
-          'contact-window-video-join-cancel',
-          'contact-window-video-join',
-        ])
+        expect(joinButtons()).toEqual(['chat-video-join-cancel', 'chat-video-join'])
         expect(inJoin('').text()).toBe('chatThread.videoJoin')
         expect(box().element.checked).toBe(false)
         // No topic, no sentence, no mail: the question and its answers.
@@ -2949,7 +3023,7 @@ describe('ContactWindow', () => {
         expect(missed().find('[data-test="chat-video-app-missed-room"]').attributes('href')).toBe(
           ROOM_WITH_DEFAULT,
         )
-        expect(joinButtons()).toEqual(['contact-window-video-join-close'])
+        expect(joinButtons()).toEqual(['chat-video-join-close'])
 
         await inJoin('-close').trigger('click')
         expect(joinDialog().exists()).toBe(false)
@@ -2992,6 +3066,20 @@ describe('ContactWindow', () => {
         expect(opens).toHaveBeenCalledWith(next, '_blank', 'noopener,noreferrer')
       })
 
+      it('leaves nothing waiting for the sign once the window is gone', async () => {
+        vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+        localStorage.setItem(KEY, '1')
+        await clicked()
+        await inJoin('').trigger('click')
+        const waiting = vi.getTimerCount()
+        const removed = vi.spyOn(window, 'removeEventListener')
+
+        wrapper.unmount()
+
+        expect(vi.getTimerCount()).toBe(waiting - 1)
+        expect(removed).toHaveBeenCalledWith('blur', expect.any(Function))
+      })
+
       it('stops waiting for the app once it is closed', async () => {
         vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
         localStorage.setItem(KEY, '1')
@@ -3005,10 +3093,7 @@ describe('ContactWindow', () => {
         await flushPromises()
 
         expect(missed().exists()).toBe(false)
-        expect(joinButtons()).toEqual([
-          'contact-window-video-join-cancel',
-          'contact-window-video-join',
-        ])
+        expect(joinButtons()).toEqual(['chat-video-join-cancel', 'chat-video-join'])
       })
 
       // The call's secret: in no log and no storage.
@@ -3067,8 +3152,9 @@ describe('ContactWindow', () => {
    * nothing, so the stylesheet says it; comments stripped first.
    */
   it("gives the call's buttons their waiting look, in the stylesheet", () => {
-    const code = styleOf('ContactWindow.vue')
-    const style = code.slice(code.indexOf('<style'))
+    const code = styleOf('../Chat/ChatVideoCall.vue')
+    // From after the tag: its first rule would otherwise begin with the tag.
+    const style = code.slice(code.indexOf('>', code.indexOf('<style')) + 1)
     const rules = [...style.matchAll(/([^{}]+)\{([^}]*)\}/g)].map(([, selectors, body]) => ({
       selectors: selectors.split(',').map((selector) => selector.trim()),
       body,
@@ -3076,7 +3162,7 @@ describe('ContactWindow', () => {
 
     for (const button of ['start', 'join', 'gear']) {
       const waiting = rules.find((rule) =>
-        rule.selectors.includes(`.contact-window-video-${button}[aria-disabled='true']`),
+        rule.selectors.includes(`.chat-video-${button}[aria-disabled='true']`),
       )
       expect(waiting?.body, button).toMatch(/opacity:\s*0\.65/)
     }
@@ -3088,16 +3174,16 @@ describe('ContactWindow', () => {
    * nothing out and draws no outlines, so the stylesheet says it; comments stripped first.
    */
   it('puts the gear at the left of the footer, as high as the buttons, with a focus ring, in the stylesheet', () => {
-    const code = styleOf('ContactWindow.vue')
+    const code = styleOf('../Chat/ChatVideoCall.vue')
     const rule = (selector) => code.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
 
-    const gear = rule('\\.contact-window-video-gear')
+    const gear = rule('\\.chat-video-gear')
     expect(gear).toMatch(/margin-right:\s*auto/)
     expect(gear).toMatch(/width:\s*2\.875rem/)
     expect(gear).toMatch(/height:\s*2\.875rem/)
     expect(gear).toMatch(/background:\s*transparent/)
-    expect(rule('\\.contact-window-video-gear:focus-visible')).toMatch(/outline:\s*2px solid/)
-    expect(rule('\\.contact-window-video-link')).toMatch(/overflow-wrap:\s*anywhere/)
+    expect(rule('\\.chat-video-gear:focus-visible')).toMatch(/outline:\s*2px solid/)
+    expect(rule('\\.chat-video-link')).toMatch(/overflow-wrap:\s*anywhere/)
   })
 
   /**

@@ -205,6 +205,13 @@
     "renameTitle": "Rename the group",
     "since": "Group since {date}",
     "unmutedHint": "No longer muted: announcements from {name} come by e-mail again.",
+    "videoAskBody": "Everyone in the group will get the link as a message.",
+    "videoAskTitle": "Start a video call in the group {name}?",
+    "videoByEmail": "Invitation by e-mail to everyone",
+    "videoCall": "Start a video call in the group {name}",
+    "videoJoinTitle": "Join the video call in the group {name}?",
+    "videoPlanBody": "Everyone in the group will get the invitation as a message.",
+    "videoSettingsTitle": "Settings for the video call in the group {name}",
     "youAreMember": "You are a member",
     "youAreModerator": "You are a moderator",
     "youAreOwner": "You are the owner"

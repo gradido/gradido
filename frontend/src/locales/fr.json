@@ -205,6 +205,13 @@
     "renameTitle": "Renommer le groupe",
     "since": "Groupe depuis {date}",
     "unmutedHint": "Sourdine désactivée : les annonces de {name} t'arrivent de nouveau par e-mail.",
+    "videoAskBody": "Tous les membres du groupe recevront le lien par message.",
+    "videoAskTitle": "Lancer un appel vidéo dans le groupe {name} ?",
+    "videoByEmail": "Invitation par e-mail à tous",
+    "videoCall": "Lancer un appel vidéo dans le groupe {name}",
+    "videoJoinTitle": "Rejoindre l'appel vidéo dans le groupe {name} ?",
+    "videoPlanBody": "Tous les membres du groupe recevront l'invitation par message.",
+    "videoSettingsTitle": "Configuration de l'appel vidéo dans le groupe {name}",
     "youAreMember": "Tu es membre",
     "youAreModerator": "Tu es modérateur",
     "youAreOwner": "Tu es propriétaire"

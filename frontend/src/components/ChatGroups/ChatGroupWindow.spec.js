@@ -7,6 +7,7 @@ import { dirname, join } from 'node:path'
 import ChatGroupWindow from './ChatGroupWindow.vue'
 import { chatGroupMembersQuery, setChatGroupMuted } from '@/graphql/chatGroups.graphql'
 import { SMALL_FACE_SIZE } from '@/constants'
+import { CHAT_VIDEO_JOIN } from '@/utils/chatVideoApp'
 
 vi.mock('@/i18n', () => ({
   default: { global: { t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key) } },
@@ -38,6 +39,16 @@ vi.mock('@/composables/useToast', () => ({
 const saved = vi.hoisted(() => vi.fn())
 /** The members' question (chatGroupMembersQuery): a test sets the answer. */
 const asked = vi.hoisted(() => vi.fn())
+/**
+ * The video call's questions (ChatVideoCall, E-053) as the window calls them, and what the thread
+ * answers to an invitation (`deliver`): the questions' own spec is about how they ask.
+ */
+const video = vi.hoisted(() => ({
+  ask: vi.fn(),
+  askJoin: vi.fn(),
+  letGo: vi.fn(),
+  delivers: vi.fn(),
+}))
 vi.mock('@vue/apollo-composable', () => ({
   useMutation: (document) => ({ mutate: (variables) => saved(document, variables) }),
   useApolloClient: () => ({ client: { query: (options) => asked(options) } }),
@@ -109,14 +120,45 @@ describe('ChatGroupWindow', () => {
           IMdiBellOffOutline: { template: '<i data-test="bell-off" />' },
           // The thread has its own specs (ChatThread.group.spec.js); here: which group it gets.
           ChatThread: {
+            name: 'ChatThread',
             props: ['group'],
+            emits: ['openMember'],
+            inject: { join: { from: CHAT_VIDEO_JOIN, default: null } },
+            methods: {
+              deliver(message) {
+                return video.delivers(message, this.group.groupUuid)
+              },
+            },
             template: '<div data-test="thread" :data-group="group?.groupUuid" />',
+          },
+          ChatVideoCall: {
+            name: 'ChatVideoCall',
+            // Typed, as the real ones: an untyped `group` written bare would come as "".
+            props: {
+              name: String,
+              group: Boolean,
+              first: Boolean,
+              canMail: Boolean,
+              deliver: Function,
+            },
+            methods: {
+              ask() {
+                video.ask()
+              },
+              askJoin(roomUrl) {
+                video.askJoin(roomUrl)
+              },
+              letGo() {
+                video.letGo()
+              },
+            },
+            template: '<div data-test="video-call" />',
           },
           // The members' dialog has its own spec; here: what it is handed, and what it says back.
           ChatGroupMembers: {
             name: 'ChatGroupMembers',
             props: ['modelValue', 'group', 'members', 'loaded', 'contacts'],
-            emits: ['update:modelValue', 'changed', 'left'],
+            emits: ['update:modelValue', 'changed', 'left', 'openMember'],
             template:
               '<div data-test="members-dialog" :data-open="String(modelValue)" :data-count="members.length" />',
           },
@@ -135,6 +177,7 @@ describe('ChatGroupWindow', () => {
 
   afterEach(() => {
     wrapper?.unmount()
+    Object.values(video).forEach((spy) => spy.mockReset())
     asked.mockReset()
     facesAsked.mockClear()
     saved.mockReset()
@@ -294,9 +337,84 @@ describe('ChatGroupWindow', () => {
     })
   })
 
+  // E-053: a video call in the group, as with a person -- the camera beside the bell.
+  describe('the video call', () => {
+    const camera = () => find('chat-group-window-video')
+    const call = () => wrapper.findComponent({ name: 'ChatVideoCall' })
+
+    it('stands beside the bell, and asks the question', async () => {
+      mountWindow()
+      expect(camera().attributes('aria-label')).toBe(
+        'chatGroup.videoCall {"name":"Gradido-Café Berlin"}',
+      )
+      const marks = wrapper
+        .findAll('.chat-group-window-marks button')
+        .map((b) => b.attributes('data-test'))
+      expect(marks).toEqual(['chat-group-window-video', 'chat-group-window-bell'])
+      await camera().trigger('click')
+      expect(video.ask).toHaveBeenCalledTimes(1)
+    })
+
+    // Anybody may start one; by mail only the owner and the moderators (E-050 F5), and not alone.
+    it.each([
+      ['OWNER', 5, true],
+      ['MODERATOR', 5, true],
+      ['MEMBER', 5, false],
+      ['OWNER', 1, false],
+    ])('offers the mail to a %s among %i: %s', (role, memberCount, offered) => {
+      mountWindow({ role, memberCount })
+      expect(camera().exists()).toBe(true)
+      expect(call().props()).toMatchObject({
+        name: 'Gradido-Café Berlin',
+        group: true,
+        canMail: offered,
+      })
+      expect(call().props('first')).toBe(false)
+    })
+
+    it("sends the invitation through the group's thread", async () => {
+      video.delivers.mockResolvedValue(true)
+      mountWindow()
+      const message = { body: 'Einladung', notify: 'EMAIL' }
+      await expect(call().props('deliver')(message)).resolves.toBe(true)
+      expect(video.delivers).toHaveBeenCalledWith(message, 'cafe-uuid')
+    })
+
+    // A click on the link of an invitation in the group's thread (ChatMessageText).
+    it('asks before joining a call from a link in the thread', () => {
+      mountWindow()
+      wrapper.findComponent({ name: 'ChatThread' }).vm.join('https://meet.ffmuc.net/room')
+      expect(video.askJoin).toHaveBeenCalledWith('https://meet.ffmuc.net/room')
+    })
+
+    it('lets a question go when the window comes to another group', async () => {
+      mountWindow()
+      await wrapper.setProps({ group: { ...GROUP, title: 'Neuer Name' } })
+      expect(video.letGo).not.toHaveBeenCalled()
+      await wrapper.setProps({ group: { ...GROUP, groupUuid: 'garden-uuid' } })
+      expect(video.letGo).toHaveBeenCalledTimes(1)
+    })
+  })
+
   it('hands the thread its group', () => {
     mountWindow()
     expect(find('thread').attributes('data-group')).toBe('cafe-uuid')
+  })
+
+  // E-053: a name tapped over a message or in the list of members -- the page knows who is a
+  // contact and leads there; the window only hands the member on, and stays as it is.
+  it('hands a member named in the thread or in the list on to the page', async () => {
+    mountWindow()
+    await flushPromises()
+    const anna = { communityUuid: 'home-uuid', gradidoID: 'anna-id', alias: 'Anna-Sonne' }
+    const carla = { communityUuid: 'home-uuid', gradidoID: 'carla-id', alias: 'Carla-Sonne' }
+    const members = () => wrapper.findComponent({ name: 'ChatGroupMembers' })
+    await wrapper.findComponent({ name: 'ChatThread' }).vm.$emit('openMember', anna)
+    await find('chat-group-window-members').trigger('click')
+    await members().vm.$emit('openMember', carla)
+    expect(wrapper.emitted('openMember')).toEqual([[anna], [carla]])
+    expect(members().props('modelValue')).toBe(true)
+    expect(wrapper.emitted('update:modelValue')).toBeUndefined()
   })
 
   it('is a sheet on a phone, with no header and no footer, named after the group', () => {
@@ -450,6 +568,7 @@ describe('ChatGroupWindow', () => {
       ['.chat-group-window-mark', '.contact-window-mark'],
       ['.chat-group-window-mark:focus-visible', '.contact-window-mark:focus-visible'],
       ['.chat-group-window-bell-icon', '.contact-window-bell-icon'],
+      ['.chat-group-window-video-icon', '.contact-window-video-icon'],
       ['.chat-group-window-bell.is-muted', '.contact-window-bell.is-muted'],
       ['.chat-group-window-row', '.contact-window-send'],
       ['.chat-group-window-inner', '.contact-window-inner'],

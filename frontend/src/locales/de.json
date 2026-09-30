@@ -205,6 +205,13 @@
     "renameTitle": "Gruppe umbenennen",
     "since": "Gruppe seit {date}",
     "unmutedHint": "Nicht mehr stumm: Ankündigungen aus {name} kommen wieder per E-Mail.",
+    "videoAskBody": "Alle in der Gruppe bekommen den Link als Nachricht.",
+    "videoAskTitle": "Videoanruf in der Gruppe {name} starten?",
+    "videoByEmail": "Einladung per E-Mail an alle",
+    "videoCall": "Videoanruf in der Gruppe {name} starten",
+    "videoJoinTitle": "Videoanruf in der Gruppe {name} beitreten?",
+    "videoPlanBody": "Alle in der Gruppe bekommen die Einladung als Nachricht.",
+    "videoSettingsTitle": "Einstellungen zum Videoanruf in der Gruppe {name}",
     "youAreMember": "Du bist Mitglied",
     "youAreModerator": "Du bist Moderator",
     "youAreOwner": "Du bist Inhaber"

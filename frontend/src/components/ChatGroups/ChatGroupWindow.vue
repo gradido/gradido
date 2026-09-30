@@ -80,6 +80,20 @@
           {{ t('chatGroup.members') }}
         </button>
         <div class="chat-group-window-marks">
+          <!-- The camera: a video call in the group (E-053), as with a person (V2) -- a room on a
+               checked Jitsi server whose address goes to everybody in the group as an ordinary
+               message. Anybody in the group may start one; by mail only the owner and the
+               moderators, as the announcement. No word beside it: the question carries the words. -->
+          <button
+            type="button"
+            class="chat-group-window-mark chat-group-window-video"
+            :aria-label="videoCallName"
+            :title="videoCallName"
+            data-test="chat-group-window-video"
+            @click="videoCall?.ask()"
+          >
+            <i-mdi-video-outline class="chat-group-window-video-icon" aria-hidden="true" />
+          </button>
           <!-- The bell: mutes the group for oneself -- no announcement reaches one by mail; the
                thread shows every message as before (E-024). No question before switching, either
                way: nothing is lost, and it switches back as easily. -->
@@ -105,7 +119,24 @@
 
       <!-- The group's thread and the bar to write in it (ChatThread in a group's kind). ⛔ Keyed by
            the group: the thread takes its group once, and another group is another thread. -->
-      <chat-thread :key="group.groupUuid" class="chat-group-window-thread" :group="group" />
+      <chat-thread
+        :key="group.groupUuid"
+        ref="thread"
+        class="chat-group-window-thread"
+        :group="group"
+        @open-member="emit('openMember', $event)"
+      />
+
+      <!-- The questions of a video call (ChatVideoCall), as the contact window asks them (E-053):
+           the invitation goes through the group's thread; the box, for the owner and the
+           moderators, sends it to everybody by mail as an announcement. -->
+      <chat-video-call
+        ref="videoCall"
+        :name="group.title"
+        group
+        :can-mail="canAnnounce"
+        :deliver="deliverThroughThread"
+      />
 
       <!-- The members' dialog, over this window (P5). -->
       <chat-group-members
@@ -116,19 +147,21 @@
         :contacts="contacts"
         @changed="membersChanged"
         @left="left"
+        @open-member="emit('openMember', $event)"
       />
     </div>
   </BModal>
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, provide, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useStore } from 'vuex'
 import { useApolloClient, useMutation } from '@vue/apollo-composable'
 import { BModal } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
 import ChatThread from '@/components/Chat/ChatThread.vue'
+import ChatVideoCall from '@/components/Chat/ChatVideoCall.vue'
 import ChatGroupMembers from '@/components/ChatGroups/ChatGroupMembers.vue'
 import {
   chatGroupAvatar,
@@ -139,7 +172,9 @@ import { fetchMemberAvatars, memberAvatarProps } from '@/composables/useMemberAv
 import { useAppToast } from '@/composables/useToast'
 import { SMALL_FACE_SIZE } from '@/constants'
 import { chatGroupMembersQuery, setChatGroupMuted } from '@/graphql/chatGroups.graphql'
+import { managesChatGroup } from '@/utils/chatGroupRoles'
 import { chatMemberKey } from '@/utils/chatMemberKey'
+import { CHAT_VIDEO_JOIN } from '@/utils/chatVideoApp'
 import { memberAlias } from '@/utils/gradidoAddress'
 
 /**
@@ -159,8 +194,11 @@ const props = defineProps({
 /**
  * `changed`: something about the group is different now -- muted or lifted, a member in or out, a
  * part or the name changed, the member left -- and the page asks for its list again.
+ *
+ * `openMember`: a member whose name was tapped, in the list or over their message (E-053). The page
+ * knows who is a contact, and leads there: their window over this one, or the send form.
  */
-const emit = defineEmits(['update:modelValue', 'changed'])
+const emit = defineEmits(['update:modelValue', 'changed', 'openMember'])
 
 const { t, d } = useI18n()
 const store = useStore()
@@ -321,6 +359,33 @@ const toggleMute = async () => {
     mutingInFlight = false
   }
 }
+/** The thread of the group: a video invitation goes out through it (`deliver`), as a message. */
+const thread = ref(null)
+/** The questions of a video call (ChatVideoCall, E-053). */
+const videoCall = ref(null)
+const videoCallName = computed(() => t('chatGroup.videoCall', { name: props.group?.title ?? '' }))
+
+/**
+ * Whether the question offers to send the invitation by mail to everybody: the owner and the
+ * moderators (E-050 F5, as the bar's box), and only where anybody else is in the group.
+ */
+const canAnnounce = computed(
+  () => managesChatGroup(props.group?.role) && (props.group?.memberCount ?? 0) > 1,
+)
+
+/** The invitation through the group's thread; nothing goes where there is none. */
+const deliverThroughThread = (message) =>
+  thread.value ? thread.value.deliver(message) : Promise.resolve(false)
+
+/** The question before joining a call, asked by the link of an invitation in the group's thread. */
+provide(CHAT_VIDEO_JOIN, (roomUrl) => videoCall.value?.askJoin(roomUrl))
+
+// Another group in the window: a question about a call in the last one is let go. (A new name is
+// the same group: its uuid stays, and the question with it.)
+watch(
+  () => props.group?.groupUuid,
+  () => videoCall.value?.letGo(),
+)
 </script>
 
 <style lang="scss" scoped>
@@ -416,6 +481,12 @@ const toggleMute = async () => {
 }
 
 .chat-group-window-bell-icon {
+  width: 1.35em;
+  height: 1.35em;
+}
+
+/* The camera: in the bell's round and at the heart's glyph size, as in the contact window. */
+.chat-group-window-video-icon {
   width: 1.35em;
   height: 1.35em;
 }
