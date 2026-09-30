@@ -310,6 +310,8 @@
     "videoCall": "Videogesprek met {name} starten",
     "videoCopyLink": "Link kopiëren",
     "videoDate": "Datum",
+    "videoDuplicate": "Dupliceren",
+    "videoDuplicateLabel": "Videogesprek ‘{topic}’ dupliceren",
     "videoFrom": "Begin",
     "videoInAppHint": "Opent de vergaderruimte in de Jitsi-app voor de computer — als die geïnstalleerd is.",
     "videoInvite": "📹 Videogesprek. De vergaderruimte staat op een Jitsi-server van {operator} — een suggestie, geen dienst van Gradido: {url}",

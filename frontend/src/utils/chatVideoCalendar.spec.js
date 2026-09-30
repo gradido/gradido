@@ -9,6 +9,8 @@ import {
   chatVideoWhen,
   chatVideoZone,
   saveChatVideoCalendarFile,
+  chatVideoInvitation,
+  chatVideoNextWeek,
 } from './chatVideoCalendar'
 import { withChatVideoTopic } from './chatVideoTopic'
 
@@ -246,5 +248,92 @@ describe('the planned call a message invites to', () => {
   it('takes the first planned address, past any other link', () => {
     const text = `Vorher: https://gradido.net/de/ -- ${INVITATION}`
     expect(chatVideoPlannedCall(text)?.url).toBe(PLANNED)
+  })
+})
+
+// E-058 (Bernd, 30.09.2026): a video invitation duplicated -- what it carries, and, planned, the
+// same weekday and time a week on.
+describe('the invitation a message carries', () => {
+  it('is read out of the first address of our own form: room, topic, and a planned time', () => {
+    expect(chatVideoInvitation(INVITATION)).toEqual({
+      url: PLANNED,
+      room: ROOM,
+      topic: 'Projektbesprechung',
+      start: START,
+      end: END,
+    })
+    const now = withChatVideoTopic(ROOM, 'Stammtisch')
+    expect(chatVideoInvitation(`Komm dazu: ${now}`)).toEqual({
+      url: now,
+      room: ROOM,
+      topic: 'Stammtisch',
+      start: null,
+      end: null,
+    })
+  })
+
+  it('is none in a message without one', () => {
+    expect(chatVideoInvitation('Schau mal: https://gradido.net/de/faq#konto')).toBeNull()
+    expect(chatVideoInvitation(`Hier: ${ROOM}`)).toBeNull()
+    expect(chatVideoInvitation('')).toBeNull()
+    expect(chatVideoInvitation(null)).toBeNull()
+  })
+})
+
+describe('a planned call a week on', () => {
+  beforeEach(() => {
+    process.env.TZ = 'Europe/Berlin'
+  })
+
+  afterEach(() => {
+    process.env.TZ = 'UTC'
+  })
+
+  // A moment on Berlin's clock.
+  const at = (day, time) => new Date(`${day}T${time}:00`)
+  const when = (day, from, to) => chatVideoWhen(day, from, to)
+
+  it('goes to the same weekday and time next week, as long as it was', () => {
+    const now = at('2026-09-30', '11:35')
+    expect(chatVideoNextWeek(when('2026-09-30', '15:00', '16:30'), now)).toEqual({
+      day: '2026-10-07',
+      from: '15:00',
+      to: '16:30',
+    })
+  })
+
+  // An invitation from weeks ago: the first of its weekday and time still to come.
+  it('goes to the first such time still to come', () => {
+    const now = at('2026-09-30', '13:35')
+    expect(chatVideoNextWeek(when('2026-09-02', '15:00', '16:00'), now)).toEqual({
+      day: '2026-09-30',
+      from: '15:00',
+      to: '16:00',
+    })
+    expect(chatVideoNextWeek(when('2026-09-02', '09:00', '10:00'), now)).toEqual({
+      day: '2026-10-07',
+      from: '09:00',
+      to: '10:00',
+    })
+  })
+
+  // Summer time ends on 25 October: the call keeps its time on the clock.
+  it('keeps the time of day across the change of summer time', () => {
+    const now = at('2026-10-21', '18:00')
+    expect(chatVideoNextWeek(when('2026-10-21', '15:00', '16:00'), now)).toEqual({
+      day: '2026-10-28',
+      from: '15:00',
+      to: '16:00',
+    })
+  })
+
+  it('ends a call that ran past midnight at the end of its day', () => {
+    const start = at('2026-09-30', '23:30')
+    const end = new Date(start.getTime() + 60 * 60 * 1000)
+    expect(chatVideoNextWeek({ start, end }, at('2026-09-30', '12:00'))).toEqual({
+      day: '2026-10-07',
+      from: '23:30',
+      to: '23:59',
+    })
   })
 })

@@ -310,6 +310,8 @@
     "videoCall": "Начать видеозвонок с {name}",
     "videoCopyLink": "Копировать ссылку",
     "videoDate": "Дата",
+    "videoDuplicate": "Дублировать",
+    "videoDuplicateLabel": "Дублировать видеозвонок «{topic}»",
     "videoFrom": "Начало",
     "videoInAppHint": "Открывает комнату в приложении Jitsi для компьютера — если оно установлено.",
     "videoInvite": "📹 Видеозвонок. Комната находится на сервере Jitsi, которым управляет {operator}, — это предложение, а не сервис Gradido: {url}",
