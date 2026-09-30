@@ -61,6 +61,13 @@ export const CHAT_UPDATES_MAX_PER_REQUEST = 5
 export const CHAT_IMAGES_MAX_PER_REQUEST = 10
 
 /**
+ * How many conversations one message may be forwarded into at once (Bernd, 30.09.2026, E-059 F3):
+ * groups and members together. A few people, not a mailing list -- every one of them may get a
+ * mail about it.
+ */
+export const CHAT_FORWARD_MAX_TARGETS = 5
+
+/**
  * Whether two references name the same member. Without regard to case, the way the
  * chat columns compare the pair (utf8mb4_unicode_ci) -- a uuid written in capitals is the
  * same member, as `directChatPairKey` treats it.

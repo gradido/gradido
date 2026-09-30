@@ -120,11 +120,32 @@ describe('storeChatMessage', () => {
           senderGradidoId: ANNA.gradidoId,
           subject: SUBJECT,
           body: BODY,
+          forwardedFromCommunityUuid: null,
+          forwardedFromGradidoId: null,
           notify: 'email',
           deliveryState: 'delivered',
         },
       ],
     ])
+  })
+
+  // E-059: the copy a member forwards carries who wrote the words first.
+  it('files the first writer of a forwarded message with it', async () => {
+    const insert = spyOn(database, 'dbInsertChatMessage').mockResolvedValue({
+      success: true,
+      value: storedRow,
+    })
+    spies = [
+      spyOn(database, 'dbEnsureDirectChatConversation').mockResolvedValue(conversation),
+      insert,
+    ]
+
+    await storeChatMessage({ ...message, forwardedFrom: BEN }, 'local')
+
+    expect(insert.mock.calls[0][0]).toMatchObject({
+      forwardedFromCommunityUuid: BEN.communityUuid,
+      forwardedFromGradidoId: BEN.gradidoId,
+    })
   })
 
   it('logs which message went where, and never its subject or text', async () => {

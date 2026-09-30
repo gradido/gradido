@@ -895,6 +895,13 @@ export const chatMessagesTable = mysqlTable(
     senderGradidoId: char('sender_gradido_id', { length: 36 }).notNull(),
     subject: text().default(sql`NULL`),
     body: text().notNull(),
+    // The first writer of a forwarded message (E-059, migration 0150): both set on a copy that was
+    // forwarded -- through several forwardings, the one who wrote the words --, both NULL on
+    // every other message.
+    forwardedFromCommunityUuid: char('forwarded_from_community_uuid', { length: 36 }).default(
+      sql`NULL`,
+    ),
+    forwardedFromGradidoId: char('forwarded_from_gradido_id', { length: 36 }).default(sql`NULL`),
     notify: varchar({ length: 8 }).$type<ChatMessageNotify>().notNull(),
     mailState: varchar('mail_state', { length: 8 })
       .$type<ChatMessageMailState>()

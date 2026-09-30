@@ -7,17 +7,20 @@ import {
   dbSelectChatGroupUuids,
   dbSelectChatMessageImageInfos,
 } from 'database'
+import { isSameChatMember } from '@/data/ChatConversation.logic'
 import { chatMemberKey, chatMemberUsers } from './chatMemberUsers'
 
 /**
  * The messages of these rows as `caller` reads them -- a page of a thread, of a group, or what is
- * new across all of them --, each with what is known about its pictures (P7) and, for a message
- * written in a group, the group's uuid and who wrote it (P5).
+ * new across all of them --, each with what is known about its pictures (P7), for a message
+ * written in a group, the group's uuid and who wrote it (P5), and for a forwarded copy, who wrote
+ * its words first (E-059).
  *
  * ⛔ Read for all of them at once, never one query per message: the pictures in one query, which
- * of the conversations are groups in another, and only where there is a group message, the users
- * who wrote them (chatMemberUsers). A picture is matched to its message by the message's uuid the
- * way the columns compare it, without regard to case.
+ * of the conversations are groups in another, and only where there is a group message or a
+ * forwarded copy, the users who wrote them (chatMemberUsers) -- the writers of both in one go. A
+ * picture is matched to its message by the message's uuid the way the columns compare it,
+ * without regard to case.
  */
 export async function chatMessagesOf(
   rows: ChatMessageSelect[],
@@ -39,18 +42,32 @@ export async function chatMessagesOf(
     communityUuid: row.senderCommunityUuid,
     gradidoId: row.senderGradidoId,
   })
-  const senders = await chatMemberUsers(
-    rows.filter((row) => groupUuids.has(row.conversationId)).map(senderOf),
-  )
+  // The first writer of a forwarded copy, where it is somebody else than its sender: a copy of
+  // one's own words names nobody (E-059).
+  const firstWriterOf = (row: ChatMessageSelect): ChatMemberRef | null =>
+    row.forwardedFromCommunityUuid === null ||
+    row.forwardedFromGradidoId === null ||
+    isSameChatMember(
+      { communityUuid: row.forwardedFromCommunityUuid, gradidoId: row.forwardedFromGradidoId },
+      senderOf(row),
+    )
+      ? null
+      : { communityUuid: row.forwardedFromCommunityUuid, gradidoId: row.forwardedFromGradidoId }
+  const writers = await chatMemberUsers([
+    ...rows.filter((row) => groupUuids.has(row.conversationId)).map(senderOf),
+    ...rows.map(firstWriterOf).filter((pair): pair is ChatMemberRef => pair !== null),
+  ])
   return rows.map((row) => {
     const groupUuid = groupUuids.get(row.conversationId)
+    const firstWriter = firstWriterOf(row)
     return new ChatMessage(
       row,
       caller,
       byMessage.get(row.messageUuid.toLowerCase()) ?? [],
       groupUuid === undefined
         ? null
-        : { groupUuid, senderUser: senders.get(chatMemberKey(senderOf(row))) ?? null },
+        : { groupUuid, senderUser: writers.get(chatMemberKey(senderOf(row))) ?? null },
+      firstWriter === null ? null : (writers.get(chatMemberKey(firstWriter)) ?? null),
     )
   })
 }

@@ -448,6 +448,11 @@ export const sendChatGroupMessageEmail = (
  * `hasImage`: the message carries a picture (P7). The mail says so in a line of its own and
  * shows none -- the mail is the nudge, the conversation the content (MAIL-008) -- and a picture
  * without a caption is a message with no text to show.
+ *
+ * `forwarded` (E-059): the message is a copy the sender forwarded. A line over the text says so,
+ * with the name of whoever wrote the words first (`forwardedFromAlias`) -- none where the sender
+ * forwards words of their own. `forwardWords`: what the sender wrote to go with it, under the
+ * text; it goes as a message of its own in the conversation, and in this mail, not in another.
  */
 export const sendCustomEmail = (
   data: EmailCommonData & {
@@ -457,6 +462,9 @@ export const sendCustomEmail = (
     senderUuid?: string
     senderCommunityUuid?: string
     hasImage?: boolean
+    forwarded?: boolean
+    forwardedFromAlias?: string | null
+    forwardWords?: string | null
   },
 ): Promise<Record<string, unknown> | boolean | null | Error> => {
   // The sender's uuid and nothing of the message -- neither its text nor its subject nor the
@@ -469,6 +477,9 @@ export const sendCustomEmail = (
       ...data,
       subject: data.subject,
       hasImage: data.hasImage ?? false,
+      forwarded: data.forwarded ?? false,
+      forwardedFromAlias: data.forwardedFromAlias ?? null,
+      forwardWords: data.forwardWords ?? null,
       ...getEmailCommonLocales(),
     },
   })

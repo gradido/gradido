@@ -18,12 +18,27 @@ block content
       conversation the content (MAIL-008) --; a line before the text says there is one. A
       picture may come without a caption: no empty line for the text then.
   .memo-block
+    //- A forwarded copy (E-059): a line over it says so, with the name of whoever wrote the
+        words first -- none where the sender forwards words of their own.
+    if forwarded
+      div(class="p_content")
+        if forwardedFromAlias
+          = t('emails.customEmail.forwardedFrom', { forwardedFromAlias })
+        else
+          = t('emails.customEmail.forwarded')
     if hasImage
       div(class="p_content")
         = t('emails.customEmail.imageNote')
     if memo
       div(class="p_content")
         +humanText(memo, { bold: true })
+    //- What the sender wrote to go with a forwarded message: in the conversation a message of
+        its own right after the copy, here under it -- one mail for both.
+    if forwardWords
+      div(class="p_content")
+        = t('emails.customEmail.forwardWords', { senderAlias })
+      div(class="p_content")
+        +humanText(forwardWords)
     //- Green sits inside the card because that is where it is seen; the gold button
         below only offers the way into the account. Before, the single gold button led
         to the send form while saying "to account" - the label lied about its target.
