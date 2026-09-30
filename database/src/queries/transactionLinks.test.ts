@@ -2,12 +2,16 @@ import { Duration, GradidoUnit } from 'shared'
 import {
   AppDatabase,
   bibiBloxberg,
+  TransactionLink as DbTransactionLink,
   User as DbUser,
+  dbFindTransactionLinkByCode,
   TransactionLinkInterface,
+  transactionLinkFactory,
   transactionLinkFactoryBulk,
   transactionLinksPendingFromUserOrderByIdASC,
   userFactory,
 } from '..'
+
 import { createCommunity } from '../seeds/community'
 import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 
@@ -133,5 +137,34 @@ describe('transactionLinks', () => {
     const result = await transactionLinksPendingFromUserOrderByIdASC(bibiUser.id, 1000, 0, endDate)
     expect(result.length).toBe(1000)
     // no assertion, just to check if it is fast enough
+  })
+})
+
+describe('dbFindTransactionLinkByCode', () => {
+  let link: DbTransactionLink
+
+  beforeAll(async () => {
+    await dbDeleteAllRowsExceptMigrations()
+    await createCommunity(false)
+    const bibi = await userFactory(bibiBloxberg)
+    link = await transactionLinkFactory(
+      { email: bibi.emailContact.email, amount: 10, memo: 'for a newcomer' },
+      bibi.id,
+    )
+  })
+
+  it('finds the link, and with it who created it', async () => {
+    expect(await dbFindTransactionLinkByCode(link.code)).toEqual(
+      expect.objectContaining({ id: link.id, userId: link.userId }),
+    )
+  })
+
+  it('finds nothing for an unknown code', async () => {
+    expect(await dbFindTransactionLinkByCode('unknown-code')).toBeNull()
+  })
+
+  it('finds no deleted link', async () => {
+    await DbTransactionLink.softRemove(link)
+    expect(await dbFindTransactionLinkByCode(link.code)).toBeNull()
   })
 })

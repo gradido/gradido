@@ -14,7 +14,7 @@ const linksOn = (current) => {
 }
 
 /**
- * The auth links carry the current query along -- that is how a table code (E-017) reaches the
+ * The auth links carry the current query along -- that is how a guarantor code (E-017) reaches the
  * registration from the address page it was scanned to. The code is sealed for the name in that
  * address, and the registration checks it against `referrer`: every link that carries the code
  * must carry the name too.
@@ -24,11 +24,11 @@ describe('useAuthLinks', () => {
     route.current = null
   })
 
-  describe('on an address page with a table code', () => {
+  describe('on an address page with a guarantor code', () => {
     const addressPage = {
       name: 'PublicProfile',
       params: { alias: 'bernd' },
-      query: { presence: CODE },
+      query: { guarantor: CODE },
     }
 
     // The navigation bar's "Sign up" and "Sign in" add nothing of their own.
@@ -36,7 +36,7 @@ describe('useAuthLinks', () => {
       const withParamsAndQuery = linksOn(addressPage)
 
       for (const name of ['Register', 'Login']) {
-        expect(withParamsAndQuery(name).query).toEqual({ referrer: 'bernd', presence: CODE })
+        expect(withParamsAndQuery(name).query).toEqual({ referrer: 'bernd', guarantor: CODE })
       }
     })
 
@@ -46,7 +46,7 @@ describe('useAuthLinks', () => {
 
       expect(withParamsAndQuery('Register', { query: { referrer: 'bernd' } }).query).toEqual({
         referrer: 'bernd',
-        presence: CODE,
+        guarantor: CODE,
       })
     })
   })
@@ -56,15 +56,15 @@ describe('useAuthLinks', () => {
     const withParamsAndQuery = linksOn({
       name: 'Login',
       params: {},
-      query: { presence: CODE, referrer: 'bernd' },
+      query: { guarantor: CODE, referrer: 'bernd' },
     })
 
-    expect(withParamsAndQuery('Register').query).toEqual({ presence: CODE, referrer: 'bernd' })
+    expect(withParamsAndQuery('Register').query).toEqual({ guarantor: CODE, referrer: 'bernd' })
   })
 
-  // Without a table code the links are what they were: the address page's navigation bar
+  // Without a guarantor code the links are what they were: the address page's navigation bar
   // does not start naming a referrer on its own.
-  it('adds no name where there is no table code', () => {
+  it('adds no name where there is no guarantor code', () => {
     const withParamsAndQuery = linksOn({
       name: 'PublicProfile',
       params: { alias: 'bernd' },

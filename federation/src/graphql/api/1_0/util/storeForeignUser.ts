@@ -1,5 +1,5 @@
 import { SendCoinsArgs, SendCoinsArgsLoggingView } from 'core'
-import { User as DbUser, UserLoggingView } from 'database'
+import { AccountState, User as DbUser, UserLoggingView } from 'database'
 import { getLogger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
@@ -39,6 +39,7 @@ export async function storeForeignUser(args: SendCoinsArgs): Promise<boolean> {
         )
         let foreignUser = DbUser.create()
         foreignUser.foreign = true
+        foreignUser.accountState = AccountState.FOREIGN
         if (args.senderAlias) {
           foreignUser.alias = args.senderAlias
         }

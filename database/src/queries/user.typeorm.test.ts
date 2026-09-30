@@ -9,7 +9,7 @@ import {
   UserRole as DbUserRole,
 } from '..'
 import { AppDatabase } from '../AppDatabase'
-import { RoleNames } from '../enum'
+import { AccountState, RoleNames } from '../enum'
 import { createCommunity } from '../seeds/community'
 import { createUserRole, userFactory } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
@@ -153,7 +153,7 @@ describe('user.typeorm.queries', () => {
       communityUuid = homeCom.communityUuid!
       communityName = homeCom.name!
       bibi = await userFactory({ ...bibiBloxberg, alias: 'newname' })
-      await dbInsertUserAlias(bibi.id, 'oldname', ALIAS_ORIGIN_CHOSEN)
+      await dbInsertUserAlias({ userId: bibi.id, alias: 'oldname', origin: ALIAS_ORIGIN_CHOSEN })
     })
 
     it('finds them by the name they hold now', async () => {
@@ -306,7 +306,7 @@ describe('user.typeorm.queries', () => {
     const guests: DbUser[] = []
 
     // A guest who opened an account at bob's table: bob is the referrer, a password is set,
-    // the address is not confirmed.
+    // the address is not confirmed - PARTLY_ACTIVATED_GUARANTOR.
     const tableGuest = async (n: number, referrer: DbUser): Promise<DbUser> => {
       const guest = await userFactory({
         email: `guest${n}@table.example`,
@@ -319,6 +319,7 @@ describe('user.typeorm.queries', () => {
       await DbUser.update(guest.id, {
         referrerId: referrer.id,
         passwordEncryptionType: PasswordEncryptionType.GRADIDO_ID,
+        accountState: AccountState.PARTLY_ACTIVATED_GUARANTOR,
       })
       return guest
     }
@@ -365,7 +366,9 @@ describe('user.typeorm.queries', () => {
         )
       })
 
-      it('counts neither an account without a password nor the guests of another member', async () => {
+      // A referred account from the classic registration is REGISTERED, not
+      // PARTLY_ACTIVATED_GUARANTOR: it holds no password and cannot act before confirming.
+      it('counts neither a classic registration nor the guests of another member', async () => {
         const classic = await userFactory({
           email: 'classic@table.example',
           firstName: 'Classic',
@@ -386,9 +389,13 @@ describe('user.typeorm.queries', () => {
 
       it('lets a guest go who confirms, and one who is deleted', async () => {
         await DbUserContact.update(guests[1].emailId!, { emailChecked: true })
+        await DbUser.update(guests[1].id, { accountState: AccountState.ACTIVATED })
         expect(await dbFindUnconfirmedVouchedAccounts(bob.id)).toHaveLength(4)
 
-        await DbUser.update(guests[2].id, { deletedAt: new Date() })
+        await DbUser.update(guests[2].id, {
+          deletedAt: new Date(),
+          accountState: AccountState.DELETED,
+        })
         const found = (await dbFindUnconfirmedVouchedAccounts(bob.id)).map((guest) => guest.id)
         expect(found).toHaveLength(3)
         expect(found).not.toContain(guests[1].id)

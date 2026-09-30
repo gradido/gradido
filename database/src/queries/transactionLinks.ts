@@ -3,13 +3,24 @@ import { Order } from 'shared'
 import { IsNull, LessThanOrEqual, MoreThan } from 'typeorm'
 import { drizzleDb } from '../AppDatabase'
 import { TransactionLink as DbTransactionLink } from '../entity'
-import { transactionLinksTable } from '../schemas'
+import { TransactionLinksSelect, transactionLinksTable } from '../schemas'
 
 export async function findTransactionLinkByCode(code: string): Promise<DbTransactionLink> {
   return await DbTransactionLink.findOneOrFail({
     where: { code },
     withDeleted: true,
   })
+}
+
+// A deleted link redeems nothing - TypeORM left it out on its own (`@DeleteDateColumn`).
+export async function dbFindTransactionLinkByCode(
+  redeemCode: string,
+): Promise<TransactionLinksSelect | null> {
+  const rows = await drizzleDb()
+    .select()
+    .from(transactionLinksTable)
+    .where(and(eq(transactionLinksTable.code, redeemCode), isNull(transactionLinksTable.deletedAt)))
+  return rows[0] ? rows[0] : null
 }
 
 /**

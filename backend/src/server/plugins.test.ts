@@ -94,11 +94,11 @@ describe('the request log', () => {
     expect(variables.image.data).toBe('AAAA')
   })
 
-  it('writes no password and no table code, as before', () => {
+  it('writes no password and no guarantor code, as before', () => {
     const text = logged({
       password: 'Aa12345_',
       passwordNew: 'Bb12345_',
-      presenceCode: '1790000000.c2lnbmF0dXJl',
+      guarantorCode: '1790000000.c2lnbmF0dXJl',
     })
     for (const secret of ['Aa12345_', 'Bb12345_', 'c2lnbmF0dXJl']) {
       expect(text).not.toContain(secret)

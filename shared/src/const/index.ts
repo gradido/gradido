@@ -165,6 +165,22 @@ export const FRONTEND_LOGIN_ROUTE = 'login'
 // carries the same limit, so an over-long value is stopped before it gets here.
 export const SALUTATION_MAX_LENGTH = 255
 
+// available languages
+export const AVAILABLE_LOCALS = [
+  'en',
+  'de',
+  'es',
+  'fr',
+  'nl',
+  'it',
+  'tr',
+  'ru',
+  'pt',
+  'el',
+] as const
+// TODO: decide if we use en as default
+export const DEFAULT_LANGUAGE = 'de'
+
 // 10 minutes default cache timeout, it is for auto correcting, when cache invalidation don't work properly in any cases,
 // the cached data set will be updated after 10 minutes
 export const DEFAULT_CACHE_TIMEOUT_MS = 10 * 60 * 1000

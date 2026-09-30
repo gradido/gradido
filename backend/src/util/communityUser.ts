@@ -1,5 +1,5 @@
 import { User } from '@model/User'
-import { User as dbUser, UserContact } from 'database'
+import { AccountState, User as dbUser, UserContact } from 'database'
 import { RemoveOptions, SaveOptions } from 'typeorm'
 
 import { CONFIG } from '@/config'
@@ -28,6 +28,8 @@ const communityDbUser: dbUser = {
   // counterparty of a CREATION booking, never the account that creates. A stand-in that
   // "may create" would be a person nobody can ask.
   creationAllowed: false,
+  // The column's default: this stand-in has no address to confirm.
+  accountState: AccountState.REGISTERED,
   // false, not the column's default either: the stand-in has no conversations and no
   // settings page, and receives no mail.
   transfersInChat: false,

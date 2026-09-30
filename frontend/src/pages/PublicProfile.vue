@@ -121,7 +121,8 @@
  *
  * Only for a user name. A Gradido ID leaves no trace (the server takes names only), and a
  * page that greets "somebody" should not promise that somebody hears of it; anything else in
- * the address is no name at all. The shape decides, as for the greeting.
+ * the address - a reserved word included - is no name at all, and the server would refuse the
+ * registration over it. The shape decides, as for the greeting.
  */
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
@@ -132,7 +133,7 @@ import GradidoAddressCopy from '@/components/GradidoAddressCopy'
 import { useAuthLinks } from '@/composables/useAuthLinks'
 import CONFIG from '@/config'
 import { isGradidoId } from '@/utils/gradidoAddress'
-import { USERNAME_REGEX } from '@/validationSchemas'
+import { isValidUsername } from '@/validationSchemas'
 
 const route = useRoute()
 const { t } = useI18n()
@@ -155,7 +156,7 @@ const sendRoute = computed(() => ({
   params: { communityIdentifier: communityName, userIdentifier: alias.value },
 }))
 
-const leavesTrace = computed(() => USERNAME_REGEX.test(alias.value))
+const leavesTrace = computed(() => isValidUsername(alias.value))
 
 const registerRoute = computed(() =>
   leavesTrace.value

@@ -1,5 +1,6 @@
-import { and, desc, eq, inArray, isNull, ne, or, sql } from 'drizzle-orm'
-import { alias as aliasedTable, type BuildAliasTable } from 'drizzle-orm/mysql-core'
+import { and, count, desc, eq, inArray, isNull, ne, or, sql } from 'drizzle-orm'
+import { alias as aliasedTable, type BuildAliasTable, unionAll } from 'drizzle-orm/mysql-core'
+import { MySql2Database } from 'drizzle-orm/mysql2'
 import {
   ContactOrigin,
   GradidoUnit,
@@ -8,8 +9,8 @@ import {
   Result,
   VoidResult,
 } from 'shared'
-import { EntityManager } from 'typeorm'
-import { drizzleDb } from '../AppDatabase'
+import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
+import { AccountState } from '../enum'
 import {
   DBDuplicateEntryError,
   DBInsertFailed,
@@ -22,12 +23,12 @@ import {
   UserInsert,
   UserRoleSelect,
   UserSelect,
+  userAliasesTable,
   userAvatarsTable,
   userContactsTable,
   userRolesTable,
   usersTable,
 } from '../schemas/drizzle.schema'
-import { dbAliasHeldByOther } from './userAliases'
 
 // Drizzle only. The `users` queries still on TypeORM live in `./user.typeorm` until they
 // are translated.
@@ -35,6 +36,8 @@ import { dbAliasHeldByOther } from './userAliases'
 // Wherever TypeORM read `users` as its main table it added `deleted_at IS NULL` on its own
 // (the entity has a `@DeleteDateColumn`); Drizzle adds nothing, so the translations below
 // spell that condition out.
+//
+const userInsertFailed = (row: UserInsert) => new DBInsertFailed<UserInsert>('users', row)
 
 /**
  * Everything the login needs about the member signing in, in one round trip.
@@ -95,6 +98,81 @@ export async function dbFindUserLoginByEmail(
 }
 
 /**
+ * The member whose account address this is, or null.
+ *
+ * ⛔ Deleted accounts INCLUDED, deliberately: a deleted member still holds their address - the
+ * row stays, and `user_contacts.email` is unique - so a registration with it has to find them
+ * and answer as for any taken address, instead of colliding on the insert.
+ */
+export async function dbFindUserByEmail(
+  email: string,
+  tx?: DrizzleTransaction | MySql2Database,
+): Promise<UserSelect | null> {
+  if (!tx) {
+    tx = drizzleDb()
+  }
+  const rows = await tx
+    .select({ user: usersTable })
+    .from(usersTable)
+    .innerJoin(userContactsTable, eq(usersTable.emailId, userContactsTable.id))
+    .where(and(eq(userContactsTable.email, email)))
+
+  return rows[0] ? rows[0].user : null
+}
+
+export async function dbFindUserById(userId: number): Promise<UserSelect | null> {
+  const rows = await drizzleDb()
+    .select()
+    .from(usersTable)
+    .where(and(eq(usersTable.id, userId), isNull(usersTable.deletedAt)))
+
+  return rows[0] ? rows[0] : null
+}
+
+export async function dbFindUserWithContactById(userId: number): Promise<DbUser | null> {
+  const rows = await drizzleDb()
+    .select({
+      user: usersTable,
+      emailContact: userContactsTable,
+    })
+    .from(usersTable)
+    .innerJoin(userContactsTable, eq(usersTable.emailId, userContactsTable.id))
+    .where(and(eq(usersTable.id, userId), isNull(usersTable.deletedAt)))
+
+  const item = rows[0]
+  if (item) {
+    return { ...item.user, emailContact: item.emailContact }
+  }
+  return null
+}
+
+export async function dbInsertUser(
+  user: UserInsert,
+  tx?: DrizzleTransaction | MySql2Database,
+): Promise<Result<number, DBInsertFailed<UserInsert> | DBDuplicateEntryError>> {
+  if (!tx) {
+    tx = drizzleDb()
+  }
+  try {
+    const rows = await tx.insert(usersTable).values(user)
+    const firstRow = rows[0]
+    if (firstRow && firstRow.affectedRows === 1) {
+      return { success: true, value: firstRow.insertId }
+    }
+    return { success: false, error: userInsertFailed(user) }
+  } catch (error) {
+    // A gradido id that is taken already: the caller draws a new one.
+    if (isDuplicateEntry(error)) {
+      return {
+        success: false,
+        error: new DBDuplicateEntryError('users', 'gradido_id,community_uuid', user.gradidoId),
+      }
+    }
+    throw error
+  }
+}
+
+/**
  * A `users` row together with the address in force for it -- the shape almost everything
  * above the database means when it says "the user". The TypeORM entity carries the same
  * pair as `User` + `User.emailContact`, which is why the consumers of both take
@@ -139,6 +217,26 @@ export async function dbFindUserIdByUuids(
     .where(and(eq(usersTable.communityUuid, communityUuid), eq(usersTable.gradidoId, gradidoID)))
     .limit(1)
   return rows[0]?.id ?? null
+}
+
+// referrerId is userId from person which is the referrer of all this unconfirmed accounts
+export async function dbCountUnconfirmedVouchedAccounts(
+  referrerId: number,
+  tx?: DrizzleTransaction | MySql2Database,
+): Promise<number> {
+  if (!tx) {
+    tx = drizzleDb()
+  }
+  const rows = await tx
+    .select({ count: count() })
+    .from(usersTable)
+    .where(
+      and(
+        eq(usersTable.referrerId, referrerId),
+        eq(usersTable.accountState, AccountState.PARTLY_ACTIVATED_GUARANTOR),
+      ),
+    )
+  return rows[0]?.count ?? 0
 }
 
 /**
@@ -209,7 +307,12 @@ export async function dbInsertForeignUser(member: {
 }): Promise<Result<number, DBInsertFailed<{ communityUuid: string; gradidoId: string }>>> {
   await drizzleDb()
     .insert(usersTable)
-    .values({ foreign: true, communityUuid: member.communityUuid, gradidoId: member.gradidoId })
+    .values({
+      foreign: true,
+      accountState: AccountState.FOREIGN,
+      communityUuid: member.communityUuid,
+      gradidoId: member.gradidoId,
+    })
     .onDuplicateKeyUpdate({ set: { gradidoId: sql`${usersTable.gradidoId}` } })
   const rows = await drizzleDb()
     .select({ id: usersTable.id })
@@ -281,34 +384,60 @@ export async function dbClearGmsRegistration(userId: number): Promise<VoidResult
 }
 
 /**
- * `manager` goes to the half that still asks TypeORM, so that a caller inside a transaction
- * (registerAccount) takes no second connection from the pool; the half on `users` runs on
- * Drizzle's own pool.
+ * Is this name spoken for by somebody other than `userId`? Two places can hold it, asked in
+ * one round trip: the current alias of a local member, and every name a member owns in
+ * `user_aliases` - a name somebody left behind stays theirs, so it stays blocked, except for
+ * its own owner, who may take it back. Both columns compare case-insensitively.
  */
 export async function aliasExists(
   alias: string,
   userId?: number,
-  manager?: EntityManager,
+  tx?: DrizzleTransaction | MySql2Database,
 ): Promise<boolean> {
+  if (!tx) {
+    tx = drizzleDb()
+  }
   // Only local users count. Aliases are unique per community, not globally: migration
   // 0073 dropped the global UNIQUE on users.alias in favour of UNIQUE(alias, community_uuid).
   // Rows with foreign = 1 are cached copies of members of other communities, so an alias
-  // held there must not block a member of this one.
-  const [user] = await drizzleDb()
+  // held there must not block a member of this one. Deleted members do count: the unique
+  // key knows no soft delete, so their alias would be refused on write anyway.
+  const heldAsCurrent = tx
     .select({ id: usersTable.id })
     .from(usersTable)
     .where(
-      and(eq(usersTable.alias, alias), eq(usersTable.foreign, false), isNull(usersTable.deletedAt)),
+      and(
+        eq(usersTable.alias, alias),
+        eq(usersTable.foreign, false),
+        userId === undefined ? undefined : ne(usersTable.id, userId),
+      ),
     )
-    .limit(1)
-  if (user !== undefined && (userId === undefined || user.id !== userId)) {
-    return true
-  }
-  // A name somebody left behind stays theirs, so it stays blocked - except for its own
-  // owner, who may take it back.
-  return dbAliasHeldByOther(alias, userId, manager)
+  const heldAsOwned = tx
+    .select({ id: userAliasesTable.userId })
+    .from(userAliasesTable)
+    .where(
+      and(
+        eq(userAliasesTable.alias, alias),
+        userId === undefined ? undefined : ne(userAliasesTable.userId, userId),
+      ),
+    )
+  const rows = await unionAll(heldAsCurrent, heldAsOwned).limit(1)
+  return rows.length > 0
 }
 
+export async function dbLocalUserGradidoIdExist(
+  gradidoId: string,
+  tx?: DrizzleTransaction | MySql2Database,
+): Promise<boolean> {
+  if (!tx) {
+    tx = drizzleDb()
+  }
+  const rows = await tx
+    .select({ count: count(usersTable.id) })
+    .from(usersTable)
+    .where(and(eq(usersTable.gradidoId, gradidoId), eq(usersTable.foreign, false)))
+  return rows[0] ? rows[0].count > 0 : false
+}
 /**
  * The REAL names of the moderators behind a contribution -- who changed it, who moderated
  * it, who closed it. Its one caller is the admin contribution list.
@@ -478,18 +607,39 @@ export type UserSingleColumn = Exclude<keyof UserInsert, UserCoupledColumn>
  * `dbUserUpdateField(id, 'password', …)` does not compile. Two fields that only make sense
  * together belong in a function of their own, the way dbUserUpdatePassword is one; whoever
  * reaches for two calls of this in a row should write that function instead.
+ * return affectedRows
  */
 export async function dbUserUpdateField<K extends UserSingleColumn>(
   userId: number,
   field: K,
   value: UserInsert[K],
-): Promise<void> {
-  await drizzleDb()
+  tx?: DrizzleTransaction | MySql2Database,
+): Promise<number> {
+  if (!tx) {
+    tx = drizzleDb()
+  }
+  const rows = await tx
     .update(usersTable)
     .set({
       [field]: value,
     })
     .where(eq(usersTable.id, userId))
+  return rows[0] ? rows[0].affectedRows : 0
+}
+
+// Not a soft delete, really remove the user and his user contact from db, used in RegisterUser if something after creating user failed
+export async function dbRemoveUser(
+  userId: number,
+  tx?: DrizzleTransaction | MySql2Database,
+): Promise<number> {
+  if (userId) {
+    if (!tx) {
+      tx = drizzleDb()
+    }
+    const rows = await tx.delete(usersTable).where(eq(usersTable.id, userId))
+    return rows[0] ? rows[0].affectedRows : 0
+  }
+  return 0
 }
 
 /**

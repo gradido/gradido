@@ -1,4 +1,4 @@
-import { string } from 'zod'
+import { z } from 'zod'
 
 // Kept beside the regex that enforces them, so a change to one is a change to the
 // other in the same glance. Anything generating an alias has to respect both bounds.
@@ -31,7 +31,17 @@ export const RESERVED_ALIAS = [
   'unknown',
 ]
 
-export const aliasSchema = string()
+// At least 8 characters, with a lower and an upper case letter, a digit and one other character,
+// and no whitespace. The same rules as the wallet's password field (validation-rules.js).
+export const passwordSchema = z
+  .string()
+  .regex(
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9 \t\n\r])[^ \t\n\r]{8,}$/,
+    'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character, and no spaces!',
+  )
+
+export const aliasSchema = z
+  .string()
   .min(3, 'Given alias is too short')
   .max(20, 'Given alias is too long')
   .regex(VALID_ALIAS_REGEX, 'Invalid characters in alias')
@@ -41,12 +51,17 @@ export const aliasSchema = string()
 
 // TODO: use this schemas in backend, think about case which currently not fullfil the regex
 // (some user start there name with : )
-export const firstNameSchema = string()
+export const firstNameSchema = z
+  .string()
   .min(3, 'First name is too short')
   .max(255, 'First name is too long')
-  .regex(VALID_NAME_REGEX)
+// Off for now: VALID_NAME_REGEX would refuse about one in eight of today's names. Whether and
+// how names are restricted is an open question of its own.
+// .regex(VALID_NAME_REGEX)
 
-export const lastNameSchema = string()
+export const lastNameSchema = z
+  .string()
   .min(2, 'Last name is too short')
   .max(255, 'Last name is too long')
-  .regex(VALID_NAME_REGEX)
+// Off for now, see firstNameSchema.
+// .regex(VALID_NAME_REGEX)

@@ -6,6 +6,31 @@ import { splitRecipient } from '@/utils/gradidoAddress'
 const EMAIL_REGEX =
   /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
 export const USERNAME_REGEX = /^(?=.{3,20}$)[a-zA-Z0-9]+(?:[_-][a-zA-Z0-9]+?)*$/
+// Nobody may hold these names. Keep in step with RESERVED_ALIAS in
+// shared/src/schema/user.schema.ts - the frontend cannot yet import from it.
+export const RESERVED_ALIAS = [
+  'admin',
+  'email',
+  'gast',
+  'gdd',
+  'gradido',
+  'guest',
+  'home',
+  'root',
+  'support',
+  'temp',
+  'tmp',
+  'user',
+  'usr',
+  'var',
+  'reserved',
+  'undefined',
+  'unknown',
+]
+
+// A name the server takes as a user name (aliasSchema in shared): the shape, and no reserved word.
+export const isValidUsername = (value) =>
+  USERNAME_REGEX.test(value) && !RESERVED_ALIAS.includes(value.toLowerCase())
 
 // TODO: only needed for grace period, before all inputs updated for using veeValidate + yup
 export const isLanguageKey = (str) =>

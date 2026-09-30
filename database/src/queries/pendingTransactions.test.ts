@@ -1,5 +1,4 @@
-import Decimal from 'decimal.js-light'
-import { PendingTransactionState } from 'shared'
+import { GradidoUnit, PendingTransactionState } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
 import { User as DbUser } from '..'
 import { AppDatabase } from '../AppDatabase'
@@ -41,14 +40,14 @@ describe('countOpenPendingTransactions', () => {
     await pendingTransactionFactory(
       bibi,
       peter,
-      new Decimal(10),
+      GradidoUnit.fromNumber(10),
       'Bibi -> Peter new',
       PendingTransactionState.NEW,
     )
     await pendingTransactionFactory(
       bibi,
       peter,
-      new Decimal(100.01),
+      GradidoUnit.fromNumber(100.01),
       'Bibi -> Peter settled',
       PendingTransactionState.SETTLED,
     )
@@ -57,7 +56,7 @@ describe('countOpenPendingTransactions', () => {
     await pendingTransactionFactory(
       peter,
       bibi,
-      new Decimal(12),
+      GradidoUnit.fromNumber(12),
       'Peter -> Bibi new',
       PendingTransactionState.NEW,
     )
@@ -66,7 +65,7 @@ describe('countOpenPendingTransactions', () => {
     await pendingTransactionFactory(
       bob,
       peter,
-      new Decimal(17.1),
+      GradidoUnit.fromNumber(17.1),
       'Bob -> Peter new',
       PendingTransactionState.NEW,
     )
