@@ -28,6 +28,11 @@ export interface ChatMessageToStore {
   body: string
   notify: ChatMessageNotify
   deliveryState: ChatMessageDeliveryState
+  /**
+   * The first writer of a forwarded message (E-059): the copy a member forwards carries who wrote
+   * the words. None for every other message.
+   */
+  forwardedFrom?: ChatMemberRef | null
 }
 
 /**
@@ -69,6 +74,8 @@ export async function storeChatMessage(
       senderGradidoId: message.sender.gradidoId,
       subject: message.subject,
       body: message.body,
+      forwardedFromCommunityUuid: message.forwardedFrom?.communityUuid ?? null,
+      forwardedFromGradidoId: message.forwardedFrom?.gradidoId ?? null,
       notify: message.notify,
       deliveryState: message.deliveryState,
     })

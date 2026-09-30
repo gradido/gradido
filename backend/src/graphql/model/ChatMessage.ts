@@ -34,6 +34,7 @@ export class ChatMessage {
     reader: ChatMemberRef,
     images: ChatMessageImageInfo[] = [],
     group: { groupUuid: string; senderUser: User | null } | null = null,
+    forwardedFrom: User | null = null,
   ) {
     const sender = { communityUuid: row.senderCommunityUuid, gradidoId: row.senderGradidoId }
     this.id = row.id
@@ -51,6 +52,8 @@ export class ChatMessage {
     this.groupUuid = group?.groupUuid ?? null
     this.senderUser = group?.senderUser ?? null
     this.announcement = group !== null && row.notify === ChatMessageNotify.EMAIL
+    this.forwarded = row.forwardedFromGradidoId !== null
+    this.forwardedFrom = this.forwarded ? forwardedFrom : null
   }
 
   /**
@@ -143,4 +146,20 @@ export class ChatMessage {
    */
   @Field(() => [ChatMessageImage])
   images: ChatMessageImage[]
+
+  /**
+   * A copy a member forwarded from another conversation (E-059): the thread says "Weitergeleitet"
+   * over it.
+   */
+  @Field(() => Boolean)
+  forwarded: boolean
+
+  /**
+   * Who wrote the words of a forwarded copy first -- through several forwardings, the first
+   * writer --, as the thread names them: "Weitergeleitet von [Nutzername]". Null for every other
+   * message, and for a copy whose sender forwarded words of their own (the thread names nobody
+   * then), or whose first writer is not known here.
+   */
+  @Field(() => User, { nullable: true })
+  forwardedFrom: User | null
 }

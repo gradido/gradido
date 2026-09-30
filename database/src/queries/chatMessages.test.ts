@@ -12,6 +12,7 @@ import {
 import { ChatMemberRef, dbInsertChatConversationMembers } from './chatConversationMembers'
 import {
   dbInsertChatMessage,
+  dbSelectChatMessageForMember,
   dbSelectChatMessagesByConversationId,
   dbSelectChatMessagesPage,
   dbSelectChatMessagesSince,
@@ -457,5 +458,94 @@ describe('dbSelectChatMessagesSince', () => {
   it('refuses a cap below one and an id below zero', async () => {
     await expect(since(0, 0)).rejects.toThrow('page size')
     await expect(since(-1)).rejects.toThrow('message id')
+  })
+})
+
+/**
+ * What may be forwarded (E-059): a message, by its uuid, for a member of its conversation, while it
+ * is not marked deleted -- and the first writer a forwarded copy carries (migration 0150).
+ */
+describe('dbSelectChatMessageForMember', () => {
+  const pair = (): ChatMemberRef => ({ communityUuid: HOME, gradidoId: uuidv4() })
+  const LENA = pair()
+  const MAX = pair()
+  const NIKO = pair()
+  const WITH_MAX = 841
+  const WITHOUT_LENA = 842
+  let lenas: ChatMessageSelect
+  let othersOnly: ChatMessageSelect
+  let deleted: ChatMessageSelect
+  let forwarded: ChatMessageSelect
+
+  const filed = async (row: ChatMessageInsert): Promise<ChatMessageSelect> => {
+    const stored = await dbInsertChatMessage(row)
+    if (!stored.success) {
+      throw new Error(`fixture: "${row.body}" was not filed`)
+    }
+    return stored.value
+  }
+  const from = (sender: ChatMemberRef, conversationId: number, body: string, rest = {}) =>
+    message(uuidv4(), {
+      conversationId,
+      senderCommunityUuid: sender.communityUuid,
+      senderGradidoId: sender.gradidoId,
+      subject: null,
+      body,
+      ...rest,
+    })
+
+  beforeAll(async () => {
+    await dbInsertChatConversationMembers(WITH_MAX, [LENA, MAX])
+    await dbInsertChatConversationMembers(WITHOUT_LENA, [MAX, NIKO])
+    lenas = await filed(from(MAX, WITH_MAX, 'Max to Lena'))
+    othersOnly = await filed(from(MAX, WITHOUT_LENA, 'Max to Niko'))
+    deleted = await filed(from(MAX, WITH_MAX, 'Max to Lena, deleted later'))
+    forwarded = await filed(
+      from(LENA, WITH_MAX, 'Niko wrote this', {
+        forwardedFromCommunityUuid: NIKO.communityUuid,
+        forwardedFromGradidoId: NIKO.gradidoId,
+      }),
+    )
+    await db
+      .update(chatMessagesTable)
+      .set({ deletedAt: new Date() })
+      .where(eq(chatMessagesTable.id, deleted.id))
+  })
+
+  afterAll(async () => {
+    await db
+      .delete(chatConversationMembersTable)
+      .where(inArray(chatConversationMembersTable.conversationId, [WITH_MAX, WITHOUT_LENA]))
+  })
+
+  it('hands a member a message of their conversation, with its text', async () => {
+    const found = await dbSelectChatMessageForMember(lenas.messageUuid, LENA)
+    expect(found).toEqual({ success: true, value: lenas })
+    expect(found.success && found.value.body).toBe('Max to Lena')
+  })
+
+  it('hands out nothing of a conversation the member is not in', async () => {
+    expect((await dbSelectChatMessageForMember(othersOnly.messageUuid, LENA)).success).toBe(false)
+  })
+
+  it('hands out nothing of a message marked deleted', async () => {
+    expect((await dbSelectChatMessageForMember(deleted.messageUuid, LENA)).success).toBe(false)
+  })
+
+  it('hands out nothing for a uuid without a row', async () => {
+    expect((await dbSelectChatMessageForMember(uuidv4(), LENA)).success).toBe(false)
+  })
+
+  it('finds the message whatever the case of the uuid and the member, as the columns compare', async () => {
+    const shouting = { communityUuid: HOME.toUpperCase(), gradidoId: LENA.gradidoId.toUpperCase() }
+    const found = await dbSelectChatMessageForMember(lenas.messageUuid.toUpperCase(), shouting)
+    expect(found.success && found.value.id).toBe(lenas.id)
+  })
+
+  it('files and hands back the first writer of a forwarded copy, and none for any other message', async () => {
+    expect(forwarded.forwardedFromCommunityUuid).toBe(NIKO.communityUuid)
+    expect(forwarded.forwardedFromGradidoId).toBe(NIKO.gradidoId)
+    expect(lenas.forwardedFromCommunityUuid).toBeNull()
+    expect(lenas.forwardedFromGradidoId).toBeNull()
   })
 })

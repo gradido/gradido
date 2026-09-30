@@ -201,6 +201,38 @@ export async function dbSelectChatMessagesSince(
 }
 
 /**
+ * One message by its uuid, for a member of its conversation, while it is not marked deleted --
+ * what may be forwarded (E-059): only what the member can read in a thread of theirs.
+ * DBNotFoundError for everything else -- no such message, a member of another conversation, a
+ * deleted message --, with nothing that tells these apart, as dbSelectChatMessageImageForMember
+ * answers for a picture.
+ *
+ * The uuid is compared the way the column compares it, without regard to case.
+ */
+export async function dbSelectChatMessageForMember(
+  messageUuid: string,
+  member: ChatMemberRef,
+): Promise<Result<ChatMessageSelect, DBNotFoundError>> {
+  const rows = await drizzleDb()
+    .select({ message: chatMessagesTable })
+    .from(chatMessagesTable)
+    .innerJoin(
+      chatConversationMembersTable,
+      and(
+        eq(chatConversationMembersTable.conversationId, chatMessagesTable.conversationId),
+        eq(chatConversationMembersTable.communityUuid, member.communityUuid),
+        eq(chatConversationMembersTable.gradidoId, member.gradidoId),
+      ),
+    )
+    .where(and(eq(chatMessagesTable.messageUuid, messageUuid), isNull(chatMessagesTable.deletedAt)))
+    .limit(1)
+  const found = rows.at(0)
+  return found
+    ? { success: true, value: found.message }
+    : { success: false, error: ChatMessageNotFound(`message_uuid for a member`) }
+}
+
+/**
  * The messages of a conversation in the order they arrived on this server -- the only order
  * a conversation has; nothing is sorted by a sender's clock.
  */
