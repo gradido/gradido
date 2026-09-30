@@ -310,6 +310,8 @@
     "videoCall": "Start a video call with {name}",
     "videoCopyLink": "Copy link",
     "videoDate": "Date",
+    "videoDuplicate": "Duplicate",
+    "videoDuplicateLabel": "Duplicate the video call “{topic}”",
     "videoFrom": "Start",
     "videoInAppHint": "Opens the room in the Jitsi app on your computer — if it is installed.",
     "videoInvite": "📹 Video call. The room is on a Jitsi server run by {operator} — a suggestion, not a Gradido service: {url}",

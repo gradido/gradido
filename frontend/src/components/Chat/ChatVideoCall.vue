@@ -59,7 +59,8 @@
       </div>
       <!-- The time of a planned call (V5b): a day, from, to -- the browser's own calendar and
            clock, in the member's own time zone, which the line under them names. Empty for
-           every question: a day filled in on its own would be a day nobody chose. -->
+           every new question: a day filled in on its own would be a day nobody chose. A planned
+           call duplicated brings its own weekday and time a week on (E-058). -->
       <div class="mb-3" role="group" :aria-labelledby="videoWhenLabelId">
         <div :id="videoWhenLabelId" class="form-label">{{ $t('chatThread.videoWhen') }}</div>
         <div class="chat-video-when">
@@ -373,6 +374,7 @@ import {
   chatVideoCalendarFileName,
   chatVideoCalendarUid,
   chatVideoDay,
+  chatVideoNextWeek,
   chatVideoWhen,
   chatVideoZone,
   saveChatVideoCalendarFile,
@@ -599,6 +601,52 @@ const askVideoCall = () => {
   videoChoicesLoading = loadVideoServerChoices()
   videoAskOpened.value = false
   videoAsking.value = true
+}
+
+/**
+ * A video call duplicated from an invitation in the thread (Bernd, 30.09.2026, E-058): the question
+ * as `askVideoCall` opens it, with the invitation's topic and its ROOM -- the same link, so a
+ * meeting that comes round again stays in its room. A planned one opens on the gear's view with the
+ * same weekday and time a week on (`chatVideoNextWeek`), where "Planen" is; one for now opens on the
+ * question, with "Anruf starten". Everything can be changed before it goes; another server chosen
+ * in the gear is another room, as ever (`chooseVideoServer`).
+ *
+ * The room is set as the question's own (`videoRoomAsked`) once the list of servers is in: for the
+ * server of its host where the list has it -- which names the operator in the invitation --, else
+ * with none chosen, and the host names it. "Copy link", "Anruf starten" and "Planen" wait for the
+ * list as they always do, and so find the room set. The member's own choice of server is not
+ * changed by it.
+ *
+ * @param {{ room: string, topic: string, start: Date | null, end: Date | null }} invitation
+ */
+const duplicateVideoCall = (invitation) => {
+  askVideoCall()
+  videoTopic.value = invitation.topic
+  let host = ''
+  try {
+    host = new URL(invitation.room).host.toLowerCase()
+  } catch {
+    // Not an address: a room is asked for, as for a new call.
+  }
+  videoChoicesLoading = videoChoicesLoading.then(() => {
+    if (!host) return
+    const choice =
+      videoServerChoices.value.find((server) => server.host.toLowerCase() === host) ?? null
+    const room = { url: invitation.room, host, operator: choice?.operator ?? null }
+    videoServerWanted.value = choice?.id ?? null
+    videoRoomAsked = {
+      serverId: choice?.id ?? null,
+      answer: Promise.resolve({ room, error: null }),
+      room,
+    }
+  })
+  if (invitation.start && invitation.end) {
+    const next = chatVideoNextWeek(invitation)
+    videoDay.value = next.day
+    videoFrom.value = next.from
+    videoTo.value = next.to
+    openVideoSettings()
+  }
 }
 
 /**
@@ -1081,9 +1129,10 @@ const letGo = () => {
 /**
  * `ask`: the question before a call, from the window's camera. `askJoin`: the question before
  * joining one, from the link of an invitation in the thread (the window provides it as
- * `CHAT_VIDEO_JOIN`, ChatMessageText). `letGo`: see above.
+ * `CHAT_VIDEO_JOIN`, ChatMessageText). `duplicate`: the question for an invitation's room again,
+ * from "Duplizieren" under it (E-058). `letGo`: see above.
  */
-defineExpose({ ask: askVideoCall, askJoin: askJoinVideoCall, letGo })
+defineExpose({ ask: askVideoCall, askJoin: askJoinVideoCall, duplicate: duplicateVideoCall, letGo })
 </script>
 
 <style lang="scss" scoped>

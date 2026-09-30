@@ -79,8 +79,12 @@
       <!-- A planned video call (V5b, Bernd, 27.09.2026): offered to the member's calendar, on
            either side of the conversation -- the time comes out of the invitation's own address
            (chatVideoPlannedCall), and the calendar shows it in this member's time zone. -->
-      <div v-if="plannedCall" class="chat-bubble-calendar">
+      <!-- And under every video invitation "Duplizieren" (Bernd, 30.09.2026, E-058): the same room
+           and topic in the question before a call, a planned one a week on -- for everybody in
+           the conversation, as the link is. Beside "In den Kalender" where there is one. -->
+      <div v-if="plannedCall || videoInvitation" class="chat-bubble-calendar">
         <button
+          v-if="plannedCall"
           type="button"
           class="chat-bubble-calendar-add"
           data-test="chat-bubble-calendar"
@@ -88,6 +92,17 @@
         >
           <i-mdi-calendar-plus-outline aria-hidden="true" />
           {{ t('chatThread.videoAddToCalendar') }}
+        </button>
+        <button
+          v-if="videoInvitation"
+          type="button"
+          class="chat-bubble-calendar-add"
+          :aria-label="t('chatThread.videoDuplicateLabel', { topic: videoInvitation.topic })"
+          data-test="chat-bubble-duplicate"
+          @click="emit('duplicateVideo', videoInvitation)"
+        >
+          <i-mdi-content-duplicate aria-hidden="true" />
+          {{ t('chatThread.videoDuplicate') }}
         </button>
       </div>
       <div class="chat-bubble-meta">
@@ -144,6 +159,7 @@ import {
   chatVideoCalendarFile,
   chatVideoCalendarFileName,
   chatVideoCalendarUid,
+  chatVideoInvitation,
   chatVideoPlannedCall,
   saveChatVideoCalendarFile,
 } from '@/utils/chatVideoCalendar'
@@ -189,7 +205,7 @@ const props = defineProps({
  * `openImage`: a picture of the message, large (P7). `openMember`: the writer of somebody else's
  * message in a group, named over it (E-053) -- the user the server named with it.
  */
-const emit = defineEmits(['openImage', 'openMember'])
+const emit = defineEmits(['openImage', 'openMember', 'duplicateVideo'])
 
 const { t, d } = useI18n()
 
@@ -299,6 +315,14 @@ const notMailed = computed(() =>
 const plannedCall = computed(() => chatVideoPlannedCall(props.message.body))
 
 /**
+ * The video invitation this message is (E-058), for "Duplizieren": its room, its topic and, planned,
+ * its time. None in a transfer, whose words are the booking's memo.
+ */
+const videoInvitation = computed(() =>
+  props.message.transfer ? null : chatVideoInvitation(props.message.body),
+)
+
+/**
  * "Add to calendar": the call as an iCalendar file -- titled with its topic and the other
  * person's name, the invitation as its note, the room as its place. The same call keeps the same
  * name (`uid`), so a second download is the same entry.
@@ -339,6 +363,9 @@ const addToCalendar = () => {
 /* "Add to calendar" under a planned call's invitation (V5b): a small outlined pill in the gold of
    one's own bubbles, the words in the text colour. */
 .chat-bubble-calendar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
   margin-top: 0.4rem;
 }
 

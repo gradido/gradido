@@ -88,6 +88,7 @@
               :search-current="searchKey === (message.key ?? message.id)"
               @open-image="openImage"
               @open-member="emit('openMember', $event)"
+              @duplicate-video="emit('duplicateVideo', $event)"
             />
           </ol>
         </section>
@@ -208,8 +209,11 @@ const props = defineProps({
  *
  * `search`: what the search found (E-057) -- `{ searching, count, current, busy, capped }`, for
  * the window's bar -- whenever any of it changes.
+ *
+ * `duplicateVideo`: "Duplizieren" under a video invitation (E-058) -- the invitation, for the
+ * window's question before a call.
  */
-const emit = defineEmits(['chatConversation', 'openMember', 'search'])
+const emit = defineEmits(['chatConversation', 'openMember', 'search', 'duplicateVideo'])
 
 const { t, d, n } = useI18n()
 

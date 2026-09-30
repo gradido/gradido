@@ -92,6 +92,7 @@ describe('ChatBubble', () => {
         stubs: {
           IMdiEmailOutline: { template: '<i data-test="envelope" />' },
           IMdiCalendarPlusOutline: true,
+          IMdiContentDuplicate: true,
           IMdiFileDocumentOutline: true,
           IMdiOpenInNew: true,
           IBiCopy: true,
@@ -175,6 +176,78 @@ describe('ChatBubble', () => {
     const link = wrapper.find('.chat-message-text a')
     expect(link.text()).toBe(address)
     expect(link.attributes('href')).toBe(address)
+  })
+
+  /**
+   * E-058 (Bernd, 30.09.2026): under every video invitation "Duplizieren" -- the same room and topic
+   * in the question before a call, a planned one a week on; for everybody in the conversation.
+   */
+  describe('"Duplizieren" under a video invitation', () => {
+    const ROOM = 'https://meet.systemli.org/q2w3e4r5t6y7'
+    const duplicate = () => wrapper.find('[data-test="chat-bubble-duplicate"]')
+
+    it.each([
+      ['the other person', THEIRS],
+      ['oneself', OWN],
+    ])(
+      "stands under a call's invitation of %s's, and hands the invitation on",
+      async (who, base) => {
+        const address = withChatVideoTopic(ROOM, 'Stammtisch')
+        mountBubble({ ...base, body: `📹 Videoanruf: Stammtisch\nDer Raum: ${address}` })
+
+        expect(duplicate().text()).toBe('chatThread.videoDuplicate')
+        expect(duplicate().attributes('aria-label')).toBe(
+          'chatThread.videoDuplicateLabel {"topic":"Stammtisch"}',
+        )
+        await duplicate().trigger('click')
+        expect(wrapper.emitted('duplicateVideo')).toEqual([
+          [{ url: address, room: ROOM, topic: 'Stammtisch', start: null, end: null }],
+        ])
+      },
+    )
+
+    it('stands beside "In den Kalender" under a planned call, with its time', async () => {
+      const start = new Date('2026-09-30T13:00:00.000Z')
+      const end = new Date('2026-09-30T14:00:00.000Z')
+      const planned = withChatVideoTopic(ROOM, 'Lesekreis', { start, end })
+      mountBubble({ ...THEIRS, body: `Morgen: ${planned}` })
+
+      const buttons = wrapper
+        .findAll('.chat-bubble-calendar button')
+        .map((b) => b.attributes('data-test'))
+      expect(buttons).toEqual(['chat-bubble-calendar', 'chat-bubble-duplicate'])
+      await duplicate().trigger('click')
+      expect(wrapper.emitted('duplicateVideo')[0][0]).toMatchObject({
+        room: ROOM,
+        topic: 'Lesekreis',
+        start,
+        end,
+      })
+    })
+
+    it.each([
+      ['an ordinary message', 'Hallo'],
+      ['a room without a topic', `Hier: ${ROOM}`],
+      [
+        'a room with settings of somebody else',
+        `Hier: ${ROOM}#config.subject=x&config.startWithAudioMuted=true`,
+      ],
+    ])('stands under no other message: %s', (what, body) => {
+      mountBubble({ ...THEIRS, body })
+      expect(duplicate().exists()).toBe(false)
+      expect(wrapper.find('.chat-bubble-calendar').exists()).toBe(false)
+    })
+
+    // A transfer's words are the booking's memo: no invitation, whatever they say.
+    it('stands under no transfer', () => {
+      mountBubble({
+        ...THEIRS,
+        transfer: true,
+        subject: 'Lena hat Dir 10 gesendet',
+        body: `Danke! ${withChatVideoTopic(ROOM, 'Stammtisch')}`,
+      })
+      expect(duplicate().exists()).toBe(false)
+    })
   })
 
   /**

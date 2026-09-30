@@ -186,3 +186,59 @@ export const chatVideoPlannedCall = (text) => {
   }
   return null
 }
+
+/**
+ * The video invitation a message carries (E-058): the first address of Gradido's own form in it --
+ * with the room, the topic, and a planned call's start and end (null for a call now). null for
+ * every other message.
+ *
+ * @param {string} text
+ * @returns {{ url: string, room: string, topic: string, start: Date | null, end: Date | null } | null}
+ */
+export const chatVideoInvitation = (text) => {
+  for (const part of chatTextParts(text ?? '')) {
+    if (part.type !== 'url') continue
+    const addition = readChatVideoAddition(part.value)
+    if (addition) return { url: part.value, ...addition }
+  }
+  return null
+}
+
+const twoDigits = (n) => String(n).padStart(2, '0')
+const dayField = (date) =>
+  `${date.getFullYear()}-${twoDigits(date.getMonth() + 1)}-${twoDigits(date.getDate())}`
+const timeField = (date) => `${twoDigits(date.getHours())}:${twoDigits(date.getMinutes())}`
+
+/**
+ * A planned call duplicated (Bernd, 30.09.2026, E-058): the same weekday and time of day a week on
+ * -- the first such that lies in the future --, as long as the call was. As the question's day and
+ * time fields take them, on the member's own clock: a week on keeps the time of day across a change
+ * to or from summer time.
+ *
+ * The fields hold one day: a call that ran past midnight ends at 23:59 of its day, and the member
+ * sees it before it goes.
+ *
+ * @param {{ start: Date, end: Date }} when
+ * @param {Date} [now]
+ * @returns {{ day: string, from: string, to: string }}
+ */
+export const chatVideoNextWeek = ({ start, end }, now = new Date()) => {
+  // A week on by the calendar, not by 7 × 24 hours: the time of day stays across summer time.
+  const weekOn = (date) =>
+    new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate() + 7,
+      date.getHours(),
+      date.getMinutes(),
+      date.getSeconds(),
+    )
+  let next = weekOn(start)
+  while (next <= now) next = weekOn(next)
+  const until = new Date(next.getTime() + (end - start))
+  return {
+    day: dayField(next),
+    from: timeField(next),
+    to: dayField(until) === dayField(next) ? timeField(until) : '23:59',
+  }
+}

@@ -310,6 +310,8 @@
     "videoCall": "{name} ile görüntülü görüşme başlat",
     "videoCopyLink": "Bağlantıyı kopyala",
     "videoDate": "Tarih",
+    "videoDuplicate": "Çoğalt",
+    "videoDuplicateLabel": "“{topic}” görüntülü görüşmesini çoğalt",
     "videoFrom": "Başlangıç",
     "videoInAppHint": "Odayı bilgisayar için Jitsi uygulamasında açar — yüklüyse.",
     "videoInvite": "📹 Görüntülü görüşme. Oda, {operator} tarafından işletilen bir Jitsi sunucusunda — bir öneri, Gradido'nun bir hizmeti değil: {url}",

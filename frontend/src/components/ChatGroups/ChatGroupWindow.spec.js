@@ -47,6 +47,7 @@ const video = vi.hoisted(() => ({
   ask: vi.fn(),
   askJoin: vi.fn(),
   letGo: vi.fn(),
+  duplicate: vi.fn(),
   delivers: vi.fn(),
 }))
 vi.mock('@vue/apollo-composable', () => ({
@@ -161,6 +162,9 @@ describe('ChatGroupWindow', () => {
               letGo() {
                 video.letGo()
               },
+              duplicate(invitation) {
+                video.duplicate(invitation)
+              },
             },
             template: '<div data-test="video-call" />',
           },
@@ -184,6 +188,19 @@ describe('ChatGroupWindow', () => {
    * E-057 (Bernd, 30.09.2026): the magnifier by the cross opens the search bar; what is typed goes
    * to the group's thread, what it found comes back into the bar, and the arrows step in it.
    */
+  // E-058: "Duplizieren" under an invitation in the group's thread -- the group's question again.
+  it('asks the question for a duplicated invitation', async () => {
+    mountWindow()
+    const invitation = {
+      room: 'https://meet.example.org/r',
+      topic: 'Stammtisch',
+      start: null,
+      end: null,
+    }
+    await wrapper.findComponent({ name: 'ChatThread' }).vm.$emit('duplicateVideo', invitation)
+    expect(video.duplicate).toHaveBeenCalledWith(invitation)
+  })
+
   describe('the search', () => {
     const magnifier = () => find('chat-group-window-search')
     const field = () => find('chat-search-field')
