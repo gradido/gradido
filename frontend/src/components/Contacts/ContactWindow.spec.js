@@ -173,7 +173,7 @@ describe('ContactWindow', () => {
               textOnly: Boolean,
               search: String,
             },
-            emits: ['chatConversation', 'search'],
+            emits: ['chatConversation', 'search', 'duplicateVideo'],
             inject: { join: { from: CHAT_VIDEO_JOIN, default: null } },
             mounted() {
               threadsMade.push(this.member.gradidoID)
@@ -2401,6 +2401,65 @@ describe('ContactWindow', () => {
         it("leaves the member's own choice of server as it was", async () => {
           await duplicated({ room: ROOM.url, topic: 'Stammtisch', start: null, end: null })
           expect(localStorage.getItem(KEY)).toBe('2')
+        })
+
+        /**
+         * The room is set once the list of servers is in -- for the question it was duplicated
+         * into, while that is open (coderabbit, #4026). Another room on the member's own server,
+         * to tell a room asked afresh from the invitation's.
+         */
+        describe('while the list is still on its way', () => {
+          const FRESH = { ...SYSTEMLI, url: 'https://meet.systemli.org/n3w4r5o6o7m8' }
+          const invitation = { room: SYSTEMLI.url, topic: 'Lesekreis', start: null, end: null }
+          let list
+          beforeEach(() => {
+            list = held()
+            serverChoices.mockReturnValueOnce(list.promise)
+            serverRooms.mockResolvedValue({ data: { chatVideoRoom: FRESH } })
+            threadDelivers.mockResolvedValue(true)
+            browserOpens()
+          })
+
+          it('gives the room to a start pressed before the list is in', async () => {
+            await duplicated(invitation)
+            inDialog('start').element.click()
+            await flushPromises()
+            list.release({ data: { chatVideoServerChoices: CHOICES } })
+            await flushPromises()
+
+            expect(serverRooms).not.toHaveBeenCalled()
+            const address = withChatVideoTopic(SYSTEMLI.url, 'Lesekreis')
+            expect(threadDelivers.mock.calls[0][0].body).toContain(address)
+            expect(room.location.href).toBe(address)
+          })
+
+          it('lets the room go with a question closed before the list came in', async () => {
+            await duplicated(invitation)
+            await inDialog('cancel').trigger('click')
+            list.release({ data: { chatVideoServerChoices: CHOICES } })
+            await flushPromises()
+
+            await camera().trigger('click')
+            await flushPromises()
+            await start()
+            expect(serverRooms.mock.calls[0][0].variables).toEqual({ serverId: 2 })
+            expect(threadDelivers.mock.calls[0][0].body).toContain(FRESH.url)
+            expect(threadDelivers.mock.calls[0][0].body).not.toContain(SYSTEMLI.url)
+          })
+
+          it('leaves a question asked meanwhile from the camera to its own room', async () => {
+            await duplicated(invitation)
+            await inDialog('cancel').trigger('click')
+            await camera().trigger('click')
+            await flushPromises()
+            list.release({ data: { chatVideoServerChoices: CHOICES } })
+            await flushPromises()
+
+            await start()
+            expect(serverRooms).toHaveBeenCalledTimes(1)
+            expect(threadDelivers.mock.calls[0][0].body).toContain(FRESH.url)
+            expect(threadDelivers.mock.calls[0][0].body).not.toContain(SYSTEMLI.url)
+          })
         })
       })
 

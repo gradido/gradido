@@ -621,6 +621,8 @@ const askVideoCall = () => {
  */
 const duplicateVideoCall = (invitation) => {
   askVideoCall()
+  // This question, by the list asked for it (`loadVideoServerChoices` counts every asking).
+  const question = videoChoicesAttempt
   videoTopic.value = invitation.topic
   let host = ''
   try {
@@ -629,7 +631,12 @@ const duplicateVideoCall = (invitation) => {
     // Not an address: a room is asked for, as for a new call.
   }
   videoChoicesLoading = videoChoicesLoading.then(() => {
-    if (!host) return
+    // ⛔ Only for this question, and only while it is open (coderabbit, #4026). Let go before the
+    // list came in -- `forgetVideoCall` emptied `videoRoomAsked` already --, the room set now would
+    // outlive it, and the next call from the camera would go into the invitation's room; after
+    // another question it would be that question's. Not `videoAttempt`: "Anruf starten" pressed
+    // before the list is in counts it up as well, and that call is to have the invitation's room.
+    if (!host || question !== videoChoicesAttempt || !videoAsking.value) return
     const choice =
       videoServerChoices.value.find((server) => server.host.toLowerCase() === host) ?? null
     const room = { url: invitation.room, host, operator: choice?.operator ?? null }

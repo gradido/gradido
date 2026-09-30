@@ -126,7 +126,7 @@ describe('ChatGroupWindow', () => {
           ChatThread: {
             name: 'ChatThread',
             props: { group: Object, search: String },
-            emits: ['openMember', 'search'],
+            emits: ['openMember', 'search', 'duplicateVideo'],
             inject: { join: { from: CHAT_VIDEO_JOIN, default: null } },
             methods: {
               deliver(message) {
