@@ -10,7 +10,6 @@ import {
   ALIAS_ORIGIN_ASSIGNED,
   ALIAS_ORIGIN_CHOSEN,
   type AliasOrigin,
-  DBDuplicateEntryError,
   DbUser,
   DrizzleTransaction,
   dbFindUserAliasesExisting,
@@ -25,9 +24,8 @@ import {
   dbLocalUserGradidoIdExist,
   dbReleaseUnconfirmedEmailChangeFor,
   dbRemoveUser,
-  dbRemoveUserAlias,
-  dbRemoveUserContact,
   dbUserUpdateField,
+  drizzleDb,
   EventType,
   getHomeCommunityDrizzle,
   UserContactInsert,
@@ -72,21 +70,6 @@ export class RegisterUserRole<
   protected userAliasId: number | null = null
   protected emailVerificationCode: bigint | null = null
 
-  // remove already created db entries
-  public async rollback(): Promise<number[]> {
-    const dbCalls: Promise<number>[] = []
-    if (this.userId) {
-      dbCalls.push(dbRemoveUser(this.userId))
-    }
-    if (this.userContactId) {
-      dbCalls.push(dbRemoveUserContact(this.userContactId))
-    }
-    if (this.userAliasId) {
-      dbCalls.push(dbRemoveUserAlias(this.userAliasId))
-    }
-    return Promise.all(dbCalls)
-  }
-
   public async prepareUser(): Promise<UserInsert> {
     const { firstName, lastName, language, publisherId } = this.user
     return {
@@ -121,7 +104,7 @@ export class RegisterUserRole<
   public async storeUserAndUserContact(
     dbUser: UserInsert,
     logger: Logger,
-    tx?: DrizzleTransaction,
+    tx: DrizzleTransaction,
   ): Promise<Result<number, RegisterUserDuplicateError>> {
     // write user
     let insertUserResult = await dbInsertUser(dbUser, tx)
@@ -198,7 +181,7 @@ export class RegisterUserRole<
   //
   // A name the system builds is a proposal: it is reserved for them and can be
   // taken back, but it costs none of their four picks until they adopt it.
-  public async generateAndStoreAlias(logger: Logger): Promise<string> {
+  public async generateAndStoreAlias(logger: Logger, tx: DrizzleTransaction): Promise<string> {
     const userId = this.userId
     if (!userId) {
       throw new Error('Missing userId')
@@ -214,7 +197,7 @@ export class RegisterUserRole<
       alias = primaryAliasCandidate(firstName, lastName)
     }
     if (alias) {
-      const result = await dbInsertUserAlias({ alias, userId, origin })
+      const result = await dbInsertUserAlias({ alias, userId, origin }, tx)
       if (result.success) {
         this.userAliasId = result.value
         return alias
@@ -225,11 +208,11 @@ export class RegisterUserRole<
     // from here on the name is built by the system: a proposal, even if one was chosen
     origin = ALIAS_ORIGIN_ASSIGNED
     const aliasCandidatesArray = aliasCandidates(firstName, lastName, email, userId)
-    const existingAliases = await dbFindUserAliasesExisting(aliasVariants(aliasCandidatesArray))
+    const existingAliases = await dbFindUserAliasesExisting(aliasVariants(aliasCandidatesArray), tx)
 
     const aliasCandidate = findFirstFreeAlias(existingAliases, aliasCandidatesArray)
     if (aliasCandidate) {
-      const result = await dbInsertUserAlias({ alias: aliasCandidate, userId, origin })
+      const result = await dbInsertUserAlias({ alias: aliasCandidate, userId, origin }, tx)
       if (result.success) {
         this.userAliasId = result.value
         return aliasCandidate
@@ -242,37 +225,47 @@ export class RegisterUserRole<
   }
 
   public async run(logger: Logger): Promise<number> {
-    let userId: number | null = null
-    let dbUser: DbUser | null = null
-    try {
-      const storeUserAndContactResult = await this.storeUserAndUserContact(
-        await this.prepareUser(),
-        logger,
-      )
-      if (!storeUserAndContactResult.success) {
-        return this.userAlreadyExist(storeUserAndContactResult.error.user, logger)
-      }
-      userId = storeUserAndContactResult.value
-      const finalAlias = await this.generateAndStoreAlias(logger)
-      if ((await dbUserUpdateField(userId, 'alias', finalAlias)) !== 1) {
-        logger.error(`update user with id: ${userId} with alias: ${finalAlias} failed`)
-        throw new Error('Error while storing the generated alias')
-      }
-      if (!this.emailVerificationCode) {
-        throw new Error('Missing email verification code')
-      }
-      if (!userId) {
-        throw new Error('Missing user id')
-      }
-      dbUser = await dbFindUserWithContactById(userId)
-      if (!dbUser) {
-        throw new Error(`Cannot find the user just created: ${userId}`)
-      }
-    } catch (e) {
-      await this.rollback()
-      throw e
+    const preparedUser = await this.prepareUser()
+    const dbUser = await drizzleDb().transaction(
+      async (tx: DrizzleTransaction) => {
+        const storeUserAndContactResult = await this.storeUserAndUserContact(
+          preparedUser,
+          logger,
+          tx,
+        )
+        if (!storeUserAndContactResult.success) {
+          return await this.userAlreadyExist(storeUserAndContactResult.error.user, logger)
+        }
+        const userId = storeUserAndContactResult.value
+        const finalAlias = await this.generateAndStoreAlias(logger, tx)
+        if ((await dbUserUpdateField(userId, 'alias', finalAlias, tx)) !== 1) {
+          logger.error(`update user with id: ${userId} with alias: ${finalAlias} failed`)
+          throw new Error('Error while storing the generated alias')
+        }
+        if (!this.emailVerificationCode) {
+          throw new Error('Missing email verification code')
+        }
+        if (!userId) {
+          throw new Error('Missing user id')
+        }
+        const dbUser = await dbFindUserWithContactById(userId, tx)
+        if (!dbUser) {
+          throw new Error(`Cannot find the user just created: ${userId}`)
+        }
+        return dbUser
+      },
+      { isolationLevel: 'repeatable read' },
+    )
+
+    if (typeof dbUser === 'number') {
+      return dbUser
     }
-    const createdUserId = userId
+
+    // for ts.. because we already checked this
+    if (!this.emailVerificationCode) {
+      throw new Error('Missing email verification code')
+    }
+
     this.sendAccountActivationEmail(
       `${CONFIG.EMAIL_LINK_VERIFICATION}${this.emailVerificationCode.toString()}`,
     )
@@ -280,8 +273,8 @@ export class RegisterUserRole<
         if (success) {
           dbInsertEvent({
             type: EventType.EMAIL_CONFIRMATION,
-            affectedUserId: createdUserId,
-            actingUserId: createdUserId,
+            affectedUserId: dbUser.id,
+            actingUserId: dbUser.id,
           }).catch((e) => {
             logger.error(`error on writing EMAIL_CONFIRMATION event: ${e}`)
           })
@@ -302,7 +295,7 @@ export class RegisterUserRole<
     this.syncHumhub(dbUser, logger).catch((e) => logger.error(`error sync user with humhub: ${e}`))
     await this.afterRun(dbUser)
     logger.info('registerUser() successful...')
-    return userId
+    return dbUser.id
   }
 
   public async sendAccountActivationEmail(activationLink: string): Promise<boolean> {

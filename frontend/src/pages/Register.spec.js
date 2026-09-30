@@ -469,14 +469,18 @@ describe('Register', () => {
       configure({ generateMessage: (context) => `The field ${context.field} is invalid` })
     })
 
-    const pageAt = async (query) => {
+    // By its name unless asked otherwise. A QR code or a link reaches the page by its path,
+    // and then vue-router hands the absent optional `code` over as '' instead of leaving it out.
+    const pageAt = async (query, { byPath = false } = {}) => {
       const guarantorRouter = createRouter({
         history: createWebHistory(),
         routes: [
           { path: '/register/:code?', name: 'Register', component: { template: '<div />' } },
         ],
       })
-      await guarantorRouter.push({ name: 'Register', query })
+      await guarantorRouter.push(
+        byPath ? { path: '/register', query } : { name: 'Register', query },
+      )
       await guarantorRouter.isReady()
       return mount(Register, {
         global: {
@@ -596,6 +600,19 @@ describe('Register', () => {
       expect(page.find('[data-test="register-shown-by"]').exists()).toBe(false)
       expect(page.find('[data-test="register-guarantor-hint"]').text()).toBe(
         en.site.signup.guarantorHintAnonymous,
+      )
+    })
+
+    // Staging: reached by its path, the page sent `redeemCode: ''`, the backend took that for a
+    // redeem code, and the guest was registered without the password they had chosen.
+    it('sends no redeem code when reached by its path', async () => {
+      const code = inTenMinutes()
+      const page = await pageAt({ referrer: 'MeisterBob', guarantor: code }, { byPath: true })
+      const variables = await sent(page)
+
+      expect(variables.redeemCode).toBeUndefined()
+      expect(variables).toEqual(
+        expect.objectContaining({ guarantorCode: code, password: PASSWORD }),
       )
     })
 

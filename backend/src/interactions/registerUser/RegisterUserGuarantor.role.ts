@@ -57,6 +57,7 @@ export class RegisterUserGuarantorRole extends RegisterUserRole<GuarantorRegistr
   public async storeUserAndUserContact(
     dbUser: UserInsert,
     logger: Logger,
+    tx: DrizzleTransaction,
   ): Promise<Result<number, RegisterUserDuplicateError>> {
     // it take some time, let it run in parallel
     this.gradidoIdByPasswordStart = dbUser.gradidoId
@@ -64,35 +65,31 @@ export class RegisterUserGuarantorRole extends RegisterUserRole<GuarantorRegistr
       { gradidoId: dbUser.gradidoId, passwordEncryptionType: PasswordEncryptionType.GRADIDO_ID },
       this.user.password,
     )
-    return await drizzleDb().transaction(
-      async (tx: DrizzleTransaction) => {
-        const referrerId = dbUser.referrerId
-        if (!referrerId) {
-          throw new Error('Guarantor code invalid or expired')
-        }
 
-        // lock referrer user, next registration selecting this user must wait until we are done with this transaction
-        // after our new user was stored into db, we can leave transaction, because than the next call of dbCountUnconfirmedVouchedAccounts will find the user
-        await tx.execute(sql`
-          SELECT id
-          FROM ${usersTable}
-          WHERE id = ${referrerId}
-          FOR UPDATE
-      `)
-        // E-019: an account that can act without confirming email address at first is opened only while the member who
-        // vouches for it holds fewer than GUARANTOR_LIMIT PARTLY_ACTIVATED_GUARANTOR ones. Counted here,
-        // before the address: at the limit a taken address gets the same refusal as a free one -
-        // the silence below would tell them apart - and a request over the limit never waits in
-        // the member's line. Counted again in that line, where it decides: one after another per
-        // member in this process, and whoever waits holds no connection.
-        if ((await dbCountUnconfirmedVouchedAccounts(referrerId, tx)) >= GUARANTOR_LIMIT) {
-          throw new Error('Vouching limit reached')
-        }
-        // running normal RegisterUser Stuff from RegisterUserRole
-        return await super.storeUserAndUserContact(dbUser, logger, tx)
-      },
-      { isolationLevel: 'repeatable read' },
-    )
+    const referrerId = dbUser.referrerId
+    if (!referrerId) {
+      throw new Error('Guarantor code invalid or expired')
+    }
+
+    // lock referrer user, next registration selecting this user must wait until we are done with this transaction
+    // after our new user was stored into db, we can leave transaction, because than the next call of dbCountUnconfirmedVouchedAccounts will find the user
+    await tx.execute(sql`
+        SELECT id
+        FROM ${usersTable}
+        WHERE id = ${referrerId}
+        FOR UPDATE
+    `)
+    // E-019: an account that can act without confirming email address at first is opened only while the member who
+    // vouches for it holds fewer than GUARANTOR_LIMIT PARTLY_ACTIVATED_GUARANTOR ones. Counted here,
+    // before the address: at the limit a taken address gets the same refusal as a free one -
+    // the silence below would tell them apart - and a request over the limit never waits in
+    // the member's line. Counted again in that line, where it decides: one after another per
+    // member in this process, and whoever waits holds no connection.
+    if ((await dbCountUnconfirmedVouchedAccounts(referrerId, tx)) >= GUARANTOR_LIMIT) {
+      throw new Error('Vouching limit reached')
+    }
+    // running normal RegisterUser Stuff from RegisterUserRole
+    return await super.storeUserAndUserContact(dbUser, logger, tx)
   }
 
   // The password exists already, so the set-password page behind the activation link would

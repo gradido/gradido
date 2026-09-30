@@ -57,6 +57,33 @@ describe('createUserSchema', () => {
     ).toBe(true)
     expect(createUserSchema.safeParse({ ...valid, guarantorCode: 'nonsense' }).success).toBe(false)
   })
+
+  // vue-router hands an absent optional route parameter over as '' (/register/:code?), and an
+  // older wallet keeps sending it: an empty field is one that was not given.
+  it('takes an empty optional field as not given', () => {
+    for (const empty of ['', '  ']) {
+      const parsed = createUserSchema.parse({
+        ...valid,
+        alias: empty,
+        redeemCode: empty,
+        project: empty,
+        referrerAlias: empty,
+        guarantorCode: empty,
+      })
+      expect(parsed).toMatchObject({
+        alias: null,
+        redeemCode: null,
+        project: null,
+        referrerAlias: null,
+        guarantorCode: null,
+      })
+    }
+  })
+
+  it('keeps what an optional field brings, and still checks it', () => {
+    expect(createUserSchema.parse({ ...valid, redeemCode: 'CL-abc' }).redeemCode).toBe('CL-abc')
+    expect(createUserSchema.safeParse({ ...valid, referrerAlias: 'a b' }).success).toBe(false)
+  })
 })
 
 describe('the schemas of the variants', () => {

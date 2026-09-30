@@ -120,8 +120,14 @@ export async function dbFindUserByEmail(
   return rows[0] ? rows[0].user : null
 }
 
-export async function dbFindUserById(userId: number): Promise<UserSelect | null> {
-  const rows = await drizzleDb()
+export async function dbFindUserById(
+  userId: number,
+  tx?: DrizzleTransaction | MySql2Database,
+): Promise<UserSelect | null> {
+  if (!tx) {
+    tx = drizzleDb()
+  }
+  const rows = await tx
     .select()
     .from(usersTable)
     .where(and(eq(usersTable.id, userId), isNull(usersTable.deletedAt)))
@@ -129,8 +135,14 @@ export async function dbFindUserById(userId: number): Promise<UserSelect | null>
   return rows[0] ? rows[0] : null
 }
 
-export async function dbFindUserWithContactById(userId: number): Promise<DbUser | null> {
-  const rows = await drizzleDb()
+export async function dbFindUserWithContactById(
+  userId: number,
+  tx?: DrizzleTransaction | MySql2Database,
+): Promise<DbUser | null> {
+  if (!tx) {
+    tx = drizzleDb()
+  }
+  const rows = await tx
     .select({
       user: usersTable,
       emailContact: userContactsTable,
