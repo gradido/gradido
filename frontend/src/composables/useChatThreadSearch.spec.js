@@ -30,20 +30,27 @@ const makeThread = ({ items = [], older = [] } = {}) => {
     fail: false,
     canLoadOlder: computed(() => pages.length > 0 && !thread.exhausted.value),
     exhausted: ref(false),
-    messageCount: computed(() => timeline.value.length),
+    loadedCount: computed(() => timeline.value.length),
     progress: computed(() => `${timeline.value.length}`),
+    // true once a page was asked for and came back, false where there was none to ask -- as the
+    // thread's `loadOlder` answers.
     loadOlder: async () => {
       thread.asked += 1
+      if (thread.nothingToAsk) return false
       if (thread.fail) {
         olderFailed.value = true
-        return
+        return true
       }
-      if (thread.hold) return
+      // A page that does not come back.
+      if (thread.hold) return new Promise(() => {})
+      // A page that came back and changed nothing (a booking page without a transfer).
+      if (thread.empty) return true
       const next = pages.shift()
       setTimeout(() => {
         timeline.value = [...next, ...timeline.value]
         if (!pages.length) thread.exhausted.value = true
       }, 0)
+      return true
     },
     show: (key) => thread.shown.push(key),
   }
@@ -183,6 +190,35 @@ describe('useChatThreadSearch', () => {
     await settle()
     expect(thread.asked).toBe(1)
     expect(search.result.value).toMatchObject({ count: 1, busy: false })
+  })
+
+  // coderabbit (#4025): nothing to ask for -- the search ends at once, not after a wait.
+  it('stops at once where there is no page to ask for', async () => {
+    const thread = makeThread({ items: [item(3, 'Bank')], older: [[item(1, 'Bank')]] })
+    thread.nothingToAsk = true
+    const typed = await start(thread)
+    typed.value = 'bank'
+    await flushPromises()
+    await nextTick()
+    expect(thread.asked).toBe(1)
+    expect(search.result.value).toMatchObject({ busy: false, count: 1, current: 1 })
+  })
+
+  // coderabbit (#4025): a page that came back without anything new ends the loading after a moment,
+  // not after the wait for a page that does not come.
+  it('ends soon where a page came back and changed nothing', async () => {
+    const thread = makeThread({ items: [item(3, 'Bank')], older: [[item(1, 'Bank')]] })
+    thread.empty = true
+    const typed = await start(thread)
+    typed.value = 'bank'
+    await flushPromises()
+    expect(search.result.value.busy).toBe(true)
+    await vi.advanceTimersByTimeAsync(1999)
+    expect(search.result.value.busy).toBe(true)
+    await vi.advanceTimersByTimeAsync(1)
+    await flushPromises()
+    expect(search.result.value).toMatchObject({ busy: false, count: 1, current: 1 })
+    expect(thread.asked).toBe(1)
   })
 
   // A page that never comes must not hold the search for ever.

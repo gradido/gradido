@@ -759,12 +759,22 @@ const withOlderPage = (previous, { fetchMoreResult }) => {
   }
 }
 
+/** The older page on its way, for a second caller to wait for (the search, E-057). */
+let olderInFlight = null
+
 /**
  * The page before the smallest id on screen, and the older transfers -- from whichever list the
  * horizon stands at, both where it stands at both; the watcher above keeps the reader's place.
+ *
+ * True once a page was asked for and came back (or failed -- `olderFailed` says so); false where
+ * there was none to ask. A call while a page is on its way waits for that one: the search asks
+ * for pages while the member may press "load older" (useChatThreadSearch).
  */
 const loadOlder = async (event) => {
-  if (loadingOlder.value) return
+  if (loadingOlder.value) {
+    await olderInFlight
+    return true
+  }
   const oldestMessage =
     hasMore.value && messages.value.length ? at(messages.value[0].createdAt) : -Infinity
   const oldestTransfer =
@@ -774,31 +784,35 @@ const loadOlder = async (event) => {
   const olderMessages =
     hasMore.value && messages.value.length > 0 && oldestMessage >= oldestTransfer
   const olderTransfers = transfersHaveMore.value && oldestTransfer >= oldestMessage
-  if (!olderMessages && !olderTransfers) return
+  if (!olderMessages && !olderTransfers) return false
   const box = scroller.value
   followNewest = false
   placeFromBottom = box ? box.scrollHeight - box.scrollTop : null
   focusWasOnOlder = Boolean(event?.currentTarget) && document.activeElement === event.currentTarget
   loadingOlder.value = true
   olderFailed.value = false
-  try {
-    await Promise.all([
-      olderMessages
-        ? fetchMore({
-            variables: { before: Math.min(...messages.value.map((message) => message.id)) },
-            updateQuery: withOlderPage,
-          })
-        : null,
-      olderTransfers ? loadOlderTransfers() : null,
-    ])
-  } catch {
-    olderFailed.value = true
-    placeFromBottom = null
-    focusWasOnOlder = false
-    takeWaitingArrivals()
-  } finally {
-    loadingOlder.value = false
-  }
+  olderInFlight = (async () => {
+    try {
+      await Promise.all([
+        olderMessages
+          ? fetchMore({
+              variables: { before: Math.min(...messages.value.map((message) => message.id)) },
+              updateQuery: withOlderPage,
+            })
+          : null,
+        olderTransfers ? loadOlderTransfers() : null,
+      ])
+    } catch {
+      olderFailed.value = true
+      placeFromBottom = null
+      focusWasOnOlder = false
+      takeWaitingArrivals()
+    } finally {
+      loadingOlder.value = false
+    }
+  })()
+  await olderInFlight
+  return true
 }
 
 /**
@@ -829,7 +843,7 @@ const {
   typed: toRef(props, 'search'),
   timeline,
   canLoadOlder: computed(() => hasMore.value || transfersHaveMore.value),
-  messageCount: computed(() => messages.value.length),
+  loadedCount: computed(() => messages.value.length + transfers.value.length),
   olderFailed,
   progress: searchProgress,
   loadOlder: () => loadOlder(),

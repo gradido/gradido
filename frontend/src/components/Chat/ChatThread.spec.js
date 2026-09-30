@@ -43,6 +43,12 @@ const beatBrings = async (...chatMessages) => {
 // And their switch for the transfers in the conversations (Einstellungen › Nachrichten), which a
 // test sets and the afterEach puts back to "not known".
 const storeState = vi.hoisted(() => ({ gradidoID: 'me-id', username: 'Bernd' }))
+// The search's reading limit (E-057), small enough for a test to reach: the thread's is a thousand.
+vi.mock('@/utils/chatSearch', async (original) => ({
+  ...(await original()),
+  CHAT_SEARCH_MAX_MESSAGES: 6,
+}))
+
 vi.mock('vuex', () => ({
   useStore: () => ({ state: storeState }),
 }))
@@ -838,6 +844,75 @@ describe('ChatThread', () => {
       wrapper.vm.searchStep(1)
       await flushPromises()
       expect(bubbleOf(3).classes()).toContain('is-search-current')
+    })
+
+    // The member pressed "load older" a moment before: the search waits for that page and goes
+    // on from there, asking for nothing twice.
+    it('waits for a page already on its way', async () => {
+      mountThread(LENA, { props: { member: LENA, alias: 'Lena', search: '' } })
+      server.olderPages.push(
+        withBodies(
+          [
+            [3, 'Bank mitte'],
+            [4, 'y'],
+          ],
+          { hasMore: true },
+        ),
+        withBodies([
+          [1, 'Bank alt'],
+          [2, 'x'],
+        ]),
+      )
+      await arrive(
+        withBodies(
+          [
+            [5, 'x'],
+            [6, 'Bank'],
+          ],
+          { hasMore: true },
+        ),
+      )
+      let release
+      server.gate = new Promise((resolve) => (release = resolve))
+      await wrapper.find('[data-test="chat-thread-older"]').trigger('click')
+      await wrapper.setProps({ search: 'bank' })
+      await flushPromises()
+      expect(server.fetchMore).toHaveBeenCalledTimes(1)
+
+      server.gate = null
+      release()
+      for (let round = 0; round < 5; round += 1) await flushPromises()
+      expect(server.fetchMore).toHaveBeenCalledTimes(2)
+      expect(found()).toMatchObject({ count: 3, current: 3, busy: false })
+    })
+
+    // coderabbit (#4025): the limit counts the transfers with the messages -- a pair with few
+    // messages and many transfers is bounded too.
+    it('counts the transfers towards the limit', async () => {
+      bookingsAsked.mockImplementation(async () =>
+        bookingsPage(
+          [41, 42, 43, 44].map((n) => booking(n, { at: `2026-09-22T09:0${n - 40}:00.000Z` })),
+          100,
+        ),
+      )
+      await searched(
+        'bank',
+        withBodies(
+          [
+            [5, 'Bank'],
+            [6, 'x'],
+          ],
+          { hasMore: true },
+        ),
+        [
+          withBodies([
+            [1, 'Bank alt'],
+            [2, 'y'],
+          ]),
+        ],
+      )
+      expect(server.fetchMore).not.toHaveBeenCalled()
+      expect(found()).toMatchObject({ count: 1, capped: true, busy: false })
     })
 
     it("searches the transfers' memos too", async () => {
