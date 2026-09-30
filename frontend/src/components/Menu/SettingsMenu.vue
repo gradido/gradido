@@ -80,6 +80,19 @@ const thankYouCardState = computed(() => {
 const onOff = (value) => (value ? t('settings.menu.state.on') : t('settings.menu.state.off'))
 
 /**
+ * "Nachrichten" holds two switches since #4007: the information mails (`newsletterState`) and the
+ * transfers in the chat and by mail (`transfersInChat`, on unless switched off -- as the page
+ * reads it). One word says them only where they agree: "Ein" for both on, "Aus" for both off.
+ * Where they differ, no word (Bernd, 30.09.2026): "Aus" beside a switch that is on is worse than
+ * an empty space, for the reason the thank-you card's state gives above.
+ */
+const notificationsState = computed(() => {
+  const mails = Boolean(store.state.newsletterState)
+  const transfers = store.state.transfersInChat !== false
+  return mails === transfers ? onOff(mails) : null
+})
+
+/**
  * The function-test area (ES-014). Its own query rather than a third field on the two
  * above, because it is the first creation's status this asks -- the same answer the window
  * in the layout reads, so on the second of the two menus in the DOM and on the window this
@@ -134,7 +147,7 @@ const entries = computed(() => {
       to: '/settings/notifications',
       test: 'notifications',
       label: t('settings.menu.notifications'),
-      state: onOff(store.state.newsletterState),
+      state: notificationsState.value,
     },
   ]
   // The area is on its way out with the matching, and where neither service is switched on it

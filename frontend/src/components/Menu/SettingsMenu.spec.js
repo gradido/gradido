@@ -41,6 +41,7 @@ const RouterLinkStub = { props: ['to'], template: '<a :to="to"><slot /></a>' }
 const mountMenu = async ({
   avatar = true,
   newsletter = false,
+  transfers = undefined,
   path = '/settings',
   role = null,
 } = {}) => {
@@ -50,7 +51,12 @@ const mountMenu = async ({
     global: {
       plugins: [
         createStore({
-          state: () => ({ avatarVisibleToMembers: avatar, newsletterState: newsletter, role }),
+          state: () => ({
+            avatarVisibleToMembers: avatar,
+            newsletterState: newsletter,
+            transfersInChat: transfers,
+            role,
+          }),
         }),
       ],
       stubs: { RouterLink: RouterLinkStub, 'settings-menu-icon': true },
@@ -189,12 +195,38 @@ describe('the settings menu', () => {
       expect(stateOf(wrapper, 'thank-you-card')).toBe('settings.menu.state.blocked')
     })
 
-    // These two come from the store, so they cost no request at all.
-    it('reads the picture and the newsletter off the store', async () => {
-      const wrapper = await mountMenu({ avatar: true, newsletter: false })
+    // These come from the store, so they cost no request at all.
+    it('reads the picture and the two message switches off the store', async () => {
+      const wrapper = await mountMenu({ avatar: true, newsletter: false, transfers: false })
 
       expect(stateOf(wrapper, 'visibility')).toBe('settings.menu.state.on')
       expect(stateOf(wrapper, 'notifications')).toBe('settings.menu.state.off')
+    })
+
+    /**
+     * "Nachrichten" holds two switches (#4007): the information mails and the transfers in the
+     * chat, the latter on unless switched off. One word only where they agree (Bernd,
+     * 30.09.2026) -- his screenshot showed "Aus" beside a switch that was on.
+     */
+    describe('beside "Nachrichten"', () => {
+      it.each([
+        ['both on', { newsletter: true, transfers: true }, 'settings.menu.state.on'],
+        ['both on, transfers as never switched', { newsletter: true }, 'settings.menu.state.on'],
+        ['both off', { newsletter: false, transfers: false }, 'settings.menu.state.off'],
+      ])('says one word where the two agree: %s', async (what, state, word) => {
+        const wrapper = await mountMenu(state)
+        expect(stateOf(wrapper, 'notifications')).toBe(word)
+      })
+
+      it.each([
+        ['the mails off, the transfers as never switched', { newsletter: false }],
+        ['the mails off, the transfers on', { newsletter: false, transfers: true }],
+        ['the mails on, the transfers off', { newsletter: true, transfers: false }],
+      ])('says nothing where they differ: %s', async (what, state) => {
+        const wrapper = await mountMenu(state)
+        expect(wrapper.find('[data-test="settings-state-notifications"]').exists()).toBe(false)
+        expect(wrapper.find('[data-test="settings-menu-notifications"]').exists()).toBe(true)
+      })
     })
 
     /**
