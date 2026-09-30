@@ -55,6 +55,13 @@ describe('ChatBubble, the menu at a message (E-059)', () => {
       props: { message, alias: 'Lena' },
       attachTo: document.body,
       global: {
+        // The sentence's key, and the name in its slot, as vue-i18n's <i18n-t> puts them together.
+        components: {
+          'i18n-t': {
+            props: { keypath: String },
+            template: '<span :data-keypath="keypath"><slot name="name" /></span>',
+          },
+        },
         stubs: {
           IMdiDotsHorizontal: { template: '<i data-test="dots" />' },
           IMdiShare: { template: '<i data-test="forwarded-sign" />' },
@@ -271,13 +278,17 @@ describe('ChatBubble, the menu at a message (E-059)', () => {
   describe('the line over a forwarded copy (E-059 F2)', () => {
     const line = () => wrapper.find('[data-test="chat-bubble-forwarded"]')
 
-    it('names who wrote the words first', () => {
+    it('names who wrote the words first, the name a box of its own in the sentence', () => {
       mountBubble({
         ...OWN,
         forwarded: true,
         forwardedFrom: { gradidoID: 'anna-id', alias: 'Anna-Sonne' },
       })
-      expect(line().text()).toBe('chatThread.forwardedFrom {"name":"Anna-Sonne"}')
+      expect(line().find('[data-keypath]').attributes('data-keypath')).toBe(
+        'chatThread.forwardedFrom',
+      )
+      // Its own box: where the line is too narrow, the name moves on whole, not "Anna-" / "Sonne".
+      expect(line().find('[data-test="chat-bubble-forwarded-name"]').text()).toBe('Anna-Sonne')
       expect(line().find('[data-test="forwarded-sign"]').exists()).toBe(true)
     })
 

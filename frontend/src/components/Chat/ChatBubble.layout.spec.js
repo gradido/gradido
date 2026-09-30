@@ -6,11 +6,13 @@ import { fileURLToPath } from 'node:url'
 import { readFileSync } from 'node:fs'
 
 /**
- * Own messages on the right, the other person's on the left (E-014) -- two rules of ChatBubble's
- * stylesheet, which the test library cannot see: jsdom lays nothing out. They went missing once
- * when the bubble's rules were put in a new order for the menu at a message (E-059), and every own
- * message stood on the left; the probe found it, no test did. Read from the source, as
- * darkModeLinkGreen.spec.js reads its colours.
+ * Rules of ChatBubble's stylesheet that the test library cannot see -- jsdom lays nothing out --,
+ * read from the source, as darkModeLinkGreen.spec.js reads its colours:
+ * - own messages on the right, the other person's on the left (E-014). Both rules went missing once
+ *   when the bubble's rules were put in a new order for the menu at a message (E-059), and every
+ *   own message stood on the left; the probe found it, no test did.
+ * - the name in "Weitergeleitet von …" a box of its own (E-059 F2): where the line is too narrow
+ *   the name moves on whole instead of breaking at its hyphen ("Carla-" over "Sonne" at 320 px).
  */
 const here = dirname(fileURLToPath(import.meta.url))
 const source = readFileSync(resolve(here, './ChatBubble.vue'), 'utf8')
@@ -25,7 +27,7 @@ const ruleOf = (selector) =>
     .filter((m) => m[1].split(',').some((part) => part.trim() === selector))
     .map((m) => m[2].trim())
 
-describe('ChatBubble, the sides of a conversation', () => {
+describe('ChatBubble, what only a browser lays out', () => {
   it('keeps own messages to the right', () => {
     expect(ruleOf('.chat-bubble-mine')).toContainEqual(
       expect.stringMatching(/align-items:\s*flex-end\s*;/),
@@ -35,6 +37,12 @@ describe('ChatBubble, the sides of a conversation', () => {
   it("keeps the other person's messages to the left", () => {
     expect(ruleOf('.chat-bubble-theirs')).toContainEqual(
       expect.stringMatching(/align-items:\s*flex-start\s*;/),
+    )
+  })
+
+  it('keeps the name in the line over a forwarded copy whole', () => {
+    expect(ruleOf('.chat-bubble-forwarded-name')).toContainEqual(
+      expect.stringMatching(/display:\s*inline-block\s*;[\s\S]*max-width:\s*100%\s*;/),
     )
   })
 })

@@ -58,10 +58,21 @@
         {{ writer }}
       </span>
       <!-- A copy forwarded from another conversation (E-059 F2): who wrote its words first,
-           before everything else in it -- a screen reader hears it first too. -->
-      <div v-if="forwardedWords" class="chat-bubble-forwarded" data-test="chat-bubble-forwarded">
+           before everything else in it -- a screen reader hears it first too. The name through
+           <i18n-t> with a slot, as ShowFriendsTile has it: the ten languages put it in different
+           places (Turkish first), and a slot keeps it text, escaped as any interpolation. A box
+           of its own in the line: where the line is too narrow, the name moves to the next line
+           whole, instead of breaking at its hyphen ("Carla-" over "Sonne" at 320 px). -->
+      <div v-if="message.forwarded" class="chat-bubble-forwarded" data-test="chat-bubble-forwarded">
         <i-mdi-share class="chat-bubble-forwarded-icon" aria-hidden="true" />
-        {{ forwardedWords }}
+        <i18n-t v-if="forwardedName" keypath="chatThread.forwardedFrom" tag="span" scope="global">
+          <template #name>
+            <span class="chat-bubble-forwarded-name" data-test="chat-bubble-forwarded-name">
+              {{ forwardedName }}
+            </span>
+          </template>
+        </i18n-t>
+        <span v-else>{{ t('chatThread.forwarded') }}</span>
       </div>
       <!-- The picture a message carries (P7), on top; its caption is the text under it, in the
            same bubble (E-044 F3). One a message. -->
@@ -388,16 +399,13 @@ const addToCalendar = () => {
 
 /**
  * Over a copy forwarded from another conversation (E-059 F2): "Weitergeleitet von [Nutzername]",
- * the name of whoever wrote its words first; "Weitergeleitet" alone where the copy names nobody --
- * the sender forwarded words of their own, or the first writer is not known here. Nothing over any
- * other message.
+ * with the name of whoever wrote its words first; "Weitergeleitet" alone where the copy names
+ * nobody -- the sender forwarded words of their own, or the first writer is not known here ('').
+ * Nothing over any other message.
  */
-const forwardedWords = computed(() => {
-  if (!props.message.forwarded) return ''
-  const from = props.message.forwardedFrom
-  return from
-    ? t('chatThread.forwardedFrom', { name: memberAlias(from.alias, from.gradidoID) })
-    : t('chatThread.forwarded')
+const forwardedName = computed(() => {
+  const from = props.message.forwarded ? props.message.forwardedFrom : null
+  return from ? memberAlias(from.alias, from.gradidoID) : ''
 })
 
 /**
@@ -643,7 +651,7 @@ const copyText = async () => {
    under it (below). */
 .chat-bubble-forwarded {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.3rem;
   margin-bottom: 0.15rem;
   font-size: 0.75rem;
@@ -655,6 +663,11 @@ const copyText = async () => {
   flex: 0 0 auto;
   width: 1rem;
   height: 1rem;
+}
+
+.chat-bubble-forwarded-name {
+  display: inline-block;
+  max-width: 100%;
 }
 
 /* "Options for this message" (E-059 F1): beside the bubble, at its middle, on the side towards the
