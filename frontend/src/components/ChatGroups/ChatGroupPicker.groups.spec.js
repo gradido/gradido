@@ -147,10 +147,15 @@ describe('ChatGroupPicker with groups and a limit (E-059)', () => {
     expect(person('oma-id').find('input').element.disabled).toBe(false)
   })
 
+  // The boxes wait greyed; the handlers turn a tick away all the same. Dispatched by hand: the
+  // test library passes over events on a disabled field.
   it('takes nobody past the limit, whatever the box says', async () => {
     mountPicker({ max: 1, modelValue: [ANNA.user] })
-    await person('carla-id').find('input').trigger('change')
-    await group('group-1').find('input').trigger('change')
+    for (const box of [person('carla-id'), group('group-1')].map((row) => row.find('input'))) {
+      box.element.checked = true
+      box.element.dispatchEvent(new Event('change'))
+    }
+    await wrapper.vm.$nextTick()
     expect(wrapper.props('modelValue')).toEqual([ANNA.user])
     expect(wrapper.props('chosenGroups')).toEqual([])
   })
