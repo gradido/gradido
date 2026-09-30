@@ -864,6 +864,41 @@ describe('Contacts page', () => {
           expect(contactWindow().attributes('data-first')).toBe('true')
         })
 
+        // An answer that comes after the window closed, or moved on to somebody else, belongs to
+        // an opening that is over: it is put nowhere.
+        it('takes no late answer after the window closed or moved on', async () => {
+          await withContacts()
+          const made = { ...person(9), user: { communityUuid: 'home', gradidoID: 'stranger-id' } }
+          let answer
+          answers.set(
+            'contactByMemberQuery',
+            () =>
+              new Promise(
+                (resolve) =>
+                  (answer = () => resolve({ data: { contactList: { contacts: [made] } } })),
+              ),
+          )
+
+          await nameIt({ communityUuid: 'home', gradidoID: 'stranger-id', alias: 'Fremd' })
+          await wrapper.findComponent({ name: 'ContactWindow' }).vm.$emit('contactMade')
+          await wrapper
+            .findComponent({ name: 'ContactWindow' })
+            .vm.$emit('update:modelValue', false)
+          await nextTick()
+          answer()
+          await flushPromises()
+          expect(contactWindow().attributes('data-open')).toBe('false')
+          expect(contactWindow().attributes('data-who')).toBe('')
+
+          await nameIt({ communityUuid: 'home', gradidoID: 'stranger-id', alias: 'Fremd' })
+          await wrapper.findComponent({ name: 'ContactWindow' }).vm.$emit('contactMade')
+          await nameIt({ communityUuid: 'home', gradidoID: 'id-2', alias: 'Alias2' })
+          answer()
+          await flushPromises()
+          expect(contactWindow().attributes('data-who')).toBe('id-2')
+          expect(contactWindow().attributes('data-greet')).toBe('true')
+        })
+
         // Closing lets the group's way of opening go: a row opened next is the window as always.
         it('opens a row of the list as always after it closed', async () => {
           await withContacts()
