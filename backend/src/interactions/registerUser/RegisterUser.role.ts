@@ -142,6 +142,7 @@ export class RegisterUserRole<
       throw new Error('Error while saving dbUser')
     }
     this.userId = insertUserResult.value
+    logger.addContext(`user`, this.userId)
 
     // write user contact
     let userContact = this.prepareUserContact()
@@ -184,7 +185,7 @@ export class RegisterUserRole<
     // write user.email_id
     const affectedRows = await dbUserUpdateField(this.userId, 'emailId', this.userContactId, tx)
     if (affectedRows !== 1) {
-      logger.error(`update emailId: ${this.userContactId} for user=${this.userId} failed`)
+      logger.error(`update emailId: ${this.userContactId} failed`)
       throw new Error('Error while updating dbUser')
     }
     return { success: true, value: insertUserResult.value }
@@ -242,6 +243,7 @@ export class RegisterUserRole<
 
   public async run(logger: Logger): Promise<number> {
     let userId: number | null = null
+    let dbUser: DbUser | null = null
     try {
       const storeUserAndContactResult = await this.storeUserAndUserContact(
         await this.prepareUser(),
@@ -251,49 +253,53 @@ export class RegisterUserRole<
         return this.userAlreadyExist(storeUserAndContactResult.error.user, logger)
       }
       userId = storeUserAndContactResult.value
-      logger.addContext('user', userId)
       const finalAlias = await this.generateAndStoreAlias(logger)
       if ((await dbUserUpdateField(userId, 'alias', finalAlias)) !== 1) {
         logger.error(`update user with id: ${userId} with alias: ${finalAlias} failed`)
         throw new Error('Error while storing the generated alias')
       }
+      if (!this.emailVerificationCode) {
+        throw new Error('Missing email verification code')
+      }
+      if (!userId) {
+        throw new Error('Missing user id')
+      }
+      dbUser = await dbFindUserWithContactById(userId)
+      if (!dbUser) {
+        throw new Error(`Cannot find the user just created: ${userId}`)
+      }
     } catch (e) {
       await this.rollback()
       throw e
     }
-    if (!this.emailVerificationCode) {
-      throw new Error('Missing email verification code')
-    }
-    if (!userId) {
-      throw new Error('Missing user id')
-    }
-    if (
-      await this.sendAccountActivationEmail(
-        `${CONFIG.EMAIL_LINK_VERIFICATION}${this.emailVerificationCode.toString()}`,
-      )
-    ) {
-      await dbInsertEvent({
-        type: EventType.EMAIL_CONFIRMATION,
-        affectedUserId: userId,
-        actingUserId: userId,
+    const createdUserId = userId
+    this.sendAccountActivationEmail(
+      `${CONFIG.EMAIL_LINK_VERIFICATION}${this.emailVerificationCode.toString()}`,
+    )
+      .then((success: boolean) => {
+        if (success) {
+          dbInsertEvent({
+            type: EventType.EMAIL_CONFIRMATION,
+            affectedUserId: createdUserId,
+            actingUserId: createdUserId,
+          }).catch((e) => {
+            logger.error(`error on writing EMAIL_CONFIRMATION event: ${e}`)
+          })
+        }
       })
-    }
+      .catch((e) => {
+        logger.error(`error sending account activation email: ${e}`)
+      })
 
-    await this.storeUserRegisterEvent()
-    const dbUser = await dbFindUserWithContactById(userId)
-    if (!dbUser) {
-      logger.error(`cannot find user with id: ${userId} which were just created`)
-      throw new Error('Cannot find just created user')
-    }
+    this.storeUserRegisterEvent().catch((e) => logger.error(`error on write register event: ${e}`))
+
     if (CONFIG.DLT_ACTIVE) {
       // register user into blockchain
-      const homeCom = await getHomeCommunityDrizzle()
-      if (!homeCom) {
-        throw new Error('Missing Home Community')
-      }
-      await registerAddressTransaction(dbUser, homeCom)
+      registerAddressTransaction(dbUser, await getHomeCommunityDrizzle()).catch((e) =>
+        logger.error(`error on register address in dlt: ${e}`),
+      )
     }
-    await this.syncHumhub(dbUser, logger)
+    this.syncHumhub(dbUser, logger).catch((e) => logger.error(`error sync user with humhub: ${e}`))
     await this.afterRun(dbUser)
     logger.info('registerUser() successful...')
     return userId

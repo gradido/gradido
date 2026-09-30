@@ -63,7 +63,11 @@
         <template v-if="guarantorActive">
           <input-password-confirmation register />
           <p class="text-muted" data-test="register-guarantor-hint">
-            {{ $t('site.signup.guarantorHint', { name: referrerAlias }) }}
+            {{
+              referrerAlias
+                ? $t('site.signup.guarantorHint', { name: referrerAlias })
+                : $t('site.signup.guarantorHintAnonymous')
+            }}
           </p>
         </template>
         <BRow>
@@ -96,7 +100,11 @@
           role="alert"
           data-test="register-guarantor-limit"
         >
-          {{ $t('site.signup.guarantorLimit', { name: referrerAlias }) }}
+          {{
+            referrerAlias
+              ? $t('site.signup.guarantorLimit', { name: referrerAlias })
+              : $t('site.signup.guarantorLimitAnonymous')
+          }}
         </p>
         <BRow>
           <BCol cols="12" lg="6">
@@ -202,7 +210,9 @@ const referrerAlias = isValidUsername(String(query.referrer ?? '')) ? String(que
 // public page handed it on. Only its expiry is read here, to decide whether the form offers a
 // password; the server opens the block when the form is sent, and takes from it who showed the
 // code. Decided once, when the page opens -- fields do not vanish while somebody is typing. The
-// name in `referrer` only names that member in the strip above the form.
+// name in `referrer` only names that member: in the strip above the form, and in the hint and
+// limit texts. Every link the wallet builds carries it; a code that comes without it still
+// counts, and those two texts speak of "the member who showed you the code" instead.
 const guarantor = String(query.guarantor ?? '')
 const hasGuarantorCode = /^\d+\.[A-Za-z0-9_-]+$/.test(guarantor)
 const guarantorActive = hasGuarantorCode && Number(guarantor.split('.')[0]) * 1000 > Date.now()

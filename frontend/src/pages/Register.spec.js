@@ -594,6 +594,9 @@ describe('Register', () => {
 
       expect(passwordFields(page)).toBe(true)
       expect(page.find('[data-test="register-shown-by"]').exists()).toBe(false)
+      expect(page.find('[data-test="register-guarantor-hint"]').text()).toBe(
+        en.site.signup.guarantorHintAnonymous,
+      )
     })
 
     it('takes nothing that is not a code', async () => {
@@ -669,6 +672,19 @@ describe('Register', () => {
       await page.find('form').trigger('submit')
       await flushPromises()
       expect(page.find('[data-test="register-guarantor-limit"]').exists()).toBe(false)
+    })
+
+    // Without the name the limit still speaks of somebody: the member who showed the code.
+    it('says the same without the name, naming the member who showed the code', async () => {
+      const page = await pageAt({ guarantor: inTenMinutes() })
+      mockMutate.mockRejectedValue(new Error('GraphQL error: Vouching limit reached'))
+      await fillIn(page)
+      await page.find('form').trigger('submit')
+      await flushPromises()
+
+      expect(page.find('[data-test="register-guarantor-limit"]').text()).toBe(
+        en.site.signup.guarantorLimitAnonymous,
+      )
     })
 
     it('toasts any other error as before', async () => {

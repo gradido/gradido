@@ -140,7 +140,16 @@ beforeEach(() => {
   mocked(dbFindUserWithContactById).mockResolvedValue(storedUser)
   mocked(sendAccountActivationEmail).mockResolvedValue({})
   mocked(sendAssistedRegistrationConfirmEmail).mockResolvedValue({})
+  // run() does not wait for these any more, it hangs a .catch on each: a bare jest.fn()
+  // answers undefined, which has none.
+  mocked(dbInsertEvent).mockResolvedValue(undefined)
+  mocked(registerAddressTransaction).mockResolvedValue(null)
+  mocked(syncHumhub).mockResolvedValue(undefined)
 })
+
+// What run() started without waiting for - the mail and its event, the registration event, DLT,
+// HumHub - has settled once the queue of pending callbacks is empty.
+const settled = () => new Promise((resolve) => setImmediate(resolve))
 
 describe('RegisterUserRole', () => {
   it('stores user and contact, links them and returns the new id', async () => {
@@ -174,12 +183,73 @@ describe('RegisterUserRole', () => {
     )
   })
 
+  // The mail event waits for the mail, the registration event for nothing: their order is open.
   it('records the mail and the registration', async () => {
     await new RegisterUserRole(input()).run(logger)
-    expect(insertedEvents()).toEqual([
-      { type: EventType.EMAIL_CONFIRMATION, affectedUserId: USER_ID, actingUserId: USER_ID },
-      { type: EventType.USER_REGISTER, affectedUserId: USER_ID, actingUserId: USER_ID },
-    ])
+    await settled()
+    expect(insertedEvents()).toHaveLength(2)
+    expect(insertedEvents()).toEqual(
+      expect.arrayContaining([
+        { type: EventType.EMAIL_CONFIRMATION, affectedUserId: USER_ID, actingUserId: USER_ID },
+        { type: EventType.USER_REGISTER, affectedUserId: USER_ID, actingUserId: USER_ID },
+      ]),
+    )
+  })
+
+  /**
+   * Once user, contact and alias are stored, the account stands: what follows - the mail, the
+   * events, DLT, HumHub - is logged when it fails, and neither undoes the account nor reaches
+   * the client. The guest could do nothing with a failed mail but register again, which then
+   * finds the address taken.
+   */
+  describe('after the account is stored', () => {
+    let logError: jest.SpyInstance
+
+    beforeEach(() => {
+      logError = jest.spyOn(logger, 'error').mockImplementation(() => undefined)
+    })
+
+    afterEach(() => {
+      logError.mockRestore()
+    })
+
+    it('keeps the account when the mail fails, and records no mail', async () => {
+      mocked(sendAccountActivationEmail).mockResolvedValue(new Error('smtp down'))
+
+      expect(await new RegisterUserRole(input()).run(logger)).toBe(USER_ID)
+      await settled()
+
+      expect(dbRemoveUser).not.toHaveBeenCalled()
+      expect(insertedEvents()).toEqual([
+        { type: EventType.USER_REGISTER, affectedUserId: USER_ID, actingUserId: USER_ID },
+      ])
+      expect(logError).toHaveBeenCalledWith(
+        'error sending account activation email: Error: smtp down',
+      )
+    })
+
+    it('keeps the account when an event, DLT or HumHub fails', async () => {
+      CONFIG.DLT_ACTIVE = true
+      mocked(getHomeCommunityDrizzle).mockResolvedValue({} as never)
+      mocked(dbInsertEvent).mockRejectedValue(new Error('events down'))
+      mocked(registerAddressTransaction).mockRejectedValue(new Error('dlt down'))
+      mocked(syncHumhub).mockRejectedValue(new Error('humhub down'))
+
+      expect(await new RegisterUserRole(input()).run(logger)).toBe(USER_ID)
+      await settled()
+
+      expect(dbRemoveUser).not.toHaveBeenCalled()
+      expect(logError).toHaveBeenCalledWith('error on write register event: Error: events down')
+      expect(logError).toHaveBeenCalledWith(
+        'error on writing EMAIL_CONFIRMATION event: Error: events down',
+      )
+      expect(logError).toHaveBeenCalledWith('error on register address in dlt: Error: dlt down')
+      // syncHumhub catches on its own, before run() would have to.
+      expect(logError).toHaveBeenCalledWith(
+        "registerUser: couldn't reach out to humhub, disable for now",
+        new Error('humhub down'),
+      )
+    })
   })
 
   describe('alias', () => {

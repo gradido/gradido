@@ -9,7 +9,7 @@ export function useAuthLinks() {
    * travels on from an address page -- the page's own button, the navigation bar, the detour
    * over the sign-in -- the name travels with it. Without a guarantor code nothing changes.
    */
-  const tableCodeReferrer = () =>
+  const guarantorCodeReferrer = () =>
     route.query.guarantor && route.params.alias ? { referrer: route.params.alias } : {}
 
   /**
@@ -22,7 +22,7 @@ export function useAuthLinks() {
     return {
       name,
       params: { ...route.params, ...options.params },
-      query: { ...tableCodeReferrer(), ...route.query, ...options.query },
+      query: { ...guarantorCodeReferrer(), ...route.query, ...options.query },
     }
   }
 

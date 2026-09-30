@@ -1,13 +1,13 @@
 import { validate, version } from 'uuid'
 import { z } from 'zod'
 import { AVAILABLE_LOCALS, DEFAULT_LANGUAGE } from '../const'
-import { GradidoUnit } from '../data'
+import { GradidoUnit } from '../data/GradidoUnit'
 import { Duration } from '../data/Duration'
 
 export const uuidv4Schema = z
   .string()
   .refine((val: string) => validate(val) && version(val) === 4, 'Invalid uuid')
-export const emailSchema = z.string().email().toLowerCase().trim()
+export const emailSchema = z.string().trim().toLowerCase().email()
 export const urlSchema = z.string().url()
 export const uint32Schema = z.number().positive().lte(4294967295)
 export const languageSchema = z.enum(AVAILABLE_LOCALS)

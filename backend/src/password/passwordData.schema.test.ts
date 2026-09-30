@@ -21,6 +21,14 @@ describe('passwordDataSchema', () => {
     )
   })
 
+  // Stored data, not input: the address stays exactly as it is in user_contacts, whether or not
+  // emailSchema would accept it today.
+  it('keeps a stored address byte for byte, blank and capitals included', () => {
+    for (const email of ['bernd@example.com ', 'Bernd@Example.com']) {
+      expect(passwordDataSchema.parse({ emailContact: { email } }).emailContact?.email).toBe(email)
+    }
+  })
+
   // The TypeORM entity spells it `gradidoID`, the Drizzle row `gradidoId`.
   it('reads the gradido id in either spelling', () => {
     expect(passwordDataSchema.parse({ gradidoID: GRADIDO_ID }).gradidoId).toBe(GRADIDO_ID)
