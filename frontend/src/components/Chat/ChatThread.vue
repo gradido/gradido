@@ -80,10 +80,12 @@
             <chat-bubble
               v-for="message in day.messages"
               :key="message.key ?? message.id"
+              :data-key="message.key ?? message.id"
               :message="message"
               :alias="inGroup ? groupTitle : alias"
               :in-group="inGroup"
               :show-writer="runStarts.has(message.id)"
+              :search-current="searchKey === (message.key ?? message.id)"
               @open-image="openImage"
               @open-member="emit('openMember', $event)"
             />
@@ -129,7 +131,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useStore } from 'vuex'
 import { useApolloClient, useMutation, useQuery } from '@vue/apollo-composable'
@@ -138,6 +140,7 @@ import ChatComposeBar from '@/components/Chat/ChatComposeBar.vue'
 import ChatImageView from '@/components/Chat/ChatImageView.vue'
 import { openChatImageView, rememberChatImage } from '@/composables/useChatImages'
 import { useChatTransfers } from '@/composables/useChatTransfers'
+import { useChatThreadSearch } from '@/composables/useChatThreadSearch'
 import { onChatMessages, pollChatNow } from '@/composables/useChatUpdates'
 import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
 import {
@@ -188,6 +191,11 @@ const props = defineProps({
   greeting: { type: String, default: '' },
   /** Only the text, no paperclip: the contact window's first form (E-055). */
   textOnly: { type: Boolean, default: false },
+  /**
+   * What the window's search field holds (E-057); '' while the search is closed. The thread
+   * searches itself for it (useChatThreadSearch) and says what it found (`search`).
+   */
+  search: { type: String, default: '' },
 })
 
 /**
@@ -197,8 +205,11 @@ const props = defineProps({
  * and the bell (E-017), the window does not ask a second time.
  *
  * `openMember`: in a group, the writer whose name was tapped over their message (E-053).
+ *
+ * `search`: what the search found (E-057) -- `{ searching, count, current, busy, capped }`, for
+ * the window's bar -- whenever any of it changes.
  */
-const emit = defineEmits(['chatConversation', 'openMember'])
+const emit = defineEmits(['chatConversation', 'openMember', 'search'])
 
 const { t, d, n } = useI18n()
 
@@ -791,6 +802,42 @@ const loadOlder = async (event) => {
 }
 
 /**
+ * The search (E-057, useChatThreadSearch): a hit is put in the middle of the box, and the thread
+ * stops following its newest message -- the reader is where the hit is now, as after scrolling up.
+ * Only the box moves, not the window around it.
+ */
+const showItem = (key) => {
+  const box = scroller.value
+  const item = content.value?.querySelector(`[data-key="${key}"]`)
+  if (!box || !item) return
+  followNewest = false
+  const offset = item.getBoundingClientRect().top - box.getBoundingClientRect().top
+  box.scrollTop += offset - Math.max(0, (box.clientHeight - item.offsetHeight) / 2)
+}
+
+/** Moves once an older page is on screen: more messages, more transfers, or no more of either. */
+const searchProgress = computed(
+  () =>
+    `${messages.value.length}:${transfers.value.length}:${hasMore.value}:${transfersHaveMore.value}`,
+)
+
+const {
+  currentKey: searchKey,
+  result: searchResult,
+  step: searchStep,
+} = useChatThreadSearch({
+  typed: toRef(props, 'search'),
+  timeline,
+  canLoadOlder: computed(() => hasMore.value || transfersHaveMore.value),
+  messageCount: computed(() => messages.value.length),
+  olderFailed,
+  progress: searchProgress,
+  loadOlder: () => loadOlder(),
+  show: showItem,
+})
+watch(searchResult, (now) => emit('search', now))
+
+/**
  * Arrivals the page can take: not twice (an id the thread holds already -- one's own copy comes
  * back with the next beat, and the known limit of the marker can bring one again), and not
  * below the oldest message on screen while there are older pages: those belong to a page not
@@ -1069,7 +1116,11 @@ const deliver = async ({ body, notify }) => {
   return own !== null && own.deliveryState !== 'FAILED'
 }
 
-defineExpose({ deliver })
+/**
+ * `deliver`: a message from outside the bar (the video call's invitation, see above).
+ * `searchStep`: the window's ↑ and ↓ (E-057) -- -1 to the older hit, +1 to the newer.
+ */
+defineExpose({ deliver, searchStep })
 </script>
 
 <style lang="scss" scoped>

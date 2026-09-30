@@ -4,9 +4,11 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
+import { ref } from 'vue'
 import ChatBubble from './ChatBubble.vue'
 import { forgetAllChatImages, rememberChatImage } from '@/composables/useChatImages'
 import { CHAT_VIDEO_JOIN } from '@/utils/chatVideoApp'
+import { CHAT_SEARCH } from '@/utils/chatSearch'
 import { withChatVideoTopic } from '@/utils/chatVideoTopic'
 import { LIST_AVATAR_SIZE } from '@/constants'
 
@@ -173,6 +175,82 @@ describe('ChatBubble', () => {
     const link = wrapper.find('.chat-message-text a')
     expect(link.text()).toBe(address)
     expect(link.attributes('href')).toBe(address)
+  })
+
+  /**
+   * E-057 (Bernd, 30.09.2026): the search in the thread marks its hits where they stand -- in the
+   * words, the bold runs, a link's text, the subject, a transfer's memo. The thread provides the
+   * needle (useChatThreadSearch); here a stand-in does.
+   */
+  describe('the hits of the search in the thread', () => {
+    const mountSearched = (message, needle = 'bank') => {
+      wrapper = mount(ChatBubble, {
+        props: { message, alias: 'Lena' },
+        global: {
+          provide: { [CHAT_SEARCH]: ref(needle) },
+          stubs: { IMdiEmailOutline: true, IBiCopy: true, IMdiFileDocumentOutline: true },
+        },
+      })
+      return wrapper
+    }
+    const marks = () => wrapper.findAll('mark.chat-search-mark').map((m) => m.text())
+
+    it('marks every place in the words, keeping the words as they are', () => {
+      mountSearched({ ...THEIRS, body: 'Die Bank am Waldrand, eine schöne bank.' })
+      expect(marks()).toEqual(['Bank', 'bank'])
+      expect(wrapper.find('.chat-message-text').text()).toBe(
+        'Die Bank am Waldrand, eine schöne bank.',
+      )
+    })
+
+    it('marks in bold runs, in a link and in the subject', () => {
+      mountSearched({
+        ...THEIRS,
+        subject: 'Die Bank',
+        body: 'Das ist **die Bank** unter https://bank.example.org/weg',
+      })
+      expect(wrapper.find('[data-test="chat-bubble-subject"] mark').text()).toBe('Bank')
+      expect(wrapper.find('.chat-message-text strong mark').text()).toBe('Bank')
+      expect(wrapper.find('.chat-message-text a mark').text()).toBe('bank')
+      expect(wrapper.find('.chat-message-text a').attributes('href')).toBe(
+        'https://bank.example.org/weg',
+      )
+    })
+
+    it("marks a transfer's memo", () => {
+      mountSearched({
+        ...THEIRS,
+        transfer: true,
+        subject: 'Lena hat Dir 10 gesendet',
+        body: 'Für die Bank',
+      })
+      expect(wrapper.find('.memo-text mark').text()).toBe('Bank')
+    })
+
+    // Folded as the search compares: the mark stands on the letters as written.
+    it('marks without regard to case and accents', () => {
+      mountSearched({ ...THEIRS, body: 'Treffen im CAFÉ' }, 'cafe')
+      expect(marks()).toEqual(['CAFÉ'])
+    })
+
+    it('marks nothing while nothing is searched, nor outside a thread', () => {
+      mountSearched({ ...THEIRS, body: 'Die Bank' }, '')
+      expect(marks()).toEqual([])
+      wrapper.unmount()
+      mountBubble({ ...THEIRS, body: 'Die Bank' })
+      expect(marks()).toEqual([])
+    })
+
+    it('rings the bubble the search stands on', () => {
+      wrapper = mount(ChatBubble, {
+        props: { message: { ...THEIRS, body: 'Die Bank' }, alias: 'Lena', searchCurrent: true },
+        global: { provide: { [CHAT_SEARCH]: ref('bank') }, stubs: { IMdiEmailOutline: true } },
+      })
+      expect(bubble().classes()).toContain('is-search-current')
+      wrapper.unmount()
+      mountSearched({ ...THEIRS, body: 'Die Bank' })
+      expect(bubble().classes()).not.toContain('is-search-current')
+    })
   })
 
   /**

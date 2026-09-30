@@ -2,6 +2,7 @@
 import { h, inject } from 'vue'
 import ChatFileCard from '@/components/Chat/ChatFileCard.vue'
 import ChatVideoLinkCopy from '@/components/Chat/ChatVideoLinkCopy.vue'
+import { chatSearchMarked, useChatSearchNeedle } from '@/components/Chat/chatSearchMarks'
 import { fileLinkService } from '@/utils/chatFileLink'
 import { chatTextParts } from '@/utils/chatTextParts'
 import { CHAT_VIDEO_JOIN, chatVideoAppUrl, offersJitsiApp } from '@/utils/chatVideoApp'
@@ -67,6 +68,9 @@ const aroundFileCards = (parts) =>
  * on any link. On a phone, and where no window provides the question, it opens the room straight
  * away, as it always did. Whether this is a computer is asked at the click, nothing kept.
  *
+ * Searched for in the thread (E-057), the hits are marked where they stand -- in the words, the
+ * bold runs and the addresses as shown; a file card is a card, not words, and stays as it is.
+ *
  * A link to files on SwissTransfer, Dropbox, Google Drive, OneDrive or WeTransfer is shown as a
  * file card in place of the address (Paket D, E-044): Gradido stores no files, the message
  * carries the link, and the card names the service and where it leads. The words around it stay;
@@ -79,8 +83,10 @@ export default {
   },
   setup(props) {
     const join = inject(CHAT_VIDEO_JOIN, null)
-    return () =>
-      h(
+    const search = useChatSearchNeedle()
+    return () => {
+      const needle = search?.value ?? ''
+      return h(
         'span',
         { class: 'chat-message-text' },
         aroundFileCards(chatTextParts(props.text)).flatMap((part) => {
@@ -108,19 +114,20 @@ export default {
                     }
                   : {}),
               },
-              shown,
+              chatSearchMarked(shown, needle),
             )
             // Right behind the link, in the room it keeps at its end (ChatVideoLinkCopy).
             return video ? [link, h(ChatVideoLinkCopy, { href: part.value })] : link
           }
           if (part.type === 'email') {
-            return h('a', { href: `mailto:${part.value}` }, part.value)
+            return h('a', { href: `mailto:${part.value}` }, chatSearchMarked(part.value, needle))
           }
           if (part.type === 'bold') {
-            return h('strong', part.value)
+            return h('strong', chatSearchMarked(part.value, needle))
           }
-          return part.value
+          return chatSearchMarked(part.value, needle)
         }),
       )
+    }
   },
 }

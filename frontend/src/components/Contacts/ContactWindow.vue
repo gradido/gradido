@@ -51,6 +51,23 @@
            ⚠️ `$t('form.close')` as the accessible name, not the glyph: a screen reader
            reading "times" or nothing at all is what a bare × amounts to. -->
       <div class="contact-window-top">
+        <!-- The search in the conversation (Bernd, 30.09.2026, E-057): the magnifier by the cross
+             opens the bar below it and closes it again. Not in the window's
+             first form: there is nothing to search yet. -->
+        <button
+          v-if="!firstForm"
+          ref="searchToggle"
+          type="button"
+          class="contact-window-search-toggle"
+          :class="{ 'is-on': searchOpen }"
+          :aria-label="$t('chatSearch.open')"
+          :title="$t('chatSearch.open')"
+          :aria-pressed="searchOpen ? 'true' : 'false'"
+          data-test="contact-window-search"
+          @click="toggleSearch"
+        >
+          <i-mdi-magnify aria-hidden="true" />
+        </button>
         <button
           type="button"
           class="contact-window-close"
@@ -62,6 +79,15 @@
           <IBiX />
         </button>
       </div>
+      <chat-search-bar
+        v-if="searchOpen"
+        v-model="searchTyped"
+        class="contact-window-search"
+        :result="searchFound"
+        @older="thread?.searchStep(-1)"
+        @newer="thread?.searchStep(1)"
+        @close="closeSearch"
+      />
 
       <div class="contact-window-head">
         <app-avatar :size="64" :color="'#fff'" v-bind="avatar" />
@@ -247,7 +273,9 @@
         :alias="alias"
         :greeting="greeting"
         :text-only="firstForm"
+        :search="searchOpen ? searchTyped : ''"
         @chat-conversation="takeChatConversation"
+        @search="takeFound"
       />
 
       <!-- The two questions of a video call -- starting one, and joining one from its link in the
@@ -273,6 +301,7 @@ import { useStore } from 'vuex'
 import { useMutation } from '@vue/apollo-composable'
 import { BModal } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
+import ChatSearchBar from '@/components/Chat/ChatSearchBar.vue'
 import ChatThread from '@/components/Chat/ChatThread.vue'
 import ChatVideoCall from '@/components/Chat/ChatVideoCall.vue'
 import FavoriteHeart from '@/components/FavoriteHeart.vue'
@@ -284,6 +313,7 @@ import {
 } from '@/components/Contacts/contactDisplay'
 import { setChatConversationMuted } from '@/graphql/chat.graphql'
 import { useAppToast } from '@/composables/useToast'
+import { useChatWindowSearch } from '@/composables/useChatWindowSearch'
 import { gradidoAddress } from '@/utils/gradidoAddress'
 import { SEND_TYPES } from '@/utils/sendTypes'
 import { bookingsWithMemberRoute } from '@/utils/bookingsRoute'
@@ -349,6 +379,10 @@ const avatar = computed(() => display.value?.avatar ?? {})
  * dropped an answer about the bell that was on its way.
  */
 const threadKey = computed(() => chatMemberKey(props.contact?.user, store.state.communityUuid))
+
+/** The search in the conversation (E-057, useChatWindowSearch): closed with the window, and anew for another person. */
+const { searchOpen, searchTyped, searchFound, searchToggle, toggleSearch, closeSearch, takeFound } =
+  useChatWindowSearch(() => props.modelValue, threadKey)
 
 /**
  * The member's address, and only where this wallet is the one that can name the host.
@@ -663,7 +697,36 @@ onBeforeUnmount(() => {
 .contact-window-top {
   display: flex;
   justify-content: flex-end;
+  gap: 0.25rem;
   margin: -0.5rem -0.5rem 0.25rem 0;
+}
+
+/* The magnifier (E-057) beside the cross and drawn as it is; while the search is open it stands
+   pressed, in the link's colour -- the same button closes the search again. */
+.contact-window-search-toggle {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--bs-secondary-color, #6c757d);
+  font-size: 1.15rem;
+  line-height: 1;
+  padding: 0.25rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.contact-window-search-toggle:hover,
+.contact-window-search-toggle:focus-visible {
+  color: var(--bs-body-color);
+}
+
+.contact-window-search-toggle.is-on {
+  color: rgba(var(--bs-link-color-rgb), 1);
+}
+
+/* The search bar (ChatSearchBar) under the line of the magnifier, above the head. */
+.contact-window-search {
+  margin-bottom: 0.75rem;
 }
 
 .contact-window-close {
