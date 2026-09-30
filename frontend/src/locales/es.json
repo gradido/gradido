@@ -217,7 +217,7 @@
     "youAreOwner": "Eres el propietario"
   },
   "chatSearch": {
-    "capped": "Se han buscado los últimos {count} mensajes.",
+    "capped": "Se ha buscado en los últimos {count} mensajes.",
     "count": "{current} de {count}",
     "loading": "Buscando …",
     "newer": "Resultado siguiente",

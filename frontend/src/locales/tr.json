@@ -217,7 +217,7 @@
     "youAreOwner": "Grubun sahibisin"
   },
   "chatSearch": {
-    "capped": "Son {count} mesaj arandı.",
+    "capped": "Son {count} mesajda arama yapıldı.",
     "count": "{current}/{count}",
     "loading": "Aranıyor …",
     "newer": "Sonraki sonuç",
