@@ -158,6 +158,7 @@
       :greet="greet"
       :first-contact="firstContact"
       @contact-made="contactMade"
+      @forward-message="forwardFromContact"
     />
     <!-- And one for a group (P5), the same way, and the dialog that opens one. -->
     <chat-group-window
@@ -166,8 +167,18 @@
       :contacts="contacts"
       @changed="reloadGroups"
       @open-member="openGroupMember"
+      @forward-message="forwardFromGroup"
     />
     <chat-group-create v-model="createOpen" :contacts="contacts" @created="groupCreated" />
+    <!-- Forwarding a message (E-059): where to, over the window it came from. -->
+    <chat-forward-dialog
+      v-model="forwardOpen"
+      :message="forwarding"
+      :writer="forwardWriter"
+      :contacts="contacts"
+      :groups="groups"
+      @forwarded="forwarded"
+    />
   </div>
 </template>
 
@@ -177,6 +188,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useApolloClient, useQuery } from '@vue/apollo-composable'
 import { useStore } from 'vuex'
 import { BFormInput, BPagination, BSpinner } from 'bootstrap-vue-next'
+import ChatForwardDialog from '@/components/Chat/ChatForwardDialog.vue'
 import ChatGroupCreate from '@/components/ChatGroups/ChatGroupCreate.vue'
 import ChatGroupRow from '@/components/ChatGroups/ChatGroupRow.vue'
 import ChatGroupWindow from '@/components/ChatGroups/ChatGroupWindow.vue'
@@ -193,7 +205,7 @@ import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
 import { useAppToast } from '@/composables/useToast'
 import { PAGE_SIZE } from '@/constants'
 import { chatMemberKey } from '@/utils/chatMemberKey'
-import { memberKey } from '@/utils/gradidoAddress'
+import { memberAlias, memberKey } from '@/utils/gradidoAddress'
 
 /**
  * The whole list in one answer, then favourites, search and pages on this device.
@@ -420,6 +432,30 @@ const rowKey = (contact) => memberKey(contact.user)
 // written once.
 const { windowOpen, selected, greet, firstContact, open, openKnownMember, fillIn } =
   useContactWindow(apolloClient)
+
+/**
+ * Forwarding a message (Bernd, 30.09.2026, E-059): a window hands it up, and the dialog asks where
+ * to -- over the window it came from. Who wrote it, as that window names them: the writer in a
+ * group by the name over their message, the other person of a conversation of two by theirs (the
+ * dialog says "Du" for one's own). Once it went, the lists ask again: the conversations it went into
+ * moved up.
+ */
+const forwardOpen = ref(false)
+const forwarding = ref(null)
+const forwardWriter = ref('')
+const forwardMessage = (message, writer) => {
+  forwarding.value = message
+  forwardWriter.value = writer
+  forwardOpen.value = true
+}
+const nameOf = (user) => (user?.gradidoID ? memberAlias(user.alias, user.gradidoID) : '')
+const forwardFromContact = (message) => forwardMessage(message, nameOf(selected.value?.user))
+const forwardFromGroup = (message) =>
+  forwardMessage(message, nameOf(message.senderUser ?? message.sender))
+const forwarded = () => {
+  reloadGroups()
+  reloadList()
+}
 
 /**
  * `/contacts?with=<gradidoID>[&community=<uuid>]` opens the conversation with that person -- the

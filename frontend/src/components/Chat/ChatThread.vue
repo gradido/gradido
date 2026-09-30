@@ -89,6 +89,7 @@
               @open-image="openImage"
               @open-member="emit('openMember', $event)"
               @duplicate-video="emit('duplicateVideo', $event)"
+              @forward="emit('forwardMessage', $event)"
             />
           </ol>
         </section>
@@ -213,7 +214,13 @@ const props = defineProps({
  * `duplicateVideo`: "Duplizieren" under a video invitation (E-058) -- the invitation, for the
  * window's question before a call.
  */
-const emit = defineEmits(['chatConversation', 'openMember', 'search', 'duplicateVideo'])
+const emit = defineEmits([
+  'chatConversation',
+  'openMember',
+  'search',
+  'duplicateVideo',
+  'forwardMessage',
+])
 
 const { t, d, n } = useI18n()
 
