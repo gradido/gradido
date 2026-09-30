@@ -86,4 +86,11 @@ describe('the fields of a chat message', () => {
       ]),
     )
   })
+
+  // E-059: whether a message is a forwarded copy, and whose words it carries -- for the line over it.
+  it('carries whether a message was forwarded, and from whom', () => {
+    expect(beat).toEqual(
+      expect.arrayContaining(['forwarded', 'forwardedFrom.gradidoID', 'forwardedFrom.alias']),
+    )
+  })
 })

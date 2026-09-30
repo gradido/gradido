@@ -79,6 +79,12 @@ fragment chatGroupMessageFields on ChatMessage {
     width
     height
   }
+  forwarded
+  forwardedFrom {
+    communityUuid
+    gradidoID
+    alias
+  }
 }
 
 # A group's thread, one page at a time, oldest first within the page (E-018), as the thread with

@@ -787,6 +787,15 @@ describe('ChatThread', () => {
     expect(wrapper.emitted('duplicateVideo')).toEqual([[invitation]])
   })
 
+  // E-059: the message to be forwarded, handed on to the window -- the page asks where to.
+  it('hands a message to be forwarded on to the window', async () => {
+    mountThread()
+    await arrive(page([1]))
+    const message = { id: 1, messageUuid: 'uuid-1', body: 'Flohmarkt' }
+    await wrapper.findComponent({ name: 'ChatBubble' }).vm.$emit('forward', message)
+    expect(wrapper.emitted('forwardMessage')).toEqual([[message]])
+  })
+
   describe('the search', () => {
     const withBodies = (entries, { hasMore = false } = {}) => ({
       hasMore,

@@ -173,7 +173,7 @@ describe('ContactWindow', () => {
               textOnly: Boolean,
               search: String,
             },
-            emits: ['chatConversation', 'search', 'duplicateVideo'],
+            emits: ['chatConversation', 'search', 'duplicateVideo', 'forwardMessage'],
             inject: { join: { from: CHAT_VIDEO_JOIN, default: null } },
             mounted() {
               threadsMade.push(this.member.gradidoID)
@@ -635,6 +635,14 @@ describe('ContactWindow', () => {
    * ⚠️ Comments stripped first. The rule is explained in prose right beside it, and a search
    * over the raw text would find its own explanation and survive the deletion.
    */
+  // E-059: a message to be forwarded goes up to the page, which asks where to.
+  it('hands a message to be forwarded up to the page', async () => {
+    mountWindow()
+    const message = { id: 3, messageUuid: 'uuid-3', body: 'Flohmarkt' }
+    await wrapper.findComponent({ name: 'ChatThread' }).vm.$emit('forwardMessage', message)
+    expect(wrapper.emitted('forwardMessage')).toEqual([[message]])
+  })
+
   it('reserves the height of the meta line in the stylesheet', () => {
     const source = readFileSync(
       join(dirname(fileURLToPath(import.meta.url)), 'ContactWindow.vue'),

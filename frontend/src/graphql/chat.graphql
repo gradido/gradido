@@ -65,6 +65,12 @@ query chatMessagesWithMemberQuery($ref: MemberAvatarRefInput!, $before: Int, $li
         width
         height
       }
+      forwarded
+      forwardedFrom {
+        communityUuid
+        gradidoID
+        alias
+      }
     }
   }
 }
@@ -129,6 +135,12 @@ query newChatMessagesSince($afterId: Int, $limit: Int) {
         width
         height
       }
+      forwarded
+      forwardedFrom {
+        communityUuid
+        gradidoID
+        alias
+      }
     }
   }
 }
@@ -189,6 +201,12 @@ mutation sendChatMessage(
       imageUuid
       width
       height
+    }
+    forwarded
+    forwardedFrom {
+      communityUuid
+      gradidoID
+      alias
     }
   }
 }
@@ -251,5 +269,31 @@ query chatVideoServerChoices {
     id
     host
     operator
+  }
+}
+
+# A message forwarded into other conversations (Bernd, 30.09.2026, E-059): groups the member is in
+# and members of this community, five at most together; the member's own words, which follow every
+# copy as a message of their own; and the box "Auch per E-Mail" for the members (the first message
+# of a pair goes by mail in any case). The copies come back -- the wallet counts them against the
+# conversations it named; the threads they land in get them on the beat. Refused before anything is
+# filed as CHAT_MESSAGE_NOT_FORWARDED: TARGETS | UNKNOWN_MESSAGE | UNKNOWN_GROUP | TO_ONESELF |
+# OTHER_COMMUNITY | UNKNOWN_RECIPIENT.
+mutation forwardChatMessage(
+  $messageUuid: String!
+  $groupUuids: [String!]!
+  $members: [MemberAvatarRefInput!]!
+  $words: String
+  $alsoByEmail: Boolean!
+) {
+  forwardChatMessage(
+    messageUuid: $messageUuid
+    groupUuids: $groupUuids
+    members: $members
+    words: $words
+    alsoByEmail: $alsoByEmail
+  ) {
+    id
+    messageUuid
   }
 }

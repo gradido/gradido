@@ -126,7 +126,7 @@ describe('ChatGroupWindow', () => {
           ChatThread: {
             name: 'ChatThread',
             props: { group: Object, search: String },
-            emits: ['openMember', 'search', 'duplicateVideo'],
+            emits: ['openMember', 'search', 'duplicateVideo', 'forwardMessage'],
             inject: { join: { from: CHAT_VIDEO_JOIN, default: null } },
             methods: {
               deliver(message) {
@@ -199,6 +199,14 @@ describe('ChatGroupWindow', () => {
     }
     await wrapper.findComponent({ name: 'ChatThread' }).vm.$emit('duplicateVideo', invitation)
     expect(video.duplicate).toHaveBeenCalledWith(invitation)
+  })
+
+  // E-059: a message to be forwarded goes up to the page, which asks where to.
+  it('hands a message to be forwarded up to the page', async () => {
+    mountWindow()
+    const message = { id: 3, messageUuid: 'uuid-3', body: 'Flohmarkt' }
+    await wrapper.findComponent({ name: 'ChatThread' }).vm.$emit('forwardMessage', message)
+    expect(wrapper.emitted('forwardMessage')).toEqual([[message]])
   })
 
   describe('the search', () => {

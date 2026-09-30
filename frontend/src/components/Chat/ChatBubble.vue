@@ -1,6 +1,7 @@
 <!-- AI-GENERATED — not an architecture reference -->
 <template>
   <li
+    ref="row"
     class="chat-bubble-row"
     :class="[
       message.mine ? 'chat-bubble-mine' : 'chat-bubble-theirs',
@@ -8,6 +9,7 @@
         'chat-bubble-transfer': message.transfer,
         'chat-bubble-in-group': face,
         'is-search-current': searchCurrent,
+        'has-menu': menuOpen,
       },
     ]"
     :style="face ? { '--chat-bubble-face': `${LIST_AVATAR_SIZE}px` } : undefined"
@@ -46,12 +48,21 @@
     <div v-if="announced" class="chat-bubble-announcement" data-test="chat-bubble-announcement">
       {{ t('chatGroup.announcement') }}
     </div>
-    <div class="chat-bubble" :class="{ 'has-image': image }">
+    <!-- A tap on the message opens its menu on a phone (E-059 F1); a link, a picture, a button
+         in it do what they do, and a word held to mark it stays marked. On a computer the sign
+         beside it opens the menu. -->
+    <div class="chat-bubble" :class="{ 'has-image': image }" @click="tapBubble">
       <!-- ⛔ The side is the ONLY thing that says who wrote a message, and a screen reader
            does not see sides. So the writer is named in words, for the ear only. -->
       <span v-if="!writerLinked" class="visually-hidden" data-test="chat-bubble-writer">
         {{ writer }}
       </span>
+      <!-- A copy forwarded from another conversation (E-059 F2): who wrote its words first,
+           before everything else in it -- a screen reader hears it first too. -->
+      <div v-if="forwardedWords" class="chat-bubble-forwarded" data-test="chat-bubble-forwarded">
+        <i-mdi-share class="chat-bubble-forwarded-icon" aria-hidden="true" />
+        {{ forwardedWords }}
+      </div>
       <!-- The picture a message carries (P7), on top; its caption is the text under it, in the
            same bubble (E-044 F3). One a message. -->
       <chat-bubble-image
@@ -125,7 +136,34 @@
           {{ d(arrived, 'time') }}
         </time>
       </div>
+      <!-- "More about this message" (E-059 F1): beside the bubble while the pointer is over the
+           message or the keyboard is on it; on a phone out of sight, for the ear -- the tap on the
+           message is the way there. -->
+      <button
+        v-if="hasMenu"
+        ref="more"
+        type="button"
+        class="chat-bubble-more"
+        :aria-label="t('chatThread.menuMore')"
+        :title="t('chatThread.menuMore')"
+        aria-haspopup="true"
+        :aria-expanded="menuOpen ? 'true' : 'false'"
+        data-test="chat-bubble-more"
+        @click.stop="toggleMenu"
+      >
+        <i-mdi-dots-horizontal aria-hidden="true" />
+      </button>
     </div>
+    <chat-message-menu
+      v-if="menuOpen"
+      :mine="message.mine"
+      :below="menuBelow"
+      :can-forward="canForward"
+      :can-copy="canCopy"
+      @forward="forward"
+      @copy="copyText"
+      @keydown.esc.stop.prevent="closeMenu({ focusMore: true })"
+    />
     <!-- ⛔ Only where something is not as it should be. "Delivered" under every message of
          one's own would be the same word a hundred times over; the exception is the
          information. -->
@@ -142,10 +180,11 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppAvatar from '@/components/AppAvatar.vue'
 import ChatBubbleImage from '@/components/Chat/ChatBubbleImage.vue'
+import ChatMessageMenu from '@/components/Chat/ChatMessageMenu.vue'
 import ChatMessageText from '@/components/Chat/ChatMessageText'
 import ChatTransferCoin from '@/components/Chat/ChatTransferCoin.vue'
 import { ChatSearchText } from '@/components/Chat/chatSearchMarks'
@@ -153,8 +192,10 @@ import MemoText from '@/components/TransactionRows/MemoText'
 import Name from '@/components/TransactionRows/Name.vue'
 import { avatarZoomBindings } from '@/composables/useAvatarZoom'
 import { memberAvatarProps } from '@/composables/useMemberAvatars'
+import { useAppToast } from '@/composables/useToast'
 import { LIST_AVATAR_SIZE } from '@/constants'
 import { memberAlias } from '@/utils/gradidoAddress'
+import { isComputer } from '@/utils/isComputer'
 import {
   chatVideoCalendarFile,
   chatVideoCalendarFileName,
@@ -203,11 +244,13 @@ const props = defineProps({
  */
 /**
  * `openImage`: a picture of the message, large (P7). `openMember`: the writer of somebody else's
- * message in a group, named over it (E-053) -- the user the server named with it.
+ * message in a group, named over it (E-053) -- the user the server named with it. `forward`: the
+ * message, to be forwarded (E-059) -- the page asks where to.
  */
-const emit = defineEmits(['openImage', 'openMember', 'duplicateVideo'])
+const emit = defineEmits(['openImage', 'openMember', 'duplicateVideo', 'forward'])
 
 const { t, d } = useI18n()
+const { toastSuccess, toastError } = useAppToast()
 
 /**
  * Who wrote a message of somebody else in a group (P5), as the server named them with it; null in
@@ -342,6 +385,99 @@ const addToCalendar = () => {
     }),
   )
 }
+
+/**
+ * Over a copy forwarded from another conversation (E-059 F2): "Weitergeleitet von [Nutzername]",
+ * the name of whoever wrote its words first; "Weitergeleitet" alone where the copy names nobody --
+ * the sender forwarded words of their own, or the first writer is not known here. Nothing over any
+ * other message.
+ */
+const forwardedWords = computed(() => {
+  if (!props.message.forwarded) return ''
+  const from = props.message.forwardedFrom
+  return from
+    ? t('chatThread.forwardedFrom', { name: memberAlias(from.alias, from.gradidoID) })
+    : t('chatThread.forwarded')
+})
+
+/**
+ * What the menu at the message offers (E-059): forwarding for every message of the conversation --
+ * a transfer is none, and has no row to forward --, and its text to copy where it has one.
+ */
+const canForward = computed(() => !props.message.transfer && Boolean(props.message.messageUuid))
+const textToCopy = computed(() =>
+  props.message.transfer
+    ? ''
+    : [props.message.subject, props.message.body].filter((part) => part?.trim()).join('\n\n'),
+)
+const canCopy = computed(() => Boolean(textToCopy.value))
+const hasMenu = computed(() => canForward.value || canCopy.value)
+
+const row = ref(null)
+const more = ref(null)
+const menuOpen = ref(false)
+/** No room above the message in the thread's box: the menu opens under it. */
+const menuBelow = ref(false)
+/** The room the menu needs above the message -- two entries and their frame. */
+const MENU_ROOM_PX = 140
+
+const closeOnPressElsewhere = (event) => {
+  if (!row.value?.contains(event.target)) closeMenu()
+}
+
+const openMenu = async () => {
+  const box = row.value?.closest('.chat-thread-box')
+  menuBelow.value = Boolean(
+    box && row.value.getBoundingClientRect().top - box.getBoundingClientRect().top < MENU_ROOM_PX,
+  )
+  menuOpen.value = true
+  // Another message's menu closes as this one opens: the press was elsewhere for it.
+  document.addEventListener('pointerdown', closeOnPressElsewhere, true)
+  await nextTick()
+  row.value?.querySelector('.chat-message-menu button')?.focus({ preventScroll: true })
+}
+
+const closeMenu = ({ focusMore = false } = {}) => {
+  if (!menuOpen.value) return
+  menuOpen.value = false
+  document.removeEventListener('pointerdown', closeOnPressElsewhere, true)
+  if (focusMore) more.value?.focus({ preventScroll: true })
+}
+onBeforeUnmount(() => document.removeEventListener('pointerdown', closeOnPressElsewhere, true))
+
+const toggleMenu = () => (menuOpen.value ? closeMenu({ focusMore: true }) : openMenu())
+
+/** What in a message is a control of its own: a tap there does what it does. */
+const CONTROLS = 'a, button, input, label, select, textarea, [role="button"]'
+
+/**
+ * A tap on the message, on a phone (E-059 F1): opens its menu, or closes it again. Not on a
+ * computer -- a click there places the cursor or starts marking words, and the sign beside the
+ * message is the way to the menu --, not on a control in the message, not where words are marked.
+ */
+const tapBubble = (event) => {
+  if (!hasMenu.value || isComputer()) return
+  if (event.target?.closest?.(CONTROLS)) return
+  if (window.getSelection?.()?.toString()) return
+  toggleMenu()
+}
+
+const forward = () => {
+  closeMenu()
+  emit('forward', props.message)
+}
+
+/** "Text kopieren" (E-059 F6): the subject and the text as they were written. */
+const copyText = async () => {
+  closeMenu({ focusMore: true })
+  try {
+    await navigator.clipboard.writeText(textToCopy.value)
+    toastSuccess(t('chatThread.textCopied'))
+  } catch {
+    // Refused, or no clipboard at all.
+    toastError(t('chatThread.textNotCopied'))
+  }
+}
 </script>
 
 <style lang="scss" scoped>
@@ -389,18 +525,12 @@ const addToCalendar = () => {
   outline-offset: 2px;
 }
 
+/* `position: relative`: the menu at a message (E-059) stands over or under it. */
 .chat-bubble-row {
+  position: relative;
   display: flex;
   flex-direction: column;
   margin: 0.25rem 0;
-}
-
-.chat-bubble-mine {
-  align-items: flex-end;
-}
-
-.chat-bubble-theirs {
-  align-items: flex-start;
 }
 
 /* ⛔ `position: relative` is not decoration: it keeps the writer's name for screen readers
@@ -481,6 +611,92 @@ const addToCalendar = () => {
   border-bottom-right-radius: 0.3rem;
 }
 
+/* The message whose menu is open (E-059): ringed in the wallet's green, as the search rings its
+   hit. After the bubble's own rules, which it outweighs. */
+.chat-bubble-row.has-menu .chat-bubble {
+  box-shadow: 0 0 0 2px var(--success, #047006);
+}
+
+/* "Weitergeleitet von …" over a forwarded copy (E-059), small and in the muted colour of the time
+   under it (below). */
+.chat-bubble-forwarded {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-bottom: 0.15rem;
+  font-size: 0.75rem;
+  font-style: italic;
+  line-height: 1.3;
+}
+
+.chat-bubble-forwarded-icon {
+  flex: 0 0 auto;
+  width: 1rem;
+  height: 1rem;
+}
+
+/* "More about this message" (E-059 F1): beside the bubble, at its middle, on the side towards the
+   thread's middle -- seen while the pointer is over the message, the keyboard is on the sign, or
+   its menu is open. 44 px to hit. */
+.chat-bubble-more {
+  position: absolute;
+  top: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--bs-secondary-color, #6c757d);
+  font-size: 1.3rem;
+  opacity: 0;
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+
+.chat-bubble-more:hover {
+  background: var(--surface-muted, #f2f4f6);
+  color: var(--bs-body-color);
+}
+
+.chat-bubble-more:focus-visible {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: 2px;
+  opacity: 1;
+}
+
+.chat-bubble-more[aria-expanded='true'] {
+  opacity: 1;
+}
+
+/* On a phone the tap on the message opens its menu: the sign is out of sight there, and stays for
+   a screen reader -- and for a keyboard, which shows it again. */
+@media (hover: none) {
+  .chat-bubble-more:not(:focus-visible) {
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+}
+
+.chat-bubble-theirs .chat-bubble-more {
+  right: -3rem;
+}
+
+.chat-bubble-mine .chat-bubble-more {
+  left: -3rem;
+}
+
+.chat-bubble-row:hover .chat-bubble-more {
+  opacity: 1;
+}
+
 .chat-bubble-subject {
   font-weight: 700;
   margin-bottom: 0.1rem;
@@ -531,13 +747,15 @@ const addToCalendar = () => {
      what `--bs-secondary-color` is in dark mode) reaches only about 4.2:1 on the bubbles. */
 .chat-bubble-meta,
 .chat-bubble-state,
-.chat-bubble-not-mailed {
+.chat-bubble-not-mailed,
+.chat-bubble-forwarded {
   color: var(--bs-secondary-color, #6c757d);
 }
 
 .dark-mode .chat-bubble-meta,
 .dark-mode .chat-bubble-state,
-.dark-mode .chat-bubble-not-mailed {
+.dark-mode .chat-bubble-not-mailed,
+.dark-mode .chat-bubble-forwarded {
   color: var(--bs-body-color);
   opacity: 0.75;
 }
