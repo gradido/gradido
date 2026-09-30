@@ -533,6 +533,14 @@ const copyText = async () => {
   margin: 0.25rem 0;
 }
 
+.chat-bubble-mine {
+  align-items: flex-end;
+}
+
+.chat-bubble-theirs {
+  align-items: flex-start;
+}
+
 /* ⛔ `position: relative` is not decoration: it keeps the writer's name for screen readers
    (Bootstrap's `.visually-hidden`, which is `position: absolute`) inside the bubble. Without
    it the hidden names were laid out against the window instead of the scrolling thread,
