@@ -2,7 +2,7 @@
 import { ForwardChatMessageArgs } from '@arg/ForwardChatMessageArgs'
 import { MemberAvatarRefInput } from '@input/MemberAvatarRefInput'
 import { ChatMessage } from '@model/ChatMessage'
-import { ChatMessageImageAccepted, chatMessageNotify } from 'core'
+import { ChatMessageImageAccepted, chatMessageNotify, databaseErrorCode } from 'core'
 import {
   ChatConversationSelect,
   ChatMemberRef,
@@ -198,36 +198,45 @@ export class ChatForwardResolver {
       }
     }
     for (const { other, user } of recipients) {
-      const notify = chatMessageNotify(
-        alsoByEmail ? ChatMessageNotify.EMAIL : ChatMessageNotify.NONE,
-        (await dbFindDirectChatConversation(caller, other)) !== null,
-      )
-      const copy = await deliverChatMessageLocally({
-        senderUser,
-        recipientUser: user,
-        subject: message.subject,
-        body: message.body,
-        notify,
-        requireStored: true,
-        letter: false,
-        images,
-        forwarded: { from, fromAlias, words: said },
-      })
-      if (!copy) {
-        continue
-      }
-      copies.push(copy)
-      if (said) {
-        // In the mail about the copy already: no second one.
-        await deliverChatMessageLocally({
+      // ⛔ A member whose copy fails holds up none after them -- whatever fails: the conversation
+      // looked up, the copy filed, its mail (coderabbit, #4028). The groups' filing never throws
+      // (storeChatGroupMessage). The log gets the database's error code, never a text.
+      try {
+        const notify = chatMessageNotify(
+          alsoByEmail ? ChatMessageNotify.EMAIL : ChatMessageNotify.NONE,
+          (await dbFindDirectChatConversation(caller, other)) !== null,
+        )
+        const copy = await deliverChatMessageLocally({
           senderUser,
           recipientUser: user,
-          subject: null,
-          body: said,
-          notify: ChatMessageNotify.NONE,
+          subject: message.subject,
+          body: message.body,
+          notify,
           requireStored: true,
           letter: false,
+          images,
+          forwarded: { from, fromAlias, words: said },
         })
+        if (!copy) {
+          continue
+        }
+        copies.push(copy)
+        if (said) {
+          // In the mail about the copy already: no second one.
+          await deliverChatMessageLocally({
+            senderUser,
+            recipientUser: user,
+            subject: null,
+            body: said,
+            notify: ChatMessageNotify.NONE,
+            requireStored: true,
+            letter: false,
+          })
+        }
+      } catch (error) {
+        createLogger().warn(
+          `chat message not forwarded to a member: message_uuid=${message.messageUuid} (${databaseErrorCode(error)})`,
+        )
       }
     }
     createLogger().info(
