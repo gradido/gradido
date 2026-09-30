@@ -1,6 +1,8 @@
 // AI-GENERATED — not an architecture reference
 import { h, inject } from 'vue'
 import ChatFileCard from '@/components/Chat/ChatFileCard.vue'
+import ChatVideoLinkCopy from '@/components/Chat/ChatVideoLinkCopy.vue'
+import { chatSearchMarked, useChatSearchNeedle } from '@/components/Chat/chatSearchMarks'
 import { fileLinkService } from '@/utils/chatFileLink'
 import { chatTextParts } from '@/utils/chatTextParts'
 import { CHAT_VIDEO_JOIN, chatVideoAppUrl, offersJitsiApp } from '@/utils/chatVideoApp'
@@ -53,12 +55,21 @@ const aroundFileCards = (parts) =>
  * one addition is left out of sight (`withoutChatVideoTopic`); every other address is shown as it
  * is. The thread only: memos and mails show addresses whole.
  *
+ * Behind such a link -- the ones shown shorter than they are -- a button copies it (Bernd,
+ * 29.09.2026, ChatVideoLinkCopy): the room with its topic, for another chat or another day. In
+ * every bubble that carries one, one's own and the others', in a conversation of two as in a
+ * group. An address from elsewhere (a Jitsi room pasted in, a Zoom link) is shown whole and copied
+ * as any link is.
+ *
  * On a computer a click on the link of an invitation of our own asks first (V4b, Bernd,
  * 26.09.2026): "Join call", with the box "Start in the Jitsi app" under it -- the question the
  * contact window provides (`CHAT_VIDEO_JOIN`), in the sender's own bubble too. The link itself
  * stays the room's address, so a click with a key held, the middle button and "copy link" work as
  * on any link. On a phone, and where no window provides the question, it opens the room straight
  * away, as it always did. Whether this is a computer is asked at the click, nothing kept.
+ *
+ * Searched for in the thread (E-057), the hits are marked where they stand -- in the words, the
+ * bold runs and the addresses as shown; a file card is a card, not words, and stays as it is.
  *
  * A link to files on SwissTransfer, Dropbox, Google Drive, OneDrive or WeTransfer is shown as a
  * file card in place of the address (Paket D, E-044): Gradido stores no files, the message
@@ -72,19 +83,24 @@ export default {
   },
   setup(props) {
     const join = inject(CHAT_VIDEO_JOIN, null)
-    return () =>
-      h(
+    const search = useChatSearchNeedle()
+    return () => {
+      const needle = search?.value ?? ''
+      return h(
         'span',
         { class: 'chat-message-text' },
-        aroundFileCards(chatTextParts(props.text)).map((part) => {
+        aroundFileCards(chatTextParts(props.text)).flatMap((part) => {
           if (part.type === 'url') {
             if (isFileCard(part)) {
               return h(ChatFileCard, { href: part.value, service: fileLinkService(part.value) })
             }
+            const shown = withoutChatVideoTopic(part.value)
+            const video = shown !== part.value
             const asks = join && chatVideoAppUrl(part.value) !== null
-            return h(
+            const link = h(
               'a',
               {
+                ...(video ? { class: 'chat-video-link' } : {}),
                 href: part.value,
                 target: '_blank',
                 rel: 'noopener noreferrer',
@@ -98,17 +114,20 @@ export default {
                     }
                   : {}),
               },
-              withoutChatVideoTopic(part.value),
+              chatSearchMarked(shown, needle),
             )
+            // Right behind the link, in the room it keeps at its end (ChatVideoLinkCopy).
+            return video ? [link, h(ChatVideoLinkCopy, { href: part.value })] : link
           }
           if (part.type === 'email') {
-            return h('a', { href: `mailto:${part.value}` }, part.value)
+            return h('a', { href: `mailto:${part.value}` }, chatSearchMarked(part.value, needle))
           }
           if (part.type === 'bold') {
-            return h('strong', part.value)
+            return h('strong', chatSearchMarked(part.value, needle))
           }
-          return part.value
+          return chatSearchMarked(part.value, needle)
         }),
       )
+    }
   },
 }

@@ -152,7 +152,13 @@
     </template>
 
     <!-- One window for the page, not one per row (KF-010). -->
-    <contact-window v-model="windowOpen" :contact="selected" />
+    <contact-window
+      v-model="windowOpen"
+      :contact="selected"
+      :greet="greet"
+      :first-contact="firstContact"
+      @contact-made="contactMade"
+    />
     <!-- And one for a group (P5), the same way, and the dialog that opens one. -->
     <chat-group-window
       v-model="groupWindowOpen"
@@ -188,7 +194,6 @@ import { useAppToast } from '@/composables/useToast'
 import { PAGE_SIZE } from '@/constants'
 import { chatMemberKey } from '@/utils/chatMemberKey'
 import { memberKey } from '@/utils/gradidoAddress'
-import { SEND_TYPES } from '@/utils/sendTypes'
 
 /**
  * The whole list in one answer, then favourites, search and pages on this device.
@@ -296,13 +301,19 @@ watch(openedGroup, (group) => {
 })
 
 /**
- * A member named in a group -- in its list of members, or over their message (E-053). Where they
- * are a contact, their contact window opens OVER the group's: closing it leads back into the
- * group. Otherwise the send form, with their community and name (Gradido, or an e-mail one tab
- * over), where a first word to them begins; the page and the group's window go with it.
+ * A member named in a group -- in its list of members, or over their message (E-053) -- and a
+ * first word to them in one tap (Bernd, 30.09.2026, E-055). Their contact window opens OVER the
+ * group's: closing it leads back into the group.
+ * - A contact: the window as always; where the two have never written, "Hallo …" stands in the
+ *   field.
+ * - Nobody's contact yet: the window in its first form -- only the text, "Hallo …" in the field.
+ *   The first message goes by mail as every first one does (E-024) and makes them a contact; the
+ *   window then becomes the whole one (`contactMade`). No send form any more.
  *
  * Who is a contact is this page's list, by the pair without regard to case -- the group's members
- * are all of this community in P5 (E-026), and a missing community is this one.
+ * are all of this community in P5 (E-026), and a missing community is this one. Whether a person
+ * who is no contact yet belongs to it is the pair's to say too, for the address line; the server's
+ * answer (`homeCommunity`) takes its place with the contact row.
  */
 const store = useStore()
 const openGroupMember = (user) => {
@@ -311,12 +322,23 @@ const openGroupMember = (user) => {
   const key = chatMemberKey(user, home)
   const contact = contacts.value.find((held) => chatMemberKey(held.user, home) === key)
   if (contact) {
-    open(contact)
+    open(contact, { fromGroup: true })
     return
   }
-  const community = user.communityUuid ?? home
-  if (!community) return
-  router.push({ path: `/send/${community}/${user.gradidoID}`, query: { art: SEND_TYPES.send } })
+  const communityUuid = user.communityUuid ?? home
+  if (!communityUuid) return
+  const homeCommunity = Boolean(home) && communityUuid.toLowerCase() === home.toLowerCase()
+  open({ user: { ...user, communityUuid }, homeCommunity }, { fromGroup: true, known: false })
+}
+
+/**
+ * The first message to a member of a group made them a contact (E-055): the window takes the
+ * server's row -- the meta line, and all its ways --, and the list asks again, so that they stand
+ * in it.
+ */
+const contactMade = () => {
+  fillIn()
+  reloadList()
 }
 
 /**
@@ -396,7 +418,8 @@ const rowKey = (contact) => memberKey(contact.user)
 // A tap on a row opens the contact window; the ways on from there live inside it (KF-010). The
 // state machine is shared with the column and the phone strip, so the release-on-close rule is
 // written once.
-const { windowOpen, selected, open, openKnownMember } = useContactWindow(apolloClient)
+const { windowOpen, selected, greet, firstContact, open, openKnownMember, fillIn } =
+  useContactWindow(apolloClient)
 
 /**
  * `/contacts?with=<gradidoID>[&community=<uuid>]` opens the conversation with that person -- the

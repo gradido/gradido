@@ -20,6 +20,21 @@
       <!-- The cross in a line of its own at the very top, as in the contact window (Bernd,
            24.09.2026): beside the name it took the room a long name needs on a phone. -->
       <div class="chat-group-window-top">
+        <!-- The search in the conversation (Bernd, 30.09.2026, E-057): the magnifier by the cross
+             opens the bar below it and closes it again. -->
+        <button
+          ref="searchToggle"
+          type="button"
+          class="chat-group-window-search-toggle"
+          :class="{ 'is-on': searchOpen }"
+          :aria-label="$t('chatSearch.open')"
+          :title="$t('chatSearch.open')"
+          :aria-pressed="searchOpen ? 'true' : 'false'"
+          data-test="chat-group-window-search"
+          @click="toggleSearch"
+        >
+          <i-mdi-magnify aria-hidden="true" />
+        </button>
         <button
           type="button"
           class="chat-group-window-close"
@@ -31,6 +46,15 @@
           <IBiX />
         </button>
       </div>
+      <chat-search-bar
+        v-if="searchOpen"
+        v-model="searchTyped"
+        class="chat-group-window-search"
+        :result="searchFound"
+        @older="thread?.searchStep(-1)"
+        @newer="thread?.searchStep(1)"
+        @close="closeSearch"
+      />
 
       <div class="chat-group-window-head">
         <!-- The group's square at the window's size (64, as the contact window's face). -->
@@ -124,7 +148,9 @@
         ref="thread"
         class="chat-group-window-thread"
         :group="group"
-        @open-member="emit('openMember', $event)"
+        :search="searchOpen ? searchTyped : ''"
+        @open-member="openWriter"
+        @search="takeFound"
       />
 
       <!-- The questions of a video call (ChatVideoCall), as the contact window asks them (E-053):
@@ -160,6 +186,7 @@ import { useStore } from 'vuex'
 import { useApolloClient, useMutation } from '@vue/apollo-composable'
 import { BModal } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
+import ChatSearchBar from '@/components/Chat/ChatSearchBar.vue'
 import ChatThread from '@/components/Chat/ChatThread.vue'
 import ChatVideoCall from '@/components/Chat/ChatVideoCall.vue'
 import ChatGroupMembers from '@/components/ChatGroups/ChatGroupMembers.vue'
@@ -169,6 +196,7 @@ import {
   CHAT_GROUP_META_SEPARATOR,
 } from '@/components/ChatGroups/chatGroupDisplay'
 import { fetchMemberAvatars, memberAvatarProps } from '@/composables/useMemberAvatars'
+import { useChatWindowSearch } from '@/composables/useChatWindowSearch'
 import { useAppToast } from '@/composables/useToast'
 import { SMALL_FACE_SIZE } from '@/constants'
 import { chatGroupMembersQuery, setChatGroupMuted } from '@/graphql/chatGroups.graphql'
@@ -196,9 +224,29 @@ const props = defineProps({
  * part or the name changed, the member left -- and the page asks for its list again.
  *
  * `openMember`: a member whose name was tapped, in the list or over their message (E-053). The page
- * knows who is a contact, and leads there: their window over this one, or the send form.
+ * knows who is a contact, and opens their window over this one -- for somebody who is none yet the
+ * window's first form, a first word in one tap (E-055).
  */
 const emit = defineEmits(['update:modelValue', 'changed', 'openMember'])
+
+/**
+ * A writer named over their message carries what the message says of them -- no community name,
+ * which the list of members has. The group's own community is named with the group (it lives on
+ * its founder's server, E-008), so a writer of that community is handed on with its name: the
+ * window opened on them names their community as it does from the list (E-055). A writer of
+ * another community goes as they are.
+ */
+const openWriter = (user) => {
+  const home = props.group?.createdBy?.communityUuid
+  const sameCommunity =
+    Boolean(home) && String(user?.communityUuid ?? '').toLowerCase() === home.toLowerCase()
+  emit(
+    'openMember',
+    sameCommunity && !user.communityName
+      ? { ...user, communityName: props.group.communityName }
+      : user,
+  )
+}
 
 const { t, d } = useI18n()
 const store = useStore()
@@ -361,6 +409,13 @@ const toggleMute = async () => {
 }
 /** The thread of the group: a video invitation goes out through it (`deliver`), as a message. */
 const thread = ref(null)
+
+/** The search in the group's conversation (E-057, useChatWindowSearch): closed with the window, and anew for another group. */
+const { searchOpen, searchTyped, searchFound, searchToggle, toggleSearch, closeSearch, takeFound } =
+  useChatWindowSearch(
+    () => props.modelValue,
+    () => props.group?.groupUuid,
+  )
 /** The questions of a video call (ChatVideoCall, E-053). */
 const videoCall = ref(null)
 const videoCallName = computed(() => t('chatGroup.videoCall', { name: props.group?.title ?? '' }))
@@ -395,7 +450,36 @@ watch(
 .chat-group-window-top {
   display: flex;
   justify-content: flex-end;
+  gap: 0.25rem;
   margin: -0.5rem -0.5rem 0.25rem 0;
+}
+
+/* The magnifier (E-057) beside the cross and drawn as it is; while the search is open it stands
+   pressed, in the link's colour -- the same button closes the search again. */
+.chat-group-window-search-toggle {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--bs-secondary-color, #6c757d);
+  font-size: 1.15rem;
+  line-height: 1;
+  padding: 0.25rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.chat-group-window-search-toggle:hover,
+.chat-group-window-search-toggle:focus-visible {
+  color: var(--bs-body-color);
+}
+
+.chat-group-window-search-toggle.is-on {
+  color: rgba(var(--bs-link-color-rgb), 1);
+}
+
+/* The search bar (ChatSearchBar) under the line of the magnifier, above the head. */
+.chat-group-window-search {
+  margin-bottom: 0.75rem;
 }
 
 .chat-group-window-close {

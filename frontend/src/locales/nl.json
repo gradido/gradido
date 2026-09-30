@@ -216,6 +216,16 @@
     "youAreModerator": "Je bent moderator",
     "youAreOwner": "Je bent eigenaar"
   },
+  "chatSearch": {
+    "capped": "De laatste {count} berichten zijn doorzocht.",
+    "count": "{current} van {count}",
+    "loading": "Zoeken …",
+    "newer": "Volgend resultaat",
+    "none": "Geen resultaten",
+    "older": "Vorig resultaat",
+    "open": "Zoeken in het gesprek",
+    "placeholder": "Zoeken …"
+  },
   "chatThread": {
     "alsoByEmail": "Ook per e-mail",
     "alsoByEmailTo": "Ook per e-mail aan {name}",
@@ -238,6 +248,7 @@
     "fileStep2": "Kopieer aan het einde de link.",
     "fileStep3": "Plak hem hier als bericht.",
     "fileTitle": "Bestand versturen",
+    "firstContactGreeting": "Hallo {name}",
     "firstGoesByEmail": "Het eerste bericht gaat ook per e-mail naar {name}.",
     "imageCaption": "Bijschrift (optioneel) …",
     "imageCut": "Uitsnede {width} × {height} pixels",

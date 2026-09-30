@@ -216,6 +216,16 @@
     "youAreModerator": "Du bist Moderator",
     "youAreOwner": "Du bist Inhaber"
   },
+  "chatSearch": {
+    "capped": "Durchsucht wurden die letzten {count} Nachrichten.",
+    "count": "{current} von {count}",
+    "loading": "Suche …",
+    "newer": "Neuerer Treffer",
+    "none": "Keine Treffer",
+    "older": "Älterer Treffer",
+    "open": "Im Gespräch suchen",
+    "placeholder": "Suchen …"
+  },
   "chatThread": {
     "alsoByEmail": "Auch per E-Mail",
     "alsoByEmailTo": "Auch per E-Mail an {name}",
@@ -238,6 +248,7 @@
     "fileStep2": "Kopiere am Ende den Link.",
     "fileStep3": "Füge ihn hier als Nachricht ein.",
     "fileTitle": "Datei senden",
+    "firstContactGreeting": "Hallo {name}",
     "firstGoesByEmail": "Die erste Nachricht geht auch per E-Mail an {name}.",
     "imageCaption": "Bildunterschrift (freiwillig) …",
     "imageCut": "Ausschnitt {width} × {height} Pixel",

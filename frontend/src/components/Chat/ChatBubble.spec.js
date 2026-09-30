@@ -4,9 +4,11 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
+import { ref } from 'vue'
 import ChatBubble from './ChatBubble.vue'
 import { forgetAllChatImages, rememberChatImage } from '@/composables/useChatImages'
 import { CHAT_VIDEO_JOIN } from '@/utils/chatVideoApp'
+import { CHAT_SEARCH } from '@/utils/chatSearch'
 import { withChatVideoTopic } from '@/utils/chatVideoTopic'
 import { LIST_AVATAR_SIZE } from '@/constants'
 
@@ -33,6 +35,15 @@ vi.mock('vue-i18n', () => ({
   useI18n: () => ({
     t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key),
     d: (date, format) => `${format}(${date.toISOString()})`,
+  }),
+}))
+
+// The copy button behind a video link says what became of the copy (ChatVideoLinkCopy).
+const toasts = vi.hoisted(() => ({ success: [], error: [] }))
+vi.mock('@/composables/useToast', () => ({
+  useAppToast: () => ({
+    toastSuccess: (message) => toasts.success.push(message),
+    toastError: (message) => toasts.error.push(message),
   }),
 }))
 
@@ -83,6 +94,7 @@ describe('ChatBubble', () => {
           IMdiCalendarPlusOutline: true,
           IMdiFileDocumentOutline: true,
           IMdiOpenInNew: true,
+          IBiCopy: true,
         },
       },
     })
@@ -166,6 +178,174 @@ describe('ChatBubble', () => {
   })
 
   /**
+   * E-057 (Bernd, 30.09.2026): the search in the thread marks its hits where they stand -- in the
+   * words, the bold runs, a link's text, the subject, a transfer's memo. The thread provides the
+   * needle (useChatThreadSearch); here a stand-in does.
+   */
+  describe('the hits of the search in the thread', () => {
+    const mountSearched = (message, needle = 'bank') => {
+      wrapper = mount(ChatBubble, {
+        props: { message, alias: 'Lena' },
+        global: {
+          provide: { [CHAT_SEARCH]: ref(needle) },
+          stubs: { IMdiEmailOutline: true, IBiCopy: true, IMdiFileDocumentOutline: true },
+        },
+      })
+      return wrapper
+    }
+    const marks = () => wrapper.findAll('mark.chat-search-mark').map((m) => m.text())
+
+    it('marks every place in the words, keeping the words as they are', () => {
+      mountSearched({ ...THEIRS, body: 'Die Bank am Waldrand, eine schöne bank.' })
+      expect(marks()).toEqual(['Bank', 'bank'])
+      expect(wrapper.find('.chat-message-text').text()).toBe(
+        'Die Bank am Waldrand, eine schöne bank.',
+      )
+    })
+
+    it('marks in bold runs, in a link and in the subject', () => {
+      mountSearched({
+        ...THEIRS,
+        subject: 'Die Bank',
+        body: 'Das ist **die Bank** unter https://bank.example.org/weg',
+      })
+      expect(wrapper.find('[data-test="chat-bubble-subject"] mark').text()).toBe('Bank')
+      expect(wrapper.find('.chat-message-text strong mark').text()).toBe('Bank')
+      expect(wrapper.find('.chat-message-text a mark').text()).toBe('bank')
+      expect(wrapper.find('.chat-message-text a').attributes('href')).toBe(
+        'https://bank.example.org/weg',
+      )
+    })
+
+    it("marks a transfer's memo", () => {
+      mountSearched({
+        ...THEIRS,
+        transfer: true,
+        subject: 'Lena hat Dir 10 gesendet',
+        body: 'Für die Bank',
+      })
+      expect(wrapper.find('.memo-text mark').text()).toBe('Bank')
+    })
+
+    // Folded as the search compares: the mark stands on the letters as written.
+    it('marks without regard to case and accents', () => {
+      mountSearched({ ...THEIRS, body: 'Treffen im CAFÉ' }, 'cafe')
+      expect(marks()).toEqual(['CAFÉ'])
+    })
+
+    it('marks nothing while nothing is searched, nor outside a thread', () => {
+      mountSearched({ ...THEIRS, body: 'Die Bank' }, '')
+      expect(marks()).toEqual([])
+      wrapper.unmount()
+      mountBubble({ ...THEIRS, body: 'Die Bank' })
+      expect(marks()).toEqual([])
+    })
+
+    it('rings the bubble the search stands on', () => {
+      wrapper = mount(ChatBubble, {
+        props: { message: { ...THEIRS, body: 'Die Bank' }, alias: 'Lena', searchCurrent: true },
+        global: { provide: { [CHAT_SEARCH]: ref('bank') }, stubs: { IMdiEmailOutline: true } },
+      })
+      expect(bubble().classes()).toContain('is-search-current')
+      wrapper.unmount()
+      mountSearched({ ...THEIRS, body: 'Die Bank' })
+      expect(bubble().classes()).not.toContain('is-search-current')
+    })
+  })
+
+  /**
+   * Bernd, 29.09.2026: behind a video room's link a button copies it -- to hand the room on to
+   * another chat, or to meet there again -- for everybody who reads the message, the room with its
+   * topic and without a planned call's time (ChatVideoLinkCopy).
+   */
+  describe('the copy button behind a video link', () => {
+    const ROOM = 'https://meet.opensuse.org/zsuhu82kdvs1'
+    const ADDRESS = withChatVideoTopic(ROOM, 'Neue Funktionen')
+    const INVITATION = `📹 Videoanruf: Neue Funktionen\nDer Raum liegt auf einem Jitsi-Server von openSUSE Project — ein Vorschlag, kein Dienst von Gradido: ${ADDRESS}`
+    const buttons = () => wrapper.findAll('[data-test="chat-video-link-copy"]')
+
+    afterEach(() => {
+      vi.unstubAllGlobals()
+      toasts.success.length = 0
+      toasts.error.length = 0
+    })
+
+    it.each([
+      ['the other person', THEIRS],
+      ['oneself', OWN],
+    ])("stands right behind the link in a message of %s's", (who, message) => {
+      mountBubble({ ...message, body: INVITATION })
+
+      expect(buttons()).toHaveLength(1)
+      const link = wrapper.find('.chat-message-text a')
+      expect(link.element.nextElementSibling).toBe(buttons()[0].element)
+      // The link keeps room for it at its end (ChatVideoLinkCopy).
+      expect(link.classes()).toContain('chat-video-link')
+      expect(link.text()).toBe(ROOM)
+    })
+
+    it('copies the room with its topic', async () => {
+      const writeText = vi.fn().mockResolvedValue()
+      vi.stubGlobal('navigator', { clipboard: { writeText } })
+      mountBubble({ ...THEIRS, body: INVITATION })
+
+      await buttons()[0].trigger('click')
+      await flushPromises()
+
+      expect(writeText).toHaveBeenCalledWith(ADDRESS)
+      expect(toasts.success).toEqual(['chatThread.videoLinkCopied'])
+    })
+
+    // Bernd's choice: a link used again for another meeting brings no old date along.
+    it("copies a planned call's room without its time", async () => {
+      const writeText = vi.fn().mockResolvedValue()
+      vi.stubGlobal('navigator', { clipboard: { writeText } })
+      const when = {
+        start: new Date('2026-09-30T13:00:00.000Z'),
+        end: new Date('2026-09-30T14:00:00.000Z'),
+      }
+      mountBubble({ ...OWN, body: `Morgen: ${withChatVideoTopic(ROOM, 'Lesekreis', when)}` })
+
+      await buttons()[0].trigger('click')
+      await flushPromises()
+
+      expect(writeText).toHaveBeenCalledWith(withChatVideoTopic(ROOM, 'Lesekreis'))
+    })
+
+    it('stands behind each video link, and each copies its own', async () => {
+      const writeText = vi.fn().mockResolvedValue()
+      vi.stubGlobal('navigator', { clipboard: { writeText } })
+      const other = withChatVideoTopic('https://meet.ffmuc.net/k7m2x9q4t8wz', 'Zweiter Raum')
+      mountBubble({ ...THEIRS, body: `Entweder ${ADDRESS} oder ${other}` })
+
+      expect(buttons()).toHaveLength(2)
+      await buttons()[1].trigger('click')
+      await flushPromises()
+      expect(writeText).toHaveBeenCalledWith(other)
+    })
+
+    // What the thread shows whole is copied as any link is: nothing behind it, and no room kept.
+    it.each([
+      ['an ordinary address', 'Schau mal: https://gradido.net/de/faq#konto'],
+      [
+        'a video room with settings of somebody else',
+        `Hier: ${ROOM}#config.subject=x&config.startWithAudioMuted=true`,
+      ],
+      ['a room without a topic', `Hier: ${ROOM}`],
+      [
+        'a file card',
+        'Die Fotos: https://www.swisstransfer.com/d/0b7f3c2a-1234-4cde-9f00-abcdef123456',
+      ],
+      ['an e-mail address', 'Schreib an bernd@example.org'],
+    ])('stands behind no other address: %s', (what, body) => {
+      mountBubble({ ...THEIRS, body })
+
+      expect(buttons()).toHaveLength(0)
+      expect(wrapper.find('.chat-video-link').exists()).toBe(false)
+    })
+  })
+
+  /**
    * V4b: on a computer a click on the link of an invitation of our own asks first -- through the
    * question the contact window provides (`CHAT_VIDEO_JOIN`), here a stand-in that notes what it
    * was handed. The device is the browser's to say (chatVideoApp): a stand-in for `matchMedia`
@@ -184,7 +364,7 @@ describe('ChatBubble', () => {
         props: { message, alias: 'Lena' },
         global: {
           provide: provided ? { [CHAT_VIDEO_JOIN]: (roomUrl) => asked.push(roomUrl) } : {},
-          stubs: { IMdiEmailOutline: true },
+          stubs: { IMdiEmailOutline: true, IBiCopy: true },
         },
       })
     }

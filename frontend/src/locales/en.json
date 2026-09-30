@@ -216,6 +216,16 @@
     "youAreModerator": "You are a moderator",
     "youAreOwner": "You are the owner"
   },
+  "chatSearch": {
+    "capped": "The last {count} messages were searched.",
+    "count": "{current} of {count}",
+    "loading": "Searching …",
+    "newer": "Newer match",
+    "none": "No matches",
+    "older": "Older match",
+    "open": "Search this conversation",
+    "placeholder": "Search …"
+  },
   "chatThread": {
     "alsoByEmail": "Also by e-mail",
     "alsoByEmailTo": "Also by e-mail to {name}",
@@ -238,6 +248,7 @@
     "fileStep2": "At the end, copy the link.",
     "fileStep3": "Paste it here as a message.",
     "fileTitle": "Send a file",
+    "firstContactGreeting": "Hello {name}",
     "firstGoesByEmail": "The first message also goes to {name} by e-mail.",
     "imageCaption": "Caption (optional) …",
     "imageCut": "Cutout {width} × {height} pixels",

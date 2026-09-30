@@ -328,9 +328,9 @@ describe('ChatImageView', () => {
   it('gives the caption’s links the dark theme’s green, whatever the theme', async () => {
     const code = style()
     const links = code.match(
-      /\n\.modal \.chat-image-view-caption a:not\(\.chat-file-card\)\s*\{([^}]*)\}/,
+      /\n\.modal \.chat-image-view-caption :is\(a:not\(\.chat-file-card\), \.chat-video-link-copy\)\s*\{([^}]*)\}/,
     )?.[1]
-    expect(links).toMatch(/color:\s*#0b9130/)
+    expect(links).toMatch(/color:\s*#3db85f/)
 
     mountView()
     openChatImageView({ ...VIEW, caption: 'Mehr dazu: https://gradido.net/de/' })

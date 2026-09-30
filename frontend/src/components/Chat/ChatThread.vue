@@ -80,10 +80,12 @@
             <chat-bubble
               v-for="message in day.messages"
               :key="message.key ?? message.id"
+              :data-key="message.key ?? message.id"
               :message="message"
               :alias="inGroup ? groupTitle : alias"
               :in-group="inGroup"
               :show-writer="runStarts.has(message.id)"
+              :search-current="searchKey === (message.key ?? message.id)"
               @open-image="openImage"
               @open-member="emit('openMember', $event)"
             />
@@ -113,7 +115,8 @@
       :sending="sending"
       :failed="sendFailed"
       :failed-reason="sendRefusal"
-      :initial-text="heldText"
+      :initial-text="openingText"
+      :text-only="textOnly"
       @send="send"
     />
 
@@ -128,7 +131,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useStore } from 'vuex'
 import { useApolloClient, useMutation, useQuery } from '@vue/apollo-composable'
@@ -137,6 +140,7 @@ import ChatComposeBar from '@/components/Chat/ChatComposeBar.vue'
 import ChatImageView from '@/components/Chat/ChatImageView.vue'
 import { openChatImageView, rememberChatImage } from '@/composables/useChatImages'
 import { useChatTransfers } from '@/composables/useChatTransfers'
+import { useChatThreadSearch } from '@/composables/useChatThreadSearch'
 import { onChatMessages, pollChatNow } from '@/composables/useChatUpdates'
 import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
 import {
@@ -180,6 +184,18 @@ const props = defineProps({
    * Without it the key is made from `member` as it stands.
    */
   memberKey: { type: String, default: '' },
+  /**
+   * "Hallo …" for the field where the two have no conversation yet (E-055): the contact window
+   * hands it in when it was opened from a group. Empty otherwise.
+   */
+  greeting: { type: String, default: '' },
+  /** Only the text, no paperclip: the contact window's first form (E-055). */
+  textOnly: { type: Boolean, default: false },
+  /**
+   * What the window's search field holds (E-057); '' while the search is closed. The thread
+   * searches itself for it (useChatThreadSearch) and says what it found (`search`).
+   */
+  search: { type: String, default: '' },
 })
 
 /**
@@ -189,8 +205,11 @@ const props = defineProps({
  * and the bell (E-017), the window does not ask a second time.
  *
  * `openMember`: in a group, the writer whose name was tapped over their message (E-053).
+ *
+ * `search`: what the search found (E-057) -- `{ searching, count, current, busy, capped }`, for
+ * the window's bar -- whenever any of it changes.
  */
-const emit = defineEmits(['chatConversation', 'openMember'])
+const emit = defineEmits(['chatConversation', 'openMember', 'search'])
 
 const { t, d, n } = useI18n()
 
@@ -569,6 +588,15 @@ watch(
 )
 
 /**
+ * The words the bar begins with: what a start held for this conversation (above), or -- where
+ * the two have never written -- the greeting the window handed in (E-055). The bar reads them
+ * once, when it is made; a thread with messages begins with an empty field.
+ */
+const openingText = computed(
+  () => heldText.value || (state.value === 'empty' ? props.greeting : ''),
+)
+
+/**
  * The read pointer on opening, to the highest id the first page brought (E-017: the marker is
  * the row number). Not for an empty thread -- there is nothing to have read -- not for an older
  * page, which holds only what lies below the pointer anyway, and not for one's own message:
@@ -731,12 +759,22 @@ const withOlderPage = (previous, { fetchMoreResult }) => {
   }
 }
 
+/** The older page on its way, for a second caller to wait for (the search, E-057). */
+let olderInFlight = null
+
 /**
  * The page before the smallest id on screen, and the older transfers -- from whichever list the
  * horizon stands at, both where it stands at both; the watcher above keeps the reader's place.
+ *
+ * True once a page was asked for and came back (or failed -- `olderFailed` says so); false where
+ * there was none to ask. A call while a page is on its way waits for that one: the search asks
+ * for pages while the member may press "load older" (useChatThreadSearch).
  */
 const loadOlder = async (event) => {
-  if (loadingOlder.value) return
+  if (loadingOlder.value) {
+    await olderInFlight
+    return true
+  }
   const oldestMessage =
     hasMore.value && messages.value.length ? at(messages.value[0].createdAt) : -Infinity
   const oldestTransfer =
@@ -746,32 +784,72 @@ const loadOlder = async (event) => {
   const olderMessages =
     hasMore.value && messages.value.length > 0 && oldestMessage >= oldestTransfer
   const olderTransfers = transfersHaveMore.value && oldestTransfer >= oldestMessage
-  if (!olderMessages && !olderTransfers) return
+  if (!olderMessages && !olderTransfers) return false
   const box = scroller.value
   followNewest = false
   placeFromBottom = box ? box.scrollHeight - box.scrollTop : null
   focusWasOnOlder = Boolean(event?.currentTarget) && document.activeElement === event.currentTarget
   loadingOlder.value = true
   olderFailed.value = false
-  try {
-    await Promise.all([
-      olderMessages
-        ? fetchMore({
-            variables: { before: Math.min(...messages.value.map((message) => message.id)) },
-            updateQuery: withOlderPage,
-          })
-        : null,
-      olderTransfers ? loadOlderTransfers() : null,
-    ])
-  } catch {
-    olderFailed.value = true
-    placeFromBottom = null
-    focusWasOnOlder = false
-    takeWaitingArrivals()
-  } finally {
-    loadingOlder.value = false
-  }
+  olderInFlight = (async () => {
+    try {
+      await Promise.all([
+        olderMessages
+          ? fetchMore({
+              variables: { before: Math.min(...messages.value.map((message) => message.id)) },
+              updateQuery: withOlderPage,
+            })
+          : null,
+        olderTransfers ? loadOlderTransfers() : null,
+      ])
+    } catch {
+      olderFailed.value = true
+      placeFromBottom = null
+      focusWasOnOlder = false
+      takeWaitingArrivals()
+    } finally {
+      loadingOlder.value = false
+    }
+  })()
+  await olderInFlight
+  return true
 }
+
+/**
+ * The search (E-057, useChatThreadSearch): a hit is put in the middle of the box, and the thread
+ * stops following its newest message -- the reader is where the hit is now, as after scrolling up.
+ * Only the box moves, not the window around it.
+ */
+const showItem = (key) => {
+  const box = scroller.value
+  const item = content.value?.querySelector(`[data-key="${key}"]`)
+  if (!box || !item) return
+  followNewest = false
+  const offset = item.getBoundingClientRect().top - box.getBoundingClientRect().top
+  box.scrollTop += offset - Math.max(0, (box.clientHeight - item.offsetHeight) / 2)
+}
+
+/** Moves once an older page is on screen: more messages, more transfers, or no more of either. */
+const searchProgress = computed(
+  () =>
+    `${messages.value.length}:${transfers.value.length}:${hasMore.value}:${transfersHaveMore.value}`,
+)
+
+const {
+  currentKey: searchKey,
+  result: searchResult,
+  step: searchStep,
+} = useChatThreadSearch({
+  typed: toRef(props, 'search'),
+  timeline,
+  canLoadOlder: computed(() => hasMore.value || transfersHaveMore.value),
+  loadedCount: computed(() => messages.value.length + transfers.value.length),
+  olderFailed,
+  progress: searchProgress,
+  loadOlder: () => loadOlder(),
+  show: showItem,
+})
+watch(searchResult, (now) => emit('search', now))
 
 /**
  * Arrivals the page can take: not twice (an id the thread holds already -- one's own copy comes
@@ -1052,7 +1130,11 @@ const deliver = async ({ body, notify }) => {
   return own !== null && own.deliveryState !== 'FAILED'
 }
 
-defineExpose({ deliver })
+/**
+ * `deliver`: a message from outside the bar (the video call's invitation, see above).
+ * `searchStep`: the window's ↑ and ↓ (E-057) -- -1 to the older hit, +1 to the newer.
+ */
+defineExpose({ deliver, searchStep })
 </script>
 
 <style lang="scss" scoped>

@@ -95,6 +95,9 @@ const MEMBERS = [
   member('kons-id', 'Konstantin', 'MEMBER'),
 ]
 
+/** The thread's steps between hits, as the window's arrows ask for them (E-057). */
+const searchSteps = []
+
 describe('ChatGroupWindow', () => {
   let wrapper
 
@@ -121,16 +124,23 @@ describe('ChatGroupWindow', () => {
           // The thread has its own specs (ChatThread.group.spec.js); here: which group it gets.
           ChatThread: {
             name: 'ChatThread',
-            props: ['group'],
-            emits: ['openMember'],
+            props: { group: Object, search: String },
+            emits: ['openMember', 'search'],
             inject: { join: { from: CHAT_VIDEO_JOIN, default: null } },
             methods: {
               deliver(message) {
                 return video.delivers(message, this.group.groupUuid)
               },
+              searchStep(direction) {
+                searchSteps.push(direction)
+              },
             },
-            template: '<div data-test="thread" :data-group="group?.groupUuid" />',
+            template:
+              '<div data-test="thread" :data-group="group?.groupUuid" :data-search="search" />',
           },
+          IMdiMagnify: true,
+          IMdiChevronUp: true,
+          IMdiChevronDown: true,
           ChatVideoCall: {
             name: 'ChatVideoCall',
             // Typed, as the real ones: an untyped `group` written bare would come as "".
@@ -169,6 +179,56 @@ describe('ChatGroupWindow', () => {
   }
 
   const find = (test) => wrapper.find(`[data-test="${test}"]`)
+
+  /**
+   * E-057 (Bernd, 30.09.2026): the magnifier by the cross opens the search bar; what is typed goes
+   * to the group's thread, what it found comes back into the bar, and the arrows step in it.
+   */
+  describe('the search', () => {
+    const magnifier = () => find('chat-group-window-search')
+    const field = () => find('chat-search-field')
+
+    it('opens with the magnifier and hands what is typed to the thread', async () => {
+      mountWindow()
+      expect(magnifier().attributes('aria-label')).toBe('chatSearch.open')
+      expect(magnifier().attributes('aria-pressed')).toBe('false')
+      expect(find('chat-search').exists()).toBe(false)
+
+      await magnifier().trigger('click')
+      expect(magnifier().attributes('aria-pressed')).toBe('true')
+      await field().setValue('Kuchen')
+      expect(find('thread').attributes('data-search')).toBe('Kuchen')
+    })
+
+    it('shows what the thread found, and steps through it with the arrows', async () => {
+      mountWindow()
+      await magnifier().trigger('click')
+      await field().setValue('Kuchen')
+      const found = { searching: true, count: 4, current: 4, busy: false, capped: false }
+      await wrapper.findComponent({ name: 'ChatThread' }).vm.$emit('search', found)
+      expect(find('chat-search-count').text()).toBe('chatSearch.count {"current":4,"count":4}')
+      await find('chat-search-older').trigger('click')
+      expect(searchSteps).toEqual([-1])
+    })
+
+    it('closes with the magnifier again, and the thread searches nothing', async () => {
+      mountWindow()
+      await magnifier().trigger('click')
+      await field().setValue('Kuchen')
+      await magnifier().trigger('click')
+      expect(find('chat-search').exists()).toBe(false)
+      expect(find('thread').attributes('data-search')).toBe('')
+    })
+
+    it('begins anew for another group', async () => {
+      mountWindow()
+      await magnifier().trigger('click')
+      await field().setValue('Kuchen')
+      await wrapper.setProps({ group: { ...GROUP, groupUuid: 'garden-uuid', title: 'Garten' } })
+      expect(find('chat-search').exists()).toBe(false)
+      expect(find('thread').attributes('data-search')).toBe('')
+    })
+  })
   const bell = () => find('chat-group-window-bell')
 
   beforeEach(() => {
@@ -412,9 +472,37 @@ describe('ChatGroupWindow', () => {
     await wrapper.findComponent({ name: 'ChatThread' }).vm.$emit('openMember', anna)
     await find('chat-group-window-members').trigger('click')
     await members().vm.$emit('openMember', carla)
-    expect(wrapper.emitted('openMember')).toEqual([[anna], [carla]])
+    // Over her message Anna carries no community name; the group names its own (E-055).
+    expect(wrapper.emitted('openMember')).toEqual([
+      [{ ...anna, communityName: 'KI Playground' }],
+      [carla],
+    ])
     expect(members().props('modelValue')).toBe(true)
     expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+  })
+
+  // Only the group's own community is the group's to name; a writer of another goes as they are,
+  // and a name the writer carries stays theirs.
+  it("names a writer's community only where it is the group's own", async () => {
+    mountWindow()
+    await flushPromises()
+    const thread = () => wrapper.findComponent({ name: 'ChatThread' })
+    const far = { communityUuid: 'far-uuid', gradidoID: 'far-id', alias: 'Fern' }
+    const loud = {
+      communityUuid: 'HOME-UUID',
+      gradidoID: 'x-id',
+      alias: 'X',
+      communityName: 'Eigen',
+    }
+    const upper = { communityUuid: 'HOME-UUID', gradidoID: 'y-id', alias: 'Y' }
+    await thread().vm.$emit('openMember', far)
+    await thread().vm.$emit('openMember', loud)
+    await thread().vm.$emit('openMember', upper)
+    expect(wrapper.emitted('openMember')).toEqual([
+      [far],
+      [loud],
+      [{ ...upper, communityName: 'KI Playground' }],
+    ])
   })
 
   it('is a sheet on a phone, with no header and no footer, named after the group', () => {
