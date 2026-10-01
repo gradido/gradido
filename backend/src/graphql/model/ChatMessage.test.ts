@@ -21,6 +21,8 @@ const annasMessage: ChatMessageSelect = {
   deliveryState: 'failed',
   lastAttemptAt: new Date('2026-09-23T12:00:05.000Z'),
   delaySeconds: null,
+  forwardedFromCommunityUuid: null,
+  forwardedFromGradidoId: null,
   createdAt: new Date('2026-09-23T12:00:00.000Z'),
   deletedAt: null,
 }
@@ -64,6 +66,30 @@ describe('ChatMessage', () => {
     expect(message).toMatchObject({ mine: false, deliveryState: null, notify: null })
     expect(message.sender).toEqual({ communityUuid: HOME, gradidoID: ANNA.gradidoId })
     expect(message.body).toBe('Shall we meet at **ten**?')
+  })
+
+  // E-059: a copy forwarded from another conversation, and who wrote its words first.
+  it('says a copy was forwarded, and from whom, where it names somebody', () => {
+    const copy: ChatMessageSelect = {
+      ...annasMessage,
+      forwardedFromCommunityUuid: BEN.communityUuid,
+      forwardedFromGradidoId: BEN.gradidoId,
+    }
+    const ben = { gradidoID: BEN.gradidoId, alias: 'ben' } as unknown as User
+    expect(new ChatMessage(copy, BEN, [], null, ben)).toMatchObject({
+      forwarded: true,
+      forwardedFrom: ben,
+    })
+    // Where nobody is known by the pair, or a copy names nobody: forwarded all the same.
+    expect(new ChatMessage(copy, BEN)).toMatchObject({ forwarded: true, forwardedFrom: null })
+  })
+
+  it('says nothing of forwarding for any other message, whatever it is handed', () => {
+    const somebody = { gradidoID: BEN.gradidoId } as unknown as User
+    expect(new ChatMessage(annasMessage, BEN, [], null, somebody)).toMatchObject({
+      forwarded: false,
+      forwardedFrom: null,
+    })
   })
 
   it('knows the writer named in capitals as the writer, as the columns compare', () => {

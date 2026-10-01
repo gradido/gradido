@@ -152,6 +152,7 @@
         @open-member="openWriter"
         @search="takeFound"
         @duplicate-video="videoCall?.duplicate($event)"
+        @forward-message="emit('forwardMessage', $event)"
       />
 
       <!-- The questions of a video call (ChatVideoCall), as the contact window asks them (E-053):
@@ -228,7 +229,8 @@ const props = defineProps({
  * knows who is a contact, and opens their window over this one -- for somebody who is none yet the
  * window's first form, a first word in one tap (E-055).
  */
-const emit = defineEmits(['update:modelValue', 'changed', 'openMember'])
+/** `forwardMessage`: a message of the thread, to be forwarded (E-059) -- the page asks where to. */
+const emit = defineEmits(['update:modelValue', 'changed', 'openMember', 'forwardMessage'])
 
 /**
  * A writer named over their message carries what the message says of them -- no community name,

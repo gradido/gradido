@@ -121,6 +121,14 @@ describe('Contacts page', () => {
             template:
               '<div data-test="contact-row" @click="$emit(\'open\', contact)">{{ contact.user.alias }}</div>',
           },
+          // Emits `forwarded` as the real dialog does once the copies went (E-059).
+          ChatForwardDialog: {
+            name: 'ChatForwardDialog',
+            props: ['modelValue', 'message', 'writer', 'contacts', 'groups'],
+            emits: ['update:modelValue', 'forwarded'],
+            template:
+              '<div data-test="chat-forward" :data-open="String(modelValue)" :data-message="message?.messageUuid ?? \'\'" :data-writer="writer" :data-contacts="contacts.length" :data-groups="groups.length" />',
+          },
           // Emits `created` as the real dialog does once a group is opened.
           ChatGroupCreate: {
             name: 'ChatGroupCreate',
@@ -140,7 +148,7 @@ describe('Contacts page', () => {
           ChatGroupWindow: {
             name: 'ChatGroupWindow',
             props: ['modelValue', 'group', 'contacts'],
-            emits: ['update:modelValue', 'changed', 'openMember'],
+            emits: ['update:modelValue', 'changed', 'openMember', 'forwardMessage'],
             template:
               '<div data-test="chat-group-window" :data-open="String(modelValue)" :data-group="group?.groupUuid ?? \'\'" :data-title="group?.title ?? \'\'" @click="$emit(\'changed\')" />',
           },
@@ -150,7 +158,7 @@ describe('Contacts page', () => {
           ContactWindow: {
             name: 'ContactWindow',
             props: ['modelValue', 'contact', 'greet', 'firstContact'],
-            emits: ['contactMade'],
+            emits: ['contactMade', 'forwardMessage'],
             template:
               '<div data-test="contact-window" :data-open="String(modelValue)" :data-who="contact?.user?.gradidoID ?? \'\'" :data-community="contact?.user?.communityUuid ?? \'\'" :data-home="String(contact?.homeCommunity)" :data-counted="String(Boolean(contact?.firstAt))" :data-greet="String(greet)" :data-first="String(firstContact)" />',
           },
@@ -696,6 +704,69 @@ describe('Contacts page', () => {
         await flushPromises()
         expect(apolloQuery.mock.calls.some(([o]) => o.query === 'chatGroupsQuery')).toBe(true)
         expect(groupRows()).toEqual(['Gruppe 9', 'Gruppe 1'])
+      })
+    })
+
+    /**
+     * Forwarding a message (E-059): a window hands it up, the page opens the dialog over it with its
+     * contacts and groups, and asks for both lists again once the copies went.
+     */
+    describe('forwarding a message', () => {
+      const dialog = () => wrapper.find('[data-test="chat-forward"]')
+      const message = (rest = {}) => ({
+        messageUuid: 'm-1',
+        mine: false,
+        body: 'Flohmarkt',
+        ...rest,
+      })
+
+      it('opens the dialog from the window of a person, naming the person as the writer', async () => {
+        mountPage()
+        fire('contactListQuery', { contactList: { count: 2, contacts: [person(1), person(2)] } })
+        fire('chatGroupsQuery', { chatGroups: [group(1)] })
+        await nextTick()
+        await wrapper.findAll('[data-test="contact-row"]')[1].trigger('click')
+        expect(dialog().attributes('data-open')).toBe('false')
+
+        await wrapper.findComponent({ name: 'ContactWindow' }).vm.$emit('forwardMessage', message())
+        await nextTick()
+
+        expect(dialog().attributes()).toMatchObject({
+          'data-open': 'true',
+          'data-message': 'm-1',
+          'data-writer': 'Alias2',
+          'data-contacts': '2',
+          'data-groups': '1',
+        })
+      })
+
+      it('names the writer of a group message by the name over it', async () => {
+        mountPage()
+        fire('chatGroupsQuery', { chatGroups: [group(1)] })
+        await nextTick()
+        await wrapper
+          .findComponent({ name: 'ChatGroupWindow' })
+          .vm.$emit(
+            'forwardMessage',
+            message({ senderUser: { gradidoID: 'id-7', alias: 'Anna-Sonne' } }),
+          )
+        await nextTick()
+        expect(dialog().attributes('data-open')).toBe('true')
+        expect(dialog().attributes('data-writer')).toBe('Anna-Sonne')
+      })
+
+      it('asks for both lists again once the copies went', async () => {
+        mountPage()
+        fire('contactListQuery', { contactList: { count: 1, contacts: [person(1)] } })
+        fire('chatGroupsQuery', { chatGroups: [group(1)] })
+        await nextTick()
+        apolloQuery.mockClear()
+
+        await wrapper.findComponent({ name: 'ChatForwardDialog' }).vm.$emit('forwarded')
+        await flushPromises()
+
+        const asked = apolloQuery.mock.calls.map(([options]) => options.query)
+        expect(asked).toEqual(expect.arrayContaining(['chatGroupsQuery', 'contactListQuery']))
       })
     })
 

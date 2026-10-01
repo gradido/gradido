@@ -15,12 +15,9 @@ import { ChatGroupMember } from '@model/ChatGroupMember'
 import { ChatMessage } from '@model/ChatMessage'
 import { ChatMessagePage } from '@model/ChatMessagePage'
 import {
-  ChatConversationMemberSelect,
-  ChatConversationSelect,
   ChatMemberRef,
   User as DbUser,
   dbDeleteChatConversationMember,
-  dbFindChatGroupByUuid,
   dbInsertChatConversationMembers,
   dbInsertChatGroup,
   dbSelectChatConversationMember,
@@ -66,6 +63,7 @@ import {
   mailChatGroupAnnouncement,
   storeChatGroupMessage,
 } from './util/chatGroupDelivery'
+import { groupOfCaller, groupOfCallerOrFail } from './util/chatGroupOfCaller'
 import { chatMemberKey, chatMemberUsers } from './util/chatMemberUsers'
 import { chatMessagesOf } from './util/chatMessagesOf'
 import { acceptedPicture, callerOf } from './util/chatRequest'
@@ -79,32 +77,6 @@ const createLogger = () =>
  * account had 713 when the list was measured (dbSelectContactsByUserId).
  */
 const ALL_CONTACTS = Number.MAX_SAFE_INTEGER
-
-/**
- * The group `groupUuid` names and the caller's own row in it, or null: for a group that does not
- * exist and for one the caller is not in alike. Who is not a member learns nothing about a group,
- * not even that it exists (build plan 4.3).
- */
-const groupOfCaller = async (
-  groupUuid: string,
-  caller: ChatMemberRef,
-): Promise<{ group: ChatConversationSelect; me: ChatConversationMemberSelect } | null> => {
-  const group = await dbFindChatGroupByUuid(groupUuid)
-  const me = group ? await dbSelectChatConversationMember(group.id, caller) : null
-  return group && me ? { group, me } : null
-}
-
-/** groupOfCaller, or CHAT_GROUP_NOT_FOUND -- the same answer for both reasons. */
-const groupOfCallerOrFail = async (
-  groupUuid: string,
-  caller: ChatMemberRef,
-): Promise<{ group: ChatConversationSelect; me: ChatConversationMemberSelect }> => {
-  const found = await groupOfCaller(groupUuid, caller)
-  if (!found) {
-    throw new LogError('CHAT_GROUP_NOT_FOUND', groupUuid)
-  }
-  return found
-}
 
 /** One list of groups or of members more in the request's budget, or the refusal. */
 const countGroupList = (context: Context): void => {
