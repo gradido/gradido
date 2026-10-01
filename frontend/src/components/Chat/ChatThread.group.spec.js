@@ -4,6 +4,7 @@ import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
 import ChatThread from './ChatThread.vue'
 import ChatBubble from './ChatBubble.vue'
 import ChatComposeBar from './ChatComposeBar.vue'
+import { editChatMessage } from '@/graphql/chat.graphql'
 import {
   chatGroupMessagesQuery,
   markChatGroupRead,
@@ -18,16 +19,28 @@ import { holdChatText } from '@/utils/chatReturn'
  * what it is asked by, where it sends, who wrote what, and what the box means.
  */
 
-const beat = vi.hoisted(() => ({ listeners: new Set(), pollNow: vi.fn(async () => {}) }))
+const beat = vi.hoisted(() => ({
+  listeners: new Set(),
+  editedListeners: new Set(),
+  pollNow: vi.fn(async () => {}),
+}))
 vi.mock('@/composables/useChatUpdates', () => ({
   onChatMessages: (listener) => {
     beat.listeners.add(listener)
     return () => beat.listeners.delete(listener)
   },
+  onChatMessagesEdited: (listener) => {
+    beat.editedListeners.add(listener)
+    return () => beat.editedListeners.delete(listener)
+  },
   pollChatNow: (...args) => beat.pollNow(...args),
 }))
 const beatBrings = async (...chatMessages) => {
   for (const listener of [...beat.listeners]) listener(chatMessages)
+  await flushPromises()
+}
+const beatChanges = async (...edited) => {
+  for (const listener of [...beat.editedListeners]) listener(edited)
   await flushPromises()
 }
 
@@ -51,6 +64,7 @@ vi.mock('vue-i18n', () => ({
           : key,
     d: (date, format) => `${format}(${date.toISOString()})`,
     n: (value, format) => `${format}(${value})`,
+    locale: { value: 'de' },
   }),
 }))
 
@@ -82,6 +96,8 @@ vi.mock('@/composables/useChatImages', async (importOriginal) => ({
 let server
 const markRead = vi.fn(async () => ({ data: { markChatGroupRead: true } }))
 const serverSends = vi.fn()
+/** What the server answers to `editChatMessage` (E-060), called with the variables and the options. */
+const serverChanges = vi.fn()
 const asked = vi.fn(async () => {
   throw new Error('no server for this question')
 })
@@ -115,6 +131,14 @@ vi.mock('@vue/apollo-composable', async () => {
       return { result, error, fetchMore, loading: ref(false) }
     },
     useMutation: (document) => {
+      // A change of one's own (E-060): one mutation for both kinds of thread, by the message.
+      if (document === editChatMessage) {
+        return {
+          mutate: async (variables, options) => ({
+            data: { editChatMessage: await serverChanges(variables, options) },
+          }),
+        }
+      }
       if (document !== sendChatGroupMessage) {
         return { mutate: (variables, options) => markRead(document, variables, options) }
       }
@@ -199,6 +223,12 @@ describe('ChatThread in a group', () => {
           IMdiPaperclip: true,
           IMdiCellphone: true,
           IMdiOpenInNew: true,
+          IMdiDotsHorizontal: true,
+          IMdiPencilOutline: true,
+          IMdiShareOutline: true,
+          IMdiContentCopy: true,
+          IMdiCheck: true,
+          IMdiClose: true,
           BModal: true,
         },
       },
@@ -235,6 +265,7 @@ describe('ChatThread in a group', () => {
     wrapper?.unmount()
     markRead.mockClear()
     serverSends.mockReset()
+    serverChanges.mockReset()
     asked.mockClear()
     facesAsked.mockClear()
     imageViews.mockClear()
@@ -325,6 +356,28 @@ describe('ChatThread in a group', () => {
       await arrive(page([message(1)]))
       await beatBrings(message(7, { writer: 'carla' }))
       expect(status().text()).toBe('chatThread.arrived {"name":"Carla-Sonne"}')
+    })
+
+    // E-060: in a group it is the writer of the changed message, not the group, that is named.
+    it("says who changed a message, by the writer's name", async () => {
+      mountThread()
+      await arrive(page([message(1), message(2, { writer: 'carla' }), message(3)]))
+
+      await beatChanges({
+        ...message(2, { writer: 'carla' }),
+        body: 'Samstag ab 11 Uhr',
+        editedAt: '2026-09-29T11:00:00.000Z',
+      })
+
+      expect(bubbleTexts()).toEqual(['message 1', 'Samstag ab 11 Uhr', 'message 3'])
+      expect(status().text()).toBe('chatThread.editedBy {"name":"Carla-Sonne"}')
+      // Into the group's own page.
+      expect(server.result.value.chatGroupMessages.messages[1].editedAt).toBe(
+        '2026-09-29T11:00:00.000Z',
+      )
+      expect(
+        bubbles().map((bubble) => bubble.find('[data-test="chat-bubble-edited"]').exists()),
+      ).toEqual([false, true, false])
     })
 
     it("opens a picture as the writer's, with their name", async () => {
@@ -513,5 +566,70 @@ describe('ChatThread in a group', () => {
       expect.objectContaining({ variables: { before: 5 } }),
     )
     expect(bubbleTexts()).toEqual(['message 3', 'message 4', 'message 5', 'message 6'])
+  })
+
+  /**
+   * E-060: one's own message in a group is changed as in a thread of two -- the same mutation, by
+   * the message's uuid, and the answer in the old one's place in the GROUP's page.
+   */
+  describe('a message of one’s own, changed (E-060)', () => {
+    const pressEdit = async (index) => {
+      const row = wrapper.findAll('[data-test="chat-bubble"]')[index]
+      await row.find('[data-test="chat-bubble-more"]').trigger('click')
+      await flushPromises()
+      await row.find('[data-test="chat-message-edit"]').trigger('click')
+      await flushPromises()
+    }
+
+    it('offers "Bearbeiten" at one’s own message only, also to an ordinary member', async () => {
+      mountThread({ role: 'MEMBER' })
+      await arrive(page([message(1), message(2, { writer: 'me' })]))
+      const rows = wrapper.findAll('[data-test="chat-bubble"]')
+
+      await rows[0].find('[data-test="chat-bubble-more"]').trigger('click')
+      await flushPromises()
+      expect(rows[0].find('[data-test="chat-message-edit"]').exists()).toBe(false)
+
+      await rows[1].find('[data-test="chat-bubble-more"]').trigger('click')
+      await flushPromises()
+      expect(rows[1].find('[data-test="chat-message-edit"]').exists()).toBe(true)
+    })
+
+    it('changes it by its uuid, and puts the answer into the group’s page', async () => {
+      serverChanges.mockResolvedValue({
+        ...message(2, { writer: 'me' }),
+        body: 'Samstag ab 11 Uhr',
+        editedAt: '2026-09-29T11:00:00.000Z',
+      })
+      mountThread()
+      await arrive(page([message(1), message(2, { writer: 'me' }), message(3)]))
+      await pressEdit(1)
+      expect(wrapper.find('[data-test="chat-compose-field"]').element.value).toBe('message 2')
+
+      await wrapper.find('[data-test="chat-compose-field"]').setValue('Samstag ab 11 Uhr')
+      await wrapper.find('[data-test="chat-compose-send"]').trigger('click')
+      await flushPromises()
+
+      expect(serverChanges).toHaveBeenCalledWith(
+        { messageUuid: 'uuid-2', body: 'Samstag ab 11 Uhr' },
+        { fetchPolicy: 'no-cache' },
+      )
+      expect(serverSends).not.toHaveBeenCalled()
+      expect(bubbleTexts()).toEqual(['message 1', 'Samstag ab 11 Uhr', 'message 3'])
+      expect(server.result.value.chatGroupMessages.messages.map((m) => m.id)).toEqual([1, 2, 3])
+      expect(status().text()).toBe('chatThread.editSaved')
+      expect(bar().props('editing')).toBeNull()
+    })
+
+    // While a message is changed there is nothing to announce: the box waits with the rest.
+    it('offers no announcement while a message is being changed', async () => {
+      mountThread({ role: 'OWNER' })
+      await arrive(page([message(1), message(2, { writer: 'me' })]))
+      expect(wrapper.find('[data-test="chat-compose-email"]').exists()).toBe(true)
+
+      await pressEdit(1)
+
+      expect(wrapper.find('[data-test="chat-compose-email"]').exists()).toBe(false)
+    })
   })
 })

@@ -38,14 +38,14 @@ const pathsOf = (selectionSet, fragments, prefix = '') =>
     return selection.selectionSet ? pathsOf(selection.selectionSet, fragments, `${path}.`) : [path]
   })
 
-/** The fields of `messages` in the operation called `name`. */
-const messageFieldsOf = (document, name) => {
+/** The fields of `messages` -- or of another list of messages -- in the operation called `name`. */
+const messageFieldsOf = (document, name, list = 'messages') => {
   const operation = document.definitions.find(
     (definition) => definition.kind === Kind.OPERATION_DEFINITION && definition.name.value === name,
   )
   const root = operation.selectionSet.selections[0]
   const messages = root.selectionSet.selections.find(
-    (selection) => selection.kind === Kind.FIELD && selection.name.value === 'messages',
+    (selection) => selection.kind === Kind.FIELD && selection.name.value === list,
   )
   return pathsOf(messages.selectionSet, fragmentsOf(document))
 }
@@ -67,6 +67,10 @@ describe('the fields of a chat message', () => {
       copy: copyFieldsOf(chat, 'sendChatMessage'),
       groupPage: messageFieldsOf(groups, 'chatGroupMessagesQuery'),
       groupCopy: copyFieldsOf(groups, 'sendChatGroupMessage'),
+      // E-060: a changed message takes the place of the one a thread holds, whichever way it comes
+      // -- with the beat, or as the answer to one's own change.
+      edited: messageFieldsOf(chat, 'newChatMessagesSince', 'edited'),
+      editedCopy: copyFieldsOf(chat, 'editChatMessage'),
     }
     for (const [name, fields] of Object.entries(shapes)) {
       expect({ [name]: fields }).toEqual({ [name]: beat })
@@ -85,6 +89,52 @@ describe('the fields of a chat message', () => {
         'images.imageUuid',
       ]),
     )
+  })
+
+  // E-060: when the text was changed last -- for the word "bearbeitet" beside the time, and for
+  // the calendar file of a planned call, which counts its changes by it.
+  it('carries when the text was changed', () => {
+    expect(beat).toContain('editedAt')
+    expect(beat.indexOf('editedAt')).toBe(beat.indexOf('createdAt') + 1)
+  })
+
+  // The beat asks for the changed messages with the cursor the last answer handed on, and takes
+  // the next one.
+  it('asks the beat for the changed messages by a cursor, and for the next cursor', () => {
+    const operation = chat.definitions.find(
+      (definition) => definition.name?.value === 'newChatMessagesSince',
+    )
+    expect(operation.variableDefinitions.map((variable) => variable.variable.name.value)).toEqual([
+      'afterId',
+      'limit',
+      'editedCursor',
+    ])
+    const answer = operation.selectionSet.selections[0]
+    expect(answer.arguments.map((argument) => argument.name.value)).toEqual([
+      'afterId',
+      'limit',
+      'editedCursor',
+    ])
+    expect(answer.selectionSet.selections.map((selection) => selection.name.value)).toEqual([
+      'latestId',
+      'unreadConversations',
+      'hasMore',
+      'messages',
+      'edited',
+      'editedCursor',
+    ])
+  })
+
+  // ⛔ The backend's request log masks a variable by its name (plugins.ts): `body` is written as
+  // "***". Under any other name the changed text would stand in the log with every change.
+  it('names the changed text `$body`, the name the request log masks', () => {
+    const operation = chat.definitions.find(
+      (definition) => definition.name?.value === 'editChatMessage',
+    )
+    expect(operation.variableDefinitions.map((variable) => variable.variable.name.value)).toEqual([
+      'messageUuid',
+      'body',
+    ])
   })
 
   // E-059: whether a message is a forwarded copy, and whose words it carries -- for the line over it.

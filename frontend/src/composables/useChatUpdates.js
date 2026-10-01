@@ -8,7 +8,8 @@ import { refreshContactsPanel } from '@/composables/useContactsPanel'
  * The chat's one beat (E-017): ONE question -- "what is new for me since this id?" -- asked for
  * the whole app, every fifteen seconds while the page is in sight. The answer brings the number
  * of conversations with something unread (the mark in the menu) and the messages that arrived
- * since, which go to whoever listens: the thread that is open sorts out its own.
+ * since, which go to whoever listens: the thread that is open sorts out its own. With them come
+ * the messages whose text was changed (E-060), for a thread that holds one to show the new text.
  *
  * ⛔ One state for the app, here in the module -- not one per window, and not in the store. The
  * Vuex store is written to `localStorage` in full (createPersistedState without `paths`), so a
@@ -52,12 +53,18 @@ const unread = ref(0)
 export const chatUnreadConversations = readonly(unread)
 
 const listeners = new Set()
+const editedListeners = new Set()
 
 const idle = () => ({
   /** The client the questions go through; null while the beat does not run. */
   client: null,
   /** The id the next question goes on from; null until the first answer said where one stands. */
   marker: null,
+  /**
+   * Where the next question goes on from for changed messages (E-060): what the last answer
+   * handed on, as it came -- what it names is the server's. Null until the first answer.
+   */
+  editedCursor: null,
   /** The pause before the next question. */
   delay: CHAT_POLL_INTERVAL_MS,
   timer: null,
@@ -85,10 +92,10 @@ const inSight = () => typeof document === 'undefined' || !document.hidden
  * `no-cache`: nothing reads these answers back, and every marker would leave an entry of its own
  * in the store until the logout.
  */
-const ask = async (afterId) => {
+const ask = async (afterId, editedCursor) => {
   const { data } = await beat.client.query({
     query: newChatMessagesSince,
-    variables: { afterId, limit: CHAT_POLL_PAGE },
+    variables: { afterId, limit: CHAT_POLL_PAGE, editedCursor },
     fetchPolicy: 'no-cache',
     context: { renewSession: false },
   })
@@ -97,9 +104,12 @@ const ask = async (afterId) => {
   return update
 }
 
-/** Hands arrived messages on. One listener that fails must not stop the beat for the others. */
-const handOn = (chatMessages) => {
-  for (const listener of [...listeners]) {
+/**
+ * Hands messages on -- the arrived ones, or the changed ones. One listener that fails must not
+ * stop the beat for the others.
+ */
+const handOn = (to, chatMessages) => {
+  for (const listener of [...to]) {
     try {
       listener(chatMessages)
     } catch {
@@ -120,7 +130,7 @@ const cycle = async (mine) => {
     let rounds = 0
     let more = false
     do {
-      const update = await ask(beat.marker)
+      const update = await ask(beat.marker, beat.editedCursor)
       if (mine !== generation) return
       // The number moved without anything arriving: a conversation was read -- here, after
       // `pollChatNow`, or on another device -- and a dot in the contact list goes with it. The
@@ -130,8 +140,13 @@ const cycle = async (mine) => {
       unread.value = update.unreadConversations
       if (update.messages.length > 0) {
         arrived = true
-        handOn(update.messages)
+        handOn(listeners, update.messages)
       }
+      // The changed messages (E-060), and where to go on from for them. The cursor only moves
+      // with an answer that names one; no list is asked again for a change -- it moves no order
+      // and no dot.
+      if (update.editedCursor) beat.editedCursor = update.editedCursor
+      if (update.edited?.length > 0) handOn(editedListeners, update.edited)
       more = update.hasMore
       rounds += 1
     } while (more && rounds < CHAT_POLL_ROUNDS_MAX)
@@ -233,5 +248,21 @@ export const onChatMessages = (listener) => {
   listeners.add(listener)
   return () => {
     listeners.delete(listener)
+  }
+}
+
+/**
+ * Hands every message whose text was changed (E-060) to `listener`, as an array per answer -- of
+ * all conversations, one's own changes made elsewhere among them. Each as it stands now, to take
+ * the place of the one a thread holds. Returns the function that ends it.
+ *
+ * ⚠️ The same change comes again with the next answers for some seconds: the server goes back a
+ * little each time, so that a change committed a moment late is not passed over. Whoever says
+ * something about a change says it only where the message it holds is not the same already.
+ */
+export const onChatMessagesEdited = (listener) => {
+  editedListeners.add(listener)
+  return () => {
+    editedListeners.delete(listener)
   }
 }

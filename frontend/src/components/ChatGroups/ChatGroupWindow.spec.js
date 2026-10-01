@@ -49,6 +49,10 @@ const video = vi.hoisted(() => ({
   letGo: vi.fn(),
   duplicate: vi.fn(),
   delivers: vi.fn(),
+  // E-060: an invitation of one's own handed to the question to be changed (`edit`), and what the
+  // thread answers to the change (`edits`).
+  edit: vi.fn(),
+  edits: vi.fn(),
 }))
 vi.mock('@vue/apollo-composable', () => ({
   useMutation: (document) => ({ mutate: (variables) => saved(document, variables) }),
@@ -126,11 +130,14 @@ describe('ChatGroupWindow', () => {
           ChatThread: {
             name: 'ChatThread',
             props: { group: Object, search: String },
-            emits: ['openMember', 'search', 'duplicateVideo', 'forwardMessage'],
+            emits: ['openMember', 'search', 'duplicateVideo', 'editVideo', 'forwardMessage'],
             inject: { join: { from: CHAT_VIDEO_JOIN, default: null } },
             methods: {
               deliver(message) {
                 return video.delivers(message, this.group.groupUuid)
+              },
+              edit(changed) {
+                return video.edits(changed, this.group.groupUuid)
               },
               searchStep(direction) {
                 searchSteps.push(direction)
@@ -159,10 +166,14 @@ describe('ChatGroupWindow', () => {
               first: Boolean,
               canMail: Boolean,
               deliver: Function,
+              change: Function,
             },
             methods: {
               ask() {
                 video.ask()
+              },
+              edit(invitation) {
+                video.edit(invitation)
               },
               askJoin(roomUrl) {
                 video.askJoin(roomUrl)
@@ -506,6 +517,36 @@ describe('ChatGroupWindow', () => {
       const message = { body: 'Einladung', notify: 'EMAIL' }
       await expect(call().props('deliver')(message)).resolves.toBe(true)
       expect(video.delivers).toHaveBeenCalledWith(message, 'cafe-uuid')
+    })
+
+    /**
+     * E-060: "Bearbeiten" at a video invitation of one's own in the group's thread -- the thread
+     * hands the message and what it says to the window, the window to the question; and the
+     * question changes the message through the group's thread.
+     */
+    it('hands an invitation to be changed to the question', async () => {
+      mountWindow()
+      const handed = {
+        message: { messageUuid: 'uuid-7' },
+        invitation: { room: 'https://meet.example.org/r', topic: 'Stammtisch', when: null },
+      }
+
+      await wrapper.findComponent({ name: 'ChatThread' }).vm.$emit('editVideo', handed)
+
+      expect(video.edit).toHaveBeenCalledTimes(1)
+      expect(video.edit).toHaveBeenCalledWith(handed)
+    })
+
+    it("changes the invitation through the group's thread, and hands back what it answered", async () => {
+      mountWindow()
+      const changed = { messageUuid: 'uuid-7', body: 'Einladung, neu' }
+
+      video.edits.mockResolvedValue('')
+      await expect(call().props('change')(changed)).resolves.toBe('')
+      video.edits.mockResolvedValue('NOT_CONFIRMED')
+      await expect(call().props('change')(changed)).resolves.toBe('NOT_CONFIRMED')
+
+      expect(video.edits).toHaveBeenCalledWith(changed, 'cafe-uuid')
     })
 
     // A click on the link of an invitation in the group's thread (ChatMessageText).

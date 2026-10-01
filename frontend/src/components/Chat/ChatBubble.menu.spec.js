@@ -21,7 +21,17 @@ vi.mock('vue-i18n', () => ({
   useI18n: () => ({
     t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key),
     d: (date, format) => `${format}(${date.toISOString()})`,
+    locale: { value: 'de' },
   }),
+}))
+/**
+ * Whether a message is a video invitation word for word (utils/chatVideoInvite, with its own
+ * spec in the wallet's real words): none, unless a test says what it reads.
+ */
+const videoInviteRead = vi.hoisted(() => vi.fn(() => null))
+vi.mock('@/utils/chatVideoInvite', async (original) => ({
+  ...(await original()),
+  readChatVideoInvite: (...args) => videoInviteRead(...args),
 }))
 const toasts = vi.hoisted(() => ({ success: [], error: [] }))
 vi.mock('@/composables/useToast', () => ({
@@ -65,6 +75,7 @@ describe('ChatBubble, the menu at a message (E-059)', () => {
         stubs: {
           IMdiDotsHorizontal: { template: '<i data-test="dots" />' },
           IMdiShare: { template: '<i data-test="forwarded-sign" />' },
+          IMdiPencilOutline: true,
           IMdiShareOutline: true,
           IMdiContentCopy: true,
           IMdiEmailOutline: true,
@@ -98,6 +109,8 @@ describe('ChatBubble, the menu at a message (E-059)', () => {
   afterEach(() => {
     wrapper?.unmount()
     delete navigator.clipboard
+    videoInviteRead.mockReset()
+    videoInviteRead.mockImplementation(() => null)
   })
 
   describe('on a computer', () => {
@@ -273,6 +286,178 @@ describe('ChatBubble, the menu at a message (E-059)', () => {
     expect(menu().classes()).not.toContain('is-below')
     expect(shown).toEqual([{ element: menu().element, options: { block: 'nearest' } }])
     delete Element.prototype.scrollIntoView
+  })
+
+  /**
+   * "Bearbeiten" (Bernd, 01.10.2026, E-060): the first entry, at one's own words only. The bubble
+   * hands the message up; the thread knows where it is changed.
+   */
+  describe('"Bearbeiten" (E-060)', () => {
+    const entries = () =>
+      menu()
+        .findAll('button')
+        .map((button) => button.attributes('data-test'))
+
+    it('is the first entry at one’s own message, and takes the focus', async () => {
+      mountBubble(OWN)
+
+      await more().trigger('click')
+      await flushPromises()
+
+      expect(entries()).toEqual(['chat-message-edit', 'chat-message-forward', 'chat-message-copy'])
+      expect(entry('edit').attributes('type')).toBe('button')
+      expect(entry('edit').text()).toContain('chatThread.edit')
+      expect(entry('edit').text()).toContain('chatThread.editHint')
+      expect(document.activeElement).toBe(entry('edit').element)
+    })
+
+    it('is not offered at somebody else’s message', async () => {
+      mountBubble(THEIRS)
+
+      await more().trigger('click')
+      await flushPromises()
+
+      expect(entries()).toEqual(['chat-message-forward', 'chat-message-copy'])
+      expect(document.activeElement).toBe(entry('forward').element)
+    })
+
+    // A forwarded copy carries somebody else's words; a message not filed yet has no uuid to
+    // change it by. (A transfer has no menu at all, see below.)
+    it('is not offered at a forwarded copy, nor at a message not filed yet', async () => {
+      mountBubble({
+        ...OWN,
+        forwarded: true,
+        forwardedFrom: { gradidoID: 'anna-id', alias: 'Anna-Sonne' },
+      })
+      await more().trigger('click')
+      expect(entries()).toEqual(['chat-message-forward', 'chat-message-copy'])
+      wrapper.unmount()
+
+      mountBubble({ ...OWN, messageUuid: null })
+      await more().trigger('click')
+      expect(entries()).toEqual(['chat-message-copy'])
+    })
+
+    // The caption of one's own picture is one's own words too -- also where there are none yet.
+    it('is offered at one’s own picture, with or without a caption', async () => {
+      mountBubble({ ...OWN, body: '', images: [{ imageUuid: 'img-1', width: 320, height: 240 }] })
+
+      await more().trigger('click')
+
+      expect(entries()).toEqual(['chat-message-edit', 'chat-message-forward'])
+    })
+
+    it('hands the message up to be changed, and closes the menu', async () => {
+      mountBubble(OWN)
+      await more().trigger('click')
+
+      await entry('edit').trigger('click')
+
+      expect(wrapper.emitted('edit')).toEqual([[OWN]])
+      expect(menu().exists()).toBe(false)
+      expect(wrapper.classes()).not.toContain('has-menu')
+    })
+
+    /**
+     * The line under the word says what "Bearbeiten" changes: the text -- or, at a video
+     * invitation of the wallet's own words, its topic and its time. Read as the thread reads it
+     * at the press (readChatVideoInvite): a message that only carries a room's address is text.
+     */
+    it('says what it changes: the text, or a video invitation’s topic and time', async () => {
+      mountBubble(OWN)
+      await more().trigger('click')
+      expect(entry('edit').text()).toContain('chatThread.editHint')
+      expect(entry('edit').text()).not.toContain('chatThread.editVideoHint')
+      expect(videoInviteRead).toHaveBeenLastCalledWith(
+        expect.objectContaining({ locale: 'de' }),
+        OWN.body,
+      )
+      wrapper.unmount()
+
+      videoInviteRead.mockReturnValue({ room: 'https://meet.ffmuc.net/k7m2x9q4t8wz' })
+      mountBubble(OWN)
+      await more().trigger('click')
+      expect(entry('edit').text()).toContain('chatThread.editVideoHint')
+      expect(entry('edit').text()).not.toContain('chatThread.editHint')
+    })
+
+    // Not read for every bubble of a thread: only where the menu is open, and "Bearbeiten" in it.
+    it('reads the message as an invitation only while its menu is open, and only one’s own', async () => {
+      mountBubble(OWN)
+      expect(videoInviteRead).not.toHaveBeenCalled()
+      wrapper.unmount()
+
+      mountBubble(THEIRS)
+      await more().trigger('click')
+      await flushPromises()
+      expect(videoInviteRead).not.toHaveBeenCalled()
+    })
+
+    /**
+     * The room each number of entries asks for above a message, to the pixel: 140 px for two (as
+     * before "Bearbeiten"), 189 px for three. Measured in the bundle (01.10.2026), three entries
+     * and their gap are 170 px in all ten languages -- the same 20 px to spare as two have --, and
+     * 186 px where the line under "Bearbeiten" breaks in two: at a video invitation in French and
+     * in Greek, at 320 px.
+     */
+    it.each([
+      ['two entries', THEIRS, 140],
+      ['three entries', OWN, 189],
+    ])('asks for the room of %s above a message', async (_, message, room) => {
+      mountBubble(message)
+      const box = document.createElement('div')
+      box.className = 'chat-thread-box'
+      box.getBoundingClientRect = () => ({ top: 100 })
+      wrapper.element.parentNode.replaceChild(box, wrapper.element)
+      box.appendChild(wrapper.element)
+
+      wrapper.element.getBoundingClientRect = () => ({ top: 100 + room - 1 })
+      await more().trigger('click')
+      expect(menu().classes()).toContain('is-below')
+      await more().trigger('click')
+
+      wrapper.element.getBoundingClientRect = () => ({ top: 100 + room })
+      await more().trigger('click')
+      expect(menu().classes()).not.toContain('is-below')
+      wrapper.unmount()
+      box.remove()
+      wrapper = null
+    })
+
+    /**
+     * Three entries need more room above the message than two (189 px against 140): with 160 px
+     * above it, one's own message opens its menu under it, somebody else's still over it.
+     */
+    it('opens under a message where three entries have no room above, and two still have', async () => {
+      const inThreadAt = (top) => {
+        const box = document.createElement('div')
+        box.className = 'chat-thread-box'
+        box.getBoundingClientRect = () => ({ top: 100 })
+        wrapper.element.parentNode.replaceChild(box, wrapper.element)
+        box.appendChild(wrapper.element)
+        wrapper.element.getBoundingClientRect = () => ({ top: 100 + top })
+        return box
+      }
+
+      mountBubble(OWN)
+      let box = inThreadAt(160)
+      await more().trigger('click')
+      expect(menu().classes()).toContain('is-below')
+      await more().trigger('click')
+      wrapper.element.getBoundingClientRect = () => ({ top: 100 + 189 })
+      await more().trigger('click')
+      expect(menu().classes()).not.toContain('is-below')
+      wrapper.unmount()
+      box.remove()
+
+      mountBubble(THEIRS)
+      box = inThreadAt(160)
+      await more().trigger('click')
+      expect(menu().classes()).not.toContain('is-below')
+      wrapper.unmount()
+      box.remove()
+      wrapper = null
+    })
   })
 
   describe('the line over a forwarded copy (E-059 F2)', () => {

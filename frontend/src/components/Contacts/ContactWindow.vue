@@ -277,6 +277,7 @@
         @chat-conversation="takeChatConversation"
         @search="takeFound"
         @duplicate-video="videoCall?.duplicate($event)"
+        @edit-video="videoCall?.edit($event)"
         @forward-message="forwardMessage"
       />
 
@@ -290,6 +291,7 @@
         :first="!chatConversation.exists"
         :can-mail="chatConversation.exists"
         :deliver="deliverThroughThread"
+        :change="editThroughThread"
       />
 
       <!-- Forwarding a message of this thread (E-059): the dialog that asks where to, over this
@@ -630,6 +632,13 @@ const askVideoCall = () => videoCall.value?.ask()
  */
 const deliverThroughThread = (message) =>
   thread.value ? thread.value.deliver(message) : Promise.resolve(false)
+
+/**
+ * A video invitation of one's own is changed through the thread as well (E-060): the thread puts
+ * the changed message in the old one's place. '' where it went through, else what the problem was.
+ */
+const editThroughThread = (changed) =>
+  thread.value ? thread.value.edit(changed) : Promise.resolve('OTHER')
 
 /**
  * The question before joining a call, asked by a click on the link of a video invitation in the
