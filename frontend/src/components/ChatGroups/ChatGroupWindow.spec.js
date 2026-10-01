@@ -142,6 +142,14 @@ describe('ChatGroupWindow', () => {
           IMdiMagnify: true,
           IMdiChevronUp: true,
           IMdiChevronDown: true,
+          // The dialog reads the server and has a spec of its own; here: what it was opened with.
+          ChatForwardDialog: {
+            name: 'ChatForwardDialog',
+            props: { modelValue: Boolean, message: Object, writer: String },
+            emits: ['update:modelValue'],
+            template:
+              '<div data-test="chat-forward" :data-open="String(modelValue)" :data-message="message?.messageUuid ?? \'\'" :data-writer="writer" />',
+          },
           ChatVideoCall: {
             name: 'ChatVideoCall',
             // Typed, as the real ones: an untyped `group` written bare would come as "".
@@ -201,12 +209,47 @@ describe('ChatGroupWindow', () => {
     expect(video.duplicate).toHaveBeenCalledWith(invitation)
   })
 
-  // E-059: a message to be forwarded goes up to the page, which asks where to.
-  it('hands a message to be forwarded up to the page', async () => {
-    mountWindow()
-    const message = { id: 3, messageUuid: 'uuid-3', body: 'Flohmarkt' }
-    await wrapper.findComponent({ name: 'ChatThread' }).vm.$emit('forwardMessage', message)
-    expect(wrapper.emitted('forwardMessage')).toEqual([[message]])
+  // E-059, and Bernd on 01.10.2026: the window asks where to forward itself, as the contact
+  // window does -- wherever it is opened, nobody around it has to listen.
+  describe('forwarding a message of its thread', () => {
+    const dialog = () => wrapper.find('[data-test="chat-forward"]')
+    const forward = (message) =>
+      wrapper.findComponent({ name: 'ChatThread' }).vm.$emit('forwardMessage', message)
+
+    it('asks where to in a dialog over itself, naming the writer as the thread does', async () => {
+      mountWindow()
+      expect(dialog().attributes('data-open')).toBe('false')
+
+      await forward({
+        id: 3,
+        messageUuid: 'uuid-3',
+        body: 'Flohmarkt',
+        sender: { communityUuid: 'home-uuid', gradidoID: 'carla-id' },
+        senderUser: { communityUuid: 'home-uuid', gradidoID: 'carla-id', alias: 'Carla-Sonne' },
+      })
+
+      expect(dialog().attributes()).toMatchObject({
+        'data-open': 'true',
+        'data-message': 'uuid-3',
+        'data-writer': 'Carla-Sonne',
+      })
+      expect(wrapper.emitted('forwardMessage')).toBeUndefined()
+    })
+
+    it('names nobody where the message says nothing of its writer', async () => {
+      mountWindow()
+      await forward({ id: 4, messageUuid: 'uuid-4', body: 'Hallo', sender: null, senderUser: null })
+      expect(dialog().attributes()).toMatchObject({ 'data-open': 'true', 'data-writer': '' })
+    })
+
+    it('closes the dialog when it says so', async () => {
+      mountWindow()
+      await forward({ id: 3, messageUuid: 'uuid-3', body: 'Flohmarkt', senderUser: null })
+      await wrapper
+        .findComponent({ name: 'ChatForwardDialog' })
+        .vm.$emit('update:modelValue', false)
+      expect(dialog().attributes('data-open')).toBe('false')
+    })
   })
 
   describe('the search', () => {

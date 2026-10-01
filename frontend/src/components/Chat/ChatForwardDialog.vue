@@ -5,7 +5,12 @@
        greyed (F5) --, the words to go with it (F4) and the box. A sheet on a phone, a dialog on a
        desk whose list scrolls between the title and the buttons, as "Neue Gruppe"; over the window
        it was opened from. No header, so the dialog is named by `aria-label`; its own footer, so
-       the button can wait while the copies are on their way. -->
+       the button can wait while the copies are on their way.
+
+       It stands in the conversation's window, not on a page (Bernd, 01.10.2026): the window is
+       opened from many places -- the contacts page, the column and the strip beside every page,
+       the booking lists, the tile on the overview --, and forwarding goes from each of them. The
+       contacts and groups to choose from it finds by itself (useChatForwardTargets). -->
   <BModal
     :model-value="modelValue"
     fullscreen="sm"
@@ -29,27 +34,46 @@
         </span>
       </span>
     </div>
-    <chat-group-picker
-      v-model="members"
-      v-model:chosen-groups="groupUuids"
-      :contacts="contacts"
-      :groups="groups"
-      :max="CHAT_FORWARD_MAX_TARGETS"
-      :label="t('chatForward.to')"
-      :placeholder="t('chatForward.search')"
-      :no-contacts-text="t('chatForward.noContacts')"
-    />
-    <div class="mt-3">
-      <label class="form-label" :for="wordsId">{{ t('chatForward.words') }}</label>
-      <textarea
-        :id="wordsId"
-        v-model="words"
-        class="form-control chat-forward-words"
-        rows="2"
-        :maxlength="MESSAGE_MAX_CHARS"
-        data-test="chat-forward-words"
-      />
+    <!-- Asked for where no page handed the lists down: the wheel until they are here, as the
+         contacts page shows it. The words' field comes with the lists, not before them: a field
+         somebody is already typing in must not be pushed down the dialog when the lists land. -->
+    <div v-if="waiting" class="text-center py-3" data-test="chat-forward-loading">
+      <BSpinner small />
     </div>
+    <template v-else>
+      <!-- A failed request is not an empty list, here as on the contacts page: "no contacts yet"
+           would tell a member with a hundred of them that they have none. -->
+      <chat-group-picker
+        v-model="members"
+        v-model:chosen-groups="groupUuids"
+        :contacts="contacts"
+        :groups="groups"
+        :max="CHAT_FORWARD_MAX_TARGETS"
+        :label="t('chatForward.to')"
+        :placeholder="t('chatForward.search')"
+        :no-contacts-text="
+          contactsFailed ? t('contacts.notReachable') : t('chatForward.noContacts')
+        "
+      />
+      <p
+        v-if="groupsFailed"
+        class="text-muted small mt-2 mb-0"
+        data-test="chat-forward-groups-error"
+      >
+        {{ t('chatGroup.notReachable') }}
+      </p>
+      <div class="mt-3">
+        <label class="form-label" :for="wordsId">{{ t('chatForward.words') }}</label>
+        <textarea
+          :id="wordsId"
+          v-model="words"
+          class="form-control chat-forward-words"
+          rows="2"
+          :maxlength="MESSAGE_MAX_CHARS"
+          data-test="chat-forward-words"
+        />
+      </div>
+    </template>
     <!-- The box, for the contacts chosen (E-024): the first message of a pair goes by mail in any
          case, the server sees to that. Into a group a copy goes without an announcement. -->
     <ChatCheck
@@ -85,10 +109,12 @@
 <script setup>
 import { computed, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useMutation } from '@vue/apollo-composable'
-import { BButton, BModal } from 'bootstrap-vue-next'
+import { useApolloClient, useMutation } from '@vue/apollo-composable'
+import { BButton, BModal, BSpinner } from 'bootstrap-vue-next'
 import ChatCheck from '@/components/Chat/ChatCheck.vue'
 import ChatGroupPicker from '@/components/ChatGroups/ChatGroupPicker.vue'
+import { useChatForwardTargets } from '@/composables/useChatForwardTargets'
+import { pollChatNow } from '@/composables/useChatUpdates'
 import { useAppToast } from '@/composables/useToast'
 import { forwardChatMessage } from '@/graphql/chat.graphql'
 import { memberAlias } from '@/utils/gradidoAddress'
@@ -100,26 +126,40 @@ const MESSAGE_MAX_CHARS = 2000
 
 /**
  * Forwards a message (E-059): the member chooses where to, writes words to go with it where they
- * want to, and the server files a copy in every conversation chosen. `forwarded` tells the page it
- * went, so its lists show the new messages.
+ * want to, and the server files a copy in every conversation chosen. Once it went, the chat's
+ * beat asks at once (`pollChatNow`): the copies show in a thread that is open, and every list of
+ * contacts and groups asks again -- the conversations it went into moved up.
  *
  * `message` is the message of the thread; `writer` the name its writer goes by in the window it
- * came from -- one's own is "Du" here. `contacts` and `groups` are what the page holds.
+ * came from -- one's own is "Du" here.
  */
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
   message: { type: Object, default: null },
   writer: { type: String, default: '' },
-  contacts: { type: Array, required: true },
-  groups: { type: Array, required: true },
 })
 
-const emit = defineEmits(['update:modelValue', 'forwarded'])
+const emit = defineEmits(['update:modelValue'])
 
 const { t, d, locale } = useI18n()
 const { toastSuccess, toastError } = useAppToast()
+const { client: apolloClient } = useApolloClient()
 const { mutate: forward } = useMutation(forwardChatMessage)
 const wordsId = `${useId()}-words`
+
+/** The contacts and groups to choose from: the page's where it holds them, else asked for here. */
+const {
+  contacts,
+  groups,
+  loading,
+  contactsFailed,
+  groupsFailed,
+  load: loadTargets,
+} = useChatForwardTargets(apolloClient)
+/** Nothing to choose from yet, and the lists on their way. */
+const waiting = computed(
+  () => loading.value && contacts.value.length === 0 && groups.value.length === 0,
+)
 
 /** The contacts chosen (their `user`s) and the groups chosen (their uuids), as the picker has them. */
 const members = ref([])
@@ -166,6 +206,7 @@ watch(
   () => props.modelValue,
   (open) => {
     if (!open) return
+    loadTargets()
     members.value = []
     groupUuids.value = []
     words.value = ''
@@ -195,7 +236,7 @@ const go = async () => {
   sending.value = true
   problem.value = ''
   const chosenGroups = groupUuids.value
-    .map((uuid) => props.groups.find((group) => group.groupUuid === uuid))
+    .map((uuid) => groups.value.find((group) => group.groupUuid === uuid))
     .filter(Boolean)
   const names = [
     ...chosenGroups.map((group) => group.title),
@@ -225,7 +266,7 @@ const go = async () => {
       // press would forward it twice where it went.
       toastError(t('chatForward.partly', { done: copies.length, count }))
     }
-    emit('forwarded')
+    pollChatNow()
     close()
   } catch {
     problem.value = t('chatForward.failed')
