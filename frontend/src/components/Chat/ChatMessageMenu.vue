@@ -10,8 +10,25 @@
     <!-- The menu at a message (Bernd, 30.09.2026, E-059): drawn as the paperclip's menu is
          (ChatComposeBar) -- the sign in gold, the word, a quieter line under it -- over the
          message, at its side; under it where there is no room above. A group of buttons, as the
-         paperclip's: Tab reaches them, Esc closes (the bubble handles it). "Bearbeiten" comes
-         next. Inside the root, not over it: one root element takes the bubble's listener. -->
+         paperclip's: Tab reaches them, Esc closes (the bubble handles it). Inside the root, not
+         over it: one root element takes the bubble's listener. -->
+    <!-- "Bearbeiten" first (Bernd, 01.10.2026, E-060), at one's own message only: its text -- or,
+         at a video invitation, its topic and its time. -->
+    <button
+      v-if="canEdit"
+      type="button"
+      class="chat-message-menu-item"
+      data-test="chat-message-edit"
+      @click="emit('edit')"
+    >
+      <i-mdi-pencil-outline class="chat-message-menu-icon" aria-hidden="true" />
+      <span class="chat-message-menu-words">
+        <span class="chat-message-menu-label">{{ t('chatThread.edit') }}</span>
+        <span class="chat-message-menu-hint">
+          {{ video ? t('chatThread.editVideoHint') : t('chatThread.editHint') }}
+        </span>
+      </span>
+    </button>
     <button
       v-if="canForward"
       type="button"
@@ -45,25 +62,30 @@
 import { useI18n } from 'vue-i18n'
 
 /**
- * The entries of the menu at a message (E-059). What may be done, the bubble decides: a transfer
- * is not forwarded, a picture without words has no text to copy.
+ * The entries of the menu at a message (E-059, E-060). What may be done, the bubble decides: only
+ * one's own words are changed, a transfer is not forwarded, a picture without words has no text to
+ * copy.
  */
 defineProps({
   /** One's own message: the menu keeps to the right, as the bubble does. */
   mine: { type: Boolean, default: false },
   /** No room above the message in the thread: the menu opens under it. */
   below: { type: Boolean, default: false },
+  canEdit: { type: Boolean, default: false },
+  /** The message is a video invitation: "Bearbeiten" changes its topic and its time. */
+  video: { type: Boolean, default: false },
   canForward: { type: Boolean, default: false },
   canCopy: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['forward', 'copy'])
+const emit = defineEmits(['edit', 'forward', 'copy'])
 
 const { t } = useI18n()
 </script>
 
 <style scoped>
-/* The paperclip's menu (ChatComposeBar), over the message. */
+/* The paperclip's menu (ChatComposeBar), over the message -- on the menus' own grey
+   (`--menu-surface`), as that one. */
 .chat-message-menu {
   position: absolute;
   bottom: calc(100% + 0.35rem);
@@ -75,9 +97,9 @@ const { t } = useI18n()
   min-width: 16rem;
   max-width: 100%;
   padding: 0.35rem;
-  border: 1px solid var(--border, #dee2e6);
+  border: 1px solid var(--menu-border, #b3bac2);
   border-radius: 0.85rem;
-  background: var(--surface, #fff);
+  background: var(--menu-surface, #dde1e6);
   box-shadow: 0 8px 28px rgb(0 0 0 / 22%);
 }
 
@@ -111,7 +133,7 @@ const { t } = useI18n()
 
 @media (hover: hover) {
   .chat-message-menu-item:hover {
-    background: var(--surface-muted, #f2f4f6);
+    background: var(--menu-hover, #eef0f3);
   }
 }
 
@@ -124,7 +146,7 @@ const { t } = useI18n()
   flex: 0 0 auto;
   width: 1.4rem;
   height: 1.4rem;
-  color: var(--gold, #c58d38);
+  color: var(--menu-icon, #a8732a);
 }
 
 .chat-message-menu-words {
@@ -138,7 +160,7 @@ const { t } = useI18n()
 
 .chat-message-menu-hint {
   display: block;
-  color: var(--bs-secondary-color, #6c757d);
+  color: var(--menu-text-muted, #4d555d);
   font-size: 0.8rem;
 }
 </style>

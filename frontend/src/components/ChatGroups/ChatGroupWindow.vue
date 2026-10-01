@@ -152,6 +152,7 @@
         @open-member="openWriter"
         @search="takeFound"
         @duplicate-video="videoCall?.duplicate($event)"
+        @edit-video="videoCall?.edit($event)"
         @forward-message="forwardMessage"
       />
 
@@ -164,6 +165,7 @@
         group
         :can-mail="canAnnounce"
         :deliver="deliverThroughThread"
+        :change="editThroughThread"
       />
 
       <!-- The members' dialog, over this window (P5). -->
@@ -439,6 +441,13 @@ const canAnnounce = computed(
 /** The invitation through the group's thread; nothing goes where there is none. */
 const deliverThroughThread = (message) =>
   thread.value ? thread.value.deliver(message) : Promise.resolve(false)
+
+/**
+ * A video invitation of one's own is changed through the thread as well (E-060): the thread puts
+ * the changed message in the old one's place. '' where it went through, else what the problem was.
+ */
+const editThroughThread = (changed) =>
+  thread.value ? thread.value.edit(changed) : Promise.resolve('OTHER')
 
 /** The question before joining a call, asked by the link of an invitation in the group's thread. */
 provide(CHAT_VIDEO_JOIN, (roomUrl) => videoCall.value?.askJoin(roomUrl))

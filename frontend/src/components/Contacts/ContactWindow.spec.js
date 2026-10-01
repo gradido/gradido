@@ -76,6 +76,11 @@ vi.mock('@vue/apollo-composable', () => ({
  * it reached the person. Its own spec is about how; here a test decides.
  */
 const threadDelivers = vi.fn()
+/**
+ * What the thread's `edit` answers for a changed video invitation (ChatThread, exposed, E-060):
+ * '' where the change went through, else what the problem was. Here a test decides.
+ */
+const threadEdits = vi.fn()
 
 const toastSuccess = vi.fn()
 const toastError = vi.fn()
@@ -173,7 +178,7 @@ describe('ContactWindow', () => {
               textOnly: Boolean,
               search: String,
             },
-            emits: ['chatConversation', 'search', 'duplicateVideo', 'forwardMessage'],
+            emits: ['chatConversation', 'search', 'duplicateVideo', 'editVideo', 'forwardMessage'],
             inject: { join: { from: CHAT_VIDEO_JOIN, default: null } },
             mounted() {
               threadsMade.push(this.member.gradidoID)
@@ -181,6 +186,9 @@ describe('ContactWindow', () => {
             methods: {
               deliver(message) {
                 return threadDelivers(message, this.member.gradidoID)
+              },
+              edit(changed) {
+                return threadEdits(changed, this.member.gradidoID)
               },
               searchStep(direction) {
                 searchSteps.push(direction)
@@ -219,6 +227,7 @@ describe('ContactWindow', () => {
     serverRooms.mockReset()
     serverChoices.mockReset()
     threadDelivers.mockReset()
+    threadEdits.mockReset()
     toastSuccess.mockClear()
     toastError.mockClear()
     threadsMade = []
@@ -2365,6 +2374,79 @@ describe('ContactWindow', () => {
         await field('plan').trigger('click')
         await flushPromises()
       }
+
+      /**
+       * E-060 (Bernd, 01.10.2026): "Bearbeiten" at a video invitation of one's own in the thread.
+       * The thread hands the message and what it says to the window; the window opens the
+       * question on it, and the question changes the message through the window's thread. What
+       * the dialog does with it is ChatVideoCall.edit.spec.js's; here: that the window joins the
+       * three together, with the real question.
+       */
+      describe('an invitation changed', () => {
+        const INVITATION = {
+          room: SYSTEMLI.url,
+          topic: 'Lesekreis',
+          when: { start: START, end: END },
+          operator: SYSTEMLI.operator,
+          revision: null,
+        }
+        const handedOver = async () => {
+          mountWindow()
+          await threadSays({ exists: true, mutedByMe: false })
+          await wrapper
+            .findComponent({ name: 'ChatThread' })
+            .vm.$emit('editVideo', { message: { messageUuid: 'uuid-7' }, invitation: INVITATION })
+          await flushPromises()
+        }
+
+        it('opens the question on the invitation, to be saved and not planned', async () => {
+          await handedOver()
+
+          expect(dialog().exists()).toBe(true)
+          expect(dialog().attributes('aria-label')).toBe('chatThread.videoEditTitle')
+          expect(field('edit-topic').element.value).toBe('Lesekreis')
+          expect(field('edit-save').exists()).toBe(true)
+          expect(field('plan').exists()).toBe(false)
+          // The invitation's own room: no list of servers and no room is asked for.
+          expect(serverChoices).not.toHaveBeenCalled()
+          expect(serverRooms).not.toHaveBeenCalled()
+        })
+
+        it('changes the message through its own thread, and closes', async () => {
+          threadEdits.mockResolvedValue('')
+          await handedOver()
+          await field('edit-topic').setValue('Lesekreis „Momo“')
+
+          await field('edit-save').trigger('click')
+          await flushPromises()
+
+          expect(threadEdits).toHaveBeenCalledTimes(1)
+          const [changed, who] = threadEdits.mock.calls[0]
+          expect(who).toBe('carla-id')
+          expect(changed.messageUuid).toBe('uuid-7')
+          // The invitation's words anew: the new topic, in the room it always had.
+          expect(changed.body).toContain('chatThread.videoInvitePlannedTopic')
+          expect(changed.body).toContain(JSON.stringify('Lesekreis „Momo“').slice(1, -1))
+          expect(changed.body).toContain(`${SYSTEMLI.url}#config.subject=`)
+          // Only the topic changed: no message follows.
+          expect(threadDelivers).not.toHaveBeenCalled()
+          expect(dialog().exists()).toBe(false)
+        })
+
+        it('says in the dialog where the thread could not change it', async () => {
+          threadEdits.mockResolvedValue('NOT_CONFIRMED')
+          await handedOver()
+          await field('edit-topic').setValue('Anderes Thema')
+
+          await field('edit-save').trigger('click')
+          await flushPromises()
+
+          expect(field('settings-problem').text()).toBe(
+            'chatThread.editNotConfirmed {"name":"Carla-Sonne"}',
+          )
+          expect(dialog().exists()).toBe(true)
+        })
+      })
 
       /**
        * E-058 (Bernd, 30.09.2026): "Duplizieren" under an invitation in the thread -- the question

@@ -9,13 +9,43 @@
       <span>{{ t('chatThread.firstGoesByEmail', { name }) }}</span>
     </p>
 
+    <!-- A message of one's own is being changed (Bernd, 01.10.2026, E-060 B1): its text stands in
+         the field below, and this strip says so -- with the words as they were, on one line, and
+         the way out. The arrow beside the field becomes a tick. Nothing else goes with a change:
+         no picture, no mail. -->
+    <div v-if="editing" class="chat-compose-editing" data-test="chat-compose-editing">
+      <i-mdi-pencil-outline class="chat-compose-editing-icon" aria-hidden="true" />
+      <div class="chat-compose-editing-words">
+        <span :id="editingId" class="chat-compose-editing-title">
+          {{ t('chatThread.editing') }}
+        </span>
+        <span
+          v-if="editing.body"
+          class="chat-compose-editing-text"
+          data-test="chat-compose-editing-text"
+        >
+          {{ editing.body }}
+        </span>
+      </div>
+      <button
+        type="button"
+        class="chat-compose-attached-remove"
+        :aria-label="t('chatThread.editCancel')"
+        :title="t('chatThread.editCancel')"
+        data-test="chat-compose-edit-cancel"
+        @click="cancelEdit"
+      >
+        <i-mdi-close class="chat-compose-attached-remove-icon" aria-hidden="true" />
+      </button>
+    </div>
+
     <!-- The picture that goes with the next message (the mockup, "Bild gewählt, vor dem Senden"):
          while it is opened, and again while it is made small for sending, a quiet square and "Bild
          wird vorbereitet …"; otherwise the picture as it will go -- drawn from the picture as
          chosen, cut as the member cut it (E-047) -- with "Bild" and "Wird mit Deiner Nachricht
          gesendet.", and a round button to take it off. -->
     <div
-      v-if="preparing || picture"
+      v-if="!editing && (preparing || picture)"
       class="chat-compose-attached"
       data-test="chat-compose-attached"
     >
@@ -76,9 +106,10 @@
            the entries are shown (`aria-expanded`) and which they are (`aria-controls`); Tab walks
            them, Esc closes them. -->
       <!-- Not in the contact window's first form (E-055): a first word to somebody met in a group
-           is only the text, and the paperclip comes with the conversation. -->
+           is only the text, and the paperclip comes with the conversation. And not while a message
+           is being changed (E-060): its picture stays as it is, and no other goes with it. -->
       <div
-        v-if="!textOnly"
+        v-if="!textOnly && !editing"
         ref="attachArea"
         class="chat-compose-attach-area"
         @keydown.esc="closeMenuByKey"
@@ -189,6 +220,7 @@
         data-test="chat-compose-field"
         @input="grow"
         @keydown.enter="sendOnModifiedEnter"
+        @keydown.esc="cancelEditByKey"
       />
       <!-- `aria-disabled`, not `disabled`: a focused button that is disabled loses its focus in
            Chrome, and a keyboard that sent with it would be nowhere while the message is on its
@@ -197,17 +229,21 @@
            `@mousedown.prevent` keeps the focus in the field when the button is clicked or
            tapped -- the keyboard of a phone stays open for the next message. The click itself
            is not prevented. -->
+      <!-- While a message is being changed (E-060) it is the tick that saves the change, in the
+           wallet's green: the same button, so the thumb finds it where the arrow was. -->
       <button
         type="button"
         class="chat-compose-send"
-        :aria-label="t('chatThread.send')"
-        :title="t('chatThread.send')"
+        :class="{ 'is-save': editing }"
+        :aria-label="sendWords"
+        :title="sendWords"
         :aria-disabled="canSend ? 'false' : 'true'"
         data-test="chat-compose-send"
         @mousedown.prevent
         @click="submit"
       >
-        <i-mdi-send class="chat-compose-send-icon" aria-hidden="true" />
+        <i-mdi-check v-if="editing" class="chat-compose-send-icon" aria-hidden="true" />
+        <i-mdi-send v-else class="chat-compose-send-icon" aria-hidden="true" />
       </button>
     </div>
 
@@ -218,7 +254,7 @@
          In a group (P5) it is the announcement (E-050 F5): by mail to every member but the sender
          who has not muted the group -- the owner's and the moderators' only, and only where
          anybody else is in the group. -->
-    <div v-if="boxShown" class="chat-compose-options">
+    <div v-if="boxShown && !editing" class="chat-compose-options">
       <!-- The box and its word as ONE thing, the box inside its label: a long word (in
            Russian the whole sentence) wraps beside the box instead of the row putting the
            word on a line of its own under an empty-looking box. -->
@@ -249,8 +285,25 @@
     <!-- ⛔ Where it went wrong, and not in a toast: the text is still in the field above, and
          this line says that it is. `role="alert"` is announced when it is put in. Two refusals
          about a picture have words of their own (`failedReason`). -->
-    <p v-if="failed" class="chat-compose-note" role="alert" data-test="chat-compose-failed">
+    <!-- Not while a message is being changed (E-060): the words that did not go wait with the
+         rest of the bar, and the line comes back with them. -->
+    <p
+      v-if="failed && !editing"
+      class="chat-compose-note"
+      role="alert"
+      data-test="chat-compose-failed"
+    >
       {{ failedWords }}
+    </p>
+    <!-- A change that did not go through (E-060): why, here under the field and not in a toast,
+         as for a message that was not sent -- the new text is still in the field above. -->
+    <p
+      v-if="editing && editProblem"
+      class="chat-compose-note"
+      role="alert"
+      data-test="chat-compose-edit-problem"
+    >
+      {{ editProblemWords }}
     </p>
     <!-- A picture that could not be made ready: why, in the bar's own words. -->
     <p
@@ -377,9 +430,27 @@ const props = defineProps({
   announceTo: { type: Number, default: 0 },
   /** Only the text, no paperclip: the contact window's first form (E-055). */
   textOnly: { type: Boolean, default: false },
+  /**
+   * The message of one's own that is being changed (E-060), or null: `{ messageUuid, body,
+   * hasImage }` -- its text as it stands, and whether it carries a picture (then the text is its
+   * caption, and may be emptied). While it is set the bar changes that message instead of
+   * writing a new one, and what stood in the field before waits (see `held`).
+   */
+  editing: { type: Object, default: null },
+  /**
+   * Why the last change did not go through, or '': NOT_CONFIRMED (the other community's server
+   * did not take it), PENDING (the message is still on its way there), anything else for "not
+   * changed". The new text stays in the field.
+   */
+  editProblem: { type: String, default: '' },
 })
 
-const emit = defineEmits(['send'])
+/**
+ * `send`: a new message. `saveEdit`: the changed text of the message being changed --
+ * `{ messageUuid, body }`. `cancelEdit`: the changing is let go, by the ✕, by Esc in the field, or
+ * by saving a text that is the same as before.
+ */
+const emit = defineEmits(['send', 'saveEdit', 'cancelEdit'])
 
 const { t } = useI18n()
 
@@ -393,6 +464,7 @@ const id = useId()
 const fieldId = `${id}-field`
 const firstId = `${id}-first`
 const remainingId = `${id}-remaining`
+const editingId = `${id}-editing`
 
 const root = ref(null)
 const field = ref(null)
@@ -420,6 +492,9 @@ const pictureProblem = ref(null)
 
 /** With a picture, the words are its caption, and optional (E-044). */
 const placeholder = computed(() => {
+  if (props.editing) {
+    return props.editing.hasImage ? t('chatThread.imageCaption') : t('chatThread.editPlaceholder')
+  }
   if (picture.value || preparing.value) return t('chatThread.imageCaption')
   return props.group
     ? t('chatGroup.placeholder', { name: props.name })
@@ -455,10 +530,20 @@ const body = computed(() => text.value.trim())
  * chosen to go with this message.
  */
 const canSend = computed(() => {
-  if (props.sending || preparing.value) return false
+  if (props.sending) return false
+  // A message being changed (E-060): the same bounds -- its picture counts, not one in the bar.
+  if (props.editing) {
+    return props.editing.hasImage
+      ? body.value.length <= MESSAGE_MAX_CHARS
+      : messageSchema.isValidSync(body.value)
+  }
+  if (preparing.value) return false
   if (picture.value) return body.value.length <= MESSAGE_MAX_CHARS
   return messageSchema.isValidSync(body.value)
 })
+
+/** The button's name: it sends a message, or saves the change of one. */
+const sendWords = computed(() => (props.editing ? t('chatThread.editSave') : t('chatThread.send')))
 
 /** Counted like `maxlength` counts: the field as typed. */
 const remaining = computed(() => MESSAGE_MAX_CHARS - text.value.length)
@@ -466,7 +551,11 @@ const showRemaining = computed(() => remaining.value < SHOW_REMAINING_BELOW)
 
 const describedBy = computed(
   () =>
-    [props.first ? firstId : null, showRemaining.value ? remainingId : null]
+    [
+      props.first ? firstId : null,
+      props.editing ? editingId : null,
+      showRemaining.value ? remainingId : null,
+    ]
       .filter(Boolean)
       .join(' ') || undefined,
 )
@@ -488,10 +577,24 @@ onMounted(() => {
 })
 
 /**
- * The words in the field as they stand, for the thread's note (utils/chatReturn). The words only:
- * a picture chosen does not come back after a restart (see `picture`).
+ * What stood in the bar when the changing of a message began (E-060) -- the words, the box, the
+ * picture -- and comes back when it ends, saved or let go: the text in the field is never lost
+ * but by sending it. Null while no message is being changed.
  */
-defineExpose({ draft: () => text.value })
+let held = null
+
+/**
+ * `draft`: the words in the field as they stand, for the thread's note (utils/chatReturn). The
+ * words only: a picture chosen does not come back after a restart (see `picture`). While a message
+ * is being changed they are the words that wait, not the message's.
+ *
+ * `focus`: the keyboard into the field -- "Bearbeiten" pressed once more at the message that is
+ * being changed (ChatThread).
+ */
+defineExpose({
+  draft: () => (held ? held.text : text.value),
+  focus: () => field.value?.focus({ preventScroll: true }),
+})
 
 /**
  * What went out with the last press. The field stays writable while a message is on its way,
@@ -531,6 +634,16 @@ const afterPaint = () =>
  */
 const submit = async () => {
   if (!canSend.value) return
+  if (props.editing) {
+    // The same words as before: nothing to change, and nothing to ask the server for. Without the
+    // space around them, as they are sent.
+    if (body.value === props.editing.body.trim()) {
+      emit('cancelEdit')
+      return
+    }
+    emit('saveEdit', { messageUuid: props.editing.messageUuid, body: body.value })
+    return
+  }
   const pressed = {
     text: text.value,
     body: body.value,
@@ -610,7 +723,9 @@ const takePicture = async (event) => {
   try {
     const source = await openChatImage(file)
     if (round !== pictureRound) return
-    picture.value = { source, edit: CHAT_IMAGE_UNEDITED }
+    // Opened while a message is being changed (E-060): it waits with the words that wait.
+    if (held) held.picture = { source, edit: CHAT_IMAGE_UNEDITED }
+    else picture.value = { source, edit: CHAT_IMAGE_UNEDITED }
   } catch (error) {
     if (round !== pictureRound) return
     // A picture chosen before stays: nothing has taken its place.
@@ -793,6 +908,30 @@ const sendOnModifiedEnter = (event) => {
   submit()
 }
 
+/** The ✕ of the strip: the changing is let go, and what stood in the field comes back. */
+const cancelEdit = () => emit('cancelEdit')
+
+/**
+ * ⛔ Esc in the field lets the changing go and nothing more: stopped here, it does not reach the
+ * contact window, whose dialog closes on an Esc from anywhere inside it -- the window would shut
+ * over a text half changed. Without a message being changed, Esc goes on as always.
+ */
+const cancelEditByKey = (event) => {
+  if (!props.editing) return
+  event.stopPropagation()
+  event.preventDefault()
+  cancelEdit()
+}
+
+/** Why a change did not go through, in the bar's own words (see the template). */
+const editProblemWords = computed(() => {
+  if (props.editProblem === 'NOT_CONFIRMED') {
+    return t('chatThread.editNotConfirmed', { name: props.name })
+  }
+  if (props.editProblem === 'PENDING') return t('chatThread.editPending')
+  return t('chatThread.editNotSaved')
+})
+
 /**
  * Focus goes back into the field -- unless the member has moved on meanwhile: a tap on the
  * bell while the message was on its way is not taken back.
@@ -818,10 +957,57 @@ watch(
     const sent = submitted
     submitted = null
     if (props.failed || !sent) return
+    // It went through while another message is being changed (E-060): what went out waits with
+    // the rest of the bar, and is cleared there -- else it would come back into the field once
+    // the changing ends, to be sent a second time.
+    if (held) {
+      if (sent.picture && held.picture === sent.picture) held.picture = null
+      if (held.alsoByEmail === sent.alsoByEmail) held.alsoByEmail = false
+      if (held.text === sent.text) held.text = ''
+      return
+    }
     if (sent.picture && picture.value === sent.picture) picture.value = null
     if (alsoByEmail.value === sent.alsoByEmail) alsoByEmail.value = false
     if (text.value !== sent.text) return
     text.value = ''
+    await nextTick()
+    grow()
+    if (focusStaysHere()) field.value?.focus({ preventScroll: true })
+  },
+)
+
+/**
+ * A message is taken into the bar to be changed, or let out of it again (E-060).
+ *
+ * In: what stood in the bar -- words, box, picture -- is held, the message's text takes the
+ * field, and the keyboard goes into it, behind the last character. From one message straight to
+ * another, what is held stays held. Out, saved or let go: what was held comes back.
+ */
+watch(
+  () => props.editing,
+  async (now, before) => {
+    if (now) {
+      if (!before) {
+        held = { text: text.value, alsoByEmail: alsoByEmail.value, picture: picture.value }
+      }
+      closeMenu()
+      picture.value = null
+      pictureProblem.value = null
+      alsoByEmail.value = false
+      text.value = now.body
+      await nextTick()
+      grow()
+      const box = field.value
+      box?.focus({ preventScroll: true })
+      box?.setSelectionRange(box.value.length, box.value.length)
+      return
+    }
+    if (!before) return
+    const back = held
+    held = null
+    text.value = back?.text ?? ''
+    alsoByEmail.value = back?.alsoByEmail ?? false
+    picture.value = back?.picture ?? null
     await nextTick()
     grow()
     if (focusStaysHere()) field.value?.focus({ preventScroll: true })
@@ -909,6 +1095,53 @@ watch(
 }
 
 .dark-mode .chat-compose-attached-words small {
+  color: var(--bs-body-color);
+  opacity: 0.75;
+}
+
+/* "Nachricht bearbeiten" over the field (E-060): the box of a chosen picture, with a pencil in
+   the gold of the menus' signs (`--menu-icon`, E-061), the title, and the words as they were on
+   one line. The house gold comes to 2.6 : 1 on this ground in the light mode; the menus' gold
+   reaches the 3 : 1 a sign needs in both (chatMenuSurface.spec.js). */
+.chat-compose-editing {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0 0 0.5rem;
+  padding: 0.3rem 0.3rem 0.3rem 0.65rem;
+  border: 1px solid var(--border, #dee2e6);
+  border-radius: 0.75rem;
+  background: var(--surface-muted, #f2f4f6);
+}
+
+.chat-compose-editing-icon {
+  flex: 0 0 auto;
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--menu-icon, #a8732a);
+}
+
+.chat-compose-editing-words {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.chat-compose-editing-title {
+  font-weight: 600;
+}
+
+.chat-compose-editing-text {
+  overflow: hidden;
+  color: var(--bs-secondary-color, #6c757d);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dark-mode .chat-compose-editing-text {
   color: var(--bs-body-color);
   opacity: 0.75;
 }
@@ -1009,8 +1242,10 @@ watch(
   flex: 0 0 auto;
 }
 
-/* The menu above the paperclip (the mockup, "Büroklammer offen"): a small card of the window's
-   own surface with a shadow, as wide as its words need and never wider than the bar. */
+/* The menu above the paperclip (the mockup, "Büroklammer offen"): a small card with a shadow, as
+   wide as its words need and never wider than the bar -- on the menus' own grey, a clear step
+   away from the window under it (`--menu-surface`; Bernd, 01.10.2026: on the window's own
+   surface it was easily overlooked). The menu at a message is drawn the same (ChatMessageMenu). */
 .chat-compose-menu {
   position: absolute;
   bottom: calc(100% + 0.35rem);
@@ -1022,9 +1257,9 @@ watch(
   min-width: 16rem;
   max-width: 100%;
   padding: 0.35rem;
-  border: 1px solid var(--border, #dee2e6);
+  border: 1px solid var(--menu-border, #b3bac2);
   border-radius: 0.85rem;
-  background: var(--surface, #fff);
+  background: var(--menu-surface, #dde1e6);
   box-shadow: 0 8px 28px rgb(0 0 0 / 22%);
 }
 
@@ -1054,7 +1289,7 @@ watch(
 
 @media (hover: hover) {
   .chat-compose-menu-item:hover {
-    background: var(--surface-muted, #f2f4f6);
+    background: var(--menu-hover, #eef0f3);
   }
 }
 
@@ -1070,7 +1305,7 @@ watch(
   flex: 0 0 auto;
   width: 1.4rem;
   height: 1.4rem;
-  color: var(--gold, #c58d38);
+  color: var(--menu-icon, #a8732a);
 }
 
 .chat-compose-menu-words {
@@ -1084,7 +1319,7 @@ watch(
 
 .chat-compose-menu-hint {
   display: block;
-  color: var(--bs-secondary-color, #6c757d);
+  color: var(--menu-text-muted, #4d555d);
   font-size: 0.8rem;
 }
 
@@ -1149,6 +1384,18 @@ watch(
 .chat-compose-send[aria-disabled='true'] {
   opacity: 0.45;
   cursor: default;
+}
+
+/* The tick that saves a change (E-060): the wallet's green in place of the arrow's gold -- the
+   green of each mode, written out so it can be measured. In dark mode that green is a light one,
+   and a white tick on it falls short of the 3:1 a symbol needs (2.4:1): the tick is dark there. */
+.chat-compose-send.is-save {
+  background: #047006;
+}
+
+.dark-mode .chat-compose-send.is-save {
+  background: #46c04a;
+  color: #10230f;
 }
 
 .chat-compose-send:focus-visible {

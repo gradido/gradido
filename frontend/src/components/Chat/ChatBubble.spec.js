@@ -727,6 +727,70 @@ describe('ChatBubble', () => {
     expect(time.text()).toBe('time(2026-09-22T14:30:00.000Z)')
   })
 
+  /**
+   * E-060 B3 (Bernd, 01.10.2026): a message whose writer changed it says so -- the word, before
+   * the time, for everybody who reads it. The earlier text is not kept, and nothing says what it
+   * was or when it was changed.
+   */
+  describe('the word "bearbeitet"', () => {
+    const mark = () => wrapper.find('[data-test="chat-bubble-edited"]')
+
+    it.each([
+      ['one’s own', OWN],
+      ['the other person’s', THEIRS],
+    ])('stands before the time of %s message that was changed', (_, message) => {
+      mountBubble({ ...message, editedAt: '2026-09-22T15:00:00.000Z' })
+
+      expect(mark().text()).toBe('chatThread.edited')
+      // Before the time, in the line the time stands in -- and the time is still when it arrived.
+      const time = wrapper.find('[data-test="chat-bubble-time"]')
+      expect(mark().element.parentElement).toBe(time.element.parentElement)
+      expect(
+        mark().element.compareDocumentPosition(time.element) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy()
+      expect(time.attributes('datetime')).toBe(message.createdAt)
+      // The word only: not when it was changed.
+      expect(wrapper.text()).not.toContain('15:00')
+    })
+
+    it('stands at no message nobody changed', () => {
+      mountBubble({ ...OWN, editedAt: null })
+      expect(mark().exists()).toBe(false)
+      wrapper.unmount()
+
+      // A message from before the field.
+      mountBubble(OWN)
+      expect(mark().exists()).toBe(false)
+    })
+
+    // The dot between the word and the time is drawn, not read out; the word is quiet, as the time.
+    it('is set apart from the time by a dot in the stylesheet', () => {
+      const code = readFileSync(
+        join(dirname(fileURLToPath(import.meta.url)), 'ChatBubble.vue'),
+        'utf8',
+      ).replace(/\/\*[\s\S]*?\*\//g, '')
+      expect(code).toMatch(/\.chat-bubble-edited::after\s*\{[^}]*content:\s*'·'/)
+      expect(code).not.toMatch(/\.chat-bubble-edited\s*\{[^}]*color:/)
+    })
+  })
+
+  // E-060: the message whose text stands in the bar to be changed is ringed, as under its menu.
+  it('is ringed while its text is being changed', async () => {
+    mountBubble(OWN)
+    expect(wrapper.classes()).not.toContain('is-editing')
+
+    await wrapper.setProps({ editing: true })
+
+    expect(wrapper.classes()).toContain('is-editing')
+    const code = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'ChatBubble.vue'),
+      'utf8',
+    ).replace(/\/\*[\s\S]*?\*\//g, '')
+    expect(code).toMatch(
+      /\.chat-bubble-row\.is-editing \.chat-bubble\s*\{[^}]*box-shadow:\s*0 0 0 2px var\(--success/,
+    )
+  })
+
   const envelope = () => wrapper.find('[data-test="chat-bubble-mailed"]')
   const notMailed = () => wrapper.find('[data-test="chat-bubble-not-mailed"]')
 
@@ -1020,6 +1084,49 @@ describe('ChatBubble', () => {
       expect(file).toContain(`URL:${PLANNED}\r\n`)
       expect(file).toContain('UID:q2w3e4r5t6y7-1790773200@gradido\r\n')
       expect(file).toContain('DESCRIPTION:📹 Videoanruf: Projektbesprechung\\n📅 Mittwoch')
+    })
+
+    /**
+     * E-060: a planned call that was changed. Its file keeps the name the call had FIRST -- its
+     * room and its first start -- and counts its changes, so a calendar that holds the call moves
+     * the entry it has instead of adding a second one.
+     */
+    it('saves a changed call under the name of its first start, with the count of its changes', async () => {
+      lendObjectAddresses()
+      const moved = {
+        start: new Date('2026-10-05T14:00:00.000Z'),
+        end: new Date('2026-10-05T15:00:00.000Z'),
+      }
+      const address = withChatVideoTopic(ROOM, 'Projektbesprechung', moved, {
+        first: START,
+        sequence: 2,
+      })
+      mountBubble({
+        ...THEIRS,
+        body: `📹 Videoanruf: Projektbesprechung\n📅 Montag, 5. Oktober 2026\n🕒 16:00–17:00 Uhr (MESZ)\nDer Raum liegt …: ${address}`,
+        editedAt: '2026-09-29T08:00:00.000Z',
+      })
+
+      await calendar().trigger('click')
+
+      const file = (await text(blobs[0])).replace(/\r\n /g, '')
+      // The same name as before the change (see the test above), the new time, the count.
+      expect(file).toContain('UID:q2w3e4r5t6y7-1790773200@gradido\r\n')
+      expect(file).toContain('SEQUENCE:2\r\n')
+      expect(file).toContain('DTSTART:20261005T140000Z\r\n')
+      expect(file).toContain('DTEND:20261005T150000Z\r\n')
+      expect(file).toContain(`URL:${address}\r\n`)
+    })
+
+    // Gegenprobe: a call never changed counts nothing and is named by its own start.
+    it('saves a call never changed with no change counted', async () => {
+      lendObjectAddresses()
+      mountBubble({ ...THEIRS, body: INVITATION })
+
+      await calendar().trigger('click')
+
+      const file = (await text(blobs[0])).replace(/\r\n /g, '')
+      expect(file).toContain('SEQUENCE:0\r\n')
     })
 
     it('draws the button with a focus ring of its own, in the stylesheet', () => {

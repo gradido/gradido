@@ -10,6 +10,7 @@
         'chat-bubble-in-group': face,
         'is-search-current': searchCurrent,
         'has-menu': menuOpen,
+        'is-editing': editing,
       },
     ]"
     :style="face ? { '--chat-bubble-face': `${LIST_AVATAR_SIZE}px` } : undefined"
@@ -141,6 +142,11 @@
         >
           <i-mdi-email-outline aria-hidden="true" />
         </span>
+        <!-- Its writer changed the text since (E-060): the word, before the time -- for
+             everybody who reads the message. The earlier text is not kept. -->
+        <span v-if="message.editedAt" class="chat-bubble-edited" data-test="chat-bubble-edited">
+          {{ t('chatThread.edited') }}
+        </span>
         <!-- When it arrived on THIS server; there is no other clock in a conversation
              (E-018). -->
         <time class="chat-bubble-time" :datetime="arrivedIso" data-test="chat-bubble-time">
@@ -169,8 +175,11 @@
       v-if="menuOpen"
       :mine="message.mine"
       :below="menuBelow"
+      :can-edit="canEdit"
+      :video="editsAsVideo"
       :can-forward="canForward"
       :can-copy="canCopy"
+      @edit="edit"
       @forward="forward"
       @copy="copyText"
       @keydown.esc.stop.prevent="closeMenu({ focusMore: true })"
@@ -215,6 +224,7 @@ import {
   chatVideoPlannedCall,
   saveChatVideoCalendarFile,
 } from '@/utils/chatVideoCalendar'
+import { readChatVideoInvite } from '@/utils/chatVideoInvite'
 
 /**
  * ⛔ The enum NAMES, not the column values. The backend registers the database objects
@@ -247,6 +257,8 @@ const props = defineProps({
   showWriter: { type: Boolean, default: true },
   /** The hit the thread's search stands on (E-057): the bubble is ringed, its marks stronger. */
   searchCurrent: { type: Boolean, default: false },
+  /** The message whose text stands in the bar to be changed (E-060): ringed, as under its menu. */
+  editing: { type: Boolean, default: false },
 })
 
 /**
@@ -256,11 +268,13 @@ const props = defineProps({
 /**
  * `openImage`: a picture of the message, large (P7). `openMember`: the writer of somebody else's
  * message in a group, named over it (E-053) -- the user the server named with it. `forward`: the
- * message, to be forwarded (E-059) -- the page asks where to.
+ * message, to be forwarded (E-059) -- the page asks where to. `edit`: one's own message, to be
+ * changed (E-060) -- the thread puts its text into the bar, or hands a video invitation to the
+ * window's question.
  */
-const emit = defineEmits(['openImage', 'openMember', 'duplicateVideo', 'forward'])
+const emit = defineEmits(['openImage', 'openMember', 'duplicateVideo', 'forward', 'edit'])
 
-const { t, d } = useI18n()
+const { t, d, locale } = useI18n()
 const { toastSuccess, toastError } = useAppToast()
 
 /**
@@ -379,7 +393,7 @@ const videoInvitation = computed(() =>
 /**
  * "Add to calendar": the call as an iCalendar file -- titled with its topic and the other
  * person's name, the invitation as its note, the room as its place. The same call keeps the same
- * name (`uid`), so a second download is the same entry.
+ * name (`uid`), so a second download is the same entry -- also after the call was changed.
  */
 const addToCalendar = () => {
   const call = plannedCall.value
@@ -392,7 +406,10 @@ const addToCalendar = () => {
       title: `${call.topic} – ${props.alias}`,
       description: props.message.body,
       url: call.url,
-      uid: chatVideoCalendarUid(call.room, call.start),
+      // A call that was changed keeps the name of its first start, and counts its changes
+      // (E-060): the calendar moves the entry it holds instead of adding a second one.
+      uid: chatVideoCalendarUid(call.room, call.first ?? call.start),
+      sequence: call.sequence ?? 0,
     }),
   )
 }
@@ -419,7 +436,32 @@ const textToCopy = computed(() =>
     : [props.message.subject, props.message.body].filter((part) => part?.trim()).join('\n\n'),
 )
 const canCopy = computed(() => Boolean(textToCopy.value))
-const hasMenu = computed(() => canForward.value || canCopy.value)
+/**
+ * "Bearbeiten" (E-060): one's own words only -- not somebody else's message, not a transfer (a
+ * booking is no chat text), not a forwarded copy (its words are somebody else's), and not a
+ * message the server has not filed yet. The server holds the same rules (editChatMessage).
+ */
+const canEdit = computed(
+  () =>
+    Boolean(props.message.mine) &&
+    !props.message.transfer &&
+    !props.message.forwarded &&
+    Boolean(props.message.messageUuid),
+)
+/**
+ * Whether "Bearbeiten" changes this message as the video invitation it is -- its topic and its
+ * time, in the window's question -- or as the text it is: the menu's line under the word says
+ * which. Read as the thread reads it when the entry is pressed (`startEdit`, readChatVideoInvite):
+ * a message that only carries a room's address among words of one's own is text. Looked at only
+ * while the menu is open.
+ */
+const editsAsVideo = computed(
+  () =>
+    canEdit.value &&
+    readChatVideoInvite({ t, d, locale: locale.value }, props.message.body) !== null,
+)
+const menuEntries = computed(() => [canEdit.value, canForward.value, canCopy.value].filter(Boolean))
+const hasMenu = computed(() => menuEntries.value.length > 0)
 
 const row = ref(null)
 const more = ref(null)
@@ -427,10 +469,14 @@ const menuOpen = ref(false)
 /** No room above the message in the thread: the menu opens under it. */
 const menuBelow = ref(false)
 /**
- * The room the menu needs above the message -- two entries and their frame: 113 px in all ten
- * languages, at 320 and at 1280 px (measured 30.09.2026), and its gap.
+ * The room the menu needs above the message: its entries, their frame and its gap. Two entries
+ * are 113 px in all ten languages, at 320 and at 1280 px (measured 30.09.2026); three (E-060) are
+ * 164 px and 170 with their gap -- 186 where the line under "Bearbeiten" breaks in two, at a video
+ * invitation in French and in Greek at 320 px (measured 01.10.2026).
  */
-const MENU_ROOM_PX = 140
+const MENU_ENTRY_PX = 49
+const MENU_FRAME_PX = 42
+const menuRoom = () => MENU_FRAME_PX + menuEntries.value.length * MENU_ENTRY_PX
 
 const closeOnPressElsewhere = (event) => {
   if (!row.value?.contains(event.target)) closeMenu()
@@ -448,7 +494,7 @@ const openMenu = async () => {
   menuBelow.value = Boolean(
     box &&
     row.value.getBoundingClientRect().top - box.getBoundingClientRect().top + box.scrollTop <
-      MENU_ROOM_PX,
+      menuRoom(),
   )
   menuOpen.value = true
   // Another message's menu closes as this one opens: the press was elsewhere for it.
@@ -487,6 +533,12 @@ const tapBubble = (event) => {
 const forward = () => {
   closeMenu()
   emit('forward', props.message)
+}
+
+/** "Bearbeiten" (E-060): the message goes up to the thread, which knows where it is changed. */
+const edit = () => {
+  closeMenu()
+  emit('edit', props.message)
 }
 
 /** "Text kopieren" (E-059 F6): the subject and the text as they were written. */
@@ -641,9 +693,11 @@ const copyText = async () => {
   border-bottom-right-radius: 0.3rem;
 }
 
-/* The message whose menu is open (E-059): ringed in the wallet's green, as the search rings its
-   hit. After the bubble's own rules, which it outweighs. */
-.chat-bubble-row.has-menu .chat-bubble {
+/* The message whose menu is open (E-059), and the one whose text stands in the bar to be changed
+   (E-060): ringed in the wallet's green, as the search rings its hit. After the bubble's own
+   rules, which it outweighs. */
+.chat-bubble-row.has-menu .chat-bubble,
+.chat-bubble-row.is-editing .chat-bubble {
   box-shadow: 0 0 0 2px var(--success, #047006);
 }
 
@@ -754,6 +808,18 @@ const copyText = async () => {
 .chat-bubble-mailed {
   display: inline-flex;
   font-size: 0.85rem;
+}
+
+/* "bearbeitet" before the time (E-060): the word set apart from the hour by a dot, which is drawn
+   and not read out. */
+.chat-bubble-edited {
+  font-style: italic;
+}
+
+.chat-bubble-edited::after {
+  margin-left: 0.3rem;
+  font-style: normal;
+  content: '·';
 }
 
 .chat-bubble-state {

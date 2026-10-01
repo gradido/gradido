@@ -71,6 +71,7 @@ fragment chatGroupMessageFields on ChatMessage {
   subject
   body
   createdAt
+  editedAt
   deliveryState
   notify
   mailState
