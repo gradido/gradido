@@ -8,8 +8,15 @@ import { fileURLToPath } from 'node:url'
 import { BImg, BNavbar, BNavbarBrand, BNavbarNav } from 'bootstrap-vue-next'
 import AuthNavbar from './AuthNavbar.vue'
 
+const route = vi.hoisted(() => ({ current: { params: {}, query: {} } }))
 vi.mock('vue-router', () => ({
-  useRoute: () => ({ params: {}, query: {} }),
+  useRoute: () => route.current,
+  useRouter: () => ({
+    getRoutes: () => [
+      { name: 'Login', path: '/login/:code?' },
+      { name: 'Register', path: '/register/:code?' },
+    ],
+  }),
 }))
 
 vi.mock('../Menu/NavItem.vue', () => ({
@@ -58,6 +65,62 @@ describe('AuthNavbar', () => {
     const nav = mountWith(true).find('.navbar-nav')
     expect(nav.classes()).not.toContain('d-none')
     expect(nav.findAll('.nav-item').map((item) => item.text())).toEqual(['signup', 'signin'])
+  })
+
+  /**
+   * E-017, the guarantor code. It is sealed for the name in the address it was scanned to, and
+   * the registration checks it against `referrer`. This bar stands above the address page and
+   * its links carry the query along - so they have to carry the name too.
+   */
+  describe('the guarantor code on an address page', () => {
+    const CODE = '1790000600.seal-AAAA_BBBB'
+
+    const linksOn = (current) => {
+      route.current = current
+      const links = mountWith(true)
+        .findAllComponents({ name: 'NavItem' })
+        .map((item) => item.props('to'))
+      route.current = { params: {}, query: {} }
+      return links
+    }
+
+    it('carries the name along with the code to the registration and the sign-in', () => {
+      const links = linksOn({ params: { alias: 'bernd' }, query: { guarantor: CODE } })
+
+      expect(links.map((link) => link.name)).toEqual(['Register', 'Login'])
+      for (const link of links) {
+        expect(link.query).toEqual({ referrer: 'bernd', guarantor: CODE })
+      }
+    })
+
+    it('leaves a referrer that already stands in the query as it is', () => {
+      const links = linksOn({
+        params: { alias: 'bernd' },
+        query: { guarantor: CODE, referrer: 'meisterbob' },
+      })
+
+      for (const link of links) {
+        expect(link.query).toEqual({ referrer: 'meisterbob', guarantor: CODE })
+      }
+    })
+
+    // Without a guarantor code the bar does not start naming a referrer on its own.
+    it('adds no name where there is no guarantor code', () => {
+      const links = linksOn({ params: { alias: 'bernd' }, query: {} })
+
+      for (const link of links) {
+        expect(link.query).toEqual({})
+      }
+    })
+
+    // The detour over the sign-in: no address any more, name and code are in the query.
+    it('adds no name where there is no address', () => {
+      const links = linksOn({ params: {}, query: { guarantor: CODE } })
+
+      for (const link of links) {
+        expect(link.query).toEqual({ guarantor: CODE })
+      }
+    })
   })
 
   describe('the stylesheet', () => {
