@@ -9,6 +9,7 @@ import {
   CHAT_POLL_ROUNDS_MAX,
   chatUnreadConversations,
   onChatMessages,
+  onChatMessagesEdited,
   pollChatNow,
   startChatUpdates,
   stopChatUpdates,
@@ -34,9 +35,23 @@ const chatMessage = (id, extra = {}) => ({
   ...extra,
 })
 
-const update = ({ latestId = 10, unread = 0, messages = [], hasMore = false } = {}) => ({
+const update = ({
+  latestId = 10,
+  unread = 0,
+  messages = [],
+  hasMore = false,
+  edited = [],
+  editedCursor = '1759309220000-0',
+} = {}) => ({
   data: {
-    newChatMessagesSince: { latestId, unreadConversations: unread, messages, hasMore },
+    newChatMessagesSince: {
+      latestId,
+      unreadConversations: unread,
+      messages,
+      hasMore,
+      edited,
+      editedCursor,
+    },
   },
 })
 
@@ -72,6 +87,7 @@ const makeServer = () => {
       return release
     },
     afterIds: () => query.mock.calls.map(([options]) => options.variables.afterId),
+    editedCursors: () => query.mock.calls.map(([options]) => options.variables.editedCursor),
   }
 }
 
@@ -106,7 +122,7 @@ describe('useChatUpdates', () => {
       expect(server.query).toHaveBeenCalledTimes(1)
       const [options] = server.query.mock.calls[0]
       expect(options.query).toBe(newChatMessagesSince)
-      expect(options.variables).toEqual({ afterId: null, limit: 50 })
+      expect(options.variables).toEqual({ afterId: null, limit: 50, editedCursor: null })
     })
 
     // Nothing reads these answers back, and every marker would leave its own entry.
@@ -530,6 +546,128 @@ describe('useChatUpdates', () => {
       startChatUpdates(next.client)
       await vi.advanceTimersByTimeAsync(0)
       expect(next.afterIds()).toEqual([null])
+    })
+  })
+
+  /**
+   * The messages whose text was changed (E-060): asked for with the cursor the last answer handed
+   * on, and handed to whoever listens for changes -- a channel of its own beside the arrivals.
+   */
+  describe('the messages that were changed', () => {
+    it('hands back the cursor the last answer handed on, as it came', async () => {
+      server.answer(
+        update({ editedCursor: '1759309220000-0' }),
+        update({ editedCursor: '1759309235000-0' }),
+        // Over the cap: the server goes on exactly after the last one it handed out.
+        update({ editedCursor: '1759309233123-4711' }),
+      )
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+
+      expect(server.editedCursors()).toEqual([
+        null,
+        '1759309220000-0',
+        '1759309235000-0',
+        '1759309233123-4711',
+      ])
+    })
+
+    it('hands the changed messages to whoever listens for changes, and not as arrivals', async () => {
+      const arrived = vi.fn()
+      const changed = vi.fn()
+      onChatMessages(arrived)
+      const stop = onChatMessagesEdited(changed)
+      const edited = [
+        chatMessage(4, { body: 'changed', editedAt: '2026-10-01T09:00:00.000Z' }),
+        chatMessage(7, {
+          conversationId: 9,
+          body: 'changed too',
+          editedAt: '2026-10-01T09:00:01.000Z',
+        }),
+      ]
+      server.answer(update(), update({ edited }))
+
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+
+      expect(changed).toHaveBeenCalledTimes(1)
+      expect(changed).toHaveBeenCalledWith(edited)
+      expect(arrived).not.toHaveBeenCalled()
+      // A change moves no order and no dot: the contact list is not asked again for it.
+      expect(refreshContactsPanel).not.toHaveBeenCalled()
+
+      stop()
+      server.answer(update({ edited }))
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+      expect(changed).toHaveBeenCalledTimes(1)
+    })
+
+    it('hands on arrivals and changes of the same answer, each to its own listeners', async () => {
+      const arrived = vi.fn()
+      const changed = vi.fn()
+      onChatMessages(arrived)
+      onChatMessagesEdited(changed)
+      server.answer(
+        update(),
+        update({
+          latestId: 12,
+          messages: [chatMessage(12)],
+          edited: [chatMessage(4, { body: 'changed' })],
+        }),
+      )
+
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+
+      expect(arrived.mock.calls).toEqual([[[chatMessage(12)]]])
+      expect(changed.mock.calls).toEqual([[[chatMessage(4, { body: 'changed' })]]])
+    })
+
+    it('goes on with the others where one listener fails', async () => {
+      const failing = vi.fn(() => {
+        throw new Error('a thread that broke')
+      })
+      const changed = vi.fn()
+      onChatMessagesEdited(failing)
+      onChatMessagesEdited(changed)
+      server.answer(update(), update({ edited: [chatMessage(4)] }), update({ unread: 2 }))
+
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+      expect(changed).toHaveBeenCalledTimes(1)
+      // And the beat goes on.
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+      expect(chatUnreadConversations.value).toBe(2)
+    })
+
+    // A failed question names no cursor: the next one asks from where the last answer said.
+    it('keeps its cursor over a question that failed', async () => {
+      server.answer(update({ editedCursor: '1759309220000-0' }), new Error('offline'))
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+      await vi.advanceTimersByTimeAsync(2 * CHAT_POLL_INTERVAL_MS)
+
+      expect(server.editedCursors()).toEqual([null, '1759309220000-0', '1759309220000-0'])
+    })
+
+    // Nothing of one member's chat reaches the next one on this device.
+    it('forgets its cursor when it stops', async () => {
+      server.answer(update({ editedCursor: '1759309220000-0' }))
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+      stopChatUpdates()
+
+      const next = makeServer()
+      startChatUpdates(next.client)
+      await vi.advanceTimersByTimeAsync(0)
+      expect(next.editedCursors()).toEqual([null])
     })
   })
 

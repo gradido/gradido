@@ -81,6 +81,41 @@ describe.each([
   })
 })
 
+/**
+ * E-060: the pencil of the strip over the field, while a message is being changed, is drawn in
+ * the gold of the menus' signs -- on the strip's own ground (`--surface-muted`), where the house
+ * gold falls short of the 3 : 1 a sign needs in the light mode.
+ */
+describe.each([
+  ['light', LIGHT],
+  ['dark', DARK],
+])('the pencil of the strip over the field, %s', (_mode, sheet) => {
+  it('is made out on the strip’s ground', () => {
+    expect(
+      contrast(token(sheet, 'menu-icon'), token(sheet, 'surface-muted')),
+    ).toBeGreaterThanOrEqual(3)
+  })
+})
+
+describe('the strip over the field', () => {
+  const styles = COMPOSE.slice(COMPOSE.indexOf('>', COMPOSE.indexOf('<style')) + 1).replace(
+    /\/\*[\s\S]*?\*\//g,
+    '',
+  )
+  const rule = (selector) =>
+    styles.match(new RegExp(`\\n\\${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
+
+  it('draws its pencil in the menus’ gold, on the ground the measure is taken on', () => {
+    expect(rule('.chat-compose-editing-icon')).toMatch(/color:\s*var\(--menu-icon,/)
+    expect(rule('.chat-compose-editing')).toMatch(/background:\s*var\(--surface-muted,/)
+  })
+
+  // Gegenprobe: the house gold would not do in the light mode -- which is why it is not taken.
+  it('would not do with the house gold in the light mode', () => {
+    expect(contrast('#c58d38', token(LIGHT, 'surface-muted'))).toBeLessThan(3)
+  })
+})
+
 describe('the two menus', () => {
   /** The declarations of the rule for exactly this selector. */
   const ruleOf = (source, selector) => {

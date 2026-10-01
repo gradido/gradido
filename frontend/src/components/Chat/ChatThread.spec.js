@@ -16,6 +16,7 @@ import {
 import ChatImageView from './ChatImageView.vue'
 import {
   chatMessagesWithMemberQuery,
+  editChatMessage,
   markChatConversationRead,
   newChatMessagesSince,
   sendChatMessage,
@@ -23,14 +24,23 @@ import {
 import { transactionsQuery } from '@/graphql/transactions.graphql'
 
 /**
- * The chat's beat as the thread sees it: whoever listens, and "ask now". A test hands messages
- * to the listeners the way the beat does -- all conversations at once, one array per answer.
+ * The chat's beat as the thread sees it: whoever listens -- for the messages that arrived, and for
+ * the ones whose text was changed (E-060) --, and "ask now". A test hands messages to the
+ * listeners the way the beat does -- all conversations at once, one array per answer.
  */
-const beat = vi.hoisted(() => ({ listeners: new Set(), pollNow: vi.fn(async () => {}) }))
+const beat = vi.hoisted(() => ({
+  listeners: new Set(),
+  editedListeners: new Set(),
+  pollNow: vi.fn(async () => {}),
+}))
 vi.mock('@/composables/useChatUpdates', () => ({
   onChatMessages: (listener) => {
     beat.listeners.add(listener)
     return () => beat.listeners.delete(listener)
+  },
+  onChatMessagesEdited: (listener) => {
+    beat.editedListeners.add(listener)
+    return () => beat.editedListeners.delete(listener)
   },
   pollChatNow: (...args) => beat.pollNow(...args),
 }))
@@ -38,6 +48,21 @@ const beatBrings = async (...chatMessages) => {
   for (const listener of [...beat.listeners]) listener(chatMessages)
   await flushPromises()
 }
+const beatChanges = async (...edited) => {
+  for (const listener of [...beat.editedListeners]) listener(edited)
+  await flushPromises()
+}
+
+/**
+ * Whether a message is a video invitation word for word (utils/chatVideoInvite): null here, as
+ * for every ordinary message, unless a test says what it reads. The reading itself has its own
+ * spec, with the wallet's real words in ten languages -- this file's `t` answers with the keys.
+ */
+const videoInviteRead = vi.hoisted(() => vi.fn(() => null))
+vi.mock('@/utils/chatVideoInvite', async (original) => ({
+  ...(await original()),
+  readChatVideoInvite: (...args) => videoInviteRead(...args),
+}))
 
 // The member signed in, whose key the way back after a restart is noted under (utils/chatReturn).
 // And their switch for the transfers in the conversations (Einstellungen › Nachrichten), which a
@@ -64,6 +89,7 @@ vi.mock('vue-i18n', () => ({
     t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key),
     d: (date, format) => `${format}(${date.toISOString()})`,
     n: (value, format) => `${format}(${value})`,
+    locale: { value: 'de' },
   }),
 }))
 
@@ -88,6 +114,13 @@ const markRead = vi.fn(async () => ({ data: { markChatConversationRead: true } }
  * makes it throw. Called with the variables, so a test can say what was asked.
  */
 const serverSends = vi.fn()
+
+/**
+ * What the server answers to `editChatMessage` (E-060): a test sets the copy it comes back with,
+ * or makes it throw. Called with the variables and the options, so a test can say what was asked
+ * and how.
+ */
+const serverChanges = vi.fn()
 
 /**
  * The cache as `update` sees it, as far as the thread uses it.
@@ -145,6 +178,17 @@ vi.mock('@vue/apollo-composable', async () => {
     useMutation: (document) => {
       const loading = ref(false)
       const error = ref(null)
+      // A change of one's own (E-060): the answer and nothing else -- asked with `no-cache`, the
+      // original writes nothing by itself, and the thread puts the copy into the page.
+      if (document === editChatMessage) {
+        return {
+          loading,
+          error,
+          mutate: async (variables, options) => ({
+            data: { editChatMessage: await serverChanges(variables, options) },
+          }),
+        }
+      }
       if (document !== sendChatMessage) {
         return {
           loading,
@@ -338,6 +382,13 @@ describe('ChatThread', () => {
           IMdiPaperclip: true,
           IMdiCellphone: true,
           IMdiOpenInNew: true,
+          // The menu at a message and the bar while a message is changed (E-059, E-060).
+          IMdiDotsHorizontal: true,
+          IMdiPencilOutline: true,
+          IMdiShareOutline: true,
+          IMdiContentCopy: true,
+          IMdiCheck: true,
+          IMdiClose: true,
           BModal: true,
         },
       },
@@ -365,6 +416,9 @@ describe('ChatThread', () => {
     noBookings()
     delete storeState.transfersInChat
     serverSends.mockReset()
+    serverChanges.mockReset()
+    videoInviteRead.mockReset()
+    videoInviteRead.mockImplementation(() => null)
     beat.pollNow.mockClear()
     layout.hidden = false
     layout.extra = 0
@@ -2331,6 +2385,719 @@ describe('ChatThread', () => {
     })
   })
 
+  /**
+   * E-060 (Bernd, 01.10.2026): a message of one's own can be changed -- its text stands in the bar
+   * to be changed (B1), without a time limit (B2), and the earlier text is not kept (B3). A message
+   * changed, by whoever, shows its new text with the next beat, and says "bearbeitet" beside the
+   * time.
+   */
+  describe('a message that was changed (E-060)', () => {
+    const status = () => wrapper.find('[data-test="chat-thread-sent"]')
+    const held = () => server.result.value.chatMessagesWithMember.messages
+    const rows = () => wrapper.findAll('[data-test="chat-bubble"]')
+    /** Which bubbles say "bearbeitet", in the thread's order. */
+    const marks = () => rows().map((row) => row.find('[data-test="chat-bubble-edited"]').exists())
+    /** Which bubbles are ringed as the one being changed. */
+    const ringed = () => rows().map((row) => row.classes().includes('is-editing'))
+
+    const CHANGED_AT = '2026-09-22T11:00:00.000Z'
+    /** Message `n` as it stands after its writer gave it another text. */
+    const changed = (n, body, { at = CHANGED_AT, ...rest } = {}) => ({
+      ...message(n, rest),
+      body,
+      editedAt: at,
+    })
+
+    describe('by whoever, as the beat brings it', () => {
+      it('puts the new text in the place of the message it holds, and says "bearbeitet"', async () => {
+        mountThread()
+        await arrive(page([1, 2, 3]))
+
+        await beatChanges(changed(1, 'Samstag ab 11 Uhr'))
+
+        expect(bubbleTexts()).toEqual(['Samstag ab 11 Uhr', 'message 2', 'message 3'])
+        expect(marks()).toEqual([true, false, false])
+        // In the page on screen, in the place it had -- and nothing asked of the server for it.
+        expect(held().map((m) => m.id)).toEqual([1, 2, 3])
+        expect(held()[0].editedAt).toBe(CHANGED_AT)
+        expect(server.fetchMore).not.toHaveBeenCalled()
+        expect(server.refetch).not.toHaveBeenCalled()
+      })
+
+      /**
+       * For the ear, once: the thread is no live region. The same change comes again with the next
+       * beats for some seconds (the server goes back a little each time) -- no news then, and
+       * nothing written.
+       */
+      it('says once that the other one changed a message', async () => {
+        mountThread()
+        await arrive(page([1, 2, 3]))
+
+        await beatChanges(changed(1, 'Samstag ab 11 Uhr'))
+        expect(status().text()).toBe('chatThread.editedBy {"name":"Lena"}')
+
+        // Something else is said meanwhile, and the same change comes once more.
+        await beatBrings(message(5))
+        expect(status().text()).toBe('chatThread.arrived {"name":"Lena"}')
+        const before = server.result.value
+        await beatChanges(changed(1, 'Samstag ab 11 Uhr'))
+
+        expect(status().text()).toBe('chatThread.arrived {"name":"Lena"}')
+        expect(server.result.value).toBe(before)
+      })
+
+      // One's own change made on another device: the new text, and no word about it.
+      it('takes a change of one’s own made elsewhere, and says nothing', async () => {
+        mountThread()
+        await arrive(page([1, 2, 3]))
+
+        await beatChanges(changed(2, 'Vom Handy aus geändert'))
+
+        expect(bubbleTexts()).toEqual(['message 1', 'Vom Handy aus geändert', 'message 3'])
+        expect(marks()).toEqual([false, true, false])
+        expect(status().text()).toBe('')
+      })
+
+      // The beat brings the changes of ALL conversations, and of pages not loaded.
+      it('passes over a message it does not hold', async () => {
+        mountThread()
+        await arrive(page([11, 12], { hasMore: true }))
+        const before = server.result.value
+
+        await beatChanges({ ...changed(77, 'Anderswo'), conversationId: 4 }, changed(5, 'Älter'))
+
+        expect(server.result.value).toBe(before)
+        expect(bubbleTexts()).toEqual(['message 11', 'message 12'])
+        expect(status().text()).toBe('')
+      })
+
+      /**
+       * ⛔ Two answers can pass each other on their way: the beat read the message before a change
+       * and comes in after the answer that brought the change. The text never goes back.
+       */
+      it('never puts an earlier text back', async () => {
+        mountThread()
+        const first = page([1, 2])
+        first.messages[0] = changed(1, 'Zweite Fassung', { at: '2026-09-22T11:05:00.000Z' })
+        await arrive(first)
+        const before = server.result.value
+
+        await beatChanges(changed(1, 'Erste Fassung', { at: '2026-09-22T11:00:00.000Z' }))
+
+        expect(bubbleTexts()).toEqual(['Zweite Fassung', 'message 2'])
+        expect(server.result.value).toBe(before)
+        expect(status().text()).toBe('')
+      })
+
+      // The page may have left the server before the change: the change waits for it.
+      it('holds a change that came while the first page was on its way', async () => {
+        mountThread()
+
+        await beatChanges(changed(1, 'Samstag ab 11 Uhr'))
+        await arrive(page([1, 2]))
+
+        expect(bubbleTexts()).toEqual(['Samstag ab 11 Uhr', 'message 2'])
+        expect(marks()).toEqual([true, false])
+      })
+
+      /**
+       * ⛔ The reader's place is put back by the next change of the thread after "load older"
+       * (see ChatThread). A text changed in between would be that change: the place would be put
+       * back before the page is there, and the page would then throw the reader to its top.
+       */
+      it('holds a change while an older page is on its way, and keeps the reader’s place', async () => {
+        mountThread()
+        await arrive(page([6, 7, 8, 9, 10, 11, 12, 13, 14, 15], { hasMore: true }))
+        const box = log().element
+        box.scrollTop = 0
+        server.olderPages.push(page([1, 2, 3, 4, 5], { hasMore: true }))
+        let letGo
+        server.gate = new Promise((resolve) => {
+          letGo = resolve
+        })
+        await older().trigger('click')
+
+        await beatChanges(changed(7, 'Samstag ab 11 Uhr'))
+        expect(bubbleTexts()).not.toContain('Samstag ab 11 Uhr')
+
+        letGo()
+        await flushPromises()
+
+        // As without the change: 15 bubbles, and what was at the top is at the top.
+        expect(box.scrollHeight).toBe(600)
+        expect(box.scrollTop).toBe(200)
+        expect(bubbleTexts()).toContain('Samstag ab 11 Uhr')
+        expect(bubbleTexts()).toHaveLength(15)
+      })
+
+      it('takes the change it held when the older page could not be loaded', async () => {
+        mountThread()
+        await arrive(page([6, 7, 8], { hasMore: true }))
+        server.olderPages.push(new Error('Network error'))
+        let letGo
+        server.gate = new Promise((resolve) => {
+          letGo = resolve
+        })
+        await older().trigger('click')
+        await beatChanges(changed(7, 'Samstag ab 11 Uhr'))
+
+        letGo()
+        await flushPromises()
+
+        expect(bubbleTexts()).toEqual(['message 6', 'Samstag ab 11 Uhr', 'message 8'])
+      })
+
+      // A change is no arrival: nothing new was shown, and no dot goes with it.
+      it('moves neither the read pointer nor the mark in the menu', async () => {
+        mountThread()
+        await arrive(page([1, 2, 3]))
+        markRead.mockClear()
+        beat.pollNow.mockClear()
+
+        await beatChanges(changed(3, 'Samstag ab 11 Uhr'))
+
+        expect(markRead).not.toHaveBeenCalled()
+        expect(beat.pollNow).not.toHaveBeenCalled()
+      })
+
+      it('does not pull the reader down who scrolled up', async () => {
+        mountThread()
+        await arrive(page([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
+        const box = log().element
+        box.scrollTop = 40
+        await log().trigger('scroll')
+
+        await beatChanges(changed(9, 'Samstag ab 11 Uhr'))
+
+        expect(bubbleTexts()).toContain('Samstag ab 11 Uhr')
+        expect(box.scrollTop).toBe(40)
+      })
+
+      // No page to put it into: the next opening asks the server, and gets the text as it stands.
+      it('takes nothing while the thread could not be loaded', async () => {
+        mountThread()
+        server.error.value = new Error('Network error')
+        server.loading.value = false
+        await flushPromises()
+
+        await beatChanges(changed(1, 'Samstag ab 11 Uhr'))
+
+        expect(wrapper.find('[data-test="chat-thread-error"]').exists()).toBe(true)
+        expect(status().text()).toBe('')
+      })
+
+      it('stops listening when it is gone', async () => {
+        mountThread()
+        await arrive(page([1, 2]))
+        expect(beat.editedListeners.size).toBe(1)
+
+        wrapper.unmount()
+
+        expect(beat.editedListeners.size).toBe(0)
+      })
+    })
+
+    describe('by oneself, in the bar', () => {
+      /** "Bearbeiten" in the menu at message `n`, as a member presses it. */
+      const pressEdit = async (n) => {
+        const row = rows().find((bubble) => bubble.attributes('data-key') === String(n))
+        await row.find('[data-test="chat-bubble-more"]').trigger('click')
+        await flushPromises()
+        await row.find('[data-test="chat-message-edit"]').trigger('click')
+        await flushPromises()
+      }
+      const strip = () => wrapper.find('[data-test="chat-compose-editing"]')
+      const problemLine = () => wrapper.find('[data-test="chat-compose-edit-problem"]')
+      /** The tick beside the field, as a member presses it. */
+      const save = async () => {
+        await wrapper.find('[data-test="chat-compose-send"]').trigger('click')
+        await flushPromises()
+      }
+
+      it('offers "Bearbeiten" at one’s own messages only', async () => {
+        mountThread()
+        await arrive(page([1, 2]))
+
+        await rows()[0].find('[data-test="chat-bubble-more"]').trigger('click')
+        await flushPromises()
+        expect(rows()[0].find('[data-test="chat-message-edit"]').exists()).toBe(false)
+
+        await rows()[1].find('[data-test="chat-bubble-more"]').trigger('click')
+        await flushPromises()
+        expect(rows()[1].find('[data-test="chat-message-edit"]').exists()).toBe(true)
+      })
+
+      it('takes the text of the message into the bar and rings the message', async () => {
+        mountThread()
+        await arrive(page([1, 2, 3]))
+
+        await pressEdit(2)
+
+        expect(bar().props('editing')).toEqual({
+          messageUuid: 'uuid-2',
+          body: 'message 2',
+          hasImage: false,
+        })
+        expect(strip().exists()).toBe(true)
+        expect(field().element.value).toBe('message 2')
+        expect(ringed()).toEqual([false, true, false])
+        // Asked whether it is a video invitation, in the member's language -- by the menu for its
+        // line, and by the thread at the press: it is none.
+        expect(videoInviteRead).toHaveBeenLastCalledWith(
+          expect.objectContaining({ locale: 'de' }),
+          'message 2',
+        )
+        expect(wrapper.emitted('editVideo')).toBeUndefined()
+      })
+
+      // A picture's words are its caption (E-044): the bar is told, and lets them be emptied.
+      it('tells the bar where the message carries a picture', async () => {
+        mountThread()
+        const first = page([1, 2])
+        first.messages[1] = {
+          ...first.messages[1],
+          images: [{ imageUuid: 'image-2', width: 800, height: 600 }],
+        }
+        await arrive(first)
+
+        await pressEdit(2)
+
+        expect(bar().props('editing').hasImage).toBe(true)
+      })
+
+      /**
+       * ⛔ As `$body`, by the message's uuid, and `no-cache`: the thread puts the answer into the
+       * page itself, by the way every change goes -- Apollo's own write would come at a moment the
+       * thread cannot choose (see `change`).
+       */
+      it('saves the new text: asks the server, puts the answer in its place, says so', async () => {
+        serverChanges.mockResolvedValue(changed(2, 'Samstag ab 11 Uhr'))
+        mountThread()
+        await arrive(page([1, 2, 3]))
+        await pressEdit(2)
+
+        await field().setValue('  Samstag ab 11 Uhr ')
+        await save()
+
+        expect(serverChanges).toHaveBeenCalledTimes(1)
+        expect(serverChanges).toHaveBeenCalledWith(
+          { messageUuid: 'uuid-2', body: 'Samstag ab 11 Uhr' },
+          { fetchPolicy: 'no-cache' },
+        )
+        // A change is no new message: nothing was sent.
+        expect(serverSends).not.toHaveBeenCalled()
+        expect(bubbleTexts()).toEqual(['message 1', 'Samstag ab 11 Uhr', 'message 3'])
+        expect(marks()).toEqual([false, true, false])
+        expect(held().map((m) => m.id)).toEqual([1, 2, 3])
+        expect(status().text()).toBe('chatThread.editSaved')
+        // The bar is the bar again.
+        expect(bar().props('editing')).toBeNull()
+        expect(strip().exists()).toBe(false)
+        expect(field().element.value).toBe('')
+        expect(ringed()).toEqual([false, false, false])
+        expect(problemLine().exists()).toBe(false)
+      })
+
+      // The text in the field is never lost but by sending it.
+      it('gives back what stood in the field, after saving and after letting go', async () => {
+        serverChanges.mockResolvedValue(changed(2, 'Samstag ab 11 Uhr'))
+        mountThread()
+        await arrive(page([1, 2, 3]))
+        await field().setValue('Ein angefangener Satz')
+
+        await pressEdit(2)
+        expect(field().element.value).toBe('message 2')
+        await wrapper.find('[data-test="chat-compose-edit-cancel"]').trigger('click')
+        await flushPromises()
+
+        expect(bar().props('editing')).toBeNull()
+        expect(field().element.value).toBe('Ein angefangener Satz')
+        expect(ringed()).toEqual([false, false, false])
+        expect(serverChanges).not.toHaveBeenCalled()
+
+        await pressEdit(2)
+        await field().setValue('Samstag ab 11 Uhr')
+        await save()
+
+        expect(bubbleTexts()[1]).toBe('Samstag ab 11 Uhr')
+        expect(field().element.value).toBe('Ein angefangener Satz')
+      })
+
+      it('asks the server nothing for the same words', async () => {
+        mountThread()
+        await arrive(page([1, 2, 3]))
+        await pressEdit(2)
+
+        await field().setValue(' message 2 ')
+        await save()
+
+        expect(serverChanges).not.toHaveBeenCalled()
+        expect(bar().props('editing')).toBeNull()
+        expect(marks()).toEqual([false, false, false])
+        expect(status().text()).toBe('')
+      })
+
+      /**
+       * A change that did not go through: the new text stays in the field, the line under it says
+       * why, and the message is as it was -- on both sides (B5: across the border a change counts
+       * only once the other server has taken it).
+       */
+      it.each([
+        [
+          'the other community’s server did not take it',
+          new Error('CHAT_MESSAGE_NOT_EDITED: NOT_CONFIRMED'),
+          'NOT_CONFIRMED',
+          'chatThread.editNotConfirmed {"name":"Lena"}',
+        ],
+        [
+          'there is no way to the other community',
+          new Error('CHAT_MESSAGE_NOT_EDITED: NO_WAY_TO_DELIVER'),
+          'NOT_CONFIRMED',
+          'chatThread.editNotConfirmed {"name":"Lena"}',
+        ],
+        [
+          'the message is still on its way there',
+          new Error('CHAT_MESSAGE_NOT_EDITED: PENDING'),
+          'PENDING',
+          'chatThread.editPending',
+        ],
+        [
+          'the server refused it otherwise',
+          new Error('CHAT_MESSAGE_NOT_EDITED: NOT_STORED'),
+          'OTHER',
+          'chatThread.editNotSaved',
+        ],
+        [
+          'the server cannot be reached',
+          new Error('Network error'),
+          'OTHER',
+          'chatThread.editNotSaved',
+        ],
+      ])('keeps the new text and says why where %s', async (_, failure, problem, words) => {
+        serverChanges.mockRejectedValue(failure)
+        mountThread()
+        await arrive(page([1, 2, 3]))
+        await pressEdit(2)
+
+        await field().setValue('Samstag ab 11 Uhr')
+        await save()
+
+        expect(bar().props('editProblem')).toBe(problem)
+        expect(problemLine().text()).toBe(words)
+        expect(problemLine().attributes('role')).toBe('alert')
+        expect(field().element.value).toBe('Samstag ab 11 Uhr')
+        expect(bar().props('editing')).not.toBeNull()
+        expect(ringed()).toEqual([false, true, false])
+        expect(bubbleTexts()).toEqual(['message 1', 'message 2', 'message 3'])
+        expect(marks()).toEqual([false, false, false])
+        expect(status().text()).toBe('')
+        // Not the line of a message that was not sent.
+        expect(wrapper.find('[data-test="chat-compose-failed"]').exists()).toBe(false)
+      })
+
+      // An answer without a copy is no change: nothing to put in the old one's place.
+      it('takes an answer without a copy for a change that did not go through', async () => {
+        serverChanges.mockResolvedValue(null)
+        mountThread()
+        await arrive(page([1, 2, 3]))
+        await pressEdit(2)
+
+        await field().setValue('Samstag ab 11 Uhr')
+        await save()
+
+        expect(problemLine().text()).toBe('chatThread.editNotSaved')
+        expect(bubbleTexts()).toEqual(['message 1', 'message 2', 'message 3'])
+      })
+
+      it('goes through at the second press, and the line goes', async () => {
+        serverChanges
+          .mockRejectedValueOnce(new Error('Network error'))
+          .mockResolvedValueOnce(changed(2, 'Samstag ab 11 Uhr'))
+        mountThread()
+        await arrive(page([1, 2, 3]))
+        await pressEdit(2)
+        await field().setValue('Samstag ab 11 Uhr')
+        await save()
+        expect(problemLine().exists()).toBe(true)
+
+        await save()
+
+        expect(serverChanges).toHaveBeenCalledTimes(2)
+        expect(problemLine().exists()).toBe(false)
+        expect(bubbleTexts()[1]).toBe('Samstag ab 11 Uhr')
+        expect(bar().props('editing')).toBeNull()
+      })
+
+      // Let go after a failure, the line goes with the changing -- and is not there the next time.
+      it('lets the line go with the changing', async () => {
+        serverChanges.mockRejectedValue(new Error('Network error'))
+        mountThread()
+        await arrive(page([1, 2, 3]))
+        await pressEdit(2)
+        await field().setValue('Samstag ab 11 Uhr')
+        await save()
+
+        await wrapper.find('[data-test="chat-compose-edit-cancel"]').trigger('click')
+        await flushPromises()
+        expect(problemLine().exists()).toBe(false)
+        expect(bar().props('editProblem')).toBe('')
+
+        await pressEdit(2)
+        expect(problemLine().exists()).toBe(false)
+        expect(field().element.value).toBe('message 2')
+      })
+
+      /**
+       * ⚠️ Both in one step, as for a message being sent: the bar puts back what stood in it only
+       * for a change that went through, and it reads "no longer on its way" and "no longer being
+       * changed" together.
+       */
+      it('lets the bar wait while the change is on its way, and turns a second press away', async () => {
+        let answer
+        serverChanges.mockImplementation(
+          () =>
+            new Promise((resolve) => {
+              answer = resolve
+            }),
+        )
+        mountThread()
+        await arrive(page([1, 2, 3]))
+        await pressEdit(2)
+        await field().setValue('Samstag ab 11 Uhr')
+
+        await save()
+        expect(bar().props('sending')).toBe(true)
+        expect(bar().props('editing')).not.toBeNull()
+        await save()
+        expect(serverChanges).toHaveBeenCalledTimes(1)
+
+        answer(changed(2, 'Samstag ab 11 Uhr'))
+        await flushPromises()
+
+        expect(bar().props('sending')).toBe(false)
+        expect(bar().props('editing')).toBeNull()
+        expect(bubbleTexts()[1]).toBe('Samstag ab 11 Uhr')
+      })
+
+      // What was typed since stays: the text in the field is never lost but by sending it. And
+      // the keyboard goes back into the field -- the press took it to the menu.
+      it('keeps what was typed when "Bearbeiten" is pressed once more at the same message', async () => {
+        mountThread(LENA, { attachTo: document.body })
+        await arrive(page([1, 2, 3, 4]))
+        await pressEdit(2)
+        await field().setValue('Halb geändert')
+        field().element.blur()
+        expect(document.activeElement).not.toBe(field().element)
+
+        await pressEdit(2)
+
+        expect(field().element.value).toBe('Halb geändert')
+        expect(ringed()).toEqual([false, true, false, false])
+        expect(document.activeElement).toBe(field().element)
+      })
+
+      // The line of a change that did not go through belongs to that message.
+      it('begins another message without the last one’s problem', async () => {
+        serverChanges.mockRejectedValue(new Error('Network error'))
+        mountThread()
+        await arrive(page([1, 2, 3, 4]))
+        await pressEdit(2)
+        await field().setValue('Samstag ab 11 Uhr')
+        await save()
+        expect(problemLine().exists()).toBe(true)
+
+        await pressEdit(4)
+
+        expect(problemLine().exists()).toBe(false)
+        expect(bar().props('editProblem')).toBe('')
+        expect(field().element.value).toBe('message 4')
+      })
+
+      /**
+       * The thread's own bar waits while a change is on its way; the thread turns a second one
+       * away itself all the same, wherever it comes from -- two changes of one message side by
+       * side could land in either order.
+       */
+      it('turns a second save away itself while one is on its way', async () => {
+        let answer
+        serverChanges.mockImplementation(
+          () =>
+            new Promise((resolve) => {
+              answer = resolve
+            }),
+        )
+        mountThread()
+        await arrive(page([1, 2, 3]))
+        await pressEdit(2)
+
+        bar().vm.$emit('saveEdit', { messageUuid: 'uuid-2', body: 'Erste Fassung' })
+        await flushPromises()
+        bar().vm.$emit('saveEdit', { messageUuid: 'uuid-2', body: 'Zweite Fassung' })
+        await flushPromises()
+
+        expect(serverChanges).toHaveBeenCalledTimes(1)
+        expect(serverChanges.mock.calls[0][0].body).toBe('Erste Fassung')
+        answer(changed(2, 'Erste Fassung'))
+        await flushPromises()
+        expect(bubbleTexts()[1]).toBe('Erste Fassung')
+      })
+
+      // From one message straight to another: the other's text, and what waited goes on waiting.
+      it('goes from one message straight to another', async () => {
+        mountThread()
+        await arrive(page([1, 2, 3, 4]))
+        await field().setValue('Ein angefangener Satz')
+        await pressEdit(2)
+        await field().setValue('Halb geändert')
+
+        await pressEdit(4)
+
+        expect(field().element.value).toBe('message 4')
+        expect(ringed()).toEqual([false, false, false, true])
+        expect(bar().props('editing').messageUuid).toBe('uuid-4')
+
+        await wrapper.find('[data-test="chat-compose-edit-cancel"]').trigger('click')
+        await flushPromises()
+        expect(field().element.value).toBe('Ein angefangener Satz')
+      })
+
+      /**
+       * ⛔ With an older page on its way, one's own change waits as the beat's do: put into the
+       * page at once, it would be the change of the thread that the reader's place is put back by.
+       */
+      it('keeps the reader’s place where the answer comes while an older page is on its way', async () => {
+        serverChanges.mockResolvedValue(changed(8, 'Samstag ab 11 Uhr'))
+        mountThread()
+        await arrive(page([6, 7, 8, 9, 10, 11, 12, 13, 14, 15], { hasMore: true }))
+        await pressEdit(8)
+        await field().setValue('Samstag ab 11 Uhr')
+        const box = log().element
+        box.scrollTop = 0
+        server.olderPages.push(page([1, 2, 3, 4, 5], { hasMore: true }))
+        let letGo
+        server.gate = new Promise((resolve) => {
+          letGo = resolve
+        })
+        await older().trigger('click')
+
+        await save()
+        expect(serverChanges).toHaveBeenCalledTimes(1)
+        expect(bar().props('editing')).toBeNull()
+        expect(bubbleTexts()).not.toContain('Samstag ab 11 Uhr')
+
+        letGo()
+        await flushPromises()
+
+        expect(box.scrollHeight).toBe(600)
+        expect(box.scrollTop).toBe(200)
+        expect(bubbleTexts()).toContain('Samstag ab 11 Uhr')
+      })
+
+      // The way back after a restart (utils/chatReturn) notes the words that WAIT, not the message's.
+      it('notes the words that wait, not the message being changed, for the way back', async () => {
+        mountThread()
+        await arrive(page([1, 2, 3]))
+        await field().setValue('Ein angefangener Satz')
+        await pressEdit(2)
+        await field().setValue('Halb geändert')
+
+        expect(bar().vm.draft()).toBe('Ein angefangener Satz')
+      })
+    })
+
+    /**
+     * A video invitation of one's own (Bernd, 01.10.2026: "Wichtig ist, dass wir dabei auch zum
+     * Beispiel einen Termin für eine Videokonferenz bearbeiten können"): not its text in the bar,
+     * but its topic and its time in the window's question -- the thread hands it over, and
+     * changes it for the window (`edit`).
+     */
+    describe('a video invitation of one’s own', () => {
+      const INVITATION = {
+        room: 'https://meet.ffmuc.net/k7m2x9q4t8wz',
+        topic: 'Projektbesprechung',
+        when: null,
+        operator: 'Freifunk München',
+        revision: null,
+      }
+      const edit = (changedMessage) => wrapper.vm.edit(changedMessage)
+
+      it('hands the message and what it says to the window, and leaves the bar alone', async () => {
+        videoInviteRead.mockReturnValue(INVITATION)
+        mountThread()
+        await arrive(page([1, 2, 3]))
+
+        const row = rows()[1]
+        await row.find('[data-test="chat-bubble-more"]').trigger('click')
+        await flushPromises()
+        await row.find('[data-test="chat-message-edit"]').trigger('click')
+        await flushPromises()
+
+        expect(wrapper.emitted('editVideo')).toHaveLength(1)
+        const [{ message: handed, invitation }] = wrapper.emitted('editVideo')[0]
+        expect(handed.messageUuid).toBe('uuid-2')
+        expect(invitation).toBe(INVITATION)
+        expect(bar().props('editing')).toBeNull()
+        expect(ringed()).toEqual([false, false, false])
+        expect(field().element.value).toBe('')
+      })
+
+      it('changes it for the window: the new words in the old one’s place, and "" for done', async () => {
+        serverChanges.mockResolvedValue(changed(2, '📅 Videoanruf am Montag …'))
+        mountThread()
+        await arrive(page([1, 2, 3]))
+
+        const problem = await edit({ messageUuid: 'uuid-2', body: '📅 Videoanruf am Montag …' })
+        await flushPromises()
+
+        expect(problem).toBe('')
+        expect(serverChanges).toHaveBeenCalledWith(
+          { messageUuid: 'uuid-2', body: '📅 Videoanruf am Montag …' },
+          { fetchPolicy: 'no-cache' },
+        )
+        expect(bubbleTexts()).toEqual(['message 1', '📅 Videoanruf am Montag …', 'message 3'])
+        expect(marks()).toEqual([false, true, false])
+        expect(bar().props('editing')).toBeNull()
+      })
+
+      it.each([
+        [new Error('CHAT_MESSAGE_NOT_EDITED: NOT_CONFIRMED'), 'NOT_CONFIRMED'],
+        [new Error('CHAT_MESSAGE_NOT_EDITED: PENDING'), 'PENDING'],
+        [new Error('Network error'), 'OTHER'],
+      ])('answers what the problem was, and changes nothing (%s)', async (failure, problem) => {
+        serverChanges.mockRejectedValue(failure)
+        mountThread()
+        await arrive(page([1, 2, 3]))
+
+        expect(await edit({ messageUuid: 'uuid-2', body: 'Neu' })).toBe(problem)
+
+        expect(bubbleTexts()).toEqual(['message 1', 'message 2', 'message 3'])
+        // The dialog says it; the bar has no change of its own to say anything about.
+        expect(bar().props('editProblem')).toBe('')
+      })
+
+      it('lets the bar wait while the window’s change is on its way', async () => {
+        let answer
+        serverChanges.mockImplementation(
+          () =>
+            new Promise((resolve) => {
+              answer = resolve
+            }),
+        )
+        mountThread()
+        await arrive(page([1, 2, 3]))
+
+        const done = edit({ messageUuid: 'uuid-2', body: 'Neu' })
+        await flushPromises()
+        expect(bar().props('sending')).toBe(true)
+
+        answer(changed(2, 'Neu'))
+        await done
+        await flushPromises()
+        expect(bar().props('sending')).toBe(false)
+      })
+    })
+  })
+
   describe('what it tells the window', () => {
     // E-017: one question on opening answers the thread and the bell.
     it('says whether there is a conversation and whether it is muted, once the page is in', async () => {
@@ -2396,13 +3163,23 @@ describe('ChatThread', () => {
     const top = (document) =>
       document.definitions.find((definition) => definition.kind === 'OperationDefinition')
         .selectionSet.selections[0]
+    // The fragment every document of a message spreads (`chatMessageFields`), as the loader
+    // hands it over with each of them: spread out, so the shapes compared are the fields.
+    const fragments = new Map(
+      chatMessagesWithMemberQuery.definitions
+        .filter((definition) => definition.kind === 'FragmentDefinition')
+        .map((definition) => [definition.name.value, definition]),
+    )
     const shape = (selectionSet) =>
       selectionSet.selections
-        .map((field) =>
-          field.selectionSet
+        .map((field) => {
+          if (field.kind === 'FragmentSpread') {
+            return shape(fragments.get(field.name.value).selectionSet)
+          }
+          return field.selectionSet
             ? `${field.name.value}{${shape(field.selectionSet)}}`
-            : field.name.value,
-        )
+            : field.name.value
+        })
         .join(' ')
 
     /**

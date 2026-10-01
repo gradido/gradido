@@ -239,6 +239,83 @@ describe('the time of a planned call', () => {
   })
 })
 
+/**
+ * A planned call that was changed (E-060): after its time the address carries the start the call
+ * had first and the count of its changes -- for the calendars, which know the call by that first
+ * start and take the higher count as the newer state. Only a changed call carries them.
+ */
+describe('a planned call that was changed', () => {
+  const WHEN = {
+    start: new Date('2026-10-05T14:00:00.000Z'),
+    end: new Date('2026-10-05T15:00:00.000Z'),
+  }
+  const FIRST = new Date('2026-09-30T13:00:00.000Z')
+  const CHANGED = `${ROOM}#config.subject=%22Lesekreis%22&gradido.start=1791208800&gradido.end=1791212400&gradido.first=1790773200&gradido.seq=2`
+
+  it('carries the first start and the count after its time', () => {
+    expect(withChatVideoTopic(ROOM, 'Lesekreis', WHEN, { first: FIRST, sequence: 2 })).toBe(CHANGED)
+  })
+
+  it('has the form it always had where nothing was changed, and where there is no time', () => {
+    expect(withChatVideoTopic(ROOM, 'Lesekreis', WHEN)).toBe(
+      `${ROOM}#config.subject=%22Lesekreis%22&gradido.start=1791208800&gradido.end=1791212400`,
+    )
+    expect(withChatVideoTopic(ROOM, 'Lesekreis', WHEN, null)).not.toContain('gradido.first')
+    // A call without a time has none to have been changed.
+    expect(withChatVideoTopic(ROOM, 'Lesekreis', null, { first: FIRST, sequence: 2 })).toBe(
+      `${ROOM}#config.subject=%22Lesekreis%22`,
+    )
+  })
+
+  it('is read back with them, and a call never changed without', () => {
+    expect(readChatVideoAddition(CHANGED)).toEqual({
+      room: ROOM,
+      topic: 'Lesekreis',
+      start: WHEN.start,
+      end: WHEN.end,
+      first: FIRST,
+      sequence: 2,
+    })
+    const never = readChatVideoAddition(withChatVideoTopic(ROOM, 'Lesekreis', WHEN))
+    expect(never).toEqual({ room: ROOM, topic: 'Lesekreis', start: WHEN.start, end: WHEN.end })
+    expect('first' in never).toBe(false)
+  })
+
+  // Jitsi reads both as numbers and uses neither, as it does the time.
+  it('opens the same meeting: Jitsi reads the topic and takes the rest as numbers', () => {
+    for (const [, topic] of TOPICS) {
+      const read = jitsiReads(withChatVideoTopic(ROOM, topic, WHEN, { first: FIRST, sequence: 2 }))
+      expect(read['config.subject'], topic).toBe(topic)
+      expect(read['gradido.first']).toBe(1790773200)
+      expect(read['gradido.seq']).toBe(2)
+    }
+  })
+
+  it('stays one link at the end of an invitation, and shortens as every invitation does', () => {
+    const links = chatTextParts(invitation('Lesekreis', CHANGED)).filter(
+      (part) => part.type === 'url',
+    )
+    expect(links.map((part) => part.value)).toEqual([CHANGED])
+    expect(withoutChatVideoTopic(CHANGED)).toBe(ROOM)
+    // Handed on, it brings neither the time nor what was changed.
+    expect(withoutChatVideoTime(CHANGED)).toBe(`${ROOM}#config.subject=%22Lesekreis%22`)
+  })
+
+  it('reads nothing out of an address that is not of this form', () => {
+    for (const address of [
+      // The first start without the count, the count without the first start, or without a time.
+      `${ROOM}#config.subject=%22Lesekreis%22&gradido.start=1791208800&gradido.end=1791212400&gradido.first=1790773200`,
+      `${ROOM}#config.subject=%22Lesekreis%22&gradido.start=1791208800&gradido.end=1791212400&gradido.seq=2`,
+      `${ROOM}#config.subject=%22Lesekreis%22&gradido.first=1790773200&gradido.seq=2`,
+      `${CHANGED}&x=1`,
+      `${CHANGED.replace('seq=2', 'seq=1234567')}`,
+      `${CHANGED.replace('seq=2', 'seq=-1')}`,
+    ]) {
+      expect(readChatVideoAddition(address), address).toBeNull()
+    }
+  })
+})
+
 // Bernd, 29.09.2026: the copy button behind a video link hands on the room with its topic and
 // without a planned call's time -- a link used again for another meeting brings no old date along.
 describe('withoutChatVideoTime', () => {
