@@ -603,7 +603,10 @@ html:has(body.dark-mode) {
 // (up) arrow is text-black. Bootstrap's .text-black carries !important, so this
 // override needs !important too -- higher specificity alone loses to it. Match the
 // "expand" (down) arrow (text-muted) so both chevrons read at the same weight.
-#app.dark-mode .collapse-icon .text-black {
+// .dark-mode, not #app.dark-mode: the map's profile window is a modal, teleported to
+// <body> and so outside #app. <body> carries the class too (App.vue), and three
+// classes still outweigh the one of .text-black.
+.dark-mode .collapse-icon .text-black {
   color: var(--text-muted) !important;
 }
 
