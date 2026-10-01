@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { and, asc, desc, eq, gt, isNull, lt, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, gt, gte, isNull, lt, or, sql } from 'drizzle-orm'
 import { Result, VoidResult } from 'shared'
 import { drizzleDb } from '../AppDatabase'
 import { DBInsertFailed, DBNotFoundError } from '../errorTypes'
@@ -230,6 +230,133 @@ export async function dbSelectChatMessageForMember(
   return found
     ? { success: true, value: found.message }
     : { success: false, error: ChatMessageNotFound(`message_uuid for a member`) }
+}
+
+/**
+ * Changes the text of a message (E-060) and hands back the row as it stands afterwards. Only the
+ * one who wrote it changes it: the sender's pair is part of the where clause, as the member's
+ * pair is for the read pointer -- a caller naming somebody else changes nothing. Not a message
+ * marked deleted, and not a forwarded copy: its words are somebody else's. DBNotFoundError for
+ * all of these alike, and for a uuid without a row.
+ *
+ * `edited_at` is the database's clock at the statement, in utc -- what drizzle reads and writes a
+ * datetime as --, never a clock of the caller: the wallet's beat asks "what was changed since"
+ * against the same clock (dbSelectChatUnreadSummary's `now`), whichever process made the change.
+ *
+ * The subject stays, and nothing else on the row changes. The same text again is a success
+ * (FOUND_ROWS) and moves `edited_at`: whether that is a change is the caller's to decide before
+ * it asks.
+ *
+ * The uuid and the pair are compared the way the columns compare them, without regard to case.
+ */
+export async function dbUpdateChatMessageBody(
+  messageUuid: string,
+  sender: ChatMemberRef,
+  body: string,
+): Promise<Result<ChatMessageSelect, DBNotFoundError>> {
+  const result = await drizzleDb()
+    .update(chatMessagesTable)
+    .set({ body, editedAt: sql`utc_timestamp(3)` })
+    .where(
+      and(
+        eq(chatMessagesTable.messageUuid, messageUuid),
+        eq(chatMessagesTable.senderCommunityUuid, sender.communityUuid),
+        eq(chatMessagesTable.senderGradidoId, sender.gradidoId),
+        isNull(chatMessagesTable.deletedAt),
+        isNull(chatMessagesTable.forwardedFromGradidoId),
+      ),
+    )
+  const message =
+    result[0]?.affectedRows === 1 ? await dbSelectChatMessageByUuid(messageUuid) : null
+  return message
+    ? { success: true, value: message }
+    : { success: false, error: ChatMessageNotFound(`message_uuid for its sender`) }
+}
+
+/**
+ * A place in the order the texts of messages were changed in (E-060): the moment of a change by
+ * the database's clock, and within that moment the message's id. An id of 0 stands before every
+ * message of its moment.
+ */
+export interface ChatEditPosition {
+  editedAt: Date
+  id: number
+}
+
+/**
+ * What was changed for a member (E-060): the messages of every conversation the member is in
+ * whose text was changed after the place `after` names, in the order they were changed -- by
+ * moment, within a moment by id --, and whether more are left over the cap. Asked on the wallet's
+ * beat beside dbSelectChatMessagesSince, so that an open thread shows the new text without being
+ * loaded again.
+ *
+ * ⛔ By the database's clock (`edited_at`), not by a number that counts up. A counter is handed
+ * out when a row is written and seen when it is committed, and two changes made at the same
+ * moment can be committed in the other order -- the limit dbSelectChatMessagesSince lives with
+ * (#3977). A moment can be asked for again with room to spare: the caller goes back a little
+ * (ChatResolver.newChatMessagesSince), and what comes twice is the same message with the same
+ * text.
+ *
+ * The id within the moment is what lets a caller go on exactly after the last message it was
+ * handed: several messages can be changed in one millisecond, and a place named by the moment
+ * alone would either hand all of them out again or pass some over.
+ *
+ * The member's own changes are among them, made on another device or in another tab. Messages
+ * marked deleted are not. Every conversation the member is in is found through the member's own
+ * rows, as dbSelectChatMessagesSince finds them.
+ *
+ * On the beat the read starts at the moment in the index on edited_at (migration 0151) and takes
+ * the few messages changed since, whoever's they are, each then checked against the member's
+ * rows. Measured on MariaDB 10.11 (01.10.2026; 36,000 messages, 1,808 of them changed, a member
+ * of 30 conversations): 5 messages read and 0.03 ms from ten seconds back, 79 and 0.3 ms from
+ * two days back. Without the index, every message of the member's conversations on every beat:
+ * 6,000 read, 9 ms. Asked from long ago, the plan turns to the member's conversations first.
+ *
+ * Read `limit + 1` rows: the one over the limit answers `hasMore`, and is not handed back.
+ *
+ * Throws for a limit below 1, a moment that is none and an id below 0: that is a caller's bug
+ * (AGENTS.md).
+ */
+export async function dbSelectChatMessagesEditedAfter(
+  member: ChatMemberRef,
+  options: { after: ChatEditPosition; limit: number },
+): Promise<{ messages: ChatMessageSelect[]; hasMore: boolean }> {
+  const { after, limit } = options
+  if (!Number.isInteger(limit) || limit < 1) {
+    throw new Error(`dbSelectChatMessagesEditedAfter: ${limit} is not a page size`)
+  }
+  if (!(after.editedAt instanceof Date) || Number.isNaN(after.editedAt.getTime())) {
+    throw new Error(`dbSelectChatMessagesEditedAfter: ${String(after.editedAt)} is not a moment`)
+  }
+  if (!Number.isInteger(after.id) || after.id < 0) {
+    throw new Error(`dbSelectChatMessagesEditedAfter: ${after.id} is not a message id`)
+  }
+  const rows = await drizzleDb()
+    .select({ message: chatMessagesTable })
+    .from(chatMessagesTable)
+    .innerJoin(
+      chatConversationMembersTable,
+      and(
+        eq(chatConversationMembersTable.conversationId, chatMessagesTable.conversationId),
+        eq(chatConversationMembersTable.communityUuid, member.communityUuid),
+        eq(chatConversationMembersTable.gradidoId, member.gradidoId),
+      ),
+    )
+    .where(
+      and(
+        // From the moment on, as one range for the index on edited_at -- and of the moment
+        // itself only what lies above the id.
+        gte(chatMessagesTable.editedAt, after.editedAt),
+        or(gt(chatMessagesTable.editedAt, after.editedAt), gt(chatMessagesTable.id, after.id)),
+        isNull(chatMessagesTable.deletedAt),
+      ),
+    )
+    .orderBy(asc(chatMessagesTable.editedAt), asc(chatMessagesTable.id))
+    .limit(limit + 1)
+  return {
+    messages: rows.slice(0, limit).map((row) => row.message),
+    hasMore: rows.length > limit,
+  }
 }
 
 /**

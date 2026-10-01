@@ -24,6 +24,7 @@ const annasMessage: ChatMessageSelect = {
   forwardedFromCommunityUuid: null,
   forwardedFromGradidoId: null,
   createdAt: new Date('2026-09-23T12:00:00.000Z'),
+  editedAt: null,
   deletedAt: null,
 }
 
@@ -90,6 +91,17 @@ describe('ChatMessage', () => {
       forwarded: false,
       forwardedFrom: null,
     })
+  })
+
+  // E-060: that the text was changed is for everybody who reads it, not only for its writer --
+  // unlike what became of the delivery and the mail.
+  it('tells both sides when the text was changed, and nothing of it for a message nobody changed', () => {
+    const editedAt = new Date('2026-10-01T09:00:00.000Z')
+    const changed: ChatMessageSelect = { ...annasMessage, editedAt }
+    expect(new ChatMessage(changed, ANNA).editedAt).toEqual(editedAt)
+    expect(new ChatMessage(changed, BEN).editedAt).toEqual(editedAt)
+    expect(new ChatMessage(annasMessage, ANNA).editedAt).toBeNull()
+    expect(new ChatMessage(annasMessage, BEN).editedAt).toBeNull()
   })
 
   it('knows the writer named in capitals as the writer, as the columns compare', () => {

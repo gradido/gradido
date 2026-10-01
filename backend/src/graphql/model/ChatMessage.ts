@@ -45,6 +45,7 @@ export class ChatMessage {
     this.subject = row.subject
     this.body = row.body
     this.createdAt = row.createdAt
+    this.editedAt = row.editedAt ?? null
     this.deliveryState = this.mine ? row.deliveryState : null
     this.notify = this.mine ? row.notify : null
     this.mailState = this.mine ? (row.mailState ?? null) : null
@@ -122,6 +123,14 @@ export class ChatMessage {
   /** When it arrived on THIS server; there is no other clock in a conversation (E-018). */
   @Field(() => Date)
   createdAt: Date
+
+  /**
+   * When its writer changed the text last (E-060), by this server's clock; null for a message
+   * nobody changed. For everybody who reads the message: the thread says "bearbeitet" beside it.
+   * The earlier text is not kept.
+   */
+  @Field(() => Date, { nullable: true })
+  editedAt: Date | null
 
   /** Whether the reader's own message reached the other server; null on everybody else's. */
   @Field(() => ChatMessageDeliveryState, { nullable: true })

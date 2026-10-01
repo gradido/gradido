@@ -15,9 +15,11 @@ import { ApiVersionType, CommandClientFactory, chatMessageNotify, V1_0_CommandCl
 import {
   ChatConversationSelect,
   ChatMemberRef,
+  ChatMessageSelect,
   dbFindDirectChatConversation,
   dbSelectChatConversationMember,
   dbSelectChatMessageImageForMember,
+  dbSelectChatMessagesEditedAfter,
   dbSelectChatMessagesPage,
   dbSelectChatMessagesSince,
   dbSelectChatUnreadSummary,
@@ -34,12 +36,16 @@ import { chatVideoServerPool } from '@/apis/jitsi/chatVideoServerPool'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import {
+  CHAT_EDITS_SETTLE_MS,
   CHAT_IMAGES_MAX_PER_REQUEST,
   CHAT_MESSAGE_PAGES_MAX_PER_REQUEST,
   CHAT_MESSAGES_PAGE_DEFAULT,
   CHAT_UPDATE_MESSAGES_DEFAULT,
   CHAT_UPDATES_MAX_PER_REQUEST,
+  chatEditsCursor,
+  chatEditsPosition,
   isSameChatMember,
+  nextChatEditsPosition,
 } from '@/data/ChatConversation.logic'
 import {
   CHAT_VIDEO_ROOMS_MAX_PER_REQUEST,
@@ -90,9 +96,9 @@ const roomOn = ({ baseUrl, host, operator, prefix }: ChatVideoServer): ChatVideo
 /**
  * The chat: the thread with one contact and the caller's marks in it -- the read pointer and
  * the mute mark (P2a, P3a) --, writing to that contact (P3a), what is new across all the
- * caller's conversations (P4a), and a video room to send (V1), on a server the member may
- * choose (V5). The form "send an e-mail" still writes through sendEmail, into the same
- * conversation (P1).
+ * caller's conversations (P4a) and what was changed in them (E-060), and a video room to send
+ * (V1), on a server the member may choose (V5). The form "send an e-mail" still writes through
+ * sendEmail, into the same conversation (P1).
  *
  * What this resolver writes to the log carries no subject, no text, no room name and no picture:
  * a refused page, update or room budget with its count, a refused message with its reason, a
@@ -164,11 +170,26 @@ export class ChatResolver {
    * seconds. Should groups (P5) make writing at the same moment common, `latestId` can be held
    * back over messages younger than a minute. The wallet is to drop what comes twice by its id
    * (P4b); then it needs no change for that.
+   *
+   * With `editedCursor` (E-060): the messages whose text was changed since the place it names, so
+   * that an open thread shows the new text without loading again -- and `editedCursor` in the
+   * answer, where the next call goes on from. Without it the answer only says that place, as it
+   * says `latestId` without `afterId`; the two cursors go each their own way.
+   *
+   * ⛔ The changes are asked for by the database's clock, and with room to spare -- not by a
+   * number that counts up, which would have the gap described above. The clock is read with the
+   * first read (`summary.now`), before the changes are looked for, and the answer hands on a
+   * moment CHAT_EDITS_SETTLE_MS before it: a change stamped earlier and committed a moment after
+   * this beat read comes with the next one. So does every change of those seconds once more; the
+   * wallet takes a message that comes again as it is. Over the cap, the next call goes on exactly
+   * after the last message handed out (nextChatEditsPosition). ⚠️ What that leaves open: a change
+   * that takes longer than those seconds to be committed, and a thread the wallet loaded more
+   * than those seconds before its first answer here. Either shows when the thread loads again.
    */
   @Authorized([RIGHTS.READ_OWN_CHAT])
   @Query(() => ChatUpdate)
   async newChatMessagesSince(
-    @Args() { afterId, limit }: NewChatMessagesSinceArgs,
+    @Args() { afterId, limit, editedCursor }: NewChatMessagesSinceArgs,
     @Ctx() context: Context,
   ): Promise<ChatUpdate> {
     // ⛔ Counted in the HTTP request's budget before anything is looked up, as the pages are: a
@@ -180,14 +201,25 @@ export class ChatResolver {
     }
     const caller = callerOf(context)
     const summary = await dbSelectChatUnreadSummary(caller)
-    if (afterId === null || afterId === undefined) {
-      return new ChatUpdate(summary.latestId, summary.unreadConversations, [], false)
+    const settled = new Date(summary.now.getTime() - CHAT_EDITS_SETTLE_MS)
+    const cap = limit ?? CHAT_UPDATE_MESSAGES_DEFAULT
+    const nothing: { messages: ChatMessageSelect[]; hasMore: boolean } = {
+      messages: [],
+      hasMore: false,
     }
-    const news = await dbSelectChatMessagesSince(caller, {
-      afterId,
-      limit: limit ?? CHAT_UPDATE_MESSAGES_DEFAULT,
-    })
+    const news =
+      afterId === null || afterId === undefined
+        ? nothing
+        : await dbSelectChatMessagesSince(caller, { afterId, limit: cap })
+    const changes =
+      editedCursor === null || editedCursor === undefined
+        ? nothing
+        : await dbSelectChatMessagesEditedAfter(caller, {
+            after: chatEditsPosition(editedCursor),
+            limit: cap,
+          })
     const last = news.messages[news.messages.length - 1]
+    const lastChanged = changes.messages[changes.messages.length - 1]
     return new ChatUpdate(
       // The last one handed out -- under hasMore not the highest there is, so that the next call
       // goes on right after it.
@@ -195,6 +227,15 @@ export class ChatResolver {
       summary.unreadConversations,
       await chatMessagesOf(news.messages, caller),
       news.hasMore,
+      await chatMessagesOf(changes.messages, caller),
+      chatEditsCursor(
+        nextChatEditsPosition(
+          settled,
+          changes.hasMore && lastChanged?.editedAt
+            ? { editedAt: lastChanged.editedAt, id: lastChanged.id }
+            : null,
+        ),
+      ),
     )
   }
 

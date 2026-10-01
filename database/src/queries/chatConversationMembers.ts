@@ -166,6 +166,12 @@ export async function dbUpdateChatConversationMemberLastRead(
  * Every conversation the member is in, direct ones and groups (P5) alike: found through the
  * member's own rows, as dbSelectChatMessagesSince finds them.
  *
+ * And where the member stands in time (E-060): `now`, the database's clock at this reading, in
+ * utc -- the clock a changed message is stamped with (dbUpdateChatMessageBody). What was changed
+ * from a moment before it on is still to be asked for (dbSelectChatMessagesEditedAfter). Read
+ * here rather than by a question of its own: this is the first read of every beat, and the clock
+ * costs it nothing.
+ *
  * One statement, and per conversation it reads what it needs rather than the whole history:
  * the newest id is the top entry of that conversation in the index on (conversation_id, id),
  * and "something unread" stops at the first message above the pointer that somebody else
@@ -174,7 +180,7 @@ export async function dbUpdateChatConversationMemberLastRead(
  */
 export async function dbSelectChatUnreadSummary(
   member: ChatMemberRef,
-): Promise<{ latestId: number; unreadConversations: number }> {
+): Promise<{ latestId: number; unreadConversations: number; now: Date }> {
   // Named pieces, each wrapped once more where it becomes a field: drizzle writes a column that
   // stands directly in a field of a one-table select without its table, and in the subqueries
   // below every column should say which table it belongs to.
@@ -204,6 +210,8 @@ export async function dbSelectChatUnreadSummary(
     .select({
       latestId: sql`coalesce(max(${perConversation.newestId}), 0)`.mapWith(Number),
       unreadConversations: sql`coalesce(sum(${perConversation.unread}), 0)`.mapWith(Number),
+      // Read the way an `edited_at` is read: the two are compared with each other.
+      now: sql`utc_timestamp(3)`.mapWith(chatMessagesTable.editedAt),
     })
     .from(perConversation)
   return summary

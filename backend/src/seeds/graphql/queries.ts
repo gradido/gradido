@@ -845,6 +845,28 @@ export const newChatMessagesSince = gql`
   }
 `
 
+/** The beat with the changed messages beside the new ones (E-060). */
+export const newChatMessagesAndEditsSince = gql`
+  query ($afterId: Int, $limit: Int, $editedCursor: String) {
+    newChatMessagesSince(afterId: $afterId, limit: $limit, editedCursor: $editedCursor) {
+      latestId
+      messages {
+        id
+        body
+        editedAt
+      }
+      edited {
+        id
+        messageUuid
+        mine
+        body
+        editedAt
+      }
+      editedCursor
+    }
+  }
+`
+
 /** The fields of a chat group as the wallet reads them (P5). */
 const chatGroupFields = `
   groupUuid
