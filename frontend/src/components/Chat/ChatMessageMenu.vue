@@ -63,7 +63,8 @@ const { t } = useI18n()
 </script>
 
 <style scoped>
-/* The paperclip's menu (ChatComposeBar), over the message. */
+/* The paperclip's menu (ChatComposeBar), over the message -- on the menus' own grey
+   (`--menu-surface`), as that one. */
 .chat-message-menu {
   position: absolute;
   bottom: calc(100% + 0.35rem);
@@ -75,9 +76,9 @@ const { t } = useI18n()
   min-width: 16rem;
   max-width: 100%;
   padding: 0.35rem;
-  border: 1px solid var(--border, #dee2e6);
+  border: 1px solid var(--menu-border, #b3bac2);
   border-radius: 0.85rem;
-  background: var(--surface, #fff);
+  background: var(--menu-surface, #dde1e6);
   box-shadow: 0 8px 28px rgb(0 0 0 / 22%);
 }
 
@@ -111,7 +112,7 @@ const { t } = useI18n()
 
 @media (hover: hover) {
   .chat-message-menu-item:hover {
-    background: var(--surface-muted, #f2f4f6);
+    background: var(--menu-hover, #eef0f3);
   }
 }
 
@@ -124,7 +125,7 @@ const { t } = useI18n()
   flex: 0 0 auto;
   width: 1.4rem;
   height: 1.4rem;
-  color: var(--gold, #c58d38);
+  color: var(--menu-icon, #a8732a);
 }
 
 .chat-message-menu-words {
@@ -138,7 +139,7 @@ const { t } = useI18n()
 
 .chat-message-menu-hint {
   display: block;
-  color: var(--bs-secondary-color, #6c757d);
+  color: var(--menu-text-muted, #4d555d);
   font-size: 0.8rem;
 }
 </style>

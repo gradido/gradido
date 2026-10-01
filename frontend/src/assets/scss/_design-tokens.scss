@@ -32,6 +32,17 @@
   // Borders
   --border: #dee2e6; // lines / dividers
 
+  // A menu that opens over a conversation -- the paperclip's, and the one at a chat message.
+  // A grey a clear step away from the window and the bubbles under it (Bernd, 01.10.2026: on
+  // `--surface` it was the window's own colour, 1 : 1, and easily overlooked; he chose this
+  // grey from five drafts). 1.31 : 1 against `--surface`, 1.19 : 1 against the bubbles; what
+  // stands on it is tuned to it, and all of it is held by chatMenuSurface.spec.js.
+  --menu-surface: #dde1e6;
+  --menu-border: #b3bac2;
+  --menu-hover: #eef0f3; // the entry under the pointer: lighter than the menu
+  --menu-text-muted: #4d555d; // the quieter line under an entry, 5.8 : 1
+  --menu-icon: #a8732a; // the gold, darkened to 3.1 : 1 on the grey (#c58d38 came to 2.2)
+
   // Status
   --success: #047006; // Gradido green
   --success-soft: #d4edda; // success surface

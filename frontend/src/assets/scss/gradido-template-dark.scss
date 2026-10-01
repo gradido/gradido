@@ -17,6 +17,15 @@ body.dark-mode {
   --text: #e4e4e4;
   --text-muted: #9a9b9e;
   --border: #34363b;
+
+  // The menu over a conversation (see _design-tokens.scss), a step ABOVE the surfaces here:
+  // 1.84 : 1 against `--surface`, 1.54 : 1 against the bubbles. The entry under the pointer
+  // goes darker, not lighter -- on a lighter one the quiet line would drop under 4.5 : 1.
+  --menu-surface: #50545b;
+  --menu-border: #6e727a;
+  --menu-hover: #43464c;
+  --menu-text-muted: #d2d4d7; // 5.1 : 1
+  --menu-icon: #e7b45e; // the gold, lightened to 4.0 : 1 on the grey (#c58d38 came to 2.6)
   --success: #46c04a;
   --success-soft: #1f3a22;
   --danger: #ef5350;

@@ -1009,8 +1009,10 @@ watch(
   flex: 0 0 auto;
 }
 
-/* The menu above the paperclip (the mockup, "Büroklammer offen"): a small card of the window's
-   own surface with a shadow, as wide as its words need and never wider than the bar. */
+/* The menu above the paperclip (the mockup, "Büroklammer offen"): a small card with a shadow, as
+   wide as its words need and never wider than the bar -- on the menus' own grey, a clear step
+   away from the window under it (`--menu-surface`; Bernd, 01.10.2026: on the window's own
+   surface it was easily overlooked). The menu at a message is drawn the same (ChatMessageMenu). */
 .chat-compose-menu {
   position: absolute;
   bottom: calc(100% + 0.35rem);
@@ -1022,9 +1024,9 @@ watch(
   min-width: 16rem;
   max-width: 100%;
   padding: 0.35rem;
-  border: 1px solid var(--border, #dee2e6);
+  border: 1px solid var(--menu-border, #b3bac2);
   border-radius: 0.85rem;
-  background: var(--surface, #fff);
+  background: var(--menu-surface, #dde1e6);
   box-shadow: 0 8px 28px rgb(0 0 0 / 22%);
 }
 
@@ -1054,7 +1056,7 @@ watch(
 
 @media (hover: hover) {
   .chat-compose-menu-item:hover {
-    background: var(--surface-muted, #f2f4f6);
+    background: var(--menu-hover, #eef0f3);
   }
 }
 
@@ -1070,7 +1072,7 @@ watch(
   flex: 0 0 auto;
   width: 1.4rem;
   height: 1.4rem;
-  color: var(--gold, #c58d38);
+  color: var(--menu-icon, #a8732a);
 }
 
 .chat-compose-menu-words {
@@ -1084,7 +1086,7 @@ watch(
 
 .chat-compose-menu-hint {
   display: block;
-  color: var(--bs-secondary-color, #6c757d);
+  color: var(--menu-text-muted, #4d555d);
   font-size: 0.8rem;
 }
 

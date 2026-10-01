@@ -1737,7 +1737,8 @@ describe('ChatComposeBar', () => {
     const item = rule('\\.chat-compose-menu-item')
     const height = item.match(/min-height:\s*([\d.]+)rem/)?.[1]
     expect(Number(height) * 16).toBeGreaterThanOrEqual(44)
-    expect(rule('\\.chat-compose-menu-icon')).toMatch(/color:\s*var\(--gold/)
+    // The gold of the menus' signs, tuned to the menus' own grey (E-061, chatMenuSurface.spec.js).
+    expect(rule('\\.chat-compose-menu-icon')).toMatch(/color:\s*var\(--menu-icon/)
     expect(
       rule(
         '\\.chat-compose-menu-item:focus-visible,\\s*\\.chat-compose-picker:focus-visible \\+ \\.chat-compose-menu-item',
