@@ -65,10 +65,14 @@ const NAMED_DETAIL_MAX_LENGTH = 200
  *
  * - A group with members elsewhere: OTHER_COMMUNITY. A change has no way into such a group yet
  *   (P6).
- * - A message that never reached the other server (FAILED): there is no copy over there to
- *   change, and the text is changed here alone.
+ * - A message recorded as not delivered (FAILED): changed here alone, and the other server is
+ *   not asked. As a rule there is no copy over there. Where the other server did file the
+ *   message and only its answer was lost, that copy keeps the words it had -- a limit taken on
+ *   (Bernd, 01.10.2026): the writer reads "not delivered" at that message as it is.
  * - A message still on its way (PENDING): refused. Changed here alone, it would arrive over
- *   there a moment later with the words it had. The state lasts as long as the delivery does.
+ *   there a moment later with the words it had. The state lasts as long as the delivery does;
+ *   only a delivery whose outcome could not be written down -- the server stopped in the middle
+ *   of it -- leaves the message PENDING for good, and it cannot be changed then.
  * - A delivered message: the command (carryChatMessageEditAcrossBorder). NO_WAY_TO_DELIVER or
  *   NOT_CONFIRMED where the other server did not change its copy -- the reason for the wallet,
  *   what the other server said for the log.
@@ -139,8 +143,9 @@ export class ChatEditResolver {
    * server holds a copy of its own, so the change goes there first, and this server's copy is
    * changed only once the other server has said that its own is. Otherwise nothing changes, on
    * either side: NO_WAY_TO_DELIVER, NOT_CONFIRMED (the other server refused, does not know the
-   * command yet, or did not answer), or PENDING for a message still on its way. A message that
-   * never reached the other server is changed here alone.
+   * command yet, or did not answer), or PENDING for a message still on its way. A message
+   * recorded as not delivered is changed here alone (carriedToTheOtherServer says what that
+   * leaves open).
    *
    * And where the write itself failed: UNKNOWN_MESSAGE for a message gone in the meantime,
    * NOT_STORED for a database that failed.

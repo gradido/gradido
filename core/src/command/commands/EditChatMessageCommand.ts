@@ -117,7 +117,10 @@ export class EditChatMessageCommand extends BaseCommand<string> {
       !uuidv4Schema.safeParse(senderGradidoId).success ||
       !uuidv4Schema.safeParse(messageUuid).success ||
       typeof body !== 'string' ||
-      // Counted as the sending server's argument check counts: a pair of surrogates is one.
+      // Counted by code points: a pair of surrogates is one. The sending server's argument check
+      // (class-validator) takes a variation selector for none as well, so it lets a text of
+      // many such signs through that is refused here; the wallet's field counts code units and
+      // is the strictest of the three, so nothing written there comes that far.
       Array.from(body).length > MESSAGE_MAX_CHARS
     ) {
       return refuse(EDIT_CHAT_MESSAGE_COMMAND_REFUSED.INVALID)
