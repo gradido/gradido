@@ -226,15 +226,15 @@ export class RegisterUserRole<
 
   public async run(logger: Logger): Promise<number> {
     const preparedUser = await this.prepareUser()
-    const dbUser = await drizzleDb().transaction(
-      async (tx: DrizzleTransaction) => {
+    const createUserResult = await drizzleDb().transaction(
+      async (tx: DrizzleTransaction): Promise<Result<DbUser, RegisterUserDuplicateError>> => {
         const storeUserAndContactResult = await this.storeUserAndUserContact(
           preparedUser,
           logger,
           tx,
         )
         if (!storeUserAndContactResult.success) {
-          return await this.userAlreadyExist(storeUserAndContactResult.error.user, logger)
+          return storeUserAndContactResult
         }
         const userId = storeUserAndContactResult.value
         const finalAlias = await this.generateAndStoreAlias(logger, tx)
@@ -252,15 +252,16 @@ export class RegisterUserRole<
         if (!dbUser) {
           throw new Error(`Cannot find the user just created: ${userId}`)
         }
-        return dbUser
+        return { success: true, value: dbUser }
       },
       { isolationLevel: 'repeatable read' },
     )
 
-    if (typeof dbUser === 'number') {
-      return dbUser
+    if (!createUserResult.success) {
+      return this.userAlreadyExist(createUserResult.error.user, logger)
     }
-
+    const dbUser = createUserResult.value
+    
     // for ts.. because we already checked this
     if (!this.emailVerificationCode) {
       throw new Error('Missing email verification code')
