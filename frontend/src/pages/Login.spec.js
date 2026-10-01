@@ -78,6 +78,7 @@ describe('Login', () => {
         { path: '/reset-password/login', name: 'ResetPassword' },
         { path: '/overview', name: 'Overview' },
         { path: '/redeem/:code', name: 'Redeem' },
+        { path: '/login/:code?', name: 'Login' },
       ],
     })
 
@@ -258,6 +259,25 @@ describe('Login', () => {
 
       it('asks nothing else after signing in', () => {
         expect(mockQuery).not.toHaveBeenCalled()
+      })
+    })
+
+    // The last step of a registration over a transaction link: the confirmation mail leads
+    // over `/checkEmail/<optin>/<code>` to `/login/<code>` (see `ResetPassword.spec.js`), and
+    // from here the code has to reach the redeem page instead of the overview.
+    describe('valid data with a redeem code in the address', () => {
+      beforeEach(async () => {
+        await router.push('/login/abcdef0123')
+        await wrapper.find('#email-input-field').setValue('user@example.org')
+        await wrapper.find('#password-input-field').setValue('1234')
+        mockMutate.mockResolvedValue({ data: { login: { language: 'en' } } })
+        await wrapper.find('form').trigger('submit')
+        await flushPromises()
+      })
+
+      it('goes on to the redeem page with the code', () => {
+        expect(router.currentRoute.value.name).toBe('Redeem')
+        expect(router.currentRoute.value.path).toBe('/redeem/abcdef0123')
       })
     })
 

@@ -28,6 +28,10 @@ export class RegisterUserGuarantorRole extends RegisterUserRole<GuarantorRegistr
   private gradidoIdByPasswordStart: string | null = null
   private passwordEncryptionPromise: Promise<bigint> | null = null
 
+  public getRoleTitle(): string {
+    return 'Register User with Guarantor'
+  }
+
   constructor(createUserInput: CreateUser) {
     super(parseOrThrowFirstIssue(guarantorRegistrationSchema, createUserInput))
   }

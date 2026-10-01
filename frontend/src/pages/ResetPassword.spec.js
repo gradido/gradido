@@ -297,6 +297,8 @@ const router = createRouter({
     { path: '/login/:code?', name: 'Login' },
     { path: '/forgot-password', name: 'ForgotPassword' },
     { path: '/forgot-password/:comingFrom', name: 'ForgotPasswordComingFrom' },
+    { path: '/reset-password/:optin', name: 'ResetPassword' },
+    { path: '/checkEmail/:optin/:code?', name: 'CheckEmail' },
   ],
 })
 
@@ -464,6 +466,74 @@ describe('ResetPassword', () => {
       expect(message.props('subtitle')).toBe('message.checkEmail')
       expect(message.props('buttonText')).toBe('login')
       expect(message.props('linkTo')).toMatchObject({ name: 'Login' })
+    })
+  })
+
+  /**
+   * ⛔ Do NOT "simplify" the login link on this page to a plain `{ name: 'Login' }`.
+   *
+   * Somebody who registers over a transaction link or a contribution link gets a confirmation
+   * mail whose link the backend builds as `/checkEmail/<optin>/<redeemCode>`
+   * (`RegisterUserFromTransactionLink.role.ts`). The second parameter is the redeem code, and
+   * this page is the only thing standing between that mail and the login page: the login
+   * button has to hand the code on to `/login/:code?`, where `Login.vue` redeems it right
+   * after signing in. Drop it here and the new member lands on the overview with the link
+   * they registered for never redeemed - which is exactly what happened when these links
+   * were replaced by `{ name: 'Login' }` as a supposed twin of the PR #3798 collision.
+   *
+   * These ask the router where the button really leads rather than comparing the link
+   * object, so they hold however the link is built.
+   */
+  describe('the redeem code of a registration over a transaction link', () => {
+    const loginButtonTargetAfterSettingPasswordOn = async (path) => {
+      mockQueryOptIn.mockResolvedValue({})
+      mockSetPassword.mockResolvedValue({ data: { setPassword: true } })
+      // The page reads the route once, while it is set up - so be there before it mounts.
+      await router.push(path)
+      wrapper = createWrapper(path)
+      await flushPromises()
+
+      await wrapper.find('form').trigger('submit')
+      await flushPromises()
+
+      const message = wrapper.findComponent({ name: 'Message' })
+      expect(message.props('buttonText')).toBe('login')
+      return router.resolve(message.props('linkTo'))
+    }
+
+    it('hands a transaction link code on to the login page', async () => {
+      const target = await loginButtonTargetAfterSettingPasswordOn('/checkEmail/123/abcdef0123')
+
+      expect(target.name).toBe('Login')
+      expect(target.params.code).toBe('abcdef0123')
+      expect(target.fullPath).toBe('/login/abcdef0123')
+    })
+
+    it('hands a contribution link code on to the login page', async () => {
+      const target = await loginButtonTargetAfterSettingPasswordOn('/checkEmail/123/CL-abcdef')
+
+      expect(target.fullPath).toBe('/login/CL-abcdef')
+    })
+
+    it('leads to the plain login page after a registration without a code', async () => {
+      const target = await loginButtonTargetAfterSettingPasswordOn('/checkEmail/123')
+
+      expect(target.fullPath).toBe('/login')
+    })
+
+    it('leads to the plain login page after a password reset', async () => {
+      const target = await loginButtonTargetAfterSettingPasswordOn('/reset-password/123')
+
+      expect(target.fullPath).toBe('/login')
+    })
+
+    // What rode along in the query (the guarantor code, a project) goes on as well.
+    it('keeps the query on the way to the login page', async () => {
+      const target = await loginButtonTargetAfterSettingPasswordOn(
+        '/checkEmail/123/abcdef0123?project=demo',
+      )
+
+      expect(target.fullPath).toBe('/login/abcdef0123?project=demo')
     })
   })
 

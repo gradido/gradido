@@ -70,6 +70,10 @@ export class RegisterUserRole<
   protected userAliasId: number | null = null
   protected emailVerificationCode: bigint | null = null
 
+  public getRoleTitle(): string {
+    return 'Default Register User'
+  }
+
   public async prepareUser(): Promise<UserInsert> {
     const { firstName, lastName, language, publisherId } = this.user
     return {
@@ -260,6 +264,7 @@ export class RegisterUserRole<
     if (!createUserResult.success) {
       return this.userAlreadyExist(createUserResult.error.user, logger)
     }
+    logger.info(this.getRoleTitle())
     const dbUser = createUserResult.value
 
     // for ts.. because we already checked this

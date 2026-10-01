@@ -6,6 +6,10 @@ import { RegisterUserRole } from './RegisterUser.role'
 export class RegisterUserReferrerRole extends RegisterUserRole<ReferrerRegistration> {
   protected referrerId: number | null = null
 
+  public getRoleTitle(): string {
+    return 'Register User with Referrer'
+  }
+
   constructor(createUserInput: CreateUser) {
     super(parseOrThrowFirstIssue(referrerRegistrationSchema, createUserInput))
   }
