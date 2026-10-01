@@ -261,7 +261,7 @@ export class RegisterUserRole<
       return this.userAlreadyExist(createUserResult.error.user, logger)
     }
     const dbUser = createUserResult.value
-    
+
     // for ts.. because we already checked this
     if (!this.emailVerificationCode) {
       throw new Error('Missing email verification code')
