@@ -80,6 +80,7 @@ const fromMax = (id: number): ChatMessageSelect => ({
   forwardedFromCommunityUuid: null,
   forwardedFromGradidoId: null,
   createdAt: new Date('2026-09-27T06:00:00.000Z'),
+  editedAt: null,
   deletedAt: null,
 })
 

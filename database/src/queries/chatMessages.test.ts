@@ -9,13 +9,19 @@ import {
   chatConversationMembersTable,
   chatMessagesTable,
 } from '../schemas'
-import { ChatMemberRef, dbInsertChatConversationMembers } from './chatConversationMembers'
+import {
+  ChatMemberRef,
+  dbInsertChatConversationMembers,
+  dbSelectChatUnreadSummary,
+} from './chatConversationMembers'
 import {
   dbInsertChatMessage,
   dbSelectChatMessageForMember,
   dbSelectChatMessagesByConversationId,
+  dbSelectChatMessagesEditedAfter,
   dbSelectChatMessagesPage,
   dbSelectChatMessagesSince,
+  dbUpdateChatMessageBody,
   dbUpdateChatMessageDelivery,
   dbUpdateChatMessageMailState,
 } from './chatMessages'
@@ -80,6 +86,7 @@ describe('chatMessages query test', () => {
       deliveryState: 'delivered',
       lastAttemptAt: null,
       delaySeconds: null,
+      editedAt: null,
       deletedAt: null,
     })
     expect(stored.value.id).toBeGreaterThan(0)
@@ -547,5 +554,374 @@ describe('dbSelectChatMessageForMember', () => {
     expect(forwarded.forwardedFromGradidoId).toBe(NIKO.gradidoId)
     expect(lenas.forwardedFromCommunityUuid).toBeNull()
     expect(lenas.forwardedFromGradidoId).toBeNull()
+  })
+})
+
+/**
+ * Changing the text of a message (E-060, migration 0151): its writer only, while it is not marked
+ * deleted, and never a forwarded copy -- stamped with the database's clock.
+ */
+describe('dbUpdateChatMessageBody', () => {
+  const pair = (): ChatMemberRef => ({ communityUuid: HOME, gradidoId: uuidv4() })
+  const LENA = pair()
+  const MAX = pair()
+  const WITH_MAX = 851
+  let lenas: ChatMessageSelect
+  let maxs: ChatMessageSelect
+  let deleted: ChatMessageSelect
+  let forwarded: ChatMessageSelect
+
+  const filed = async (row: ChatMessageInsert): Promise<ChatMessageSelect> => {
+    const stored = await dbInsertChatMessage(row)
+    if (!stored.success) {
+      throw new Error(`fixture: "${row.body}" was not filed`)
+    }
+    return stored.value
+  }
+  const from = (sender: ChatMemberRef, body: string, rest = {}) =>
+    message(uuidv4(), {
+      conversationId: WITH_MAX,
+      senderCommunityUuid: sender.communityUuid,
+      senderGradidoId: sender.gradidoId,
+      body,
+      ...rest,
+    })
+  const rowOf = async (stored: ChatMessageSelect): Promise<ChatMessageSelect> => {
+    const [row] = await db
+      .select()
+      .from(chatMessagesTable)
+      .where(eq(chatMessagesTable.id, stored.id))
+    return row
+  }
+  /** The clock a change is stamped with, as the beat reads it. */
+  const clock = async (): Promise<Date> => (await dbSelectChatUnreadSummary(LENA)).now
+
+  beforeAll(async () => {
+    lenas = await filed(from(LENA, 'Lena to Max'))
+    maxs = await filed(from(MAX, 'Max to Lena'))
+    deleted = await filed(from(LENA, 'Lena to Max, deleted later'))
+    forwarded = await filed(
+      from(LENA, 'Max wrote this', {
+        forwardedFromCommunityUuid: MAX.communityUuid,
+        forwardedFromGradidoId: MAX.gradidoId,
+      }),
+    )
+    await db
+      .update(chatMessagesTable)
+      .set({ deletedAt: new Date() })
+      .where(eq(chatMessagesTable.id, deleted.id))
+    deleted = await rowOf(deleted)
+  })
+
+  it('files a message without a moment of change', () => {
+    expect(lenas.editedAt).toBeNull()
+  })
+
+  it('changes the text for its writer, stamps the moment, and hands back the row as it stands', async () => {
+    const before = await clock()
+    const changed = await dbUpdateChatMessageBody(lenas.messageUuid, LENA, 'Lena to Max, at eleven')
+    const after = await clock()
+
+    expect(changed.success).toBe(true)
+    if (!changed.success) {
+      return
+    }
+    // The subject and everything else on the row stay as they were.
+    expect(changed.value).toEqual({
+      ...lenas,
+      body: 'Lena to Max, at eleven',
+      editedAt: expect.any(Date),
+    })
+    expect(changed.value.subject).toBe('About Saturday')
+    expect(await rowOf(lenas)).toEqual(changed.value)
+    // By the clock the beat asks from: neither before the reading in front of the change, nor
+    // after the one behind it.
+    const at = changed.value.editedAt?.getTime() ?? 0
+    expect(at).toBeGreaterThanOrEqual(before.getTime())
+    expect(at).toBeLessThanOrEqual(after.getTime())
+  })
+
+  // FOUND_ROWS: the matched row counts, not a changed one. Whether the same text is a change is
+  // the caller's to decide before it asks.
+  it('takes the same text again as a change, and moves the moment', async () => {
+    const long = new Date('2026-09-30T12:00:00.000Z')
+    await db
+      .update(chatMessagesTable)
+      .set({ editedAt: long })
+      .where(eq(chatMessagesTable.id, lenas.id))
+
+    const again = await dbUpdateChatMessageBody(lenas.messageUuid, LENA, 'Lena to Max, at eleven')
+
+    expect(again.success && again.value.body).toBe('Lena to Max, at eleven')
+    expect(again.success && again.value.editedAt && again.value.editedAt > long).toBe(true)
+  })
+
+  it('takes an empty text: a caption may go where the picture stays', async () => {
+    const emptied = await dbUpdateChatMessageBody(lenas.messageUuid, LENA, '')
+    expect(emptied.success && emptied.value.body).toBe('')
+  })
+
+  // ⛔ The pair is part of the where clause: a caller naming somebody else changes nothing.
+  it("changes nothing of somebody else's message", async () => {
+    for (const notTheWriter of [LENA, { communityUuid: uuidv4(), gradidoId: MAX.gradidoId }]) {
+      const refused = await dbUpdateChatMessageBody(maxs.messageUuid, notTheWriter, 'not mine')
+      expect(refused.success).toBe(false)
+      if (!refused.success) {
+        expect(refused.error.name).toBe('DBNotFoundError')
+      }
+    }
+    expect(await rowOf(maxs)).toEqual(maxs)
+  })
+
+  it('changes nothing of a message marked deleted', async () => {
+    expect((await dbUpdateChatMessageBody(deleted.messageUuid, LENA, 'back again')).success).toBe(
+      false,
+    )
+    expect(await rowOf(deleted)).toEqual(deleted)
+  })
+
+  // E-059: the words of a forwarded copy are somebody else's.
+  it('changes nothing of a forwarded copy', async () => {
+    expect((await dbUpdateChatMessageBody(forwarded.messageUuid, LENA, 'my words')).success).toBe(
+      false,
+    )
+    expect(await rowOf(forwarded)).toEqual(forwarded)
+  })
+
+  it('reports a uuid without a row as not found', async () => {
+    const result = await dbUpdateChatMessageBody(uuidv4(), LENA, 'nothing there')
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.name).toBe('DBNotFoundError')
+    }
+  })
+
+  it('finds the message whatever the case of the uuid and the writer, as the columns compare', async () => {
+    const shouting = { communityUuid: HOME.toUpperCase(), gradidoId: MAX.gradidoId.toUpperCase() }
+    const changed = await dbUpdateChatMessageBody(
+      maxs.messageUuid.toUpperCase(),
+      shouting,
+      'Max to Lena, louder',
+    )
+    expect(changed.success && changed.value.id).toBe(maxs.id)
+    expect(changed.success && changed.value.body).toBe('Max to Lena, louder')
+  })
+})
+
+/**
+ * What was changed for one member, across every conversation the member is in (E-060): after a
+ * place in the order of the changes -- the moment, and within it the id. Its own people, with
+ * pairs made for this block, as for dbSelectChatMessagesSince.
+ */
+describe('dbSelectChatMessagesEditedAfter', () => {
+  const pair = (): ChatMemberRef => ({ communityUuid: HOME, gradidoId: uuidv4() })
+  const LENA = pair()
+  const MAX = pair()
+  const NIKO = pair()
+  const OTTO = pair()
+  // Lena and Max; a group of Lena, Niko and Otto; and Max and Niko, which Lena is not in.
+  const WITH_MAX = 861
+  const GROUP = 862
+  const WITHOUT_LENA = 863
+  // Moments of a day long past: one test below asks from the database's own clock on, and must
+  // find none of these there.
+  const at = (second: number, ms = 0) => new Date(Date.UTC(2026, 8, 1, 9, 0, second, ms))
+  // The messages in the order they arrive: conversation, sender, text, and when the text was
+  // changed -- not in the order they arrived, the oldest of them last.
+  const ARRIVALS: [number, ChatMemberRef, string, Date | null][] = [
+    [WITH_MAX, LENA, 'Lena to Max', at(40)],
+    [WITHOUT_LENA, MAX, 'Max to Niko', at(15)],
+    [GROUP, NIKO, 'Niko to the group', at(20)],
+    [WITH_MAX, MAX, 'Max to Lena, never changed', null],
+    [GROUP, LENA, 'Lena to the group, deleted later', at(25)],
+    [GROUP, OTTO, 'Otto to the group', at(10)],
+    [WITH_MAX, MAX, 'Max to Lena, in the same moment as Niko', at(20)],
+  ]
+  let filed: ChatMessageSelect[]
+
+  const bodiesOf = (messages: ChatMessageSelect[]) => messages.map((m) => m.body)
+  /** After every message changed before `moment`, and before every one changed at it. */
+  const from = (moment: Date, limit = 50) =>
+    dbSelectChatMessagesEditedAfter(LENA, { after: { editedAt: moment, id: 0 }, limit })
+  /** Exactly after one message. */
+  const after = (message: ChatMessageSelect, limit = 50) =>
+    dbSelectChatMessagesEditedAfter(LENA, {
+      after: { editedAt: message.editedAt as Date, id: message.id },
+      limit,
+    })
+
+  beforeAll(async () => {
+    await dbInsertChatConversationMembers(WITH_MAX, [LENA, MAX])
+    await dbInsertChatConversationMembers(GROUP, [LENA, NIKO, OTTO])
+    await dbInsertChatConversationMembers(WITHOUT_LENA, [MAX, NIKO])
+    filed = []
+    for (const [conversationId, sender, body, editedAt] of ARRIVALS) {
+      const stored = await dbInsertChatMessage(
+        message(uuidv4(), {
+          conversationId,
+          senderCommunityUuid: sender.communityUuid,
+          senderGradidoId: sender.gradidoId,
+          subject: null,
+          body,
+        }),
+      )
+      if (!stored.success) {
+        throw new Error(`fixture: "${body}" was not filed`)
+      }
+      filed.push(stored.value)
+      if (editedAt) {
+        await db
+          .update(chatMessagesTable)
+          .set({ editedAt })
+          .where(eq(chatMessagesTable.id, stored.value.id))
+      }
+    }
+    await db
+      .update(chatMessagesTable)
+      .set({ deletedAt: new Date() })
+      .where(eq(chatMessagesTable.id, filed[4].id))
+  })
+
+  afterAll(async () => {
+    await db
+      .delete(chatConversationMembersTable)
+      .where(inArray(chatConversationMembersTable.conversationId, [WITH_MAX, GROUP, WITHOUT_LENA]))
+  })
+
+  it('hands out what was changed in every conversation the member is in, in the order it was changed', async () => {
+    const changes = await from(at(0))
+    expect(bodiesOf(changes.messages)).toEqual([
+      'Otto to the group',
+      'Niko to the group',
+      'Max to Lena, in the same moment as Niko',
+      'Lena to Max',
+    ])
+    expect(changes.messages.map((m) => m.editedAt)).toEqual([at(10), at(20), at(20), at(40)])
+    expect(changes.hasMore).toBe(false)
+  })
+
+  // Two changed in the same millisecond: the one that arrived first comes first, on every call.
+  it('orders what was changed in the same moment by the order of arrival', async () => {
+    const [niko, max] = (await from(at(20))).messages
+    expect([niko.id, max.id]).toEqual([filed[2].id, filed[6].id])
+    expect(niko.id).toBeLessThan(max.id)
+  })
+
+  it('never hands out a message nobody changed', async () => {
+    expect(bodiesOf((await from(at(0))).messages)).not.toContain('Max to Lena, never changed')
+  })
+
+  it('never hands out a message of a conversation the member is not in', async () => {
+    expect(bodiesOf((await from(at(0))).messages)).not.toContain('Max to Niko')
+    // Max gets it: he is in that conversation -- and in Lena's, but not in the group.
+    const maxs = await dbSelectChatMessagesEditedAfter(MAX, {
+      after: { editedAt: at(0), id: 0 },
+      limit: 50,
+    })
+    expect(bodiesOf(maxs.messages)).toEqual([
+      'Max to Niko',
+      'Max to Lena, in the same moment as Niko',
+      'Lena to Max',
+    ])
+  })
+
+  // A second device or tab of the same person learns what was changed elsewhere.
+  it("hands out the member's own changed messages as well", async () => {
+    const own = (await from(at(0))).messages.filter((m) => m.senderGradidoId === LENA.gradidoId)
+    expect(bodiesOf(own)).toEqual(['Lena to Max'])
+  })
+
+  it('leaves out a message marked deleted', async () => {
+    expect(bodiesOf((await from(at(0))).messages)).not.toContain('Lena to the group, deleted later')
+  })
+
+  // With an id of 0 the whole moment counts: the beat goes back to a settled moment, and a
+  // message changed in that very millisecond must not be passed over.
+  it('takes in what was changed at the very moment it is asked from, and nothing before it', async () => {
+    expect(bodiesOf((await from(at(20))).messages)).toEqual([
+      'Niko to the group',
+      'Max to Lena, in the same moment as Niko',
+      'Lena to Max',
+    ])
+    expect(bodiesOf((await from(at(20, 1))).messages)).toEqual(['Lena to Max'])
+    expect(bodiesOf((await from(at(40))).messages)).toEqual(['Lena to Max'])
+    expect(await from(at(40, 1))).toEqual({ messages: [], hasMore: false })
+  })
+
+  // ⛔ Within a moment the id counts: after Niko's message come the other one of that
+  // millisecond and what was changed later -- not Niko's once more, and not Max's passed over.
+  it('goes on exactly after one message, also within its own moment', async () => {
+    const [otto, niko, max, lena] = (await from(at(0))).messages
+    expect(bodiesOf((await after(otto)).messages)).toEqual([
+      'Niko to the group',
+      'Max to Lena, in the same moment as Niko',
+      'Lena to Max',
+    ])
+    expect(bodiesOf((await after(niko)).messages)).toEqual([
+      'Max to Lena, in the same moment as Niko',
+      'Lena to Max',
+    ])
+    expect(bodiesOf((await after(max)).messages)).toEqual(['Lena to Max'])
+    expect(await after(lena)).toEqual({ messages: [], hasMore: false })
+  })
+
+  it('caps the answer, says there is more exactly when one did not fit, and goes on from there', async () => {
+    const first = await from(at(0), 2)
+    expect(bodiesOf(first.messages)).toEqual(['Otto to the group', 'Niko to the group'])
+    expect(first.hasMore).toBe(true)
+
+    // After the last one handed out: the cap cut between two of one millisecond, and the other
+    // of the two comes first -- every message once.
+    const second = await after(first.messages[1], 2)
+    expect(bodiesOf(second.messages)).toEqual([
+      'Max to Lena, in the same moment as Niko',
+      'Lena to Max',
+    ])
+    expect(second.hasMore).toBe(false)
+
+    const oneShort = await after(first.messages[1], 1)
+    expect(bodiesOf(oneShort.messages)).toEqual(['Max to Lena, in the same moment as Niko'])
+    expect(oneShort.hasMore).toBe(true)
+  })
+
+  // The two clocks are one: what dbUpdateChatMessageBody stamps is found from the moment
+  // dbSelectChatUnreadSummary read just before it.
+  it('finds a change from the moment the clock was read before it', async () => {
+    const { now } = await dbSelectChatUnreadSummary(LENA)
+    const changed = await dbUpdateChatMessageBody(filed[3].messageUuid, MAX, 'Max to Lena, changed')
+    expect(changed.success).toBe(true)
+
+    const found = await from(now)
+    expect(bodiesOf(found.messages)).toEqual(['Max to Lena, changed'])
+    expect(found.messages[0].id).toBe(filed[3].id)
+    // And not after itself.
+    expect(await after(found.messages[0])).toEqual({ messages: [], hasMore: false })
+  })
+
+  it('answers the same for the member named in capitals, as the column compares', async () => {
+    const shouting = { communityUuid: HOME.toUpperCase(), gradidoId: LENA.gradidoId.toUpperCase() }
+    expect(
+      await dbSelectChatMessagesEditedAfter(shouting, {
+        after: { editedAt: at(0), id: 0 },
+        limit: 50,
+      }),
+    ).toEqual(await from(at(0)))
+  })
+
+  it('answers nothing for somebody in no conversation', async () => {
+    expect(
+      await dbSelectChatMessagesEditedAfter(pair(), {
+        after: { editedAt: at(0), id: 0 },
+        limit: 50,
+      }),
+    ).toEqual({ messages: [], hasMore: false })
+  })
+
+  it('refuses a cap below one, a moment that is none and an id below zero', async () => {
+    await expect(from(at(0), 0)).rejects.toThrow('page size')
+    await expect(from(new Date('no moment'))).rejects.toThrow('not a moment')
+    await expect(
+      dbSelectChatMessagesEditedAfter(LENA, { after: { editedAt: at(0), id: -1 }, limit: 50 }),
+    ).rejects.toThrow('message id')
   })
 })

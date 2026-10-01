@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { ChatMemberRef } from 'database'
+import { ChatEditPosition, ChatMemberRef } from 'database'
 
 /** A page of a conversation when the caller names no size (chatMessagesWithMember). */
 export const CHAT_MESSAGES_PAGE_DEFAULT = 50
@@ -49,6 +49,57 @@ export const CHAT_UPDATE_MESSAGES_MAX = 100
  * whoever hits it, without the reasoning being read again.
  */
 export const CHAT_UPDATES_MAX_PER_REQUEST = 5
+
+/**
+ * How far behind the database's clock a beat goes on from for changed messages (E-060): up to
+ * that moment the changes count as settled. A change is stamped when its statement starts and
+ * seen when it is committed; one still on its way while a beat reads would lie before the beat's
+ * own moment and never be handed out. Ten seconds back, it comes with the next beat -- and so
+ * does every change of those ten seconds once more, which costs nothing: the same message with
+ * the same text.
+ */
+export const CHAT_EDITS_SETTLE_MS = 10_000
+
+/**
+ * The place a beat goes on from for changed messages, as it travels to the wallet and back
+ * (newChatMessagesSince, `editedCursor`): the moment in milliseconds and the id within it,
+ * "1759309233123-0". The wallet hands it back as it got it; what it means is this server's alone.
+ */
+export const CHAT_EDITS_CURSOR_PATTERN = /^\d{1,15}-\d{1,10}$/
+
+export const chatEditsCursor = ({ editedAt, id }: ChatEditPosition): string =>
+  `${editedAt.getTime()}-${id}`
+
+/**
+ * The place a cursor names. Throws for what is no cursor: the argument is checked where it
+ * arrives (NewChatMessagesSinceArgs), so anything else here is a caller's bug.
+ */
+export const chatEditsPosition = (cursor: string): ChatEditPosition => {
+  if (!CHAT_EDITS_CURSOR_PATTERN.test(cursor)) {
+    throw new Error('chatEditsPosition: not a cursor')
+  }
+  const [ms, id] = cursor.split('-').map(Number)
+  return { editedAt: new Date(ms), id }
+}
+
+/**
+ * Where the next beat goes on from for changed messages (E-060).
+ *
+ * `settled`, before every message of that moment, wherever the answer held every change there
+ * was -- the database's clock at the beat, CHAT_EDITS_SETTLE_MS back.
+ *
+ * `lastOfMore`, where more changed messages were left over the cap: the last one handed out. The
+ * next beat goes on exactly after it -- unless it lies at `settled` or later: then from `settled`
+ * as well, since a change before the last one may still be on its way. What was left over the
+ * cap lies after the last one, so after `settled` too, and comes with the beats that follow.
+ */
+export const nextChatEditsPosition = (
+  settled: Date,
+  lastOfMore: ChatEditPosition | null,
+): ChatEditPosition =>
+  lastOfMore !== null && lastOfMore.editedAt.getTime() < settled.getTime()
+    ? lastOfMore
+    : { editedAt: settled, id: 0 }
 
 /**
  * How many pictures of chat messages one HTTP request may be served (chatMessageImage), over

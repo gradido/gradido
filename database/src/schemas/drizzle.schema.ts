@@ -914,11 +914,15 @@ export const chatMessagesTable = mysqlTable(
     createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
       .default(sql`current_timestamp(3)`)
       .notNull(),
+    // When the text was changed last (E-060, migration 0151) -- the database's clock, utc, as
+    // dbUpdateChatMessageBody writes it; NULL for a message nobody changed.
+    editedAt: datetime('edited_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
     deletedAt: datetime('deleted_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
   },
   (table) => [
     uniqueIndex('chat_messages_message_uuid_unique').on(table.messageUuid),
     index('chat_messages_conversation_id_idx').on(table.conversationId, table.id),
+    index('chat_messages_edited_at_idx').on(table.editedAt),
   ],
 )
 

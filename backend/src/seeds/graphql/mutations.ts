@@ -675,6 +675,26 @@ export const setChatConversationMuted = gql`
   }
 `
 
+export const editChatMessage = gql`
+  mutation ($messageUuid: String!, $body: String!) {
+    editChatMessage(messageUuid: $messageUuid, body: $body) {
+      id
+      messageUuid
+      conversationId
+      mine
+      subject
+      body
+      createdAt
+      editedAt
+      images {
+        imageUuid
+        width
+        height
+      }
+    }
+  }
+`
+
 export const createChatGroup = gql`
   mutation ($title: String!, $members: [MemberAvatarRefInput!]!) {
     createChatGroup(title: $title, members: $members) {
