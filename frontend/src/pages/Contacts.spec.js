@@ -9,8 +9,11 @@ import { BPagination } from 'bootstrap-vue-next'
 import Contacts from './Contacts.vue'
 import { forgetFavorites, markFavorite, rememberFavorites } from '@/composables/useFavorites'
 import { refreshContactsPanel } from '@/composables/useContactsPanel'
+import { useChatForwardTargets } from '@/composables/useChatForwardTargets'
 
 const handlers = new Map()
+/** What a window's forward dialog asks the server itself -- nothing, on this page. */
+const forwardAsks = vi.fn()
 const fire = (document, data) => handlers.get(document)?.result?.({ data })
 /**
  * The client's own questions, by the document they ask: a test sets what `contactByMemberQuery`
@@ -121,14 +124,6 @@ describe('Contacts page', () => {
             template:
               '<div data-test="contact-row" @click="$emit(\'open\', contact)">{{ contact.user.alias }}</div>',
           },
-          // Emits `forwarded` as the real dialog does once the copies went (E-059).
-          ChatForwardDialog: {
-            name: 'ChatForwardDialog',
-            props: ['modelValue', 'message', 'writer', 'contacts', 'groups'],
-            emits: ['update:modelValue', 'forwarded'],
-            template:
-              '<div data-test="chat-forward" :data-open="String(modelValue)" :data-message="message?.messageUuid ?? \'\'" :data-writer="writer" :data-contacts="contacts.length" :data-groups="groups.length" />',
-          },
           // Emits `created` as the real dialog does once a group is opened.
           ChatGroupCreate: {
             name: 'ChatGroupCreate',
@@ -148,19 +143,25 @@ describe('Contacts page', () => {
           ChatGroupWindow: {
             name: 'ChatGroupWindow',
             props: ['modelValue', 'group', 'contacts'],
-            emits: ['update:modelValue', 'changed', 'openMember', 'forwardMessage'],
+            emits: ['update:modelValue', 'changed', 'openMember'],
             template:
               '<div data-test="chat-group-window" :data-open="String(modelValue)" :data-group="group?.groupUuid ?? \'\'" :data-title="group?.title ?? \'\'" @click="$emit(\'changed\')" />',
           },
           // ⚠️ Stubbed, and it has to be: the real window reaches for `useRouter`, and this
           // file installs no router -- which arrives as "Need to install with `app.use`",
           // an error that says nothing about contacts.
+          //
+          // It asks for the lists its forward dialog would choose from, the way the real dialog
+          // does (useChatForwardTargets, E-059): what this page hands down, a test can read here.
           ContactWindow: {
             name: 'ContactWindow',
             props: ['modelValue', 'contact', 'greet', 'firstContact'],
-            emits: ['contactMade', 'forwardMessage'],
+            emits: ['contactMade'],
+            setup() {
+              return { targets: useChatForwardTargets({ query: forwardAsks }) }
+            },
             template:
-              '<div data-test="contact-window" :data-open="String(modelValue)" :data-who="contact?.user?.gradidoID ?? \'\'" :data-community="contact?.user?.communityUuid ?? \'\'" :data-home="String(contact?.homeCommunity)" :data-counted="String(Boolean(contact?.firstAt))" :data-greet="String(greet)" :data-first="String(firstContact)" />',
+              '<div data-test="contact-window" :data-open="String(modelValue)" :data-who="contact?.user?.gradidoID ?? \'\'" :data-community="contact?.user?.communityUuid ?? \'\'" :data-home="String(contact?.homeCommunity)" :data-counted="String(Boolean(contact?.firstAt))" :data-greet="String(greet)" :data-first="String(firstContact)" :data-forward-contacts="targets.contacts.value.length" :data-forward-groups="targets.groups.value.length" :data-forward-loading="String(targets.loading.value)" :data-forward-failed="[targets.contactsFailed.value, targets.groupsFailed.value].join()" @click="targets.load()" />',
           },
         },
       },
@@ -175,6 +176,7 @@ describe('Contacts page', () => {
     handlers.clear()
     forgetFavorites()
     apolloQuery.mockClear()
+    forwardAsks.mockClear()
     answers.clear()
     route.query = {}
     routerReplace.mockClear()
@@ -708,65 +710,66 @@ describe('Contacts page', () => {
     })
 
     /**
-     * Forwarding a message (E-059): a window hands it up, the page opens the dialog over it with its
-     * contacts and groups, and asks for both lists again once the copies went.
+     * Forwarding a message (E-059) is the windows' own business -- each holds its dialog, so that it
+     * goes wherever a window is opened (Bernd, 01.10.2026). This page holds the lists the dialog
+     * chooses from, and hands them down instead of letting the dialog ask the server again.
      */
     describe('forwarding a message', () => {
-      const dialog = () => wrapper.find('[data-test="chat-forward"]')
-      const message = (rest = {}) => ({
-        messageUuid: 'm-1',
-        mine: false,
-        body: 'Flohmarkt',
-        ...rest,
-      })
+      const handedDown = () => {
+        const attributes = wrapper.find('[data-test="contact-window"]').attributes()
+        return [attributes['data-forward-contacts'], attributes['data-forward-groups']]
+      }
 
-      it('opens the dialog from the window of a person, naming the person as the writer', async () => {
+      it("hands its contacts and groups down to the windows' forward dialog", async () => {
         mountPage()
         fire('contactListQuery', { contactList: { count: 2, contacts: [person(1), person(2)] } })
         fire('chatGroupsQuery', { chatGroups: [group(1)] })
         await nextTick()
-        await wrapper.findAll('[data-test="contact-row"]')[1].trigger('click')
-        expect(dialog().attributes('data-open')).toBe('false')
-
-        await wrapper.findComponent({ name: 'ContactWindow' }).vm.$emit('forwardMessage', message())
-        await nextTick()
-
-        expect(dialog().attributes()).toMatchObject({
-          'data-open': 'true',
-          'data-message': 'm-1',
-          'data-writer': 'Alias2',
-          'data-contacts': '2',
-          'data-groups': '1',
-        })
+        expect(handedDown()).toEqual(['2', '1'])
       })
 
-      it('names the writer of a group message by the name over it', async () => {
-        mountPage()
-        fire('chatGroupsQuery', { chatGroups: [group(1)] })
-        await nextTick()
-        await wrapper
-          .findComponent({ name: 'ChatGroupWindow' })
-          .vm.$emit(
-            'forwardMessage',
-            message({ senderUser: { gradidoID: 'id-7', alias: 'Anna-Sonne' } }),
-          )
-        await nextTick()
-        expect(dialog().attributes('data-open')).toBe('true')
-        expect(dialog().attributes('data-writer')).toBe('Anna-Sonne')
-      })
-
-      it('asks for both lists again once the copies went', async () => {
+      it('keeps them in step with the page, and the dialog asks the server for none', async () => {
         mountPage()
         fire('contactListQuery', { contactList: { count: 1, contacts: [person(1)] } })
         fire('chatGroupsQuery', { chatGroups: [group(1)] })
         await nextTick()
-        apolloQuery.mockClear()
+        fire('contactListQuery', {
+          contactList: { count: 3, contacts: [person(1), person(2), person(3)] },
+        })
+        fire('chatGroupsQuery', { chatGroups: [group(1), group(2)] })
+        await nextTick()
+        expect(handedDown()).toEqual(['3', '2'])
 
-        await wrapper.findComponent({ name: 'ChatForwardDialog' }).vm.$emit('forwarded')
+        // The dialog opening: `load`, which asks only where no page handed the lists down.
+        await wrapper.find('[data-test="contact-window"]').trigger('click')
         await flushPromises()
+        expect(forwardAsks).not.toHaveBeenCalled()
+      })
 
-        const asked = apolloQuery.mock.calls.map(([options]) => options.query)
-        expect(asked).toEqual(expect.arrayContaining(['chatGroupsQuery', 'contactListQuery']))
+      it('says what it knows of them: on their way until both are here, or not to be read', async () => {
+        mountPage()
+        const state = () => {
+          const attributes = wrapper.find('[data-test="contact-window"]').attributes()
+          return [attributes['data-forward-loading'], attributes['data-forward-failed']]
+        }
+        expect(state()).toEqual(['true', 'false,false'])
+        fire('contactListQuery', { contactList: { count: 1, contacts: [person(1)] } })
+        await nextTick()
+        expect(state()).toEqual(['true', 'false,false'])
+        fire('chatGroupsQuery', { chatGroups: [] })
+        await nextTick()
+        expect(state()).toEqual(['false', 'false,false'])
+      })
+
+      it('says so where a list could not be read', async () => {
+        mountPage()
+        handlers.get('contactListQuery').error(new Error('offline'))
+        handlers.get('chatGroupsQuery').error(new Error('offline'))
+        await nextTick()
+        expect(wrapper.find('[data-test="contact-window"]').attributes()).toMatchObject({
+          'data-forward-loading': 'false',
+          'data-forward-failed': 'true,true',
+        })
       })
     })
 

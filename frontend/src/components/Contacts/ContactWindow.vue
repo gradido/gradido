@@ -277,7 +277,7 @@
         @chat-conversation="takeChatConversation"
         @search="takeFound"
         @duplicate-video="videoCall?.duplicate($event)"
-        @forward-message="emit('forwardMessage', $event)"
+        @forward-message="forwardMessage"
       />
 
       <!-- The two questions of a video call -- starting one, and joining one from its link in the
@@ -291,6 +291,12 @@
         :can-mail="chatConversation.exists"
         :deliver="deliverThroughThread"
       />
+
+      <!-- Forwarding a message of this thread (E-059): the dialog that asks where to, over this
+           window. Here and not on the page under it: the window is opened from the contacts
+           page, the column, the strip, the booking lists and the overview's tile, and forwarding
+           goes from each of them (Bernd, 01.10.2026). -->
+      <chat-forward-dialog v-model="forwardOpen" :message="forwarding" :writer="alias" />
     </div>
   </BModal>
 </template>
@@ -303,6 +309,7 @@ import { useStore } from 'vuex'
 import { useMutation } from '@vue/apollo-composable'
 import { BModal } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
+import ChatForwardDialog from '@/components/Chat/ChatForwardDialog.vue'
 import ChatSearchBar from '@/components/Chat/ChatSearchBar.vue'
 import ChatThread from '@/components/Chat/ChatThread.vue'
 import ChatVideoCall from '@/components/Chat/ChatVideoCall.vue'
@@ -349,8 +356,7 @@ const props = defineProps({
  * `contactMade`: the window's first form found a conversation -- the first message went out, or
  * one was there already -- so the person is a contact now; the page puts the server's row in.
  */
-/** `forwardMessage`: a message of the thread, to be forwarded (E-059) -- the page asks where to. */
-const emit = defineEmits(['update:modelValue', 'contactMade', 'forwardMessage'])
+const emit = defineEmits(['update:modelValue', 'contactMade'])
 
 const { t, d } = useI18n()
 const router = useRouter()
@@ -630,6 +636,17 @@ const deliverThroughThread = (message) =>
  * thread (ChatMessageText) -- provided here, around the thread it is asked from.
  */
 provide(CHAT_VIDEO_JOIN, (roomUrl) => videoCall.value?.askJoin(roomUrl))
+
+/**
+ * Forwarding a message of the thread (E-059): the window asks where to, in a dialog over itself.
+ * Who wrote it is this window's person -- the dialog says "Du" for one's own.
+ */
+const forwardOpen = ref(false)
+const forwarding = ref(null)
+const forwardMessage = (message) => {
+  forwarding.value = message
+  forwardOpen.value = true
+}
 
 /**
  * The send row: the button with its word, then the marks. Where a language's word makes the

@@ -22,8 +22,20 @@ vi.mock('vue-i18n', () => ({
 /** What the server answers to forwardChatMessage: a test sets it. */
 const forwarded = vi.hoisted(() => vi.fn())
 vi.mock('@vue/apollo-composable', () => ({
+  useApolloClient: () => ({ client: {} }),
   useMutation: (document) => ({ mutate: (variables) => forwarded(document, variables) }),
 }))
+/**
+ * The contacts and groups to choose from, as useChatForwardTargets hands them out (its own spec is
+ * about where they come from): a test sets the lists and the three states.
+ */
+const targets = vi.hoisted(() => ({ made: null }))
+vi.mock('@/composables/useChatForwardTargets', () => ({
+  useChatForwardTargets: () => targets.made,
+}))
+/** The chat's beat, asked at once after a message went. */
+const polled = vi.hoisted(() => vi.fn())
+vi.mock('@/composables/useChatUpdates', () => ({ pollChatNow: polled }))
 const toasts = vi.hoisted(() => ({ success: [], error: [] }))
 vi.mock('@/composables/useToast', () => ({
   useAppToast: () => ({
@@ -67,19 +79,26 @@ const MESSAGE = {
 describe('ChatForwardDialog (E-059)', () => {
   let wrapper
 
-  const mountDialog = (props = {}) => {
+  const mountDialog = (props = {}, lists = {}) => {
+    targets.made = {
+      contacts: ref(lists.contacts ?? [CARLA, OMA, LENA]),
+      groups: ref(lists.groups ?? GROUPS),
+      loading: ref(lists.loading ?? false),
+      contactsFailed: ref(lists.contactsFailed ?? false),
+      groupsFailed: ref(lists.groupsFailed ?? false),
+      load: vi.fn(),
+    }
     wrapper = mount(ChatForwardDialog, {
       props: {
         modelValue: false,
         message: MESSAGE,
         writer: 'Anna-Sonne',
-        contacts: [CARLA, OMA, LENA],
-        groups: GROUPS,
         'onUpdate:modelValue': (value) => wrapper.setProps({ modelValue: value }),
         ...props,
       },
       global: {
         stubs: {
+          BSpinner: { template: '<i data-test="wheel" />' },
           BModal: {
             name: 'BModal',
             props: { modelValue: Boolean, fullscreen: [String, Boolean], scrollable: Boolean },
@@ -109,6 +128,7 @@ describe('ChatForwardDialog (E-059)', () => {
   afterEach(() => {
     wrapper?.unmount()
     forwarded.mockReset()
+    polled.mockReset()
     toasts.success.length = 0
     toasts.error.length = 0
   })
@@ -191,7 +211,8 @@ describe('ChatForwardDialog (E-059)', () => {
     expect(toasts.success).toEqual([
       'chatForward.done {"names":"Gemeinschaftsgarten Pankow, Carla-Sonne und Oma-Emma"}',
     ])
-    expect(wrapper.emitted('forwarded')).toHaveLength(1)
+    // The beat asks at once: the copies show in an open thread, and every list asks again.
+    expect(polled).toHaveBeenCalledTimes(1)
     expect(wrapper.props('modelValue')).toBe(false)
   })
 
@@ -216,7 +237,7 @@ describe('ChatForwardDialog (E-059)', () => {
     await choose('group-1', 'carla-id')
     await go()
     expect(toasts.error).toEqual(['chatForward.partly {"done":1,"count":2}'])
-    expect(wrapper.emitted('forwarded')).toHaveLength(1)
+    expect(polled).toHaveBeenCalledTimes(1)
     expect(wrapper.props('modelValue')).toBe(false)
   })
 
@@ -228,7 +249,7 @@ describe('ChatForwardDialog (E-059)', () => {
     await go()
     expect(find('chat-forward-problem').text()).toBe('chatForward.failed')
     expect(wrapper.props('modelValue')).toBe(true)
-    expect(wrapper.emitted('forwarded')).toBeUndefined()
+    expect(polled).not.toHaveBeenCalled()
 
     forwarded.mockRejectedValue(new Error('CHAT_MESSAGE_NOT_FORWARDED: UNKNOWN_MESSAGE'))
     await choose('oma-id')
@@ -261,5 +282,76 @@ describe('ChatForwardDialog (E-059)', () => {
     expect(find('chat-group-pick-group-group-1').find('input').element.checked).toBe(false)
     expect(find('chat-group-pick-carla-id').find('input').element.checked).toBe(false)
     expect(find('chat-forward-words').element.value).toBe('')
+  })
+
+  /**
+   * The dialog stands in the conversation's window and finds its lists by itself (Bernd,
+   * 01.10.2026: outside the contacts page "Weiterleiten" did nothing). Where no page handed them
+   * down they are asked for when it opens, and are on their way for a moment.
+   */
+  describe('the contacts and groups it finds by itself', () => {
+    it('asks for them at every opening', async () => {
+      mountDialog()
+      expect(targets.made.load).not.toHaveBeenCalled()
+      await open()
+      expect(targets.made.load).toHaveBeenCalledTimes(1)
+      await wrapper.setProps({ modelValue: false })
+      await open()
+      expect(targets.made.load).toHaveBeenCalledTimes(2)
+    })
+
+    it('shows the wheel while they are on their way, then the lists', async () => {
+      mountDialog({}, { contacts: [], groups: [], loading: true })
+      await open()
+      expect(find('chat-forward-loading').find('[data-test="wheel"]').exists()).toBe(true)
+      expect(wrapper.findComponent({ name: 'ChatGroupPicker' }).exists()).toBe(false)
+      // The message it is about and the buttons are there meanwhile. The words' field comes with
+      // the lists: a field one is typing in must not be pushed down when they land.
+      expect(find('chat-forward-preview-text').text()).toBe(MESSAGE.body)
+      expect(find('chat-forward-go').attributes('aria-disabled')).toBe('true')
+      expect(find('chat-forward-words').exists()).toBe(false)
+
+      targets.made.contacts.value = [CARLA]
+      targets.made.groups.value = GROUPS
+      targets.made.loading.value = false
+      await wrapper.vm.$nextTick()
+
+      expect(find('chat-forward-loading').exists()).toBe(false)
+      expect(find('chat-group-pick-carla-id').exists()).toBe(true)
+      expect(find('chat-group-pick-group-group-1').exists()).toBe(true)
+      expect(find('chat-forward-words').exists()).toBe(true)
+    })
+
+    it('keeps the lists it has on screen while it asks again', async () => {
+      mountDialog({}, { loading: true })
+      await open()
+      expect(find('chat-forward-loading').exists()).toBe(false)
+      expect(find('chat-group-pick-carla-id').exists()).toBe(true)
+    })
+
+    // A failed request is not an empty list.
+    it('says the contacts could not be loaded, not that there are none', async () => {
+      mountDialog({}, { contacts: [], contactsFailed: true })
+      await open()
+      expect(find('chat-group-picker-none').text()).toBe('contacts.notReachable')
+      expect(find('chat-group-pick-group-group-1').exists()).toBe(true)
+      wrapper.unmount()
+
+      mountDialog({}, { contacts: [] })
+      await open()
+      expect(find('chat-group-picker-none').text()).toBe('chatForward.noContacts')
+    })
+
+    it('says the groups could not be loaded, and offers the contacts', async () => {
+      mountDialog({}, { groups: [], groupsFailed: true })
+      await open()
+      expect(find('chat-forward-groups-error').text()).toBe('chatGroup.notReachable')
+      expect(find('chat-group-pick-carla-id').exists()).toBe(true)
+      wrapper.unmount()
+
+      mountDialog({}, { groups: [] })
+      await open()
+      expect(find('chat-forward-groups-error').exists()).toBe(false)
+    })
   })
 })
