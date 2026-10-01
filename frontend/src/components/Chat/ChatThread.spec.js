@@ -2942,6 +2942,201 @@ describe('ChatThread', () => {
         expect(bubbleTexts()[1]).toBe('Erste Fassung')
       })
 
+      /**
+       * ⛔ A change across the border takes its seconds, and the menus at the other messages and
+       * the ✕ stay in reach meanwhile (coderabbit, PR #4034). The answer speaks to the bar only
+       * while the bar still holds the message it is about: it ended the changing of whatever
+       * message the bar held, over what had been typed for it, and put its line under that one.
+       */
+      describe('while the change is on its way', () => {
+        const letGo = async () => {
+          await wrapper.find('[data-test="chat-compose-edit-cancel"]').trigger('click')
+          await flushPromises()
+        }
+        /** Message 2 with another text, saved, and the answer still out: how to give it. */
+        const saveOut = async (ids = [1, 2, 3, 4]) => {
+          const out = {}
+          serverChanges.mockImplementation(
+            () =>
+              new Promise((resolve, reject) => {
+                out.answer = resolve
+                out.refuse = reject
+              }),
+          )
+          mountThread()
+          await arrive(page(ids))
+          await field().setValue('Ein angefangener Satz')
+          await pressEdit(2)
+          await field().setValue('Samstag ab 11 Uhr')
+          await save()
+          return out
+        }
+
+        // Taken at once, the bar would be the other message's when the answer comes: a change that
+        // did not go through would have no place to say so, and its text would be gone.
+        it('lets another message wait for the answer, and takes it up once the change went through', async () => {
+          const out = await saveOut()
+
+          await pressEdit(4)
+
+          expect(bar().props('editing').messageUuid).toBe('uuid-2')
+          expect(field().element.value).toBe('Samstag ab 11 Uhr')
+          expect(ringed()).toEqual([false, true, false, false])
+          expect(bar().props('sending')).toBe(true)
+
+          out.answer(changed(2, 'Samstag ab 11 Uhr'))
+          await flushPromises()
+
+          expect(bubbleTexts()[1]).toBe('Samstag ab 11 Uhr')
+          expect(status().text()).toBe('chatThread.editSaved')
+          // Straight from the one to the other: its text, its ring, and nothing of the first one.
+          expect(bar().props('editing')).toEqual({
+            messageUuid: 'uuid-4',
+            body: 'message 4',
+            hasImage: false,
+          })
+          expect(field().element.value).toBe('message 4')
+          expect(ringed()).toEqual([false, false, false, true])
+          expect(bar().props('sending')).toBe(false)
+          expect(problemLine().exists()).toBe(false)
+          // What stood in the bar before either goes on waiting.
+          await letGo()
+          expect(field().element.value).toBe('Ein angefangener Satz')
+        })
+
+        it('keeps the message whose change did not go through, with its text and why, and not the one that waited', async () => {
+          const out = await saveOut()
+          await pressEdit(4)
+
+          out.refuse(new Error('CHAT_MESSAGE_NOT_EDITED: NOT_CONFIRMED'))
+          await flushPromises()
+
+          expect(bar().props('editing').messageUuid).toBe('uuid-2')
+          expect(field().element.value).toBe('Samstag ab 11 Uhr')
+          expect(bar().props('editProblem')).toBe('NOT_CONFIRMED')
+          expect(problemLine().exists()).toBe(true)
+          expect(ringed()).toEqual([false, true, false, false])
+          expect(bar().props('sending')).toBe(false)
+
+          // The wish for the other one went with that answer: the next press that goes through
+          // ends the changing.
+          serverChanges.mockResolvedValue(changed(2, 'Samstag ab 11 Uhr'))
+          await save()
+          expect(bar().props('editing')).toBeNull()
+          expect(field().element.value).toBe('Ein angefangener Satz')
+        })
+
+        // Of several presses the last one counts -- and the message as it stands when it is taken
+        // up, not as it stood at the press: here changed on another device meanwhile.
+        it('takes up the message pressed last, as the page holds it by then', async () => {
+          const out = await saveOut([1, 2, 3, 4, 5, 6])
+          await pressEdit(4)
+          await pressEdit(6)
+          await beatChanges(changed(6, 'Nebenan geändert', { at: '2026-09-22T11:05:00.000Z' }))
+
+          out.answer(changed(2, 'Samstag ab 11 Uhr'))
+          await flushPromises()
+
+          expect(bar().props('editing')).toEqual({
+            messageUuid: 'uuid-6',
+            body: 'Nebenan geändert',
+            hasImage: false,
+          })
+          expect(field().element.value).toBe('Nebenan geändert')
+          expect(ringed()).toEqual([false, false, false, false, false, true])
+        })
+
+        // The answer is in: nothing waits for it any more.
+        it('takes the next message at once after a change that went through', async () => {
+          const out = await saveOut()
+          out.answer(changed(2, 'Samstag ab 11 Uhr'))
+          await flushPromises()
+          expect(bar().props('editing')).toBeNull()
+
+          await pressEdit(4)
+
+          expect(bar().props('editing').messageUuid).toBe('uuid-4')
+          expect(field().element.value).toBe('message 4')
+        })
+
+        // "Bearbeiten" once more at the message whose change is out is no wish for afterwards.
+        it('lets nothing wait for a press at the message itself', async () => {
+          const out = await saveOut()
+
+          await pressEdit(2)
+          out.answer(changed(2, 'Samstag ab 11 Uhr'))
+          await flushPromises()
+
+          expect(bar().props('editing')).toBeNull()
+          expect(field().element.value).toBe('Ein angefangener Satz')
+        })
+
+        it('lets the wish for another message go with the changing', async () => {
+          const out = await saveOut()
+          await pressEdit(4)
+
+          await letGo()
+          expect(bar().props('editing')).toBeNull()
+          out.answer(changed(2, 'Samstag ab 11 Uhr'))
+          await flushPromises()
+
+          // The change itself went through all the same; the bar stays the bar.
+          expect(bubbleTexts()[1]).toBe('Samstag ab 11 Uhr')
+          expect(bar().props('editing')).toBeNull()
+          expect(field().element.value).toBe('Ein angefangener Satz')
+          expect(ringed()).toEqual([false, false, false, false])
+        })
+
+        // The sequence of the finding: let go, another message taken up, words typed for it.
+        it('does not end the changing of a message taken up after letting go', async () => {
+          const out = await saveOut()
+          await letGo()
+
+          // The bar is free: the other message is taken at once.
+          await pressEdit(4)
+          expect(bar().props('editing').messageUuid).toBe('uuid-4')
+          await field().setValue('Für die vierte getippt')
+          out.answer(changed(2, 'Samstag ab 11 Uhr'))
+          await flushPromises()
+
+          expect(bubbleTexts()[1]).toBe('Samstag ab 11 Uhr')
+          expect(bar().props('editing').messageUuid).toBe('uuid-4')
+          expect(field().element.value).toBe('Für die vierte getippt')
+          expect(ringed()).toEqual([false, false, false, true])
+        })
+
+        it('does not put the line of a change that did not go through under another message', async () => {
+          const out = await saveOut()
+          await letGo()
+          await pressEdit(4)
+
+          out.refuse(new Error('Network error'))
+          await flushPromises()
+
+          expect(bar().props('editing').messageUuid).toBe('uuid-4')
+          expect(bar().props('editProblem')).toBe('')
+          expect(problemLine().exists()).toBe(false)
+          expect(field().element.value).toBe('message 4')
+        })
+
+        // The same message taken up again is another changing of it: by what the bar holds, not
+        // by which message it is.
+        it('leaves the message itself alone as well, taken up again after letting go', async () => {
+          const out = await saveOut()
+          await letGo()
+
+          await pressEdit(2)
+          await field().setValue('Doch lieber Sonntag')
+          out.answer(changed(2, 'Samstag ab 11 Uhr'))
+          await flushPromises()
+
+          expect(bubbleTexts()[1]).toBe('Samstag ab 11 Uhr')
+          expect(bar().props('editing').messageUuid).toBe('uuid-2')
+          expect(field().element.value).toBe('Doch lieber Sonntag')
+          expect(problemLine().exists()).toBe(false)
+        })
+      })
+
       // From one message straight to another: the other's text, and what waited goes on waiting.
       it('goes from one message straight to another', async () => {
         mountThread()

@@ -1225,6 +1225,13 @@ const deliver = async ({ body, notify }) => {
 const editing = ref(null)
 /** Why the last change did not go through (chatEditProblem), or ''. */
 const editProblem = ref('')
+/**
+ * The bar's change whose answer is still out, while the bar still holds its message: null once
+ * the answer is in, and once the member let go of the message (✕, Esc). `afterwards` is the id of
+ * a message "Bearbeiten" was pressed at meanwhile, which waits for that answer (`startEdit`,
+ * `saveEdit`). Nothing is drawn from it.
+ */
+let changeUnderway = null
 const editingForBar = computed(() =>
   editing.value
     ? {
@@ -1254,14 +1261,25 @@ const startEdit = (message) => {
     composeBar.value?.focus()
     return
   }
+  // The change of the message in the bar is still on its way: this one waits for its answer
+  // (`saveEdit`). Taken at once, the bar would be this message's when the answer comes, and a
+  // change that did not go through would have no place to say so, its text gone with the bar.
+  if (changeUnderway !== null) {
+    changeUnderway.afterwards = message.id
+    return
+  }
   editProblem.value = ''
   editing.value = message
 }
 
-/** The changing let go: the bar gets back what stood in it. */
+/**
+ * The changing let go: the bar gets back what stood in it. An answer still out is no longer the
+ * bar's (`saveEdit`), and no other message waits for it.
+ */
 const stopEdit = () => {
   editing.value = null
   editProblem.value = ''
+  changeUnderway = null
 }
 
 /**
@@ -1296,17 +1314,32 @@ const change = async ({ messageUuid, body }) => {
  * both -- no longer on its way, and no longer being changed -- turn in one synchronous step, as
  * for a message being sent (see `send`): the bar puts back what stood in it only for a change
  * that went through, and keeps the new text in the field for one that did not.
+ *
+ * ⛔ The answer speaks to the bar only while the bar still holds the message it is about
+ * (`changeUnderway`). The member can let go while it is out (✕, Esc) and take up a message -- this
+ * one again, or another: that changing is not the answer's to end, and the line of a change that
+ * did not go through is not that message's (coderabbit, PR #4034). A message "Bearbeiten" was
+ * pressed at while the bar held this one has waited (`startEdit`): it is taken up once the change
+ * went through, as the page holds it then, and not after one that did not -- the bar keeps that
+ * one, with its text and the reason.
  */
 const saveEdit = async (changed) => {
   if (sending.value) return
+  const underway = { afterwards: null }
+  changeUnderway = underway
   messagesUnderway.value += 1
   editProblem.value = ''
   let problem = 'OTHER'
   try {
     problem = await change(changed)
   } finally {
-    editProblem.value = problem
-    if (!problem) editing.value = null
+    if (changeUnderway === underway) {
+      changeUnderway = null
+      editProblem.value = problem
+      if (!problem) {
+        editing.value = messages.value.find((message) => message.id === underway.afterwards) ?? null
+      }
+    }
     messagesUnderway.value -= 1
   }
   if (!problem) announce(t('chatThread.editSaved'))
