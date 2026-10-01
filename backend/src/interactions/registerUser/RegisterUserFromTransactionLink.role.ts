@@ -15,14 +15,14 @@ import { RegisterUserRole } from './RegisterUser.role'
 
 enum RedeemCodeType {
   ContributionLink,
-  TransactionLink
+  TransactionLink,
 }
 
 export class RegisterUserFromTransactionLinkRole extends RegisterUserRole<RedeemRegistration> {
   private contributionLinkId: number | null = null
   private transactionLinkId: number | null = null
   private type: RedeemCodeType
-  
+
   constructor(createUserInput: CreateUser) {
     super(parseOrThrowFirstIssue(redeemRegistrationSchema, createUserInput))
     if (this.user.redeemCode.match(/^CL-/)) {
