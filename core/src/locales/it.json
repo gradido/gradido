@@ -84,6 +84,9 @@
       "todo": "Please check whether this account belongs to a person who may create. If so, switch \"May create\" on for this member in the admin interface (user role tab). The member has been told that a person checks the request."
     },
     "customEmail": {
+      "forwardWords": "{senderAlias} aggiunge:",
+      "forwarded": "↪ Inoltrato",
+      "forwardedFrom": "↪ Inoltrato da {forwardedFromAlias}",
       "haveReceivedMessageFrom": "hai appena ricevuto un messaggio da {senderAlias}",
       "imageNote": "📷 Il messaggio contiene un'immagine – la vedi nella conversazione.",
       "title": "{senderAlias} ti ha inviato un messaggio"

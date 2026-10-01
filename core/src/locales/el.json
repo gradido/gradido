@@ -84,6 +84,9 @@
       "todo": "Please check whether this account belongs to a person who may create. If so, switch \"May create\" on for this member in the admin interface (user role tab). The member has been told that a person checks the request."
     },
     "customEmail": {
+      "forwardWords": "{senderAlias} προσθέτει:",
+      "forwarded": "↪ Προωθημένο μήνυμα",
+      "forwardedFrom": "↪ Προωθημένο μήνυμα από {forwardedFromAlias}",
       "haveReceivedMessageFrom": "μόλις έλαβες ένα μήνυμα από {senderAlias}",
       "imageNote": "📷 Το μήνυμα περιέχει μια εικόνα – τη βλέπεις στη συνομιλία.",
       "title": "{senderAlias} σου έστειλε ένα μήνυμα"

@@ -57,15 +57,21 @@ const createLogger = () =>
 export async function storeChatGroupMessage({
   group,
   sender,
+  subject = null,
   body,
   announce,
   images,
+  forwardedFrom = null,
 }: {
   group: ChatConversationSelect
   sender: ChatMemberRef
+  /** A letter's subject, where a forwarded copy of one comes into the group (E-059). */
+  subject?: string | null
   body: string
   announce: boolean
   images: ChatMessageImageAccepted[]
+  /** The first writer of a copy forwarded into the group (E-059). */
+  forwardedFrom?: ChatMemberRef | null
 }): Promise<ChatMessageSelect | null> {
   const logger = createLogger()
   const messageUuid = uuidv4()
@@ -84,8 +90,10 @@ export async function storeChatGroupMessage({
       conversationId: group.id,
       senderCommunityUuid: sender.communityUuid,
       senderGradidoId: sender.gradidoId,
-      subject: null,
+      subject,
       body,
+      forwardedFromCommunityUuid: forwardedFrom?.communityUuid ?? null,
+      forwardedFromGradidoId: forwardedFrom?.gradidoId ?? null,
       notify: announce ? ChatMessageNotify.EMAIL : ChatMessageNotify.NONE,
       deliveryState: ChatMessageDeliveryState.DELIVERED,
     })

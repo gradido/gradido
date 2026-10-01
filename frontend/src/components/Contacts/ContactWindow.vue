@@ -276,6 +276,8 @@
         :search="searchOpen ? searchTyped : ''"
         @chat-conversation="takeChatConversation"
         @search="takeFound"
+        @duplicate-video="videoCall?.duplicate($event)"
+        @forward-message="emit('forwardMessage', $event)"
       />
 
       <!-- The two questions of a video call -- starting one, and joining one from its link in the
@@ -347,7 +349,8 @@ const props = defineProps({
  * `contactMade`: the window's first form found a conversation -- the first message went out, or
  * one was there already -- so the person is a contact now; the page puts the server's row in.
  */
-const emit = defineEmits(['update:modelValue', 'contactMade'])
+/** `forwardMessage`: a message of the thread, to be forwarded (E-059) -- the page asks where to. */
+const emit = defineEmits(['update:modelValue', 'contactMade', 'forwardMessage'])
 
 const { t, d } = useI18n()
 const router = useRouter()

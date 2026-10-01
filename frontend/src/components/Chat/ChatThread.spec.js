@@ -772,6 +772,30 @@ describe('ChatThread', () => {
    * E-057 (Bernd, 30.09.2026): the window's search field hands its words in (`search`); the thread
    * loads its older pages for them, marks the hits, stands on the newest, and says what it found.
    */
+  // E-058: "Duplizieren" under a video invitation -- handed on to the window, which asks the question.
+  it('hands a duplicated invitation on to the window', async () => {
+    mountThread()
+    await arrive(page([1]))
+    const invitation = {
+      url: 'u',
+      room: 'https://meet.example.org/r',
+      topic: 'T',
+      start: null,
+      end: null,
+    }
+    await wrapper.findComponent({ name: 'ChatBubble' }).vm.$emit('duplicateVideo', invitation)
+    expect(wrapper.emitted('duplicateVideo')).toEqual([[invitation]])
+  })
+
+  // E-059: the message to be forwarded, handed on to the window -- the page asks where to.
+  it('hands a message to be forwarded on to the window', async () => {
+    mountThread()
+    await arrive(page([1]))
+    const message = { id: 1, messageUuid: 'uuid-1', body: 'Flohmarkt' }
+    await wrapper.findComponent({ name: 'ChatBubble' }).vm.$emit('forward', message)
+    expect(wrapper.emitted('forwardMessage')).toEqual([[message]])
+  })
+
   describe('the search', () => {
     const withBodies = (entries, { hasMore = false } = {}) => ({
       hasMore,
