@@ -297,6 +297,28 @@ describe('editChatMessage, what the resolver decides itself (E-060)', () => {
     })
   })
 
+  // ⛔ A failed query carries its parameters in its message, and the text is one of them. Thrown
+  // on as it is, it would be written to the request log and sent back in the answer.
+  it('keeps what the database throws to itself: the error names a code, never the text', async () => {
+    update.mockRejectedValue(
+      Object.assign(
+        new Error(`Failed query: update \`chat_messages\` set \`body\` = ? params: ${NEW_TEXT}`),
+        { cause: { code: 'ER_LOCK_WAIT_TIMEOUT' } },
+      ),
+    )
+    const errors = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
+
+    const refused = await edit().catch((error: Error) => error)
+
+    expect(refused).toBeInstanceOf(Error)
+    expect((refused as Error).message).toBe('CHAT_MESSAGE_NOT_EDITED: NOT_STORED')
+    const logged = JSON.stringify((errors.error as jest.Mock).mock.calls)
+    expect(logged).toContain('ER_LOCK_WAIT_TIMEOUT')
+    expect(logged).toContain(MESSAGE)
+    expect(logged).not.toContain('Hofflohmarkt')
+    expect(logged).not.toContain('Failed query')
+  })
+
   it('takes a community written in capitals for the same one, as the columns compare', async () => {
     membersOf.mockResolvedValue([
       member(WITH_MAX, LENA, HOME.toUpperCase()),
