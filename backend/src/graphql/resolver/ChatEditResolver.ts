@@ -4,7 +4,9 @@ import { ChatMessage } from '@model/ChatMessage'
 import { minLength } from 'class-validator'
 import { databaseErrorCode } from 'core'
 import {
+  ChatConversationMemberSelect,
   ChatMemberRef,
+  ChatMessageDeliveryState,
   ChatMessageSelect,
   dbSelectChatConversationMembers,
   dbSelectChatMessageForMember,
@@ -19,6 +21,7 @@ import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { isSameChatMember } from '@/data/ChatConversation.logic'
 import { Context } from '@/server/context'
 import { LogError } from '@/server/LogError'
+import { carryChatMessageEditAcrossBorder } from './util/chatMessageEdit'
 import { chatMessagesOf } from './util/chatMessagesOf'
 import { callerOf } from './util/chatRequest'
 
@@ -50,6 +53,58 @@ const changedText = async (
   return changed.value
 }
 
+// What the other server said is written to the log up to this length, beyond it as its length:
+// it is another server's text.
+const NAMED_DETAIL_MAX_LENGTH = 200
+
+/**
+ * A message in a conversation with members of another community (E-060): their server holds a
+ * copy of its own, and the two members are to go on reading the same words. So the change goes
+ * there first, and this server's copy is changed only once the other server has said that its
+ * own is. Returns where this server may write; refuses where it may not.
+ *
+ * - A group with members elsewhere: OTHER_COMMUNITY. A change has no way into such a group yet
+ *   (P6).
+ * - A message that never reached the other server (FAILED): there is no copy over there to
+ *   change, and the text is changed here alone.
+ * - A message still on its way (PENDING): refused. Changed here alone, it would arrive over
+ *   there a moment later with the words it had. The state lasts as long as the delivery does.
+ * - A delivered message: the command (carryChatMessageEditAcrossBorder). NO_WAY_TO_DELIVER or
+ *   NOT_CONFIRMED where the other server did not change its copy -- the reason for the wallet,
+ *   what the other server said for the log.
+ */
+const carriedToTheOtherServer = async (
+  message: ChatMessageSelect,
+  members: ChatConversationMemberSelect[],
+  elsewhere: ChatConversationMemberSelect[],
+  caller: ChatMemberRef,
+  body: string,
+): Promise<void> => {
+  if (members.length !== 2 || elsewhere.length !== 1) {
+    throw new LogError('CHAT_MESSAGE_NOT_EDITED: OTHER_COMMUNITY', message.messageUuid)
+  }
+  if (message.deliveryState === ChatMessageDeliveryState.FAILED) {
+    return
+  }
+  if (message.deliveryState !== ChatMessageDeliveryState.DELIVERED) {
+    throw new LogError('CHAT_MESSAGE_NOT_EDITED: PENDING', message.messageUuid)
+  }
+  const carried = await carryChatMessageEditAcrossBorder({
+    writer: caller,
+    otherCommunityUuid: elsewhere[0].communityUuid,
+    messageUuid: message.messageUuid,
+    body,
+  })
+  if (!carried.success) {
+    const { reason, detail } = carried.error
+    throw new LogError(
+      `CHAT_MESSAGE_NOT_EDITED: ${reason}`,
+      message.messageUuid,
+      detail.length > NAMED_DETAIL_MAX_LENGTH ? `*** ${detail.length} characters` : detail,
+    )
+  }
+}
+
 /**
  * Changing a message (Bernd, 01.10.2026, E-060): a member changes the text of a message they
  * wrote -- in a conversation of two or in a group, at any time.
@@ -62,10 +117,9 @@ export class ChatEditResolver {
    * The earlier text is not kept. The subject of a letter stays, and so does a picture: of a
    * message with a picture, the caption changes.
    *
-   * Nothing goes out again: no mail about the change, and a mail that went out with the message
-   * keeps the words it had. A copy somebody forwarded earlier keeps them too -- it is a message
-   * of its own. The other members get the new text with their wallet's beat
-   * (newChatMessagesSince, `edited`).
+   * No mail goes out about the change, and a mail that went out with the message keeps the words
+   * it had. A copy somebody forwarded earlier keeps them too -- it is a message of its own. The
+   * other members get the new text with their wallet's beat (newChatMessagesSince, `edited`).
    *
    * The same text again changes nothing and marks nothing: the copy comes back as it is.
    *
@@ -78,9 +132,16 @@ export class ChatEditResolver {
    * - FORWARDED: a forwarded copy -- its words are somebody else's;
    * - EMPTY: no text, where the message carries no picture -- the bounds of a message being sent
    *   (isLongEnoughForChatMessage);
-   * - OTHER_COMMUNITY: a conversation with a member of another community. Their server holds a
-   *   copy of its own, and a change made only here would leave the two reading different words.
-   *   Refused until the change travels there (the next step of E-060).
+   * - OTHER_COMMUNITY: a group with members of another community -- a change has no way into
+   *   such a group yet (P6).
+   *
+   * To a member of another community, in a conversation of two (carriedToTheOtherServer): their
+   * server holds a copy of its own, so the change goes there first, and this server's copy is
+   * changed only once the other server has said that its own is. Otherwise nothing changes, on
+   * either side: NO_WAY_TO_DELIVER, NOT_CONFIRMED (the other server refused, does not know the
+   * command yet, or did not answer), or PENDING for a message still on its way. A message that
+   * never reached the other server is changed here alone.
+   *
    * And where the write itself failed: UNKNOWN_MESSAGE for a message gone in the meantime,
    * NOT_STORED for a database that failed.
    *
@@ -124,12 +185,11 @@ export class ChatEditResolver {
     }
     // The caller is a member of this community: whoever is of another one has a copy elsewhere.
     const members = await dbSelectChatConversationMembers(message.conversationId)
-    if (
-      members.some(
-        (member) => member.communityUuid.toLowerCase() !== caller.communityUuid.toLowerCase(),
-      )
-    ) {
-      throw new LogError('CHAT_MESSAGE_NOT_EDITED: OTHER_COMMUNITY', messageUuid)
+    const elsewhere = members.filter(
+      (member) => member.communityUuid.toLowerCase() !== caller.communityUuid.toLowerCase(),
+    )
+    if (elsewhere.length > 0) {
+      await carriedToTheOtherServer(message, members, elsewhere, caller, body)
     }
     const changed = await changedText(message.messageUuid, caller, body)
     createLogger().info(`chat message edited: message_uuid=${changed.messageUuid}`)

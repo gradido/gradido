@@ -5,6 +5,7 @@ import { Command } from './Command'
 import { ICommandConstructor } from './CommandTypes'
 import { commandArgsForLog } from './commandArgsForLog'
 // import { ICommandConstructor } from './CommandTypes';
+import { EditChatMessageCommand } from './commands/EditChatMessageCommand'
 import { SendEmailCommand } from './commands/SendEmailCommand'
 
 const createLogger = (method: string) =>
@@ -34,7 +35,12 @@ export class CommandFactory {
     }
   }
 
-  createCommand<T>(name: string, params: string[]): Command<T> {
+  /**
+   * @param requestingPublicKey the public key of the community that sealed the command, where it
+   *   came in an envelope (CommandExecutor.executeEncryptedCommand) -- handed to the commands that
+   *   check who they come from.
+   */
+  createCommand<T>(name: string, params: string[], requestingPublicKey?: string): Command<T> {
     const methodLogger = createLogger(`createCommand`)
     if (methodLogger.isDebugEnabled()) {
       // A chat message's picture as its length (P7b).
@@ -70,6 +76,9 @@ export class CommandFactory {
     switch (CommandClass.name) {
       case 'SendEmailCommand':
         command = new SendEmailCommand(params)
+        break
+      case 'EditChatMessageCommand':
+        command = new EditChatMessageCommand(params, requestingPublicKey)
         break
       default: {
         const errmsg = `Command ${name} not found`

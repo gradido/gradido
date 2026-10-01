@@ -1,4 +1,5 @@
 // AI-GENERATED — not an architecture reference
+import { randomBytes } from 'node:crypto'
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { getLogger } from 'config-schema/test/testSetup'
@@ -6,13 +7,16 @@ import { CONFIG as CORE_CONFIG, sendCustomEmail, storeChatMessage } from 'core'
 import {
   AppDatabase,
   chatMessagesTable,
+  Community as DbCommunity,
+  FederatedCommunity as DbFederatedCommunity,
   User as DbUser,
   UserContact as DbUserContact,
   User,
 } from 'database'
 import { eq } from 'drizzle-orm'
 import { GraphQLError } from 'graphql'
-import { MESSAGE_MAX_CHARS } from 'shared'
+import { GraphQLClient } from 'graphql-request'
+import { CommandJwtPayloadType, createKeyPair, MESSAGE_MAX_CHARS, verifyAndDecrypt } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { userFactory } from '@/seeds/factory/user'
@@ -391,9 +395,9 @@ describe('editChatMessage refused', () => {
       )
     })
 
-    // Their server holds a copy of its own: changed only here, the two would read different
-    // words. Refused until the change travels there (the next step of E-060).
-    it('for a message in a conversation with a member of another community', async () => {
+    // A delivered message to a community this server has no entry and no keys for: there is no
+    // way to carry the change there, so nothing is changed here either.
+    it('for a delivered message to a community there is no way to deliver to', async () => {
       const across = await storeChatMessage(
         {
           messageUuid: uuidv4(),
@@ -413,9 +417,231 @@ describe('editChatMessage refused', () => {
       await unchanged(
         across.messageUuid,
         () => edit(across.messageUuid, 'Changed on this side only.'),
-        'CHAT_MESSAGE_NOT_EDITED: OTHER_COMMUNITY',
+        'CHAT_MESSAGE_NOT_EDITED: NO_WAY_TO_DELIVER',
       )
     })
+  })
+})
+
+/**
+ * To a member of another community (E-060): their server holds a copy of its own. The change
+ * goes there first, as a command of its own, and this server's copy is changed only once the
+ * other server has answered that its own is. The stand-in for the other community opens each
+ * command with ITS key, as the real one would, and answers as it is told -- as in the
+ * sendChatMessage cases of ChatResolver.test.ts.
+ */
+describe('editChatMessage to a member of another community', () => {
+  const peerUuid = uuidv4()
+  const peerMember = uuidv4()
+  const peerRef = { communityUuid: peerUuid, gradidoID: peerMember }
+
+  type Answer = { success: boolean; data?: string | null; error?: string }
+  let homeKeys: { publicKey: string; privateKey: string }
+  let peerKeys: { publicKey: string; privateKey: string }
+  let homePublicKey: string
+  let peer: DbCommunity
+  let peerEntry: DbFederatedCommunity
+  let rawRequest: jest.SpyInstance | undefined
+  // Each command the other server got: its name, the key on its envelope, its arguments.
+  let commands: { name: string; publicKey: string; args: Record<string, unknown> }[] = []
+  // What this server had filed as the text of the message while each command was on its way.
+  let inFlight: (string | undefined)[] = []
+
+  /** The other server answers each command by its name. */
+  const peerAnswers = (answerTo: (commandName: string) => Answer) => {
+    rawRequest = jest
+      .spyOn(GraphQLClient.prototype, 'rawRequest')
+      // CommandClient.sendCommandForAnswer calls rawRequest(document, variables).
+      .mockImplementation((async (
+        _document: unknown,
+        variables: { args: { handshakeID: string; jwt: string; publicKey: string } },
+      ) => {
+        const { args } = variables
+        const command = (await verifyAndDecrypt(
+          args.handshakeID,
+          args.jwt,
+          peerKeys.privateKey,
+          homeKeys.publicKey,
+        )) as CommandJwtPayloadType | null
+        if (!command) {
+          throw new Error('the command does not verify with the key of this community')
+        }
+        const sent = JSON.parse(command.commandArgs[0])
+        commands.push({ name: command.commandName, publicKey: args.publicKey, args: sent })
+        inFlight.push((await rowOf(sent.messageUuid))?.body)
+        return { data: { sendCommand: answerTo(command.commandName) }, status: 200 }
+      }) as any)
+  }
+
+  /** A message of bob's that reached the other server. */
+  const delivered = async (body: string) => {
+    peerAnswers(() => ({ success: true, data: 'received' }))
+    const copy = await said(peerRef, body)
+    rawRequest?.mockRestore()
+    commands = []
+    inFlight = []
+    return copy as { id: number; messageUuid: string }
+  }
+
+  beforeAll(async () => {
+    homeKeys = await createKeyPair()
+    peerKeys = await createKeyPair()
+    await DbCommunity.update(
+      { foreign: false },
+      { publicJwtKey: homeKeys.publicKey, privateJwtKey: homeKeys.privateKey },
+    )
+    homePublicKey = (
+      await DbCommunity.findOneOrFail({ where: { foreign: false } })
+    ).publicKey.toString('hex')
+    peer = await DbCommunity.create({
+      foreign: true,
+      url: 'http://chat-peer.invalid/api/',
+      publicKey: randomBytes(32),
+      communityUuid: peerUuid,
+      authenticatedAt: new Date(),
+      name: 'Chat peer',
+      description: 'the other side of the border',
+      creationDate: new Date(),
+      publicJwtKey: peerKeys.publicKey,
+    }).save()
+    peerEntry = await DbFederatedCommunity.create({
+      foreign: true,
+      publicKey: peer.publicKey,
+      apiVersion: '1_0',
+      endPoint: 'http://chat-peer.invalid/api/',
+    }).save()
+    await loginAs('bob@baumeister.de')
+  })
+
+  beforeEach(() => {
+    commands = []
+    inFlight = []
+  })
+
+  afterEach(() => {
+    rawRequest?.mockRestore()
+    rawRequest = undefined
+  })
+
+  afterAll(async () => {
+    await DbFederatedCommunity.delete({ id: peerEntry.id })
+    await DbCommunity.delete({ id: peer.id })
+    resetToken()
+  })
+
+  it('sends the change as a command of its own, and changes its own copy once the other server has', async () => {
+    const sent = await delivered('Across the border.')
+    peerAnswers((name) =>
+      name === 'EDIT_CHAT_MESSAGE_COMMAND'
+        ? { success: true, data: 'edited' }
+        : { success: false, error: `not expected here: ${name}` },
+    )
+
+    const copy = await edited(sent.messageUuid, 'Across the border, changed.')
+
+    expect(commands).toEqual([
+      {
+        name: 'EDIT_CHAT_MESSAGE_COMMAND',
+        // The key the other server finds this community by, and checks the writer against.
+        publicKey: homePublicKey,
+        args: {
+          senderComUuid: bob.communityUuid,
+          senderGradidoId: bob.gradidoID,
+          messageUuid: sent.messageUuid,
+          body: 'Across the border, changed.',
+        },
+      },
+    ])
+    // ⛔ First there, then here: while the command was on its way, this server's copy still
+    // had the words it had.
+    expect(inFlight).toEqual(['Across the border.'])
+    expect(copy).toMatchObject({ id: sent.id, mine: true, body: 'Across the border, changed.' })
+    expect(copy.editedAt).not.toBeNull()
+    expect((await rowOf(sent.messageUuid)).body).toBe('Across the border, changed.')
+  })
+
+  describe('changes nothing, on either side,', () => {
+    let sent: { id: number; messageUuid: string }
+
+    const refusedUnchanged = async (reason: string) => {
+      const before = await rowOf(sent.messageUuid)
+      expect((await edit(sent.messageUuid, 'Never to be read.')).errors).toEqual([
+        new GraphQLError(reason),
+      ])
+      expect(await rowOf(sent.messageUuid)).toEqual(before)
+    }
+
+    beforeAll(async () => {
+      sent = await delivered('To stay as it is.')
+    })
+
+    // A server from before the command: it knows no such name.
+    it('where the other server does not know the command yet', async () => {
+      peerAnswers(() => ({
+        success: false,
+        error: 'Command EDIT_CHAT_MESSAGE_COMMAND not found',
+      }))
+      await refusedUnchanged('CHAT_MESSAGE_NOT_EDITED: NOT_CONFIRMED')
+      expect(commands.map((command) => command.name)).toEqual(['EDIT_CHAT_MESSAGE_COMMAND'])
+    })
+
+    it('where the other server refuses', async () => {
+      peerAnswers(() => ({
+        success: false,
+        error: 'CHAT_MESSAGE_NOT_EDITED: UNKNOWN_MESSAGE',
+      }))
+      await refusedUnchanged('CHAT_MESSAGE_NOT_EDITED: NOT_CONFIRMED')
+    })
+
+    // ⛔ "No error" is not "changed": only the one word counts.
+    it('where the other server answers anything but the word of the command', async () => {
+      for (const data of ['received', 'mailed', null]) {
+        peerAnswers(() => ({ success: true, data }))
+        await refusedUnchanged('CHAT_MESSAGE_NOT_EDITED: NOT_CONFIRMED')
+        rawRequest?.mockRestore()
+      }
+    })
+
+    it('where the other server cannot be reached', async () => {
+      rawRequest = jest
+        .spyOn(GraphQLClient.prototype, 'rawRequest')
+        .mockRejectedValue(new Error('connect ECONNREFUSED'))
+      await refusedUnchanged('CHAT_MESSAGE_NOT_EDITED: NOT_CONFIRMED')
+    })
+
+    // Changed here alone, it would arrive over there a moment later with the words it had.
+    it('for a message that is still on its way, without asking the other server', async () => {
+      await drizzle()
+        .update(chatMessagesTable)
+        .set({ deliveryState: 'pending' })
+        .where(eq(chatMessagesTable.messageUuid, sent.messageUuid))
+      peerAnswers(() => ({ success: true, data: 'edited' }))
+
+      await refusedUnchanged('CHAT_MESSAGE_NOT_EDITED: PENDING')
+      expect(commands).toEqual([])
+    })
+
+    it('and writes none of the texts into the log', () => {
+      const logged = JSON.stringify((logger.error as jest.Mock).mock.calls)
+      expect(logged).toContain('CHAT_MESSAGE_NOT_EDITED: NOT_CONFIRMED')
+      expect(logged).toContain(sent.messageUuid)
+      expect(logged).not.toContain('Never to be read.')
+      expect(logged).not.toContain('To stay as it is.')
+    })
+  })
+
+  // E-019: a message that never reached the other server has no copy over there.
+  it('changes a message that never reached the other server here alone, and sends nothing', async () => {
+    peerAnswers(() => ({ success: false, error: 'the other side is down' }))
+    const failed = await said(peerRef, 'Never arrived.')
+    expect(failed.deliveryState).toBe('FAILED')
+    commands = []
+
+    const copy = await edited(failed.messageUuid, 'Never arrived, and changed.')
+
+    expect(commands).toEqual([])
+    expect(copy.body).toBe('Never arrived, and changed.')
+    expect((await rowOf(failed.messageUuid)).deliveryState).toBe('failed')
   })
 })
 
