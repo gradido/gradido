@@ -189,6 +189,15 @@ describe('ContactWindow', () => {
             template:
               '<div data-test="chat-thread" :data-who="member.gradidoID" :data-community="String(member.communityUuid)" :data-alias="alias" :data-key="memberKey" :data-greeting="greeting" :data-text-only="String(textOnly)" :data-search="search" />',
           },
+          // The dialog reads the server and has a spec of its own; here it says what it was
+          // opened with.
+          ChatForwardDialog: {
+            name: 'ChatForwardDialog',
+            props: { modelValue: Boolean, message: Object, writer: String },
+            emits: ['update:modelValue'],
+            template:
+              '<div data-test="chat-forward" :data-open="String(modelValue)" :data-message="message?.messageUuid ?? \'\'" :data-writer="writer" />',
+          },
           AppAvatar: {
             props: ['initials'],
             template: '<i data-test="avatar" :data-initials="initials" />',
@@ -626,6 +635,46 @@ describe('ContactWindow', () => {
     })
   })
 
+  // E-059, and Bernd on 01.10.2026: outside the contacts page "Weiterleiten" did nothing -- only
+  // that page listened for it. The window asks where to itself, whoever opened it.
+  describe('forwarding a message of its thread', () => {
+    const dialog = () => wrapper.find('[data-test="chat-forward"]')
+    const message = { id: 3, messageUuid: 'uuid-3', body: 'Flohmarkt' }
+
+    it('asks where to in a dialog over itself, naming its person as the writer', async () => {
+      mountWindow()
+      expect(dialog().attributes('data-open')).toBe('false')
+
+      await wrapper.findComponent({ name: 'ChatThread' }).vm.$emit('forwardMessage', message)
+
+      expect(dialog().attributes()).toMatchObject({
+        'data-open': 'true',
+        'data-message': 'uuid-3',
+        'data-writer': wrapper.find('[data-test="chat-thread"]').attributes('data-alias'),
+      })
+      expect(dialog().attributes('data-writer')).not.toBe('')
+    })
+
+    it('hands nothing up: nobody around the window has to listen', async () => {
+      mountWindow()
+      await wrapper.findComponent({ name: 'ChatThread' }).vm.$emit('forwardMessage', message)
+      expect(wrapper.emitted('forwardMessage')).toBeUndefined()
+    })
+
+    it('closes the dialog when it says so, and opens it again for another message', async () => {
+      mountWindow()
+      const thread = wrapper.findComponent({ name: 'ChatThread' })
+      await thread.vm.$emit('forwardMessage', message)
+      await wrapper
+        .findComponent({ name: 'ChatForwardDialog' })
+        .vm.$emit('update:modelValue', false)
+      expect(dialog().attributes('data-open')).toBe('false')
+
+      await thread.vm.$emit('forwardMessage', { ...message, messageUuid: 'uuid-4' })
+      expect(dialog().attributes()).toMatchObject({ 'data-open': 'true', 'data-message': 'uuid-4' })
+    })
+  })
+
   /**
    * ⛔ The meta block must not COLLAPSE while the figures are on their way: it used to move
    * both buttons up a line and drop them back down under a finger already reaching for one.
@@ -635,14 +684,6 @@ describe('ContactWindow', () => {
    * ⚠️ Comments stripped first. The rule is explained in prose right beside it, and a search
    * over the raw text would find its own explanation and survive the deletion.
    */
-  // E-059: a message to be forwarded goes up to the page, which asks where to.
-  it('hands a message to be forwarded up to the page', async () => {
-    mountWindow()
-    const message = { id: 3, messageUuid: 'uuid-3', body: 'Flohmarkt' }
-    await wrapper.findComponent({ name: 'ChatThread' }).vm.$emit('forwardMessage', message)
-    expect(wrapper.emitted('forwardMessage')).toEqual([[message]])
-  })
-
   it('reserves the height of the meta line in the stylesheet', () => {
     const source = readFileSync(
       join(dirname(fileURLToPath(import.meta.url)), 'ContactWindow.vue'),

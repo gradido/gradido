@@ -152,7 +152,7 @@
         @open-member="openWriter"
         @search="takeFound"
         @duplicate-video="videoCall?.duplicate($event)"
-        @forward-message="emit('forwardMessage', $event)"
+        @forward-message="forwardMessage"
       />
 
       <!-- The questions of a video call (ChatVideoCall), as the contact window asks them (E-053):
@@ -177,6 +177,11 @@
         @left="left"
         @open-member="emit('openMember', $event)"
       />
+
+      <!-- Forwarding a message of this thread (E-059): the dialog that asks where to, over this
+           window -- in the window, as the contact window has it, so that it goes wherever a
+           group's window is opened (Bernd, 01.10.2026). -->
+      <chat-forward-dialog v-model="forwardOpen" :message="forwarding" :writer="forwardWriter" />
     </div>
   </BModal>
 </template>
@@ -188,6 +193,7 @@ import { useStore } from 'vuex'
 import { useApolloClient, useMutation } from '@vue/apollo-composable'
 import { BModal } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
+import ChatForwardDialog from '@/components/Chat/ChatForwardDialog.vue'
 import ChatSearchBar from '@/components/Chat/ChatSearchBar.vue'
 import ChatThread from '@/components/Chat/ChatThread.vue'
 import ChatVideoCall from '@/components/Chat/ChatVideoCall.vue'
@@ -229,8 +235,7 @@ const props = defineProps({
  * knows who is a contact, and opens their window over this one -- for somebody who is none yet the
  * window's first form, a first word in one tap (E-055).
  */
-/** `forwardMessage`: a message of the thread, to be forwarded (E-059) -- the page asks where to. */
-const emit = defineEmits(['update:modelValue', 'changed', 'openMember', 'forwardMessage'])
+const emit = defineEmits(['update:modelValue', 'changed', 'openMember'])
 
 /**
  * A writer named over their message carries what the message says of them -- no community name,
@@ -437,6 +442,20 @@ const deliverThroughThread = (message) =>
 
 /** The question before joining a call, asked by the link of an invitation in the group's thread. */
 provide(CHAT_VIDEO_JOIN, (roomUrl) => videoCall.value?.askJoin(roomUrl))
+
+/**
+ * Forwarding a message of the thread (E-059): the window asks where to, in a dialog over itself.
+ * Who wrote it, as the thread names them over their message -- the dialog says "Du" for one's own.
+ */
+const forwardOpen = ref(false)
+const forwarding = ref(null)
+const forwardWriter = ref('')
+const forwardMessage = (message) => {
+  const writer = message.senderUser ?? message.sender
+  forwarding.value = message
+  forwardWriter.value = writer?.gradidoID ? memberAlias(writer.alias, writer.gradidoID) : ''
+  forwardOpen.value = true
+}
 
 // Another group in the window: a question about a call in the last one is let go. (A new name is
 // the same group: its uuid stays, and the question with it.)

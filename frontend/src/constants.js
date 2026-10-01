@@ -48,6 +48,14 @@ export const CONTACTS_PANEL_PAGE_SIZE = 20
 export const CONTACTS_PANEL_ROWS = 5
 
 /**
+ * The whole contact list in one answer: what the contacts page asks for, and the dialog that
+ * forwards a message where no page holds the list for it (useChatForwardTargets). Favourites,
+ * search and pages happen on this device then. `pages/Contacts.vue` says why, and what happens
+ * past this cap.
+ */
+export const CONTACTS_FETCH_MAX = 1000
+
+/**
  * The face beside a person in every list of people in the wallet: the transactions page, the
  * contacts page, both positions of the right-hand column, and the favourites' tiles on the
  * desk and on the phone. The chat's list of conversations is meant to take it too.

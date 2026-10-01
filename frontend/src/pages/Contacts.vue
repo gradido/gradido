@@ -158,7 +158,6 @@
       :greet="greet"
       :first-contact="firstContact"
       @contact-made="contactMade"
-      @forward-message="forwardFromContact"
     />
     <!-- And one for a group (P5), the same way, and the dialog that opens one. -->
     <chat-group-window
@@ -167,18 +166,8 @@
       :contacts="contacts"
       @changed="reloadGroups"
       @open-member="openGroupMember"
-      @forward-message="forwardFromGroup"
     />
     <chat-group-create v-model="createOpen" :contacts="contacts" @created="groupCreated" />
-    <!-- Forwarding a message (E-059): where to, over the window it came from. -->
-    <chat-forward-dialog
-      v-model="forwardOpen"
-      :message="forwarding"
-      :writer="forwardWriter"
-      :contacts="contacts"
-      :groups="groups"
-      @forwarded="forwarded"
-    />
   </div>
 </template>
 
@@ -188,7 +177,6 @@ import { useRoute, useRouter } from 'vue-router'
 import { useApolloClient, useQuery } from '@vue/apollo-composable'
 import { useStore } from 'vuex'
 import { BFormInput, BPagination, BSpinner } from 'bootstrap-vue-next'
-import ChatForwardDialog from '@/components/Chat/ChatForwardDialog.vue'
 import ChatGroupCreate from '@/components/ChatGroups/ChatGroupCreate.vue'
 import ChatGroupRow from '@/components/ChatGroups/ChatGroupRow.vue'
 import ChatGroupWindow from '@/components/ChatGroups/ChatGroupWindow.vue'
@@ -197,31 +185,16 @@ import ContactsEmpty from '@/components/Contacts/ContactsEmpty.vue'
 import ContactWindow from '@/components/Contacts/ContactWindow.vue'
 import { useContactWindow } from '@/composables/useContactWindow'
 import { usePagerFit } from '@/composables/usePagerFit'
+import { provideChatForwardTargets } from '@/composables/useChatForwardTargets'
 import { onContactListRefresh } from '@/composables/useContactsPanel'
 import { contactListQuery } from '@/graphql/contacts.graphql'
 import { chatGroupsQuery } from '@/graphql/chatGroups.graphql'
 import { ensureFavorites, isFavorite } from '@/composables/useFavorites'
 import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
 import { useAppToast } from '@/composables/useToast'
-import { PAGE_SIZE } from '@/constants'
+import { CONTACTS_FETCH_MAX, PAGE_SIZE } from '@/constants'
 import { chatMemberKey } from '@/utils/chatMemberKey'
-import { memberAlias, memberKey } from '@/utils/gradidoAddress'
-
-/**
- * The whole list in one answer, then favourites, search and pages on this device.
- *
- * The server pages and searches too -- but the favourites are to stand ABOVE the rest,
- * all of them, and the rest is to be searched as one types; both are one array operation
- * once the list is here, and a round trip each otherwise. The list is small: a few dozen
- * people for most members, some hundred for the busiest account measured (713).
- *
- * ⚠️ Past the cap below the list is cut, and nothing on this page says so: the number
- * under "all contacts" counts what arrived, and the server's own `count` is not read
- * here. The day an account passes a thousand counterparties, this page moves to the
- * server-side pages, which exist for the compact panel of delivery 2 -- it is not a
- * matter of one more constant.
- */
-const CONTACTS_FETCH_MAX = 1000
+import { memberKey } from '@/utils/gradidoAddress'
 
 const { toastError } = useAppToast()
 // Three numbers at the desk too: this page is 450px wide on every screen (see its style).
@@ -238,6 +211,21 @@ const failed = ref(false)
 const search = ref('')
 const currentPage = ref(1)
 
+/**
+ * The whole list in one answer, then favourites, search and pages on this device.
+ *
+ * The server pages and searches too -- but the favourites are to stand ABOVE the rest,
+ * all of them, and the rest is to be searched as one types; both are one array operation
+ * once the list is here, and a round trip each otherwise. The list is small: a few dozen
+ * people for most members, some hundred for the busiest account measured (713).
+ *
+ * ⚠️ Past the cap (`CONTACTS_FETCH_MAX`) the list is cut, and nothing on this page says so: the number
+ * under "all contacts" counts what arrived, and the server's own `count` is not read
+ * here. The day an account passes a thousand counterparties, this page moves to the
+ * server-side pages, which exist for the compact panel of delivery 2 -- it is not a
+ * matter of one more constant. The cap stands in `constants`: the dialog that forwards a message
+ * asks for the same list where this page is not open.
+ */
 const LIST_VARIABLES = { currentPage: 1, pageSize: CONTACTS_FETCH_MAX }
 
 const { onResult, onError } = useQuery(
@@ -434,28 +422,20 @@ const { windowOpen, selected, greet, firstContact, open, openKnownMember, fillIn
   useContactWindow(apolloClient)
 
 /**
- * Forwarding a message (Bernd, 30.09.2026, E-059): a window hands it up, and the dialog asks where
- * to -- over the window it came from. Who wrote it, as that window names them: the writer in a
- * group by the name over their message, the other person of a conversation of two by theirs (the
- * dialog says "Du" for one's own). Once it went, the lists ask again: the conversations it went into
- * moved up.
+ * Forwarding a message (E-059) is the windows' own business -- each holds the dialog that asks
+ * where to, since a window is opened from many places besides this page. This page holds the two
+ * lists the dialog chooses from, so it hands them down instead of letting the dialog ask again:
+ * they are on screen here, and stay in step with it -- with what the page knows of them: still on
+ * their way, or not to be read. Once a message went, the chat's beat asks at once and the lists
+ * with it (`onContactListRefresh` above).
  */
-const forwardOpen = ref(false)
-const forwarding = ref(null)
-const forwardWriter = ref('')
-const forwardMessage = (message, writer) => {
-  forwarding.value = message
-  forwardWriter.value = writer
-  forwardOpen.value = true
-}
-const nameOf = (user) => (user?.gradidoID ? memberAlias(user.alias, user.gradidoID) : '')
-const forwardFromContact = (message) => forwardMessage(message, nameOf(selected.value?.user))
-const forwardFromGroup = (message) =>
-  forwardMessage(message, nameOf(message.senderUser ?? message.sender))
-const forwarded = () => {
-  reloadGroups()
-  reloadList()
-}
+provideChatForwardTargets({
+  contacts,
+  groups,
+  loading: computed(() => !loaded.value || !groupsLoaded.value),
+  contactsFailed: failed,
+  groupsFailed,
+})
 
 /**
  * `/contacts?with=<gradidoID>[&community=<uuid>]` opens the conversation with that person -- the
