@@ -10,6 +10,18 @@ export const uuidv4Schema = z
 export const emailSchema = z.string().trim().toLowerCase().email()
 export const urlSchema = z.string().url()
 export const uint32Schema = z.number().positive().lte(4294967295)
+
+/**
+ * `schema`, optional, with a blank string - empty or only whitespace - taken as not given
+ * (`null`) instead of being checked. For fields a client may send as '' when it means "none",
+ * such as an absent optional route parameter (vue-router hands `/register/:code?` over as
+ * `code: ''`). Anything else is checked by `schema` as usual, with its own messages.
+ */
+export const blankAsNull = <T extends z.ZodTypeAny>(schema: T) =>
+  z.preprocess(
+    (value) => (typeof value === 'string' && value.trim() === '' ? null : value),
+    schema.nullish(),
+  )
 export const languageSchema = z.enum(AVAILABLE_LOCALS)
 // return default language on invalid language input
 export const defaultLanguageSchema = languageSchema.catch(DEFAULT_LANGUAGE)

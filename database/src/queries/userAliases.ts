@@ -155,8 +155,14 @@ export async function dbFindAliasesByUser(userId: number): Promise<DbUserAlias[]
  * key on `alias` answers each one - no scan, however large the table. The column compares
  * case-insensitively, so `berndh` finds `BerndH`.
  */
-export async function dbFindUserAliasesExisting(userAliases: string[]): Promise<string[]> {
-  const rows = await drizzleDb()
+export async function dbFindUserAliasesExisting(
+  userAliases: string[],
+  tx?: DrizzleTransaction | MySql2Database,
+): Promise<string[]> {
+  if (!tx) {
+    tx = drizzleDb()
+  }
+  const rows = await tx
     .select({ a: userAliasesTable.alias })
     .from(userAliasesTable)
     .where(inArray(userAliasesTable.alias, userAliases))

@@ -57,6 +57,22 @@ describe('registerUser', () => {
     expect(await roleChosenFor(user)).toBe('RegisterUserGuarantorRole')
   })
 
+  // The page reached by its path sends the absent redeem code as '' - which took the
+  // registration away from the guarantor code, and the guest had no password (staging).
+  it('lets an empty redeem code decide nothing', async () => {
+    const user = input({
+      redeemCode: '',
+      project: '',
+      guarantorCode: '1700000000.AbCdEfGhIjKlMnOpQrStUv',
+      password: 'Aa1!aaaa',
+      referrerAlias: 'PeterL',
+    })
+    expect(await roleChosenFor(user)).toBe('RegisterUserGuarantorRole')
+    expect(await roleChosenFor(input({ redeemCode: '', guarantorCode: '' }))).toBe(
+      'RegisterUserRole',
+    )
+  })
+
   it('registers at somebody’s gradido address', async () => {
     expect(await roleChosenFor(input({ referrerAlias: 'PeterL' }))).toBe('RegisterUserReferrerRole')
   })

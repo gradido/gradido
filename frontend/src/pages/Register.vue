@@ -199,7 +199,10 @@ const { params, query } = useRoute()
 
 const showPageMessage = ref(false)
 const publisherId = ref(store.state.publisherId)
-const redeemCode = ref(params.code)
+// vue-router hands the absent optional parameter over as '' when the page is reached by its
+// path (/register?referrer=…&guarantor=…, the way a QR code or a link arrives), and as nothing
+// when it is reached by its name: both mean "no code", and neither goes out as one.
+const redeemCode = ref(params.code || undefined)
 // The user name from the Gradido address the registration started at: its owner becomes the
 // referrer, and the strip above the form names them. Only a user name is taken - the page
 // shows it, so anything else would put a stranger's text above the form, and the server

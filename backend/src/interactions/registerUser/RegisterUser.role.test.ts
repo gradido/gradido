@@ -127,9 +127,17 @@ const storedVerificationCode = (): string =>
 
 const insertedEvents = () => mocked(dbInsertEvent).mock.calls.map(([event]) => event)
 
+// The transaction run() opens: it hands its callback this stand-in and answers with what the
+// callback answers - and when the callback throws, so does the transaction, which is where the
+// database would roll back.
+const tx = { execute: jest.fn() }
+
 // A database on which every write succeeds and nobody else holds a name.
 beforeEach(() => {
   jest.clearAllMocks()
+  mocked(drizzleDb).mockReturnValue({
+    transaction: (callback: (t: typeof tx) => Promise<unknown>) => callback(tx),
+  } as unknown as ReturnType<typeof drizzleDb>)
   CONFIG.DLT_ACTIVE = false
   mocked(dbHomeCommunityGetUuid).mockResolvedValue(COMMUNITY_UUID)
   mocked(dbInsertUser).mockResolvedValue({ success: true, value: USER_ID })
@@ -164,13 +172,13 @@ describe('RegisterUserRole', () => {
         passwordEncryptionType: PasswordEncryptionType.NO_PASSWORD,
         humhubAllowed: true,
       }),
-      undefined,
+      tx,
     )
     expect(dbInsertUserContact).toHaveBeenCalledWith(
       expect.objectContaining({ email: 'bernd@example.com', userId: USER_ID, emailChecked: false }),
-      undefined,
+      tx,
     )
-    expect(dbUserUpdateField).toHaveBeenCalledWith(USER_ID, 'emailId', CONTACT_ID, undefined)
+    expect(dbUserUpdateField).toHaveBeenCalledWith(USER_ID, 'emailId', CONTACT_ID, tx)
   })
 
   it('sends the activation link carrying the stored verification code', async () => {
@@ -255,13 +263,16 @@ describe('RegisterUserRole', () => {
   describe('alias', () => {
     it('assigns first name plus one letter when that is free', async () => {
       await new RegisterUserRole(input()).run(logger)
-      expect(dbInsertUserAlias).toHaveBeenCalledWith({
-        alias: 'BerndH',
-        userId: USER_ID,
-        origin: ALIAS_ORIGIN_ASSIGNED,
-      })
+      expect(dbInsertUserAlias).toHaveBeenCalledWith(
+        {
+          alias: 'BerndH',
+          userId: USER_ID,
+          origin: ALIAS_ORIGIN_ASSIGNED,
+        },
+        tx,
+      )
       expect(dbFindUserAliasesExisting).not.toHaveBeenCalled()
-      expect(dbUserUpdateField).toHaveBeenCalledWith(USER_ID, 'alias', 'BerndH')
+      expect(dbUserUpdateField).toHaveBeenCalledWith(USER_ID, 'alias', 'BerndH', tx)
     })
 
     it('walks on to the next name when that is taken, in its own spelling', async () => {
@@ -270,21 +281,27 @@ describe('RegisterUserRole', () => {
 
       await new RegisterUserRole(input()).run(logger)
 
-      expect(dbInsertUserAlias).toHaveBeenLastCalledWith({
-        alias: 'BerndHue',
-        userId: USER_ID,
-        origin: ALIAS_ORIGIN_ASSIGNED,
-      })
-      expect(dbUserUpdateField).toHaveBeenCalledWith(USER_ID, 'alias', 'BerndHue')
+      expect(dbInsertUserAlias).toHaveBeenLastCalledWith(
+        {
+          alias: 'BerndHue',
+          userId: USER_ID,
+          origin: ALIAS_ORIGIN_ASSIGNED,
+        },
+        tx,
+      )
+      expect(dbUserUpdateField).toHaveBeenCalledWith(USER_ID, 'alias', 'BerndHue', tx)
     })
 
     it('keeps the alias the member chose', async () => {
       await new RegisterUserRole(input({ alias: 'bernd-the-gardener' })).run(logger)
-      expect(dbInsertUserAlias).toHaveBeenCalledWith({
-        alias: 'bernd-the-gardener',
-        userId: USER_ID,
-        origin: ALIAS_ORIGIN_CHOSEN,
-      })
+      expect(dbInsertUserAlias).toHaveBeenCalledWith(
+        {
+          alias: 'bernd-the-gardener',
+          userId: USER_ID,
+          origin: ALIAS_ORIGIN_CHOSEN,
+        },
+        tx,
+      )
     })
 
     // A name the system builds is a proposal and costs none of the member's four picks.
@@ -293,23 +310,29 @@ describe('RegisterUserRole', () => {
 
       await new RegisterUserRole(input({ alias: 'bernd-the-gardener' })).run(logger)
 
-      expect(dbInsertUserAlias).toHaveBeenLastCalledWith({
-        alias: 'BerndH',
-        userId: USER_ID,
-        origin: ALIAS_ORIGIN_ASSIGNED,
-      })
+      expect(dbInsertUserAlias).toHaveBeenLastCalledWith(
+        {
+          alias: 'BerndH',
+          userId: USER_ID,
+          origin: ALIAS_ORIGIN_ASSIGNED,
+        },
+        tx,
+      )
     })
   })
 
-  it('removes what it stored and sends nothing when storing fails half way', async () => {
+  // User, contact and alias are written in one transaction: a failure half way leaves the
+  // transaction by throwing, and the database takes back what was written. Nothing deletes by
+  // hand any more, and nothing after the transaction runs.
+  it('fails the transaction and sends nothing when storing fails half way', async () => {
     mocked(dbUserUpdateField).mockImplementation(async (_id, field) => (field === 'alias' ? 0 : 1))
 
     await expect(new RegisterUserRole(input()).run(logger)).rejects.toThrow(
       'Error while storing the generated alias',
     )
-    expect(dbRemoveUser).toHaveBeenCalledWith(USER_ID)
-    expect(dbRemoveUserContact).toHaveBeenCalledWith(CONTACT_ID)
-    expect(dbRemoveUserAlias).toHaveBeenCalledWith(ALIAS_ID)
+    expect(dbRemoveUser).not.toHaveBeenCalled()
+    expect(dbRemoveUserContact).not.toHaveBeenCalled()
+    expect(dbRemoveUserAlias).not.toHaveBeenCalled()
     expect(sendAccountActivationEmail).not.toHaveBeenCalled()
     expect(dbInsertEvent).not.toHaveBeenCalled()
   })
@@ -340,7 +363,7 @@ describe('RegisterUserRole with an address a pending change holds', () => {
   it('releases the pending change and opens the account', async () => {
     expect(await new RegisterUserRole(input()).run(logger)).toBe(USER_ID)
 
-    expect(dbReleaseUnconfirmedEmailChangeFor).toHaveBeenCalledWith('bernd@example.com', undefined)
+    expect(dbReleaseUnconfirmedEmailChangeFor).toHaveBeenCalledWith('bernd@example.com', tx)
     expect(dbInsertUserContact).toHaveBeenCalledTimes(2)
     expect(sendAccountActivationEmail).toHaveBeenCalled()
     expect(sendAccountMultiRegistrationEmail).not.toHaveBeenCalled()
@@ -397,7 +420,7 @@ describe('RegisterUserRole with an address that is taken', () => {
   it('leaves no account row behind', async () => {
     await new RegisterUserRole(input()).run(logger)
 
-    expect(dbRemoveUser).toHaveBeenCalledWith(USER_ID, undefined)
+    expect(dbRemoveUser).toHaveBeenCalledWith(USER_ID, tx)
   })
 
   // The tests of the resolver waited for exactly this line.
@@ -422,7 +445,7 @@ describe('RegisterUserReferrerRole', () => {
 
     expect(dbInsertUser).toHaveBeenCalledWith(
       expect.objectContaining({ referrerId: REFERRER_ID }),
-      undefined,
+      tx,
     )
     expect(insertedEvents()).toContainEqual({
       type: EventType.USER_REGISTER,
@@ -455,7 +478,7 @@ describe('RegisterUserFromTransactionLinkRole', () => {
 
     expect(dbInsertUser).toHaveBeenCalledWith(
       expect.objectContaining({ contributionLinkId: 9 }),
-      undefined,
+      tx,
     )
     expect(sendAccountActivationEmail).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -480,7 +503,7 @@ describe('RegisterUserFromTransactionLinkRole', () => {
 
     expect(dbInsertUser).toHaveBeenCalledWith(
       expect.objectContaining({ referrerId: REFERRER_ID }),
-      undefined,
+      tx,
     )
     expect(insertedEvents()).toContainEqual({
       type: EventType.USER_REGISTER_REDEEM,
@@ -511,7 +534,6 @@ describe('RegisterUserForProjectRole', () => {
 })
 
 describe('RegisterUserGuarantorRole', () => {
-  const tx = { execute: jest.fn() }
   const guarantorInput = () =>
     input({
       guarantorCode: '1700000000.AbCdEfGhIjKlMnOpQrStUv',
@@ -524,9 +546,6 @@ describe('RegisterUserGuarantorRole', () => {
     mocked(dbFindUserById).mockResolvedValue({ id: REFERRER_ID } as UserSelect)
     mocked(dbCountUnconfirmedVouchedAccounts).mockResolvedValue(0)
     mocked(encryptPassword).mockResolvedValue(123n)
-    mocked(drizzleDb).mockReturnValue({
-      transaction: (run: (t: typeof tx) => Promise<number>) => run(tx),
-    } as unknown as ReturnType<typeof drizzleDb>)
   })
 
   it('opens the account with the password, in the member’s name', async () => {
