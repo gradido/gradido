@@ -16,6 +16,7 @@ import {
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { Context, newRequestBudget } from '@/server/context'
 import { ChatEditResolver } from './ChatEditResolver'
+import { carryChatMessageEditAcrossBorder } from './util/chatMessageEdit'
 
 // What the database answers is mocked here: the subject is what the resolver decides itself when
 // a member changes a message (E-060) -- whose message may be changed and which, that every
@@ -36,6 +37,12 @@ jest.mock('database', () => {
     getHomeCommunity: jest.fn(async () => ({ communityUuid: HOME, name: 'Gradido Akademie' })),
   }
 })
+
+// The other server is not asked: what it answers to a change is what each test says.
+jest.mock('./util/chatMessageEdit', () => ({
+  __esModule: true,
+  carryChatMessageEditAcrossBorder: jest.fn(),
+}))
 
 // With letters in it: a test below spells it in capitals, and digits alone have no capitals.
 const HOME = '1a1a1a1a-1111-4111-8111-11111111aaaa'
@@ -114,6 +121,7 @@ const update = dbUpdateChatMessageBody as jest.Mock
 const groupUuids = dbSelectChatGroupUuids as jest.Mock
 const byUuids = dbSelectUsersByUuids as jest.Mock
 const usersByIds = dbFindUsersByIds as jest.Mock
+const carry = carryChatMessageEditAcrossBorder as jest.Mock
 
 const edit = (body = NEW_TEXT, messageUuid = MESSAGE) =>
   new ChatEditResolver().editChatMessage({ messageUuid, body }, lenasRequest())
@@ -148,6 +156,7 @@ beforeEach(() => {
     pairs.map((pair) => ({ id: 1, ...pair, alias: 'lena', deletedAt: null })),
   )
   usersByIds.mockResolvedValue([lenaUser])
+  carry.mockResolvedValue({ success: true })
 })
 
 describe('editChatMessage, what the resolver decides itself (E-060)', () => {
@@ -156,6 +165,8 @@ describe('editChatMessage, what the resolver decides itself (E-060)', () => {
 
     expect(source).toHaveBeenCalledWith(MESSAGE, { communityUuid: HOME, gradidoId: LENA })
     expect(update).toHaveBeenCalledTimes(1)
+    // Both members are of this community: no other server is asked.
+    expect(carry).not.toHaveBeenCalled()
     expect(copy).toMatchObject({
       id: 5,
       messageUuid: MESSAGE,
@@ -283,11 +294,18 @@ describe('editChatMessage, what the resolver decides itself (E-060)', () => {
       nothingWritten()
     })
 
-    // Their server holds a copy of its own: changed only here, the two would read different words.
-    it('a message in a conversation with a member of another community', async () => {
-      membersOf.mockResolvedValue([member(WITH_MAX, LENA), member(WITH_MAX, MAX, ELSEWHERE)])
-      await expect(edit()).rejects.toThrow('CHAT_MESSAGE_NOT_EDITED: OTHER_COMMUNITY')
-      expect(membersOf).toHaveBeenCalledWith(WITH_MAX)
+    // A change has no way into a group with members elsewhere yet (P6).
+    it('a message in a group with members of another community', async () => {
+      holds(row({ conversationId: IN_GROUP }))
+      for (const others of [
+        [member(IN_GROUP, MAX), member(IN_GROUP, NORA, ELSEWHERE)],
+        [member(IN_GROUP, MAX, ELSEWHERE), member(IN_GROUP, NORA, ELSEWHERE)],
+      ]) {
+        membersOf.mockResolvedValue([member(IN_GROUP, LENA), ...others])
+        await expect(edit()).rejects.toThrow('CHAT_MESSAGE_NOT_EDITED: OTHER_COMMUNITY')
+      }
+      expect(membersOf).toHaveBeenCalledWith(IN_GROUP)
+      expect(carry).not.toHaveBeenCalled()
       nothingWritten()
     })
 
@@ -333,7 +351,11 @@ describe('editChatMessage, what the resolver decides itself (E-060)', () => {
     const errors = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 
     await edit()
-    membersOf.mockResolvedValue([member(WITH_MAX, LENA), member(WITH_MAX, MAX, ELSEWHERE)])
+    membersOf.mockResolvedValue([
+      member(WITH_MAX, LENA),
+      member(WITH_MAX, MAX),
+      member(WITH_MAX, NORA, ELSEWHERE),
+    ])
     await expect(edit()).rejects.toThrow('OTHER_COMMUNITY')
 
     const logged = JSON.stringify([
@@ -342,6 +364,109 @@ describe('editChatMessage, what the resolver decides itself (E-060)', () => {
     ])
     expect(logged).toContain(`chat message edited: message_uuid=${MESSAGE}`)
     expect(logged).toContain('CHAT_MESSAGE_NOT_EDITED: OTHER_COMMUNITY')
+    expect(logged).not.toContain('Hofflohmarkt')
+  })
+})
+
+/**
+ * A conversation of two with a member of another community (E-060): their server holds a copy of
+ * its own. The change goes there first, and this server's copy is changed only once the other
+ * server has said that its own is -- so that the two go on reading the same words.
+ */
+describe('editChatMessage, to a member of another community (E-060)', () => {
+  beforeEach(() => {
+    membersOf.mockResolvedValue([member(WITH_MAX, LENA), member(WITH_MAX, MAX, ELSEWHERE)])
+  })
+
+  it('carries the change to the other server first, and writes its own copy after the answer', async () => {
+    const steps: string[] = []
+    carry.mockImplementation(async () => {
+      steps.push('other server asked')
+      await new Promise((resolve) => setImmediate(resolve))
+      steps.push('other server answered')
+      return { success: true }
+    })
+    update.mockImplementation(async (_uuid: string, _sender: unknown, body: string) => {
+      steps.push('own copy written')
+      return { success: true, value: { ...held, body, editedAt: EDITED_AT } }
+    })
+
+    const copy = await edit()
+
+    expect(carry).toHaveBeenCalledWith({
+      writer: { communityUuid: HOME, gradidoId: LENA },
+      otherCommunityUuid: ELSEWHERE,
+      messageUuid: MESSAGE,
+      body: NEW_TEXT,
+    })
+    expect(steps).toEqual(['other server asked', 'other server answered', 'own copy written'])
+    expect(copy).toMatchObject({ body: NEW_TEXT, editedAt: EDITED_AT, mine: true })
+  })
+
+  // ⛔ Nothing changes on either side: this server's copy stays as it is.
+  it('changes nothing where the other server did not confirm, and says so', async () => {
+    carry.mockResolvedValue({
+      success: false,
+      error: { reason: 'NOT_CONFIRMED', detail: 'Command EDIT_CHAT_MESSAGE_COMMAND not found' },
+    })
+    await expect(edit()).rejects.toThrow('CHAT_MESSAGE_NOT_EDITED: NOT_CONFIRMED')
+    nothingWritten()
+  })
+
+  it('changes nothing where there is no way to deliver', async () => {
+    carry.mockResolvedValue({
+      success: false,
+      error: { reason: 'NO_WAY_TO_DELIVER', detail: ELSEWHERE },
+    })
+    await expect(edit()).rejects.toThrow('CHAT_MESSAGE_NOT_EDITED: NO_WAY_TO_DELIVER')
+    nothingWritten()
+  })
+
+  // E-019: a message that never reached the other server has no copy over there.
+  it('changes a message that never reached the other server here alone', async () => {
+    holds(row({ deliveryState: 'failed' }))
+
+    const copy = await edit()
+
+    expect(carry).not.toHaveBeenCalled()
+    expect(update).toHaveBeenCalledWith(MESSAGE, { communityUuid: HOME, gradidoId: LENA }, NEW_TEXT)
+    expect(copy.body).toBe(NEW_TEXT)
+  })
+
+  // Changed here alone, it would arrive over there a moment later with the words it had.
+  it('refuses a message that is still on its way', async () => {
+    holds(row({ deliveryState: 'pending' }))
+
+    await expect(edit()).rejects.toThrow('CHAT_MESSAGE_NOT_EDITED: PENDING')
+    expect(carry).not.toHaveBeenCalled()
+    nothingWritten()
+  })
+
+  it('asks nobody for the same text again, and for a refusal of its own', async () => {
+    await edit(TEXT)
+    holds(row({ forwardedFromCommunityUuid: HOME, forwardedFromGradidoId: MAX }))
+    await expect(edit()).rejects.toThrow('FORWARDED')
+    holds(row())
+    await expect(edit('')).rejects.toThrow('EMPTY')
+
+    expect(carry).not.toHaveBeenCalled()
+    nothingWritten()
+  })
+
+  it('writes what the other server said into the log, cut where it is long, and never the text', async () => {
+    const errors = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
+    const refusedWith = async (detail: string) => {
+      carry.mockResolvedValue({ success: false, error: { reason: 'NOT_CONFIRMED', detail } })
+      await expect(edit()).rejects.toThrow('NOT_CONFIRMED')
+    }
+
+    await refusedWith('CHAT_MESSAGE_NOT_EDITED: UNKNOWN_MESSAGE')
+    await refusedWith(`a server that quotes what it got: ${NEW_TEXT} `.repeat(6))
+
+    const logged = JSON.stringify((errors.error as jest.Mock).mock.calls)
+    expect(logged).toContain(MESSAGE)
+    expect(logged).toContain('CHAT_MESSAGE_NOT_EDITED: UNKNOWN_MESSAGE')
+    expect(logged).toContain('*** 462 characters')
     expect(logged).not.toContain('Hofflohmarkt')
   })
 })
