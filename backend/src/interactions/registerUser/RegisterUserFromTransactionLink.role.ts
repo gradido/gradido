@@ -13,17 +13,36 @@ import { getTimeDurationObject } from '@/util/time'
 import { CreateUser, RedeemRegistration, redeemRegistrationSchema } from './createUser.schema'
 import { RegisterUserRole } from './RegisterUser.role'
 
+enum RedeemCodeType {
+  ContributionLink,
+  TransactionLink,
+}
+
 export class RegisterUserFromTransactionLinkRole extends RegisterUserRole<RedeemRegistration> {
   private contributionLinkId: number | null = null
   private transactionLinkId: number | null = null
+  private type: RedeemCodeType
 
   constructor(createUserInput: CreateUser) {
     super(parseOrThrowFirstIssue(redeemRegistrationSchema, createUserInput))
+    if (this.user.redeemCode.match(/^CL-/)) {
+      this.type = RedeemCodeType.ContributionLink
+    } else {
+      this.type = RedeemCodeType.TransactionLink
+    }
+  }
+
+  public getRoleTitle(): string {
+    if (this.type === RedeemCodeType.ContributionLink) {
+      return 'Register User with Contribution Link Code'
+    } else {
+      return 'Register User with Transaction Link Code'
+    }
   }
 
   public async prepareUser(): Promise<UserInsert> {
     const dbUser = await super.prepareUser()
-    if (this.user.redeemCode.match(/^CL-/)) {
+    if (this.type === RedeemCodeType.ContributionLink) {
       const contributionLinkId = await dbFindContributionLinkIdByCode(this.user.redeemCode)
       if (contributionLinkId) {
         dbUser.contributionLinkId = contributionLinkId

@@ -9,4 +9,5 @@ export abstract class AbstractRegisterUserRole<T extends CreateUser = CreateUser
     protected startDate = new Date(),
   ) {}
   public abstract run(logger: Logger): Promise<number>
+  public abstract getRoleTitle(): string
 }

@@ -41,23 +41,29 @@ import InputPasswordConfirmation from '@/components/Inputs/InputPasswordConfirma
 import Message from '@/components/Message/Message.vue'
 import { useAppToast } from '@/composables/useToast'
 import { useForm } from 'vee-validate'
+import { useAuthLinks } from '@/composables/useAuthLinks'
+
+const { routeWithParamsAndQuery } = useAuthLinks()
+
+// `routeWithParamsAndQuery` on purpose, never a plain `{ name: 'Login' }`: after a registration
+// over a transaction or contribution link the confirmation mail points at
+// `/checkEmail/:optin/:code?`, and that `code` IS the redeem code. It has to travel on to
+// `/login/:code?`, because the login page redeems it right after signing in. The collision
+// PR #3798 repaired has nothing to do with this page. Pinned by `ResetPassword.spec.js`.
+const linkTo = routeWithParamsAndQuery('Login')
 
 const textFields = {
   reset: {
     title: 'settings.password.change-password',
     text: 'settings.password.reset-password.text',
     button: 'settings.password.change-password',
-    // A plain name, never `routeWithParamsAndQuery`: this page sits on
-    // `/checkEmail/:optin/:code?`, and spreading those params into `/login/:code?` hands the
-    // login page a redeem code it never asked for - the collision PR #3798 repaired one page
-    // further along.
-    linkTo: { name: 'Login' },
+    linkTo,
   },
   checkEmail: {
     title: 'settings.password.set',
     text: 'settings.password.set-password.text',
     button: 'settings.password.set',
-    linkTo: { name: 'Login' },
+    linkTo,
   },
 }
 
@@ -104,7 +110,7 @@ const onSubmit = async () => {
       ? t('message.checkEmail')
       : t('message.reset')
     messageButtonText.value = t('login')
-    messageButtonLinkTo.value = { name: 'Login' }
+    messageButtonLinkTo.value = linkTo
   } catch (error) {
     const errorMessage = error.message.match(
       /email was sent more than ([0-9]+ hours)?( and )?([0-9]+ minutes)? ago/,

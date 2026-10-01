@@ -10,6 +10,10 @@ import { RegisterUserRole } from './RegisterUser.role'
 export class RegisterUserForProjectRole extends RegisterUserRole<ProjectRegistration> {
   private projectBrandingPromise: Promise<ProjectBrandingSelect | undefined>
 
+  public getRoleTitle(): string {
+    return 'Register User with Project Code'
+  }
+
   constructor(createUserInput: CreateUser) {
     super(parseOrThrowFirstIssue(projectRegistrationSchema, createUserInput))
   }

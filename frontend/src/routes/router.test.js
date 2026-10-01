@@ -327,6 +327,32 @@ describe('router', () => {
       ).toEqual({})
     })
 
+    /**
+     * ⛔ The other side of the rule below: on these four routes `code` is the SAME thing, a
+     * redeem code, and it is passed from one to the next under that name (`useAuthLinks` hands
+     * on the params the target route declares). The confirmation mail of a registration over a transaction link opens
+     * `/checkEmail/<optin>/<code>`; from there it goes over the login to the redeem page.
+     * Rename the parameter on one of them, or stop a page from handing it on, and the link
+     * somebody registered for is never redeemed.
+     */
+    it('carries a redeem code from the confirmation mail over the login to the redeem page', () => {
+      const checkEmail = router.resolve('/checkEmail/123456/abcdef0123')
+      expect(checkEmail.name).toBe('CheckEmail')
+
+      const login = router.resolve({ name: 'Login', params: { code: checkEmail.params.code } })
+      expect(login.fullPath).toBe('/login/abcdef0123')
+
+      const redeem = router.resolve({ name: 'Redeem', params: { code: login.params.code } })
+      expect(redeem.fullPath).toBe('/redeem/abcdef0123')
+    })
+
+    it('carries a redeem code from the redeem page over the registration', () => {
+      const redeem = router.resolve('/redeem/abcdef0123')
+
+      const register = router.resolve({ name: 'Register', params: { code: redeem.params.code } })
+      expect(register.fullPath).toBe('/register/abcdef0123')
+    })
+
     it('never lets a mail-link route call its parameter :code', () => {
       // routes.js writes this rule as a comment because of PR #3798: `/login/:code?` reads
       // `code` as a redeem code, so a link built from a mail-link route would hand the login
