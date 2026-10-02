@@ -1,8 +1,13 @@
 import { Paginated } from '@arg/Paginated'
 import { TransactionLinkFilters } from '@arg/TransactionLinkFilters'
 import { Order } from '@enum/Order'
+import { ThankYouGreeting } from '@model/ThankYouGreeting'
 import { TransactionLink, TransactionLinkResult } from '@model/TransactionLink'
-import { TransactionLink as DbTransactionLink, User as DbUser } from 'database'
+import {
+  TransactionLink as DbTransactionLink,
+  User as DbUser,
+  dbSelectThankYouGreetingsByLinkCodes,
+} from 'database'
 import { IsNull, MoreThan } from 'typeorm'
 
 import { User } from '@/graphql/model/User'
@@ -31,6 +36,16 @@ export async function transactionLinkListDecayed(
     take: pageSize,
   })
 
+  // The greetings of the page, read once for all its links. A deleted link -- the admin's
+  // list may ask for those -- never shows one.
+  const greetings = new Map(
+    (
+      await dbSelectThankYouGreetingsByLinkCodes(
+        transactionLinks.filter((tl) => !tl.deletedAt).map((tl) => tl.code),
+      )
+    ).map((greeting) => [greeting.transactionLinkCode, new ThankYouGreeting(greeting)]),
+  )
+
   return {
     count,
     links: transactionLinks.map((tl) => {
@@ -40,7 +55,13 @@ export async function transactionLinkListDecayed(
       } else {
         tl.holdAvailableAmount = tl.holdAvailableAmount.decayed(tl.createdAt, now)
       }
-      return new TransactionLink(tl, new User(user))
+      return new TransactionLink(
+        tl,
+        new User(user),
+        undefined,
+        undefined,
+        tl.deletedAt ? null : greetings.get(tl.code),
+      )
     }),
   }
 }

@@ -3,6 +3,7 @@
 import { useI18n } from 'vue-i18n'
 import { useStore } from 'vuex'
 import CONFIG from '@/config'
+import { useAmountInText } from '@/composables/useAmountInText'
 import { useAppToast } from '@/composables/useToast'
 import { renderQrCodeCanvas } from '@/utils/qrCode'
 import { avatarLettering } from '@/utils/avatarLettering'
@@ -24,6 +25,7 @@ export const useThankYouCheque = ({ link, amount, memo, validUntil }) => {
   const store = useStore()
   const { t, d } = useI18n()
   const { toastError } = useAppToast()
+  const amountInText = useAmountInText()
 
   const drawThankYouCheque = async () => {
     // gradidoID, not gradidoId -- the store spells it with a capital D, and reading the
@@ -55,7 +57,10 @@ export const useThankYouCheque = ({ link, amount, memo, validUntil }) => {
       // The same giver the shared text and the redeem page name, so the three never disagree
       // about who is giving: the alias (NU-021/KLAR-07). The shared text thanks where this
       // sentence sends; whether the paper follows is still open.
-      headline: `${alias} ${t('transaction-link.send_you')} ${amount} Gradido.`,
+      // The amount as a sentence says it, with the decimal mark of the language -- as the
+      // shared text and the sheet the link opens as write it (useAmountInText). The server
+      // hands it over as "12.5", and written as it came the German cheque read "12.5 Gradido.".
+      headline: `${alias} ${t('transaction-link.send_you')} ${amountInText(amount)} Gradido.`,
       memo,
       hintLine: t('thank-you-cheque.scan-qr'),
       validLine: t('thank-you-cheque.valid-until', { date: d(new Date(validUntil), 'short') }),

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { identifier, memo, message } from '@/validationSchemas'
+import { amount, identifier, memo, message } from '@/validationSchemas'
 
 // The frontend cannot import yet from the shared package, so these bounds are written
 // out twice: here and in shared/src/const/index.ts. That makes them easy to widen
@@ -13,6 +13,37 @@ import { identifier, memo, message } from '@/validationSchemas'
 const stringOfLength = (length) => 'x'.repeat(length)
 
 describe('validationSchemas', () => {
+  // One rule for the send form and for the thank-you greeting.
+  describe('amount (what a member types, up to a maximum)', () => {
+    const upTo100 = amount(100)
+
+    it('takes a number between a cent and the maximum, with a comma or a point', () => {
+      for (const typed of ['0.01', '0,01', '20', '12,5', '12.50', '100', 100, 0.01]) {
+        expect(upTo100.isValidSync(typed), String(typed)).toBe(true)
+      }
+      expect(upTo100.cast('12,5')).toBe(12.5)
+    })
+
+    it('refuses nothing, zero, less than a cent, more than the maximum and what is no number', () => {
+      for (const typed of ['', undefined, '0', '0,001', '100,01', '-5', 'zwanzig']) {
+        expect(upTo100.isValidSync(typed), String(typed)).toBe(false)
+      }
+    })
+
+    it('refuses more than two decimals', () => {
+      expect(upTo100.isValidSync('1,234')).toBe(false)
+      expect(upTo100.isValidSync('1,23')).toBe(true)
+    })
+
+    it('names the maximum it was given, in the message for too much', () => {
+      expect(() => amount(97.37).validateSync('98')).toThrow(
+        expect.objectContaining({
+          message: { key: 'form.validation.amount.max', values: { max: 97.37 } },
+        }),
+      )
+    })
+  })
+
   describe('memo (travels with a transaction)', () => {
     it('accepts the longest memo the column can hold', () => {
       expect(memo.isValidSync(stringOfLength(512))).toBe(true)

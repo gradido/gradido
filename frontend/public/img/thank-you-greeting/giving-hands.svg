@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 250" width="720" height="500" role="img" aria-label="Zwei offene Hände halten ein goldenes Herz">
+  <defs>
+    <g id="hand"><rect x="50" y="-27.5" width="52" height="13" rx="6.5" transform="rotate(-8 52 -21)"></rect><rect x="52" y="-13.5" width="58" height="13" rx="6.5" transform="rotate(-2.5 54 -7)"></rect><rect x="52" y="0.5" width="54" height="13" rx="6.5" transform="rotate(3 54 7)"></rect><rect x="50" y="14.5" width="44" height="13" rx="6.5" transform="rotate(9 52 21)"></rect><rect x="12" y="-35" width="38" height="16" rx="8" transform="rotate(-50 16 -27)"></rect><rect x="0" y="-30" width="66" height="60" rx="23"></rect></g>
+    <path id="herz" d="M0 46 C-30 26 -48 11 -48 -8 C-48 -22 -37 -30 -25 -30 C-14 -30 -5 -23 0 -14 C5 -23 14 -30 25 -30 C37 -30 48 -22 48 -8 C48 11 30 26 0 46 Z"></path>
+    <radialGradient id="grund" cx="50%" cy="42%" r="70%"><stop offset="0%" stop-color="#fdf6e3"></stop><stop offset="100%" stop-color="#f4ead0"></stop></radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#e2b55c"></stop><stop offset="100%" stop-color="#c58d38"></stop></linearGradient>
+  </defs>
+  <rect width="360" height="250" fill="url(#grund)"></rect>
+  <circle cx="62" cy="58" r="3" fill="#e3c98f"></circle><circle cx="300" cy="50" r="4" fill="#e3c98f"></circle><circle cx="318" cy="150" r="3" fill="#dcbf7f"></circle><circle cx="44" cy="150" r="4" fill="#dcbf7f"></circle>
+  <g transform="translate(146,224) rotate(-99) scale(1.2)">
+    <rect x="-60" y="-25" width="64" height="50" rx="6" fill="#7fa668" stroke="#5c8a4e" stroke-width="2"></rect>
+    <rect x="-12" y="-28" width="17" height="56" rx="6" fill="#fdf6e3" stroke="#a3742c" stroke-width="2"></rect>
+    <use href="#hand" fill="#a3742c" stroke="#a3742c" stroke-width="4" stroke-linejoin="round"></use>
+    <use href="#hand" fill="#f3dfb8"></use>
+  </g>
+  <g transform="translate(214,224) scale(-1,1) rotate(-99) scale(1.2)">
+    <rect x="-60" y="-25" width="64" height="50" rx="6" fill="#7fa668" stroke="#5c8a4e" stroke-width="2"></rect>
+    <rect x="-12" y="-28" width="17" height="56" rx="6" fill="#fdf6e3" stroke="#a3742c" stroke-width="2"></rect>
+    <use href="#hand" fill="#a3742c" stroke="#a3742c" stroke-width="4" stroke-linejoin="round"></use>
+    <use href="#hand" fill="#f3dfb8"></use>
+  </g>
+  <use href="#herz" transform="translate(182,153) scale(1.08)" fill="#a3742c" opacity="0.16"></use>
+  <use href="#herz" transform="translate(180,148) scale(1.08)" fill="url(#gold)" stroke="#a3742c" stroke-width="2"></use>
+</svg>

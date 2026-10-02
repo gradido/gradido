@@ -312,6 +312,19 @@ const routes = [
     },
   },
   {
+    // Writing a thank-you greeting: a picture, the words, a last look, and then a link to
+    // share. Its steps are `?step=` of this one route. Reached from the second door of
+    // "show it to your friends" and from the link tab of the send form -- on purpose from
+    // nowhere in the menu (ZE-017, F1). No right-hand column, like the page it comes from.
+    // ⛔ Not under `/send/...`: that path reads what follows as a community.
+    path: '/thank-you-greeting',
+    component: () => import('@/pages/ThankYouGreeting'),
+    meta: {
+      requiresAuth: true,
+      pageTitle: 'thank-you-greeting',
+    },
+  },
+  {
     path: '/contributions',
     component: () => import('@/pages/Contributions'),
     meta: {

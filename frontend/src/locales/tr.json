@@ -1131,6 +1131,7 @@
     "send": "Gradido ve e‑posta gönder",
     "settings": "Ayarlar",
     "show-friends": "Arkadaşlarına göster",
+    "thank-you-greeting": "Teşekkür mesajı",
     "transactions": "İşlemlerin",
     "usersearch": "Coğrafi üye arama (beta)"
   },
@@ -1533,6 +1534,85 @@
     "download": "Çeki indir",
     "scan-qr": "Senin hesabına Gradido transferi için QR kodu tara!",
     "valid-until": "Bu teşekkür çeki {date} tarihine kadar geçerli."
+  },
+  "thank-you-greeting": {
+    "done": {
+      "edit-hint": "Cümleyi göndermeden önce değiştirebilirsin. Senin sözlerin yalnızca kartta yer alır.",
+      "find-again": "Onu {transactions} altında, «{links}» bölümünde yeniden bulursun.",
+      "link-hint": "Linke sahip olan herkes teşekkürü kabul edebilir. Linki yalnızca teşekkür etmek istediğin kişiye gönder.",
+      "sentence-lead": "Bu cümle onunla birlikte yola çıkar:",
+      "title": "Teşekkür mesajın hazır.",
+      "title-for": "{name} için teşekkür mesajın hazır.",
+      "waits-until": "{date} tarihine kadar bekliyor."
+    },
+    "entry": {
+      "plain": "Resimsiz: link, çek, QR",
+      "text": "Bir resim ve birkaç sözle — göndermek için.",
+      "write": "Teşekkür mesajı yaz"
+    },
+    "for": "{name} için",
+    "group": {
+      "for-something": "Bir şey için teşekkür",
+      "just-so": "Öylesine teşekkür",
+      "occasion": "Özel bir gün için teşekkür"
+    },
+    "line": {
+      "appreciation": "Yaptıkların çok değerli. Teşekkür ederim.",
+      "birthday": "Doğum gününde: iyi ki varsın.",
+      "effort": "Emeğine sağlık — harika oldu.",
+      "encouragement": "Seni düşünüyorum. Başaracaksın.",
+      "farewell": "Yolun açık olsun — birlikte geçirdiğimiz zaman için teşekkür ederim.",
+      "help": "Yardımın için teşekkür ederim!",
+      "joy": "Günümü güzelleştirdin.",
+      "just-so": "Öylesine — iyi ki varsın.",
+      "recovery": "Geçmiş olsun — seni düşünüyorum.",
+      "talk": "Güzel sohbet için teşekkür ederim.",
+      "time": "Zaman ayırdığın için teşekkür ederim.",
+      "welcome": "Hoş geldin — burada olman ne güzel!"
+    },
+    "list": {
+      "for": "{name} için teşekkür mesajı"
+    },
+    "motif": {
+      "bouquet": "Çiçek buketi",
+      "giving-hands": "Veren eller",
+      "glowing-swirl": "Parlayan kıvrım",
+      "heart-leaves": "Kalp ve yapraklar",
+      "morning-light": "Sabah ışığı"
+    },
+    "name": "Teşekkür mesajı",
+    "next": "Devam",
+    "picture": {
+      "question": "Mesajın hangi resmi taşısın?"
+    },
+    "preview": {
+      "finish": "Mesajı tamamla",
+      "title": "Teşekkürün böyle görünecek.",
+      "title-for": "{name} teşekkürünü böyle görecek.",
+      "waits": "Mesajın {days} gün bekler. Kimse kabul etmezse Gradido'n sana geri döner — hiçbir şey kaybolmaz.",
+      "waits-for": "Mesajın {days} gün bekler. {name} kabul etmezse Gradido'n sana geri döner — hiçbir şey kaybolmaz."
+    },
+    "received-title": "Sana bir teşekkür mesajı",
+    "share": {
+      "copied": "Cümle ve link panoya kopyalandı. Artık bunları bir e-postaya veya mesaja yapıştırabilirsin.",
+      "line1": "Sana bir teşekkür mesajım var:",
+      "line1-for": "{name}, sana bir teşekkür mesajım var:"
+    },
+    "step": {
+      "picture": "Resim",
+      "preview": "Önizleme",
+      "words": "Sözler"
+    },
+    "words": {
+      "all-lines": "On iki önerinin tümü",
+      "amount": "Yanına ne kadar Gradido koyuyorsun?",
+      "for-whom": "Kimin için?",
+      "for-whom-hint": "İsim mesajının üzerinde yer alır.",
+      "line": "İlk satır",
+      "missing": "Bir ilk satır seç ya da kendi sözlerinle birkaç şey yaz.",
+      "own-line": "Kendi satırın",
+      "own-words": "Senin sözlerin"
+    }
   },
   "time": {
     "days": "Günler",

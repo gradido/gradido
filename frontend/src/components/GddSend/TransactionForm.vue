@@ -44,6 +44,36 @@
                 {{ $t('send_email') }}
               </BButton>
             </div>
+            <!-- The thank-you greeting has a way of its own (ZE-017, F1): on top of this tab a
+                 field leads there. The form below stays what it is.
+                 ⛔ The motif as an <img>, never inlined: the motifs share the ids of their
+                 gradients. The words beside it say what it is, so the picture says nothing. -->
+            <div
+              v-if="radioSelected === SEND_TYPES.link"
+              class="greeting-entry mt-4"
+              data-test="send-greeting-entry"
+            >
+              <img
+                class="greeting-entry-motif"
+                src="/img/thank-you-greeting/morning-light.svg"
+                alt=""
+                width="360"
+                height="250"
+              />
+              <div class="greeting-entry-text">
+                <div class="greeting-entry-title">{{ $t('thank-you-greeting.name') }}</div>
+                <div class="greeting-entry-lead small">
+                  {{ $t('thank-you-greeting.entry.text') }}
+                </div>
+                <BLink
+                  class="greeting-entry-link"
+                  to="/thank-you-greeting"
+                  data-test="send-greeting-link"
+                >
+                  {{ $t('thank-you-greeting.entry.write') }}
+                </BLink>
+              </div>
+            </div>
             <div v-if="radioSelected === SEND_TYPES.link" class="mt-4 mb-4">
               <h2 class="alert-heading">{{ $t('gdd_per_link.header') }}</h2>
               <div>
@@ -204,16 +234,18 @@
 import { ref, computed, watch, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuery } from '@vue/apollo-composable'
+import { BLink } from 'bootstrap-vue-next'
 import { SEND_TYPES } from '@/utils/sendTypes'
 import CommunitySwitch from '@/components/CommunitySwitch.vue'
 import ValidatedInput from '@/components/Inputs/ValidatedInput.vue'
 import {
+  amount as amountSchemaUpTo,
   memo as memoSchema,
   message as messageSchema,
   identifier as identifierSchema,
   subject as subjectSchema,
 } from '@/validationSchemas'
-import { object, number } from 'yup'
+import { object } from 'yup'
 import { memberAlias, sameHost, splitRecipient } from '@/utils/gradidoAddress'
 import { user } from '@/graphql/queries'
 import CONFIG from '@/config'
@@ -327,24 +359,8 @@ const identifierWithCommunity = identifierSchema.test(
 )
 
 const validationSchema = computed(() => {
-  const amountSchema = number()
-    .required()
-    .typeError({
-      key: 'form.validation.amount.typeError',
-      values: { min: 0.01, max: props.balance },
-    })
-    .transform((value, originalValue) => {
-      if (typeof originalValue === 'string') {
-        return Number(originalValue.replace(',', '.'))
-      }
-      return value
-    })
-    .min(0.01, ({ min }) => ({ key: 'form.validation.amount.min', values: { min } }))
-    .max(props.balance, ({ max }) => ({ key: 'form.validation.amount.max', values: { max } }))
-    .test('decimal-places', 'form.validation.amount.decimal-places', (value) => {
-      if (value === undefined || value === null) return true
-      return /^\d+(\.\d{0,2})?$/.test(value.toString())
-    })
+  // The rule itself stands in validationSchemas.js: the thank-you greeting asks the same.
+  const amountSchema = amountSchemaUpTo(props.balance)
   if (!userIdentifier.value && radioSelected.value === SEND_TYPES.send) {
     return object({
       memo: memoSchema,
@@ -619,5 +635,49 @@ label {
 :deep(label.form-check-label) {
   width: 100%;
   cursor: pointer;
+}
+
+/* The field that leads to the thank-you greeting: a small motif, two lines and a link, in a
+   fine frame of the house's gold. No ground of its own, so it reads in both themes. */
+.greeting-entry {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  border: 1.5px solid #c58d38;
+  border-radius: 18px;
+}
+
+/* The motif at its own proportions; its ground is light in both themes. */
+.greeting-entry-motif {
+  flex-shrink: 0;
+  width: 104px;
+  height: auto;
+  aspect-ratio: 36 / 25;
+  border-radius: 10px;
+  background: #fbf3de;
+}
+
+.greeting-entry-text {
+  min-width: 0;
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+
+.greeting-entry-title {
+  font-weight: 700;
+}
+
+.greeting-entry-lead {
+  color: var(--bs-secondary-color, #6c757d);
+  line-height: 1.4;
+}
+
+/* The link with the height a thumb needs. Through `:deep`: BLink renders the anchor. */
+.greeting-entry :deep(.greeting-entry-link) {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-weight: 700;
 }
 </style>

@@ -1131,6 +1131,7 @@
     "send": "Invia Gradido ed e‑mail",
     "settings": "Impostazioni",
     "show-friends": "Mostralo ai tuoi amici",
+    "thank-you-greeting": "Biglietto di ringraziamento",
     "transactions": "Le tue transazioni",
     "usersearch": "Ricerca geografica dei membri (beta)"
   },
@@ -1533,6 +1534,85 @@
     "download": "Scarica l'assegno",
     "scan-qr": "Per ricevere l'accredito dei Gradido, scansiona il codice QR!",
     "valid-until": "Questo assegno di ringraziamento è valido fino al {date}."
+  },
+  "thank-you-greeting": {
+    "done": {
+      "edit-hint": "Puoi modificare la frase prima dell'invio. Le tue parole compaiono solo sul biglietto.",
+      "find-again": "Lo ritrovi in {transactions}, alla voce «{links}».",
+      "link-hint": "Chi ha il link può accettare il ringraziamento. Invialo solo alla persona a cui è destinato.",
+      "sentence-lead": "Questa frase lo accompagna:",
+      "title": "Il tuo biglietto di ringraziamento è pronto.",
+      "title-for": "Il tuo biglietto di ringraziamento per {name} è pronto.",
+      "waits-until": "Aspetta fino al {date}."
+    },
+    "entry": {
+      "plain": "Senza immagine: link, assegno, QR",
+      "text": "Con un'immagine e qualche parola — da inviare.",
+      "write": "Scrivi un biglietto"
+    },
+    "for": "Per {name}",
+    "group": {
+      "for-something": "Grazie per qualcosa",
+      "just-so": "Grazie, senza un perché",
+      "occasion": "Grazie in un'occasione speciale"
+    },
+    "line": {
+      "appreciation": "Quello che fai è prezioso. Grazie.",
+      "birthday": "Per il tuo compleanno: grazie di esistere.",
+      "effort": "Grazie per il tuo impegno — è venuto benissimo.",
+      "encouragement": "Ti penso. Ce la farai.",
+      "farewell": "Buon cammino — e grazie per il tempo passato insieme.",
+      "help": "Grazie per il tuo aiuto!",
+      "joy": "Mi hai reso più bella la giornata.",
+      "just-so": "Così, semplicemente — perché ci sei.",
+      "recovery": "Guarisci presto — ti penso.",
+      "talk": "Grazie per la bella conversazione.",
+      "time": "Grazie per avermi dedicato il tuo tempo.",
+      "welcome": "Un caloroso benvenuto — che bello che tu sia qui!"
+    },
+    "list": {
+      "for": "Biglietto di ringraziamento per {name}"
+    },
+    "motif": {
+      "bouquet": "Mazzo di fiori",
+      "giving-hands": "Mani che donano",
+      "glowing-swirl": "Spirale luminosa",
+      "heart-leaves": "Cuore e foglie",
+      "morning-light": "Luce del mattino"
+    },
+    "name": "Biglietto di ringraziamento",
+    "next": "Avanti",
+    "picture": {
+      "question": "Quale immagine vuoi sul tuo biglietto?"
+    },
+    "preview": {
+      "finish": "Completa il biglietto",
+      "title": "Così apparirà il tuo ringraziamento.",
+      "title-for": "Così {name} vedrà il tuo ringraziamento.",
+      "waits": "Il tuo biglietto aspetta {days} giorni. Se nessuno lo accetta, i tuoi Gradido tornano semplicemente a te — nulla va perso.",
+      "waits-for": "Il tuo biglietto aspetta {days} giorni. Se {name} non lo accetta, i tuoi Gradido tornano semplicemente a te — nulla va perso."
+    },
+    "received-title": "Un biglietto di ringraziamento per te",
+    "share": {
+      "copied": "La frase e il link sono stati copiati negli appunti. Ora puoi incollarli in un'e-mail o in un messaggio.",
+      "line1": "Ho un biglietto di ringraziamento per te:",
+      "line1-for": "{name}, ho un biglietto di ringraziamento per te:"
+    },
+    "step": {
+      "picture": "Immagine",
+      "preview": "Anteprima",
+      "words": "Parole"
+    },
+    "words": {
+      "all-lines": "Tutti e dodici i suggerimenti",
+      "amount": "Quanti Gradido vuoi aggiungere?",
+      "for-whom": "Per chi?",
+      "for-whom-hint": "Il nome compare sul tuo biglietto.",
+      "line": "La prima riga",
+      "missing": "Scegli una prima riga o scrivi qualche parola tua.",
+      "own-line": "Riga personale",
+      "own-words": "Le tue parole"
+    }
   },
   "time": {
     "days": "Giorni",

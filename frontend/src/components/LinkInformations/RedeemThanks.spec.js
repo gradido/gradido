@@ -710,6 +710,77 @@ describe('RedeemThanks', () => {
   // switches that variable. The colour of a heading is not among them -- the dark sheet
   // repaints the heading elements instead -- and a line that is no heading and takes that
   // colour stood on the dark card at 1.2 : 1.
+  // A link that carries a thank-you greeting: the open sheet shows it, and the heading above
+  // it says what has come. The later states stay without a sheet and without a picture.
+  describe('a link with a thank-you greeting', () => {
+    const LINE = 'Einfach so — weil es Dich gibt.'
+    const greeted = (overrides = {}) =>
+      link({
+        memo: `${LINE}\nLiebe Sarah, mit Eurem iPad hat alles angefangen.`,
+        greeting: { motif: 'morning-light', line: LINE, recipientName: 'Sarah' },
+        ...overrides,
+      })
+
+    it.each(['LOGGED_OUT', 'REDEEM_SELECT_COMMUNITY', 'VALID'])(
+      'is headed "Ein Dank-Gruß für Dich" for whoever may accept it (%s)',
+      async (state) => {
+        const wrapper = await view(state, { linkData: greeted() })
+
+        expect(title(wrapper).text()).toBe('Ein Dank-Gruß für Dich')
+        expect(wrapper.find('[data-test="redeem-thanks-accept"]').text()).toBe('Dank annehmen')
+      },
+    )
+
+    it('keeps the heading of a plain link where there is no greeting', async () => {
+      for (const linkData of [link(), link({ greeting: null })]) {
+        expect(title(await view('LOGGED_OUT', { linkData })).text()).toBe('Ein Dank für Dich')
+      }
+    })
+
+    it('keeps "Das ist Dein eigener Dank" for the sender', async () => {
+      const wrapper = await view('SELF_CREATOR', { linkData: greeted() })
+
+      expect(title(wrapper).text()).toBe('Das ist Dein eigener Dank')
+    })
+
+    // The sheet reads the greeting from the link it is handed; the view hands the link on whole.
+    it('shows the greeting on the sheet: picture, whom it is for, the line, the words', async () => {
+      const wrapper = await view('LOGGED_OUT', { linkData: greeted() })
+      const paper = wrapper.findComponent(RedeemThanksPaper)
+
+      expect(paper.props('linkData').greeting).toEqual({
+        motif: 'morning-light',
+        line: LINE,
+        recipientName: 'Sarah',
+      })
+      expect(paper.find('[data-test="redeem-thanks-paper-motif"]').attributes('src')).toBe(
+        '/img/thank-you-greeting/morning-light.svg',
+      )
+      expect(paper.find('[data-test="redeem-thanks-paper-for"]').text()).toBe('FÜR SARAH')
+      expect(paper.find('[data-test="redeem-thanks-paper-line"]').text()).toBe(LINE)
+      expect(paper.find('[data-test="redeem-thanks-paper-message"]').text()).toBe(
+        'Liebe Sarah, mit Eurem iPad hat alles angefangen.',
+      )
+    })
+
+    it.each([
+      ['TEXT_REDEEMED', { redeemedAt: '2026-07-01T09:30:00.000Z' }, 'Dieser Dank ist angenommen.'],
+      ['TEXT_EXPIRED', {}, 'Dieser Dank hat 14 Tage gewartet.'],
+      [
+        'TEXT_DELETED',
+        { deletedAt: '2026-07-01T09:30:00.000Z' },
+        'Diesen Dank gibt es nicht mehr.',
+      ],
+    ])('stays without sheet and picture once it is closed (%s)', async (state, dates, heading) => {
+      const wrapper = await view(state, { linkData: greeted(dates) })
+
+      expect(title(wrapper).text()).toBe(heading)
+      expect(wrapper.findComponent(RedeemThanksPaper).exists()).toBe(false)
+      expect(wrapper.find('img').exists()).toBe(false)
+      expect(wrapper.text()).not.toContain('Sarah')
+    })
+  })
+
   describe('the colours in the dark theme', () => {
     const here = dirname(fileURLToPath(import.meta.url))
     const sfc = readFileSync(join(here, 'RedeemThanks.vue'), 'utf8')

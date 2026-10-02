@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 250" width="720" height="500" role="img" aria-label="Ein Blumenstrauß mit goldener Schleife">
+  <defs>
+    <radialGradient id="grund" cx="50%" cy="42%" r="70%"><stop offset="0%" stop-color="#fdf6e3"></stop><stop offset="100%" stop-color="#f4ead0"></stop></radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#e2b55c"></stop><stop offset="100%" stop-color="#c58d38"></stop></linearGradient>
+  </defs>
+  <rect width="360" height="250" fill="url(#grund)"></rect>
+  <circle cx="58" cy="60" r="3" fill="#e3c98f"></circle><circle cx="304" cy="56" r="4" fill="#e3c98f"></circle><circle cx="322" cy="170" r="3" fill="#dcbf7f"></circle><circle cx="40" cy="168" r="4" fill="#dcbf7f"></circle>
+  <g stroke="#5c8a4e" stroke-width="3" stroke-linecap="round" fill="none"><path d="M180 200 C178 160 168 120 140 92"></path><path d="M180 200 C180 156 180 116 180 80"></path><path d="M180 200 C182 160 192 120 222 94"></path><path d="M180 200 C176 168 158 140 118 128"></path><path d="M180 200 C184 168 202 140 244 130"></path></g>
+  <path d="M150 150 C136 146 128 134 132 122 C146 124 154 136 150 150 Z" fill="#7fa668" stroke="#5c8a4e" stroke-width="2" stroke-linejoin="round"></path>
+  <path d="M212 152 C226 148 234 136 230 124 C216 126 208 138 212 152 Z" fill="#9dbf88" stroke="#5c8a4e" stroke-width="2" stroke-linejoin="round"></path>
+  <g fill="#a3742c" stroke="#a3742c" stroke-width="4"><circle cx="140" cy="80" r="13"></circle><circle cx="126" cy="92" r="13"></circle><circle cx="152" cy="94" r="13"></circle></g>
+  <g fill="#d9a84e"><circle cx="140" cy="80" r="13"></circle><circle cx="126" cy="92" r="13"></circle><circle cx="152" cy="94" r="13"></circle></g>
+  <circle cx="139" cy="93" r="8" fill="#8a6124"></circle>
+  <g fill="#a3742c" stroke="#a3742c" stroke-width="4"><circle cx="180" cy="66" r="14"></circle><circle cx="166" cy="80" r="14"></circle><circle cx="194" cy="80" r="14"></circle></g>
+  <g fill="#e8c377"><circle cx="180" cy="66" r="14"></circle><circle cx="166" cy="80" r="14"></circle><circle cx="194" cy="80" r="14"></circle></g>
+  <circle cx="180" cy="80" r="9" fill="#a3742c"></circle>
+  <g fill="#a3742c" stroke="#a3742c" stroke-width="4"><circle cx="224" cy="82" r="13"></circle><circle cx="210" cy="94" r="13"></circle><circle cx="236" cy="96" r="13"></circle></g>
+  <g fill="#c58d38"><circle cx="224" cy="82" r="13"></circle><circle cx="210" cy="94" r="13"></circle><circle cx="236" cy="96" r="13"></circle></g>
+  <circle cx="223" cy="95" r="8" fill="#fdf6e3" stroke="#a3742c" stroke-width="1.5"></circle>
+  <g fill="#a3742c" stroke="#a3742c" stroke-width="4"><circle cx="112" cy="118" r="11"></circle><circle cx="100" cy="128" r="11"></circle><circle cx="122" cy="130" r="11"></circle></g>
+  <g fill="#fdf6e3"><circle cx="112" cy="118" r="11"></circle><circle cx="100" cy="128" r="11"></circle><circle cx="122" cy="130" r="11"></circle></g>
+  <circle cx="111" cy="128" r="7" fill="#c58d38" stroke="#a3742c" stroke-width="1.5"></circle>
+  <g fill="#a3742c" stroke="#a3742c" stroke-width="4"><circle cx="250" cy="120" r="11"></circle><circle cx="240" cy="132" r="11"></circle><circle cx="260" cy="132" r="11"></circle></g>
+  <g fill="#e8c377"><circle cx="250" cy="120" r="11"></circle><circle cx="240" cy="132" r="11"></circle><circle cx="260" cy="132" r="11"></circle></g>
+  <circle cx="250" cy="130" r="7" fill="#8a6124"></circle>
+  <path d="M172 206 C164 222 166 236 176 246 M188 206 C196 222 194 236 184 246" stroke="#a3742c" stroke-width="3" stroke-linecap="round" fill="none"></path>
+  <path d="M180 200 C160 192 148 194 140 204 C152 212 168 212 180 204 C192 212 208 212 220 204 C212 194 200 192 180 200 Z" fill="url(#gold)" stroke="#a3742c" stroke-width="2" stroke-linejoin="round"></path>
+</svg>

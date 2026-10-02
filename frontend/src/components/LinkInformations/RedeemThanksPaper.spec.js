@@ -38,7 +38,8 @@ const sfc = readFileSync(
 // its own explanation.
 const live = (text) => text.replace(/\/\*[\s\S]*?\*\//g, '').replace(/<!--[\s\S]*?-->/g, '')
 const template = live(sfc.slice(sfc.indexOf('<template>'), sfc.indexOf('<script')))
-const css = live(sfc.slice(sfc.indexOf('<style'), sfc.indexOf('</style>')))
+// Every style block of the file: the face of the handwriting stands in one of its own.
+const css = live(sfc.slice(sfc.indexOf('<style'), sfc.lastIndexOf('</style>')))
 
 describe('RedeemThanksPaper', () => {
   beforeEach(() => {
@@ -178,6 +179,240 @@ describe('RedeemThanksPaper', () => {
     })
   })
 
+  // A thank-you greeting: the same sheet with its motif, whom it is for, and its first line in
+  // handwriting above the words.
+  describe('a thank-you greeting', () => {
+    const LINE = 'Einfach so — weil es Dich gibt.'
+    const WORDS = 'Liebe Sarah, mit Eurem iPad hat alles angefangen.\nEure Oma'
+    const greeting = (overrides = {}, linkOverrides = {}) =>
+      link({
+        memo: `${LINE}\n${WORDS}`,
+        greeting: { motif: 'morning-light', line: LINE, recipientName: 'Sarah', ...overrides },
+        ...linkOverrides,
+      })
+
+    const motif = (wrapper) => wrapper.find('[data-test="redeem-thanks-paper-motif"]')
+    const forWhom = (wrapper) => wrapper.find('[data-test="redeem-thanks-paper-for"]')
+    const line = (wrapper) => wrapper.find('[data-test="redeem-thanks-paper-line"]')
+    const message = (wrapper) => wrapper.find('[data-test="redeem-thanks-paper-message"]')
+
+    describe('the motif', () => {
+      it('stands above the words, as an image with the name of the motif', () => {
+        const wrapper = paper(greeting())
+
+        expect(wrapper.element.children).toHaveLength(2)
+        expect(wrapper.element.firstElementChild.classList).toContain('redeem-thanks-paper-picture')
+        expect(motif(wrapper).element.tagName).toBe('IMG')
+        expect(motif(wrapper).attributes('src')).toBe('/img/thank-you-greeting/morning-light.svg')
+        expect(motif(wrapper).attributes('alt')).toBe('Morgenlicht')
+
+        i18n.global.locale.value = 'en'
+        expect(motif(paper(greeting())).attributes('alt')).toBe('Morning light')
+      })
+
+      it('is each of the five, under its own name', () => {
+        for (const [key, name] of [
+          ['heart-leaves', 'Herz und Blätter'],
+          ['giving-hands', 'Gebende Hände'],
+          ['bouquet', 'Blumenstrauß'],
+          ['glowing-swirl', 'Leuchtender Kringel'],
+          ['morning-light', 'Morgenlicht'],
+        ]) {
+          const wrapper = paper(greeting({ motif: key }))
+
+          expect(motif(wrapper).attributes('src')).toBe(`/img/thank-you-greeting/${key}.svg`)
+          expect(motif(wrapper).attributes('alt')).toBe(name)
+        }
+      })
+
+      // The room stands before the picture has come: the image says its size.
+      it('says its size, 360 by 250', () => {
+        const wrapper = paper(greeting())
+
+        expect(motif(wrapper).attributes('width')).toBe('360')
+        expect(motif(wrapper).attributes('height')).toBe('250')
+      })
+
+      it('is left out for a motif this wallet does not know, and for none', () => {
+        for (const key of ['sunset', null, '']) {
+          const wrapper = paper(greeting({ motif: key }))
+
+          expect(wrapper.find('img').exists()).toBe(false)
+          expect(wrapper.find('.redeem-thanks-paper-picture').exists()).toBe(false)
+          // The rest of the greeting is there all the same.
+          expect(forWhom(wrapper).text()).toBe('FÜR SARAH')
+          expect(line(wrapper).text()).toBe(LINE)
+        }
+      })
+
+      it('gives way to a picture handed in from outside', () => {
+        const wrapper = paper(greeting(), { picture: '<img class="photo" src="/p.jpg" alt="" />' })
+
+        expect(wrapper.element.firstElementChild.classList).toContain('photo')
+        expect(motif(wrapper).exists()).toBe(false)
+      })
+    })
+
+    describe('whom it is for', () => {
+      it('stands in capitals', () => {
+        expect(forWhom(paper(greeting())).text()).toBe('FÜR SARAH')
+
+        i18n.global.locale.value = 'en'
+        expect(forWhom(paper(greeting())).text()).toBe('FOR SARAH')
+      })
+
+      it('is left out where the greeting names nobody', () => {
+        for (const recipientName of [null, undefined, '']) {
+          expect(forWhom(paper(greeting({ recipientName }))).exists()).toBe(false)
+        }
+      })
+    })
+
+    describe('the first line', () => {
+      it('stands in handwriting', () => {
+        const wrapper = paper(greeting())
+
+        expect(line(wrapper).text()).toBe(LINE)
+        expect(line(wrapper).classes()).toContain('is-by-hand')
+      })
+
+      // The font has no Greek. The line decides, whatever the language of the page.
+      it('stands in the page’s font, all of it, where it has a letter the handwriting lacks', () => {
+        const greek = 'Σε ευχαριστώ για τη βοήθειά σου!'
+        const wrapper = paper(greeting({ line: greek }, { memo: `${greek}\n${WORDS}` }))
+
+        expect(line(wrapper).text()).toBe(greek)
+        expect(line(wrapper).classes()).not.toContain('is-by-hand')
+
+        const mixed = 'Danke, Σοφία!'
+        expect(line(paper(greeting({ line: mixed }, { memo: mixed }))).classes()).not.toContain(
+          'is-by-hand',
+        )
+      })
+
+      it('stays in handwriting for a Russian line on a German page', () => {
+        const russian = 'Спасибо за помощь!'
+        const wrapper = paper(greeting({ line: russian }, { memo: russian }))
+
+        expect(line(wrapper).classes()).toContain('is-by-hand')
+      })
+
+      it('is left out where the greeting has none', () => {
+        const wrapper = paper(greeting({ line: null }, { memo: WORDS }))
+
+        expect(line(wrapper).exists()).toBe(false)
+        expect(message(wrapper).element.textContent.trim()).toBe(WORDS)
+        expect(message(wrapper).classes()).not.toContain('is-under-line')
+      })
+    })
+
+    describe('the words', () => {
+      it('are the memo without the line', () => {
+        const wrapper = paper(greeting())
+
+        expect(message(wrapper).element.textContent.trim()).toBe(WORDS)
+        expect(message(wrapper).classes()).toContain('is-under-line')
+        // The line stands once on the sheet, not twice.
+        expect(wrapper.text().split(LINE)).toHaveLength(2)
+      })
+
+      it('leave no empty block where the greeting is its line alone', () => {
+        const wrapper = paper(greeting({}, { memo: LINE }))
+
+        expect(line(wrapper).text()).toBe(LINE)
+        expect(message(wrapper).exists()).toBe(false)
+      })
+
+      // No wallet writes such a greeting and the server takes none. Should one arrive: nothing
+      // twice, nothing lost.
+      it('are the whole memo, with no line above, where the memo does not begin with the line', () => {
+        const memo = `Liebe Sarah!\n${LINE}`
+        const wrapper = paper(greeting({}, { memo }))
+
+        expect(line(wrapper).exists()).toBe(false)
+        expect(message(wrapper).element.textContent.trim()).toBe(memo)
+        expect(wrapper.text().split(LINE)).toHaveLength(2)
+      })
+    })
+
+    it('keeps the order: picture, whom it is for, the line, the words, the sender', () => {
+      const wrapper = paper(greeting())
+      const text = wrapper.find('.redeem-thanks-paper-text')
+
+      expect([...text.element.children].map((child) => child.className.split(' ')[0])).toEqual([
+        'redeem-thanks-paper-for',
+        'redeem-thanks-paper-line',
+        'redeem-thanks-paper-message',
+        'redeem-thanks-paper-rule',
+        'redeem-thanks-paper-sender',
+      ])
+      expect(text.classes()).toContain('is-greeting')
+      expect(from(wrapper).element.textContent).toBe('Oma-Emma dankt Dir mit 20 Gradido')
+    })
+
+    it('shows what somebody else wrote as text, never as markup', () => {
+      const MARKUP = '<img src=x onerror="alert(1)">'
+      const wrapper = paper(
+        greeting(
+          { line: MARKUP, recipientName: MARKUP, motif: null },
+          { memo: `${MARKUP}\n<b>x</b>` },
+        ),
+      )
+
+      expect(line(wrapper).text()).toBe(MARKUP)
+      expect(line(wrapper).element.children).toHaveLength(0)
+      expect(forWhom(wrapper).element.children).toHaveLength(0)
+      expect(message(wrapper).element.children).toHaveLength(0)
+      expect(wrapper.find('img').exists()).toBe(false)
+      expect(wrapper.find('b b').exists()).toBe(false)
+    })
+  })
+
+  describe('a plain link', () => {
+    it('is the sheet it was: no picture, nobody named, no line, the memo whole', () => {
+      for (const data of [link(), link({ greeting: null })]) {
+        const wrapper = paper(data)
+
+        expect(wrapper.element.children).toHaveLength(1)
+        expect(wrapper.find('.redeem-thanks-paper-text').classes()).not.toContain('is-greeting')
+        expect(wrapper.find('[data-test="redeem-thanks-paper-for"]').exists()).toBe(false)
+        expect(wrapper.find('[data-test="redeem-thanks-paper-line"]').exists()).toBe(false)
+        expect(wrapper.find('[data-test="redeem-thanks-paper-message"]').classes()).toEqual([
+          'redeem-thanks-paper-message',
+        ])
+        expect(wrapper.find('[data-test="redeem-thanks-paper-message"]').text()).toBe(data.memo)
+      }
+    })
+  })
+
+  // The handwriting ships with the wallet. A face whose rule loses its name on the way into
+  // the stylesheet is no face: App.vue's rule for WorkSans arrives there without one.
+  describe('the handwriting', () => {
+    const [, face] = css.match(/@font-face\s*\{([^}]*)\}/)
+
+    it('is declared under one name, from the file in the bundle', () => {
+      expect(face).toMatch(/font-family:\s*Caveat;/)
+      expect(face).toMatch(
+        /src:\s*url\('@\/assets\/fonts\/caveat\/Caveat-600\.woff2'\)\s*format\('woff2'\);/,
+      )
+      expect(face).toMatch(/font-weight:\s*600;/)
+      expect(face).not.toMatch(/!important|https?:|\/\//)
+    })
+
+    it('is named only by the line that is set in it', () => {
+      expect(css.match(/font-family:\s*Caveat,/g)).toHaveLength(1)
+      const [, byHand] = css.match(/\.redeem-thanks-paper-line\.is-by-hand\s*\{([^}]*)\}/)
+      expect(byHand).toMatch(/font-family:\s*Caveat, sans-serif;/)
+    })
+
+    // The line that is not handwriting names no family at all: it is the page's.
+    it('leaves the line without it in the font of the page', () => {
+      const [, plain] = css.match(/\.redeem-thanks-paper-line\s*\{([^}]*)\}/)
+      expect(plain).not.toMatch(/font-family/)
+      expect(plain).toMatch(/font-style:\s*italic;/)
+    })
+  })
+
   // jsdom lays nothing out and reads no stylesheet, so what a test can hold is the source.
   // The measure in the real bundle, in both themes, is part of the delivery.
   describe('paper stays light in dark mode', () => {
@@ -191,6 +426,8 @@ describe('RedeemThanksPaper', () => {
         '.redeem-thanks-paper-message',
         '.redeem-thanks-paper-from',
         '.redeem-thanks-paper-initial',
+        '.redeem-thanks-paper-for',
+        '.redeem-thanks-paper-line',
       ]) {
         const [, body] = css.match(new RegExp(`\\${selector}\\s*\\{([^}]*)\\}`))
         expect(body).toMatch(/(^|[\s;])color:\s*#[0-9a-f]{6};/)

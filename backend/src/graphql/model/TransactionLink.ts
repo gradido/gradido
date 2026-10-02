@@ -4,6 +4,7 @@ import { Field, Int, ObjectType } from 'type-graphql'
 import { CONFIG } from '@/config'
 
 import { Community } from './Community'
+import { ThankYouGreeting } from './ThankYouGreeting'
 import { User } from './User'
 
 @ObjectType()
@@ -13,6 +14,7 @@ export class TransactionLink {
     user?: User,
     redeemedBy?: User,
     dbCommunities?: DbCommunity[],
+    greeting?: ThankYouGreeting | null,
   ) {
     if (dbTransactionLink !== undefined) {
       this.id = dbTransactionLink.id
@@ -35,6 +37,7 @@ export class TransactionLink {
     if (dbCommunities !== undefined) {
       this.communities = dbCommunities.map((dbCom: DbCommunity) => new Community(dbCom))
     }
+    this.greeting = greeting ?? null
   }
 
   @Field(() => Int)
@@ -78,6 +81,13 @@ export class TransactionLink {
 
   @Field(() => [Community])
   communities: Community[]
+
+  /**
+   * What makes this link a thank-you greeting; null for a plain link. Handed in by whoever
+   * builds the model -- one read for a whole page of links, not one per link.
+   */
+  @Field(() => ThankYouGreeting, { nullable: true })
+  greeting: ThankYouGreeting | null
 }
 
 @ObjectType()

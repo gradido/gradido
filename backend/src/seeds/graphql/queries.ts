@@ -404,6 +404,42 @@ export const adminListContributions = gql`
   }
 `
 
+// A thank-you greeting as whoever holds the link reads it, and as its sender finds it again
+// in their own list.
+export const queryThankYouGreeting = gql`
+  query ($code: String!) {
+    queryTransactionLink(code: $code) {
+      ... on TransactionLink {
+        id
+        memo
+        deletedAt
+        greeting {
+          motif
+          line
+          recipientName
+        }
+      }
+    }
+  }
+`
+
+export const listTransactionLinks = gql`
+  query ($currentPage: Int = 1, $pageSize: Int = 5) {
+    listTransactionLinks(currentPage: $currentPage, pageSize: $pageSize) {
+      links {
+        id
+        code
+        memo
+        greeting {
+          motif
+          line
+          recipientName
+        }
+      }
+    }
+  }
+`
+
 export const listTransactionLinksAdmin = gql`
   query (
     $userId: Int!

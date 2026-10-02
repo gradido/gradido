@@ -1131,6 +1131,7 @@
     "send": "Gradido und E‑Mail senden",
     "settings": "Einstellungen",
     "show-friends": "Zeig es Deinen Freunden",
+    "thank-you-greeting": "Dank-Gruß",
     "transactions": "Deine Transaktionen",
     "usersearch": "Geografische Mitgliedssuche (beta)"
   },
@@ -1533,6 +1534,85 @@
     "download": "Scheck herunterladen",
     "scan-qr": "Damit die Gradido gutgeschrieben werden, scanne den QR-Code!",
     "valid-until": "Dieser Dank-Scheck ist bis zum {date} gültig."
+  },
+  "thank-you-greeting": {
+    "done": {
+      "edit-hint": "Den Satz kannst Du vor dem Senden ändern. Deine Worte stehen erst auf der Karte.",
+      "find-again": "Du findest ihn wieder unter {transactions}, bei „{links}“.",
+      "link-hint": "Wer den Link hat, kann den Dank annehmen. Schick ihn nur dem Menschen, für den er gedacht ist.",
+      "sentence-lead": "Dieser Satz geht mit auf die Reise:",
+      "title": "Dein Dank-Gruß ist fertig.",
+      "title-for": "Dein Dank-Gruß für {name} ist fertig.",
+      "waits-until": "Er wartet bis zum {date}."
+    },
+    "entry": {
+      "plain": "Ohne Bild: Link, Scheck, QR",
+      "text": "Mit Bild und ein paar Worten — zum Verschicken.",
+      "write": "Dank-Gruß schreiben"
+    },
+    "for": "Für {name}",
+    "group": {
+      "for-something": "Danke für etwas",
+      "just-so": "Danke einfach so",
+      "occasion": "Danke zum Anlass"
+    },
+    "line": {
+      "appreciation": "Was Du tust, ist wertvoll. Danke dafür.",
+      "birthday": "Zum Geburtstag: Danke, dass es Dich gibt.",
+      "effort": "Danke für Deine Mühe — es ist wunderbar geworden.",
+      "encouragement": "Ich denk an Dich. Du schaffst das.",
+      "farewell": "Alles Gute auf Deinem Weg — und Danke für die gemeinsame Zeit.",
+      "help": "Danke für Deine Hilfe!",
+      "joy": "Du hast mir den Tag verschönert.",
+      "just-so": "Einfach so — weil es Dich gibt.",
+      "recovery": "Gute Besserung — ich denk an Dich.",
+      "talk": "Danke für das gute Gespräch.",
+      "time": "Danke, dass Du Dir Zeit genommen hast.",
+      "welcome": "Herzlich willkommen — schön, dass Du da bist!"
+    },
+    "list": {
+      "for": "Dank-Gruß für {name}"
+    },
+    "motif": {
+      "bouquet": "Blumenstrauß",
+      "giving-hands": "Gebende Hände",
+      "glowing-swirl": "Leuchtender Kringel",
+      "heart-leaves": "Herz und Blätter",
+      "morning-light": "Morgenlicht"
+    },
+    "name": "Dank-Gruß",
+    "next": "Weiter",
+    "picture": {
+      "question": "Welches Bild soll Dein Gruß tragen?"
+    },
+    "preview": {
+      "finish": "Gruß fertigstellen",
+      "title": "So wird Dein Dank aussehen.",
+      "title-for": "So wird {name} Deinen Dank sehen.",
+      "waits": "Dein Gruß wartet {days} Tage. Nimmt ihn niemand an, kommt Dein Gradido einfach zu Dir zurück — nichts geht verloren.",
+      "waits-for": "Dein Gruß wartet {days} Tage. Nimmt ihn {name} nicht an, kommt Dein Gradido einfach zu Dir zurück — nichts geht verloren."
+    },
+    "received-title": "Ein Dank-Gruß für Dich",
+    "share": {
+      "copied": "Der Satz und der Link wurden in die Zwischenablage kopiert. Du kannst sie jetzt in eine E-Mail oder Nachricht einfügen.",
+      "line1": "Ich habe einen Dank-Gruß für Dich:",
+      "line1-for": "{name}, ich habe einen Dank-Gruß für Dich:"
+    },
+    "step": {
+      "picture": "Bild",
+      "preview": "Ansehen",
+      "words": "Worte"
+    },
+    "words": {
+      "all-lines": "Alle zwölf Vorschläge",
+      "amount": "Wie viel Gradido legst Du dazu?",
+      "for-whom": "Für wen?",
+      "for-whom-hint": "Der Name steht auf Deinem Gruß.",
+      "line": "Die erste Zeile",
+      "missing": "Wähle eine erste Zeile oder schreib ein paar eigene Worte.",
+      "own-line": "Eigene Zeile",
+      "own-words": "Deine Worte"
+    }
   },
   "time": {
     "days": "Tage",

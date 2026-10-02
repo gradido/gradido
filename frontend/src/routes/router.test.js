@@ -84,8 +84,8 @@ describe('router', () => {
       expect(defaultRoute.redirect()).toEqual({ path: '/login' })
     })
 
-    it('has 42 routes defined', () => {
-      expect(routes).toHaveLength(42)
+    it('has 43 routes defined', () => {
+      expect(routes).toHaveLength(43)
     })
 
     // ZE-020, F12: the layout's greeting is left out on the redeem page, so that what the
@@ -219,6 +219,19 @@ describe('router', () => {
     testRoute('/my-gradido-card', 'MyGradidoCard')
     testRoute('/my-thank-you-card', 'MyThankYouCard')
     testRoute('/show-friends', 'ShowFriends')
+
+    // The thank-you greeting: for members only, under its own title, and -- like the page it
+    // is reached from -- without the right-hand column. ⛔ Not under /send/..., which reads
+    // what follows as a community.
+    testRoute('/thank-you-greeting', 'ThankYouGreeting')
+
+    it('asks for a sign-in on the thank-you greeting, titles it and gives it no column', () => {
+      const route = routes.find((r) => r.path === '/thank-you-greeting')
+      expect(route.meta.requiresAuth).toBe(true)
+      expect(route.meta.pageTitle).toBe('thank-you-greeting')
+      expect(route.meta.rightSide).toBeUndefined()
+      expect(routes.filter((r) => r.path.includes('thank-you-greeting'))).toHaveLength(1)
+    })
 
     // ⚠️ The breadcrumb prints `pageTitle.<key>`, and the raw key when there is no text -- the
     // page has no heading of its own, so this one is its title.

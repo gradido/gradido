@@ -193,6 +193,52 @@ describe('TransactionForm', () => {
     })
   })
 
+  // ZE-017, F1: the second way into the thank-you greeting, on top of the link tab.
+  describe('the way to the thank-you greeting', () => {
+    const entryOf = (w) => w.find('[data-test="send-greeting-entry"]')
+    const onTab = (art) => {
+      useRoute.mockReturnValueOnce({ params: {}, query: art ? { art } : {} })
+      return createWrapper({ balance: 100 })
+    }
+
+    it('stands on the link tab: a small motif, what it is, and the link', () => {
+      const entry = entryOf(onTab('link'))
+
+      expect(entry.exists()).toBe(true)
+      expect(entry.find('img').attributes('src')).toBe('/img/thank-you-greeting/morning-light.svg')
+      expect(entry.find('.greeting-entry-title').text()).toBe('thank-you-greeting.name')
+      expect(entry.find('.greeting-entry-lead').text()).toBe('thank-you-greeting.entry.text')
+      const link = entry.find('[data-test="send-greeting-link"]')
+      expect(link.text()).toBe('thank-you-greeting.entry.write')
+      expect(link.attributes('href') ?? link.attributes('to')).toBe('/thank-you-greeting')
+    })
+
+    it('stands above the form of the plain link, which stays as it is', () => {
+      const w = onTab('link')
+      const heading = w.find('h2.alert-heading')
+
+      expect(heading.text()).toBe('gdd_per_link.header')
+      expect(
+        entryOf(w).element.compareDocumentPosition(heading.element) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy()
+    })
+
+    it('is not there on the other two tabs', async () => {
+      expect(entryOf(onTab(null)).exists()).toBe(false)
+      expect(entryOf(onTab('email')).exists()).toBe(false)
+
+      // And it comes and goes with the tab, on a form that is already open.
+      const w = onTab(null)
+      w.vm.radioSelected = SEND_TYPES.link
+      await nextTick()
+      expect(entryOf(w).exists()).toBe(true)
+      w.vm.radioSelected = SEND_TYPES.send
+      await nextTick()
+      expect(entryOf(w).exists()).toBe(false)
+    })
+  })
+
   describe('with balance <= 0.00 GDD the form is disabled', () => {
     it('has a disabled input field of type text', () => {
       expect(wrapper.find('#identifier').attributes('disabled')).toBe('true')

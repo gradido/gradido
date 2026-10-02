@@ -114,7 +114,7 @@ const i18n = createI18n({
 
 const router = createRouter({
   history: createWebHistory(),
-  routes: ['/overview', '/send', '/matching/karte'].map((path) => ({
+  routes: ['/overview', '/send', '/matching/karte', '/thank-you-greeting'].map((path) => ({
     path,
     component: { template: '<div />' },
   })),
@@ -1052,16 +1052,33 @@ describe('ShowFriends', () => {
 
   describe('the second door', () => {
     /**
-     * Until the thank-you greeting has a form of its own, the thank-you is a link: the send
-     * form, opened on its link tab. The form reads the tab from `?art=`.
+     * The thank-you is a greeting: a picture, a few words, a link (ZE-017, F1). The button
+     * leads to the page where one is written.
      */
-    it('leads to the send form, opened on the link tab', async () => {
+    it('leads to the thank-you greeting', async () => {
       const wrapper = mountPage()
       await openAway(wrapper)
 
       const thanks = wrapper.find('[data-test="show-friends-thanks"]')
-      expect(thanks.attributes('href')).toBe('/send?art=link')
-      expect(thanks.text()).toBe(en.send_per_link)
+      expect(thanks.attributes('href')).toBe('/thank-you-greeting')
+      expect(thanks.text()).toBe(en['thank-you-greeting'].entry.write)
+    })
+
+    // The plain way stays beside it: the send form, opened on its link tab. The form reads
+    // the tab from `?art=`.
+    it('keeps the plain link beside it, quietly: the send form on its link tab', async () => {
+      const wrapper = mountPage()
+      await openAway(wrapper)
+
+      const plain = wrapper.find('[data-test="show-friends-plain-link"]')
+      expect(plain.element.tagName).toBe('A')
+      expect(plain.attributes('href')).toBe('/send?art=link')
+      expect(plain.text()).toBe(en['thank-you-greeting'].entry.plain)
+      // Under the button, not before it: the greeting is the first thing offered.
+      const thanks = wrapper.find('[data-test="show-friends-thanks"]').element
+      expect(
+        thanks.compareDocumentPosition(plain.element) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy()
     })
 
     it('shows the sentence exactly as it goes out, with the address in it', async () => {

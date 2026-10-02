@@ -1131,6 +1131,7 @@
     "send": "Enviar Gradido y correo electrónico",
     "settings": "Configuración",
     "show-friends": "Muéstraselo a tus amigos",
+    "thank-you-greeting": "Saludo de agradecimiento",
     "transactions": "Tus transacciones",
     "usersearch": "Búsqueda geográfica de miembros (beta)"
   },
@@ -1533,6 +1534,85 @@
     "download": "Descargar cheque",
     "scan-qr": "Para que se te acrediten los Gradidos, ¡escanea el código QR!",
     "valid-until": "Este cheque de agradecimiento es válido hasta el {date}."
+  },
+  "thank-you-greeting": {
+    "done": {
+      "edit-hint": "Puedes cambiar la frase antes de enviarla. Tus palabras solo aparecen en la tarjeta.",
+      "find-again": "Lo encontrarás de nuevo en {transactions}, en «{links}».",
+      "link-hint": "Quien tenga el enlace puede aceptar el agradecimiento. Envíalo solo a la persona a la que va dirigido.",
+      "sentence-lead": "Esta frase lo acompaña:",
+      "title": "Tu saludo de agradecimiento está listo.",
+      "title-for": "Tu saludo de agradecimiento para {name} está listo.",
+      "waits-until": "Espera hasta el {date}."
+    },
+    "entry": {
+      "plain": "Sin imagen: enlace, cheque, QR",
+      "text": "Con imagen y unas palabras — para enviar.",
+      "write": "Escribir un saludo"
+    },
+    "for": "Para {name}",
+    "group": {
+      "for-something": "Gracias por algo",
+      "just-so": "Gracias porque sí",
+      "occasion": "Gracias en una ocasión especial"
+    },
+    "line": {
+      "appreciation": "Lo que haces es valioso. Gracias por ello.",
+      "birthday": "En tu cumpleaños: gracias por existir.",
+      "effort": "Gracias por tu esfuerzo — ha quedado maravilloso.",
+      "encouragement": "Pienso en ti. Tú puedes.",
+      "farewell": "Te deseo lo mejor en tu camino — y gracias por el tiempo compartido.",
+      "help": "¡Gracias por tu ayuda!",
+      "joy": "Me has alegrado el día.",
+      "just-so": "Porque sí — porque existes.",
+      "recovery": "Que te mejores — pienso en ti.",
+      "talk": "Gracias por la buena conversación.",
+      "time": "Gracias por dedicarme tu tiempo.",
+      "welcome": "¡Te doy la bienvenida — qué alegría que estés aquí!"
+    },
+    "list": {
+      "for": "Saludo de agradecimiento para {name}"
+    },
+    "motif": {
+      "bouquet": "Ramo de flores",
+      "giving-hands": "Manos que dan",
+      "glowing-swirl": "Espiral luminosa",
+      "heart-leaves": "Corazón y hojas",
+      "morning-light": "Luz de la mañana"
+    },
+    "name": "Saludo de agradecimiento",
+    "next": "Continuar",
+    "picture": {
+      "question": "¿Qué imagen quieres que lleve tu saludo?"
+    },
+    "preview": {
+      "finish": "Terminar el saludo",
+      "title": "Así se verá tu agradecimiento.",
+      "title-for": "Así verá {name} tu agradecimiento.",
+      "waits": "Tu saludo espera {days} días. Si nadie lo acepta, tus Gradido simplemente vuelven a ti — no se pierde nada.",
+      "waits-for": "Tu saludo espera {days} días. Si {name} no lo acepta, tus Gradido simplemente vuelven a ti — no se pierde nada."
+    },
+    "received-title": "Un saludo de agradecimiento para ti",
+    "share": {
+      "copied": "La frase y el enlace se han copiado en el portapapeles. Ahora puedes pegarlos en un correo electrónico o mensaje.",
+      "line1": "Tengo un saludo de agradecimiento para ti:",
+      "line1-for": "{name}, tengo un saludo de agradecimiento para ti:"
+    },
+    "step": {
+      "picture": "Imagen",
+      "preview": "Ver",
+      "words": "Palabras"
+    },
+    "words": {
+      "all-lines": "Las doce sugerencias",
+      "amount": "¿Cuántos Gradido quieres añadir?",
+      "for-whom": "¿Para quién?",
+      "for-whom-hint": "El nombre aparece en tu saludo.",
+      "line": "La primera línea",
+      "missing": "Elige una primera línea o escribe unas palabras tuyas.",
+      "own-line": "Línea propia",
+      "own-words": "Tus palabras"
+    }
   },
   "time": {
     "days": "Días",
