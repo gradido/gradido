@@ -38,10 +38,23 @@ vi.mock('vuex', () => ({
   useStore: () => ({ state: storeState }),
 }))
 
+// `n` formats as the wallet's German does for the format it is asked for: the cheque has to
+// ask for the ungrouped one without its two fixed decimals (useAmountInText), and what it
+// asked for is kept so a test can say so.
+const numberAsked = vi.hoisted(() => ({ calls: [] }))
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
     t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key),
     d: () => '26.08.2026',
+    n: (value, options) => {
+      numberAsked.calls.push(options)
+      return new Intl.NumberFormat('de', {
+        style: 'decimal',
+        minimumFractionDigits: options.minimumFractionDigits ?? 2,
+        maximumFractionDigits: 2,
+        useGrouping: false,
+      }).format(value)
+    },
   }),
 }))
 
@@ -142,6 +155,30 @@ describe('useThankYouCheque', () => {
     // 'Bernd' only by case, so pin the absence explicitly.
     expect(headline).not.toContain('Bernd')
     expect(headline).toContain('20')
+  })
+
+  // GRUSS-04: the server hands an amount over as "12.5", and the headline wrote it as it
+  // came. It goes through the same function as the shared text and the sheet now.
+  it('writes the amount in the headline as its language does', async () => {
+    numberAsked.calls = []
+    await useThankYouCheque({ ...LINK, amount: '12.5' }).drawThankYouCheque()
+
+    const { headline } = mockDrawCheque.mock.calls.at(-1)[0]
+    expect(headline).toBe('bernd transaction-link.send_you 12,5 Gradido.')
+    expect(headline).not.toContain('12.5')
+    expect(numberAsked.calls).toEqual([{ key: 'ungroupedDecimal', minimumFractionDigits: 0 }])
+  })
+
+  it('writes a whole amount without decimals, and a number like a string', async () => {
+    await useThankYouCheque(LINK).drawThankYouCheque()
+    expect(mockDrawCheque.mock.calls.at(-1)[0].headline).toBe(
+      'bernd transaction-link.send_you 20 Gradido.',
+    )
+
+    await useThankYouCheque({ ...LINK, amount: 1000.25 }).drawThankYouCheque()
+    expect(mockDrawCheque.mock.calls.at(-1)[0].headline).toBe(
+      'bernd transaction-link.send_you 1000,25 Gradido.',
+    )
   })
 
   it('names the file after the memo and the amount', async () => {
