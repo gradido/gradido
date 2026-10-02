@@ -3,6 +3,8 @@ import { createApp } from 'vue'
 // import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue-next/dist/bootstrap-vue-next.css'
 import './assets/css/gradido.css'
+// Open Sans, served by the wallet itself (the files lie in public/fonts/open-sans/)
+import './assets/fonts/open-sans/open-sans.css'
 // import './assets/scss/gradido.scss'
 
 import App from './App'
