@@ -386,7 +386,8 @@ describe('RedeemThanksPaper', () => {
   })
 
   // The handwriting ships with the wallet. A face whose rule loses its name on the way into
-  // the stylesheet is no face: App.vue's rule for WorkSans arrives there without one.
+  // the stylesheet is no face: App.vue's rule for WorkSans arrived there without one, for
+  // four years, until it was removed.
   describe('the handwriting', () => {
     const [, face] = css.match(/@font-face\s*\{([^}]*)\}/)
 
