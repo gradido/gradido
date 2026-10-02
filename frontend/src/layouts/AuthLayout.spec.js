@@ -6,6 +6,7 @@ import { mount } from '@vue/test-utils'
 import { createStore } from 'vuex'
 import { __bannerResult } from '@vue/apollo-composable'
 import AuthLayout from './AuthLayout'
+import routes from '@/routes/routes'
 import {
   BAvatar,
   BButton,
@@ -65,7 +66,7 @@ describe('AuthLayout', () => {
     })
   }
 
-  const createWrapper = () => {
+  const createWrapper = (meta = { hideFooter: false }) => {
     return mount(AuthLayout, {
       global: {
         components: {
@@ -86,9 +87,7 @@ describe('AuthLayout', () => {
           },
           $t: (key) => key,
           $route: {
-            meta: {
-              hideFooter: false,
-            },
+            meta,
           },
         },
         stubs: {
@@ -249,6 +248,80 @@ describe('AuthLayout', () => {
       expect(card.classes().filter((name) => /^m[tbyse]?-/.test(name))).toEqual([])
       expect(rule(everyWidth, '.auth-card')).toMatch(/margin-top:\s*1\.5rem;/)
       expect(rule(phone, '.auth-card')).toMatch(/margin-top:\s*2\.5rem;/)
+    })
+
+    // The greeting is the `v-else` of the project banner: where a banner stands -- or is
+    // still on its way -- there is no greeting, whatever the route says.
+    it("gives way to a project's banner, on a route that says nothing about it", () => {
+      __bannerResult.value = { projectBrandingBanner: '/banner.jpg' }
+      wrapper = createWrapper()
+
+      expect(wrapper.findAll('img[alt="project banner"]')).toHaveLength(2)
+      expect(wrapper.find('.auth-greeting').exists()).toBe(false)
+    })
+
+    it('is there on a route that says nothing about it', () => {
+      expect(wrapper.find('.auth-greeting').exists()).toBe(true)
+      expect(wrapper.find('.auth-greeting').text()).toContain('welcome')
+      expect(wrapper.find('.card').classes()).not.toContain('auth-card-without-greeting')
+    })
+
+    // ZE-020, F12: whoever opens a redeem link came for what the link holds. On a phone the
+    // greeting took 114px above it; without it the thank-you starts on the first screen.
+    describe('where the route leaves it out (meta.hideGreeting)', () => {
+      const redeem = routes.find((route) => route.name === 'Redeem')
+
+      beforeEach(() => {
+        // The meta of the real route record: the flag is a word this file and routes.js
+        // hand each other, and neither can import it from the other.
+        wrapper = createWrapper(redeem.meta)
+      })
+
+      it('is the redeem route that leaves it out', () => {
+        expect(redeem.path).toBe('/redeem/:code')
+        expect(redeem.meta.hideGreeting).toBe(true)
+      })
+
+      it('is not rendered: neither the welcome nor the name of the community', () => {
+        expect(wrapper.find('.auth-greeting').exists()).toBe(false)
+        expect(wrapper.find('.h1').exists()).toBe(false)
+        expect(wrapper.text()).not.toContain('welcome')
+        expect(wrapper.text()).not.toContain('Test Community')
+        expect(wrapper.text()).not.toContain('1000thanks')
+      })
+
+      it('leaves the card, the page in it and the footer where they are', () => {
+        expect(wrapper.find('.card.auth-card').exists()).toBe(true)
+        // The switch of languages: the app resolves it by itself, here it stays a tag.
+        expect(wrapper.find('.card language-switch-2').exists()).toBe(true)
+        expect(wrapper.find('router-view-stub').exists()).toBe(true)
+        expect(wrapper.findComponent({ name: 'AuthFooter' }).exists()).toBe(true)
+      })
+
+      // The 40px above the card on a phone were the greeting's air. Without a greeting the
+      // card stands 24px under the top row there, as it does from md up.
+      it('lets the card stand 24px under the top row on a phone as well', () => {
+        expect(wrapper.find('.card').classes()).toContain('auth-card-without-greeting')
+        expect(rule(phone, '.auth-card.auth-card-without-greeting')).toMatch(
+          /margin-top:\s*1\.5rem;/,
+        )
+        expect(rule(everyWidth, '.auth-card.auth-card-without-greeting')).toBeUndefined()
+      })
+
+      // The banner stands in the greeting's place from md up, and in the card on a phone.
+      // Neither is the greeting, and the flag is about the greeting alone.
+      it("leaves a project's banner as it is, above the card and in it", () => {
+        __bannerResult.value = { projectBrandingBanner: '/banner.jpg' }
+        wrapper = createWrapper(redeem.meta)
+
+        const banners = wrapper.findAll('img[alt="project banner"]')
+        expect(banners).toHaveLength(2)
+        expect(banners[0].element.closest('.row').classList).toContain('d-md-block')
+        expect(banners[1].element.closest('.card')).not.toBe(null)
+        expect(wrapper.find('.auth-greeting').exists()).toBe(false)
+        // The card keeps the measure it has under a banner: the flag changes nothing there.
+        expect(wrapper.find('.card').classes()).not.toContain('auth-card-without-greeting')
+      })
     })
   })
 })

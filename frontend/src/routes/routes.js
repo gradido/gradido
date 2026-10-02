@@ -431,10 +431,15 @@ const routes = [
     path: '/confirm-email/:confirmationCode',
     component: () => import('@/pages/ConfirmEmail'),
   },
+  // hideGreeting: the layout's "Welcome to the community ..." is left out here. Whoever opens
+  // a redeem link came for what the link holds; on a phone the greeting took 114px above it,
+  // and with them the thank-you starts on the first screen (ZE-020, F12). It hangs on the
+  // route, so it holds for every kind of link that is redeemed here.
   {
     name: 'Redeem',
     path: '/redeem/:code',
     component: () => import('@/pages/TransactionLink'),
+    meta: { hideGreeting: true },
   },
   // The Gradido address, `community-host/u/alias`. Public on purpose: it is what a printed
   // card, an e-mail signature or a QR code points at, and most people who arrive here are not

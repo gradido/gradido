@@ -88,6 +88,14 @@ describe('router', () => {
       expect(routes).toHaveLength(42)
     })
 
+    // ZE-020, F12: the layout's greeting is left out on the redeem page, so that what the
+    // link holds starts higher on a phone -- there, and on no other door.
+    it('leaves the greeting of the layout out on the redeem page only', () => {
+      expect(routes.filter((r) => r.meta?.hideGreeting).map((r) => r.path)).toEqual([
+        '/redeem/:code',
+      ])
+    })
+
     // The settings are one route per area. That is what lets the same pages serve both
     // screen widths -- menu beside the content above 992px, list-then-page below it --
     // and what makes a section linkable from outside.
