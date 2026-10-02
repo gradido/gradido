@@ -786,7 +786,7 @@
     "header": "Créer un lien, un chèque et un QR code",
     "link-and-text-copied": "Le lien et ton message ont été copiés dans le presse-papier. Tu peux maintenant le joindre à un e-mail ou à un message.",
     "link-copied": "Le lien a été copié dans le presse-papier. Tu peux désormais le coller dans ton e-mail ou ton message.",
-    "link-deleted": "Le lien a été supprimé le on {date}.",
+    "link-deleted": "Le lien a été supprimé le {date}.",
     "link-expired": "Le lien n'est plus valide. Sa validité a expiré le {date}.",
     "link-hint": "Quiconque a le lien peut l'utiliser. Envoie-le uniquement à la personne à qui il est destiné.",
     "link-overview": "Aperçu du lien",

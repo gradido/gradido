@@ -793,7 +793,7 @@
     "links_open": "{n} open",
     "links_sum": "Links, cheques, QR codes",
     "no-account": "You don't have a Gradido account yet?",
-    "no-redeem": "You not allowed to redeem your own link!",
+    "no-redeem": "You are not allowed to redeem your own link!",
     "not-copied": "Unfortunately, your device does not allow copying! Please copy the link by hand!",
     "recipientCommunityRedirection": "Redirect for crediting to:",
     "recipientCommunitySelection": "Select Gradido community:",
