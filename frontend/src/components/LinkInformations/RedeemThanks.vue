@@ -315,7 +315,9 @@ const closed = computed(() => {
     case 'TEXT_EXPIRED':
       return {
         name: 'expired',
-        title: t('redeem-thanks.expired-title', { days: waitedDays.value }),
+        // The days twice: once as the number in the sentence, once as the form to choose --
+        // Russian has three for a number of days (slavicPlural), as `transaction.onlyWith`.
+        title: t('redeem-thanks.expired-title', { days: waitedDays.value }, waitedDays.value),
         text: t('redeem-thanks.expired-text', { name: senderName.value }),
       }
     case 'TEXT_DELETED':

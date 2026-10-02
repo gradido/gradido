@@ -1145,6 +1145,27 @@
     "showsSomebody": "Alguien te muestra Gradido"
   },
   "qrCode": "Código QR",
+  "redeem-thanks": {
+    "accept": "Aceptar el agradecimiento",
+    "accepted-text": "El {date}. Ahora está con la persona a la que iba destinado.",
+    "accepted-title": "Este agradecimiento ha sido aceptado.",
+    "accepted-toast": "Agradecimiento aceptado. Los {n} GDD ya están en tu cuenta.",
+    "deleted-text": "{name} eliminó el enlace el {date}.",
+    "deleted-title": "Este agradecimiento ya no existe.",
+    "expired-text": "Ha vuelto a {name} — no se ha perdido nada.",
+    "expired-title": "Este agradecimiento ha esperado {days} días.",
+    "from": "{name} te agradece con {amount}",
+    "have-account": "Ya tengo una cuenta",
+    "how": "Así funciona",
+    "invite": "¿A ti también te gustaría dar las gracias a otras personas de esta manera tan bonita?",
+    "other-community": "Si tu cuenta está en otra comunidad, elígela. Se te redirigirá allí.",
+    "own-links": "Ir a tus enlaces",
+    "own-text": "Así lo ve la persona a quien se lo envías. Solo otra persona puede aceptarlo.",
+    "own-title": "Este es tu propio agradecimiento",
+    "title": "Un agradecimiento para ti",
+    "to-account": "Ir a la cuenta",
+    "where-account": "¿Dónde está tu cuenta?"
+  },
   "rightSide": {
     "aria": "Cambiar la columna derecha",
     "contacts": "Contactos"

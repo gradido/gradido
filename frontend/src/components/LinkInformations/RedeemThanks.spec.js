@@ -588,6 +588,25 @@ describe('RedeemThanks', () => {
       expect(title(wrapper).text()).toBe('Dieser Dank hat 14 Tage gewartet.')
     })
 
+    // Russian has three forms for a number of days. The view hands the number on a second
+    // time, as the form to choose, and the wallet's rule for Russian picks among them.
+    it.each([
+      [21, 'Эта благодарность ждала 21 день.'],
+      [3, 'Эта благодарность ждала 3 дня.'],
+      [14, 'Эта благодарность ждала 14 дней.'],
+    ])('says %i days in the form Russian has for that number', async (days, sentence) => {
+      i18n.global.locale.value = 'ru'
+      const createdAt = Date.parse('2026-06-01T09:30:00.000Z')
+      const wrapper = await view('TEXT_EXPIRED', {
+        linkData: link({
+          createdAt: new Date(createdAt).toISOString(),
+          validUntil: new Date(createdAt + days * 24 * 60 * 60 * 1000).toISOString(),
+        }),
+      })
+
+      expect(title(wrapper).text()).toBe(sentence)
+    })
+
     it('offers no way to accept and no button', async () => {
       const wrapper = await view('TEXT_EXPIRED')
 

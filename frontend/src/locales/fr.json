@@ -1145,6 +1145,27 @@
     "showsSomebody": "Quelqu'un te montre Gradido"
   },
   "qrCode": "QR Code",
+  "redeem-thanks": {
+    "accept": "Accepter le remerciement",
+    "accepted-text": "Le {date}. Il est maintenant chez la personne à qui il était destiné.",
+    "accepted-title": "Ce remerciement a été accepté.",
+    "accepted-toast": "Remerciement accepté. Les {n} GDD sont maintenant sur ton compte.",
+    "deleted-text": "{name} a supprimé le lien le {date}.",
+    "deleted-title": "Ce remerciement n'existe plus.",
+    "expired-text": "Il est retourné à {name} — rien n'est perdu.",
+    "expired-title": "Ce remerciement a attendu {days} jours.",
+    "from": "{name} te remercie avec {amount}",
+    "have-account": "J'ai déjà un compte",
+    "how": "Comment ça marche",
+    "invite": "Aimerais-tu, toi aussi, remercier d'autres personnes de cette belle manière ?",
+    "other-community": "Si ton compte est dans une autre communauté, choisis-la. Nous t'y redirigeons.",
+    "own-links": "Vers tes liens",
+    "own-text": "C'est ainsi que le voit la personne à qui tu l'envoies. Seule une autre personne peut l'accepter.",
+    "own-title": "C'est ton propre remerciement",
+    "title": "Un remerciement pour toi",
+    "to-account": "Vers le compte",
+    "where-account": "Où est ton compte ?"
+  },
   "rightSide": {
     "aria": "Changer la colonne de droite",
     "contacts": "Contacts"
