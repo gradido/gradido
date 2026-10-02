@@ -1534,6 +1534,15 @@
     "scan-qr": "For the Gradido to be credited, scan the QR code!",
     "valid-until": "This thank-you cheque is valid until {date}."
   },
+  "thank-you-greeting": {
+    "motif": {
+      "bouquet": "Bouquet",
+      "giving-hands": "Giving hands",
+      "glowing-swirl": "Glowing swirl",
+      "heart-leaves": "Heart and leaves",
+      "morning-light": "Morning light"
+    }
+  },
   "time": {
     "days": "Days",
     "hours": "Hours",

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 250" width="720" height="500" role="img" aria-label="Ein leuchtender goldener Kringel">
+  <defs>
+    <radialGradient id="grund" cx="50%" cy="42%" r="70%"><stop offset="0%" stop-color="#fdf6e3"></stop><stop offset="100%" stop-color="#f4ead0"></stop></radialGradient>
+    <radialGradient id="schein" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#f0d79c" stop-opacity="0.9"></stop><stop offset="70%" stop-color="#f0d79c" stop-opacity="0.25"></stop><stop offset="100%" stop-color="#f0d79c" stop-opacity="0"></stop></radialGradient>
+  </defs>
+  <rect width="360" height="250" fill="url(#grund)"></rect>
+  <circle cx="180" cy="118" r="95" fill="url(#schein)"></circle>
+  <path d="M180 70 C222 70 244 96 244 122 C244 152 216 170 182 170 C154 170 136 154 136 132 C136 112 152 100 172 100 C188 100 198 110 198 122 C198 132 190 138 182 138" fill="none" stroke="#a3742c" stroke-width="10" stroke-linecap="round"></path>
+  <path d="M180 70 C222 70 244 96 244 122 C244 152 216 170 182 170 C154 170 136 154 136 132 C136 112 152 100 172 100 C188 100 198 110 198 122 C198 132 190 138 182 138" fill="none" stroke="#dcaa52" stroke-width="6" stroke-linecap="round"></path>
+  <g fill="#e2b55c" stroke="#a3742c" stroke-width="1.5" stroke-linejoin="round"><path d="M84 62 L88 72 L98 76 L88 80 L84 90 L80 80 L70 76 L80 72 Z"></path><path d="M282 84 L285 92 L293 95 L285 98 L282 106 L279 98 L271 95 L279 92 Z"></path><path d="M116 186 L119 193 L126 196 L119 199 L116 206 L113 199 L106 196 L113 193 Z"></path><path d="M262 178 L264 184 L270 186 L264 188 L262 194 L260 188 L254 186 L260 184 Z"></path></g>
+</svg>

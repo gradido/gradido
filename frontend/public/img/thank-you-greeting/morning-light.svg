@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 250" width="720" height="500" role="img" aria-label="Morgenlicht über zwei Hügeln">
+  <defs>
+    <linearGradient id="himmel" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fbf3de"></stop><stop offset="70%" stop-color="#f3dfae"></stop></linearGradient>
+    <radialGradient id="sonne" cx="50%" cy="45%" r="55%"><stop offset="0%" stop-color="#eccb84"></stop><stop offset="100%" stop-color="#d9a84e"></stop></radialGradient>
+  </defs>
+  <rect width="360" height="250" fill="url(#himmel)"></rect>
+  <g stroke="#c58d38" stroke-width="3" stroke-linecap="round"><line x1="180" y1="52" x2="180" y2="34"></line><line x1="128" y1="66" x2="116" y2="52"></line><line x1="232" y1="66" x2="244" y2="52"></line><line x1="98" y1="106" x2="80" y2="98"></line><line x1="262" y1="106" x2="280" y2="98"></line></g>
+  <circle cx="180" cy="128" r="52" fill="url(#sonne)" stroke="#a3742c" stroke-width="2"></circle>
+  <path d="M-14 262 L-14 199 L0 196 C60 176 120 172 180 186 C240 200 300 200 360 184 L374 181 L374 262 Z" fill="#9dbf88" stroke="#5c8a4e" stroke-width="2" stroke-linejoin="round"></path>
+  <path d="M-14 262 L-14 224 L0 222 C80 206 160 208 230 224 C280 234 330 236 360 228 L374 226 L374 262 Z" fill="#7fa668" stroke="#5c8a4e" stroke-width="2" stroke-linejoin="round"></path>
+</svg>

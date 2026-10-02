@@ -1534,6 +1534,15 @@
     "scan-qr": "Damit die Gradido gutgeschrieben werden, scanne den QR-Code!",
     "valid-until": "Dieser Dank-Scheck ist bis zum {date} gültig."
   },
+  "thank-you-greeting": {
+    "motif": {
+      "bouquet": "Blumenstrauß",
+      "giving-hands": "Gebende Hände",
+      "glowing-swirl": "Leuchtender Kringel",
+      "heart-leaves": "Herz und Blätter",
+      "morning-light": "Morgenlicht"
+    }
+  },
   "time": {
     "days": "Tage",
     "hours": "Stunden",
