@@ -1,5 +1,6 @@
 // AI-GENERATED — not an architecture reference
 
+import { printFontReady } from './printFont'
 import { printSheet } from './printSheet'
 import { renderQrCodeCanvas } from './qrCode'
 import { chequeFileName } from './thankYouCheque'
@@ -79,6 +80,9 @@ const SLOGAN_ASCENT = 0.76
 // From the slogan's baseline down to the first gold line.
 const SLOGAN_RULE_GAP = mm(3.5)
 
+// Open Sans ships with the wallet (public/fonts/open-sans/) and is waited for before the first
+// word is measured -- see printFont.js. The families behind it only draw if the font cannot
+// be loaded at all.
 const FONT = '"Open Sans", Helvetica, Arial, sans-serif'
 const COLOR_TEXT = 'rgb(56, 56, 56)'
 const COLOR_GOLD = '#c58d38'
@@ -143,7 +147,16 @@ export const thankYouCardFileName = (label) => {
  * @returns {Promise<string>} a PNG data URL
  */
 export const drawThankYouCard = async ({ url, label, community, title, slogan }) => {
-  const [logo, qr] = await Promise.all([loadImage(LOGO_PATH), renderQrCodeCanvas(url)])
+  const titleText = String(title).toUpperCase()
+  // ⛔ The font is waited for here, with the pictures, BEFORE anything is measured: slogan and
+  // title are sized by measuring them, and a canvas that does not have the font yet measures
+  // the fallback. Every text the card sets goes in, as it is set (the title in capitals) --
+  // the text decides which subsets of the font are fetched (printFont.js).
+  const [logo, qr] = await Promise.all([
+    loadImage(LOGO_PATH),
+    renderQrCodeCanvas(url),
+    printFontReady([slogan, titleText, label, community]),
+  ])
 
   const canvas = document.createElement('canvas')
   canvas.width = WIDTH
@@ -182,7 +195,6 @@ export const drawThankYouCard = async ({ url, label, community, title, slogan })
   ctx.fillRect(PADDING, rulesTop, WIDTH - 2 * PADDING, HAIRLINE)
   ctx.fillRect(PADDING, rulesTop + titleBlock, WIDTH - 2 * PADDING, HAIRLINE)
 
-  const titleText = String(title).toUpperCase()
   const titleSize = sizeToFit(ctx, {
     text: titleText,
     weight: 600,
