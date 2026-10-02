@@ -74,6 +74,28 @@ describe('printFontReady', () => {
     expect(ready).toBe(true)
   })
 
+  // ⛔ One weight failing must not end the wait for the others. `Promise.all` gives up at the
+  // first rejection; the drawer would then measure while another weight is still on its way,
+  // and the first drawing would again differ from the next.
+  it('still waits for the other weights when one cannot be loaded', async () => {
+    let arrive
+    const slow = new Promise((resolve) => {
+      arrive = resolve
+    })
+    withFonts((font) => (font.startsWith('400') ? slow : Promise.reject(new Error('NetworkError'))))
+
+    let ready = false
+    const waiting = printFontReady(['bernd']).then(() => {
+      ready = true
+    })
+    await new Promise((resolve) => setTimeout(resolve, 5))
+    expect(ready).toBe(false)
+
+    arrive([])
+    await expect(waiting).resolves.toBeUndefined()
+    expect(ready).toBe(true)
+  })
+
   // A missing file makes load() reject. A card in the fallback is better than no card.
   it('does not fail when the font cannot be loaded', async () => {
     const load = vi.fn(() => Promise.reject(new Error('NetworkError')))
@@ -81,6 +103,14 @@ describe('printFontReady', () => {
 
     await expect(printFontReady(['bernd'])).resolves.toBeUndefined()
     expect(load).toHaveBeenCalled()
+  })
+
+  it('does not fail when load() itself throws', async () => {
+    withFonts(() => {
+      throw new Error('SyntaxError')
+    })
+
+    await expect(printFontReady(['bernd'])).resolves.toBeUndefined()
   })
 
   it('does not fail where there is no document.fonts at all', async () => {

@@ -55,12 +55,15 @@ export const printFontReady = async (texts) => {
     .filter((part) => typeof part === 'string' && part.length > 0)
     .join(' ')
 
+  // ⛔ allSettled, not all: `Promise.all` gives up at the first weight that cannot be loaded,
+  // and the drawer would measure while another weight is still on its way -- the first
+  // drawing would differ from the next again. A weight that failed is drawn in the fallback.
   try {
     declareOnce()
-    await Promise.all(
+    await Promise.allSettled(
       WEIGHTS.map((weight) => fonts.load(`${weight} 16px "Open Sans"`, text || ' ')),
     )
   } catch {
-    // drawn in the fallback
+    // declaring or load() itself threw: drawn in the fallback
   }
 }
