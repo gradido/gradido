@@ -84,8 +84,8 @@ describe('router', () => {
       expect(defaultRoute.redirect()).toEqual({ path: '/login' })
     })
 
-    it('has 42 routes defined', () => {
-      expect(routes).toHaveLength(42)
+    it('has 43 routes defined', () => {
+      expect(routes).toHaveLength(43)
     })
 
     // ZE-020, F12: the layout's greeting is left out on the redeem page, so that what the

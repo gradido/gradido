@@ -1131,6 +1131,7 @@
     "send": "Send Gradido and email",
     "settings": "Settings",
     "show-friends": "Show it to your friends",
+    "thank-you-greeting": "Thank-you greeting",
     "transactions": "Your transactions",
     "usersearch": "Geographic member search (beta)"
   },
@@ -1535,13 +1536,82 @@
     "valid-until": "This thank-you cheque is valid until {date}."
   },
   "thank-you-greeting": {
+    "done": {
+      "edit-hint": "You can change the sentence before sending. Your words only appear on the card.",
+      "find-again": "You will find it again under {transactions}, in “{links}”.",
+      "link-hint": "Whoever has the link can accept the thank-you. Only send it to the person it is meant for.",
+      "sentence-lead": "This sentence goes along with it:",
+      "title": "Your thank-you greeting is ready.",
+      "title-for": "Your thank-you greeting for {name} is ready.",
+      "waits-until": "It will wait until {date}."
+    },
+    "entry": {
+      "plain": "Without a picture: link, cheque, QR",
+      "text": "With a picture and a few words — to send.",
+      "write": "Write a thank-you greeting"
+    },
     "for": "For {name}",
+    "group": {
+      "for-something": "Thanks for something",
+      "just-so": "Thanks, just because",
+      "occasion": "Thanks on a special occasion"
+    },
+    "line": {
+      "appreciation": "What you do is valuable. Thank you for it.",
+      "birthday": "On your birthday: thank you for being you.",
+      "effort": "Thank you for your effort — it turned out wonderfully.",
+      "encouragement": "I’m thinking of you. You can do this.",
+      "farewell": "All the best for the road ahead — and thank you for our time together.",
+      "help": "Thank you for your help!",
+      "joy": "You made my day.",
+      "just-so": "Just because — because you’re you.",
+      "recovery": "Get well soon — I’m thinking of you.",
+      "talk": "Thank you for the good conversation.",
+      "time": "Thank you for taking the time.",
+      "welcome": "A warm welcome — so glad you’re here!"
+    },
+    "list": {
+      "for": "Thank-you greeting for {name}"
+    },
     "motif": {
       "bouquet": "Bouquet",
       "giving-hands": "Giving hands",
       "glowing-swirl": "Glowing swirl",
       "heart-leaves": "Heart and leaves",
       "morning-light": "Morning light"
+    },
+    "name": "Thank-you greeting",
+    "next": "Next",
+    "picture": {
+      "question": "Which picture should your greeting carry?"
+    },
+    "preview": {
+      "finish": "Finish greeting",
+      "title": "This is how your thank-you will look.",
+      "title-for": "This is how {name} will see your thank-you.",
+      "waits": "Your greeting waits for {days} days. If nobody accepts it, your Gradido simply comes back to you — nothing is lost.",
+      "waits-for": "Your greeting waits for {days} days. If {name} does not accept it, your Gradido simply comes back to you — nothing is lost."
+    },
+    "received-title": "A thank-you greeting for you",
+    "share": {
+      "copied": "The sentence and the link have been copied to the clipboard. You can now paste them into an email or message.",
+      "line1": "I have a thank-you greeting for you:",
+      "line1-for": "{name}, I have a thank-you greeting for you:"
+    },
+    "step": {
+      "picture": "Picture",
+      "preview": "Preview",
+      "words": "Words"
+    },
+    "words": {
+      "all-lines": "All twelve suggestions",
+      "amount": "How much Gradido would you like to add?",
+      "for-whom": "Who is it for?",
+      "for-whom-hint": "The name appears on your greeting.",
+      "line": "The first line",
+      "missing": "Choose a first line or write a few words of your own.",
+      "own-line": "Your own line",
+      "own-words": "Your words"
     }
   },
   "time": {

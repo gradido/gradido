@@ -156,6 +156,94 @@ describe('useCopyLinks', () => {
     })
   })
 
+  // ZE-017, F3: a thank-you greeting goes out with a sentence of its own -- in the first
+  // person, without the sender's words and without the amount, which stand on the card behind
+  // the link.
+  describe('the text of a thank-you greeting', () => {
+    const GREETING = { motif: 'bouquet', line: 'Danke für Deine Hilfe!', recipientName: 'Sarah' }
+    const greeted = (locale = 'de', greeting = GREETING) =>
+      withLinks(locale, { ...PROPS, memo: 'Danke für Deine Hilfe!\nFür Samstag', greeting })
+
+    it('names the person, carries the link on a line of its own, and ends as the plain text does', () => {
+      expect(greeted().linkText.value).toBe(
+        [
+          'Sarah, ich habe einen Dank-Gruß für Dich:',
+          LINK,
+          'Er wartet bis zum 1.10.2026 auf Dich. Nimmst Du ihn nicht an, passiert nichts.',
+        ].join('\n'),
+      )
+    })
+
+    it('begins without a name where the greeting names nobody', () => {
+      for (const recipientName of [null, undefined, '']) {
+        expect(greeted('de', { ...GREETING, recipientName }).linkText.value.split('\n')[0]).toBe(
+          'Ich habe einen Dank-Gruß für Dich:',
+        )
+      }
+    })
+
+    it.each(['de', 'en', 'es', 'fr', 'it', 'nl', 'pt', 'ru', 'tr', 'el'])(
+      'in %s it is three lines: the name, the link once, and the last line of the plain text',
+      (locale) => {
+        const lines = greeted(locale).linkText.value.split('\n')
+        const plain = withLinks(locale).linkText.value.split('\n')
+
+        expect(lines).toHaveLength(3)
+        expect(lines[0]).toContain('Sarah')
+        expect(lines[0]).toMatch(/:$/)
+        expect(lines[1]).toBe(LINK)
+        // Not doubled: the sentence the plain link ends with, word for word.
+        expect(lines[2]).toBe(plain[plain.length - 1])
+        expect(lines.join('\n')).not.toMatch(/[{}]/)
+        // Without a name the first line is another sentence, not this one with a hole in it.
+        const nameless = greeted(locale, { ...GREETING, recipientName: null }).linkText.value
+        expect(nameless.split('\n')[0]).not.toMatch(/^[\s,]|Sarah/)
+      },
+    )
+
+    it.each(['de', 'en', 'es', 'fr', 'it', 'nl', 'pt', 'ru', 'tr', 'el'])(
+      'in %s it carries neither the words nor the line, the amount or the sender',
+      (locale) => {
+        const text = greeted(locale).linkText.value
+
+        expect(text).not.toContain('Samstag')
+        expect(text).not.toContain('Danke für Deine Hilfe!')
+        expect(text.replace(LINK, '')).not.toMatch(/37|Gradido|GDD|bernd/)
+      },
+    )
+
+    it('copies with a message that does not speak of "your message"', async () => {
+      await greeted().copyLinkWithText()
+
+      expect(writeText).toHaveBeenCalledWith(greeted().linkText.value)
+      expect(mockToastSuccess).toHaveBeenCalledWith(
+        i18n.global.t('thank-you-greeting.share.copied', {}, { locale: 'de' }),
+      )
+      expect(mockToastSuccess.mock.calls[0][0]).not.toContain('Deine Nachricht')
+    })
+
+    it('hands the sentence to the share sheet', async () => {
+      const links = greeted()
+      await links.share()
+
+      expect(share).toHaveBeenCalledWith({ text: links.linkText.value })
+    })
+  })
+
+  // A plain link keeps its text and its message, greeting or none handed in.
+  describe('a plain link', () => {
+    it('is not touched by the greeting’s sentence', async () => {
+      const links = withLinks('de', { ...PROPS, greeting: null })
+
+      expect(links.linkText.value.split('\n')).toHaveLength(5)
+      expect(links.linkText.value).toContain('bernd dankt Dir mit 37 Gradido:')
+      await links.copyLinkWithText()
+      expect(mockToastSuccess).toHaveBeenCalledWith(
+        i18n.global.t('gdd_per_link.link-and-text-copied', {}, { locale: 'de' }),
+      )
+    })
+  })
+
   describe('copying', () => {
     it('copies the link alone', async () => {
       await withLinks().copyLink()

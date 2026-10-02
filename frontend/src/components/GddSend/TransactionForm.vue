@@ -208,12 +208,13 @@ import { SEND_TYPES } from '@/utils/sendTypes'
 import CommunitySwitch from '@/components/CommunitySwitch.vue'
 import ValidatedInput from '@/components/Inputs/ValidatedInput.vue'
 import {
+  amount as amountSchemaUpTo,
   memo as memoSchema,
   message as messageSchema,
   identifier as identifierSchema,
   subject as subjectSchema,
 } from '@/validationSchemas'
-import { object, number } from 'yup'
+import { object } from 'yup'
 import { memberAlias, sameHost, splitRecipient } from '@/utils/gradidoAddress'
 import { user } from '@/graphql/queries'
 import CONFIG from '@/config'
@@ -327,24 +328,8 @@ const identifierWithCommunity = identifierSchema.test(
 )
 
 const validationSchema = computed(() => {
-  const amountSchema = number()
-    .required()
-    .typeError({
-      key: 'form.validation.amount.typeError',
-      values: { min: 0.01, max: props.balance },
-    })
-    .transform((value, originalValue) => {
-      if (typeof originalValue === 'string') {
-        return Number(originalValue.replace(',', '.'))
-      }
-      return value
-    })
-    .min(0.01, ({ min }) => ({ key: 'form.validation.amount.min', values: { min } }))
-    .max(props.balance, ({ max }) => ({ key: 'form.validation.amount.max', values: { max } }))
-    .test('decimal-places', 'form.validation.amount.decimal-places', (value) => {
-      if (value === undefined || value === null) return true
-      return /^\d+(\.\d{0,2})?$/.test(value.toString())
-    })
+  // The rule itself stands in validationSchemas.js: the thank-you greeting asks the same.
+  const amountSchema = amountSchemaUpTo(props.balance)
   if (!userIdentifier.value && radioSelected.value === SEND_TYPES.send) {
     return object({
       memo: memoSchema,

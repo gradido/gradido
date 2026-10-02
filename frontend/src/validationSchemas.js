@@ -1,4 +1,4 @@
-import { string } from 'yup'
+import { number, string } from 'yup'
 import { validate as validateUuid, version as versionUuid } from 'uuid'
 import { splitRecipient } from '@/utils/gradidoAddress'
 
@@ -46,6 +46,34 @@ export const translateYupErrorString = (error, t) => {
     return error
   }
 }
+
+/**
+ * An amount a member types: a number of at least 0.01 and at most `max`, with a comma or a
+ * point and no more than two decimals. Written once, for the send form and for the thank-you
+ * greeting: two copies of a rule are two rules as soon as one of them learns something.
+ *
+ * @param {number} max the most this amount may be -- the balance, or less where the amount
+ *   is held with a reserve (`linkAmountMax`)
+ */
+export const amount = (max) =>
+  number()
+    .required()
+    .typeError({
+      key: 'form.validation.amount.typeError',
+      values: { min: 0.01, max },
+    })
+    .transform((value, originalValue) => {
+      if (typeof originalValue === 'string') {
+        return Number(originalValue.replace(',', '.'))
+      }
+      return value
+    })
+    .min(0.01, ({ min }) => ({ key: 'form.validation.amount.min', values: { min } }))
+    .max(max, ({ max }) => ({ key: 'form.validation.amount.max', values: { max } }))
+    .test('decimal-places', 'form.validation.amount.decimal-places', (value) => {
+      if (value === undefined || value === null) return true
+      return /^\d+(\.\d{0,2})?$/.test(value.toString())
+    })
 
 // A memo travels with a transaction: it is stored in a varchar(512) column and is
 // re-validated by the dlt-connector. Keep these bounds in step with MEMO_*_CHARS in
