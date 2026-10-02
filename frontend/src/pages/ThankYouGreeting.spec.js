@@ -542,6 +542,21 @@ describe('ThankYouGreeting', () => {
         expect(server.mutate).toHaveBeenCalledTimes(1)
       })
 
+      // The lock is held twice: the button is disabled, and the function itself turns a
+      // second call away. This one goes past the button, as a tap does that was already on
+      // its way when the button locked.
+      it('sends nothing a second time even past the locked button', async () => {
+        const button = wrapper
+          .findAllComponents({ name: 'BButton' })
+          .find((candidate) => candidate.attributes('data-test') === 'thank-you-greeting-finish')
+
+        button.vm.$emit('click', new MouseEvent('click'))
+        button.vm.$emit('click', new MouseEvent('click'))
+        await flushPromises()
+
+        expect(server.mutate).toHaveBeenCalledTimes(1)
+      })
+
       // The back key is not the page's to lock. Whatever the member does meanwhile: the
       // greeting that was sent exists, and the result is what is shown.
       it('shows the result even where the member walked back meanwhile', async () => {
