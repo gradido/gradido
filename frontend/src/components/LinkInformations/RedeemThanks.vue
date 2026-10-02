@@ -51,8 +51,9 @@
 
     <!-- The link is open: the sheet, and under it what this visitor can do with it. -->
     <template v-else>
+      <!-- A link that carries a greeting says so; the sender's own keeps its sentence. -->
       <h2 class="h4 redeem-thanks-title" data-test="redeem-thanks-title">
-        {{ isOwn ? $t('redeem-thanks.own-title') : $t('redeem-thanks.title') }}
+        {{ openTitle }}
       </h2>
       <redeem-thanks-paper :link-data="linkData" />
 
@@ -244,6 +245,13 @@ const { toastError } = useAppToast()
 const isGuest = computed(() => ['LOGGED_OUT', 'REDEEM_SELECT_COMMUNITY'].includes(props.state))
 const isMember = computed(() => props.state === 'VALID')
 const isOwn = computed(() => props.state === 'SELF_CREATOR')
+
+// Above the open sheet. The sheet itself shows the greeting (RedeemThanksPaper); the later
+// states -- accepted, expired, deleted -- have no sheet and stay as they are.
+const openTitle = computed(() => {
+  if (isOwn.value) return t('redeem-thanks.own-title')
+  return props.linkData.greeting ? t('thank-you-greeting.received-title') : t('redeem-thanks.title')
+})
 
 // "Where is your account?" The page has read the switch already; its state says it.
 const asksWhere = computed(() => props.state === 'REDEEM_SELECT_COMMUNITY')

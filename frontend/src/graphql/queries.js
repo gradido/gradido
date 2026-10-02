@@ -192,6 +192,11 @@ export const queryTransactionLink = gql`
           alias
           publisherId
         }
+        greeting {
+          motif
+          line
+          recipientName
+        }
         communities {
           foreign
           name
@@ -258,6 +263,11 @@ export const listTransactionLinks = gql`
         createdAt
         validUntil
         redeemedAt
+        greeting {
+          motif
+          line
+          recipientName
+        }
       }
     }
   }
