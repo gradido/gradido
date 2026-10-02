@@ -1145,6 +1145,9 @@
     "showsSomebody": "Somebody is showing you Gradido"
   },
   "qrCode": "QR Code",
+  "redeem-thanks": {
+    "from": "{name} thanks you with {amount}"
+  },
   "rightSide": {
     "aria": "Switch the right-hand column",
     "contacts": "Contacts"
