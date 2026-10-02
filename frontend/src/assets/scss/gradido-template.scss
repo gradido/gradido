@@ -403,7 +403,7 @@ input.rounded-input {
   border-color: var(--text-muted);
 }
 
- .form-control.is-invalid {
+ .form-control.is-invalid, .form-control.is-valid, .was-validated .form-control {
   animation: none !important;
   transition: none !important;
 }
