@@ -1146,7 +1146,23 @@
   },
   "qrCode": "QR Code",
   "redeem-thanks": {
-    "from": "{name} thanks you with {amount}"
+    "accept": "Accept the thank-you",
+    "accepted-text": "On {date}. It is now with the person it was meant for.",
+    "accepted-title": "This thank-you has been accepted.",
+    "accepted-toast": "Thank-you accepted. {n} GDD are now in your account.",
+    "deleted-text": "{name} deleted the link on {date}.",
+    "deleted-title": "This thank-you no longer exists.",
+    "expired-text": "It has returned to {name} — nothing is lost.",
+    "expired-title": "This thank-you waited for {days} days.",
+    "from": "{name} thanks you with {amount}",
+    "have-account": "I already have an account",
+    "how": "How it works",
+    "invite": "Would you like to thank other people in this lovely way, too?",
+    "own-links": "To your links",
+    "own-text": "This is how the person you send it to will see it. Only someone else can accept it.",
+    "own-title": "This is your own thank-you",
+    "title": "A thank-you for you",
+    "to-account": "To the account"
   },
   "rightSide": {
     "aria": "Switch the right-hand column",

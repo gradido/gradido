@@ -5,7 +5,16 @@
          as it is to the form on the login and register pages. -->
     <auth-triads />
     <div v-if="isTransactionLinkLoaded">
-      <transaction-link-item :type="itemTypeExt">
+      <!-- A member's redeem link arrives as a thank-you on a sheet, whatever state it is in.
+           A contribution link and a link from another community keep the page below. -->
+      <redeem-thanks
+        v-if="isThanksLink"
+        :link-data="linkData"
+        :state="itemType"
+        :accepting="accepting"
+        @accept="acceptThanks"
+      />
+      <transaction-link-item v-else :type="itemTypeExt">
         <template #LOGGED_OUT>
           <redeem-logged-out :link-data="linkData" :is-contribution-link="isContributionLink" />
         </template>
@@ -53,6 +62,7 @@ import RedeemSelectCommunity from '@/components/LinkInformations/RedeemSelectCom
 import RedeemSelfCreator from '@/components/LinkInformations/RedeemSelfCreator'
 import RedeemValid from '@/components/LinkInformations/RedeemValid'
 import RedeemedTextBox from '@/components/LinkInformations/RedeemedTextBox'
+import RedeemThanks from '@/components/LinkInformations/RedeemThanks'
 import { useAppToast } from '@/composables/useToast'
 import { queryTransactionLink } from '@/graphql/queries'
 import { disburseTransactionLink, redeemTransactionLink } from '@/graphql/mutations'
@@ -111,6 +121,14 @@ const isRedeemJwtLink = computed(() => {
   return false
 })
 
+// A member's own redeem link: neither a contribution link (`CL-...`) nor a link that came
+// over from another community. Only this kind is received as a thank-you (RedeemThanks).
+const isThanksLink = computed(
+  () =>
+    isTransactionLinkLoaded.value &&
+    result.value?.queryTransactionLink?.__typename === 'TransactionLink',
+)
+
 const redeemCode = computed(() => params.code)
 
 const tokenExpiresInSeconds = computed(() => {
@@ -148,6 +166,14 @@ const itemType = computed(() => {
       return 'TEXT_DELETED'
     }
 
+    // Taken comes before run out: a thank-you somebody accepted is still an accepted one
+    // after its last day. Asked the other way round, the page said of it that it had gone
+    // back to its sender. Only a member's link carries `redeemedAt`.
+    if (linkData.value.redeemedAt) {
+      // console.log('TransactionLink.itemType... TEXT_REDEEMED')
+      return 'TEXT_REDEEMED'
+    }
+
     const validUntilDate = new Date(linkData.value.validUntil)
     // console.log('TransactionLink.itemType... validUntilDate=', validUntilDate)
     // console.log('TransactionLink.itemType... new Date()=', new Date())
@@ -158,10 +184,6 @@ const itemType = computed(() => {
     if (validUntilDate.getTime() < new Date().getTime()) {
       // console.log('TransactionLink.itemType... TEXT_EXPIRED')
       return 'TEXT_EXPIRED'
-    }
-    if (linkData.value.redeemedAt) {
-      // console.log('TransactionLink.itemType... TEXT_REDEEMED')
-      return 'TEXT_REDEEMED'
     }
     if (linkData.value.deletedAt) {
       // console.log('TransactionLink.itemType... TEXT_DELETED')
@@ -372,6 +394,20 @@ function setRedeemJwtLinkInformation() {
   }
 }
 
+// The booking of a thank-you is on its way: the button waits, and a second tap asks nothing.
+// Before, a double tap on "redeem" sent the request twice.
+const accepting = ref(false)
+
+async function acceptThanks() {
+  if (accepting.value) return
+  accepting.value = true
+  try {
+    await mutationLink(linkData.value.amount)
+  } finally {
+    accepting.value = false
+  }
+}
+
 async function mutationLink(amount) {
   // console.log('TransactionLink.mutationLink... params=', params)
   // console.log('TransactionLink.mutationLink... linkData.value=', linkData.value)
@@ -404,7 +440,11 @@ async function mutationLink(amount) {
       await redeemMutate({
         code: redeemCode.value,
       })
-      toastSuccess(t('gdd_per_link.redeemed', { n: amount }))
+      toastSuccess(
+        isThanksLink.value
+          ? t('redeem-thanks.accepted-toast', { n: amount })
+          : t('gdd_per_link.redeemed', { n: amount }),
+      )
       await router.push('/overview')
     } catch (err) {
       toastError(err.message)
