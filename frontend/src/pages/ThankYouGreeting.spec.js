@@ -315,6 +315,18 @@ describe('ThankYouGreeting', () => {
         )
       })
 
+      // A refused "Weiter" is no step: it leaves no entry behind, and one press of the back
+      // key still leads to the picture.
+      it('leaves no entry in the history when it stays', async () => {
+        await fill({ line: null, words: null })
+        await next()
+        await next()
+
+        await historyGo(-1)
+
+        expect(step()).toBe('picture')
+      })
+
       it('goes on with a line alone, and with words alone', async () => {
         await fill({ words: null })
         await next()
@@ -577,7 +589,8 @@ describe('ThankYouGreeting', () => {
         answer.resolve()
         await settle()
 
-        expect(router.currentRoute.value.path).toBe('/overview')
+        // Not even the address of the page they are on is touched.
+        expect(router.currentRoute.value.fullPath).toBe('/overview')
       })
 
       it('says what went wrong where the server refuses, and lets the member try again', async () => {
