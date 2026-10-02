@@ -12,16 +12,16 @@
           :title="$t('copy-to-clipboard')"
           @click.stop="copyToClipboard(frontendLoginUrl)"
         >
-          <i class="fas fa-copy"></i>
+          <IBiCopy />
         </BButton>
       </BCol>
       <BCol cols="2">{{ item.alias }}</BCol>
       <BCol cols="2">
         <span v-if="item.newUserToSpace" class="text-success">
-          <i class="fas fa-check"></i>
+          <IBiCheck />
         </span>
         <span v-else class="text-danger">
-          <i class="fas fa-times"></i>
+          <IBiX />
         </span>
       </BCol>
       <BCol cols="3" class="me-2">
@@ -29,7 +29,7 @@
       </BCol>
       <BCol v-if="store.state.moderator.role === 'ADMIN'" cols="1">
         <BButton v-b-tooltip.hover variant="danger" :title="$t('delete')" @click.stop="deleteItem">
-          <i class="fas fa-trash-alt"></i>
+          <IBiTrash />
         </BButton>
       </BCol>
     </BRow>
