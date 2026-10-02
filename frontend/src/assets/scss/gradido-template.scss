@@ -402,3 +402,8 @@ input.rounded-input {
 .form-check-input:not(:checked) {
   border-color: var(--text-muted);
 }
+
+ .form-control.is-invalid {
+  animation: none !important;
+  transition: none !important;
+}
