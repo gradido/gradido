@@ -18,6 +18,10 @@ export default defineConfig(async () => {
       globals: true,
       environment: 'jsdom',
       setupFiles: ['./test/vitest.setup.js'],
+      // Vitest hands every stylesheet to the tests as an empty string -- an import with
+      // `?raw` too. utils/printFont.js hangs the declaration of Open Sans in as a <style>
+      // from exactly such an import, so this one file keeps its text.
+      css: { include: [/assets\/fonts\/open-sans\/open-sans\.css/] },
       coverage: {
         provider: 'v8',
         reporter: ['text', 'json', 'html'],
