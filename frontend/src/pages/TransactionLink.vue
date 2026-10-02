@@ -11,6 +11,7 @@
         v-if="isThanksLink"
         :link-data="linkData"
         :state="itemType"
+        :redeem-code="redeemCode"
         :accepting="accepting"
         @accept="acceptThanks"
       />

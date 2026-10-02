@@ -1158,11 +1158,13 @@
     "have-account": "Ich habe schon ein Konto",
     "how": "So funktioniert’s",
     "invite": "Möchtest auch Du auf diese schöne Weise anderen Menschen Danke sagen?",
+    "other-community": "Ist Dein Konto in einer anderen Gemeinschaft, wähle sie aus. Du wirst dorthin weitergeleitet.",
     "own-links": "Zu Deinen Links",
     "own-text": "So sieht ihn der Mensch, dem Du ihn schickst. Annehmen kann ihn nur jemand anderes.",
     "own-title": "Das ist Dein eigener Dank",
     "title": "Ein Dank für Dich",
-    "to-account": "Zum Konto"
+    "to-account": "Zum Konto",
+    "where-account": "Wo ist Dein Konto?"
   },
   "rightSide": {
     "aria": "Rechte Spalte umschalten",

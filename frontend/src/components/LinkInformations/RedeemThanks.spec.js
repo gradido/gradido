@@ -1,11 +1,13 @@
 // AI-GENERATED — not an architecture reference
-import { describe, it, expect, beforeEach } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { flushPromises, mount } from '@vue/test-utils'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { createRouter, createMemoryHistory } from 'vue-router'
+import { BCol, BDropdown, BDropdownItem, BRow } from 'bootstrap-vue-next'
 import i18n from '@/i18n'
+import CommunitySwitch from '@/components/CommunitySwitch.vue'
 import RedeemThanks from './RedeemThanks.vue'
 import RedeemThanksPaper from './RedeemThanksPaper.vue'
 
@@ -15,9 +17,67 @@ import RedeemThanksPaper from './RedeemThanksPaper.vue'
  * With the wallet's own vue-i18n and language files, and with a real router: where each button
  * and link leads is the point of most of these tests, and `useAuthLinks` builds the ways from
  * the route the page stands on. A stand-in for it would answer the same for every route.
+ *
+ * The switch of communities in the field is the real one as well: what it is handed and what
+ * it hands back are names of its own, and a stand-in would agree to any.
+ *
+ * The answers of the server are stand-ins, keyed by the document that asks.
  */
+const apollo = vi.hoisted(() => ({ communities: [], asked: 0, createRedeemJwt: null }))
+const toasts = vi.hoisted(() => ({ toastError: null }))
+
+vi.mock('@vue/apollo-composable', async () => {
+  const { reachableCommunities } = await import('@/graphql/communities.graphql')
+  const { createRedeemJwtMutation } = await import('@/graphql/mutations')
+  return {
+    useQuery: (document) => {
+      if (document !== reachableCommunities) throw new Error('a query this test does not know')
+      apollo.asked += 1
+      return {
+        // The list comes after the switch is set up, as an answer does.
+        onResult: (run) => {
+          Promise.resolve().then(() => run({ data: { reachableCommunities: apollo.communities } }))
+        },
+      }
+    },
+    useMutation: (document) => {
+      if (document !== createRedeemJwtMutation)
+        throw new Error('a mutation this test does not know')
+      return { mutate: (...args) => apollo.createRedeemJwt(...args) }
+    },
+  }
+})
+
+vi.mock('@/composables/useToast', () => ({
+  useAppToast: () => ({ toastError: (...args) => toasts.toastError(...args) }),
+}))
+
+vi.mock('@/config', () => ({
+  default: {
+    COMMUNITY_NAME: 'KI Playground',
+    COMMUNITY_URL: 'https://ki-playground.gradido.net',
+  },
+}))
+
 const CODE = 'c0ffee1234567890abcdef12'
 const GRADIDO_ID = '76378cbb-5a5c-4e4b-9a3b-1f2d3c4b5a69'
+
+const HOME = {
+  __typename: 'Community',
+  foreign: false,
+  name: 'KI Playground',
+  description: '',
+  url: 'https://ki-playground.gradido.net/api',
+  uuid: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+}
+const WIEN = {
+  __typename: 'Community',
+  foreign: true,
+  name: 'Gradido Wien',
+  description: '',
+  url: 'https://wien.example/api',
+  uuid: 'bbbbbbbb-cccc-4ddd-8eee-ffffffffffff',
+}
 
 const link = (overrides = {}) => ({
   __typename: 'TransactionLink',
@@ -29,7 +89,7 @@ const link = (overrides = {}) => ({
   redeemedAt: null,
   deletedAt: null,
   senderUser: { gradidoID: GRADIDO_ID, alias: 'Oma-Emma', publisherId: null },
-  communities: [],
+  communities: [HOME, WIEN],
   ...overrides,
 })
 
@@ -48,15 +108,23 @@ const router = createRouter({
 const view = async (state, { linkData = link(), accepting = false, query = {} } = {}) => {
   await router.push({ name: 'Redeem', params: { code: CODE }, query })
   await router.isReady()
-  return mount(RedeemThanks, {
-    props: { linkData, state, accepting },
-    global: { plugins: [i18n, router] },
+  const wrapper = mount(RedeemThanks, {
+    props: { linkData, state, accepting, redeemCode: CODE },
+    // The switch names its Bootstrap parts without importing them; the app resolves them.
+    global: { plugins: [i18n, router], components: { BCol, BDropdown, BDropdownItem, BRow } },
+    attachTo: document.body,
   })
+  mounted.push(wrapper)
+  return wrapper
 }
+const mounted = []
 
 const title = (wrapper) => wrapper.find('[data-test="redeem-thanks-title"]')
 const accept = (wrapper) => wrapper.find('[data-test="redeem-thanks-accept"]')
 const haveAccount = (wrapper) => wrapper.find('[data-test="redeem-thanks-have-account"]')
+const field = (wrapper) => wrapper.find('[data-test="redeem-thanks-account"]')
+const signIn = (wrapper) => wrapper.find('[data-test="redeem-thanks-sign-in"]')
+const forward = (wrapper) => wrapper.find('[data-test="redeem-thanks-forward"]')
 const how = (wrapper) => wrapper.find('[data-test="redeem-thanks-how"]')
 const toAccount = (wrapper) => wrapper.find('[data-test="redeem-thanks-to-account"]')
 const ownLinks = (wrapper) => wrapper.find('[data-test="redeem-thanks-own-links"]')
@@ -65,9 +133,31 @@ const GUEST_STATES = ['LOGGED_OUT', 'REDEEM_SELECT_COMMUNITY']
 const CLOSED_STATES = ['TEXT_REDEEMED', 'TEXT_EXPIRED', 'TEXT_DELETED']
 const ALL_STATES = [...GUEST_STATES, 'VALID', 'SELF_CREATOR', ...CLOSED_STATES]
 
+/** A promise the test settles when it wants to: the token while it is on its way. */
+const underway = () => {
+  let settle
+  const answer = new Promise((resolve, reject) => {
+    settle = { resolve, reject }
+  })
+  return { answer, ...settle }
+}
+
 describe('RedeemThanks', () => {
+  let place
+
   beforeEach(() => {
     i18n.global.locale.value = 'de'
+    apollo.communities = [HOME, WIEN]
+    apollo.asked = 0
+    apollo.createRedeemJwt = vi.fn().mockResolvedValue({ data: { createRedeemJwt: 'signed.jwt' } })
+    toasts.toastError = vi.fn()
+    place = { href: `https://ki-playground.gradido.net/redeem/${CODE}` }
+    vi.stubGlobal('location', place)
+  })
+
+  afterEach(() => {
+    mounted.splice(0).forEach((wrapper) => wrapper.unmount())
+    vi.unstubAllGlobals()
   })
 
   describe.each(GUEST_STATES)('a guest, link open (%s)', (state) => {
@@ -136,13 +226,222 @@ describe('RedeemThanks', () => {
     })
   })
 
-  describe('a guest who has an account', () => {
-    it('is led to the sign-in, with the code of the address', async () => {
+  // ZE-020, F13. Where a link can only be redeemed here, the line is a link to the sign-in.
+  describe('a guest who has an account, where links are redeemed here only (LOGGED_OUT)', () => {
+    it('is led straight to the sign-in, with the code of the address', async () => {
       const wrapper = await view('LOGGED_OUT')
 
       expect(haveAccount(wrapper).text()).toBe('Ich habe schon ein Konto')
       expect(haveAccount(wrapper).element.tagName).toBe('A')
       expect(haveAccount(wrapper).attributes('href')).toBe(`/login/${CODE}`)
+    })
+
+    it('is asked nothing about communities', async () => {
+      const wrapper = await view('LOGGED_OUT')
+
+      expect(haveAccount(wrapper).attributes('aria-expanded')).toBeUndefined()
+      expect(field(wrapper).exists()).toBe(false)
+      expect(wrapper.findComponent(CommunitySwitch).exists()).toBe(false)
+      expect(apollo.asked).toBe(0)
+    })
+  })
+
+  // Where a link can be redeemed in another community too, the choice of community that
+  // stood on the page for everybody stands behind this line.
+  describe('a guest who has an account, where links cross communities (REDEEM_SELECT_COMMUNITY)', () => {
+    const openField = async () => {
+      const wrapper = await view('REDEEM_SELECT_COMMUNITY')
+      await haveAccount(wrapper).trigger('click')
+      await flushPromises()
+      return wrapper
+    }
+    const choose = async (wrapper, community) => {
+      const item = wrapper
+        .findAll('.dropdown-item')
+        .find((entry) => entry.text() === community.name)
+      await item.trigger('click')
+      await flushPromises()
+    }
+
+    it('finds the line closed, and nothing is asked before it is opened', async () => {
+      const wrapper = await view('REDEEM_SELECT_COMMUNITY')
+
+      expect(haveAccount(wrapper).text()).toBe('Ich habe schon ein Konto')
+      expect(haveAccount(wrapper).element.tagName).toBe('BUTTON')
+      expect(haveAccount(wrapper).attributes('type')).toBe('button')
+      expect(haveAccount(wrapper).attributes('aria-expanded')).toBe('false')
+      expect(field(wrapper).exists()).toBe(false)
+      expect(apollo.asked).toBe(0)
+    })
+
+    it('opens the field under the line, and closes it again', async () => {
+      const wrapper = await openField()
+
+      expect(haveAccount(wrapper).attributes('aria-expanded')).toBe('true')
+      expect(field(wrapper).exists()).toBe(true)
+      // The line names the field it opens, and the field follows it: the next stop of the
+      // keyboard after the line is inside the field.
+      expect(haveAccount(wrapper).attributes('aria-controls')).toBe(field(wrapper).attributes('id'))
+      expect(haveAccount(wrapper).element.nextElementSibling).toBe(field(wrapper).element)
+
+      await haveAccount(wrapper).trigger('click')
+
+      expect(haveAccount(wrapper).attributes('aria-expanded')).toBe('false')
+      expect(field(wrapper).exists()).toBe(false)
+    })
+
+    it('asks where the account is, with this community chosen', async () => {
+      const wrapper = await openField()
+
+      expect(wrapper.find('[data-test="redeem-thanks-where-account"]').text()).toBe(
+        'Wo ist Dein Konto?',
+      )
+      expect(wrapper.findComponent(CommunitySwitch).props('modelValue')).toEqual({
+        uuid: HOME.uuid,
+        name: 'KI Playground',
+        url: 'https://ki-playground.gradido.net/api',
+        foreign: false,
+      })
+      expect(field(wrapper).find('.dropdown-toggle').text()).toBe('KI Playground')
+    })
+
+    it('leads to the sign-in with the code, for an account in this community', async () => {
+      const wrapper = await openField()
+
+      expect(signIn(wrapper).text()).toBe('Anmelden')
+      expect(signIn(wrapper).attributes('href')).toBe(`/login/${CODE}`)
+      expect(forward(wrapper).exists()).toBe(false)
+    })
+
+    it('says that another community can be chosen, and what happens then', async () => {
+      const wrapper = await openField()
+
+      expect(wrapper.find('[data-test="redeem-thanks-other-community"]').text()).toBe(
+        'Ist Dein Konto in einer anderen Gemeinschaft, wähle sie aus. Du wirst dorthin weitergeleitet.',
+      )
+    })
+
+    it('can be walked with the keyboard: the switch, then the button', async () => {
+      const wrapper = await openField()
+      const stops = field(wrapper)
+        .findAll('button, a[href]')
+        .filter((stop) => stop.attributes('tabindex') !== '-1' && !stop.element.disabled)
+
+      expect(stops[0].classes()).toContain('dropdown-toggle')
+      expect(stops.at(-1).element).toBe(signIn(wrapper).element)
+    })
+
+    it('offers the way to another community once it is chosen', async () => {
+      const wrapper = await openField()
+
+      await choose(wrapper, WIEN)
+
+      expect(field(wrapper).find('.dropdown-toggle').text()).toBe('Gradido Wien')
+      expect(forward(wrapper).text()).toBe('Jetzt weiterleiten')
+      expect(forward(wrapper).element.tagName).toBe('BUTTON')
+      expect(signIn(wrapper).exists()).toBe(false)
+    })
+
+    it('offers the sign-in again when this community is chosen back', async () => {
+      const wrapper = await openField()
+
+      await choose(wrapper, WIEN)
+      await choose(wrapper, HOME)
+
+      expect(signIn(wrapper).attributes('href')).toBe(`/login/${CODE}`)
+      expect(forward(wrapper).exists()).toBe(false)
+    })
+
+    // The same way the old page went: a token for the link and the community chosen, then
+    // the redeem page over there.
+    it('goes there the way the old page did', async () => {
+      const wrapper = await openField()
+      await choose(wrapper, WIEN)
+
+      await forward(wrapper).trigger('click')
+      await flushPromises()
+
+      expect(apollo.createRedeemJwt).toHaveBeenCalledTimes(1)
+      expect(apollo.createRedeemJwt).toHaveBeenCalledWith({
+        gradidoId: GRADIDO_ID,
+        senderCommunityUuid: HOME.uuid,
+        senderCommunityName: 'KI Playground',
+        recipientCommunityUuid: WIEN.uuid,
+        code: CODE,
+        amount: '20',
+        memo: 'Danke fürs Reparieren der Gartenbank — sie steht wieder wie neu.',
+        alias: 'Oma-Emma',
+        validUntil: '2026-07-12T09:30:00.000Z',
+      })
+      expect(place.href).toBe('https://wien.example/redeem/signed.jwt')
+      expect(toasts.toastError).not.toHaveBeenCalled()
+    })
+
+    it('keeps the button locked while the token is on its way, and asks once', async () => {
+      const token = underway()
+      apollo.createRedeemJwt = vi.fn(() => token.answer)
+      const wrapper = await openField()
+      await choose(wrapper, WIEN)
+
+      await forward(wrapper).trigger('click')
+
+      expect(forward(wrapper).element.disabled).toBe(true)
+
+      forward(wrapper).element.click()
+      forward(wrapper).element.click()
+      token.resolve({ data: { createRedeemJwt: 'signed.jwt' } })
+      await flushPromises()
+
+      expect(apollo.createRedeemJwt).toHaveBeenCalledTimes(1)
+      expect(place.href).toBe('https://wien.example/redeem/signed.jwt')
+      // The browser is leaving: nothing to tap again.
+      expect(forward(wrapper).element.disabled).toBe(true)
+    })
+
+    // Two taps in one go, before the locked button is drawn: the view itself asks once.
+    it('asks once for a double tap', async () => {
+      const token = underway()
+      apollo.createRedeemJwt = vi.fn(() => token.answer)
+      const wrapper = await openField()
+      await choose(wrapper, WIEN)
+
+      const button = forward(wrapper).element
+      button.click()
+      button.click()
+      await flushPromises()
+
+      expect(apollo.createRedeemJwt).toHaveBeenCalledTimes(1)
+    })
+
+    it('says why where no token came, and lets the visitor try again', async () => {
+      apollo.createRedeemJwt = vi.fn().mockRejectedValue(new Error('Transaction link expired'))
+      const wrapper = await openField()
+      await choose(wrapper, WIEN)
+
+      await forward(wrapper).trigger('click')
+      await flushPromises()
+
+      expect(toasts.toastError).toHaveBeenCalledWith('Transaction link expired')
+      expect(place.href).toBe(`https://ki-playground.gradido.net/redeem/${CODE}`)
+      expect(forward(wrapper).element.disabled).toBe(false)
+    })
+
+    // With one community the switch shows its name and offers nothing to pick: the sentence
+    // about choosing another one would promise a choice that is not there.
+    it('does not speak of choosing where this community is the only one', async () => {
+      apollo.communities = [HOME]
+      const wrapper = await openField()
+
+      expect(field(wrapper).text()).toContain('KI Playground')
+      expect(field(wrapper).find('.dropdown-toggle').exists()).toBe(false)
+      expect(wrapper.find('[data-test="redeem-thanks-other-community"]').exists()).toBe(false)
+      expect(signIn(wrapper).attributes('href')).toBe(`/login/${CODE}`)
+    })
+
+    it('leaves "accept" where it was: the registration, with the code', async () => {
+      const wrapper = await openField()
+
+      expect(accept(wrapper).attributes('href')).toBe(`/register/${CODE}`)
     })
   })
 

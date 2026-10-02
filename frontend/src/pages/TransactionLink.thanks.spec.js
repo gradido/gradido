@@ -1,8 +1,9 @@
 // AI-GENERATED — not an architecture reference
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import { createStore } from 'vuex'
+import { BCol, BDropdown, BDropdownItem, BRow } from 'bootstrap-vue-next'
 import i18n from '@/i18n'
 import CONFIG from '@/config'
 import TransactionLink from './TransactionLink.vue'
@@ -20,15 +21,32 @@ import RedeemThanks from '@/components/LinkInformations/RedeemThanks.vue'
  * The answers of the server are stand-ins, keyed by the document that asks: the page holds two
  * mutations, and a stand-in that answered both alike could not tell which one the page sent.
  */
-const apollo = vi.hoisted(() => ({ answer: null, redeem: null, disburse: null }))
+const apollo = vi.hoisted(() => ({
+  answer: null,
+  communities: [],
+  redeem: null,
+  disburse: null,
+  createRedeemJwt: null,
+}))
 const toasts = vi.hoisted(() => ({ toastError: null, toastSuccess: null }))
 
 vi.mock('@vue/apollo-composable', async () => {
   const { ref } = await import('vue')
   const { queryTransactionLink } = await import('@/graphql/queries')
-  const { redeemTransactionLink, disburseTransactionLink } = await import('@/graphql/mutations')
+  const { reachableCommunities } = await import('@/graphql/communities.graphql')
+  const { redeemTransactionLink, disburseTransactionLink, createRedeemJwtMutation } =
+    await import('@/graphql/mutations')
   return {
     useQuery: (document) => {
+      if (document === reachableCommunities) {
+        return {
+          onResult: (run) => {
+            Promise.resolve().then(() =>
+              run({ data: { reachableCommunities: apollo.communities } }),
+            )
+          },
+        }
+      }
       if (document !== queryTransactionLink) throw new Error('a query this test does not know')
       return {
         result: ref(apollo.answer ? { queryTransactionLink: apollo.answer } : null),
@@ -40,6 +58,9 @@ vi.mock('@vue/apollo-composable', async () => {
       if (document === redeemTransactionLink) return { mutate: (...args) => apollo.redeem(...args) }
       if (document === disburseTransactionLink) {
         return { mutate: (...args) => apollo.disburse(...args) }
+      }
+      if (document === createRedeemJwtMutation) {
+        return { mutate: (...args) => apollo.createRedeemJwt(...args) }
       }
       throw new Error('a mutation this test does not know')
     },
@@ -163,6 +184,8 @@ const open = async (answer, { session = signedOut, code = CODE } = {}) => {
   const wrapper = mount(shell, {
     global: {
       plugins: [i18n, router, createStore({ state: { ...session } })],
+      // The switch of communities names its Bootstrap parts without importing them.
+      components: { BCol, BDropdown, BDropdownItem, BRow },
       stubs: {
         AuthTriads: true,
         ...Object.fromEntries(OLD_BLOCKS.map((name) => [name, true])),
@@ -190,10 +213,16 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
   beforeEach(() => {
     i18n.global.locale.value = 'de'
     CONFIG.CROSS_TX_REDEEM_LINK_ACTIVE = false
+    apollo.communities = [HOME, ELSEWHERE]
     apollo.redeem = vi.fn().mockResolvedValue({ data: { redeemTransactionLink: true } })
     apollo.disburse = vi.fn().mockResolvedValue({ data: { disburseTransactionLink: true } })
+    apollo.createRedeemJwt = vi.fn().mockResolvedValue({ data: { createRedeemJwt: 'signed.jwt' } })
     toasts.toastError = vi.fn()
     toasts.toastSuccess = vi.fn()
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
   })
 
   describe('which page a link gets', () => {
@@ -419,6 +448,38 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
 
       expect(router.currentRoute.value.name).toBe('Login')
       expect(router.currentRoute.value.params.code).toBe(CODE)
+    })
+  })
+
+  // ZE-020, F13: where redeeming across communities is switched on, the choice of community
+  // stands behind "I already have an account" -- and goes the way the old page went.
+  describe('a guest whose account is in another community', () => {
+    it('is taken there with a token for the code of the address', async () => {
+      const place = { href: `https://ki-playground.gradido.net/redeem/${CODE}` }
+      vi.stubGlobal('location', place)
+      CONFIG.CROSS_TX_REDEEM_LINK_ACTIVE = true
+      const { wrapper } = await open(memberLink({ communities: [HOME, ELSEWHERE] }))
+
+      await wrapper.find('[data-test="redeem-thanks-have-account"]').trigger('click')
+      await flushPromises()
+      await wrapper
+        .findAll('.dropdown-item')
+        .find((entry) => entry.text() === 'Gradido Wien')
+        .trigger('click')
+      await flushPromises()
+      await wrapper.find('[data-test="redeem-thanks-forward"]').trigger('click')
+      await flushPromises()
+
+      expect(apollo.createRedeemJwt).toHaveBeenCalledTimes(1)
+      expect(apollo.createRedeemJwt).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: CODE,
+          gradidoId: SENDER,
+          senderCommunityUuid: HOME.uuid,
+          recipientCommunityUuid: ELSEWHERE.uuid,
+        }),
+      )
+      expect(place.href).toBe('https://wien.example/redeem/signed.jwt')
     })
   })
 

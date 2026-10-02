@@ -1158,11 +1158,13 @@
     "have-account": "I already have an account",
     "how": "How it works",
     "invite": "Would you like to thank other people in this lovely way, too?",
+    "other-community": "If your account is in another community, choose it. You will be taken there.",
     "own-links": "To your links",
     "own-text": "This is how the person you send it to will see it. Only someone else can accept it.",
     "own-title": "This is your own thank-you",
     "title": "A thank-you for you",
-    "to-account": "To the account"
+    "to-account": "To the account",
+    "where-account": "Where is your account?"
   },
   "rightSide": {
     "aria": "Switch the right-hand column",

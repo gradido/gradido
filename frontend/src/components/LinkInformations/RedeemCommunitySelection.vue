@@ -54,11 +54,8 @@
   </div>
 </template>
 <script setup>
-import CONFIG from '@/config'
-import { computed } from 'vue'
 import { memberAlias } from '@/utils/gradidoAddress'
-import { createRedeemJwtMutation } from '@/graphql/mutations'
-import { useMutation } from '@vue/apollo-composable'
+import { useRedeemCommunity } from '@/composables/useRedeemCommunity'
 
 const props = defineProps({
   linkData: { type: Object, required: true },
@@ -71,26 +68,17 @@ const props = defineProps({
   },
 })
 
-const senderCommunity = computed(() => extractHomeCommunityFromLinkData(props.linkData))
-const currentRecipientCommunity = computed(
-  () =>
-    props.recipientCommunity || {
-      uuid: senderCommunity.value.uuid,
-      name: senderCommunity.value.name,
-      url: senderCommunity.value.url,
-      foreign: senderCommunity.value.foreign,
-    },
-)
-
 const emit = defineEmits(['update:recipientCommunity'])
 
-const isForeignCommunitySelected = computed(() => {
-  // console.log(
-  //   'RedeemCommunitySelection.isForeignCommunitySelected...recipientCommunity=',
-  //   currentRecipientCommunity.value,
-  // )
-  return currentRecipientCommunity.value.foreign
-})
+// Which community the link was made in, which one is chosen, and the way there with a token
+// for the link: shared with the thank-you view (RedeemThanks), which offers the same choice
+// behind "I already have an account".
+const { currentRecipientCommunity, isForeignCommunitySelected, forwardToRecipientCommunity } =
+  useRedeemCommunity({
+    linkData: () => props.linkData,
+    redeemCode: () => props.redeemCode,
+    recipientCommunity: () => props.recipientCommunity,
+  })
 
 function setRecipientCommunity(community) {
   // console.log('RedeemCommunitySelection.setRecipientCommunity...community=', community)
@@ -102,92 +90,8 @@ function setRecipientCommunity(community) {
   })
 }
 
-function extractHomeCommunityFromLinkData(linkData) {
-  // console.log(
-  //   'RedeemCommunitySelection.extractHomeCommunityFromLinkData... props.linkData=',
-  //   props.linkData,
-  // )
-  // console.log('RedeemCommunitySelection.extractHomeCommunityFromLinkData...linkData=', linkData)
-  // console.log(
-  //   'RedeemCommunitySelection.extractHomeCommunityFromLinkData...communities=',
-  //   linkData.communities,
-  // )
-  // console.log(
-  //   'RedeemCommunitySelection.extractHomeCommunityFromLinkData...linkData.value=',
-  //   linkData.value,
-  // )
-
-  if (linkData.communities?.length === 0) {
-    return {
-      uuid: '',
-      name: CONFIG.COMMUNITY_NAME,
-      url: CONFIG.COMMUNITY_URL,
-      foreign: false,
-    }
-  }
-  const communities = linkData.communities
-  // console.log(
-  //   'RedeemCommunitySelection.extractHomeCommunityFromLinkData...communities=',
-  //   communities,
-  // )
-  const homeCommunity = communities?.find((c) => c.foreign === false)
-  // console.log(
-  //   'RedeemCommunitySelection.extractHomeCommunityFromLinkData...homeCommunity=',
-  //   homeCommunity,
-  // )
-  return {
-    uuid: homeCommunity.uuid,
-    name: homeCommunity.name,
-    url: homeCommunity.url,
-    foreign: homeCommunity.foreign,
-  }
-}
-
-const { mutate: createRedeemJwt } = useMutation(createRedeemJwtMutation)
-
 async function onSwitch(event) {
   event.preventDefault() // Prevent the default navigation
-  // console.log('RedeemCommunitySelection.onSwitch... props=', props)
-  if (isForeignCommunitySelected.value) {
-    // console.log('RedeemCommunitySelection.onSwitch vor createRedeemJwt params:', {
-    //  gradidoId: props.linkData.senderUser?.gradidoID,
-    //  senderCommunityUuid: senderCommunity.value.uuid,
-    //  senderCommunityName: senderCommunity.value.name,
-    //  recipientCommunityUuid: currentRecipientCommunity.value.uuid,
-    //  code: props.redeemCode,
-    //  amount: props.linkData.amount,
-    //  memo: props.linkData.memo,
-    //  firstName: props.linkData.senderUser?.firstName,
-    //  alias: props.linkData.senderUser?.alias,
-    //  validUntil: props.linkData.validUntil,
-    // })
-    // eslint-disable-next-line no-useless-catch
-    try {
-      const { data } = await createRedeemJwt({
-        gradidoId: props.linkData.senderUser?.gradidoID,
-        senderCommunityUuid: senderCommunity.value.uuid,
-        senderCommunityName: senderCommunity.value.name,
-        recipientCommunityUuid: currentRecipientCommunity.value.uuid,
-        code: props.redeemCode,
-        amount: props.linkData.amount,
-        memo: props.linkData.memo,
-        // The only name this call sends, and the backend signs exactly it (`alias ?? ''`
-        // in createRedeemJwt). The mutation still declares a `firstName` variable and the
-        // resolver still accepts the argument -- neither is filled from here, and the
-        // commented-out block above is where it used to be.
-        alias: props.linkData.senderUser?.alias,
-        validUntil: props.linkData.validUntil,
-      })
-      // console.log('RedeemCommunitySelection.onSwitch... response=', data)
-      if (!data?.createRedeemJwt) {
-        throw new Error('Failed to get redeem token')
-      }
-      const targetUrl = currentRecipientCommunity.value.url.replace(/\/api\/?$/, '')
-      window.location.href = targetUrl + '/redeem/' + data.createRedeemJwt
-    } catch (error) {
-      // console.error('RedeemCommunitySelection.onSwitch error:', error)
-      throw error
-    }
-  }
+  await forwardToRecipientCommunity()
 }
 </script>
