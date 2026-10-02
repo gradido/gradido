@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue'
 import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
+import { useAmountInText } from '@/composables/useAmountInText'
 import { useAppToast } from '@/composables/useToast'
 import { memberAlias } from '@/utils/gradidoAddress'
 import { shareText } from '@/utils/shareText'
@@ -11,6 +12,7 @@ export const useCopyLinks = ({ link, amount, memo, validUntil }) => {
   const store = useStore()
   const { toastSuccess, toastError } = useAppToast()
   const { t, d } = useI18n()
+  const amountInText = useAmountInText()
 
   // Say "copied" only once it is copied. Where the page is not served over TLS, and in some
   // browsers built into other apps, `navigator.clipboard` is not there at all -- the call then
@@ -33,12 +35,13 @@ export const useCopyLinks = ({ link, amount, memo, validUntil }) => {
   // Four lines to the person the link is for, with the link on a line of its own after the
   // question. The sender under their alias (NU-021/KLAR-07), as on the cheque and the redeem
   // page. The warning that whoever holds the link can redeem it is not in here: it is meant
-  // for the sender and stands on their screen (`gdd_per_link.link-hint`).
+  // for the sender and stands on their screen (`gdd_per_link.link-hint`). The amount with the
+  // decimal mark of the language the text is written in, as the sheet the link opens as.
   const linkText = computed(() =>
     [
       t('gdd_per_link.share-line1', {
         name: memberAlias(store.state.username, store.state.gradidoID),
-        amount,
+        amount: amountInText(amount),
       }),
       t('gdd_per_link.share-line2', { memo }),
       t('gdd_per_link.share-line3'),

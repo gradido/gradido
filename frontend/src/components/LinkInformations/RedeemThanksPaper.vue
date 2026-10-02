@@ -26,7 +26,9 @@
             <b>{{ senderName }}</b>
           </template>
           <template #amount>
-            <b class="redeem-thanks-paper-amount">{{ linkData.amount }} {{ $t('GDD-long') }}</b>
+            <b class="redeem-thanks-paper-amount">
+              {{ amountInText(linkData.amount) }} {{ $t('GDD-long') }}
+            </b>
           </template>
         </i18n-t>
       </div>
@@ -44,15 +46,19 @@
  * included.
  *
  * The amount is written as the text that carried the link says it (`gdd_per_link.share-line1`):
- * the number as the server sends it, then "Gradido". Whoever taps the link reads the same
- * figure on the sheet as in the message it came in.
+ * the number with the decimal mark of the reader's language, then "Gradido". Both go through
+ * `useAmountInText`, so whoever taps the link reads the same figure on the sheet as in the
+ * message it came in.
  */
 import { computed } from 'vue'
+import { useAmountInText } from '@/composables/useAmountInText'
 import { memberAlias } from '@/utils/gradidoAddress'
 
 const props = defineProps({
   linkData: { type: Object, required: true },
 })
+
+const amountInText = useAmountInText()
 
 const senderName = computed(() =>
   memberAlias(props.linkData.senderUser?.alias, props.linkData.senderUser?.gradidoID),

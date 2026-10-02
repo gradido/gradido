@@ -25,13 +25,13 @@ const PROPS = {
 
 // The real instance with the real language files: the text this sends is the product, so it
 // is read here as a member would get it, not as keys a stub hands back.
-const withLinks = (locale = 'de') => {
+const withLinks = (locale = 'de', props = PROPS) => {
   i18n.global.locale.value = locale
   let links
   mount(
     {
       setup() {
-        links = useCopyLinks(PROPS)
+        links = useCopyLinks(props)
         return () => null
       },
     },
@@ -83,6 +83,20 @@ describe('useCopyLinks', () => {
       expect(text).not.toContain('einlösen')
       expect(text).not.toContain('Achtung')
     })
+
+    // The server hands an amount over as "12.5"; the list of the own links hands it on as a
+    // number. Either way the sentence carries the decimal mark of its language, and no
+    // decimals nobody typed (the sheet the link opens as says the same: RedeemThanksPaper).
+    it.each([['12.5'], [12.5]])(
+      'writes an amount with decimals as its language does (%j)',
+      (amount) => {
+        const firstLine = (locale) =>
+          withLinks(locale, { ...PROPS, amount }).linkText.value.split('\n')[0]
+
+        expect(firstLine('de')).toBe('bernd dankt Dir mit 12,5 Gradido:')
+        expect(firstLine('en')).toBe('bernd thanks you with 12.5 Gradido:')
+      },
+    )
 
     it.each(['de', 'en', 'es', 'fr', 'it', 'nl', 'pt', 'ru', 'tr', 'el'])(
       'in %s it names sender, amount and memo, and carries the link exactly once',

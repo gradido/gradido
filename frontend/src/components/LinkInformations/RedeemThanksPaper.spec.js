@@ -51,8 +51,8 @@ describe('RedeemThanksPaper', () => {
     )
   })
 
-  // The whole sentence, read as the page shows it: the name, the amount as the server sends
-  // it, the unit -- and nothing between the parts that nobody wrote.
+  // The whole sentence, read as the page shows it: the name, the amount, the unit -- and
+  // nothing between the parts that nobody wrote.
   it('says who thanks with how much, in the language of the page', () => {
     expect(from(paper()).element.textContent).toBe('Oma-Emma dankt Dir mit 20 Gradido')
 
@@ -68,13 +68,22 @@ describe('RedeemThanksPaper', () => {
     ).toEqual(['Oma-Emma', '20 Gradido'])
   })
 
-  // The share text carries the amount as the server sends it, so the sheet does too: whoever
-  // taps the link reads the figure they were sent.
-  it('writes the amount as the text that carried the link does', () => {
-    const wrapper = paper(link({ amount: '12.5' }))
-    const shared = i18n.global.t('gdd_per_link.share-line1', { name: 'Oma-Emma', amount: '12.5' })
+  // The server sends "12.5". The share text writes that amount with the decimal mark of its
+  // language, and so does the sheet: whoever taps the link reads the figure they were sent
+  // (useCopyLinks.spec.js holds the same two sentences for the text).
+  it('writes an amount with decimals as the language of the page does', () => {
+    const half = link({ amount: '12.5' })
 
-    expect(from(wrapper).element.textContent + ':').toBe(shared)
+    expect(from(paper(half)).element.textContent).toBe('Oma-Emma dankt Dir mit 12,5 Gradido')
+
+    i18n.global.locale.value = 'en'
+    expect(from(paper(half)).element.textContent).toBe('Oma-Emma thanks you with 12.5 Gradido')
+  })
+
+  it('keeps the amount and its unit together in bold, with one space between them', () => {
+    const bold = from(paper(link({ amount: '12.5' }))).find('.redeem-thanks-paper-amount')
+
+    expect(bold.element.textContent.trim()).toBe('12,5 Gradido')
   })
 
   describe('the sender', () => {
