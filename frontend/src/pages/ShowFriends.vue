@@ -173,7 +173,12 @@
           {{ $t('showFriends.away.thanksText') }}
         </p>
         <!-- The thank-you greeting: a picture, a few words, a link to share (ZE-017, F1). -->
-        <BButton variant="gradido" to="/thank-you-greeting" data-test="show-friends-thanks">
+        <BButton
+          variant="gradido"
+          class="door-greeting"
+          to="/thank-you-greeting"
+          data-test="show-friends-thanks"
+        >
           {{ $t('thank-you-greeting.entry.write') }}
         </BButton>
         <!-- The plain way stays beside it, quietly: the send form on its link, cheque and QR
@@ -587,6 +592,19 @@ const shareAddress = () => shareText(addressText.value, copyAddressText)
 
 .door-hint {
   color: var(--bs-secondary-color, #6c757d);
+}
+
+/* The button to the greeting: as wide as the door, and without the house button's 50px of
+   side padding -- with them its label took two lines in six of the ten languages at 390px, and
+   three in two at 320 (measured in the built wallet). Its letters are 16px for the same
+   reason, as on "Dank annehmen". Through `:deep`: BButton renders a
+   router-link, and the scope attribute stops at the root of a direct child component. */
+.door-body :deep(.door-greeting) {
+  --bs-btn-font-size: 1rem;
+
+  width: 100%;
+  padding-right: 0.75rem !important;
+  padding-left: 0.75rem !important;
 }
 
 /* The plain way under the greeting's button: a quiet link, with the height a thumb needs.

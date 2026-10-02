@@ -226,21 +226,22 @@
           </div>
 
           <!-- The amount, small and last: the same rule as the send form's, with the reserve
-               a link holds. -->
-          <ValidatedInput
-            id="thank-you-greeting-amount"
-            class="tyg-amount"
-            :model-value="form.amount"
-            name="amount"
-            :label="$t('thank-you-greeting.words.amount')"
-            placeholder="0.01"
-            inputmode="decimal"
-            autocomplete="off"
-            :rules="amountRules"
-            :disable-smart-valid-state="tried"
-            data-test="thank-you-greeting-amount"
-            @update:model-value="form.amount = $event"
-          />
+               a link holds. In a wrapper of its own: what is written on the house's input
+               lands on the field itself, not around it. -->
+          <div class="tyg-amount">
+            <ValidatedInput
+              :model-value="form.amount"
+              name="amount"
+              :label="$t('thank-you-greeting.words.amount')"
+              placeholder="0.01"
+              inputmode="decimal"
+              autocomplete="off"
+              :rules="amountRules"
+              :disable-smart-valid-state="tried"
+              data-test="thank-you-greeting-amount"
+              @update:model-value="form.amount = $event"
+            />
+          </div>
         </div>
         <div class="tyg-actions">
           <BButton variant="gradido" data-test="thank-you-greeting-next" @click="toPreview">
@@ -612,7 +613,7 @@ async function create() {
 .tyg-head {
   display: flex;
   gap: 8px;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 1rem;
 }
 
@@ -624,6 +625,7 @@ async function create() {
   justify-content: center;
   width: 44px;
   height: 44px;
+  margin-block-start: -11px;
   margin-inline-start: -10px;
   padding: 0;
   border: 0;
@@ -636,38 +638,45 @@ async function create() {
   opacity: 0.4;
 }
 
-/* Three steps on one line, a fine line between them; they share the room there is. */
+/* Three steps side by side, each its mark with its name under it, a fine line from mark to
+   mark. The names stand under the marks, not beside them: beside them they were cut short in
+   every language on a 320px phone, and in six of ten at 390 (measured in the built wallet).
+   Under the mark each has a third of the row, and a long one may take two lines. */
 .tyg-steps {
   display: flex;
   flex: 1;
-  gap: 8px;
-  align-items: center;
+  align-items: flex-start;
   min-width: 0;
+  max-width: 26rem;
   margin: 0;
   padding: 0;
   list-style: none;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   font-weight: 600;
+  line-height: 1.2;
 }
 
 .tyg-step {
+  position: relative;
   display: flex;
-  gap: 6px;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: 4px;
   align-items: center;
   min-width: 0;
   color: var(--bs-secondary-color, #6c757d);
+  text-align: center;
 }
 
+/* The line to the step before: from the edge of that mark to the edge of this one. */
 .tyg-step + .tyg-step::before {
-  flex: 1 1 12px;
-  min-width: 8px;
+  position: absolute;
+  top: 11px;
+  right: calc(50% + 15px);
+  width: calc(100% - 30px);
   height: 1px;
   background: var(--bs-border-color, #c9ced3);
   content: '';
-}
-
-.tyg-step + .tyg-step {
-  flex: 1;
 }
 
 .tyg-step.is-current,
@@ -700,15 +709,17 @@ async function create() {
 }
 
 .tyg-step-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  max-width: 100%;
+  padding: 0 2px;
+  overflow-wrap: anywhere;
 }
 
-/* The motifs: two columns of tiles, picture above name. */
+/* The motifs: tiles, picture above name -- two in a row on a phone, all five in one row where
+   there is room. With two fixed columns a tile was 500px wide at 1280 and the button under
+   them out of sight (measured in the built wallet). */
 .tyg-motifs {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
   gap: 10px;
 }
 
@@ -872,10 +883,14 @@ async function create() {
   margin-bottom: 0;
 }
 
-/* The sheet no wider than on the page a link opens as. */
+/* The sheet as the other person will see it: no wider than on the page a link opens as, and
+   its words as large. That page keeps 30px beside the sheet on a phone (330 of 390, 260 of
+   320 -- measured), this one 6px; and the sheet's sizes are em of its surroundings, which are
+   16px there and 13.6px on a phone here. So both are said: the width, and the 16px. */
 .tyg-paper {
-  max-width: 24rem;
+  width: min(24rem, calc(100% - 48px));
   margin: 0 auto 1rem;
+  font-size: 16px;
 }
 
 .tyg-note {
