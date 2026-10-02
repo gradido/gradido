@@ -1145,6 +1145,27 @@
     "showsSomebody": "Iemand laat je Gradido zien"
   },
   "qrCode": "QR Code",
+  "redeem-thanks": {
+    "accept": "Bedankje aannemen",
+    "accepted-text": "Op {date}. Het is nu bij de persoon voor wie het bedoeld was.",
+    "accepted-title": "Dit bedankje is aangenomen.",
+    "accepted-toast": "Bedankje aangenomen. {n} GDD staan nu op je rekening.",
+    "deleted-text": "{name} heeft de link op {date} verwijderd.",
+    "deleted-title": "Dit bedankje bestaat niet meer.",
+    "expired-text": "Het is teruggegaan naar {name} — er is niets verloren.",
+    "expired-title": "Dit bedankje heeft {days} dagen gewacht.",
+    "from": "{name} bedankt jou met {amount}",
+    "have-account": "Ik heb al een account",
+    "how": "Zo werkt het",
+    "invite": "Wil jij ook op deze mooie manier andere mensen bedanken?",
+    "other-community": "Staat je account in een andere gemeenschap, kies die dan. Je wordt daarheen doorgestuurd.",
+    "own-links": "Naar je links",
+    "own-text": "Zo ziet het eruit voor de persoon aan wie je het stuurt. Alleen iemand anders kan het aannemen.",
+    "own-title": "Dit is je eigen bedankje",
+    "title": "Een bedankje voor jou",
+    "to-account": "Naar de rekening",
+    "where-account": "Waar is je account?"
+  },
   "rightSide": {
     "aria": "De rechterkolom omschakelen",
     "contacts": "Contacten"

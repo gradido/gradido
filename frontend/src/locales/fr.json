@@ -786,7 +786,7 @@
     "header": "Créer un lien, un chèque et un QR code",
     "link-and-text-copied": "Le lien et ton message ont été copiés dans le presse-papier. Tu peux maintenant le joindre à un e-mail ou à un message.",
     "link-copied": "Le lien a été copié dans le presse-papier. Tu peux désormais le coller dans ton e-mail ou ton message.",
-    "link-deleted": "Le lien a été supprimé le on {date}.",
+    "link-deleted": "Le lien a été supprimé le {date}.",
     "link-expired": "Le lien n'est plus valide. Sa validité a expiré le {date}.",
     "link-hint": "Quiconque a le lien peut l'utiliser. Envoie-le uniquement à la personne à qui il est destiné.",
     "link-overview": "Aperçu du lien",
@@ -1145,6 +1145,27 @@
     "showsSomebody": "Quelqu'un te montre Gradido"
   },
   "qrCode": "QR Code",
+  "redeem-thanks": {
+    "accept": "Accepter le remerciement",
+    "accepted-text": "Le {date}. Il est maintenant chez la personne à qui il était destiné.",
+    "accepted-title": "Ce remerciement a été accepté.",
+    "accepted-toast": "Remerciement accepté. Les {n} GDD sont maintenant sur ton compte.",
+    "deleted-text": "{name} a supprimé le lien le {date}.",
+    "deleted-title": "Ce remerciement n'existe plus.",
+    "expired-text": "Il est retourné à {name} — rien n'est perdu.",
+    "expired-title": "Ce remerciement a attendu {days} jours.",
+    "from": "{name} te remercie avec {amount}",
+    "have-account": "J'ai déjà un compte",
+    "how": "Comment ça marche",
+    "invite": "Aimerais-tu, toi aussi, remercier d'autres personnes de cette belle manière ?",
+    "other-community": "Si ton compte est dans une autre communauté, choisis-la. Nous t'y redirigeons.",
+    "own-links": "Vers tes liens",
+    "own-text": "C'est ainsi que le voit la personne à qui tu l'envoies. Seule une autre personne peut l'accepter.",
+    "own-title": "C'est ton propre remerciement",
+    "title": "Un remerciement pour toi",
+    "to-account": "Vers le compte",
+    "where-account": "Où est ton compte ?"
+  },
   "rightSide": {
     "aria": "Changer la colonne de droite",
     "contacts": "Contacts"

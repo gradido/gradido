@@ -1145,6 +1145,27 @@
     "showsSomebody": "Biri sana Gradido'yu gösteriyor"
   },
   "qrCode": "QR Kodu",
+  "redeem-thanks": {
+    "accept": "Teşekkürü kabul et",
+    "accepted-text": "{date} tarihinde. Artık kimin için gönderildiyse onda.",
+    "accepted-title": "Bu teşekkür kabul edildi.",
+    "accepted-toast": "Teşekkür kabul edildi. {n} GDD artık hesabında.",
+    "deleted-text": "{name}, bağlantıyı {date} tarihinde sildi.",
+    "deleted-title": "Bu teşekkür artık yok.",
+    "expired-text": "{name} adlı üyeye geri döndü — hiçbir şey kaybolmadı.",
+    "expired-title": "Bu teşekkür {days} gün bekledi.",
+    "from": "{name}, {amount} ile sana teşekkür ediyor",
+    "have-account": "Zaten bir hesabım var",
+    "how": "Nasıl çalışır",
+    "invite": "Sen de başkalarına bu güzel yolla teşekkür etmek ister misin?",
+    "other-community": "Hesabın başka bir topluluktaysa o topluluğu seç. Oraya yönlendirileceksin.",
+    "own-links": "Bağlantılarına git",
+    "own-text": "Onu gönderdiğin kişi böyle görür. Onu yalnızca başka biri kabul edebilir.",
+    "own-title": "Bu senin kendi teşekkürün",
+    "title": "Sana bir teşekkür",
+    "to-account": "Hesaba git",
+    "where-account": "Hesabın nerede?"
+  },
   "rightSide": {
     "aria": "Sağ sütunu değiştir",
     "contacts": "Kişiler"

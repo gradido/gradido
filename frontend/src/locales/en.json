@@ -793,7 +793,7 @@
     "links_open": "{n} open",
     "links_sum": "Links, cheques, QR codes",
     "no-account": "You don't have a Gradido account yet?",
-    "no-redeem": "You not allowed to redeem your own link!",
+    "no-redeem": "You are not allowed to redeem your own link!",
     "not-copied": "Unfortunately, your device does not allow copying! Please copy the link by hand!",
     "recipientCommunityRedirection": "Redirect for crediting to:",
     "recipientCommunitySelection": "Select Gradido community:",
@@ -1145,6 +1145,27 @@
     "showsSomebody": "Somebody is showing you Gradido"
   },
   "qrCode": "QR Code",
+  "redeem-thanks": {
+    "accept": "Accept the thank-you",
+    "accepted-text": "On {date}. It is now with the person it was meant for.",
+    "accepted-title": "This thank-you has been accepted.",
+    "accepted-toast": "Thank-you accepted. {n} GDD are now in your account.",
+    "deleted-text": "{name} deleted the link on {date}.",
+    "deleted-title": "This thank-you no longer exists.",
+    "expired-text": "It has returned to {name} — nothing is lost.",
+    "expired-title": "This thank-you waited for {days} days.",
+    "from": "{name} thanks you with {amount}",
+    "have-account": "I already have an account",
+    "how": "How it works",
+    "invite": "Would you like to thank other people in this lovely way, too?",
+    "other-community": "If your account is in another community, choose it. You will be taken there.",
+    "own-links": "To your links",
+    "own-text": "This is how the person you send it to will see it. Only someone else can accept it.",
+    "own-title": "This is your own thank-you",
+    "title": "A thank-you for you",
+    "to-account": "To the account",
+    "where-account": "Where is your account?"
+  },
   "rightSide": {
     "aria": "Switch the right-hand column",
     "contacts": "Contacts"

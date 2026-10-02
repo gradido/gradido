@@ -34,8 +34,13 @@
             </BRow>
             <!-- ps-4 on the phone: the greeting stands on the page, not in the card, so it
                  takes the card's 24px itself and lines up with the text inside it. mt-3: 16px
-                 of air below the top row, which it stood pressed against (Bernd, 22.09.2026). -->
-            <BRow v-else class="auth-greeting mt-3 mt-md-5 ps-4 ps-md-0">
+                 of air below the top row, which it stood pressed against (Bernd, 22.09.2026).
+                 A route can leave the greeting out (meta.hideGreeting, as hideFooter for the
+                 footer); a project's banner above is not touched by that. -->
+            <BRow
+              v-else-if="!$route.meta.hideGreeting"
+              class="auth-greeting mt-3 mt-md-5 ps-4 ps-md-0"
+            >
               <BCol lg="9" md="9" sm="12">
                 <div class="mb--2">{{ $t('welcome') }}</div>
                 <div class="h1 mb-0">{{ communityName }}</div>
@@ -45,7 +50,14 @@
                 <BAvatar src="/img/brand/gradido_coin_128x128.png" size="6rem" />
               </BCol>
             </BRow>
-            <BCard no-body class="auth-card border-0 gradido-custom-background page-font-size">
+            <BCard
+              no-body
+              class="auth-card border-0 gradido-custom-background page-font-size"
+              :class="{
+                'auth-card-without-greeting':
+                  $route.meta.hideGreeting && !projectBannerResult && !projectBannerLoading,
+              }"
+            >
               <BRow class="p-4">
                 <BCol cols="10">
                   <language-switch-2 class="ms-3" />
@@ -178,6 +190,14 @@ watchEffect(() => {
 @media (width <= 767.98px) {
   .auth-card {
     margin-top: 2.5rem;
+  }
+}
+
+/* Where a route leaves the greeting out, the card stands 24px under the top row on a phone
+   as well: the 40px were the greeting's air, and there is no greeting to give it to. */
+@media (width <= 767.98px) {
+  .auth-card.auth-card-without-greeting {
+    margin-top: 1.5rem;
   }
 }
 

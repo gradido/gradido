@@ -1145,6 +1145,27 @@
     "showsSomebody": "Jemand zeigt Dir Gradido"
   },
   "qrCode": "QR Code",
+  "redeem-thanks": {
+    "accept": "Dank annehmen",
+    "accepted-text": "Am {date}. Er liegt jetzt bei dem Menschen, für den er gedacht war.",
+    "accepted-title": "Dieser Dank ist angenommen.",
+    "accepted-toast": "Dank angenommen. {n} GDD stehen jetzt auf Deinem Konto.",
+    "deleted-text": "{name} hat den Link am {date} gelöscht.",
+    "deleted-title": "Diesen Dank gibt es nicht mehr.",
+    "expired-text": "Er ist zu {name} zurückgekehrt — nichts ist verloren.",
+    "expired-title": "Dieser Dank hat {days} Tage gewartet.",
+    "from": "{name} dankt Dir mit {amount}",
+    "have-account": "Ich habe schon ein Konto",
+    "how": "So funktioniert’s",
+    "invite": "Möchtest auch Du auf diese schöne Weise anderen Menschen Danke sagen?",
+    "other-community": "Ist Dein Konto in einer anderen Gemeinschaft, wähle sie aus. Du wirst dorthin weitergeleitet.",
+    "own-links": "Zu Deinen Links",
+    "own-text": "So sieht ihn der Mensch, dem Du ihn schickst. Annehmen kann ihn nur jemand anderes.",
+    "own-title": "Das ist Dein eigener Dank",
+    "title": "Ein Dank für Dich",
+    "to-account": "Zum Konto",
+    "where-account": "Wo ist Dein Konto?"
+  },
   "rightSide": {
     "aria": "Rechte Spalte umschalten",
     "contacts": "Kontakte"
