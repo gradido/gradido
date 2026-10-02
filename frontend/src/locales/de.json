@@ -1535,6 +1535,7 @@
     "valid-until": "Dieser Dank-Scheck ist bis zum {date} gültig."
   },
   "thank-you-greeting": {
+    "for": "Für {name}",
     "motif": {
       "bouquet": "Blumenstrauß",
       "giving-hands": "Gebende Hände",

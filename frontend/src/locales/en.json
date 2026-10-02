@@ -1535,6 +1535,7 @@
     "valid-until": "This thank-you cheque is valid until {date}."
   },
   "thank-you-greeting": {
+    "for": "For {name}",
     "motif": {
       "bouquet": "Bouquet",
       "giving-hands": "Giving hands",
