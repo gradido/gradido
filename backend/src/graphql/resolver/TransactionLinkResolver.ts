@@ -7,6 +7,7 @@ import { ContributionType } from '@enum/ContributionType'
 import { Community } from '@model/Community'
 import { ContributionLink } from '@model/ContributionLink'
 import { RedeemJwtLink } from '@model/RedeemJwtLink'
+import { ThankYouGreeting } from '@model/ThankYouGreeting'
 import { TransactionLink, TransactionLinkResult } from '@model/TransactionLink'
 import { User } from '@model/User'
 import { QueryLinkResult } from '@union/QueryLinkResult'
@@ -28,7 +29,10 @@ import {
   Transaction as DbTransaction,
   TransactionLink as DbTransactionLink,
   User as DbUser,
+  dbDeleteThankYouGreetingByLinkCode,
   dbInsertEvent,
+  dbInsertThankYouGreeting,
+  dbSelectThankYouGreetingsByLinkCodes,
   EventType,
   findModeratorCreatingContributionLink,
   findTransactionLinkByCode,
@@ -47,6 +51,7 @@ import {
   encode,
   encryptAndSign,
   GradidoUnit,
+  parseOrThrowFirstIssue,
   RedeemJwtPayloadType,
   SignedTransferPayloadType,
   verify,
@@ -57,6 +62,7 @@ import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { CREATION_NOT_ALLOWED } from '@/data/ProjectAccount.logic'
 import { PublishNameLogic } from '@/data/PublishName.logic'
+import { transactionLinkGreetingSchema } from '@/data/ThankYouGreeting.schema'
 import { DisbursementClient as V1_0_DisbursementClient } from '@/federation/client/1_0/DisbursementClient'
 import { DisbursementClientFactory } from '@/federation/client/DisbursementClientFactory'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
@@ -86,15 +92,50 @@ export const transactionLinkCode = (date: Date): string => {
 
 const db = AppDatabase.getInstance()
 
+// What the log gets of a query that failed on a greeting's row: the driver's code. Not the
+// error itself -- Drizzle writes the parameters of the statement into its message, and the name
+// a member wrote about somebody else is one of them.
+const driverCodeOf = (error: unknown): string =>
+  (error as { cause?: { code?: string } } | null)?.cause?.code ?? 'no driver code'
+
+/**
+ * Takes the greeting of a link out again, and never throws: it runs where a link could not be
+ * saved and where a link was deleted, and neither may fail over it. A plain link has no row --
+ * that is its answer, not a failure. Anything else goes into the log.
+ */
+const removeThankYouGreeting = async (transactionLinkCode: string): Promise<void> => {
+  try {
+    await dbDeleteThankYouGreetingByLinkCode(transactionLinkCode)
+  } catch (error) {
+    createLogger('removeThankYouGreeting').error(
+      'thank-you greeting could not be removed',
+      transactionLinkCode,
+      driverCodeOf(error),
+    )
+  }
+}
+
 @Resolver()
 export class TransactionLinkResolver {
   @Authorized([RIGHTS.CREATE_TRANSACTION_LINK])
   @Mutation(() => TransactionLink)
   async createTransactionLink(
-    @Args() { amount, memo }: TransactionLinkArgs,
+    @Args() { amount, memo, greeting: greetingInput }: TransactionLinkArgs,
     @Ctx() context: Context,
   ): Promise<TransactionLink> {
     const user = getUser(context)
+
+    // A thank-you greeting is this link with a motif, a first line and a name. Checked before
+    // anything is read or written: the line has to be the beginning of the memo.
+    const parsed = greetingInput
+      ? parseOrThrowFirstIssue(transactionLinkGreetingSchema, { memo, greeting: greetingInput })
+          .greeting
+      : null
+    const greeting = parsed && {
+      motif: parsed.motif,
+      line: parsed.line ?? null,
+      recipientName: parsed.recipientName ?? null,
+    }
 
     const createdDate = new Date()
     const validUntil = Duration.days(CODE_VALID_DAYS_DURATION).addToDate(createdDate)
@@ -116,8 +157,28 @@ export class TransactionLinkResolver {
     transactionLink.code = transactionLinkCode(createdDate)
     transactionLink.createdAt = createdDate
     transactionLink.validUntil = validUntil
+    // ⛔ The greeting goes first, under the code the link is about to get. The link is saved
+    // through TypeORM, the greeting through Drizzle -- two connection pools, no shared
+    // transaction -- so the order decides what a failure leaves behind. This way round there is
+    // never a link without its greeting: where the greeting cannot be filed, nothing is written,
+    // nothing is held and the DLT has heard nothing; where the link cannot be saved after it,
+    // the greeting is taken back out.
+    if (greeting) {
+      const filed = await dbInsertThankYouGreeting({
+        transactionLinkCode: transactionLink.code,
+        ...greeting,
+      }).catch((e) => {
+        throw new LogError('Unable to save thank-you greeting', driverCodeOf(e))
+      })
+      if (!filed.success) {
+        throw new LogError('Unable to save thank-you greeting', filed.error.name)
+      }
+    }
     const dltTransactionPromise = deferredTransferTransaction(user, transactionLink)
-    await DbTransactionLink.save(transactionLink).catch((e) => {
+    await DbTransactionLink.save(transactionLink).catch(async (e) => {
+      if (greeting) {
+        await removeThankYouGreeting(transactionLink.code)
+      }
       throw new LogError('Unable to save transaction link', e)
     })
     await dbInsertEvent({
@@ -138,7 +199,13 @@ export class TransactionLinkResolver {
       dltTransaction.transactionLinkId = transactionLink.id
       await DbDltTransaction.save(dltTransaction)
     }
-    return new TransactionLink(transactionLink, new User(user))
+    return new TransactionLink(
+      transactionLink,
+      new User(user),
+      undefined,
+      undefined,
+      greeting ? new ThankYouGreeting(greeting) : null,
+    )
   }
 
   @Authorized([RIGHTS.DELETE_TRANSACTION_LINK])
@@ -168,6 +235,10 @@ export class TransactionLinkResolver {
     await transactionLink.softRemove().catch((e) => {
       throw new LogError('Transaction link could not be deleted', e)
     })
+    // The greeting goes with its link: the name of a third person does not stay behind. The
+    // link is deleted either way -- a row that could not be removed is in the log, and nobody
+    // reaches it: a deleted link never answers with a greeting.
+    await removeThankYouGreeting(transactionLink.code)
 
     transactionLink.user = user
     const dltTransactionPromise = redeemDeferredTransferTransaction(
@@ -234,7 +305,18 @@ export class TransactionLinkResolver {
           )
         }
         const communities = await getAuthenticatedCommunities()
-        return new TransactionLink(dbTransactionLink, new User(user), redeemedBy, communities)
+        // Readable by whoever holds the code, as the memo is. ⛔ Never for a deleted link:
+        // this query finds those too, and what was taken back shows nothing any more.
+        const [greeting] = dbTransactionLink.deletedAt
+          ? []
+          : await dbSelectThankYouGreetingsByLinkCodes([dbTransactionLink.code])
+        return new TransactionLink(
+          dbTransactionLink,
+          new User(user),
+          redeemedBy,
+          communities,
+          greeting ? new ThankYouGreeting(greeting) : null,
+        )
       } else {
         // redeem jwt-token
         return await this.queryRedeemJwtLink(code, methodLogger)

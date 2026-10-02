@@ -204,10 +204,15 @@ export const sendEmail = gql`
 `
 
 export const createTransactionLink = gql`
-  mutation ($amount: GradidoUnit!, $memo: String!) {
-    createTransactionLink(amount: $amount, memo: $memo) {
+  mutation ($amount: GradidoUnit!, $memo: String!, $greeting: ThankYouGreetingInput) {
+    createTransactionLink(amount: $amount, memo: $memo, greeting: $greeting) {
       id
       code
+      greeting {
+        motif
+        line
+        recipientName
+      }
     }
   }
 `
