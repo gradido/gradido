@@ -1131,6 +1131,7 @@
     "send": "Envoyer Gradido et e‑mail",
     "settings": "Configuration",
     "show-friends": "Montre-le à tes amis",
+    "thank-you-greeting": "Mot de remerciement",
     "transactions": "Tes transactions",
     "usersearch": "Recherche géographique de membres (bèta)"
   },
@@ -1533,6 +1534,85 @@
     "download": "Télécharger le chèque",
     "scan-qr": "Pour l'accréditation du Gradido, scanner le code QR !",
     "valid-until": "Ce chèque de remerciement est valable jusqu'au {date}."
+  },
+  "thank-you-greeting": {
+    "done": {
+      "edit-hint": "Tu peux modifier la phrase avant l'envoi. Tes mots ne figurent que sur la carte.",
+      "find-again": "Tu le retrouveras dans {transactions}, sous « {links} ».",
+      "link-hint": "Toute personne qui a le lien peut accepter le remerciement. Envoie-le uniquement à la personne à qui il est destiné.",
+      "sentence-lead": "Cette phrase l'accompagne :",
+      "title": "Ton mot de remerciement est prêt.",
+      "title-for": "Ton mot de remerciement pour {name} est prêt.",
+      "waits-until": "Il attend jusqu'au {date}."
+    },
+    "entry": {
+      "plain": "Sans image : lien, chèque, QR",
+      "text": "Avec une image et quelques mots — à envoyer.",
+      "write": "Écrire un mot de remerciement"
+    },
+    "for": "Pour {name}",
+    "group": {
+      "for-something": "Merci pour quelque chose",
+      "just-so": "Merci, juste comme ça",
+      "occasion": "Merci lors d'une occasion spéciale"
+    },
+    "line": {
+      "appreciation": "Ce que tu fais est précieux. Merci pour cela.",
+      "birthday": "Pour ton anniversaire : merci d'exister.",
+      "effort": "Merci pour tes efforts — le résultat est magnifique.",
+      "encouragement": "Je pense à toi. Tu vas y arriver.",
+      "farewell": "Bonne route — et merci pour le temps partagé.",
+      "help": "Merci pour ton aide !",
+      "joy": "Tu as embelli ma journée.",
+      "just-so": "Juste comme ça — parce que tu existes.",
+      "recovery": "Bon rétablissement — je pense à toi.",
+      "talk": "Merci pour cette belle conversation.",
+      "time": "Merci d'avoir pris le temps.",
+      "welcome": "Bienvenue — quel bonheur que tu sois là !"
+    },
+    "list": {
+      "for": "Mot de remerciement pour {name}"
+    },
+    "motif": {
+      "bouquet": "Bouquet de fleurs",
+      "giving-hands": "Mains qui donnent",
+      "glowing-swirl": "Spirale lumineuse",
+      "heart-leaves": "Cœur et feuilles",
+      "morning-light": "Lumière du matin"
+    },
+    "name": "Mot de remerciement",
+    "next": "Continuer",
+    "picture": {
+      "question": "Quelle image pour ton petit mot ?"
+    },
+    "preview": {
+      "finish": "Terminer le petit mot",
+      "title": "Voici à quoi ressemblera ton remerciement.",
+      "title-for": "Voici comment {name} verra ton remerciement.",
+      "waits": "Ton petit mot attend {days} jours. Si personne ne l'accepte, tes Gradido reviennent simplement vers toi — rien n'est perdu.",
+      "waits-for": "Ton petit mot attend {days} jours. Si {name} ne l'accepte pas, tes Gradido reviennent simplement vers toi — rien n'est perdu."
+    },
+    "received-title": "Un mot de remerciement pour toi",
+    "share": {
+      "copied": "La phrase et le lien ont été copiés dans le presse-papier. Tu peux maintenant les coller dans un e-mail ou un message.",
+      "line1": "J'ai un mot de remerciement pour toi :",
+      "line1-for": "{name}, j'ai un mot de remerciement pour toi :"
+    },
+    "step": {
+      "picture": "Image",
+      "preview": "Aperçu",
+      "words": "Mots"
+    },
+    "words": {
+      "all-lines": "Les douze suggestions",
+      "amount": "Combien de Gradido veux-tu y joindre ?",
+      "for-whom": "Pour qui ?",
+      "for-whom-hint": "Le nom figure sur ton petit mot.",
+      "line": "La première ligne",
+      "missing": "Choisis une première ligne ou écris quelques mots à toi.",
+      "own-line": "Ta propre ligne",
+      "own-words": "Tes mots"
+    }
   },
   "time": {
     "days": "Jours",

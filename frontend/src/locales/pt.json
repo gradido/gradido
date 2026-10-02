@@ -1131,6 +1131,7 @@
     "send": "Enviar Gradido e e‑mail",
     "settings": "Definições",
     "show-friends": "Mostra aos teus amigos",
+    "thank-you-greeting": "Postal de agradecimento",
     "transactions": "As tuas transações",
     "usersearch": "Pesquisa geográfica de membros (beta)"
   },
@@ -1533,6 +1534,85 @@
     "download": "Descarregar cheque",
     "scan-qr": "Para que os Gradido sejam creditados, digitaliza o código QR!",
     "valid-until": "Este cheque de agradecimento é válido até {date}."
+  },
+  "thank-you-greeting": {
+    "done": {
+      "edit-hint": "Podes alterar a frase antes de a enviares. As tuas palavras só aparecem no postal.",
+      "find-again": "Voltas a encontrá-lo em {transactions}, em «{links}».",
+      "link-hint": "Quem tiver o link pode aceitar o agradecimento. Envia-o só à pessoa a quem se destina.",
+      "sentence-lead": "Esta frase vai com ele:",
+      "title": "O teu postal de agradecimento está pronto.",
+      "title-for": "O teu postal de agradecimento para {name} está pronto.",
+      "waits-until": "Fica à espera até {date}."
+    },
+    "entry": {
+      "plain": "Sem imagem: link, cheque, QR",
+      "text": "Com imagem e umas palavras — para enviar.",
+      "write": "Escrever um postal de agradecimento"
+    },
+    "for": "Para {name}",
+    "group": {
+      "for-something": "Agradecer por algo",
+      "just-so": "Agradecer só porque sim",
+      "occasion": "Agradecer numa ocasião"
+    },
+    "line": {
+      "appreciation": "O que fazes é valioso. Agradeço-te por isso.",
+      "birthday": "No teu aniversário: agradeço-te por existires.",
+      "effort": "Agradeço o teu esforço — ficou maravilhoso.",
+      "encouragement": "Penso em ti. Tu consegues.",
+      "farewell": "Tudo de bom no teu caminho — e agradeço o tempo que partilhámos.",
+      "help": "Agradeço a tua ajuda!",
+      "joy": "Alegraste o meu dia.",
+      "just-so": "Só porque sim — porque existes.",
+      "recovery": "As melhoras — penso em ti.",
+      "talk": "Agradeço a boa conversa.",
+      "time": "Agradeço o tempo que me dedicaste.",
+      "welcome": "Dou-te as boas-vindas — que bom estares aqui!"
+    },
+    "list": {
+      "for": "Postal de agradecimento para {name}"
+    },
+    "motif": {
+      "bouquet": "Ramo de flores",
+      "giving-hands": "Mãos que dão",
+      "glowing-swirl": "Espiral luminosa",
+      "heart-leaves": "Coração e folhas",
+      "morning-light": "Luz da manhã"
+    },
+    "name": "Postal de agradecimento",
+    "next": "Continuar",
+    "picture": {
+      "question": "Que imagem queres no teu postal?"
+    },
+    "preview": {
+      "finish": "Concluir o postal",
+      "title": "É assim que o teu agradecimento vai ficar.",
+      "title-for": "É assim que {name} vai ver o teu agradecimento.",
+      "waits": "O teu postal espera {days} dias. Se ninguém o aceitar, os teus Gradido voltam simplesmente para ti — nada se perde.",
+      "waits-for": "O teu postal espera {days} dias. Se {name} não o aceitar, os teus Gradido voltam simplesmente para ti — nada se perde."
+    },
+    "received-title": "Um postal de agradecimento para ti",
+    "share": {
+      "copied": "A frase e o link foram copiados para a área de transferência. Podes agora colá-los num e-mail ou numa mensagem.",
+      "line1": "Tenho um postal de agradecimento para ti:",
+      "line1-for": "{name}, tenho um postal de agradecimento para ti:"
+    },
+    "step": {
+      "picture": "Imagem",
+      "preview": "Ver",
+      "words": "Palavras"
+    },
+    "words": {
+      "all-lines": "As doze sugestões",
+      "amount": "Quantos Gradido queres juntar?",
+      "for-whom": "Para quem?",
+      "for-whom-hint": "O nome aparece no teu postal.",
+      "line": "A primeira linha",
+      "missing": "Escolhe uma primeira linha ou escreve umas palavras tuas.",
+      "own-line": "Linha própria",
+      "own-words": "As tuas palavras"
+    }
   },
   "time": {
     "days": "Dias",
