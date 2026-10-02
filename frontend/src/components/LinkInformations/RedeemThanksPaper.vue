@@ -144,9 +144,10 @@ const initial = computed(() => (Array.from(senderName.value)[0] ?? '').toUpperCa
    `swap`: the line stands at once, in the page's font, and changes hands when the file is
    there.
 
-   ⛔ Not after the pattern of App.vue's rule for WorkSans: a list of families and `!important`
-   are not valid in a `font-family` descriptor, and that rule reaches the stylesheet without a
-   name. This one has to keep its name in the built stylesheet. */
+   ⛔ One family name and nothing else in the `font-family` descriptor: a list of families or
+   `!important` are not valid there, and such a rule reaches the stylesheet without a name
+   (App.vue carried one for WorkSans from 2022 to 2026; it never drew a letter). This one has
+   to keep its name in the built stylesheet. */
 @font-face {
   font-family: Caveat;
   font-style: normal;

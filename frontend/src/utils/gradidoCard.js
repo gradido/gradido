@@ -95,6 +95,7 @@
  */
 
 import { avatarPaletteEntry } from './avatarColor'
+import { printFontReady } from './printFont'
 // The cheque's file-name sanitiser knows which characters Windows rejects and which names
 // it reserves. Reused rather than copied: that knowledge should exist once.
 import { chequeFileName } from './thankYouCheque'
@@ -216,7 +217,11 @@ const HAIRLINE = 2
 const ADDRESS_MIN_SIZE = mm(2.0)
 const ADDRESS_WIDTH = WIDTH - 2 * PADDING
 
+// Open Sans ships with the wallet (public/fonts/open-sans/) and is waited for before the first
+// word is measured -- see printFont.js. The families behind it only draw if the font cannot
+// be loaded at all.
 const FONT = '"Open Sans", Helvetica, Arial, sans-serif'
+const NAMESPACE = '/u/'
 
 const COLOR_TEXT = 'rgb(56, 56, 56)'
 const COLOR_LABEL = '#8a8a8a'
@@ -255,6 +260,9 @@ export const cardFileName = (name) => {
   return chequeFileName(person ? `Gradido ${person}` : 'Gradido')
 }
 
+// The letters of the disc as they are set -- also what the font is asked for.
+const initialsText = (initials) => String(initials ?? '').toUpperCase()
+
 const drawPicture = (ctx, { image, initials, colorSeed, x, y }) => {
   const radius = PICTURE / 2
   if (image) {
@@ -286,7 +294,7 @@ const drawPicture = (ctx, { image, initials, colorSeed, x, y }) => {
   ctx.font = `500 ${Math.round(PICTURE * 0.4)}px ${FONT}`
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  ctx.fillText(String(initials ?? '').toUpperCase(), x + radius, y + radius + 1)
+  ctx.fillText(initialsText(initials), x + radius, y + radius + 1)
   ctx.textAlign = 'left'
   ctx.textBaseline = 'alphabetic'
 }
@@ -529,7 +537,7 @@ export const contactLines = (lines) =>
  */
 const addressWidthAt = (ctx, size, host, alias) => {
   ctx.font = `400 ${size}px ${FONT}`
-  const plain = ctx.measureText(host).width + ctx.measureText('/u/').width
+  const plain = ctx.measureText(host).width + ctx.measureText(NAMESPACE).width
   ctx.font = `700 ${size}px ${FONT}`
   return plain + ctx.measureText(alias).width
 }
@@ -560,8 +568,8 @@ const drawAddress = (ctx, { host, alias, top }) => {
   x += ctx.measureText(hostText).width
 
   ctx.fillStyle = COLOR_LABEL
-  ctx.fillText('/u/', x, baseline)
-  x += ctx.measureText('/u/').width
+  ctx.fillText(NAMESPACE, x, baseline)
+  x += ctx.measureText(NAMESPACE).width
 
   ctx.font = `700 ${size}px ${FONT}`
   ctx.fillStyle = COLOR_TEXT
@@ -588,10 +596,28 @@ const drawAddress = (ctx, { host, alias, top }) => {
  * @returns {Promise<string>} the PNG as a data URL
  */
 export const drawGradidoCard = async (data) => {
+  // ⛔ The font is waited for here, with the pictures, BEFORE anything is measured: every line
+  // of the card is sized by measuring it, and a canvas that does not have the font yet
+  // measures the fallback. Every text the card sets goes in, as it is set, the fixed ones
+  // too -- the text decides which subsets of the font are fetched (printFont.js).
   const [logo, watermark, picture] = await Promise.all([
     loadImage(IMAGES.logo),
     loadImage(IMAGES.watermark),
     data.picture ? loadImage(data.picture) : Promise.resolve(null),
+    printFontReady([
+      data.name,
+      data.communityLabel,
+      data.communityName,
+      data.aliasLabel,
+      data.alias,
+      data.host,
+      initialsText(data.initials),
+      data.slogan,
+      data.contactHeading,
+      ...contactLines(data.contact),
+      WEBSITE,
+      NAMESPACE,
+    ]),
   ])
 
   const canvas = document.createElement('canvas')
