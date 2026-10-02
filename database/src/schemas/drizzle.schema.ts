@@ -998,3 +998,33 @@ export const chatVideoServersTable = mysqlTable(
 
 export type ChatVideoServerSelect = typeof chatVideoServersTable.$inferSelect
 export type ChatVideoServerInsert = typeof chatVideoServersTable.$inferInsert
+
+// What a thank-you greeting has beyond the transaction link it is (migration 0152): the motif
+// of the card, its first line and the name the sender wrote under "Für wen?". Amount, memo,
+// code and validity are the link's own.
+//
+// ⛔ Hung on the link's `code`, not on its id: the greeting is filed BEFORE its link
+// (createTransactionLink), and the code is what names the link before it is saved. No foreign
+// key -- a link is soft-deleted.
+export const thankYouGreetingsTable = mysqlTable(
+  'thank_you_greetings',
+  {
+    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
+    transactionLinkCode: varchar('transaction_link_code', { length: 24 }).notNull(),
+    // One of the wallet's motif keys; NULL is for a greeting with a photo of its own.
+    motif: varchar({ length: 32 }).default(sql`NULL`),
+    // Also the beginning of the link's memo, which is what goes into the booking.
+    line: varchar({ length: 120 }).default(sql`NULL`),
+    // Written freely by the sender; no account stands behind it.
+    recipientName: varchar('recipient_name', { length: 64 }).default(sql`NULL`),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex('thank_you_greetings_transaction_link_code_unique').on(table.transactionLinkCode),
+  ],
+)
+
+export type ThankYouGreetingSelect = typeof thankYouGreetingsTable.$inferSelect
+export type ThankYouGreetingInsert = typeof thankYouGreetingsTable.$inferInsert
