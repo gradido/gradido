@@ -172,15 +172,21 @@
           <strong>{{ $t('showFriends.away.thanks') }}</strong>
           {{ $t('showFriends.away.thanksText') }}
         </p>
-        <!-- Until the thank-you greeting has a form of its own, the thank-you is a link: the
-             send form, opened on its link, cheque and QR tab. -->
-        <BButton
-          variant="gradido"
-          :to="{ path: '/send', query: { art: SEND_TYPES.link } }"
-          data-test="show-friends-thanks"
-        >
-          {{ $t('send_per_link') }}
+        <!-- The thank-you greeting: a picture, a few words, a link to share (ZE-017, F1). -->
+        <BButton variant="gradido" to="/thank-you-greeting" data-test="show-friends-thanks">
+          {{ $t('thank-you-greeting.entry.write') }}
         </BButton>
+        <!-- The plain way stays beside it, quietly: the send form on its link, cheque and QR
+             tab. -->
+        <div class="mt-2">
+          <BLink
+            class="door-plain small"
+            :to="{ path: '/send', query: { art: SEND_TYPES.link } }"
+            data-test="show-friends-plain-link"
+          >
+            {{ $t('thank-you-greeting.entry.plain') }}
+          </BLink>
+        </div>
 
         <template v-if="alias">
           <p class="small mt-4 mb-2">{{ $t('showFriends.away.addressLead') }}</p>
@@ -255,7 +261,7 @@ import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
 import { loadRouteLocation, useRouter } from 'vue-router'
 import { useMutation, useQuery } from '@vue/apollo-composable'
-import { BButton } from 'bootstrap-vue-next'
+import { BButton, BLink } from 'bootstrap-vue-next'
 import OwnCodeView from '@/components/QrCode/OwnCodeView'
 import GradidoAddressCopy from '@/components/GradidoAddressCopy'
 import { useAppToast } from '@/composables/useToast'
@@ -581,5 +587,13 @@ const shareAddress = () => shareText(addressText.value, copyAddressText)
 
 .door-hint {
   color: var(--bs-secondary-color, #6c757d);
+}
+
+/* The plain way under the greeting's button: a quiet link, with the height a thumb needs.
+   Through `:deep`: BLink renders the anchor, and the scope attribute stops at its root. */
+.door-body :deep(.door-plain) {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
 }
 </style>
