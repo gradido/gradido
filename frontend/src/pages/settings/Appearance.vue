@@ -1,6 +1,9 @@
 <!-- AI-GENERATED — not an architecture reference -->
 <template>
-  <settings-section :title="$t('settings.menu.appearance')">
+  <!-- `overflow-visible`: the card clips (`.gradido-border-radius`), and the language menu
+       opens downwards, taller than what is left of this short card. Clipped, its last
+       languages lay below the card's edge and could not be scrolled into reach. -->
+  <settings-section :title="$t('settings.menu.appearance')" class="overflow-visible">
     <!-- ⚠️ Left, under its own heading. The right-aligned row was a leftover from the old
          settings page, where every line was a label on the left and a control pushed to the
          far right -- with the wide column that put the language picker as far from its own
