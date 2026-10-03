@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { GradidoUnit } from 'shared'
 import { CONFIG } from '../config'
+import { i18n } from '../locales/localization'
 import * as sendEmailTranslatedApi from './sendEmailTranslated'
 import { sendTransactionLinkRedeemedEmail } from './sendEmailVariants'
 
@@ -34,6 +35,19 @@ mock.module('nodemailer', () => {
 })
 
 const sendEmailTranslatedSpy = jest.spyOn(sendEmailTranslatedApi, 'sendEmailTranslated')
+
+/**
+ * ⚠️ sendEmailTranslated sets the locale of the whole process to the language of its mail and
+ * does not put it back. This file sends in ten languages; left alone, the process stays in the
+ * last of them, and localization.test.ts -- which reads a phrase by that locale and expects
+ * English -- fails wherever it happens to run after this file: never on a Mac, where it runs
+ * first, and in the CI, where it runs later. So every test here hands the locale back as the
+ * file found it, and the last one of the file holds that.
+ */
+const localeBefore = i18n.getLocale()
+afterEach(() => {
+  i18n.setLocale(localeBefore)
+})
 
 /**
  * The mail to whoever made a transaction link, once somebody accepted it -- measured at the
@@ -322,5 +336,12 @@ describe('the mail about an accepted link, in every language', () => {
       const label = catalogue(language).emails.general.toConversation
       expect(Array.from(label).length, `${language}: ${label}`).toBeLessThanOrEqual(13)
     }
+  })
+})
+
+// The last test of the file, after a mail in each of the ten languages has been sent.
+describe('the locale of the process', () => {
+  it('is what it was before this file sent its mails', () => {
+    expect(i18n.getLocale()).toBe(localeBefore)
   })
 })
