@@ -60,9 +60,12 @@ export const ed25519PrivateKeySchema = z.instanceof(Buffer).superRefine((value, 
   }
 })
 
+// node:crypto KeyObject of any type (secret, public, private), narrow it where the type matters
 export const nodeCryptoKeyObjectSchema = z.custom<KeyObject>((val) => val instanceof KeyObject)
+// a Duration instance, a string like "10m" must be converted first: Duration.fromString
 export const durationSchema = z.custom<Duration>((val) => val instanceof Duration)
-export const positiveIntegerSchema = z.number().int().nonnegative()
+// integer > 0
+export const positiveIntegerSchema = z.number().int().positive()
 
 export const locationPointSchema = z.object({
   type: z.literal('Point'),

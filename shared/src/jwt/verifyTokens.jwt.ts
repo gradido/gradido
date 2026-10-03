@@ -6,24 +6,41 @@ import { Result } from '../errorTypes'
 import { Uuidv4 } from '../schema'
 import { JWT_HEADER_HMAC_BASE64 } from './const'
 import { AuthenticationFailed, AuthenticationFailedType } from './errorTypes'
-import {
-  AuthContext,
-  AuthContextInput,
-  authContextSchema,
-  JwtPayload,
-  jwtPayloadSchema,
-} from './jwt.schema'
+import { AuthContext, JwtPayload, jwtPayloadSchema } from './jwt.schema'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.jwt.verifyTokens`)
 
-// return gradido id of user if valid, else null
+/**
+ * Verifies a session token created by `createFrontendLoginToken`.
+ *
+ * Valid is a token that
+ * - consists of exactly three segments
+ * - carries exactly the HS256 header this module writes
+ * - is signed with `authContext.signingKey`
+ * - has a payload matching `jwtPayloadSchema`
+ * - is not issued in the future and not expired, each with `JWT_LEEWAY_SECONDS` of tolerance
+ * - names `authContext.issuer` as both `iss` and `aud`
+ *
+ * Never throws: the reason for a rejection goes to the log as warning,
+ * an expired token, the ordinary end of a session, only as debug.
+ *
+ * The dlt-connector authenticates with a token of the same shape and `sub: 'dlt-connector'`.
+ *
+ * @param jwtToken the token as received, without "Bearer " prefix
+ * @param authContext issuer and signing key to verify against, `duration` is not used here
+ * @returns gradido id of user (or 'dlt-connector') if valid, else null
+ */
 export function verifyFrontendLoginToken(
   jwtToken: string,
   authContext: AuthContext,
 ): Uuidv4 | null {
   const result = verifyJwtHmac(jwtToken, authContext)
   if (!result.success) {
-    logger.warn(`error verify login token: ${result.error.message}`)
+    if (result.error.type !== AuthenticationFailedType.EXPIRED_JWT_TOKEN) {
+      logger.warn(`error verify login token: ${result.error.message}`)
+    } else {
+      logger.debug(`expired login token`)
+    }
     return null
   }
   const payload = result.value
@@ -36,12 +53,29 @@ export function verifyFrontendLoginToken(
 
 // generic native implementation
 
+/**
+ * Checks segment count, header, signature, payload structure, `iat` and `exp` of a HS256 signed token,
+ * in this order, so the payload is only parsed after the signature has proven its origin.
+ * Issuer and audience are left to the caller.
+ *
+ * @returns the parsed payload, or the first reason the token was rejected for
+ */
 function verifyJwtHmac(
   jwtToken: string,
   authContext: AuthContext,
 ): Result<JwtPayload, AuthenticationFailed> {
   try {
-    const [headerBase64, payloadBase64, signatureBase64] = jwtToken.split('.')
+    const parts = jwtToken.split('.')
+    if (parts.length !== 3) {
+      return {
+        success: false,
+        error: new AuthenticationFailed(
+          'unexpected part count',
+          AuthenticationFailedType.INVALID_JWT_TOKEN,
+        ),
+      }
+    }
+    const [headerBase64, payloadBase64, signatureBase64] = parts
     // check header
     if (JWT_HEADER_HMAC_BASE64 !== headerBase64) {
       const jsonHeader = Buffer.from(headerBase64, 'base64url').toString()
@@ -89,8 +123,18 @@ function verifyJwtHmac(
       }
     }
 
-    // check exp
+    // check iat and exp
     const nowSeconds = Math.floor(Date.now() / 1000)
+    if (parseResult.data.iat && parseResult.data.iat > nowSeconds + JWT_LEEWAY_SECONDS) {
+      const futureDuration = Duration.seconds(parseResult.data.iat - nowSeconds)
+      return {
+        success: false,
+        error: new AuthenticationFailed(
+          `issued in the future, in ${futureDuration}`,
+          AuthenticationFailedType.INVALID_JWT_TOKEN,
+        ),
+      }
+    }
     if (nowSeconds > parseResult.data.exp + JWT_LEEWAY_SECONDS) {
       const expiredDuration = Duration.seconds(nowSeconds - parseResult.data.exp)
       return {

@@ -33,6 +33,24 @@ export class Duration {
     return new Duration(BigInt(Math.floor((to.getTime() - from.getTime()) / 1000)))
   }
 
+  /**
+   * Creates a Duration from a short time specification: a whole number followed by one unit,
+   * the format of config values like `JWT_EXPIRES_IN`.
+   *
+   * Units: `s` seconds, `m` minutes, `h` hours, `d` days, `w` weeks. The unit is case-insensitive,
+   * whitespace around the string and between number and unit is ignored.
+   * Not supported: a number without unit, fractions, negative values, long unit names ("10 minutes")
+   * and combinations ("1h 30m").
+   *
+   * @example
+   * ```typescript
+   * Duration.fromString('10m').seconds // 600n
+   * Duration.fromString('2w').seconds // 1209600n
+   * ```
+   * @param durationString The time specification, e.g. "30s", "10m", "2h", "1d", "1w"
+   * @returns A new Duration of that length
+   * @throws Error if the string does not match the format
+   */
   public static fromString(durationString: string): Duration {
     const match = durationString.trim().match(/^(\d+)\s*(s|m|h|d|w)$/i)
 

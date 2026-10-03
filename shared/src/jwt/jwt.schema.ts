@@ -1,13 +1,12 @@
 import { z } from 'zod'
-import { JWT_LEEWAY_SECONDS } from '../const'
 import {
   durationSchema,
   nodeCryptoKeyObjectSchema,
   positiveIntegerSchema,
   urlSchema,
   uuidv4Schema,
-} from '../schema'
-import { getPrivateKeyObjekt, getPublicKeyObject } from '.'
+} from '../schema/base.schema'
+import { getPrivateKeyObjekt, getPublicKeyObject } from './JWT'
 
 export const privateJwtKeySchema = z.string().superRefine((value, ctx) => {
   const privateKeyResult = getPrivateKeyObjekt(value)
@@ -65,7 +64,7 @@ export const jwtPayloadSchema = z.object({
   // "sub" value is a case-sensitive string containing a StringOrURI
   // value.Use of this claim is OPTIONAL.
   // Application specific: mandatory, depending one jwt token Type user gradido id or community uuid
-  sub: uuidv4Schema,
+  sub: z.union([uuidv4Schema, z.literal('dlt-connector')]),
 
   // The "aud" (audience) claim identifies the recipients that the JWT is
   // intended for.  Each principal intended to process the JWT MUST
@@ -121,14 +120,29 @@ export const jwtPayloadSchema = z.object({
 export type JwtPayloadInput = z.input<typeof jwtPayloadSchema>
 export type JwtPayload = z.output<typeof jwtPayloadSchema>
 
+/**
+ * A node:crypto `KeyObject` of type `secret`, the only kind of key a HMAC can be calculated with.
+ * Create one with `createSecretKey(Buffer.from(secret, 'utf8'))`.
+ */
 export const hmacKeyObjectSchema = nodeCryptoKeyObjectSchema.refine(
   (key) => key.type === 'secret',
   { message: 'KeyObject must be a secret key suitable for HMAC' },
 )
 
+/**
+ * What a server needs to create and verify its own tokens.
+ * Meant to be built once at startup from the config and then passed to
+ * `createFrontendLoginToken` / `verifyFrontendLoginToken`.
+ *
+ * - `issuer`: public base url of the community server, written as `iss` and `aud`
+ *   and expected in both on verification
+ * - `signingKey`: key object of any type, each signing function checks for the kind it needs
+ *   (`hmacKeyObjectSchema` for HS256)
+ * - `duration`: lifetime of a created token
+ */
 export const authContextSchema = z.object({
-  issuer: z.string().url(),
-  signingKey: hmacKeyObjectSchema,
+  issuer: urlSchema,
+  signingKey: nodeCryptoKeyObjectSchema,
   duration: durationSchema,
 })
 

@@ -21,6 +21,12 @@ export const DECAY_START_TIME = getDecayStartTime()
  * @constant {number} GRADIDO_DECAY_RESPITE_CENT
  */
 export const DECAY_RESPITE_CENT = getDecayRespiteCent()
+
+/**
+ * Clock skew tolerance when verifying the expiration time of a JWT:
+ * a token is still accepted up to this many seconds after its `exp`.
+ * @constant {number} JWT_LEEWAY_SECONDS
+ */
 export const JWT_LEEWAY_SECONDS = 3 * 60
 
 // for contributions
