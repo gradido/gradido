@@ -224,7 +224,6 @@ export default {
 }
 
 .auth-header {
-  font-family: 'Open Sans', sans-serif !important;
   height: 150px;
 }
 

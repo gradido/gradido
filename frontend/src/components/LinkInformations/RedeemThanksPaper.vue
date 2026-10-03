@@ -225,10 +225,10 @@ const initial = computed(() => (Array.from(senderName.value)[0] ?? '').toUpperCa
   overflow-wrap: anywhere;
 }
 
-/* In handwriting, which is the usual case: 27px at the usual 16. Until the file is there the
-   line stands upright in a sans-serif, as the page's own text does. */
+/* In handwriting, which is the usual case: 27px at the usual 16. Until the file is there, and
+   for a character it lacks, the line stands upright in Open Sans, as the page's own text does. */
 .redeem-thanks-paper-line.is-by-hand {
-  font-family: Caveat, sans-serif;
+  font-family: Caveat, 'Open Sans', sans-serif;
   font-size: 1.6875em;
   font-style: normal;
   font-weight: 600;

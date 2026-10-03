@@ -271,4 +271,11 @@ async function onSubmit() {
   padding-right: 0;
   padding-left: 0;
 }
+
+/* Lines of about the same length: in Open Sans "Ich stimme der Datenschutzerklärung zu." breaks
+   after "Datenschutzerklärung" on the usual iPhones, and "zu." stands alone. A browser that
+   does not know the value wraps as before. */
+:deep(label[for='registerCheckbox']) {
+  text-wrap: balance;
+}
 </style>

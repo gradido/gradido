@@ -82,19 +82,12 @@ export default {
 </script>
 
 <style>
-/* The pages stand in the device's own sans-serif, and have since May 2022: the rule that
-   stood here asked for WorkSans, and the @font-face beside it never took effect (a list of
-   families and `!important` are not valid in a `font-family` descriptor), so the fallback
-   drew every page. That is written down here as what it is.
-
-   ⛔ Do not drop the line: without it the pages inherit Open Sans from `body`
-   (`--bs-body-font-family`, _fonts.scss) -- every page, in every language, a little wider.
-   That is a change of its own and comes as one. What hangs on `body` outside this element --
-   dialogs, toasts, tooltips -- stands in Open Sans, which ships with the wallet
-   (assets/fonts/open-sans/). */
+/* The pages take their font from `body` (`--bs-body-font-family`, _fonts.scss): Open Sans,
+   which ships with the wallet (assets/fonts/open-sans/), as do the dialogs and toasts that
+   hang on `body` outside this element. From May 2022 to October 2026 a rule here kept the
+   pages in the device's sans-serif instead. */
 #app {
   font-size: 1rem;
-  font-family: sans-serif !important;
 }
 
 /* ⛔ No `min-width`. There was one since 2022 (500px, then 360px, then 330px), from when a
