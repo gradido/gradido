@@ -10,7 +10,7 @@ import {
   VoidResult,
 } from 'shared'
 import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
-import { AccountState } from '../enum'
+import { AccountState, EventType } from '../enum'
 import {
   DBDuplicateEntryError,
   DBInsertFailed,
@@ -18,6 +18,7 @@ import {
   isDuplicateEntry,
 } from '../errorTypes'
 import {
+  eventsTable,
   transactionsTable,
   UserContactSelect,
   UserInsert,
@@ -231,6 +232,24 @@ export async function dbFindUserIdByUuids(
   return rows[0]?.id ?? null
 }
 
+/**
+ * Holds the member's row under a write lock until the caller's transaction ends: the next
+ * registration this member vouches for waits here until the one before it is stored. The
+ * Drizzle twin of `dbLockUserRow`; moved from RegisterUserGuarantorRole.
+ *
+ * ⛔ Has to be the first statement of its transaction. Under REPEATABLE READ the first plain
+ * read fixes what the transaction sees: read before the lock, a request that waited would go
+ * on counting the state from before the one it waited for.
+ */
+export async function dbLockUserRowDrizzle(userId: number, tx: DrizzleTransaction): Promise<void> {
+  await tx.execute(sql`
+        SELECT id
+        FROM ${usersTable}
+        WHERE id = ${userId}
+        FOR UPDATE
+    `)
+}
+
 // referrerId is userId from person which is the referrer of all this unconfirmed accounts
 export async function dbCountUnconfirmedVouchedAccounts(
   referrerId: number,
@@ -249,6 +268,47 @@ export async function dbCountUnconfirmedVouchedAccounts(
       ),
     )
   return rows[0]?.count ?? 0
+}
+
+/**
+ * Whether an account was registered through this redeem link of the member already: one of
+ * the accounts they brought carries the event of that registration, `USER_REGISTER_REDEEM`
+ * with the link (RegisterUserFromTransactionLinkRole writes both, the referrer and the event).
+ * A redeem link vouches for one account only, so this is asked before it does.
+ *
+ * Asked for the link, whoever registered: an account opened with a password counts, one opened
+ * the way through the mail counts, and one that was deleted since still counts.
+ *
+ * `events` has no index on the link, so the way in is the member: `idx_users_referrer_id`
+ * finds the accounts they brought - a handful -, and the index of migration 0122
+ * (`type`, `affected_user_id`, `created_at`) each one's registration event.
+ */
+export async function dbHasGuestRegisteredByLink(
+  referrerId: number,
+  transactionLinkId: number,
+  tx?: DrizzleTransaction | MySql2Database,
+): Promise<boolean> {
+  if (!tx) {
+    tx = drizzleDb()
+  }
+  const rows = await tx
+    .select({ id: usersTable.id })
+    .from(usersTable)
+    .innerJoin(
+      eventsTable,
+      and(
+        eq(eventsTable.type, EventType.USER_REGISTER_REDEEM),
+        eq(eventsTable.affectedUserId, usersTable.id),
+      ),
+    )
+    .where(
+      and(
+        eq(usersTable.referrerId, referrerId),
+        eq(eventsTable.involvedTransactionLinkId, transactionLinkId),
+      ),
+    )
+    .limit(1)
+  return rows.length !== 0
 }
 
 /**

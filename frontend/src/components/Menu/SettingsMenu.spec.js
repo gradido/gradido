@@ -265,4 +265,56 @@ describe('the settings menu', () => {
       }
     })
   })
+
+  /**
+   * Label and state share a wrapper that wraps. As neighbours in the row itself, the label
+   * could shrink below its longest word and ran into the state beside it -- in six languages
+   * on a narrow desk. jsdom lays nothing out, so this holds the structure the style stands on.
+   */
+  describe('the wrapper around label and state', () => {
+    const parts = (row) => [...row.element.children].map((child) => child.classList[0])
+
+    it('stands between the icon and the chevron, in every row', async () => {
+      loading = { value: false }
+      failed = { value: null }
+      cardSettings = { value: { thankYouCardSettings: null } }
+      const rows = (await mountMenu()).findAll('.settings-menu-row')
+
+      expect(rows.length).toBeGreaterThan(3)
+      for (const row of rows) {
+        expect(parts(row)).toEqual([
+          'settings-menu-icon',
+          'settings-menu-text',
+          'settings-menu-chevron',
+        ])
+      }
+    })
+
+    it('holds the label and the state of a row, the label first', async () => {
+      loading = { value: false }
+      failed = { value: null }
+      cardSettings = { value: { thankYouCardSettings: null } }
+      const wrapper = await mountMenu()
+
+      const state = wrapper.find('[data-test="settings-state-thank-you-card"]')
+      const text = state.element.parentElement
+      expect([...text.classList]).toEqual(['settings-menu-text'])
+      expect([...text.children].map((child) => child.classList[0])).toEqual([
+        'settings-menu-label',
+        'settings-menu-state',
+      ])
+      expect(text.parentElement.getAttribute('data-test')).toBe('settings-menu-thank-you-card')
+    })
+
+    it('holds the label alone where a row has no state', async () => {
+      loading = { value: true }
+      cardSettings = { value: undefined }
+      const wrapper = await mountMenu()
+
+      const text = wrapper.find('[data-test="settings-menu-thank-you-card"] .settings-menu-text')
+      expect([...text.element.children].map((child) => child.classList[0])).toEqual([
+        'settings-menu-label',
+      ])
+    })
+  })
 })

@@ -1,5 +1,6 @@
 import { sendAccountActivationEmail } from 'core'
 import {
+  DrizzleTransaction,
   dbFindContributionLinkIdByCode,
   dbFindTransactionLinkByCode,
   dbInsertEvent,
@@ -20,7 +21,7 @@ enum RedeemCodeType {
 
 export class RegisterUserFromTransactionLinkRole extends RegisterUserRole<RedeemRegistration> {
   private contributionLinkId: number | null = null
-  private transactionLinkId: number | null = null
+  protected transactionLinkId: number | null = null
   private type: RedeemCodeType
 
   constructor(createUserInput: CreateUser) {
@@ -74,7 +75,8 @@ export class RegisterUserFromTransactionLinkRole extends RegisterUserRole<Redeem
     return result !== null
   }
 
-  public storeUserRegisterEvent(): Promise<void> {
+  // `tx`: only RegisterUserFromVouchingLinkRole hands one in, to write the event with the account.
+  public storeUserRegisterEvent(tx?: DrizzleTransaction): Promise<void> {
     const userId = this.userId
     if (!userId) {
       throw new Error('Missing user id')
@@ -92,6 +94,6 @@ export class RegisterUserFromTransactionLinkRole extends RegisterUserRole<Redeem
       return super.storeUserRegisterEvent()
     }
 
-    return dbInsertEvent(event)
+    return dbInsertEvent(event, tx)
   }
 }

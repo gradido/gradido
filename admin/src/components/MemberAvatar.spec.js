@@ -77,4 +77,21 @@ describe('MemberAvatar', () => {
     expect(wrapper.attributes('aria-label')).toContain('avatar.zoom-open')
     expect(wrapper.attributes('aria-label')).toContain('margret')
   })
+
+  // Inside another button (the moderator's menu in the top bar) the circle shows the
+  // picture and stays out of the way: no button of its own, no label, no zoom.
+  it('shows the picture without offering it where it is told not to', async () => {
+    const wrapper = circle({
+      initials: 'MA',
+      src: 'data:image/jpeg;base64,face',
+      name: 'margret',
+      zoomable: false,
+    })
+
+    expect(wrapper.find('img').attributes('src')).toBe('data:image/jpeg;base64,face')
+    expect(wrapper.element.tagName).toBe('DIV')
+    expect(wrapper.attributes('aria-label')).toBeUndefined()
+    await wrapper.trigger('click')
+    expect(wrapper.emitted('zoom')).toBeUndefined()
+  })
 })

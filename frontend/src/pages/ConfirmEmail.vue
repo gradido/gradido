@@ -40,6 +40,12 @@ const finished = ref(false)
 const headline = ref('')
 const subtitle = ref('')
 
+// The two ways the backend refuses a link that does not confirm (confirmEmail in the
+// AssistedRegistrationResolver): an unknown code, and a code past its validity. Both come
+// as English log text, and both mean what the prepared sentence says: invalid or expired,
+// sign in and have a new mail sent. Anything else keeps its own words.
+const LINK_REFUSALS = ['Could not confirm with this code', 'Email was sent more than']
+
 const act = async () => {
   busy.value = true
   try {
@@ -48,7 +54,7 @@ const act = async () => {
     subtitle.value = t('assistedRegistration.confirm.done')
   } catch (error) {
     headline.value = t('message.errorTitle')
-    subtitle.value = error.message.includes('Could not confirm with this code')
+    subtitle.value = LINK_REFUSALS.some((refusal) => error.message.includes(refusal))
       ? t('assistedRegistration.confirm.invalid')
       : error.message
   } finally {

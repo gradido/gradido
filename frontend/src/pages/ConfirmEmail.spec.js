@@ -72,4 +72,24 @@ describe('ConfirmEmail page', () => {
     await wrapper.find('[data-test="confirm-email-action"]').trigger('click')
     expect(wrapper.find('[data-test="message"]').text()).toContain('link invalid or expired')
   })
+
+  // The backend's words for a code past its validity, as confirmEmail throws them. A guest
+  // who opens the mail after the link has run out must not read them in English.
+  it('translates an expired link into the invalid message as well', async () => {
+    confirmMock.mockRejectedValue(new Error('Email was sent more than 24 hours ago'))
+    const wrapper = mountPage()
+    await wrapper.find('[data-test="confirm-email-action"]').trigger('click')
+    const message = wrapper.find('[data-test="message"]').text()
+    expect(message).toContain('link invalid or expired')
+    expect(message).not.toContain('Email was sent')
+  })
+
+  it('keeps the words of any other failure', async () => {
+    confirmMock.mockRejectedValue(new Error('Error saving userContact'))
+    const wrapper = mountPage()
+    await wrapper.find('[data-test="confirm-email-action"]').trigger('click')
+    const message = wrapper.find('[data-test="message"]').text()
+    expect(message).toContain('Error saving userContact')
+    expect(message).not.toContain('link invalid or expired')
+  })
 })

@@ -16,74 +16,9 @@
         {{ $t('site.signup.guarantorExpired') }}
       </p>
       <BForm role="form" @submit.prevent="onSubmit">
-        <BRow>
-          <BCol sm="12" md="6">
-            <BFormGroup class="mb-3" :label="$t('form.firstname')" label-for="registerFirstname">
-              <BFormInput
-                id="registerFirstname"
-                :model-value="firstname"
-                name="firstname"
-                :placeholder="$t('form.firstname')"
-                :state="shownValidState(firstnameMeta)"
-                aria-describedby="registerFirstnameLiveFeedback"
-                @update:model-value="firstname = $event"
-                @blur="firstnameBlur($event, true)"
-              />
-
-              <BFormInvalidFeedback v-if="firstnameError" id="registerFirstnameLiveFeedback">
-                {{ firstnameError }}
-              </BFormInvalidFeedback>
-            </BFormGroup>
-          </BCol>
-          <BCol sm="12" md="6">
-            <BFormGroup class="mb-3" :label="$t('form.lastname')" label-for="registerLastname">
-              <BFormInput
-                id="registerLastname"
-                :model-value="lastname"
-                name="lastname"
-                :placeholder="$t('form.lastname')"
-                :state="shownValidState(lastnameMeta)"
-                aria-describedby="registerLastnameLiveFeedback"
-                @update:model-value="lastname = $event"
-                @blur="lastnameBlur($event, true)"
-              />
-
-              <BFormInvalidFeedback v-if="lastnameError" id="registerLastnameLiveFeedback">
-                {{ lastnameError }}
-              </BFormInvalidFeedback>
-            </BFormGroup>
-          </BCol>
-        </BRow>
-        <BRow>
-          <BCol>
-            <input-email name="email" :label="$t('form.email')" :placeholder="$t('form.email')" />
-          </BCol>
-        </BRow>
-        <!-- E-017: with a valid guarantor code the guest chooses the password right here. -->
-        <template v-if="guarantorActive">
-          <input-password-confirmation register />
-          <p class="text-muted" data-test="register-guarantor-hint">
-            {{
-              referrerAlias
-                ? $t('site.signup.guarantorHint', { name: referrerAlias })
-                : $t('site.signup.guarantorHintAnonymous')
-            }}
-          </p>
-        </template>
-        <BRow>
-          <BCol cols="12" class="my-4">
-            <BFormCheckbox
-              id="registerCheckbox"
-              name="agree"
-              :model-value="agree"
-              :state="(agreeMeta.valid && agreeMeta.dirty) || undefined"
-              @update:model-value="agree = $event"
-            >
-              <!-- eslint-disable-next-line @intlify/vue-i18n/no-v-html -->
-              <span class="text-muted" v-html="$t('site.signup.agree')"></span>
-            </BFormCheckbox>
-          </BCol>
-        </BRow>
+        <!-- The fields are shared with the page a thank-you arrives on (AccountFields).
+             E-017: with a valid guarantor code the guest chooses the password right here. -->
+        <account-fields :with-password="guarantorActive" :guarantor-name="referrerAlias" />
         <!-- Next to the button, where the guest is looking when the answer comes. -->
         <p
           v-if="guarantorFailed"
@@ -148,12 +83,11 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useMutation } from '@vue/apollo-composable'
+import AccountFields from '@/components/Auth/AccountFields'
 import AuthTriads from '@/components/Auth/AuthTriads'
-import InputEmail from '@/components/Inputs/InputEmail'
-import InputPasswordConfirmation from '@/components/Inputs/InputPasswordConfirmation'
 import Message from '@/components/Message/Message'
 import { useAppToast } from '@/composables/useToast'
-import { useField, useForm } from 'vee-validate'
+import { useForm } from 'vee-validate'
 import { createUser } from '@/graphql/mutations'
 import { useI18n } from 'vue-i18n'
 import { useStore } from 'vuex'
@@ -161,37 +95,14 @@ import { useRoute } from 'vue-router'
 import { useAuthLinks } from '@/composables/useAuthLinks'
 import CONFIG from '@/config'
 import { isValidUsername } from '@/validationSchemas'
-import { shownValidState } from '@/validation-rules'
 
 const { toastError } = useAppToast()
 const { routeWithParamsAndQuery } = useAuthLinks()
 
 const { mutate } = useMutation(createUser)
 
-const { values: formValues, meta: formMeta, defineField, handleSubmit } = useForm()
-
-const [firstname] = defineField('firstname')
-const {
-  meta: firstnameMeta,
-  errorMessage: firstnameError,
-  handleBlur: firstnameBlur,
-} = useField('firstname', {
-  required: true,
-  min: 3,
-})
-
-const [lastname] = defineField('lastname')
-const {
-  meta: lastnameMeta,
-  errorMessage: lastnameError,
-  handleBlur: lastnameBlur,
-} = useField('lastname', {
-  required: true,
-  min: 2,
-})
-
-const [agree] = defineField('agree')
-const { meta: agreeMeta } = useField('agree', 'required')
+// The fields register themselves with this form (AccountFields).
+const { values: formValues, meta: formMeta } = useForm()
 
 const { t } = useI18n()
 const store = useStore()
@@ -270,12 +181,5 @@ async function onSubmit() {
 :deep(.btn-gradido-disable) {
   padding-right: 0;
   padding-left: 0;
-}
-
-/* Lines of about the same length: in Open Sans "Ich stimme der Datenschutzerklärung zu." breaks
-   after "Datenschutzerklärung" on the usual iPhones, and "zu." stands alone. A browser that
-   does not know the value wraps as before. */
-:deep(label[for='registerCheckbox']) {
-  text-wrap: balance;
 }
 </style>

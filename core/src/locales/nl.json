@@ -28,9 +28,12 @@
     },
     "assistedRegistrationConfirm": {
       "accountCreated": "Samen met een Gradido-lid is er zojuist een account voor je aangemaakt — met dit e-mailadres.",
+      "accountCreatedByThanks": "Bij het aannemen van een bedankje is er zojuist een account voor je aangemaakt — met dit e-mailadres.",
       "clickToConfirm": "Klik hier om je e-mailadres te bevestigen.",
       "confirmButton": "Adres bevestigen",
       "confirmHeading": "E-mailadres bevestigen",
+      "linkValidity": "De link is {hours} uur geldig.\nAls de geldigheid van de link al verlopen is, meld je aan en laat je een nieuwe mail sturen.",
+      "linkValidityWithMinutes": "De link is {hours} uur en {minutes} minuten geldig.\nAls de geldigheid van de link al verlopen is, meld je aan en laat je een nieuwe mail sturen.",
       "notYou": "Weet je niets van dit account? Negeer dan deze e-mail — zonder bevestiging blijft het account gesloten.",
       "pleaseConfirm": "Bevestig dat dit adres van jou is — pas dan blijft je account blijvend geopend.",
       "subject": "Bevestig je e-mailadres",

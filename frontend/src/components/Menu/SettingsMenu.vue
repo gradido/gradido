@@ -18,15 +18,17 @@
       :data-test="`settings-menu-${entry.test}`"
     >
       <settings-menu-icon :name="entry.test" class="settings-menu-icon" />
-      <span class="settings-menu-label">
-        {{ entry.label }}
-      </span>
-      <span
-        v-if="entry.state"
-        class="settings-menu-state"
-        :data-test="`settings-state-${entry.test}`"
-      >
-        {{ entry.state }}
+      <span class="settings-menu-text">
+        <span class="settings-menu-label">
+          {{ entry.label }}
+        </span>
+        <span
+          v-if="entry.state"
+          class="settings-menu-state"
+          :data-test="`settings-state-${entry.test}`"
+        >
+          {{ entry.state }}
+        </span>
       </span>
       <i-mdi-chevron-right class="settings-menu-chevron" />
     </router-link>
@@ -189,6 +191,9 @@ const entries = computed(() => {
  *
  * The left offset is the row's own padding + the icon (18px) + the gap, so it lands exactly
  * where the label starts. `--row-pad` carries it, because the page fassung below widens both.
+ *
+ * Label and state share a wrapper that may wrap: the label breaks first, and the state goes a
+ * line lower only where the longest word of the label does not fit beside it.
  */
 .settings-menu {
   --row-pad: 1rem;
@@ -237,13 +242,23 @@ const entries = computed(() => {
   opacity: 0.75;
 }
 
-.settings-menu-label {
+.settings-menu-text {
   flex: 1 1 auto;
   min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 0.75rem;
+}
+
+.settings-menu-label {
+  flex: 1 1 0;
+  min-width: min-content;
 }
 
 .settings-menu-state {
   flex: 0 0 auto;
+  margin-left: auto;
   font-size: 0.875rem;
   color: var(--text-muted);
 }
