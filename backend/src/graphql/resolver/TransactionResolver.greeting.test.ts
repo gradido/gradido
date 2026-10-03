@@ -271,6 +271,16 @@ describe('a booking without a greeting', () => {
     expect(rowOf(bookings, 'RECEIVE', BOBS_MEMO).greeting).toEqual(BOBS_GREETING)
     expect(selectGreetings).toHaveBeenCalledTimes(1)
     expect(selectGreetings).toHaveBeenCalledWith([bobsLink.id])
+
+    // ⚠️ Above, the row has none because its number was never asked for. Here it carries a
+    // number the page DOES ask for -- the link of Bob's own greeting -- and still has none:
+    // whether a row gets a greeting is decided for the row, not by what the page holds.
+    await DbTransaction.update({ id: fromAfar.id }, { transactionLinkId: bobsLink.id })
+    const again = await listOf('bob@baumeister.de')
+
+    expect(again.find((booking) => booking.id === fromAfar.id)!.greeting).toBeNull()
+    expect(rowOf(again, 'RECEIVE', BOBS_MEMO).greeting).toEqual(BOBS_GREETING)
+    expect(selectGreetings).toHaveBeenCalledWith([bobsLink.id])
   })
 })
 
