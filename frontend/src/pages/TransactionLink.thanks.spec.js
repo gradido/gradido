@@ -486,7 +486,7 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
       expect(apollo.disburse).not.toHaveBeenCalled()
       expect(thanks(wrapper).props('stage')).toBe('arrived')
       expect(title(wrapper).text()).toBe('Dein Dank ist da.')
-      expect(text(wrapper).text()).toBe('20 Gradido von Oma-Emma stehen jetzt auf Deinem Konto.')
+      expect(text(wrapper).text()).toBe('Du hast jetzt 20 Gradido von Oma-Emma auf Deinem Konto.')
       expect(toasts.toastSuccess).not.toHaveBeenCalled()
       expect(toasts.toastError).not.toHaveBeenCalled()
       expect(router.currentRoute.value.path).toBe(`/redeem/${CODE}`)
@@ -777,7 +777,7 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
 
         expect(thanks(wrapper).props('stage')).toBe('arrived')
         expect(title(wrapper).text()).toBe('Dein Dank ist da.')
-        expect(text(wrapper).text()).toBe('20 Gradido von Oma-Emma stehen jetzt auf Deinem Konto.')
+        expect(text(wrapper).text()).toBe('Du hast jetzt 20 Gradido von Oma-Emma auf Deinem Konto.')
         expect(form(wrapper).exists()).toBe(false)
         expect(router.currentRoute.value.path).toBe(`/redeem/${CODE}`)
         expect(toasts.toastSuccess).not.toHaveBeenCalled()

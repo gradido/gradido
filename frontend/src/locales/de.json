@@ -1158,7 +1158,7 @@
     "almost-title": "Fast geschafft",
     "answer": "{name} antworten",
     "answer-short": "Antworten",
-    "arrived-text": "{amount} Gradido von {name} stehen jetzt auf Deinem Konto.",
+    "arrived-text": "Du hast jetzt {amount} Gradido von {name} auf Deinem Konto.",
     "arrived-title": "Dein Dank ist da.",
     "deleted-text": "{name} hat den Link am {date} gelöscht.",
     "deleted-title": "Diesen Dank gibt es nicht mehr.",

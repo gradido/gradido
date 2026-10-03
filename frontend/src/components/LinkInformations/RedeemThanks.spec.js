@@ -812,7 +812,7 @@ describe('RedeemThanks', () => {
       expect(wrapper.find('[data-test="redeem-thanks-arrived"]').exists()).toBe(true)
       expect(title(wrapper).element.tagName).toBe('H2')
       expect(title(wrapper).text()).toBe('Dein Dank ist da.')
-      expect(text(wrapper).text()).toBe('20 Gradido von Oma-Emma stehen jetzt auf Deinem Konto.')
+      expect(text(wrapper).text()).toBe('Du hast jetzt 20 Gradido von Oma-Emma auf Deinem Konto.')
       expect(wrapper.findAll('h1, h2, h3')).toHaveLength(1)
     })
 
@@ -888,7 +888,7 @@ describe('RedeemThanks', () => {
     it('writes the amount with the decimal mark of the language', async () => {
       const wrapper = await arrived(link({ amount: '12.5' }))
 
-      expect(text(wrapper).text()).toBe('12,5 Gradido von Oma-Emma stehen jetzt auf Deinem Konto.')
+      expect(text(wrapper).text()).toBe('Du hast jetzt 12,5 Gradido von Oma-Emma auf Deinem Konto.')
     })
   })
 
