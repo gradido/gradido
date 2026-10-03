@@ -125,6 +125,21 @@ describe('where Open Sans is seen', () => {
     expect(styles.join()).not.toMatch(/font-family/)
   })
 
+  // ⛔ `crossorigin` even on our own address: a font is always fetched in CORS mode, and a
+  // preload without it does not match that request -- the browser fetches the file twice.
+  it('preloads exactly one font, a file the declaration declares, with crossorigin', () => {
+    const head = read('../index.html').replace(/<!--[\s\S]*?-->/g, '')
+    const preloads = [...head.matchAll(/<link\b[^>]*\brel="preload"[^>]*>/g)].map(([tag]) => tag)
+    expect(preloads).toHaveLength(1)
+    const [tag] = preloads
+    const address = tag.match(/\bhref="([^"]+)"/)?.[1]
+    expect(faces.map((face) => face.address)).toContain(address)
+    expect(existsSync(resolve(here, `../public${address}`)), address).toBe(true)
+    expect(tag).toMatch(/\bas="font"/)
+    expect(tag).toMatch(/\btype="font\/woff2"/)
+    expect(tag).toMatch(/\scrossorigin[\s>=]/)
+  })
+
   it('declares no face of its own in App.vue', () => {
     expect(styles.join()).not.toMatch(/@font-face/)
   })
