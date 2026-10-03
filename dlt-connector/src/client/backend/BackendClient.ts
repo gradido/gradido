@@ -19,6 +19,7 @@ import { type Community, communitySchema } from './output.schema'
  * A Singleton class defines the `getInstance` method that lets clients access
  * the unique singleton instance.
  */
+
 export class BackendClient {
   private static instance: BackendClient
   client: GraphQLClient
@@ -125,11 +126,12 @@ export class BackendClient {
 
   private async createJWTToken(): Promise<string> {
     const secret = new TextEncoder().encode(CONFIG.JWT_SECRET)
-    const token = await new SignJWT({ gradidoID: 'dlt-connector', 'urn:gradido:claim': true })
-      .setProtectedHeader({ alg: 'HS256' })
+    const token = await new SignJWT()
+      .setProtectedHeader({ alg: 'HS256', typ: 'JWT' })
       .setIssuedAt()
-      .setIssuer('urn:gradido:issuer')
-      .setAudience('urn:gradido:audience')
+      .setSubject('dlt-connector')
+      .setIssuer(CONFIG.COMMUNITY_URL)
+      .setAudience(CONFIG.COMMUNITY_URL)
       .setExpirationTime('10m')
       .sign(secret)
     return token

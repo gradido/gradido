@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { privateJwtKeySchema, publicJwtKeySchema } from '../jwt'
+import { privateJwtKeySchema, publicJwtKeySchema } from '../jwt/jwt.schema'
 import {
   ed25519PrivateKeySchema,
   ed25519PublicKeySchema,

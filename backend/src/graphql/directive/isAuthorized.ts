@@ -29,18 +29,17 @@ export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) =>
     return true
   }
 
-  // Do we have a token?
   if (!context.token) {
     throw new LogError('401 Unauthorized')
   }
 
   // Decode the token
-  const decoded = await decode(context.token)
-  if (!decoded) {
+  const gradidoID = decode(context.token)
+  if (!gradidoID) {
     throw new LogError('403.13 - Client certificate revoked')
   }
   // Set context gradidoID
-  context.gradidoID = decoded.gradidoID
+  context.gradidoID = gradidoID
 
   if (context.gradidoID === 'dlt-connector') {
     context.role = ROLE_DLT_CONNECTOR
@@ -49,7 +48,7 @@ export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) =>
     // TODO this implementation is bullshit - two database queries cause our user identifiers are not aligned and vary between email, id and pubKey
     try {
       const user = await User.findOneOrFail({
-        where: { gradidoID: decoded.gradidoID },
+        where: { gradidoID },
         withDeleted: true,
         relations: ['emailContact', 'userRole'],
       })
@@ -114,6 +113,9 @@ export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) =>
   }
 
   // set new header token
-  context.setHeaders.push({ key: 'token', value: await encode(decoded.gradidoID) })
+  context.setHeaders.push({
+    key: 'token',
+    value: encode(gradidoID),
+  })
   return true
 }
