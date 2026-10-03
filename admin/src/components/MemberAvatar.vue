@@ -53,11 +53,14 @@ const props = defineProps({
   // initials (NU-017) -- for rows where the real name is not delivered at all. Where it is
   // given and valid it wins over the seed.
   colorIndex: { type: Number, default: null },
+  // Off where the circle is part of a button that does something else (the menu in the top
+  // bar): a button inside a button is not valid, and the outer one takes the tap.
+  zoomable: { type: Boolean, default: true },
 })
 
 defineEmits(['zoom'])
 
-const opensPicture = computed(() => Boolean(props.src))
+const opensPicture = computed(() => props.zoomable && Boolean(props.src))
 
 // The wallet's words for the same thing, under the same keys -- the two interfaces show the
 // same people, and a member should not be "enlarged" here and "opened" there. Without a name
