@@ -28,6 +28,7 @@
     },
     "assistedRegistrationConfirm": {
       "accountCreated": "Juntamente com um membro Gradido acaba de ser criada uma conta para ti — com este endereço de e-mail.",
+      "accountCreatedByThanks": "Ao aceitar um agradecimento, acaba de ser criada uma conta para ti — com este endereço de e-mail.",
       "clickToConfirm": "Clica aqui para confirmar o teu endereço de e-mail.",
       "confirmButton": "Confirmar endereço",
       "confirmHeading": "Confirmar endereço de e-mail",

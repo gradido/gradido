@@ -96,11 +96,16 @@ export const sendAccountMultiRegistrationEmail = (
 /**
  * The guest's half of an assisted registration (EM-013): account and password already
  * exist, this mail only asks them to confirm that the address is theirs.
+ *
+ * `byThanks`: the account was opened while accepting a thank-you, with nobody at a table. The
+ * mail then says so in its first sentence - without the name of who thanked: it goes to an
+ * address nobody has confirmed yet.
  */
 export const sendAssistedRegistrationConfirmEmail = (
   data: EmailCommonData & {
     confirmLink: string
     timeDurationObject: Record<string, unknown>
+    byThanks?: boolean
   },
 ): Promise<Record<string, unknown> | boolean | null | Error> => {
   return sendEmailTranslated({
