@@ -214,7 +214,7 @@
     "refusedNotFound": "This group no longer exists, or you are no longer in it.",
     "refusedOtherCommunity": "You can add members of other communities later.",
     "refusedTitle": "The name has 1 to 100 characters.",
-    "refusedTooManyModerators": "A group has at most two moderators.",
+    "refusedTooManyModerators": "A group has at most {n} moderators beside its owner.",
     "refusedUnknownMember": "One of the members no longer exists.",
     "remove": "Remove from the group",
     "removeBody": "{name} will no longer see the group. The messages stay.",

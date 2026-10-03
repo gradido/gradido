@@ -261,7 +261,9 @@ describe('ChatGroupMembers', () => {
       await openMenu('anna-id')
       await row('anna-id').find('[data-test="chat-group-member-moderator"]').trigger('click')
       await flushPromises()
-      expect(find('chat-group-members-problem').text()).toBe('chatGroup.refusedTooManyModerators')
+      expect(find('chat-group-members-problem').text()).toBe(
+        'chatGroup.refusedTooManyModerators {"n":5}',
+      )
       expect(wrapper.emitted('changed')).toBeUndefined()
     })
 
@@ -275,7 +277,7 @@ describe('ChatGroupMembers', () => {
       await flushPromises()
       const menu = row('anna-id').find('[data-test="chat-group-member-menu"]')
       expect(menu.find('[data-test="chat-group-members-problem"]').text()).toBe(
-        'chatGroup.refusedTooManyModerators',
+        'chatGroup.refusedTooManyModerators {"n":5}',
       )
       expect(menu.find('[data-test="chat-group-members-problem"]').attributes('role')).toBe('alert')
       expect(wrapper.findAll('[data-test="chat-group-members-problem"]')).toHaveLength(1)
@@ -298,7 +300,7 @@ describe('ChatGroupMembers', () => {
       await flushPromises()
       expect(row('emma-id').find('[data-test="chat-group-member-menu"]').exists()).toBe(false)
       expect(row('anna-id').find('[data-test="chat-group-members-problem"]').text()).toBe(
-        'chatGroup.refusedTooManyModerators',
+        'chatGroup.refusedTooManyModerators {"n":5}',
       )
     })
 
@@ -370,7 +372,9 @@ describe('ChatGroupMembers', () => {
       await flushPromises()
       // The refusal stands in the list, where the step was taken.
       expect(title()).toBe('chatGroup.membersTitle {"n":4}')
-      expect(find('chat-group-members-problem').text()).toBe('chatGroup.refusedTooManyModerators')
+      expect(find('chat-group-members-problem').text()).toBe(
+        'chatGroup.refusedTooManyModerators {"n":5}',
+      )
       expect(
         row('anna-id').find('[data-test="chat-group-member-remove"]').attributes('aria-disabled'),
       ).toBe('false')

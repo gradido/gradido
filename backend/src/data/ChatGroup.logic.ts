@@ -13,8 +13,11 @@ import { isSameChatMember } from './ChatConversation.logic'
  */
 export const CHAT_GROUP_MAX_MEMBERS = 100
 
-/** The most moderators beside the owner (E-008, E-050 F4). */
-export const CHAT_GROUP_MAX_MODERATORS = 2
+/**
+ * The most moderators beside the owner (E-008, E-050 F4; five since 03.10.2026). The wallet says
+ * the number in its refusal and keeps its own copy: chatGroupDisplay.js, CHAT_GROUP_MAX_MODERATORS.
+ */
+export const CHAT_GROUP_MAX_MODERATORS = 5
 
 /** The longest name of a group, in characters: what chat_conversations.title holds. */
 export const CHAT_GROUP_TITLE_MAX = 100

@@ -29,9 +29,11 @@ const member = (
 })
 
 describe('the size of a group', () => {
-  it('has room for a hundred members and two moderators (E-008)', () => {
+  // The wallet's refusal names the number of moderators from its own copy of it
+  // (frontend/src/components/ChatGroups/chatGroupDisplay.js) -- the two change together.
+  it('has room for a hundred members and five moderators (E-008)', () => {
     expect(CHAT_GROUP_MAX_MEMBERS).toBe(100)
-    expect(CHAT_GROUP_MAX_MODERATORS).toBe(2)
+    expect(CHAT_GROUP_MAX_MODERATORS).toBe(5)
     expect(CHAT_GROUP_TITLE_MAX).toBe(100)
   })
 

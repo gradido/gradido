@@ -112,11 +112,20 @@ export const chatGroupPartMark = (role, { t }) => {
 }
 
 /**
+ * The most moderators a group has beside its owner -- the server's number (ChatGroup.logic,
+ * CHAT_GROUP_MAX_MODERATORS), which the wallet cannot import. The two change together.
+ */
+export const CHAT_GROUP_MAX_MODERATORS = 5
+
+/**
  * Why the server refused a change to a group (P5), in the member's words: the reason after
  * CHAT_GROUP_NOT_CREATED or CHAT_GROUP_NOT_CHANGED, or CHAT_GROUP_NOT_FOUND -- a group that is gone,
  * or that the member is no longer in, which the server does not tell apart. Anything else -- no
  * connection, a right the account does not have yet (401 before the address is confirmed) --
  * is the general sentence.
+ *
+ * The number of moderators stands in the sentence as a digit, so another number costs no
+ * round of translation.
  *
  * ⛔ Each key written out, not built from the reason: the i18n lint counts only literal keys
  * (Falle 6), and a reason this wallet does not know says the general sentence rather than a raw
@@ -145,7 +154,7 @@ export const chatGroupRefusal = (error, { t }) => {
     case 'NOT_A_MEMBER':
       return t('chatGroup.refusedNotAMember')
     case 'TOO_MANY_MODERATORS':
-      return t('chatGroup.refusedTooManyModerators')
+      return t('chatGroup.refusedTooManyModerators', { n: CHAT_GROUP_MAX_MODERATORS })
     default:
       return t('chatGroup.refused')
   }
