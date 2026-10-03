@@ -13,8 +13,9 @@
 export enum AccountState {
   // Signed up, email not confirmed yet.
   REGISTERED = 'REGISTERED',
-  // Opened at a table with a guarantor code: may act before the email is confirmed, and counts
-  // against the guarantor's GUARANTOR_LIMIT until it is.
+  // Opened with a password because a member vouches for it - at a table with their guarantor
+  // code, or while accepting the thank-you of their redeem link: may act before the email is
+  // confirmed, and counts against the guarantor's GUARANTOR_LIMIT until it is.
   PARTLY_ACTIVATED_GUARANTOR = 'PARTLY_ACTIVATED_GUARANTOR',
   // Email confirmed.
   ACTIVATED = 'ACTIVATED',

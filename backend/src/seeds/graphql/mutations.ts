@@ -133,6 +133,7 @@ export const createUser = gql`
     $language: String!
     $publisherId: Int
     $redeemCode: String
+    $project: String
     $referrerAlias: String
     $guarantorCode: String
     $password: String
@@ -145,6 +146,7 @@ export const createUser = gql`
       language: $language
       publisherId: $publisherId
       redeemCode: $redeemCode
+      project: $project
       referrerAlias: $referrerAlias
       guarantorCode: $guarantorCode
       password: $password

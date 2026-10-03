@@ -1,10 +1,10 @@
 import { OptInType } from '@enum/OptInType'
-import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { UserContactType } from '@enum/UserContactType'
 import {
   registerAddressTransaction,
   sendAccountActivationEmail,
   sendAccountMultiRegistrationEmail,
+  sendAssistedRegistrationConfirmEmail,
 } from 'core'
 import {
   ALIAS_ORIGIN_ASSIGNED,
@@ -12,6 +12,7 @@ import {
   type AliasOrigin,
   DbUser,
   DrizzleTransaction,
+  dbCountUnconfirmedVouchedAccounts,
   dbFindUserAliasesExisting,
   dbFindUserByEmail,
   dbFindUserWithContactById,
@@ -22,9 +23,11 @@ import {
   dbInsertUserContact,
   dbIsUserContactFieldExist,
   dbLocalUserGradidoIdExist,
+  dbLockUserRowDrizzle,
   dbReleaseUnconfirmedEmailChangeFor,
   dbRemoveUser,
   dbUserUpdateField,
+  dbUserUpdatePassword,
   drizzleDb,
   EventType,
   getHomeCommunityDrizzle,
@@ -38,13 +41,16 @@ import {
   aliasCandidates,
   aliasVariants,
   findFirstFreeAlias,
+  PasswordEncryptionType,
   primaryAliasCandidate,
   Result,
 } from 'shared'
 import { randombytes_random } from 'sodium-native'
 import { v4 as uuidv4 } from 'uuid'
 import { CONFIG } from '@/config'
+import { GUARANTOR_LIMIT } from '@/data/GuarantorCode.logic'
 import { syncHumhub } from '@/graphql/resolver/util/syncHumhub'
+import { encryptPassword } from '@/password/PasswordEncryptor'
 import { getTimeDurationObject } from '@/util/time'
 import { AbstractRegisterUserRole } from './AbstractRegisterUser.role'
 import { CreateUser } from './createUser.schema'
@@ -59,7 +65,9 @@ import { RegisterUserDuplicateError } from './errorTypes'
  * multi-registration mail, and nothing is opened.
  *
  * The input comes parsed by createUserSchema: email trimmed and lowercased, language
- * defaulted. A password is used only by the guarantor code (RegisterUserGuarantorRole).
+ * defaulted. A password is used only where a member vouches for the account: by the guarantor
+ * code (RegisterUserGuarantorRole) and by a redeem link that vouches
+ * (RegisterUserFromVouchingLinkRole). Both are built from the same steps, further down.
  */
 
 export class RegisterUserRole<
@@ -69,6 +77,8 @@ export class RegisterUserRole<
   protected userContactId: number | null = null
   protected userAliasId: number | null = null
   protected emailVerificationCode: bigint | null = null
+  private gradidoIdByPasswordStart: string | null = null
+  private passwordEncryptionPromise: Promise<bigint> | null = null
 
   public getRoleTitle(): string {
     return 'Default Register User'
@@ -375,5 +385,74 @@ export class RegisterUserRole<
   // for overloading from child classes, called before run is returning user id
   public afterRun(_user: DbUser): Promise<void> {
     return Promise.resolve()
+  }
+
+  /*
+   * The steps of an account a member vouches for (E-017): it is opened with a password and can
+   * act before its address is confirmed. The guarantor code and a redeem link that vouches are
+   * both built from them, so the rules of such an account stand here once.
+   */
+
+  // Whether the member holds a place for one more such account (E-019, E-022): fewer than
+  // GUARANTOR_LIMIT PARTLY_ACTIVATED_GUARANTOR ones, whichever way they were opened.
+  // lock referrer user, next registration selecting this user must wait until we are done with this transaction
+  // after our new user was stored into db, we can leave transaction, because than the next call of dbCountUnconfirmedVouchedAccounts will find the user
+  // ⛔ So this is the first thing asked in the transaction: see dbLockUserRowDrizzle.
+  protected async guarantorHoldsPlace(
+    referrerId: number,
+    tx: DrizzleTransaction,
+  ): Promise<boolean> {
+    await dbLockUserRowDrizzle(referrerId, tx)
+    return (await dbCountUnconfirmedVouchedAccounts(referrerId, tx)) < GUARANTOR_LIMIT
+  }
+
+  // it take some time, let it run in parallel
+  protected startPasswordEncryption(gradidoId: string, password: string): void {
+    this.gradidoIdByPasswordStart = gradidoId
+    this.passwordEncryptionPromise = encryptPassword(
+      { gradidoId, passwordEncryptionType: PasswordEncryptionType.GRADIDO_ID },
+      password,
+    )
+  }
+
+  // The hash started above, into the account that stands now. The type follows with it:
+  // without the hash the row holds no password.
+  protected async storePassword(user: DbUser, password: string): Promise<void> {
+    if (!this.userId || !this.gradidoIdByPasswordStart) {
+      throw new Error('Missing id')
+    }
+    if (!this.passwordEncryptionPromise) {
+      throw new Error('Password encryption was never started in the first place')
+    }
+    let passwordHash: bigint = 0n
+    if (this.gradidoIdByPasswordStart !== user.gradidoId) {
+      passwordHash = await encryptPassword(
+        { gradidoId: user.gradidoId, passwordEncryptionType: PasswordEncryptionType.GRADIDO_ID },
+        password,
+      )
+    } else {
+      passwordHash = await this.passwordEncryptionPromise
+    }
+    return dbUserUpdatePassword(this.userId, PasswordEncryptionType.GRADIDO_ID, passwordHash)
+  }
+
+  // The password exists already, so the set-password page behind the activation link would
+  // be the wrong door: this link only confirms that the address belongs to the guest (EM-013).
+  // `byThanks`: the account came of accepting a thank-you, and the mail says so.
+  protected async sendConfirmAddressEmail(byThanks = false): Promise<boolean> {
+    const { firstName, lastName, language, email } = this.user
+    const result = await sendAssistedRegistrationConfirmEmail({
+      firstName,
+      lastName,
+      email,
+      language,
+      confirmLink: `${CONFIG.EMAIL_LINK_CONFIRM_EMAIL}${this.emailVerificationCode}`,
+      timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
+      ...(byThanks ? { byThanks } : {}),
+    })
+    if (result instanceof Error) {
+      throw result
+    }
+    return result !== null
   }
 }

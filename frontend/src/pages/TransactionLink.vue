@@ -13,7 +13,9 @@
         :state="itemType"
         :redeem-code="redeemCode"
         :accepting="accepting"
+        :stage="thanksStage"
         @accept="acceptThanks"
+        @open-account="openAccount"
       />
       <transaction-link-item v-else :type="itemTypeExt">
         <template #LOGGED_OUT>
@@ -64,9 +66,10 @@ import RedeemSelfCreator from '@/components/LinkInformations/RedeemSelfCreator'
 import RedeemValid from '@/components/LinkInformations/RedeemValid'
 import RedeemedTextBox from '@/components/LinkInformations/RedeemedTextBox'
 import RedeemThanks from '@/components/LinkInformations/RedeemThanks'
+import { useSignIn } from '@/composables/useSignIn'
 import { useAppToast } from '@/composables/useToast'
 import { queryTransactionLink } from '@/graphql/queries'
-import { disburseTransactionLink, redeemTransactionLink } from '@/graphql/mutations'
+import { createUser, disburseTransactionLink, redeemTransactionLink } from '@/graphql/mutations'
 import { useI18n } from 'vue-i18n'
 import CONFIG from '@/config'
 
@@ -101,12 +104,15 @@ const linkData = ref({
 
 const redeemedBoxText = ref('')
 
-const { result, onResult, error, onError } = useQuery(queryTransactionLink, {
+const { result, onResult, error, onError, refetch } = useQuery(queryTransactionLink, {
   code: params.code,
 })
 
 const { mutate: redeemMutate } = useMutation(redeemTransactionLink)
 const { mutate: disburseMutate } = useMutation(disburseTransactionLink)
+const { mutate: createUserMutate } = useMutation(createUser)
+// Signing in as the login page does it, step for step (useSignIn).
+const { signIn } = useSignIn()
 
 const isContributionLink = computed(() => {
   return params.code?.search(/^CL-/) === 0
@@ -129,6 +135,11 @@ const isThanksLink = computed(
     isTransactionLinkLoaded.value &&
     result.value?.queryTransactionLink?.__typename === 'TransactionLink',
 )
+
+// What just happened to the thank-you on this page, for RedeemThanks: 'arrived' once it is
+// booked, 'almost' where the account opened here could not be signed in to. It belongs to the
+// moment: it is not in the address and not in the store, so a reload shows the link's state.
+const thanksStage = ref(null)
 
 const redeemCode = computed(() => params.code)
 
@@ -333,10 +344,12 @@ onError(() => {
   toastError(t('gdd_per_link.redeemlink-error'))
 })
 
-function setTransactionLinkInformation() {
+// `answer`: what the query answered. The live result, or the answer of a refetch handed in
+// directly -- the live result follows a refetch a moment later.
+function setTransactionLinkInformation(answer = result.value) {
   // console.log('TransactionLink.setTransactionLinkInformation... result=', result.value)
   // const queryTransactionLink = result.value.queryTransactionLink
-  const deepCopy = JSON.parse(JSON.stringify(result.value))
+  const deepCopy = JSON.parse(JSON.stringify(answer))
   // console.log('TransactionLink.setTransactionLinkInformation... deepCopy=', deepCopy)
   if (deepCopy && deepCopy.queryTransactionLink.__typename === 'TransactionLink') {
     // console.log('TransactionLink.setTransactionLinkInformation... typename === TransactionLink')
@@ -399,11 +412,101 @@ function setRedeemJwtLinkInformation() {
 // Before, a double tap on "redeem" sent the request twice.
 const accepting = ref(false)
 
+// A member takes the thank-you with one tap, and reads where it is now (F16): "Dein Dank ist
+// da.", on this page. Where the booking fails, the page says why and leads to the overview,
+// as before.
 async function acceptThanks() {
   if (accepting.value) return
   accepting.value = true
   try {
-    await mutationLink(linkData.value.amount)
+    await redeemMutate({ code: redeemCode.value })
+    thanksStage.value = 'arrived'
+  } catch (err) {
+    toastError(err.message)
+    await router.push('/overview')
+  } finally {
+    accepting.value = false
+  }
+}
+
+// The server answered, and refused: not the network on the way to it. An answer decides
+// something; the network decides nothing, and the same step can be asked again.
+const answeredByServer = (err) => (err?.graphQLErrors?.length ?? 0) > 0
+
+// The link once more, fresh from the server, and with it the state the page shows.
+async function refreshLink() {
+  const answer = await refetch()
+  if (answer?.data?.queryTransactionLink?.__typename === 'TransactionLink') {
+    setTransactionLinkInformation(answer.data)
+  }
+}
+
+/**
+ * A guest accepts the thank-you: the account is opened right here (ZE-017 F5). One tap, three
+ * steps -- open the account, sign in as the login page does, book the thank-you -- and then
+ * "Dein Dank ist da.".
+ *
+ * - No step runs twice. The button is locked while the chain runs, and a step that succeeded
+ *   is remembered: a second `createUser` for the same address would write the new member the
+ *   mail "somebody tried to register with your address".
+ * - ⛔ The sign-in fails where the address was taken, and where the server opened the account
+ *   the way through the mail (the link did not vouch). The page does not ask which, and does
+ *   not tell the answers of the sign-in apart: every one of them is the same neutral view
+ *   (E-017) -- unless the link is no longer open, then that is what there is to say.
+ * - Signed in but not booked (the link was accepted or ran out in the meantime): the member is
+ *   in, and the page shows what became of the link.
+ * - The network failing is no answer: the usual message, the button free again, and the next
+ *   tap goes on with the step that is open.
+ *
+ * ⛔ The password comes from the form with the tap and goes into the two requests. It is kept
+ * nowhere: not here, not in the address, not in the store, not in a message.
+ */
+let accountOpenedFor = null
+let signedInAs = null
+
+async function openAccount({ firstName, lastName, email, password }) {
+  if (accepting.value) return
+  accepting.value = true
+  try {
+    if (accountOpenedFor !== email) {
+      // What the registration form sends, and with it the code of the link and the password.
+      await createUserMutate({
+        email,
+        firstName,
+        lastName,
+        language: store.state.language,
+        publisherId: store.state.publisherId,
+        redeemCode: redeemCode.value,
+        project: store.state.project,
+        password,
+      })
+      accountOpenedFor = email
+    }
+    if (signedInAs !== email) {
+      try {
+        await signIn({ email, password })
+      } catch (err) {
+        if (!answeredByServer(err)) throw err
+        await refreshLink()
+        if (!itemType.value.startsWith('TEXT')) {
+          thanksStage.value = 'almost'
+        }
+        return
+      }
+      signedInAs = email
+    }
+    try {
+      await redeemMutate({ code: redeemCode.value })
+    } catch (err) {
+      if (!answeredByServer(err)) throw err
+      toastError(err.message)
+      await refreshLink()
+      return
+    }
+    thanksStage.value = 'arrived'
+  } catch (err) {
+    // The text ends in its own space, as on the login page.
+    toastError(t('error.unknown-error') + err.message)
   } finally {
     accepting.value = false
   }
@@ -441,11 +544,7 @@ async function mutationLink(amount) {
       await redeemMutate({
         code: redeemCode.value,
       })
-      toastSuccess(
-        isThanksLink.value
-          ? t('redeem-thanks.accepted-toast', { n: amount })
-          : t('gdd_per_link.redeemed', { n: amount }),
-      )
+      toastSuccess(t('gdd_per_link.redeemed', { n: amount }))
       await router.push('/overview')
     } catch (err) {
       toastError(err.message)

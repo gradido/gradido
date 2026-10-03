@@ -36,8 +36,18 @@ describe('createUserSchema', () => {
     expect(createUserSchema.parse({ ...valid, language: 'xx' }).language).toBe('de')
   })
 
-  it('needs no password - only the guarantor code brings one', () => {
+  it('needs no password - only a guarantor code or a redeem link that vouches brings one', () => {
     expect(createUserSchema.safeParse(valid).success).toBe(true)
+  })
+
+  // Refused here, before a variant is chosen: with a redeem code a weak password is the same
+  // input error as everywhere - not a reason for the way through the mail.
+  it('refuses a weak password with a redeem code like any other', () => {
+    const result = createUserSchema.safeParse({ ...valid, redeemCode: 'abc123', password: 'short' })
+    expect(result.success).toBe(false)
+    expect(
+      createUserSchema.safeParse({ ...valid, redeemCode: 'abc123', password: 'Aa1!aaaa' }).success,
+    ).toBe(true)
   })
 
   it('refuses a weak password with the message the frontend knows', () => {

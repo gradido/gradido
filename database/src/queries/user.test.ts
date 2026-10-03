@@ -9,7 +9,7 @@ import {
   UserContact as DbUserContact,
 } from '..'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
-import { AccountState } from '../enum'
+import { AccountState, EventType } from '../enum'
 import { DBDuplicateEntryError, DBInsertFailed, DBNotFoundError } from '../errorTypes'
 import { createCommunity } from '../seeds/community'
 import { creationFactory, nMonthsBefore } from '../seeds/factory/creation'
@@ -18,6 +18,7 @@ import { userFactory } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '../seeds/users/bob-baumeister'
 import { peterLustig } from '../seeds/users/peter-lustig'
+import { dbInsertEvent } from './events'
 import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 import { getLastTransaction } from './transactions'
 import {
@@ -32,9 +33,11 @@ import {
   dbFindUserIdByUuids,
   dbFindUserLoginByEmail,
   dbFindUserWithContactById,
+  dbHasGuestRegisteredByLink,
   dbInsertForeignUser,
   dbInsertUser,
   dbLocalUserGradidoIdExist,
+  dbLockUserRowDrizzle,
   dbMarkUsersGmsRegistered,
   dbRemoveUser,
   dbSelectForeignMemberGradidoIds,
@@ -1179,6 +1182,184 @@ describe('user.queries', () => {
           )
           expect(inside).toBe(await dbCountUnconfirmedVouchedAccounts(bob.id))
         })
+      })
+    })
+
+    // One redeem link vouches for one account: the event of a registration through the link
+    // is the trace, found through the accounts the member brought.
+    describe('dbHasGuestRegisteredByLink', () => {
+      const LINK = 4711
+      const OTHER_LINK = 4712
+      let viaLink: DbUser
+
+      // An account a member brought, registered through one of their redeem links:
+      // RegisterUserFromTransactionLinkRole writes the referrer and this event.
+      const linkGuest = async (name: string, referrer: DbUser, linkId: number) => {
+        const guest = await userFactory({
+          email: `${name}@link.example`,
+          firstName: name,
+          lastName: 'Guest',
+          emailChecked: false,
+        })
+        await DbUser.update(guest.id, { referrerId: referrer.id })
+        await dbInsertEvent({
+          type: EventType.USER_REGISTER_REDEEM,
+          affectedUserId: guest.id,
+          actingUserId: guest.id,
+          involvedTransactionLinkId: linkId,
+        })
+        return guest
+      }
+
+      it('finds nobody before anybody registered through the link', async () => {
+        expect(await dbHasGuestRegisteredByLink(bob.id, LINK)).toBe(false)
+      })
+
+      it('finds the account registered through the link', async () => {
+        viaLink = await linkGuest('vialink', bob, LINK)
+
+        expect(await dbHasGuestRegisteredByLink(bob.id, LINK)).toBe(true)
+      })
+
+      it('asks for this link, not for another one of the same member', async () => {
+        expect(await dbHasGuestRegisteredByLink(bob.id, OTHER_LINK)).toBe(false)
+      })
+
+      // The way in is the member: an account somebody else brought is not theirs to count,
+      // whatever link its event names.
+      it('does not count an account another member brought', async () => {
+        await linkGuest('peterslink', peter, OTHER_LINK)
+
+        expect(await dbHasGuestRegisteredByLink(bob.id, OTHER_LINK)).toBe(false)
+        expect(await dbHasGuestRegisteredByLink(peter.id, OTHER_LINK)).toBe(true)
+      })
+
+      // Accepting a link names the link too (TRANSACTION_LINK_REDEEM): no registration.
+      it('counts the registration only, not another event that names the link', async () => {
+        await dbInsertEvent({
+          type: EventType.TRANSACTION_LINK_REDEEM,
+          affectedUserId: viaLink.id,
+          actingUserId: viaLink.id,
+          involvedUserId: bob.id,
+          involvedTransactionLinkId: OTHER_LINK,
+        })
+
+        expect(await dbHasGuestRegisteredByLink(bob.id, OTHER_LINK)).toBe(false)
+      })
+
+      // Support deletes a dead guest account, and the member's place is free again. The link
+      // was used all the same.
+      it('still finds an account that was deleted since', async () => {
+        await DbUser.update(viaLink.id, {
+          deletedAt: new Date(),
+          accountState: AccountState.DELETED,
+        })
+
+        expect(await dbHasGuestRegisteredByLink(bob.id, LINK)).toBe(true)
+      })
+
+      // The registration writes the event in its transaction, and the next one asks in its own.
+      it('sees an event written in the same transaction, and nothing once that is taken back', async () => {
+        const NEW_LINK = 4713
+        let inside: boolean | undefined
+        await expect(
+          drizzleDb().transaction(async (tx) => {
+            await dbInsertEvent(
+              {
+                type: EventType.USER_REGISTER_REDEEM,
+                affectedUserId: viaLink.id,
+                actingUserId: viaLink.id,
+                involvedTransactionLinkId: NEW_LINK,
+              },
+              tx,
+            )
+            inside = await dbHasGuestRegisteredByLink(bob.id, NEW_LINK, tx)
+            throw new Error('taken back')
+          }),
+        ).rejects.toThrow('taken back')
+
+        expect(inside).toBe(true)
+        expect(await dbHasGuestRegisteredByLink(bob.id, NEW_LINK)).toBe(false)
+      })
+    })
+
+    describe('dbLockUserRowDrizzle', () => {
+      const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
+      it('holds the row until the transaction ends: a second one waits for it', async () => {
+        const order: string[] = []
+        let release: () => void = () => undefined
+        const held = new Promise<void>((resolve) => {
+          release = resolve
+        })
+
+        const first = drizzleDb().transaction(async (tx) => {
+          await dbLockUserRowDrizzle(peter.id, tx)
+          order.push('first holds')
+          await held
+          order.push('first ends')
+        })
+        while (!order.includes('first holds')) {
+          await pause(10)
+        }
+        const second = drizzleDb().transaction(async (tx) => {
+          await dbLockUserRowDrizzle(peter.id, tx)
+          order.push('second holds')
+        })
+        await pause(300)
+        expect(order).toEqual(['first holds'])
+
+        release()
+        await Promise.all([first, second])
+        expect(order).toEqual(['first holds', 'first ends', 'second holds'])
+      })
+
+      // What the registration relies on (REPEATABLE READ): with the lock as its first
+      // statement, a transaction that waited counts what the one before it stored.
+      it('lets the one that waited count what the one before it stored', async () => {
+        const before = await dbCountUnconfirmedVouchedAccounts(peter.id)
+        const newcomer = await userFactory({
+          email: 'newcomer@link.example',
+          firstName: 'New',
+          lastName: 'Comer',
+          emailChecked: false,
+        })
+        let entered = false
+        let release: () => void = () => undefined
+        const held = new Promise<void>((resolve) => {
+          release = resolve
+        })
+
+        const first = drizzleDb().transaction(
+          async (tx) => {
+            await dbLockUserRowDrizzle(peter.id, tx)
+            entered = true
+            await held
+            await dbUserUpdateField(newcomer.id, 'referrerId', peter.id, tx)
+            await dbUserUpdateField(
+              newcomer.id,
+              'accountState',
+              AccountState.PARTLY_ACTIVATED_GUARANTOR,
+              tx,
+            )
+          },
+          { isolationLevel: 'repeatable read' },
+        )
+        while (!entered) {
+          await pause(10)
+        }
+        const second = drizzleDb().transaction(
+          async (tx) => {
+            await dbLockUserRowDrizzle(peter.id, tx)
+            return dbCountUnconfirmedVouchedAccounts(peter.id, tx)
+          },
+          { isolationLevel: 'repeatable read' },
+        )
+        await pause(200)
+        release()
+
+        await first
+        expect(await second).toBe(before + 1)
       })
     })
 

@@ -1,12 +1,12 @@
 // AI-GENERATED — not an architecture reference
 import { IsNull } from 'typeorm'
 import { Event as DbEvent, User as DbUser } from '..'
-import { AppDatabase } from '../AppDatabase'
+import { AppDatabase, drizzleDb } from '../AppDatabase'
 import { createCommunity } from '../seeds/community'
 import { userFactory } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { peterLustig } from '../seeds/users/peter-lustig'
-import { dbFindLatestEventForAffectedUser, dbHasRegisterRedeemEvent } from './events'
+import { dbFindLatestEventForAffectedUser, dbHasRegisterRedeemEvent, dbInsertEvent } from './events'
 import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 
 const db = AppDatabase.getInstance()
@@ -132,6 +132,52 @@ describe('events.queries', () => {
     it('is false for an event of another type on that link', async () => {
       await recordLinkEvent('USER_REGISTER', peter.id, MY_LINK)
       expect(await dbHasRegisterRedeemEvent(peter.id, MY_LINK)).toBe(false)
+    })
+  })
+
+  // A registration whose link vouches writes its event in the transaction that opens the
+  // account: the event is there once that commits, and gone with it when it does not.
+  describe('dbInsertEvent inside a transaction', () => {
+    const TX_LINK = 9001
+    let bibi: DbUser
+
+    const eventsOf = (transactionLinkId: number) =>
+      DbEvent.count({ where: { involvedTransactionLinkId: transactionLinkId } })
+
+    const linkEvent = (transactionLinkId: number) => ({
+      type: 'USER_REGISTER_REDEEM',
+      affectedUserId: bibi.id,
+      actingUserId: bibi.id,
+      involvedTransactionLinkId: transactionLinkId,
+    })
+
+    beforeAll(async () => {
+      await dbDeleteAllRowsExceptMigrations()
+      await createCommunity(false)
+      bibi = await userFactory(bibiBloxberg)
+    })
+
+    it('stores the event when the transaction commits', async () => {
+      await drizzleDb().transaction((tx) => dbInsertEvent(linkEvent(TX_LINK), tx))
+
+      expect(await eventsOf(TX_LINK)).toBe(1)
+    })
+
+    it('takes the event back with the transaction', async () => {
+      await expect(
+        drizzleDb().transaction(async (tx) => {
+          await dbInsertEvent(linkEvent(TX_LINK + 1), tx)
+          throw new Error('taken back')
+        }),
+      ).rejects.toThrow('taken back')
+
+      expect(await eventsOf(TX_LINK + 1)).toBe(0)
+    })
+
+    it('stores it at once without a transaction, as before', async () => {
+      await dbInsertEvent(linkEvent(TX_LINK + 2))
+
+      expect(await eventsOf(TX_LINK + 2)).toBe(1)
     })
   })
 })
