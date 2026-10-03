@@ -55,10 +55,14 @@ export class RegisterUserFromVouchingLinkRole extends RegisterUserFromTransactio
       // As with a guarantor code: acts before the address is confirmed, and counts against
       // the member's GUARANTOR_LIMIT until it is.
       dbUser.accountState = AccountState.PARTLY_ACTIVATED_GUARANTOR
-      this.startPasswordEncryption(dbUser.gradidoId, password)
     }
     const result = await super.storeUserAndUserContact(dbUser, logger, tx)
-    if (result.success && this.vouched) {
+    // `password` is there whenever the link vouched; the type does not know it.
+    if (result.success && this.vouched && password) {
+      // The hash starts once the account is stored, for the id it was stored under, and runs
+      // beside the rest. Not before: an address that is taken stores nothing, and the hash
+      // would be work for nobody.
+      this.startPasswordEncryption(dbUser.gradidoId, password)
       // The event of the registration is what rule 4 looks for. Written here, with the
       // account and under the lock: the next registration through this link finds it.
       await super.storeUserRegisterEvent(tx)

@@ -776,7 +776,30 @@ describe('RegisterUserFromVouchingLinkRole', () => {
       expect(dbUserUpdatePassword).toHaveBeenCalled()
     })
 
-    // The users row drew a gradido id that was taken: the hash was started for the first one.
+    // The hash runs beside the rest, and starts for an account that stands: the address was
+    // free. Started before the account is stored, it ran for a taken address as well.
+    it('starts to encrypt the password once the account is stored, for the id it has', async () => {
+      // The account as it is read back: under the id it was stored with.
+      mocked(dbFindUserWithContactById).mockImplementation(
+        async () =>
+          ({ id: USER_ID, gradidoId: mocked(dbInsertUser).mock.calls[0][0].gradidoId }) as DbUser,
+      )
+
+      await new RegisterUserFromVouchingLinkRole(linkInput()).run(logger)
+
+      const [storedAs] = mocked(dbInsertUser).mock.calls[0]
+      expect(encryptPassword).toHaveBeenCalledTimes(1)
+      expect(encryptPassword).toHaveBeenCalledWith(
+        expect.objectContaining({ gradidoId: storedAs.gradidoId }),
+        PASSWORD,
+      )
+      expect(mocked(encryptPassword).mock.invocationCallOrder[0]).toBeGreaterThan(
+        mocked(dbInsertUserContact).mock.invocationCallOrder[0],
+      )
+    })
+
+    // The account read back carries another gradido id than the one the hash was started for:
+    // the password is encrypted for the id the account has.
     it('encrypts the password again when the account got another gradido id', async () => {
       mocked(dbInsertUser).mockResolvedValueOnce({
         success: false,
@@ -874,6 +897,17 @@ describe('RegisterUserFromVouchingLinkRole', () => {
         await new RegisterUserFromVouchingLinkRole(linkInput()).run(logger),
       )
     })
+
+    // The entrance hands this variant only what comes with a password. It does not rely on
+    // that: without one nothing vouches - the account would stand there in the state of a
+    // vouched one, with no way in - and nothing is asked.
+    it('goes the way through the mail without a password, and asks nothing', async () => {
+      await expectTheWayThroughTheMail(
+        await new RegisterUserFromVouchingLinkRole(input({ redeemCode: 'abc123' })).run(logger),
+      )
+      expect(dbLockUserRowDrizzle).not.toHaveBeenCalled()
+      expect(dbFindTransactionLinkWithOwner).not.toHaveBeenCalled()
+    })
   })
 
   // No member's link, so nobody to vouch: not even the lock is taken.
@@ -945,6 +979,8 @@ describe('RegisterUserFromVouchingLinkRole', () => {
       expect(answer).toBeGreaterThan(0)
       expect(dbRemoveUser).toHaveBeenCalledWith(USER_ID, tx)
       expect(dbUserUpdatePassword).not.toHaveBeenCalled()
+      // Not even started: the link stays open, and so would the work, request after request.
+      expect(encryptPassword).not.toHaveBeenCalled()
       expect(sendAssistedRegistrationConfirmEmail).not.toHaveBeenCalled()
       expect(sendAccountActivationEmail).not.toHaveBeenCalled()
       expect(sendAccountMultiRegistrationEmail).toHaveBeenCalledWith(
