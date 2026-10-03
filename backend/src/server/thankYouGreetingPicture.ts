@@ -38,6 +38,16 @@ export const THANK_YOU_GREETING_PICTURE_PATH = '/api/thank-you-greeting-picture'
 const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.thankYouGreetingPicture`)
 
 /**
+ * The policy the picture is served with, in the place of the one helmet gives every answer of
+ * this server. These are bytes a member sent, never decoded here, served from the wallet's own
+ * address to whoever holds the code -- and the wallet keeps a member's session in that address's
+ * storage. Type and `nosniff` make a browser read them as a picture or not at all; should one
+ * ever show them as a document all the same, that document may load nothing, run nothing, and
+ * belongs to no origin (`sandbox`). The inline style is what a browser's own picture view uses.
+ */
+export const PICTURE_CONTENT_POLICY = "default-src 'none'; style-src 'unsafe-inline'; sandbox"
+
+/**
  * The bytes of the picture whoever holds this code gets now, or null. The code is held against
  * its form before the database is asked anything.
  */
@@ -87,7 +97,8 @@ export async function apiThankYouGreetingPicture(req: any, res: any): Promise<vo
   //
   // The headers are written out here and nothing of the request goes into them. The type is
   // fixed: what is stored was checked to begin and end as a JPEG, never decoded, and helmet's
-  // `X-Content-Type-Options: nosniff` keeps a browser from reading it as anything else.
+  // `X-Content-Type-Options: nosniff` keeps a browser from reading it as anything else. Its
+  // `Cross-Origin-Resource-Policy: same-origin` keeps other sites from showing it as theirs.
   if (!image) {
     res.writeHead(404, { 'Cache-Control': 'no-store', 'Content-Length': 0 })
     res.end()
@@ -97,6 +108,7 @@ export async function apiThankYouGreetingPicture(req: any, res: any): Promise<vo
     'Cache-Control': 'no-store',
     'Content-Type': 'image/jpeg',
     'Content-Length': image.length,
+    'Content-Security-Policy': PICTURE_CONTENT_POLICY,
   })
   res.end(image)
 }

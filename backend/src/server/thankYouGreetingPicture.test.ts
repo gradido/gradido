@@ -241,8 +241,15 @@ describe('GET /api/thank-you-greeting-picture/<code>', () => {
     expect(answer.headers['content-type']).toBe('image/jpeg')
     expect(answer.headers['content-length']).toBe(String(LARGE.length))
     expect(answer.headers['cache-control']).toBe('no-store')
-    // helmet's, which this address counts on: the browser reads it as a picture or not at all.
+    // helmet's, which this address counts on: the browser reads it as a picture or not at all,
+    // and no other site shows it as its own.
     expect(answer.headers['x-content-type-options']).toBe('nosniff')
+    expect(answer.headers['cross-origin-resource-policy']).toBe('same-origin')
+    // Its own, in the place of helmet's: shown as a document, it may load and run nothing and
+    // has no origin -- the wallet's storage, where a session lives, is out of its reach.
+    expect(answer.headers['content-security-policy']).toBe(
+      "default-src 'none'; style-src 'unsafe-inline'; sandbox",
+    )
     // No validator either: an ETag would be something to ask again with.
     expect(answer.headers.etag).toBeUndefined()
     expect(answer.headers['last-modified']).toBeUndefined()
