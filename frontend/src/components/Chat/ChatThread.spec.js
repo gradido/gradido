@@ -500,6 +500,31 @@ describe('ChatThread', () => {
       )
     })
 
+    /**
+     * A greeting with a photo in the place of a motif: the bubble asks for the photo by the id of
+     * the link the booking was made from, and names whose photo it is -- the sender of the
+     * booking: the other person on their side, oneself on one's own.
+     */
+    it('hands a greeting’s bubble the id of its link, and who sent it', async () => {
+      const LINE = 'Einfach so — weil es Dich gibt.'
+      const greeting = { motif: null, line: LINE, hasPicture: true }
+      bookingsAsked.mockImplementation(async () =>
+        bookingsPage([
+          { ...booking(8, { at: '2026-09-22T10:04:30.000Z', sent: true }), linkId: 4712, greeting },
+          { ...booking(7, { at: '2026-09-22T10:01:30.000Z' }), linkId: 4711, greeting },
+        ]),
+      )
+      mountThread()
+      await arrive(page([1, 2, 3, 4, 5]))
+
+      const [received, sent] = wrapper
+        .findAllComponents({ name: 'ChatBubble' })
+        .filter((bubble) => bubble.props('message').transfer)
+        .map((bubble) => bubble.props('message'))
+      expect(received).toMatchObject({ mine: false, linkId: 4711, greetingSender: 'Lena' })
+      expect(sent).toMatchObject({ mine: true, linkId: 4712, greetingSender: 'Bernd' })
+    })
+
     // ZE-019: the booking of an accepted thank-you greeting brings its greeting to its bubble --
     // the motif, the line in handwriting, the words under it. A transfer without one stays as it was.
     it('hands the greeting of a booking on to its bubble, and none to a plain transfer', async () => {

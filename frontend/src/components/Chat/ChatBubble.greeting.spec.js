@@ -170,6 +170,106 @@ describe('ChatBubble, the booking of a thank-you greeting', () => {
     })
   })
 
+  /**
+   * A photo of the sender's own in the place of a motif (ZE-019): its small rendition, which the
+   * two members of the booking may have. The bubble hands the photo's component the link it is
+   * asked for by, and whose it is; fetching and showing are that component's own
+   * (ThankYouGreetingPhoto.spec.js).
+   */
+  describe('a photo of the sender’s own', () => {
+    const PHOTO = {
+      ...GREETING,
+      greeting: { motif: null, line: LINE, hasPicture: true },
+      linkId: 4711,
+      greetingSender: 'Oma-Emma',
+    }
+    const photo = () => wrapper.findComponent({ name: 'ThankYouGreetingPhoto' })
+    const room = () => wrapper.find('[data-test="chat-bubble-greeting-photo"]')
+
+    it('stands in the room of the motif, between the head and the line', () => {
+      mountBubble(PHOTO)
+
+      expect(parts()).toEqual([
+        'visually-hidden',
+        'chat-bubble-subject',
+        'chat-bubble-greeting-picture',
+        'chat-bubble-greeting-line',
+        'memo-text',
+        'chat-bubble-meta',
+      ])
+      expect(room().classes()).toContain('chat-bubble-greeting-picture')
+      expect(photo().exists()).toBe(true)
+      // in the room, and nothing else in it
+      expect(room().findComponent({ name: 'ThankYouGreetingPhoto' }).exists()).toBe(true)
+      expect(room().element.children).toHaveLength(1)
+      expect(room().element.firstElementChild.classList).toContain('chat-bubble-greeting-photo')
+      expect(picture().exists()).toBe(false)
+      expect(row().classes()).toContain('chat-bubble-greeting')
+    })
+
+    it('is asked for by the id of the link the booking was made from', () => {
+      mountBubble(PHOTO)
+
+      expect(photo().props('linkId')).toBe(4711)
+    })
+
+    it('names whose photo it is: the sender of the booking', () => {
+      mountBubble(PHOTO)
+      expect(photo().props('alt')).toBe('thank-you-greeting.photo-of {"name":"Oma-Emma"}')
+
+      // on one's own side the sender is oneself
+      mountBubble({ ...PHOTO, mine: true, greetingSender: 'Bernd' })
+      expect(photo().props('alt')).toBe('thank-you-greeting.photo-of {"name":"Bernd"}')
+    })
+
+    // The room is as wide as the bubble: "Bild nicht verfügbar" stands in it.
+    it('lets the room say that the picture is not available', () => {
+      mountBubble(PHOTO)
+
+      expect(photo().props('saysMissing')).toBe(true)
+    })
+
+    // A booking the list hands over without the id of its link: the room stands, nothing is asked.
+    it('keeps its room where the booking names no link', () => {
+      mountBubble({ ...PHOTO, linkId: undefined })
+
+      expect(photo().props('linkId')).toBeNull()
+      expect(room().exists()).toBe(true)
+    })
+
+    // It opens nothing, as the motif opens nothing.
+    it('is no control', () => {
+      mountBubble(PHOTO)
+
+      expect(room().element.closest('button, a, [role="button"]')).toBeNull()
+      expect(room().find('button, a, [role="button"]').exists()).toBe(false)
+      expect(wrapper.find('[data-test="chat-bubble-image"]').exists()).toBe(false)
+    })
+
+    it('keeps the line and the words as they stand under a motif', () => {
+      mountBubble(PHOTO)
+
+      expect(line().text()).toBe(LINE)
+      expect(words().text()).toBe(WORDS)
+    })
+
+    it('gives way to the motif for a greeting that carries no photo', () => {
+      mountBubble({ ...PHOTO, greeting: { motif: 'morning-light', line: LINE, hasPicture: false } })
+
+      expect(photo().exists()).toBe(false)
+      expect(picture().attributes('src')).toBe('/img/thank-you-greeting/morning-light.svg')
+    })
+
+    it('fills its room: as large as the room in the stylesheet', () => {
+      const css = readFileSync(
+        join(dirname(fileURLToPath(import.meta.url)), 'ChatBubble.vue'),
+        'utf8',
+      ).replace(/\/\*[\s\S]*?\*\//g, '')
+
+      expect(css).toMatch(/\.chat-bubble-greeting-photo\s*\{[^}]*width:\s*100%;[^}]*height:\s*100%/)
+    })
+  })
+
   describe('the line', () => {
     it('stands in handwriting', () => {
       mountBubble(GREETING)

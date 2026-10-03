@@ -61,6 +61,7 @@ const KEYS = [
   'done.edit-hint',
   'done.find-again',
   'done.link-hint',
+  'done.link-hint-photo',
   'done.sentence-lead',
   'done.title',
   'done.title-for',
@@ -77,6 +78,7 @@ const KEYS = [
   ...MOTIFS.map((motif) => `motif.${motif}`),
   'name',
   'next',
+  'photo-of',
   'picture.other',
   'picture.own',
   'picture.question',
@@ -277,6 +279,61 @@ describe('thank-you-greeting in the language files', () => {
       expect(sentence).not.toMatch(/[{}]/)
     },
   )
+
+  /**
+   * The texts of a photo of one's own (ZE-019): the tile, how another photo is chosen, whose
+   * photo it is, and the sentence on "Fertig" that says who sees it.
+   */
+  describe('a photo of one’s own', () => {
+    // The tile stands in a row of tiles 135 pixels wide on a small phone: short, and one line.
+    it.each(languages)(
+      'names the tile and the way to another photo in few words, in %s',
+      (lang) => {
+        for (const key of ['picture.own', 'picture.other']) {
+          const words = render(lang, key)
+
+          expect(words, key).not.toMatch(/[{}|.]/)
+          expect(words.length, `${key}: ${words}`).toBeLessThanOrEqual(20)
+          expect(words.split(/\s+/).length, `${key}: ${words}`).toBeLessThanOrEqual(3)
+        }
+        expect(render(lang, 'picture.own')).not.toBe(render(lang, 'picture.other'))
+      },
+    )
+
+    // The name as it is written, in the nominative: no language bends it.
+    it.each(languages)('says whose photo it is, with the name as it stands, in %s', (lang) => {
+      const words = render(lang, 'photo-of', { name: 'Oma-Emma' })
+
+      expect(words).toContain('Oma-Emma')
+      expect(words).not.toMatch(/[{}|]/)
+      expect(words).not.toMatch(/\.$/)
+      expect(words.replace('Oma-Emma', '').trim().length).toBeGreaterThan(2)
+    })
+
+    it.each(languages)(
+      'says on "Fertig" that whoever has the link sees the photo, in two sentences, in %s',
+      (lang) => {
+        const withPhoto = render(lang, 'done.link-hint-photo')
+        const without = render(lang, 'done.link-hint')
+
+        expect(withPhoto).not.toMatch(/[{}|]/)
+        expect(withPhoto).toMatch(/\.$/)
+        expect(withPhoto.split(/\.\s/)).toHaveLength(2)
+        // The second sentence -- send it only to whom it is meant for -- is the one it was.
+        expect(withPhoto.split(/\.\s/)[1]).toBe(without.split(/\.\s/)[1])
+        // And the first says more than it did: it names the photo.
+        expect(withPhoto.length).toBeGreaterThan(without.length)
+      },
+    )
+
+    it('names the photo in German as Bernd wrote the sentence', () => {
+      expect(render('de', 'done.link-hint-photo')).toBe(
+        'Wer den Link hat, sieht Dein Foto und kann den Dank annehmen. Schick ihn nur dem Menschen, für den er gedacht ist.',
+      )
+      expect(render('de', 'picture.own')).toBe('Eigenes Foto')
+      expect(render('de', 'photo-of', { name: 'Oma-Emma' })).toBe('Foto von Oma-Emma')
+    })
+  })
 
   it.each(languages)('says until when the greeting waits, as one sentence, in %s', (lang) => {
     const day = i18n.global.d(new Date('2026-10-16T12:00:00.000Z'), 'short', lang)

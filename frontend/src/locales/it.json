@@ -1549,6 +1549,7 @@
       "edit-hint": "Puoi modificare la frase prima dell'invio. Le tue parole compaiono solo sul biglietto.",
       "find-again": "Lo ritrovi in {transactions}, alla voce «{links}».",
       "link-hint": "Chi ha il link può accettare il ringraziamento. Invialo solo alla persona a cui è destinato.",
+      "link-hint-photo": "Chi ha il link vede la tua foto e può accettare il ringraziamento. Invialo solo alla persona a cui è destinato.",
       "sentence-lead": "Questa frase lo accompagna:",
       "title": "Il tuo biglietto di ringraziamento è pronto.",
       "title-for": "Il tuo biglietto di ringraziamento per {name} è pronto.",
@@ -1591,6 +1592,7 @@
     },
     "name": "Biglietto di ringraziamento",
     "next": "Avanti",
+    "photo-of": "Foto inviata da {name}",
     "picture": {
       "other": "Un'altra foto",
       "own": "Una tua foto",

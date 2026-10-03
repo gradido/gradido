@@ -5,6 +5,7 @@ import { createStore } from 'vuex'
 import { BFormGroup, BFormInput, BFormInvalidFeedback, BFormTextarea } from 'bootstrap-vue-next'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import i18n from '@/i18n'
+import { forgetAllGreetingPictures, greetingPicture } from '@/composables/useGreetingPictures'
 import { addThankYouGreetingPicture, createTransactionLink } from '@/graphql/mutations'
 import { THANK_YOU_PICTURE_GROUND } from '@/utils/thankYouPicture'
 import ThankYouGreeting from './ThankYouGreeting.vue'
@@ -212,6 +213,8 @@ describe('ThankYouGreeting', () => {
 
   afterEach(() => {
     wrapper?.unmount()
+    forgetAllGreetingPictures()
+    vi.unstubAllGlobals()
   })
 
   describe('the picture', () => {
@@ -771,6 +774,123 @@ describe('ThankYouGreeting', () => {
         expect(committed).not.toHaveBeenCalled()
         expect(dispatched).not.toHaveBeenCalled()
         expect(JSON.stringify(store.state)).toBe(before)
+      })
+    })
+
+    /**
+     * The photo the member just made is shown as the page holds it -- on the last look and on
+     * "Fertig" -- without asking the server for it.
+     */
+    describe('showing it', () => {
+      const paperPhoto = () => wrapper.find('[data-test="redeem-thanks-paper-photo"]')
+
+      it('stands on the sheet of the last look, in the place of the motif', async () => {
+        await open()
+        await choosePhoto()
+        await toPreview()
+
+        expect(paperPhoto().attributes('src')).toBe(PREVIEW)
+        // whose photo it is: the member's own user name, as the sheet names the sender
+        expect(paperPhoto().attributes('alt')).toBe('Foto von Oma-Emma')
+        expect(wrapper.find('[data-test="redeem-thanks-paper-motif"]').exists()).toBe(false)
+        expect(wrapper.find('[data-test="redeem-thanks-paper-for"]').text()).toBe('FÜR SARAH')
+      })
+
+      it('gives way to the motif on the last look where a motif was chosen again', async () => {
+        await open()
+        await choosePhoto()
+        await data('motif-bouquet').trigger('click')
+        await toPreview()
+
+        expect(paperPhoto().exists()).toBe(false)
+        expect(wrapper.find('[data-test="redeem-thanks-paper-photo-room"]').exists()).toBe(false)
+        expect(wrapper.find('[data-test="redeem-thanks-paper-motif"]').attributes('src')).toBe(
+          '/img/thank-you-greeting/bouquet.svg',
+        )
+      })
+
+      it('stands on "Fertig", small, with the sentence that names it', async () => {
+        await open()
+        await choosePhoto()
+        await toPreview()
+        await data('finish').trigger('click')
+        await settle()
+
+        expect(data('done-photo').attributes('src')).toBe(PREVIEW)
+        expect(data('done-photo').attributes('alt')).toBe('Foto von Oma-Emma')
+        expect(data('done-motif').exists()).toBe(false)
+        expect(data('link-hint').text()).toBe(
+          'Wer den Link hat, sieht Dein Foto und kann den Dank annehmen. Schick ihn nur dem Menschen, für den er gedacht ist.',
+        )
+      })
+
+      // The photo that was SENT, even where another picture was chosen while the chain ran.
+      it('shows on "Fertig" the photo that was sent', async () => {
+        const encoding = deferred()
+        pictures.encodeThankYouPictures.mockReturnValue(encoding.promise)
+        await open()
+        await choosePhoto()
+        await toPreview()
+        await data('finish').trigger('click')
+        await flushPromises()
+        await historyGo(-1)
+        await historyGo(-1)
+        pictures.thankYouPicturePreview.mockReturnValue('data:image/jpeg;base64,ANOTHER')
+        await choosePhoto()
+
+        encoding.resolve({ small: SMALL, large: LARGE })
+        await settle()
+
+        expect(step()).toBe('done')
+        expect(data('done-photo').attributes('src')).toBe(PREVIEW)
+      })
+
+      it('asks the server for no picture, from the choice to "Fertig"', async () => {
+        const fetched = vi.fn()
+        vi.stubGlobal('fetch', fetched)
+        await open()
+        await choosePhoto()
+        await toPreview()
+        await data('finish').trigger('click')
+        await settle()
+
+        expect(step()).toBe('done')
+        expect(fetched).not.toHaveBeenCalled()
+        // two requests in all: the link, and the large rendition
+        expect(server.mutate).toHaveBeenCalledTimes(1)
+        expect(server.add).toHaveBeenCalledTimes(1)
+      })
+
+      /**
+       * The member's list of links shows the small rendition: kept from what was just sent,
+       * under the id of the link the server made -- in memory, until the member signs out.
+       */
+      it('keeps the small rendition for the list of links, under the id of the link', async () => {
+        await open()
+        await choosePhoto()
+        await toPreview()
+        expect(greetingPicture(LINK_ID)).toBeNull()
+
+        await data('finish').trigger('click')
+        await settle()
+
+        expect(greetingPicture(LINK_ID)).toEqual({
+          state: 'ready',
+          src: 'data:image/jpeg;base64,SMALL-JPEG',
+        })
+      })
+
+      it('keeps no picture for a greeting with a motif', async () => {
+        await open()
+        await toPreview()
+        await data('finish').trigger('click')
+        await settle()
+
+        expect(greetingPicture(LINK_ID)).toBeNull()
+        expect(data('done-motif').exists()).toBe(true)
+        expect(data('link-hint').text()).toBe(
+          'Wer den Link hat, kann den Dank annehmen. Schick ihn nur dem Menschen, für den er gedacht ist.',
+        )
       })
     })
 

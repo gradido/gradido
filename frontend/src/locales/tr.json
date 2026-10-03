@@ -1549,6 +1549,7 @@
       "edit-hint": "Cümleyi göndermeden önce değiştirebilirsin. Senin sözlerin yalnızca kartta yer alır.",
       "find-again": "Onu {transactions} altında, «{links}» bölümünde yeniden bulursun.",
       "link-hint": "Linke sahip olan herkes teşekkürü kabul edebilir. Linki yalnızca teşekkür etmek istediğin kişiye gönder.",
+      "link-hint-photo": "Linke sahip olan herkes fotoğrafını görür ve teşekkürü kabul edebilir. Linki yalnızca teşekkür etmek istediğin kişiye gönder.",
       "sentence-lead": "Bu cümle onunla birlikte yola çıkar:",
       "title": "Teşekkür mesajın hazır.",
       "title-for": "{name} için teşekkür mesajın hazır.",
@@ -1591,6 +1592,7 @@
     },
     "name": "Teşekkür mesajı",
     "next": "Devam",
+    "photo-of": "{name} tarafından gönderilen fotoğraf",
     "picture": {
       "other": "Başka fotoğraf",
       "own": "Kendi fotoğrafın",

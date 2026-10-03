@@ -1549,6 +1549,7 @@
       "edit-hint": "Podes alterar a frase antes de a enviares. As tuas palavras só aparecem no postal.",
       "find-again": "Voltas a encontrá-lo em {transactions}, em «{links}».",
       "link-hint": "Quem tiver o link pode aceitar o agradecimento. Envia-o só à pessoa a quem se destina.",
+      "link-hint-photo": "Quem tiver o link vê a tua foto e pode aceitar o agradecimento. Envia-o só à pessoa a quem se destina.",
       "sentence-lead": "Esta frase vai com ele:",
       "title": "O teu postal de agradecimento está pronto.",
       "title-for": "O teu postal de agradecimento para {name} está pronto.",
@@ -1591,6 +1592,7 @@
     },
     "name": "Postal de agradecimento",
     "next": "Continuar",
+    "photo-of": "Foto enviada por {name}",
     "picture": {
       "other": "Outra foto",
       "own": "A tua foto",

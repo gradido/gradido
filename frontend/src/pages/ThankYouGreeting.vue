@@ -225,7 +225,11 @@
           }}
         </h2>
         <div class="tyg-paper">
-          <redeem-thanks-paper :link-data="previewLink" />
+          <!-- A photo of one's own is shown as the page made it: the server has none yet. -->
+          <redeem-thanks-paper
+            :link-data="previewLink"
+            :picture="photoChosen ? photo.preview : null"
+          />
         </div>
         <p class="tyg-note small page-text" data-test="thank-you-greeting-waits">
           {{
@@ -289,6 +293,7 @@ import RedeemThanksPaper from '@/components/LinkInformations/RedeemThanksPaper.v
 import ThankYouGreetingDone from '@/components/ThankYouGreeting/ThankYouGreetingDone.vue'
 import ThankYouPictureChoice from '@/components/ThankYouGreeting/ThankYouPictureChoice.vue'
 import { LINK_VALID_DAYS, linkAmountMax } from '@/constants'
+import { rememberGreetingPicture } from '@/composables/useGreetingPictures'
 import { addThankYouGreetingPicture, createTransactionLink } from '@/graphql/mutations'
 import { chatImageProblemWords, chatImageRefusal } from '@/utils/chatImage'
 import {
@@ -470,7 +475,8 @@ const previewLink = computed(() => ({
   amount: amountToSend.value,
   memo: memo.value,
   senderUser: { alias: store.state.username, gradidoID: store.state.gradidoID },
-  greeting: greeting.value,
+  // `hasPicture`: what the server will say of the greeting once it is made.
+  greeting: { ...greeting.value, hasPicture: photoChosen.value },
 }))
 
 const step = computed(() =>
@@ -580,6 +586,9 @@ async function create() {
         : sent.greeting,
     })
     const link = result.data.createTransactionLink
+    // The member's own photo, for their list of links: kept from what was just sent, so the
+    // list does not ask the server for it (in memory, until the member signs out).
+    if (pictures) rememberGreetingPicture(link.id, pictures.small.data)
     if (pictures?.large) {
       try {
         await addPicture({ linkId: link.id, picture: thankYouPictureInput(pictures.large) })

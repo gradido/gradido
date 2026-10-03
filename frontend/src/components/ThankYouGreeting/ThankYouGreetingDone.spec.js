@@ -80,6 +80,60 @@ describe('ThankYouGreetingDone', () => {
     expect(data(done(created({ motif: 'sunset' })), 'done-motif').exists()).toBe(false)
   })
 
+  /**
+   * A greeting with a photo of the member's own: the server says THAT there is one, and the
+   * picture is the one the page made a moment ago -- nobody is asked for it.
+   */
+  describe('a photo of one’s own', () => {
+    const PREVIEW = 'data:image/jpeg;base64,PREVIEW'
+    const withPhoto = (extra = { picture: PREVIEW }) =>
+      done({ ...created({ motif: null, hasPicture: true }), ...extra })
+
+    it('stands small where the motif would stand, with whose it is', () => {
+      const wrapper = withPhoto()
+      const photo = data(wrapper, 'done-photo')
+
+      expect(photo.element.tagName).toBe('IMG')
+      expect(photo.attributes('src')).toBe(PREVIEW)
+      // the member's own user name, as the card shows it
+      expect(photo.attributes('alt')).toBe('Foto von Oma-Emma')
+      expect(photo.classes()).toContain('tyg-done-motif')
+      expect(photo.attributes('width')).toBe('360')
+      expect(photo.attributes('height')).toBe('250')
+      expect(data(wrapper, 'done-motif').exists()).toBe(false)
+      expect(wrapper.findAll('img')).toHaveLength(1)
+    })
+
+    it('makes the sentence about the link name the photo', () => {
+      expect(data(withPhoto(), 'link-hint').text()).toBe(
+        'Wer den Link hat, sieht Dein Foto und kann den Dank annehmen. Schick ihn nur dem Menschen, für den er gedacht ist.',
+      )
+    })
+
+    // The sentence follows what the server says of the greeting, not what the page holds.
+    it('names the photo even where the page holds no picture, and shows none then', () => {
+      const wrapper = withPhoto({})
+
+      expect(wrapper.find('img').exists()).toBe(false)
+      expect(data(wrapper, 'link-hint').text()).toContain('sieht Dein Foto')
+    })
+
+    it('keeps the sentence of a motif for a greeting with a motif, whatever the page holds', () => {
+      const wrapper = done({ ...created({ hasPicture: false }), picture: PREVIEW })
+
+      expect(data(wrapper, 'done-photo').exists()).toBe(false)
+      expect(data(wrapper, 'done-motif').exists()).toBe(true)
+      expect(data(wrapper, 'link-hint').text()).toBe(
+        'Wer den Link hat, kann den Dank annehmen. Schick ihn nur dem Menschen, für den er gedacht ist.',
+      )
+    })
+
+    // The sentence that goes out with the link says nothing of a photo: it stands on the card.
+    it('leaves the sentence that goes out as it is', () => {
+      expect(data(withPhoto(), 'share-text').text()).toBe(data(done(), 'share-text').text())
+    })
+  })
+
   // ZE-017, F3: in the first person, without the sender's words and without the amount.
   describe('the sentence that goes out', () => {
     const SENTENCE = [

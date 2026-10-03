@@ -383,6 +383,10 @@ const transferBubble = (booking) => {
     // The thank-you greeting the booking was made from, where it was (ZE-019): the bubble shows
     // its motif and sets its line in handwriting. Null for every other transfer.
     greeting: booking.greeting ?? null,
+    // For a greeting that carries a photo in the place of a motif: the link the photo is asked
+    // for by, and whose photo it is -- the sender of the booking, by the name the card showed.
+    linkId: booking.linkId ?? null,
+    greetingSender: mine ? memberAlias(store.state.username, store.state.gradidoID) : props.alias,
   }
 }
 

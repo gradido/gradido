@@ -119,12 +119,12 @@ const router = createRouter({
 
 const view = async (
   state,
-  { linkData = link(), accepting = false, query = {}, stage = null } = {},
+  { linkData = link(), accepting = false, query = {}, stage = null, picture = null } = {},
 ) => {
   await router.push({ name: 'Redeem', params: { code: CODE }, query })
   await router.isReady()
   const wrapper = mount(RedeemThanks, {
-    props: { linkData, state, accepting, redeemCode: CODE, stage },
+    props: { linkData, state, accepting, redeemCode: CODE, stage, picture },
     global: {
       plugins: [i18n, router],
       // The switch and the fields of the form name their Bootstrap parts without importing
@@ -1154,6 +1154,84 @@ describe('RedeemThanks', () => {
       expect(wrapper.findComponent(RedeemThanksPaper).exists()).toBe(false)
       expect(wrapper.find('img').exists()).toBe(false)
       expect(wrapper.text()).not.toContain('Sarah')
+    })
+
+    /**
+     * A greeting with a photo of the sender's own (ZE-019). The page fetched the photo once and
+     * holds it; the view hands that one picture to every place that shows it -- the sheet, the
+     * strip over the account form, and the short sheet of "Dein Dank ist da.".
+     */
+    describe('with a photo of the sender’s own', () => {
+      const PHOTO = 'blob:https://ki-playground.gradido.net/1c2d'
+      const withPhoto = (overrides = {}) =>
+        greeted({
+          greeting: { motif: null, line: LINE, recipientName: 'Sarah', hasPicture: true },
+          ...overrides,
+        })
+      const photoOnSheet = (wrapper) => wrapper.find('[data-test="redeem-thanks-paper-photo"]')
+
+      it.each([...GUEST_STATES, 'VALID', 'SELF_CREATOR'])(
+        'shows the photo on the sheet of an open link (%s)',
+        async (state) => {
+          const wrapper = await view(state, { linkData: withPhoto(), picture: PHOTO })
+
+          expect(wrapper.findComponent(RedeemThanksPaper).props('picture')).toBe(PHOTO)
+          expect(photoOnSheet(wrapper).attributes('src')).toBe(PHOTO)
+          expect(photoOnSheet(wrapper).attributes('alt')).toBe('Foto von Oma-Emma')
+        },
+      )
+
+      it('keeps the room of the photo on the sheet until the page has it', async () => {
+        const wrapper = await view('LOGGED_OUT', { linkData: withPhoto() })
+
+        expect(photoOnSheet(wrapper).exists()).toBe(false)
+        expect(wrapper.find('[data-test="redeem-thanks-paper-photo-room"]').exists()).toBe(true)
+
+        await wrapper.setProps({ picture: PHOTO })
+        expect(photoOnSheet(wrapper).attributes('src')).toBe(PHOTO)
+      })
+
+      it('shows the same photo in the strip over the account form', async () => {
+        const wrapper = await view('LOGGED_OUT', { linkData: withPhoto(), picture: PHOTO })
+
+        await accept(wrapper).trigger('click')
+        await flushPromises()
+
+        expect(form(wrapper).props('picture')).toBe(PHOTO)
+        expect(wrapper.find('[data-test="redeem-thanks-strip-photo"]').attributes('src')).toBe(
+          PHOTO,
+        )
+      })
+
+      /**
+       * ⛔ "Dein Dank ist da.": the photo stays as the page holds it. The link is accepted by
+       * then, and the server serves its picture under the link's address no more.
+       */
+      it('keeps the photo on the short sheet once the thank-you has arrived', async () => {
+        const wrapper = await view('TEXT_REDEEMED', {
+          linkData: withPhoto({ redeemedAt: '2026-07-01T09:30:00.000Z' }),
+          stage: 'arrived',
+          picture: PHOTO,
+        })
+        const paper = wrapper.findComponent(RedeemThanksPaper)
+
+        expect(paper.props('short')).toBe(true)
+        expect(paper.props('picture')).toBe(PHOTO)
+        expect(photoOnSheet(wrapper).attributes('src')).toBe(PHOTO)
+      })
+
+      // Opened later: no sheet, and so no photo -- whatever the page might hold.
+      it.each([
+        ['TEXT_REDEEMED', { redeemedAt: '2026-07-01T09:30:00.000Z' }],
+        ['TEXT_EXPIRED', {}],
+        ['TEXT_DELETED', { deletedAt: '2026-07-01T09:30:00.000Z' }],
+      ])('shows no photo once the link is closed (%s)', async (state, dates) => {
+        const wrapper = await view(state, { linkData: withPhoto(dates), picture: PHOTO })
+
+        expect(wrapper.findComponent(RedeemThanksPaper).exists()).toBe(false)
+        expect(wrapper.find('img').exists()).toBe(false)
+        expect(wrapper.html()).not.toContain(PHOTO)
+      })
     })
   })
 
