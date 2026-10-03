@@ -39,7 +39,7 @@
             {{ $t('answerNow') }}
           </div>
         </BCol>
-        <BCol cols="9" lg="3" offset="3" offset-md="0" offset-lg="0">
+        <BCol cols="9" md="3" lg="3" offset="3" offset-md="0" offset-lg="0">
           <div class="small">
             {{ $t('creation') }} {{ $t('(') }}{{ hours }} {{ $t('h') }}{{ $t(')') }}
           </div>

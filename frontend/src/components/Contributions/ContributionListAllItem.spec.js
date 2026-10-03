@@ -94,4 +94,17 @@ describe('ContributionListAllItem', () => {
   it('does not mark a confirmed contribution as rejected', () => {
     expect(mountWrapper().text()).not.toContain('rejected')
   })
+
+  // Between 768 and 1024 px (lg starts at 1025 px in this wallet) the column kept the phone's
+  // nine twelfths without the phone's offset: with the symbol and the arrow that left nothing
+  // for the text. The column is found by what it shows, not by the classes under test.
+  it('gives the amount a quarter of the row from md on and keeps the width and offset of the phone', () => {
+    const amount = mountWrapper()
+      .findAll('div.fw-bold')
+      .find((div) => div.text() === '200 GDD')
+
+    expect([...amount.element.parentElement.classList]).toEqual(
+      expect.arrayContaining(['col-9', 'col-md-3', 'col-lg-3', 'offset-3', 'offset-md-0']),
+    )
+  })
 })
