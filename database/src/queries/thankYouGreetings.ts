@@ -12,6 +12,7 @@ import {
   ThankYouGreetingInsert,
   ThankYouGreetingSelect,
   thankYouGreetingsTable,
+  transactionLinksTable,
 } from '../schemas/drizzle.schema'
 
 /** A greeting's row without the name: what an error about the row carries. */
@@ -70,6 +71,43 @@ export async function dbSelectThankYouGreetingsByLinkCodes(
     .select()
     .from(thankYouGreetingsTable)
     .where(inArray(thankYouGreetingsTable.transactionLinkCode, transactionLinkCodes))
+}
+
+/**
+ * The greetings of these links, as a map from the link's id to its greeting; a link without
+ * one is simply not in the map. One statement for a whole page of bookings.
+ *
+ * Written for the booking list: a booking made from a link carries the link's id
+ * (`transactions.transaction_link_id`), while the greeting hangs on the link's code. So the
+ * two tables are joined on the code and narrowed to the ids -- the answer is keyed by what the
+ * caller holds, and the code never has to travel through the resolver.
+ *
+ * ⚠️ The ids are those of THIS server's `transaction_links`. Which bookings carry such an id
+ * is the caller's to know (backend/src/data/Transaction.logic.ts).
+ *
+ * No condition on `deletedAt`: the list names links that were redeemed, and
+ * deleteTransactionLink refuses a redeemed link.
+ *
+ * A plain Map rather than a Result, as dbSelectThankYouCardLabels beside the same list: an id
+ * without a row is no failure, it is a booking without a greeting. An empty list asks the
+ * database nothing.
+ */
+export async function dbSelectThankYouGreetingsByLinkIds(
+  transactionLinkIds: number[],
+): Promise<Map<number, ThankYouGreetingSelect>> {
+  if (transactionLinkIds.length === 0) {
+    return new Map()
+  }
+  const rows = await drizzleDb()
+    .select({ transactionLinkId: transactionLinksTable.id, greeting: thankYouGreetingsTable })
+    .from(thankYouGreetingsTable)
+    .innerJoin(
+      transactionLinksTable,
+      eq(transactionLinksTable.code, thankYouGreetingsTable.transactionLinkCode),
+    )
+    .where(inArray(transactionLinksTable.id, transactionLinkIds))
+
+  return new Map(rows.map((row) => [row.transactionLinkId, row.greeting]))
 }
 
 /**
