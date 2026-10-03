@@ -83,8 +83,8 @@ describe('the page edge on a phone', () => {
   })
 
   it('is not given to the mount point as well', () => {
-    // A bare `#app` reaches index.html's mount point too -- that was the 30px. The font rule
-    // is one such bare rule, which is what shows the search reads the file.
+    // A bare `#app` reaches index.html's mount point too -- that was the 30px. The rule that
+    // sets the font size is one such bare rule, which is what shows the search reads the file.
     const bare = [...app.matchAll(/(?:^|[{},])\s*#app\s*\{([^{}]*)\}/g)].map(([, body]) => body)
     expect(bare.length).toBeGreaterThan(0)
     expect(bare.filter((body) => /padding/.test(body))).toEqual([])

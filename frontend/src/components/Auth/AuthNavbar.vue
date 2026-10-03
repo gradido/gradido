@@ -71,7 +71,6 @@ const logo = computed(() =>
 }
 
 .auth-header {
-  font-family: 'Open Sans', sans-serif !important;
   height: 150px;
   z-index: 1;
 }

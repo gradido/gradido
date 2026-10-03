@@ -403,7 +403,7 @@ describe('RedeemThanksPaper', () => {
     it('is named only by the line that is set in it', () => {
       expect(css.match(/font-family:\s*Caveat,/g)).toHaveLength(1)
       const [, byHand] = css.match(/\.redeem-thanks-paper-line\.is-by-hand\s*\{([^}]*)\}/)
-      expect(byHand).toMatch(/font-family:\s*Caveat, sans-serif;/)
+      expect(byHand).toMatch(/font-family:\s*Caveat, 'Open Sans', sans-serif;/)
     })
 
     // The line that is not handwriting names no family at all: it is the page's.

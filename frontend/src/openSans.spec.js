@@ -7,10 +7,11 @@ import { fileURLToPath } from 'node:url'
 
 // Open Sans ships with the wallet, in three places that cannot import each other: the files
 // in public/fonts/open-sans/, the declaration in assets/fonts/open-sans/open-sans.css, and
-// the import in main.js that puts the declaration into the bundled stylesheet. And one rule
-// in App.vue decides where the font is seen at all. None of it fails loudly -- a face whose
+// the import in main.js that puts the declaration into the bundled stylesheet. And the pages
+// ask for it by the name _fonts.scss gives `body`. None of it fails loudly -- a face whose
 // file is missing just draws in the fallback, a declaration nobody imports just declares
-// nothing. So the places are held against each other.
+// nothing, a name nobody declares just draws every page in the fallback. So the places are
+// held against each other.
 
 // fileURLToPath is handed the string import.meta.url, never a URL object built here. The
 // test environment brings its own URL class, and node rejects an instance of it as coming
@@ -109,20 +110,33 @@ describe('the declaration of Open Sans', () => {
 })
 
 describe('where Open Sans is seen', () => {
-  const style = withoutComments(read('./App.vue').match(/<style>([\s\S]*?)<\/style>/)[1])
-  const bare = [...style.matchAll(/(?:^|[{},])\s*#app\s*\{([^{}]*)\}/g)].map(([, body]) => body)
+  const styles = [...read('./App.vue').matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map(
+    ([, body]) => withoutComments(body),
+  )
 
-  // The pages stand in the device's sans-serif; dialogs and toasts hang on `body` outside
-  // `#app` and stand in Open Sans. ⛔ Without this line the pages inherit Open Sans from
-  // `body` -- every page in every language a little wider, and no test would say so.
-  it('keeps the pages in the device font: #app asks for sans-serif, with !important', () => {
-    expect(bare.filter((body) => /font-family/.test(body))).toHaveLength(1)
-    expect(bare.find((body) => /font-family/.test(body))).toMatch(
-      /font-family:\s*sans-serif\s*!important\s*;/,
-    )
+  it('reads the style of App.vue', () => {
+    // The fixture proves itself: without it the assertions below would describe nothing.
+    expect(styles.join()).toMatch(/#app\s*\{/)
+  })
+
+  // The pages inherit their font from `body`, as dialogs and toasts do. A family on `#app`
+  // or anywhere in App.vue's style would take every page out of it again.
+  it('gives the pages no font of their own: no style in App.vue names a font-family', () => {
+    expect(styles.join()).not.toMatch(/font-family/)
   })
 
   it('declares no face of its own in App.vue', () => {
-    expect(style).not.toMatch(/@font-face/)
+    expect(styles.join()).not.toMatch(/@font-face/)
+  })
+
+  // _fonts.scss and the declaration do not import each other. If the name the pages ask for
+  // is not the name declared, the browser draws every page in the fallback, silently.
+  it('asks for the family the declaration declares', () => {
+    const fonts = read('./assets/scss/custom/gradido-custom/_fonts.scss').replace(/\/\/.*$/gm, '')
+    const asked = fonts.match(/^\$font-family-sans-serif:\s*([^,;]+)[,;]/m)?.[1].trim()
+    expect(fonts).toMatch(/^\$font-family-base:\s*\$font-family-sans-serif\s*;/m)
+    const declared = faces[0].family.replace(/^['"]|['"]$/g, '')
+    expect(declared).toBe('Open Sans')
+    expect(asked?.toLowerCase()).toBe(declared.toLowerCase())
   })
 })
