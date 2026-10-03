@@ -698,6 +698,26 @@ describe('ThankYouGreeting', () => {
         await settle()
         expect(step()).toBe('done')
       })
+
+      // What is thrown need not be an error -- a text, or nothing at all: the page still says
+      // something, and the button is free again.
+      it('says something and frees the button where what was thrown is no error', async () => {
+        answer.reject('the line is gone')
+        await settle()
+
+        expect(step()).toBe('preview')
+        expect(data('create-error').text()).toBe('the line is gone')
+        expect(data('finish').attributes('disabled')).toBeUndefined()
+      })
+
+      it('and stays usable where nothing at all was thrown', async () => {
+        answer.reject(undefined)
+        await settle()
+
+        expect(step()).toBe('preview')
+        expect(data('create-error').exists()).toBe(true)
+        expect(data('finish').attributes('disabled')).toBeUndefined()
+      })
     })
   })
 

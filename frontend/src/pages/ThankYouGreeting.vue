@@ -554,7 +554,7 @@ const { mutate: addPicture } = useMutation(addThankYouGreetingPicture)
 const createProblemWords = (error) => {
   if (error?.name === 'ChatImageError') return chatImageProblemWords(error.problem, t)
   if (chatImageRefusal(error) === 'IMAGE_NOT_ACCEPTED') return t('chatThread.imageNotAccepted')
-  return error.message
+  return error?.message ?? String(error)
 }
 
 /**
