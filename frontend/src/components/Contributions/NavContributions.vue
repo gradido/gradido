@@ -90,6 +90,19 @@ export default {
     line-height: 1.15;
     color: black !important;
     border-radius: 25px;
+
+    /* 8px at each side, for the active tab as for the others (it was 20px, from .btn and from
+       the active rule below): of a third of a phone, 42px were padding and border. */
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+
+  /* An icon keeps its size. Left to shrink, it gave way as soon as the word needed the room:
+     on a phone to a few pixels or to nothing, in every language. The gap to the word is the
+     tab's own (`--tab-icon-gap`), none where it is not set. */
+  :deep(.svg-icon) {
+    flex-shrink: 0;
+    margin-right: var(--tab-icon-gap, 0);
   }
 }
 
@@ -101,11 +114,27 @@ export default {
   background-color: rgb(23 141 129);
   color: white !important;
   font-weight: bold;
-  padding: 0.625rem 1.25rem;
+  padding: 0.625rem 8px;
   border-radius: 25px;
 }
 
 :deep(.router-link-active .svg-icon) {
   filter: brightness(0) invert(1);
+}
+
+/* On a phone the word stands under the icon in all three tabs, as in the tab bar of the
+   matching page (pages/Matching.vue) -- three tab bars, one form. The font size stays. The
+   icon stands in the middle there, so its gap to the word beside it does not apply. */
+@media (width <= 575.98px) {
+  .nav-contributions-btn-wrapper {
+    > :deep(*) {
+      flex-direction: column;
+      row-gap: 3px;
+    }
+
+    :deep(.svg-icon) {
+      margin-right: 0;
+    }
+  }
 }
 </style>
