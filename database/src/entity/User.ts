@@ -10,6 +10,7 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm'
+import { AccountState } from '../enum/AccountState'
 import { type Community as CommunityType } from './Community'
 import { type Contribution as ContributionType } from './Contribution'
 import { type ContributionMessage as ContributionMessageType } from './ContributionMessage'
@@ -249,6 +250,16 @@ export class User extends BaseEntity {
 
   @Column({ name: 'humhub_allowed', type: 'bool', default: false })
   humhubAllowed: boolean
+
+  // Where the account stands, as one value (migration 0148). ⛔ Append only - see AccountState.
+  @Column({
+    name: 'account_state',
+    type: 'enum',
+    enum: AccountState,
+    default: AccountState.REGISTERED,
+    nullable: false,
+  })
+  accountState: AccountState
 
   @OneToMany(
     () => require('./Contribution').Contribution,

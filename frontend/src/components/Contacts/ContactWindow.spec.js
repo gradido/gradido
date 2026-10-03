@@ -76,6 +76,11 @@ vi.mock('@vue/apollo-composable', () => ({
  * it reached the person. Its own spec is about how; here a test decides.
  */
 const threadDelivers = vi.fn()
+/**
+ * What the thread's `edit` answers for a changed video invitation (ChatThread, exposed, E-060):
+ * '' where the change went through, else what the problem was. Here a test decides.
+ */
+const threadEdits = vi.fn()
 
 const toastSuccess = vi.fn()
 const toastError = vi.fn()
@@ -116,12 +121,15 @@ const STRANGER = {
  */
 let threadsMade = []
 
+/** The thread's steps between hits, as the window's arrows ask for them (E-057). */
+let searchSteps = []
+
 describe('ContactWindow', () => {
   let wrapper
 
-  const mountWindow = (contact = CONTACT) => {
+  const mountWindow = (contact = CONTACT, extra = {}) => {
     wrapper = mount(ContactWindow, {
-      props: { modelValue: true, contact },
+      props: { modelValue: true, contact, ...extra },
       global: {
         mocks: {
           $t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key),
@@ -152,6 +160,9 @@ describe('ContactWindow', () => {
           IMdiCheck: true,
           IMdiServerOutline: true,
           IMdiCalendarPlusOutline: true,
+          IMdiMagnify: true,
+          IMdiChevronUp: true,
+          IMdiChevronDown: true,
           // The thread reads the server; its own spec is about that. Here it only has to say
           // whom it was made for, count how often it was made, and take a video invitation
           // (`deliver`, which the real one exposes) for whom it was made. And it takes the
@@ -159,8 +170,15 @@ describe('ContactWindow', () => {
           // does (ChatMessageText), so that a test can click an invitation's link through it.
           ChatThread: {
             name: 'ChatThread',
-            props: { member: Object, alias: String, memberKey: String },
-            emits: ['chatConversation'],
+            props: {
+              member: Object,
+              alias: String,
+              memberKey: String,
+              greeting: String,
+              textOnly: Boolean,
+              search: String,
+            },
+            emits: ['chatConversation', 'search', 'duplicateVideo', 'editVideo', 'forwardMessage'],
             inject: { join: { from: CHAT_VIDEO_JOIN, default: null } },
             mounted() {
               threadsMade.push(this.member.gradidoID)
@@ -169,9 +187,24 @@ describe('ContactWindow', () => {
               deliver(message) {
                 return threadDelivers(message, this.member.gradidoID)
               },
+              edit(changed) {
+                return threadEdits(changed, this.member.gradidoID)
+              },
+              searchStep(direction) {
+                searchSteps.push(direction)
+              },
             },
             template:
-              '<div data-test="chat-thread" :data-who="member.gradidoID" :data-community="String(member.communityUuid)" :data-alias="alias" :data-key="memberKey" />',
+              '<div data-test="chat-thread" :data-who="member.gradidoID" :data-community="String(member.communityUuid)" :data-alias="alias" :data-key="memberKey" :data-greeting="greeting" :data-text-only="String(textOnly)" :data-search="search" />',
+          },
+          // The dialog reads the server and has a spec of its own; here it says what it was
+          // opened with.
+          ChatForwardDialog: {
+            name: 'ChatForwardDialog',
+            props: { modelValue: Boolean, message: Object, writer: String },
+            emits: ['update:modelValue'],
+            template:
+              '<div data-test="chat-forward" :data-open="String(modelValue)" :data-message="message?.messageUuid ?? \'\'" :data-writer="writer" />',
           },
           AppAvatar: {
             props: ['initials'],
@@ -194,9 +227,11 @@ describe('ContactWindow', () => {
     serverRooms.mockReset()
     serverChoices.mockReset()
     threadDelivers.mockReset()
+    threadEdits.mockReset()
     toastSuccess.mockClear()
     toastError.mockClear()
     threadsMade = []
+    searchSteps = []
     vi.restoreAllMocks()
   })
 
@@ -207,6 +242,180 @@ describe('ContactWindow', () => {
   }
   const bell = () => wrapper.find('[data-test="contact-window-bell"]')
   const sendButton = () => wrapper.find('[data-test="contact-window-send"]')
+
+  /**
+   * E-057 (Bernd, 30.09.2026): the magnifier by the cross opens the search bar; what is typed goes
+   * to the thread, what it found comes back into the bar, and ↑ and ↓ step in it. Esc closes the
+   * search and leaves the window open; the next person begins unsearched.
+   */
+  describe('the search', () => {
+    const magnifier = () => wrapper.find('[data-test="contact-window-search"]')
+    const field = () => wrapper.find('[data-test="chat-search-field"]')
+    const thread = () => wrapper.find('[data-test="chat-thread"]')
+
+    it('opens with the magnifier by the cross, and hands what is typed to the thread', async () => {
+      mountWindow()
+      const top = wrapper.find('.contact-window-top')
+      expect(top.find('[data-test="contact-window-search"]').exists()).toBe(true)
+      expect(magnifier().attributes('aria-label')).toBe('chatSearch.open')
+      expect(magnifier().attributes('aria-pressed')).toBe('false')
+
+      await magnifier().trigger('click')
+      expect(magnifier().attributes('aria-pressed')).toBe('true')
+      await field().setValue('Bank')
+      expect(thread().attributes('data-search')).toBe('Bank')
+    })
+
+    it('shows what the thread found, and steps through it', async () => {
+      mountWindow()
+      await magnifier().trigger('click')
+      await field().setValue('Bank')
+      await wrapper
+        .findComponent({ name: 'ChatThread' })
+        .vm.$emit('search', { searching: true, count: 3, current: 3, busy: false, capped: false })
+      expect(wrapper.find('[data-test="chat-search-count"]').text()).toBe(
+        'chatSearch.count {"current":3,"count":3}',
+      )
+      await wrapper.find('[data-test="chat-search-older"]').trigger('click')
+      await field().trigger('keydown', { key: 'Enter' })
+      expect(searchSteps).toEqual([-1, -1])
+    })
+
+    it('closes on Esc and leaves the window open', async () => {
+      mountWindow()
+      await magnifier().trigger('click')
+      await field().setValue('Bank')
+      await field().trigger('keydown', { key: 'Escape' })
+      expect(wrapper.find('[data-test="chat-search"]').exists()).toBe(false)
+      expect(thread().attributes('data-search')).toBe('')
+      expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+    })
+
+    it('closes with the magnifier again', async () => {
+      mountWindow()
+      await magnifier().trigger('click')
+      await magnifier().trigger('click')
+      expect(wrapper.find('[data-test="chat-search"]').exists()).toBe(false)
+      expect(magnifier().attributes('aria-pressed')).toBe('false')
+    })
+
+    // The field goes away with the bar: the keyboard goes back to the magnifier, not nowhere.
+    it('gives the keyboard back to the magnifier when the search closes', async () => {
+      mountWindow()
+      await magnifier().trigger('click')
+      const focused = vi.spyOn(magnifier().element, 'focus')
+      await field().trigger('keydown', { key: 'Escape' })
+      await flushPromises()
+      expect(focused).toHaveBeenCalled()
+    })
+
+    it('begins unsearched for another person, and after closing', async () => {
+      mountWindow()
+      await magnifier().trigger('click')
+      await field().setValue('Bank')
+      await wrapper.setProps({ contact: STRANGER })
+      expect(wrapper.find('[data-test="chat-search"]').exists()).toBe(false)
+      expect(thread().attributes('data-search')).toBe('')
+
+      await magnifier().trigger('click')
+      await field().setValue('Bank')
+      await wrapper.setProps({ modelValue: false })
+      await wrapper.setProps({ modelValue: true })
+      expect(wrapper.find('[data-test="chat-search"]').exists()).toBe(false)
+    })
+
+    // The first form (E-055) has nothing to search yet: the magnifier comes with the conversation.
+    it('has no magnifier in the first form', async () => {
+      mountWindow(
+        { user: { ...CONTACT.user }, homeCommunity: true },
+        { greet: true, firstContact: true },
+      )
+      expect(magnifier().exists()).toBe(false)
+      await threadSays({ exists: true, mutedByMe: false })
+      expect(magnifier().exists()).toBe(true)
+    })
+  })
+
+  /**
+   * E-055 (Bernd, 30.09.2026): opened from a group, a first word is one tap on the arrow --
+   * "Hallo …" in the field where the two have never written. For somebody who is no contact yet
+   * the window's first form: only the text, until the first message makes them a contact.
+   */
+  describe("the window's first form, and the greeting", () => {
+    // A member of a group as the page hands them over: the pair and the name, no figures.
+    const MEMBER = { user: { ...CONTACT.user }, homeCommunity: true }
+    const thread = () => wrapper.find('[data-test="chat-thread"]')
+    const marks = () =>
+      ['contact-window-video', 'contact-window-bell', 'heart'].filter((hook) =>
+        wrapper.find(`[data-test="${hook}"]`).exists(),
+      )
+
+    it('offers only the text to somebody who is no contact yet, "Hallo …" in the field', async () => {
+      mountWindow(MEMBER, { greet: true, firstContact: true })
+
+      expect(wrapper.find('[data-test="contact-window-name"]').text()).toBe('Carla-Sonne')
+      expect(wrapper.find('[data-test="contact-window-community"]').text()).toBe('Gradido-Akademie')
+      // No meta line either: no figures can come before the first message (and its reserved
+      // height stood as an empty band under the head).
+      expect(wrapper.find('[data-test="contact-window-meta"]').exists()).toBe(false)
+      expect(sendButton().exists()).toBe(false)
+      expect(marks()).toEqual([])
+      expect(thread().attributes('data-text-only')).toBe('true')
+      expect(thread().attributes('data-greeting')).toBe(
+        'chatThread.firstContactGreeting {"name":"Carla-Sonne"}',
+      )
+
+      // The thread found no conversation: still only the text, and nothing to say.
+      await threadSays({ exists: false, mutedByMe: false })
+      expect(sendButton().exists()).toBe(false)
+      expect(marks()).toEqual([])
+      expect(wrapper.emitted('contactMade')).toBeUndefined()
+    })
+
+    it('becomes the whole window with the first message, and says so once', async () => {
+      mountWindow(MEMBER, { greet: true, firstContact: true })
+      await threadSays({ exists: false, mutedByMe: false })
+
+      await threadSays({ exists: true, mutedByMe: false })
+      expect(sendButton().exists()).toBe(true)
+      expect(wrapper.find('[data-test="contact-window-meta"]').exists()).toBe(true)
+      expect(marks()).toEqual(['contact-window-video', 'contact-window-bell', 'heart'])
+      expect(thread().attributes('data-text-only')).toBe('false')
+      expect(wrapper.emitted('contactMade')).toHaveLength(1)
+
+      await threadSays({ exists: true, mutedByMe: true })
+      expect(wrapper.emitted('contactMade')).toHaveLength(1)
+    })
+
+    // The page's list was behind: the two have written already. The whole window at once, and the
+    // page is told, so that it puts the server's row in.
+    it('is the whole window at once where a conversation is there already', async () => {
+      mountWindow(MEMBER, { greet: true, firstContact: true })
+      await threadSays({ exists: true, mutedByMe: false })
+
+      expect(sendButton().exists()).toBe(true)
+      expect(wrapper.emitted('contactMade')).toHaveLength(1)
+    })
+
+    it('greets from a group a contact too, in the whole window', async () => {
+      mountWindow(CONTACT, { greet: true })
+
+      expect(sendButton().exists()).toBe(true)
+      expect(thread().attributes('data-text-only')).toBe('false')
+      expect(thread().attributes('data-greeting')).toBe(
+        'chatThread.firstContactGreeting {"name":"Carla-Sonne"}',
+      )
+      await threadSays({ exists: true, mutedByMe: false })
+      expect(wrapper.emitted('contactMade')).toBeUndefined()
+    })
+
+    it('greets nobody opened from anywhere else', () => {
+      mountWindow()
+
+      expect(thread().attributes('data-greeting')).toBe('')
+      expect(thread().attributes('data-text-only')).toBe('false')
+    })
+  })
 
   it('names the person, their community and their face', () => {
     mountWindow()
@@ -432,6 +641,46 @@ describe('ContactWindow', () => {
     it('draws no origin line for a value it does not know', () => {
       mountWindow({ ...CONTACT, bookings: 0, origin: 'SOMETHING_NEW' })
       expect(wrapper.find('[data-test="contact-window-origin"]').exists()).toBe(false)
+    })
+  })
+
+  // E-059, and Bernd on 01.10.2026: outside the contacts page "Weiterleiten" did nothing -- only
+  // that page listened for it. The window asks where to itself, whoever opened it.
+  describe('forwarding a message of its thread', () => {
+    const dialog = () => wrapper.find('[data-test="chat-forward"]')
+    const message = { id: 3, messageUuid: 'uuid-3', body: 'Flohmarkt' }
+
+    it('asks where to in a dialog over itself, naming its person as the writer', async () => {
+      mountWindow()
+      expect(dialog().attributes('data-open')).toBe('false')
+
+      await wrapper.findComponent({ name: 'ChatThread' }).vm.$emit('forwardMessage', message)
+
+      expect(dialog().attributes()).toMatchObject({
+        'data-open': 'true',
+        'data-message': 'uuid-3',
+        'data-writer': wrapper.find('[data-test="chat-thread"]').attributes('data-alias'),
+      })
+      expect(dialog().attributes('data-writer')).not.toBe('')
+    })
+
+    it('hands nothing up: nobody around the window has to listen', async () => {
+      mountWindow()
+      await wrapper.findComponent({ name: 'ChatThread' }).vm.$emit('forwardMessage', message)
+      expect(wrapper.emitted('forwardMessage')).toBeUndefined()
+    })
+
+    it('closes the dialog when it says so, and opens it again for another message', async () => {
+      mountWindow()
+      const thread = wrapper.findComponent({ name: 'ChatThread' })
+      await thread.vm.$emit('forwardMessage', message)
+      await wrapper
+        .findComponent({ name: 'ChatForwardDialog' })
+        .vm.$emit('update:modelValue', false)
+      expect(dialog().attributes('data-open')).toBe('false')
+
+      await thread.vm.$emit('forwardMessage', { ...message, messageUuid: 'uuid-4' })
+      expect(dialog().attributes()).toMatchObject({ 'data-open': 'true', 'data-message': 'uuid-4' })
     })
   })
 
@@ -2125,6 +2374,225 @@ describe('ContactWindow', () => {
         await field('plan').trigger('click')
         await flushPromises()
       }
+
+      /**
+       * E-060 (Bernd, 01.10.2026): "Bearbeiten" at a video invitation of one's own in the thread.
+       * The thread hands the message and what it says to the window; the window opens the
+       * question on it, and the question changes the message through the window's thread. What
+       * the dialog does with it is ChatVideoCall.edit.spec.js's; here: that the window joins the
+       * three together, with the real question.
+       */
+      describe('an invitation changed', () => {
+        const INVITATION = {
+          room: SYSTEMLI.url,
+          topic: 'Lesekreis',
+          when: { start: START, end: END },
+          operator: SYSTEMLI.operator,
+          revision: null,
+        }
+        const handedOver = async () => {
+          mountWindow()
+          await threadSays({ exists: true, mutedByMe: false })
+          await wrapper
+            .findComponent({ name: 'ChatThread' })
+            .vm.$emit('editVideo', { message: { messageUuid: 'uuid-7' }, invitation: INVITATION })
+          await flushPromises()
+        }
+
+        it('opens the question on the invitation, to be saved and not planned', async () => {
+          await handedOver()
+
+          expect(dialog().exists()).toBe(true)
+          expect(dialog().attributes('aria-label')).toBe('chatThread.videoEditTitle')
+          expect(field('edit-topic').element.value).toBe('Lesekreis')
+          expect(field('edit-save').exists()).toBe(true)
+          expect(field('plan').exists()).toBe(false)
+          // The invitation's own room: no list of servers and no room is asked for.
+          expect(serverChoices).not.toHaveBeenCalled()
+          expect(serverRooms).not.toHaveBeenCalled()
+        })
+
+        it('changes the message through its own thread, and closes', async () => {
+          threadEdits.mockResolvedValue('')
+          await handedOver()
+          await field('edit-topic').setValue('Lesekreis „Momo“')
+
+          await field('edit-save').trigger('click')
+          await flushPromises()
+
+          expect(threadEdits).toHaveBeenCalledTimes(1)
+          const [changed, who] = threadEdits.mock.calls[0]
+          expect(who).toBe('carla-id')
+          expect(changed.messageUuid).toBe('uuid-7')
+          // The invitation's words anew: the new topic, in the room it always had.
+          expect(changed.body).toContain('chatThread.videoInvitePlannedTopic')
+          expect(changed.body).toContain(JSON.stringify('Lesekreis „Momo“').slice(1, -1))
+          expect(changed.body).toContain(`${SYSTEMLI.url}#config.subject=`)
+          // Only the topic changed: no message follows.
+          expect(threadDelivers).not.toHaveBeenCalled()
+          expect(dialog().exists()).toBe(false)
+        })
+
+        it('says in the dialog where the thread could not change it', async () => {
+          threadEdits.mockResolvedValue('NOT_CONFIRMED')
+          await handedOver()
+          await field('edit-topic').setValue('Anderes Thema')
+
+          await field('edit-save').trigger('click')
+          await flushPromises()
+
+          expect(field('settings-problem').text()).toBe(
+            'chatThread.editNotConfirmed {"name":"Carla-Sonne"}',
+          )
+          expect(dialog().exists()).toBe(true)
+        })
+      })
+
+      /**
+       * E-058 (Bernd, 30.09.2026): "Duplizieren" under an invitation in the thread -- the question
+       * with its topic and its ROOM, the same link; a planned one on the gear's view, the same
+       * weekday and time a week on. Another server chosen there is another room.
+       */
+      describe('a duplicated invitation', () => {
+        const duplicated = async (invitation) => {
+          mountWindow()
+          await threadSays({ exists: true, mutedByMe: false })
+          await wrapper.findComponent({ name: 'ChatThread' }).vm.$emit('duplicateVideo', invitation)
+          await flushPromises()
+        }
+
+        beforeEach(() => {
+          vi.useFakeTimers({ toFake: ['Date'] })
+          vi.setSystemTime(new Date('2026-09-30T12:00:00.000Z'))
+        })
+        afterEach(() => {
+          vi.useRealTimers()
+        })
+
+        it("opens a planned one on the gear, its room's server chosen, a week on", async () => {
+          threadDelivers.mockResolvedValue(true)
+          await duplicated({ room: SYSTEMLI.url, topic: 'Lesekreis', start: START, end: END })
+
+          expect(dialog().exists()).toBe(true)
+          expect(field('day').element.value).toBe('2026-10-07')
+          expect(field('from').element.value).toBe('15:00')
+          expect(field('to').element.value).toBe('16:00')
+          expect(field('server').element.value).toBe('2')
+
+          await plan()
+          expect(serverRooms).not.toHaveBeenCalled()
+          const next = {
+            start: new Date('2026-10-07T15:00:00.000Z'),
+            end: new Date('2026-10-07T16:00:00.000Z'),
+          }
+          expect(threadDelivers.mock.calls[0][0].body).toContain(
+            withChatVideoTopic(SYSTEMLI.url, 'Lesekreis', next),
+          )
+          expect(threadDelivers.mock.calls[0][0].body).toContain('Systemli')
+        })
+
+        it('opens a call now on the question with its topic, and starts it in the same room', async () => {
+          browserOpens()
+          threadDelivers.mockResolvedValue(true)
+          await duplicated({ room: ROOM.url, topic: 'Stammtisch', start: null, end: null })
+
+          expect(topicField().element.value).toBe('Stammtisch')
+          expect(field('day').exists()).toBe(false)
+          await start()
+          expect(serverRooms).not.toHaveBeenCalled()
+          const address = withChatVideoTopic(ROOM.url, 'Stammtisch')
+          expect(threadDelivers.mock.calls[0][0].body).toContain(address)
+          expect(room.location.href).toBe(address)
+        })
+
+        it('asks for another room where another server is chosen', async () => {
+          serverRooms.mockResolvedValue({ data: { chatVideoRoom: ROOM } })
+          await duplicated({ room: SYSTEMLI.url, topic: 'Lesekreis', start: START, end: END })
+          expect(serverRooms).not.toHaveBeenCalled()
+          await field('server').setValue('1')
+          await flushPromises()
+          expect(serverRooms).toHaveBeenCalledTimes(1)
+        })
+
+        // The room's server is not in the list (taken out since): the room stays, no server is
+        // chosen, and the invitation names the host.
+        it('keeps a room on a server the list does not have, and names its host', async () => {
+          browserOpens()
+          threadDelivers.mockResolvedValue(true)
+          const elsewhere = 'https://meet.example.org/abc123def456'
+          await duplicated({ room: elsewhere, topic: 'Stammtisch', start: null, end: null })
+          await start()
+          expect(serverRooms).not.toHaveBeenCalled()
+          expect(threadDelivers.mock.calls[0][0].body).toContain('"operator":"meet.example.org"')
+          expect(threadDelivers.mock.calls[0][0].body).toContain(
+            withChatVideoTopic(elsewhere, 'Stammtisch'),
+          )
+        })
+
+        it("leaves the member's own choice of server as it was", async () => {
+          await duplicated({ room: ROOM.url, topic: 'Stammtisch', start: null, end: null })
+          expect(localStorage.getItem(KEY)).toBe('2')
+        })
+
+        /**
+         * The room is set once the list of servers is in -- for the question it was duplicated
+         * into, while that is open (coderabbit, #4026). Another room on the member's own server,
+         * to tell a room asked afresh from the invitation's.
+         */
+        describe('while the list is still on its way', () => {
+          const FRESH = { ...SYSTEMLI, url: 'https://meet.systemli.org/n3w4r5o6o7m8' }
+          const invitation = { room: SYSTEMLI.url, topic: 'Lesekreis', start: null, end: null }
+          let list
+          beforeEach(() => {
+            list = held()
+            serverChoices.mockReturnValueOnce(list.promise)
+            serverRooms.mockResolvedValue({ data: { chatVideoRoom: FRESH } })
+            threadDelivers.mockResolvedValue(true)
+            browserOpens()
+          })
+
+          it('gives the room to a start pressed before the list is in', async () => {
+            await duplicated(invitation)
+            inDialog('start').element.click()
+            await flushPromises()
+            list.release({ data: { chatVideoServerChoices: CHOICES } })
+            await flushPromises()
+
+            expect(serverRooms).not.toHaveBeenCalled()
+            const address = withChatVideoTopic(SYSTEMLI.url, 'Lesekreis')
+            expect(threadDelivers.mock.calls[0][0].body).toContain(address)
+            expect(room.location.href).toBe(address)
+          })
+
+          it('lets the room go with a question closed before the list came in', async () => {
+            await duplicated(invitation)
+            await inDialog('cancel').trigger('click')
+            list.release({ data: { chatVideoServerChoices: CHOICES } })
+            await flushPromises()
+
+            await camera().trigger('click')
+            await flushPromises()
+            await start()
+            expect(serverRooms.mock.calls[0][0].variables).toEqual({ serverId: 2 })
+            expect(threadDelivers.mock.calls[0][0].body).toContain(FRESH.url)
+            expect(threadDelivers.mock.calls[0][0].body).not.toContain(SYSTEMLI.url)
+          })
+
+          it('leaves a question asked meanwhile from the camera to its own room', async () => {
+            await duplicated(invitation)
+            await inDialog('cancel').trigger('click')
+            await camera().trigger('click')
+            await flushPromises()
+            list.release({ data: { chatVideoServerChoices: CHOICES } })
+            await flushPromises()
+
+            await start()
+            expect(serverRooms).toHaveBeenCalledTimes(1)
+            expect(threadDelivers.mock.calls[0][0].body).toContain(FRESH.url)
+            expect(threadDelivers.mock.calls[0][0].body).not.toContain(SYSTEMLI.url)
+          })
+        })
+      })
 
       it('offers a day, a start and an end under the server, each named, empty', async () => {
         await inSettings()

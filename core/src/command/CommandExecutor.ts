@@ -58,9 +58,13 @@ export class CommandExecutor {
           })}`,
         )
       }
+      // The key the envelope was opened with: interpretEncryptedTransferArgs found the requesting
+      // community by it and verified the command with that community's key. A command that checks
+      // who it comes from compares against it (EditChatMessageCommand).
       const command = CommandFactory.getInstance().createCommand(
         commandArgs.commandName,
         commandArgs.commandArgs,
+        encryptedArgs.publicKey,
       )
       if (methodLogger.isDebugEnabled()) {
         methodLogger.debug(`executeEncryptedCommand() command=${JSON.stringify(command)}`)

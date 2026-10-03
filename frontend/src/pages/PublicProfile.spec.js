@@ -162,9 +162,9 @@ describe('PublicProfile', () => {
     expect(join.attributes('href')).toBe('/register?referrer=bernd')
   })
 
-  // E-017: the table code in the link of a live card goes on to the registration together with
+  // E-017: the guarantor code in the link of a live card goes on to the registration together with
   // the name it is sealed for. The page itself checks nothing about it (PS-011).
-  it('hands a table code on to the registration, with the name', async () => {
+  it('hands a guarantor code on to the registration, with the name', async () => {
     const wrapper = await wrapperFor('bernd', { presence: '1790000600.seal-AAAA_BBBB' })
 
     const join = new URL(
@@ -223,6 +223,19 @@ describe('PublicProfile', () => {
       '/register',
     )
     expect(wrapper.find('[data-test="public-profile-echo-hint"]').exists()).toBe(false)
+  })
+
+  // A reserved word has the shape of a user name, but nobody may hold it: carried along, the
+  // server would refuse the whole registration over it.
+  it('carries nothing along and promises nothing where the address holds a reserved word', async () => {
+    for (const reserved of ['admin', 'Support']) {
+      const wrapper = await wrapperFor(reserved)
+
+      expect(wrapper.find('[data-test="public-profile-register"]').attributes('href')).toBe(
+        '/register',
+      )
+      expect(wrapper.find('[data-test="public-profile-echo-hint"]').exists()).toBe(false)
+    }
   })
 
   /**

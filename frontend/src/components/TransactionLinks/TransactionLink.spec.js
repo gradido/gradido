@@ -27,11 +27,17 @@ vi.mock('@/composables/useToast', () => ({
 }))
 
 const mockShare = vi.fn()
+// What the row hands the composable is kept: a stand-in that takes anything would agree to a
+// row that forgot to hand the greeting on.
+const mockUseCopyLinks = vi.fn()
 vi.mock('@/composables/useCopyLinks', () => ({
-  useCopyLinks: () => ({
-    copyLink: vi.fn(),
-    share: (...args) => mockShare(...args),
-  }),
+  useCopyLinks: (link) => {
+    mockUseCopyLinks(link)
+    return {
+      copyLink: vi.fn(),
+      share: (...args) => mockShare(...args),
+    }
+  },
 }))
 
 const mockDownloadThankYouCheque = vi.fn()
@@ -74,6 +80,17 @@ describe('TransactionLink.vue', () => {
         qrCode: 'QR Code',
         delete: 'Delete',
         'thank-you-cheque': { download: 'Download cheque' },
+        'thank-you-greeting': {
+          name: 'Thank-you greeting',
+          list: { for: 'Thank-you greeting for {name}' },
+          motif: {
+            'heart-leaves': 'Heart and leaves',
+            'giving-hands': 'Giving hands',
+            bouquet: 'Bouquet',
+            'glowing-swirl': 'Glowing swirl',
+            'morning-light': 'Morning light',
+          },
+        },
         gdd_per_link: {
           'copy-link': 'Copy Link',
           share: 'Share',
@@ -283,6 +300,96 @@ describe('TransactionLink.vue', () => {
     it('stands on the list without a surface of its own', () => {
       expect(wrapper.classes()).toContain('transaction-link')
       expect(wrapper.classes()).not.toContain('gradido-custom-background')
+    })
+  })
+
+  // A thank-you greeting is a link with a motif and a name: the list says so in the block of
+  // the memo, and leaves the row above it as it is.
+  describe('a thank-you greeting', () => {
+    const GREETING = { motif: 'morning-light', line: 'Just because', recipientName: 'Sarah' }
+    const MEMO = 'Just because\nDear Sarah, thank you.'
+    const mark = () => wrapper.find('[data-test="link-greeting"]')
+
+    it('is marked above its memo: the motif small, and whom it is for', () => {
+      mountLink({ greeting: GREETING, memo: MEMO })
+
+      expect(mark().find('[data-test="link-greeting-label"]').text()).toBe(
+        'Thank-you greeting for Sarah',
+      )
+      const motif = mark().find('img')
+      expect(motif.attributes('src')).toBe('/img/thank-you-greeting/morning-light.svg')
+      expect(motif.attributes('alt')).toBe('Morning light')
+      // In the memo's block, right above the memo.
+      const memoCol = wrapper.find('.transaction-link-memo-col')
+      expect([...memoCol.element.children].map((child) => child.className)).toEqual([
+        'transaction-link-greeting',
+        'transaction-link-memo',
+      ])
+    })
+
+    it('is marked without a name where it names nobody', () => {
+      for (const recipientName of [null, '']) {
+        mountLink({ greeting: { ...GREETING, recipientName }, memo: MEMO })
+
+        expect(mark().find('[data-test="link-greeting-label"]').text()).toBe('Thank-you greeting')
+      }
+    })
+
+    it('keeps its mark without a picture where this wallet does not know the motif', () => {
+      mountLink({ greeting: { ...GREETING, motif: 'sunset' }, memo: MEMO })
+
+      expect(mark().find('img').exists()).toBe(false)
+      expect(mark().text()).toBe('Thank-you greeting for Sarah')
+    })
+
+    it('shows its memo under the mark as every link does, whole', () => {
+      mountLink({ greeting: GREETING, memo: MEMO })
+
+      expect(wrapper.find('[data-test="link-memo"]').text()).toContain('Dear Sarah, thank you.')
+      expect(wrapper.find('[data-test="link-memo"]').text()).toContain('Just because')
+    })
+
+    // ⛔ Bernd's decisions of 12., 22. and 23.09.2026 stand in the notes of the row: one line at
+    // every width, no picture and no circle before it.
+    it('leaves the row above as it is: state, amount, menu -- no picture among them', () => {
+      mountLink()
+      const plain = [...wrapper.find('.transaction-link-row').element.children]
+        .slice(0, 4)
+        .map((child) => child.outerHTML)
+
+      mountLink({ greeting: GREETING })
+      const greeted = [...wrapper.find('.transaction-link-row').element.children]
+        .slice(0, 4)
+        .map((child) => child.outerHTML)
+
+      expect(greeted).toEqual(plain)
+      expect(greeted.join('')).not.toContain('<img')
+    })
+
+    it('shares with the greeting’s own sentence: the row hands the greeting to the composable', () => {
+      mockUseCopyLinks.mockClear()
+      mountLink({ greeting: GREETING, memo: MEMO })
+
+      expect(mockUseCopyLinks).toHaveBeenCalledTimes(1)
+      expect(mockUseCopyLinks.mock.calls[0][0]).toMatchObject({
+        link: 'https://example.com/link',
+        memo: MEMO,
+        greeting: GREETING,
+      })
+    })
+  })
+
+  describe('a plain link', () => {
+    it('has no mark, and is handed on as no greeting', () => {
+      mockUseCopyLinks.mockClear()
+      mountLink()
+
+      expect(wrapper.find('[data-test="link-greeting"]').exists()).toBe(false)
+      expect([...wrapper.find('.transaction-link-memo-col').element.children]).toHaveLength(1)
+      expect(mockUseCopyLinks.mock.calls[0][0].greeting).toBeNull()
+
+      mountLink({ greeting: null })
+      expect(wrapper.find('[data-test="link-greeting"]').exists()).toBe(false)
     })
   })
 

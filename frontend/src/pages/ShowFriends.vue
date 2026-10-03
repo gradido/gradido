@@ -33,10 +33,10 @@
           <!-- A code, or the way back to one after a failed fetch, a request that hangs or a
                full limit. Where the server has no code for this member there is neither: the
                card, without a word. -->
-          <div v-if="presence || noAnswer" class="mt-3" data-test="show-friends-presence">
-            <p v-if="presence?.code" class="mb-2" data-test="show-friends-valid-for">
+          <div v-if="guarantor || noAnswer" class="mt-3" data-test="show-friends-guarantor">
+            <p v-if="guarantor?.code" class="mb-2" data-test="show-friends-valid-for">
               {{
-                presenceExpired
+                guarantorExpired
                   ? $t('showFriends.here.expired')
                   : $t('showFriends.here.validFor', minutesLeft)
               }}
@@ -50,7 +50,7 @@
               {{ $t('showFriends.here.newCode') }}
             </BButton>
             <p
-              v-if="presence?.code"
+              v-if="guarantor?.code"
               class="door-hint small mt-2 mb-0"
               data-test="show-friends-code-hint"
             >
@@ -68,7 +68,7 @@
             </p>
             <!-- ZE-013: the guest without a phone of their own opens the account on this device.
                  Only under a code that is still good - it is that code the form opens with. -->
-            <template v-if="presence?.code && !presenceExpired">
+            <template v-if="guarantor?.code && !guarantorExpired">
               <BButton
                 variant="link"
                 class="p-0 mt-3"
@@ -172,15 +172,26 @@
           <strong>{{ $t('showFriends.away.thanks') }}</strong>
           {{ $t('showFriends.away.thanksText') }}
         </p>
-        <!-- Until the thank-you greeting has a form of its own, the thank-you is a link: the
-             send form, opened on its link, cheque and QR tab. -->
+        <!-- The thank-you greeting: a picture, a few words, a link to share (ZE-017, F1). -->
         <BButton
           variant="gradido"
-          :to="{ path: '/send', query: { art: SEND_TYPES.link } }"
+          class="door-greeting"
+          to="/thank-you-greeting"
           data-test="show-friends-thanks"
         >
-          {{ $t('send_per_link') }}
+          {{ $t('thank-you-greeting.entry.write') }}
         </BButton>
+        <!-- The plain way stays beside it, quietly: the send form on its link, cheque and QR
+             tab. -->
+        <div class="mt-2">
+          <BLink
+            class="door-plain small"
+            :to="{ path: '/send', query: { art: SEND_TYPES.link } }"
+            data-test="show-friends-plain-link"
+          >
+            {{ $t('thank-you-greeting.entry.plain') }}
+          </BLink>
+        </div>
 
         <template v-if="alias">
           <p class="small mt-4 mb-2">{{ $t('showFriends.away.addressLead') }}</p>
@@ -212,13 +223,13 @@
  * with two ways. The first is open on arrival, because the table is the usual case and every
  * tap between deciding and holding up the code is one too many.
  *
- * ## The first door is the member's own card, with a table code in its link
+ * ## The first door is the member's own card, with a guarantor code in its link
  *
  * The same address as the card page (`MyGradidoCard`), drawn by the same view. Whoever scans it
  * lands on the public page behind the address, which says who shows them Gradido and offers to
  * open an account.
  *
- * Here the link also carries a signed stamp, `?presence=` (E-017, ZE-012). The public page hands
+ * Here the link also carries a signed stamp, `?guarantor=` (E-017, ZE-012). The public page hands
  * it on to the registration, and whoever registers within ten minutes may choose a password
  * there and use the account at once. One code per guest is the button under it; the server
  * remembers none of them, it checks the seal and the clock. Once a code has run out it leaves
@@ -232,7 +243,7 @@
  *
  * Only a confirmed member vouches (E-018): an unconfirmed one does not ask and shows the card
  * with a sentence saying why. A member vouches for a limited number of guests who have not
- * confirmed (E-019, `PRESENCE_MAX_UNCONFIRMED` in the backend); they are listed under the code by
+ * confirmed (E-019, `GUARANTOR_LIMIT` in the backend); they are listed under the code by
  * name (E-020), folded to their number until the member taps it (ZE-014), and at the limit the
  * server mints no code - the card, the reason, the folded list, and the button to ask again.
  *
@@ -247,7 +258,7 @@
  * alone, with a sentence around it, handed to the device's share sheet.
  *
  * Nothing here is stored. The page reads the member's name from the store like the card page
- * does, and asks the server for nothing but the table code - and, for the guest without a phone,
+ * does, and asks the server for nothing but the guarantor code - and, for the guest without a phone,
  * to sign the member out.
  */
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
@@ -255,14 +266,14 @@ import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
 import { loadRouteLocation, useRouter } from 'vue-router'
 import { useMutation, useQuery } from '@vue/apollo-composable'
-import { BButton } from 'bootstrap-vue-next'
+import { BButton, BLink } from 'bootstrap-vue-next'
 import OwnCodeView from '@/components/QrCode/OwnCodeView'
 import GradidoAddressCopy from '@/components/GradidoAddressCopy'
 import { useAppToast } from '@/composables/useToast'
 import { useShowFriendsSeen } from '@/composables/useShowFriendsSeen'
 import CONFIG from '@/config'
 import { logout } from '@/graphql/mutations'
-import { presenceCode as presenceCodeQuery } from '@/graphql/presenceCode.graphql'
+import { guarantorCode as guarantorCodeQuery } from '@/graphql/guarantorCode.graphql'
 import { gradidoAddress, memberAlias } from '@/utils/gradidoAddress'
 import { SEND_TYPES } from '@/utils/sendTypes'
 import { shareText } from '@/utils/shareText'
@@ -302,26 +313,26 @@ const alias = computed(() => memberAlias(store.state.username, store.state.gradi
 const confirmed = computed(() => store.state.emailChecked !== false)
 
 /**
- * The table code, fresh on every visit (`network-only`: the query takes no argument, so a cached
+ * The guarantor code, fresh on every visit (`network-only`: the query takes no argument, so a cached
  * answer could be another member's, or a code long run out). The answer is null where the
  * server has no code for this member (no user name) -- an answer, not a failure.
  */
 const {
-  result: presenceResult,
-  error: presenceError,
-  loading: presenceLoading,
-  refetch: refetchPresence,
-} = useQuery(presenceCodeQuery, null, { fetchPolicy: 'network-only', enabled: confirmed })
+  result: guarantorResult,
+  error: guarantorError,
+  loading: guarantorLoading,
+  refetch: refetchGuarantor,
+} = useQuery(guarantorCodeQuery, null, { fetchPolicy: 'network-only', enabled: confirmed })
 
 // ⚠️ After a failed refetch the previous answer is still in `result` -- the error decides.
-const presence = computed(() =>
-  presenceError.value ? null : (presenceResult.value?.presenceCode ?? null),
+const guarantor = computed(() =>
+  guarantorError.value ? null : (guarantorResult.value?.guarantorCode ?? null),
 )
 
 // A failed refetch shows as the fallback card through `error`; the rejection itself is not news.
 const newCode = () => {
   askedAt.value = now.value
-  return refetchPresence()?.catch(() => {})
+  return refetchGuarantor()?.catch(() => {})
 }
 
 /**
@@ -339,10 +350,10 @@ const newCode = () => {
  * after the sign-out waits for no network, and the header is gone before the timer ticks again.
  */
 const noPhone = async () => {
-  const answer = await refetchPresence()?.catch(() => null)
-  const fresh = answer?.data?.presenceCode
+  const answer = await refetchGuarantor()?.catch(() => null)
+  const fresh = answer?.data?.guarantorCode
   if (!fresh?.code) return
-  const form = { path: '/register', query: { referrer: fresh.alias, presence: fresh.code } }
+  const form = { path: '/register', query: { referrer: fresh.alias, guarantor: fresh.code } }
   // Without the form - no connection - nobody is signed out, and the member can tap again.
   if (!(await loadRouteLocation(router.resolve(form)).catch(() => null))) return
   try {
@@ -375,7 +386,7 @@ onUnmounted(() => clearInterval(ticker))
 // that an answer already there when the page opens has its arrival too.
 const arrival = ref({ code: null, at: 0 })
 watch(
-  presence,
+  guarantor,
   (answer) => {
     if (answer?.code && answer.code !== arrival.value.code) {
       arrival.value = { code: answer.code, at: now.value }
@@ -384,14 +395,14 @@ watch(
   { immediate: true },
 )
 const msLeft = computed(() =>
-  presence.value?.code ? arrival.value.at + presence.value.remainingMs - now.value : 0,
+  guarantor.value?.code ? arrival.value.at + guarantor.value.remainingMs - now.value : 0,
 )
-const presenceExpired = computed(() => msLeft.value <= 0)
+const guarantorExpired = computed(() => msLeft.value <= 0)
 const minutesLeft = computed(() => Math.ceil(msLeft.value / 60000))
 
 // E-019: at the limit of unconfirmed guests the answer carries no code, only the guests (E-020).
-const limitReached = computed(() => !!presence.value && !presence.value.code)
-const unconfirmedGuests = computed(() => presence.value?.unconfirmedGuests ?? [])
+const limitReached = computed(() => !!guarantor.value && !guarantor.value.code)
+const unconfirmedGuests = computed(() => guarantor.value?.unconfirmedGuests ?? [])
 
 /**
  * ZE-014: the guests' names only on a tap, folded again on the next. Kept while the page stands -
@@ -411,7 +422,7 @@ const waitedTooLong = computed(() => now.value - openedAt >= FIRST_ANSWER_WAIT_M
 // An answer arrived, whatever it said. `null` is one of them - the server has no code for this
 // member - and it is the one case that gets the card without a word (E-017), so it has to be
 // told apart from "nothing came back yet".
-const answered = computed(() => presenceResult.value !== undefined)
+const answered = computed(() => guarantorResult.value !== undefined)
 
 /**
  * No code, and not because the server said so: the request failed, or the first one has been on
@@ -422,8 +433,8 @@ const answered = computed(() => presenceResult.value !== undefined)
 const noAnswer = computed(
   () =>
     confirmed.value &&
-    !presence.value &&
-    (!!presenceError.value || (waitedTooLong.value && !answered.value)),
+    !guarantor.value &&
+    (!!guarantorError.value || (waitedTooLong.value && !answered.value)),
 )
 
 /**
@@ -434,7 +445,7 @@ const noAnswer = computed(
  */
 const askedAt = ref(openedAt)
 const busy = computed(
-  () => presenceLoading.value && now.value - askedAt.value < FIRST_ANSWER_WAIT_MS,
+  () => guarantorLoading.value && now.value - askedAt.value < FIRST_ANSWER_WAIT_MS,
 )
 
 // No alias, no address: for the instant before the login answer has landed, an address built
@@ -456,16 +467,16 @@ const address = computed(() => (alias.value ? gradidoAddress(alias.value).link :
 const link = computed(() => {
   if (!alias.value) return ''
   if (!confirmed.value) return address.value
-  if (presence.value?.code) {
-    return presenceExpired.value
+  if (guarantor.value?.code) {
+    return guarantorExpired.value
       ? ''
-      : gradidoAddress(presence.value.alias, { presence: presence.value.code }).link
+      : gradidoAddress(guarantor.value.alias, { guarantor: guarantor.value.code }).link
   }
-  return answered.value || presenceError.value || waitedTooLong.value ? address.value : ''
+  return answered.value || guarantorError.value || waitedTooLong.value ? address.value : ''
 })
 
 // ⛔ The plain address, never the code's link: what is shared travels on and is read later, and
-// a shared link carries no table code (E-017).
+// a shared link carries no guarantor code (E-017).
 const addressText = computed(() => t('showFriends.away.shareText', { url: address.value }))
 
 /**
@@ -581,5 +592,26 @@ const shareAddress = () => shareText(addressText.value, copyAddressText)
 
 .door-hint {
   color: var(--bs-secondary-color, #6c757d);
+}
+
+/* The button to the greeting: as wide as the door, and without the house button's 50px of
+   side padding -- with them its label took two lines in six of the ten languages at 390px, and
+   three in two at 320 (measured in the built wallet). Its letters are 16px for the same
+   reason, as on "Dank annehmen". Through `:deep`: BButton renders a
+   router-link, and the scope attribute stops at the root of a direct child component. */
+.door-body :deep(.door-greeting) {
+  --bs-btn-font-size: 1rem;
+
+  width: 100%;
+  padding-right: 0.75rem !important;
+  padding-left: 0.75rem !important;
+}
+
+/* The plain way under the greeting's button: a quiet link, with the height a thumb needs.
+   Through `:deep`: BLink renders the anchor, and the scope attribute stops at its root. */
+.door-body :deep(.door-plain) {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
 }
 </style>

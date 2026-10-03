@@ -12,10 +12,16 @@
       <BImg class="auth-logo-small d-lg-none" :src="logo" alt="Logo" data-test="auth-logo-small" />
       <BCollapse id="nav-collapse" is-nav>
         <BNavbarNav class="auth-links ms-auto me-lg-4" right>
-          <NavItem :to="routeWithParamsAndQuery('Register')" class="auth-navbar ms-lg-5">
+          <NavItem
+            :to="routeWithParamsAndQuery('Register', { query: guarantorCodeReferrer() })"
+            class="auth-navbar ms-lg-5"
+          >
             {{ $t('signup') }}
           </NavItem>
-          <NavItem :to="routeWithParamsAndQuery('Login')" class="auth-navbar separator-start">
+          <NavItem
+            :to="routeWithParamsAndQuery('Login', { query: guarantorCodeReferrer() })"
+            class="auth-navbar separator-start"
+          >
             {{ $t('signin') }}
           </NavItem>
         </BNavbarNav>
@@ -26,12 +32,27 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { useStore } from 'vuex'
 import { useAuthLinks } from '@/composables/useAuthLinks'
 import NavItem from '../Menu/NavItem.vue'
 
 const { routeWithParamsAndQuery } = useAuthLinks()
+const route = useRoute()
 const store = useStore()
+
+/**
+ * The guarantor code (E-017) names the member who showed it by itself; the registration page
+ * still shows their name above the form, and takes it from `referrer`. This bar stands above
+ * the address page (`/u/:alias`) too and knows nothing of it, so its two links have to take
+ * the name from the address along with the code - straight to the registration, or on the
+ * detour over the sign-in. The page's own button names the referrer itself. Without a
+ * guarantor code nothing changes, and a referrer already in the query stays the one it is.
+ */
+const guarantorCodeReferrer = () =>
+  route.query.guarantor && route.params.alias
+    ? { referrer: route.query.referrer ?? route.params.alias }
+    : {}
 
 const backgroundHeader = '/img/template/gradido_background_header.png'
 // Dark mode uses a transparent, light-inked logo so it reads on the darkened
@@ -50,7 +71,6 @@ const logo = computed(() =>
 }
 
 .auth-header {
-  font-family: 'Open Sans', sans-serif !important;
   height: 150px;
   z-index: 1;
 }

@@ -39,6 +39,16 @@ export class UnhandledEnum extends DomainError {
   }
 }
 
+export class ResourceExhausted extends DomainError {
+  constructor(
+    public resource: string,
+    public caller: string,
+    public clientMessage: string,
+  ) {
+    super(`${resource} is exhausted, called by ${caller}: ${clientMessage}`)
+  }
+}
+
 /**
  * A request to another community's federation API that produced no usable answer: the
  * community could not be reached, did not answer in time, refused, or answered something

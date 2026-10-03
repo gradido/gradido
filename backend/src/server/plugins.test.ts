@@ -88,17 +88,40 @@ describe('the request log', () => {
 
   // ⛔ The log masks a copy. The request goes on to the resolver with the picture in it -- a mask
   // on the request itself would hand the resolver three stars for a picture.
+  // A thank-you greeting names whom it is for: somebody who has no account here and was never
+  // asked. The motif and the line stay -- the line is the beginning of the memo anyway.
+  it('writes no name a thank-you greeting is for', () => {
+    const text = logged({
+      amount: '20',
+      memo: 'Einfach so — weil es Dich gibt.',
+      greeting: { motif: 'morning-light', line: 'Einfach so', recipientName: 'Sarah Wintergrün' },
+    })
+    expect(text).not.toContain('Wintergrün')
+    expect(text).toContain('"recipientName": "***"')
+    expect(text).toContain('"motif": "morning-light"')
+    expect(text).toContain('"amount": "20"')
+  })
+
+  it('writes a link without a greeting as before', () => {
+    const text = logged({ amount: '20', memo: 'Danke für alles' })
+    expect(text).toContain('"memo": "Danke für alles"')
+    expect(text).not.toContain('greeting')
+    expect(logged({ amount: '20', memo: 'Danke für alles', greeting: null })).toContain(
+      '"greeting": null',
+    )
+  })
+
   it('leaves the picture in the request itself', () => {
     const variables = { image: { data: 'AAAA', width: 1, height: 1 } }
     logged(variables)
     expect(variables.image.data).toBe('AAAA')
   })
 
-  it('writes no password and no table code, as before', () => {
+  it('writes no password and no guarantor code, as before', () => {
     const text = logged({
       password: 'Aa12345_',
       passwordNew: 'Bb12345_',
-      presenceCode: '1790000000.c2lnbmF0dXJl',
+      guarantorCode: '1790000000.c2lnbmF0dXJl',
     })
     for (const secret of ['Aa12345_', 'Bb12345_', 'c2lnbmF0dXJl']) {
       expect(text).not.toContain(secret)
@@ -271,6 +294,34 @@ describe('the answer in the request log', () => {
     )
     expect(traced).not.toContain(picture)
     expect(traced).toBe('Response-Data: left out, it holds a picture')
+  })
+
+  // The same name comes back in the answers that carry a greeting -- the new link, the link
+  // somebody opens, the sender's list, and the booking list with the booking made from the link.
+  it('carries no name a thank-you greeting is for, wherever the answer holds one', () => {
+    const greeting = { motif: 'bouquet', line: 'Danke!', recipientName: 'Sarah Wintergrün' }
+    const traced = answerTraced(
+      { requestBudget: newRequestBudget() },
+      {
+        createTransactionLink: { link: 'https://x/redeem/abc', greeting },
+        listTransactionLinks: {
+          links: [
+            { id: 1, greeting },
+            { id: 2, greeting: null },
+          ],
+        },
+        transactionList: {
+          transactions: [
+            { id: 3, greeting },
+            { id: 4, greeting: null },
+          ],
+        },
+      },
+    )
+    expect(traced).not.toContain('Wintergrün')
+    expect(traced.match(/"recipientName": "\*\*\*"/g)).toHaveLength(3)
+    expect(traced).toContain('"motif": "bouquet"')
+    expect(traced).toContain('"greeting": null')
   })
 
   it('is written at level trace for every other request, as before', () => {

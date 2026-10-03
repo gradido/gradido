@@ -1,6 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { h } from 'vue'
 import { memoParts } from '@/utils/memoParts'
+import { chatSearchMarked, useChatSearchNeedle } from '@/components/Chat/chatSearchMarks'
 
 // A link keeps its click to itself: the memo stands inside a booking row that opens and
 // closes on a click, and following a link should not also do that.
@@ -14,6 +15,9 @@ const keepClick = (event) => event.stopPropagation()
  * inline elements, and Vue turns such a break into a space -- "see https://x.org." would come
  * out with a space before and after the link. Here the pieces are children of one element and
  * nothing stands between them.
+ *
+ * In a chat thread a transfer's memo is searched with the messages (E-057), and its hits are
+ * marked; in the booking list nothing is searched, and nothing changes there.
  */
 export default {
   name: 'MemoText',
@@ -21,11 +25,13 @@ export default {
     memo: { type: String, default: '' },
   },
   setup(props) {
-    return () =>
-      h(
+    const search = useChatSearchNeedle()
+    return () => {
+      const needle = search?.value ?? ''
+      return h(
         'span',
         { class: 'memo-text' },
-        memoParts(props.memo).map((part) => {
+        memoParts(props.memo).flatMap((part) => {
           if (part.type === 'url') {
             return h(
               'a',
@@ -35,14 +41,19 @@ export default {
                 rel: 'noopener noreferrer',
                 onClick: keepClick,
               },
-              part.value,
+              chatSearchMarked(part.value, needle),
             )
           }
           if (part.type === 'email') {
-            return h('a', { href: `mailto:${part.value}`, onClick: keepClick }, part.value)
+            return h(
+              'a',
+              { href: `mailto:${part.value}`, onClick: keepClick },
+              chatSearchMarked(part.value, needle),
+            )
           }
-          return part.value
+          return chatSearchMarked(part.value, needle)
         }),
       )
+    }
   },
 }

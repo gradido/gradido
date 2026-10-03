@@ -18,15 +18,17 @@
       :data-test="`settings-menu-${entry.test}`"
     >
       <settings-menu-icon :name="entry.test" class="settings-menu-icon" />
-      <span class="settings-menu-label">
-        {{ entry.label }}
-      </span>
-      <span
-        v-if="entry.state"
-        class="settings-menu-state"
-        :data-test="`settings-state-${entry.test}`"
-      >
-        {{ entry.state }}
+      <span class="settings-menu-text">
+        <span class="settings-menu-label">
+          {{ entry.label }}
+        </span>
+        <span
+          v-if="entry.state"
+          class="settings-menu-state"
+          :data-test="`settings-state-${entry.test}`"
+        >
+          {{ entry.state }}
+        </span>
       </span>
       <i-mdi-chevron-right class="settings-menu-chevron" />
     </router-link>
@@ -78,6 +80,19 @@ const thankYouCardState = computed(() => {
 })
 
 const onOff = (value) => (value ? t('settings.menu.state.on') : t('settings.menu.state.off'))
+
+/**
+ * "Nachrichten" holds two switches since #4007: the information mails (`newsletterState`) and the
+ * transfers in the chat and by mail (`transfersInChat`, on unless switched off -- as the page
+ * reads it). One word says them only where they agree: "Ein" for both on, "Aus" for both off.
+ * Where they differ, no word (Bernd, 30.09.2026): "Aus" beside a switch that is on is worse than
+ * an empty space, for the reason the thank-you card's state gives above.
+ */
+const notificationsState = computed(() => {
+  const mails = Boolean(store.state.newsletterState)
+  const transfers = store.state.transfersInChat !== false
+  return mails === transfers ? onOff(mails) : null
+})
 
 /**
  * The function-test area (ES-014). Its own query rather than a third field on the two
@@ -134,7 +149,7 @@ const entries = computed(() => {
       to: '/settings/notifications',
       test: 'notifications',
       label: t('settings.menu.notifications'),
-      state: onOff(store.state.newsletterState),
+      state: notificationsState.value,
     },
   ]
   // The area is on its way out with the matching, and where neither service is switched on it
@@ -176,6 +191,9 @@ const entries = computed(() => {
  *
  * The left offset is the row's own padding + the icon (18px) + the gap, so it lands exactly
  * where the label starts. `--row-pad` carries it, because the page fassung below widens both.
+ *
+ * Label and state share a wrapper that may wrap: the label breaks first, and the state goes a
+ * line lower only where the longest word of the label does not fit beside it.
  */
 .settings-menu {
   --row-pad: 1rem;
@@ -224,13 +242,23 @@ const entries = computed(() => {
   opacity: 0.75;
 }
 
-.settings-menu-label {
+.settings-menu-text {
   flex: 1 1 auto;
   min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 0.75rem;
+}
+
+.settings-menu-label {
+  flex: 1 1 0;
+  min-width: min-content;
 }
 
 .settings-menu-state {
   flex: 0 0 auto;
+  margin-left: auto;
   font-size: 0.875rem;
   color: var(--text-muted);
 }

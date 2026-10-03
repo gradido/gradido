@@ -82,14 +82,12 @@ export default {
 </script>
 
 <style>
-@font-face {
-  font-family: WorkSans, sans-serif !important;
-  src: url('./assets/scss/fonts/WorkSans-VariableFont_wght.ttf') format('truetype');
-}
-
+/* The pages take their font from `body` (`--bs-body-font-family`, _fonts.scss): Open Sans,
+   which ships with the wallet (assets/fonts/open-sans/), as do the dialogs and toasts that
+   hang on `body` outside this element. From May 2022 to October 2026 a rule here kept the
+   pages in the device's sans-serif instead. */
 #app {
   font-size: 1rem;
-  font-family: WorkSans, sans-serif !important;
 }
 
 /* ⛔ No `min-width`. There was one since 2022 (500px, then 360px, then 330px), from when a

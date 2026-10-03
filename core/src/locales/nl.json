@@ -28,6 +28,7 @@
     },
     "assistedRegistrationConfirm": {
       "accountCreated": "Samen met een Gradido-lid is er zojuist een account voor je aangemaakt — met dit e-mailadres.",
+      "accountCreatedByThanks": "Bij het aannemen van een bedankje is er zojuist een account voor je aangemaakt — met dit e-mailadres.",
       "clickToConfirm": "Klik hier om je e-mailadres te bevestigen.",
       "confirmButton": "Adres bevestigen",
       "confirmHeading": "E-mailadres bevestigen",
@@ -86,6 +87,9 @@
       "todo": "Please check whether this account belongs to a person who may create. If so, switch \"May create\" on for this member in the admin interface (user role tab). The member has been told that a person checks the request."
     },
     "customEmail": {
+      "forwardWords": "{senderAlias} schrijft erbij:",
+      "forwarded": "↪ Doorgestuurd",
+      "forwardedFrom": "↪ Doorgestuurd van {forwardedFromAlias}",
       "haveReceivedMessageFrom": "je hebt zojuist een bericht ontvangen van {senderAlias}",
       "imageNote": "📷 Het bericht bevat een afbeelding – je ziet die in het gesprek.",
       "title": "{senderAlias} heeft je een bericht gestuurd"
@@ -155,6 +159,7 @@
       "sincerelyYours": "Hartelijke groet,",
       "toAccount": "Naar het account",
       "toContribution": "Naar de bijdrage",
+      "toConversation": "Naar gesprek",
       "transactionDetails": "Transactiedetails",
       "yourGradidoTeam": "je Gradido-team"
     },
@@ -175,11 +180,11 @@
       "wasPaid": "Er is zojuist {amountGDD} GDD doorgegeven met je bedankkaart."
     },
     "transactionLinkRedeemed": {
-      "hasRedeemedYourLink": "{senderAlias} ({senderCommunity}) heeft zojuist je link ingewisseld.",
+      "hasAcceptedYourThanks": "{senderAlias} ({senderCommunity}) heeft zojuist je bedankje aangenomen.",
+      "hasAcceptedYourThanksNewMember": "{senderAlias} ({senderCommunity}) heeft zojuist je bedankje aangenomen — en is nieuw bij Gradido. Fijn dat je het hebt laten zien.",
       "memo": "Bericht: {transactionMemo}",
-      "newMember": "— en is nieuw bij Gradido. Fijn dat je het hebt laten zien.",
-      "subject": "{senderAlias} heeft je Gradido-link ingewisseld",
-      "title": "{senderAlias} heeft je Gradido-link ingewisseld"
+      "subject": "{senderAlias} heeft je bedankje aangenomen",
+      "title": "{senderAlias} heeft je bedankje aangenomen"
     },
     "transactionReceived": {
       "haveReceivedAmountGDDFrom": "je hebt zojuist {transactionAmount} GDD ontvangen van {senderAlias}.",

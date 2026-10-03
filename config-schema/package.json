@@ -1,6 +1,6 @@
 {
   "name": "config-schema",
-  "version": "2.11.4",
+  "version": "3.0.0",
   "description": "Gradido Config for validate config",
   "main": "./build/index.js",
   "types": "./src/index.ts",

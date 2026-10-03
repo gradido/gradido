@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 250" width="720" height="500" role="img" aria-label="Ein goldenes Herz mit vier Blättern">
+  <defs>
+    <radialGradient id="grund" cx="50%" cy="42%" r="70%"><stop offset="0%" stop-color="#fdf6e3"></stop><stop offset="100%" stop-color="#f4ead0"></stop></radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#e2b55c"></stop><stop offset="100%" stop-color="#c58d38"></stop></linearGradient>
+  </defs>
+  <rect width="360" height="250" fill="url(#grund)"></rect>
+  <circle cx="70" cy="52" r="3" fill="#e3c98f"></circle><circle cx="300" cy="70" r="4" fill="#e3c98f"></circle><circle cx="318" cy="180" r="3" fill="#dcbf7f"></circle><circle cx="46" cy="176" r="4" fill="#dcbf7f"></circle>
+  <path d="M180 208 C120 168 84 138 84 100 C84 72 106 56 130 56 C152 56 170 70 180 88 C190 70 208 56 230 56 C254 56 276 72 276 100 C276 138 240 168 180 208 Z" transform="translate(3,6)" fill="#a3742c" opacity="0.16"></path>
+  <path d="M180 208 C120 168 84 138 84 100 C84 72 106 56 130 56 C152 56 170 70 180 88 C190 70 208 56 230 56 C254 56 276 72 276 100 C276 138 240 168 180 208 Z" fill="url(#gold)" stroke="#a3742c" stroke-width="2" stroke-linejoin="round"></path>
+  <path d="M96 70 C82 52 84 34 100 24 C110 40 108 58 96 70 Z" fill="#7fa668" stroke="#5c8a4e" stroke-width="2" stroke-linejoin="round"></path>
+  <path d="M74 108 C54 104 42 90 46 72 C64 76 76 90 74 108 Z" fill="#9dbf88" stroke="#5c8a4e" stroke-width="2" stroke-linejoin="round"></path>
+  <path d="M264 70 C278 52 276 34 260 24 C250 40 252 58 264 70 Z" fill="#9dbf88" stroke="#5c8a4e" stroke-width="2" stroke-linejoin="round"></path>
+  <path d="M286 108 C306 104 318 90 314 72 C296 76 284 90 286 108 Z" fill="#7fa668" stroke="#5c8a4e" stroke-width="2" stroke-linejoin="round"></path>
+</svg>

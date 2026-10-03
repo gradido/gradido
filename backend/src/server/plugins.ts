@@ -27,8 +27,8 @@ const filterVariables = (variables: any) => {
   if (vars?.passwordNew) {
     vars.passwordNew = '***'
   }
-  if (vars?.presenceCode) {
-    vars.presenceCode = '***'
+  if (vars?.guarantorCode) {
+    vars.guarantorCode = '***'
   }
   // What one member writes to another: a chat message (sendChatMessage, `$body` in the wallet's
   // chat.graphql) and the subject of a letter (sendEmail, `$subject`). A chat message may carry
@@ -61,8 +61,22 @@ const filterVariables = (variables: any) => {
   if (vars?.avatarFull) {
     vars.avatarFull = '***'
   }
+  // "Für wen?" of a thank-you greeting (createTransactionLink, `$greeting`): a name one member
+  // writes about somebody else, who has no account here and was never asked. The wallet's
+  // document has to name the variable so. The greeting's line stays readable: it is the
+  // beginning of `memo`, which is written like the text of every booking.
+  if (vars?.greeting?.recipientName) {
+    vars.greeting.recipientName = '***'
+  }
   return vars
 }
+
+// The same name on its way back: the answers of createTransactionLink, queryTransactionLink, the
+// lists of links and -- with the booking made from the link -- the booking list carry the
+// greeting. The field is written as "***" wherever an answer holds it -- no other type of the
+// schema names a field so.
+const withoutRecipientNames = (key: string, value: unknown): unknown =>
+  key === 'recipientName' && typeof value === 'string' ? '***' : value
 
 // A value written into the document itself instead of into a variable -- a picture, a text, a
 // password, as a client of its own may send them -- never passes filterVariables (coderabbit on
@@ -133,7 +147,7 @@ variables: ${JSON.stringify(filterVariables(variables), null, 2)}`)
               logger.trace('Response-Data: left out, it holds a picture')
             } else {
               logger.trace(`Response-Data:
-${JSON.stringify(requestContext.response.data, null, 2)}`)
+${JSON.stringify(requestContext.response.data, withoutRecipientNames, 2)}`)
             }
           }
           if (requestContext.response.errors) {

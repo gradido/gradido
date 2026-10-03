@@ -45,6 +45,9 @@ describe('ChatComposeBar', () => {
           IMdiFileDocument: true,
           IMdiClose: true,
           IMdiPencil: true,
+          // The strip over the field and the tick while a message is being changed (E-060).
+          IMdiPencilOutline: true,
+          IMdiCheck: true,
           // The editor has its own spec; here it shows what it was given and answers as a test says.
           ChatImageEditor: {
             name: 'ChatImageEditor',
@@ -434,6 +437,477 @@ describe('ChatComposeBar', () => {
 
       await field().setValue('Hier ist die Datei:\n')
       expect(wrapper.vm.draft()).toBe('Hier ist die Datei:\n')
+    })
+  })
+
+  /**
+   * E-060 B1 (Bernd, 01.10.2026): a message of one's own is changed in the field it was written
+   * in. The thread hands the message in (`editing`); the bar shows its text to be changed, says
+   * so over the field, turns the arrow into a tick -- and gives back what stood in it before.
+   */
+  describe('a message being changed (E-060)', () => {
+    const MESSAGE = {
+      messageUuid: 'uuid-7',
+      body: 'Der Hofflohmarkt ist am Samstag ab 10 Uhr.',
+      hasImage: false,
+    }
+    const CAPTION = { messageUuid: 'uuid-9', body: 'Unser Stand', hasImage: true }
+    const strip = () => wrapper.find('[data-test="chat-compose-editing"]')
+    const cross = () => wrapper.find('[data-test="chat-compose-edit-cancel"]')
+    const problemLine = () => wrapper.find('[data-test="chat-compose-edit-problem"]')
+    const failedLine = () => wrapper.find('[data-test="chat-compose-failed"]')
+    const clip = () => wrapper.find('[data-test="chat-compose-attach"]')
+    const attached = () => wrapper.find('[data-test="chat-compose-attached"]')
+    const saved = () => wrapper.emitted('saveEdit') ?? []
+    const letGo = () => wrapper.emitted('cancelEdit') ?? []
+
+    const startEditing = async (message = MESSAGE) => {
+      await wrapper.setProps({ editing: message })
+      await flushPromises()
+    }
+    const stopEditing = async () => {
+      await wrapper.setProps({ editing: null, editProblem: '' })
+      await flushPromises()
+    }
+
+    /** A picture chosen, as the device's picker answers; jsdom's canvas draws nothing. */
+    const READY = { image: { name: 'ready' }, width: 4000, height: 3000 }
+    const quietCanvas = () =>
+      vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(() => ({
+        save: () => {},
+        restore: () => {},
+        translate: () => {},
+        scale: () => {},
+        rotate: () => {},
+        drawImage: () => {},
+      }))
+    const choose = async () => {
+      const picker = wrapper.find('[data-test="chat-compose-picker"]')
+      Object.defineProperty(picker.element, 'files', {
+        value: [new File(['JPEG'], 'photo.jpg', { type: 'image/jpeg' })],
+        configurable: true,
+      })
+      await picker.trigger('change')
+      await flushPromises()
+    }
+
+    it('takes the text into the field, the keyboard behind its last character', async () => {
+      mountBar({}, { attachTo: document.body })
+
+      await startEditing()
+
+      expect(field().element.value).toBe(MESSAGE.body)
+      expect(document.activeElement).toBe(field().element)
+      expect(field().element.selectionStart).toBe(MESSAGE.body.length)
+      expect(field().element.selectionEnd).toBe(MESSAGE.body.length)
+      expect(field().attributes('placeholder')).toBe('chatThread.editPlaceholder')
+    })
+
+    it('says over the field what is being changed, with the words as they were', async () => {
+      mountBar()
+      expect(strip().exists()).toBe(false)
+
+      await startEditing()
+
+      expect(strip().find('.chat-compose-editing-title').text()).toBe('chatThread.editing')
+      expect(wrapper.find('[data-test="chat-compose-editing-text"]').text()).toBe(MESSAGE.body)
+      // The field is described by it: a screen reader hears what the field holds now.
+      const title = strip().find('.chat-compose-editing-title')
+      expect(field().attributes('aria-describedby').split(' ')).toContain(title.attributes('id'))
+      // The words as they WERE: typing does not change the strip.
+      await field().setValue('Etwas ganz anderes')
+      expect(wrapper.find('[data-test="chat-compose-editing-text"]').text()).toBe(MESSAGE.body)
+    })
+
+    // A picture without a caption: nothing to show as "the words as they were".
+    it('shows no line of words for a picture without a caption', async () => {
+      mountBar()
+
+      await startEditing({ ...CAPTION, body: '' })
+
+      expect(strip().exists()).toBe(true)
+      expect(wrapper.find('[data-test="chat-compose-editing-text"]').exists()).toBe(false)
+      expect(field().attributes('placeholder')).toBe('chatThread.imageCaption')
+    })
+
+    it('turns the arrow into a tick that says what it does', async () => {
+      mountBar()
+      expect(button().classes()).not.toContain('is-save')
+      expect(button().attributes('aria-label')).toBe('chatThread.send')
+      expect(button().find('i-mdi-send-stub').exists()).toBe(true)
+
+      await startEditing()
+
+      expect(button().classes()).toContain('is-save')
+      expect(button().attributes('aria-label')).toBe('chatThread.editSave')
+      expect(button().attributes('title')).toBe('chatThread.editSave')
+      expect(button().find('i-mdi-check-stub').exists()).toBe(true)
+      expect(button().find('i-mdi-send-stub').exists()).toBe(false)
+    })
+
+    // Nothing else goes with a change: no picture, no mail, no announcement.
+    it('offers neither the paperclip nor the box while a message is being changed', async () => {
+      mountBar()
+      expect(clip().exists()).toBe(true)
+      expect(box().exists()).toBe(true)
+
+      await startEditing()
+
+      expect(clip().exists()).toBe(false)
+      expect(box().exists()).toBe(false)
+
+      await stopEditing()
+      expect(clip().exists()).toBe(true)
+      expect(box().exists()).toBe(true)
+    })
+
+    it('offers no announcement in a group either', async () => {
+      mountBar({ name: 'Gradido-Café Berlin', group: true, canAnnounce: true, announceTo: 4 })
+      expect(box().exists()).toBe(true)
+
+      await startEditing()
+
+      expect(box().exists()).toBe(false)
+    })
+
+    describe('saving', () => {
+      it('hands on the uuid and the text without the space around it -- and sends nothing', async () => {
+        mountBar()
+        await startEditing()
+
+        await field().setValue('  Der Hofflohmarkt ist am Samstag ab 11 Uhr.  \n')
+        expect(button().attributes('aria-disabled')).toBe('false')
+        await button().trigger('click')
+
+        expect(saved()).toEqual([
+          [{ messageUuid: 'uuid-7', body: 'Der Hofflohmarkt ist am Samstag ab 11 Uhr.' }],
+        ])
+        expect(sent()).toEqual([])
+        expect(letGo()).toEqual([])
+        // The field keeps the new text until the thread says the change went through.
+        expect(field().element.value).toBe('  Der Hofflohmarkt ist am Samstag ab 11 Uhr.  \n')
+      })
+
+      it('saves on Cmd+Enter and on Ctrl+Enter, and not on Enter', async () => {
+        mountBar()
+        await startEditing()
+        await field().setValue('Neu')
+
+        await field().trigger('keydown', { key: 'Enter' })
+        expect(saved()).toEqual([])
+
+        await field().trigger('keydown', { key: 'Enter', metaKey: true })
+        await field().trigger('keydown', { key: 'Enter', ctrlKey: true })
+        expect(saved()).toHaveLength(2)
+        expect(sent()).toEqual([])
+      })
+
+      // The same words: nothing to change, and nothing to ask the server for.
+      it('lets go instead where the words are the same', async () => {
+        mountBar()
+        await startEditing()
+
+        await button().trigger('click')
+        await field().setValue(`  ${MESSAGE.body} \n`)
+        await button().trigger('click')
+
+        expect(saved()).toEqual([])
+        expect(letGo()).toHaveLength(2)
+      })
+
+      it('saves no empty text, and none over the limit', async () => {
+        mountBar()
+        await startEditing()
+
+        await field().setValue('   \n ')
+        expect(button().attributes('aria-disabled')).toBe('true')
+        await button().trigger('click')
+
+        await field().setValue('x'.repeat(2001))
+        expect(button().attributes('aria-disabled')).toBe('true')
+        await button().trigger('click')
+
+        await field().setValue('x'.repeat(2000))
+        expect(button().attributes('aria-disabled')).toBe('false')
+
+        expect(saved()).toEqual([])
+        expect(letGo()).toEqual([])
+      })
+
+      // E-044: with a picture the words are its caption, and may go.
+      it('lets the caption of a picture be emptied', async () => {
+        mountBar()
+        await startEditing(CAPTION)
+
+        await field().setValue('  ')
+        expect(button().attributes('aria-disabled')).toBe('false')
+        await button().trigger('click')
+
+        expect(saved()).toEqual([[{ messageUuid: 'uuid-9', body: '' }]])
+      })
+
+      it('saves no caption over the limit', async () => {
+        mountBar()
+        await startEditing(CAPTION)
+
+        await field().setValue('x'.repeat(2001))
+
+        expect(button().attributes('aria-disabled')).toBe('true')
+      })
+
+      // The bar's own picture does not count: the message's own does.
+      it('goes by the message’s picture, not by one waiting in the bar', async () => {
+        quietCanvas()
+        encoding.openChatImage.mockResolvedValueOnce(READY)
+        mountBar()
+        await choose()
+        expect(attached().exists()).toBe(true)
+
+        await startEditing()
+        await field().setValue('')
+
+        expect(button().attributes('aria-disabled')).toBe('true')
+      })
+
+      it('waits while the change is on its way', async () => {
+        mountBar()
+        await startEditing()
+        await field().setValue('Neu')
+
+        await wrapper.setProps({ sending: true })
+        expect(button().attributes('aria-disabled')).toBe('true')
+        await button().trigger('click')
+        await field().trigger('keydown', { key: 'Enter', metaKey: true })
+
+        expect(saved()).toEqual([])
+      })
+    })
+
+    describe('letting go', () => {
+      it('lets go by the ✕, which says what it does', async () => {
+        mountBar()
+        await startEditing()
+
+        expect(cross().attributes('aria-label')).toBe('chatThread.editCancel')
+        expect(cross().attributes('type')).toBe('button')
+        await cross().trigger('click')
+
+        expect(letGo()).toHaveLength(1)
+        expect(saved()).toEqual([])
+      })
+
+      /**
+       * ⛔ Esc in the field lets the changing go -- and goes no further: the contact window closes
+       * on an Esc from anywhere inside it, and would shut over a text half changed.
+       */
+      it('lets go on Esc in the field, and keeps the Esc to itself', async () => {
+        mountBar({}, { attachTo: document.body })
+        await startEditing()
+        const heardAbove = vi.fn()
+        document.body.addEventListener('keydown', heardAbove)
+        try {
+          await field().trigger('keydown', { key: 'Escape' })
+        } finally {
+          document.body.removeEventListener('keydown', heardAbove)
+        }
+
+        expect(letGo()).toHaveLength(1)
+        expect(heardAbove).not.toHaveBeenCalled()
+      })
+
+      // Gegenprobe: without a message being changed, Esc goes on to the window as it always did.
+      it('lets an Esc go on while no message is being changed', async () => {
+        mountBar({}, { attachTo: document.body })
+        const heardAbove = vi.fn()
+        document.body.addEventListener('keydown', heardAbove)
+        try {
+          await field().trigger('keydown', { key: 'Escape' })
+        } finally {
+          document.body.removeEventListener('keydown', heardAbove)
+        }
+
+        expect(heardAbove).toHaveBeenCalledTimes(1)
+        expect(letGo()).toEqual([])
+      })
+    })
+
+    /** ⛔ The text in the field is never lost but by sending it. */
+    describe('what stood in the bar', () => {
+      it('waits, and comes back when the changing ends: the words, the box, the picture', async () => {
+        quietCanvas()
+        encoding.openChatImage.mockResolvedValueOnce(READY)
+        mountBar({}, { attachTo: document.body })
+        await field().setValue('Ein angefangener Satz')
+        await box().setValue(true)
+        await choose()
+        expect(attached().exists()).toBe(true)
+
+        await startEditing()
+        expect(field().element.value).toBe(MESSAGE.body)
+        expect(attached().exists()).toBe(false)
+        // What the thread notes for the way back after a restart: the words that wait.
+        expect(wrapper.vm.draft()).toBe('Ein angefangener Satz')
+
+        await field().setValue('Halb geändert')
+        expect(wrapper.vm.draft()).toBe('Ein angefangener Satz')
+        await stopEditing()
+
+        expect(field().element.value).toBe('Ein angefangener Satz')
+        expect(box().element.checked).toBe(true)
+        expect(attached().exists()).toBe(true)
+        expect(strip().exists()).toBe(false)
+        expect(document.activeElement).toBe(field().element)
+        expect(wrapper.vm.draft()).toBe('Ein angefangener Satz')
+      })
+
+      it('comes back empty where the bar was empty', async () => {
+        mountBar()
+        await startEditing()
+        await field().setValue('Halb geändert')
+
+        await stopEditing()
+
+        expect(field().element.value).toBe('')
+        expect(box().element.checked).toBe(false)
+      })
+
+      // From one message straight to another: the other's text, and what waited goes on waiting.
+      it('goes on waiting from one message straight to another', async () => {
+        mountBar()
+        await field().setValue('Ein angefangener Satz')
+        await startEditing()
+        await field().setValue('Halb geändert')
+
+        await startEditing(CAPTION)
+        expect(field().element.value).toBe('Unser Stand')
+
+        await stopEditing()
+        expect(field().element.value).toBe('Ein angefangener Satz')
+      })
+
+      /**
+       * ⛔ A message sent just before goes through while another is being changed: what went out
+       * is cleared from what WAITS. Left there, it would come back into the field once the
+       * changing ends -- to be sent a second time.
+       */
+      it('does not bring back a message that went through meanwhile', async () => {
+        mountBar()
+        await field().setValue('Hallo Lena')
+        await box().setValue(true)
+        await button().trigger('click')
+        expect(sent()).toHaveLength(1)
+        await wrapper.setProps({ sending: true })
+
+        await startEditing()
+        await wrapper.setProps({ sending: false })
+        await flushPromises()
+        // The message being changed is not touched by it.
+        expect(field().element.value).toBe(MESSAGE.body)
+        expect(wrapper.vm.draft()).toBe('')
+
+        await stopEditing()
+
+        expect(field().element.value).toBe('')
+        expect(box().element.checked).toBe(false)
+      })
+
+      // Gegenprobe: typed on while it was on its way -- those words are the member's, and wait.
+      it('brings back what was typed after the message went out', async () => {
+        mountBar()
+        await field().setValue('Hallo Lena')
+        await button().trigger('click')
+        await wrapper.setProps({ sending: true })
+        await field().setValue('Hallo Lena\nUnd noch etwas')
+
+        await startEditing()
+        await wrapper.setProps({ sending: false })
+        await flushPromises()
+        await stopEditing()
+
+        expect(field().element.value).toBe('Hallo Lena\nUnd noch etwas')
+      })
+
+      // A message that did not go through waits whole -- and its line with it.
+      it('brings back a message that did not go through, and its line', async () => {
+        mountBar()
+        await field().setValue('Hallo Lena')
+        await button().trigger('click')
+        await wrapper.setProps({ sending: true })
+
+        await startEditing()
+        await wrapper.setProps({ sending: false, failed: true })
+        await flushPromises()
+        // Not under a message being changed: it would read as "the change was not sent".
+        expect(failedLine().exists()).toBe(false)
+
+        await stopEditing()
+
+        expect(field().element.value).toBe('Hallo Lena')
+        expect(failedLine().text()).toBe('chatThread.notSent')
+      })
+
+      // A picture still being opened when the changing began: it waits with the words that wait.
+      it('lets a picture that was still being opened wait as well', async () => {
+        quietCanvas()
+        let opened
+        encoding.openChatImage.mockReturnValueOnce(
+          new Promise((resolve) => {
+            opened = resolve
+          }),
+        )
+        mountBar()
+        await choose()
+
+        await startEditing()
+        opened(READY)
+        await flushPromises()
+        expect(attached().exists()).toBe(false)
+
+        await stopEditing()
+        expect(attached().exists()).toBe(true)
+      })
+    })
+
+    describe('a change that did not go through', () => {
+      it.each([
+        ['NOT_CONFIRMED', 'chatThread.editNotConfirmed {"name":"Lena"}'],
+        ['PENDING', 'chatThread.editPending'],
+        ['OTHER', 'chatThread.editNotSaved'],
+      ])('says why under the field (%s), and keeps the new text', async (editProblem, words) => {
+        mountBar()
+        await startEditing()
+        await field().setValue('Neu')
+
+        await wrapper.setProps({ editProblem })
+
+        expect(problemLine().text()).toBe(words)
+        expect(problemLine().attributes('role')).toBe('alert')
+        expect(field().element.value).toBe('Neu')
+      })
+
+      it('says nothing without a problem, and nothing once the changing ended', async () => {
+        mountBar()
+        await startEditing()
+        expect(problemLine().exists()).toBe(false)
+
+        await wrapper.setProps({ editing: null, editProblem: 'OTHER' })
+        await flushPromises()
+
+        expect(problemLine().exists()).toBe(false)
+      })
+    })
+
+    // "Bearbeiten" pressed once more at the message that is being changed (ChatThread).
+    it('takes the keyboard into the field when asked to', async () => {
+      const elsewhere = document.createElement('button')
+      document.body.appendChild(elsewhere)
+      mountBar({}, { attachTo: document.body })
+      await startEditing()
+      elsewhere.focus()
+
+      wrapper.vm.focus()
+
+      expect(document.activeElement).toBe(field().element)
     })
   })
 
@@ -1737,7 +2211,8 @@ describe('ChatComposeBar', () => {
     const item = rule('\\.chat-compose-menu-item')
     const height = item.match(/min-height:\s*([\d.]+)rem/)?.[1]
     expect(Number(height) * 16).toBeGreaterThanOrEqual(44)
-    expect(rule('\\.chat-compose-menu-icon')).toMatch(/color:\s*var\(--gold/)
+    // The gold of the menus' signs, tuned to the menus' own grey (E-061, chatMenuSurface.spec.js).
+    expect(rule('\\.chat-compose-menu-icon')).toMatch(/color:\s*var\(--menu-icon/)
     expect(
       rule(
         '\\.chat-compose-menu-item:focus-visible,\\s*\\.chat-compose-picker:focus-visible \\+ \\.chat-compose-menu-item',
@@ -1772,5 +2247,44 @@ describe('ChatComposeBar', () => {
     expect(arrow, 'no plain colour on the arrow to measure').toBeDefined()
     const [lighter, darker] = [luminance(arrow), luminance(ground)].sort((x, y) => y - x)
     expect((lighter + 0.05) / (darker + 0.05)).toBeGreaterThanOrEqual(3)
+  })
+
+  /**
+   * ⛔ The tick that saves a change (E-060) stands on the wallet's green, and that green is another
+   * in dark mode -- a light one, on which the white tick falls short (2.4:1). Both grounds are
+   * written out, and each is held against the tick that stands on it.
+   */
+  it('shows the tick on a green it can be made out on, in both modes', () => {
+    const code = style()
+    const rule = (selector) => code.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
+    const colour = (css, property) =>
+      css.match(new RegExp(`(?:^|\\s)${property}:\\s*(#[0-9a-f]{3}(?:[0-9a-f]{3})?);`, 'i'))?.[1]
+    const luminance = (hex) => {
+      const digits =
+        hex.length === 4 ? [...hex.slice(1)].map((d) => d + d) : hex.slice(1).match(/../g)
+      const [r, g, b] = digits.map((d) => {
+        const c = parseInt(d, 16) / 255
+        return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
+      })
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b
+    }
+    const contrast = (one, other) => {
+      const [lighter, darker] = [luminance(one), luminance(other)].sort((x, y) => y - x)
+      return (lighter + 0.05) / (darker + 0.05)
+    }
+    const button = rule('\\.chat-compose-send')
+    const light = rule('\\.chat-compose-send\\.is-save')
+    const dark = rule('\\.dark-mode \\.chat-compose-send\\.is-save')
+
+    // Light: the button's own white tick on the dark green.
+    expect(colour(light, 'background'), 'no plain green to measure').toBeDefined()
+    expect(colour(light, 'color')).toBeUndefined()
+    expect(contrast(colour(button, 'color'), colour(light, 'background'))).toBeGreaterThanOrEqual(3)
+    // Dark: a tick of its own on the light green.
+    expect(colour(dark, 'background'), 'no plain green to measure in dark mode').toBeDefined()
+    expect(colour(dark, 'color'), 'no plain tick to measure in dark mode').toBeDefined()
+    expect(contrast(colour(dark, 'color'), colour(dark, 'background'))).toBeGreaterThanOrEqual(3)
+    // Gegenprobe: the white tick would not do on the light green -- which is why it has its own.
+    expect(contrast(colour(button, 'color'), colour(dark, 'background'))).toBeLessThan(3)
   })
 })

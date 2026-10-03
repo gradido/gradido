@@ -155,7 +155,9 @@ describe('the name a validation message gives a field', () => {
       'components/Inputs/InputPasswordConfirmation.vue',
     )
     expect(fields.get('password') ?? []).toContain('pages/Login.vue')
-    expect(fields.get('firstname') ?? []).toContain('pages/Register.vue')
+    // The fields an account is opened with, shared by the registration form and the page a
+    // thank-you is accepted on.
+    expect(fields.get('firstname') ?? []).toContain('components/Auth/AccountFields.vue')
   })
 
   it('can read every name', () => {

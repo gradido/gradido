@@ -39,6 +39,16 @@ const percentEncoded = (character) =>
  */
 const SCHEDULE = '&gradido\\.start=(\\d{1,12})&gradido\\.end=(\\d{1,12})'
 
+/**
+ * A planned call that was changed (E-060), after its time: the start the call had FIRST, and how
+ * often it was changed since. Both are for the calendar: a member's calendar knows the call by
+ * its room and that first start (`chatVideoCalendarUid`), and takes a file as the newer one by
+ * the count (SEQUENCE) -- so a moved call moves in the calendar instead of standing there twice.
+ * Jitsi reads them as numbers and uses neither, as it does the time. Only a changed call carries
+ * them: an invitation never changed has the form it always had.
+ */
+const REVISION = '&gradido\\.first=(\\d{1,12})&gradido\\.seq=(\\d{1,6})'
+
 /** Whole seconds since 1970, as the address carries a time. */
 const seconds = (date) => Math.floor(date.getTime() / 1000)
 
@@ -50,9 +60,11 @@ const seconds = (date) => Math.floor(date.getTime() / 1000)
  * @param {string} url the room, as the server hands it out (no `#` in it)
  * @param {string} topic
  * @param {{ start: Date, end: Date } | null} [when] the time of a planned call
+ * @param {{ first: Date, sequence: number } | null} [revision] of a planned call that was changed
+ *   (E-060): the start it had first, and the count of its changes
  * @returns {string}
  */
-export const withChatVideoTopic = (url, topic, when = null) => {
+export const withChatVideoTopic = (url, topic, when = null, revision = null) => {
   // a) JSON, because Jitsi reads the value as JSON: a quote or a backslash in the topic comes out
   //    escaped. And a lone surrogate -- half an emoji, cut off by the field's length when pasted --
   //    comes out as an escape too (ES2019), so `encodeURIComponent` below does not throw on it.
@@ -69,16 +81,23 @@ export const withChatVideoTopic = (url, topic, when = null) => {
   //    `%22`, the JSON's closing quote -- a character a link may end with.
   const value = encodeURIComponent(guarded).replace(LEFT_BY_ENCODE_URI_COMPONENT, percentEncoded)
   const time = when ? `&gradido.start=${seconds(when.start)}&gradido.end=${seconds(when.end)}` : ''
-  return `${url}#config.subject=${value}${time}`
+  const changed =
+    when && revision
+      ? `&gradido.first=${seconds(revision.first)}&gradido.seq=${revision.sequence}`
+      : ''
+  return `${url}#config.subject=${value}${time}${changed}`
 }
 
 /**
  * ⛔ Exactly one `#`, and what follows it is `config.subject=` and a value without `&` and without
  * `#` -- the addition `withChatVideoTopic` makes and nothing else --, with or without the time of a
- * planned call after it (V5b). A `#` that comes earlier, another setting, anything after the value:
- * the address is somebody else's, and stays whole.
+ * planned call after it (V5b), and after the time what a changed call carries (E-060). A `#` that
+ * comes earlier, another setting, anything after the value: the address is somebody else's, and
+ * stays whole.
  */
-const OWN_ADDITION = new RegExp(`^([^#]*)#config\\.subject=([^&#]*)(?:${SCHEDULE})?$`)
+const OWN_ADDITION = new RegExp(
+  `^([^#]*)#config\\.subject=([^&#]*)(?:${SCHEDULE}(?:${REVISION})?)?$`,
+)
 
 /**
  * The address as the thread SHOWS it: without the topic's encoded addition, which reads as
@@ -92,17 +111,31 @@ const OWN_ADDITION = new RegExp(`^([^#]*)#config\\.subject=([^&#]*)(?:${SCHEDULE
 export const withoutChatVideoTopic = (url) => url.replace(OWN_ADDITION, '$1')
 
 /**
- * What an address of Gradido's own form carries (V4a, V5b): the room, the topic, and for a planned
- * call its start and end. null for every other address -- another setting, a value that is no
- * JSON string, an end not after its start.
+ * The address to hand on (Bernd, 29.09.2026): the room with its topic, without the time of a
+ * planned call. A link used again for another meeting brings no old date along -- a receiving
+ * wallet builds its calendar button from that time (`chatVideoPlannedCall`). It is the address
+ * "Copy link" in the gear gives, the topic's encoding character for character as the message has
+ * it. Every other address comes back as it is.
  *
  * @param {string} url
- * @returns {{ room: string, topic: string, start: Date | null, end: Date | null } | null}
+ * @returns {string}
+ */
+export const withoutChatVideoTime = (url) =>
+  url.replace(OWN_ADDITION, (whole, room, value) => `${room}#config.subject=${value}`)
+
+/**
+ * What an address of Gradido's own form carries (V4a, V5b): the room, the topic, and for a planned
+ * call its start and end -- and, only where the call was changed (E-060), the start it had first
+ * and the count of its changes (`first`, `sequence`). null for every other address -- another
+ * setting, a value that is no JSON string, an end not after its start.
+ *
+ * @param {string} url
+ * @returns {{ room: string, topic: string, start: Date | null, end: Date | null, first?: Date, sequence?: number } | null}
  */
 export const readChatVideoAddition = (url) => {
   const own = OWN_ADDITION.exec(url)
   if (!own) return null
-  const [, room, value, start, end] = own
+  const [, room, value, start, end, first, sequence] = own
   let topic
   try {
     topic = JSON.parse(decodeURIComponent(value))
@@ -112,5 +145,11 @@ export const readChatVideoAddition = (url) => {
   if (typeof topic !== 'string') return null
   if (!start) return { room, topic, start: null, end: null }
   if (Number(end) <= Number(start)) return null
-  return { room, topic, start: new Date(Number(start) * 1000), end: new Date(Number(end) * 1000) }
+  return {
+    room,
+    topic,
+    start: new Date(Number(start) * 1000),
+    end: new Date(Number(end) * 1000),
+    ...(first ? { first: new Date(Number(first) * 1000), sequence: Number(sequence) } : {}),
+  }
 }

@@ -384,7 +384,19 @@ describe('dbSelectChatUnreadSummary', () => {
     expect(await dbSelectChatUnreadSummary(pair())).toEqual({
       latestId: 0,
       unreadConversations: 0,
+      now: expect.any(Date),
     })
+  })
+
+  // E-060: the clock a changed message is stamped with, for the beat to ask from. In utc, as
+  // drizzle reads every datetime -- whatever time zone the session keeps.
+  it("names the database's clock at the reading, in utc, for anybody", async () => {
+    const before = Date.now()
+    const { now } = await dbSelectChatUnreadSummary(LENA)
+    // The database and this process keep the same time to within a minute, not to the hour.
+    expect(Math.abs(now.getTime() - before)).toBeLessThan(60_000)
+    const later = (await dbSelectChatUnreadSummary(pair())).now
+    expect(later.getTime()).toBeGreaterThanOrEqual(now.getTime())
   })
 
   // A cursor may stand on a deleted message: no answer hands one out, so nothing is passed over.
@@ -417,7 +429,7 @@ describe('dbSelectChatUnreadSummary', () => {
     expect((await dbSelectChatUnreadSummary(LENA)).unreadConversations).toBe(1)
 
     await dbUpdateChatConversationMemberLastRead(GROUP, LENA, filed[3].id)
-    expect(await dbSelectChatUnreadSummary(LENA)).toEqual({
+    expect(await dbSelectChatUnreadSummary(LENA)).toMatchObject({
       latestId: filed[4].id,
       unreadConversations: 0,
     })
@@ -427,7 +439,10 @@ describe('dbSelectChatUnreadSummary', () => {
 
   it('answers the same for the member named in capitals, as the column compares', async () => {
     const shouting = { communityUuid: HOME.toUpperCase(), gradidoId: MAX.gradidoId.toUpperCase() }
-    expect(await dbSelectChatUnreadSummary(shouting)).toEqual(await dbSelectChatUnreadSummary(MAX))
+    // Without the clock: the two are read one after the other.
+    const { now: _then, ...asMax } = await dbSelectChatUnreadSummary(MAX)
+    expect(await dbSelectChatUnreadSummary(shouting)).toMatchObject(asMax)
+    expect(asMax).toEqual({ latestId: filed[5].id, unreadConversations: 2 })
   })
 })
 

@@ -30,6 +30,7 @@
  */
 
 import { avatarPaletteEntry } from './avatarColor'
+import { printFontReady } from './printFont'
 
 const WIDTH = 1783
 const HEIGHT = 850
@@ -41,7 +42,13 @@ const PADDING = 55 // inner padding of the cheque
 const QR_BOX = 360 // fixed box width so the QR looks the same for any link length
 const QR_GAP = 40
 
+// Open Sans ships with the wallet (frontend/public/fonts/open-sans/) and is waited for before
+// the first word is measured -- see printFont.js. The families behind it only draw if the
+// font cannot be loaded at all.
 const FONT = '"Open Sans", Helvetica, Arial, sans-serif'
+const WEB_ADDRESS = 'www.gradido.net'
+const NAMESPACE = '/u/'
+const ELLIPSIS = '…'
 const HEADLINE_SIZE = 62
 const MEMO_SIZE = 38
 const MEMO_GAP = 32 // baseline to baseline, measured against the approved mockup
@@ -99,10 +106,10 @@ export const wrapText = (ctx, text, maxWidth, maxLines = Infinity) => {
   const truncated = lines.length === maxLines && lines.join(' ') !== words.join(' ')
   if (truncated) {
     let last = lines[maxLines - 1]
-    while (last && ctx.measureText(`${last} …`).width > maxWidth) {
+    while (last && ctx.measureText(`${last} ${ELLIPSIS}`).width > maxWidth) {
       last = last.replace(/\s*\S+$/, '')
     }
-    lines[maxLines - 1] = `${last.replace(/[\s,;:–-]+$/, '')} …`
+    lines[maxLines - 1] = `${last.replace(/[\s,;:–-]+$/, '')} ${ELLIPSIS}`
   }
   return lines
 }
@@ -224,7 +231,7 @@ const drawFooterAddress = (ctx, { host, alias, left, baseline }) => {
   if (!alias) {
     ctx.font = `700 ${FOOTER_SIZE}px ${FONT}`
     ctx.fillStyle = COLOR_TEXT
-    ctx.fillText('www.gradido.net', left, baseline)
+    ctx.fillText(WEB_ADDRESS, left, baseline)
     return
   }
 
@@ -235,8 +242,8 @@ const drawFooterAddress = (ctx, { host, alias, left, baseline }) => {
   x += ctx.measureText(host ?? '').width
 
   ctx.fillStyle = '#8a8a8a'
-  ctx.fillText('/u/', x, baseline)
-  x += ctx.measureText('/u/').width
+  ctx.fillText(NAMESPACE, x, baseline)
+  x += ctx.measureText(NAMESPACE).width
 
   ctx.font = `700 ${FOOTER_SIZE}px ${FONT}`
   ctx.fillStyle = COLOR_TEXT
@@ -260,11 +267,29 @@ const drawFooterAddress = (ctx, { host, alias, left, baseline }) => {
  * @returns {Promise<string>} the PNG as a data URL
  */
 export const drawCheque = async (data) => {
+  // ⛔ The font is waited for here, with the pictures, BEFORE anything is measured: the memo
+  // is wrapped by measuring it, and a canvas that does not have the font yet measures the
+  // fallback. Every text the cheque sets goes in, the fixed ones too -- the text decides
+  // which subsets of the font are fetched (printFont.js).
   const [logo, leaves, watermark, portrait] = await Promise.all([
     loadImage(IMAGES.logo),
     loadImage(IMAGES.leaves),
     loadImage(IMAGES.watermark),
     data.portrait ? loadImage(data.portrait) : Promise.resolve(null),
+    printFontReady([
+      data.community,
+      data.name,
+      data.initials,
+      data.headline,
+      data.memo,
+      data.hintLine,
+      data.validLine,
+      data.host,
+      data.alias,
+      WEB_ADDRESS,
+      NAMESPACE,
+      ELLIPSIS,
+    ]),
   ])
 
   const canvas = document.createElement('canvas')

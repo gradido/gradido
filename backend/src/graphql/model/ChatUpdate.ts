@@ -5,7 +5,8 @@ import { ChatMessage } from './ChatMessage'
 /**
  * What is new in the chat for the member asking, in one answer for the threads and for the mark
  * in the menu (E-017): the messages since the wallet's cursor, where the cursor goes next, and
- * how many conversations hold something unread.
+ * how many conversations hold something unread -- and the messages whose text was changed
+ * (E-060), with where to go on from next.
  *
  * It tells the caller nothing about another member beyond their messages: no read pointer of
  * anybody else, no "online", no "typing", no read receipt (E-016, E-008 invariant 2).
@@ -17,11 +18,15 @@ export class ChatUpdate {
     unreadConversations: number,
     messages: ChatMessage[],
     hasMore: boolean,
+    edited: ChatMessage[],
+    editedCursor: string,
   ) {
     this.latestId = latestId
     this.unreadConversations = unreadConversations
     this.messages = messages
     this.hasMore = hasMore
+    this.edited = edited
+    this.editedCursor = editedCursor
   }
 
   /**
@@ -49,4 +54,21 @@ export class ChatUpdate {
   /** Whether more new messages are left over the cap; the next call starts at `latestId`. */
   @Field(() => Boolean)
   hasMore: boolean
+
+  /**
+   * The messages of all the caller's conversations whose text was changed since the caller's
+   * `editedCursor` (E-060), in the order they were changed, the caller's own too -- each as it
+   * stands now, to take the place of the one the wallet holds. Empty for a call without
+   * `editedCursor`. ⚠️ A message may come again with a later call, unchanged: the wallet takes it
+   * as it is.
+   */
+  @Field(() => [ChatMessage])
+  edited: ChatMessage[]
+
+  /**
+   * Where the next call goes on from for changed messages -- its `editedCursor`, to be handed
+   * back as it is. What it names is this server's alone (ChatResolver.newChatMessagesSince).
+   */
+  @Field(() => String)
+  editedCursor: string
 }

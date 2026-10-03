@@ -20,6 +20,7 @@ import {
   V1_0_CommandClient,
 } from 'core'
 import {
+  ChatMemberRef,
   ChatMessageDeliveryState,
   ChatMessageMailState,
   ChatMessageNotify,
@@ -69,6 +70,20 @@ export interface ChatMessageLocalDelivery {
    * the form.
    */
   images?: ChatMessageImageAccepted[]
+  /** A copy the sender forwards (E-059): who wrote it first, and what goes with it in the mail. */
+  forwarded?: ChatMessageForwarded | null
+}
+
+/**
+ * What a forwarded copy carries (E-059): the first writer's pair, filed with the copy; the name
+ * the mail gives them -- null where the sender forwards words of their own --; and the sender's
+ * words to go with it, which the conversation gets as a message of their own and the mail under
+ * the copy.
+ */
+export interface ChatMessageForwarded {
+  from: ChatMemberRef
+  fromAlias: string | null
+  words: string | null
 }
 
 /**
@@ -99,6 +114,7 @@ export async function deliverChatMessageLocally({
   requireStored,
   letter,
   images = [],
+  forwarded = null,
 }: ChatMessageLocalDelivery): Promise<ChatMessageSelect | null> {
   const recipient = {
     communityUuid: recipientUser.communityUuid,
@@ -124,6 +140,7 @@ export async function deliverChatMessageLocally({
       body,
       notify,
       deliveryState: ChatMessageDeliveryState.DELIVERED,
+      forwardedFrom: forwarded?.from ?? null,
     },
     'local',
   )
@@ -152,6 +169,9 @@ export async function deliverChatMessageLocally({
       senderCommunityUuid: senderUser.communityUuid,
       // The mail says there is a picture, and shows none (MAIL-008).
       hasImage: images.length > 0,
+      forwarded: forwarded !== null,
+      forwardedFromAlias: forwarded?.fromAlias ?? null,
+      forwardWords: forwarded?.words ?? null,
     })
     // Nor where the transport did not take it (coderabbit on #3982).
     if (!chatMailWentOut(sent)) {

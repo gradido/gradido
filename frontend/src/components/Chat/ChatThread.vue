@@ -80,12 +80,18 @@
             <chat-bubble
               v-for="message in day.messages"
               :key="message.key ?? message.id"
+              :data-key="message.key ?? message.id"
               :message="message"
               :alias="inGroup ? groupTitle : alias"
               :in-group="inGroup"
               :show-writer="runStarts.has(message.id)"
+              :search-current="searchKey === (message.key ?? message.id)"
+              :editing="editing !== null && editing.id === message.id"
               @open-image="openImage"
               @open-member="emit('openMember', $event)"
+              @duplicate-video="emit('duplicateVideo', $event)"
+              @forward="emit('forwardMessage', $event)"
+              @edit="startEdit"
             />
           </ol>
         </section>
@@ -113,8 +119,13 @@
       :sending="sending"
       :failed="sendFailed"
       :failed-reason="sendRefusal"
-      :initial-text="heldText"
+      :initial-text="openingText"
+      :text-only="textOnly"
+      :editing="editingForBar"
+      :edit-problem="editProblem"
       @send="send"
+      @save-edit="saveEdit"
+      @cancel-edit="stopEdit"
     />
 
     <!-- A picture of the thread, large (P7): a dialog of its own over the contact window. -->
@@ -128,7 +139,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useStore } from 'vuex'
 import { useApolloClient, useMutation, useQuery } from '@vue/apollo-composable'
@@ -137,10 +148,12 @@ import ChatComposeBar from '@/components/Chat/ChatComposeBar.vue'
 import ChatImageView from '@/components/Chat/ChatImageView.vue'
 import { openChatImageView, rememberChatImage } from '@/composables/useChatImages'
 import { useChatTransfers } from '@/composables/useChatTransfers'
-import { onChatMessages, pollChatNow } from '@/composables/useChatUpdates'
+import { useChatThreadSearch } from '@/composables/useChatThreadSearch'
+import { onChatMessages, onChatMessagesEdited, pollChatNow } from '@/composables/useChatUpdates'
 import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
 import {
   chatMessagesWithMemberQuery,
+  editChatMessage,
   markChatConversationRead,
   sendChatMessage,
 } from '@/graphql/chat.graphql'
@@ -149,11 +162,13 @@ import {
   markChatGroupRead,
   sendChatGroupMessage,
 } from '@/graphql/chatGroups.graphql'
+import { chatEditProblem, withChatMessagesEdited } from '@/utils/chatEdit'
 import { chatImageRefusal } from '@/utils/chatImage'
 import { managesChatGroup } from '@/utils/chatGroupRoles'
 import { chatMemberKey } from '@/utils/chatMemberKey'
 import { CHAT_NOTIFY_EMAIL } from '@/utils/chatNotify'
 import { dropChatReturnNote, noteChatReturn, takeHeldChatText } from '@/utils/chatReturn'
+import { readChatVideoInvite } from '@/utils/chatVideoInvite'
 import { memberAlias } from '@/utils/gradidoAddress'
 
 /** How many messages a page holds -- the server's own default, written out. */
@@ -180,6 +195,18 @@ const props = defineProps({
    * Without it the key is made from `member` as it stands.
    */
   memberKey: { type: String, default: '' },
+  /**
+   * "Hallo …" for the field where the two have no conversation yet (E-055): the contact window
+   * hands it in when it was opened from a group. Empty otherwise.
+   */
+  greeting: { type: String, default: '' },
+  /** Only the text, no paperclip: the contact window's first form (E-055). */
+  textOnly: { type: Boolean, default: false },
+  /**
+   * What the window's search field holds (E-057); '' while the search is closed. The thread
+   * searches itself for it (useChatThreadSearch) and says what it found (`search`).
+   */
+  search: { type: String, default: '' },
 })
 
 /**
@@ -189,10 +216,27 @@ const props = defineProps({
  * and the bell (E-017), the window does not ask a second time.
  *
  * `openMember`: in a group, the writer whose name was tapped over their message (E-053).
+ *
+ * `search`: what the search found (E-057) -- `{ searching, count, current, busy, capped }`, for
+ * the window's bar -- whenever any of it changes.
+ *
+ * `duplicateVideo`: "Duplizieren" under a video invitation (E-058) -- the invitation, for the
+ * window's question before a call.
+ *
+ * `editVideo`: "Bearbeiten" at a video invitation of one's own (E-060) -- `{ message, invitation }`,
+ * for the window's question, where its topic and its time are changed. The text of every other
+ * message is changed here, in the bar.
  */
-const emit = defineEmits(['chatConversation', 'openMember'])
+const emit = defineEmits([
+  'chatConversation',
+  'openMember',
+  'search',
+  'duplicateVideo',
+  'forwardMessage',
+  'editVideo',
+])
 
-const { t, d, n } = useI18n()
+const { t, d, n, locale } = useI18n()
 
 /**
  * The pair, taken ONCE. The thread is made when the window opens and gone when it closes
@@ -239,6 +283,7 @@ const { result, error, fetchMore } = useQuery(THREAD.query, threadVariables, {
 })
 const { mutate: markRead } = useMutation(inGroup ? markChatGroupRead : markChatConversationRead)
 const { mutate: sendToServer } = useMutation(inGroup ? sendChatGroupMessage : sendChatMessage)
+const { mutate: changeOnServer } = useMutation(editChatMessage)
 const { client: apolloClient } = useApolloClient()
 
 const page = computed(() => result.value?.[THREAD.page] ?? null)
@@ -335,6 +380,9 @@ const transferBubble = (booking) => {
       ? t('chatThread.transferSent', { name: props.alias, amount })
       : t('chatThread.transferReceived', { name: props.alias, amount }),
     body: booking.memo,
+    // The thank-you greeting the booking was made from, where it was (ZE-019): the bubble shows
+    // its motif and sets its line in handwriting. Null for every other transfer.
+    greeting: booking.greeting ?? null,
   }
 }
 
@@ -569,6 +617,15 @@ watch(
 )
 
 /**
+ * The words the bar begins with: what a start held for this conversation (above), or -- where
+ * the two have never written -- the greeting the window handed in (E-055). The bar reads them
+ * once, when it is made; a thread with messages begins with an empty field.
+ */
+const openingText = computed(
+  () => heldText.value || (state.value === 'empty' ? props.greeting : ''),
+)
+
+/**
  * The read pointer on opening, to the highest id the first page brought (E-017: the marker is
  * the row number). Not for an empty thread -- there is nothing to have read -- not for an older
  * page, which holds only what lies below the pointer anyway, and not for one's own message:
@@ -586,8 +643,9 @@ watch(page, (firstPage) => {
   if (firstPage.messages.length > 0) {
     markShown(Math.max(...firstPage.messages.map((message) => message.id)))
   }
-  // Whatever arrived while the page was on its way.
+  // Whatever arrived while the page was on its way -- and whatever was changed.
   takeWaitingArrivals()
+  takeWaitingEdits()
 })
 
 /**
@@ -711,8 +769,10 @@ watch(
       box?.focus({ preventScroll: true })
     }
     focusWasOnOlder = false
-    // What arrived while the older page was on its way, now that the reader's place is kept.
+    // What arrived while the older page was on its way, now that the reader's place is kept --
+    // and what was changed meanwhile.
     takeWaitingArrivals()
+    takeWaitingEdits()
   },
   { flush: 'post' },
 )
@@ -731,12 +791,22 @@ const withOlderPage = (previous, { fetchMoreResult }) => {
   }
 }
 
+/** The older page on its way, for a second caller to wait for (the search, E-057). */
+let olderInFlight = null
+
 /**
  * The page before the smallest id on screen, and the older transfers -- from whichever list the
  * horizon stands at, both where it stands at both; the watcher above keeps the reader's place.
+ *
+ * True once a page was asked for and came back (or failed -- `olderFailed` says so); false where
+ * there was none to ask. A call while a page is on its way waits for that one: the search asks
+ * for pages while the member may press "load older" (useChatThreadSearch).
  */
 const loadOlder = async (event) => {
-  if (loadingOlder.value) return
+  if (loadingOlder.value) {
+    await olderInFlight
+    return true
+  }
   const oldestMessage =
     hasMore.value && messages.value.length ? at(messages.value[0].createdAt) : -Infinity
   const oldestTransfer =
@@ -746,32 +816,73 @@ const loadOlder = async (event) => {
   const olderMessages =
     hasMore.value && messages.value.length > 0 && oldestMessage >= oldestTransfer
   const olderTransfers = transfersHaveMore.value && oldestTransfer >= oldestMessage
-  if (!olderMessages && !olderTransfers) return
+  if (!olderMessages && !olderTransfers) return false
   const box = scroller.value
   followNewest = false
   placeFromBottom = box ? box.scrollHeight - box.scrollTop : null
   focusWasOnOlder = Boolean(event?.currentTarget) && document.activeElement === event.currentTarget
   loadingOlder.value = true
   olderFailed.value = false
-  try {
-    await Promise.all([
-      olderMessages
-        ? fetchMore({
-            variables: { before: Math.min(...messages.value.map((message) => message.id)) },
-            updateQuery: withOlderPage,
-          })
-        : null,
-      olderTransfers ? loadOlderTransfers() : null,
-    ])
-  } catch {
-    olderFailed.value = true
-    placeFromBottom = null
-    focusWasOnOlder = false
-    takeWaitingArrivals()
-  } finally {
-    loadingOlder.value = false
-  }
+  olderInFlight = (async () => {
+    try {
+      await Promise.all([
+        olderMessages
+          ? fetchMore({
+              variables: { before: Math.min(...messages.value.map((message) => message.id)) },
+              updateQuery: withOlderPage,
+            })
+          : null,
+        olderTransfers ? loadOlderTransfers() : null,
+      ])
+    } catch {
+      olderFailed.value = true
+      placeFromBottom = null
+      focusWasOnOlder = false
+      takeWaitingArrivals()
+      takeWaitingEdits()
+    } finally {
+      loadingOlder.value = false
+    }
+  })()
+  await olderInFlight
+  return true
 }
+
+/**
+ * The search (E-057, useChatThreadSearch): a hit is put in the middle of the box, and the thread
+ * stops following its newest message -- the reader is where the hit is now, as after scrolling up.
+ * Only the box moves, not the window around it.
+ */
+const showItem = (key) => {
+  const box = scroller.value
+  const item = content.value?.querySelector(`[data-key="${key}"]`)
+  if (!box || !item) return
+  followNewest = false
+  const offset = item.getBoundingClientRect().top - box.getBoundingClientRect().top
+  box.scrollTop += offset - Math.max(0, (box.clientHeight - item.offsetHeight) / 2)
+}
+
+/** Moves once an older page is on screen: more messages, more transfers, or no more of either. */
+const searchProgress = computed(
+  () =>
+    `${messages.value.length}:${transfers.value.length}:${hasMore.value}:${transfersHaveMore.value}`,
+)
+
+const {
+  currentKey: searchKey,
+  result: searchResult,
+  step: searchStep,
+} = useChatThreadSearch({
+  typed: toRef(props, 'search'),
+  timeline,
+  canLoadOlder: computed(() => hasMore.value || transfersHaveMore.value),
+  loadedCount: computed(() => messages.value.length + transfers.value.length),
+  olderFailed,
+  progress: searchProgress,
+  loadOlder: () => loadOlder(),
+  show: showItem,
+})
+watch(searchResult, (now) => emit('search', now))
 
 /**
  * Arrivals the page can take: not twice (an id the thread holds already -- one's own copy comes
@@ -886,6 +997,63 @@ const takeChatArrivals = (chatMessages) => {
 }
 const stopArrivals = onChatMessages(takeChatArrivals)
 onBeforeUnmount(stopArrivals)
+
+/**
+ * The page on screen with the changed messages in the place of the ones it holds (E-060), and
+ * which of them were in fact another message than the one held (withChatMessagesEdited). Nothing
+ * to write where none was: the same change comes again with the next beats for some seconds.
+ */
+const withChanges = (current, edited) => {
+  const thread = current?.[THREAD.page]
+  if (!thread) return { next: undefined, changed: [] }
+  const { messages, changed } = withChatMessagesEdited(thread.messages, edited)
+  return {
+    next: changed.length > 0 ? { ...current, [THREAD.page]: { ...thread, messages } } : undefined,
+    changed,
+  }
+}
+
+/**
+ * Changed messages -- the beat's, and one's own as the server answered them (`change`) -- held
+ * until the page can take them: while the first page is on its way (it may have left the server
+ * before the change, and the change would then be lost between the two), and while an older page
+ * is (its landing puts the reader's place back by the next change of the thread, and a text
+ * changed in between would take that place for its own -- as an arrival would).
+ */
+let waitingEdits = []
+
+/**
+ * The changes into the page: each takes the place of the message the thread holds under its id --
+ * of any conversation, since a message this thread does not hold is passed over, and so is a
+ * state older than the one it holds (withChatMessagesEdited). Somebody else's change is said in
+ * the status, once: "… hat eine Nachricht geändert".
+ */
+const takeWaitingEdits = () => {
+  if (!page.value || placeFromBottom !== null || waitingEdits.length === 0) return
+  const edited = waitingEdits
+  waitingEdits = []
+  let changed = []
+  apolloClient.cache.updateQuery({ query: THREAD.query, variables: threadVariables }, (current) => {
+    const taken = withChanges(current, edited)
+    changed = taken.changed
+    return taken.next
+  })
+  const theirs = changed.filter((message) => !message.mine)
+  if (theirs.length === 0) return
+  announce(t('chatThread.editedBy', { name: writerOf(theirs[theirs.length - 1]) }))
+}
+
+/**
+ * The beat's changed messages (useChatUpdates), all conversations at once -- and one's own change,
+ * as the server answered it. Nothing while the thread could not be loaded, as for an arrival.
+ */
+const takeChatEdits = (edited) => {
+  if (state.value === 'error') return
+  waitingEdits.push(...edited)
+  takeWaitingEdits()
+}
+const stopEdits = onChatMessagesEdited(takeChatEdits)
+onBeforeUnmount(stopEdits)
 
 /**
  * How many messages are on their way. The bar's own and a video invitation the window sends
@@ -1052,7 +1220,156 @@ const deliver = async ({ body, notify }) => {
   return own !== null && own.deliveryState !== 'FAILED'
 }
 
-defineExpose({ deliver })
+/**
+ * The message of one's own whose text stands in the bar to be changed (Bernd, 01.10.2026, E-060
+ * B1), or null. The bar gets what it needs of it -- the text, and whether a picture goes with it
+ * (then the text is its caption and may be emptied) --, the bubble a ring.
+ */
+const editing = ref(null)
+/** Why the last change did not go through (chatEditProblem), or ''. */
+const editProblem = ref('')
+/**
+ * The bar's change whose answer is still out, while the bar still holds its message: null once
+ * the answer is in, and once the member let go of the message (✕, Esc). `afterwards` is the id of
+ * a message "Bearbeiten" was pressed at meanwhile, which waits for that answer (`startEdit`,
+ * `saveEdit`). Nothing is drawn from it.
+ */
+let changeUnderway = null
+const editingForBar = computed(() =>
+  editing.value
+    ? {
+        messageUuid: editing.value.messageUuid,
+        body: editing.value.body ?? '',
+        hasImage: (editing.value.images?.length ?? 0) > 0,
+      }
+    : null,
+)
+
+/**
+ * "Bearbeiten" at a message of one's own. A video invitation -- word for word what the wallet
+ * writes for one (readChatVideoInvite) -- goes to the window's question, where its topic and its
+ * time are changed and its words written anew. Every other message is changed as the text it is,
+ * here in the bar: also one that only carries a room's address among words of one's own, which
+ * the question would write over.
+ */
+const startEdit = (message) => {
+  const invitation = readChatVideoInvite({ t, d, locale: locale.value }, message.body)
+  if (invitation) {
+    emit('editVideo', { message, invitation })
+    return
+  }
+  // "Bearbeiten" once more at the message that is being changed: what was typed since stays in
+  // the field, and the keyboard goes back into it.
+  if (editing.value?.id === message.id) {
+    composeBar.value?.focus()
+    return
+  }
+  // The change of the message in the bar is still on its way: this one waits for its answer
+  // (`saveEdit`). Taken at once, the bar would be this message's when the answer comes, and a
+  // change that did not go through would have no place to say so, its text gone with the bar.
+  if (changeUnderway !== null) {
+    changeUnderway.afterwards = message.id
+    return
+  }
+  editProblem.value = ''
+  editing.value = message
+}
+
+/**
+ * The changing let go: the bar gets back what stood in it. An answer still out is no longer the
+ * bar's (`saveEdit`), and no other message waits for it.
+ */
+const stopEdit = () => {
+  editing.value = null
+  editProblem.value = ''
+  changeUnderway = null
+}
+
+/**
+ * Changes a message on the server and puts the answer -- one's own copy as it stands then -- in
+ * the place of the one the page holds: the one way a change of one's own goes, for the bar
+ * (`saveEdit`) and the window's video invitation (`edit`). Never throws: '' where it went
+ * through, else what the problem was (chatEditProblem). The other members get the new text with
+ * their beat.
+ *
+ * ⛔ The text goes as `$body` -- the name the backend's request log masks.
+ *
+ * ⛔ `no-cache`, and the copy into the page by the way every change goes (`takeChatEdits`).
+ * Apollo would write the answer into the cache by itself -- the message is known there by its id
+ * -- at the moment it comes; with an older page on its way that is the next change of the thread,
+ * which the reader's place is put back by, and the page that lands afterwards would throw the
+ * reader to its top. So the thread writes it, when the page can take it.
+ */
+const change = async ({ messageUuid, body }) => {
+  try {
+    const answer = await changeOnServer({ messageUuid, body }, { fetchPolicy: 'no-cache' })
+    const own = answer?.data?.editChatMessage
+    if (!own) return 'OTHER'
+    takeChatEdits([own])
+    return ''
+  } catch (error) {
+    return chatEditProblem(error)
+  }
+}
+
+/**
+ * Saves what the bar asks for. The bar waits while the change is on its way (`sending`), and
+ * both -- no longer on its way, and no longer being changed -- turn in one synchronous step, as
+ * for a message being sent (see `send`): the bar puts back what stood in it only for a change
+ * that went through, and keeps the new text in the field for one that did not.
+ *
+ * ⛔ The answer speaks to the bar only while the bar still holds the message it is about
+ * (`changeUnderway`). The member can let go while it is out (✕, Esc) and take up a message -- this
+ * one again, or another: that changing is not the answer's to end, and the line of a change that
+ * did not go through is not that message's (coderabbit, PR #4034). A message "Bearbeiten" was
+ * pressed at while the bar held this one has waited (`startEdit`): it is taken up once the change
+ * went through, as the page holds it then, and not after one that did not -- the bar keeps that
+ * one, with its text and the reason.
+ */
+const saveEdit = async (changed) => {
+  if (sending.value) return
+  const underway = { afterwards: null }
+  changeUnderway = underway
+  messagesUnderway.value += 1
+  editProblem.value = ''
+  let problem = 'OTHER'
+  try {
+    problem = await change(changed)
+  } finally {
+    if (changeUnderway === underway) {
+      changeUnderway = null
+      editProblem.value = problem
+      if (!problem) {
+        editing.value = messages.value.find((message) => message.id === underway.afterwards) ?? null
+      }
+    }
+    messagesUnderway.value -= 1
+  }
+  if (!problem) announce(t('chatThread.editSaved'))
+}
+
+/**
+ * A change the window makes for the member: the new words of a video invitation (E-060). It goes
+ * the bar's way -- into the page, with the bar waiting -- and answers '' or what the problem was.
+ *
+ * @param {{ messageUuid: string, body: string }} changed
+ * @returns {Promise<string>}
+ */
+const edit = async (changed) => {
+  messagesUnderway.value += 1
+  try {
+    return await change(changed)
+  } finally {
+    messagesUnderway.value -= 1
+  }
+}
+
+/**
+ * `deliver`: a message from outside the bar (the video call's invitation, see above).
+ * `edit`: a change from outside the bar (a video invitation's topic and time, E-060).
+ * `searchStep`: the window's ↑ and ↓ (E-057) -- -1 to the older hit, +1 to the newer.
+ */
+defineExpose({ deliver, edit, searchStep })
 </script>
 
 <style lang="scss" scoped>

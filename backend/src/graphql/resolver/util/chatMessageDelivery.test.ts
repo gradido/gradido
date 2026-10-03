@@ -66,7 +66,10 @@ const row = (deliveryState: 'delivered' | 'pending'): ChatMessageSelect => ({
   deliveryState,
   lastAttemptAt: null,
   delaySeconds: null,
+  forwardedFromCommunityUuid: null,
+  forwardedFromGradidoId: null,
   createdAt: new Date('2026-09-24T12:00:00.000Z'),
+  editedAt: null,
   deletedAt: null,
 })
 

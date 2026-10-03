@@ -47,6 +47,15 @@ fragment transactionFields on Transaction {
   # the backend decides that, not the screen. See Transaction.thankYouCardLabel.
   viaThankYouCard
   thankYouCardLabel
+  # The thank-you greeting of the link a booking was made from, null for every other booking.
+  # The conversation of the two shows it with the booking: the motif, and the line -- which
+  # is also the beginning of the memo -- in handwriting. Not `recipientName`: a conversation
+  # is with that person. The booking list and the column beside the overview share this
+  # fragment and draw nothing of it.
+  greeting {
+    motif
+    line
+  }
 }
 
 # The booking list itself, one page at a time (Transactions.vue). `counterparty` narrows it

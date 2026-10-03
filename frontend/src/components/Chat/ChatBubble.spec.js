@@ -4,9 +4,11 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
+import { ref } from 'vue'
 import ChatBubble from './ChatBubble.vue'
 import { forgetAllChatImages, rememberChatImage } from '@/composables/useChatImages'
 import { CHAT_VIDEO_JOIN } from '@/utils/chatVideoApp'
+import { CHAT_SEARCH } from '@/utils/chatSearch'
 import { withChatVideoTopic } from '@/utils/chatVideoTopic'
 import { LIST_AVATAR_SIZE } from '@/constants'
 
@@ -33,6 +35,15 @@ vi.mock('vue-i18n', () => ({
   useI18n: () => ({
     t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key),
     d: (date, format) => `${format}(${date.toISOString()})`,
+  }),
+}))
+
+// The copy button behind a video link says what became of the copy (ChatVideoLinkCopy).
+const toasts = vi.hoisted(() => ({ success: [], error: [] }))
+vi.mock('@/composables/useToast', () => ({
+  useAppToast: () => ({
+    toastSuccess: (message) => toasts.success.push(message),
+    toastError: (message) => toasts.error.push(message),
   }),
 }))
 
@@ -81,8 +92,10 @@ describe('ChatBubble', () => {
         stubs: {
           IMdiEmailOutline: { template: '<i data-test="envelope" />' },
           IMdiCalendarPlusOutline: true,
+          IMdiContentDuplicate: true,
           IMdiFileDocumentOutline: true,
           IMdiOpenInNew: true,
+          IBiCopy: true,
         },
       },
     })
@@ -166,6 +179,246 @@ describe('ChatBubble', () => {
   })
 
   /**
+   * E-058 (Bernd, 30.09.2026): under every video invitation "Duplizieren" -- the same room and topic
+   * in the question before a call, a planned one a week on; for everybody in the conversation.
+   */
+  describe('"Duplizieren" under a video invitation', () => {
+    const ROOM = 'https://meet.systemli.org/q2w3e4r5t6y7'
+    const duplicate = () => wrapper.find('[data-test="chat-bubble-duplicate"]')
+
+    it.each([
+      ['the other person', THEIRS],
+      ['oneself', OWN],
+    ])(
+      "stands under a call's invitation of %s's, and hands the invitation on",
+      async (who, base) => {
+        const address = withChatVideoTopic(ROOM, 'Stammtisch')
+        mountBubble({ ...base, body: `📹 Videoanruf: Stammtisch\nDer Raum: ${address}` })
+
+        expect(duplicate().text()).toBe('chatThread.videoDuplicate')
+        expect(duplicate().attributes('aria-label')).toBe(
+          'chatThread.videoDuplicateLabel {"topic":"Stammtisch"}',
+        )
+        await duplicate().trigger('click')
+        expect(wrapper.emitted('duplicateVideo')).toEqual([
+          [{ url: address, room: ROOM, topic: 'Stammtisch', start: null, end: null }],
+        ])
+      },
+    )
+
+    it('stands beside "In den Kalender" under a planned call, with its time', async () => {
+      const start = new Date('2026-09-30T13:00:00.000Z')
+      const end = new Date('2026-09-30T14:00:00.000Z')
+      const planned = withChatVideoTopic(ROOM, 'Lesekreis', { start, end })
+      mountBubble({ ...THEIRS, body: `Morgen: ${planned}` })
+
+      const buttons = wrapper
+        .findAll('.chat-bubble-calendar button')
+        .map((b) => b.attributes('data-test'))
+      expect(buttons).toEqual(['chat-bubble-calendar', 'chat-bubble-duplicate'])
+      await duplicate().trigger('click')
+      expect(wrapper.emitted('duplicateVideo')[0][0]).toMatchObject({
+        room: ROOM,
+        topic: 'Lesekreis',
+        start,
+        end,
+      })
+    })
+
+    it.each([
+      ['an ordinary message', 'Hallo'],
+      ['a room without a topic', `Hier: ${ROOM}`],
+      [
+        'a room with settings of somebody else',
+        `Hier: ${ROOM}#config.subject=x&config.startWithAudioMuted=true`,
+      ],
+    ])('stands under no other message: %s', (what, body) => {
+      mountBubble({ ...THEIRS, body })
+      expect(duplicate().exists()).toBe(false)
+      expect(wrapper.find('.chat-bubble-calendar').exists()).toBe(false)
+    })
+
+    // A transfer's words are the booking's memo: no invitation, whatever they say.
+    it('stands under no transfer', () => {
+      mountBubble({
+        ...THEIRS,
+        transfer: true,
+        subject: 'Lena hat Dir 10 gesendet',
+        body: `Danke! ${withChatVideoTopic(ROOM, 'Stammtisch')}`,
+      })
+      expect(duplicate().exists()).toBe(false)
+    })
+  })
+
+  /**
+   * E-057 (Bernd, 30.09.2026): the search in the thread marks its hits where they stand -- in the
+   * words, the bold runs, a link's text, the subject, a transfer's memo. The thread provides the
+   * needle (useChatThreadSearch); here a stand-in does.
+   */
+  describe('the hits of the search in the thread', () => {
+    const mountSearched = (message, needle = 'bank') => {
+      wrapper = mount(ChatBubble, {
+        props: { message, alias: 'Lena' },
+        global: {
+          provide: { [CHAT_SEARCH]: ref(needle) },
+          stubs: { IMdiEmailOutline: true, IBiCopy: true, IMdiFileDocumentOutline: true },
+        },
+      })
+      return wrapper
+    }
+    const marks = () => wrapper.findAll('mark.chat-search-mark').map((m) => m.text())
+
+    it('marks every place in the words, keeping the words as they are', () => {
+      mountSearched({ ...THEIRS, body: 'Die Bank am Waldrand, eine schöne bank.' })
+      expect(marks()).toEqual(['Bank', 'bank'])
+      expect(wrapper.find('.chat-message-text').text()).toBe(
+        'Die Bank am Waldrand, eine schöne bank.',
+      )
+    })
+
+    it('marks in bold runs, in a link and in the subject', () => {
+      mountSearched({
+        ...THEIRS,
+        subject: 'Die Bank',
+        body: 'Das ist **die Bank** unter https://bank.example.org/weg',
+      })
+      expect(wrapper.find('[data-test="chat-bubble-subject"] mark').text()).toBe('Bank')
+      expect(wrapper.find('.chat-message-text strong mark').text()).toBe('Bank')
+      expect(wrapper.find('.chat-message-text a mark').text()).toBe('bank')
+      expect(wrapper.find('.chat-message-text a').attributes('href')).toBe(
+        'https://bank.example.org/weg',
+      )
+    })
+
+    it("marks a transfer's memo", () => {
+      mountSearched({
+        ...THEIRS,
+        transfer: true,
+        subject: 'Lena hat Dir 10 gesendet',
+        body: 'Für die Bank',
+      })
+      expect(wrapper.find('.memo-text mark').text()).toBe('Bank')
+    })
+
+    // Folded as the search compares: the mark stands on the letters as written.
+    it('marks without regard to case and accents', () => {
+      mountSearched({ ...THEIRS, body: 'Treffen im CAFÉ' }, 'cafe')
+      expect(marks()).toEqual(['CAFÉ'])
+    })
+
+    it('marks nothing while nothing is searched, nor outside a thread', () => {
+      mountSearched({ ...THEIRS, body: 'Die Bank' }, '')
+      expect(marks()).toEqual([])
+      wrapper.unmount()
+      mountBubble({ ...THEIRS, body: 'Die Bank' })
+      expect(marks()).toEqual([])
+    })
+
+    it('rings the bubble the search stands on', () => {
+      wrapper = mount(ChatBubble, {
+        props: { message: { ...THEIRS, body: 'Die Bank' }, alias: 'Lena', searchCurrent: true },
+        global: { provide: { [CHAT_SEARCH]: ref('bank') }, stubs: { IMdiEmailOutline: true } },
+      })
+      expect(bubble().classes()).toContain('is-search-current')
+      wrapper.unmount()
+      mountSearched({ ...THEIRS, body: 'Die Bank' })
+      expect(bubble().classes()).not.toContain('is-search-current')
+    })
+  })
+
+  /**
+   * Bernd, 29.09.2026: behind a video room's link a button copies it -- to hand the room on to
+   * another chat, or to meet there again -- for everybody who reads the message, the room with its
+   * topic and without a planned call's time (ChatVideoLinkCopy).
+   */
+  describe('the copy button behind a video link', () => {
+    const ROOM = 'https://meet.opensuse.org/zsuhu82kdvs1'
+    const ADDRESS = withChatVideoTopic(ROOM, 'Neue Funktionen')
+    const INVITATION = `📹 Videoanruf: Neue Funktionen\nDer Raum liegt auf einem Jitsi-Server von openSUSE Project — ein Vorschlag, kein Dienst von Gradido: ${ADDRESS}`
+    const buttons = () => wrapper.findAll('[data-test="chat-video-link-copy"]')
+
+    afterEach(() => {
+      vi.unstubAllGlobals()
+      toasts.success.length = 0
+      toasts.error.length = 0
+    })
+
+    it.each([
+      ['the other person', THEIRS],
+      ['oneself', OWN],
+    ])("stands right behind the link in a message of %s's", (who, message) => {
+      mountBubble({ ...message, body: INVITATION })
+
+      expect(buttons()).toHaveLength(1)
+      const link = wrapper.find('.chat-message-text a')
+      expect(link.element.nextElementSibling).toBe(buttons()[0].element)
+      // The link keeps room for it at its end (ChatVideoLinkCopy).
+      expect(link.classes()).toContain('chat-video-link')
+      expect(link.text()).toBe(ROOM)
+    })
+
+    it('copies the room with its topic', async () => {
+      const writeText = vi.fn().mockResolvedValue()
+      vi.stubGlobal('navigator', { clipboard: { writeText } })
+      mountBubble({ ...THEIRS, body: INVITATION })
+
+      await buttons()[0].trigger('click')
+      await flushPromises()
+
+      expect(writeText).toHaveBeenCalledWith(ADDRESS)
+      expect(toasts.success).toEqual(['chatThread.videoLinkCopied'])
+    })
+
+    // Bernd's choice: a link used again for another meeting brings no old date along.
+    it("copies a planned call's room without its time", async () => {
+      const writeText = vi.fn().mockResolvedValue()
+      vi.stubGlobal('navigator', { clipboard: { writeText } })
+      const when = {
+        start: new Date('2026-09-30T13:00:00.000Z'),
+        end: new Date('2026-09-30T14:00:00.000Z'),
+      }
+      mountBubble({ ...OWN, body: `Morgen: ${withChatVideoTopic(ROOM, 'Lesekreis', when)}` })
+
+      await buttons()[0].trigger('click')
+      await flushPromises()
+
+      expect(writeText).toHaveBeenCalledWith(withChatVideoTopic(ROOM, 'Lesekreis'))
+    })
+
+    it('stands behind each video link, and each copies its own', async () => {
+      const writeText = vi.fn().mockResolvedValue()
+      vi.stubGlobal('navigator', { clipboard: { writeText } })
+      const other = withChatVideoTopic('https://meet.ffmuc.net/k7m2x9q4t8wz', 'Zweiter Raum')
+      mountBubble({ ...THEIRS, body: `Entweder ${ADDRESS} oder ${other}` })
+
+      expect(buttons()).toHaveLength(2)
+      await buttons()[1].trigger('click')
+      await flushPromises()
+      expect(writeText).toHaveBeenCalledWith(other)
+    })
+
+    // What the thread shows whole is copied as any link is: nothing behind it, and no room kept.
+    it.each([
+      ['an ordinary address', 'Schau mal: https://gradido.net/de/faq#konto'],
+      [
+        'a video room with settings of somebody else',
+        `Hier: ${ROOM}#config.subject=x&config.startWithAudioMuted=true`,
+      ],
+      ['a room without a topic', `Hier: ${ROOM}`],
+      [
+        'a file card',
+        'Die Fotos: https://www.swisstransfer.com/d/0b7f3c2a-1234-4cde-9f00-abcdef123456',
+      ],
+      ['an e-mail address', 'Schreib an bernd@example.org'],
+    ])('stands behind no other address: %s', (what, body) => {
+      mountBubble({ ...THEIRS, body })
+
+      expect(buttons()).toHaveLength(0)
+      expect(wrapper.find('.chat-video-link').exists()).toBe(false)
+    })
+  })
+
+  /**
    * V4b: on a computer a click on the link of an invitation of our own asks first -- through the
    * question the contact window provides (`CHAT_VIDEO_JOIN`), here a stand-in that notes what it
    * was handed. The device is the browser's to say (chatVideoApp): a stand-in for `matchMedia`
@@ -184,7 +437,7 @@ describe('ChatBubble', () => {
         props: { message, alias: 'Lena' },
         global: {
           provide: provided ? { [CHAT_VIDEO_JOIN]: (roomUrl) => asked.push(roomUrl) } : {},
-          stubs: { IMdiEmailOutline: true },
+          stubs: { IMdiEmailOutline: true, IBiCopy: true },
         },
       })
     }
@@ -472,6 +725,70 @@ describe('ChatBubble', () => {
     expect(time.element.tagName).toBe('TIME')
     expect(time.attributes('datetime')).toBe('2026-09-22T14:30:00.000Z')
     expect(time.text()).toBe('time(2026-09-22T14:30:00.000Z)')
+  })
+
+  /**
+   * E-060 B3 (Bernd, 01.10.2026): a message whose writer changed it says so -- the word, before
+   * the time, for everybody who reads it. The earlier text is not kept, and nothing says what it
+   * was or when it was changed.
+   */
+  describe('the word "bearbeitet"', () => {
+    const mark = () => wrapper.find('[data-test="chat-bubble-edited"]')
+
+    it.each([
+      ['one’s own', OWN],
+      ['the other person’s', THEIRS],
+    ])('stands before the time of %s message that was changed', (_, message) => {
+      mountBubble({ ...message, editedAt: '2026-09-22T15:00:00.000Z' })
+
+      expect(mark().text()).toBe('chatThread.edited')
+      // Before the time, in the line the time stands in -- and the time is still when it arrived.
+      const time = wrapper.find('[data-test="chat-bubble-time"]')
+      expect(mark().element.parentElement).toBe(time.element.parentElement)
+      expect(
+        mark().element.compareDocumentPosition(time.element) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy()
+      expect(time.attributes('datetime')).toBe(message.createdAt)
+      // The word only: not when it was changed.
+      expect(wrapper.text()).not.toContain('15:00')
+    })
+
+    it('stands at no message nobody changed', () => {
+      mountBubble({ ...OWN, editedAt: null })
+      expect(mark().exists()).toBe(false)
+      wrapper.unmount()
+
+      // A message from before the field.
+      mountBubble(OWN)
+      expect(mark().exists()).toBe(false)
+    })
+
+    // The dot between the word and the time is drawn, not read out; the word is quiet, as the time.
+    it('is set apart from the time by a dot in the stylesheet', () => {
+      const code = readFileSync(
+        join(dirname(fileURLToPath(import.meta.url)), 'ChatBubble.vue'),
+        'utf8',
+      ).replace(/\/\*[\s\S]*?\*\//g, '')
+      expect(code).toMatch(/\.chat-bubble-edited::after\s*\{[^}]*content:\s*'·'/)
+      expect(code).not.toMatch(/\.chat-bubble-edited\s*\{[^}]*color:/)
+    })
+  })
+
+  // E-060: the message whose text stands in the bar to be changed is ringed, as under its menu.
+  it('is ringed while its text is being changed', async () => {
+    mountBubble(OWN)
+    expect(wrapper.classes()).not.toContain('is-editing')
+
+    await wrapper.setProps({ editing: true })
+
+    expect(wrapper.classes()).toContain('is-editing')
+    const code = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'ChatBubble.vue'),
+      'utf8',
+    ).replace(/\/\*[\s\S]*?\*\//g, '')
+    expect(code).toMatch(
+      /\.chat-bubble-row\.is-editing \.chat-bubble\s*\{[^}]*box-shadow:\s*0 0 0 2px var\(--success/,
+    )
   })
 
   const envelope = () => wrapper.find('[data-test="chat-bubble-mailed"]')
@@ -767,6 +1084,49 @@ describe('ChatBubble', () => {
       expect(file).toContain(`URL:${PLANNED}\r\n`)
       expect(file).toContain('UID:q2w3e4r5t6y7-1790773200@gradido\r\n')
       expect(file).toContain('DESCRIPTION:📹 Videoanruf: Projektbesprechung\\n📅 Mittwoch')
+    })
+
+    /**
+     * E-060: a planned call that was changed. Its file keeps the name the call had FIRST -- its
+     * room and its first start -- and counts its changes, so a calendar that holds the call moves
+     * the entry it has instead of adding a second one.
+     */
+    it('saves a changed call under the name of its first start, with the count of its changes', async () => {
+      lendObjectAddresses()
+      const moved = {
+        start: new Date('2026-10-05T14:00:00.000Z'),
+        end: new Date('2026-10-05T15:00:00.000Z'),
+      }
+      const address = withChatVideoTopic(ROOM, 'Projektbesprechung', moved, {
+        first: START,
+        sequence: 2,
+      })
+      mountBubble({
+        ...THEIRS,
+        body: `📹 Videoanruf: Projektbesprechung\n📅 Montag, 5. Oktober 2026\n🕒 16:00–17:00 Uhr (MESZ)\nDer Raum liegt …: ${address}`,
+        editedAt: '2026-09-29T08:00:00.000Z',
+      })
+
+      await calendar().trigger('click')
+
+      const file = (await text(blobs[0])).replace(/\r\n /g, '')
+      // The same name as before the change (see the test above), the new time, the count.
+      expect(file).toContain('UID:q2w3e4r5t6y7-1790773200@gradido\r\n')
+      expect(file).toContain('SEQUENCE:2\r\n')
+      expect(file).toContain('DTSTART:20261005T140000Z\r\n')
+      expect(file).toContain('DTEND:20261005T150000Z\r\n')
+      expect(file).toContain(`URL:${address}\r\n`)
+    })
+
+    // Gegenprobe: a call never changed counts nothing and is named by its own start.
+    it('saves a call never changed with no change counted', async () => {
+      lendObjectAddresses()
+      mountBubble({ ...THEIRS, body: INVITATION })
+
+      await calendar().trigger('click')
+
+      const file = (await text(blobs[0])).replace(/\r\n /g, '')
+      expect(file).toContain('SEQUENCE:0\r\n')
     })
 
     it('draws the button with a focus ring of its own, in the stylesheet', () => {

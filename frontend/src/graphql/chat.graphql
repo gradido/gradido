@@ -1,5 +1,51 @@
 # AI-GENERATED — not an architecture reference
 
+# A message as every document here asks for it: ONE shape, wherever a message comes from -- a page
+# of the thread, the beat, one's own copy, a changed message. The beat's arrivals and changes and
+# one's own copies go into the page of a thread, and a field missing from one of them would leave
+# a hole in it. A group's messages have the same shape (`chatGroupMessageFields`, chatGroups.graphql);
+# `chatMessageFields.spec.js` holds the two against each other.
+#
+# `editedAt` (E-060): when its writer changed the text last, null for a message nobody changed --
+# for both sides; the bubble says "bearbeitet" beside the time.
+fragment chatMessageFields on ChatMessage {
+  id
+  messageUuid
+  conversationId
+  groupUuid
+  sender {
+    communityUuid
+    gradidoID
+  }
+  senderUser {
+    communityUuid
+    gradidoID
+    alias
+    avatarColorIndex
+    avatarUpdatedAt
+  }
+  announcement
+  mine
+  subject
+  body
+  createdAt
+  editedAt
+  deliveryState
+  notify
+  mailState
+  images {
+    imageUuid
+    width
+    height
+  }
+  forwarded
+  forwardedFrom {
+    communityUuid
+    gradidoID
+    alias
+  }
+}
+
 # The thread with one person, one page at a time, oldest first within the page (E-018: the
 # order of arrival on this server; nothing is sorted). The person is named by the PAIR the
 # contact window holds (KF-004) -- there is no conversation id to ask by, and none is needed.
@@ -37,34 +83,7 @@ query chatMessagesWithMemberQuery($ref: MemberAvatarRefInput!, $before: Int, $li
     hasMore
     mutedByMe
     messages {
-      id
-      messageUuid
-      conversationId
-      groupUuid
-      sender {
-        communityUuid
-        gradidoID
-      }
-      senderUser {
-        communityUuid
-        gradidoID
-        alias
-        avatarColorIndex
-        avatarUpdatedAt
-      }
-      announcement
-      mine
-      subject
-      body
-      createdAt
-      deliveryState
-      notify
-      mailState
-      images {
-        imageUuid
-        width
-        height
-      }
+      ...chatMessageFields
     }
   }
 }
@@ -95,41 +114,25 @@ query chatMessagesWithMemberQuery($ref: MemberAvatarRefInput!, $before: Int, $li
 # what keeps a group's message out of the thread with its writer: an empty thread with a person
 # takes its conversation from the first message that person writes, and without it a message they
 # wrote in a group would be taken for one (build plan P5, Falle 1).
-query newChatMessagesSince($afterId: Int, $limit: Int) {
-  newChatMessagesSince(afterId: $afterId, limit: $limit) {
+#
+# `edited` (E-060): the messages whose text was changed since `editedCursor`, as they stand now --
+# for a thread that holds one to put the new text in its place. `editedCursor` in the answer is
+# what the next question hands back, as it came: what it names is the server's own. Without it the
+# answer brings no changed messages and only says where to go on from, as `latestId` does without
+# `afterId`. ⚠️ A changed message can come twice: the server goes a few seconds back each time, so
+# that a change committed a moment late is not passed over. The same message with the same text.
+query newChatMessagesSince($afterId: Int, $limit: Int, $editedCursor: String) {
+  newChatMessagesSince(afterId: $afterId, limit: $limit, editedCursor: $editedCursor) {
     latestId
     unreadConversations
     hasMore
     messages {
-      id
-      messageUuid
-      conversationId
-      groupUuid
-      sender {
-        communityUuid
-        gradidoID
-      }
-      senderUser {
-        communityUuid
-        gradidoID
-        alias
-        avatarColorIndex
-        avatarUpdatedAt
-      }
-      announcement
-      mine
-      subject
-      body
-      createdAt
-      deliveryState
-      notify
-      mailState
-      images {
-        imageUuid
-        width
-        height
-      }
+      ...chatMessageFields
     }
+    edited {
+      ...chatMessageFields
+    }
+    editedCursor
   }
 }
 
@@ -162,34 +165,7 @@ mutation sendChatMessage(
   $image: ChatImageInput
 ) {
   sendChatMessage(ref: $ref, body: $body, notify: $notify, image: $image) {
-    id
-    messageUuid
-    conversationId
-    groupUuid
-    sender {
-      communityUuid
-      gradidoID
-    }
-    senderUser {
-      communityUuid
-      gradidoID
-      alias
-      avatarColorIndex
-      avatarUpdatedAt
-    }
-    announcement
-    mine
-    subject
-    body
-    createdAt
-    deliveryState
-    notify
-    mailState
-    images {
-      imageUuid
-      width
-      height
-    }
+    ...chatMessageFields
   }
 }
 
@@ -251,5 +227,49 @@ query chatVideoServerChoices {
     id
     host
     operator
+  }
+}
+
+# A message forwarded into other conversations (Bernd, 30.09.2026, E-059): groups the member is in
+# and members of this community, five at most together; the member's own words, which follow every
+# copy as a message of their own; and the box "Auch per E-Mail" for the members (the first message
+# of a pair goes by mail in any case). The copies come back -- the wallet counts them against the
+# conversations it named; the threads they land in get them on the beat. Refused before anything is
+# filed as CHAT_MESSAGE_NOT_FORWARDED: TARGETS | UNKNOWN_MESSAGE | UNKNOWN_GROUP | TO_ONESELF |
+# OTHER_COMMUNITY | UNKNOWN_RECIPIENT.
+mutation forwardChatMessage(
+  $messageUuid: String!
+  $groupUuids: [String!]!
+  $members: [MemberAvatarRefInput!]!
+  $words: String
+  $alsoByEmail: Boolean!
+) {
+  forwardChatMessage(
+    messageUuid: $messageUuid
+    groupUuids: $groupUuids
+    members: $members
+    words: $words
+    alsoByEmail: $alsoByEmail
+  ) {
+    id
+    messageUuid
+  }
+}
+
+# Gives a message of one's own another text (Bernd, 01.10.2026, E-060) and answers with one's copy
+# as it stands then -- the shape of every message, so it takes the old one's place in the thread
+# as it is. The subject of a letter and a picture stay; of a message with a picture the caption
+# changes, and may be emptied. No mail goes out.
+#
+# ⛔ The variable is called `$body` -- the name the backend's request log masks, as for a message
+# being sent.
+#
+# Refused as CHAT_MESSAGE_NOT_EDITED, and nothing changes: UNKNOWN_MESSAGE | NOT_OWN | FORWARDED |
+# EMPTY | OTHER_COMMUNITY (a group with members elsewhere) | NOT_STORED. To a member of another
+# community the change goes to their server first, and counts only once that server has taken it:
+# NO_WAY_TO_DELIVER | NOT_CONFIRMED where it did not, PENDING for a message still on its way there.
+mutation editChatMessage($messageUuid: String!, $body: String!) {
+  editChatMessage(messageUuid: $messageUuid, body: $body) {
+    ...chatMessageFields
   }
 }

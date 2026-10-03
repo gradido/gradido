@@ -100,6 +100,23 @@
            booking row. It stands whole rather than cut to one line: a booking can be opened
            to read the rest, a link row cannot, so a clipped memo would be readable nowhere. -->
       <div class="col-12 mt-1 transaction-link-memo-col">
+        <!-- A thank-you greeting says so here, with its motif small and whom it is for.
+             ⛔ Here, in the memo's block, not in the row above: that row is one line at every
+             width and stays as it is -- no picture and no circle before it (see the notes at
+             the row). The motif as an <img>, never inlined: the motifs share gradient ids. -->
+        <div v-if="greeting" class="transaction-link-greeting" data-test="link-greeting">
+          <img
+            v-if="motif"
+            class="transaction-link-greeting-motif"
+            :src="motif.src"
+            :alt="motif.name"
+            :width="THANK_YOU_MOTIF_WIDTH"
+            :height="THANK_YOU_MOTIF_HEIGHT"
+          />
+          <span class="transaction-link-greeting-label" data-test="link-greeting-label">
+            {{ greetingLabel }}
+          </span>
+        </div>
         <div class="transaction-link-memo" data-test="link-memo"><memo-text :memo="memo" /></div>
       </div>
     </div>
@@ -143,6 +160,11 @@ import { deleteTransactionLink } from '@/graphql/mutations'
 import MemoText from '@/components/TransactionRows/MemoText'
 import AppModal from '@/components/AppModal'
 import FigureQrCode from '@/components/QrCode/FigureQrCode'
+import {
+  THANK_YOU_MOTIF_HEIGHT,
+  THANK_YOU_MOTIF_WIDTH,
+  thankYouMotif,
+} from '@/utils/thankYouMotifs'
 
 const props = defineProps({
   holdAvailableAmount: { type: String, required: true },
@@ -151,6 +173,9 @@ const props = defineProps({
   validUntil: { type: String, required: true },
   link: { type: String, required: true },
   memo: { type: String, required: true },
+  // What makes the link a thank-you greeting -- motif, line, whom it is for; null for a
+  // plain link.
+  greeting: { type: Object, default: null },
 })
 
 const showQrModal = ref(false)
@@ -160,11 +185,13 @@ const emit = defineEmits(['reset-transaction-link-list'])
 
 const { t } = useI18n()
 const { toastSuccess, toastError } = useAppToast()
+// A greeting is shared with its own sentence, the one its result page showed (useCopyLinks).
 const { copyLink, share } = useCopyLinks({
   amount: props.amount,
   validUntil: props.validUntil,
   link: props.link,
   memo: props.memo,
+  greeting: props.greeting,
 })
 // The cheque is drawn from scratch here: the window that shows the code is closed while
 // this menu is open, so there is nothing on screen to copy the code from.
@@ -176,6 +203,13 @@ const { downloadThankYouCheque } = useThankYouCheque({
 })
 
 const { mutate: deleteTransactionLinkMutation } = useMutation(deleteTransactionLink)
+
+const motif = computed(() => thankYouMotif(props.greeting?.motif, t))
+const greetingLabel = computed(() =>
+  props.greeting?.recipientName
+    ? t('thank-you-greeting.list.for', { name: props.greeting.recipientName })
+    : t('thank-you-greeting.name'),
+)
 
 const decay = computed(() => `${props.amount - props.holdAvailableAmount}`)
 const validLink = computed(() => new Date(props.validUntil) > new Date())
@@ -230,6 +264,36 @@ const toggleQrModal = () => {
      copying its figure here cost the state word exactly the 16 points it needs to stay on
      one line at 375. */
   --link-menu-col: 3.5rem;
+}
+
+/* The mark of a greeting above its memo: the motif small, and whom it is for. It names no
+   colour, so it takes the row's -- an expired row's grey included. */
+.transaction-link-greeting {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 4px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+/* At the motifs' own proportions (36 : 25); their ground is light in both themes. */
+.transaction-link-greeting-motif {
+  flex-shrink: 0;
+  width: 46px;
+  height: auto;
+  aspect-ratio: 36 / 25;
+  border-radius: 6px;
+  background: #fbf3de;
+}
+
+/* An expired row recedes as a whole, the picture with it. */
+.light-gray-text .transaction-link-greeting-motif {
+  opacity: 0.55;
+}
+
+.transaction-link-greeting-label {
+  min-width: 0;
 }
 
 .transaction-link-memo {

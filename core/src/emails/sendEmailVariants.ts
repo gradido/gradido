@@ -96,11 +96,16 @@ export const sendAccountMultiRegistrationEmail = (
 /**
  * The guest's half of an assisted registration (EM-013): account and password already
  * exist, this mail only asks them to confirm that the address is theirs.
+ *
+ * `byThanks`: the account was opened while accepting a thank-you, with nobody at a table. The
+ * mail then says so in its first sentence - without the name of who thanked: it goes to an
+ * address nobody has confirmed yet.
  */
 export const sendAssistedRegistrationConfirmEmail = (
   data: EmailCommonData & {
     confirmLink: string
     timeDurationObject: Record<string, unknown>
+    byThanks?: boolean
   },
 ): Promise<Record<string, unknown> | boolean | null | Error> => {
   return sendEmailTranslated({
@@ -339,9 +344,21 @@ export const sendThankYouCardPaidEmail = (
 }
 
 /**
- * `newMember` adds a half-sentence: the person who redeemed the link opened their account
- * with it. Optional because the cross-community caller cannot know - there the account was
- * registered in the other community, and the event that would say so is in its database.
+ * The mail to whoever made a transaction link, once somebody accepted it: "… has accepted your
+ * thank-you". One wording for every link, with a greeting or without -- since the redeem page
+ * became a card, every link of a member arrives as a thank-you (ZE-019).
+ *
+ * The "sender" of this mail's fields is the person who ACCEPTED the link: the mail is about
+ * them, and goes to the one who made the link.
+ *
+ * `newMember`: that person opened their account with this link, and the sentence says so -- a
+ * whole sentence of its own in the catalogue. Optional because the cross-community caller
+ * cannot know - there the account was registered in the other community, and the event that
+ * would say so is in its database.
+ *
+ * `senderUuid` and `senderCommunityUuid` name that person as the contact page does. With
+ * both, the mail has a button into the conversation with them, where the booking stands;
+ * without either it has none (the template decides, as in the transfer mail below).
  */
 export const sendTransactionLinkRedeemedEmail = (
   data: EmailCommonData & {
@@ -350,6 +367,8 @@ export const sendTransactionLinkRedeemedEmail = (
     transactionMemo: string
     transactionAmount: GradidoUnit
     newMember?: boolean
+    senderUuid?: string | null
+    senderCommunityUuid?: string | null
   },
 ): Promise<Record<string, unknown> | boolean | null | Error> => {
   return sendEmailTranslated({
@@ -448,6 +467,11 @@ export const sendChatGroupMessageEmail = (
  * `hasImage`: the message carries a picture (P7). The mail says so in a line of its own and
  * shows none -- the mail is the nudge, the conversation the content (MAIL-008) -- and a picture
  * without a caption is a message with no text to show.
+ *
+ * `forwarded` (E-059): the message is a copy the sender forwarded. A line over the text says so,
+ * with the name of whoever wrote the words first (`forwardedFromAlias`) -- none where the sender
+ * forwards words of their own. `forwardWords`: what the sender wrote to go with it, under the
+ * text; it goes as a message of its own in the conversation, and in this mail, not in another.
  */
 export const sendCustomEmail = (
   data: EmailCommonData & {
@@ -457,6 +481,9 @@ export const sendCustomEmail = (
     senderUuid?: string
     senderCommunityUuid?: string
     hasImage?: boolean
+    forwarded?: boolean
+    forwardedFromAlias?: string | null
+    forwardWords?: string | null
   },
 ): Promise<Record<string, unknown> | boolean | null | Error> => {
   // The sender's uuid and nothing of the message -- neither its text nor its subject nor the
@@ -469,6 +496,9 @@ export const sendCustomEmail = (
       ...data,
       subject: data.subject,
       hasImage: data.hasImage ?? false,
+      forwarded: data.forwarded ?? false,
+      forwardedFromAlias: data.forwardedFromAlias ?? null,
+      forwardWords: data.forwardWords ?? null,
       ...getEmailCommonLocales(),
     },
   })

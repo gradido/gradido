@@ -137,6 +137,59 @@ describe('ContributionListItem', () => {
     })
   })
 
+  // Between 768 and 1024 px (lg starts at 1025 px in this wallet) the column kept the phone's
+  // nine twelfths without the phone's offset: with the symbol and the arrow that left nothing
+  // for the text. The column is found by what it shows, not by the classes under test.
+  describe('the amount column', () => {
+    it('takes a quarter of the row from md on and keeps the width and offset of the phone', () => {
+      const amount = mountWrapper()
+        .findAll('div.fw-bold')
+        .find((div) => div.text() === '200')
+
+      expect([...amount.element.parentElement.classList]).toEqual(
+        expect.arrayContaining(['col-9', 'col-md-3', 'col-lg-3', 'offset-3', 'offset-md-0']),
+      )
+    })
+  })
+
+  // On a phone the columns for delete and edit were a quarter wide, with an end margin on top:
+  // a longer word started at the left and ran out to the right (31 px in Russian). Three equal
+  // columns now, icon and word centred in each. The row is found by the delete field in it.
+  describe('the row with delete, edit and chat', () => {
+    const fieldsOf = (item) => {
+      const row = item.find('div.test-delete-contribution').element.parentElement.parentElement
+      return [...row.children].map((column) => ({
+        column: [...column.classList],
+        field: [...column.firstElementChild.classList],
+      }))
+    }
+
+    it('is three columns of the same width', () => {
+      const fields = fieldsOf(mountWrapper())
+
+      expect(fields).toHaveLength(3)
+      for (const { column } of fields) {
+        expect(column).toContain('col-4')
+        expect(column.filter((name) => name.startsWith('col') || name === 'me-auto')).toEqual([
+          'col-4',
+        ])
+      }
+    })
+
+    it('centres icon and word in each field, without a margin at its end', () => {
+      const fields = fieldsOf(mountWrapper())
+
+      expect(fields[0].field).toContain('test-delete-contribution')
+      expect(fields[1].field).toContain('test-edit-contribution')
+      for (const { field } of fields) {
+        expect(field).not.toContain('me-3')
+        expect(field).toEqual(
+          expect.arrayContaining(['pointer', 'd-flex', 'flex-column', 'align-items-center']),
+        )
+      }
+    })
+  })
+
   describe('mount', () => {
     beforeEach(() => {
       vi.clearAllMocks()

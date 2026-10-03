@@ -84,8 +84,16 @@ describe('router', () => {
       expect(defaultRoute.redirect()).toEqual({ path: '/login' })
     })
 
-    it('has 42 routes defined', () => {
-      expect(routes).toHaveLength(42)
+    it('has 43 routes defined', () => {
+      expect(routes).toHaveLength(43)
+    })
+
+    // ZE-020, F12: the layout's greeting is left out on the redeem page, so that what the
+    // link holds starts higher on a phone -- there, and on no other door.
+    it('leaves the greeting of the layout out on the redeem page only', () => {
+      expect(routes.filter((r) => r.meta?.hideGreeting).map((r) => r.path)).toEqual([
+        '/redeem/:code',
+      ])
     })
 
     // The settings are one route per area. That is what lets the same pages serve both
@@ -212,6 +220,19 @@ describe('router', () => {
     testRoute('/my-thank-you-card', 'MyThankYouCard')
     testRoute('/show-friends', 'ShowFriends')
 
+    // The thank-you greeting: for members only, under its own title, and -- like the page it
+    // is reached from -- without the right-hand column. ⛔ Not under /send/..., which reads
+    // what follows as a community.
+    testRoute('/thank-you-greeting', 'ThankYouGreeting')
+
+    it('asks for a sign-in on the thank-you greeting, titles it and gives it no column', () => {
+      const route = routes.find((r) => r.path === '/thank-you-greeting')
+      expect(route.meta.requiresAuth).toBe(true)
+      expect(route.meta.pageTitle).toBe('thank-you-greeting')
+      expect(route.meta.rightSide).toBeUndefined()
+      expect(routes.filter((r) => r.path.includes('thank-you-greeting'))).toHaveLength(1)
+    })
+
     // ⚠️ The breadcrumb prints `pageTitle.<key>`, and the raw key when there is no text -- the
     // page has no heading of its own, so this one is its title.
     it('gives the page for showing Gradido a title the breadcrumb can resolve', () => {
@@ -325,6 +346,32 @@ describe('router', () => {
       expect(
         router.resolve({ name: 'ForgotPassword', params: { comingFrom: 'x' } }).params,
       ).toEqual({})
+    })
+
+    /**
+     * ⛔ The other side of the rule below: on these four routes `code` is the SAME thing, a
+     * redeem code, and it is passed from one to the next under that name (`useAuthLinks` hands
+     * on the params the target route declares). The confirmation mail of a registration over a transaction link opens
+     * `/checkEmail/<optin>/<code>`; from there it goes over the login to the redeem page.
+     * Rename the parameter on one of them, or stop a page from handing it on, and the link
+     * somebody registered for is never redeemed.
+     */
+    it('carries a redeem code from the confirmation mail over the login to the redeem page', () => {
+      const checkEmail = router.resolve('/checkEmail/123456/abcdef0123')
+      expect(checkEmail.name).toBe('CheckEmail')
+
+      const login = router.resolve({ name: 'Login', params: { code: checkEmail.params.code } })
+      expect(login.fullPath).toBe('/login/abcdef0123')
+
+      const redeem = router.resolve({ name: 'Redeem', params: { code: login.params.code } })
+      expect(redeem.fullPath).toBe('/redeem/abcdef0123')
+    })
+
+    it('carries a redeem code from the redeem page over the registration', () => {
+      const redeem = router.resolve('/redeem/abcdef0123')
+
+      const register = router.resolve({ name: 'Register', params: { code: redeem.params.code } })
+      expect(register.fullPath).toBe('/register/abcdef0123')
     })
 
     it('never lets a mail-link route call its parameter :code', () => {

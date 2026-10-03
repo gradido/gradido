@@ -85,6 +85,17 @@ const KEYS = {
   videoInvitePlannedTopic: ['{topic}', '{date}', '{time}', '{operator}', '{url}'],
   videoPlannedTime: ['{from}', '{to}', '{zone}'],
   videoAddToCalendar: [],
+  // E-060: an invitation of one's own changed -- the dialog's title, the hint that the room
+  // stays, what happens with the invitation, the sentence where it could not be changed, the
+  // short message that follows a changed time (with and without a topic of one's own), and the
+  // sentence where that message did not go.
+  videoEditTitle: [],
+  videoEditRoomHint: [],
+  videoEditBody: ['{name}'],
+  videoEditNotSaved: [],
+  videoRescheduled: ['{date}', '{time}'],
+  videoRescheduledTopic: ['{topic}', '{date}', '{time}'],
+  videoRescheduledNotSent: [],
 }
 
 /** Topics a member may type, each hard in its own way for the link finder or for Jitsi. */
@@ -105,7 +116,7 @@ describe('the video call in every language', () => {
     expect(languages).toHaveLength(10)
   })
 
-  it.each(languages)('has all forty-four texts, each with its placeholders once, in %s', (lang) => {
+  it.each(languages)('has all fifty-one texts, each with its placeholders once, in %s', (lang) => {
     const texts = chatThreadIn(lang)
     for (const [key, placeholders] of Object.entries(KEYS)) {
       expect(texts[key], `${lang}: chatThread.${key}`).toBeTruthy()
@@ -257,6 +268,91 @@ describe('the video call in every language', () => {
       }
     },
   )
+
+  /**
+   * E-060: the message that follows a changed time. It begins with the calendar's sign, as the
+   * line of the day in a planned invitation does, and names the topic in the quotation marks of
+   * its language -- the same sentence with and without one.
+   */
+  it.each(languages)(
+    'words the message about a changed time alike with and without a topic, in %s',
+    (lang) => {
+      const texts = chatThreadIn(lang)
+
+      expect(texts.videoRescheduled.startsWith('📅 ')).toBe(true)
+      expect(texts.videoRescheduledTopic.startsWith('📅 ')).toBe(true)
+      // The same words up to where the call is named, and the same end from the day on.
+      const head = (text) => text.slice(0, text.search(/[:.] /) + 1)
+      const tail = (text) => text.slice(text.indexOf('{date}'))
+      expect(head(texts.videoRescheduledTopic)).toBe(head(texts.videoRescheduled))
+      expect(tail(texts.videoRescheduledTopic)).toBe(tail(texts.videoRescheduled))
+      // The topic stands in quotation marks -- an opening one before it and a closing one after
+      // it, with the space French sets inside its marks --, where the sentence without a topic
+      // names the call and needs none.
+      expect(texts.videoRescheduledTopic).toMatch(/[„“«‘»"] ?\{topic\} ?[“”»’«"]/u)
+      expect(texts.videoRescheduled).not.toMatch(/[„“”«»‘’"]/u)
+    },
+  )
+
+  // The sentence names the button to press by the word the button carries, in every language.
+  it.each(languages)('names "Save" by the word on the button, in %s', (lang) => {
+    const save = i18n.global.t('form.save', {}, { locale: lang })
+
+    expect(save).not.toBe('form.save')
+    expect(chatThreadIn(lang).videoRescheduledNotSent).toContain(save)
+  })
+
+  /**
+   * ...and in the marks the file puts around a button's name. Two of the files keep two kinds of
+   * marks apart -- one for a button's name, one for words a member typed (nl “ ” and ‘ ’, tr « »
+   * and “ ”) --, so the measure is taken from a sentence of the same file that names a button:
+   * "muted" names "Send email".
+   */
+  it.each(languages)('puts the button’s name in the marks the file uses for one, in %s', (lang) => {
+    const texts = chatThreadIn(lang)
+    const marksAround = (text) => {
+      const quoted = /([„“«‘"]) ?[^„“”«»‘’"]{2,40}? ?([“”»’"])/u.exec(text)
+      return quoted ? `${quoted[1]}${quoted[2]}` : null
+    }
+
+    expect(marksAround(texts.mutedHint), `${lang}: no button named in mutedHint`).not.toBeNull()
+    expect(marksAround(texts.videoRescheduledNotSent)).toBe(marksAround(texts.mutedHint))
+  })
+
+  // The sentence where an invitation could not be changed is the one where it could not be sent,
+  // but for its verb: the same construction in every language.
+  it.each(languages)('words "not changed" as "not sent" is worded, in %s', (lang) => {
+    const texts = chatThreadIn(lang)
+    const common = (one, other) => {
+      let n = 0
+      while (n < one.length && one[n] === other[n]) n += 1
+      return n
+    }
+
+    expect(texts.videoEditNotSaved).not.toBe(texts.videoNotSent)
+    expect(common(texts.videoEditNotSaved, texts.videoNotSent)).toBeGreaterThanOrEqual(5)
+  })
+
+  it('renders the texts of a changed invitation in each language’s own words', () => {
+    for (const key of [
+      'videoEditTitle',
+      'videoEditRoomHint',
+      'videoEditBody',
+      'videoEditNotSaved',
+      'videoRescheduled',
+      'videoRescheduledTopic',
+      'videoRescheduledNotSent',
+    ]) {
+      const rendered = languages.map((lang) =>
+        i18n.global.t(
+          `chatThread.${key}`,
+          { name: 'N', topic: 'T', date: 'D', time: 'Z' },
+          { locale: lang },
+        ),
+      )
+      expect(new Set(rendered).size, key).toBe(languages.length)
+    }
+  })
 
   // "videoWhen" is left out: Italian and Portuguese both say "Quando".
   it('renders the planning texts in each language’s own words', () => {

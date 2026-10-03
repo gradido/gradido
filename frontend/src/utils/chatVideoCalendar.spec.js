@@ -5,10 +5,13 @@ import {
   chatVideoCalendarFileName,
   chatVideoCalendarUid,
   chatVideoDay,
+  chatVideoFields,
   chatVideoPlannedCall,
   chatVideoWhen,
   chatVideoZone,
   saveChatVideoCalendarFile,
+  chatVideoInvitation,
+  chatVideoNextWeek,
 } from './chatVideoCalendar'
 import { withChatVideoTopic } from './chatVideoTopic'
 
@@ -51,6 +54,7 @@ describe('the calendar file of a planned call', () => {
       'METHOD:PUBLISH',
       'BEGIN:VEVENT',
       'UID:q2w3e4r5t6y7-1790773200@gradido',
+      'SEQUENCE:0',
       'DTSTAMP:20260927T073015Z',
       'DTSTART:20260930T130000Z',
       'DTEND:20260930T140000Z',
@@ -130,6 +134,53 @@ describe('the calendar file of a planned call', () => {
     expect(revoke).toHaveBeenCalledWith('blob:calendar')
     delete URL.createObjectURL
     delete URL.revokeObjectURL
+  })
+})
+
+/**
+ * A call that was changed (E-060): the calendar that holds it is to move it, not to show it twice.
+ * RFC 5545 knows a call by its UID and takes the file with the higher SEQUENCE as its newer state.
+ * So the file keeps the name the call had first -- its room and its FIRST start -- and counts its
+ * changes.
+ */
+describe('the calendar file of a call that was changed', () => {
+  const MOVED = {
+    start: new Date('2026-10-05T14:00:00.000Z'),
+    end: new Date('2026-10-05T15:00:00.000Z'),
+  }
+
+  it('counts nothing for a call never changed', () => {
+    expect(unfolded(aFile())).toContain('SEQUENCE:0')
+  })
+
+  it('keeps the name of its first start, counts its changes, and says its new time', () => {
+    const lines = unfolded(aFile({ ...MOVED, uid: chatVideoCalendarUid(ROOM, START), sequence: 2 }))
+    // The same name as the file before the change (see `aFile`): the same entry in a calendar.
+    expect(lines).toContain('UID:q2w3e4r5t6y7-1790773200@gradido')
+    expect(lines).toContain('SEQUENCE:2')
+    expect(lines).toContain('DTSTART:20261005T140000Z')
+    expect(lines).toContain('DTEND:20261005T150000Z')
+    expect(lines.filter((line) => line.startsWith('SEQUENCE:'))).toHaveLength(1)
+    expect(lines.filter((line) => line.startsWith('UID:'))).toHaveLength(1)
+  })
+
+  // The bubble's button names a changed call by what its address carries (chatVideoTopic).
+  it('is named by the first start a changed invitation carries, with its count', () => {
+    const address = withChatVideoTopic(ROOM, 'Projektbesprechung', MOVED, {
+      first: START,
+      sequence: 2,
+    })
+    const call = chatVideoPlannedCall(`📹 Videoanruf: Projektbesprechung\n… ${address}`)
+    expect(call).toMatchObject({ start: MOVED.start, end: MOVED.end, first: START, sequence: 2 })
+    expect(chatVideoCalendarUid(call.room, call.first ?? call.start)).toBe(
+      'q2w3e4r5t6y7-1790773200@gradido',
+    )
+    // Never changed: named by its own start, as ever, and it carries no count.
+    const never = chatVideoPlannedCall(INVITATION)
+    expect(chatVideoCalendarUid(never.room, never.first ?? never.start)).toBe(
+      'q2w3e4r5t6y7-1790773200@gradido',
+    )
+    expect(never.sequence).toBeUndefined()
   })
 })
 
@@ -246,5 +297,120 @@ describe('the planned call a message invites to', () => {
   it('takes the first planned address, past any other link', () => {
     const text = `Vorher: https://gradido.net/de/ -- ${INVITATION}`
     expect(chatVideoPlannedCall(text)?.url).toBe(PLANNED)
+  })
+})
+
+// E-058 (Bernd, 30.09.2026): a video invitation duplicated -- what it carries, and, planned, the
+// same weekday and time a week on.
+describe('the invitation a message carries', () => {
+  it('is read out of the first address of our own form: room, topic, and a planned time', () => {
+    expect(chatVideoInvitation(INVITATION)).toEqual({
+      url: PLANNED,
+      room: ROOM,
+      topic: 'Projektbesprechung',
+      start: START,
+      end: END,
+    })
+    const now = withChatVideoTopic(ROOM, 'Stammtisch')
+    expect(chatVideoInvitation(`Komm dazu: ${now}`)).toEqual({
+      url: now,
+      room: ROOM,
+      topic: 'Stammtisch',
+      start: null,
+      end: null,
+    })
+  })
+
+  it('is none in a message without one', () => {
+    expect(chatVideoInvitation('Schau mal: https://gradido.net/de/faq#konto')).toBeNull()
+    expect(chatVideoInvitation(`Hier: ${ROOM}`)).toBeNull()
+    expect(chatVideoInvitation('')).toBeNull()
+    expect(chatVideoInvitation(null)).toBeNull()
+  })
+})
+
+describe('a planned call a week on', () => {
+  beforeEach(() => {
+    process.env.TZ = 'Europe/Berlin'
+  })
+
+  afterEach(() => {
+    process.env.TZ = 'UTC'
+  })
+
+  // A moment on Berlin's clock.
+  const at = (day, time) => new Date(`${day}T${time}:00`)
+  const when = (day, from, to) => chatVideoWhen(day, from, to)
+
+  it('goes to the same weekday and time next week, as long as it was', () => {
+    const now = at('2026-09-30', '11:35')
+    expect(chatVideoNextWeek(when('2026-09-30', '15:00', '16:30'), now)).toEqual({
+      day: '2026-10-07',
+      from: '15:00',
+      to: '16:30',
+    })
+  })
+
+  // An invitation from weeks ago: the first of its weekday and time still to come.
+  it('goes to the first such time still to come', () => {
+    const now = at('2026-09-30', '13:35')
+    expect(chatVideoNextWeek(when('2026-09-02', '15:00', '16:00'), now)).toEqual({
+      day: '2026-09-30',
+      from: '15:00',
+      to: '16:00',
+    })
+    expect(chatVideoNextWeek(when('2026-09-02', '09:00', '10:00'), now)).toEqual({
+      day: '2026-10-07',
+      from: '09:00',
+      to: '10:00',
+    })
+  })
+
+  // Summer time ends on 25 October: the call keeps its time on the clock.
+  it('keeps the time of day across the change of summer time', () => {
+    const now = at('2026-10-21', '18:00')
+    expect(chatVideoNextWeek(when('2026-10-21', '15:00', '16:00'), now)).toEqual({
+      day: '2026-10-28',
+      from: '15:00',
+      to: '16:00',
+    })
+  })
+
+  it('ends a call that ran past midnight at the end of its day', () => {
+    const start = at('2026-09-30', '23:30')
+    const end = new Date(start.getTime() + 60 * 60 * 1000)
+    expect(chatVideoNextWeek({ start, end }, at('2026-09-30', '12:00'))).toEqual({
+      day: '2026-10-07',
+      from: '23:30',
+      to: '23:59',
+    })
+  })
+})
+
+// E-060: a call that is changed opens with the time it has, on the member's own clock.
+describe('the time of a call as the fields take it', () => {
+  beforeEach(() => {
+    process.env.TZ = 'Europe/Berlin'
+  })
+
+  afterEach(() => {
+    process.env.TZ = 'UTC'
+  })
+
+  it('is its day, its start and its end on the member’s clock, and reads back as the same time', () => {
+    const fields = chatVideoFields({ start: START, end: END })
+    // 13:00 UTC is 15:00 in Berlin's summer.
+    expect(fields).toEqual({ day: '2026-09-30', from: '15:00', to: '16:00' })
+    expect(chatVideoWhen(fields.day, fields.from, fields.to)).toEqual({ start: START, end: END })
+  })
+
+  it('ends a call that runs past midnight at the end of its day', () => {
+    const start = new Date('2026-09-30T23:30:00')
+    const end = new Date(start.getTime() + 60 * 60 * 1000)
+    expect(chatVideoFields({ start, end })).toEqual({
+      day: '2026-09-30',
+      from: '23:30',
+      to: '23:59',
+    })
   })
 })

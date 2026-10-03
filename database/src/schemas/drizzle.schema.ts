@@ -1,7 +1,6 @@
 import { sql } from 'drizzle-orm'
 import {
   bigint,
-  binary,
   boolean,
   char,
   datetime,
@@ -10,6 +9,7 @@ import {
   int,
   json,
   longtext,
+  mysqlEnum,
   mysqlTable,
   primaryKey,
   smallint,
@@ -20,6 +20,7 @@ import {
   varchar,
 } from 'drizzle-orm/mysql-core'
 
+import { AccountState } from '../enum/AccountState'
 import { customBinary, customGeometry, customGradidoUnit, customMediumBlob } from './customTypes'
 
 export const communitiesTable = mysqlTable(
@@ -124,6 +125,33 @@ export const contributionsTable = mysqlTable(
 
 export type ContributionsSelect = typeof contributionsTable.$inferSelect
 export type ContributionsInsert = typeof contributionsTable.$inferInsert
+
+export const contributionLinksTable = mysqlTable('contribution_links', {
+  id: int('id', { unsigned: true }).autoincrement().primaryKey(),
+  name: varchar('name', { length: 100 }).notNull(),
+  memo: varchar('memo', { length: 512 }).notNull(),
+  validFrom: datetime('valid_from', { mode: 'date' }).notNull(),
+  validTo: datetime('valid_to', { mode: 'date' }),
+  amountLegacy: customGradidoUnit('amount_legacy'),
+  amountGdd4: customGradidoUnit('amount_gdd4'),
+  cycle: varchar('cycle', { length: 12 }).notNull().default('ONCE'),
+  maxPerCycle: int('max_per_cycle', { unsigned: true }).notNull().default(1),
+  maxAmountPerMonthLegacy: customGradidoUnit('max_amount_per_month_legacy'),
+  maxAmountPerMonthGdd4: customGradidoUnit('max_amount_per_month_gdd4'),
+  totalMaxCountOfContribution: int('total_max_count_of_contribution', {
+    unsigned: true,
+  }),
+  maxAccountBalanceLegacy: customGradidoUnit('max_account_balance_legacy'),
+  maxAccountBalanceGdd4: customGradidoUnit('max_account_balance_gdd4'),
+  minGapHours: int('min_gap_hours', { unsigned: true }),
+  createdAt: datetime('created_at', { mode: 'date' }).default(sql`current_timestamp()`).notNull(),
+  deletedAt: datetime('deleted_at', { mode: 'date' }),
+  code: varchar('code', { length: 24 }).notNull(),
+  linkEnabled: tinyint('link_enabled', { unsigned: false }).notNull().default(1),
+})
+
+export type ContributionLinksSelect = typeof contributionLinksTable.$inferSelect
+export type ContributionLinksInsert = typeof contributionLinksTable.$inferInsert
 
 // One moderator conversation with Crea in the admin chat window (CreaChat). The
 // Anthropic Messages API is stateless, so the whole exchange lives here as a JSON array
@@ -418,6 +446,12 @@ export const usersTable = mysqlTable(
     gmsRegistered: boolean('gms_registered').default(false).notNull(),
     gmsRegisteredAt: datetime('gms_registered_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
     humhubAllowed: boolean('humhub_allowed').default(false).notNull(),
+    // Where the account stands, as one value (migration 0148). A MySQL ENUM: one byte a row,
+    // and a value outside the list is refused by the server in strict mode, which the Drizzle
+    // pool sets (AppDatabase). ⛔ Append only - see AccountState.
+    accountState: mysqlEnum('account_state', AccountState)
+      .default(AccountState.REGISTERED)
+      .notNull(),
   },
   (table) => [
     index('idx_users_created_id_uuid').on(table.createdAt, table.id, table.communityUuid),
@@ -861,6 +895,13 @@ export const chatMessagesTable = mysqlTable(
     senderGradidoId: char('sender_gradido_id', { length: 36 }).notNull(),
     subject: text().default(sql`NULL`),
     body: text().notNull(),
+    // The first writer of a forwarded message (E-059, migration 0150): both set on a copy that was
+    // forwarded -- through several forwardings, the one who wrote the words --, both NULL on
+    // every other message.
+    forwardedFromCommunityUuid: char('forwarded_from_community_uuid', { length: 36 }).default(
+      sql`NULL`,
+    ),
+    forwardedFromGradidoId: char('forwarded_from_gradido_id', { length: 36 }).default(sql`NULL`),
     notify: varchar({ length: 8 }).$type<ChatMessageNotify>().notNull(),
     mailState: varchar('mail_state', { length: 8 })
       .$type<ChatMessageMailState>()
@@ -873,11 +914,15 @@ export const chatMessagesTable = mysqlTable(
     createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
       .default(sql`current_timestamp(3)`)
       .notNull(),
+    // When the text was changed last (E-060, migration 0151) -- the database's clock, utc, as
+    // dbUpdateChatMessageBody writes it; NULL for a message nobody changed.
+    editedAt: datetime('edited_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
     deletedAt: datetime('deleted_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
   },
   (table) => [
     uniqueIndex('chat_messages_message_uuid_unique').on(table.messageUuid),
     index('chat_messages_conversation_id_idx').on(table.conversationId, table.id),
+    index('chat_messages_edited_at_idx').on(table.editedAt),
   ],
 )
 
@@ -953,3 +998,33 @@ export const chatVideoServersTable = mysqlTable(
 
 export type ChatVideoServerSelect = typeof chatVideoServersTable.$inferSelect
 export type ChatVideoServerInsert = typeof chatVideoServersTable.$inferInsert
+
+// What a thank-you greeting has beyond the transaction link it is (migration 0152): the motif
+// of the card, its first line and the name the sender wrote under "Für wen?". Amount, memo,
+// code and validity are the link's own.
+//
+// ⛔ Hung on the link's `code`, not on its id: the greeting is filed BEFORE its link
+// (createTransactionLink), and the code is what names the link before it is saved. No foreign
+// key -- a link is soft-deleted.
+export const thankYouGreetingsTable = mysqlTable(
+  'thank_you_greetings',
+  {
+    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
+    transactionLinkCode: varchar('transaction_link_code', { length: 24 }).notNull(),
+    // One of the wallet's motif keys; NULL is for a greeting with a photo of its own.
+    motif: varchar({ length: 32 }).default(sql`NULL`),
+    // Also the beginning of the link's memo, which is what goes into the booking.
+    line: varchar({ length: 120 }).default(sql`NULL`),
+    // Written freely by the sender; no account stands behind it.
+    recipientName: varchar('recipient_name', { length: 64 }).default(sql`NULL`),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex('thank_you_greetings_transaction_link_code_unique').on(table.transactionLinkCode),
+  ],
+)
+
+export type ThankYouGreetingSelect = typeof thankYouGreetingsTable.$inferSelect
+export type ThankYouGreetingInsert = typeof thankYouGreetingsTable.$inferInsert

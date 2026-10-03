@@ -25,9 +25,24 @@ export const LAST_TRANSACTIONS_ROWS = 5
  * bei den 8"). Once the five are settled this can be `LAST_TRANSACTIONS_ROWS` again.
  */
 export const LAST_TRANSACTIONS_PAGE_SIZE = 8
-// compound interest factor (decay reversed) for 14 days (hard coded backend link timeout)
+/**
+ * How many days a transaction link stays open. The server's number (`CODE_VALID_DAYS_DURATION`
+ * in shared/src/const/index.ts); the wallet cannot import from there, so it stands here a
+ * second time, and constants.drift.spec.js reads the server's file to hold the two together.
+ * Said to the member where a thank-you greeting is made ("Dein Gruß wartet 14 Tage").
+ */
+export const LINK_VALID_DAYS = 14
+// compound interest factor (decay reversed) for the days a link stays open
 // 365.2425 days per year (gregorian calendar year)
-export const LINK_COMPOUND_INTEREST_FACTOR = Math.pow(2, 14 / 365.2425)
+export const LINK_COMPOUND_INTEREST_FACTOR = Math.pow(2, LINK_VALID_DAYS / 365.2425)
+
+/**
+ * The most a link may carry out of this balance. A link holds a little more than its amount --
+ * what the amount will have lost to decay by its last day -- so the whole balance cannot go
+ * into one: the server refuses it ("User has not enough GDD"). Rounded down to the cent.
+ */
+export const linkAmountMax = (balance) =>
+  Math.max(0, Math.floor((balance / LINK_COMPOUND_INTEREST_FACTOR) * 100) / 100)
 
 /**
  * The contacts panel in the right-hand column (KF-009).
@@ -46,6 +61,14 @@ export const LINK_COMPOUND_INTEREST_FACTOR = Math.pow(2, 14 / 365.2425)
  */
 export const CONTACTS_PANEL_PAGE_SIZE = 20
 export const CONTACTS_PANEL_ROWS = 5
+
+/**
+ * The whole contact list in one answer: what the contacts page asks for, and the dialog that
+ * forwards a message where no page holds the list for it (useChatForwardTargets). Favourites,
+ * search and pages happen on this device then. `pages/Contacts.vue` says why, and what happens
+ * past this cap.
+ */
+export const CONTACTS_FETCH_MAX = 1000
 
 /**
  * The face beside a person in every list of people in the wallet: the transactions page, the

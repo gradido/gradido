@@ -22,7 +22,7 @@
     lazy
     centered
     no-header
-    :aria-label="videoAskTitle"
+    :aria-label="videoDialogLabel"
     data-test="chat-video-dialog"
     @shown="videoAskOpened = true"
   >
@@ -30,36 +30,75 @@
          outside the thread. In the question's own dialog, in place of its content -- "Back"
          returns to it. The server chosen counts at once and stays, per member on this device
          (chatVideoServer), as the box "Start in the Jitsi app" does. -->
-    <template v-if="videoSettings">
+    <template v-if="videoShown.settings">
       <p class="h5 mb-1" data-test="chat-video-settings-title">
         {{ videoSettingsTitle }}
       </p>
-      <p class="small text-muted mb-3" data-test="chat-video-settings-topic">
-        {{ $t('chatThread.videoTopicLine', { topic: videoTopicShown }) }}
-      </p>
-      <div class="mb-3">
-        <label class="form-label" :for="videoServerFieldId">
-          {{ $t('chatThread.videoServer') }}
-        </label>
-        <!-- At random, as before, or one of the servers a room is handed out on right now
-             (chatVideoServerChoices). -->
-        <select
-          :id="videoServerFieldId"
-          ref="videoServerField"
-          v-model="videoServerSelected"
-          class="form-select"
-          :disabled="videoCalling"
-          data-test="chat-video-server"
-        >
-          <option :value="null">{{ $t('chatThread.videoServerRandom') }}</option>
-          <option v-for="choice in videoServerChoices" :key="choice.id" :value="choice.id">
-            {{ chatVideoServerLabel(choice) }}
-          </option>
-        </select>
-      </div>
+      <!-- A video invitation of one's own being changed (Bernd, 01.10.2026, E-060): the gear's
+           view, with what the invitation says -- its topic to be changed here, since the question
+           with the topic's field is not passed through, and its time below. The room stays the
+           one the invitation named, so the link everybody has goes on leading to the call: its
+           server stands here as words -- whole, on as many lines as it needs --, not in a field
+           greyed out, which cut a long name off and left it hard to read (measured: 2.5 : 1). -->
+      <template v-if="videoShown.editing">
+        <div class="mt-3 mb-3">
+          <label class="form-label" :for="videoTopicId">
+            {{ $t('chatThread.videoTopic') }}
+          </label>
+          <input
+            :id="videoTopicId"
+            v-model="videoTopic"
+            type="text"
+            class="form-control"
+            :maxlength="CHAT_VIDEO_TOPIC_MAX"
+            autocomplete="off"
+            :tabindex="videoAskOpened ? undefined : -1"
+            :aria-describedby="videoTopicHintId"
+            data-test="chat-video-edit-topic"
+          />
+          <div :id="videoTopicHintId" class="small text-muted mt-2">
+            {{ $t('chatThread.videoTopicHint') }}
+          </div>
+        </div>
+        <div class="mb-3">
+          <div class="form-label">{{ $t('chatThread.videoServer') }}</div>
+          <p class="mb-0 chat-video-edit-server" data-test="chat-video-edit-server">
+            {{ videoShown.server }}
+          </p>
+          <div class="small text-muted mt-2" data-test="chat-video-edit-room-hint">
+            {{ $t('chatThread.videoEditRoomHint') }}
+          </div>
+        </div>
+      </template>
+      <template v-else>
+        <p class="small text-muted mb-3" data-test="chat-video-settings-topic">
+          {{ $t('chatThread.videoTopicLine', { topic: videoTopicShown }) }}
+        </p>
+        <div class="mb-3">
+          <label class="form-label" :for="videoServerFieldId">
+            {{ $t('chatThread.videoServer') }}
+          </label>
+          <!-- At random, as before, or one of the servers a room is handed out on right now
+               (chatVideoServerChoices). -->
+          <select
+            :id="videoServerFieldId"
+            ref="videoServerField"
+            v-model="videoServerSelected"
+            class="form-select"
+            :disabled="videoCalling"
+            data-test="chat-video-server"
+          >
+            <option :value="null">{{ $t('chatThread.videoServerRandom') }}</option>
+            <option v-for="choice in videoServerChoices" :key="choice.id" :value="choice.id">
+              {{ chatVideoServerLabel(choice) }}
+            </option>
+          </select>
+        </div>
+      </template>
       <!-- The time of a planned call (V5b): a day, from, to -- the browser's own calendar and
            clock, in the member's own time zone, which the line under them names. Empty for
-           every question: a day filled in on its own would be a day nobody chose. -->
+           every new question: a day filled in on its own would be a day nobody chose. A planned
+           call duplicated brings its own weekday and time a week on (E-058). -->
       <div class="mb-3" role="group" :aria-labelledby="videoWhenLabelId">
         <div :id="videoWhenLabelId" class="form-label">{{ $t('chatThread.videoWhen') }}</div>
         <div class="chat-video-when">
@@ -143,14 +182,18 @@
       </p>
       <!-- "Plan" sends the invitation from here (V5b): who gets it, and the box, as in the
            question -- the same box, and the first message goes by mail in any case (E-024). -->
-      <p class="mb-0 mt-3 text-muted" data-test="chat-video-plan-body">{{ planBody }}</p>
+      <!-- A changed invitation (E-060): what happens with it -- and the box is for the short
+           message that follows a changed time, not for the invitation, which is not sent again. -->
+      <p class="mb-0 mt-3 text-muted" data-test="chat-video-plan-body">
+        {{ videoShown.editing ? editBody : planBody }}
+      </p>
       <ChatCheck
         v-if="canMail"
         v-model="videoAlsoByEmail"
         class="mt-3"
         box-test="chat-video-plan-email"
       >
-        {{ boxWords }}
+        {{ videoShown.editing ? editBoxWords : boxWords }}
       </ChatCheck>
     </template>
     <template v-else>
@@ -236,7 +279,27 @@
     <template #footer>
       <!-- "Back" (V5, Bernd, 27.09.2026: "Zurück · Planen"): the choice counts already, so
            there is nothing to take over or to throw away. -->
-      <template v-if="videoSettings">
+      <!-- A changed invitation (E-060): "Cancel" lets it go, "Save" changes the invitation in
+           the thread. It waits while the change is on its way, as "Plan" does. -->
+      <template v-if="videoShown.settings && videoShown.editing">
+        <BButton
+          variant="secondary"
+          data-test="chat-video-edit-cancel"
+          @click="videoAsking = false"
+        >
+          {{ $t('form.cancel') }}
+        </BButton>
+        <BButton
+          variant="gradido"
+          class="chat-video-plan"
+          :aria-disabled="videoCalling ? 'true' : 'false'"
+          data-test="chat-video-edit-save"
+          @click="saveVideoEdit"
+        >
+          {{ $t('form.save') }}
+        </BButton>
+      </template>
+      <template v-else-if="videoShown.settings">
         <BButton variant="secondary" data-test="chat-video-back" @click="closeVideoSettings">
           {{ $t('back') }}
         </BButton>
@@ -344,7 +407,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onBeforeUnmount, ref, useId, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, reactive, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useStore } from 'vuex'
 import { useApolloClient } from '@vue/apollo-composable'
@@ -354,6 +417,11 @@ import ChatVideoAppBox from '@/components/Chat/ChatVideoAppBox.vue'
 import ChatVideoAppMissed from '@/components/Chat/ChatVideoAppMissed.vue'
 import { chatVideoRoom, chatVideoServerChoices } from '@/graphql/chat.graphql'
 import { chatNotifyFor } from '@/utils/chatNotify'
+import {
+  chatVideoInviteBody,
+  chatVideoRescheduledBody,
+  nextChatVideoRevision,
+} from '@/utils/chatVideoInvite'
 import { CHAT_VIDEO_TOPIC_MAX, withChatVideoTopic } from '@/utils/chatVideoTopic'
 import {
   chatVideoAppUrl,
@@ -372,7 +440,8 @@ import {
   chatVideoCalendarFile,
   chatVideoCalendarFileName,
   chatVideoCalendarUid,
-  chatVideoDay,
+  chatVideoFields,
+  chatVideoNextWeek,
   chatVideoWhen,
   chatVideoZone,
   saveChatVideoCalendarFile,
@@ -401,10 +470,20 @@ const props = defineProps({
    * reached the other side -- the thread's `deliver` (ChatThread).
    */
   deliver: { type: Function, required: true },
+  /**
+   * The window's way to change a message of its thread (E-060): `{ messageUuid, body }` in, '' out
+   * where the change went through, else what the problem was -- the thread's `edit` (ChatThread).
+   * Without it no invitation is changed from here. Not called `edit`: that is what this component
+   * exposes for the window to open an invitation with.
+   */
+  change: { type: Function, default: null },
 })
 
 const { t, d, locale } = useI18n()
 const store = useStore()
+
+/** The member's language, as the invitation's words are written in it (chatVideoInvite). */
+const inviteWords = () => ({ t, d, locale: locale.value })
 const { client: apolloClient } = useApolloClient()
 
 /**
@@ -432,6 +511,10 @@ const videoAskTitle = computed(() =>
   props.group
     ? t('chatGroup.videoAskTitle', { name: props.name })
     : t('chatThread.videoAskTitle', { name: props.name }),
+)
+/** The dialog's name for the ear: the question's -- or, while an invitation is changed, that. */
+const videoDialogLabel = computed(() =>
+  videoShown.editing ? t('chatThread.videoEditTitle') : videoAskTitle.value,
 )
 
 /** The question before a call is open. */
@@ -485,10 +568,65 @@ let stopVideoAppWatch = null
  * thread -- in the question's own dialog, in place of its content, until "Back".
  */
 const videoSettings = ref(false)
-const videoSettingsTitle = computed(() =>
-  props.group
+/**
+ * The video invitation of one's own that is being changed (E-060), or null:
+ * - `messageUuid`: the message it is;
+ * - `was`: what it says -- room, topic, time, who runs the server, and what it carries for the
+ *   calendars (readChatVideoInvite) -- when "Bearbeiten" was pressed, and after a "Save" that
+ *   went through, what it says since;
+ * - `fields`: the day and the times as the fields showed that time: while they stand untouched,
+ *   the time is the invitation's own to the second, whatever the fields can show of it;
+ * - `owed`: its time was changed, and the short message about it did not go -- "Save" once more
+ *   sends it.
+ * While it is set, the dialog is the gear's view with "Save" in place of "Plan".
+ */
+const videoEditing = ref(null)
+/** The server of an invitation, as the choice names one: its host, and who runs it. */
+const videoServerOf = ({ room, operator }) => {
+  let host = ''
+  try {
+    host = new URL(room).host
+  } catch {
+    // Not an address: the operator alone names it.
+  }
+  // Where the list named nobody, the invitation names the host: not said twice.
+  return operator === host ? host : chatVideoServerLabel({ host, operator })
+}
+/**
+ * What the dialog SHOWS of the two above: the same while it is open, and what it showed last
+ * while it fades out -- `settings` the gear's view, `editing` an invitation being changed,
+ * `server` that invitation's server in words. The question's state is let go the moment the
+ * dialog closes (`forgetVideoCall`), a quarter of a second before it is gone from the screen.
+ * Drawn from the state itself, the dialog flipped to the question's first view under the member's
+ * eyes -- a shorter one, with "Anruf starten" on it, at the end of changing an invitation
+ * (measured in the bundle, 01.10.2026: 50 ms whole, then fading).
+ *
+ * Only the template reads it; whatever acts goes by the state, so a press on a button still
+ * fading finds nothing to do. ⛔ And it holds words only -- not the invitation: the room's address
+ * is the call's secret, and is let go with the question.
+ */
+const videoShown = reactive({ settings: false, editing: false, server: '' })
+watch(
+  () => [videoAsking.value, videoSettings.value, videoEditing.value],
+  ([open, settings, editing]) => {
+    if (!open) return
+    videoShown.settings = settings
+    videoShown.editing = editing !== null
+    videoShown.server = editing ? videoServerOf(editing.was) : ''
+  },
+)
+const videoSettingsTitle = computed(() => {
+  if (videoShown.editing) return t('chatThread.videoEditTitle')
+  return props.group
     ? t('chatGroup.videoSettingsTitle', { name: props.name })
-    : t('chatThread.videoSettingsTitle', { name: props.name }),
+    : t('chatThread.videoSettingsTitle', { name: props.name })
+})
+/** What a changed invitation brings about, and the box for the message that follows its time. */
+const editBody = computed(() =>
+  props.group ? t('chatGroup.videoEditBody') : t('chatThread.videoEditBody', { name: props.name }),
+)
+const editBoxWords = computed(() =>
+  props.group ? t('chatGroup.announce') : t('chatThread.alsoByEmail'),
 )
 const videoServerFieldId = `${videoTopicId}-server`
 const videoServerField = ref(null)
@@ -599,6 +737,59 @@ const askVideoCall = () => {
   videoChoicesLoading = loadVideoServerChoices()
   videoAskOpened.value = false
   videoAsking.value = true
+}
+
+/**
+ * A video call duplicated from an invitation in the thread (Bernd, 30.09.2026, E-058): the question
+ * as `askVideoCall` opens it, with the invitation's topic and its ROOM -- the same link, so a
+ * meeting that comes round again stays in its room. A planned one opens on the gear's view with the
+ * same weekday and time a week on (`chatVideoNextWeek`), where "Planen" is; one for now opens on the
+ * question, with "Anruf starten". Everything can be changed before it goes; another server chosen
+ * in the gear is another room, as ever (`chooseVideoServer`).
+ *
+ * The room is set as the question's own (`videoRoomAsked`) once the list of servers is in: for the
+ * server of its host where the list has it -- which names the operator in the invitation --, else
+ * with none chosen, and the host names it. "Copy link", "Anruf starten" and "Planen" wait for the
+ * list as they always do, and so find the room set. The member's own choice of server is not
+ * changed by it.
+ *
+ * @param {{ room: string, topic: string, start: Date | null, end: Date | null }} invitation
+ */
+const duplicateVideoCall = (invitation) => {
+  askVideoCall()
+  // This question, by the list asked for it (`loadVideoServerChoices` counts every asking).
+  const question = videoChoicesAttempt
+  videoTopic.value = invitation.topic
+  let host = ''
+  try {
+    host = new URL(invitation.room).host.toLowerCase()
+  } catch {
+    // Not an address: a room is asked for, as for a new call.
+  }
+  videoChoicesLoading = videoChoicesLoading.then(() => {
+    // ⛔ Only for this question, and only while it is open (coderabbit, #4026). Let go before the
+    // list came in -- `forgetVideoCall` emptied `videoRoomAsked` already --, the room set now would
+    // outlive it, and the next call from the camera would go into the invitation's room; after
+    // another question it would be that question's. Not `videoAttempt`: "Anruf starten" pressed
+    // before the list is in counts it up as well, and that call is to have the invitation's room.
+    if (!host || question !== videoChoicesAttempt || !videoAsking.value) return
+    const choice =
+      videoServerChoices.value.find((server) => server.host.toLowerCase() === host) ?? null
+    const room = { url: invitation.room, host, operator: choice?.operator ?? null }
+    videoServerWanted.value = choice?.id ?? null
+    videoRoomAsked = {
+      serverId: choice?.id ?? null,
+      answer: Promise.resolve({ room, error: null }),
+      room,
+    }
+  })
+  if (invitation.start && invitation.end) {
+    const next = chatVideoNextWeek(invitation)
+    videoDay.value = next.day
+    videoFrom.value = next.from
+    videoTo.value = next.to
+    openVideoSettings()
+  }
 }
 
 /**
@@ -757,21 +948,13 @@ const copyVideoLink = async () => {
  * and time zone -- the zone named, since the one invited may live in another --, and who runs the
  * server. Two written-out keys, as for the call now (see `startVideoCall`).
  */
-const plannedVideoInvitation = (offered, topic, when) => {
-  const url = withChatVideoTopic(offered.url, topic, when)
-  const operator = offered.operator ?? offered.host
-  const date = chatVideoDay(when.start, locale.value)
-  const time = t('chatThread.videoPlannedTime', {
-    from: d(when.start, 'time'),
-    to: d(when.end, 'time'),
-    zone: chatVideoZone(when.start, locale.value),
+const plannedVideoInvitation = (offered, topic, when) =>
+  chatVideoInviteBody(inviteWords(), {
+    room: offered.url,
+    topic,
+    when,
+    operator: offered.operator ?? offered.host,
   })
-  const body =
-    topic === t('chatThread.videoTopicDefault')
-      ? t('chatThread.videoInvitePlanned', { date, time, operator, url })
-      : t('chatThread.videoInvitePlannedTopic', { topic, date, time, operator, url })
-  return { url, body }
-}
 
 /**
  * "Calendar file" (V5b): the planned call as an iCalendar file, for the member's own calendar --
@@ -779,7 +962,7 @@ const plannedVideoInvitation = (offered, topic, when) => {
  */
 const saveVideoCalendar = async () => {
   if (videoCalling.value) return
-  const when = videoWhen.value
+  const when = videoEditing.value ? videoEditWhen(videoEditing.value) : videoWhen.value
   videoProblem.value = ''
   if (!when) {
     videoProblem.value = t('chatThread.videoPlanIncomplete')
@@ -796,7 +979,20 @@ const saveVideoCalendar = async () => {
     videoProblem.value = videoRoomProblem(error, t('chatThread.videoNoServer'))
     return
   }
-  const { url, body } = plannedVideoInvitation(offered, topic, when)
+  // An invitation being changed (E-060): the file names the call as the invitation will once it
+  // is saved -- by the start it had first, with one more change counted where anything changed --,
+  // so a calendar that holds the call moves it.
+  const was = videoEditing.value?.was ?? null
+  const revision = was ? videoEditChange(videoEditing.value, when).revision : null
+  const { url, body } = was
+    ? chatVideoInviteBody(inviteWords(), {
+        room: was.room,
+        topic,
+        when,
+        operator: was.operator,
+        revision,
+      })
+    : plannedVideoInvitation(offered, topic, when)
   saveChatVideoCalendarFile(
     chatVideoCalendarFileName(topic, when.start),
     chatVideoCalendarFile({
@@ -805,7 +1001,8 @@ const saveVideoCalendar = async () => {
       title: `${topic} – ${props.name}`,
       description: body,
       url,
-      uid: chatVideoCalendarUid(offered.url, when.start),
+      uid: chatVideoCalendarUid(offered.url, revision?.first ?? when.start),
+      sequence: revision?.sequence ?? 0,
     }),
   )
 }
@@ -870,6 +1067,7 @@ const forgetVideoCall = () => {
   stopVideoAppWatch = null
   videoAppMissed.value = false
   videoSettings.value = false
+  videoEditing.value = null
   videoRoomAsked = null
   videoLinkCopied.value = false
   videoLinkShown.value = ''
@@ -878,6 +1076,158 @@ const forgetVideoCall = () => {
 watch(videoAsking, (open) => {
   if (!open) forgetVideoCall()
 })
+
+/**
+ * A video invitation of one's own, to be changed (Bernd, 01.10.2026, E-060: "Wichtig ist, dass
+ * wir dabei auch zum Beispiel einen Termin für eine Videokonferenz bearbeiten können"): the gear's
+ * view opens with the invitation's topic and time, to be changed, and its room, which stays --
+ * the link everybody has goes on leading to the call. "Save" changes the invitation in the
+ * thread (`saveVideoEdit`); nothing is sent again.
+ *
+ * The room is set as the question's own (`videoRoomAsked`), as for a call duplicated: "Copy link"
+ * and "Calendar file" take it. No list of servers is asked for -- there is nothing to choose --
+ * and the member's own choice of server is not touched.
+ *
+ * @param {{ message: { messageUuid: string }, invitation: { room: string, topic: string, when: { start: Date, end: Date } | null, operator: string, revision: object | null } }} edit
+ *   the message, and what it says as an invitation (readChatVideoInvite)
+ */
+const editVideoCall = ({ message, invitation }) => {
+  videoAlsoByEmail.value = false
+  videoTopic.value = invitation.topic
+  videoServerChoices.value = []
+  videoServerWanted.value = null
+  // Counted, so that a list still on its way for an earlier question lands nowhere.
+  videoChoicesAttempt += 1
+  videoChoicesLoading = Promise.resolve()
+  let host = ''
+  try {
+    host = new URL(invitation.room).host.toLowerCase()
+  } catch {
+    // Not an address: the operator names the server.
+  }
+  const room = { url: invitation.room, host, operator: invitation.operator }
+  videoRoomAsked = { serverId: null, answer: Promise.resolve({ room, error: null }), room }
+  const fields = invitation.when ? chatVideoFields(invitation.when) : { day: '', from: '', to: '' }
+  videoDay.value = fields.day
+  videoFrom.value = fields.from
+  videoTo.value = fields.to
+  videoProblem.value = ''
+  videoEditing.value = { messageUuid: message.messageUuid, was: invitation, fields, owed: false }
+  videoAskOpened.value = false
+  videoSettings.value = true
+  videoAsking.value = true
+}
+
+/**
+ * The time of the invitation being changed, as it will be: its own while the fields stand as
+ * they opened -- to the second, also where they cannot show it whole (a call that runs past
+ * midnight on this device's clock ends at 23:59 in them) --, else what the fields say; null
+ * where they say none, or not all of one.
+ */
+const videoEditWhen = ({ was, fields }) =>
+  fields.day === videoDay.value && fields.from === videoFrom.value && fields.to === videoTo.value
+    ? was.when
+    : videoWhen.value
+
+/**
+ * What "Save" would change of the invitation, with `when` its time as it will be: the topic as
+ * the field says it, whether the time is another (`moved`), whether nothing is (`same`) -- and what
+ * the invitation then carries for the calendars: one more change counted where anything changed
+ * (nextChatVideoRevision), what it carried before where nothing did.
+ */
+const videoEditChange = ({ was }, when) => {
+  const topic = videoTopicShown.value
+  const moved =
+    when !== null &&
+    (!was.when ||
+      was.when.start.getTime() !== when.start.getTime() ||
+      was.when.end.getTime() !== when.end.getTime())
+  const same = topic === was.topic && !moved
+  return { topic, moved, same, revision: same ? was.revision : nextChatVideoRevision(was, when) }
+}
+
+/** What the dialog says where the invitation was not changed (chatEditProblem's reasons). */
+const videoEditProblem = (problem) => {
+  if (problem === 'NOT_CONFIRMED') return t('chatThread.editNotConfirmed', { name: props.name })
+  if (problem === 'PENDING') return t('chatThread.editPending')
+  return t('chatThread.videoEditNotSaved')
+}
+
+/**
+ * "Save" (E-060): the invitation in the thread gets its words anew -- the topic and the time as
+ * the fields say now, the room and who runs it as before --, through the thread (`change`), which
+ * puts it in the old one's place. The same message: no second invitation, and no mail about it.
+ *
+ * Where the time changed, a short message follows by itself (B4): "📅 Termin geändert: …", a
+ * message like any other -- with a dot in the list, and by mail where the box is ticked. Where
+ * only the topic changed, none: the invitation says "bearbeitet", and that is all.
+ *
+ * A planned call stays a planned one: with its day or its times emptied, the dialog says what is
+ * missing, as "Plan" does. A call without a time may get one, or stay without.
+ *
+ * Nothing changed at all: the dialog closes, and neither the thread nor the server is asked.
+ *
+ * ⚠️ The invitation changed and the message about its time did not go: the dialog stays and says
+ * so, and "Save" once more sends the message (`owed`) -- the invitation is not changed a second
+ * time, and a further change in the same dialog counts from what it says now.
+ *
+ * ⚠️ The dialog let go while the change is on its way: the change cannot be called back, and the
+ * message about a changed time follows it all the same -- nobody is left with a moved call they
+ * were not told of. Only the dialog is not touched any more.
+ */
+const saveVideoEdit = async () => {
+  const editing = videoEditing.value
+  const change = props.change
+  if (videoCalling.value || !editing || !change) return
+  const when = videoEditWhen(editing)
+  const untimed = !videoDay.value && !videoFrom.value && !videoTo.value
+  videoProblem.value = ''
+  if (!when && (editing.was.when || !untimed)) {
+    videoProblem.value = t('chatThread.videoPlanIncomplete')
+    return
+  }
+  const attempt = videoAttempt
+  const through = props.deliver
+  const notify = chatNotifyFor({ first: false, alsoByEmail: videoAlsoByEmail.value })
+  const { topic, moved, same, revision } = videoEditChange(editing, when)
+  // What is owed: the message about a time that moved now, or one that did not go the last time.
+  const tell = moved || editing.owed
+  videoCalling.value = true
+  // The same words would change nothing: the thread is asked only for a change.
+  if (!same) {
+    const says = { ...editing.was, topic, when, revision }
+    const problem = await change({
+      messageUuid: editing.messageUuid,
+      body: chatVideoInviteBody(inviteWords(), says).body,
+    })
+    if (problem) {
+      if (attempt !== videoAttempt) return
+      videoCalling.value = false
+      videoProblem.value = videoEditProblem(problem)
+      return
+    }
+    // The invitation says this from now on.
+    if (attempt === videoAttempt) {
+      videoEditing.value = {
+        messageUuid: editing.messageUuid,
+        was: says,
+        fields: { day: videoDay.value, from: videoFrom.value, to: videoTo.value },
+        owed: tell,
+      }
+    }
+  }
+  const told =
+    !tell || !through
+      ? true
+      : await through({ body: chatVideoRescheduledBody(inviteWords(), { topic, when }), notify })
+  if (attempt !== videoAttempt) return
+  videoCalling.value = false
+  if (!told) {
+    videoProblem.value = t('chatThread.videoRescheduledNotSent')
+    return
+  }
+  videoAsking.value = false
+}
 
 /** Whether the server said that no video server is to be had right now (V1). */
 const isNoVideoServer = (error) => String(error?.message ?? '').includes('CHAT_VIDEO_NO_SERVER')
@@ -941,21 +1291,18 @@ const startVideoCall = async () => {
   const { room: offered, error: roomError } = await askVideoRoom()
   if (attempt !== videoAttempt) return
 
-  const roomUrl = offered?.url ? withChatVideoTopic(offered.url, topic) : ''
-  const operator = offered?.operator ?? offered?.host
-  // Two written-out keys, not one chosen by a condition (see `toggleMute`). With the default
-  // the invitation reads as it always did -- "Video call: Video call" would say it twice; with a
-  // topic of one's own, the topic in words on a line of its own, since it may end on "?" or ".".
-  const delivered =
-    roomUrl && through
-      ? await through({
-          body:
-            topic === topicDefault
-              ? t('chatThread.videoInvite', { operator, url: roomUrl })
-              : t('chatThread.videoInviteTopic', { topic, operator, url: roomUrl }),
-          notify,
-        })
-      : false
+  // The invitation's words, and the address they carry (chatVideoInviteBody): with the default
+  // topic as it always read, with a topic of one's own the topic on a line of its own.
+  const invite = offered?.url
+    ? chatVideoInviteBody(inviteWords(), {
+        room: offered.url,
+        topic,
+        when: null,
+        operator: offered.operator ?? offered.host,
+      })
+    : null
+  const roomUrl = invite?.url ?? ''
+  const delivered = invite && through ? await through({ body: invite.body, notify }) : false
   if (attempt !== videoAttempt) return
 
   videoCalling.value = false
@@ -1081,9 +1428,17 @@ const letGo = () => {
 /**
  * `ask`: the question before a call, from the window's camera. `askJoin`: the question before
  * joining one, from the link of an invitation in the thread (the window provides it as
- * `CHAT_VIDEO_JOIN`, ChatMessageText). `letGo`: see above.
+ * `CHAT_VIDEO_JOIN`, ChatMessageText). `duplicate`: the question for an invitation's room again,
+ * from "Duplizieren" under it (E-058). `edit`: an invitation of one's own, to be changed -- from
+ * "Bearbeiten" in its menu (E-060). `letGo`: see above.
  */
-defineExpose({ ask: askVideoCall, askJoin: askJoinVideoCall, letGo })
+defineExpose({
+  ask: askVideoCall,
+  askJoin: askJoinVideoCall,
+  duplicate: duplicateVideoCall,
+  edit: editVideoCall,
+  letGo,
+})
 </script>
 
 <style lang="scss" scoped>
@@ -1136,6 +1491,12 @@ defineExpose({ ask: askVideoCall, askJoin: askJoinVideoCall, letGo })
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
+}
+
+/* The server of an invitation being changed (E-060), as words: a long name breaks where it must
+   rather than run out of the dialog. */
+.chat-video-edit-server {
+  overflow-wrap: anywhere;
 }
 
 /* "Calendar file" and "Copy link" side by side, one under the other where they do not fit. */

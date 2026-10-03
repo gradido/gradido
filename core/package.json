@@ -1,6 +1,6 @@
 {
   "name": "core",
-  "version": "2.11.4",
+  "version": "3.0.0",
   "description": "Gradido Core Code, High-Level Shared Code, with dependencies on other modules",
   "main": "./build/index.js",
   "types": "./src/index.ts",
@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "database": "*",
+    "drizzle-orm": "^0.44.7",
     "email-templates": "^10.0.1",
     "esbuild": "^0.25.2",
     "i18n": "^0.15.1",

@@ -1,8 +1,10 @@
 import {
+  CommunitiesSelect,
   Community as DbCommunity,
   Contribution as DbContribution,
   TransactionLink as DbTransactionLink,
   User as DbUser,
+  UserSelect,
 } from 'database'
 import { getLogger } from 'log4js'
 import { CODE_VALID_DAYS_DURATION, Duration } from 'shared'
@@ -30,13 +32,16 @@ export class TransactionDraft {
   // only for register address
   accountType?: AccountType
 
-  static createRegisterAddress(user: DbUser, community: DbCommunity): TransactionDraft | null {
+  static createRegisterAddress(
+    user: UserSelect,
+    community: CommunitiesSelect,
+  ): TransactionDraft | null {
     if (community.hieroTopicId) {
       const draft = new TransactionDraft()
       draft.user = new AccountIdentifier(
         community.hieroTopicId,
         community.communityUuid!,
-        new CommunityAccountIdentifier(user.gradidoID),
+        new CommunityAccountIdentifier(user.gradidoId),
       )
       draft.type = TransactionType.GRDT_TRANSACTION_REGISTER_ADDRESS
       draft.createdAt = user.createdAt.toISOString()

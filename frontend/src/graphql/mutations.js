@@ -158,7 +158,7 @@ export const createUser = gql`
     $redeemCode: String
     $project: String
     $referrerAlias: String
-    $presenceCode: String
+    $guarantorCode: String
     $password: String
   ) {
     createUser(
@@ -170,11 +170,9 @@ export const createUser = gql`
       redeemCode: $redeemCode
       project: $project
       referrerAlias: $referrerAlias
-      presenceCode: $presenceCode
+      guarantorCode: $guarantorCode
       password: $password
-    ) {
-      id
-    }
+    )
   }
 `
 
@@ -210,13 +208,20 @@ export const sendEmail = gql`
   }
 `
 
+// `$greeting` makes the link a thank-you greeting; the send form leaves it out. ⚠️ The
+// variable has to be named so: the request log masks `greeting.recipientName` by that name.
 export const createTransactionLink = gql`
-  mutation ($amount: GradidoUnit!, $memo: String!) {
-    createTransactionLink(amount: $amount, memo: $memo) {
+  mutation ($amount: GradidoUnit!, $memo: String!, $greeting: ThankYouGreetingInput) {
+    createTransactionLink(amount: $amount, memo: $memo, greeting: $greeting) {
       link
       amount
       memo
       validUntil
+      greeting {
+        motif
+        line
+        recipientName
+      }
     }
   }
 `

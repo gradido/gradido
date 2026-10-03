@@ -4,11 +4,12 @@ block content
   h2=  t('emails.transactionLinkRedeemed.title', { senderAlias })
   .text-block
     include ../includes/salutation.pug
-    //- The arrival joins the first sentence instead of taking a paragraph of its own: one
-    //- paragraph is one piece of news. Joined inside the expression, not by an `if` block,
-    //- because a block would put the sentence on its own line and change the whitespace of
-    //- every mail that has no arrival to report.
-    p= t('emails.transactionLinkRedeemed.hasRedeemedYourLink', { senderAlias, senderCommunity }) + (newMember ? ' ' + t('emails.transactionLinkRedeemed.newMember') : '')
+    //- One paragraph is one piece of news, and ONE sentence of the catalogue says it: for
+    //- somebody who opened their account with this link the sentence itself says so. Two
+    //- whole keys, chosen inside the expression -- nothing is joined on here. A half-sentence
+    //- glued behind the first one left a full stop before its dash ("… eingelöst. — und ist
+    //- neu bei Gradido."), and every language wants the arrival in a place of its own.
+    p= t(newMember ? 'emails.transactionLinkRedeemed.hasAcceptedYourThanksNewMember' : 'emails.transactionLinkRedeemed.hasAcceptedYourThanks', { senderAlias, senderCommunity })
   .content
     h2= t('emails.general.transactionDetails')
     div(class="p_content")= t('emails.general.amountGDD', { amountGDD: transactionAmount })
@@ -16,7 +17,26 @@ block content
       +humanText(t('emails.transactionLinkRedeemed.memo', { transactionMemo }))
       br
       = t('emails.general.detailsYouFindOnLinkToYourAccount')
-    
+
+    //- The way to the person who accepted: their conversation, where the booking stands --
+        with the greeting's picture, where the link was a greeting. Green and inside the card,
+        as every button that leads to a person (webflow.css), above the gold way into the
+        account. The contact page opens the window with the member `with` names, of the
+        community `community` names -- the address the reply button of the transfer mail has.
+        Without the two uuids there is no such way, and the button is left out.
+
+        On a line of its own, centred as everything in the card is. Its lower margin is taken
+        off, so that the two buttons stand 25px apart and not 50.
+
+        Each of the two is written as ONE value of the address (encodeURIComponent). Across the
+        border the member's id is what the other server answered with; an "&" or a "#" in it
+        would otherwise end the value and begin something of its own. A uuid stays as it is.
+    if senderCommunityUuid && senderUuid
+      div
+        a.button-5(href=`${communityURL}/contacts?with=${encodeURIComponent(senderUuid)}&community=${encodeURIComponent(senderCommunityUuid)}` style="margin: 25px 0 0 0")
+          include ../includes/chatbox-icon.pug
+          span #{t('emails.general.toConversation')}
+
     a.button-3(href=`${communityURL}/transactions`) #{t('emails.general.toAccount')}
 
     include ../includes/doNotReply.pug

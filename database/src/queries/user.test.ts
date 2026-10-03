@@ -1,4 +1,5 @@
 import { ContactOrigin, GradidoUnit, Order, PasswordEncryptionType } from 'shared'
+import { v4 } from 'uuid'
 import { clearDatabase } from '../../migration/clear'
 import {
   ALIAS_ORIGIN_CHOSEN,
@@ -7,7 +8,8 @@ import {
   User as DbUser,
   UserContact as DbUserContact,
 } from '..'
-import { AppDatabase } from '../AppDatabase'
+import { AppDatabase, drizzleDb } from '../AppDatabase'
+import { AccountState, EventType } from '../enum'
 import { DBDuplicateEntryError, DBInsertFailed, DBNotFoundError } from '../errorTypes'
 import { createCommunity } from '../seeds/community'
 import { creationFactory, nMonthsBefore } from '../seeds/factory/creation'
@@ -16,18 +18,28 @@ import { userFactory } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '../seeds/users/bob-baumeister'
 import { peterLustig } from '../seeds/users/peter-lustig'
+import { dbInsertEvent } from './events'
 import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 import { getLastTransaction } from './transactions'
 import {
   aliasExists,
   dbClearGmsRegistration,
+  dbCountUnconfirmedVouchedAccounts,
   dbFindGmsAllowedLocalUserIds,
   dbFindLatestArrival,
   dbFindReferrerAlias,
+  dbFindUserByEmail,
+  dbFindUserById,
   dbFindUserIdByUuids,
   dbFindUserLoginByEmail,
+  dbFindUserWithContactById,
+  dbHasGuestRegisteredByLink,
   dbInsertForeignUser,
+  dbInsertUser,
+  dbLocalUserGradidoIdExist,
+  dbLockUserRowDrizzle,
   dbMarkUsersGmsRegistered,
+  dbRemoveUser,
   dbSelectForeignMemberGradidoIds,
   dbSelectLatestUserBalances,
   dbSelectReferralContactsByUserId,
@@ -100,29 +112,50 @@ describe('user.queries', () => {
       expect(await aliasExists('faraway')).toBe(false)
     })
 
+    it('refuses the name of a deleted member, as the unique key does', async () => {
+      const gone = await userFactory({ ...bobBaumeister, alias: 'bob-gone' })
+      await DbUser.softRemove(gone)
+
+      expect(await aliasExists('bob-gone', bibi.id)).toBe(true)
+    })
+
     it('refuses a name another member left behind', async () => {
       const peter = await userFactory({ ...peterLustig, alias: 'peter-now' })
-      await dbInsertUserAlias(peter.id, 'peter-was', ALIAS_ORIGIN_CHOSEN)
+      await dbInsertUserAlias({ userId: peter.id, alias: 'peter-was', origin: ALIAS_ORIGIN_CHOSEN })
 
       expect(await aliasExists('peter-was', bibi.id)).toBe(true)
     })
 
     it('lets a member take back a name of their own', async () => {
-      await dbInsertUserAlias(bibi.id, 'bibi-was', ALIAS_ORIGIN_CHOSEN)
+      await dbInsertUserAlias({ userId: bibi.id, alias: 'bibi-was', origin: ALIAS_ORIGIN_CHOSEN })
 
       expect(await aliasExists('bibi-was', bibi.id)).toBe(false)
       // ...and it stays blocked for everybody else.
       expect(await aliasExists('bibi-was')).toBe(true)
     })
 
-    // registerAccount picks a name while its transaction holds a connection. Given the
-    // transaction's manager, the check asks over it - which shows in a name the transaction
-    // has written and not yet committed: seen through the manager, not beside it.
-    it('asks over the transaction it is given', async () => {
-      await db.getDataSource().transaction(async (manager) => {
-        await dbInsertUserAlias(bibi.id, 'bibi-pending', ALIAS_ORIGIN_CHOSEN, manager)
+    it('blocks a name somebody else holds in another capitalisation', async () => {
+      const peter = await DbUser.findOneByOrFail({ alias: 'peter-now' })
+      await dbInsertUserAlias({
+        userId: peter.id,
+        alias: 'Peter-Case',
+        origin: ALIAS_ORIGIN_CHOSEN,
+      })
 
-        expect(await aliasExists('bibi-pending', undefined, manager)).toBe(true)
+      expect(await aliasExists('peter-case', bibi.id)).toBe(true)
+    })
+
+    // Changing a name checks and writes inside one transaction. Given it, the check asks
+    // over it - which shows in a name the transaction has written and not yet committed:
+    // seen through `tx`, not beside it.
+    it('asks over the transaction it is given', async () => {
+      await drizzleDb().transaction(async (tx) => {
+        await dbInsertUserAlias(
+          { userId: bibi.id, alias: 'bibi-pending', origin: ALIAS_ORIGIN_CHOSEN },
+          tx,
+        )
+
+        expect(await aliasExists('bibi-pending', undefined, tx)).toBe(true)
         expect(await aliasExists('bibi-pending')).toBe(false)
       })
     })
@@ -1056,6 +1089,352 @@ describe('user.queries', () => {
         await DbUser.update(host.id, { deletedAt: new Date() })
         await expect(dbSelectReferralContactsByUserId(newer.id)).resolves.toEqual([])
         await DbUser.update(host.id, { deletedAt: null })
+      })
+    })
+  })
+
+  describe('the queries registration uses', () => {
+    let homeCommunityUuid: string
+    let bob: DbUser
+    let peter: DbUser
+
+    beforeAll(async () => {
+      await dbDeleteAllRowsExceptMigrations()
+
+      homeCommunityUuid = (await createCommunity(false)).communityUuid!
+      bob = await userFactory(bobBaumeister)
+      peter = await userFactory(peterLustig)
+    })
+
+    describe('dbCountUnconfirmedVouchedAccounts', () => {
+      const guests: DbUser[] = []
+
+      // A guest who opened an account at the table: the member is the referrer, a password
+      // is set, the address is not confirmed - PARTLY_ACTIVATED_GUARANTOR.
+      const tableGuest = async (n: number, referrer: DbUser): Promise<DbUser> => {
+        const guest = await userFactory({
+          email: `guest${n}@table.example`,
+          firstName: `First${n}`,
+          lastName: `Last${n}`,
+          alias: `guest${n}`,
+          emailChecked: false,
+        })
+        await DbUser.update(guest.id, {
+          referrerId: referrer.id,
+          passwordEncryptionType: PasswordEncryptionType.GRADIDO_ID,
+          accountState: AccountState.PARTLY_ACTIVATED_GUARANTOR,
+        })
+        return guest
+      }
+
+      it('counts nobody for a member who vouches for nobody', async () => {
+        expect(await dbCountUnconfirmedVouchedAccounts(bob.id)).toBe(0)
+      })
+
+      describe('with five unconfirmed guests at the table', () => {
+        beforeAll(async () => {
+          for (const n of [1, 2, 3, 4, 5]) {
+            guests.push(await tableGuest(n, bob))
+          }
+        })
+
+        it('counts all five', async () => {
+          expect(await dbCountUnconfirmedVouchedAccounts(bob.id)).toBe(5)
+        })
+
+        // No time window: an account from months ago counts until it confirms (E-019).
+        it('keeps counting a guest who has not confirmed for months', async () => {
+          await DbUser.update(guests[0].id, { createdAt: new Date(Date.UTC(2026, 0, 1)) })
+          expect(await dbCountUnconfirmedVouchedAccounts(bob.id)).toBe(5)
+        })
+
+        // A referred account from the classic registration is REGISTERED, not
+        // PARTLY_ACTIVATED_GUARANTOR: it holds no password and cannot act before confirming.
+        it('counts neither a classic registration nor the guests of another member', async () => {
+          const classic = await userFactory({
+            email: 'classic@table.example',
+            firstName: 'Classic',
+            lastName: 'Guest',
+            emailChecked: false,
+          })
+          await DbUser.update(classic.id, { referrerId: bob.id })
+          await tableGuest(6, peter)
+
+          expect(await dbCountUnconfirmedVouchedAccounts(bob.id)).toBe(5)
+          expect(await dbCountUnconfirmedVouchedAccounts(peter.id)).toBe(1)
+        })
+
+        it('lets a guest go who confirms, and one who is deleted', async () => {
+          await DbUserContact.update(guests[1].emailId!, { emailChecked: true })
+          await DbUser.update(guests[1].id, { accountState: AccountState.ACTIVATED })
+          expect(await dbCountUnconfirmedVouchedAccounts(bob.id)).toBe(4)
+
+          await DbUser.update(guests[2].id, {
+            deletedAt: new Date(),
+            accountState: AccountState.DELETED,
+          })
+          expect(await dbCountUnconfirmedVouchedAccounts(bob.id)).toBe(3)
+        })
+
+        it('answers the same inside a transaction', async () => {
+          const inside = await drizzleDb().transaction((tx) =>
+            dbCountUnconfirmedVouchedAccounts(bob.id, tx),
+          )
+          expect(inside).toBe(await dbCountUnconfirmedVouchedAccounts(bob.id))
+        })
+      })
+    })
+
+    // One redeem link vouches for one account: the event of a registration through the link
+    // is the trace, found through the accounts the member brought.
+    describe('dbHasGuestRegisteredByLink', () => {
+      const LINK = 4711
+      const OTHER_LINK = 4712
+      let viaLink: DbUser
+
+      // An account a member brought, registered through one of their redeem links:
+      // RegisterUserFromTransactionLinkRole writes the referrer and this event.
+      const linkGuest = async (name: string, referrer: DbUser, linkId: number) => {
+        const guest = await userFactory({
+          email: `${name}@link.example`,
+          firstName: name,
+          lastName: 'Guest',
+          emailChecked: false,
+        })
+        await DbUser.update(guest.id, { referrerId: referrer.id })
+        await dbInsertEvent({
+          type: EventType.USER_REGISTER_REDEEM,
+          affectedUserId: guest.id,
+          actingUserId: guest.id,
+          involvedTransactionLinkId: linkId,
+        })
+        return guest
+      }
+
+      it('finds nobody before anybody registered through the link', async () => {
+        expect(await dbHasGuestRegisteredByLink(bob.id, LINK)).toBe(false)
+      })
+
+      it('finds the account registered through the link', async () => {
+        viaLink = await linkGuest('vialink', bob, LINK)
+
+        expect(await dbHasGuestRegisteredByLink(bob.id, LINK)).toBe(true)
+      })
+
+      it('asks for this link, not for another one of the same member', async () => {
+        expect(await dbHasGuestRegisteredByLink(bob.id, OTHER_LINK)).toBe(false)
+      })
+
+      // The way in is the member: an account somebody else brought is not theirs to count,
+      // whatever link its event names.
+      it('does not count an account another member brought', async () => {
+        await linkGuest('peterslink', peter, OTHER_LINK)
+
+        expect(await dbHasGuestRegisteredByLink(bob.id, OTHER_LINK)).toBe(false)
+        expect(await dbHasGuestRegisteredByLink(peter.id, OTHER_LINK)).toBe(true)
+      })
+
+      // Accepting a link names the link too (TRANSACTION_LINK_REDEEM): no registration.
+      it('counts the registration only, not another event that names the link', async () => {
+        await dbInsertEvent({
+          type: EventType.TRANSACTION_LINK_REDEEM,
+          affectedUserId: viaLink.id,
+          actingUserId: viaLink.id,
+          involvedUserId: bob.id,
+          involvedTransactionLinkId: OTHER_LINK,
+        })
+
+        expect(await dbHasGuestRegisteredByLink(bob.id, OTHER_LINK)).toBe(false)
+      })
+
+      // Support deletes a dead guest account, and the member's place is free again. The link
+      // was used all the same.
+      it('still finds an account that was deleted since', async () => {
+        await DbUser.update(viaLink.id, {
+          deletedAt: new Date(),
+          accountState: AccountState.DELETED,
+        })
+
+        expect(await dbHasGuestRegisteredByLink(bob.id, LINK)).toBe(true)
+      })
+
+      // The registration writes the event in its transaction, and the next one asks in its own.
+      it('sees an event written in the same transaction, and nothing once that is taken back', async () => {
+        const NEW_LINK = 4713
+        let inside: boolean | undefined
+        await expect(
+          drizzleDb().transaction(async (tx) => {
+            await dbInsertEvent(
+              {
+                type: EventType.USER_REGISTER_REDEEM,
+                affectedUserId: viaLink.id,
+                actingUserId: viaLink.id,
+                involvedTransactionLinkId: NEW_LINK,
+              },
+              tx,
+            )
+            inside = await dbHasGuestRegisteredByLink(bob.id, NEW_LINK, tx)
+            throw new Error('taken back')
+          }),
+        ).rejects.toThrow('taken back')
+
+        expect(inside).toBe(true)
+        expect(await dbHasGuestRegisteredByLink(bob.id, NEW_LINK)).toBe(false)
+      })
+    })
+
+    describe('dbLockUserRowDrizzle', () => {
+      const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
+      it('holds the row until the transaction ends: a second one waits for it', async () => {
+        const order: string[] = []
+        let release: () => void = () => undefined
+        const held = new Promise<void>((resolve) => {
+          release = resolve
+        })
+
+        const first = drizzleDb().transaction(async (tx) => {
+          await dbLockUserRowDrizzle(peter.id, tx)
+          order.push('first holds')
+          await held
+          order.push('first ends')
+        })
+        while (!order.includes('first holds')) {
+          await pause(10)
+        }
+        const second = drizzleDb().transaction(async (tx) => {
+          await dbLockUserRowDrizzle(peter.id, tx)
+          order.push('second holds')
+        })
+        await pause(300)
+        expect(order).toEqual(['first holds'])
+
+        release()
+        await Promise.all([first, second])
+        expect(order).toEqual(['first holds', 'first ends', 'second holds'])
+      })
+
+      // What the registration relies on (REPEATABLE READ): with the lock as its first
+      // statement, a transaction that waited counts what the one before it stored.
+      it('lets the one that waited count what the one before it stored', async () => {
+        const before = await dbCountUnconfirmedVouchedAccounts(peter.id)
+        const newcomer = await userFactory({
+          email: 'newcomer@link.example',
+          firstName: 'New',
+          lastName: 'Comer',
+          emailChecked: false,
+        })
+        let entered = false
+        let release: () => void = () => undefined
+        const held = new Promise<void>((resolve) => {
+          release = resolve
+        })
+
+        const first = drizzleDb().transaction(
+          async (tx) => {
+            await dbLockUserRowDrizzle(peter.id, tx)
+            entered = true
+            await held
+            await dbUserUpdateField(newcomer.id, 'referrerId', peter.id, tx)
+            await dbUserUpdateField(
+              newcomer.id,
+              'accountState',
+              AccountState.PARTLY_ACTIVATED_GUARANTOR,
+              tx,
+            )
+          },
+          { isolationLevel: 'repeatable read' },
+        )
+        while (!entered) {
+          await pause(10)
+        }
+        const second = drizzleDb().transaction(
+          async (tx) => {
+            await dbLockUserRowDrizzle(peter.id, tx)
+            return dbCountUnconfirmedVouchedAccounts(peter.id, tx)
+          },
+          { isolationLevel: 'repeatable read' },
+        )
+        await pause(200)
+        release()
+
+        await first
+        expect(await second).toBe(before + 1)
+      })
+    })
+
+    describe('dbFindUserByEmail', () => {
+      it('finds the member by their address', async () => {
+        expect((await dbFindUserByEmail(bobBaumeister.email!))?.id).toBe(bob.id)
+      })
+
+      it('finds nobody for an unknown address', async () => {
+        expect(await dbFindUserByEmail('unknown@example.org')).toBeNull()
+      })
+
+      // A deleted member still holds their address - the row stays, and `email` is unique - so
+      // a registration with it has to answer as for any taken address, not collide.
+      it('finds a deleted member too', async () => {
+        const gone = await userFactory({
+          email: 'gone@example.org',
+          firstName: 'Gone',
+          lastName: 'Member',
+        })
+        await DbUser.softRemove(gone)
+        expect((await dbFindUserByEmail('gone@example.org'))?.id).toBe(gone.id)
+      })
+    })
+
+    describe('dbInsertUser, dbFindUserWithContactById and dbRemoveUser', () => {
+      const newUser = () => ({
+        gradidoId: v4(),
+        communityUuid: homeCommunityUuid,
+        firstName: 'New',
+        lastName: 'Member',
+        language: 'de',
+      })
+
+      it('stores the member and returns the new id', async () => {
+        const row = newUser()
+        const result = await dbInsertUser(row)
+        expect(result.success).toBe(true)
+        if (result.success) {
+          expect(await DbUser.findOneByOrFail({ id: result.value })).toEqual(
+            expect.objectContaining({ gradidoID: row.gradidoId, firstName: 'New' }),
+          )
+          expect(await dbLocalUserGradidoIdExist(row.gradidoId)).toBe(true)
+        }
+      })
+
+      // The registration writes no value for the switch: a new member has it on, by the
+      // column's default (migration 0147).
+      it('gives a new member the switch for the transfers in the conversations, on', async () => {
+        const result = await dbInsertUser(newUser())
+        if (!result.success) {
+          throw result.error
+        }
+        expect((await dbFindUserById(result.value))?.transfersInChat).toBe(true)
+      })
+
+      // RegisterUserRole draws a new gradido id then - the insert must answer, not throw.
+      it('answers a taken gradido id with DBDuplicateEntryError', async () => {
+        const row = newUser()
+        await dbInsertUser(row)
+        const again = await dbInsertUser({ ...row, firstName: 'Twin' })
+        expect(again).toEqual({ success: false, error: expect.any(DBDuplicateEntryError) })
+      })
+
+      it('finds the member together with their address, and removes them for good', async () => {
+        const created = await userFactory({
+          email: 'with-contact@example.org',
+          firstName: 'With',
+          lastName: 'Contact',
+        })
+        const found = await dbFindUserWithContactById(created.id)
+        expect(found?.emailContact.email).toBe('with-contact@example.org')
+
+        expect(await dbRemoveUser(created.id)).toBe(1)
+        expect(await DbUser.findOne({ where: { id: created.id }, withDeleted: true })).toBeNull()
       })
     })
   })

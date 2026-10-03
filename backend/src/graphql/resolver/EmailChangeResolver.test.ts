@@ -547,9 +547,7 @@ describe('EmailChangeResolver', () => {
 
     beforeAll(async () => {
       resetToken()
-      const {
-        data: { createUser: created },
-      } = await mutate({
+      await mutate({
         mutation: createUser,
         variables: {
           email: 'raeuber@hotzenplotz.de',
@@ -559,7 +557,7 @@ describe('EmailChangeResolver', () => {
         },
       })
       unconfirmed = await DbUser.findOneOrFail({
-        where: { id: created.id },
+        where: { emailContact: { email: 'raeuber@hotzenplotz.de' } },
         relations: ['emailContact'],
       })
       // Peter is the admin of the seeds.

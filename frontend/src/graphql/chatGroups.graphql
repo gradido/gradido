@@ -71,6 +71,7 @@ fragment chatGroupMessageFields on ChatMessage {
   subject
   body
   createdAt
+  editedAt
   deliveryState
   notify
   mailState
@@ -78,6 +79,12 @@ fragment chatGroupMessageFields on ChatMessage {
     imageUuid
     width
     height
+  }
+  forwarded
+  forwardedFrom {
+    communityUuid
+    gradidoID
+    alias
   }
 }
 

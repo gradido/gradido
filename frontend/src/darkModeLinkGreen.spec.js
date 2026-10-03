@@ -53,9 +53,10 @@ describe("the dark mode's link green", () => {
     for (const triple of triples) expect(triple).toEqual(rgb(link))
   })
 
+  // The caption's links and the copy button behind a video link (ChatVideoLinkCopy), one rule.
   it("is the picture view's caption link colour", () => {
     const rule = IMAGE_VIEW.match(
-      /\n\.modal \.chat-image-view-caption a:not\(\.chat-file-card\)\s*\{([^}]*)\}/,
+      /\n\.modal \.chat-image-view-caption :is\(a:not\(\.chat-file-card\), \.chat-video-link-copy\)\s*\{([^}]*)\}/,
     )?.[1]
     expect(rule).toMatch(new RegExp(`color:\\s*${link}\\b`))
   })

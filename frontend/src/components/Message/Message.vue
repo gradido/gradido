@@ -2,7 +2,7 @@
   <div>
     <div class="header py-lg-6">
       <!-- The whole width of the card, and the subtitle in regular weight: some subtitles run to
-           four sentences (the confirmation after a table-code registration), and at half the
+           four sentences (the confirmation after a guarantor-code registration), and at half the
            width in bold that one stood on twelve lines on a phone. -->
       <BContainer>
         <div class="header-body text-center mb-7">

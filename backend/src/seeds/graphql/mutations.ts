@@ -133,8 +133,9 @@ export const createUser = gql`
     $language: String!
     $publisherId: Int
     $redeemCode: String
+    $project: String
     $referrerAlias: String
-    $presenceCode: String
+    $guarantorCode: String
     $password: String
   ) {
     createUser(
@@ -145,12 +146,11 @@ export const createUser = gql`
       language: $language
       publisherId: $publisherId
       redeemCode: $redeemCode
+      project: $project
       referrerAlias: $referrerAlias
-      presenceCode: $presenceCode
+      guarantorCode: $guarantorCode
       password: $password
-    ) {
-      id
-    }
+    )
   }
 `
 
@@ -206,10 +206,15 @@ export const sendEmail = gql`
 `
 
 export const createTransactionLink = gql`
-  mutation ($amount: GradidoUnit!, $memo: String!) {
-    createTransactionLink(amount: $amount, memo: $memo) {
+  mutation ($amount: GradidoUnit!, $memo: String!, $greeting: ThankYouGreetingInput) {
+    createTransactionLink(amount: $amount, memo: $memo, greeting: $greeting) {
       id
       code
+      greeting {
+        motif
+        line
+        recipientName
+      }
     }
   }
 `
@@ -674,6 +679,26 @@ export const sendChatMessage = gql`
 export const setChatConversationMuted = gql`
   mutation ($ref: MemberAvatarRefInput!, $muted: Boolean!) {
     setChatConversationMuted(ref: $ref, muted: $muted)
+  }
+`
+
+export const editChatMessage = gql`
+  mutation ($messageUuid: String!, $body: String!) {
+    editChatMessage(messageUuid: $messageUuid, body: $body) {
+      id
+      messageUuid
+      conversationId
+      mine
+      subject
+      body
+      createdAt
+      editedAt
+      images {
+        imageUuid
+        width
+        height
+      }
+    }
   }
 `
 

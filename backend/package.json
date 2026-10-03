@@ -1,6 +1,6 @@
 {
   "name": "backend",
-  "version": "2.11.4",
+  "version": "3.0.0",
   "private": false,
   "description": "Gradido unified backend providing an API-Service for Gradido Transactions",
   "repository": "https://github.com/gradido/gradido/backend",
@@ -61,6 +61,7 @@
     "cors": "^2.8.5",
     "database": "*",
     "dotenv": "^10.0.0",
+    "drizzle-orm": "^0.44.7",
     "esbuild": "^0.25.2",
     "express": "^4.17.21",
     "express-slow-down": "^2.0.1",

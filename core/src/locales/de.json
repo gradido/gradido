@@ -28,6 +28,7 @@
     },
     "assistedRegistrationConfirm": {
       "accountCreated": "Gemeinsam mit einem Gradido-Mitglied wurde soeben ein Konto für Dich eingerichtet — mit dieser E-Mail-Adresse.",
+      "accountCreatedByThanks": "Beim Annehmen eines Danks wurde soeben ein Konto für Dich eingerichtet — mit dieser E-Mail-Adresse.",
       "clickToConfirm": "Klicke bitte hier, um Deine E-Mail-Adresse zu bestätigen.",
       "confirmButton": "Adresse bestätigen",
       "confirmHeading": "E-Mail-Adresse bestätigen",
@@ -86,6 +87,9 @@
       "todo": "Bitte prüfe, ob dieses Konto einem Menschen gehört, der schöpfen darf. Wenn ja, schalte im Admin-Bereich (Reiter Nutzer-Rolle) „Kann schöpfen“ für dieses Mitglied ein. Das Mitglied weiß, dass ein Mensch die Anfrage prüft."
     },
     "customEmail": {
+      "forwardWords": "{senderAlias} schreibt dazu:",
+      "forwarded": "↪ Weitergeleitet",
+      "forwardedFrom": "↪ Weitergeleitet von {forwardedFromAlias}",
       "haveReceivedMessageFrom": "Du hast soeben von {senderAlias} eine Nachricht erhalten",
       "imageNote": "📷 Die Nachricht enthält ein Bild – Du siehst es im Gespräch.",
       "title": "{senderAlias} hat Dir eine Nachricht gesendet"
@@ -155,6 +159,7 @@
       "sincerelyYours": "Liebe Grüße",
       "toAccount": "Zum Konto",
       "toContribution": "Zum Beitrag",
+      "toConversation": "Zum Gespräch",
       "transactionDetails": "Transaktionsdetails",
       "yourGradidoTeam": "Dein Gradido-Team"
     },
@@ -175,11 +180,11 @@
       "wasPaid": "Soeben wurden mit Deiner Dank-Karte {amountGDD} GDD weitergegeben."
     },
     "transactionLinkRedeemed": {
-      "hasRedeemedYourLink": "{senderAlias} ({senderCommunity}) hat soeben Deinen Link eingelöst.",
+      "hasAcceptedYourThanks": "{senderAlias} ({senderCommunity}) hat soeben Deinen Dank angenommen.",
+      "hasAcceptedYourThanksNewMember": "{senderAlias} ({senderCommunity}) hat soeben Deinen Dank angenommen — und ist neu bei Gradido. Schön, dass Du es gezeigt hast.",
       "memo": "Nachricht: {transactionMemo}",
-      "newMember": "— und ist neu bei Gradido. Schön, dass Du es gezeigt hast.",
-      "subject": "{senderAlias} hat Deinen Gradido-Link eingelöst",
-      "title": "{senderAlias} hat Deinen Gradido-Link eingelöst"
+      "subject": "{senderAlias} hat Deinen Dank angenommen",
+      "title": "{senderAlias} hat Deinen Dank angenommen"
     },
     "transactionReceived": {
       "haveReceivedAmountGDDFrom": "Du hast soeben {transactionAmount} GDD erhalten von {senderAlias}.",

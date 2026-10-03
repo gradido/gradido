@@ -2,6 +2,7 @@ import { Paginated } from '@arg/Paginated'
 import { TransactionSendArgs } from '@arg/TransactionSendArgs'
 import { Order } from '@enum/Order'
 import { MemberAvatarRefInput } from '@input/MemberAvatarRefInput'
+import { ThankYouGreeting } from '@model/ThankYouGreeting'
 import { Transaction } from '@model/Transaction'
 import { TransactionList } from '@model/TransactionList'
 import { User } from '@model/User'
@@ -27,6 +28,7 @@ import {
   dbHasRegisterRedeemEvent,
   dbInsertEvent,
   dbSelectThankYouCardLabels,
+  dbSelectThankYouGreetingsByLinkIds,
   dbSelectTransactionsByUserId,
   Transaction as dbTransaction,
   TransactionLink as dbTransactionLink,
@@ -47,6 +49,7 @@ import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { PublishNameLogic } from '@/data/PublishName.logic'
+import { greetingLinkIdsOf, greetingOfBooking } from '@/data/Transaction.logic'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { communityUser } from '@/util/communityUser'
@@ -287,6 +290,10 @@ export const executeTransaction = async (
         // commented out beside it -- a name that invited the next person to put the
         // leak back, in the one mail that names a third party.
         senderCommunity: recipientCom,
+        // The button in the mail opens the conversation with whoever accepted, so the mail
+        // carries their pair -- as the mail above carries the sender's.
+        senderUuid: recipient.gradidoID,
+        senderCommunityUuid: recipient.communityUuid,
         transactionAmount: amount,
         transactionMemo: memo,
         newMember,
@@ -531,6 +538,17 @@ export class TransactionResolver {
     ]
     const cardLabels = await dbSelectThankYouCardLabels(cardIdsOnThisPage)
 
+    /**
+     * The thank-you greetings of the bookings on this page, fetched once for all of them, as
+     * the names of the cards above -- and for the same reason. A page without a booking made
+     * from a link of this server asks the table nothing.
+     *
+     * Which links the page asks for, and which booking gets which greeting, are the rules of
+     * Transaction.logic: the model's `linkId` holds two kinds of number, and the number on a
+     * row does not prove the greeting is that booking's -- the link has to be its sender's.
+     */
+    const greetings = await dbSelectThankYouGreetingsByLinkIds(greetingLinkIdsOf(userTransactions))
+
     // transactions
     userTransactions.forEach((userTransaction: dbTransaction) => {
       /*
@@ -562,7 +580,16 @@ export class TransactionResolver {
         userTransaction.thankYouCardId
           ? (cardLabels.get(userTransaction.thankYouCardId) ?? null)
           : null
-      transactions.push(new Transaction(userTransaction, self, linkedUser, cardLabel))
+      const greetingRow = greetingOfBooking(userTransaction, greetings)
+      transactions.push(
+        new Transaction(
+          userTransaction,
+          self,
+          linkedUser,
+          cardLabel,
+          greetingRow ? new ThankYouGreeting(greetingRow) : null,
+        ),
+      )
     })
     logger.debug(
       `TransactionTypeId.CREATION: transactions=`,

@@ -1,0 +1,28 @@
+/* AI-GENERATED — not an architecture reference */
+
+/*
+ * The handwriting of a thank-you greeting's first line, shipped with the wallet (SIL OFL, the
+ * licence lies beside the file). One weight, Latin and Cyrillic, 89 KB.
+ *
+ * Declared here and nowhere else. Whatever sets a line in it -- the sheet a greeting arrives
+ * on (RedeemThanksPaper), its bubble in the conversation (ChatBubble) -- imports this file
+ * from its SCRIPT. A style block in each would be a face per component; an import is one
+ * module however many import it, and the bundle holds its rule once (handwriting.spec.js
+ * holds the source, the count in the built stylesheets is part of a delivery).
+ *
+ * The font file is fetched only once a line is on the screen that is set in it: a face is
+ * loaded when a text uses it, not when it is declared. `swap`: the line stands at once, in
+ * the page's font, and changes hands when the file is there.
+ *
+ * One family name and nothing else in the `font-family` descriptor: a list of families or
+ * `!important` are not valid there, and such a rule reaches the stylesheet without a name
+ * (App.vue carried one for WorkSans from 2022 to 2026; it never drew a letter). This one has
+ * to keep its name in the built stylesheet.
+ */
+@font-face {
+  font-family: Caveat;
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('./Caveat-600.woff2') format('woff2');
+}

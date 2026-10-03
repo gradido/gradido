@@ -1,4 +1,5 @@
 import {
+  AccountState,
   Community as DbCommunity,
   User as DbUser,
   UserContact as DbUserContact,
@@ -31,6 +32,7 @@ export async function storeForeignUser(
         )
         let foreignUser = DbUser.create()
         foreignUser.foreign = true
+        foreignUser.accountState = AccountState.FOREIGN
         if (committingResult.recipAlias !== null) {
           foreignUser.alias = committingResult.recipAlias
         }

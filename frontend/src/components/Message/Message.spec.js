@@ -40,7 +40,7 @@ describe('Message', () => {
     })
 
     // Some subtitles run to four sentences: at half the card's width and in bold, the one after a
-    // table-code registration stood on twelve lines on a phone (measured in the built wallet).
+    // guarantor-code registration stood on twelve lines on a phone (measured in the built wallet).
     it('gives the subtitle the whole width of the card, in regular weight', () => {
       const container = wrapper.find('.header-body').element.parentElement
       expect([...container.classList].filter((name) => /^w-\d+$/.test(name))).toEqual([])

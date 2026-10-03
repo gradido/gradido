@@ -1,4 +1,5 @@
-import { MaxLength, MinLength } from 'class-validator'
+import { ThankYouGreetingInput } from '@input/ThankYouGreetingInput'
+import { MaxLength, MinLength, ValidateNested } from 'class-validator'
 import { GradidoUnit, MEMO_MAX_CHARS, MEMO_MIN_CHARS } from 'shared'
 import { ArgsType, Field } from 'type-graphql'
 import { IsPositiveGradidoUnit } from '../validator/GradidoUnit'
@@ -13,4 +14,13 @@ export class TransactionLinkArgs {
   @MaxLength(MEMO_MAX_CHARS)
   @MinLength(MEMO_MIN_CHARS)
   memo: string
+
+  /**
+   * With it, the link is a thank-you greeting: a motif, a first line, a name. Without it,
+   * nothing changes -- the plain link, the cheque. What it may hold is checked in the
+   * resolver, together with the memo (transactionLinkGreetingSchema).
+   */
+  @Field(() => ThankYouGreetingInput, { nullable: true })
+  @ValidateNested()
+  greeting?: ThankYouGreetingInput | null
 }

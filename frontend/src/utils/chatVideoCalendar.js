@@ -48,9 +48,11 @@ const fold = (line) => {
 
 /**
  * The calendar file of a planned call. `uid` names the call, so that a second download of the same
- * call is taken as the same entry, not as a second one.
+ * call is taken as the same entry, not as a second one. `sequence` counts how often the call was
+ * changed (E-060; RFC 5545, 3.8.7.4): a calendar that holds the call takes a file with a higher
+ * count as the newer state of the same entry -- the call moves there, instead of standing twice.
  *
- * @param {{ start: Date, end: Date, title: string, description: string, url: string, uid: string, now?: Date }} call
+ * @param {{ start: Date, end: Date, title: string, description: string, url: string, uid: string, sequence?: number, now?: Date }} call
  * @returns {string}
  */
 export const chatVideoCalendarFile = ({
@@ -60,6 +62,7 @@ export const chatVideoCalendarFile = ({
   description,
   url,
   uid,
+  sequence = 0,
   now = new Date(),
 }) =>
   [
@@ -70,6 +73,7 @@ export const chatVideoCalendarFile = ({
     'METHOD:PUBLISH',
     'BEGIN:VEVENT',
     `UID:${uid}`,
+    `SEQUENCE:${sequence}`,
     `DTSTAMP:${icsTime(now)}`,
     `DTSTART:${icsTime(start)}`,
     `DTEND:${icsTime(end)}`,
@@ -83,7 +87,11 @@ export const chatVideoCalendarFile = ({
     .map(fold)
     .join('\r\n') + '\r\n'
 
-/** What names a call in every calendar: its room and its start, `k3v9q2m7x4pd-1790773200@gradido`. */
+/**
+ * What names a call in every calendar: its room and its start, `k3v9q2m7x4pd-1790773200@gradido`.
+ * For a call that was changed (E-060) the start it had FIRST: the name stays, whatever the call
+ * was moved to, and the calendar knows the moved call as the one it holds.
+ */
 export const chatVideoCalendarUid = (room, start) =>
   `${room.slice(room.lastIndexOf('/') + 1)}-${Math.floor(start.getTime() / 1000)}@gradido`
 
@@ -176,7 +184,7 @@ export const chatVideoZone = (date, locale) =>
  * other message.
  *
  * @param {string} text
- * @returns {{ url: string, room: string, topic: string, start: Date, end: Date } | null}
+ * @returns {{ url: string, room: string, topic: string, start: Date, end: Date, first?: Date, sequence?: number } | null}
  */
 export const chatVideoPlannedCall = (text) => {
   for (const part of chatTextParts(text ?? '')) {
@@ -185,4 +193,69 @@ export const chatVideoPlannedCall = (text) => {
     if (addition?.start) return { url: part.value, ...addition }
   }
   return null
+}
+
+/**
+ * The video invitation a message carries (E-058): the first address of Gradido's own form in it --
+ * with the room, the topic, and a planned call's start and end (null for a call now). null for
+ * every other message.
+ *
+ * @param {string} text
+ * @returns {{ url: string, room: string, topic: string, start: Date | null, end: Date | null, first?: Date, sequence?: number } | null}
+ */
+export const chatVideoInvitation = (text) => {
+  for (const part of chatTextParts(text ?? '')) {
+    if (part.type !== 'url') continue
+    const addition = readChatVideoAddition(part.value)
+    if (addition) return { url: part.value, ...addition }
+  }
+  return null
+}
+
+const twoDigits = (n) => String(n).padStart(2, '0')
+const dayField = (date) =>
+  `${date.getFullYear()}-${twoDigits(date.getMonth() + 1)}-${twoDigits(date.getDate())}`
+const timeField = (date) => `${twoDigits(date.getHours())}:${twoDigits(date.getMinutes())}`
+
+/**
+ * The time of a planned call as the question's day and time fields take it, on the member's own
+ * clock (E-060: a call that is changed opens with the time it has). The fields hold one day: a
+ * call that runs past midnight ends at 23:59 of its day, and the member sees it before it goes.
+ *
+ * @param {{ start: Date, end: Date }} when
+ * @returns {{ day: string, from: string, to: string }}
+ */
+export const chatVideoFields = ({ start, end }) => ({
+  day: dayField(start),
+  from: timeField(start),
+  to: dayField(end) === dayField(start) ? timeField(end) : '23:59',
+})
+
+/**
+ * A planned call duplicated (Bernd, 30.09.2026, E-058): the same weekday and time of day a week on
+ * -- the first such that lies in the future --, as long as the call was. As the question's day and
+ * time fields take them, on the member's own clock: a week on keeps the time of day across a change
+ * to or from summer time.
+ *
+ * The fields hold one day: a call that ran past midnight ends at 23:59 of its day, and the member
+ * sees it before it goes.
+ *
+ * @param {{ start: Date, end: Date }} when
+ * @param {Date} [now]
+ * @returns {{ day: string, from: string, to: string }}
+ */
+export const chatVideoNextWeek = ({ start, end }, now = new Date()) => {
+  // A week on by the calendar, not by 7 × 24 hours: the time of day stays across summer time.
+  const weekOn = (date) =>
+    new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate() + 7,
+      date.getHours(),
+      date.getMinutes(),
+      date.getSeconds(),
+    )
+  let next = weekOn(start)
+  while (next <= now) next = weekOn(next)
+  return chatVideoFields({ start: next, end: new Date(next.getTime() + (end - start)) })
 }

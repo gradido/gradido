@@ -135,7 +135,10 @@ describe('TransactionLink', () => {
     expect(mockUseQuery).toHaveBeenCalled()
   })
 
-  describe('deleted link', () => {
+  // A member's redeem link is received as a thank-you in every state it can have, this one
+  // included: the page hands it to RedeemThanks and the old text box is not shown for it.
+  // TransactionLink.thanks.spec.js holds that view and its states with the real components.
+  describe('deleted link of a member', () => {
     beforeEach(() => {
       vi.mocked(useQuery).mockReturnValue({
         result: {
@@ -168,14 +171,22 @@ describe('TransactionLink', () => {
             RedeemSelfCreator: true,
             RedeemValid: true,
             RedeemedTextBox: true,
+            RedeemThanks: true,
             AuthTriads: true,
           },
         },
       })
     })
 
-    it('has a component RedeemedTextBox', () => {
-      expect(wrapper.findComponent({ name: 'RedeemedTextBox' }).exists()).toBe(true)
+    it('hands the link to the thank-you view, as deleted', () => {
+      const thanks = wrapper.findComponent({ name: 'RedeemThanks' })
+      expect(thanks.exists()).toBe(true)
+      expect(thanks.props('state')).toBe('TEXT_DELETED')
+      expect(thanks.props('linkData').deletedAt).toBe(now)
+    })
+
+    it('has no component RedeemedTextBox', () => {
+      expect(wrapper.findComponent({ name: 'RedeemedTextBox' }).exists()).toBe(false)
     })
 
     it('keeps the triads above the state the link turned out to have', () => {
@@ -183,32 +194,27 @@ describe('TransactionLink', () => {
       expect(triads.exists()).toBe(true)
       expect(wrapper.element.firstElementChild).toBe(triads.element)
     })
-
-    it('has a link deleted text in text box', () => {
-      const box = wrapper.findComponent({ name: 'RedeemedTextBox' })
-      expect(box.vm.text).toContain(`gdd_per_link.link-deleted; ${now}`)
-    })
   })
 
-  describe.skip('redeem link with success', () => {
-    let mockMutation
-
-    beforeEach(async () => {
-      mockStore.state.token = 'token'
-      mockStore.state.tokenTime = Math.floor(Date.now() / 1000) + 20
+  // The old text box stays for the two other kinds of link. A contribution link carries
+  // `deletedAt` as well.
+  describe('deleted contribution link', () => {
+    beforeEach(() => {
       vi.mocked(useQuery).mockReturnValue({
         result: {
           value: {
             queryTransactionLink: {
-              __typename: 'TransactionLink',
-              id: 92,
-              amount: '22',
-              memo: 'Abrakadabra drei, vier, fünf, sechs, hier steht jetzt ein Memotext! Hex hex ',
+              __typename: 'ContributionLink',
+              id: 3,
+              amount: '100',
+              name: 'Startguthaben',
+              memo: 'Willkommen bei Gradido',
+              cycle: 'ONCE',
+              validFrom: '2022-03-17T16:10:28.000Z',
+              validTo: null,
               createdAt: '2022-03-17T16:10:28.000Z',
-              validUntil: transactionLinkValidExpireDate(),
-              redeemedAt: null,
-              deletedAt: null,
-              user: { firstName: 'Peter', publisherId: 0, gradidoID: 'other-user-id' },
+              deletedAt: now,
+              maxAmountPerMonth: null,
             },
           },
         },
@@ -217,14 +223,6 @@ describe('TransactionLink', () => {
         loading: { value: false },
         error: { value: null },
       })
-
-      mockMutation = vi.fn().mockResolvedValue({})
-      mockUseMutation.mockReturnValue({
-        mutate: mockMutation,
-        loading: { value: false },
-        error: { value: null },
-      })
-
       wrapper = mount(TransactionLink, {
         global: {
           components: {
@@ -235,25 +233,21 @@ describe('TransactionLink', () => {
             RedeemSelfCreator: true,
             RedeemValid: true,
             RedeemedTextBox: true,
+            RedeemThanks: true,
+            AuthTriads: true,
           },
         },
       })
-      await wrapper.vm.$nextTick()
-      await wrapper.findComponent({ name: 'RedeemValid' }).vm.$emit('mutation-link', '22')
     })
 
-    it('calls the API', () => {
-      expect(mockMutation).toHaveBeenCalledWith({
-        code: 'some-code',
-      })
+    it('has a component RedeemedTextBox', () => {
+      expect(wrapper.findComponent({ name: 'RedeemedTextBox' }).exists()).toBe(true)
+      expect(wrapper.findComponent({ name: 'RedeemThanks' }).exists()).toBe(false)
     })
 
-    it('toasts a success message', () => {
-      expect(mockToast.toastSuccess).toHaveBeenCalledWith('gdd_per_link.redeemed; ')
-    })
-
-    it('pushes the route to overview', () => {
-      expect(mockRouter.push).toHaveBeenCalledWith('/overview')
+    it('has a link deleted text in text box', () => {
+      const box = wrapper.findComponent({ name: 'RedeemedTextBox' })
+      expect(box.vm.text).toContain(`gdd_per_link.link-deleted; ${now}`)
     })
   })
 })

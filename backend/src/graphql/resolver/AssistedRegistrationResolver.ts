@@ -4,6 +4,7 @@ import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { sendAssistedRegistrationConfirmEmail } from 'core'
 import {
   User as DbUser,
+  dbConfirmRegistrationContact,
   dbFindRegisterUserContactByCodeOrFail,
   dbInsertEvent,
   EventType,
@@ -27,7 +28,7 @@ const createLogger = (method: string) =>
  * The guest's half of an assisted registration (EM-013): an account that holds a password
  * while its address is still unconfirmed. Such an account is opened at the table - a guest
  * who scanned a member's live card chooses the password in the registration form
- * (`createUser` with a presence code) - and it confirms its address here:
+ * (`createUser` with a guarantor code) - and it confirms its address here:
  *
  *   confirmEmail                    the guest's mail link: confirm-only, no password
  *   resendConfirmationEmail         the reminder modal's way out, next to "correct
@@ -80,8 +81,7 @@ export class AssistedRegistrationResolver {
       )
     }
 
-    userContact.emailChecked = true
-    await userContact.save().catch((error) => {
+    await dbConfirmRegistrationContact(userContact.id).catch((error) => {
       throw new LogError('Error saving userContact', error)
     })
 

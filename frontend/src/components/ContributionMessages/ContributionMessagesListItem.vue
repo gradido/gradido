@@ -124,7 +124,7 @@ export default {
      * ⚠️ The zoom asks for the full size the way it does for anybody else -- by the uuid
      * PAIR. Both halves have to be here: `users` is unique on (gradido_id, community_uuid),
      * and a missing uuid is read as `IS NULL`, which matches no member that ever registered
-     * normally (RegisterAccount sets it from the home community). Handing over the gradidoID
+     * normally (the registration sets it from the home community). Handing over the gradidoID
      * alone left every member's own zoom on the small rendition -- found by the review of
      * 12.09.2026, and the reason `communityUuid` now travels in the store.
      *

@@ -9,6 +9,8 @@ export const verifyLogin = gql`
       role
       id
       language
+      avatar
+      avatarColorIndex
       visibleCreationGroups
       seesAllCreationGroups
       seesUntagged

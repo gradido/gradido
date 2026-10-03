@@ -9,8 +9,16 @@ import { BPagination } from 'bootstrap-vue-next'
 import Contacts from './Contacts.vue'
 import { forgetFavorites, markFavorite, rememberFavorites } from '@/composables/useFavorites'
 import { refreshContactsPanel } from '@/composables/useContactsPanel'
+import {
+  firstLoginWindow,
+  forgetFirstLoginWindows,
+  setFirstLoginWindowWanted,
+} from '@/composables/useFirstLoginWindow'
+import { useChatForwardTargets } from '@/composables/useChatForwardTargets'
 
 const handlers = new Map()
+/** What a window's forward dialog asks the server itself -- nothing, on this page. */
+const forwardAsks = vi.fn()
 const fire = (document, data) => handlers.get(document)?.result?.({ data })
 /**
  * The client's own questions, by the document they ask: a test sets what `contactByMemberQuery`
@@ -147,10 +155,18 @@ describe('Contacts page', () => {
           // ⚠️ Stubbed, and it has to be: the real window reaches for `useRouter`, and this
           // file installs no router -- which arrives as "Need to install with `app.use`",
           // an error that says nothing about contacts.
+          //
+          // It asks for the lists its forward dialog would choose from, the way the real dialog
+          // does (useChatForwardTargets, E-059): what this page hands down, a test can read here.
           ContactWindow: {
-            props: ['modelValue', 'contact'],
+            name: 'ContactWindow',
+            props: ['modelValue', 'contact', 'greet', 'firstContact'],
+            emits: ['contactMade'],
+            setup() {
+              return { targets: useChatForwardTargets({ query: forwardAsks }) }
+            },
             template:
-              '<div data-test="contact-window" :data-open="String(modelValue)" :data-who="contact?.user?.gradidoID ?? \'\'" />',
+              '<div data-test="contact-window" :data-open="String(modelValue)" :data-who="contact?.user?.gradidoID ?? \'\'" :data-community="contact?.user?.communityUuid ?? \'\'" :data-home="String(contact?.homeCommunity)" :data-counted="String(Boolean(contact?.firstAt))" :data-greet="String(greet)" :data-first="String(firstContact)" :data-forward-contacts="targets.contacts.value.length" :data-forward-groups="targets.groups.value.length" :data-forward-loading="String(targets.loading.value)" :data-forward-failed="[targets.contactsFailed.value, targets.groupsFailed.value].join()" @click="targets.load()" />',
           },
         },
       },
@@ -165,6 +181,7 @@ describe('Contacts page', () => {
     handlers.clear()
     forgetFavorites()
     apolloQuery.mockClear()
+    forwardAsks.mockClear()
     answers.clear()
     route.query = {}
     routerReplace.mockClear()
@@ -407,6 +424,144 @@ describe('Contacts page', () => {
       await flushPromises()
 
       expect(contactWindow().attributes('data-who')).toBe('id-1')
+    })
+
+    /**
+     * ⛔ Never two windows on top of each other (ZE-017 F5). Somebody who has just accepted a
+     * thank-you taps "… antworten" and meets the wallet for the first time through this
+     * address: the conversation comes before the windows of the first logins, and they come
+     * in their order once it is closed.
+     */
+    describe('and the windows of the first logins', () => {
+      const closeWindow = async () => {
+        wrapper.findComponent({ name: 'ContactWindow' }).vm.$emit('update:modelValue', false)
+        await flushPromises()
+      }
+
+      beforeEach(() => {
+        // A new account: the address is not confirmed, the name is the system's.
+        forgetFirstLoginWindows()
+        setFirstLoginWindowWanted('email', true)
+        setFirstLoginWindowWanted('alias', true)
+      })
+
+      afterEach(() => {
+        forgetFirstLoginWindows()
+      })
+
+      // The lookup takes a moment, and one of the three would have the screen by then.
+      it('holds them back from the moment the page is built, before the server answered', () => {
+        route.query = { with: 'carla-id' }
+        answers.set('contactByMemberQuery', () => new Promise(() => {}))
+
+        mountPage()
+
+        expect(firstLoginWindow.value).toBe('contact')
+      })
+
+      it('holds them back while the conversation is open', async () => {
+        route.query = { with: 'carla-id' }
+        answers.set('contactByMemberQuery', () => ({
+          data: { contactList: { contacts: [CARLA] } },
+        }))
+        mountPage()
+        await flushPromises()
+
+        expect(contactWindow().attributes('data-open')).toBe('true')
+        expect(firstLoginWindow.value).toBe('contact')
+      })
+
+      it('lets them come in their order once it is closed', async () => {
+        route.query = { with: 'carla-id' }
+        answers.set('contactByMemberQuery', () => ({
+          data: { contactList: { contacts: [CARLA] } },
+        }))
+        mountPage()
+        await flushPromises()
+
+        await closeWindow()
+
+        expect(contactWindow().attributes('data-open')).toBe('false')
+        expect(firstLoginWindow.value).toBe('email')
+
+        setFirstLoginWindowWanted('email', false)
+        expect(firstLoginWindow.value).toBe('alias')
+      })
+
+      it('lets them come at once where the server knows nobody by that address', async () => {
+        route.query = { with: 'nobody-id' }
+        answers.set('contactByMemberQuery', () => ({ data: { contactList: { contacts: [] } } }))
+        mountPage()
+        expect(firstLoginWindow.value).toBe('contact')
+
+        await flushPromises()
+
+        expect(contactWindow().attributes('data-open')).toBe('false')
+        expect(firstLoginWindow.value).toBe('email')
+      })
+
+      it('lets them come where the question does not get through', async () => {
+        route.query = { with: 'carla-id' }
+        answers.set('contactByMemberQuery', () => Promise.reject(new Error('offline')))
+        mountPage()
+
+        await flushPromises()
+
+        expect(firstLoginWindow.value).toBe('email')
+      })
+
+      // A tap on a row while the lookup was on its way: that window is open, and they wait.
+      it('holds them back for the window the member opened in the meantime', async () => {
+        let answer
+        route.query = { with: 'carla-id' }
+        answers.set(
+          'contactByMemberQuery',
+          () =>
+            new Promise((resolve) => {
+              answer = resolve
+            }),
+        )
+        mountPage()
+        fire('contactListQuery', { contactList: { count: 1, contacts: [person(1)] } })
+        await nextTick()
+        await wrapper.findAll('[data-test="contact-row"]')[0].trigger('click')
+        answer({ data: { contactList: { contacts: [CARLA] } } })
+        await flushPromises()
+
+        expect(firstLoginWindow.value).toBe('contact')
+
+        await closeWindow()
+
+        expect(firstLoginWindow.value).toBe('email')
+      })
+
+      it('lets them come where the page is left with the conversation open', async () => {
+        route.query = { with: 'carla-id' }
+        answers.set('contactByMemberQuery', () => ({
+          data: { contactList: { contacts: [CARLA] } },
+        }))
+        mountPage()
+        await flushPromises()
+
+        wrapper.unmount()
+
+        expect(firstLoginWindow.value).toBe('email')
+      })
+
+      it.each([
+        ['an address without a person', {}],
+        ['an address that names two', { with: ['carla-id', 'sarah-id'] }],
+        ['an address that names nobody', { with: '' }],
+        ['the address of a group', { group: 'some-group' }],
+      ])('holds nothing back for %s', async (_, query) => {
+        route.query = query
+
+        mountPage()
+
+        expect(firstLoginWindow.value).toBe('email')
+        await flushPromises()
+        expect(firstLoginWindow.value).toBe('email')
+      })
     })
   })
 
@@ -697,6 +852,70 @@ describe('Contacts page', () => {
       })
     })
 
+    /**
+     * Forwarding a message (E-059) is the windows' own business -- each holds its dialog, so that it
+     * goes wherever a window is opened (Bernd, 01.10.2026). This page holds the lists the dialog
+     * chooses from, and hands them down instead of letting the dialog ask the server again.
+     */
+    describe('forwarding a message', () => {
+      const handedDown = () => {
+        const attributes = wrapper.find('[data-test="contact-window"]').attributes()
+        return [attributes['data-forward-contacts'], attributes['data-forward-groups']]
+      }
+
+      it("hands its contacts and groups down to the windows' forward dialog", async () => {
+        mountPage()
+        fire('contactListQuery', { contactList: { count: 2, contacts: [person(1), person(2)] } })
+        fire('chatGroupsQuery', { chatGroups: [group(1)] })
+        await nextTick()
+        expect(handedDown()).toEqual(['2', '1'])
+      })
+
+      it('keeps them in step with the page, and the dialog asks the server for none', async () => {
+        mountPage()
+        fire('contactListQuery', { contactList: { count: 1, contacts: [person(1)] } })
+        fire('chatGroupsQuery', { chatGroups: [group(1)] })
+        await nextTick()
+        fire('contactListQuery', {
+          contactList: { count: 3, contacts: [person(1), person(2), person(3)] },
+        })
+        fire('chatGroupsQuery', { chatGroups: [group(1), group(2)] })
+        await nextTick()
+        expect(handedDown()).toEqual(['3', '2'])
+
+        // The dialog opening: `load`, which asks only where no page handed the lists down.
+        await wrapper.find('[data-test="contact-window"]').trigger('click')
+        await flushPromises()
+        expect(forwardAsks).not.toHaveBeenCalled()
+      })
+
+      it('says what it knows of them: on their way until both are here, or not to be read', async () => {
+        mountPage()
+        const state = () => {
+          const attributes = wrapper.find('[data-test="contact-window"]').attributes()
+          return [attributes['data-forward-loading'], attributes['data-forward-failed']]
+        }
+        expect(state()).toEqual(['true', 'false,false'])
+        fire('contactListQuery', { contactList: { count: 1, contacts: [person(1)] } })
+        await nextTick()
+        expect(state()).toEqual(['true', 'false,false'])
+        fire('chatGroupsQuery', { chatGroups: [] })
+        await nextTick()
+        expect(state()).toEqual(['false', 'false,false'])
+      })
+
+      it('says so where a list could not be read', async () => {
+        mountPage()
+        handlers.get('contactListQuery').error(new Error('offline'))
+        handlers.get('chatGroupsQuery').error(new Error('offline'))
+        await nextTick()
+        expect(wrapper.find('[data-test="contact-window"]').attributes()).toMatchObject({
+          'data-forward-loading': 'false',
+          'data-forward-failed': 'true,true',
+        })
+      })
+    })
+
     // A member with no contact left can still be in a group somebody took them into.
     it('shows them also where the member has no contact', async () => {
       mountPage()
@@ -742,8 +961,10 @@ describe('Contacts page', () => {
         await wrapper.findAll('[data-test="chat-group-row"]')[1].trigger('click')
       }
 
-      // E-053: a member named in the group -- in its list or over a message. A contact's window
-      // opens over the group's, so closing it leads back; anybody else is met in the send form.
+      // E-053: a member named in the group -- in its list or over a message. Their window opens
+      // over the group's, so closing it leads back. E-055 (Bernd, 30.09.2026): a first word is one
+      // tap -- "Hallo …" in the field where the two have never written, and for somebody who is no
+      // contact yet the window's first form instead of the send form.
       describe('a member named in it', () => {
         const nameIt = async (user) => {
           await wrapper.findComponent({ name: 'ChatGroupWindow' }).vm.$emit('openMember', user)
@@ -761,11 +982,14 @@ describe('Contacts page', () => {
           storeState.communityUuid = 'home'
         })
 
-        it("opens a contact's window over the group's", async () => {
+        it("opens a contact's window over the group's, greeting", async () => {
           await withContacts()
           await nameIt({ communityUuid: 'home', gradidoID: 'id-2', alias: 'Alias2' })
           expect(contactWindow().attributes('data-open')).toBe('true')
           expect(contactWindow().attributes('data-who')).toBe('id-2')
+          expect(contactWindow().attributes('data-counted')).toBe('true')
+          expect(contactWindow().attributes('data-greet')).toBe('true')
+          expect(contactWindow().attributes('data-first')).toBe('false')
           expect(groupWindow().attributes('data-open')).toBe('true')
           expect(routerPush).not.toHaveBeenCalled()
         })
@@ -779,14 +1003,28 @@ describe('Contacts page', () => {
           expect(routerPush).not.toHaveBeenCalled()
         })
 
-        it('leads to the send form, community and name filled in, where they are no contact', async () => {
+        it("opens the window's first form over the group's where they are no contact", async () => {
           await withContacts()
           await nameIt({ communityUuid: 'home', gradidoID: 'stranger-id', alias: 'Fremd' })
-          expect(routerPush).toHaveBeenCalledWith({
-            path: '/send/home/stranger-id',
-            query: { art: 'send' },
-          })
-          expect(contactWindow().attributes('data-open')).toBe('false')
+          expect(contactWindow().attributes('data-open')).toBe('true')
+          expect(contactWindow().attributes('data-who')).toBe('stranger-id')
+          expect(contactWindow().attributes('data-counted')).toBe('false')
+          expect(contactWindow().attributes('data-greet')).toBe('true')
+          expect(contactWindow().attributes('data-first')).toBe('true')
+          expect(contactWindow().attributes('data-home')).toBe('true')
+          expect(groupWindow().attributes('data-open')).toBe('true')
+          expect(routerPush).not.toHaveBeenCalled()
+        })
+
+        // The address line is for this community's members only (ContactWindow): a member of
+        // another one -- once groups cross the border (P6) -- is not given this one's host.
+        it('knows a member of another community as one', async () => {
+          await withContacts()
+          await nameIt({ communityUuid: 'OTHER', gradidoID: 'far-id', alias: 'Fern' })
+          expect(contactWindow().attributes('data-first')).toBe('true')
+          expect(contactWindow().attributes('data-home')).toBe('false')
+          await nameIt({ communityUuid: 'HOME', gradidoID: 'near-id', alias: 'Nah' })
+          expect(contactWindow().attributes('data-home')).toBe('true')
         })
 
         // A writer the server named by the pair alone: a missing community is this one.
@@ -796,10 +1034,98 @@ describe('Contacts page', () => {
           await nameIt({ communityUuid: null, gradidoID: 'id-1' })
           expect(contactWindow().attributes('data-who')).toBe('id-1')
           await nameIt({ communityUuid: null, gradidoID: 'stranger-id' })
-          expect(routerPush).toHaveBeenCalledWith({
-            path: '/send/home/stranger-id',
-            query: { art: 'send' },
+          expect(contactWindow().attributes('data-who')).toBe('stranger-id')
+          expect(contactWindow().attributes('data-community')).toBe('home')
+          expect(routerPush).not.toHaveBeenCalled()
+        })
+
+        it("makes the first form whole with the first message: the server's row, the list anew", async () => {
+          await withContacts()
+          await nameIt({ communityUuid: 'home', gradidoID: 'stranger-id', alias: 'Fremd' })
+          const made = {
+            ...person(9),
+            user: { communityUuid: 'home', gradidoID: 'stranger-id', alias: 'Fremd' },
+          }
+          answers.set('contactByMemberQuery', () => ({
+            data: { contactList: { contacts: [made] } },
+          }))
+          answers.set('contactListQuery', () => ({
+            data: { contactList: { count: 3, contacts: [made, person(1), person(2)] } },
+          }))
+          apolloQuery.mockClear()
+
+          await wrapper.findComponent({ name: 'ContactWindow' }).vm.$emit('contactMade')
+          await flushPromises()
+
+          const asked = apolloQuery.mock.calls.map(([options]) => options)
+          expect(asked.find((o) => o.query === 'contactByMemberQuery').variables).toEqual({
+            ref: { gradidoID: 'stranger-id', communityUuid: 'home' },
           })
+          expect(asked.some((o) => o.query === 'contactListQuery')).toBe(true)
+          expect(contactWindow().attributes('data-who')).toBe('stranger-id')
+          expect(contactWindow().attributes('data-counted')).toBe('true')
+          expect(contactWindow().attributes('data-first')).toBe('false')
+          expect(rowsIn('contacts-page')).toContain('Fremd')
+        })
+
+        // Where the lookup does not get through, the window stays as it stands: the conversation
+        // is there either way, and the list asks again with the next news.
+        it('stays as it stands where the lookup fails', async () => {
+          await withContacts()
+          await nameIt({ communityUuid: 'home', gradidoID: 'stranger-id', alias: 'Fremd' })
+          answers.set('contactByMemberQuery', () => Promise.reject(new Error('offline')))
+          await wrapper.findComponent({ name: 'ContactWindow' }).vm.$emit('contactMade')
+          await flushPromises()
+          expect(contactWindow().attributes('data-open')).toBe('true')
+          expect(contactWindow().attributes('data-who')).toBe('stranger-id')
+          expect(contactWindow().attributes('data-first')).toBe('true')
+        })
+
+        // An answer that comes after the window closed, or moved on to somebody else, belongs to
+        // an opening that is over: it is put nowhere.
+        it('takes no late answer after the window closed or moved on', async () => {
+          await withContacts()
+          const made = { ...person(9), user: { communityUuid: 'home', gradidoID: 'stranger-id' } }
+          let answer
+          answers.set(
+            'contactByMemberQuery',
+            () =>
+              new Promise(
+                (resolve) =>
+                  (answer = () => resolve({ data: { contactList: { contacts: [made] } } })),
+              ),
+          )
+
+          await nameIt({ communityUuid: 'home', gradidoID: 'stranger-id', alias: 'Fremd' })
+          await wrapper.findComponent({ name: 'ContactWindow' }).vm.$emit('contactMade')
+          await wrapper
+            .findComponent({ name: 'ContactWindow' })
+            .vm.$emit('update:modelValue', false)
+          await nextTick()
+          answer()
+          await flushPromises()
+          expect(contactWindow().attributes('data-open')).toBe('false')
+          expect(contactWindow().attributes('data-who')).toBe('')
+
+          await nameIt({ communityUuid: 'home', gradidoID: 'stranger-id', alias: 'Fremd' })
+          await wrapper.findComponent({ name: 'ContactWindow' }).vm.$emit('contactMade')
+          await nameIt({ communityUuid: 'home', gradidoID: 'id-2', alias: 'Alias2' })
+          answer()
+          await flushPromises()
+          expect(contactWindow().attributes('data-who')).toBe('id-2')
+          expect(contactWindow().attributes('data-greet')).toBe('true')
+        })
+
+        // Closing lets the group's way of opening go: a row opened next is the window as always.
+        it('opens a row of the list as always after it closed', async () => {
+          await withContacts()
+          await nameIt({ communityUuid: 'home', gradidoID: 'stranger-id', alias: 'Fremd' })
+          await wrapper
+            .findComponent({ name: 'ContactWindow' })
+            .vm.$emit('update:modelValue', false)
+          await nextTick()
+          expect(contactWindow().attributes('data-greet')).toBe('false')
+          expect(contactWindow().attributes('data-first')).toBe('false')
         })
       })
 

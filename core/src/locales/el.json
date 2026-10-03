@@ -28,6 +28,7 @@
     },
     "assistedRegistrationConfirm": {
       "accountCreated": "Μαζί με ένα μέλος Gradido μόλις δημιουργήθηκε ένας λογαριασμός για σένα — με αυτή τη διεύθυνση email.",
+      "accountCreatedByThanks": "Κατά την αποδοχή ενός ευχαριστώ μόλις δημιουργήθηκε ένας λογαριασμός για σένα — με αυτή τη διεύθυνση email.",
       "clickToConfirm": "Κάνε κλικ εδώ για να επιβεβαιώσεις τη διεύθυνση email σου.",
       "confirmButton": "Επιβεβαίωση διεύθυνσης",
       "confirmHeading": "Επιβεβαίωση διεύθυνσης email",
@@ -86,6 +87,9 @@
       "todo": "Please check whether this account belongs to a person who may create. If so, switch \"May create\" on for this member in the admin interface (user role tab). The member has been told that a person checks the request."
     },
     "customEmail": {
+      "forwardWords": "{senderAlias} προσθέτει:",
+      "forwarded": "↪ Προωθημένο μήνυμα",
+      "forwardedFrom": "↪ Προωθημένο μήνυμα από {forwardedFromAlias}",
       "haveReceivedMessageFrom": "μόλις έλαβες ένα μήνυμα από {senderAlias}",
       "imageNote": "📷 Το μήνυμα περιέχει μια εικόνα – τη βλέπεις στη συνομιλία.",
       "title": "{senderAlias} σου έστειλε ένα μήνυμα"
@@ -155,6 +159,7 @@
       "sincerelyYours": "Με εκτίμηση,",
       "toAccount": "Στον λογαριασμό",
       "toContribution": "Στη συνεισφορά",
+      "toConversation": "Στη συνομιλία",
       "transactionDetails": "Λεπτομέρειες συναλλαγής",
       "yourGradidoTeam": "η ομάδα σου Gradido"
     },
@@ -175,11 +180,11 @@
       "wasPaid": "Μόλις μεταβιβάστηκαν {amountGDD} GDD με την κάρτα ευχαριστίας σου."
     },
     "transactionLinkRedeemed": {
-      "hasRedeemedYourLink": "{senderAlias} ({senderCommunity}) μόλις εξαργύρωσε τον σύνδεσμό σου.",
+      "hasAcceptedYourThanks": "{senderAlias} ({senderCommunity}) μόλις δέχτηκε το ευχαριστώ σου.",
+      "hasAcceptedYourThanksNewMember": "{senderAlias} ({senderCommunity}) δέχτηκε το ευχαριστώ σου — και μόλις ήρθε στο Gradido. Ωραία που το έδειξες.",
       "memo": "Μήνυμα: {transactionMemo}",
-      "newMember": "— και μόλις ήρθε στο Gradido. Ωραία που το έδειξες.",
-      "subject": "{senderAlias} εξαργύρωσε τον σύνδεσμό σου Gradido",
-      "title": "{senderAlias} εξαργύρωσε τον σύνδεσμό σου Gradido"
+      "subject": "{senderAlias} δέχτηκε το ευχαριστώ σου",
+      "title": "{senderAlias} δέχτηκε το ευχαριστώ σου"
     },
     "transactionReceived": {
       "haveReceivedAmountGDDFrom": "μόλις έλαβες {transactionAmount} GDD από {senderAlias}.",

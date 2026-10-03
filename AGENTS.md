@@ -94,6 +94,20 @@ Turbo and `bun run` automatically invoke the correct test runner defined in the 
 - Tests: co-located `*.test.ts`, run with `bun test`.
 - Fake timers in Jest tests: use `useFakeTimersForDrizzle()` from `backend/test/helpers.ts` (or `dht-node/test/helpers.ts`) instead of `jest.useFakeTimers()`. Jest 27 also fakes `process.nextTick`, which mysql2 — Drizzle's driver — needs to deliver every result, so any Drizzle query under plain fake timers hangs until the hook or test timeout. TypeORM runs on the `mysql` package and is unaffected, so this only surfaces once a query on that path moves to Drizzle. `federation` has no such helper yet; it needs the same one before a test there fakes timers around a Drizzle query.
 
+# Performance
+
+Always weigh performance and readability together — neither is traded away silently for the other.
+
+- **Database operations are expensive.** Every round trip costs, however cheap the query itself. No queries inside loops: fetch what a loop needs in one query and write its results in batches.
+- **Moving large amounts of data into Node.js is expensive too.** Analysing or aggregating large datasets belongs in the database as far as it can go; only the result travels to Node.js.
+- **Loading a whole table into memory is the exception**, not the pattern — justified only where the logic cannot run in SQL (migration `0116` builds aliases with a transliteration that exists only in TypeScript).
+- **"It only runs once" is no argument.** There are ~150 migrations, each runs on every community server before its services come up, and a fresh setup with data runs all of them. CI runs them against an empty database, so their cost never shows up there — it has to be caught in review.
+
+## Migrations
+
+- Data migrations write in batches of 500 rows wherever possible.
+- Import as little as possible. A migration must keep doing exactly what it did when it was written, so it carries a frozen copy of the rules it applies instead of importing helpers that keep evolving (see `0116`). Import only what cannot reasonably be rebuilt in plain TypeScript or SQL — `0102` needs the decay calculation from `shared-native`, `0116` the transliteration tables.
+
 # Error handling
 
 This is not throw-vs-return as a blanket rule — it depends on what kind of failure it is. There are no throw-free zones in this codebase; the question is always which kind of failure you are looking at.
@@ -172,6 +186,7 @@ Remove the marker once a human has reviewed the file and stands behind it. A mar
 
 # Judgement calls
 
+- **Build on the concepts that are already there.** Before changing or extending code, look at how the surrounding code — the sibling roles, the neighbouring functions — already solves the same thing, and use that same concept. A second mechanism for something the code already answers makes it harder to understand, even where it looks cleaner locally: a small wart such as an unused `_param` costs less than a new concept. Two exceptions: a file with `AI-GENERATED — not an architecture reference` on its first line is no model (see above), and where this document names a pattern as legacy (TypeORM, throwing expected failures), the document wins.
 - Prefer moving code to the new architecture over duplicating it into both.
 - When old and new coexist for the same concern, the new location is the single source of truth; the old path delegates to it rather than reimplementing.
 - Pure refactoring means no behaviour change: same inputs, same outputs, same side effects, same errors.
