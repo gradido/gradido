@@ -265,6 +265,67 @@ describe('ChatGroupMembers', () => {
       expect(wrapper.emitted('changed')).toBeUndefined()
     })
 
+    // Bernd, 03.10.2026: under the list the refusal stood below the twelfth member, out of
+    // sight -- "nothing happens". It stands under the keys it came from, once.
+    it('says so under the keys of the member the step was about', async () => {
+      server.mockRejectedValue(new Error('CHAT_GROUP_NOT_CHANGED: TOO_MANY_MODERATORS'))
+      mountDialog()
+      await openMenu('anna-id')
+      await row('anna-id').find('[data-test="chat-group-member-moderator"]').trigger('click')
+      await flushPromises()
+      const menu = row('anna-id').find('[data-test="chat-group-member-menu"]')
+      expect(menu.find('[data-test="chat-group-members-problem"]').text()).toBe(
+        'chatGroup.refusedTooManyModerators',
+      )
+      expect(menu.find('[data-test="chat-group-members-problem"]').attributes('role')).toBe('alert')
+      expect(wrapper.findAll('[data-test="chat-group-members-problem"]')).toHaveLength(1)
+    })
+
+    it('brings the refusal back to its member where other keys were opened meanwhile', async () => {
+      let answer
+      server.mockImplementation(
+        () =>
+          new Promise((resolve, reject) => {
+            answer = { resolve, reject }
+          }),
+      )
+      mountDialog()
+      await openMenu('anna-id')
+      await row('anna-id').find('[data-test="chat-group-member-moderator"]').trigger('click')
+      await openMenu('emma-id')
+
+      answer.reject(new Error('CHAT_GROUP_NOT_CHANGED: TOO_MANY_MODERATORS'))
+      await flushPromises()
+      expect(row('emma-id').find('[data-test="chat-group-member-menu"]').exists()).toBe(false)
+      expect(row('anna-id').find('[data-test="chat-group-members-problem"]').text()).toBe(
+        'chatGroup.refusedTooManyModerators',
+      )
+    })
+
+    it('lets the refusal go with the keys it stood under', async () => {
+      server.mockRejectedValue(new Error('CHAT_GROUP_NOT_CHANGED: TOO_MANY_MODERATORS'))
+      mountDialog()
+      await openMenu('anna-id')
+      await row('anna-id').find('[data-test="chat-group-member-moderator"]').trigger('click')
+      await flushPromises()
+      expect(find('chat-group-members-problem').exists()).toBe(true)
+
+      await openMenu('emma-id')
+      expect(find('chat-group-members-problem').exists()).toBe(false)
+    })
+
+    // A step from a view of its own (a new name) has no row: its refusal stays under the view.
+    it('keeps the refusal of a step without a row under the view', async () => {
+      server.mockRejectedValue(new Error('CHAT_GROUP_NOT_CHANGED: TITLE'))
+      mountDialog()
+      await find('chat-group-members-rename').trigger('click')
+      await find('chat-group-members-name').setValue('Kaffeerunde')
+      await go().trigger('click')
+      await flushPromises()
+      expect(find('chat-group-members-problem').exists()).toBe(true)
+      expect(find('chat-group-member-menu').exists()).toBe(false)
+    })
+
     // A step only somebody else can undo is asked first.
     it('asks before taking somebody out, and takes them out on the answer', async () => {
       mountDialog()

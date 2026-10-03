@@ -94,7 +94,7 @@
               :aria-expanded="menuFor === row.id ? 'true' : 'false'"
               :aria-controls="`${menuId}-${row.index}`"
               data-test="chat-group-member-more"
-              @click="menuFor = menuFor === row.id ? null : row.id"
+              @click="toggleMenu(row)"
             >
               <i-mdi-dots-vertical aria-hidden="true" />
             </button>
@@ -128,6 +128,18 @@
             >
               {{ t('chatGroup.remove') }}
             </button>
+            <!-- What went wrong with a step from these keys stands right under them: under the
+                 list it stood below the last member, out of sight in any group longer than the
+                 dialog. -->
+            <p
+              v-if="problem"
+              :ref="(el) => (problemLine = el)"
+              class="chat-group-member-problem"
+              role="alert"
+              data-test="chat-group-members-problem"
+            >
+              {{ problem }}
+            </p>
           </div>
         </li>
       </ul>
@@ -167,7 +179,12 @@
       <p class="mb-0" data-test="chat-group-members-question">{{ questionText }}</p>
     </template>
 
-    <p v-if="problem" class="mt-3 mb-0" role="alert" data-test="chat-group-members-problem">
+    <p
+      v-if="problem && !problemInRow"
+      class="mt-3 mb-0"
+      role="alert"
+      data-test="chat-group-members-problem"
+    >
       {{ problem }}
     </p>
 
@@ -209,7 +226,7 @@
 </template>
 
 <script setup>
-import { computed, ref, useId, watch } from 'vue'
+import { computed, nextTick, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useStore } from 'vuex'
 import { useMutation } from '@vue/apollo-composable'
@@ -322,6 +339,16 @@ const newTitle = ref('')
 const toRemove = ref(null)
 const busy = ref(false)
 const problem = ref('')
+/** The refusal's line under a member's keys, to bring it into sight. */
+const problemLine = ref(null)
+/** In the list a refusal stands in the open row, under the keys it came from. */
+const problemInRow = computed(() => view.value === 'list' && menuFor.value !== null)
+
+/** Opens a member's keys, or closes them. What was refused under other keys goes with them. */
+const toggleMenu = (row) => {
+  menuFor.value = menuFor.value === row.id ? null : row.id
+  problem.value = ''
+}
 
 const openView = (next) => {
   view.value = next
@@ -427,9 +454,9 @@ const askRemove = (row) => {
   openView('remove')
 }
 
-const setModerator = (row, moderator) => {
+const setModerator = async (row, moderator) => {
   if (busy.value) return
-  step(
+  await step(
     () =>
       moderate({
         groupUuid: props.group.groupUuid,
@@ -441,6 +468,12 @@ const setModerator = (row, moderator) => {
       emit('changed')
     },
   )
+  // A refusal belongs under the keys of the member it is about, whatever was opened or closed
+  // while the answer was on its way -- and into sight, in a list that scrolls.
+  if (!problem.value || view.value !== 'list') return
+  menuFor.value = row.id
+  await nextTick()
+  problemLine.value?.scrollIntoView?.({ block: 'nearest' })
 }
 
 const go = () => {
@@ -623,6 +656,12 @@ const go = () => {
   border-radius: 1.2rem;
   background: transparent;
   color: var(--bs-body-color);
+  font-size: 0.85rem;
+}
+
+.chat-group-member-problem {
+  flex-basis: 100%;
+  margin: 0.2rem 0 0;
   font-size: 0.85rem;
 }
 
