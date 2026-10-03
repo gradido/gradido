@@ -48,6 +48,41 @@ describe('registerUser', () => {
     )
   })
 
+  // A password with a redeem code: the link may vouch for the account. The role decides whether
+  // it does; without a password it is not asked, and the registration is the one it was.
+  it('lets the link decide when a redeem code comes with a password', async () => {
+    expect(await roleChosenFor(input({ redeemCode: 'abc123', password: 'Aa1!aaaa' }))).toBe(
+      'RegisterUserFromVouchingLinkRole',
+    )
+    expect(await roleChosenFor(input({ redeemCode: 'abc123' }))).toBe(
+      'RegisterUserFromTransactionLinkRole',
+    )
+    expect(await roleChosenFor(input({ redeemCode: 'abc123', password: null }))).toBe(
+      'RegisterUserFromTransactionLinkRole',
+    )
+  })
+
+  // The order stays: a redeem code beats a guarantor code, which is not looked at then.
+  it('lets a redeem code win over a guarantor code, with a password too', async () => {
+    const user = input({
+      redeemCode: 'abc123',
+      guarantorCode: '1700000000.AbCdEfGhIjKlMnOpQrStUv',
+      password: 'Aa1!aaaa',
+    })
+    expect(await roleChosenFor(user)).toBe('RegisterUserFromVouchingLinkRole')
+  })
+
+  // No member vouches for a project's registration, or for a plain one: the password is ignored.
+  it('lets a password count for nothing with a project, at an address, or on its own', async () => {
+    expect(
+      await roleChosenFor(input({ project: 'garden', redeemCode: 'abc123', password: 'Aa1!aaaa' })),
+    ).toBe('RegisterUserForProjectRole')
+    expect(await roleChosenFor(input({ referrerAlias: 'PeterL', password: 'Aa1!aaaa' }))).toBe(
+      'RegisterUserReferrerRole',
+    )
+    expect(await roleChosenFor(input({ password: 'Aa1!aaaa' }))).toBe('RegisterUserRole')
+  })
+
   it('registers with a guarantor code', async () => {
     const user = input({
       guarantorCode: '1700000000.AbCdEfGhIjKlMnOpQrStUv',
