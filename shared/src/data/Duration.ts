@@ -34,6 +34,50 @@ export class Duration {
   }
 
   /**
+   * Creates a Duration from a short time specification: a whole number followed by one unit,
+   * the format of config values like `JWT_EXPIRES_IN`.
+   *
+   * Units: `s` seconds, `m` minutes, `h` hours, `d` days, `w` weeks. The unit is case-insensitive,
+   * whitespace around the string and between number and unit is ignored.
+   * Not supported: a number without unit, fractions, negative values, long unit names ("10 minutes")
+   * and combinations ("1h 30m").
+   *
+   * @example
+   * ```typescript
+   * Duration.fromString('10m').seconds // 600n
+   * Duration.fromString('2w').seconds // 1209600n
+   * ```
+   * @param durationString The time specification, e.g. "30s", "10m", "2h", "1d", "1w"
+   * @returns A new Duration of that length
+   * @throws Error if the string does not match the format
+   */
+  public static fromString(durationString: string): Duration {
+    const match = durationString.trim().match(/^(\d+)\s*(s|m|h|d|w)$/i)
+
+    if (!match) {
+      throw new Error(`Unhandled duration: "${durationString}"`)
+    }
+
+    const [, value, unit] = match
+    const amount = Number(value)
+
+    switch (unit.toLowerCase()) {
+      case 's':
+        return Duration.seconds(amount)
+      case 'm':
+        return Duration.minutes(amount)
+      case 'h':
+        return Duration.hours(amount)
+      case 'd':
+        return Duration.days(amount)
+      case 'w':
+        return Duration.days(amount * 7)
+      default:
+        throw new Error(`Unhandled enum: "${unit}"`)
+    }
+  }
+
+  /**
    * Creates a Duration from a number of seconds
    * @param seconds The number of seconds
    * @returns A new Duration with the given number of seconds

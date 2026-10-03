@@ -1,7 +1,17 @@
 import { describe, expect, it } from 'bun:test'
+import { createSecretKey, generateKeyPairSync } from 'node:crypto'
 import { v4 as uuidv4 } from 'uuid'
 import { z } from 'zod'
-import { blankAsNull, emailSchema, uint32Schema, uuidv4Schema } from './base.schema'
+import { Duration } from '../data/Duration'
+import {
+  blankAsNull,
+  durationSchema,
+  emailSchema,
+  nodeCryptoKeyObjectSchema,
+  positiveIntegerSchema,
+  uint32Schema,
+  uuidv4Schema,
+} from './base.schema'
 
 describe('uuidv4 schema', () => {
   it('should validate uuidv4 (40x)', () => {
@@ -59,5 +69,51 @@ describe('blankAsNull', () => {
     if (!result.success) {
       expect(result.error.issues[0].message).toBe('too short')
     }
+  })
+})
+
+describe('nodeCryptoKeyObject schema', () => {
+  it('should accept secret, public and private key objects', () => {
+    const { publicKey, privateKey } = generateKeyPairSync('ed25519')
+    expect(
+      nodeCryptoKeyObjectSchema.safeParse(createSecretKey(Buffer.from('secret'))).success,
+    ).toBe(true)
+    expect(nodeCryptoKeyObjectSchema.safeParse(publicKey).success).toBe(true)
+    expect(nodeCryptoKeyObjectSchema.safeParse(privateKey).success).toBe(true)
+  })
+
+  it('should reject raw key material', () => {
+    expect(nodeCryptoKeyObjectSchema.safeParse('secret').success).toBe(false)
+    expect(nodeCryptoKeyObjectSchema.safeParse(Buffer.from('secret')).success).toBe(false)
+    expect(nodeCryptoKeyObjectSchema.safeParse(undefined).success).toBe(false)
+  })
+})
+
+describe('duration schema', () => {
+  it('should accept a Duration instance', () => {
+    const duration = Duration.minutes(10)
+    expect(durationSchema.parse(duration)).toBe(duration)
+  })
+
+  it('should reject anything that is no Duration instance', () => {
+    expect(durationSchema.safeParse('10m').success).toBe(false)
+    expect(durationSchema.safeParse(600).success).toBe(false)
+    expect(durationSchema.safeParse(600n).success).toBe(false)
+    expect(durationSchema.safeParse(undefined).success).toBe(false)
+  })
+})
+
+describe('positiveInteger schema', () => {
+  it('should accept positive integers', () => {
+    expect(positiveIntegerSchema.safeParse(1).success).toBe(true)
+    expect(positiveIntegerSchema.safeParse(1767268800).success).toBe(true)
+  })
+
+  it('should reject zero, negative numbers, fractions and non-numbers', () => {
+    expect(positiveIntegerSchema.safeParse(0).success).toBe(false)
+    expect(positiveIntegerSchema.safeParse(-1).success).toBe(false)
+    expect(positiveIntegerSchema.safeParse(1.5).success).toBe(false)
+    expect(positiveIntegerSchema.safeParse('1').success).toBe(false)
+    expect(positiveIntegerSchema.safeParse(Number.NaN).success).toBe(false)
   })
 })

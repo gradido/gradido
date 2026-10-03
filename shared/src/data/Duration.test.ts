@@ -83,4 +83,33 @@ describe('Duration', () => {
     expect(duration.toString(3)).toBe('1.085 days')
     expect(duration.toString(4)).toBe('1.0854 days')
   })
+
+  describe('fromString', () => {
+    it.each([
+      ['30s', 30n],
+      ['10m', 600n],
+      ['2h', 7200n],
+      ['1d', 86400n],
+      ['2w', 1209600n],
+    ])('should parse %p', (input, seconds) => {
+      expect(Duration.fromString(input).seconds).toBe(seconds)
+    })
+
+    it('should ignore case, surrounding whitespace and whitespace before the unit', () => {
+      expect(Duration.fromString('10M').seconds).toBe(600n)
+      expect(Duration.fromString('  10m ').seconds).toBe(600n)
+      expect(Duration.fromString('10 m').seconds).toBe(600n)
+    })
+
+    it('should parse zero', () => {
+      expect(Duration.fromString('0m').seconds).toBe(0n)
+    })
+
+    it.each(['', '10', 'm', '10 minutes', '10min', '1.5h', '-10m', '10m 30s', '1y'])(
+      'should throw on %p',
+      (input) => {
+        expect(() => Duration.fromString(input)).toThrow(`Unhandled duration: "${input}"`)
+      },
+    )
+  })
 })

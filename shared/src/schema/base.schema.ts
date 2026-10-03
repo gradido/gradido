@@ -1,3 +1,4 @@
+import { KeyObject } from 'node:crypto'
 import { validate, version } from 'uuid'
 import { z } from 'zod'
 import { AVAILABLE_LOCALS, DEFAULT_LANGUAGE } from '../const'
@@ -7,6 +8,10 @@ import { GradidoUnit } from '../data/GradidoUnit'
 export const uuidv4Schema = z
   .string()
   .refine((val: string) => validate(val) && version(val) === 4, 'Invalid uuid')
+
+export type Uuidv4Input = z.input<typeof uuidv4Schema>
+export type Uuidv4 = z.output<typeof uuidv4Schema>
+
 export const emailSchema = z.string().trim().toLowerCase().email()
 export const urlSchema = z.string().url()
 export const uint32Schema = z.number().positive().lte(4294967295)
@@ -54,6 +59,13 @@ export const ed25519PrivateKeySchema = z.instanceof(Buffer).superRefine((value, 
     })
   }
 })
+
+// node:crypto KeyObject of any type (secret, public, private), narrow it where the type matters
+export const nodeCryptoKeyObjectSchema = z.custom<KeyObject>((val) => val instanceof KeyObject)
+// a Duration instance, a string like "10m" must be converted first: Duration.fromString
+export const durationSchema = z.custom<Duration>((val) => val instanceof Duration)
+// integer > 0
+export const positiveIntegerSchema = z.number().int().positive()
 
 export const locationPointSchema = z.object({
   type: z.literal('Point'),
