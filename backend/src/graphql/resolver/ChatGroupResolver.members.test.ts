@@ -470,14 +470,23 @@ describe('setChatGroupModerator', () => {
     expect(setRole).not.toHaveBeenCalled()
   })
 
-  // E-008, E-050 F4: two moderators beside the owner.
-  it('refuses a third moderator', async () => {
-    lenaIs('owner', [
-      row(MAX, 'moderator', at(2)),
-      row(NORA, 'moderator', at(3)),
-      row(OLE, 'member', at(4)),
+  // E-008, E-050 F4: five moderators beside the owner (two until 03.10.2026).
+  const moderators = (count: number) =>
+    Array.from({ length: count }, (_, index) =>
+      row(`f${index}ffffff-ffff-4fff-8fff-ffffffffffff`, 'moderator', at(10 + index)),
+    )
+
+  it('takes a fifth moderator', async () => {
+    lenaIs('owner', [...moderators(4), row(OLE, 'member', at(4))])
+    expect(await appoint(OLE)).toBe(true)
+    expect(setRole.mock.calls).toEqual([
+      [group.id, expect.objectContaining(pair(OLE)), 'moderator'],
     ])
-    await expect(appoint(OLE)).rejects.toThrow('CHAT_GROUP_NOT_CHANGED: TOO_MANY_MODERATORS')
+  })
+
+  it('refuses a sixth moderator', async () => {
+    lenaIs('owner', [...moderators(5), row(PIA, 'member', at(5))])
+    await expect(appoint(PIA)).rejects.toThrow('CHAT_GROUP_NOT_CHANGED: TOO_MANY_MODERATORS')
     expect(setRole).not.toHaveBeenCalled()
   })
 

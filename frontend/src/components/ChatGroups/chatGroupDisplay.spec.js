@@ -1,6 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { describe, it, expect } from 'vitest'
 import {
+  CHAT_GROUP_MAX_MODERATORS,
   CHAT_GROUP_TITLE_MAX,
   chatGroupAvatar,
   chatGroupLetters,
@@ -124,7 +125,7 @@ describe('chatGroupDisplay', () => {
       expect(chatGroupPartMark(CHAT_GROUP_MEMBER, { t })).toBe('')
     })
 
-    // E-050 F4: the owner and up to two moderators take people in and out and rename.
+    // E-050 F4: the owner and up to five moderators take people in and out and rename.
     it('lets the owner and the moderators manage, and nobody else', () => {
       expect(managesChatGroup(CHAT_GROUP_OWNER)).toBe(true)
       expect(managesChatGroup(CHAT_GROUP_MODERATOR)).toBe(true)
@@ -155,8 +156,14 @@ describe('chatGroupDisplay', () => {
       expect(said('CHAT_GROUP_NOT_CREATED: FULL')).toBe('chatGroup.refusedFull')
       expect(said('CHAT_GROUP_NOT_CHANGED: NOT_ALLOWED')).toBe('chatGroup.refusedNotAllowed')
       expect(said('CHAT_GROUP_NOT_CHANGED: NOT_A_MEMBER')).toBe('chatGroup.refusedNotAMember')
+    })
+
+    // The server's number (backend ChatGroup.logic, CHAT_GROUP_MAX_MODERATORS) -- the two change
+    // together; the sentence takes it as a digit.
+    it('names how many moderators a group has', () => {
+      expect(CHAT_GROUP_MAX_MODERATORS).toBe(5)
       expect(said('CHAT_GROUP_NOT_CHANGED: TOO_MANY_MODERATORS')).toBe(
-        'chatGroup.refusedTooManyModerators',
+        'chatGroup.refusedTooManyModerators {"n":5}',
       )
     })
 

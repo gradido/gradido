@@ -257,7 +257,7 @@ import { memberAlias } from '@/utils/gradidoAddress'
 
 /**
  * The members of a group (P5) and what the member may do about them (E-050 F4): the owner takes
- * people in and out, makes up to two moderators and renames; a moderator takes people in, takes
+ * people in and out, makes up to five moderators and renames; a moderator takes people in, takes
  * plain members out and renames; everybody may leave.
  *
  * `group` is the group as the list delivers it (its uuid, its name, the member's own part);

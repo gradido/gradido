@@ -214,7 +214,7 @@
     "refusedNotFound": "Deze groep bestaat niet meer, of je zit er niet meer in.",
     "refusedOtherCommunity": "Leden van andere gemeenschappen kun je later toevoegen.",
     "refusedTitle": "De naam heeft 1 tot 100 tekens.",
-    "refusedTooManyModerators": "Een groep heeft maximaal twee moderators.",
+    "refusedTooManyModerators": "Een groep heeft naast de eigenaar maximaal {n} moderators.",
     "refusedUnknownMember": "Een van de leden bestaat niet meer.",
     "remove": "Uit de groep verwijderen",
     "removeBody": "{name} ziet de groep daarna niet meer. De berichten blijven staan.",

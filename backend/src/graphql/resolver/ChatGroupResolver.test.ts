@@ -692,25 +692,27 @@ describe('the members of a group change', () => {
     ])
   })
 
-  it('lets the owner name two moderators, and no third', async () => {
+  // Five moderators beside the owner; the refusal of a sixth is kept in
+  // ChatGroupResolver.members.test.ts -- this group has three members beside its owner.
+  it('lets the owner name every member a moderator, and take the part back', async () => {
     await loginAs('bibi@bloxberg.de')
-    for (const member of [bob, peter]) {
+    for (const member of [bob, peter, raeuber]) {
       const res = await change(setChatGroupModerator, {
         groupUuid: cafe.groupUuid,
         member: ref(member),
         moderator: true,
       })
+      expect(res.errors).toBeUndefined()
       expect(res.data.setChatGroupModerator).toBe(true)
     }
     expect(await roleOf(cafe.groupUuid, bob)).toBe('MODERATOR')
-    const third = await change(setChatGroupModerator, {
+    expect(await roleOf(cafe.groupUuid, raeuber)).toBe('MODERATOR')
+    const back = await change(setChatGroupModerator, {
       groupUuid: cafe.groupUuid,
       member: ref(raeuber),
-      moderator: true,
+      moderator: false,
     })
-    expect(third.errors?.map((error: any) => error.message)).toEqual([
-      'CHAT_GROUP_NOT_CHANGED: TOO_MANY_MODERATORS',
-    ])
+    expect(back.data.setChatGroupModerator).toBe(true)
     expect(await roleOf(cafe.groupUuid, raeuber)).toBe('MEMBER')
   })
 

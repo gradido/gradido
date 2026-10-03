@@ -214,7 +214,7 @@
     "refusedNotFound": "Bu grup artık yok ya da sen artık bu grupta değilsin.",
     "refusedOtherCommunity": "Başka toplulukların üyelerini daha sonra ekleyebileceksin.",
     "refusedTitle": "Ad 1 ile 100 karakter arasında olmalı.",
-    "refusedTooManyModerators": "Bir grupta en fazla iki moderatör olabilir.",
+    "refusedTooManyModerators": "Bir grupta sahibin yanında en fazla {n} moderatör olabilir.",
     "refusedUnknownMember": "Üyelerden biri artık yok.",
     "remove": "Gruptan çıkar",
     "removeBody": "{name} bundan sonra grubu görmeyecek. Mesajlar kalır.",
