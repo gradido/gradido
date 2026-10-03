@@ -184,6 +184,7 @@ import ContactRow from '@/components/Contacts/ContactRow.vue'
 import ContactsEmpty from '@/components/Contacts/ContactsEmpty.vue'
 import ContactWindow from '@/components/Contacts/ContactWindow.vue'
 import { useContactWindow } from '@/composables/useContactWindow'
+import { setFirstLoginWindowWanted } from '@/composables/useFirstLoginWindow'
 import { usePagerFit } from '@/composables/usePagerFit'
 import { provideChatForwardTargets } from '@/composables/useChatForwardTargets'
 import { onContactListRefresh } from '@/composables/useContactsPanel'
@@ -457,12 +458,26 @@ if (askedFor !== undefined || askedCommunity !== undefined || askedGroup !== und
   router.replace({ query: rest })
 }
 if (typeof askedFor === 'string' && askedFor !== '') {
+  // ⛔ Never two windows on top of each other. The conversation an address asks for comes before
+  // the windows of the first logins (useFirstLoginWindow) -- somebody who has just accepted a
+  // thank-you taps "… antworten" and meets the wallet for the first time right here. Said at
+  // once, while the page is built: the lookup below takes a moment, and one of the three would
+  // have the screen by then.
+  setFirstLoginWindowWanted('contact', true)
   openKnownMember({
     gradidoID: askedFor,
     communityUuid:
       typeof askedCommunity === 'string' && askedCommunity !== '' ? askedCommunity : null,
+  }).finally(() => {
+    // Nobody the server knows as a contact, so no window: the three need not wait.
+    if (!windowOpen.value) setFirstLoginWindowWanted('contact', false)
   })
 }
+// The three come in their order once the window is closed -- and when the page is left.
+watch(windowOpen, (isOpen) => {
+  if (!isOpen) setFirstLoginWindowWanted('contact', false)
+})
+onBeforeUnmount(() => setFirstLoginWindowWanted('contact', false))
 
 /**
  * `/contacts?group=<uuid>` opens that group's window (P5) -- the address the group's mails point

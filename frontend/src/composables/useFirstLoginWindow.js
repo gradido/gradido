@@ -35,14 +35,22 @@ import { computed, reactive } from 'vue'
  * clock the member has to be told about (EM-013). The name comes before the first creation
  * because the creation message greets them by it (ES-003): asked in the other order, the
  * community would thank somebody by a name they are in the middle of replacing.
+ *
+ * Before all three comes a window that is none of them: the conversation an address opens
+ * (`/contacts?with=…`, pages/Contacts.vue). Somebody who has just accepted a thank-you and
+ * taps "… antworten" arrives in the wallet for the first time through that address, and what
+ * they came for is the conversation -- the three wait, and come in their order once it is
+ * closed. `'contact'` takes part in the same rule instead of a rule of its own, so "only one
+ * at a time" still stands in this one line. Nothing shows by it: no component binds to it.
  */
-const ORDER = ['email', 'alias', 'firstCreation']
+const ORDER = ['contact', 'email', 'alias', 'firstCreation']
 
-/** Which windows would show if nothing else were in the way. Only these three keys exist. */
-const wanted = reactive({ email: false, alias: false, firstCreation: false })
+/** Which windows would show if nothing else were in the way. Only these four keys exist. */
+const wanted = reactive({ contact: false, email: false, alias: false, firstCreation: false })
 
 /**
- * The window that has the screen, or null. `'email' | 'alias' | 'firstCreation' | null`.
+ * The window that has the screen, or null.
+ * `'contact' | 'email' | 'alias' | 'firstCreation' | null`.
  */
 export const firstLoginWindow = computed(() => ORDER.find((name) => wanted[name]) ?? null)
 
@@ -58,7 +66,7 @@ export const firstLoginWindowOnScreen = (name) => computed(() => firstLoginWindo
  * computed getter -- a getter that writes runs an unknown number of times and in an order
  * nobody controls.
  *
- * @param {'email'|'alias'|'firstCreation'} name
+ * @param {'contact'|'email'|'alias'|'firstCreation'} name
  * @param {boolean} value
  */
 export const setFirstLoginWindowWanted = (name, value) => {
