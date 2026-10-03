@@ -339,9 +339,21 @@ export const sendThankYouCardPaidEmail = (
 }
 
 /**
- * `newMember` adds a half-sentence: the person who redeemed the link opened their account
- * with it. Optional because the cross-community caller cannot know - there the account was
- * registered in the other community, and the event that would say so is in its database.
+ * The mail to whoever made a transaction link, once somebody accepted it: "… has accepted your
+ * thank-you". One wording for every link, with a greeting or without -- since the redeem page
+ * became a card, every link of a member arrives as a thank-you (ZE-019).
+ *
+ * The "sender" of this mail's fields is the person who ACCEPTED the link: the mail is about
+ * them, and goes to the one who made the link.
+ *
+ * `newMember`: that person opened their account with this link, and the sentence says so -- a
+ * whole sentence of its own in the catalogue. Optional because the cross-community caller
+ * cannot know - there the account was registered in the other community, and the event that
+ * would say so is in its database.
+ *
+ * `senderUuid` and `senderCommunityUuid` name that person as the contact page does. With
+ * both, the mail has a button into the conversation with them, where the booking stands;
+ * without either it has none (the template decides, as in the transfer mail below).
  */
 export const sendTransactionLinkRedeemedEmail = (
   data: EmailCommonData & {
@@ -350,6 +362,8 @@ export const sendTransactionLinkRedeemedEmail = (
     transactionMemo: string
     transactionAmount: GradidoUnit
     newMember?: boolean
+    senderUuid?: string | null
+    senderCommunityUuid?: string | null
   },
 ): Promise<Record<string, unknown> | boolean | null | Error> => {
   return sendEmailTranslated({

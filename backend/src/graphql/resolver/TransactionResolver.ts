@@ -290,6 +290,10 @@ export const executeTransaction = async (
         // commented out beside it -- a name that invited the next person to put the
         // leak back, in the one mail that names a third party.
         senderCommunity: recipientCom,
+        // The button in the mail opens the conversation with whoever accepted, so the mail
+        // carries their pair -- as the mail above carries the sender's.
+        senderUuid: recipient.gradidoID,
+        senderCommunityUuid: recipient.communityUuid,
         transactionAmount: amount,
         transactionMemo: memo,
         newMember,
