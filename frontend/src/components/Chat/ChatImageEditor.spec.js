@@ -6,7 +6,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
 import { BModal } from 'bootstrap-vue-next'
 import ChatImageEditor from './ChatImageEditor.vue'
-import { CHAT_IMAGE_UNEDITED } from '@/utils/chatImageEdit'
+import { CHAT_IMAGE_UNEDITED, framedChatImageEdit } from '@/utils/chatImageEdit'
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
@@ -55,18 +55,21 @@ describe('ChatImageEditor', () => {
         (name) =>
         (...args) =>
           canvas.steps.push([name, ...args])
-      return {
+      const context = {
         save: record('save'),
         restore: record('restore'),
         translate: record('translate'),
         scale: record('scale'),
         rotate: record('rotate'),
         clearRect: record('clearRect'),
+        // with the colour it was filled in
+        fillRect: (...args) => canvas.steps.push(['fillRect', context.fillStyle, ...args]),
         drawImage: (image, ...args) => {
           canvas.shown = image
           canvas.steps.push(['drawImage', image, ...args])
         },
       }
+      return context
     })
 
   beforeEach(() => {
@@ -247,6 +250,7 @@ describe('ChatImageEditor', () => {
       mountEditor()
       expect(zoom().attributes('min')).toBe('1')
       expect(zoom().attributes('max')).toBe('4')
+      expect(zoom().attributes('step')).toBe('0.01')
       expect(zoom().element.closest('label').textContent).toContain('chatThread.imageZoom')
 
       await zoom().setValue('2')
@@ -707,6 +711,349 @@ describe('ChatImageEditor', () => {
       modal().vm.$emit('hidden')
 
       expect(disconnected).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  /**
+   * The same editor for a place of a fixed shape -- the card of a thank-you greeting (ZE-024) --,
+   * told so by an edit with a frame of its own: no shapes, no "Sichern", no readout, and "Größe"
+   * also makes the picture smaller than the frame, down to the whole picture on the frame's ground.
+   */
+  describe('under a frame of its own', () => {
+    const FRAME = 36 / 25
+    const GROUND = '#fbf3de'
+    /** A portrait photo, 3 : 4: the whole of it stands in the frame at 0.75 / 1.44 = 0.5208. */
+    const PORTRAIT = { image: { name: 'portrait' }, width: 3000, height: 4000 }
+    const PORTRAIT_MIN = 0.75 / FRAME
+
+    const mountFramed = (props = {}) =>
+      mountEditor({ source: PORTRAIT, edit: framedChatImageEdit(FRAME, GROUND), ...props })
+
+    it('offers no shapes, no "Sichern" and no readout', () => {
+      mountFramed()
+
+      expect(wrapper.find('.chat-image-editor-shapes').exists()).toBe(false)
+      expect(wrapper.findAll('.chat-image-editor-shape')).toHaveLength(0)
+      expect(wrapper.find('[data-test="chat-image-editor-save"]').exists()).toBe(false)
+      expect(wrapper.find('[data-test="chat-image-editor-readout"]').exists()).toBe(false)
+      expect(wrapper.find('[data-test="chat-image-editor-saved"]').exists()).toBe(false)
+    })
+
+    it('keeps "Abbrechen", "Fertig", "Größe", "Drehen" and "Spiegeln", in that order', () => {
+      mountFramed()
+
+      const controls = wrapper
+        .findAll('button, input')
+        .map((control) => control.attributes('data-test'))
+      expect(controls).toEqual([
+        'chat-image-editor-cancel',
+        'chat-image-editor-done',
+        'chat-image-editor-zoom',
+        'chat-image-editor-turn',
+        'chat-image-editor-mirror',
+      ])
+      expect(wrapper.find('.chat-image-editor-title').text()).toBe('chatThread.imageEdit')
+    })
+
+    // 36 : 25 in a phone's room of 354 x 484: as wide as the room, 245.83 high -- for a portrait
+    // photo as for any other.
+    it('stands the frame in its own shape, whatever the picture’s', async () => {
+      mountFramed()
+      await show()
+
+      const style = frame().attributes('style')
+      expect(style).toMatch(/^left: 18px; top: 137\.08\d*px; width: 354px; height: 245\.83\d*px;$/)
+
+      await wrapper.find('[data-test="chat-image-editor-turn"]').trigger('click')
+      expect(frame().attributes('style')).toBe(style)
+    })
+
+    it('opens with the picture filling the frame, the slider at its zero', async () => {
+      mountFramed()
+
+      expect(zoom().element.value).toBe('0')
+      expect((await finish()).zoom).toBe(1)
+    })
+
+    it('lets "Größe" go down to the whole picture, and no further', async () => {
+      mountFramed()
+      expect(zoom().attributes('min')).toBe('-100')
+      expect(zoom().attributes('max')).toBe('300')
+      expect(zoom().attributes('step')).toBe('1')
+
+      await zoom().setValue('-100')
+
+      expect(zoom().element.value).toBe('-100')
+      expect((await finish()).zoom).toBeCloseTo(PORTRAIT_MIN, 12)
+    })
+
+    it('makes the picture larger to the right, a hundredth a step, up to four times', async () => {
+      mountFramed()
+
+      await zoom().setValue('150')
+      expect((await finish()).zoom).toBeCloseTo(2.5, 12)
+
+      await zoom().setValue('300')
+      expect((await finish()).zoom).toBeCloseTo(4, 12)
+    })
+
+    // A picture of the frame's own shape cannot be made smaller: there is nothing to fit.
+    it('begins the slider at "fills the frame" for a picture of the frame’s own shape', () => {
+      mountFramed({ source: { image: { name: 'card' }, width: 3600, height: 2500 } })
+
+      expect(zoom().attributes('min')).toBe('0')
+      expect(zoom().element.value).toBe('0')
+    })
+
+    // …and once it is turned, it can: the slider's left end is there again.
+    it('measures the smallest size on the picture as it is turned', async () => {
+      mountFramed({ source: { image: { name: 'card' }, width: 3600, height: 2500 } })
+
+      await wrapper.find('[data-test="chat-image-editor-turn"]').trigger('click')
+      expect(zoom().attributes('min')).toBe('-100')
+      await zoom().setValue('-100')
+
+      // 25 : 36 in 36 : 25
+      expect((await finish()).zoom).toBeCloseTo(25 / 36 / FRAME, 12)
+    })
+
+    describe('the catch at "fills the frame"', () => {
+      it('catches a hand that comes near it from further away, from either side', async () => {
+        mountFramed()
+        await zoom().trigger('pointerdown')
+
+        await zoom().setValue('-60')
+        expect((await finish()).zoom).toBeLessThan(0.75)
+        await zoom().setValue('-8')
+        expect(zoom().element.value).toBe('0')
+        expect((await finish()).zoom).toBe(1)
+
+        await zoom().setValue('40')
+        await zoom().setValue('10')
+        expect(zoom().element.value).toBe('0')
+        expect((await finish()).zoom).toBe(1)
+      })
+
+      // The slider stood further away when the hand took it: the same.
+      it('catches a hand that takes the slider further away', async () => {
+        mountFramed()
+        await zoom().setValue('-60')
+
+        await zoom().trigger('pointerdown')
+        await zoom().setValue('-3')
+
+        expect((await finish()).zoom).toBe(1)
+      })
+
+      // ⛔ Or the sizes next to it could not be chosen at all.
+      it('follows a hand that takes the slider at "fills the frame"', async () => {
+        mountFramed()
+
+        await zoom().trigger('pointerdown')
+        await zoom().setValue('-8')
+
+        expect(zoom().element.value).toBe('-8')
+        expect((await finish()).zoom).toBeCloseTo(1 - 0.08 * (1 - PORTRAIT_MIN), 12)
+      })
+
+      // Each key takes the slider anew: from "fills the frame" a key goes one step, …
+      it('lets the keys leave "fills the frame" step by step', async () => {
+        mountFramed()
+
+        await zoom().trigger('keydown', { key: 'ArrowRight' })
+        await zoom().setValue('1')
+        await zoom().trigger('keydown', { key: 'ArrowRight' })
+        await zoom().setValue('2')
+
+        expect((await finish()).zoom).toBeCloseTo(1.02, 12)
+      })
+
+      // …and one that comes back from further away is caught.
+      it('catches a key that comes back from further away', async () => {
+        mountFramed()
+        await zoom().setValue('11')
+
+        await zoom().trigger('keydown', { key: 'ArrowLeft' })
+        await zoom().setValue('10')
+
+        expect(zoom().element.value).toBe('0')
+        expect((await finish()).zoom).toBe(1)
+      })
+    })
+
+    /**
+     * Where the picture is smaller than the frame, it stands in the middle there, and a finger
+     * moves it only where it still reaches past the frame.
+     */
+    describe('a picture smaller than the frame', () => {
+      it('lets go of a place it was moved to while it was larger', async () => {
+        mountFramed()
+        await show()
+        await zoom().setValue('100')
+        await pointer('pointerdown', 200, 200)
+        await pointer('pointermove', 150, 160)
+        await pointer('pointerup', 150, 160)
+        const moved = await finish()
+        expect(moved.panX).toBeGreaterThan(0)
+        expect(moved.panY).toBeGreaterThan(0)
+
+        await zoom().setValue('-100')
+
+        const edit = await finish()
+        expect(edit.panX).toBe(0)
+        expect(Math.abs(edit.panY)).toBe(0)
+      })
+
+      // Halfway to the whole picture a portrait is narrower than the frame and still taller.
+      it('is moved by a finger only where it reaches past the frame', async () => {
+        mountFramed()
+        await show()
+        await zoom().trigger('pointerdown')
+        await zoom().setValue('-50')
+
+        await pointer('pointerdown', 200, 200)
+        await pointer('pointermove', 150, 160)
+        await pointer('pointerup', 150, 160)
+
+        const edit = await finish()
+        expect(edit.panX).toBe(0)
+        expect(edit.panY).toBeGreaterThan(0)
+      })
+    })
+
+    /** The member sees what the file will show: the frame stands on its ground. */
+    it('paints the frame’s ground under the picture, in the frame and nowhere else', async () => {
+      mountFramed()
+      await show()
+
+      const steps = canvas().element.steps
+      const fills = steps.filter((step) => step[0] === 'fillRect')
+      expect(fills).toHaveLength(1)
+      const [, colour, x, y, width, height] = fills[0]
+      expect(colour).toBe(GROUND)
+      expect(x).toBe(18)
+      expect(y).toBeCloseTo(137.0833, 3)
+      expect(width).toBe(354)
+      expect(height).toBeCloseTo(245.8333, 3)
+      // …before the picture is drawn over it
+      const names = steps.map((step) => step[0])
+      expect(names.indexOf('fillRect')).toBeLessThan(names.indexOf('drawImage'))
+      expect(names.indexOf('clearRect')).toBeLessThan(names.indexOf('fillRect'))
+    })
+
+    it('hands back an edit that keeps its frame and its ground', async () => {
+      mountFramed()
+      await zoom().setValue('-100')
+      await wrapper.find('[data-test="chat-image-editor-mirror"]').trigger('click')
+
+      const edit = await finish()
+
+      expect(edit.frame).toBe(FRAME)
+      expect(edit.ground).toBe(GROUND)
+      expect(edit.mirrored).toBe(true)
+    })
+
+    // A turn starts the size over: the turned picture fills the frame again.
+    it('fills the frame again after a turn', async () => {
+      mountFramed()
+      await zoom().setValue('-100')
+
+      await wrapper.find('[data-test="chat-image-editor-turn"]').trigger('click')
+
+      expect(zoom().element.value).toBe('0')
+      const edit = await finish()
+      expect(edit).toMatchObject({ turn: 90, zoom: 1, panX: 0, panY: 0, frame: FRAME })
+    })
+
+    // The keyboard finds the way back as well: a step that would pass "fills the frame" stops there.
+    it('sizes with the keys down to the whole picture, and stops at "fills the frame"', async () => {
+      mountFramed()
+      await show()
+
+      await stage().trigger('keydown', { key: '-' })
+      expect((await finish()).zoom).toBeCloseTo(0.75, 12)
+      await stage().trigger('keydown', { key: '-' })
+      await stage().trigger('keydown', { key: '-' })
+      expect((await finish()).zoom).toBeCloseTo(PORTRAIT_MIN, 12)
+
+      await stage().trigger('keydown', { key: '+' })
+      await stage().trigger('keydown', { key: '+' })
+      expect((await finish()).zoom).toBe(1)
+      await stage().trigger('keydown', { key: '+' })
+      expect((await finish()).zoom).toBeCloseTo(1.25, 12)
+    })
+
+    it('sizes with the wheel in both directions', async () => {
+      mountFramed()
+      await show()
+
+      await stage().trigger('wheel', { deltaY: 100 })
+      expect((await finish()).zoom).toBeCloseTo(0.8, 12)
+      // a notch that would pass "fills the frame" stops there
+      await stage().trigger('wheel', { deltaY: -250 })
+      expect((await finish()).zoom).toBe(1)
+      await stage().trigger('wheel', { deltaY: -250 })
+      expect((await finish()).zoom).toBeCloseTo(1.5, 12)
+    })
+
+    it('closes with "Abbrechen", handing back nothing', async () => {
+      mountFramed()
+      await zoom().setValue('-100')
+
+      await wrapper.find('[data-test="chat-image-editor-cancel"]').trigger('click')
+
+      expect(wrapper.emitted('done')).toBeUndefined()
+      expect(wrapper.emitted('update:modelValue')).toEqual([[false]])
+    })
+  })
+
+  /**
+   * ⛔ With an edit of the chat's the editor is what it was: its four shapes, "Sichern", the
+   * readout, the smallest size 1, and no ground painted under the picture. (Every test above this
+   * one's neighbour describe runs with such an edit; these name what a frame of its own changes.)
+   */
+  describe('with an edit of the chat’s', () => {
+    it('paints no ground: the stage stays as dark as the dialog around the picture', async () => {
+      mountEditor()
+      await show()
+
+      expect(canvas().element.steps.filter((step) => step[0] === 'fillRect')).toEqual([])
+    })
+
+    it('has every control it had, in the order it had them', () => {
+      mountEditor()
+
+      const controls = wrapper
+        .findAll('button, input')
+        .map((control) => control.attributes('data-test'))
+      expect(controls).toEqual([
+        'chat-image-editor-cancel',
+        'chat-image-editor-done',
+        'chat-image-editor-shape-original',
+        'chat-image-editor-shape-landscape',
+        'chat-image-editor-shape-portrait',
+        'chat-image-editor-shape-square',
+        'chat-image-editor-zoom',
+        'chat-image-editor-turn',
+        'chat-image-editor-mirror',
+        'chat-image-editor-save',
+      ])
+    })
+
+    // No catch and no stop at 1: the chat's slider and keys take every size as they did.
+    it('takes every size from the slider, the keys and the wheel as it did', async () => {
+      mountEditor()
+      await show()
+
+      await zoom().trigger('pointerdown')
+      await zoom().setValue('2')
+      await zoom().setValue('1.05')
+      expect((await finish()).zoom).toBe(1.05)
+
+      await stage().trigger('keydown', { key: '-' })
+      expect((await finish()).zoom).toBe(1)
+      await stage().trigger('wheel', { deltaY: 500 })
+      expect((await finish()).zoom).toBe(1)
     })
   })
 

@@ -5,6 +5,13 @@
        moved under it and made larger with "Größe" -- here the frame is a rectangle in one of four
        shapes, and "Original" holds the whole picture.
 
+       The same editor cuts a picture for a place of a FIXED shape -- the card of a thank-you
+       greeting (ZE-024) --, told so by the edit it is handed: one with a frame of its own
+       (framedChatImageEdit). Then there is no choice of shapes, no "Sichern" and no readout, and
+       "Größe" also makes the picture SMALLER than the frame, down to where the whole of it stands
+       in the frame, on the frame's ground. ⛔ With an edit of the chat's, nothing here differs from
+       what it was: every such difference hangs on `framed`.
+
        ⛔ A dialog STACKED on the contact window, as the large view (ChatImageView) and the file hint
        are: the window's focus trap pauses while this one is open, Esc closes this one only, and the
        focus goes back to the pencil that opened it. Dark in both modes, like the large view: a
@@ -83,7 +90,7 @@
              saved as a download, or not at all (after the share sheet the sheet was the answer).
              One line for both, so the stage keeps its size and the picture stays under the finger;
              the status is always in the page, so a screen reader hears it when it speaks. -->
-        <div class="chat-image-editor-lines">
+        <div v-if="!framed" class="chat-image-editor-lines">
           <p
             class="chat-image-editor-readout"
             :class="{ 'is-quiet': !!saveWords }"
@@ -95,7 +102,12 @@
             {{ saveWords }}
           </p>
         </div>
-        <div class="chat-image-editor-shapes" role="group" :aria-label="t('chatThread.imageShape')">
+        <div
+          v-if="!framed"
+          class="chat-image-editor-shapes"
+          role="group"
+          :aria-label="t('chatThread.imageShape')"
+        >
           <button
             v-for="shape in SHAPES"
             :key="shape"
@@ -110,13 +122,17 @@
         </div>
         <label class="chat-image-editor-size">
           <span>{{ t('chatThread.imageZoom') }}</span>
+          <!-- Under a frame of its own the slider counts steps from "fills the frame", and catches
+               there (see `slider`); `value` stands last, after the ends it is held within. -->
           <input
             type="range"
-            min="1"
-            :max="CHAT_IMAGE_ZOOM_MAX"
-            step="0.01"
-            :value="draft.zoom"
+            :min="slider.min"
+            :max="slider.max"
+            :step="slider.step"
+            :value="slider.value"
             data-test="chat-image-editor-zoom"
+            @pointerdown="onSliderGrip"
+            @keydown="onSliderGrip"
             @input="onZoom"
           />
         </label>
@@ -142,6 +158,7 @@
           </button>
           <!-- "Sichern" (E-047, point 5): the edited picture in full quality on this device. -->
           <button
+            v-if="!framed"
             type="button"
             class="chat-image-editor-tool"
             :disabled="saving"
@@ -164,16 +181,24 @@ import { computed, nextTick, onBeforeUnmount, ref, shallowRef, watch } from 'vue
 import { useI18n } from 'vue-i18n'
 import { BModal } from 'bootstrap-vue-next'
 import {
+  CHAT_IMAGE_CATCH_STEPS,
   CHAT_IMAGE_UNEDITED,
   CHAT_IMAGE_ZOOM_MAX,
+  caughtFramedSliderSteps,
   chatImageCut,
   chatImageCutSize,
+  chatImageZoomMin,
   drawChatImageCut,
+  framedSliderOfZoom,
+  framedSliderRange,
   mirrorChatImage,
   panChatImage,
   shapeChatImage,
   turnChatImage,
   zoomChatImage,
+  zoomChatImageInFrame,
+  zoomOfFramedSlider,
+  zoomStoppingAtFrameFill,
 } from '@/utils/chatImageEdit'
 import { chatImageFile, saveChatImageFile } from '@/utils/chatImageSave'
 
@@ -182,7 +207,10 @@ const props = defineProps({
   modelValue: { type: Boolean, default: false },
   /** The picture as chosen: `{ image, width, height }` (utils/chatImage, openChatImage). */
   source: { type: Object, default: null },
-  /** What was done to it so far -- the editor starts from here, and "Abbrechen" goes back to it. */
+  /**
+   * What was done to it so far -- the editor starts from here, and "Abbrechen" goes back to it.
+   * An edit with a frame of its own (framedChatImageEdit) makes this the editor of a fixed frame.
+   */
   edit: { type: Object, default: () => CHAT_IMAGE_UNEDITED },
 })
 
@@ -220,6 +248,34 @@ const WORKING_SIDE = 1600
 
 /** What the member is doing to the picture, until "Fertig" hands it back. */
 const draft = shallowRef(CHAT_IMAGE_UNEDITED)
+
+/**
+ * Whether the picture is cut under a frame of its own: a fixed shape instead of the four to choose
+ * from, on the frame's ground (utils/chatImageEdit). The edit says so, and keeps saying so through
+ * every turn, mirror, size and move.
+ */
+const framed = computed(() => draft.value.frame != null)
+
+/** The smallest size under a frame of its own: the whole picture in the frame. 1 in the chat. */
+const zoomMin = computed(() =>
+  props.source ? chatImageZoomMin(props.source.width, props.source.height, draft.value) : 1,
+)
+
+/**
+ * The slider "Größe". In the chat it runs over the size itself, from 1 to CHAT_IMAGE_ZOOM_MAX in
+ * hundredths. Under a frame of its own it counts steps from "fills the frame" (framedSliderRange):
+ * to the right larger, to the left smaller, down to the whole picture.
+ */
+const slider = computed(() => {
+  if (!framed.value) {
+    return { min: 1, max: CHAT_IMAGE_ZOOM_MAX, step: 0.01, value: draft.value.zoom }
+  }
+  return {
+    ...framedSliderRange(zoomMin.value),
+    step: 1,
+    value: framedSliderOfZoom(draft.value.zoom, zoomMin.value),
+  }
+})
 
 const stage = ref(null)
 const canvas = ref(null)
@@ -284,33 +340,40 @@ const makeWorkingCopy = (source) => {
  * sent (drawChatImageCut). `fast` draws from the working copy.
  */
 const paint = (fast = false) => {
-  const target = canvas.value
+  const surface = canvas.value
   const size = stageSize.value
   const source = props.source
-  if (!target || !source || !size.width || !size.height) return
+  if (!surface || !source || !size.width || !size.height) return
   const ratio = Math.min(2, window.devicePixelRatio || 1)
   const width = Math.round(size.width * ratio)
   const height = Math.round(size.height * ratio)
-  if (target.width !== width) target.width = width
-  if (target.height !== height) target.height = height
-  const context = target.getContext('2d')
+  if (surface.width !== width) surface.width = width
+  if (surface.height !== height) surface.height = height
+  const context = surface.getContext('2d')
   if (!context) return
   context.clearRect(0, 0, width, height)
   context.imageSmoothingEnabled = true
   context.imageSmoothingQuality = fast ? 'low' : 'high'
   const frame = frameRect.value
+  const target = {
+    x: frame.x * ratio,
+    y: frame.y * ratio,
+    width: frame.width * ratio,
+    height: frame.height * ratio,
+  }
+  // Under a frame of its own the frame stands on its ground: where the picture, made smaller,
+  // does not fill it, the member sees the colour the file will have there (drawChatImage).
+  if (framed.value) {
+    context.fillStyle = draft.value.ground
+    context.fillRect(target.x, target.y, target.width, target.height)
+  }
   drawChatImageCut(
     context,
     fast && working ? working : source.image,
     source.width,
     source.height,
     draft.value,
-    {
-      x: frame.x * ratio,
-      y: frame.y * ratio,
-      width: frame.width * ratio,
-      height: frame.height * ratio,
-    },
+    target,
   )
 }
 
@@ -384,8 +447,41 @@ const done = () => {
 const pickShape = (shape) => {
   draft.value = shapeChatImage(draft.value, shape)
 }
+
+/** The picture at another size: in the chat from 1, under a frame of its own from the whole picture. */
+const sized = (zoom) =>
+  framed.value
+    ? zoomChatImageInFrame(draft.value, props.source.width, props.source.height, zoom)
+    : zoomChatImage(draft.value, zoom)
+
+/**
+ * The size a key or the wheel asks for. Under a frame of its own a step that would pass "fills the
+ * frame" stops there.
+ */
+const stepped = (zoom) =>
+  sized(framed.value ? zoomStoppingAtFrameFill(draft.value.zoom, zoom) : zoom)
+
+/**
+ * Under a frame of its own: whether the hand on the slider has been further from "fills the frame"
+ * than the catch reaches since it took the slider -- only then is it caught there
+ * (caughtFramedSliderSteps). Taking the slider is a press on it, and every key.
+ */
+let sliderCameFromOutside = false
+const onSliderGrip = () => {
+  sliderCameFromOutside = framed.value && Math.abs(slider.value.value) > CHAT_IMAGE_CATCH_STEPS
+}
+
 const onZoom = (event) => {
-  draft.value = zoomChatImage(draft.value, event.target.value)
+  if (!framed.value) {
+    draft.value = zoomChatImage(draft.value, event.target.value)
+    return
+  }
+  const asked = Number(event.target.value)
+  const steps = Number.isFinite(asked) ? asked : 0
+  if (Math.abs(steps) > CHAT_IMAGE_CATCH_STEPS) sliderCameFromOutside = true
+  draft.value = sized(
+    zoomOfFramedSlider(caughtFramedSliderSteps(steps, sliderCameFromOutside), zoomMin.value),
+  )
 }
 const turn = () => {
   draft.value = turnChatImage(draft.value)
@@ -423,7 +519,7 @@ const onPointerUp = () => {
 
 /** The wheel makes the picture larger or smaller, as at the avatar's cropper. */
 const onWheel = (event) => {
-  draft.value = zoomChatImage(draft.value, draft.value.zoom - event.deltaY * 0.002)
+  draft.value = stepped(draft.value.zoom - event.deltaY * 0.002)
 }
 
 /** "Sichern" at work: the file is being made or handed over. */
@@ -491,9 +587,9 @@ const onStageKey = (event) => {
   if (moves[event.key]) {
     draft.value = movePicture(draft.value, ...moves[event.key])
   } else if (event.key === '+' || event.key === '=') {
-    draft.value = zoomChatImage(draft.value, draft.value.zoom + KEY_ZOOM)
+    draft.value = stepped(draft.value.zoom + KEY_ZOOM)
   } else if (event.key === '-') {
-    draft.value = zoomChatImage(draft.value, draft.value.zoom - KEY_ZOOM)
+    draft.value = stepped(draft.value.zoom - KEY_ZOOM)
   } else {
     return
   }

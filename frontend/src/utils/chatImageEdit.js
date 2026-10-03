@@ -11,6 +11,13 @@ import { nextRotation } from '@/utils/avatarGeometry'
 // `pan` is where the cutout stands in the room it has to move, -1 at one edge, 1 at the other --
 // so the same edit means the same cutout on a phone and at a desk, in the editor, in the preview,
 // in the file that is saved and in the one that is sent.
+//
+// A picture that goes into a place of a fixed shape -- the card of a thank-you greeting -- is cut
+// under a FRAME OF ITS OWN instead of one of the four shapes (framedChatImageEdit): the edit then
+// carries `frame`, width to height, and `ground`, the colour of the place. Under such a frame the
+// size may go BELOW 1, down to where the whole picture stands in the frame (chatImageZoomMin):
+// the cutout is then larger than the picture, and where the picture does not reach, the ground
+// shows. An edit without a frame of its own is the chat's, and nothing here changes for it.
 
 /** The shapes of the cutout, width to height; "original" is the picture's own, as turned. */
 export const CHAT_IMAGE_SHAPES = Object.freeze({
@@ -40,6 +47,15 @@ export const CHAT_IMAGE_UNEDITED = Object.freeze({
   panY: 0,
 })
 
+/**
+ * The picture as it was chosen, under a frame of its own: at size 1 it fills the frame, cut in
+ * the middle. `frame` is the frame's width to its height; `ground` the colour that stands in the
+ * frame where the picture, made smaller, does not fill it -- in the editor and in every file made
+ * of the edit alike.
+ */
+export const framedChatImageEdit = (frame, ground) =>
+  Object.freeze({ ...CHAT_IMAGE_UNEDITED, frame, ground })
+
 const clamp = (value, low, high) => Math.min(high, Math.max(low, value))
 
 /** The picture's size as it is seen after the turn: a quarter turn swaps width and height. */
@@ -57,7 +73,7 @@ export const turnedSize = (width, height, turn) =>
  */
 export const chatImageCut = (width, height, edit) => {
   const turned = turnedSize(width, height, edit.turn)
-  const aspect = CHAT_IMAGE_SHAPES[edit.shape] ?? turned.width / turned.height
+  const aspect = edit.frame ?? CHAT_IMAGE_SHAPES[edit.shape] ?? turned.width / turned.height
   let largestWidth = turned.width
   let largestHeight = turned.width / aspect
   if (largestHeight > turned.height) {
@@ -122,6 +138,112 @@ export const zoomChatImage = (edit, zoom) => ({
 })
 
 /**
+ * The smallest size a picture can have under a frame of its own: the one at which the whole
+ * picture stands in the frame, and no smaller. With the picture's proportions P (as turned) and
+ * the frame's F it is min(P / F, F / P) -- 0.52 for a portrait of 3 : 4 in a frame of 36 : 25,
+ * and 1 for a picture of the frame's own shape. 1 as well for an edit without a frame of its
+ * own: the chat's four shapes hold as much of the picture as they can at size 1.
+ */
+export const chatImageZoomMin = (width, height, edit) => {
+  if (!edit.frame) return 1
+  const turned = turnedSize(width, height, edit.turn)
+  const picture = turned.width / turned.height
+  return Math.min(picture / edit.frame, edit.frame / picture)
+}
+
+/**
+ * Larger or smaller under a frame of its own, from the whole picture (chatImageZoomMin) to
+ * CHAT_IMAGE_ZOOM_MAX. At 1 the picture fills the frame; below it a margin of the frame's
+ * ground shows, left and right of a tall picture, above and below a wide one.
+ *
+ * ⛔ Where the picture is smaller than the frame in a direction, it stands in the middle there:
+ * a place it was moved to while it was larger is let go, or it would stand off-centre with
+ * nothing to move it back by (panChatImage moves it only where there is room).
+ */
+export const zoomChatImageInFrame = (edit, width, height, zoom) => {
+  const asked = Number(zoom)
+  const sized = {
+    ...edit,
+    zoom: clamp(
+      Number.isFinite(asked) ? asked : 1,
+      chatImageZoomMin(width, height, edit),
+      CHAT_IMAGE_ZOOM_MAX,
+    ),
+  }
+  const cut = chatImageCut(width, height, sized)
+  return {
+    ...sized,
+    panX: cut.turnedWidth > cut.width ? sized.panX : 0,
+    panY: cut.turnedHeight > cut.height ? sized.panY : 0,
+  }
+}
+
+/**
+ * The size a key or the wheel arrives at under a frame of its own: where its step would pass
+ * "fills the frame", it stops there -- so the keyboard, too, finds the way back to the size the
+ * picture opened with, from either side.
+ */
+export const zoomStoppingAtFrameFill = (from, to) =>
+  (from < 1 && to > 1) || (from > 1 && to < 1) ? 1 : to
+
+/*
+ * The slider "Größe" under a frame of its own counts STEPS from the size that fills the frame:
+ * 0 is that size -- the one the picture opens with --, to the right the picture grows by a
+ * hundredth of its size a step up to CHAT_IMAGE_ZOOM_MAX, as the chat's slider does, and to the
+ * left it shrinks in CHAT_IMAGE_FIT_STEPS steps to the size at which the whole picture stands in
+ * the frame. So "fills the frame" and "the whole picture" are both exact places of the slider,
+ * whatever the picture's shape -- a slider that ran from the smallest size in hundredths would
+ * pass 1 between two of its steps --, and "fills the frame" stands at the same place of the
+ * slider for every picture.
+ */
+export const CHAT_IMAGE_FIT_STEPS = 100
+export const CHAT_IMAGE_ZOOM_STEP = 0.01
+
+/**
+ * The slider's two ends, in steps, for a picture whose smallest size is `min`
+ * (chatImageZoomMin). A picture of the frame's own shape cannot be made smaller: its slider
+ * begins at "fills the frame".
+ */
+export const framedSliderRange = (min) => ({
+  min: min < 1 ? -CHAT_IMAGE_FIT_STEPS : 0,
+  max: Math.round((CHAT_IMAGE_ZOOM_MAX - 1) / CHAT_IMAGE_ZOOM_STEP),
+})
+
+/** The size a place of the slider stands for. */
+export const zoomOfFramedSlider = (steps, min) =>
+  steps >= 0
+    ? 1 + steps * CHAT_IMAGE_ZOOM_STEP
+    : 1 - (Math.min(-steps, CHAT_IMAGE_FIT_STEPS) / CHAT_IMAGE_FIT_STEPS) * (1 - min)
+
+/** The place of the slider a size stands at -- the nearest step. */
+export const framedSliderOfZoom = (zoom, min) => {
+  if (zoom >= 1 || min >= 1) return Math.max(0, Math.round((zoom - 1) / CHAT_IMAGE_ZOOM_STEP))
+  return -Math.min(
+    CHAT_IMAGE_FIT_STEPS,
+    Math.round((CHAT_IMAGE_FIT_STEPS * (1 - zoom)) / (1 - min)),
+  )
+}
+
+/**
+ * How near "fills the frame" a hand on the slider is caught there: ten steps to either side, a
+ * fortieth of the slider's way -- some seven pixels on a phone.
+ */
+export const CHAT_IMAGE_CATCH_STEPS = 10
+
+/**
+ * The place a hand on the slider is taken to be at: "fills the frame" once it comes near it from
+ * further away, so that whoever made the picture smaller, or larger, finds the way back. Only a
+ * hand that CAME from outside is caught: one that takes the slider at that very place and moves
+ * away is followed step by step, or the sizes next to it could not be chosen at all.
+ *
+ * @param {number} steps where the hand is now
+ * @param {boolean} cameFromOutside whether it has been further away than the catch since it took
+ *   the slider -- or the slider stood further away when it did
+ */
+export const caughtFramedSliderSteps = (steps, cameFromOutside) =>
+  cameFromOutside && Math.abs(steps) <= CHAT_IMAGE_CATCH_STEPS ? 0 : steps
+
+/**
  * The cutout moved by (dx, dy) pixels of the turned picture, as far as the picture reaches. A
  * finger moves the PICTURE: dragging it to the right moves the cutout to the left, so the caller
  * passes the finger's way, turned round and divided by the scale on the screen.
@@ -139,7 +261,9 @@ export const panChatImage = (edit, width, height, dx, dy) => {
 
 /**
  * Draws the picture with its edit so that the cutout fills `target` exactly; what lies around the
- * cutout is drawn around the target, as far as the canvas goes. One function for the editor, the
+ * cutout is drawn around the target, as far as the canvas goes. Under a frame of its own the
+ * cutout may be larger than the picture: the picture then covers a part of the target, and the
+ * rest is left as the caller painted it -- with the frame's ground. One function for the editor, the
  * preview, the file that is saved and the picture that is sent -- so none of them can show another
  * part than the member chose (the avatar's rule for its preview and its two renditions).
  *

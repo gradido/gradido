@@ -16,7 +16,7 @@ import {
   openChatImage,
   readChatImageFile,
 } from './chatImage'
-import { CHAT_IMAGE_UNEDITED } from './chatImageEdit'
+import { CHAT_IMAGE_UNEDITED, framedChatImageEdit, zoomChatImageInFrame } from './chatImageEdit'
 
 /**
  * jsdom decodes and paints nothing, so the procedure is measured with stand-ins: a decoded picture
@@ -433,6 +433,147 @@ describe('drawChatImage', () => {
       ['drawImage', source.image, -2000, -1500, 4000, 3000],
       ['restore'],
     ])
+  })
+})
+
+// A picture cut under a frame of its own names its ground itself (framedChatImageEdit): the colour
+// of the place it goes into stands where the picture does not fill the frame.
+describe('drawChatImage, under a frame of its own', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  const recordingContext = () => {
+    const steps = []
+    const context = new Proxy(
+      {},
+      {
+        get: (target, name) =>
+          name in target ? target[name] : (...args) => steps.push([name, ...args]),
+        set: (target, name, value) => {
+          target[name] = value
+          steps.push([`${String(name)}=`, value])
+          return true
+        },
+      },
+    )
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(context)
+    return steps
+  }
+
+  it('paints the frame’s ground under the picture, and the picture in the middle of it', () => {
+    const steps = recordingContext()
+    const source = opened(3000, 4000)
+    const whole = zoomChatImageInFrame(framedChatImageEdit(36 / 25, '#fbf3de'), 3000, 4000, 0)
+
+    const canvas = drawChatImage(source, whole, 1080, 750)
+
+    expect([canvas.width, canvas.height]).toEqual([1080, 750])
+    expect(steps.slice(0, 2)).toEqual([
+      ['fillStyle=', '#fbf3de'],
+      ['fillRect', 0, 0, 1080, 750],
+    ])
+    // The whole picture, 750 high and 562.5 wide, its middle on the canvas's middle.
+    expect(steps).toContainEqual(['translate', 540, 375])
+    const [, scaleX, scaleY] = steps.find(([name]) => name === 'scale')
+    expect(scaleX).toBeCloseTo(0.1875, 10)
+    expect(scaleY).toBeCloseTo(0.1875, 10)
+    expect(steps).toContainEqual(['drawImage', source.image, -1500, -2000, 3000, 4000])
+  })
+
+  // ⛔ The chat's picture stays on white: an edit without a ground of its own.
+  it('stays on white for an edit that names no ground', () => {
+    const steps = recordingContext()
+
+    drawChatImage(opened(4000, 3000), CHAT_IMAGE_UNEDITED, 800, 600)
+
+    expect(steps[0]).toEqual(['fillStyle=', '#ffffff'])
+  })
+})
+
+// One encoder for the chat's picture and for the two renditions of a greeting's: the area and the
+// target are the chat's unless another rendition is asked for.
+describe('encodeChatImage, for another rendition', () => {
+  const LARGE = { area: 1080 * 750, targetBytes: 68 * 1024 }
+  const framed = framedChatImageEdit(36 / 25, '#fbf3de')
+
+  it('draws into the area asked for and aims at the target asked for', async () => {
+    const { draw, drawn } = recordingDraw()
+    const encode = vi.fn((canvas) => ({
+      base64: `JPEG${canvas.width}x${canvas.height}`,
+      bytes: 60 * 1024,
+      quality: 0.65,
+    }))
+
+    await expect(
+      encodeChatImage(opened(3000, 4000), framed, { draw, encode, ...LARGE }),
+    ).resolves.toEqual({ data: 'JPEG1080x750', width: 1080, height: 750, bytes: 60 * 1024 })
+
+    expect(drawn).toEqual([[1080, 750]])
+    expect(encode).toHaveBeenCalledWith(
+      { width: 1080, height: 750 },
+      68 * 1024,
+      AVATAR_QUALITY_STEPS,
+    )
+  })
+
+  it('takes a picture of exactly the target asked for, and makes one a byte larger smaller', async () => {
+    const { draw, drawn } = recordingDraw()
+    const encode = vi.fn((canvas) => ({
+      base64: 'x',
+      bytes: canvas.width === 1080 ? 68 * 1024 + 1 : 68 * 1024,
+      quality: 0.45,
+    }))
+
+    const made = await encodeChatImage(opened(3000, 4000), framed, { draw, encode, ...LARGE })
+
+    expect(made.bytes).toBe(68 * 1024)
+    // The second size is the area times 0.8, in the frame's proportions.
+    expect(drawn).toEqual([
+      [1080, 750],
+      [966, 671],
+    ])
+  })
+
+  it('makes the chat’s measure of a framed picture where nothing else is asked', async () => {
+    const { draw, drawn } = recordingDraw()
+    const encode = encoderFitting(() => true)
+
+    await encodeChatImage(opened(3000, 4000), framed, { draw, encode })
+
+    // The area of 800 x 600 in the frame's proportions.
+    expect(drawn).toEqual([[831, 577]])
+    expect(encode).toHaveBeenCalledWith(
+      { width: 831, height: 577 },
+      CHAT_IMAGE_TARGET_BYTES,
+      AVATAR_QUALITY_STEPS,
+    )
+  })
+
+  // The margin is part of the picture: the cutout is the frame, larger than the photo, and the
+  // size drawn is the frame's -- so the rendition keeps the frame's proportions.
+  it('keeps the frame’s proportions for a picture fitted in whole', async () => {
+    const { draw, drawn } = recordingDraw()
+    const whole = zoomChatImageInFrame(framed, 3000, 4000, 0)
+
+    await encodeChatImage(opened(3000, 4000), whole, {
+      draw,
+      encode: encoderFitting(() => true),
+      ...LARGE,
+    })
+
+    expect(drawn).toEqual([[1080, 750]])
+    expect(draw.mock.calls[0][1]).toBe(whole)
+  })
+
+  it('refuses a picture that does not come under the target asked for after five sizes', async () => {
+    const { draw, drawn } = recordingDraw()
+    const encode = vi.fn(() => ({ base64: 'x', bytes: 70 * 1024, quality: 0.45 }))
+
+    await expect(
+      encodeChatImage(opened(3000, 4000), framed, { draw, encode, ...LARGE }),
+    ).rejects.toMatchObject({ problem: 'NOT_SMALL_ENOUGH' })
+    expect(drawn).toHaveLength(CHAT_IMAGE_ROUNDS)
   })
 })
 
