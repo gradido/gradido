@@ -32,6 +32,8 @@
       "clickToConfirm": "E-posta adresini onaylamak için lütfen buraya tıkla.",
       "confirmButton": "Adresi onayla",
       "confirmHeading": "E-posta adresini onayla",
+      "linkValidity": "Bağlantı {hours} saat geçerlidir.\nBağlantının geçerlilik süresi dolduysa, giriş yap ve kendine yeni bir e-posta gönder.",
+      "linkValidityWithMinutes": "Bağlantı {hours} saat {minutes} dakika geçerlidir.\nBağlantının geçerlilik süresi dolduysa, giriş yap ve kendine yeni bir e-posta gönder.",
       "notYou": "Bu hesaptan haberin yok mu? O zaman bu e-postayı dikkate alma — onay olmadan hesap kapalı kalır.",
       "pleaseConfirm": "Lütfen bu adresin sana ait olduğunu onayla — hesabın ancak o zaman kalıcı olarak açık kalır.",
       "subject": "E-posta adresini onayla",
