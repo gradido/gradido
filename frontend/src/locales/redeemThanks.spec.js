@@ -16,9 +16,11 @@ import i18n from '@/i18n'
  *   same thing everywhere: the Greek one ends in "π.μ.", the Dutch one starts with the weekday.
  *   A full stop right after the date gave "π.μ.." -- so each is read with real dates.
  * - Nothing here speaks of redeeming or paying (E-018): it is a thank-you that is accepted.
- *   And what is said after accepting is where the Gradido are now -- not the old page's
- *   sentence about an account being credited, which eight files had kept at first.
  * - The days a thank-you waited are a number, and Russian has three forms for it.
+ * - Where an account is opened on the page (ZE-017 F5), the heading and the greeting of the
+ *   strip are the words the wallet has for them elsewhere: one way of saying it per language.
+ * - The sentence after accepting names an amount and a sender. The amount is any number, and
+ *   no file has a second form for it: the sentence has to carry "1" as well as "20".
  *
  * ⚠️ `fileURLToPath`, not `new URL(...)`: jsdom brings its own `URL` class, and node turns an
  * instance of it away as coming from another realm.
@@ -34,7 +36,16 @@ const KEYS = [
   'accept',
   'accepted-text',
   'accepted-title',
-  'accepted-toast',
+  'account-strip',
+  'account-text',
+  'account-title',
+  'almost-have-account',
+  'almost-text',
+  'almost-title',
+  'answer',
+  'answer-short',
+  'arrived-text',
+  'arrived-title',
   'deleted-text',
   'deleted-title',
   'expired-text',
@@ -144,7 +155,47 @@ describe('redeem-thanks in the language files', () => {
 
   it.each(languages)('names the sender and the amount where they belong, in %s', (lang) => {
     expect(render(lang, 'expired-text', { name: 'Oma-Emma' })).toContain('Oma-Emma')
-    expect(render(lang, 'accepted-toast', { n: '20' })).toContain('20 GDD')
+    expect(render(lang, 'account-strip', { name: 'Oma-Emma' })).toContain('Oma-Emma')
+    expect(render(lang, 'answer', { name: 'Oma-Emma' })).toContain('Oma-Emma')
+
+    for (const amount of ['20', '12,5', '1']) {
+      const arrived = render(lang, 'arrived-text', { name: 'Oma-Emma', amount })
+
+      expect(arrived).toContain(`${amount} Gradido`)
+      expect(arrived).toContain('Oma-Emma')
+      expect(arrived).not.toMatch(/\||\{|\}/)
+      expect(arrived).toMatch(/\.$/)
+    }
+  })
+
+  // The button without the name is the button with it, cut short: it must not be longer.
+  it.each(languages)('has a short form of the answer button that names nobody, in %s', (lang) => {
+    const short = thanksIn(lang)['answer-short']
+
+    expect(short).not.toMatch(/\{|\}/)
+    expect(short.length).toBeLessThan(render(lang, 'answer', { name: 'Oma' }).length)
+  })
+
+  // "Konto anlegen" stands on the public profile as well, and the strip above the form greets
+  // as the strip above the registration form does.
+  it.each(languages)('opens an account in the words the wallet has for it, in %s', (lang) => {
+    const file = JSON.parse(readFileSync(join(here, `${lang}.json`), 'utf8'))
+    const greeting = (sentence) => sentence.slice(sentence.indexOf('. ') + 2)
+
+    expect(thanksIn(lang)['account-title']).toBe(file['public-profile'].join)
+    expect(greeting(thanksIn(lang)['account-strip'])).toBe(greeting(file.site.signup.shownBy))
+    expect(greeting(file.site.signup.shownBy)).not.toContain('{name}')
+  })
+
+  // The sender may be a woman or a man, and the page does not know which: no Russian verb in
+  // the past tense beside the name, which would have to choose.
+  it('names the sender in Russian without a verb that takes a gender', () => {
+    for (const key of ['account-strip', 'arrived-text', 'answer']) {
+      expect(`${key}: ${thanksIn('ru')[key]}`).not.toMatch(/\{name\}\s+\S+(л|ла)\s/)
+    }
+    // What the pattern is for: the sentence a word-for-word translation would be.
+    expect('{name} отправил вам благодарность').toMatch(/\{name\}\s+\S+(л|ла)\s/)
+    expect('{name} прислала вам благодарность').toMatch(/\{name\}\s+\S+(л|ла)\s/)
   })
 
   // A server may keep its links open for any number of days.
@@ -170,17 +221,6 @@ describe('redeem-thanks in the language files', () => {
     expect([5, 7, 11, 12, 14, 20, 25, 30].map(waited)).toEqual(
       [5, 7, 11, 12, 14, 20, 25, 30].map((days) => `Эта благодарность ждала ${days} дней.`),
     )
-  })
-
-  // The old page said after redeeming that an account "has been credited". The first
-  // sentence went, and the second one stayed in eight files: what is left of it here is its
-  // number and unit, nothing else.
-  it.each(languages)('says after accepting where the Gradido are now, in %s', (lang) => {
-    const old = JSON.parse(readFileSync(join(here, `${lang}.json`), 'utf8')).gdd_per_link.redeemed
-    const [, credited] = old.match(/^[^!]+!\s*(.+)$/)
-
-    expect(credited).toContain('{n} GDD')
-    expect(thanksIn(lang)['accepted-toast']).not.toContain(credited)
   })
 
   it.each(languages)('speaks of a thank-you, not of redeeming or paying, in %s', (lang) => {

@@ -1,8 +1,108 @@
 <!-- AI-GENERATED — not an architecture reference -->
 <template>
   <div class="redeem-thanks text-center">
+    <!-- The thank-you was accepted on this page, a moment ago: where it is now, the greeting
+         in short, and the two ways on. It belongs to the moment -- whoever loads the page
+         again reads "Dieser Dank ist angenommen." below. -->
+    <div v-if="stage === 'arrived'" class="redeem-thanks-closed" data-test="redeem-thanks-arrived">
+      <svg
+        class="redeem-thanks-sign is-accepted"
+        viewBox="0 0 20 20"
+        width="26"
+        height="26"
+        aria-hidden="true"
+      >
+        <path
+          fill="currentColor"
+          d="M10 17C5.5 13.8 3 11.4 3 8.6C3 6.4 4.7 5 6.5 5C8 5 9.2 5.9 10 7.2C10.8 5.9 12 5 13.5 5C15.3 5 17 6.4 17 8.6C17 11.4 14.5 13.8 10 17Z"
+        />
+      </svg>
+      <h2 class="redeem-thanks-closed-title" data-test="redeem-thanks-title">
+        {{ $t('redeem-thanks.arrived-title') }}
+      </h2>
+      <p class="redeem-thanks-closed-text" data-test="redeem-thanks-text">{{ arrivedText }}</p>
+      <redeem-thanks-paper
+        v-if="linkData.greeting"
+        class="redeem-thanks-arrived-paper"
+        :link-data="linkData"
+        short
+      />
+      <!-- The answer is a message in the conversation with whoever thanked; the greeting
+           stands there as a bubble, and the heart is there (ZE-017 F6). -->
+      <div class="redeem-thanks-actions">
+        <BButton
+          variant="gradido"
+          class="redeem-thanks-accept"
+          :to="answerTo"
+          data-test="redeem-thanks-answer"
+        >
+          <span ref="answerLine" class="redeem-thanks-answer-line">{{ answerLabel }}</span>
+        </BButton>
+      </div>
+      <div class="redeem-thanks-onward">
+        <BButton
+          :variant="null"
+          class="redeem-thanks-to-account"
+          to="/overview"
+          data-test="redeem-thanks-to-account"
+        >
+          {{ $t('redeem-thanks.to-account') }}
+        </BButton>
+      </div>
+    </div>
+
+    <!-- The account could not be signed in to. ⛔ One view for every reason, and it names none
+         (E-017): an address that is taken and a link that did not vouch read the same. -->
+    <div
+      v-else-if="stage === 'almost'"
+      class="redeem-thanks-closed"
+      data-test="redeem-thanks-almost"
+    >
+      <svg
+        class="redeem-thanks-sign is-almost"
+        viewBox="0 0 20 20"
+        width="26"
+        height="26"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.6"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <rect x="2.5" y="4.5" width="15" height="11" rx="2" />
+        <path d="M3 6l7 5.2L17 6" />
+      </svg>
+      <h2 class="redeem-thanks-closed-title" data-test="redeem-thanks-title">
+        {{ $t('redeem-thanks.almost-title') }}
+      </h2>
+      <p class="redeem-thanks-closed-text" data-test="redeem-thanks-text">
+        {{ $t('redeem-thanks.almost-text') }}
+      </p>
+      <p
+        class="redeem-thanks-closed-text redeem-thanks-almost-second"
+        data-test="redeem-thanks-almost-have-account"
+      >
+        {{ $t('redeem-thanks.almost-have-account') }}
+      </p>
+      <div class="redeem-thanks-onward">
+        <BButton
+          :variant="null"
+          class="redeem-thanks-to-account"
+          :to="routeWithParamsAndQuery('Login')"
+          data-test="redeem-thanks-almost-sign-in"
+        >
+          {{ $t('signin') }}
+        </BButton>
+      </div>
+    </div>
+
     <!-- The link opened later: a sign, what became of the thank-you, and one sentence. -->
-    <div v-if="closed" class="redeem-thanks-closed" :data-test="`redeem-thanks-${closed.name}`">
+    <div
+      v-else-if="closed"
+      class="redeem-thanks-closed"
+      :data-test="`redeem-thanks-${closed.name}`"
+    >
       <svg
         v-if="closed.name === 'accepted'"
         class="redeem-thanks-sign is-accepted"
@@ -49,6 +149,21 @@
       </div>
     </div>
 
+    <!-- A guest who tapped "accept": the account is opened right here (ZE-017 F5), under the
+         same address. The form is no state of the link, so a reload shows the sheet again. -->
+    <redeem-thanks-account
+      v-else-if="isGuest && accountFormOpen"
+      :link-data="linkData"
+      :accepting="accepting"
+      @submit="$emit('open-account', $event)"
+    >
+      <redeem-thanks-have-account
+        :link-data="linkData"
+        :redeem-code="redeemCode"
+        :asks-where="asksWhere"
+      />
+    </redeem-thanks-account>
+
     <!-- The link is open: the sheet, and under it what this visitor can do with it. -->
     <template v-else>
       <!-- A link that carries a greeting says so; the sender's own keeps its sentence. -->
@@ -80,7 +195,7 @@
         </BButton>
       </div>
 
-      <!-- A guest: the same button leads to the registration, with the code of the address;
+      <!-- A guest: the same button opens the form an account is opened with, on this page;
            under it the way in for somebody who has an account, and the invitation.
            ⛔ No small print under the button (ZE-017, F4). -->
       <template v-else-if="isGuest">
@@ -88,93 +203,17 @@
           <BButton
             variant="gradido"
             class="redeem-thanks-accept"
-            :to="routeWithParamsAndQuery('Register')"
             data-test="redeem-thanks-accept"
+            @click="openAccountForm"
           >
             {{ $t('redeem-thanks.accept') }}
           </BButton>
         </div>
-        <div class="redeem-thanks-have-account">
-          <!-- Where a link can be redeemed in another community as well, the account may be
-               there: the line opens the question where it is, with this community chosen.
-               Elsewhere it leads straight to the sign-in. -->
-          <template v-if="asksWhere">
-            <button
-              type="button"
-              class="redeem-thanks-link redeem-thanks-toggle"
-              :aria-expanded="accountOpen"
-              aria-controls="redeem-thanks-account"
-              data-test="redeem-thanks-have-account"
-              @click="accountOpen = !accountOpen"
-            >
-              {{ $t('redeem-thanks.have-account') }}
-              <svg
-                class="redeem-thanks-caret"
-                :class="{ 'is-open': accountOpen }"
-                viewBox="0 0 16 16"
-                width="12"
-                height="12"
-                aria-hidden="true"
-              >
-                <path
-                  fill="currentColor"
-                  d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"
-                />
-              </svg>
-            </button>
-            <div
-              v-if="accountOpen"
-              id="redeem-thanks-account"
-              class="redeem-thanks-account"
-              data-test="redeem-thanks-account"
-            >
-              <p class="redeem-thanks-account-title" data-test="redeem-thanks-where-account">
-                {{ $t('redeem-thanks.where-account') }}
-              </p>
-              <community-switch
-                :model-value="recipientCommunity"
-                @update:model-value="chooseCommunity"
-                @communities-loaded="communities = $event"
-              />
-              <BButton
-                v-if="isForeignCommunitySelected"
-                variant="gradido"
-                class="fs-7 redeem-thanks-account-go"
-                :disabled="forwarding"
-                data-test="redeem-thanks-forward"
-                @click="forward"
-              >
-                {{ $t('gdd_per_link.to-switch') }}
-              </BButton>
-              <BButton
-                v-else
-                variant="gradido"
-                class="fs-7 redeem-thanks-account-go"
-                :to="routeWithParamsAndQuery('Login')"
-                data-test="redeem-thanks-sign-in"
-              >
-                {{ $t('signin') }}
-              </BButton>
-              <!-- Only where there is another community to choose: with one, the switch
-                   shows its name and nothing can be picked. -->
-              <p
-                v-if="communities.length > 1"
-                class="redeem-thanks-account-hint small"
-                data-test="redeem-thanks-other-community"
-              >
-                {{ $t('redeem-thanks.other-community') }}
-              </p>
-            </div>
-          </template>
-          <BLink
-            v-else
-            class="redeem-thanks-link"
-            :to="routeWithParamsAndQuery('Login')"
-            data-test="redeem-thanks-have-account"
-          >
-            {{ $t('redeem-thanks.have-account') }}
-          </BLink>
-        </div>
+        <redeem-thanks-have-account
+          :link-data="linkData"
+          :redeem-code="redeemCode"
+          :asks-where="asksWhere"
+        />
         <div class="redeem-thanks-invite">
           <p class="redeem-thanks-invite-text" data-test="redeem-thanks-invite">
             {{ $t('redeem-thanks.invite') }}
@@ -200,28 +239,33 @@
  * can do with it. One view for every state such a link can be in; the page decides the state
  * (`itemType` in pages/TransactionLink.vue) and books, this view shows and asks.
  *
- * - A guest (`LOGGED_OUT`, `REDEEM_SELECT_COMMUNITY`): "accept" leads to the registration and
- *   takes the code of the address along, as the page did before; somebody with an account
- *   signs in and comes back to the link. Where a link can be redeemed in another community
- *   (`REDEEM_SELECT_COMMUNITY`, the page reads the switch), the choice of community that
- *   stood on the page for everybody stands behind "I already have an account": whoever is
- *   new gets their account here, and only somebody with one has a community to name.
+ * - A guest (`LOGGED_OUT`, `REDEEM_SELECT_COMMUNITY`): "accept" opens the form an account is
+ *   opened with, on this page and under this address (RedeemThanksAccount); the page opens
+ *   the account, signs in and books. Somebody with an account signs in and comes back to the
+ *   link. Where a link can be redeemed in another community (`REDEEM_SELECT_COMMUNITY`, the
+ *   page reads the switch), the choice of community that stood on the page for everybody
+ *   stands behind "I already have an account" (RedeemThanksHaveAccount): whoever is new gets
+ *   their account here, and only somebody with one has a community to name.
  * - A member (`VALID`): one tap, and the page books.
  * - The sender (`SELF_CREATOR`): the sheet as the other person will see it.
  * - Opened later (`TEXT_REDEEMED`, `TEXT_EXPIRED`, `TEXT_DELETED`): what became of it.
  *
+ * And two views that belong to the moment, which the page names with `stage`: "arrived", once
+ * the thank-you was booked on this page -- for a new member and for one who had an account --
+ * and "almost", where the new account could not be signed in to.
+ *
  * Contribution links and links from another community do not come here; they keep the page
  * they had.
  */
-import { computed, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter } from 'vue-router'
 import { BButton, BLink } from 'bootstrap-vue-next'
-import CommunitySwitch from '@/components/CommunitySwitch'
+import RedeemThanksAccount from '@/components/LinkInformations/RedeemThanksAccount'
+import RedeemThanksHaveAccount from '@/components/LinkInformations/RedeemThanksHaveAccount'
 import RedeemThanksPaper from '@/components/LinkInformations/RedeemThanksPaper'
+import { useAmountInText } from '@/composables/useAmountInText'
 import { useAuthLinks } from '@/composables/useAuthLinks'
-import { useRedeemCommunity } from '@/composables/useRedeemCommunity'
-import { useAppToast } from '@/composables/useToast'
-import CONFIG from '@/config'
 import { memberAlias } from '@/utils/gradidoAddress'
 
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -234,13 +278,17 @@ const props = defineProps({
   redeemCode: { type: String, required: true },
   // The page's booking is on its way: the button waits for the answer.
   accepting: { type: Boolean, default: false },
+  // What just happened on this page: 'arrived' or 'almost' (see above). Null otherwise.
+  stage: { type: String, default: null },
 })
 
-defineEmits(['accept'])
+defineEmits(['accept', 'open-account'])
 
 const { t, d, locale } = useI18n()
+const route = useRoute()
+const router = useRouter()
 const { routeWithParamsAndQuery } = useAuthLinks()
-const { toastError } = useAppToast()
+const amountInText = useAmountInText()
 
 const isGuest = computed(() => ['LOGGED_OUT', 'REDEEM_SELECT_COMMUNITY'].includes(props.state))
 const isMember = computed(() => props.state === 'VALID')
@@ -255,51 +303,99 @@ const openTitle = computed(() => {
 
 // "Where is your account?" The page has read the switch already; its state says it.
 const asksWhere = computed(() => props.state === 'REDEEM_SELECT_COMMUNITY')
-const accountOpen = ref(false)
 
-// This community first, as the old page had it: without a uuid, which the switch fills in
-// from the list of communities once it has it.
-const recipientCommunity = ref({
-  uuid: '',
-  name: CONFIG.COMMUNITY_NAME,
-  url: CONFIG.COMMUNITY_URL,
-  foreign: false,
-})
-const communities = ref([])
+/**
+ * The form an account is opened with stands on this page, under this address. It gets an entry
+ * of its own in the browser's history -- the same address, marked in the entry's state -- so
+ * that the way back leads from the form to the sheet, as a guest on a phone expects, and not
+ * away from the thank-you.
+ *
+ * ⛔ Not a state of the link, and not kept: whoever loads the page again sees the sheet. The
+ * history keeps an entry's state across a reload, so an entry that was the form forgets it
+ * when the view is built.
+ */
+const ACCOUNT_FORM = 'redeemThanksAccount'
+const accountFormOpen = ref(false)
 
-const chooseCommunity = (community) => {
-  recipientCommunity.value = {
-    uuid: community.uuid,
-    name: community.name,
-    url: community.url,
-    foreign: community.foreign,
-  }
+const openAccountForm = async () => {
+  accountFormOpen.value = true
+  // `force`: the address is the one the page stands on, which the router would not go to again.
+  await router.push({
+    path: route.path,
+    query: route.query,
+    hash: route.hash,
+    force: true,
+    state: { [ACCOUNT_FORM]: true },
+  })
 }
 
-const { isForeignCommunitySelected, forwardToRecipientCommunity } = useRedeemCommunity({
-  linkData: () => props.linkData,
-  redeemCode: () => props.redeemCode,
-  recipientCommunity,
-})
-
-// The way to the other community is on its way: the button waits. Once the browser is sent
-// on it stays locked; where the token did not come, the visitor reads why and may try again.
-const forwarding = ref(false)
-
-async function forward() {
-  if (forwarding.value) return
-  forwarding.value = true
-  try {
-    if (await forwardToRecipientCommunity()) return
-  } catch (error) {
-    toastError(error.message)
-  }
-  forwarding.value = false
+const followHistory = () => {
+  accountFormOpen.value = window.history.state?.[ACCOUNT_FORM] === true
 }
+
+onMounted(() => {
+  if (window.history.state?.[ACCOUNT_FORM]) {
+    window.history.replaceState({ ...window.history.state, [ACCOUNT_FORM]: false }, '')
+  }
+  window.addEventListener('popstate', followHistory)
+})
+onBeforeUnmount(() => window.removeEventListener('popstate', followHistory))
 
 const senderName = computed(() =>
   memberAlias(props.linkData.senderUser?.alias, props.linkData.senderUser?.gradidoID),
 )
+
+// "Dein Dank ist da.": the amount as the sheet writes it, with the decimal mark of the language.
+const arrivedText = computed(() =>
+  t('redeem-thanks.arrived-text', {
+    amount: amountInText(props.linkData.amount),
+    name: senderName.value,
+  }),
+)
+
+// The conversation with whoever thanked, as the button of their mail opens it. A missing
+// community is this one.
+const answerTo = computed(() => ({
+  path: '/contacts',
+  query: { with: props.linkData.senderUser?.gradidoID },
+}))
+
+/**
+ * "… antworten" names whoever thanked while the label stays one line, and goes without the name
+ * where it does not: a user name may be 20 characters, and the button of a 320px phone holds
+ * fewer. Measured at the label itself rather than counted in letters -- how wide a name is
+ * depends on its letters, on the language around it and on the size the reader chose ("Aa").
+ *
+ * The line cuts what does not fit (see the style), so a label too wide is one whose content is
+ * wider than its box. Tried with the name each time, before the browser paints.
+ */
+const answerLine = ref(null)
+const nameFits = ref(true)
+const answerWithName = computed(() => t('redeem-thanks.answer', { name: senderName.value }))
+const answerLabel = computed(() =>
+  nameFits.value ? answerWithName.value : t('redeem-thanks.answer-short'),
+)
+
+const fitAnswer = async () => {
+  nameFits.value = true
+  await nextTick()
+  const line = answerLine.value
+  if (line && line.scrollWidth > line.clientWidth) nameFits.value = false
+}
+
+// The width of the page and the size of the letters both change the line's box.
+const lineWatcher = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(fitAnswer)
+watch(answerLine, (line, before) => {
+  if (before) lineWatcher?.unobserve(before)
+  if (!line) return
+  lineWatcher?.observe(line)
+  fitAnswer()
+})
+onBeforeUnmount(() => lineWatcher?.disconnect())
+// Another language, another length.
+watch(answerWithName, fitAnswer)
+// The house's letters may arrive after the view: they are not as wide as the ones that stood in.
+document.fonts?.ready?.then(fitAnswer)
 
 // How long the link was open for, from the link itself: the wallet holds no number of days of
 // its own. Rounded, because the server counts the days on its own clock and an hour of summer
@@ -354,23 +450,34 @@ const closed = computed(() => {
   margin-bottom: 12px;
 }
 
-.redeem-thanks-actions {
+.redeem-thanks-actions,
+.redeem-thanks :deep(.redeem-thanks-actions) {
   margin-top: 20px;
 }
 
 /* Through `:deep`: BButton renders a router-link, which renders the anchor, and Vue stamps the
-   scope attribute only on the root element of a direct child component.
+   scope attribute only on the root element of a direct child component. From the root of the
+   view, so that the button under the form an account is opened with is the same one.
 
    The one button of the page: as wide as the sheet above it, 46px high at the usual size.
    Its label is one line in all ten languages down to a 320px phone -- measured in the built
    wallet -- and for that the letters are the card's own size and the house button's 50px of
    side padding give way: at the house's large size (20px) the label broke in seven of the
    ten languages there, and still in four at 360px. */
-.redeem-thanks-actions :deep(.redeem-thanks-accept) {
+.redeem-thanks :deep(.redeem-thanks-accept) {
   --bs-btn-font-size: 1em;
 
   width: 100%;
   padding: 0.6875em 0.75rem !important;
+}
+
+/* One line, whatever the name: what does not fit is cut here, and the view then leaves the
+   name out (`fitAnswer`). */
+.redeem-thanks-answer-line {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* A link with the height a thumb needs. */
@@ -381,88 +488,6 @@ const closed = computed(() => {
   min-height: 44px;
   padding: 0 12px;
   font-size: 0.875em;
-}
-
-.redeem-thanks-have-account {
-  margin-top: 6px;
-}
-
-/* The line that opens the field is a button, and looks like the links around it: their
-   colour in both themes (the dark one sets the same variable), no box. */
-.redeem-thanks-toggle {
-  gap: 6px;
-  border: 0;
-  background: none;
-  color: rgba(var(--bs-link-color-rgb), 1);
-}
-
-.redeem-thanks-toggle:hover {
-  text-decoration: underline;
-}
-
-.redeem-thanks-toggle:focus-visible {
-  border-radius: 4px;
-  outline: 2px solid currentcolor;
-  outline-offset: 2px;
-}
-
-.redeem-thanks-caret.is-open {
-  transform: rotate(180deg);
-}
-
-/* The field: a step lighter than the card in the light theme, a step above it in the dark
-   one, where the card itself has the colour of a surface. */
-.redeem-thanks-account {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 12px;
-  padding: 16px;
-  border-radius: 14px;
-  background: var(--surface);
-}
-
-.dark-mode .redeem-thanks-account {
-  background: var(--surface-muted);
-}
-
-.redeem-thanks-account-title {
-  margin: 0;
-  color: var(--bs-heading-color);
-  font-size: 0.8438em;
-  font-weight: 600;
-  line-height: 1.4;
-}
-
-/* As the invitation further down: a heading's colour, which the dark theme does not switch. */
-.dark-mode .redeem-thanks-account-title {
-  color: var(--text);
-}
-
-.redeem-thanks-account :deep(.redeem-thanks-account-go) {
-  width: 100%;
-  padding-right: 1.25rem !important;
-  padding-left: 1.25rem !important;
-}
-
-/* The switch of communities is the wallet's own, with the house's measures for such a line
-   (App.vue: 50px high, the name on the left, the arrow on the right). In this field it takes
-   the field's width, like the button under it. */
-.redeem-thanks-account :deep(.community-switch .dropdown),
-.redeem-thanks-account :deep(.community-switch .dropdown-toggle) {
-  width: 100%;
-}
-
-/* With one community the switch shows its name and brings 8px above and 24px below, meant
-   for the page it used to stand on; the field has its own gaps. */
-.redeem-thanks-account :deep(.community-switch > .mb-4) {
-  margin: 0 !important;
-}
-
-.redeem-thanks-account-hint {
-  margin: 0;
-  line-height: 1.5;
-  text-wrap: balance;
 }
 
 /* The line above the invitation takes the colour of the text around it, thinned: it fits
@@ -516,6 +541,16 @@ const closed = computed(() => {
   color: #7a8296;
 }
 
+/* A letter is on its way: the colour of the thank-you that waits. */
+.redeem-thanks-sign.is-almost {
+  color: #a8732a;
+}
+
+/* The greeting in short, between the sentence and the two ways on. */
+.redeem-thanks-arrived-paper {
+  margin-top: 14px;
+}
+
 .redeem-thanks-closed-title {
   margin-bottom: 6px;
   font-size: 1em;
@@ -528,6 +563,12 @@ const closed = computed(() => {
   font-size: 0.8438em;
   line-height: 1.5;
   text-wrap: balance;
+}
+
+/* The second sentence of "Fast geschafft" stands apart from the first: it speaks to somebody
+   else. After the rule above, which sets every margin of such a sentence to none. */
+.redeem-thanks-almost-second {
+  margin-top: 10px;
 }
 
 .redeem-thanks-onward {

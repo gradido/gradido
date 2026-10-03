@@ -1,7 +1,8 @@
 import { and, eq } from 'drizzle-orm'
+import { MySql2Database } from 'drizzle-orm/mysql2'
 import { Order } from 'shared'
 import { EntityManager } from 'typeorm'
-import { drizzleDb } from '../AppDatabase'
+import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
 import { ContributionLink as DbContributionLink, Event as DbEvent, User as DbUser } from '../entity'
 import { EventType } from '../enum/EventType'
 import { EventInsert, eventsTable } from '../schemas'
@@ -71,8 +72,16 @@ export async function dbHasRegisterRedeemEvent(
   return rows.length !== 0
 }
 
-export async function dbInsertEvent(event: EventInsert): Promise<void> {
-  await drizzleDb().insert(eventsTable).values(event)
+// With `tx` the event is part of the caller's Drizzle transaction: it commits or rolls back
+// with what that transaction stores, and a later reader under the same lock finds it.
+export async function dbInsertEvent(
+  event: EventInsert,
+  tx?: DrizzleTransaction | MySql2Database,
+): Promise<void> {
+  if (!tx) {
+    tx = drizzleDb()
+  }
+  await tx.insert(eventsTable).values(event)
 }
 
 /**

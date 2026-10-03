@@ -1,9 +1,15 @@
 // AI-GENERATED — not an architecture reference
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { nextTick } from 'vue'
 import { createStore } from 'vuex'
 import { createI18n } from 'vue-i18n'
+import { BModal } from 'bootstrap-vue-next'
 import EmailConfirmationReminder from './EmailConfirmationReminder.vue'
+import {
+  forgetFirstLoginWindows,
+  setFirstLoginWindowWanted,
+} from '@/composables/useFirstLoginWindow'
 
 vi.mock('bootstrap-vue-next', () => ({
   BButton: {
@@ -67,6 +73,7 @@ describe('EmailConfirmationReminder', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     route.path = '/overview'
+    forgetFirstLoginWindows()
   })
 
   it('stays away from a confirmed account — and from one whose state is unknown', () => {
@@ -159,5 +166,66 @@ describe('EmailConfirmationReminder', () => {
     route.path = '/settings/account'
     const wrapper = mountWith({ emailChecked: false, accountCreatedAt: hoursAgo(25) })
     expect(wrapper.find('[data-test="email-confirmation-reminder"]').exists()).toBe(false)
+  })
+
+  /**
+   * ⛔ Never two windows on top of each other. The conversation an address opened
+   * (`/contacts?with=…`) comes before the windows of the first logins: somebody who has just
+   * accepted a thank-you taps "… antworten" and meets the wallet through that address.
+   */
+  describe('while the conversation an address opened is on screen', () => {
+    const reminder = (wrapper) => wrapper.find('[data-test="email-confirmation-reminder"]')
+
+    it('waits, and comes once the conversation is closed', async () => {
+      setFirstLoginWindowWanted('contact', true)
+      const wrapper = mountWith({ emailChecked: false, accountCreatedAt: hoursAgo(1) })
+
+      expect(reminder(wrapper).exists()).toBe(false)
+
+      setFirstLoginWindowWanted('contact', false)
+      await nextTick()
+
+      expect(reminder(wrapper).exists()).toBe(true)
+    })
+
+    it('gives way where it was open, and comes back afterwards', async () => {
+      const wrapper = mountWith({ emailChecked: false, accountCreatedAt: hoursAgo(1) })
+      expect(reminder(wrapper).exists()).toBe(true)
+
+      setFirstLoginWindowWanted('contact', true)
+      await nextTick()
+      expect(reminder(wrapper).exists()).toBe(false)
+
+      setFirstLoginWindowWanted('contact', false)
+      await nextTick()
+      expect(reminder(wrapper).exists()).toBe(true)
+    })
+
+    // The window writes back that it closed. That is not the member saying "Später": read as
+    // one, the reminder would be gone for the session without having been seen.
+    it('does not take giving way for "Später"', async () => {
+      const wrapper = mountWith({ emailChecked: false, accountCreatedAt: hoursAgo(1) })
+      setFirstLoginWindowWanted('contact', true)
+      await nextTick()
+
+      wrapper.findComponent(BModal).vm.$emit('update:modelValue', false)
+      await nextTick()
+      setFirstLoginWindowWanted('contact', false)
+      await nextTick()
+
+      expect(reminder(wrapper).exists()).toBe(true)
+    })
+
+    it('waits past the grace period as well: one window at a time', async () => {
+      setFirstLoginWindowWanted('contact', true)
+      const wrapper = mountWith({ emailChecked: false, accountCreatedAt: hoursAgo(25) })
+
+      expect(reminder(wrapper).exists()).toBe(false)
+
+      setFirstLoginWindowWanted('contact', false)
+      await nextTick()
+
+      expect(wrapper.find('[data-test="email-confirmation-overdue"]').exists()).toBe(true)
+    })
   })
 })

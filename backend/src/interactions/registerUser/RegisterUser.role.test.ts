@@ -6,10 +6,12 @@ jest.mock('database', () => ({
   dbFindLocalUserByAlias: jest.fn(),
   dbFindProjectBrandingByAlias: jest.fn(),
   dbFindTransactionLinkByCode: jest.fn(),
+  dbFindTransactionLinkWithOwner: jest.fn(),
   dbFindUserAliasesExisting: jest.fn(),
   dbFindUserByEmail: jest.fn(),
   dbFindUserById: jest.fn(),
   dbFindUserWithContactById: jest.fn(),
+  dbHasGuestRegisteredByLink: jest.fn(),
   dbHomeCommunityGetUuid: jest.fn(),
   dbInsertEvent: jest.fn(),
   dbInsertUser: jest.fn(),
@@ -17,6 +19,7 @@ jest.mock('database', () => ({
   dbInsertUserContact: jest.fn(),
   dbIsUserContactFieldExist: jest.fn(),
   dbLocalUserGradidoIdExist: jest.fn(),
+  dbLockUserRowDrizzle: jest.fn(),
   dbReleaseUnconfirmedEmailChangeFor: jest.fn(),
   dbRemoveUser: jest.fn(),
   dbRemoveUserAlias: jest.fn(),
@@ -59,16 +62,19 @@ import {
   dbFindLocalUserByAlias,
   dbFindProjectBrandingByAlias,
   dbFindTransactionLinkByCode,
+  dbFindTransactionLinkWithOwner,
   dbFindUserAliasesExisting,
   dbFindUserByEmail,
   dbFindUserById,
   dbFindUserWithContactById,
+  dbHasGuestRegisteredByLink,
   dbHomeCommunityGetUuid,
   dbInsertEvent,
   dbInsertUser,
   dbInsertUserAlias,
   dbInsertUserContact,
   dbIsUserContactFieldExist,
+  dbLockUserRowDrizzle,
   dbReleaseUnconfirmedEmailChangeFor,
   dbRemoveUser,
   dbRemoveUserAlias,
@@ -80,6 +86,7 @@ import {
   getHomeCommunityDrizzle,
   ProjectBrandingSelect,
   TransactionLinksSelect,
+  TransactionLinkWithOwner,
   UserContactInsert,
   UserSelect,
 } from 'database'
@@ -92,6 +99,7 @@ import { CreateUser, createUserSchema } from './createUser.schema'
 import { RegisterUserRole } from './RegisterUser.role'
 import { RegisterUserForProjectRole } from './RegisterUserForProject.role'
 import { RegisterUserFromTransactionLinkRole } from './RegisterUserFromTransactionLink.role'
+import { RegisterUserFromVouchingLinkRole } from './RegisterUserFromVouchingLink.role'
 import { RegisterUserGuarantorRole } from './RegisterUserGuarantor.role'
 import { RegisterUserReferrerRole } from './RegisterUserReferrer.role'
 
@@ -628,5 +636,360 @@ describe('RegisterUserGuarantorRole', () => {
       'Guarantor code invalid or expired',
     )
     expect(dbInsertUser).not.toHaveBeenCalled()
+  })
+})
+
+/**
+ * A redeem code that comes with a password (ZE-017 F5). The link vouches for the account as a
+ * guarantor code does - while four things hold. Where one of them does not, the registration is
+ * the one of RegisterUserFromTransactionLinkRole, and answers the same: nothing is refused.
+ */
+describe('RegisterUserFromVouchingLinkRole', () => {
+  const LINK_ID = 11
+  const PASSWORD = 'Aa1!aaaa'
+  const HOUR_MS = 60 * 60 * 1000
+
+  const linkInput = (extra: Record<string, unknown> = {}) =>
+    input({ redeemCode: 'abc123', password: PASSWORD, ...extra })
+
+  // An open link of a confirmed member: the link the four rules are measured against.
+  const openLink = (changed: Partial<TransactionLinkWithOwner> = {}): TransactionLinkWithOwner => ({
+    userId: REFERRER_ID,
+    validUntil: new Date(Date.now() + HOUR_MS),
+    redeemedAt: null,
+    redeemedBy: null,
+    deletedAt: null,
+    ownerDeletedAt: null,
+    ownerForeign: false,
+    ownerEmailChecked: true,
+    ...changed,
+  })
+
+  const linkEvent = {
+    type: EventType.USER_REGISTER_REDEEM,
+    affectedUserId: USER_ID,
+    actingUserId: USER_ID,
+    involvedTransactionLinkId: LINK_ID,
+  }
+
+  // The order in which the mocks were called, by the first call of each.
+  const firstCall = (fn: (...args: never[]) => unknown): number =>
+    mocked(fn).mock.invocationCallOrder[0]
+
+  // Everything holds: the link is open, its maker confirmed, a place free, the link unused.
+  beforeEach(() => {
+    mocked(dbFindTransactionLinkByCode).mockResolvedValue({
+      id: LINK_ID,
+      userId: REFERRER_ID,
+    } as TransactionLinksSelect)
+    mocked(dbFindContributionLinkIdByCode).mockResolvedValue(null)
+    mocked(dbFindTransactionLinkWithOwner).mockResolvedValue(openLink())
+    mocked(dbCountUnconfirmedVouchedAccounts).mockResolvedValue(0)
+    mocked(dbHasGuestRegisteredByLink).mockResolvedValue(false)
+    mocked(encryptPassword).mockResolvedValue(123n)
+  })
+
+  describe('with an open link of a confirmed member, a free place and no account through it yet', () => {
+    it('opens the account as a guarantor code does: the state, the referrer, the password', async () => {
+      expect(await new RegisterUserFromVouchingLinkRole(linkInput()).run(logger)).toBe(USER_ID)
+
+      expect(dbInsertUser).toHaveBeenCalledWith(
+        expect.objectContaining({
+          referrerId: REFERRER_ID,
+          accountState: AccountState.PARTLY_ACTIVATED_GUARANTOR,
+          // The type follows with the hash in afterRun: without the hash the row holds no password.
+          passwordEncryptionType: PasswordEncryptionType.NO_PASSWORD,
+        }),
+        tx,
+      )
+      expect(encryptPassword).toHaveBeenCalledWith(expect.anything(), PASSWORD)
+      expect(dbUserUpdatePassword).toHaveBeenCalledWith(
+        USER_ID,
+        PasswordEncryptionType.GRADIDO_ID,
+        123n,
+      )
+    })
+
+    // The password exists already, so the set-password link would be the wrong door - and the
+    // mail says where the account came from, without the name of who thanked.
+    it('asks only to confirm the address, and says the account came of a thank-you', async () => {
+      await new RegisterUserFromVouchingLinkRole(linkInput()).run(logger)
+
+      expect(sendAssistedRegistrationConfirmEmail).toHaveBeenCalledWith({
+        firstName: 'Bernd',
+        lastName: 'Hückstädt',
+        email: 'bernd@example.com',
+        language: 'de',
+        confirmLink: `${CONFIG.EMAIL_LINK_CONFIRM_EMAIL}${storedVerificationCode()}`,
+        timeDurationObject: expect.anything(),
+        byThanks: true,
+      })
+      expect(sendAccountActivationEmail).not.toHaveBeenCalled()
+    })
+
+    // The event stays the one of a link: the mail to the member who thanked reads it ("and is
+    // new here"). Written once, in the transaction - it is the trace the next registration
+    // through this link looks for.
+    it('records the registration as one through the link, once, with the account', async () => {
+      await new RegisterUserFromVouchingLinkRole(linkInput()).run(logger)
+      await settled()
+
+      expect(dbInsertEvent).toHaveBeenCalledWith(linkEvent, tx)
+      expect(
+        insertedEvents().filter((event) => event.type === EventType.USER_REGISTER_REDEEM),
+      ).toEqual([linkEvent])
+      expect(firstCall(dbInsertEvent)).toBeGreaterThan(firstCall(dbInsertUser))
+    })
+
+    // Under REPEATABLE READ the first plain read fixes what the transaction sees. The lock has
+    // to come before all of them, or a request that waited for it counts an old state.
+    it('takes the lock of the member’s row before anything is read or written', async () => {
+      await new RegisterUserFromVouchingLinkRole(linkInput()).run(logger)
+
+      expect(dbLockUserRowDrizzle).toHaveBeenCalledWith(REFERRER_ID, tx)
+      for (const later of [
+        dbCountUnconfirmedVouchedAccounts,
+        dbFindTransactionLinkWithOwner,
+        dbHasGuestRegisteredByLink,
+        dbInsertUser,
+      ]) {
+        expect(firstCall(dbLockUserRowDrizzle)).toBeLessThan(firstCall(later))
+      }
+      expect(tx.execute).not.toHaveBeenCalled()
+    })
+
+    // Every one of them through the transaction: a read over another connection would not
+    // see what the request before it stored, and would take a second connection from the pool.
+    it('reads everything that decides through the transaction', async () => {
+      await new RegisterUserFromVouchingLinkRole(linkInput()).run(logger)
+
+      expect(dbCountUnconfirmedVouchedAccounts).toHaveBeenCalledWith(REFERRER_ID, tx)
+      expect(dbFindTransactionLinkWithOwner).toHaveBeenCalledWith(LINK_ID, tx)
+      expect(dbHasGuestRegisteredByLink).toHaveBeenCalledWith(REFERRER_ID, LINK_ID, tx)
+    })
+
+    it('takes the last place under the limit', async () => {
+      mocked(dbCountUnconfirmedVouchedAccounts).mockResolvedValue(GUARANTOR_LIMIT - 1)
+
+      await new RegisterUserFromVouchingLinkRole(linkInput()).run(logger)
+
+      expect(dbUserUpdatePassword).toHaveBeenCalled()
+    })
+
+    // The hash runs beside the rest, and starts for an account that stands: the address was
+    // free. Started before the account is stored, it ran for a taken address as well.
+    it('starts to encrypt the password once the account is stored, for the id it has', async () => {
+      // The account as it is read back: under the id it was stored with.
+      mocked(dbFindUserWithContactById).mockImplementation(
+        async () =>
+          ({ id: USER_ID, gradidoId: mocked(dbInsertUser).mock.calls[0][0].gradidoId }) as DbUser,
+      )
+
+      await new RegisterUserFromVouchingLinkRole(linkInput()).run(logger)
+
+      const [storedAs] = mocked(dbInsertUser).mock.calls[0]
+      expect(encryptPassword).toHaveBeenCalledTimes(1)
+      expect(encryptPassword).toHaveBeenCalledWith(
+        expect.objectContaining({ gradidoId: storedAs.gradidoId }),
+        PASSWORD,
+      )
+      expect(mocked(encryptPassword).mock.invocationCallOrder[0]).toBeGreaterThan(
+        mocked(dbInsertUserContact).mock.invocationCallOrder[0],
+      )
+    })
+
+    // The account read back carries another gradido id than the one the hash was started for:
+    // the password is encrypted for the id the account has.
+    it('encrypts the password again when the account got another gradido id', async () => {
+      mocked(dbInsertUser).mockResolvedValueOnce({
+        success: false,
+        error: new DBDuplicateEntryError('users', 'gradido_id,community_uuid', 'taken'),
+      })
+      mocked(dbFindUserWithContactById).mockResolvedValue({
+        id: USER_ID,
+        gradidoId: 'the-second-gradido-id',
+      } as DbUser)
+      mocked(encryptPassword).mockResolvedValueOnce(1n).mockResolvedValueOnce(2n)
+
+      await new RegisterUserFromVouchingLinkRole(linkInput()).run(logger)
+
+      expect(encryptPassword).toHaveBeenLastCalledWith(
+        expect.objectContaining({ gradidoId: 'the-second-gradido-id' }),
+        PASSWORD,
+      )
+      expect(dbUserUpdatePassword).toHaveBeenCalledWith(
+        USER_ID,
+        PasswordEncryptionType.GRADIDO_ID,
+        2n,
+      )
+    })
+  })
+
+  /**
+   * One rule broken at a time. Each time: the way of RegisterUserFromTransactionLinkRole - no
+   * state, no password, the activation mail with the code, the event after the transaction -
+   * and the same answer, without an error.
+   */
+  describe('where the link does not vouch', () => {
+    const expectTheWayThroughTheMail = async (answer: number) => {
+      await settled()
+      expect(answer).toBe(USER_ID)
+      expect(dbInsertUser).toHaveBeenCalledWith(
+        expect.objectContaining({
+          referrerId: REFERRER_ID,
+          passwordEncryptionType: PasswordEncryptionType.NO_PASSWORD,
+        }),
+        tx,
+      )
+      expect(mocked(dbInsertUser).mock.calls[0][0]).not.toHaveProperty('accountState')
+      expect(encryptPassword).not.toHaveBeenCalled()
+      expect(dbUserUpdatePassword).not.toHaveBeenCalled()
+      expect(sendAssistedRegistrationConfirmEmail).not.toHaveBeenCalled()
+      expect(sendAccountActivationEmail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          activationLink: `${CONFIG.EMAIL_LINK_VERIFICATION}${storedVerificationCode()}/abc123`,
+        }),
+      )
+      // As before: after the transaction, over the pool - and once.
+      expect(dbInsertEvent).toHaveBeenCalledWith(linkEvent, undefined)
+      expect(
+        insertedEvents().filter((event) => event.type === EventType.USER_REGISTER_REDEEM),
+      ).toEqual([linkEvent])
+    }
+
+    it.each<[string, Partial<TransactionLinkWithOwner>]>([
+      ['the thank-you was accepted already', { redeemedAt: new Date(), redeemedBy: 9 }],
+      ['the link has run out', { validUntil: new Date(Date.now() - HOUR_MS) }],
+      ['the link was deleted in the meantime', { deletedAt: new Date() }],
+      ['the member who made it has not confirmed their address', { ownerEmailChecked: false }],
+      ['the member who made it is deleted', { ownerDeletedAt: new Date() }],
+    ])('goes the way through the mail when %s', async (_what, changed) => {
+      mocked(dbFindTransactionLinkWithOwner).mockResolvedValue(openLink(changed))
+
+      await expectTheWayThroughTheMail(
+        await new RegisterUserFromVouchingLinkRole(linkInput()).run(logger),
+      )
+    })
+
+    it('goes the way through the mail when nobody stands behind the link', async () => {
+      mocked(dbFindTransactionLinkWithOwner).mockResolvedValue(null)
+
+      await expectTheWayThroughTheMail(
+        await new RegisterUserFromVouchingLinkRole(linkInput()).run(logger),
+      )
+    })
+
+    // The eleventh guest. A guarantor code refuses here, with the member beside the guest; a
+    // link has nobody beside it.
+    it('goes the way through the mail at the member’s limit, and refuses nothing', async () => {
+      mocked(dbCountUnconfirmedVouchedAccounts).mockResolvedValue(GUARANTOR_LIMIT)
+
+      await expectTheWayThroughTheMail(
+        await new RegisterUserFromVouchingLinkRole(linkInput()).run(logger),
+      )
+    })
+
+    // One link, one account.
+    it('goes the way through the mail when an account was registered through the link before', async () => {
+      mocked(dbHasGuestRegisteredByLink).mockResolvedValue(true)
+
+      await expectTheWayThroughTheMail(
+        await new RegisterUserFromVouchingLinkRole(linkInput()).run(logger),
+      )
+    })
+
+    // The entrance hands this variant only what comes with a password. It does not rely on
+    // that: without one nothing vouches - the account would stand there in the state of a
+    // vouched one, with no way in - and nothing is asked.
+    it('goes the way through the mail without a password, and asks nothing', async () => {
+      await expectTheWayThroughTheMail(
+        await new RegisterUserFromVouchingLinkRole(input({ redeemCode: 'abc123' })).run(logger),
+      )
+      expect(dbLockUserRowDrizzle).not.toHaveBeenCalled()
+      expect(dbFindTransactionLinkWithOwner).not.toHaveBeenCalled()
+    })
+  })
+
+  // No member's link, so nobody to vouch: not even the lock is taken.
+  describe('with a redeem code that is no member’s link', () => {
+    const expectNoGuarantorAsked = () => {
+      expect(dbLockUserRowDrizzle).not.toHaveBeenCalled()
+      expect(dbCountUnconfirmedVouchedAccounts).not.toHaveBeenCalled()
+      expect(dbFindTransactionLinkWithOwner).not.toHaveBeenCalled()
+      expect(encryptPassword).not.toHaveBeenCalled()
+      expect(dbUserUpdatePassword).not.toHaveBeenCalled()
+      expect(sendAssistedRegistrationConfirmEmail).not.toHaveBeenCalled()
+    }
+
+    it('gives no password with a contribution link', async () => {
+      mocked(dbFindContributionLinkIdByCode).mockResolvedValue(9)
+
+      await new RegisterUserFromVouchingLinkRole(linkInput({ redeemCode: 'CL-abc' })).run(logger)
+      await settled()
+
+      expectNoGuarantorAsked()
+      expect(dbFindTransactionLinkByCode).not.toHaveBeenCalled()
+      expect(dbInsertUser).toHaveBeenCalledWith(
+        expect.objectContaining({ contributionLinkId: 9 }),
+        tx,
+      )
+      expect(mocked(dbInsertUser).mock.calls[0][0]).not.toHaveProperty('accountState')
+      expect(insertedEvents()).toContainEqual({
+        type: EventType.USER_REGISTER_REDEEM,
+        affectedUserId: USER_ID,
+        actingUserId: USER_ID,
+        involvedContributionLinkId: 9,
+      })
+    })
+
+    it('gives no password with a code nobody knows', async () => {
+      mocked(dbFindTransactionLinkByCode).mockResolvedValue(null)
+
+      expect(await new RegisterUserFromVouchingLinkRole(linkInput()).run(logger)).toBe(USER_ID)
+      await settled()
+
+      expectNoGuarantorAsked()
+      expect(mocked(dbInsertUser).mock.calls[0][0]).not.toHaveProperty('referrerId')
+      expect(sendAccountActivationEmail).toHaveBeenCalled()
+      expect(insertedEvents()).toContainEqual({
+        type: EventType.USER_REGISTER,
+        affectedUserId: USER_ID,
+        actingUserId: USER_ID,
+      })
+    })
+  })
+
+  // The address is taken: nothing is opened and the answer is the one of every registration,
+  // whether the link would have vouched or not.
+  describe('with an address that is taken', () => {
+    const owner = { id: 3, firstName: 'Peter', lastName: 'Lustig', language: 'en' } as UserSelect
+
+    beforeEach(() => {
+      mocked(dbInsertUserContact).mockResolvedValue({
+        success: false,
+        error: new DBDuplicateEntryError('user_contacts', 'email', 'bernd@example.com'),
+      })
+      mocked(dbFindUserByEmail).mockResolvedValue(owner)
+    })
+
+    it('opens nothing, stores no password, and tells the owner of the address', async () => {
+      const answer = await new RegisterUserFromVouchingLinkRole(linkInput()).run(logger)
+      await settled()
+
+      expect(answer).toBeGreaterThan(0)
+      expect(dbRemoveUser).toHaveBeenCalledWith(USER_ID, tx)
+      expect(dbUserUpdatePassword).not.toHaveBeenCalled()
+      // Not even started: the link stays open, and so would the work, request after request.
+      expect(encryptPassword).not.toHaveBeenCalled()
+      expect(sendAssistedRegistrationConfirmEmail).not.toHaveBeenCalled()
+      expect(sendAccountActivationEmail).not.toHaveBeenCalled()
+      expect(sendAccountMultiRegistrationEmail).toHaveBeenCalledWith(
+        expect.objectContaining({ firstName: 'Peter', email: 'bernd@example.com' }),
+      )
+      // No trace of a registration through the link: the link still vouches for one account.
+      expect(insertedEvents()).toEqual([
+        { type: EventType.EMAIL_ACCOUNT_MULTIREGISTRATION, affectedUserId: 3, actingUserId: 0 },
+      ])
+    })
   })
 })

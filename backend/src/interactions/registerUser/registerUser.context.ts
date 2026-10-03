@@ -5,6 +5,7 @@ import { CreateUser } from './createUser.schema'
 import { RegisterUserRole } from './RegisterUser.role'
 import { RegisterUserForProjectRole } from './RegisterUserForProject.role'
 import { RegisterUserFromTransactionLinkRole } from './RegisterUserFromTransactionLink.role'
+import { RegisterUserFromVouchingLinkRole } from './RegisterUserFromVouchingLink.role'
 import { RegisterUserGuarantorRole } from './RegisterUserGuarantor.role'
 import { RegisterUserReferrerRole } from './RegisterUserReferrer.role'
 
@@ -23,6 +24,12 @@ function isRegistrationFromTransactionLink(input: CreateUser): boolean {
   return input.redeemCode != null
 }
 
+// the redeem code came with a password: the guest accepts a member's thank-you on the page of the
+// link and opens the account right there - where the link vouches for it
+function isRegistrationWithPassword(input: CreateUser): boolean {
+  return input.password != null
+}
+
 // The registration started at somebody's Gradido address (/u/<alias>): they become
 // the referrer. A redeem code beats the address.
 function isRegistrationWithReferrerAlias(input: CreateUser): boolean {
@@ -30,16 +37,23 @@ function isRegistrationWithReferrerAlias(input: CreateUser): boolean {
 }
 
 // One variant per registration, in this order - whatever comes after the first that applies
-// is not looked at. A guarantor code, and the password that comes with it, therefore counts only
-// without a project and without a redeem code; with one of them it is ignored, and no account
-// can get a password that no member vouches for.
+// is not looked at. A guarantor code therefore counts only without a project and without a
+// redeem code; with one of them it is ignored.
+//
+// A password counts where a confirmed member vouches for the account, and nowhere else: with a
+// guarantor code, and with a redeem code whose link vouches (RegisterUserFromVouchingLinkRole
+// decides it, and registers as RegisterUserFromTransactionLinkRole where the link does not).
+// With a project it is ignored, and without a code of either kind. No account can get a
+// password that no member vouches for.
 export async function registerUser(input: CreateUser, logger: Logger): Promise<number> {
   let role: AbstractRegisterUserRole
 
   if (isRegistrationForProject(input)) {
     role = new RegisterUserForProjectRole(input)
   } else if (isRegistrationFromTransactionLink(input)) {
-    role = new RegisterUserFromTransactionLinkRole(input)
+    role = isRegistrationWithPassword(input)
+      ? new RegisterUserFromVouchingLinkRole(input)
+      : new RegisterUserFromTransactionLinkRole(input)
   } else if (isRegistrationWithGuarantorCode(input)) {
     role = new RegisterUserGuarantorRole(input)
   } else if (isRegistrationWithReferrerAlias(input)) {

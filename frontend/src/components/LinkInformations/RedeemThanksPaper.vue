@@ -33,36 +33,40 @@
       <!-- The words somebody else wrote: as text, never as markup. Under a line they are the
            memo without it; a greeting of a line alone has none, and no empty block. -->
       <div
-        v-if="parts.words"
+        v-if="parts.words && !short"
         class="redeem-thanks-paper-message"
         :class="{ 'is-under-line': parts.line }"
         data-test="redeem-thanks-paper-message"
       >
         {{ parts.words }}
       </div>
-      <div class="redeem-thanks-paper-rule"></div>
-      <div class="redeem-thanks-paper-sender">
-        <span class="redeem-thanks-paper-initial" aria-hidden="true">{{ initial }}</span>
-        <!-- One sentence with two bold parts, and the ten languages put them in different
-             places: through <i18n-t> with slots, not by cutting the sentence around them. The
-             amount takes its unit along, so both stand bold as one. -->
-        <i18n-t
-          keypath="redeem-thanks.from"
-          tag="span"
-          scope="global"
-          class="redeem-thanks-paper-from"
-          data-test="redeem-thanks-paper-from"
-        >
-          <template #name>
-            <b>{{ senderName }}</b>
-          </template>
-          <template #amount>
-            <b class="redeem-thanks-paper-amount">
-              {{ amountInText(linkData.amount) }} {{ $t('GDD-long') }}
-            </b>
-          </template>
-        </i18n-t>
-      </div>
+      <!-- The short sheet ends here: what was just accepted, without the words that were read
+           a moment ago and without the sentence the page now says itself. -->
+      <template v-if="!short">
+        <div class="redeem-thanks-paper-rule"></div>
+        <div class="redeem-thanks-paper-sender">
+          <span class="redeem-thanks-paper-initial" aria-hidden="true">{{ initial }}</span>
+          <!-- One sentence with two bold parts, and the ten languages put them in different
+               places: through <i18n-t> with slots, not by cutting the sentence around them. The
+               amount takes its unit along, so both stand bold as one. -->
+          <i18n-t
+            keypath="redeem-thanks.from"
+            tag="span"
+            scope="global"
+            class="redeem-thanks-paper-from"
+            data-test="redeem-thanks-paper-from"
+          >
+            <template #name>
+              <b>{{ senderName }}</b>
+            </template>
+            <template #amount>
+              <b class="redeem-thanks-paper-amount">
+                {{ amountInText(linkData.amount) }} {{ $t('GDD-long') }}
+              </b>
+            </template>
+          </i18n-t>
+        </div>
+      </template>
     </div>
   </div>
 </template>
@@ -102,6 +106,9 @@ import {
 
 const props = defineProps({
   linkData: { type: Object, required: true },
+  // Only the picture, whom it is for and the line: the sheet as a keepsake right after the
+  // thank-you was accepted ("Dein Dank ist da."), with both buttons under it on one screen.
+  short: { type: Boolean, default: false },
 })
 
 const { t, locale } = useI18n()

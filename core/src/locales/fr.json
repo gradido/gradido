@@ -28,6 +28,7 @@
     },
     "assistedRegistrationConfirm": {
       "accountCreated": "Avec un membre Gradido, un compte vient d'être créé pour toi — avec cette adresse e-mail.",
+      "accountCreatedByThanks": "Lors de l'acceptation d'un remerciement, un compte vient d'être créé pour toi — avec cette adresse e-mail.",
       "clickToConfirm": "Clique ici pour confirmer ton adresse e-mail.",
       "confirmButton": "Confirmer l'adresse",
       "confirmHeading": "Confirmer l'adresse e-mail",

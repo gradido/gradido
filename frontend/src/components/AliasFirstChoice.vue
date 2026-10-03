@@ -186,8 +186,9 @@ const visible = computed({
   get: () => onScreen.value,
   set: (open) => {
     // ⚠️ Only the member closing it counts. This getter also goes false when the address
-    // reminder takes the screen, and BModal writes that back -- read as an answer, the name
-    // question would be retired for the session without ever having been asked.
+    // reminder takes the screen, or the conversation an address opened, and BModal writes that
+    // back -- read as an answer, the name question would be retired for the session without
+    // ever having been asked.
     if (!open && onScreen.value) {
       dismissed.value = true
       stopProbing()

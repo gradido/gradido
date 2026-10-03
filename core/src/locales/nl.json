@@ -28,6 +28,7 @@
     },
     "assistedRegistrationConfirm": {
       "accountCreated": "Samen met een Gradido-lid is er zojuist een account voor je aangemaakt — met dit e-mailadres.",
+      "accountCreatedByThanks": "Bij het aannemen van een bedankje is er zojuist een account voor je aangemaakt — met dit e-mailadres.",
       "clickToConfirm": "Klik hier om je e-mailadres te bevestigen.",
       "confirmButton": "Adres bevestigen",
       "confirmHeading": "E-mailadres bevestigen",

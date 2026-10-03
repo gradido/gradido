@@ -1,32 +1,21 @@
-import { sendAssistedRegistrationConfirmEmail } from 'core'
 import {
   AccountState,
   DbUser,
   DrizzleTransaction,
-  dbCountUnconfirmedVouchedAccounts,
   dbFindUserById,
   dbInsertEvent,
-  dbUserUpdatePassword,
-  drizzleDb,
   EventType,
   UserInsert,
-  usersTable,
 } from 'database'
-import { sql } from 'drizzle-orm'
 import { Logger } from 'log4js'
-import { PasswordEncryptionType, parseOrThrowFirstIssue, Result } from 'shared'
-import { CONFIG } from '@/config'
-import { GUARANTOR_LIMIT, verifyGuarantorCode } from '@/data/GuarantorCode.logic'
-import { encryptPassword } from '@/password/PasswordEncryptor'
-import { getTimeDurationObject } from '@/util/time'
+import { parseOrThrowFirstIssue, Result } from 'shared'
+import { verifyGuarantorCode } from '@/data/GuarantorCode.logic'
 import { CreateUser, GuarantorRegistration, guarantorRegistrationSchema } from './createUser.schema'
 import { RegisterUserDuplicateError } from './errorTypes'
 import { RegisterUserRole } from './RegisterUser.role'
 
 export class RegisterUserGuarantorRole extends RegisterUserRole<GuarantorRegistration> {
   private referrerId: number | null = null
-  private gradidoIdByPasswordStart: string | null = null
-  private passwordEncryptionPromise: Promise<bigint> | null = null
 
   public getRoleTitle(): string {
     return 'Register User with Guarantor'
@@ -64,32 +53,20 @@ export class RegisterUserGuarantorRole extends RegisterUserRole<GuarantorRegistr
     tx: DrizzleTransaction,
   ): Promise<Result<number, RegisterUserDuplicateError>> {
     // it take some time, let it run in parallel
-    this.gradidoIdByPasswordStart = dbUser.gradidoId
-    this.passwordEncryptionPromise = encryptPassword(
-      { gradidoId: dbUser.gradidoId, passwordEncryptionType: PasswordEncryptionType.GRADIDO_ID },
-      this.user.password,
-    )
+    this.startPasswordEncryption(dbUser.gradidoId, this.user.password)
 
     const referrerId = dbUser.referrerId
     if (!referrerId) {
       throw new Error('Guarantor code invalid or expired')
     }
 
-    // lock referrer user, next registration selecting this user must wait until we are done with this transaction
-    // after our new user was stored into db, we can leave transaction, because than the next call of dbCountUnconfirmedVouchedAccounts will find the user
-    await tx.execute(sql`
-        SELECT id
-        FROM ${usersTable}
-        WHERE id = ${referrerId}
-        FOR UPDATE
-    `)
     // E-019: an account that can act without confirming email address at first is opened only while the member who
     // vouches for it holds fewer than GUARANTOR_LIMIT PARTLY_ACTIVATED_GUARANTOR ones. Counted here,
     // before the address: at the limit a taken address gets the same refusal as a free one -
     // the silence below would tell them apart - and a request over the limit never waits in
     // the member's line. Counted again in that line, where it decides: one after another per
     // member in this process, and whoever waits holds no connection.
-    if ((await dbCountUnconfirmedVouchedAccounts(referrerId, tx)) >= GUARANTOR_LIMIT) {
+    if (!(await this.guarantorHoldsPlace(referrerId, tx))) {
       throw new Error('Vouching limit reached')
     }
     // running normal RegisterUser Stuff from RegisterUserRole
@@ -99,19 +76,7 @@ export class RegisterUserGuarantorRole extends RegisterUserRole<GuarantorRegistr
   // The password exists already, so the set-password page behind the activation link would
   // be the wrong door: this link only confirms that the address belongs to the guest (EM-013).
   public async sendAccountActivationEmail(_activationLink: string): Promise<boolean> {
-    const { firstName, lastName, language, email } = this.user
-    const result = await sendAssistedRegistrationConfirmEmail({
-      firstName,
-      lastName,
-      email,
-      language,
-      confirmLink: `${CONFIG.EMAIL_LINK_CONFIRM_EMAIL}${this.emailVerificationCode}`,
-      timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
-    })
-    if (result instanceof Error) {
-      throw result
-    }
-    return result !== null
+    return this.sendConfirmAddressEmail()
   }
 
   public storeUserRegisterEvent(): Promise<void> {
@@ -132,21 +97,6 @@ export class RegisterUserGuarantorRole extends RegisterUserRole<GuarantorRegistr
   }
 
   public async afterRun(user: DbUser): Promise<void> {
-    if (!this.userId || !this.gradidoIdByPasswordStart) {
-      throw new Error('Missing id')
-    }
-    if (!this.passwordEncryptionPromise) {
-      throw new Error('Password encryption was never started in the first place')
-    }
-    let passwordHash: bigint = 0n
-    if (this.gradidoIdByPasswordStart !== user.gradidoId) {
-      passwordHash = await encryptPassword(
-        { gradidoId: user.gradidoId, passwordEncryptionType: PasswordEncryptionType.GRADIDO_ID },
-        this.user.password,
-      )
-    } else {
-      passwordHash = await this.passwordEncryptionPromise
-    }
-    return dbUserUpdatePassword(this.userId, PasswordEncryptionType.GRADIDO_ID, passwordHash)
+    return this.storePassword(user, this.user.password)
   }
 }

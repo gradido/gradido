@@ -28,9 +28,11 @@ import {
   Event as DbEvent,
   FederatedCommunity as DbFederatedCommunity,
   dbInsertMatchingEntry,
+  transactionLinkFactory as dbTransactionLinkFactory,
   userFactory as dbUserFactory,
   drizzleDb,
   EventType,
+  TransactionLinkInterface,
   User,
   UserAlias,
   UserContact,
@@ -653,6 +655,439 @@ describe('UserResolver', () => {
       })
     })
 
+    /**
+     * A redeem code with a password (ZE-017 F5): whoever accepts a member's thank-you gets the
+     * account right on the page of the link. The link vouches for it as a guarantor code does -
+     * while four things hold. Where one of them does not, the registration is the one it always
+     * was, and the answer is the same: nothing here is refused. Without a password nothing
+     * changes - every test above runs as it did.
+     */
+    describe('a redeem code with a password (the link vouches)', () => {
+      const PASSWORD = 'Aa12345_'
+      const DAY_MS = 24 * 60 * 60 * 1000
+      let bob: User
+      let bibi: User
+      let peter: User
+      let garrick: User
+      let hawking: User
+      let homeCom: DbCommunity
+
+      const register = (email: string, extra: Record<string, unknown>) =>
+        mutate({
+          mutation: createUser,
+          variables: { firstName: 'Sarah', lastName: 'Neu', language: 'de', email, ...extra },
+        })
+
+      const registered = async (email: string): Promise<User> =>
+        (await UserContact.findOneOrFail({ where: { email }, relations: ['user'] })).user
+
+      // A member's redeem link as createTransactionLink leaves it: open for 14 days.
+      const linkOf = (member: User, more: Partial<TransactionLinkInterface> = {}) =>
+        dbTransactionLinkFactory(
+          { email: '', amount: 20, memo: 'Einfach so — weil es Dich gibt.', ...more },
+          member.id,
+        )
+
+      // Accounts a member vouches for already, as a table or a link left them.
+      const earlierGuests = async (member: User, count: number, tag: string) => {
+        for (let n = 0; n < count; n++) {
+          const guest = await dbUserFactory(
+            {
+              email: `${tag}${n}@earlier.de`,
+              firstName: 'Earlier',
+              lastName: 'Guest',
+              emailChecked: false,
+            },
+            homeCom,
+          )
+          await User.update(guest.id, {
+            referrerId: member.id,
+            passwordEncryptionType: PasswordEncryptionType.GRADIDO_ID,
+            accountState: AccountState.PARTLY_ACTIVATED_GUARANTOR,
+          })
+        }
+      }
+
+      const answerOf = (result: any) => ({ data: result.data, errors: result.errors })
+      const likeEveryRegistration = { data: { createUser: true }, errors: undefined }
+
+      // Opened as at a table: with the password, the address unconfirmed, the member vouching.
+      const expectVouchedAccount = async (email: string, guarantor: User) => {
+        expect(await registered(email)).toEqual(
+          expect.objectContaining({
+            passwordEncryptionType: PasswordEncryptionType.GRADIDO_ID,
+            accountState: AccountState.PARTLY_ACTIVATED_GUARANTOR,
+            referrerId: guarantor.id,
+          }),
+        )
+      }
+
+      // The way it always was: no password, and the activation mail that carries the code.
+      const expectAccountThroughTheMail = async (
+        email: string,
+        code: string,
+        referrerId: number | null,
+      ) => {
+        expect(await registered(email)).toEqual(
+          expect.objectContaining({
+            passwordEncryptionType: PasswordEncryptionType.NO_PASSWORD,
+            accountState: AccountState.REGISTERED,
+            referrerId,
+          }),
+        )
+        expect(sendAccountActivationEmail).toBeCalledWith(
+          expect.objectContaining({ email, activationLink: expect.stringMatching(`/${code}$`) }),
+        )
+        expect(sendAssistedRegistrationConfirmEmail).not.toBeCalledWith(
+          expect.objectContaining({ email }),
+        )
+      }
+
+      beforeAll(async () => {
+        await cleanDB()
+        homeCom = await writeHomeCommunityEntry()
+        bob = await userFactory(testEnv, bobBaumeister)
+        bibi = await userFactory(testEnv, bibiBloxberg)
+        peter = await userFactory(testEnv, peterLustig)
+        // Not confirmed: inside its first 24 hours such an account may make links.
+        garrick = await userFactory(testEnv, garrickOllivander)
+        // Deleted, and their link is still there.
+        hawking = await userFactory(testEnv, stephenHawking)
+        jest.clearAllMocks()
+        resetToken()
+      })
+
+      afterAll(async () => {
+        await cleanDB()
+      })
+
+      describe('with an open link of a confirmed member', () => {
+        let result: any
+        let sarah: User
+        let code: string
+        let linkId: number
+
+        beforeAll(async () => {
+          const link = await linkOf(bob)
+          code = link.code
+          linkId = link.id
+          result = await register('sarah@provence.fr', { redeemCode: code, password: PASSWORD })
+          sarah = await registered('sarah@provence.fr')
+        })
+
+        it('answers like every registration', () => {
+          expect(answerOf(result)).toEqual(likeEveryRegistration)
+        })
+
+        it('opens the account with the password, the address unconfirmed, the member vouching', async () => {
+          const contact = await UserContact.findOneOrFail({ where: { email: 'sarah@provence.fr' } })
+          await expectVouchedAccount('sarah@provence.fr', bob)
+          expect(contact.emailChecked).toBe(false)
+        })
+
+        // The event stays the one of a link - the mail to the member who thanked reads it -
+        // and it is the trace of "one link, one account".
+        it('records it as a registration through the link, once', async () => {
+          const events = await DbEvent.find({ where: { affectedUserId: sarah.id } })
+          expect(events.filter((event) => event.type === EventType.USER_REGISTER_REDEEM)).toEqual([
+            expect.objectContaining({ actingUserId: sarah.id, involvedTransactionLinkId: linkId }),
+          ])
+          expect(events.map((event) => event.type)).not.toContain(EventType.USER_REGISTER_GUARANTOR)
+        })
+
+        // The password exists already, so the set-password link would be the wrong door; and
+        // the mail says the account came of a thank-you, with no member beside the guest.
+        it('sends the confirm-only mail of a thank-you, not the activation mail', () => {
+          expect(sendAssistedRegistrationConfirmEmail).toBeCalledWith(
+            expect.objectContaining({
+              email: 'sarah@provence.fr',
+              firstName: 'Sarah',
+              lastName: 'Neu',
+              language: 'de',
+              confirmLink: expect.stringContaining(CONFIG.EMAIL_LINK_CONFIRM_EMAIL),
+              byThanks: true,
+            }),
+          )
+          expect(sendAccountActivationEmail).not.toBeCalledWith(
+            expect.objectContaining({ email: 'sarah@provence.fr' }),
+          )
+        })
+
+        it('lets the guest sign in at once, before the address is confirmed', async () => {
+          resetToken()
+          const signedIn = await mutate({
+            mutation: login,
+            variables: { email: 'sarah@provence.fr', password: PASSWORD },
+          })
+          expect(signedIn.errors).toBeUndefined()
+          resetToken()
+        })
+
+        // One link, one account: the next one through the same link goes the way through the
+        // mail, with the same answer - the place it would take stays free.
+        it('gives the next guest through the same link no password', async () => {
+          jest.clearAllMocks()
+          const next = await register('next@provence.fr', { redeemCode: code, password: PASSWORD })
+
+          expect(answerOf(next)).toEqual(likeEveryRegistration)
+          await expectAccountThroughTheMail('next@provence.fr', code, bob.id)
+        })
+
+        // Nothing is opened, the owner of the address is told, and the answer is the same.
+        it('answers a taken address like every registration, and opens nothing', async () => {
+          jest.clearAllMocks()
+          const fresh = await linkOf(bob)
+          const before = await User.count()
+
+          const taken = await register('bibi@bloxberg.de', {
+            redeemCode: fresh.code,
+            password: PASSWORD,
+          })
+
+          expect(answerOf(taken)).toEqual(likeEveryRegistration)
+          expect(await User.count()).toBe(before)
+          expect(sendAccountMultiRegistrationEmail).toBeCalledWith(
+            expect.objectContaining({ email: 'bibi@bloxberg.de' }),
+          )
+          expect(sendAssistedRegistrationConfirmEmail).not.toBeCalled()
+          // No account came of it, so the link still vouches for one.
+          expect(
+            answerOf(
+              await register('after@provence.fr', { redeemCode: fresh.code, password: PASSWORD }),
+            ),
+          ).toEqual(likeEveryRegistration)
+          await expectVouchedAccount('after@provence.fr', bob)
+        })
+      })
+
+      /**
+       * One rule broken at a time, everything else in order: the answer is the one of every
+       * registration, and the account has no password.
+       */
+      describe('where the link does not vouch', () => {
+        beforeEach(() => {
+          jest.clearAllMocks()
+        })
+
+        it('gives no password once the thank-you was accepted', async () => {
+          const link = await linkOf(bob, { redeemedAt: new Date(), redeemedBy: bibi.id })
+
+          const result = await register('accepted@link.de', {
+            redeemCode: link.code,
+            password: PASSWORD,
+          })
+
+          expect(answerOf(result)).toEqual(likeEveryRegistration)
+          await expectAccountThroughTheMail('accepted@link.de', link.code, bob.id)
+        })
+
+        it('gives no password once the link has run out', async () => {
+          const link = await linkOf(bob, { createdAt: new Date(Date.now() - 15 * DAY_MS) })
+
+          const result = await register('expired@link.de', {
+            redeemCode: link.code,
+            password: PASSWORD,
+          })
+
+          expect(answerOf(result)).toEqual(likeEveryRegistration)
+          await expectAccountThroughTheMail('expired@link.de', link.code, bob.id)
+        })
+
+        // A deleted link is not found at all, as before: nobody becomes the referrer.
+        it('gives no password with a deleted link', async () => {
+          const link = await linkOf(bob, { deletedAt: true })
+
+          const result = await register('deleted@link.de', {
+            redeemCode: link.code,
+            password: PASSWORD,
+          })
+
+          expect(answerOf(result)).toEqual(likeEveryRegistration)
+          await expectAccountThroughTheMail('deleted@link.de', link.code, null)
+        })
+
+        // E-018: only a confirmed member vouches. Without this, a fresh account opened the next.
+        it('gives no password with the link of a member who has not confirmed their address', async () => {
+          const link = await linkOf(garrick)
+
+          const result = await register('chain@link.de', {
+            redeemCode: link.code,
+            password: PASSWORD,
+          })
+
+          expect(answerOf(result)).toEqual(likeEveryRegistration)
+          await expectAccountThroughTheMail('chain@link.de', link.code, garrick.id)
+        })
+
+        it('gives no password with the link of a member who is deleted', async () => {
+          const link = await linkOf(hawking)
+
+          const result = await register('orphan@link.de', {
+            redeemCode: link.code,
+            password: PASSWORD,
+          })
+
+          expect(answerOf(result)).toEqual(likeEveryRegistration)
+          await expectAccountThroughTheMail('orphan@link.de', link.code, hawking.id)
+        })
+
+        it('gives no password with a code nobody knows', async () => {
+          const result = await register('unknown@link.de', {
+            redeemCode: 'nobodyknowsthiscode',
+            password: PASSWORD,
+          })
+
+          expect(answerOf(result)).toEqual(likeEveryRegistration)
+          await expectAccountThroughTheMail('unknown@link.de', 'nobodyknowsthiscode', null)
+        })
+
+        // A project's registration is nobody's guest: the redeem code is not looked at, and
+        // neither is the password. (The document of these tests had no `$project` until now,
+        // and a variable a document does not declare is dropped without a word.)
+        it('gives no password with a project, whatever link comes along', async () => {
+          const link = await linkOf(bob)
+
+          const result = await register('project@link.de', {
+            project: 'garden',
+            redeemCode: link.code,
+            password: PASSWORD,
+          })
+
+          expect(answerOf(result)).toEqual(likeEveryRegistration)
+          expect(await registered('project@link.de')).toEqual(
+            expect.objectContaining({
+              passwordEncryptionType: PasswordEncryptionType.NO_PASSWORD,
+              accountState: AccountState.REGISTERED,
+              referrerId: null,
+            }),
+          )
+        })
+
+        // An input error like everywhere, before the link is looked at: no way through the mail.
+        it('refuses a weak password as every registration does, and opens no account', async () => {
+          const link = await linkOf(bob)
+
+          const result = await register('weak@link.de', { redeemCode: link.code, password: 'weak' })
+
+          expect(result.errors).toHaveLength(1)
+          expect(result.errors?.[0].message).toContain('Please enter a valid password')
+          await expect(
+            UserContact.findOne({ where: { email: 'weak@link.de' } }),
+          ).resolves.toBeNull()
+        })
+      })
+
+      /**
+       * The limit is the member's, shared by table and link (E-022): GUARANTOR_LIMIT accounts
+       * that can act without a mailbox, however they were opened.
+       */
+      describe('the vouching limit', () => {
+        beforeEach(() => {
+          jest.clearAllMocks()
+        })
+
+        // A guarantor code refuses here, with the member beside the guest. A link has nobody
+        // beside it: the eleventh guest gets the account through the mail.
+        it('gives the guest over the limit no password, and refuses nothing', async () => {
+          await earlierGuests(bibi, GUARANTOR_LIMIT, 'full')
+          const link = await linkOf(bibi)
+
+          const result = await register('eleventh@link.de', {
+            redeemCode: link.code,
+            password: PASSWORD,
+          })
+
+          expect(answerOf(result)).toEqual(likeEveryRegistration)
+          await expectAccountThroughTheMail('eleventh@link.de', link.code, bibi.id)
+        })
+
+        it('takes the last place, and then the guarantor code of the same member is refused', async () => {
+          await earlierGuests(peter, GUARANTOR_LIMIT - 1, 'almost')
+          const link = await linkOf(peter)
+
+          const last = await register('last@link.de', { redeemCode: link.code, password: PASSWORD })
+
+          expect(answerOf(last)).toEqual(likeEveryRegistration)
+          await expectVouchedAccount('last@link.de', peter)
+
+          const atTheTable = await register('table@link.de', {
+            guarantorCode: mintGuarantorCode(peter.id, homeCom.communityUuid as string).code,
+            password: PASSWORD,
+          })
+          expect(atTheTable.errors).toEqual([new GraphQLError('Vouching limit reached')])
+        })
+      })
+
+      /**
+       * Two at the same moment. Each reads before the other has stored anything; only the lock
+       * of the member's row, taken before anything is read, puts them one after the other.
+       * Without it both get a password.
+       */
+      describe('two registrations at the same moment', () => {
+        const withPassword = (accounts: User[]) =>
+          accounts.filter(
+            (account) => account.passwordEncryptionType === PasswordEncryptionType.GRADIDO_ID,
+          )
+
+        it('opens one account with a password through one link, and the other without', async () => {
+          const member = await userFactory(testEnv, {
+            email: 'emma@wald.de',
+            firstName: 'Emma',
+            lastName: 'Wald',
+            emailChecked: true,
+            language: 'de',
+          })
+          const link = await linkOf(member)
+          const emails = ['one@race.de', 'two@race.de']
+
+          const results = await Promise.all(
+            emails.map((email) => register(email, { redeemCode: link.code, password: PASSWORD })),
+          )
+
+          for (const result of results) {
+            expect(answerOf(result)).toEqual(likeEveryRegistration)
+          }
+          const accounts = await Promise.all(emails.map(registered))
+          expect(withPassword(accounts)).toHaveLength(1)
+          expect(accounts.map((account) => account.accountState).sort()).toEqual(
+            [AccountState.PARTLY_ACTIVATED_GUARANTOR, AccountState.REGISTERED].sort(),
+          )
+        })
+
+        it('gives the last place to one of two guests who come through two links of the member', async () => {
+          const member = await userFactory(testEnv, {
+            email: 'dave@wald.de',
+            firstName: 'Dave',
+            lastName: 'Wald',
+            emailChecked: true,
+            language: 'de',
+          })
+          await earlierGuests(member, GUARANTOR_LIMIT - 1, 'dave')
+          const links = [await linkOf(member), await linkOf(member)]
+          const emails = ['three@race.de', 'four@race.de']
+
+          const results = await Promise.all(
+            emails.map((email, n) =>
+              register(email, { redeemCode: links[n].code, password: PASSWORD }),
+            ),
+          )
+
+          for (const result of results) {
+            expect(answerOf(result)).toEqual(likeEveryRegistration)
+          }
+          expect(withPassword(await Promise.all(emails.map(registered)))).toHaveLength(1)
+          expect(
+            await User.count({
+              where: {
+                referrerId: member.id,
+                accountState: AccountState.PARTLY_ACTIVATED_GUARANTOR,
+              },
+            }),
+          ).toBe(GUARANTOR_LIMIT)
+        })
+      })
+    })
+
     // The guarantor code holds its transaction's connection until it commits. Anything the
     // registration wrote meanwhile over a second connection from the pool - a query handed no
     // `tx` - would, with enough registrations at once, leave every one of them holding one and
@@ -723,6 +1158,29 @@ describe('UserResolver', () => {
             password: 'Aa12345_',
           }),
         ).toBe('opened')
+      })
+
+      // The link that vouches reads more inside its transaction than the guarantor code does:
+      // the link, its maker, the event of an earlier registration - and writes its own event.
+      it('opens an account through a redeem link that vouches over that one connection', async () => {
+        const link = await dbTransactionLinkFactory(
+          { email: '', amount: 20, memo: 'for a newcomer' },
+          bob.id,
+        )
+
+        expect(
+          await registerOverOneConnection({
+            ...variables,
+            email: 'one.link@example.org',
+            redeemCode: link.code,
+            password: 'Aa12345_',
+          }),
+        ).toBe('opened')
+        const contact = await UserContact.findOneOrFail({
+          where: { email: 'one.link@example.org' },
+          relations: ['user'],
+        })
+        expect(contact.user.accountState).toBe(AccountState.PARTLY_ACTIVATED_GUARANTOR)
       })
     })
   })

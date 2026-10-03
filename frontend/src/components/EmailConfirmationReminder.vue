@@ -140,9 +140,10 @@ const onScreen = firstLoginWindowOnScreen('email')
 const visible = computed({
   get: () => onScreen.value,
   set: (value) => {
-    // Only the member closing it counts -- see AliasFirstChoice for the same guard. Nothing
-    // outranks this window today, so the getter cannot go false on its own; the guard is
-    // here because that is a fact about the order, not about this component.
+    // Only the member closing it counts -- see AliasFirstChoice for the same guard. The
+    // getter goes false on its own while the conversation an address opened has the screen
+    // (`/contacts?with=…`, useFirstLoginWindow), and BModal writes that back: read as "Später",
+    // the reminder would be retired for the session without having been seen.
     if (!value && onScreen.value) {
       dismissed.value = true
     }

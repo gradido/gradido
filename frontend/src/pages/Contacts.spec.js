@@ -9,6 +9,11 @@ import { BPagination } from 'bootstrap-vue-next'
 import Contacts from './Contacts.vue'
 import { forgetFavorites, markFavorite, rememberFavorites } from '@/composables/useFavorites'
 import { refreshContactsPanel } from '@/composables/useContactsPanel'
+import {
+  firstLoginWindow,
+  forgetFirstLoginWindows,
+  setFirstLoginWindowWanted,
+} from '@/composables/useFirstLoginWindow'
 import { useChatForwardTargets } from '@/composables/useChatForwardTargets'
 
 const handlers = new Map()
@@ -419,6 +424,144 @@ describe('Contacts page', () => {
       await flushPromises()
 
       expect(contactWindow().attributes('data-who')).toBe('id-1')
+    })
+
+    /**
+     * ⛔ Never two windows on top of each other (ZE-017 F5). Somebody who has just accepted a
+     * thank-you taps "… antworten" and meets the wallet for the first time through this
+     * address: the conversation comes before the windows of the first logins, and they come
+     * in their order once it is closed.
+     */
+    describe('and the windows of the first logins', () => {
+      const closeWindow = async () => {
+        wrapper.findComponent({ name: 'ContactWindow' }).vm.$emit('update:modelValue', false)
+        await flushPromises()
+      }
+
+      beforeEach(() => {
+        // A new account: the address is not confirmed, the name is the system's.
+        forgetFirstLoginWindows()
+        setFirstLoginWindowWanted('email', true)
+        setFirstLoginWindowWanted('alias', true)
+      })
+
+      afterEach(() => {
+        forgetFirstLoginWindows()
+      })
+
+      // The lookup takes a moment, and one of the three would have the screen by then.
+      it('holds them back from the moment the page is built, before the server answered', () => {
+        route.query = { with: 'carla-id' }
+        answers.set('contactByMemberQuery', () => new Promise(() => {}))
+
+        mountPage()
+
+        expect(firstLoginWindow.value).toBe('contact')
+      })
+
+      it('holds them back while the conversation is open', async () => {
+        route.query = { with: 'carla-id' }
+        answers.set('contactByMemberQuery', () => ({
+          data: { contactList: { contacts: [CARLA] } },
+        }))
+        mountPage()
+        await flushPromises()
+
+        expect(contactWindow().attributes('data-open')).toBe('true')
+        expect(firstLoginWindow.value).toBe('contact')
+      })
+
+      it('lets them come in their order once it is closed', async () => {
+        route.query = { with: 'carla-id' }
+        answers.set('contactByMemberQuery', () => ({
+          data: { contactList: { contacts: [CARLA] } },
+        }))
+        mountPage()
+        await flushPromises()
+
+        await closeWindow()
+
+        expect(contactWindow().attributes('data-open')).toBe('false')
+        expect(firstLoginWindow.value).toBe('email')
+
+        setFirstLoginWindowWanted('email', false)
+        expect(firstLoginWindow.value).toBe('alias')
+      })
+
+      it('lets them come at once where the server knows nobody by that address', async () => {
+        route.query = { with: 'nobody-id' }
+        answers.set('contactByMemberQuery', () => ({ data: { contactList: { contacts: [] } } }))
+        mountPage()
+        expect(firstLoginWindow.value).toBe('contact')
+
+        await flushPromises()
+
+        expect(contactWindow().attributes('data-open')).toBe('false')
+        expect(firstLoginWindow.value).toBe('email')
+      })
+
+      it('lets them come where the question does not get through', async () => {
+        route.query = { with: 'carla-id' }
+        answers.set('contactByMemberQuery', () => Promise.reject(new Error('offline')))
+        mountPage()
+
+        await flushPromises()
+
+        expect(firstLoginWindow.value).toBe('email')
+      })
+
+      // A tap on a row while the lookup was on its way: that window is open, and they wait.
+      it('holds them back for the window the member opened in the meantime', async () => {
+        let answer
+        route.query = { with: 'carla-id' }
+        answers.set(
+          'contactByMemberQuery',
+          () =>
+            new Promise((resolve) => {
+              answer = resolve
+            }),
+        )
+        mountPage()
+        fire('contactListQuery', { contactList: { count: 1, contacts: [person(1)] } })
+        await nextTick()
+        await wrapper.findAll('[data-test="contact-row"]')[0].trigger('click')
+        answer({ data: { contactList: { contacts: [CARLA] } } })
+        await flushPromises()
+
+        expect(firstLoginWindow.value).toBe('contact')
+
+        await closeWindow()
+
+        expect(firstLoginWindow.value).toBe('email')
+      })
+
+      it('lets them come where the page is left with the conversation open', async () => {
+        route.query = { with: 'carla-id' }
+        answers.set('contactByMemberQuery', () => ({
+          data: { contactList: { contacts: [CARLA] } },
+        }))
+        mountPage()
+        await flushPromises()
+
+        wrapper.unmount()
+
+        expect(firstLoginWindow.value).toBe('email')
+      })
+
+      it.each([
+        ['an address without a person', {}],
+        ['an address that names two', { with: ['carla-id', 'sarah-id'] }],
+        ['an address that names nobody', { with: '' }],
+        ['the address of a group', { group: 'some-group' }],
+      ])('holds nothing back for %s', async (_, query) => {
+        route.query = query
+
+        mountPage()
+
+        expect(firstLoginWindow.value).toBe('email')
+        await flushPromises()
+        expect(firstLoginWindow.value).toBe('email')
+      })
     })
   })
 

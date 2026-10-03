@@ -28,6 +28,7 @@
     },
     "assistedRegistrationConfirm": {
       "accountCreated": "Μαζί με ένα μέλος Gradido μόλις δημιουργήθηκε ένας λογαριασμός για σένα — με αυτή τη διεύθυνση email.",
+      "accountCreatedByThanks": "Κατά την αποδοχή ενός ευχαριστώ μόλις δημιουργήθηκε ένας λογαριασμός για σένα — με αυτή τη διεύθυνση email.",
       "clickToConfirm": "Κάνε κλικ εδώ για να επιβεβαιώσεις τη διεύθυνση email σου.",
       "confirmButton": "Επιβεβαίωση διεύθυνσης",
       "confirmHeading": "Επιβεβαίωση διεύθυνσης email",
