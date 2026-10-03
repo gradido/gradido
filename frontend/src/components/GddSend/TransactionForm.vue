@@ -15,12 +15,7 @@
                 class="nav-send__btn"
                 @click="setSendType('send')"
               >
-                <b-img
-                  src="/img/svg/gdd_coin_sw.svg"
-                  height="20"
-                  class="svg-icon"
-                  style="margin-right: 5px"
-                />
+                <b-img src="/img/svg/gdd_coin_sw.svg" height="20" class="svg-icon" />
                 {{ $t('send_gdd') }}
               </BButton>
               <BButton
@@ -40,7 +35,7 @@
                 class="nav-send__btn"
                 @click="setSendType('email')"
               >
-                <i-mdi-email-fast-outline height="20" class="svg-icon" style="margin-right: 3px" />
+                <i-mdi-email-fast-outline height="20" class="svg-icon" />
                 {{ $t('send_email') }}
               </BButton>
             </div>
@@ -597,6 +592,17 @@ label {
   transform: translateY(-70%);
 }
 
+/* The gap between an icon and its word, where this switch has one: 5px beside the coin, 3px
+   beside the letter, as the two icons carried it as a margin of their own before. A phone
+   takes it away again (below), which a margin written on the element would not allow. */
+.nav-send-btn-wrapper > :deep(:first-child) {
+  --tab-icon-gap: 5px;
+}
+
+.nav-send-btn-wrapper > :deep(:last-child) {
+  --tab-icon-gap: 3px;
+}
+
 .nav-send-btn-wrapper {
   background-color: #d1d1d1;
 
@@ -611,6 +617,19 @@ label {
     line-height: 1.15;
     color: black !important;
     border-radius: 25px;
+
+    /* 8px at each side, for the active tab as for the others (it was 20px, from .btn and from
+       the active rule below): of a third of a phone, 42px were padding and border. */
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+
+  /* An icon keeps its size. Left to shrink, it gave way as soon as the word needed the room:
+     on a phone to a few pixels or to nothing, in every language. The gap to the word is the
+     tab's own (`--tab-icon-gap`), none where it is not set. */
+  :deep(.svg-icon) {
+    flex-shrink: 0;
+    margin-right: var(--tab-icon-gap, 0);
   }
 }
 
@@ -622,12 +641,28 @@ label {
   background-color: rgb(23 141 129);
   color: white !important;
   font-weight: bold;
-  padding: 0.625rem 1.25rem;
+  padding: 0.625rem 8px;
   border-radius: 25px;
 }
 
 :deep(.router-link-active .svg-icon) {
   filter: brightness(0) invert(1);
+}
+
+/* On a phone the word stands under the icon in all three tabs, as in the tab bar of the
+   matching page (pages/Matching.vue) -- three tab bars, one form. The font size stays. The
+   icon stands in the middle there, so its gap to the word beside it does not apply. */
+@media (width <= 575.98px) {
+  .nav-send-btn-wrapper {
+    > :deep(*) {
+      flex-direction: column;
+      row-gap: 3px;
+    }
+
+    :deep(.svg-icon) {
+      margin-right: 0;
+    }
+  }
 }
 </style>
 

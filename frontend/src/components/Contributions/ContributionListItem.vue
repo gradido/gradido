@@ -55,10 +55,10 @@
         </BCol>
       </BRow>
       <BRow v-if="!['CONFIRMED', 'DELETED'].includes(localStatus) || messagesCount > 0" class="p-2">
-        <BCol cols="3" class="me-auto text-center">
+        <BCol cols="4" class="text-center">
           <div
             v-if="!['CONFIRMED', 'DELETED'].includes(localStatus) && !moderatorId"
-            class="test-delete-contribution pointer me-3"
+            class="test-delete-contribution pointer d-flex flex-column align-items-center"
             @click="processDeleteContribution({ id })"
           >
             <IBiTrash />
@@ -66,10 +66,10 @@
             <div>{{ $t('delete') }}</div>
           </div>
         </BCol>
-        <BCol cols="3" class="text-center">
+        <BCol cols="4" class="text-center">
           <div
             v-if="!['CONFIRMED', 'DELETED'].includes(localStatus) && !moderatorId"
-            class="test-edit-contribution pointer me-3"
+            class="test-edit-contribution pointer d-flex flex-column align-items-center"
             @click="
               $emit('update-contribution-form', {
                 id,
@@ -83,10 +83,10 @@
             <div>{{ $t('edit') }}</div>
           </div>
         </BCol>
-        <BCol cols="6" class="text-center">
+        <BCol cols="4" class="text-center">
           <div
             v-if="messagesCount > 0 && !moderatorId"
-            class="pointer"
+            class="pointer d-flex flex-column align-items-center"
             @click="emit('toggle-messages-visible')"
           >
             <IBiChatDots />
