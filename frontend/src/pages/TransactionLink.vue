@@ -14,6 +14,7 @@
         :redeem-code="redeemCode"
         :accepting="accepting"
         :stage="thanksStage"
+        :picture="thanksPicture"
         @accept="acceptThanks"
         @open-account="openAccount"
       />
@@ -67,6 +68,7 @@ import RedeemValid from '@/components/LinkInformations/RedeemValid'
 import RedeemedTextBox from '@/components/LinkInformations/RedeemedTextBox'
 import RedeemThanks from '@/components/LinkInformations/RedeemThanks'
 import { useSignIn } from '@/composables/useSignIn'
+import { useThankYouLinkPicture } from '@/composables/useThankYouLinkPicture'
 import { useAppToast } from '@/composables/useToast'
 import { queryTransactionLink } from '@/graphql/queries'
 import { createUser, disburseTransactionLink, redeemTransactionLink } from '@/graphql/mutations'
@@ -287,6 +289,21 @@ watch(itemType, (newItemType) => {
   // console.log('TransactionLink.watch... validLink=', validLink.value)
   updateRedeemedBoxText(newItemType)
 })
+
+// The photo of a thank-you greeting that carries one, for the sheet (useThankYouLinkPicture):
+// asked for once, as soon as the page knows that the link is open and its greeting has a photo
+// -- and kept from then on. ⛔ It is not asked for again once the thank-you is accepted on this
+// page: "Dein Dank ist da." shows the picture the page holds.
+const { picture: thanksPicture, load: loadThanksPicture } = useThankYouLinkPicture()
+watch(
+  () => [isThanksLink.value, linkData.value?.greeting?.hasPicture, itemType.value],
+  ([thanks, hasPicture, state]) => {
+    if (thanks && hasPicture === true && !state.startsWith('TEXT')) {
+      loadThanksPicture(redeemCode.value)
+    }
+  },
+  { immediate: true },
+)
 
 function updateRedeemedBoxText(type) {
   // console.log('TransactionLink.updateRedeemedBoxText... type=', type)

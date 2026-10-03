@@ -213,6 +213,7 @@ export const sendEmail = gql`
 export const createTransactionLink = gql`
   mutation ($amount: GradidoUnit!, $memo: String!, $greeting: ThankYouGreetingInput) {
     createTransactionLink(amount: $amount, memo: $memo, greeting: $greeting) {
+      id
       link
       amount
       memo
@@ -221,8 +222,18 @@ export const createTransactionLink = gql`
         motif
         line
         recipientName
+        hasPicture
       }
     }
+  }
+`
+
+// The large rendition of a greeting's photo, after the link is made: the two renditions do not
+// fit into one request. ⚠️ The variable has to be named `$picture`: the request log masks
+// `picture.data` by that name.
+export const addThankYouGreetingPicture = gql`
+  mutation ($linkId: Int!, $picture: ChatImageInput!) {
+    addThankYouGreetingPicture(linkId: $linkId, picture: $picture)
   }
 `
 

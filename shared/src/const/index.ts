@@ -146,6 +146,22 @@ export const CHAT_IMAGE_MAX_SIDE = 4096
 // wallet may come out a little over it (924 x 520 = 480,480).
 export const CHAT_IMAGE_MAX_PIXELS = 500_000
 
+// thank-you greeting: the picture of a greeting that carries a photo of the member's own (ZE-019),
+// in two renditions. The small one is a chat picture in every bound -- CHAT_IMAGE_MAX_BYTES,
+// CHAT_IMAGE_MAX_SIDE, CHAT_IMAGE_MAX_PIXELS --: it is what the booking of an accepted greeting
+// shows in the conversation of the two.
+//
+// The large one serves the page the link opens as, where the picture stands some 1000 pixels wide
+// on a phone's and on a computer's screen alike. It comes in a request of its own, after the link:
+// the two together do not fit express's 100 KB (backend/src/server/createServer.ts), and one of
+// 72 KB arrives as 98,304 characters of base64 with some hundred bytes of query around it
+// (thankYouPictureBudget.test.ts holds the sum).
+//
+// A backstop, as the chat picture's limit is: the wallet encodes it under 68 KB, at 1080 x 750
+// at most (810,000 pixels). Each side is bounded by CHAT_IMAGE_MAX_SIDE, as a chat picture's.
+export const THANK_YOU_PICTURE_LARGE_MAX_BYTES = 72 * 1024
+export const THANK_YOU_PICTURE_LARGE_MAX_PIXELS = 850_000
+
 // alias: how often a member may pick a name, and over what stretch. Four a year is
 // not a tidiness rule -- it is the brake against somebody cycling through near-misses
 // of a popular name to catch payments meant for its owner. The confirmation dialog

@@ -22,24 +22,35 @@ const oneLineUpTo = (max: number, tooLong: string, notOneLine: string) =>
 /**
  * What a thank-you greeting adds to its link. `line` and `recipientName` are optional, and a
  * blank one -- empty or only whitespace -- counts as not given.
+ *
+ * A greeting carries a motif OR a picture of the member's own -- the small rendition of their
+ * photo --, never both and never neither. Here only that it is there and has the shape of one:
+ * what a picture has to be is checked where a chat picture's is (acceptChatMessageImage), with
+ * the bytes at hand.
  */
-export const thankYouGreetingSchema = z.object({
-  motif: z.string().refine(isThankYouMotif, 'Thank-you greeting: unknown motif'),
-  line: blankAsNull(
-    oneLineUpTo(
-      THANK_YOU_LINE_MAX_CHARS,
-      'Thank-you greeting: the line is too long',
-      'Thank-you greeting: the line has to be one line',
+export const thankYouGreetingSchema = z
+  .object({
+    motif: z.string().refine(isThankYouMotif, 'Thank-you greeting: unknown motif').nullish(),
+    picture: z.object({ data: z.string(), width: z.number(), height: z.number() }).nullish(),
+    line: blankAsNull(
+      oneLineUpTo(
+        THANK_YOU_LINE_MAX_CHARS,
+        'Thank-you greeting: the line is too long',
+        'Thank-you greeting: the line has to be one line',
+      ),
     ),
-  ),
-  recipientName: blankAsNull(
-    oneLineUpTo(
-      THANK_YOU_RECIPIENT_NAME_MAX_CHARS,
-      'Thank-you greeting: the name is too long',
-      'Thank-you greeting: the name has to be one line',
+    recipientName: blankAsNull(
+      oneLineUpTo(
+        THANK_YOU_RECIPIENT_NAME_MAX_CHARS,
+        'Thank-you greeting: the name is too long',
+        'Thank-you greeting: the name has to be one line',
+      ),
     ),
-  ),
-})
+  })
+  .refine(
+    ({ motif, picture }) => (motif != null) !== (picture != null),
+    'Thank-you greeting: a motif or a picture, one of the two',
+  )
 
 export type ThankYouGreetingInput = z.input<typeof thankYouGreetingSchema>
 export type ThankYouGreeting = z.infer<typeof thankYouGreetingSchema>

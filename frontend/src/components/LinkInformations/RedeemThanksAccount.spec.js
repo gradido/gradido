@@ -47,9 +47,9 @@ const router = createRouter({
 })
 
 const mounted = []
-const view = async ({ linkData = link(), accepting = false, slots = {} } = {}) => {
+const view = async ({ linkData = link(), accepting = false, slots = {}, picture = null } = {}) => {
   const wrapper = mount(RedeemThanksAccount, {
-    props: { linkData, accepting },
+    props: { linkData, accepting, picture },
     slots,
     global: {
       plugins: [i18n, router],
@@ -125,6 +125,66 @@ describe('RedeemThanksAccount', () => {
       const wrapper = await view()
 
       expect(wrapper.find('img').exists()).toBe(false)
+    })
+
+    /**
+     * A greeting with a photo of the sender's own: the strip shows the photo the sheet showed a
+     * moment ago -- the page hands it on, the strip asks nobody.
+     */
+    describe('with a photo of the sender’s own', () => {
+      const PHOTO = 'blob:https://ki-playground.gradido.net/1c2d'
+      const withPhoto = () =>
+        link({
+          memo: `${LINE}\nLiebe Sarah, mit Eurem iPad hat alles angefangen.`,
+          greeting: { motif: null, line: LINE, recipientName: 'Sarah', hasPicture: true },
+        })
+      const photo = (wrapper) => strip(wrapper).find('[data-test="redeem-thanks-strip-photo"]')
+      const room = (wrapper) => strip(wrapper).find('[data-test="redeem-thanks-strip-photo-room"]')
+
+      it('shows the photo small, and says whose it is', async () => {
+        const wrapper = await view({ linkData: withPhoto(), picture: PHOTO })
+
+        expect(photo(wrapper).element.tagName).toBe('IMG')
+        expect(photo(wrapper).attributes('src')).toBe(PHOTO)
+        expect(photo(wrapper).attributes('alt')).toBe('Foto von Oma-Emma')
+        expect(photo(wrapper).attributes('width')).toBe('360')
+        expect(photo(wrapper).attributes('height')).toBe('250')
+        expect(photo(wrapper).classes()).toEqual(
+          expect.arrayContaining(['redeem-thanks-strip-picture', 'is-photo']),
+        )
+        expect(room(wrapper).exists()).toBe(false)
+        expect(strip(wrapper).findAll('img')).toHaveLength(1)
+      })
+
+      // The sentence beside it stays where it is when the photo comes a moment later.
+      it('keeps the room of the photo where it has not come, not read out', async () => {
+        const wrapper = await view({ linkData: withPhoto() })
+
+        expect(photo(wrapper).exists()).toBe(false)
+        expect(room(wrapper).exists()).toBe(true)
+        expect(room(wrapper).attributes('aria-hidden')).toBe('true')
+        expect(room(wrapper).classes()).toEqual(
+          expect.arrayContaining(['redeem-thanks-strip-picture', 'is-photo']),
+        )
+        expect(strip(wrapper).text()).toBe(
+          'Oma-Emma hat Dir einen Dank geschickt. Schön, dass Du da bist.',
+        )
+      })
+
+      it('shows the motif of a greeting that carries none, whatever is handed in', async () => {
+        const wrapper = await view({ linkData: greeted(), picture: PHOTO })
+
+        expect(photo(wrapper).exists()).toBe(false)
+        expect(room(wrapper).exists()).toBe(false)
+        expect(strip(wrapper).find('[data-test="redeem-thanks-strip-motif"]').exists()).toBe(true)
+      })
+
+      it('has no photo for a plain link, whatever is handed in', async () => {
+        const wrapper = await view({ picture: PHOTO })
+
+        expect(wrapper.find('img').exists()).toBe(false)
+        expect(room(wrapper).exists()).toBe(false)
+      })
     })
 
     // NU-021, as everywhere a sender is named: under the user name, and without one under the

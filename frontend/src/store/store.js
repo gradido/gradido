@@ -8,6 +8,7 @@ import { clearEntryDraft } from '../composables/useEntryDraft'
 import { closeAvatarZoom } from '../composables/useAvatarZoom'
 import { forgetAllMemberAvatars } from '../composables/useMemberAvatars'
 import { closeChatImageView, forgetAllChatImages } from '../composables/useChatImages'
+import { forgetAllGreetingPictures } from '../composables/useGreetingPictures'
 import { forgetFavorites } from '../composables/useFavorites'
 import { forgetContactsPanel } from '../composables/useContactsPanel'
 import { stopChatUpdates } from '../composables/useChatUpdates'
@@ -244,6 +245,8 @@ export const actions = {
     // the session (useChatImages), and the next member to sign in on this browser must not be
     // handed the pictures of the conversations of the one before.
     forgetAllChatImages()
+    // And the photos of thank-you greetings (useGreetingPictures), kept the same way.
+    forgetAllGreetingPictures()
     // Same reason, same moment: the hearts are one member's, not the device's.
     forgetFavorites()
     // And the contacts the right-hand column holds, which name the people this member has

@@ -58,6 +58,24 @@ export class ChatImageError extends Error {
 }
 
 /**
+ * Why a picture could not be made ready, in the wallet's own sentences -- one for each problem a
+ * ChatImageError names, and the plain one for anything else. The same sentences wherever a member
+ * chooses a picture: the chat's compose bar, and the picture of a thank-you greeting.
+ *
+ * The keys are written out one by one: the unused-keys rule of the linter only counts a key it
+ * finds as a literal.
+ *
+ * @param {string | null | undefined} problem
+ * @param {(key: string) => string} t the page's translate function
+ */
+export const chatImageProblemWords = (problem, t) => {
+  if (problem === 'SOURCE_TOO_LARGE') return t('chatThread.imageTooLarge')
+  if (problem === 'HEIC') return t('chatThread.imageHeic')
+  if (problem === 'NOT_SMALL_ENOUGH') return t('chatThread.imageTooBig')
+  return t('chatThread.imageFormat')
+}
+
+/**
  * What the server's refusal of a message with a picture was about, for the bar's own words:
  * - IMAGE_NOT_ACCEPTED -- the picture itself was not taken (CHAT_IMAGE_NOT_ACCEPTED: EMPTY,
  *   TOO_LARGE, NOT_JPEG or SIZE; a picture made here should never be, so no reason is named);
@@ -146,7 +164,9 @@ export const openChatImage = async (file, { read = readChatImageFile } = {}) => 
 /**
  * Draws the edited picture onto a canvas of the size given, in one step from the decoded source
  * -- not through a smaller copy, which would blur it twice. White under it: a PNG's transparent
- * parts would otherwise come out black in the JPEG (as the avatar's applyCrop says).
+ * parts would otherwise come out black in the JPEG (as the avatar's applyCrop says). Under a
+ * frame of its own the edit names the ground itself (framedChatImageEdit): the colour of the
+ * place the picture goes into, which stands where the picture does not fill the frame.
  *
  * @param {{ image: CanvasImageSource, width: number, height: number }} source
  * @param {typeof CHAT_IMAGE_UNEDITED} edit
@@ -156,7 +176,7 @@ export const drawChatImage = (source, edit, width, height) => {
   canvas.width = width
   canvas.height = height
   const context = canvas.getContext('2d')
-  context.fillStyle = '#ffffff'
+  context.fillStyle = edit.ground ?? '#ffffff'
   context.fillRect(0, 0, width, height)
   context.imageSmoothingEnabled = true
   context.imageSmoothingQuality = 'high'
@@ -181,24 +201,29 @@ export const drawChatImage = (source, edit, width, height) => {
  * `draw` and `encode` are there for the spec -- jsdom paints nothing -- and default to the one above
  * and the avatar's encoder.
  *
+ * `area` and `targetBytes` are the chat's unless another rendition is asked for: the picture of a
+ * thank-you greeting is made twice with this one encoder, in the chat's measure and in a larger
+ * one for the page its link opens as (utils/thankYouPicture).
+ *
  * @param {{ image: CanvasImageSource, width: number, height: number }} source from openChatImage
  * @param {typeof CHAT_IMAGE_UNEDITED} edit what the member did in the editor
  */
 export const encodeChatImage = async (
   source,
   edit = CHAT_IMAGE_UNEDITED,
-  { draw = drawChatImage, encode = encodeUnderTarget } = {},
+  {
+    draw = drawChatImage,
+    encode = encodeUnderTarget,
+    area: firstArea = CHAT_IMAGE_AREA,
+    targetBytes = CHAT_IMAGE_TARGET_BYTES,
+  } = {},
 ) => {
   const cut = chatImageCut(source.width, source.height, edit)
-  let area = CHAT_IMAGE_AREA
+  let area = firstArea
   for (let round = 0; round < CHAT_IMAGE_ROUNDS; round += 1) {
     const { width, height } = chatImageSize(cut.width, cut.height, area)
-    const encoded = encode(
-      draw(source, edit, width, height),
-      CHAT_IMAGE_TARGET_BYTES,
-      AVATAR_QUALITY_STEPS,
-    )
-    if (encoded.bytes <= CHAT_IMAGE_TARGET_BYTES) {
+    const encoded = encode(draw(source, edit, width, height), targetBytes, AVATAR_QUALITY_STEPS)
+    if (encoded.bytes <= targetBytes) {
       return { data: encoded.base64, width, height, bytes: encoded.bytes }
     }
     area *= CHAT_IMAGE_SHRINK

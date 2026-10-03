@@ -4,6 +4,7 @@ import { TransactionLinkFilters } from '@arg/TransactionLinkFilters'
 import { ContributionCycleType } from '@enum/ContributionCycleType'
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { ContributionType } from '@enum/ContributionType'
+import { ChatImageInput } from '@input/ChatImageInput'
 import { Community } from '@model/Community'
 import { ContributionLink } from '@model/ContributionLink'
 import { RedeemJwtLink } from '@model/RedeemJwtLink'
@@ -12,11 +13,14 @@ import { TransactionLink, TransactionLinkResult } from '@model/TransactionLink'
 import { User } from '@model/User'
 import { QueryLinkResult } from '@union/QueryLinkResult'
 import {
+  acceptLargeThankYouGreetingPicture,
   contributionTransaction,
   deferredTransferTransaction,
   EncryptedTransferArgs,
   interpretEncryptedTransferArgs,
   redeemDeferredTransferTransaction,
+  removeLargeThankYouGreetingPicture,
+  removeThankYouGreetingPictures,
   TransactionTypeId,
 } from 'core'
 import { randomBytes } from 'crypto'
@@ -32,6 +36,9 @@ import {
   dbDeleteThankYouGreetingByLinkCode,
   dbInsertEvent,
   dbInsertThankYouGreeting,
+  dbInsertThankYouGreetingPicture,
+  dbSelectThankYouGreetingPictureImage,
+  dbSelectThankYouGreetingPicturesByLinkId,
   dbSelectThankYouGreetingsByLinkCodes,
   EventType,
   findModeratorCreatingContributionLink,
@@ -63,12 +70,20 @@ import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { CREATION_NOT_ALLOWED } from '@/data/ProjectAccount.logic'
 import { PublishNameLogic } from '@/data/PublishName.logic'
 import { transactionLinkGreetingSchema } from '@/data/ThankYouGreeting.schema'
+import {
+  mayAddLargePicture,
+  pictureLinkIsAcceptedOrDeleted,
+  pictureRenditionsForMember,
+  pictureToServe,
+  THANK_YOU_GREETING_PICTURES_MAX_PER_REQUEST,
+} from '@/data/ThankYouGreetingPicture.logic'
 import { DisbursementClient as V1_0_DisbursementClient } from '@/federation/client/1_0/DisbursementClient'
 import { DisbursementClientFactory } from '@/federation/client/DisbursementClientFactory'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { calculateBalance } from '@/util/validate'
 import { executeTransaction } from './TransactionResolver'
+import { acceptedPicture } from './util/chatRequest'
 import {
   getAuthenticatedCommunities,
   getCommunityByPublicKey,
@@ -98,10 +113,21 @@ const db = AppDatabase.getInstance()
 const driverCodeOf = (error: unknown): string =>
   (error as { cause?: { code?: string } } | null)?.cause?.code ?? 'no driver code'
 
+// A read of a greeting's pictures that fails says so with the driver's code, as the writes do:
+// the message of a failed Drizzle query carries the statement and its parameters, and neither
+// belongs into an answer or a log.
+const readPictures = <T>(read: Promise<T>): Promise<T> =>
+  read.catch((e) => {
+    throw new LogError('Unable to read thank-you greeting picture', driverCodeOf(e))
+  })
+
 /**
  * Takes the greeting of a link out again, and never throws: it runs where a link could not be
  * saved and where a link was deleted, and neither may fail over it. A plain link has no row --
  * that is its answer, not a failure. Anything else goes into the log.
+ *
+ * The picture of a greeting that carries one goes with it, in both renditions
+ * (removeThankYouGreetingPictures, which never throws either).
  */
 const removeThankYouGreeting = async (transactionLinkCode: string): Promise<void> => {
   try {
@@ -113,6 +139,7 @@ const removeThankYouGreeting = async (transactionLinkCode: string): Promise<void
       driverCodeOf(error),
     )
   }
+  await removeThankYouGreetingPictures(transactionLinkCode)
 }
 
 @Resolver()
@@ -131,8 +158,13 @@ export class TransactionLinkResolver {
       ? parseOrThrowFirstIssue(transactionLinkGreetingSchema, { memo, greeting: greetingInput })
           .greeting
       : null
+    // In the motif's place a greeting may carry a picture of the member's own: the small
+    // rendition of their photo, which is a chat picture in every bound and is checked as one
+    // (CHAT_IMAGE_NOT_ACCEPTED with the reason). The schema has seen to it that there is a motif
+    // or a picture, and not both.
+    const picture = parsed?.picture ? acceptedPicture(parsed.picture) : null
     const greeting = parsed && {
-      motif: parsed.motif,
+      motif: parsed.motif ?? null,
       line: parsed.line ?? null,
       recipientName: parsed.recipientName ?? null,
     }
@@ -172,6 +204,28 @@ export class TransactionLinkResolver {
       })
       if (!filed.success) {
         throw new LogError('Unable to save thank-you greeting', filed.error.name)
+      }
+    }
+    // ⛔ The picture goes with its greeting, before the link as well: never a link whose greeting
+    // promises a picture that is not there. Where it cannot be filed, the greeting is taken back
+    // out and nothing else has happened.
+    if (picture) {
+      const filed = await dbInsertThankYouGreetingPicture({
+        transactionLinkCode: transactionLink.code,
+        rendition: 'small',
+        width: picture.width,
+        height: picture.height,
+        image: picture.image,
+        mimeType: 'image/jpeg',
+      }).catch(async (e) => {
+        await removeThankYouGreeting(transactionLink.code)
+        // The driver's code, never the error: the parameters of the insert are part of its
+        // message, and the picture is one of them.
+        throw new LogError('Unable to save thank-you greeting picture', driverCodeOf(e))
+      })
+      if (!filed.success) {
+        await removeThankYouGreeting(transactionLink.code)
+        throw new LogError('Unable to save thank-you greeting picture', filed.error.name)
       }
     }
     const dltTransactionPromise = deferredTransferTransaction(user, transactionLink)
@@ -235,9 +289,10 @@ export class TransactionLinkResolver {
     await transactionLink.softRemove().catch((e) => {
       throw new LogError('Transaction link could not be deleted', e)
     })
-    // The greeting goes with its link: the name of a third person does not stay behind. The
-    // link is deleted either way -- a row that could not be removed is in the log, and nobody
-    // reaches it: a deleted link never answers with a greeting.
+    // The greeting goes with its link, and its picture with it, in both renditions: the name of
+    // a third person does not stay behind, and neither does their face. The link is deleted
+    // either way -- a row that could not be removed is in the log, and nobody reaches it: a
+    // deleted link never answers with a greeting, nor with a picture.
     await removeThankYouGreeting(transactionLink.code)
 
     transactionLink.user = user
@@ -519,6 +574,8 @@ export class TransactionLinkResolver {
       const mutex = new Mutex(db.getRedisClient(), 'TRANSACTION_LINK_LOCK')
       await mutex.acquire()
       const now = new Date()
+      // The code of the link once it is booked, as its row has it.
+      let acceptedLinkCode: string | null = null
       try {
         const transactionLink = await DbTransactionLink.findOne({ where: { code } })
         if (!transactionLink) {
@@ -555,6 +612,7 @@ export class TransactionLinkResolver {
           methodLogger,
           transactionLink,
         )
+        acceptedLinkCode = transactionLink.code
         await dbInsertEvent({
           type: EventType.TRANSACTION_LINK_REDEEM,
           affectedUserId: user.id,
@@ -566,6 +624,13 @@ export class TransactionLinkResolver {
       } finally {
         // releaseLinkLock()
         await mutex.release()
+        // The thank-you is accepted: the large rendition of a greeting's own picture has served
+        // the page the link opened as, and goes; the small one stays with the booking. After
+        // the booking and outside its lock, and it never throws -- a row left behind is handed
+        // to nobody, the address serves the pictures of open links only. Most links have none.
+        if (acceptedLinkCode) {
+          await removeLargeThankYouGreetingPicture(acceptedLinkCode)
+        }
       }
       return true
     }
@@ -839,6 +904,115 @@ export class TransactionLinkResolver {
       }
     }
     return true
+  }
+
+  /**
+   * Adds the large rendition to a greeting that carries a picture of the member's own (ZE-019):
+   * the one the page of the open link shows, up to THANK_YOU_PICTURE_LARGE_MAX_BYTES. It comes
+   * in a request of its own, after createTransactionLink brought the small one -- the two do not
+   * fit one request.
+   *
+   * Only by the member who made the link, only while the link is open, only for a greeting with
+   * a picture, and only once (mayAddLargePicture; the unique key refuses a second one). False
+   * for every other case alike -- no such link, somebody else's, a greeting with a motif, a link
+   * that is accepted, run out or deleted, a second upload --, with nothing that tells them
+   * apart. The greeting stands without it: the page then shows the small rendition.
+   *
+   * Behind CREATE_TRANSACTION_LINK: it completes what that right made.
+   *
+   * What the picture has to be is checked first, and refused as THANK_YOU_PICTURE_NOT_ACCEPTED
+   * with the reason -- EMPTY, TOO_LARGE, NOT_JPEG or SIZE; that says nothing about any link.
+   * Nothing of the picture is written to the log (plugins.ts masks `$picture`).
+   */
+  @Authorized([RIGHTS.CREATE_TRANSACTION_LINK])
+  @Mutation(() => Boolean)
+  async addThankYouGreetingPicture(
+    @Arg('linkId', () => Int) linkId: number,
+    @Arg('picture', () => ChatImageInput) picture: ChatImageInput,
+    @Ctx() context: Context,
+  ): Promise<boolean> {
+    const user = getUser(context)
+    const accepted = acceptLargeThankYouGreetingPicture(picture)
+    if (!accepted.success) {
+      const { reason, bytes, width, height } = accepted.error
+      throw new LogError(`THANK_YOU_PICTURE_NOT_ACCEPTED: ${reason}`, { bytes, width, height })
+    }
+
+    const found = await readPictures(dbSelectThankYouGreetingPicturesByLinkId(linkId))
+    if (!found || !mayAddLargePicture(found, user.id, new Date())) {
+      return false
+    }
+    const filed = await dbInsertThankYouGreetingPicture({
+      transactionLinkCode: found.link.code,
+      rendition: 'large',
+      width: accepted.value.width,
+      height: accepted.value.height,
+      image: accepted.value.image,
+      mimeType: 'image/jpeg',
+    }).catch((e) => {
+      // The driver's code, never the error: the picture is among the parameters in its message.
+      throw new LogError('Unable to save thank-you greeting picture', driverCodeOf(e))
+    })
+    if (!filed.success) {
+      return false
+    }
+
+    // ⛔ Looked at once more, now that the picture is filed: was the thank-you accepted, or the
+    // link deleted, while it came in? Both write their mark first and take the large rendition
+    // out afterwards; this files it first and reads the mark afterwards. So whichever comes
+    // first, one of the two sees the other and takes the picture out. A read that fails, or
+    // finds nothing, counts as "deleted". Should a row stay all the same -- the database not
+    // doing as asked --, it is handed to nobody: the address serves open links only.
+    const after = await dbSelectThankYouGreetingPicturesByLinkId(linkId).catch(() => null)
+    if (!after || pictureLinkIsAcceptedOrDeleted(after.link)) {
+      await removeLargeThankYouGreetingPicture(found.link.code)
+      return false
+    }
+    return true
+  }
+
+  /**
+   * The picture of a greeting that carries one, as base64: its small rendition, for the member
+   * who made the link -- open, run out or accepted -- and for the member who accepted it
+   * (pictureRenditionsForMember). Null for everything else -- no such link, a link without a
+   * picture, a deleted one, a member who is neither of the two --, with nothing that tells
+   * these apart.
+   *
+   * By the link's id: the list of one's own links and the booking of an accepted greeting both
+   * carry it. Who the two members are is read off the link's own row -- an id a client makes
+   * up finds a link it is no party to, and gets null.
+   *
+   * The way a chat message's picture comes (chatMessageImage): GraphQL, base64, one picture a
+   * call, and counted in the HTTP request's budget. The page of an OPEN link gets its picture
+   * by an address instead, without anybody signed in (server/thankYouGreetingPicture.ts).
+   *
+   * Nothing of the picture is written to the log; the request log leaves the answer out
+   * (plugins.ts).
+   */
+  @Authorized([RIGHTS.THANK_YOU_GREETING_PICTURE])
+  @Query(() => String, { nullable: true })
+  async thankYouGreetingPicture(
+    @Arg('linkId', () => Int) linkId: number,
+    @Ctx() context: Context,
+  ): Promise<string | null> {
+    // ⛔ Counted in the HTTP request's budget before anything is read: a document may repeat
+    // this field under any number of aliases, up to 35 KB a picture (RequestBudget).
+    context.requestBudget.thankYouGreetingPicturesServed += 1
+    const served = context.requestBudget.thankYouGreetingPicturesServed
+    if (served > THANK_YOU_GREETING_PICTURES_MAX_PER_REQUEST) {
+      throw new LogError('Too many thank-you greeting pictures requested at once', served)
+    }
+    const user = getUser(context)
+    const found = await readPictures(dbSelectThankYouGreetingPicturesByLinkId(linkId))
+    if (!found) {
+      return null
+    }
+    const picture = pictureToServe(found.pictures, pictureRenditionsForMember(found.link, user.id))
+    if (!picture) {
+      return null
+    }
+    const image = await readPictures(dbSelectThankYouGreetingPictureImage(picture.id))
+    return image.success ? image.value.toString('base64') : null
   }
 
   @Authorized([RIGHTS.LIST_TRANSACTION_LINKS])

@@ -4,8 +4,25 @@
     <!-- The house's strip, as above the registration form ("… hat Dir Gradido gezeigt"): who
          sent the thank-you, with the greeting's picture small. A plain link has no picture. -->
     <p class="alert gradido-border-radius redeem-thanks-strip" data-test="redeem-thanks-strip">
+      <!-- A photo of the sender's own, the one the sheet showed a moment ago: the page hands
+           it on. Its room stands where it has not come. -->
       <img
-        v-if="motif"
+        v-if="hasPhoto && picture"
+        class="redeem-thanks-strip-picture is-photo"
+        :src="picture"
+        :alt="$t('thank-you-greeting.photo-of', { name: senderName })"
+        :width="THANK_YOU_MOTIF_WIDTH"
+        :height="THANK_YOU_MOTIF_HEIGHT"
+        data-test="redeem-thanks-strip-photo"
+      />
+      <span
+        v-else-if="hasPhoto"
+        class="redeem-thanks-strip-picture is-photo"
+        aria-hidden="true"
+        data-test="redeem-thanks-strip-photo-room"
+      />
+      <img
+        v-else-if="motif"
         class="redeem-thanks-strip-picture"
         :src="motif.src"
         alt=""
@@ -74,6 +91,8 @@ const props = defineProps({
   linkData: { type: Object, required: true },
   // The page is opening the account, signing in or booking: the button waits.
   accepting: { type: Boolean, default: false },
+  // The photo of a greeting that carries one, as the page holds it; null where none has come.
+  picture: { type: String, default: null },
 })
 
 const emit = defineEmits(['submit'])
@@ -86,6 +105,7 @@ const senderName = computed(() =>
 )
 
 const motif = computed(() => thankYouMotif(props.linkData.greeting?.motif, t))
+const hasPhoto = computed(() => props.linkData.greeting?.hasPicture === true)
 
 // The shortest first name the form takes (AccountFields: `min: 3`).
 const FIRST_NAME_MIN = 3
@@ -126,6 +146,13 @@ const onSubmit = handleSubmit((values) => {
   width: 64px;
   height: auto;
   border-radius: 6px;
+}
+
+/* A photo, and its room before it has come: 36 : 25 in the colour of the card. */
+.redeem-thanks-strip-picture.is-photo {
+  aspect-ratio: 36 / 25;
+  background: #fbf3de;
+  object-fit: cover;
 }
 
 .redeem-thanks-account-text {

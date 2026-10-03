@@ -58,45 +58,10 @@
         </ol>
       </div>
 
-      <!-- 1. The picture: five motifs, one of them chosen. -->
+      <!-- 1. The picture: one of the five motifs, or a photo of one's own. -->
       <section v-if="step === PICTURE" data-test="thank-you-greeting-picture">
         <h2 class="h4 mb-3 page-text">{{ $t('thank-you-greeting.picture.question') }}</h2>
-        <div class="tyg-motifs">
-          <button
-            v-for="motif in motifs"
-            :key="motif.key"
-            type="button"
-            class="tyg-motif"
-            :class="{ 'is-chosen': motif.key === form.motif }"
-            :aria-pressed="motif.key === form.motif"
-            :data-test="`thank-you-greeting-motif-${motif.key}`"
-            @click="form.motif = motif.key"
-          >
-            <!-- ⛔ An <img>, never the SVG inlined: the motifs share the ids of their
-                 gradients. The name stands beside it, so the picture itself says nothing. -->
-            <img
-              :src="motif.src"
-              alt=""
-              :width="THANK_YOU_MOTIF_WIDTH"
-              :height="THANK_YOU_MOTIF_HEIGHT"
-            />
-            <span class="tyg-motif-name">{{ motif.name }}</span>
-            <span v-if="motif.key === form.motif" class="tyg-motif-check" aria-hidden="true">
-              <svg
-                viewBox="0 0 20 20"
-                width="16"
-                height="16"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2.2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M5 10.5l3.5 3.5L15 7" />
-              </svg>
-            </span>
-          </button>
-        </div>
+        <thank-you-picture-choice v-model:motif="form.motif" v-model:photo="photo" />
         <div class="tyg-actions">
           <BButton variant="gradido" data-test="thank-you-greeting-next" @click="go(WORDS)">
             {{ $t('thank-you-greeting.next') }}
@@ -260,7 +225,11 @@
           }}
         </h2>
         <div class="tyg-paper">
-          <redeem-thanks-paper :link-data="previewLink" />
+          <!-- A photo of one's own is shown as the page made it: the server has none yet. -->
+          <redeem-thanks-paper
+            :link-data="previewLink"
+            :picture="photoChosen ? photo.preview : null"
+          />
         </div>
         <p class="tyg-note small page-text" data-test="thank-you-greeting-waits">
           {{
@@ -313,7 +282,7 @@
  *   would make a second greeting and hold the amount twice. From the result, back leads to the
  *   list of links.
  */
-import { computed, onUnmounted, reactive, ref, watch } from 'vue'
+import { computed, onUnmounted, reactive, ref, shallowRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
@@ -322,19 +291,18 @@ import { BButton, BFormInput, BFormTextarea } from 'bootstrap-vue-next'
 import ValidatedInput from '@/components/Inputs/ValidatedInput.vue'
 import RedeemThanksPaper from '@/components/LinkInformations/RedeemThanksPaper.vue'
 import ThankYouGreetingDone from '@/components/ThankYouGreeting/ThankYouGreetingDone.vue'
+import ThankYouPictureChoice from '@/components/ThankYouGreeting/ThankYouPictureChoice.vue'
 import { LINK_VALID_DAYS, linkAmountMax } from '@/constants'
-import { createTransactionLink } from '@/graphql/mutations'
+import { rememberGreetingPicture } from '@/composables/useGreetingPictures'
+import { addThankYouGreetingPicture, createTransactionLink } from '@/graphql/mutations'
+import { chatImageProblemWords, chatImageRefusal } from '@/utils/chatImage'
 import {
   greetingMemo,
   THANK_YOU_LINE_MAX_CHARS,
   THANK_YOU_RECIPIENT_NAME_MAX_CHARS,
 } from '@/utils/thankYouGreeting'
-import {
-  THANK_YOU_MOTIF_HEIGHT,
-  THANK_YOU_MOTIF_KEYS,
-  THANK_YOU_MOTIF_WIDTH,
-  thankYouMotifs,
-} from '@/utils/thankYouMotifs'
+import { THANK_YOU_MOTIF_KEYS } from '@/utils/thankYouMotifs'
+import { encodeThankYouPictures, thankYouPictureInput } from '@/utils/thankYouPicture'
 import {
   amount as amountUpTo,
   memo as memoSchema,
@@ -425,9 +393,8 @@ const lineText = (key) => {
   }
 }
 
-const motifs = computed(() => thankYouMotifs(t))
-
-// One motif is always chosen: the first, the warm one that goes with everything.
+// A picture is always chosen: at first the first motif, the warm one that goes with everything.
+// With a photo of the member's own as the choice, `motif` is null.
 const form = reactive({
   motif: THANK_YOU_MOTIF_KEYS[0],
   recipientName: '',
@@ -439,6 +406,18 @@ const form = reactive({
   amount: '',
 })
 const allLinesOpen = ref(false)
+
+/**
+ * The photo of the member's own, once one was chosen (ThankYouPictureChoice): the picture as
+ * decoded, what was done to it in the editor, and the edited picture for the eye. It stays in its
+ * tile while a motif is the choice.
+ *
+ * ⛔ In the memory of this page only, like everything typed here: never the store (which is
+ * mirrored into the device's storage) and never Apollo's cache. A shallow ref: nothing inside it
+ * changes, and a decoded picture is no business of Vue's reactivity.
+ */
+const photo = shallowRef(null)
+const photoChosen = computed(() => form.motif === null && photo.value !== null)
 
 const chooseLine = (key) => {
   form.lineChoice = form.lineChoice === key ? null : key
@@ -482,6 +461,8 @@ const formValid = computed(() => memoError.value === '' && amountValid.value)
 // The member wanted to go on once: from then on the fields say what is missing.
 const tried = ref(false)
 
+// A motif or a photo, never both: with the photo as the choice the motif is null, and the photo
+// itself goes along only when the greeting is made (see `create`).
 const greeting = computed(() => ({
   motif: form.motif,
   line: line.value || null,
@@ -494,7 +475,8 @@ const previewLink = computed(() => ({
   amount: amountToSend.value,
   memo: memo.value,
   senderUser: { alias: store.state.username, gradidoID: store.state.gradidoID },
-  greeting: greeting.value,
+  // `hasPicture`: what the server will say of the greeting once it is made.
+  greeting: { ...greeting.value, hasPicture: photoChosen.value },
 }))
 
 const step = computed(() =>
@@ -562,28 +544,71 @@ onUnmounted(() => {
 })
 
 const { mutate: createLink } = useMutation(createTransactionLink)
+const { mutate: addPicture } = useMutation(addThankYouGreetingPicture)
 
+/**
+ * Why the greeting was not made, in the page's words: a photo that cannot be made small enough,
+ * or one the server did not take, in the sentences the chat says it with; anything else as the
+ * server says it.
+ */
+const createProblemWords = (error) => {
+  if (error?.name === 'ChatImageError') return chatImageProblemWords(error.problem, t)
+  if (chatImageRefusal(error) === 'IMAGE_NOT_ACCEPTED') return t('chatThread.imageNotAccepted')
+  return error?.message ?? String(error)
+}
+
+/**
+ * Makes the greeting. With a photo it is a chain, and each of its steps runs once:
+ *   1. both renditions are made of the photo, here in the browser (utils/thankYouPicture);
+ *   2. the link is made, with the SMALL rendition in the greeting;
+ *   3. the LARGE rendition follows in a request of its own -- the two do not fit into one.
+ * ⛔ Step 3 may fail without a word: the greeting stands, and the page its link opens as shows
+ * the small rendition then. No second try -- that would be a second request for the same row.
+ */
 async function create() {
-  // Locked while the request is on its way, and for good once it has made a greeting.
+  // Locked while the chain is on its way, and for good once it has made a greeting.
   if (pending.value || created.value) return
   pending.value = true
   createError.value = ''
+  // What is sent is the greeting as it stands at this press: the member may walk back with the
+  // device's own key and change a field, or the picture, while the chain is under way.
+  const sent = { amount: amountToSend.value, memo: memo.value, greeting: { ...greeting.value } }
+  const sentPhoto = photoChosen.value ? photo.value : null
   try {
+    const pictures = sentPhoto
+      ? await encodeThankYouPictures(sentPhoto.source, sentPhoto.edit)
+      : null
     const result = await createLink({
-      amount: amountToSend.value,
-      memo: memo.value,
-      greeting: greeting.value,
+      amount: sent.amount,
+      memo: sent.memo,
+      greeting: pictures
+        ? { ...sent.greeting, picture: thankYouPictureInput(pictures.small) }
+        : sent.greeting,
     })
+    const link = result.data.createTransactionLink
+    // The member's own photo, for their list of links: kept from what was just sent, so the
+    // list does not ask the server for it (in memory, until the member signs out).
+    if (pictures) rememberGreetingPicture(link.id, pictures.small.data)
+    if (pictures?.large) {
+      try {
+        await addPicture({ linkId: link.id, picture: thankYouPictureInput(pictures.large) })
+      } catch {
+        // The greeting stands without it.
+      }
+    }
     // What the result shows is the server's answer, not the form: the member may have walked
     // back and changed a field while the request was under way, and the greeting that exists
-    // is the one that was sent.
-    created.value = result.data.createTransactionLink
+    // is the one that was sent. Its photo is the one this page made -- the server is not asked
+    // for it.
+    created.value = { ...link, picture: sentPhoto?.preview ?? null }
+    // The photo as decoded is needed no more: it is let go, and the device has its memory back.
+    photo.value = null
     // The balance and the sum of open links have changed (as pages/Send.vue says it).
     emit('update-transactions', {})
     // Only where the member is still here: whoever left for another page is not pulled back.
     if (alive) await router.replace(here({ step: DONE }))
   } catch (error) {
-    createError.value = error.message
+    createError.value = createProblemWords(error)
   } finally {
     pending.value = false
   }
@@ -714,71 +739,6 @@ async function create() {
   overflow-wrap: anywhere;
 }
 
-/* The motifs: tiles, picture above name -- two in a row on a phone, all five in one row where
-   there is room. With two fixed columns a tile was 500px wide at 1280 and the button under
-   them out of sight (measured in the built wallet). */
-.tyg-motifs {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  gap: 10px;
-}
-
-.tyg-motif {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  padding: 0;
-  border: 1px solid var(--bs-border-color, #dee2e6);
-  border-radius: 14px;
-  background: var(--bs-body-bg, #fff);
-  color: inherit;
-  font: inherit;
-  text-align: start;
-}
-
-/* The room of the picture stands before the picture has come: 36 : 25, as the files are. */
-.tyg-motif img {
-  display: block;
-  width: 100%;
-  height: auto;
-  aspect-ratio: 36 / 25;
-  background: #fbf3de;
-}
-
-.tyg-motif-name {
-  padding: 7px 10px 8px;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  overflow-wrap: anywhere;
-}
-
-/* The chosen tile keeps its size: the thicker line is drawn inside the tile, not added to it. */
-.tyg-motif.is-chosen {
-  border-color: var(--tyg-accent-line);
-  box-shadow: inset 0 0 0 1.5px var(--tyg-accent-line);
-}
-
-.tyg-motif.is-chosen .tyg-motif-name {
-  color: var(--tyg-accent);
-  font-weight: 700;
-}
-
-/* The tick stands on the picture, whose ground is light in both themes: its own colours. */
-.tyg-motif-check {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: #8a6124;
-  color: #fff;
-}
-
 .tyg-card {
   display: flex;
   flex-direction: column;
@@ -863,8 +823,16 @@ async function create() {
   text-decoration: underline;
 }
 
+/* What is missing, and why a greeting was not made. On the light page the house's red for a
+   field in error (#dc3545) stands at 4.2 : 1 -- it is made for a white card --, so these
+   sentences take a deeper red there (6 : 1 on the page, 6.5 on the card); on the dark page the
+   theme's own, lighter red. */
 .tyg-error {
-  color: var(--bs-form-invalid-color, #dc3545);
+  color: #b02a37;
+}
+
+.dark-mode .tyg-error {
+  color: var(--bs-form-invalid-color, #ea868f);
 }
 
 /* The amount is the small thing here: a short field and a label like the others'. */
@@ -907,8 +875,7 @@ async function create() {
 /* Whoever walks the page with the keyboard sees where they are. */
 .tyg-back:focus-visible,
 .tyg-link:focus-visible,
-.tyg-chip:focus-visible,
-.tyg-motif:focus-visible {
+.tyg-chip:focus-visible {
   outline: 2px solid var(--tyg-accent);
   outline-offset: 2px;
 }

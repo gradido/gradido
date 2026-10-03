@@ -5,7 +5,9 @@ import { createStore } from 'vuex'
 import { BFormGroup, BFormInput, BFormInvalidFeedback, BFormTextarea } from 'bootstrap-vue-next'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import i18n from '@/i18n'
-import { createTransactionLink } from '@/graphql/mutations'
+import { forgetAllGreetingPictures, greetingPicture } from '@/composables/useGreetingPictures'
+import { addThankYouGreetingPicture, createTransactionLink } from '@/graphql/mutations'
+import { THANK_YOU_PICTURE_GROUND } from '@/utils/thankYouPicture'
 import ThankYouGreeting from './ThankYouGreeting.vue'
 
 /**
@@ -14,29 +16,64 @@ import ThankYouGreeting from './ThankYouGreeting.vue'
  * with the arrow, the back key and the forward key -- not what a stub of the router would
  * agree to. Only the server is stood in for.
  */
-const server = vi.hoisted(() => ({ documents: [], mutate: null }))
+const server = vi.hoisted(() => ({ documents: [], mutate: null, add: null }))
 vi.mock('@vue/apollo-composable', () => ({
   useMutation: (document) => {
     server.documents.push(document)
-    return { mutate: (...args) => server.mutate(...args) }
+    // `mutate` makes the link; `add` takes the large rendition of a photo afterwards.
+    return {
+      mutate: (...args) =>
+        document === addThankYouGreetingPicture ? server.add(...args) : server.mutate(...args),
+    }
   },
 }))
+
+/**
+ * A photo of one's own: opening the file, the picture for the eye and the two renditions have
+ * their own specs (utils/chatImage.spec.js, utils/thankYouPicture.spec.js) -- jsdom decodes and
+ * paints nothing --, and so has the editor. Here they answer as a test says.
+ */
+const pictures = vi.hoisted(() => ({
+  openChatImage: vi.fn(),
+  thankYouPicturePreview: vi.fn(),
+  encodeThankYouPictures: vi.fn(),
+}))
+vi.mock('@/utils/chatImage', async (importOriginal) => ({
+  ...(await importOriginal()),
+  openChatImage: (...args) => pictures.openChatImage(...args),
+}))
+vi.mock('@/utils/thankYouPicture', async (importOriginal) => ({
+  ...(await importOriginal()),
+  thankYouPicturePreview: (...args) => pictures.thankYouPicturePreview(...args),
+  encodeThankYouPictures: (...args) => pictures.encodeThankYouPictures(...args),
+}))
+
+/** The editor as far as the page uses it: what it was handed, and its "Fertig". */
+const EditorStub = {
+  name: 'ChatImageEditor',
+  props: { modelValue: Boolean, source: Object, edit: Object },
+  emits: ['update:modelValue', 'done'],
+  template: '<div data-test="editor-stub" />',
+}
 
 const toast = vi.hoisted(() => ({ toastSuccess: vi.fn(), toastError: vi.fn() }))
 vi.mock('@/composables/useToast', () => ({ useAppToast: () => toast }))
 
 const LINK = 'https://ki-playground.gradido.net/redeem/a3f9c2d41b7e19981fa0c4e2'
+const LINK_ID = 4711
 const VALID_UNTIL = '2026-10-16T12:00:00.000Z'
 
-// What the server answers: the greeting as it was sent, with the link and the date.
-const answerTo = (variables) => ({
+// What the server answers: the greeting as it was sent, with the link, its id and the date. Of
+// a photo it says only that there is one -- never the picture itself.
+const answerTo = ({ amount, memo, greeting: { picture, ...greeting } }) => ({
   data: {
     createTransactionLink: {
+      id: LINK_ID,
       link: LINK,
-      amount: variables.amount,
-      memo: variables.memo,
+      amount,
+      memo,
       validUntil: VALID_UNTIL,
-      greeting: variables.greeting,
+      greeting: { ...greeting, hasPicture: picture != null },
     },
   },
 })
@@ -81,6 +118,7 @@ const open = async (path = '/thank-you-greeting', { balance = 100 } = {}) => {
         ],
         // The house's input (ValidatedInput) takes these from the app's global registration.
         components: { BFormGroup, BFormInput, BFormInvalidFeedback, BFormTextarea },
+        stubs: { ChatImageEditor: EditorStub },
       },
       attachTo: document.body,
     },
@@ -122,17 +160,61 @@ const toPreview = async (form) => {
   await next()
 }
 
+/** A phone's photo as openChatImage hands it on, and what is made of it. */
+const PHOTO = { image: { name: 'photo' }, width: 3000, height: 4000 }
+const CARD_EDIT = {
+  turn: 0,
+  mirrored: false,
+  shape: 'original',
+  zoom: 1,
+  panX: 0,
+  panY: 0,
+  frame: 36 / 25,
+  ground: THANK_YOU_PICTURE_GROUND,
+}
+const PREVIEW = 'data:image/jpeg;base64,PREVIEW'
+const SMALL = { data: 'SMALL-JPEG', width: 831, height: 577, bytes: 30000 }
+const LARGE = { data: 'LARGE-JPEG', width: 1080, height: 750, bytes: 66000 }
+
+const editor = () => wrapper.findComponent(EditorStub)
+
+/** On the step "Bild": a photo chosen from the device, and "Fertig" in the editor. */
+const choosePhoto = async (edit = CARD_EDIT) => {
+  const field = data('photo-picker')
+  Object.defineProperty(field.element, 'files', {
+    value: [new File(['x'], 'oma.jpg', { type: 'image/jpeg' })],
+    configurable: true,
+  })
+  await field.trigger('change')
+  await flushPromises()
+  editor().vm.$emit('done', edit)
+  await flushPromises()
+}
+
+/** A promise a test settles when it wants. */
+const deferred = () => {
+  const settle = {}
+  const promise = new Promise((resolve, reject) => Object.assign(settle, { resolve, reject }))
+  return { promise, ...settle }
+}
+
 describe('ThankYouGreeting', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     i18n.global.locale.value = 'de'
     server.documents = []
     server.mutate = vi.fn((variables) => Promise.resolve(answerTo(variables)))
+    server.add = vi.fn(() => Promise.resolve({ data: { addThankYouGreetingPicture: true } }))
+    pictures.openChatImage.mockResolvedValue(PHOTO)
+    pictures.thankYouPicturePreview.mockReturnValue(PREVIEW)
+    pictures.encodeThankYouPictures.mockResolvedValue({ small: SMALL, large: LARGE })
     window.history.replaceState(null, '', '/')
   })
 
   afterEach(() => {
     wrapper?.unmount()
+    forgetAllGreetingPictures()
+    vi.unstubAllGlobals()
   })
 
   describe('the picture', () => {
@@ -140,7 +222,7 @@ describe('ThankYouGreeting', () => {
       await open()
 
       expect(wrapper.text()).toContain('Welches Bild soll Dein Gruß tragen?')
-      const tiles = wrapper.findAll('.tyg-motif')
+      const tiles = wrapper.findAll('.tyg-motifs > button')
       expect(tiles.map((tile) => tile.text())).toEqual([
         'Herz und Blätter',
         'Gebende Hände',
@@ -171,12 +253,15 @@ describe('ThankYouGreeting', () => {
       expect(pressed()).toEqual(['Morgenlicht'])
     })
 
-    // Slice 5 and 6: no photo of one's own, no camera.
-    it('offers nothing but the five motifs and the way on', async () => {
+    // Sixth, a photo of one's own; and under the tiles, where the device has one, the camera
+    // (jsdom knows no kind of pointer, which is how a phone answers: ThankYouPictureChoice.spec).
+    it('offers a photo of one’s own beside the five motifs, and the camera', async () => {
       await open()
 
-      expect(wrapper.findAll('.tyg-motifs button')).toHaveLength(5)
-      expect(wrapper.find('input[type="file"]').exists()).toBe(false)
+      expect(wrapper.findAll('.tyg-motif')).toHaveLength(6)
+      expect(data('own').text()).toBe('Eigenes Foto')
+      expect(data('camera').text()).toBe('Foto aufnehmen')
+      expect(wrapper.findAll('input[type="file"]')).toHaveLength(2)
     })
 
     it('shows the three steps, the first of them the current one', async () => {
@@ -469,8 +554,11 @@ describe('ThankYouGreeting', () => {
       await data('finish').trigger('click')
       await settle()
 
-      expect(server.documents).toEqual([createTransactionLink])
+      expect(server.documents).toEqual([createTransactionLink, addThankYouGreetingPicture])
       expect(server.mutate).toHaveBeenCalledTimes(1)
+      // ⛔ A greeting with a motif is, line for line, the one it was: one request, no picture.
+      expect(server.add).not.toHaveBeenCalled()
+      expect(pictures.encodeThankYouPictures).not.toHaveBeenCalled()
       const [sent] = server.mutate.mock.calls[0]
       expect(sent).toEqual({
         amount: '12.5',
@@ -609,6 +697,508 @@ describe('ThankYouGreeting', () => {
         answer.resolve()
         await settle()
         expect(step()).toBe('done')
+      })
+
+      // What is thrown need not be an error -- a text, or nothing at all: the page still says
+      // something, and the button is free again.
+      it('says something and frees the button where what was thrown is no error', async () => {
+        answer.reject('the line is gone')
+        await settle()
+
+        expect(step()).toBe('preview')
+        expect(data('create-error').text()).toBe('the line is gone')
+        expect(data('finish').attributes('disabled')).toBeUndefined()
+      })
+
+      it('and stays usable where nothing at all was thrown', async () => {
+        answer.reject(undefined)
+        await settle()
+
+        expect(step()).toBe('preview')
+        expect(data('create-error').exists()).toBe(true)
+        expect(data('finish').attributes('disabled')).toBeUndefined()
+      })
+    })
+  })
+
+  /**
+   * A photo of the member's own in the place of a motif (ZE-019, ZE-024). Making the greeting is
+   * a chain then, and each of its steps runs once: both renditions are made, the link goes with
+   * the small one, the large one follows in a request of its own.
+   */
+  describe('a greeting with a photo of one’s own', () => {
+    const finish = async () => {
+      await data('finish').trigger('click')
+      await settle()
+    }
+    const greetingSent = () => server.mutate.mock.calls[0][0].greeting
+
+    describe('choosing it', () => {
+      it('puts the photo into its tile as the choice, and no motif is chosen', async () => {
+        await open()
+
+        await choosePhoto()
+
+        expect(pictures.thankYouPicturePreview).toHaveBeenCalledWith(PHOTO, CARD_EDIT)
+        expect(data('photo-picture').attributes('src')).toBe(PREVIEW)
+        expect(data('photo').attributes('aria-pressed')).toBe('true')
+        expect(
+          wrapper
+            .findAll('.tyg-motifs > button')
+            .every((tile) => tile.attributes('aria-pressed') === 'false'),
+        ).toBe(true)
+        expect(wrapper.findAll('.tyg-motif-check')).toHaveLength(1)
+      })
+
+      // The choice leaves the page with the step and comes back with it: the photo is the page's.
+      it('keeps the photo in its tile over the steps and back', async () => {
+        await open()
+        await choosePhoto()
+        await next()
+        expect(data('own').exists()).toBe(false)
+
+        await historyGo(-1)
+
+        expect(step()).toBe('picture')
+        expect(data('photo-picture').attributes('src')).toBe(PREVIEW)
+        expect(data('photo').attributes('aria-pressed')).toBe('true')
+      })
+
+      it('lets a motif be the choice again, the photo staying in its tile', async () => {
+        await open()
+        await choosePhoto()
+
+        await data('motif-bouquet').trigger('click')
+
+        expect(data('motif-bouquet').attributes('aria-pressed')).toBe('true')
+        expect(data('photo').attributes('aria-pressed')).toBe('false')
+        expect(data('photo-picture').attributes('src')).toBe(PREVIEW)
+      })
+
+      /**
+       * ⛔ The photo lives in the memory of the page only: the store is mirrored into the
+       * device's storage, and nothing of a picture may get there.
+       */
+      it('puts nothing of the photo into the store', async () => {
+        await open()
+        const store = wrapper.vm.$store
+        const before = JSON.stringify(store.state)
+        const committed = vi.spyOn(store, 'commit')
+        const dispatched = vi.spyOn(store, 'dispatch')
+
+        await choosePhoto()
+        await toPreview()
+        await finish()
+
+        expect(step()).toBe('done')
+        expect(committed).not.toHaveBeenCalled()
+        expect(dispatched).not.toHaveBeenCalled()
+        expect(JSON.stringify(store.state)).toBe(before)
+      })
+    })
+
+    /**
+     * The photo the member just made is shown as the page holds it -- on the last look and on
+     * "Fertig" -- without asking the server for it.
+     */
+    describe('showing it', () => {
+      const paperPhoto = () => wrapper.find('[data-test="redeem-thanks-paper-photo"]')
+
+      it('stands on the sheet of the last look, in the place of the motif', async () => {
+        await open()
+        await choosePhoto()
+        await toPreview()
+
+        expect(paperPhoto().attributes('src')).toBe(PREVIEW)
+        // whose photo it is: the member's own user name, as the sheet names the sender
+        expect(paperPhoto().attributes('alt')).toBe('Foto von Oma-Emma')
+        expect(wrapper.find('[data-test="redeem-thanks-paper-motif"]').exists()).toBe(false)
+        expect(wrapper.find('[data-test="redeem-thanks-paper-for"]').text()).toBe('FÜR SARAH')
+      })
+
+      it('gives way to the motif on the last look where a motif was chosen again', async () => {
+        await open()
+        await choosePhoto()
+        await data('motif-bouquet').trigger('click')
+        await toPreview()
+
+        expect(paperPhoto().exists()).toBe(false)
+        expect(wrapper.find('[data-test="redeem-thanks-paper-photo-room"]').exists()).toBe(false)
+        expect(wrapper.find('[data-test="redeem-thanks-paper-motif"]').attributes('src')).toBe(
+          '/img/thank-you-greeting/bouquet.svg',
+        )
+      })
+
+      it('stands on "Fertig", small, with the sentence that names it', async () => {
+        await open()
+        await choosePhoto()
+        await toPreview()
+        await data('finish').trigger('click')
+        await settle()
+
+        expect(data('done-photo').attributes('src')).toBe(PREVIEW)
+        expect(data('done-photo').attributes('alt')).toBe('Foto von Oma-Emma')
+        expect(data('done-motif').exists()).toBe(false)
+        expect(data('link-hint').text()).toBe(
+          'Wer den Link hat, sieht Dein Foto und kann den Dank annehmen. Schick ihn nur dem Menschen, für den er gedacht ist.',
+        )
+      })
+
+      // The photo that was SENT, even where another picture was chosen while the chain ran.
+      it('shows on "Fertig" the photo that was sent', async () => {
+        const encoding = deferred()
+        pictures.encodeThankYouPictures.mockReturnValue(encoding.promise)
+        await open()
+        await choosePhoto()
+        await toPreview()
+        await data('finish').trigger('click')
+        await flushPromises()
+        await historyGo(-1)
+        await historyGo(-1)
+        pictures.thankYouPicturePreview.mockReturnValue('data:image/jpeg;base64,ANOTHER')
+        await choosePhoto()
+
+        encoding.resolve({ small: SMALL, large: LARGE })
+        await settle()
+
+        expect(step()).toBe('done')
+        expect(data('done-photo').attributes('src')).toBe(PREVIEW)
+      })
+
+      it('asks the server for no picture, from the choice to "Fertig"', async () => {
+        const fetched = vi.fn()
+        vi.stubGlobal('fetch', fetched)
+        await open()
+        await choosePhoto()
+        await toPreview()
+        await data('finish').trigger('click')
+        await settle()
+
+        expect(step()).toBe('done')
+        expect(fetched).not.toHaveBeenCalled()
+        // two requests in all: the link, and the large rendition
+        expect(server.mutate).toHaveBeenCalledTimes(1)
+        expect(server.add).toHaveBeenCalledTimes(1)
+      })
+
+      /**
+       * The member's list of links shows the small rendition: kept from what was just sent,
+       * under the id of the link the server made -- in memory, until the member signs out.
+       */
+      it('keeps the small rendition for the list of links, under the id of the link', async () => {
+        await open()
+        await choosePhoto()
+        await toPreview()
+        expect(greetingPicture(LINK_ID)).toBeNull()
+
+        await data('finish').trigger('click')
+        await settle()
+
+        expect(greetingPicture(LINK_ID)).toEqual({
+          state: 'ready',
+          src: 'data:image/jpeg;base64,SMALL-JPEG',
+        })
+      })
+
+      it('keeps no picture for a greeting with a motif', async () => {
+        await open()
+        await toPreview()
+        await data('finish').trigger('click')
+        await settle()
+
+        expect(greetingPicture(LINK_ID)).toBeNull()
+        expect(data('done-motif').exists()).toBe(true)
+        expect(data('link-hint').text()).toBe(
+          'Wer den Link hat, kann den Dank annehmen. Schick ihn nur dem Menschen, für den er gedacht ist.',
+        )
+      })
+    })
+
+    describe('making it', () => {
+      it('makes both renditions of the photo as it was cut, once', async () => {
+        const edit = { ...CARD_EDIT, zoom: 0.52 }
+        await open()
+        await choosePhoto(edit)
+        await toPreview()
+        expect(pictures.encodeThankYouPictures).not.toHaveBeenCalled()
+
+        await finish()
+
+        expect(pictures.encodeThankYouPictures).toHaveBeenCalledTimes(1)
+        expect(pictures.encodeThankYouPictures).toHaveBeenCalledWith(PHOTO, edit)
+      })
+
+      it('sends the link with the small rendition in the place of the motif', async () => {
+        await open()
+        await choosePhoto()
+        await toPreview({ amount: '12,5' })
+        await finish()
+
+        expect(server.mutate).toHaveBeenCalledTimes(1)
+        expect(server.mutate.mock.calls[0][0]).toEqual({
+          amount: '12.5',
+          memo: 'Einfach so — weil es Dich gibt.\nEure Oma',
+          greeting: {
+            // a motif or a photo, never both
+            motif: null,
+            line: 'Einfach so — weil es Dich gibt.',
+            recipientName: 'Sarah',
+            // the JPEG and its size, as a chat picture goes: no bytes, nothing else
+            picture: { data: 'SMALL-JPEG', width: 831, height: 577 },
+          },
+        })
+      })
+
+      it('sends the large rendition afterwards, for the link the server made', async () => {
+        await open()
+        await choosePhoto()
+        await toPreview()
+        await finish()
+
+        expect(server.add).toHaveBeenCalledTimes(1)
+        expect(server.add).toHaveBeenCalledWith({
+          linkId: LINK_ID,
+          picture: { data: 'LARGE-JPEG', width: 1080, height: 750 },
+        })
+        expect(server.mutate.mock.invocationCallOrder[0]).toBeLessThan(
+          server.add.mock.invocationCallOrder[0],
+        )
+        expect(step()).toBe('done')
+        expect(updates).toHaveBeenCalledTimes(1)
+      })
+
+      it('sends the motif alone where a motif was chosen again after the photo', async () => {
+        await open()
+        await choosePhoto()
+        await data('motif-bouquet').trigger('click')
+        await toPreview()
+        await finish()
+
+        expect(greetingSent()).toEqual({
+          motif: 'bouquet',
+          line: 'Einfach so — weil es Dich gibt.',
+          recipientName: 'Sarah',
+        })
+        expect(pictures.encodeThankYouPictures).not.toHaveBeenCalled()
+        expect(server.add).not.toHaveBeenCalled()
+      })
+
+      // A photo that could not be made large enough for the page goes with the small one alone.
+      it('sends no second request where there is no large rendition', async () => {
+        pictures.encodeThankYouPictures.mockResolvedValue({ small: SMALL, large: null })
+        await open()
+        await choosePhoto()
+        await toPreview()
+        await finish()
+
+        expect(server.mutate).toHaveBeenCalledTimes(1)
+        expect(server.add).not.toHaveBeenCalled()
+        expect(step()).toBe('done')
+      })
+    })
+
+    /** ⛔ The button is locked for the whole chain, and no step of it runs twice. */
+    describe('while the chain is under way', () => {
+      let encoding
+      let making
+      let adding
+
+      beforeEach(async () => {
+        encoding = deferred()
+        making = deferred()
+        adding = deferred()
+        pictures.encodeThankYouPictures.mockReturnValue(encoding.promise)
+        server.mutate = vi.fn((variables) => making.promise.then(() => answerTo(variables)))
+        server.add = vi.fn(() => adding.promise)
+        await open()
+        await choosePhoto()
+        await toPreview()
+        await data('finish').trigger('click')
+        await flushPromises()
+      })
+
+      const pressAgain = async () => {
+        await data('finish').trigger('click')
+        wrapper
+          .findAllComponents({ name: 'BButton' })
+          .find((candidate) => candidate.attributes('data-test') === 'thank-you-greeting-finish')
+          .vm.$emit('click', new MouseEvent('click'))
+        await flushPromises()
+      }
+      const locked = () => data('finish').attributes('disabled') !== undefined
+
+      it('is locked while the renditions are made, and sends nothing yet', async () => {
+        expect(locked()).toBe(true)
+        expect(data('back').attributes('disabled')).toBeDefined()
+
+        await pressAgain()
+
+        expect(pictures.encodeThankYouPictures).toHaveBeenCalledTimes(1)
+        expect(server.mutate).not.toHaveBeenCalled()
+        expect(server.add).not.toHaveBeenCalled()
+      })
+
+      it('is locked while the link is made, and the large rendition waits for it', async () => {
+        encoding.resolve({ small: SMALL, large: LARGE })
+        await flushPromises()
+        expect(locked()).toBe(true)
+
+        await pressAgain()
+
+        expect(pictures.encodeThankYouPictures).toHaveBeenCalledTimes(1)
+        expect(server.mutate).toHaveBeenCalledTimes(1)
+        expect(server.add).not.toHaveBeenCalled()
+        expect(step()).toBe('preview')
+      })
+
+      // "Fertig" appears only after the large rendition is through.
+      it('is locked while the large rendition is sent, and shows no result yet', async () => {
+        encoding.resolve({ small: SMALL, large: LARGE })
+        making.resolve()
+        await flushPromises()
+        expect(locked()).toBe(true)
+        expect(step()).toBe('preview')
+        expect(data('done').exists()).toBe(false)
+        expect(updates).not.toHaveBeenCalled()
+
+        await pressAgain()
+
+        expect(pictures.encodeThankYouPictures).toHaveBeenCalledTimes(1)
+        expect(server.mutate).toHaveBeenCalledTimes(1)
+        expect(server.add).toHaveBeenCalledTimes(1)
+
+        adding.resolve({ data: { addThankYouGreetingPicture: true } })
+        await settle()
+        expect(step()).toBe('done')
+        expect(data('done').exists()).toBe(true)
+        expect(updates).toHaveBeenCalledTimes(1)
+      })
+
+      /**
+       * ⛔ The large rendition may fail without a word: the greeting stands, the page of its link
+       * shows the small one. No error for the member, and no second try.
+       */
+      it('shows the result where the large rendition did not get through', async () => {
+        encoding.resolve({ small: SMALL, large: LARGE })
+        making.resolve()
+        await flushPromises()
+
+        adding.reject(new Error('Network error'))
+        await settle()
+
+        expect(step()).toBe('done')
+        expect(data('done').exists()).toBe(true)
+        expect(data('create-error').exists()).toBe(false)
+        expect(server.add).toHaveBeenCalledTimes(1)
+        expect(server.mutate).toHaveBeenCalledTimes(1)
+        expect(updates).toHaveBeenCalledTimes(1)
+      })
+
+      // The server says no -- the link was accepted meanwhile, or is no longer open: the same.
+      it('shows the result where the server did not take the large rendition', async () => {
+        encoding.resolve({ small: SMALL, large: LARGE })
+        making.resolve()
+        await flushPromises()
+
+        adding.resolve({ data: { addThankYouGreetingPicture: false } })
+        await settle()
+
+        expect(step()).toBe('done')
+        expect(server.add).toHaveBeenCalledTimes(1)
+      })
+
+      /**
+       * What is sent is the greeting as it stood at the press. The back key is not the page's to
+       * lock: the member may walk back and choose a motif while the renditions are being made.
+       */
+      it('sends the photo that was chosen at the press, whatever is chosen meanwhile', async () => {
+        await historyGo(-1)
+        await historyGo(-1)
+        expect(step()).toBe('picture')
+        await data('motif-bouquet').trigger('click')
+
+        encoding.resolve({ small: SMALL, large: LARGE })
+        making.resolve()
+        adding.resolve({ data: { addThankYouGreetingPicture: true } })
+        await settle()
+
+        expect(server.mutate.mock.calls[0][0].greeting).toMatchObject({
+          motif: null,
+          picture: { data: 'SMALL-JPEG', width: 831, height: 577 },
+        })
+        expect(server.add).toHaveBeenCalledTimes(1)
+        expect(step()).toBe('done')
+      })
+
+      // The greeting gets its large rendition even where the member has left the page.
+      it('finishes the chain for a member who left for another page, and pulls nobody back', async () => {
+        await router.push('/overview')
+        await settle()
+
+        encoding.resolve({ small: SMALL, large: LARGE })
+        making.resolve()
+        adding.resolve({ data: { addThankYouGreetingPicture: true } })
+        await settle()
+
+        expect(server.mutate).toHaveBeenCalledTimes(1)
+        expect(server.add).toHaveBeenCalledTimes(1)
+        expect(router.currentRoute.value.fullPath).toBe('/overview')
+      })
+
+      it('says so where the photo cannot be made small enough, and sends nothing', async () => {
+        encoding.reject(
+          Object.assign(new Error('CHAT_IMAGE_NOT_SMALL_ENOUGH'), {
+            name: 'ChatImageError',
+            problem: 'NOT_SMALL_ENOUGH',
+          }),
+        )
+        await settle()
+
+        expect(step()).toBe('preview')
+        expect(data('create-error').text()).toBe(
+          'Dieses Bild lässt sich nicht klein genug rechnen.',
+        )
+        expect(server.mutate).not.toHaveBeenCalled()
+        expect(server.add).not.toHaveBeenCalled()
+        expect(updates).not.toHaveBeenCalled()
+        expect(locked()).toBe(false)
+      })
+
+      it('says so where the server did not take the photo, and lets the member try again', async () => {
+        encoding.resolve({ small: SMALL, large: LARGE })
+        server.mutate.mockImplementationOnce(() =>
+          Promise.reject(new Error('CHAT_IMAGE_NOT_ACCEPTED: TOO_LARGE')),
+        )
+        await settle()
+
+        expect(step()).toBe('preview')
+        expect(data('create-error').text()).toBe('Das Bild wurde nicht angenommen.')
+        expect(server.add).not.toHaveBeenCalled()
+        expect(updates).not.toHaveBeenCalled()
+        expect(locked()).toBe(false)
+
+        // Another go is the member's own: the chain runs anew, each step once more.
+        making.resolve()
+        adding.resolve({ data: { addThankYouGreetingPicture: true } })
+        await data('finish').trigger('click')
+        await settle()
+
+        expect(data('create-error').exists()).toBe(false)
+        expect(pictures.encodeThankYouPictures).toHaveBeenCalledTimes(2)
+        expect(server.mutate).toHaveBeenCalledTimes(2)
+        expect(server.add).toHaveBeenCalledTimes(1)
+        expect(step()).toBe('done')
+      })
+
+      it('says what went wrong where the link was not made, and sends no large rendition', async () => {
+        encoding.resolve({ small: SMALL, large: LARGE })
+        making.reject(new Error('User has not enough GDD'))
+        await settle()
+
+        expect(step()).toBe('preview')
+        expect(data('create-error').text()).toBe('User has not enough GDD')
+        expect(server.add).not.toHaveBeenCalled()
+        expect(locked()).toBe(false)
       })
     })
   })

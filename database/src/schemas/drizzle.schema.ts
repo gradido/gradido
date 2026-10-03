@@ -1028,3 +1028,52 @@ export const thankYouGreetingsTable = mysqlTable(
 
 export type ThankYouGreetingSelect = typeof thankYouGreetingsTable.$inferSelect
 export type ThankYouGreetingInsert = typeof thankYouGreetingsTable.$inferInsert
+
+/**
+ * The two renditions of a greeting's own picture (ZE-019): the small one, in the chat's
+ * measure, stays with the booking the greeting becomes; the large one serves the page the link
+ * opens as and goes when the thank-you is accepted or deleted.
+ */
+export const ThankYouGreetingPictureRendition = { SMALL: 'small', LARGE: 'large' } as const
+export type ThankYouGreetingPictureRendition =
+  (typeof ThankYouGreetingPictureRendition)[keyof typeof ThankYouGreetingPictureRendition]
+
+// The picture of a thank-you greeting that carries a photo of the member's own instead of a
+// motif (migration 0153), stored in the form of a chat message's picture (`chat_message_images`)
+// and of the avatar: the JPEG's bytes in a mediumblob, its mime type, a time stamp -- so that
+// every kind of picture can move to another storage in one go (E-041). One row for each
+// rendition.
+//
+// ⛔ Hung on the link's `code`, as the greeting is: both are filed BEFORE their link
+// (createTransactionLink). No foreign key -- a link is soft-deleted.
+//
+// ⛔ A table of its own, not columns of `thank_you_greetings`: the lists of links and of
+// bookings read a greeting's whole row, and a picture there would travel with every one of them.
+// `image` is read by one query only (dbSelectThankYouGreetingPictureImage), for one picture,
+// after the rule has said who is asking (backend/src/data/ThankYouGreetingPicture.logic.ts).
+export const thankYouGreetingPicturesTable = mysqlTable(
+  'thank_you_greeting_pictures',
+  {
+    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
+    transactionLinkCode: varchar('transaction_link_code', { length: 24 }).notNull(),
+    rendition: varchar({ length: 8 }).$type<ThankYouGreetingPictureRendition>().notNull(),
+    // The wallet's word, as for a chat picture: without a decoder the server bounds them only.
+    width: smallint({ unsigned: true }).notNull(),
+    height: smallint({ unsigned: true }).notNull(),
+    image: customMediumBlob('image').notNull(),
+    // Always 'image/jpeg', as in user_avatars.
+    mimeType: varchar('mime_type', { length: 32 }).notNull(),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex('thank_you_greeting_pictures_code_rendition_unique').on(
+      table.transactionLinkCode,
+      table.rendition,
+    ),
+  ],
+)
+
+export type ThankYouGreetingPictureSelect = typeof thankYouGreetingPicturesTable.$inferSelect
+export type ThankYouGreetingPictureInsert = typeof thankYouGreetingPicturesTable.$inferInsert

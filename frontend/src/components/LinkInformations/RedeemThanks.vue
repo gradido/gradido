@@ -21,10 +21,13 @@
         {{ $t('redeem-thanks.arrived-title') }}
       </h2>
       <p class="redeem-thanks-closed-text" data-test="redeem-thanks-text">{{ arrivedText }}</p>
+      <!-- ⛔ The photo of a greeting stays as the page holds it: after the thank-you is
+           accepted the server serves it under the link's address no more. -->
       <redeem-thanks-paper
         v-if="linkData.greeting"
         class="redeem-thanks-arrived-paper"
         :link-data="linkData"
+        :picture="picture"
         short
       />
       <!-- The answer is a message in the conversation with whoever thanked; the greeting
@@ -155,6 +158,7 @@
       v-else-if="isGuest && accountFormOpen"
       :link-data="linkData"
       :accepting="accepting"
+      :picture="picture"
       @submit="$emit('open-account', $event)"
     >
       <redeem-thanks-have-account
@@ -170,7 +174,7 @@
       <h2 class="h4 redeem-thanks-title" data-test="redeem-thanks-title">
         {{ openTitle }}
       </h2>
-      <redeem-thanks-paper :link-data="linkData" />
+      <redeem-thanks-paper :link-data="linkData" :picture="picture" />
 
       <template v-if="isOwn">
         <p class="redeem-thanks-own-text" data-test="redeem-thanks-own-text">
@@ -280,6 +284,10 @@ const props = defineProps({
   accepting: { type: Boolean, default: false },
   // What just happened on this page: 'arrived' or 'almost' (see above). Null otherwise.
   stage: { type: String, default: null },
+  // The photo of a greeting that carries one, as the page fetched it once from the address of
+  // the open link: the sheet, the strip over the account form and "Dein Dank ist da." show the
+  // same one. Null where none has come.
+  picture: { type: String, default: null },
 })
 
 defineEmits(['accept', 'open-account'])

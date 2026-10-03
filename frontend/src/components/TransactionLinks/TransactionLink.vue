@@ -105,8 +105,17 @@
              width and stays as it is -- no picture and no circle before it (see the notes at
              the row). The motif as an <img>, never inlined: the motifs share gradient ids. -->
         <div v-if="greeting" class="transaction-link-greeting" data-test="link-greeting">
+          <!-- A photo of the member's own in the place of a motif: its small rendition, asked
+               for by the id of the link once the row is in sight. The room is as small as a
+               motif's here, so what there is to say of a photo that is gone stands beside it. -->
+          <thank-you-greeting-photo
+            v-if="greeting.hasPicture"
+            class="transaction-link-greeting-motif"
+            :link-id="id"
+            :alt="photoAlt"
+          />
           <img
-            v-if="motif"
+            v-else-if="motif"
             class="transaction-link-greeting-motif"
             :src="motif.src"
             :alt="motif.name"
@@ -115,6 +124,13 @@
           />
           <span class="transaction-link-greeting-label" data-test="link-greeting-label">
             {{ greetingLabel }}
+            <span
+              v-if="photoMissing"
+              class="transaction-link-greeting-missing"
+              data-test="link-greeting-photo-missing"
+            >
+              {{ $t('chatThread.imageMissing') }}
+            </span>
           </span>
         </div>
         <div class="transaction-link-memo" data-test="link-memo"><memo-text :memo="memo" /></div>
@@ -153,13 +169,17 @@
 import { computed, ref } from 'vue'
 import { useMutation } from '@vue/apollo-composable'
 import { useI18n } from 'vue-i18n'
+import { useStore } from 'vuex'
 import { useAppToast } from '@/composables/useToast'
 import { useCopyLinks } from '@/composables/useCopyLinks'
+import { greetingPicture } from '@/composables/useGreetingPictures'
 import { useThankYouCheque } from '@/composables/useThankYouCheque'
 import { deleteTransactionLink } from '@/graphql/mutations'
 import MemoText from '@/components/TransactionRows/MemoText'
 import AppModal from '@/components/AppModal'
 import FigureQrCode from '@/components/QrCode/FigureQrCode'
+import ThankYouGreetingPhoto from '@/components/ThankYouGreeting/ThankYouGreetingPhoto.vue'
+import { memberAlias } from '@/utils/gradidoAddress'
 import {
   THANK_YOU_MOTIF_HEIGHT,
   THANK_YOU_MOTIF_WIDTH,
@@ -173,8 +193,8 @@ const props = defineProps({
   validUntil: { type: String, required: true },
   link: { type: String, required: true },
   memo: { type: String, required: true },
-  // What makes the link a thank-you greeting -- motif, line, whom it is for; null for a
-  // plain link.
+  // What makes the link a thank-you greeting -- motif, line, whom it is for, and whether it
+  // carries a photo in the place of a motif; null for a plain link.
   greeting: { type: Object, default: null },
 })
 
@@ -184,6 +204,7 @@ const showDeleteLinkModal = ref(false)
 const emit = defineEmits(['reset-transaction-link-list'])
 
 const { t } = useI18n()
+const store = useStore()
 const { toastSuccess, toastError } = useAppToast()
 // A greeting is shared with its own sentence, the one its result page showed (useCopyLinks).
 const { copyLink, share } = useCopyLinks({
@@ -205,6 +226,16 @@ const { downloadThankYouCheque } = useThankYouCheque({
 const { mutate: deleteTransactionLinkMutation } = useMutation(deleteTransactionLink)
 
 const motif = computed(() => thankYouMotif(props.greeting?.motif, t))
+// The list is the member's own: the photo of a greeting in it is theirs, under their user name.
+const photoAlt = computed(() =>
+  t('thank-you-greeting.photo-of', {
+    name: memberAlias(store.state.username, store.state.gradidoID),
+  }),
+)
+// The server gave nothing for the photo (useGreetingPictures): the chat's sentence says so.
+const photoMissing = computed(
+  () => props.greeting?.hasPicture === true && greetingPicture(props.id)?.state === 'missing',
+)
 const greetingLabel = computed(() =>
   props.greeting?.recipientName
     ? t('thank-you-greeting.list.for', { name: props.greeting.recipientName })
@@ -277,7 +308,8 @@ const toggleQrModal = () => {
   overflow-wrap: anywhere;
 }
 
-/* At the motifs' own proportions (36 : 25); their ground is light in both themes. */
+/* At the motifs' own proportions (36 : 25); their ground is light in both themes. A photo, and
+   its room before it has come, stand in the same place. */
 .transaction-link-greeting-motif {
   flex-shrink: 0;
   width: 46px;
@@ -294,6 +326,16 @@ const toggleQrModal = () => {
 
 .transaction-link-greeting-label {
   min-width: 0;
+}
+
+/* What there is to say of a photo that is gone, under the label: quieter than the label, in the
+   row's own colour. (Plain ASCII in this block: with any other letter in it sass heads the
+   stylesheet with a charset rule, and TransactionLink.darkMode.spec.js reads that as a part of
+   the first selector.) */
+.transaction-link-greeting-missing {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 400;
 }
 
 .transaction-link-memo {

@@ -114,6 +114,8 @@ vi.mock('@/config', () => ({
     CROSS_TX_REDEEM_LINK_ACTIVE: false,
     COMMUNITY_NAME: 'KI Playground',
     COMMUNITY_URL: 'https://ki-playground.gradido.net',
+    // The server the wallet talks to: the photo of a greeting is fetched from it.
+    GRAPHQL_URI: 'https://ki-playground.gradido.net/graphql',
   },
 }))
 
@@ -336,6 +338,32 @@ const underway = () => {
   return { answer, ...settle }
 }
 
+/** A greeting that carries a photo of the sender's own in the place of a motif (ZE-019). */
+const photoLink = (overrides = {}) =>
+  greetingLink({
+    greeting: {
+      __typename: 'ThankYouGreeting',
+      motif: null,
+      line: 'Einfach so — weil es Dich gibt.',
+      recipientName: 'Sarah',
+      hasPicture: true,
+    },
+    ...overrides,
+  })
+/** Where the server serves the photo of the open link, and what the page makes of the answer. */
+const PHOTO_URL = `https://ki-playground.gradido.net/api/thank-you-greeting-picture/${CODE}`
+const PHOTO_ADDRESS = 'blob:photo-of-the-link'
+/** The server serves the photo -- or, with `ok: false`, its one empty answer. */
+const servesPhoto = ({ ok = true } = {}) => {
+  const fetched = vi.fn().mockResolvedValue({
+    ok,
+    status: ok ? 200 : 404,
+    blob: () => Promise.resolve(new Blob(ok ? ['JPEG'] : [], { type: ok ? 'image/jpeg' : '' })),
+  })
+  vi.stubGlobal('fetch', fetched)
+  return fetched
+}
+
 describe('TransactionLink: a member’s redeem link is received as a thank-you', () => {
   // The fields of the form an account is opened with check themselves by the wallet's rules.
   beforeAll(() => {
@@ -356,6 +384,9 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
     cache.clear = vi.fn().mockResolvedValue()
     toasts.toastError = vi.fn()
     toasts.toastSuccess = vi.fn()
+    // jsdom makes no addresses of blobs.
+    URL.createObjectURL = vi.fn(() => PHOTO_ADDRESS)
+    URL.revokeObjectURL = vi.fn()
   })
 
   afterEach(() => {
@@ -709,6 +740,27 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
         await send(wrapper)
 
         expect(asked).toEqual(['createUser', 'login', 'redeem'])
+      })
+
+      /**
+       * A greeting with a photo: the page fetched it once for the sheet. The strip over the form
+       * and "Dein Dank ist da." show that same picture -- ⛔ the address is not asked again, it
+       * serves the photo no more once the thank-you is accepted.
+       */
+      it('keeps the photo of a greeting from the sheet to "Dein Dank ist da.", asked for once', async () => {
+        const photo = servesPhoto()
+        const { wrapper } = await ready(photoLink())
+        expect(wrapper.find('[data-test="redeem-thanks-strip-photo"]').attributes('src')).toBe(
+          PHOTO_ADDRESS,
+        )
+
+        await send(wrapper)
+
+        expect(thanks(wrapper).props('stage')).toBe('arrived')
+        expect(wrapper.find('[data-test="redeem-thanks-paper-photo"]').attributes('src')).toBe(
+          PHOTO_ADDRESS,
+        )
+        expect(photo).toHaveBeenCalledTimes(1)
       })
 
       // What the registration form sends -- language and publisher among it -- and with it the
@@ -1211,6 +1263,126 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
       expect(form(wrapper).exists()).toBe(false)
       expect(accept(wrapper).exists()).toBe(false)
       expect(apollo.createUser).not.toHaveBeenCalled()
+    })
+  })
+
+  /**
+   * The photo of a greeting that carries one (ZE-019): the page asks the address of the OPEN
+   * link for it, once, and holds it. Nothing is asked where there is no sheet to show it on.
+   */
+  describe('a greeting with a photo of the sender’s own', () => {
+    const photoOnSheet = (wrapper) => wrapper.find('[data-test="redeem-thanks-paper-photo"]')
+
+    it.each([
+      ['a guest', signedOut],
+      ['a member', signedInAs(ME)],
+      ['the sender', signedInAs(SENDER)],
+    ])(
+      'asks the address of the link for it and shows it on the sheet, for %s',
+      async (who, session) => {
+        const photo = servesPhoto()
+
+        const { wrapper } = await open(photoLink(), { session })
+
+        expect(photo).toHaveBeenCalledTimes(1)
+        // Without cookies and past every cache: the code in the address is all it takes.
+        expect(photo).toHaveBeenCalledWith(PHOTO_URL, { cache: 'no-store', credentials: 'omit' })
+        expect(thanks(wrapper).props('picture')).toBe(PHOTO_ADDRESS)
+        expect(photoOnSheet(wrapper).attributes('src')).toBe(PHOTO_ADDRESS)
+        expect(photoOnSheet(wrapper).attributes('alt')).toBe('Foto von Oma-Emma')
+      },
+    )
+
+    it('asks where redeeming across communities is switched on as well', async () => {
+      CONFIG.CROSS_TX_REDEEM_LINK_ACTIVE = true
+      const photo = servesPhoto()
+
+      const { wrapper } = await open(photoLink())
+
+      expect(thanks(wrapper).props('state')).toBe('REDEEM_SELECT_COMMUNITY')
+      expect(photo).toHaveBeenCalledTimes(1)
+      expect(photoOnSheet(wrapper).attributes('src')).toBe(PHOTO_ADDRESS)
+    })
+
+    // The room of the photo stands, in the colour of the card; nothing else on the sheet moves.
+    it('shows the sheet with the room of the photo where the server serves none', async () => {
+      servesPhoto({ ok: false })
+
+      const { wrapper } = await open(photoLink())
+
+      expect(thanks(wrapper).props('picture')).toBeNull()
+      expect(photoOnSheet(wrapper).exists()).toBe(false)
+      expect(wrapper.find('[data-test="redeem-thanks-paper-photo-room"]').exists()).toBe(true)
+      expect(wrapper.find('[data-test="redeem-thanks-paper-line"]').text()).toBe(
+        'Einfach so — weil es Dich gibt.',
+      )
+      expect(toasts.toastError).not.toHaveBeenCalled()
+    })
+
+    it('shows the sheet all the same where the line fails', async () => {
+      vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')))
+
+      const { wrapper } = await open(photoLink())
+
+      expect(wrapper.find('[data-test="redeem-thanks-paper-photo-room"]').exists()).toBe(true)
+      expect(accept(wrapper).exists()).toBe(true)
+      expect(toasts.toastError).not.toHaveBeenCalled()
+    })
+
+    it.each([
+      ['a greeting with a motif', () => greetingLink()],
+      ['a plain link', () => memberLink()],
+      ['a contribution link', () => contributionLink()],
+      ['a link from another community', () => linkFromElsewhere()],
+    ])('asks nothing for %s', async (kind, answer) => {
+      const photo = servesPhoto()
+
+      await open(answer())
+
+      expect(photo).not.toHaveBeenCalled()
+    })
+
+    // No sheet, no photo: the server would serve none for a link that is not open either.
+    it.each([
+      ['accepted', { redeemedAt: '2099-07-01T09:30:00.000Z' }],
+      ['run out', { validUntil: '2020-07-12T09:30:00.000Z' }],
+      ['deleted', { deletedAt: '2099-07-01T09:30:00.000Z' }],
+    ])('asks nothing for a link that is %s', async (state, dates) => {
+      const photo = servesPhoto()
+
+      const { wrapper } = await open(photoLink(dates), { session: signedInAs(SENDER) })
+
+      expect(photo).not.toHaveBeenCalled()
+      expect(wrapper.find('img').exists()).toBe(false)
+    })
+
+    /**
+     * ⛔ "Dein Dank ist da.": the photo stays as the page holds it, and the address is not asked
+     * again -- the large rendition is deleted with the booking.
+     */
+    it('keeps the photo when a member accepts, and does not ask for it again', async () => {
+      const photo = servesPhoto()
+      const { wrapper } = await open(photoLink(), { session: signedInAs(ME) })
+
+      photo.mockResolvedValue({ ok: false, status: 404, blob: () => Promise.resolve(new Blob([])) })
+      await accept(wrapper).trigger('click')
+      await flushPromises()
+
+      expect(thanks(wrapper).props('stage')).toBe('arrived')
+      expect(wrapper.findComponent(RedeemThanksPaper).props('short')).toBe(true)
+      expect(photoOnSheet(wrapper).attributes('src')).toBe(PHOTO_ADDRESS)
+      expect(photo).toHaveBeenCalledTimes(1)
+    })
+
+    it('gives the address of the picture back to the browser when the page is left', async () => {
+      servesPhoto()
+      const { wrapper, router } = await open(photoLink(), { session: signedInAs(ME) })
+      expect(photoOnSheet(wrapper).exists()).toBe(true)
+
+      await router.push('/overview')
+      await flushPromises()
+
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith(PHOTO_ADDRESS)
     })
   })
 

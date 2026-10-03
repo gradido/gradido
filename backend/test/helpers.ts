@@ -46,7 +46,8 @@ export const testEnvironment = async (testLogger = getLogger('apollo')) => {
   const testClient = createTestClient(server.apollo)
   const mutate = testClient.mutate
   const query = testClient.query
-  return { mutate, query, con, db: server.db }
+  // `app`: the Express application itself, for a test that asks an address outside GraphQL.
+  return { mutate, query, con, db: server.db, app: server.app }
 }
 
 // Taken while it is still the real one - see useFakeTimersForDrizzle.

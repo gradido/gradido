@@ -6,7 +6,25 @@
          come, so nothing under it moves when it does.
          ⛔ An <img>, never the SVG inlined: the motifs share the ids of their gradients. -->
     <slot name="picture">
-      <div v-if="motif" class="redeem-thanks-paper-picture">
+      <!-- A photo of the sender's own in the place of a motif (ZE-019). The page that shows the
+           sheet hands the picture in -- what it made itself, or what the address of an open
+           link served it; the sheet asks nobody. Until it has come, and where none comes, the
+           room stands in the colour of the card. -->
+      <div
+        v-if="greeting?.hasPicture"
+        class="redeem-thanks-paper-picture"
+        data-test="redeem-thanks-paper-photo-room"
+      >
+        <img
+          v-if="picture"
+          :src="picture"
+          :alt="photoAlt"
+          :width="THANK_YOU_MOTIF_WIDTH"
+          :height="THANK_YOU_MOTIF_HEIGHT"
+          data-test="redeem-thanks-paper-photo"
+        />
+      </div>
+      <div v-else-if="motif" class="redeem-thanks-paper-picture">
         <img
           :src="motif.src"
           :alt="motif.name"
@@ -89,6 +107,9 @@
  * motif above the words, "FÜR {NAME}", and its first line in handwriting -- the memo without
  * that line under it. One sheet for the page a link opens as and for the last look before a
  * greeting is made, so the two cannot drift apart. Without a greeting it is the sheet it was.
+ *
+ * A greeting with a photo of the sender's own (`greeting.hasPicture`) has that photo where the
+ * motif would stand, in the same room (`picture`).
  */
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -109,6 +130,9 @@ const props = defineProps({
   // Only the picture, whom it is for and the line: the sheet as a keepsake right after the
   // thank-you was accepted ("Dein Dank ist da."), with both buttons under it on one screen.
   short: { type: Boolean, default: false },
+  // The photo of a greeting that carries one, as an address an <img> can show; null until it
+  // has come, and where none comes.
+  picture: { type: String, default: null },
 })
 
 const { t, locale } = useI18n()
@@ -144,6 +168,9 @@ const senderName = computed(() =>
 
 // By code point, not by code unit: the first letter whole, whatever it is.
 const initial = computed(() => (Array.from(senderName.value)[0] ?? '').toUpperCase())
+
+// What the photo is, for whoever does not see it: whose it is, by the name the sheet shows.
+const photoAlt = computed(() => t('thank-you-greeting.photo-of', { name: senderName.value }))
 </script>
 
 <style lang="scss" scoped>
@@ -174,7 +201,10 @@ const initial = computed(() => (Array.from(senderName.value)[0] ?? '').toUpperCa
 }
 
 /* The room of the picture: the motifs are 360 x 250. A ground of their own colour until the
-   file is there; the picture fills the room whole. */
+   file is there; the picture fills the room whole. ⛔ That colour is also the margin of a photo
+   that was fitted in whole (THANK_YOU_PICTURE_GROUND, held by thankYouPicture.drift.spec.js): the
+   margin has to vanish into the room. A photo is 36 : 25 to a pixel's rounding, and `cover` takes
+   that pixel instead of stretching the picture. */
 .redeem-thanks-paper-picture {
   aspect-ratio: 36 / 25;
   background: #fbf3de;
@@ -183,6 +213,7 @@ const initial = computed(() => (Array.from(senderName.value)[0] ?? '').toUpperCa
     display: block;
     width: 100%;
     height: 100%;
+    object-fit: cover;
   }
 }
 

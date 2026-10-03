@@ -3,6 +3,11 @@ import { createI18n } from 'vue-i18n'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import TransactionLink from './TransactionLink.vue'
 import { createFilters } from '@/filters/amount'
+import {
+  forgetAllGreetingPictures,
+  rememberGreetingPicture,
+  requestGreetingPicture,
+} from '@/composables/useGreetingPictures'
 
 vi.mock('@/components/AppModal', () => ({
   default: {
@@ -80,8 +85,10 @@ describe('TransactionLink.vue', () => {
         qrCode: 'QR Code',
         delete: 'Delete',
         'thank-you-cheque': { download: 'Download cheque' },
+        chatThread: { imageMissing: 'Picture not available' },
         'thank-you-greeting': {
           name: 'Thank-you greeting',
+          'photo-of': 'Photo from {name}',
           list: { for: 'Thank-you greeting for {name}' },
           motif: {
             'heart-leaves': 'Heart and leaves',
@@ -112,7 +119,15 @@ describe('TransactionLink.vue', () => {
       global: {
         plugins: [i18n],
         mocks: { $filters: { GDD: filters.GDD } },
+        // The member whose list this is, as far as the row reads the store.
+        provide: { store: { state: { username: 'Oma-Emma', gradidoID: 'uuid-emma' } } },
         stubs: {
+          // The photo of a greeting has its own spec; here it is what the row hands it.
+          ThankYouGreetingPhoto: {
+            name: 'ThankYouGreetingPhoto',
+            props: { linkId: Number, alt: String, saysMissing: Boolean },
+            template: '<span data-test="photo-stub" />',
+          },
           BDropdown: { template: '<div class="dropdown"><slot /></div>' },
           BDropdownItem: { template: '<div class="dropdown-item"><slot /></div>' },
           BCard: true,
@@ -376,6 +391,103 @@ describe('TransactionLink.vue', () => {
         memo: MEMO,
         greeting: GREETING,
       })
+    })
+  })
+
+  /**
+   * A greeting with a photo of the member's own in the place of a motif (ZE-019): the row shows
+   * the small rendition, which the photo's own component asks for by the id of the link.
+   */
+  describe('a thank-you greeting with a photo', () => {
+    const GREETING = { motif: null, line: 'Just because', recipientName: 'Sarah', hasPicture: true }
+    const MEMO = 'Just because\nDear Sarah, thank you.'
+    const mark = () => wrapper.find('[data-test="link-greeting"]')
+    const photo = () => wrapper.findComponent({ name: 'ThankYouGreetingPhoto' })
+    const missing = () => wrapper.find('[data-test="link-greeting-photo-missing"]')
+    /** An Apollo client that answers every picture with what it is handed. */
+    const clientWith = (base64) => ({
+      query: () => Promise.resolve({ data: { thankYouGreetingPicture: base64 } }),
+    })
+    const settled = () => new Promise((resolve) => setTimeout(resolve, 0))
+
+    beforeEach(() => {
+      forgetAllGreetingPictures()
+    })
+
+    it('shows the photo in the place of the motif, asked for by the id of the link', () => {
+      mountLink({ id: 4711, greeting: GREETING, memo: MEMO })
+
+      expect(photo().exists()).toBe(true)
+      expect(photo().props('linkId')).toBe(4711)
+      // the room of a motif, 46 pixels wide: the same class
+      expect(photo().classes()).toContain('transaction-link-greeting-motif')
+      expect(mark().find('img').exists()).toBe(false)
+      expect(mark().find('[data-test="link-greeting-label"]').text()).toBe(
+        'Thank-you greeting for Sarah',
+      )
+    })
+
+    // The list is the member's own: the photo in it is theirs, under their user name.
+    it('says whose photo it is: the member’s own user name', () => {
+      mountLink({ greeting: GREETING, memo: MEMO })
+
+      expect(photo().props('alt')).toBe('Photo from Oma-Emma')
+    })
+
+    // A room of 46 pixels holds no sentence: the row says it beside the room.
+    it('leaves the room free of words', () => {
+      mountLink({ greeting: GREETING, memo: MEMO })
+
+      expect(photo().props('saysMissing')).toBe(false)
+    })
+
+    it('says under the label that the picture is not available where the server gave none', async () => {
+      requestGreetingPicture(clientWith(null), 4711)
+      await settled()
+
+      mountLink({ id: 4711, greeting: GREETING, memo: MEMO })
+
+      expect(missing().text()).toBe('Picture not available')
+      expect(mark().find('[data-test="link-greeting-label"]').text()).toBe(
+        'Thank-you greeting for Sarah Picture not available',
+      )
+    })
+
+    it('says nothing of a photo that is here, or that nobody has asked for yet', () => {
+      mountLink({ id: 4711, greeting: GREETING, memo: MEMO })
+      expect(missing().exists()).toBe(false)
+
+      rememberGreetingPicture(4712, 'U01BTEw=')
+      mountLink({ id: 4712, greeting: GREETING, memo: MEMO })
+      expect(missing().exists()).toBe(false)
+    })
+
+    // The sentence belongs to the photo of THIS link.
+    it('says nothing of a photo another link is missing', async () => {
+      requestGreetingPicture(clientWith(null), 4711)
+      await settled()
+
+      mountLink({ id: 4712, greeting: GREETING, memo: MEMO })
+
+      expect(missing().exists()).toBe(false)
+    })
+
+    it('keeps the motif for a greeting that carries no photo, and asks for none', () => {
+      mountLink({
+        greeting: { ...GREETING, motif: 'morning-light', hasPicture: false },
+        memo: MEMO,
+      })
+
+      expect(photo().exists()).toBe(false)
+      expect(mark().find('img').attributes('src')).toBe('/img/thank-you-greeting/morning-light.svg')
+      expect(missing().exists()).toBe(false)
+    })
+
+    it('hands the greeting to the composable that shares it, as it is', () => {
+      mockUseCopyLinks.mockClear()
+      mountLink({ greeting: GREETING, memo: MEMO })
+
+      expect(mockUseCopyLinks.mock.calls[0][0].greeting).toEqual(GREETING)
     })
   })
 

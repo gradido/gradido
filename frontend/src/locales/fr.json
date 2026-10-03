@@ -1549,6 +1549,7 @@
       "edit-hint": "Tu peux modifier la phrase avant l'envoi. Tes mots ne figurent que sur la carte.",
       "find-again": "Tu le retrouveras dans {transactions}, sous « {links} ».",
       "link-hint": "Toute personne qui a le lien peut accepter le remerciement. Envoie-le uniquement à la personne à qui il est destiné.",
+      "link-hint-photo": "Toute personne qui a le lien voit ta photo et peut accepter le remerciement. Envoie-le uniquement à la personne à qui il est destiné.",
       "sentence-lead": "Cette phrase l'accompagne :",
       "title": "Ton mot de remerciement est prêt.",
       "title-for": "Ton mot de remerciement pour {name} est prêt.",
@@ -1591,7 +1592,10 @@
     },
     "name": "Mot de remerciement",
     "next": "Continuer",
+    "photo-of": "Photo envoyée par {name}",
     "picture": {
+      "other": "Autre photo",
+      "own": "Ta propre photo",
       "question": "Quelle image pour ton petit mot ?"
     },
     "preview": {

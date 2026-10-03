@@ -35,6 +35,9 @@ export interface RequestBudget {
   chatVideoRoomsServed: number
   // Pictures of chat messages (chatMessageImage), capped at CHAT_IMAGES_MAX_PER_REQUEST.
   chatImagesServed: number
+  // Pictures of thank-you greetings (thankYouGreetingPicture), capped at
+  // THANK_YOU_GREETING_PICTURES_MAX_PER_REQUEST.
+  thankYouGreetingPicturesServed: number
 }
 
 /** A budget with nothing spent. The context function creates one per HTTP request. */
@@ -46,6 +49,7 @@ export const newRequestBudget = (): RequestBudget => ({
   chatUpdatesServed: 0,
   chatVideoRoomsServed: 0,
   chatImagesServed: 0,
+  thankYouGreetingPicturesServed: 0,
 })
 
 export interface Context {

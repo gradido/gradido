@@ -1549,6 +1549,7 @@
       "edit-hint": "Puedes cambiar la frase antes de enviarla. Tus palabras solo aparecen en la tarjeta.",
       "find-again": "Lo encontrarás de nuevo en {transactions}, en «{links}».",
       "link-hint": "Quien tenga el enlace puede aceptar el agradecimiento. Envíalo solo a la persona a la que va dirigido.",
+      "link-hint-photo": "Quien tenga el enlace ve tu foto y puede aceptar el agradecimiento. Envíalo solo a la persona a la que va dirigido.",
       "sentence-lead": "Esta frase lo acompaña:",
       "title": "Tu saludo de agradecimiento está listo.",
       "title-for": "Tu saludo de agradecimiento para {name} está listo.",
@@ -1591,7 +1592,10 @@
     },
     "name": "Saludo de agradecimiento",
     "next": "Continuar",
+    "photo-of": "Foto enviada por {name}",
     "picture": {
+      "other": "Otra foto",
+      "own": "Foto propia",
       "question": "¿Qué imagen quieres que lleve tu saludo?"
     },
     "preview": {

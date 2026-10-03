@@ -101,7 +101,22 @@
            An <img> and no button: it opens nothing. Its room stands before the file has come,
            so nothing under it moves when it does. What somebody else wrote stands as text. -->
       <template v-if="greeting">
-        <div v-if="motif" class="chat-bubble-greeting-picture">
+        <!-- A photo of the sender's own in the place of a motif: its small rendition, which the
+             two members of the booking may have -- asked for by the id of the link once the
+             bubble is in sight. In the same room, and no button either. -->
+        <div
+          v-if="hasPhoto"
+          class="chat-bubble-greeting-picture"
+          data-test="chat-bubble-greeting-photo"
+        >
+          <thank-you-greeting-photo
+            class="chat-bubble-greeting-photo"
+            :link-id="message.linkId ?? null"
+            :alt="t('thank-you-greeting.photo-of', { name: message.greetingSender ?? alias })"
+            says-missing
+          />
+        </div>
+        <div v-else-if="motif" class="chat-bubble-greeting-picture">
           <img
             :src="motif.src"
             :alt="motif.name"
@@ -236,6 +251,7 @@ import ChatMessageMenu from '@/components/Chat/ChatMessageMenu.vue'
 import ChatMessageText from '@/components/Chat/ChatMessageText'
 import ChatTransferCoin from '@/components/Chat/ChatTransferCoin.vue'
 import { ChatSearchText } from '@/components/Chat/chatSearchMarks'
+import ThankYouGreetingPhoto from '@/components/ThankYouGreeting/ThankYouGreetingPhoto.vue'
 import MemoText from '@/components/TransactionRows/MemoText'
 import Name from '@/components/TransactionRows/Name.vue'
 import { avatarZoomBindings } from '@/composables/useAvatarZoom'
@@ -415,14 +431,17 @@ const notMailed = computed(() =>
 )
 
 /**
- * The thank-you greeting a transfer was made from (ZE-019): `{ motif, line }` as the booking list
- * delivers it with the booking of an accepted greeting -- on the sender's side and on the
- * recipient's. Null for every other bubble: a transfer without one stays the bubble it was.
+ * The thank-you greeting a transfer was made from (ZE-019): `{ motif, line, hasPicture }` as the
+ * booking list delivers it with the booking of an accepted greeting -- on the sender's side and on
+ * the recipient's. Null for every other bubble: a transfer without one stays the bubble it was.
  */
 const greeting = computed(() => (props.message.transfer ? (props.message.greeting ?? null) : null))
 
 /** Its picture: none where the greeting has no motif, or one this wallet does not know. */
 const motif = computed(() => thankYouMotif(greeting.value?.motif, t))
+
+/** Whether it carries a photo of the sender's own in the place of a motif. */
+const hasPhoto = computed(() => greeting.value?.hasPicture === true)
 
 /**
  * The line and, apart from it, the words. The booking's memo begins with the line; where it does
@@ -768,6 +787,12 @@ const copyText = async () => {
 
 .chat-bubble-greeting-picture img {
   display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* A photo, and its room before it has come: as large as the room. */
+.chat-bubble-greeting-photo {
   width: 100%;
   height: 100%;
 }

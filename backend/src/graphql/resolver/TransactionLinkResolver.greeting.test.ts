@@ -240,8 +240,11 @@ describe('createTransactionLink with a greeting', () => {
         mutation: createTransactionLink,
         variables: { ...sarah, greeting: { line: LINE } },
       })
-      // The schema asks for it: graphql-js turns the variable away before a resolver runs.
-      expect(result.errors).toHaveLength(1)
+      // A greeting carries a motif or a picture of the member's own, one of the two
+      // (TransactionLinkResolver.greetingPicture.test.ts has the picture's side).
+      expect(result.errors).toEqual([
+        new GraphQLError('Thank-you greeting: a motif or a picture, one of the two'),
+      ])
       await expectNothingWritten()
     })
 

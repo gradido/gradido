@@ -7,8 +7,8 @@ import { fileURLToPath } from 'node:url'
 import { Kind, parse } from 'graphql'
 
 /**
- * The bubble of an accepted thank-you greeting reads the motif and the line off its booking
- * (ZE-019), and the booking comes from the narrowed booking list (useChatTransfers sends
+ * The bubble of an accepted thank-you greeting reads the motif, the line and whether it carries
+ * a photo off its booking (ZE-019), and the booking comes from the narrowed booking list (useChatTransfers sends
  * `transactionsQuery`; its spec holds that). Every spec of the thread and of the bubble hands in
  * a made-up booking that HAS a greeting, so none of them can see whether the list is asked for
  * it: with the field gone from the document they all stay green, and every greeting in every
@@ -59,8 +59,14 @@ const ofTheGreeting = (paths) => paths.filter((path) => path.startsWith('greetin
 describe('the greeting of a booking, as the conversation asks for it', () => {
   const asked = bookingFieldsOf('transactionsQuery')
 
-  it('asks the booking list for the motif and the line', () => {
-    expect(ofTheGreeting(asked)).toEqual(['greeting.line', 'greeting.motif'])
+  // `hasPicture`: THAT the greeting carries a photo. The photo itself is no field of a booking:
+  // the bubble asks for it by the id of the link, once it is in sight.
+  it('asks the booking list for the motif, the line and whether there is a photo', () => {
+    expect(ofTheGreeting(asked)).toEqual(['greeting.hasPicture', 'greeting.line', 'greeting.motif'])
+  })
+
+  it('asks for the id of the link, which the photo is asked for by', () => {
+    expect(asked).toContain('linkId')
   })
 
   it('asks for everything the bubble reads off the greeting', () => {
@@ -70,7 +76,11 @@ describe('the greeting of a booking, as the conversation asks for it', () => {
     )
 
     // The bubble does read it -- otherwise the comparison below holds for nothing at all.
-    expect([...new Set(readOffTheGreeting)].sort()).toEqual(['greeting.line', 'greeting.motif'])
+    expect([...new Set(readOffTheGreeting)].sort()).toEqual([
+      'greeting.hasPicture',
+      'greeting.line',
+      'greeting.motif',
+    ])
     expect(asked).toEqual(expect.arrayContaining(readOffTheGreeting))
   })
 

@@ -16,6 +16,7 @@ import {
   openChatImageView,
   rememberChatImage,
 } from '@/composables/useChatImages'
+import { greetingPicture, rememberGreetingPicture } from '@/composables/useGreetingPictures'
 
 vi.mock('../i18n', () => ({
   default: {
@@ -502,6 +503,20 @@ describe('Vuex store', () => {
           delete URL.createObjectURL
           delete URL.revokeObjectURL
         }
+      })
+
+      /**
+       * ⛔ And the photos of thank-you greetings (useGreetingPictures), kept the same way and let
+       * go for the same reason: a member's own photos, and the ones others thanked them with.
+       */
+      it('lets go of the photos of thank-you greetings', () => {
+        rememberGreetingPicture(4711, btoa('JPEG'))
+        // The fixture proves itself: a photo that was never kept would pass below unforgotten.
+        expect(greetingPicture(4711)?.state).toBe('ready')
+
+        logout({ commit, state, dispatch })
+
+        expect(greetingPicture(4711)).toBeNull()
       })
 
       /**

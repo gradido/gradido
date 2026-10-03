@@ -256,6 +256,109 @@ describe('RedeemThanksPaper', () => {
       })
     })
 
+    /**
+     * A photo of the sender's own in the place of a motif (ZE-019). The sheet asks nobody for
+     * it: the page that shows the sheet hands it in.
+     */
+    describe('a photo of the sender’s own', () => {
+      const PHOTO = 'blob:https://ki-playground.gradido.net/1c2d'
+      const photoGreeting = (overrides = {}, linkOverrides = {}) =>
+        greeting({ motif: null, hasPicture: true, ...overrides }, linkOverrides)
+      const withPhoto = (linkData = photoGreeting(), props = { picture: PHOTO }) =>
+        mount(RedeemThanksPaper, { props: { linkData, ...props }, global: { plugins: [i18n] } })
+      const photo = (wrapper) => wrapper.find('[data-test="redeem-thanks-paper-photo"]')
+      const room = (wrapper) => wrapper.find('[data-test="redeem-thanks-paper-photo-room"]')
+
+      it('stands where the motif would stand, in the same room', () => {
+        const wrapper = withPhoto()
+
+        expect(wrapper.element.children).toHaveLength(2)
+        expect(wrapper.element.firstElementChild).toBe(room(wrapper).element)
+        expect(room(wrapper).classes()).toContain('redeem-thanks-paper-picture')
+        expect(photo(wrapper).element.tagName).toBe('IMG')
+        expect(photo(wrapper).attributes('src')).toBe(PHOTO)
+        expect(motif(wrapper).exists()).toBe(false)
+        // The rest of the greeting is there all the same.
+        expect(forWhom(wrapper).text()).toBe('FÜR SARAH')
+        expect(line(wrapper).text()).toBe(LINE)
+      })
+
+      // Whose photo it is, by the name the sheet shows: the user name, never a real one.
+      it('names whose photo it is, in the language of the page', () => {
+        expect(photo(withPhoto()).attributes('alt')).toBe('Foto von Oma-Emma')
+
+        i18n.global.locale.value = 'en'
+        expect(photo(withPhoto()).attributes('alt')).toBe('Photo from Oma-Emma')
+      })
+
+      it('names the sender by the Gradido ID where there is no user name', () => {
+        const wrapper = withPhoto(
+          photoGreeting({}, { senderUser: { gradidoID: GRADIDO_ID, alias: null } }),
+        )
+
+        expect(photo(wrapper).attributes('alt')).toBe(`Foto von ${GRADIDO_ID}`)
+      })
+
+      it('says the size of the room, 360 by 250, so nothing moves when it comes', () => {
+        const wrapper = withPhoto()
+
+        expect(photo(wrapper).attributes('width')).toBe('360')
+        expect(photo(wrapper).attributes('height')).toBe('250')
+      })
+
+      /**
+       * Until the photo has come, and where none comes -- it is gone, or the line is -- the
+       * room stands, in the colour of the card.
+       */
+      it('keeps its room where no photo has come', () => {
+        const wrapper = withPhoto(photoGreeting(), {})
+
+        expect(room(wrapper).exists()).toBe(true)
+        expect(wrapper.find('img').exists()).toBe(false)
+        expect(wrapper.element.firstElementChild).toBe(room(wrapper).element)
+        expect(line(wrapper).text()).toBe(LINE)
+      })
+
+      // The server says whether there is a photo -- not a picture that happens to be handed in.
+      it('shows the motif, and no photo, for a greeting that carries none', () => {
+        const wrapper = withPhoto(greeting({ hasPicture: false }))
+
+        expect(photo(wrapper).exists()).toBe(false)
+        expect(room(wrapper).exists()).toBe(false)
+        expect(motif(wrapper).attributes('src')).toBe('/img/thank-you-greeting/morning-light.svg')
+      })
+
+      // A wallet older than the server knows no `hasPicture`: such a greeting has no picture.
+      it('has no room for a greeting without a motif that says nothing of a photo', () => {
+        const wrapper = withPhoto(greeting({ motif: null }))
+
+        expect(wrapper.find('.redeem-thanks-paper-picture').exists()).toBe(false)
+        expect(wrapper.find('img').exists()).toBe(false)
+      })
+
+      it('has no photo on a plain link, whatever is handed in', () => {
+        const wrapper = withPhoto(link())
+
+        expect(wrapper.find('img').exists()).toBe(false)
+        expect(wrapper.find('.redeem-thanks-paper-picture').exists()).toBe(false)
+      })
+
+      // "Dein Dank ist da.": the short sheet keeps the photo.
+      it('stays on the short sheet', () => {
+        const wrapper = withPhoto(photoGreeting(), { picture: PHOTO, short: true })
+
+        expect(photo(wrapper).attributes('src')).toBe(PHOTO)
+        expect(message(wrapper).exists()).toBe(false)
+      })
+
+      // A photo is 36 : 25 to a pixel's rounding: it fills the room, and is not stretched.
+      it('fills its room without being stretched', () => {
+        expect(css).toMatch(
+          /\.redeem-thanks-paper-picture\s*\{[^}]*img\s*\{[^}]*object-fit:\s*cover/,
+        )
+      })
+    })
+
     describe('whom it is for', () => {
       it('stands in capitals', () => {
         expect(forWhom(paper(greeting())).text()).toBe('FÜR SARAH')

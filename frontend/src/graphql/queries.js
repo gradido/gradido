@@ -196,6 +196,7 @@ export const queryTransactionLink = gql`
           motif
           line
           recipientName
+          hasPicture
         }
         communities {
           foreign
@@ -267,9 +268,19 @@ export const listTransactionLinks = gql`
           motif
           line
           recipientName
+          hasPicture
         }
       }
     }
+  }
+`
+
+// The photo of a thank-you greeting in its small rendition, as base64 -- for the member who made
+// the greeting and for the one who accepted it, null for everybody else and where there is none.
+// Asked `no-cache` (composables/useGreetingPictures): a picture has no place in Apollo's cache.
+export const thankYouGreetingPicture = gql`
+  query ($linkId: Int!) {
+    thankYouGreetingPicture(linkId: $linkId)
   }
 `
 

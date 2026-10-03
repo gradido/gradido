@@ -1549,6 +1549,7 @@
       "edit-hint": "Den Satz kannst Du vor dem Senden ändern. Deine Worte stehen erst auf der Karte.",
       "find-again": "Du findest ihn wieder unter {transactions}, bei „{links}“.",
       "link-hint": "Wer den Link hat, kann den Dank annehmen. Schick ihn nur dem Menschen, für den er gedacht ist.",
+      "link-hint-photo": "Wer den Link hat, sieht Dein Foto und kann den Dank annehmen. Schick ihn nur dem Menschen, für den er gedacht ist.",
       "sentence-lead": "Dieser Satz geht mit auf die Reise:",
       "title": "Dein Dank-Gruß ist fertig.",
       "title-for": "Dein Dank-Gruß für {name} ist fertig.",
@@ -1591,7 +1592,10 @@
     },
     "name": "Dank-Gruß",
     "next": "Weiter",
+    "photo-of": "Foto von {name}",
     "picture": {
+      "other": "Anderes Foto",
+      "own": "Eigenes Foto",
       "question": "Welches Bild soll Dein Gruß tragen?"
     },
     "preview": {
