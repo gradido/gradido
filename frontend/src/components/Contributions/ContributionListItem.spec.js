@@ -170,7 +170,9 @@ describe('ContributionListItem', () => {
       expect(fields).toHaveLength(3)
       for (const { column } of fields) {
         expect(column).toContain('col-4')
-        expect(column.filter((name) => /^(col-\d+|me-auto)$/.test(name))).toEqual(['col-4'])
+        expect(column.filter((name) => name.startsWith('col') || name === 'me-auto')).toEqual([
+          'col-4',
+        ])
       }
     })
 
