@@ -102,6 +102,44 @@ describe('the request log', () => {
     expect(text).toContain('"amount": "20"')
   })
 
+  // The picture of a greeting that carries a photo of the member's own: the small rendition comes
+  // inside the greeting, the large one in a request of its own.
+  it('writes no picture of a thank-you greeting, in either rendition, only its size', () => {
+    const small = Buffer.from('a private photo of Oma Emma, small').toString('base64')
+    const large = Buffer.from('a private photo of Oma Emma, large').toString('base64')
+    const withTheLink = logged({
+      amount: '20',
+      memo: 'Einfach so',
+      greeting: {
+        picture: { data: small, width: 831, height: 577 },
+        line: 'Einfach so',
+        recipientName: 'Sarah Wintergrün',
+      },
+    })
+    expect(withTheLink).not.toContain(small)
+    expect(withTheLink).not.toContain('Wintergrün')
+    expect(withTheLink).toContain('"data": "***"')
+    expect(withTheLink).toContain('"width": 831')
+    expect(withTheLink).toContain('"height": 577')
+    expect(withTheLink).toContain('"line": "Einfach so"')
+
+    const afterTheLink = logged({ linkId: 7, picture: { data: large, width: 1080, height: 750 } })
+    expect(afterTheLink).not.toContain(large)
+    expect(afterTheLink).toContain('"data": "***"')
+    expect(afterTheLink).toContain('"width": 1080')
+    expect(afterTheLink).toContain('"linkId": 7')
+  })
+
+  it('leaves the picture of a greeting in the request itself', () => {
+    const variables = {
+      greeting: { picture: { data: 'AAAA', width: 1, height: 1 } },
+      picture: { data: 'BBBB', width: 1, height: 1 },
+    }
+    logged(variables)
+    expect(variables.greeting.picture.data).toBe('AAAA')
+    expect(variables.picture.data).toBe('BBBB')
+  })
+
   it('writes a link without a greeting as before', () => {
     const text = logged({ amount: '20', memo: 'Danke für alles' })
     expect(text).toContain('"memo": "Danke für alles"')
@@ -291,6 +329,16 @@ describe('the answer in the request log', () => {
     const traced = answerTraced(
       { requestBudget: { ...newRequestBudget(), chatImagesServed: 1 } },
       { chatMessageImage: picture },
+    )
+    expect(traced).not.toContain(picture)
+    expect(traced).toBe('Response-Data: left out, it holds a picture')
+  })
+
+  it('is left out where the request was handed the picture of a thank-you greeting', () => {
+    const picture = Buffer.from('a private photo of Oma Emma').toString('base64')
+    const traced = answerTraced(
+      { requestBudget: { ...newRequestBudget(), thankYouGreetingPicturesServed: 1 } },
+      { thankYouGreetingPicture: picture },
     )
     expect(traced).not.toContain(picture)
     expect(traced).toBe('Response-Data: left out, it holds a picture')

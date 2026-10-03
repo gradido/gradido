@@ -16,6 +16,10 @@ import { gmsWebhook } from '@/webhook/gms'
 import { context as serverContext } from './context'
 import { cors } from './cors'
 import { plugins } from './plugins'
+import {
+  apiThankYouGreetingPicture,
+  THANK_YOU_GREETING_PICTURE_PATH,
+} from './thankYouGreetingPicture'
 import { apiVersion } from './version'
 
 // TODO implement
@@ -91,6 +95,12 @@ export const createServer = async (
   // Build version — lets a backend-only deploy be verified from outside (the frontend/
   // admin bundle hashes only track their own builds). Public, read-only, no secrets.
   app.get('/api/version', apiVersion)
+
+  // The picture of a thank-you greeting, for whoever holds the code of an OPEN link -- public
+  // like the page of the link itself, a plain image for an <img>. Behind the limiter above and
+  // nginx's own for /api; it has none of its own. Mounted with `use`: everything below the
+  // address is its own to answer, before Apollo, which stands under `/`.
+  app.use(THANK_YOU_GREETING_PICTURE_PATH, apiThankYouGreetingPicture)
 
   // Apollo Server
   const apollo = new ApolloServer({

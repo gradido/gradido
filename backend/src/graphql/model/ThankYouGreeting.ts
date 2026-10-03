@@ -7,7 +7,7 @@ import { Field, ObjectType } from 'type-graphql'
  * whom it is for. Readable by whoever holds the link, as the link's memo is.
  *
  * `motif` is a plain string (data/ThankYouGreeting.logic.ts says why) and nullable: a
- * greeting may carry a photo of the member's own instead, once there is one.
+ * greeting may carry a picture of the member's own -- a photo -- instead.
  */
 @ObjectType()
 export class ThankYouGreeting {
@@ -15,10 +15,23 @@ export class ThankYouGreeting {
     this.motif = row.motif
     this.line = row.line
     this.recipientName = row.recipientName
+    this.hasPicture = row.motif === null
   }
 
   @Field(() => String, { nullable: true })
   motif: string | null
+
+  /**
+   * Whether the greeting carries a picture of the member's own in the motif's place: a greeting
+   * has one of the two (thankYouGreetingSchema), so it is said by the row itself -- the lists
+   * of links and of bookings learn it without a look at the pictures' table.
+   *
+   * ⛔ Only THAT there is one. The picture itself is in none of these answers: it comes by the
+   * address of an open link (GET /api/thank-you-greeting-picture/…) or, to the two the
+   * greeting is between, by thankYouGreetingPicture.
+   */
+  @Field(() => Boolean)
+  hasPicture: boolean
 
   @Field(() => String, { nullable: true })
   line: string | null

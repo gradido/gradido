@@ -46,6 +46,80 @@ describe('thankYouGreetingSchema', () => {
     expect(thankYouGreetingSchema.safeParse({ motif: null, line: LINE }).success).toBe(false)
   })
 
+  // In the motif's place a greeting may carry a picture of the member's own. Its shape is all
+  // that is asked here: what a picture has to be is checked with its bytes at hand
+  // (acceptChatMessageImage).
+  describe('a motif or a picture', () => {
+    const PICTURE = { data: '/9j/2Q==', width: 831, height: 577 }
+
+    it('takes a picture in the place of the motif, with a line and a name', () => {
+      expect(
+        thankYouGreetingSchema.parse({ picture: PICTURE, line: LINE, recipientName: 'Sarah' }),
+      ).toEqual({ picture: PICTURE, line: LINE, recipientName: 'Sarah' })
+      expect(thankYouGreetingSchema.parse({ motif: null, picture: PICTURE })).toEqual({
+        motif: null,
+        picture: PICTURE,
+      })
+    })
+
+    it('takes a motif with a picture that is null, as a wallet may send it', () => {
+      expect(thankYouGreetingSchema.parse({ motif: 'bouquet', picture: null })).toEqual({
+        motif: 'bouquet',
+        picture: null,
+      })
+    })
+
+    it('refuses a greeting with both', () => {
+      expect(messageOf(thankYouGreetingSchema, { motif: 'bouquet', picture: PICTURE })).toBe(
+        'Thank-you greeting: a motif or a picture, one of the two',
+      )
+    })
+
+    it('refuses a greeting with neither', () => {
+      for (const neither of [{}, { line: LINE }, { motif: null }, { motif: null, picture: null }]) {
+        expect(messageOf(thankYouGreetingSchema, neither)).toBe(
+          'Thank-you greeting: a motif or a picture, one of the two',
+        )
+      }
+    })
+
+    // An unknown motif is no motif: a picture beside it does not make the greeting good.
+    it('refuses an unknown motif beside a picture for the motif', () => {
+      expect(messageOf(thankYouGreetingSchema, { motif: 'sunset', picture: PICTURE })).toBe(
+        'Thank-you greeting: unknown motif',
+      )
+    })
+
+    it('refuses what has not the shape of a picture, without quoting it', () => {
+      const secret = 'a-private-photo'
+      for (const noPicture of [
+        secret,
+        { data: secret },
+        { data: secret, width: '831', height: 577 },
+        { data: 7, width: 831, height: 577 },
+      ]) {
+        const result = thankYouGreetingSchema.safeParse({ picture: noPicture })
+        expect(result.success).toBe(false)
+        expect(JSON.stringify(result.error?.issues)).not.toContain(secret)
+      }
+    })
+
+    it('holds the memo against the line of a greeting with a picture as well', () => {
+      expect(
+        transactionLinkGreetingSchema.safeParse({
+          memo: `${LINE}\n${WORDS}`,
+          greeting: { picture: PICTURE, line: LINE },
+        }).success,
+      ).toBe(true)
+      expect(
+        messageOf(transactionLinkGreetingSchema, {
+          memo: WORDS,
+          greeting: { picture: PICTURE, line: LINE },
+        }),
+      ).toBe('Thank-you greeting: the memo has to begin with the line')
+    })
+  })
+
   it('trims the line and the name', () => {
     expect(
       thankYouGreetingSchema.parse({

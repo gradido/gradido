@@ -61,6 +61,9 @@ export const USER_RIGHTS = [
   // Asking for a new address, cancelling that request and seeing whether one is pending -
   // one right, because every call reaches the caller's own contact rows and nothing else.
   RIGHTS.MANAGE_OWN_EMAIL,
+  // Seeing the picture of a greeting one made or accepted. Not on any RESTRICTED_* list: an
+  // unconfirmed account and a project account are shown what they were sent like anybody else.
+  RIGHTS.THANK_YOU_GREETING_PICTURE,
   // The contact list is a view on the caller's own bookings and conversations, the hearts
   // are the caller's own rows; there is nothing here that reaches anybody else's data.
   RIGHTS.MANAGE_OWN_CONTACTS,

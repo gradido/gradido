@@ -60,6 +60,11 @@ export enum RIGHTS {
   MANAGE_OWN_THANK_YOU_CARD = 'MANAGE_OWN_THANK_YOU_CARD',
   RECEIVE_THANK_YOU_CARD_PAYMENT = 'RECEIVE_THANK_YOU_CARD_PAYMENT',
   MANAGE_OWN_EMAIL = 'MANAGE_OWN_EMAIL',
+  // The picture of a thank-you greeting that carries a photo: its small rendition, for the
+  // member who made the link and for the member who accepted it -- by the link's id, and the
+  // link's own row says who the two are (TransactionLinkResolver.thankYouGreetingPicture).
+  // Adding a picture is not behind it: that is CREATE_TRANSACTION_LINK's.
+  THANK_YOU_GREETING_PICTURE = 'THANK_YOU_GREETING_PICTURE',
   // Moderator
   SEARCH_USERS = 'SEARCH_USERS',
   ADMIN_CREATE_CONTRIBUTION = 'ADMIN_CREATE_CONTRIBUTION',
