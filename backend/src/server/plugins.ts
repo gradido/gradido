@@ -71,9 +71,10 @@ const filterVariables = (variables: any) => {
   return vars
 }
 
-// The same name on its way back: the answers of createTransactionLink, queryTransactionLink and
-// the lists of links carry the greeting. The field is written as "***" wherever an answer holds
-// it -- no other type of the schema names a field so.
+// The same name on its way back: the answers of createTransactionLink, queryTransactionLink, the
+// lists of links and -- with the booking made from the link -- the booking list carry the
+// greeting. The field is written as "***" wherever an answer holds it -- no other type of the
+// schema names a field so.
 const withoutRecipientNames = (key: string, value: unknown): unknown =>
   key === 'recipientName' && typeof value === 'string' ? '***' : value
 
