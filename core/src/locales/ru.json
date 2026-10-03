@@ -156,6 +156,7 @@
       "sincerelyYours": "С наилучшими пожеланиями,",
       "toAccount": "В аккаунт",
       "toContribution": "К вкладу",
+      "toConversation": "К переписке",
       "transactionDetails": "Сведения о транзакции",
       "yourGradidoTeam": "ваша команда Gradido"
     },
@@ -176,11 +177,11 @@
       "wasPaid": "Только что вашей картой благодарности передано {amountGDD} GDD."
     },
     "transactionLinkRedeemed": {
-      "hasRedeemedYourLink": "Пользователь {senderAlias} ({senderCommunity}) только что воспользовался вашей ссылкой.",
+      "hasAcceptedYourThanks": "Пользователь {senderAlias} ({senderCommunity}) только что принял вашу благодарность.",
+      "hasAcceptedYourThanksNewMember": "Пользователь {senderAlias} ({senderCommunity}) только что принял вашу благодарность — и это новый участник. Здорово, что вы показали Gradido.",
       "memo": "Сообщение: {transactionMemo}",
-      "newMember": "— и это новый участник. Здорово, что вы показали Gradido.",
-      "subject": "Пользователь {senderAlias} воспользовался вашей ссылкой Gradido",
-      "title": "Пользователь {senderAlias} воспользовался вашей ссылкой Gradido"
+      "subject": "Пользователь {senderAlias} принял вашу благодарность",
+      "title": "Пользователь {senderAlias} принял вашу благодарность"
     },
     "transactionReceived": {
       "haveReceivedAmountGDDFrom": "вы только что получили {transactionAmount} GDD от {senderAlias}.",

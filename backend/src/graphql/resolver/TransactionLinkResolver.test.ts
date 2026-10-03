@@ -820,8 +820,19 @@ describe('TransactionLinkResolver', () => {
               })
               // In the same test as the redemption, not in one of its own: this block's
               // `beforeEach` clears every mock, so a later `it` would always see no calls.
+              const redeemer = await UserContact.findOneOrFail({
+                where: { email: 'peter@lustig.de' },
+                relations: ['user'],
+              })
               expect(sendTransactionLinkRedeemedEmail).toHaveBeenCalledWith(
-                expect.objectContaining({ newMember: false }),
+                expect.objectContaining({
+                  newMember: false,
+                  // To the one who made the link, about the one who accepted it -- named by
+                  // the pair the mail's button opens their conversation with.
+                  email: 'bibi@bloxberg.de',
+                  senderUuid: redeemer.user.gradidoID,
+                  senderCommunityUuid: redeemer.user.communityUuid,
+                }),
               )
             })
 

@@ -297,7 +297,7 @@ describe('the answer in the request log', () => {
   })
 
   // The same name comes back in the answers that carry a greeting -- the new link, the link
-  // somebody opens, the sender's list.
+  // somebody opens, the sender's list, and the booking list with the booking made from the link.
   it('carries no name a thank-you greeting is for, wherever the answer holds one', () => {
     const greeting = { motif: 'bouquet', line: 'Danke!', recipientName: 'Sarah Wintergrün' }
     const traced = answerTraced(
@@ -310,10 +310,16 @@ describe('the answer in the request log', () => {
             { id: 2, greeting: null },
           ],
         },
+        transactionList: {
+          transactions: [
+            { id: 3, greeting },
+            { id: 4, greeting: null },
+          ],
+        },
       },
     )
     expect(traced).not.toContain('Wintergrün')
-    expect(traced.match(/"recipientName": "\*\*\*"/g)).toHaveLength(2)
+    expect(traced.match(/"recipientName": "\*\*\*"/g)).toHaveLength(3)
     expect(traced).toContain('"motif": "bouquet"')
     expect(traced).toContain('"greeting": null')
   })

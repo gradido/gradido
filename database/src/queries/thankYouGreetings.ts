@@ -12,6 +12,7 @@ import {
   ThankYouGreetingInsert,
   ThankYouGreetingSelect,
   thankYouGreetingsTable,
+  transactionLinksTable,
 } from '../schemas/drizzle.schema'
 
 /** A greeting's row without the name: what an error about the row carries. */
@@ -70,6 +71,62 @@ export async function dbSelectThankYouGreetingsByLinkCodes(
     .select()
     .from(thankYouGreetingsTable)
     .where(inArray(thankYouGreetingsTable.transactionLinkCode, transactionLinkCodes))
+}
+
+/** The greeting of a link, and whose link it is. */
+export type ThankYouGreetingOfLink = {
+  /** `transaction_links.user_id`: the member who made the link, and wrote the greeting. */
+  linkUserId: number
+  greeting: ThankYouGreetingSelect
+}
+
+/**
+ * The greetings of these links, as a map from the link's id to its greeting; a link without
+ * one is simply not in the map. One statement for a whole page of bookings.
+ *
+ * Written for the booking list: a booking made from a link carries the link's id
+ * (`transactions.transaction_link_id`), while the greeting hangs on the link's code. So the
+ * two tables are joined on the code and narrowed to the ids -- the answer is keyed by what the
+ * caller holds, and the code never has to travel through the resolver.
+ *
+ * ⛔ With each greeting comes the member who made its link, and the answer is not complete
+ * without that: the id on a booking's row does not prove the greeting is that booking's. A
+ * greeting is shown with a booking only where the link's maker is the booking's sender --
+ * the caller's rule (backend/src/data/Transaction.logic.ts, greetingOfBooking), and the
+ * reason this function does not hand out a greeting on its own.
+ *
+ * No condition on `deletedAt`: the list names links that were redeemed, and
+ * deleteTransactionLink refuses a redeemed link.
+ *
+ * A plain Map rather than a Result, as dbSelectThankYouCardLabels beside the same list: an id
+ * without a row is no failure, it is a booking without a greeting. An empty list asks the
+ * database nothing.
+ */
+export async function dbSelectThankYouGreetingsByLinkIds(
+  transactionLinkIds: number[],
+): Promise<Map<number, ThankYouGreetingOfLink>> {
+  if (transactionLinkIds.length === 0) {
+    return new Map()
+  }
+  const rows = await drizzleDb()
+    .select({
+      transactionLinkId: transactionLinksTable.id,
+      linkUserId: transactionLinksTable.userId,
+      greeting: thankYouGreetingsTable,
+    })
+    .from(thankYouGreetingsTable)
+    .innerJoin(
+      transactionLinksTable,
+      eq(transactionLinksTable.code, thankYouGreetingsTable.transactionLinkCode),
+    )
+    .where(inArray(transactionLinksTable.id, transactionLinkIds))
+
+  return new Map(
+    rows.map((row) => [
+      row.transactionLinkId,
+      { linkUserId: row.linkUserId, greeting: row.greeting },
+    ]),
+  )
 }
 
 /**

@@ -1,12 +1,14 @@
 // AI-GENERATED — not an architecture reference
+import { inArray } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
 import { DBDuplicateEntryError, DBNotFoundError } from '../errorTypes'
-import { thankYouGreetingsTable } from '../schemas'
+import { thankYouGreetingsTable, transactionLinksTable } from '../schemas'
 import {
   dbDeleteThankYouGreetingByLinkCode,
   dbInsertThankYouGreeting,
   dbSelectThankYouGreetingsByLinkCodes,
+  dbSelectThankYouGreetingsByLinkIds,
 } from './thankYouGreetings'
 
 const appDB = AppDatabase.getInstance()
@@ -130,5 +132,140 @@ describe('thankYouGreetings query test', () => {
   it('takes the code again once its greeting is gone', async () => {
     expect(await dbInsertThankYouGreeting(SARAH)).toEqual({ success: true })
     expect(await dbSelectThankYouGreetingsByLinkCodes([SARAH_CODE])).toHaveLength(1)
+  })
+})
+
+/**
+ * The booking list's way to a greeting: a booking carries the id of its link, the greeting
+ * hangs on the link's code (dbSelectThankYouGreetingsByLinkIds).
+ *
+ * The links here are rows of `transaction_links` with ids far from any other test's, and far
+ * from the ids of the greetings' own rows: an answer keyed by the wrong one of the two would
+ * not find them.
+ */
+describe('dbSelectThankYouGreetingsByLinkIds', () => {
+  const EMMA_LINK = { id: 880001, code: 'e4a0b8d5669f19981fa0c4e6' }
+  const PLAIN_LINK = { id: 880002, code: 'f5b1c9e6770a19981fa0c4e7' }
+  const BOUQUET_LINK = { id: 880003, code: 'a6c2d0f7881b19981fa0c4e8' }
+  const NO_SUCH_LINK = 880099
+  // A greeting whose link was never saved (createTransactionLink files the greeting first).
+  const ORPHAN_CODE = 'b7d3e1a8992c19981fa0c4e9'
+  const LINKS = [EMMA_LINK, PLAIN_LINK, BOUQUET_LINK]
+  // Who made which link: the answer names them, and the booking list shows a greeting only
+  // where that member is the booking's sender.
+  const MAKER = { [EMMA_LINK.id]: 880011, [PLAIN_LINK.id]: 880012, [BOUQUET_LINK.id]: 880013 }
+  const CODES = [EMMA_LINK.code, BOUQUET_LINK.code, ORPHAN_CODE]
+
+  const EMMA = {
+    transactionLinkCode: EMMA_LINK.code,
+    motif: 'giving-hands',
+    line: 'Danke für Deine Hilfe!',
+    recipientName: 'Emma',
+  }
+  const BOUQUET = { transactionLinkCode: BOUQUET_LINK.code, motif: 'bouquet' }
+  const ORPHAN = { transactionLinkCode: ORPHAN_CODE, motif: 'glowing-swirl', line: 'Ohne Link' }
+
+  const removeFixture = async () => {
+    await db.delete(transactionLinksTable).where(
+      inArray(
+        transactionLinksTable.id,
+        LINKS.map((link) => link.id),
+      ),
+    )
+    await db
+      .delete(thankYouGreetingsTable)
+      .where(inArray(thankYouGreetingsTable.transactionLinkCode, CODES))
+  }
+
+  beforeAll(async () => {
+    await removeFixture()
+    await db.insert(transactionLinksTable).values(
+      LINKS.map((link) => ({
+        ...link,
+        userId: MAKER[link.id],
+        memo: 'Danke für Deine Hilfe!',
+        createdAt: new Date('2026-10-02T17:42:00Z'),
+        validUntil: new Date('2026-10-16T17:42:00Z'),
+      })),
+    )
+    for (const greeting of [EMMA, BOUQUET, ORPHAN]) {
+      expect(await dbInsertThankYouGreeting(greeting)).toEqual({ success: true })
+    }
+  })
+  afterAll(removeFixture)
+
+  it('asks nothing for no ids', async () => {
+    expect(await dbSelectThankYouGreetingsByLinkIds([])).toEqual(new Map())
+  })
+
+  it('answers with the greeting of a link under the id of that link', async () => {
+    const greetings = await dbSelectThankYouGreetingsByLinkIds([EMMA_LINK.id])
+
+    expect([...greetings.keys()]).toEqual([EMMA_LINK.id])
+    const emma = greetings.get(EMMA_LINK.id)?.greeting
+    expect(emma).toMatchObject(EMMA)
+    // The whole row of the greeting, as the link lists read it: its own id among it, which
+    // is not the link's.
+    expect(emma?.id).toBeGreaterThan(0)
+    expect(emma?.id).not.toBe(EMMA_LINK.id)
+    expect(emma?.createdAt).toBeInstanceOf(Date)
+  })
+
+  // The id on a booking does not prove whose greeting it is; the maker of the link does.
+  it('names the member who made each link beside its greeting', async () => {
+    const greetings = await dbSelectThankYouGreetingsByLinkIds([EMMA_LINK.id, BOUQUET_LINK.id])
+
+    expect(greetings.get(EMMA_LINK.id)?.linkUserId).toBe(MAKER[EMMA_LINK.id])
+    expect(greetings.get(BOUQUET_LINK.id)?.linkUserId).toBe(MAKER[BOUQUET_LINK.id])
+    expect(Object.keys(greetings.get(EMMA_LINK.id) ?? {}).sort()).toEqual([
+      'greeting',
+      'linkUserId',
+    ])
+  })
+
+  it('leaves a plain link and an unknown id out of the answer', async () => {
+    expect(await dbSelectThankYouGreetingsByLinkIds([PLAIN_LINK.id, NO_SUCH_LINK])).toEqual(
+      new Map(),
+    )
+  })
+
+  it('reads the greetings of a whole page at once, each under its own link', async () => {
+    const greetings = await dbSelectThankYouGreetingsByLinkIds([
+      BOUQUET_LINK.id,
+      PLAIN_LINK.id,
+      NO_SUCH_LINK,
+      EMMA_LINK.id,
+    ])
+
+    expect([...greetings.keys()].sort((a, b) => a - b)).toEqual([EMMA_LINK.id, BOUQUET_LINK.id])
+    expect(greetings.get(EMMA_LINK.id)?.greeting).toMatchObject(EMMA)
+    expect(greetings.get(BOUQUET_LINK.id)?.greeting).toMatchObject({
+      ...BOUQUET,
+      line: null,
+      recipientName: null,
+    })
+  })
+
+  it('names only the links asked for: the list is what decides, not the table', async () => {
+    const greetings = await dbSelectThankYouGreetingsByLinkIds([BOUQUET_LINK.id])
+
+    expect([...greetings.keys()]).toEqual([BOUQUET_LINK.id])
+  })
+
+  // The row is there, under its code -- and no id leads to it.
+  it('never answers with a greeting whose link does not exist', async () => {
+    expect(await dbSelectThankYouGreetingsByLinkCodes([ORPHAN_CODE])).toHaveLength(1)
+
+    const greetings = await dbSelectThankYouGreetingsByLinkIds([
+      EMMA_LINK.id,
+      PLAIN_LINK.id,
+      BOUQUET_LINK.id,
+      NO_SUCH_LINK,
+    ])
+
+    expect(
+      [...greetings.values()].map((found) => found.greeting.transactionLinkCode),
+    ).not.toContain(ORPHAN_CODE)
+    expect(greetings.size).toBe(2)
   })
 })

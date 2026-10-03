@@ -3,6 +3,7 @@ import { Transaction as dbTransaction } from 'database'
 import { GradidoUnit } from 'shared'
 import { Field, Int, ObjectType } from 'type-graphql'
 import { Decay } from './Decay'
+import { ThankYouGreeting } from './ThankYouGreeting'
 import { User } from './User'
 
 @ObjectType()
@@ -12,6 +13,7 @@ export class Transaction {
     user: User,
     linkedUser: User | null = null,
     thankYouCardLabel: string | null = null,
+    greeting: ThankYouGreeting | null = null,
   ) {
     this.id = transaction.id
     this.user = user
@@ -32,6 +34,7 @@ export class Transaction {
     this.viaThankYouCard =
       transaction.thankYouCardId !== null && transaction.thankYouCardId !== undefined
     this.thankYouCardLabel = thankYouCardLabel
+    this.greeting = greeting
   }
 
   @Field(() => Int)
@@ -94,4 +97,18 @@ export class Transaction {
    */
   @Field(() => String, { nullable: true })
   thankYouCardLabel: string | null
+
+  /**
+   * The thank-you greeting of the link this booking was made from: its motif, its first line
+   * and whom it was for -- what the conversation of the two shows with the booking. Null for
+   * every other booking: a plain link, a transfer, a creation.
+   *
+   * On both rows, the sender's and the recipient's, and on nobody else's list: a booking list
+   * is always the member's own. The line is also the beginning of `memo`.
+   *
+   * Which bookings can have one is decided where the list is built
+   * (data/Transaction.logic.ts): `linkId` above is no way to it.
+   */
+  @Field(() => ThankYouGreeting, { nullable: true })
+  greeting: ThankYouGreeting | null
 }

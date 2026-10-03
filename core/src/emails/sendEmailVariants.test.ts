@@ -742,9 +742,9 @@ describe('sendEmailVariants', () => {
             to: 'Peter Lustig <peter@lustig.de>',
             from: 'Gradido <info@gradido.net>',
             attachments: expect.any(Array),
-            subject: 'bibi has redeemed your Gradido link',
+            subject: 'bibi has accepted your thank-you',
             html: expect.any(String),
-            text: expect.stringContaining('BIBI HAS REDEEMED YOUR GRADIDO LINK'),
+            text: expect.stringContaining('BIBI HAS ACCEPTED YOUR THANK-YOU'),
           }),
         })
       })
@@ -756,9 +756,18 @@ describe('sendEmailVariants', () => {
       it('says nothing about a new member', () => {
         expect(result.originalMessage.html).not.toContain('new to Gradido')
       })
+
+      // Nobody was named by the two uuids: there is no conversation the mail could lead to.
+      it('has no button to a conversation', () => {
+        expect(result.originalMessage.html).not.toContain('/contacts?')
+        // The class as an element carries it: the stylesheet in the mail's head names it too.
+        expect(result.originalMessage.html).not.toContain('class="button-5"')
+      })
     })
   })
 
+  // The mail with everything it can carry: the person is new, and is named by the two uuids.
+  // What is asserted about it beyond the snapshot stands in sendEmailVariants.linkRedeemed.test.ts.
   describe('sendTransactionLinkRedeemedEmail with a newly registered member', () => {
     beforeAll(async () => {
       result = await sendTransactionLinkRedeemedEmail({
@@ -768,6 +777,8 @@ describe('sendEmailVariants', () => {
         language: 'en',
         senderAlias: 'bibi',
         senderCommunity: 'Bloxberg',
+        senderUuid: '3f9a1e2c-1111-4a2b-9c3d-000000000001',
+        senderCommunityUuid: 'aaaa1111-2222-4333-8444-555566667777',
         transactionMemo: 'You deserve it! 🙏🏼',
         transactionAmount: GradidoUnit.fromNumber(17.65),
         newMember: true,
@@ -775,9 +786,9 @@ describe('sendEmailVariants', () => {
     })
 
     describe('result', () => {
-      it('carries the half-sentence behind the first one, in the same paragraph', () => {
+      it('says the arrival in the same sentence, with nothing glued on', () => {
         expect(result.originalMessage.html).toContain(
-          'bibi (Bloxberg) has just redeemed your link. — and is new to Gradido.',
+          '<p>bibi (Bloxberg) has just accepted your thank-you — and is new to Gradido. How lovely that you showed it.</p>',
         )
       })
 
