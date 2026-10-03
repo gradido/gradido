@@ -638,13 +638,24 @@ const onStageKey = (event) => {
   padding: 0 0.5rem;
 }
 
+/*
+ * On a screen of 320 pixels both buttons stand wholly on it in all ten languages: they keep their
+ * width and their one line (`flex: 0 0 auto`), and the title takes the room left between them. It
+ * wraps between its words as it did; a word wider than that room is cut with an ellipsis. Before,
+ * the title could not get narrower than its longest word, and in Russian at 320 pixels that word
+ * (123 pixels, in a room of 93) pushed "Fertig" 22 pixels past the screen (measured 03.10.2026).
+ */
 .chat-image-editor-title {
+  min-width: 0;
+  overflow: hidden;
   font-size: 1rem;
   font-weight: 600;
+  text-overflow: ellipsis;
 }
 
 .chat-image-editor-cancel,
 .chat-image-editor-done {
+  flex: 0 0 auto;
   min-height: 2.75rem;
   border: 0;
   font: inherit;

@@ -1084,6 +1084,31 @@ describe('ChatImageEditor', () => {
   })
 
   /**
+   * The top row on a narrow phone, held by the stylesheet alone as well: the two buttons never give
+   * way, the title does. It may get narrower than its longest word, and what does not fit is cut
+   * with an ellipsis -- before, that word pushed "Fertig" off a screen of 320 pixels (Russian,
+   * measured 03.10.2026). The title still wraps between its words: on one line it would be cut in
+   * seven of the ten languages at that width, wrapped it is cut in Russian alone.
+   */
+  it('keeps both buttons of the top row on a narrow screen and lets the title give way', () => {
+    const code = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'ChatImageEditor.vue'),
+      'utf8',
+    ).replace(/\/\*[\s\S]*?\*\//g, '')
+    const rule = (selector) => code.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
+
+    expect(rule('\\.chat-image-editor-bar')).toMatch(/display:\s*flex/)
+    expect(rule('\\.chat-image-editor-cancel,\\s*\\.chat-image-editor-done')).toMatch(
+      /flex:\s*0 0 auto/,
+    )
+    const title = rule('\\.chat-image-editor-title')
+    expect(title).toMatch(/min-width:\s*0;/)
+    expect(title).toMatch(/overflow:\s*hidden/)
+    expect(title).toMatch(/text-overflow:\s*ellipsis/)
+    expect(title).not.toMatch(/white-space/)
+  })
+
+  /**
    * ⛔ Only names the installed BModal declares: an unknown one (the Vue-2 `hide-header`) is taken
    * silently as a plain attribute and does nothing (ContactWindow.modalProps.spec). The stub above
    * declares whatever it is given, so only the source against the package can say it.
