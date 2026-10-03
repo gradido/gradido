@@ -151,6 +151,9 @@ describe('dbSelectThankYouGreetingsByLinkIds', () => {
   // A greeting whose link was never saved (createTransactionLink files the greeting first).
   const ORPHAN_CODE = 'b7d3e1a8992c19981fa0c4e9'
   const LINKS = [EMMA_LINK, PLAIN_LINK, BOUQUET_LINK]
+  // Who made which link: the answer names them, and the booking list shows a greeting only
+  // where that member is the booking's sender.
+  const MAKER = { [EMMA_LINK.id]: 880011, [PLAIN_LINK.id]: 880012, [BOUQUET_LINK.id]: 880013 }
   const CODES = [EMMA_LINK.code, BOUQUET_LINK.code, ORPHAN_CODE]
 
   const EMMA = {
@@ -179,7 +182,7 @@ describe('dbSelectThankYouGreetingsByLinkIds', () => {
     await db.insert(transactionLinksTable).values(
       LINKS.map((link) => ({
         ...link,
-        userId: 1,
+        userId: MAKER[link.id],
         memo: 'Danke für Deine Hilfe!',
         createdAt: new Date('2026-10-02T17:42:00Z'),
         validUntil: new Date('2026-10-16T17:42:00Z'),
@@ -199,13 +202,25 @@ describe('dbSelectThankYouGreetingsByLinkIds', () => {
     const greetings = await dbSelectThankYouGreetingsByLinkIds([EMMA_LINK.id])
 
     expect([...greetings.keys()]).toEqual([EMMA_LINK.id])
-    const emma = greetings.get(EMMA_LINK.id)
+    const emma = greetings.get(EMMA_LINK.id)?.greeting
     expect(emma).toMatchObject(EMMA)
     // The whole row of the greeting, as the link lists read it: its own id among it, which
     // is not the link's.
     expect(emma?.id).toBeGreaterThan(0)
     expect(emma?.id).not.toBe(EMMA_LINK.id)
     expect(emma?.createdAt).toBeInstanceOf(Date)
+  })
+
+  // The id on a booking does not prove whose greeting it is; the maker of the link does.
+  it('names the member who made each link beside its greeting', async () => {
+    const greetings = await dbSelectThankYouGreetingsByLinkIds([EMMA_LINK.id, BOUQUET_LINK.id])
+
+    expect(greetings.get(EMMA_LINK.id)?.linkUserId).toBe(MAKER[EMMA_LINK.id])
+    expect(greetings.get(BOUQUET_LINK.id)?.linkUserId).toBe(MAKER[BOUQUET_LINK.id])
+    expect(Object.keys(greetings.get(EMMA_LINK.id) ?? {}).sort()).toEqual([
+      'greeting',
+      'linkUserId',
+    ])
   })
 
   it('leaves a plain link and an unknown id out of the answer', async () => {
@@ -223,8 +238,8 @@ describe('dbSelectThankYouGreetingsByLinkIds', () => {
     ])
 
     expect([...greetings.keys()].sort((a, b) => a - b)).toEqual([EMMA_LINK.id, BOUQUET_LINK.id])
-    expect(greetings.get(EMMA_LINK.id)).toMatchObject(EMMA)
-    expect(greetings.get(BOUQUET_LINK.id)).toMatchObject({
+    expect(greetings.get(EMMA_LINK.id)?.greeting).toMatchObject(EMMA)
+    expect(greetings.get(BOUQUET_LINK.id)?.greeting).toMatchObject({
       ...BOUQUET,
       line: null,
       recipientName: null,
@@ -248,9 +263,9 @@ describe('dbSelectThankYouGreetingsByLinkIds', () => {
       NO_SUCH_LINK,
     ])
 
-    expect([...greetings.values()].map((greeting) => greeting.transactionLinkCode)).not.toContain(
-      ORPHAN_CODE,
-    )
+    expect(
+      [...greetings.values()].map((found) => found.greeting.transactionLinkCode),
+    ).not.toContain(ORPHAN_CODE)
     expect(greetings.size).toBe(2)
   })
 })

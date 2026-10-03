@@ -73,6 +73,13 @@ export async function dbSelectThankYouGreetingsByLinkCodes(
     .where(inArray(thankYouGreetingsTable.transactionLinkCode, transactionLinkCodes))
 }
 
+/** The greeting of a link, and whose link it is. */
+export type ThankYouGreetingOfLink = {
+  /** `transaction_links.user_id`: the member who made the link, and wrote the greeting. */
+  linkUserId: number
+  greeting: ThankYouGreetingSelect
+}
+
 /**
  * The greetings of these links, as a map from the link's id to its greeting; a link without
  * one is simply not in the map. One statement for a whole page of bookings.
@@ -82,8 +89,11 @@ export async function dbSelectThankYouGreetingsByLinkCodes(
  * two tables are joined on the code and narrowed to the ids -- the answer is keyed by what the
  * caller holds, and the code never has to travel through the resolver.
  *
- * ⚠️ The ids are those of THIS server's `transaction_links`. Which bookings carry such an id
- * is the caller's to know (backend/src/data/Transaction.logic.ts).
+ * ⛔ With each greeting comes the member who made its link, and the answer is not complete
+ * without that: the id on a booking's row does not prove the greeting is that booking's. A
+ * greeting is shown with a booking only where the link's maker is the booking's sender --
+ * the caller's rule (backend/src/data/Transaction.logic.ts, greetingOfBooking), and the
+ * reason this function does not hand out a greeting on its own.
  *
  * No condition on `deletedAt`: the list names links that were redeemed, and
  * deleteTransactionLink refuses a redeemed link.
@@ -94,12 +104,16 @@ export async function dbSelectThankYouGreetingsByLinkCodes(
  */
 export async function dbSelectThankYouGreetingsByLinkIds(
   transactionLinkIds: number[],
-): Promise<Map<number, ThankYouGreetingSelect>> {
+): Promise<Map<number, ThankYouGreetingOfLink>> {
   if (transactionLinkIds.length === 0) {
     return new Map()
   }
   const rows = await drizzleDb()
-    .select({ transactionLinkId: transactionLinksTable.id, greeting: thankYouGreetingsTable })
+    .select({
+      transactionLinkId: transactionLinksTable.id,
+      linkUserId: transactionLinksTable.userId,
+      greeting: thankYouGreetingsTable,
+    })
     .from(thankYouGreetingsTable)
     .innerJoin(
       transactionLinksTable,
@@ -107,7 +121,12 @@ export async function dbSelectThankYouGreetingsByLinkIds(
     )
     .where(inArray(transactionLinksTable.id, transactionLinkIds))
 
-  return new Map(rows.map((row) => [row.transactionLinkId, row.greeting]))
+  return new Map(
+    rows.map((row) => [
+      row.transactionLinkId,
+      { linkUserId: row.linkUserId, greeting: row.greeting },
+    ]),
+  )
 }
 
 /**

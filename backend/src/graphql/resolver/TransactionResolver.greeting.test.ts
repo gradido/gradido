@@ -76,6 +76,7 @@ const TRANSFER_MEMO = 'Einfach überwiesen, ohne Link'
 const BOBS_MEMO = 'Danke fürs Zuhören, lieber Bob'
 const RAEUBERS_MEMO = 'Für die Kaffeemühle, Hotzenplotz'
 const BOBS_GREETING = { motif: 'bouquet', line: null, recipientName: null }
+const PETERS_MEMO = 'Ein Gruß von Peter, den niemand annimmt'
 
 type Booking = {
   id: number
@@ -89,6 +90,8 @@ type Booking = {
 let greetingLink: { id: number; code: string }
 let plainLink: { id: number; code: string }
 let bobsLink: { id: number; code: string }
+// Made by Peter, with a greeting, and never accepted: the link of somebody other than Bibi.
+let petersLink: { id: number; code: string }
 
 const loginAs = (email: string) =>
   mutate({ mutation: login, variables: { email, password: 'Aa12345_' } })
@@ -162,6 +165,13 @@ beforeAll(async () => {
   await redeemed('peter@lustig.de', greetingLink.code)
   await redeemed('peter@lustig.de', plainLink.code)
   await redeemed('bob@baumeister.de', bobsLink.code)
+
+  await loginAs('peter@lustig.de')
+  petersLink = await created({
+    amount: '2',
+    memo: PETERS_MEMO,
+    greeting: { motif: 'giving-hands' },
+  })
 })
 
 afterAll(async () => {
@@ -252,35 +262,75 @@ describe('a booking without a greeting', () => {
    * ⛔ A booking received from another community carries the id the SENDER's server gave its
    * link (federation, settlePendingReceiveTransaction). On this server the same number is the
    * link of Bibi's greeting to Peter -- which Bob has nothing to do with.
+   *
+   * And the community such a row names as its sender's is what that server's request named:
+   * a row that names this very community is a row from afar all the same. What tells is that
+   * no member of this server is linked to it -- a column no other server can fill.
    */
-  it('received from another community has none, and its number is not even asked for', async () => {
+  it.each([
+    ['another community', () => uuidv4()],
+    ['a server that calls itself this community', () => bob.communityUuid as string],
+  ])('received from %s has none, and its number is not even asked for', async (_, sayingItIs) => {
     const fromAfar = await foreignReceive(
       bob,
-      { communityUuid: uuidv4(), gradidoID: uuidv4(), name: 'fremde-freundin' },
+      { communityUuid: sayingItIs(), gradidoID: uuidv4(), name: 'fremde-freundin' },
       new Date(),
     )
-    await DbTransaction.update({ id: fromAfar.id }, { transactionLinkId: greetingLink.id })
+    try {
+      await DbTransaction.update({ id: fromAfar.id }, { transactionLinkId: greetingLink.id })
 
-    const bookings = await listOf('bob@baumeister.de')
-    const row = bookings.find((booking) => booking.id === fromAfar.id)!
+      const bookings = await listOf('bob@baumeister.de')
+      const row = bookings.find((booking) => booking.id === fromAfar.id)!
 
-    expect(row.typeId).toBe('RECEIVE')
-    expect(row.linkId).toBe(greetingLink.id)
-    expect(row.greeting).toBeNull()
-    // Bob's own greeting from Bibi is untouched by it, and the only link the page names.
-    expect(rowOf(bookings, 'RECEIVE', BOBS_MEMO).greeting).toEqual(BOBS_GREETING)
-    expect(selectGreetings).toHaveBeenCalledTimes(1)
-    expect(selectGreetings).toHaveBeenCalledWith([bobsLink.id])
+      expect(row.typeId).toBe('RECEIVE')
+      expect(row.linkId).toBe(greetingLink.id)
+      expect(row.greeting).toBeNull()
+      // Bob's own greeting from Bibi is untouched by it, and the only link the page names.
+      expect(rowOf(bookings, 'RECEIVE', BOBS_MEMO).greeting).toEqual(BOBS_GREETING)
+      expect(selectGreetings).toHaveBeenCalledTimes(1)
+      expect(selectGreetings).toHaveBeenCalledWith([bobsLink.id])
 
-    // ⚠️ Above, the row has none because its number was never asked for. Here it carries a
-    // number the page DOES ask for -- the link of Bob's own greeting -- and still has none:
-    // whether a row gets a greeting is decided for the row, not by what the page holds.
-    await DbTransaction.update({ id: fromAfar.id }, { transactionLinkId: bobsLink.id })
-    const again = await listOf('bob@baumeister.de')
+      // ⚠️ Above, the row has none because its number was never asked for. Here it carries a
+      // number the page DOES ask for -- the link of Bob's own greeting -- and still has none:
+      // whether a row gets a greeting is decided for the row, not by what the page holds.
+      await DbTransaction.update({ id: fromAfar.id }, { transactionLinkId: bobsLink.id })
+      const again = await listOf('bob@baumeister.de')
 
-    expect(again.find((booking) => booking.id === fromAfar.id)!.greeting).toBeNull()
-    expect(rowOf(again, 'RECEIVE', BOBS_MEMO).greeting).toEqual(BOBS_GREETING)
-    expect(selectGreetings).toHaveBeenCalledWith([bobsLink.id])
+      expect(again.find((booking) => booking.id === fromAfar.id)!.greeting).toBeNull()
+      expect(rowOf(again, 'RECEIVE', BOBS_MEMO).greeting).toEqual(BOBS_GREETING)
+      expect(selectGreetings).toHaveBeenCalledWith([bobsLink.id])
+    } finally {
+      await DbTransaction.update({ id: fromAfar.id }, { transactionLinkId: null })
+    }
+  })
+
+  /**
+   * ⛔ Across the border the sender and the link's code come from another server's request
+   * (federation, the disbursement of a link); the booking list holds the two against each
+   * other itself. Bibi's plain transfer is given the number of PETER's link here. The page
+   * asks for it and the table answers -- and his greeting is still not hers to read: a
+   * greeting is shown only where the link is the sender's own.
+   */
+  it('sent with the number of somebody else’s link has none', async () => {
+    const transfer = rowOf(await listOf('bibi@bloxberg.de'), 'SEND', TRANSFER_MEMO)
+    await DbTransaction.update({ id: transfer.id }, { transactionLinkId: petersLink.id })
+    try {
+      const bookings = await listOf('bibi@bloxberg.de')
+      const row = bookings.find((booking) => booking.id === transfer.id)!
+
+      expect(row.linkId).toBe(petersLink.id)
+      expect(row.greeting).toBeNull()
+      // Not for want of a greeting: the link was asked for, and has one, of Peter's making.
+      const answered = await selectGreetings.mock.results[0].value
+      expect(answered.get(petersLink.id)).toMatchObject({
+        linkUserId: peter.id,
+        greeting: { motif: 'giving-hands' },
+      })
+      // Her own greeting, two rows on, is hers.
+      expect(rowOf(bookings, 'SEND', GREETING_MEMO).greeting).toEqual(GREETING)
+    } finally {
+      await DbTransaction.update({ id: transfer.id }, { transactionLinkId: null })
+    }
   })
 })
 

@@ -49,7 +49,7 @@ import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { PublishNameLogic } from '@/data/PublishName.logic'
-import { greetingLinkIdOf, greetingLinkIdsOf } from '@/data/Transaction.logic'
+import { greetingLinkIdsOf, greetingOfBooking } from '@/data/Transaction.logic'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { communityUser } from '@/util/communityUser'
@@ -543,8 +543,9 @@ export class TransactionResolver {
      * the names of the cards above -- and for the same reason. A page without a booking made
      * from a link of this server asks the table nothing.
      *
-     * Which link a booking's greeting hangs on, and which bookings have none, is
-     * greetingLinkIdOf's to say: the model's `linkId` holds two kinds of number.
+     * Which links the page asks for, and which booking gets which greeting, are the rules of
+     * Transaction.logic: the model's `linkId` holds two kinds of number, and the number on a
+     * row does not prove the greeting is that booking's -- the link has to be its sender's.
      */
     const greetings = await dbSelectThankYouGreetingsByLinkIds(greetingLinkIdsOf(userTransactions))
 
@@ -579,8 +580,7 @@ export class TransactionResolver {
         userTransaction.thankYouCardId
           ? (cardLabels.get(userTransaction.thankYouCardId) ?? null)
           : null
-      const greetingLinkId = greetingLinkIdOf(userTransaction)
-      const greetingRow = greetingLinkId === null ? undefined : greetings.get(greetingLinkId)
+      const greetingRow = greetingOfBooking(userTransaction, greetings)
       transactions.push(
         new Transaction(
           userTransaction,
