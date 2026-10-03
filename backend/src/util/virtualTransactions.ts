@@ -25,6 +25,8 @@ const virtualLinkTransaction = (amount: GradidoUnit, user: User): Transaction =>
     // so no card was ever involved.
     viaThankYouCard: false,
     thankYouCardLabel: null,
+    // And neither was made from a link somebody accepted.
+    greeting: null,
   }
 }
 
@@ -55,6 +57,8 @@ const virtualDecayTransaction = (
     // so no card was ever involved.
     viaThankYouCard: false,
     thankYouCardLabel: null,
+    // And neither was made from a link somebody accepted.
+    greeting: null,
   }
 }
 

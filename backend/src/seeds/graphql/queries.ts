@@ -136,6 +136,11 @@ export const transactionsQuery = gql`
         linkId
         viaThankYouCard
         thankYouCardLabel
+        greeting {
+          motif
+          line
+          recipientName
+        }
       }
     }
   }
