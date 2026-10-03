@@ -83,7 +83,11 @@ export default {
     justify-content: center;
     text-decoration: none;
     font-size: 14px;
-    text-wrap: nowrap;
+
+    /* As the switch of the send page (TransactionForm.vue): a label that does not fit wraps
+       inside its third, rather than running across its neighbours or widening the column. */
+    text-align: center;
+    line-height: 1.15;
     color: black !important;
     border-radius: 25px;
   }
