@@ -156,6 +156,7 @@
       "sincerelyYours": "Με εκτίμηση,",
       "toAccount": "Στον λογαριασμό",
       "toContribution": "Στη συνεισφορά",
+      "toConversation": "Στη συνομιλία",
       "transactionDetails": "Λεπτομέρειες συναλλαγής",
       "yourGradidoTeam": "η ομάδα σου Gradido"
     },
@@ -176,11 +177,11 @@
       "wasPaid": "Μόλις μεταβιβάστηκαν {amountGDD} GDD με την κάρτα ευχαριστίας σου."
     },
     "transactionLinkRedeemed": {
-      "hasRedeemedYourLink": "{senderAlias} ({senderCommunity}) μόλις εξαργύρωσε τον σύνδεσμό σου.",
+      "hasAcceptedYourThanks": "{senderAlias} ({senderCommunity}) μόλις δέχτηκε το ευχαριστώ σου.",
+      "hasAcceptedYourThanksNewMember": "{senderAlias} ({senderCommunity}) δέχτηκε το ευχαριστώ σου — και μόλις ήρθε στο Gradido. Ωραία που το έδειξες.",
       "memo": "Μήνυμα: {transactionMemo}",
-      "newMember": "— και μόλις ήρθε στο Gradido. Ωραία που το έδειξες.",
-      "subject": "{senderAlias} εξαργύρωσε τον σύνδεσμό σου Gradido",
-      "title": "{senderAlias} εξαργύρωσε τον σύνδεσμό σου Gradido"
+      "subject": "{senderAlias} δέχτηκε το ευχαριστώ σου",
+      "title": "{senderAlias} δέχτηκε το ευχαριστώ σου"
     },
     "transactionReceived": {
       "haveReceivedAmountGDDFrom": "μόλις έλαβες {transactionAmount} GDD από {senderAlias}.",

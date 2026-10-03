@@ -156,6 +156,7 @@
       "sincerelyYours": "Hartelijke groet,",
       "toAccount": "Naar het account",
       "toContribution": "Naar de bijdrage",
+      "toConversation": "Naar gesprek",
       "transactionDetails": "Transactiedetails",
       "yourGradidoTeam": "je Gradido-team"
     },
@@ -176,11 +177,11 @@
       "wasPaid": "Er is zojuist {amountGDD} GDD doorgegeven met je bedankkaart."
     },
     "transactionLinkRedeemed": {
-      "hasRedeemedYourLink": "{senderAlias} ({senderCommunity}) heeft zojuist je link ingewisseld.",
+      "hasAcceptedYourThanks": "{senderAlias} ({senderCommunity}) heeft zojuist je bedankje aangenomen.",
+      "hasAcceptedYourThanksNewMember": "{senderAlias} ({senderCommunity}) heeft zojuist je bedankje aangenomen — en is nieuw bij Gradido. Fijn dat je het hebt laten zien.",
       "memo": "Bericht: {transactionMemo}",
-      "newMember": "— en is nieuw bij Gradido. Fijn dat je het hebt laten zien.",
-      "subject": "{senderAlias} heeft je Gradido-link ingewisseld",
-      "title": "{senderAlias} heeft je Gradido-link ingewisseld"
+      "subject": "{senderAlias} heeft je bedankje aangenomen",
+      "title": "{senderAlias} heeft je bedankje aangenomen"
     },
     "transactionReceived": {
       "haveReceivedAmountGDDFrom": "je hebt zojuist {transactionAmount} GDD ontvangen van {senderAlias}.",

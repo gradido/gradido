@@ -1,5 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { afterEach, describe, expect, it, jest, mock } from 'bun:test'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { GradidoUnit } from 'shared'
 import { CONFIG } from '../config'
 import * as sendEmailTranslatedApi from './sendEmailTranslated'
@@ -186,5 +188,139 @@ describe('the mail about an accepted link', () => {
         '<p>Sarah-B (KI Playground) hat soeben Deinen Dank angenommen.</p>',
       )
     })
+  })
+})
+
+/**
+ * The same mail in each of the ten languages, rendered: the catalogue's own sentences with the
+ * two names set in, nothing of the mail's old words, and the button under a label of its own.
+ *
+ * The sentences are read from the catalogue files, not written out a second time here: what is
+ * held is that the template asks for these keys in every language, that both placeholders are
+ * filled, and that no language falls back to English without anybody noticing.
+ */
+describe('the mail about an accepted link, in every language', () => {
+  const LANGUAGES = ['de', 'en', 'es', 'fr', 'it', 'nl', 'pt', 'ru', 'el', 'tr']
+  type Catalogue = {
+    emails: {
+      general: Record<string, string>
+      transactionLinkRedeemed: Record<string, string>
+    }
+  }
+  const catalogue = (language: string): Catalogue =>
+    JSON.parse(readFileSync(join(__dirname, '..', 'locales', `${language}.json`), 'utf8'))
+  const filled = (sentence: string) =>
+    sentence.replace('{senderAlias}', 'Sarah-B').replace('{senderCommunity}', 'KI Playground')
+  // Pug writes these three as entities in a text; the catalogues use the first of them.
+  const inHtml = (text: string) =>
+    text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+
+  const mailIn = async (language: string, more: Record<string, unknown> = {}) => {
+    const result: any = await sendTransactionLinkRedeemedEmail({
+      firstName: 'Emma',
+      lastName: 'Wald',
+      email: 'emma@wald.de',
+      language,
+      senderAlias: 'Sarah-B',
+      senderCommunity: 'KI Playground',
+      senderUuid: '3f9a1e2c-1111-4a2b-9c3d-0000000000ab',
+      senderCommunityUuid: 'aaaa1111-2222-4333-8444-5555666677cd',
+      transactionMemo: 'Einfach so — weil es Dich gibt.',
+      transactionAmount: GradidoUnit.fromNumber(20),
+      ...more,
+    })
+    return result.originalMessage as { subject: string; html: string; text: string }
+  }
+
+  it('has the five texts of this mail in every catalogue, and none of the two it had', () => {
+    for (const language of LANGUAGES) {
+      const { emails } = catalogue(language)
+      expect(Object.keys(emails.transactionLinkRedeemed).sort()).toEqual([
+        'hasAcceptedYourThanks',
+        'hasAcceptedYourThanksNewMember',
+        'memo',
+        'subject',
+        'title',
+      ])
+      expect(emails.general.toConversation, language).toBeTruthy()
+    }
+  })
+
+  it.each(LANGUAGES)(
+    'says the sentence of the catalogue, both names set in: %s',
+    async (language) => {
+      const texts = catalogue(language).emails.transactionLinkRedeemed
+      const mail = await mailIn(language)
+
+      expect(mail.subject).toBe(filled(texts.subject))
+      expect(mail.html).toContain(`>${inHtml(filled(texts.title))}</h2>`)
+      expect(mail.html).toContain(`<p>${inHtml(filled(texts.hasAcceptedYourThanks))}</p>`)
+      // Both placeholders were there to be filled, and nothing of a key stands in the mail.
+      expect(texts.hasAcceptedYourThanks).toContain('{senderAlias}')
+      expect(texts.hasAcceptedYourThanks).toContain('{senderCommunity}')
+      expect(mail.html).not.toContain('{sender')
+      expect(mail.html).not.toContain('emails.')
+    },
+  )
+
+  it.each(LANGUAGES)(
+    'says the arrival of a new member in one sentence of its own: %s',
+    async (language) => {
+      const texts = catalogue(language).emails.transactionLinkRedeemed
+      const mail = await mailIn(language, { newMember: true })
+
+      expect(mail.html).toContain(`<p>${inHtml(filled(texts.hasAcceptedYourThanksNewMember))}</p>`)
+      expect(mail.html).not.toContain(`<p>${inHtml(filled(texts.hasAcceptedYourThanks))}</p>`)
+      // One piece of text: longer than the plain sentence, and no full stop stands before a dash.
+      expect(texts.hasAcceptedYourThanksNewMember.length).toBeGreaterThan(
+        texts.hasAcceptedYourThanks.length,
+      )
+      expect(texts.hasAcceptedYourThanksNewMember).not.toMatch(/\.\s*[—–-]\s/)
+      expect(texts.hasAcceptedYourThanksNewMember).toContain('{senderAlias}')
+      expect(texts.hasAcceptedYourThanksNewMember).toContain('{senderCommunity}')
+    },
+  )
+
+  it.each(LANGUAGES)('names the button in its own words: %s', async (language) => {
+    const label = catalogue(language).emails.general.toConversation
+    const mail = await mailIn(language)
+
+    expect(mail.html).toContain(`<span>${inHtml(label)}</span></a></div><a class="button-3"`)
+    expect(mail.html.split('class="button-5"')).toHaveLength(2)
+  })
+
+  // A language that lost its words would read the English ones, and every assertion above
+  // would still hold for it.
+  it('gives every language words of its own', () => {
+    const english = catalogue('en').emails
+    for (const language of LANGUAGES.filter((code) => code !== 'en')) {
+      const { transactionLinkRedeemed: texts, general } = catalogue(language).emails
+      for (const key of [
+        'subject',
+        'title',
+        'hasAcceptedYourThanks',
+        'hasAcceptedYourThanksNewMember',
+      ]) {
+        expect(texts[key], `${language} ${key}`).not.toBe(english.transactionLinkRedeemed[key])
+      }
+      // French shares the word with English; every other label is its own.
+      if (language !== 'fr') {
+        expect(general.toConversation, language).not.toBe(english.general.toConversation)
+      }
+    }
+  })
+
+  /**
+   * The button stands on one line on a phone of 320 px: there the card leaves it 216 px, and
+   * "Zum Gespräch" takes 204 of them in the mail's font (measured in the rendered mail,
+   * 03.10.2026). A label of more than thirteen letters did not fit in any of the ten -- "Para a
+   * conversa" was over by 1.4 px --, so en, es, fr, it, nl and pt carry a shorter form. Not a
+   * measure, which a test without a browser cannot take: a tripwire for the next edit.
+   */
+  it('keeps the label short enough for one line on a small phone', () => {
+    for (const language of LANGUAGES) {
+      const label = catalogue(language).emails.general.toConversation
+      expect(Array.from(label).length, `${language}: ${label}`).toBeLessThanOrEqual(13)
+    }
   })
 })

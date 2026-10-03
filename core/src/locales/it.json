@@ -156,6 +156,7 @@
       "sincerelyYours": "Cordiali saluti,",
       "toAccount": "All'account",
       "toContribution": "Al contributo",
+      "toConversation": "Conversazione",
       "transactionDetails": "Dettagli della transazione",
       "yourGradidoTeam": "il tuo team Gradido"
     },
@@ -176,11 +177,11 @@
       "wasPaid": "Sono appena stati trasmessi {amountGDD} GDD con la tua carta di ringraziamento."
     },
     "transactionLinkRedeemed": {
-      "hasRedeemedYourLink": "{senderAlias} ({senderCommunity}) ha appena riscattato il tuo link.",
+      "hasAcceptedYourThanks": "{senderAlias} ({senderCommunity}) ha appena accettato il tuo ringraziamento.",
+      "hasAcceptedYourThanksNewMember": "{senderAlias} ({senderCommunity}) ha appena accettato il tuo ringraziamento — ed è un nuovo arrivo su Gradido. Che bello che tu gliel'abbia mostrato.",
       "memo": "Messaggio: {transactionMemo}",
-      "newMember": "— un nuovo arrivo su Gradido. Che bello che tu gliel'abbia mostrato.",
-      "subject": "{senderAlias} ha riscattato il tuo link Gradido",
-      "title": "{senderAlias} ha riscattato il tuo link Gradido"
+      "subject": "{senderAlias} ha accettato il tuo ringraziamento",
+      "title": "{senderAlias} ha accettato il tuo ringraziamento"
     },
     "transactionReceived": {
       "haveReceivedAmountGDDFrom": "hai appena ricevuto {transactionAmount} GDD da {senderAlias}.",

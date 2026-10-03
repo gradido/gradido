@@ -156,6 +156,7 @@
       "sincerelyYours": "Sevgiler,",
       "toAccount": "Hesaba git",
       "toContribution": "Katkıya git",
+      "toConversation": "Sohbete git",
       "transactionDetails": "İşlem ayrıntıları",
       "yourGradidoTeam": "Gradido ekibin"
     },
@@ -176,11 +177,11 @@
       "wasPaid": "Teşekkür kartınla az önce {amountGDD} GDD aktarıldı."
     },
     "transactionLinkRedeemed": {
-      "hasRedeemedYourLink": "{senderAlias} ({senderCommunity}) az önce bağlantını kullandı.",
+      "hasAcceptedYourThanks": "{senderAlias} ({senderCommunity}) gönderdiğin teşekkürü az önce kabul etti.",
+      "hasAcceptedYourThanksNewMember": "{senderAlias} ({senderCommunity}) gönderdiğin teşekkürü az önce kabul etti — ve Gradido'da yeni. Göstermen çok güzel.",
       "memo": "Mesaj: {transactionMemo}",
-      "newMember": "— ve Gradido'da yeni. Göstermen çok güzel.",
-      "subject": "{senderAlias} Gradido bağlantını kullandı",
-      "title": "{senderAlias} Gradido bağlantını kullandı"
+      "subject": "{senderAlias} gönderdiğin teşekkürü kabul etti",
+      "title": "{senderAlias} gönderdiğin teşekkürü kabul etti"
     },
     "transactionReceived": {
       "haveReceivedAmountGDDFrom": "az önce {senderAlias} tarafından {transactionAmount} GDD aldın.",
