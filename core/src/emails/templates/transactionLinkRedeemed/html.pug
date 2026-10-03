@@ -27,9 +27,13 @@ block content
 
         On a line of its own, centred as everything in the card is. Its lower margin is taken
         off, so that the two buttons stand 25px apart and not 50.
+
+        Each of the two is written as ONE value of the address (encodeURIComponent). Across the
+        border the member's id is what the other server answered with; an "&" or a "#" in it
+        would otherwise end the value and begin something of its own. A uuid stays as it is.
     if senderCommunityUuid && senderUuid
       div
-        a.button-5(href=`${communityURL}/contacts?with=${senderUuid}&community=${senderCommunityUuid}` style="margin: 25px 0 0 0")
+        a.button-5(href=`${communityURL}/contacts?with=${encodeURIComponent(senderUuid)}&community=${encodeURIComponent(senderCommunityUuid)}` style="margin: 25px 0 0 0")
           include ../includes/chatbox-icon.pug
           span #{t('emails.general.toConversation')}
 

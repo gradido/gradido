@@ -181,6 +181,27 @@ describe('the mail about an accepted link', () => {
       expect(mail.text).toContain('Zum Gespräch')
     })
 
+    /**
+     * Across the border the member's id is what the other server answered with. Whatever it
+     * holds stays ONE value of the address: it ends no value, begins no second one, and no
+     * fragment. In the html the "&" between the two values is written as an entity, as in
+     * every attribute; the text of the mail has the address plain.
+     */
+    it('writes each of the two as one value of the address, whatever it holds', async () => {
+      const mail = await sent({
+        senderUuid: 'x&community=other#top "q"',
+        senderCommunityUuid: 'c d&with=someone',
+      })
+      const address = `${CONFIG.COMMUNITY_URL}/contacts?with=x%26community%3Dother%23top%20%22q%22&community=c%20d%26with%3Dsomeone`
+
+      expect(mail.html).toContain(`<a class="button-5" href="${address.replace('&', '&amp;')}"`)
+      expect(mail.text).toContain(address)
+      for (const part of [mail.html, mail.text]) {
+        expect(part).not.toContain('community=other')
+        expect(part).not.toContain('with=someone')
+      }
+    })
+
     it.each([
       ['nobody is named', {}],
       ['the member is not named', { senderCommunityUuid: COMMUNITY }],

@@ -196,7 +196,8 @@ export async function processXComCompleteTransaction(
           senderAlias: publicAlias(foreignUser.alias, foreignUser.gradidoID),
           senderCommunity: recipientCom.name!,
           // The pair of whoever accepted, for the mail's button into the conversation with
-          // them; where the community has no uuid the mail has no such button.
+          // them: the id the other server answered with, as the foreign user was just stored
+          // under, and the uuid recipientCom was found by.
           senderUuid: foreignUser.gradidoID,
           senderCommunityUuid: recipientCom.communityUuid,
           transactionAmount: GradidoUnit.fromString(amount),
