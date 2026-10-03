@@ -24,7 +24,9 @@ vi.mock('@/utils/isComputer', () => ({ isComputer: vi.fn(() => true) }))
  * answer as a test says -- with a picture, a refusal, or not yet.
  */
 const encoding = vi.hoisted(() => ({ openChatImage: vi.fn(), encodeChatImage: vi.fn() }))
-vi.mock('@/utils/chatImage', () => ({
+vi.mock('@/utils/chatImage', async (importOriginal) => ({
+  // The sentences for a picture that could not be made ready are the real ones.
+  chatImageProblemWords: (await importOriginal()).chatImageProblemWords,
   openChatImage: (...args) => encoding.openChatImage(...args),
   encodeChatImage: (...args) => encoding.encodeChatImage(...args),
 }))

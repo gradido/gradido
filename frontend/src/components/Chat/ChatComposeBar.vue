@@ -386,7 +386,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, useId,
 import { useI18n } from 'vue-i18n'
 import { BButton, BModal } from 'bootstrap-vue-next'
 import { SWISSTRANSFER_URL } from '@/utils/chatFileLink'
-import { encodeChatImage, openChatImage } from '@/utils/chatImage'
+import { chatImageProblemWords, encodeChatImage, openChatImage } from '@/utils/chatImage'
 import { CHAT_IMAGE_UNEDITED, chatImageCut, drawChatImageCut } from '@/utils/chatImageEdit'
 import ChatImageEditor from '@/components/Chat/ChatImageEditor.vue'
 import { chatNotifyFor } from '@/utils/chatNotify'
@@ -687,12 +687,7 @@ const failedWords = computed(() => {
 })
 
 /** Why a picture could not be made ready, in the bar's own words. */
-const pictureProblemWords = computed(() => {
-  if (pictureProblem.value === 'SOURCE_TOO_LARGE') return t('chatThread.imageTooLarge')
-  if (pictureProblem.value === 'HEIC') return t('chatThread.imageHeic')
-  if (pictureProblem.value === 'NOT_SMALL_ENOUGH') return t('chatThread.imageTooBig')
-  return t('chatThread.imageFormat')
-})
+const pictureProblemWords = computed(() => chatImageProblemWords(pictureProblem.value, t))
 
 /** What the status says for the ear about the picture (see the template). */
 const pictureStatus = computed(() => {

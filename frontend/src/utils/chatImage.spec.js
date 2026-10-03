@@ -9,6 +9,7 @@ import {
   CHAT_IMAGE_ROUNDS,
   CHAT_IMAGE_TARGET_BYTES,
   ChatImageError,
+  chatImageProblemWords,
   chatImageRefusal,
   chatImageSize,
   drawChatImage,
@@ -574,6 +575,23 @@ describe('encodeChatImage, for another rendition', () => {
       encodeChatImage(opened(3000, 4000), framed, { draw, encode, ...LARGE }),
     ).rejects.toMatchObject({ problem: 'NOT_SMALL_ENOUGH' })
     expect(drawn).toHaveLength(CHAT_IMAGE_ROUNDS)
+  })
+})
+
+describe('chatImageProblemWords', () => {
+  const t = (key) => key
+
+  it('has a sentence of its own for each problem a picture can have', () => {
+    expect(chatImageProblemWords('SOURCE_TOO_LARGE', t)).toBe('chatThread.imageTooLarge')
+    expect(chatImageProblemWords('HEIC', t)).toBe('chatThread.imageHeic')
+    expect(chatImageProblemWords('NOT_SMALL_ENOUGH', t)).toBe('chatThread.imageTooBig')
+    expect(chatImageProblemWords('FORMAT', t)).toBe('chatThread.imageFormat')
+  })
+
+  // A problem without a name of its own: the browser could not open the picture.
+  it('says the plain sentence for anything else', () => {
+    expect(chatImageProblemWords(undefined, t)).toBe('chatThread.imageFormat')
+    expect(chatImageProblemWords('SOMETHING_NEW', t)).toBe('chatThread.imageFormat')
   })
 })
 

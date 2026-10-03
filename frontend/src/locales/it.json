@@ -1592,6 +1592,8 @@
     "name": "Biglietto di ringraziamento",
     "next": "Avanti",
     "picture": {
+      "other": "Un'altra foto",
+      "own": "Una tua foto",
       "question": "Quale immagine vuoi sul tuo biglietto?"
     },
     "preview": {

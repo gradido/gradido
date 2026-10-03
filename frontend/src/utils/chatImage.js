@@ -58,6 +58,24 @@ export class ChatImageError extends Error {
 }
 
 /**
+ * Why a picture could not be made ready, in the wallet's own sentences -- one for each problem a
+ * ChatImageError names, and the plain one for anything else. The same sentences wherever a member
+ * chooses a picture: the chat's compose bar, and the picture of a thank-you greeting.
+ *
+ * The keys are written out one by one: the unused-keys rule of the linter only counts a key it
+ * finds as a literal.
+ *
+ * @param {string | null | undefined} problem
+ * @param {(key: string) => string} t the page's translate function
+ */
+export const chatImageProblemWords = (problem, t) => {
+  if (problem === 'SOURCE_TOO_LARGE') return t('chatThread.imageTooLarge')
+  if (problem === 'HEIC') return t('chatThread.imageHeic')
+  if (problem === 'NOT_SMALL_ENOUGH') return t('chatThread.imageTooBig')
+  return t('chatThread.imageFormat')
+}
+
+/**
  * What the server's refusal of a message with a picture was about, for the bar's own words:
  * - IMAGE_NOT_ACCEPTED -- the picture itself was not taken (CHAT_IMAGE_NOT_ACCEPTED: EMPTY,
  *   TOO_LARGE, NOT_JPEG or SIZE; a picture made here should never be, so no reason is named);

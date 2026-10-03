@@ -1592,6 +1592,8 @@
     "name": "Saludo de agradecimiento",
     "next": "Continuar",
     "picture": {
+      "other": "Otra foto",
+      "own": "Foto propia",
       "question": "¿Qué imagen quieres que lleve tu saludo?"
     },
     "preview": {

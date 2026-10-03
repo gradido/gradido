@@ -1592,6 +1592,8 @@
     "name": "Dankgroetje",
     "next": "Verder",
     "picture": {
+      "other": "Andere foto",
+      "own": "Eigen foto",
       "question": "Welke afbeelding komt op je groetje?"
     },
     "preview": {

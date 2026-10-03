@@ -77,6 +77,8 @@ const KEYS = [
   ...MOTIFS.map((motif) => `motif.${motif}`),
   'name',
   'next',
+  'picture.other',
+  'picture.own',
   'picture.question',
   'preview.finish',
   'preview.title',

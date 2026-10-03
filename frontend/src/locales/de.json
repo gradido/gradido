@@ -1592,6 +1592,8 @@
     "name": "Dank-Gruß",
     "next": "Weiter",
     "picture": {
+      "other": "Anderes Foto",
+      "own": "Eigenes Foto",
       "question": "Welches Bild soll Dein Gruß tragen?"
     },
     "preview": {

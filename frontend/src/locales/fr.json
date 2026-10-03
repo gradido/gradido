@@ -1592,6 +1592,8 @@
     "name": "Mot de remerciement",
     "next": "Continuer",
     "picture": {
+      "other": "Autre photo",
+      "own": "Ta propre photo",
       "question": "Quelle image pour ton petit mot ?"
     },
     "preview": {

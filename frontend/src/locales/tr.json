@@ -1592,6 +1592,8 @@
     "name": "Teşekkür mesajı",
     "next": "Devam",
     "picture": {
+      "other": "Başka fotoğraf",
+      "own": "Kendi fotoğrafın",
       "question": "Mesajın hangi resmi taşısın?"
     },
     "preview": {

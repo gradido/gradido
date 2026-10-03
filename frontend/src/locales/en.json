@@ -1592,6 +1592,8 @@
     "name": "Thank-you greeting",
     "next": "Next",
     "picture": {
+      "other": "Another photo",
+      "own": "Your own photo",
       "question": "Which picture should your greeting carry?"
     },
     "preview": {

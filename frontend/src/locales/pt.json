@@ -1592,6 +1592,8 @@
     "name": "Postal de agradecimento",
     "next": "Continuar",
     "picture": {
+      "other": "Outra foto",
+      "own": "A tua foto",
       "question": "Que imagem queres no teu postal?"
     },
     "preview": {
