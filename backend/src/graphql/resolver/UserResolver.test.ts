@@ -3964,7 +3964,7 @@ describe('UserResolver', () => {
           ).join('\n')} }`,
         }
         const payload = JSON.stringify([operation, operation])
-        const token = await encode(requester.gradidoID)
+        const token = encode(requester.gradidoID)
 
         const { app } = await createServer(getLogger('apollo'))
         // On the loopback interface only, and read the port once it is bound: with a host

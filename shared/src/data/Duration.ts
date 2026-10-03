@@ -33,6 +33,32 @@ export class Duration {
     return new Duration(BigInt(Math.floor((to.getTime() - from.getTime()) / 1000)))
   }
 
+  public static fromString(durationString: string): Duration {
+    const match = durationString.trim().match(/^(\d+)\s*(s|m|h|d|w)$/i)
+
+    if (!match) {
+      throw new Error(`Unhandled duration: "${durationString}"`)
+    }
+
+    const [, value, unit] = match
+    const amount = Number(value)
+
+    switch (unit.toLowerCase()) {
+      case 's':
+        return Duration.seconds(amount)
+      case 'm':
+        return Duration.minutes(amount)
+      case 'h':
+        return Duration.hours(amount)
+      case 'd':
+        return Duration.days(amount)
+      case 'w':
+        return Duration.days(amount * 7)
+      default:
+        throw new Error(`Unhandled enum: "${unit}"`)
+    }
+  }
+
   /**
    * Creates a Duration from a number of seconds
    * @param seconds The number of seconds

@@ -367,7 +367,7 @@ export class UserResolver {
 
     context.setHeaders.push({
       key: 'token',
-      value: await encode(dbUser.gradidoId),
+      value: encode(dbUser.gradidoId),
     })
 
     await dbInsertEvent({

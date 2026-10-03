@@ -1,35 +1,25 @@
-import { jwtVerify, SignJWT } from 'jose'
-
+import { createSecretKey } from 'node:crypto'
+import {
+  AuthContext,
+  authContextSchema,
+  createFrontendLoginToken,
+  Duration,
+  Uuidv4,
+  verifyFrontendLoginToken,
+} from 'shared'
 import { CONFIG } from '@/config/'
-import { LogError } from '@/server/LogError'
 
-import { CustomJwtPayload } from './CustomJwtPayload'
+const authContext: AuthContext = authContextSchema.parse({
+  issuer: CONFIG.COMMUNITY_URL,
+  signingKey: createSecretKey(Buffer.from(CONFIG.JWT_SECRET, 'utf8')),
+  duration: Duration.fromString(CONFIG.JWT_EXPIRES_IN),
+})
 
-export const decode = async (token: string): Promise<CustomJwtPayload | null> => {
-  if (!token) {
-    throw new LogError('401 Unauthorized')
-  }
-
-  try {
-    const secret = new TextEncoder().encode(CONFIG.JWT_SECRET)
-    const { payload } = await jwtVerify(token, secret, {
-      issuer: 'urn:gradido:issuer',
-      audience: 'urn:gradido:audience',
-    })
-    return payload as CustomJwtPayload
-  } catch (_err) {
-    return null
-  }
+// return user gradidoId if valid or null
+export function decode(token: string): Uuidv4 | null {
+  return verifyFrontendLoginToken(token, authContext)
 }
 
-export const encode = async (gradidoID: string): Promise<string> => {
-  const secret = new TextEncoder().encode(CONFIG.JWT_SECRET)
-  const token = await new SignJWT({ gradidoID, 'urn:gradido:claim': true })
-    .setProtectedHeader({ alg: 'HS256' })
-    .setIssuedAt()
-    .setIssuer('urn:gradido:issuer')
-    .setAudience('urn:gradido:audience')
-    .setExpirationTime(CONFIG.JWT_EXPIRES_IN)
-    .sign(secret)
-  return token
+export function encode(gradidoID: string): string {
+  return createFrontendLoginToken(gradidoID, authContext)
 }

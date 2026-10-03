@@ -21,6 +21,7 @@ export const DECAY_START_TIME = getDecayStartTime()
  * @constant {number} GRADIDO_DECAY_RESPITE_CENT
  */
 export const DECAY_RESPITE_CENT = getDecayRespiteCent()
+export const JWT_LEEWAY_SECONDS = 3 * 60
 
 // for contributions
 // 1'000 gdd = 10'000'000 gdd cent
