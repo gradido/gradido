@@ -500,6 +500,43 @@ describe('ChatThread', () => {
       )
     })
 
+    // ZE-019: the booking of an accepted thank-you greeting brings its greeting to its bubble --
+    // the motif, the line in handwriting, the words under it. A transfer without one stays as it was.
+    it('hands the greeting of a booking on to its bubble, and none to a plain transfer', async () => {
+      const LINE = 'Einfach so — weil es Dich gibt.'
+      bookingsAsked.mockImplementation(async () =>
+        bookingsPage([
+          {
+            ...booking(8, { at: '2026-09-22T10:04:30.000Z', sent: true }),
+            memo: `${LINE}\nLiebe Lena, danke!`,
+            greeting: { motif: 'morning-light', line: LINE },
+          },
+          { ...booking(7, { at: '2026-09-22T10:01:30.000Z' }), greeting: null },
+        ]),
+      )
+      mountThread()
+      await arrive(page([1, 2, 3, 4, 5]))
+
+      const [plain, greeted] = wrapper.findAll('.chat-bubble-transfer')
+      expect(plain.classes()).not.toContain('chat-bubble-greeting')
+      expect(plain.find('[data-test="chat-bubble-greeting-motif"]').exists()).toBe(false)
+      expect(plain.find('[data-test="chat-bubble-greeting-line"]').exists()).toBe(false)
+      expect(plain.find('.memo-text').text()).toBe('memo 7')
+
+      expect(greeted.classes()).toEqual(
+        expect.arrayContaining(['chat-bubble-greeting', 'chat-bubble-mine']),
+      )
+      expect(greeted.find('[data-test="chat-bubble-greeting-motif"]').attributes('src')).toBe(
+        '/img/thank-you-greeting/morning-light.svg',
+      )
+      expect(greeted.find('[data-test="chat-bubble-greeting-line"]').text()).toBe(LINE)
+      expect(greeted.find('.memo-text').text()).toBe('Liebe Lena, danke!')
+      // The head is the transfer's own, as before.
+      expect(greeted.find('[data-test="chat-bubble-subject"]').text()).toBe(
+        'chatThread.transferSent {"name":"Lena","amount":"decimal(10)"}',
+      )
+    })
+
     it('leaves out what is no transfer between the two, and a booking it holds already', async () => {
       bookingsAsked.mockImplementation(async () =>
         bookingsPage([
@@ -1006,6 +1043,73 @@ describe('ChatThread', () => {
       )
       expect(found()).toMatchObject({ count: 1, current: 1 })
       expect(bubbleOf('transfer-40').find('.memo-text mark').text()).toBe('memo 40')
+    })
+
+    // ZE-019: the line and the words of a greeting are one memo to the search. A hit in either
+    // counts the booking once and is marked where it stands; the count is the bubbles with marks.
+    describe('in the booking of a thank-you greeting', () => {
+      const LINE = 'Einfach so — weil es Dich gibt.'
+      const greetingBooking = () =>
+        bookingsAsked.mockImplementation(async () =>
+          bookingsPage([
+            {
+              ...booking(40, { at: '2026-09-22T10:30:00.000Z' }),
+              memo: `${LINE}\nDie Bank steht wieder, weil Du geholfen hast.`,
+              greeting: { motif: 'giving-hands', line: LINE },
+            },
+          ]),
+        )
+      const withMarks = () =>
+        wrapper
+          .findAll('[data-test="chat-bubble"]')
+          .filter((row) => row.find('mark.chat-search-mark').exists())
+
+      it('finds it by a word of its line, and marks the word there', async () => {
+        greetingBooking()
+        await searched('dich', withBodies([[1, 'Hallo']]))
+
+        expect(found()).toMatchObject({ count: 1, current: 1 })
+        const greeted = bubbleOf('transfer-40')
+        expect(
+          greeted.findAll('[data-test="chat-bubble-greeting-line"] mark').map((m) => m.text()),
+        ).toEqual(['Dich'])
+        expect(greeted.findAll('.memo-text mark')).toEqual([])
+        expect(greeted.classes()).toContain('is-search-current')
+      })
+
+      it('finds it by a word of its words, and marks the word there', async () => {
+        greetingBooking()
+        await searched('bank', withBodies([[1, 'Die Bank am Waldrand']]))
+
+        expect(found()).toMatchObject({ count: 2 })
+        expect(bubbleOf('transfer-40').find('.memo-text mark').text()).toBe('Bank')
+        expect(
+          bubbleOf('transfer-40').findAll('[data-test="chat-bubble-greeting-line"] mark'),
+        ).toEqual([])
+        expect(withMarks()).toHaveLength(found().count)
+      })
+
+      it('counts it once where the needle stands in the line and in the words', async () => {
+        greetingBooking()
+        await searched('weil', withBodies([[1, 'Hallo']]))
+
+        expect(found()).toMatchObject({ count: 1, current: 1 })
+        expect(
+          bubbleOf('transfer-40')
+            .findAll('mark.chat-search-mark')
+            .map((m) => m.text()),
+        ).toEqual(['weil', 'weil'])
+        expect(withMarks()).toHaveLength(found().count)
+      })
+
+      // The motif's name is no text of the booking: it is not searched, and nothing is counted.
+      it('does not find it by the name of its motif', async () => {
+        greetingBooking()
+        await searched('giving-hands', withBodies([[1, 'Hallo']]))
+
+        expect(found()).toMatchObject({ count: 0 })
+        expect(withMarks()).toEqual([])
+      })
     })
 
     it('lets the marks go when the search closes', async () => {

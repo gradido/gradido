@@ -380,6 +380,9 @@ const transferBubble = (booking) => {
       ? t('chatThread.transferSent', { name: props.alias, amount })
       : t('chatThread.transferReceived', { name: props.alias, amount }),
     body: booking.memo,
+    // The thank-you greeting the booking was made from, where it was (ZE-019): the bubble shows
+    // its motif and sets its line in handwriting. Null for every other transfer.
+    greeting: booking.greeting ?? null,
   }
 }
 

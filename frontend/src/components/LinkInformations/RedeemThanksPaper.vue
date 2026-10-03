@@ -88,6 +88,8 @@
  */
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+// The face of the handwriting: declared once for every place that sets a line in it.
+import '@/assets/fonts/caveat/caveat.css'
 import { useAmountInText } from '@/composables/useAmountInText'
 import { memberAlias } from '@/utils/gradidoAddress'
 import { canWriteByHand } from '@/utils/handwriting'
@@ -136,26 +138,6 @@ const senderName = computed(() =>
 // By code point, not by code unit: the first letter whole, whatever it is.
 const initial = computed(() => (Array.from(senderName.value)[0] ?? '').toUpperCase())
 </script>
-
-<style lang="scss">
-/* The handwriting of the first line, shipped with the wallet (SIL OFL, the licence lies beside
-   the file). One weight, Latin and Cyrillic, 89 KB -- and fetched only once a line is on the
-   screen that is set in it: a face is loaded when a text uses it, not when it is declared.
-   `swap`: the line stands at once, in the page's font, and changes hands when the file is
-   there.
-
-   ⛔ One family name and nothing else in the `font-family` descriptor: a list of families or
-   `!important` are not valid there, and such a rule reaches the stylesheet without a name
-   (App.vue carried one for WorkSans from 2022 to 2026; it never drew a letter). This one has
-   to keep its name in the built stylesheet. */
-@font-face {
-  font-family: Caveat;
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url('@/assets/fonts/caveat/Caveat-600.woff2') format('woff2');
-}
-</style>
 
 <style lang="scss" scoped>
 /* Block comments only: lightningcss parses SFC style blocks and a double slash is not a

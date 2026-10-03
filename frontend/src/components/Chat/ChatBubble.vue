@@ -7,6 +7,7 @@
       message.mine ? 'chat-bubble-mine' : 'chat-bubble-theirs',
       {
         'chat-bubble-transfer': message.transfer,
+        'chat-bubble-greeting': greeting,
         'chat-bubble-in-group': face,
         'is-search-current': searchCurrent,
         'has-menu': menuOpen,
@@ -94,9 +95,34 @@
         <chat-transfer-coin v-if="message.transfer" />
         <chat-search-text :text="message.subject" />
       </div>
+      <!-- The booking of an accepted thank-you greeting (ZE-019, Bernd, 02.10.2026): under the
+           head its motif, its first line in handwriting, and the words -- the memo without that
+           line, drawn as a memo is. A greeting of a line alone has no words, and no empty block.
+           An <img> and no button: it opens nothing. Its room stands before the file has come,
+           so nothing under it moves when it does. What somebody else wrote stands as text. -->
+      <template v-if="greeting">
+        <div v-if="motif" class="chat-bubble-greeting-picture">
+          <img
+            :src="motif.src"
+            :alt="motif.name"
+            :width="THANK_YOU_MOTIF_WIDTH"
+            :height="THANK_YOU_MOTIF_HEIGHT"
+            data-test="chat-bubble-greeting-motif"
+          />
+        </div>
+        <div
+          v-if="parts.line"
+          class="chat-bubble-greeting-line"
+          :class="{ 'is-by-hand': byHand }"
+          data-test="chat-bubble-greeting-line"
+        >
+          <chat-search-text :text="parts.line" />
+        </div>
+        <memo-text v-if="parts.words" class="chat-bubble-text" :memo="parts.words" />
+      </template>
       <!-- A transfer's memo as the booking list shows it (MemoText): its addresses as links, its
            stars as stars -- it is the booking's text, not a chat message. -->
-      <memo-text v-if="message.transfer" class="chat-bubble-text" :memo="message.body" />
+      <memo-text v-else-if="message.transfer" class="chat-bubble-text" :memo="message.body" />
       <!-- A picture without words has no caption, and no empty line for one. -->
       <chat-message-text v-else-if="message.body" class="chat-bubble-text" :text="message.body" />
       <!-- A planned video call (V5b, Bernd, 27.09.2026): offered to the member's calendar, on
@@ -202,6 +228,8 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+// The face of the handwriting: declared once for every place that sets a line in it.
+import '@/assets/fonts/caveat/caveat.css'
 import AppAvatar from '@/components/AppAvatar.vue'
 import ChatBubbleImage from '@/components/Chat/ChatBubbleImage.vue'
 import ChatMessageMenu from '@/components/Chat/ChatMessageMenu.vue'
@@ -215,7 +243,14 @@ import { memberAvatarProps } from '@/composables/useMemberAvatars'
 import { useAppToast } from '@/composables/useToast'
 import { LIST_AVATAR_SIZE } from '@/constants'
 import { memberAlias } from '@/utils/gradidoAddress'
+import { canWriteByHand } from '@/utils/handwriting'
 import { isComputer } from '@/utils/isComputer'
+import { greetingParts } from '@/utils/thankYouGreeting'
+import {
+  THANK_YOU_MOTIF_HEIGHT,
+  THANK_YOU_MOTIF_WIDTH,
+  thankYouMotif,
+} from '@/utils/thankYouMotifs'
 import {
   chatVideoCalendarFile,
   chatVideoCalendarFileName,
@@ -378,6 +413,26 @@ const notMailed = computed(() =>
     ? t('chatThread.notMailedMuted', { name: props.alias })
     : '',
 )
+
+/**
+ * The thank-you greeting a transfer was made from (ZE-019): `{ motif, line }` as the booking list
+ * delivers it with the booking of an accepted greeting -- on the sender's side and on the
+ * recipient's. Null for every other bubble: a transfer without one stays the bubble it was.
+ */
+const greeting = computed(() => (props.message.transfer ? (props.message.greeting ?? null) : null))
+
+/** Its picture: none where the greeting has no motif, or one this wallet does not know. */
+const motif = computed(() => thankYouMotif(greeting.value?.motif, t))
+
+/**
+ * The line and, apart from it, the words. The booking's memo begins with the line; where it does
+ * not, the memo stands whole as the words and no line over it (greetingParts) -- nothing twice,
+ * nothing lost.
+ */
+const parts = computed(() => greetingParts(props.message.body, greeting.value?.line))
+
+/** The LINE decides: one letter the handwriting lacks, and all of it is set in the bubble's font. */
+const byHand = computed(() => canWriteByHand(parts.value.line))
 
 /** The planned video call this message invites to (V5b); null for every other message. */
 const plannedCall = computed(() => chatVideoPlannedCall(props.message.body))
@@ -691,6 +746,60 @@ const copyText = async () => {
   background: rgb(197 141 56 / 12%);
   border-color: var(--gold, #c58d38);
   border-bottom-right-radius: 0.3rem;
+}
+
+/* The booking of an accepted thank-you greeting (ZE-019). Its bubble takes all the width a bubble
+   may have, however short its words: the picture is as wide as the bubble. */
+.chat-bubble-greeting .chat-bubble {
+  width: 80%;
+}
+
+/* The motif, set in as a picture of a message is: 0.25rem from the bubble's edge -- it reaches
+   0.5rem into the bubble's 0.75rem of padding -- with the corners of such a picture. The motifs
+   are 360 x 250; a ground of their own colour until the file is there, and the picture fills the
+   room whole. */
+.chat-bubble-greeting-picture {
+  margin: 0.4rem -0.5rem 0.5rem;
+  overflow: hidden;
+  border-radius: 0.6rem;
+  background: #fbf3de;
+  aspect-ratio: 36 / 25;
+}
+
+.chat-bubble-greeting-picture img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* The first line. As it stands here it is the line with a letter the handwriting lacks: all of
+   it in the bubble's font -- no family is named --, italic, in the colour of the handwriting. The
+   handwriting is a small face for its size; 1.1em here reads about as large as 1.5em there (the
+   sheet's own proportion, RedeemThanksPaper).
+
+   The colour: the brown of the sheet on the light bubbles, a light gold on the dark ones -- the
+   bubble follows the theme, the sheet does not. Measured on all four bubbles (the other's and
+   one's own, light and dark); the house's gold would not reach 4.5 : 1 on the dark ones. */
+.chat-bubble-greeting-line {
+  margin: 0 0 0.3rem;
+  color: #8a6124;
+  font-size: 1.1em;
+  font-style: italic;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.dark-mode .chat-bubble-greeting-line {
+  color: #e2b55c;
+}
+
+/* In handwriting, which is the usual case: one and a half times the bubble's text. Until the
+   file is there the line stands upright in the bubble's font. */
+.chat-bubble-greeting-line.is-by-hand {
+  font-family: Caveat, 'Open Sans', sans-serif;
+  font-size: 1.5em;
+  font-style: normal;
+  font-weight: 600;
 }
 
 /* The message whose menu is open (E-059), and the one whose text stands in the bar to be changed

@@ -38,7 +38,10 @@ const sfc = readFileSync(
 // its own explanation.
 const live = (text) => text.replace(/\/\*[\s\S]*?\*\//g, '').replace(/<!--[\s\S]*?-->/g, '')
 const template = live(sfc.slice(sfc.indexOf('<template>'), sfc.indexOf('<script')))
-// Every style block of the file: the face of the handwriting stands in one of its own.
+const script = sfc
+  .slice(sfc.indexOf('<script'), sfc.indexOf('</script>'))
+  .replace(/^\s*\/\/.*$/gm, '')
+// Every style block of the file.
 const css = live(sfc.slice(sfc.indexOf('<style'), sfc.lastIndexOf('</style>')))
 
 describe('RedeemThanksPaper', () => {
@@ -385,19 +388,16 @@ describe('RedeemThanksPaper', () => {
     })
   })
 
-  // The handwriting ships with the wallet. A face whose rule loses its name on the way into
-  // the stylesheet is no face: App.vue's rule for WorkSans arrived there without one, for
-  // four years, until it was removed.
+  // The handwriting ships with the wallet, declared once for the sheet and for the bubble a
+  // greeting has in the conversation (assets/fonts/caveat/caveat.css; handwriting.spec.js
+  // holds the declaration itself).
   describe('the handwriting', () => {
-    const [, face] = css.match(/@font-face\s*\{([^}]*)\}/)
-
-    it('is declared under one name, from the file in the bundle', () => {
-      expect(face).toMatch(/font-family:\s*Caveat;/)
-      expect(face).toMatch(
-        /src:\s*url\('@\/assets\/fonts\/caveat\/Caveat-600\.woff2'\)\s*format\('woff2'\);/,
-      )
-      expect(face).toMatch(/font-weight:\s*600;/)
-      expect(face).not.toMatch(/!important|https?:|\/\//)
+    // From the script, so that the bundle holds the rule once however many components set a
+    // line in it: a style block here would be a second face of the same name.
+    it('is the one declaration the wallet has, taken in from the script', () => {
+      expect(script).toMatch(/^import '@\/assets\/fonts\/caveat\/caveat\.css'$/m)
+      expect(css).not.toMatch(/@font-face/)
+      expect(sfc.match(/<style/g)).toHaveLength(1)
     })
 
     it('is named only by the line that is set in it', () => {
