@@ -152,6 +152,42 @@ describe('ContributionListItem', () => {
     })
   })
 
+  // On a phone the columns for delete and edit were a quarter wide, with an end margin on top:
+  // a longer word started at the left and ran out to the right (31 px in Russian). Three equal
+  // columns now, icon and word centred in each. The row is found by the delete field in it.
+  describe('the row with delete, edit and chat', () => {
+    const fieldsOf = (item) => {
+      const row = item.find('div.test-delete-contribution').element.parentElement.parentElement
+      return [...row.children].map((column) => ({
+        column: [...column.classList],
+        field: [...column.firstElementChild.classList],
+      }))
+    }
+
+    it('is three columns of the same width', () => {
+      const fields = fieldsOf(mountWrapper())
+
+      expect(fields).toHaveLength(3)
+      for (const { column } of fields) {
+        expect(column).toContain('col-4')
+        expect(column.filter((name) => /^(col-\d+|me-auto)$/.test(name))).toEqual(['col-4'])
+      }
+    })
+
+    it('centres icon and word in each field, without a margin at its end', () => {
+      const fields = fieldsOf(mountWrapper())
+
+      expect(fields[0].field).toContain('test-delete-contribution')
+      expect(fields[1].field).toContain('test-edit-contribution')
+      for (const { field } of fields) {
+        expect(field).not.toContain('me-3')
+        expect(field).toEqual(
+          expect.arrayContaining(['pointer', 'd-flex', 'flex-column', 'align-items-center']),
+        )
+      }
+    })
+  })
+
   describe('mount', () => {
     beforeEach(() => {
       vi.clearAllMocks()
