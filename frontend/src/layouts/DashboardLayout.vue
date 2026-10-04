@@ -117,7 +117,7 @@
                           </div>
                         </BCol>
                         <BCol cols="12" lg="7">
-                          <div class="h-100">
+                          <div class="h-100 d-flex flex-column">
                             <community-member :total-users="totalUsers" />
                           </div>
                         </BCol>

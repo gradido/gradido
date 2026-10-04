@@ -1,5 +1,5 @@
 <template>
-  <div class="community-member mt-3 mt-lg-0 position-relative h-100">
+  <div class="community-member mt-3 mt-lg-0 position-relative flex-grow-1 d-flex flex-column">
     <div class="text-center bg-gradido-gradient">
       <BBadge class="position-absolute mt--2 ms--5 px-3 bg-gradido-gradient">
         {{ $t('community.community') }}
@@ -9,9 +9,12 @@
          to read "Member / You are an active member / <number>", and the number looked like a
          membership number (Bernd, 04.10.2026). With the sentence gone the tile has one line
          where the balance card beside it has two, so it takes the height of its column and
-         centres that line -- side by side the two cards stay the same height. -->
+         centres that line -- side by side the two cards stay the same height.
+         The height comes from growing in a flex column, not from `h-100`: on the phone the
+         tile carries 16px above itself (`mt-3`), and 100% plus that margin pushed it 16px
+         out of its column, into the gap to the next box (Bernd, 04.10.2026). -->
     <div
-      class="community-member-box bg-white app-box-shadow gradido-border-radius p-4 border border-success h-100 d-flex align-items-center"
+      class="community-member-box bg-white app-box-shadow gradido-border-radius p-4 border border-success flex-grow-1 d-flex align-items-center"
     >
       <BRow class="flex-grow-1 align-items-center">
         <BCol>
