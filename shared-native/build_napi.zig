@@ -37,6 +37,28 @@ fn addDirSources(
     }
 }
 
+/// The build.zig.zon dependency holding the prebuilt rust-image-ffi object for this target, or
+/// null where its release has none: 32 bit x86 and arm.
+fn rustImageFfiDependencyName(target: std.Build.ResolvedTarget) ?[]const u8 {
+    const t = target.result;
+    const is_x86_64 = switch (t.cpu.arch) {
+        .x86_64 => true,
+        .aarch64 => false,
+        else => return null,
+    };
+    return switch (t.os.tag) {
+        .linux => if (t.abi.isGnu())
+            (if (is_x86_64) "rust_image_ffi_x86_64_linux_gnu" else "rust_image_ffi_aarch64_linux_gnu")
+        else if (t.abi.isMusl())
+            (if (is_x86_64) "rust_image_ffi_x86_64_linux_musl" else "rust_image_ffi_aarch64_linux_musl")
+        else
+            null,
+        .macos => if (is_x86_64) "rust_image_ffi_x86_64_macos" else "rust_image_ffi_aarch64_macos",
+        .windows => if (is_x86_64) "rust_image_ffi_x86_64_windows" else "rust_image_ffi_aarch64_windows",
+        else => null,
+    };
+}
+
 fn buildNodeApiLib(b: *std.Build, target: std.Build.ResolvedTarget, node_def: []const u8, binary_name: []const u8) std.Build.LazyPath {
     const dlltool = b.addSystemCommand(&.{ b.graph.zig_exe, "dlltool" });
     dlltool.addArgs(&.{ "-m", dlltoolMachine(target), "-D", binary_name });
@@ -90,6 +112,23 @@ pub fn prepareLib(name: []const u8, context: *const LibPrepareContext) *std.Buil
     }
     if (context.r_path) |path| {
         lib.root_module.addRPath(.{ .cwd_relative = path });
+    }
+    // Fetched by zig and checked against the hash pinned in build.zig.zon. What the object needs
+    // beside itself (NATIVE_LIBS.txt in the archive) is libc and an unwinder, both linked above,
+    // and on Windows, where the archive holds the staticlib, a few system libraries.
+    if (rustImageFfiDependencyName(context.target)) |dep_name| {
+        if (b.lazyDependency(dep_name, .{})) |dep| {
+            if (context.target.result.os.tag == .windows) {
+                lib.addObjectFile(dep.path("librust_image_ffi.a"));
+                for ([_][]const u8{ "kernel32", "ntdll", "userenv", "ws2_32", "dbghelp" }) |system_lib| {
+                    lib.linkSystemLibrary(system_lib);
+                }
+            } else {
+                lib.addObjectFile(dep.path("rust_image_ffi.o"));
+            }
+            lib.root_module.addIncludePath(dep.path(""));
+            lib.root_module.addCMacro("HAVE_RUST_IMAGE_FFI", "1");
+        }
     }
     addDirSources(lib, b, "napi");
     return lib;
