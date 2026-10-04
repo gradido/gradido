@@ -2,6 +2,7 @@ import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import CommunityMember from './CommunityMember'
 import CONFIG from '@/config'
+import { BBadge } from 'bootstrap-vue-next'
 
 // Mock vue-i18n
 const mockT = vi.fn((key) => key)
@@ -64,6 +65,17 @@ describe('CommunityMember', () => {
     const count = createWrapper({ totalUsers: null }).find('[data-test="community-member-count"]')
     expect(count.text()).toContain('—')
     expect(count.text()).not.toContain('null')
+  })
+
+  it('keeps the white text of the gradient: the real badge carries no colour variant', () => {
+    // `text-bg-secondary` (BBadge's default) sets black `!important` text and comes after
+    // `.bg-gradido-gradient` in the stylesheet, so it wins over the gradient's white.
+    const badge = mount(CommunityMember, {
+      props: { totalUsers: 123 },
+      global: { mocks: { $t: mockT, CONFIG }, components: { BBadge } },
+    }).find('.badge')
+    expect(badge.classes()).toContain('bg-gradido-gradient')
+    expect(badge.classes().filter((c) => /^text-bg-.+/.test(c))).toEqual([])
   })
 
   it('updates when totalUsers prop changes', async () => {
