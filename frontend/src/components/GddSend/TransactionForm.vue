@@ -255,6 +255,8 @@ import { object } from 'yup'
 import { memberAlias, sameHost, splitRecipient } from '@/utils/gradidoAddress'
 import { user } from '@/graphql/queries'
 import CONFIG from '@/config'
+import { useAmountInText } from '@/composables/useAmountInText'
+import { useLinkDraft } from '@/composables/useLinkDraft'
 import { useAppToast } from '@/composables/useToast'
 
 const props = defineProps({
@@ -285,6 +287,24 @@ const entityDataToForm = computed(() => {
   return fields
 })
 const form = reactive({ ...entityDataToForm.value })
+
+/**
+ * A link duplicated from the member's own list (TransactionLink.vue, ZE-030): its amount and its
+ * memo stand in the fields as if they had been typed -- the amount the way this field takes it
+ * and the wallet's language writes it ("12,5"). The row opens this form on its link tab (`?art`),
+ * and from here on it is the way of every link: the check, then `createTransactionLink`.
+ *
+ * Handed over once (useLinkDraft). The form is taken down between the steps; when it stands
+ * again, the fields hold what the page holds.
+ *
+ * ⛔ Into the fields, not into what the page hands in as their first values (`props`): those
+ * are what "Zurücksetzen" goes back to, and after a reset nothing of the old link may stand here.
+ */
+const duplicated = useLinkDraft().takeLink()
+if (duplicated) {
+  form.amount = useAmountInText()(duplicated.amount)
+  form.memo = duplicated.memo
+}
 const disableSmartValidState = ref(false)
 const communities = ref([])
 const autoCommunityIdentifier = ref('')
