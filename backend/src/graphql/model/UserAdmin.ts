@@ -14,6 +14,7 @@ export class UserAdmin {
     this.email = user.emailContact?.email
     this.firstName = user.firstName
     this.lastName = user.lastName
+    this.alias = user.alias || null
     this.creation = creation
     this.emailChecked = user.emailContact?.emailChecked
     this.hasElopage = hasElopage
@@ -35,6 +36,11 @@ export class UserAdmin {
 
   @Field(() => String)
   lastName: string
+
+  // The username as it is stored, null where the member has none. The search finds people
+  // by it, so the table shows it; no gradidoID stands in here, an empty cell says more.
+  @Field(() => String, { nullable: true })
+  alias: string | null
 
   @Field(() => [GradidoUnit])
   creation: GradidoUnit[]

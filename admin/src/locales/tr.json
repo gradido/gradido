@@ -622,5 +622,6 @@
   "user_deleted": "Kullanıcı silindi.",
   "user_memo_search": "Kullanıcı ve metin araması",
   "user_recovered": "Kullanıcı geri yüklendi.",
-  "user_search": "Kullanıcı arama"
+  "user_search": "Kullanıcı arama",
+  "username": "Kullanıcı adı"
 }

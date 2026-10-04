@@ -3461,6 +3461,8 @@ describe('UserResolver', () => {
         // Every name is the member's own row in user_aliases, the current one and the ones
         // they held before, and the search reads them all.
         describe('by username', () => {
+          const garrickRow = { email: 'garrick@ollivander.com' }
+
           beforeAll(async () => {
             const garrick = await UserContact.findOneOrFail({
               where: { email: 'garrick@ollivander.com' },
@@ -3472,6 +3474,7 @@ describe('UserResolver', () => {
               origin: ALIAS_ORIGIN_CHOSEN,
             })
             expect(taken.success).toBe(true)
+            await User.update({ id: garrick.user.id }, { alias: 'wand-maker' })
           })
 
           it('finds the member who owns a name containing the text', async () => {
@@ -3488,7 +3491,8 @@ describe('UserResolver', () => {
                 data: {
                   searchUsers: {
                     userCount: 1,
-                    userList: [allUsers.garrick],
+                    // The row carries the name, so the table can show why it is there.
+                    userList: [expect.objectContaining({ ...garrickRow, alias: 'wand-maker' })],
                   },
                 },
               }),

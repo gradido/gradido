@@ -115,9 +115,14 @@ onMounted(() => {
 })
 
 const fields = computed(() => [
-  { key: 'email', label: t('e_mail') },
+  // user-search-narrow-break: see the style block. With the username column the address no
+  // longer fits in one piece just above 768 px.
+  { key: 'email', label: t('e_mail'), tdClass: 'user-search-narrow-break' },
   { key: 'firstName', label: t('firstname') },
   { key: 'lastName', label: t('lastname') },
+  // A username may always break inside a word: twenty characters without a hyphen are wider
+  // than the column gets below about 880 px.
+  { key: 'alias', label: t('username'), tdClass: 'text-break' },
   {
     key: 'creation',
     label: creationLabel(),
@@ -168,5 +173,14 @@ watch(
 img,
 svg {
   vertical-align: text-bottom;
+}
+
+/* The table stands in columns from 768 px on (stacked="md"). Up to about 850 px an address
+   in one piece is wider than the window allows next to the username column, and the table
+   would reach past it. Only there the address may break inside a word; above, it stays whole. */
+@media (width >= 768px) and (width < 850px) {
+  :deep(td.user-search-narrow-break) {
+    overflow-wrap: anywhere;
+  }
 }
 </style>

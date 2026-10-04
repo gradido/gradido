@@ -1381,6 +1381,7 @@ export class UserResolver {
       'id',
       'firstName',
       'lastName',
+      'alias',
       'emailId',
       'emailContact',
       'deletedAt',

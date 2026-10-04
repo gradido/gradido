@@ -622,5 +622,6 @@
   "user_deleted": "Gebruiker is verwijderd.",
   "user_memo_search": "Gebruikers- en tekstzoekopdracht",
   "user_recovered": "Gebruiker is hersteld.",
-  "user_search": "Gebruikers zoeken"
+  "user_search": "Gebruikers zoeken",
+  "username": "Gebruikersnaam"
 }

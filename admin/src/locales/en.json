@@ -622,5 +622,6 @@
   "user_deleted": "User is deleted.",
   "user_memo_search": "User and text search",
   "user_recovered": "User is recovered.",
-  "user_search": "User search"
+  "user_search": "User search",
+  "username": "Username"
 }
