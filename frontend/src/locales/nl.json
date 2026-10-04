@@ -1607,6 +1607,7 @@
     },
     "photo-of": "Foto verstuurd door {name}",
     "picture": {
+      "not-taken-over": "De foto kon niet worden overgenomen. Kies hem opnieuw of neem een van de afbeeldingen.",
       "other": "Andere foto",
       "own": "Eigen foto",
       "question": "Welke afbeelding komt op je groetje?"

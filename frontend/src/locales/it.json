@@ -1607,6 +1607,7 @@
     },
     "photo-of": "Foto inviata da {name}",
     "picture": {
+      "not-taken-over": "Non è stato possibile mantenere la foto. Sceglila di nuovo o usa una delle immagini.",
       "other": "Un'altra foto",
       "own": "Una tua foto",
       "question": "Quale immagine vuoi sul tuo biglietto?"

@@ -1607,6 +1607,7 @@
     },
     "photo-of": "Photo from {name}",
     "picture": {
+      "not-taken-over": "The photo could not be carried over. Choose it again or pick one of the pictures.",
       "other": "Another photo",
       "own": "Your own photo",
       "question": "Which picture should your greeting carry?"

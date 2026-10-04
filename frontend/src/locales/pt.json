@@ -1607,6 +1607,7 @@
     },
     "photo-of": "Foto enviada por {name}",
     "picture": {
+      "not-taken-over": "Não foi possível manter a foto. Escolhe-a de novo ou usa uma das imagens.",
       "other": "Outra foto",
       "own": "A tua foto",
       "question": "Que imagem queres no teu postal?"

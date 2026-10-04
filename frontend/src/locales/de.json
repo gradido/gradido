@@ -1607,6 +1607,7 @@
     },
     "photo-of": "Foto von {name}",
     "picture": {
+      "not-taken-over": "Das Foto ließ sich nicht übernehmen. Wähle es neu aus oder nimm ein Motiv.",
       "other": "Anderes Foto",
       "own": "Eigenes Foto",
       "question": "Welches Bild soll Dein Gruß tragen?"

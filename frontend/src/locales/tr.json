@@ -1607,6 +1607,7 @@
     },
     "photo-of": "{name} tarafından gönderilen fotoğraf",
     "picture": {
+      "not-taken-over": "Fotoğraf aktarılamadı. Fotoğrafı yeniden seç ya da resimlerden birini seç.",
       "other": "Başka fotoğraf",
       "own": "Kendi fotoğrafın",
       "question": "Mesajın hangi resmi taşısın?"

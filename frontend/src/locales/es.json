@@ -1607,6 +1607,7 @@
     },
     "photo-of": "Foto enviada por {name}",
     "picture": {
+      "not-taken-over": "No se ha podido conservar la foto. Elígela de nuevo o escoge una de las imágenes.",
       "other": "Otra foto",
       "own": "Foto propia",
       "question": "¿Qué imagen quieres que lleve tu saludo?"

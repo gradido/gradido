@@ -61,6 +61,15 @@
       <!-- 1. The picture: one of the five motifs, or a photo of one's own. -->
       <section v-if="step === PICTURE" data-test="thank-you-greeting-picture">
         <h2 class="h4 mb-3 page-text">{{ $t('thank-you-greeting.picture.question') }}</h2>
+        <!-- A duplicated greeting whose photo did not come along: said here, over the tiles,
+             until a photo is chosen anew. The first motif is the choice meanwhile. -->
+        <p
+          v-if="photoNotTakenOver && !photo"
+          class="tyg-notice page-text"
+          data-test="thank-you-greeting-photo-not-taken-over"
+        >
+          {{ $t('thank-you-greeting.picture.not-taken-over') }}
+        </p>
         <thank-you-picture-choice v-model:motif="form.motif" v-model:photo="photo" />
         <div class="tyg-actions">
           <BButton variant="gradido" data-test="thank-you-greeting-next" @click="go(WORDS)">
@@ -315,11 +324,14 @@ import RedeemThanksPaper from '@/components/LinkInformations/RedeemThanksPaper.v
 import ThankYouGreetingDone from '@/components/ThankYouGreeting/ThankYouGreetingDone.vue'
 import ThankYouPictureChoice from '@/components/ThankYouGreeting/ThankYouPictureChoice.vue'
 import { LINK_VALID_DAYS, linkAmountMax } from '@/constants'
+import { useAmountInText } from '@/composables/useAmountInText'
 import { rememberGreetingPicture } from '@/composables/useGreetingPictures'
+import { useLinkDraft } from '@/composables/useLinkDraft'
 import { addThankYouGreetingPicture, createTransactionLink } from '@/graphql/mutations'
 import { chatImageProblemWords, chatImageRefusal } from '@/utils/chatImage'
 import {
   greetingMemo,
+  greetingParts,
   THANK_YOU_LINE_MAX_CHARS,
   THANK_YOU_RECIPIENT_NAME_MAX_CHARS,
 } from '@/utils/thankYouGreeting'
@@ -344,6 +356,7 @@ const LINE_GROUPS = [
   { name: 'just-so', lines: ['just-so', 'encouragement', 'appreciation', 'joy'] },
   { name: 'occasion', lines: ['welcome', 'birthday', 'recovery', 'farewell'] },
 ]
+const LINE_KEYS = LINE_GROUPS.flatMap((group) => group.lines)
 const QUICK_LINES = ['help', 'talk', 'just-so', 'joy']
 const OWN = 'own'
 
@@ -440,6 +453,44 @@ const allLinesOpen = ref(false)
  */
 const photo = shallowRef(null)
 const photoChosen = computed(() => form.motif === null && photo.value !== null)
+
+/**
+ * A greeting duplicated from the member's own list (TransactionLink.vue, ZE-030), or null: what
+ * the old link carried, handed over once and in memory (useLinkDraft). It stands in the fields as
+ * if it had been written here, and all of it can be changed. The greeting made of it is a new
+ * link, on the way of every greeting (`create`); the old one stays as it is. Whoever reloads the
+ * page starts empty.
+ *
+ * - The words are the old memo without its first line.
+ * - The first line is told by its wording: where it is, word for word, one of the twelve in the
+ *   language the wallet is in now, that suggestion is the choice. Any other line -- one of the
+ *   member's own, or a suggestion chosen in another language -- stands as a line of their own.
+ *   An old greeting without a line leaves none chosen, and the page asks for one as it does of
+ *   every new greeting.
+ * - The amount stands as its field takes it and the wallet's language writes it ("12,5").
+ */
+const amountInText = useAmountInText()
+const duplicated = useLinkDraft().takeGreeting()
+// The picture of the old greeting, where this page can show it again: one of the motifs.
+const duplicatedMotif =
+  duplicated &&
+  !duplicated.greeting.hasPicture &&
+  THANK_YOU_MOTIF_KEYS.includes(duplicated.greeting.motif)
+    ? duplicated.greeting.motif
+    : null
+// The old greeting carried a photo of the member's own, and that does not come along: the first
+// motif is the choice, and a sentence at the picture says so until a photo is chosen anew.
+const photoNotTakenOver = duplicated?.greeting.hasPicture === true
+if (duplicated) {
+  const old = greetingParts(duplicated.memo, duplicated.greeting.line)
+  const suggestion = LINE_KEYS.find((key) => lineText(key) === old.line)
+  if (duplicatedMotif) form.motif = duplicatedMotif
+  form.recipientName = duplicated.greeting.recipientName ?? ''
+  form.lineChoice = suggestion ?? (old.line ? OWN : null)
+  form.ownLine = !suggestion && old.line ? old.line : ''
+  form.words = old.words
+  form.amount = amountInText(duplicated.amount)
+}
 
 const chooseLine = (key) => {
   form.lineChoice = form.lineChoice === key ? null : key
@@ -568,6 +619,14 @@ watch(
   },
   { immediate: true },
 )
+
+// A duplicated greeting opens at the words, its picture one step back in the history: two taps
+// make the greeting for somebody whose link ran out, and for the next person the name is in
+// sight. ⛔ On the page's own way (`go`), from the entry of the picture the list led to. An
+// address that names the words is turned back to the picture (above), and marking the words as
+// reached without walking there would leave no picture behind them.
+// Where the old picture did not come along, the page stays at the picture.
+if (duplicatedMotif) go(WORDS)
 
 let alive = true
 onUnmounted(() => {
@@ -894,6 +953,14 @@ async function create() {
 
 .tyg-note {
   color: var(--bs-secondary-color, #6c757d);
+  line-height: 1.5;
+}
+
+/* What the page has to say before a choice is made: in the page's own colour, not the muted
+   one of a note -- it is to be read, not to be found. */
+.tyg-notice {
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
   line-height: 1.5;
 }
 

@@ -1607,6 +1607,7 @@
     },
     "photo-of": "Photo envoyée par {name}",
     "picture": {
+      "not-taken-over": "La photo n'a pas pu être conservée. Choisis-la de nouveau ou prends l'une des images.",
       "other": "Autre photo",
       "own": "Ta propre photo",
       "question": "Quelle image pour ton petit mot ?"
