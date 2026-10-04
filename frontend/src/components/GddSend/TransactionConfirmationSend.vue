@@ -20,6 +20,19 @@
             <BCol class="h5">{{ $t('form.memo') }}</BCol>
             <BCol>{{ memo }}</BCol>
           </BRow>
+          <!-- The picture that goes with the transfer, small. No row without one. -->
+          <BRow v-if="pictureShown" class="mt-3" data-test="confirm-send-picture">
+            <BCol class="h5">{{ $t('send-picture.label') }}</BCol>
+            <BCol>
+              <img
+                class="transaction-confirm-picture"
+                :src="pictureShown.src"
+                :alt="pictureShown.name"
+                width="360"
+                height="250"
+              />
+            </BCol>
+          </BRow>
         </BCol>
       </BRow>
 
@@ -67,6 +80,7 @@
 </template>
 <script>
 import CONFIG from '@/config'
+import { thankYouMotif } from '@/utils/thankYouMotifs'
 
 export default {
   name: 'TransactionConfirmationSend',
@@ -76,6 +90,11 @@ export default {
     amount: { type: Number, required: true },
     memo: { type: String, required: true },
     userName: { type: String, default: '' },
+    /**
+     * The picture that goes with the transfer, or null: `{ motif }` or `{ photo }`, as the page
+     * holds it (pages/Send.vue) -- already without a picture where none travels.
+     */
+    picture: { type: Object, default: null },
     targetCommunity: {
       type: Object,
       default: function () {
@@ -88,6 +107,15 @@ export default {
       disabled: false,
     }
   },
+  computed: {
+    /** The picture for the eye: a motif's file and name, or the photo as the member cut it. */
+    pictureShown() {
+      if (this.picture?.photo) {
+        return { src: this.picture.photo.preview, name: this.$t('thank-you-greeting.picture.own') }
+      }
+      return thankYouMotif(this.picture?.motif, this.$t)
+    },
+  },
 }
 </script>
 <style>
@@ -98,5 +126,17 @@ export default {
 .borderbottom {
   border-bottom: 1px solid rgb(70 65 65);
   border-bottom-style: double;
+}
+
+/* The picture of the transfer, as small as in the form: 36 : 25 on the card's ground. */
+.transaction-confirm-picture {
+  display: block;
+  width: 132px;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 36 / 25;
+  border-radius: 10px;
+  background: #fbf3de;
+  object-fit: cover;
 }
 </style>

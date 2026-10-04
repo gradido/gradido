@@ -1212,6 +1212,13 @@
       "title": "No camera found"
     }
   },
+  "send-picture": {
+    "home-only": "For now, you can only send a picture to members of your own community.",
+    "label": "Add a picture",
+    "none": "No picture",
+    "other": "Another picture",
+    "remove": "Remove"
+  },
   "send_email": "Send email",
   "send_gdd": "Send GDD",
   "send_per_link": "Link, cheque, QR",

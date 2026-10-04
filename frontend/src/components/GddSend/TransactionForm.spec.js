@@ -50,6 +50,13 @@ vi.mock('@/composables/useToast', () => ({
   })),
 }))
 
+const PictureFieldStub = {
+  name: 'TransactionPictureField',
+  props: { picture: { type: Object, default: null }, foreign: { type: Boolean, default: false } },
+  emits: ['update:picture'],
+  template: '<div data-test="picture-field-stub" />',
+}
+
 describe('TransactionForm', () => {
   let wrapper
 
@@ -79,6 +86,9 @@ describe('TransactionForm', () => {
         stubs: {
           'community-switch': true,
           'validated-input': true,
+          // "Bild dazu" has a spec of its own. Here it stands in with what the form hands it
+          // and a way to say what it says -- the line between the two is the form's.
+          TransactionPictureField: PictureFieldStub,
         },
       },
       props: {
@@ -87,6 +97,8 @@ describe('TransactionForm', () => {
       },
     })
   }
+
+  const pictureField = () => wrapper.findComponent(PictureFieldStub)
 
   beforeEach(() => {
     wrapper = createWrapper()
@@ -588,6 +600,150 @@ describe('TransactionForm', () => {
       await nextTick()
       expect(wrapper.vm.validationSchema.fields.memo.isValidSync(longerThanAMemo)).toBe(false)
       expect(wrapper.vm.validationSchema.fields.memo.isValidSync(shortReply)).toBe(false)
+    })
+  })
+  /**
+   * "Bild dazu" (ZE-016): the field stands with a transfer to a member and nowhere else; the
+   * picture is the page's, handed through; and to a member of another community the field is
+   * told so -- whichever of the ways named that community.
+   */
+  describe('the picture with a transfer', () => {
+    const HOME = {
+      uuid: 'home-uuid',
+      name: 'Gradido Entwicklung',
+      foreign: false,
+      url: 'https://home.example/api/',
+    }
+    const AWAY = {
+      uuid: 'away-uuid',
+      name: 'Gradido Wien',
+      foreign: true,
+      url: 'https://wien.example/api/',
+    }
+    const PICTURE = { motif: 'giving-hands' }
+
+    it('stands under the message in "GDD senden", with the page’s picture', () => {
+      wrapper = createWrapper({ balance: 100, picture: PICTURE })
+
+      expect(pictureField().exists()).toBe(true)
+      expect(pictureField().props('picture')).toEqual(PICTURE)
+      expect(pictureField().props('foreign')).toBe(false)
+    })
+
+    it('stands in neither of the two other tabs', async () => {
+      wrapper = createWrapper({ balance: 100, picture: PICTURE })
+
+      wrapper.vm.radioSelected = SEND_TYPES.link
+      await nextTick()
+      expect(pictureField().exists()).toBe(false)
+
+      wrapper.vm.radioSelected = SEND_TYPES.email
+      await nextTick()
+      expect(pictureField().exists()).toBe(false)
+
+      wrapper.vm.radioSelected = SEND_TYPES.send
+      await nextTick()
+      expect(pictureField().exists()).toBe(true)
+    })
+
+    it('does not stand where nothing can be sent', () => {
+      wrapper = createWrapper({ balance: 0 })
+
+      expect(pictureField().exists()).toBe(false)
+    })
+
+    it('hands what the field says up to the page', async () => {
+      wrapper = createWrapper({ balance: 100 })
+
+      pictureField().vm.$emit('update:picture', PICTURE)
+      pictureField().vm.$emit('update:picture', null)
+      await nextTick()
+
+      expect(wrapper.emitted('update:picture')).toEqual([[PICTURE], [null]])
+    })
+
+    it('"Zurücksetzen" empties the picture', async () => {
+      wrapper = createWrapper({ balance: 100, picture: PICTURE })
+
+      await wrapper.findComponent(BForm).trigger('reset')
+
+      expect(wrapper.emitted('update:picture')).toEqual([[null]])
+    })
+
+    // ⚠️ The picture goes past the form's own fields: what the form sends on is cast by the
+    // validation schema, and a decoded photo has no business there.
+    it('sends the transfer on without the picture among its fields', async () => {
+      wrapper = createWrapper({ balance: 100, picture: PICTURE })
+      wrapper.vm.form.identifier = 'test@example.org'
+      wrapper.vm.form.amount = '10'
+      wrapper.vm.form.memo = 'Für die Bank, danke!'
+
+      await wrapper.findComponent(BForm).trigger('submit.prevent')
+
+      const sent = wrapper.emitted('set-transaction')[0][0]
+      expect(sent).not.toHaveProperty('picture')
+      expect(JSON.stringify(sent)).not.toContain('giving-hands')
+    })
+
+    describe('to a member of another community', () => {
+      it('is told so where the switch names that community', async () => {
+        wrapper = createWrapper({ balance: 100, picture: PICTURE })
+
+        wrapper.findComponent({ name: 'CommunitySwitch' }).vm.$emit('update:model-value', AWAY)
+        await nextTick()
+
+        expect(pictureField().props('foreign')).toBe(true)
+        // The picture itself is left where it is.
+        expect(pictureField().props('picture')).toEqual(PICTURE)
+        expect(wrapper.emitted('update:picture')).toBeUndefined()
+      })
+
+      it('is told so where the address in the recipient field names it', async () => {
+        wrapper = createWrapper({ balance: 100, picture: PICTURE })
+        wrapper.vm.setCommunities([HOME, AWAY])
+
+        wrapper.vm.form.identifier = 'wien.example/u/sarah'
+        await nextTick()
+
+        expect(wrapper.vm.form.targetCommunity).toEqual(AWAY)
+        expect(pictureField().props('foreign')).toBe(true)
+      })
+
+      // The address of the page (/send/<community>/<member>) ends in the same place: the switch
+      // reads it and says the community it found (CommunitySwitch.setDefaultCommunity).
+      it('is told so where the address of the page names it, through the switch', async () => {
+        useRoute.mockReturnValue({
+          params: { communityIdentifier: 'away-uuid', userIdentifier: 'sarah' },
+          query: {},
+        })
+        wrapper = createWrapper({ balance: 100, picture: PICTURE })
+
+        wrapper.findComponent({ name: 'CommunitySwitch' }).vm.$emit('update:model-value', AWAY)
+        await nextTick()
+
+        expect(pictureField().props('foreign')).toBe(true)
+        useRoute.mockReturnValue({ params: {}, query: {} })
+      })
+
+      it('has the field back when the recipient is of the own community again', async () => {
+        wrapper = createWrapper({ balance: 100, picture: PICTURE })
+        const communitySwitch = wrapper.findComponent({ name: 'CommunitySwitch' })
+
+        communitySwitch.vm.$emit('update:model-value', AWAY)
+        await nextTick()
+        communitySwitch.vm.$emit('update:model-value', HOME)
+        await nextTick()
+
+        expect(pictureField().props('foreign')).toBe(false)
+        expect(pictureField().props('picture')).toEqual(PICTURE)
+      })
+
+      it('takes the placeholder that stands before the list has come as the own community', () => {
+        wrapper = createWrapper({ balance: 100 })
+
+        expect(wrapper.vm.form.targetCommunity.foreign).toBeUndefined()
+        expect(pictureField().props('foreign')).toBe(false)
+      })
     })
   })
 })
