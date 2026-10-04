@@ -781,6 +781,7 @@
     "delete-the-link": "Link silinsin mi?",
     "deleted": "Link silindi!",
     "disbured": "Bağlantı bakiyesinin aktarımı başarıyla başlatıldı! {n} GDD kısa süre içinde hesabına alacak olarak işlenecek",
+    "duplicate": "Linki çoğalt",
     "expiredOn": "Geçerlilik süresi",
     "has-account": "Halihazırda bir Gradido hesabın var mı?",
     "header": "Link, çek ve QR kodu oluştur",

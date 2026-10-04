@@ -781,6 +781,7 @@
     "delete-the-link": "Eliminar o link?",
     "deleted": "O link foi eliminado!",
     "disbured": "Transferência do saldo do link iniciada com sucesso! O crédito de {n} GDD será lançado em breve na tua conta",
+    "duplicate": "Duplicar link",
     "expiredOn": "Expirou em",
     "has-account": "Já tens uma conta Gradido?",
     "header": "Criar link, cheque e código QR",

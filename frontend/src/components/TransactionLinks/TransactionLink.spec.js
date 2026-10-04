@@ -8,6 +8,7 @@ import {
   rememberGreetingPicture,
   requestGreetingPicture,
 } from '@/composables/useGreetingPictures'
+import { clearLinkDraft, useLinkDraft } from '@/composables/useLinkDraft'
 
 vi.mock('@/components/AppModal', () => ({
   default: {
@@ -74,6 +75,16 @@ vi.mock('@vue/apollo-composable', () => ({
   })),
 }))
 
+// Where "Duplizieren" leads. The router answers as a test says: a way that was reached answers
+// with nothing, one that was not with what kept it.
+const mockPush = vi.fn()
+vi.mock('vue-router', () => ({
+  useRouter: () => ({ push: (...args) => mockPush(...args) }),
+}))
+
+// The member whose list this is, as far as the row reads the store.
+const EMMA = { state: { username: 'Oma-Emma', gradidoID: 'uuid-emma' } }
+
 describe('TransactionLink.vue', () => {
   let wrapper
 
@@ -115,6 +126,7 @@ describe('TransactionLink.vue', () => {
         },
         gdd_per_link: {
           'copy-link': 'Copy Link',
+          duplicate: 'Duplicate',
           share: 'Share',
           'delete-the-link': 'Delete the Link',
           deleted: 'Link Deleted',
@@ -129,13 +141,13 @@ describe('TransactionLink.vue', () => {
   // this file made up.
   const filters = createFilters(i18n)
 
-  const mountLink = (props) => {
+  const mountLink = (props, global = {}) => {
     wrapper = mount(TransactionLink, {
       global: {
         plugins: [i18n],
         mocks: { $filters: { GDD: filters.GDD } },
-        // The member whose list this is, as far as the row reads the store.
-        provide: { store: { state: { username: 'Oma-Emma', gradidoID: 'uuid-emma' } } },
+        provide: { store: EMMA },
+        ...global,
         stubs: {
           // The photo of a greeting has its own spec; here it is what the row hands it.
           ThankYouGreetingPhoto: {
@@ -149,6 +161,7 @@ describe('TransactionLink.vue', () => {
           BCardText: true,
           IBiThreeDotsVertical: true,
           IBiClipboard: true,
+          IBiFiles: true,
           IBiShare: true,
           IBiQrCode: true,
           IBiDownload: true,
@@ -173,6 +186,9 @@ describe('TransactionLink.vue', () => {
   }
 
   beforeEach(() => {
+    mockPush.mockReset()
+    mockPush.mockResolvedValue(undefined)
+    clearLinkDraft()
     mountLink()
   })
 
@@ -534,12 +550,13 @@ describe('TransactionLink.vue', () => {
 
     const entries = () => wrapper.findAll('.dropdown-item').map((item) => item.classes())
 
-    it('offers copying, sharing, the cheque, the code and deleting, in that order', () => {
+    it('offers copying, sharing, the cheque, the code, duplicating and deleting, in that order', () => {
       const order = [
         'test-copy-link',
         'test-share-link',
         'test-download-cheque',
         'test-qr-code',
+        'test-duplicate-link',
         'test-delete-link',
       ]
       expect(entries().map((classes) => order.find((name) => classes.includes(name)))).toEqual(
@@ -581,6 +598,7 @@ describe('TransactionLink.vue', () => {
       'test-save-greeting',
       'test-download-cheque',
       'test-qr-code',
+      'test-duplicate-link',
       'test-delete-link',
     ]
     const entries = () =>
@@ -596,7 +614,7 @@ describe('TransactionLink.vue', () => {
       mockUseThankYouGreetingSheet.mockClear()
     })
 
-    it('has printing and saving as a picture over the cheque, seven entries in all', () => {
+    it('has printing and saving as a picture over the cheque, eight entries in all', () => {
       mountLink({ greeting: GREETING, memo: MEMO, validUntil: OPEN })
 
       expect(entries()).toEqual(ORDER)
@@ -632,14 +650,15 @@ describe('TransactionLink.vue', () => {
         'test-share-link',
         'test-download-cheque',
         'test-qr-code',
+        'test-duplicate-link',
         'test-delete-link',
       ])
     })
 
-    it('leaves an expired greeting deleting, and nothing else', () => {
+    it('leaves an expired greeting duplicating and deleting, and nothing else', () => {
       mountLink({ greeting: GREETING, memo: MEMO, validUntil: EXPIRED })
 
-      expect(entries()).toEqual(['test-delete-link'])
+      expect(entries()).toEqual(['test-duplicate-link', 'test-delete-link'])
     })
 
     it('prints on one click, and saves on one click', async () => {
@@ -712,6 +731,282 @@ describe('TransactionLink.vue', () => {
       const [link, options] = mockUseThankYouGreetingSheet.mock.calls[0]
       expect(options).toBeUndefined()
       expect(link).not.toHaveProperty('picture')
+    })
+  })
+
+  /**
+   * "Duplizieren" (ZE-030): every link of the member's own can be made once more, from its menu
+   * -- for somebody whose link ran out, and for the next person. ⛔ The entry makes nothing: it
+   * hands what the row shows of its link to the way a link is made (useLinkDraft, in memory) and
+   * opens that way. The new link is made there, by the member.
+   */
+  describe('duplicating', () => {
+    const GREETING = { motif: 'bouquet', line: 'Just because', recipientName: 'Sarah' }
+    const MEMO = 'Just because\nDear Sarah, thank you.'
+    const OPEN = new Date(Date.now() + 1000000).toISOString()
+    const EXPIRED = '2022-01-01T00:00:00Z'
+    const duplicate = () => wrapper.find('.test-duplicate-link')
+    const entries = () => wrapper.findAll('.dropdown-item')
+
+    // What the way would find: read as the send form and the page of the greeting read it,
+    // with the store of the same member.
+    const handedOver = (store = EMMA) => {
+      let draft
+      mount(
+        {
+          setup() {
+            draft = useLinkDraft()
+            return () => null
+          },
+        },
+        { global: { provide: { store } } },
+      )
+      return draft
+    }
+
+    // ⛔ The four cases, one by one: every one of them offers it.
+    it.each([
+      ['a greeting whose link is open', GREETING, OPEN],
+      ['a greeting whose link has expired', GREETING, EXPIRED],
+      ['a plain link that is open', null, OPEN],
+      ['a plain link that has expired', null, EXPIRED],
+    ])('is offered for %s, right over deleting', (_, greeting, validUntil) => {
+      mountLink({ greeting, memo: MEMO, validUntil })
+
+      const all = entries()
+      expect(duplicate().exists()).toBe(true)
+      expect(all.indexOf(all.find((item) => item.classes().includes('test-duplicate-link')))).toBe(
+        all.length - 2,
+      )
+      expect(all[all.length - 1].classes()).toContain('test-delete-link')
+    })
+
+    // Two sheets, not the two squares: those copy an address to the clipboard in this wallet,
+    // and the clipboard is "copy link" in this very menu.
+    it('says "Duplicate", marked with two sheets', () => {
+      expect(duplicate().text()).toBe('Duplicate')
+      expect(duplicate().find('i-bi-files-stub').exists()).toBe(true)
+    })
+
+    describe('a plain link', () => {
+      beforeEach(() => {
+        mountLink({ id: 4711, amount: 12.5, memo: 'For mowing the lawn', validUntil: EXPIRED })
+      })
+
+      it('opens the send form on its link tab', async () => {
+        await duplicate().trigger('click')
+
+        expect(mockPush).toHaveBeenCalledTimes(1)
+        expect(mockPush).toHaveBeenCalledWith({ path: '/send', query: { art: 'link' } })
+      })
+
+      it('hands over its amount and its memo, as no greeting', async () => {
+        await duplicate().trigger('click')
+
+        expect(handedOver().takeLink()).toEqual({
+          id: 4711,
+          amount: 12.5,
+          memo: 'For mowing the lawn',
+          greeting: null,
+        })
+      })
+    })
+
+    describe('a thank-you greeting', () => {
+      it('opens the page of the greeting, at its address and nothing more', async () => {
+        mountLink({ greeting: GREETING, memo: MEMO, validUntil: OPEN })
+
+        await duplicate().trigger('click')
+
+        expect(mockPush).toHaveBeenCalledTimes(1)
+        expect(mockPush).toHaveBeenCalledWith('/thank-you-greeting')
+      })
+
+      it('hands over amount, memo, motif, line, whom it is for, and the id of the old link', async () => {
+        mountLink({
+          id: 4711,
+          amount: 20,
+          greeting: { ...GREETING, hasPicture: false, __typename: 'ThankYouGreeting' },
+          memo: MEMO,
+          validUntil: OPEN,
+        })
+
+        await duplicate().trigger('click')
+
+        // The four fields of a greeting and no more: nothing of Apollo's goes along.
+        expect(handedOver().takeGreeting()).toEqual({
+          id: 4711,
+          amount: 20,
+          memo: MEMO,
+          greeting: {
+            motif: 'bouquet',
+            line: 'Just because',
+            recipientName: 'Sarah',
+            hasPicture: false,
+          },
+        })
+      })
+
+      it('says of a greeting with a photo that it carries one, and names no motif', async () => {
+        mountLink({
+          id: 4711,
+          greeting: { motif: null, line: 'Just because', recipientName: 'Sarah', hasPicture: true },
+          memo: MEMO,
+          validUntil: EXPIRED,
+        })
+
+        await duplicate().trigger('click')
+
+        expect(handedOver().takeGreeting().greeting).toEqual({
+          motif: null,
+          line: 'Just because',
+          recipientName: 'Sarah',
+          hasPicture: true,
+        })
+      })
+
+      // A greeting from before a first line was asked for, written for nobody by name.
+      it('hands over a greeting without a line and without a name as that', async () => {
+        mountLink({
+          greeting: { motif: 'bouquet', line: null, recipientName: null },
+          memo: 'Thank you!',
+          validUntil: EXPIRED,
+        })
+
+        await duplicate().trigger('click')
+
+        expect(handedOver().takeGreeting().greeting).toEqual({
+          motif: 'bouquet',
+          line: null,
+          recipientName: null,
+          hasPicture: false,
+        })
+      })
+    })
+
+    /**
+     * ⛔ An amount, a memo and the name of a third person do not belong into the browser's
+     * history: the address names the way, and what is handed over stays in memory.
+     */
+    it('puts nothing of the link into the address, and nothing into the device', async () => {
+      localStorage.clear()
+      sessionStorage.clear()
+      mountLink({
+        id: 4711,
+        amount: 12.5,
+        greeting: GREETING,
+        memo: 'Just because\nA-SECRET-WORD',
+        validUntil: OPEN,
+      })
+
+      await duplicate().trigger('click')
+
+      const where = JSON.stringify(mockPush.mock.calls)
+      for (const part of ['4711', '12.5', 'Sarah', 'Just because', 'A-SECRET-WORD', 'bouquet']) {
+        expect(where).not.toContain(part)
+      }
+      // No `state` for the router to keep in the history either.
+      expect(where).not.toContain('state')
+      expect(localStorage.length).toBe(0)
+      expect(sessionStorage.length).toBe(0)
+    })
+
+    it('makes nothing and asks nothing: no link, no window', async () => {
+      mockMutate.mockClear()
+      mockShare.mockClear()
+      mountLink({ greeting: GREETING, memo: MEMO, validUntil: OPEN })
+
+      await duplicate().trigger('click')
+
+      expect(mockMutate).not.toHaveBeenCalled()
+      expect(wrapper.vm.showDeleteLinkModal).toBe(false)
+      expect(wrapper.vm.showQrModal).toBe(false)
+      expect(mockShare).not.toHaveBeenCalled()
+      expect(wrapper.emitted('reset-transaction-link-list')).toBeUndefined()
+    })
+
+    // A tap on the menu must not also close the list the row stands in.
+    it('keeps the click to itself', async () => {
+      const outside = vi.fn()
+      wrapper.element.addEventListener('click', outside)
+
+      await duplicate().trigger('click')
+
+      expect(outside).not.toHaveBeenCalled()
+    })
+
+    /**
+     * A way that is not reached leaves nothing behind. Otherwise the amount and the memo of an
+     * old link would stand in the send form on a later visit that asked for nothing.
+     */
+    describe('where the way is not reached', () => {
+      const flush = () => new Promise((resolve) => setTimeout(resolve))
+
+      // The member tapped on while the page was loading: the router answers with what kept it.
+      it('takes back what it handed over', async () => {
+        mockPush.mockResolvedValue({ type: 8 })
+
+        await duplicate().trigger('click')
+        await flush()
+
+        expect(handedOver().takeLink()).toBeNull()
+      })
+
+      // The page could not be loaded: the router rejects, and the row hides that from nobody.
+      it('takes it back where the page cannot be loaded, and lets the error through', async () => {
+        const errorHandler = vi.fn()
+        const failed = new Error('Failed to fetch dynamically imported module')
+        mockPush.mockRejectedValue(failed)
+        mountLink({}, { config: { errorHandler } })
+
+        await duplicate().trigger('click')
+        await flush()
+
+        expect(handedOver().takeLink()).toBeNull()
+        expect(errorHandler).toHaveBeenCalledTimes(1)
+        expect(errorHandler.mock.calls[0][0]).toBe(failed)
+      })
+
+      // Two taps: the first way is given up for the second, and what the second handed over
+      // is what the page finds.
+      it('leaves what a second tap handed over, where the first way is given up for it', async () => {
+        let giveUpFirst
+        mockPush
+          .mockReturnValueOnce(new Promise((resolve) => (giveUpFirst = resolve)))
+          .mockResolvedValueOnce(undefined)
+        mountLink({ id: 4711, amount: 5, memo: 'For the cake', validUntil: OPEN })
+
+        await duplicate().trigger('click')
+        await duplicate().trigger('click')
+        giveUpFirst({ type: 8 })
+        await flush()
+
+        expect(handedOver().takeLink()).toEqual({
+          id: 4711,
+          amount: 5,
+          memo: 'For the cake',
+          greeting: null,
+        })
+      })
+
+      it('leaves it where the way was reached', async () => {
+        await duplicate().trigger('click')
+        await flush()
+
+        expect(handedOver().takeLink()).not.toBeNull()
+      })
+    })
+
+    // The list stays on screen for a moment after a sign-out, while the sign-in page is loaded.
+    it('hands nothing on from a tap after the member has signed out', async () => {
+      mountLink(
+        { greeting: GREETING, memo: MEMO, validUntil: OPEN },
+        { provide: { store: { state: { username: '', gradidoID: null } } } },
+      )
+
+      await duplicate().trigger('click')
+
+      expect(handedOver({ state: { gradidoID: 'uuid-dave' } }).takeGreeting()).toBeNull()
     })
   })
 })

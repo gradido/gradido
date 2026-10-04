@@ -781,6 +781,7 @@
     "delete-the-link": "Delete the link?",
     "deleted": "The link was deleted!",
     "disbured": "Disbursement of the link amount initiated! The transfer of {n} GDD into your account will be completed shortly.",
+    "duplicate": "Duplicate",
     "expiredOn": "Expired on",
     "has-account": "You already have a Gradido account?",
     "header": "Create link, cheque and QR code",

@@ -781,6 +781,7 @@
     "delete-the-link": "Eliminare il link?",
     "deleted": "Il link è stato eliminato!",
     "disbured": "L'erogazione del credito del link è stata avviata con successo! L'accredito di {n} GDD sarà registrato a breve sul tuo conto.",
+    "duplicate": "Duplica",
     "expiredOn": "Scaduto il",
     "has-account": "Hai già un account Gradido?",
     "header": "Crea link, assegno e codice QR",
