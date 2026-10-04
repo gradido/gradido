@@ -622,5 +622,6 @@
   "user_deleted": "El usuario está eliminado.",
   "user_memo_search": "Búsqueda de usuario y texto",
   "user_recovered": "El usuario está restaurado.",
-  "user_search": "Búsqueda de usuarios"
+  "user_search": "Búsqueda de usuarios",
+  "username": "Nombre de usuario"
 }

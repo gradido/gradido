@@ -18,6 +18,7 @@ import {
   dbFindOldestChosenAliasSince,
   dbFindOwnAlias,
   dbFindUserAliasesExisting,
+  dbFindUserIdsByAliasLike,
   dbInsertUserAlias,
   dbMarkAliasAdopted,
 } from './userAliases'
@@ -136,6 +137,35 @@ describe('userAliases.queries', () => {
 
     it('finds nothing where nobody holds any of them', async () => {
       expect(await dbFindUserAliasesExisting(['nobody-here', 'nor-here'])).toEqual([])
+    })
+  })
+
+  describe('dbFindUserIdsByAliasLike', () => {
+    it('finds the member by a part of their current alias, whatever the capitalisation', async () => {
+      const part = bibiBloxberg.alias!.slice(0, 2)
+      expect(await dbFindUserIdsByAliasLike(part)).toEqual([bibi.id])
+      expect(await dbFindUserIdsByAliasLike(part.toLowerCase())).toEqual([bibi.id])
+    })
+
+    it('finds the member by a name they held before', async () => {
+      await insertAlias(bibi.id, 'bibi-was', ALIAS_ORIGIN_CHOSEN)
+      expect(await dbFindUserIdsByAliasLike('i-wa')).toEqual([bibi.id])
+    })
+
+    it('names a member once, however many of their names match', async () => {
+      await insertAlias(peter.id, 'same-word-one', ALIAS_ORIGIN_CHOSEN)
+      await insertAlias(peter.id, 'same-word-two', ALIAS_ORIGIN_CHOSEN)
+      expect(await dbFindUserIdsByAliasLike('same-word')).toEqual([peter.id])
+    })
+
+    it('finds a deleted member too - the search decides who is shown', async () => {
+      await insertAlias(bibi.id, 'bibi-was', ALIAS_ORIGIN_CHOSEN)
+      await DbUser.softRemove(bibi)
+      expect(await dbFindUserIdsByAliasLike('bibi-was')).toEqual([bibi.id])
+    })
+
+    it('finds nobody for a text no name contains', async () => {
+      expect(await dbFindUserIdsByAliasLike('nobody-here')).toEqual([])
     })
   })
 

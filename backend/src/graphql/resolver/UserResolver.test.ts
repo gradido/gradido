@@ -28,6 +28,7 @@ import {
   Event as DbEvent,
   FederatedCommunity as DbFederatedCommunity,
   dbInsertMatchingEntry,
+  dbInsertUserAlias,
   transactionLinkFactory as dbTransactionLinkFactory,
   userFactory as dbUserFactory,
   drizzleDb,
@@ -3442,6 +3443,70 @@ describe('UserResolver', () => {
                     byActivated: false,
                     byDeleted: true,
                   },
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                data: {
+                  searchUsers: {
+                    userCount: 0,
+                    userList: [],
+                  },
+                },
+              }),
+            )
+          })
+        })
+
+        // Every name is the member's own row in user_aliases, the current one and the ones
+        // they held before, and the search reads them all.
+        describe('by username', () => {
+          const garrickRow = { email: 'garrick@ollivander.com' }
+
+          beforeAll(async () => {
+            const garrick = await UserContact.findOneOrFail({
+              where: { email: 'garrick@ollivander.com' },
+              relations: ['user'],
+            })
+            const taken = await dbInsertUserAlias({
+              userId: garrick.user.id,
+              alias: 'wand-maker',
+              origin: ALIAS_ORIGIN_CHOSEN,
+            })
+            expect(taken.success).toBe(true)
+            await User.update({ id: garrick.user.id }, { alias: 'wand-maker' })
+          })
+
+          it('finds the member who owns a name containing the text', async () => {
+            await expect(
+              query({
+                query: searchUsers,
+                variables: {
+                  ...variablesWithoutTextAndFilters,
+                  query: 'd-mak',
+                },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                data: {
+                  searchUsers: {
+                    userCount: 1,
+                    // The row carries the name, so the table can show why it is there.
+                    userList: [expect.objectContaining({ ...garrickRow, alias: 'wand-maker' })],
+                  },
+                },
+              }),
+            )
+          })
+
+          it('keeps the filters: a name does not bring back somebody the filter excludes', async () => {
+            await expect(
+              query({
+                query: searchUsers,
+                variables: {
+                  ...variablesWithoutTextAndFilters,
+                  query: 'd-mak',
+                  filters: { byActivated: null, byDeleted: true },
                 },
               }),
             ).resolves.toEqual(

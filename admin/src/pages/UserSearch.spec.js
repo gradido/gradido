@@ -112,6 +112,26 @@ describe('UserSearch', () => {
     expect(mockT).toHaveBeenCalledWith('user_search')
   })
 
+  // The search finds members by username, so the table has to show the name it matched.
+  it('hands the table a username column, right after the names', () => {
+    const fields = wrapper.findComponent({ name: 'SearchUserTable' }).props('fields')
+    expect(fields.map((field) => field.key).slice(0, 4)).toEqual([
+      'email',
+      'firstName',
+      'lastName',
+      'alias',
+    ])
+    expect(fields.find((field) => field.key === 'alias').label).toBe('username')
+  })
+
+  // Measured in the built admin: without these the table reaches past the window between
+  // 768 and about 880 px (a long address next to a 20-character username).
+  it('lets the username break always and the address in the narrow band', () => {
+    const fields = wrapper.findComponent({ name: 'SearchUserTable' }).props('fields')
+    expect(fields.find((field) => field.key === 'alias').tdClass).toBe('text-break')
+    expect(fields.find((field) => field.key === 'email').tdClass).toBe('user-search-narrow-break')
+  })
+
   it('renders unconfirmed emails button', () => {
     const button = wrapper.find('.unconfirmedRegisterMails')
     expect(button.exists()).toBe(true)

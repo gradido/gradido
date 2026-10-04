@@ -172,6 +172,7 @@ export const searchUsers = gql`
         userId
         firstName
         lastName
+        alias
         email
         creation
         emailChecked
