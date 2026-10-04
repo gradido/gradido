@@ -50,8 +50,9 @@ fragment transactionFields on Transaction {
   # The thank-you greeting of the link a booking was made from, null for every other booking.
   # The conversation of the two shows it with the booking: the motif, and the line -- which
   # is also the beginning of the memo -- in handwriting. Not `recipientName`: a conversation
-  # is with that person. The booking list and the column beside the overview share this
-  # fragment and draw nothing of it.
+  # is with that person. The opened row of the booking list shows its picture as well, and
+  # says "via a greeting" under the amount; the column beside the overview shares this
+  # fragment and draws nothing of it.
   # `hasPicture`: the greeting carries a photo of the sender's own in the place of a motif --
   # whether, never the picture itself, which the bubble asks for by `linkId` once it is in sight.
   greeting {
