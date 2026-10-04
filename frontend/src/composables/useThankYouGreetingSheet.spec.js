@@ -239,18 +239,47 @@ describe('useThankYouGreetingSheet', () => {
     // ⛔ Bernd, with the first printed card in hand (04.10.2026): under the words the sender signs
     // by hand, so nothing is signed there. Who thanks is said on the back, over the code.
     describe('who thanks', () => {
+      // The words after the name are joined by no-break spaces (U+00A0): a caption that takes
+      // two lines parts at the name, and no line is left with "Danke" alone.
       it('is the sender, under their user name, as a sentence for the back', async () => {
         await sheetOf().printGreetingSheet()
 
-        expect(drawn().from).toBe('Oma-Emma sagt Dir Danke')
+        expect(drawn().from).toBe('Oma-Emma sagt\u00a0Dir\u00a0Danke')
         expect(drawn()).not.toHaveProperty('signature')
       })
 
-      it('is said in the language of the page', async () => {
-        i18n.global.locale.value = 'en'
+      it.each([
+        ['en', 'Oma-Emma says\u00a0thank\u00a0you'],
+        ['pt', 'Oma-Emma agradece-te'],
+        ['tr', 'Oma-Emma sana\u00a0teşekkür\u00a0ediyor'],
+      ])('is said in the language of the page: %s', async (lang, from) => {
+        i18n.global.locale.value = lang
         await sheetOf().printGreetingSheet()
 
-        expect(drawn().from).toBe('Oma-Emma says thank you')
+        expect(drawn().from).toBe(from)
+      })
+
+      it.each(['de', 'en', 'es', 'fr', 'it', 'nl', 'pt', 'ru', 'el', 'tr'])(
+        'parts at the name and nowhere else, in %s',
+        async (lang) => {
+          i18n.global.locale.value = lang
+          await sheetOf().printGreetingSheet()
+
+          const parts = drawn().from.split(' ')
+          expect(parts).toHaveLength(2)
+          expect(parts).toContain('Oma-Emma')
+          // Nothing of the template is left in it.
+          expect(drawn().from).not.toMatch(/[{}]/)
+          expect(drawn().from).not.toContain(String.fromCharCode(1))
+        },
+      )
+
+      // A user name is printed as it is written, whatever it holds.
+      it('takes a name as it is written', async () => {
+        storeState.username = 'Emma_2.0-x'
+        await sheetOf().printGreetingSheet()
+
+        expect(drawn().from).toBe('Emma_2.0-x sagt\u00a0Dir\u00a0Danke')
       })
 
       // ⛔ `memberAlias` stands the Gradido ID in for a missing user name. A UUID is no name to print.
