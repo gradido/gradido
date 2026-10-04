@@ -207,6 +207,7 @@ export function grdtLedgerAnchorToString(addressType: number): string
 export function grdtMemoKeyToString(addressType: number): string
 export function grdtTransactionToString(addressType: number): string
 
+export type Result<T, E = Error> = { success: true; value: T } | { success: false; error: E }
 export type VoidResult<E = Error> = { success: true } | { success: false; error: E }
 export type ErrorDetails = Error & { actual: string; expected: string }
 
@@ -312,3 +313,75 @@ export class MonotonicTimer {
    */
   public toString(): string
 }
+
+/**
+ * rust-image-ffi {@link https://github.com/gradido/rust-image-ffi}, C function declarations in
+ * its `rust_image_ffi.h`. The object is a prebuild, fetched by zig and pinned in build.zig.zon.
+ */
+
+export type ImageFormat = 'jpeg' | 'png' | 'webp'
+
+export interface ReencodeImageOptions {
+  /**
+   * The byte budget: the most the re-encoded picture may take. One that needs more is answered
+   * with `RIMG_ERR_BUFFER_TOO_SMALL`.
+   */
+  maxOutputBytes: number
+  /** Which formats may come in. Default: `['jpeg']` — every format is one more decoder reading hostile bytes. */
+  inputFormats?: ImageFormat[]
+  /** Default: `'jpeg'` */
+  outputFormat?: 'jpeg' | 'png'
+  /** Limits on the picture as stored, before orientation. 0 means no limit. Default: 8192 */
+  maxWidth?: number
+  maxHeight?: number
+  /** 0 means no limit. Default: 16 000 000 */
+  maxPixels?: number
+  /** What decoding may allocate for pixels. 0 means no limit. Default: 128 MiB */
+  maxAllocBytes?: number
+  /** 1 to 100, only for JPEG output. Default: 85 */
+  jpegQuality?: number
+  /** Turn the pixels the way the EXIF orientation says; the tag itself never survives. Default: true */
+  applyOrientation?: boolean
+  /** [red, green, blue] that transparent pixels are laid over for JPEG output. Default: white */
+  background?: [number, number, number]
+}
+
+export interface ReencodedImage {
+  data: Buffer
+  inputFormat: ImageFormat
+  /** Width and height of the picture as it was encoded, after orientation */
+  width: number
+  height: number
+  /** The input carries an alpha channel */
+  hasAlpha: boolean
+}
+
+export type ReencodeImageErrorName =
+  | 'RIMG_ERR_BUFFER_TOO_SMALL'
+  | 'RIMG_ERR_NO_MEMORY'
+  | 'RIMG_ERR_UNSUPPORTED'
+  | 'RIMG_ERR_DECODE'
+  | 'RIMG_ERR_LIMIT'
+  | 'RIMG_ERR_ENCODE'
+  | 'RIMG_ERR_PANIC'
+
+export type ReencodeImageError = {
+  name: ReencodeImageErrorName
+  message: string
+  /** Only with `RIMG_ERR_BUFFER_TOO_SMALL`: what the picture needs at this quality */
+  requiredBytes?: number
+}
+
+/**
+ * Decodes a picture nobody vouches for under hard limits and encodes its pixels again, on a
+ * worker thread. Nothing of the input's container survives: no EXIF, ICC profile, comment or
+ * text chunk, no bytes behind the end marker. The format is decided on the first bytes. Of an
+ * animated picture only the first frame is taken; there is no scaling.
+ *
+ * A picture that is refused is an expected failure and comes back as `success: false`. Wrong
+ * arguments throw. On a target rust-image-ffi has no prebuild for (32 bit) it always throws.
+ */
+export function reencodeImage(
+  input: Uint8Array,
+  options: ReencodeImageOptions,
+): Promise<Result<ReencodedImage, ReencodeImageError>>
