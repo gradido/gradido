@@ -781,6 +781,7 @@
     "delete-the-link": "Den Link löschen?",
     "deleted": "Der Link wurde gelöscht!",
     "disbured": "Auszahlung des Link-Guthabens erfolgreich initiiert! Die Gutschrift von {n} GDD wird zeitnah auf Dein Konto gebucht",
+    "duplicate": "Duplizieren",
     "expiredOn": "Abgelaufen am",
     "has-account": "Du besitzt bereits ein Gradido Konto?",
     "header": "Link, Scheck und QR-Code erzeugen",
@@ -1607,6 +1608,7 @@
     },
     "photo-of": "Foto von {name}",
     "picture": {
+      "not-taken-over": "Das Foto ließ sich nicht übernehmen. Wähle es neu aus oder nimm ein Motiv.",
       "other": "Anderes Foto",
       "own": "Eigenes Foto",
       "question": "Welches Bild soll Dein Gruß tragen?"

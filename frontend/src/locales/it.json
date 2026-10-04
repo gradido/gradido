@@ -781,6 +781,7 @@
     "delete-the-link": "Eliminare il link?",
     "deleted": "Il link è stato eliminato!",
     "disbured": "L'erogazione del credito del link è stata avviata con successo! L'accredito di {n} GDD sarà registrato a breve sul tuo conto.",
+    "duplicate": "Duplica",
     "expiredOn": "Scaduto il",
     "has-account": "Hai già un account Gradido?",
     "header": "Crea link, assegno e codice QR",
@@ -1607,6 +1608,7 @@
     },
     "photo-of": "Foto inviata da {name}",
     "picture": {
+      "not-taken-over": "Non è stato possibile mantenere la foto. Sceglila di nuovo o usa una delle immagini.",
       "other": "Un'altra foto",
       "own": "Una tua foto",
       "question": "Quale immagine vuoi sul tuo biglietto?"

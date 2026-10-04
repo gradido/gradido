@@ -105,6 +105,15 @@
             <IBiQrCode class="filter"></IBiQrCode>
             {{ $t('qrCode') }}
           </BDropdownItem>
+          <!-- Every link of the member's own can be made once more -- an open one and one that has
+               run out, a greeting and a plain link (ZE-030): for somebody whose link ran out,
+               and for the next person. ⛔ This makes nothing. It opens the way a link is made,
+               with what this one carries standing in its fields, and the member makes the new
+               link there: so there is no window here and no question. -->
+          <BDropdownItem class="pb-3 test-duplicate-link" @click.stop="duplicate">
+            <IBiFiles />
+            {{ $t('gdd_per_link.duplicate') }}
+          </BDropdownItem>
           <BDropdownItem class="test-delete-link" @click.stop="toggleDeleteModal">
             <IBiTrash />
             {{ $t('delete') }}
@@ -189,10 +198,12 @@
 import { computed, ref } from 'vue'
 import { useMutation } from '@vue/apollo-composable'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { useAppToast } from '@/composables/useToast'
 import { useCopyLinks } from '@/composables/useCopyLinks'
 import { greetingPicture } from '@/composables/useGreetingPictures'
+import { useLinkDraft } from '@/composables/useLinkDraft'
 import { useThankYouCheque } from '@/composables/useThankYouCheque'
 import { useThankYouGreetingSheet } from '@/composables/useThankYouGreetingSheet'
 import { deleteTransactionLink } from '@/graphql/mutations'
@@ -201,6 +212,7 @@ import AppModal from '@/components/AppModal'
 import FigureQrCode from '@/components/QrCode/FigureQrCode'
 import ThankYouGreetingPhoto from '@/components/ThankYouGreeting/ThankYouGreetingPhoto.vue'
 import { memberAlias } from '@/utils/gradidoAddress'
+import { SEND_TYPES } from '@/utils/sendTypes'
 import {
   THANK_YOU_MOTIF_HEIGHT,
   THANK_YOU_MOTIF_WIDTH,
@@ -257,6 +269,45 @@ const { printGreetingSheet, saveGreetingSheet } = useThankYouGreetingSheet({
 })
 
 const { mutate: deleteTransactionLinkMutation } = useMutation(deleteTransactionLink)
+
+const router = useRouter()
+const linkDraft = useLinkDraft()
+
+/**
+ * "Duplizieren": what this row shows of its link is handed to the way a link is made, and that
+ * way is opened -- the page of the thank-you greeting for a greeting, the send form on its link
+ * tab for a plain link. The id goes along for the photo of a greeting.
+ *
+ * ⛔ Handed over in memory (useLinkDraft), and the address names the way and nothing else: an
+ * amount, a memo and the name of a third person do not belong into the browser's history.
+ *
+ * A way that is not reached leaves nothing behind -- the member tapped on while the page was
+ * loading, or it could not be loaded: what was handed over is taken back, so that it cannot
+ * stand in those fields on a later visit that asked for nothing.
+ */
+async function duplicate() {
+  const { greeting } = props
+  const handed = linkDraft.put({
+    id: props.id,
+    amount: props.amount,
+    memo: props.memo,
+    greeting: greeting && {
+      motif: greeting.motif ?? null,
+      line: greeting.line ?? null,
+      recipientName: greeting.recipientName ?? null,
+      hasPicture: greeting.hasPicture === true,
+    },
+  })
+  let reached = false
+  try {
+    const failure = await router.push(
+      greeting ? '/thank-you-greeting' : { path: '/send', query: { art: SEND_TYPES.link } },
+    )
+    reached = !failure
+  } finally {
+    if (!reached) linkDraft.drop(handed)
+  }
+}
 
 const motif = computed(() => thankYouMotif(props.greeting?.motif, t))
 // The list is the member's own: the photo of a greeting in it is theirs, under their user name.

@@ -781,6 +781,7 @@
     "delete-the-link": "Eliminar o link?",
     "deleted": "O link foi eliminado!",
     "disbured": "Transferência do saldo do link iniciada com sucesso! O crédito de {n} GDD será lançado em breve na tua conta",
+    "duplicate": "Duplicar link",
     "expiredOn": "Expirou em",
     "has-account": "Já tens uma conta Gradido?",
     "header": "Criar link, cheque e código QR",
@@ -1607,6 +1608,7 @@
     },
     "photo-of": "Foto enviada por {name}",
     "picture": {
+      "not-taken-over": "Não foi possível manter a foto. Escolhe-a de novo ou usa uma das imagens.",
       "other": "Outra foto",
       "own": "A tua foto",
       "question": "Que imagem queres no teu postal?"

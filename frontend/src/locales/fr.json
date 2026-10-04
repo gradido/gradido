@@ -781,6 +781,7 @@
     "delete-the-link": "Supprimer le lien ?",
     "deleted": "Le lien a été supprimé !",
     "disbured": "Le versement du solde du lien a été initié avec succès ! Le crédit de {n} GDD sera prochainement comptabilisé sur ton compte.",
+    "duplicate": "Dupliquer",
     "expiredOn": "A expiré le",
     "has-account": "Tu as déjà un compte Gradido ?",
     "header": "Créer un lien, un chèque et un QR code",
@@ -1607,6 +1608,7 @@
     },
     "photo-of": "Photo envoyée par {name}",
     "picture": {
+      "not-taken-over": "La photo n'a pas pu être conservée. Choisis-la de nouveau ou prends l'une des images.",
       "other": "Autre photo",
       "own": "Ta propre photo",
       "question": "Quelle image pour ton petit mot ?"

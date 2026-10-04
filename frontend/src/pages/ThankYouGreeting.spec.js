@@ -6,6 +6,7 @@ import { BFormGroup, BFormInput, BFormInvalidFeedback, BFormTextarea } from 'boo
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import i18n from '@/i18n'
 import { forgetAllGreetingPictures, greetingPicture } from '@/composables/useGreetingPictures'
+import { clearLinkDraft, useLinkDraft } from '@/composables/useLinkDraft'
 import { addThankYouGreetingPicture, createTransactionLink } from '@/graphql/mutations'
 import { THANK_YOU_PICTURE_GROUND } from '@/utils/thankYouPicture'
 import ThankYouGreeting from './ThankYouGreeting.vue'
@@ -1451,6 +1452,497 @@ describe('ThankYouGreeting', () => {
       expect(server.mutate.mock.calls[0][0]).toMatchObject({
         memo: 'Just because — because you’re you.\nEure Oma',
         greeting: { line: 'Just because — because you’re you.' },
+      })
+    })
+  })
+
+  /**
+   * A greeting duplicated from the member's own list (ZE-030): the row hands over what the old
+   * link carried (useLinkDraft, in memory), and this page opens with it -- at the words,
+   * everything filled in, the picture one step back. What is made of it is a NEW greeting, on
+   * the way of every greeting; the handover makes nothing, and the old link is not touched.
+   */
+  describe('a duplicated greeting', () => {
+    const LINE = 'Einfach so — weil es Dich gibt.'
+    const OWN_WORDS = 'Liebe Sarah, mit Eurem iPad hat alles angefangen.\nEure Oma'
+    const OLD = {
+      id: 815,
+      amount: 20,
+      memo: `${LINE}\n${OWN_WORDS}`,
+      greeting: { motif: 'bouquet', line: LINE, recipientName: 'Sarah', hasPicture: false },
+    }
+    const old = (greeting = {}, rest = {}) => ({
+      ...OLD,
+      ...rest,
+      greeting: { ...OLD.greeting, ...greeting },
+    })
+
+    // What the row of the list does, as the member whose list it is.
+    // ⚠️ Before the page is mounted: the test utils keep the stubs of the LAST mount for every
+    // component drawn after it, and this one names none -- the editor would be the real one.
+    const handOver = (link = OLD, gradidoID = 'uuid-emma') => {
+      mount(
+        {
+          setup() {
+            useLinkDraft().put(link)
+            return () => null
+          },
+        },
+        { global: { provide: { store: { state: { gradidoID } } } } },
+      )
+    }
+
+    // The way the list leads: from the transactions to the address of the page, and no further.
+    const duplicate = async (link = OLD, gradidoID = 'uuid-emma') => {
+      handOver(link, gradidoID)
+      await open('/transactions')
+      await router.push('/thank-you-greeting')
+      await settle()
+    }
+
+    const nameField = () => data('name').element.value
+    const wordsField = () => data('words-input').element.value
+    const amountField = () => wrapper.find('#amount-input-field').element.value
+    const chosenLines = () => wrapper.findAll('.tyg-chip.is-chosen').map((chip) => chip.text())
+    const chosenMotifs = () =>
+      wrapper
+        .findAll('.tyg-motif')
+        .filter((tile) => tile.attributes('aria-pressed') === 'true')
+        .map((tile) => tile.text())
+    const notTakenOver = () => data('photo-not-taken-over')
+
+    beforeEach(() => {
+      clearLinkDraft()
+      localStorage.clear()
+      sessionStorage.clear()
+    })
+
+    describe('as it opens', () => {
+      it('opens at the words', async () => {
+        await duplicate()
+
+        expect(step()).toBe('words')
+        expect(data('words').exists()).toBe(true)
+        expect(wrapper.findAll('.tyg-step')[1].attributes('aria-current')).toBe('step')
+      })
+
+      it('has everything the old greeting carried standing in the fields', async () => {
+        await duplicate()
+
+        expect(nameField()).toBe('Sarah')
+        expect(chosenLines()).toEqual([LINE])
+        expect(wordsField()).toBe(OWN_WORDS)
+        expect(amountField()).toBe('20')
+      })
+
+      // Nothing is wrong yet, so nothing says so: the fields speak up once the member goes on.
+      it('says nothing is missing', async () => {
+        await duplicate()
+
+        expect(data('line-error').exists()).toBe(false)
+        expect(data('memo-error').exists()).toBe(false)
+      })
+
+      it('writes the amount as the wallet’s language writes it', async () => {
+        await duplicate(old({}, { amount: 12.5 }))
+        expect(amountField()).toBe('12,5')
+        wrapper.unmount()
+
+        i18n.global.locale.value = 'en'
+        await duplicate(old({}, { amount: 12.5 }))
+        expect(amountField()).toBe('12.5')
+      })
+
+      it('leaves "Für wen?" empty for a greeting that named nobody', async () => {
+        await duplicate(old({ recipientName: null }))
+
+        expect(nameField()).toBe('')
+        expect(chosenLines()).toEqual([LINE])
+      })
+
+      // The memo of a greeting is its line, a line break and the words -- or the line alone.
+      it('leaves the words empty for a greeting that was its first line and nothing else', async () => {
+        await duplicate(old({}, { memo: LINE }))
+
+        expect(chosenLines()).toEqual([LINE])
+        expect(wordsField()).toBe('')
+      })
+    })
+
+    /**
+     * The first line is kept by its key while a greeting is written, and goes out as text. Coming
+     * back, it is told by its wording, in the language the wallet is in now.
+     */
+    describe('the first line', () => {
+      it.each([
+        ['one of the four that stand there at first', 'help', 'Danke für Deine Hilfe!'],
+        ['one of the eight behind "Alle zwölf Vorschläge"', 'birthday', null],
+      ])('is the suggestion again where it is %s', async (_, key, wording) => {
+        const line = i18n.global.t(`thank-you-greeting.line.${key}`)
+        if (wording) expect(line).toBe(wording)
+
+        await duplicate(old({ line }, { memo: `${line}\n${OWN_WORDS}` }))
+
+        expect(chosenLines()).toEqual([line])
+        // In sight without the twelve being opened, and not a line of the member's own.
+        expect(data('all-lines').attributes('aria-expanded')).toBe('false')
+        expect(data(`line-${key}`).attributes('aria-pressed')).toBe('true')
+        expect(data('own-line-input').exists()).toBe(false)
+        expect(wordsField()).toBe(OWN_WORDS)
+      })
+
+      it('stands as a line of the member’s own where it is none of the twelve', async () => {
+        await duplicate(old({ line: 'Für Dein Lachen' }, { memo: 'Für Dein Lachen\nBis bald!' }))
+
+        expect(chosenLines()).toEqual([])
+        expect(data('own-line').attributes('aria-pressed')).toBe('true')
+        expect(data('own-line-input').element.value).toBe('Für Dein Lachen')
+        expect(wordsField()).toBe('Bis bald!')
+      })
+
+      // The old greeting carries its line in the language it was chosen in.
+      it('stands as a line of the member’s own where the wallet is in another language now', async () => {
+        i18n.global.locale.value = 'en'
+
+        await duplicate()
+
+        expect(chosenLines()).toEqual([])
+        expect(data('own-line-input').element.value).toBe(LINE)
+        expect(wordsField()).toBe(OWN_WORDS)
+      })
+
+      // A greeting from before a first line was asked for (04.10.2026).
+      it('is not chosen for an old greeting without one, and the page asks for one as of every greeting', async () => {
+        await duplicate(old({ line: null }, { memo: 'Danke Dir für alles!' }))
+
+        expect(chosenLines()).toEqual([])
+        expect(data('own-line-input').exists()).toBe(false)
+        // The whole memo was the words then.
+        expect(wordsField()).toBe('Danke Dir für alles!')
+
+        await next()
+
+        expect(step()).toBe('words')
+        expect(data('line-error').text()).toBe('Wähle eine erste Zeile oder schreib eine eigene.')
+      })
+    })
+
+    describe('the picture', () => {
+      it('lies one step back, the old motif chosen', async () => {
+        await duplicate()
+
+        await historyGo(-1)
+
+        expect(step()).toBe('picture')
+        expect(chosenMotifs()).toEqual(['Blumenstrauß'])
+        expect(notTakenOver().exists()).toBe(false)
+      })
+
+      // A motif this wallet does not know (a newer one made the greeting): the member sees the
+      // picture before anything else, and nothing is said of a photo.
+      it('is asked for first where this wallet does not know the old motif', async () => {
+        await duplicate(old({ motif: 'from-a-newer-wallet' }))
+
+        expect(step()).toBe('picture')
+        expect(chosenMotifs()).toEqual(['Herz und Blätter'])
+        expect(notTakenOver().exists()).toBe(false)
+
+        await next()
+        expect(nameField()).toBe('Sarah')
+        expect(chosenLines()).toEqual([LINE])
+      })
+    })
+
+    /**
+     * The old greeting carried a photo of the member's own. It does not come along: the page
+     * opens at the picture, the first motif is the choice, and a sentence says so.
+     */
+    describe('one that carried a photo', () => {
+      const WITH_PHOTO = old({ motif: null, hasPicture: true })
+
+      it('opens at the picture, the first motif chosen, and says that the photo did not come along', async () => {
+        await duplicate(WITH_PHOTO)
+
+        expect(step()).toBe('picture')
+        expect(chosenMotifs()).toEqual(['Herz und Blätter'])
+        expect(notTakenOver().text()).toBe(
+          'Das Foto ließ sich nicht übernehmen. Wähle es neu aus oder nimm ein Motiv.',
+        )
+        // The tile of the photo is empty: it is chosen anew there.
+        expect(data('photo-choose').exists()).toBe(true)
+        expect(data('photo').exists()).toBe(false)
+      })
+
+      // (A client that is looked at throws: see the stand-in for Apollo above.)
+      it('asks the server for nothing', async () => {
+        await duplicate(WITH_PHOTO)
+
+        expect(server.mutate).not.toHaveBeenCalled()
+        expect(server.add).not.toHaveBeenCalled()
+        expect(greetingPicture(OLD.id)).toBeNull()
+      })
+
+      it('has the words filled in all the same', async () => {
+        await duplicate(WITH_PHOTO)
+        await next()
+
+        expect(nameField()).toBe('Sarah')
+        expect(chosenLines()).toEqual([LINE])
+        expect(wordsField()).toBe(OWN_WORDS)
+        expect(amountField()).toBe('20')
+      })
+
+      it('says it until a photo is chosen anew, and not after', async () => {
+        await duplicate(WITH_PHOTO)
+        await data('motif-morning-light').trigger('click')
+        expect(notTakenOver().exists()).toBe(true)
+        await next()
+        await historyGo(-1)
+        expect(notTakenOver().exists()).toBe(true)
+
+        await choosePhoto()
+
+        expect(notTakenOver().exists()).toBe(false)
+        expect(data('photo').attributes('aria-pressed')).toBe('true')
+      })
+
+      it('goes out with the motif that stands there where no photo is chosen anew', async () => {
+        await duplicate(WITH_PHOTO)
+        await next()
+        await next()
+        await data('finish').trigger('click')
+        await settle()
+
+        expect(server.mutate).toHaveBeenCalledTimes(1)
+        expect(server.mutate.mock.calls[0][0].greeting).toEqual({
+          motif: 'heart-leaves',
+          line: LINE,
+          recipientName: 'Sarah',
+        })
+        expect(server.add).not.toHaveBeenCalled()
+      })
+    })
+
+    describe('the history', () => {
+      it('leads back to the picture, and from there to where the member came from', async () => {
+        await duplicate()
+
+        await historyGo(-1)
+        expect(step()).toBe('picture')
+        expect(router.currentRoute.value.path).toBe('/thank-you-greeting')
+
+        await historyGo(-1)
+        expect(router.currentRoute.value.path).toBe('/transactions')
+        expect(wrapper.find('[data-test="transactions-page"]').exists()).toBe(true)
+      })
+
+      it('leads back with the arrow of the page as with the key of the device', async () => {
+        await duplicate()
+
+        // Jsdom walks its history a tick later than it is asked to.
+        await data('back').trigger('click')
+        await settle()
+        await new Promise((resolve) => setTimeout(resolve, 20))
+        await settle()
+
+        expect(step()).toBe('picture')
+        expect(chosenMotifs()).toEqual(['Blumenstrauß'])
+      })
+
+      it('comes to the words again with the forward key, everything still there', async () => {
+        await duplicate()
+        await data('name').setValue('Claude')
+        await historyGo(-1)
+
+        await historyGo(1)
+
+        expect(step()).toBe('words')
+        expect(nameField()).toBe('Claude')
+        expect(chosenLines()).toEqual([LINE])
+        expect(wordsField()).toBe(OWN_WORDS)
+      })
+
+      // Left for the list and come back with the forward key: the page is built anew, and
+      // what was handed over was handed over once.
+      it('starts empty where the page is come back to after it was left', async () => {
+        await duplicate()
+        await historyGo(-1)
+        await historyGo(-1)
+        expect(router.currentRoute.value.path).toBe('/transactions')
+
+        await historyGo(1)
+        await historyGo(1)
+
+        // The entry of the words belongs to the visit that is over: back at the picture.
+        expect(router.currentRoute.value.path).toBe('/thank-you-greeting')
+        expect(step()).toBe('picture')
+        expect(chosenMotifs()).toEqual(['Herz und Blätter'])
+        await next()
+        expect(nameField()).toBe('')
+        expect(chosenLines()).toEqual([])
+        expect(wordsField()).toBe('')
+        expect(amountField()).toBe('')
+      })
+
+      // A reload builds the page anew at the address of the words.
+      it('starts empty, at the picture, where the page is loaded anew', async () => {
+        await duplicate()
+        wrapper.unmount()
+
+        await open('/thank-you-greeting?step=words')
+
+        expect(step()).toBe('picture')
+        await next()
+        expect(nameField()).toBe('')
+        expect(chosenLines()).toEqual([])
+        expect(amountField()).toBe('')
+      })
+    })
+
+    /**
+     * ⛔ A new link, made once, by the member: `createTransactionLink` with what stands in the
+     * fields. Nothing of the old link goes along -- no id, no code: the server makes a link as
+     * it makes every link.
+     */
+    describe('making it', () => {
+      const finish = async () => {
+        await next()
+        await data('finish').trigger('click')
+        await settle()
+      }
+
+      it('makes nothing by opening', async () => {
+        await duplicate()
+
+        expect(server.mutate).not.toHaveBeenCalled()
+      })
+
+      it('makes a greeting of what stands there, in two taps', async () => {
+        await duplicate()
+
+        await finish()
+
+        expect(server.mutate).toHaveBeenCalledTimes(1)
+        expect(server.mutate.mock.calls[0]).toEqual([
+          {
+            amount: '20',
+            memo: OLD.memo,
+            greeting: { motif: 'bouquet', line: LINE, recipientName: 'Sarah' },
+          },
+        ])
+        expect(step()).toBe('done')
+        expect(wrapper.text()).toContain('Dein Dank-Gruß für Sarah ist fertig.')
+      })
+
+      it('makes it with what was changed: another name, other words, another amount, another picture', async () => {
+        await duplicate()
+        await data('name').setValue('Claude')
+        await data('words-input').setValue('Lieber Claude, bis bald.')
+        await wrapper.find('#amount-input-field').setValue('7,5')
+        await historyGo(-1)
+        await data('motif-giving-hands').trigger('click')
+        await next()
+
+        await finish()
+
+        expect(server.mutate.mock.calls[0]).toEqual([
+          {
+            amount: '7.5',
+            memo: `${LINE}\nLieber Claude, bis bald.`,
+            greeting: { motif: 'giving-hands', line: LINE, recipientName: 'Claude' },
+          },
+        ])
+      })
+
+      it('makes one greeting for two taps on "Gruß fertigstellen"', async () => {
+        await duplicate()
+        await next()
+
+        data('finish').trigger('click')
+        data('finish').trigger('click')
+        await settle()
+
+        expect(server.mutate).toHaveBeenCalledTimes(1)
+      })
+
+      // As after every greeting: no way leads back to the button.
+      it('leads to the list of links from the result, and makes no second one', async () => {
+        await duplicate()
+        await finish()
+
+        await historyGo(-1)
+
+        expect(router.currentRoute.value.path).toBe('/transactions')
+        expect(server.mutate).toHaveBeenCalledTimes(1)
+      })
+    })
+
+    /**
+     * ⛔ What is handed over is an amount, a memo and the name of a third person. It stands in
+     * the fields of this page and nowhere a browser keeps things.
+     */
+    describe('where it is kept', () => {
+      const SECRETS = ['Sarah', 'Einfach so', 'iPad', 'bouquet', '815']
+
+      it('names the step in the address, and nothing of the greeting', async () => {
+        await duplicate()
+
+        expect(router.currentRoute.value.fullPath).toBe('/thank-you-greeting?step=words')
+        expect(window.location.href).toMatch(/\/thank-you-greeting\?step=words$/)
+      })
+
+      it('puts nothing of it into the history, the store or the storage of the device', async () => {
+        await duplicate()
+        await historyGo(-1)
+        await historyGo(1)
+
+        const kept = [
+          JSON.stringify(window.history.state),
+          JSON.stringify(wrapper.vm.$store.state),
+          JSON.stringify({ ...localStorage }),
+          JSON.stringify({ ...sessionStorage }),
+        ].join(' ')
+        for (const secret of SECRETS) expect(kept).not.toContain(secret)
+        // The fixture proves itself: the page does hold it.
+        expect(nameField()).toBe('Sarah')
+      })
+    })
+
+    /** The handover belongs to the member who made it, and to this page's kind of link. */
+    describe('whose it is', () => {
+      // A session ran out, the tap led to the sign-in page, and another member signed in there.
+      it('is empty for another member', async () => {
+        await duplicate(OLD, 'uuid-dave')
+
+        expect(step()).toBe('picture')
+        expect(chosenMotifs()).toEqual(['Herz und Blätter'])
+        await next()
+        expect(nameField()).toBe('')
+        expect(chosenLines()).toEqual([])
+        expect(wordsField()).toBe('')
+        expect(amountField()).toBe('')
+      })
+
+      // A sign-out between the tap and the page (store.js) leaves nothing to be found.
+      it('is empty after a sign-out', async () => {
+        handOver()
+        clearLinkDraft()
+        await open('/transactions')
+        await router.push('/thank-you-greeting')
+        await settle()
+
+        expect(step()).toBe('picture')
+        await next()
+        expect(nameField()).toBe('')
+      })
+
+      it('does not take what a plain link handed over', async () => {
+        await duplicate({ id: 7, amount: 12.5, memo: 'Danke fürs Rasenmähen!', greeting: null })
+
+        expect(step()).toBe('picture')
+        await next()
+        expect(wordsField()).toBe('')
+        expect(amountField()).toBe('')
       })
     })
   })

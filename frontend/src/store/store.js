@@ -5,6 +5,7 @@ import createPersistedState from 'vuex-persistedstate'
 import jwtDecode from 'jwt-decode'
 import i18n from '../i18n'
 import { clearEntryDraft } from '../composables/useEntryDraft'
+import { clearLinkDraft } from '../composables/useLinkDraft'
 import { closeAvatarZoom } from '../composables/useAvatarZoom'
 import { forgetAllMemberAvatars } from '../composables/useMemberAvatars'
 import { closeChatImageView, forgetAllChatImages } from '../composables/useChatImages'
@@ -228,6 +229,11 @@ export const actions = {
     // Held outside the store, in a module that survives this action because logging
     // out does not reload the page.
     clearEntryDraft()
+    // And what a link of the member's own handed over to be made once more (useLinkDraft): an
+    // amount, a memo and the name of whom it was for. The guard signs a run-out session out on
+    // its way to the sign-in page -- with this, the next member to sign in here finds that way
+    // empty.
+    clearLinkDraft()
     const themeMode = state.themeMode
     // Remove only this app's own persisted state (session + token live in this blob).
     // The wallet and admin share one origin, so localStorage.clear() would also wipe
