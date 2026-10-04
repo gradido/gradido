@@ -1618,7 +1618,7 @@
       "line1-for": "{name}, j'ai un mot de remerciement pour toi :"
     },
     "sheet": {
-      "free": "Gratuit. Sans engagement.",
+      "from": "{name} te dit merci",
       "scan": "Pointe l'appareil photo de ton téléphone sur le code et accepte le remerciement — jusqu'au {date}.",
       "waits": "Un remerciement t'attend : {amount}"
     },
@@ -1633,7 +1633,7 @@
       "for-whom": "Pour qui ?",
       "for-whom-hint": "Le nom figure sur ton petit mot.",
       "line": "La première ligne",
-      "missing": "Choisis une première ligne ou écris quelques mots à toi.",
+      "missing": "Choisis une première ligne ou écris la tienne.",
       "own-line": "Ta propre ligne",
       "own-words": "Tes mots"
     }

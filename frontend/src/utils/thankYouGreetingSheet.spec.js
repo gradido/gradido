@@ -157,10 +157,10 @@ const SHEET = {
   line: 'Danke, Sarah!',
   forWhom: 'FÜR SARAH',
   words: 'Liebe Sarah, mit Eurem iPad hat alles angefangen.\nEure Oma',
-  signature: 'Oma-Emma',
+  // Who thanks, for the back. One line in the stand-in's measure.
+  from: 'Emma sagt Dir Danke',
   waits: 'Dein Dank wartet: 20 Gradido',
   scan: 'Halte die Kamera Deines Handys auf den Code und nimm ihn an — bis zum 18.10.2026.',
-  free: 'Kostenfrei. Keine Verpflichtung.',
   slogan: 'Helfen. Schenken. Danken.',
 }
 const PHOTO = 'data:image/jpeg;base64,photo'
@@ -228,9 +228,6 @@ const pictureDraw = () =>
   draws('drawImage').find((call) => call.image !== QR && !call.image.src.includes('logo'))
 const qrDraw = () => draws('drawImage').find((call) => call.image === QR)
 const logoDraw = () => draws('drawImage').find((call) => call.image.src?.includes('logo'))
-// The first fillRect is the white of the paper, the four after the last panel are the marks.
-const marks = () => draws('fillRect').slice(1)
-
 /** The part of a panel things may stand in: 13 mm inside every edge of the paper and every fold. */
 const roomOf = ({ column, row }) => ({
   left: column * PANEL_W + MARGIN,
@@ -243,7 +240,7 @@ const within = (box, room) =>
   box.right <= room.right &&
   box.top >= room.top &&
   box.bottom <= room.bottom
-/** Everything drawn but the white of the paper and the four marks. */
+/** Everything drawn but the white of the paper. */
 const content = () => [...texts(), ...draws('drawImage')]
 const panelOf = (call) =>
   Object.entries(THANK_YOU_GREETING_SHEET_PANELS).find(([, panel]) =>
@@ -283,13 +280,26 @@ describe('drawThankYouGreetingSheet', () => {
       }
     })
 
-    // A home printer bleeds on a filled area: the paper, the picture, the code, the logo and
-    // four hairlines are all that is not text.
-    it('fills no area but the paper and the four fold marks', async () => {
+    // A home printer bleeds on a filled area: the paper, the picture, the code and the logo are
+    // all that is not text.
+    it('fills no area but the paper', async () => {
       await drawThankYouGreetingSheet(SHEET)
 
-      expect(draws('fillRect')).toHaveLength(5)
+      expect(draws('fillRect')).toHaveLength(1)
       expect(draws('drawImage')).toHaveLength(3)
+    })
+
+    // ⛔ Bernd, with the first printed card in hand (04.10.2026): no fold marks. Every printer
+    // sets the page a little differently, so a mark is never where the fold is; and one folds by
+    // laying edge on edge. Nothing at all stands at an edge of the paper or along a fold.
+    it('carries no fold marks: nothing is drawn but what stands in a panel', async () => {
+      await drawThankYouGreetingSheet(SHEET)
+
+      const [paper, ...others] = draws('fillRect')
+      expect(paper.local).toEqual({ x: 0, y: 0, width: SHEET_W, height: SHEET_H })
+      expect(others).toEqual([])
+      // The stand-in knows no stroke and no path: a line drawn any other way would throw here.
+      for (const call of content()) expect(panelOf(call)).not.toBeNull()
     })
   })
 
@@ -304,13 +314,13 @@ describe('drawThankYouGreetingSheet', () => {
       expect(textOf(SHEET.line).turned).toBe(false)
     })
 
-    it('has the back at the bottom left, upright: the code, its sentences, logo and slogan', () => {
+    it('has the back at the bottom left, upright: who thanks, the code, its sentences, logo and slogan', () => {
       expect(THANK_YOU_GREETING_SHEET_PANELS.back).toEqual({ column: 0, row: 1 })
       for (const call of [
         qrDraw(),
         logoDraw(),
+        textOf(SHEET.from),
         textOf(SHEET.waits),
-        textOf(SHEET.free),
         textOf(SHEET.slogan),
       ]) {
         expect(panelOf(call), call.text ?? 'picture').toBe('back')
@@ -320,7 +330,7 @@ describe('drawThankYouGreetingSheet', () => {
 
     it('has the words at the top left, standing on their heads', () => {
       expect(THANK_YOU_GREETING_SHEET_PANELS.words).toEqual({ column: 0, row: 0 })
-      for (const text of ['FÜR SARAH', 'Eure Oma', 'Oma-Emma']) {
+      for (const text of ['FÜR SARAH', 'Eure Oma']) {
         expect(panelOf(textOf(text)), text).toBe('words')
         expect(textOf(text).turned, text).toBe(true)
       }
@@ -332,8 +342,7 @@ describe('drawThankYouGreetingSheet', () => {
       const aboveTheFold = PANEL_H - label.box.bottom
       expect(aboveTheFold).toBeGreaterThanOrEqual(mm(17))
       expect(aboveTheFold).toBeLessThanOrEqual(mm(18))
-      // And so the name that signs, last for the reader, is the highest of the three on the sheet.
-      expect(textOf('Oma-Emma').box.bottom).toBeLessThan(textOf('Eure Oma').box.top)
+      // And so the last of the words, lower for the reader, stands higher on the sheet.
       expect(textOf('Eure Oma').box.bottom).toBeLessThan(label.box.top)
     })
 
@@ -371,7 +380,7 @@ describe('drawThankYouGreetingSheet', () => {
       words: `${'Liebe Hannelore, seit zwölf Jahren stehst Du am Samstag vor dem Fest um sechs in der Küche. '.repeat(
         3,
       )}\n\n${'Vergelt’s Gott, und komm bitte auch im nächsten Juni wieder! '.repeat(3)}`,
-      signature: 'Besuchsdienst-Kirche',
+      from: 'Besuchsdienst-Kirche sagt Dir Danke',
     }
     const ADDRESS = `https://example.org/${'ein-sehr-langer-pfad-'.repeat(8)}ende`
 
@@ -381,12 +390,10 @@ describe('drawThankYouGreetingSheet', () => {
       ['no line', { ...SHEET, line: null }],
       ['no words', { ...SHEET, words: '' }],
       ['no name', { ...SHEET, forWhom: '' }],
-      ['no user name', { ...SHEET, signature: '' }],
+      ['no user name', { ...SHEET, from: '' }],
+      ['the longest user name', { ...SHEET, from: `${'W'.repeat(20)} sagt Dir von Herzen Danke` }],
       ['a motif this wallet does not know', { ...SHEET, picture: null }],
-      [
-        'a line and nothing else',
-        { ...SHEET, picture: null, forWhom: '', words: '', signature: '' },
-      ],
+      ['a line and nothing else', { ...SHEET, picture: null, forWhom: '', words: '', from: '' }],
       ['the longest texts a greeting can have', { ...SHEET, ...LONGEST }],
       [
         'a Greek line and a Greek name',
@@ -415,11 +422,12 @@ describe('drawThankYouGreetingSheet', () => {
           slogan: 'Gemeinschaftsbasiert. Dezentral. Open Source. Für Dich und mich.',
         },
       ],
+      // Taller than the room over the foot: the block begins at the margin then, and not above it.
       [
         'sentences on the back far longer than any language has them',
-        { ...SHEET, waits: `${SHEET.waits} `.repeat(4), scan: `${SHEET.scan} `.repeat(5) },
+        { ...SHEET, waits: `${SHEET.waits} `.repeat(3), scan: `${SHEET.scan} `.repeat(3) },
       ],
-    ])('holds nothing but the fold marks, with %s', async (_, sheet) => {
+    ])('holds nothing at all, with %s', async (_, sheet) => {
       await drawThankYouGreetingSheet(sheet)
 
       expect(content().length).toBeGreaterThan(3)
@@ -445,40 +453,6 @@ describe('drawThankYouGreetingSheet', () => {
 
     it('has the room of 79 mm for what a panel holds', () => {
       expect(Math.round((ROOM * 25.4) / 300)).toBe(79)
-    })
-  })
-
-  describe('the fold marks', () => {
-    beforeEach(() => drawThankYouGreetingSheet(SHEET))
-
-    it('are four fine strokes of 4 mm, 4 mm from the edge, where the two folds end', () => {
-      const hair = Math.max(2, mm(0.2))
-      expect(marks().map((mark) => mark.local)).toEqual([
-        { x: mm(4), y: Math.round(SHEET_H / 2 - hair / 2), width: mm(4), height: hair },
-        { x: SHEET_W - mm(8), y: Math.round(SHEET_H / 2 - hair / 2), width: mm(4), height: hair },
-        { x: Math.round(SHEET_W / 2 - hair / 2), y: mm(4), width: hair, height: mm(4) },
-        { x: Math.round(SHEET_W / 2 - hair / 2), y: SHEET_H - mm(8), width: hair, height: mm(4) },
-      ])
-      for (const mark of marks()) {
-        expect(mark.fillStyle).toBe('#b9b9b9')
-        expect(mark.turned).toBe(false)
-      }
-    })
-
-    // No line across the card: a mark ends long before the room of a panel begins.
-    it('stay in the margin, and none runs across the card', () => {
-      for (const mark of marks()) {
-        expect(Math.max(mark.local.width, mark.local.height)).toBe(mm(4))
-        expect(panelOf(mark)).toBeNull()
-        // From the edge it stands at to its far end.
-        const reach = Math.min(
-          mark.box.right,
-          SHEET_W - mark.box.left,
-          mark.box.bottom,
-          SHEET_H - mark.box.top,
-        )
-        expect(reach).toBeLessThan(MARGIN)
-      }
     })
   })
 
@@ -645,25 +619,26 @@ describe('drawThankYouGreetingSheet', () => {
       expect(second.local.y - first.local.y).toBe(Math.round(size * 1.25))
     })
 
-    it('signs with the user name in the handwriting, and in the page’s font where it cannot', async () => {
+    it('names who thanks in the handwriting, and in the page’s font where it cannot', async () => {
       await drawThankYouGreetingSheet(SHEET)
-      expect(textOf('Oma-Emma').font).toBe(
+      expect(textOf(SHEET.from).font).toBe(
         `600 ${mm(7.6)}px Caveat, "Open Sans", Helvetica, Arial, sans-serif`,
       )
-      expect(textOf('Oma-Emma').fillStyle).toBe(GOLD)
+      expect(textOf(SHEET.from).fillStyle).toBe(GOLD)
 
       install()
-      await drawThankYouGreetingSheet({ ...SHEET, signature: 'Σοφία' })
-      expect(textOf('Σοφία').font).toMatch(PLAIN)
-      expect(sizeIn(textOf('Σοφία').font)).toBe(Math.round((mm(7.6) * 20) / 27))
+      await drawThankYouGreetingSheet({ ...SHEET, from: 'Σοφία σε ευχαριστεί' })
+      expect(textOf('Σοφία σε ευχαριστεί').font).toMatch(PLAIN)
+      expect(sizeIn(textOf('Σοφία σε ευχαριστεί').font)).toBe(Math.round((mm(7.6) * 20) / 27))
     })
 
-    // The line decides for the line and the name for the name: a Greek line beside a Latin name.
+    // The line decides for the line and the sentence of the back for itself: a Greek line on
+    // the front beside a Latin name on the back.
     it('decides for each of the two on its own', async () => {
       await drawThankYouGreetingSheet({ ...SHEET, line: 'Ευχαριστώ!' })
 
       expect(textOf('Ευχαριστώ!').font).toMatch(PLAIN)
-      expect(textOf('Oma-Emma').font).toMatch(HAND)
+      expect(textOf(SHEET.from).font).toMatch(HAND)
     })
   })
 
@@ -708,7 +683,6 @@ describe('drawThankYouGreetingSheet', () => {
         'Liebe Sarah, mit Eurem iPad hat alles',
         'angefangen.',
         'Eure Oma',
-        'Oma-Emma',
       ])
       const step = Math.round(mm(3.9) * 1.55)
       expect(textOf('angefangen.').local.y - first.local.y).toBe(step)
@@ -723,31 +697,37 @@ describe('drawThankYouGreetingSheet', () => {
       const y = (text) => textOf(text).local.y
       expect(y('Eure Oma') - y('Liebe Sarah')).toBe(step + half)
       expect(y('Emma') - y('Eure Oma')).toBe(step + 2 * half)
-      // None at the end: the name follows 5 mm under the last line that says something.
-      expect(y('Oma-Emma')).toBe(
-        y('Emma') - Math.round(mm(3.9) * 0.8) + step + mm(5) + Math.round(mm(7.6) * 0.78),
-      )
     })
 
-    it('sets the user name 5 mm under the words', async () => {
-      await drawThankYouGreetingSheet(SHEET)
+    // ⛔ Bernd, with the first printed card in hand (04.10.2026): under the words the sender
+    // signs by hand. Nothing is printed there -- no name, and nothing in the handwriting.
+    it('signs nothing under the words: that is where the sender signs by hand', async () => {
+      await drawThankYouGreetingSheet({ ...SHEET, from: 'Oma-Emma sagt Dir Danke' })
 
-      const last = textOf('Eure Oma')
-      const step = Math.round(mm(3.9) * 1.55)
-      expect(textOf('Oma-Emma').local).toEqual({
-        x: MARGIN,
-        y: last.local.y - Math.round(mm(3.9) * 0.8) + step + mm(5) + Math.round(mm(7.6) * 0.78),
-      })
+      expect(inside().map((call) => call.text)).toEqual([
+        'FÜR SARAH',
+        'Liebe Sarah, mit Eurem iPad hat alles',
+        'angefangen.',
+        'Eure Oma',
+      ])
+      expect(inside().some((call) => call.font.includes('Caveat'))).toBe(false)
+      expect(inside().some((call) => call.text.includes('Oma-Emma'))).toBe(false)
     })
 
-    it('sets a greeting without words as whom it is for and who signs', async () => {
+    it('sets a greeting without words as whom it is for, and nothing else', async () => {
       await drawThankYouGreetingSheet({ ...SHEET, words: '' })
 
-      expect(inside().map((call) => call.text)).toEqual(['FÜR SARAH', 'Oma-Emma'])
+      expect(inside().map((call) => call.text)).toEqual(['FÜR SARAH'])
     })
 
-    it('sets no label without a name, and no name without a user name', async () => {
-      await drawThankYouGreetingSheet({ ...SHEET, forWhom: '', signature: '' })
+    it('leaves both inner pages empty for a greeting without a name and without words', async () => {
+      await drawThankYouGreetingSheet({ ...SHEET, forWhom: '', words: '' })
+
+      expect(inside()).toEqual([])
+    })
+
+    it('sets no label without a name', async () => {
+      await drawThankYouGreetingSheet({ ...SHEET, forWhom: '' })
 
       expect(inside().map((call) => call.text)).toEqual([
         'Liebe Sarah, mit Eurem iPad hat alles',
@@ -820,9 +800,12 @@ describe('drawThankYouGreetingSheet', () => {
         const lines = wordsDrawn().map((call) => call.text)
         expect(lines[lines.length - 1]).toMatch(/[^\s.,;:!?] …$/)
         expect(words.startsWith(lines.join(' ').replace(/ …$/, ''))).toBe(true)
-        // The name still stands under them, and above the margin.
-        expect(panelOf(textOf('Oma-Emma'))).toBe('words')
-        expect(textOf('Oma-Emma').local.y).toBeGreaterThan(wordsDrawn()[lines.length - 1].local.y)
+        // They have the page down to its margin, and not a line more.
+        const last = wordsDrawn()[lines.length - 1]
+        const step = Math.round(mm(3) * 1.55)
+        const bottom = last.local.y - Math.round(mm(3) * 0.8) + step
+        expect(bottom).toBeLessThanOrEqual(PANEL_H - MARGIN)
+        expect(bottom + step).toBeGreaterThan(PANEL_H - MARGIN)
       })
     })
   })
@@ -854,16 +837,14 @@ describe('drawThankYouGreetingSheet', () => {
       expect(logoDraw().imageSmoothingEnabled).toBe(true)
     })
 
-    it('says under it what waits, how it is accepted, and that it costs nothing', () => {
+    it('says under it what waits and how it is accepted', () => {
       const code = qrDraw()
       const waits = textOf(SHEET.waits)
       expect(waits.font).toBe(`700 ${mm(4.3)}px "Open Sans", Helvetica, Arial, sans-serif`)
       expect(waits.fillStyle).toBe('#383838')
       expect(waits.local.y).toBe(code.local.y + mm(38) + mm(6) + Math.round(mm(4.3) * 0.8))
 
-      const scan = texts().filter(
-        (call) => sizeIn(call.font) === mm(3.3) && call.text !== SHEET.free,
-      )
+      const scan = texts().filter((call) => sizeIn(call.font) === mm(3.3))
       expect(scan.map((call) => call.text).join(' ')).toBe(SHEET.scan)
       expect(scan.length).toBeGreaterThan(1)
       for (const call of scan) {
@@ -878,12 +859,17 @@ describe('drawThankYouGreetingSheet', () => {
           Math.round(mm(3.3) * 0.8),
       )
       expect(scan[1].local.y - scan[0].local.y).toBe(Math.round(mm(3.3) * 1.45))
+    })
 
-      const free = textOf(SHEET.free)
-      expect(free.fillStyle).toBe('#4a4a4a')
-      expect(free.local.y).toBe(
-        scan[scan.length - 1].local.y + Math.round(mm(3.3) * 1.45) + mm(2.2),
-      )
+    // ⛔ Bernd, with the first printed card in hand (04.10.2026): "Kostenfrei. Keine
+    // Verpflichtung." sounds like business, and this is a card handed over in person. Under the
+    // code stand what waits and how it is accepted -- and then nothing until the logo.
+    it('says nothing about what it costs: after the two sentences comes the logo', () => {
+      const back = texts().filter((call) => panelOf(call) === 'back')
+      const said = back.map((call) => call.text).join(' ')
+
+      expect(said).toBe(`${SHEET.from} ${SHEET.waits} ${SHEET.scan} ${SHEET.slogan}`)
+      expect(said).not.toMatch(/kostenfrei|verpflichtung/i)
     })
 
     it('centres every line of it', () => {
@@ -905,13 +891,102 @@ describe('drawThankYouGreetingSheet', () => {
       expect(logo.local.y + mm(6.2) + mm(1.8) + Math.round(mm(2.6) * 1.3)).toBe(PANEL_H - MARGIN)
     })
 
-    it('has code and sentences above the middle of the room over the foot', () => {
-      const code = qrDraw()
-      const free = textOf(SHEET.free)
-      const blockBottom = free.local.y - Math.round(mm(3.3) * 0.8) + Math.round(mm(3.3) * 1.45)
-      const middle = (code.local.y + blockBottom) / 2
+    it('has who thanks, code and sentences above the middle of the room over the foot', () => {
+      const from = textOf(SHEET.from)
+      const blockTop = from.local.y - Math.round(mm(7.6) * 0.78)
+      const last = texts()
+        .filter((call) => sizeIn(call.font) === mm(3.3))
+        .pop()
+      const blockBottom = last.local.y - Math.round(mm(3.3) * 0.8) + Math.round(mm(3.3) * 1.45)
+      const middle = (blockTop + blockBottom) / 2
       const room = (MARGIN + logoDraw().local.y) / 2
       expect(Math.abs(room - middle - mm(5.5))).toBeLessThanOrEqual(0.5)
+    })
+
+    // ⛔ Bernd, with the first printed card in hand (04.10.2026): who thanks stands on the back,
+    // over the code -- "Oma-Emma sagt Dir Danke" -- and not as a signature under the words.
+    it('names who thanks over the code: in the handwriting, in gold, centred, 5 mm above it', () => {
+      const from = textOf(SHEET.from)
+      const code = qrDraw()
+      const size = mm(7.6)
+
+      expect(panelOf(from)).toBe('back')
+      expect(from.font).toBe(`600 ${size}px Caveat, "Open Sans", Helvetica, Arial, sans-serif`)
+      expect(from.fillStyle).toBe(GOLD)
+      // Its line ends 5 mm above the code.
+      expect(from.local.y).toBe(
+        code.local.y - mm(5) - Math.round(size * 1.12) + Math.round(size * 0.78),
+      )
+      // A letter is half its size wide here.
+      expect(from.local.x).toBe(Math.round(PANEL_W / 2 - (SHEET.from.length * size * 0.5) / 2))
+      // And it is the first thing the back says.
+      expect(texts().filter((call) => panelOf(call) === 'back')[0]).toBe(from)
+    })
+
+    describe('who thanks', () => {
+      const fromDrawn = () =>
+        texts().filter((call) => panelOf(call) === 'back' && call.fillStyle === GOLD)
+
+      it('is nobody where the sender has no user name: the code stands alone', async () => {
+        install()
+        await drawThankYouGreetingSheet({ ...SHEET, from: '' })
+
+        expect(fromDrawn()).toEqual([])
+        const back = texts().filter((call) => panelOf(call) === 'back')
+        expect(back.some((call) => call.font.includes('Caveat'))).toBe(false)
+        // Code and sentences alone stand above the middle then.
+        const last = texts()
+          .filter((call) => sizeIn(call.font) === mm(3.3))
+          .pop()
+        const blockBottom = last.local.y - Math.round(mm(3.3) * 0.8) + Math.round(mm(3.3) * 1.45)
+        const room = (MARGIN + logoDraw().local.y) / 2
+        expect(Math.abs(room - (qrDraw().local.y + blockBottom) / 2 - mm(5.5))).toBeLessThanOrEqual(
+          0.5,
+        )
+      })
+
+      it('takes two lines at its full size where one is too short', async () => {
+        const from = 'Besuchsdienst sagt Dir von Herzen Danke'
+        install()
+        await drawThankYouGreetingSheet({ ...SHEET, from })
+
+        expect(fromDrawn().map((call) => call.text)).toEqual([
+          'Besuchsdienst sagt',
+          'Dir von Herzen Danke',
+        ])
+        for (const call of fromDrawn()) expect(sizeIn(call.font)).toBe(mm(7.6))
+        const [first, second] = fromDrawn()
+        expect(second.local.y - first.local.y).toBe(Math.round(mm(7.6) * 1.12))
+        // The code still stands 5 mm under the last of its lines.
+        expect(qrDraw().local.y).toBe(
+          second.local.y - Math.round(mm(7.6) * 0.78) + Math.round(mm(7.6) * 1.12) + mm(5),
+        )
+      })
+
+      it('becomes smaller, down to 5.6 mm, before it would take a third line', async () => {
+        const from = 'Besuchsdienst-Team sagt Dir von ganzem Herzen Danke'
+        install()
+        await drawThankYouGreetingSheet({ ...SHEET, from })
+
+        const lines = fromDrawn()
+        expect(lines).toHaveLength(2)
+        expect(lines.map((call) => call.text).join(' ')).toBe(from)
+        const size = sizeIn(lines[0].font)
+        expect(size).toBeLessThan(mm(7.6))
+        expect(size).toBeGreaterThanOrEqual(mm(5.6))
+      })
+
+      it('is cut after its second line, with three dots, where even 5.6 mm are too large', async () => {
+        const from = `${'Besuchsdienst '.repeat(8)}sagt Dir Danke`
+        install()
+        await drawThankYouGreetingSheet({ ...SHEET, from })
+
+        const lines = fromDrawn()
+        expect(lines).toHaveLength(2)
+        expect(sizeIn(lines[0].font)).toBe(mm(5.6))
+        expect(lines[1].text).toMatch(/…$/)
+        for (const call of lines) expect(call.box.right - call.box.left).toBeLessThanOrEqual(ROOM)
+      })
     })
   })
 
@@ -946,7 +1021,7 @@ describe('drawThankYouGreetingSheet', () => {
   // longer than a line: it breaks at those spaces after all, and no word is broken within.
   it('breaks at no-break spaces where what they join is longer than a line', async () => {
     const pasted = Array.from({ length: 14 }, () => 'Wortwort').join('\u00a0')
-    await drawThankYouGreetingSheet({ ...SHEET, forWhom: '', signature: '', words: pasted })
+    await drawThankYouGreetingSheet({ ...SHEET, forWhom: '', words: pasted })
 
     const lines = texts()
       .filter((call) => panelOf(call) === 'words')
@@ -996,10 +1071,9 @@ describe('drawThankYouGreetingSheet', () => {
       line: 'Έτσι απλά — επειδή υπάρχεις.',
       forWhom: 'ΓΙΑ: ΣΟΦΙΑ',
       words: 'Спасибо за помощь! Bahçedeki yardım için teşekkürler.',
-      signature: 'Oma-Emma',
+      from: 'Emma sagt Dir Danke',
       waits: 'Το ευχαριστώ σου περιμένει: 20 Gradido',
       scan: 'Наведите камеру на код.',
-      free: 'Δωρεάν. Χωρίς δέσμευση.',
       slogan: 'Yardım et. Hediye et. Teşekkür et.',
     }
     const asked = (list) => new Set(list.filter((text) => typeof text === 'string').join(' '))
@@ -1045,7 +1119,7 @@ describe('drawThankYouGreetingSheet', () => {
       )
       expect(missing).toEqual([])
       // The fixed sentences too, not only what the sender wrote.
-      for (const text of [GREEK.waits, GREEK.scan, GREEK.free, GREEK.slogan, GREEK.forWhom]) {
+      for (const text of [GREEK.waits, GREEK.scan, GREEK.slogan, GREEK.forWhom]) {
         expect(fonts.sans[0]).toContain(text)
       }
     })
@@ -1064,12 +1138,12 @@ describe('drawThankYouGreetingSheet', () => {
         (char) => !known.has(char),
       )
       expect(missing).toEqual([])
-      expect(fonts.hand[0]).toContain('Oma-Emma')
+      expect(fonts.hand[0]).toContain(SHEET.from)
     })
 
     // What is not set in the handwriting does not fetch its file.
     it('asks the handwriting for nothing where no text is set in it', async () => {
-      await drawThankYouGreetingSheet({ ...GREEK, signature: '' })
+      await drawThankYouGreetingSheet({ ...GREEK, from: '' })
 
       expect(fonts.hand).toEqual([[]])
       expect(texts().some((call) => call.font.includes('Caveat'))).toBe(false)
@@ -1078,7 +1152,7 @@ describe('drawThankYouGreetingSheet', () => {
     it('does not ask the handwriting for a line it cannot write', async () => {
       await drawThankYouGreetingSheet(GREEK)
 
-      expect(fonts.hand[0]).toContain('Oma-Emma')
+      expect(fonts.hand[0]).toContain(GREEK.from)
       expect(fonts.hand[0]).not.toContain(GREEK.line)
       // Open Sans draws it, so Open Sans is asked for it.
       expect(fonts.sans[0]).toContain(GREEK.line)
@@ -1093,10 +1167,13 @@ describe('drawThankYouGreetingSheet', () => {
         Promise.all([printFontReady(fonts.sans[0]), handwritingReady(fonts.hand[0])])
 
       await expect(drawThankYouGreetingSheet(SHEET)).resolves.toBe('data:image/png;base64,c2hlZXQ=')
-      expect(load).toHaveBeenCalledWith('600 16px Caveat', expect.stringContaining('Oma-Emma'))
+      expect(load).toHaveBeenCalledWith(
+        '600 16px Caveat',
+        expect.stringContaining('Emma sagt Dir Danke'),
+      )
       expect(load).toHaveBeenCalledWith(
         '400 16px "Open Sans"',
-        expect.stringContaining('Kostenfrei'),
+        expect.stringContaining('Dein Dank wartet'),
       )
       expect(texts().length).toBeGreaterThan(0)
     })
@@ -1211,7 +1288,7 @@ describe('printThankYouGreetingSheet', () => {
     return vi.mocked(printSheet).mock.calls[0][0]
   }
 
-  // ⛔ The millimetres are what makes the folds meet the marks.
+  // ⛔ The millimetres are what puts the four panels where the folds fall.
   it('lays the sheet out on an A4 page without a margin, at the size of the paper', async () => {
     const { style } = await page()
 

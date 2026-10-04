@@ -1618,7 +1618,7 @@
       "line1-for": "{name}, ich habe einen Dank-Gruß für Dich:"
     },
     "sheet": {
-      "free": "Kostenfrei. Keine Verpflichtung.",
+      "from": "{name} sagt Dir Danke",
       "scan": "Halte die Kamera Deines Handys auf den Code und nimm ihn an — bis zum {date}.",
       "waits": "Dein Dank wartet: {amount}"
     },
@@ -1633,7 +1633,7 @@
       "for-whom": "Für wen?",
       "for-whom-hint": "Der Name steht auf Deinem Gruß.",
       "line": "Die erste Zeile",
-      "missing": "Wähle eine erste Zeile oder schreib ein paar eigene Worte.",
+      "missing": "Wähle eine erste Zeile oder schreib eine eigene.",
       "own-line": "Eigene Zeile",
       "own-words": "Deine Worte"
     }

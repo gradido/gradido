@@ -1618,7 +1618,7 @@
       "line1-for": "{name}, ho un biglietto di ringraziamento per te:"
     },
     "sheet": {
-      "free": "Gratuito. Senza impegno.",
+      "from": "{name} ti dice grazie",
       "scan": "Punta la fotocamera del tuo telefono sul codice e accetta il ringraziamento — entro il giorno {date}.",
       "waits": "Ti aspetta un ringraziamento: {amount}"
     },
@@ -1633,7 +1633,7 @@
       "for-whom": "Per chi?",
       "for-whom-hint": "Il nome compare sul tuo biglietto.",
       "line": "La prima riga",
-      "missing": "Scegli una prima riga o scrivi qualche parola tua.",
+      "missing": "Scegli una prima riga o scrivine una tua.",
       "own-line": "Riga personale",
       "own-words": "Le tue parole"
     }

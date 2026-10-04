@@ -1618,7 +1618,7 @@
       "line1-for": "{name}, sana bir teşekkür mesajım var:"
     },
     "sheet": {
-      "free": "Ücretsiz. Yükümlülük yok.",
+      "from": "{name} sana teşekkür ediyor",
       "scan": "Telefonunun kamerasını koda tut ve teşekkürü kabul et — {date} tarihine kadar.",
       "waits": "Seni bir teşekkür bekliyor: {amount}"
     },
@@ -1633,7 +1633,7 @@
       "for-whom": "Kimin için?",
       "for-whom-hint": "İsim mesajının üzerinde yer alır.",
       "line": "İlk satır",
-      "missing": "Bir ilk satır seç ya da kendi sözlerinle birkaç şey yaz.",
+      "missing": "Bir ilk satır seç ya da kendi satırını yaz.",
       "own-line": "Kendi satırın",
       "own-words": "Senin sözlerin"
     }

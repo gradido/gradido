@@ -82,6 +82,20 @@ export const useThankYouGreetingSheet = (
   const saveWaits = ref(false)
   let waitingFile = null
 
+  /**
+   * "Oma-Emma sagt Dir Danke", for the back of the card. Where it takes two lines it parts at
+   * the name and nowhere else: the words of the sentence are joined by no-break spaces, so that
+   * no line is left with "Danke" alone -- or, in Turkish, with "ediyor" for a name of eight
+   * letters. The language files carry no such space; it is set here, as between the amount and
+   * its unit.
+   */
+  const whoThanks = (name) => {
+    const NAME = '\u0001'
+    const [before, after = ''] = t('thank-you-greeting.sheet.from', { name: NAME }).split(NAME)
+    const joined = (words) => words.trim().replace(/ +/g, '\u00a0')
+    return [joined(before), name, joined(after)].filter(Boolean).join(' ')
+  }
+
   /** What the drawer is given: everything that stands on the paper. */
   const sheetOf = (pictureAddress) => {
     const { line, words } = greetingParts(memo, greeting?.line)
@@ -98,16 +112,17 @@ export const useThankYouGreetingSheet = (
           )
         : '',
       words,
-      // ⛔ The sender signs with their user name (NU-021) -- and whoever has none does not sign:
-      // `memberAlias` stands the Gradido ID in for a missing name, and that is no signature.
-      signature: isGradidoId(alias) ? '' : alias,
+      // ⛔ Who thanks is named by their user name (NU-021), on the back, over the code -- not
+      // under the words: there the sender signs by hand (Bernd, 04.10.2026). Whoever has no user
+      // name is not named: `memberAlias` stands the Gradido ID in for a missing name, and that
+      // is no name to print.
+      from: isGradidoId(alias) ? '' : whoThanks(alias),
       // The amount as a sentence says it, the date as "Fertig" says it. A no-break space joins
       // the amount and its unit: where the sentence takes two lines, none of them ends on "20".
       waits: t('thank-you-greeting.sheet.waits', {
         amount: `${amountInText(amount)}\u00a0${t('GDD-long')}`,
       }),
       scan: t('thank-you-greeting.sheet.scan', { date: d(new Date(validUntil), 'short') }),
-      free: t('thank-you-greeting.sheet.free'),
       slogan: cardSlogan(t),
     }
   }
