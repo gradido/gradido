@@ -324,7 +324,8 @@ export type ImageFormat = 'jpeg' | 'png' | 'webp'
 export interface ReencodeImageOptions {
   /**
    * The byte budget: the most the re-encoded picture may take. One that needs more is answered
-   * with `RIMG_ERR_BUFFER_TOO_SMALL`.
+   * with `RIMG_ERR_BUFFER_TOO_SMALL`. It is a limit, not a reservation: the memory taken follows
+   * the size the picture's header says, up to this.
    */
   maxOutputBytes: number
   /** Which formats may come in. Default: `['jpeg']` — every format is one more decoder reading hostile bytes. */
@@ -371,6 +372,23 @@ export type ReencodeImageError = {
   /** Only with `RIMG_ERR_BUFFER_TOO_SMALL`: what the picture needs at this quality */
   requiredBytes?: number
 }
+
+export interface ProbedImage {
+  format: ImageFormat
+  /** Width and height as stored, before orientation */
+  width: number
+  height: number
+  hasAlpha: boolean
+}
+
+export type ProbeImageError = { name: ReencodeImageErrorName; message: string }
+
+/**
+ * Reads the header only: which format the first bytes say and the size as stored. No limits and
+ * no format set apply — it answers what is there, so that a caller can refuse in its own words.
+ * It proves nothing about the rest of the data.
+ */
+export function probeImage(input: Uint8Array): Result<ProbedImage, ProbeImageError>
 
 /**
  * Decodes a picture nobody vouches for under hard limits and encodes its pixels again, on a

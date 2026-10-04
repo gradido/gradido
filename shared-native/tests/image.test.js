@@ -2,7 +2,8 @@
 const { describe, it } = require('node:test')
 const { strict } = require('node:assert')
 const assert = strict
-const { reencodeImage } = require('../')
+const zlib = require('node:zlib')
+const { probeImage, reencodeImage } = require('../')
 // jpeg: the 16 x 8 picture from rust-image-ffi's tests/c/fixture.h
 // transparentPng: 4 x 2 RGBA, every pixel fully transparent
 const fixture = require('./image.fixture.json')
@@ -28,6 +29,83 @@ function isJpeg(data) {
     data[data.length - 1] === 0xd9
   )
 }
+
+// an RGB PNG of noise, the picture that compresses worst; seeded, so every run sees the same one
+function noisePng(width, height) {
+  const crcTable = Array.from({ length: 256 }, (_, n) => {
+    let c = n
+    for (let k = 0; k < 8; k++) {
+      c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1
+    }
+    return c >>> 0
+  })
+  const chunk = (type, data) => {
+    const typeAndData = Buffer.concat([Buffer.from(type), data])
+    let crc = 0xffffffff
+    for (const byte of typeAndData) {
+      crc = crcTable[(crc ^ byte) & 0xff] ^ (crc >>> 8)
+    }
+    const length = Buffer.alloc(4)
+    length.writeUInt32BE(data.length)
+    const checksum = Buffer.alloc(4)
+    checksum.writeUInt32BE((crc ^ 0xffffffff) >>> 0)
+    return Buffer.concat([length, typeAndData, checksum])
+  }
+  const header = Buffer.alloc(13)
+  header.writeUInt32BE(width, 0)
+  header.writeUInt32BE(height, 4)
+  header[8] = 8 // bits per channel
+  header[9] = 2 // RGB
+  const rowBytes = 1 + width * 3
+  const rows = Buffer.alloc(height * rowBytes)
+  let seed = 1
+  for (let i = 0; i < rows.length; i++) {
+    seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0
+    // the first byte of a row is its filter: none
+    rows[i] = i % rowBytes === 0 ? 0 : seed >>> 24
+  }
+  return Buffer.concat([
+    PNG_SIGNATURE,
+    chunk('IHDR', header),
+    chunk('IDAT', zlib.deflateSync(rows, { level: 0 })),
+    chunk('IEND', Buffer.alloc(0)),
+  ])
+}
+
+describe('probeImage', () => {
+  it('reads format and size from the header', () => {
+    assert.deepEqual(probeImage(jpeg), {
+      success: true,
+      value: {
+        format: 'jpeg',
+        width: fixture.jpeg.width,
+        height: fixture.jpeg.height,
+        hasAlpha: false,
+      },
+    })
+    assert.deepEqual(probeImage(transparentPng), {
+      success: true,
+      value: {
+        format: 'png',
+        width: fixture.transparentPng.width,
+        height: fixture.transparentPng.height,
+        hasAlpha: true,
+      },
+    })
+  })
+  it('answers RIMG_ERR_UNSUPPORTED for what is not a picture', () => {
+    for (const input of [payload, new Uint8Array(0)]) {
+      const result = probeImage(input)
+      assert.equal(result.success, false)
+      assert.equal(result.error.name, 'RIMG_ERR_UNSUPPORTED')
+      assert.equal(typeof result.error.message, 'string')
+    }
+  })
+  it('throws for an input that is not a Uint8Array', () => {
+    assert.throws(() => probeImage(), /Uint8Array/)
+    assert.throws(() => probeImage('not bytes'), /Uint8Array/)
+  })
+})
 
 describe('reencodeImage', () => {
   describe('a picture that decodes', () => {
@@ -70,6 +148,28 @@ describe('reencodeImage', () => {
         assert.equal(result.success, true)
         assert.deepEqual(result.value.data, results[0].value.data)
       }
+    })
+    it('takes the budget as a limit, not as memory to reserve', async () => {
+      // 16 calls with 4 GiB each would not come back if the budget were allocated
+      const results = await Promise.all(
+        Array.from({ length: 16 }, () => reencodeImage(jpeg, { maxOutputBytes: 2 ** 32 - 1 })),
+      )
+      for (const result of results) {
+        assert.equal(result.success, true)
+      }
+    })
+    it('still fits a picture that encodes larger than its size suggests', async () => {
+      const width = 256
+      const height = 256
+      const result = await reencodeImage(noisePng(width, height), {
+        maxOutputBytes: 1024 * 1024,
+        inputFormats: ['png'],
+        jpegQuality: 100,
+      })
+      assert.equal(result.success, true)
+      // over the binding's estimate of 4 bytes per pixel plus 1024, so this took the second pass
+      assert.ok(result.value.data.length > width * height * 4 + 1024)
+      assert.ok(isJpeg(result.value.data))
     })
     it('encodes smaller at a lower jpegQuality', async () => {
       const high = await reencodeImage(jpeg, { maxOutputBytes: BUDGET, jpegQuality: 100 })

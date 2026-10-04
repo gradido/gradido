@@ -29,6 +29,7 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
     exports.Set("grdtLedgerAnchorToString", Napi::Function::New(env, gradido::types::GrdtLedgerAnchorToString));
     exports.Set("grdtMemoKeyToString", Napi::Function::New(env, gradido::types::GrdtMemoKeyToString));
     exports.Set("grdtTransactionToString", Napi::Function::New(env, gradido::types::GrdtTransactionToString));
+    exports.Set("probeImage", Napi::Function::New(env, gradido::image::Probe));
     exports.Set("reencodeImage", Napi::Function::New(env, gradido::image::Reencode));
 
     // classes

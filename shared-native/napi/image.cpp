@@ -10,6 +10,7 @@
 #include <cmath>
 #include <cstdint>
 #include <cstring>
+#include <new>
 #include <string>
 #include <vector>
 
@@ -186,6 +187,24 @@ namespace gradido::image {
             return getFormatOptions(env, options, opt) && getBackgroundOption(env, options, opt);
         }
 
+        // What a picture of this size takes encoded, capped at the budget. Not a bound: noise at
+        // jpegQuality 100 or as PNG takes slightly more, and the caller then asks again.
+        size_t estimatedOutputBytes(const rimg_info& info, size_t maxOutputBytes) {
+            const uint64_t HEADER_BYTES = 1024;
+            uint64_t estimate = (uint64_t)info.width * info.height * 4 + HEADER_BYTES;
+            return estimate < maxOutputBytes ? (size_t)estimate : maxOutputBytes;
+        }
+
+        Napi::Object failure(Napi::Env env, const char* name, int32_t status) {
+            Napi::Object error = Napi::Object::New(env);
+            error.Set("name", Napi::String::New(env, name));
+            error.Set("message", Napi::String::New(env, rimg_status_string(status)));
+            Napi::Object result = Napi::Object::New(env);
+            result.Set("success", Napi::Boolean::New(env, false));
+            result.Set("error", error);
+            return result;
+        }
+
         // decoding and encoding is CPU work for the length of the call, so it leaves the event loop
         class ReencodeWorker : public Napi::AsyncWorker {
         public:
@@ -206,11 +225,29 @@ namespace gradido::image {
 
         protected:
             void Execute() override {
-                mOutput.resize(mMaxOutputBytes);
                 // an empty vector's data() may be NULL, which is an invalid argument rather than no picture
                 static const uint8_t empty = 0;
                 const uint8_t* input = mInput.empty() ? &empty : mInput.data();
-                mStatus = rimg_reencode(&mOptions, input, mInput.size(), mOutput.data(), mOutput.size(), &mOutputLength, &mInfo);
+
+                // The budget is the most the result may take, not what it will take: the buffer is
+                // sized by what the header says, and only up to the budget.
+                size_t capacity = 0;
+                rimg_info probed;
+                if (rimg_probe(input, mInput.size(), &probed) == RIMG_OK) {
+                    capacity = estimatedOutputBytes(probed, mMaxOutputBytes);
+                }
+                // no memory for the output is the same answer as no memory for the pixels
+                try {
+                    mOutput.resize(capacity);
+                    mStatus = rimg_reencode(&mOptions, input, mInput.size(), mOutput.data(), mOutput.size(), &mOutputLength, &mInfo);
+                    // The estimate was too low and the budget is not: once more, with what it needs.
+                    if (mStatus == RIMG_ERR_BUFFER_TOO_SMALL && mOutputLength <= mMaxOutputBytes) {
+                        mOutput.resize(mOutputLength);
+                        mStatus = rimg_reencode(&mOptions, input, mInput.size(), mOutput.data(), mOutput.size(), &mOutputLength, &mInfo);
+                    }
+                } catch (const std::bad_alloc&) {
+                    mStatus = RIMG_ERR_NO_MEMORY;
+                }
             }
 
             void OnOK() override {
@@ -236,14 +273,10 @@ namespace gradido::image {
                     mDeferred.Reject(Napi::Error::New(env, message).Value());
                     return;
                 }
-                Napi::Object error = Napi::Object::New(env);
-                error.Set("name", Napi::String::New(env, name));
-                error.Set("message", Napi::String::New(env, rimg_status_string(mStatus)));
+                result = failure(env, name, mStatus);
                 if (mStatus == RIMG_ERR_BUFFER_TOO_SMALL) {
-                    error.Set("requiredBytes", Napi::Number::New(env, (double)mOutputLength));
+                    result.Get("error").As<Napi::Object>().Set("requiredBytes", Napi::Number::New(env, (double)mOutputLength));
                 }
-                result.Set("success", Napi::Boolean::New(env, false));
-                result.Set("error", error);
                 mDeferred.Resolve(result);
             }
 
@@ -262,6 +295,39 @@ namespace gradido::image {
             int32_t mStatus;
         };
     } // namespace
+
+    Napi::Value Probe(const Napi::CallbackInfo& info)
+    {
+        Napi::Env env = info.Env();
+        if (info.Length() < 1 || !info[0].IsTypedArray() || info[0].As<Napi::TypedArray>().TypedArrayType() != napi_uint8_array) {
+            Napi::TypeError::New(env, "[probeImage] Expected input to be a Uint8Array").ThrowAsJavaScriptException();
+            return env.Null();
+        }
+        Napi::Uint8Array input = info[0].As<Napi::Uint8Array>();
+        static const uint8_t empty = 0;
+        rimg_info probed;
+        std::memset(&probed, 0, sizeof(probed));
+        int32_t status = rimg_probe(input.ByteLength() ? input.Data() : &empty, input.ByteLength(), &probed);
+        if (status != RIMG_OK) {
+            const char* name = expectedFailureName(status);
+            if (!name) {
+                std::string message = "[probeImage] rimg_probe: ";
+                message += rimg_status_string(status);
+                Napi::Error::New(env, message).ThrowAsJavaScriptException();
+                return env.Null();
+            }
+            return failure(env, name, status);
+        }
+        Napi::Object value = Napi::Object::New(env);
+        value.Set("format", Napi::String::New(env, formatToString(probed.input_format)));
+        value.Set("width", Napi::Number::New(env, probed.width));
+        value.Set("height", Napi::Number::New(env, probed.height));
+        value.Set("hasAlpha", Napi::Boolean::New(env, probed.has_alpha != 0));
+        Napi::Object result = Napi::Object::New(env);
+        result.Set("success", Napi::Boolean::New(env, true));
+        result.Set("value", value);
+        return result;
+    }
 
     Napi::Value Reencode(const Napi::CallbackInfo& info)
     {
@@ -286,7 +352,15 @@ namespace gradido::image {
         }
 
         Napi::Uint8Array input = info[0].As<Napi::Uint8Array>();
-        ReencodeWorker* worker = new ReencodeWorker(env, input.Data(), input.ByteLength(), opt, maxOutputBytes);
+        ReencodeWorker* worker = nullptr;
+        // the worker copies the input; node-addon-api turns only a Napi::Error into a JS exception,
+        // anything else leaving this function would end the process
+        try {
+            worker = new ReencodeWorker(env, input.Data(), input.ByteLength(), opt, maxOutputBytes);
+        } catch (const std::bad_alloc&) {
+            Napi::Error::New(env, "[reencodeImage] Out of memory copying the input").ThrowAsJavaScriptException();
+            return env.Null();
+        }
         Napi::Promise promise = worker->Promise();
         // the worker deletes itself when it is done
         worker->Queue();
@@ -298,6 +372,13 @@ namespace gradido::image {
 #else
 
 namespace gradido::image {
+
+    Napi::Value Probe(const Napi::CallbackInfo& info)
+    {
+        Napi::Env env = info.Env();
+        Napi::Error::New(env, "[probeImage] Not available: rust-image-ffi has no prebuild for this platform").ThrowAsJavaScriptException();
+        return env.Null();
+    }
 
     Napi::Value Reencode(const Napi::CallbackInfo& info)
     {
