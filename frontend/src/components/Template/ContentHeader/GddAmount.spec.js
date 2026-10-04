@@ -151,6 +151,23 @@ describe('GddAmount', () => {
     })
   })
 
+  describe('the badge always has a surface', () => {
+    // The card that is not the open one asked for the `light` variant, whose class this
+    // stylesheet does not carry: white text with nothing behind it.
+    it('is flat grey on the card that is not open', () => {
+      const badge = createWrapper({ badgeShow: true, showStatus: false }).find('.badge')
+      expect(badge.classes()).toContain('bg-gradido-muted')
+      expect(badge.classes()).not.toContain('bg-gradido-gradient')
+      expect(badge.classes().filter((c) => /^text-bg-.+/.test(c))).toEqual([])
+    })
+
+    it('carries the gradient on the open card', () => {
+      const badge = createWrapper({ badgeShow: true, showStatus: true }).find('.badge')
+      expect(badge.classes()).toContain('bg-gradido-gradient')
+      expect(badge.classes()).not.toContain('bg-gradido-muted')
+    })
+  })
+
   it('renders the component gdd-amount', () => {
     expect(wrapper.find('div.gdd-amount').exists()).toBe(true)
   })
