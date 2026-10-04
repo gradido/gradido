@@ -1594,7 +1594,7 @@
     "next": "Verder",
     "paper": {
       "failed": "De kaart kon nu niet worden gemaakt. Probeer het alsjeblieft nog een keer.",
-      "hint": "Een A4-vel, aan één kant bedrukt. Vouw het twee keer, met de bedrukte kant naar buiten: je afbeelding zit dan vooraan, je woorden staan binnenin, en ernaast is ruimte voor je handschrift.",
+      "hint": "Een A4-vel, aan één kant bedrukt. Vouw het twee keer, met de bedrukte kant naar buiten: je afbeelding zit dan aan de voorkant, je woorden staan binnenin, en ernaast is ruimte voor je handschrift.",
       "print": "Kaart afdrukken",
       "save": "Kaart als afbeelding opslaan",
       "title": "Of op papier"
@@ -1620,7 +1620,7 @@
     },
     "sheet": {
       "free": "Gratis. Geen verplichtingen.",
-      "scan": "Houd de camera van je telefoon op de code en neem het aan — tot {date}.",
+      "scan": "Richt de camera van je telefoon op de code en neem het aan — tot {date}.",
       "waits": "Je bedankje wacht: {amount}"
     },
     "step": {

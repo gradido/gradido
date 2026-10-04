@@ -1620,7 +1620,7 @@
     },
     "sheet": {
       "free": "Gratuito. Senza impegno.",
-      "scan": "Punta la fotocamera del tuo telefono sul codice e accetta il ringraziamento — fino al giorno {date}.",
+      "scan": "Punta la fotocamera del tuo telefono sul codice e accetta il ringraziamento — entro il giorno {date}.",
       "waits": "Ti aspetta un ringraziamento: {amount}"
     },
     "step": {

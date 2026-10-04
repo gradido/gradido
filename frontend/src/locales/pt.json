@@ -1595,8 +1595,8 @@
     "paper": {
       "failed": "Neste momento não foi possível criar o postal. Tenta outra vez, por favor.",
       "hint": "Uma folha A4, impressa de um só lado. Dobra-a duas vezes, com o lado impresso para fora: a tua imagem fica à frente, as tuas palavras ficam dentro, e ao lado há espaço para escreveres à mão.",
-      "print": "Imprimir o postal",
-      "save": "Guardar o postal como imagem",
+      "print": "Imprimir postal",
+      "save": "Guardar postal como imagem",
       "title": "Ou em papel"
     },
     "photo-of": "Foto enviada por {name}",

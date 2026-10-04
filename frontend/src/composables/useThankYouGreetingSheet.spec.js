@@ -171,7 +171,7 @@ describe('useThankYouGreetingSheet', () => {
 
       const date = i18n.global.d(new Date(LINK.validUntil), 'short', 'en')
       expect(drawn().scan).toBe(
-        `Hold your phone's camera up to the code and accept it — until ${date}.`,
+        `Hold your phone's camera up to the code and accept the thank-you — by ${date}.`,
       )
       expect(drawn().slogan).toBe('Help. Give. Thank.')
     })
