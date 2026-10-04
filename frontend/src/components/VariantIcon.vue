@@ -11,6 +11,29 @@
   <IBiHeart v-if="props.icon === 'heart'" class="icon-variant" />
   <IBiPersonCheck v-if="props.icon === 'person-check'" class="icon-variant" />
   <IBiGift v-if="props.icon === 'gift'" class="icon-variant" />
+  <!-- A bunch of flowers, for a thank-you greeting: three blossoms, their stems tied. Drawn
+       here -- none of the icon sets the wallet carries has one (Bernd chose it on 04.10.2026).
+       Sized as the set's icons are (1.2em), in the colour of the text around it. -->
+  <svg
+    v-if="props.icon === 'bouquet'"
+    class="icon-variant"
+    width="1.2em"
+    height="1.2em"
+    viewBox="0 0 16 16"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1"
+    stroke-linecap="round"
+    aria-hidden="true"
+    data-test="icon-bouquet"
+  >
+    <circle cx="4.2" cy="4" r="1.9" />
+    <circle cx="8" cy="2.9" r="1.9" />
+    <circle cx="11.8" cy="4" r="1.9" />
+    <path
+      d="M4.8 5.8L8 10.5M8 4.8v5.7M11.2 5.8L8 10.5M6.3 10.5h3.4M8 10.5l-2 4.2M8 10.5v4.5M8 10.5l2 4.2"
+    />
+  </svg>
   <!-- Two cards lying on top of each other. Deliberately NOT a credit card: a thank you
        card is a printed piece of paper, and every card icon that carries a chip or a
        magnetic stripe says bank. (Bernd chose this one on 19.08.2026.) -->

@@ -1674,6 +1674,7 @@
     "text": "Hangi topluluğa ait olursan ol, Geo Matching System ile tüm toplulukların üyelerini bir haritada bulabilirsin. Tekliflere ve ihtiyaçlara göre filtreleyebilir ve sana uygun kullanıcıları görüntüleyebilirsin.\n\nDüğmeyle, çevrendeki kullanıcıların bir haritada gösterildiği yeni bir tarayıcı penceresi açılır."
   },
   "via_card": "kart ile",
+  "via_greeting": "mesaj yoluyla",
   "via_link": "link yoluyla",
   "welcome": "Topluluğa hoş geldin"
 }
