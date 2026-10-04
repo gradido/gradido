@@ -16,23 +16,27 @@ import { chequeFileName } from './thankYouCheque'
 /**
  * The sheet a thank-you greeting is printed on (ZE-017, F8): one A4 page, printed on one side
  * and folded twice, is a card of 105 x 148.5 mm -- the picture and the first line in front, the
- * words inside with a free page beside them for the sender's own hand, the code on the back.
+ * words inside with a free page beside them for the sender's own hand, and on the back who
+ * thanks and the code.
  *
  *   the sheet as it lies in the printer, printed side up:
  *
  *        +-----------------+-----------------+
  *        |  INSIDE RIGHT   |  INSIDE LEFT    |     both stand on their heads: after
  *        |  whom it is for,|  empty, for the |     the first fold they are upright
- *        |  the words, who |  hand           |     inside the card
- *        |  signs          |                 |
+ *        |  the words      |  hand           |     inside the card
  *   1 -- +-----------------+-----------------+ -- 1   first fold: the upper half to the back
  *        |  BACK           |  FRONT          |
- *        |  the code       |  picture, line  |
+ *        |  who thanks,    |  picture, line  |
+ *        |  the code       |                 |
  *        +-----------------+-----------------+
  *                          2                          second fold: the left half to the back
  *
  * ONE drawing surface for the whole page, so that what is printed and what is saved as a
  * picture are the same drawing.
+ *
+ * ⛔ Nothing is signed inside (Bernd, with the first printed card in hand, 04.10.2026): that is
+ * where the sender signs by hand. Who thanks stands on the back, over the code.
  *
  * ## 13 mm stay free in every panel, at every edge of the paper and at every fold
  *
@@ -126,7 +130,7 @@ const HAND_LEADING = 1.12
 const PLAIN_SHARE = 20 / 27
 const PLAIN_LEADING = 1.25
 
-// ---- inside, the right page: whom it is for, the words, who signs -----------------------------
+// ---- inside, the right page: whom it is for, the words ----------------------------------------
 const INSIDE_TOP = mm(18)
 const FOR_SIZE = mm(2.9)
 const FOR_SPACING = Math.round(FOR_SIZE * 0.08)
@@ -135,10 +139,14 @@ const WORDS_GAP = mm(4.5)
 const WORDS_SIZE = mm(3.9)
 const WORDS_MIN_SIZE = mm(3)
 const WORDS_LEADING = 1.55
-const SIGN_GAP = mm(5)
-const SIGN_SIZE = mm(7.6)
 
-// ---- the back: the code, what it is, and whose card this is -----------------------------------
+// ---- the back: who thanks, the code, what it is, and whose card this is -----------------------
+// Who thanks, over the code and in the handwriting, as the first line on the front is: the
+// card speaks in one voice on both of its outer sides.
+const FROM_SIZE = mm(7.6)
+const FROM_MIN_SIZE = mm(5.6)
+const FROM_MAX_LINES = 2
+const FROM_GAP = mm(5)
 const QR_SIZE = mm(38)
 const QR_GAP = mm(6)
 const WAITS_SIZE = mm(4.3)
@@ -316,24 +324,44 @@ const handFace = (text, size, floor = size) =>
       }
 
 /**
- * The first line in its room: at its full size where that takes three lines at most, smaller
- * down to its floor otherwise, and beyond that cut after the third line.
+ * A line in the handwriting in its room: at its full size where that takes no more lines than
+ * it may, smaller down to its floor otherwise, and beyond that cut after its last line.
  */
-const fitLine = (ctx, line) => {
-  const face = handFace(line, LINE_SIZE, LINE_MIN_SIZE)
+const fitHand = (ctx, text, full, floor, maxLines) => {
+  const face = handFace(text, full, floor)
   let size = face.size
   let lines
   for (;;) {
     ctx.font = face.font(size)
-    lines = wrapParagraph(ctx, line, ROOM)
-    if (lines.length <= LINE_MAX_LINES || size <= face.floor) break
+    lines = wrapParagraph(ctx, text, ROOM)
+    if (lines.length <= maxLines || size <= face.floor) break
     size -= 1
   }
-  if (lines.length > LINE_MAX_LINES) {
-    lines = lines.slice(0, LINE_MAX_LINES)
-    lines[LINE_MAX_LINES - 1] = endWithEllipsis(ctx, lines[LINE_MAX_LINES - 1], ROOM)
+  if (lines.length > maxLines) {
+    lines = lines.slice(0, maxLines)
+    lines[maxLines - 1] = endWithEllipsis(ctx, lines[maxLines - 1], ROOM)
   }
   return { lines, font: face.font(size), size, step: Math.round(size * face.leading), face }
+}
+
+/** The first line: three lines at most, at 9.2 mm down to 6.4 mm. */
+const fitLine = (ctx, line) => fitHand(ctx, line, LINE_SIZE, LINE_MIN_SIZE, LINE_MAX_LINES)
+
+/** Who thanks, on the back: two lines at most, at 7.6 mm down to 5.6 mm. */
+const fitFrom = (ctx, from) => fitHand(ctx, from, FROM_SIZE, FROM_MIN_SIZE, FROM_MAX_LINES)
+
+/** Lines in the handwriting, centred on a panel, from `top` down. */
+const setHand = (ctx, fitted, top) => {
+  ctx.font = fitted.font
+  ctx.fillStyle = COLOR_GOLD
+  fitted.lines.forEach((text, index) =>
+    setCentred(
+      ctx,
+      text,
+      PANEL_WIDTH / 2,
+      top + Math.round(fitted.size * fitted.face.ascent) + index * fitted.step,
+    ),
+  )
 }
 
 /** The picture in its place, filling it: what is over at two sides is left out, nothing is stretched. */
@@ -371,18 +399,7 @@ const drawFront = (ctx, { picture, line }) => {
     drawPicture(ctx, picture, MARGIN, top)
     top += PICTURE_HEIGHT + gap
   }
-  if (fitted) {
-    ctx.font = fitted.font
-    ctx.fillStyle = COLOR_GOLD
-    fitted.lines.forEach((text, index) =>
-      setCentred(
-        ctx,
-        text,
-        PANEL_WIDTH / 2,
-        top + Math.round(fitted.size * fitted.face.ascent) + index * fitted.step,
-      ),
-    )
-  }
+  if (fitted) setHand(ctx, fitted, top)
 }
 
 /**
@@ -411,7 +428,7 @@ const fitWords = (ctx, words, height) => {
   return { lines, size, step }
 }
 
-const drawInside = (ctx, { forWhom, words, signature }) => {
+const drawInside = (ctx, { forWhom, words }) => {
   let top = INSIDE_TOP
 
   if (forWhom) {
@@ -430,18 +447,8 @@ const drawInside = (ctx, { forWhom, words, signature }) => {
     top += (lines.length - 1) * step + FOR_SIZE + WORDS_GAP
   }
 
-  // Who signs is known before the words are fitted: they have the room that is left above it.
-  const sign = signature ? handFace(signature, SIGN_SIZE) : null
-  let signLines = []
-  let signStep = 0
-  if (sign) {
-    ctx.font = sign.font(sign.size)
-    signLines = wrapParagraph(ctx, signature, ROOM)
-    signStep = Math.round(sign.size * sign.leading)
-  }
-  const signBlock = sign ? SIGN_GAP + signLines.length * signStep : 0
-
-  const fitted = fitWords(ctx, words, PANEL_HEIGHT - MARGIN - top - signBlock)
+  // The words have the page down to its margin: nothing is signed under them (see above).
+  const fitted = fitWords(ctx, words, PANEL_HEIGHT - MARGIN - top)
   ctx.font = sansFont(400, fitted.size)
   ctx.fillStyle = COLOR_TEXT
   for (const text of fitted.lines) {
@@ -453,18 +460,9 @@ const drawInside = (ctx, { forWhom, words, signature }) => {
     setFromLeft(ctx, text, MARGIN, top + Math.round(fitted.size * SANS_ASCENT))
     top += fitted.step
   }
-
-  if (sign) {
-    top += SIGN_GAP
-    ctx.font = sign.font(sign.size)
-    ctx.fillStyle = COLOR_GOLD
-    signLines.forEach((text, index) =>
-      setFromLeft(ctx, text, MARGIN, top + Math.round(sign.size * sign.ascent) + index * signStep),
-    )
-  }
 }
 
-const drawBack = (ctx, { qr, logo, waits, scan, free, slogan }) => {
+const drawBack = (ctx, { qr, logo, from, waits, scan, free, slogan }) => {
   const centre = PANEL_WIDTH / 2
   // The sentences are longer in some languages than in others: each is broken to the room.
   const sentence = (text, weight, size, leading) => {
@@ -476,19 +474,33 @@ const drawBack = (ctx, { qr, logo, waits, scan, free, slogan }) => {
   const scanLines = sentence(scan, 400, HINT_SIZE, HINT_LEADING)
   const freeLines = sentence(free, 400, HINT_SIZE, HINT_LEADING)
   const heightOf = ({ lines, step }) => lines.length * step
+  // Who thanks: without a user name nobody is named, and the code stands alone.
+  const fromLines = from ? fitFrom(ctx, from) : null
 
   // The foot stands on the margin: the logo, and under it the slogan of the cards.
   const foot = LOGO_HEIGHT + (sloganLines.lines.length ? SLOGAN_GAP + heightOf(sloganLines) : 0)
   const footTop = PANEL_HEIGHT - MARGIN - foot
   const block =
+    (fromLines ? heightOf(fromLines) + FROM_GAP : 0) +
     QR_SIZE +
     QR_GAP +
     heightOf(waitsLines) +
     SCAN_GAP +
     heightOf(scanLines) +
     (freeLines.lines.length ? FREE_GAP + heightOf(freeLines) : 0)
-  // Never lifted into the margin, however long a language's sentences are.
-  let top = Math.max(MARGIN, MARGIN + Math.round((footTop - MARGIN - block) / 2) - BACK_LIFT)
+  // Never lifted into the margin, however long a language's sentences are. A line in the
+  // handwriting reaches above its line with its tallest letters: where it is the first thing of
+  // the block, that much more stays free.
+  const reach = fromLines ? Math.round(fromLines.size * (1 - fromLines.face.ascent)) : 0
+  let top = Math.max(
+    MARGIN + reach,
+    MARGIN + Math.round((footTop - MARGIN - block) / 2) - BACK_LIFT,
+  )
+
+  if (fromLines) {
+    setHand(ctx, fromLines, top)
+    top += heightOf(fromLines) + FROM_GAP
+  }
 
   // ⚠️ The code is drawn larger than `renderQrCodeCanvas` hands it over (8 pixels a module).
   // Without smoothing its modules keep hard edges; smoothed, every edge would be a grey seam.
@@ -565,7 +577,8 @@ const inPanel = (ctx, { column, row }, paint) => {
  * @param {string | null} [sheet.line] the first line
  * @param {string} [sheet.forWhom] "FÜR SARAH", in capitals as it is set; empty without a name
  * @param {string} [sheet.words] the sender's words, with their own line breaks
- * @param {string} [sheet.signature] the sender's user name; empty where there is none
+ * @param {string} [sheet.from] who thanks, for the back: "Oma-Emma sagt Dir Danke"; empty where
+ *   the sender has no user name
  * @param {string} sheet.waits "Dein Dank wartet: 20 Gradido"
  * @param {string} sheet.scan how the code is read and the thank-you accepted, and until when
  * @param {string} sheet.free "Kostenfrei. Keine Verpflichtung."
@@ -579,13 +592,13 @@ export const drawThankYouGreetingSheet = async ({
   line = '',
   forWhom = '',
   words = '',
-  signature = '',
+  from = '',
   waits,
   scan,
   free,
   slogan,
 }) => {
-  const byHand = [line, signature].filter((text) => text && canWriteByHand(text))
+  const byHand = [line, from].filter((text) => text && canWriteByHand(text))
   // ⛔ Both fonts are waited for here, with the pictures, BEFORE anything is measured: every
   // text is broken and sized by measuring it, and a canvas that does not have a font yet
   // measures the fallback. Every text the sheet sets goes in, the fixed ones too -- the text
@@ -595,7 +608,7 @@ export const drawThankYouGreetingSheet = async ({
     loadImage(LOGO_PATH),
     renderQrCodeCanvas(link),
     picture ? loadImage(picture) : null,
-    printFontReady([forWhom, line, words, signature, waits, scan, free, slogan, ELLIPSIS]),
+    printFontReady([forWhom, line, words, from, waits, scan, free, slogan, ELLIPSIS]),
     handwritingReady(byHand.length ? [...byHand, ELLIPSIS] : []),
   ])
 
@@ -611,9 +624,9 @@ export const drawThankYouGreetingSheet = async ({
   ctx.imageSmoothingQuality = 'high'
 
   const { words: inside, back, front } = THANK_YOU_GREETING_SHEET_PANELS
-  inPanel(ctx, inside, () => drawInside(ctx, { forWhom, words, signature }))
+  inPanel(ctx, inside, () => drawInside(ctx, { forWhom, words }))
   // THANK_YOU_GREETING_SHEET_PANELS.hand stays as it is: the page for the sender's own hand.
-  inPanel(ctx, back, () => drawBack(ctx, { qr, logo, waits, scan, free, slogan }))
+  inPanel(ctx, back, () => drawBack(ctx, { qr, logo, from, waits, scan, free, slogan }))
   inPanel(ctx, front, () => drawFront(ctx, { picture: image, line }))
   drawFoldMarks(ctx)
 

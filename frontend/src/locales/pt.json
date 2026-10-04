@@ -1619,6 +1619,7 @@
     },
     "sheet": {
       "free": "Gratuito. Sem compromisso.",
+      "from": "{name} agradece-te",
       "scan": "Aponta a câmara do teu telemóvel para o código e aceita o agradecimento — até {date}.",
       "waits": "Um agradecimento está à tua espera: {amount}"
     },

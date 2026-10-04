@@ -314,7 +314,7 @@ describe('ThankYouGreetingDone', () => {
         line: 'Einfach so — weil es Dich gibt.',
         words: WORDS,
         forWhom: 'FÜR SARAH',
-        signature: 'Oma-Emma',
+        from: 'Oma-Emma sagt Dir Danke',
         // amount and unit joined by a no-break space: no line of the sheet parts them
         waits: 'Dein Dank wartet: 20\u00a0Gradido',
         scan: 'Halte die Kamera Deines Handys auf den Code und nimm ihn an — bis zum 16.10.2026.',

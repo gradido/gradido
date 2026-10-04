@@ -1619,6 +1619,7 @@
     },
     "sheet": {
       "free": "Kostenfrei. Keine Verpflichtung.",
+      "from": "{name} sagt Dir Danke",
       "scan": "Halte die Kamera Deines Handys auf den Code und nimm ihn an — bis zum {date}.",
       "waits": "Dein Dank wartet: {amount}"
     },

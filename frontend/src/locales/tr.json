@@ -1619,6 +1619,7 @@
     },
     "sheet": {
       "free": "Ücretsiz. Yükümlülük yok.",
+      "from": "{name} sana teşekkür ediyor",
       "scan": "Telefonunun kamerasını koda tut ve teşekkürü kabul et — {date} tarihine kadar.",
       "waits": "Seni bir teşekkür bekliyor: {amount}"
     },

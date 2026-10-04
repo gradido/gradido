@@ -228,14 +228,24 @@ describe('useThankYouGreetingSheet', () => {
       })
     })
 
-    describe('who signs', () => {
-      it('is the sender, under their user name', async () => {
+    // ⛔ Bernd, with the first printed card in hand (04.10.2026): under the words the sender signs
+    // by hand, so nothing is signed there. Who thanks is said on the back, over the code.
+    describe('who thanks', () => {
+      it('is the sender, under their user name, as a sentence for the back', async () => {
         await sheetOf().printGreetingSheet()
 
-        expect(drawn().signature).toBe('Oma-Emma')
+        expect(drawn().from).toBe('Oma-Emma sagt Dir Danke')
+        expect(drawn()).not.toHaveProperty('signature')
       })
 
-      // ⛔ `memberAlias` stands the Gradido ID in for a missing user name. A UUID is no signature.
+      it('is said in the language of the page', async () => {
+        i18n.global.locale.value = 'en'
+        await sheetOf().printGreetingSheet()
+
+        expect(drawn().from).toBe('Oma-Emma says thank you')
+      })
+
+      // ⛔ `memberAlias` stands the Gradido ID in for a missing user name. A UUID is no name to print.
       it.each([
         ['none', ''],
         ['none at all', null],
@@ -244,7 +254,7 @@ describe('useThankYouGreetingSheet', () => {
         storeState.username = username
         await sheetOf().printGreetingSheet()
 
-        expect(drawn().signature).toBe('')
+        expect(drawn().from).toBe('')
         expect(JSON.stringify(drawn())).not.toContain(storeState.gradidoID)
       })
     })

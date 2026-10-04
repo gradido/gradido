@@ -99,6 +99,7 @@ const KEYS = [
   'share.line1',
   'share.line1-for',
   'sheet.free',
+  'sheet.from',
   'sheet.scan',
   'sheet.waits',
   'step.picture',
@@ -371,6 +372,28 @@ describe('thank-you-greeting in the language files', () => {
       expect(render('de', 'sheet.free')).toBe('Kostenfrei. Keine Verpflichtung.')
     })
 
+    // ⛔ Bernd, with the first printed card in hand (04.10.2026): who thanks stands on the back,
+    // over the code -- "Oma Emma sagt dir Danke" was his wording; on paper "Dir" has its capital.
+    it('name who thanks, in German as it was decided', () => {
+      expect(render('de', 'sheet.from', { name: 'Oma-Emma' })).toBe('Oma-Emma sagt Dir Danke')
+    })
+
+    // A caption over the code, not a sentence in a text: it begins with the name as it is
+    // written, says in a few words that this person thanks, and ends without a full stop.
+    it.each(languages)('name who thanks, beginning with the name, in %s', (lang) => {
+      const from = render(lang, 'sheet.from', { name: 'Oma-Emma' })
+
+      expect(from.startsWith('Oma-Emma ')).toBe(true)
+      expect(from).not.toMatch(/[{}|.!?:]/)
+      // One word in Portuguese ("agradece-te"), four at most.
+      const rest = from.replace('Oma-Emma ', '').split(/\s+/)
+      expect(rest.length).toBeGreaterThanOrEqual(1)
+      expect(rest.length).toBeLessThanOrEqual(4)
+      expect(rest.join(' ').length).toBeGreaterThanOrEqual(8)
+      // A user name may hold what a template would read as its own: it arrives as it was written.
+      expect(render(lang, 'sheet.from', { name: 'A|b {c}' })).toContain('A|b {c}')
+    })
+
     it.each(languages)('say what waits and end in the amount, after a colon, in %s', (lang) => {
       const waits = render(lang, 'sheet.waits', { amount: '12,5 Gradido' })
 
@@ -419,9 +442,13 @@ describe('thank-you-greeting in the language files', () => {
 
     // The whole Russian file speaks formally; a printed sentence must not be the exception.
     it('speak formally in Russian, and with a small "вы"', () => {
-      const sentences = ['sheet.waits', 'sheet.scan', 'sheet.free', 'paper.failed'].map((key) =>
-        render('ru', key, { amount: '20 Gradido', date: '18.10.2026' }),
-      )
+      const sentences = [
+        'sheet.from',
+        'sheet.waits',
+        'sheet.scan',
+        'sheet.free',
+        'paper.failed',
+      ].map((key) => render('ru', key, { name: 'Эмма', amount: '20 Gradido', date: '18.10.2026' }))
 
       for (const sentence of sentences) {
         expect(sentence).not.toMatch(
