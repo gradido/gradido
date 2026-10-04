@@ -1,7 +1,11 @@
 <template>
   <div class="community-member mt-3 mt-lg-0 position-relative flex-grow-1 d-flex flex-column">
     <div class="text-center bg-gradido-gradient">
-      <BBadge class="position-absolute mt--2 ms--5 px-3 bg-gradido-gradient">
+      <!-- No variant: BBadge's default ("secondary") brings `text-bg-secondary`, whose black
+           `!important` text comes after `.bg-gradido-gradient`'s white in the stylesheet and
+           won. The GDD and GDT badges pass an empty variant for the same gradient and are
+           white; this one is now too (Bernd, 04.10.2026). -->
+      <BBadge variant="" class="position-absolute mt--2 ms--5 px-3 bg-gradido-gradient">
         {{ $t('community.community') }}
       </BBadge>
     </div>
@@ -51,9 +55,3 @@ export default {
   },
 }
 </script>
-
-<style lang="scss" scoped>
-span.bg-gradido-gradient.text-bg-secondary {
-  color: $white !important;
-}
-</style>
