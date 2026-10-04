@@ -108,7 +108,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, ref, useId, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ThankYouPictureChoice from '@/components/ThankYouGreeting/ThankYouPictureChoice.vue'
 import {
@@ -178,12 +178,38 @@ const onMotif = (key) => {
   focusOn(otherButton)
 }
 
+/**
+ * The same after a WINDOW has closed. The editor is one, and a window hands the keyboard back to
+ * where it stood before it opened -- the tile of the choice, which is hidden by the time the
+ * window has gone: the keyboard falls to the page (measured in the built wallet). So for a
+ * second the button is given the keyboard again whenever it has fallen there -- and left alone
+ * as soon as the member has put it anywhere else.
+ */
+let lookingAfterFocus = null
+const stopLookingAfterFocus = () => {
+  clearInterval(lookingAfterFocus)
+  lookingAfterFocus = null
+}
+const focusOnAfterWindow = (button) => {
+  focusOn(button)
+  stopLookingAfterFocus()
+  let looks = 0
+  lookingAfterFocus = setInterval(() => {
+    looks += 1
+    const fallen = document.activeElement === null || document.activeElement === document.body
+    const windowOpen = document.querySelector('.modal.show') !== null
+    if (fallen && !windowOpen) button.value?.focus()
+    if (looks >= 10 || !button.value) stopLookingAfterFocus()
+  }, 100)
+}
+onBeforeUnmount(stopLookingAfterFocus)
+
 /** A photo is chosen when its editor closes with "Fertig". */
 const onPhoto = (photo) => {
   if (!photo) return
   emit('update:picture', { photo })
   open.value = false
-  focusOn(otherButton)
+  focusOnAfterWindow(otherButton)
 }
 
 /**
@@ -256,6 +282,19 @@ watch(
   border-radius: 10px;
   background: #fbf3de;
   object-fit: cover;
+}
+
+/* On a narrow phone the form leaves 258px: beside a picture of 132 the longer of the ten
+   "Anderes Bild" broke into two lines (measured in the built wallet at 320: it, nl, ru). The
+   picture steps back a little there. */
+@media (width <= 359.98px) {
+  .send-picture-chosen {
+    gap: 12px;
+  }
+
+  .send-picture-thumb {
+    width: 104px;
+  }
 }
 
 .send-picture-actions {

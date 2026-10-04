@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { mount } from '@vue/test-utils'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import i18n from '@/i18n'
 import ThankYouPictureChoice from '@/components/ThankYouGreeting/ThankYouPictureChoice.vue'
@@ -232,6 +232,55 @@ describe('TransactionPictureField', () => {
       await nextTick()
 
       expect(document.activeElement).toBe(at('send-picture-other').element)
+    })
+
+    // The editor is a window, and a window hands the keyboard back to where it stood before --
+    // the tile, hidden by then: the keyboard falls to the page a moment after "Fertig".
+    it('on "Anderes Bild" after a photo was chosen, also once the editor’s window has let the keyboard fall', async () => {
+      vi.useFakeTimers()
+      try {
+        mountField()
+        await at('send-picture-choose').trigger('click')
+        choice().vm.$emit('update:photo', PHOTO)
+        choice().vm.$emit('update:motif', null)
+        await nextTick()
+        await nextTick()
+        expect(document.activeElement).toBe(at('send-picture-other').element)
+
+        // What the closing window does.
+        document.activeElement.blur()
+        expect(document.activeElement).toBe(document.body)
+        vi.advanceTimersByTime(100)
+
+        expect(document.activeElement).toBe(at('send-picture-other').element)
+      } finally {
+        vi.useRealTimers()
+      }
+    })
+
+    it('leaves the keyboard where the member put it after a photo was chosen', async () => {
+      vi.useFakeTimers()
+      const elsewhere = document.createElement('button')
+      document.body.appendChild(elsewhere)
+      try {
+        mountField()
+        await at('send-picture-choose').trigger('click')
+        choice().vm.$emit('update:photo', PHOTO)
+        await nextTick()
+        await nextTick()
+
+        elsewhere.focus()
+        vi.advanceTimersByTime(1500)
+
+        expect(document.activeElement).toBe(elsewhere)
+        // And after that second nobody looks any more.
+        elsewhere.blur()
+        vi.advanceTimersByTime(1500)
+        expect(document.activeElement).toBe(document.body)
+      } finally {
+        vi.useRealTimers()
+        elsewhere.remove()
+      }
     })
 
     it('on "Bild auswählen" after the picture was removed', async () => {
