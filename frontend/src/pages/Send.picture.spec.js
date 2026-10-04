@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { shallowMount } from '@vue/test-utils'
+import { mount, shallowMount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import Send from './Send.vue'
 import { useMutation } from '@vue/apollo-composable'
@@ -16,9 +16,21 @@ import { SEND_TYPES } from '@/utils/sendTypes'
  * The children are stand-ins, as in Send.spec.js; the chat's encoder is watched -- jsdom paints
  * nothing -- and answers with a small rendition.
  */
-vi.mock('@/components/GddSend/TransactionForm', () => ({ default: { template: '<div></div>' } }))
+// The form and the check view say what they were handed, and the form can say what it says.
+vi.mock('@/components/GddSend/TransactionForm', () => ({
+  default: {
+    name: 'TransactionForm',
+    props: { picture: { type: Object, default: null } },
+    emits: ['update:picture', 'set-transaction'],
+    template: '<div></div>',
+  },
+}))
 vi.mock('@/components/GddSend/TransactionConfirmationSend', () => ({
-  default: { template: '<div></div>' },
+  default: {
+    name: 'TransactionConfirmationSend',
+    props: { picture: { type: Object, default: null } },
+    template: '<div></div>',
+  },
 }))
 vi.mock('@/components/GddSend/TransactionConfirmationLink', () => ({
   default: { template: '<div></div>' },
@@ -305,6 +317,50 @@ describe('Send, a picture with a transfer', () => {
 
     expect(encodeChatImage).toHaveBeenCalledTimes(1)
     expect(sendCoinsMock).toHaveBeenCalledTimes(1)
+  })
+
+  /**
+   * The two lines that tie the page's picture to its children. The mounts above leave the steps
+   * out (`gdd-send` is a stand-in there), so neither line was held by anything: with the check
+   * view bound to the page's picture instead of the one that goes with THIS transfer, a picture
+   * would stand in the check view of a transfer to another community -- and not be sent.
+   */
+  describe('what the steps are handed', () => {
+    const FormStub = { name: 'TransactionForm' }
+    const CheckStub = { name: 'TransactionConfirmationSend' }
+    const mountWithSteps = () =>
+      mount(Send, { props: { balance: 1000, GdtBalance: 500 }, global: { mocks: { $t: t } } })
+
+    it('the form gets the page’s picture, and what the form says of it is the page’s from then on', async () => {
+      const page = mountWithSteps()
+      const form = page.findComponent(FormStub)
+      expect(form.props('picture')).toBeNull()
+
+      form.vm.$emit('update:picture', { motif: 'bouquet' })
+      await nextTick()
+
+      expect(page.vm.picture).toEqual({ motif: 'bouquet' })
+      expect(page.findComponent(FormStub).props('picture')).toEqual({ motif: 'bouquet' })
+    })
+
+    it('the check view gets the picture that goes with this transfer', async () => {
+      const page = mountWithSteps()
+      page.vm.picture = { motif: 'bouquet' }
+      page.vm.setTransaction(transfer())
+      await nextTick()
+
+      expect(page.findComponent(CheckStub).props('picture')).toEqual({ motif: 'bouquet' })
+    })
+
+    it('the check view gets none for a member of another community, though the page still holds one', async () => {
+      const page = mountWithSteps()
+      page.vm.picture = { motif: 'bouquet' }
+      page.vm.setTransaction(transfer({ targetCommunity: AWAY }))
+      await nextTick()
+
+      expect(page.findComponent(CheckStub).props('picture')).toBeNull()
+      expect(page.vm.picture).toEqual({ motif: 'bouquet' })
+    })
   })
 
   it('makes ONE transfer of a double press without a picture, too', async () => {
