@@ -53,6 +53,20 @@ vi.mock('@/composables/useThankYouCheque', () => ({
   }),
 }))
 
+// What the row hands the composable is kept here too: the sheet of a greeting is drawn from it.
+const mockPrintGreetingSheet = vi.fn()
+const mockSaveGreetingSheet = vi.fn()
+const mockUseThankYouGreetingSheet = vi.fn()
+vi.mock('@/composables/useThankYouGreetingSheet', () => ({
+  useThankYouGreetingSheet: (...args) => {
+    mockUseThankYouGreetingSheet(...args)
+    return {
+      printGreetingSheet: (...taps) => mockPrintGreetingSheet(...taps),
+      saveGreetingSheet: (...taps) => mockSaveGreetingSheet(...taps),
+    }
+  },
+}))
+
 const mockMutate = vi.fn().mockResolvedValue({})
 vi.mock('@vue/apollo-composable', () => ({
   useMutation: vi.fn(() => ({
@@ -90,6 +104,7 @@ describe('TransactionLink.vue', () => {
           name: 'Thank-you greeting',
           'photo-of': 'Photo from {name}',
           list: { for: 'Thank-you greeting for {name}' },
+          paper: { print: 'Print card', save: 'Save card as a picture' },
           motif: {
             'heart-leaves': 'Heart and leaves',
             'giving-hands': 'Giving hands',
@@ -137,6 +152,8 @@ describe('TransactionLink.vue', () => {
           IBiShare: true,
           IBiQrCode: true,
           IBiDownload: true,
+          IBiPrinter: true,
+          IBiImage: true,
           IBiDropletHalf: true,
           BImg: true,
           IBiTrash: true,
@@ -544,6 +561,157 @@ describe('TransactionLink.vue', () => {
 
       expect(mockDownloadThankYouCheque).toHaveBeenCalled()
       expect(wrapper.vm.showQrModal).toBe(false)
+    })
+  })
+
+  /**
+   * A greeting can go onto paper: two entries more in its menu, over the cheque -- "Karte
+   * drucken" and "Karte als Bild sichern". ⛔ Only where the row is a greeting AND its link is
+   * open: a plain link keeps the menu it had, and an expired greeting offers neither.
+   */
+  describe('the menu of a thank-you greeting', () => {
+    const GREETING = { motif: 'morning-light', line: 'Just because', recipientName: 'Sarah' }
+    const MEMO = 'Just because\nDear Sarah, thank you.'
+    const OPEN = new Date(Date.now() + 1000000).toISOString()
+    const EXPIRED = '2022-01-01T00:00:00Z'
+    const ORDER = [
+      'test-copy-link',
+      'test-share-link',
+      'test-print-greeting',
+      'test-save-greeting',
+      'test-download-cheque',
+      'test-qr-code',
+      'test-delete-link',
+    ]
+    const entries = () =>
+      wrapper
+        .findAll('.dropdown-item')
+        .map((item) => ORDER.find((name) => item.classes().includes(name)))
+    const print = () => wrapper.find('.test-print-greeting')
+    const save = () => wrapper.find('.test-save-greeting')
+
+    beforeEach(() => {
+      mockPrintGreetingSheet.mockClear()
+      mockSaveGreetingSheet.mockClear()
+      mockUseThankYouGreetingSheet.mockClear()
+    })
+
+    it('has printing and saving as a picture over the cheque, seven entries in all', () => {
+      mountLink({ greeting: GREETING, memo: MEMO, validUntil: OPEN })
+
+      expect(entries()).toEqual(ORDER)
+      expect(print().text()).toBe('Print card')
+      expect(save().text()).toBe('Save card as a picture')
+    })
+
+    it('marks them with a printer and with a picture', () => {
+      mountLink({ greeting: GREETING, memo: MEMO, validUntil: OPEN })
+
+      expect(print().find('i-bi-printer-stub').exists()).toBe(true)
+      expect(save().find('i-bi-image-stub').exists()).toBe(true)
+    })
+
+    // ⛔ The four cases, one by one: a greeting and open is the only one that offers them.
+    it.each([
+      ['a greeting whose link is open', GREETING, OPEN, true],
+      ['a greeting whose link has expired', GREETING, EXPIRED, false],
+      ['a plain link that is open', null, OPEN, false],
+      ['a plain link that has expired', null, EXPIRED, false],
+    ])('offers them for %s: %s', (_, greeting, validUntil, offered) => {
+      mountLink({ greeting, memo: MEMO, validUntil })
+
+      expect(print().exists()).toBe(offered)
+      expect(save().exists()).toBe(offered)
+    })
+
+    it('leaves a plain link the menu it had', () => {
+      mountLink({ validUntil: OPEN })
+
+      expect(entries()).toEqual([
+        'test-copy-link',
+        'test-share-link',
+        'test-download-cheque',
+        'test-qr-code',
+        'test-delete-link',
+      ])
+    })
+
+    it('leaves an expired greeting deleting, and nothing else', () => {
+      mountLink({ greeting: GREETING, memo: MEMO, validUntil: EXPIRED })
+
+      expect(entries()).toEqual(['test-delete-link'])
+    })
+
+    it('prints on one click, and saves on one click', async () => {
+      mountLink({ greeting: GREETING, memo: MEMO, validUntil: OPEN })
+
+      await print().trigger('click')
+      expect(mockPrintGreetingSheet).toHaveBeenCalledTimes(1)
+      expect(mockSaveGreetingSheet).not.toHaveBeenCalled()
+
+      await save().trigger('click')
+      expect(mockSaveGreetingSheet).toHaveBeenCalledTimes(1)
+      expect(mockPrintGreetingSheet).toHaveBeenCalledTimes(1)
+    })
+
+    // The click event is not the composable's business.
+    it('hands the click on without the event', async () => {
+      mountLink({ greeting: GREETING, memo: MEMO, validUntil: OPEN })
+
+      await print().trigger('click')
+      await save().trigger('click')
+
+      expect(mockPrintGreetingSheet).toHaveBeenCalledWith()
+      expect(mockSaveGreetingSheet).toHaveBeenCalledWith()
+    })
+
+    // A tap on the menu must not also close the list the row stands in.
+    it('keeps the click to itself', async () => {
+      const outside = vi.fn()
+      wrapper = mountLink({ greeting: GREETING, memo: MEMO, validUntil: OPEN })
+      wrapper.element.addEventListener('click', outside)
+
+      await print().trigger('click')
+      await save().trigger('click')
+
+      expect(outside).not.toHaveBeenCalled()
+    })
+
+    /**
+     * ⛔ What the sheet is drawn from. The id is what the photo of a greeting is asked for by,
+     * the link carries its code -- a row that forgot one of them would print a greeting with a
+     * photo as "could not be made".
+     */
+    it('hands the composable the whole greeting: id, link, amount, memo, until when, the greeting', () => {
+      mountLink({
+        id: 4711,
+        amount: 20,
+        link: 'https://example.com/redeem/a3f9c2d41b7e19981fa0c4e2',
+        greeting: { ...GREETING, hasPicture: true },
+        memo: MEMO,
+        validUntil: OPEN,
+      })
+
+      expect(mockUseThankYouGreetingSheet).toHaveBeenCalledTimes(1)
+      expect(mockUseThankYouGreetingSheet.mock.calls[0]).toEqual([
+        {
+          id: 4711,
+          amount: 20,
+          validUntil: OPEN,
+          link: 'https://example.com/redeem/a3f9c2d41b7e19981fa0c4e2',
+          memo: MEMO,
+          greeting: { ...GREETING, hasPicture: true },
+        },
+      ])
+    })
+
+    // No second argument: a menu has no place to offer a second tap, and holds no photo itself.
+    it('asks for no second tap, and hands in no picture of its own', () => {
+      mountLink({ greeting: GREETING, memo: MEMO, validUntil: OPEN })
+
+      const [link, options] = mockUseThankYouGreetingSheet.mock.calls[0]
+      expect(options).toBeUndefined()
+      expect(link).not.toHaveProperty('picture')
     })
   })
 })
