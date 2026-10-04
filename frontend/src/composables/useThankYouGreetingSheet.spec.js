@@ -140,18 +140,26 @@ describe('useThankYouGreetingSheet', () => {
       })
     })
 
-    // ⛔ These three sentences stand on paper, as Bernd confirmed them (04.10.2026).
+    // ⛔ These sentences stand on paper, as Bernd confirmed them (04.10.2026).
     // The amount and its unit are joined by a no-break space (U+00A0): where a language's
     // sentence takes two lines, the break falls before the amount and never inside it.
-    it('writes the back as it was decided: what waits, how it is accepted, that it is free', async () => {
+    it('writes the back as it was decided: what waits and how it is accepted', async () => {
       await sheetOf().printGreetingSheet()
 
       expect(drawn()).toMatchObject({
         waits: 'Dein Dank wartet: 20\u00a0Gradido',
         scan: 'Halte die Kamera Deines Handys auf den Code und nimm ihn an — bis zum 18.10.2026.',
-        free: 'Kostenfrei. Keine Verpflichtung.',
         slogan: 'Helfen. Schenken. Danken.',
       })
+    })
+
+    // ⛔ Bernd, with the first printed card in hand (04.10.2026): "Kostenfrei. Keine
+    // Verpflichtung." sounds like business on a card that is handed over in person.
+    it('says nothing about what the card costs', async () => {
+      await sheetOf().printGreetingSheet()
+
+      expect(drawn()).not.toHaveProperty('free')
+      expect(JSON.stringify(drawn())).not.toMatch(/kostenfrei|verpflichtung/i)
     })
 
     // The server hands an amount over as "12.5"; a German sentence writes "12,5", and a
@@ -228,14 +236,53 @@ describe('useThankYouGreetingSheet', () => {
       })
     })
 
-    describe('who signs', () => {
-      it('is the sender, under their user name', async () => {
+    // ⛔ Bernd, with the first printed card in hand (04.10.2026): under the words the sender signs
+    // by hand, so nothing is signed there. Who thanks is said on the back, over the code.
+    describe('who thanks', () => {
+      // The words after the name are joined by no-break spaces (U+00A0): a caption that takes
+      // two lines parts at the name, and no line is left with "Danke" alone.
+      it('is the sender, under their user name, as a sentence for the back', async () => {
         await sheetOf().printGreetingSheet()
 
-        expect(drawn().signature).toBe('Oma-Emma')
+        expect(drawn().from).toBe('Oma-Emma sagt\u00a0Dir\u00a0Danke')
+        expect(drawn()).not.toHaveProperty('signature')
       })
 
-      // ⛔ `memberAlias` stands the Gradido ID in for a missing user name. A UUID is no signature.
+      it.each([
+        ['en', 'Oma-Emma says\u00a0thank\u00a0you'],
+        ['pt', 'Oma-Emma agradece-te'],
+        ['tr', 'Oma-Emma sana\u00a0teşekkür\u00a0ediyor'],
+      ])('is said in the language of the page: %s', async (lang, from) => {
+        i18n.global.locale.value = lang
+        await sheetOf().printGreetingSheet()
+
+        expect(drawn().from).toBe(from)
+      })
+
+      it.each(['de', 'en', 'es', 'fr', 'it', 'nl', 'pt', 'ru', 'el', 'tr'])(
+        'parts at the name and nowhere else, in %s',
+        async (lang) => {
+          i18n.global.locale.value = lang
+          await sheetOf().printGreetingSheet()
+
+          const parts = drawn().from.split(' ')
+          expect(parts).toHaveLength(2)
+          expect(parts).toContain('Oma-Emma')
+          // Nothing of the template is left in it.
+          expect(drawn().from).not.toMatch(/[{}]/)
+          expect(drawn().from).not.toContain(String.fromCharCode(1))
+        },
+      )
+
+      // A user name is printed as it is written, whatever it holds.
+      it('takes a name as it is written', async () => {
+        storeState.username = 'Emma_2.0-x'
+        await sheetOf().printGreetingSheet()
+
+        expect(drawn().from).toBe('Emma_2.0-x sagt\u00a0Dir\u00a0Danke')
+      })
+
+      // ⛔ `memberAlias` stands the Gradido ID in for a missing user name. A UUID is no name to print.
       it.each([
         ['none', ''],
         ['none at all', null],
@@ -244,7 +291,7 @@ describe('useThankYouGreetingSheet', () => {
         storeState.username = username
         await sheetOf().printGreetingSheet()
 
-        expect(drawn().signature).toBe('')
+        expect(drawn().from).toBe('')
         expect(JSON.stringify(drawn())).not.toContain(storeState.gradidoID)
       })
     })

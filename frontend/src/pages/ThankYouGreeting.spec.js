@@ -396,16 +396,106 @@ describe('ThankYouGreeting', () => {
     })
 
     describe('going on', () => {
-      it('needs a line or words: with neither it says so and stays', async () => {
+      // ⛔ The first line is the title of the card: on paper it stands on the front, under the
+      // picture (Bernd, 04.10.2026). Words alone are not a greeting any more.
+      it('needs a first line: without one it says so at the lines, and stays', async () => {
         await fill({ line: null, words: null })
-        expect(data('memo-error').exists()).toBe(false)
+        expect(data('line-error').exists()).toBe(false)
 
         await next()
 
         expect(step()).toBe('words')
-        expect(data('memo-error').text()).toBe(
-          'Wähle eine erste Zeile oder schreib ein paar eigene Worte.',
-        )
+        expect(data('line-error').text()).toBe('Wähle eine erste Zeile oder schreib eine eigene.')
+        expect(data('line-error').attributes('role')).toBe('alert')
+        // One thing is said at a time: nothing at the words while the line is missing.
+        expect(data('memo-error').exists()).toBe(false)
+      })
+
+      it('does not go on with words alone, however many', async () => {
+        await fill({ line: null, words: 'Du hast den ganzen Samstag mit angepackt.' })
+        await next()
+
+        expect(step()).toBe('words')
+        expect(data('line-error').exists()).toBe(true)
+
+        await data('line-just-so').trigger('click')
+        expect(data('line-error').exists()).toBe(false)
+        await next()
+        expect(step()).toBe('preview')
+      })
+
+      it('takes a suggestion that was tapped away again for no line', async () => {
+        await fill({ words: 'Eure Oma' })
+        await data('line-just-so').trigger('click')
+        await next()
+
+        expect(step()).toBe('words')
+        expect(data('line-error').exists()).toBe(true)
+      })
+
+      it('takes "Eigene Zeile" without a word in it for no line, and marks the field', async () => {
+        await data('own-line').trigger('click')
+        await fill({ line: null, words: 'Eure Oma' })
+        await next()
+
+        expect(step()).toBe('words')
+        expect(data('line-error').exists()).toBe(true)
+        expect(data('own-line-input').classes()).toContain('is-invalid')
+
+        await data('own-line-input').setValue('   ')
+        await next()
+        expect(step()).toBe('words')
+
+        await data('own-line-input').setValue('Für Dich, einfach so')
+        expect(data('line-error').exists()).toBe(false)
+        await next()
+        expect(step()).toBe('preview')
+      })
+
+      // role="alert" is said once, when the sentence appears. As the description of the lines
+      // it is said again whenever the member comes back to them.
+      describe('the sentence at the lines, for a screen reader', () => {
+        const lines = () => wrapper.find('[aria-labelledby="thank-you-greeting-line-label"]')
+
+        it('is the description of the lines for as long as it stands', async () => {
+          await fill({ line: null, words: null })
+          expect(lines().attributes('role')).toBe('group')
+          expect(lines().attributes('aria-describedby')).toBeUndefined()
+
+          await next()
+
+          expect(data('line-error').attributes('id')).toBe('thank-you-greeting-line-error')
+          expect(wrapper.findAll('#thank-you-greeting-line-error')).toHaveLength(1)
+          expect(lines().attributes('aria-describedby')).toBe('thank-you-greeting-line-error')
+
+          await data('line-just-so').trigger('click')
+          expect(lines().attributes('aria-describedby')).toBeUndefined()
+        })
+
+        it('is the description of the field for a line of one’s own as well', async () => {
+          await data('own-line').trigger('click')
+          await fill({ line: null, words: null })
+          expect(data('own-line-input').attributes('aria-describedby')).toBeUndefined()
+
+          await next()
+
+          expect(data('own-line-input').attributes('aria-describedby')).toBe(
+            'thank-you-greeting-line-error',
+          )
+          expect(data('own-line-input').attributes('aria-invalid')).toBe('true')
+          expect(lines().attributes('aria-describedby')).toBe('thank-you-greeting-line-error')
+
+          await data('own-line-input').setValue('Für Dich, einfach so')
+          expect(data('own-line-input').attributes('aria-describedby')).toBeUndefined()
+          expect(lines().attributes('aria-describedby')).toBeUndefined()
+        })
+
+        it('leaves the words without a description: nothing is said about them', async () => {
+          await fill({ line: null, words: 'Eure Oma' })
+          await next()
+
+          expect(data('words-input').attributes('aria-describedby')).toBeUndefined()
+        })
       })
 
       // A refused "Weiter" is no step: it leaves no entry behind, and one press of the back
@@ -420,14 +510,8 @@ describe('ThankYouGreeting', () => {
         expect(step()).toBe('picture')
       })
 
-      it('goes on with a line alone, and with words alone', async () => {
+      it('goes on with a line alone: the words may be missing', async () => {
         await fill({ words: null })
-        await next()
-        expect(step()).toBe('preview')
-
-        await historyGo(-1)
-        await data('line-just-so').trigger('click')
-        await data('words-input').setValue('Ein paar eigene Worte')
         await next()
         expect(step()).toBe('preview')
       })
@@ -463,6 +547,28 @@ describe('ThankYouGreeting', () => {
         await data('words-input').setValue('a'.repeat(480))
         await next()
         expect(step()).toBe('preview')
+      })
+
+      it('names the sentence at the words as their description, for as long as it stands', async () => {
+        await fill({ words: 'a'.repeat(481) })
+        expect(data('words-input').attributes('aria-describedby')).toBeUndefined()
+
+        await next()
+
+        expect(data('memo-error').attributes('id')).toBe('thank-you-greeting-memo-error')
+        expect(wrapper.findAll('#thank-you-greeting-memo-error')).toHaveLength(1)
+        expect(data('words-input').attributes('aria-describedby')).toBe(
+          'thank-you-greeting-memo-error',
+        )
+        // The lines are not what is wrong: they carry no description.
+        expect(
+          wrapper
+            .find('[aria-labelledby="thank-you-greeting-line-label"]')
+            .attributes('aria-describedby'),
+        ).toBeUndefined()
+
+        await data('words-input').setValue('a'.repeat(480))
+        expect(data('words-input').attributes('aria-describedby')).toBeUndefined()
       })
 
       it('needs an amount', async () => {
@@ -581,16 +687,20 @@ describe('ThankYouGreeting', () => {
       expect(typeof sent.amount).toBe('string')
     })
 
-    it('sends null for a missing name and a missing line, and the words alone as the memo', async () => {
+    it('sends null for a missing name, and the line alone as the memo where there are no words', async () => {
       await open()
-      await toPreview({ name: null, line: null, words: 'Nur ein paar Worte' })
+      await toPreview({ name: null, words: null })
       await data('finish').trigger('click')
       await settle()
 
       expect(server.mutate.mock.calls[0][0]).toEqual({
         amount: '20',
-        memo: 'Nur ein paar Worte',
-        greeting: { motif: 'heart-leaves', line: null, recipientName: null },
+        memo: 'Einfach so — weil es Dich gibt.',
+        greeting: {
+          motif: 'heart-leaves',
+          line: 'Einfach so — weil es Dich gibt.',
+          recipientName: null,
+        },
       })
     })
 
@@ -1244,7 +1354,7 @@ describe('ThankYouGreeting', () => {
       expect(step()).toBe('preview')
     })
 
-    // The forward key into the last look, after the words were emptied on the way back.
+    // The forward key into the last look, after the line was taken away on the way back.
     it('does not show the last look for a form that no longer holds', async () => {
       await open()
       await toPreview({ words: null })
@@ -1254,7 +1364,7 @@ describe('ThankYouGreeting', () => {
       await historyGo(1)
 
       expect(step()).toBe('words')
-      expect(data('memo-error').exists()).toBe(true)
+      expect(data('line-error').exists()).toBe(true)
     })
 
     it('leaves the page from the first step: to the page of the two doors where it was opened by its address', async () => {
