@@ -526,7 +526,7 @@
       "send": "Gönderildi"
     }
   },
-  "delete": "Silmek",
+  "delete": "Sil",
   "download": "İndir",
   "edit": "düzenle",
   "em-dash": "—",
@@ -775,7 +775,7 @@
   "gddKonto": "GDD Hesabı",
   "gdd_per_link": {
     "choose-amount": "Göndermek istediğin tutarı seç ve bir mesaj gir. Mesaj zorunlu bir alandır.",
-    "copy-link": "Linki kopyala ",
+    "copy-link": "Linki kopyala",
     "copy-link-with-text": "Linki ve metni kopyala",
     "created": "Link, çek ve QR kodu oluşturuldu.",
     "delete-the-link": "Link silinsin mi?",

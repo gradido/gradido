@@ -149,4 +149,37 @@ describe('gdd_per_link in the language files', () => {
       expect(text('de', 'duplicate')).toBe('Duplizieren')
     })
   })
+
+  /**
+   * The entries of the menu of a link, as the row of the member's own list shows them. An entry
+   * is a word or two with nothing around it: the Turkish "copy link" ended in a blank.
+   */
+  describe('the entries of the menu of a link', () => {
+    const ENTRIES = [
+      'gdd_per_link.copy-link',
+      'gdd_per_link.share',
+      'thank-you-greeting.paper.print',
+      'thank-you-greeting.paper.save',
+      'thank-you-cheque.download',
+      'qrCode',
+      'gdd_per_link.duplicate',
+      'delete',
+    ]
+
+    it.each(languages)('carry no blank at either end, in %s', (lang) => {
+      for (const key of ENTRIES) {
+        const said = i18n.global.t(key, {}, { locale: lang })
+
+        expect(said, key).not.toBe(key)
+        expect(said, key).toBe(said.trim())
+      }
+    })
+
+    // The Turkish file said "Silmek", the dictionary form, among entries that all tell the
+    // wallet what to do ("Linki kopyala", "Paylaş"). Its own matching entries say "Sil".
+    it('says "delete" in Turkish in the form of its neighbours', () => {
+      expect(i18n.global.t('delete', {}, { locale: 'tr' })).toBe('Sil')
+      expect(i18n.global.t('matching.entries.delete', {}, { locale: 'tr' })).toBe('Sil')
+    })
+  })
 })
