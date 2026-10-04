@@ -9,6 +9,11 @@ import {
   forgetAllGreetingPictures,
   rememberGreetingPicture,
 } from '@/composables/useGreetingPictures'
+import {
+  forgetAllTransactionPictures,
+  transactionPicture,
+} from '@/composables/useTransactionPictures'
+import { transactionPicture as transactionPictureQuery } from '@/graphql/queries'
 import ThankYouGreetingPhoto from './ThankYouGreetingPhoto.vue'
 
 const apollo = vi.hoisted(() => ({ client: { query: null } }))
@@ -70,6 +75,7 @@ describe('ThankYouGreetingPhoto', () => {
     wrapper?.unmount()
     wrapper = null
     forgetAllGreetingPictures()
+    forgetAllTransactionPictures()
     vi.unstubAllGlobals()
     document.body.innerHTML = ''
   })
@@ -235,5 +241,81 @@ describe('ThankYouGreetingPhoto', () => {
     wrapper = null
 
     expect(observer.disconnect).toHaveBeenCalledTimes(1)
+  })
+  /**
+   * The photo sent with a transfer (ZE-016), in the same place's way: asked for by the id of the
+   * BOOKING. ⛔ A link and a booking are two ranges of numbers -- what is kept under the one is
+   * never shown for the other.
+   */
+  describe('for the photo of a transfer', () => {
+    beforeEach(() => {
+      apollo.client.query = vi
+        .fn()
+        .mockResolvedValue({ data: { transactionPicture: 'VFJBTlNGRVI=' } })
+    })
+
+    it('asks by the id of the booking, with the query of the transfers, once in sight', async () => {
+      mountPhoto({ linkId: null, transactionId: 815 })
+      await flushPromises()
+      expect(apollo.client.query).not.toHaveBeenCalled()
+
+      await sight()
+
+      expect(apollo.client.query).toHaveBeenCalledTimes(1)
+      expect(apollo.client.query.mock.calls[0][0]).toMatchObject({
+        query: transactionPictureQuery,
+        variables: { transactionId: 815 },
+        fetchPolicy: 'no-cache',
+      })
+      expect(photo().attributes('src')).toBe('data:image/jpeg;base64,VFJBTlNGRVI=')
+      expect(photo().attributes('alt')).toBe('Foto von Oma-Emma')
+    })
+
+    it('does not show a greeting’s photo kept under the same number', async () => {
+      rememberGreetingPicture(815, 'R1JFRVRJTkc=')
+
+      mountPhoto({ linkId: null, transactionId: 815 })
+
+      // The room, not the greeting's photo: nothing is known of the BOOKING 815 yet.
+      expect(photo().exists()).toBe(false)
+      expect(room().exists()).toBe(true)
+    })
+
+    it('goes by the booking alone where a link’s id stands beside it', async () => {
+      rememberGreetingPicture(4711, 'R1JFRVRJTkc=')
+
+      mountPhoto({ linkId: 4711, transactionId: 815 })
+      expect(photo().exists()).toBe(false)
+      await sight()
+
+      expect(apollo.client.query.mock.calls[0][0].variables).toEqual({ transactionId: 815 })
+      expect(photo().attributes('src')).toBe('data:image/jpeg;base64,VFJBTlNGRVI=')
+      expect(transactionPicture(815)?.state).toBe('ready')
+    })
+
+    it('asks once for a booking shown in two places', async () => {
+      mountPhoto({ linkId: null, transactionId: 815 })
+      await sight()
+      const second = mount(ThankYouGreetingPhoto, {
+        props: { transactionId: 815, alt: 'Foto von Oma-Emma' },
+        global: { plugins: [i18n] },
+        attachTo: document.body,
+      })
+      await flushPromises()
+
+      expect(apollo.client.query).toHaveBeenCalledTimes(1)
+      expect(second.find('[data-test="thank-you-greeting-photo"]').exists()).toBe(true)
+      second.unmount()
+    })
+
+    it('says "Bild nicht verfügbar" where the server gives nothing for it', async () => {
+      apollo.client.query = vi.fn().mockResolvedValue({ data: { transactionPicture: null } })
+      mountPhoto({ linkId: null, transactionId: 815, saysMissing: true })
+
+      await sight()
+
+      expect(photo().exists()).toBe(false)
+      expect(room().text()).toBe('Bild nicht verfügbar')
+    })
   })
 })

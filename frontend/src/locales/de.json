@@ -1212,6 +1212,13 @@
       "title": "Keine Kamera gefunden"
     }
   },
+  "send-picture": {
+    "home-only": "Ein Bild kannst Du vorerst nur Mitgliedern Deiner Gemeinschaft mitschicken.",
+    "label": "Bild dazu",
+    "none": "Ohne Bild",
+    "other": "Anderes Bild",
+    "remove": "Entfernen"
+  },
   "send_email": "E‑Mail senden",
   "send_gdd": "GDD senden",
   "send_per_link": "Link, Scheck, QR",

@@ -4,6 +4,7 @@
       <template #transactionForm>
         <transaction-form
           v-bind="transactionData"
+          v-model:picture="picture"
           :balance="balance"
           @send-email="sendEmail"
           @set-transaction="setTransaction"
@@ -14,6 +15,7 @@
         <transaction-confirmation-send
           :balance="balance"
           v-bind="transactionData"
+          :picture="pictureToSend"
           @send-transaction="sendTransaction"
           @on-back="onBack"
         ></transaction-confirmation-send>
@@ -70,7 +72,7 @@
 
 <script setup>
 import { useI18n } from 'vue-i18n'
-import { ref, reactive } from 'vue'
+import { computed, ref, reactive, shallowRef } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useMutation } from '@vue/apollo-composable'
 import GddSend, { TRANSACTION_STEPS } from '@/components/GddSend'
@@ -84,6 +86,8 @@ import TransactionResultLink from '@/components/GddSend/TransactionResultLink'
 import { sendCoins, createTransactionLink, sendEmail as sendEmailMut } from '@/graphql/mutations.js'
 import { useAppToast } from '@/composables/useToast'
 import { SEND_TYPES } from '@/utils/sendTypes'
+import { chatImageProblemWords, encodeChatImage } from '@/utils/chatImage'
+import { THANK_YOU_PICTURE_SMALL, thankYouPictureInput } from '@/utils/thankYouPicture'
 /*
 export default {
   name: 'Send',
@@ -298,6 +302,56 @@ const router = useRouter()
 const { toastError, toastSuccess } = useAppToast()
 
 const transactionData = reactive({ ...EMPTY_TRANSACTION_DATA })
+
+/**
+ * The picture to go with a transfer (ZE-016), or null: `{ motif }`, or `{ photo }` -- the
+ * member's own as the picture choice hands it over, decoded and whole.
+ *
+ * ⛔ BESIDE `transactionData`, not in it: that one is `reactive` and bound as a whole onto the
+ * form and the check view, and the form's fields are cast by the validation schema. A decoded
+ * photo belongs into a shallowRef, as the page of the greeting keeps its own.
+ * ⛔ In this page's memory only: never the store (mirrored into localStorage), never the
+ * device's storage, never Apollo's cache.
+ *
+ * The form is taken down between the steps: "Zurück" finds the picture here. "Zurücksetzen"
+ * empties it, and so does a transfer that was sent; one that failed leaves it.
+ */
+const picture = shallowRef(null)
+
+/**
+ * What of it goes with THIS transfer: nothing to a member of another community -- there the
+ * form shows a sentence in the field's place, and a picture chosen before waits here untouched
+ * -- and nothing with a link.
+ */
+const pictureToSend = computed(() =>
+  transactionData.selected === SEND_TYPES.send && transactionData.targetCommunity?.foreign !== true
+    ? picture.value
+    : null,
+)
+
+/**
+ * The picture as the mutation takes it: `{ motif }`, or `{ picture }` -- the photo in the
+ * chat's measure (THANK_YOU_PICTURE_SMALL), encoded now, right before it is sent --, or nothing.
+ * Rejects with a ChatImageError where the photo cannot be made small enough.
+ */
+const pictureArguments = async (chosen) => {
+  if (chosen?.motif) return { motif: chosen.motif }
+  if (chosen?.photo) {
+    const small = await encodeChatImage(
+      chosen.photo.source,
+      chosen.photo.edit,
+      THANK_YOU_PICTURE_SMALL,
+    )
+    return { picture: thankYouPictureInput(small) }
+  }
+  return {}
+}
+
+/** Everything the member entered is let go: after a transfer, a link or a letter went out. */
+const forgetEntries = () => {
+  Object.assign(transactionData, EMPTY_TRANSACTION_DATA)
+  picture.value = null
+}
 const error = ref(false)
 const errorResult = ref('')
 const currentTransactionStep = ref(TRANSACTION_STEPS.transactionForm)
@@ -368,7 +422,7 @@ async function sendEmail(data) {
       })
       if (result) {
         currentTransactionStep.value = TRANSACTION_STEPS.sendEmailResultSuccess
-        Object.assign(transactionData, EMPTY_TRANSACTION_DATA)
+        forgetEntries()
         // toastSuccess(t('email-sent-success'))
       } else {
         currentTransactionStep.value = TRANSACTION_STEPS.sendEmailResultError
@@ -392,16 +446,31 @@ async function sendEmail(data) {
 
 async function sendTransaction() {
   // console.log('Send.vue sendTransaction(): transactionData=', JSON.stringify(transactionData))
+  // One transfer for one press: the photo is encoded before the mutation goes out, and a second
+  // press in that time -- or Enter beside a tap -- must not send a second one.
+  if (loading.value) return
   loading.value = true
   error.value = false
 
   try {
     if (transactionData.selected === SEND_TYPES.send) {
+      let withPicture
+      try {
+        withPicture = await pictureArguments(pictureToSend.value)
+      } catch (problem) {
+        // The photo cannot be made ready: nothing is sent, the chat's sentence says why, and
+        // what the member entered -- the picture too -- stands in the form again.
+        toastError(chatImageProblemWords(problem?.problem, t))
+        currentTransactionStep.value = TRANSACTION_STEPS.transactionForm
+        return
+      }
+      // Without a picture the mutation carries neither of the two arguments.
       await sendCoinsMutation({
         recipientCommunityIdentifier: transactionData.targetCommunity.uuid,
         recipientIdentifier: transactionData.identifier,
         amount: transactionData.amount.toString(),
         memo: transactionData.memo,
+        ...withPicture,
       })
 
       error.value = false
@@ -410,7 +479,9 @@ async function sendTransaction() {
       // the layout's `updateTransactions`. Creating a LINK names nobody, which is why the
       // two calls below say different things.
       updateTransactions({ contactsChanged: true })
-      Object.assign(transactionData, EMPTY_TRANSACTION_DATA)
+      // The photo as decoded is needed no more. Its bytes are not kept either: the wallet does
+      // not learn the booking's id from this answer, and the conversation asks the server.
+      forgetEntries()
       currentTransactionStep.value = TRANSACTION_STEPS.transactionResultSendSuccess
     } else if (transactionData.selected === SEND_TYPES.link) {
       const result = await createTransactionLinkMutation({
@@ -429,7 +500,7 @@ async function sendTransaction() {
       amount.value = newAmount
       memo.value = newMemo
       validUntil.value = newValidUntil
-      Object.assign(transactionData, EMPTY_TRANSACTION_DATA)
+      forgetEntries()
       currentTransactionStep.value = TRANSACTION_STEPS.transactionResultLink
       updateTransactions({})
     } else if (transactionData.selected === SEND_TYPES.email) {

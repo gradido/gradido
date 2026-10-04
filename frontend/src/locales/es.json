@@ -1212,6 +1212,13 @@
       "title": "No se encontró ninguna cámara"
     }
   },
+  "send-picture": {
+    "home-only": "Por ahora solo puedes enviar una imagen a miembros de tu comunidad.",
+    "label": "Añadir imagen",
+    "none": "Sin imagen",
+    "other": "Otra imagen",
+    "remove": "Quitar"
+  },
   "send_email": "Enviar correo electrónico",
   "send_gdd": "Enviar GDD",
   "send_per_link": "Enlace, cheque, QR",

@@ -1212,6 +1212,13 @@
       "title": "Nessuna fotocamera trovata"
     }
   },
+  "send-picture": {
+    "home-only": "Per ora puoi inviare un'immagine solo ai membri della tua comunità.",
+    "label": "Aggiungi immagine",
+    "none": "Senza immagine",
+    "other": "Un'altra immagine",
+    "remove": "Rimuovi"
+  },
   "send_email": "Invia e‑mail",
   "send_gdd": "Invia GDD",
   "send_per_link": "Link, assegno, QR",

@@ -1212,6 +1212,13 @@
       "title": "Kamera bulunamadı"
     }
   },
+  "send-picture": {
+    "home-only": "Şimdilik yalnızca kendi topluluğunun üyelerine görsel gönderebilirsin.",
+    "label": "Görsel ekle",
+    "none": "Görselsiz",
+    "other": "Başka görsel",
+    "remove": "Kaldır"
+  },
   "send_email": "E‑posta gönder",
   "send_gdd": "GDD gönder",
   "send_per_link": "Link, çek, QR",

@@ -179,6 +179,16 @@
                 />
               </BCol>
             </BRow>
+            <!-- "Bild dazu" (ZE-016): with a transfer to a member, and only there -- a link has
+                 the thank-you greeting, a letter has the chat. The picture lives in the memory
+                 of the page, beside the form's own fields: it never goes through `form`, which
+                 is cast by the validation schema on its way out. -->
+            <transaction-picture-field
+              v-if="radioSelected === SEND_TYPES.send && !isFormDisabled"
+              :picture="picture"
+              :foreign="recipientIsForeign"
+              @update:picture="emit('update:picture', $event)"
+            />
             <div v-if="!!isFormDisabled" class="text-danger mt-5">
               {{ $t('form.no_gdd_available') }}
             </div>
@@ -233,6 +243,7 @@ import { BLink } from 'bootstrap-vue-next'
 import { SEND_TYPES } from '@/utils/sendTypes'
 import CommunitySwitch from '@/components/CommunitySwitch.vue'
 import ValidatedInput from '@/components/Inputs/ValidatedInput.vue'
+import TransactionPictureField from '@/components/GddSend/TransactionPictureField.vue'
 import {
   amount as amountSchemaUpTo,
   memo as memoSchema,
@@ -257,15 +268,28 @@ const props = defineProps({
     type: Object,
     default: () => ({ uuid: '', name: CONFIG.COMMUNITY_NAME }),
   },
+  /**
+   * The picture to go with a transfer, or null (v-model:picture): `{ motif }` or `{ photo }`.
+   * Held by the page, beside the form's fields -- the form is taken down between the steps,
+   * and "Zurück" finds the picture where it was.
+   */
+  picture: { type: Object, default: null },
 })
 
-const entityDataToForm = computed(() => ({ ...props }))
+// ⛔ Without the picture: `form` is what the validation schema casts and what goes on to the
+// page as the transfer's fields -- and a cast lets a field it does not know pass. The picture
+// stays the page's, in a shallowRef beside those fields; a decoded photo made reactive here
+// would be walked through, property by property.
+const entityDataToForm = computed(() => {
+  const { picture: _picture, ...fields } = props
+  return fields
+})
 const form = reactive({ ...entityDataToForm.value })
 const disableSmartValidState = ref(false)
 const communities = ref([])
 const autoCommunityIdentifier = ref('')
 
-const emit = defineEmits(['send-email', 'set-transaction', 'set-send-type'])
+const emit = defineEmits(['send-email', 'set-transaction', 'set-send-type', 'update:picture'])
 
 const route = useRoute()
 const router = useRouter()
@@ -389,6 +413,17 @@ const isFormDisabled = computed(
   () => (props.balance <= 0 && radioSelected.value === SEND_TYPES.send) || false,
 )
 const isCommunitiesEmpty = computed(() => communities.value.length === 0)
+
+/**
+ * The recipient's community is another one than the member's own: a picture does not travel
+ * there yet, and a sentence stands in the field's place.
+ *
+ * Read off `form.targetCommunity`, which all three ways end in -- the switch above, an address
+ * in the recipient field (the watcher below), and the address of the page (CommunitySwitch).
+ * `foreign` is the server's word (reachableCommunities); the placeholder that stands there
+ * before the list has come carries none, and is the member's own community.
+ */
+const recipientIsForeign = computed(() => form.targetCommunity?.foreign === true)
 
 const { result: userResult, error: userError } = useQuery(
   user,
@@ -518,6 +553,9 @@ function onSubmit() {
 
 function onReset(event) {
   event.preventDefault()
+  // The browser's own reset empties the file fields of the picture choice; the picture itself
+  // is the page's, and goes here.
+  emit('update:picture', null)
   form.amount = props.amount
   form.memo = props.memo
   form.identifier = props.identifier

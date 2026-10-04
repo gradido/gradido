@@ -1212,6 +1212,13 @@
       "title": "Aucune caméra trouvée"
     }
   },
+  "send-picture": {
+    "home-only": "Pour l'instant, tu ne peux envoyer une image qu'aux membres de ta communauté.",
+    "label": "Ajouter une image",
+    "none": "Sans image",
+    "other": "Autre image",
+    "remove": "Supprimer"
+  },
   "send_email": "Envoyer un e‑mail",
   "send_gdd": "Envoyer GDD",
   "send_per_link": "Lien, chèque, QR",

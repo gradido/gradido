@@ -141,6 +141,10 @@ export const transactionsQuery = gql`
           line
           recipientName
         }
+        picture {
+          motif
+          hasPicture
+        }
       }
     }
   }
