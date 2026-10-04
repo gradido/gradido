@@ -850,14 +850,15 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
         )
       })
 
-      // The greeting says whom it is for, and the form starts with that name.
-      it('sends the first name the greeting brought, where it was left as it stood', async () => {
+      // The greeting says whom it is for; the account is opened under the name the guest types.
+      it('sends the first name the guest typed, not the one the greeting is for', async () => {
         const page = await open(greetingLink())
         await accept(page.wrapper).trigger('click')
         await flushPromises()
 
-        expect(page.wrapper.find('#registerFirstname').element.value).toBe('Sarah')
+        expect(page.wrapper.find('#registerFirstname').element.value).toBe('')
 
+        await page.wrapper.find('#registerFirstname').setValue('Sarah-Marie')
         await page.wrapper.find('#registerLastname').setValue('Bernard')
         await page.wrapper.find('#email-input-field').setValue('sarah@provence.fr')
         await page.wrapper.find('#newPassword-input-field').setValue(PASSWORD)
@@ -867,7 +868,7 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
         await send(page.wrapper)
 
         expect(apollo.createUser).toHaveBeenCalledWith(
-          expect.objectContaining({ firstName: 'Sarah', lastName: 'Bernard' }),
+          expect.objectContaining({ firstName: 'Sarah-Marie', lastName: 'Bernard' }),
         )
       })
 

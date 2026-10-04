@@ -258,39 +258,27 @@ describe('RedeemThanksAccount', () => {
     })
   })
 
+  // Whom the greeting is for is the sender's word for the person: a nickname as readily as a
+  // name. The account is opened under the guest's own, so nothing of it is put in.
   describe('the first name', () => {
-    it('starts with whom the greeting is for', async () => {
-      const wrapper = await view({ linkData: greeted('Sarah') })
-
-      expect(firstName(wrapper).element.value).toBe('Sarah')
-    })
-
-    it('takes that name without the spaces around it', async () => {
-      const wrapper = await view({ linkData: greeted('  Sarah ') })
-
-      expect(firstName(wrapper).element.value).toBe('Sarah')
-    })
-
     it.each([
-      ['two people', 'Sarah und Claude'],
-      ['two words', 'Liebe Sarah'],
-      ['shorter than a first name here', 'Jo'],
+      ['a single name', 'Sarah'],
+      ['a nickname', 'Gänseblümchen'],
+      ['several words', 'die liebe Sarah'],
       ['nothing', ''],
-      ['nothing but spaces', '   '],
-    ])('stays empty for %s', async (_, recipientName) => {
+    ])('starts empty where the greeting is for %s', async (_, recipientName) => {
       const wrapper = await view({ linkData: greeted(recipientName) })
 
       expect(firstName(wrapper).element.value).toBe('')
     })
 
-    it('stays empty for a plain link', async () => {
+    it('starts empty for a plain link', async () => {
       const wrapper = await view()
 
       expect(firstName(wrapper).element.value).toBe('')
     })
 
-    // The name the greeting brought is the guest's to change.
-    it('can be typed over', async () => {
+    it('is sent as the guest typed it', async () => {
       const wrapper = await view({ linkData: greeted('Sarah') })
 
       await fillIn(wrapper, { firstName: 'Sarah-Marie' })
