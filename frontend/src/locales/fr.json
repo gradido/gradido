@@ -1212,6 +1212,13 @@
       "title": "Aucune caméra trouvée"
     }
   },
+  "send-picture": {
+    "home-only": "Pour l'instant, tu ne peux envoyer une image qu'aux membres de ta communauté.",
+    "label": "Ajouter une image",
+    "none": "Sans image",
+    "other": "Autre image",
+    "remove": "Supprimer"
+  },
   "send_email": "Envoyer un e‑mail",
   "send_gdd": "Envoyer GDD",
   "send_per_link": "Lien, chèque, QR",
@@ -1667,6 +1674,7 @@
     "text": "Quelle que soit la communauté à laquelle tu appartiens, le système de géo-matching te permet de trouver des membres de toutes les communautés sur une carte géographique. Tu peux filtrer selon les offres et les besoins et afficher les utilisateurs qui te correspondent.\n\nEn cliquant sur le bouton, une nouvelle fenêtre de navigateur s'ouvre et t'affiche les utilisateurs de ton entourage sur une carte."
   },
   "via_card": "par carte",
+  "via_greeting": "par un mot",
   "via_link": "par lien",
   "welcome": "Bienvenue dans la communauté"
 }

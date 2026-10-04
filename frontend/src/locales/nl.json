@@ -1212,6 +1212,13 @@
       "title": "Geen camera gevonden"
     }
   },
+  "send-picture": {
+    "home-only": "Voorlopig kun je alleen leden van je eigen gemeenschap een afbeelding meesturen.",
+    "label": "Afbeelding erbij",
+    "none": "Zonder afbeelding",
+    "other": "Andere afbeelding",
+    "remove": "Verwijderen"
+  },
   "send_email": "E‑mail versturen",
   "send_gdd": "GDD sturen",
   "send_per_link": "Link, cheque, QR",
@@ -1667,6 +1674,7 @@
     "text": "Het maakt niet uit tot welke community je behoort, met het Geo Matching System kun je leden van alle communities vinden op een kaart. Je kunt filteren op aanbiedingen en vereisten en de gebruikers weergeven die aan je profiel voldoen.\n\nDe knop opent een nieuw browservenster waarin de gebruikers in je omgeving op een kaart worden weergegeven."
   },
   "via_card": "via een kaart",
+  "via_greeting": "via een groetje",
   "via_link": "via een link",
   "welcome": "Welkom in de gemeenschap"
 }

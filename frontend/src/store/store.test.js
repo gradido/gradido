@@ -17,6 +17,7 @@ import {
   rememberChatImage,
 } from '@/composables/useChatImages'
 import { greetingPicture, rememberGreetingPicture } from '@/composables/useGreetingPictures'
+import { requestTransactionPicture, transactionPicture } from '@/composables/useTransactionPictures'
 
 vi.mock('../i18n', () => ({
   default: {
@@ -517,6 +518,24 @@ describe('Vuex store', () => {
         logout({ commit, state, dispatch })
 
         expect(greetingPicture(4711)).toBeNull()
+      })
+
+      /**
+       * ⛔ And the photos sent with transfers (useTransactionPictures), kept by the id of the
+       * booking and let go for the same reason.
+       */
+      it('lets go of the photos sent with transfers', async () => {
+        requestTransactionPicture(
+          { query: async () => ({ data: { transactionPicture: btoa('JPEG') } }) },
+          815,
+        )
+        await new Promise((resolve) => setTimeout(resolve))
+        // The fixture proves itself: a photo that was never kept would pass below unforgotten.
+        expect(transactionPicture(815)?.state).toBe('ready')
+
+        logout({ commit, state, dispatch })
+
+        expect(transactionPicture(815)).toBeNull()
       })
 
       /**

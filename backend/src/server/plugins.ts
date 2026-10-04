@@ -71,7 +71,8 @@ const filterVariables = (variables: any) => {
   // The picture of a thank-you greeting that carries a photo of the member's own, in its two
   // renditions: the small one comes inside `$greeting` (createTransactionLink), the large one
   // as `$picture` (addThankYouGreetingPicture) -- up to some 98,000 characters of base64. Their
-  // sizes stay readable. The wallet's documents have to name the variables so.
+  // sizes stay readable. The wallet's documents have to name the variables so. The photo sent
+  // with a transfer comes as `$picture` as well (sendCoins).
   if (vars?.greeting?.picture?.data) {
     vars.greeting.picture.data = '***'
   }
@@ -154,10 +155,12 @@ variables: ${JSON.stringify(filterVariables(variables), null, 2)}`)
               logger.trace('Response-Data: left out, it holds a video room')
             } else if (
               requestContext.context.requestBudget?.chatImagesServed ||
-              requestContext.context.requestBudget?.thankYouGreetingPicturesServed
+              requestContext.context.requestBudget?.thankYouGreetingPicturesServed ||
+              requestContext.context.requestBudget?.transactionPicturesServed
             ) {
               // A picture of a chat message (chatMessageImage) is one member's for another, and
-              // so is the picture of a thank-you greeting (thankYouGreetingPicture).
+              // so are the picture of a thank-you greeting (thankYouGreetingPicture) and the
+              // photo sent with a transfer (transactionPicture).
               logger.trace('Response-Data: left out, it holds a picture')
             } else {
               logger.trace(`Response-Data:

@@ -9,6 +9,7 @@ import { closeAvatarZoom } from '../composables/useAvatarZoom'
 import { forgetAllMemberAvatars } from '../composables/useMemberAvatars'
 import { closeChatImageView, forgetAllChatImages } from '../composables/useChatImages'
 import { forgetAllGreetingPictures } from '../composables/useGreetingPictures'
+import { forgetAllTransactionPictures } from '../composables/useTransactionPictures'
 import { forgetFavorites } from '../composables/useFavorites'
 import { forgetContactsPanel } from '../composables/useContactsPanel'
 import { stopChatUpdates } from '../composables/useChatUpdates'
@@ -247,6 +248,8 @@ export const actions = {
     forgetAllChatImages()
     // And the photos of thank-you greetings (useGreetingPictures), kept the same way.
     forgetAllGreetingPictures()
+    // And the photos sent with transfers (useTransactionPictures), kept the same way.
+    forgetAllTransactionPictures()
     // Same reason, same moment: the hearts are one member's, not the device's.
     forgetFavorites()
     // And the contacts the right-hand column holds, which name the people this member has

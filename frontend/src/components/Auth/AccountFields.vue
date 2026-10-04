@@ -94,13 +94,11 @@ import InputEmail from '@/components/Inputs/InputEmail'
 import InputPasswordConfirmation from '@/components/Inputs/InputPasswordConfirmation'
 import { shownValidState } from '@/validation-rules'
 
-const props = defineProps({
+defineProps({
   // The two password fields and the sentence under them.
   withPassword: { type: Boolean, default: false },
   // Who vouches: named in that sentence. Without a name it speaks of "the member".
   guarantorName: { type: String, default: null },
-  // What the first name starts with, where the page knows it. Read once, when the form opens.
-  firstName: { type: String, default: '' },
 })
 
 const {
@@ -108,14 +106,10 @@ const {
   meta: firstnameMeta,
   errorMessage: firstnameError,
   handleBlur: firstnameBlur,
-} = useField(
-  'firstname',
-  {
-    required: true,
-    min: 3,
-  },
-  props.firstName ? { initialValue: props.firstName } : undefined,
-)
+} = useField('firstname', {
+  required: true,
+  min: 3,
+})
 
 const {
   value: lastname,

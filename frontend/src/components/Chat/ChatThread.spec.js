@@ -525,6 +525,50 @@ describe('ChatThread', () => {
       expect(sent).toMatchObject({ mine: true, linkId: 4712, greetingSender: 'Bernd' })
     })
 
+    /**
+     * ZE-016: a transfer the sender added a picture to brings the picture to its bubble, and the
+     * id of the booking -- what a photo is asked for by. ⛔ Not the id of a link: a booking and a
+     * link are two ranges of numbers.
+     */
+    it('hands the picture of a transfer and the booking’s id on to its bubble, and whose photo it is', async () => {
+      bookingsAsked.mockImplementation(async () =>
+        bookingsPage([
+          {
+            ...booking(8, { at: '2026-09-22T10:04:30.000Z', sent: true }),
+            picture: { motif: null, hasPicture: true },
+          },
+          {
+            ...booking(7, { at: '2026-09-22T10:01:30.000Z' }),
+            picture: { motif: 'giving-hands', hasPicture: false },
+          },
+          { ...booking(6, { at: '2026-09-22T10:00:30.000Z' }), picture: null },
+        ]),
+      )
+      mountThread()
+      await arrive(page([1, 2, 3, 4, 5]))
+
+      const [plain, withMotif, withPhoto] = wrapper
+        .findAllComponents({ name: 'ChatBubble' })
+        .filter((bubble) => bubble.props('message').transfer)
+        .map((bubble) => bubble.props('message'))
+      expect(plain).toMatchObject({ picture: null, transactionId: 6 })
+      expect(withMotif).toMatchObject({
+        mine: false,
+        picture: { motif: 'giving-hands', hasPicture: false },
+        transactionId: 7,
+        linkId: null,
+        greeting: null,
+        greetingSender: 'Lena',
+      })
+      expect(withPhoto).toMatchObject({
+        mine: true,
+        picture: { motif: null, hasPicture: true },
+        transactionId: 8,
+        linkId: null,
+        greetingSender: 'Bernd',
+      })
+    })
+
     // ZE-019: the booking of an accepted thank-you greeting brings its greeting to its bubble --
     // the motif, the line in handwriting, the words under it. A transfer without one stays as it was.
     it('hands the greeting of a booking on to its bubble, and none to a plain transfer', async () => {

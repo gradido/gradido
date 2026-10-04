@@ -1212,6 +1212,13 @@
       "title": "Nenhuma câmara encontrada"
     }
   },
+  "send-picture": {
+    "home-only": "Por agora, só podes enviar uma imagem a membros da tua comunidade.",
+    "label": "Adicionar imagem",
+    "none": "Sem imagem",
+    "other": "Outra imagem",
+    "remove": "Remover"
+  },
   "send_email": "Enviar e‑mail",
   "send_gdd": "Enviar GDD",
   "send_per_link": "Link, cheque, QR",
@@ -1667,6 +1674,7 @@
     "text": "Não importa a que comunidade pertenças, com o Geo Matching System encontras membros de todas as comunidades num mapa. Podes filtrar por ofertas e necessidades e ver os utilizadores que combinam contigo.\n\nO botão abre uma nova janela do navegador onde os utilizadores na tua área são apresentados num mapa."
   },
   "via_card": "através de um cartão",
+  "via_greeting": "através de um postal",
   "via_link": "através de um link",
   "welcome": "Damos-te as boas-vindas à comunidade"
 }

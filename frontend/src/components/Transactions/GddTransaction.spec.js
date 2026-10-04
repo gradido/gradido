@@ -121,6 +121,184 @@ describe('GddTransaction', () => {
   })
 
   /**
+   * F19 = B (Bernd, 04.10.2026): the picture the sender added to a transfer stands small over
+   * the memo in the OPENED row -- for whoever switched transfers in the chat off and would never
+   * see it otherwise. The closed row stays as it was.
+   */
+  describe('the picture of a transfer', () => {
+    const PhotoStub = {
+      name: 'ThankYouGreetingPhoto',
+      props: ['linkId', 'transactionId', 'alt', 'saysMissing'],
+      template: '<span data-test="photo-stub" />',
+    }
+    const mountPictured = (extra) => {
+      wrapper = mount(GddTransaction, {
+        props: { transaction: { ...BOOKING, ...extra } },
+        global: {
+          mocks: {
+            $t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key),
+            $d: (d) => String(d),
+            $filters: { GDD: (a) => String(a) },
+          },
+          stubs: {
+            BRow: { template: '<div><slot /></div>' },
+            BCol: { template: '<div><slot /></div>' },
+            BCollapse: { template: '<div><slot /></div>' },
+            BAvatar: true,
+            AppAvatar: true,
+            Name: true,
+            CollapseIcon: true,
+            DecayInformation: true,
+            VariantIcon: true,
+            FavoriteHeart: true,
+            ThankYouGreetingPhoto: PhotoStub,
+          },
+        },
+      })
+      return wrapper
+    }
+    const picture = () => wrapper.find('[data-test="transaction-picture"]')
+    const open = () => wrapper.trigger('click')
+    const MOTIF = { motif: 'giving-hands', hasPicture: false }
+    const PHOTO = { motif: null, hasPicture: true }
+
+    it('is not in the closed row, and no photo is asked for there', () => {
+      mountPictured({ picture: PHOTO })
+
+      expect(picture().exists()).toBe(false)
+      expect(wrapper.findComponent(PhotoStub).exists()).toBe(false)
+    })
+
+    it('stands over the memo once the row is opened: a motif by its name', async () => {
+      mountPictured({ picture: MOTIF })
+
+      await open()
+
+      const image = picture().find('img')
+      expect(image.attributes('src')).toBe('/img/thank-you-greeting/giving-hands.svg')
+      expect(image.attributes('alt')).toBe('thank-you-greeting.motif.giving-hands')
+      const memo = wrapper.find('[data-test="transaction-memo"]')
+      expect(memo.element.firstElementChild).toBe(picture().element)
+      expect(memo.text()).toContain('Pizzeria Napoli')
+    })
+
+    it('asks for a photo by the id of this booking once the row is opened', async () => {
+      mountPictured({ picture: PHOTO, linkId: 99 })
+
+      await open()
+
+      const photo = wrapper.findComponent(PhotoStub)
+      expect(photo.props('transactionId')).toBe(BOOKING.id)
+      expect(photo.props('linkId')).toBeUndefined()
+    })
+
+    /**
+     * The picture of a thank-you greeting stands in the same place (Bernd, 04.10.2026): the
+     * booking list names it with the booking as `greeting`, and its photo is kept by the id of
+     * the LINK -- another range of numbers than the bookings'.
+     */
+    describe('of a thank-you greeting', () => {
+      const GREETING_MOTIF = { motif: 'morning-light', line: 'Einfach so.', hasPicture: false }
+      const GREETING_PHOTO = { motif: null, line: 'Einfach so.', hasPicture: true }
+
+      it('is not in the closed row either', () => {
+        mountPictured({ greeting: GREETING_PHOTO, linkId: 99 })
+
+        expect(picture().exists()).toBe(false)
+        expect(wrapper.findComponent(PhotoStub).exists()).toBe(false)
+      })
+
+      it('shows the motif of the greeting over the memo once the row is opened', async () => {
+        mountPictured({ greeting: GREETING_MOTIF, linkId: 99 })
+
+        await open()
+
+        const image = picture().find('img')
+        expect(image.attributes('src')).toBe('/img/thank-you-greeting/morning-light.svg')
+        const memo = wrapper.find('[data-test="transaction-memo"]')
+        expect(memo.element.firstElementChild).toBe(picture().element)
+      })
+
+      it('asks for its photo by the id of the link, never by the id of the booking', async () => {
+        mountPictured({ greeting: GREETING_PHOTO, linkId: 99 })
+
+        await open()
+
+        const photo = wrapper.findComponent(PhotoStub)
+        expect(photo.props('linkId')).toBe(99)
+        expect(photo.props('transactionId')).toBeUndefined()
+      })
+
+      it('says whose photo it is on the row of whoever received the greeting', async () => {
+        mountPictured({
+          greeting: GREETING_PHOTO,
+          linkId: 99,
+          typeId: 'RECEIVE',
+          linkedUser: { alias: 'Oma-Emma' },
+        })
+
+        await open()
+
+        expect(wrapper.findComponent(PhotoStub).props('alt')).toBe(
+          'thank-you-greeting.photo-of {"name":"Oma-Emma"}',
+        )
+      })
+
+      it('shows no picture for a motif this wallet does not know', async () => {
+        mountPictured({ greeting: { ...GREETING_MOTIF, motif: 'from-a-newer-server' }, linkId: 99 })
+
+        await open()
+
+        expect(picture().exists()).toBe(false)
+      })
+    })
+
+    it('says whose photo it is: one’s own on a SEND row, the other’s on a RECEIVE row', async () => {
+      mountPictured({ picture: PHOTO })
+      await open()
+      expect(wrapper.findComponent(PhotoStub).props('alt')).toContain('thank-you-greeting.photo-of')
+
+      wrapper.unmount()
+      mountPictured({ picture: PHOTO, typeId: 'RECEIVE', linkedUser: { alias: 'Oma-Emma' } })
+      await open()
+      expect(wrapper.findComponent(PhotoStub).props('alt')).toBe(
+        'thank-you-greeting.photo-of {"name":"Oma-Emma"}',
+      )
+    })
+
+    it('goes again when the row is closed', async () => {
+      mountPictured({ picture: MOTIF })
+
+      await open()
+      await open()
+
+      expect(picture().exists()).toBe(false)
+    })
+
+    it('does not close the row under a tap on it', async () => {
+      mountPictured({ picture: MOTIF })
+      await open()
+
+      await picture().trigger('click')
+
+      expect(picture().exists()).toBe(true)
+    })
+
+    it.each([
+      ['no picture', null],
+      ['a booking that names none (an older server)', undefined],
+      ['a motif this wallet does not know', { motif: 'elephant', hasPicture: false }],
+    ])('shows none in the opened row for %s', async (_what, value) => {
+      mountPictured(value === undefined ? {} : { picture: value })
+
+      await open()
+
+      expect(picture().exists()).toBe(false)
+      expect(wrapper.find('[data-test="transaction-memo"]').text()).toBe('Pizzeria Napoli')
+    })
+  })
+
+  /**
    * ⛔ The community on a line of its own under the name, as the contact list has it -- not
    * behind the name after a slash (Bernd, 21.09.2026: one line more, and a quieter row).
    * Measured with the REAL name component, because that is the one that prints the slash.
@@ -425,7 +603,23 @@ describe('GddTransaction', () => {
     mountWith({ linkId: 42 })
 
     expect(wrapper.text()).toContain('via_link')
+    expect(wrapper.text()).not.toContain('via_greeting')
     expect(marker().exists()).toBe(false)
+  })
+
+  // A thank-you greeting is a link too; the row says what the two of them know it as.
+  it.each([
+    ['a motif', { motif: 'morning-light', line: null, hasPicture: false }],
+    ['a photo', { motif: null, line: null, hasPicture: true }],
+    ['a motif this wallet does not know', { motif: 'from-a-newer-server', hasPicture: false }],
+  ])('says "via a greeting" for a booking that came from one with %s', (_, greeting) => {
+    mountWith({ linkId: 42, greeting })
+
+    expect(wrapper.find('[data-test="via-greeting"]').text()).toContain('via_greeting')
+    expect(wrapper.find('[data-test="via-greeting"] [data-icon]').attributes('data-icon')).toBe(
+      'bouquet',
+    )
+    expect(wrapper.text()).not.toContain('via_link')
   })
 
   /**
