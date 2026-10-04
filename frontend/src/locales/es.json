@@ -402,9 +402,9 @@
     "admins": "Administradores",
     "choose-another-community": "Escoger otra comunidad",
     "community": "Comunidad",
-    "communityMember": "Eres un miembro activo",
     "continue-to-registration": "Continuar con el registro",
     "groupsAndModerators": "Grupos de creación y moderadores",
+    "members": "Miembros",
     "moderator": "Moderador",
     "moderatorsAllGroups": "Para todos los grupos",
     "moderatorsUntagged": "Contribuciones sin grupo",
@@ -1069,7 +1069,6 @@
     "minus": "−"
   },
   "maxReached": "Máx. alcanzado",
-  "member": "Miembro",
   "message": {
     "activateEmail": "Tu cuenta aún no ha sido activada. Por favor revisa tu correo electrónico y haz clic en el enlace de activación o solicita un nuevo enlace de activación a través de la página «Restablecer contraseña».",
     "checkEmail": "Tu correo electrónico ha sido verificado con éxito. Ya puedes iniciar sesión.",

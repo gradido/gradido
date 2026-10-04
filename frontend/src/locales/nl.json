@@ -402,9 +402,9 @@
     "admins": "Beheerders",
     "choose-another-community": "Kies een andere gemeenschap",
     "community": "Gemeenschap",
-    "communityMember": "Je bent een actief lid",
     "continue-to-registration": "Verder ter registratie",
     "groupsAndModerators": "Creatiegroepen en moderators",
+    "members": "Leden",
     "moderator": "Moderator",
     "moderatorsAllGroups": "Voor alle groepen",
     "moderatorsUntagged": "Bijdragen zonder groep",
@@ -1069,7 +1069,6 @@
     "minus": "−"
   },
   "maxReached": "Max. bereikt",
-  "member": "Lid",
   "message": {
     "activateEmail": "Jouw rekening werd nog niet geactiveerd. Controleer aljeblieft jouw email en klik de activeringslink. Of vraag een nieuwe activeringlink via de Wachtwoord-Reset-Pagina aan.",
     "checkEmail": "Jouw email werd succesvol geverifieerd. Je kunt je nu aanmelden.",

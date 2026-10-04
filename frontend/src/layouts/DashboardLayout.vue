@@ -117,7 +117,7 @@
                           </div>
                         </BCol>
                         <BCol cols="12" lg="7">
-                          <div>
+                          <div class="h-100 d-flex flex-column">
                             <community-member :total-users="totalUsers" />
                           </div>
                         </BCol>
@@ -508,7 +508,7 @@ const BALANCE_SECTIONS = ['overview', 'send', 'transactions', 'gdt']
  * The air between the balance cards and the page. The desk always had it (`mt-lg-3`); the
  * phone had not. There the two cards stand one above the other, the second brings its 16px
  * above itself and nothing below, and a page whose first box has no margin of its own ran
- * straight into it: the tile under "Du bist aktives Mitglied", the decay row under the GDT
+ * straight into it: the tile under the community card, the decay row under the GDT
  * card, the first GDT entry (Bernd, 21.09.2026). Only under the cards -- everywhere else
  * the phone keeps the page close under its heading, as it did.
  */

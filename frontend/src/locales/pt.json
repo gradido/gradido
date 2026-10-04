@@ -402,9 +402,9 @@
     "admins": "Administradores",
     "choose-another-community": "Escolher outra comunidade",
     "community": "Comunidade",
-    "communityMember": "És um membro ativo",
     "continue-to-registration": "Continuar para o registo",
     "groupsAndModerators": "Grupos de criação e moderadores",
+    "members": "Membros",
     "moderator": "Moderador",
     "moderatorsAllGroups": "Para todos os grupos",
     "moderatorsUntagged": "Contribuições sem grupo",
@@ -1069,7 +1069,6 @@
     "minus": "−"
   },
   "maxReached": "Máx. atingido",
-  "member": "Membro",
   "message": {
     "activateEmail": "A tua conta ainda não foi ativada. Por favor, verifica os teus e-mails e clica no link de ativação ou solicita um novo link de ativação através da página de reposição de palavra-passe.",
     "checkEmail": "O teu e-mail foi verificado com sucesso. Podes iniciar sessão agora.",
