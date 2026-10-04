@@ -108,9 +108,15 @@
                         <BCol cols="12" lg="5">
                           <div>
                             <router-link to="/transactions">
+                              <!-- The balance is the one account card on the overview, so it
+                                   stands as the open card does on the transactions page: full
+                                   colour, green border. It used to be dimmed like the card of
+                                   the page one is NOT on. No GDD badge here: beside the
+                                   community tile there is nothing to tell it apart from
+                                   (Bernd, 04.10.2026). -->
                               <gdd-amount
                                 :balance="balance"
-                                :show-status="false"
+                                :show-status="true"
                                 :badge-show="false"
                               />
                             </router-link>
