@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 
-import { and, eq, inArray, isNull } from 'drizzle-orm'
+import { and, eq, inArray, isNull, like } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import { Order, Result } from 'shared'
 import { EntityManager, FindOptionsWhere, MoreThan } from 'typeorm'
@@ -116,6 +116,22 @@ export async function dbRemoveUserAlias(userAliasId: number): Promise<number> {
     return rows[0] ? rows[0].affectedRows : 0
   }
   return 0
+}
+
+/**
+ * The members who own a name containing this text - their current alias or one they held
+ * before - each id once. This is how the admin search finds somebody by username, the way
+ * `dbFindUserIdsByEmailLike` finds them by address. Deleted members are included; the
+ * user query decides who is shown.
+ *
+ * `%` and `_` in the text act as wildcards, as they do in the name and address branches.
+ */
+export async function dbFindUserIdsByAliasLike(searchCriteria: string): Promise<number[]> {
+  const rows = await drizzleDb()
+    .select({ userId: userAliasesTable.userId })
+    .from(userAliasesTable)
+    .where(like(userAliasesTable.alias, `%${searchCriteria}%`))
+  return [...new Set(rows.map((row) => row.userId))]
 }
 
 /**

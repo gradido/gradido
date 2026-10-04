@@ -8,7 +8,7 @@ import { User as DbUser, UserContact as DbUserContact } from '../entity'
 import { AccountState, ASSIGNABLE_ROLE_NAMES } from '../enum'
 import { DBNotFoundError } from '../errorTypes'
 import { findWithCommunityIdentifier, LOG4JS_QUERIES_CATEGORY_NAME } from './index'
-import { dbFindAliasOwner } from './userAliases'
+import { dbFindAliasOwner, dbFindUserIdsByAliasLike } from './userAliases'
 import { dbFindUserIdsByEmailLike } from './userContacts'
 
 /*
@@ -421,7 +421,8 @@ function deletedAtQuery(filters: SearchUsersFilters | null) {
 }
 
 /**
- * The admin's member search: first name, last name or any address a member ever had.
+ * The admin's member search: first name, last name, any address a member ever had or any
+ * username they ever owned.
  * Moved from `backend/src/graphql/resolver/util/findUsers.ts`.
  */
 export const dbFindUsers = async (
@@ -435,7 +436,15 @@ export const dbFindUsers = async (
   // Every address a member ever had, not only the current one: somebody arriving from the
   // GDT server holds the address that was first - which may well be one the member has
   // since changed. An empty search already matches everybody through the name branches.
-  const idsByAnyEmail = searchCriteria ? await dbFindUserIdsByEmailLike(searchCriteria) : []
+  // Usernames the same way: the one somebody was known by counts as much as the current one.
+  const idsByEmailOrAlias = searchCriteria
+    ? [
+        ...new Set([
+          ...(await dbFindUserIdsByEmailLike(searchCriteria)),
+          ...(await dbFindUserIdsByAliasLike(searchCriteria)),
+        ]),
+      ]
+    : []
   const where = [
     {
       firstName: likeQuery(searchCriteria),
@@ -456,10 +465,10 @@ export const dbFindUsers = async (
         : undefined,
     },
     // The "activated" filter still reads the current address.
-    ...(idsByAnyEmail.length > 0
+    ...(idsByEmailOrAlias.length > 0
       ? [
           {
-            id: In(idsByAnyEmail),
+            id: In(idsByEmailOrAlias),
             deletedAt: deletedAtQuery(filters),
             emailContact: filters
               ? {
