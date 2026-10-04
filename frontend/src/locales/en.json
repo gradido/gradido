@@ -1618,7 +1618,6 @@
       "line1-for": "{name}, I have a thank-you greeting for you:"
     },
     "sheet": {
-      "free": "Free of charge. No obligation.",
       "from": "{name} says thank you",
       "scan": "Hold your phone's camera up to the code and accept the thank-you — by {date}.",
       "waits": "Your thank-you is waiting: {amount}"

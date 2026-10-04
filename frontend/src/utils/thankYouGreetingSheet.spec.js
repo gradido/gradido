@@ -161,7 +161,6 @@ const SHEET = {
   from: 'Emma sagt Dir Danke',
   waits: 'Dein Dank wartet: 20 Gradido',
   scan: 'Halte die Kamera Deines Handys auf den Code und nimm ihn an — bis zum 18.10.2026.',
-  free: 'Kostenfrei. Keine Verpflichtung.',
   slogan: 'Helfen. Schenken. Danken.',
 }
 const PHOTO = 'data:image/jpeg;base64,photo'
@@ -322,7 +321,6 @@ describe('drawThankYouGreetingSheet', () => {
         logoDraw(),
         textOf(SHEET.from),
         textOf(SHEET.waits),
-        textOf(SHEET.free),
         textOf(SHEET.slogan),
       ]) {
         expect(panelOf(call), call.text ?? 'picture').toBe('back')
@@ -839,16 +837,14 @@ describe('drawThankYouGreetingSheet', () => {
       expect(logoDraw().imageSmoothingEnabled).toBe(true)
     })
 
-    it('says under it what waits, how it is accepted, and that it costs nothing', () => {
+    it('says under it what waits and how it is accepted', () => {
       const code = qrDraw()
       const waits = textOf(SHEET.waits)
       expect(waits.font).toBe(`700 ${mm(4.3)}px "Open Sans", Helvetica, Arial, sans-serif`)
       expect(waits.fillStyle).toBe('#383838')
       expect(waits.local.y).toBe(code.local.y + mm(38) + mm(6) + Math.round(mm(4.3) * 0.8))
 
-      const scan = texts().filter(
-        (call) => sizeIn(call.font) === mm(3.3) && call.text !== SHEET.free,
-      )
+      const scan = texts().filter((call) => sizeIn(call.font) === mm(3.3))
       expect(scan.map((call) => call.text).join(' ')).toBe(SHEET.scan)
       expect(scan.length).toBeGreaterThan(1)
       for (const call of scan) {
@@ -863,12 +859,17 @@ describe('drawThankYouGreetingSheet', () => {
           Math.round(mm(3.3) * 0.8),
       )
       expect(scan[1].local.y - scan[0].local.y).toBe(Math.round(mm(3.3) * 1.45))
+    })
 
-      const free = textOf(SHEET.free)
-      expect(free.fillStyle).toBe('#4a4a4a')
-      expect(free.local.y).toBe(
-        scan[scan.length - 1].local.y + Math.round(mm(3.3) * 1.45) + mm(2.2),
-      )
+    // ⛔ Bernd, with the first printed card in hand (04.10.2026): "Kostenfrei. Keine
+    // Verpflichtung." sounds like business, and this is a card handed over in person. Under the
+    // code stand what waits and how it is accepted -- and then nothing until the logo.
+    it('says nothing about what it costs: after the two sentences comes the logo', () => {
+      const back = texts().filter((call) => panelOf(call) === 'back')
+      const said = back.map((call) => call.text).join(' ')
+
+      expect(said).toBe(`${SHEET.from} ${SHEET.waits} ${SHEET.scan} ${SHEET.slogan}`)
+      expect(said).not.toMatch(/kostenfrei|verpflichtung/i)
     })
 
     it('centres every line of it', () => {
@@ -893,8 +894,10 @@ describe('drawThankYouGreetingSheet', () => {
     it('has who thanks, code and sentences above the middle of the room over the foot', () => {
       const from = textOf(SHEET.from)
       const blockTop = from.local.y - Math.round(mm(7.6) * 0.78)
-      const free = textOf(SHEET.free)
-      const blockBottom = free.local.y - Math.round(mm(3.3) * 0.8) + Math.round(mm(3.3) * 1.45)
+      const last = texts()
+        .filter((call) => sizeIn(call.font) === mm(3.3))
+        .pop()
+      const blockBottom = last.local.y - Math.round(mm(3.3) * 0.8) + Math.round(mm(3.3) * 1.45)
       const middle = (blockTop + blockBottom) / 2
       const room = (MARGIN + logoDraw().local.y) / 2
       expect(Math.abs(room - middle - mm(5.5))).toBeLessThanOrEqual(0.5)
@@ -932,8 +935,10 @@ describe('drawThankYouGreetingSheet', () => {
         const back = texts().filter((call) => panelOf(call) === 'back')
         expect(back.some((call) => call.font.includes('Caveat'))).toBe(false)
         // Code and sentences alone stand above the middle then.
-        const free = textOf(SHEET.free)
-        const blockBottom = free.local.y - Math.round(mm(3.3) * 0.8) + Math.round(mm(3.3) * 1.45)
+        const last = texts()
+          .filter((call) => sizeIn(call.font) === mm(3.3))
+          .pop()
+        const blockBottom = last.local.y - Math.round(mm(3.3) * 0.8) + Math.round(mm(3.3) * 1.45)
         const room = (MARGIN + logoDraw().local.y) / 2
         expect(Math.abs(room - (qrDraw().local.y + blockBottom) / 2 - mm(5.5))).toBeLessThanOrEqual(
           0.5,
@@ -1069,7 +1074,6 @@ describe('drawThankYouGreetingSheet', () => {
       from: 'Emma sagt Dir Danke',
       waits: 'Το ευχαριστώ σου περιμένει: 20 Gradido',
       scan: 'Наведите камеру на код.',
-      free: 'Δωρεάν. Χωρίς δέσμευση.',
       slogan: 'Yardım et. Hediye et. Teşekkür et.',
     }
     const asked = (list) => new Set(list.filter((text) => typeof text === 'string').join(' '))
@@ -1115,7 +1119,7 @@ describe('drawThankYouGreetingSheet', () => {
       )
       expect(missing).toEqual([])
       // The fixed sentences too, not only what the sender wrote.
-      for (const text of [GREEK.waits, GREEK.scan, GREEK.free, GREEK.slogan, GREEK.forWhom]) {
+      for (const text of [GREEK.waits, GREEK.scan, GREEK.slogan, GREEK.forWhom]) {
         expect(fonts.sans[0]).toContain(text)
       }
     })
@@ -1169,7 +1173,7 @@ describe('drawThankYouGreetingSheet', () => {
       )
       expect(load).toHaveBeenCalledWith(
         '400 16px "Open Sans"',
-        expect.stringContaining('Kostenfrei'),
+        expect.stringContaining('Dein Dank wartet'),
       )
       expect(texts().length).toBeGreaterThan(0)
     })

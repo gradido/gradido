@@ -1618,7 +1618,6 @@
       "line1-for": "{name}, ich habe einen Dank-Gruß für Dich:"
     },
     "sheet": {
-      "free": "Kostenfrei. Keine Verpflichtung.",
       "from": "{name} sagt Dir Danke",
       "scan": "Halte die Kamera Deines Handys auf den Code und nimm ihn an — bis zum {date}.",
       "waits": "Dein Dank wartet: {amount}"

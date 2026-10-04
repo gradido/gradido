@@ -1618,7 +1618,6 @@
       "line1-for": "{name}, tenho um postal de agradecimento para ti:"
     },
     "sheet": {
-      "free": "Gratuito. Sem compromisso.",
       "from": "{name} agradece-te",
       "scan": "Aponta a câmara do teu telemóvel para o código e aceita o agradecimento — até {date}.",
       "waits": "Um agradecimento está à tua espera: {amount}"

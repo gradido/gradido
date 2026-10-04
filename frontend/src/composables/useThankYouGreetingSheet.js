@@ -109,7 +109,6 @@ export const useThankYouGreetingSheet = (
         amount: `${amountInText(amount)}\u00a0${t('GDD-long')}`,
       }),
       scan: t('thank-you-greeting.sheet.scan', { date: d(new Date(validUntil), 'short') }),
-      free: t('thank-you-greeting.sheet.free'),
       slogan: cardSlogan(t),
     }
   }

@@ -157,7 +157,6 @@ const WAITS_LEADING = 1.3
 const SCAN_GAP = mm(2.5)
 const HINT_SIZE = mm(3.3)
 const HINT_LEADING = 1.45
-const FREE_GAP = mm(2.2)
 const LOGO_HEIGHT = mm(6.2)
 const SLOGAN_GAP = mm(1.8)
 const SLOGAN_SIZE = mm(2.6)
@@ -460,7 +459,7 @@ const drawInside = (ctx, { forWhom, words }) => {
   }
 }
 
-const drawBack = (ctx, { qr, logo, from, waits, scan, free, slogan }) => {
+const drawBack = (ctx, { qr, logo, from, waits, scan, slogan }) => {
   const centre = PANEL_WIDTH / 2
   // The sentences are longer in some languages than in others: each is broken to the room.
   const sentence = (text, weight, size, leading) => {
@@ -470,7 +469,6 @@ const drawBack = (ctx, { qr, logo, from, waits, scan, free, slogan }) => {
   const sloganLines = sentence(slogan, 400, SLOGAN_SIZE, SLOGAN_LEADING)
   const waitsLines = sentence(waits, 700, WAITS_SIZE, WAITS_LEADING)
   const scanLines = sentence(scan, 400, HINT_SIZE, HINT_LEADING)
-  const freeLines = sentence(free, 400, HINT_SIZE, HINT_LEADING)
   const heightOf = ({ lines, step }) => lines.length * step
   // Who thanks: without a user name nobody is named, and the code stands alone.
   const fromLines = from ? fitFrom(ctx, from) : null
@@ -484,8 +482,7 @@ const drawBack = (ctx, { qr, logo, from, waits, scan, free, slogan }) => {
     QR_GAP +
     heightOf(waitsLines) +
     SCAN_GAP +
-    heightOf(scanLines) +
-    (freeLines.lines.length ? FREE_GAP + heightOf(freeLines) : 0)
+    heightOf(scanLines)
   // Never lifted into the margin, however long a language's sentences are. A line in the
   // handwriting reaches above its line with its tallest letters: where it is the first thing of
   // the block, that much more stays free.
@@ -518,10 +515,6 @@ const drawBack = (ctx, { qr, logo, from, waits, scan, free, slogan }) => {
   set(waitsLines, 700, WAITS_SIZE, COLOR_TEXT)
   top += SCAN_GAP
   set(scanLines, 400, HINT_SIZE, COLOR_SOFT)
-  if (freeLines.lines.length) {
-    top += FREE_GAP
-    set(freeLines, 400, HINT_SIZE, COLOR_SOFT)
-  }
 
   const logoWidth = logo.width * (LOGO_HEIGHT / logo.height)
   ctx.drawImage(logo, Math.round(centre - logoWidth / 2), footTop, logoWidth, LOGO_HEIGHT)
@@ -558,7 +551,6 @@ const inPanel = (ctx, { column, row }, paint) => {
  *   the sender has no user name
  * @param {string} sheet.waits "Dein Dank wartet: 20 Gradido"
  * @param {string} sheet.scan how the code is read and the thank-you accepted, and until when
- * @param {string} sheet.free "Kostenfrei. Keine Verpflichtung."
  * @param {string} sheet.slogan the slogan of the cards, under the logo
  * @returns {Promise<string>} a PNG data URL
  * @throws when a picture cannot be loaded; the caller decides what to say about it
@@ -572,7 +564,6 @@ export const drawThankYouGreetingSheet = async ({
   from = '',
   waits,
   scan,
-  free,
   slogan,
 }) => {
   const byHand = [line, from].filter((text) => text && canWriteByHand(text))
@@ -585,7 +576,7 @@ export const drawThankYouGreetingSheet = async ({
     loadImage(LOGO_PATH),
     renderQrCodeCanvas(link),
     picture ? loadImage(picture) : null,
-    printFontReady([forWhom, line, words, from, waits, scan, free, slogan, ELLIPSIS]),
+    printFontReady([forWhom, line, words, from, waits, scan, slogan, ELLIPSIS]),
     handwritingReady(byHand.length ? [...byHand, ELLIPSIS] : []),
   ])
 
@@ -603,7 +594,7 @@ export const drawThankYouGreetingSheet = async ({
   const { words: inside, back, front } = THANK_YOU_GREETING_SHEET_PANELS
   inPanel(ctx, inside, () => drawInside(ctx, { forWhom, words }))
   // THANK_YOU_GREETING_SHEET_PANELS.hand stays as it is: the page for the sender's own hand.
-  inPanel(ctx, back, () => drawBack(ctx, { qr, logo, from, waits, scan, free, slogan }))
+  inPanel(ctx, back, () => drawBack(ctx, { qr, logo, from, waits, scan, slogan }))
   inPanel(ctx, front, () => drawFront(ctx, { picture: image, line }))
 
   return canvas.toDataURL('image/png')

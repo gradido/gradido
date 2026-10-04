@@ -1618,7 +1618,6 @@
       "line1-for": "{name}, ik heb een dankgroetje voor je:"
     },
     "sheet": {
-      "free": "Gratis. Geen verplichtingen.",
       "from": "{name} bedankt je",
       "scan": "Richt de camera van je telefoon op de code en neem het aan — tot {date}.",
       "waits": "Je bedankje wacht: {amount}"

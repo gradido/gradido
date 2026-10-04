@@ -98,7 +98,6 @@ const KEYS = [
   'share.copied',
   'share.line1',
   'share.line1-for',
-  'sheet.free',
   'sheet.from',
   'sheet.scan',
   'sheet.waits',
@@ -369,7 +368,6 @@ describe('thank-you-greeting in the language files', () => {
       expect(render('de', 'sheet.scan', { date: '18.10.2026' })).toBe(
         'Halte die Kamera Deines Handys auf den Code und nimm ihn an — bis zum 18.10.2026.',
       )
-      expect(render('de', 'sheet.free')).toBe('Kostenfrei. Keine Verpflichtung.')
     })
 
     // ⛔ Bernd, with the first printed card in hand (04.10.2026): who thanks stands on the back,
@@ -420,35 +418,23 @@ describe('thank-you-greeting in the language files', () => {
       },
     )
 
-    it.each(languages)('say that it costs nothing, in two short sentences, in %s', (lang) => {
-      const free = render(lang, 'sheet.free')
-
-      expect(free).toMatch(/^\p{Lu}[^.]+\. \p{Lu}[^.]+\.$/u)
-      expect(free.length).toBeLessThanOrEqual(40)
-      expect(free).not.toMatch(/[{}|]/)
-    })
-
-    // The sentence that stands beside the account form says the same two things; the paper
-    // says them in the same words.
-    it.each(languages)('say it as the page of a link says it, in %s', (lang) => {
-      const free = render(lang, 'sheet.free')
-      const [first, second] = free.split('. ')
-      const onThePage = i18n.global.t('redeem-thanks.account-text', {}, { locale: lang })
-
-      expect(onThePage).toContain(second)
-      // Portuguese says "Gratuita" of the account there; on paper nothing feminine is named.
-      expect(onThePage.toLowerCase()).toContain(first.toLowerCase().slice(0, -1))
+    // ⛔ Bernd, with the first printed card in hand (04.10.2026): the back does not say what the
+    // card costs -- "Kostenfrei. Keine Verpflichtung." sounds like business on a card that is
+    // handed over in person. The sentence is gone from every language.
+    it.each(languages)('do not say what the card costs, in %s', (lang) => {
+      expect(i18n.global.te('thank-you-greeting.sheet.free', lang)).toBe(false)
+      expect(Object.keys(i18n.global.getLocaleMessage(lang)['thank-you-greeting'].sheet)).toEqual([
+        'from',
+        'scan',
+        'waits',
+      ])
     })
 
     // The whole Russian file speaks formally; a printed sentence must not be the exception.
     it('speak formally in Russian, and with a small "вы"', () => {
-      const sentences = [
-        'sheet.from',
-        'sheet.waits',
-        'sheet.scan',
-        'sheet.free',
-        'paper.failed',
-      ].map((key) => render('ru', key, { name: 'Эмма', amount: '20 Gradido', date: '18.10.2026' }))
+      const sentences = ['sheet.from', 'sheet.waits', 'sheet.scan', 'paper.failed'].map((key) =>
+        render('ru', key, { name: 'Эмма', amount: '20 Gradido', date: '18.10.2026' }),
+      )
 
       for (const sentence of sentences) {
         expect(sentence).not.toMatch(

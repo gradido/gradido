@@ -140,18 +140,26 @@ describe('useThankYouGreetingSheet', () => {
       })
     })
 
-    // ⛔ These three sentences stand on paper, as Bernd confirmed them (04.10.2026).
+    // ⛔ These sentences stand on paper, as Bernd confirmed them (04.10.2026).
     // The amount and its unit are joined by a no-break space (U+00A0): where a language's
     // sentence takes two lines, the break falls before the amount and never inside it.
-    it('writes the back as it was decided: what waits, how it is accepted, that it is free', async () => {
+    it('writes the back as it was decided: what waits and how it is accepted', async () => {
       await sheetOf().printGreetingSheet()
 
       expect(drawn()).toMatchObject({
         waits: 'Dein Dank wartet: 20\u00a0Gradido',
         scan: 'Halte die Kamera Deines Handys auf den Code und nimm ihn an — bis zum 18.10.2026.',
-        free: 'Kostenfrei. Keine Verpflichtung.',
         slogan: 'Helfen. Schenken. Danken.',
       })
+    })
+
+    // ⛔ Bernd, with the first printed card in hand (04.10.2026): "Kostenfrei. Keine
+    // Verpflichtung." sounds like business on a card that is handed over in person.
+    it('says nothing about what the card costs', async () => {
+      await sheetOf().printGreetingSheet()
+
+      expect(drawn()).not.toHaveProperty('free')
+      expect(JSON.stringify(drawn())).not.toMatch(/kostenfrei|verpflichtung/i)
     })
 
     // The server hands an amount over as "12.5"; a German sentence writes "12,5", and a
