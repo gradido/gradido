@@ -1557,7 +1557,7 @@
     },
     "entry": {
       "plain": "Sem imagem: link, cheque, QR",
-      "text": "Com imagem e umas palavras — para enviar.",
+      "text": "Com imagem e umas palavras — para enviar ou imprimir.",
       "write": "Escrever um postal"
     },
     "for": "Para {name}",
