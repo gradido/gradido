@@ -64,6 +64,9 @@ export const USER_RIGHTS = [
   // Seeing the picture of a greeting one made or accepted. Not on any RESTRICTED_* list: an
   // unconfirmed account and a project account are shown what they were sent like anybody else.
   RIGHTS.THANK_YOU_GREETING_PICTURE,
+  // Seeing the photo of a transfer one sent or received, through one's own booking row. Not on
+  // any RESTRICTED_* list, like the picture of a greeting.
+  RIGHTS.TRANSACTION_PICTURE,
   // The contact list is a view on the caller's own bookings and conversations, the hearts
   // are the caller's own rows; there is nothing here that reaches anybody else's data.
   RIGHTS.MANAGE_OWN_CONTACTS,
