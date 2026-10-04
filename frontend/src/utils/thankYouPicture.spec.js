@@ -10,6 +10,7 @@ import {
   THANK_YOU_PICTURE_PREVIEW_QUALITY,
   THANK_YOU_PICTURE_SMALL,
   encodeThankYouPictures,
+  fetchThankYouPicture,
   thankYouPictureAddress,
   thankYouPictureEdit,
   thankYouPictureInput,
@@ -213,5 +214,62 @@ describe('thankYouPictureAddress', () => {
     expect(thankYouPictureAddress(CODE.toUpperCase())).toBe(
       `https://ki-playground.gradido.net/api/thank-you-greeting-picture/${CODE.toUpperCase()}`,
     )
+  })
+})
+
+/**
+ * One fetch for the two that need the picture of an open link as a file of their own: the page
+ * the link opens as (useThankYouLinkPicture) and the sheet the greeting is printed on
+ * (useThankYouGreetingSheet).
+ */
+describe('fetchThankYouPicture', () => {
+  const ADDRESS =
+    'https://ki-playground.gradido.net/api/thank-you-greeting-picture/a3f9c2d41b7e19981fa0c4e2'
+  const answer = (blob, ok = true) => ({
+    ok,
+    status: ok ? 200 : 404,
+    blob: () => Promise.resolve(blob),
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('asks the address once, without cookies and without keeping anything', async () => {
+    const picture = new Blob(['JPEG'], { type: 'image/jpeg' })
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(answer(picture)))
+
+    await expect(fetchThankYouPicture(ADDRESS)).resolves.toBe(picture)
+
+    expect(fetch).toHaveBeenCalledTimes(1)
+    expect(fetch).toHaveBeenCalledWith(ADDRESS, { cache: 'no-store', credentials: 'omit' })
+  })
+
+  // The server answers everything that is no picture of an open link with an empty 404.
+  it('gives nothing where the server gives nothing', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(answer(new Blob([]), false)))
+
+    await expect(fetchThankYouPicture(ADDRESS)).resolves.toBeNull()
+  })
+
+  it.each([
+    ['a page', 'text/html'],
+    ['a picture of another kind', 'image/png'],
+    ['something without a type', ''],
+  ])('gives nothing for %s: the server serves one type', async (_, type) => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(answer(new Blob(['x'], { type }))))
+
+    await expect(fetchThankYouPicture(ADDRESS)).resolves.toBeNull()
+  })
+
+  it('gives nothing where the line fails, and never rejects', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')))
+    await expect(fetchThankYouPicture(ADDRESS)).resolves.toBeNull()
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: true, blob: () => Promise.reject(new Error('aborted')) }),
+    )
+    await expect(fetchThankYouPicture(ADDRESS)).resolves.toBeNull()
   })
 })

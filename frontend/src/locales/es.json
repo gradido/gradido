@@ -1592,6 +1592,9 @@
     },
     "name": "Saludo de agradecimiento",
     "next": "Continuar",
+    "paper": {
+      "failed": "Ahora mismo no se ha podido crear la tarjeta. Inténtalo de nuevo, por favor."
+    },
     "photo-of": "Foto enviada por {name}",
     "picture": {
       "other": "Otra foto",
@@ -1610,6 +1613,11 @@
       "copied": "La frase y el enlace se han copiado en el portapapeles. Ahora puedes pegarlos en un correo electrónico o mensaje.",
       "line1": "Tengo un saludo de agradecimiento para ti:",
       "line1-for": "{name}, tengo un saludo de agradecimiento para ti:"
+    },
+    "sheet": {
+      "free": "Gratis. Sin compromiso.",
+      "scan": "Apunta con la cámara de tu móvil al código y acepta el agradecimiento — hasta el {date}.",
+      "waits": "Te espera un agradecimiento: {amount}"
     },
     "step": {
       "picture": "Imagen",

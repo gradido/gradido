@@ -1592,6 +1592,9 @@
     },
     "name": "Dankgroetje",
     "next": "Verder",
+    "paper": {
+      "failed": "De kaart kon nu niet worden gemaakt. Probeer het alsjeblieft nog een keer."
+    },
     "photo-of": "Foto verstuurd door {name}",
     "picture": {
       "other": "Andere foto",
@@ -1610,6 +1613,11 @@
       "copied": "De zin en de link zijn naar het klembord gekopieerd. Je kunt ze nu in een e-mail of bericht plakken.",
       "line1": "Ik heb een dankgroetje voor je:",
       "line1-for": "{name}, ik heb een dankgroetje voor je:"
+    },
+    "sheet": {
+      "free": "Gratis. Geen verplichtingen.",
+      "scan": "Houd de camera van je telefoon op de code en neem het aan — tot {date}.",
+      "waits": "Je bedankje wacht: {amount}"
     },
     "step": {
       "picture": "Beeld",

@@ -1592,6 +1592,9 @@
     },
     "name": "Teşekkür mesajı",
     "next": "Devam",
+    "paper": {
+      "failed": "Kart şu anda oluşturulamadı. Lütfen tekrar dene."
+    },
     "photo-of": "{name} tarafından gönderilen fotoğraf",
     "picture": {
       "other": "Başka fotoğraf",
@@ -1610,6 +1613,11 @@
       "copied": "Cümle ve link panoya kopyalandı. Artık bunları bir e-postaya veya mesaja yapıştırabilirsin.",
       "line1": "Sana bir teşekkür mesajım var:",
       "line1-for": "{name}, sana bir teşekkür mesajım var:"
+    },
+    "sheet": {
+      "free": "Ücretsiz. Yükümlülük yok.",
+      "scan": "Telefonunun kamerasını koda tut ve teşekkürü kabul et — {date} tarihine kadar.",
+      "waits": "Seni bir teşekkür bekliyor: {amount}"
     },
     "step": {
       "picture": "Resim",

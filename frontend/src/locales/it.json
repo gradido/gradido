@@ -1592,6 +1592,9 @@
     },
     "name": "Biglietto di ringraziamento",
     "next": "Avanti",
+    "paper": {
+      "failed": "In questo momento non è stato possibile creare il biglietto. Riprova, per favore."
+    },
     "photo-of": "Foto inviata da {name}",
     "picture": {
       "other": "Un'altra foto",
@@ -1610,6 +1613,11 @@
       "copied": "La frase e il link sono stati copiati negli appunti. Ora puoi incollarli in un'e-mail o in un messaggio.",
       "line1": "Ho un biglietto di ringraziamento per te:",
       "line1-for": "{name}, ho un biglietto di ringraziamento per te:"
+    },
+    "sheet": {
+      "free": "Gratuito. Senza impegno.",
+      "scan": "Punta la fotocamera del tuo telefono sul codice e accetta il ringraziamento — fino al giorno {date}.",
+      "waits": "Ti aspetta un ringraziamento: {amount}"
     },
     "step": {
       "picture": "Immagine",

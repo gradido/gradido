@@ -1592,6 +1592,9 @@
     },
     "name": "Thank-you greeting",
     "next": "Next",
+    "paper": {
+      "failed": "The card could not be made just now. Please try again."
+    },
     "photo-of": "Photo from {name}",
     "picture": {
       "other": "Another photo",
@@ -1610,6 +1613,11 @@
       "copied": "The sentence and the link have been copied to the clipboard. You can now paste them into an email or message.",
       "line1": "I have a thank-you greeting for you:",
       "line1-for": "{name}, I have a thank-you greeting for you:"
+    },
+    "sheet": {
+      "free": "Free of charge. No obligation.",
+      "scan": "Hold your phone's camera up to the code and accept it — until {date}.",
+      "waits": "Your thank-you is waiting: {amount}"
     },
     "step": {
       "picture": "Picture",

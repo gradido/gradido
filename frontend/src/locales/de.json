@@ -1592,6 +1592,9 @@
     },
     "name": "Dank-Gruß",
     "next": "Weiter",
+    "paper": {
+      "failed": "Die Karte ließ sich gerade nicht erstellen. Versuch es bitte noch einmal."
+    },
     "photo-of": "Foto von {name}",
     "picture": {
       "other": "Anderes Foto",
@@ -1610,6 +1613,11 @@
       "copied": "Der Satz und der Link wurden in die Zwischenablage kopiert. Du kannst sie jetzt in eine E-Mail oder Nachricht einfügen.",
       "line1": "Ich habe einen Dank-Gruß für Dich:",
       "line1-for": "{name}, ich habe einen Dank-Gruß für Dich:"
+    },
+    "sheet": {
+      "free": "Kostenfrei. Keine Verpflichtung.",
+      "scan": "Halte die Kamera Deines Handys auf den Code und nimm ihn an — bis zum {date}.",
+      "waits": "Dein Dank wartet: {amount}"
     },
     "step": {
       "picture": "Bild",

@@ -1592,6 +1592,9 @@
     },
     "name": "Postal de agradecimento",
     "next": "Continuar",
+    "paper": {
+      "failed": "Neste momento não foi possível criar o postal. Tenta outra vez, por favor."
+    },
     "photo-of": "Foto enviada por {name}",
     "picture": {
       "other": "Outra foto",
@@ -1610,6 +1613,11 @@
       "copied": "A frase e o link foram copiados para a área de transferência. Podes agora colá-los num e-mail ou numa mensagem.",
       "line1": "Tenho um postal de agradecimento para ti:",
       "line1-for": "{name}, tenho um postal de agradecimento para ti:"
+    },
+    "sheet": {
+      "free": "Gratuito. Sem compromisso.",
+      "scan": "Aponta a câmara do teu telemóvel para o código e aceita o agradecimento — até {date}.",
+      "waits": "Um agradecimento está à tua espera: {amount}"
     },
     "step": {
       "picture": "Imagem",
