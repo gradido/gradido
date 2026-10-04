@@ -1,21 +1,36 @@
 <template>
-  <div class="community-member mt-3 mt-lg-0 position-relative">
+  <div class="community-member mt-3 mt-lg-0 position-relative flex-grow-1 d-flex flex-column">
     <div class="text-center bg-gradido-gradient">
       <BBadge class="position-absolute mt--2 ms--5 px-3 bg-gradido-gradient">
-        {{ $t('member') }}
+        {{ $t('community.community') }}
       </BBadge>
     </div>
+    <!-- The tile names the community and counts its members, and says nothing else. It used
+         to read "Member / You are an active member / <number>", and the number looked like a
+         membership number (Bernd, 04.10.2026). With the sentence gone the tile has one line
+         where the balance card beside it has two, so it takes the height of its column and
+         centres that line -- side by side the two cards stay the same height.
+         The height comes from growing in a flex column, not from `h-100`: on the phone the
+         tile carries 16px above itself (`mt-3`), and 100% plus that margin pushed it 16px
+         out of its column, into the gap to the next box (Bernd, 04.10.2026). -->
     <div
-      class="community-member bg-white app-box-shadow gradido-border-radius p-4 border border-success"
+      class="community-member-box bg-white app-box-shadow gradido-border-radius p-4 border border-success flex-grow-1 d-flex align-items-center"
     >
-      <BRow>
-        <BCol cols="9">
-          <div class="h4">{{ $t('community.communityMember') }}</div>
-          <div>{{ CONFIG.COMMUNITY_NAME }}</div>
+      <BRow class="flex-grow-1 align-items-center">
+        <BCol>
+          <div class="h4 mb-0" data-test="community-name">{{ CONFIG.COMMUNITY_NAME }}</div>
         </BCol>
-        <BCol cols="3" align-self="end" class="border-start border-dark">
-          <IBiPeople />
-          {{ totalUsers }}
+        <!-- As wide as the number, on one line: at a fixed quarter the icon and the number
+             broke into two lines on a 320px phone (measured, 40px for 52px of content). -->
+        <BCol
+          cols="auto"
+          class="border-start border-dark text-nowrap"
+          :title="$t('community.members')"
+          data-test="community-member-count"
+        >
+          <IBiPeople aria-hidden="true" />
+          {{ totalUsers ?? '—' }}
+          <span class="visually-hidden">{{ $t('community.members') }}</span>
         </BCol>
       </BRow>
     </div>

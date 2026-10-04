@@ -402,9 +402,9 @@
     "admins": "Administrators",
     "choose-another-community": "Choose another community",
     "community": "Community",
-    "communityMember": "You are an active member",
     "continue-to-registration": "Continue to registration",
     "groupsAndModerators": "Creation groups and moderators",
+    "members": "Members",
     "moderator": "Moderator",
     "moderatorsAllGroups": "For all groups",
     "moderatorsUntagged": "Contributions without a group",
@@ -1069,7 +1069,6 @@
     "minus": "−"
   },
   "maxReached": "Max. reached",
-  "member": "Member",
   "message": {
     "activateEmail": "Your account has not been activated yet. Please check your emails and click the activation link or order a new activation link over the password reset page.",
     "checkEmail": "Your email has been successfully verified. You can sign in now.",
