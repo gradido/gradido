@@ -1099,12 +1099,12 @@
     }
   },
   "navigation": {
-    "admin_area": "Partie administrative",
+    "admin_area": "Admin",
     "back-to-account": "Retour au compte",
     "back-to-settings": "Retour à la configuration",
     "calculator": "Calculatrice",
     "community": "Communauté",
-    "contacts": "Contacts et chat",
+    "contacts": "Chat",
     "logout": "Déconnexion",
     "matching": "Matching",
     "menu": "Menu",

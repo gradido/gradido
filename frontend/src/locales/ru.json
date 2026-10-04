@@ -1099,12 +1099,12 @@
     }
   },
   "navigation": {
-    "admin_area": "Раздел администратора",
+    "admin_area": "Admin",
     "back-to-account": "Назад к счёту",
     "back-to-settings": "Назад к настройкам",
     "calculator": "Калькулятор",
     "community": "Сообщество",
-    "contacts": "Контакты и чат",
+    "contacts": "Чат",
     "logout": "Выйти",
     "matching": "Matching",
     "menu": "Меню",
