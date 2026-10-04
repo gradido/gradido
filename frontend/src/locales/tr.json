@@ -402,9 +402,9 @@
     "admins": "Yöneticiler",
     "choose-another-community": "Başka bir topluluk seç",
     "community": "Topluluk",
-    "communityMember": "Aktif bir üyesin",
     "continue-to-registration": "Kayıt işlemine devam et",
     "groupsAndModerators": "Yaratım grupları ve moderatörler",
+    "members": "Üyeler",
     "moderator": "Moderatör",
     "moderatorsAllGroups": "Tüm gruplar için",
     "moderatorsUntagged": "Grubu olmayan katkılar",
@@ -1069,7 +1069,6 @@
     "minus": "−"
   },
   "maxReached": "Azami ulaşıldı",
-  "member": "Üye",
   "message": {
     "activateEmail": "Hesabın henüz etkinleştirilmedi. Lütfen e-postalarını kontrol et ve aktivasyon linkine tıkla veya şifre sıfırlama sayfası üzerinden yeni bir aktivasyon linki talep et.",
     "checkEmail": "E-posta adresin başarıyla doğrulandı. Şimdi giriş yapabilirsin.",
