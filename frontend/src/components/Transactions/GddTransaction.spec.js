@@ -615,6 +615,9 @@ describe('GddTransaction', () => {
     mountWith({ linkId: 42, greeting })
 
     expect(wrapper.find('[data-test="via-greeting"]').text()).toContain('via_greeting')
+    expect(wrapper.find('[data-test="via-greeting"] [data-icon]').attributes('data-icon')).toBe(
+      'bouquet',
+    )
     expect(wrapper.text()).not.toContain('via_link')
   })
 
