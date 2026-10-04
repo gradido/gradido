@@ -5,6 +5,8 @@ import {
 } from 'database'
 import { getLogger } from 'log4js'
 import {
+  CHAT_IMAGE_MAX_BYTES,
+  CHAT_IMAGE_MAX_PIXELS,
   CHAT_IMAGE_MAX_SIDE,
   DomainError,
   Result,
@@ -13,8 +15,13 @@ import {
 } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
 import { databaseErrorCode } from './ChatMessage.logic'
-import { ChatMessageImageAccepted, ChatMessageImageSent } from './ChatMessageImage.logic'
-import { decodeJpegImage, JpegImageRefusal } from './JpegImage.logic'
+import {
+  acceptChatMessageImage,
+  ChatMessageImageAccepted,
+  ChatMessageImageNotAccepted,
+  ChatMessageImageSent,
+} from './ChatMessageImage.logic'
+import { decodeJpegImage, JpegImageRefusal, reencodeJpegImage } from './JpegImage.logic'
 
 const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.logic.ThankYouGreetingPicture`)
 
@@ -25,6 +32,10 @@ const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.logic.ThankYo
  * The small rendition is a chat picture in every bound and is checked as one
  * (acceptChatMessageImage) -- it is what the conversation of the two shows once the greeting is
  * accepted. The large one has bounds of its own, below.
+ *
+ * ⛔ Neither is stored as it came. Whoever holds the code of an open link gets the picture,
+ * signed in or not, so both renditions are decoded and encoded again (reencodeJpegImage): what
+ * is stored and served was written by this server from pixels alone.
  *
  * In `core`, not in the backend: a link is accepted from another community as well
  * (processXComCompleteTransaction), by the federation module, and the large rendition goes on
@@ -56,8 +67,8 @@ const isSide = (side: number): boolean =>
  * CHAT_IMAGE_MAX_SIDE, and the area at most THANK_YOU_PICTURE_LARGE_MAX_PIXELS -- the wallet
  * draws it at 1080 x 750 at most.
  *
- * The size is the sender's word, as a chat picture's: without a decoder the server cannot
- * measure it, only bound it.
+ * Asked of the size the sender gives, before any work is done on the picture; the decoder holds
+ * the picture itself to the same bounds (acceptLargeThankYouGreetingPicture).
  */
 export const largeThankYouGreetingPictureSizeFits = (width: number, height: number): boolean =>
   isSide(width) && isSide(height) && width * height <= THANK_YOU_PICTURE_LARGE_MAX_PIXELS
@@ -65,14 +76,20 @@ export const largeThankYouGreetingPictureSizeFits = (width: number, height: numb
 /**
  * The large rendition as a member sends it, checked the way a chat picture and the avatar are
  * (decodeJpegImage): not empty, at most THANK_YOU_PICTURE_LARGE_MAX_BYTES, a JPEG at both ends
- * -- and a size that fits. Nothing is decoded and nothing changed: the wallet has cut, scaled
- * and encoded it.
+ * -- and a size that fits. Then decoded and encoded again within the same bounds: a picture
+ * that does not decode is NOT_JPEG, one that is larger than its sender said SIZE, one that does
+ * not fit the bytes at the lowest quality TOO_LARGE.
+ *
+ * What comes back is the picture as this server encoded it, with the size the decoder found --
+ * the sender's word for it only decides whether the work is done at all.
  */
-export function acceptLargeThankYouGreetingPicture({
+export async function acceptLargeThankYouGreetingPicture({
   data,
   width,
   height,
-}: ChatMessageImageSent): Result<ChatMessageImageAccepted, ThankYouGreetingPictureNotAccepted> {
+}: ChatMessageImageSent): Promise<
+  Result<ChatMessageImageAccepted, ThankYouGreetingPictureNotAccepted>
+> {
   const decoded = decodeJpegImage(data, THANK_YOU_PICTURE_LARGE_MAX_BYTES)
   if (!decoded.success) {
     return {
@@ -91,7 +108,55 @@ export function acceptLargeThankYouGreetingPicture({
       error: new ThankYouGreetingPictureNotAccepted('SIZE', decoded.value.length, width, height),
     }
   }
-  return { success: true, value: { image: decoded.value, width, height } }
+  const reencoded = await reencodeJpegImage(decoded.value, {
+    maxBytes: THANK_YOU_PICTURE_LARGE_MAX_BYTES,
+    maxSide: CHAT_IMAGE_MAX_SIDE,
+    maxPixels: THANK_YOU_PICTURE_LARGE_MAX_PIXELS,
+  })
+  if (!reencoded.success) {
+    return {
+      success: false,
+      error: new ThankYouGreetingPictureNotAccepted(
+        reencoded.error.reason,
+        decoded.value.length,
+        width,
+        height,
+      ),
+    }
+  }
+  return reencoded
+}
+
+/**
+ * The small rendition as a member sends it with the link: checked as a chat picture
+ * (acceptChatMessageImage), then decoded and encoded again within a chat picture's bounds.
+ * Refused in a chat picture's words, with the reasons acceptLargeThankYouGreetingPicture gives
+ * for a picture that is not re-encoded.
+ */
+export async function acceptSmallThankYouGreetingPicture(
+  sent: ChatMessageImageSent,
+): Promise<Result<ChatMessageImageAccepted, ChatMessageImageNotAccepted>> {
+  const checked = acceptChatMessageImage(sent)
+  if (!checked.success) {
+    return checked
+  }
+  const reencoded = await reencodeJpegImage(checked.value.image, {
+    maxBytes: CHAT_IMAGE_MAX_BYTES,
+    maxSide: CHAT_IMAGE_MAX_SIDE,
+    maxPixels: CHAT_IMAGE_MAX_PIXELS,
+  })
+  if (!reencoded.success) {
+    return {
+      success: false,
+      error: new ChatMessageImageNotAccepted(
+        reencoded.error.reason,
+        checked.value.image.length,
+        sent.width,
+        sent.height,
+      ),
+    }
+  }
+  return reencoded
 }
 
 /**

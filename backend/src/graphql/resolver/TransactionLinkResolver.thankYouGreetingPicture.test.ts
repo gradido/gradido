@@ -12,6 +12,7 @@ import {
   ThankYouGreetingPicturesOfLink,
 } from 'database'
 import { CHAT_IMAGE_MAX_SIDE, THANK_YOU_PICTURE_LARGE_MAX_BYTES } from 'shared'
+import { reencodeImage } from 'shared-native'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { THANK_YOU_GREETING_PICTURES_MAX_PER_REQUEST } from '@/data/ThankYouGreetingPicture.logic'
 import { Context, newRequestBudget } from '@/server/context'
@@ -73,11 +74,27 @@ const SMALL = Buffer.concat([
   Buffer.from('small'),
   Buffer.from([0xff, 0xd9]),
 ])
+// A picture that decodes -- 4 x 2 grey pixels, the smallest JPEG ImageMagick writes -- with the
+// secret in a comment segment: the upload is decoded and encoded again before it is filed.
+const PICTURE = Buffer.from(
+  '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/wAALCAACAAQBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAAAP/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AP//Z',
+  'base64',
+)
 const LARGE = Buffer.concat([
-  Buffer.from([0xff, 0xd8]),
+  PICTURE.subarray(0, 2),
+  Buffer.from([0xff, 0xfe, 0x00, SECRET.length + 2]),
   Buffer.from(SECRET),
-  Buffer.from([0xff, 0xd9]),
+  PICTURE.subarray(2),
 ])
+// LARGE as the server files it: at the quality it came in with, the encoder's own default.
+let LARGE_STORED: Buffer
+beforeAll(async () => {
+  const reencoded = await reencodeImage(LARGE, { maxOutputBytes: 64 * 1024 })
+  if (!reencoded.success) {
+    throw new Error(reencoded.error.name)
+  }
+  LARGE_STORED = reencoded.value.data
+})
 
 const openLink = {
   id: LINK_ID,
@@ -306,14 +323,17 @@ describe('addThankYouGreetingPicture', () => {
     expect(await add()).toBe(true)
 
     expect(insertPicture).toHaveBeenCalledTimes(1)
+    // The picture encoded again, at the size it has -- not the bytes and the size as sent.
     expect(insertPicture).toHaveBeenCalledWith({
       transactionLinkCode: CODE,
       rendition: 'large',
-      width: 1080,
-      height: 750,
-      image: LARGE,
+      width: 4,
+      height: 2,
+      image: LARGE_STORED,
       mimeType: 'image/jpeg',
     })
+    expect(LARGE.includes(SECRET)).toBe(true)
+    expect(LARGE_STORED.includes(SECRET)).toBe(false)
     expect(removeLarge).not.toHaveBeenCalled()
   })
 
@@ -324,10 +344,17 @@ describe('addThankYouGreetingPicture', () => {
       Buffer.alloc(THANK_YOU_PICTURE_LARGE_MAX_BYTES, 0x20),
       Buffer.from([0xff, 0xd9]),
     ]).toString('base64')
+    const noPicture = Buffer.concat([
+      Buffer.from([0xff, 0xd8]),
+      Buffer.from(SECRET),
+      Buffer.from([0xff, 0xd9]),
+    ]).toString('base64')
     for (const [sent, reason] of [
       [picture(''), 'EMPTY'],
       [picture(tooLarge), 'TOO_LARGE'],
       [picture(Buffer.from('<svg onload=alert(1)>').toString('base64')), 'NOT_JPEG'],
+      // A JPEG at both ends and no picture between.
+      [picture(noPicture), 'NOT_JPEG'],
       [picture(undefined, 1200, 833), 'SIZE'],
       [picture(undefined, CHAT_IMAGE_MAX_SIDE + 1, 100), 'SIZE'],
     ] as const) {

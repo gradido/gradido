@@ -1,5 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { DomainError, JPEG_END_BYTES, JPEG_MAGIC_BYTES, Result } from 'shared'
+import { type ReencodeImageErrorName, reencodeImage } from 'shared-native'
 
 /**
  * What a picture has to be to come into this server: the check every JPEG goes through that
@@ -70,4 +71,105 @@ export function decodeJpegImage(
   }
 
   return { success: true, value: bytes }
+}
+
+/**
+ * A picture that is shown to more than the two it is between is not stored as it came: it is
+ * decoded under hard limits and its pixels are encoded again (rust-image-ffi in shared-native).
+ * What is stored then was written by this server from pixels alone -- no EXIF, no comment, no
+ * bytes behind the end marker --, and a picture that does not decode is refused.
+ *
+ * So far for the pictures of a thank-you greeting, which whoever holds a link's code gets. The
+ * avatar and the chat picture are still stored as they come (decodeJpegImage alone).
+ */
+
+/** The bounds a re-encoded picture is held to: bytes as stored, each side, and the area. */
+export interface JpegImageBounds {
+  maxBytes: number
+  maxSide: number
+  maxPixels: number
+}
+
+/** A picture as this server encoded it, and the size it really has. */
+export interface JpegImageReencoded {
+  image: Buffer
+  width: number
+  height: number
+}
+
+/**
+ * Why a picture was not re-encoded: it does not decode as a JPEG, it is wider, higher or larger
+ * than the bounds, or it does not fit `maxBytes` at the lowest quality.
+ */
+export type JpegImageReencodeRefusal = 'NOT_JPEG' | 'SIZE' | 'TOO_LARGE'
+
+export class JpegImageNotReencoded extends DomainError {
+  constructor(
+    public readonly reason: JpegImageReencodeRefusal,
+    public readonly nativeError: ReencodeImageErrorName,
+    public readonly bytes: number,
+  ) {
+    super(`JPEG_IMAGE_NOT_REENCODED: ${reason} (${nativeError}), ${bytes} bytes`)
+  }
+}
+
+/**
+ * The qualities a picture is encoded at, the first that fits `maxBytes` wins: the steps the
+ * wallet takes to bring a picture under its target (AVATAR_QUALITY_STEPS). Each is the highest
+ * quality used, not the one that always is: a JPEG is never encoded at a higher quality than it
+ * came in with (jpegQualityFromInput in shared-native), so the wallet's picture, which has been
+ * through one of the steps already, comes out at that step and at the size it came in with.
+ */
+export const JPEG_REENCODE_QUALITY_STEPS = [85, 75, 65, 55, 45]
+
+const reencodeRefusal = (nativeError: ReencodeImageErrorName): JpegImageReencodeRefusal => {
+  switch (nativeError) {
+    case 'RIMG_ERR_LIMIT':
+      return 'SIZE'
+    case 'RIMG_ERR_BUFFER_TOO_SMALL':
+      return 'TOO_LARGE'
+    default:
+      return 'NOT_JPEG'
+  }
+}
+
+/**
+ * The picture decoded and encoded again as a JPEG within `bounds`, with the size the decoder
+ * found -- or why not. JPEG in only: the format is decided on the first bytes. Every pass is
+ * CPU work on a worker thread, and a picture from the wallet takes one.
+ */
+export async function reencodeJpegImage(
+  image: Buffer,
+  { maxBytes, maxSide, maxPixels }: JpegImageBounds,
+): Promise<Result<JpegImageReencoded, JpegImageNotReencoded>> {
+  let nativeError: ReencodeImageErrorName = 'RIMG_ERR_BUFFER_TOO_SMALL'
+  // The quality the last pass encoded at; a step that is not below it would encode the same again.
+  let encodedAt = Number.POSITIVE_INFINITY
+  for (const jpegQuality of JPEG_REENCODE_QUALITY_STEPS) {
+    if (jpegQuality >= encodedAt) {
+      continue
+    }
+    const reencoded = await reencodeImage(image, {
+      maxOutputBytes: maxBytes,
+      maxWidth: maxSide,
+      maxHeight: maxSide,
+      maxPixels,
+      jpegQuality,
+    })
+    if (reencoded.success) {
+      const { data, width, height } = reencoded.value
+      return { success: true, value: { image: data, width, height } }
+    }
+    nativeError = reencoded.error.name
+    // Only a picture over the byte bound gets better at a lower quality.
+    if (nativeError !== 'RIMG_ERR_BUFFER_TOO_SMALL') {
+      break
+    }
+    // 0 is a quality nobody could read from the picture; the step was used as it is then.
+    encodedAt = Math.min(jpegQuality, reencoded.error.inputJpegQuality || jpegQuality)
+  }
+  return {
+    success: false,
+    error: new JpegImageNotReencoded(reencodeRefusal(nativeError), nativeError, image.length),
+  }
 }

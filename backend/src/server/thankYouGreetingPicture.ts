@@ -39,9 +39,10 @@ const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.thankY
 
 /**
  * The policy the picture is served with, in the place of the one helmet gives every answer of
- * this server. These are bytes a member sent, never decoded here, served from the wallet's own
- * address to whoever holds the code -- and the wallet keeps a member's session in that address's
- * storage. Type and `nosniff` make a browser read them as a picture or not at all; should one
+ * this server. This is a member's picture, served from the wallet's own address to whoever holds
+ * the code -- and the wallet keeps a member's session in that address's storage. What is filed
+ * now was decoded and encoded again by this server (acceptLargeThankYouGreetingPicture in core);
+ * a row from before that is the bytes a member sent, and the policy holds for both. Type and `nosniff` make a browser read them as a picture or not at all; should one
  * ever show them as a document all the same, that document may load nothing, run nothing, and
  * belongs to no origin (`sandbox`). The inline style is what a browser's own picture view uses.
  */
@@ -96,8 +97,9 @@ export async function apiThankYouGreetingPicture(req: any, res: any): Promise<vo
   // cache, and an empty answer is not remembered for a link that is made a moment later.
   //
   // The headers are written out here and nothing of the request goes into them. The type is
-  // fixed: what is stored was checked to begin and end as a JPEG, never decoded, and helmet's
-  // `X-Content-Type-Options: nosniff` keeps a browser from reading it as anything else. Its
+  // fixed: what is stored is a JPEG this server encoded -- or, in a row from before it did, one
+  // checked to begin and end as a JPEG --, and helmet's `X-Content-Type-Options: nosniff` keeps
+  // a browser from reading it as anything else. Its
   // `Cross-Origin-Resource-Policy: same-origin` keeps other sites from showing it as theirs.
   if (!image) {
     res.writeHead(404, { 'Cache-Control': 'no-store', 'Content-Length': 0 })

@@ -19,6 +19,7 @@ import {
 import { GraphQLError } from 'graphql'
 import { gql } from 'graphql-tag'
 import { CHAT_IMAGE_MAX_BYTES, CHAT_IMAGE_MAX_SIDE } from 'shared'
+import { reencodeImage } from 'shared-native'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { creations } from '@/seeds/creation/index'
@@ -86,14 +87,48 @@ const LINE = 'Einfach so — weil es Dich gibt.'
 const WORDS = 'Liebe Sarah, mit Eurem iPad hat alles angefangen.\nEure Oma'
 const MEMO = `${LINE}\n${WORDS}`
 
-// Two JPEGs with something recognisable inside each: what is handed out is seen, and what a log
-// or an answer must not show.
-const jpegAround = (inside: string) =>
-  Buffer.concat([Buffer.from([0xff, 0xd8]), Buffer.from(inside), Buffer.from([0xff, 0xd9])])
-const SMALL = jpegAround('the small rendition of a private photo of Oma Emma')
-const LARGE = jpegAround('the large rendition of a private photo of Oma Emma, for the page')
+// Two pictures that decode -- 4 x 2 and 6 x 4 grey pixels, the smallest JPEGs ImageMagick writes
+// -- with something recognisable in a comment segment of each: what a log or an answer must not
+// show, and what the picture as it is stored must not carry any more.
+const SMALL_HIDDEN = 'the small rendition of a private photo of Oma Emma'
+const LARGE_HIDDEN = 'the large rendition of a private photo of Oma Emma, for the page'
+const jpegWithComment = (base64: string, comment: string) => {
+  const picture = Buffer.from(base64, 'base64')
+  return Buffer.concat([
+    picture.subarray(0, 2),
+    Buffer.from([0xff, 0xfe, 0x00, comment.length + 2]),
+    Buffer.from(comment),
+    picture.subarray(2),
+  ])
+}
+const SMALL = jpegWithComment(
+  '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/wAALCAACAAQBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAAAP/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AP//Z',
+  SMALL_HIDDEN,
+)
+const LARGE = jpegWithComment(
+  '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/wAALCAAEAAYBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAABv/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AQP/Z',
+  LARGE_HIDDEN,
+)
+// What the sender says the sizes are, and what they are.
 const SMALL_PICTURE = { data: SMALL.toString('base64'), width: 831, height: 577 }
 const LARGE_PICTURE = { data: LARGE.toString('base64'), width: 1080, height: 750 }
+const SMALL_SIZE = { width: 4, height: 2 }
+const LARGE_SIZE = { width: 6, height: 4 }
+// The two as the server stores and serves them: decoded and encoded again, at the quality they
+// came in with -- what the encoder does by default, and what core's first step comes to.
+let SMALL_STORED: Buffer
+let LARGE_STORED: Buffer
+const stored = async (picture: Buffer): Promise<Buffer> => {
+  const reencoded = await reencodeImage(picture, { maxOutputBytes: 64 * 1024 })
+  if (!reencoded.success) {
+    throw new Error(reencoded.error.name)
+  }
+  return reencoded.value.data
+}
+beforeAll(async () => {
+  SMALL_STORED = await stored(SMALL)
+  LARGE_STORED = await stored(LARGE)
+})
 const WITH_PICTURE = { picture: SMALL_PICTURE, line: LINE, recipientName: 'Sarah' }
 const sarah = { amount: '5', memo: MEMO, greeting: WITH_PICTURE }
 
@@ -290,14 +325,17 @@ describe('createTransactionLink with a greeting that carries a picture', () => {
     expect(greetings[0]).toMatchObject({ motif: null, line: LINE, recipientName: 'Sarah' })
     const pictures = (await pictureRows()).filter((row) => row.transactionLinkCode === link.code)
     expect(pictures).toHaveLength(1)
+    // The size the picture has, not the one its sender gave.
     expect(pictures[0]).toMatchObject({
       rendition: 'small',
-      width: 831,
-      height: 577,
+      ...SMALL_SIZE,
       mimeType: 'image/jpeg',
     })
-    // The bytes as they came, not decoded and not changed.
-    expect(pictures[0].image.equals(SMALL)).toBe(true)
+    // Not the bytes as they came: the picture decoded and encoded again, and nothing of what
+    // was hidden in it.
+    expect(pictures[0].image.equals(SMALL_STORED)).toBe(true)
+    expect(SMALL.includes(SMALL_HIDDEN)).toBe(true)
+    expect(pictures[0].image.includes(SMALL_HIDDEN)).toBe(false)
   })
 
   it('files the greeting and its picture before the link is saved', async () => {
@@ -389,6 +427,12 @@ describe('createTransactionLink with a greeting that carries a picture', () => {
         Buffer.from([0xff, 0xd9]),
       ]).toString('base64')
       const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0xff, 0xd9]).toString('base64')
+      // A JPEG at both ends, which is all the check without a decoder asked for.
+      const noPicture = Buffer.concat([
+        Buffer.from([0xff, 0xd8]),
+        Buffer.from(SMALL_HIDDEN),
+        Buffer.from([0xff, 0xd9]),
+      ]).toString('base64')
 
       await refused(
         { ...WITH_PICTURE, picture: { ...SMALL_PICTURE, data: '' } },
@@ -400,6 +444,10 @@ describe('createTransactionLink with a greeting that carries a picture', () => {
       )
       await refused(
         { ...WITH_PICTURE, picture: { ...SMALL_PICTURE, data: png } },
+        'CHAT_IMAGE_NOT_ACCEPTED: NOT_JPEG',
+      )
+      await refused(
+        { ...WITH_PICTURE, picture: { ...SMALL_PICTURE, data: noPicture } },
         'CHAT_IMAGE_NOT_ACCEPTED: NOT_JPEG',
       )
     })
@@ -570,8 +618,10 @@ describe('addThankYouGreetingPicture', () => {
     const [large] = (await pictureRows()).filter(
       (row) => row.transactionLinkCode === link.code && row.rendition === 'large',
     )
-    expect(large).toMatchObject({ width: 1080, height: 750, mimeType: 'image/jpeg' })
-    expect(large.image.equals(LARGE)).toBe(true)
+    expect(large).toMatchObject({ ...LARGE_SIZE, mimeType: 'image/jpeg' })
+    expect(large.image.equals(LARGE_STORED)).toBe(true)
+    expect(LARGE.includes(LARGE_HIDDEN)).toBe(true)
+    expect(large.image.includes(LARGE_HIDDEN)).toBe(false)
 
     // A second time: refused, and the first one stays as it is.
     expect(await add(link.id, { ...LARGE_PICTURE, data: SMALL_PICTURE.data })).toEqual({
@@ -581,7 +631,7 @@ describe('addThankYouGreetingPicture', () => {
     const [still] = (await pictureRows()).filter(
       (row) => row.transactionLinkCode === link.code && row.rendition === 'large',
     )
-    expect(still.image.equals(LARGE)).toBe(true)
+    expect(still.image.equals(LARGE_STORED)).toBe(true)
   })
 
   it('refuses what is no picture, with the reason, and files nothing', async () => {
@@ -590,6 +640,19 @@ describe('addThankYouGreetingPicture', () => {
     const refused = await add(link.id, { ...LARGE_PICTURE, width: 1200, height: 833 })
 
     expect(refused.errors).toEqual([new GraphQLError('THANK_YOU_PICTURE_NOT_ACCEPTED: SIZE')])
+    expect(await renditionsOf(link.code)).toEqual(['small'])
+
+    // A JPEG at both ends and no picture between.
+    const noPicture = Buffer.concat([
+      Buffer.from([0xff, 0xd8]),
+      Buffer.from(LARGE_HIDDEN),
+      Buffer.from([0xff, 0xd9]),
+    ]).toString('base64')
+    const notDecoded = await add(link.id, { ...LARGE_PICTURE, data: noPicture })
+
+    expect(notDecoded.errors).toEqual([
+      new GraphQLError('THANK_YOU_PICTURE_NOT_ACCEPTED: NOT_JPEG'),
+    ])
     expect(await renditionsOf(link.code)).toEqual(['small'])
   })
 
@@ -645,7 +708,7 @@ describe('an open greeting with a picture', () => {
     const answer = await atTheAddress(link.code)
 
     expect(answer.status).toBe(200)
-    expect(answer.body.equals(LARGE)).toBe(true)
+    expect(answer.body.equals(LARGE_STORED)).toBe(true)
     expect(answer.headers['content-type']).toBe('image/jpeg')
     expect(answer.headers['cache-control']).toBe('no-store')
     expect(answer.headers['x-content-type-options']).toBe('nosniff')
@@ -657,7 +720,7 @@ describe('an open greeting with a picture', () => {
     const answer = await atTheAddress(smallOnly.code)
 
     expect(answer.status).toBe(200)
-    expect(answer.body.equals(SMALL)).toBe(true)
+    expect(answer.body.equals(SMALL_STORED)).toBe(true)
   })
 
   it('answers empty at the address for an unknown code, a motif’s link and a text that is no code', async () => {
@@ -692,11 +755,11 @@ describe('an open greeting with a picture', () => {
       expectEmpty(await atThePath(address, method))
     }
     // …and the address itself still serves the picture.
-    expect((await atTheAddress(link.code)).body.equals(LARGE)).toBe(true)
+    expect((await atTheAddress(link.code)).body.equals(LARGE_STORED)).toBe(true)
   })
 
   it('hands the small rendition to the sender by the link’s id, and to nobody else', async () => {
-    expect(await pictureFor('bibi@bloxberg.de', link.id)).toBe(SMALL_PICTURE.data)
+    expect(await pictureFor('bibi@bloxberg.de', link.id)).toBe(SMALL_STORED.toString('base64'))
     expect(await pictureFor('bob@baumeister.de', link.id)).toBeNull()
     // Not yet to the one who will accept it: nobody has.
     expect(await pictureFor('peter@lustig.de', link.id)).toBeNull()
@@ -740,8 +803,8 @@ describe('once the thank-you is accepted', () => {
   })
 
   it('the sender and the one who accepted get the small rendition, a third member none', async () => {
-    expect(await pictureFor('bibi@bloxberg.de', link.id)).toBe(SMALL_PICTURE.data)
-    expect(await pictureFor('peter@lustig.de', link.id)).toBe(SMALL_PICTURE.data)
+    expect(await pictureFor('bibi@bloxberg.de', link.id)).toBe(SMALL_STORED.toString('base64'))
+    expect(await pictureFor('peter@lustig.de', link.id)).toBe(SMALL_STORED.toString('base64'))
     expect(await pictureFor('bob@baumeister.de', link.id)).toBeNull()
   })
 
@@ -787,7 +850,7 @@ describe('a greeting that ran out', () => {
   })
 
   it('still shows the small rendition to the sender, and to nobody else', async () => {
-    expect(await pictureFor('bibi@bloxberg.de', link.id)).toBe(SMALL_PICTURE.data)
+    expect(await pictureFor('bibi@bloxberg.de', link.id)).toBe(SMALL_STORED.toString('base64'))
     expect(await pictureFor('bob@baumeister.de', link.id)).toBeNull()
     expect(await pictureFor('peter@lustig.de', link.id)).toBeNull()
   })
@@ -848,6 +911,6 @@ describe('an open greeting of a member whose account is deleted', () => {
       await User.update({ id: bibi.id }, { deletedAt: null })
     }
 
-    expect((await atTheAddress(link.code)).body.equals(LARGE)).toBe(true)
+    expect((await atTheAddress(link.code)).body.equals(LARGE_STORED)).toBe(true)
   })
 })

@@ -10,6 +10,9 @@
 
 // Module initialization
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
+    if (!gradido::image::CheckAbi(env)) {
+        return exports;
+    }
     // functions
     exports.Set("calculateDecay", Napi::Function::New(env, gradidoUnit::CalculateDecay));
     exports.Set("getDecayStartTime", Napi::Function::New(env, gradidoUnit::GetDecayStartTime));

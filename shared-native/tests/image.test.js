@@ -30,8 +30,9 @@ function isJpeg(data) {
   )
 }
 
-// an RGB PNG of noise, the picture that compresses worst; seeded, so every run sees the same one
-function noisePng(width, height) {
+// a PNG of noise, RGB or with 4 channels RGBA: the picture that compresses worst; seeded, so
+// every run sees the same one
+function noisePng(width, height, channels = 3) {
   const crcTable = Array.from({ length: 256 }, (_, n) => {
     let c = n
     for (let k = 0; k < 8; k++) {
@@ -55,8 +56,8 @@ function noisePng(width, height) {
   header.writeUInt32BE(width, 0)
   header.writeUInt32BE(height, 4)
   header[8] = 8 // bits per channel
-  header[9] = 2 // RGB
-  const rowBytes = 1 + width * 3
+  header[9] = channels === 4 ? 6 : 2 // RGBA or RGB
+  const rowBytes = 1 + width * channels
   const rows = Buffer.alloc(height * rowBytes)
   let seed = 1
   for (let i = 0; i < rows.length; i++) {
@@ -81,6 +82,7 @@ describe('probeImage', () => {
         width: fixture.jpeg.width,
         height: fixture.jpeg.height,
         hasAlpha: false,
+        inputJpegQuality: fixture.jpeg.quality,
       },
     })
     assert.deepEqual(probeImage(transparentPng), {
@@ -90,6 +92,8 @@ describe('probeImage', () => {
         width: fixture.transparentPng.width,
         height: fixture.transparentPng.height,
         hasAlpha: true,
+        // only a JPEG has one
+        inputJpegQuality: 0,
       },
     })
   })
@@ -122,6 +126,7 @@ describe('reencodeImage', () => {
         width: fixture.jpeg.width,
         height: fixture.jpeg.height,
         hasAlpha: false,
+        inputJpegQuality: fixture.jpeg.quality,
       })
       assert.ok(Buffer.isBuffer(data))
       assert.ok(data.length <= BUDGET)
@@ -159,22 +164,59 @@ describe('reencodeImage', () => {
       }
     })
     it('still fits a picture that encodes larger than its size suggests', async () => {
-      const width = 256
-      const height = 256
-      const result = await reencodeImage(noisePng(width, height), {
+      // one pixel wide: a PNG row costs a byte more than its pixels, and noise does not compress
+      const width = 1
+      const height = 2000
+      const result = await reencodeImage(noisePng(width, height, 4), {
         maxOutputBytes: 1024 * 1024,
         inputFormats: ['png'],
-        jpegQuality: 100,
+        outputFormat: 'png',
       })
       assert.equal(result.success, true)
       // over the binding's estimate of 4 bytes per pixel plus 1024, so this took the second pass
       assert.ok(result.value.data.length > width * height * 4 + 1024)
-      assert.ok(isJpeg(result.value.data))
+      assert.deepEqual(result.value.data.subarray(0, 8), PNG_SIGNATURE)
     })
     it('encodes smaller at a lower jpegQuality', async () => {
-      const high = await reencodeImage(jpeg, { maxOutputBytes: BUDGET, jpegQuality: 100 })
-      const low = await reencodeImage(jpeg, { maxOutputBytes: BUDGET, jpegQuality: 10 })
+      const options = { maxOutputBytes: BUDGET, inputFormats: ['png'] }
+      const noise = noisePng(64, 64)
+      const high = await reencodeImage(noise, { ...options, jpegQuality: 90 })
+      const low = await reencodeImage(noise, { ...options, jpegQuality: 30 })
       assert.ok(low.value.data.length < high.value.data.length)
+    })
+    it('encodes a JPEG at the quality it came in with, and no higher', async () => {
+      const options = { maxOutputBytes: BUDGET }
+      const coarse = await reencodeImage(noisePng(64, 64), {
+        ...options,
+        inputFormats: ['png'],
+        jpegQuality: 30,
+      })
+      assert.equal(probeImage(coarse.value.data).value.inputJpegQuality, 30)
+
+      // jpegQuality 85 by default, which is only the highest that is used
+      const kept = await reencodeImage(coarse.value.data, options)
+      assert.equal(kept.value.inputJpegQuality, 30)
+      assert.equal(probeImage(kept.value.data).value.inputJpegQuality, 30)
+
+      const lower = await reencodeImage(coarse.value.data, { ...options, jpegQuality: 20 })
+      assert.equal(probeImage(lower.value.data).value.inputJpegQuality, 20)
+
+      const raised = await reencodeImage(coarse.value.data, {
+        ...options,
+        jpegQualityFromInput: false,
+      })
+      assert.equal(probeImage(raised.value.data).value.inputJpegQuality, 85)
+      // more bytes for the same picture
+      assert.ok(raised.value.data.length > kept.value.data.length)
+    })
+    it('stores color at half resolution unless jpegSubsampling is false', async () => {
+      const options = { maxOutputBytes: BUDGET, inputFormats: ['png'] }
+      const noise = noisePng(64, 64)
+      const byDefault = await reencodeImage(noise, options)
+      const subsampled = await reencodeImage(noise, { ...options, jpegSubsampling: true })
+      const full = await reencodeImage(noise, { ...options, jpegSubsampling: false })
+      assert.deepEqual(byDefault.value.data, subsampled.value.data)
+      assert.ok(full.value.data.length > subsampled.value.data.length)
     })
     it('encodes as PNG when asked to', async () => {
       const result = await reencodeImage(jpeg, { maxOutputBytes: BUDGET, outputFormat: 'png' })
@@ -202,6 +244,7 @@ describe('reencodeImage', () => {
         width: fixture.transparentPng.width,
         height: fixture.transparentPng.height,
         hasAlpha: true,
+        inputJpegQuality: 0,
       })
       assert.ok(isJpeg(data))
     })
@@ -232,6 +275,8 @@ describe('reencodeImage', () => {
       assert.equal(result.success, false)
       assert.equal(result.error.name, 'RIMG_ERR_BUFFER_TOO_SMALL')
       assert.equal(result.error.requiredBytes, requiredBytes)
+      // with it a caller picks the next quality below the one that was used
+      assert.equal(result.error.inputJpegQuality, fixture.jpeg.quality)
       assert.equal(typeof result.error.message, 'string')
 
       const exact = await reencodeImage(jpeg, { maxOutputBytes: requiredBytes })
@@ -303,6 +348,8 @@ describe('reencodeImage', () => {
         { maxPixels: Number.NaN },
         { maxAllocBytes: 2 ** 60 },
         { applyOrientation: 1 },
+        { jpegSubsampling: 1 },
+        { jpegQualityFromInput: 'yes' },
         { inputFormats: [] },
         { inputFormats: ['gif'] },
         { inputFormats: 'jpeg' },
