@@ -34,12 +34,12 @@ const i18n = createI18n({
         send: 'Send',
         calculator: 'Calculator',
         transactions: 'Transactions',
-        contacts: 'Contacts & Chat',
+        contacts: 'Chat',
         matching: 'Matching',
         circles: 'Circles',
         usersearch: 'User Search',
         settings: 'Settings',
-        admin_area: 'Admin Area',
+        admin_area: 'Admin',
         logout: 'Logout',
       },
       info: 'Info',
@@ -119,14 +119,7 @@ describe('Sidebar', () => {
           .findAll('ul')[0]
           .findAll('.nav-item')
           .map((item) => item.text())
-        expect(labels).toEqual([
-          'Overview',
-          'Transactions',
-          'Creation',
-          'Send',
-          'Matching',
-          'Contacts & Chat',
-        ])
+        expect(labels).toEqual(['Overview', 'Transactions', 'Creation', 'Send', 'Matching', 'Chat'])
       })
 
       it('has nav-item "navigation.transactions" right after the overview', () => {
@@ -160,7 +153,7 @@ describe('Sidebar', () => {
       // Beside matching, last of the six: with the chat the list is people more than bookings
       // (E-031; it stood under the transactions before, KF-008).
       it('has nav-item "navigation.contacts" last, beside matching', () => {
-        expect(wrapper.findAll('.nav-item').at(5).text()).toContain('Contacts & Chat')
+        expect(wrapper.findAll('.nav-item').at(5).text()).toContain('Chat')
         expect(wrapper.findAll('.nav-item').at(5).find('a').attributes('href')).toBe('/contacts')
       })
 
@@ -204,7 +197,7 @@ describe('Sidebar', () => {
         it('has nav-item "navigation.admin_area" in navbar', () => {
           const adminItems = wrapper.findAll('.nav-item').slice(7)
           expect(adminItems.length).toBeGreaterThan(1)
-          expect(adminItems[1].text()).toContain('Admin Area')
+          expect(adminItems[1].text()).toContain('Admin')
         })
 
         it('has nav-item "navigation.logout" in navbar', () => {
@@ -242,7 +235,7 @@ describe('Sidebar and the project account', () => {
     const wrapper = mountSidebar({ creationAllowed: false })
     expect(wrapper.find('[data-test="creation-menu"]').exists()).toBe(false)
     expect(wrapper.text()).not.toContain('Creation')
-    for (const label of ['Overview', 'Send', 'Transactions', 'Contacts', 'Info', 'Settings']) {
+    for (const label of ['Overview', 'Send', 'Transactions', 'Chat', 'Info', 'Settings']) {
       expect(wrapper.text()).toContain(label)
     }
     // The pairs close up around the gap.
@@ -251,7 +244,7 @@ describe('Sidebar and the project account', () => {
         .findAll('ul')[0]
         .findAll('.nav-item')
         .map((item) => item.text()),
-    ).toEqual(['Overview', 'Transactions', 'Send', 'Matching', 'Contacts & Chat'])
+    ).toEqual(['Overview', 'Transactions', 'Send', 'Matching', 'Chat'])
   })
 
   it('mounts without the contributions link the active-route watcher looks for', () => {
@@ -290,7 +283,7 @@ describe('Sidebar with MATCHING_ACTIVE off', () => {
       'Transactions',
       'Creation',
       'Send',
-      'Contacts & Chat',
+      'Chat',
     ])
   })
 
@@ -302,7 +295,7 @@ describe('Sidebar with MATCHING_ACTIVE off', () => {
       'Overview',
       'Send',
       'Transactions',
-      'Contacts',
+      'Chat',
       'Creation',
       'Info',
       'Settings',
@@ -356,7 +349,16 @@ describe('Sidebar and the chat', () => {
     const wrapper = await mountWithUnread(0)
     expect(badge(wrapper).exists()).toBe(false)
     expect(sentence(wrapper).exists()).toBe(false)
-    expect(contactsEntry(wrapper).text()).toBe('Contacts & Chat')
+    expect(contactsEntry(wrapper).text()).toBe('Chat')
+  })
+
+  // The entry is called "Chat" (Bernd, 04.10.2026), so its symbol is the speech bubble the
+  // empty thread shows, and no longer the contact card.
+  it('carries the speech bubble and not the contact card', async () => {
+    const wrapper = await mountWithUnread(0)
+    const html = contactsEntry(wrapper).html()
+    expect(html).toContain('i-mdi-chat-outline')
+    expect(html).not.toContain('account-box')
   })
 
   /**
@@ -377,7 +379,7 @@ describe('Sidebar and the chat', () => {
   })
 
   // The sentence is part of what the link is called, and it comes AFTER the word: a screen
-  // reader says "Contacts & Chat, 3 conversations with new messages".
+  // reader says "Chat, 3 conversations with new messages".
   it('says the number as a sentence after the word, for the ear', async () => {
     const wrapper = await mountWithUnread(3)
     const link = contactsEntry(wrapper).find('a')

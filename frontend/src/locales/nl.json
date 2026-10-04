@@ -1099,12 +1099,12 @@
     }
   },
   "navigation": {
-    "admin_area": "Beheeromgeving",
+    "admin_area": "Admin",
     "back-to-account": "Terug naar de rekening",
     "back-to-settings": "Terug naar instellingen",
     "calculator": "Rekenmachine",
     "community": "Gemeenschap",
-    "contacts": "Contacten en chat",
+    "contacts": "Chat",
     "logout": "Afmelden",
     "matching": "Matching",
     "menu": "Menu",

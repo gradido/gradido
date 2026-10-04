@@ -1099,12 +1099,12 @@
     }
   },
   "navigation": {
-    "admin_area": "Yönetici Alanı",
+    "admin_area": "Admin",
     "back-to-account": "Hesaba dön",
     "back-to-settings": "Ayarlara dön",
     "calculator": "Hesap makinesi",
     "community": "Topluluk",
-    "contacts": "Kişiler & Sohbet",
+    "contacts": "Sohbet",
     "logout": "Çıkış",
     "matching": "Matching",
     "menu": "Menü",
