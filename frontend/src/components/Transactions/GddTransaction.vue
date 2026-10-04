@@ -82,9 +82,10 @@
           {{ $filters.GDD(props.transaction.amount) }}
         </div>
         <!-- A thank-you greeting is a link too, but nobody who got one thinks of a link: the
-             row says what it was (Bernd, 04.10.2026). -->
+             row says what it was (Bernd, 04.10.2026). Asked of the greeting itself, not of
+             its picture: one with a motif this wallet does not know is a greeting still. -->
         <div
-          v-if="props.transaction.linkId && greetingShown"
+          v-if="props.transaction.linkId && props.transaction.greeting"
           class="small"
           data-test="via-greeting"
         >

@@ -611,6 +611,7 @@ describe('GddTransaction', () => {
   it.each([
     ['a motif', { motif: 'morning-light', line: null, hasPicture: false }],
     ['a photo', { motif: null, line: null, hasPicture: true }],
+    ['a motif this wallet does not know', { motif: 'from-a-newer-server', hasPicture: false }],
   ])('says "via a greeting" for a booking that came from one with %s', (_, greeting) => {
     mountWith({ linkId: 42, greeting })
 
