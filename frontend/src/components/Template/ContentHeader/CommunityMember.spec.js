@@ -60,6 +60,12 @@ describe('CommunityMember', () => {
     expect(count.attributes('title')).toBe('community.members')
   })
 
+  it('shows a dash while the count has not arrived, not a bare icon', () => {
+    const count = createWrapper({ totalUsers: null }).find('[data-test="community-member-count"]')
+    expect(count.text()).toContain('—')
+    expect(count.text()).not.toContain('null')
+  })
+
   it('updates when totalUsers prop changes', async () => {
     await wrapper.setProps({ totalUsers: 456 })
     expect(wrapper.text()).toContain('456')

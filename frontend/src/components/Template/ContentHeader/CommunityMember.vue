@@ -29,7 +29,7 @@
           data-test="community-member-count"
         >
           <IBiPeople aria-hidden="true" />
-          {{ totalUsers }}
+          {{ totalUsers ?? '—' }}
           <span class="visually-hidden">{{ $t('community.members') }}</span>
         </BCol>
       </BRow>
