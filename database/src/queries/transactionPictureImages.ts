@@ -1,7 +1,8 @@
 // AI-GENERATED — not an architecture reference
-import { and, eq } from 'drizzle-orm'
+import { and, eq, inArray, isNull } from 'drizzle-orm'
 import { Result, VoidResult } from 'shared'
 import { drizzleDb } from '../AppDatabase'
+import { TransactionTypeId } from '../enum'
 import { DBInsertFailed, DBNotFoundError, driverCodeOfFailedQuery } from '../errorTypes'
 import {
   TransactionPictureImageInsert,
@@ -66,6 +67,11 @@ const isRowId = (id: number): boolean => Number.isInteger(id) && id > 0
  * case alike -- no such row, somebody else's row, a booking without a picture, a picture that
  * is a motif --, so that nothing tells them apart.
  *
+ * Only a row of a transfer between two members, and none made from a link: the same two
+ * conditions the booking list names a picture by (backend, TransactionPicture.logic). Today no
+ * other row carries a picture -- executeTransaction is the one writer of the column --; said
+ * here as well, so that the list and the photo go by one rule whatever is written one day.
+ *
  * ⛔ Not by `linked_transaction_id`: on a booking received from another community that number
  * is the other server's (settlePendingReceiveTransaction), and would name an unrelated booking
  * here.
@@ -97,7 +103,14 @@ export async function dbSelectTransactionPictureImageForMember(
         transactionPictureImagesTable.transactionPictureId,
       ),
     )
-    .where(and(eq(transactionsTable.id, transactionId), eq(transactionsTable.userId, userId)))
+    .where(
+      and(
+        eq(transactionsTable.id, transactionId),
+        eq(transactionsTable.userId, userId),
+        inArray(transactionsTable.typeId, [TransactionTypeId.SEND, TransactionTypeId.RECEIVE]),
+        isNull(transactionsTable.transactionLinkId),
+      ),
+    )
     .limit(1)
   const found = rows.at(0)
   return found ? { success: true, value: found.image } : notFound()

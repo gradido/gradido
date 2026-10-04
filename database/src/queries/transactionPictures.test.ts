@@ -37,6 +37,10 @@ const PLAIN_RECEIVE = 884106
 // A booking received from another community whose `linked_transaction_id` -- the other
 // server's number -- happens to be the id of the booking with the photo here.
 const FROM_AFAR = 884107
+// Rows that carry the photo's id and are no transfer between two members: a creation, and a
+// booking made from a link. Nothing writes such rows; the photo is not theirs all the same.
+const CREATION_WITH_ID = 884108
+const FROM_LINK_WITH_ID = 884109
 const BOOKINGS = [
   SEND_PHOTO,
   RECEIVE_PHOTO,
@@ -45,6 +49,8 @@ const BOOKINGS = [
   PLAIN_SEND,
   PLAIN_RECEIVE,
   FROM_AFAR,
+  CREATION_WITH_ID,
+  FROM_LINK_WITH_ID,
 ]
 const NO_SUCH_BOOKING = 884199
 const gid = (id: number) => `00000000-0000-4000-8000-000000${id}`
@@ -300,6 +306,13 @@ describe('transactionPictures query test', () => {
         booking(PLAIN_SEND, EMMA, TransactionTypeId.SEND),
         booking(PLAIN_RECEIVE, DAVE, TransactionTypeId.RECEIVE),
         booking(FROM_AFAR, CARLA, TransactionTypeId.RECEIVE, { linkedTransactionId: SEND_PHOTO }),
+        booking(CREATION_WITH_ID, CARLA, TransactionTypeId.CREATION, {
+          transactionPictureId: photoId,
+        }),
+        booking(FROM_LINK_WITH_ID, CARLA, TransactionTypeId.RECEIVE, {
+          transactionPictureId: photoId,
+          transactionLinkId: 884900,
+        }),
       ])
     })
 
@@ -340,6 +353,8 @@ describe('transactionPictures query test', () => {
       ['no such booking', NO_SUCH_BOOKING, EMMA],
       // The other server's number names the booking with the photo; her own row carries none.
       ['a booking from afar that names the booking with the photo', FROM_AFAR, CARLA],
+      ['a creation that carries the picture’s id', CREATION_WITH_ID, CARLA],
+      ['a booking made from a link that carries the picture’s id', FROM_LINK_WITH_ID, CARLA],
       ['a number that is no id', 0, EMMA],
       ['no number at all', undefined as unknown as number, EMMA],
       ['no member at all', SEND_PHOTO, undefined as unknown as number],
