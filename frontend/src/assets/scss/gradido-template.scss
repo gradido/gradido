@@ -19,7 +19,8 @@ html > body {
 // `light` variant it asked for brings `text-bg-light`, which this stylesheet does not
 // carry, so the badge's white text stood alone -- invisible on the light page, a bare
 // word on the dark one. Flat, no gradient, in the tone of the unselected navigation
-// icons, which is the same in both modes (Bernd, 04.10.2026). White on it: 4.3 : 1.
+// icons, which is the same in both modes (Bernd, 04.10.2026). White on it: 4.42 : 1,
+// just under the 4.5 for small text -- kept for the exact icon tone (Bernd, #4056).
 .bg-gradido-muted {
   background: var(--icon-muted) !important;
   color: white !important;
