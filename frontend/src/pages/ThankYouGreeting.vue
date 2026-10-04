@@ -161,8 +161,19 @@
               autocomplete="off"
               :maxlength="THANK_YOU_LINE_MAX_CHARS"
               :aria-label="$t('thank-you-greeting.words.own-line')"
+              :state="tried && lineError ? false : null"
               data-test="thank-you-greeting-own-line-input"
             />
+            <!-- Said once the member wants to go on: a greeting has a first line, one of the
+                 suggestions or one of the member's own. -->
+            <div
+              v-if="tried && lineError"
+              class="tyg-error small"
+              role="alert"
+              data-test="thank-you-greeting-line-error"
+            >
+              {{ lineError }}
+            </div>
           </div>
 
           <div class="tyg-field">
@@ -178,8 +189,8 @@
               :state="tried && memoError ? false : null"
               data-test="thank-you-greeting-words-input"
             />
-            <!-- Said once the member wants to go on: the line may be missing, the words may
-                 be missing, both at once may not. -->
+            <!-- Said once the member wants to go on: line and words together are too short
+                 or too long for a memo. -->
             <div
               v-if="tried && memoError"
               class="tyg-error small"
@@ -438,10 +449,17 @@ const line = computed(() => {
 // What goes into the booking: the line, a line break, the words -- or the one there is.
 const memo = computed(() => greetingMemo(line.value, form.words))
 
-// The line may be missing, the words may be missing, both at once may not; and together they
-// keep the bounds of every memo. The check is the memo's own, on the memo as it will go out.
+// ⛔ A greeting has a first line (Bernd, 04.10.2026): it is the title of the card -- on paper it
+// stands on the front, under the picture, and a card printed without one has a front without a
+// word. One of the suggestions is chosen or a line of the member's own is written; the words
+// may be missing. Greetings made before this rule carry none, and every place that shows a
+// greeting still takes that.
+const lineError = computed(() => (line.value === '' ? t('thank-you-greeting.words.missing') : ''))
+
+// Line and words together keep the bounds of every memo. The check is the memo's own, on the
+// memo as it will go out -- asked once there is a line: one thing is said at a time.
 const memoError = computed(() => {
-  if (memo.value === '') return t('thank-you-greeting.words.missing')
+  if (lineError.value) return ''
   try {
     memoSchema.validateSync(memo.value)
     return ''
@@ -457,7 +475,9 @@ const amountValid = computed(() => amountRules.value.isValidSync(form.amount))
 // As a string: `GradidoUnit` takes nothing else, and a number would die before the resolver.
 const amountToSend = computed(() => String(amountRules.value.cast(form.amount)))
 
-const formValid = computed(() => memoError.value === '' && amountValid.value)
+const formValid = computed(
+  () => lineError.value === '' && memoError.value === '' && amountValid.value,
+)
 // The member wanted to go on once: from then on the fields say what is missing.
 const tried = ref(false)
 
