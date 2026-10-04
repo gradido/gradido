@@ -387,6 +387,12 @@ const transferBubble = (booking) => {
     // for by, and whose photo it is -- the sender of the booking, by the name the card showed.
     linkId: booking.linkId ?? null,
     greetingSender: mine ? memberAlias(store.state.username, store.state.gradidoID) : props.alias,
+    // The picture the sender added to the transfer (ZE-016): a motif, or that it is a photo of
+    // their own -- null for every other transfer, and for a booking made from a greeting.
+    picture: booking.picture ?? null,
+    // What that photo is asked for by: the id of the member's own row of the booking.
+    // ⛔ Not `linkId` above -- a link and a booking are two ranges of numbers.
+    transactionId: booking.id,
   }
 }
 

@@ -284,6 +284,15 @@ export const thankYouGreetingPicture = gql`
   }
 `
 
+// The photo a member sent with a transfer, as base64 -- for the two the booking is between, each
+// by the id of their OWN row of it (what their booking list names as `id`); null for everybody
+// else and where there is none. Asked `no-cache` (composables/useTransactionPictures).
+export const transactionPicture = gql`
+  query ($transactionId: Int!) {
+    transactionPicture(transactionId: $transactionId)
+  }
+`
+
 export const listContributionLinks = gql`
   query ($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
     listContributionLinks(currentPage: $currentPage, pageSize: $pageSize, order: $order) {

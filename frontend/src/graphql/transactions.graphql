@@ -59,6 +59,14 @@ fragment transactionFields on Transaction {
     line
     hasPicture
   }
+  # The picture the sender added to a transfer: its motif, or -- `hasPicture` -- that it is a
+  # photo of their own. The conversation of the two shows it with the booking, and so does the
+  # opened row of the booking list. Never the photo itself: that is asked for by the booking's
+  # `id` once its place is in sight. A booking has a greeting or a picture, never both.
+  picture {
+    motif
+    hasPicture
+  }
 }
 
 # The booking list itself, one page at a time (Transactions.vue). `counterparty` narrows it
