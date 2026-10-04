@@ -806,7 +806,7 @@
     "share-line1": "{name} ti ringrazia con {amount} Gradido:",
     "share-line2": "«{memo}»",
     "share-line3": "Vuoi accettare il ringraziamento?",
-    "share-line4": "Ti aspetta fino al {date}. Se non lo accetti, non succede nulla.",
+    "share-line4": "Ti aspetta fino al giorno {date}. Se non lo accetti, non succede nulla.",
     "to-login": "Accedi",
     "to-register": "Registra un nuovo account.",
     "to-switch": "Inoltra ora",
@@ -1541,7 +1541,7 @@
   "thank-you-cheque": {
     "download": "Scarica l'assegno",
     "scan-qr": "Per ricevere l'accredito dei Gradido, scansiona il codice QR!",
-    "valid-until": "Questo assegno di ringraziamento è valido fino al {date}."
+    "valid-until": "Questo assegno di ringraziamento è valido fino al giorno {date}."
   },
   "thank-you-greeting": {
     "done": {
@@ -1552,11 +1552,11 @@
       "sentence-lead": "Questa frase lo accompagna:",
       "title": "Il tuo biglietto di ringraziamento è pronto.",
       "title-for": "Il tuo biglietto di ringraziamento per {name} è pronto.",
-      "waits-until": "Aspetta fino al {date}."
+      "waits-until": "Aspetta fino al giorno {date}."
     },
     "entry": {
       "plain": "Senza immagine: link, assegno, QR",
-      "text": "Con un'immagine e qualche parola — da inviare.",
+      "text": "Con un'immagine e qualche parola — da inviare o da stampare.",
       "write": "Scrivi un biglietto"
     },
     "for": "Per {name}",
@@ -1591,6 +1591,13 @@
     },
     "name": "Biglietto di ringraziamento",
     "next": "Avanti",
+    "paper": {
+      "failed": "In questo momento non è stato possibile creare il biglietto. Riprova, per favore.",
+      "hint": "Un foglio A4, stampato su un solo lato. Piegalo due volte, con il lato stampato all'esterno: la tua immagine sta davanti, le tue parole dentro, e accanto c'è spazio per scrivere a mano.",
+      "print": "Stampa il biglietto",
+      "save": "Salva il biglietto come immagine",
+      "title": "Oppure su carta"
+    },
     "photo-of": "Foto inviata da {name}",
     "picture": {
       "other": "Un'altra foto",
@@ -1609,6 +1616,11 @@
       "copied": "La frase e il link sono stati copiati negli appunti. Ora puoi incollarli in un'e-mail o in un messaggio.",
       "line1": "Ho un biglietto di ringraziamento per te:",
       "line1-for": "{name}, ho un biglietto di ringraziamento per te:"
+    },
+    "sheet": {
+      "free": "Gratuito. Senza impegno.",
+      "scan": "Punta la fotocamera del tuo telefono sul codice e accetta il ringraziamento — entro il giorno {date}.",
+      "waits": "Ti aspetta un ringraziamento: {amount}"
     },
     "step": {
       "picture": "Immagine",

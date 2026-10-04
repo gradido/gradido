@@ -22,8 +22,14 @@ $btn-hover-translate-y: -1px ;
 
 
 
+// The label of an outlined button. #4385b1 read at 4.02:1 on a white card, under the 4.5:1 a
+// label of this size needs (measured on "Link kopieren" and "E-Mail-Adresse ändern",
+// 04.10.2026). #397196 reads at 5.28:1 on white, at 5.04:1 on the ground the button takes under
+// the pointer and the focus (#f7fafc), and at 4.59:1 on the greyest ground such a button stands
+// on: the card of the sign-in pages (#ebebeba3 over the page, #efefef). The dark mode sets a
+// label of its own (gradido-template-dark.scss); outlinedButtonLabel.spec.js holds both.
 .btn-outline-secondary {
-  color: #4385b1 !important;
+  color: #397196 !important;
 }
 
 .btn-success {

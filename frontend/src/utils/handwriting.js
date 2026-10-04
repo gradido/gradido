@@ -96,3 +96,40 @@ const DECIDES = /[\p{L}\p{M}\p{N}]/u
 export const canWriteByHand = (line) =>
   // By code point, not by code unit: a letter beyond the basic plane is one letter.
   Array.from(line ?? '').every((char) => !DECIDES.test(char) || inCaveat(char.codePointAt(0)))
+
+/** The family as caveat.css declares it: one name, one weight. */
+export const HANDWRITING_FAMILY = 'Caveat'
+export const HANDWRITING_WEIGHT = 600
+
+/**
+ * Resolves when the handwriting can draw the given texts on a canvas.
+ *
+ * A canvas does not wait for a web font -- printFont.js says it of Open Sans, and it holds for
+ * this face as well: a face is fetched when a text uses it, and a canvas that draws before the
+ * file has come draws, and MEASURES, in the fallback. `printFontReady` knows Open Sans only, so
+ * the handwriting has a waiting of its own, with the texts that are set in it.
+ *
+ * Whoever calls this takes caveat.css in (see the note there): a family that is not declared
+ * gives an empty list and no error, and the text is drawn in the fallback.
+ *
+ * Never rejects and has no time limit, like `printFontReady` beside it. Without a text nothing
+ * is set in the handwriting, and its file is not fetched.
+ *
+ * @param {Array<string|null|undefined>} texts every text that will be set in the handwriting
+ * @returns {Promise<void>}
+ */
+export const handwritingReady = async (texts) => {
+  const fonts = typeof document === 'undefined' ? undefined : document.fonts
+  if (!fonts || typeof fonts.load !== 'function') return
+
+  const text = (Array.isArray(texts) ? texts : [texts])
+    .filter((part) => typeof part === 'string' && part.length > 0)
+    .join(' ')
+  if (!text) return
+
+  try {
+    await fonts.load(`${HANDWRITING_WEIGHT} 16px ${HANDWRITING_FAMILY}`, text)
+  } catch {
+    // The file did not come: drawn in the fallback
+  }
+}

@@ -1556,7 +1556,7 @@
     },
     "entry": {
       "plain": "Ohne Bild: Link, Scheck, QR",
-      "text": "Mit Bild und ein paar Worten — zum Verschicken.",
+      "text": "Mit Bild und ein paar Worten — zum Verschicken oder Drucken.",
       "write": "Dank-Gruß schreiben"
     },
     "for": "Für {name}",
@@ -1591,6 +1591,13 @@
     },
     "name": "Dank-Gruß",
     "next": "Weiter",
+    "paper": {
+      "failed": "Die Karte ließ sich gerade nicht erstellen. Versuch es bitte noch einmal.",
+      "hint": "Ein A4-Blatt, einseitig bedruckt. Falte es zweimal, die bedruckte Seite nach außen: Dein Bild liegt dann vorn, Deine Worte stehen innen, und daneben ist Platz für Deine Handschrift.",
+      "print": "Karte drucken",
+      "save": "Karte als Bild sichern",
+      "title": "Oder auf Papier"
+    },
     "photo-of": "Foto von {name}",
     "picture": {
       "other": "Anderes Foto",
@@ -1609,6 +1616,11 @@
       "copied": "Der Satz und der Link wurden in die Zwischenablage kopiert. Du kannst sie jetzt in eine E-Mail oder Nachricht einfügen.",
       "line1": "Ich habe einen Dank-Gruß für Dich:",
       "line1-for": "{name}, ich habe einen Dank-Gruß für Dich:"
+    },
+    "sheet": {
+      "free": "Kostenfrei. Keine Verpflichtung.",
+      "scan": "Halte die Kamera Deines Handys auf den Code und nimm ihn an — bis zum {date}.",
+      "waits": "Dein Dank wartet: {amount}"
     },
     "step": {
       "picture": "Bild",

@@ -25,6 +25,8 @@ import {
  * - Every sentence that names whom the greeting is for has a sister without the name: the
  *   wallet knows no gender, so there is no pronoun to fall back on.
  * - "FÜR {NAME}" stands in capitals by the rules of the language: Turkish "için" is "İÇİN".
+ * - ⛔ Three sentences stand on PAPER, on the back of the printed sheet: once printed they
+ *   cannot be changed, so they are held with the care of a text that goes into a booking.
  *
  * ⚠️ `fileURLToPath`, not `new URL(...)`: jsdom brings its own `URL` class, and node turns an
  * instance of it away as coming from another realm.
@@ -78,6 +80,11 @@ const KEYS = [
   ...MOTIFS.map((motif) => `motif.${motif}`),
   'name',
   'next',
+  'paper.failed',
+  'paper.hint',
+  'paper.print',
+  'paper.save',
+  'paper.title',
   'photo-of',
   'picture.other',
   'picture.own',
@@ -91,6 +98,9 @@ const KEYS = [
   'share.copied',
   'share.line1',
   'share.line1-for',
+  'sheet.free',
+  'sheet.scan',
+  'sheet.waits',
   'step.picture',
   'step.preview',
   'step.words',
@@ -343,6 +353,142 @@ describe('thank-you-greeting in the language files', () => {
     expect(sentence).not.toMatch(/\.\.|[{}]/)
     expect(sentence).toMatch(/\.$/)
   })
+
+  /**
+   * ⛔ What stands on the back of the printed sheet (utils/thankYouGreetingSheet.js): what waits,
+   * how the code is read and the thank-you accepted and until when, and that it costs nothing.
+   * Paper cannot be corrected.
+   */
+  describe('the three sentences on the back of the printed sheet', () => {
+    // As Bernd confirmed them (04.10.2026).
+    it('are, in German, word for word what was decided', () => {
+      expect(render('de', 'sheet.waits', { amount: '20 Gradido' })).toBe(
+        'Dein Dank wartet: 20 Gradido',
+      )
+      expect(render('de', 'sheet.scan', { date: '18.10.2026' })).toBe(
+        'Halte die Kamera Deines Handys auf den Code und nimm ihn an — bis zum 18.10.2026.',
+      )
+      expect(render('de', 'sheet.free')).toBe('Kostenfrei. Keine Verpflichtung.')
+    })
+
+    it.each(languages)('say what waits and end in the amount, after a colon, in %s', (lang) => {
+      const waits = render(lang, 'sheet.waits', { amount: '12,5 Gradido' })
+
+      expect(waits).toMatch(/\p{L}\s?: 12,5 Gradido$/u)
+      expect(waits).not.toMatch(/[{}|]/)
+      // More than the amount and its colon: it says that something waits.
+      expect(waits.replace(': 12,5 Gradido', '').trim().split(/\s+/).length).toBeGreaterThan(1)
+    })
+
+    // With days as the wallet writes them: a first, an eighth, an eleventh, a last of the year.
+    it.each(languages)(
+      'say how the thank-you is accepted and until when, as one sentence, in %s',
+      (lang) => {
+        for (const day of ['2026-10-01', '2026-10-08', '2026-10-11', '2026-10-18', '2026-12-31']) {
+          const date = i18n.global.d(new Date(`${day}T12:00:00.000Z`), 'short', lang)
+          const scan = render(lang, 'sheet.scan', { date })
+
+          expect(scan).toContain(date)
+          expect(scan).not.toMatch(/\.\.|[{}|]/)
+          expect(scan).toMatch(/\.$/)
+          // One sentence: no full stop but the last one, and those of the date.
+          expect(scan.replace(date, '').slice(0, -1)).not.toMatch(/[.!?]/)
+        }
+      },
+    )
+
+    it.each(languages)('say that it costs nothing, in two short sentences, in %s', (lang) => {
+      const free = render(lang, 'sheet.free')
+
+      expect(free).toMatch(/^\p{Lu}[^.]+\. \p{Lu}[^.]+\.$/u)
+      expect(free.length).toBeLessThanOrEqual(40)
+      expect(free).not.toMatch(/[{}|]/)
+    })
+
+    // The sentence that stands beside the account form says the same two things; the paper
+    // says them in the same words.
+    it.each(languages)('say it as the page of a link says it, in %s', (lang) => {
+      const free = render(lang, 'sheet.free')
+      const [first, second] = free.split('. ')
+      const onThePage = i18n.global.t('redeem-thanks.account-text', {}, { locale: lang })
+
+      expect(onThePage).toContain(second)
+      // Portuguese says "Gratuita" of the account there; on paper nothing feminine is named.
+      expect(onThePage.toLowerCase()).toContain(first.toLowerCase().slice(0, -1))
+    })
+
+    // The whole Russian file speaks formally; a printed sentence must not be the exception.
+    it('speak formally in Russian, and with a small "вы"', () => {
+      const sentences = ['sheet.waits', 'sheet.scan', 'sheet.free', 'paper.failed'].map((key) =>
+        render('ru', key, { amount: '20 Gradido', date: '18.10.2026' }),
+      )
+
+      for (const sentence of sentences) {
+        expect(sentence).not.toMatch(
+          /(?<!\p{L})(ты|тебя|тебе|тобой|твой|твоя|твоё|твои)(?!\p{L})/iu,
+        )
+        // A capital only where a sentence begins.
+        expect(sentence).not.toMatch(
+          /(?<!^)(?<![.!?] )(?<!\p{L})(Вы|Вас|Вам|Вами|Ваш\p{L}{0,2})(?!\p{L})/u,
+        )
+      }
+      expect(sentences.join(' ')).toMatch(/(?<!\p{L})(вас|наведите|примите|попробуйте)(?!\p{L})/iu)
+    })
+  })
+
+  /**
+   * On "Fertig" and in the menu of a greeting in the list: the greeting on paper. Two ways, a
+   * word over them, and the sentence that says what becomes of the sheet.
+   */
+  describe('the greeting on paper', () => {
+    it('reads in German as it was decided', () => {
+      expect(render('de', 'paper.title')).toBe('Oder auf Papier')
+      expect(render('de', 'paper.print')).toBe('Karte drucken')
+      expect(render('de', 'paper.save')).toBe('Karte als Bild sichern')
+      expect(render('de', 'paper.hint')).toBe(
+        'Ein A4-Blatt, einseitig bedruckt. Falte es zweimal, die bedruckte Seite nach außen: Dein Bild liegt dann vorn, Deine Worte stehen innen, und daneben ist Platz für Deine Handschrift.',
+      )
+    })
+
+    // Two entries of a menu and a word over a group: short, and no sentences.
+    it.each(languages)('names the two ways and their group in few words, in %s', (lang) => {
+      const words = ['paper.title', 'paper.print', 'paper.save'].map((key) => render(lang, key))
+
+      for (const text of words) {
+        expect(text).not.toMatch(/[{}|.!?:]/)
+        expect(text.length, text).toBeLessThanOrEqual(32)
+        expect(text.split(/\s+/).length, text).toBeLessThanOrEqual(5)
+      }
+      expect(new Set(words).size).toBe(3)
+    })
+
+    // ⚠️ A claim about the sheet (thankYouGreetingSheet.spec.js holds it against the panels):
+    // the paper and how it is printed, then how it is folded and what lies where.
+    it.each(languages)('says what the sheet is and what becomes of it, in %s', (lang) => {
+      const hint = render(lang, 'paper.hint')
+
+      expect(hint).toContain('A4')
+      expect(hint).not.toMatch(/[{}|]/)
+      expect(hint).toMatch(/\.$/)
+      // The paper first, in a sentence of its own; then the folding, up to a colon or a
+      // semicolon, and what lies where.
+      const [paper, ...rest] = hint.split('. ')
+      expect(paper).toContain('A4')
+      expect(rest).toHaveLength(1)
+      expect(rest[0]).toMatch(/[:;] \p{L}/u)
+    })
+  })
+
+  it.each(languages)(
+    'says in one sentence each that a card could not be made, and what to do, in %s',
+    (lang) => {
+      const failed = render(lang, 'paper.failed')
+
+      expect(failed).not.toMatch(/[{}|]/)
+      expect(failed).toMatch(/[.!]$/)
+      expect(failed.split(/[.!]\s/)).toHaveLength(2)
+    },
+  )
 
   // On the sheet, through the sheet itself: the capitals are made there.
   describe('"FÜR {NAME}" on the sheet', () => {

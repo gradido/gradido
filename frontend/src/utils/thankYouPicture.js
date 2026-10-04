@@ -123,3 +123,30 @@ export const thankYouPictureAddress = (code) => {
   const server = new URL(CONFIG.GRAPHQL_URI, window.location.href)
   return new URL(`/api/thank-you-greeting-picture/${code}`, server).href
 }
+
+/**
+ * The picture that address serves, as a blob -- or null where none comes: the link is not open
+ * any more, the answer is no picture of ours, the line.
+ *
+ * Fetched, never named in an <img>: in development the server is another port than the wallet,
+ * and there an <img> across origins is turned away by the server's `Cross-Origin-Resource-Policy`
+ * while the server answers a fetch from every origin. And a drawing surface that took in a
+ * picture of another origin hands out no file.
+ *
+ * Without cookies and without the session: the code in the address is all it takes. The server
+ * lets the browser keep nothing (`no-store`), and neither does this.
+ *
+ * @param {string} address from thankYouPictureAddress
+ * @returns {Promise<Blob | null>}
+ */
+export const fetchThankYouPicture = async (address) => {
+  try {
+    const response = await fetch(address, { cache: 'no-store', credentials: 'omit' })
+    if (!response.ok) return null
+    const blob = await response.blob()
+    // The server serves one type and nothing else; anything else is no picture of ours.
+    return blob.type === 'image/jpeg' ? blob : null
+  } catch {
+    return null
+  }
+}

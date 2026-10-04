@@ -1556,7 +1556,7 @@
     },
     "entry": {
       "plain": "Sin imagen: enlace, cheque, QR",
-      "text": "Con imagen y unas palabras — para enviar.",
+      "text": "Con imagen y unas palabras — para enviar o imprimir.",
       "write": "Escribir un saludo"
     },
     "for": "Para {name}",
@@ -1591,6 +1591,13 @@
     },
     "name": "Saludo de agradecimiento",
     "next": "Continuar",
+    "paper": {
+      "failed": "Ahora mismo no se ha podido crear la tarjeta. Inténtalo de nuevo, por favor.",
+      "hint": "Una hoja A4, impresa por una cara. Dóblala dos veces, con la cara impresa hacia fuera: tu imagen queda delante, tus palabras dentro, y al lado hay sitio para escribir a mano.",
+      "print": "Imprimir tarjeta",
+      "save": "Guardar tarjeta como imagen",
+      "title": "O en papel"
+    },
     "photo-of": "Foto enviada por {name}",
     "picture": {
       "other": "Otra foto",
@@ -1609,6 +1616,11 @@
       "copied": "La frase y el enlace se han copiado en el portapapeles. Ahora puedes pegarlos en un correo electrónico o mensaje.",
       "line1": "Tengo un saludo de agradecimiento para ti:",
       "line1-for": "{name}, tengo un saludo de agradecimiento para ti:"
+    },
+    "sheet": {
+      "free": "Gratis. Sin compromiso.",
+      "scan": "Apunta con la cámara de tu móvil al código y acepta el agradecimiento — hasta el {date}.",
+      "waits": "Te espera un agradecimiento: {amount}"
     },
     "step": {
       "picture": "Imagen",

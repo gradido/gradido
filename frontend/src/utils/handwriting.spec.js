@@ -1,10 +1,10 @@
 // AI-GENERATED — not an architecture reference
-import { describe, it, expect } from 'vitest'
+import { afterEach, describe, it, expect, vi } from 'vitest'
 import { createHash } from 'node:crypto'
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join, relative } from 'node:path'
-import { canWriteByHand } from './handwriting'
+import { canWriteByHand, handwritingReady } from './handwriting'
 
 // ⚠️ `fileURLToPath`, not `new URL(...)`: jsdom brings its own `URL` class, and node turns an
 // instance of it away as coming from another realm.
@@ -65,6 +65,69 @@ describe('canWriteByHand', () => {
     expect(canWriteByHand('')).toBe(true)
     expect(canWriteByHand(null)).toBe(true)
     expect(canWriteByHand(undefined)).toBe(true)
+  })
+})
+
+/**
+ * A canvas does not wait for a web font: the sheet a greeting is printed on asks for the
+ * handwriting with the texts it sets in it, before it measures a word (thankYouGreetingSheet.js).
+ */
+describe('handwritingReady', () => {
+  const withFonts = (load) =>
+    Object.defineProperty(document, 'fonts', { configurable: true, value: { load } })
+
+  afterEach(() => {
+    delete document.fonts
+  })
+
+  it('asks for the one face the wallet ships, with the texts that are set in it', async () => {
+    const load = vi.fn(async () => [])
+    withFonts(load)
+
+    await handwritingReady(['Einfach so — weil es Dich gibt.', null, '', undefined, 'Oma-Emma'])
+
+    expect(load).toHaveBeenCalledTimes(1)
+    expect(load).toHaveBeenCalledWith('600 16px Caveat', 'Einfach so — weil es Dich gibt. Oma-Emma')
+  })
+
+  // A face is fetched when a text uses it: no text, no 89 KB.
+  it('asks for nothing where no text is set in it', async () => {
+    const load = vi.fn(async () => [])
+    withFonts(load)
+
+    await handwritingReady([])
+    await handwritingReady([null, '', undefined])
+
+    expect(load).not.toHaveBeenCalled()
+  })
+
+  it('waits until the face is there', async () => {
+    let arrive
+    withFonts(() => new Promise((resolve) => (arrive = resolve)))
+
+    let ready = false
+    const waiting = handwritingReady(['Danke']).then(() => (ready = true))
+    await new Promise((resolve) => setTimeout(resolve, 10))
+    expect(ready).toBe(false)
+
+    arrive([])
+    await waiting
+    expect(ready).toBe(true)
+  })
+
+  // A sheet in the fallback is better than no sheet.
+  it('never rejects: not when the file does not come, not when asking throws', async () => {
+    withFonts(() => Promise.reject(new Error('NetworkError')))
+    await expect(handwritingReady(['Danke'])).resolves.toBeUndefined()
+
+    withFonts(() => {
+      throw new Error('SyntaxError')
+    })
+    await expect(handwritingReady(['Danke'])).resolves.toBeUndefined()
+  })
+
+  it('resolves where the browser has no font loading at all', async () => {
+    await expect(handwritingReady(['Danke'])).resolves.toBeUndefined()
   })
 })
 
@@ -148,7 +211,12 @@ describe('the declaration of the handwriting', () => {
 
   // Whoever names the family takes the declaration in, from its script: without it the line
   // would stand in the fallback wherever the other component has not been loaded.
-  it('is taken in by every component that sets a line in it, and by no other file', () => {
+  //
+  // The sheet a greeting is printed on names it on a canvas, where no stylesheet does: its
+  // drawer takes the declaration in from its module, by the same line.
+  const DRAWERS = ['utils/thankYouGreetingSheet.js']
+
+  it('is taken in by every component that sets a line in it, by the drawer of the sheet, and by no other file', () => {
     const naming = sources()
       .filter((file) => file.endsWith('.vue') || file.endsWith('.scss'))
       .filter((file) => /font-family:\s*Caveat,/.test(live(read(file))))
@@ -160,9 +228,14 @@ describe('the declaration of the handwriting', () => {
     for (const file of naming) {
       expect(scriptOf(file), file).toMatch(IMPORT)
     }
+    for (const file of DRAWERS) {
+      // Named there through the constant this module exports, in the font of a canvas.
+      expect(read(file), file).toMatch(/px \$\{HANDWRITING_FAMILY\}, /)
+      expect(read(file).replace(/^\s*\/\/.*$/gm, ''), file).toMatch(IMPORT)
+    }
     const importing = sources()
       .filter((file) => read(file).includes('fonts/caveat/caveat.css'))
       .sort()
-    expect(importing).toEqual(naming)
+    expect(importing).toEqual([...naming, ...DRAWERS].sort())
   })
 })

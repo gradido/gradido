@@ -1556,7 +1556,7 @@
     },
     "entry": {
       "plain": "Sans image : lien, chèque, QR",
-      "text": "Avec une image et quelques mots — à envoyer.",
+      "text": "Avec une image et quelques mots — à envoyer ou à imprimer.",
       "write": "Écrire un petit mot"
     },
     "for": "Pour {name}",
@@ -1591,6 +1591,13 @@
     },
     "name": "Mot de remerciement",
     "next": "Continuer",
+    "paper": {
+      "failed": "La carte n'a pas pu être créée pour le moment. Réessaie, s'il te plaît.",
+      "hint": "Une feuille A4, imprimée d'un seul côté. Plie-la deux fois, le côté imprimé vers l'extérieur : ton image se trouve alors devant, tes mots à l'intérieur, et à côté il reste de la place pour écrire à la main.",
+      "print": "Imprimer la carte",
+      "save": "Enregistrer la carte en image",
+      "title": "Ou sur papier"
+    },
     "photo-of": "Photo envoyée par {name}",
     "picture": {
       "other": "Autre photo",
@@ -1609,6 +1616,11 @@
       "copied": "La phrase et le lien ont été copiés dans le presse-papier. Tu peux maintenant les coller dans un e-mail ou un message.",
       "line1": "J'ai un mot de remerciement pour toi :",
       "line1-for": "{name}, j'ai un mot de remerciement pour toi :"
+    },
+    "sheet": {
+      "free": "Gratuit. Sans engagement.",
+      "scan": "Pointe l'appareil photo de ton téléphone sur le code et accepte le remerciement — jusqu'au {date}.",
+      "waits": "Un remerciement t'attend : {amount}"
     },
     "step": {
       "picture": "Image",

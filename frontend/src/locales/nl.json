@@ -1556,7 +1556,7 @@
     },
     "entry": {
       "plain": "Zonder afbeelding: link, cheque, QR",
-      "text": "Met een afbeelding en een paar woorden — om te versturen.",
+      "text": "Met een afbeelding en een paar woorden — om te versturen of af te drukken.",
       "write": "Dankgroetje schrijven"
     },
     "for": "Voor {name}",
@@ -1591,6 +1591,13 @@
     },
     "name": "Dankgroetje",
     "next": "Verder",
+    "paper": {
+      "failed": "De kaart kon nu niet worden gemaakt. Probeer het alsjeblieft nog een keer.",
+      "hint": "Een A4-vel, aan één kant bedrukt. Vouw het twee keer, met de bedrukte kant naar buiten: je afbeelding zit dan aan de voorkant, je woorden staan binnenin, en ernaast is ruimte voor je handschrift.",
+      "print": "Kaart afdrukken",
+      "save": "Kaart als afbeelding opslaan",
+      "title": "Of op papier"
+    },
     "photo-of": "Foto verstuurd door {name}",
     "picture": {
       "other": "Andere foto",
@@ -1609,6 +1616,11 @@
       "copied": "De zin en de link zijn naar het klembord gekopieerd. Je kunt ze nu in een e-mail of bericht plakken.",
       "line1": "Ik heb een dankgroetje voor je:",
       "line1-for": "{name}, ik heb een dankgroetje voor je:"
+    },
+    "sheet": {
+      "free": "Gratis. Geen verplichtingen.",
+      "scan": "Richt de camera van je telefoon op de code en neem het aan — tot {date}.",
+      "waits": "Je bedankje wacht: {amount}"
     },
     "step": {
       "picture": "Beeld",

@@ -75,6 +75,19 @@ export const requestGreetingPicture = (client, linkId) => {
 }
 
 /**
+ * The photo of a link for whatever has to WAIT for it -- the sheet a greeting is printed on, which
+ * is drawn once and cannot take a photo in later: asks for it where nobody has, and resolves with
+ * what is known of it once every request in line has its answer. Never rejects.
+ *
+ * @returns {Promise<{ state: string, src: string | null } | null>} as greetingPicture gives it
+ */
+export const awaitGreetingPicture = async (client, linkId) => {
+  requestGreetingPicture(client, linkId)
+  await line
+  return greetingPicture(linkId)
+}
+
+/**
  * One's own photo, just sent: kept from the small rendition the wallet made (utils/thankYouPicture),
  * under the id of the link the server made -- the list of links shows it without asking the server
  * for what came from here a moment ago.

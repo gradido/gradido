@@ -69,6 +69,26 @@
             <IBiShare />
             {{ $t('gdd_per_link.share') }}
           </BDropdownItem>
+          <!-- A greeting can go onto paper (ZE-017, F8): an A4 sheet that folds into a card,
+               printed or saved as a picture -- the day after it was written, on another computer.
+               ⛔ Only a greeting, and only while its link is open: a plain link keeps its menu,
+               and an expired greeting offers this as little as sharing, the cheque and the code. -->
+          <BDropdownItem
+            v-if="validLink && greeting"
+            class="pt-3 test-print-greeting"
+            @click.stop="printGreetingSheet()"
+          >
+            <IBiPrinter />
+            {{ $t('thank-you-greeting.paper.print') }}
+          </BDropdownItem>
+          <BDropdownItem
+            v-if="validLink && greeting"
+            class="pt-3 test-save-greeting"
+            @click.stop="saveGreetingSheet()"
+          >
+            <IBiImage />
+            {{ $t('thank-you-greeting.paper.save') }}
+          </BDropdownItem>
           <BDropdownItem
             v-if="validLink"
             class="pt-3 test-download-cheque"
@@ -174,6 +194,7 @@ import { useAppToast } from '@/composables/useToast'
 import { useCopyLinks } from '@/composables/useCopyLinks'
 import { greetingPicture } from '@/composables/useGreetingPictures'
 import { useThankYouCheque } from '@/composables/useThankYouCheque'
+import { useThankYouGreetingSheet } from '@/composables/useThankYouGreetingSheet'
 import { deleteTransactionLink } from '@/graphql/mutations'
 import MemoText from '@/components/TransactionRows/MemoText'
 import AppModal from '@/components/AppModal'
@@ -221,6 +242,18 @@ const { downloadThankYouCheque } = useThankYouCheque({
   validUntil: props.validUntil,
   link: props.link,
   memo: props.memo,
+})
+
+// The sheet a greeting is printed on, drawn when it is asked for. Its photo, where it carries
+// one, is fetched at that tap, by the id and the code of this link. A menu has no place to offer
+// a second tap: where the device's share sheet wants one, the picture is downloaded.
+const { printGreetingSheet, saveGreetingSheet } = useThankYouGreetingSheet({
+  id: props.id,
+  amount: props.amount,
+  validUntil: props.validUntil,
+  link: props.link,
+  memo: props.memo,
+  greeting: props.greeting,
 })
 
 const { mutate: deleteTransactionLinkMutation } = useMutation(deleteTransactionLink)

@@ -2,6 +2,7 @@
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import { thankYouGreetingPicture } from '@/graphql/queries'
 import {
+  awaitGreetingPicture,
   forgetAllGreetingPictures,
   greetingPicture,
   rememberGreetingPicture,
@@ -231,6 +232,70 @@ describe('useGreetingPictures', () => {
 
       expect(next.query).toHaveBeenCalledTimes(1)
       expect(greetingPicture(9)?.state).toBe('ready')
+    })
+  })
+
+  /**
+   * The sheet a greeting is printed on is drawn once and cannot take a photo in later: it waits
+   * for what the list holds, or asks for it.
+   */
+  describe('for whatever has to wait for a photo', () => {
+    it('hands over what is here already, without asking', async () => {
+      const client = clientWith()
+      rememberGreetingPicture(4711, 'SMALL')
+
+      await expect(awaitGreetingPicture(client, 4711)).resolves.toEqual({
+        state: 'ready',
+        src: 'data:image/jpeg;base64,SMALL',
+      })
+      expect(client.query).not.toHaveBeenCalled()
+    })
+
+    it('asks for one nobody has asked for, and resolves once the answer is there', async () => {
+      const answer = deferred()
+      const client = clientWith(answer.promise)
+
+      let known
+      const waiting = awaitGreetingPicture(client, 4711).then((entry) => (known = entry))
+      await flush()
+      expect(client.query).toHaveBeenCalledTimes(1)
+      expect(known).toBeUndefined()
+
+      answer.resolve(served('ASKED'))
+      await waiting
+      expect(known).toEqual({ state: 'ready', src: 'data:image/jpeg;base64,ASKED' })
+    })
+
+    it('waits for one that is on its way, and does not ask a second time', async () => {
+      const answer = deferred()
+      const client = clientWith(answer.promise)
+      requestGreetingPicture(client, 4711)
+
+      const waiting = awaitGreetingPicture(client, 4711)
+      answer.resolve(served('ON-ITS-WAY'))
+
+      await expect(waiting).resolves.toEqual({
+        state: 'ready',
+        src: 'data:image/jpeg;base64,ON-ITS-WAY',
+      })
+      expect(client.query).toHaveBeenCalledTimes(1)
+    })
+
+    it('says so where the server has none, and where the line fails -- and never rejects', async () => {
+      await expect(awaitGreetingPicture(clientWith(served(null)), 1)).resolves.toEqual({
+        state: 'missing',
+        src: null,
+      })
+      await expect(
+        awaitGreetingPicture(clientWith(Promise.reject(new Error('Network'))), 2),
+      ).resolves.toEqual({ state: 'failed', src: null })
+    })
+
+    it('knows nothing of a link that has no id', async () => {
+      const client = clientWith()
+
+      await expect(awaitGreetingPicture(client, null)).resolves.toBeNull()
+      expect(client.query).not.toHaveBeenCalled()
     })
   })
 })
