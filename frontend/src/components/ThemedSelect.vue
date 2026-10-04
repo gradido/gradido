@@ -75,7 +75,7 @@ const select = (option) => {
 /* Make the toggle read like a form control: full width, label on the left, caret on the
    right, in the theme's heading grey (dark in light mode, near-white in dark mode). The
    label and the caret (which inherits currentColor) need !important to beat the wallet's
-   global `.btn-outline-secondary { color: #4385b1 !important }`, or both come out
+   global `.btn-outline-secondary { color: #397196 !important }`, or both come out
    pigeon-blue. The border is a faded shade of the text colour (via color-mix, like
    .separator-start) so it stays visible in dark mode and in Firefox, where the token
    border all but disappears. */

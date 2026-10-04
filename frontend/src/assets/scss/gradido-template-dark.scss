@@ -441,6 +441,13 @@ html:has(body.dark-mode) {
 .dark-mode .btn-outline-secondary {
   --bs-btn-color: var(--text);
 
+  /* ⚠️ The variable alone never reached the label: the light rule sets `color` itself, with
+     `!important` (_buttons.scss), and that outranks whatever --bs-btn-color says. From 24.08.
+     to 04.10.2026 the label stayed the light mode's blue, at 3.48:1 on the card (measured on
+     "E-Mail-Adresse ändern" and "Link kopieren"). 11:1 now, as it was meant.
+     `!important` for the reason the red button above gives. */
+  color: var(--text) !important;
+
   /* ⚠️ --text-muted, not --border: the border token is 1.16:1 against the card, which is a
      hairline nobody sees, and this button is nothing BUT its outline. 5.03:1 now.
      (coderabbit, and it was right.) */
