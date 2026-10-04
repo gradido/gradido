@@ -101,9 +101,10 @@ export const useThankYouGreetingSheet = (
       // ⛔ The sender signs with their user name (NU-021) -- and whoever has none does not sign:
       // `memberAlias` stands the Gradido ID in for a missing name, and that is no signature.
       signature: isGradidoId(alias) ? '' : alias,
-      // The amount as a sentence says it, the date as "Fertig" says it.
+      // The amount as a sentence says it, the date as "Fertig" says it. A no-break space joins
+      // the amount and its unit: where the sentence takes two lines, none of them ends on "20".
       waits: t('thank-you-greeting.sheet.waits', {
-        amount: `${amountInText(amount)} ${t('GDD-long')}`,
+        amount: `${amountInText(amount)}\u00a0${t('GDD-long')}`,
       }),
       scan: t('thank-you-greeting.sheet.scan', { date: d(new Date(validUntil), 'short') }),
       free: t('thank-you-greeting.sheet.free'),

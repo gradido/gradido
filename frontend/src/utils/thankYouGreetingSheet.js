@@ -225,9 +225,18 @@ const breakWord = (ctx, word, room) => {
   return pieces
 }
 
+// Where a line may end: at every white space but the ones that say "not here" -- the no-break
+// space, its narrow form and the figure space. The amount and its unit are joined by one.
+const BREAKING_SPACE = /[^\S\u00a0\u202f\u2007]+/u
+const NO_BREAK_SPACE = /[\u00a0\u202f\u2007]+/u
+
 /**
  * The lines of one paragraph, broken at its spaces. A word longer than a line begins on a line
  * of its own and is broken within -- what the card on the screen does with it.
+ *
+ * What a no-break space joins stays on one line. Where it is longer than a line -- words pasted
+ * from elsewhere can be joined like that from end to end -- it breaks at those spaces after
+ * all, before any word is broken within.
  *
  * ⚠️ Not `wrapText` of the cheque: that one turns line breaks into spaces, cuts after a fixed
  * number of lines and never breaks a word.
@@ -235,22 +244,30 @@ const breakWord = (ctx, word, room) => {
 const wrapParagraph = (ctx, text, room) => {
   const lines = []
   let line = ''
-  for (const word of String(text ?? '')
-    .split(/\s+/)
-    .filter(Boolean)) {
+  const place = (word) => {
     if (line && fits(ctx, `${line} ${word}`, room)) {
       line = `${line} ${word}`
-      continue
+      return
+    }
+    if (fits(ctx, word, room)) {
+      if (line) lines.push(line)
+      line = word
+      return
+    }
+    const joined = word.split(NO_BREAK_SPACE).filter(Boolean)
+    if (joined.length > 1) {
+      joined.forEach(place)
+      return
     }
     if (line) lines.push(line)
-    if (fits(ctx, word, room)) {
-      line = word
-    } else {
-      const pieces = breakWord(ctx, word, room)
-      line = pieces.pop()
-      lines.push(...pieces)
-    }
+    const pieces = breakWord(ctx, word, room)
+    line = pieces.pop()
+    lines.push(...pieces)
   }
+  String(text ?? '')
+    .split(BREAKING_SPACE)
+    .filter(Boolean)
+    .forEach(place)
   if (line) lines.push(line)
   return lines
 }

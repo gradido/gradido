@@ -141,11 +141,13 @@ describe('useThankYouGreetingSheet', () => {
     })
 
     // ⛔ These three sentences stand on paper, as Bernd confirmed them (04.10.2026).
+    // The amount and its unit are joined by a no-break space (U+00A0): where a language's
+    // sentence takes two lines, the break falls before the amount and never inside it.
     it('writes the back as it was decided: what waits, how it is accepted, that it is free', async () => {
       await sheetOf().printGreetingSheet()
 
       expect(drawn()).toMatchObject({
-        waits: 'Dein Dank wartet: 20 Gradido',
+        waits: 'Dein Dank wartet: 20\u00a0Gradido',
         scan: 'Halte die Kamera Deines Handys auf den Code und nimm ihn an — bis zum 18.10.2026.',
         free: 'Kostenfrei. Keine Verpflichtung.',
         slogan: 'Helfen. Schenken. Danken.',
@@ -155,9 +157,9 @@ describe('useThankYouGreetingSheet', () => {
     // The server hands an amount over as "12.5"; a German sentence writes "12,5", and a
     // thousand without a dot (useAmountInText).
     it.each([
-      ['12.5', 'de', 'Dein Dank wartet: 12,5 Gradido'],
-      ['1000', 'de', 'Dein Dank wartet: 1000 Gradido'],
-      ['12.25', 'en', 'Your thank-you is waiting: 12.25 Gradido'],
+      ['12.5', 'de', 'Dein Dank wartet: 12,5\u00a0Gradido'],
+      ['1000', 'de', 'Dein Dank wartet: 1000\u00a0Gradido'],
+      ['12.25', 'en', 'Your thank-you is waiting: 12.25\u00a0Gradido'],
     ])('writes the amount %s as a sentence says it, in %s', async (amount, lang, waits) => {
       i18n.global.locale.value = lang
       await sheetOf({ ...LINK, amount }).printGreetingSheet()

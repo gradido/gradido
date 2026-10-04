@@ -925,6 +925,37 @@ describe('drawThankYouGreetingSheet', () => {
     expect(lines[1].local.y - lines[0].local.y).toBe(Math.round(mm(4.3) * 1.3))
   })
 
+  // The amount and its unit come joined by a no-break space. A sentence too long for one line
+  // breaks before the amount; broken at every space it would end its first line on "1000,25".
+  it('keeps what a no-break space joins on one line: the amount and its unit', async () => {
+    // 36 letters fill a line of this size here (half the size a letter): with the amount, not
+    // with its unit as well.
+    const before = 'Ваша благодарность ждёт вас:'
+    await drawThankYouGreetingSheet({ ...SHEET, waits: `${before} 1000,25 Gradido` })
+    const parted = texts().filter((call) => sizeIn(call.font) === mm(4.3))
+    expect(parted.map((call) => call.text)).toEqual([`${before} 1000,25`, 'Gradido'])
+
+    await drawThankYouGreetingSheet({ ...SHEET, waits: `${before} 1000,25\u00a0Gradido` })
+    const joined = texts()
+      .filter((call) => sizeIn(call.font) === mm(4.3))
+      .slice(parted.length)
+    expect(joined.map((call) => call.text)).toEqual([before, '1000,25\u00a0Gradido'])
+  })
+
+  // Words pasted from elsewhere can be joined by no-break spaces from end to end. Such a run is
+  // longer than a line: it breaks at those spaces after all, and no word is broken within.
+  it('breaks at no-break spaces where what they join is longer than a line', async () => {
+    const pasted = Array.from({ length: 14 }, () => 'Wortwort').join('\u00a0')
+    await drawThankYouGreetingSheet({ ...SHEET, forWhom: '', signature: '', words: pasted })
+
+    const lines = texts()
+      .filter((call) => panelOf(call) === 'words')
+      .map((call) => call.text)
+    expect(lines.length).toBeGreaterThan(1)
+    for (const line of lines) expect(line).toMatch(/^Wortwort( Wortwort)*$/)
+    expect(lines.join(' ').split(' ')).toHaveLength(14)
+  })
+
   /**
    * Handwriting leans out of its boxes, and so does an italic: the tail of a "j" reaches left of
    * where the line is set. Counted by what a line advances by alone, that ink would stand in the
