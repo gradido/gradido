@@ -39,11 +39,17 @@
 
     <div class="tyg-done-card bg-white app-box-shadow gradido-border-radius">
       <!-- The device's share sheet where it has one; elsewhere this copies the sentence. -->
-      <BButton variant="gradido" data-test="thank-you-greeting-share" @click="share">
+      <BButton
+        variant="gradido"
+        class="tyg-done-button"
+        data-test="thank-you-greeting-share"
+        @click="share"
+      >
         {{ $t('gdd_per_link.share') }}
       </BButton>
       <BButton
         variant="outline-secondary"
+        class="tyg-done-button"
         :disabled="!canCopyLink"
         data-test="thank-you-greeting-copy"
         @click="copyLink"
@@ -64,6 +70,7 @@
         </div>
         <BButton
           variant="outline-secondary"
+          class="tyg-done-button"
           data-test="thank-you-greeting-print"
           @click="printGreetingSheet"
         >
@@ -224,7 +231,7 @@ const { saveWaits, printGreetingSheet, saveGreetingSheet } = useThankYouGreeting
   line-height: 1.5;
 }
 
-/* The buttons one under the other, each as wide as the card. */
+/* The buttons one under the other. */
 .tyg-done-card {
   display: flex;
   flex-direction: column;
@@ -260,6 +267,14 @@ const { saveWaits, printGreetingSheet, saveGreetingSheet } = useThankYouGreeting
   content: '';
 }
 
+/* A button is as wide as the card on a phone and no wider than the sheet of the step before
+   (24rem, .tyg-paper) -- on a desk the card is as wide as the page, and a button that wide is a
+   bar. Narrower ones stand in the middle, where the buttons of the other steps stand. */
+.tyg-done-button {
+  align-self: center;
+  width: min(24rem, 100%);
+}
+
 /* A line of text, not a third button: as wide as its words, in the middle. */
 .tyg-done-save {
   align-self: center;
@@ -267,8 +282,10 @@ const { saveWaits, printGreetingSheet, saveGreetingSheet } = useThankYouGreeting
   font-size: 0.9375rem;
 }
 
-/* What becomes of the sheet. */
+/* What becomes of the sheet, in lines an eye can follow. */
 .tyg-done-paper-hint {
+  align-self: center;
+  max-width: 34rem;
   margin-top: 2px;
   font-size: 0.8125rem;
   text-align: center;
