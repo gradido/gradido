@@ -15,6 +15,16 @@ html > body {
   color: white !important;
 }
 
+// The badge of the balance card that is NOT the open one. It had no surface at all: the
+// `light` variant it asked for brings `text-bg-light`, which this stylesheet does not
+// carry, so the badge's white text stood alone -- invisible on the light page, a bare
+// word on the dark one. Flat, no gradient, in the tone of the unselected navigation
+// icons, which is the same in both modes (Bernd, 04.10.2026). White on it: 4.3 : 1.
+.bg-gradido-muted {
+  background: var(--icon-muted) !important;
+  color: white !important;
+}
+
 .hover-icon:hover {
   background-color: rgb(220 216 217);
   border-radius: 29px;

@@ -4,8 +4,8 @@
       <BBadge
         v-if="badgeShow"
         class="position-absolute mt--2 px-3 zindex1"
-        :class="showStatus ? 'bg-gradido-gradient' : ''"
-        :variant="showStatus ? '' : 'light'"
+        :class="showStatus ? 'bg-gradido-gradient' : 'bg-gradido-muted'"
+        variant=""
       >
         {{ $t('GDD') }}
       </BBadge>
