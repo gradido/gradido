@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { CHAT_IMAGE_FULL_MAX_PIXELS } from './chatImageEdit'
 import { printSheet } from './printSheet'
+import { renderQrCodeCanvas } from './qrCode'
 import {
   THANK_YOU_GREETING_SHEET_HEIGHT,
   THANK_YOU_GREETING_SHEET_PANELS,
@@ -834,6 +835,15 @@ describe('drawThankYouGreetingSheet', () => {
       expect([code.local.width, code.local.height]).toEqual([mm(38), mm(38)])
       expect(code.local.x).toBe(Math.round(PANEL_W / 2 - mm(38) / 2))
       expect(code.cut).toBeNull()
+    })
+
+    // ⛔ A printed code cannot be taken back. It is made from the link the sheet was handed --
+    // that link and nothing derived from the page it is drawn on -- once, and it is this code
+    // that is drawn.
+    it('makes the code from the link of the greeting, and draws that code', () => {
+      expect(renderQrCodeCanvas).toHaveBeenCalledTimes(1)
+      expect(renderQrCodeCanvas).toHaveBeenCalledWith(SHEET.link)
+      expect(draws('drawImage').filter((call) => call.image === QR)).toHaveLength(1)
     })
 
     // The code is drawn larger than it is made (328 pixels on 449). Smoothed, every edge of a
