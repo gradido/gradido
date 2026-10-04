@@ -229,9 +229,6 @@ const pictureDraw = () =>
   draws('drawImage').find((call) => call.image !== QR && !call.image.src.includes('logo'))
 const qrDraw = () => draws('drawImage').find((call) => call.image === QR)
 const logoDraw = () => draws('drawImage').find((call) => call.image.src?.includes('logo'))
-// The first fillRect is the white of the paper, the four after the last panel are the marks.
-const marks = () => draws('fillRect').slice(1)
-
 /** The part of a panel things may stand in: 13 mm inside every edge of the paper and every fold. */
 const roomOf = ({ column, row }) => ({
   left: column * PANEL_W + MARGIN,
@@ -244,7 +241,7 @@ const within = (box, room) =>
   box.right <= room.right &&
   box.top >= room.top &&
   box.bottom <= room.bottom
-/** Everything drawn but the white of the paper and the four marks. */
+/** Everything drawn but the white of the paper. */
 const content = () => [...texts(), ...draws('drawImage')]
 const panelOf = (call) =>
   Object.entries(THANK_YOU_GREETING_SHEET_PANELS).find(([, panel]) =>
@@ -284,13 +281,26 @@ describe('drawThankYouGreetingSheet', () => {
       }
     })
 
-    // A home printer bleeds on a filled area: the paper, the picture, the code, the logo and
-    // four hairlines are all that is not text.
-    it('fills no area but the paper and the four fold marks', async () => {
+    // A home printer bleeds on a filled area: the paper, the picture, the code and the logo are
+    // all that is not text.
+    it('fills no area but the paper', async () => {
       await drawThankYouGreetingSheet(SHEET)
 
-      expect(draws('fillRect')).toHaveLength(5)
+      expect(draws('fillRect')).toHaveLength(1)
       expect(draws('drawImage')).toHaveLength(3)
+    })
+
+    // ⛔ Bernd, with the first printed card in hand (04.10.2026): no fold marks. Every printer
+    // sets the page a little differently, so a mark is never where the fold is; and one folds by
+    // laying edge on edge. Nothing at all stands at an edge of the paper or along a fold.
+    it('carries no fold marks: nothing is drawn but what stands in a panel', async () => {
+      await drawThankYouGreetingSheet(SHEET)
+
+      const [paper, ...others] = draws('fillRect')
+      expect(paper.local).toEqual({ x: 0, y: 0, width: SHEET_W, height: SHEET_H })
+      expect(others).toEqual([])
+      // The stand-in knows no stroke and no path: a line drawn any other way would throw here.
+      for (const call of content()) expect(panelOf(call)).not.toBeNull()
     })
   })
 
@@ -419,7 +429,7 @@ describe('drawThankYouGreetingSheet', () => {
         'sentences on the back far longer than any language has them',
         { ...SHEET, waits: `${SHEET.waits} `.repeat(3), scan: `${SHEET.scan} `.repeat(3) },
       ],
-    ])('holds nothing but the fold marks, with %s', async (_, sheet) => {
+    ])('holds nothing at all, with %s', async (_, sheet) => {
       await drawThankYouGreetingSheet(sheet)
 
       expect(content().length).toBeGreaterThan(3)
@@ -445,40 +455,6 @@ describe('drawThankYouGreetingSheet', () => {
 
     it('has the room of 79 mm for what a panel holds', () => {
       expect(Math.round((ROOM * 25.4) / 300)).toBe(79)
-    })
-  })
-
-  describe('the fold marks', () => {
-    beforeEach(() => drawThankYouGreetingSheet(SHEET))
-
-    it('are four fine strokes of 4 mm, 4 mm from the edge, where the two folds end', () => {
-      const hair = Math.max(2, mm(0.2))
-      expect(marks().map((mark) => mark.local)).toEqual([
-        { x: mm(4), y: Math.round(SHEET_H / 2 - hair / 2), width: mm(4), height: hair },
-        { x: SHEET_W - mm(8), y: Math.round(SHEET_H / 2 - hair / 2), width: mm(4), height: hair },
-        { x: Math.round(SHEET_W / 2 - hair / 2), y: mm(4), width: hair, height: mm(4) },
-        { x: Math.round(SHEET_W / 2 - hair / 2), y: SHEET_H - mm(8), width: hair, height: mm(4) },
-      ])
-      for (const mark of marks()) {
-        expect(mark.fillStyle).toBe('#b9b9b9')
-        expect(mark.turned).toBe(false)
-      }
-    })
-
-    // No line across the card: a mark ends long before the room of a panel begins.
-    it('stay in the margin, and none runs across the card', () => {
-      for (const mark of marks()) {
-        expect(Math.max(mark.local.width, mark.local.height)).toBe(mm(4))
-        expect(panelOf(mark)).toBeNull()
-        // From the edge it stands at to its far end.
-        const reach = Math.min(
-          mark.box.right,
-          SHEET_W - mark.box.left,
-          mark.box.bottom,
-          SHEET_H - mark.box.top,
-        )
-        expect(reach).toBeLessThan(MARGIN)
-      }
     })
   })
 
@@ -1308,7 +1284,7 @@ describe('printThankYouGreetingSheet', () => {
     return vi.mocked(printSheet).mock.calls[0][0]
   }
 
-  // ⛔ The millimetres are what makes the folds meet the marks.
+  // ⛔ The millimetres are what puts the four panels where the folds fall.
   it('lays the sheet out on an A4 page without a margin, at the size of the paper', async () => {
     const { style } = await page()
 

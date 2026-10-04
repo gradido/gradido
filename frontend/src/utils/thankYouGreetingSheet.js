@@ -41,8 +41,12 @@ import { chequeFileName } from './thankYouCheque'
  * ## 13 mm stay free in every panel, at every edge of the paper and at every fold
  *
  * A home printer leaves a few millimetres unprinted, and "fit to page" moves everything a
- * little. Nothing but the four fold marks stands in that margin, so no fold runs through a
- * letter and no printer cuts one off. It leaves 79 mm of width for what a panel holds.
+ * little. Nothing stands in that margin, so no fold runs through a letter and no printer cuts
+ * one off. It leaves 79 mm of width for what a panel holds.
+ *
+ * ⛔ No fold marks (Bernd, with the first printed card in hand, 04.10.2026): every printer sets
+ * the page a little differently, so a mark is never where the fold is -- and nobody folds by
+ * marks: one lays edge on edge, and the fold falls in the middle by itself.
  *
  * So every text is broken to that room -- a word longer than a line WITHIN the word, as the
  * card on the screen breaks it (`overflow-wrap: anywhere`): an address in the sender's words
@@ -101,7 +105,6 @@ const COLOR_SOFT = '#4a4a4a'
 const COLOR_GOLD = '#8a6124'
 // The slogan, as on the two printed cards.
 const COLOR_GREEN = '#4a6741'
-const COLOR_MARK = '#b9b9b9'
 
 const LOGO_PATH = '/img/brand/gradido-logo.png'
 const ELLIPSIS = '…'
@@ -163,11 +166,6 @@ const SLOGAN_SIZE = mm(2.6)
 const SLOGAN_LEADING = 1.3
 // Code and sentences stand in the middle of the room above the foot, lifted as the front is.
 const BACK_LIFT = mm(5.5)
-
-// ---- the fold marks: four short strokes at the edges, none across the card --------------------
-const MARK_FROM_EDGE = mm(4)
-const MARK_LENGTH = mm(4)
-const MARK_WIDTH = Math.max(2, mm(0.2))
 
 const loadImage = (source) =>
   new Promise((resolve, reject) => {
@@ -531,27 +529,6 @@ const drawBack = (ctx, { qr, logo, from, waits, scan, free, slogan }) => {
   set(sloganLines, 400, SLOGAN_SIZE, COLOR_GREEN)
 }
 
-/** Where the folds end, at the four edges: the first fold across, the second one down. */
-const drawFoldMarks = (ctx) => {
-  const across = Math.round(THANK_YOU_GREETING_SHEET_HEIGHT / 2 - MARK_WIDTH / 2)
-  const down = Math.round(THANK_YOU_GREETING_SHEET_WIDTH / 2 - MARK_WIDTH / 2)
-  ctx.fillStyle = COLOR_MARK
-  ctx.fillRect(MARK_FROM_EDGE, across, MARK_LENGTH, MARK_WIDTH)
-  ctx.fillRect(
-    THANK_YOU_GREETING_SHEET_WIDTH - MARK_FROM_EDGE - MARK_LENGTH,
-    across,
-    MARK_LENGTH,
-    MARK_WIDTH,
-  )
-  ctx.fillRect(down, MARK_FROM_EDGE, MARK_WIDTH, MARK_LENGTH)
-  ctx.fillRect(
-    down,
-    THANK_YOU_GREETING_SHEET_HEIGHT - MARK_FROM_EDGE - MARK_LENGTH,
-    MARK_WIDTH,
-    MARK_LENGTH,
-  )
-}
-
 /** Paints one panel in coordinates of its own, from its top left as the reader of the card sees it. */
 const inPanel = (ctx, { column, row }, paint) => {
   ctx.save()
@@ -628,14 +605,13 @@ export const drawThankYouGreetingSheet = async ({
   // THANK_YOU_GREETING_SHEET_PANELS.hand stays as it is: the page for the sender's own hand.
   inPanel(ctx, back, () => drawBack(ctx, { qr, logo, from, waits, scan, free, slogan }))
   inPanel(ctx, front, () => drawFront(ctx, { picture: image, line }))
-  drawFoldMarks(ctx)
 
   return canvas.toDataURL('image/png')
 }
 
 /**
  * The page the sheet is printed on: A4 without a margin, and on it ONE picture at the size of
- * the paper. The millimetres are what makes the folds meet the marks.
+ * the paper. The millimetres are what puts the four panels where the folds fall.
  */
 const SHEET_STYLE = `
   @page { size: A4; margin: 0 }
