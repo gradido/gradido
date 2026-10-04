@@ -1593,7 +1593,11 @@
     "name": "Teşekkür mesajı",
     "next": "Devam",
     "paper": {
-      "failed": "Kart şu anda oluşturulamadı. Lütfen tekrar dene."
+      "failed": "Kart şu anda oluşturulamadı. Lütfen tekrar dene.",
+      "hint": "Tek yüzü basılı bir A4 kâğıdı. Basılı yüzü dışarıda kalacak şekilde iki kez katla: resmin önde, sözlerin içte olur; yanında da el yazın için yer kalır.",
+      "print": "Kartı yazdır",
+      "save": "Kartı resim olarak kaydet",
+      "title": "Ya da kâğıt üzerinde"
     },
     "photo-of": "{name} tarafından gönderilen fotoğraf",
     "picture": {

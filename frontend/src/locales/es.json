@@ -1593,7 +1593,11 @@
     "name": "Saludo de agradecimiento",
     "next": "Continuar",
     "paper": {
-      "failed": "Ahora mismo no se ha podido crear la tarjeta. Inténtalo de nuevo, por favor."
+      "failed": "Ahora mismo no se ha podido crear la tarjeta. Inténtalo de nuevo, por favor.",
+      "hint": "Una hoja A4, impresa por una cara. Dóblala dos veces, con la cara impresa hacia fuera: tu imagen queda delante, tus palabras dentro, y al lado hay sitio para escribir a mano.",
+      "print": "Imprimir tarjeta",
+      "save": "Guardar tarjeta como imagen",
+      "title": "O en papel"
     },
     "photo-of": "Foto enviada por {name}",
     "picture": {

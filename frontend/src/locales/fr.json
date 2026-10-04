@@ -1593,7 +1593,11 @@
     "name": "Mot de remerciement",
     "next": "Continuer",
     "paper": {
-      "failed": "La carte n'a pas pu être créée pour le moment. Réessaie, s'il te plaît."
+      "failed": "La carte n'a pas pu être créée pour le moment. Réessaie, s'il te plaît.",
+      "hint": "Une feuille A4, imprimée d'un seul côté. Plie-la deux fois, le côté imprimé vers l'extérieur : ton image se trouve alors devant, tes mots à l'intérieur, et à côté il reste de la place pour écrire à la main.",
+      "print": "Imprimer la carte",
+      "save": "Enregistrer la carte en image",
+      "title": "Ou sur papier"
     },
     "photo-of": "Photo envoyée par {name}",
     "picture": {

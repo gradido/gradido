@@ -1593,7 +1593,11 @@
     "name": "Thank-you greeting",
     "next": "Next",
     "paper": {
-      "failed": "The card could not be made just now. Please try again."
+      "failed": "The card could not be made just now. Please try again.",
+      "hint": "An A4 sheet, printed on one side. Fold it twice, the printed side out: your picture is then in front, your words are inside, and beside them there is room for your handwriting.",
+      "print": "Print card",
+      "save": "Save card as a picture",
+      "title": "Or on paper"
     },
     "photo-of": "Photo from {name}",
     "picture": {

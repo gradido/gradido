@@ -1593,7 +1593,11 @@
     "name": "Biglietto di ringraziamento",
     "next": "Avanti",
     "paper": {
-      "failed": "In questo momento non è stato possibile creare il biglietto. Riprova, per favore."
+      "failed": "In questo momento non è stato possibile creare il biglietto. Riprova, per favore.",
+      "hint": "Un foglio A4, stampato su un solo lato. Piegalo due volte, con il lato stampato all'esterno: la tua immagine sta davanti, le tue parole dentro, e accanto c'è spazio per scrivere a mano.",
+      "print": "Stampa il biglietto",
+      "save": "Salva il biglietto come immagine",
+      "title": "Oppure su carta"
     },
     "photo-of": "Foto inviata da {name}",
     "picture": {

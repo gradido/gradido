@@ -4,6 +4,19 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import i18n from '@/i18n'
 import ThankYouGreetingDone from './ThankYouGreetingDone.vue'
 
+// On paper: the composable is the real one. What it hands on is caught where it leaves the
+// wallet -- at the drawer and its print frame, and at the device.
+const SHEET = 'data:image/png;base64,c2hlZXQ='
+const paper = vi.hoisted(() => ({ draw: null, print: null, save: null }))
+vi.mock('@/utils/thankYouGreetingSheet', async (importOriginal) => ({
+  ...(await importOriginal()),
+  drawThankYouGreetingSheet: (...args) => paper.draw(...args),
+  printThankYouGreetingSheet: (...args) => paper.print(...args),
+}))
+vi.mock('@/utils/chatImageSave', () => ({
+  saveChatImageFile: (...args) => paper.save(...args),
+}))
+
 const toast = vi.hoisted(() => ({ toastSuccess: vi.fn(), toastError: vi.fn() }))
 vi.mock('@/composables/useToast', () => ({ useAppToast: () => toast }))
 vi.mock('vuex', () => ({
@@ -39,6 +52,9 @@ describe('ThankYouGreetingDone', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     i18n.global.locale.value = 'de'
+    paper.draw = vi.fn(async () => SHEET)
+    paper.print = vi.fn(async () => {})
+    paper.save = vi.fn(async () => 'downloaded')
     share.mockResolvedValue(undefined)
     writeText.mockResolvedValue(undefined)
     Object.defineProperty(window.navigator, 'share', { value: share, configurable: true })
@@ -213,13 +229,14 @@ describe('ThankYouGreetingDone', () => {
     )
   })
 
-  // Slice 6: nothing to print and no picture to save yet.
-  it('offers sharing and copying, and nothing else', () => {
+  // The two ways the link travels, and since slice 6 the two ways onto paper. A greeting is
+  // never "sent" from here (ZE-016).
+  it('offers sharing and copying, printing and saving as a picture, and nothing else', () => {
     expect(
       done()
         .findAll('button')
         .map((button) => button.text()),
-    ).toEqual(['Teilen', 'Link kopieren'])
+    ).toEqual(['Teilen', 'Link kopieren', 'Karte drucken', 'Karte als Bild sichern'])
   })
 
   // The wallet knows no gender: the name stands there, or the sentence does without.
@@ -228,5 +245,180 @@ describe('ThankYouGreetingDone', () => {
       expect(data(wrapper, 'done-waits').text()).toBe('Er wartet bis zum 16.10.2026.')
       expect(wrapper.text()).not.toMatch(/auf (sie|ihn)\b/)
     }
+  })
+
+  /**
+   * The greeting on paper (ZE-017, F8): a group of its own under the two ways the link travels
+   * -- "Karte drucken" in the form of "Link kopieren", the quiet line "Karte als Bild sichern",
+   * and the sentence that says what becomes of the sheet.
+   */
+  describe('on paper', () => {
+    /** A promise a test settles when it wants. */
+    const deferred = () => {
+      const settle = {}
+      const promise = new Promise((resolve) => Object.assign(settle, { resolve }))
+      return { promise, ...settle }
+    }
+    const drawn = () => paper.draw.mock.calls[paper.draw.mock.calls.length - 1][0]
+
+    it('stands in the card, under "Teilen" and "Link kopieren", in this order', () => {
+      const wrapper = done()
+      const card = wrapper.find('.tyg-done-card')
+
+      expect(
+        card
+          .findAll('[data-test]')
+          .map((element) => element.attributes('data-test').replace('thank-you-greeting-', '')),
+      ).toEqual(['share', 'copy', 'paper-title', 'print', 'save', 'paper-hint'])
+      expect(data(wrapper, 'paper-title').text()).toBe('Oder auf Papier')
+      expect(data(wrapper, 'print').text()).toBe('Karte drucken')
+      expect(data(wrapper, 'save').text()).toBe('Karte als Bild sichern')
+      expect(data(wrapper, 'paper-hint').text()).toBe(
+        'Ein A4-Blatt, einseitig bedruckt. Falte es zweimal, die bedruckte Seite nach außen: Dein Bild liegt dann vorn, Deine Worte stehen innen, und daneben ist Platz für Deine Handschrift.',
+      )
+    })
+
+    it('has "Karte drucken" in the form of "Link kopieren", and the picture as a line of text', () => {
+      const wrapper = done()
+
+      expect(data(wrapper, 'print').classes()).toEqual(data(wrapper, 'copy').classes())
+      expect(data(wrapper, 'save').classes()).toContain('btn-link')
+    })
+
+    // Both are buttons the keyboard reaches, and both say what they do; the group has a name.
+    it('is two buttons in a group that is named by its word', () => {
+      const wrapper = done()
+
+      for (const name of ['print', 'save']) {
+        const button = data(wrapper, name)
+        expect(button.element.tagName).toBe('BUTTON')
+        expect(button.attributes('type')).toBe('button')
+        expect(button.attributes('tabindex')).toBeUndefined()
+        expect(button.text().length).toBeGreaterThan(5)
+      }
+      const group = wrapper.find('[role="group"]')
+      expect(group.find('[data-test="thank-you-greeting-print"]').exists()).toBe(true)
+      expect(wrapper.find(`#${group.attributes('aria-labelledby')}`).text()).toBe('Oder auf Papier')
+    })
+
+    it('prints the sheet of this greeting', async () => {
+      const wrapper = done()
+
+      await data(wrapper, 'print').trigger('click')
+      await flushPromises()
+
+      expect(paper.draw).toHaveBeenCalledTimes(1)
+      expect(drawn()).toMatchObject({
+        link: LINK,
+        picture: '/img/thank-you-greeting/morning-light.svg',
+        line: 'Einfach so — weil es Dich gibt.',
+        words: WORDS,
+        forWhom: 'FÜR SARAH',
+        signature: 'Oma-Emma',
+        waits: 'Dein Dank wartet: 20 Gradido',
+        scan: 'Halte die Kamera Deines Handys auf den Code und nimm ihn an — bis zum 16.10.2026.',
+        free: 'Kostenfrei. Keine Verpflichtung.',
+        slogan: 'Helfen. Schenken. Danken.',
+      })
+      expect(paper.print).toHaveBeenCalledWith(SHEET)
+      expect(paper.save).not.toHaveBeenCalled()
+      expect(toast.toastError).not.toHaveBeenCalled()
+    })
+
+    it('saves the same sheet as a picture, named by the greeting', async () => {
+      const wrapper = done()
+
+      await data(wrapper, 'save').trigger('click')
+      await flushPromises()
+
+      expect(paper.draw).toHaveBeenCalledTimes(1)
+      expect(paper.print).not.toHaveBeenCalled()
+      const [[file]] = paper.save.mock.calls
+      expect(file.name).toBe('Dank-Gruß für Sarah.png')
+      expect(file.type).toBe('image/png')
+    })
+
+    // The page holds the photo it made: the server is not asked for it.
+    it('draws a photo of the member’s own from the picture the page made', async () => {
+      const fetching = vi.fn()
+      vi.stubGlobal('fetch', fetching)
+      const PREVIEW = 'data:image/jpeg;base64,PREVIEW'
+      const wrapper = done({ ...created({ motif: null, hasPicture: true }), picture: PREVIEW })
+
+      await data(wrapper, 'print').trigger('click')
+      await flushPromises()
+
+      expect(drawn().picture).toBe(PREVIEW)
+      expect(fetching).not.toHaveBeenCalled()
+      vi.unstubAllGlobals()
+    })
+
+    /**
+     * The share sheet opens only right after a tap, and the sheet had to be drawn first. Where it
+     * asks for a tap of its own, the line offers that tap in the chat's words and hands the same
+     * file over -- nothing is drawn a second time.
+     */
+    it('offers "Jetzt sichern" where the share sheet wants a tap of its own, and hands the same file over', async () => {
+      paper.save = vi.fn().mockResolvedValueOnce('again').mockResolvedValueOnce('shared')
+      const wrapper = done()
+
+      await data(wrapper, 'save').trigger('click')
+      await flushPromises()
+      expect(data(wrapper, 'save').text()).toBe('Jetzt sichern')
+      expect(toast.toastError).not.toHaveBeenCalled()
+
+      await data(wrapper, 'save').trigger('click')
+      await flushPromises()
+      expect(paper.draw).toHaveBeenCalledTimes(1)
+      expect(paper.save).toHaveBeenCalledTimes(2)
+      expect(paper.save.mock.calls[1][0]).toBe(paper.save.mock.calls[0][0])
+      expect(data(wrapper, 'save').text()).toBe('Karte als Bild sichern')
+    })
+
+    it('says nothing where the member closes the share sheet', async () => {
+      paper.save = vi.fn(async () => 'cancelled')
+      const wrapper = done()
+
+      await data(wrapper, 'save').trigger('click')
+      await flushPromises()
+
+      expect(toast.toastError).not.toHaveBeenCalled()
+      expect(data(wrapper, 'save').text()).toBe('Karte als Bild sichern')
+    })
+
+    it('makes one sheet of a double tap, and of a tap on each of the two', async () => {
+      const drawing = deferred()
+      paper.draw = vi.fn(() => drawing.promise)
+      const wrapper = done()
+
+      await data(wrapper, 'print').trigger('click')
+      await data(wrapper, 'print').trigger('click')
+      await data(wrapper, 'save').trigger('click')
+      // Neither is taken away meanwhile: the keyboard keeps its place.
+      expect(data(wrapper, 'print').attributes('disabled')).toBeUndefined()
+      expect(data(wrapper, 'save').attributes('disabled')).toBeUndefined()
+      drawing.resolve(SHEET)
+      await flushPromises()
+
+      expect(paper.draw).toHaveBeenCalledTimes(1)
+      expect(paper.print).toHaveBeenCalledTimes(1)
+      expect(paper.save).not.toHaveBeenCalled()
+    })
+
+    it('says one sentence where the sheet cannot be made', async () => {
+      paper.draw = vi.fn(async () => {
+        throw new Error('cannot load image')
+      })
+      const wrapper = done()
+
+      await data(wrapper, 'print').trigger('click')
+      await flushPromises()
+
+      expect(toast.toastError).toHaveBeenCalledTimes(1)
+      expect(toast.toastError).toHaveBeenCalledWith(
+        'Die Karte ließ sich gerade nicht erstellen. Versuch es bitte noch einmal.',
+      )
+      expect(paper.print).not.toHaveBeenCalled()
+    })
   })
 })

@@ -1116,6 +1116,35 @@ describe('the card the sheet folds into', () => {
     })
   })
 
+  /**
+   * ⚠️ The sentence on "Fertig" is a claim about this sheet. Whoever moves a panel has to change
+   * the sentence, and whoever changes the sentence has to look at the panels: both stand here.
+   */
+  it('is what the sentence on "Fertig" says becomes of the sheet', () => {
+    const german = JSON.parse(
+      readFileSync(
+        join(dirname(fileURLToPath(import.meta.url)), '..', 'locales', 'de.json'),
+        'utf8',
+      ),
+    )
+    expect(german['thank-you-greeting'].paper.hint).toBe(
+      'Ein A4-Blatt, einseitig bedruckt. Falte es zweimal, die bedruckte Seite nach außen: Dein Bild liegt dann vorn, Deine Worte stehen innen, und daneben ist Platz für Deine Handschrift.',
+    )
+
+    const card = folded()
+    // "Dein Bild liegt dann vorn"
+    expect(card.front).toBe('front')
+    // "Deine Worte stehen innen, und daneben ist Platz für Deine Handschrift"
+    expect([card.insideLeft, card.insideRight].sort()).toEqual(['hand', 'words'])
+    // "einseitig bedruckt": the four panels are the four quarters of ONE side.
+    expect(Object.keys(THANK_YOU_GREETING_SHEET_PANELS).sort()).toEqual([
+      'back',
+      'front',
+      'hand',
+      'words',
+    ])
+  })
+
   it('uses each of the four quarters once', () => {
     const places = Object.values(THANK_YOU_GREETING_SHEET_PANELS).map(
       ({ column, row }) => `${column}/${row}`,

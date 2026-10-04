@@ -26,6 +26,14 @@ vi.mock('@vue/apollo-composable', () => ({
         document === addThankYouGreetingPicture ? server.add(...args) : server.mutate(...args),
     }
   },
+  // "Fertig" offers the greeting on paper (useThankYouGreetingSheet). That asks for the client
+  // only where the server has to be asked for a photo -- which a page that made the photo
+  // itself never is: a client that is looked at here throws.
+  useApolloClient: () => ({
+    get client() {
+      throw new Error('"Fertig" asked the server for a photo it holds itself')
+    },
+  }),
 }))
 
 /**

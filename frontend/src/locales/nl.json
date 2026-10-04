@@ -1593,7 +1593,11 @@
     "name": "Dankgroetje",
     "next": "Verder",
     "paper": {
-      "failed": "De kaart kon nu niet worden gemaakt. Probeer het alsjeblieft nog een keer."
+      "failed": "De kaart kon nu niet worden gemaakt. Probeer het alsjeblieft nog een keer.",
+      "hint": "Een A4-vel, aan één kant bedrukt. Vouw het twee keer, met de bedrukte kant naar buiten: je afbeelding zit dan vooraan, je woorden staan binnenin, en ernaast is ruimte voor je handschrift.",
+      "print": "Kaart afdrukken",
+      "save": "Kaart als afbeelding opslaan",
+      "title": "Of op papier"
     },
     "photo-of": "Foto verstuurd door {name}",
     "picture": {

@@ -1593,7 +1593,11 @@
     "name": "Dank-Gruß",
     "next": "Weiter",
     "paper": {
-      "failed": "Die Karte ließ sich gerade nicht erstellen. Versuch es bitte noch einmal."
+      "failed": "Die Karte ließ sich gerade nicht erstellen. Versuch es bitte noch einmal.",
+      "hint": "Ein A4-Blatt, einseitig bedruckt. Falte es zweimal, die bedruckte Seite nach außen: Dein Bild liegt dann vorn, Deine Worte stehen innen, und daneben ist Platz für Deine Handschrift.",
+      "print": "Karte drucken",
+      "save": "Karte als Bild sichern",
+      "title": "Oder auf Papier"
     },
     "photo-of": "Foto von {name}",
     "picture": {

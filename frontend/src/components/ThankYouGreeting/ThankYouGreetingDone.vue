@@ -50,6 +50,42 @@
       >
         {{ $t('gdd_per_link.copy-link') }}
       </BButton>
+      <!-- On paper (ZE-017, F8): the same greeting as an A4 sheet that folds into a card. A group
+           of its own under the two ways the link travels, with the sentence that says what
+           becomes of the sheet. Neither button is taken away while a sheet is being made -- a
+           disabled button loses the keyboard's place; the composable makes one sheet of two taps. -->
+      <div class="tyg-done-paper" role="group" aria-labelledby="tyg-done-paper-title">
+        <div
+          id="tyg-done-paper-title"
+          class="tyg-done-paper-title"
+          data-test="thank-you-greeting-paper-title"
+        >
+          {{ $t('thank-you-greeting.paper.title') }}
+        </div>
+        <BButton
+          variant="outline-secondary"
+          data-test="thank-you-greeting-print"
+          @click="printGreetingSheet"
+        >
+          {{ $t('thank-you-greeting.paper.print') }}
+        </BButton>
+        <!-- The quiet way, a line of text: the same sheet as a picture. Where the device's share
+             sheet asked for a tap of its own, this is that tap -- in the chat's words. -->
+        <BButton
+          variant="link"
+          class="tyg-done-save"
+          data-test="thank-you-greeting-save"
+          @click="saveGreetingSheet"
+        >
+          {{ saveWaits ? $t('chatThread.imageSaveAgain') : $t('thank-you-greeting.paper.save') }}
+        </BButton>
+        <p
+          class="tyg-done-paper-hint tyg-done-muted mb-0"
+          data-test="thank-you-greeting-paper-hint"
+        >
+          {{ $t('thank-you-greeting.paper.hint') }}
+        </p>
+      </div>
     </div>
 
     <div class="tyg-done-sentence page-text">
@@ -84,7 +120,7 @@
 
 <script setup>
 /**
- * A thank-you greeting is made: share it, or copy its link.
+ * A thank-you greeting is made: share it, copy its link -- or print it.
  *
  * Everything here is the server's answer to `createTransactionLink` -- the link, until when
  * it waits, whom it is for -- not what the form held. The one thing that is the page's own is
@@ -94,12 +130,16 @@
  * The sentence that goes out with the link is in the first person and carries neither the
  * sender's words nor the amount (ZE-017, F3): those stand on the card, behind the link. It
  * stands here word for word, because it is what the other person reads first.
+ *
+ * On paper the greeting is a sheet that folds into a card, printed or saved as a picture
+ * (useThankYouGreetingSheet). Its photo, where it carries one, is the same `created.picture`.
  */
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useStore } from 'vuex'
 import { BButton } from 'bootstrap-vue-next'
 import { useCopyLinks } from '@/composables/useCopyLinks'
+import { useThankYouGreetingSheet } from '@/composables/useThankYouGreetingSheet'
 import { memberAlias } from '@/utils/gradidoAddress'
 import {
   THANK_YOU_MOTIF_HEIGHT,
@@ -135,6 +175,20 @@ const { canCopyLink, copyLink, linkText, share } = useCopyLinks({
   validUntil: props.created.validUntil,
   greeting: props.created.greeting ?? {},
 })
+
+// The same greeting on paper. This page can offer a second tap where the share sheet wants one.
+const { saveWaits, printGreetingSheet, saveGreetingSheet } = useThankYouGreetingSheet(
+  {
+    id: props.created.id,
+    link: props.created.link,
+    amount: props.created.amount,
+    memo: props.created.memo,
+    validUntil: props.created.validUntil,
+    greeting: props.created.greeting ?? {},
+    picture: props.created.picture ?? null,
+  },
+  { secondTap: true },
+)
 </script>
 
 <style lang="scss" scoped>
@@ -170,13 +224,54 @@ const { canCopyLink, copyLink, linkText, share } = useCopyLinks({
   line-height: 1.5;
 }
 
-/* The two buttons one under the other, each as wide as the card. */
+/* The buttons one under the other, each as wide as the card. */
 .tyg-done-card {
   display: flex;
   flex-direction: column;
   gap: 10px;
   margin-bottom: 1.25rem;
   padding: 1.25rem;
+}
+
+/* On paper: a group of its own, set as the card sets its buttons. */
+.tyg-done-paper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Its word between two fine lines. */
+.tyg-done-paper-title {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 6px;
+  color: var(--bs-secondary-color, #6c757d);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.tyg-done-paper-title::before,
+.tyg-done-paper-title::after {
+  flex: 1;
+  height: 1px;
+  background: var(--bs-border-color, #dee2e6);
+  content: '';
+}
+
+/* A line of text, not a third button: as wide as its words, in the middle. */
+.tyg-done-save {
+  align-self: center;
+  padding: 2px 0;
+  font-size: 0.9375rem;
+}
+
+/* What becomes of the sheet. */
+.tyg-done-paper-hint {
+  margin-top: 2px;
+  font-size: 0.8125rem;
+  text-align: center;
 }
 
 .tyg-done-label {

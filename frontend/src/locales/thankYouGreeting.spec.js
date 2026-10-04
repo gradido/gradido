@@ -81,6 +81,10 @@ const KEYS = [
   'name',
   'next',
   'paper.failed',
+  'paper.hint',
+  'paper.print',
+  'paper.save',
+  'paper.title',
   'photo-of',
   'picture.other',
   'picture.own',
@@ -429,6 +433,49 @@ describe('thank-you-greeting in the language files', () => {
         )
       }
       expect(sentences.join(' ')).toMatch(/(?<!\p{L})(вас|наведите|примите|попробуйте)(?!\p{L})/iu)
+    })
+  })
+
+  /**
+   * On "Fertig" and in the menu of a greeting in the list: the greeting on paper. Two ways, a
+   * word over them, and the sentence that says what becomes of the sheet.
+   */
+  describe('the greeting on paper', () => {
+    it('reads in German as it was decided', () => {
+      expect(render('de', 'paper.title')).toBe('Oder auf Papier')
+      expect(render('de', 'paper.print')).toBe('Karte drucken')
+      expect(render('de', 'paper.save')).toBe('Karte als Bild sichern')
+      expect(render('de', 'paper.hint')).toBe(
+        'Ein A4-Blatt, einseitig bedruckt. Falte es zweimal, die bedruckte Seite nach außen: Dein Bild liegt dann vorn, Deine Worte stehen innen, und daneben ist Platz für Deine Handschrift.',
+      )
+    })
+
+    // Two entries of a menu and a word over a group: short, and no sentences.
+    it.each(languages)('names the two ways and their group in few words, in %s', (lang) => {
+      const words = ['paper.title', 'paper.print', 'paper.save'].map((key) => render(lang, key))
+
+      for (const text of words) {
+        expect(text).not.toMatch(/[{}|.!?:]/)
+        expect(text.length, text).toBeLessThanOrEqual(32)
+        expect(text.split(/\s+/).length, text).toBeLessThanOrEqual(5)
+      }
+      expect(new Set(words).size).toBe(3)
+    })
+
+    // ⚠️ A claim about the sheet (thankYouGreetingSheet.spec.js holds it against the panels):
+    // the paper and how it is printed, then how it is folded and what lies where.
+    it.each(languages)('says what the sheet is and what becomes of it, in %s', (lang) => {
+      const hint = render(lang, 'paper.hint')
+
+      expect(hint).toContain('A4')
+      expect(hint).not.toMatch(/[{}|]/)
+      expect(hint).toMatch(/\.$/)
+      // The paper first, in a sentence of its own; then the folding, up to a colon or a
+      // semicolon, and what lies where.
+      const [paper, ...rest] = hint.split('. ')
+      expect(paper).toContain('A4')
+      expect(rest).toHaveLength(1)
+      expect(rest[0]).toMatch(/[:;] \p{L}/u)
     })
   })
 
