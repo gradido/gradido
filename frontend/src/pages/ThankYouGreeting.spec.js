@@ -452,6 +452,52 @@ describe('ThankYouGreeting', () => {
         expect(step()).toBe('preview')
       })
 
+      // role="alert" is said once, when the sentence appears. As the description of the lines
+      // it is said again whenever the member comes back to them.
+      describe('the sentence at the lines, for a screen reader', () => {
+        const lines = () => wrapper.find('[aria-labelledby="thank-you-greeting-line-label"]')
+
+        it('is the description of the lines for as long as it stands', async () => {
+          await fill({ line: null, words: null })
+          expect(lines().attributes('role')).toBe('group')
+          expect(lines().attributes('aria-describedby')).toBeUndefined()
+
+          await next()
+
+          expect(data('line-error').attributes('id')).toBe('thank-you-greeting-line-error')
+          expect(wrapper.findAll('#thank-you-greeting-line-error')).toHaveLength(1)
+          expect(lines().attributes('aria-describedby')).toBe('thank-you-greeting-line-error')
+
+          await data('line-just-so').trigger('click')
+          expect(lines().attributes('aria-describedby')).toBeUndefined()
+        })
+
+        it('is the description of the field for a line of one’s own as well', async () => {
+          await data('own-line').trigger('click')
+          await fill({ line: null, words: null })
+          expect(data('own-line-input').attributes('aria-describedby')).toBeUndefined()
+
+          await next()
+
+          expect(data('own-line-input').attributes('aria-describedby')).toBe(
+            'thank-you-greeting-line-error',
+          )
+          expect(data('own-line-input').attributes('aria-invalid')).toBe('true')
+          expect(lines().attributes('aria-describedby')).toBe('thank-you-greeting-line-error')
+
+          await data('own-line-input').setValue('Für Dich, einfach so')
+          expect(data('own-line-input').attributes('aria-describedby')).toBeUndefined()
+          expect(lines().attributes('aria-describedby')).toBeUndefined()
+        })
+
+        it('leaves the words without a description: nothing is said about them', async () => {
+          await fill({ line: null, words: 'Eure Oma' })
+          await next()
+
+          expect(data('words-input').attributes('aria-describedby')).toBeUndefined()
+        })
+      })
+
       // A refused "Weiter" is no step: it leaves no entry behind, and one press of the back
       // key still leads to the picture.
       it('leaves no entry in the history when it stays', async () => {
@@ -501,6 +547,28 @@ describe('ThankYouGreeting', () => {
         await data('words-input').setValue('a'.repeat(480))
         await next()
         expect(step()).toBe('preview')
+      })
+
+      it('names the sentence at the words as their description, for as long as it stands', async () => {
+        await fill({ words: 'a'.repeat(481) })
+        expect(data('words-input').attributes('aria-describedby')).toBeUndefined()
+
+        await next()
+
+        expect(data('memo-error').attributes('id')).toBe('thank-you-greeting-memo-error')
+        expect(wrapper.findAll('#thank-you-greeting-memo-error')).toHaveLength(1)
+        expect(data('words-input').attributes('aria-describedby')).toBe(
+          'thank-you-greeting-memo-error',
+        )
+        // The lines are not what is wrong: they carry no description.
+        expect(
+          wrapper
+            .find('[aria-labelledby="thank-you-greeting-line-label"]')
+            .attributes('aria-describedby'),
+        ).toBeUndefined()
+
+        await data('words-input').setValue('a'.repeat(480))
+        expect(data('words-input').attributes('aria-describedby')).toBeUndefined()
       })
 
       it('needs an amount', async () => {

@@ -90,7 +90,14 @@
             </div>
           </div>
 
-          <div class="tyg-field" role="group" aria-labelledby="thank-you-greeting-line-label">
+          <!-- An error that stands is the description of what it is about: a screen reader
+               says it again when the member comes back, not only at the moment it appears. -->
+          <div
+            class="tyg-field"
+            role="group"
+            aria-labelledby="thank-you-greeting-line-label"
+            :aria-describedby="tried && lineError ? 'thank-you-greeting-line-error' : undefined"
+          >
             <div id="thank-you-greeting-line-label" class="tyg-label">
               {{ $t('thank-you-greeting.words.line') }}
             </div>
@@ -161,6 +168,7 @@
               autocomplete="off"
               :maxlength="THANK_YOU_LINE_MAX_CHARS"
               :aria-label="$t('thank-you-greeting.words.own-line')"
+              :aria-describedby="tried && lineError ? 'thank-you-greeting-line-error' : undefined"
               :state="tried && lineError ? false : null"
               data-test="thank-you-greeting-own-line-input"
             />
@@ -168,6 +176,7 @@
                  suggestions or one of the member's own. -->
             <div
               v-if="tried && lineError"
+              id="thank-you-greeting-line-error"
               class="tyg-error small"
               role="alert"
               data-test="thank-you-greeting-line-error"
@@ -186,6 +195,7 @@
               rows="4"
               max-rows="10"
               no-resize
+              :aria-describedby="tried && memoError ? 'thank-you-greeting-memo-error' : undefined"
               :state="tried && memoError ? false : null"
               data-test="thank-you-greeting-words-input"
             />
@@ -193,6 +203,7 @@
                  or too long for a memo. -->
             <div
               v-if="tried && memoError"
+              id="thank-you-greeting-memo-error"
               class="tyg-error small"
               role="alert"
               data-test="thank-you-greeting-memo-error"
