@@ -289,6 +289,25 @@ describe('RedeemThanksAccount', () => {
     })
   })
 
+  // A browser fills a saved sign-in into fields it takes for a sign-in form -- here that would
+  // be the address and password of whoever owns the computer the thank-you is opened on.
+  describe('what a browser may fill in', () => {
+    it.each(['#newPassword-input-field', '#newPasswordRepeat-input-field'])(
+      'asks for a new password in %s',
+      async (field) => {
+        const wrapper = await view()
+
+        expect(wrapper.find(field).attributes('autocomplete')).toBe('new-password')
+      },
+    )
+
+    it('keeps the address field closed to it', async () => {
+      const wrapper = await view()
+
+      expect(wrapper.find('#email-input-field').attributes('autocomplete')).toBe('off')
+    })
+  })
+
   describe('the button', () => {
     // The word of the card (ZE-017 F4). "Konto anlegen und Dank annehmen" broke into two lines
     // on a 320px phone.

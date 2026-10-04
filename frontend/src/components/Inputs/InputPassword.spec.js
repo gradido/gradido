@@ -101,6 +101,19 @@ describe('InputPassword', () => {
       })
     })
 
+    // Where the caller says nothing, the browser decides as it always did (the sign-in form).
+    describe('autocomplete', () => {
+      it('is left to the browser by default', () => {
+        expect(wrapper.find('input').attributes('autocomplete')).toBeUndefined()
+      })
+
+      it('carries what the caller asks for', async () => {
+        await wrapper.setProps({ autocomplete: 'new-password' })
+
+        expect(wrapper.find('input').attributes('autocomplete')).toBe('new-password')
+      })
+    })
+
     describe('input value changes', () => {
       it('emits value with new value', async () => {
         await wrapper.find('input').trigger('input', '12')
