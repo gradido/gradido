@@ -319,6 +319,30 @@ describe('addThankYouGreetingPicture', () => {
     picturesOf.mockResolvedValue(found({}, [small]))
   })
 
+  // ⛔ A document may repeat the mutation under aliases, with one picture in its variables.
+  it('takes one picture in an HTTP request, and does no work on a second', async () => {
+    const context = requestOf(SENDER)
+    const resolver = new TransactionLinkResolver()
+
+    expect(await resolver.addThankYouGreetingPicture(LINK_ID, picture(), context)).toBe(true)
+    expect(insertPicture).toHaveBeenCalledTimes(1)
+    picturesOf.mockClear()
+
+    await expect(resolver.addThankYouGreetingPicture(LINK_ID, picture(), context)).rejects.toThrow(
+      'Too many thank-you greeting pictures sent at once',
+    )
+    // Refused before the picture is looked at: not even what is no picture gets an answer.
+    await expect(
+      resolver.addThankYouGreetingPicture(LINK_ID, picture(''), context),
+    ).rejects.toThrow('Too many thank-you greeting pictures sent at once')
+
+    expect(picturesOf).not.toHaveBeenCalled()
+    expect(insertPicture).toHaveBeenCalledTimes(1)
+    expect(context.requestBudget.thankYouGreetingPicturesAccepted).toBe(3)
+    // Another request has a budget of its own.
+    expect(await add()).toBe(true)
+  })
+
   it('files the large rendition under the code of the link, for the member who made it', async () => {
     expect(await add()).toBe(true)
 

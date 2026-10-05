@@ -77,6 +77,7 @@ import {
   pictureLinkIsAcceptedOrDeleted,
   pictureRenditionsForMember,
   pictureToServe,
+  THANK_YOU_GREETING_PICTURES_ACCEPTED_MAX_PER_REQUEST,
   THANK_YOU_GREETING_PICTURES_MAX_PER_REQUEST,
 } from '@/data/ThankYouGreetingPicture.logic'
 import { DisbursementClient as V1_0_DisbursementClient } from '@/federation/client/1_0/DisbursementClient'
@@ -144,6 +145,19 @@ const removeThankYouGreeting = async (transactionLinkCode: string): Promise<void
 }
 
 /**
+ * ⛔ Counts a picture that came in, in the HTTP request's budget, BEFORE any work is done on it:
+ * a document may repeat a mutation under any number of aliases, each with the same picture from
+ * its variables, and each is decoded and encoded again (RequestBudget).
+ */
+const countAcceptedPicture = (context: Context): void => {
+  context.requestBudget.thankYouGreetingPicturesAccepted += 1
+  const accepted = context.requestBudget.thankYouGreetingPicturesAccepted
+  if (accepted > THANK_YOU_GREETING_PICTURES_ACCEPTED_MAX_PER_REQUEST) {
+    throw new LogError('Too many thank-you greeting pictures sent at once', accepted)
+  }
+}
+
+/**
  * The small rendition of a greeting's picture as it is stored (acceptSmallThankYouGreetingPicture),
  * or the refusal in a chat picture's words: CHAT_IMAGE_NOT_ACCEPTED with the reason -- EMPTY,
  * TOO_LARGE, NOT_JPEG or SIZE. The log gets the numbers, never the picture.
@@ -178,6 +192,9 @@ export class TransactionLinkResolver {
     // (CHAT_IMAGE_NOT_ACCEPTED with the reason) -- and, as whoever holds the link's code will
     // get it, decoded and encoded again. The schema has seen to it that there is a motif or a
     // picture, and not both.
+    if (parsed?.picture) {
+      countAcceptedPicture(context)
+    }
     const picture = parsed?.picture ? await acceptedSmallPicture(parsed.picture) : null
     const greeting = parsed && {
       motif: parsed.motif ?? null,
@@ -936,6 +953,8 @@ export class TransactionLinkResolver {
    *
    * Behind CREATE_TRANSACTION_LINK: it completes what that right made.
    *
+   * One picture in an HTTP request, counted before anything else (countAcceptedPicture).
+   *
    * What the picture has to be is checked first, and refused as THANK_YOU_PICTURE_NOT_ACCEPTED
    * with the reason -- EMPTY, TOO_LARGE, NOT_JPEG or SIZE; that says nothing about any link.
    * What is filed is the picture decoded and encoded again, at the size it really has.
@@ -948,6 +967,7 @@ export class TransactionLinkResolver {
     @Arg('picture', () => ChatImageInput) picture: ChatImageInput,
     @Ctx() context: Context,
   ): Promise<boolean> {
+    countAcceptedPicture(context)
     const user = getUser(context)
     const accepted = await acceptLargeThankYouGreetingPicture(picture)
     if (!accepted.success) {

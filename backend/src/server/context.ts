@@ -38,6 +38,10 @@ export interface RequestBudget {
   // Pictures of thank-you greetings (thankYouGreetingPicture), capped at
   // THANK_YOU_GREETING_PICTURES_MAX_PER_REQUEST.
   thankYouGreetingPicturesServed: number
+  // Pictures of thank-you greetings taken in (createTransactionLink with a picture,
+  // addThankYouGreetingPicture), capped together at
+  // THANK_YOU_GREETING_PICTURES_ACCEPTED_MAX_PER_REQUEST: each is decoded and encoded again.
+  thankYouGreetingPicturesAccepted: number
 }
 
 /** A budget with nothing spent. The context function creates one per HTTP request. */
@@ -50,6 +54,7 @@ export const newRequestBudget = (): RequestBudget => ({
   chatVideoRoomsServed: 0,
   chatImagesServed: 0,
   thankYouGreetingPicturesServed: 0,
+  thankYouGreetingPicturesAccepted: 0,
 })
 
 export interface Context {

@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { DomainError, JPEG_END_BYTES, JPEG_MAGIC_BYTES, Result } from 'shared'
-import { type ReencodeImageErrorName, reencodeImage } from 'shared-native'
+import { probeImage, type ReencodeImageErrorName, reencodeImage } from 'shared-native'
 
 /**
  * What a picture has to be to come into this server: the check every JPEG goes through that
@@ -134,14 +134,46 @@ const reencodeRefusal = (nativeError: ReencodeImageErrorName): JpegImageReencode
 }
 
 /**
+ * What the header alone refuses a picture for, or null: it is no picture, not a JPEG, or wider,
+ * higher or larger than the bounds. The same answers the decoder gives for it -- it reads the
+ * header first and holds it to the same bounds --, without a worker thread being asked.
+ */
+const refusedByHeader = (
+  image: Buffer,
+  { maxSide, maxPixels }: JpegImageBounds,
+): ReencodeImageErrorName | null => {
+  const probed = probeImage(image)
+  if (!probed.success) {
+    return probed.error.name
+  }
+  const { format, width, height } = probed.value
+  if (format !== 'jpeg') {
+    return 'RIMG_ERR_UNSUPPORTED'
+  }
+  if (width > maxSide || height > maxSide || width * height > maxPixels) {
+    return 'RIMG_ERR_LIMIT'
+  }
+  return null
+}
+
+/**
  * The picture decoded and encoded again as a JPEG within `bounds`, with the size the decoder
- * found -- or why not. JPEG in only: the format is decided on the first bytes. Every pass is
- * CPU work on a worker thread, and a picture from the wallet takes one.
+ * found -- or why not. JPEG in only: the format is decided on the first bytes. A picture its
+ * header already rules out is refused at once (refusedByHeader); every pass after that is CPU
+ * work on a worker thread, and a picture from the wallet takes one.
  */
 export async function reencodeJpegImage(
   image: Buffer,
-  { maxBytes, maxSide, maxPixels }: JpegImageBounds,
+  bounds: JpegImageBounds,
 ): Promise<Result<JpegImageReencoded, JpegImageNotReencoded>> {
+  const { maxBytes, maxSide, maxPixels } = bounds
+  const headerError = refusedByHeader(image, bounds)
+  if (headerError) {
+    return {
+      success: false,
+      error: new JpegImageNotReencoded(reencodeRefusal(headerError), headerError, image.length),
+    }
+  }
   let nativeError: ReencodeImageErrorName = 'RIMG_ERR_BUFFER_TOO_SMALL'
   // The quality the last pass encoded at; a step that is not below it would encode the same again.
   let encodedAt = Number.POSITIVE_INFINITY

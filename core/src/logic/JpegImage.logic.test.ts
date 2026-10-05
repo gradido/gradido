@@ -1,6 +1,7 @@
 // AI-GENERATED — not an architecture reference
-import { describe, expect, it } from 'bun:test'
+import { describe, expect, it, spyOn } from 'bun:test'
 import { deflateSync } from 'node:zlib'
+import * as sharedNative from 'shared-native'
 import { probeImage, reencodeImage } from 'shared-native'
 import { decodeJpegImage, JPEG_REENCODE_QUALITY_STEPS, reencodeJpegImage } from './JpegImage.logic'
 
@@ -268,6 +269,39 @@ describe('reencodeJpegImage', () => {
       expect(refused.success).toBe(false)
       expect(!refused.success && refused.error.reason).toBe('NOT_JPEG')
       expect(!refused.success && refused.error.nativeError).toBe(nativeError)
+    }
+  })
+
+  // What the header rules out never reaches a worker thread.
+  it('refuses on the header alone, without decoding, what the header already rules out', async () => {
+    const reencode = spyOn(sharedNative, 'reencodeImage')
+    try {
+      const cases: [Buffer, typeof ROOMY, string][] = [
+        [PICTURE, { ...ROOMY, maxSide: 3 }, 'SIZE'],
+        [PICTURE, { ...ROOMY, maxPixels: 7 }, 'SIZE'],
+        [noisePng(4, 2), ROOMY, 'NOT_JPEG'],
+        [Buffer.from('<svg onload=alert(1)>'), ROOMY, 'NOT_JPEG'],
+        [Buffer.alloc(0), ROOMY, 'NOT_JPEG'],
+      ]
+      for (const [image, bounds, reason] of cases) {
+        const refused = await reencodeJpegImage(image, bounds)
+        expect(!refused.success && refused.error.reason).toBe(reason)
+      }
+      expect(reencode).not.toHaveBeenCalled()
+
+      // A picture the header lets through is decoded: one whose header is whole and whose
+      // pixel data is broken is refused only there.
+      const broken = Buffer.from(await noiseJpeg(64, 64))
+      broken.fill(0xff, broken.length - 40, broken.length - 2)
+      broken[broken.length - 30] = 0xc4
+      expect(probeImage(broken).success).toBe(true)
+      reencode.mockClear()
+      const refused = await reencodeJpegImage(broken, ROOMY)
+      expect(!refused.success && refused.error.nativeError).toBe('RIMG_ERR_DECODE')
+      expect((await reencodeJpegImage(PICTURE, ROOMY)).success).toBe(true)
+      expect(reencode).toHaveBeenCalledTimes(2)
+    } finally {
+      reencode.mockRestore()
     }
   })
 })

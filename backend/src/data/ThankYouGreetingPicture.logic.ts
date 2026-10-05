@@ -140,3 +140,12 @@ export const hasFormOfLinkCode = (text: unknown): text is string =>
  * (CHAT_IMAGES_MAX_PER_REQUEST). The wallet asks for one in a request.
  */
 export const THANK_YOU_GREETING_PICTURES_MAX_PER_REQUEST = 10
+
+/**
+ * How many pictures one HTTP request may bring, over createTransactionLink with a picture and
+ * addThankYouGreetingPicture together, every alias and every operation of a batch
+ * (RequestBudget): one, as the wallet sends -- the small rendition with the link, the large one
+ * in a request of its own. Each picture taken in is decoded and encoded again, and a document
+ * could otherwise name one picture in its variables and have it worked on hundreds of times.
+ */
+export const THANK_YOU_GREETING_PICTURES_ACCEPTED_MAX_PER_REQUEST = 1

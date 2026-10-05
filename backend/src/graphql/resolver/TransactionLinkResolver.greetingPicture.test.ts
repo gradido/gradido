@@ -151,6 +151,23 @@ const addPicture = gql`
     addThankYouGreetingPicture(linkId: $linkId, picture: $picture)
   }
 `
+// One document, the mutation twice under aliases, one picture in the variables.
+const addPictureTwice = gql`
+  mutation ($linkId: Int!, $picture: ChatImageInput!) {
+    first: addThankYouGreetingPicture(linkId: $linkId, picture: $picture)
+    second: addThankYouGreetingPicture(linkId: $linkId, picture: $picture)
+  }
+`
+const createLinkTwice = gql`
+  mutation ($amount: GradidoUnit!, $memo: String!, $greeting: ThankYouGreetingInput) {
+    first: createTransactionLink(amount: $amount, memo: $memo, greeting: $greeting) {
+      id
+    }
+    second: createTransactionLink(amount: $amount, memo: $memo, greeting: $greeting) {
+      id
+    }
+  }
+`
 const pictureOfLink = gql`
   query ($linkId: Int!) {
     thankYouGreetingPicture(linkId: $linkId)
@@ -336,6 +353,32 @@ describe('createTransactionLink with a greeting that carries a picture', () => {
     expect(pictures[0].image.equals(SMALL_STORED)).toBe(true)
     expect(SMALL.includes(SMALL_HIDDEN)).toBe(true)
     expect(pictures[0].image.includes(SMALL_HIDDEN)).toBe(false)
+  })
+
+  // ⛔ One picture in an HTTP request, here as well.
+  it('makes one link where a document repeats the mutation with a picture under aliases', async () => {
+    const links = await linksOfBibi()
+
+    const result = await mutate({ mutation: createLinkTwice, variables: sarah })
+
+    expect(result.errors).toEqual([
+      new GraphQLError('Too many thank-you greeting pictures sent at once'),
+    ])
+    expect(await linksOfBibi()).toBe(links + 1)
+  })
+
+  // A link without a picture costs no encoding and is not counted.
+  it('still makes several links with a motif in one document', async () => {
+    const links = await linksOfBibi()
+    const withMotif = {
+      ...sarah,
+      greeting: { motif: 'bouquet', line: LINE, recipientName: 'Sarah' },
+    }
+
+    const result = await mutate({ mutation: createLinkTwice, variables: withMotif })
+
+    expect(result.errors).toBeUndefined()
+    expect(await linksOfBibi()).toBe(links + 2)
   })
 
   it('files the greeting and its picture before the link is saved', async () => {
@@ -632,6 +675,22 @@ describe('addThankYouGreetingPicture', () => {
       (row) => row.transactionLinkCode === link.code && row.rendition === 'large',
     )
     expect(still.image.equals(LARGE_STORED)).toBe(true)
+  })
+
+  // ⛔ One picture in an HTTP request: aliases do not multiply the work of encoding it again.
+  it('takes the picture once where a document repeats the mutation under aliases', async () => {
+    const link = await created()
+
+    const result = await mutate({
+      mutation: addPictureTwice,
+      variables: { linkId: link.id, picture: LARGE_PICTURE },
+    })
+
+    expect(result.errors).toEqual([
+      new GraphQLError('Too many thank-you greeting pictures sent at once'),
+    ])
+    // The first was filed before the second was refused.
+    expect(await renditionsOf(link.code)).toEqual(['large', 'small'])
   })
 
   it('refuses what is no picture, with the reason, and files nothing', async () => {
