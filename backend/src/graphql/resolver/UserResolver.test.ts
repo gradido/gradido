@@ -8,7 +8,15 @@ import { RoleNames } from '@enum/RoleNames'
 import { ContributionLink } from '@model/ContributionLink'
 import { Location } from '@model/Location'
 import { User as UserModel } from '@model/User'
-import { cleanDB, headerPushMock, resetToken, testEnvironment } from '@test/helpers'
+import {
+  cleanDB,
+  headerPushMock,
+  resetToken,
+  TEST_AVATAR_200_PIXELS_BASE64,
+  TEST_AVATAR_FULL_BASE64,
+  TEST_AVATAR_SMALL_BASE64,
+  testEnvironment,
+} from '@test/helpers'
 import { UserInputError } from 'apollo-server-express'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { getLogger } from 'config-schema/test/testSetup'
@@ -53,6 +61,7 @@ import {
   MemberAvatarsResponseJwtPayloadType,
   verifyAndDecrypt,
 } from 'shared'
+import { reencodeImage } from 'shared-native'
 import { QueryRunner } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
 import {
@@ -4114,16 +4123,13 @@ describe('UserResolver', () => {
   // The profile picture the member sets for their own account. Own view only: nothing
   // hands it to anybody else, which is the boundary this delivery deliberately keeps.
   describe('user avatar', () => {
-    // A minimal but real JPEG head. The resolver checks the magic bytes, so anything
-    // that is not one would be rejected for the right reason and prove nothing.
-    const JPEG = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0xff, 0xd9])
-    const JPEG_BASE64 = JPEG.toString('base64')
-    // The full rendition has to differ from the small one, or a resolver handing back the
+    // Two pictures that decode: the server encodes what it is sent again, and these two come
+    // out as they went in (test/helpers.ts), so what is read back can be compared with what
+    // was sent. The full rendition differs from the small one, or a resolver handing back the
     // wrong column would pass every assertion below.
-    const JPEG_FULL = Buffer.from([
-      0xff, 0xd8, 0xff, 0xe1, 0x00, 0x10, 0x45, 0x78, 0x69, 0xff, 0xd9,
-    ])
-    const JPEG_FULL_BASE64 = JPEG_FULL.toString('base64')
+    const JPEG_BASE64 = TEST_AVATAR_SMALL_BASE64
+    const JPEG = Buffer.from(JPEG_BASE64, 'base64')
+    const JPEG_FULL_BASE64 = TEST_AVATAR_FULL_BASE64
     const bothPictures = { avatarSmall: JPEG_BASE64, avatarFull: JPEG_FULL_BASE64 }
 
     let homeCom: DbCommunity
@@ -4199,6 +4205,99 @@ describe('UserResolver', () => {
       } finally {
         await User.update({ id: owner.id }, { location: null })
       }
+    })
+
+    // ⛔ What the other assertions here lean on. If it falls after an update of
+    // rust-image-ffi, the pictures in test/helpers.ts have to be encoded again.
+    it('the test pictures come out as they went in', async () => {
+      for (const base64 of [
+        TEST_AVATAR_SMALL_BASE64,
+        TEST_AVATAR_FULL_BASE64,
+        TEST_AVATAR_200_PIXELS_BASE64,
+      ]) {
+        const picture = Buffer.from(base64, 'base64')
+        const reencoded = await reencodeImage(picture, { maxOutputBytes: 64 * 1024 })
+        expect(reencoded.success && reencoded.value.data.equals(picture)).toBe(true)
+      }
+    })
+
+    // The small rendition goes to every member and to other communities: nothing of the file
+    // a member sent travels with it, only its pixels.
+    it('stores the picture encoded again, without what was hidden in it', async () => {
+      const hidden = Buffer.from('<script>alert(1)</script>')
+      const withHidden = (base64: string) => {
+        const picture = Buffer.from(base64, 'base64')
+        return Buffer.concat([
+          picture.subarray(0, 2),
+          Buffer.from([0xff, 0xfe, 0x00, hidden.length + 2]),
+          hidden,
+          picture.subarray(2),
+          hidden,
+          Buffer.from([0xff, 0xd9]),
+        ]).toString('base64')
+      }
+
+      const written: any = await mutate({
+        mutation: setUserAvatar,
+        variables: {
+          avatarSmall: withHidden(JPEG_BASE64),
+          avatarFull: withHidden(JPEG_FULL_BASE64),
+        },
+      })
+      expect(written.errors).toBeUndefined()
+
+      const small: any = await query({ query: verifyLoginAvatar })
+      const full: any = await query({ query: avatarFull })
+      // The same pixels, so the same bytes as the picture without anything hidden in it.
+      expect(small.data.verifyLogin.avatar).toBe(JPEG_BASE64)
+      expect(full.data.avatarFull).toBe(JPEG_FULL_BASE64)
+      expect(Buffer.from(small.data.verifyLogin.avatar, 'base64').includes(hidden)).toBe(false)
+      expect(Buffer.from(full.data.avatarFull, 'base64').includes(hidden)).toBe(false)
+    })
+
+    // What the check of both ends alone used to take.
+    it('refuses what is a JPEG at both ends and no picture between', async () => {
+      const noPicture = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0xff, 0xd9])
+      for (const variables of [
+        { ...bothPictures, avatarSmall: noPicture.toString('base64') },
+        { ...bothPictures, avatarFull: noPicture.toString('base64') },
+      ]) {
+        const res: any = await mutate({ mutation: setUserAvatar, variables })
+        expect(res.errors?.[0].message).toMatch(/^Avatar image \((small|full)\) is not a JPEG$/)
+      }
+    })
+
+    // The pixels are what a picture costs the server and every member's browser, not the
+    // bytes: a plain surface of any size fits the byte limit.
+    it('refuses a small rendition with more pixels than the wallet draws, and takes it as the full one', async () => {
+      const refused: any = await mutate({
+        mutation: setUserAvatar,
+        variables: { ...bothPictures, avatarSmall: TEST_AVATAR_200_PIXELS_BASE64 },
+      })
+      expect(refused.errors).toEqual([new GraphQLError('Avatar image (small) has too many pixels')])
+
+      const taken: any = await mutate({
+        mutation: setUserAvatar,
+        variables: { ...bothPictures, avatarFull: TEST_AVATAR_200_PIXELS_BASE64 },
+      })
+      expect(taken.errors).toBeUndefined()
+      const full: any = await query({ query: avatarFull })
+      expect(full.data.avatarFull).toBe(TEST_AVATAR_200_PIXELS_BASE64)
+
+      // Back to the pictures the tests below expect.
+      await mutate({ mutation: setUserAvatar, variables: bothPictures })
+    })
+
+    // ⛔ One document, the mutation twice under aliases, the pictures once in the variables.
+    it('sets the picture once in an HTTP request, however often the document asks', async () => {
+      const twice = gql`
+        mutation ($avatarSmall: String!, $avatarFull: String!) {
+          first: setUserAvatar(avatarSmall: $avatarSmall, avatarFull: $avatarFull)
+          second: setUserAvatar(avatarSmall: $avatarSmall, avatarFull: $avatarFull)
+        }
+      `
+      const res: any = await mutate({ mutation: twice, variables: bothPictures })
+      expect(res.errors).toEqual([new GraphQLError('Too many avatar images sent at once')])
     })
 
     // The payload coderabbit found: ff d8 00 passes an opening-marker check on its own.
@@ -4459,8 +4558,11 @@ describe('UserResolver', () => {
       describe('members of another community', () => {
         const peerUuid = uuidv4()
         const peerMember = uuidv4()
-        const PEER_SMALL = Buffer.from('a face from over there').toString('base64')
-        const PEER_FULL = Buffer.from('the same face, larger').toString('base64')
+        // Pictures that decode, and others than the member's own two: what another community
+        // answers with is held to the bounds of an avatar, header included
+        // (xcomMemberAvatars in core).
+        const PEER_SMALL = TEST_AVATAR_FULL_BASE64
+        const PEER_FULL = TEST_AVATAR_200_PIXELS_BASE64
         const PICTURE_DATE = '2026-09-14T10:00:00.000Z'
         const relayLogger = resolverLogger('relayMemberAvatars')
         const refs = () => [

@@ -13,8 +13,9 @@ import { probeImage, type ReencodeImageErrorName, reencodeImage } from 'shared-n
  * picture must be, instead of one copy per kind of picture.
  *
  * The browser does the real work: it scales the picture down and encodes it as a JPEG under its
- * target (Papierschicht P-011, P-014). What arrives here is checked, never decoded or changed --
- * a decoder is what this design keeps out of the backend.
+ * target (Papierschicht P-011, P-014). decodeJpegImage checks what arrives and neither decodes
+ * nor changes it; the pictures that go further than the two they are between are encoded again
+ * after it (reencodeJpegImage, below).
  */
 
 /** Why a picture was refused: nothing arrived, too much arrived, or it is no JPEG. */
@@ -79,8 +80,9 @@ export function decodeJpegImage(
  * What is stored then was written by this server from pixels alone -- no EXIF, no comment, no
  * bytes behind the end marker --, and a picture that does not decode is refused.
  *
- * So far for the pictures of a thank-you greeting, which whoever holds a link's code gets. The
- * avatar and the chat picture are still stored as they come (decodeJpegImage alone).
+ * For the pictures of a thank-you greeting, which whoever holds a link's code gets, and for the
+ * avatar, which every member and other communities get. The picture in a chat message and the
+ * photo of a transfer are still stored as they come (decodeJpegImage alone).
  */
 
 /** The bounds a re-encoded picture is held to: bytes as stored, each side, and the area. */

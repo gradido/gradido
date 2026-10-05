@@ -1,6 +1,10 @@
 // AI-GENERATED — not an architecture reference
 import { Community as DbCommunity, dbFindFederatedCommunityByPublicKeyAndApi } from 'database'
 import {
+  AVATAR_FULL_MAX_BYTES,
+  AVATAR_FULL_MAX_SIDE,
+  AVATAR_SMALL_MAX_BYTES,
+  AVATAR_SMALL_MAX_SIDE,
   encryptAndSign,
   JwtPayloadType,
   MemberAvatarPayload,
@@ -11,11 +15,58 @@ import {
   verifyAndDecrypt,
   XComRequestError,
 } from 'shared'
+import { probeImage } from 'shared-native'
 import { randombytes_random } from 'sodium-native'
 import { CONFIG as CONFIG_CORE } from '../../../config'
 import { EncryptedTransferArgs } from '../../../graphql/model/EncryptedTransferArgs'
+import { decodeJpegImage } from '../../../logic/JpegImage.logic'
 import { MemberAvatarsClientFactory } from '../client/MemberAvatarsClientFactory'
 import { readTransferAvatarDate } from './transferAvatarDate'
+
+/** What a picture of each kind may be: the bounds setUserAvatar holds this community's own to. */
+const PICTURE_BOUNDS = {
+  small: { maxBytes: AVATAR_SMALL_MAX_BYTES, maxSide: AVATAR_SMALL_MAX_SIDE },
+  full: { maxBytes: AVATAR_FULL_MAX_BYTES, maxSide: AVATAR_FULL_MAX_SIDE },
+}
+
+/**
+ * Why a picture another community answered with is not handed on, or null: it is longer than a
+ * picture of its kind may be, is not plain base64, does not begin and end as a JPEG, has a
+ * header that is no JPEG's, or more pixels on a side than this community takes of its own
+ * members.
+ *
+ * ⛔ The other community is authenticated, not trusted: the handshake says who answers, not
+ * what its software does. What passes here goes to the wallet as it is, is shown to members
+ * of this community and kept on their devices. This reads the header and no more -- it does
+ * not decode the picture and does not encode it again, so it bounds what a picture costs
+ * whoever shows it, and says nothing about what else the file carries.
+ *
+ * The length is asked first and on the string, before anything is decoded: 100 members may be
+ * asked about at once.
+ */
+const pictureDefect = (avatar: string, kind: 'small' | 'full'): string | null => {
+  const { maxBytes, maxSide } = PICTURE_BOUNDS[kind]
+  if (avatar.length > Math.ceil(maxBytes / 3) * 4) {
+    return 'is too long'
+  }
+  const decoded = decodeJpegImage(avatar, maxBytes)
+  if (!decoded.success) {
+    return `is ${decoded.error.reason}`
+  }
+  // Buffer.from skips what is no base64 instead of failing; the wallet puts the string into
+  // an address, where it has to be exactly that.
+  if (decoded.value.toString('base64') !== avatar) {
+    return 'is not plain base64'
+  }
+  const probed = probeImage(decoded.value)
+  if (!probed.success || probed.value.format !== 'jpeg') {
+    return 'has no JPEG header'
+  }
+  if (probed.value.width > maxSide || probed.value.height > maxSide) {
+    return 'has too many pixels'
+  }
+  return null
+}
 
 // TODO: replace with a valibot schema after update to typescript 5 is possible
 /**
@@ -31,6 +82,10 @@ import { readTransferAvatarDate } from './transferAvatarDate'
  * Each member at most once, which also bounds the answer by the question: without it one
  * member asked about could come back any number of times, each with a picture, and the
  * backend would hand every copy on to the wallet.
+ *
+ * And every picture is one this community would take of its own members by size and header
+ * (pictureDefect). One that is not fails the whole answer, as every other defect does: no
+ * faces from there this time.
  */
 const readAnswer = (
   payload: JwtPayloadType,
@@ -62,6 +117,13 @@ const readAnswer = (
       return {
         success: false,
         error: `the answer carries a picture that does not fit kind ${kind}`,
+      }
+    }
+    if (kind !== 'dates') {
+      // The reason, never the picture.
+      const defect = pictureDefect(avatar as string, kind)
+      if (defect) {
+        return { success: false, error: `the answer carries a picture that ${defect}` }
       }
     }
   }
