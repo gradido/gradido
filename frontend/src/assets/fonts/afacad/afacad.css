@@ -1,0 +1,31 @@
+/* AI-GENERATED — not an architecture reference */
+
+/*
+ * The typeface of the community's name beside the coin, top left in the wallet -- the one
+ * that lies closest on the wordmark of the logo, which was drawn and has no font file.
+ *
+ * Source:  github.com/google/fonts, ofl/afacad/Afacad[wght].ttf
+ *          at commit aa30c14f9098a85e12a2864be491c092d4f4f9eb (Afacad, Version 1.000)
+ * Licence: SIL Open Font License 1.1 -- OFL.txt beside this file
+ * Cut:     the weight pinned to 525 (fonttools varLib.instancer, wght=525), where the name
+ *          carries as much ink as the wordmark did (measured in the wallet, Bernd,
+ *          05.10.2026); every character of the typeface kept (pyftsubset --unicodes='*'
+ *          --layout-features='*' --flavor=woff2). Latin only, 26 KB.
+ *
+ * Declared here and nowhere else; the navbar imports this file from its script, as the
+ * handwriting is taken in (its declaration lies in the folder beside this one).
+ *
+ * The file is fetched only once the name is on the screen: a face is loaded when a text uses
+ * it, so a phone, where the name does not stand, never asks for it. `block`, not `swap`: the
+ * name is a wordmark, and for the moment the file takes it rather stands empty than in
+ * another face a tenth larger than it was measured for.
+ *
+ * One family name and nothing else in the `font-family` descriptor (see the handwriting's declaration).
+ */
+@font-face {
+  font-family: Afacad;
+  font-style: normal;
+  font-weight: 525;
+  font-display: block;
+  src: url('./Afacad-525.woff2') format('woff2');
+}
