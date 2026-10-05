@@ -131,7 +131,8 @@ export class BackendClient {
       .setIssuedAt()
       .setSubject('dlt-connector')
       .setIssuer(CONFIG.COMMUNITY_URL)
-      .setAudience(CONFIG.COMMUNITY_URL)
+      // the backend expects its own url with a trailing slash as audience (backend/src/auth/JWT.ts)
+      .setAudience(CONFIG.COMMUNITY_URL.replace(/\/*$/, '/'))
       .setExpirationTime('10m')
       .sign(secret)
     return token

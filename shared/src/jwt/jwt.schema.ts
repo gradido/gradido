@@ -2,7 +2,6 @@ import { url } from 'inspector'
 import { z } from 'zod'
 import {
   durationSchema,
-  nodeCryptoKeyObjectSchema,
   positiveIntegerSchema,
   urlSchema,
   uuidv4Schema,
@@ -49,6 +48,7 @@ export const publicJwtKeySchema = z.string().superRefine((value, ctx) => {
   }
 })
 
+// whom a token names: a user by gradido id, or the dlt-connector as the one service with a login
 export const jwtPayloadSubjectSchema = z.union([uuidv4Schema, z.literal('dlt-connector')])
 export type JwtPayloadSubjectInput = z.input<typeof jwtPayloadSubjectSchema>
 export type JwtPayloadSubject = z.output<typeof jwtPayloadSubjectSchema>
@@ -127,21 +127,21 @@ export type JwtPayloadInput = z.input<typeof jwtPayloadSchema>
 export type JwtPayload = z.output<typeof jwtPayloadSchema>
 
 /**
- * What a server needs to create and verify its own tokens.
- * Meant to be built once at startup from the config and then passed to
- * `createFrontendLoginToken` / `verifyFrontendLoginToken`.
+ * What a server needs to create and verify its own tokens of one purpose.
+ * Meant to be built once at startup from the config, one per purpose, and then passed to
+ * `createUserToken` / `verifyUserToken`.
  *
- * - `issuer`: public base url of the community server, written as `iss` and `aud`
- *   and expected in both on verification
- * - `signingKey`: key object of any type, each signing function checks for the kind it needs
- *   (`hmacKeyObjectSchema` for HS256)
+ * - `issuer`: public base url of the community server, written as `iss` and expected on verification
+ * - `audience`: url of the part of the server that evaluates the token, written as `aud` and
+ *   expected on verification. Give every purpose its own, it is what keeps their tokens apart
  * - `duration`: lifetime of a created token
+ * - `signer`: it carries secret and signing type
  */
 export const authContextSchema = z.object({
   issuer: urlSchema,
   audience: urlSchema,
   duration: durationSchema,
-  hash: z.instanceof(JwtSigner),
+  signer: z.instanceof(JwtSigner),
 })
 
 export type AuthContextInput = z.input<typeof authContextSchema>

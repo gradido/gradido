@@ -1,7 +1,9 @@
 // AI-GENERATED — not an architecture reference
+import { createHmac } from 'node:crypto'
 import axios from 'axios'
 import { getLogger } from 'config-schema/test/testSetup'
 import { MatchingEntrySelect } from 'database'
+import { decode, encode } from '@/auth/JWT'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { LogError } from '@/server/LogError'
@@ -503,26 +505,48 @@ describe('GmsClient', () => {
   // The handshake that lets a member walk from the wallet into the GMS without logging
   // in again. Nothing here reaches the network.
   describe('handshake token', () => {
-    it('round-trips the member uuid', async () => {
-      const token = await createGmsHandshakeJWTToken(USER_UUID)
+    const segmentOf = (token: string, index: number): Record<string, unknown> =>
+      JSON.parse(Buffer.from(token.split('.')[index], 'base64url').toString())
 
-      await expect(verifyGmsHandshakeJWTToken(token)).resolves.toBe(USER_UUID)
+    it('round-trips the member uuid', () => {
+      const token = createGmsHandshakeJWTToken(USER_UUID)
+
+      expect(verifyGmsHandshakeJWTToken(token)).toBe(USER_UUID)
     })
 
-    // The one place that swallows its failure and answers undefined instead of throwing
+    it('is a HS512 token for the gms webhook, valid for five minutes', () => {
+      const token = createGmsHandshakeJWTToken(USER_UUID)
+      const payload = segmentOf(token, 1) as { exp: number; iat: number }
+
+      expect(segmentOf(token, 0)).toEqual({ alg: 'HS512', typ: 'JWT' })
+      expect(payload).toMatchObject({
+        iss: CONFIG.COMMUNITY_URL,
+        aud: `${CONFIG.COMMUNITY_URL}/hook/gms/`,
+        sub: USER_UUID,
+      })
+      expect(payload.exp - payload.iat).toBe(5 * 60)
+    })
+
+    // The one place that swallows its failure and answers null instead of throwing
     // - a caller who treats that as a uuid would let anybody in.
-    it('answers undefined for a token signed with another secret', async () => {
-      const token = await createGmsHandshakeJWTToken(USER_UUID)
-      const realSecret = CONFIG.JWT_SECRET
-      CONFIG.JWT_SECRET = 'a-different-secret'
+    it('answers null for a token signed with another secret', () => {
+      const [header, payload] = createGmsHandshakeJWTToken(USER_UUID).split('.')
+      const signature = createHmac('sha512', 'a-different-secret')
+        .update(`${header}.${payload}`)
+        .digest('base64url')
 
-      await expect(verifyGmsHandshakeJWTToken(token)).resolves.toBeUndefined()
-
-      CONFIG.JWT_SECRET = realSecret
+      expect(verifyGmsHandshakeJWTToken(`${header}.${payload}.${signature}`)).toBeNull()
     })
 
-    it('answers undefined for something that is not a token at all', async () => {
-      await expect(verifyGmsHandshakeJWTToken('not-a-token')).resolves.toBeUndefined()
+    it('answers null for something that is not a token at all', () => {
+      expect(verifyGmsHandshakeJWTToken('not-a-token')).toBeNull()
+    })
+
+    // Both are signed with JWT_SECRET for the same member: a handshake token travels to the
+    // GMS and must not open a session, and a session token must not pass the webhook.
+    it('is no session token, and a session token is no handshake token', () => {
+      expect(decode(createGmsHandshakeJWTToken(USER_UUID))).toBeNull()
+      expect(verifyGmsHandshakeJWTToken(encode(USER_UUID))).toBeNull()
     })
   })
 })

@@ -350,11 +350,13 @@ export async function verifyAuthToken(apiKey: string, token: string): Promise<st
 }
 
 // built once at module load: an invalid COMMUNITY_URL stops the server at startup
+// own audience and HS512: signed with the same secret for the same member as the session token
+// (auth/JWT.ts), and neither must pass for the other
 const authContext: AuthContext = authContextSchema.parse({
   issuer: CONFIG.COMMUNITY_URL,
   audience: `${ensureUrlEndsWithSlash(CONFIG.COMMUNITY_URL)}hook/gms/`,
   duration: Duration.minutes(5),
-  hash: new JwtSigner(CONFIG.JWT_SECRET, AuthSigningType.HMAC512),
+  signer: new JwtSigner(CONFIG.JWT_SECRET, AuthSigningType.HMAC512),
 })
 
 export function createGmsHandshakeJWTToken(gradidoID: Uuidv4): string {
