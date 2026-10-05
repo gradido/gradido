@@ -153,3 +153,47 @@ describe('translateForMail', () => {
     expect(i18n.getCatalog('de')['emails.general.helloName']).toContain('{firstName}')
   })
 })
+
+/**
+ * What a messenger is shown of a redeem link (backend, server/redeemPreview.ts): four titles
+ * and the line under them. The backend writes them into a document in the sender's language
+ * and escapes them there; a catalog without one of them would hand out the English phrase
+ * under its own language.
+ */
+describe('the phrases of the preview of a redeem link', () => {
+  const locales = ['de', 'el', 'en', 'es', 'fr', 'it', 'nl', 'pt', 'ru', 'tr']
+  const namingTheSender = ['redeemPreview.greetingTitle', 'redeemPreview.linkTitle']
+  const namingNobody = [
+    'redeemPreview.description',
+    'redeemPreview.greetingTitleWithoutName',
+    'redeemPreview.linkTitleWithoutName',
+  ]
+  const catalogOf = (locale: string) => i18n.getCatalog(locale) as Record<string, string>
+
+  it('are these five in each of the ten catalogs, in words of its own', () => {
+    for (const locale of locales) {
+      const own = Object.keys(catalogOf(locale)).filter((key) => key.startsWith('redeemPreview.'))
+      expect({ locale, own: own.sort() }).toEqual({
+        locale,
+        own: [...namingTheSender, ...namingNobody].sort(),
+      })
+      for (const key of own) {
+        expect(hasPhraseInLocale(locale, key)).toBe(true)
+        expect(catalogOf(locale)[key].trim()).not.toBe('')
+      }
+    }
+  })
+
+  it('carry {name} once where the sender is named, and nothing to fill in anywhere else', () => {
+    for (const locale of locales) {
+      for (const key of namingTheSender) {
+        const around = catalogOf(locale)[key].split('{name}')
+        expect({ locale, key, parts: around.length }).toEqual({ locale, key, parts: 2 })
+        expect(around.join('')).not.toMatch(/[{}]/)
+      }
+      for (const key of namingNobody) {
+        expect(catalogOf(locale)[key]).not.toMatch(/[{}]/)
+      }
+    }
+  })
+})

@@ -240,5 +240,12 @@
   },
   "general": {
     "decimalSeparator": ","
+  },
+  "redeemPreview": {
+    "description": "Helfen. Schenken. Danken.",
+    "greetingTitle": "{name} hat Dir einen Dank-Gruß geschickt",
+    "greetingTitleWithoutName": "Ein Dank-Gruß für Dich",
+    "linkTitle": "{name} hat Dir einen Dank geschickt",
+    "linkTitleWithoutName": "Ein Dank für Dich"
   }
 }
