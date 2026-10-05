@@ -115,7 +115,8 @@ pub fn prepareLib(name: []const u8, context: *const LibPrepareContext) *std.Buil
     }
     // Fetched by zig and checked against the hash pinned in build.zig.zon. What the object needs
     // beside itself (NATIVE_LIBS.txt in the archive) is libc and an unwinder, both linked above,
-    // and on Windows, where the archive holds the staticlib, a few system libraries.
+    // on macOS iconv, and on Windows, where the archive holds the staticlib, a few system
+    // libraries.
     if (rustImageFfiDependencyName(context.target)) |dep_name| {
         if (b.lazyDependency(dep_name, .{})) |dep| {
             if (context.target.result.os.tag == .windows) {
@@ -125,6 +126,9 @@ pub fn prepareLib(name: []const u8, context: *const LibPrepareContext) *std.Buil
                 }
             } else {
                 lib.addObjectFile(dep.path("rust_image_ffi.o"));
+                if (context.target.result.os.tag == .macos) {
+                    lib.linkSystemLibrary("iconv");
+                }
             }
             lib.root_module.addIncludePath(dep.path(""));
             lib.root_module.addCMacro("HAVE_RUST_IMAGE_FFI", "1");

@@ -22,7 +22,8 @@ namespace gradido::image {
 
         const char* const OPTION_NAMES[] = {
             "maxOutputBytes", "inputFormats", "outputFormat", "maxWidth", "maxHeight", "maxPixels",
-            "maxAllocBytes", "jpegQuality", "applyOrientation", "background",
+            "maxAllocBytes", "jpegQuality", "jpegQualityFromInput", "jpegSubsampling", "applyOrientation",
+            "background",
         };
 
         void throwTypeError(Napi::Env env, const std::string& message) {
@@ -147,6 +148,21 @@ namespace gradido::image {
             return true;
         }
 
+        // out is left alone if the option is undefined
+        // return false if a JS exception was thrown
+        bool getBooleanOption(Napi::Env env, Napi::Object options, const char* name, uint8_t& out) {
+            Napi::Value value = options.Get(name);
+            if (value.IsUndefined()) {
+                return true;
+            }
+            if (!value.IsBoolean()) {
+                throwTypeError(env, std::string("Expected options.") + name + " to be a boolean");
+                return false;
+            }
+            out = value.As<Napi::Boolean>().Value() ? 1 : 0;
+            return true;
+        }
+
         // return false if a JS exception was thrown
         bool getOptions(Napi::Env env, Napi::Object options, rimg_options& opt, size_t& maxOutputBytes) {
             if (!checkOptionNames(env, options)) {
@@ -176,19 +192,17 @@ namespace gradido::image {
             opt.max_height = (uint32_t)maxHeight;
             opt.jpeg_quality = (uint8_t)jpegQuality;
 
-            Napi::Value applyOrientation = options.Get("applyOrientation");
-            if (!applyOrientation.IsUndefined()) {
-                if (!applyOrientation.IsBoolean()) {
-                    throwTypeError(env, "Expected options.applyOrientation to be a boolean");
-                    return false;
-                }
-                opt.apply_orientation = applyOrientation.As<Napi::Boolean>().Value() ? 1 : 0;
+            if (!getBooleanOption(env, options, "applyOrientation", opt.apply_orientation)
+                || !getBooleanOption(env, options, "jpegSubsampling", opt.jpeg_subsampling)
+                || !getBooleanOption(env, options, "jpegQualityFromInput", opt.jpeg_quality_from_input)) {
+                return false;
             }
             return getFormatOptions(env, options, opt) && getBackgroundOption(env, options, opt);
         }
 
-        // What a picture of this size takes encoded, capped at the budget. Not a bound: noise at
-        // jpegQuality 100 or as PNG takes slightly more, and the caller then asks again.
+        // What a picture of this size takes encoded, capped at the budget. Not a bound: noise as
+        // PNG, or as JPEG at quality 100 without subsampling, takes slightly more, and the
+        // caller then asks again.
         size_t estimatedOutputBytes(const rimg_info& info, size_t maxOutputBytes) {
             const uint64_t HEADER_BYTES = 1024;
             uint64_t estimate = (uint64_t)info.width * info.height * 4 + HEADER_BYTES;
@@ -260,6 +274,7 @@ namespace gradido::image {
                     value.Set("width", Napi::Number::New(env, mInfo.width));
                     value.Set("height", Napi::Number::New(env, mInfo.height));
                     value.Set("hasAlpha", Napi::Boolean::New(env, mInfo.has_alpha != 0));
+                    value.Set("inputJpegQuality", Napi::Number::New(env, mInfo.input_jpeg_quality));
                     result.Set("success", Napi::Boolean::New(env, true));
                     result.Set("value", value);
                     mDeferred.Resolve(result);
@@ -275,7 +290,9 @@ namespace gradido::image {
                 }
                 result = failure(env, name, mStatus);
                 if (mStatus == RIMG_ERR_BUFFER_TOO_SMALL) {
-                    result.Get("error").As<Napi::Object>().Set("requiredBytes", Napi::Number::New(env, (double)mOutputLength));
+                    Napi::Object error = result.Get("error").As<Napi::Object>();
+                    error.Set("requiredBytes", Napi::Number::New(env, (double)mOutputLength));
+                    error.Set("inputJpegQuality", Napi::Number::New(env, mInfo.input_jpeg_quality));
                 }
                 mDeferred.Resolve(result);
             }
@@ -295,6 +312,17 @@ namespace gradido::image {
             int32_t mStatus;
         };
     } // namespace
+
+    bool CheckAbi(Napi::Env env)
+    {
+        if (rimg_abi_version() == RIMG_ABI_VERSION) {
+            return true;
+        }
+        std::string message = "rust-image-ffi: the header is ABI version " + std::to_string(RIMG_ABI_VERSION)
+            + ", the linked module " + std::to_string(rimg_abi_version());
+        Napi::Error::New(env, message).ThrowAsJavaScriptException();
+        return false;
+    }
 
     Napi::Value Probe(const Napi::CallbackInfo& info)
     {
@@ -323,6 +351,7 @@ namespace gradido::image {
         value.Set("width", Napi::Number::New(env, probed.width));
         value.Set("height", Napi::Number::New(env, probed.height));
         value.Set("hasAlpha", Napi::Boolean::New(env, probed.has_alpha != 0));
+        value.Set("inputJpegQuality", Napi::Number::New(env, probed.input_jpeg_quality));
         Napi::Object result = Napi::Object::New(env);
         result.Set("success", Napi::Boolean::New(env, true));
         result.Set("value", value);
@@ -372,6 +401,11 @@ namespace gradido::image {
 #else
 
 namespace gradido::image {
+
+    bool CheckAbi(Napi::Env)
+    {
+        return true;
+    }
 
     Napi::Value Probe(const Napi::CallbackInfo& info)
     {

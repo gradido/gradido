@@ -339,8 +339,24 @@ export interface ReencodeImageOptions {
   maxPixels?: number
   /** What decoding may allocate for pixels. 0 means no limit. Default: 128 MiB */
   maxAllocBytes?: number
-  /** 1 to 100, only for JPEG output. Default: 85 */
+  /**
+   * 1 to 100, only for JPEG output. Default: 85. With `jpegQualityFromInput`, which is the
+   * default, it is the highest quality that is used rather than the one that always is.
+   */
   jpegQuality?: number
+  /**
+   * A JPEG is not encoded at a higher quality than it came in with: the quality is the lower of
+   * `jpegQuality` and the input's (`inputJpegQuality`). More than the input's quality buys no
+   * picture, only bytes. Where the input's quality is unknown — a PNG, a WebP — `jpegQuality`
+   * is used. false: always `jpegQuality`. Only for JPEG output. Default: true
+   */
+  jpegQualityFromInput?: boolean
+  /**
+   * Store color at half resolution in both directions (4:2:0), as cameras and browsers do.
+   * false: full resolution (4:4:4), a third larger and sharper at colored edges — for drawings
+   * and text rather than photos. Only for JPEG output. Default: true
+   */
+  jpegSubsampling?: boolean
   /** Turn the pixels the way the EXIF orientation says; the tag itself never survives. Default: true */
   applyOrientation?: boolean
   /** [red, green, blue] that transparent pixels are laid over for JPEG output. Default: white */
@@ -355,6 +371,12 @@ export interface ReencodedImage {
   height: number
   /** The input carries an alpha channel */
   hasAlpha: boolean
+  /**
+   * For a JPEG: the quality, 1 to 100, whose standard quantization tables are nearest the ones
+   * in the file — the number a browser or libjpeg wrote it with, an estimate for an encoder
+   * with tables of its own. 0: not a JPEG, or one without tables before its first scan.
+   */
+  inputJpegQuality: number
 }
 
 export type ReencodeImageErrorName =
@@ -371,6 +393,8 @@ export type ReencodeImageError = {
   message: string
   /** Only with `RIMG_ERR_BUFFER_TOO_SMALL`: what the picture needs at this quality */
   requiredBytes?: number
+  /** Only with `RIMG_ERR_BUFFER_TOO_SMALL`: as in `ReencodedImage`, to pick the next quality by */
+  inputJpegQuality?: number
 }
 
 export interface ProbedImage {
@@ -379,6 +403,12 @@ export interface ProbedImage {
   width: number
   height: number
   hasAlpha: boolean
+  /**
+   * For a JPEG: the quality, 1 to 100, whose standard quantization tables are nearest the ones
+   * in the file — the number a browser or libjpeg wrote it with, an estimate for an encoder
+   * with tables of its own. 0: not a JPEG, or one without tables before its first scan.
+   */
+  inputJpegQuality: number
 }
 
 export type ProbeImageError = { name: ReencodeImageErrorName; message: string }
