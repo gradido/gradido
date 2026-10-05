@@ -1,7 +1,10 @@
 // AI-GENERATED — not an architecture reference
 
+import { inspect } from 'node:util'
+import { getLogger } from 'config-schema/test/testSetup'
 import { User as DbUser } from 'database'
 
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { UpdateUserInfosArgs } from '@/graphql/arg/UpdateUserInfosArgs'
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
 
@@ -92,5 +95,59 @@ describe('compareGmsRelevantUserSettings', () => {
 
   it('reports nothing to do when nothing changed', () => {
     expect(compareGmsRelevantUserSettings(member(), change({}))).toBe(false)
+  })
+
+  // The comparison is handed everything updateUserInfos was asked for -- with a change of
+  // password the old one and the new one, with a pinned place its coordinates. Its debug line
+  // says which settings the request names and never what it sets them to.
+  describe('its debug line', () => {
+    const logger = getLogger(
+      `${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.compareGmsRelevantUserSettings`,
+    )
+    // The line as the log would write it: strings as they are, objects through inspect.
+    const written = (): string =>
+      (logger.debug as jest.Mock).mock.calls
+        .map((args) =>
+          args
+            .map((arg: unknown) => (typeof arg === 'string' ? arg : inspect(arg, { depth: 5 })))
+            .join(' '),
+        )
+        .join('\n')
+
+    beforeEach(() => {
+      ;(logger.debug as jest.Mock).mockClear()
+    })
+
+    it('writes neither a password nor a position, only which settings are named', () => {
+      const asked = change({
+        password: 'Aa12345_',
+        passwordNew: 'Bb12345_',
+        gmsLocation: { latitude: 49.679437, longitude: 9.573224 },
+        aboutMe: null,
+        language: undefined,
+      })
+
+      expect(compareGmsRelevantUserSettings(member(), asked)).toBe(true)
+
+      const line = written()
+      for (const value of ['Aa12345_', 'Bb12345_', '49.679437', '9.573224']) {
+        expect(line).not.toContain(value)
+      }
+      // A setting that is being cleared is named, one that was not sent is not.
+      for (const name of ['password', 'passwordNew', 'gmsLocation', 'aboutMe']) {
+        expect(line).toContain(`'${name}'`)
+      }
+      expect(line).not.toContain("'language'")
+      // The member the comparison is about stands there as before.
+      expect(line).toContain('"alias":"bibi-one"')
+    })
+
+    it('leaves what it was handed as it is', () => {
+      const asked = change({ password: 'Aa12345_', passwordNew: 'Bb12345_' })
+
+      compareGmsRelevantUserSettings(member(), asked)
+
+      expect(asked).toEqual({ password: 'Aa12345_', passwordNew: 'Bb12345_' })
+    })
   })
 })

@@ -11,6 +11,14 @@ const logger = getLogger(
   `${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.compareGmsRelevantUserSettings`,
 )
 
+// Which settings a request names -- what it sets and what it clears -- and none of their
+// values: the arguments of updateUserInfos hold the old and the new password where one is
+// changed, and the place a member pins.
+const namedSettings = (updateUserInfosArgs: UpdateUserInfosArgs): string[] =>
+  Object.entries(updateUserInfosArgs)
+    .filter(([, value]) => value !== undefined)
+    .map(([name]) => name)
+
 export function compareGmsRelevantUserSettings(
   orgUser: DbUser,
   updateUserInfosArgs: UpdateUserInfosArgs,
@@ -18,7 +26,11 @@ export function compareGmsRelevantUserSettings(
   if (!orgUser) {
     throw new LogError('comparison without any user is impossible')
   }
-  logger.debug('compareGmsRelevantUserSettings:', new UserLoggingView(orgUser), updateUserInfosArgs)
+  logger.debug(
+    'compareGmsRelevantUserSettings:',
+    new UserLoggingView(orgUser),
+    namedSettings(updateUserInfosArgs),
+  )
   // A changed alias always has to reach the GMS. It used to depend on the publish-name
   // setting standing at ALIAS_OR_INITIALS -- but since NU-024 the alias travels
   // unconditionally (`GmsUser` sets it from the user, the setting no longer steers it),
