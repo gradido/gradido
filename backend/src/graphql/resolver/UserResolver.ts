@@ -24,6 +24,7 @@ import { UserLocationResult } from '@model/UserLocationResult'
 import {
   decodeJpegImage,
   ensureUrlEndsWithSlash,
+  reencodeJpegImage,
   sendAccountActivationEmail,
   sendResetPasswordEmail,
   validateAlias,
@@ -84,7 +85,9 @@ import {
   ALIAS_QUOTA_PER_WINDOW,
   ALIAS_QUOTA_WINDOW_MS,
   AVATAR_FULL_MAX_BYTES,
+  AVATAR_FULL_MAX_SIDE,
   AVATAR_SMALL_MAX_BYTES,
+  AVATAR_SMALL_MAX_SIDE,
   languageSchema,
   MemberAvatarPayload,
   parseOrThrowFirstIssue,
@@ -124,6 +127,7 @@ import {
   MEMBER_AVATARS_MAX_REFS,
   MEMBER_AVATARS_RELAYS_MAX_PER_REQUEST,
   splitMemberRefsByCommunity,
+  USER_AVATARS_ACCEPTED_MAX_PER_REQUEST,
   XCOM_MEMBER_AVATARS_TIMEOUT_MS,
 } from '@/data/MemberAvatars.logic'
 import { PublishNameLogic } from '@/data/PublishName.logic'
@@ -915,6 +919,11 @@ export class UserResolver {
    * The checks here are the backstop for a client that did neither the cropping nor the
    * step-down; see AVATAR_FULL_MAX_BYTES in `shared` for why the two limits share a
    * budget.
+   *
+   * ⛔ Neither rendition is stored as it came. The small one goes to every member who sees
+   * this one in a list or a chat, and to other communities that ask for it, so both are
+   * decoded and encoded again (acceptAvatar): what is stored was written by this server from
+   * pixels alone. Once in an HTTP request, counted before any of that work is done.
    */
   @Authorized([RIGHTS.UPDATE_USER_INFOS])
   @Mutation(() => Boolean)
@@ -923,12 +932,31 @@ export class UserResolver {
     @Arg('avatarFull') avatarFull: string,
     @Ctx() context: Context,
   ): Promise<boolean> {
+    // ⛔ Counted in the HTTP request's budget before anything else: a document may repeat this
+    // mutation under any number of aliases, with both pictures once in its variables.
+    context.requestBudget.userAvatarsAccepted += 1
+    const accepted = context.requestBudget.userAvatarsAccepted
+    if (accepted > USER_AVATARS_ACCEPTED_MAX_PER_REQUEST) {
+      throw new LogError('Too many avatar images sent at once', accepted)
+    }
     const user = getUser(context)
     const logger = createLogger('setUserAvatar')
     logger.addContext('user', user.id)
 
-    const small = this.decodeAvatar(avatarSmall, 'small', AVATAR_SMALL_MAX_BYTES)
-    const full = this.decodeAvatar(avatarFull, 'full', AVATAR_FULL_MAX_BYTES)
+    // One after the other, the cheap one first: where the small one is refused, no work is
+    // done on the full one.
+    const small = await this.acceptAvatar(
+      avatarSmall,
+      'small',
+      AVATAR_SMALL_MAX_BYTES,
+      AVATAR_SMALL_MAX_SIDE,
+    )
+    const full = await this.acceptAvatar(
+      avatarFull,
+      'full',
+      AVATAR_FULL_MAX_BYTES,
+      AVATAR_FULL_MAX_SIDE,
+    )
     logger.info(`setUserAvatar... ${small.length} + ${full.length} bytes`)
 
     const stored = await dbUpsertUserAvatar({
@@ -946,27 +974,48 @@ export class UserResolver {
   }
 
   /**
-   * Decodes and checks one rendition. Named in the error so a member over budget learns
-   * WHICH picture was refused — with two of them in one request, "too large" on its own
-   * sends whoever reads it looking in the wrong place.
+   * One rendition as it is stored: checked, then decoded and encoded again within `maxBytes`
+   * and `maxSide` on each side. Named in the error so a member over budget learns WHICH
+   * picture was refused — with two of them in one request, "too large" on its own sends
+   * whoever reads it looking in the wrong place.
    *
-   * The check itself is decodeJpegImage in `core`, the one a picture in a chat message goes
-   * through as well: one picture module for both, the seam at which Gradido 2 is to move
-   * both kinds of picture at once (E-041). The words stay the avatar's own.
+   * The checks are decodeJpegImage and reencodeJpegImage in `core`, the ones the picture of a
+   * thank-you greeting goes through as well: one picture module, the seam at which Gradido 2
+   * is to move every kind of picture at once (E-041). The words stay the avatar's own.
    */
-  private decodeAvatar(image: string, which: string, maxBytes: number): Buffer {
+  private async acceptAvatar(
+    image: string,
+    which: string,
+    maxBytes: number,
+    maxSide: number,
+  ): Promise<Buffer> {
     const decoded = decodeJpegImage(image, maxBytes)
-    if (decoded.success) {
-      return decoded.value
+    if (!decoded.success) {
+      const { reason, bytes } = decoded.error
+      if (reason === 'EMPTY') {
+        throw new LogError(`Avatar image (${which}) is empty`)
+      }
+      if (reason === 'TOO_LARGE') {
+        throw new LogError(`Avatar image (${which}) too large`, { bytes, max: maxBytes })
+      }
+      throw new LogError(`Avatar image (${which}) is not a JPEG`)
     }
-    const { reason, bytes } = decoded.error
-    if (reason === 'EMPTY') {
-      throw new LogError(`Avatar image (${which}) is empty`)
+    const reencoded = await reencodeJpegImage(decoded.value, {
+      maxBytes,
+      maxSide,
+      maxPixels: maxSide * maxSide,
+    })
+    if (!reencoded.success) {
+      const { reason, bytes } = reencoded.error
+      if (reason === 'SIZE') {
+        throw new LogError(`Avatar image (${which}) has too many pixels`, { maxSide })
+      }
+      if (reason === 'TOO_LARGE') {
+        throw new LogError(`Avatar image (${which}) too large`, { bytes, max: maxBytes })
+      }
+      throw new LogError(`Avatar image (${which}) is not a JPEG`)
     }
-    if (reason === 'TOO_LARGE') {
-      throw new LogError(`Avatar image (${which}) too large`, { bytes, max: maxBytes })
-    }
-    throw new LogError(`Avatar image (${which}) is not a JPEG`)
+    return reencoded.value.image
   }
 
   /**

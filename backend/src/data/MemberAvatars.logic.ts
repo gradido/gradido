@@ -30,6 +30,14 @@ export const MEMBER_AVATARS_MAX_REFS = 100
 export const MEMBER_AVATARS_FULL_MAX_PER_REQUEST = 10
 
 /**
+ * How many times one HTTP request may set the member's picture (setUserAvatar), over every alias
+ * and every operation of a batch (RequestBudget): once. Both renditions are decoded and encoded
+ * again, and a document could otherwise name them once in its variables and have that work
+ * done hundreds of times. The wallet sets the picture once in a request.
+ */
+export const USER_AVATARS_ACCEPTED_MAX_PER_REQUEST = 1
+
+/**
  * How long a member's own request waits for another community to answer about the pictures
  * of its members (the relay in UserResolver.memberAvatars and memberAvatarFull).
  *

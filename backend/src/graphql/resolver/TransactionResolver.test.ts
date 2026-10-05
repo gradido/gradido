@@ -1,5 +1,10 @@
 import { randomBytes } from 'node:crypto'
-import { cleanDB, testEnvironment } from '@test/helpers'
+import {
+  cleanDB,
+  TEST_AVATAR_FULL_BASE64,
+  TEST_AVATAR_SMALL_BASE64,
+  testEnvironment,
+} from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { getLogger } from 'config-schema/test/testSetup'
 import { CONFIG as CORE_CONFIG, sendCustomEmail, sendTransactionReceivedEmail } from 'core'
@@ -608,14 +613,10 @@ describe('send coins', () => {
        * devices through this value or not at all (AS-003, AS-009).
        */
       describe("the counterparty's picture date", () => {
-        // A minimal but real JPEG head -- the resolver checks the magic bytes, so anything
-        // else would be rejected for the right reason and prove nothing.
-        const JPEG_BASE64 = Buffer.from([
-          0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0xff, 0xd9,
-        ]).toString('base64')
-        const JPEG_FULL_BASE64 = Buffer.from([
-          0xff, 0xd8, 0xff, 0xe1, 0x00, 0x10, 0x45, 0x78, 0x69, 0xff, 0xd9,
-        ]).toString('base64')
+        // Two pictures that decode -- the server encodes what it is sent again
+        // (test/helpers.ts).
+        const JPEG_BASE64 = TEST_AVATAR_SMALL_BASE64
+        const JPEG_FULL_BASE64 = TEST_AVATAR_FULL_BASE64
 
         const bobsRow = async () => {
           const res: any = await query({ query: transactionsQuery })

@@ -77,3 +77,23 @@ export const contributionDateFormatter = (date: Date): string => {
 export const setClientTimezoneOffset = (offset: number): void => {
   context.clientTimezoneOffset = offset
 }
+
+/*
+ * Pictures for tests that set an avatar. The server decodes what it is sent and encodes it
+ * again, so a few bytes between two JPEG markers no longer pass.
+ *
+ * ⛔ Each of the three is a picture as the server's own encoder writes it, and comes out of it
+ * unchanged: what a test sends is what it reads back. An update of rust-image-ffi that changes
+ * the encoder's output breaks that, and UserResolver.test.ts says so first ("come out as they
+ * went in") -- then encode the three again and replace them here.
+ */
+// 4 x 2 grey pixels.
+export const TEST_AVATAR_SMALL_BASE64 =
+  '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAA0JCgsKCA0LCgsODg0PEyAVExISEyccHhcgLikxMC4pLSwzOko+MzZGNywtQFdBRkxOUlNSMj5aYVpQYEpRUk//wAALCAACAAQBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAAAP/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AP//Z'
+// 6 x 4 pixels in color: another picture than the small one, or a resolver handing back the
+// wrong column would pass.
+export const TEST_AVATAR_FULL_BASE64 =
+  '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAA0JCgsKCA0LCgsODg0PEyAVExISEyccHhcgLikxMC4pLSwzOko+MzZGNywtQFdBRkxOUlNSMj5aYVpQYEpRUk//2wBDAQ4ODhMREyYVFSZPNS01T09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0//wAARCAAEAAYDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAP/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFAEBAAAAAAAAAAAAAAAAAAAABf/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/AIgCDz//2Q=='
+// 200 x 200 grey pixels: more than a small rendition may have, well within a full one.
+export const TEST_AVATAR_200_PIXELS_BASE64 =
+  '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAA0JCgsKCA0LCgsODg0PEyAVExISEyccHhcgLikxMC4pLSwzOko+MzZGNywtQFdBRkxOUlNSMj5aYVpQYEpRUk//wAALCADIAMgBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAAAP/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP//Z'

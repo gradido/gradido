@@ -21,6 +21,9 @@ import { LogError } from './LogError'
 export interface RequestBudget {
   // Full-size member pictures, capped at MEMBER_AVATARS_FULL_MAX_PER_REQUEST.
   memberAvatarsFullServed: number
+  // The member's own picture taken in (setUserAvatar), capped at
+  // USER_AVATARS_ACCEPTED_MAX_PER_REQUEST: both renditions are decoded and encoded again.
+  userAvatarsAccepted: number
   // Other communities asked by memberAvatars, capped at MEMBER_AVATARS_RELAYS_MAX_PER_REQUEST.
   memberAvatarsRelayed: number
   // Pages of a chat thread or of a group (chatMessagesWithMember, chatGroupMessages), capped
@@ -54,6 +57,7 @@ export interface RequestBudget {
 /** A budget with nothing spent. The context function creates one per HTTP request. */
 export const newRequestBudget = (): RequestBudget => ({
   memberAvatarsFullServed: 0,
+  userAvatarsAccepted: 0,
   memberAvatarsRelayed: 0,
   chatMessagePagesServed: 0,
   chatGroupListsServed: 0,

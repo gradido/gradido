@@ -104,11 +104,23 @@ export const MATCHING_VOCABULARY_PAGE_MAX = 5000
 // should reach — the browser targets ~55 KB and ~8 KB respectively.
 export const AVATAR_FULL_MAX_BYTES = 60 * 1024
 export const AVATAR_SMALL_MAX_BYTES = 10 * 1024
+// The sides the wallet draws the two squares at (AVATAR_FULL_SIZE and AVATAR_SMALL_SIZE there),
+// and the most the server takes: it decodes both renditions and encodes them again
+// (reencodeJpegImage in core), so the pixels are what a picture costs it, not the bytes. A
+// picture may be smaller, and need not be square; it may not be larger on either side.
+//
+// The byte limits above hold for what is stored as well. Measured 05.10.2026 with
+// rust-image-ffi 0.2.1 on 150,000 generated pictures per rendition, encoded the way the wallet
+// does: every small one fitted again at the quality it came in with, and of the 143,163 full
+// ones that fitted on the way in, one did not fit again and seven lost one quality step.
+export const AVATAR_FULL_MAX_SIDE = 512
+export const AVATAR_SMALL_MAX_SIDE = 128
 // A JPEG begins with these two bytes and ends with these two. Checking both ends is still
 // not format validation -- only a decoder could say whether the pixels in between are a
-// picture -- but it is what can be had without one, and a decoder is exactly what this
-// design keeps out of the backend: the browser encodes both renditions so that no image
-// library, and no CPU per request, is needed here.
+// picture -- but it is what can be had without one, and it is the check that costs nothing:
+// asked first, before a picture that is to be decoded and encoded again (the avatar, the
+// picture of a thank-you greeting) gets any CPU, and the only one for the pictures that are
+// stored as they come.
 //
 // Checking the end as well as the start matters more than it looks. `FFD8` alone accepts
 // a three-byte payload, so the column would take arbitrary data from anyone who prefixes

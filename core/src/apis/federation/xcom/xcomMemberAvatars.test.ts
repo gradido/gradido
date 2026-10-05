@@ -3,6 +3,8 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, mock, spyOn } f
 import * as database from 'database'
 import { ClientError, GraphQLClient } from 'graphql-request'
 import {
+  AVATAR_FULL_MAX_BYTES,
+  AVATAR_SMALL_MAX_BYTES,
   createKeyPair,
   encryptAndSign,
   JwtPayloadType,
@@ -21,7 +23,13 @@ const PEER_UUID = '22222222-2222-4222-8222-222222222222'
 const ANNA = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
 const BEN = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
 const MONDAY = '2026-09-14T10:00:00.000Z'
-const FACE = Buffer.from('a small face').toString('base64')
+// A picture that decodes, 4 x 2 grey pixels: what another community answers with is held to
+// the bounds of this community's own avatars, header included.
+const FACE =
+  '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAA0JCgsKCA0LCgsODg0PEyAVExISEyccHhcgLikxMC4pLSwzOko+MzZGNywtQFdBRkxOUlNSMj5aYVpQYEpRUk//wAALCAACAAQBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAAAP/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AP//Z'
+// 200 x 200 grey pixels: more than a small rendition may have, well within a full one.
+const FACE_200_PIXELS =
+  '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAA0JCgsKCA0LCgsODg0PEyAVExISEyccHhcgLikxMC4pLSwzOko+MzZGNywtQFdBRkxOUlNSMj5aYVpQYEpRUk//wAALCADIAMgBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAAAP/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP//Z'
 
 const homeCom = {
   communityUuid: '11111111-1111-4111-8111-111111111111',
@@ -284,6 +292,102 @@ describe('xcomMemberAvatars', () => {
     )
 
     expectFailure(await xcomMemberAvatars(homeCom, peerCom, 'small', [ANNA], 5000), 'picture')
+  })
+
+  // ⛔ What passes goes to the wallet as it is, and stays on members' devices.
+  describe('a picture this community would not take of its own members', () => {
+    const answerWithPicture = (avatar: string) =>
+      peerAnswers((handshakeID) =>
+        answerWith(handshakeID, [{ gradidoID: ANNA, avatarUpdatedAt: MONDAY, avatar }]),
+      )
+    const jpegOf = (bytes: number) =>
+      Buffer.concat([
+        Buffer.from(FACE, 'base64'),
+        Buffer.alloc(bytes - Buffer.from(FACE, 'base64').length - 2, 0x20),
+        Buffer.from([0xff, 0xd9]),
+      ]).toString('base64')
+
+    it('takes a small picture of exactly the limit and not one byte more', async () => {
+      answerWithPicture(jpegOf(AVATAR_SMALL_MAX_BYTES))
+      expect((await xcomMemberAvatars(homeCom, peerCom, 'small', [ANNA], 5000)).success).toBe(true)
+
+      answerWithPicture(jpegOf(AVATAR_SMALL_MAX_BYTES + 1))
+      expectFailure(await xcomMemberAvatars(homeCom, peerCom, 'small', [ANNA], 5000), 'TOO_LARGE')
+    })
+
+    // Asked of the string, before anything is decoded.
+    it('does not decode a string longer than any picture of its kind', async () => {
+      answerWithPicture(jpegOf(AVATAR_SMALL_MAX_BYTES + 3))
+      expectFailure(await xcomMemberAvatars(homeCom, peerCom, 'small', [ANNA], 5000), 'too long')
+
+      answerWithPicture('A'.repeat(5 * 1024 * 1024))
+      expectFailure(await xcomMemberAvatars(homeCom, peerCom, 'full', [ANNA], 5000), 'too long')
+    })
+
+    it('holds the full picture to its own, wider limit', async () => {
+      answerWithPicture(jpegOf(AVATAR_SMALL_MAX_BYTES + 1))
+      expect((await xcomMemberAvatars(homeCom, peerCom, 'full', [ANNA], 5000)).success).toBe(true)
+
+      // 60 KB are a whole number of base64 groups, so one byte more is one group more.
+      answerWithPicture(jpegOf(AVATAR_FULL_MAX_BYTES + 1))
+      expectFailure(await xcomMemberAvatars(homeCom, peerCom, 'full', [ANNA], 5000), 'too long')
+    })
+
+    it('does not take what is no picture: empty, text, a JPEG at both ends only', async () => {
+      const framed = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0xff, 0xd9])
+      const cases: [string, string][] = [
+        ['', 'EMPTY'],
+        [Buffer.from('<svg onload=alert(1)>').toString('base64'), 'NOT_JPEG'],
+        [framed.toString('base64'), 'no JPEG header'],
+      ]
+      for (const [avatar, reason] of cases) {
+        answerWithPicture(avatar)
+        expectFailure(await xcomMemberAvatars(homeCom, peerCom, 'small', [ANNA], 5000), reason)
+      }
+    })
+
+    // The wallet puts the string into an address: a picture with something else between its
+    // characters is not handed on, even where a lenient decoder reads a picture out of it.
+    it('does not take a picture that is not plain base64', async () => {
+      for (const avatar of [`${FACE.slice(0, 40)}\n${FACE.slice(40)}`, `${FACE} `, `${FACE}">`]) {
+        answerWithPicture(avatar)
+        expectFailure(
+          await xcomMemberAvatars(homeCom, peerCom, 'small', [ANNA], 5000),
+          'not plain base64',
+        )
+      }
+      // Letters behind the picture are base64 too: then it no longer ends as a JPEG.
+      answerWithPicture(`${FACE}"><script>`)
+      expectFailure(await xcomMemberAvatars(homeCom, peerCom, 'small', [ANNA], 5000), 'NOT_JPEG')
+    })
+
+    it('does not take a small picture with more pixels than a small one has, and takes it as the full one', async () => {
+      answerWithPicture(FACE_200_PIXELS)
+      expectFailure(
+        await xcomMemberAvatars(homeCom, peerCom, 'small', [ANNA], 5000),
+        'too many pixels',
+      )
+
+      answerWithPicture(FACE_200_PIXELS)
+      expect(await xcomMemberAvatars(homeCom, peerCom, 'full', [ANNA], 5000)).toEqual({
+        success: true,
+        value: [{ gradidoID: ANNA, avatarUpdatedAt: MONDAY, avatar: FACE_200_PIXELS }],
+      })
+    })
+
+    it('one such picture fails the whole answer, and the reason names no picture', async () => {
+      peerAnswers((handshakeID) =>
+        answerWith(handshakeID, [
+          { gradidoID: ANNA, avatarUpdatedAt: MONDAY, avatar: FACE },
+          { gradidoID: BEN, avatarUpdatedAt: MONDAY, avatar: FACE_200_PIXELS },
+        ]),
+      )
+
+      const result = await xcomMemberAvatars(homeCom, peerCom, 'small', [ANNA, BEN], 5000)
+
+      expectFailure(result, 'too many pixels')
+      expect(!result.success && result.error.reason).not.toContain(FACE_200_PIXELS.slice(0, 40))
+    })
   })
 
   it('asks nothing when the community has no federation entry for the API version', async () => {
