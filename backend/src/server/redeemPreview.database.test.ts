@@ -3,8 +3,14 @@ import { request as httpRequest, IncomingHttpHeaders, Server } from 'node:http'
 import { AddressInfo } from 'node:net'
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
-import { AppDatabase, TransactionLink as DbTransactionLink, User, usersTable } from 'database'
-import { eq } from 'drizzle-orm'
+import {
+  AppDatabase,
+  TransactionLink as DbTransactionLink,
+  thankYouGreetingPicturesTable,
+  User,
+  usersTable,
+} from 'database'
+import { and, eq } from 'drizzle-orm'
 import { gql } from 'graphql-tag'
 import { CONFIG } from '@/config'
 import { creations } from '@/seeds/creation/index'
@@ -53,12 +59,16 @@ const MEMO = `${LINE}\n${WORDS}`
 // An amount no measure of a picture and no other number of a document looks like.
 const AMOUNT = '17.25'
 
-const jpegAround = (inside: string) =>
-  Buffer.concat([Buffer.from([0xff, 0xd8]), Buffer.from(inside), Buffer.from([0xff, 0xd9])])
-const SMALL = jpegAround('the small rendition of a private photo of Oma Emma')
-const LARGE = jpegAround('the large rendition of a private photo of Oma Emma, for the page')
-const SMALL_PICTURE = { data: SMALL.toString('base64'), width: 831, height: 577 }
-const LARGE_PICTURE = { data: LARGE.toString('base64'), width: 1080, height: 750 }
+// Two pictures that decode -- 4 x 2 and 6 x 4 grey pixels --: the server decodes what it is sent
+// and files it encoded again, with the size it found.
+const SMALL =
+  '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/wAALCAACAAQBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAAAP/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AP//Z'
+const LARGE =
+  '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/wAALCAAEAAYBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAABv/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AQP/Z'
+// What the sender says the sizes are, and what they are.
+const SMALL_PICTURE = { data: SMALL, width: 831, height: 577 }
+const LARGE_PICTURE = { data: LARGE, width: 1080, height: 750 }
+const LARGE_SIZE = { width: 6, height: 4 }
 
 const addPicture = gql`
   mutation ($linkId: Int!, $picture: ChatImageInput!) {
@@ -121,6 +131,22 @@ const atThePath = (
 const previewOf = (code: string): Promise<Answer> => atThePath(`/api/redeem-preview/${code}`)
 const pictureOf = (code: string): Promise<Answer> =>
   atThePath(`/api/thank-you-greeting-picture/${code}`)
+
+/** A rendition of a link's picture as the server filed it. */
+const filed = async (code: string, rendition: 'small' | 'large'): Promise<Buffer> => {
+  const rows = await AppDatabase.getInstance()
+    .getDrizzleDataSource()
+    .select({ image: thankYouGreetingPicturesTable.image })
+    .from(thankYouGreetingPicturesTable)
+    .where(
+      and(
+        eq(thankYouGreetingPicturesTable.transactionLinkCode, code),
+        eq(thankYouGreetingPicturesTable.rendition, rendition),
+      ),
+    )
+  expect(rows).toHaveLength(1)
+  return rows[0].image
+}
 
 /** What a preview line of the document says, or undefined where it has no such line. */
 const lineOf = (document: string, name: string): string | undefined =>
@@ -197,13 +223,18 @@ describe('GET /api/redeem-preview/<code>, against a database', () => {
 
       expect(image).toBe(`${CONFIG.COMMUNITY_URL}/api/thank-you-greeting-picture/${link.code}`)
       expect(lineOf(document, 'twitter:image')).toBe(image)
-      expect(lineOf(document, 'og:image:width')).toBe('1080')
-      expect(lineOf(document, 'og:image:height')).toBe('750')
+      // The measure of the large rendition as it is filed: the size the picture has, not the
+      // one its sender gave.
+      expect(lineOf(document, 'og:image:width')).toBe(String(LARGE_SIZE.width))
+      expect(lineOf(document, 'og:image:height')).toBe(String(LARGE_SIZE.height))
 
       const picture = await atThePath(String(image).slice(CONFIG.COMMUNITY_URL.length))
+      const large = await filed(link.code, 'large')
       expect(picture.status).toBe(200)
       expect(picture.headers['content-type']).toBe('image/jpeg')
-      expect(picture.body.equals(LARGE)).toBe(true)
+      expect(picture.body.equals(large)).toBe(true)
+      // Two pictures, so that serving the large one is not serving either.
+      expect(large.equals(await filed(link.code, 'small'))).toBe(false)
     })
 
     /**
