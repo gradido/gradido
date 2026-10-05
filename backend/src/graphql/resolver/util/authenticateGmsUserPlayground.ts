@@ -18,7 +18,7 @@ export async function authenticateGmsUserPlayground(
   const dashboardUrl = ensureUrlEndsWithSlash(CONFIG.GMS_DASHBOARD_URL)
 
   result.url = dashboardUrl.concat(CONFIG.GMS_USER_SEARCH_FRONTEND_ROUTE)
-  const token = await createGmsHandshakeJWTToken(dbUser.gradidoID)
+  const token = createGmsHandshakeJWTToken(dbUser.gradidoID)
   result.token = await verifyAuthToken(apiKey, token)
   logger.info('GmsUserAuthenticationResult:', result)
   return result

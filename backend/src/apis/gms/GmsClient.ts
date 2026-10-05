@@ -1,12 +1,20 @@
 import axios from 'axios'
 import { ensureUrlEndsWithSlash } from 'core'
-import { jwtVerify, SignJWT } from 'jose'
 import { getLogger } from 'log4js'
+import {
+  AuthContext,
+  AuthSigningType,
+  authContextSchema,
+  createUserToken,
+  Duration,
+  JwtSigner,
+  Uuidv4,
+  verifyUserToken,
+} from 'shared'
 import { httpAgent, httpsAgent } from '@/apis/ConnectionAgents'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { LogError } from '@/server/LogError'
-
 import { GmsMatchingEntrySnapshot, GmsUserMatchingEntry } from './model/GmsMatchingEntry'
 import { GmsUser } from './model/GmsUser'
 
@@ -32,112 +40,6 @@ const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.gms.GmsClient`)
  * script, where a hang costs one request rather than a whole guarantee.
  */
 const GMS_REQUEST_TIMEOUT_MS = 30_000
-
-/*
-export async function communityList(): Promise<GmsCommunity[] | string | undefined> {
-  const baseUrl = ensureUrlEndsWithSlash(CONFIG.GMS_URL)
-  const service = 'community/list?page=1&perPage=20'
-  const config = {
-    headers: {
-      accept: 'application/json',
-      language: 'en',
-      timezone: 'UTC',
-      connection: 'keep-alive',
-      authorization:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoiVTJGc2RHVmtYMThuNzllbGJscThDbmxxZ0I2SGxicTZuajlpM2lmV3BTc3pHZFRtOFVTQjJZNWY2bG56elhuSUF0SEwvYVBWdE1uMjA3bnNtWDQ0M21xWVFyd0xJMklHNGtpRkZ3U2FKbVJwRk9VZXNDMXIyRGlta3VLMklwN1lYRTU0c2MzVmlScmMzaHE3djlFNkRabk4xeVMrU1QwRWVZRFI5c09pTDJCdmg4a05DNUc5NTdoZUJzeWlRbXcrNFFmMXFuUk5SNXpWdXhtZEE2WUUrT3hlcS85Y0d6NURyTmhoaHM3MTJZTFcvTmprZGNwdU55dUgxeWxhNEhJZyIsImlhdCI6MTcwMDUxMDg4OX0.WhtNGZc9A_hUfh8CcPjr44kWQWMkKJ7hlYXELOd3yy4',
-    },
-  }
-  try {
-    const result = await axios.get(baseUrl.concat(service), config)
-    logger.debug('GET-Response of community/list:', result)
-    if (result.status !== 200) {
-      throw new LogError('HTTP Status Error in community/list:', result.status, result.statusText)
-    }
-    logger.debug('responseData:', result.data.responseData.data)
-
-    // const gmsCom = JSON.parse(result.data.responseData.data)
-    // logger.debug('gmsCom:', gmsCom)
-
-    return result.data.responseData.data
-  } catch (error: any) {
-    logger.error('Error in Get community/list:', error)
-    const errMsg: string = error.message
-    return errMsg
-  }
-}
-
-export async function userList(): Promise<GmsUser[] | string | undefined> {
-  const baseUrl = ensureUrlEndsWithSlash(CONFIG.GMS_URL)
-  const service = 'community-user/list?page=1&perPage=20'
-  const config = {
-    headers: {
-      accept: 'application/json',
-      language: 'en',
-      timezone: 'UTC',
-      connection: 'keep-alive',
-      authorization:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoiVTJGc2RHVmtYMThuNzllbGJscThDbmxxZ0I2SGxicTZuajlpM2lmV3BTc3pHZFRtOFVTQjJZNWY2bG56elhuSUF0SEwvYVBWdE1uMjA3bnNtWDQ0M21xWVFyd0xJMklHNGtpRkZ3U2FKbVJwRk9VZXNDMXIyRGlta3VLMklwN1lYRTU0c2MzVmlScmMzaHE3djlFNkRabk4xeVMrU1QwRWVZRFI5c09pTDJCdmg4a05DNUc5NTdoZUJzeWlRbXcrNFFmMXFuUk5SNXpWdXhtZEE2WUUrT3hlcS85Y0d6NURyTmhoaHM3MTJZTFcvTmprZGNwdU55dUgxeWxhNEhJZyIsImlhdCI6MTcwMDUxMDg4OX0.WhtNGZc9A_hUfh8CcPjr44kWQWMkKJ7hlYXELOd3yy4',
-    },
-  }
-  try {
-    const result = await axios.get(baseUrl.concat(service), config)
-    logger.debug('GET-Response of community/list:', result)
-    if (result.status !== 200) {
-      throw new LogError(
-        'HTTP Status Error in community-user/list:',
-        result.status,
-        result.statusText,
-      )
-    }
-    logger.debug('responseData:', result.data.responseData.data)
-
-    // const gmsUser = JSON.parse(result.data.responseData.data)
-    // logger.debug('gmsUser:', gmsUser)
-
-    return result.data.responseData.data
-  } catch (error: any) {
-    logger.error('Error in Get community-user/list:', error)
-    const errMsg: string = error.message
-    return errMsg
-  }
-}
-
-export async function userByUuid(uuid: string): Promise<GmsUser[] | string | undefined> {
-  const baseUrl = ensureUrlEndsWithSlash(CONFIG.GMS_URL)
-  const service = 'community-user/list?page=1&perPage=20'
-  const config = {
-    headers: {
-      accept: 'application/json',
-      language: 'en',
-      timezone: 'UTC',
-      connection: 'keep-alive',
-      authorization:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoiVTJGc2RHVmtYMThuNzllbGJscThDbmxxZ0I2SGxicTZuajlpM2lmV3BTc3pHZFRtOFVTQjJZNWY2bG56elhuSUF0SEwvYVBWdE1uMjA3bnNtWDQ0M21xWVFyd0xJMklHNGtpRkZ3U2FKbVJwRk9VZXNDMXIyRGlta3VLMklwN1lYRTU0c2MzVmlScmMzaHE3djlFNkRabk4xeVMrU1QwRWVZRFI5c09pTDJCdmg4a05DNUc5NTdoZUJzeWlRbXcrNFFmMXFuUk5SNXpWdXhtZEE2WUUrT3hlcS85Y0d6NURyTmhoaHM3MTJZTFcvTmprZGNwdU55dUgxeWxhNEhJZyIsImlhdCI6MTcwMDUxMDg4OX0.WhtNGZc9A_hUfh8CcPjr44kWQWMkKJ7hlYXELOd3yy4',
-    },
-  }
-  try {
-    const result = await axios.get(baseUrl.concat(service), config)
-    logger.debug('GET-Response of community/list:', result)
-    if (result.status !== 200) {
-      throw new LogError(
-        'HTTP Status Error in community-user/list:',
-        result.status,
-        result.statusText,
-      )
-    }
-    logger.debug('responseData:', result.data.responseData.data)
-
-    // const gmsUser = JSON.parse(result.data.responseData.data)
-    // logger.debug('gmsUser:', gmsUser)
-
-    return result.data.responseData.data
-  } catch (error: any) {
-    logger.error('Error in Get community-user/list:', error)
-    const errMsg: string = error.message
-    return errMsg
-  }
-}
-*/
 
 export async function upsertGmsUsers(apiKey: string, users: GmsUser[]): Promise<boolean> {
   if (CONFIG.GMS_ACTIVE) {
@@ -447,28 +349,18 @@ export async function verifyAuthToken(apiKey: string, token: string): Promise<st
   }
 }
 
-export async function createGmsHandshakeJWTToken(userUuid: string): Promise<string> {
-  const secret = new TextEncoder().encode(CONFIG.JWT_SECRET)
-  const token = await new SignJWT({ 'urn:gradido:check': true, uuid: userUuid })
-    .setProtectedHeader({ alg: 'HS512' })
-    .setIssuedAt()
-    .setIssuer('urn:gradido:issuer')
-    .setAudience('urn:gms:audience')
-    .setExpirationTime('5m')
-    .sign(secret)
-  return token
+// built once at module load: an invalid COMMUNITY_URL stops the server at startup
+const authContext: AuthContext = authContextSchema.parse({
+  issuer: CONFIG.COMMUNITY_URL,
+  audience: `${ensureUrlEndsWithSlash(CONFIG.COMMUNITY_URL)}hook/gms/`,
+  duration: Duration.minutes(5),
+  hash: new JwtSigner(CONFIG.JWT_SECRET, AuthSigningType.HMAC512),
+})
+
+export function createGmsHandshakeJWTToken(gradidoID: Uuidv4): string {
+  return createUserToken(gradidoID, authContext)
 }
 
-export async function verifyGmsHandshakeJWTToken(token: string): Promise<string | undefined> {
-  try {
-    const secret = new TextEncoder().encode(CONFIG.JWT_SECRET)
-    const { payload } = await jwtVerify(token, secret, {
-      issuer: 'urn:gradido:issuer',
-      audience: 'urn:gms:audience',
-    })
-
-    return payload.uuid as string
-  } catch (e) {
-    logger.warn(`gms verify call failed with: ${e}`)
-  }
+export function verifyGmsHandshakeJWTToken(token: string): string | null {
+  return verifyUserToken(token, authContext)
 }

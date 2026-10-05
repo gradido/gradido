@@ -1,8 +1,6 @@
-import { createHmac } from 'node:crypto'
 import { Duration } from '../data'
 import { Uuidv4 } from '../schema'
-import { JWT_HEADER_HMAC_BASE64 } from './const'
-import { AuthContext, hmacKeyObjectSchema, JwtPayloadInput, jwtPayloadSchema } from './jwt.schema'
+import { AuthContext, JwtPayloadInput, jwtPayloadSchema } from './jwt.schema'
 
 /**
  * Creates the session token a logged-in user sends with every request to its community server.
@@ -22,16 +20,14 @@ import { AuthContext, hmacKeyObjectSchema, JwtPayloadInput, jwtPayloadSchema } f
  * @returns the token in compact serialization: `header.payload.signature`
  * @throws ZodError if `gradidoID` is not a valid subject or `authContext.signingKey` is no secret key
  */
-export function createFrontendLoginToken(gradidoID: Uuidv4, authContext: AuthContext): string {
-  return signJwtHmac(
-    {
-      iss: authContext.issuer,
-      sub: gradidoID,
-      aud: authContext.issuer,
-      ...calculateTimes(authContext.duration),
-    },
-    authContext,
-  )
+export function createUserToken(gradidoID: Uuidv4, authContext: AuthContext): string {
+  const payloadObj: JwtPayloadInput = {
+    iss: authContext.issuer,
+    sub: gradidoID,
+    aud: authContext.audience,
+    ...calculateTimes(authContext.duration),
+  }
+  return authContext.hash.createJwtToken(payloadToBase64(payloadObj))
 }
 
 // generic native implementation
@@ -45,16 +41,6 @@ function calculateTimes(duration: Duration): { iat: number; exp: number } {
   return { iat: nowSeconds, exp: Number(duration.seconds) + nowSeconds }
 }
 
-/**
- * Validates the payload against `jwtPayloadSchema` and signs it with HMAC-SHA256 (HS256).
- * native jwt, because it is a bit faster as jose
- * @throws ZodError if the payload or the signing key is invalid
- */
-function signJwtHmac(payload: JwtPayloadInput, authContext: AuthContext): string {
-  const payloadBase64 = Buffer.from(JSON.stringify(jwtPayloadSchema.parse(payload))).toString(
-    'base64url',
-  )
-  hmacKeyObjectSchema.parse(authContext.signingKey)
-  const signed = `${JWT_HEADER_HMAC_BASE64}.${payloadBase64}`
-  return `${signed}.${createHmac('sha256', authContext.signingKey).update(signed).digest('base64url')}`
+function payloadToBase64(payload: JwtPayloadInput): string {
+  return Buffer.from(JSON.stringify(jwtPayloadSchema.parse(payload))).toString('base64url')
 }

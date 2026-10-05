@@ -1,12 +1,10 @@
-import { createHmac, timingSafeEqual } from 'node:crypto'
+import { timingSafeEqual } from 'node:crypto'
 import { getLogger } from 'log4js'
 import { JWT_LEEWAY_SECONDS, LOG4JS_BASE_CATEGORY_NAME } from '../const'
 import { Duration } from '../data'
 import { Result } from '../errorTypes'
-import { Uuidv4 } from '../schema'
-import { JWT_HEADER_HMAC_BASE64 } from './const'
 import { AuthenticationFailed, AuthenticationFailedType } from './errorTypes'
-import { AuthContext, JwtPayload, jwtPayloadSchema } from './jwt.schema'
+import { AuthContext, JwtPayload, JwtPayloadSubject, jwtPayloadSchema } from './jwt.schema'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.jwt.verifyTokens`)
 
@@ -30,10 +28,10 @@ const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.jwt.verifyTokens`)
  * @param authContext issuer and signing key to verify against, `duration` is not used here
  * @returns gradido id of user (or 'dlt-connector') if valid, else null
  */
-export function verifyFrontendLoginToken(
+export function verifyUserToken(
   jwtToken: string,
   authContext: AuthContext,
-): Uuidv4 | null {
+): JwtPayloadSubject | null {
   const result = verifyJwtHmac(jwtToken, authContext)
   if (!result.success) {
     if (result.error.type !== AuthenticationFailedType.EXPIRED_JWT_TOKEN) {
@@ -44,8 +42,12 @@ export function verifyFrontendLoginToken(
     return null
   }
   const payload = result.value
-  if (payload.iss !== authContext.issuer || payload.aud !== authContext.issuer) {
-    logger.warn(`jwt token was created from/for another server: ${payload.iss}`)
+  if (payload.iss !== authContext.issuer || payload.aud !== authContext.audience) {
+    // TODO: is this warn, info or debug?
+    logger.warn('jwt token was created from/for another server:', {
+      expected: { iss: authContext.issuer, aud: authContext.audience },
+      actual: { iss: payload.iss, aud: payload.aud }
+    })
     return null
   }
   return result.value.sub
@@ -76,23 +78,16 @@ function verifyJwtHmac(
       }
     }
     const [headerBase64, payloadBase64, signatureBase64] = parts
+
     // check header
-    if (JWT_HEADER_HMAC_BASE64 !== headerBase64) {
-      const jsonHeader = Buffer.from(headerBase64, 'base64url').toString()
-      return {
-        success: false,
-        error: new AuthenticationFailed(
-          `Expected HS256 algo, get: ${jsonHeader}`,
-          AuthenticationFailedType.UNEXPECTED_FORMAT,
-        ),
-      }
+    const headerResult = authContext.hash.isHeaderValid(headerBase64)
+    if (!headerResult.success) {
+      return headerResult
     }
 
-    const calculatedSignature = createHmac('sha256', authContext.signingKey)
-      .update(`${headerBase64}.${payloadBase64}`)
-      .digest()
-
     // check signature
+    const headerPayload = `${headerBase64}.${payloadBase64}`
+    const calculatedSignature = authContext.hash.signBuffer(headerPayload)
     const signature = Buffer.from(signatureBase64, 'base64url')
     if (
       signature.length !== calculatedSignature.length ||
