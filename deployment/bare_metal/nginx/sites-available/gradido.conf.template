@@ -37,6 +37,14 @@ server {
         rewrite ^/vue/?(.*)$ /$1 permanent;
     }
 
+    # Link previews. What a messenger fetches to draw the preview of a thank-you link is
+    # answered by the backend, with the title and the picture of that link: a messenger does
+    # not run the wallet, so the wallet's page tells it nothing about the link. Everybody else
+    # gets the wallet, as ever. The backend sends a link that is not open on to "/".
+    if ($http_user_agent ~* "^WhatsApp/|^TelegramBot|facebookexternalhit|Twitterbot|Slackbot|Discordbot|LinkedInBot") {
+        rewrite "^/redeem/([0-9a-fA-F]{24})$" /api/redeem-preview/$1 last;
+    }
+
     # Frontend (default)
     location / {
         limit_req zone=frontend burst=150 nodelay;
