@@ -113,6 +113,178 @@ describe('Navbar', () => {
   })
 
   /**
+   * Top left stand the coin and the community's name, not the whole logo: the wordmark said
+   * "Gradido" on every server alike, the name says which community the member is in.
+   * (Bernd, 05.10.2026)
+   */
+  describe('the way home', () => {
+    const home = () => wrapper.find('[data-test="navbar-home"]')
+
+    it('is one link to the overview, the coin and the name of the community in it', () => {
+      expect(home().element.tagName).toBe('A')
+      expect(home().attributes('href')).toBe('/overview')
+      expect(CONFIG.COMMUNITY_NAME).toBeTruthy()
+      expect(home().find('[data-test="navbar-community"]').text()).toBe(CONFIG.COMMUNITY_NAME)
+      const pictures = home().findAll('img')
+      expect(pictures).toHaveLength(1)
+      expect(pictures[0].attributes('src')).toBe('/img/brand/gradido-coin.png')
+    })
+
+    it('is named by the community alone: the coin beside it is decoration', () => {
+      expect(home().find('img').attributes('alt')).toBe('')
+      expect(home().text()).toBe(CONFIG.COMMUNITY_NAME)
+    })
+
+    it('no longer shows the wordmark', () => {
+      expect(wrapper.html()).not.toContain('gradido-logo')
+    })
+
+    it('stays off the phone, where the till tools stand in its place', () => {
+      expect(home().classes()).toContain('d-none')
+      expect(home().classes()).toContain('d-lg-flex')
+    })
+
+    // The measures of the logo that stood here, 200px wide: jsdom lays nothing out, so the
+    // stylesheet is read -- without its comments, which name the same figures.
+    describe('in the measures of the logo', () => {
+      const css = readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'Navbar.vue'), 'utf8')
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+        .replace(/<!--[\s\S]*?-->/g, '')
+      const rule = (selector) => css.match(new RegExp(`\\.${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
+
+      it('keeps the coin as large as it was in the logo', () => {
+        expect(rule('navbar-coin')).toMatch(/width:\s*58\.4px;[^}]*height:\s*58\.4px;/)
+      })
+
+      it('sets the name in the green of the wordmark and in the typeface closest to it', () => {
+        const name = rule('navbar-community')
+        expect(name).toMatch(/color:\s*#4c5e3f;/)
+        expect(name).toMatch(/font-family:\s*Afacad, 'Open Sans', sans-serif;/)
+        expect(name).toMatch(/font-weight:\s*525;/)
+        expect(name).toMatch(/font-size:\s*39\.38px;/)
+        // Part of the weight: without it a Mac draws the name bolder than the wordmark was.
+        expect(name).toMatch(/-webkit-font-smoothing:\s*antialiased;/)
+      })
+
+      it("has the page's font ready for a name the typeface cannot spell", () => {
+        const plain = rule('navbar-community-plain')
+        expect(plain).toMatch(/font-family:\s*inherit;/)
+        expect(plain).toMatch(/font-weight:\s*600;/)
+        expect(plain).not.toMatch(/color:/)
+      })
+    })
+
+    /**
+     * From the layout's switch to the desktop up to 1170px the leaves stand at the left, just
+     * past where the logo ended. A name is longer than "Gradido" and cannot be read on their
+     * green, so they begin where the name ends. (Bernd, 05.10.2026)
+     */
+    describe('and the leaves behind it', () => {
+      let observed
+      let report
+      const edges = (element, { left, right }) =>
+        vi
+          .spyOn(element, 'getBoundingClientRect')
+          .mockReturnValue({ left, right, width: right - left })
+
+      beforeEach(() => {
+        observed = []
+        vi.stubGlobal(
+          'ResizeObserver',
+          class {
+            constructor(callback) {
+              report = callback
+            }
+
+            observe(element) {
+              observed.push(element)
+            }
+
+            disconnect() {
+              observed = null
+            }
+          },
+        )
+        wrapper = mountComponent()
+      })
+
+      afterEach(() => {
+        vi.unstubAllGlobals()
+      })
+
+      const leaves = () => wrapper.find('[data-test="navbar-leaves"]')
+
+      it("watches the width of the link, which is the name's and changes when its typeface comes", () => {
+        expect(observed).toEqual([home().element])
+      })
+
+      it('tells the leaves where coin and name end, from the left edge of the bar', async () => {
+        expect(leaves().attributes('style')).toContain('--brand-end: 0px')
+
+        edges(wrapper.element, { left: 60, right: 1100 })
+        edges(home().element, { left: 76, right: 443.4 })
+        report()
+        await nextTick()
+
+        expect(leaves().attributes('style')).toContain('--brand-end: 383px')
+      })
+
+      // On the phone the link is not shown and has no width: the leaves keep their own place.
+      it('tells them nothing where the name does not stand', async () => {
+        edges(home().element, { left: 76, right: 443.4 })
+        report()
+        await nextTick()
+        edges(home().element, { left: 0, right: 0 })
+        report()
+        await nextTick()
+
+        expect(leaves().attributes('style')).toContain('--brand-end: 0px')
+      })
+
+      it('stops watching when the bar goes', () => {
+        wrapper.unmount()
+        expect(observed).toBeNull()
+      })
+
+      it('moves the leaves only in the windows where they stand at the left, and never further left', () => {
+        const css = readFileSync(
+          join(dirname(fileURLToPath(import.meta.url)), 'Navbar.vue'),
+          'utf8',
+        )
+          .replace(/\/\*[\s\S]*?\*\//g, '')
+          .replace(/<!--[\s\S]*?-->/g, '')
+        const band = css.match(
+          /@media screen and \(width >= 1025px\) and \(width <= 1170px\)\s*\{\s*\.sheet-img\s*\{([^}]*)\}/,
+        )
+        expect(band?.[1]).toMatch(/left:\s*max\(20%, calc\(var\(--brand-end, 0px\) - 11px\)\);/)
+        // After the rule it refines, before the phone's: among equals the later rule draws.
+        expect(css.indexOf('(width <= 1170px) {\n  .sheet-img')).toBeLessThan(
+          css.indexOf('(width >= 1025px)'),
+        )
+        expect(css.indexOf('(width >= 1025px)')).toBeLessThan(css.indexOf('(width <= 450px)'))
+      })
+    })
+
+    it('sets a Latin name in the typeface of the wordmark', () => {
+      expect(home().find('[data-test="navbar-community"]').classes()).toEqual(['navbar-community'])
+    })
+
+    // One Greek letter set in the page's font in the middle of the wordmark's: the whole name
+    // goes to the page's font instead (utils/logoFace.js).
+    it("sets a name with a letter beyond that typeface in the page's font, whole", () => {
+      const name = CONFIG.COMMUNITY_NAME
+      CONFIG.COMMUNITY_NAME = 'Gradido Ελλάδα'
+      try {
+        const greek = mountComponent().find('[data-test="navbar-community"]')
+        expect(greek.text()).toBe('Gradido Ελλάδα')
+        expect(greek.classes()).toContain('navbar-community-plain')
+      } finally {
+        CONFIG.COMMUNITY_NAME = name
+      }
+    })
+  })
+
+  /**
    * The quick way to the calculator on a phone: a small symbol ABOVE the menu opener,
    * deliberately unmarked -- a tool for those who run a till, found by those who need it.
    */

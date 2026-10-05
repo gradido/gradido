@@ -3,13 +3,25 @@
     <div class="navbar-element">
       <BNavbar toggleable="lg" class="pe-4">
         <BNavbarBrand>
-          <router-link to="/overview">
-            <BImg
-              class="mt-lg--2 mt-3 mb-3 d-none d-lg-block zindex10"
-              :src="logo"
-              width="200"
-              alt="Logo"
-            />
+          <!-- The coin and the community's name, one link home. The wordmark this replaces
+               said "Gradido" on every server alike; the name says which community the member
+               is in. The coin is the logo's own, cut from it and as large as it stood there,
+               and the name takes the wordmark's height, green and typeface. Only here: the pages
+               without a session keep the whole logo. (Bernd, 05.10.2026) -->
+          <router-link
+            ref="home"
+            to="/overview"
+            class="navbar-home mt-lg--2 mt-3 mb-3 d-none d-lg-flex zindex10"
+            data-test="navbar-home"
+          >
+            <img class="navbar-coin" :src="coin" alt="" />
+            <span
+              class="navbar-community"
+              :class="{ 'navbar-community-plain': !communityInLogoFace }"
+              data-test="navbar-community"
+            >
+              {{ communityName }}
+            </span>
           </router-link>
           <!-- The four till tools sit ABOVE the menu opener, deliberately small and
                unmarked: tools for those who run a till, not headline features. Whoever
@@ -96,7 +108,15 @@
           </div>
         </BNavbarBrand>
 
-        <BImg class="sheet-img position-absolute zindex-1" :src="sheet"></BImg>
+        <!-- The leaves begin where the name ends, in the windows where they stand at the left
+             (see .sheet-img): a name is as long as its community calls itself, and on the
+             leaves' green its own green cannot be read. -->
+        <BImg
+          class="sheet-img position-absolute zindex-1"
+          :src="sheet"
+          :style="{ '--brand-end': `${brandEnd}px` }"
+          data-test="navbar-leaves"
+        ></BImg>
 
         <BNavbarNav class="ms-auto" right>
           <div class="">
@@ -161,6 +181,9 @@
 </template>
 
 <script>
+import '@/assets/fonts/afacad/afacad.css'
+import CONFIG from '@/config'
+import { inLogoFace } from '@/utils/logoFace'
 import { avatarLettering } from '@/utils/avatarLettering'
 import { memberAlias } from '@/utils/gradidoAddress'
 import GradidoAddressCopy from '@/components/GradidoAddressCopy'
@@ -185,11 +208,19 @@ export default {
   },
   data() {
     return {
-      logo: '/img/brand/gradido-logo.png',
+      coin: '/img/brand/gradido-coin.png',
+      communityName: CONFIG.COMMUNITY_NAME,
+      // Where coin and name end, from the left edge of the bar, in px. 0 where they do not
+      // stand (the phone) or nothing lays out.
+      brandEnd: 0,
       sheet: '/img/template/Blaetter.png',
     }
   },
   computed: {
+    // A name with a letter the wordmark's typeface lacks is set in the page's font, whole.
+    communityInLogoFace() {
+      return inLogoFace(this.communityName)
+    },
     username() {
       // The circle's letters are the first two of the user name, here as on the printed
       // card, on the cheque and in every other member's lists (Bernd, 17.09.2026): a card
@@ -213,6 +244,24 @@ export default {
       // spelling once put the word "undefined" in front of every member without a user
       // name. It is worth naming at each call site; nothing catches it.
       return memberAlias(this.$store.state.username, this.$store.state.gradidoID)
+    },
+  },
+  mounted() {
+    // The name's width is the community's, and it changes once more when its typeface has
+    // come: the observer reports both, and the phone's `display: none` as a width of 0.
+    if (typeof ResizeObserver === 'undefined') return
+    this.brandObserver = new ResizeObserver(() => this.measureBrand())
+    this.brandObserver.observe(this.$refs.home.$el)
+  },
+  beforeUnmount() {
+    this.brandObserver?.disconnect()
+  },
+  methods: {
+    measureBrand() {
+      const home = this.$refs.home?.$el
+      if (!home) return
+      const { right, width } = home.getBoundingClientRect()
+      this.brandEnd = width > 0 ? Math.round(right - this.$el.getBoundingClientRect().left) : 0
     },
   },
 }
@@ -263,6 +312,16 @@ button.navbar-toggler > span.navbar-toggler-icon {
     margin-left: 5%;
     margin-right: 5%;
     z-index: 0;
+  }
+}
+
+/* Between the layout's switch to the desktop and 1170px the leaves stand at the left, and
+   20% was just past the logo that stood there. A community's name is longer than "Gradido":
+   the leaves begin where it ends, no further left than they did. The 11px are how far the
+   picture's empty edge reached under the logo at 1025px. */
+@media screen and (width >= 1025px) and (width <= 1170px) {
+  .sheet-img {
+    left: max(20%, calc(var(--brand-end, 0px) - 11px));
   }
 }
 
@@ -359,6 +418,50 @@ button.navbar-toggler > span.navbar-toggler-icon {
   border-radius: 50%;
   background: #c08935;
   box-shadow: 0 0 0 0.08em var(--bg, #f5f5f5);
+}
+
+/* The measures are the logo's, which stood here 200px wide (a 500px picture, so 0.4 of
+   it): the coin 146 of those 500 across, the capitals of the word 64 high. The gap is the
+   logo's 16.8px less the 2px of white the G of the typeface brings along, so the word
+   begins where the wordmark began. */
+.navbar-home {
+  align-items: center;
+  gap: 14.8px;
+  text-decoration: none;
+}
+
+.navbar-coin {
+  flex: 0 0 auto;
+  width: 58.4px;
+  height: 58.4px;
+}
+
+/* Afacad at 525, the typeface that lies closest on the drawn wordmark (fonts/afacad). At
+   39.38px its G is the wordmark's 25.6px high, and 4.2px down puts the baseline where the
+   wordmark had it -- lower than the middle of the coin, as in the logo. The green is the
+   wordmark's, in both modes, as the picture was.
+
+   The smoothing is part of the weight: left to itself a Mac draws text bolder than its
+   outlines, and 525 was chosen against a picture, which nothing thickens. */
+.navbar-community {
+  position: relative;
+  top: 4.2px;
+  color: #4c5e3f;
+  font-family: Afacad, 'Open Sans', sans-serif;
+  font-size: 39.38px;
+  font-weight: 525;
+  line-height: 1.05;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* A name the typeface cannot spell (logoFace.js): the page's font, its capitals at the same
+   25.6px and its baseline on the same line. */
+.navbar-community-plain {
+  top: 3.1px;
+  font-family: inherit;
+  font-size: 35.86px;
+  font-weight: 600;
 }
 
 /* Name and wheel on one line, the wheel a shade quieter: it points, the name names. */
