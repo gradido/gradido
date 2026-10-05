@@ -868,7 +868,7 @@ describe('an open greeting with a picture', () => {
    * old one): the sender gets it of their own link, and asking changes nothing for anybody else.
    */
   it('hands the large rendition to the sender who asks for it, and to nobody else', async () => {
-    expect(await largePictureFor('bibi@bloxberg.de', link.id)).toBe(LARGE_PICTURE.data)
+    expect(await largePictureFor('bibi@bloxberg.de', link.id)).toBe(LARGE_STORED.toString('base64'))
     expect(await largePictureFor('bob@baumeister.de', link.id)).toBeNull()
     expect(await largePictureFor('peter@lustig.de', link.id)).toBeNull()
   })
@@ -877,7 +877,9 @@ describe('an open greeting with a picture', () => {
     await loginAs('bibi@bloxberg.de')
     const smallOnly = await created()
 
-    expect(await largePictureFor('bibi@bloxberg.de', smallOnly.id)).toBe(SMALL_PICTURE.data)
+    expect(await largePictureFor('bibi@bloxberg.de', smallOnly.id)).toBe(
+      SMALL_STORED.toString('base64'),
+    )
   })
 
   it('hands both renditions to the sender in one request, as the wallet asks for them', async () => {
@@ -886,7 +888,10 @@ describe('an open greeting with a picture', () => {
     const result = await query({ query: bothRenditionsOfLink, variables: { linkId: link.id } })
 
     expect(result.errors).toBeUndefined()
-    expect(result.data).toEqual({ small: SMALL_PICTURE.data, large: LARGE_PICTURE.data })
+    expect(result.data).toEqual({
+      small: SMALL_STORED.toString('base64'),
+      large: LARGE_STORED.toString('base64'),
+    })
   })
 
   // ⛔ One large rendition a request: the second alias is refused, whoever asks.
@@ -898,7 +903,7 @@ describe('an open greeting with a picture', () => {
     expect(result.errors).toEqual([
       new GraphQLError('Too many thank-you greeting pictures requested at once'),
     ])
-    expect(result.data).toEqual({ first: LARGE_PICTURE.data, second: null })
+    expect(result.data).toEqual({ first: LARGE_STORED.toString('base64'), second: null })
   })
 })
 
@@ -938,8 +943,8 @@ describe('once the thank-you is accepted', () => {
 
   // ⛔ There is no large rendition any more, and asking for one changes nothing for anybody.
   it('whoever asks for the large rendition gets what they get without asking', async () => {
-    expect(await largePictureFor('bibi@bloxberg.de', link.id)).toBe(SMALL_PICTURE.data)
-    expect(await largePictureFor('peter@lustig.de', link.id)).toBe(SMALL_PICTURE.data)
+    expect(await largePictureFor('bibi@bloxberg.de', link.id)).toBe(SMALL_STORED.toString('base64'))
+    expect(await largePictureFor('peter@lustig.de', link.id)).toBe(SMALL_STORED.toString('base64'))
     expect(await largePictureFor('bob@baumeister.de', link.id)).toBeNull()
   })
 
@@ -993,7 +998,7 @@ describe('a greeting that ran out', () => {
   // The case a duplicate is made for: the address shows nothing any more, and the sender still
   // gets the large rendition of their own greeting -- they alone.
   it('hands the large rendition to the sender who asks for it, and to nobody else', async () => {
-    expect(await largePictureFor('bibi@bloxberg.de', link.id)).toBe(LARGE_PICTURE.data)
+    expect(await largePictureFor('bibi@bloxberg.de', link.id)).toBe(LARGE_STORED.toString('base64'))
     expect(await largePictureFor('bob@baumeister.de', link.id)).toBeNull()
     expect(await largePictureFor('peter@lustig.de', link.id)).toBeNull()
     // …and the address stays as empty as it was.
@@ -1069,17 +1074,17 @@ describe('an open greeting of a member whose account is deleted', () => {
   it('hands the member no large rendition by the query, and hands it again once the account is back', async () => {
     const link = await withBothRenditions()
     const askLarge = () => query({ query: largePictureOfLink, variables: { linkId: link.id } })
-    expect((await askLarge()).data.thankYouGreetingPicture).toBe(LARGE_PICTURE.data)
+    expect((await askLarge()).data.thankYouGreetingPicture).toBe(LARGE_STORED.toString('base64'))
 
     await User.update({ id: bibi.id }, { deletedAt: new Date() })
     try {
       const result = await askLarge()
       expect(result.errors).toBeUndefined()
-      expect(result.data.thankYouGreetingPicture).toBe(SMALL_PICTURE.data)
+      expect(result.data.thankYouGreetingPicture).toBe(SMALL_STORED.toString('base64'))
     } finally {
       await User.update({ id: bibi.id }, { deletedAt: null })
     }
 
-    expect((await askLarge()).data.thankYouGreetingPicture).toBe(LARGE_PICTURE.data)
+    expect((await askLarge()).data.thankYouGreetingPicture).toBe(LARGE_STORED.toString('base64'))
   })
 })
