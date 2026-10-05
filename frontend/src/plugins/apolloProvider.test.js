@@ -58,7 +58,7 @@ describe('apolloProvider', () => {
 
     const storeModule = await import('@/store/store')
     store = {
-      state: { token: 'some-token' },
+      state: { token: 'some-token', gradidoID: 'member-a' },
       dispatch: vi.fn(),
       commit: vi.fn(),
     }
@@ -223,6 +223,109 @@ describe('apolloProvider', () => {
       authLink({ setContext: vi.fn(), getContext: getContextMock }, forwardMock)
 
       expect(store.commit).toHaveBeenCalledWith('token', 'new-token')
+    })
+
+    /**
+     * ⛔ An answer renews the session it was asked in, and no other. A question may still be
+     * under way when its session ends, and its answer carries a fresh token of the session that
+     * is over. The test "commits new token to store" above is the Gegenprobe: while the member
+     * who asked stands in the store, the token IS taken.
+     */
+    describe('an answer that comes when its session is over', () => {
+      let answer
+
+      // The question goes out now; its answer comes when the test says so.
+      const ask = () => {
+        const getContextMock = vi.fn().mockReturnValue({
+          response: { headers: { get: vi.fn(() => 'new-token') } },
+        })
+        const forwardMock = vi.fn().mockReturnValue({
+          map: vi.fn((callback) => {
+            answer = callback
+          }),
+        })
+        authLink({ setContext: vi.fn(), getContext: getContextMock }, forwardMock)
+      }
+
+      it('takes the token where the member who asked is still the one signed in', () => {
+        ask()
+
+        answer({ data: { transactionList: {} } })
+
+        expect(store.commit).toHaveBeenCalledWith('token', 'new-token')
+      })
+
+      it('leaves the store alone where the member signed out meanwhile', () => {
+        ask()
+        store.state.token = null
+        store.state.gradidoID = null
+
+        answer({ data: { createTransactionLink: {} } })
+
+        expect(store.commit).not.toHaveBeenCalled()
+      })
+
+      it('leaves the store alone where somebody else signed in meanwhile', () => {
+        ask()
+        store.state.token = 'the-token-of-member-b'
+        store.state.gradidoID = 'member-b'
+
+        answer({ data: { createTransactionLink: {} } })
+
+        expect(store.commit).not.toHaveBeenCalled()
+      })
+
+      // Signed out, and the same member signed in again: the answer is theirs either way.
+      it('takes the token where the same member signed in again', () => {
+        ask()
+        store.state.token = 'a-later-token-of-member-a'
+
+        answer({ data: { createTransactionLink: {} } })
+
+        expect(store.commit).toHaveBeenCalledWith('token', 'new-token')
+      })
+
+      describe('to a sign-in', () => {
+        it('is taken in a wallet nobody is signed in to', () => {
+          store.state.token = null
+          store.state.gradidoID = null
+          ask()
+
+          answer({ data: { login: { gradidoID: 'member-b' } } })
+
+          expect(store.commit).toHaveBeenCalledWith('token', 'new-token')
+        })
+
+        // Signing in over an open session: the form is asked as the member before.
+        it('is taken over the session of the member before', () => {
+          ask()
+
+          answer({ data: { login: { gradidoID: 'member-b' } } })
+
+          expect(store.commit).toHaveBeenCalledWith('token', 'new-token')
+        })
+
+        // The session before ended while the form was under way: the sign-in still counts.
+        it('is taken whatever became of the session it was asked in', () => {
+          ask()
+          store.state.token = null
+          store.state.gradidoID = null
+
+          answer({ data: { login: { gradidoID: 'member-b' } } })
+
+          expect(store.commit).toHaveBeenCalledWith('token', 'new-token')
+        })
+
+        it('is no sign-in where the server refused it', () => {
+          ask()
+          store.state.token = null
+          store.state.gradidoID = null
+
+          answer({ data: null, errors: [{ message: 'No user with this credentials' }] })
+
+          expect(store.commit).not.toHaveBeenCalled()
+        })
+      })
     })
   })
 
