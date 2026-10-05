@@ -161,6 +161,11 @@ export const CHAT_IMAGE_MAX_PIXELS = 500_000
 // at most (810,000 pixels). Each side is bounded by CHAT_IMAGE_MAX_SIDE, as a chat picture's.
 export const THANK_YOU_PICTURE_LARGE_MAX_BYTES = 72 * 1024
 export const THANK_YOU_PICTURE_LARGE_MAX_PIXELS = 850_000
+// What is stored of either rendition is not what came in: the picture is served to whoever holds
+// the link's code, so the server decodes it and encodes the pixels again (reencodeJpegImage in
+// core), within the same bounds. Its encoder writes a picture at the quality it came in with to
+// the size it came in with (measured 04.10.2026 with rust-image-ffi 0.2.0 on pictures encoded
+// the way the wallet does), so what the wallet sends under its target fits its bound again.
 
 // alias: how often a member may pick a name, and over what stretch. Four a year is
 // not a tidiness rule -- it is the brake against somebody cycling through near-misses

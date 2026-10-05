@@ -39,6 +39,10 @@ export interface RequestBudget {
   // THANK_YOU_GREETING_PICTURES_MAX_PER_REQUEST. A call that asks for the large rendition
   // counts as THANK_YOU_GREETING_LARGE_PICTURE_COUNTS of them.
   thankYouGreetingPicturesServed: number
+  // Pictures of thank-you greetings taken in (createTransactionLink with a picture,
+  // addThankYouGreetingPicture), capped together at
+  // THANK_YOU_GREETING_PICTURES_ACCEPTED_MAX_PER_REQUEST: each is decoded and encoded again.
+  thankYouGreetingPicturesAccepted: number
   // The calls among them that asked for the large rendition, capped at
   // THANK_YOU_GREETING_LARGE_PICTURES_MAX_PER_REQUEST.
   thankYouGreetingLargePicturesServed: number
@@ -57,6 +61,7 @@ export const newRequestBudget = (): RequestBudget => ({
   chatVideoRoomsServed: 0,
   chatImagesServed: 0,
   thankYouGreetingPicturesServed: 0,
+  thankYouGreetingPicturesAccepted: 0,
   thankYouGreetingLargePicturesServed: 0,
   transactionPicturesServed: 0,
 })
