@@ -4022,6 +4022,36 @@ describe('UserResolver', () => {
     )
   })
 
+  // ⛔ Somebody has to be asking -- the case of the position and of the seven settings above,
+  // for the four guards that stood before them: what a member wrote about themselves, their
+  // picture, and the two switches for the picture and for the transfers. No member object
+  // without an id carries one of the four today, so no query can show it; each guard is asked
+  // directly.
+  describe('the four older own-view guards', () => {
+    // Every one of them away from what a new account starts with.
+    const OWN = {
+      aboutMe: 'Ich fliege gern und helfe beim Zaubern.',
+      avatar: 'data:image/jpeg;base64,/9j/4AAQ',
+      avatarVisibleToMembers: false,
+      transfersInChat: false,
+    }
+    const GUARDS = Object.keys(OWN) as (keyof typeof OWN)[]
+
+    it.each(GUARDS)(
+      'hides %s on a member object without an id from a caller without a login',
+      (field) => {
+        const guard = new UserResolver()
+        const withoutId = Object.assign(new UserModel(null), OWN)
+        expect(guard[field](withoutId, callerWithId(undefined))).toBeNull()
+        // Asked the same way, it answers the member whose object it is, and nobody else.
+        const own = Object.assign(new UserModel(null), { id: 7, ...OWN })
+        expect(guard[field](own, callerWithId(7))).toBe(OWN[field])
+        expect(guard[field](own, callerWithId(8))).toBeNull()
+        expect(guard[field](own, callerWithId(undefined))).toBeNull()
+      },
+    )
+  })
+
   // The address is the member's own - and the moderation's, which needs it to reach people.
   // Until 11.09.2026 every member held VIEW_USER_CONTACT, so `user()` handed anybody's
   // address to anyone logged in.
