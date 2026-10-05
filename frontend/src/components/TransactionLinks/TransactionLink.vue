@@ -51,9 +51,26 @@
              taller than a line of text. -->
         <div v-else class="small" aria-hidden="true" data-test="link-decay-spacer">&nbsp;</div>
       </div>
-      <div class="col-auto d-flex justify-content-end align-items-center">
-        <BDropdown no-caret right aria-expanded="false" size="sm">
+      <!-- A tap here never reaches the summary row, which closes the whole list on every tap
+           inside it (Bernd, 05.10.2026: the list kept closing when the three dots were missed
+           by a little). -->
+      <div
+        class="col-auto d-flex justify-content-end align-items-center"
+        data-test="link-menu-col"
+        @click.stop
+      >
+        <BDropdown
+          no-caret
+          right
+          aria-expanded="false"
+          size="sm"
+          menu-class="transaction-link-menu"
+        >
           <template #button-content>
+            <!-- What the finger may hit: wider than the button to both sides, on the right up
+                 to the edge of the tile, and it takes no room in the row (see the styles). It
+                 stands inside the button, so a tap on it is a tap on the button. -->
+            <span class="transaction-link-menu-reach link-menu-opener" aria-hidden="true" />
             <!-- ⚠️ `link-menu-opener` is read by the summary row above: a tap on the menu
                  must not also close the list it stands in. -->
             <IBiThreeDotsVertical class="link-menu-opener" />
@@ -361,6 +378,21 @@ const toggleQrModal = () => {
 .filter {
   filter: opacity(0.6);
 }
+
+/* The menu of a link stands on the grey of the menus over a conversation (Bernd, 05.10.2026;
+   the tokens and their measures: _design-tokens.scss, chatMenuSurface.spec.js). Not scoped:
+   the class is handed to the library's menu. One class more than the dark stylesheet's
+   `.dark-mode .dropdown-menu` and `.dark-mode .dropdown-item:hover`, so no tie is left to the
+   order the stylesheets load in. */
+.transaction-link .dropdown-menu.transaction-link-menu {
+  border: 1px solid var(--menu-border, #b3bac2);
+  background-color: var(--menu-surface, #dde1e6) !important;
+}
+
+.transaction-link .transaction-link-menu .dropdown-item:hover,
+.transaction-link .transaction-link-menu .dropdown-item:focus {
+  background-color: var(--menu-hover, #eef0f3);
+}
 </style>
 <style scoped lang="scss">
 .light-gray-text {
@@ -379,6 +411,17 @@ const toggleQrModal = () => {
      copying its figure here cost the state word exactly the 16 points it needs to stay on
      one line at 375. */
   --link-menu-col: 3.5rem;
+}
+
+/* The room around the three dots that opens the menu too. It is laid over the row, so the
+   row keeps its measure -- 75 by 62 points where the button alone is 35 by 50. Measured in the
+   wallet from 320 to 1440 points: to the left over the gutter, up to the amount (24); to the
+   right over the gutter and the tile's padding, up to the tile's edge (16, at every width);
+   upwards over the row's padding (8); downwards as far as the memo's margin goes (4), so it
+   lies over no word of the row. */
+.transaction-link-menu-reach {
+  position: absolute;
+  inset: -0.5rem -1rem -0.25rem -1.5rem;
 }
 
 /* The mark of a greeting above its memo: the motif small, and whom it is for. It names no
