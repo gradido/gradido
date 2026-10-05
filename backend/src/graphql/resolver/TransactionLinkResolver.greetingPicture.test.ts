@@ -767,7 +767,8 @@ describe('an open greeting with a picture', () => {
     expect(result.data).toEqual({ small: SMALL_PICTURE.data, large: LARGE_PICTURE.data })
   })
 
-  // ⛔ One large rendition a request: the second alias is refused, whoever asks.
+  // ⛔ One large rendition a request: the second alias is refused, whoever asks. Which of the two
+  // is served is not laid down -- they are resolved side by side -- only that it is exactly one.
   it('refuses the large rendition a second time in one request, under another alias', async () => {
     await loginAs('bibi@bloxberg.de')
 
@@ -776,7 +777,8 @@ describe('an open greeting with a picture', () => {
     expect(result.errors).toEqual([
       new GraphQLError('Too many thank-you greeting pictures requested at once'),
     ])
-    expect(result.data).toEqual({ first: LARGE_PICTURE.data, second: null })
+    const { first, second } = result.data
+    expect([first, second].filter((picture) => picture !== null)).toEqual([LARGE_PICTURE.data])
   })
 })
 

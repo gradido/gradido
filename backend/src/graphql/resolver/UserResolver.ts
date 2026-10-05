@@ -1669,12 +1669,15 @@ export class UserResolver {
    * (`gmsAllowed`). Handing it out here would publish the text of members who
    * deliberately did not.
    *
+   * Somebody has to be asking, as for the position below (ownUserLocation): compared alone,
+   * the two ids read a User without an id as the own view of a caller without a login.
+   *
    * Returns null rather than throwing, like salutation: a caller without the right
    * should see nothing, not lose the whole enclosing user.
    */
   @FieldResolver(() => String, { nullable: true })
   aboutMe(@Root() user: User, @Ctx() context: Context): string | null {
-    if (context.user?.id !== user.id) {
+    if (!context.user || context.user.id !== user.id) {
       return null
     }
     return user.aboutMe ?? null
@@ -1705,10 +1708,12 @@ export class UserResolver {
    * avatar on it now exists on a second path -- and that is precisely the case this
    * comment used to predict. The guard is what makes the difference between the two paths
    * a rule rather than an accident of which query happens to load what.
+   *
+   * Somebody has to be asking, as for aboutMe above: a User without an id is nobody's own view.
    */
   @FieldResolver(() => String, { nullable: true })
   avatar(@Root() user: User, @Ctx() context: Context): string | null {
-    if (context.user?.id !== user.id) {
+    if (!context.user || context.user.id !== user.id) {
       return null
     }
     return user.avatar ?? null
@@ -1723,10 +1728,12 @@ export class UserResolver {
    * Nothing is given up by this. The deliveries that put a face next to a booking read
    * the setting HERE, in the backend, where they decide whether to send the picture at
    * all - no client ever has to be told about somebody else's switch.
+   *
+   * Somebody has to be asking, as for aboutMe above: a User without an id is nobody's own view.
    */
   @FieldResolver(() => Boolean, { nullable: true })
   avatarVisibleToMembers(@Root() user: User, @Ctx() context: Context): boolean | null {
-    if (context.user?.id !== user.id) {
+    if (!context.user || context.user.id !== user.id) {
       return null
     }
     return user.avatarVisibleToMembers ?? null
@@ -1737,10 +1744,11 @@ export class UserResolver {
    * about a transfer received -- the member's own switch, and guarded like the one above: what a
    * member decided about their own messages is nobody else's to read. The deliveries read it in
    * the backend, where they decide whether to mail; no client is told about somebody else's.
+   * Somebody has to be asking, as for aboutMe above: a User without an id is nobody's own view.
    */
   @FieldResolver(() => Boolean, { nullable: true })
   transfersInChat(@Root() user: User, @Ctx() context: Context): boolean | null {
-    if (context.user?.id !== user.id) {
+    if (!context.user || context.user.id !== user.id) {
       return null
     }
     return user.transfersInChat ?? null
