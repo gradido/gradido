@@ -30,34 +30,59 @@ type QueryFn = (query: string, values?: any[]) => Promise<Array<any>>
 type Rendition = typeof SMALL
 
 /**
- * The picture encoded again within the rendition's bounds, or null where it cannot be: it does
- * not decode, is not a JPEG, or has more pixels than the rendition may have.
+ * What became of a rendition:
+ *
+ * - `encoded`: the picture, encoded again within the rendition's bounds.
+ * - `noPicture`: the decoder's verdict on the file -- it is not a JPEG, does not decode, or has
+ *   more pixels than the rendition may have. setUserAvatar refuses the same file today.
+ * - `failed`: no verdict on the file. The work itself went wrong -- no memory, the encoder, a
+ *   panic in the decoder, an exception of the binding. That says nothing about the picture.
  */
-async function reencoded(image: Buffer, { maxBytes, maxSide }: Rendition): Promise<Buffer | null> {
+type Reencoded =
+  | { outcome: 'encoded'; data: Buffer }
+  | { outcome: 'noPicture' }
+  | { outcome: 'failed'; why: string }
+
+/** The decoder's answers that are a verdict on the file; every other one is a failure of the work. */
+const NO_PICTURE = ['RIMG_ERR_UNSUPPORTED', 'RIMG_ERR_DECODE', 'RIMG_ERR_LIMIT']
+
+async function reencoded(image: Buffer, { maxBytes, maxSide }: Rendition): Promise<Reencoded> {
   // The quality the last pass encoded at; a step that is not below it would encode the same again.
   let encodedAt = Number.POSITIVE_INFINITY
-  for (const jpegQuality of QUALITY_STEPS) {
-    if (jpegQuality >= encodedAt) {
-      continue
+  // ⛔ Caught here, for one picture: an exception must neither end the migration over one row
+  // nor be read as "no picture", which takes a member's picture away.
+  try {
+    for (const jpegQuality of QUALITY_STEPS) {
+      if (jpegQuality >= encodedAt) {
+        continue
+      }
+      const result = await reencodeImage(image, {
+        maxOutputBytes: maxBytes,
+        maxWidth: maxSide,
+        maxHeight: maxSide,
+        maxPixels: maxSide * maxSide,
+        jpegQuality,
+      })
+      if (result.success) {
+        return { outcome: 'encoded', data: result.value.data }
+      }
+      const { name } = result.error
+      // Only a picture over the byte bound gets better at a lower quality.
+      if (name !== 'RIMG_ERR_BUFFER_TOO_SMALL') {
+        return NO_PICTURE.includes(name)
+          ? { outcome: 'noPicture' }
+          : { outcome: 'failed', why: name }
+      }
+      // 0 is a quality nobody could read from the picture; the step was used as it is then.
+      encodedAt = Math.min(jpegQuality, result.error.inputJpegQuality || jpegQuality)
     }
-    const result = await reencodeImage(image, {
-      maxOutputBytes: maxBytes,
-      maxWidth: maxSide,
-      maxHeight: maxSide,
-      maxPixels: maxSide * maxSide,
-      jpegQuality,
-    })
-    if (result.success) {
-      return result.value.data
-    }
-    // Only a picture over the byte bound gets better at a lower quality.
-    if (result.error.name !== 'RIMG_ERR_BUFFER_TOO_SMALL') {
-      return null
-    }
-    // 0 is a quality nobody could read from the picture; the step was used as it is then.
-    encodedAt = Math.min(jpegQuality, result.error.inputJpegQuality || jpegQuality)
+  } catch (error) {
+    // The name of the error, never its message: nothing of a picture goes into the log.
+    return { outcome: 'failed', why: error instanceof Error ? error.name : 'exception' }
   }
-  return null
+  // Too many bytes even at the lowest step: a picture, and one this migration could not bring
+  // within the bounds. It stays as it is rather than being taken away.
+  return { outcome: 'failed', why: 'RIMG_ERR_BUFFER_TOO_SMALL' }
 }
 
 export async function upgrade(queryFn: QueryFn) {
@@ -65,6 +90,7 @@ export async function upgrade(queryFn: QueryFn) {
   let seen = 0
   let rewritten = 0
   const removed: number[] = []
+  const leftAsItWas: string[] = []
 
   for (;;) {
     // By the primary key, so that a page is found without counting the ones before it.
@@ -95,14 +121,21 @@ export async function upgrade(queryFn: QueryFn) {
     const toWrite: { userId: number; small: Buffer; full: Buffer }[] = []
     const toRemove: number[] = []
     for (const { userId, small, full, was } of encoded) {
+      // ⛔ Asked first: where the work failed on either rendition, BOTH stay as they are. The
+      // row is neither written nor removed, and the rest of the page goes on.
+      const failure = small.outcome === 'failed' ? small : full.outcome === 'failed' ? full : null
+      if (failure) {
+        leftAsItWas.push(`${userId} (${failure.why})`)
+        continue
+      }
       // ⛔ The two renditions belong together: where one of them is no picture this server
       // would take today, the member has no picture -- as after removeUserAvatar. Nothing a
       // browser could show is lost by that for a file that does not decode; a picture with
       // more pixels than a rendition may have never came from the wallet.
-      if (small === null || full === null) {
+      if (small.outcome !== 'encoded' || full.outcome !== 'encoded') {
         toRemove.push(userId)
-      } else if (!small.equals(was.avatar_small) || !full.equals(was.avatar_full)) {
-        toWrite.push({ userId, small, full })
+      } else if (!small.data.equals(was.avatar_small) || !full.data.equals(was.avatar_full)) {
+        toWrite.push({ userId, small: small.data, full: full.data })
       }
     }
 
@@ -135,8 +168,13 @@ export async function upgrade(queryFn: QueryFn) {
   }
 
   process.stdout.write(
-    `Re-encoded avatars: ${seen} seen, ${rewritten} rewritten, ${removed.length} removed\n`,
+    `Re-encoded avatars: ${seen} seen, ${rewritten} rewritten, ${removed.length} removed, ${leftAsItWas.length} left as they were\n`,
   )
+  if (leftAsItWas.length) {
+    // ⛔ These are still the files members sent, not pictures this server encoded: whoever runs
+    // the migration has to look at them. The ids and the reason, never a picture.
+    process.stdout.write(`Avatars NOT re-encoded, the work failed: ${leftAsItWas.join(', ')}\n`)
+  }
   if (removed.length) {
     // The ids, never a picture: whoever runs the migration can tell these members.
     process.stdout.write(`Avatars removed, no picture this server takes: ${removed.join(', ')}\n`)
