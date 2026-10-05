@@ -1,27 +1,32 @@
-import { createSecretKey } from 'node:crypto'
+import { ensureUrlEndsWithSlash } from 'core'
 import {
   AuthContext,
+  AuthSigningType,
   authContextSchema,
-  createFrontendLoginToken,
+  createUserToken,
   Duration,
-  Uuidv4,
-  verifyFrontendLoginToken,
+  JwtPayloadSubject,
+  JwtSigner,
+  verifyUserToken,
 } from 'shared'
 import { CONFIG } from '@/config/'
 
 // built once at module load: an invalid COMMUNITY_URL or JWT_EXPIRES_IN stops the server at startup
+// the audience is the community url with trailing slash, a client that builds this token itself
+// (dlt-connector) has to write it the same way
 const authContext: AuthContext = authContextSchema.parse({
   issuer: CONFIG.COMMUNITY_URL,
-  signingKey: createSecretKey(Buffer.from(CONFIG.JWT_SECRET, 'utf8')),
+  audience: ensureUrlEndsWithSlash(CONFIG.COMMUNITY_URL),
   duration: Duration.fromString(CONFIG.JWT_EXPIRES_IN),
+  signer: new JwtSigner(CONFIG.JWT_SECRET, AuthSigningType.HMAC),
 })
 
 /**
  * Verifies the session token of a request.
  * @returns user gradidoId if valid or null
  */
-export function decode(token: string): Uuidv4 | null {
-  return verifyFrontendLoginToken(token, authContext)
+export function decode(token: string): JwtPayloadSubject | null {
+  return verifyUserToken(token, authContext)
 }
 
 /**
@@ -29,5 +34,5 @@ export function decode(token: string): Uuidv4 | null {
  * @throws if gradidoID is neither a uuid v4 nor 'dlt-connector'
  */
 export function encode(gradidoID: string): string {
-  return createFrontendLoginToken(gradidoID, authContext)
+  return createUserToken(gradidoID, authContext)
 }

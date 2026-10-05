@@ -122,6 +122,19 @@
         }}
       </p>
     </div>
+
+    <!-- One more of the same for the next person (ZE-030), under everything: the page begins a
+         new greeting with all this one carried, and asks only whom it is for. Outlined, as
+         "Karte drucken" is, and as wide as its words. -->
+    <div class="tyg-done-another">
+      <BButton
+        variant="outline-secondary"
+        data-test="thank-you-greeting-another"
+        @click="emit('another')"
+      >
+        {{ $t('thank-you-greeting.done.another') }}
+      </BButton>
+    </div>
   </div>
 </template>
 
@@ -140,6 +153,9 @@
  *
  * On paper the greeting is a sheet that folds into a card, printed or saved as a picture
  * (useThankYouGreetingSheet). Its photo, where it carries one, is the same `created.picture`.
+ *
+ * "Noch einen für jemand anderen" makes nothing here: it asks the page for a new greeting
+ * (`another`), and the page begins one with what this one carried.
  */
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -159,6 +175,8 @@ const props = defineProps({
   // `picture`, the photo as the page made it, where the greeting carries one.
   created: { type: Object, required: true },
 })
+
+const emit = defineEmits(['another'])
 
 const { t } = useI18n()
 const store = useStore()
@@ -317,5 +335,12 @@ const { saveWaits, printGreetingSheet, saveGreetingSheet } = useThankYouGreeting
 
 .tyg-done-foot p {
   margin-bottom: 6px;
+}
+
+/* "Noch einen für jemand anderen": under everything, in the middle, as wide as its words. */
+.tyg-done-another {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.5rem;
 }
 </style>

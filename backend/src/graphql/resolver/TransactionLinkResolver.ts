@@ -76,7 +76,10 @@ import {
   mayAddLargePicture,
   pictureLinkIsAcceptedOrDeleted,
   pictureRenditionsForMember,
+  pictureRenditionsForMemberAskingLarge,
   pictureToServe,
+  THANK_YOU_GREETING_LARGE_PICTURE_COUNTS,
+  THANK_YOU_GREETING_LARGE_PICTURES_MAX_PER_REQUEST,
   THANK_YOU_GREETING_PICTURES_ACCEPTED_MAX_PER_REQUEST,
   THANK_YOU_GREETING_PICTURES_MAX_PER_REQUEST,
 } from '@/data/ThankYouGreetingPicture.logic'
@@ -1015,6 +1018,12 @@ export class TransactionLinkResolver {
    * picture, a deleted one, a member who is neither of the two --, with nothing that tells
    * these apart.
    *
+   * With `large` the member who MADE the link gets its large rendition instead -- and the small
+   * one where no large one is filed --, while the link is neither accepted nor deleted and their
+   * own account stands (pictureRenditionsForMemberAskingLarge): a duplicate of a greeting
+   * carries the photo of the old one along (ZE-030). ⛔ For everybody else, and in every other
+   * state, `large` changes nothing about the answer.
+   *
    * By the link's id: the list of one's own links and the booking of an accepted greeting both
    * carry it. Who the two members are is read off the link's own row -- an id a client makes
    * up finds a link it is no party to, and gets null.
@@ -1030,21 +1039,38 @@ export class TransactionLinkResolver {
   @Query(() => String, { nullable: true })
   async thankYouGreetingPicture(
     @Arg('linkId', () => Int) linkId: number,
+    @Arg('large', () => Boolean, { nullable: true, defaultValue: false }) large: boolean | null,
     @Ctx() context: Context,
   ): Promise<string | null> {
     // ⛔ Counted in the HTTP request's budget before anything is read: a document may repeat
-    // this field under any number of aliases, up to 35 KB a picture (RequestBudget).
-    context.requestBudget.thankYouGreetingPicturesServed += 1
-    const served = context.requestBudget.thankYouGreetingPicturesServed
-    if (served > THANK_YOU_GREETING_PICTURES_MAX_PER_REQUEST) {
-      throw new LogError('Too many thank-you greeting pictures requested at once', served)
+    // this field under any number of aliases, up to 35 KB a picture (RequestBudget). A call
+    // that asks for the large rendition, up to 72 KB, counts as three -- and a request may hold
+    // one such call, counted in the budget as well: a number kept in here would start at zero
+    // for every alias.
+    const budget = context.requestBudget
+    budget.thankYouGreetingPicturesServed += large ? THANK_YOU_GREETING_LARGE_PICTURE_COUNTS : 1
+    if (large) {
+      budget.thankYouGreetingLargePicturesServed += 1
+    }
+    if (
+      budget.thankYouGreetingPicturesServed > THANK_YOU_GREETING_PICTURES_MAX_PER_REQUEST ||
+      budget.thankYouGreetingLargePicturesServed > THANK_YOU_GREETING_LARGE_PICTURES_MAX_PER_REQUEST
+    ) {
+      throw new LogError(
+        'Too many thank-you greeting pictures requested at once',
+        budget.thankYouGreetingPicturesServed,
+        budget.thankYouGreetingLargePicturesServed,
+      )
     }
     const user = getUser(context)
     const found = await readPictures(dbSelectThankYouGreetingPicturesByLinkId(linkId))
     if (!found) {
       return null
     }
-    const picture = pictureToServe(found.pictures, pictureRenditionsForMember(found.link, user.id))
+    const wanted = large
+      ? pictureRenditionsForMemberAskingLarge(found.link, found.makerDeletedAt, user.id)
+      : pictureRenditionsForMember(found.link, user.id)
+    const picture = pictureToServe(found.pictures, wanted)
     if (!picture) {
       return null
     }

@@ -361,6 +361,24 @@ describe('the answer in the request log', () => {
     expect(traced).toBe('Response-Data: left out, it holds a picture')
   })
 
+  // The budget as thankYouGreetingPicture leaves it where the large rendition was asked for
+  // (TransactionLinkResolver): counted as three, and once as a large one.
+  it('is left out where the request was handed the large rendition of such a picture', () => {
+    const picture = Buffer.from('a private photo of Oma Emma, at its full size').toString('base64')
+    const traced = answerTraced(
+      {
+        requestBudget: {
+          ...newRequestBudget(),
+          thankYouGreetingPicturesServed: 3,
+          thankYouGreetingLargePicturesServed: 1,
+        },
+      },
+      { large: picture },
+    )
+    expect(traced).not.toContain(picture)
+    expect(traced).toBe('Response-Data: left out, it holds a picture')
+  })
+
   it('is left out where the request was handed the photo of a transfer', () => {
     const picture = Buffer.from('a private photo of the bench Dave built').toString('base64')
     const traced = answerTraced(

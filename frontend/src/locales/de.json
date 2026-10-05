@@ -1553,6 +1553,7 @@
   },
   "thank-you-greeting": {
     "done": {
+      "another": "Noch einen für jemand anderen",
       "edit-hint": "Den Satz kannst Du vor dem Senden ändern. Deine Worte stehen erst auf der Karte.",
       "find-again": "Du findest ihn wieder unter {transactions}, bei „{links}“.",
       "link-hint": "Wer den Link hat, kann den Dank annehmen. Schick ihn nur dem Menschen, für den er gedacht ist.",

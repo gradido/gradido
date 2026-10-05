@@ -1,25 +1,26 @@
-import { createHmac, timingSafeEqual } from 'node:crypto'
+import { timingSafeEqual } from 'node:crypto'
 import { getLogger } from 'log4js'
 import { JWT_LEEWAY_SECONDS, LOG4JS_BASE_CATEGORY_NAME } from '../const'
 import { Duration } from '../data'
 import { Result } from '../errorTypes'
-import { Uuidv4 } from '../schema'
-import { JWT_HEADER_HMAC_BASE64 } from './const'
 import { AuthenticationFailed, AuthenticationFailedType } from './errorTypes'
-import { AuthContext, JwtPayload, jwtPayloadSchema } from './jwt.schema'
+import { AuthContext, JwtPayload, JwtPayloadSubject, jwtPayloadSchema } from './jwt.schema'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.jwt.verifyTokens`)
 
 /**
- * Verifies a session token created by `createFrontendLoginToken`.
+ * Verifies a token created by `createUserToken` with the same auth context.
  *
  * Valid is a token that
  * - consists of exactly three segments
- * - carries exactly the HS256 header this module writes
- * - is signed with `authContext.signingKey`
+ * - carries exactly the header `authContext.signer` writes
+ * - is signed by `authContext.signer`
  * - has a payload matching `jwtPayloadSchema`
  * - is not issued in the future and not expired, each with `JWT_LEEWAY_SECONDS` of tolerance
- * - names `authContext.issuer` as both `iss` and `aud`
+ * - names `authContext.issuer` as `iss` and `authContext.audience` as `aud`
+ *
+ * Tokens for different purposes are told apart by their audience (and their signing type):
+ * a token is only valid under the auth context of the purpose it was created for.
  *
  * Never throws: the reason for a rejection goes to the log as warning,
  * an expired token, the ordinary end of a session, only as debug.
@@ -27,13 +28,13 @@ const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.jwt.verifyTokens`)
  * The dlt-connector authenticates with a token of the same shape and `sub: 'dlt-connector'`.
  *
  * @param jwtToken the token as received, without "Bearer " prefix
- * @param authContext issuer and signing key to verify against, `duration` is not used here
+ * @param authContext issuer, audience and signer to verify against, `duration` is not used here
  * @returns gradido id of user (or 'dlt-connector') if valid, else null
  */
-export function verifyFrontendLoginToken(
+export function verifyUserToken(
   jwtToken: string,
   authContext: AuthContext,
-): Uuidv4 | null {
+): JwtPayloadSubject | null {
   const result = verifyJwtHmac(jwtToken, authContext)
   if (!result.success) {
     if (result.error.type !== AuthenticationFailedType.EXPIRED_JWT_TOKEN) {
@@ -44,8 +45,13 @@ export function verifyFrontendLoginToken(
     return null
   }
   const payload = result.value
-  if (payload.iss !== authContext.issuer || payload.aud !== authContext.issuer) {
-    logger.warn(`jwt token was created from/for another server: ${payload.iss}`)
+  if (payload.iss !== authContext.issuer || payload.aud !== authContext.audience) {
+    // warn: a correctly signed token with a foreign iss or aud means the secret is in use elsewhere
+    // or a token is tried for a purpose it was not created for
+    logger.warn('jwt token was created from/for another server:', {
+      expected: { iss: authContext.issuer, aud: authContext.audience },
+      actual: { iss: payload.iss, aud: payload.aud },
+    })
     return null
   }
   return result.value.sub
@@ -54,7 +60,7 @@ export function verifyFrontendLoginToken(
 // generic native implementation
 
 /**
- * Checks segment count, header, signature, payload structure, `iat` and `exp` of a HS256 signed token,
+ * Checks segment count, header, signature, payload structure, `iat` and `exp` of a HMAC signed token,
  * in this order, so the payload is only parsed after the signature has proven its origin.
  * Issuer and audience are left to the caller.
  *
@@ -76,23 +82,16 @@ function verifyJwtHmac(
       }
     }
     const [headerBase64, payloadBase64, signatureBase64] = parts
+
     // check header
-    if (JWT_HEADER_HMAC_BASE64 !== headerBase64) {
-      const jsonHeader = Buffer.from(headerBase64, 'base64url').toString()
-      return {
-        success: false,
-        error: new AuthenticationFailed(
-          `Expected HS256 algo, get: ${jsonHeader}`,
-          AuthenticationFailedType.UNEXPECTED_FORMAT,
-        ),
-      }
+    const headerResult = authContext.signer.isHeaderValid(headerBase64)
+    if (!headerResult.success) {
+      return headerResult
     }
 
-    const calculatedSignature = createHmac('sha256', authContext.signingKey)
-      .update(`${headerBase64}.${payloadBase64}`)
-      .digest()
-
     // check signature
+    const headerPayload = `${headerBase64}.${payloadBase64}`
+    const calculatedSignature = authContext.signer.signBuffer(headerPayload)
     const signature = Buffer.from(signatureBase64, 'base64url')
     if (
       signature.length !== calculatedSignature.length ||

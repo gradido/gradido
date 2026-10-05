@@ -14,7 +14,11 @@ import {
 import { CHAT_IMAGE_MAX_SIDE, THANK_YOU_PICTURE_LARGE_MAX_BYTES } from 'shared'
 import { reencodeImage } from 'shared-native'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { THANK_YOU_GREETING_PICTURES_MAX_PER_REQUEST } from '@/data/ThankYouGreetingPicture.logic'
+import {
+  THANK_YOU_GREETING_LARGE_PICTURE_COUNTS,
+  THANK_YOU_GREETING_LARGE_PICTURES_MAX_PER_REQUEST,
+  THANK_YOU_GREETING_PICTURES_MAX_PER_REQUEST,
+} from '@/data/ThankYouGreetingPicture.logic'
 import { Context, newRequestBudget } from '@/server/context'
 import { TransactionLinkResolver } from './TransactionLinkResolver'
 
@@ -185,8 +189,9 @@ beforeEach(() => {
 })
 
 describe('thankYouGreetingPicture', () => {
+  // Without `large`, as the schema hands it over where a document does not name it: false.
   const ask = (member: number, context = requestOf(member)) =>
-    new TransactionLinkResolver().thankYouGreetingPicture(LINK_ID, context)
+    new TransactionLinkResolver().thankYouGreetingPicture(LINK_ID, false, context)
 
   /** What a member gets of a link in this state, and which picture's bytes were read for it. */
   const answerFor = async (member: number, state: Partial<typeof openLink>) => {
@@ -302,6 +307,216 @@ describe('thankYouGreetingPicture', () => {
     await ask(THIRD, context)
 
     expect(context.requestBudget.thankYouGreetingPicturesServed).toBe(1)
+  })
+
+  // Every test above asks without `large`: that their answers stand is what "nothing changes
+  // for a document that does not name it" means. None of them counts as a large one.
+  it('counts no large rendition where none was asked for', async () => {
+    const context = requestOf(SENDER)
+    await ask(SENDER, context)
+    await ask(SENDER, context)
+
+    expect(context.requestBudget.thankYouGreetingLargePicturesServed).toBe(0)
+  })
+
+  /**
+   * Asked for the LARGE rendition: the member who made a greeting duplicates it, and the wallet
+   * fetches the photo the old one carries (ZE-030).
+   */
+  describe('asked for the large rendition', () => {
+    const askLarge = (member: number, context = requestOf(member), large: boolean | null = true) =>
+      new TransactionLinkResolver().thankYouGreetingPicture(LINK_ID, large, context)
+
+    /** As answerFor above, asking for the large rendition. */
+    const largeAnswerFor = async (
+      member: number,
+      state: Partial<typeof openLink>,
+      { makerDeletedAt = null as Date | null, pictures = [small, large] } = {},
+    ) => {
+      jest.clearAllMocks()
+      picturesOf.mockResolvedValue({ ...found(state, pictures), makerDeletedAt })
+      const answer = await askLarge(member)
+      return { answer, read: imageOf.mock.calls.map(([id]) => id) }
+    }
+
+    const LARGE_AS_BASE64 = LARGE.toString('base64')
+    const theLarge = { answer: LARGE_AS_BASE64, read: [LARGE_ID] }
+    const theSmall = { answer: SMALL_AS_BASE64, read: [SMALL_ID] }
+    const nothing = { answer: null, read: [] }
+
+    it('hands the large rendition to the member who made the link, as base64', async () => {
+      expect(await askLarge(SENDER)).toBe(LARGE_AS_BASE64)
+
+      expect(picturesOf).toHaveBeenCalledTimes(1)
+      expect(picturesOf).toHaveBeenCalledWith(LINK_ID)
+      expect(imageOf).toHaveBeenCalledTimes(1)
+      expect(imageOf).toHaveBeenCalledWith(LARGE_ID)
+    })
+
+    // ⛔ Every row of the rule, for each of the three who can be signed in.
+    it('the member who made the link: open and run out the large one', async () => {
+      expect(await largeAnswerFor(SENDER, {})).toEqual(theLarge)
+      expect(await largeAnswerFor(SENDER, runOut)).toEqual(theLarge)
+    })
+
+    it('the member who made the link: the small one where no large one is filed', async () => {
+      expect(await largeAnswerFor(SENDER, {}, { pictures: [small] })).toEqual(theSmall)
+      expect(await largeAnswerFor(SENDER, runOut, { pictures: [small] })).toEqual(theSmall)
+    })
+
+    it('the member who made the link: accepted the small one as ever, deleted nothing', async () => {
+      expect(await largeAnswerFor(SENDER, accepted)).toEqual(theSmall)
+      expect(await largeAnswerFor(SENDER, deleted)).toEqual(nothing)
+      expect(await largeAnswerFor(SENDER, { ...runOut, ...deleted })).toEqual(nothing)
+    })
+
+    // A deleted account whose session still stands: what it gets without asking, and no more.
+    it('the member who made the link, their own account deleted: the small one as ever', async () => {
+      const gone = { makerDeletedAt: new Date('2026-10-04T08:00:00.000Z') }
+
+      expect(await largeAnswerFor(SENDER, {}, gone)).toEqual(theSmall)
+      expect(await largeAnswerFor(SENDER, runOut, gone)).toEqual(theSmall)
+    })
+
+    it('the member who accepted it: the small one and never the large one', async () => {
+      expect(await largeAnswerFor(ACCEPTER, accepted)).toEqual(theSmall)
+      expect(await largeAnswerFor(ACCEPTER, {})).toEqual(nothing)
+      expect(await largeAnswerFor(ACCEPTER, runOut)).toEqual(nothing)
+      expect(await largeAnswerFor(ACCEPTER, { ...accepted, ...deleted })).toEqual(nothing)
+    })
+
+    it('a third member: never, and no picture is read for them', async () => {
+      for (const state of [{}, runOut, accepted, deleted]) {
+        expect(await largeAnswerFor(THIRD, state)).toEqual(nothing)
+      }
+    })
+
+    // ⛔ The large rendition is read for one member in two states, and for nobody else.
+    it('reads the large rendition for the maker of an open or run-out link alone', async () => {
+      for (const member of [SENDER, ACCEPTER, THIRD]) {
+        for (const [name, state] of Object.entries({ open: {}, runOut, accepted, deleted })) {
+          const { read } = await largeAnswerFor(member, state)
+          if (member === SENDER && (name === 'open' || name === 'runOut')) {
+            expect(read).toEqual([LARGE_ID])
+          } else {
+            expect(read).not.toContain(LARGE_ID)
+          }
+        }
+      }
+    })
+
+    it('answers null for a link without a picture and for no link at all, alike', async () => {
+      picturesOf.mockResolvedValue(null)
+
+      expect(await askLarge(SENDER)).toBeNull()
+      expect(imageOf).not.toHaveBeenCalled()
+    })
+
+    // The large rendition goes when the thank-you is accepted, and that may happen between the
+    // two reads: no picture then, as at the address of the link.
+    it('answers null where the large rendition went between the two reads', async () => {
+      imageOf.mockResolvedValue(notFound(LARGE_ID))
+
+      expect(await askLarge(SENDER)).toBeNull()
+    })
+
+    // A document may name the argument and give it no value.
+    it('takes null for not asking', async () => {
+      const context = requestOf(SENDER)
+
+      expect(await askLarge(SENDER, context, null)).toBe(SMALL_AS_BASE64)
+      expect(context.requestBudget.thankYouGreetingPicturesServed).toBe(1)
+      expect(context.requestBudget.thankYouGreetingLargePicturesServed).toBe(0)
+    })
+
+    /**
+     * ⛔ The budget of the HTTP request. A large rendition counts as three small ones, and a
+     * request holds one call that asks for it -- so no request is served more than ten small
+     * ones come to. Counted for the asking, before anything is read.
+     */
+    it('counts as three, whoever asks and whatever they get', async () => {
+      for (const member of [SENDER, THIRD]) {
+        const context = requestOf(member)
+        await askLarge(member, context)
+
+        expect(context.requestBudget.thankYouGreetingPicturesServed).toBe(
+          THANK_YOU_GREETING_LARGE_PICTURE_COUNTS,
+        )
+        expect(context.requestBudget.thankYouGreetingLargePicturesServed).toBe(1)
+      }
+      expect(THANK_YOU_GREETING_LARGE_PICTURE_COUNTS).toBe(3)
+    })
+
+    // Under two aliases the resolver is called twice with the one budget of the request.
+    it('refuses a second one in the same HTTP request before anything is read', async () => {
+      const context = requestOf(SENDER)
+      expect(await askLarge(SENDER, context)).toBe(LARGE_AS_BASE64)
+      jest.clearAllMocks()
+
+      await expect(askLarge(SENDER, context)).rejects.toThrow(
+        'Too many thank-you greeting pictures requested at once',
+      )
+      expect(picturesOf).not.toHaveBeenCalled()
+      expect(imageOf).not.toHaveBeenCalled()
+      expect(THANK_YOU_GREETING_LARGE_PICTURES_MAX_PER_REQUEST).toBe(1)
+    })
+
+    it('serves one large and seven small ones, and refuses the eighth small one', async () => {
+      const context = requestOf(SENDER)
+      expect(await askLarge(SENDER, context)).toBe(LARGE_AS_BASE64)
+      for (let served = 0; served < 7; served += 1) {
+        expect(await ask(SENDER, context)).toBe(SMALL_AS_BASE64)
+      }
+      jest.clearAllMocks()
+
+      await expect(ask(SENDER, context)).rejects.toThrow(
+        'Too many thank-you greeting pictures requested at once',
+      )
+      expect(picturesOf).not.toHaveBeenCalled()
+    })
+
+    // The other way round: eight small ones first leave no room for a large one.
+    it('refuses the large one after eight small ones', async () => {
+      const context = requestOf(SENDER)
+      for (let served = 0; served < 8; served += 1) {
+        expect(await ask(SENDER, context)).toBe(SMALL_AS_BASE64)
+      }
+      jest.clearAllMocks()
+
+      await expect(askLarge(SENDER, context)).rejects.toThrow(
+        'Too many thank-you greeting pictures requested at once',
+      )
+      expect(picturesOf).not.toHaveBeenCalled()
+      expect(imageOf).not.toHaveBeenCalled()
+    })
+
+    // What the wallet asks where it duplicates a greeting: both renditions in one request.
+    it('serves the small and the large rendition of one link in one request', async () => {
+      const context = requestOf(SENDER)
+
+      expect(await ask(SENDER, context)).toBe(SMALL_AS_BASE64)
+      expect(await askLarge(SENDER, context)).toBe(LARGE_AS_BASE64)
+      expect(context.requestBudget.thankYouGreetingPicturesServed).toBe(4)
+    })
+
+    // The request log leaves the answer out by this count (plugins.ts): it must not be zero.
+    it('leaves the count the request log reads above zero', async () => {
+      const context = requestOf(SENDER)
+      await askLarge(SENDER, context)
+
+      expect(context.requestBudget.thankYouGreetingPicturesServed).toBeGreaterThan(0)
+    })
+
+    it('says nothing of the query where a read fails', async () => {
+      picturesOf.mockRejectedValue(failedRead())
+      expectNoQueryIn(await askLarge(SENDER).catch((error: Error) => error))
+      expect(imageOf).not.toHaveBeenCalled()
+
+      jest.clearAllMocks()
+      picturesOf.mockResolvedValue(found())
+      imageOf.mockRejectedValue(failedRead())
+      expectNoQueryIn(await askLarge(SENDER).catch((error: Error) => error))
+    })
   })
 })
 

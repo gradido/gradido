@@ -1,12 +1,12 @@
 import { z } from 'zod'
 import {
   durationSchema,
-  nodeCryptoKeyObjectSchema,
   positiveIntegerSchema,
   urlSchema,
   uuidv4Schema,
 } from '../schema/base.schema'
 import { getPrivateKeyObjekt, getPublicKeyObject } from './JWT'
+import { JwtSigner } from './JwtSigner'
 
 export const privateJwtKeySchema = z.string().superRefine((value, ctx) => {
   const privateKeyResult = getPrivateKeyObjekt(value)
@@ -47,6 +47,11 @@ export const publicJwtKeySchema = z.string().superRefine((value, ctx) => {
   }
 })
 
+// whom a token names: a user by gradido id, or the dlt-connector as the one service with a login
+export const jwtPayloadSubjectSchema = z.union([uuidv4Schema, z.literal('dlt-connector')])
+export type JwtPayloadSubjectInput = z.input<typeof jwtPayloadSubjectSchema>
+export type JwtPayloadSubject = z.output<typeof jwtPayloadSubjectSchema>
+
 // jwt schema after https://www.rfc-editor.org/info/rfc7519/#section-4.1 with application specifics rules
 export const jwtPayloadSchema = z.object({
   // The "iss" (issuer) claim identifies the principal that issued the
@@ -64,7 +69,7 @@ export const jwtPayloadSchema = z.object({
   // "sub" value is a case-sensitive string containing a StringOrURI
   // value.Use of this claim is OPTIONAL.
   // Application specific: mandatory, depending one jwt token Type user gradido id or community uuid
-  sub: z.union([uuidv4Schema, z.literal('dlt-connector')]),
+  sub: jwtPayloadSubjectSchema,
 
   // The "aud" (audience) claim identifies the recipients that the JWT is
   // intended for.  Each principal intended to process the JWT MUST
@@ -121,29 +126,21 @@ export type JwtPayloadInput = z.input<typeof jwtPayloadSchema>
 export type JwtPayload = z.output<typeof jwtPayloadSchema>
 
 /**
- * A node:crypto `KeyObject` of type `secret`, the only kind of key a HMAC can be calculated with.
- * Create one with `createSecretKey(Buffer.from(secret, 'utf8'))`.
- */
-export const hmacKeyObjectSchema = nodeCryptoKeyObjectSchema.refine(
-  (key) => key.type === 'secret',
-  { message: 'KeyObject must be a secret key suitable for HMAC' },
-)
-
-/**
- * What a server needs to create and verify its own tokens.
- * Meant to be built once at startup from the config and then passed to
- * `createFrontendLoginToken` / `verifyFrontendLoginToken`.
+ * What a server needs to create and verify its own tokens of one purpose.
+ * Meant to be built once at startup from the config, one per purpose, and then passed to
+ * `createUserToken` / `verifyUserToken`.
  *
- * - `issuer`: public base url of the community server, written as `iss` and `aud`
- *   and expected in both on verification
- * - `signingKey`: key object of any type, each signing function checks for the kind it needs
- *   (`hmacKeyObjectSchema` for HS256)
+ * - `issuer`: public base url of the community server, written as `iss` and expected on verification
+ * - `audience`: url of the part of the server that evaluates the token, written as `aud` and
+ *   expected on verification. Give every purpose its own, it is what keeps their tokens apart
  * - `duration`: lifetime of a created token
+ * - `signer`: it carries secret and signing type
  */
 export const authContextSchema = z.object({
   issuer: urlSchema,
-  signingKey: nodeCryptoKeyObjectSchema,
+  audience: urlSchema,
   duration: durationSchema,
+  signer: z.instanceof(JwtSigner),
 })
 
 export type AuthContextInput = z.input<typeof authContextSchema>

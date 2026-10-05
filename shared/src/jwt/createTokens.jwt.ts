@@ -1,37 +1,35 @@
-import { createHmac } from 'node:crypto'
 import { Duration } from '../data'
 import { Uuidv4 } from '../schema'
-import { JWT_HEADER_HMAC_BASE64 } from './const'
-import { AuthContext, hmacKeyObjectSchema, JwtPayloadInput, jwtPayloadSchema } from './jwt.schema'
+import { AuthContext, JwtPayloadInput, jwtPayloadSchema } from './jwt.schema'
 
 /**
- * Creates the session token a logged-in user sends with every request to its community server.
+ * Creates a token that names a user, for the purpose the auth context stands for:
+ * the session token of a logged-in user, the handshake token for the gms, ...
  *
- * A HS256 signed JWT with the claims
- * - `iss` and `aud`: `authContext.issuer`, the token is issued by and meant for the same server
+ * A JWT signed by `authContext.signer` with the claims
+ * - `iss`: `authContext.issuer`
+ * - `aud`: `authContext.audience`
  * - `sub`: the gradido id of the user
  * - `iat`: now
  * - `exp`: now + `authContext.duration`
  *
  * The frontend reads the lifetime of its session from `exp - iat`, so both belong in the token.
  *
- * Counterpart: `verifyFrontendLoginToken`.
+ * Counterpart: `verifyUserToken`, with the same auth context.
  *
  * @param gradidoID gradido id of the user, a uuid v4 (the schema also lets 'dlt-connector' pass)
- * @param authContext issuer, signing key and lifetime of the token
+ * @param authContext issuer, audience, lifetime and signer of the token
  * @returns the token in compact serialization: `header.payload.signature`
- * @throws ZodError if `gradidoID` is not a valid subject or `authContext.signingKey` is no secret key
+ * @throws ZodError if `gradidoID` is not a valid subject
  */
-export function createFrontendLoginToken(gradidoID: Uuidv4, authContext: AuthContext): string {
-  return signJwtHmac(
-    {
-      iss: authContext.issuer,
-      sub: gradidoID,
-      aud: authContext.issuer,
-      ...calculateTimes(authContext.duration),
-    },
-    authContext,
-  )
+export function createUserToken(gradidoID: Uuidv4, authContext: AuthContext): string {
+  const payloadObj: JwtPayloadInput = {
+    iss: authContext.issuer,
+    sub: gradidoID,
+    aud: authContext.audience,
+    ...calculateTimes(authContext.duration),
+  }
+  return authContext.signer.createJwtToken(payloadToBase64(payloadObj))
 }
 
 // generic native implementation
@@ -46,15 +44,9 @@ function calculateTimes(duration: Duration): { iat: number; exp: number } {
 }
 
 /**
- * Validates the payload against `jwtPayloadSchema` and signs it with HMAC-SHA256 (HS256).
- * native jwt, because it is a bit faster as jose
- * @throws ZodError if the payload or the signing key is invalid
+ * Validates the payload against `jwtPayloadSchema` and encodes it as second segment of a token.
+ * @throws ZodError if the payload is invalid
  */
-function signJwtHmac(payload: JwtPayloadInput, authContext: AuthContext): string {
-  const payloadBase64 = Buffer.from(JSON.stringify(jwtPayloadSchema.parse(payload))).toString(
-    'base64url',
-  )
-  hmacKeyObjectSchema.parse(authContext.signingKey)
-  const signed = `${JWT_HEADER_HMAC_BASE64}.${payloadBase64}`
-  return `${signed}.${createHmac('sha256', authContext.signingKey).update(signed).digest('base64url')}`
+function payloadToBase64(payload: JwtPayloadInput): string {
+  return Buffer.from(JSON.stringify(jwtPayloadSchema.parse(payload))).toString('base64url')
 }

@@ -14,17 +14,21 @@ import {
  * | ---------------------------------------- | ---------------------------------------- | ---------------------- |
  * | open (not deleted, accepted or run out)  | whoever holds its code, signed in or not | large, else small      |
  * |                                          | the member who made it, signed in        | small                  |
+ * |                                          | -- asking for the large one              | large, else small      |
  * | run out                                  | the member who made it, signed in        | small                  |
+ * |                                          | -- asking for the large one              | large, else small      |
  * | accepted                                 | the member who made it and the member    | small                  |
  * |                                          | who accepted it, signed in               |                        |
  * | deleted                                  | nobody                                   | --                     |
  *
  * And where the account of the member who made the link is deleted, the code shows no picture
- * either -- the page of such a link opens no more (queryTransactionLink).
+ * either -- the page of such a link opens no more (queryTransactionLink) --, and nobody is
+ * handed the large rendition by asking for it.
  *
  * Two ways lead to a picture, and each row above belongs to one of them: the address a picture
  * is served under knows a code and nobody (pictureRenditionsForCodeHolder); the query of a
- * member who is signed in knows a member and the link's id (pictureRenditionsForMember).
+ * member who is signed in knows a member and the link's id (pictureRenditionsForMember, and
+ * pictureRenditionsForMemberAskingLarge where the member asks for the large rendition).
  *
  * ⛔ Everything read here is a column of `transaction_links`, which this community writes
  * itself (ThankYouGreetingPictureLink says who writes which) -- nothing a client sends, and
@@ -95,6 +99,27 @@ export const pictureRenditionsForMember = (
   return madeIt || acceptedIt ? [SMALL] : []
 }
 
+/**
+ * The renditions a member who is signed in gets by the id of a link where they ask for the
+ * LARGE one, the one wanted first: the large one, and the small one where no large one is
+ * filed -- for the member who MADE the link, while it is neither accepted nor deleted (open or
+ * run out) and their own account stands (`makerDeletedAt`). It is what lets a duplicate of a
+ * greeting carry the photo of the old one, without the member choosing it anew (ZE-030).
+ *
+ * ⛔ For everybody else and in every other state the answer is the one of
+ * pictureRenditionsForMember, as if the large one had not been asked for: the member who
+ * accepted a thank-you gets the small rendition and never the large one, a deleted link shows
+ * nothing to anybody, and a member who is no party to the link gets none.
+ */
+export const pictureRenditionsForMemberAskingLarge = (
+  link: PictureLinkState,
+  makerDeletedAt: Date | null,
+  memberId: number,
+): readonly ThankYouGreetingPictureRendition[] =>
+  link.userId === memberId && makerDeletedAt === null && !pictureLinkIsAcceptedOrDeleted(link)
+    ? [LARGE, SMALL]
+    : pictureRenditionsForMember(link, memberId)
+
 /** The first of the renditions wanted that is filed, or null. */
 export const pictureToServe = (
   pictures: readonly ThankYouGreetingPictureInfo[],
@@ -137,7 +162,8 @@ export const hasFormOfLinkCode = (text: unknown): text is string =>
 /**
  * How many pictures one HTTP request is served by thankYouGreetingPicture, over every alias of
  * the field and every operation of a batch (RequestBudget): as many as a chat's pictures
- * (CHAT_IMAGES_MAX_PER_REQUEST). The wallet asks for one in a request.
+ * (CHAT_IMAGES_MAX_PER_REQUEST). The wallet asks for one in a request, and for the two
+ * renditions of one greeting where it duplicates it.
  */
 export const THANK_YOU_GREETING_PICTURES_MAX_PER_REQUEST = 10
 
@@ -149,3 +175,17 @@ export const THANK_YOU_GREETING_PICTURES_MAX_PER_REQUEST = 10
  * could otherwise name one picture in its variables and have it worked on hundreds of times.
  */
 export const THANK_YOU_GREETING_PICTURES_ACCEPTED_MAX_PER_REQUEST = 1
+
+/**
+ * What a call that asks for the LARGE rendition counts in that budget: as three small ones --
+ * up to 72 KB against up to 35 (THANK_YOU_PICTURE_LARGE_MAX_BYTES, CHAT_IMAGE_MAX_BYTES). Counted
+ * for the asking, whichever rendition the answer then is.
+ */
+export const THANK_YOU_GREETING_LARGE_PICTURE_COUNTS = 3
+
+/**
+ * How many calls of one HTTP request may ask for the large rendition: one. With the three it
+ * counts, a request is never served more than it was before there was a large one to ask for:
+ * one large and seven small come to 317 KB, ten small to 350.
+ */
+export const THANK_YOU_GREETING_LARGE_PICTURES_MAX_PER_REQUEST = 1

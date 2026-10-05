@@ -1553,6 +1553,7 @@
   },
   "thank-you-greeting": {
     "done": {
+      "another": "Başka biri için bir tane daha",
       "edit-hint": "Cümleyi göndermeden önce değiştirebilirsin. Senin sözlerin yalnızca kartta yer alır.",
       "find-again": "Onu {transactions} altında, «{links}» bölümünde yeniden bulursun.",
       "link-hint": "Linke sahip olan herkes teşekkürü kabul edebilir. Linki yalnızca teşekkür etmek istediğin kişiye gönder.",

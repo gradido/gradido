@@ -1,24 +1,36 @@
 // AI-GENERATED — not an architecture reference
 import { createHmac, createSecretKey, KeyObject } from 'node:crypto'
 import { Duration } from '../data'
+import { AuthSigningType } from '../enum'
+import { JwtSigner } from './JwtSigner'
 import { AuthContext } from './jwt.schema'
 
 // test-only helpers for the *.jwt.test.ts files, not exported from the package index
 
 export const TEST_ISSUER = 'https://community.example'
+export const TEST_AUDIENCE = 'https://community.example/'
+export const TEST_SECRET = 'secret123'
 export const TEST_GRADIDO_ID = '3d813cbb-47fb-42ba-91df-831e1593ac29'
 export const TEST_NOW = new Date('2026-01-01T12:00:00.000Z')
 export const TEST_NOW_SECONDS = Math.floor(TEST_NOW.getTime() / 1000)
 
-export function testSecretKey(secret = 'secret123'): KeyObject {
+export function testSecretKey(secret = TEST_SECRET): KeyObject {
   return createSecretKey(Buffer.from(secret, 'utf8'))
+}
+
+export function testSigner(
+  secret = TEST_SECRET,
+  type: AuthSigningType = AuthSigningType.HMAC,
+): JwtSigner {
+  return new JwtSigner(secret, type)
 }
 
 export function testAuthContext(overrides: Partial<AuthContext> = {}): AuthContext {
   return {
     issuer: TEST_ISSUER,
-    signingKey: testSecretKey(),
+    audience: TEST_AUDIENCE,
     duration: Duration.minutes(10),
+    signer: testSigner(),
     ...overrides,
   }
 }
@@ -36,9 +48,10 @@ export function signRawToken(
   headerBase64: string,
   payloadBase64: string,
   key: KeyObject = testSecretKey(),
+  algorithm: 'sha256' | 'sha512' = 'sha256',
 ): string {
   const signed = `${headerBase64}.${payloadBase64}`
-  return `${signed}.${createHmac('sha256', key).update(signed).digest('base64url')}`
+  return `${signed}.${createHmac(algorithm, key).update(signed).digest('base64url')}`
 }
 
 export function signTestToken(
@@ -53,7 +66,7 @@ export function validTestPayload(overrides: Record<string, unknown> = {}): Recor
   return {
     iss: TEST_ISSUER,
     sub: TEST_GRADIDO_ID,
-    aud: TEST_ISSUER,
+    aud: TEST_AUDIENCE,
     exp: TEST_NOW_SECONDS + 600,
     ...overrides,
   }

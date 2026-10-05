@@ -31,7 +31,7 @@ export function resetInterface<T extends Record<string, any>>(obj: T): T {
 export const delay = promisify(setTimeout)
 
 export const ensureUrlEndsWithSlash = (url: string): string => {
-  return url.endsWith('/') ? url : url.concat('/')
+  return url.endsWith('/') ? url.replace(/\/*$/, '/') : url.concat('/')
 }
 export function splitUrlInEndPointAndApiVersion(url: string): {
   endPoint: string
