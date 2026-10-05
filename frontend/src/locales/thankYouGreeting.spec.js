@@ -60,6 +60,7 @@ const LINES = [
 const MOTIFS = ['heart-leaves', 'giving-hands', 'bouquet', 'glowing-swirl', 'morning-light']
 
 const KEYS = [
+  'done.another',
   'done.edit-hint',
   'done.find-again',
   'done.link-hint',
@@ -363,6 +364,30 @@ describe('thank-you-greeting in the language files', () => {
       )
       expect(render('de', 'picture.own')).toBe('Eigenes Foto')
       expect(render('de', 'photo-of', { name: 'Oma-Emma' })).toBe('Foto von Oma-Emma')
+    })
+  })
+
+  /**
+   * "Noch einen für jemand anderen" on the result (ZE-030): one more greeting of the same, for
+   * the next person. The label of a button under everything else -- a few words, no sentence --,
+   * and another one than "Duplizieren" in the menu of a link: that one takes everything over,
+   * this one asks whom the next greeting is for.
+   */
+  describe('one more for somebody else, on the result', () => {
+    it.each(languages)('is the label of a button, in %s', (lang) => {
+      const label = render(lang, 'done.another')
+
+      expect(label).toBe(greetingIn(lang).done.another)
+      expect(label).not.toMatch(/[{}|.!?]/)
+      expect(label.length, label).toBeLessThanOrEqual(34)
+      // "one more", and "for somebody else": more than a word or two.
+      expect(label.split(/\s+/).length, label).toBeGreaterThanOrEqual(4)
+      expect(label).not.toBe(fileOf(lang).gdd_per_link.duplicate)
+      expect(label).not.toMatch(NOT_A_THANK_YOU[lang])
+    })
+
+    it('reads in German as it was decided', () => {
+      expect(render('de', 'done.another')).toBe('Noch einen für jemand anderen')
     })
   })
 

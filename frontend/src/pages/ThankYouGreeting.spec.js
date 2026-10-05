@@ -188,8 +188,14 @@ const CARD_EDIT = {
   ground: THANK_YOU_PICTURE_GROUND,
 }
 const PREVIEW = 'data:image/jpeg;base64,PREVIEW'
-const SMALL = { data: 'SMALL-JPEG', width: 831, height: 577, bytes: 30000 }
-const LARGE = { data: 'LARGE-JPEG', width: 1080, height: 750, bytes: 66000 }
+// Base64, as the encoder hands them on: "Noch einen für jemand anderen" reads them again.
+const SMALL = { data: btoa('the small rendition'), width: 831, height: 577, bytes: 30000 }
+const LARGE = {
+  data: btoa('the large rendition, the picture of the card'),
+  width: 1080,
+  height: 750,
+  bytes: 66000,
+}
 
 const editor = () => wrapper.findComponent(EditorStub)
 
@@ -1024,7 +1030,7 @@ describe('ThankYouGreeting', () => {
 
         expect(greetingPicture(LINK_ID)).toEqual({
           state: 'ready',
-          src: 'data:image/jpeg;base64,SMALL-JPEG',
+          src: `data:image/jpeg;base64,${SMALL.data}`,
         })
       })
 
@@ -1072,7 +1078,7 @@ describe('ThankYouGreeting', () => {
             line: 'Einfach so — weil es Dich gibt.',
             recipientName: 'Sarah',
             // the JPEG and its size, as a chat picture goes: no bytes, nothing else
-            picture: { data: 'SMALL-JPEG', width: 831, height: 577 },
+            picture: { data: SMALL.data, width: 831, height: 577 },
           },
         })
       })
@@ -1086,7 +1092,7 @@ describe('ThankYouGreeting', () => {
         expect(server.add).toHaveBeenCalledTimes(1)
         expect(server.add).toHaveBeenCalledWith({
           linkId: LINK_ID,
-          picture: { data: 'LARGE-JPEG', width: 1080, height: 750 },
+          picture: { data: LARGE.data, width: 1080, height: 750 },
         })
         expect(server.mutate.mock.invocationCallOrder[0]).toBeLessThan(
           server.add.mock.invocationCallOrder[0],
@@ -1252,7 +1258,7 @@ describe('ThankYouGreeting', () => {
 
         expect(server.mutate.mock.calls[0][0].greeting).toMatchObject({
           motif: null,
-          picture: { data: 'SMALL-JPEG', width: 831, height: 577 },
+          picture: { data: SMALL.data, width: 831, height: 577 },
         })
         expect(server.add).toHaveBeenCalledTimes(1)
         expect(step()).toBe('done')
@@ -1445,6 +1451,699 @@ describe('ThankYouGreeting', () => {
       expect(data('back').exists()).toBe(false)
       expect(data('steps').exists()).toBe(false)
       expect(data('finish').exists()).toBe(false)
+    })
+  })
+
+  /**
+   * "Noch einen für jemand anderen" on the result (ZE-030): a NEW greeting with everything the
+   * one just made carried, for the next person -- only "Für wen?" is empty. It has a number of
+   * its own in the address: no entry of the first greeting ever shows the second, and the first
+   * one is never made a second time.
+   */
+  describe('one more for somebody else', () => {
+    const LINE = 'Einfach so — weil es Dich gibt.'
+    const finish = async () => {
+      await data('finish').trigger('click')
+      await settle()
+    }
+    const another = async () => {
+      await data('another').trigger('click')
+      await settle()
+    }
+    const nameField = () => data('name').element.value
+    const wordsField = () => data('words-input').element.value
+    const amountField = () => wrapper.find('#amount-input-field').element.value
+    const chosenLines = () => wrapper.findAll('.tyg-chip.is-chosen').map((chip) => chip.text())
+    const chosenMotifs = () =>
+      wrapper
+        .findAll('.tyg-motif')
+        .filter((tile) => tile.attributes('aria-pressed') === 'true')
+        .map((tile) => tile.text())
+    const greetingsSent = () => server.mutate.mock.calls.map(([sent]) => sent)
+    const address = () => router.currentRoute.value.fullPath
+
+    // The page reached as the wallet leads to it, so that there is somewhere to walk back to.
+    const reach = async () => {
+      await open('/transactions')
+      await router.push('/thank-you-greeting')
+      await settle()
+    }
+
+    /** A first greeting, made: the bouquet, for Sarah, with 20 Gradido. */
+    const made = async () => {
+      await reach()
+      await data('motif-bouquet').trigger('click')
+      await toPreview()
+      await finish()
+    }
+
+    it('is offered on the result', async () => {
+      await made()
+
+      expect(data('another').text()).toBe('Noch einen für jemand anderen')
+    })
+
+    /**
+     * ⛔ The wallet's guard may lead a navigation elsewhere: a session that ran out ends at the
+     * sign-in page. The new greeting begins only where its first step arrived at this page --
+     * its words are pushed onto no other page's address.
+     */
+    it('pushes nothing onto another page where the wallet leads away from this one', async () => {
+      await made()
+      router.beforeEach((to) => (to.path === '/thank-you-greeting' ? '/overview' : true))
+
+      await another()
+
+      expect(address()).toBe('/overview')
+      expect(greetingsSent()).toHaveLength(1)
+    })
+
+    describe('begun', () => {
+      beforeEach(async () => {
+        await made()
+        await another()
+      })
+
+      it('opens at the words of a new greeting, which has a number of its own in the address', () => {
+        expect(step()).toBe('words')
+        expect(data('words').exists()).toBe(true)
+        expect(data('done').exists()).toBe(false)
+        expect(address()).toBe('/thank-you-greeting?step=words&greeting=2')
+      })
+
+      it('has everything the greeting just made carried, and nobody’s name', () => {
+        expect(nameField()).toBe('')
+        expect(chosenLines()).toEqual([LINE])
+        expect(wordsField()).toBe('Eure Oma')
+        expect(amountField()).toBe('20')
+      })
+
+      it('puts the caret into "Für wen?"', () => {
+        expect(document.activeElement).toBe(data('name').element)
+      })
+
+      it('says nothing is missing', () => {
+        expect(data('line-error').exists()).toBe(false)
+        expect(data('memo-error').exists()).toBe(false)
+        expect(data('create-error').exists()).toBe(false)
+      })
+
+      it('has its picture one step back: the one the first carried, as the choice', async () => {
+        await historyGo(-1)
+
+        expect(step()).toBe('picture')
+        expect(address()).toBe('/thank-you-greeting?greeting=2')
+        expect(chosenMotifs()).toEqual(['Blumenstrauß'])
+      })
+
+      it('makes nothing by beginning', () => {
+        expect(server.mutate).toHaveBeenCalledTimes(1)
+        expect(updates).toHaveBeenCalledTimes(1)
+      })
+
+      // A new greeting says what is missing only once the member wants to go on, as every
+      // greeting does -- though the first one went on already.
+      it('says nothing of a line taken away until the member wants to go on', async () => {
+        await data('line-just-so').trigger('click')
+        expect(chosenLines()).toEqual([])
+        expect(data('line-error').exists()).toBe(false)
+
+        await next()
+
+        expect(step()).toBe('words')
+        expect(data('line-error').exists()).toBe(true)
+      })
+
+      // The steps the page led to belong to the first greeting: the new one has not been to
+      // its last look yet, and an address that names it is turned back to the picture.
+      it('knows no step of the new greeting it has not led to', async () => {
+        await router.push('/thank-you-greeting?step=preview&greeting=2')
+        await settle()
+
+        expect(step()).toBe('picture')
+        expect(address()).toBe('/thank-you-greeting?greeting=2')
+        expect(data('finish').exists()).toBe(false)
+      })
+
+      // Nothing of the greeting is in the address, the history or the storage of the device.
+      it('names a count in the address, and nothing of the greeting anywhere a browser keeps things', () => {
+        const kept = [
+          address(),
+          JSON.stringify(window.history.state),
+          JSON.stringify(wrapper.vm.$store.state),
+          JSON.stringify({ ...localStorage }),
+          JSON.stringify({ ...sessionStorage }),
+        ].join(' ')
+
+        for (const secret of ['Sarah', 'Einfach so', 'Eure Oma', 'bouquet']) {
+          expect(kept).not.toContain(secret)
+        }
+      })
+    })
+
+    // The first greeting had all twelve lines unfolded and one of the other eight chosen: the
+    // new one opens folded, with that line in sight.
+    it('opens with the lines folded in, the chosen one in sight', async () => {
+      await reach()
+      await next()
+      await data('all-lines').trigger('click')
+      await fill({ line: 'birthday' })
+      await next()
+      await finish()
+
+      await another()
+
+      expect(data('group-occasion').exists()).toBe(false)
+      expect(wrapper.findAll('.tyg-chip')).toHaveLength(5)
+      expect(chosenLines()).toEqual(['Zum Geburtstag: Danke, dass es Dich gibt.'])
+    })
+
+    it('begins one greeting for two taps', async () => {
+      await made()
+
+      data('another').trigger('click')
+      data('another').trigger('click')
+      await settle()
+
+      expect(address()).toBe('/thank-you-greeting?step=words&greeting=2')
+    })
+
+    // What exists is the greeting that was SENT: the member may have walked back and changed a
+    // field while the request was under way.
+    it('carries what was sent, whatever was changed while the request was under way', async () => {
+      let answer
+      server.mutate = vi.fn(
+        (variables) =>
+          new Promise((resolve) => {
+            answer = () => resolve(answerTo(variables))
+          }),
+      )
+      await reach()
+      await toPreview()
+      await data('finish').trigger('click')
+      await flushPromises()
+      await historyGo(-1)
+      await data('name').setValue('Jemand anderes')
+      await data('words-input').setValue('Etwas ganz anderes')
+      await historyGo(-1)
+      await data('motif-giving-hands').trigger('click')
+      answer()
+      await settle()
+      expect(step()).toBe('done')
+
+      await another()
+
+      expect(nameField()).toBe('')
+      expect(wordsField()).toBe('Eure Oma')
+      await historyGo(-1)
+      expect(chosenMotifs()).toEqual(['Herz und Blätter'])
+    })
+
+    describe('made', () => {
+      beforeEach(async () => {
+        await made()
+        await another()
+      })
+
+      it('is a second greeting: for the name typed, with all else as the first', async () => {
+        await data('name').setValue('Claude')
+        await next()
+
+        await finish()
+
+        expect(greetingsSent()).toHaveLength(2)
+        expect(greetingsSent()[1]).toEqual({
+          amount: '20',
+          memo: `${LINE}\nEure Oma`,
+          greeting: { motif: 'bouquet', line: LINE, recipientName: 'Claude' },
+        })
+      })
+
+      it('names nobody where no name is typed', async () => {
+        await next()
+
+        await finish()
+
+        expect(greetingsSent()[1].greeting.recipientName).toBeNull()
+      })
+
+      it('takes what is changed: other words, another amount, another picture', async () => {
+        await data('name').setValue('Claude')
+        await data('words-input').setValue('Lieber Claude, bis bald.')
+        await wrapper.find('#amount-input-field').setValue('7,5')
+        await historyGo(-1)
+        await data('motif-giving-hands').trigger('click')
+        await next()
+        await next()
+
+        await finish()
+
+        expect(greetingsSent()[1]).toEqual({
+          amount: '7.5',
+          memo: `${LINE}\nLieber Claude, bis bald.`,
+          greeting: { motif: 'giving-hands', line: LINE, recipientName: 'Claude' },
+        })
+        // The first went out as it was.
+        expect(greetingsSent()[0].greeting).toEqual({
+          motif: 'bouquet',
+          line: LINE,
+          recipientName: 'Sarah',
+        })
+      })
+
+      it('makes one greeting for two taps on "Gruß fertigstellen"', async () => {
+        await next()
+
+        data('finish').trigger('click')
+        data('finish').trigger('click')
+        await settle()
+
+        expect(server.mutate).toHaveBeenCalledTimes(2)
+      })
+
+      it('has a result of its own, which tells the layout and offers the same way on', async () => {
+        await data('name').setValue('Claude')
+        await next()
+        await finish()
+
+        expect(step()).toBe('done')
+        expect(address()).toBe('/thank-you-greeting?step=done&greeting=2')
+        expect(data('done-title').text()).toBe('Dein Dank-Gruß für Claude ist fertig.')
+        expect(updates).toHaveBeenCalledTimes(2)
+
+        await another()
+
+        expect(address()).toBe('/thank-you-greeting?step=words&greeting=3')
+        expect(nameField()).toBe('')
+        expect(wordsField()).toBe('Eure Oma')
+      })
+
+      it('leads to the list of links from its result, and makes no third', async () => {
+        await next()
+        await finish()
+
+        await historyGo(-1)
+
+        expect(router.currentRoute.value.path).toBe('/transactions')
+        expect(server.mutate).toHaveBeenCalledTimes(2)
+      })
+    })
+
+    /**
+     * A photo of the member's own goes on to the next greeting as the page still holds it: with
+     * the two renditions it sent a moment ago. Nothing is chosen anew, nothing is encoded anew,
+     * and the server is not asked for it.
+     */
+    /**
+     * ⛔ The picture as the device handed it over is let go once a greeting is made: it is many
+     * times the size of what was sent, and the result is the page the member leaves for a
+     * messenger and comes back to. The photo of the next greeting is read from the two
+     * renditions that went out -- as the photo of a duplicated greeting is.
+     */
+    describe('with a photo of one’s own', () => {
+      const LARGE_BYTES = atob(LARGE.data).length
+      const SENT_PREVIEW = `data:image/jpeg;base64,${LARGE.data}`
+      const LARGE_AGAIN = { image: { name: 'large-again' }, width: 1080, height: 750 }
+      const SMALL_AGAIN = { image: { name: 'small-again' }, width: 831, height: 577 }
+      // The first greeting's cut: it is in the renditions, and no cut of the next one.
+      const FIRST_CUT = { ...CARD_EDIT, zoom: 1.3 }
+      const readAgain = () =>
+        pictures.openChatImage.mock.calls
+          .map(([file]) => file)
+          .filter((file) => file.name !== 'oma.jpg')
+      const notTakenOver = () => data('photo-not-taken-over')
+
+      beforeEach(() => {
+        pictures.openChatImage.mockImplementation(async (file) => {
+          if (file.name === 'oma.jpg') return PHOTO
+          return file.size === LARGE_BYTES ? LARGE_AGAIN : SMALL_AGAIN
+        })
+      })
+
+      const madeWithPhoto = async () => {
+        await reach()
+        await choosePhoto(FIRST_CUT)
+        await toPreview()
+        await finish()
+      }
+
+      describe('begun', () => {
+        beforeEach(async () => {
+          await madeWithPhoto()
+          await another()
+        })
+
+        it('opens at the words, with the photo in its tile as the choice', async () => {
+          expect(address()).toBe('/thank-you-greeting?step=words&greeting=2')
+
+          await historyGo(-1)
+
+          expect(data('photo').attributes('aria-pressed')).toBe('true')
+          expect(data('photo-picture').attributes('src')).toBe(SENT_PREVIEW)
+          expect(chosenMotifs()).toEqual([])
+          expect(notTakenOver().exists()).toBe(false)
+        })
+
+        it('reads it from the two renditions that went out, and asks nobody for it', () => {
+          expect(readAgain().map((file) => [file.type, file.size])).toEqual([
+            ['image/jpeg', atob(SMALL.data).length],
+            ['image/jpeg', LARGE_BYTES],
+          ])
+          expect(server.query).not.toHaveBeenCalled()
+        })
+
+        it('shows it on the last look', async () => {
+          await next()
+
+          expect(wrapper.find('[data-test="redeem-thanks-paper-photo"]').attributes('src')).toBe(
+            SENT_PREVIEW,
+          )
+        })
+
+        it('sends the two renditions that went out with the first, and encodes nothing anew', async () => {
+          await data('name').setValue('Claude')
+          await next()
+
+          await finish()
+
+          expect(pictures.encodeThankYouPictures).toHaveBeenCalledTimes(1)
+          expect(greetingsSent()[1].greeting).toEqual({
+            motif: null,
+            line: LINE,
+            recipientName: 'Claude',
+            picture: { data: SMALL.data, width: 831, height: 577 },
+          })
+          expect(greetingsSent()[1].greeting.picture).toEqual(greetingsSent()[0].greeting.picture)
+          expect(server.add).toHaveBeenCalledTimes(2)
+          expect(server.add.mock.calls[1]).toEqual(server.add.mock.calls[0])
+          expect(server.add.mock.calls[1][0].picture).toEqual({
+            data: LARGE.data,
+            width: 1080,
+            height: 750,
+          })
+          expect(server.query).not.toHaveBeenCalled()
+          expect(data('done-photo').attributes('src')).toBe(SENT_PREVIEW)
+        })
+
+        // A third greeting, from the result of the second: still the renditions of the first.
+        it('sends them once more with the greeting after that', async () => {
+          await next()
+          await finish()
+          await another()
+          await next()
+
+          await finish()
+
+          expect(pictures.encodeThankYouPictures).toHaveBeenCalledTimes(1)
+          expect(greetingsSent()[2].greeting.picture).toEqual(greetingsSent()[0].greeting.picture)
+          expect(server.add.mock.calls[2]).toEqual(server.add.mock.calls[0])
+        })
+
+        // The large rendition is the picture now, uncut: the first cut is in it.
+        it('makes both renditions anew, of the large one, once the photo is cut anew', async () => {
+          const cut = { ...CARD_EDIT, zoom: 1.4 }
+          await historyGo(-1)
+          await data('photo').trigger('click')
+          expect(editor().props('source')).toEqual(LARGE_AGAIN)
+          expect(editor().props('edit')).toEqual(CARD_EDIT)
+          editor().vm.$emit('done', cut)
+          await flushPromises()
+          await next()
+          await next()
+
+          await finish()
+
+          expect(pictures.encodeThankYouPictures).toHaveBeenCalledTimes(2)
+          expect(pictures.encodeThankYouPictures).toHaveBeenLastCalledWith(LARGE_AGAIN, cut)
+        })
+
+        it('goes out with a motif where one is chosen instead', async () => {
+          await historyGo(-1)
+          await data('motif-morning-light').trigger('click')
+          await next()
+          await next()
+
+          await finish()
+
+          expect(greetingsSent()[1].greeting).toEqual({
+            motif: 'morning-light',
+            line: LINE,
+            recipientName: null,
+          })
+          expect(server.add).toHaveBeenCalledTimes(1)
+        })
+      })
+
+      /**
+       * The photo opens in a moment of its own. ⛔ One tap begins one greeting, whatever is
+       * tapped meanwhile; and a page that was left meanwhile begins none.
+       */
+      describe('while the photo opens', () => {
+        let opening
+
+        beforeEach(async () => {
+          await madeWithPhoto()
+          opening = deferred()
+          pictures.openChatImage.mockImplementation(() => opening.promise)
+          await data('another').trigger('click')
+        })
+
+        it('still shows the result', () => {
+          expect(step()).toBe('done')
+          expect(data('done').exists()).toBe(true)
+        })
+
+        it('begins one greeting for two taps', async () => {
+          await data('another').trigger('click')
+          opening.resolve(LARGE_AGAIN)
+          await settle()
+
+          expect(address()).toBe('/thank-you-greeting?step=words&greeting=2')
+          expect(readAgain()).toHaveLength(2)
+        })
+
+        it('begins none in a page that was left', async () => {
+          await router.push('/overview')
+          await settle()
+
+          opening.resolve(LARGE_AGAIN)
+          await settle()
+
+          expect(address()).toBe('/overview')
+        })
+      })
+
+      // What the browser made a moment ago it reads again -- and where it does not, the page
+      // says so, as it does of the photo of a duplicated greeting that did not come.
+      describe('where the photo does not open again', () => {
+        beforeEach(async () => {
+          await madeWithPhoto()
+          pictures.openChatImage.mockRejectedValue(new Error('no picture'))
+          await another()
+        })
+
+        it('stays at the picture of the new greeting, the first motif chosen, and says so', () => {
+          expect(address()).toBe('/thank-you-greeting?greeting=2')
+          expect(data('picture').exists()).toBe(true)
+          expect(chosenMotifs()).toEqual(['Herz und Blätter'])
+          expect(data('photo').exists()).toBe(false)
+          expect(notTakenOver().text()).toBe(
+            'Das Foto ließ sich nicht übernehmen. Wähle es neu aus oder nimm ein Motiv.',
+          )
+        })
+
+        it('carries the words all the same, and nobody’s name', async () => {
+          await next()
+
+          expect(nameField()).toBe('')
+          expect(chosenLines()).toEqual([LINE])
+          expect(wordsField()).toBe('Eure Oma')
+          expect(amountField()).toBe('20')
+        })
+
+        it('goes out with the motif, and without a picture', async () => {
+          await next()
+          await next()
+
+          await finish()
+
+          expect(greetingsSent()[1].greeting).toEqual({
+            motif: 'heart-leaves',
+            line: LINE,
+            recipientName: null,
+          })
+          expect(server.add).toHaveBeenCalledTimes(1)
+        })
+      })
+    })
+
+    // The first greeting had no large rendition (it could not be made): neither has the next.
+    it('sends no large rendition where the first had none', async () => {
+      pictures.encodeThankYouPictures.mockResolvedValue({ small: SMALL, large: null })
+      await reach()
+      await choosePhoto()
+      await toPreview()
+      await finish()
+      await another()
+      await next()
+
+      await finish()
+
+      expect(greetingsSent()[1].greeting.picture.data).toBe(SMALL.data)
+      expect(server.add).not.toHaveBeenCalled()
+      expect(pictures.encodeThankYouPictures).toHaveBeenCalledTimes(1)
+    })
+
+    /**
+     * ⛔ The entries of the history belong to one greeting each. Behind the new greeting lie
+     * the words and the picture of the first: none of them shows the new one, and none makes
+     * the first a second time.
+     */
+    describe('the history', () => {
+      beforeEach(async () => {
+        await made()
+        await another()
+      })
+
+      it('leads back to the picture of the new greeting, and from there to the list of links', async () => {
+        await historyGo(-1)
+        expect(step()).toBe('picture')
+        expect(address()).toBe('/thank-you-greeting?greeting=2')
+
+        await historyGo(-1)
+
+        expect(router.currentRoute.value.path).toBe('/transactions')
+        expect(wrapper.find('[data-test="transactions-page"]').exists()).toBe(true)
+      })
+
+      it('leads back with the arrow of the page the same way', async () => {
+        // Jsdom walks its history a tick later than it is asked to.
+        const arrow = async () => {
+          await data('back').trigger('click')
+          await settle()
+          await new Promise((resolve) => setTimeout(resolve, 20))
+          await settle()
+        }
+
+        await arrow()
+        expect(step()).toBe('picture')
+        expect(address()).toBe('/thank-you-greeting?greeting=2')
+
+        await arrow()
+        expect(router.currentRoute.value.path).toBe('/transactions')
+      })
+
+      // Two steps back at once land on the words of the FIRST greeting: the same step, another
+      // greeting.
+      it('never shows an entry of the first greeting with what the second holds', async () => {
+        await data('name').setValue('Claude')
+
+        await historyGo(-2)
+
+        expect(router.currentRoute.value.path).toBe('/transactions')
+        expect(data('words').exists()).toBe(false)
+        expect(data('finish').exists()).toBe(false)
+      })
+
+      it('comes to the words of the new greeting again with the forward key, everything still there', async () => {
+        await data('name').setValue('Claude')
+        await historyGo(-1)
+
+        await historyGo(1)
+
+        expect(step()).toBe('words')
+        expect(nameField()).toBe('Claude')
+        expect(chosenLines()).toEqual([LINE])
+        expect(wordsField()).toBe('Eure Oma')
+      })
+
+      // Left for the list and come back with the forward key: the page is built anew and knows
+      // no second greeting -- it starts empty, at its own address.
+      it('starts empty where the page is come back to after it was left, and makes nothing', async () => {
+        await historyGo(-1)
+        await historyGo(-1)
+        expect(router.currentRoute.value.path).toBe('/transactions')
+
+        await historyGo(1)
+
+        expect(address()).toBe('/thank-you-greeting')
+        expect(step()).toBe('picture')
+        expect(chosenMotifs()).toEqual(['Herz und Blätter'])
+        await next()
+        expect(nameField()).toBe('')
+        expect(chosenLines()).toEqual([])
+        expect(wordsField()).toBe('')
+        expect(amountField()).toBe('')
+        expect(server.mutate).toHaveBeenCalledTimes(1)
+      })
+
+      it('and further forward: no step of a visit that is over', async () => {
+        await historyGo(-1)
+        await historyGo(-1)
+
+        await historyGo(1)
+        await historyGo(1)
+
+        expect(address()).toBe('/thank-you-greeting')
+        expect(data('finish').exists()).toBe(false)
+        expect(server.mutate).toHaveBeenCalledTimes(1)
+      })
+    })
+
+    describe('an address that names a greeting this page did not begin', () => {
+      it.each([
+        '/thank-you-greeting?step=words&greeting=2',
+        '/thank-you-greeting?greeting=2',
+        '/thank-you-greeting?step=preview&greeting=7',
+        '/thank-you-greeting?step=done&greeting=2',
+        '/thank-you-greeting?greeting=abc',
+        '/thank-you-greeting?greeting=0',
+        '/thank-you-greeting?greeting',
+      ])('starts empty, at the picture and at the page’s own address: %s', async (path) => {
+        await open(path)
+
+        expect(address()).toBe('/thank-you-greeting')
+        expect(step()).toBe('picture')
+        await next()
+        expect(nameField()).toBe('')
+        expect(wordsField()).toBe('')
+      })
+    })
+
+    /**
+     * ⛔ A greeting is made once. Two things hold that, and each has a test of its own: the
+     * watcher that shows no step of a greeting that is made (above, and "after the greeting is
+     * made"), and the lock in `create` -- which matters where the step to the result does not
+     * happen, and the button of the last look still stands.
+     */
+    describe('the lock on a greeting that is made', () => {
+      it('makes it once where the result cannot be shown and the button still stands', async () => {
+        await reach()
+        await toPreview()
+        const replace = vi.spyOn(router, 'replace').mockResolvedValue(undefined)
+
+        await finish()
+        expect(step()).toBe('preview')
+        expect(data('finish').attributes('disabled')).toBeUndefined()
+        await finish()
+        await finish()
+
+        expect(server.mutate).toHaveBeenCalledTimes(1)
+        replace.mockRestore()
+      })
+
+      it('is open again for the next greeting, and holds that one as well', async () => {
+        await made()
+        await another()
+        await next()
+        const replace = vi.spyOn(router, 'replace').mockResolvedValue(undefined)
+
+        await finish()
+        await finish()
+
+        expect(server.mutate).toHaveBeenCalledTimes(2)
+        replace.mockRestore()
+      })
     })
   })
 
@@ -1891,10 +2590,10 @@ describe('ThankYouGreeting', () => {
 
           expect(pictures.encodeThankYouPictures).toHaveBeenCalledTimes(1)
           expect(pictures.encodeThankYouPictures).toHaveBeenCalledWith(OLD_SOURCE, cut)
-          expect(greetingSent().picture).toEqual({ data: 'SMALL-JPEG', width: 831, height: 577 })
+          expect(greetingSent().picture).toEqual({ data: SMALL.data, width: 831, height: 577 })
           expect(server.add).toHaveBeenCalledWith({
             linkId: LINK_ID,
-            picture: { data: 'LARGE-JPEG', width: 1080, height: 750 },
+            picture: { data: LARGE.data, width: 1080, height: 750 },
           })
         })
 
@@ -1922,7 +2621,7 @@ describe('ThankYouGreeting', () => {
           await finish()
 
           expect(pictures.encodeThankYouPictures).toHaveBeenCalledWith(PHOTO, CARD_EDIT)
-          expect(greetingSent().picture.data).toBe('SMALL-JPEG')
+          expect(greetingSent().picture.data).toBe(SMALL.data)
         })
 
         it('goes out with a motif where one was chosen instead, the photo staying in its tile', async () => {
@@ -1964,6 +2663,29 @@ describe('ThankYouGreeting', () => {
 
           expect(server.mutate).toHaveBeenCalledTimes(1)
           expect(server.add).toHaveBeenCalledTimes(1)
+        })
+
+        // "Noch einen für jemand anderen" after a duplicate: the photo that came goes out a
+        // third time as it came, and the server is asked for it once in all.
+        it('goes on to one more greeting as it came, without asking the server again', async () => {
+          await duplicate(WITH_PHOTO)
+          await finish()
+
+          await data('another').trigger('click')
+          await settle()
+          expect(nameField()).toBe('')
+          await finish()
+
+          expect(server.query).toHaveBeenCalledTimes(1)
+          expect(pictures.encodeThankYouPictures).not.toHaveBeenCalled()
+          expect(server.mutate).toHaveBeenCalledTimes(2)
+          expect(server.mutate.mock.calls[1][0].greeting).toEqual({
+            motif: null,
+            line: LINE,
+            recipientName: null,
+            picture: { data: OLD_SMALL, width: 831, height: 577 },
+          })
+          expect(server.add.mock.calls[1][0].picture.data).toBe(OLD_LARGE)
         })
       })
 
@@ -2195,6 +2917,23 @@ describe('ThankYouGreeting', () => {
               recipientName: 'Sarah',
             })
             expect(server.add).not.toHaveBeenCalled()
+          })
+
+          // The next greeting is one more of the greeting that was MADE, and that had a motif.
+          it('says nothing of the photo any more in one more greeting after it', async () => {
+            await duplicate(WITH_PHOTO)
+            await next()
+            await next()
+            await data('finish').trigger('click')
+            await settle()
+
+            await data('another').trigger('click')
+            await settle()
+            await historyGo(-1)
+
+            expect(step()).toBe('picture')
+            expect(notTakenOver().exists()).toBe(false)
+            expect(chosenMotifs()).toEqual(['Herz und Blätter'])
           })
         })
       })

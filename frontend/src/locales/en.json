@@ -1553,6 +1553,7 @@
   },
   "thank-you-greeting": {
     "done": {
+      "another": "Another one for somebody else",
       "edit-hint": "You can change the sentence before sending. Your words only appear on the card.",
       "find-again": "You will find it again under {transactions}, in “{links}”.",
       "link-hint": "Whoever has the link can accept the thank-you. Only send it to the person it is meant for.",

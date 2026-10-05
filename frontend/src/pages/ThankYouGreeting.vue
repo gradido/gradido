@@ -2,7 +2,11 @@
 <template>
   <div class="thank-you-greeting" data-test="thank-you-greeting">
     <!-- The greeting is made: what to do with it. Nothing here leads back into the steps. -->
-    <thank-you-greeting-done v-if="step === DONE && created" :created="created" />
+    <thank-you-greeting-done
+      v-if="step === DONE && created"
+      :created="created"
+      @another="another"
+    />
 
     <template v-else-if="step !== DONE">
       <div class="tyg-head page-text">
@@ -100,6 +104,7 @@
             </label>
             <BFormInput
               id="thank-you-greeting-name"
+              ref="nameInput"
               v-model="form.recipientName"
               type="text"
               autocomplete="off"
@@ -325,8 +330,12 @@
  * - ⛔ once the greeting is made, no way leads back to "Gruß fertigstellen" -- a second tap
  *   would make a second greeting and hold the amount twice. From the result, back leads to the
  *   list of links.
+ *
+ * The result offers one more of the same for the next person ("Noch einen für jemand anderen",
+ * ZE-030): that begins a NEW greeting in this page, with a number of its own in the address.
+ * The entries of the history belong to one greeting each, and none of them shows another one.
  */
-import { computed, onUnmounted, reactive, ref, shallowRef, watch } from 'vue'
+import { computed, nextTick, onUnmounted, reactive, ref, shallowRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
@@ -465,10 +474,10 @@ const allLinesOpen = ref(false)
  * decoded, what was done to it in the editor, and the edited picture for the eye. It stays in its
  * tile while a motif is the choice.
  *
- * A photo that came from a greeting made before -- the old one of a duplicate -- carries
- * `renditions` as well: the two JPEGs that greeting was made with. ⛔ They go out with the new
- * greeting as they are (`create`), until the member cuts the photo anew: what the editor hands
- * back is a photo without them.
+ * A photo that came from a greeting made before -- the old one of a duplicate, or the one this
+ * page made a moment ago -- carries `renditions` as well: the two JPEGs that greeting was made
+ * with. ⛔ They go out with the next greeting as they are (`create`), until the member cuts the
+ * photo anew: what the editor hands back is a photo without them.
  *
  * ⛔ In the memory of this page only, like everything typed here: never the store (which is
  * mirrored into the device's storage) and never Apollo's cache. A shallow ref: nothing inside it
@@ -612,14 +621,37 @@ const step = computed(() =>
 )
 const stepIndex = computed(() => STEPS.indexOf(step.value))
 
-// The steps this page itself has led to. An address that names a step it has not is a reload,
-// or the forward key into an entry of an earlier visit: the form is empty then.
+/**
+ * Which greeting of this visit the page holds: the first, or one begun with "Noch einen für
+ * jemand anderen" on the result of the one before (`another`).
+ *
+ * ⛔ The entries of the history belong to ONE greeting each. Behind a second greeting lie the
+ * entries of the first -- its words, its picture --, and with nothing to tell them apart they
+ * would show the second one once more (back: words, picture, words, picture). So the address of
+ * every greeting after the first names its number: a count, and nothing of the greeting. An
+ * entry that names another number than the page holds shows nothing of the greeting in the page
+ * (the watcher below).
+ */
+const GREETING = 'greeting'
+const greetingNumber = ref(1)
+const entryNumber = computed(() => {
+  const named = route.query[GREETING]
+  if (named === undefined) return 1
+  return typeof named === 'string' && /^[1-9]\d{0,5}$/.test(named) ? Number(named) : NaN
+})
+
+// The steps this page itself has led to, of the greeting it holds. An address that names a step
+// it has not is a reload, or the forward key into an entry of an earlier visit: the form is empty
+// then.
 const reached = new Set([PICTURE])
 const created = ref(null)
 const pending = ref(false)
 const createError = ref('')
 
-const here = (query) => ({ path: route.path, query })
+const here = (query) => ({
+  path: route.path,
+  query: greetingNumber.value > 1 ? { ...query, [GREETING]: String(greetingNumber.value) } : query,
+})
 
 const go = (next) => {
   reached.add(next)
@@ -645,8 +677,16 @@ const back = () => {
 }
 
 watch(
-  step,
-  (now) => {
+  [step, entryNumber],
+  ([now, entry]) => {
+    // ⛔ An entry of another greeting than the one the page holds. One of an earlier greeting of
+    // this visit is done with, like the steps of a greeting that is made: the list of links. Any
+    // other number is of no greeting this page began -- a reload, the forward key into a visit
+    // that is over --, and the page shows the one it holds, from its picture.
+    if (entry !== greetingNumber.value) {
+      router.replace(entry < greetingNumber.value ? '/transactions' : here({}))
+      return
+    }
     // ⛔ The greeting is made: whatever entry the browser walks to, none shows the steps
     // again. Back from the result leads to the list of links.
     if (created.value) {
@@ -742,6 +782,14 @@ const { mutate: createLink } = useMutation(createTransactionLink)
 const { mutate: addPicture } = useMutation(addThankYouGreetingPicture)
 
 /**
+ * What the greeting that was made last carried, as it was sent: the fields at the press, and the
+ * two renditions of its photo that went out (null without a photo). All that "Noch einen für
+ * jemand anderen" needs (`another`) -- and not the photo as the member chose it from the device,
+ * which is let go once the greeting is made.
+ */
+let made = null
+
+/**
  * Why the greeting was not made, in the page's words: a photo that cannot be made small enough,
  * or one the server did not take, in the sentences the chat says it with; anything else as the
  * server says it.
@@ -772,6 +820,7 @@ async function create() {
   // What is sent is the greeting as it stands at this press: the member may walk back with the
   // device's own key and change a field, or the picture, while the chain is under way.
   const sent = { amount: amountToSend.value, memo: memo.value, greeting: { ...greeting.value } }
+  const sentForm = { ...form }
   const sentPhoto = photoChosen.value ? photo.value : null
   try {
     const pictures = sentPhoto
@@ -800,7 +849,13 @@ async function create() {
     // is the one that was sent. Its photo is the one this page holds -- the server is not asked
     // for it.
     created.value = { ...link, picture: sentPhoto?.preview ?? null }
-    // The photo as decoded is needed no more: it is let go, and the device has its memory back.
+    // Kept for one more of the same (`another`): the fields as they were sent, and the two
+    // renditions of the photo that went out -- two small JPEGs.
+    made = { form: sentForm, renditions: pictures }
+    // ⛔ The photo itself is let go, as ever: what stands in the form now is no greeting any
+    // more, the picture as the device handed it over is many times the size of what was sent,
+    // and the result is the page the member leaves for a messenger and comes back to. The
+    // device has its memory back.
     photo.value = null
     // The balance and the sum of open links have changed (as pages/Send.vue says it).
     emit('update-transactions', {})
@@ -811,6 +866,69 @@ async function create() {
   } finally {
     pending.value = false
   }
+}
+
+// "Für wen?", for the caret of a greeting begun with `another`.
+const nameInput = ref(null)
+
+/**
+ * "Noch einen für jemand anderen" on the result (ZE-030): a NEW greeting with everything the one
+ * just made carried -- picture, first line, words, amount --, for the next person. Only "Für
+ * wen?" is empty, and the caret stands in it: the greeting for the next person would carry the
+ * name of the first otherwise. It opens at the words, its picture one step back.
+ *
+ * - Its photo is opened from the two renditions the page sent a moment ago, as the photo of a
+ *   duplicated greeting is (`takeOverPhoto`): they go out again as they are (`create`), and cut
+ *   anew, the large one is the picture. The member chooses nothing anew, and the server is not
+ *   asked for it. Where it does not open, the new greeting stays at its picture and says so.
+ * - ⛔ The order: first the new greeting stands in the page -- fields, photo, and `created`,
+ *   `reached` and `tried` taken back --, THEN the step changes. With `created` still set, the
+ *   watcher above leads to the list of links. (The line of an error needs no taking back: it is
+ *   empty whenever a greeting is made -- `create` empties it before it begins.)
+ * - ⛔ The greeting made before is made, and stays so. The new one has a number of its own
+ *   (`greetingNumber`): its picture takes the place of the result in the history, and every
+ *   entry of the old one leads to the list of links from now on.
+ */
+async function another() {
+  // What the greeting just made left is taken once: a second tap finds nothing to begin with,
+  // also while the photo opens.
+  if (!made) return
+  const last = made
+  made = null
+  let again = null
+  if (last.renditions) {
+    try {
+      again = await openThankYouRenditions({
+        small: last.renditions.small.data,
+        large: last.renditions.large?.data ?? null,
+      })
+    } catch {
+      again = null
+    }
+    if (!alive) return
+  }
+  const photoMissing = last.renditions !== null && again === null
+  Object.assign(form, last.form, { recipientName: '' })
+  if (photoMissing) form.motif = THANK_YOU_MOTIF_KEYS[0]
+  photo.value = again
+  takeover.value = photoMissing ? MISSING : null
+  allLinesOpen.value = false
+  tried.value = false
+  created.value = null
+  greetingNumber.value += 1
+  reached.clear()
+  reached.add(PICTURE)
+  const own = route.path
+  await router.replace(here({}))
+  // ⛔ Only where that step arrived at this page. The wallet's guard may lead elsewhere -- a
+  // session that ran out: the sign-in page --, and the words of a greeting are pushed onto no
+  // other page's address.
+  if (route.path !== own) return
+  // Without its photo the new greeting stays at its picture, where the sentence says so.
+  if (photoMissing) return
+  await go(WORDS)
+  await nextTick()
+  if (alive) nameInput.value?.focus()
 }
 </script>
 
