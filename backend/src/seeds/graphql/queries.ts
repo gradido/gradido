@@ -746,6 +746,57 @@ export const queryTransactionLinkUserLocation = gql`
   }
 `
 
+// Seven settings a member decides about their own account, asked for over the same three
+// ways as the position above.
+export const verifyLoginOwnSettings = gql`
+  query {
+    verifyLogin {
+      gradidoID
+      hideAmountGDD
+      hideAmountGDT
+      gmsAllowed
+      humhubAllowed
+      gmsPublishLocation
+      gmsPublishName
+      humhubPublishName
+    }
+  }
+`
+
+export const userOwnSettings = gql`
+  query ($identifier: String!, $communityIdentifier: String!) {
+    user(identifier: $identifier, communityIdentifier: $communityIdentifier) {
+      gradidoID
+      hideAmountGDD
+      hideAmountGDT
+      gmsAllowed
+      humhubAllowed
+      gmsPublishLocation
+      gmsPublishName
+      humhubPublishName
+    }
+  }
+`
+
+export const queryTransactionLinkOwnSettings = gql`
+  query ($code: String!) {
+    queryTransactionLink(code: $code) {
+      ... on TransactionLink {
+        senderUser {
+          gradidoID
+          hideAmountGDD
+          hideAmountGDT
+          gmsAllowed
+          humhubAllowed
+          gmsPublishLocation
+          gmsPublishName
+          humhubPublishName
+        }
+      }
+    }
+  }
+`
+
 export const thankYouCardPaymentTarget = gql`
   query ($code: String!) {
     thankYouCardPaymentTarget(code: $code) {

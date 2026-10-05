@@ -6,6 +6,7 @@ import { SearchUsersFilters } from '@arg/SearchUsersFilters'
 import { SetUserRoleArgs } from '@arg/SetUserRoleArgs'
 import { UnsecureLoginArgs } from '@arg/UnsecureLoginArgs'
 import { UpdateUserInfosArgs } from '@arg/UpdateUserInfosArgs'
+import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
 import { OptInType } from '@enum/OptInType'
 import { Order } from '@enum/Order'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
@@ -1778,6 +1779,85 @@ export class UserResolver {
       return null
     }
     return user.userLocation ?? null
+  }
+
+  /**
+   * Seven settings a member decides about their own account: whether the two balances are
+   * hidden, whether they take part in the member search and in HumHub, and how they appear
+   * there. Guarded like the two switches above and for the reason given there -- what a
+   * member decided about their own account is nobody else's to read, and this type leaves
+   * through `user()` to anyone logged in and through `queryTransactionLink` with no token.
+   * As for the position: somebody has to be asking, and it has to be the member.
+   *
+   * Nobody asks for them about anybody else. The wallet reads five of them off `login` and
+   * `verifyLogin`, the end-to-end login the two about the balances; `gmsPublishName` and
+   * `humhubPublishName` no client asks for at all, and the admin interface asks for none.
+   * What the server itself decides by them -- whom to send to the GMS, whom to sync with
+   * HumHub -- it reads off the user row, which a field resolver does not touch.
+   *
+   * Null rather than throwing, like the guards above; the four booleans are nullable in the
+   * schema for that alone (see the model).
+   */
+  @FieldResolver(() => Boolean, { nullable: true })
+  hideAmountGDD(@Root() user: User, @Ctx() context: Context): boolean | null {
+    if (!context.user || context.user.id !== user.id) {
+      return null
+    }
+    return user.hideAmountGDD ?? null
+  }
+
+  /** Same guard as hideAmountGDD above. */
+  @FieldResolver(() => Boolean, { nullable: true })
+  hideAmountGDT(@Root() user: User, @Ctx() context: Context): boolean | null {
+    if (!context.user || context.user.id !== user.id) {
+      return null
+    }
+    return user.hideAmountGDT ?? null
+  }
+
+  /** Same guard as hideAmountGDD above. */
+  @FieldResolver(() => Boolean, { nullable: true })
+  gmsAllowed(@Root() user: User, @Ctx() context: Context): boolean | null {
+    if (!context.user || context.user.id !== user.id) {
+      return null
+    }
+    return user.gmsAllowed ?? null
+  }
+
+  /** Same guard as hideAmountGDD above. */
+  @FieldResolver(() => Boolean, { nullable: true })
+  humhubAllowed(@Root() user: User, @Ctx() context: Context): boolean | null {
+    if (!context.user || context.user.id !== user.id) {
+      return null
+    }
+    return user.humhubAllowed ?? null
+  }
+
+  /** Same guard as hideAmountGDD above. */
+  @FieldResolver(() => GmsPublishLocationType, { nullable: true })
+  gmsPublishLocation(@Root() user: User, @Ctx() context: Context): GmsPublishLocationType | null {
+    if (!context.user || context.user.id !== user.id) {
+      return null
+    }
+    return user.gmsPublishLocation ?? null
+  }
+
+  /** Same guard as hideAmountGDD above. */
+  @FieldResolver(() => PublishNameType, { nullable: true })
+  gmsPublishName(@Root() user: User, @Ctx() context: Context): PublishNameType | null {
+    if (!context.user || context.user.id !== user.id) {
+      return null
+    }
+    return user.gmsPublishName ?? null
+  }
+
+  /** Same guard as hideAmountGDD above. */
+  @FieldResolver(() => PublishNameType, { nullable: true })
+  humhubPublishName(@Root() user: User, @Ctx() context: Context): PublishNameType | null {
+    if (!context.user || context.user.id !== user.id) {
+      return null
+    }
+    return user.humhubPublishName ?? null
   }
 
   /**

@@ -99,6 +99,7 @@ import {
   memberAvatarFull,
   memberAvatars,
   queryOptIn,
+  queryTransactionLinkOwnSettings,
   queryTransactionLinkUserLocation,
   searchAdminUsers,
   searchUsers,
@@ -106,6 +107,7 @@ import {
   userAvatar,
   userEmailContact,
   userLocationQuery,
+  userOwnSettings,
   user as userQuery,
   userTransfersInChat,
   userUserLocation,
@@ -113,6 +115,7 @@ import {
   verifyLoginAboutMe,
   verifyLoginAvatar,
   verifyLoginEmailContact,
+  verifyLoginOwnSettings,
   verifyLoginTransfersInChat,
   verifyLoginUserLocation,
 } from '@/seeds/graphql/queries'
@@ -3873,6 +3876,150 @@ describe('UserResolver', () => {
       const own = Object.assign(new UserModel(null), { id: 7, userLocation: BIBIS_PLACE })
       expect(guard.ownUserLocation(own, callerWithId(7))).toEqual(BIBIS_PLACE)
     })
+  })
+
+  // Seven settings a member decides about their own account: whether the two balances are
+  // hidden, whether they take part in the member search and in HumHub, and how they appear
+  // there. Theirs alone, like the switch for the picture and the one for the transfers: not
+  // another member's, not the moderation's, and not for whoever holds the code of a link
+  // they made.
+  describe('the settings a member decides about their own account', () => {
+    // What the member's row holds. Every one of them away from the value a new account
+    // starts with, so that an answer made of defaults cannot pass for the member's own.
+    const OWN = {
+      hideAmountGDD: true,
+      hideAmountGDT: true,
+      gmsAllowed: true,
+      humhubAllowed: false,
+      gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_EXACT,
+      gmsPublishName: PublishNameType.PUBLISH_NAME_FIRST_INITIAL,
+      humhubPublishName: PublishNameType.PUBLISH_NAME_FULL,
+    }
+    // The same seven, each with another value: for turning one of them over at a time.
+    const TURNED_OVER: typeof OWN = {
+      hideAmountGDD: false,
+      hideAmountGDT: false,
+      gmsAllowed: false,
+      humhubAllowed: true,
+      gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_APPROXIMATE,
+      gmsPublishName: PublishNameType.PUBLISH_NAME_INITIALS,
+      humhubPublishName: PublishNameType.PUBLISH_NAME_FIRST,
+    }
+    const SETTINGS = Object.keys(OWN) as (keyof typeof OWN)[]
+    // A row as the schema answers it: the switches as they are, the three choices by name.
+    const answered = (row: typeof OWN) => ({
+      ...row,
+      gmsPublishLocation: GmsPublishLocationType[row.gmsPublishLocation],
+      gmsPublishName: PublishNameType[row.gmsPublishName],
+      humhubPublishName: PublishNameType[row.humhubPublishName],
+    })
+    let homeCom: DbCommunity
+    let owner: User
+    let linkCode: string
+
+    const signIn = (email: string): Promise<any> =>
+      mutate({ mutation: login, variables: { email, password: 'Aa12345_' } })
+
+    beforeAll(async () => {
+      await cleanDB()
+      homeCom = await writeHomeCommunityEntry()
+      owner = await userFactory(testEnv, bibiBloxberg)
+      await userFactory(testEnv, bobBaumeister)
+      await userFactory(testEnv, peterLustig)
+      // Written to the row and read back: the fixture has to prove itself, or the cases
+      // below hold for a reason that has nothing to do with who is asking.
+      await User.update({ id: owner.id }, OWN)
+      expect(await User.findOneOrFail({ where: { id: owner.id } })).toEqual(
+        expect.objectContaining(OWN),
+      )
+      const link = await dbTransactionLinkFactory(
+        { email: '', amount: 20, memo: 'Danke fuer die Hilfe im Garten.' },
+        owner.id,
+      )
+      linkCode = link.code
+    })
+
+    afterAll(async () => {
+      resetToken()
+      await cleanDB()
+    })
+
+    // Seven guards of one shape, so each has to show that it answers from ITS OWN column:
+    // one setting at a time is turned over in the row, and exactly that one may read
+    // differently. Three of the four switches stand alike in the row; without this, one of
+    // them answering for another would go unnoticed.
+    it.each(SETTINGS)('shows a member their own %s, from its own column', async (setting) => {
+      await signIn('bibi@bloxberg.de')
+      const before: any = await query({ query: verifyLoginOwnSettings })
+      expect(before.data.verifyLogin).toEqual({ gradidoID: owner.gradidoID, ...answered(OWN) })
+
+      const oneTurnedOver = { ...OWN, [setting]: TURNED_OVER[setting] }
+      await User.update({ id: owner.id }, oneTurnedOver)
+      try {
+        const after: any = await query({ query: verifyLoginOwnSettings })
+        expect(after.data.verifyLogin).toEqual({
+          gradidoID: owner.gradidoID,
+          ...answered(oneTurnedOver),
+        })
+      } finally {
+        await User.update({ id: owner.id }, OWN)
+      }
+    })
+
+    it.each(SETTINGS)('hands a member their own %s with the login itself', async (setting) => {
+      const res: any = await signIn('bibi@bloxberg.de')
+      expect(res.data.login[setting]).toBe(answered(OWN)[setting])
+    })
+
+    const asksForOwner = (): Promise<any> =>
+      query({
+        query: userOwnSettings,
+        variables: { identifier: owner.gradidoID, communityIdentifier: homeCom.communityUuid },
+      })
+
+    it.each(SETTINGS)('hides %s from another logged-in member', async (setting) => {
+      await signIn('bob@baumeister.de')
+      const res: any = await asksForOwner()
+      // The member is found and nothing was refused - only the field is withheld.
+      expect(res.errors).toBeUndefined()
+      expect(res.data.user.gradidoID).toBe(owner.gradidoID)
+      expect(res.data.user[setting]).toBeNull()
+    })
+
+    it.each(SETTINGS)('hides %s from the moderation as well', async (setting) => {
+      await signIn('peter@lustig.de')
+      const res: any = await asksForOwner()
+      expect(res.errors).toBeUndefined()
+      expect(res.data.user.gradidoID).toBe(owner.gradidoID)
+      expect(res.data.user[setting]).toBeNull()
+    })
+
+    it.each(SETTINGS)(
+      'hides %s of the member who made a link from whoever holds its code',
+      async (setting) => {
+        resetToken()
+        const res: any = await query({
+          query: queryTransactionLinkOwnSettings,
+          variables: { code: linkCode },
+        })
+        expect(res.errors).toBeUndefined()
+        expect(res.data.queryTransactionLink.senderUser.gradidoID).toBe(owner.gradidoID)
+        expect(res.data.queryTransactionLink.senderUser[setting]).toBeNull()
+      },
+    )
+
+    // ⛔ Somebody has to be asking -- the case of the position above, for each of the seven.
+    it.each(SETTINGS)(
+      'hides %s on a member object without an id from a caller without a login',
+      (setting) => {
+        const guard = new UserResolver()
+        const withoutId = Object.assign(new UserModel(null), OWN)
+        expect(guard[setting](withoutId, callerWithId(undefined))).toBeNull()
+        // Asked the same way, it does answer the member whose object it is.
+        const own = Object.assign(new UserModel(null), { id: 7, ...OWN })
+        expect(guard[setting](own, callerWithId(7))).toBe(OWN[setting])
+      },
+    )
   })
 
   // The address is the member's own - and the moderation's, which needs it to reach people.

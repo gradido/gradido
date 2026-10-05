@@ -166,16 +166,24 @@ export class User {
   @Field(() => String)
   language: string
 
-  @Field(() => Boolean)
+  // Four settings a member decides about their own account -- with gmsPublishName,
+  // humhubPublishName and gmsPublishLocation further down, seven. Own view only, each
+  // guarded by a field resolver in UserResolver like avatarVisibleToMembers below: what a
+  // member decided about their own account is nobody else's to read, and `user()` finds any
+  // member by alias, gradido ID or confirmed address for anyone logged in.
+  //
+  // Nullable in the schema for that reason alone: null means "not yours to know". The owner
+  // is answered as before.
+  @Field(() => Boolean, { nullable: true })
   hideAmountGDD: boolean
 
-  @Field(() => Boolean)
+  @Field(() => Boolean, { nullable: true })
   hideAmountGDT: boolean
 
-  @Field(() => Boolean)
+  @Field(() => Boolean, { nullable: true })
   humhubAllowed: boolean
 
-  @Field(() => Boolean)
+  @Field(() => Boolean, { nullable: true })
   gmsAllowed: boolean
 
   // Whether other members may see this member's picture. Own view only, like aboutMe and
@@ -209,7 +217,7 @@ export class User {
   //
   // No field resolver and no right on it, unlike salutation and avatarVisibleToMembers
   // above — and the reason is the KIND of datum, not an oversight: this is a property of
-  // the account like hideAmountGDD, not something the moderation noted about a person or
+  // the account, not something the moderation noted about a person or
   // a decision about who may look at them. That an account belongs to an association or a
   // shop is what such an account tells everybody anyway. What it PROTECTS is enforced
   // elsewhere: the deny-list in isAuthorized (RESTRICTED_FOR_PROJECT_ACCOUNT), which reads
@@ -217,6 +225,7 @@ export class User {
   @Field(() => Boolean)
   creationAllowed: boolean
 
+  // Own view only, the next three: guarded with the four settings above.
   @Field(() => PublishNameType, { nullable: true })
   gmsPublishName: PublishNameType | null
 
