@@ -70,9 +70,22 @@
         >
           {{ $t('thank-you-greeting.picture.not-taken-over') }}
         </p>
-        <thank-you-picture-choice v-model:motif="form.motif" v-model:photo="photo" />
+        <!-- While the photo of a duplicated greeting is on its way, its tile waits for it and
+             the page does not go on: the greeting is made with the picture the page shows. -->
+        <thank-you-picture-choice
+          :motif="form.motif"
+          :photo="photo"
+          :busy="photoComing"
+          @update:motif="chooseMotif"
+          @update:photo="choosePhoto"
+        />
         <div class="tyg-actions">
-          <BButton variant="gradido" data-test="thank-you-greeting-next" @click="go(WORDS)">
+          <BButton
+            variant="gradido"
+            :disabled="photoComing"
+            data-test="thank-you-greeting-next"
+            @click="go(WORDS)"
+          >
             {{ $t('thank-you-greeting.next') }}
           </BButton>
         </div>
@@ -317,7 +330,7 @@ import { computed, onUnmounted, reactive, ref, shallowRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
-import { useMutation } from '@vue/apollo-composable'
+import { useApolloClient, useMutation } from '@vue/apollo-composable'
 import { BButton, BFormInput, BFormTextarea } from 'bootstrap-vue-next'
 import ValidatedInput from '@/components/Inputs/ValidatedInput.vue'
 import RedeemThanksPaper from '@/components/LinkInformations/RedeemThanksPaper.vue'
@@ -328,6 +341,7 @@ import { useAmountInText } from '@/composables/useAmountInText'
 import { rememberGreetingPicture } from '@/composables/useGreetingPictures'
 import { useLinkDraft } from '@/composables/useLinkDraft'
 import { addThankYouGreetingPicture, createTransactionLink } from '@/graphql/mutations'
+import { thankYouGreetingPictureRenditions } from '@/graphql/queries'
 import { chatImageProblemWords, chatImageRefusal } from '@/utils/chatImage'
 import {
   greetingMemo,
@@ -336,7 +350,11 @@ import {
   THANK_YOU_RECIPIENT_NAME_MAX_CHARS,
 } from '@/utils/thankYouGreeting'
 import { THANK_YOU_MOTIF_KEYS } from '@/utils/thankYouMotifs'
-import { encodeThankYouPictures, thankYouPictureInput } from '@/utils/thankYouPicture'
+import {
+  encodeThankYouPictures,
+  openThankYouRenditions,
+  thankYouPictureInput,
+} from '@/utils/thankYouPicture'
 import {
   amount as amountUpTo,
   memo as memoSchema,
@@ -447,6 +465,11 @@ const allLinesOpen = ref(false)
  * decoded, what was done to it in the editor, and the edited picture for the eye. It stays in its
  * tile while a motif is the choice.
  *
+ * A photo that came from a greeting made before -- the old one of a duplicate -- carries
+ * `renditions` as well: the two JPEGs that greeting was made with. ⛔ They go out with the new
+ * greeting as they are (`create`), until the member cuts the photo anew: what the editor hands
+ * back is a photo without them.
+ *
  * ⛔ In the memory of this page only, like everything typed here: never the store (which is
  * mirrored into the device's storage) and never Apollo's cache. A shallow ref: nothing inside it
  * changes, and a decoded picture is no business of Vue's reactivity.
@@ -478,9 +501,20 @@ const duplicatedMotif =
   THANK_YOU_MOTIF_KEYS.includes(duplicated.greeting.motif)
     ? duplicated.greeting.motif
     : null
-// The old greeting carried a photo of the member's own, and that does not come along: the first
-// motif is the choice, and a sentence at the picture says so until a photo is chosen anew.
-const photoNotTakenOver = duplicated?.greeting.hasPicture === true
+/**
+ * The photo of the old greeting, where it carried one of the member's own: on its way from the
+ * server, here, or not come (`takeOverPhoto`). Null where there is none to wait for.
+ * - On its way, the first motif stands as the choice, the tile of the photo waits, and the page
+ *   does not go on: ⛔ no greeting is made with another picture than the page shows.
+ * - Not come -- deleted meanwhile, or the line --, a sentence at the picture says so until a
+ *   photo is chosen anew.
+ */
+const COMING = 'coming'
+const HERE = 'here'
+const MISSING = 'missing'
+const takeover = ref(duplicated?.greeting.hasPicture === true ? COMING : null)
+const photoComing = computed(() => takeover.value === COMING)
+const photoNotTakenOver = computed(() => takeover.value === MISSING)
 if (duplicated) {
   const old = greetingParts(duplicated.memo, duplicated.greeting.line)
   const suggestion = LINE_KEYS.find((key) => lineText(key) === old.line)
@@ -490,6 +524,18 @@ if (duplicated) {
   form.ownLine = !suggestion && old.line ? old.line : ''
   form.words = old.words
   form.amount = amountInText(duplicated.amount)
+}
+
+// The picture the member chooses (ThankYouPictureChoice). A motif chosen while the old photo is
+// still on its way is the member's answer: the photo is waited for no longer, and whenever it
+// lands it is let go (`takeOverPhoto`).
+const chooseMotif = (key) => {
+  if (photoComing.value) takeover.value = null
+  form.motif = key
+}
+const choosePhoto = (chosen) => {
+  if (photoComing.value) takeover.value = null
+  photo.value = chosen
 }
 
 const chooseLine = (key) => {
@@ -625,13 +671,72 @@ watch(
 // sight. ⛔ On the page's own way (`go`), from the entry of the picture the list led to. An
 // address that names the words is turned back to the picture (above), and marking the words as
 // reached without walking there would leave no picture behind them.
-// Where the old picture did not come along, the page stays at the picture.
+// A greeting with a photo of the member's own goes the same way once the photo is here
+// (`takeOverPhoto`); where the old picture does not come along, the page stays at the picture.
 if (duplicatedMotif) go(WORDS)
 
 let alive = true
 onUnmounted(() => {
   alive = false
 })
+
+// Looked at only where the server is asked for the photo of a duplicated greeting.
+const apollo = useApolloClient()
+
+/** How long the photo of a duplicated greeting is waited for, before the page says it did not come. */
+const PHOTO_TAKEOVER_MAX_MS = 15000
+
+/**
+ * Fetches the photo of the old greeting of a duplicate and puts it into its tile, as the choice:
+ * both renditions in one request of this page's own (thankYouGreetingPictureRenditions,
+ * `no-cache`), kept in this page's memory and nowhere else.
+ * ⛔ Not through the store of the list's photos (useGreetingPictures): that one knows a link by
+ * its id and hands back the SMALL rendition it remembers, without asking -- the duplicate would
+ * be made of the small picture, without a word.
+ *
+ * With the photo in its tile the page goes on to the words, as it does for a motif. Where the
+ * photo does not come -- the old link is deleted meanwhile, the line fails, the answer is no
+ * picture, or none is there within PHOTO_TAKEOVER_MAX_MS --, the page stays at the picture and
+ * says so.
+ *
+ * ⛔ The answer is placed only where it is still waited for: not once the member chose a motif
+ * themselves, and not in a page that was left.
+ */
+const takeOverPhoto = async (linkId) => {
+  let giveUp
+  const tooLate = new Promise((_resolve, reject) => {
+    giveUp = setTimeout(() => reject(new Error('no photo in time')), PHOTO_TAKEOVER_MAX_MS)
+  })
+  let taken = null
+  try {
+    taken = await Promise.race([
+      apollo.client
+        .query({
+          query: thankYouGreetingPictureRenditions,
+          variables: { linkId },
+          fetchPolicy: 'no-cache',
+        })
+        .then(({ data }) =>
+          openThankYouRenditions({ small: data?.small ?? null, large: data?.large ?? null }),
+        ),
+      tooLate,
+    ])
+  } catch {
+    taken = null
+  } finally {
+    clearTimeout(giveUp)
+  }
+  if (!alive || !photoComing.value) return
+  if (!taken) {
+    takeover.value = MISSING
+    return
+  }
+  photo.value = taken
+  form.motif = null
+  takeover.value = HERE
+  if (step.value === PICTURE) go(WORDS)
+}
+if (photoComing.value) takeOverPhoto(duplicated.id)
 
 const { mutate: createLink } = useMutation(createTransactionLink)
 const { mutate: addPicture } = useMutation(addThankYouGreetingPicture)
@@ -654,6 +759,10 @@ const createProblemWords = (error) => {
  *   3. the LARGE rendition follows in a request of its own -- the two do not fit into one.
  * ⛔ Step 3 may fail without a word: the greeting stands, and the page its link opens as shows
  * the small rendition then. No second try -- that would be a second request for the same row.
+ *
+ * ⛔ A photo that came from a greeting made before (`renditions`) skips step 1: the two JPEGs
+ * that greeting was made with go out as they are, byte for byte. Encoded again, the new
+ * greeting would carry another picture than the old one -- a step coarser, or a size smaller.
  */
 async function create() {
   // Locked while the chain is on its way, and for good once it has made a greeting.
@@ -666,7 +775,7 @@ async function create() {
   const sentPhoto = photoChosen.value ? photo.value : null
   try {
     const pictures = sentPhoto
-      ? await encodeThankYouPictures(sentPhoto.source, sentPhoto.edit)
+      ? (sentPhoto.renditions ?? (await encodeThankYouPictures(sentPhoto.source, sentPhoto.edit)))
       : null
     const result = await createLink({
       amount: sent.amount,
@@ -688,7 +797,7 @@ async function create() {
     }
     // What the result shows is the server's answer, not the form: the member may have walked
     // back and changed a field while the request was under way, and the greeting that exists
-    // is the one that was sent. Its photo is the one this page made -- the server is not asked
+    // is the one that was sent. Its photo is the one this page holds -- the server is not asked
     // for it.
     created.value = { ...link, picture: sentPhoto?.preview ?? null }
     // The photo as decoded is needed no more: it is let go, and the device has its memory back.

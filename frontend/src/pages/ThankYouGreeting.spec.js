@@ -5,9 +5,14 @@ import { createStore } from 'vuex'
 import { BFormGroup, BFormInput, BFormInvalidFeedback, BFormTextarea } from 'bootstrap-vue-next'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import i18n from '@/i18n'
-import { forgetAllGreetingPictures, greetingPicture } from '@/composables/useGreetingPictures'
+import {
+  forgetAllGreetingPictures,
+  greetingPicture,
+  rememberGreetingPicture,
+} from '@/composables/useGreetingPictures'
 import { clearLinkDraft, useLinkDraft } from '@/composables/useLinkDraft'
 import { addThankYouGreetingPicture, createTransactionLink } from '@/graphql/mutations'
+import { thankYouGreetingPictureRenditions } from '@/graphql/queries'
 import { THANK_YOU_PICTURE_GROUND } from '@/utils/thankYouPicture'
 import ThankYouGreeting from './ThankYouGreeting.vue'
 
@@ -17,7 +22,7 @@ import ThankYouGreeting from './ThankYouGreeting.vue'
  * with the arrow, the back key and the forward key -- not what a stub of the router would
  * agree to. Only the server is stood in for.
  */
-const server = vi.hoisted(() => ({ documents: [], mutate: null, add: null }))
+const server = vi.hoisted(() => ({ documents: [], mutate: null, add: null, query: null }))
 vi.mock('@vue/apollo-composable', () => ({
   useMutation: (document) => {
     server.documents.push(document)
@@ -27,12 +32,13 @@ vi.mock('@vue/apollo-composable', () => ({
         document === addThankYouGreetingPicture ? server.add(...args) : server.mutate(...args),
     }
   },
-  // "Fertig" offers the greeting on paper (useThankYouGreetingSheet). That asks for the client
-  // only where the server has to be asked for a photo -- which a page that made the photo
-  // itself never is: a client that is looked at here throws.
+  // The server is asked for a photo in one place alone: where a greeting is duplicated that
+  // carried one of the member's own (`server.query`, set by the tests of that). Everywhere else
+  // a question throws -- "Fertig" offers the greeting on paper (useThankYouGreetingSheet), and
+  // a page that made or fetched the photo itself never asks the server for it.
   useApolloClient: () => ({
     get client() {
-      throw new Error('"Fertig" asked the server for a photo it holds itself')
+      return { query: (...args) => server.query(...args) }
     },
   }),
 }))
@@ -214,6 +220,9 @@ describe('ThankYouGreeting', () => {
     server.documents = []
     server.mutate = vi.fn((variables) => Promise.resolve(answerTo(variables)))
     server.add = vi.fn(() => Promise.resolve({ data: { addThankYouGreetingPicture: true } }))
+    server.query = vi.fn(() => {
+      throw new Error('the server was asked for a photo the page holds itself')
+    })
     pictures.openChatImage.mockResolvedValue(PHOTO)
     pictures.thankYouPicturePreview.mockReturnValue(PREVIEW)
     pictures.encodeThankYouPictures.mockResolvedValue({ small: SMALL, large: LARGE })
@@ -1654,72 +1663,540 @@ describe('ThankYouGreeting', () => {
     })
 
     /**
-     * The old greeting carried a photo of the member's own. It does not come along: the page
-     * opens at the picture, the first motif is the choice, and a sentence says so.
+     * The old greeting carried a photo of the member's own, and the duplicate carries it along:
+     * the page fetches both renditions of the old link -- in one request of its own, past every
+     * cache --, puts the photo into its tile as the choice and goes on to the words. As long as
+     * the member does not cut it anew, the two renditions go out again as they came, byte for
+     * byte. Where the photo does not come, the page stays at the picture and says so.
      */
     describe('one that carried a photo', () => {
       const WITH_PHOTO = old({ motif: null, hasPicture: true })
+      // Base64, as the server answers; told apart by their length where they are decoded.
+      const OLD_SMALL = btoa('the small rendition of the old photo')
+      const OLD_LARGE = btoa('the large rendition of the old photo, as large as the page shows it')
+      const OLD_LARGE_BYTES = atob(OLD_LARGE).length
+      const OLD_SOURCE = { image: { name: 'old-large' }, width: 1080, height: 750 }
+      const OLD_SMALL_SOURCE = { image: { name: 'old-small' }, width: 831, height: 577 }
+      const OLD_PREVIEW = `data:image/jpeg;base64,${OLD_LARGE}`
 
-      it('opens at the picture, the first motif chosen, and says that the photo did not come along', async () => {
-        await duplicate(WITH_PHOTO)
-
-        expect(step()).toBe('picture')
-        expect(chosenMotifs()).toEqual(['Herz und Blätter'])
-        expect(notTakenOver().text()).toBe(
-          'Das Foto ließ sich nicht übernehmen. Wähle es neu aus oder nimm ein Motiv.',
-        )
-        // The tile of the photo is empty: it is chosen anew there.
-        expect(data('photo-choose').exists()).toBe(true)
-        expect(data('photo').exists()).toBe(false)
-      })
-
-      // (A client that is looked at throws: see the stand-in for Apollo above.)
-      it('asks the server for nothing', async () => {
-        await duplicate(WITH_PHOTO)
-
-        expect(server.mutate).not.toHaveBeenCalled()
-        expect(server.add).not.toHaveBeenCalled()
-        expect(greetingPicture(OLD.id)).toBeNull()
-      })
-
-      it('has the words filled in all the same', async () => {
-        await duplicate(WITH_PHOTO)
-        await next()
-
-        expect(nameField()).toBe('Sarah')
-        expect(chosenLines()).toEqual([LINE])
-        expect(wordsField()).toBe(OWN_WORDS)
-        expect(amountField()).toBe('20')
-      })
-
-      it('says it until a photo is chosen anew, and not after', async () => {
-        await duplicate(WITH_PHOTO)
-        await data('motif-morning-light').trigger('click')
-        expect(notTakenOver().exists()).toBe(true)
-        await next()
-        await historyGo(-1)
-        expect(notTakenOver().exists()).toBe(true)
-
-        await choosePhoto()
-
-        expect(notTakenOver().exists()).toBe(false)
-        expect(data('photo').attributes('aria-pressed')).toBe('true')
-      })
-
-      it('goes out with the motif that stands there where no photo is chosen anew', async () => {
-        await duplicate(WITH_PHOTO)
-        await next()
+      const answered = (small = OLD_SMALL, large = OLD_LARGE) =>
+        Promise.resolve({ data: { small, large } })
+      const paperPhoto = () => wrapper.find('[data-test="redeem-thanks-paper-photo"]')
+      const finish = async () => {
         await next()
         await data('finish').trigger('click')
         await settle()
+      }
+      const greetingSent = () => server.mutate.mock.calls[0][0].greeting
 
-        expect(server.mutate).toHaveBeenCalledTimes(1)
-        expect(server.mutate.mock.calls[0][0].greeting).toEqual({
-          motif: 'heart-leaves',
-          line: LINE,
-          recipientName: 'Sarah',
+      beforeEach(() => {
+        server.query = vi.fn(() => answered())
+        // A photo chosen from the device is the phone's; what the server answered is decoded
+        // as the rendition it is.
+        pictures.openChatImage.mockImplementation(async (file) => {
+          if (file.name === 'oma.jpg') return PHOTO
+          return file.size === OLD_LARGE_BYTES ? OLD_SOURCE : OLD_SMALL_SOURCE
         })
-        expect(server.add).not.toHaveBeenCalled()
+      })
+
+      describe('fetching it', () => {
+        it('asks the server once, for both renditions of the old link, past every cache', async () => {
+          await duplicate(WITH_PHOTO)
+
+          expect(server.query).toHaveBeenCalledTimes(1)
+          expect(server.query).toHaveBeenCalledWith({
+            query: thankYouGreetingPictureRenditions,
+            variables: { linkId: OLD.id },
+            fetchPolicy: 'no-cache',
+          })
+        })
+
+        /**
+         * ⛔ Not through the store of the list's photos: that one knows the link by its id and
+         * would hand back the small rendition it remembers, without asking -- the duplicate
+         * would be made of the small picture.
+         */
+        it('asks the server though the list remembers the small rendition of that link', async () => {
+          rememberGreetingPicture(OLD.id, 'REMEMBERED-SMALL')
+
+          await duplicate(WITH_PHOTO)
+          await historyGo(-1)
+
+          expect(server.query).toHaveBeenCalledTimes(1)
+          expect(data('photo-picture').attributes('src')).toBe(OLD_PREVIEW)
+        })
+
+        it('decodes what came, the large rendition and the small one', async () => {
+          await duplicate(WITH_PHOTO)
+
+          const sizes = pictures.openChatImage.mock.calls.map(([file]) => file.size).sort()
+          expect(sizes).toEqual([atob(OLD_SMALL).length, OLD_LARGE_BYTES].sort())
+        })
+
+        it('makes nothing, and asks for no photo of a greeting that carried a motif', async () => {
+          await duplicate(WITH_PHOTO)
+          expect(server.mutate).not.toHaveBeenCalled()
+          expect(server.add).not.toHaveBeenCalled()
+          wrapper.unmount()
+          server.query.mockClear()
+
+          await duplicate(OLD)
+
+          expect(server.query).not.toHaveBeenCalled()
+        })
+      })
+
+      describe('once it is here', () => {
+        it('opens at the words, everything filled in', async () => {
+          await duplicate(WITH_PHOTO)
+
+          expect(step()).toBe('words')
+          expect(nameField()).toBe('Sarah')
+          expect(chosenLines()).toEqual([LINE])
+          expect(wordsField()).toBe(OWN_WORDS)
+          expect(amountField()).toBe('20')
+        })
+
+        it('lies in its tile one step back, as the choice, and nothing says it is missing', async () => {
+          await duplicate(WITH_PHOTO)
+
+          await historyGo(-1)
+
+          expect(step()).toBe('picture')
+          expect(data('photo').attributes('aria-pressed')).toBe('true')
+          expect(data('photo-picture').attributes('src')).toBe(OLD_PREVIEW)
+          expect(chosenMotifs()).toEqual([])
+          expect(notTakenOver().exists()).toBe(false)
+          // The tile waits no more, and takes another photo again.
+          expect(data('own').classes()).not.toContain('is-busy')
+          expect(data('photo-picker').attributes('disabled')).toBeUndefined()
+          expect(data('next').attributes('disabled')).toBeUndefined()
+        })
+
+        it('leads back from the picture to where the member came from', async () => {
+          await duplicate(WITH_PHOTO)
+
+          await historyGo(-1)
+          await historyGo(-1)
+
+          expect(router.currentRoute.value.path).toBe('/transactions')
+        })
+
+        it('stands on the sheet of the last look as it came', async () => {
+          await duplicate(WITH_PHOTO)
+          await next()
+
+          expect(paperPhoto().attributes('src')).toBe(OLD_PREVIEW)
+          expect(wrapper.find('[data-test="redeem-thanks-paper-motif"]').exists()).toBe(false)
+        })
+
+        /**
+         * ⛔ In the memory of the page only: not under the id of the old link in the store of
+         * the list's photos, and nowhere a browser keeps things.
+         */
+        it('is kept by the page alone', async () => {
+          await duplicate(WITH_PHOTO)
+
+          const kept = [
+            JSON.stringify(window.history.state),
+            JSON.stringify(wrapper.vm.$store.state),
+            JSON.stringify({ ...localStorage }),
+            JSON.stringify({ ...sessionStorage }),
+            window.location.href,
+          ].join(' ')
+          expect(kept).not.toContain(OLD_SMALL)
+          expect(kept).not.toContain(OLD_LARGE)
+          expect(greetingPicture(OLD.id)).toBeNull()
+        })
+      })
+
+      describe('making it', () => {
+        /**
+         * ⛔ The very bytes that were fetched: the new greeting carries the picture the old one
+         * carries. Nothing is encoded -- a second encoding would be a step coarser.
+         */
+        it('sends the two renditions as they came, and encodes nothing', async () => {
+          await duplicate(WITH_PHOTO)
+
+          await finish()
+
+          expect(pictures.encodeThankYouPictures).not.toHaveBeenCalled()
+          expect(server.mutate).toHaveBeenCalledTimes(1)
+          expect(greetingSent()).toEqual({
+            motif: null,
+            line: LINE,
+            recipientName: 'Sarah',
+            picture: { data: OLD_SMALL, width: 831, height: 577 },
+          })
+          expect(server.add).toHaveBeenCalledTimes(1)
+          expect(server.add).toHaveBeenCalledWith({
+            linkId: LINK_ID,
+            picture: { data: OLD_LARGE, width: 1080, height: 750 },
+          })
+          expect(step()).toBe('done')
+        })
+
+        // The old greeting never got its large rendition: the server answers the small one twice.
+        it('sends the small rendition alone where the old greeting had no large one', async () => {
+          server.query = vi.fn(() => answered(OLD_SMALL, OLD_SMALL))
+          await duplicate(WITH_PHOTO)
+
+          await finish()
+
+          expect(greetingSent().picture).toEqual({ data: OLD_SMALL, width: 831, height: 577 })
+          expect(server.add).not.toHaveBeenCalled()
+          expect(pictures.encodeThankYouPictures).not.toHaveBeenCalled()
+        })
+
+        it('shows on "Fertig" the photo that came, and keeps the small one for the list under the NEW link', async () => {
+          await duplicate(WITH_PHOTO)
+
+          await finish()
+
+          expect(data('done-photo').attributes('src')).toBe(OLD_PREVIEW)
+          expect(greetingPicture(LINK_ID)).toEqual({
+            state: 'ready',
+            src: `data:image/jpeg;base64,${OLD_SMALL}`,
+          })
+          expect(greetingPicture(OLD.id)).toBeNull()
+          expect(server.query).toHaveBeenCalledTimes(1)
+        })
+
+        /**
+         * Cut anew -- a tap on the chosen photo, as ever --, the large rendition is the picture
+         * the editor is handed, and both renditions are made of it on the way of every photo.
+         */
+        it('hands the large rendition to the editor where the chosen photo is tapped', async () => {
+          await duplicate(WITH_PHOTO)
+          await historyGo(-1)
+
+          await data('photo').trigger('click')
+
+          expect(editor().props('modelValue')).toBe(true)
+          expect(editor().props('source')).toEqual(OLD_SOURCE)
+          expect(editor().props('edit')).toEqual(CARD_EDIT)
+        })
+
+        it('makes both renditions anew once the photo was cut anew', async () => {
+          const cut = { ...CARD_EDIT, zoom: 1.6, panX: 0.2 }
+          await duplicate(WITH_PHOTO)
+          await historyGo(-1)
+          await data('photo').trigger('click')
+          editor().vm.$emit('done', cut)
+          await flushPromises()
+          expect(data('photo-picture').attributes('src')).toBe(PREVIEW)
+          await next()
+
+          await finish()
+
+          expect(pictures.encodeThankYouPictures).toHaveBeenCalledTimes(1)
+          expect(pictures.encodeThankYouPictures).toHaveBeenCalledWith(OLD_SOURCE, cut)
+          expect(greetingSent().picture).toEqual({ data: 'SMALL-JPEG', width: 831, height: 577 })
+          expect(server.add).toHaveBeenCalledWith({
+            linkId: LINK_ID,
+            picture: { data: 'LARGE-JPEG', width: 1080, height: 750 },
+          })
+        })
+
+        // The editor left with "Abbrechen" hands nothing back: the photo stays the one that came.
+        it('still sends them as they came where the editor was left without a cut', async () => {
+          await duplicate(WITH_PHOTO)
+          await historyGo(-1)
+          await data('photo').trigger('click')
+          editor().vm.$emit('update:modelValue', false)
+          await flushPromises()
+          await next()
+
+          await finish()
+
+          expect(pictures.encodeThankYouPictures).not.toHaveBeenCalled()
+          expect(greetingSent().picture.data).toBe(OLD_SMALL)
+        })
+
+        it('lets another photo take its place', async () => {
+          await duplicate(WITH_PHOTO)
+          await historyGo(-1)
+          await choosePhoto()
+          await next()
+
+          await finish()
+
+          expect(pictures.encodeThankYouPictures).toHaveBeenCalledWith(PHOTO, CARD_EDIT)
+          expect(greetingSent().picture.data).toBe('SMALL-JPEG')
+        })
+
+        it('goes out with a motif where one was chosen instead, the photo staying in its tile', async () => {
+          await duplicate(WITH_PHOTO)
+          await historyGo(-1)
+          await data('motif-bouquet').trigger('click')
+          expect(data('photo-picture').attributes('src')).toBe(OLD_PREVIEW)
+          await next()
+
+          await finish()
+
+          expect(greetingSent()).toEqual({ motif: 'bouquet', line: LINE, recipientName: 'Sarah' })
+          expect(server.add).not.toHaveBeenCalled()
+        })
+
+        // Chosen again after a motif, it is still the photo that came: not a photo cut anew.
+        it('sends them as they came where the photo was chosen again after a motif', async () => {
+          await duplicate(WITH_PHOTO)
+          await historyGo(-1)
+          await data('motif-bouquet').trigger('click')
+          await data('photo').trigger('click')
+          expect(editor().props('modelValue')).toBe(false)
+          await next()
+
+          await finish()
+
+          expect(pictures.encodeThankYouPictures).not.toHaveBeenCalled()
+          expect(greetingSent().picture.data).toBe(OLD_SMALL)
+          expect(server.add.mock.calls[0][0].picture.data).toBe(OLD_LARGE)
+        })
+
+        it('makes one greeting for two taps on "Gruß fertigstellen"', async () => {
+          await duplicate(WITH_PHOTO)
+          await next()
+
+          data('finish').trigger('click')
+          data('finish').trigger('click')
+          await settle()
+
+          expect(server.mutate).toHaveBeenCalledTimes(1)
+          expect(server.add).toHaveBeenCalledTimes(1)
+        })
+      })
+
+      /**
+       * ⛔ No greeting is made with another picture than the page shows: while the photo is on
+       * its way the first motif stands there, and no way leads on to "Gruß fertigstellen".
+       */
+      describe('while it is on its way', () => {
+        let coming
+
+        beforeEach(async () => {
+          coming = deferred()
+          server.query = vi.fn(() => coming.promise)
+          await duplicate(WITH_PHOTO)
+        })
+
+        it('stays at the picture, the first motif chosen, and says nothing yet', () => {
+          expect(step()).toBe('picture')
+          expect(chosenMotifs()).toEqual(['Herz und Blätter'])
+          expect(notTakenOver().exists()).toBe(false)
+          expect(data('photo').exists()).toBe(false)
+        })
+
+        it('shows that the tile of the photo waits, and says so for the ear', () => {
+          expect(data('own').classes()).toContain('is-busy')
+          expect(data('own').attributes('aria-busy')).toBe('true')
+          expect(data('picture-status').text()).toBe('Bild wird vorbereitet …')
+        })
+
+        // What is about to land in the tile would land under an open editor.
+        it('takes no photo from the device meanwhile', () => {
+          expect(data('photo-picker').attributes('disabled')).toBeDefined()
+        })
+
+        it('does not go on: "Weiter" waits', async () => {
+          expect(data('next').attributes('disabled')).toBeDefined()
+
+          await data('next').trigger('click')
+          await settle()
+
+          expect(step()).toBe('picture')
+        })
+
+        it('shows no last look for an address that names it', async () => {
+          await router.push('/thank-you-greeting?step=preview')
+          await settle()
+
+          expect(step()).toBe('picture')
+          expect(data('finish').exists()).toBe(false)
+        })
+
+        it('puts the photo into its tile and goes on to the words when it lands', async () => {
+          coming.resolve({ data: { small: OLD_SMALL, large: OLD_LARGE } })
+          await settle()
+
+          expect(step()).toBe('words')
+          await historyGo(-1)
+          expect(data('photo').attributes('aria-pressed')).toBe('true')
+          expect(data('photo-picture').attributes('src')).toBe(OLD_PREVIEW)
+        })
+
+        /**
+         * ⛔ An answer is placed only where it is still waited for. A motif the member chose
+         * meanwhile is their answer: it stands, the page goes on at their word, and the photo
+         * is let go when it lands.
+         */
+        it('lets a motif the member chose stand, and lets the photo go when it lands', async () => {
+          await data('motif-bouquet').trigger('click')
+          expect(data('next').attributes('disabled')).toBeUndefined()
+          expect(data('own').classes()).not.toContain('is-busy')
+
+          coming.resolve({ data: { small: OLD_SMALL, large: OLD_LARGE } })
+          await settle()
+
+          expect(step()).toBe('picture')
+          expect(chosenMotifs()).toEqual(['Blumenstrauß'])
+          expect(data('photo').exists()).toBe(false)
+          expect(notTakenOver().exists()).toBe(false)
+        })
+
+        it('goes out with the motif the member chose meanwhile', async () => {
+          await data('motif-bouquet').trigger('click')
+          await next()
+          await finish()
+          coming.resolve({ data: { small: OLD_SMALL, large: OLD_LARGE } })
+          await settle()
+
+          expect(greetingSent()).toEqual({ motif: 'bouquet', line: LINE, recipientName: 'Sarah' })
+          expect(server.add).not.toHaveBeenCalled()
+          expect(step()).toBe('done')
+        })
+
+        it('puts nothing into a page that was left, and leads nowhere', async () => {
+          await router.push('/transactions')
+          await settle()
+
+          coming.resolve({ data: { small: OLD_SMALL, large: OLD_LARGE } })
+          await settle()
+
+          expect(router.currentRoute.value.fullPath).toBe('/transactions')
+        })
+
+        it('says that it did not come where the answer fails at last', async () => {
+          coming.reject(new Error('Failed to fetch'))
+          await settle()
+
+          expect(step()).toBe('picture')
+          expect(notTakenOver().exists()).toBe(true)
+          expect(data('next').attributes('disabled')).toBeUndefined()
+        })
+      })
+
+      // A line that neither answers nor fails: the page waits fifteen seconds and no longer.
+      describe('where no answer comes at all', () => {
+        afterEach(() => {
+          vi.useRealTimers()
+        })
+
+        it('waits fifteen seconds, then says that the photo did not come, and lets a late answer go', async () => {
+          vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+          const late = deferred()
+          server.query = vi.fn(() => late.promise)
+          await duplicate(WITH_PHOTO)
+
+          vi.advanceTimersByTime(14999)
+          await settle()
+          expect(notTakenOver().exists()).toBe(false)
+          expect(data('next').attributes('disabled')).toBeDefined()
+
+          vi.advanceTimersByTime(1)
+          await settle()
+          expect(notTakenOver().exists()).toBe(true)
+          expect(data('next').attributes('disabled')).toBeUndefined()
+          expect(data('photo-picker').attributes('disabled')).toBeUndefined()
+
+          late.resolve({ data: { small: OLD_SMALL, large: OLD_LARGE } })
+          await settle()
+          expect(step()).toBe('picture')
+          expect(data('photo').exists()).toBe(false)
+          expect(notTakenOver().exists()).toBe(true)
+        })
+      })
+
+      /**
+       * It does not come along -- the old link was deleted meanwhile, the line, an answer that
+       * is no picture: the page opens at the picture, the first motif is the choice, and a
+       * sentence says so.
+       */
+      describe('where it does not come', () => {
+        const NOT_COMING = {
+          'the server answers nothing': () => answered(null, null),
+          'the server answers no small rendition': () => answered(null, OLD_LARGE),
+          'the line fails': () => Promise.reject(new Error('Failed to fetch')),
+          'the answer carries no data': () => Promise.resolve({}),
+          'what came is not base64': () => answered('%%%', '%%%'),
+        }
+
+        it.each(Object.keys(NOT_COMING))(
+          'opens at the picture, the first motif chosen, and says so: %s',
+          async (how) => {
+            server.query = vi.fn(NOT_COMING[how])
+
+            await duplicate(WITH_PHOTO)
+
+            expect(step()).toBe('picture')
+            expect(chosenMotifs()).toEqual(['Herz und Blätter'])
+            expect(notTakenOver().text()).toBe(
+              'Das Foto ließ sich nicht übernehmen. Wähle es neu aus oder nimm ein Motiv.',
+            )
+            // The tile of the photo is empty, and takes a photo: it is chosen anew there.
+            expect(data('photo-choose').exists()).toBe(true)
+            expect(data('photo').exists()).toBe(false)
+            expect(data('own').classes()).not.toContain('is-busy')
+            expect(data('photo-picker').attributes('disabled')).toBeUndefined()
+            expect(data('next').attributes('disabled')).toBeUndefined()
+          },
+        )
+
+        it('and where what came is no picture a browser decodes', async () => {
+          pictures.openChatImage.mockRejectedValue(new Error('decode'))
+
+          await duplicate(WITH_PHOTO)
+
+          expect(step()).toBe('picture')
+          expect(notTakenOver().exists()).toBe(true)
+          expect(data('photo').exists()).toBe(false)
+        })
+
+        describe('with nothing answered', () => {
+          beforeEach(() => {
+            server.query = vi.fn(() => answered(null, null))
+          })
+
+          it('has the words filled in all the same', async () => {
+            await duplicate(WITH_PHOTO)
+            await next()
+
+            expect(nameField()).toBe('Sarah')
+            expect(chosenLines()).toEqual([LINE])
+            expect(wordsField()).toBe(OWN_WORDS)
+            expect(amountField()).toBe('20')
+          })
+
+          it('says it until a photo is chosen anew, and not after', async () => {
+            await duplicate(WITH_PHOTO)
+            await data('motif-morning-light').trigger('click')
+            expect(notTakenOver().exists()).toBe(true)
+            await next()
+            await historyGo(-1)
+            expect(notTakenOver().exists()).toBe(true)
+
+            await choosePhoto()
+
+            expect(notTakenOver().exists()).toBe(false)
+            expect(data('photo').attributes('aria-pressed')).toBe('true')
+          })
+
+          it('goes out with the motif that stands there where no photo is chosen anew', async () => {
+            await duplicate(WITH_PHOTO)
+            await next()
+            await next()
+            await data('finish').trigger('click')
+            await settle()
+
+            expect(server.mutate).toHaveBeenCalledTimes(1)
+            expect(greetingSent()).toEqual({
+              motif: 'heart-leaves',
+              line: LINE,
+              recipientName: 'Sarah',
+            })
+            expect(server.add).not.toHaveBeenCalled()
+          })
+        })
       })
     })
 

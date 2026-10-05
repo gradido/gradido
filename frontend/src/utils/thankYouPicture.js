@@ -6,6 +6,7 @@ import {
   chatImageSize,
   drawChatImage,
   encodeChatImage,
+  openChatImage,
 } from '@/utils/chatImage'
 import { chatImageCut, framedChatImageEdit } from '@/utils/chatImageEdit'
 import { THANK_YOU_MOTIF_HEIGHT, THANK_YOU_MOTIF_WIDTH } from '@/utils/thankYouMotifs'
@@ -105,6 +106,52 @@ export const thankYouPicturePreview = (source, edit, { draw = drawChatImage } = 
     'image/jpeg',
     THANK_YOU_PICTURE_PREVIEW_QUALITY,
   )
+}
+
+/** A JPEG the server answered in base64, as the file the chat's decoder takes. */
+const jpegFileOf = (base64) =>
+  new File([Uint8Array.from(atob(base64), (char) => char.charCodeAt(0))], 'thank-you.jpg', {
+    type: 'image/jpeg',
+  })
+
+/**
+ * The photo of a greeting of the member's own as the server keeps it, made a photo of the page a
+ * greeting is written on: what a duplicate of that greeting carries along (ZE-030).
+ *
+ * Takes the two renditions as the query thankYouGreetingPictureRenditions answers them -- base64,
+ * `large` being the small one once more where no large one is filed -- and resolves with
+ * `{ source, edit, preview, renditions }`: the shape ThankYouPictureChoice keeps a photo in, and
+ * one thing more.
+ * - `source`: the large rendition, decoded -- the small one where there is no large one. The
+ *   member may cut it anew in the editor; both renditions are then made of it, as of every photo.
+ * - `edit`: the photo as it is. It has the shape of the card's place already.
+ * - `preview`: that same rendition, for the eye.
+ * - `renditions`: `{ small, large }`, each `{ data, width, height }`; `large` is null where there
+ *   is none. ⛔ The JPEGs as they came, not encoded again: as long as the member does not cut the
+ *   photo anew, these are what goes out with the new greeting -- it carries the very picture the
+ *   old one carries, whichever browser makes it. Their sizes are read off the pictures themselves.
+ *
+ * Resolves with null where no small rendition came: without it there is no greeting with a
+ * photo. Rejects where a rendition is no picture the browser decodes.
+ *
+ * `open` is there for the spec -- jsdom decodes nothing -- and defaults to the chat's.
+ *
+ * @param {{ small: string | null, large: string | null }} answered
+ */
+export const openThankYouRenditions = async ({ small, large }, { open = openChatImage } = {}) => {
+  if (!small) return null
+  const smallPicture = await open(jpegFileOf(small))
+  const largePicture = large && large !== small ? await open(jpegFileOf(large)) : null
+  const sized = (data, { width, height }) => ({ data, width, height })
+  return {
+    source: largePicture ?? smallPicture,
+    edit: thankYouPictureEdit(),
+    preview: `data:image/jpeg;base64,${largePicture ? large : small}`,
+    renditions: {
+      small: sized(small, smallPicture),
+      large: largePicture ? sized(large, largePicture) : null,
+    },
+  }
 }
 
 /**

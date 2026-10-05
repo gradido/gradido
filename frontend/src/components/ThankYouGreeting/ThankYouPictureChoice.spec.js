@@ -444,6 +444,65 @@ describe('ThankYouPictureChoice', () => {
   })
 
   /** What cannot be opened, the page says with the sentences the chat says it with. */
+  /**
+   * A photo on its way into the tile from elsewhere (`busy`): the page of a duplicated greeting
+   * fetches the photo the old one carried (ZE-030). The tile waits for it and takes no photo from
+   * the device meanwhile -- what is about to land there would land under an open editor.
+   */
+  describe('a photo on its way from elsewhere', () => {
+    it('marks the tile as waiting, and says so for the ear', () => {
+      mountChoice({ busy: true })
+
+      expect(data('own').classes()).toContain('is-busy')
+      expect(data('own').attributes('aria-busy')).toBe('true')
+      expect(data('camera').classes()).toContain('is-busy')
+      expect(data('picture-status').text()).toBe('Bild wird vorbereitet …')
+    })
+
+    it('takes no photo from the device meanwhile, neither chosen nor taken', () => {
+      mountChoice({ busy: true })
+
+      expect(data('photo-picker').attributes('disabled')).toBeDefined()
+      expect(data('camera-field').attributes('disabled')).toBeDefined()
+    })
+
+    // A tap on a motif is the member's own choice, and it is handed on as ever.
+    it('leaves the five motifs what they are', async () => {
+      mountChoice({ busy: true })
+
+      await data('motif-bouquet').trigger('click')
+
+      expect(wrapper.emitted('update:motif')).toEqual([['bouquet']])
+      expect(
+        tiles()
+          .slice(0, 5)
+          .some((tile) => tile.classes().includes('is-busy')),
+      ).toBe(false)
+    })
+
+    it('waits no more once the photo is there or was given up', async () => {
+      mountChoice({ busy: true })
+
+      await wrapper.setProps({ busy: false })
+
+      expect(data('own').classes()).not.toContain('is-busy')
+      expect(data('own').attributes('aria-busy')).toBeUndefined()
+      expect(data('camera').classes()).not.toContain('is-busy')
+      expect(data('picture-status').text()).toBe('')
+      expect(data('photo-picker').attributes('disabled')).toBeUndefined()
+      expect(data('camera-field').attributes('disabled')).toBeUndefined()
+    })
+
+    it('is not the case unless the page says so', () => {
+      mountChoice()
+
+      expect(data('own').classes()).not.toContain('is-busy')
+      expect(data('photo-picker').attributes('disabled')).toBeUndefined()
+      expect(data('camera-field').attributes('disabled')).toBeUndefined()
+      expect(data('picture-status').text()).toBe('')
+    })
+  })
+
   describe('a photo that cannot be opened', () => {
     const refuse = (problem) =>
       pictures.openChatImage.mockRejectedValueOnce(
