@@ -86,6 +86,7 @@ const KEYS = [
   'paper.save',
   'paper.title',
   'photo-of',
+  'picture.not-taken-over',
   'picture.other',
   'picture.own',
   'picture.question',
@@ -309,6 +310,26 @@ describe('thank-you-greeting in the language files', () => {
         expect(render(lang, 'picture.own')).not.toBe(render(lang, 'picture.other'))
       },
     )
+
+    /**
+     * A duplicated greeting whose photo did not come along (ZE-030) says so over the tiles: what
+     * happened, and what to do -- choose the photo again, or take one of the pictures below.
+     */
+    it.each(languages)('says in two sentences that a photo did not come along, in %s', (lang) => {
+      const said = render(lang, 'picture.not-taken-over')
+
+      expect(said).toBe(greetingIn(lang).picture['not-taken-over'])
+      expect(said).not.toMatch(/[{}|]/)
+      expect(said).toMatch(/\.$/)
+      expect(said.split(/\.\s+/)).toHaveLength(2)
+      expect(said).not.toMatch(NOT_A_THANK_YOU[lang])
+    })
+
+    it('says it in German as it was decided', () => {
+      expect(render('de', 'picture.not-taken-over')).toBe(
+        'Das Foto ließ sich nicht übernehmen. Wähle es neu aus oder nimm ein Motiv.',
+      )
+    })
 
     // The name as it is written, in the nominative: no language bends it.
     it.each(languages)('says whose photo it is, with the name as it stands, in %s', (lang) => {

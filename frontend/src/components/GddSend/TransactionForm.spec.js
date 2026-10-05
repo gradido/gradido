@@ -66,6 +66,10 @@ describe('TransactionForm', () => {
   const createWrapper = (props = {}) => {
     return mount(TransactionForm, {
       global: {
+        // The form asks whether a link of the member's own was handed over to be made once more
+        // (useLinkDraft), and that asks the store who is signed in. Here nothing is handed over;
+        // TransactionForm.duplicate.spec.js holds what happens where something is.
+        provide: { store: { state: { gradidoID: 'uuid-emma' } } },
         mocks: {
           $t: mockT,
           $n: mockN,

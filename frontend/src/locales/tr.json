@@ -526,7 +526,7 @@
       "send": "Gönderildi"
     }
   },
-  "delete": "Silmek",
+  "delete": "Sil",
   "download": "İndir",
   "edit": "düzenle",
   "em-dash": "—",
@@ -775,12 +775,13 @@
   "gddKonto": "GDD Hesabı",
   "gdd_per_link": {
     "choose-amount": "Göndermek istediğin tutarı seç ve bir mesaj gir. Mesaj zorunlu bir alandır.",
-    "copy-link": "Linki kopyala ",
+    "copy-link": "Linki kopyala",
     "copy-link-with-text": "Linki ve metni kopyala",
     "created": "Link, çek ve QR kodu oluşturuldu.",
     "delete-the-link": "Link silinsin mi?",
     "deleted": "Link silindi!",
     "disbured": "Bağlantı bakiyesinin aktarımı başarıyla başlatıldı! {n} GDD kısa süre içinde hesabına alacak olarak işlenecek",
+    "duplicate": "Linki çoğalt",
     "expiredOn": "Geçerlilik süresi",
     "has-account": "Halihazırda bir Gradido hesabın var mı?",
     "header": "Link, çek ve QR kodu oluştur",
@@ -791,7 +792,7 @@
     "link-hint": "Bağlantıya sahip olan herkes onu kullanabilir. Bağlantıyı yalnızca kimin için oluşturduysan ona gönder.",
     "link-overview": "Linke toplu bakış",
     "links_open": "{n} açık",
-    "links_sum": "Linkler, çekler, QR kodları",
+    "links_sum": "Linkler, çekler, QR kodları, teşekkür mesajları",
     "no-account": "Henüz bir Gradido hesabın yok mu?",
     "no-redeem": "Kendi linkini kullanamazsın!",
     "not-copied": "Maalesef cihazın kopyalamaya izin vermiyor! Lütfen bağlantıyı elle kopyala!",
@@ -1098,12 +1099,12 @@
     }
   },
   "navigation": {
-    "admin_area": "Yönetici Alanı",
+    "admin_area": "Admin",
     "back-to-account": "Hesaba dön",
     "back-to-settings": "Ayarlara dön",
     "calculator": "Hesap makinesi",
     "community": "Topluluk",
-    "contacts": "Kişiler & Sohbet",
+    "contacts": "Sohbet",
     "logout": "Çıkış",
     "matching": "Matching",
     "menu": "Menü",
@@ -1607,6 +1608,7 @@
     },
     "photo-of": "{name} tarafından gönderilen fotoğraf",
     "picture": {
+      "not-taken-over": "Fotoğraf aktarılamadı. Fotoğrafı yeniden seç ya da resimlerden birini seç.",
       "other": "Başka fotoğraf",
       "own": "Kendi fotoğrafın",
       "question": "Mesajın hangi resmi taşısın?"

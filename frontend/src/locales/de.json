@@ -781,6 +781,7 @@
     "delete-the-link": "Den Link löschen?",
     "deleted": "Der Link wurde gelöscht!",
     "disbured": "Auszahlung des Link-Guthabens erfolgreich initiiert! Die Gutschrift von {n} GDD wird zeitnah auf Dein Konto gebucht",
+    "duplicate": "Duplizieren",
     "expiredOn": "Abgelaufen am",
     "has-account": "Du besitzt bereits ein Gradido Konto?",
     "header": "Link, Scheck und QR-Code erzeugen",
@@ -791,7 +792,7 @@
     "link-hint": "Wer den Link hat, kann ihn einlösen. Schick ihn nur dem Menschen, für den er gedacht ist.",
     "link-overview": "Linkübersicht",
     "links_open": "{n} offen",
-    "links_sum": "Links, Schecks, QR-Codes",
+    "links_sum": "Links, Schecks, QR-Codes, Grüße",
     "no-account": "Du besitzt noch kein Gradido Konto?",
     "no-redeem": "Du darfst Deinen eigenen Link nicht einlösen!",
     "not-copied": "Dein Gerät lässt das Kopieren leider nicht zu! Bitte kopiere den Link von Hand!",
@@ -1098,12 +1099,12 @@
     }
   },
   "navigation": {
-    "admin_area": "Adminbereich",
+    "admin_area": "Admin",
     "back-to-account": "Zurück zum Konto",
     "back-to-settings": "Zurück zu den Einstellungen",
     "calculator": "Rechner",
     "community": "Gemeinschaft",
-    "contacts": "Kontakte & Chat",
+    "contacts": "Chat",
     "logout": "Abmelden",
     "matching": "Matching",
     "menu": "Menü",
@@ -1607,6 +1608,7 @@
     },
     "photo-of": "Foto von {name}",
     "picture": {
+      "not-taken-over": "Das Foto ließ sich nicht übernehmen. Wähle es neu aus oder nimm ein Motiv.",
       "other": "Anderes Foto",
       "own": "Eigenes Foto",
       "question": "Welches Bild soll Dein Gruß tragen?"

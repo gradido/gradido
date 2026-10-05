@@ -781,6 +781,7 @@
     "delete-the-link": "Eliminar o link?",
     "deleted": "O link foi eliminado!",
     "disbured": "Transferência do saldo do link iniciada com sucesso! O crédito de {n} GDD será lançado em breve na tua conta",
+    "duplicate": "Duplicar link",
     "expiredOn": "Expirou em",
     "has-account": "Já tens uma conta Gradido?",
     "header": "Criar link, cheque e código QR",
@@ -791,7 +792,7 @@
     "link-hint": "Quem tiver o link pode resgatá-lo. Envia-o só à pessoa a quem se destina.",
     "link-overview": "Vista geral dos links",
     "links_open": "{n} em aberto",
-    "links_sum": "Links, cheques, códigos QR",
+    "links_sum": "Links, cheques, códigos QR, postais",
     "no-account": "Ainda não tens uma conta Gradido?",
     "no-redeem": "Não podes resgatar o teu próprio link!",
     "not-copied": "Infelizmente, o teu dispositivo não permite copiar! Por favor, copia o link manualmente!",
@@ -1098,13 +1099,13 @@
     }
   },
   "navigation": {
-    "admin_area": "Área de administração",
+    "admin_area": "Admin",
     "back-to-account": "Voltar à conta",
     "back-to-settings": "Voltar às definições",
     "calculator": "Calculadora",
     "community": "Comunidade",
-    "contacts": "Contactos e chat",
-    "logout": "Terminar sessão",
+    "contacts": "Chat",
+    "logout": "Sair",
     "matching": "Matching",
     "menu": "Menu",
     "overview": "Vista geral",
@@ -1607,6 +1608,7 @@
     },
     "photo-of": "Foto enviada por {name}",
     "picture": {
+      "not-taken-over": "Não foi possível manter a foto. Escolhe-a de novo ou usa uma das imagens.",
       "other": "Outra foto",
       "own": "A tua foto",
       "question": "Que imagem queres no teu postal?"

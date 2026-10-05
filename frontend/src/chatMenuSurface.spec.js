@@ -21,6 +21,8 @@ const LIGHT = read('./assets/scss/_design-tokens.scss')
 const DARK = read('./assets/scss/gradido-template-dark.scss')
 const COMPOSE = read('./components/Chat/ChatComposeBar.vue')
 const MESSAGE = read('./components/Chat/ChatMessageMenu.vue')
+const LINK = read('./components/TransactionLinks/TransactionLink.vue')
+const LANGUAGE = read('./components/LanguageSwitch2.vue')
 
 const token = (sheet, name) =>
   sheet.match(new RegExp(`\\n\\s*--${name}:\\s*(#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3})\\s*;`))?.[1]
@@ -137,5 +139,97 @@ describe('the two menus', () => {
     expect(ruleOf(source, `.${name}-item:hover`)).toMatch(/background:\s*var\(--menu-hover,/)
     expect(ruleOf(source, `.${name}-icon`)).toMatch(/color:\s*var\(--menu-icon,/)
     expect(ruleOf(source, `.${name}-hint`)).toMatch(/color:\s*var\(--menu-text-muted,/)
+  })
+})
+
+/**
+ * Two menus more stand on the same grey (Bernd, 05.10.2026): the one at a link, in the list of
+ * links, and the list of languages, in the settings and on the sign-in pages. Their words are
+ * the wallet's text colour of the light mode, a blue-grey -- measured in the built wallet at
+ * 4.84 : 1 on the grey and 5.57 : 1 under the pointer; in the dark they take `--text`.
+ */
+describe('the menu at a link and the list of languages', () => {
+  const withoutComments = (text) =>
+    text.replace(/<!--[\s\S]*?-->/g, '').replace(/\/\*[\s\S]*?\*\//g, '')
+  /** Every style block of the file, scoped or not, without its comments. */
+  const stylesOf = (source) =>
+    withoutComments(
+      [...source.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map((m) => m[1]).join('\n'),
+    )
+  const ruleOf = (source, selector) =>
+    [...stylesOf(source).matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+      .filter((m) => m[1].split(',').some((part) => part.trim() === selector))
+      .map((m) => m[2])
+      .join('\n')
+  const darkCode = DARK.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '')
+
+  it('reads code, not notes', () => {
+    expect(stylesOf(LINK)).toContain('.transaction-link-menu')
+    expect(stylesOf(LINK)).not.toContain('Bernd')
+    expect(DARK).toContain('LanguageSwitch2')
+    expect(darkCode).not.toContain('LanguageSwitch2')
+  })
+
+  /**
+   * ⛔ One class more than the dark stylesheet's `.dark-mode .dropdown-menu`, which says
+   * `!important` too, and than its `.dark-mode .dropdown-item:hover`: with the same weight the
+   * order the stylesheets load in would decide.
+   */
+  it('puts the menu at a link on the tokens, outweighing the dark stylesheet', () => {
+    const menu = ruleOf(LINK, '.transaction-link .dropdown-menu.transaction-link-menu')
+    expect(menu).toMatch(/background-color:\s*var\(--menu-surface,[^)]*\)\s*!important/)
+    expect(menu).toMatch(/border:\s*1px solid var\(--menu-border,/)
+    for (const state of ['hover', 'focus']) {
+      expect(
+        ruleOf(LINK, `.transaction-link .transaction-link-menu .dropdown-item:${state}`),
+      ).toMatch(/background-color:\s*var\(--menu-hover,/)
+    }
+    expect(darkCode).toMatch(/\.dark-mode\s*\{[^}]*\.dropdown-menu,/)
+    expect(darkCode).toMatch(/\n\.dark-mode \.dropdown-item:hover,/)
+  })
+
+  it('puts the list of languages on the tokens', () => {
+    expect(ruleOf(LANGUAGE, '.ls-menu')).toMatch(/background:\s*var\(--menu-surface,/)
+    expect(ruleOf(LANGUAGE, '.ls-menu')).toMatch(/border:\s*1px solid var\(--menu-border,/)
+    expect(ruleOf(LANGUAGE, '.ls-item:hover')).toMatch(/background:\s*var\(--menu-hover,/)
+    expect(ruleOf(LANGUAGE, '.ls-item-active')).toMatch(/background:\s*var\(--menu-hover,/)
+  })
+
+  /**
+   * The dark stylesheet used to paint this list itself (`#app.dark-mode .ls-menu`), and with
+   * an id in its selector it would beat the tokens: the list would be the window's own colour
+   * again in the dark.
+   */
+  it('leaves the dark stylesheet nothing to say about the list but the chosen language', () => {
+    expect(darkCode).not.toMatch(/\.ls-menu/)
+    expect(darkCode).not.toMatch(/\.ls-item:hover/)
+    const chosen = darkCode.match(/#app\.dark-mode \.ls-item-active\s*\{([^}]*)\}/)?.[1] ?? ''
+    expect(chosen).toMatch(/color:\s*var\(--text\)/)
+    expect(chosen).not.toMatch(/background/)
+  })
+
+  it.each([
+    ['light', LIGHT, '#185fa5'],
+    ['dark', DARK, null],
+  ])('keeps the chosen language readable on the tone it stands on, %s', (_mode, sheet, ink) => {
+    expect(
+      contrast(ink ?? token(sheet, 'text'), token(sheet, 'menu-hover')),
+    ).toBeGreaterThanOrEqual(4.5)
+  })
+
+  // Gegenprobe: what the chosen language wore in the dark before would not do on the grey.
+  it('would not do with the link green in the dark', () => {
+    expect(contrast(token(DARK, 'link'), token(DARK, 'menu-surface'))).toBeLessThan(4.5)
+    expect(contrast(token(DARK, 'link'), token(DARK, 'menu-hover'))).toBeLessThan(4.5)
+  })
+
+  /**
+   * The room around the three dots is laid OVER the row and takes no place in it: the row is
+   * one line at every width only as long as the menu's column stays as narrow as its button.
+   */
+  it('lays the room that opens the menu over the row', () => {
+    const room = ruleOf(LINK, '.transaction-link-menu-reach')
+    expect(room).toMatch(/position:\s*absolute/)
+    expect(room).toMatch(/inset:\s*-0\.5rem -1rem -0\.25rem -1\.5rem/)
   })
 })

@@ -169,8 +169,12 @@ onUnmounted(() => {
   margin: 0;
   padding: 4px;
   list-style: none;
-  background: #fff;
-  border: 0.5px solid rgb(0 0 0 / 15%);
+
+  /* On the grey of the menus over a conversation, as the menu of a link (Bernd, 05.10.2026).
+     The tokens change with the colour mode, so the dark stylesheet says nothing about this
+     menu but the colour of the chosen language. */
+  background: var(--menu-surface, #dde1e6);
+  border: 1px solid var(--menu-border, #b3bac2);
   border-radius: 10px;
   box-shadow: 0 8px 24px rgb(0 0 0 / 12%);
 }
@@ -187,11 +191,13 @@ onUnmounted(() => {
 }
 
 .ls-item:hover {
-  background: #f2f4f6;
+  background: var(--menu-hover, #eef0f3);
 }
 
+/* The chosen language stands on the tone of the entry under the pointer, and carries the
+   tick: its blue comes to 5.7 : 1 there. */
 .ls-item-active {
-  background: #e9f1fb;
+  background: var(--menu-hover, #eef0f3);
   color: #185fa5;
 }
 

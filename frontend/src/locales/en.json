@@ -781,6 +781,7 @@
     "delete-the-link": "Delete the link?",
     "deleted": "The link was deleted!",
     "disbured": "Disbursement of the link amount initiated! The transfer of {n} GDD into your account will be completed shortly.",
+    "duplicate": "Duplicate",
     "expiredOn": "Expired on",
     "has-account": "You already have a Gradido account?",
     "header": "Create link, cheque and QR code",
@@ -791,7 +792,7 @@
     "link-hint": "Whoever has the link can redeem it. Only send it to the person it is meant for.",
     "link-overview": "Link overview",
     "links_open": "{n} open",
-    "links_sum": "Links, cheques, QR codes",
+    "links_sum": "Links, cheques, QR codes, greetings",
     "no-account": "You don't have a Gradido account yet?",
     "no-redeem": "You are not allowed to redeem your own link!",
     "not-copied": "Unfortunately, your device does not allow copying! Please copy the link by hand!",
@@ -1098,12 +1099,12 @@
     }
   },
   "navigation": {
-    "admin_area": "Admin Area",
+    "admin_area": "Admin",
     "back-to-account": "Back to account",
     "back-to-settings": "Back to settings",
     "calculator": "Calculator",
     "community": "Community",
-    "contacts": "Contacts & Chat",
+    "contacts": "Chat",
     "logout": "Logout",
     "matching": "Matching",
     "menu": "Menu",
@@ -1607,6 +1608,7 @@
     },
     "photo-of": "Photo from {name}",
     "picture": {
+      "not-taken-over": "The photo could not be carried over. Choose it again or pick one of the pictures.",
       "other": "Another photo",
       "own": "Your own photo",
       "question": "Which picture should your greeting carry?"
