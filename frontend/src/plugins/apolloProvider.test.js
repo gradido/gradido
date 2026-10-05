@@ -58,7 +58,7 @@ describe('apolloProvider', () => {
 
     const storeModule = await import('@/store/store')
     store = {
-      state: { token: 'some-token', gradidoID: 'member-a' },
+      state: { token: 'some-token', gradidoID: 'member-a', communityUuid: 'community-a' },
       dispatch: vi.fn(),
       commit: vi.fn(),
     }
@@ -269,6 +269,17 @@ describe('apolloProvider', () => {
         ask()
         store.state.token = 'the-token-of-member-b'
         store.state.gradidoID = 'member-b'
+
+        answer({ data: { createTransactionLink: {} } })
+
+        expect(store.commit).not.toHaveBeenCalled()
+      })
+
+      // A member is named by the pair: the id alone is unique within one community only.
+      it('leaves the store alone where a member of the same id from another community signed in', () => {
+        ask()
+        store.state.token = 'the-token-of-the-other-member'
+        store.state.communityUuid = 'community-b'
 
         answer({ data: { createTransactionLink: {} } })
 
