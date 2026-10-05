@@ -32,6 +32,33 @@ export type ThankYouMotif = (typeof THANK_YOU_MOTIFS)[number]
 export const isThankYouMotif = (value: string): value is ThankYouMotif =>
   (THANK_YOU_MOTIFS as readonly string[]).includes(value)
 
+/** A picture by its path below the wallet's address, and its measure. */
+export type WalletPicture = { path: string; width: number; height: number }
+
+/**
+ * The file a messenger is shown as the preview of a link whose greeting carries this motif
+ * (data/RedeemPreview.logic.ts): the motif as a JPEG in the measure of a greeting's own
+ * picture, 36 : 25 -- the picture of a preview has to be a bitmap, and the motifs are SVGs.
+ * The wallet holds the five files beside the SVGs
+ * (frontend/public/img/thank-you-greeting/<key>.jpg), and its thankYouPreviewFiles.spec.js
+ * holds each against the path and the measure named here.
+ */
+export const thankYouMotifPreviewFile = (motif: ThankYouMotif): WalletPicture => ({
+  path: `/img/thank-you-greeting/${motif}.jpg`,
+  width: 1080,
+  height: 750,
+})
+
+/**
+ * The picture the preview of every address of the wallet names (frontend/public/img/), and
+ * so the one of a link without a picture of its own.
+ */
+export const GENERAL_PREVIEW_FILE: WalletPicture = {
+  path: '/img/gradido-preview-1200-630.jpg',
+  width: 1200,
+  height: 630,
+}
+
 /**
  * The first line of the card, at most this long. The longest of the twelve suggestions has 62
  * characters in German. The column is wider (migration 0152), so this can move without one.
