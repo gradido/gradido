@@ -1,3 +1,4 @@
+export * from './AuthSigningType'
 export * from './ContactOrigin'
 export * from './DecayCalculationType'
 export * from './OptInType'

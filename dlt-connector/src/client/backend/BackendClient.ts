@@ -131,9 +131,13 @@ export class BackendClient {
       .setIssuedAt()
       .setSubject('dlt-connector')
       .setIssuer(CONFIG.COMMUNITY_URL)
-      .setAudience(CONFIG.COMMUNITY_URL)
+      // the backend expects its own url with a trailing slash as audience (backend/src/auth/JWT.ts)
+      .setAudience(ensureUrlEndsWithSlash(CONFIG.COMMUNITY_URL))
       .setExpirationTime('10m')
       .sign(secret)
     return token
   }
+}
+export const ensureUrlEndsWithSlash = (url: string): string => {
+  return url.endsWith('/') ? url.replace(/\/*$/, '/') : url.concat('/')
 }

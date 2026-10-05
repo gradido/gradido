@@ -14,10 +14,11 @@ export const gmsWebhook = async (req: any, res: any): Promise<void> => {
     res.status(400).json({ message: 'false' })
     return
   }
-  const gradidoID = await verifyGmsHandshakeJWTToken(token)
+  const gradidoID = verifyGmsHandshakeJWTToken(token)
   logger.debug('gmsWebhook: decoded token, gradidoID=', gradidoID)
   if (!gradidoID) {
     logger.debug('gmsWebhook: invalid token', token)
+    logger.warn(`gms verify call failed`)
     res.status(400).json({ message: 'false' })
     return
   }

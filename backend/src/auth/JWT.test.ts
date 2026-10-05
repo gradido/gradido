@@ -1,5 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { createHmac } from 'node:crypto'
+import { SignJWT } from 'jose'
 import { CONFIG } from '@/config'
 import { decode, encode } from './JWT'
 
@@ -13,7 +14,7 @@ describe('auth/JWT', () => {
     it('creates a token for this community', () => {
       expect(payloadOf(encode(gradidoID))).toMatchObject({
         iss: CONFIG.COMMUNITY_URL,
-        aud: CONFIG.COMMUNITY_URL,
+        aud: `${CONFIG.COMMUNITY_URL}/`,
         sub: gradidoID,
       })
     })
@@ -51,6 +52,19 @@ describe('auth/JWT', () => {
 
     it('returns the dlt-connector as it is', () => {
       expect(decode(encode('dlt-connector'))).toBe('dlt-connector')
+    })
+
+    // the token dlt-connector/src/client/backend/BackendClient.ts builds with jose
+    it('returns "dlt-connector" for the token of the dlt-connector', async () => {
+      const token = await new SignJWT({})
+        .setProtectedHeader({ alg: 'HS256', typ: 'JWT' })
+        .setIssuedAt()
+        .setSubject('dlt-connector')
+        .setIssuer(CONFIG.COMMUNITY_URL)
+        .setAudience(CONFIG.COMMUNITY_URL.replace(/\/*$/, '/'))
+        .setExpirationTime('10m')
+        .sign(new TextEncoder().encode(CONFIG.JWT_SECRET))
+      expect(decode(token)).toBe('dlt-connector')
     })
 
     it('returns null for an empty token', () => {
