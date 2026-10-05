@@ -7,8 +7,12 @@ import {
   User as DbUser,
   UserContact as DbUserContact,
   dbFindTransactionLinkByCode,
+  dbFindTransactionLinkForPreview,
   dbFindTransactionLinkWithOwner,
+  dbInsertThankYouGreeting,
+  dbInsertThankYouGreetingPicture,
   drizzleDb,
+  peterLustig,
   TransactionLinkInterface,
   transactionLinkFactory,
   transactionLinkFactoryBulk,
@@ -245,5 +249,208 @@ describe('dbFindTransactionLinkWithOwner', () => {
     await DbUser.update(bibi.id, { deletedAt: new Date(), accountState: AccountState.DELETED })
 
     expect((await dbFindTransactionLinkWithOwner(link.id))?.ownerDeletedAt).toBeInstanceOf(Date)
+  })
+})
+
+// What the preview of a redeem link is made from, read with the link in one statement: the
+// link's own columns, the member who made it, the greeting and what is known of its pictures.
+describe('dbFindTransactionLinkForPreview', () => {
+  // Codes as createTransactionLink makes them, 24 hex characters - with letters in them, so
+  // that asking in the other case of letters is another text.
+  const PLAIN = 'a1f9c2d41b7e19981fa0d001'
+  const MOTIF = 'b2e0d5a2996c19981fa0d002'
+  const PHOTO = 'c3d1e6b3447d19981fa0d003'
+  const NO_USERNAME = 'd4c2f7c4558e19981fa0d004'
+  const CLOSED = 'e5b3a8d5669f19981fa0d005'
+  const NO_MAKER = 'f6a4b9e6770a19981fa0d006'
+  const TWINS = 'a7b5c0f7881b19981fa0d007'
+  const CREATED_AT = new Date('2026-10-05T12:00:00.000Z')
+  const VALID_UNTIL = new Date('2026-10-19T12:00:00.000Z')
+  const JPEG = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0xff, 0xd9])
+
+  let bibi: DbUser
+  let peter: DbUser
+
+  const linkWithCode = async (code: string, maker: DbUser = bibi): Promise<DbTransactionLink> => {
+    const link = await transactionLinkFactory(
+      {
+        email: maker.emailContact.email,
+        amount: 20,
+        memo: 'Danke für die Suppe!',
+        createdAt: CREATED_AT,
+      },
+      maker.id,
+    )
+    await DbTransactionLink.update(link.id, { code })
+    return link
+  }
+
+  /** The statements a function sends, as the pool gets them. */
+  const statementsOf = async (run: () => Promise<unknown>): Promise<string[]> => {
+    const pool = (drizzleDb() as any).$client
+    const original = pool.query
+    const sent: string[] = []
+    pool.query = function (query: any, params: unknown[]) {
+      sent.push(typeof query === 'string' ? query : query.sql)
+      return original.call(this, query, params)
+    }
+    try {
+      await run()
+    } finally {
+      pool.query = original
+    }
+    return sent
+  }
+
+  beforeAll(async () => {
+    await dbDeleteAllRowsExceptMigrations()
+    await createCommunity(false)
+    bibi = await userFactory(bibiBloxberg)
+    // Peter has no username: `users.alias` is null.
+    peter = await userFactory(peterLustig)
+  })
+
+  it('reads a plain link with the member who made it, and no greeting', async () => {
+    await linkWithCode(PLAIN)
+
+    expect(await dbFindTransactionLinkForPreview(PLAIN)).toEqual({
+      link: {
+        code: PLAIN,
+        userId: bibi.id,
+        validUntil: VALID_UNTIL,
+        redeemedAt: null,
+        redeemedBy: null,
+        deletedAt: null,
+      },
+      maker: { alias: 'BBB', gradidoId: bibi.gradidoID, language: 'de', deletedAt: null },
+      greeting: null,
+      pictures: [],
+    })
+  })
+
+  it('finds the link of a code written in capitals, and answers with the code of the row', async () => {
+    const found = await dbFindTransactionLinkForPreview(PLAIN.toUpperCase())
+
+    expect(PLAIN.toUpperCase()).not.toBe(PLAIN)
+    expect(found?.link.code).toBe(PLAIN)
+  })
+
+  it('reads the motif of a greeting', async () => {
+    await linkWithCode(MOTIF)
+    await dbInsertThankYouGreeting({
+      transactionLinkCode: MOTIF,
+      motif: 'bouquet',
+      line: 'Einfach so.',
+      recipientName: 'Sarah',
+    })
+
+    const found = await dbFindTransactionLinkForPreview(MOTIF)
+    expect(found?.greeting).toEqual({ motif: 'bouquet' })
+    expect(found?.pictures).toEqual([])
+  })
+
+  // The motif of a greeting with a photo is null, and that is still a greeting.
+  it('reads a greeting with a photo as a greeting, with what is known of both renditions', async () => {
+    await linkWithCode(PHOTO)
+    await dbInsertThankYouGreeting({
+      transactionLinkCode: PHOTO,
+      motif: null,
+      line: 'Einfach so.',
+      recipientName: 'Sarah',
+    })
+    for (const [rendition, width, height] of [
+      ['small', 831, 577],
+      ['large', 1080, 750],
+    ] as const) {
+      await dbInsertThankYouGreetingPicture({
+        transactionLinkCode: PHOTO,
+        rendition,
+        width,
+        height,
+        image: JPEG,
+        mimeType: 'image/jpeg',
+      })
+    }
+
+    const found = await dbFindTransactionLinkForPreview(PHOTO)
+    expect(found?.greeting).toEqual({ motif: null })
+    expect(found?.pictures.map(({ id, ...picture }) => ({ ...picture, id: typeof id }))).toEqual(
+      expect.arrayContaining([
+        { rendition: 'small', width: 831, height: 577, id: 'number' },
+        { rendition: 'large', width: 1080, height: 750, id: 'number' },
+      ]),
+    )
+    expect(found?.pictures).toHaveLength(2)
+  })
+
+  it('reads a member without a username as the maker all the same', async () => {
+    await linkWithCode(NO_USERNAME, peter)
+
+    expect((await dbFindTransactionLinkForPreview(NO_USERNAME))?.maker).toEqual({
+      alias: null,
+      gradidoId: peter.gradidoID,
+      language: 'de',
+      deletedAt: null,
+    })
+  })
+
+  // No condition on the state: the rule that reads the columns stands in the backend.
+  it('finds an accepted and a deleted link, and shows what became of them', async () => {
+    const link = await linkWithCode(CLOSED)
+    const redeemedAt = new Date('2026-10-06T08:00:00.000Z')
+    const deletedAt = new Date('2026-10-07T09:00:00.000Z')
+    await DbTransactionLink.update(link.id, { redeemedAt, redeemedBy: 4711, deletedAt })
+
+    expect((await dbFindTransactionLinkForPreview(CLOSED))?.link).toEqual(
+      expect.objectContaining({ redeemedAt, redeemedBy: 4711, deletedAt }),
+    )
+  })
+
+  it('finds nothing for a code no link has', async () => {
+    expect(await dbFindTransactionLinkForPreview('0123456789abcdef01234567')).toBeNull()
+  })
+
+  it('finds nothing where the member who made the link has no row', async () => {
+    const link = await linkWithCode(NO_MAKER)
+    await DbTransactionLink.update(link.id, { userId: peter.id + 1000 })
+
+    expect(await dbFindTransactionLinkForPreview(NO_MAKER)).toBeNull()
+  })
+
+  // The column carries no unique key: of two links one may be open and the other accepted.
+  it('finds nothing where two links carry the code', async () => {
+    await linkWithCode(TWINS)
+    expect(await dbFindTransactionLinkForPreview(TWINS)).not.toBeNull()
+    await linkWithCode(TWINS)
+
+    expect(await dbFindTransactionLinkForPreview(TWINS)).toBeNull()
+  })
+
+  it('asks once, and reads neither a picture nor amount, memo, line or a name a person carries', async () => {
+    const statements = await statementsOf(() => dbFindTransactionLinkForPreview(PHOTO))
+
+    expect(statements).toHaveLength(1)
+    // The check reads the statement: what the answer is made of stands in it.
+    expect(statements[0]).toContain('`thank_you_greeting_pictures`.`rendition`')
+    for (const column of [
+      'image',
+      'mime_type',
+      'amount_gdd4',
+      'hold_available_amount_gdd4',
+      'memo',
+      'line',
+      'recipient_name',
+      'first_name',
+      'last_name',
+    ]) {
+      expect(statements[0]).not.toContain(`\`${column}\``)
+    }
+  })
+
+  it('shows a deleted member as deleted', async () => {
+    const deletedAt = new Date('2026-10-08T10:00:00.000Z')
+    await DbUser.update(bibi.id, { deletedAt, accountState: AccountState.DELETED })
+
+    expect((await dbFindTransactionLinkForPreview(PLAIN))?.maker.deletedAt).toEqual(deletedAt)
   })
 })

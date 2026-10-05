@@ -16,6 +16,7 @@ import { gmsWebhook } from '@/webhook/gms'
 import { context as serverContext } from './context'
 import { cors } from './cors'
 import { plugins } from './plugins'
+import { apiRedeemPreview, REDEEM_PREVIEW_PATH } from './redeemPreview'
 import {
   apiThankYouGreetingPicture,
   THANK_YOU_GREETING_PICTURE_PATH,
@@ -101,6 +102,11 @@ export const createServer = async (
   // nginx's own for /api; it has none of its own. Mounted with `use`: everything below the
   // address is its own to answer, before Apollo, which stands under `/`.
   app.use(THANK_YOU_GREETING_PICTURE_PATH, apiThankYouGreetingPicture)
+
+  // What a messenger is shown of a redeem link: a small document with the title and the
+  // picture of an OPEN link, for whoever holds its code -- public like the page of the link
+  // itself. Behind the same two limiters, mounted the same way and for the same reason.
+  app.use(REDEEM_PREVIEW_PATH, apiRedeemPreview)
 
   // Apollo Server
   const apollo = new ApolloServer({
