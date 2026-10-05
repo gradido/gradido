@@ -240,5 +240,12 @@
   },
   "general": {
     "decimalSeparator": ","
+  },
+  "redeemPreview": {
+    "description": "Βοηθώ. Χαρίζω. Ευχαριστώ.",
+    "greetingTitle": "{name} σου έστειλε ένα ευχαριστήριο μήνυμα",
+    "greetingTitleWithoutName": "Ένα ευχαριστήριο μήνυμα για σένα",
+    "linkTitle": "{name} σου έστειλε ένα ευχαριστώ",
+    "linkTitleWithoutName": "Ένα ευχαριστώ για σένα"
   }
 }

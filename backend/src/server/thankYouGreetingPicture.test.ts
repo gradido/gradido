@@ -8,6 +8,7 @@ import {
   dbSelectThankYouGreetingPicturesByLinkCode,
   ThankYouGreetingPicturesOfLink,
 } from 'database'
+import { DrizzleQueryError } from 'drizzle-orm'
 import express from 'express'
 import helmet from 'helmet'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
@@ -79,6 +80,15 @@ const notFound = (id: number) => ({
   success: false as const,
   error: new DBNotFoundError('thank_you_greeting_pictures', `id = ${id}`),
 })
+
+// A failed query as Drizzle throws it: the statement and its parameters -- the code of the link
+// among them -- in the message and as properties of their own, the driver's error as the cause.
+const databaseFailure = () =>
+  new DrizzleQueryError(
+    'select `id` from `thank_you_greeting_pictures` where `transaction_link_code` = ?',
+    [CODE],
+    Object.assign(new Error('read ECONNRESET'), { code: 'ECONNRESET' }),
+  )
 
 beforeEach(() => {
   jest.clearAllMocks()
@@ -288,11 +298,7 @@ describe('GET /api/thank-you-greeting-picture/<code>', () => {
     imageOf.mockResolvedValue(notFound(LARGE_ID))
     empty.push(await ask(addressOf(CODE)))
     // The database does not answer.
-    picturesOf.mockRejectedValue(
-      Object.assign(new Error(`Failed query: select ... params: ${CODE}`), {
-        cause: { code: 'ECONNRESET' },
-      }),
-    )
+    picturesOf.mockRejectedValue(databaseFailure())
     empty.push(await ask(addressOf(CODE)))
 
     expect(empty).toHaveLength(8)
@@ -308,19 +314,18 @@ describe('GET /api/thank-you-greeting-picture/<code>', () => {
   })
 
   it('writes the driver code of a failed query to the log, and neither its message nor the code of the link', async () => {
-    picturesOf.mockRejectedValue(
-      Object.assign(new Error(`Failed query: select ... params: ${CODE}`), {
-        cause: { code: 'ECONNRESET' },
-      }),
-    )
+    picturesOf.mockRejectedValue(databaseFailure())
 
     await ask(addressOf(CODE))
 
-    expect(logger.error).toHaveBeenCalledTimes(1)
-    const written = JSON.stringify(logger.error.mock.calls)
-    expect(written).toContain('ECONNRESET')
-    expect(written).not.toContain(CODE)
-    expect(written).not.toContain('Failed query')
+    // Exactly one text and nothing beside it: an error handed to the logger as a second part
+    // would be written out with its message, its parameters and its stack.
+    expect(logger.error.mock.calls).toEqual([
+      ['thank-you greeting picture not served (ECONNRESET)'],
+    ])
+    // What such a failure carries and the log must not: the check is not of an empty error.
+    expect(databaseFailure().message).toContain(CODE)
+    expect(databaseFailure().params).toEqual([CODE])
   })
 
   // Nothing of the request goes into a header of the answer, for the picture or for the empty
