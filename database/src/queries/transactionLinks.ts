@@ -5,11 +5,16 @@ import { IsNull, LessThanOrEqual, MoreThan } from 'typeorm'
 import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
 import { TransactionLink as DbTransactionLink } from '../entity'
 import {
+  ThankYouGreetingSelect,
   TransactionLinksSelect,
+  thankYouGreetingPicturesTable,
+  thankYouGreetingsTable,
   transactionLinksTable,
+  UserSelect,
   userContactsTable,
   usersTable,
 } from '../schemas'
+import { ThankYouGreetingPictureInfo } from './thankYouGreetingPictures'
 
 export async function findTransactionLinkByCode(code: string): Promise<DbTransactionLink> {
   return await DbTransactionLink.findOneOrFail({
@@ -75,6 +80,99 @@ export async function dbFindTransactionLinkWithOwner(
     .innerJoin(userContactsTable, eq(userContactsTable.id, usersTable.emailId))
     .where(eq(transactionLinksTable.id, transactionLinkId))
   return rows[0] ?? null
+}
+
+/**
+ * A redeem link with what the preview of it in a messenger is made from: what became of the
+ * link, the member who made it, the greeting it carries - null for a plain link - and what is
+ * known about that greeting's pictures without the pictures.
+ */
+export type TransactionLinkForPreview = {
+  /** `code` as the row holds it, which need not be how it was asked for. */
+  link: Pick<
+    TransactionLinksSelect,
+    'code' | 'userId' | 'validUntil' | 'redeemedAt' | 'redeemedBy' | 'deletedAt'
+  >
+  maker: Pick<UserSelect, 'alias' | 'gradidoId' | 'language' | 'deletedAt'>
+  greeting: Pick<ThankYouGreetingSelect, 'motif'> | null
+  pictures: ThankYouGreetingPictureInfo[]
+}
+
+/**
+ * The link with this code as a {@link TransactionLinkForPreview}, or null: for a code no link
+ * has, for a link whose maker has no row, and where more than one link carries the code -
+ * `transaction_links.code` has no unique key, and of two links one may be open and the other
+ * accepted.
+ *
+ * One statement, so that the state of the link, its maker, its greeting and its pictures are
+ * of one moment: between two reads a thank-you can be accepted. It reads no picture, and
+ * neither the amount, the memo, the greeting's line, whom the greeting is for nor a member's
+ * real name.
+ *
+ * No condition on the link's state, a deleted link included: the rule that reads the columns
+ * stands in the backend (`data/RedeemPreview.logic.ts`). Left joins all the way, which keeps
+ * the link the first table read; `transaction_links` has no index on `code` and is read whole.
+ *
+ * Each joined part names its primary key first: Drizzle reads a part whose first column is
+ * null as "no row", and `motif` is null for a greeting with a photo, `alias` for a member
+ * without a username.
+ */
+export async function dbFindTransactionLinkForPreview(
+  code: string,
+): Promise<TransactionLinkForPreview | null> {
+  const rows = await drizzleDb()
+    .select({
+      link: {
+        id: transactionLinksTable.id,
+        code: transactionLinksTable.code,
+        userId: transactionLinksTable.userId,
+        validUntil: transactionLinksTable.validUntil,
+        redeemedAt: transactionLinksTable.redeemedAt,
+        redeemedBy: transactionLinksTable.redeemedBy,
+        deletedAt: transactionLinksTable.deletedAt,
+      },
+      maker: {
+        id: usersTable.id,
+        alias: usersTable.alias,
+        gradidoId: usersTable.gradidoId,
+        language: usersTable.language,
+        deletedAt: usersTable.deletedAt,
+      },
+      greeting: {
+        id: thankYouGreetingsTable.id,
+        motif: thankYouGreetingsTable.motif,
+      },
+      picture: {
+        id: thankYouGreetingPicturesTable.id,
+        rendition: thankYouGreetingPicturesTable.rendition,
+        width: thankYouGreetingPicturesTable.width,
+        height: thankYouGreetingPicturesTable.height,
+      },
+    })
+    .from(transactionLinksTable)
+    .leftJoin(usersTable, eq(usersTable.id, transactionLinksTable.userId))
+    .leftJoin(
+      thankYouGreetingsTable,
+      eq(thankYouGreetingsTable.transactionLinkCode, transactionLinksTable.code),
+    )
+    .leftJoin(
+      thankYouGreetingPicturesTable,
+      eq(thankYouGreetingPicturesTable.transactionLinkCode, transactionLinksTable.code),
+    )
+    .where(eq(transactionLinksTable.code, code))
+
+  const first = rows[0]
+  if (!first?.maker || rows.some((row) => row.link.id !== first.link.id)) {
+    return null
+  }
+  const { id: _linkId, ...link } = first.link
+  const { id: _makerId, ...maker } = first.maker
+  return {
+    link,
+    maker,
+    greeting: first.greeting ? { motif: first.greeting.motif } : null,
+    pictures: rows.flatMap((row) => (row.picture ? [row.picture] : [])),
+  }
 }
 
 /**
