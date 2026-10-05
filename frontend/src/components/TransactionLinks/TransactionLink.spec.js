@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { createI18n } from 'vue-i18n'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
+import { BDropdown, BDropdownItem } from 'bootstrap-vue-next'
 import TransactionLink from './TransactionLink.vue'
 import { createFilters } from '@/filters/amount'
 import {
@@ -353,6 +354,116 @@ describe('TransactionLink.vue', () => {
 
   // A thank-you greeting is a link with a motif and a name: the list says so in the block of
   // the memo, and leaves the row above it as it is.
+  /**
+   * The room that opens the menu (Bernd, 05.10.2026): the list of links closes on every tap
+   * inside it, and the three dots were a small thing to hit -- a tap a little beside them closed
+   * the whole list. So there is a room around the button that opens the menu too, and no tap in
+   * the menu's column reaches the list.
+   *
+   * ⚠️ With the library's own dropdown, not the stand-in of this file: where the room stands and
+   * which class the menu carries is the library's doing, and a stand-in would agree to anything.
+   */
+  describe('the room that opens the menu', () => {
+    const outside = vi.fn()
+
+    const mountReal = () =>
+      mount(TransactionLink, {
+        attachTo: document.body,
+        global: {
+          plugins: [i18n],
+          mocks: { $filters: { GDD: filters.GDD } },
+          provide: { store: EMMA },
+          components: { BDropdown, BDropdownItem },
+          stubs: {
+            BCard: true,
+            BCardText: true,
+            IBiThreeDotsVertical: { template: '<svg class="dots" />' },
+            IBiClipboard: true,
+            IBiFiles: true,
+            IBiShare: true,
+            IBiQrCode: true,
+            IBiDownload: true,
+            IBiPrinter: true,
+            IBiImage: true,
+            IBiDropletHalf: true,
+            IBiTrash: true,
+          },
+        },
+        props: {
+          holdAvailableAmount: '100',
+          id: 1,
+          amount: 200,
+          validUntil: new Date(Date.now() + 86400000).toISOString(),
+          link: 'https://example.com/link',
+          memo: 'Test memo',
+        },
+      })
+
+    beforeEach(() => {
+      outside.mockReset()
+      wrapper.unmount()
+      wrapper = mountReal()
+      wrapper.element.addEventListener('click', outside)
+    })
+
+    const toggle = () => wrapper.find('button.dropdown-toggle')
+    const reach = () => wrapper.find('.transaction-link-menu-reach')
+
+    it('stands inside the button, so a tap on it is a tap on the button', () => {
+      expect(toggle().exists()).toBe(true)
+      expect(toggle().element.contains(reach().element)).toBe(true)
+      // Beside the dots, not around them: the dots stay the button's own content.
+      expect(reach().element.contains(toggle().find('.dots').element)).toBe(false)
+    })
+
+    it('says nothing to a screen reader, and takes no place among the tab stops', () => {
+      expect(reach().attributes('aria-hidden')).toBe('true')
+      expect(reach().attributes('tabindex')).toBeUndefined()
+      expect(reach().text()).toBe('')
+    })
+
+    it('opens the menu, and the list hears nothing of the tap', async () => {
+      expect(toggle().attributes('aria-expanded')).toBe('false')
+
+      await reach().trigger('click')
+
+      // The library opens its menu a moment after the tap.
+      await vi.waitFor(() => expect(toggle().attributes('aria-expanded')).toBe('true'))
+      expect(outside).not.toHaveBeenCalled()
+    })
+
+    it('keeps a tap on the dots to itself as well', async () => {
+      await toggle().find('.dots').trigger('click')
+
+      await vi.waitFor(() => expect(toggle().attributes('aria-expanded')).toBe('true'))
+      expect(outside).not.toHaveBeenCalled()
+    })
+
+    it('keeps a tap beside the button, in the menu’s column, from the list', async () => {
+      await wrapper.find('[data-test="link-menu-col"]').trigger('click')
+
+      expect(outside).not.toHaveBeenCalled()
+    })
+
+    // Gegenprobe: the rest of the row is the list's, as before.
+    it('lets a tap on the rest of the row through', async () => {
+      await wrapper.find('[data-test="link-amount"]').trigger('click')
+
+      expect(outside).toHaveBeenCalledTimes(1)
+    })
+
+    // What the summary row reads, should a tap reach it after all (TransactionLinkSummary).
+    it('carries the mark the summary row reads', () => {
+      expect(reach().classes()).toContain('link-menu-opener')
+    })
+
+    it('hands the library the class the menu’s grey hangs on', () => {
+      const menu = wrapper.find('.dropdown-menu')
+      expect(menu.exists()).toBe(true)
+      expect(menu.classes()).toContain('transaction-link-menu')
+    })
+  })
+
   describe('a thank-you greeting', () => {
     const GREETING = { motif: 'morning-light', line: 'Just because', recipientName: 'Sarah' }
     const MEMO = 'Just because\nDear Sarah, thank you.'

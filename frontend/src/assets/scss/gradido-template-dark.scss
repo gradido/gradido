@@ -589,21 +589,13 @@ html:has(body.dark-mode) {
   background-color: var(--surface-muted);
 }
 
-// Language switcher (LanguageSwitch2, used on the login page and in settings):
-// the dropdown list is a hardcoded white panel with a light hover and a
-// light-blue active row -> dark surface, muted hover, green-accented active item.
-#app.dark-mode .ls-menu {
-  background: var(--surface);
-  border-color: var(--border);
-}
-
-#app.dark-mode .ls-item:hover {
-  background: var(--surface-muted);
-}
-
+// Language switcher (LanguageSwitch2, used on the login page and in settings): its list
+// stands on the menus' grey (`--menu-surface`), which changes with the mode by itself. Only
+// the chosen language needs a word here: its blue of the light mode is too dark on the grey,
+// and the link green comes to 3.0 : 1 on it -- so it takes the text colour (7.4 : 1 on the
+// tone it stands on) and is told apart by that tone and its tick.
 #app.dark-mode .ls-item-active {
-  background: var(--surface-muted);
-  color: var(--link);
+  color: var(--text);
 }
 
 // Collapse chevron (transaction rows, open links/QR list, decay): the "collapse"
