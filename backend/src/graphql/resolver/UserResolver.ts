@@ -6,6 +6,7 @@ import { SearchUsersFilters } from '@arg/SearchUsersFilters'
 import { SetUserRoleArgs } from '@arg/SetUserRoleArgs'
 import { UnsecureLoginArgs } from '@arg/UnsecureLoginArgs'
 import { UpdateUserInfosArgs } from '@arg/UpdateUserInfosArgs'
+import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
 import { OptInType } from '@enum/OptInType'
 import { Order } from '@enum/Order'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
@@ -14,6 +15,7 @@ import { MemberAvatarRefInput } from '@input/MemberAvatarRefInput'
 import { AdminUser, SearchAdminUsersResult } from '@model/AdminUser'
 import { AliasStatus } from '@model/AliasStatus'
 import { GmsUserAuthenticationResult } from '@model/GmsUserAuthenticationResult'
+import { Location } from '@model/Location'
 import { MemberAvatar } from '@model/MemberAvatar'
 import { User } from '@model/User'
 import { SearchUsersResult, UserAdmin } from '@model/UserAdmin'
@@ -1667,12 +1669,15 @@ export class UserResolver {
    * (`gmsAllowed`). Handing it out here would publish the text of members who
    * deliberately did not.
    *
+   * Somebody has to be asking, as for the position below (ownUserLocation): compared alone,
+   * the two ids read a User without an id as the own view of a caller without a login.
+   *
    * Returns null rather than throwing, like salutation: a caller without the right
    * should see nothing, not lose the whole enclosing user.
    */
   @FieldResolver(() => String, { nullable: true })
   aboutMe(@Root() user: User, @Ctx() context: Context): string | null {
-    if (context.user?.id !== user.id) {
+    if (!context.user || context.user.id !== user.id) {
       return null
     }
     return user.aboutMe ?? null
@@ -1703,10 +1708,12 @@ export class UserResolver {
    * avatar on it now exists on a second path -- and that is precisely the case this
    * comment used to predict. The guard is what makes the difference between the two paths
    * a rule rather than an accident of which query happens to load what.
+   *
+   * Somebody has to be asking, as for aboutMe above: a User without an id is nobody's own view.
    */
   @FieldResolver(() => String, { nullable: true })
   avatar(@Root() user: User, @Ctx() context: Context): string | null {
-    if (context.user?.id !== user.id) {
+    if (!context.user || context.user.id !== user.id) {
       return null
     }
     return user.avatar ?? null
@@ -1721,10 +1728,12 @@ export class UserResolver {
    * Nothing is given up by this. The deliveries that put a face next to a booking read
    * the setting HERE, in the backend, where they decide whether to send the picture at
    * all - no client ever has to be told about somebody else's switch.
+   *
+   * Somebody has to be asking, as for aboutMe above: a User without an id is nobody's own view.
    */
   @FieldResolver(() => Boolean, { nullable: true })
   avatarVisibleToMembers(@Root() user: User, @Ctx() context: Context): boolean | null {
-    if (context.user?.id !== user.id) {
+    if (!context.user || context.user.id !== user.id) {
       return null
     }
     return user.avatarVisibleToMembers ?? null
@@ -1735,13 +1744,128 @@ export class UserResolver {
    * about a transfer received -- the member's own switch, and guarded like the one above: what a
    * member decided about their own messages is nobody else's to read. The deliveries read it in
    * the backend, where they decide whether to mail; no client is told about somebody else's.
+   * Somebody has to be asking, as for aboutMe above: a User without an id is nobody's own view.
    */
   @FieldResolver(() => Boolean, { nullable: true })
   transfersInChat(@Root() user: User, @Ctx() context: Context): boolean | null {
-    if (context.user?.id !== user.id) {
+    if (!context.user || context.user.id !== user.id) {
       return null
     }
     return user.transfersInChat ?? null
+  }
+
+  /**
+   * The place a member has pinned for the member search. Theirs alone: no other member, not
+   * the moderation, nobody without a login. Guarded for the same reason as aboutMe above --
+   * this ObjectType is shared, `user()` finds any member by alias, gradido ID or confirmed
+   * address for anyone logged in, and `queryTransactionLink` names the member who made a
+   * link (`senderUser`) and the one who took it (`redeemedBy`) to whoever holds its code,
+   * with no token at all. Wherever else the type travels -- booking lists, contacts, the
+   * members of a chat -- the same holds: the guard decides, not what the query behind it
+   * happened to load.
+   *
+   * ⛔ Somebody has to be asking. Comparing the two ids alone reads a User without an id as
+   * the own view of a caller without a login -- undefined on both sides -- and such objects
+   * exist: a link from another community names its sender that way. None of them carries a
+   * position today; the guard does not rest on that.
+   *
+   * Neither wallet nor admin asks for it about anybody else. The wallet reads the member's
+   * own position off `login` and `verifyLogin`, the map and the settings ask the
+   * `userLocation` query above, which takes no argument and answers the caller; the admin
+   * interface asks nowhere. The member search does not come through here either: the server
+   * sends the position to the GMS itself, for members who take part.
+   *
+   * ⚠️ Not named after its field like the guards around it, because this class already has a
+   * `userLocation` -- that query. The `name` option is what puts it on the field.
+   *
+   * Returns null rather than throwing, like aboutMe: a caller without the right should see
+   * nothing, not lose the whole enclosing user.
+   */
+  @FieldResolver(() => Location, { nullable: true, name: 'userLocation' })
+  ownUserLocation(@Root() user: User, @Ctx() context: Context): Location | null {
+    if (!context.user || context.user.id !== user.id) {
+      return null
+    }
+    return user.userLocation ?? null
+  }
+
+  /**
+   * Seven settings a member decides about their own account: whether the two balances are
+   * hidden, whether they take part in the member search and in HumHub, and how they appear
+   * there. Guarded like the two switches above and for the reason given there -- what a
+   * member decided about their own account is nobody else's to read, and this type leaves
+   * through `user()` to anyone logged in and through `queryTransactionLink` with no token.
+   * As for the position: somebody has to be asking, and it has to be the member.
+   *
+   * Nobody asks for them about anybody else. The wallet reads five of them off `login` and
+   * `verifyLogin`, the end-to-end login the two about the balances; `gmsPublishName` and
+   * `humhubPublishName` no client asks for at all, and the admin interface asks for none.
+   * What the server itself decides by them -- whom to send to the GMS, whom to sync with
+   * HumHub -- it reads off the user row, which a field resolver does not touch.
+   *
+   * Null rather than throwing, like the guards above; the four booleans are nullable in the
+   * schema for that alone (see the model).
+   */
+  @FieldResolver(() => Boolean, { nullable: true })
+  hideAmountGDD(@Root() user: User, @Ctx() context: Context): boolean | null {
+    if (!context.user || context.user.id !== user.id) {
+      return null
+    }
+    return user.hideAmountGDD ?? null
+  }
+
+  /** Same guard as hideAmountGDD above. */
+  @FieldResolver(() => Boolean, { nullable: true })
+  hideAmountGDT(@Root() user: User, @Ctx() context: Context): boolean | null {
+    if (!context.user || context.user.id !== user.id) {
+      return null
+    }
+    return user.hideAmountGDT ?? null
+  }
+
+  /** Same guard as hideAmountGDD above. */
+  @FieldResolver(() => Boolean, { nullable: true })
+  gmsAllowed(@Root() user: User, @Ctx() context: Context): boolean | null {
+    if (!context.user || context.user.id !== user.id) {
+      return null
+    }
+    return user.gmsAllowed ?? null
+  }
+
+  /** Same guard as hideAmountGDD above. */
+  @FieldResolver(() => Boolean, { nullable: true })
+  humhubAllowed(@Root() user: User, @Ctx() context: Context): boolean | null {
+    if (!context.user || context.user.id !== user.id) {
+      return null
+    }
+    return user.humhubAllowed ?? null
+  }
+
+  /** Same guard as hideAmountGDD above. */
+  @FieldResolver(() => GmsPublishLocationType, { nullable: true })
+  gmsPublishLocation(@Root() user: User, @Ctx() context: Context): GmsPublishLocationType | null {
+    if (!context.user || context.user.id !== user.id) {
+      return null
+    }
+    return user.gmsPublishLocation ?? null
+  }
+
+  /** Same guard as hideAmountGDD above. */
+  @FieldResolver(() => PublishNameType, { nullable: true })
+  gmsPublishName(@Root() user: User, @Ctx() context: Context): PublishNameType | null {
+    if (!context.user || context.user.id !== user.id) {
+      return null
+    }
+    return user.gmsPublishName ?? null
+  }
+
+  /** Same guard as hideAmountGDD above. */
+  @FieldResolver(() => PublishNameType, { nullable: true })
+  humhubPublishName(@Root() user: User, @Ctx() context: Context): PublishNameType | null {
+    if (!context.user || context.user.id !== user.id) {
+      return null
+    }
+    return user.humhubPublishName ?? null
   }
 
   /**

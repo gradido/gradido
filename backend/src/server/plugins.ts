@@ -79,6 +79,12 @@ const filterVariables = (variables: any) => {
   if (vars?.picture?.data) {
     vars.picture.data = '***'
   }
+  // The place a member pins for the member search (updateUserInfos, `$gmsLocation` in the
+  // wallet's mutations.js): theirs alone -- the server answers it to nobody else -- and this
+  // line is written at level info. That the request sets one stays readable.
+  if (vars?.gmsLocation) {
+    vars.gmsLocation = '***'
+  }
   return vars
 }
 
