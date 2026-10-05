@@ -781,6 +781,7 @@
     "delete-the-link": "Supprimer le lien ?",
     "deleted": "Le lien a été supprimé !",
     "disbured": "Le versement du solde du lien a été initié avec succès ! Le crédit de {n} GDD sera prochainement comptabilisé sur ton compte.",
+    "duplicate": "Dupliquer",
     "expiredOn": "A expiré le",
     "has-account": "Tu as déjà un compte Gradido ?",
     "header": "Créer un lien, un chèque et un QR code",
@@ -791,7 +792,7 @@
     "link-hint": "Quiconque a le lien peut l'utiliser. Envoie-le uniquement à la personne à qui il est destiné.",
     "link-overview": "Aperçu du lien",
     "links_open": "{n} ouverts",
-    "links_sum": "Liens, chèques, QR codes",
+    "links_sum": "Liens, chèques, QR codes, remerciements",
     "no-account": "Tu n'as pas encore de compte Gradido ?",
     "no-redeem": "Tu n'es pas autorisé à percevoir ton propre lien !",
     "not-copied": "Malheureusement, ton appareil ne permet pas de copier ! Copie le lien manuellement, s'il te plaît !",
@@ -1098,12 +1099,12 @@
     }
   },
   "navigation": {
-    "admin_area": "Partie administrative",
+    "admin_area": "Admin",
     "back-to-account": "Retour au compte",
     "back-to-settings": "Retour à la configuration",
     "calculator": "Calculatrice",
     "community": "Communauté",
-    "contacts": "Contacts et chat",
+    "contacts": "Chat",
     "logout": "Déconnexion",
     "matching": "Matching",
     "menu": "Menu",
@@ -1211,6 +1212,13 @@
     "unavailable": {
       "title": "Aucune caméra trouvée"
     }
+  },
+  "send-picture": {
+    "home-only": "Pour l'instant, tu ne peux envoyer une image qu'aux membres de ta communauté.",
+    "label": "Ajouter une image",
+    "none": "Sans image",
+    "other": "Autre image",
+    "remove": "Supprimer"
   },
   "send_email": "Envoyer un e‑mail",
   "send_gdd": "Envoyer GDD",
@@ -1600,6 +1608,7 @@
     },
     "photo-of": "Photo envoyée par {name}",
     "picture": {
+      "not-taken-over": "La photo n'a pas pu être conservée. Choisis-la de nouveau ou prends l'une des images.",
       "other": "Autre photo",
       "own": "Ta propre photo",
       "question": "Quelle image pour ton petit mot ?"
@@ -1667,6 +1676,7 @@
     "text": "Quelle que soit la communauté à laquelle tu appartiens, le système de géo-matching te permet de trouver des membres de toutes les communautés sur une carte géographique. Tu peux filtrer selon les offres et les besoins et afficher les utilisateurs qui te correspondent.\n\nEn cliquant sur le bouton, une nouvelle fenêtre de navigateur s'ouvre et t'affiche les utilisateurs de ton entourage sur une carte."
   },
   "via_card": "par carte",
+  "via_greeting": "par un mot",
   "via_link": "par lien",
   "welcome": "Bienvenue dans la communauté"
 }

@@ -1,5 +1,8 @@
 <template>
   <div>
+    <!-- Both fields ask for a password that does not exist yet (`new-password`): a browser
+         does not put a saved one in, as it would on a sign-in form -- on the page a thank-you
+         arrives on, the saved one belongs to whoever owns the computer. -->
     <BRow class="mb-2">
       <BCol>
         <input-password
@@ -16,6 +19,7 @@
           :label="register ? $t('form.password') : $t('form.password_new')"
           name="newPassword"
           :placeholder="register ? $t('form.password') : $t('form.password_new')"
+          autocomplete="new-password"
           allow-full-validation
         />
       </BCol>
@@ -31,6 +35,7 @@
           :label="register ? $t('form.passwordRepeat') : $t('form.password_new_repeat')"
           name="newPasswordRepeat"
           :placeholder="register ? $t('form.passwordRepeat') : $t('form.password_new_repeat')"
+          autocomplete="new-password"
         />
       </BCol>
     </BRow>

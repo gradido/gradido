@@ -16,6 +16,7 @@
           :placeholder="defaultTranslations.placeholder"
           :type="showPassword ? 'text' : 'password'"
           :state="shownState"
+          :autocomplete="autocomplete"
           class="rounded-input password-input"
           data-test="password-input-field"
           v-bind="ariaInput"
@@ -80,6 +81,11 @@ const props = defineProps({
   placeholder: {
     type: String,
     default: null,
+  },
+  // What a browser's password store may do here. Left out, the browser decides, as it did.
+  autocomplete: {
+    type: String,
+    default: undefined,
   },
 })
 

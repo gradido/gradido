@@ -781,6 +781,7 @@
     "delete-the-link": "Eliminar o link?",
     "deleted": "O link foi eliminado!",
     "disbured": "Transferência do saldo do link iniciada com sucesso! O crédito de {n} GDD será lançado em breve na tua conta",
+    "duplicate": "Duplicar link",
     "expiredOn": "Expirou em",
     "has-account": "Já tens uma conta Gradido?",
     "header": "Criar link, cheque e código QR",
@@ -791,7 +792,7 @@
     "link-hint": "Quem tiver o link pode resgatá-lo. Envia-o só à pessoa a quem se destina.",
     "link-overview": "Vista geral dos links",
     "links_open": "{n} em aberto",
-    "links_sum": "Links, cheques, códigos QR",
+    "links_sum": "Links, cheques, códigos QR, postais",
     "no-account": "Ainda não tens uma conta Gradido?",
     "no-redeem": "Não podes resgatar o teu próprio link!",
     "not-copied": "Infelizmente, o teu dispositivo não permite copiar! Por favor, copia o link manualmente!",
@@ -1098,13 +1099,13 @@
     }
   },
   "navigation": {
-    "admin_area": "Área de administração",
+    "admin_area": "Admin",
     "back-to-account": "Voltar à conta",
     "back-to-settings": "Voltar às definições",
     "calculator": "Calculadora",
     "community": "Comunidade",
-    "contacts": "Contactos e chat",
-    "logout": "Terminar sessão",
+    "contacts": "Chat",
+    "logout": "Sair",
     "matching": "Matching",
     "menu": "Menu",
     "overview": "Vista geral",
@@ -1211,6 +1212,13 @@
     "unavailable": {
       "title": "Nenhuma câmara encontrada"
     }
+  },
+  "send-picture": {
+    "home-only": "Por agora, só podes enviar uma imagem a membros da tua comunidade.",
+    "label": "Adicionar imagem",
+    "none": "Sem imagem",
+    "other": "Outra imagem",
+    "remove": "Remover"
   },
   "send_email": "Enviar e‑mail",
   "send_gdd": "Enviar GDD",
@@ -1600,6 +1608,7 @@
     },
     "photo-of": "Foto enviada por {name}",
     "picture": {
+      "not-taken-over": "Não foi possível manter a foto. Escolhe-a de novo ou usa uma das imagens.",
       "other": "Outra foto",
       "own": "A tua foto",
       "question": "Que imagem queres no teu postal?"
@@ -1667,6 +1676,7 @@
     "text": "Não importa a que comunidade pertenças, com o Geo Matching System encontras membros de todas as comunidades num mapa. Podes filtrar por ofertas e necessidades e ver os utilizadores que combinam contigo.\n\nO botão abre uma nova janela do navegador onde os utilizadores na tua área são apresentados num mapa."
   },
   "via_card": "através de um cartão",
+  "via_greeting": "através de um postal",
   "via_link": "através de um link",
   "welcome": "Damos-te as boas-vindas à comunidade"
 }

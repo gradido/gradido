@@ -81,7 +81,18 @@
         >
           {{ $filters.GDD(props.transaction.amount) }}
         </div>
-        <div v-if="props.transaction.linkId" class="small">
+        <!-- A thank-you greeting is a link too, but nobody who got one thinks of a link: the
+             row says what it was (Bernd, 04.10.2026). Asked of the greeting itself, not of
+             its picture: one with a motif this wallet does not know is a greeting still. -->
+        <div
+          v-if="props.transaction.linkId && props.transaction.greeting"
+          class="small"
+          data-test="via-greeting"
+        >
+          {{ $t('via_greeting') }}
+          <variant-icon icon="bouquet" variant="muted" class="m-mb-1" />
+        </div>
+        <div v-else-if="props.transaction.linkId" class="small">
           {{ $t('via_link') }}
           <variant-icon icon="link45deg" variant="muted" class="m-mb-1" />
         </div>
@@ -142,6 +153,34 @@
           data-test="transaction-memo"
           @click="visible && $event.stopPropagation()"
         >
+          <!-- The picture the sender added to the transfer (ZE-016, F19 = B): small, over the
+               memo, in the OPENED row only -- for whoever switched transfers in the chat off
+               and would never see it otherwise. A photo is asked for when the row is opened,
+               by the id of this very booking, as the conversation asks for it.
+               The picture of a thank-you greeting stands in the same place, for both of the
+               two (Bernd, 04.10.2026); its photo is asked for by the id of the LINK, as the
+               bubble of the conversation asks for it. -->
+          <div
+            v-if="visible && pictureShown"
+            class="transaction-picture"
+            data-test="transaction-picture"
+          >
+            <thank-you-greeting-photo
+              v-if="pictureShown.photo"
+              class="transaction-picture-image"
+              :transaction-id="greetingShown ? undefined : props.transaction.id"
+              :link-id="greetingShown ? props.transaction.linkId : undefined"
+              :alt="$t('thank-you-greeting.photo-of', { name: pictureSender })"
+            />
+            <img
+              v-else
+              class="transaction-picture-image"
+              :src="pictureShown.motif.src"
+              :alt="pictureShown.motif.name"
+              :width="THANK_YOU_MOTIF_WIDTH"
+              :height="THANK_YOU_MOTIF_HEIGHT"
+            />
+          </div>
           <memo-text :memo="props.transaction.memo" />
         </div>
       </BCol>
@@ -172,6 +211,10 @@ import { avatarZoomBindings } from '@/composables/useAvatarZoom'
 import { memberAvatarProps } from '@/composables/useMemberAvatars'
 import { memberAlias } from '@/utils/gradidoAddress'
 import { LIST_AVATAR_SIZE } from '@/constants'
+import { useI18n } from 'vue-i18n'
+import ThankYouGreetingPhoto from '@/components/ThankYouGreeting/ThankYouGreetingPhoto.vue'
+import { THANK_YOU_MOTIF_HEIGHT, THANK_YOU_MOTIF_WIDTH } from '@/utils/thankYouMotifs'
+import { transactionPictureShown } from '@/utils/transactionPicture'
 
 const props = defineProps({
   transaction: {
@@ -190,6 +233,30 @@ const visible = ref(false)
 const toggleVisible = () => {
   visible.value = !visible.value
 }
+
+const { t } = useI18n()
+
+/**
+ * The picture the sender added to this transfer, as the opened row shows it: `{ photo: true }`
+ * or `{ motif }`, null for every other booking (utils/transactionPicture).
+ */
+const transferPictureShown = computed(() => transactionPictureShown(props.transaction.picture, t))
+
+/**
+ * The picture of the thank-you greeting this booking was made from, in the same two shapes; null
+ * for every other booking. A greeting names its picture as a transfer does (`motif`,
+ * `hasPicture`), and a booking has a greeting or a picture, never both.
+ */
+const greetingShown = computed(() => transactionPictureShown(props.transaction.greeting, t))
+
+const pictureShown = computed(() => greetingShown.value ?? transferPictureShown.value)
+
+/** Whose photo it is, for the ear: whoever sent the transfer -- the member, or the other one. */
+const pictureSender = computed(() =>
+  props.transaction.typeId === 'SEND'
+    ? memberAlias(store.state.username, store.state.gradidoID)
+    : memberAlias(props.transaction.linkedUser?.alias, props.transaction.linkedUser?.gradidoID),
+)
 
 // What the circle says, what colours it, and the picture if the wallet already holds one --
 // from one call, so the parts cannot come to describe different members (AS-010). The
@@ -320,6 +387,23 @@ watch(
 </script>
 
 <style lang="scss" scoped>
+/* The picture of a transfer or of a thank-you greeting in the opened row: as small as in the form it was chosen in, 36 : 25
+   on the card's ground, over the memo. */
+.transaction-picture {
+  margin-bottom: 0.5rem;
+}
+
+.transaction-picture-image {
+  display: block;
+  width: 132px;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 36 / 25;
+  border-radius: 10px;
+  background: #fbf3de;
+  object-fit: cover;
+}
+
 /* The memo, marked as something somebody wrote by italics and the muted colour of the row's
    other secondary lines -- the heading "Nachricht" that used to stand over it is gone
    (Bernd, 11.09.2026: variant a of three). `--bs-secondary-color` is defined in both modes. */

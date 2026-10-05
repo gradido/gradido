@@ -51,9 +51,26 @@
              taller than a line of text. -->
         <div v-else class="small" aria-hidden="true" data-test="link-decay-spacer">&nbsp;</div>
       </div>
-      <div class="col-auto d-flex justify-content-end align-items-center">
-        <BDropdown no-caret right aria-expanded="false" size="sm">
+      <!-- A tap here never reaches the summary row, which closes the whole list on every tap
+           inside it (Bernd, 05.10.2026: the list kept closing when the three dots were missed
+           by a little). -->
+      <div
+        class="col-auto d-flex justify-content-end align-items-center"
+        data-test="link-menu-col"
+        @click.stop
+      >
+        <BDropdown
+          no-caret
+          right
+          aria-expanded="false"
+          size="sm"
+          menu-class="transaction-link-menu"
+        >
           <template #button-content>
+            <!-- What the finger may hit: wider than the button to both sides, on the right up
+                 to the edge of the tile, and it takes no room in the row (see the styles). It
+                 stands inside the button, so a tap on it is a tap on the button. -->
+            <span class="transaction-link-menu-reach link-menu-opener" aria-hidden="true" />
             <!-- ⚠️ `link-menu-opener` is read by the summary row above: a tap on the menu
                  must not also close the list it stands in. -->
             <IBiThreeDotsVertical class="link-menu-opener" />
@@ -104,6 +121,15 @@
           >
             <IBiQrCode class="filter"></IBiQrCode>
             {{ $t('qrCode') }}
+          </BDropdownItem>
+          <!-- Every link of the member's own can be made once more -- an open one and one that has
+               run out, a greeting and a plain link (ZE-030): for somebody whose link ran out,
+               and for the next person. ⛔ This makes nothing. It opens the way a link is made,
+               with what this one carries standing in its fields, and the member makes the new
+               link there: so there is no window here and no question. -->
+          <BDropdownItem class="pb-3 test-duplicate-link" @click.stop="duplicate">
+            <IBiFiles />
+            {{ $t('gdd_per_link.duplicate') }}
           </BDropdownItem>
           <BDropdownItem class="test-delete-link" @click.stop="toggleDeleteModal">
             <IBiTrash />
@@ -189,10 +215,12 @@
 import { computed, ref } from 'vue'
 import { useMutation } from '@vue/apollo-composable'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { useAppToast } from '@/composables/useToast'
 import { useCopyLinks } from '@/composables/useCopyLinks'
 import { greetingPicture } from '@/composables/useGreetingPictures'
+import { useLinkDraft } from '@/composables/useLinkDraft'
 import { useThankYouCheque } from '@/composables/useThankYouCheque'
 import { useThankYouGreetingSheet } from '@/composables/useThankYouGreetingSheet'
 import { deleteTransactionLink } from '@/graphql/mutations'
@@ -201,6 +229,7 @@ import AppModal from '@/components/AppModal'
 import FigureQrCode from '@/components/QrCode/FigureQrCode'
 import ThankYouGreetingPhoto from '@/components/ThankYouGreeting/ThankYouGreetingPhoto.vue'
 import { memberAlias } from '@/utils/gradidoAddress'
+import { SEND_TYPES } from '@/utils/sendTypes'
 import {
   THANK_YOU_MOTIF_HEIGHT,
   THANK_YOU_MOTIF_WIDTH,
@@ -258,6 +287,45 @@ const { printGreetingSheet, saveGreetingSheet } = useThankYouGreetingSheet({
 
 const { mutate: deleteTransactionLinkMutation } = useMutation(deleteTransactionLink)
 
+const router = useRouter()
+const linkDraft = useLinkDraft()
+
+/**
+ * "Duplizieren": what this row shows of its link is handed to the way a link is made, and that
+ * way is opened -- the page of the thank-you greeting for a greeting, the send form on its link
+ * tab for a plain link. The id goes along for the photo of a greeting.
+ *
+ * ⛔ Handed over in memory (useLinkDraft), and the address names the way and nothing else: an
+ * amount, a memo and the name of a third person do not belong into the browser's history.
+ *
+ * A way that is not reached leaves nothing behind -- the member tapped on while the page was
+ * loading, or it could not be loaded: what was handed over is taken back, so that it cannot
+ * stand in those fields on a later visit that asked for nothing.
+ */
+async function duplicate() {
+  const { greeting } = props
+  const handed = linkDraft.put({
+    id: props.id,
+    amount: props.amount,
+    memo: props.memo,
+    greeting: greeting && {
+      motif: greeting.motif ?? null,
+      line: greeting.line ?? null,
+      recipientName: greeting.recipientName ?? null,
+      hasPicture: greeting.hasPicture === true,
+    },
+  })
+  let reached = false
+  try {
+    const failure = await router.push(
+      greeting ? '/thank-you-greeting' : { path: '/send', query: { art: SEND_TYPES.link } },
+    )
+    reached = !failure
+  } finally {
+    if (!reached) linkDraft.drop(handed)
+  }
+}
+
 const motif = computed(() => thankYouMotif(props.greeting?.motif, t))
 // The list is the member's own: the photo of a greeting in it is theirs, under their user name.
 const photoAlt = computed(() =>
@@ -310,6 +378,21 @@ const toggleQrModal = () => {
 .filter {
   filter: opacity(0.6);
 }
+
+/* The menu of a link stands on the grey of the menus over a conversation (Bernd, 05.10.2026;
+   the tokens and their measures: _design-tokens.scss, chatMenuSurface.spec.js). Not scoped:
+   the class is handed to the library's menu. One class more than the dark stylesheet's
+   `.dark-mode .dropdown-menu` and `.dark-mode .dropdown-item:hover`, so no tie is left to the
+   order the stylesheets load in. */
+.transaction-link .dropdown-menu.transaction-link-menu {
+  border: 1px solid var(--menu-border, #b3bac2);
+  background-color: var(--menu-surface, #dde1e6) !important;
+}
+
+.transaction-link .transaction-link-menu .dropdown-item:hover,
+.transaction-link .transaction-link-menu .dropdown-item:focus {
+  background-color: var(--menu-hover, #eef0f3);
+}
 </style>
 <style scoped lang="scss">
 .light-gray-text {
@@ -328,6 +411,17 @@ const toggleQrModal = () => {
      copying its figure here cost the state word exactly the 16 points it needs to stay on
      one line at 375. */
   --link-menu-col: 3.5rem;
+}
+
+/* The room around the three dots that opens the menu too. It is laid over the row, so the
+   row keeps its measure -- 75 by 62 points where the button alone is 35 by 50. Measured in the
+   wallet from 320 to 1440 points: to the left over the gutter, up to the amount (24); to the
+   right over the gutter and the tile's padding, up to the tile's edge (16, at every width);
+   upwards over the row's padding (8); downwards as far as the memo's margin goes (4), so it
+   lies over no word of the row. */
+.transaction-link-menu-reach {
+  position: absolute;
+  inset: -0.5rem -1rem -0.25rem -1.5rem;
 }
 
 /* The mark of a greeting above its memo: the motif small, and whom it is for. It names no

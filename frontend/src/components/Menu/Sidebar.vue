@@ -9,8 +9,8 @@
       <div class="mb-3 mt-3">
         <!-- In three pairs (Bernd, E-031): what one has -- the overview and the transactions
              behind it; what one does -- creating before sending, as in Gradido the creating
-             comes before the giving; and the people -- matching finds them, "contacts & chat"
-             keeps them. -->
+             comes before the giving; and the people -- matching finds them, the chat keeps
+             them. -->
         <BNav vertical class="w-200">
           <BNavItem to="/overview" class="mb-3" active-class="active-route">
             <div class="sidebar-menu-item-wrapper">
@@ -59,9 +59,11 @@
               <span class="ms-2">{{ $t('navigation.matching') }}</span>
             </div>
           </BNavItem>
-          <!-- "Contacts & chat", last, beside matching: with the chat the list is people more
-               than bookings (E-031, which moved it from under the transactions, KF-008). The
-               page keeps its address; the entry changed its name and did not get a neighbour.
+          <!-- The chat, last, beside matching: with the chat the list is people more than
+               bookings (E-031, which moved it from under the transactions, KF-008). The page
+               keeps its address and its heading ("contacts & chat"); the entry is called by the
+               word one looks for, with the speech bubble the thread itself shows when it is
+               empty (Bernd, 04.10.2026). "Contacten en chat" in bold did not fit the card.
 
                The gold mark: how many CONVERSATIONS hold something unread -- not messages
                (E-017), from the chat's beat (useChatUpdates) -- only from 1.
@@ -78,7 +80,7 @@
           <BNavItem to="/contacts" class="mb-3" active-class="active-route">
             <div class="sidebar-menu-item-wrapper chat-menu-item">
               <span class="chat-menu-icon">
-                <i-mdi-account-box-outline class="svg-icon" />
+                <i-mdi-chat-outline class="svg-icon" data-test="chat-menu-icon" />
                 <span
                   v-if="chatUnreadConversations > 0"
                   class="chat-unread-badge"
@@ -267,9 +269,9 @@ onMounted(syncNavActive)
 }
 
 /* Symbol and word in one row, and the word on one line. ⛔ A row and not a line of text: in a
-   line the longest word, "Contacten en chat", dropped whole under its symbol (measured in the
-   probe). In the row it runs into the entry's right padding and ends 7 px inside the 180 px card
-   at the desk; every other word has more room, and the drawer (220 px) has plenty. */
+   line a word too long for the card drops whole under its symbol (measured in the probe with
+   "Contacten en chat", the entry's name until 04.10.2026). The entry is one short word now; the
+   row stays, it is what keeps the mark's corner and the word together. */
 .chat-menu-item {
   display: flex;
   align-items: center;

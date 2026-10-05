@@ -51,6 +51,20 @@ export class Transaction extends BaseEntity {
   })
   thankYouCardId?: number | null
 
+  /**
+   * The picture a member sent with this transfer (`transaction_pictures`), on both rows of it.
+   * Written by executeTransaction only, with the id the server gave the picture in the same
+   * call; each of the two members gets the picture through their own row.
+   */
+  @Column({
+    name: 'transaction_picture_id',
+    type: 'int',
+    unsigned: true,
+    nullable: true,
+    default: null,
+  })
+  transactionPictureId?: number | null
+
   @Column({
     name: 'amount_gdd4',
     type: 'bigint',

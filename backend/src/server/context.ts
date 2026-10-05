@@ -42,6 +42,9 @@ export interface RequestBudget {
   // addThankYouGreetingPicture), capped together at
   // THANK_YOU_GREETING_PICTURES_ACCEPTED_MAX_PER_REQUEST: each is decoded and encoded again.
   thankYouGreetingPicturesAccepted: number
+  // Photos sent with a transfer (transactionPicture), capped at
+  // TRANSACTION_PICTURES_MAX_PER_REQUEST.
+  transactionPicturesServed: number
 }
 
 /** A budget with nothing spent. The context function creates one per HTTP request. */
@@ -55,6 +58,7 @@ export const newRequestBudget = (): RequestBudget => ({
   chatImagesServed: 0,
   thankYouGreetingPicturesServed: 0,
   thankYouGreetingPicturesAccepted: 0,
+  transactionPicturesServed: 0,
 })
 
 export interface Context {

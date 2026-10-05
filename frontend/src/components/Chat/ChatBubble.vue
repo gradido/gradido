@@ -7,7 +7,7 @@
       message.mine ? 'chat-bubble-mine' : 'chat-bubble-theirs',
       {
         'chat-bubble-transfer': message.transfer,
-        'chat-bubble-greeting': greeting,
+        'chat-bubble-greeting': greeting || transferPicture,
         'chat-bubble-in-group': face,
         'is-search-current': searchCurrent,
         'has-menu': menuOpen,
@@ -134,6 +134,34 @@
           <chat-search-text :text="parts.line" />
         </div>
         <memo-text v-if="parts.words" class="chat-bubble-text" :memo="parts.words" />
+      </template>
+      <!-- A transfer the sender added a picture to (ZE-016): under the head the picture, under
+           it the memo -- the shape of a greeting's booking without the line in handwriting. In
+           the same room, and no button either. A photo is asked for by the id of the BOOKING
+           once the bubble is in sight. -->
+      <template v-else-if="transferPicture">
+        <div
+          v-if="transferPicture.photo"
+          class="chat-bubble-greeting-picture"
+          data-test="chat-bubble-transfer-photo"
+        >
+          <thank-you-greeting-photo
+            class="chat-bubble-greeting-photo"
+            :transaction-id="message.transactionId ?? null"
+            :alt="t('thank-you-greeting.photo-of', { name: message.greetingSender ?? alias })"
+            says-missing
+          />
+        </div>
+        <div v-else class="chat-bubble-greeting-picture">
+          <img
+            :src="transferPicture.motif.src"
+            :alt="transferPicture.motif.name"
+            :width="THANK_YOU_MOTIF_WIDTH"
+            :height="THANK_YOU_MOTIF_HEIGHT"
+            data-test="chat-bubble-transfer-motif"
+          />
+        </div>
+        <memo-text class="chat-bubble-text" :memo="message.body" />
       </template>
       <!-- A transfer's memo as the booking list shows it (MemoText): its addresses as links, its
            stars as stars -- it is the booking's text, not a chat message. -->
@@ -267,6 +295,7 @@ import {
   THANK_YOU_MOTIF_WIDTH,
   thankYouMotif,
 } from '@/utils/thankYouMotifs'
+import { transactionPictureShown } from '@/utils/transactionPicture'
 import {
   chatVideoCalendarFile,
   chatVideoCalendarFileName,
@@ -442,6 +471,17 @@ const motif = computed(() => thankYouMotif(greeting.value?.motif, t))
 
 /** Whether it carries a photo of the sender's own in the place of a motif. */
 const hasPhoto = computed(() => greeting.value?.hasPicture === true)
+
+/**
+ * The picture the sender added to a transfer (ZE-016), as the bubble shows it: `{ photo: true }`
+ * or `{ motif }` -- or null for a transfer without one, and for a motif this wallet does not
+ * know: the bubble of a plain transfer then. A booking made from a greeting never has one.
+ */
+const transferPicture = computed(() =>
+  props.message.transfer && !greeting.value
+    ? transactionPictureShown(props.message.picture, t)
+    : null,
+)
 
 /**
  * The line and, apart from it, the words. The booking's memo begins with the line; where it does
@@ -767,8 +807,9 @@ const copyText = async () => {
   border-bottom-right-radius: 0.3rem;
 }
 
-/* The booking of an accepted thank-you greeting (ZE-019). Its bubble takes all the width a bubble
-   may have, however short its words: the picture is as wide as the bubble. */
+/* The booking of an accepted thank-you greeting (ZE-019), and a transfer the sender added a
+   picture to (ZE-016). Its bubble takes all the width a bubble may have, however short its
+   words: the picture is as wide as the bubble. */
 .chat-bubble-greeting .chat-bubble {
   width: 80%;
 }

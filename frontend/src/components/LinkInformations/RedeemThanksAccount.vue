@@ -42,7 +42,7 @@
       <!-- The fields of the registration form, with its checks and its words (AccountFields).
            The sentence under the passwords names who sees that the confirmation is missing
            until it is there (E-020). -->
-      <account-fields with-password :guarantor-name="senderName" :first-name="firstName" />
+      <account-fields with-password :guarantor-name="senderName" />
       <div class="redeem-thanks-actions">
         <!-- The word of the card (F4: nothing small under it). Locked while the page opens the
              account, signs in and books: a second tap asks nothing. -->
@@ -72,8 +72,8 @@
  * ⛔ the password stands in the form alone -- not in the address, not in the store (which is
  * mirrored to localStorage), not in a message.
  *
- * "Vorname" starts with whom the greeting is for, where that is a single word ("Sarah", not
- * "Sarah und Claude") long enough to be a first name here.
+ * "Vorname" starts empty, whomever the greeting names: the sender writes there what they call
+ * the person -- a nickname as readily as a name -- and an account is opened under one's own.
  */
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -106,13 +106,6 @@ const senderName = computed(() =>
 
 const motif = computed(() => thankYouMotif(props.linkData.greeting?.motif, t))
 const hasPhoto = computed(() => props.linkData.greeting?.hasPicture === true)
-
-// The shortest first name the form takes (AccountFields: `min: 3`).
-const FIRST_NAME_MIN = 3
-const firstName = (() => {
-  const name = (props.linkData.greeting?.recipientName ?? '').trim()
-  return name.length >= FIRST_NAME_MIN && !/\s/.test(name) ? name : ''
-})()
 
 // The fields register themselves with this form (AccountFields).
 const { meta: formMeta, handleSubmit } = useForm()

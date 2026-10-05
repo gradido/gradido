@@ -135,4 +135,47 @@ describe('GddSend confirm', () => {
       expect(wrapper.text()).toContain('Test Community')
     })
   })
+  // "Bild dazu" (ZE-016): the picture that goes with the transfer stands with the entries.
+  describe('the picture with the transfer', () => {
+    const row = () => wrapper.find('[data-test="confirm-send-picture"]')
+
+    it('has no row without a picture', () => {
+      expect(row().exists()).toBe(false)
+      expect(wrapper.text()).not.toContain('send-picture.label')
+    })
+
+    it('shows a motif small under the message, by its name', () => {
+      wrapper = createWrapper({ picture: { motif: 'giving-hands' } })
+
+      expect(row().text()).toContain('send-picture.label')
+      const picture = row().find('img')
+      expect(picture.attributes('src')).toBe('/img/thank-you-greeting/giving-hands.svg')
+      expect(picture.attributes('alt')).toBe('thank-you-greeting.motif.giving-hands')
+      expect(picture.classes()).toContain('transaction-confirm-picture')
+    })
+
+    it('shows a photo as the member cut it', () => {
+      const preview = 'data:image/jpeg;base64,AAAA'
+      wrapper = createWrapper({ picture: { photo: { source: {}, edit: {}, preview } } })
+
+      expect(row().find('img').attributes('src')).toBe(preview)
+      expect(row().find('img').attributes('alt')).toBe('thank-you-greeting.picture.own')
+    })
+
+    it('has no row for a motif this wallet does not know', () => {
+      wrapper = createWrapper({ picture: { motif: 'elephant' } })
+
+      expect(row().exists()).toBe(false)
+    })
+
+    it('stands after the message and before the calculation', () => {
+      wrapper = createWrapper({ picture: { motif: 'bouquet' } })
+      const text = wrapper.html()
+
+      expect(text.indexOf('form.memo')).toBeLessThan(text.indexOf('confirm-send-picture'))
+      expect(text.indexOf('confirm-send-picture')).toBeLessThan(
+        text.indexOf('advanced-calculation'),
+      )
+    })
+  })
 })

@@ -182,12 +182,16 @@ export const sendCoins = gql`
     $recipientIdentifier: String!
     $amount: GradidoUnit!
     $memo: String!
+    $motif: String
+    $picture: ChatImageInput
   ) {
     sendCoins(
       recipientCommunityIdentifier: $recipientCommunityIdentifier
       recipientIdentifier: $recipientIdentifier
       amount: $amount
       memo: $memo
+      motif: $motif
+      picture: $picture
     )
   }
 `

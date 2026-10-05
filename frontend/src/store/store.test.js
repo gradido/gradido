@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { mount } from '@vue/test-utils'
 import { mutations, actions, THEME_MODE_STORAGE_KEY } from './store'
 import i18n from '../i18n'
 import jwtDecode from 'jwt-decode'
@@ -17,6 +18,8 @@ import {
   rememberChatImage,
 } from '@/composables/useChatImages'
 import { greetingPicture, rememberGreetingPicture } from '@/composables/useGreetingPictures'
+import { useLinkDraft } from '@/composables/useLinkDraft'
+import { requestTransactionPicture, transactionPicture } from '@/composables/useTransactionPictures'
 
 vi.mock('../i18n', () => ({
   default: {
@@ -520,6 +523,24 @@ describe('Vuex store', () => {
       })
 
       /**
+       * ⛔ And the photos sent with transfers (useTransactionPictures), kept by the id of the
+       * booking and let go for the same reason.
+       */
+      it('lets go of the photos sent with transfers', async () => {
+        requestTransactionPicture(
+          { query: async () => ({ data: { transactionPicture: btoa('JPEG') } }) },
+          815,
+        )
+        await new Promise((resolve) => setTimeout(resolve))
+        // The fixture proves itself: a photo that was never kept would pass below unforgotten.
+        expect(transactionPicture(815)?.state).toBe('ready')
+
+        logout({ commit, state, dispatch })
+
+        expect(transactionPicture(815)).toBeNull()
+      })
+
+      /**
        * ⛔ And the picture open large, like the avatar's zoom above: its view keeps it in its own
        * module, and the idle-timeout logout comes precisely when somebody sits looking at it.
        */
@@ -609,6 +630,41 @@ describe('Vuex store', () => {
         logout({ commit, state, dispatch })
 
         expect(firstLoginWindow.value).toBeNull()
+      })
+
+      /**
+       * ⛔ A sixth place, same rule. What a link of the member's own handed over to be made once
+       * more -- an amount, a memo, the name of whom it was for -- waits in memory, in a module of
+       * its own (useLinkDraft). A session that has run out is signed out by the guard on the way
+       * to the page the tap asked for; without this the next member to sign in on this browser
+       * would find that page filled in.
+       */
+      it('lets go of what a link handed over to be made once more', () => {
+        const link = { id: 7, amount: 12.5, memo: 'Für Sarah', greeting: null }
+        // Read as the same member would read it: what empties it here is the sign-out alone,
+        // not the handover's own rule that it goes to nobody else.
+        const member = { state: { gradidoID: 'user-one' } }
+        const handover = () => {
+          let draft
+          mount(
+            {
+              setup() {
+                draft = useLinkDraft()
+                return () => null
+              },
+            },
+            { global: { provide: { store: member } } },
+          )
+          return draft
+        }
+        // The fixture proves itself: handed over, it is found.
+        handover().put(link)
+        expect(handover().takeLink()).toEqual(link)
+        handover().put(link)
+
+        logout({ commit, state, dispatch })
+
+        expect(handover().takeLink()).toBeNull()
       })
 
       it('removes only its own storage blob', () => {

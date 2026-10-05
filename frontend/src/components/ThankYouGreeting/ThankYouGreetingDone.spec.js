@@ -225,7 +225,7 @@ describe('ThankYouGreetingDone', () => {
     )
     // The two names are the ones the menu and the list carry.
     expect(data(wrapper, 'find-again').text()).toBe(
-      'Du findest ihn wieder unter Transaktionen, bei „Links, Schecks, QR-Codes“.',
+      'Du findest ihn wieder unter Transaktionen, bei „Links, Schecks, QR-Codes, Grüße“.',
     )
   })
 

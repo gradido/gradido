@@ -5,6 +5,7 @@ import { MemberAvatarRefInput } from '@input/MemberAvatarRefInput'
 import { ThankYouGreeting } from '@model/ThankYouGreeting'
 import { Transaction } from '@model/Transaction'
 import { TransactionList } from '@model/TransactionList'
+import { TransactionPicture } from '@model/TransactionPicture'
 import { User } from '@model/User'
 import {
   ApiVersionType,
@@ -24,15 +25,20 @@ import {
   ChatMessageNotify,
   countOpenPendingTransactions,
   DltTransaction as DbDltTransaction,
+  dbDeleteTransactionPictureWithoutBooking,
   dbFindMemberAvatarTimestamps,
   dbHasRegisterRedeemEvent,
   dbInsertEvent,
+  dbInsertTransactionPicture,
   dbSelectThankYouCardLabels,
   dbSelectThankYouGreetingsByLinkIds,
+  dbSelectTransactionPictureHeads,
+  dbSelectTransactionPictureImageForMember,
   dbSelectTransactionsByUserId,
   Transaction as dbTransaction,
   TransactionLink as dbTransactionLink,
   User as dbUser,
+  driverCodeOfFailedQuery,
   EventType,
   findUserByIdentifier,
   getCommunityByUuid,
@@ -42,14 +48,20 @@ import {
 } from 'database'
 import { getLogger, Logger } from 'log4js'
 import { Mutex } from 'redis-semaphore'
-import { DecayCalculationType, GradidoUnit } from 'shared'
-import { Arg, Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
+import { DecayCalculationType, GradidoUnit, parseOrThrowFirstIssue } from 'shared'
+import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { In, IsNull } from 'typeorm'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { PublishNameLogic } from '@/data/PublishName.logic'
 import { greetingLinkIdsOf, greetingOfBooking } from '@/data/Transaction.logic'
+import {
+  TRANSACTION_PICTURES_MAX_PER_REQUEST,
+  transactionPictureIdOf,
+  transactionPictureIdsOf,
+} from '@/data/TransactionPicture.logic'
+import { transactionPictureSchema } from '@/data/TransactionPicture.schema'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { communityUser } from '@/util/communityUser'
@@ -62,6 +74,7 @@ import {
   deliverChatMessageAcrossBorder,
   deliverChatMessageLocally,
 } from './util/chatMessageDelivery'
+import { acceptedPicture } from './util/chatRequest'
 import { getCommunityName, isHomeCommunity } from './util/communities'
 import {
   bookingCounterparty,
@@ -73,6 +86,30 @@ import {
 const db = AppDatabase.getInstance()
 const createLogger = () =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.TransactionResolver`)
+
+/**
+ * Takes the picture of a transfer back out that was filed and then not booked, and never
+ * throws: it runs where a transfer has failed, and that failure is the one to report.
+ *
+ * ⛔ Only a picture no booking carries -- the query asks, in the statement that deletes
+ * (dbDeleteTransactionPictureWithoutBooking). A throw of executeTransaction does not prove that
+ * nothing was booked: after its commit two events, the DLT row, the release of the connection,
+ * the mail and the mutex can still throw. A booked picture stays.
+ */
+const removeUnbookedTransactionPicture = async (
+  transactionPictureId: number,
+  senderUserId: number,
+): Promise<void> => {
+  try {
+    await dbDeleteTransactionPictureWithoutBooking(transactionPictureId, senderUserId)
+  } catch (error) {
+    createLogger().error(
+      'picture of a transfer that was not booked could not be removed',
+      transactionPictureId,
+      driverCodeOfFailedQuery(error),
+    )
+  }
+}
 
 export const executeTransaction = async (
   amount: GradidoUnit,
@@ -89,6 +126,12 @@ export const executeTransaction = async (
    * card's name only ever reaches its own owner. See `Transaction`.
    */
   thankYouCardId?: number | null,
+  /**
+   * The picture the sender added to this transfer (`transaction_pictures`), if there is one:
+   * the id sendCoins was given when it filed the picture, in the same call. Written onto BOTH
+   * rows, as the card is -- each of the two members gets the picture through their own row.
+   */
+  transactionPictureId?: number | null,
 ): Promise<boolean> => {
   // acquire lock
   // const releaseLock = await TRANSACTIONS_LOCK.acquire()
@@ -173,6 +216,7 @@ export const executeTransaction = async (
       transactionSend.previous = sendBalance.lastTransactionId
       transactionSend.transactionLinkId = transactionLink ? transactionLink.id : null
       transactionSend.thankYouCardId = thankYouCardId ?? null
+      transactionSend.transactionPictureId = transactionPictureId ?? null
       await queryRunner.manager.insert(dbTransaction, transactionSend)
 
       logger.debug(`sendTransaction inserted: ${dbTransaction}`)
@@ -199,6 +243,7 @@ export const executeTransaction = async (
       transactionReceive.linkedTransactionId = transactionSend.id
       transactionReceive.transactionLinkId = transactionLink ? transactionLink.id : null
       transactionReceive.thankYouCardId = thankYouCardId ?? null
+      transactionReceive.transactionPictureId = transactionPictureId ?? null
       await queryRunner.manager.insert(dbTransaction, transactionReceive)
       logger.debug(`receive Transaction inserted: ${dbTransaction}`)
 
@@ -549,6 +594,20 @@ export class TransactionResolver {
      */
     const greetings = await dbSelectThankYouGreetingsByLinkIds(greetingLinkIdsOf(userTransactions))
 
+    /**
+     * The pictures members sent with the transfers on this page, fetched once for all of them,
+     * as the greetings above: the motif, or that the picture is a photo. A page without such a
+     * transfer asks the table nothing.
+     *
+     * ⛔ Never the photo: the table with the bytes is asked by transactionPicture only, for
+     * one booking of the member's own.
+     */
+    const pictureHeads = new Map(
+      (await dbSelectTransactionPictureHeads(transactionPictureIdsOf(userTransactions))).map(
+        (head) => [head.id, head] as const,
+      ),
+    )
+
     // transactions
     userTransactions.forEach((userTransaction: dbTransaction) => {
       /*
@@ -581,6 +640,8 @@ export class TransactionResolver {
           ? (cardLabels.get(userTransaction.thankYouCardId) ?? null)
           : null
       const greetingRow = greetingOfBooking(userTransaction, greetings)
+      const pictureId = transactionPictureIdOf(userTransaction)
+      const pictureHead = pictureId === null ? undefined : pictureHeads.get(pictureId)
       transactions.push(
         new Transaction(
           userTransaction,
@@ -588,6 +649,7 @@ export class TransactionResolver {
           linkedUser,
           cardLabel,
           greetingRow ? new ThankYouGreeting(greetingRow) : null,
+          pictureHead ? new TransactionPicture(pictureHead) : null,
         ),
       )
     })
@@ -671,18 +733,81 @@ export class TransactionResolver {
     return new TransactionList(await balanceResolver.balance(context), transactions)
   }
 
+  /**
+   * The photo a member sent with a transfer, as base64, for the two the booking is between:
+   * the sender asks with the id of their SEND row, the recipient with the id of their RECEIVE
+   * row -- the ids their own booking lists carry. Null for everything else -- somebody else's
+   * row, a booking without a picture, a picture that is a motif, no such id --, with nothing
+   * that tells these apart.
+   *
+   * Who gets it is decided in the one query that reads the bytes
+   * (dbSelectTransactionPictureImageForMember): the row has to be the caller's own.
+   *
+   * The way a chat message's picture and a greeting's come (chatMessageImage,
+   * thankYouGreetingPicture): GraphQL, base64, one picture a call, and counted in the HTTP
+   * request's budget. There is no address for it without somebody signed in.
+   *
+   * Nothing of the photo is written to the log; the request log leaves the answer out
+   * (plugins.ts).
+   */
+  @Authorized([RIGHTS.TRANSACTION_PICTURE])
+  @Query(() => String, { nullable: true })
+  async transactionPicture(
+    @Arg('transactionId', () => Int) transactionId: number,
+    @Ctx() context: Context,
+  ): Promise<string | null> {
+    // ⛔ Counted in the HTTP request's budget before anything is read: a document may repeat
+    // this field under any number of aliases, up to 35 KB a photo (RequestBudget). The count is
+    // also what keeps the answer out of the request log.
+    context.requestBudget.transactionPicturesServed += 1
+    const served = context.requestBudget.transactionPicturesServed
+    if (served > TRANSACTION_PICTURES_MAX_PER_REQUEST) {
+      throw new LogError('Too many transaction pictures requested at once', served)
+    }
+    const user = getUser(context)
+    const image = await dbSelectTransactionPictureImageForMember(transactionId, user.id).catch(
+      (e) => {
+        // The driver's code, never the error: the message of a failed Drizzle query carries the
+        // statement and its parameters.
+        throw new LogError('Unable to read transaction picture', driverCodeOfFailedQuery(e))
+      },
+    )
+    return image.success ? image.value.toString('base64') : null
+  }
+
   @Authorized([RIGHTS.SEND_COINS])
   @Mutation(() => Boolean)
   async sendCoins(
     @Args()
-    { recipientCommunityIdentifier, recipientIdentifier, amount, memo }: TransactionSendArgs,
+    {
+      recipientCommunityIdentifier,
+      recipientIdentifier,
+      amount,
+      memo,
+      motif,
+      picture: photoInput,
+    }: TransactionSendArgs,
     @Ctx() context: Context,
   ): Promise<boolean> {
     const logger = createLogger()
     logger.addContext('from', context.user?.id)
     logger.addContext('amount', amount.toString())
+    // A picture with the transfer: a motif or a photo of the member's own, at most one of the
+    // two. Checked before anything is read or written. The photo is a chat picture in every
+    // bound and is checked as one (CHAT_IMAGE_NOT_ACCEPTED with the reason).
+    const withPicture = parseOrThrowFirstIssue(transactionPictureSchema, {
+      motif,
+      picture: photoInput,
+    })
+    const picture = withPicture.motif
+      ? { motif: withPicture.motif }
+      : withPicture.picture
+        ? { photo: acceptedPicture(withPicture.picture) }
+        : null
+    // Of the picture the log gets that there is one, and of which kind.
+    const pictureKind = picture ? ('motif' in picture ? 'motif' : 'photo') : 'none'
     logger.debug(
-      `sendCoins(recipientCommunityIdentifier=${recipientCommunityIdentifier}, recipientIdentifier=${recipientIdentifier}, amount=${amount}, memo=${memo})`,
+      `sendCoins(recipientCommunityIdentifier=${recipientCommunityIdentifier}, recipientIdentifier=${recipientIdentifier}, amount=${amount}, memo=${memo}, picture=${pictureKind})`,
     )
     const senderUser = getUser(context)
     if (!recipientCommunityIdentifier || (await isHomeCommunity(recipientCommunityIdentifier))) {
@@ -703,9 +828,53 @@ export class TransactionResolver {
         throw new Error(errmsg)
       }
 
-      await executeTransaction(amount, memo, senderUser, recipientUser, logger)
+      if (!picture) {
+        await executeTransaction(amount, memo, senderUser, recipientUser, logger)
+      } else {
+        // ⛔ The picture goes first. It is filed through Drizzle, the booking is written through
+        // TypeORM -- two connection pools, no shared transaction --, so the order decides what a
+        // failure leaves behind. This way round there is never a booking whose picture is
+        // missing, and never money on its way while the picture is quietly lost: where the
+        // picture cannot be filed, nothing is booked and the DLT has heard nothing; where the
+        // booking is not made after it, the picture is taken back out.
+        //
+        // The two cheap refusals come before the filing, so that such an attempt does not cost
+        // a filing and a removal. executeTransaction asks both again, and decides.
+        if (senderUser.id === recipientUser.id) {
+          throw new LogError('Sender and Recipient are the same', senderUser.id)
+        }
+        if (!(await calculateBalance(senderUser.id, amount.negated(), new Date()))) {
+          throw new LogError('User has not enough GDD or amount is < 0', senderUser.id)
+        }
+        const filed = await dbInsertTransactionPicture(picture)
+        if (!filed.success) {
+          // Which row was refused and the driver's code -- the query hands on nothing else of
+          // a failure, and no byte of the picture.
+          throw new LogError('Unable to save the picture of the transfer', filed.error.row)
+        }
+        try {
+          await executeTransaction(
+            amount,
+            memo,
+            senderUser,
+            recipientUser,
+            logger,
+            null,
+            null,
+            filed.value,
+          )
+        } catch (error) {
+          await removeUnbookedTransactionPicture(filed.value, senderUser.id)
+          throw error
+        }
+      }
       logger.info('successful executeTransaction')
     } else {
+      // Across the border a picture does not travel yet: refused before anything is filed and
+      // before the other community hears of the transfer.
+      if (picture) {
+        throw new LogError('A picture can only be sent to a member of the own community')
+      }
       await processXComCompleteTransaction(
         senderUser.communityUuid,
         senderUser.gradidoID,

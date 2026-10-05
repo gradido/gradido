@@ -5,6 +5,10 @@
        booking in the conversation (ZE-019). Asked for by the id of the link once the place is in
        sight (useGreetingPictures), as a chat's picture is.
 
+       And the photo a member sent with a transfer, in the same places' way: asked for by the id
+       of the BOOKING (`transaction-id`, useTransactionPictures) -- another range of numbers, and
+       another store.
+
        The size and the corners are the place's own: the class the parent writes on this lands on
        whichever element stands here. The room is there before the photo has come, in the colour
        of the card -- and stays so where none comes. -->
@@ -37,11 +41,18 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useApolloClient } from '@vue/apollo-composable'
 import { greetingPicture, requestGreetingPicture } from '@/composables/useGreetingPictures'
+import { requestTransactionPicture, transactionPicture } from '@/composables/useTransactionPictures'
 import { THANK_YOU_MOTIF_HEIGHT, THANK_YOU_MOTIF_WIDTH } from '@/utils/thankYouMotifs'
 
 const props = defineProps({
   /** The id of the link the greeting was made as: what the server serves the photo by. */
   linkId: { type: Number, default: null },
+  /**
+   * For the photo sent with a transfer instead: the id of the member's own row of the booking.
+   * ⛔ Where it is given, the photo is asked for and looked up by IT alone -- never by `linkId`:
+   * a link and a booking with the same number have nothing to do with each other.
+   */
+  transactionId: { type: Number, default: null },
   /** "Foto von {name}", with the user name of whoever sent the greeting. */
   alt: { type: String, required: true },
   /** Whether "Bild nicht verfügbar" stands in the room itself -- not in one as small as a list's. */
@@ -52,11 +63,17 @@ const { t } = useI18n()
 const { client } = useApolloClient()
 
 const room = ref(null)
-const known = computed(() => greetingPicture(props.linkId))
+const ofTransfer = computed(() => props.transactionId !== null)
+const known = computed(() =>
+  ofTransfer.value ? transactionPicture(props.transactionId) : greetingPicture(props.linkId),
+)
 const src = computed(() => (known.value?.state === 'ready' ? known.value.src : null))
 const missing = computed(() => known.value?.state === 'missing')
 
-const request = () => requestGreetingPicture(client, props.linkId)
+const request = () =>
+  ofTransfer.value
+    ? requestTransactionPicture(client, props.transactionId)
+    : requestGreetingPicture(client, props.linkId)
 
 /**
  * Asked for once its place is in sight: a long conversation opened at its end does not fetch the
