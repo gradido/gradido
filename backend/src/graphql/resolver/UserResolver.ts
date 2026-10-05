@@ -14,6 +14,7 @@ import { MemberAvatarRefInput } from '@input/MemberAvatarRefInput'
 import { AdminUser, SearchAdminUsersResult } from '@model/AdminUser'
 import { AliasStatus } from '@model/AliasStatus'
 import { GmsUserAuthenticationResult } from '@model/GmsUserAuthenticationResult'
+import { Location } from '@model/Location'
 import { MemberAvatar } from '@model/MemberAvatar'
 import { User } from '@model/User'
 import { SearchUsersResult, UserAdmin } from '@model/UserAdmin'
@@ -1742,6 +1743,41 @@ export class UserResolver {
       return null
     }
     return user.transfersInChat ?? null
+  }
+
+  /**
+   * The place a member has pinned for the member search. Theirs alone: no other member, not
+   * the moderation, nobody without a login. Guarded for the same reason as aboutMe above --
+   * this ObjectType is shared, `user()` finds any member by alias, gradido ID or confirmed
+   * address for anyone logged in, and `queryTransactionLink` names the member who made a
+   * link (`senderUser`) and the one who took it (`redeemedBy`) to whoever holds its code,
+   * with no token at all. Wherever else the type travels -- booking lists, contacts, the
+   * members of a chat -- the same holds: the guard decides, not what the query behind it
+   * happened to load.
+   *
+   * ⛔ Somebody has to be asking. Comparing the two ids alone reads a User without an id as
+   * the own view of a caller without a login -- undefined on both sides -- and such objects
+   * exist: a link from another community names its sender that way. None of them carries a
+   * position today; the guard does not rest on that.
+   *
+   * Neither wallet nor admin asks for it about anybody else. The wallet reads the member's
+   * own position off `login` and `verifyLogin`, the map and the settings ask the
+   * `userLocation` query above, which takes no argument and answers the caller; the admin
+   * interface asks nowhere. The member search does not come through here either: the server
+   * sends the position to the GMS itself, for members who take part.
+   *
+   * ⚠️ Not named after its field like the guards around it, because this class already has a
+   * `userLocation` -- that query. The `name` option is what puts it on the field.
+   *
+   * Returns null rather than throwing, like aboutMe: a caller without the right should see
+   * nothing, not lose the whole enclosing user.
+   */
+  @FieldResolver(() => Location, { nullable: true, name: 'userLocation' })
+  ownUserLocation(@Root() user: User, @Ctx() context: Context): Location | null {
+    if (!context.user || context.user.id !== user.id) {
+      return null
+    }
+    return user.userLocation ?? null
   }
 
   /**
