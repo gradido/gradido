@@ -240,5 +240,12 @@
   },
   "general": {
     "decimalSeparator": ","
+  },
+  "redeemPreview": {
+    "description": "Helpen. Schenken. Danken.",
+    "greetingTitle": "{name} heeft je een dankgroetje gestuurd",
+    "greetingTitleWithoutName": "Een dankgroetje voor jou",
+    "linkTitle": "{name} heeft je een bedankje gestuurd",
+    "linkTitleWithoutName": "Een bedankje voor jou"
   }
 }

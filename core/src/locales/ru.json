@@ -240,5 +240,12 @@
   },
   "general": {
     "decimalSeparator": ","
+  },
+  "redeemPreview": {
+    "description": "Помогать. Дарить. Благодарить.",
+    "greetingTitle": "{name} шлёт вам открытку с благодарностью",
+    "greetingTitleWithoutName": "Открытка с благодарностью для вас",
+    "linkTitle": "{name} шлёт вам благодарность",
+    "linkTitleWithoutName": "Благодарность для вас"
   }
 }
