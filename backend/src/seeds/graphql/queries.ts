@@ -707,6 +707,96 @@ export const userTransfersInChat = gql`
   }
 `
 
+// The place a member has pinned for the member search, asked for on its own like aboutMe: the
+// member's own view, the `user` query that finds anybody for a member who is logged in -- and
+// the link query, which names the member who made a link and the one who took it to whoever
+// holds its code.
+export const verifyLoginUserLocation = gql`
+  query {
+    verifyLogin {
+      gradidoID
+      userLocation
+    }
+  }
+`
+
+export const userUserLocation = gql`
+  query ($identifier: String!, $communityIdentifier: String!) {
+    user(identifier: $identifier, communityIdentifier: $communityIdentifier) {
+      gradidoID
+      userLocation
+    }
+  }
+`
+
+export const queryTransactionLinkUserLocation = gql`
+  query ($code: String!) {
+    queryTransactionLink(code: $code) {
+      ... on TransactionLink {
+        senderUser {
+          gradidoID
+          userLocation
+        }
+        redeemedBy {
+          gradidoID
+          userLocation
+        }
+      }
+    }
+  }
+`
+
+// Seven settings a member decides about their own account, asked for over the same three
+// ways as the position above.
+export const verifyLoginOwnSettings = gql`
+  query {
+    verifyLogin {
+      gradidoID
+      hideAmountGDD
+      hideAmountGDT
+      gmsAllowed
+      humhubAllowed
+      gmsPublishLocation
+      gmsPublishName
+      humhubPublishName
+    }
+  }
+`
+
+export const userOwnSettings = gql`
+  query ($identifier: String!, $communityIdentifier: String!) {
+    user(identifier: $identifier, communityIdentifier: $communityIdentifier) {
+      gradidoID
+      hideAmountGDD
+      hideAmountGDT
+      gmsAllowed
+      humhubAllowed
+      gmsPublishLocation
+      gmsPublishName
+      humhubPublishName
+    }
+  }
+`
+
+export const queryTransactionLinkOwnSettings = gql`
+  query ($code: String!) {
+    queryTransactionLink(code: $code) {
+      ... on TransactionLink {
+        senderUser {
+          gradidoID
+          hideAmountGDD
+          hideAmountGDT
+          gmsAllowed
+          humhubAllowed
+          gmsPublishLocation
+          gmsPublishName
+          humhubPublishName
+        }
+      }
+    }
+  }
+`
+
 export const thankYouCardPaymentTarget = gql`
   query ($code: String!) {
     thankYouCardPaymentTarget(code: $code) {
