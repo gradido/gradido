@@ -11,6 +11,7 @@ import {
   THANK_YOU_PICTURE_SMALL,
   encodeThankYouPictures,
   fetchThankYouPicture,
+  openThankYouRenditions,
   thankYouPictureAddress,
   thankYouPictureEdit,
   thankYouPictureInput,
@@ -151,6 +152,131 @@ describe('thankYouPicturePreview', () => {
 
     // 400 wide, 400 / 1.44 high
     expect(draw).toHaveBeenCalledWith(small, expect.anything(), 400, 278)
+  })
+})
+
+/**
+ * A duplicate of a greeting carries the photo of the old one (ZE-030): the two renditions come
+ * from the server as base64, and they go out again as they came.
+ */
+describe('openThankYouRenditions', () => {
+  // Bytes that are no text, so a detour through a string would show: 0xff 0xd8 … 0xff 0xd9.
+  const jpeg = (...inside) => Uint8Array.from([0xff, 0xd8, ...inside, 0xff, 0xd9])
+  const base64 = (bytes) => btoa(String.fromCharCode(...bytes))
+  const SMALL_BYTES = jpeg(0x00, 0x80, 0xfe, 0x01)
+  const LARGE_BYTES = jpeg(0x7f, 0xc3, 0x28, 0xa0, 0xa1, 0x10)
+  const SMALL = base64(SMALL_BYTES)
+  const LARGE = base64(LARGE_BYTES)
+
+  /** A decoder that tells the two files apart by their length, and keeps what it was handed. */
+  const decoder = () => {
+    const files = []
+    const open = vi.fn(async (file) => {
+      files.push(file)
+      return file.size === LARGE_BYTES.length
+        ? { image: { name: 'large' }, width: 1080, height: 750 }
+        : { image: { name: 'small' }, width: 831, height: 577 }
+    })
+    return { open, files }
+  }
+
+  /** The bytes of a file (jsdom's File has no arrayBuffer of its own). */
+  const bytesOf = (file) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(new Uint8Array(reader.result))
+      reader.onerror = () => reject(reader.error)
+      reader.readAsArrayBuffer(file)
+    })
+
+  it('hands both renditions on as they came, their sizes read off the pictures', async () => {
+    const { open } = decoder()
+
+    const photo = await openThankYouRenditions({ small: SMALL, large: LARGE }, { open })
+
+    expect(photo.renditions).toEqual({
+      small: { data: SMALL, width: 831, height: 577 },
+      large: { data: LARGE, width: 1080, height: 750 },
+    })
+    // …and those go to the server as every rendition does.
+    expect(thankYouPictureInput(photo.renditions.small)).toEqual(photo.renditions.small)
+  })
+
+  it('opens the large one as the picture the editor cuts, filling the card’s place', async () => {
+    const { open } = decoder()
+
+    const photo = await openThankYouRenditions({ small: SMALL, large: LARGE }, { open })
+
+    expect(photo.source).toEqual({ image: { name: 'large' }, width: 1080, height: 750 })
+    expect(photo.edit).toEqual(thankYouPictureEdit())
+    // 1080 x 750 is the place's own shape: nothing of it falls away.
+    expect(chatImageCut(1080, 750, photo.edit)).toMatchObject({ width: 1080, height: 750 })
+  })
+
+  it('shows the large one, as it came', async () => {
+    const { open } = decoder()
+
+    const photo = await openThankYouRenditions({ small: SMALL, large: LARGE }, { open })
+
+    expect(photo.preview).toBe(`data:image/jpeg;base64,${LARGE}`)
+  })
+
+  it('decodes the very bytes the server answered, as JPEG files', async () => {
+    const { open, files } = decoder()
+
+    await openThankYouRenditions({ small: SMALL, large: LARGE }, { open })
+
+    expect(files).toHaveLength(2)
+    expect(files.map((file) => file.type)).toEqual(['image/jpeg', 'image/jpeg'])
+    expect(await bytesOf(files[0])).toEqual(SMALL_BYTES)
+    expect(await bytesOf(files[1])).toEqual(LARGE_BYTES)
+  })
+
+  // The old greeting has no large rendition: the server answers the small one for both.
+  it('does without a large one where the server answered the small one twice', async () => {
+    const { open } = decoder()
+
+    const photo = await openThankYouRenditions({ small: SMALL, large: SMALL }, { open })
+
+    expect(photo.renditions).toEqual({
+      small: { data: SMALL, width: 831, height: 577 },
+      large: null,
+    })
+    expect(photo.source).toEqual({ image: { name: 'small' }, width: 831, height: 577 })
+    expect(photo.preview).toBe(`data:image/jpeg;base64,${SMALL}`)
+    expect(open).toHaveBeenCalledTimes(1)
+  })
+
+  it('and where no large one came at all', async () => {
+    const { open } = decoder()
+
+    const photo = await openThankYouRenditions({ small: SMALL, large: null }, { open })
+
+    expect(photo.renditions.large).toBeNull()
+    expect(photo.source.image).toEqual({ name: 'small' })
+    expect(open).toHaveBeenCalledTimes(1)
+  })
+
+  // Without the small rendition there is no greeting with a photo.
+  it('is no photo where no small rendition came, and decodes nothing', async () => {
+    const { open } = decoder()
+
+    expect(await openThankYouRenditions({ small: null, large: LARGE }, { open })).toBeNull()
+    expect(await openThankYouRenditions({ small: null, large: null }, { open })).toBeNull()
+    expect(open).not.toHaveBeenCalled()
+  })
+
+  it('fails where a rendition is no picture', async () => {
+    const open = vi.fn().mockRejectedValue(new ChatImageError('FORMAT'))
+
+    await expect(openThankYouRenditions({ small: SMALL, large: LARGE }, { open })).rejects.toThrow()
+  })
+
+  it('fails where what came is not base64', async () => {
+    const { open } = decoder()
+
+    await expect(openThankYouRenditions({ small: '%%%', large: null }, { open })).rejects.toThrow()
+    expect(open).not.toHaveBeenCalled()
   })
 })
 

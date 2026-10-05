@@ -8,6 +8,7 @@ import {
   pictureLinkIsOpen,
   pictureRenditionsForCodeHolder,
   pictureRenditionsForMember,
+  pictureRenditionsForMemberAskingLarge,
   pictureToServe,
 } from './ThankYouGreetingPicture.logic'
 import { linkVouches } from './VouchingLink.logic'
@@ -191,6 +192,119 @@ describe('pictureRenditionsForMember', () => {
   // A link nobody accepted has NULL there; a member is never "nobody".
   it('does not take a member for the one who accepted where nobody did', () => {
     expect(pictureRenditionsForMember({ ...open, userId: SENDER, redeemedBy: null }, 0)).toEqual([])
+  })
+})
+
+/**
+ * The same query, asked for the LARGE rendition: the member who made a greeting duplicates it,
+ * and the duplicate carries the photo of the old one (ZE-030). Every row of the rule, for each
+ * of the three -- and, row for row, that asking changes nothing for anybody else.
+ */
+describe('pictureRenditionsForMemberAskingLarge', () => {
+  // The account of the member who made the link stands: `null`.
+  const STANDS = null
+
+  describe('the member who made the link', () => {
+    it('open: the large rendition, and the small one where there is no large one', () => {
+      expect(pictureRenditionsForMemberAskingLarge(open, STANDS, SENDER)).toEqual([
+        'large',
+        'small',
+      ])
+    })
+
+    // The case a duplicate is made for: the link ran out, and its large rendition still lies
+    // there.
+    it('run out: the large rendition, and the small one where there is no large one', () => {
+      expect(pictureRenditionsForMemberAskingLarge(runOut, STANDS, SENDER)).toEqual([
+        'large',
+        'small',
+      ])
+    })
+
+    it('accepted: the small rendition, as without asking', () => {
+      expect(pictureRenditionsForMemberAskingLarge(accepted, STANDS, SENDER)).toEqual(['small'])
+    })
+
+    // Each of the two columns alone says "accepted".
+    it('takes either mark of an acceptance alone', () => {
+      expect(
+        pictureRenditionsForMemberAskingLarge({ ...open, redeemedAt: AN_HOUR_AGO }, STANDS, SENDER),
+      ).toEqual(['small'])
+      expect(
+        pictureRenditionsForMemberAskingLarge({ ...open, redeemedBy: ACCEPTER }, STANDS, SENDER),
+      ).toEqual(['small'])
+    })
+
+    it('deleted: none', () => {
+      expect(pictureRenditionsForMemberAskingLarge(deleted, STANDS, SENDER)).toEqual([])
+      expect(pictureRenditionsForMemberAskingLarge(runOutAndDeleted, STANDS, SENDER)).toEqual([])
+      expect(pictureRenditionsForMemberAskingLarge(acceptedAndDeleted, STANDS, SENDER)).toEqual([])
+    })
+
+    /**
+     * ⛔ Their own account is deleted, and the session still stands: no large rendition. What
+     * they get is what they get without asking.
+     */
+    it('whose own account is deleted: the small rendition, as without asking', () => {
+      expect(pictureRenditionsForMemberAskingLarge(open, AN_HOUR_AGO, SENDER)).toEqual(['small'])
+      expect(pictureRenditionsForMemberAskingLarge(runOut, AN_HOUR_AGO, SENDER)).toEqual(['small'])
+      // whenever it was deleted -- the moment is not compared with now
+      expect(pictureRenditionsForMemberAskingLarge(open, IN_A_WEEK, SENDER)).toEqual(['small'])
+    })
+  })
+
+  describe('the member who accepted it', () => {
+    // ⛔ Never the large one: after the acceptance there is none, and asking does not make one.
+    it('accepted: the small rendition and never the large one', () => {
+      expect(pictureRenditionsForMemberAskingLarge(accepted, STANDS, ACCEPTER)).toEqual(['small'])
+    })
+
+    it('open, run out and deleted: none', () => {
+      expect(pictureRenditionsForMemberAskingLarge(open, STANDS, ACCEPTER)).toEqual([])
+      expect(pictureRenditionsForMemberAskingLarge(runOut, STANDS, ACCEPTER)).toEqual([])
+      expect(pictureRenditionsForMemberAskingLarge(acceptedAndDeleted, STANDS, ACCEPTER)).toEqual(
+        [],
+      )
+    })
+  })
+
+  describe('a third member', () => {
+    it('gets none, whatever became of the link', () => {
+      for (const state of Object.values(EVERY_STATE)) {
+        expect(pictureRenditionsForMemberAskingLarge(state, STANDS, THIRD)).toEqual([])
+      }
+    })
+  })
+
+  /**
+   * ⛔ The large rendition is named in two cases and no other: the member who made the link,
+   * their account standing, asks about a link that is open or ran out. Everywhere else the
+   * answer is, state for state and member for member, the one of pictureRenditionsForMember.
+   */
+  it('names the large rendition for the maker of an open or run-out link alone', () => {
+    for (const [name, state] of Object.entries(EVERY_STATE)) {
+      for (const member of [SENDER, ACCEPTER, THIRD]) {
+        for (const makerDeletedAt of [STANDS, AN_HOUR_AGO]) {
+          const answer = pictureRenditionsForMemberAskingLarge(state, makerDeletedAt, member)
+          const isTheCase =
+            member === SENDER && makerDeletedAt === STANDS && (name === 'open' || name === 'runOut')
+          if (isTheCase) {
+            expect(answer).toEqual(['large', 'small'])
+          } else {
+            expect(answer).not.toContain('large')
+            expect(answer).toEqual(pictureRenditionsForMember(state, member))
+          }
+        }
+      }
+    }
+  })
+
+  // The link of another member, with every column but its maker as the asking member's own
+  // would have it: the id of the maker is what is compared, and nothing else.
+  it('does not take a member for the maker of somebody else’s link', () => {
+    expect(
+      pictureRenditionsForMemberAskingLarge({ ...open, userId: THIRD }, STANDS, SENDER),
+    ).toEqual([])
   })
 })
 

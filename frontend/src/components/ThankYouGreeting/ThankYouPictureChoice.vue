@@ -51,8 +51,8 @@
            in the tab order, its focus shown on the tile. -->
       <div
         class="tyg-motif tyg-own"
-        :class="{ 'is-chosen': photoChosen, 'is-empty': !photo, 'is-busy': preparing }"
-        :aria-busy="preparing ? 'true' : undefined"
+        :class="{ 'is-chosen': photoChosen, 'is-empty': !photo, 'is-busy': waiting }"
+        :aria-busy="waiting ? 'true' : undefined"
         data-test="thank-you-greeting-own"
       >
         <label
@@ -113,12 +113,15 @@
             </svg>
           </span>
         </button>
-        <!-- No `capture` on this one: here the picker offers the photos and the files. -->
+        <!-- No `capture` on this one: here the picker offers the photos and the files. While a
+             photo is on its way from elsewhere (`busy`), the field takes none: its label does
+             nothing then. -->
         <input
           :id="pickerId"
           type="file"
           accept="image/*"
           class="visually-hidden tyg-own-field"
+          :disabled="busy"
           data-test="thank-you-greeting-photo-picker"
           @change="takePicture"
         />
@@ -142,13 +145,14 @@
           accept="image/*"
           capture="environment"
           class="visually-hidden tyg-camera-field"
+          :disabled="busy"
           data-test="thank-you-greeting-camera-field"
           @change="takePicture"
         />
         <label
           :for="cameraId"
           class="tyg-camera"
-          :class="{ 'is-busy': preparing }"
+          :class="{ 'is-busy': waiting }"
           data-test="thank-you-greeting-camera"
         >
           <svg
@@ -181,10 +185,11 @@
     >
       {{ problemWords }}
     </p>
-    <!-- For the ear: a photo is being opened. Always in the page, so the words are announced
-         when they come (a live region that appears together with its text is not). -->
+    <!-- For the ear: a photo is being opened, or is on its way. Always in the page, so the
+         words are announced when they come (a live region that appears together with its text
+         is not). -->
     <p class="visually-hidden" role="status" data-test="thank-you-greeting-picture-status">
-      {{ preparing ? t('chatThread.imagePreparing') : '' }}
+      {{ waiting ? t('chatThread.imagePreparing') : '' }}
     </p>
 
     <!-- The chat's editor under the card's frame: no shapes, no "Sichern"; "Größe" also fits
@@ -224,6 +229,13 @@ const props = defineProps({
    * ⛔ For the memory of a page only: never into the store, never into the device's storage.
    */
   photo: { type: Object, default: null },
+  /**
+   * A photo is on its way into the tile from elsewhere: the page of a duplicated greeting fetches
+   * the photo the old one carries. The tile shows that it waits, and takes no photo from the
+   * device meanwhile -- what the page is about to put there would land under an open editor. The
+   * five motifs stay what they are: a tap on one is the member's own choice.
+   */
+  busy: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['update:motif', 'update:photo'])
@@ -244,6 +256,8 @@ const offersCamera = !isComputer()
 
 /** A photo is being opened. */
 const preparing = ref(false)
+/** The tile of the photo waits: for a photo being opened here, or for one on its way (`busy`). */
+const waiting = computed(() => preparing.value || props.busy)
 /** Why the last photo chosen could not be opened (ChatImageError), or null. */
 const problem = ref(null)
 const problemWords = computed(() => chatImageProblemWords(problem.value, t))

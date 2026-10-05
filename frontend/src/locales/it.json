@@ -1553,6 +1553,7 @@
   },
   "thank-you-greeting": {
     "done": {
+      "another": "Ancora uno per qualcun altro",
       "edit-hint": "Puoi modificare la frase prima dell'invio. Le tue parole compaiono solo sul biglietto.",
       "find-again": "Lo ritrovi in {transactions}, alla voce «{links}».",
       "link-hint": "Chi ha il link può accettare il ringraziamento. Invialo solo alla persona a cui è destinato.",

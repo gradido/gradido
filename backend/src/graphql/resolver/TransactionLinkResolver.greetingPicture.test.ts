@@ -121,6 +121,25 @@ const pictureOfLink = gql`
     thankYouGreetingPicture(linkId: $linkId)
   }
 `
+const largePictureOfLink = gql`
+  query ($linkId: Int!) {
+    thankYouGreetingPicture(linkId: $linkId, large: true)
+  }
+`
+// What the wallet asks where a greeting is duplicated: both renditions of the old one, in one
+// request (frontend/src/graphql/queries.js, thankYouGreetingPictureRenditions).
+const bothRenditionsOfLink = gql`
+  query ($linkId: Int!) {
+    small: thankYouGreetingPicture(linkId: $linkId)
+    large: thankYouGreetingPicture(linkId: $linkId, large: true)
+  }
+`
+const largePictureTwice = gql`
+  query ($linkId: Int!) {
+    first: thankYouGreetingPicture(linkId: $linkId, large: true)
+    second: thankYouGreetingPicture(linkId: $linkId, large: true)
+  }
+`
 const linkByCode = gql`
   query ($code: String!) {
     queryTransactionLink(code: $code) {
@@ -213,6 +232,14 @@ const createEvents = () => DbEvent.count({ where: { type: EventType.TRANSACTION_
 const pictureFor = async (email: string, linkId: number): Promise<string | null> => {
   await loginAs(email)
   const result = await query({ query: pictureOfLink, variables: { linkId } })
+  expect(result.errors).toBeUndefined()
+  return result.data.thankYouGreetingPicture
+}
+
+/** What the query hands to whoever is signed in now where they ask for the LARGE rendition. */
+const largePictureFor = async (email: string, linkId: number): Promise<string | null> => {
+  await loginAs(email)
+  const result = await query({ query: largePictureOfLink, variables: { linkId } })
   expect(result.errors).toBeUndefined()
   return result.data.thankYouGreetingPicture
 }
@@ -708,6 +735,48 @@ describe('an open greeting with a picture', () => {
     const result = await query({ query: pictureOfLink, variables: { linkId: link.id } })
 
     expect(result.errors).toEqual([new GraphQLError('401 Unauthorized')])
+
+    const large = await query({ query: largePictureOfLink, variables: { linkId: link.id } })
+
+    expect(large.errors).toEqual([new GraphQLError('401 Unauthorized')])
+  })
+
+  /**
+   * Asked for the LARGE rendition (ZE-030: a duplicate of a greeting carries the photo of the
+   * old one): the sender gets it of their own link, and asking changes nothing for anybody else.
+   */
+  it('hands the large rendition to the sender who asks for it, and to nobody else', async () => {
+    expect(await largePictureFor('bibi@bloxberg.de', link.id)).toBe(LARGE_PICTURE.data)
+    expect(await largePictureFor('bob@baumeister.de', link.id)).toBeNull()
+    expect(await largePictureFor('peter@lustig.de', link.id)).toBeNull()
+  })
+
+  it('hands the small one to the sender who asks for the large one where none was added', async () => {
+    await loginAs('bibi@bloxberg.de')
+    const smallOnly = await created()
+
+    expect(await largePictureFor('bibi@bloxberg.de', smallOnly.id)).toBe(SMALL_PICTURE.data)
+  })
+
+  it('hands both renditions to the sender in one request, as the wallet asks for them', async () => {
+    await loginAs('bibi@bloxberg.de')
+
+    const result = await query({ query: bothRenditionsOfLink, variables: { linkId: link.id } })
+
+    expect(result.errors).toBeUndefined()
+    expect(result.data).toEqual({ small: SMALL_PICTURE.data, large: LARGE_PICTURE.data })
+  })
+
+  // ⛔ One large rendition a request: the second alias is refused, whoever asks.
+  it('refuses the large rendition a second time in one request, under another alias', async () => {
+    await loginAs('bibi@bloxberg.de')
+
+    const result = await query({ query: largePictureTwice, variables: { linkId: link.id } })
+
+    expect(result.errors).toEqual([
+      new GraphQLError('Too many thank-you greeting pictures requested at once'),
+    ])
+    expect(result.data).toEqual({ first: LARGE_PICTURE.data, second: null })
   })
 })
 
@@ -743,6 +812,13 @@ describe('once the thank-you is accepted', () => {
     expect(await pictureFor('bibi@bloxberg.de', link.id)).toBe(SMALL_PICTURE.data)
     expect(await pictureFor('peter@lustig.de', link.id)).toBe(SMALL_PICTURE.data)
     expect(await pictureFor('bob@baumeister.de', link.id)).toBeNull()
+  })
+
+  // ⛔ There is no large rendition any more, and asking for one changes nothing for anybody.
+  it('whoever asks for the large rendition gets what they get without asking', async () => {
+    expect(await largePictureFor('bibi@bloxberg.de', link.id)).toBe(SMALL_PICTURE.data)
+    expect(await largePictureFor('peter@lustig.de', link.id)).toBe(SMALL_PICTURE.data)
+    expect(await largePictureFor('bob@baumeister.de', link.id)).toBeNull()
   })
 
   it('the booking says to both that its greeting has a picture, and carries none', async () => {
@@ -792,6 +868,16 @@ describe('a greeting that ran out', () => {
     expect(await pictureFor('peter@lustig.de', link.id)).toBeNull()
   })
 
+  // The case a duplicate is made for: the address shows nothing any more, and the sender still
+  // gets the large rendition of their own greeting -- they alone.
+  it('hands the large rendition to the sender who asks for it, and to nobody else', async () => {
+    expect(await largePictureFor('bibi@bloxberg.de', link.id)).toBe(LARGE_PICTURE.data)
+    expect(await largePictureFor('bob@baumeister.de', link.id)).toBeNull()
+    expect(await largePictureFor('peter@lustig.de', link.id)).toBeNull()
+    // …and the address stays as empty as it was.
+    expectEmpty(await atTheAddress(link.code))
+  })
+
   // Nothing tidies up: both renditions lie there until the sender deletes the greeting.
   it('keeps both renditions', async () => {
     expect(await renditionsOf(link.code)).toEqual(['large', 'small'])
@@ -826,6 +912,8 @@ describe('deleteTransactionLink', () => {
     expect(await renditionsOf(link.code)).toEqual(['large', 'small'])
     expectEmpty(await atTheAddress(link.code))
     expect(await pictureFor('bibi@bloxberg.de', link.id)).toBeNull()
+    // …and none to the sender who asks for the large rendition, though it lies there.
+    expect(await largePictureFor('bibi@bloxberg.de', link.id)).toBeNull()
   })
 })
 
@@ -849,5 +937,27 @@ describe('an open greeting of a member whose account is deleted', () => {
     }
 
     expect((await atTheAddress(link.code)).body.equals(LARGE)).toBe(true)
+  })
+
+  /**
+   * ⛔ And the member themselves, in a session that still stands, gets no large rendition by
+   * asking for it: what the query hands them is the small one, as without asking. No sign-in
+   * between the two -- a deleted account cannot sign in, and the session is from before.
+   */
+  it('hands the member no large rendition by the query, and hands it again once the account is back', async () => {
+    const link = await withBothRenditions()
+    const askLarge = () => query({ query: largePictureOfLink, variables: { linkId: link.id } })
+    expect((await askLarge()).data.thankYouGreetingPicture).toBe(LARGE_PICTURE.data)
+
+    await User.update({ id: bibi.id }, { deletedAt: new Date() })
+    try {
+      const result = await askLarge()
+      expect(result.errors).toBeUndefined()
+      expect(result.data.thankYouGreetingPicture).toBe(SMALL_PICTURE.data)
+    } finally {
+      await User.update({ id: bibi.id }, { deletedAt: null })
+    }
+
+    expect((await askLarge()).data.thankYouGreetingPicture).toBe(LARGE_PICTURE.data)
   })
 })

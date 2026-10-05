@@ -1553,6 +1553,7 @@
   },
   "thank-you-greeting": {
     "done": {
+      "another": "Nog een voor iemand anders",
       "edit-hint": "Je kunt de zin vóór het versturen aanpassen. Jouw woorden staan pas op de kaart.",
       "find-again": "Je vindt het terug onder {transactions}, bij “{links}”.",
       "link-hint": "Wie de link heeft, kan het bedankje aannemen. Stuur hem alleen naar de persoon voor wie hij bedoeld is.",

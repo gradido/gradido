@@ -1553,6 +1553,7 @@
   },
   "thank-you-greeting": {
     "done": {
+      "another": "Uno más para otra persona",
       "edit-hint": "Puedes cambiar la frase antes de enviarla. Tus palabras solo aparecen en la tarjeta.",
       "find-again": "Lo encontrarás de nuevo en {transactions}, en «{links}».",
       "link-hint": "Quien tenga el enlace puede aceptar el agradecimiento. Envíalo solo a la persona a la que va dirigido.",
