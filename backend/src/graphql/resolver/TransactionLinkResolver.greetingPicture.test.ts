@@ -905,7 +905,9 @@ describe('an open greeting with a picture', () => {
       new GraphQLError('Too many thank-you greeting pictures requested at once'),
     ])
     const { first, second } = result.data
-    expect([first, second].filter((picture) => picture !== null)).toEqual([LARGE_STORED.toString('base64')])
+    expect([first, second].filter((picture) => picture !== null)).toEqual([
+      LARGE_STORED.toString('base64'),
+    ])
   })
 })
 
