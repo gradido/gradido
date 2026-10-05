@@ -347,6 +347,8 @@ export const transactionsTable = mysqlTable(
     // `transactions` in drizzle could only see half the row until then, and a schema that
     // mirrors the table in part invites the next query to be written against the entity.
     thankYouCardId: int('thank_you_card_id').default(sql`NULL`),
+    // The picture sent with a transfer (`transaction_pictures`, migration 0154), on both rows.
+    transactionPictureId: int('transaction_picture_id', { unsigned: true }).default(sql`NULL`),
     decay: customGradidoUnit('decay_gdd4').notNull(),
     decayStart: datetime('decay_start', { mode: 'date', fsp: 3 }).default(sql`NULL`),
     decayCalculationType: int('decay_calculation_type').default(0).notNull(),
@@ -1077,3 +1079,51 @@ export const thankYouGreetingPicturesTable = mysqlTable(
 
 export type ThankYouGreetingPictureSelect = typeof thankYouGreetingPicturesTable.$inferSelect
 export type ThankYouGreetingPictureInsert = typeof thankYouGreetingPicturesTable.$inferInsert
+
+// A picture sent with a transfer (migration 0154): one of the motifs of the thank-you greeting
+// by its key, or -- with `motif` NULL -- a photo of the member's own, whose bytes are in
+// `transaction_picture_images`. The booking points at this row from both of its rows
+// (`transactions.transaction_picture_id`).
+//
+// What a list may read: the booking list asks this table once for a page, and never the other.
+export const transactionPicturesTable = mysqlTable('transaction_pictures', {
+  id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
+  // One of the wallet's motif keys; NULL is for a photo of the member's own.
+  motif: varchar({ length: 32 }).default(sql`NULL`),
+  createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+    .default(sql`current_timestamp(3)`)
+    .notNull(),
+})
+
+export type TransactionPictureSelect = typeof transactionPicturesTable.$inferSelect
+export type TransactionPictureInsert = typeof transactionPicturesTable.$inferInsert
+
+// The photo of a transfer's picture, stored in the form of a chat message's picture
+// (`chat_message_images`), of the avatar and of a greeting's picture: the JPEG's bytes in a
+// mediumblob, its mime type, a time stamp -- so that every kind of picture can move to another
+// storage in one go (E-041). One row for a picture, in the chat's measure.
+//
+// ⛔ `image` is read by one query only (dbSelectTransactionPictureImageForMember), and the rule
+// about who gets it is in that query.
+export const transactionPictureImagesTable = mysqlTable(
+  'transaction_picture_images',
+  {
+    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
+    transactionPictureId: int('transaction_picture_id', { unsigned: true }).notNull(),
+    // The wallet's word, as for a chat picture: without a decoder the server bounds them only.
+    width: smallint({ unsigned: true }).notNull(),
+    height: smallint({ unsigned: true }).notNull(),
+    image: customMediumBlob('image').notNull(),
+    // Always 'image/jpeg', as in user_avatars.
+    mimeType: varchar('mime_type', { length: 32 }).notNull(),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex('transaction_picture_images_picture_unique').on(table.transactionPictureId),
+  ],
+)
+
+export type TransactionPictureImageSelect = typeof transactionPictureImagesTable.$inferSelect
+export type TransactionPictureImageInsert = typeof transactionPictureImagesTable.$inferInsert

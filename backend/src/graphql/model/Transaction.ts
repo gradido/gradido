@@ -4,6 +4,7 @@ import { GradidoUnit } from 'shared'
 import { Field, Int, ObjectType } from 'type-graphql'
 import { Decay } from './Decay'
 import { ThankYouGreeting } from './ThankYouGreeting'
+import { TransactionPicture } from './TransactionPicture'
 import { User } from './User'
 
 @ObjectType()
@@ -14,6 +15,7 @@ export class Transaction {
     linkedUser: User | null = null,
     thankYouCardLabel: string | null = null,
     greeting: ThankYouGreeting | null = null,
+    picture: TransactionPicture | null = null,
   ) {
     this.id = transaction.id
     this.user = user
@@ -35,6 +37,7 @@ export class Transaction {
       transaction.thankYouCardId !== null && transaction.thankYouCardId !== undefined
     this.thankYouCardLabel = thankYouCardLabel
     this.greeting = greeting
+    this.picture = picture
   }
 
   @Field(() => Int)
@@ -111,4 +114,16 @@ export class Transaction {
    */
   @Field(() => ThankYouGreeting, { nullable: true })
   greeting: ThankYouGreeting | null
+
+  /**
+   * The picture the sender added to this transfer: its motif, or that it is a photo of their
+   * own -- what the conversation of the two shows with the booking. Null for every other
+   * booking, and for a booking made from a link: that one has a greeting or nothing.
+   *
+   * On both rows, the sender's and the recipient's, and on nobody else's list: a booking list
+   * is always the member's own. The photo itself is not here; `id` above is what
+   * transactionPicture is asked with.
+   */
+  @Field(() => TransactionPicture, { nullable: true })
+  picture: TransactionPicture | null
 }

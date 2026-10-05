@@ -60,6 +60,7 @@ const LINES = [
 const MOTIFS = ['heart-leaves', 'giving-hands', 'bouquet', 'glowing-swirl', 'morning-light']
 
 const KEYS = [
+  'done.another',
   'done.edit-hint',
   'done.find-again',
   'done.link-hint',
@@ -86,6 +87,7 @@ const KEYS = [
   'paper.save',
   'paper.title',
   'photo-of',
+  'picture.not-taken-over',
   'picture.other',
   'picture.own',
   'picture.question',
@@ -98,7 +100,7 @@ const KEYS = [
   'share.copied',
   'share.line1',
   'share.line1-for',
-  'sheet.free',
+  'sheet.from',
   'sheet.scan',
   'sheet.waits',
   'step.picture',
@@ -310,6 +312,26 @@ describe('thank-you-greeting in the language files', () => {
       },
     )
 
+    /**
+     * A duplicated greeting whose photo did not come along (ZE-030) says so over the tiles: what
+     * happened, and what to do -- choose the photo again, or take one of the pictures below.
+     */
+    it.each(languages)('says in two sentences that a photo did not come along, in %s', (lang) => {
+      const said = render(lang, 'picture.not-taken-over')
+
+      expect(said).toBe(greetingIn(lang).picture['not-taken-over'])
+      expect(said).not.toMatch(/[{}|]/)
+      expect(said).toMatch(/\.$/)
+      expect(said.split(/\.\s+/)).toHaveLength(2)
+      expect(said).not.toMatch(NOT_A_THANK_YOU[lang])
+    })
+
+    it('says it in German as it was decided', () => {
+      expect(render('de', 'picture.not-taken-over')).toBe(
+        'Das Foto ließ sich nicht übernehmen. Wähle es neu aus oder nimm ein Motiv.',
+      )
+    })
+
     // The name as it is written, in the nominative: no language bends it.
     it.each(languages)('says whose photo it is, with the name as it stands, in %s', (lang) => {
       const words = render(lang, 'photo-of', { name: 'Oma-Emma' })
@@ -345,6 +367,30 @@ describe('thank-you-greeting in the language files', () => {
     })
   })
 
+  /**
+   * "Noch einen für jemand anderen" on the result (ZE-030): one more greeting of the same, for
+   * the next person. The label of a button under everything else -- a few words, no sentence --,
+   * and another one than "Duplizieren" in the menu of a link: that one takes everything over,
+   * this one asks whom the next greeting is for.
+   */
+  describe('one more for somebody else, on the result', () => {
+    it.each(languages)('is the label of a button, in %s', (lang) => {
+      const label = render(lang, 'done.another')
+
+      expect(label).toBe(greetingIn(lang).done.another)
+      expect(label).not.toMatch(/[{}|.!?]/)
+      expect(label.length, label).toBeLessThanOrEqual(34)
+      // "one more", and "for somebody else": more than a word or two.
+      expect(label.split(/\s+/).length, label).toBeGreaterThanOrEqual(4)
+      expect(label).not.toBe(fileOf(lang).gdd_per_link.duplicate)
+      expect(label).not.toMatch(NOT_A_THANK_YOU[lang])
+    })
+
+    it('reads in German as it was decided', () => {
+      expect(render('de', 'done.another')).toBe('Noch einen für jemand anderen')
+    })
+  })
+
   it.each(languages)('says until when the greeting waits, as one sentence, in %s', (lang) => {
     const day = i18n.global.d(new Date('2026-10-16T12:00:00.000Z'), 'short', lang)
     const sentence = render(lang, 'done.waits-until', { date: day })
@@ -368,7 +414,28 @@ describe('thank-you-greeting in the language files', () => {
       expect(render('de', 'sheet.scan', { date: '18.10.2026' })).toBe(
         'Halte die Kamera Deines Handys auf den Code und nimm ihn an — bis zum 18.10.2026.',
       )
-      expect(render('de', 'sheet.free')).toBe('Kostenfrei. Keine Verpflichtung.')
+    })
+
+    // ⛔ Bernd, with the first printed card in hand (04.10.2026): who thanks stands on the back,
+    // over the code -- "Oma Emma sagt dir Danke" was his wording; on paper "Dir" has its capital.
+    it('name who thanks, in German as it was decided', () => {
+      expect(render('de', 'sheet.from', { name: 'Oma-Emma' })).toBe('Oma-Emma sagt Dir Danke')
+    })
+
+    // A caption over the code, not a sentence in a text: it begins with the name as it is
+    // written, says in a few words that this person thanks, and ends without a full stop.
+    it.each(languages)('name who thanks, beginning with the name, in %s', (lang) => {
+      const from = render(lang, 'sheet.from', { name: 'Oma-Emma' })
+
+      expect(from.startsWith('Oma-Emma ')).toBe(true)
+      expect(from).not.toMatch(/[{}|.!?:]/)
+      // One word in Portuguese ("agradece-te"), four at most.
+      const rest = from.replace('Oma-Emma ', '').split(/\s+/)
+      expect(rest.length).toBeGreaterThanOrEqual(1)
+      expect(rest.length).toBeLessThanOrEqual(4)
+      expect(rest.join(' ').length).toBeGreaterThanOrEqual(8)
+      // A user name may hold what a template would read as its own: it arrives as it was written.
+      expect(render(lang, 'sheet.from', { name: 'A|b {c}' })).toContain('A|b {c}')
     })
 
     it.each(languages)('say what waits and end in the amount, after a colon, in %s', (lang) => {
@@ -397,30 +464,22 @@ describe('thank-you-greeting in the language files', () => {
       },
     )
 
-    it.each(languages)('say that it costs nothing, in two short sentences, in %s', (lang) => {
-      const free = render(lang, 'sheet.free')
-
-      expect(free).toMatch(/^\p{Lu}[^.]+\. \p{Lu}[^.]+\.$/u)
-      expect(free.length).toBeLessThanOrEqual(40)
-      expect(free).not.toMatch(/[{}|]/)
-    })
-
-    // The sentence that stands beside the account form says the same two things; the paper
-    // says them in the same words.
-    it.each(languages)('say it as the page of a link says it, in %s', (lang) => {
-      const free = render(lang, 'sheet.free')
-      const [first, second] = free.split('. ')
-      const onThePage = i18n.global.t('redeem-thanks.account-text', {}, { locale: lang })
-
-      expect(onThePage).toContain(second)
-      // Portuguese says "Gratuita" of the account there; on paper nothing feminine is named.
-      expect(onThePage.toLowerCase()).toContain(first.toLowerCase().slice(0, -1))
+    // ⛔ Bernd, with the first printed card in hand (04.10.2026): the back does not say what the
+    // card costs -- "Kostenfrei. Keine Verpflichtung." sounds like business on a card that is
+    // handed over in person. The sentence is gone from every language.
+    it.each(languages)('do not say what the card costs, in %s', (lang) => {
+      expect(i18n.global.te('thank-you-greeting.sheet.free', lang)).toBe(false)
+      expect(Object.keys(i18n.global.getLocaleMessage(lang)['thank-you-greeting'].sheet)).toEqual([
+        'from',
+        'scan',
+        'waits',
+      ])
     })
 
     // The whole Russian file speaks formally; a printed sentence must not be the exception.
     it('speak formally in Russian, and with a small "вы"', () => {
-      const sentences = ['sheet.waits', 'sheet.scan', 'sheet.free', 'paper.failed'].map((key) =>
-        render('ru', key, { amount: '20 Gradido', date: '18.10.2026' }),
+      const sentences = ['sheet.from', 'sheet.waits', 'sheet.scan', 'paper.failed'].map((key) =>
+        render('ru', key, { name: 'Эмма', amount: '20 Gradido', date: '18.10.2026' }),
       )
 
       for (const sentence of sentences) {

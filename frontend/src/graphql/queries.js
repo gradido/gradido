@@ -284,6 +284,29 @@ export const thankYouGreetingPicture = gql`
   }
 `
 
+// Both renditions of the photo of a greeting of the member's own, as base64: what a duplicate of
+// that greeting carries along (pages/ThankYouGreeting.vue, ZE-030). `large` hands the member who
+// made the link its large rendition -- or the small one, where no large one is filed -- while the
+// link is neither accepted nor deleted; the server takes one such call a request.
+// ⛔ Asked `no-cache`, once, by the page that takes the photo over, and kept in that page's memory
+// alone: never through the store of the small renditions (composables/useGreetingPictures), which
+// knows a link by its id and would answer with the small one it remembers.
+export const thankYouGreetingPictureRenditions = gql`
+  query ($linkId: Int!) {
+    small: thankYouGreetingPicture(linkId: $linkId)
+    large: thankYouGreetingPicture(linkId: $linkId, large: true)
+  }
+`
+
+// The photo a member sent with a transfer, as base64 -- for the two the booking is between, each
+// by the id of their OWN row of it (what their booking list names as `id`); null for everybody
+// else and where there is none. Asked `no-cache` (composables/useTransactionPictures).
+export const transactionPicture = gql`
+  query ($transactionId: Int!) {
+    transactionPicture(transactionId: $transactionId)
+  }
+`
+
 export const listContributionLinks = gql`
   query ($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
     listContributionLinks(currentPage: $currentPage, pageSize: $pageSize, order: $order) {

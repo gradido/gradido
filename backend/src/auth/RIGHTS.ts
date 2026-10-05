@@ -65,6 +65,11 @@ export enum RIGHTS {
   // link's own row says who the two are (TransactionLinkResolver.thankYouGreetingPicture).
   // Adding a picture is not behind it: that is CREATE_TRANSACTION_LINK's.
   THANK_YOU_GREETING_PICTURE = 'THANK_YOU_GREETING_PICTURE',
+  // The photo a member sent with a transfer, for the two the booking is between -- by the id
+  // of the caller's OWN booking row, and that row says so
+  // (TransactionResolver.transactionPicture). Adding a picture is not behind it: that is
+  // SEND_COINS's.
+  TRANSACTION_PICTURE = 'TRANSACTION_PICTURE',
   // Moderator
   SEARCH_USERS = 'SEARCH_USERS',
   ADMIN_CREATE_CONTRIBUTION = 'ADMIN_CREATE_CONTRIBUTION',

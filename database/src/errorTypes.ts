@@ -56,3 +56,19 @@ export const isDuplicateEntry = (error: unknown): boolean => {
     wrapped.driverError?.code === 'ER_DUP_ENTRY'
   )
 }
+
+/**
+ * The driver's code of a failed query ("ER_DATA_TOO_LONG"), or null where it has none: what a
+ * log or an answer may carry of such a failure. Not the error itself -- Drizzle writes the
+ * parameters of the statement into its message, and where the statement files a picture, the
+ * picture is one of them. The same three shapes as isDuplicateEntry reads.
+ */
+export const driverCodeOfFailedQuery = (error: unknown): string | null => {
+  const wrapped =
+    (error as {
+      code?: string
+      cause?: { code?: string }
+      driverError?: { code?: string }
+    } | null) ?? {}
+  return wrapped.cause?.code ?? wrapped.driverError?.code ?? wrapped.code ?? null
+}

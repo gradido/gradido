@@ -12,6 +12,50 @@
             .hash = "N-V-__8AAGV3jgBL34nv4uUihxaCgroWLfj966-SVjBHn9RE",
             .lazy = true,
         },
+        // rust-image-ffi ships prebuilt objects, one archive per target. build_napi.zig picks the
+        // one for the target it builds; to move to another release, change the version in every
+        // url and take the new hashes from `zig fetch <url>`.
+        // Windows takes gnullvm, not msvc: zig builds for the gnu ABI and brings LLVM's libunwind.
+        .rust_image_ffi_x86_64_linux_gnu = .{
+            .url = "https://github.com/gradido/rust-image-ffi/releases/download/v0.1.1/rust-image-ffi-0.1.1-x86_64-unknown-linux-gnu.tar.gz",
+            .hash = "N-V-__8AAO8aIwDKg3n6bl2BlBBB11F2ptcQIp2QegqmAOuB",
+            .lazy = true,
+        },
+        .rust_image_ffi_aarch64_linux_gnu = .{
+            .url = "https://github.com/gradido/rust-image-ffi/releases/download/v0.1.1/rust-image-ffi-0.1.1-aarch64-unknown-linux-gnu.tar.gz",
+            .hash = "N-V-__8AAP_xIwBXpQoXP9YSJCiAyFjwbd6raEW6apxJJXo7",
+            .lazy = true,
+        },
+        .rust_image_ffi_x86_64_linux_musl = .{
+            .url = "https://github.com/gradido/rust-image-ffi/releases/download/v0.1.1/rust-image-ffi-0.1.1-x86_64-unknown-linux-musl.tar.gz",
+            .hash = "N-V-__8AAGAjIwBvIPOYw92dmpar7O5QxZBVAGf3QQCG1Xf_",
+            .lazy = true,
+        },
+        .rust_image_ffi_aarch64_linux_musl = .{
+            .url = "https://github.com/gradido/rust-image-ffi/releases/download/v0.1.1/rust-image-ffi-0.1.1-aarch64-unknown-linux-musl.tar.gz",
+            .hash = "N-V-__8AAOgHJADfTTPLdXr-OhjUkE7-ttzx5IYGvAc3-dZx",
+            .lazy = true,
+        },
+        .rust_image_ffi_x86_64_macos = .{
+            .url = "https://github.com/gradido/rust-image-ffi/releases/download/v0.1.1/rust-image-ffi-0.1.1-x86_64-apple-darwin.tar.gz",
+            .hash = "N-V-__8AAKWmHQBHrCZG-xN-TWpuSu2u259gU7VnyaO4iLOL",
+            .lazy = true,
+        },
+        .rust_image_ffi_aarch64_macos = .{
+            .url = "https://github.com/gradido/rust-image-ffi/releases/download/v0.1.1/rust-image-ffi-0.1.1-aarch64-apple-darwin.tar.gz",
+            .hash = "N-V-__8AALXMHAB1ajSQOppWYG37p4DLFlRVPG1MMY-7T7d_",
+            .lazy = true,
+        },
+        .rust_image_ffi_x86_64_windows = .{
+            .url = "https://github.com/gradido/rust-image-ffi/releases/download/v0.1.1/rust-image-ffi-0.1.1-x86_64-pc-windows-gnullvm.tar.gz",
+            .hash = "N-V-__8AADrohQBnImm_zMdTXgdHN1sR6uOh6ZmB_Xr1eTB4",
+            .lazy = true,
+        },
+        .rust_image_ffi_aarch64_windows = .{
+            .url = "https://github.com/gradido/rust-image-ffi/releases/download/v0.1.1/rust-image-ffi-0.1.1-aarch64-pc-windows-gnullvm.tar.gz",
+            .hash = "N-V-__8AAH4shADJ30z4M5zMS9nJH-8EOgUBw8VuT_0GYhLh",
+            .lazy = true,
+        },
         .compile_commands = .{
             .url = "https://github.com/the-argus/zig-compile-commands/archive/9400cd1963ea6bb58fe47ba7d9700075b808cdd2.tar.gz",
             .hash = "zig_compile_commands-0.0.1-OZg5-e_JAAAGg1WHAePtq4l4Uvjs34BexnFFCZk63EaG",

@@ -225,18 +225,86 @@ describe('ThankYouGreetingDone', () => {
     )
     // The two names are the ones the menu and the list carry.
     expect(data(wrapper, 'find-again').text()).toBe(
-      'Du findest ihn wieder unter Transaktionen, bei „Links, Schecks, QR-Codes“.',
+      'Du findest ihn wieder unter Transaktionen, bei „Links, Schecks, QR-Codes, Grüße“.',
     )
   })
 
-  // The two ways the link travels, and since slice 6 the two ways onto paper. A greeting is
-  // never "sent" from here (ZE-016).
-  it('offers sharing and copying, printing and saving as a picture, and nothing else', () => {
+  // The two ways the link travels, since slice 6 the two ways onto paper, and since slice 8 the
+  // way to one more greeting. A greeting is never "sent" from here (ZE-016).
+  it('offers sharing and copying, printing and saving as a picture, one more greeting, and nothing else', () => {
     expect(
       done()
         .findAll('button')
         .map((button) => button.text()),
-    ).toEqual(['Teilen', 'Link kopieren', 'Karte drucken', 'Karte als Bild sichern'])
+    ).toEqual([
+      'Teilen',
+      'Link kopieren',
+      'Karte drucken',
+      'Karte als Bild sichern',
+      'Noch einen für jemand anderen',
+    ])
+  })
+
+  /**
+   * "Noch einen für jemand anderen" (ZE-030): one more greeting of the same, for the next person.
+   * The button asks the page for it and does nothing else -- the page begins the new greeting.
+   */
+  describe('one more for somebody else', () => {
+    it('stands under everything, after the two hints', () => {
+      const wrapper = done()
+      const names = wrapper
+        .findAll('[data-test]')
+        .map((element) => element.attributes('data-test').replace('thank-you-greeting-', ''))
+
+      expect(names.slice(-3)).toEqual(['link-hint', 'find-again', 'another'])
+      expect(wrapper.find('.tyg-done-card [data-test="thank-you-greeting-another"]').exists()).toBe(
+        false,
+      )
+    })
+
+    // Outlined as "Karte drucken" is, but as wide as its words: it is no third way of the card.
+    it('is outlined as "Karte drucken" is, and as wide as its words', () => {
+      const wrapper = done()
+      const button = data(wrapper, 'another')
+
+      expect(button.classes()).toContain('btn-outline-secondary')
+      expect(data(wrapper, 'print').classes()).toContain('btn-outline-secondary')
+      expect(button.classes()).not.toContain('tyg-done-button')
+    })
+
+    it('is a button the keyboard reaches', () => {
+      const button = data(done(), 'another')
+
+      expect(button.element.tagName).toBe('BUTTON')
+      expect(button.attributes('type')).toBe('button')
+      expect(button.attributes('tabindex')).toBeUndefined()
+      expect(button.attributes('disabled')).toBeUndefined()
+    })
+
+    it('asks the page for another greeting, once a tap, and does nothing itself', async () => {
+      const wrapper = done()
+
+      await data(wrapper, 'another').trigger('click')
+      await flushPromises()
+
+      expect(wrapper.emitted('another')).toHaveLength(1)
+      expect(wrapper.emitted('another')[0]).toEqual([])
+      expect(share).not.toHaveBeenCalled()
+      expect(writeText).not.toHaveBeenCalled()
+      expect(paper.draw).not.toHaveBeenCalled()
+    })
+
+    it('is there for a greeting with a photo and for one that names nobody', () => {
+      for (const wrapper of [
+        done({
+          ...created({ motif: null, hasPicture: true }),
+          picture: 'data:image/jpeg;base64,P',
+        }),
+        done(created({ recipientName: null })),
+      ]) {
+        expect(data(wrapper, 'another').text()).toBe('Noch einen für jemand anderen')
+      }
+    })
   })
 
   // The wallet knows no gender: the name stands there, or the sentence does without.
@@ -314,11 +382,10 @@ describe('ThankYouGreetingDone', () => {
         line: 'Einfach so — weil es Dich gibt.',
         words: WORDS,
         forWhom: 'FÜR SARAH',
-        signature: 'Oma-Emma',
+        from: 'Oma-Emma sagt\u00a0Dir\u00a0Danke',
         // amount and unit joined by a no-break space: no line of the sheet parts them
         waits: 'Dein Dank wartet: 20\u00a0Gradido',
         scan: 'Halte die Kamera Deines Handys auf den Code und nimm ihn an — bis zum 16.10.2026.',
-        free: 'Kostenfrei. Keine Verpflichtung.',
         slogan: 'Helfen. Schenken. Danken.',
       })
       expect(paper.print).toHaveBeenCalledWith(SHEET)

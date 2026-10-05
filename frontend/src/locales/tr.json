@@ -526,7 +526,7 @@
       "send": "Gönderildi"
     }
   },
-  "delete": "Silmek",
+  "delete": "Sil",
   "download": "İndir",
   "edit": "düzenle",
   "em-dash": "—",
@@ -775,12 +775,13 @@
   "gddKonto": "GDD Hesabı",
   "gdd_per_link": {
     "choose-amount": "Göndermek istediğin tutarı seç ve bir mesaj gir. Mesaj zorunlu bir alandır.",
-    "copy-link": "Linki kopyala ",
+    "copy-link": "Linki kopyala",
     "copy-link-with-text": "Linki ve metni kopyala",
     "created": "Link, çek ve QR kodu oluşturuldu.",
     "delete-the-link": "Link silinsin mi?",
     "deleted": "Link silindi!",
     "disbured": "Bağlantı bakiyesinin aktarımı başarıyla başlatıldı! {n} GDD kısa süre içinde hesabına alacak olarak işlenecek",
+    "duplicate": "Linki çoğalt",
     "expiredOn": "Geçerlilik süresi",
     "has-account": "Halihazırda bir Gradido hesabın var mı?",
     "header": "Link, çek ve QR kodu oluştur",
@@ -791,7 +792,7 @@
     "link-hint": "Bağlantıya sahip olan herkes onu kullanabilir. Bağlantıyı yalnızca kimin için oluşturduysan ona gönder.",
     "link-overview": "Linke toplu bakış",
     "links_open": "{n} açık",
-    "links_sum": "Linkler, çekler, QR kodları",
+    "links_sum": "Linkler, çekler, QR kodları, teşekkür mesajları",
     "no-account": "Henüz bir Gradido hesabın yok mu?",
     "no-redeem": "Kendi linkini kullanamazsın!",
     "not-copied": "Maalesef cihazın kopyalamaya izin vermiyor! Lütfen bağlantıyı elle kopyala!",
@@ -1098,12 +1099,12 @@
     }
   },
   "navigation": {
-    "admin_area": "Yönetici Alanı",
+    "admin_area": "Admin",
     "back-to-account": "Hesaba dön",
     "back-to-settings": "Ayarlara dön",
     "calculator": "Hesap makinesi",
     "community": "Topluluk",
-    "contacts": "Kişiler & Sohbet",
+    "contacts": "Sohbet",
     "logout": "Çıkış",
     "matching": "Matching",
     "menu": "Menü",
@@ -1211,6 +1212,13 @@
     "unavailable": {
       "title": "Kamera bulunamadı"
     }
+  },
+  "send-picture": {
+    "home-only": "Şimdilik yalnızca kendi topluluğunun üyelerine görsel gönderebilirsin.",
+    "label": "Görsel ekle",
+    "none": "Görselsiz",
+    "other": "Başka görsel",
+    "remove": "Kaldır"
   },
   "send_email": "E‑posta gönder",
   "send_gdd": "GDD gönder",
@@ -1545,6 +1553,7 @@
   },
   "thank-you-greeting": {
     "done": {
+      "another": "Başka biri için bir tane daha",
       "edit-hint": "Cümleyi göndermeden önce değiştirebilirsin. Senin sözlerin yalnızca kartta yer alır.",
       "find-again": "Onu {transactions} altında, «{links}» bölümünde yeniden bulursun.",
       "link-hint": "Linke sahip olan herkes teşekkürü kabul edebilir. Linki yalnızca teşekkür etmek istediğin kişiye gönder.",
@@ -1600,6 +1609,7 @@
     },
     "photo-of": "{name} tarafından gönderilen fotoğraf",
     "picture": {
+      "not-taken-over": "Fotoğraf aktarılamadı. Fotoğrafı yeniden seç ya da resimlerden birini seç.",
       "other": "Başka fotoğraf",
       "own": "Kendi fotoğrafın",
       "question": "Mesajın hangi resmi taşısın?"
@@ -1618,7 +1628,7 @@
       "line1-for": "{name}, sana bir teşekkür mesajım var:"
     },
     "sheet": {
-      "free": "Ücretsiz. Yükümlülük yok.",
+      "from": "{name} sana teşekkür ediyor",
       "scan": "Telefonunun kamerasını koda tut ve teşekkürü kabul et — {date} tarihine kadar.",
       "waits": "Seni bir teşekkür bekliyor: {amount}"
     },
@@ -1633,7 +1643,7 @@
       "for-whom": "Kimin için?",
       "for-whom-hint": "İsim mesajının üzerinde yer alır.",
       "line": "İlk satır",
-      "missing": "Bir ilk satır seç ya da kendi sözlerinle birkaç şey yaz.",
+      "missing": "Bir ilk satır seç ya da kendi satırını yaz.",
       "own-line": "Kendi satırın",
       "own-words": "Senin sözlerin"
     }
@@ -1667,6 +1677,7 @@
     "text": "Hangi topluluğa ait olursan ol, Geo Matching System ile tüm toplulukların üyelerini bir haritada bulabilirsin. Tekliflere ve ihtiyaçlara göre filtreleyebilir ve sana uygun kullanıcıları görüntüleyebilirsin.\n\nDüğmeyle, çevrendeki kullanıcıların bir haritada gösterildiği yeni bir tarayıcı penceresi açılır."
   },
   "via_card": "kart ile",
+  "via_greeting": "mesaj yoluyla",
   "via_link": "link yoluyla",
   "welcome": "Topluluğa hoş geldin"
 }

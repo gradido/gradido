@@ -781,6 +781,7 @@
     "delete-the-link": "¿Eliminar el enlace?",
     "deleted": "¡El enlace ha sido eliminado!",
     "disbured": "¡El desembolso del saldo del enlace se ha iniciado con éxito! El abono de {n} GDD se registrará pronto en tu cuenta.",
+    "duplicate": "Duplicar enlace",
     "expiredOn": "Vencido el:",
     "has-account": "¿Ya tienes una cuenta Gradido?",
     "header": "Crear enlace, cheque y código QR",
@@ -791,7 +792,7 @@
     "link-hint": "Quien tenga el enlace puede canjearlo. Envíalo solo a la persona a la que va dirigido.",
     "link-overview": "Resumen de enlaces",
     "links_open": "{n} abiertos",
-    "links_sum": "Enlaces, cheques, códigos QR",
+    "links_sum": "Enlaces, cheques, códigos QR, saludos",
     "no-account": "¿Aún no tienes una cuenta de Gradido?",
     "no-redeem": "¡No puedes canjear tu propio enlace!",
     "not-copied": "¡Desafortunadamente, tu dispositivo no permite copiar! ¡Copia el enlace manualmente!",
@@ -1098,12 +1099,12 @@
     }
   },
   "navigation": {
-    "admin_area": "Área de administración",
+    "admin_area": "Admin",
     "back-to-account": "Volver a la cuenta",
     "back-to-settings": "Volver a la configuración",
     "calculator": "Calculadora",
     "community": "Comunidad",
-    "contacts": "Contactos y chat",
+    "contacts": "Chat",
     "logout": "Salir",
     "matching": "Matching",
     "menu": "Menú",
@@ -1211,6 +1212,13 @@
     "unavailable": {
       "title": "No se encontró ninguna cámara"
     }
+  },
+  "send-picture": {
+    "home-only": "Por ahora solo puedes enviar una imagen a miembros de tu comunidad.",
+    "label": "Añadir imagen",
+    "none": "Sin imagen",
+    "other": "Otra imagen",
+    "remove": "Quitar"
   },
   "send_email": "Enviar correo electrónico",
   "send_gdd": "Enviar GDD",
@@ -1545,6 +1553,7 @@
   },
   "thank-you-greeting": {
     "done": {
+      "another": "Uno más para otra persona",
       "edit-hint": "Puedes cambiar la frase antes de enviarla. Tus palabras solo aparecen en la tarjeta.",
       "find-again": "Lo encontrarás de nuevo en {transactions}, en «{links}».",
       "link-hint": "Quien tenga el enlace puede aceptar el agradecimiento. Envíalo solo a la persona a la que va dirigido.",
@@ -1600,6 +1609,7 @@
     },
     "photo-of": "Foto enviada por {name}",
     "picture": {
+      "not-taken-over": "No se ha podido conservar la foto. Elígela de nuevo o escoge una de las imágenes.",
       "other": "Otra foto",
       "own": "Foto propia",
       "question": "¿Qué imagen quieres que lleve tu saludo?"
@@ -1618,7 +1628,7 @@
       "line1-for": "{name}, tengo un saludo de agradecimiento para ti:"
     },
     "sheet": {
-      "free": "Gratis. Sin compromiso.",
+      "from": "{name} te da las gracias",
       "scan": "Apunta con la cámara de tu móvil al código y acepta el agradecimiento — hasta el {date}.",
       "waits": "Te espera un agradecimiento: {amount}"
     },
@@ -1633,7 +1643,7 @@
       "for-whom": "¿Para quién?",
       "for-whom-hint": "El nombre aparece en tu saludo.",
       "line": "La primera línea",
-      "missing": "Elige una primera línea o escribe unas palabras tuyas.",
+      "missing": "Elige una primera línea o escribe una tuya.",
       "own-line": "Línea propia",
       "own-words": "Tus palabras"
     }
@@ -1667,6 +1677,7 @@
     "text": "No importa a qué comunidad pertenezcas, con el Geo Matching System puedes encontrar miembros de todas las comunidades en un mapa. Puedes filtrar según ofertas y requisitos y visualizar los usuarios que coinciden con tu perfil.\n\nEl botón abre una nueva ventana del navegador en la que se muestran en un mapa los usuarios de tu zona."
   },
   "via_card": "con una tarjeta",
+  "via_greeting": "a través de un saludo",
   "via_link": "atraves de un enlace",
   "welcome": "Te damos la bienvenida a la comunidad"
 }

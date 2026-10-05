@@ -781,6 +781,7 @@
     "delete-the-link": "De link verwijderen?",
     "deleted": "De link werd verwijderd!",
     "disbured": "De overdracht van het linktegoed is succesvol gestart! Het bedrag van {n} GDD wordt binnenkort op je rekening bijgeschreven.",
+    "duplicate": "Dupliceren",
     "expiredOn": "Afgelopen op",
     "has-account": "Heb je al een Gradido rekening?",
     "header": "Link, cheque en QR-code aanmaken",
@@ -791,7 +792,7 @@
     "link-hint": "Wie de link heeft, kan hem inwisselen. Stuur hem alleen naar de persoon voor wie hij bedoeld is.",
     "link-overview": "Overzicht links",
     "links_open": "{n} open",
-    "links_sum": "Links, cheques, QR-codes",
+    "links_sum": "Links, cheques, QR-codes, groetjes",
     "no-account": "Je hebt nog geen Gradido rekening?",
     "no-redeem": "Je mag je eigen link niet inwisselen!",
     "not-copied": "Jouw apparaat laat het kopiëren helaas niet toe! Kopieer de link alsjeblieft met de hand!",
@@ -1098,12 +1099,12 @@
     }
   },
   "navigation": {
-    "admin_area": "Beheeromgeving",
+    "admin_area": "Admin",
     "back-to-account": "Terug naar de rekening",
     "back-to-settings": "Terug naar instellingen",
     "calculator": "Rekenmachine",
     "community": "Gemeenschap",
-    "contacts": "Contacten en chat",
+    "contacts": "Chat",
     "logout": "Afmelden",
     "matching": "Matching",
     "menu": "Menu",
@@ -1211,6 +1212,13 @@
     "unavailable": {
       "title": "Geen camera gevonden"
     }
+  },
+  "send-picture": {
+    "home-only": "Voorlopig kun je alleen leden van je eigen gemeenschap een afbeelding meesturen.",
+    "label": "Afbeelding erbij",
+    "none": "Zonder afbeelding",
+    "other": "Andere afbeelding",
+    "remove": "Verwijderen"
   },
   "send_email": "E‑mail versturen",
   "send_gdd": "GDD sturen",
@@ -1545,6 +1553,7 @@
   },
   "thank-you-greeting": {
     "done": {
+      "another": "Nog een voor iemand anders",
       "edit-hint": "Je kunt de zin vóór het versturen aanpassen. Jouw woorden staan pas op de kaart.",
       "find-again": "Je vindt het terug onder {transactions}, bij “{links}”.",
       "link-hint": "Wie de link heeft, kan het bedankje aannemen. Stuur hem alleen naar de persoon voor wie hij bedoeld is.",
@@ -1600,6 +1609,7 @@
     },
     "photo-of": "Foto verstuurd door {name}",
     "picture": {
+      "not-taken-over": "De foto kon niet worden overgenomen. Kies hem opnieuw of neem een van de afbeeldingen.",
       "other": "Andere foto",
       "own": "Eigen foto",
       "question": "Welke afbeelding komt op je groetje?"
@@ -1618,7 +1628,7 @@
       "line1-for": "{name}, ik heb een dankgroetje voor je:"
     },
     "sheet": {
-      "free": "Gratis. Geen verplichtingen.",
+      "from": "{name} bedankt je",
       "scan": "Richt de camera van je telefoon op de code en neem het aan — tot {date}.",
       "waits": "Je bedankje wacht: {amount}"
     },
@@ -1633,7 +1643,7 @@
       "for-whom": "Voor wie?",
       "for-whom-hint": "De naam staat op je groetje.",
       "line": "De eerste regel",
-      "missing": "Kies een eerste regel of schrijf een paar eigen woorden.",
+      "missing": "Kies een eerste regel of schrijf er zelf een.",
       "own-line": "Eigen regel",
       "own-words": "Jouw woorden"
     }
@@ -1667,6 +1677,7 @@
     "text": "Het maakt niet uit tot welke community je behoort, met het Geo Matching System kun je leden van alle communities vinden op een kaart. Je kunt filteren op aanbiedingen en vereisten en de gebruikers weergeven die aan je profiel voldoen.\n\nDe knop opent een nieuw browservenster waarin de gebruikers in je omgeving op een kaart worden weergegeven."
   },
   "via_card": "via een kaart",
+  "via_greeting": "via een groetje",
   "via_link": "via een link",
   "welcome": "Welkom in de gemeenschap"
 }

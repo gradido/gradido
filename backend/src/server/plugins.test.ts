@@ -297,6 +297,23 @@ describe('the errors in the request log', () => {
     expect(text).toContain('"message": "Something failed"')
   })
 
+  // The photo sent with a transfer comes as `$picture` too (sendCoins).
+  it('writes no photo sent with a transfer, only its size and the motif', () => {
+    const photo = Buffer.from('a private photo of the bench Dave built').toString('base64')
+    const withPhoto = logged({
+      recipientIdentifier: 'dave',
+      amount: '50',
+      memo: 'Für die Bank.',
+      picture: { data: photo, width: 831, height: 577 },
+    })
+    expect(withPhoto).not.toContain(photo)
+    expect(withPhoto).toContain('"data": "***"')
+    expect(withPhoto).toContain('"width": 831')
+    expect(withPhoto).toContain('"memo": "Für die Bank."')
+
+    const withMotif = logged({ recipientIdentifier: 'dave', amount: '50', motif: 'giving-hands' })
+    expect(withMotif).toContain('"motif": "giving-hands"')
+  })
   it('writes an ordinary error as before', () => {
     const text = errorsLogged([{ message: 'CHAT_IMAGE_NOT_ACCEPTED: TOO_LARGE' }])
     expect(text).toContain('"message": "CHAT_IMAGE_NOT_ACCEPTED: TOO_LARGE"')
@@ -342,6 +359,39 @@ describe('the answer in the request log', () => {
     )
     expect(traced).not.toContain(picture)
     expect(traced).toBe('Response-Data: left out, it holds a picture')
+  })
+
+  // The budget as thankYouGreetingPicture leaves it where the large rendition was asked for
+  // (TransactionLinkResolver): counted as three, and once as a large one.
+  it('is left out where the request was handed the large rendition of such a picture', () => {
+    const picture = Buffer.from('a private photo of Oma Emma, at its full size').toString('base64')
+    const traced = answerTraced(
+      {
+        requestBudget: {
+          ...newRequestBudget(),
+          thankYouGreetingPicturesServed: 3,
+          thankYouGreetingLargePicturesServed: 1,
+        },
+      },
+      { large: picture },
+    )
+    expect(traced).not.toContain(picture)
+    expect(traced).toBe('Response-Data: left out, it holds a picture')
+  })
+
+  it('is left out where the request was handed the photo of a transfer', () => {
+    const picture = Buffer.from('a private photo of the bench Dave built').toString('base64')
+    const traced = answerTraced(
+      { requestBudget: { ...newRequestBudget(), transactionPicturesServed: 1 } },
+      { transactionPicture: picture },
+    )
+    expect(traced).not.toContain(picture)
+    expect(traced).toBe('Response-Data: left out, it holds a picture')
+  })
+
+  it('is written where the request was handed no picture of any kind', () => {
+    const traced = answerTraced({ requestBudget: newRequestBudget() }, { sendCoins: true })
+    expect(traced).toContain('"sendCoins": true')
   })
 
   // The same name comes back in the answers that carry a greeting -- the new link, the link

@@ -24,6 +24,9 @@ const outdatedLink = onError((failure) => {
 
 const authLink = new ApolloLink((operation, forward) => {
   const token = store.state.token
+  // Who is signed in as the question goes out: the session its answer belongs to. A member is
+  // named by the pair -- the id alone is unique within one community only.
+  const { gradidoID: member, communityUuid: community } = store.state
   operation.setContext({
     headers: {
       Authorization: token && token.length > 0 ? `Bearer ${token}` : '',
@@ -43,7 +46,16 @@ const authLink = new ApolloLink((operation, forward) => {
     // otherwise a tab left open would never be signed out.
     const context = operation.getContext()
     const newToken = context.response.headers.get('token')
-    if (newToken && context.renewSession !== false) store.commit('token', newToken)
+    // ⛔ An answer renews the session it was asked in, and no other. A question may still be
+    // under way when its session ends -- the member signs out, or somebody else signs in --, and
+    // its answer carries a fresh token of the session that is over. So the token is taken while
+    // the member who asked is the one in the store. The answer to a sign-in begins a session
+    // and is taken whatever the store holds by then.
+    const sameMember = store.state.gradidoID === member && store.state.communityUuid === community
+    const sameSession = sameMember || Boolean(response.data?.login)
+    if (newToken && context.renewSession !== false && sameSession) {
+      store.commit('token', newToken)
+    }
     return response
   })
 })

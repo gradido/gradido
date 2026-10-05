@@ -79,4 +79,107 @@ describe('gdd_per_link in the language files', () => {
   it('invites to register in the form the Spanish file speaks in', () => {
     expect(text('es', 'to-register')).toBe('Registra una nueva cuenta.')
   })
+
+  /**
+   * "Duplizieren" in the menu of a link (ZE-030): a new link is made of an old one.
+   * ⛔ It is not "copy". The same menu has "copy link", which puts the address into the
+   * clipboard -- so in every language this entry is another word than that one's.
+   *
+   * Spanish, Portuguese and Turkish name the link with it ("Duplicar enlace"): their word alone
+   * is also the everyday one for doubling a sum, and the entry stands beside an amount.
+   */
+  describe('duplicate, in the menu of a link', () => {
+    // What each language calls copying, as its "copy link" says it.
+    const COPYING = {
+      de: /kopi/i,
+      en: /cop[yi]/i,
+      es: /copi/i,
+      fr: /copi/i,
+      it: /copi/i,
+      nl: /kopi/i,
+      pt: /copi/i,
+      ru: /копи/i,
+      el: /αντ[ιί]γρ/i,
+      tr: /kopya/i,
+    }
+    const words = (said) => said.toLocaleLowerCase().split(/\s+/).filter(Boolean)
+
+    it('knows the word for copying of every language', () => {
+      expect(Object.keys(COPYING).sort()).toEqual([...languages].sort())
+    })
+
+    it.each(languages)('is another word than the one of "copy link", in %s', (lang) => {
+      const duplicate = text(lang, 'duplicate')
+      const copy = text(lang, 'copy-link')
+
+      // The fixture proves itself: this is what "copy link" says.
+      expect(copy).toMatch(COPYING[lang])
+      expect(duplicate).not.toMatch(COPYING[lang])
+      // What the two may share is the link they are about, never the whole entry.
+      expect(words(duplicate).filter((word) => words(copy).includes(word)).length).toBeLessThan(
+        words(duplicate).length,
+      )
+    })
+
+    it.each([
+      ['es', 'Duplicar enlace'],
+      ['pt', 'Duplicar link'],
+      ['tr', 'Linki çoğalt'],
+    ])('names the link where the word alone could mean doubling a sum, in %s', (lang, said) => {
+      expect(text(lang, 'duplicate')).toBe(said)
+    })
+
+    // An entry of a menu: a word or two, no sentence.
+    it.each(languages)('is an entry of a menu, in %s', (lang) => {
+      const duplicate = text(lang, 'duplicate')
+
+      expect(duplicate).not.toBe('gdd_per_link.duplicate')
+      expect(duplicate).not.toMatch(/[{}|.!?]/)
+      expect(words(duplicate).length).toBeLessThanOrEqual(2)
+    })
+
+    it.each(languages.filter((lang) => lang !== 'en'))(
+      'is said in the language itself, not in English, in %s',
+      (lang) => {
+        expect(text(lang, 'duplicate')).not.toBe(text('en', 'duplicate'))
+      },
+    )
+
+    it('is "Duplizieren" in German', () => {
+      expect(text('de', 'duplicate')).toBe('Duplizieren')
+    })
+  })
+
+  /**
+   * The entries of the menu of a link, as the row of the member's own list shows them. An entry
+   * is a word or two with nothing around it: the Turkish "copy link" ended in a blank.
+   */
+  describe('the entries of the menu of a link', () => {
+    const ENTRIES = [
+      'gdd_per_link.copy-link',
+      'gdd_per_link.share',
+      'thank-you-greeting.paper.print',
+      'thank-you-greeting.paper.save',
+      'thank-you-cheque.download',
+      'qrCode',
+      'gdd_per_link.duplicate',
+      'delete',
+    ]
+
+    it.each(languages)('carry no blank at either end, in %s', (lang) => {
+      for (const key of ENTRIES) {
+        const said = i18n.global.t(key, {}, { locale: lang })
+
+        expect(said, key).not.toBe(key)
+        expect(said, key).toBe(said.trim())
+      }
+    })
+
+    // The Turkish file said "Silmek", the dictionary form, among entries that all tell the
+    // wallet what to do ("Linki kopyala", "Paylaş"). Its own matching entries say "Sil".
+    it('says "delete" in Turkish in the form of its neighbours', () => {
+      expect(i18n.global.t('delete', {}, { locale: 'tr' })).toBe('Sil')
+      expect(i18n.global.t('matching.entries.delete', {}, { locale: 'tr' })).toBe('Sil')
+    })
+  })
 })

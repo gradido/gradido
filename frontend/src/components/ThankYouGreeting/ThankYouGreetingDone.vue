@@ -39,11 +39,17 @@
 
     <div class="tyg-done-card bg-white app-box-shadow gradido-border-radius">
       <!-- The device's share sheet where it has one; elsewhere this copies the sentence. -->
-      <BButton variant="gradido" data-test="thank-you-greeting-share" @click="share">
+      <BButton
+        variant="gradido"
+        class="tyg-done-button"
+        data-test="thank-you-greeting-share"
+        @click="share"
+      >
         {{ $t('gdd_per_link.share') }}
       </BButton>
       <BButton
         variant="outline-secondary"
+        class="tyg-done-button"
         :disabled="!canCopyLink"
         data-test="thank-you-greeting-copy"
         @click="copyLink"
@@ -64,6 +70,7 @@
         </div>
         <BButton
           variant="outline-secondary"
+          class="tyg-done-button"
           data-test="thank-you-greeting-print"
           @click="printGreetingSheet"
         >
@@ -115,6 +122,19 @@
         }}
       </p>
     </div>
+
+    <!-- One more of the same for the next person (ZE-030), under everything: the page begins a
+         new greeting with all this one carried, and asks only whom it is for. Outlined, as
+         "Karte drucken" is, and as wide as its words. -->
+    <div class="tyg-done-another">
+      <BButton
+        variant="outline-secondary"
+        data-test="thank-you-greeting-another"
+        @click="emit('another')"
+      >
+        {{ $t('thank-you-greeting.done.another') }}
+      </BButton>
+    </div>
   </div>
 </template>
 
@@ -133,6 +153,9 @@
  *
  * On paper the greeting is a sheet that folds into a card, printed or saved as a picture
  * (useThankYouGreetingSheet). Its photo, where it carries one, is the same `created.picture`.
+ *
+ * "Noch einen für jemand anderen" makes nothing here: it asks the page for a new greeting
+ * (`another`), and the page begins one with what this one carried.
  */
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -152,6 +175,8 @@ const props = defineProps({
   // `picture`, the photo as the page made it, where the greeting carries one.
   created: { type: Object, required: true },
 })
+
+const emit = defineEmits(['another'])
 
 const { t } = useI18n()
 const store = useStore()
@@ -224,7 +249,7 @@ const { saveWaits, printGreetingSheet, saveGreetingSheet } = useThankYouGreeting
   line-height: 1.5;
 }
 
-/* The buttons one under the other, each as wide as the card. */
+/* The buttons one under the other. */
 .tyg-done-card {
   display: flex;
   flex-direction: column;
@@ -260,6 +285,14 @@ const { saveWaits, printGreetingSheet, saveGreetingSheet } = useThankYouGreeting
   content: '';
 }
 
+/* A button is as wide as the card on a phone and no wider than the sheet of the step before
+   (24rem, .tyg-paper) -- on a desk the card is as wide as the page, and a button that wide is a
+   bar. Narrower ones stand in the middle, where the buttons of the other steps stand. */
+.tyg-done-button {
+  align-self: center;
+  width: min(24rem, 100%);
+}
+
 /* A line of text, not a third button: as wide as its words, in the middle. */
 .tyg-done-save {
   align-self: center;
@@ -267,8 +300,10 @@ const { saveWaits, printGreetingSheet, saveGreetingSheet } = useThankYouGreeting
   font-size: 0.9375rem;
 }
 
-/* What becomes of the sheet. */
+/* What becomes of the sheet, in lines an eye can follow. */
 .tyg-done-paper-hint {
+  align-self: center;
+  max-width: 34rem;
   margin-top: 2px;
   font-size: 0.8125rem;
   text-align: center;
@@ -300,5 +335,12 @@ const { saveWaits, printGreetingSheet, saveGreetingSheet } = useThankYouGreeting
 
 .tyg-done-foot p {
   margin-bottom: 6px;
+}
+
+/* "Noch einen für jemand anderen": under everything, in the middle, as wide as its words. */
+.tyg-done-another {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.5rem;
 }
 </style>
