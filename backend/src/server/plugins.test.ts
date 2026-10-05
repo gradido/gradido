@@ -166,6 +166,27 @@ describe('the request log', () => {
     }
   })
 
+  // The place a member pins for the member search (updateUserInfos, `$gmsLocation` in the
+  // wallet's mutations.js): theirs alone, and this line is written at level info.
+  it("writes no member's position, and the rest of the request as before", () => {
+    const text = logged({
+      gmsAllowed: true,
+      gmsPublishLocation: 'GMS_LOCATION_TYPE_EXACT',
+      gmsLocation: { latitude: 49.679437, longitude: 9.573224 },
+    })
+    expect(text).not.toContain('49.679437')
+    expect(text).not.toContain('9.573224')
+    expect(text).toContain('"gmsLocation": "***"')
+    expect(text).toContain('"gmsAllowed": true')
+    expect(text).toContain('"gmsPublishLocation": "GMS_LOCATION_TYPE_EXACT"')
+  })
+
+  it('leaves the position in the request itself', () => {
+    const variables = { gmsLocation: { latitude: 49.679437, longitude: 9.573224 } }
+    logged(variables)
+    expect(variables.gmsLocation).toEqual({ latitude: 49.679437, longitude: 9.573224 })
+  })
+
   // coderabbit on #4001: a client of its own may write a value into the document itself instead
   // of into a variable, where filterVariables never sees it.
   it('writes no string the document itself carries -- a picture, a text, a password', () => {
