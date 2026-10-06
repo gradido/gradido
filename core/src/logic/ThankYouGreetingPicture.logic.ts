@@ -5,8 +5,6 @@ import {
 } from 'database'
 import { getLogger } from 'log4js'
 import {
-  CHAT_IMAGE_MAX_BYTES,
-  CHAT_IMAGE_MAX_PIXELS,
   CHAT_IMAGE_MAX_SIDE,
   DomainError,
   Result,
@@ -16,7 +14,7 @@ import {
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
 import { databaseErrorCode } from './ChatMessage.logic'
 import {
-  acceptChatMessageImage,
+  acceptAndReencodeChatMessageImage,
   ChatMessageImageAccepted,
   ChatMessageImageNotAccepted,
   ChatMessageImageSent,
@@ -129,35 +127,13 @@ export async function acceptLargeThankYouGreetingPicture({
 
 /**
  * The small rendition as a member sends it with the link: checked as a chat picture
- * (acceptChatMessageImage), then decoded and encoded again within a chat picture's bounds.
- * Refused in a chat picture's words, with the reasons acceptLargeThankYouGreetingPicture gives
- * for a picture that is not re-encoded.
+ * and decoded and encoded again within a chat picture's bounds -- it IS a chat picture, and is
+ * taken in as one (acceptAndReencodeChatMessageImage). Refused in a chat picture's words.
  */
-export async function acceptSmallThankYouGreetingPicture(
+export const acceptSmallThankYouGreetingPicture = (
   sent: ChatMessageImageSent,
-): Promise<Result<ChatMessageImageAccepted, ChatMessageImageNotAccepted>> {
-  const checked = acceptChatMessageImage(sent)
-  if (!checked.success) {
-    return checked
-  }
-  const reencoded = await reencodeJpegImage(checked.value.image, {
-    maxBytes: CHAT_IMAGE_MAX_BYTES,
-    maxSide: CHAT_IMAGE_MAX_SIDE,
-    maxPixels: CHAT_IMAGE_MAX_PIXELS,
-  })
-  if (!reencoded.success) {
-    return {
-      success: false,
-      error: new ChatMessageImageNotAccepted(
-        reencoded.error.reason,
-        checked.value.image.length,
-        sent.width,
-        sent.height,
-      ),
-    }
-  }
-  return reencoded
-}
+): Promise<Result<ChatMessageImageAccepted, ChatMessageImageNotAccepted>> =>
+  acceptAndReencodeChatMessageImage(sent)
 
 /**
  * Takes the pictures of a link's greeting out -- both renditions, or the one named -- and says

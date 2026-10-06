@@ -108,16 +108,30 @@ describe('transactionLinks', () => {
       })
     }
     const endDate = Duration.days(12).addToDate(localStartDate)
-    await transactionLinkFactoryBulk(
+    const created = await transactionLinkFactoryBulk(
       transactionLinks,
       new Map([[bibiUser.emailContact.email, bibiUser]]),
     )
+    // The ids the database gave these 25, in ascending order. Never fixed numbers: clearing the
+    // tables does not reset the auto-increment, so where the ids start depends on what ran before.
+    const ids = created.map((link) => link.id).sort((a, b) => a - b)
+    expect(ids).toHaveLength(25)
+
+    // The first page starts at the first of them: the links of the previous test have run out.
     let result = await transactionLinksPendingFromUserOrderByIdASC(bibiUser.id, 10, 0, endDate)
-    expect(result.length).toBe(10)
-    expect(result[0].id).toBe(5)
-    result = await transactionLinksPendingFromUserOrderByIdASC(bibiUser.id, 8, 10, endDate)
-    expect(result.length).toBe(8)
-    expect(result[0].id).toBe(11)
+    expect(result.map((link) => link.id)).toEqual(ids.slice(0, 10))
+
+    // `lastId` is exclusive: the page after an id starts with the next one, wherever that id
+    // stands -- in the middle of the first page ...
+    result = await transactionLinksPendingFromUserOrderByIdASC(bibiUser.id, 8, ids[5], endDate)
+    expect(result.map((link) => link.id)).toEqual(ids.slice(6, 14))
+    // ... or at its end, which is how the next page is asked for.
+    result = await transactionLinksPendingFromUserOrderByIdASC(bibiUser.id, 8, ids[9], endDate)
+    expect(result.map((link) => link.id)).toEqual(ids.slice(10, 18))
+
+    // The last page is as long as what is left.
+    result = await transactionLinksPendingFromUserOrderByIdASC(bibiUser.id, 10, ids[19], endDate)
+    expect(result.map((link) => link.id)).toEqual(ids.slice(20))
   })
 
   it('fill db with 1.000 random data sets', async () => {
