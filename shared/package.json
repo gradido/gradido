@@ -15,7 +15,7 @@
   "license": "Apache-2.0",
   "private": true,
   "scripts": {
-    "build": "esbuild src/index.ts --outdir=build --platform=node --target=node18.20.7 --bundle --packages=external",
+    "build": "esbuild src/index.ts --outdir=build --platform=node --target=node24.21.0 --bundle --packages=external",
     "build:bun": "bun build src/index.ts --outdir=build --target=bun --packages=external",
     "test": "bun test",
     "typecheck": "tsc --noEmit",
@@ -39,6 +39,6 @@
     "valibot": "1.1.0"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=24"
   }
 }

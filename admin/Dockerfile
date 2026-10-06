@@ -1,7 +1,7 @@
 ##################################################################################
 # BASE ###########################################################################
 ##################################################################################
-FROM node:18.20.7-alpine3.21 as base
+FROM node:24.21.0-alpine3.23 as base
 
 ENV TURBO_CACHE_DIR=/tmp/turbo
 # ENVs (available in production aswell, can be overwritten by commandline or env file)

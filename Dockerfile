@@ -1,7 +1,7 @@
 ##################################################################################
 # BASE ###########################################################################
 ##################################################################################
-FROM node:18.20.7-bookworm as base
+FROM node:24.21.0-bookworm as base
 
 # ENVs (available in production aswell, can be overwritten by commandline or env file)
 ENV TURBO_CACHE_DIR=/tmp/turbo
@@ -119,7 +119,7 @@ CMD /bin/sh -c "turbo start --env-mode=loose"
 ##################################################################################
 # FINAL PRODUCTION IMAGE #########################################################
 ##################################################################################
-FROM node:18.20.7-bookworm-slim as production2
+FROM node:24.21.0-bookworm-slim as production2
 
 ENV TURBO_CACHE_DIR=/tmp/turbo
 ENV DOCKER_WORKDIR="/app"
@@ -157,7 +157,7 @@ CMD ["turbo", "start", "--env-mode=loose"]
 ##################################################################################
 # FINAL PRODUCTION IMAGE #########################################################
 ##################################################################################
-FROM node:18.20.7-alpine3.21 as production-slim
+FROM node:24.21.0-alpine3.23 as production-slim
 
 ENV TURBO_CACHE_DIR=/tmp/turbo
 ENV DOCKER_WORKDIR="/app"

@@ -1,8 +1,8 @@
 ##################################################################################
 # BASE ###########################################################################
 ##################################################################################
-FROM node:18.20.7-bookworm-slim as base
-#FROM node:18.20.7-alpine3.21 as base
+FROM node:24.21.0-bookworm-slim as base
+#FROM node:24.21.0-alpine3.23 as base
 # change to alpine after sodium-native ship with native alpine build
 
 # ENVs (available in production aswell, can be overwritten by commandline or env file)
