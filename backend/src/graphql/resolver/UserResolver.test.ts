@@ -9,6 +9,7 @@ import { ContributionLink } from '@model/ContributionLink'
 import { Location } from '@model/Location'
 import { User as UserModel } from '@model/User'
 import {
+  ApolloServerTestClient,
   cleanDB,
   headerPushMock,
   resetToken,
@@ -18,7 +19,6 @@ import {
   testEnvironment,
 } from '@test/helpers'
 import { UserInputError } from 'apollo-server-express'
-import { ApolloServerTestClient } from 'apollo-server-testing'
 import { getLogger } from 'config-schema/test/testSetup'
 import {
   CONFIG as CORE_CONFIG,

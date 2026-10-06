@@ -12,7 +12,7 @@ import { LogError } from './LogError'
  * ⛔ An OBJECT on the context, and that is the mechanism rather than a matter of style.
  * Apollo calls the context function once per HTTP request and gives every operation of a
  * batched POST (a body that is an array of operations) a SHALLOW copy of what it returned
- * (apollo-server-core 2.26: runHttpQuery -> buildRequestContext -> cloneObject). A number
+ * (apollo-server-core 3.13: runHttpQuery -> buildRequestContext -> cloneObject). A number
  * on the context is copied by value, so each operation would count from zero and a batch
  * would multiply every cap kept there; this object is copied by reference, so all
  * operations of one request count in the same place. Aliases, which repeat a field inside

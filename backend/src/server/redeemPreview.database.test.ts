@@ -1,8 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { request as httpRequest, IncomingHttpHeaders, Server } from 'node:http'
 import { AddressInfo } from 'node:net'
-import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
-import { ApolloServerTestClient } from 'apollo-server-testing'
+import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import {
   AppDatabase,
   TransactionLink as DbTransactionLink,

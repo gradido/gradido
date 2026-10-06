@@ -2,8 +2,7 @@
 import { ContributionMessageType } from '@enum/ContributionMessageType'
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { RoleNames } from '@enum/RoleNames'
-import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
-import { ApolloServerTestClient } from 'apollo-server-testing'
+import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { sendAddedContributionMessageEmail, sendContributionConfirmedEmail } from 'core'
 import {
   AppDatabase,

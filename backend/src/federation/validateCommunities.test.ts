@@ -1,5 +1,4 @@
-import { cleanDB, testEnvironment } from '@test/helpers'
-import { ApolloServerTestClient } from 'apollo-server-testing'
+import { ApolloServerTestClient, cleanDB, testEnvironment } from '@test/helpers'
 import { getLogger } from 'config-schema/test/testSetup'
 import { AppDatabase, FederatedCommunity as DbFederatedCommunity } from 'database'
 import { GraphQLClient } from 'graphql-request'

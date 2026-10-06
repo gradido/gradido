@@ -1,9 +1,9 @@
 import clonedeep from 'lodash.clonedeep'
 
 const setHeadersPlugin = {
-  requestDidStart() {
+  async requestDidStart() {
     return {
-      willSendResponse(requestContext: any) {
+      async willSendResponse(requestContext: any) {
         const { setHeaders = [] } = requestContext.context
         setHeaders.forEach(({ key, value }: { [key: string]: string }) => {
           if (requestContext.response.http.headers.get(key)) {
@@ -40,7 +40,7 @@ const withLongStringsAsLength = (_key: string, value: unknown): unknown =>
     : value
 
 export const logPlugin = {
-  requestDidStart(requestContext: any) {
+  async requestDidStart(requestContext: any) {
     const { logger } = requestContext
     const { query, mutation, variables, operationName } = requestContext.request
     if (operationName !== 'IntrospectionQuery') {
@@ -48,7 +48,7 @@ export const logPlugin = {
 ${mutation || query}variables: ${JSON.stringify(filterVariables(variables), withLongStringsAsLength, 2)}`)
     }
     return {
-      willSendResponse(requestContext: any) {
+      async willSendResponse(requestContext: any) {
         if (operationName !== 'IntrospectionQuery') {
           if (requestContext.context.user) {
             logger.info(`User ID: ${requestContext.context.user.id}`)

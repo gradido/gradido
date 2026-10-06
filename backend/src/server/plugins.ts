@@ -2,9 +2,9 @@ import { Kind, parse, print, visit } from 'graphql'
 import clonedeep from 'lodash.clonedeep'
 
 const setHeadersPlugin = {
-  requestDidStart() {
+  async requestDidStart() {
     return {
-      willSendResponse(requestContext: any) {
+      async willSendResponse(requestContext: any) {
         const { setHeaders = [] } = requestContext.context
         setHeaders.forEach(({ key, value }: Record<string, string>) => {
           if (requestContext.response.http.headers.get(key)) {
@@ -137,7 +137,7 @@ const withoutRequestValues = (key: string, value: unknown): unknown => {
 }
 
 export const logPlugin = {
-  requestDidStart(requestContext: any) {
+  async requestDidStart(requestContext: any) {
     const { logger } = requestContext
     const { query, mutation, variables, operationName } = requestContext.request
     if (operationName !== 'IntrospectionQuery') {
@@ -147,7 +147,7 @@ ${withoutStringValues(mutation || query)}
 variables: ${JSON.stringify(filterVariables(variables), null, 2)}`)
     }
     return {
-      willSendResponse(requestContext: any) {
+      async willSendResponse(requestContext: any) {
         if (operationName !== 'IntrospectionQuery') {
           if (requestContext.context.user) {
             logger.info(`User ID: ${requestContext.context.user.id}`)

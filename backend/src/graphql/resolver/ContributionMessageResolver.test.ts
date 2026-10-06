@@ -1,6 +1,5 @@
 import { ContributionStatus } from '@enum/ContributionStatus'
-import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
-import { ApolloServerTestClient } from 'apollo-server-testing'
+import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { getLogger } from 'config-schema/test/testSetup'
 import { sendAddedContributionMessageEmail } from 'core'
 import { AppDatabase, Contribution as DbContribution, Event as DbEvent, EventType } from 'database'

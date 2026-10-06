@@ -251,21 +251,21 @@ Saturday""", memo: "m")
 })
 
 /** What the request log writes at level error when it sends an answer with these errors. */
-const errorsLogged = (errors: unknown[]): string => {
+const errorsLogged = async (errors: unknown[]): Promise<string> => {
   const logger = { debug: jest.fn(), info: jest.fn(), trace: jest.fn(), error: jest.fn() }
-  const hooks = logPlugin.requestDidStart({
+  const hooks = await logPlugin.requestDidStart({
     logger,
     request: { query: 'mutation { x }', variables: {}, operationName: null },
   })
-  hooks.willSendResponse({ context: {}, response: { errors } })
+  await hooks.willSendResponse({ context: {}, response: { errors } })
   return logger.error.mock.calls.map((args) => args.join(' ')).join('\n')
 }
 
 describe('the errors in the request log', () => {
   // A failed check keeps the value it refused -- the whole picture where its width is out of
   // bounds, however small the picture (coderabbit on #4001).
-  it('writes no value a check refused, however short', () => {
-    const text = errorsLogged([
+  it('writes no value a check refused, however short', async () => {
+    const text = await errorsLogged([
       {
         message: 'Argument Validation Error',
         extensions: {
@@ -297,8 +297,8 @@ describe('the errors in the request log', () => {
   })
 
   // graphql-js prints a variable of the wrong type into its message, and quotes it in the reason.
-  it('writes no value graphql-js quotes of an invalid variable', () => {
-    const text = errorsLogged([
+  it('writes no value graphql-js quotes of an invalid variable', async () => {
+    const text = await errorsLogged([
       {
         message:
           'Variable "$image" got invalid value { data: "SHORTPICTURE", width: "x" } at "image.width"; Int cannot represent non-integer value: "x"',
@@ -308,9 +308,9 @@ describe('the errors in the request log', () => {
     expect(text).toContain('"message": "Variable \\"$image\\" got invalid value ***"')
   })
 
-  it('writes any other long string as its length only', () => {
+  it('writes any other long string as its length only', async () => {
     const long = 'A'.repeat(5000)
-    const text = errorsLogged([
+    const text = await errorsLogged([
       { message: 'Something failed', extensions: { exception: { detail: long } } },
     ])
     expect(text).not.toContain(long)
@@ -335,26 +335,26 @@ describe('the errors in the request log', () => {
     const withMotif = logged({ recipientIdentifier: 'dave', amount: '50', motif: 'giving-hands' })
     expect(withMotif).toContain('"motif": "giving-hands"')
   })
-  it('writes an ordinary error as before', () => {
-    const text = errorsLogged([{ message: 'CHAT_IMAGE_NOT_ACCEPTED: TOO_LARGE' }])
+  it('writes an ordinary error as before', async () => {
+    const text = await errorsLogged([{ message: 'CHAT_IMAGE_NOT_ACCEPTED: TOO_LARGE' }])
     expect(text).toContain('"message": "CHAT_IMAGE_NOT_ACCEPTED: TOO_LARGE"')
   })
 })
 
 /** What the request log writes at level trace when it sends the answer of a request. */
-const answerTraced = (context: Record<string, unknown>, data: unknown): string => {
+const answerTraced = async (context: Record<string, unknown>, data: unknown): Promise<string> => {
   const logger = { debug: jest.fn(), info: jest.fn(), trace: jest.fn(), error: jest.fn() }
-  const hooks = logPlugin.requestDidStart({
+  const hooks = await logPlugin.requestDidStart({
     logger,
     request: { query: 'query { x }', variables: {}, operationName: null },
   })
-  hooks.willSendResponse({ context, response: { data } })
+  await hooks.willSendResponse({ context, response: { data } })
   return logger.trace.mock.calls.map((args) => args.join(' ')).join('\n')
 }
 
 describe('the answer in the request log', () => {
-  it('is left out where the request was handed a video room', () => {
-    const traced = answerTraced(
+  it('is left out where the request was handed a video room', async () => {
+    const traced = await answerTraced(
       { requestBudget: { ...newRequestBudget(), chatVideoRoomsServed: 1 } },
       { room0: { url: ROOM, host: 'meet.example.org', operator: null } },
     )
@@ -362,9 +362,9 @@ describe('the answer in the request log', () => {
     expect(traced).toBe('Response-Data: left out, it holds a video room')
   })
 
-  it('is left out where the request was handed a picture of a chat message', () => {
+  it('is left out where the request was handed a picture of a chat message', async () => {
     const picture = Buffer.from('a private picture of Anna and Ben').toString('base64')
-    const traced = answerTraced(
+    const traced = await answerTraced(
       { requestBudget: { ...newRequestBudget(), chatImagesServed: 1 } },
       { chatMessageImage: picture },
     )
@@ -372,9 +372,9 @@ describe('the answer in the request log', () => {
     expect(traced).toBe('Response-Data: left out, it holds a picture')
   })
 
-  it('is left out where the request was handed the picture of a thank-you greeting', () => {
+  it('is left out where the request was handed the picture of a thank-you greeting', async () => {
     const picture = Buffer.from('a private photo of Oma Emma').toString('base64')
-    const traced = answerTraced(
+    const traced = await answerTraced(
       { requestBudget: { ...newRequestBudget(), thankYouGreetingPicturesServed: 1 } },
       { thankYouGreetingPicture: picture },
     )
@@ -384,9 +384,9 @@ describe('the answer in the request log', () => {
 
   // The budget as thankYouGreetingPicture leaves it where the large rendition was asked for
   // (TransactionLinkResolver): counted as three, and once as a large one.
-  it('is left out where the request was handed the large rendition of such a picture', () => {
+  it('is left out where the request was handed the large rendition of such a picture', async () => {
     const picture = Buffer.from('a private photo of Oma Emma, at its full size').toString('base64')
-    const traced = answerTraced(
+    const traced = await answerTraced(
       {
         requestBudget: {
           ...newRequestBudget(),
@@ -400,9 +400,9 @@ describe('the answer in the request log', () => {
     expect(traced).toBe('Response-Data: left out, it holds a picture')
   })
 
-  it('is left out where the request was handed the photo of a transfer', () => {
+  it('is left out where the request was handed the photo of a transfer', async () => {
     const picture = Buffer.from('a private photo of the bench Dave built').toString('base64')
-    const traced = answerTraced(
+    const traced = await answerTraced(
       { requestBudget: { ...newRequestBudget(), transactionPicturesServed: 1 } },
       { transactionPicture: picture },
     )
@@ -410,16 +410,16 @@ describe('the answer in the request log', () => {
     expect(traced).toBe('Response-Data: left out, it holds a picture')
   })
 
-  it('is written where the request was handed no picture of any kind', () => {
-    const traced = answerTraced({ requestBudget: newRequestBudget() }, { sendCoins: true })
+  it('is written where the request was handed no picture of any kind', async () => {
+    const traced = await answerTraced({ requestBudget: newRequestBudget() }, { sendCoins: true })
     expect(traced).toContain('"sendCoins": true')
   })
 
   // The same name comes back in the answers that carry a greeting -- the new link, the link
   // somebody opens, the sender's list, and the booking list with the booking made from the link.
-  it('carries no name a thank-you greeting is for, wherever the answer holds one', () => {
+  it('carries no name a thank-you greeting is for, wherever the answer holds one', async () => {
     const greeting = { motif: 'bouquet', line: 'Danke!', recipientName: 'Sarah Wintergrün' }
-    const traced = answerTraced(
+    const traced = await answerTraced(
       { requestBudget: newRequestBudget() },
       {
         createTransactionLink: { link: 'https://x/redeem/abc', greeting },
@@ -443,8 +443,8 @@ describe('the answer in the request log', () => {
     expect(traced).toContain('"greeting": null')
   })
 
-  it('is written at level trace for every other request, as before', () => {
-    const traced = answerTraced(
+  it('is written at level trace for every other request, as before', async () => {
+    const traced = await answerTraced(
       { requestBudget: newRequestBudget() },
       { contactList: { contactCount: 3 } },
     )

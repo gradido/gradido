@@ -1,5 +1,4 @@
-import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
-import { ApolloServerTestClient } from 'apollo-server-testing'
+import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { AppDatabase, CreationGroup as DbCreationGroup, User } from 'database'
 import { getLogger as originalGetLogger } from 'log4js'
 import { Order } from '@/graphql/enum/Order'

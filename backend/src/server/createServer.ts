@@ -1,3 +1,7 @@
+import {
+  ApolloServerPluginLandingPageDisabled,
+  ApolloServerPluginLandingPageGraphQLPlayground,
+} from 'apollo-server-core'
 import { ApolloServer } from 'apollo-server-express'
 import { CONFIG as CORE_CONFIG } from 'core'
 import { AppDatabase } from 'database'
@@ -111,12 +115,19 @@ export const createServer = async (
   // Apollo Server
   const apollo = new ApolloServer({
     schema: await schema(),
-    playground: CONFIG.GRAPHIQL,
     introspection: CONFIG.GRAPHIQL,
     context,
-    plugins,
+    // Apollo Server 3 has no `playground` option any more: the page a browser is shown is a
+    // plugin, and without one it would show Apollo's own landing page instead of nothing.
+    plugins: [
+      ...plugins,
+      CONFIG.GRAPHIQL
+        ? ApolloServerPluginLandingPageGraphQLPlayground()
+        : ApolloServerPluginLandingPageDisabled(),
+    ],
     logger: apolloLogger,
   })
+  await apollo.start()
   apollo.applyMiddleware({ app, path: '/' })
   logger.info(
     `running with PRODUCTION=${CONFIG.PRODUCTION}, sending EMAIL enabled=${CORE_CONFIG.EMAIL} and EMAIL_TEST_MODUS=${CORE_CONFIG.EMAIL_TEST_MODUS} ...`,

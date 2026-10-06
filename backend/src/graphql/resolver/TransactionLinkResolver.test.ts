@@ -1,6 +1,11 @@
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
-import { cleanDB, resetToken, testEnvironment, useFakeTimersForDrizzle } from '@test/helpers'
-import { ApolloServerTestClient } from 'apollo-server-testing'
+import {
+  ApolloServerTestClient,
+  cleanDB,
+  resetToken,
+  testEnvironment,
+  useFakeTimersForDrizzle,
+} from '@test/helpers'
 import { getLogger } from 'config-schema/test/testSetup'
 import { sendTransactionLinkRedeemedEmail } from 'core'
 import {

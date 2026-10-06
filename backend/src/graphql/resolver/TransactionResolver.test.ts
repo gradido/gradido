@@ -1,11 +1,11 @@
 import { randomBytes } from 'node:crypto'
 import {
+  ApolloServerTestClient,
   cleanDB,
   TEST_AVATAR_FULL_BASE64,
   TEST_AVATAR_SMALL_BASE64,
   testEnvironment,
 } from '@test/helpers'
-import { ApolloServerTestClient } from 'apollo-server-testing'
 import { getLogger } from 'config-schema/test/testSetup'
 import { CONFIG as CORE_CONFIG, sendCustomEmail, sendTransactionReceivedEmail } from 'core'
 import {

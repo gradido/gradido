@@ -1,7 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { randomBytes } from 'node:crypto'
-import { cleanDB, testEnvironment } from '@test/helpers'
-import { ApolloServerTestClient } from 'apollo-server-testing'
+import { ApolloServerTestClient, cleanDB, testEnvironment } from '@test/helpers'
 import { getLogger } from 'config-schema/test/testSetup'
 import { CONFIG as CORE_CONFIG } from 'core'
 import {

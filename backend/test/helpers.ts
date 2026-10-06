@@ -1,5 +1,7 @@
 import { deflateSync } from 'node:zlib'
-import { createTestClient } from 'apollo-server-testing'
+import { ApolloServer } from 'apollo-server-express'
+import { GraphQLResponse } from 'apollo-server-core'
+import { DocumentNode } from 'graphql'
 import { dbDeleteAllRowsExceptMigrations } from 'database'
 import {
   AppDatabase,
@@ -30,6 +32,39 @@ const context = {
   get requestBudget() {
     return newRequestBudget()
   },
+}
+
+type StringOrAst = string | DocumentNode
+type TestResponse<TData> = Omit<GraphQLResponse, 'data'> & { data?: TData }
+
+/**
+ * What `apollo-server-testing` handed out until Apollo Server 3 dropped the package: `query`
+ * and `mutate`, which run an operation against the server without HTTP in between.
+ */
+export interface ApolloServerTestClient {
+  query<TData = any, TVariables = Record<string, any>>(query: {
+    query: StringOrAst
+    mutation?: undefined
+    variables?: TVariables
+    operationName?: string
+  }): Promise<TestResponse<TData>>
+  mutate<TData = any, TVariables = Record<string, any>>(mutation: {
+    mutation: StringOrAst
+    query?: undefined
+    variables?: TVariables
+    operationName?: string
+  }): Promise<TestResponse<TData>>
+}
+
+export const createTestClient = (server: ApolloServer): ApolloServerTestClient => {
+  const test = ({ query, mutation, ...args }: any): Promise<any> => {
+    const operation = query || mutation
+    if (!operation || (query && mutation)) {
+      throw new Error('Either `query` or `mutation` must be passed, but not both.')
+    }
+    return server.executeOperation({ query: operation, ...args })
+  }
+  return { query: test, mutate: test }
 }
 
 export const cleanDB = async () => {

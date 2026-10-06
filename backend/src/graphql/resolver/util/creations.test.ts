@@ -1,5 +1,9 @@
-import { cleanDB, contributionDateFormatter, testEnvironment } from '@test/helpers'
-import { ApolloServerTestClient } from 'apollo-server-testing'
+import {
+  ApolloServerTestClient,
+  cleanDB,
+  contributionDateFormatter,
+  testEnvironment,
+} from '@test/helpers'
 import { AppDatabase, Contribution, User } from 'database'
 import { GradidoUnit } from 'shared'
 import { CONFIG } from '@/config'
