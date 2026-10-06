@@ -69,8 +69,17 @@ export const ed25519PrivateKeySchema = v.pipe(
 export const nodeCryptoKeyObjectSchema = v.custom<KeyObject>((val) => val instanceof KeyObject)
 // a Duration instance, a string like "10m" must be converted first: Duration.fromString
 export const durationSchema = v.custom<Duration>((val) => val instanceof Duration)
+export const nonNegativeIntegerSchema = v.pipe(v.number(), v.integer(), v.minValue(0))
+export const integerSchema = v.pipe(v.number(), v.integer())
 // integer > 0
 export const positiveIntegerSchema = v.pipe(v.number(), v.integer(), v.gtValue(0))
+
+// whatever `new Date()` makes a date of: a Date, a timestamp, a date string
+export const dateSchema = v.pipe(
+  v.union([v.string(), v.date(), integerSchema]),
+  v.transform((input) => new Date(input)),
+  v.date(),
+)
 
 export const locationPointSchema = v.object({
   type: v.literal('Point'),
