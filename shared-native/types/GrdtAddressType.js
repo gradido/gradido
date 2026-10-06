@@ -18,5 +18,3 @@ module.exports = {
   GRDT_ADDRESS_TYPES,
   isGrdtAddressType,
 }
-
-

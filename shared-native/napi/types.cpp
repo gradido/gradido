@@ -1,7 +1,6 @@
 
 #include <napi.h>
 #include "gradido_blockchain_core/types/address.h"
-#include "gradido_blockchain_core/types/balance_derivation.h"
 #include "gradido_blockchain_core/types/cross_group.h"
 #include "gradido_blockchain_core/types/ledger_anchor.h"
 #include "gradido_blockchain_core/types/memo_key.h"
@@ -24,24 +23,6 @@ namespace gradido::types {
         Napi::Number addressType = info[0].As<Napi::Number>();
 
         const char* enumString = grdt_address_to_string((grdt_address)addressType.Int32Value());
-        return Napi::String::New(env, enumString);
-    }
-
-    Napi::Value GrdtBalanceDerivationToString(const Napi::CallbackInfo& info)
-    {
-        Napi::Env env = info.Env();
-        if (info.Length() != 1) {
-            Napi::TypeError::New(env, "Expected one argument: number").ThrowAsJavaScriptException();
-            return env.Null();
-        }
-        if (!info[0].IsNumber()) {
-            Napi::TypeError::New(env, "Expected first argument to be a number").ThrowAsJavaScriptException();
-            return env.Null();
-        }
-
-        Napi::Number balanceDerivationType = info[0].As<Napi::Number>();
-
-        const char* enumString = grdt_balance_derivation_to_string((grdt_balance_derivation)balanceDerivationType.Int32Value());
         return Napi::String::New(env, enumString);
     }
 

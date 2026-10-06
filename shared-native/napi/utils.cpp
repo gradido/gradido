@@ -1,13 +1,13 @@
 #include "utils.h"
 
-#include "gradido_blockchain_core/utils/duration.h"
+#include "arnm/duration.h"
 
 #include "napi.h"
 
 namespace gradido::utils {
 
     Napi::Object MonotonicTimer::Init(Napi::Env env, Napi::Object exports) {
-        grdu_mono_timer_init();
+        arnm_mono_timer_init();
 
         Napi::Function func = DefineClass(env, "MonotonicTimer", {
             InstanceMethod("reset", &MonotonicTimer::Reset),
@@ -21,21 +21,27 @@ namespace gradido::utils {
     MonotonicTimer::MonotonicTimer(const Napi::CallbackInfo& info)
         : Napi::ObjectWrap<MonotonicTimer>(info)
     {
-        grdu_mono_timer_reset(&mTimer);
+        arnm_mono_timer_reset(&mTimer);
     }
 
     MonotonicTimer::~MonotonicTimer() {
     }
 
     Napi::Value MonotonicTimer::Reset(const Napi::CallbackInfo& info) {
-        grdu_mono_timer_reset(&mTimer);
+        arnm_mono_timer_reset(&mTimer);
         return info.Env().Undefined();
     }
 
     Napi::Value MonotonicTimer::ToString(const Napi::CallbackInfo& info) {
         char buffer[128];
-        auto written = grdu_mono_timer_string(buffer, 128, mTimer);
-        grdu_mono_timer_reset(&mTimer);
+        // buffer_size counts the terminator; a return of sizeof(buffer) or more means nothing
+        // was written and the figure is what would have been needed.
+        int written = arnm_mono_timer_string(buffer, sizeof(buffer), mTimer);
+        arnm_mono_timer_reset(&mTimer);
+        if (written < 0 || static_cast<size_t>(written) >= sizeof(buffer)) {
+            Napi::Error::New(info.Env(), "[MonotonicTimer.toString] Duration string conversion failed").ThrowAsJavaScriptException();
+            return info.Env().Null();
+        }
         return Napi::String::New(info.Env(), buffer, written);
     }
 
@@ -56,9 +62,9 @@ namespace gradido::utils {
         }
 
         bool lossless = false;
-        grdu_duration duration = info[0].As<Napi::BigInt>().Int64Value(&lossless);
+        arnm_duration duration = info[0].As<Napi::BigInt>().Int64Value(&lossless);
         if (!lossless) {
-            Napi::TypeError::New(env, "[durationToString] BigInt duration is too large to fit in grdu_duration (int64)").ThrowAsJavaScriptException();
+            Napi::TypeError::New(env, "[durationToString] BigInt duration is too large to fit in arnm_duration (int64)").ThrowAsJavaScriptException();
             return env.Null();
         }
         uint8_t precision = 2;
@@ -66,8 +72,8 @@ namespace gradido::utils {
             precision = info[1].As<Napi::Number>().Uint32Value();
         }
         char str[32];
-        int written = grdu_duration_string(str, sizeof(str), duration, precision);
-        if (written < 0) {
+        int written = arnm_duration_string(str, sizeof(str), duration, precision);
+        if (written < 0 || static_cast<size_t>(written) >= sizeof(str)) {
             Napi::Error::New(env, "[durationToString] Duration string conversion failed").ThrowAsJavaScriptException();
             return env.Null();
         }

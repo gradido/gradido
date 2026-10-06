@@ -16,28 +16,27 @@
   "license": "Apache-2.0",
   "private": true,
   "scripts": {
-    "build": "bun build.ts",
+    "build": "c-cpp-zig-build",
+    "build:debug": "c-cpp-zig-build --debug",
+    "build:clean": "c-cpp-zig-build clean",
+    "info": "c-cpp-zig-build info",
     "test": "bun test",
     "test:node": "node --test",
     "test:debug": "bun test --inspect-brk",
-    "typecheck": "tsc --noEmit",
     "lint": "biome check --error-on-warnings .",
     "lint:fix": "biome check --error-on-warnings . --write"
   },
+  "zigNative": {
+    "optimize": "small",
+    "napiVersion": 8
+  },
   "devDependencies": {
     "@biomejs/biome": "2.0.0",
-    "@types/adm-zip": "^0.5.8",
-    "adm-zip": "^0.5.16",
-    "chalk": "4.1.2",
-    "decimal.js": "^10.6.0",
-    "decimal.js-light": "^2.5.1",
-    "detect-libc": "^2.1.2",
-    "node-addon-api": "^8.7.0",
-    "node-api-headers": "^1.8.0",
-    "typescript": "^4.9.5"
+    "c-cpp-zig-build": "0.3.0",
+    "decimal.js-light": "^2.5.1"
   },
   "dependencies": {},
   "engines": {
-    "node": ">=18"
+    "node": ">=18.17"
   }
 }
