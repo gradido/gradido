@@ -38,10 +38,16 @@ export const CHAT_IMAGE_MAX_SIDE = 4096
 
 // Where even the lowest quality does not bring a picture under the target, the next size is the
 // area times 0.8 (E-041: a size smaller rather than over the limit -- the avatar sends its lowest
-// step and leaves the rest to the server; for a chat picture that would be an error message). At
-// most five sizes, the last about 512 x 384; a picture that does not fit even then is refused here.
+// step and leaves the rest to the server; for a chat picture that would be an error message).
+//
+// Twelve sizes, the last about 234 x 176. Five were not enough: measured in WebKit -- the engine
+// of every browser on an iPhone, whose JPEG encoder writes more bytes than Chrome's for the same
+// quality --, two of ten detailed photos (grass, a herd of zebras) did not come under 32 KB in
+// five sizes and were refused, and three more only just did; the most detailed one needed ten.
+// A picture of nothing but noise, which no photo is, fits in the eleventh size there (the ninth
+// in Chrome). What is refused after twelve is no photo.
 export const CHAT_IMAGE_SHRINK = 0.8
-export const CHAT_IMAGE_ROUNDS = 5
+export const CHAT_IMAGE_ROUNDS = 12
 
 /**
  * Why a picture could not be made ready -- one reason for each of the bar's own sentences:
