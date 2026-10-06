@@ -38,6 +38,9 @@ export interface RequestBudget {
   chatVideoRoomsServed: number
   // Pictures of chat messages (chatMessageImage), capped at CHAT_IMAGES_MAX_PER_REQUEST.
   chatImagesServed: number
+  // Pictures taken in with a chat message or a transfer (acceptedPicture), capped together at
+  // CHAT_IMAGES_ACCEPTED_MAX_PER_REQUEST: each is decoded and encoded again.
+  chatImagesAccepted: number
   // Pictures of thank-you greetings (thankYouGreetingPicture), capped at
   // THANK_YOU_GREETING_PICTURES_MAX_PER_REQUEST. A call that asks for the large rendition
   // counts as THANK_YOU_GREETING_LARGE_PICTURE_COUNTS of them.
@@ -64,6 +67,7 @@ export const newRequestBudget = (): RequestBudget => ({
   chatUpdatesServed: 0,
   chatVideoRoomsServed: 0,
   chatImagesServed: 0,
+  chatImagesAccepted: 0,
   thankYouGreetingPicturesServed: 0,
   thankYouGreetingPicturesAccepted: 0,
   thankYouGreetingLargePicturesServed: 0,

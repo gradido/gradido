@@ -112,6 +112,15 @@ export const nextChatEditsPosition = (
 export const CHAT_IMAGES_MAX_PER_REQUEST = 10
 
 /**
+ * How many pictures one HTTP request may bring with a chat message or a transfer
+ * (acceptedPicture), over every alias and every operation of a batch (RequestBudget): one. Each
+ * is decoded and encoded again, and a document could otherwise name one picture in its
+ * variables and have it worked on hundreds of times. The wallet sends one message, or one
+ * transfer, in a request.
+ */
+export const CHAT_IMAGES_ACCEPTED_MAX_PER_REQUEST = 1
+
+/**
  * How many conversations one message may be forwarded into at once (Bernd, 30.09.2026, E-059 F3):
  * groups and members together. A few people, not a mailing list -- every one of them may get a
  * mail about it.

@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { randomBytes } from 'node:crypto'
-import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
+import { cleanDB, resetToken, TEST_PICTURE_BASE64, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { getLogger } from 'config-schema/test/testSetup'
 import { CONFIG as CORE_CONFIG, sendCustomEmail, storeChatMessage } from 'core'
@@ -79,14 +79,8 @@ const loginAs = async (email: string): Promise<void> => {
   await mutate({ mutation: login, variables: { email, password: 'Aa12345_' } })
 }
 
-// The smallest thing the server takes as a JPEG: the start marker, a few bytes, the end marker.
-const JPEG: ChatPicture = {
-  data: Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0xff, 0xd9]).toString(
-    'base64',
-  ),
-  width: 800,
-  height: 600,
-}
+// A picture that decodes (test/helpers.ts): the server encodes what it is sent again.
+const JPEG: ChatPicture = { data: TEST_PICTURE_BASE64, width: 800, height: 600 }
 
 /** Writes in the chat to `to`, as whoever is logged in: the sender's own copy. */
 const said = async (to: ChatRef, body: string, image?: ChatPicture) => {

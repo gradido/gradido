@@ -296,7 +296,7 @@ export class ChatResolver {
     @Args() { ref, body, notify: requested, image }: SendChatMessageArgs,
     @Ctx() context: Context,
   ): Promise<ChatMessage> {
-    const images = image ? [acceptedPicture(image)] : []
+    const images = image ? [await acceptedPicture(image, context)] : []
     const senderUser = getUser(context)
     const caller = callerOf(context)
     const other = {

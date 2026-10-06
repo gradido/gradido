@@ -118,9 +118,8 @@ export const AVATAR_SMALL_MAX_SIDE = 128
 // A JPEG begins with these two bytes and ends with these two. Checking both ends is still
 // not format validation -- only a decoder could say whether the pixels in between are a
 // picture -- but it is what can be had without one, and it is the check that costs nothing:
-// asked first, before a picture that is to be decoded and encoded again (the avatar, the
-// picture of a thank-you greeting) gets any CPU, and the only one for the pictures that are
-// stored as they come.
+// asked first, before a picture a member sends is decoded and encoded again, and the only one
+// for a picture that arrives from another community.
 //
 // Checking the end as well as the start matters more than it looks. `FFD8` alone accepts
 // a three-byte payload, so the column would take arbitrary data from anyone who prefixes
@@ -150,9 +149,10 @@ export const JPEG_END_BYTES = [0xff, 0xd9]
 // A backstop, as the avatar's limits are: the wallet encodes the picture under 32 KB (an area of
 // 800 x 600). That target belongs to the wallet, as AVATAR_*_TARGET_BYTES do.
 export const CHAT_IMAGE_MAX_BYTES = 35 * 1024
-// Width and height are the sender's word -- without a decoder the server cannot measure them,
-// only bound them. The wallet's pictures have the area of 800 x 600 whatever their format: a
-// long screenshot comes to about 393 x 1220, a panorama to 924 x 520.
+// The bounds on width and height. They are asked twice: of the size the sender gives, before
+// any work is done, and by the decoder of the picture itself, when the server encodes it again
+// (acceptAndReencodeChatMessageImage in core). The wallet's pictures have the area of 800 x 600
+// whatever their format: a long screenshot comes to about 393 x 1220, a panorama to 924 x 520.
 export const CHAT_IMAGE_MAX_SIDE = 4096
 // The area of 800 x 600 (480,000 pixels), rounded up: a picture scaled to that area in the
 // wallet may come out a little over it (924 x 520 = 480,480).

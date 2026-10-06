@@ -1,6 +1,13 @@
 // AI-GENERATED — not an architecture reference
 import { randomBytes } from 'node:crypto'
-import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
+import {
+  cleanDB,
+  resetToken,
+  TEST_PICTURE_BASE64,
+  TEST_PICTURE_SIZE,
+  testEnvironment,
+  testNoiseJpeg,
+} from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { getLogger } from 'config-schema/test/testSetup'
 import { CONFIG as CORE_CONFIG, sendCustomEmail } from 'core'
@@ -17,6 +24,7 @@ import {
 import { eq } from 'drizzle-orm'
 import { GraphQLError } from 'graphql'
 import { GraphQLClient } from 'graphql-request'
+import { gql } from 'graphql-tag'
 import {
   CHAT_IMAGE_MAX_BYTES,
   CommandJwtPayloadType,
@@ -438,8 +446,10 @@ const allMessages = () =>
 const allPictures = () =>
   AppDatabase.getInstance().getDrizzleDataSource().select().from(chatMessageImagesTable)
 
-// The smallest thing the server takes as a JPEG: the start marker, a few bytes, the end marker.
-const JPEG = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0xff, 0xd9])
+// A picture that decodes, and comes out of the server's encoder as it went in (test/helpers.ts):
+// the server stores what it encoded, at the size the decoder found -- TEST_PICTURE_SIZE,
+// whatever size the sender gives with it.
+const JPEG = Buffer.from(TEST_PICTURE_BASE64, 'base64')
 const pictureOf = (bytes: Buffer, width = 800, height = 600): ChatPicture => ({
   data: bytes.toString('base64'),
   width,
@@ -716,6 +726,58 @@ describe('sendChatMessage with a picture', () => {
   const picturesOf = async (messageUuid: string) =>
     (await allPictures()).filter((picture) => picture.messageUuid === messageUuid)
 
+  // A picture goes to everybody in the conversation and can be forwarded on: nothing of the
+  // file a member sent travels with it, only its pixels.
+  it('stores the picture encoded again, without what was hidden in the file', async () => {
+    const hidden = Buffer.from('<script>alert(1)</script>')
+    const withHidden = Buffer.concat([
+      JPEG.subarray(0, 2),
+      Buffer.from([0xff, 0xfe, 0x00, hidden.length + 2]),
+      hidden,
+      JPEG.subarray(2),
+      hidden,
+      Buffer.from([0xff, 0xd9]),
+    ])
+
+    const copy = await said(ref(raeuber), 'With something inside', 'NONE', pictureOf(withHidden))
+
+    const [stored] = await picturesOf(copy.messageUuid)
+    // The same pixels, so the same bytes as the picture without anything hidden in it.
+    expect(stored.image.equals(JPEG)).toBe(true)
+    expect(stored.image.includes(hidden)).toBe(false)
+  })
+
+  // What the check of both ends alone used to take.
+  it('refuses what is a JPEG at both ends and no picture between', async () => {
+    const noPicture = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0xff, 0xd9])
+    const res = await say(ref(raeuber), 'No picture', 'NONE', pictureOf(noPicture))
+    expect(res.errors).toEqual([new GraphQLError('CHAT_IMAGE_NOT_ACCEPTED: NOT_JPEG')])
+  })
+
+  // ⛔ One document, the mutation twice under aliases, the picture once in the variables.
+  it('takes one picture in an HTTP request, however often the document asks', async () => {
+    const twice = gql`
+      mutation ($ref: MemberAvatarRefInput!, $image: ChatImageInput) {
+        first: sendChatMessage(ref: $ref, body: "one", notify: NONE, image: $image) {
+          messageUuid
+        }
+        second: sendChatMessage(ref: $ref, body: "two", notify: NONE, image: $image) {
+          messageUuid
+        }
+      }
+    `
+    const picturesBefore = (await allPictures()).length
+
+    const res: any = await mutate({
+      mutation: twice,
+      variables: { ref: ref(raeuber), image: pictureOf(JPEG) },
+    })
+
+    expect(res.errors).toEqual([new GraphQLError('Too many pictures sent at once')])
+    // The first was sent before the second was refused.
+    expect((await allPictures()).length).toBe(picturesBefore + 1)
+  })
+
   it('files the message and its picture, the picture under the message', async () => {
     const copy = await said(ref(raeuber), 'Look at this', 'EMAIL', pictureOf(JPEG, 393, 1220))
 
@@ -732,8 +794,8 @@ describe('sendChatMessage with a picture', () => {
     expect(pictures).toHaveLength(1)
     expect(pictures[0]).toMatchObject({
       position: 0,
-      width: 393,
-      height: 1220,
+      // The size the picture has, not the 393 x 1220 its sender gave.
+      ...TEST_PICTURE_SIZE,
       mimeType: 'image/jpeg',
     })
     expect(pictures[0].image.equals(JPEG)).toBe(true)
@@ -801,7 +863,7 @@ describe('the pictures of a message', () => {
   afterAll(() => resetToken())
 
   it('names the picture in the copy the sender gets back, and none where there is none', () => {
-    expect(copy.images).toEqual([{ imageUuid: expect.any(String), width: 924, height: 520 }])
+    expect(copy.images).toEqual([{ imageUuid: expect.any(String), ...TEST_PICTURE_SIZE }])
     expect(withoutPicture.images).toEqual([])
   })
 
@@ -1133,7 +1195,7 @@ describe('sendChatMessage to a member of another community', () => {
       expect(copy).toMatchObject({
         mine: true,
         deliveryState: 'DELIVERED',
-        images: [{ imageUuid: expect.any(String), width: 924, height: 520 }],
+        images: [{ imageUuid: expect.any(String), ...TEST_PICTURE_SIZE }],
       })
       expect(commands).toHaveLength(1)
       expect(commands[0]).toMatchObject({
@@ -1142,8 +1204,8 @@ describe('sendChatMessage to a member of another community', () => {
         images: [
           {
             imageUuid: copy.images[0].imageUuid,
-            width: 924,
-            height: 520,
+            // What goes across is the picture as this server encoded it, at its real size.
+            ...TEST_PICTURE_SIZE,
             data: JPEG.toString('base64'),
           },
         ],
@@ -1160,11 +1222,11 @@ describe('sendChatMessage to a member of another community', () => {
     // wallet's picture, more than the other server takes.
     it('refuses a text too heavy to cross with a picture, and files and sends nothing', async () => {
       peerAnswers({ success: true })
-      const walletPicture = Buffer.concat([
-        JPEG,
-        Buffer.alloc(32 * 1024 - 2 * JPEG.length, 0x20),
-        JPEG,
-      ])
+      // A picture with the weight of the wallet's largest, and still that heavy once the server
+      // has encoded it again: bytes behind a picture's end no longer count.
+      const walletPicture = await testNoiseJpeg(212, 212)
+      expect(walletPicture.length).toBeGreaterThan(32 * 1024)
+      expect(walletPicture.length).toBeLessThanOrEqual(CHAT_IMAGE_MAX_BYTES)
       const heavy = `😀${String.fromCodePoint(0xfe0f)}`.repeat(MESSAGE_MAX_CHARS)
       const messagesBefore = await allMessages()
       const picturesBefore = await allPictures()
@@ -1189,7 +1251,7 @@ describe('sendChatMessage to a member of another community', () => {
       const copy = res.data.sendChatMessage
       expect(copy).toMatchObject({
         deliveryState: 'FAILED',
-        images: [{ imageUuid: expect.any(String), width: 800, height: 600 }],
+        images: [{ imageUuid: expect.any(String), ...TEST_PICTURE_SIZE }],
       })
       expect(await picturesOfMessage(copy.messageUuid)).toHaveLength(1)
     })

@@ -1059,7 +1059,7 @@ export const thankYouGreetingPicturesTable = mysqlTable(
     id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
     transactionLinkCode: varchar('transaction_link_code', { length: 24 }).notNull(),
     rendition: varchar({ length: 8 }).$type<ThankYouGreetingPictureRendition>().notNull(),
-    // The wallet's word, as for a chat picture: without a decoder the server bounds them only.
+    // The size the decoder found when the server encoded the picture again.
     width: smallint({ unsigned: true }).notNull(),
     height: smallint({ unsigned: true }).notNull(),
     image: customMediumBlob('image').notNull(),
@@ -1110,7 +1110,7 @@ export const transactionPictureImagesTable = mysqlTable(
   {
     id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
     transactionPictureId: int('transaction_picture_id', { unsigned: true }).notNull(),
-    // The wallet's word, as for a chat picture: without a decoder the server bounds them only.
+    // The size the decoder found when the server encoded the picture again.
     width: smallint({ unsigned: true }).notNull(),
     height: smallint({ unsigned: true }).notNull(),
     image: customMediumBlob('image').notNull(),

@@ -1,6 +1,12 @@
 // AI-GENERATED — not an architecture reference
 import { inspect } from 'node:util'
-import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
+import {
+  cleanDB,
+  resetToken,
+  TEST_PICTURE_BASE64,
+  TEST_PICTURE_SIZE,
+  testEnvironment,
+} from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { getLogger } from 'config-schema/test/testSetup'
 import {
@@ -95,10 +101,15 @@ let bob: User
 // A JPEG with something recognisable inside: what is handed out is seen, and what a log or an
 // answer says is searched for it.
 const SECRET = 'a private photo of the bench Dave built'
+// It decodes (test/helpers.ts), and the secret stands in a comment segment of the file: the
+// server stores the picture decoded and encoded again -- STORED, the same pixels without it.
+const STORED = Buffer.from(TEST_PICTURE_BASE64, 'base64')
+const STORED_BASE64 = TEST_PICTURE_BASE64
 const PHOTO = Buffer.concat([
-  Buffer.from([0xff, 0xd8]),
+  STORED.subarray(0, 2),
+  Buffer.from([0xff, 0xfe, 0x00, SECRET.length + 2]),
   Buffer.from(SECRET),
-  Buffer.from([0xff, 0xd9]),
+  STORED.subarray(2),
 ])
 const PHOTO_BASE64 = PHOTO.toString('base64')
 const PICTURE = { data: PHOTO_BASE64, width: 831, height: 577 }
@@ -265,8 +276,12 @@ describe('a transfer with a photo', () => {
       (row) => row.transactionPictureId === sendRow?.transactionPictureId,
     )
     expect(images).toHaveLength(1)
-    expect(images[0]).toMatchObject({ width: 831, height: 577, mimeType: 'image/jpeg' })
-    expect(Buffer.compare(images[0].image, PHOTO)).toBe(0)
+    // The size the picture has, not the one its sender gave -- and the picture encoded again,
+    // with nothing of what was hidden in the file.
+    expect(images[0]).toMatchObject({ ...TEST_PICTURE_SIZE, mimeType: 'image/jpeg' })
+    expect(Buffer.compare(images[0].image, STORED)).toBe(0)
+    expect(PHOTO.includes(SECRET)).toBe(true)
+    expect(images[0].image.includes(SECRET)).toBe(false)
   })
 
   it('is named on both lists as a photo -- and no list carries the photo', async () => {
@@ -287,8 +302,8 @@ describe('a transfer with a photo', () => {
   it('reaches the sender through her row and the recipient through his', async () => {
     const { send: sendRow, receive } = await rowsOf(PHOTO_MEMO)
 
-    expect(await photoFor('bibi@bloxberg.de', sendRow!.id)).toBe(PHOTO_BASE64)
-    expect(await photoFor('peter@lustig.de', receive!.id)).toBe(PHOTO_BASE64)
+    expect(await photoFor('bibi@bloxberg.de', sendRow!.id)).toBe(STORED_BASE64)
+    expect(await photoFor('peter@lustig.de', receive!.id)).toBe(STORED_BASE64)
   })
 
   it('reaches nobody through a row that is not their own', async () => {
@@ -340,7 +355,7 @@ describe('a transfer with a photo', () => {
 
     expect(allowed.errors).toBeUndefined()
     expect(Object.values(allowed.data)).toEqual(
-      Array.from({ length: TRANSACTION_PICTURES_MAX_PER_REQUEST }, () => PHOTO_BASE64),
+      Array.from({ length: TRANSACTION_PICTURES_MAX_PER_REQUEST }, () => STORED_BASE64),
     )
     expect(oneMore.errors?.map((error) => error.message)).toEqual([
       'Too many transaction pictures requested at once',
@@ -513,8 +528,8 @@ describe('what a failure leaves behind', () => {
       heads: before.heads + 1,
       images: before.images + 1,
     })
-    expect(await photoFor('bibi@bloxberg.de', sendRow!.id)).toBe(PHOTO_BASE64)
-    expect(await photoFor('peter@lustig.de', receive!.id)).toBe(PHOTO_BASE64)
+    expect(await photoFor('bibi@bloxberg.de', sendRow!.id)).toBe(STORED_BASE64)
+    expect(await photoFor('peter@lustig.de', receive!.id)).toBe(STORED_BASE64)
   })
 
   it('a photo the database refuses: nothing booked, and no byte of it in the answer or the log', async () => {

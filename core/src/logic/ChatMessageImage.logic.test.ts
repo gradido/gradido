@@ -6,6 +6,7 @@ import { CHAT_IMAGE_MAX_BYTES } from 'shared'
 import { getLogger } from '../../../config-schema/test/testSetup.bun'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
 import {
+  acceptAndReencodeChatMessageImage,
   acceptChatMessageImage,
   acceptIncomingChatMessageImages,
   ChatMessageImageToStore,
@@ -153,6 +154,68 @@ describe('acceptChatMessageImage', () => {
     })
     expect(!refused.success && refused.error.message).not.toContain(SECRET.toString())
     expect(!refused.success && refused.error.message).not.toContain(JPEG.toString('base64'))
+  })
+})
+
+// What a member of this community sends is not filed as it came.
+describe('acceptAndReencodeChatMessageImage', () => {
+  // A picture that decodes: 4 x 2 grey pixels, as the server's own encoder writes them.
+  const PICTURE = Buffer.from(
+    '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAA0JCgsKCA0LCgsODg0PEyAVExISEyccHhcgLikxMC4pLSwzOko+MzZGNywtQFdBRkxOUlNSMj5aYVpQYEpRUk//wAALCAACAAQBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAAAP/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AP//Z',
+    'base64',
+  )
+  // The same picture with the secret in a comment segment and behind its end marker.
+  const WITH_SECRET = Buffer.concat([
+    PICTURE.subarray(0, 2),
+    Buffer.from([0xff, 0xfe, 0x00, SECRET.length + 2]),
+    SECRET,
+    PICTURE.subarray(2),
+    SECRET,
+    Buffer.from([0xff, 0xd9]),
+  ])
+
+  it('hands back the picture encoded again, at the size it has, without what was hidden in it', async () => {
+    const accepted = await acceptAndReencodeChatMessageImage(
+      sent(800, 600, WITH_SECRET.toString('base64')),
+    )
+
+    expect(accepted.success).toBe(true)
+    if (accepted.success) {
+      const { image, width, height } = accepted.value
+      // Not the 800 x 600 the sender gave: what the decoder found.
+      expect({ width, height }).toEqual({ width: 4, height: 2 })
+      // The same pixels, so the same bytes as the picture with nothing hidden in it.
+      expect(image.equals(PICTURE)).toBe(true)
+      expect(image.includes(SECRET)).toBe(false)
+    }
+  })
+
+  it('refuses what acceptChatMessageImage refuses, before any decoding', async () => {
+    const cases: [ReturnType<typeof sent>, string][] = [
+      [sent(800, 600, ''), 'EMPTY'],
+      [sent(800, 600, jpegOf(CHAT_IMAGE_MAX_BYTES + 1).toString('base64')), 'TOO_LARGE'],
+      [sent(800, 600, Buffer.from('<svg onload=alert(1)>').toString('base64')), 'NOT_JPEG'],
+      [sent(1000, 501, PICTURE.toString('base64')), 'SIZE'],
+    ]
+    for (const [picture, reason] of cases) {
+      const refused = await acceptAndReencodeChatMessageImage(picture)
+      expect(!refused.success && refused.error.reason).toBe(reason)
+    }
+  })
+
+  // JPEG is a JPEG at both ends and no picture between: what the check without a decoder takes.
+  it('refuses what is a JPEG at both ends and no picture between, and names no picture', async () => {
+    expect(acceptChatMessageImage(sent()).success).toBe(true)
+
+    const refused = await acceptAndReencodeChatMessageImage(sent())
+
+    expect(refused.success).toBe(false)
+    if (!refused.success) {
+      expect(refused.error.message).toBe(
+        `CHAT_IMAGE_NOT_ACCEPTED: NOT_JPEG, ${JPEG.length} bytes, 800 x 600`,
+      )
+      expect(inspect(refused.error, { depth: 5 })).not.toContain(SECRET.toString())
+    }
   })
 })
 

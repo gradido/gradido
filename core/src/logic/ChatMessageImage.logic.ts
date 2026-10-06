@@ -16,7 +16,7 @@ import {
 } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
 import { databaseErrorCode } from './ChatMessage.logic'
-import { decodeJpegImage, JpegImageRefusal } from './JpegImage.logic'
+import { decodeJpegImage, JpegImageRefusal, reencodeJpegImage } from './JpegImage.logic'
 
 const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.logic.ChatMessageImage`)
 
@@ -82,9 +82,10 @@ export const chatMessageImageSizeFits = (width: number, height: number): boolean
   isSide(width) && isSide(height) && width * height <= CHAT_IMAGE_MAX_PIXELS
 
 /**
- * A picture sent with a chat message, checked the way the avatar is checked (decodeJpegImage):
- * not empty, at most CHAT_IMAGE_MAX_BYTES, a JPEG at both ends -- and a size that fits. Nothing
- * is decoded and nothing changed: the wallet has scaled and encoded it (E-041).
+ * A picture sent with a chat message, checked without a decoder (decodeJpegImage): not empty,
+ * at most CHAT_IMAGE_MAX_BYTES, a JPEG at both ends -- and a size that fits. Nothing is decoded
+ * and nothing changed here. A picture a member of this community sends goes on to
+ * acceptAndReencodeChatMessageImage, which is this check and then the decoder.
  */
 export function acceptChatMessageImage({
   data,
@@ -110,6 +111,46 @@ export function acceptChatMessageImage({
     }
   }
   return { success: true, value: { image: decoded.value, width, height } }
+}
+
+/**
+ * A picture a member of THIS community sends -- with a chat message, with a transfer, as the
+ * small rendition of a thank-you greeting --, as it is stored: checked (acceptChatMessageImage),
+ * then decoded and encoded again within the same bounds (reencodeJpegImage). What comes back was
+ * written by this server from pixels alone, with the size the decoder found; the sender's word
+ * for the size only decides whether the work is done at all.
+ *
+ * Refused in the same words: NOT_JPEG for a picture that does not decode, SIZE for one that is
+ * larger than its sender said, TOO_LARGE for one that does not fit the bytes at the lowest
+ * quality.
+ *
+ * ⛔ Not for a picture that arrives from another community (acceptIncomingChatMessageImages):
+ * that one is still filed as the other server sent it.
+ */
+export async function acceptAndReencodeChatMessageImage(
+  sent: ChatMessageImageSent,
+): Promise<Result<ChatMessageImageAccepted, ChatMessageImageNotAccepted>> {
+  const checked = acceptChatMessageImage(sent)
+  if (!checked.success) {
+    return checked
+  }
+  const reencoded = await reencodeJpegImage(checked.value.image, {
+    maxBytes: CHAT_IMAGE_MAX_BYTES,
+    maxSide: CHAT_IMAGE_MAX_SIDE,
+    maxPixels: CHAT_IMAGE_MAX_PIXELS,
+  })
+  if (!reencoded.success) {
+    return {
+      success: false,
+      error: new ChatMessageImageNotAccepted(
+        reencoded.error.reason,
+        checked.value.image.length,
+        sent.width,
+        sent.height,
+      ),
+    }
+  }
+  return reencoded
 }
 
 /**

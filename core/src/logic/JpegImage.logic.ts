@@ -80,9 +80,10 @@ export function decodeJpegImage(
  * What is stored then was written by this server from pixels alone -- no EXIF, no comment, no
  * bytes behind the end marker --, and a picture that does not decode is refused.
  *
- * For the pictures of a thank-you greeting, which whoever holds a link's code gets, and for the
- * avatar, which every member and other communities get. The picture in a chat message and the
- * photo of a transfer are still stored as they come (decodeJpegImage alone).
+ * For every picture a member of this community sends: the avatar, the pictures of a thank-you
+ * greeting, the picture in a chat message and the photo of a transfer. A picture that arrives
+ * from another community with a chat message is still filed as that server sent it
+ * (acceptIncomingChatMessageImages: decodeJpegImage alone).
  */
 
 /** The bounds a re-encoded picture is held to: bytes as stored, each side, and the area. */
