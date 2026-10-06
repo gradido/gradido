@@ -4,13 +4,11 @@ const assert = strict
 const {
   GRDT_ADDRESS_TYPES,
   GRDT_TRANSACTION_TYPES,
-  GRDT_BALANCE_DERIVATION_TYPES,
   GRDT_CROSS_GROUP_TYPES,
   GRDT_LEDGER_ANCHOR_TYPES,
   GRDT_MEMO_KEY_TYPES,
   grdtAddressToString,
   grdtTransactionToString,
-  grdtBalanceDerivationToString,
   grdtCrossGroupToString,
   grdtLedgerAnchorToString,
   grdtMemoKeyToString,
@@ -21,14 +19,6 @@ describe('types', () => {
     it('check that all values are the same in C and TypeScript', () => {
       for (let i = 0; i < GRDT_ADDRESS_TYPES.length; i++) {
         assert.equal(grdtAddressToString(i), GRDT_ADDRESS_TYPES[i])
-        // console.log(tsType)
-      }
-    })
-  })
-  describe('GrdtBalanceDerivationType', () => {
-    it('check that all values are the same in C and TypeScript', () => {
-      for (let i = 0; i < GRDT_BALANCE_DERIVATION_TYPES.length; i++) {
-        assert.equal(grdtBalanceDerivationToString(i), GRDT_BALANCE_DERIVATION_TYPES[i])
         // console.log(tsType)
       }
     })

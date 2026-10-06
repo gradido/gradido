@@ -1,18 +1,24 @@
 .{
-    .name = .blockchain_core,
-    .version = "0.15.2",
+    .name = .shared_native,
+    .version = "0.1.0",
+    .fingerprint = 0xa3701f833801cf96,
+    .minimum_zig_version = "0.15.1",
     .dependencies = .{
-        .googletest = .{
-            .url = "git+https://github.com/allyourcodebase/googletest#e2affdd13730f800aa63772039f2adfa971461b6",
-            .hash = "googletest-1.15.2-vLU55gAVAAC86GD--lNpG3oVHLsJhdB0lFCOCsBEbiAE",
-            .lazy = true,
+        // The build template, kept in sync by `c-cpp-zig-build`.
+        // Add your own dependencies here with `zig fetch --save <url>`.
+        .c_cpp_zig_build = .{ .path = ".zig-native" },
+        // master of gradido-blockchain-core, pinned by commit
+        .blockchain_core = .{
+            .url = "git+https://github.com/gradido/gradido-blockchain-core.git#aca10e30a978abb51ba0574d2a24d2333c17be2d",
+            .hash = "blockchain_core-0.21.0-r94uppITLQD4kme7NhqBcl1CLQ2oFCY5VP5lMA7RP8TK",
         },
-        .libsodium = .{
-            .url = "git+https://github.com/jedisct1/libsodium#77e1ce5d6dee871c49ef211222ba18ef0c486bda",
-            .hash = "N-V-__8AAGV3jgBL34nv4uUihxaCgroWLfj966-SVjBHn9RE",
-            .lazy = true,
+        // Must stay the version blockchain_core builds against (the .arnm entry of its own
+        // build.zig.zon), or the two would compile against different layouts of the same structs.
+        .arnm = .{
+            .url = "https://github.com/gradido/arnm/archive/refs/tags/v0.8.3.tar.gz",
+            .hash = "arnm-0.8.3-ZdhGsPZrJgAWcLD-KoYpN6RqeIjxCpEZWw1KoIdFRrU4",
         },
-        // rust-image-ffi ships prebuilt objects, one archive per target. build_napi.zig picks the
+        // rust-image-ffi ships prebuilt objects, one archive per target. build.zig picks the
         // one for the target it builds; to move to another release, change the version in every
         // url and take the new hashes from `zig fetch <url>`. Its ABI is not stable: read its
         // CHANGELOG.md and adapt napi/image.cpp where it says so.
@@ -57,11 +63,6 @@
             .hash = "N-V-__8AANPKigDcztolgHykiB-7Xb133pXZ5gELS8NF86__",
             .lazy = true,
         },
-        .compile_commands = .{
-            .url = "https://github.com/the-argus/zig-compile-commands/archive/9400cd1963ea6bb58fe47ba7d9700075b808cdd2.tar.gz",
-            .hash = "zig_compile_commands-0.0.1-OZg5-e_JAAAGg1WHAePtq4l4Uvjs34BexnFFCZk63EaG",
-        },
     },
-    .paths = .{""},
-    .fingerprint = 0x838910c1a62edeaf,
+    .paths = .{ "build.zig", "build.zig.zon", "napi" },
 }

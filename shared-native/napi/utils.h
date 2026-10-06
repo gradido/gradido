@@ -1,5 +1,5 @@
 #include <napi.h>
-#include "gradido_blockchain_core/utils/mono_timer.h"
+#include "arnm/mono_timer.h"
 
 namespace gradido::utils {
 
@@ -14,7 +14,7 @@ namespace gradido::utils {
         Napi::Value Reset(const Napi::CallbackInfo& info);
         Napi::Value ToString(const Napi::CallbackInfo& info);
 
-        grdu_mono_timer mTimer;
+        arnm_mono_timer mTimer;
     };
     
     Napi::Value DurationToString(const Napi::CallbackInfo& info);

@@ -1,7 +1,20 @@
 /// <reference types="node" />
 
 /**
- * data/unit.h {@link include/gradido_blockchain_core/data/unit.h}
+ * Hand-written declarations for the Node-API addon in `napi/`, plus the enum tables in
+ * `types/` that `index.cjs` merges into the same module.
+ *
+ * The C side is not vendored any more: `gradido-blockchain-core` is a zig package declared
+ * in `build.zig.zon`, and the general-purpose half of it -- the arena allocator, the timer,
+ * the duration and hex/uuid conversions -- lives in `arnm`. Header references below name
+ * the file inside whichever of the two owns it.
+ *
+ * Result codes surfaced as `error.name` therefore read `ARNM_*` (arnm/result.h) or
+ * `GRD_ERROR_PB_*` (gradido_blockchain_core/result.h), never the old `GRD_*` general ones.
+ */
+
+/**
+ * gradido_blockchain_core/data/unit.h
  */
 
 /**
@@ -42,8 +55,8 @@ export function gradidoUnitToString(value: bigint, precision?: number): string
 export function toDecimalPlaces(value: bigint, places: number): bigint
 
 /**
- * C function declarations for grdu_duration_string are found in
- * {@link include/gradido_blockchain_core/data/duration.h}
+ * C function declarations for arnm_duration_string are found in
+ * arnm/duration.h
  */
 
 /**
@@ -56,16 +69,28 @@ export function durationToString(duration: bigint, precision?: number): string
 
 /**
  * C function declarations for grdc_sign_key_pair are found in
- * {@link include/gradido_blockchain_core/crypto/sign.h}
+ * gradido_blockchain_core/crypto/sign.h
  */
 
+/**
+ * Derive the master key pair of a SLIP-10 tree from a seed.
+ *
+ * @param seed - between 16 and 64 bytes, the SLIP-10 range; anything else is refused
+ * @returns 96 bytes: 32 bytes seed, 32 bytes public key, 32 bytes chain code
+ */
 export function signKeyPairGenerateFromSeed(seed: Uint8Array): Uint8Array
 
 /**
- * @param index need to be >= 0x80000000 (hardend key)
+ * @param parentKeyPair - the 96 bytes a previous derivation returned
+ * @param index - the plain index, < 0x80000000. Derivation is always hardened; the
+ *   hardening bit is set by the core, so passing it here is an error.
  */
 export function signKeyPairDerive(parentKeyPair: Uint8Array, index: number): Uint8Array
 
+/**
+ * @param parentKeyPair - the 96 bytes a previous derivation returned
+ * @param uuid - 16 bytes, a uuid in its raw binary form
+ */
 export function signKeyPairDeriveUuid(parentKeyPair: Uint8Array, uuid: Uint8Array): Uint8Array
 
 /**
@@ -77,20 +102,20 @@ export function signKeyPairDeriveUuid(parentKeyPair: Uint8Array, uuid: Uint8Arra
  * from 1. This combines community, user, and account context into a single
  * deterministic key.
  *
- * @param communitySeed - 64-byte community root seed in hex
- * @param userUuid - user uuid in raw uuid form
- * @param accountNumber - account number of user, starting with 1 (contribution account), < 0x80000000
+ * @param communitySeed - 32-byte community root seed in raw binary form
+ * @param userUuid - user uuid in raw uuid form (16 bytes)
+ * @param accountNumber - account number of user, starting with 1 (contribution account), < 0x80000000, defaults to 1
  * @returns Buffer containing 32 Bytes seed, 32 Bytes Public Key which together are the private Key and 32 Bytes chain code needed for key derivations
  */
 export function signKeyPairDeriveAccountFromCommunity(
   communitySeed: Uint8Array,
   userUuid: Uint8Array,
-  accountNumber: number = 1,
+  accountNumber?: number,
 ): Uint8Array
 
 /**
  * C function declarations for grdc_hash are found in
- * {@link include/gradido_blockchain_core/crypto/hash.h}
+ * gradido_blockchain_core/crypto/hash.h
  */
 
 export function hashGeneric(data: Uint8Array): Uint8Array
@@ -140,15 +165,6 @@ export const GRDT_ADDRESS_TYPES: readonly [
 
 export type GrdtAddressType = (typeof GRDT_ADDRESS_TYPES)[number]
 export function isGrdtAddressType(input: string): input is GrdtAddressType
-
-export const GRDT_BALANCE_DERIVATION_TYPES: readonly [
-  'GRDT_BALANCE_DERIVATION_UNSPECIFIED',
-  'GRDT_BALANCE_DERIVATION_NODE',
-  'GRDT_BALANCE_DERIVATION_EXTERN',
-]
-
-export type GrdtBalanceDerivationType = (typeof GRDT_BALANCE_DERIVATION_TYPES)[number]
-export function isGrdtBalanceDerivationType(input: string): input is GrdtBalanceDerivationType
 
 export const GRDT_CROSS_GROUP_TYPES: readonly [
   'GRDT_CROSS_GROUP_LOCAL',
@@ -201,15 +217,25 @@ export function isGrdtTransactionType(input: string): input is GrdtTransactionTy
 
 // type helpers, used to test if TypeScript Enums and C-Enums are identical
 export function grdtAddressToString(addressType: number): string
-export function grdtBalanceDerivationToString(addressType: number): string
 export function grdtCrossGroupToString(addressType: number): string
 export function grdtLedgerAnchorToString(addressType: number): string
 export function grdtMemoKeyToString(addressType: number): string
 export function grdtTransactionToString(addressType: number): string
 
-export type Result<T, E = Error> = { success: true; value: T } | { success: false; error: E }
-export type VoidResult<E = Error> = { success: true } | { success: false; error: E }
-export type ErrorDetails = Error & { actual: string; expected: string }
+/**
+ * The error carried by a VoidResult is a plain object, not an `Error` instance: it crosses
+ * from C as a name and a message rather than being thrown.
+ */
+export type NativeError = { name: string; message: string }
+
+/**
+ * What a failing `validate()` reports. `actual` and `expected` are filled in only where the
+ * check that failed had two values to name.
+ */
+export type ErrorDetails = NativeError & { actual?: string; expected?: string }
+
+export type Result<T, E = NativeError> = { success: true; value: T } | { success: false; error: E }
+export type VoidResult<E = NativeError> = { success: true } | { success: false; error: E }
 
 export class LedgerAnchor {
   public static createFromHieroTransactionId(
@@ -226,8 +252,17 @@ export class LedgerAnchor {
 }
 
 export class NativeCompleteTransaction {
+  /**
+   * @param serialized - a serialized ConfirmedTransaction protobuf
+   * @param communityUuid - the uuid of the community the transaction belongs to, either raw
+   *   (16 bytes) or in canonical 8-4-4-4-12 form (36 characters)
+   */
   public initFromProtobuf(serialized: Uint8Array, communityUuid: Uint8Array | string): VoidResult
-  public validate(verifySignatures: boolean = true): VoidResult<ErrorDetails>
+  /**
+   * @param verifySignatures - defaults to true; false skips signature verification and checks
+   *   only the structure
+   */
+  public validate(verifySignatures?: boolean): VoidResult<ErrorDetails>
   public getConfirmedAt(): Date
   public getCreatedAt(): Date
   public getLedgerAnchor(): LedgerAnchor
@@ -238,9 +273,12 @@ export class NativeCompleteTransaction {
   public getRegisteredAccount(): Uint8Array | null
   // return 0 if tx type hasn't amount
   public getAmount(): bigint
+  /**
+   * @param publicKey - raw (32 bytes) or as a 64 character hex string
+   */
   public getAccountBalanceForPublicKey(
     publicKey: Uint8Array | string,
-  ): { balance: bigint; coinCommunityUuid: string } | null
+  ): { balance: bigint; publicKey: Uint8Array; coinCommunityUuid: string } | null
   public getTransactionType(): GrdtTransactionType
   public getTargetDate(): Date | null
   public getTimeoutDuration(): bigint
