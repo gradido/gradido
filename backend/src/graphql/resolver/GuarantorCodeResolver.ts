@@ -1,8 +1,10 @@
 // AI-GENERATED — not an architecture reference
+
 import { GuarantorCode } from '@model/GuarantorCode'
 import { dbFindUnconfirmedVouchedAccounts, getHomeCommunity } from 'database'
 import { aliasSchema } from 'shared'
 import { Authorized, Ctx, Query, Resolver } from 'type-graphql'
+import * as v from 'valibot'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { GUARANTOR_LIMIT, mintGuarantorCode } from '@/data/GuarantorCode.logic'
 import { Context, getUser } from '@/server/context'
@@ -39,7 +41,7 @@ export class GuarantorCodeResolver {
     if (!user.emailContact?.emailChecked) {
       throw new LogError('Confirm your address first')
     }
-    if (user.deletedAt || !aliasSchema.safeParse(user.alias).success) {
+    if (user.deletedAt || !v.safeParse(aliasSchema, user.alias).success) {
       return null
     }
     const homeCom = await getHomeCommunity()

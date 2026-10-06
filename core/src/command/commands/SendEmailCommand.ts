@@ -9,6 +9,7 @@ import {
 } from 'database'
 import { getLogger } from 'log4js'
 import { ALIAS_MAX_CHARS, GradidoUnit, publicAlias, uuidv4Schema } from 'shared'
+import * as v from 'valibot'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
 import { sendCustomEmail, sendTransactionReceivedEmail } from '../../emails/sendEmailVariants'
 import {
@@ -235,8 +236,8 @@ export class SendEmailCommand extends BaseCommand<
         // (storeChatMessage does not throw). The pairs come from the rows just found, in the
         // spelling this server stores them in. A sender's uuid that is none is replaced, like
         // a missing one from an older server.
-        const sentUuid = uuidv4Schema.safeParse(this.sendEmailCommandParams.messageUuid)
-        const messageUuid = sentUuid.success ? sentUuid.data : randomUUID()
+        const sentUuid = v.safeParse(uuidv4Schema, this.sendEmailCommandParams.messageUuid)
+        const messageUuid = sentUuid.success ? sentUuid.output : randomUUID()
         const notify = parseChatMessageNotify(this.sendEmailCommandParams.notify)
         const letter = this.sendEmailCommandParams.notify === CHAT_MESSAGE_NOTIFY_LETTER
         const recipient = {
@@ -346,10 +347,10 @@ export class SendEmailCommand extends BaseCommand<
    * (E-034: the software says what happens).
    */
   private acceptedPictures(): ChatMessageImageToStore[] {
-    const sentUuid = uuidv4Schema.safeParse(this.sendEmailCommandParams.messageUuid)
+    const sentUuid = v.safeParse(uuidv4Schema, this.sendEmailCommandParams.messageUuid)
     const refuse = (reason: string): never => {
       createLogger(`acceptedPictures`).warn(
-        `chat message picture refused: message_uuid=${sentUuid.success ? sentUuid.data : 'none'} (${reason})`,
+        `chat message picture refused: message_uuid=${sentUuid.success ? sentUuid.output : 'none'} (${reason})`,
       )
       throw new Error(`CHAT_IMAGE_NOT_ACCEPTED: ${reason}`)
     }
@@ -417,8 +418,8 @@ export class SendEmailCommand extends BaseCommand<
         return sender
       }
       if (
-        !uuidv4Schema.safeParse(senderComUuid).success ||
-        !uuidv4Schema.safeParse(senderGradidoId).success ||
+        !v.safeParse(uuidv4Schema, senderComUuid).success ||
+        !v.safeParse(uuidv4Schema, senderGradidoId).success ||
         (await getCommunityByUuid(senderComUuid))?.foreign !== true
       ) {
         return null

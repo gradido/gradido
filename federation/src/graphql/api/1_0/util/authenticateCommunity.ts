@@ -26,6 +26,7 @@ import {
   verifyAndDecrypt,
 } from 'shared'
 import { randombytes_random } from 'sodium-native'
+import * as v from 'valibot'
 import { AuthenticationClient as V1_0_AuthenticationClient } from '@/client/1_0/AuthenticationClient'
 import { AuthenticationClientFactory } from '@/client/AuthenticationClientFactory'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
@@ -206,14 +207,14 @@ export async function startAuthentication(
             `Invalid tokentype in authenticate-response of community with publicKey ${fedComBPublicKey.asHex()}`,
           )
         }
-        const parsedUuidv4 = uuidv4Schema.safeParse(payload.uuid)
+        const parsedUuidv4 = v.safeParse(uuidv4Schema, payload.uuid)
         if (!parsedUuidv4.success) {
           throw new Error(
             `Invalid uuid in authenticate-response of community with publicKey ${fedComBPublicKey.asHex()}`,
           )
         }
-        methodLogger.debug('received uuid from authenticate ComB:', parsedUuidv4.data)
-        comB.communityUuid = parsedUuidv4.data
+        methodLogger.debug('received uuid from authenticate ComB:', parsedUuidv4.output)
+        comB.communityUuid = parsedUuidv4.output
         comB.authenticatedAt = new Date()
         await DbCommunity.save(comB)
         state.status = CommunityHandshakeStateType.SUCCESS

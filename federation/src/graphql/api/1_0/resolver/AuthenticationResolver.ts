@@ -25,6 +25,7 @@ import {
   uuidv4Schema,
 } from 'shared'
 import { Arg, Mutation, Resolver } from 'type-graphql'
+import * as v from 'valibot'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { startAuthentication, startOpenConnectionCallback } from '../util/authenticateCommunity'
 
@@ -157,14 +158,14 @@ export class AuthenticationResolver {
           `invalid authentication payload of requesting community with publicKey ${argsPublicKey.asHex()}`,
         )
       }
-      const validOneTimeCode = uint32Schema.safeParse(Number(authArgs.oneTimeCode))
+      const validOneTimeCode = v.safeParse(uint32Schema, Number(authArgs.oneTimeCode))
       if (!validOneTimeCode.success) {
         throw new Error(
           `invalid oneTimeCode: ${authArgs.oneTimeCode} for community with publicKey ${argsPublicKey.asHex()}, expect uint32`,
         )
       }
 
-      state = await findPendingCommunityHandshakeOrFailByOneTimeCode(validOneTimeCode.data)
+      state = await findPendingCommunityHandshakeOrFailByOneTimeCode(validOneTimeCode.output)
       const stateLogic = new CommunityHandshakeStateLogic(state)
       if (
         (await stateLogic.isTimeoutUpdate()) ||
@@ -193,13 +194,13 @@ export class AuthenticationResolver {
             `corrupt authentication call detected, oneTimeCode: ${authArgs.oneTimeCode} doesn't belong to caller: ${argsPublicKey.asHex()}`,
           )
         }
-        const communityUuid = uuidv4Schema.safeParse(authArgs.uuid)
+        const communityUuid = v.safeParse(uuidv4Schema, authArgs.uuid)
         if (!communityUuid.success) {
           throw new Error(
             `invalid uuid: ${authArgs.uuid} for community with publicKey ${authComPublicKey.asHex()}`,
           )
         }
-        authCom.communityUuid = communityUuid.data
+        authCom.communityUuid = communityUuid.output
         authCom.authenticatedAt = new Date()
         await authCom.save()
         methodLogger.debug(

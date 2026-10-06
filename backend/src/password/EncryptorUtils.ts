@@ -4,6 +4,7 @@ import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { getLogger } from 'log4js'
 import { ResourceExhausted, Result } from 'shared'
 import { crypto_shorthash_KEYBYTES } from 'sodium-native'
+import * as v from 'valibot'
 import { Pool, pool } from 'workerpool'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
@@ -85,7 +86,7 @@ export const SecretKeyCryptographyCreateKey = (
 }
 
 export const getUserCryptographicSalt = (passwordData: PasswordDataInput): string => {
-  const user = passwordDataSchema.parse(passwordData)
+  const user = v.parse(passwordDataSchema, passwordData)
   switch (user.passwordEncryptionType) {
     case PasswordEncryptionType.NO_PASSWORD:
       throw new LogError('User has no password set', user.id)

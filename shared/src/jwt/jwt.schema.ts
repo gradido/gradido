@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import * as v from 'valibot'
 import {
   durationSchema,
   positiveIntegerSchema,
@@ -8,52 +8,49 @@ import {
 import { getPrivateKeyObjekt, getPublicKeyObject } from './JWT'
 import { JwtSigner } from './JwtSigner'
 
-export const privateJwtKeySchema = z.string().superRefine((value, ctx) => {
-  const privateKeyResult = getPrivateKeyObjekt(value)
-  if (!privateKeyResult.success) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: 'Invalid private key',
-    })
-  } else if (privateKeyResult.value.asymmetricKeyType !== 'rsa') {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: 'Not an RSA private key',
-    })
-  }
-})
+export const privateJwtKeySchema = v.pipe(
+  v.string(),
+  v.rawCheck(({ dataset, addIssue }) => {
+    if (!dataset.typed) {
+      return
+    }
+    const privateKeyResult = getPrivateKeyObjekt(dataset.value)
+    if (!privateKeyResult.success) {
+      addIssue({ message: 'Invalid private key' })
+    } else if (privateKeyResult.value.asymmetricKeyType !== 'rsa') {
+      addIssue({ message: 'Not an RSA private key' })
+    }
+  }),
+)
 
-export const publicJwtKeySchema = z.string().superRefine((value, ctx) => {
-  // getPublicKeyObject (createPublicKey) also accepts a private key and derives the public key from it,
-  // but the public key is shared with other communities
-  if (getPrivateKeyObjekt(value).success) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: 'Private key given, expected a public key',
-    })
-    return
-  }
-  const publicKeyResult = getPublicKeyObject(value)
-  if (!publicKeyResult.success) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: 'Invalid public key',
-    })
-  } else if (publicKeyResult.value.asymmetricKeyType !== 'rsa') {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: 'Not an RSA public key',
-    })
-  }
-})
+export const publicJwtKeySchema = v.pipe(
+  v.string(),
+  v.rawCheck(({ dataset, addIssue }) => {
+    if (!dataset.typed) {
+      return
+    }
+    // getPublicKeyObject (createPublicKey) also accepts a private key and derives the public key from it,
+    // but the public key is shared with other communities
+    if (getPrivateKeyObjekt(dataset.value).success) {
+      addIssue({ message: 'Private key given, expected a public key' })
+      return
+    }
+    const publicKeyResult = getPublicKeyObject(dataset.value)
+    if (!publicKeyResult.success) {
+      addIssue({ message: 'Invalid public key' })
+    } else if (publicKeyResult.value.asymmetricKeyType !== 'rsa') {
+      addIssue({ message: 'Not an RSA public key' })
+    }
+  }),
+)
 
 // whom a token names: a user by gradido id, or the dlt-connector as the one service with a login
-export const jwtPayloadSubjectSchema = z.union([uuidv4Schema, z.literal('dlt-connector')])
-export type JwtPayloadSubjectInput = z.input<typeof jwtPayloadSubjectSchema>
-export type JwtPayloadSubject = z.output<typeof jwtPayloadSubjectSchema>
+export const jwtPayloadSubjectSchema = v.union([uuidv4Schema, v.literal('dlt-connector')])
+export type JwtPayloadSubjectInput = v.InferInput<typeof jwtPayloadSubjectSchema>
+export type JwtPayloadSubject = v.InferOutput<typeof jwtPayloadSubjectSchema>
 
 // jwt schema after https://www.rfc-editor.org/info/rfc7519/#section-4.1 with application specifics rules
-export const jwtPayloadSchema = z.object({
+export const jwtPayloadSchema = v.object({
   // The "iss" (issuer) claim identifies the principal that issued the
   // JWT.  The processing of this claim is generally application specific.
   // The "iss" value is a case-sensitive string containing a StringOrURI
@@ -102,13 +99,13 @@ export const jwtPayloadSchema = z.object({
   // provide for some small leeway, usually no more than a few minutes, to
   // account for clock skew.  Its value MUST be a number containing a
   // NumericDate value.  Use of this claim is OPTIONAL.
-  // nbf: positiveIntegerSchema.nullish(),
+  // nbf: v.nullish(positiveIntegerSchema),
 
   // The "iat" (issued at) claim identifies the time at which the JWT was
   // issued.  This claim can be used to determine the age of the JWT.  Its
   // value MUST be a number containing a NumericDate value.  Use of this
   // claim is OPTIONAL.
-  iat: positiveIntegerSchema.optional(),
+  iat: v.optional(positiveIntegerSchema),
 
   // The "jti" (JWT ID) claim provides a unique identifier for the JWT.
   // The identifier value MUST be assigned in a manner that ensures that
@@ -119,11 +116,11 @@ export const jwtPayloadSchema = z.object({
   // to prevent the JWT from being replayed.  The "jti" value is a case-
   // sensitive string.  Use of this claim is OPTIONAL.
   // Application specific: optional, only used for Non-replayable requests
-  jti: uuidv4Schema.nullish(),
+  jti: v.nullish(uuidv4Schema),
 })
 
-export type JwtPayloadInput = z.input<typeof jwtPayloadSchema>
-export type JwtPayload = z.output<typeof jwtPayloadSchema>
+export type JwtPayloadInput = v.InferInput<typeof jwtPayloadSchema>
+export type JwtPayload = v.InferOutput<typeof jwtPayloadSchema>
 
 /**
  * What a server needs to create and verify its own tokens of one purpose.
@@ -136,12 +133,12 @@ export type JwtPayload = z.output<typeof jwtPayloadSchema>
  * - `duration`: lifetime of a created token
  * - `signer`: it carries secret and signing type
  */
-export const authContextSchema = z.object({
+export const authContextSchema = v.object({
   issuer: urlSchema,
   audience: urlSchema,
   duration: durationSchema,
-  signer: z.instanceof(JwtSigner),
+  signer: v.instance(JwtSigner),
 })
 
-export type AuthContextInput = z.input<typeof authContextSchema>
-export type AuthContext = z.output<typeof authContextSchema>
+export type AuthContextInput = v.InferInput<typeof authContextSchema>
+export type AuthContext = v.InferOutput<typeof authContextSchema>

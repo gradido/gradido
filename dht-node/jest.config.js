@@ -20,6 +20,6 @@ module.exports = {
     '^.+\\.(t|j)sx?$': '@swc/jest',
   },
   transformIgnorePatterns: [
-    '/node_modules/(?!drizzle-orm/)',
+    '/node_modules/(?!(drizzle-orm|valibot)/)',
   ],
 }

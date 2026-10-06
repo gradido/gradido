@@ -1,5 +1,7 @@
 // AI-GENERATED — not an architecture reference
+
 import { describe, expect, it } from 'bun:test'
+import * as v from 'valibot'
 import { Duration } from '../data'
 import { authContextSchema, jwtPayloadSchema } from './jwt.schema'
 import {
@@ -12,28 +14,28 @@ import {
 
 describe('jwtPayloadSchema', () => {
   it('accepts the mandatory claims', () => {
-    expect(jwtPayloadSchema.safeParse(validTestPayload()).success).toBe(true)
+    expect(v.safeParse(jwtPayloadSchema, validTestPayload()).success).toBe(true)
   })
 
   it('accepts the optional claims iat and jti', () => {
     const payload = validTestPayload({ iat: 1, jti: 'b0a4a1f5-8f4e-4b0c-9a3e-2d5c6f7a8b9c' })
-    expect(jwtPayloadSchema.safeParse(payload).success).toBe(true)
+    expect(v.safeParse(jwtPayloadSchema, payload).success).toBe(true)
   })
 
   it('accepts the dlt-connector as subject', () => {
-    expect(jwtPayloadSchema.safeParse(validTestPayload({ sub: 'dlt-connector' })).success).toBe(
+    expect(v.safeParse(jwtPayloadSchema, validTestPayload({ sub: 'dlt-connector' })).success).toBe(
       true,
     )
   })
 
   it('accepts jti: null', () => {
-    expect(jwtPayloadSchema.safeParse(validTestPayload({ jti: null })).success).toBe(true)
+    expect(v.safeParse(jwtPayloadSchema, validTestPayload({ jti: null })).success).toBe(true)
   })
 
   it.each(['iss', 'sub', 'aud', 'exp'])('rejects a payload without %s', (claim) => {
     const payload = validTestPayload()
     delete payload[claim]
-    expect(jwtPayloadSchema.safeParse(payload).success).toBe(false)
+    expect(v.safeParse(jwtPayloadSchema, payload).success).toBe(false)
   })
 
   it.each([
@@ -48,11 +50,11 @@ describe('jwtPayloadSchema', () => {
     ['iat', -1],
     ['jti', 'not a uuid'],
   ])('rejects %s = %p', (claim, value) => {
-    expect(jwtPayloadSchema.safeParse(validTestPayload({ [claim]: value })).success).toBe(false)
+    expect(v.safeParse(jwtPayloadSchema, validTestPayload({ [claim]: value })).success).toBe(false)
   })
 
   it('drops claims it does not know', () => {
-    const parsed = jwtPayloadSchema.parse(validTestPayload({ 'urn:gradido:claim': true }))
+    const parsed = v.parse(jwtPayloadSchema, validTestPayload({ 'urn:gradido:claim': true }))
     expect(parsed).not.toHaveProperty('urn:gradido:claim')
   })
 })
@@ -66,7 +68,7 @@ describe('authContextSchema', () => {
   }
 
   it('accepts issuer, audience, duration and signer', () => {
-    const parsed = authContextSchema.parse(valid)
+    const parsed = v.parse(authContextSchema, valid)
     expect(parsed.issuer).toBe(TEST_ISSUER)
     expect(parsed.audience).toBe(TEST_AUDIENCE)
     expect(parsed.duration).toBe(valid.duration)
@@ -76,23 +78,25 @@ describe('authContextSchema', () => {
   it.each(['issuer', 'audience', 'duration', 'signer'])('rejects a context without %s', (key) => {
     const context: Record<string, unknown> = { ...valid }
     delete context[key]
-    expect(authContextSchema.safeParse(context).success).toBe(false)
+    expect(v.safeParse(authContextSchema, context).success).toBe(false)
   })
 
   it('rejects an issuer that is no url', () => {
-    expect(authContextSchema.safeParse({ ...valid, issuer: 'community' }).success).toBe(false)
+    expect(v.safeParse(authContextSchema, { ...valid, issuer: 'community' }).success).toBe(false)
   })
 
   it('rejects an audience that is no url', () => {
-    expect(authContextSchema.safeParse({ ...valid, audience: 'hook/gms' }).success).toBe(false)
+    expect(v.safeParse(authContextSchema, { ...valid, audience: 'hook/gms' }).success).toBe(false)
   })
 
   it('rejects a duration given as string instead of a Duration', () => {
-    expect(authContextSchema.safeParse({ ...valid, duration: '10m' }).success).toBe(false)
+    expect(v.safeParse(authContextSchema, { ...valid, duration: '10m' }).success).toBe(false)
   })
 
   it('rejects a secret or key object in place of the JwtSigner', () => {
-    expect(authContextSchema.safeParse({ ...valid, signer: 'secret123' }).success).toBe(false)
-    expect(authContextSchema.safeParse({ ...valid, signer: testSecretKey() }).success).toBe(false)
+    expect(v.safeParse(authContextSchema, { ...valid, signer: 'secret123' }).success).toBe(false)
+    expect(v.safeParse(authContextSchema, { ...valid, signer: testSecretKey() }).success).toBe(
+      false,
+    )
   })
 })

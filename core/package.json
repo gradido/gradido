@@ -39,7 +39,7 @@
     "shared": "*",
     "shared-native": "*",
     "sodium-native": "^3.4.1",
-    "zod": "^3.25.61"
+    "valibot": "1.1.0"
   },
   "devDependencies": {
     "@biomejs/biome": "2.0.0",

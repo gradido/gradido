@@ -36,6 +36,6 @@ module.exports = {
     }],
   },
   transformIgnorePatterns: [
-    '/node_modules/(?!drizzle-orm/)',
+    '/node_modules/(?!(drizzle-orm|valibot)/)',
   ],
 }

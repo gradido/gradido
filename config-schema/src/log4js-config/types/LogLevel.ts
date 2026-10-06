@@ -1,6 +1,6 @@
-import { z } from 'zod'
+import * as v from 'valibot'
 
-export const LOG_LEVEL = z.enum([
+export const LOG_LEVEL = v.picklist([
   'all',
   'mark',
   'trace',
@@ -12,4 +12,4 @@ export const LOG_LEVEL = z.enum([
   'off',
 ])
 
-export type LogLevel = z.infer<typeof LOG_LEVEL>
+export type LogLevel = v.InferOutput<typeof LOG_LEVEL>

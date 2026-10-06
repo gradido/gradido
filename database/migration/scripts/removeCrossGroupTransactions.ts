@@ -6,21 +6,25 @@ import { or, and, eq, gt, asc } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/mysql-core'
 import Decimal from 'decimal.js-light'
 import { GradidoUnit } from 'shared'
-import { z } from 'zod/v3'
+import * as v from 'valibot'
 import { calculateDecayLegacy } from './decayLegacy'
 
-export const transactionSchema = z.object({
-  id: z.number().int().positive(),
-  amount: z.bigint(),
-  amountFull: z.string(),
-  decay: z.bigint(),
-  decayFull: z.string(),
-  balance: z.bigint(),
-  balanceFull: z.string(),
-  balanceDate: z.coerce.date(),
+export const transactionSchema = v.object({
+  id: v.pipe(v.number(), v.integer(), v.gtValue(0)),
+  amount: v.bigint(),
+  amountFull: v.string(),
+  decay: v.bigint(),
+  decayFull: v.string(),
+  balance: v.bigint(),
+  balanceFull: v.string(),
+  balanceDate: v.pipe(
+    v.unknown(),
+    v.transform((value) => new Date(value as string | number | Date)),
+    v.date(),
+  ),
 })
 
-type Transaction = z.infer<typeof transactionSchema>;
+type Transaction = v.InferOutput<typeof transactionSchema>;
 
 
 function calculateBalance(
@@ -104,8 +108,8 @@ async function updateUserBalance(
   let lastTransaction = previousTransaction
   const updatePromises: Promise<any>[] = []
   for (const userTransaction of userTransactions) {
-    const currentTransactionValidated = transactionSchema.parse(userTransaction)
-    const lastTransactionValidated = lastTransaction ? transactionSchema.parse(lastTransaction) : null
+    const currentTransactionValidated = v.parse(transactionSchema, userTransaction)
+    const lastTransactionValidated = lastTransaction ? v.parse(transactionSchema, lastTransaction) : null
 
     const { balance, decay } = calculateBalance(currentTransactionValidated, lastTransactionValidated)
     const { balanceFull, decayFull } = calculateLegacyBalance(currentTransactionValidated, lastTransactionValidated)

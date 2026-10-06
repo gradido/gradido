@@ -91,6 +91,7 @@ import {
   UserSelect,
 } from 'database'
 import { getLogger } from 'log4js'
+import * as v from 'valibot'
 import { CONFIG } from '@/config'
 import { GUARANTOR_LIMIT, verifyGuarantorCode } from '@/data/GuarantorCode.logic'
 import { syncHumhub } from '@/graphql/resolver/util/syncHumhub'
@@ -115,7 +116,7 @@ const ALIAS_ID = 31
 const REFERRER_ID = 5
 
 const input = (extra: Record<string, unknown> = {}): CreateUser =>
-  createUserSchema.parse({
+  v.parse(createUserSchema, {
     email: 'bernd@example.com',
     firstName: 'Bernd',
     lastName: 'Hückstädt',

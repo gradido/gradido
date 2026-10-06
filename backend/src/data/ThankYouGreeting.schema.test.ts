@@ -1,21 +1,23 @@
 // AI-GENERATED — not an architecture reference
+
 import { parseOrThrowFirstIssue } from 'shared'
+import * as v from 'valibot'
 import { thankYouGreetingSchema, transactionLinkGreetingSchema } from './ThankYouGreeting.schema'
 
 const LINE = 'Einfach so — weil es Dich gibt.'
 const WORDS = 'Liebe Sarah, mit Eurem iPad hat alles angefangen.\nEure Oma'
 
-const messageOf = (schema: { safeParse: (value: unknown) => any }, value: unknown): string => {
-  const result = schema.safeParse(value)
+const messageOf = (schema: v.GenericSchema, value: unknown): string => {
+  const result = v.safeParse(schema, value)
   if (result.success) {
     throw new Error('expected the schema to refuse this')
   }
-  return result.error.issues[0].message
+  return result.issues[0].message
 }
 
 describe('thankYouGreetingSchema', () => {
   it('takes a motif alone', () => {
-    expect(thankYouGreetingSchema.parse({ motif: 'bouquet' })).toEqual({ motif: 'bouquet' })
+    expect(v.parse(thankYouGreetingSchema, { motif: 'bouquet' })).toEqual({ motif: 'bouquet' })
   })
 
   it('takes every one of the five motifs, with a line and a name', () => {
@@ -26,7 +28,9 @@ describe('thankYouGreetingSchema', () => {
       'glowing-swirl',
       'morning-light',
     ]) {
-      expect(thankYouGreetingSchema.parse({ motif, line: LINE, recipientName: 'Sarah' })).toEqual({
+      expect(
+        v.parse(thankYouGreetingSchema, { motif, line: LINE, recipientName: 'Sarah' }),
+      ).toEqual({
         motif,
         line: LINE,
         recipientName: 'Sarah',
@@ -41,9 +45,9 @@ describe('thankYouGreetingSchema', () => {
     expect(messageOf(thankYouGreetingSchema, { motif: 'Bouquet' })).toBe(
       'Thank-you greeting: unknown motif',
     )
-    expect(thankYouGreetingSchema.safeParse({ motif: '' }).success).toBe(false)
-    expect(thankYouGreetingSchema.safeParse({ line: LINE }).success).toBe(false)
-    expect(thankYouGreetingSchema.safeParse({ motif: null, line: LINE }).success).toBe(false)
+    expect(v.safeParse(thankYouGreetingSchema, { motif: '' }).success).toBe(false)
+    expect(v.safeParse(thankYouGreetingSchema, { line: LINE }).success).toBe(false)
+    expect(v.safeParse(thankYouGreetingSchema, { motif: null, line: LINE }).success).toBe(false)
   })
 
   // In the motif's place a greeting may carry a picture of the member's own. Its shape is all
@@ -54,16 +58,16 @@ describe('thankYouGreetingSchema', () => {
 
     it('takes a picture in the place of the motif, with a line and a name', () => {
       expect(
-        thankYouGreetingSchema.parse({ picture: PICTURE, line: LINE, recipientName: 'Sarah' }),
+        v.parse(thankYouGreetingSchema, { picture: PICTURE, line: LINE, recipientName: 'Sarah' }),
       ).toEqual({ picture: PICTURE, line: LINE, recipientName: 'Sarah' })
-      expect(thankYouGreetingSchema.parse({ motif: null, picture: PICTURE })).toEqual({
+      expect(v.parse(thankYouGreetingSchema, { motif: null, picture: PICTURE })).toEqual({
         motif: null,
         picture: PICTURE,
       })
     })
 
     it('takes a motif with a picture that is null, as a wallet may send it', () => {
-      expect(thankYouGreetingSchema.parse({ motif: 'bouquet', picture: null })).toEqual({
+      expect(v.parse(thankYouGreetingSchema, { motif: 'bouquet', picture: null })).toEqual({
         motif: 'bouquet',
         picture: null,
       })
@@ -98,15 +102,16 @@ describe('thankYouGreetingSchema', () => {
         { data: secret, width: '831', height: 577 },
         { data: 7, width: 831, height: 577 },
       ]) {
-        const result = thankYouGreetingSchema.safeParse({ picture: noPicture })
+        const result = v.safeParse(thankYouGreetingSchema, { picture: noPicture })
         expect(result.success).toBe(false)
-        expect(JSON.stringify(result.error?.issues)).not.toContain(secret)
+        // the messages: an issue of valibot carries the input beside them, a message is what is logged
+        expect(JSON.stringify(result.issues?.map((issue) => issue.message))).not.toContain(secret)
       }
     })
 
     it('holds the memo against the line of a greeting with a picture as well', () => {
       expect(
-        transactionLinkGreetingSchema.safeParse({
+        v.safeParse(transactionLinkGreetingSchema, {
           memo: `${LINE}\n${WORDS}`,
           greeting: { picture: PICTURE, line: LINE },
         }).success,
@@ -122,7 +127,7 @@ describe('thankYouGreetingSchema', () => {
 
   it('trims the line and the name', () => {
     expect(
-      thankYouGreetingSchema.parse({
+      v.parse(thankYouGreetingSchema, {
         motif: 'bouquet',
         line: `  ${LINE} \n`,
         recipientName: '\tSarah  ',
@@ -132,29 +137,31 @@ describe('thankYouGreetingSchema', () => {
 
   it('takes an empty or blank line and name as not given', () => {
     expect(
-      thankYouGreetingSchema.parse({ motif: 'bouquet', line: '', recipientName: '   ' }),
+      v.parse(thankYouGreetingSchema, { motif: 'bouquet', line: '', recipientName: '   ' }),
     ).toEqual({ motif: 'bouquet', line: null, recipientName: null })
     expect(
-      thankYouGreetingSchema.parse({ motif: 'bouquet', line: ' \n ', recipientName: null }),
+      v.parse(thankYouGreetingSchema, { motif: 'bouquet', line: ' \n ', recipientName: null }),
     ).toEqual({ motif: 'bouquet', line: null, recipientName: null })
   })
 
   it('takes a line of 80 characters and refuses one of 81', () => {
     expect(
-      thankYouGreetingSchema.safeParse({ motif: 'bouquet', line: 'a'.repeat(80) }).success,
+      v.safeParse(thankYouGreetingSchema, { motif: 'bouquet', line: 'a'.repeat(80) }).success,
     ).toBe(true)
     expect(messageOf(thankYouGreetingSchema, { motif: 'bouquet', line: 'a'.repeat(81) })).toBe(
       'Thank-you greeting: the line is too long',
     )
     // The length is the trimmed one: what is stored.
     expect(
-      thankYouGreetingSchema.safeParse({ motif: 'bouquet', line: `  ${'a'.repeat(80)}  ` }).success,
+      v.safeParse(thankYouGreetingSchema, { motif: 'bouquet', line: `  ${'a'.repeat(80)}  ` })
+        .success,
     ).toBe(true)
   })
 
   it('takes a name of 40 characters and refuses one of 41', () => {
     expect(
-      thankYouGreetingSchema.safeParse({ motif: 'bouquet', recipientName: 'a'.repeat(40) }).success,
+      v.safeParse(thankYouGreetingSchema, { motif: 'bouquet', recipientName: 'a'.repeat(40) })
+        .success,
     ).toBe(true)
     expect(
       messageOf(thankYouGreetingSchema, { motif: 'bouquet', recipientName: 'a'.repeat(41) }),
@@ -206,7 +213,7 @@ describe('transactionLinkGreetingSchema', () => {
   })
 
   it('takes a memo that is exactly the line', () => {
-    expect(transactionLinkGreetingSchema.safeParse({ memo: LINE, greeting }).success).toBe(true)
+    expect(v.safeParse(transactionLinkGreetingSchema, { memo: LINE, greeting }).success).toBe(true)
   })
 
   it('refuses a memo that does not begin with the line', () => {
@@ -225,13 +232,13 @@ describe('transactionLinkGreetingSchema', () => {
   // stored, not with what was typed around it.
   it('holds the memo against the trimmed line', () => {
     expect(
-      transactionLinkGreetingSchema.safeParse({
+      v.safeParse(transactionLinkGreetingSchema, {
         memo: `${LINE}\n${WORDS}`,
         greeting: { ...greeting, line: `  ${LINE}  ` },
       }).success,
     ).toBe(true)
     expect(
-      transactionLinkGreetingSchema.safeParse({
+      v.safeParse(transactionLinkGreetingSchema, {
         memo: `  ${LINE}  \n${WORDS}`,
         greeting: { ...greeting, line: `  ${LINE}  ` },
       }).success,
@@ -241,7 +248,7 @@ describe('transactionLinkGreetingSchema', () => {
   it('asks nothing of the memo where the greeting has no line', () => {
     for (const line of [undefined, null, '', '   ']) {
       expect(
-        transactionLinkGreetingSchema.safeParse({
+        v.safeParse(transactionLinkGreetingSchema, {
           memo: WORDS,
           greeting: { motif: 'bouquet', line },
         }).success,

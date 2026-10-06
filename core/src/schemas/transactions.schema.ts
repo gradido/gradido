@@ -1,48 +1,60 @@
 import { decaySchema, GradidoUnit } from 'shared'
-import { z } from 'zod'
+import * as v from 'valibot'
+
+const nonNegativeIntegerSchema = v.pipe(v.number(), v.integer(), v.minValue(0))
+const integerSchema = v.pipe(v.number(), v.integer())
+// whatever `new Date()` makes a date of: a Date, a timestamp, a date string
+const coercedDateSchema = v.pipe(
+  v.unknown(),
+  v.transform((value) => new Date(value as string | number | Date)),
+  v.date(),
+)
+const maxLength512Schema = v.pipe(v.string(), v.maxLength(512))
+const uuidSchema = v.pipe(v.string(), v.uuid())
 
 // can be later created automatically from drizzle database schema
-export const dbTransactionsSchema = z.object({
-  id: z.number().int().nonnegative(),
-  previous: z.number().int().nonnegative().nullable(),
-  typeId: z.number().int().nonnegative(),
-  transactionLinkId: z.number().int().nonnegative().nullable().optional(),
-  amount: z.instanceof(GradidoUnit),
-  balance: z.instanceof(GradidoUnit),
-  decay: z.instanceof(GradidoUnit),
-  balanceDate: z.coerce.date(),
-  decayStart: z.coerce.date().nullable(),
-  decayCalculationType: z.number().int().nonnegative().default(0),
-  memo: z.string().max(512),
-  creationDate: z.coerce.date().nullable(),
-  userId: z.number().int().nonnegative(),
-  userCommunityUuid: z.string().uuid().nullable(),
-  userGradidoID: z.string().uuid(),
-  userName: z.string().max(512).nullable(),
-  linkedUserId: z.number().int().nonnegative().nullable().optional(),
-  linkedUserCommunityUuid: z.string().uuid().nullable(),
-  linkedUserGradidoID: z.string().uuid().nullable(),
-  linkedUserName: z.string().max(512).nullable(),
-  linkedTransactionId: z.number().int().nonnegative().nullable().optional(),
+export const dbTransactionsSchema = v.object({
+  id: nonNegativeIntegerSchema,
+  previous: v.nullable(nonNegativeIntegerSchema),
+  typeId: nonNegativeIntegerSchema,
+  transactionLinkId: v.nullish(nonNegativeIntegerSchema),
+  amount: v.instance(GradidoUnit),
+  balance: v.instance(GradidoUnit),
+  decay: v.instance(GradidoUnit),
+  balanceDate: coercedDateSchema,
+  decayStart: v.nullable(coercedDateSchema),
+  decayCalculationType: v.optional(nonNegativeIntegerSchema, 0),
+  memo: maxLength512Schema,
+  creationDate: v.nullable(coercedDateSchema),
+  userId: nonNegativeIntegerSchema,
+  userCommunityUuid: v.nullable(uuidSchema),
+  userGradidoID: uuidSchema,
+  userName: v.nullable(maxLength512Schema),
+  linkedUserId: v.nullish(nonNegativeIntegerSchema),
+  linkedUserCommunityUuid: v.nullable(uuidSchema),
+  linkedUserGradidoID: v.nullable(uuidSchema),
+  linkedUserName: v.nullable(maxLength512Schema),
+  linkedTransactionId: v.nullish(nonNegativeIntegerSchema),
 })
 
-export type dbTransaction = z.infer<typeof dbTransactionsSchema>
+export type dbTransaction = v.InferOutput<typeof dbTransactionsSchema>
 
-export const transactionsSchema = z.object({
-  id: z.number().int(),
-  previous: z.number().int().nullable(),
-  typeId: z.number().int(),
-  amount: z.instanceof(GradidoUnit),
-  balance: z.instanceof(GradidoUnit),
-  previousBalance: z.instanceof(GradidoUnit),
-  balanceDate: z.coerce.date(),
+export const transactionsSchema = v.object({
+  id: integerSchema,
+  previous: v.nullable(integerSchema),
+  typeId: integerSchema,
+  amount: v.instance(GradidoUnit),
+  balance: v.instance(GradidoUnit),
+  previousBalance: v.instance(GradidoUnit),
+  balanceDate: coercedDateSchema,
   decay: decaySchema,
-  memo: z.string(),
-  creationDate: z.coerce.date().nullable(),
-  linkedTransactionId: z.number().int().nullable(),
-  linkId: z.number().int().nullable(),
-  user: z.any(), // use user schema when defined
-  linkedUser: z.any().nullable(),
+  memo: v.string(),
+  creationDate: v.nullable(coercedDateSchema),
+  linkedTransactionId: v.nullable(integerSchema),
+  linkId: v.nullable(integerSchema),
+  // optional: `any` takes a key that is left out as well
+  user: v.optional(v.any()), // use user schema when defined
+  linkedUser: v.optional(v.nullable(v.any())),
 })
 
-export type Transaction = z.infer<typeof transactionsSchema>
+export type Transaction = v.InferOutput<typeof transactionsSchema>

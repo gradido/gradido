@@ -32,6 +32,7 @@ import {
   verifyAndDecrypt,
 } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
+import * as v from 'valibot'
 import { CONFIG } from '@/config'
 // import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
@@ -1094,7 +1095,7 @@ describe('sendEmail', () => {
         deliveryState: 'delivered',
         lastAttemptAt: null,
       })
-      expect(uuidv4Schema.safeParse(message.messageUuid).success).toBe(true)
+      expect(v.safeParse(uuidv4Schema, message.messageUuid).success).toBe(true)
     })
 
     it('files the answer, and the next message, in the same conversation', async () => {

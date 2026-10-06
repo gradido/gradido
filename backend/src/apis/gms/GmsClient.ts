@@ -11,6 +11,7 @@ import {
   Uuidv4,
   verifyUserToken,
 } from 'shared'
+import * as v from 'valibot'
 import { httpAgent, httpsAgent } from '@/apis/ConnectionAgents'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
@@ -352,7 +353,7 @@ export async function verifyAuthToken(apiKey: string, token: string): Promise<st
 // built once at module load: an invalid COMMUNITY_URL stops the server at startup
 // own audience and HS512: signed with the same secret for the same member as the session token
 // (auth/JWT.ts), and neither must pass for the other
-const authContext: AuthContext = authContextSchema.parse({
+const authContext: AuthContext = v.parse(authContextSchema, {
   issuer: CONFIG.COMMUNITY_URL,
   audience: `${ensureUrlEndsWithSlash(CONFIG.COMMUNITY_URL)}hook/gms/`,
   duration: Duration.minutes(5),

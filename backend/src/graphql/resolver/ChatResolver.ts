@@ -1,4 +1,5 @@
 // AI-GENERATED — not an architecture reference
+
 import { ChatMessagesWithMemberArgs } from '@arg/ChatMessagesWithMemberArgs'
 import { ChatVideoRoomArgs } from '@arg/ChatVideoRoomArgs'
 import { MarkChatConversationReadArgs } from '@arg/MarkChatConversationReadArgs'
@@ -32,6 +33,7 @@ import {
 import { getLogger } from 'log4js'
 import { uuidv4Schema } from 'shared'
 import { Arg, Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
+import * as v from 'valibot'
 import { chatVideoServerPool } from '@/apis/jitsi/chatVideoServerPool'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
@@ -344,8 +346,8 @@ export class ChatResolver {
       !senderCom.privateJwtKey ||
       !receiverCom?.communityUuid ||
       !receiverCom.publicJwtKey ||
-      !uuidv4Schema.safeParse(receiverCom.communityUuid).success ||
-      !uuidv4Schema.safeParse(other.gradidoId).success ||
+      !v.safeParse(uuidv4Schema, receiverCom.communityUuid).success ||
+      !v.safeParse(uuidv4Schema, other.gradidoId).success ||
       !(cmdClient instanceof V1_0_CommandClient)
     ) {
       throw new LogError('CHAT_MESSAGE_NOT_SENT: NO_WAY_TO_DELIVER', other.communityUuid)
@@ -401,7 +403,7 @@ export class ChatResolver {
     if (served > CHAT_IMAGES_MAX_PER_REQUEST) {
       throw new LogError('Too many chat pictures requested at once', served)
     }
-    if (!uuidv4Schema.safeParse(imageUuid).success) {
+    if (!v.safeParse(uuidv4Schema, imageUuid).success) {
       return null
     }
     const found = await dbSelectChatMessageImageForMember(imageUuid, callerOf(context))

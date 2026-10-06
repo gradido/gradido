@@ -1,11 +1,11 @@
 // AI-GENERATED — not an architecture reference
 import { describe, expect, it } from 'bun:test'
-import { z } from 'zod'
+import * as v from 'valibot'
 import { parseOrThrowFirstIssue } from './parseOrThrowFirstIssue'
 
-const schema = z.object({
-  name: z.string().min(3, 'name too short'),
-  age: z.number().min(0, 'age negative'),
+const schema = v.object({
+  name: v.pipe(v.string(), v.minLength(3, 'name too short')),
+  age: v.pipe(v.number(), v.minValue(0, 'age negative')),
 })
 
 describe('parseOrThrowFirstIssue', () => {
@@ -17,7 +17,7 @@ describe('parseOrThrowFirstIssue', () => {
   })
 
   it('returns what the schema makes of the value', () => {
-    expect(parseOrThrowFirstIssue(z.string().toLowerCase(), 'ABC')).toBe('abc')
+    expect(parseOrThrowFirstIssue(v.pipe(v.string(), v.toLowerCase()), 'ABC')).toBe('abc')
   })
 
   it('throws with the message of the first issue only', () => {

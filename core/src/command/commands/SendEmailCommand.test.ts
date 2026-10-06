@@ -1,7 +1,9 @@
 // AI-GENERATED — not an architecture reference
+
 import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test'
 import * as database from 'database'
 import { CHAT_IMAGE_MAX_BYTES, uuidv4Schema } from 'shared'
+import * as v from 'valibot'
 import * as mails from '../../emails/sendEmailVariants'
 import * as chatMessage from '../../logic/ChatMessage.logic'
 import * as chatMessageImage from '../../logic/ChatMessageImage.logic'
@@ -129,7 +131,7 @@ describe('SendEmailCommand, a message from another community', () => {
     await run(params())
 
     const [[filed]] = store.mock.calls as [chatMessage.ChatMessageToStore][]
-    expect(uuidv4Schema.safeParse(filed.messageUuid).success).toBe(true)
+    expect(v.safeParse(uuidv4Schema, filed.messageUuid).success).toBe(true)
     expect(customMail).toHaveBeenCalledTimes(1)
   })
 
@@ -139,7 +141,7 @@ describe('SendEmailCommand, a message from another community', () => {
       await run({ ...params(), messageUuid })
       const [[filed]] = store.mock.calls as [chatMessage.ChatMessageToStore][]
       expect(filed.messageUuid).not.toBe(messageUuid)
-      expect(uuidv4Schema.safeParse(filed.messageUuid).success).toBe(true)
+      expect(v.safeParse(uuidv4Schema, filed.messageUuid).success).toBe(true)
     }
   })
 

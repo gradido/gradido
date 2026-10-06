@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 
 import { createCipheriv, createDecipheriv, createHmac } from 'node:crypto'
-import { z } from 'zod'
+import * as v from 'valibot'
 import { CONFIG } from '@/config'
 import { CodeType } from './CodeType.enum'
 
@@ -153,5 +153,4 @@ export const verifyGuarantorCode = (
   return Number(userId)
 }
 
-// TODO: replace with valibot schema after update to typescript 5 is possible
-export const guarantorCodeSchema = z.string().regex(GUARANTOR_CODE_SHAPE)
+export const guarantorCodeSchema = v.pipe(v.string(), v.regex(GUARANTOR_CODE_SHAPE))

@@ -1,23 +1,24 @@
 // AI-GENERATED — not an architecture reference
 import { blankAsNull } from 'shared'
-import { z } from 'zod'
+import * as v from 'valibot'
 import {
   isOneLine,
   isThankYouMotif,
   memoBeginsWithLine,
   THANK_YOU_LINE_MAX_CHARS,
   THANK_YOU_RECIPIENT_NAME_MAX_CHARS,
+  ThankYouMotif,
 } from './ThankYouGreeting.logic'
 
-// TODO: replace with valibot schema after update to typescript 5 is possible
-
 // ⛔ No message here quotes what was sent: a message ends up in the error log, and the name a
-// member wrote about somebody else must not.
+// member wrote about somebody else must not. valibot's own messages do quote ("... but received
+// "Sarah""), so every schema below is given one of its own, the type checks included.
+const NO_PICTURE = 'Thank-you greeting: not a picture'
 
 // Trimmed first, so that what is checked is what is stored -- and what the memo is held
 // against below.
 const oneLineUpTo = (max: number, tooLong: string, notOneLine: string) =>
-  z.string().trim().max(max, tooLong).refine(isOneLine, notOneLine)
+  v.pipe(v.string(notOneLine), v.trim(), v.maxLength(max, tooLong), v.check(isOneLine, notOneLine))
 
 /**
  * What a thank-you greeting adds to its link. `line` and `recipientName` are optional, and a
@@ -28,10 +29,23 @@ const oneLineUpTo = (max: number, tooLong: string, notOneLine: string) =>
  * what a picture has to be is checked where a chat picture's is (acceptChatMessageImage), with
  * the bytes at hand.
  */
-export const thankYouGreetingSchema = z
-  .object({
-    motif: z.string().refine(isThankYouMotif, 'Thank-you greeting: unknown motif').nullish(),
-    picture: z.object({ data: z.string(), width: z.number(), height: z.number() }).nullish(),
+export const thankYouGreetingSchema = v.pipe(
+  v.object({
+    motif: v.nullish(
+      v.pipe(
+        v.string('Thank-you greeting: unknown motif'),
+        v.custom<ThankYouMotif>(
+          (value) => isThankYouMotif(value as string),
+          'Thank-you greeting: unknown motif',
+        ),
+      ),
+    ),
+    picture: v.nullish(
+      v.object(
+        { data: v.string(NO_PICTURE), width: v.number(NO_PICTURE), height: v.number(NO_PICTURE) },
+        NO_PICTURE,
+      ),
+    ),
     line: blankAsNull(
       oneLineUpTo(
         THANK_YOU_LINE_MAX_CHARS,
@@ -46,23 +60,28 @@ export const thankYouGreetingSchema = z
         'Thank-you greeting: the name has to be one line',
       ),
     ),
-  })
-  .refine(
+  }),
+  v.check(
     ({ motif, picture }) => (motif != null) !== (picture != null),
     'Thank-you greeting: a motif or a picture, one of the two',
-  )
+  ),
+)
 
-export type ThankYouGreetingInput = z.input<typeof thankYouGreetingSchema>
-export type ThankYouGreeting = z.infer<typeof thankYouGreetingSchema>
+export type ThankYouGreetingInput = v.InferInput<typeof thankYouGreetingSchema>
+export type ThankYouGreeting = v.InferOutput<typeof thankYouGreetingSchema>
 
 /**
  * A greeting together with the memo of the link it belongs to: where the greeting has a line,
  * the memo begins with it (memoBeginsWithLine says why). The memo's own bounds are checked
  * where they always were, on TransactionLinkArgs.
  */
-export const transactionLinkGreetingSchema = z
-  .object({ memo: z.string(), greeting: thankYouGreetingSchema })
-  .refine(
+export const transactionLinkGreetingSchema = v.pipe(
+  v.object({
+    memo: v.string('Thank-you greeting: the memo is no text'),
+    greeting: thankYouGreetingSchema,
+  }),
+  v.check(
     ({ memo, greeting }) => !greeting.line || memoBeginsWithLine(memo, greeting.line),
     'Thank-you greeting: the memo has to begin with the line',
-  )
+  ),
+)

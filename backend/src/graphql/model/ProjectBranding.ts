@@ -1,11 +1,11 @@
 import { ProjectBrandingSelect } from 'database'
-import { ProjectBranding as ProjectBrandingZodSchema } from 'shared'
+import { ProjectBranding as ProjectBrandingData } from 'shared'
 import { Field, Int, ObjectType } from 'type-graphql'
 
 @ObjectType()
 export class ProjectBranding {
   // TODO: replace with valibot schema
-  constructor(projectBranding: ProjectBrandingZodSchema | ProjectBrandingSelect) {
+  constructor(projectBranding: ProjectBrandingData | ProjectBrandingSelect) {
     Object.assign(this, projectBranding)
   }
 

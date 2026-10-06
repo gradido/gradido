@@ -1,18 +1,18 @@
 // AI-GENERATED — not an architecture reference
-import { z } from 'zod'
+import * as v from 'valibot'
 
 /**
  * Parses `value` with `schema` and returns the parsed value, or throws an Error carrying the
- * message of the first issue only - the one sentence a client shows, instead of ZodError's
- * JSON list of all of them.
+ * message of the first issue only - the one sentence a client shows, whatever else the
+ * schema found.
  */
-export const parseOrThrowFirstIssue = <T extends z.ZodTypeAny>(
-  schema: T,
+export const parseOrThrowFirstIssue = <TSchema extends v.GenericSchema>(
+  schema: TSchema,
   value: unknown,
-): z.infer<T> => {
-  const result = schema.safeParse(value)
+): v.InferOutput<TSchema> => {
+  const result = v.safeParse(schema, value)
   if (!result.success) {
-    throw new Error(result.error.issues[0].message)
+    throw new Error(result.issues[0].message)
   }
-  return result.data
+  return result.output
 }

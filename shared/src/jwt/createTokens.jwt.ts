@@ -1,3 +1,4 @@
+import * as v from 'valibot'
 import { Duration } from '../data'
 import { Uuidv4 } from '../schema'
 import { AuthContext, JwtPayloadInput, jwtPayloadSchema } from './jwt.schema'
@@ -20,7 +21,7 @@ import { AuthContext, JwtPayloadInput, jwtPayloadSchema } from './jwt.schema'
  * @param gradidoID gradido id of the user, a uuid v4 (the schema also lets 'dlt-connector' pass)
  * @param authContext issuer, audience, lifetime and signer of the token
  * @returns the token in compact serialization: `header.payload.signature`
- * @throws ZodError if `gradidoID` is not a valid subject
+ * @throws ValiError if `gradidoID` is not a valid subject
  */
 export function createUserToken(gradidoID: Uuidv4, authContext: AuthContext): string {
   const payloadObj: JwtPayloadInput = {
@@ -45,8 +46,8 @@ function calculateTimes(duration: Duration): { iat: number; exp: number } {
 
 /**
  * Validates the payload against `jwtPayloadSchema` and encodes it as second segment of a token.
- * @throws ZodError if the payload is invalid
+ * @throws ValiError if the payload is invalid
  */
 function payloadToBase64(payload: JwtPayloadInput): string {
-  return Buffer.from(JSON.stringify(jwtPayloadSchema.parse(payload))).toString('base64url')
+  return Buffer.from(JSON.stringify(v.parse(jwtPayloadSchema, payload))).toString('base64url')
 }

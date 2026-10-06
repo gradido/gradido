@@ -1,4 +1,5 @@
 // AI-GENERATED — not an architecture reference
+import * as v from 'valibot'
 import { ALIAS_MAX_CHARS, aliasSchema } from '../schema'
 import { transliterateToLatin } from './transliterate'
 
@@ -70,7 +71,7 @@ export function aliasCandidates(
   const candidates: string[] = []
 
   const push = (value: string) => {
-    if (value.length && !candidates.includes(value) && aliasSchema.safeParse(value).success) {
+    if (value.length && !candidates.includes(value) && v.safeParse(aliasSchema, value).success) {
       candidates.push(value)
     }
   }
@@ -120,7 +121,7 @@ export function findFirstFreeAlias(existing: string[], candidates: string[]): st
 // rule as the first rung of `aliasCandidates`, so both agree on what `BerndH` is.
 export function primaryAliasCandidate(firstName: string, lastName: string): string | null {
   const candidate = nameWithLastNamePrefix(firstName, lastName, 1)
-  return aliasSchema.safeParse(candidate).success ? candidate : null
+  return v.safeParse(aliasSchema, candidate).success ? candidate : null
 }
 
 /**

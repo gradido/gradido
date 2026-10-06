@@ -1,4 +1,5 @@
 // AI-GENERATED — not an architecture reference
+
 import { OptInType } from '@enum/OptInType'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { AdminEmailStatus } from '@model/AdminEmailStatus'
@@ -42,6 +43,7 @@ import random from 'random-bigint'
 import { emailSchema } from 'shared'
 import { Arg, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { EntityManager } from 'typeorm'
+import * as v from 'valibot'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
@@ -244,7 +246,7 @@ export class EmailChangeResolver {
     }
 
     const email = rawEmail.trim().toLowerCase()
-    if (!emailSchema.safeParse(email).success) {
+    if (!v.safeParse(emailSchema, email).success) {
       throw new LogError('Invalid email address')
     }
 
@@ -792,7 +794,7 @@ export class EmailChangeResolver {
       throw new LogError('The address is confirmed - only the member can change it')
     }
     const email = rawEmail.trim().toLowerCase()
-    if (!emailSchema.safeParse(email).success) {
+    if (!v.safeParse(emailSchema, email).success) {
       throw new LogError('Invalid email address')
     }
     await dbPurgeExpiredEmailChanges(emailChangeExpiryCutoff(), email)
