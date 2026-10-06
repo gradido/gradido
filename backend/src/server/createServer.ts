@@ -1,25 +1,17 @@
-import {
-  ApolloServerPluginLandingPageDisabled,
-  ApolloServerPluginLandingPageGraphQLPlayground,
-} from 'apollo-server-core'
-import { ApolloServer } from 'apollo-server-express'
 import { CONFIG as CORE_CONFIG } from 'core'
-import { AppDatabase } from 'database'
 import express, { Express, json, urlencoded } from 'express'
 import { slowDown } from 'express-slow-down'
 import helmet from 'helmet'
 import { getLogger, Logger } from 'log4js'
 import { GRADIDO_REALM } from 'shared'
-import { DataSource } from 'typeorm'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { schema } from '@/graphql/schema'
 import { jwks, openidConfiguration } from '@/openIDConnect'
 import { elopageWebhook } from '@/webhook/elopage'
 import { gmsWebhook } from '@/webhook/gms'
 import { context as serverContext } from './context'
 import { cors } from './cors'
-import { plugins } from './plugins'
+import { ApolloServerDef, createApolloServer } from './createApolloServer'
 import { apiRedeemPreview, REDEEM_PREVIEW_PATH } from './redeemPreview'
 import {
   apiThankYouGreetingPicture,
@@ -30,11 +22,8 @@ import { apiVersion } from './version'
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
 
-interface ServerDef {
-  apollo: ApolloServer
+interface ServerDef extends ApolloServerDef {
   app: Express
-  con: DataSource
-  db: AppDatabase
 }
 
 export const createServer = async (
@@ -44,11 +33,8 @@ export const createServer = async (
   const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.createServer`)
   logger.debug('createServer...')
 
-  // open mariadb connection, retry connecting with mariadb
-  // check for correct database version
-  // retry max CONFIG.DB_CONNECT_RETRY_COUNT times, wait CONFIG.DB_CONNECT_RETRY_DELAY ms between tries
-  const db = AppDatabase.getInstance()
-  await db.init()
+  // the database connection and Apollo on it
+  const { apollo, con, db } = await createApolloServer(apolloLogger, context)
 
   // Express Server
   const app = express()
@@ -113,26 +99,11 @@ export const createServer = async (
   app.use(REDEEM_PREVIEW_PATH, apiRedeemPreview)
 
   // Apollo Server
-  const apollo = new ApolloServer({
-    schema: await schema(),
-    introspection: CONFIG.GRAPHIQL,
-    context,
-    // Apollo Server 3 has no `playground` option any more: the page a browser is shown is a
-    // plugin, and without one it would show Apollo's own landing page instead of nothing.
-    plugins: [
-      ...plugins,
-      CONFIG.GRAPHIQL
-        ? ApolloServerPluginLandingPageGraphQLPlayground()
-        : ApolloServerPluginLandingPageDisabled(),
-    ],
-    logger: apolloLogger,
-  })
-  await apollo.start()
   apollo.applyMiddleware({ app, path: '/' })
   logger.info(
     `running with PRODUCTION=${CONFIG.PRODUCTION}, sending EMAIL enabled=${CORE_CONFIG.EMAIL} and EMAIL_TEST_MODUS=${CORE_CONFIG.EMAIL_TEST_MODUS} ...`,
   )
   logger.debug('createServer...successful')
 
-  return { apollo, app, con: db.getDataSource(), db }
+  return { apollo, app, con, db }
 }

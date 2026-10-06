@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { request as httpRequest, IncomingHttpHeaders, Server } from 'node:http'
 import { AddressInfo } from 'node:net'
-import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
+import { ApolloServerTestClient, cleanDB, resetToken, testEnvironmentWithApp } from '@test/helpers'
 import {
   AppDatabase,
   TransactionLink as DbTransactionLink,
@@ -170,7 +170,7 @@ const expectNoPicture = (answer: Answer) => {
 }
 
 beforeAll(async () => {
-  const testEnv = await testEnvironment()
+  const testEnv = await testEnvironmentWithApp()
   mutate = testEnv.mutate
   db = testEnv.db
   server = testEnv.app.listen(0, '127.0.0.1')
