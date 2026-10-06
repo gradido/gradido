@@ -4,7 +4,7 @@
 #include "gradido_blockchain_core/data/wire/ledger_anchor.h"
 #include "gradido_blockchain_core/data/wire/hiero.h"
 #include "gradido_blockchain_core/types/ledger_anchor.h"
-#include "gradido_blockchain_core/utils/converter.h"
+#include "arnm/converter.h"
 
 #include <cstddef>
 #include <napi.h>
@@ -125,11 +125,18 @@ namespace gradido::data::wire {
             return env.Null();
         }
         char buffer[128];
-        size_t written = grdw_hiero_transaction_id_to_string(buffer, 128, hieroTransactionId);
-        if (written > 128) {
-            std::string message = "[LedgerAnchor.getHieroTransactionId] Hiero Transaction Id String is to big, max expected: 128, actually: ";
-            grdu_uint64_to_string(buffer, 128, written);
-            message += buffer;
+        // buffer_size counts the terminator: a return of sizeof(buffer) or more says nothing was
+        // written and names the size that would have been needed.
+        size_t written = grdw_hiero_transaction_id_to_string(buffer, sizeof(buffer), hieroTransactionId);
+        // 0 is what an unprintable valid start answers with, not an empty but valid id
+        if (0 == written) {
+            return env.Null();
+        }
+        if (written >= sizeof(buffer)) {
+            std::string message = "[LedgerAnchor.getHieroTransactionId] Hiero Transaction Id String is to big, max expected: 127, actually: ";
+            char sizeBuffer[24];
+            arnm_uint64_to_string(sizeBuffer, sizeof(sizeBuffer), written);
+            message += sizeBuffer;
             Napi::Error::New(env, message.c_str()).ThrowAsJavaScriptException();
             return env.Null();
         }

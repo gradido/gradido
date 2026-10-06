@@ -32,7 +32,7 @@ bool getInt32FromObject(const Napi::CallbackInfo& info, Napi::Object obj, const 
   if (!obj.Has(name)) return !required;
   auto env = info.Env();
   auto val = obj.Get(name);
-  if (!val.IsNumber() || !val.IsBigInt()) {
+  if (!val.IsNumber() && !val.IsBigInt()) {
       Napi::TypeError::New(env, std::string(name) + " must be a bigint or number").ThrowAsJavaScriptException();
       return false;
   }

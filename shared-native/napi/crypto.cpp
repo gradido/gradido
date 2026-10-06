@@ -24,13 +24,13 @@ namespace gradido::crypto {
         // Result buffer: 32 bytes seed + 32 bytes public key + 32 bytes chain code = 96 bytes
         auto resultBuffer = Napi::Buffer<uint8_t>::New(env, sizeof(grdc_sign_key_pair));
 
-        grd_result result = grdc_sign_key_pair_generate_from_seed(
+        arnm_result result = grdc_sign_key_pair_generate_from_seed(
             reinterpret_cast<grdc_sign_key_pair*>(resultBuffer.Data()),
             seed.Data(),
             seed.Length()
         );
 
-        if (result != GRD_SUCCESS) {
+        if (result != ARNM_SUCCESS) {
             Napi::Error::New(env, std::string("[signKeyPairGenerateFromSeed] Failed to generate ed25519 key pair, result: ") + grd_result_to_string(result))
                 .ThrowAsJavaScriptException();
             return env.Null();
@@ -78,13 +78,13 @@ namespace gradido::crypto {
 
         auto resultBuffer = Napi::Buffer<uint8_t>::New(env, sizeof(grdc_sign_key_pair));
 
-        grd_result result = grdc_sign_key_pair_derive(
+        arnm_result result = grdc_sign_key_pair_derive(
             reinterpret_cast<grdc_sign_key_pair*>(resultBuffer.Data()),
             reinterpret_cast<const grdc_sign_key_pair*>(parentKeyPair.Data()),
             index
         );
 
-        if (result != GRD_SUCCESS) {
+        if (result != ARNM_SUCCESS) {
             Napi::Error::New(env, std::string("[signKeyPairDerive] Failed to derive child sign key, result: ") + grd_result_to_string(result))
                 .ThrowAsJavaScriptException();
             return env.Null();
@@ -122,7 +122,7 @@ namespace gradido::crypto {
         }
 
         Napi::Buffer<uint8_t> uuid = info[1].As<Napi::Buffer<uint8_t>>();
-        if (uuid.Length() != UUID_BINARY_SIZE) {
+        if (uuid.Length() != ARNM_UUID_BINARY_SIZE) {
             Napi::TypeError::New(
                 env,
                 "[signKeyPairDeriveUuid] Expected a valid uuid (16 Bytes), got "
@@ -134,13 +134,13 @@ namespace gradido::crypto {
 
         auto resultBuffer = Napi::Buffer<uint8_t>::New(env, sizeof(grdc_sign_key_pair));
 
-        grd_result result = grdc_sign_key_pair_derive_uuid(
+        arnm_result result = grdc_sign_key_pair_derive_uuid(
             reinterpret_cast<grdc_sign_key_pair*>(resultBuffer.Data()),
             reinterpret_cast<const grdc_sign_key_pair*>(parentKeyPair.Data()),
             uuid.Data()
         );
 
-        if (result != GRD_SUCCESS) {
+        if (result != ARNM_SUCCESS) {
             Napi::Error::New(env, std::string("[signKeyPairDeriveUuid] UUID derivation failed: ") + grd_result_to_string(result))
                 .ThrowAsJavaScriptException();
             return env.Null();
@@ -178,7 +178,7 @@ namespace gradido::crypto {
         }
 
         Napi::Buffer<uint8_t> userUuid = info[1].As<Napi::Buffer<uint8_t>>();
-        if (userUuid.Length() != UUID_BINARY_SIZE) {
+        if (userUuid.Length() != ARNM_UUID_BINARY_SIZE) {
             Napi::TypeError::New(
                 env,
                 "[signKeyPairDeriveAccountFromCommunity] Expected a valid uuid (16 Bytes), got "
@@ -199,14 +199,14 @@ namespace gradido::crypto {
 
         auto resultBuffer = Napi::Buffer<uint8_t>::New(env, sizeof(grdc_sign_key_pair));
 
-        grd_result result = grdc_sign_key_pair_derive_account_from_community(
+        arnm_result result = grdc_sign_key_pair_derive_account_from_community(
             reinterpret_cast<grdc_sign_key_pair*>(resultBuffer.Data()),
             communitySeed.Data(),
             userUuid.Data(),
             accountNumber
         );
 
-        if (result != GRD_SUCCESS) {
+        if (result != ARNM_SUCCESS) {
             Napi::Error::New(env, std::string("[signKeyPairDeriveAccountFromCommunity] Account derivation failed: ") + grd_result_to_string(result))
                 .ThrowAsJavaScriptException();
             return env.Null();
@@ -230,9 +230,9 @@ namespace gradido::crypto {
         Napi::Buffer<uint8_t> data = info[0].As<Napi::Buffer<uint8_t>>();
         auto resultBuffer = Napi::Buffer<uint8_t>::New(env, GENERIC_HASH_SIZE);
 
-        grd_result result = grdc_hash_generic(resultBuffer.Data(), data.Data(), data.Length());
+        arnm_result result = grdc_hash_generic(resultBuffer.Data(), data.Data(), data.Length());
 
-        if (result != GRD_SUCCESS) {
+        if (result != ARNM_SUCCESS) {
             Napi::Error::New(env, std::string("[hashGeneric] Failed to calculate generic hash, result: ") + grd_result_to_string(result))
                 .ThrowAsJavaScriptException();
             return env.Null();

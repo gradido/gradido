@@ -1,189 +1,78 @@
 const std = @import("std");
-const zcc = @import("compile_commands");
+const czb = @import("c_cpp_zig_build");
 
-/// Recursively add .c files from a directory
-fn addDirSources(
-    lib: *std.Build.Step.Compile,
-    b: *std.Build,
-    dir_path: []const u8,
-) void {
-    var dir = std.fs.cwd().openDir(dir_path, .{ .iterate = true }) catch |err| {
-        std.debug.panic("Failed to open directory '{s}': {s}", .{ dir_path, @errorName(err) });
+/// The build.zig.zon dependency holding the prebuilt rust-image-ffi object for this target, or
+/// null where its release has none: 32 bit x86 and arm.
+fn rustImageFfiDependencyName(target: std.Build.ResolvedTarget) ?[]const u8 {
+    const t = target.result;
+    const is_x86_64 = switch (t.cpu.arch) {
+        .x86_64 => true,
+        .aarch64 => false,
+        else => return null,
     };
-    defer dir.close();
-
-    var walker = dir.walk(b.allocator) catch |err| {
-        std.debug.panic("Failed to walk directory '{s}': {s}", .{ dir_path, @errorName(err) });
+    return switch (t.os.tag) {
+        .linux => if (t.abi.isGnu())
+            (if (is_x86_64) "rust_image_ffi_x86_64_linux_gnu" else "rust_image_ffi_aarch64_linux_gnu")
+        else if (t.abi.isMusl())
+            (if (is_x86_64) "rust_image_ffi_x86_64_linux_musl" else "rust_image_ffi_aarch64_linux_musl")
+        else
+            null,
+        .macos => if (is_x86_64) "rust_image_ffi_x86_64_macos" else "rust_image_ffi_aarch64_macos",
+        .windows => if (is_x86_64) "rust_image_ffi_x86_64_windows" else "rust_image_ffi_aarch64_windows",
+        else => null,
     };
-    defer walker.deinit();
-
-    while (walker.next() catch null) |entry| {
-        if (entry.kind == .file and std.mem.endsWith(u8, entry.path, ".c")) {
-            const full_path = b.fmt("{s}/{s}", .{ dir_path, entry.path });
-            lib.addCSourceFiles(.{
-                .files = &[_][]const u8{full_path},
-                .flags = &.{},
-            });
-        }
-    }
 }
 
-const BuildContext = struct {
-    b: *std.Build,
-    target: std.Build.ResolvedTarget,
-    optimize: std.builtin.OptimizeMode,
-    core_lib: *std.Build.Step.Compile,
-    googletest_dep: ?*std.Build.Dependency,
-    sodium_dep: ?*std.Build.Dependency,
-    singleOutputDir: bool,
-    cdb: *std.ArrayList(*std.Build.Step.Compile),
-};
+pub fn build(b: *std.Build) !void {
+    // Compiles everything under napi/ and installs shared_native.node into the output
+    // directory. See the c-cpp-zig-build README for the options.
+    const addon = try czb.addNodeAddon(b, .{ .name = "shared_native" });
 
-const BuildTarget = struct {
-    link_googletest: bool = false,
-    link_sodium: bool = false,
-    name: []const u8,
-    srcs: []const []const u8,
-};
+    // The crypto half of the core - signing, key derivation, the generic hash, base64 -
+    // is compiled only when libsodium is there, and the headers hide the declarations
+    // behind the same macro. Both sides have to agree, so the dependency is built with
+    // sodium and the addon defines the macro for its own translation units.
+    addon.addDefine("USE_SODIUM", "1");
 
-fn processBuildTarget(context: *const BuildContext, build_target: BuildTarget, path: []const u8) void {
-    const b = context.b;
-    const exe = b.addExecutable(.{
-        .name = build_target.name,
-        .root_module = b.createModule(.{
-            .target = context.target,
-            .optimize = context.optimize,
-        }),
-    });
+    const core = addon.dependency("blockchain_core", .{ .sodium = true });
+    // arnm carries what the core used to keep in utils/: the arena allocator, the
+    // monotonic timer, the duration and hex/uuid conversions. It is a package of its
+    // own, and the napi layer includes its headers directly.
+    const arnm = addon.dependency("arnm", .{});
 
-    exe.linkLibrary(context.core_lib);
+    // Fetched by zig and checked against the hash pinned in build.zig.zon. Null on a target
+    // its release has no prebuild for: the module still builds and reencodeImage throws.
+    const rust_image_ffi = if (rustImageFfiDependencyName(addon.target)) |dep_name|
+        b.lazyDependency(dep_name, .{})
+    else
+        null;
+    const os_tag = addon.target.result.os.tag;
 
-    if (build_target.link_googletest) {
-        if (context.googletest_dep) |dep| {
-            exe.linkLibrary(dep.artifact("gtest"));
-            exe.linkLibrary(dep.artifact("gtest_main"));
+    for (addon.compiles) |compile| {
+        compile.linkLibrary(core.artifact("gradido_blockchain_core"));
+        compile.addIncludePath(core.path("include"));
+        // data/unit.h reaches for "r128/r128.h", which the core vendors rather than installs,
+        // so a consumer of its public headers needs third_party/ on the search path as well.
+        compile.addIncludePath(core.path("third_party"));
+        compile.addIncludePath(arnm.path("include"));
+
+        // What the object needs beside itself (NATIVE_LIBS.txt in the archive) is libc and an
+        // unwinder, both linked already, on macOS iconv, and on Windows, where the archive holds
+        // the staticlib, a few system libraries.
+        if (rust_image_ffi) |dep| {
+            if (os_tag == .windows) {
+                compile.addObjectFile(dep.path("librust_image_ffi.a"));
+                for ([_][]const u8{ "kernel32", "ntdll", "userenv", "ws2_32", "dbghelp" }) |system_lib| {
+                    compile.linkSystemLibrary(system_lib);
+                }
+            } else {
+                compile.addObjectFile(dep.path("rust_image_ffi.o"));
+                if (os_tag == .macos) {
+                    compile.linkSystemLibrary("iconv");
+                }
+            }
+            compile.root_module.addIncludePath(dep.path(""));
+            compile.root_module.addCMacro("HAVE_RUST_IMAGE_FFI", "1");
         }
     }
-    if (build_target.link_sodium) {
-        exe.root_module.addCMacro("USE_SODIUM", "1");
-        if (context.sodium_dep) |dep| {
-            exe.linkLibrary(dep.artifact(if (context.target.result.os.tag == .windows) "libsodium-static" else "sodium"));
-        }
-    }
-
-    exe.addIncludePath(b.path("include"));
-    exe.addIncludePath(b.path("third_party"));
-
-    for (build_target.srcs) |src_file| {
-        exe.addCSourceFiles(.{
-            .files = &.{b.fmt("{s}/{s}", .{ path, src_file })},
-        });
-    }
-
-    context.cdb.append(b.allocator, exe) catch @panic("OOM");
-
-    if (context.singleOutputDir) {
-        const bin_install_step = b.addInstallBinFile(exe.getEmittedBin(), b.fmt("../{s}", .{exe.out_filename}));
-        b.getInstallStep().dependOn(&bin_install_step.step);
-    } else {
-        b.installArtifact(exe);
-    }
-}
-
-pub fn build(b: *std.Build) void {
-    const target = b.standardTargetOptions(.{});
-    const optimize = b.standardOptimizeOption(.{});
-    // make a list of targets that have include files and c source files
-    var cdbTargets: std.ArrayList(*std.Build.Step.Compile) = .empty;
-
-    // Options
-    const enable_benchmarks = b.option(bool, "benchmarks", "Enable benchmarks") orelse false;
-    const enable_tests = b.option(bool, "tests", "Enable tests") orelse false;
-    const enable_sodium = b.option(bool, "sodium", "Enable sodium and crypto") orelse false;
-    const lib_shared = b.option(bool, "shared", "Make lib shared") orelse false;
-    const singleOutputDir = b.option(bool, "singleOutputDir", "Put direct into output folder, without lib or bin folder") orelse false;
-
-    const core_lib = b.addLibrary(.{ .name = "gradido_blockchain_core", .linkage = if (lib_shared) .dynamic else .static, .root_module = b.createModule(.{
-        .target = target,
-        .optimize = optimize,
-    }) });
-
-    const context: BuildContext = .{
-        .b = b,
-        .target = target,
-        .optimize = optimize,
-        .core_lib = core_lib,
-        .googletest_dep = b.lazyDependency("googletest", .{
-            .target = target,
-            .optimize = optimize,
-        }),
-        .sodium_dep = b.lazyDependency("libsodium", .{
-            .target = target,
-            .optimize = optimize,
-            .static = true,
-            .shared = false,
-        }),
-        .singleOutputDir = singleOutputDir,
-        .cdb = &cdbTargets,
-    };
-
-    if (enable_sodium) {
-        core_lib.root_module.addCMacro("USE_SODIUM", "1");
-        if (context.sodium_dep) |dep| {
-            core_lib.linkLibrary(dep.artifact(if (target.result.os.tag == .windows) "libsodium-static" else "sodium"));
-        }
-    }
-
-    core_lib.linkLibC();
-
-    core_lib.addIncludePath(b.path("include"));
-    core_lib.addIncludePath(b.path("include/gradido_blockchain_core/data/proto/gradido"));
-    core_lib.addIncludePath(b.path("third_party"));
-    core_lib.addIncludePath(b.path("third_party/pbtools"));
-
-    addDirSources(core_lib, b, "src");
-    addDirSources(core_lib, b, "third_party");
-
-    // keep track of it, so later we can pass it to compile_commands
-    cdbTargets.append(b.allocator, core_lib) catch @panic("OOM");
-
-    if (singleOutputDir) {
-        const bin_install_step = b.addInstallBinFile(core_lib.getEmittedBin(), b.fmt("../{s}", .{core_lib.out_filename}));
-        b.getInstallStep().dependOn(&bin_install_step.step);
-        if (target.result.os.tag == .windows) {
-            const lib_install_step = b.addInstallLibFile(core_lib.getEmittedImplib(), b.fmt("../{s}", .{core_lib.out_lib_filename}));
-            b.getInstallStep().dependOn(&lib_install_step.step);
-        }
-    } else {
-        b.installArtifact(core_lib);
-    }
-
-    if (enable_benchmarks and enable_sodium) {
-        const path = "benchmarks/src";
-        processBuildTarget(&context, .{
-            .link_googletest = false,
-            .link_sodium = true,
-            .name = "bench_numberToString",
-            .srcs = &.{"bench_numberToString.c"},
-        }, path);
-        processBuildTarget(&context, .{ .link_googletest = false, .link_sodium = true, .name = "bench_crypto", .srcs = &.{"bench_crypto.c"} }, path);
-    }
-
-    if (enable_tests) {
-        const path = "tests/unit/src";
-        processBuildTarget(&context, .{ .link_googletest = true, .link_sodium = false, .name = "test_converter", .srcs = &.{"test_converter.cpp"} }, path);
-        processBuildTarget(&context, .{ .link_googletest = true, .link_sodium = false, .name = "test_duration", .srcs = &.{"test_duration.cpp"} }, path);
-        processBuildTarget(&context, .{ .link_googletest = true, .link_sodium = false, .name = "test_memory", .srcs = &.{"test_memory.cpp"} }, path);
-        processBuildTarget(&context, .{ .link_googletest = true, .link_sodium = false, .name = "test_unit", .srcs = &.{"test_unit.cpp"} }, path);
-        if (enable_sodium) {
-            processBuildTarget(&context, .{ .link_googletest = true, .link_sodium = true, .name = "test_crypto", .srcs = &.{ "test_crypto.cpp", "utils.cpp" } }, path);
-            processBuildTarget(&context, .{ .link_googletest = true, .link_sodium = true, .name = "test_pbtools", .srcs = &.{ "test_pbtools.cpp", "key_pairs.cpp" } }, path);
-            processBuildTarget(&context, .{ .link_googletest = true, .link_sodium = true, .name = "test_runtime", .srcs = &.{ "test_runtime.cpp", "key_pairs.cpp" } }, path);
-        }
-    }
-
-    const cdbTargetsSlice = cdbTargets.toOwnedSlice(b.allocator) catch @panic("OOM");
-    const buildStep = zcc.createStep(b, "cdb", cdbTargetsSlice);
-    // Build everything in the project before generating the compile_commands
-    for (cdbTargetsSlice) |cdbTarget| buildStep.dependOn(&cdbTarget.step);
 }

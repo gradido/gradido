@@ -7,7 +7,7 @@ type PackageJson = {
 
 const ROOT = resolve(import.meta.dirname, '..')
 
-const TARGETS = ['node_modules', '.turbo', 'build', '.zig-cache']
+const TARGETS = ['node_modules', '.turbo', 'build', '.zig-cache', '.zig-native']
 
 async function readWorkspaces(): Promise<string[]> {
   const packageJsonPath = join(ROOT, 'package.json')
