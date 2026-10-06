@@ -1,6 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
-import { ApolloServerTestClient } from 'apollo-server-testing'
+import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { AppDatabase, User as DbUser } from 'database'
 import { GraphQLError } from 'graphql'
 import { avatarColorIndex } from '@/data/AvatarColor.logic'

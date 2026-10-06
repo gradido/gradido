@@ -1,5 +1,9 @@
-import { cleanDB, contributionDateFormatter, testEnvironment } from '@test/helpers'
-import { ApolloServerTestClient } from 'apollo-server-testing'
+import {
+  ApolloServerTestClient,
+  cleanDB,
+  contributionDateFormatter,
+  testEnvironment,
+} from '@test/helpers'
 import { CONFIG as CORE_CONFIG } from 'core'
 import { AppDatabase, Community as DbCommunity } from 'database'
 import { GraphQLError } from 'graphql'

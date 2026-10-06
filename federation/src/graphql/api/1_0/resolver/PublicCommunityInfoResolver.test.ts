@@ -1,5 +1,4 @@
-import { cleanDB } from '@test/helpers'
-import { createTestClient } from 'apollo-server-testing'
+import { cleanDB, createTestClient } from '@test/helpers'
 import { AppDatabase, Community as DbCommunity } from 'database'
 import { getLogger } from 'log4js'
 import { CONFIG } from '@/config'

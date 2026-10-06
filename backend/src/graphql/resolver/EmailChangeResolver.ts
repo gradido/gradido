@@ -548,7 +548,7 @@ export class EmailChangeResolver {
     //
     // ⛔ The `.catch` at the bottom is not decoration, and consolidating the three
     // hand-written scaffolds into `underMemberLock` had dropped it. `CONFIRM_EMAIL_CHANGE` is
-    // in `INALIENABLE_RIGHTS`, so the caller is anonymous; apollo-server 2 installs no
+    // in `INALIENABLE_RIGHTS`, so the caller is anonymous; apollo-server installs no
     // `formatError`, so whatever is thrown here IS the message the browser gets; and
     // `EmailChange.vue` prints `error.message` verbatim unless it reads `Invalid or expired
     // code`. Without it, a lock-wait timeout, a duplicate-entry naming a STRANGER's address,

@@ -1,7 +1,6 @@
 // AI-GENERATED — not an architecture reference
 
-import { cleanDB, testEnvironment } from '@test/helpers'
-import { ApolloServerTestClient } from 'apollo-server-testing'
+import { ApolloServerTestClient, cleanDB, testEnvironment } from '@test/helpers'
 import { AppDatabase, User as DbUser, foreignReceive, getLastTransaction } from 'database'
 import { GradidoUnit } from 'shared'
 import { CONFIG } from '@/config'

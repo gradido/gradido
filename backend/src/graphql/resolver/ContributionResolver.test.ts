@@ -3,8 +3,13 @@ import { ContributionStatus } from '@enum/ContributionStatus'
 import { OptInType } from '@enum/OptInType'
 import { Order } from '@enum/Order'
 import { UserContactType } from '@enum/UserContactType'
-import { cleanDB, contributionDateFormatter, resetToken, testEnvironment } from '@test/helpers'
-import { ApolloServerTestClient } from 'apollo-server-testing'
+import {
+  ApolloServerTestClient,
+  cleanDB,
+  contributionDateFormatter,
+  resetToken,
+  testEnvironment,
+} from '@test/helpers'
 import { getLogger } from 'config-schema/test/testSetup'
 import {
   getFirstDayOfPreviousNMonth,

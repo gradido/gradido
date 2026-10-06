@@ -1,8 +1,7 @@
 // AI-GENERATED — not an architecture reference
 
 import { RoleNames } from '@enum/RoleNames'
-import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
-import { ApolloServerTestClient } from 'apollo-server-testing'
+import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { AppDatabase, User as DbUser, UserRole } from 'database'
 import { gql } from 'graphql-tag'
 import { getLogger as originalGetLogger } from 'log4js'

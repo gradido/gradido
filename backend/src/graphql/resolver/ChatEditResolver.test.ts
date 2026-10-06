@@ -1,7 +1,12 @@
 // AI-GENERATED — not an architecture reference
 import { randomBytes } from 'node:crypto'
-import { cleanDB, resetToken, TEST_PICTURE_BASE64, testEnvironment } from '@test/helpers'
-import { ApolloServerTestClient } from 'apollo-server-testing'
+import {
+  ApolloServerTestClient,
+  cleanDB,
+  resetToken,
+  TEST_PICTURE_BASE64,
+  testEnvironment,
+} from '@test/helpers'
 import { getLogger } from 'config-schema/test/testSetup'
 import { CONFIG as CORE_CONFIG, sendCustomEmail, storeChatMessage } from 'core'
 import {

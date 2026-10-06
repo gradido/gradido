@@ -1,6 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
-import { ApolloServerTestClient } from 'apollo-server-testing'
+import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { CONFIG as CORE_CONFIG, sendEmailChangeNoticeEmail } from 'core'
 import { AppDatabase, User as DbUser, UserContact as DbUserContact } from 'database'
 import { GraphQLError } from 'graphql'

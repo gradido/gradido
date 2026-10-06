@@ -77,6 +77,7 @@ export const createServer = async (
     plugins,
     logger: apolloLogger,
   })
+  await apollo.start()
   apollo.applyMiddleware({ app, path: '/' })
   return { apollo, app, con: db.getDataSource() }
 }

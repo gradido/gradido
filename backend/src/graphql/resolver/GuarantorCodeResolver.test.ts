@@ -1,8 +1,7 @@
 // AI-GENERATED — not an architecture reference
 
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
-import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
-import { ApolloServerTestClient } from 'apollo-server-testing'
+import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import {
   AccountState,
   AppDatabase,

@@ -1,12 +1,12 @@
 // AI-GENERATED — not an architecture reference
 import {
+  ApolloServerTestClient,
   cleanDB,
   resetToken,
   TEST_PICTURE_BASE64,
   TEST_PICTURE_SIZE,
   testEnvironment,
 } from '@test/helpers'
-import { ApolloServerTestClient } from 'apollo-server-testing'
 import {
   CONFIG as CORE_CONFIG,
   sendChatGroupAddedEmail,

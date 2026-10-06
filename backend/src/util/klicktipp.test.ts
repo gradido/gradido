@@ -1,5 +1,4 @@
-import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
-import { ApolloServerTestClient } from 'apollo-server-testing'
+import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { AppDatabase } from 'database'
 
 import { addFieldsToSubscriber } from '@/apis/KlicktippController'

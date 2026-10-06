@@ -7,13 +7,16 @@ const SEND_COMMAND = `mutation ($args: EncryptedTransferArgs!) {
 }`
 
 /** Everything the request log hands the logger for one request, written out as the log would. */
-const logged = (variables: Record<string, unknown>, errors?: unknown[]): string => {
+const logged = async (variables: Record<string, unknown>, errors?: unknown[]): Promise<string> => {
   const logger = { info: jest.fn(), trace: jest.fn(), error: jest.fn() }
-  const { willSendResponse } = logPlugin.requestDidStart({
+  const { willSendResponse } = await logPlugin.requestDidStart({
     logger,
     request: { query: SEND_COMMAND, variables, operationName: null },
   })
-  willSendResponse({ context: {}, response: errors ? { errors } : { data: { sendCommand: {} } } })
+  await willSendResponse({
+    context: {},
+    response: errors ? { errors } : { data: { sendCommand: {} } },
+  })
   return [...logger.info.mock.calls, ...logger.trace.mock.calls, ...logger.error.mock.calls]
     .map((args) =>
       args
@@ -27,8 +30,8 @@ const logged = (variables: Record<string, unknown>, errors?: unknown[]): string 
 const JWT = `eyJhbGciOiJSUzI1NiJ9.${'x'.repeat(98_765)}.c2lnbmF0dXJl`
 
 describe('the request log of the federation', () => {
-  it('writes a long value as its length, not the value', () => {
-    const text = logged({
+  it('writes a long value as its length, not the value', async () => {
+    const text = await logged({
       args: { handshakeID: '4294967295', publicKey: 'ab'.repeat(32), jwt: JWT },
     })
 
@@ -40,15 +43,15 @@ describe('the request log of the federation', () => {
     expect(text).toContain('sendCommand(encryptedArgs: $args)')
   })
 
-  it('writes a value of 1000 characters, and one of 1001 as its length', () => {
-    const text = logged({ exactly: 'a'.repeat(1000), oneMore: 'b'.repeat(1001) })
+  it('writes a value of 1000 characters, and one of 1001 as its length', async () => {
+    const text = await logged({ exactly: 'a'.repeat(1000), oneMore: 'b'.repeat(1001) })
 
     expect(text).toContain(`"exactly": "${'a'.repeat(1000)}"`)
     expect(text).toContain('"oneMore": "*** 1001 characters"')
   })
 
-  it('still masks the password, however short', () => {
-    const text = logged({ password: 'secret', passwordNew: 'new secret' })
+  it('still masks the password, however short', async () => {
+    const text = await logged({ password: 'secret', passwordNew: 'new secret' })
 
     expect(text).not.toContain('secret')
     expect(text).toContain('"password": "***"')
@@ -56,8 +59,8 @@ describe('the request log of the federation', () => {
   })
 
   // An error may quote back what the request carried.
-  it('writes a long value in an error as its length too', () => {
-    const text = logged({}, [{ message: 'Variable "$args" got invalid value', value: JWT }])
+  it('writes a long value in an error as its length too', async () => {
+    const text = await logged({}, [{ message: 'Variable "$args" got invalid value', value: JWT }])
 
     expect(text).not.toContain('x'.repeat(1000))
     expect(text).toContain(`"value": "*** ${JWT.length} characters"`)
@@ -66,10 +69,10 @@ describe('the request log of the federation', () => {
 
   // ⛔ The log writes a copy. The request goes on to the resolver as it came -- its long values and
   // its password too.
-  it('leaves the request itself as it came', () => {
+  it('leaves the request itself as it came', async () => {
     const variables = { password: 'secret', args: { handshakeID: '1', publicKey: 'ab', jwt: JWT } }
 
-    logged(variables)
+    await logged(variables)
 
     expect(variables).toEqual({
       password: 'secret',

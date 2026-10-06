@@ -1,13 +1,13 @@
 // AI-GENERATED — not an architecture reference
 import { inspect } from 'node:util'
 import {
+  ApolloServerTestClient,
   cleanDB,
   resetToken,
   TEST_PICTURE_BASE64,
   TEST_PICTURE_SIZE,
   testEnvironment,
 } from '@test/helpers'
-import { ApolloServerTestClient } from 'apollo-server-testing'
 import { getLogger } from 'config-schema/test/testSetup'
 import {
   AppDatabase,

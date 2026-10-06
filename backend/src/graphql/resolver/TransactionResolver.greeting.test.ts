@@ -1,6 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { cleanDB, testEnvironment } from '@test/helpers'
-import { ApolloServerTestClient } from 'apollo-server-testing'
+import { ApolloServerTestClient, cleanDB, testEnvironment } from '@test/helpers'
 import {
   AppDatabase,
   Transaction as DbTransaction,
