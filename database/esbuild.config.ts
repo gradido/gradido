@@ -5,7 +5,7 @@ import { latestDbVersion } from './src/detectLastDBVersion'
 build({
   entryPoints: ['src/index.ts'],
   bundle: true,
-  target: 'node18.20.7',
+  target: 'node24.21.0',
   platform: 'node',
   packages: 'external',
   outdir: './build',
