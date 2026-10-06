@@ -9,6 +9,7 @@ import {
 } from 'database'
 
 import { newRequestBudget } from '@/server/context'
+import { createApolloServer } from '@/server/createApolloServer'
 import { createServer } from '@/server/createServer'
 
 import { getLogger } from 'log4js'
@@ -77,14 +78,25 @@ export const cleanDB = async () => {
   AppDatabase.getInstance().publish(HOME_COMMUNITY_CHANGED_CHANNEL)
 }
 
+// Apollo on the database, and nothing of HTTP: operations run through the test client.
 export const testEnvironment = async (testLogger = getLogger('apollo')) => {
-  const server = await createServer( testLogger, context)
-  const con = server.con
+  const server = await createApolloServer(testLogger, context)
   const testClient = createTestClient(server.apollo)
-  const mutate = testClient.mutate
-  const query = testClient.query
-  // `app`: the Express application itself, for a test that asks an address outside GraphQL.
-  return { mutate, query, con, db: server.db, app: server.app }
+  return { mutate: testClient.mutate, query: testClient.query, con: server.con, db: server.db }
+}
+
+// The same with the Express application around it (`app`), for a test that asks an address
+// outside GraphQL. It is not listening: the test starts it on a port of its own.
+export const testEnvironmentWithApp = async (testLogger = getLogger('apollo')) => {
+  const server = await createServer(testLogger, context)
+  const testClient = createTestClient(server.apollo)
+  return {
+    mutate: testClient.mutate,
+    query: testClient.query,
+    con: server.con,
+    db: server.db,
+    app: server.app,
+  }
 }
 
 // Taken while it is still the real one - see useFakeTimersForDrizzle.
