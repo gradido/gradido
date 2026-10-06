@@ -388,6 +388,30 @@ button.navbar-toggler > span.navbar-toggler-icon {
   padding: 0 !important;
 }
 
+/* Below the desktop the till tools and the block with face, name and address stand side by
+   side, on every phone. Bootstrap lets a navbar wrap, and on a window of 320px and less --
+   a fold's cover screen, a phone set to large text -- the block was wider than what the
+   tools left and dropped below them: the bar grew from 168px to 286px, over the page it is
+   fixed above. Now the block takes what is left and its lines break instead (the address
+   before `/u/`, see GradidoAddressCopy).
+
+   The tools' column gives up its margin for it. Its symbols stand at the left of their
+   44px targets, so 22px of air stay between them and the block.
+   (Bernd, 06.10.2026, from a tester's phone) */
+@media screen and (width <= 1024.98px) {
+  :deep(.container-fluid) {
+    flex-wrap: nowrap;
+  }
+
+  :deep(.navbar-brand) {
+    margin-right: 0;
+  }
+
+  :deep(.navbar-nav) {
+    min-width: 0;
+  }
+}
+
 /* A button that looks like the block it replaced: no chrome, the full width of the column
    above it (the till tools' 88px, as the div had), the symbol at its left edge. The focus
    ring stays -- it is what the change is for. */
@@ -469,6 +493,7 @@ button.navbar-toggler > span.navbar-toggler-icon {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
+  overflow-wrap: anywhere;
 }
 
 .navbar-settings-cog {
