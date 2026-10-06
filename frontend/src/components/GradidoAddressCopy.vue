@@ -7,8 +7,15 @@
     data-test="gradido-address-copy"
     @click="copy"
   >
-    {{ address.display }}
-    <IBiCopy></IBiCopy>
+    <!-- Two parts, so that a place too narrow for the whole address breaks it before the
+         namespace and nowhere else: the community on one line, `/u/name` on the next. The
+         icon is inside the second part and so never ends up on a line of its own. No
+         whitespace between the parts -- it would show as a space inside the address. -->
+    <span class="address-part" data-test="gradido-address-host">{{ address.host }}</span>
+    <span class="address-part" data-test="gradido-address-path">
+      {{ path }}
+      <IBiCopy></IBiCopy>
+    </span>
   </button>
 </template>
 
@@ -38,6 +45,9 @@ const { t } = useI18n()
 const toast = useAppToast()
 
 const address = computed(() => gradidoAddress(props.alias))
+// What follows the community: `/u/name`, cut from the shown line so the two parts cannot
+// come to say something else than the whole.
+const path = computed(() => address.value.display.slice(address.value.host.length))
 
 /**
  * Say "copied" only once it is copied.
@@ -77,6 +87,18 @@ const copy = async () => {
   background: none;
   color: inherit;
   font: inherit;
+
+  /* A button centres its text; once the address takes two lines they follow the place
+     around them instead (right in the top bar, centred under a code). */
+  text-align: inherit;
+  overflow-wrap: anywhere;
+}
+
+/* Each part stays whole and moves to the next line as one. Only a part that is wider than
+   the place itself breaks inside (a long host, a Gradido ID on a very narrow phone). */
+.address-part {
+  display: inline-block;
+  max-width: 100%;
 }
 
 .copy-clipboard-button:hover {
