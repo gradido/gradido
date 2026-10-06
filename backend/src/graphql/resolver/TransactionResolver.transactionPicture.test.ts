@@ -1,5 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { inspect } from 'node:util'
+import { TEST_PICTURE_BASE64, TEST_PICTURE_SIZE } from '@test/helpers'
 import { getLogger } from 'config-schema/test/testSetup'
 import { processXComCompleteTransaction, transferTransaction } from 'core'
 import {
@@ -132,10 +133,14 @@ const requestOf = (user: DbUser | undefined = emma): Context => ({
 
 // A JPEG with something recognisable inside: what a log or an answer says is searched for it.
 const SECRET = 'a private photo of the bench Dave built'
+// It decodes (test/helpers.ts), and the secret stands in a comment segment of the file: the
+// server stores the picture decoded and encoded again -- STORED, the same pixels without it.
+const STORED = Buffer.from(TEST_PICTURE_BASE64, 'base64')
 const PHOTO = Buffer.concat([
-  Buffer.from([0xff, 0xd8]),
+  STORED.subarray(0, 2),
+  Buffer.from([0xff, 0xfe, 0x00, SECRET.length + 2]),
   Buffer.from(SECRET),
-  Buffer.from([0xff, 0xd9]),
+  STORED.subarray(2),
 ])
 const PHOTO_BASE64 = PHOTO.toString('base64')
 const photoInput = { data: PHOTO_BASE64, width: 831, height: 577 }
@@ -245,14 +250,38 @@ describe('sendCoins with a picture', () => {
     expect(removePicture).not.toHaveBeenCalled()
   })
 
-  it('files a photo as its bytes and the size the wallet gave, and nothing else of the request', async () => {
+  // ⛔ A document may repeat the mutation under aliases, with one photo in its variables.
+  it('takes one photo in an HTTP request, and does no work on a second', async () => {
+    const context = requestOf()
+
+    expect(await send({ picture: photoInput }, context)).toBe(true)
+    await expect(send({ picture: photoInput }, context)).rejects.toThrow(
+      'Too many pictures sent at once',
+    )
+    // Refused before the picture is looked at: not even what is no picture gets its own answer.
+    await expect(send({ picture: { ...photoInput, data: '' } }, context)).rejects.toThrow(
+      'Too many pictures sent at once',
+    )
+
+    expect(filePicture).toHaveBeenCalledTimes(1)
+    // A motif costs no encoding and is not counted, and another request has a budget of its own.
+    expect(await send({ motif: 'bouquet' }, context)).toBe(true)
+    expect(await send({ picture: photoInput })).toBe(true)
+  })
+
+  it('files a photo encoded again at the size it has, and nothing else of the request', async () => {
     expect(await send({ picture: photoInput })).toBe(true)
 
     expect(filePicture).toHaveBeenCalledTimes(1)
     const [filed] = filePicture.mock.calls[0]
     expect(Object.keys(filed)).toEqual(['photo'])
-    expect('photo' in filed && Buffer.compare(filed.photo.image, PHOTO)).toBe(0)
-    expect('photo' in filed && [filed.photo.width, filed.photo.height]).toEqual([831, 577])
+    // The picture encoded again, at the size it has -- not the bytes and the size as sent.
+    expect('photo' in filed && Buffer.compare(filed.photo.image, STORED)).toBe(0)
+    expect('photo' in filed && filed.photo.image.includes(SECRET)).toBe(false)
+    expect('photo' in filed && [filed.photo.width, filed.photo.height]).toEqual([
+      TEST_PICTURE_SIZE.width,
+      TEST_PICTURE_SIZE.height,
+    ])
     expect(inserted.map((row) => row.transactionPictureId)).toEqual([PICTURE_ID, PICTURE_ID])
   })
 

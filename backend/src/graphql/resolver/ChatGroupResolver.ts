@@ -400,7 +400,7 @@ export class ChatGroupResolver {
     @Args() { groupUuid, body, announce, image }: SendChatGroupMessageArgs,
     @Ctx() context: Context,
   ): Promise<ChatMessage> {
-    const images = image ? [acceptedPicture(image)] : []
+    const images = image ? [await acceptedPicture(image, context)] : []
     const senderUser = getUser(context)
     const caller = callerOf(context)
     const { group, me } = await groupOfCallerOrFail(groupUuid, caller)

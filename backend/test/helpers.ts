@@ -1,3 +1,4 @@
+import { deflateSync } from 'node:zlib'
 import { createTestClient } from 'apollo-server-testing'
 import { dbDeleteAllRowsExceptMigrations } from 'database'
 import {
@@ -9,6 +10,7 @@ import { newRequestBudget } from '@/server/context'
 import { createServer } from '@/server/createServer'
 
 import { getLogger } from 'log4js'
+import { reencodeImage } from 'shared-native'
 
 export const headerPushMock = jest.fn((t) => {
   context.token = t.value
@@ -97,3 +99,60 @@ export const TEST_AVATAR_FULL_BASE64 =
 // 200 x 200 grey pixels: more than a small rendition may have, well within a full one.
 export const TEST_AVATAR_200_PIXELS_BASE64 =
   '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAA0JCgsKCA0LCgsODg0PEyAVExISEyccHhcgLikxMC4pLSwzOko+MzZGNywtQFdBRkxOUlNSMj5aYVpQYEpRUk//wAALCADIAMgBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAAAP/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP//Z'
+
+// The picture tests send with a chat message, a transfer or a greeting: the small one above,
+// and the size the decoder finds in it -- which is what the server stores, whatever size the
+// sender gives.
+export const TEST_PICTURE_BASE64 = TEST_AVATAR_SMALL_BASE64
+export const TEST_PICTURE_SIZE = { width: 4, height: 2 }
+
+/**
+ * A JPEG of seeded noise, encoded by the server's own encoder: for the tests that need a picture
+ * with weight. Noise is what a JPEG needs the most bytes for -- 200 x 200 come to some 30 KB,
+ * about what the wallet's largest chat picture weighs.
+ */
+export const testNoiseJpeg = async (width: number, height: number): Promise<Buffer> => {
+  const crcTable = Array.from({ length: 256 }, (_, n) => {
+    let c = n
+    for (let k = 0; k < 8; k++) {
+      c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1
+    }
+    return c >>> 0
+  })
+  const chunk = (type: string, data: Buffer): Buffer => {
+    const typeAndData = Buffer.concat([Buffer.from(type), data])
+    let crc = 0xffffffff
+    for (const byte of typeAndData) {
+      crc = crcTable[(crc ^ byte) & 0xff] ^ (crc >>> 8)
+    }
+    const length = Buffer.alloc(4)
+    length.writeUInt32BE(data.length)
+    const checksum = Buffer.alloc(4)
+    checksum.writeUInt32BE((crc ^ 0xffffffff) >>> 0)
+    return Buffer.concat([length, typeAndData, checksum])
+  }
+  const header = Buffer.alloc(13)
+  header.writeUInt32BE(width, 0)
+  header.writeUInt32BE(height, 4)
+  header[8] = 8 // bits per channel
+  header[9] = 2 // RGB
+  const rowBytes = 1 + width * 3
+  const rows = Buffer.alloc(height * rowBytes)
+  let seed = 1
+  for (let i = 0; i < rows.length; i++) {
+    seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0
+    // the first byte of a row is its filter: none
+    rows[i] = i % rowBytes === 0 ? 0 : seed >>> 24
+  }
+  const png = Buffer.concat([
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    chunk('IHDR', header),
+    chunk('IDAT', deflateSync(rows, { level: 0 })),
+    chunk('IEND', Buffer.alloc(0)),
+  ])
+  const encoded = await reencodeImage(png, { maxOutputBytes: 1024 * 1024, inputFormats: ['png'] })
+  if (!encoded.success) {
+    throw new Error(encoded.error.name)
+  }
+  return encoded.value.data
+}

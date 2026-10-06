@@ -590,6 +590,32 @@ describe('Navbar', () => {
   })
 
   /**
+   * Below the desktop the tools and the block with face, name and address stay side by side.
+   * Left to Bootstrap the bar wraps, and on a window of 320px the block dropped below the
+   * tools: 286px of bar instead of 168px, over the page it is fixed above (measured in the
+   * built wallet, 06.10.2026). jsdom lays nothing out, so the stylesheet says it -- read
+   * without its comments.
+   */
+  it('keeps tools and member block side by side below the desktop, in the stylesheet', () => {
+    const style = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'Navbar.vue'),
+      'utf8',
+    ).replace(/\/\*[\s\S]*?\*\//g, '')
+    const band =
+      style.match(/@media screen and \(width <= 1024\.98px\)\s*\{([\s\S]*?\})\s*\}/)?.[1] ?? ''
+    const rule = (selector) => band.match(new RegExp(`${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
+
+    expect(rule(':deep\\(\\.container-fluid\\)')).toMatch(/flex-wrap:\s*nowrap/)
+    // Without this the block keeps its full width and pushes out of the window instead.
+    expect(rule(':deep\\(\\.navbar-nav\\)')).toMatch(/min-width:\s*0/)
+    expect(rule(':deep\\(\\.navbar-brand\\)')).toMatch(/margin-right:\s*0/)
+    // And a long name breaks rather than holding the block wide.
+    expect(style.match(/\n\.navbar-settings-link\s*\{([^}]*)\}/)?.[1]).toMatch(
+      /overflow-wrap:\s*anywhere/,
+    )
+  })
+
+  /**
    * The height of this navbar is somebody else's problem, and that is the whole point.
    *
    * Below 450px it is `position: fixed` and translucent, so the page needs matching clearance

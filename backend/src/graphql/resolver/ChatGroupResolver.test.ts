@@ -1,5 +1,11 @@
 // AI-GENERATED — not an architecture reference
-import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
+import {
+  cleanDB,
+  resetToken,
+  TEST_PICTURE_BASE64,
+  TEST_PICTURE_SIZE,
+  testEnvironment,
+} from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import {
   CONFIG as CORE_CONFIG,
@@ -167,8 +173,10 @@ const allMessages = () =>
 const allConversations = () =>
   AppDatabase.getInstance().getDrizzleDataSource().select().from(chatConversationsTable)
 
-// The smallest thing the server takes as a JPEG: the start marker, a few bytes, the end marker.
-const JPEG = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0xff, 0xd9])
+// A picture that decodes, and comes out of the server's encoder as it went in (test/helpers.ts):
+// the server stores what it encoded, at the size the decoder found -- TEST_PICTURE_SIZE,
+// whatever size the sender gives with it.
+const JPEG = Buffer.from(TEST_PICTURE_BASE64, 'base64')
 const picture: ChatPicture = { data: JPEG.toString('base64'), width: 800, height: 600 }
 
 /** The group Bibi opens with Bob and Peter -- the one most tests below write in. */
@@ -472,7 +480,7 @@ describe('writing in a group', () => {
 
   it('files a picture with the message, for the members of the group', async () => {
     const copy = await wrote(cafe.groupUuid, 'Das Café', false, picture)
-    expect(copy.images).toEqual([{ imageUuid: expect.any(String), width: 800, height: 600 }])
+    expect(copy.images).toEqual([{ imageUuid: expect.any(String), ...TEST_PICTURE_SIZE }])
     const pictureAs = async (email: string) => {
       await loginAs(email)
       const res: any = await query({

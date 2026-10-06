@@ -794,7 +794,8 @@ export class TransactionResolver {
     logger.addContext('amount', amount.toString())
     // A picture with the transfer: a motif or a photo of the member's own, at most one of the
     // two. Checked before anything is read or written. The photo is a chat picture in every
-    // bound and is checked as one (CHAT_IMAGE_NOT_ACCEPTED with the reason).
+    // bound and is taken in as one (CHAT_IMAGE_NOT_ACCEPTED with the reason): checked, then
+    // decoded and encoded again, once in an HTTP request.
     const withPicture = parseOrThrowFirstIssue(transactionPictureSchema, {
       motif,
       picture: photoInput,
@@ -802,7 +803,7 @@ export class TransactionResolver {
     const picture = withPicture.motif
       ? { motif: withPicture.motif }
       : withPicture.picture
-        ? { photo: acceptedPicture(withPicture.picture) }
+        ? { photo: await acceptedPicture(withPicture.picture, context) }
         : null
     // Of the picture the log gets that there is one, and of which kind.
     const pictureKind = picture ? ('motif' in picture ? 'motif' : 'photo') : 'none'
