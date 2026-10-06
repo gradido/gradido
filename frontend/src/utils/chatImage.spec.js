@@ -197,28 +197,41 @@ describe('encodeChatImage', () => {
     ])
   })
 
-  it('refuses a picture that does not fit after five sizes', async () => {
+  it('refuses a picture that does not fit after twelve sizes', async () => {
     const { result, drawn, encode } = encodeWith(opened(4000, 3000), { fits: () => false })
 
     await expect(result).rejects.toMatchObject({
       name: 'ChatImageError',
       problem: 'NOT_SMALL_ENOUGH',
     })
-    expect(CHAT_IMAGE_ROUNDS).toBe(5)
-    expect(drawn).toHaveLength(5)
-    expect(encode).toHaveBeenCalledTimes(5)
-    // …the last of them about 512 x 384: the area times 0.8 four times over.
+    expect(CHAT_IMAGE_ROUNDS).toBe(12)
+    expect(drawn).toHaveLength(12)
+    expect(encode).toHaveBeenCalledTimes(12)
+    // …the fifth of them about 512 x 384, the area times 0.8 four times over, and the last
+    // about 234 x 176: eleven times over.
     expect(drawn[4]).toEqual([512, 384])
+    expect(drawn[11]).toEqual([234, 176])
   })
 
-  // Gegenprobe to the one above: a picture that fits in the fifth size is sent, not refused.
-  it('takes a picture that fits in the fifth size', async () => {
+  // Five sizes were all there were, and a detailed photo taken with an iPhone did not fit in
+  // them (measured in WebKit): it is made smaller still, not refused.
+  it('takes a picture that fits only in the sixth size', async () => {
     const { result, drawn } = encodeWith(opened(4000, 3000), {
-      fits: (canvas) => canvas.width <= 512,
+      fits: (canvas) => canvas.width < 512,
     })
 
-    await expect(result).resolves.toMatchObject({ width: 512, height: 384 })
-    expect(drawn).toHaveLength(5)
+    await expect(result).resolves.toMatchObject({ width: 458, height: 343 })
+    expect(drawn).toHaveLength(6)
+  })
+
+  // Gegenprobe to the refusal above: a picture that fits in the twelfth size is sent.
+  it('takes a picture that fits in the twelfth size', async () => {
+    const { result, drawn } = encodeWith(opened(4000, 3000), {
+      fits: (canvas) => canvas.width <= 234,
+    })
+
+    await expect(result).resolves.toMatchObject({ width: 234, height: 176 })
+    expect(drawn).toHaveLength(12)
   })
 
   it('keeps a portrait, a landscape and a long screenshot the way they are', async () => {
@@ -567,7 +580,7 @@ describe('encodeChatImage, for another rendition', () => {
     expect(draw.mock.calls[0][1]).toBe(whole)
   })
 
-  it('refuses a picture that does not come under the target asked for after five sizes', async () => {
+  it('refuses a picture that does not come under the target asked for after every size', async () => {
     const { draw, drawn } = recordingDraw()
     const encode = vi.fn(() => ({ base64: 'x', bytes: 70 * 1024, quality: 0.45 }))
 
