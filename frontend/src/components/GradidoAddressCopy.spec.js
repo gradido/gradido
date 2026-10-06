@@ -1,5 +1,8 @@
 // AI-GENERATED — not an architecture reference
 
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { flushPromises, mount } from '@vue/test-utils'
 import { createI18n } from 'vue-i18n'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -87,6 +90,47 @@ describe('GradidoAddressCopy', () => {
     const html = wrapperFor().html()
 
     expect(html.indexOf('ki-playground')).toBeLessThan(html.indexOf('ibicopy'))
+  })
+
+  /**
+   * On a window of 320px and less the top bar has no room for the whole address. It breaks
+   * before the namespace then: the community on one line, `/u/name` with the icon on the
+   * next (Bernd, 06.10.2026).
+   */
+  describe('where the address does not fit on one line', () => {
+    it('is two parts, the community and the rest, with nothing between them', () => {
+      const wrapper = wrapperFor()
+      const parts = wrapper.findAll('.address-part')
+
+      expect(parts.map((part) => part.text())).toEqual(['ki-playground.gradido.net', '/u/bernd'])
+      // Not a space, not a line end: read as it stands in the page, untrimmed.
+      expect(wrapper.find('button').element.textContent.trim()).toBe(
+        'ki-playground.gradido.net/u/bernd',
+      )
+    })
+
+    // An icon outside the parts wraps alone under a long name.
+    it('keeps the copy icon inside the last part', () => {
+      const wrapper = wrapperFor()
+
+      expect(wrapper.find('[data-test="gradido-address-path"]').html()).toContain('ibicopy')
+      expect(wrapper.find('[data-test="gradido-address-host"]').html()).not.toContain('ibicopy')
+    })
+
+    // jsdom lays nothing out, so the stylesheet says it -- read without its comments.
+    it('moves each part as a whole and breaks inside one only as the last resort, in the stylesheet', () => {
+      const style = readFileSync(
+        join(dirname(fileURLToPath(import.meta.url)), 'GradidoAddressCopy.vue'),
+        'utf8',
+      ).replace(/\/\*[\s\S]*?\*\//g, '')
+      const rule = (selector) =>
+        style.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
+
+      expect(rule('\\.address-part')).toMatch(/display:\s*inline-block/)
+      expect(rule('\\.address-part')).toMatch(/max-width:\s*100%/)
+      expect(rule('\\.copy-clipboard-button')).toMatch(/overflow-wrap:\s*anywhere/)
+      expect(rule('\\.copy-clipboard-button')).toMatch(/text-align:\s*inherit/)
+    })
   })
 
   // The address is built from whatever it is handed, so an account from before the user name
