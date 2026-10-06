@@ -2,7 +2,7 @@
 # BASE ###########################################################################
 ##################################################################################
 #FROM node:18.20.7-bookworm-slim as base
-FROM oven/bun:1.3.0-slim as base
+FROM oven/bun:1.4.2-slim as base
 #FROM node:18.20.7-alpine3.21 as base
 # change to alpine after sodium-native ship with native alpine build
 
