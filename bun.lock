@@ -1,6 +1,5 @@
 {
   "lockfileVersion": 1,
-  "configVersion": 0,
   "workspaces": {
     "": {
       "name": "gradido",
@@ -160,6 +159,7 @@
         "typeorm": "^0.3.25",
         "typescript": "~5.6.3",
         "uuid": "^8.3.2",
+        "valibot": "1.1.0",
         "workerpool": "^9.2.0",
         "xregexp": "^5.1.1",
       },
@@ -172,8 +172,8 @@
         "joi": "17.13.3",
         "log4js": "^6.9.1",
         "source-map-support": "^0.5.21",
+        "valibot": "1.1.0",
         "yoctocolors-cjs": "^2.1.2",
-        "zod": "^3.25.61",
       },
       "devDependencies": {
         "@biomejs/biome": "2.0.0",
@@ -200,7 +200,7 @@
         "shared": "*",
         "shared-native": "*",
         "sodium-native": "^3.4.1",
-        "zod": "^3.25.61",
+        "valibot": "1.1.0",
       },
       "devDependencies": {
         "@biomejs/biome": "2.0.0",
@@ -242,6 +242,7 @@
         "tsx": "^4.20.3",
         "typeorm": "^0.3.25",
         "uuid": "^8.3.2",
+        "valibot": "1.1.0",
         "wkx": "^0.5.0",
       },
       "devDependencies": {
@@ -352,6 +353,7 @@
         "typeorm": "^0.3.25",
         "typescript": "~5.6.3",
         "uuid": "8.3.2",
+        "valibot": "1.1.0",
       },
     },
     "frontend": {
@@ -457,8 +459,8 @@
         "jose": "^4.14.4",
         "log4js": "^6.9.1",
         "shared-native": "*",
+        "valibot": "1.1.0",
         "yoctocolors-cjs": "^2.1.2",
-        "zod": "^3.25.61",
       },
       "devDependencies": {
         "@biomejs/biome": "2.0.0",
@@ -3362,6 +3364,8 @@
     "v8-compile-cache-lib": ["v8-compile-cache-lib@3.0.1", "", {}, "sha512-wa7YjyUGfNZngI/vtK0UHAN+lgDCxBPCylVXGp0zu59Fz5aiGtNXaq3DhIov063MorB+VfufLh3JlF2KdTK3xg=="],
 
     "v8-to-istanbul": ["v8-to-istanbul@8.1.1", "", { "dependencies": { "@types/istanbul-lib-coverage": "^2.0.1", "convert-source-map": "^1.6.0", "source-map": "^0.7.3" } }, "sha512-FGtKtv3xIpR6BYhvgH8MI/y78oT7d8Au3ww4QIxymrCtZEh5b8gCw2siywE+puhEmuWKDtmfrvF5UlB298ut3w=="],
+
+    "valibot": ["valibot@1.1.0", "", { "peerDependencies": { "typescript": ">=5" }, "optionalPeers": ["typescript"] }, "sha512-Nk8lX30Qhu+9txPYTwM0cFlWLdPFsFr6LblzqIySfbZph9+BFsAHsNvHOymEviUepeIW6KFHzpX8TKhbptBXXw=="],
 
     "valid-data-url": ["valid-data-url@3.0.1", "", {}, "sha512-jOWVmzVceKlVVdwjNSenT4PbGghU0SBIizAev8ofZVgivk/TVHXSbNL8LP6M3spZvkR9/QolkyJavGSX5Cs0UA=="],
 

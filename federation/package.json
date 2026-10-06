@@ -75,7 +75,8 @@
     "type-graphql": "1.1.1",
     "typeorm": "^0.3.25",
     "typescript": "~5.6.3",
-    "uuid": "8.3.2"
+    "uuid": "8.3.2",
+    "valibot": "1.1.0"
   },
   "nodemonConfig": {
     "ignore": [

@@ -1,5 +1,7 @@
 // AI-GENERATED — not an architecture reference
+
 import { parseOrThrowFirstIssue } from 'shared'
+import * as v from 'valibot'
 import {
   createUserSchema,
   guarantorRegistrationSchema,
@@ -15,7 +17,7 @@ const valid = {
 
 describe('createUserSchema', () => {
   it('lowercases the address', () => {
-    expect(createUserSchema.parse(valid).email).toBe('bernd@example.com')
+    expect(v.parse(createUserSchema, valid).email).toBe('bernd@example.com')
   })
 
   // Only the lengths are checked for now; the character check is off (see firstNameSchema).
@@ -25,36 +27,41 @@ describe('createUserSchema', () => {
       ['M. J.', "O'Brien "],
       ['김민수', '王李'],
     ]) {
-      expect(createUserSchema.safeParse({ ...valid, firstName, lastName }).success).toBe(true)
+      expect(v.safeParse(createUserSchema, { ...valid, firstName, lastName }).success).toBe(true)
     }
     for (const names of [{ firstName: 'Al' }, { lastName: '王' }, { firstName: 'a'.repeat(256) }]) {
-      expect(createUserSchema.safeParse({ ...valid, ...names }).success).toBe(false)
+      expect(v.safeParse(createUserSchema, { ...valid, ...names }).success).toBe(false)
     }
   })
 
   it('falls back to the default language instead of refusing an unknown one', () => {
-    expect(createUserSchema.parse({ ...valid, language: 'xx' }).language).toBe('de')
+    expect(v.parse(createUserSchema, { ...valid, language: 'xx' }).language).toBe('de')
   })
 
   it('needs no password - only a guarantor code or a redeem link that vouches brings one', () => {
-    expect(createUserSchema.safeParse(valid).success).toBe(true)
+    expect(v.safeParse(createUserSchema, valid).success).toBe(true)
   })
 
   // Refused here, before a variant is chosen: with a redeem code a weak password is the same
   // input error as everywhere - not a reason for the way through the mail.
   it('refuses a weak password with a redeem code like any other', () => {
-    const result = createUserSchema.safeParse({ ...valid, redeemCode: 'abc123', password: 'short' })
+    const result = v.safeParse(createUserSchema, {
+      ...valid,
+      redeemCode: 'abc123',
+      password: 'short',
+    })
     expect(result.success).toBe(false)
     expect(
-      createUserSchema.safeParse({ ...valid, redeemCode: 'abc123', password: 'Aa1!aaaa' }).success,
+      v.safeParse(createUserSchema, { ...valid, redeemCode: 'abc123', password: 'Aa1!aaaa' })
+        .success,
     ).toBe(true)
   })
 
   it('refuses a weak password with the message the frontend knows', () => {
-    const result = createUserSchema.safeParse({ ...valid, password: 'short' })
+    const result = v.safeParse(createUserSchema, { ...valid, password: 'short' })
     expect(result.success).toBe(false)
     if (!result.success) {
-      expect(result.error.issues[0].message).toBe(
+      expect(result.issues[0].message).toBe(
         'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character, and no spaces!',
       )
     }
@@ -62,17 +69,21 @@ describe('createUserSchema', () => {
 
   it('accepts a guarantor code only in its shape', () => {
     expect(
-      createUserSchema.safeParse({ ...valid, guarantorCode: '1700000000.AbCdEfGhIjKlMnOpQrSt_-' })
-        .success,
+      v.safeParse(createUserSchema, {
+        ...valid,
+        guarantorCode: '1700000000.AbCdEfGhIjKlMnOpQrSt_-',
+      }).success,
     ).toBe(true)
-    expect(createUserSchema.safeParse({ ...valid, guarantorCode: 'nonsense' }).success).toBe(false)
+    expect(v.safeParse(createUserSchema, { ...valid, guarantorCode: 'nonsense' }).success).toBe(
+      false,
+    )
   })
 
   // vue-router hands an absent optional route parameter over as '' (/register/:code?), and an
   // older wallet keeps sending it: an empty field is one that was not given.
   it('takes an empty optional field as not given', () => {
     for (const empty of ['', '  ']) {
-      const parsed = createUserSchema.parse({
+      const parsed = v.parse(createUserSchema, {
         ...valid,
         alias: empty,
         redeemCode: empty,
@@ -91,8 +102,8 @@ describe('createUserSchema', () => {
   })
 
   it('keeps what an optional field brings, and still checks it', () => {
-    expect(createUserSchema.parse({ ...valid, redeemCode: 'CL-abc' }).redeemCode).toBe('CL-abc')
-    expect(createUserSchema.safeParse({ ...valid, referrerAlias: 'a b' }).success).toBe(false)
+    expect(v.parse(createUserSchema, { ...valid, redeemCode: 'CL-abc' }).redeemCode).toBe('CL-abc')
+    expect(v.safeParse(createUserSchema, { ...valid, referrerAlias: 'a b' }).success).toBe(false)
   })
 })
 

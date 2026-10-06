@@ -6,5 +6,5 @@ Full bun compatible
 
 ## Validation
 All validation logic used across more than one module
-Anything more complex than simple zod schemas is implemented here
+Anything more complex than simple valibot schemas is implemented here
 Tests written for bun

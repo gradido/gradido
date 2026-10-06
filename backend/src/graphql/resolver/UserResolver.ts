@@ -110,6 +110,7 @@ import {
 } from 'type-graphql'
 import { IRestResponse } from 'typed-rest-client'
 import { EntityNotFoundError, Point } from 'typeorm'
+import * as v from 'valibot'
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
 import { Account as HumhubAccount } from '@/apis/humhub/model/Account'
 import { GetUser } from '@/apis/humhub/model/GetUser'
@@ -515,9 +516,9 @@ export class UserResolver {
     const logger = createLogger('setPassword')
     logger.info(`setPassword...`)
     // Validate Password
-    const validPassword = passwordSchema.safeParse(password)
+    const validPassword = v.safeParse(passwordSchema, password)
     if (!validPassword.success) {
-      throw new LogError(validPassword.error.issues[0].message)
+      throw new LogError(validPassword.issues[0].message)
     }
     // load code
     // A pending e-mail change carries a code of the same kind, but that code confirms an
@@ -760,7 +761,7 @@ export class UserResolver {
     })
 
     if (language) {
-      if (!languageSchema.safeParse(language).success) {
+      if (!v.safeParse(languageSchema, language).success) {
         logger.warn('try to set unsupported language', language)
         throw new LogError('Given language is not a valid language or not supported')
       }
@@ -770,11 +771,11 @@ export class UserResolver {
 
     if (password && passwordNew) {
       // Validate Password
-      const validPassword = passwordSchema.safeParse(passwordNew)
+      const validPassword = v.safeParse(passwordSchema, passwordNew)
       if (!validPassword.success) {
         // TODO: log which rule(s) wasn't met
         logger.warn('try to set invalid password')
-        throw new Error(validPassword.error.issues[0].message)
+        throw new Error(validPassword.issues[0].message)
       }
 
       if (!(await verifyPassword(user, password))) {

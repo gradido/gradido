@@ -1,5 +1,6 @@
 import { timingSafeEqual } from 'node:crypto'
 import { getLogger } from 'log4js'
+import * as v from 'valibot'
 import { JWT_LEEWAY_SECONDS, LOG4JS_BASE_CATEGORY_NAME } from '../const'
 import { Duration } from '../data'
 import { Result } from '../errorTypes'
@@ -109,14 +110,15 @@ function verifyJwtHmac(
     // check payload
 
     // check structure
-    const parseResult = jwtPayloadSchema.safeParse(
+    const parseResult = v.safeParse(
+      jwtPayloadSchema,
       JSON.parse(Buffer.from(payloadBase64, 'base64url').toString()),
     )
     if (!parseResult.success) {
       return {
         success: false,
         error: new AuthenticationFailed(
-          `Cannot parse jwt payload: ${JSON.stringify(parseResult.error.flatten(), null, 2)}`,
+          `Cannot parse jwt payload: ${JSON.stringify(v.flatten(parseResult.issues), null, 2)}`,
           AuthenticationFailedType.INVALID_JWT_TOKEN,
         ),
       }
@@ -124,8 +126,8 @@ function verifyJwtHmac(
 
     // check iat and exp
     const nowSeconds = Math.floor(Date.now() / 1000)
-    if (parseResult.data.iat && parseResult.data.iat > nowSeconds + JWT_LEEWAY_SECONDS) {
-      const futureDuration = Duration.seconds(parseResult.data.iat - nowSeconds)
+    if (parseResult.output.iat && parseResult.output.iat > nowSeconds + JWT_LEEWAY_SECONDS) {
+      const futureDuration = Duration.seconds(parseResult.output.iat - nowSeconds)
       return {
         success: false,
         error: new AuthenticationFailed(
@@ -134,8 +136,8 @@ function verifyJwtHmac(
         ),
       }
     }
-    if (nowSeconds > parseResult.data.exp + JWT_LEEWAY_SECONDS) {
-      const expiredDuration = Duration.seconds(nowSeconds - parseResult.data.exp)
+    if (nowSeconds > parseResult.output.exp + JWT_LEEWAY_SECONDS) {
+      const expiredDuration = Duration.seconds(nowSeconds - parseResult.output.exp)
       return {
         success: false,
         error: new AuthenticationFailed(
@@ -144,7 +146,7 @@ function verifyJwtHmac(
         ),
       }
     }
-    return { success: true, value: parseResult.data }
+    return { success: true, value: parseResult.output }
   } catch (e) {
     return {
       success: false,

@@ -28,7 +28,7 @@ describe('validate alias', () => {
     jest.clearAllMocks()
   })
 
-  describe('zod throw an validation error', () => {
+  describe('the schema refuses the alias', () => {
     it('throws and logs an error', () => {
       // console.log(`validateAlias('Bi')=${JSON.stringify(validateAlias('Bi'))}`)
       expect(validateAlias('Bi')).rejects.toThrowError(new Error('Given alias is too short'))
@@ -36,21 +36,11 @@ describe('validate alias', () => {
         'invalid alias',
         'Bi',
         expect.arrayContaining([
-          // error vor zod v4
-          /*expect.objectContaining({
-            code: 'too_small',
-            minimum: 3,
-            origin: 'string',
-            message: 'Given alias is too short',
-          }), */
           expect.objectContaining({
-            code: 'too_small',
-            exact: false,
-            inclusive: true,
-            minimum: 3,
-            type: 'string',
+            kind: 'validation',
+            type: 'min_length',
+            requirement: 3,
             message: 'Given alias is too short',
-            path: [],
           }),
         ]),
       ])

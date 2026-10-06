@@ -21,6 +21,7 @@ import {
   OpenConnectionJwtPayloadType,
 } from 'shared'
 import { randombytes_random } from 'sodium-native'
+import * as v from 'valibot'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { AuthenticationClient as V1_0_AuthenticationClient } from '@/federation/client/1_0/AuthenticationClient'
 import { AuthenticationClientFactory } from './client/AuthenticationClientFactory'
@@ -53,7 +54,7 @@ export async function startCommunityAuthentication(
   // communityAuthenticatedSchema.safeParse return true
   // - if communityUuid is a valid v4Uuid and
   // - if authenticatedAt is a valid date
-  if (communityAuthenticatedSchema.safeParse(comB).success) {
+  if (v.safeParse(communityAuthenticatedSchema, comB).success) {
     methodLogger.debug(
       `comB.communityUuid is already a valid v4Uuid ${comB.communityUuid || 'null'} and was authenticated at ${comB.authenticatedAt || 'null'}`,
     )

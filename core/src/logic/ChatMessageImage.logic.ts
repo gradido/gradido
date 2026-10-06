@@ -1,4 +1,5 @@
 // AI-GENERATED — not an architecture reference
+
 import {
   DBDuplicateEntryError,
   dbDeleteChatMessageImagesByMessageUuid,
@@ -14,6 +15,7 @@ import {
   Result,
   uuidv4Schema,
 } from 'shared'
+import * as v from 'valibot'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
 import { databaseErrorCode } from './ChatMessage.logic'
 import { decodeJpegImage, JpegImageRefusal, reencodeJpegImage } from './JpegImage.logic'
@@ -264,7 +266,7 @@ export function acceptIncomingChatMessageImages(
     ) {
       return { success: false, error: 'MALFORMED' }
     }
-    const imageUuid = uuidv4Schema.safeParse(picture.imageUuid)
+    const imageUuid = v.safeParse(uuidv4Schema, picture.imageUuid)
     if (!imageUuid.success) {
       return { success: false, error: 'NO_UUID' }
     }
@@ -276,7 +278,7 @@ export function acceptIncomingChatMessageImages(
     if (!checked.success) {
       return { success: false, error: checked.error.reason }
     }
-    accepted.push({ ...checked.value, imageUuid: imageUuid.data, position })
+    accepted.push({ ...checked.value, imageUuid: imageUuid.output, position })
   }
   return { success: true, value: accepted }
 }

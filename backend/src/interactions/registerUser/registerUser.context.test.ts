@@ -1,5 +1,7 @@
 // AI-GENERATED — not an architecture reference
+
 import { getLogger } from 'log4js'
+import * as v from 'valibot'
 import { CreateUser, createUserSchema } from './createUser.schema'
 import { RegisterUserRole } from './RegisterUser.role'
 import { RegisterUserForProjectRole } from './RegisterUserForProject.role'
@@ -8,7 +10,7 @@ import { registerUser } from './registerUser.context'
 const logger = getLogger('test.registerUser.context')
 
 const input = (extra: Record<string, unknown> = {}): CreateUser =>
-  createUserSchema.parse({
+  v.parse(createUserSchema, {
     email: 'bernd@example.com',
     firstName: 'Bernd',
     lastName: 'Hückstädt',

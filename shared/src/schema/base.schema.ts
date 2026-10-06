@@ -1,20 +1,28 @@
 import { KeyObject } from 'node:crypto'
 import { validate, version } from 'uuid'
-import { z } from 'zod'
+import * as v from 'valibot'
 import { AVAILABLE_LOCALS, DEFAULT_LANGUAGE } from '../const'
 import { Duration } from '../data/Duration'
 import { GradidoUnit } from '../data/GradidoUnit'
 
-export const uuidv4Schema = z
-  .string()
-  .refine((val: string) => validate(val) && version(val) === 4, 'Invalid uuid')
+export const uuidv4Schema = v.pipe(
+  v.string(),
+  v.check((val: string) => validate(val) && version(val) === 4, 'Invalid uuid'),
+)
 
-export type Uuidv4Input = z.input<typeof uuidv4Schema>
-export type Uuidv4 = z.output<typeof uuidv4Schema>
+export type Uuidv4Input = v.InferInput<typeof uuidv4Schema>
+export type Uuidv4 = v.InferOutput<typeof uuidv4Schema>
 
-export const emailSchema = z.string().trim().toLowerCase().email()
-export const urlSchema = z.string().url()
-export const uint32Schema = z.number().positive().lte(4294967295)
+// With a message of its own: valibot's default quotes the address it refuses, and a message
+// ends up in the error log.
+export const emailSchema = v.pipe(
+  v.string(),
+  v.trim(),
+  v.toLowerCase(),
+  v.rfcEmail('Invalid email'),
+)
+export const urlSchema = v.pipe(v.string(), v.url('Invalid url'))
+export const uint32Schema = v.pipe(v.number(), v.gtValue(0), v.maxValue(4294967295))
 
 /**
  * `schema`, optional, with a blank string - empty or only whitespace - taken as not given
@@ -22,55 +30,61 @@ export const uint32Schema = z.number().positive().lte(4294967295)
  * such as an absent optional route parameter (vue-router hands `/register/:code?` over as
  * `code: ''`). Anything else is checked by `schema` as usual, with its own messages.
  */
-export const blankAsNull = <T extends z.ZodTypeAny>(schema: T) =>
-  z.preprocess(
-    (value) => (typeof value === 'string' && value.trim() === '' ? null : value),
-    schema.nullish(),
+// The outer `optional` is what lets the key be left out of an object altogether: valibot
+// decides that by the kind of schema a key has, not by what its type would accept.
+export const blankAsNull = <TSchema extends v.GenericSchema>(schema: TSchema) =>
+  v.optional(
+    v.pipe(
+      v.unknown(),
+      v.transform((value) => (typeof value === 'string' && value.trim() === '' ? null : value)),
+      v.nullish(schema),
+    ),
   )
-export const languageSchema = z.enum(AVAILABLE_LOCALS)
+export const languageSchema = v.picklist(AVAILABLE_LOCALS)
 // return default language on invalid language input
-export const defaultLanguageSchema = languageSchema.catch(DEFAULT_LANGUAGE)
+export const defaultLanguageSchema = v.fallback(languageSchema, DEFAULT_LANGUAGE)
 
-export const decaySchema = z.object({
-  balance: z.instanceof(GradidoUnit),
-  decay: z.instanceof(GradidoUnit),
-  start: z.date().nullable(),
-  end: z.date().nullable(),
-  duration: z.union([z.instanceof(Duration), z.null()]).nullable(),
+export const decaySchema = v.object({
+  balance: v.instance(GradidoUnit),
+  decay: v.instance(GradidoUnit),
+  start: v.nullable(v.date()),
+  end: v.nullable(v.date()),
+  duration: v.nullable(v.instance(Duration)),
 })
 
-export type Decay = z.infer<typeof decaySchema>
+export type Decay = v.InferOutput<typeof decaySchema>
 
 // TODO: actually check for valid ed25519 Keys/Key Pair
-export const ed25519PublicKeySchema = z.instanceof(Buffer).superRefine((value, ctx) => {
-  if (value.length !== 32) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: 'Expected 32 Bytes',
-    })
-  }
-})
+export const ed25519PublicKeySchema = v.pipe(
+  v.instance(Buffer),
+  v.check((value) => value.length === 32, 'Expected 32 Bytes'),
+)
 
-export const ed25519PrivateKeySchema = z.instanceof(Buffer).superRefine((value, ctx) => {
-  if (value.length !== 64) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: 'Expected 64 Bytes',
-    })
-  }
-})
+export const ed25519PrivateKeySchema = v.pipe(
+  v.instance(Buffer),
+  v.check((value) => value.length === 64, 'Expected 64 Bytes'),
+)
 
 // node:crypto KeyObject of any type (secret, public, private), narrow it where the type matters
-export const nodeCryptoKeyObjectSchema = z.custom<KeyObject>((val) => val instanceof KeyObject)
+export const nodeCryptoKeyObjectSchema = v.custom<KeyObject>((val) => val instanceof KeyObject)
 // a Duration instance, a string like "10m" must be converted first: Duration.fromString
-export const durationSchema = z.custom<Duration>((val) => val instanceof Duration)
+export const durationSchema = v.custom<Duration>((val) => val instanceof Duration)
+export const nonNegativeIntegerSchema = v.pipe(v.number(), v.integer(), v.minValue(0))
+export const integerSchema = v.pipe(v.number(), v.integer())
 // integer > 0
-export const positiveIntegerSchema = z.number().int().positive()
+export const positiveIntegerSchema = v.pipe(v.number(), v.integer(), v.gtValue(0))
 
-export const locationPointSchema = z.object({
-  type: z.literal('Point'),
-  coordinates: z.array(z.number()).length(2),
+// whatever `new Date()` makes a date of: a Date, a timestamp, a date string
+export const dateSchema = v.pipe(
+  v.union([v.string(), v.date(), integerSchema]),
+  v.transform((input) => new Date(input)),
+  v.date(),
+)
+
+export const locationPointSchema = v.object({
+  type: v.literal('Point'),
+  coordinates: v.pipe(v.array(v.number()), v.length(2)),
 })
 
-export type LocationPointInput = z.input<typeof locationPointSchema>
-export type LocationPoint = z.output<typeof locationPointSchema>
+export type LocationPointInput = v.InferInput<typeof locationPointSchema>
+export type LocationPoint = v.InferOutput<typeof locationPointSchema>

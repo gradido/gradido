@@ -2,12 +2,13 @@ import { dbTransactionsSchema, Transaction, transactionsSchema } from 'core'
 import { Transaction as dbTransaction } from 'database'
 import { Decay as DecayInterface, Duration, decaySchema, GradidoUnit } from 'shared'
 import { Field, ObjectType } from 'type-graphql'
+import * as v from 'valibot'
 
 @ObjectType()
 export class Decay {
   public constructor(input?: DecayInterface) {
     if (input) {
-      const { balance, decay, start, end, duration } = decaySchema.parse(input)
+      const { balance, decay, start, end, duration } = v.parse(decaySchema, input)
       this.balance = balance
       this.decay = decay
       this.start = start
@@ -23,7 +24,7 @@ export class Decay {
   }
 
   static createFromDBTransaction(input: dbTransaction): Decay {
-    const { balance, decay, decayStart, balanceDate } = dbTransactionsSchema.parse(input)
+    const { balance, decay, decayStart, balanceDate } = v.parse(dbTransactionsSchema, input)
     const self = new Decay()
 
     self.balance = balance
@@ -41,9 +42,9 @@ export class Decay {
     return self
   }
 
-  // DTO Transaction is the graphql model Transaction, but in this case represented by a zod schema, because it is in a layer above in backend declared
+  // DTO Transaction is the graphql model Transaction, but in this case represented by a valibot schema, because it is in a layer above in backend declared
   static createFromDTOTransaction(input: Transaction): Decay {
-    const { balance, decay, balanceDate } = transactionsSchema.parse(input)
+    const { balance, decay, balanceDate } = v.parse(transactionsSchema, input)
     const self = new Decay()
 
     self.balance = balance

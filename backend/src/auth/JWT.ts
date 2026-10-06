@@ -9,12 +9,13 @@ import {
   JwtSigner,
   verifyUserToken,
 } from 'shared'
+import * as v from 'valibot'
 import { CONFIG } from '@/config/'
 
 // built once at module load: an invalid COMMUNITY_URL or JWT_EXPIRES_IN stops the server at startup
 // the audience is the community url with trailing slash, a client that builds this token itself
 // (dlt-connector) has to write it the same way
-const authContext: AuthContext = authContextSchema.parse({
+const authContext: AuthContext = v.parse(authContextSchema, {
   issuer: CONFIG.COMMUNITY_URL,
   audience: ensureUrlEndsWithSlash(CONFIG.COMMUNITY_URL),
   duration: Duration.fromString(CONFIG.JWT_EXPIRES_IN),

@@ -1,4 +1,5 @@
 // AI-GENERATED — not an architecture reference
+
 import {
   ChatMemberRef,
   dbSelectChatMessageImageInfos,
@@ -7,6 +8,7 @@ import {
 } from 'database'
 import { getLogger } from 'log4js'
 import { Ed25519PublicKey, MESSAGE_MAX_CHARS, MESSAGE_MIN_CHARS, uuidv4Schema } from 'shared'
+import * as v from 'valibot'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
 import { databaseErrorCode } from '../../logic/ChatMessage.logic'
 import { BaseCommand } from '../BaseCommand'
@@ -104,7 +106,7 @@ export class EditChatMessageCommand extends BaseCommand<string> {
     const refuse = (reason: string): never => {
       methodLogger.warn(
         `chat message not edited: message_uuid=${
-          uuidv4Schema.safeParse(this.editParams.messageUuid).success
+          v.safeParse(uuidv4Schema, this.editParams.messageUuid).success
             ? this.editParams.messageUuid
             : 'none'
         } (${reason})`,
@@ -113,9 +115,9 @@ export class EditChatMessageCommand extends BaseCommand<string> {
     }
     const { senderComUuid, senderGradidoId, messageUuid, body } = this.editParams
     if (
-      !uuidv4Schema.safeParse(senderComUuid).success ||
-      !uuidv4Schema.safeParse(senderGradidoId).success ||
-      !uuidv4Schema.safeParse(messageUuid).success ||
+      !v.safeParse(uuidv4Schema, senderComUuid).success ||
+      !v.safeParse(uuidv4Schema, senderGradidoId).success ||
+      !v.safeParse(uuidv4Schema, messageUuid).success ||
       typeof body !== 'string' ||
       // Counted by code points: a pair of surrogates is one. The sending server's argument check
       // (class-validator) takes a variation selector for none as well, so it lets a text of

@@ -1,4 +1,5 @@
 // AI-GENERATED — not an architecture reference
+
 import {
   CHAT_MESSAGE_NOTIFY_LETTER,
   ChatMessageImageAccepted,
@@ -31,6 +32,7 @@ import {
 import { CommandJwtPayloadType, encryptAndSign, uuidv4Schema } from 'shared'
 import { randombytes_random } from 'sodium-native'
 import { v4 as uuidv4 } from 'uuid'
+import * as v from 'valibot'
 import { PublishNameLogic } from '@/data/PublishName.logic'
 import { LogError } from '@/server/LogError'
 
@@ -322,8 +324,8 @@ export async function deliverChatMessageAcrossBorder({
   // The own copy only for a recipient the receiving server can look up (see above).
   const recipient =
     receiverCom.communityUuid &&
-    uuidv4Schema.safeParse(receiverCom.communityUuid).success &&
-    uuidv4Schema.safeParse(recipientGradidoId).success
+    v.safeParse(uuidv4Schema, receiverCom.communityUuid).success &&
+    v.safeParse(uuidv4Schema, recipientGradidoId).success
       ? { communityUuid: receiverCom.communityUuid, gradidoId: recipientGradidoId }
       : null
   if (

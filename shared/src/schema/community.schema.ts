@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import * as v from 'valibot'
 import { privateJwtKeySchema, publicJwtKeySchema } from '../jwt/jwt.schema'
 import {
   ed25519PrivateKeySchema,
@@ -7,22 +7,22 @@ import {
   uuidv4Schema,
 } from './base.schema'
 
-export const communityAuthenticatedSchema = z.object({
+export const communityAuthenticatedSchema = v.object({
   communityUuid: uuidv4Schema,
-  authenticatedAt: z.date(),
+  authenticatedAt: v.date(),
 })
 
-export const homeCommunityInsertSchema = z.object({
-  foreign: z.literal(false).default(false),
+export const homeCommunityInsertSchema = v.object({
+  foreign: v.optional(v.literal(false), false),
   publicKey: ed25519PublicKeySchema,
   privateKey: ed25519PrivateKeySchema,
   communityUuid: uuidv4Schema,
   url: urlSchema,
-  name: z.string().min(3).max(40), // TODO: use own community name rules for both config and this
-  description: z.string().min(10).max(255),
-  creationDate: z.date(),
+  name: v.pipe(v.string(), v.minLength(3), v.maxLength(40)), // TODO: use own community name rules for both config and this
+  description: v.pipe(v.string(), v.minLength(10), v.maxLength(255)),
+  creationDate: v.date(),
   publicJwtKey: publicJwtKeySchema,
   privateJwtKey: privateJwtKeySchema,
 })
 
-export type HomeCommunityInsertInput = z.input<typeof homeCommunityInsertSchema>
+export type HomeCommunityInsertInput = v.InferInput<typeof homeCommunityInsertSchema>

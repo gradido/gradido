@@ -13,6 +13,7 @@ import {
 import { getLogger } from 'log4js'
 import { projectBrandingSchema } from 'shared'
 import { Arg, Authorized, ID, Int, Mutation, Query, Resolver } from 'type-graphql'
+import * as v from 'valibot'
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
@@ -51,7 +52,7 @@ export class ProjectBrandingResolver {
   async upsertProjectBranding(
     @Arg('input') input: ProjectBrandingInput,
   ): Promise<ProjectBranding | null> {
-    return new ProjectBranding(await dbUpsertProjectBranding(projectBrandingSchema.parse(input)))
+    return new ProjectBranding(await dbUpsertProjectBranding(v.parse(projectBrandingSchema, input)))
   }
 
   @Mutation(() => Boolean)

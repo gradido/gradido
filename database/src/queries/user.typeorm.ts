@@ -4,6 +4,7 @@
 import { getLogger } from 'log4js'
 import { aliasSchema, emailSchema, Order, Result, uuidv4Schema, VoidResult } from 'shared'
 import { EntityManager, In, IsNull, Like, Not, Raw } from 'typeorm'
+import * as v from 'valibot'
 import { User as DbUser, UserContact as DbUserContact } from '../entity'
 import { AccountState, ASSIGNABLE_ROLE_NAMES } from '../enum'
 import { DBNotFoundError } from '../errorTypes'
@@ -82,12 +83,12 @@ export const findUserByIdentifier = async (
     ? findWithCommunityIdentifier(communityIdentifier)
     : undefined
 
-  if (uuidv4Schema.safeParse(identifier).success) {
+  if (v.safeParse(uuidv4Schema, identifier).success) {
     return DbUser.findOne({
       where: { gradidoID: identifier, community: communityWhere },
       relations: ['emailContact', 'community'],
     })
-  } else if (emailSchema.safeParse(identifier).success) {
+  } else if (v.safeParse(emailSchema, identifier).success) {
     const userContact = await DbUserContact.findOne({
       where: {
         email: identifier,
@@ -118,7 +119,7 @@ export const findUserByIdentifier = async (
       user.emailContact = userContact
       return user
     }
-  } else if (aliasSchema.safeParse(identifier).success) {
+  } else if (v.safeParse(aliasSchema, identifier).success) {
     const normedAlias = Raw((a) => `LOWER(${a}) = LOWER(:alias)`, { alias: identifier })
     const foundUser = await DbUser.findOne({
       where: { alias: normedAlias, community: communityWhere },

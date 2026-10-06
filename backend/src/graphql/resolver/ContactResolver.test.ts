@@ -46,8 +46,8 @@ let peter: User
 
 const day = (n: number): Date => new Date(Date.UTC(2026, 7, n, 12, 0, 0))
 
-const FOREIGN_COMMUNITY = '99999999-9999-9999-9999-999999999999'
-const ANNA = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'
+const FOREIGN_COMMUNITY = '99999999-9999-4999-9999-999999999999'
+const ANNA = 'eeeeeeee-eeee-4eee-aeee-eeeeeeeeeeee'
 
 /**
  * A member of another community whose stored name is a pre-alias-era "First Last" -- the

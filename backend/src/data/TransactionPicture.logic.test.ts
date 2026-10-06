@@ -1,5 +1,7 @@
 // AI-GENERATED — not an architecture reference
+
 import { TransactionTypeId } from 'database'
+import * as v from 'valibot'
 import { THANK_YOU_MOTIFS } from './ThankYouGreeting.logic'
 import {
   BookingPictureColumns,
@@ -68,26 +70,26 @@ describe('transactionPictureSchema', () => {
   const photo = { data: 'AAAA', width: 831, height: 577 }
 
   it.each(THANK_YOU_MOTIFS)('takes the motif %s', (motif) => {
-    expect(transactionPictureSchema.parse({ motif })).toEqual({ motif })
+    expect(v.parse(transactionPictureSchema, { motif })).toEqual({ motif })
   })
 
   it('takes a photo', () => {
-    expect(transactionPictureSchema.parse({ picture: photo })).toEqual({ picture: photo })
+    expect(v.parse(transactionPictureSchema, { picture: photo })).toEqual({ picture: photo })
   })
 
   it('takes neither, as nothing, null or left out', () => {
-    expect(transactionPictureSchema.safeParse({}).success).toBe(true)
-    expect(transactionPictureSchema.safeParse({ motif: null, picture: null }).success).toBe(true)
+    expect(v.safeParse(transactionPictureSchema, {}).success).toBe(true)
+    expect(v.safeParse(transactionPictureSchema, { motif: null, picture: null }).success).toBe(true)
     expect(
-      transactionPictureSchema.safeParse({ motif: undefined, picture: undefined }).success,
+      v.safeParse(transactionPictureSchema, { motif: undefined, picture: undefined }).success,
     ).toBe(true)
   })
 
   it('refuses both at once, and says so without quoting either', () => {
-    const parsed = transactionPictureSchema.safeParse({ motif: 'bouquet', picture: photo })
+    const parsed = v.safeParse(transactionPictureSchema, { motif: 'bouquet', picture: photo })
 
     expect(parsed.success).toBe(false)
-    expect(!parsed.success && parsed.error.issues[0].message).toBe(
+    expect(!parsed.success && parsed.issues[0].message).toBe(
       'Transfer picture: a motif or a photo, not both',
     )
   })
@@ -95,19 +97,17 @@ describe('transactionPictureSchema', () => {
   it.each(['', 'Bouquet', 'elephant', ' bouquet', '../../etc/passwd'])(
     'refuses the unknown motif "%s"',
     (motif) => {
-      const parsed = transactionPictureSchema.safeParse({ motif })
+      const parsed = v.safeParse(transactionPictureSchema, { motif })
 
       expect(parsed.success).toBe(false)
-      expect(!parsed.success && parsed.error.issues[0].message).toBe(
-        'Transfer picture: unknown motif',
-      )
+      expect(!parsed.success && parsed.issues[0].message).toBe('Transfer picture: unknown motif')
     },
   )
 
   it('refuses a photo that has not the shape of one', () => {
-    expect(transactionPictureSchema.safeParse({ picture: { data: 'AAAA' } }).success).toBe(false)
+    expect(v.safeParse(transactionPictureSchema, { picture: { data: 'AAAA' } }).success).toBe(false)
     expect(
-      transactionPictureSchema.safeParse({ picture: { data: 7, width: 1, height: 1 } }).success,
+      v.safeParse(transactionPictureSchema, { picture: { data: 7, width: 1, height: 1 } }).success,
     ).toBe(false)
   })
 })

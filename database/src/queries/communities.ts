@@ -9,6 +9,7 @@ import {
   uuidv4Schema,
 } from 'shared'
 import { FindOptionsOrder, FindOptionsWhere, IsNull, MoreThanOrEqual, Not } from 'typeorm'
+import * as v from 'valibot'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
 import { Community as DbCommunity } from '../entity'
 import { CommunitiesInsert, CommunitiesSelect, communitiesTable } from '../schemas'
@@ -74,7 +75,9 @@ export async function dbInsertHomeCommunity(
   if (await dbSelectHomeCommunity()) {
     throw new Error('home community already exist, only one is allowed')
   }
-  await drizzleDb().insert(communitiesTable).values(homeCommunityInsertSchema.parse(homeCommunity))
+  await drizzleDb()
+    .insert(communitiesTable)
+    .values(v.parse(homeCommunityInsertSchema, homeCommunity))
   homeCommunityCache.invalidateEverywhere()
 }
 
@@ -102,7 +105,7 @@ export async function dbGetCommunityByUuid(
 
 export async function dbHomeCommunityGetUuid(): Promise<string> {
   const homeCom = await getHomeCommunityDrizzle()
-  return uuidv4Schema.parse(homeCom?.communityUuid)
+  return v.parse(uuidv4Schema, homeCom?.communityUuid)
 }
 
 /**
@@ -137,9 +140,9 @@ export function findWithCommunityIdentifier(
 ): FindOptionsWhere<DbCommunity> {
   const where: FindOptionsWhere<DbCommunity> = {}
   // pre filter identifier type to reduce db query complexity
-  if (urlSchema.safeParse(communityIdentifier).success) {
+  if (v.safeParse(urlSchema, communityIdentifier).success) {
     where.url = communityIdentifier
-  } else if (uuidv4Schema.safeParse(communityIdentifier).success) {
+  } else if (v.safeParse(uuidv4Schema, communityIdentifier).success) {
     where.communityUuid = communityIdentifier
   } else {
     where.name = communityIdentifier
