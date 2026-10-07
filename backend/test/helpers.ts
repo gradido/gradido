@@ -1,7 +1,6 @@
 import { deflateSync } from 'node:zlib'
-import { ApolloServer } from 'apollo-server-express'
-import { GraphQLResponse } from 'apollo-server-core'
-import { DocumentNode } from 'graphql'
+import { ApolloServer, HTTPGraphQLHead } from '@apollo/server'
+import { DocumentNode, GraphQLError } from 'graphql'
 import { dbDeleteAllRowsExceptMigrations } from 'database'
 import {
   AppDatabase,
@@ -26,17 +25,19 @@ const context = {
     forEach: jest.fn(),
   },
   clientTimezoneOffset: 0,
-  // A getter, because Apollo copies this object for every operation and the copy reads each
-  // property once: every operation of the test client gets a budget of its own, as every
-  // HTTP request does from the context function. A plain object here would be ONE budget
-  // for a whole test file, and the tenth full-size picture of the file would be its last.
-  get requestBudget() {
-    return newRequestBudget()
-  },
 }
 
+// The context of one operation, as the context function makes one for every HTTP request:
+// what the tests of a file share -- the token, the offset -- and a budget of its own.
+const operationContext = () => ({ ...context, requestBudget: newRequestBudget() })
+
 type StringOrAst = string | DocumentNode
-type TestResponse<TData> = Omit<GraphQLResponse, 'data'> & { data?: TData }
+interface TestResponse<TData> {
+  data?: TData
+  errors?: GraphQLError[]
+  extensions?: Record<string, unknown>
+  http: HTTPGraphQLHead
+}
 
 /**
  * What `apollo-server-testing` handed out until Apollo Server 3 dropped the package: `query`
@@ -57,13 +58,38 @@ export interface ApolloServerTestClient {
   }): Promise<TestResponse<TData>>
 }
 
-export const createTestClient = (server: ApolloServer): ApolloServerTestClient => {
-  const test = ({ query, mutation, ...args }: any): Promise<any> => {
+/**
+ * `contextFor`: makes the context an operation is run with, a new one each time.
+ *
+ * The answer is handed on in the shape the tests read: data, errors and extensions at the
+ * top, and each error a GraphQLError again -- the server answers with plain objects, which
+ * no `new GraphQLError(...)` of an expectation equals.
+ */
+export const createTestClient = (
+  server: ApolloServer<any>,
+  contextFor: () => object,
+): ApolloServerTestClient => {
+  const test = async ({ query, mutation, ...args }: any): Promise<any> => {
     const operation = query || mutation
     if (!operation || (query && mutation)) {
       throw new Error('Either `query` or `mutation` must be passed, but not both.')
     }
-    return server.executeOperation({ query: operation, ...args })
+    const response = await server.executeOperation(
+      { query: operation, ...args },
+      { contextValue: contextFor() },
+    )
+    if (response.body.kind !== 'single') {
+      throw new Error('The test client reads no answer that is delivered in parts.')
+    }
+    const { data, errors, extensions } = response.body.singleResult
+    return {
+      data,
+      errors: errors?.map(
+        ({ message, path, extensions }) => new GraphQLError(message, { path, extensions }),
+      ),
+      extensions,
+      http: response.http,
+    }
   }
   return { query: test, mutate: test }
 }
@@ -80,16 +106,17 @@ export const cleanDB = async () => {
 
 // Apollo on the database, and nothing of HTTP: operations run through the test client.
 export const testEnvironment = async (testLogger = getLogger('apollo')) => {
-  const server = await createApolloServer(testLogger, context)
-  const testClient = createTestClient(server.apollo)
+  const server = await createApolloServer(testLogger)
+  const testClient = createTestClient(server.apollo, operationContext)
   return { mutate: testClient.mutate, query: testClient.query, con: server.con, db: server.db }
 }
 
 // The same with the Express application around it (`app`), for a test that asks an address
-// outside GraphQL. It is not listening: the test starts it on a port of its own.
+// outside GraphQL. It is not listening: the test starts it on a port of its own. What comes
+// in over that port gets the context of a real request; the test client keeps its own.
 export const testEnvironmentWithApp = async (testLogger = getLogger('apollo')) => {
-  const server = await createServer(testLogger, context)
-  const testClient = createTestClient(server.apollo)
+  const server = await createServer(testLogger)
+  const testClient = createTestClient(server.apollo, operationContext)
   return {
     mutate: testClient.mutate,
     query: testClient.query,

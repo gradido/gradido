@@ -1,3 +1,4 @@
+import { expressMiddleware } from '@as-integrations/express4'
 import { CONFIG as CORE_CONFIG } from 'core'
 import express, { Express, json, urlencoded } from 'express'
 import { slowDown } from 'express-slow-down'
@@ -26,15 +27,12 @@ interface ServerDef extends ApolloServerDef {
   app: Express
 }
 
-export const createServer = async (
-  apolloLogger: Logger,
-  context: any = serverContext,
-): Promise<ServerDef> => {
+export const createServer = async (apolloLogger: Logger): Promise<ServerDef> => {
   const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.createServer`)
   logger.debug('createServer...')
 
   // the database connection and Apollo on it
-  const { apollo, con, db } = await createApolloServer(apolloLogger, context)
+  const { apollo, con, db } = await createApolloServer(apolloLogger)
 
   // Express Server
   const app = express()
@@ -98,8 +96,8 @@ export const createServer = async (
   // itself. Behind the same two limiters, mounted the same way and for the same reason.
   app.use(REDEEM_PREVIEW_PATH, apiRedeemPreview)
 
-  // Apollo Server
-  apollo.applyMiddleware({ app, path: '/' })
+  // Apollo Server, behind cors and the json body parser above. One context per HTTP request.
+  app.use('/', expressMiddleware(apollo, { context: async (args) => serverContext(args) }))
   logger.info(
     `running with PRODUCTION=${CONFIG.PRODUCTION}, sending EMAIL enabled=${CORE_CONFIG.EMAIL} and EMAIL_TEST_MODUS=${CORE_CONFIG.EMAIL_TEST_MODUS} ...`,
   )

@@ -3,9 +3,8 @@ import {
   dbDeleteAllRowsExceptMigrations,
   HOME_COMMUNITY_CHANGED_CHANNEL,
 } from 'database'
-import { ApolloServer } from 'apollo-server-express'
-import { GraphQLResponse } from 'apollo-server-core'
-import { DocumentNode } from 'graphql'
+import { ApolloServer, HTTPGraphQLHead } from '@apollo/server'
+import { DocumentNode, GraphQLError } from 'graphql'
 
 import { createServer } from '@/server/createServer'
 
@@ -25,7 +24,12 @@ const context = {
 }
 
 type StringOrAst = string | DocumentNode
-type TestResponse<TData> = Omit<GraphQLResponse, 'data'> & { data?: TData }
+interface TestResponse<TData> {
+  data?: TData
+  errors?: GraphQLError[]
+  extensions?: Record<string, unknown>
+  http: HTTPGraphQLHead
+}
 
 /**
  * What `apollo-server-testing` handed out until Apollo Server 3 dropped the package: `query`
@@ -46,13 +50,30 @@ export interface ApolloServerTestClient {
   }): Promise<TestResponse<TData>>
 }
 
-export const createTestClient = (server: ApolloServer): ApolloServerTestClient => {
-  const test = ({ query, mutation, ...args }: any): Promise<any> => {
+/**
+ * The answer is handed on in the shape the tests read: data, errors and extensions at the
+ * top, and each error a GraphQLError again -- the server answers with plain objects, which
+ * no `new GraphQLError(...)` of an expectation equals.
+ */
+export const createTestClient = (server: ApolloServer<any>): ApolloServerTestClient => {
+  const test = async ({ query, mutation, ...args }: any): Promise<any> => {
     const operation = query || mutation
     if (!operation || (query && mutation)) {
       throw new Error('Either `query` or `mutation` must be passed, but not both.')
     }
-    return server.executeOperation({ query: operation, ...args })
+    const response = await server.executeOperation({ query: operation, ...args })
+    if (response.body.kind !== 'single') {
+      throw new Error('The test client reads no answer that is delivered in parts.')
+    }
+    const { data, errors, extensions } = response.body.singleResult
+    return {
+      data,
+      errors: errors?.map(
+        ({ message, path, extensions }) => new GraphQLError(message, { path, extensions }),
+      ),
+      extensions,
+      http: response.http,
+    }
   }
   return { query: test, mutate: test }
 }

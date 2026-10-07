@@ -88,15 +88,6 @@ export const COMMUNITY_LOCATION = Joi.string()
   .description('Geographical location of the community in "latitude, longitude" format')
   .default('49.280377, 9.690151')
 
-export const GRAPHIQL = Joi.boolean()
-  .description('Flag for enabling GraphQL playground for debugging.')
-  .default(false)
-  .when('NODE_ENV', {
-    is: 'development',
-    then: Joi.boolean().valid(true, false).required(), // only allow true in development mode
-    otherwise: Joi.boolean().valid(false).required(), // false in any other mode
-  })
-
 export const GMS_ACTIVE = Joi.boolean()
   .description('Flag to indicate if the GMS (Geographic Member Search) service is used.')
   .default(false)

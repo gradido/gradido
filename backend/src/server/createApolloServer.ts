@@ -1,19 +1,15 @@
 // AI-GENERATED — not an architecture reference
-import {
-  ApolloServerPluginLandingPageDisabled,
-  ApolloServerPluginLandingPageGraphQLPlayground,
-} from 'apollo-server-core'
-import { ApolloServer } from 'apollo-server-express'
+import { ApolloServer } from '@apollo/server'
+import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled'
 import { AppDatabase } from 'database'
 import { Logger } from 'log4js'
 import { DataSource } from 'typeorm'
-import { CONFIG } from '@/config'
 import { schema } from '@/graphql/schema'
-import { context as serverContext } from './context'
+import { Context } from './context'
 import { plugins } from './plugins'
 
 export interface ApolloServerDef {
-  apollo: ApolloServer
+  apollo: ApolloServer<Context>
   con: DataSource
   db: AppDatabase
 }
@@ -21,30 +17,21 @@ export interface ApolloServerDef {
 /**
  * The database connection and the started Apollo Server on it, without anything of HTTP:
  * what createServer mounts into Express, and all a test needs that only runs operations
- * (`apollo.executeOperation`).
+ * (`apollo.executeOperation`). The context is no part of it any more: Apollo Server 5 is
+ * handed one with each request, by the middleware or by whoever runs an operation.
  */
-export const createApolloServer = async (
-  apolloLogger: Logger,
-  context: any = serverContext,
-): Promise<ApolloServerDef> => {
+export const createApolloServer = async (apolloLogger: Logger): Promise<ApolloServerDef> => {
   // open mariadb connection, retry connecting with mariadb
   // check for correct database version
   // retry max CONFIG.DB_CONNECT_RETRY_COUNT times, wait CONFIG.DB_CONNECT_RETRY_DELAY ms between tries
   const db = AppDatabase.getInstance()
   await db.init()
 
-  const apollo = new ApolloServer({
+  const apollo = new ApolloServer<Context>({
     schema: await schema(),
-    introspection: CONFIG.GRAPHIQL,
-    context,
-    // Apollo Server 3 has no `playground` option any more: the page a browser is shown is a
-    // plugin, and without one it would show Apollo's own landing page instead of nothing.
-    plugins: [
-      ...plugins,
-      CONFIG.GRAPHIQL
-        ? ApolloServerPluginLandingPageGraphQLPlayground()
-        : ApolloServerPluginLandingPageDisabled(),
-    ],
+    introspection: false,
+    // Without it a browser would be shown Apollo's own landing page instead of nothing.
+    plugins: [...plugins, ApolloServerPluginLandingPageDisabled()],
     logger: apolloLogger,
   })
   await apollo.start()

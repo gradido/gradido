@@ -1147,10 +1147,8 @@ export class UserResolver {
     @Arg('ref', () => MemberAvatarRefInput) ref: MemberAvatarRefInput,
     @Ctx() context: Context,
   ): Promise<string | null> {
-    // ⛔ Counted in the HTTP request's budget, not in this call and not on the context
-    // itself. One document may carry this field under any number of aliases, and one POST
-    // may carry any number of documents, each with its own copy of the context; the budget
-    // is the one object they all share (RequestBudget in server/context.ts).
+    // ⛔ Counted in the HTTP request's budget, not in this call: one document may carry this
+    // field under any number of aliases (RequestBudget in server/context.ts).
     context.requestBudget.memberAvatarsFullServed += 1
     const served = context.requestBudget.memberAvatarsFullServed
     if (served > MEMBER_AVATARS_FULL_MAX_PER_REQUEST) {
