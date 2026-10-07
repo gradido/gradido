@@ -82,7 +82,16 @@ describe('NativeAppContext', () => {
       assert.throws(
         () =>
           new NativeAppContext({ appSecret, serverKey, passwordHashing: { maxExpectedWaitMs: 0 } }),
-        /maxExpectedWaitMs to be above 0/,
+        /maxExpectedWaitMs to be a positive integer/,
+      )
+      assert.throws(
+        () =>
+          new NativeAppContext({
+            appSecret,
+            serverKey,
+            passwordHashing: { ...production, maxExpectedWaitMs: 0.5 },
+          }),
+        /maxExpectedWaitMs to be a positive integer/,
       )
     })
     it('reports the thread count, the rule and a first measured duration', () => {
@@ -148,7 +157,8 @@ describe('NativeAppContext', () => {
         context.getPasswordHashingStats()
       const fit = Math.ceil(maxExpectedWaitMs / averageDurationMs)
       const results = []
-      for (let i = 0; i < fit + threadCount + 5; i++) {
+      // far more than fit: how many are refused shifts with the average, see below
+      for (let i = 0; i < fit * 4 + threadCount + 5; i++) {
         results.push(context.hashPassword(`job-${i}`, 'pw', i % 2))
       }
       const accepted = results.filter((result) => result.success)
@@ -156,8 +166,12 @@ describe('NativeAppContext', () => {
       const report = `${accepted.length} accepted at ${averageDurationMs} ms per derivation`
       // the thread may have taken a job out of the queue already
       assert.ok(accepted.length >= Math.floor(maxExpectedWaitMs / averageDurationMs), report)
-      assert.ok(accepted.length <= fit + threadCount + 1, report)
-      assert.ok(refused.length >= 4, report)
+      // The average moves while the loop runs if a derivation finishes meanwhile -- the
+      // calibration is a cold one -- so the upper bound takes the faster of the two averages.
+      const afterAverageMs = context.getPasswordHashingStats().averageDurationMs
+      const fastest = Math.min(averageDurationMs, afterAverageMs)
+      assert.ok(accepted.length <= Math.ceil(maxExpectedWaitMs / fastest) + threadCount + 1, report)
+      assert.ok(refused.length >= 1, report)
       assert.equal(refused[0].error.name, 'PASSWORD_HASH_QUEUE_FULL')
       assert.match(
         refused[0].error.message,

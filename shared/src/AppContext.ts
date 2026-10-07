@@ -1,40 +1,14 @@
-// AI-GENERATED — not an architecture reference
 import { getLogger } from 'log4js'
-import { NativeAppContext, PasswordHashingOptions, PasswordHashingStats } from 'shared-native'
-import { LOG4JS_BASE_CATEGORY_NAME, PASSWORD_HASH_MAX_EXPECTED_WAIT_MS } from './const'
+import { NativeAppContext, PasswordHashingStats } from 'shared-native'
+import * as v from 'valibot'
+import {
+  DEFAULT_PASSWORD_HASHING,
+  LOG4JS_BASE_CATEGORY_NAME,
+  PASSWORD_HASH_MAX_EXPECTED_WAIT_MS,
+} from './const'
 import { PasswordHashPriority } from './enum/PasswordHashPriority'
 import { ResourceExhausted, Result } from './errorTypes'
-
-export interface AppContextInitOptions {
-  /** hex, the backend's LOGIN_APP_SECRET */
-  appSecret: string
-  /** hex, 32 characters, the backend's LOGIN_SERVER_KEY */
-  serverKey: string
-  /**
-   * What is not set here comes from DEFAULT_PASSWORD_HASHING and
-   * PASSWORD_HASH_MAX_EXPECTED_WAIT_MS; only tests set anything. See the native type.
-   */
-  passwordHashing?: Partial<PasswordHashingOptions>
-}
-
-/**
- * ⛔ For tests only: argon2id's minimums and a single thread, so a test suite does not spend
- * its time on 32 MiB derivations. A hash derived with it matches no production hash, and
- * must never be written anywhere a production login reads.
- */
-export const MINIMAL_PASSWORD_HASHING: Partial<PasswordHashingOptions> = {
-  opsLimit: 1,
-  memLimit: 8192,
-  threadCount: 1,
-}
-
-/*
- * The passworth hashing options which where used in production since start
- */
-export const DEFAULT_PASSWORD_HASHING: Partial<PasswordHashingOptions> = {
-  opsLimit: 10,
-  memLimit: 33554432,
-}
+import { hexBytesSchema, positiveIntegerSchema } from './schema/base.schema'
 
 /**
  * What the process is configured with once, at start, and does not change while it runs.
@@ -63,22 +37,14 @@ export class AppContext {
 
   /**
    * Copies the secrets to the native side and starts the password hashing threads. Wrong
-   * secrets (a server key that is not 16 bytes) throw here, at start, rather than on the
-   * first login.
+   * options (a server key that is not 16 bytes, a difficulty argon2id refuses) throw here,
+   * at start, rather than on the first login; see appContextOptionsSchema.
    */
-  public init(options: AppContextInitOptions): void {
+  public init(options: AppContextOptionsInput): void {
     if (this.native) {
       return
     }
-    this.native = new NativeAppContext({
-      appSecret: Buffer.from(options.appSecret, 'hex'),
-      serverKey: Buffer.from(options.serverKey, 'hex'),
-      passwordHashing: {
-        ...DEFAULT_PASSWORD_HASHING,
-        maxExpectedWaitMs: PASSWORD_HASH_MAX_EXPECTED_WAIT_MS,
-        ...options.passwordHashing,
-      },
-    })
+    this.native = new NativeAppContext(v.parse(appContextOptionsSchema, options))
   }
 
   /**
@@ -139,3 +105,38 @@ export class AppContext {
     return this.getNative().derivePinKey(salt, pin)
   }
 }
+
+/**
+ * What AppContext.init takes, and parsed, what the native context is created with: the two
+ * secrets as the backend's config holds them, and the options of the password hashing
+ * threads. Everything left out of those is the production value; the minimums are argon2id's
+ * (libsodium's crypto_pwhash_OPSLIMIT_MIN and MEMLIMIT_MIN), which the native side insists
+ * on as well.
+ *
+ * ⛔ opsLimit and memLimit are constants of the derivation, not tuning: every hash in
+ * users.password was derived with the defaults, and a hash derived with other values
+ * matches no stored password. Set them for tests only, where no hash is ever compared with
+ * a production one.
+ */
+export const appContextOptionsSchema = v.object({
+  /** the backend's LOGIN_APP_SECRET */
+  appSecret: v.pipe(hexBytesSchema, v.minLength(1)),
+  /** the backend's LOGIN_SERVER_KEY: 16 bytes, crypto_shorthash_KEYBYTES */
+  serverKey: v.pipe(hexBytesSchema, v.length(16, 'need to be 32 hex characters')),
+  passwordHashing: v.optional(
+    v.object({
+      opsLimit: v.optional(positiveIntegerSchema, DEFAULT_PASSWORD_HASHING.opsLimit),
+      memLimit: v.optional(
+        v.pipe(positiveIntegerSchema, v.minValue(8192)),
+        DEFAULT_PASSWORD_HASHING.memLimit,
+      ),
+      // the threads that derive; without it the native side takes half the logical cores
+      threadCount: v.optional(positiveIntegerSchema),
+      // the admission rule: a job is admitted while what is queued would be served within this
+      maxExpectedWaitMs: v.optional(positiveIntegerSchema, PASSWORD_HASH_MAX_EXPECTED_WAIT_MS),
+    }),
+    {},
+  ),
+})
+export type AppContextOptionsInput = v.InferInput<typeof appContextOptionsSchema>
+export type AppContextOptions = v.InferOutput<typeof appContextOptionsSchema>

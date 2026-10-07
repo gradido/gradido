@@ -75,7 +75,7 @@ namespace gradido::password {
         return std::max<size_t>(1, std::thread::hardware_concurrency() / 2);
     }
 
-    HashingPool::HashingPool(Napi::Env env, Secrets secrets, Difficulty difficulty, size_t threadCount, double maxExpectedWaitMs)
+    HashingPool::HashingPool(Napi::Env env, Secrets secrets, Difficulty difficulty, size_t threadCount, size_t maxExpectedWaitMs)
         : mSecrets(std::move(secrets)),
           mDifficulty(difficulty),
           mThreadCount(threadCount),
@@ -132,7 +132,7 @@ namespace gradido::password {
         {
             std::lock_guard<std::mutex> lock(mMutex);
             admission.expectedWaitMs = expectedWaitMsLocked();
-            admission.admitted = admission.expectedWaitMs < mMaxExpectedWaitMs;
+            admission.admitted = admission.expectedWaitMs < static_cast<double>(mMaxExpectedWaitMs);
             if (admission.admitted) {
                 auto* job = new Job{ std::move(salt), std::move(password), deferred, 0, false };
                 (priority == Priority::HIGH ? mHighPriorityQueue : mLowPriorityQueue).push_back(job);
@@ -156,7 +156,7 @@ namespace gradido::password {
         std::lock_guard<std::mutex> lock(mMutex);
         return Stats{
             mThreadCount,
-            mMaxExpectedWaitMs,
+            static_cast<double>(mMaxExpectedWaitMs),
             averageDurationMsLocked(),
             expectedWaitMsLocked(),
             mHighPriorityQueue.size(),

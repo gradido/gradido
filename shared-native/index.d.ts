@@ -479,8 +479,9 @@ export function reencodeImage(
 export interface PasswordHashingOptions {
   /**
    * The admission rule: a job is admitted while what is queued already would be served
-   * within this many milliseconds. The production value is PASSWORD_HASH_MAX_EXPECTED_WAIT_MS
-   * in shared/src/const; a test sets a small one to see refusals without waiting for them.
+   * within this many whole milliseconds. The production value is
+   * PASSWORD_HASH_MAX_EXPECTED_WAIT_MS in shared/src/const; a test sets a small one to see
+   * refusals without waiting for them.
    */
   maxExpectedWaitMs: number
   /**

@@ -230,3 +230,22 @@ export const DEFAULT_LANGUAGE = 'de'
 // 10 minutes default cache timeout, it is for auto correcting, when cache invalidation don't work properly in any cases,
 // the cached data set will be updated after 10 minutes
 export const DEFAULT_CACHE_TIMEOUT_MS = 10 * 60 * 1000
+
+/*
+ * The passworth hashing options which where used in production since start
+ */
+export const DEFAULT_PASSWORD_HASHING = {
+  opsLimit: 10,
+  memLimit: 33554432,
+}
+
+/**
+ * ⛔ For tests only: argon2id's minimums and a single thread, so a test suite does not spend
+ * its time on 32 MiB derivations. A hash derived with it matches no production hash, and
+ * must never be written anywhere a production login reads.
+ */
+export const MINIMAL_PASSWORD_HASHING = {
+  opsLimit: 1,
+  memLimit: 8192,
+  threadCount: 1,
+}

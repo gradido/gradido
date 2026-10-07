@@ -22,6 +22,33 @@ export const emailSchema = v.pipe(
   v.rfcEmail('Invalid email'),
 )
 export const urlSchema = v.pipe(v.string(), v.url('Invalid url'))
+
+/**
+ * Bytes spelled as hex, the way the environment holds a key or a secret, into a Buffer.
+ * valibot's `hexadecimal` lets a `0x`/`0h` prefix (lowercase) and an odd number of digits through, and
+ * `Buffer.from(…, 'hex')` would swallow both silently -- stop at the `x`, drop the last
+ * digit -- so both are handled here. Compose a length on top where the bytes have one:
+ * `v.pipe(hexBytesSchema, v.length(16))`.
+ */
+export const hexBytesSchema = v.pipe(
+  v.union([
+    v.pipe(
+      v.string(),
+      v.hexadecimal('Invalid hex'),
+      v.transform((hex) => hex.replace(/^0[hx]/, '')),
+      v.check((hex) => hex.length % 2 === 0, 'Hex needs an even number of digits'),
+    ),
+    v.instance(Buffer),
+  ]),
+  v.transform((hex) => {
+    if (typeof hex === 'string') {
+      return Buffer.from(hex, 'hex')
+    } else {
+      return hex
+    }
+  }),
+)
+
 export const uint32Schema = v.pipe(v.number(), v.gtValue(0), v.maxValue(4294967295))
 
 /**

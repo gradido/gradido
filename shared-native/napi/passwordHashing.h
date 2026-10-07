@@ -111,7 +111,8 @@ namespace gradido::password {
 
         // main thread; threadCount >= 1. Runs one derivation to calibrate, so it takes as
         // long as one -- at the production difficulty around a tenth of a second.
-        HashingPool(Napi::Env env, Secrets secrets, Difficulty difficulty, size_t threadCount, double maxExpectedWaitMs);
+        // maxExpectedWaitMs in whole milliseconds: finer than that decides nothing
+        HashingPool(Napi::Env env, Secrets secrets, Difficulty difficulty, size_t threadCount, size_t maxExpectedWaitMs);
         ~HashingPool();
         HashingPool(const HashingPool&) = delete;
         HashingPool& operator=(const HashingPool&) = delete;
@@ -162,7 +163,7 @@ namespace gradido::password {
         Secrets mSecrets;
         const Difficulty mDifficulty;
         const size_t mThreadCount;
-        const double mMaxExpectedWaitMs;
+        const size_t mMaxExpectedWaitMs;
 
         std::mutex mMutex;
         std::condition_variable mCondition;

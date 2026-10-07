@@ -45,21 +45,6 @@ namespace gradido {
             return true;
         }
 
-        // A required positive number property, fractions allowed.
-        bool readPositiveNumber(Napi::Env env, Napi::Object options, const char* name, double& out)
-        {
-            if (!options.Has(name) || !options.Get(name).IsNumber()) {
-                Napi::TypeError::New(env, std::string("[NativeAppContext] Expected options.passwordHashing.") + name + " to be a number").ThrowAsJavaScriptException();
-                return false;
-            }
-            out = options.Get(name).As<Napi::Number>().DoubleValue();
-            if (!(out > 0)) {
-                Napi::TypeError::New(env, std::string("[NativeAppContext] Expected options.passwordHashing.") + name + " to be above 0").ThrowAsJavaScriptException();
-                return false;
-            }
-            return true;
-        }
-
         Napi::Object failure(Napi::Env env, const char* name, const std::string& message)
         {
             Napi::Object error = Napi::Object::New(env);
@@ -120,7 +105,7 @@ namespace gradido {
 
         password::Difficulty difficulty = { 0, 0 };
         size_t threadCount = password::HashingPool::defaultThreadCount();
-        double maxExpectedWaitMs = 0;
+        size_t maxExpectedWaitMs = 0;
         // Required for the wait budget and the difficulty: those figures are decisions of the
         // TypeScript side (PASSWORD_HASH_MAX_EXPECTED_WAIT_MS in shared/src/const,
         // DEFAULT_PASSWORD_HASHING in shared's AppContext), not defaults of this one. Only the
@@ -133,7 +118,7 @@ namespace gradido {
             Napi::Object hashing = options.Get("passwordHashing").As<Napi::Object>();
             size_t opsLimit = 0;
             size_t memLimit = 0;
-            if (!readPositiveNumber(env, hashing, "maxExpectedWaitMs", maxExpectedWaitMs)
+            if (!readCount(env, hashing, "maxExpectedWaitMs", maxExpectedWaitMs, true)
                 || !readCount(env, hashing, "opsLimit", opsLimit, true)
                 || !readCount(env, hashing, "memLimit", memLimit, true)
                 || !readCount(env, hashing, "threadCount", threadCount, false)) {
