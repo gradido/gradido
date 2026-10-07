@@ -134,6 +134,7 @@ import { useRoute } from 'vue-router'
 import MemberAvatar from '@/components/MemberAvatar.vue'
 import { NAV_AVATAR_SIZE } from '@/constants'
 import { avatarLettering } from '@/utils/avatarLettering'
+import { redirectTo } from '@/utils/redirect'
 
 const HELP_URL = 'https://gradido.net/coin/moderators-tutorial/'
 
@@ -237,14 +238,13 @@ const closeAfterChoice = (event) => {
 const { mutate: executeLogout } = useMutation(logout)
 
 const handleLogout = async () => {
-  window.location.assign(CONFIG.WALLET_LOGIN_URL)
-  // window.location = CONFIG.WALLET_LOGIN_URL
+  redirectTo(CONFIG.WALLET_LOGIN_URL)
   await store.dispatch('logout')
   await executeLogout()
 }
 
 const handleWallet = () => {
-  window.location = CONFIG.WALLET_AUTH_URL + store.state.token
+  redirectTo(CONFIG.WALLET_AUTH_URL + store.state.token)
   store.dispatch('logout') // logout without redirect
 }
 </script>

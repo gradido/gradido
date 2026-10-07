@@ -452,7 +452,9 @@ onError((error) => {
 
 onResult(() => {
   rows.value = result.value.adminListContributions.contributionCount
-  items.value = result.value.adminListContributions.contributionList
+  // Copies, as SearchUserTable makes them: what Apollo Client 3 answers is frozen, and the
+  // table opens a row by writing `_showDetails` into its item.
+  items.value = result.value.adminListContributions.contributionList.map((item) => ({ ...item }))
   // The faces of the members whose contributions are on this page, in one round trip. Each
   // row carries a DATE, not a picture; everything already held under that date needs
   // nothing, so paging back and forth asks for nothing at all.
@@ -546,7 +548,7 @@ const reloadContribution = (id) => {
     .onResult((result) => {
       const contribution = result.data.contribution
       const index = items.value.findIndex((obj) => obj.id === contribution.id)
-      items.value[index] = contribution
+      items.value[index] = { ...contribution }
     })
     .onError((error) => {
       overlay.value = false

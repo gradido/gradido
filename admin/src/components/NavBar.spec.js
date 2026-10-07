@@ -1,16 +1,19 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { reactive } from 'vue'
 import NavBar from './NavBar'
 import { createStore } from 'vuex'
 import { createRouter, createWebHistory } from 'vue-router'
 import CONFIG from '../config'
 import { NAV_AVATAR_SIZE } from '@/constants'
+import { redirectTo } from '@/utils/redirect'
 
 // The route the bar believes it is on. Reactive, so a test can move to another page.
 const route = vi.hoisted(() => ({ current: null }))
 
 // Mock vue-router
+vi.mock('@/utils/redirect')
+
 vi.mock('vue-router', async () => {
   const actual = await vi.importActual('vue-router')
   return {
@@ -58,7 +61,6 @@ describe('NavBar', () => {
   let wrapper
   let store
   let router
-  let originalWindow
 
   // The library's own components, not stubs: what is asserted below are names and markup
   // the library gives out (the menu, its entries, the opener), and a stub answers to any
@@ -95,20 +97,9 @@ describe('NavBar', () => {
         { path: '/statistic', name: 'statistic', component: Page },
       ],
     })
-    originalWindow = global.window
-    // Only `location` is replaced. The rest stays the real window: the menus are the
-    // library's own, and what positions them asks the window for `Element` and the like.
-    const windowMock = Object.create(originalWindow, {
-      location: { value: { assign: vi.fn() }, writable: true },
-    })
-    vi.stubGlobal('window', windowMock)
+    vi.mocked(redirectTo).mockClear()
 
     wrapper = createWrapper()
-  })
-
-  afterEach(() => {
-    vi.unstubAllGlobals()
-    global.window = originalWindow
   })
 
   // What stands in the bar itself, in both shapes of it.
@@ -350,14 +341,14 @@ describe('NavBar', () => {
     it('goes to the wallet from its entry', async () => {
       const dispatchSpy = vi.spyOn(store, 'dispatch')
       await account().find('[data-test="navbar-wallet"]').trigger('click')
-      expect(window.location).toBe(CONFIG.WALLET_AUTH_URL + 'valid-token')
+      expect(redirectTo).toHaveBeenCalledWith(CONFIG.WALLET_AUTH_URL + 'valid-token')
       expect(dispatchSpy).toHaveBeenCalledWith('logout')
     })
 
     it('logs out from its entry', async () => {
       const dispatchSpy = vi.spyOn(store, 'dispatch')
       await account().find('[data-test="navbar-logout"]').trigger('click')
-      expect(window.location.assign).toHaveBeenCalledWith(CONFIG.WALLET_LOGIN_URL)
+      expect(redirectTo).toHaveBeenCalledWith(CONFIG.WALLET_LOGIN_URL)
       expect(dispatchSpy).toHaveBeenCalledWith('logout')
     })
   })
@@ -366,7 +357,7 @@ describe('NavBar', () => {
     it('changes window location to wallet and dispatches logout', async () => {
       const dispatchSpy = vi.spyOn(store, 'dispatch')
       await wrapper.vm.handleWallet()
-      expect(window.location).toBe(CONFIG.WALLET_AUTH_URL + 'valid-token')
+      expect(redirectTo).toHaveBeenCalledWith(CONFIG.WALLET_AUTH_URL + 'valid-token')
       expect(dispatchSpy).toHaveBeenCalledWith('logout')
     })
   })
@@ -375,7 +366,7 @@ describe('NavBar', () => {
     it('redirects to login page and dispatches logout', async () => {
       const dispatchSpy = vi.spyOn(store, 'dispatch')
       await wrapper.vm.handleLogout()
-      expect(window.location.assign).toHaveBeenCalledWith(CONFIG.WALLET_LOGIN_URL)
+      expect(redirectTo).toHaveBeenCalledWith(CONFIG.WALLET_LOGIN_URL)
       expect(dispatchSpy).toHaveBeenCalledWith('logout')
     })
   })

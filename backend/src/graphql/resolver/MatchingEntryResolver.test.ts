@@ -163,9 +163,7 @@ describe('MatchingEntryResolver', () => {
           {
             message: 'Argument Validation Error',
             extensions: {
-              exception: {
-                validationErrors: [{ property: 'matchingType' }],
-              },
+              validationErrors: [{ property: 'matchingType' }],
             },
           },
         ])
@@ -180,9 +178,7 @@ describe('MatchingEntryResolver', () => {
           {
             message: 'Argument Validation Error',
             extensions: {
-              exception: {
-                validationErrors: [{ property: 'summary' }],
-              },
+              validationErrors: [{ property: 'summary' }],
             },
           },
         ])
@@ -206,9 +202,7 @@ describe('MatchingEntryResolver', () => {
           {
             message: 'Argument Validation Error',
             extensions: {
-              exception: {
-                validationErrors: [{ property: 'details' }],
-              },
+              validationErrors: [{ property: 'details' }],
             },
           },
         ])
