@@ -478,14 +478,20 @@ export function reencodeImage(
 
 export interface PasswordHashingOptions {
   /**
-   * ⛔ argon2id passes. Default 10, and that is a constant of the derivation, not tuning:
-   * every hash in users.password was derived with it, and a hash derived with another value
-   * matches no stored password. Lower it for tests only, where no hash is ever compared with
-   * a production one; argon2id's minimum is 1.
+   * The admission rule: a job is admitted while what is queued already would be served
+   * within this many milliseconds. The production value is PASSWORD_HASH_MAX_EXPECTED_WAIT_MS
+   * in shared/src/const; a test sets a small one to see refusals without waiting for them.
    */
-  opsLimit?: number
-  /** ⛔ argon2id memory in bytes, the same warning as `opsLimit`. Default 32 MiB, minimum 8192 */
-  memLimit?: number
+  maxExpectedWaitMs: number
+  /**
+   * ⛔ argon2id passes. The production value (DEFAULT_PASSWORD_HASHING in shared's AppContext)
+   * is a constant of the derivation, not tuning: every hash in users.password was derived
+   * with it, and a hash derived with another value matches no stored password. Lower it for
+   * tests only, where no hash is ever compared with a production one; argon2id's minimum is 1.
+   */
+  opsLimit: number
+  /** ⛔ argon2id memory in bytes, the same warning as `opsLimit`; minimum 8192 */
+  memLimit: number
   /** Threads that derive password keys. Default: half the logical cores, at least one */
   threadCount?: number
 }
@@ -495,12 +501,12 @@ export interface NativeAppContextOptions {
   appSecret: Uint8Array
   /** 16 bytes, crypto_shorthash_KEYBYTES; the backend's LOGIN_SERVER_KEY */
   serverKey: Uint8Array
-  passwordHashing?: PasswordHashingOptions
+  passwordHashing: PasswordHashingOptions
 }
 
 export interface PasswordHashingStats {
   threadCount: number
-  /** The admission rule: what a job queued now may be expected to wait at most, 3500 */
+  /** The admission rule, as the context was created with */
   maxExpectedWaitMs: number
   /** Over the last five derivations on this hardware; the first one is run at start */
   averageDurationMs: number

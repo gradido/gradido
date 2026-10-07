@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { getLogger } from 'log4js'
 import { NativeAppContext, PasswordHashingOptions, PasswordHashingStats } from 'shared-native'
-import { LOG4JS_BASE_CATEGORY_NAME } from './const'
+import { LOG4JS_BASE_CATEGORY_NAME, PASSWORD_HASH_MAX_EXPECTED_WAIT_MS } from './const'
 import { PasswordHashPriority } from './enum/PasswordHashPriority'
 import { ResourceExhausted, Result } from './errorTypes'
 
@@ -10,8 +10,11 @@ export interface AppContextInitOptions {
   appSecret: string
   /** hex, 32 characters, the backend's LOGIN_SERVER_KEY */
   serverKey: string
-  /** Only tests set this; the production difficulty is the native default. See the type. */
-  passwordHashing?: PasswordHashingOptions
+  /**
+   * What is not set here comes from DEFAULT_PASSWORD_HASHING and
+   * PASSWORD_HASH_MAX_EXPECTED_WAIT_MS; only tests set anything. See the native type.
+   */
+  passwordHashing?: Partial<PasswordHashingOptions>
 }
 
 /**
@@ -19,7 +22,7 @@ export interface AppContextInitOptions {
  * its time on 32 MiB derivations. A hash derived with it matches no production hash, and
  * must never be written anywhere a production login reads.
  */
-export const MINIMAL_PASSWORD_HASHING: PasswordHashingOptions = {
+export const MINIMAL_PASSWORD_HASHING: Partial<PasswordHashingOptions> = {
   opsLimit: 1,
   memLimit: 8192,
   threadCount: 1,
@@ -28,7 +31,7 @@ export const MINIMAL_PASSWORD_HASHING: PasswordHashingOptions = {
 /*
  * The passworth hashing options which where used in production since start
  */
-export const DEFAULT_PASSWORD_HASHING: PasswordHashingOptions = {
+export const DEFAULT_PASSWORD_HASHING: Partial<PasswordHashingOptions> = {
   opsLimit: 10,
   memLimit: 33554432,
 }
@@ -70,7 +73,11 @@ export class AppContext {
     this.native = new NativeAppContext({
       appSecret: Buffer.from(options.appSecret, 'hex'),
       serverKey: Buffer.from(options.serverKey, 'hex'),
-      passwordHashing: options.passwordHashing,
+      passwordHashing: {
+        ...DEFAULT_PASSWORD_HASHING,
+        maxExpectedWaitMs: PASSWORD_HASH_MAX_EXPECTED_WAIT_MS,
+        ...options.passwordHashing,
+      },
     })
   }
 

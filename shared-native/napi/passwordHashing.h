@@ -28,13 +28,13 @@ namespace gradido::password {
      * ⛔ argon2id cost of the password derivation. These are NOT tuning parameters: every
      * hash in users.password was derived with exactly these, and a hash derived with other
      * values matches no stored password. They can be lowered for tests only, where no hash
-     * is ever compared with a production one.
+     * is ever compared with a production one. The production values are not kept here: they
+     * are handed in, from DEFAULT_PASSWORD_HASHING in shared's AppContext.
      */
     struct Difficulty {
         unsigned long long opsLimit;
         size_t memLimit;
     };
-    constexpr Difficulty DEFAULT_DIFFICULTY = { 10, 33554432 /* 32 MiB */ };
 
     // Which queue a password hash waits in. The TypeScript side mirrors this in
     // shared/src/enum/PasswordHashPriority.ts, by value.
@@ -70,7 +70,8 @@ namespace gradido::password {
      * Admission is by time, not by a number of places -- a number would be right for one
      * server and wrong for the next. The pool keeps the duration of its last derivations
      * (DURATION_WINDOW of them, measured on this hardware) and admits a job only while what
-     * is queued already would be served within MAX_EXPECTED_WAIT_MS: queued jobs times the
+     * is queued already would be served within maxExpectedWaitMs (handed in, the production
+     * value is PASSWORD_HASH_MAX_EXPECTED_WAIT_MS in shared/src/const): queued jobs times the
      * average duration, spread over the threads. A job over that is refused at once, so the
      * server answers "try again later" instead of piling up logins it cannot serve. The first
      * figure comes from one derivation run at start, so the rule holds from the first login.
@@ -85,7 +86,6 @@ namespace gradido::password {
      */
     class HashingPool {
     public:
-        static constexpr double MAX_EXPECTED_WAIT_MS = 3500.0;
         static constexpr size_t DURATION_WINDOW = 5;
         // while both queues wait: this many high picks, then one low
         static constexpr size_t HIGH_PICKS_BEFORE_LOW = 2;
@@ -111,7 +111,7 @@ namespace gradido::password {
 
         // main thread; threadCount >= 1. Runs one derivation to calibrate, so it takes as
         // long as one -- at the production difficulty around a tenth of a second.
-        HashingPool(Napi::Env env, Secrets secrets, Difficulty difficulty, size_t threadCount);
+        HashingPool(Napi::Env env, Secrets secrets, Difficulty difficulty, size_t threadCount, double maxExpectedWaitMs);
         ~HashingPool();
         HashingPool(const HashingPool&) = delete;
         HashingPool& operator=(const HashingPool&) = delete;
@@ -162,6 +162,7 @@ namespace gradido::password {
         Secrets mSecrets;
         const Difficulty mDifficulty;
         const size_t mThreadCount;
+        const double mMaxExpectedWaitMs;
 
         std::mutex mMutex;
         std::condition_variable mCondition;

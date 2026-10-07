@@ -1,6 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { afterAll, describe, expect, it } from 'bun:test'
 import { AppContext, MINIMAL_PASSWORD_HASHING } from './AppContext'
+import { PASSWORD_HASH_MAX_EXPECTED_WAIT_MS } from './const'
 import { PasswordHashPriority } from './enum/PasswordHashPriority'
 import { ResourceExhausted } from './errorTypes'
 
@@ -56,10 +57,18 @@ describe('AppContext', () => {
 
   it('reports a full queue as ResourceExhausted', async () => {
     const context = AppContext.getInstance()
-    // the production difficulty: the one thread is busy with a derivation for long enough
-    // that everything handed in below is still waiting
+    // a few milliseconds per derivation and a small budget: the one thread is busy for long
+    // enough that everything handed in below is still waiting, and it is over soon
     context.destroy()
-    context.init({ ...secrets, passwordHashing: { threadCount: 1 } })
+    context.init({
+      ...secrets,
+      passwordHashing: {
+        opsLimit: 1,
+        memLimit: 8 * 1024 * 1024,
+        threadCount: 1,
+        maxExpectedWaitMs: 20,
+      },
+    })
     const { maxExpectedWaitMs, averageDurationMs } = context.getNative().getPasswordHashingStats()
     const fit = Math.ceil(maxExpectedWaitMs / averageDurationMs)
     const results = []
@@ -78,5 +87,9 @@ describe('AppContext', () => {
     expect(context.isInitialized()).toBe(false)
     context.init({ ...secrets, passwordHashing: MINIMAL_PASSWORD_HASHING })
     expect(context.isInitialized()).toBe(true)
+    // what MINIMAL_PASSWORD_HASHING leaves open comes from the constant
+    expect(context.getPasswordHashingStats().maxExpectedWaitMs).toBe(
+      PASSWORD_HASH_MAX_EXPECTED_WAIT_MS,
+    )
   })
 })

@@ -190,6 +190,12 @@ export const THANK_YOU_PICTURE_LARGE_MAX_PIXELS = 850_000
 export const ALIAS_QUOTA_PER_WINDOW = 4
 export const ALIAS_QUOTA_WINDOW_MS = 365 * 24 * 60 * 60 * 1000
 
+// password hashing: a login is admitted to the hashing threads only while what waits there
+// already would be served within this time -- queued jobs times the measured duration of one
+// derivation, spread over the threads. Over it the login is refused at once with "try again
+// later", instead of piling up logins the server cannot serve (HashingPool in shared-native).
+export const PASSWORD_HASH_MAX_EXPECTED_WAIT_MS = 3500
+
 // authentication
 // 10 minutes
 export const FEDERATION_AUTHENTICATION_TIMEOUT_MS = 60 * 1000 * 10

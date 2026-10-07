@@ -8,8 +8,14 @@ const { NativeAppContext } = require('../')
 const appSecret = Buffer.from('21ffbbc616fe', 'hex')
 const serverKey = Buffer.from('a51ef8ac7ef1abf162fb7a65261acd7a', 'hex')
 
+// DEFAULT_PASSWORD_HASHING of shared's AppContext and PASSWORD_HASH_MAX_EXPECTED_WAIT_MS of
+// shared/src/const: the production figures
+const production = { opsLimit: 10, memLimit: 32 * 1024 * 1024, maxExpectedWaitMs: 3500 }
 // argon2id's minimums: what a test uses where no hash is compared with a production one
-const minimal = { opsLimit: 1, memLimit: 8192, threadCount: 1 }
+const minimal = { ...production, opsLimit: 1, memLimit: 8192, threadCount: 1 }
+// A few milliseconds per derivation: long enough for a thread to be busy while a loop
+// queues the rest, short enough to be over soon. For the tests of the queue itself.
+const quick = { opsLimit: 1, memLimit: 8 * 1024 * 1024, threadCount: 1, maxExpectedWaitMs: 20 }
 
 describe('NativeAppContext', () => {
   const contexts = []
@@ -39,12 +45,44 @@ describe('NativeAppContext', () => {
     })
     it('refuses a difficulty below what argon2id accepts', () => {
       assert.throws(
-        () => new NativeAppContext({ appSecret, serverKey, passwordHashing: { memLimit: 4096 } }),
+        () =>
+          new NativeAppContext({
+            appSecret,
+            serverKey,
+            passwordHashing: { ...production, memLimit: 4096 },
+          }),
         /below what argon2id accepts/,
       )
       assert.throws(
-        () => new NativeAppContext({ appSecret, serverKey, passwordHashing: { opsLimit: 0 } }),
+        () =>
+          new NativeAppContext({
+            appSecret,
+            serverKey,
+            passwordHashing: { ...production, opsLimit: 0 },
+          }),
         /positive integer/,
+      )
+    })
+    it('insists on a wait budget and a difficulty', () => {
+      for (const left_out of ['opsLimit', 'memLimit']) {
+        const { [left_out]: _, ...without } = production
+        assert.throws(
+          () => new NativeAppContext({ appSecret, serverKey, passwordHashing: without }),
+          new RegExp(`${left_out} to be a number`),
+        )
+      }
+      assert.throws(
+        () => new NativeAppContext({ appSecret, serverKey }),
+        /passwordHashing to be an object/,
+      )
+      assert.throws(
+        () => new NativeAppContext({ appSecret, serverKey, passwordHashing: { threadCount: 1 } }),
+        /maxExpectedWaitMs to be a number/,
+      )
+      assert.throws(
+        () =>
+          new NativeAppContext({ appSecret, serverKey, passwordHashing: { maxExpectedWaitMs: 0 } }),
+        /maxExpectedWaitMs to be above 0/,
       )
     })
     it('reports the thread count, the rule and a first measured duration', () => {
@@ -68,7 +106,7 @@ describe('NativeAppContext', () => {
      * wrong password.
      */
     it('derives what the old worker derived', async () => {
-      const context = create({ passwordHashing: { threadCount: 1 } })
+      const context = create({ passwordHashing: { ...production, threadCount: 1 } })
       const result = context.hashPassword('fixed-salt', 'Aa12345_', 0)
       assert.equal(result.success, true)
       assert.equal(await result.value, 831872323346742571n)
@@ -103,9 +141,9 @@ describe('NativeAppContext', () => {
     })
 
     it('refuses what would wait longer than the rule allows', async () => {
-      // the production difficulty: a thread is busy with one derivation for long enough that
-      // everything handed in below is still waiting, and the figures are real
-      const context = create({ passwordHashing: { threadCount: 1 } })
+      // the thread is busy with one derivation for long enough that everything handed in
+      // below is still waiting, and the figures are the measured ones
+      const context = create({ passwordHashing: quick })
       const { averageDurationMs, maxExpectedWaitMs, threadCount } =
         context.getPasswordHashingStats()
       const fit = Math.ceil(maxExpectedWaitMs / averageDurationMs)
@@ -123,7 +161,7 @@ describe('NativeAppContext', () => {
       assert.equal(refused[0].error.name, 'PASSWORD_HASH_QUEUE_FULL')
       assert.match(
         refused[0].error.message,
-        /^an expected wait of \d+ ms exceeds 3500 ms \(\d+ queued, \d+ ms per derivation on 1 thread\)$/,
+        /^an expected wait of \d+ ms exceeds 20 ms \(\d+ queued, \d+ ms per derivation on 1 thread\)$/,
       )
       const keys = await Promise.all(accepted.map((result) => result.value))
       assert.ok(keys.every((key) => typeof key === 'bigint'))
@@ -133,9 +171,17 @@ describe('NativeAppContext', () => {
     })
 
     it('gives the low queue every third pick while both wait', async () => {
-      const context = create({ passwordHashing: { threadCount: 1 } })
+      // the budget of quick would refuse the thirteen below
+      const context = create({
+        passwordHashing: { ...quick, maxExpectedWaitMs: production.maxExpectedWaitMs },
+      })
       // keeps the one thread busy while the others line up; low, so the count starts at zero
       const blocker = context.hashPassword('blocker', 'pw', 1).value
+      // Not before the thread has taken it: on Windows it wakes slowly enough that the
+      // blocker would still be queued when the others arrive, and be the third pick itself.
+      while (context.getPasswordHashingStats().lowPriorityQueued > 0) {
+        await new Promise((resolve) => setImmediate(resolve))
+      }
       const order = []
       const jobs = []
       for (let i = 0; i < 6; i++) {

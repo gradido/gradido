@@ -22,11 +22,14 @@ namespace gradido {
             return true;
         }
 
-        // An optional positive integer property. Leaves out untouched where the property is absent.
-        bool readOptionalCount(Napi::Env env, Napi::Object options, const char* name, size_t& out)
+        // A positive integer property. Where it is optional, an absent one leaves out untouched.
+        bool readCount(Napi::Env env, Napi::Object options, const char* name, size_t& out, bool required)
         {
             if (!options.Has(name) || options.Get(name).IsUndefined()) {
-                return true;
+                if (required) {
+                    Napi::TypeError::New(env, std::string("[NativeAppContext] Expected options.passwordHashing.") + name + " to be a number").ThrowAsJavaScriptException();
+                }
+                return !required;
             }
             Napi::Value value = options.Get(name);
             if (!value.IsNumber()) {
@@ -39,6 +42,21 @@ namespace gradido {
                 return false;
             }
             out = static_cast<size_t>(number);
+            return true;
+        }
+
+        // A required positive number property, fractions allowed.
+        bool readPositiveNumber(Napi::Env env, Napi::Object options, const char* name, double& out)
+        {
+            if (!options.Has(name) || !options.Get(name).IsNumber()) {
+                Napi::TypeError::New(env, std::string("[NativeAppContext] Expected options.passwordHashing.") + name + " to be a number").ThrowAsJavaScriptException();
+                return false;
+            }
+            out = options.Get(name).As<Napi::Number>().DoubleValue();
+            if (!(out > 0)) {
+                Napi::TypeError::New(env, std::string("[NativeAppContext] Expected options.passwordHashing.") + name + " to be above 0").ThrowAsJavaScriptException();
+                return false;
+            }
             return true;
         }
 
@@ -78,7 +96,7 @@ namespace gradido {
     {
         Napi::Env env = info.Env();
         if (info.Length() != 1 || !info[0].IsObject()) {
-            Napi::TypeError::New(env, "[NativeAppContext] Expected one argument: options ({ appSecret, serverKey, passwordHashing? })").ThrowAsJavaScriptException();
+            Napi::TypeError::New(env, "[NativeAppContext] Expected one argument: options ({ appSecret, serverKey, passwordHashing })").ThrowAsJavaScriptException();
             return;
         }
         Napi::Object options = info[0].As<Napi::Object>();
@@ -100,19 +118,25 @@ namespace gradido {
             return;
         }
 
-        password::Difficulty difficulty = password::DEFAULT_DIFFICULTY;
+        password::Difficulty difficulty = { 0, 0 };
         size_t threadCount = password::HashingPool::defaultThreadCount();
-        if (options.Has("passwordHashing") && !options.Get("passwordHashing").IsUndefined()) {
-            if (!options.Get("passwordHashing").IsObject()) {
-                Napi::TypeError::New(env, "[NativeAppContext] Expected options.passwordHashing to be an object").ThrowAsJavaScriptException();
-                return;
-            }
+        double maxExpectedWaitMs = 0;
+        // Required for the wait budget and the difficulty: those figures are decisions of the
+        // TypeScript side (PASSWORD_HASH_MAX_EXPECTED_WAIT_MS in shared/src/const,
+        // DEFAULT_PASSWORD_HASHING in shared's AppContext), not defaults of this one. Only the
+        // thread count has its default here, from the hardware.
+        if (!options.Has("passwordHashing") || !options.Get("passwordHashing").IsObject()) {
+            Napi::TypeError::New(env, "[NativeAppContext] Expected options.passwordHashing to be an object").ThrowAsJavaScriptException();
+            return;
+        }
+        {
             Napi::Object hashing = options.Get("passwordHashing").As<Napi::Object>();
-            size_t opsLimit = difficulty.opsLimit;
-            size_t memLimit = difficulty.memLimit;
-            if (!readOptionalCount(env, hashing, "opsLimit", opsLimit)
-                || !readOptionalCount(env, hashing, "memLimit", memLimit)
-                || !readOptionalCount(env, hashing, "threadCount", threadCount)) {
+            size_t opsLimit = 0;
+            size_t memLimit = 0;
+            if (!readPositiveNumber(env, hashing, "maxExpectedWaitMs", maxExpectedWaitMs)
+                || !readCount(env, hashing, "opsLimit", opsLimit, true)
+                || !readCount(env, hashing, "memLimit", memLimit, true)
+                || !readCount(env, hashing, "threadCount", threadCount, false)) {
                 return;
             }
             if (opsLimit < crypto_pwhash_OPSLIMIT_MIN || memLimit < crypto_pwhash_MEMLIMIT_MIN) {
@@ -128,7 +152,7 @@ namespace gradido {
             difficulty.opsLimit = opsLimit;
             difficulty.memLimit = memLimit;
         }
-        mPasswordHashing = std::make_unique<password::HashingPool>(env, mSecrets, difficulty, threadCount);
+        mPasswordHashing = std::make_unique<password::HashingPool>(env, mSecrets, difficulty, threadCount, maxExpectedWaitMs);
     }
 
     AppContext::~AppContext()
