@@ -3880,10 +3880,10 @@ describe('UserResolver', () => {
     it('hides a position on a member object without an id from a caller without a login', () => {
       const guard = new UserResolver()
       const withoutId = Object.assign(new UserModel(null), { userLocation: BIBIS_PLACE })
-      expect(guard.ownUserLocation(withoutId, callerWithId(undefined))).toBeNull()
+      expect(guard.userLocation(withoutId, callerWithId(undefined))).toBeNull()
       // Asked the same way, it does answer the member whose object it is.
       const own = Object.assign(new UserModel(null), { id: 7, userLocation: BIBIS_PLACE })
-      expect(guard.ownUserLocation(own, callerWithId(7))).toEqual(BIBIS_PLACE)
+      expect(guard.userLocation(own, callerWithId(7))).toEqual(BIBIS_PLACE)
     })
   })
 

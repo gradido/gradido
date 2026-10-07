@@ -5,8 +5,8 @@ export const DurationScalar = new GraphQLScalarType({
   name: 'Duration',
   description: 'The `Duration` scalar type to represent time durations',
 
-  serialize(value: Duration) {
-    return value.toString()
+  serialize(value: unknown) {
+    return (value as Duration).toString()
   },
 
   parseValue(value) {

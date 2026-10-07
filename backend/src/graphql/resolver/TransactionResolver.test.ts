@@ -281,16 +281,14 @@ describe('send coins', () => {
           {
             message: 'Argument Validation Error',
             extensions: {
-              exception: {
-                validationErrors: [
-                  {
-                    property: 'memo',
-                    constraints: {
-                      minLength: 'memo must be longer than or equal to 5 characters',
-                    },
+              validationErrors: [
+                {
+                  property: 'memo',
+                  constraints: {
+                    minLength: 'memo must be longer than or equal to 5 characters',
                   },
-                ],
-              },
+                },
+              ],
             },
           },
         ])
@@ -313,16 +311,14 @@ describe('send coins', () => {
           {
             message: 'Argument Validation Error',
             extensions: {
-              exception: {
-                validationErrors: [
-                  {
-                    property: 'memo',
-                    constraints: {
-                      maxLength: 'memo must be shorter than or equal to 512 characters',
-                    },
+              validationErrors: [
+                {
+                  property: 'memo',
+                  constraints: {
+                    maxLength: 'memo must be shorter than or equal to 512 characters',
                   },
-                ],
-              },
+                },
+              ],
             },
           },
         ])
@@ -396,16 +392,14 @@ describe('send coins', () => {
           {
             message: 'Argument Validation Error',
             extensions: {
-              exception: {
-                validationErrors: [
-                  {
-                    property: 'amount',
-                    constraints: {
-                      isPositiveGradidoUnit: 'The amount must be a positive value amount',
-                    },
+              validationErrors: [
+                {
+                  property: 'amount',
+                  constraints: {
+                    isPositiveGradidoUnit: 'The amount must be a positive value amount',
                   },
-                ],
-              },
+                },
+              ],
             },
           },
         ])
