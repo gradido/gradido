@@ -8,17 +8,18 @@ export const LocationScalar = new GraphQLScalarType({
   description:
     'The `Location` scalar type to represent longitude and latitude values of a geo location',
 
-  serialize(value: Location) {
-    return value
+  serialize(value: unknown) {
+    return value as Location
   },
 
-  parseValue(value): Location {
+  parseValue(value: unknown): Location {
     try {
+      const input = value as Location
       const loc = new Location()
 
-      loc.longitude = value.longitude
+      loc.longitude = input.longitude
 
-      loc.latitude = value.latitude
+      loc.latitude = input.latitude
       return loc
     } catch (err) {
       throw new LogError('Error:', err)

@@ -71,7 +71,9 @@ const isAddButtonDisabled = computed(() => {
 watch(
   result,
   () => {
-    projectBrandings.value = result.value?.projectBrandings || []
+    // A list of its own: entries are added to and taken out of it below, and the one Apollo
+    // Client 3 answers with is frozen.
+    projectBrandings.value = [...(result.value?.projectBrandings || [])]
   },
   { immediate: true },
 )

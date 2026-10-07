@@ -85,8 +85,9 @@ export class ProjectBrandingResolver {
   @Query(() => SpaceList)
   @Authorized([RIGHTS.LIST_HUMHUB_SPACES])
   async spaces(
-    @Arg('page', () => Int, { defaultValue: 1 }) page: number,
-    @Arg('limit', () => Int, { defaultValue: 20 }) limit: number,
+    // nullable beside the default, see Paginated
+    @Arg('page', () => Int, { nullable: true, defaultValue: 1 }) page: number,
+    @Arg('limit', () => Int, { nullable: true, defaultValue: 20 }) limit: number,
   ): Promise<SpaceList> {
     const humhub = HumHubClient.getInstance()
     if (!humhub) {

@@ -420,11 +420,14 @@ export class ContributionResolver {
   @Authorized([RIGHTS.ADMIN_LIST_CONTRIBUTIONS])
   @Query(() => ContributionListResult)
   async adminListContributions(
+    // nullable beside the default, see Paginated
     @Arg('filter', () => SearchContributionsFilterArgs, {
+      nullable: true,
       defaultValue: new SearchContributionsFilterArgs(),
     })
     filter: SearchContributionsFilterArgs,
-    @Arg('paginated', () => Paginated, { defaultValue: new Paginated() }) paginated: Paginated,
+    @Arg('paginated', () => Paginated, { nullable: true, defaultValue: new Paginated() })
+    paginated: Paginated,
     @Info() info: GraphQLResolveInfo,
     @Ctx() context: Context,
   ): Promise<ContributionListResult> {

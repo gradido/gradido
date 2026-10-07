@@ -352,16 +352,14 @@ describe('Contribution Links', () => {
             {
               message: 'Argument Validation Error',
               extensions: {
-                exception: {
-                  validationErrors: [
-                    {
-                      property: 'name',
-                      constraints: {
-                        minLength: 'name must be longer than or equal to 5 characters',
-                      },
+                validationErrors: [
+                  {
+                    property: 'name',
+                    constraints: {
+                      minLength: 'name must be longer than or equal to 5 characters',
                     },
-                  ],
-                },
+                  },
+                ],
               },
             },
           ])
@@ -380,16 +378,14 @@ describe('Contribution Links', () => {
             {
               message: 'Argument Validation Error',
               extensions: {
-                exception: {
-                  validationErrors: [
-                    {
-                      property: 'name',
-                      constraints: {
-                        maxLength: 'name must be shorter than or equal to 100 characters',
-                      },
+                validationErrors: [
+                  {
+                    property: 'name',
+                    constraints: {
+                      maxLength: 'name must be shorter than or equal to 100 characters',
                     },
-                  ],
-                },
+                  },
+                ],
               },
             },
           ])
@@ -408,16 +404,14 @@ describe('Contribution Links', () => {
             {
               message: 'Argument Validation Error',
               extensions: {
-                exception: {
-                  validationErrors: [
-                    {
-                      property: 'memo',
-                      constraints: {
-                        minLength: 'memo must be longer than or equal to 5 characters',
-                      },
+                validationErrors: [
+                  {
+                    property: 'memo',
+                    constraints: {
+                      minLength: 'memo must be longer than or equal to 5 characters',
                     },
-                  ],
-                },
+                  },
+                ],
               },
             },
           ])
@@ -436,16 +430,14 @@ describe('Contribution Links', () => {
             {
               message: 'Argument Validation Error',
               extensions: {
-                exception: {
-                  validationErrors: [
-                    {
-                      property: 'memo',
-                      constraints: {
-                        maxLength: 'memo must be shorter than or equal to 512 characters',
-                      },
+                validationErrors: [
+                  {
+                    property: 'memo',
+                    constraints: {
+                      maxLength: 'memo must be shorter than or equal to 512 characters',
                     },
-                  ],
-                },
+                  },
+                ],
               },
             },
           ])
@@ -464,16 +456,14 @@ describe('Contribution Links', () => {
             {
               message: 'Argument Validation Error',
               extensions: {
-                exception: {
-                  validationErrors: [
-                    {
-                      property: 'amount',
-                      constraints: {
-                        isPositiveGradidoUnit: 'The amount must be a positive value amount',
-                      },
+                validationErrors: [
+                  {
+                    property: 'amount',
+                    constraints: {
+                      isPositiveGradidoUnit: 'The amount must be a positive value amount',
                     },
-                  ],
-                },
+                  },
+                ],
               },
             },
           ])

@@ -1,5 +1,5 @@
 import { Location } from '@model/Location'
-import { GradidoUnitScalar } from 'core'
+import { DateTimeScalar, GradidoUnitScalar } from 'core'
 import { GraphQLSchema } from 'graphql'
 import { Duration, GradidoUnit } from 'shared'
 import { buildSchema } from 'type-graphql'
@@ -38,8 +38,15 @@ import { UserResolver } from './resolver/UserResolver'
 import { DurationScalar } from './scalar/Duration'
 import { LocationScalar } from './scalar/Location'
 
-export const schema = async (): Promise<GraphQLSchema> => {
-  return buildSchema({
+// ⛔ Built once per process, and handed out again after that. type-graphql 2 (2.0.0-rc.3) adds
+// the parameters of every resolver to its metadata again with each build: after a second
+// buildSchema a method is called with its arguments doubled -- (ref, context) becomes
+// (ref, ref, context, context) -- so the parameter that should be the context is the first
+// argument instead. Nothing fails at build time; the resolvers just read the wrong objects.
+let built: Promise<GraphQLSchema> | undefined
+
+export const schema = (): Promise<GraphQLSchema> => {
+  built ??= buildSchema({
     resolvers: [
       AssistedRegistrationResolver,
       BalanceResolver,
@@ -78,6 +85,7 @@ export const schema = async (): Promise<GraphQLSchema> => {
       { type: Duration, scalar: DurationScalar },
       { type: Location, scalar: LocationScalar },
       { type: GradidoUnit, scalar: GradidoUnitScalar },
+      { type: Date, scalar: DateTimeScalar },
     ],
     validate: {
       validationError: { target: false },
@@ -88,4 +96,5 @@ export const schema = async (): Promise<GraphQLSchema> => {
       stopAtFirstError: true,
     },
   })
+  return built
 }

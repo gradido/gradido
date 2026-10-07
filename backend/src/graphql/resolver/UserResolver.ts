@@ -1324,9 +1324,11 @@ export class UserResolver {
     return ensureUrlEndsWithSlash(CONFIG.GMS_DASHBOARD_URL)
   }
 
+  // Named apart from the query it answers: the guard of the field `User.userLocation` below
+  // has to carry that name itself -- see there.
   @Authorized([RIGHTS.GMS_USER_PLAYGROUND])
-  @Query(() => UserLocationResult)
-  async userLocation(@Ctx() context: Context): Promise<UserLocationResult> {
+  @Query(() => UserLocationResult, { name: 'userLocation' })
+  async userLocationQuery(@Ctx() context: Context): Promise<UserLocationResult> {
     const dbUser = getUser(context)
     const logger = createLogger('userLocation')
     logger.addContext('user', dbUser.id)
@@ -1719,7 +1721,7 @@ export class UserResolver {
    * (`gmsAllowed`). Handing it out here would publish the text of members who
    * deliberately did not.
    *
-   * Somebody has to be asking, as for the position below (ownUserLocation): compared alone,
+   * Somebody has to be asking, as for the position below (userLocation): compared alone,
    * the two ids read a User without an id as the own view of a caller without a login.
    *
    * Returns null rather than throwing, like salutation: a caller without the right
@@ -1825,14 +1827,18 @@ export class UserResolver {
    * interface asks nowhere. The member search does not come through here either: the server
    * sends the position to the GMS itself, for members who take part.
    *
-   * ⚠️ Not named after its field like the guards around it, because this class already has a
-   * `userLocation` -- that query. The `name` option is what puts it on the field.
+   * ⛔ Named after its field, like the guards around it, and that is what puts it on the
+   * field: type-graphql 2 finds the resolver of a field by the name of the METHOD, and takes
+   * a `name` option on @FieldResolver without binding anything by it. Under another method
+   * name this guard is silently not installed, and the position of every member is handed to
+   * whoever asks. The query of the same name is the one that carries a `name` option
+   * instead (userLocationQuery).
    *
    * Returns null rather than throwing, like aboutMe: a caller without the right should see
    * nothing, not lose the whole enclosing user.
    */
-  @FieldResolver(() => Location, { nullable: true, name: 'userLocation' })
-  ownUserLocation(@Root() user: User, @Ctx() context: Context): Location | null {
+  @FieldResolver(() => Location, { nullable: true })
+  userLocation(@Root() user: User, @Ctx() context: Context): Location | null {
     if (!context.user || context.user.id !== user.id) {
       return null
     }

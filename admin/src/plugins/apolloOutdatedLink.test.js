@@ -24,10 +24,8 @@ describe('the outdated-app link', () => {
     vi.resetModules()
     vi.clearAllMocks()
 
-    // ⚠️ The stub needs concat(), not just request(): apollo-boost's ApolloLink.from calls
-    // concat on every member of the chain. A thinner stub throws there -- which is, in
-    // passing, the proof that the real @apollo/client link satisfies the old interface, since
-    // the unmocked sibling file assembles the same chain and stays green.
+    // ⚠️ The stub needs concat(), not just request(): ApolloLink.from calls concat on every
+    // member of the chain, and a thinner stub throws there.
     const errorLinkModule = await import('@apollo/client/link/error')
     const onError = vi.fn((h) => ({ request: h, concat: (next) => next }))
     vi.mocked(errorLinkModule).onError = onError

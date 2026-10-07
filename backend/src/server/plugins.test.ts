@@ -269,22 +269,20 @@ describe('the errors in the request log', () => {
       {
         message: 'Argument Validation Error',
         extensions: {
-          code: 'INTERNAL_SERVER_ERROR',
-          exception: {
-            validationErrors: [
-              {
-                property: 'image',
-                value: { data: 'SHORTPICTURE', width: 0, height: 600 },
-                children: [
-                  {
-                    property: 'width',
-                    value: 0,
-                    constraints: { min: 'width must not be less than 1' },
-                  },
-                ],
-              },
-            ],
-          },
+          code: 'BAD_USER_INPUT',
+          validationErrors: [
+            {
+              property: 'image',
+              value: { data: 'SHORTPICTURE', width: 0, height: 600 },
+              children: [
+                {
+                  property: 'width',
+                  value: 0,
+                  constraints: { min: 'width must not be less than 1' },
+                },
+              ],
+            },
+          ],
         },
       },
     ])
