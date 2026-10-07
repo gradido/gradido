@@ -7,6 +7,7 @@ The C code itself is not vendored here. It comes in as zig packages pinned in `b
 
 - [gradido-blockchain-core](https://github.com/gradido/gradido-blockchain-core) – GradidoUnit arithmetic, decay, signing, transaction types
 - [arnm](https://github.com/gradido/arnm) – arena allocator, timer, duration and hex/uuid conversions. Must stay the version blockchain core builds against.
+- libsodium – fetched by the core (its `build.zig.zon`), linked here as well for the password and PIN derivations of `NativeAppContext` (`napi/passwordHashing.cpp`), which call it directly.
 
 The build is driven by [c-cpp-zig-build](https://github.com/gradido/c_cpp_zig_build): it downloads the zig toolchain into
 `~/.zig-build` (the Node-API headers come with it as an npm package), copies its build template into `.zig-native/` and runs `zig build` with `build.zig`.

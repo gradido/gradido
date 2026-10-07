@@ -1,32 +1,48 @@
 import { delay } from 'core'
 import { DbUser, User } from 'database'
-import { ResourceExhausted, Result } from 'shared'
+import { AppContext, PasswordHashPriority, ResourceExhausted, Result } from 'shared'
 
-import { getUserCryptographicSalt, SecretKeyCryptographyCreateKey } from './EncryptorUtils'
+import { getUserCryptographicSalt } from './EncryptorUtils'
 import { PasswordDataInput } from './passwordData.schema'
 
-// return direct and tell if pool is exhausted, if not it will run and can't really fail!
+/**
+ * Hands the derivation to the hashing threads of the app context. Whether it took a place in
+ * its queue is known at once and is the result; a full queue is the expected failure. Once
+ * queued it cannot really fail: the promise carries the key.
+ *
+ * The priority is the queue: HIGH for the login, which a member is waiting for, LOW for
+ * everything else.
+ */
 export function encryptPasswordSync(
   dbUser: PasswordDataInput,
   password: string,
+  priority: PasswordHashPriority = PasswordHashPriority.LOW,
 ): Result<Promise<bigint>, ResourceExhausted> {
   const salt = getUserCryptographicSalt(dbUser)
-  return SecretKeyCryptographyCreateKey(salt, password)
+  return AppContext.getInstance().hashPassword(salt, password, priority)
 }
 
-export function encryptPassword(dbUser: PasswordDataInput, password: string): Promise<bigint> {
-  const result = encryptPasswordSync(dbUser, password)
+export function encryptPassword(
+  dbUser: PasswordDataInput,
+  password: string,
+  priority: PasswordHashPriority = PasswordHashPriority.LOW,
+): Promise<bigint> {
+  const result = encryptPasswordSync(dbUser, password, priority)
   if (!result.success) {
     throw new Error(result.error.clientMessage)
   }
   return result.value
 }
 
-export const verifyPassword = async (dbUser: User | DbUser, password: string): Promise<boolean> => {
+export const verifyPassword = async (
+  dbUser: User | DbUser,
+  password: string,
+  priority: PasswordHashPriority = PasswordHashPriority.LOW,
+): Promise<boolean> => {
   if (!dbUser.password) {
     return false
   }
-  const encryptedPassword = await encryptPassword(dbUser, password)
+  const encryptedPassword = await encryptPassword(dbUser, password, priority)
   return dbUser.password.toString() === encryptedPassword.toString()
 }
 

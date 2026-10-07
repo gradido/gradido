@@ -140,7 +140,6 @@ import { UserResolver } from './UserResolver'
 import { Location2Point } from './util/Location2Point'
 
 jest.mock('@/apis/humhub/HumHubClient')
-jest.mock('@/password/EncryptorUtils')
 
 // Only the two calls the consent tests watch; everything else in the client stays real,
 // and GMS_ACTIVE is false for the rest of this file, so nothing else reaches it.

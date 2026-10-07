@@ -270,12 +270,6 @@ export const schema = Joi.object({
       'ES-014: the function-test area in the wallet settings, for admins. On by default so it works on every server without an environment file being touched; set to false to hide it.',
     ),
 
-  USE_CRYPTO_WORKER: Joi.boolean()
-    .default(false)
-    .description(
-      'Flag to enable or disable password encryption in separate thread, should be enabled if possible',
-    ),
-
   // TODO: check format
   JWT_SECRET: Joi.string()
     .default('secret123')

@@ -54,7 +54,6 @@ jest.mock('core', () => {
     sendTransactionLinkRedeemedEmail: jest.fn(),
   }
 })
-jest.mock('@/password/EncryptorUtils')
 
 CONFIG.DLT_ACTIVE = false
 

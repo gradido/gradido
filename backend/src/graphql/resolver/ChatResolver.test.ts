@@ -61,7 +61,6 @@ import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
 
-jest.mock('@/password/EncryptorUtils')
 // The mail is watched, to see which messages go out as one, and answers as a mail that went
 // out: the chat notes MAILED only for such a mail (E-034), and with mail switched off here the
 // real function would answer null. Nothing is sent either way.

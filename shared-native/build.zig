@@ -35,6 +35,16 @@ pub fn build(b: *std.Build) !void {
     addon.addDefine("USE_SODIUM", "1");
 
     const core = addon.dependency("blockchain_core", .{ .sodium = true });
+    // libsodium comes in through the core, but a static library carries no headers and the
+    // password derivations in napi/ call libsodium themselves. The same dependency with the
+    // same options as the core asks for (its build.zig) is the same artifact, built once;
+    // linking it here brings its installed headers along.
+    const sodium = core.builder.lazyDependency("libsodium", .{
+        .target = addon.target,
+        .optimize = addon.optimize,
+        .static = true,
+        .shared = false,
+    });
     // arnm carries what the core used to keep in utils/: the arena allocator, the
     // monotonic timer, the duration and hex/uuid conversions. It is a package of its
     // own, and the napi layer includes its headers directly.
@@ -50,6 +60,9 @@ pub fn build(b: *std.Build) !void {
 
     for (addon.compiles) |compile| {
         compile.linkLibrary(core.artifact("gradido_blockchain_core"));
+        if (sodium) |dep| {
+            compile.linkLibrary(dep.artifact(if (os_tag == .windows) "libsodium-static" else "sodium"));
+        }
         compile.addIncludePath(core.path("include"));
         // data/unit.h reaches for "r128/r128.h", which the core vendors rather than installs,
         // so a consumer of its public headers needs third_party/ on the search path as well.

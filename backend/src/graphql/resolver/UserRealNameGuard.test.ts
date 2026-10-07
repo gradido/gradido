@@ -21,8 +21,6 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 // member (a stranger, later given the moderator role), peter is the seeded ADMIN, whose
 // sight proves that the right reaches admins by inheriting MODERATOR_RIGHTS.
 
-jest.mock('@/password/EncryptorUtils')
-
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
 let db: AppDatabase

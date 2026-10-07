@@ -11,9 +11,16 @@ import { startRefreshForeignMemberAvatarDates } from './federation/refreshForeig
 import { startValidateCommunities } from './federation/validateCommunities'
 import { createServer } from './server/createServer'
 import { initLogging } from './server/logger'
+import { AppContext } from 'shared'
 
 async function main() {
   initLogging()
+  // The secrets every password and PIN derivation is keyed with, and the hashing threads.
+  // A second init -- the tests initialize it first, at a lower difficulty -- changes nothing.
+  AppContext.getInstance().init({
+    appSecret: CONFIG.LOGIN_APP_SECRET,
+    serverKey: CONFIG.LOGIN_SERVER_KEY,
+  })
   const { app } = await createServer(getLogger('apollo'))
 
   // will throw if a home community is missing

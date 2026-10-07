@@ -16,8 +16,6 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 // moderator must read as "sees every group" — because that is exactly what the contribution
 // list grants them.
 
-jest.mock('@/password/EncryptorUtils')
-
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
 let db: AppDatabase

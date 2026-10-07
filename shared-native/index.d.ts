@@ -471,3 +471,85 @@ export function reencodeImage(
   input: Uint8Array,
   options: ReencodeImageOptions,
 ): Promise<Result<ReencodedImage, ReencodeImageError>>
+
+/**
+ * napi/appContext.h, napi/passwordHashing.h: libsodium, which comes in through the core.
+ */
+
+export interface PasswordHashingOptions {
+  /**
+   * ⛔ argon2id passes. Default 10, and that is a constant of the derivation, not tuning:
+   * every hash in users.password was derived with it, and a hash derived with another value
+   * matches no stored password. Lower it for tests only, where no hash is ever compared with
+   * a production one; argon2id's minimum is 1.
+   */
+  opsLimit?: number
+  /** ⛔ argon2id memory in bytes, the same warning as `opsLimit`. Default 32 MiB, minimum 8192 */
+  memLimit?: number
+  /** Threads that derive password keys. Default: half the logical cores, at least one */
+  threadCount?: number
+}
+
+export interface NativeAppContextOptions {
+  /** The salt component every derivation starts from; the backend's LOGIN_APP_SECRET */
+  appSecret: Uint8Array
+  /** 16 bytes, crypto_shorthash_KEYBYTES; the backend's LOGIN_SERVER_KEY */
+  serverKey: Uint8Array
+  passwordHashing?: PasswordHashingOptions
+}
+
+export interface PasswordHashingLimits {
+  threadCount: number
+  /** 25 places per thread */
+  highPriorityCapacity: number
+  /** 10 places per thread */
+  lowPriorityCapacity: number
+}
+
+export type PasswordHashQueueFullError = { name: 'PASSWORD_HASH_QUEUE_FULL'; message: string }
+
+/**
+ * What the process is configured with once, at start, and never changes while it runs: the
+ * secrets every password and PIN derivation is keyed with, and the threads that derive
+ * password keys. One instance per process, held by the AppContext of `shared`; the secrets
+ * are copied in and never leave the native side again.
+ *
+ * Password keys are derived on the context's own threads, fed from two queues with a fixed
+ * number of places each. Every high priority job goes before any low priority one, and a job
+ * that finds its queue full is refused at once -- the server answers "try again later" rather
+ * than piling up logins it cannot serve.
+ */
+export class NativeAppContext {
+  public constructor(options: NativeAppContextOptions)
+
+  /**
+   * The password derivation: sha512(salt + appSecret) as the argon2id salt, argon2id over the
+   * password, crypto_shorthash of that keyed with the server key -- a 64 bit value, the shape
+   * users.password stores.
+   *
+   * @param priority - 0 for the high priority queue (the login), 1 for the low one (everything
+   *   else); `PasswordHashPriority` in `shared` names them
+   * @returns at once whether the job took a place in its queue; its promise resolves with the
+   *   key, and rejects only if libsodium could not derive one (out of memory)
+   */
+  public hashPassword(
+    salt: string,
+    password: string,
+    priority: number,
+  ): Result<Promise<bigint>, PasswordHashQueueFullError>
+
+  /**
+   * The thank-you-card PIN derivation: keyed BLAKE2b over salt + appSecret + pin, keyed with
+   * the server key, cut to 64 bit. Microseconds, so it runs on the calling thread.
+   */
+  public derivePinKey(salt: string, pin: string): bigint
+
+  public getPasswordHashingLimits(): PasswordHashingLimits
+
+  /**
+   * Finishes the derivations the threads are on, drops the queued ones -- their promises
+   * stay pending -- and joins the threads. After it, `hashPassword` throws. Not needed for
+   * the process to exit: an idle context does not keep the event loop alive.
+   */
+  public destroy(): void
+}

@@ -29,7 +29,6 @@ jest.mock('core', () => {
     sendEmailTranslated: jest.fn(),
   }
 })
-jest.mock('@/password/EncryptorUtils')
 
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']

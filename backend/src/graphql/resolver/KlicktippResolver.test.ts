@@ -7,8 +7,6 @@ import { userFactory } from '@/seeds/factory/user'
 import { login, subscribeNewsletter, unsubscribeNewsletter } from '@/seeds/graphql/mutations'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 
-jest.mock('@/password/EncryptorUtils')
-
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.KlicktippResolver`)
 
 let testEnv: any

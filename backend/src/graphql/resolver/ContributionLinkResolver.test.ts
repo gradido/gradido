@@ -20,8 +20,6 @@ import { listContributionLinks } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 
-jest.mock('@/password/EncryptorUtils')
-
 const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 
 let mutate: ApolloServerTestClient['mutate']

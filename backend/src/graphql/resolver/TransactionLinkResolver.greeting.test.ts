@@ -47,7 +47,6 @@ jest.mock('database', () => {
     dbDeleteThankYouGreetingByLinkCode: jest.fn(original.dbDeleteThankYouGreetingByLinkCode),
   }
 })
-jest.mock('@/password/EncryptorUtils')
 
 const insertGreeting = dbInsertThankYouGreeting as jest.MockedFunction<
   typeof dbInsertThankYouGreeting

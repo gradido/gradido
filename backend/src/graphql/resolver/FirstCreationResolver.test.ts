@@ -62,7 +62,6 @@ jest.mock('core', () => {
     sendEmailTranslated: jest.fn(),
   }
 })
-jest.mock('@/password/EncryptorUtils')
 
 // The outcome events write a row of their own; one of them is made to fail once below.
 jest.mock('database', () => {
