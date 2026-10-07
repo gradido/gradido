@@ -7,7 +7,6 @@ import Icons from 'unplugin-icons/vite'
 import IconsResolve from 'unplugin-icons/resolver'
 import EnvironmentPlugin from 'vite-plugin-environment'
 import { createHtmlPlugin } from 'vite-plugin-html'
-import schema from './src/config/schema'
 import { execSync } from 'node:child_process'
 import { existsSync, constants } from 'node:fs'
 
@@ -19,22 +18,17 @@ import dotenv from 'dotenv'
 dotenv.config() // load env vars from .env
 
 const require = createRequire(import.meta.url)
-const CONFIG = require('./src/config')
 
 // https://vitejs.dev/config/
 export default defineConfig(async ({ command }) => {
   const { vitePluginGraphqlLoader } = await import('vite-plugin-graphql-loader')
-  if (command === 'serve') {
-    CONFIG.FRONTEND_HOSTING = 'nodejs'
-  } else {
-    CONFIG.FRONTEND_HOSTING = 'nginx'
-  }
+  // both read by src/config before it parses the environment
+  process.env.FRONTEND_HOSTING = command === 'serve' ? 'nodejs' : 'nginx'
   if (existsSync('../.git', constants.F_OK)) {
-    CONFIG.BUILD_COMMIT = execSync('git rev-parse HEAD').toString().trim()
-    CONFIG.BUILD_COMMIT_SHORT = (CONFIG.BUILD_COMMIT ?? '0000000').slice(0, 7)
+    process.env.BUILD_COMMIT = execSync('git rev-parse HEAD').toString().trim()
   }
-  // Check config
-  validate(schema, CONFIG)
+  // read and checked here, and once more in the browser from the values handed over below
+  const CONFIG = require('./src/config')
   // make sure that all urls used in browser have the same protocol to prevent mixed content errors
   validate(browserUrls, [
     CONFIG.ADMIN_AUTH_URL,

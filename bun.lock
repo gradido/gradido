@@ -38,6 +38,7 @@
         "regenerator-runtime": "^0.13.9",
         "unplugin-icons": "^0.19.0",
         "unplugin-vue-components": "^0.27.3",
+        "valibot": "1.1.0",
         "vite": "^5.4.14",
         "vite-plugin-commonjs": "^0.10.1",
         "vue": "3.5.13",
@@ -69,7 +70,6 @@
         "eslint-plugin-prettier": "^5.2.3",
         "eslint-plugin-promise": "^6.1.1",
         "eslint-plugin-vue": "8.7.1",
-        "joi": "17.13.3",
         "jsdom": "^25.0.0",
         "lightningcss": "^1.30.1",
         "mock-apollo-client": "^1.2.1",
@@ -136,7 +136,6 @@
         "helmet": "^5.1.1",
         "i18n": "^0.15.1",
         "jest": "27.2.4",
-        "joi": "17.13.3",
         "jose": "^4.14.4",
         "klicktipp-api": "^1.0.2",
         "lodash.clonedeep": "^4.5.0",
@@ -169,7 +168,6 @@
       "version": "3.0.0",
       "dependencies": {
         "esbuild": "^0.25.2",
-        "joi": "17.13.3",
         "log4js": "^6.9.1",
         "source-map-support": "^0.5.21",
         "valibot": "1.1.0",
@@ -191,7 +189,6 @@
         "email-templates": "^10.0.1",
         "esbuild": "^0.25.2",
         "i18n": "^0.15.1",
-        "joi": "^17.13.3",
         "jose": "^4.14.4",
         "log4js": "^6.9.1",
         "nodemailer": "^6.6.5",
@@ -281,7 +278,6 @@
         "dotenv": "^10.0.0",
         "esbuild": "^0.25.3",
         "jest": "27.5.1",
-        "joi": "17.13.3",
         "log4js": "^6.9.1",
         "nodemon": "^2.0.7",
         "prettier": "^2.8.8",
@@ -336,7 +332,6 @@
         "graphql-tag": "2.12.7",
         "helmet": "^7.1.0",
         "jest": "27.2.4",
-        "joi": "17.13.3",
         "lodash.clonedeep": "^4.5.0",
         "log4js": "^6.7.1",
         "mkdirp": "^3.0.1",
@@ -389,6 +384,7 @@
         "regenerator-runtime": "^0.13.7",
         "tua-body-scroll-lock": "^1.5.1",
         "uuid": "^9.0.0",
+        "valibot": "1.1.0",
         "vee-validate": "^4.13.2",
         "vite": "^5.4.14",
         "vite-plugin-commonjs": "^0.10.1",
@@ -432,7 +428,6 @@
         "eslint-plugin-vitest": "^0.5.4",
         "eslint-plugin-vue": "8.7.1",
         "eslint-webpack-plugin": "^5.0.0",
-        "joi": "17.13.3",
         "jsdom": "^25.0.0",
         "lightningcss": "^1.30.1",
         "mock-apollo-client": "^1.2.1",
@@ -722,9 +717,7 @@
 
     "@hapi/boom": ["@hapi/boom@10.0.1", "", { "dependencies": { "@hapi/hoek": "^11.0.2" } }, "sha512-ERcCZaEjdH3OgSJlyjVk8pHIFeus91CjKP3v+MpgBNp5IvGzP2l/bRiD78nqYcKPaZdbKkK5vDBVPd2ohHBlsA=="],
 
-    "@hapi/hoek": ["@hapi/hoek@9.3.0", "", {}, "sha512-/c6rf4UJlmHlC9b5BaNvzAcFv7HZ2QHaV0D4/HNlBdvFnvQq8RI4kYdhyPCl7Xj+oWvTWQ8ujhqS53LIgAe6KQ=="],
-
-    "@hapi/topo": ["@hapi/topo@5.1.0", "", { "dependencies": { "@hapi/hoek": "^9.0.0" } }, "sha512-foQZKJig7Ob0BMAYBfcJk8d77QtOe7Wo4ox7ff1lQYoNNAb6jwcY1ncdoy2e9wQZzvNy7ODZCYJkK8kzmcAnAg=="],
+    "@hapi/hoek": ["@hapi/hoek@11.0.7", "", {}, "sha512-HV5undWkKzcB4RZUusqOpcgxOaq6VOAH7zhhIr2g3G8NF/MlFO75SjOr2NfuSx0Mh40+1FqCkagKLJRykUWoFQ=="],
 
     "@humanwhocodes/config-array": ["@humanwhocodes/config-array@0.13.0", "", { "dependencies": { "@humanwhocodes/object-schema": "^2.0.3", "debug": "^4.3.1", "minimatch": "^3.0.5" } }, "sha512-DZLEEqFWQFiyK6h5YIeynKx7JlvCYWL0cImfSRXZ9l4Sg2efkFGTuFf6vzXjK1cq6IYkU+Eg/JizXw+TD2vRNw=="],
 
@@ -1019,12 +1012,6 @@
     "@rtsao/scc": ["@rtsao/scc@1.1.0", "", {}, "sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g=="],
 
     "@selderee/plugin-htmlparser2": ["@selderee/plugin-htmlparser2@0.6.0", "", { "dependencies": { "domhandler": "^4.2.0", "selderee": "^0.6.0" } }, "sha512-J3jpy002TyBjd4N/p6s+s90eX42H2eRhK3SbsZuvTDv977/E8p2U3zikdiehyJja66do7FlxLomZLPlvl2/xaA=="],
-
-    "@sideway/address": ["@sideway/address@4.1.5", "", { "dependencies": { "@hapi/hoek": "^9.0.0" } }, "sha512-IqO/DUQHUkPeixNQ8n0JA6102hT9CmaljNTPmQ1u8MEhBo/R4Q8eKLN/vGZxuebwOroDB4cbpjheD4+/sKFK4Q=="],
-
-    "@sideway/formula": ["@sideway/formula@3.0.1", "", {}, "sha512-/poHZJJVjx3L+zVD6g9KgHfYnb443oi7wLu/XKojDviHy6HOEOA6z1Trk5aR1dGcmPenJEgb2sK2I80LeS3MIg=="],
-
-    "@sideway/pinpoint": ["@sideway/pinpoint@2.0.0", "", {}, "sha512-RNiOoTPkptFtSVzQevY/yWtZwf/RxyVnPy/OcA9HBM3MlGDnBEYL5B41H0MTn0Uec8Hi+2qUtTfG2WWZBmMejQ=="],
 
     "@sinclair/typebox": ["@sinclair/typebox@0.34.52", "", {}, "sha512-XiMQh7qqVlxZzcVD+kkGMNGMzcTrDMLWI7S4x7z1MkCkbDPrekpZXEUK0eZqZFMuHQg2a2DZOcDIh9o5v3Gonw=="],
 
@@ -2370,8 +2357,6 @@
 
     "jiti": ["jiti@2.7.0", "", { "bin": { "jiti": "lib/jiti-cli.mjs" } }, "sha512-AC/7JofJvZGrrneWNaEnJeOLUx+JlGt7tNa0wZiRPT4MY1wmfKjt2+6O2p2uz2+skll8OZZmJMNqeke7kKbNgQ=="],
 
-    "joi": ["joi@17.13.3", "", { "dependencies": { "@hapi/hoek": "^9.3.0", "@hapi/topo": "^5.1.0", "@sideway/address": "^4.1.5", "@sideway/formula": "^3.0.1", "@sideway/pinpoint": "^2.0.0" } }, "sha512-otDA4ldcIx+ZXsKHWmp0YizCweVRZG96J10b0FevjfuncLO1oX59THoAmHkNubYJ+9gWsYsp5k8v4ib6oDv1fA=="],
-
     "jose": ["jose@4.15.9", "", {}, "sha512-1vUQX+IdDMVPj4k8kOxgUqlcK518yluMuGZwqlr44FS1ppZB/5GWh4rZG89erpOBOJjU/OBsnCVFfapsRz6nEA=="],
 
     "js-beautify": ["js-beautify@1.15.4", "", { "dependencies": { "config-chain": "^1.1.13", "editorconfig": "^1.0.4", "glob": "^10.4.2", "js-cookie": "^3.0.5", "nopt": "^7.2.1" }, "bin": { "js-beautify": "js/bin/js-beautify.js", "css-beautify": "js/bin/css-beautify.js", "html-beautify": "js/bin/html-beautify.js" } }, "sha512-9/KXeZUKKJwqCXUdBxFJ3vPh467OCckSBmYDwSK/EtV090K+iMJ7zx2S3HLVDIWFQdqMIsZWbnaGiba18aWhaA=="],
@@ -3507,8 +3492,6 @@
     "@graphql-tools/mock/@graphql-tools/schema": ["@graphql-tools/schema@9.0.19", "", { "dependencies": { "@graphql-tools/merge": "^8.4.1", "@graphql-tools/utils": "^9.2.1", "tslib": "^2.4.0", "value-or-promise": "^1.0.12" }, "peerDependencies": { "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0" } }, "sha512-oBRPoNBtCkk0zbUsyP4GaIzCt8C0aCI4ycIRUL67KK5pOHljKLBBtGT+Jr6hkzA74C8Gco8bpZPe7aWFjiaK2w=="],
 
     "@graphql-tools/schema/@graphql-tools/utils": ["@graphql-tools/utils@8.9.0", "", { "dependencies": { "tslib": "^2.4.0" }, "peerDependencies": { "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0" } }, "sha512-pjJIWH0XOVnYGXCqej8g/u/tsfV4LvLlj0eATKQu5zwnxd/TiTHq7Cg313qUPTFFHZ3PP5wJ15chYVtLDwaymg=="],
-
-    "@hapi/boom/@hapi/hoek": ["@hapi/hoek@11.0.7", "", {}, "sha512-HV5undWkKzcB4RZUusqOpcgxOaq6VOAH7zhhIr2g3G8NF/MlFO75SjOr2NfuSx0Mh40+1FqCkagKLJRykUWoFQ=="],
 
     "@hyperswarm/secret-stream/noise-handshake": ["noise-handshake@4.2.0", "", { "dependencies": { "b4a": "^1.1.0", "nanoassert": "^2.0.0", "sodium-universal": "^5.0.0" } }, "sha512-9O/VTNX/E2/AToyMTTDU0J/4WhaXMTdqc2DHs9vf+snoZ0cenSBq0dNYTVV1snYYEkmo6QeRrYMxtqtoYnY+LA=="],
 

@@ -1,114 +1,134 @@
-import {
+const {
   ANTHROPIC_ACTIVE,
   APP_VERSION,
   BUILD_COMMIT,
-  BUILD_COMMIT_SHORT,
+  booleanSchema,
   COMMUNITY_NAME,
   COMMUNITY_URL,
-  DEBUG,
+  configRule,
   GRAPHQL_URI,
   HUMHUB_ACTIVE,
   HUMHUB_API_URL,
+  hostSchema,
+  httpUrlSchema,
   NODE_ENV,
-  PRODUCTION,
-} from 'config-schema'
-import Joi from 'joi'
+  portSchema,
+} = require('config-schema/schema')
+const v = require('valibot')
 
-module.exports = Joi.object({
-  ANTHROPIC_ACTIVE,
-  APP_VERSION,
-  BUILD_COMMIT,
-  BUILD_COMMIT_SHORT,
-  COMMUNITY_NAME,
-  COMMUNITY_URL,
-  DEBUG,
-  GRAPHQL_URI,
-  HUMHUB_ACTIVE,
-  HUMHUB_API_URL,
+// What the environment can set, and the value used where it does not. index.js hands the
+// variables over one by one, so the keys are the variable names. The URLs are put together
+// from COMMUNITY_URL, WALLET_URL and a path in the transform at the end.
+
+// the path behind a base URL a link is built from
+const pathSchema = (description) => v.pipe(v.string(), v.description(description))
+
+const environment = v.object({
   NODE_ENV,
-  PRODUCTION,
 
-  ADMIN_HOSTING: Joi.string()
-    .valid('nodejs', 'nginx')
-    .description('set to `nodejs` if admin is hosted by vite with a own nodejs instance')
-    .optional(),
-
-  ADMIN_MODULE_URL: Joi.string()
-    .uri({ scheme: ['http', 'https'] })
-    .when('COMMUNITY_URL', {
-      is: Joi.exist(),
-      then: Joi.optional(), // not required if COMMUNITY_URL is provided
-      otherwise: Joi.required(), // required if COMMUNITY_URL is missing
-    })
-    .description("Base Url for reaching admin in browser, only needed if COMMUNITY_URL wasn't set")
-    .optional(), // optional in general, but conditionally required
-
-  ADMIN_MODULE_PROTOCOL: Joi.string()
-    .when('ADMIN_HOSTING', {
-      is: Joi.valid('nodejs'),
-      then: Joi.valid('http').required(),
-      otherwise: Joi.valid('http', 'https').required(),
-    })
-    .description(
-      `
+  ADMIN_HOSTING: v.optional(
+    v.pipe(
+      v.picklist(['nodejs', 'nginx']),
+      v.description('set to `nodejs` if admin is hosted by vite with a own nodejs instance'),
+    ),
+  ),
+  ADMIN_MODULE_PROTOCOL: v.optional(
+    v.pipe(
+      v.picklist(['http', 'https']),
+      v.description(
+        `
       Protocol for admin module hosting
       - it has to be the same as for backend api url and frontend to prevent mixed block errors,
       - if admin is served with nodejs:
           is have to be http or setup must be updated to include a ssl certificate
       `,
-    )
-    .default('http')
-    .required(),
+      ),
+    ),
+    'http',
+  ),
+  ADMIN_MODULE_HOST: v.optional(
+    v.pipe(
+      hostSchema,
+      v.description(
+        'Host (domain, IPv4, or localhost) for the admin, default is 0.0.0.0 for local hosting during develop',
+      ),
+    ),
+    '0.0.0.0',
+  ),
+  ADMIN_MODULE_PORT: v.optional(
+    v.pipe(
+      portSchema,
+      v.description('Port for hosting Admin with Vite as a Node.js instance, default: 8080'),
+    ),
+    8080,
+  ),
+  APP_VERSION,
+  BUILD_COMMIT: v.optional(BUILD_COMMIT),
 
-  ADMIN_MODULE_HOST: Joi.alternatives()
-    .try(
-      Joi.string().valid('localhost').messages({ 'any.invalid': 'Must be localhost' }),
-      Joi.string()
-        .ip({ version: ['ipv4'] })
-        .messages({ 'string.ip': 'Must be a valid IPv4 address' }),
-      Joi.string().domain().messages({ 'string.domain': 'Must be a valid domain' }),
-    )
-    .when('ADMIN_HOSTING', {
-      is: 'nodejs',
-      then: Joi.required(),
-      otherwise: Joi.optional(),
-    })
-    .when('COMMUNITY_URL', {
-      is: null,
-      then: Joi.required(),
-      otherwise: Joi.optional(),
-    })
-    .description(
-      'Host (domain, IPv4, or localhost) for the admin, default is 0.0.0.0 for local hosting during develop',
-    )
-    .default('0.0.0.0'),
+  COMMUNITY_URL: v.optional(COMMUNITY_URL),
+  WALLET_URL: v.optional(
+    v.pipe(
+      httpUrlSchema,
+      v.description('Extern Url of the wallet-frontend, COMMUNITY_URL where not set'),
+    ),
+  ),
+  GRAPHQL_URL: v.optional(GRAPHQL_URI),
+  GRAPHQL_PATH: v.optional(
+    pathSchema('Path of the backend api, behind COMMUNITY_URL where GRAPHQL_URL is not set'),
+    '/graphql',
+  ),
+  WALLET_AUTH_PATH: v.optional(
+    pathSchema('Path of the wallet login the admin forwards to, behind WALLET_URL'),
+    '/authenticate?token=',
+  ),
+  WALLET_LOGIN_PATH: v.optional(
+    pathSchema('Path of the wallet login the admin forwards to after a logout, behind WALLET_URL'),
+    '/login',
+  ),
 
-  ADMIN_MODULE_PORT: Joi.number()
-    .integer()
-    .min(1024)
-    .max(49151)
-    .description('Port for hosting Admin with Vite as a Node.js instance, default: 8080')
-    .default(8080)
-    .when('ADMIN_HOSTING', {
-      is: 'nodejs',
-      then: Joi.required(),
-      otherwise: Joi.optional(),
-    }),
-
-  WALLET_AUTH_URL: Joi.string()
-    .uri({ scheme: ['http', 'https'] })
-    .description('Extern Url from wallet-frontend for forwarding from admin')
-    .default('http://0.0.0.0/authenticate?token=')
-    .required(),
-
-  WALLET_LOGIN_URL: Joi.string()
-    .uri({ scheme: ['http', 'https'] })
-    .description('Extern Url from wallet-frontend for forwarding after logout')
-    .default('http://0.0.0.0/login')
-    .required(),
-
-  DEBUG_DISABLE_AUTH: Joi.boolean()
-    .description('Flag for disable authorization during development')
-    .default(false)
-    .optional(), // true is only allowed in not-production setup
+  // true is only allowed in not-production setup
+  DEBUG_DISABLE_AUTH: v.optional(
+    v.pipe(booleanSchema, v.description('Flag for disable authorization during development')),
+    false,
+  ),
+  HUMHUB_ACTIVE: v.optional(HUMHUB_ACTIVE, false),
+  HUMHUB_API_URL: v.optional(HUMHUB_API_URL),
+  ANTHROPIC_ACTIVE: v.optional(ANTHROPIC_ACTIVE, false),
+  // Printed on the starting bonus cheque, where it tells the guest which community
+  // the code belongs to. Same value and same fallback as in the wallet.
+  COMMUNITY_NAME: v.optional(COMMUNITY_NAME, 'Gradido Entwicklung'),
 })
+
+const schema = v.pipe(
+  environment,
+  v.transform((env) => {
+    // with its own nodejs instance the admin answers on a port, behind nginx it does not
+    const ADMIN_MODULE_URL =
+      env.ADMIN_HOSTING === 'nodejs'
+        ? `${env.ADMIN_MODULE_PROTOCOL}://${env.ADMIN_MODULE_HOST}:${env.ADMIN_MODULE_PORT}`
+        : `${env.ADMIN_MODULE_PROTOCOL}://${env.ADMIN_MODULE_HOST}`
+    const COMMUNITY_URL = env.COMMUNITY_URL ?? ADMIN_MODULE_URL
+    const WALLET_URL = env.WALLET_URL ?? COMMUNITY_URL
+    return {
+      ...env,
+      DEBUG: env.NODE_ENV !== 'production',
+      PRODUCTION: env.NODE_ENV === 'production',
+      BUILD_COMMIT_SHORT: (env.BUILD_COMMIT ?? '0000000').slice(0, 7),
+      ADMIN_MODULE_URL,
+      COMMUNITY_URL,
+      WALLET_URL,
+      GRAPHQL_URI: env.GRAPHQL_URL ?? COMMUNITY_URL + env.GRAPHQL_PATH,
+      WALLET_AUTH_URL: WALLET_URL + env.WALLET_AUTH_PATH,
+      WALLET_LOGIN_URL: WALLET_URL + env.WALLET_LOGIN_PATH,
+      HUMHUB_API_URL: env.HUMHUB_API_URL ?? `${COMMUNITY_URL}/community/`,
+    }
+  }),
+  // https only behind nginx: served by vite's own node instance, the admin cannot offer it
+  configRule(
+    'ADMIN_MODULE_PROTOCOL',
+    (config) => config.ADMIN_HOSTING === 'nginx' || config.ADMIN_MODULE_PROTOCOL === 'http',
+    'ADMIN_MODULE_PROTOCOL must be http unless ADMIN_HOSTING is nginx',
+  ),
+)
+
+module.exports = { schema }
