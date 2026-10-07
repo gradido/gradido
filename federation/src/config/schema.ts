@@ -1,5 +1,4 @@
 import {
-  GRAPHIQL,
   LOG_FILES_BASE_PATH,
   LOG_LEVEL,
   LOG4JS_CONFIG_PLACEHOLDER,
@@ -9,7 +8,6 @@ import {
 import Joi from 'joi'
 
 export const schema = Joi.object({
-  GRAPHIQL,
   LOG4JS_CONFIG_PLACEHOLDER,
   LOG_FILES_BASE_PATH,
   LOG_LEVEL,

@@ -4,13 +4,9 @@ const setHeadersPlugin = {
   async requestDidStart() {
     return {
       async willSendResponse(requestContext: any) {
-        const { setHeaders = [] } = requestContext.context
+        const { setHeaders = [] } = requestContext.contextValue
         setHeaders.forEach(({ key, value }: { [key: string]: string }) => {
-          if (requestContext.response.http.headers.get(key)) {
-            requestContext.response.http.headers.set(key, value)
-          } else {
-            requestContext.response.http.headers.append(key, value)
-          }
+          requestContext.response.http.headers.set(key, value)
         })
         return requestContext
       },
@@ -49,18 +45,22 @@ ${mutation || query}variables: ${JSON.stringify(filterVariables(variables), with
     }
     return {
       async willSendResponse(requestContext: any) {
+        // What is answered: Apollo Server 5 keeps data and errors one level down, and has
+        // neither for an answer that is delivered in parts.
+        const { body } = requestContext.response
+        const answer = body.kind === 'single' ? body.singleResult : {}
         if (operationName !== 'IntrospectionQuery') {
-          if (requestContext.context.user) {
-            logger.info(`User ID: ${requestContext.context.user.id}`)
+          if (requestContext.contextValue.user) {
+            logger.info(`User ID: ${requestContext.contextValue.user.id}`)
           }
-          if (requestContext.response.data) {
+          if (answer.data) {
             logger.info('Response Success!')
             logger.trace(`Response-Data:
-${JSON.stringify(requestContext.response.data, null, 2)}`)
+${JSON.stringify(answer.data, null, 2)}`)
           }
-          if (requestContext.response.errors) {
+          if (answer.errors) {
             logger.error(`Response-Errors:
-${JSON.stringify(requestContext.response.errors, withLongStringsAsLength, 2)}`)
+${JSON.stringify(answer.errors, withLongStringsAsLength, 2)}`)
           }
         }
         return requestContext

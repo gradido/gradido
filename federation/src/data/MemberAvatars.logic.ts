@@ -5,8 +5,8 @@
  * (kind `full` names exactly one).
  *
  * ⛔ Checked in the resolver after decrypting, because the list travels inside the encrypted
- * payload and GraphQL sees only a string. It bounds ONE field. Aliases repeat the field and
- * a POST may batch operations, so what bounds a whole request is the body size express.json()
+ * payload and GraphQL sees only a string. It bounds ONE field. Aliases repeat the field, so
+ * what bounds a whole request is the body size express.json()
  * accepts in createServer.ts (100 KB) -- a request field for 100 ids is about 8 KB, one for a
  * single id about 1.5 KB.
  *
