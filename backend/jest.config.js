@@ -10,7 +10,7 @@ module.exports = {
     },
   },
   setupFiles: ['<rootDir>/test/testSetup.ts'],
-  setupFilesAfterEnv: [],
+  setupFilesAfterEnv: ['<rootDir>/test/testSetupAfterEnv.ts'],
   modulePathIgnorePatterns: ['<rootDir>/build/'],
   moduleNameMapper: {
     '@/(.*)': '<rootDir>/src/$1',

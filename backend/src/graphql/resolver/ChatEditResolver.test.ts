@@ -39,7 +39,6 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
  * held in ChatEditResolver.editChatMessage.test.ts, where each answer of the database can be
  * brought about.
  */
-jest.mock('@/password/EncryptorUtils')
 // The mail is watched, to see that a change sends none. Nothing is sent either way.
 jest.mock('core', () => {
   const originalModule = jest.requireActual('core')

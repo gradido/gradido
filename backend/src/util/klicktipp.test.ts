@@ -12,7 +12,6 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 import { exportEventDataToKlickTipp } from './klicktipp'
 
 jest.mock('@/apis/KlicktippController')
-jest.mock('@/password/EncryptorUtils')
 
 let mutate: ApolloServerTestClient['mutate']
 let db: AppDatabase

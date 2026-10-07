@@ -81,9 +81,9 @@ const isRun = (pin: string): boolean => {
  * `dbUser.password.toString() === encryptedPassword.toString()`).
  *
  * The reason is that the two sides do not come from the same place. The stored value comes
- * out of the database through Drizzle; the offered one comes out of
- * `SecretKeyCryptographyCreateKey`, which — when `USE_CRYPTO_WORKER` is on — crosses a
- * worker boundary on the way back. Neither end guarantees the JS type, and a strict `!==`
+ * out of the database through Drizzle; the offered one comes out of the native app context
+ * (`AppContext.derivePinKey`; at the time the password KDF on a worker thread), across a
+ * native boundary. Neither end guarantees the JS type, and a strict `!==`
  * between a bigint and its own decimal spelling is ALWAYS true: every PIN is wrong, for
  * everybody, while the server dutifully counts attempts and blocks the card.
  *

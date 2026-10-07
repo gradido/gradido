@@ -53,7 +53,6 @@ import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
 
-jest.mock('@/password/EncryptorUtils')
 // The mails are watched, to see who is mailed about what, and answer as mails that went out.
 // Nothing is sent either way.
 jest.mock('core', () => {

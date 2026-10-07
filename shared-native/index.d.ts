@@ -471,3 +471,100 @@ export function reencodeImage(
   input: Uint8Array,
   options: ReencodeImageOptions,
 ): Promise<Result<ReencodedImage, ReencodeImageError>>
+
+/**
+ * napi/appContext.h, napi/passwordHashing.h: libsodium, which comes in through the core.
+ */
+
+export interface PasswordHashingOptions {
+  /**
+   * The admission rule: a job is admitted while what is queued already would be served
+   * within this many whole milliseconds. The production value is
+   * PASSWORD_HASH_MAX_EXPECTED_WAIT_MS in shared/src/const; a test sets a small one to see
+   * refusals without waiting for them.
+   */
+  maxExpectedWaitMs: number
+  /**
+   * ⛔ argon2id passes. The production value (DEFAULT_PASSWORD_HASHING in shared's AppContext)
+   * is a constant of the derivation, not tuning: every hash in users.password was derived
+   * with it, and a hash derived with another value matches no stored password. Lower it for
+   * tests only, where no hash is ever compared with a production one; argon2id's minimum is 1.
+   */
+  opsLimit: number
+  /** ⛔ argon2id memory in bytes, the same warning as `opsLimit`; minimum 8192 */
+  memLimit: number
+  /** Threads that derive password keys. Default: half the logical cores, at least one */
+  threadCount?: number
+}
+
+export interface NativeAppContextOptions {
+  /** The salt component every derivation starts from; the backend's LOGIN_APP_SECRET */
+  appSecret: Uint8Array
+  /** 16 bytes, crypto_shorthash_KEYBYTES; the backend's LOGIN_SERVER_KEY */
+  serverKey: Uint8Array
+  passwordHashing: PasswordHashingOptions
+}
+
+export interface PasswordHashingStats {
+  threadCount: number
+  /** The admission rule, as the context was created with */
+  maxExpectedWaitMs: number
+  /** Over the last five derivations on this hardware; the first one is run at start */
+  averageDurationMs: number
+  /** What a job queued now would wait before its own derivation starts, by the admission rule */
+  expectedWaitMs: number
+  highPriorityQueued: number
+  lowPriorityQueued: number
+}
+
+export type PasswordHashQueueFullError = { name: 'PASSWORD_HASH_QUEUE_FULL'; message: string }
+
+/**
+ * What the process is configured with once, at start, and never changes while it runs: the
+ * secrets every password and PIN derivation is keyed with, and the threads that derive
+ * password keys. One instance per process, held by the AppContext of `shared`; the secrets
+ * are copied in and never leave the native side again.
+ *
+ * Password keys are derived on the context's own threads, fed from two queues. Admission is
+ * by time, not by places: a job is admitted while what is queued already would be served
+ * within `maxExpectedWaitMs` -- the queued jobs times the average duration of the last
+ * derivations on this hardware, spread over the threads. One over that is refused at once,
+ * so the server answers "try again later" rather than piling up logins it cannot serve.
+ *
+ * The threads prefer the high priority queue, but while both queues wait every third pick
+ * goes to the low one, so a run of logins cannot starve the password changes.
+ */
+export class NativeAppContext {
+  public constructor(options: NativeAppContextOptions)
+
+  /**
+   * The password derivation: sha512(salt + appSecret) as the argon2id salt, argon2id over the
+   * password, crypto_shorthash of that keyed with the server key -- a 64 bit value, the shape
+   * users.password stores.
+   *
+   * @param priority - 0 for the high priority queue (the login), 1 for the low one (everything
+   *   else); `PasswordHashPriority` in `shared` names them
+   * @returns at once whether the job was admitted; its promise resolves with the key, and
+   *   rejects only if libsodium could not derive one (out of memory)
+   */
+  public hashPassword(
+    salt: string,
+    password: string,
+    priority: number,
+  ): Result<Promise<bigint>, PasswordHashQueueFullError>
+
+  /**
+   * The thank-you-card PIN derivation: keyed BLAKE2b over salt + appSecret + pin, keyed with
+   * the server key, cut to 64 bit. Microseconds, so it runs on the calling thread.
+   */
+  public derivePinKey(salt: string, pin: string): bigint
+
+  public getPasswordHashingStats(): PasswordHashingStats
+
+  /**
+   * Finishes the derivations the threads are on, drops the queued ones -- their promises
+   * stay pending -- and joins the threads. After it, `hashPassword` throws. Not needed for
+   * the process to exit: an idle context does not keep the event loop alive.
+   */
+  public destroy(): void
+}

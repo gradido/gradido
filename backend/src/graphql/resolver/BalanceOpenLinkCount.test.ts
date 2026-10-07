@@ -20,8 +20,6 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 // A link expires CODE_VALID_DAYS_DURATION days after it was created, so a link created long
 // enough ago is expired without touching the row afterwards.
 
-jest.mock('@/password/EncryptorUtils')
-
 CONFIG.DLT_ACTIVE = false
 
 let mutate: ApolloServerTestClient['mutate']

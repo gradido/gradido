@@ -23,7 +23,6 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
  * nothing starts its timer.
  */
 
-jest.mock('@/password/EncryptorUtils')
 jest.mock('@/apis/jitsi/jitsiProbe', () => ({ probeJitsiServer: jest.fn() }))
 const probe = probeJitsiServer as jest.MockedFunction<typeof probeJitsiServer>
 

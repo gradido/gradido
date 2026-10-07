@@ -24,7 +24,6 @@ import { bobBaumeister } from '@/seeds/users/bob-baumeister'
  * limits, so a correct PIN refused for its amount has still been proved -- and no
  * balance or booking is needed to show any of this.
  */
-jest.mock('@/password/EncryptorUtils')
 
 CONFIG.DLT_ACTIVE = false
 

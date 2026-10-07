@@ -20,8 +20,6 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 // between what the latest bookings give decayed up to just before the query and up to
 // just after it. A second balance counted in lies far outside of that.
 
-jest.mock('@/password/EncryptorUtils')
-
 CONFIG.DLT_ACTIVE = false
 
 const FOREIGN_COMMUNITY = '99999999-9999-9999-9999-999999999999'

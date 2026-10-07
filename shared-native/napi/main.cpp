@@ -1,3 +1,4 @@
+#include "AppContext.h"
 #include "CompleteTransaction.h"
 #include "crypto.h"
 #include "gradidoUnit.h"
@@ -35,6 +36,7 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
     exports.Set("reencodeImage", Napi::Function::New(env, gradido::image::Reencode));
 
     // classes
+    gradido::AppContext::Init(env, exports);
     gradido::data::runtime::CompleteTransaction::Init(env, exports);
     gradido::utils::MonotonicTimer::Init(env, exports);
     gradido::data::wire::LedgerAnchor::Init(env, exports);

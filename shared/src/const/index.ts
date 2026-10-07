@@ -190,6 +190,12 @@ export const THANK_YOU_PICTURE_LARGE_MAX_PIXELS = 850_000
 export const ALIAS_QUOTA_PER_WINDOW = 4
 export const ALIAS_QUOTA_WINDOW_MS = 365 * 24 * 60 * 60 * 1000
 
+// password hashing: a login is admitted to the hashing threads only while what waits there
+// already would be served within this time -- queued jobs times the measured duration of one
+// derivation, spread over the threads. Over it the login is refused at once with "try again
+// later", instead of piling up logins the server cannot serve (HashingPool in shared-native).
+export const PASSWORD_HASH_MAX_EXPECTED_WAIT_MS = 3500
+
 // authentication
 // 10 minutes
 export const FEDERATION_AUTHENTICATION_TIMEOUT_MS = 60 * 1000 * 10
@@ -224,3 +230,22 @@ export const DEFAULT_LANGUAGE = 'de'
 // 10 minutes default cache timeout, it is for auto correcting, when cache invalidation don't work properly in any cases,
 // the cached data set will be updated after 10 minutes
 export const DEFAULT_CACHE_TIMEOUT_MS = 10 * 60 * 1000
+
+/*
+ * The passworth hashing options which where used in production since start
+ */
+export const DEFAULT_PASSWORD_HASHING = {
+  opsLimit: 10,
+  memLimit: 33554432,
+}
+
+/**
+ * ⛔ For tests only: argon2id's minimums and a single thread, so a test suite does not spend
+ * its time on 32 MiB derivations. A hash derived with it matches no production hash, and
+ * must never be written anywhere a production login reads.
+ */
+export const MINIMAL_PASSWORD_HASHING = {
+  opsLimit: 1,
+  memLimit: 8192,
+  threadCount: 1,
+}

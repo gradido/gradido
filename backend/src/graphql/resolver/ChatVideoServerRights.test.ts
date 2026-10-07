@@ -26,7 +26,6 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 // ⛔ Only a request through the schema can see the guard: `@Authorized` lives at the GraphQL
 // layer, and a test that calls the resolver's methods would stay green without it.
 
-jest.mock('@/password/EncryptorUtils')
 // No server is asked: the probe answers as a server that passes. The checks the mutations start
 // run against this, and so does checkChatVideoServersNow.
 jest.mock('@/apis/jitsi/jitsiProbe', () => ({

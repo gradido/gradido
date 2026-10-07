@@ -74,7 +74,6 @@ jest.mock('core', () => {
     sendTransactionReceivedEmail: jest.fn(async () => null),
   }
 })
-jest.mock('@/password/EncryptorUtils')
 
 const openPending = countOpenPendingTransactions as jest.MockedFunction<
   typeof countOpenPendingTransactions

@@ -26,8 +26,6 @@ import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 
-jest.mock('@/password/EncryptorUtils')
-
 CONFIG.DLT_ACTIVE = false
 CORE_CONFIG.EMAIL = false
 

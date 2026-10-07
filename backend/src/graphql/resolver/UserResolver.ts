@@ -90,6 +90,7 @@ import {
   AVATAR_SMALL_MAX_SIDE,
   languageSchema,
   MemberAvatarPayload,
+  PasswordHashPriority,
   parseOrThrowFirstIssue,
   passwordSchema,
   Result,
@@ -310,7 +311,7 @@ export class UserResolver {
       logger.warn('login failed, user has not set a password yet')
       throw new Error('The User has not set a password yet')
     }
-    if (!(await verifyPassword(dbUser, password))) {
+    if (!(await verifyPassword(dbUser, password, PasswordHashPriority.HIGH))) {
       logger.warn('login failed, wrong password')
       throw new Error('No user with this credentials')
     }
@@ -345,7 +346,7 @@ export class UserResolver {
       await dbUserUpdatePassword(
         dbUser.id,
         PasswordEncryptionType.GRADIDO_ID,
-        await encryptPassword(dbUser, password),
+        await encryptPassword(dbUser, password, PasswordHashPriority.HIGH),
       )
     }
     logger.debug('validation of login credentials successful...')
