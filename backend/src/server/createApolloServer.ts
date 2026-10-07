@@ -32,7 +32,7 @@ export const createApolloServer = async (
   // retry max CONFIG.DB_CONNECT_RETRY_COUNT times, wait CONFIG.DB_CONNECT_RETRY_DELAY ms between tries
   const db = AppDatabase.getInstance()
   await db.init()
-  
+
   const apollo = new ApolloServer({
     schema: await schema(),
     introspection: CONFIG.GRAPHIQL,

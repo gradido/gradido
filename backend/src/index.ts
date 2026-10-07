@@ -2,6 +2,7 @@ import 'reflect-metadata'
 import 'source-map-support/register'
 import { getHomeCommunityDrizzle } from 'database'
 import { getLogger } from 'log4js'
+import { AppContext } from 'shared'
 import { matchingKeyingRun } from './apis/anthropic/matching/keyingRun'
 import { chatVideoServerPool } from './apis/jitsi/chatVideoServerPool'
 import { seedChatVideoServers } from './apis/jitsi/seedChatVideoServers'
@@ -11,7 +12,6 @@ import { startRefreshForeignMemberAvatarDates } from './federation/refreshForeig
 import { startValidateCommunities } from './federation/validateCommunities'
 import { createServer } from './server/createServer'
 import { initLogging } from './server/logger'
-import { AppContext } from 'shared'
 
 async function main() {
   initLogging()
