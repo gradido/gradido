@@ -5,8 +5,8 @@ export const GradidoUnitScalar = new GraphQLScalarType({
   name: 'GradidoUnit',
   description: 'The `GradidoUnit` scalar type to represent currency values',
 
-  serialize(value: GradidoUnit) {
-    return value.toString()
+  serialize(value: unknown) {
+    return (value as GradidoUnit).toString()
   },
 
   parseValue(value) {

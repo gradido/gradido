@@ -241,16 +241,14 @@ describe('ContributionResolver', () => {
             {
               message: 'Argument Validation Error',
               extensions: {
-                exception: {
-                  validationErrors: [
-                    {
-                      property: 'memo',
-                      constraints: {
-                        minLength: 'memo must be longer than or equal to 5 characters',
-                      },
+                validationErrors: [
+                  {
+                    property: 'memo',
+                    constraints: {
+                      minLength: 'memo must be longer than or equal to 5 characters',
                     },
-                  ],
-                },
+                  },
+                ],
               },
             },
           ])
@@ -271,16 +269,14 @@ describe('ContributionResolver', () => {
             {
               message: 'Argument Validation Error',
               extensions: {
-                exception: {
-                  validationErrors: [
-                    {
-                      property: 'memo',
-                      constraints: {
-                        maxLength: 'memo must be shorter than or equal to 512 characters',
-                      },
+                validationErrors: [
+                  {
+                    property: 'memo',
+                    constraints: {
+                      maxLength: 'memo must be shorter than or equal to 512 characters',
                     },
-                  ],
-                },
+                  },
+                ],
               },
             },
           ])
@@ -300,17 +296,15 @@ describe('ContributionResolver', () => {
             {
               message: 'Argument Validation Error',
               extensions: {
-                exception: {
-                  validationErrors: [
-                    {
-                      property: 'contributionDate',
-                      constraints: {
-                        isValidDateString:
-                          'contributionDate must be a valid date string, contributionDate',
-                      },
+                validationErrors: [
+                  {
+                    property: 'contributionDate',
+                    constraints: {
+                      isValidDateString:
+                        'contributionDate must be a valid date string, contributionDate',
                     },
-                  ],
-                },
+                  },
+                ],
               },
             },
           ])
@@ -409,16 +403,14 @@ describe('ContributionResolver', () => {
             {
               message: 'Argument Validation Error',
               extensions: {
-                exception: {
-                  validationErrors: [
-                    {
-                      property: 'memo',
-                      constraints: {
-                        minLength: 'memo must be longer than or equal to 5 characters',
-                      },
+                validationErrors: [
+                  {
+                    property: 'memo',
+                    constraints: {
+                      minLength: 'memo must be longer than or equal to 5 characters',
                     },
-                  ],
-                },
+                  },
+                ],
               },
             },
           ])
@@ -442,16 +434,14 @@ describe('ContributionResolver', () => {
             {
               message: 'Argument Validation Error',
               extensions: {
-                exception: {
-                  validationErrors: [
-                    {
-                      property: 'memo',
-                      constraints: {
-                        maxLength: 'memo must be shorter than or equal to 512 characters',
-                      },
+                validationErrors: [
+                  {
+                    property: 'memo',
+                    constraints: {
+                      maxLength: 'memo must be shorter than or equal to 512 characters',
                     },
-                  ],
-                },
+                  },
+                ],
               },
             },
           ])
@@ -1586,17 +1576,15 @@ describe('ContributionResolver', () => {
                   {
                     message: 'Argument Validation Error',
                     extensions: {
-                      exception: {
-                        validationErrors: [
-                          {
-                            property: 'creationDate',
-                            constraints: {
-                              isValidDateString:
-                                'creationDate must be a valid date string, creationDate',
-                            },
+                      validationErrors: [
+                        {
+                          property: 'creationDate',
+                          constraints: {
+                            isValidDateString:
+                              'creationDate must be a valid date string, creationDate',
                           },
-                        ],
-                      },
+                        },
+                      ],
                     },
                   },
                 ])

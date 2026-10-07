@@ -1,10 +1,11 @@
-import { ApolloClient, ApolloLink, InMemoryCache, HttpLink } from 'apollo-boost'
+import { ApolloClient, ApolloLink, InMemoryCache, HttpLink } from '@apollo/client/core'
 import { onError } from '@apollo/client/link/error'
 import VueApollo from 'vue-apollo'
 import CONFIG from '../config'
 import store from '../store/store'
 import { provideApolloClient } from '@vue/apollo-composable'
 import { isSchemaMismatch, markAppOutdated } from '@/composables/useAppOutdated'
+import { redirectTo } from '@/utils/redirect'
 
 const httpLink = new HttpLink({ uri: CONFIG.GRAPHQL_URI })
 
@@ -13,11 +14,6 @@ const httpLink = new HttpLink({ uri: CONFIG.GRAPHQL_URI })
 // whole operation and no retry helps until the page is reloaded. Raise a flag so
 // AppOutdatedBar can offer that reload. The decision lives in useAppOutdated, testable
 // without Apollo.
-//
-// ⚠️ This admin still builds its client from apollo-boost (apollo-link 1.x) while onError
-// comes from @apollo/client 3.x. Both expose the same request/observable contract and both
-// are already dependencies, so no new package -- but the two generations meeting in one
-// chain is the part only a running server can prove. Verify on staging, not at the diff.
 const outdatedLink = onError((failure) => {
   if (isSchemaMismatch(failure)) {
     markAppOutdated()
@@ -35,7 +31,7 @@ const authLink = new ApolloLink((operation, forward) => {
   return forward(operation).map((response) => {
     if (response.errors && response.errors[0].message === '403.13 - Client certificate revoked') {
       store.dispatch('logout', null)
-      window.location.assign(CONFIG.WALLET_LOGIN_URL)
+      redirectTo(CONFIG.WALLET_LOGIN_URL)
       return response
     }
     const newToken = operation.getContext().response.headers.get('token')
