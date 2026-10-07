@@ -25,11 +25,6 @@ async function main() {
   app.listen(CONFIG.FEDERATION_PORT, () => {
     const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}`)
     logger.info(`Server is running at http://localhost:${CONFIG.FEDERATION_PORT}`)
-    if (CONFIG.GRAPHIQL) {
-      logger.info(
-        `GraphIQL available at ${CONFIG.FEDERATION_COMMUNITY_URL}/api/${CONFIG.FEDERATION_API}`,
-      )
-    }
     onShutdown(async (reason, error) => {
       if (ShutdownReason.SIGINT === reason || ShutdownReason.SIGTERM === reason) {
         logger.info(`graceful shutdown: ${reason}`)

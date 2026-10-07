@@ -5,13 +5,9 @@ const setHeadersPlugin = {
   async requestDidStart() {
     return {
       async willSendResponse(requestContext: any) {
-        const { setHeaders = [] } = requestContext.context
+        const { setHeaders = [] } = requestContext.contextValue
         setHeaders.forEach(({ key, value }: Record<string, string>) => {
-          if (requestContext.response.http.headers.get(key)) {
-            requestContext.response.http.headers.set(key, value)
-          } else {
-            requestContext.response.http.headers.append(key, value)
-          }
+          requestContext.response.http.headers.set(key, value)
         })
         return requestContext
       },
@@ -148,21 +144,25 @@ variables: ${JSON.stringify(filterVariables(variables), null, 2)}`)
     }
     return {
       async willSendResponse(requestContext: any) {
+        // What is answered: Apollo Server 5 keeps data and errors one level down, and has
+        // neither for an answer that is delivered in parts.
+        const { body } = requestContext.response
+        const answer = body.kind === 'single' ? body.singleResult : {}
         if (operationName !== 'IntrospectionQuery') {
-          if (requestContext.context.user) {
-            logger.info(`User ID: ${requestContext.context.user.id}`)
+          if (requestContext.contextValue.user) {
+            logger.info(`User ID: ${requestContext.contextValue.user.id}`)
           }
-          if (requestContext.response.data) {
+          if (answer.data) {
             logger.info('Response Success!')
             // A video room is open to whoever knows its address: the answer of a request that was
             // handed one (chatVideoRoom) stays out of the log. The request's budget counts the
-            // rooms, over aliases and every operation of a batch.
-            if (requestContext.context.requestBudget?.chatVideoRoomsServed) {
+            // rooms, over every alias.
+            if (requestContext.contextValue.requestBudget?.chatVideoRoomsServed) {
               logger.trace('Response-Data: left out, it holds a video room')
             } else if (
-              requestContext.context.requestBudget?.chatImagesServed ||
-              requestContext.context.requestBudget?.thankYouGreetingPicturesServed ||
-              requestContext.context.requestBudget?.transactionPicturesServed
+              requestContext.contextValue.requestBudget?.chatImagesServed ||
+              requestContext.contextValue.requestBudget?.thankYouGreetingPicturesServed ||
+              requestContext.contextValue.requestBudget?.transactionPicturesServed
             ) {
               // A picture of a chat message (chatMessageImage) is one member's for another, and
               // so are the picture of a thank-you greeting (thankYouGreetingPicture) and the
@@ -170,12 +170,12 @@ variables: ${JSON.stringify(filterVariables(variables), null, 2)}`)
               logger.trace('Response-Data: left out, it holds a picture')
             } else {
               logger.trace(`Response-Data:
-${JSON.stringify(requestContext.response.data, withoutRecipientNames, 2)}`)
+${JSON.stringify(answer.data, withoutRecipientNames, 2)}`)
             }
           }
-          if (requestContext.response.errors) {
+          if (answer.errors) {
             logger.error(`Response-Errors:
-${JSON.stringify(requestContext.response.errors, withoutRequestValues, 2)}`)
+${JSON.stringify(answer.errors, withoutRequestValues, 2)}`)
           }
         }
         return requestContext

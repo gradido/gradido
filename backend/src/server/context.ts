@@ -1,4 +1,4 @@
-import { ExpressContext } from 'apollo-server-express'
+import { ExpressContextFunctionArgument } from '@as-integrations/express4'
 import { Transaction as dbTransaction, User as dbUser } from 'database'
 import { GradidoUnit } from 'shared'
 
@@ -7,16 +7,11 @@ import { Role } from '@/auth/Role'
 import { LogError } from './LogError'
 
 /**
- * What one HTTP request has been served so far, across every operation it carries.
+ * What one HTTP request has been served so far.
  *
- * ⛔ An OBJECT on the context, and that is the mechanism rather than a matter of style.
- * Apollo calls the context function once per HTTP request and gives every operation of a
- * batched POST (a body that is an array of operations) a SHALLOW copy of what it returned
- * (apollo-server-core 3.13: runHttpQuery -> buildRequestContext -> cloneObject). A number
- * on the context is copied by value, so each operation would count from zero and a batch
- * would multiply every cap kept there; this object is copied by reference, so all
- * operations of one request count in the same place. Aliases, which repeat a field inside
- * one operation, count here as well.
+ * One HTTP request is one operation -- the server takes no POST that carries several -- and
+ * the context function makes one context for it. What is left to count is the aliases: a
+ * document may ask for the same field any number of times under other names.
  */
 export interface RequestBudget {
   // Full-size member pictures, capped at MEMBER_AVATARS_FULL_MAX_PER_REQUEST.
@@ -87,16 +82,14 @@ export interface Context {
   transactionCount?: number
   linkCount?: number
   sumHoldAvailableDecayedAmount?: GradidoUnit
-  // ⛔ Per HTTP request, not per field and not per operation -- see RequestBudget. A cap
-  // written inside one resolver call counts to one every time, because a document may ask
-  // for the same field under any number of aliases; a count kept as a number on the context
-  // restarts for every operation of a batch. The batched reader next to it caps the LIST it
-  // is handed instead (MEMBER_AVATARS_MAX_REFS), which holds only because the list travels
-  // as one argument.
+  // ⛔ Per HTTP request, not per field -- see RequestBudget. A cap written inside one resolver
+  // call counts to one every time, because a document may ask for the same field under any
+  // number of aliases. The batched reader next to it caps the LIST it is handed instead
+  // (MEMBER_AVATARS_MAX_REFS), which holds only because the list travels as one argument.
   requestBudget: RequestBudget
 }
 
-export const context = (args: ExpressContext): Context => {
+export const context = (args: ExpressContextFunctionArgument): Context => {
   const authorization = args.req.headers.authorization
   const clientTimezoneOffset = args.req.headers.clienttimezoneoffset
   const context: Context = {

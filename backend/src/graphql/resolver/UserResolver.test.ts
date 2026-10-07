@@ -18,7 +18,6 @@ import {
   TEST_AVATAR_SMALL_BASE64,
   testEnvironment,
 } from '@test/helpers'
-import { UserInputError } from 'apollo-server-express'
 import { getLogger } from 'config-schema/test/testSetup'
 import {
   CONFIG as CORE_CONFIG,
@@ -2706,7 +2705,7 @@ describe('UserResolver', () => {
               ).resolves.toEqual(
                 expect.objectContaining({
                   errors: [
-                    new UserInputError(
+                    new GraphQLError(
                       'Variable "$role" got invalid value "unknown rolename"; Value "unknown rolename" does not exist in "RoleNames" enum.',
                     ),
                   ],
@@ -4897,26 +4896,18 @@ describe('UserResolver', () => {
       })
 
       /**
-       * ⛔ The same cap across the operations of ONE batched HTTP request. Apollo accepts a
-       * POST whose body is an array of operations and hands each of them a shallow copy of
-       * the request's context (apollo-server-core, runHttpQuery -> buildRequestContext ->
-       * cloneObject). A counter that lives as a plain number on the context is copied by
-       * value, so every operation counts from zero and a batch multiplies the cap.
+       * ⛔ One operation per HTTP request, which is what lets the cap above be the cap of a
+       * request: a POST whose body is an array of operations would otherwise bring the cap
+       * once per operation. Apollo Server refuses such a body unless it is told to take it
+       * (`allowBatchedHttpRequests`), and this server does not tell it.
        *
-       * Through a real HTTP request, on a server with the production context function: the
-       * test client above cannot send a batch, and this file's context is an object of its
-       * own, so neither says what the context function does.
+       * Through a real HTTP request: the test client above cannot send an array at all.
        */
-      it('counts the cap across the operations of one batched HTTP request', async () => {
+      it('refuses a POST that carries several operations', async () => {
         const ref = `{ gradidoID: "${owner.gradidoID}", communityUuid: ${
           homeCom.communityUuid ? `"${homeCom.communityUuid}"` : 'null'
         } }`
-        const operation = {
-          query: `query { ${Array.from(
-            { length: 6 },
-            (_unused, index) => `a${index}: memberAvatarFull(ref: ${ref})`,
-          ).join('\n')} }`,
-        }
+        const operation = { query: `query { memberAvatarFull(ref: ${ref}) }` }
         const payload = JSON.stringify([operation, operation])
         const token = encode(requester.gradidoID)
 
@@ -4927,7 +4918,7 @@ describe('UserResolver', () => {
         await once(httpServer, 'listening')
         try {
           const { port } = httpServer.address() as AddressInfo
-          const text = await new Promise<string>((resolve, reject) => {
+          const answer = await new Promise<{ status?: number; body: string }>((resolve, reject) => {
             const req = httpRequest(
               {
                 host: '127.0.0.1',
@@ -4946,27 +4937,21 @@ describe('UserResolver', () => {
                 res.on('data', (chunk) => {
                   body += chunk
                 })
-                res.on('end', () => resolve(body))
+                res.on('end', () => resolve({ status: res.statusCode, body }))
               },
             )
             req.on('error', reject)
             req.end(payload)
           })
 
-          const results: {
-            data?: Record<string, string | null>
-            errors?: { message: string }[]
-          }[] = JSON.parse(text)
-          // Two answers, or the server did not read the body as a batch at all.
-          expect(results).toHaveLength(2)
-          const served = results
-            .flatMap((result) => Object.values(result.data ?? {}))
-            .filter((avatar) => avatar === JPEG_FULL_BASE64)
-          const refused = results
-            .flatMap((result) => result.errors ?? [])
-            .filter((error) => error.message.includes('Too many full-size pictures'))
-          expect(served).toHaveLength(MEMBER_AVATARS_FULL_MAX_PER_REQUEST)
-          expect(refused).toHaveLength(2 * 6 - MEMBER_AVATARS_FULL_MAX_PER_REQUEST)
+          expect(answer.status).toBe(400)
+          const result: { data?: unknown; errors?: { message: string }[] } = JSON.parse(answer.body)
+          expect(result.errors?.map((error) => error.message)).toEqual([
+            'Operation batching disabled.',
+          ])
+          // No picture, in whatever shape: nothing of the two operations was run.
+          expect(result.data).toBeUndefined()
+          expect(answer.body).not.toContain(JPEG_FULL_BASE64)
         } finally {
           await new Promise((resolve) => httpServer.close(resolve))
         }

@@ -19,7 +19,6 @@ const logging = {
 const server = {
   // JWT_SECRET: process.env.JWT_SECRET || 'secret123',
   // JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '10m',
-  GRAPHIQL: process.env.GRAPHIQL === 'true',
   // GDT_API_URL: process.env.GDT_API_URL || 'https://gdt.gradido.net',
   PRODUCTION: process.env.NODE_ENV === 'production',
 }
