@@ -85,14 +85,29 @@ export class AppContext {
     getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.AppContext.hashPassword`).warn(
       `password hashing refused: ${result.error.message}`,
     )
-    return {
-      success: false,
-      error: new ResourceExhausted(
-        'PasswordHashingQueue',
-        'AppContext.hashPassword',
-        'Server is full, please try again in 10 minutes.',
-      ),
-    }
+    return { success: false, error: this.passwordHashingRefusal() }
+  }
+
+  /**
+   * The refusal a derivation handed in now would get, or undefined while one would be
+   * admitted -- the admission rule, asked without handing in a job. For the login's fake
+   * verification: an unknown address has to fail the way a known one fails under load, or
+   * the quick "server is full" against the slow "no user" would tell the two apart.
+   */
+  public passwordHashingRefusalNow(): ResourceExhausted | undefined {
+    const stats = this.getPasswordHashingStats()
+    return stats.expectedWaitMs >= stats.maxExpectedWaitMs
+      ? this.passwordHashingRefusal()
+      : undefined
+  }
+
+  // the one failure a refused derivation is answered with, real or faked alike
+  private passwordHashingRefusal(): ResourceExhausted {
+    return new ResourceExhausted(
+      'PasswordHashingQueue',
+      'AppContext.hashPassword',
+      'Server is full, please try again in 10 minutes.',
+    )
   }
 
   /** What the hashing threads measure and hold right now; see the native type */

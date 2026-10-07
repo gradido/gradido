@@ -127,9 +127,10 @@ namespace gradido::password {
         bool isRunning() const { return !mStopping; }
 
         /**
-         * main thread, idempotent. Finishes the jobs the threads are on, drops the queued
-         * ones unanswered and joins the threads. Runs from the env cleanup hook, so it comes
-         * before the thread-safe function is torn down with the environment.
+         * main thread, idempotent. Finishes the jobs the threads are on, drops every job not
+         * yet answered -- queued or just finished -- unanswered, joins the threads and aborts
+         * the thread-safe function, so no answer reaches JavaScript after this. Runs from the
+         * env cleanup hook, so it comes before the function is torn down with the environment.
          */
         void shutdown();
 

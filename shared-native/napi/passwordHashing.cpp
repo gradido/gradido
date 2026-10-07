@@ -239,7 +239,9 @@ namespace gradido::password {
     void HashingPool::CallJs(Napi::Env env, Napi::Function, HashingPool* pool, Job* job)
     {
         if (env == nullptr) {
-            // the environment is going down with this answer still in the queue
+            // The thread-safe function is being torn down with this answer still in its
+            // queue: aborted by shutdown(), or the environment is going down. Nothing of the
+            // pool is touched here -- by now it may be gone.
             delete job;
             return;
         }
@@ -283,7 +285,11 @@ namespace gradido::password {
             }
             queue->clear();
         }
-        mThreadSafeFunction.Release();
+        // Abort, not Release: a release would still deliver the answers the threads handed
+        // in just before they were joined, and CallJs would then reach for a pool and a
+        // function that are gone. Aborted, nothing is delivered any more; what is left in
+        // the queue comes back to CallJs with a null env, to be freed.
+        mThreadSafeFunction.Abort();
     }
 
 } // namespace gradido::password

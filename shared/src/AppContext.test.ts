@@ -60,6 +60,31 @@ describe('AppContext', () => {
     expect(AppContext.getInstance().derivePinKey('fixed-salt', '000000')).toBe(4194897870853666154n)
   })
 
+  it('answers whether a derivation handed in now would be refused', async () => {
+    const context = AppContext.getInstance()
+    expect(context.passwordHashingRefusalNow()).toBeUndefined()
+    // one derivation at a time on one thread, and a budget nothing fits into but the first
+    context.destroy()
+    context.init({
+      ...secrets,
+      passwordHashing: {
+        opsLimit: 1,
+        memLimit: 8 * 1024 * 1024,
+        threadCount: 1,
+        maxExpectedWaitMs: 1,
+      },
+    })
+    const results = []
+    for (let i = 0; i < 20; i++) {
+      results.push(context.hashPassword(`salt-${i}`, 'pw', PasswordHashPriority.LOW))
+    }
+    const refusal = context.passwordHashingRefusalNow()
+    expect(refusal).toBeInstanceOf(ResourceExhausted)
+    expect(refusal?.clientMessage).toBe('Server is full, please try again in 10 minutes.')
+    await Promise.all(results.map((result) => (result.success ? result.value : undefined)))
+    expect(context.passwordHashingRefusalNow()).toBeUndefined()
+  })
+
   it('reports a full queue as ResourceExhausted', async () => {
     const context = AppContext.getInstance()
     // a few milliseconds per derivation and a small budget: the one thread is busy for long

@@ -232,6 +232,29 @@ describe('NativeAppContext', () => {
       context.destroy()
       assert.throws(() => context.hashPassword('salt', 'pw', 0), /destroyed/)
     })
+
+    it('leaves the jobs under way unanswered when destroyed, and answers nothing after', async () => {
+      const context = new NativeAppContext({
+        appSecret,
+        serverKey,
+        passwordHashing: { ...quick, maxExpectedWaitMs: production.maxExpectedWaitMs },
+      })
+      let answered = 0
+      const jobs = []
+      for (let i = 0; i < 6; i++) {
+        jobs.push(context.hashPassword(`job-${i}`, 'pw', i % 2).value.then(() => answered++))
+      }
+      // the first is on the thread, the rest are queued: the thread finishes its one and is joined
+      context.destroy()
+      const settled = Symbol('settled')
+      const pending = Symbol('pending')
+      const outcome = await Promise.race([
+        Promise.all(jobs).then(() => settled),
+        new Promise((resolve) => setTimeout(() => resolve(pending), 100)),
+      ])
+      assert.equal(outcome, pending)
+      assert.equal(answered, 0)
+    })
   })
 
   describe('derivePinKey', () => {
