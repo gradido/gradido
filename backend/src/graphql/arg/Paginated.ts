@@ -5,17 +5,15 @@ import { ArgsType, Field, InputType, Int } from 'type-graphql'
 @ArgsType()
 @InputType()
 export class Paginated {
-  // `nullable` beside a default: type-graphql 2 would otherwise declare the field non-null
-  // (`Int! = 1`), and a client that sends null for it would be refused where it was not.
-  @Field(() => Int, { nullable: true })
+  @Field(() => Int)
   @IsPositive()
   currentPage: number
 
-  @Field(() => Int, { nullable: true })
+  @Field(() => Int)
   @IsPositive()
   pageSize: number
 
-  @Field(() => Order, { nullable: true })
+  @Field(() => Order)
   @IsEnum(Order)
   order: Order
 

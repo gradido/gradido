@@ -15,11 +15,7 @@ export class ContributionMessageArgs {
   @IsString()
   message: string
 
-  // nullable beside the default, see Paginated
-  @Field(() => ContributionMessageType, {
-    nullable: true,
-    defaultValue: ContributionMessageType.DIALOG,
-  })
+  @Field(() => ContributionMessageType, { defaultValue: ContributionMessageType.DIALOG })
   @IsEnum(ContributionMessageType)
   messageType: ContributionMessageType
 

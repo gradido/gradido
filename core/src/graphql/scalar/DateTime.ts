@@ -2,11 +2,13 @@
 import { GraphQLScalarType, Kind } from 'graphql'
 
 const convertStringToDate = (dateString: string): Date => {
-  try {
-    return new Date(dateString)
-  } catch {
+  const date = new Date(dateString)
+  // `new Date` never throws: what it cannot read becomes an Invalid Date, and that is refused
+  // here rather than handed on to a resolver.
+  if (Number.isNaN(date.getTime())) {
     throw new Error('Provided date string is invalid and cannot be parsed')
   }
+  return date
 }
 
 /**
@@ -15,6 +17,9 @@ const convertStringToDate = (dateString: string): Date => {
  * in its place: another type name in the schema -- which a client that declares a variable
  * `DateTime` no longer finds, another community's server among them -- and a stricter
  * reading of what a date string may be.
+ *
+ * One thing differs from the copy: a string that is no date is refused. type-graphql 1 meant
+ * to, but caught an exception `new Date` does not throw, and let an Invalid Date through.
  */
 export const DateTimeScalar = new GraphQLScalarType({
   name: 'DateTime',

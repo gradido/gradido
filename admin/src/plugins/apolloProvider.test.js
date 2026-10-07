@@ -4,10 +4,12 @@ import { provideApolloClient } from '@vue/apollo-composable'
 import VueApollo from 'vue-apollo'
 import CONFIG from '../config'
 import store from '../store/store'
+import { redirectTo } from '@/utils/redirect'
 import { apolloProvider } from './apolloProvider'
 
 vi.mock('vue-apollo')
 vi.mock('@vue/apollo-composable')
+vi.mock('@/utils/redirect')
 vi.mock('../config', () => ({
   default: {
     GRAPHQL_URI: 'http://test-graphql-uri.com',
@@ -128,8 +130,6 @@ describe('a request through the real client', () => {
   })
 
   it('signs out and leaves for the wallet when the session was revoked', async () => {
-    const assign = vi.fn()
-    vi.stubGlobal('location', { ...window.location, assign })
     vi.stubGlobal(
       'fetch',
       answers({ errors: [{ message: '403.13 - Client certificate revoked' }] }),
@@ -140,7 +140,7 @@ describe('a request through the real client', () => {
     )
 
     expect(store.dispatch).toHaveBeenCalledWith('logout', null)
-    expect(assign).toHaveBeenCalledWith('http://test-wallet-login-url.com')
+    expect(redirectTo).toHaveBeenCalledWith('http://test-wallet-login-url.com')
     expect(store.commit).not.toHaveBeenCalled()
   })
 })
