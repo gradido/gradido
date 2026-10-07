@@ -1,5 +1,7 @@
 // AI-GENERATED — not an architecture reference
-import { NativeAppContext, PasswordHashingOptions } from 'shared-native'
+import { getLogger } from 'log4js'
+import { NativeAppContext, PasswordHashingOptions, PasswordHashingStats } from 'shared-native'
+import { LOG4JS_BASE_CATEGORY_NAME } from './const'
 import { PasswordHashPriority } from './enum/PasswordHashPriority'
 import { ResourceExhausted, Result } from './errorTypes'
 
@@ -89,9 +91,14 @@ export class AppContext {
   }
 
   /**
-   * The password derivation on the hashing threads. Whether the job took a place in its
-   * queue is known at once and is the result; the key comes with the promise. A full queue
-   * is an expected failure: the server is busy, the caller is told to try again later.
+   * The password derivation on the hashing threads. Whether the job was admitted is known at
+   * once and is the result; the key comes with the promise. A refusal is an expected
+   * failure: the server is busy, the caller is told to try again later.
+   *
+   * The native side reports it as a plain `{ name, message }` (shared-native's NativeError:
+   * a class of this package cannot be built across the Node-API boundary). This is where it
+   * becomes the ResourceExhausted the callers handle; the figures in the native message --
+   * expected wait, queue, duration -- go to the log, the client gets the fixed sentence.
    */
   public hashPassword(
     salt: string,
@@ -102,6 +109,9 @@ export class AppContext {
     if (result.success) {
       return result
     }
+    getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.AppContext.hashPassword`).warn(
+      `password hashing refused: ${result.error.message}`,
+    )
     return {
       success: false,
       error: new ResourceExhausted(
@@ -110,6 +120,11 @@ export class AppContext {
         'Server is full, please try again in 10 minutes.',
       ),
     }
+  }
+
+  /** What the hashing threads measure and hold right now; see the native type */
+  public getPasswordHashingStats(): PasswordHashingStats {
+    return this.getNative().getPasswordHashingStats()
   }
 
   /** The thank-you-card PIN derivation; microseconds, on the calling thread */

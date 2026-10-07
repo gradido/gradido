@@ -498,12 +498,16 @@ export interface NativeAppContextOptions {
   passwordHashing?: PasswordHashingOptions
 }
 
-export interface PasswordHashingLimits {
+export interface PasswordHashingStats {
   threadCount: number
-  /** 25 places per thread */
-  highPriorityCapacity: number
-  /** 10 places per thread */
-  lowPriorityCapacity: number
+  /** The admission rule: what a job queued now may be expected to wait at most, 3500 */
+  maxExpectedWaitMs: number
+  /** Over the last five derivations on this hardware; the first one is run at start */
+  averageDurationMs: number
+  /** What a job queued now would wait before its own derivation starts, by the admission rule */
+  expectedWaitMs: number
+  highPriorityQueued: number
+  lowPriorityQueued: number
 }
 
 export type PasswordHashQueueFullError = { name: 'PASSWORD_HASH_QUEUE_FULL'; message: string }
@@ -514,10 +518,14 @@ export type PasswordHashQueueFullError = { name: 'PASSWORD_HASH_QUEUE_FULL'; mes
  * password keys. One instance per process, held by the AppContext of `shared`; the secrets
  * are copied in and never leave the native side again.
  *
- * Password keys are derived on the context's own threads, fed from two queues with a fixed
- * number of places each. Every high priority job goes before any low priority one, and a job
- * that finds its queue full is refused at once -- the server answers "try again later" rather
- * than piling up logins it cannot serve.
+ * Password keys are derived on the context's own threads, fed from two queues. Admission is
+ * by time, not by places: a job is admitted while what is queued already would be served
+ * within `maxExpectedWaitMs` -- the queued jobs times the average duration of the last
+ * derivations on this hardware, spread over the threads. One over that is refused at once,
+ * so the server answers "try again later" rather than piling up logins it cannot serve.
+ *
+ * The threads prefer the high priority queue, but while both queues wait every third pick
+ * goes to the low one, so a run of logins cannot starve the password changes.
  */
 export class NativeAppContext {
   public constructor(options: NativeAppContextOptions)
@@ -529,8 +537,8 @@ export class NativeAppContext {
    *
    * @param priority - 0 for the high priority queue (the login), 1 for the low one (everything
    *   else); `PasswordHashPriority` in `shared` names them
-   * @returns at once whether the job took a place in its queue; its promise resolves with the
-   *   key, and rejects only if libsodium could not derive one (out of memory)
+   * @returns at once whether the job was admitted; its promise resolves with the key, and
+   *   rejects only if libsodium could not derive one (out of memory)
    */
   public hashPassword(
     salt: string,
@@ -544,7 +552,7 @@ export class NativeAppContext {
    */
   public derivePinKey(salt: string, pin: string): bigint
 
-  public getPasswordHashingLimits(): PasswordHashingLimits
+  public getPasswordHashingStats(): PasswordHashingStats
 
   /**
    * Finishes the derivations the threads are on, drops the queued ones -- their promises

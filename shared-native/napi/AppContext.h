@@ -25,7 +25,7 @@ namespace gradido {
     private:
         Napi::Value HashPassword(const Napi::CallbackInfo& info);
         Napi::Value DerivePinKey(const Napi::CallbackInfo& info);
-        Napi::Value GetPasswordHashingLimits(const Napi::CallbackInfo& info);
+        Napi::Value GetPasswordHashingStats(const Napi::CallbackInfo& info);
         Napi::Value Destroy(const Napi::CallbackInfo& info);
 
         password::Secrets mSecrets;

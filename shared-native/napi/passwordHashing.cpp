@@ -1,6 +1,8 @@
 // AI-GENERATED — not an architecture reference
 #include "passwordHashing.h"
 
+#include "arnm/mono_timer.h"
+
 #include <sodium.h>
 
 #include <algorithm>
@@ -76,14 +78,25 @@ namespace gradido::password {
     HashingPool::HashingPool(Napi::Env env, Secrets secrets, Difficulty difficulty, size_t threadCount)
         : mSecrets(std::move(secrets)),
           mDifficulty(difficulty),
-          mLimits({ threadCount, threadCount * HIGH_PRIORITY_PLACES_PER_THREAD, threadCount * LOW_PRIORITY_PLACES_PER_THREAD }),
+          mThreadCount(threadCount),
+          mDurationCount(0),
+          mDurationNext(0),
+          mHighPicksInARow(0),
           mStopping(false),
           mEnv(env),
-          // an unbounded queue: what reaches it is bounded by the two queues in front of it
+          // an unbounded queue: what reaches it is bounded by the admission rule in front of it
           mThreadSafeFunction(ThreadSafeFunction::New(env, "gradido.passwordHashing", 0, 1, this)),
           mPending(0),
           mCleanupHookRan(false)
     {
+        // One derivation, so the admission rule has a figure for this hardware before the
+        // first job; the inputs do not matter, only the cost.
+        arnm_mono_timer timer;
+        arnm_mono_timer_reset(&timer);
+        uint64_t unused;
+        deriveKey(unused, "calibration", "calibration", mSecrets, mDifficulty);
+        recordDurationLocked(arnm_mono_timer_millis(timer));
+
         // nothing pending yet, so the loop may exit without this pool
         mThreadSafeFunction.Unref(env);
         // Runs before the environment tears the thread-safe function down: cleanup hooks run
@@ -112,24 +125,85 @@ namespace gradido::password {
         self->shutdown();
     }
 
-    bool HashingPool::enqueue(Napi::Env env, Priority priority, std::string salt, std::string password, Napi::Promise::Deferred deferred)
+    HashingPool::Admission HashingPool::enqueue(Napi::Env env, Priority priority, std::string salt, std::string password, Napi::Promise::Deferred deferred)
     {
-        auto* job = new Job{ std::move(salt), std::move(password), deferred, 0, false };
+        Admission admission;
         {
             std::lock_guard<std::mutex> lock(mMutex);
-            std::deque<Job*>& queue = priority == Priority::HIGH ? mHighPriorityQueue : mLowPriorityQueue;
-            size_t capacity = priority == Priority::HIGH ? mLimits.highPriorityCapacity : mLimits.lowPriorityCapacity;
-            if (queue.size() >= capacity) {
-                delete job;
-                return false;
+            admission.expectedWaitMs = expectedWaitMsLocked();
+            admission.admitted = admission.expectedWaitMs < MAX_EXPECTED_WAIT_MS;
+            if (admission.admitted) {
+                auto* job = new Job{ std::move(salt), std::move(password), deferred, 0, false };
+                (priority == Priority::HIGH ? mHighPriorityQueue : mLowPriorityQueue).push_back(job);
             }
-            queue.push_back(job);
         }
-        if (mPending++ == 0) {
+        if (!admission.admitted) {
+            return admission;
+        }
+        bool wasIdle = mPending == 0;
+        mPending += 1;
+        if (wasIdle) {
+            // keeps the loop alive until the answer is in
             mThreadSafeFunction.Ref(env);
         }
         mCondition.notify_one();
-        return true;
+        return admission;
+    }
+
+    HashingPool::Stats HashingPool::stats()
+    {
+        std::lock_guard<std::mutex> lock(mMutex);
+        return Stats{
+            mThreadCount,
+            MAX_EXPECTED_WAIT_MS,
+            averageDurationMsLocked(),
+            expectedWaitMsLocked(),
+            mHighPriorityQueue.size(),
+            mLowPriorityQueue.size(),
+        };
+    }
+
+    void HashingPool::recordDurationLocked(double durationMs)
+    {
+        mDurationsMs[mDurationNext] = durationMs;
+        mDurationNext = (mDurationNext + 1) % DURATION_WINDOW;
+        mDurationCount = std::min(mDurationCount + 1, DURATION_WINDOW);
+    }
+
+    double HashingPool::averageDurationMsLocked() const
+    {
+        double sum = 0;
+        for (size_t i = 0; i < mDurationCount; ++i) {
+            sum += mDurationsMs[i];
+        }
+        // never 0: the constructor records one before anything else
+        return sum / static_cast<double>(mDurationCount);
+    }
+
+    // What a job queued now would wait by the rule: everything queued ahead of it, served at
+    // the average duration, spread over the threads.
+    double HashingPool::expectedWaitMsLocked() const
+    {
+        double queued = static_cast<double>(mHighPriorityQueue.size() + mLowPriorityQueue.size());
+        return queued * averageDurationMsLocked() / static_cast<double>(mThreadCount);
+    }
+
+    HashingPool::Job* HashingPool::takeJobLocked()
+    {
+        bool takeLow;
+        if (mHighPriorityQueue.empty()) {
+            takeLow = true;
+        } else if (mLowPriorityQueue.empty()) {
+            takeLow = false;
+        } else {
+            // both wait: the low queue gets every pick after HIGH_PICKS_BEFORE_LOW high ones
+            takeLow = mHighPicksInARow >= HIGH_PICKS_BEFORE_LOW;
+        }
+        std::deque<Job*>& queue = takeLow ? mLowPriorityQueue : mHighPriorityQueue;
+        mHighPicksInARow = takeLow ? 0 : mHighPicksInARow + 1;
+        Job* job = queue.front();
+        queue.pop_front();
+        return job;
     }
 
     void HashingPool::workerLoop()
@@ -142,12 +216,17 @@ namespace gradido::password {
                 if (mStopping) {
                     return;
                 }
-                std::deque<Job*>& queue = mHighPriorityQueue.empty() ? mLowPriorityQueue : mHighPriorityQueue;
-                job = queue.front();
-                queue.pop_front();
+                job = takeJobLocked();
             }
+            arnm_mono_timer timer;
+            arnm_mono_timer_reset(&timer);
             job->derived = deriveKey(job->key, job->salt, job->password, mSecrets, mDifficulty);
+            double durationMs = arnm_mono_timer_millis(timer);
             sodium_memzero(job->password.data(), job->password.size());
+            {
+                std::lock_guard<std::mutex> lock(mMutex);
+                recordDurationLocked(durationMs);
+            }
             // napi_closing only once the function is released, which happens after the
             // threads are joined -- so this cannot fail while a thread runs
             if (mThreadSafeFunction.NonBlockingCall(job) != napi_ok) {
@@ -174,7 +253,9 @@ namespace gradido::password {
 
     void HashingPool::answered(Napi::Env env)
     {
-        if (--mPending == 0) {
+        mPending -= 1;
+        if (mPending == 0) {
+            // nothing left to wait for: the loop may exit without this pool again
             mThreadSafeFunction.Unref(env);
         }
     }

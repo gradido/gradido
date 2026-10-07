@@ -1,6 +1,8 @@
 // AI-GENERATED — not an architecture reference
 #include "AppContext.h"
 
+#include "arnm/mono_timer.h"
+
 #include <sodium.h>
 
 #include <string>
@@ -54,7 +56,9 @@ namespace gradido {
 
     Napi::Object AppContext::Init(Napi::Env env, Napi::Object exports)
     {
-        // idempotent, and the core may well have done it already
+        // both idempotent; the timer times the derivations, which only Windows needs set up for
+        arnm_mono_timer_init();
+        // the core may well have done it already
         if (sodium_init() < 0) {
             Napi::Error::New(env, "[NativeAppContext] sodium_init failed").ThrowAsJavaScriptException();
             return exports;
@@ -62,7 +66,7 @@ namespace gradido {
         Napi::Function func = DefineClass(env, "NativeAppContext", {
             InstanceMethod("hashPassword", &AppContext::HashPassword),
             InstanceMethod("derivePinKey", &AppContext::DerivePinKey),
-            InstanceMethod("getPasswordHashingLimits", &AppContext::GetPasswordHashingLimits),
+            InstanceMethod("getPasswordHashingStats", &AppContext::GetPasswordHashingStats),
             InstanceMethod("destroy", &AppContext::Destroy),
         });
         exports.Set("NativeAppContext", func);
@@ -151,21 +155,23 @@ namespace gradido {
         }
 
         auto deferred = Napi::Promise::Deferred::New(env);
-        bool queued = mPasswordHashing->enqueue(
+        auto admission = mPasswordHashing->enqueue(
             env,
             static_cast<password::Priority>(priority),
             info[0].As<Napi::String>().Utf8Value(),
             info[1].As<Napi::String>().Utf8Value(),
             deferred
         );
-        if (!queued) {
-            const auto& limits = mPasswordHashing->limits();
-            bool high = priority == static_cast<uint32_t>(password::Priority::HIGH);
+        if (!admission.admitted) {
+            auto stats = mPasswordHashing->stats();
             return failure(
                 env,
                 "PASSWORD_HASH_QUEUE_FULL",
-                std::string("all ") + std::to_string(high ? limits.highPriorityCapacity : limits.lowPriorityCapacity)
-                + " places of the " + (high ? "high" : "low") + " priority queue are taken"
+                "an expected wait of " + std::to_string(static_cast<long long>(admission.expectedWaitMs))
+                + " ms exceeds " + std::to_string(static_cast<long long>(stats.maxExpectedWaitMs))
+                + " ms (" + std::to_string(stats.highPriorityQueued + stats.lowPriorityQueued) + " queued, "
+                + std::to_string(static_cast<long long>(stats.averageDurationMs)) + " ms per derivation on "
+                + std::to_string(stats.threadCount) + (stats.threadCount == 1 ? " thread)" : " threads)")
             );
         }
         Napi::Object result = Napi::Object::New(env);
@@ -185,14 +191,17 @@ namespace gradido {
         return Napi::BigInt::New(env, key);
     }
 
-    Napi::Value AppContext::GetPasswordHashingLimits(const Napi::CallbackInfo& info)
+    Napi::Value AppContext::GetPasswordHashingStats(const Napi::CallbackInfo& info)
     {
         Napi::Env env = info.Env();
-        const auto& limits = mPasswordHashing->limits();
+        auto stats = mPasswordHashing->stats();
         Napi::Object result = Napi::Object::New(env);
-        result.Set("threadCount", Napi::Number::New(env, static_cast<double>(limits.threadCount)));
-        result.Set("highPriorityCapacity", Napi::Number::New(env, static_cast<double>(limits.highPriorityCapacity)));
-        result.Set("lowPriorityCapacity", Napi::Number::New(env, static_cast<double>(limits.lowPriorityCapacity)));
+        result.Set("threadCount", Napi::Number::New(env, static_cast<double>(stats.threadCount)));
+        result.Set("maxExpectedWaitMs", Napi::Number::New(env, stats.maxExpectedWaitMs));
+        result.Set("averageDurationMs", Napi::Number::New(env, stats.averageDurationMs));
+        result.Set("expectedWaitMs", Napi::Number::New(env, stats.expectedWaitMs));
+        result.Set("highPriorityQueued", Napi::Number::New(env, static_cast<double>(stats.highPriorityQueued)));
+        result.Set("lowPriorityQueued", Napi::Number::New(env, static_cast<double>(stats.lowPriorityQueued)));
         return result;
     }
 

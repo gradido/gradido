@@ -65,10 +65,19 @@ namespace gradido::password {
     uint64_t derivePinKey(const std::string& salt, const std::string& pin, const Secrets& secrets);
 
     /**
-     * A fixed number of threads that derive password keys, fed from two queues: every high
-     * priority job goes before any low priority one. Each queue has a fixed number of places
-     * and a job that finds its queue full is refused at once, so the server answers "try
-     * again later" instead of piling up logins it cannot serve.
+     * A fixed number of threads that derive password keys, fed from two queues.
+     *
+     * Admission is by time, not by a number of places -- a number would be right for one
+     * server and wrong for the next. The pool keeps the duration of its last derivations
+     * (DURATION_WINDOW of them, measured on this hardware) and admits a job only while what
+     * is queued already would be served within MAX_EXPECTED_WAIT_MS: queued jobs times the
+     * average duration, spread over the threads. A job over that is refused at once, so the
+     * server answers "try again later" instead of piling up logins it cannot serve. The first
+     * figure comes from one derivation run at start, so the rule holds from the first login.
+     *
+     * The threads prefer the high priority queue, but not absolutely: while both queues wait,
+     * every pick after HIGH_PICKS_BEFORE_LOW high ones goes to the low queue, so a run of
+     * logins cannot starve the password changes.
      *
      * Jobs are handed in on the main thread and answered there too, through a thread-safe
      * function: the worker threads never touch JavaScript. The thread-safe function is only
@@ -76,18 +85,32 @@ namespace gradido::password {
      */
     class HashingPool {
     public:
-        struct Limits {
+        static constexpr double MAX_EXPECTED_WAIT_MS = 3500.0;
+        static constexpr size_t DURATION_WINDOW = 5;
+        // while both queues wait: this many high picks, then one low
+        static constexpr size_t HIGH_PICKS_BEFORE_LOW = 2;
+
+        struct Stats {
             size_t threadCount;
-            size_t highPriorityCapacity;
-            size_t lowPriorityCapacity;
+            double maxExpectedWaitMs;
+            // over the last DURATION_WINDOW derivations
+            double averageDurationMs;
+            // what a job queued now would wait by the rule, before its own derivation
+            double expectedWaitMs;
+            size_t highPriorityQueued;
+            size_t lowPriorityQueued;
         };
-        static constexpr size_t HIGH_PRIORITY_PLACES_PER_THREAD = 25;
-        static constexpr size_t LOW_PRIORITY_PLACES_PER_THREAD = 10;
+        struct Admission {
+            bool admitted;
+            // what the job would have waited, by the rule above; filled in either way
+            double expectedWaitMs;
+        };
 
         // half the logical cores, at least one
         static size_t defaultThreadCount();
 
-        // main thread; threadCount >= 1
+        // main thread; threadCount >= 1. Runs one derivation to calibrate, so it takes as
+        // long as one -- at the production difficulty around a tenth of a second.
         HashingPool(Napi::Env env, Secrets secrets, Difficulty difficulty, size_t threadCount);
         ~HashingPool();
         HashingPool(const HashingPool&) = delete;
@@ -95,12 +118,11 @@ namespace gradido::password {
 
         /**
          * main thread. Resolves deferred with the key as a BigInt, or rejects it when libsodium
-         * could not derive one.
-         * @return false when the queue of that priority is full; deferred is then untouched
+         * could not derive one. deferred is untouched when the job is not admitted.
          */
-        bool enqueue(Napi::Env env, Priority priority, std::string salt, std::string password, Napi::Promise::Deferred deferred);
+        Admission enqueue(Napi::Env env, Priority priority, std::string salt, std::string password, Napi::Promise::Deferred deferred);
 
-        const Limits& limits() const { return mLimits; }
+        Stats stats();
         bool isRunning() const { return !mStopping; }
 
         /**
@@ -111,6 +133,12 @@ namespace gradido::password {
         void shutdown();
 
     private:
+        /**
+         * Owned by one thread at a time, never shared: the main thread fills it and queues it
+         * under mMutex, a worker takes it out under mMutex and writes key and derived, then
+         * hands it to the thread-safe function, whose own lock brings it back to the main
+         * thread. Each handover is a mutex release/acquire pair, so no field needs to be atomic.
+         */
         struct Job {
             std::string salt;
             std::string password;
@@ -123,17 +151,27 @@ namespace gradido::password {
 
         static void cleanupHook(void* pool);
         void workerLoop();
+        // mMutex held
+        Job* takeJobLocked();
+        void recordDurationLocked(double durationMs);
+        double averageDurationMsLocked() const;
+        double expectedWaitMsLocked() const;
         // main thread: one answer has arrived
         void answered(Napi::Env env);
 
         Secrets mSecrets;
         const Difficulty mDifficulty;
-        const Limits mLimits;
+        const size_t mThreadCount;
 
         std::mutex mMutex;
         std::condition_variable mCondition;
         std::deque<Job*> mHighPriorityQueue;
         std::deque<Job*> mLowPriorityQueue;
+        // the last DURATION_WINDOW derivation durations, a ring; mDurationCount caps at the window
+        double mDurationsMs[DURATION_WINDOW];
+        size_t mDurationCount;
+        size_t mDurationNext;
+        size_t mHighPicksInARow;
         bool mStopping;
         std::vector<std::thread> mThreads;
 

@@ -34,7 +34,7 @@ describe('AppContext', () => {
     // the second init keeps the native context it has
     context.init({ ...secrets, passwordHashing: { ...MINIMAL_PASSWORD_HASHING, threadCount: 3 } })
     expect(context.getNative()).toBe(native)
-    expect(native.getPasswordHashingLimits().threadCount).toBe(1)
+    expect(native.getPasswordHashingStats().threadCount).toBe(1)
   })
 
   // the same vectors as shared-native/tests/appContext.test.js
@@ -60,9 +60,10 @@ describe('AppContext', () => {
     // that everything handed in below is still waiting
     context.destroy()
     context.init({ ...secrets, passwordHashing: { threadCount: 1 } })
-    const { lowPriorityCapacity } = context.getNative().getPasswordHashingLimits()
+    const { maxExpectedWaitMs, averageDurationMs } = context.getNative().getPasswordHashingStats()
+    const fit = Math.ceil(maxExpectedWaitMs / averageDurationMs)
     const results = []
-    for (let i = 0; i < lowPriorityCapacity + 5; i++) {
+    for (let i = 0; i < fit + 6; i++) {
       results.push(context.hashPassword(`salt-${i}`, 'pw', PasswordHashPriority.LOW))
     }
     const refused = results.filter((result) => !result.success)

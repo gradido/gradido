@@ -46,10 +46,16 @@ export const verifyPassword = async (
   return dbUser.password.toString() === encryptedPassword.toString()
 }
 
-// for login function which should return even on error after the same time,
-// at it would return with full passwort verify check, without blocking cpu time for this
-// to prevent changing the login function into a account oracel
-// todo: calculate time on startup for the actual hardware rather than assuming the same value for every server configuration
+/**
+ * For the login: an unknown address is answered after the time a real verification would
+ * take, so the answer time tells nobody whether the account exists -- without spending a
+ * thread on it. The time is what the hashing threads measure right now, the wait in the
+ * queue plus one derivation on this hardware, with the scatter a real one currently has; not a figure
+ * assumed for every server.
+ */
 export function fakeVerifyPassword(): Promise<void> {
-  return delay(650 + Math.floor(Math.random() * 101) - 50)
+  const stats = AppContext.getInstance().getPasswordHashingStats()
+  const expectedMs = stats.expectedWaitMs + stats.averageDurationMs
+  const scatter = expectedMs * (Math.random() * 0.2 - 0.1)
+  return delay(Math.round(expectedMs + scatter))
 }

@@ -47,15 +47,16 @@ describe('NativeAppContext', () => {
         /positive integer/,
       )
     })
-    it('derives the queue capacities from the thread count', () => {
-      assert.deepEqual(
-        create({ passwordHashing: { ...minimal, threadCount: 2 } }).getPasswordHashingLimits(),
-        {
-          threadCount: 2,
-          highPriorityCapacity: 50,
-          lowPriorityCapacity: 20,
-        },
-      )
+    it('reports the thread count, the rule and a first measured duration', () => {
+      const stats = create({
+        passwordHashing: { ...minimal, threadCount: 2 },
+      }).getPasswordHashingStats()
+      assert.equal(stats.threadCount, 2)
+      assert.equal(stats.maxExpectedWaitMs, 3500)
+      assert.ok(stats.averageDurationMs > 0)
+      assert.equal(stats.expectedWaitMs, 0)
+      assert.equal(stats.highPriorityQueued, 0)
+      assert.equal(stats.lowPriorityQueued, 0)
     })
   })
 
@@ -85,7 +86,7 @@ describe('NativeAppContext', () => {
       )
     })
 
-    it('changes with salt, password and priority-independent', async () => {
+    it('changes with salt and password, not with the priority', async () => {
       const context = create({ passwordHashing: minimal })
       const base = await context.hashPassword('salt-1', 'pw-1', 0).value
       assert.equal(await context.hashPassword('salt-1', 'pw-1', 1).value, base)
@@ -101,57 +102,67 @@ describe('NativeAppContext', () => {
       )
     })
 
-    it('refuses what does not fit into the queue, per priority', async () => {
+    it('refuses what would wait longer than the rule allows', async () => {
       // the production difficulty: a thread is busy with one derivation for long enough that
-      // everything handed in below is still waiting
+      // everything handed in below is still waiting, and the figures are real
       const context = create({ passwordHashing: { threadCount: 1 } })
-      const { highPriorityCapacity, lowPriorityCapacity, threadCount } =
-        context.getPasswordHashingLimits()
-      const high = []
-      for (let i = 0; i < highPriorityCapacity + threadCount + 3; i++) {
-        high.push(context.hashPassword(`high-${i}`, 'pw', 0))
+      const { averageDurationMs, maxExpectedWaitMs, threadCount } =
+        context.getPasswordHashingStats()
+      const fit = Math.ceil(maxExpectedWaitMs / averageDurationMs)
+      const results = []
+      for (let i = 0; i < fit + threadCount + 5; i++) {
+        results.push(context.hashPassword(`job-${i}`, 'pw', i % 2))
       }
-      const low = []
-      for (let i = 0; i < lowPriorityCapacity + 3; i++) {
-        low.push(context.hashPassword(`low-${i}`, 'pw', 1))
-      }
-      const accepted = (results) => results.filter((result) => result.success)
-      const refused = (results) => results.filter((result) => !result.success)
-      // the threads may have taken up to threadCount jobs out of the queue already
-      assert.ok(accepted(high).length >= highPriorityCapacity)
-      assert.ok(accepted(high).length <= highPriorityCapacity + threadCount)
-      assert.ok(refused(high).length >= 3)
-      assert.equal(accepted(low).length, lowPriorityCapacity)
-      assert.equal(refused(low).length, 3)
-      assert.deepEqual(refused(high)[0].error, {
-        name: 'PASSWORD_HASH_QUEUE_FULL',
-        message: `all ${highPriorityCapacity} places of the high priority queue are taken`,
-      })
-      assert.equal(refused(low)[0].error.name, 'PASSWORD_HASH_QUEUE_FULL')
-      const keys = await Promise.all(
-        [...accepted(high), ...accepted(low)].map((result) => result.value),
+      const accepted = results.filter((result) => result.success)
+      const refused = results.filter((result) => !result.success)
+      const report = `${accepted.length} accepted at ${averageDurationMs} ms per derivation`
+      // the thread may have taken a job out of the queue already
+      assert.ok(accepted.length >= Math.floor(maxExpectedWaitMs / averageDurationMs), report)
+      assert.ok(accepted.length <= fit + threadCount + 1, report)
+      assert.ok(refused.length >= 4, report)
+      assert.equal(refused[0].error.name, 'PASSWORD_HASH_QUEUE_FULL')
+      assert.match(
+        refused[0].error.message,
+        /^an expected wait of \d+ ms exceeds 3500 ms \(\d+ queued, \d+ ms per derivation on 1 thread\)$/,
       )
+      const keys = await Promise.all(accepted.map((result) => result.value))
       assert.ok(keys.every((key) => typeof key === 'bigint'))
+      const after = context.getPasswordHashingStats()
+      assert.ok(after.averageDurationMs > 0)
+      assert.equal(after.highPriorityQueued + after.lowPriorityQueued, 0)
     })
 
-    it('answers every high priority job before any low priority one', async () => {
+    it('gives the low queue every third pick while both wait', async () => {
       const context = create({ passwordHashing: { threadCount: 1 } })
-      // keeps the one thread busy while the others line up
-      const blocker = context.hashPassword('blocker', 'pw', 0).value
+      // keeps the one thread busy while the others line up; low, so the count starts at zero
+      const blocker = context.hashPassword('blocker', 'pw', 1).value
       const order = []
       const jobs = []
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < 6; i++) {
         jobs.push(
           context.hashPassword(`low-${i}`, 'pw', 1).value.then(() => order.push(`low-${i}`)),
         )
       }
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < 6; i++) {
         jobs.push(
           context.hashPassword(`high-${i}`, 'pw', 0).value.then(() => order.push(`high-${i}`)),
         )
       }
       await Promise.all([blocker, ...jobs])
-      assert.deepEqual(order, ['high-0', 'high-1', 'high-2', 'low-0', 'low-1', 'low-2'])
+      assert.deepEqual(order, [
+        'high-0',
+        'high-1',
+        'low-0',
+        'high-2',
+        'high-3',
+        'low-1',
+        'high-4',
+        'high-5',
+        'low-2',
+        'low-3',
+        'low-4',
+        'low-5',
+      ])
     })
 
     it('throws once the context is destroyed', () => {
