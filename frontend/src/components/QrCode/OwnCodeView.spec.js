@@ -23,8 +23,9 @@ const i18n = createI18n({
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    { path: '/overview', component: { template: '<div />' } },
-    { path: '/somewhere', component: { template: '<div />' } },
+    { path: '/overview', component: { template: '<div />' }, meta: { requiresAuth: true } },
+    { path: '/somewhere', component: { template: '<div />' }, meta: { requiresAuth: true } },
+    { path: '/login', component: { template: '<div />' } },
   ],
 })
 
@@ -183,11 +184,26 @@ describe('OwnCodeView', () => {
     await router.push('/somewhere')
     await router.isReady()
     const back = vi.spyOn(router, 'back').mockImplementation(() => {})
+    vi.spyOn(router.options.history, 'state', 'get').mockReturnValue({ back: '/somewhere' })
     const wrapper = mountView({ link: '' })
 
     await wrapper.find('[data-test="own-code-back"]').trigger('click')
 
     expect(back).toHaveBeenCalled()
+  })
+
+  // The loop of 08.10.2026: session run out, sign-in form, sign in, back on this page -- and
+  // the arrow stepped back to the form. On a phone it is the only way out of the page.
+  it('goes to the overview instead of back to the sign-in form', async () => {
+    const wrapper = mountView({ link: '' })
+    const back = vi.spyOn(router, 'back').mockImplementation(() => {})
+    const push = vi.spyOn(router, 'push')
+    vi.spyOn(router.options.history, 'state', 'get').mockReturnValue({ back: '/login' })
+
+    await wrapper.find('[data-test="own-code-back"]').trigger('click')
+
+    expect(back).not.toHaveBeenCalled()
+    expect(push).toHaveBeenCalledWith('/overview')
   })
 
   // Opened from a bookmark or a typed address there is no "came from", and `router.back()`
