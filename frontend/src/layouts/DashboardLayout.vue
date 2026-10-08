@@ -218,7 +218,7 @@
             </BCol>
             <BCol cols="12">
               <!-- router-view -->
-              <div class="main-content" :class="contentGap">
+              <div class="main-content" :class="[contentGap, contentLift]">
                 <transition-fade :duration="200" mode="out-in">
                   <router-view
                     ref="router-view"
@@ -533,6 +533,14 @@ const BALANCE_SECTIONS = ['overview', 'send', 'transactions', 'gdt']
 const contentGap = computed(() =>
   BALANCE_SECTIONS.includes(routeSection(route.path)) ? 'mt-3' : 'mt-0 mt-lg-3',
 )
+/**
+ * A route that prints no heading may ask for the heading's place (`contentAtHeading`): the
+ * calculator needs the height, and a keypad says what it is without a title over it. The
+ * heading's row cannot simply go -- the four tools stand in it, beside where the heading
+ * was -- so on the desk the page is lifted by that row's height instead. Style block,
+ * `.content-at-heading`. Below lg these routes are bare and nothing is lifted.
+ */
+const contentLift = computed(() => (route.meta.contentAtHeading ? 'content-at-heading' : ''))
 const router = useRouter()
 
 /**
@@ -784,6 +792,17 @@ const admin = () => {
 @media screen and (width <= 450px) {
   .breadcrumb {
     padding-top: 69px !important;
+  }
+}
+
+/* The page in the heading's place (`contentAtHeading`, the calculator). The lift is the
+   height of the heading's row plus the air under it: two rows of 44px tools, the row's
+   padding, and this element's own `mt-lg-3` -- measured, so the page's top edge stands level
+   with the top of the tools. Change the tools' rows or the breadcrumb's padding and this
+   has to follow; `measure-calculator-desk.mjs` in the wallet probe reads both edges. */
+@media (width >= 1025px) {
+  .main-page .main-content.content-at-heading {
+    margin-top: -116px !important;
   }
 }
 
