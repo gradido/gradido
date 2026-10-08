@@ -66,4 +66,4 @@ const virtualDecayTransaction = (
   }
 }
 
-export { virtualLinkTransaction, virtualDecayTransaction }
+export { virtualDecayTransaction, virtualLinkTransaction }

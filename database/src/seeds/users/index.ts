@@ -7,13 +7,13 @@ import { stephenHawking } from './stephen-hawking'
 import { UserInterface } from './UserInterface'
 
 export {
-  type UserInterface,
   bibiBloxberg,
   bobBaumeister,
   garrickOllivander,
   peterLustig,
   raeuberHotzenplotz,
   stephenHawking,
+  type UserInterface,
 }
 
 export const users: UserInterface[] = [
