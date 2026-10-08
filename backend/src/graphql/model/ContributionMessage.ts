@@ -1,7 +1,7 @@
 import { ContributionMessage as DbContributionMessage } from 'database'
+import { avatarColorIndex } from 'shared'
 import { Field, Int, ObjectType } from 'type-graphql'
 
-import { avatarColorIndex } from '@/data/AvatarColor.logic'
 import { PublishNameLogic } from '@/data/PublishName.logic'
 
 @ObjectType()

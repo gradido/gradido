@@ -1,5 +1,5 @@
 import { eq, sql } from 'drizzle-orm'
-import { ProjectBranding } from 'shared/src/schema/projectBranding.schema'
+import { ProjectBranding } from 'shared'
 import { drizzleDb } from '../AppDatabase'
 import {
   ProjectBrandingInsert,

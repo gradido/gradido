@@ -1,5 +1,7 @@
+export * from './AvatarColor.logic'
 export * from './CompleteTransaction'
 export * from './Duration'
 export * from './GradidoUnit'
 export * from './location.logic'
 export * from './TemporalGradidoUnit'
+export * from './ThankYouGreeting.logic'

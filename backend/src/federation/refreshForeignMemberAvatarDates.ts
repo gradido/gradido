@@ -1,4 +1,5 @@
 // AI-GENERATED — not an architecture reference
+
 import { xcomMemberAvatars } from 'core'
 import {
   dbSelectAuthenticatedForeignCommunities,
@@ -7,11 +8,9 @@ import {
   getHomeCommunity,
 } from 'database'
 import { getLogger } from 'log4js'
+import { MEMBER_AVATARS_MAX_REFS } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import {
-  MEMBER_AVATARS_MAX_REFS,
-  XCOM_MEMBER_AVATAR_DATES_TIMEOUT_MS,
-} from '@/data/MemberAvatars.logic'
+import { XCOM_MEMBER_AVATAR_DATES_TIMEOUT_MS } from '@/data/MemberAvatars.logic'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.refreshForeignMemberAvatarDates`)
 

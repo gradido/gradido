@@ -1,12 +1,12 @@
 // AI-GENERATED — not an architecture reference
 
 import { describe, expect, it } from 'vitest'
-import { avatarColorIndex } from '../../../backend/src/data/AvatarColor.logic'
+import { avatarColorIndex } from '../../../shared/src/data/AvatarColor.logic'
 import { AVATAR_COLOR_PALETTE, avatarPaletteEntry } from './avatarColor'
 import { avatarLettering } from './avatarLettering'
 
 // The colour rule exists twice on purpose: here, because the printed card draws it on a
-// canvas -- and in backend/src/data/AvatarColor.logic.ts, because the server sends the
+// canvas -- and in shared/src/data/AvatarColor.logic.ts, because the server sends the
 // finished index for members whose names this browser no longer receives (NU-017). What
 // the copies must not do is drift: a member whose circle is blue today must not turn
 // brown the day the index starts coming from the server (AS-010).
@@ -15,7 +15,7 @@ import { avatarLettering } from './avatarLettering'
 // the wallet actually uses: avatarLettering builds the seed, avatarPaletteEntry hashes
 // it -- and the backend, fed the same names, must land on the same palette entry.
 //
-// The backend file is imported directly. It is dependency-free by design, and vitest
+// The file in `shared` is imported directly. It is dependency-free by design, and vitest
 // transforms TypeScript on its own; a copy of it here would need a drift test of its
 // own.
 

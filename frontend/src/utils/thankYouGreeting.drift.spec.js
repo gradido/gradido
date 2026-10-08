@@ -5,7 +5,7 @@ import {
   memoBeginsWithLine,
   THANK_YOU_LINE_MAX_CHARS as SERVER_LINE_MAX,
   THANK_YOU_RECIPIENT_NAME_MAX_CHARS as SERVER_NAME_MAX,
-} from '../../../backend/src/data/ThankYouGreeting.logic'
+} from '../../../shared/src/data/ThankYouGreeting.logic'
 import {
   greetingMemo,
   greetingParts,
@@ -21,7 +21,7 @@ import {
 // last step, after everything was written. A memo put together differently from what the
 // server checks is refused for every greeting with a line.
 //
-// The backend file is imported directly. It is dependency-free by design, and vitest
+// The file in `shared` is imported directly. It is dependency-free by design, and vitest
 // transforms TypeScript on its own, the way useMemberAvatars.drift.spec.js does.
 
 describe('the lengths of a thank-you greeting on both sides', () => {

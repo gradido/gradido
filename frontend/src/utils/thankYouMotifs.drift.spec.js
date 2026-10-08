@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 
 import { describe, expect, it } from 'vitest'
-import { THANK_YOU_MOTIFS as SERVER_MOTIFS } from '../../../backend/src/data/ThankYouGreeting.logic'
+import { THANK_YOU_MOTIFS as SERVER_MOTIFS } from '../../../shared/src/data/ThankYouGreeting.logic'
 import { THANK_YOU_MOTIF_KEYS } from './thankYouMotifs'
 
 // The keys of the motifs exist twice: in the backend, which takes a greeting only with one of
@@ -12,7 +12,7 @@ import { THANK_YOU_MOTIF_KEYS } from './thankYouMotifs'
 // cannot be made -- "Gruß fertigstellen" answers with an error, for that one picture. A key
 // the server knows and the wallet does not is a card without its picture.
 //
-// The backend file is imported directly. It is dependency-free by design, and vitest
+// The file in `shared` is imported directly. It is dependency-free by design, and vitest
 // transforms TypeScript on its own, the way useMemberAvatars.drift.spec.js does.
 
 describe('the motifs of a thank-you greeting on both sides', () => {

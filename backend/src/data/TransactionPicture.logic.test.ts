@@ -1,8 +1,8 @@
 // AI-GENERATED — not an architecture reference
 
 import { TransactionTypeId } from 'database'
+import { THANK_YOU_MOTIFS } from 'shared'
 import * as v from 'valibot'
-import { THANK_YOU_MOTIFS } from './ThankYouGreeting.logic'
 import {
   BookingPictureColumns,
   transactionPictureIdOf,

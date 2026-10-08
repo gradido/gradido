@@ -8,7 +8,7 @@ import {
   GENERAL_PREVIEW_FILE,
   THANK_YOU_MOTIFS,
   thankYouMotifPreviewFile,
-} from '../../../backend/src/data/ThankYouGreeting.logic'
+} from '../../../shared/src/data/ThankYouGreeting.logic'
 
 // The pictures a messenger is shown as the preview of a redeem link are NAMED by the server
 // (backend/src/server/redeemPreview.ts writes their address and their measure into the

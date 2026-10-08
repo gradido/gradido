@@ -6,9 +6,9 @@
  *
  * ⛔ Dependency-free on purpose. The wallet keeps the same motifs and the same two lengths
  * (frontend/src/utils/thankYouMotifs.js, frontend/src/utils/thankYouGreeting.js) and has no
- * dependency on the backend; its drift tests import this file directly to hold the two
+ * dependency on `shared`; its drift tests import this file directly to hold the two
  * together, the way useMemberAvatars.drift.spec.js does. They can only do that as long as
- * nothing here imports type-graphql, zod or `shared`.
+ * nothing here imports anything.
  */
 
 /**
@@ -37,7 +37,7 @@ export type WalletPicture = { path: string; width: number; height: number }
 
 /**
  * The file a messenger is shown as the preview of a link whose greeting carries this motif
- * (data/RedeemPreview.logic.ts): the motif as a JPEG in the measure of a greeting's own
+ * (backend/src/data/RedeemPreview.logic.ts): the motif as a JPEG in the measure of a greeting's own
  * picture, 36 : 25 -- the picture of a preview has to be a bitmap, and the motifs are SVGs.
  * The wallet holds the five files beside the SVGs
  * (frontend/public/img/thank-you-greeting/<key>.jpg), and its thankYouPreviewFiles.spec.js

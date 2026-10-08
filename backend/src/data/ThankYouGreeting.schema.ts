@@ -1,14 +1,14 @@
 // AI-GENERATED — not an architecture reference
-import { blankAsNull } from 'shared'
-import * as v from 'valibot'
 import {
+  blankAsNull,
   isOneLine,
   isThankYouMotif,
   memoBeginsWithLine,
   THANK_YOU_LINE_MAX_CHARS,
   THANK_YOU_RECIPIENT_NAME_MAX_CHARS,
   ThankYouMotif,
-} from './ThankYouGreeting.logic'
+} from 'shared'
+import * as v from 'valibot'
 
 // ⛔ No message here quotes what was sent: a message ends up in the error log, and the name a
 // member wrote about somebody else must not. valibot's own messages do quote ("... but received

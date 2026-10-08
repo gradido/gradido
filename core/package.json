@@ -6,6 +6,7 @@
   "types": "./src/index.ts",
   "exports": {
     ".": {
+      "types": "./src/index.ts",
       "import": "./build/index.js",
       "require": "./build/index.js"
     }
@@ -18,7 +19,7 @@
     "build": "bun esbuild.config.ts && mkdirp build/templates/ && ncp src/emails/templates build/templates",
     "build:bun": "bun build src/index.ts --outdir=build --target=bun --packages=external",
     "test": "bun test",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "node ../node_modules/typescript-go/bin/tsc --noEmit",
     "lint": "biome check --error-on-warnings .",
     "lint:fix": "biome check --error-on-warnings . --write",
     "locales": "bun scripts/sortLocales.ts",
@@ -48,7 +49,7 @@
     "@types/nodemailer": "^6.4.4",
     "@types/sodium-native": "^2.3.5",
     "config-schema": "*",
-    "dotenv": "^10.0.0",
+    "dotenv": "^16.6.1",
     "graphql": "16.14.2",
     "graphql-request": "5.0.0",
     "jest": "27.2.4",
@@ -56,7 +57,8 @@
     "ncp": "^2.0.0",
     "type-graphql": "2.0.0-rc.3",
     "typed-rest-client": "^1.8.11",
-    "typescript": "~5.9.3"
+    "typescript": "~5.9.3",
+    "typescript-go": "npm:typescript@7.0.2"
   },
   "engines": {
     "node": ">=24"
