@@ -1,4 +1,7 @@
 // AI-GENERATED — not an architecture reference
+import { readdirSync, readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { ref } from 'vue'
@@ -413,6 +416,68 @@ describe('Scanner page', () => {
       wrapper.unmount()
       mounted.pop()
       expect(scannerMock.stop).toHaveBeenCalled()
+    })
+  })
+
+  /**
+   * The scanner stands on the page now, without a panel of its own, and on the desk inside
+   * the wallet (Bernd, 08.10.2026). jsdom lays nothing out, so the rules that carry this are
+   * read off the source -- comments stripped first, because the file explains them in prose.
+   */
+  describe('on the page, not on a panel of its own', () => {
+    const here = dirname(fileURLToPath(import.meta.url))
+    const source = readFileSync(join(here, 'Scanner.vue'), 'utf8')
+    const style = source.slice(source.indexOf('<style')).replace(/\/\*[\s\S]*?\*\//g, '')
+    const block = (selector, from = style) =>
+      from.match(
+        new RegExp(`(?:^|\\n)\\s*${selector.replace(/\./g, '\\.')}\\s*\\{([^}]*)\\}`),
+      )?.[1] ?? ''
+
+    it('paints no surface behind itself', () => {
+      expect(block('.scanner')).not.toMatch(/background/)
+      expect(block('.scanner')).not.toMatch(/min-height/)
+    })
+
+    it('takes its ink from the colour mode, not from a fixed light value', () => {
+      expect(block('.scanner')).toMatch(/--scan-ink:\s*var\(--bs-body-color\)/)
+      expect(block('.scanner')).toMatch(/--scan-dim:\s*var\(--bs-secondary-color\)/)
+    })
+
+    it('has no fixed grey left on any card or sheet', () => {
+      for (const selector of ['.scanner-sheet', '.scanner-way-card', '.scanner-unknown']) {
+        expect(block(selector)).toMatch(/background-color:\s*var\(--scan-/)
+      }
+    })
+
+    it('gives the two signal colours a value for the dark mode', () => {
+      expect(block('.dark-mode .scanner')).toMatch(/--scan-green/)
+      expect(block('.dark-mode .scanner')).toMatch(/--scan-red/)
+    })
+
+    it('reaches the bottom of the screen on a phone, where the cards slide up', () => {
+      const phone = style.match(/@media\s*\(width <= 1024\.98px\)\s*\{([\s\S]*?\})\s*\}/)?.[1] ?? ''
+      expect(block('.scanner', phone)).toMatch(/min-height:\s*100dvh/)
+    })
+
+    it('sets its head like the own-code pages: title centred, gone on the desk', () => {
+      expect(block('.scanner-head')).not.toMatch(/display:\s*flex/)
+      expect(block('.scanner-title')).toMatch(/text-align:\s*center/)
+      const desk = style.match(/@media\s*\(width >= 1025px\)\s*\{([\s\S]*?\})\s*\}/)?.[1] ?? ''
+      expect(block('.scanner-head', desk)).toMatch(/display:\s*none/)
+    })
+
+    /**
+     * On the desk the layout prints `pageTitle.scanner` as the heading, on a phone the page
+     * prints `scanner.title`. One page, one name -- in every language.
+     */
+    it('carries the same title on the desk and on a phone, in every language', () => {
+      const dir = join(here, '..', 'locales')
+      const files = readdirSync(dir).filter((name) => name.endsWith('.json'))
+      expect(files.length).toBeGreaterThanOrEqual(10)
+      for (const name of files) {
+        const messages = JSON.parse(readFileSync(join(dir, name), 'utf8'))
+        expect([name, messages.pageTitle.scanner]).toEqual([name, messages.scanner.title])
+      }
     })
   })
 })

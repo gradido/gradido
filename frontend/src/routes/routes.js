@@ -233,9 +233,10 @@ const routes = [
     meta: {
       requiresAuth: true,
       pageTitle: 'scanner',
-      // Like the calculator: the page brings its own head (back arrow, title), so on a
-      // phone the wallet chrome goes entirely and the viewfinder gets the screen.
-      bareChrome: true,
+      // On a phone like the calculator: the page brings its own head (back arrow, title),
+      // the wallet chrome goes entirely and the viewfinder gets the screen. On the desk it
+      // is an ordinary page inside the wallet, like the member's own codes below.
+      bareChrome: 'phone',
     },
   },
   {
