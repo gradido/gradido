@@ -51,4 +51,4 @@ async function calculateBalance(
   return { balance, lastTransactionId: lastTransaction.id, decay }
 }
 
-export { calculateBalance, isStringBoolean, isUUID4, isEMail }
+export { calculateBalance, isEMail, isStringBoolean, isUUID4 }

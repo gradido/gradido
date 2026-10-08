@@ -1,6 +1,6 @@
 {
   "root": false,
-  "$schema": "https://biomejs.dev/schemas/2.0.0/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
   "vcs": { "enabled": false, "clientKind": "git", "useIgnoreFile": false },
   "files": {
     "ignoreUnknown": false,
@@ -29,7 +29,7 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": false,
+      "preset": "none",
       "complexity": {
         "noExtraBooleanCast": "error",
         "noUselessCatch": "error",
@@ -137,6 +137,25 @@
     {
       "includes": ["**/*.ts", "**/*.tsx"],
       "linter": { "rules": { "complexity": { "noVoid": "error" } } }
+    },
+    {
+      "includes": ["**/*.test.ts"],
+      "javascript": {
+        "globals": [
+          "document",
+          "navigator",
+          "window",
+          "BufferEncoding",
+          "describe",
+          "test",
+          "it",
+          "expect",
+          "beforeAll",
+          "beforeEach",
+          "afterAll",
+          "afterEach"
+        ]
+      }
     }
   ]
 }

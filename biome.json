@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.0.0/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
   "vcs": { "enabled": false, "clientKind": "git", "useIgnoreFile": false },
   "files": {
     "ignoreUnknown": false,
@@ -30,7 +30,7 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": false,
+      "preset": "none",
       "complexity": {
         "noExtraBooleanCast": "error",
         "noUselessCatch": "error",
@@ -129,20 +129,7 @@
       "attributePosition": "auto",
       "bracketSpacing": true
     },
-    "globals": [
-      "document",
-      "navigator",
-      "window",
-      "describe",
-      "test",
-      "it",
-      "expect",
-      "beforeAll",
-      "beforeEach",
-      "afterAll",
-      "afterEach",
-      "jest"
-    ],
+    "globals": ["document", "navigator", "window"],
     "parser": {
       "unsafeParameterDecoratorsEnabled": true
     }
@@ -152,6 +139,25 @@
       "includes": ["**/*.ts", "**/*.tsx"],
       "linter": { "rules": { "complexity": { "noVoid": "error" } } }
     },
-    { "includes": ["**/*.test.ts"], "linter": { "rules": {} } }
+    {
+      "includes": ["**/*.test.ts"],
+      "linter": { "rules": {} },
+      "javascript": {
+        "globals": [
+          "document",
+          "navigator",
+          "window",
+          "describe",
+          "test",
+          "it",
+          "expect",
+          "beforeAll",
+          "beforeEach",
+          "afterAll",
+          "afterEach",
+          "jest"
+        ]
+      }
+    }
   ]
 }

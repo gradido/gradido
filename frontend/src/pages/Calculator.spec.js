@@ -33,6 +33,9 @@ const mockRouter = {
   back: vi.fn(),
   push: vi.fn(),
   options: { history: { state: historyState } },
+  // The back arrow asks what the entry behind the page is (utils/backOrOverview, which has
+  // its own spec against a real router): here everything but the sign-in form is the wallet.
+  resolve: (path) => ({ meta: { requiresAuth: !String(path).startsWith('/login') } }),
 }
 vi.mock('vue-router', () => ({ useRouter: () => mockRouter }))
 
@@ -498,6 +501,15 @@ describe('Calculator page', () => {
      * ⚠️ A deep link has no wallet history, and a bare history step would walk OUT of the
      * wallet -- to whatever the browser had open before. The overview is the safe landing.
      */
+    // The loop of 08.10.2026: behind a page reached through the sign-in form stands the form.
+    it('lands on the overview instead of stepping back to the sign-in form', async () => {
+      historyState.back = '/login'
+      const wrapper = mountCalculator()
+      await wrapper.find('[data-test="calculator-back"]').trigger('click')
+      expect(mockRouter.back).not.toHaveBeenCalled()
+      expect(mockRouter.push).toHaveBeenCalledWith('/overview')
+    })
+
     it('lands on the overview when the calculator was opened directly', async () => {
       const wrapper = mountCalculator()
       await key(wrapper, 'back').trigger('click')
@@ -738,5 +750,36 @@ describe('Calculator colours', () => {
       (value) => !/^var\(--calc-[\w-]+\)$/.test(value) && !NEUTRAL.includes(value.toLowerCase()),
     )
     expect(own).toEqual([])
+  })
+
+  /**
+   * On the desk the wallet's menu stands beside the calculator, so the back arrow goes and
+   * the gear keeps its corner (Bernd, 08.10.2026). Read off the source, comments stripped.
+   */
+  describe('the head on the desk', () => {
+    const source = readFileSync(
+      resolve(dirname(fileURLToPath(import.meta.url)), 'Calculator.vue'),
+      'utf8',
+    )
+    const style = source.slice(source.indexOf('<style')).replace(/\/\*[\s\S]*?\*\//g, '')
+    const desk = style.match(/@media\s*\(width >= 1025px\)\s*\{([\s\S]*?\})\s*\}/)?.[1] ?? ''
+
+    it('takes the arrow away with a selector that beats the key rule', () => {
+      expect(desk).toMatch(/\.calculator-head-key\.calculator-head-back\s*\{[^}]*display:\s*none/)
+    })
+
+    it('keeps the gear on the right', () => {
+      expect(desk).toMatch(/\.calculator-head\s*\{[^}]*justify-content:\s*flex-end/)
+    })
+
+    it('marks the arrow, and only the arrow', () => {
+      const wrapper = mountCalculator()
+      expect(wrapper.find('[data-test="calculator-back"]').classes()).toContain(
+        'calculator-head-back',
+      )
+      expect(wrapper.find('[data-test="calculator-settings-open"]').classes()).not.toContain(
+        'calculator-head-back',
+      )
+    })
   })
 })

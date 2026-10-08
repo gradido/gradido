@@ -1,13 +1,15 @@
 <!-- AI-GENERATED — not an architecture reference -->
 <template>
   <div class="calculator" data-test="calculator">
-    <!-- The head is the page's own chrome: the route is bareChrome, so on a phone nothing
-         of the wallet remains and these two are the only way out and the only way in to the
-         settings. Both look small and stay 44px targets -- pressed at a counter, one-handed. -->
+    <!-- The head is the page's own chrome: the route is bareChrome on a phone, so there
+         nothing of the wallet remains and these two are the only way out and the only way
+         in to the settings. Both look small and stay 44px targets -- pressed at a counter,
+         one-handed. On the desk the wallet's menu is beside the page, so the arrow goes
+         and the gear keeps its corner (style block). -->
     <div class="calculator-head">
       <button
         type="button"
-        class="calculator-head-key"
+        class="calculator-head-key calculator-head-back"
         :aria-label="$t('calculator.back')"
         data-test="calculator-back"
         @click="goBack"
@@ -279,6 +281,7 @@ import { useCalculatorBasket } from '@/composables/useCalculatorBasket'
 import { useCalculatorPrefs } from '@/composables/useCalculatorPrefs'
 import { useCalculatorSound } from '@/composables/useCalculatorSound'
 import { useParkedAmount } from '@/composables/useParkedAmount'
+import { backOrOverview } from '@/utils/backOrOverview'
 import { decimalSeparatorFor } from '@/utils/numberFormat'
 
 /** The daily rate is a rate, not money -- four places, and no currency grouping rules. */
@@ -424,15 +427,10 @@ const parkFailed = ref(false)
  * fixed target would be wrong for all but one of them.
  *
  * ⚠️ A deep link has no wallet history: `state.back` is null then, and a bare history step
- * would walk OUT of the wallet. The overview is the safe landing.
+ * would walk OUT of the wallet. The overview is the safe landing -- also where the step
+ * back would lead to the sign-in form (utils/backOrOverview).
  */
-const goBack = () => {
-  if (router.options.history.state.back) {
-    router.back()
-  } else {
-    router.push('/overview')
-  }
-}
+const goBack = () => backOrOverview(router)
 
 /**
  * Puts one of the two sums into the clipboard, to be typed in somewhere else.
@@ -717,6 +715,19 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   padding: 4px 8px;
+}
+
+/* The layout's switch-over (LG_BREAKPOINT_PX), not Bootstrap's 992: from here on the menu
+   is on screen and a back arrow would be a second way to the same place. */
+@media (width >= 1025px) {
+  .calculator-head {
+    justify-content: flex-end;
+  }
+
+  /* Two classes: `.calculator-head-key` below sets `display: flex` and would win a tie. */
+  .calculator-head-key.calculator-head-back {
+    display: none;
+  }
 }
 
 /* 44px stays the target even though the icon reads small -- this is pressed at a counter,

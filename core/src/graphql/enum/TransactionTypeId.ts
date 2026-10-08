@@ -1,5 +1,6 @@
 import { TransactionTypeId } from 'database'
 import { registerEnumType } from 'type-graphql'
+
 export { TransactionTypeId }
 
 registerEnumType(TransactionTypeId, {

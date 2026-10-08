@@ -32,7 +32,6 @@ import { UserCreationGroup } from './UserCreationGroup'
 import { UserRole } from './UserRole'
 
 export {
-  UserAlias,
   Community,
   CommunityHandshakeState,
   Contribution,
@@ -41,16 +40,17 @@ export {
   ContributionMessage,
   CreaRecord,
   CreaSetting,
+  CreationGroup,
   DltTransaction,
   Event,
   FederatedCommunity,
-  CreationGroup,
   LoginElopageBuys,
   Migration,
   PendingTransaction,
   Transaction,
   TransactionLink,
   User,
+  UserAlias,
   UserContact,
   UserCreationGroup,
   UserRole,
