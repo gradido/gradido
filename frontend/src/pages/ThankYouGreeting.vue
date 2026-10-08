@@ -351,6 +351,7 @@ import { rememberGreetingPicture } from '@/composables/useGreetingPictures'
 import { useLinkDraft } from '@/composables/useLinkDraft'
 import { addThankYouGreetingPicture, createTransactionLink } from '@/graphql/mutations'
 import { thankYouGreetingPictureRenditions } from '@/graphql/queries'
+import { staysInWallet } from '@/utils/backOrOverview'
 import { chatImageProblemWords, chatImageRefusal } from '@/utils/chatImage'
 import {
   greetingMemo,
@@ -668,8 +669,13 @@ const toPreview = () => {
 // One step back, through the history the steps were pushed onto -- the same walk as the
 // device's back key. From the first step it leaves the page: back to where the member came
 // from, or to "Zeig es Deinen Freunden" where the page was opened by its address.
+//
+// ⛔ "Where the member came from" has to be a page of the signed-in wallet. After a session
+// has run out the way here leads through the sign-in form, the form is then the entry behind
+// this page, and "back" showed the form to somebody signed in (the loop of the till tools,
+// 08.10.2026 -- utils/backOrOverview). Such an entry counts like no entry.
 const back = () => {
-  if (step.value === PICTURE && !window.history.state?.back) {
+  if (step.value === PICTURE && !staysInWallet(router, window.history.state?.back)) {
     router.push('/show-friends')
     return
   }

@@ -29,7 +29,13 @@ export const backOrOverview = (router) => {
   }
 }
 
-const staysInWallet = (router, path) => {
+/**
+ * Whether the entry behind this one (`history.state.back`) is a page of the signed-in wallet.
+ * False for no entry at all. Exported for pages whose "back" has another landing than the
+ * overview -- the thank-you greeting leaves to the page of the two doors.
+ */
+export const staysInWallet = (router, path) => {
+  if (!path) return false
   try {
     return Boolean(router.resolve(path).meta?.requiresAuth)
   } catch {

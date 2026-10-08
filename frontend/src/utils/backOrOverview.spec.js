@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { describe, it, expect, vi } from 'vitest'
 import { createRouter, createWebHistory } from 'vue-router'
-import { backOrOverview } from './backOrOverview'
+import { backOrOverview, staysInWallet } from './backOrOverview'
 
 const page = { template: '<div />' }
 
@@ -76,5 +76,14 @@ describe('backOrOverview', () => {
 
     expect(router.back).not.toHaveBeenCalled()
     expect(router.push).toHaveBeenCalledWith('/overview')
+  })
+
+  it('answers for a page with another landing: wallet page yes, sign-in form and nothing no', async () => {
+    const router = await routerAt('/send')
+
+    expect(staysInWallet(router, '/send')).toBe(true)
+    expect(staysInWallet(router, '/login')).toBe(false)
+    expect(staysInWallet(router, null)).toBe(false)
+    expect(staysInWallet(router, undefined)).toBe(false)
   })
 })
