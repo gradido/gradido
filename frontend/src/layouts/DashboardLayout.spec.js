@@ -1325,6 +1325,32 @@ describe('DashboardLayout', () => {
      * A jsdom test cannot measure a pixel, but it can hold the two apart: the tools in the
      * heading row, the menu alone in its column. (Bernd, 21.08.2026)
      */
+    /**
+     * The tool whose page is open is lit like the menu's active entry (Bernd, 08.10.2026).
+     * RouterLink is a stub in this file and jsdom lays nothing out, so the rules are read
+     * off the source, comments stripped: the link of the open page by `aria-current` (the
+     * router's class has a name of this wallet's own and matched nothing), a value for each
+     * colour mode, and standing AFTER the hover rule so an open tool does not dim.
+     */
+    it('lights the tool whose page is open, in both colour modes', () => {
+      const source = readFileSync(
+        join(dirname(fileURLToPath(import.meta.url)), 'DashboardLayout.vue'),
+        'utf8',
+      )
+      const style = source.slice(source.indexOf('<style')).replace(/\/\*[\s\S]*?\*\//g, '')
+      const light = style.match(
+        /\n\.main-page \.sidebar-quick-row > a\[aria-current='page'\],\s*\.main-page \.sidebar-quick-row > a\[aria-current='page'\]:hover\s*\{([^}]*)\}/,
+      )
+      const dark = style.match(
+        /\n\.dark-mode \.main-page \.sidebar-quick-row > a\[aria-current='page'\],\s*\.dark-mode \.main-page \.sidebar-quick-row > a\[aria-current='page'\]:hover\s*\{([^}]*)\}/,
+      )
+      expect(light?.[1]).toMatch(/color:\s*rgb\(2 2 1\)/)
+      expect(light?.[1]).toMatch(/opacity:\s*1/)
+      expect(dark?.[1]).toMatch(/color:\s*#fff/)
+      expect(light.index).toBeGreaterThan(style.indexOf('.main-page .sidebar-quick-row > a:hover'))
+      expect(dark.index).toBeGreaterThan(light.index)
+    })
+
     it('keeps the tools out of the menu column, so the menu stays level', () => {
       const row = wrapper.find('.breadcrumb .sidebar-quick-row')
       expect(row.exists()).toBe(true)
