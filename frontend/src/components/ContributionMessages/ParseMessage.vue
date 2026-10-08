@@ -15,60 +15,56 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { computed } from 'vue'
+
 const LINK_REGEX_PATTERN =
   /(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*))/i
 
-export default {
-  name: 'ParseMessage',
-  props: {
-    message: {
-      type: String,
-      required: true,
-    },
-    type: {
-      type: String,
-      required: true,
-    },
+const props = defineProps({
+  message: {
+    type: String,
+    required: true,
   },
-  computed: {
-    parsedMessage() {
-      let string = this.message
-      const linkified = []
-      let amount
-      if (this.type === 'HISTORY') {
-        const split = string.split(/\n\s*---\n\s*/)
-        string = split[1]
-        linkified.push({ type: 'date', text: split[0].trim() })
-        amount = split[2].trim()
-      }
-      let match
-      while ((match = string.match(LINK_REGEX_PATTERN))) {
-        if (match.index > 0)
-          linkified.push({ type: 'text', text: string.substring(0, match.index) })
-        linkified.push({ type: 'link', text: match[0] })
-        string = string.substring(match.index + match[0].length)
-      }
-      if (string.length > 0) linkified.push({ type: 'text', text: string })
-      if (amount) linkified.push({ type: 'amount', text: amount })
-      return linkified
-    },
+  type: {
+    type: String,
+    required: true,
   },
-  methods: {
-    // Render a minimal, safe subset of markdown: **bold**. The text is
-    // HTML-escaped first, then only the bold markers become <strong>, so a
-    // message can never inject markup (messages come from users too).
-    //
-    // [\s\S] rather than . because the bold shortcut wraps whatever is selected,
-    // line breaks included: select two lines, press Cmd/Ctrl+B, and the markers
-    // end up around a newline. A dot does not match one, so that message arrived
-    // with its asterisks showing. The lazy quantifier still takes the shortest
-    // match, so two separate bold runs stay two.
-    renderBold(text) {
-      const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      return escaped.replace(/\*\*([\s\S]+?)\*\*/g, '<strong>$1</strong>')
-    },
-  },
+})
+
+const parsedMessage = computed(() => {
+  let string = props.message
+  const linkified = []
+  let amount
+  if (props.type === 'HISTORY') {
+    const split = string.split(/\n\s*---\n\s*/)
+    string = split[1]
+    linkified.push({ type: 'date', text: split[0].trim() })
+    amount = split[2].trim()
+  }
+  let match
+  while ((match = string.match(LINK_REGEX_PATTERN))) {
+    if (match.index > 0) linkified.push({ type: 'text', text: string.substring(0, match.index) })
+    linkified.push({ type: 'link', text: match[0] })
+    string = string.substring(match.index + match[0].length)
+  }
+  if (string.length > 0) linkified.push({ type: 'text', text: string })
+  if (amount) linkified.push({ type: 'amount', text: amount })
+  return linkified
+})
+
+// Render a minimal, safe subset of markdown: **bold**. The text is
+// HTML-escaped first, then only the bold markers become <strong>, so a
+// message can never inject markup (messages come from users too).
+//
+// [\s\S] rather than . because the bold shortcut wraps whatever is selected,
+// line breaks included: select two lines, press Cmd/Ctrl+B, and the markers
+// end up around a newline. A dot does not match one, so that message arrived
+// with its asterisks showing. The lazy quantifier still takes the shortest
+// match, so two separate bold runs stay two.
+const renderBold = (text) => {
+  const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  return escaped.replace(/\*\*([\s\S]+?)\*\*/g, '<strong>$1</strong>')
 }
 </script>
 

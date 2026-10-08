@@ -43,43 +43,40 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, watch } from 'vue'
+import { useStore } from 'vuex'
 import Transaction from '@/components/Transaction'
 import { usePagerFit } from '@/composables/usePagerFit'
 
-export default {
-  name: 'GdtTransactionList',
-  components: {
-    Transaction,
+const props = defineProps({
+  transactionsGdt: {
+    type: Array,
+    required: true,
   },
-  props: {
-    transactionsGdt: {
-      type: Array,
-      required: true,
-    },
-    transactionGdtCount: { type: Number, required: true },
-    pageSize: { type: Number, required: true },
-    modelValue: { type: Number, required: true },
+  transactionGdtCount: { type: Number, required: true },
+  pageSize: { type: Number, required: true },
+  modelValue: { type: Number, required: true },
+})
+const emit = defineEmits(['update:modelValue'])
+
+const store = useStore()
+const { pagerLimit, pagerNoEnds } = usePagerFit()
+
+const currentPage = ref(props.modelValue)
+const link = 'https://gradido.net/' + store.state.language + '/memberships/'
+
+watch(
+  () => props.modelValue,
+  (newValue) => {
+    currentPage.value = newValue
   },
-  setup() {
-    return usePagerFit()
-  },
-  data() {
-    return {
-      currentPage: this.modelValue,
-      link: 'https://gradido.net/' + this.$store.state.language + '/memberships/',
-    }
-  },
-  watch: {
-    modelValue(newValue) {
-      this.currentPage = newValue
-    },
-    currentPage(newValue) {
-      if (this.modelValue !== newValue) this.$emit('update:modelValue', newValue)
-    },
-  },
-}
+)
+watch(currentPage, (newValue) => {
+  if (props.modelValue !== newValue) emit('update:modelValue', newValue)
+})
 </script>
+
 <style>
 .el-table .cell {
   padding-left: 0;

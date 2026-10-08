@@ -20,21 +20,14 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'FirstName',
-  props: {
-    value: { type: String, default: '' },
-  },
-  data() {
-    return {
-      firstName: this.value,
-    }
-  },
-  computed: {
-    firstNameState() {
-      return this.firstName.length > 2
-    },
-  },
-}
+<script setup>
+import { computed, ref } from 'vue'
+
+const props = defineProps({
+  value: { type: String, default: '' },
+})
+
+const firstName = ref(props.value)
+
+const firstNameState = computed(() => firstName.value.length > 2)
 </script>

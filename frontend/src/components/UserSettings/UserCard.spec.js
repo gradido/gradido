@@ -31,7 +31,6 @@ describe('UserCard', () => {
   const mocks = {
     $t: vi.fn((t) => t),
     $n: vi.fn((n) => String(n)),
-    $store: mockStore,
   }
 
   beforeEach(() => {
@@ -52,6 +51,7 @@ describe('UserCard', () => {
           },
         },
         mocks,
+        provide: { store: mockStore },
       },
       props: {
         balance: 100,

@@ -3,14 +3,11 @@
     <slot :name="type"></slot>
   </div>
 </template>
-<script>
-export default {
-  name: 'TransactionLinkItem',
-  props: {
-    type: {
-      type: String,
-      required: true,
-    },
+<script setup>
+defineProps({
+  type: {
+    type: String,
+    required: true,
   },
-}
+})
 </script>

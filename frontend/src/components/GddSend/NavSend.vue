@@ -36,54 +36,44 @@
     </div>
   </div>
 </template>
-<script>
+<script setup>
 import { SEND_TYPES } from '@/utils/sendTypes'
 import { BButton } from 'bootstrap-vue-next'
 
-export default {
-  name: 'NavSend',
+const props = defineProps({
+  selected: {
+    type: String,
+    default: '',
+  },
+  transactionForm: {
+    type: String,
+    default: '',
+  },
+  transactionConfirmationLink: {
+    type: String,
+    default: '',
+  },
+  sendEmailForm: {
+    type: String,
+    default: '',
+  },
+  routeBase: {
+    type: String,
+    default: '',
+  },
+})
 
-  props: {
-    selected: {
-      type: String,
-      default: '',
-    },
-    transactionForm: {
-      type: String,
-      default: '',
-    },
-    transactionConfirmationLink: {
-      type: String,
-      default: '',
-    },
-    sendEmailForm: {
-      type: String,
-      default: '',
-    },
-    routeBase: {
-      type: String,
-      default: '',
-    },
-  },
-  data() {
-    return {
-      SEND_TYPES, // Expose the import to the template
-    }
-  },
-
-  methods: {
-    stateClasses(sendType) {
-      if (this.selected === sendType) {
-        return 'router-link-active router-link-exact-active'
-      }
-      return ''
-    },
-    routeToTab(route) {
-      return '/send/' + route // this.routeBase + route
-    },
-  },
+const stateClasses = (sendType) => {
+  if (props.selected === sendType) {
+    return 'router-link-active router-link-exact-active'
+  }
+  return ''
+}
+const routeToTab = (route) => {
+  return '/send/' + route // props.routeBase + route
 }
 </script>
+
 <style scoped lang="scss">
 .nav-send-btn-wrapper {
   background-color: #d1d1d1;

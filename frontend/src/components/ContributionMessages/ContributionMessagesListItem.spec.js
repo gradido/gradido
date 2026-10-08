@@ -60,7 +60,9 @@ describe('ContributionMessagesListItem', () => {
         mocks: {
           $t: mockT,
           $d: mockD,
-          $store: {
+        },
+        provide: {
+          store: {
             state: {
               firstName: 'Peter',
               lastName: 'Lustig',

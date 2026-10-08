@@ -11,11 +11,8 @@
     </div>
   </div>
 </template>
-<script>
-export default {
-  name: 'RedeemedTextBox',
-  props: {
-    text: { type: String, required: true },
-  },
-}
+<script setup>
+defineProps({
+  text: { type: String, required: true },
+})
 </script>

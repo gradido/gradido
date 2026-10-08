@@ -14,15 +14,14 @@ export const TRANSACTION_STEPS = {
   sendEmailResultSuccess: 'sendEmailResultSuccess',
   sendEmailResultError: 'sendEmailResultError',
 }
+</script>
 
-export default {
-  name: 'GddSend',
-  props: {
-    currentTransactionStep: {
-      type: String,
-      default: TRANSACTION_STEPS.transactionForm,
-      validator: (transactionStep) => TRANSACTION_STEPS[transactionStep] !== undefined,
-    },
+<script setup>
+defineProps({
+  currentTransactionStep: {
+    type: String,
+    default: TRANSACTION_STEPS.transactionForm,
+    validator: (transactionStep) => TRANSACTION_STEPS[transactionStep] !== undefined,
   },
-}
+})
 </script>

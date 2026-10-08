@@ -4,14 +4,11 @@
     <IBiArrowDownCircle v-else class="text-muted h1" />
   </div>
 </template>
-<script>
-export default {
-  name: 'CollapseIcon',
-  props: {
-    visible: {
-      type: Boolean,
-      required: true,
-    },
+<script setup>
+defineProps({
+  visible: {
+    type: Boolean,
+    required: true,
   },
-}
+})
 </script>

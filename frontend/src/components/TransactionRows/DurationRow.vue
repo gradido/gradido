@@ -10,30 +10,30 @@
     </BRow>
   </div>
 </template>
-<script>
+<script setup>
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { formatDistance } from 'date-fns'
 import { enUS as en, de, es, fr, nl } from 'date-fns/locale'
 
 const locales = { en, de, es, fr, nl }
 
-export default {
-  name: 'DurationRow',
-  props: {
-    decayStart: {
-      type: String,
-      required: true,
-    },
-    decayEnd: {
-      type: String,
-      required: true,
-    },
+const props = defineProps({
+  decayStart: {
+    type: String,
+    required: true,
   },
-  computed: {
-    duration() {
-      return formatDistance(new Date(this.decayEnd), new Date(this.decayStart), {
-        locale: locales[this.$i18n.locale],
-      })
-    },
+  decayEnd: {
+    type: String,
+    required: true,
   },
-}
+})
+
+const { locale } = useI18n()
+
+const duration = computed(() =>
+  formatDistance(new Date(props.decayEnd), new Date(props.decayStart), {
+    locale: locales[locale.value],
+  }),
+)
 </script>

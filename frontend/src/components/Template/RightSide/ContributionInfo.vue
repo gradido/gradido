@@ -3,8 +3,8 @@
     <slot :name="$route.params.tab" />
   </div>
 </template>
-<script>
-export default {
-  name: 'ContributionInfo',
-}
+<script setup>
+import { defineOptions } from 'vue'
+
+defineOptions({ name: 'ContributionInfo' })
 </script>

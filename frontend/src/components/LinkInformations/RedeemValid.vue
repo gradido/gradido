@@ -20,19 +20,13 @@
     </BCard>
   </div>
 </template>
-<script>
+<script setup>
 import RedeemInformation from '@/components/LinkInformations/RedeemInformation'
 
-export default {
-  name: 'RedeemValid',
-  components: {
-    RedeemInformation,
-  },
-  props: {
-    linkData: { type: Object, required: true },
-    isContributionLink: { type: Boolean, default: false },
-    isRedeemJwtLink: { type: Boolean, default: false },
-    validLink: { type: Boolean, default: false },
-  },
-}
+defineProps({
+  linkData: { type: Object, required: true },
+  isContributionLink: { type: Boolean, default: false },
+  isRedeemJwtLink: { type: Boolean, default: false },
+  validLink: { type: Boolean, default: false },
+})
 </script>

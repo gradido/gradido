@@ -20,6 +20,7 @@ const mockT = vi.fn((key, params) => {
 
 // Mock vue-i18n
 vi.mock('vue-i18n', () => ({
+  useI18n: () => ({ t: mockT }),
   createI18n: vi.fn(() => ({
     global: {
       t: mockT,

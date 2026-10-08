@@ -20,26 +20,18 @@
     </BCard>
   </div>
 </template>
-<script>
+<script setup>
+import { computed } from 'vue'
 import CONFIG from '@/config'
 import { memberAlias } from '@/utils/gradidoAddress'
 
-export default {
-  name: 'RedeemInformation',
-  props: {
-    linkData: { type: Object, required: true },
-    isContributionLink: { type: Boolean, default: false },
-    isRedeemJwtLink: { type: Boolean, default: false },
-  },
-  data() {
-    return {
-      CONFIG,
-    }
-  },
-  computed: {
-    senderName() {
-      return memberAlias(this.linkData.senderUser?.alias, this.linkData.senderUser?.gradidoID)
-    },
-  },
-}
+const props = defineProps({
+  linkData: { type: Object, required: true },
+  isContributionLink: { type: Boolean, default: false },
+  isRedeemJwtLink: { type: Boolean, default: false },
+})
+
+const senderName = computed(() =>
+  memberAlias(props.linkData.senderUser?.alias, props.linkData.senderUser?.gradidoID),
+)
 </script>

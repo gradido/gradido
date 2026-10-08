@@ -50,10 +50,10 @@
   </footer>
 </template>
 
-<script>
-export default {
-  name: 'AuthFooter',
-}
+<script setup>
+import { defineOptions } from 'vue'
+
+defineOptions({ name: 'AuthFooter' })
 </script>
 
 <style scoped>

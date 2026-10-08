@@ -5,18 +5,15 @@
     </div>
   </div>
 </template>
-<script>
-export default {
-  name: 'TypeIcon',
-  props: {
-    icon: {
-      type: String,
-      required: true,
-    },
-    color: {
-      type: String,
-      required: true,
-    },
+<script setup>
+defineProps({
+  icon: {
+    type: String,
+    required: true,
   },
-}
+  color: {
+    type: String,
+    required: true,
+  },
+})
 </script>

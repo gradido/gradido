@@ -29,41 +29,39 @@
     </div>
   </div>
 </template>
-<script>
+<script setup>
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import TransactionLink from '@/components/TransactionLinks/TransactionLink'
-export default {
-  name: 'CollapseLinksList',
-  components: {
-    TransactionLink,
+
+const props = defineProps({
+  transactionLinks: { type: Array, required: true },
+  transactionLinkCount: {
+    type: Number,
+    required: true,
   },
-  props: {
-    transactionLinks: { type: Array, required: true },
-    transactionLinkCount: {
-      type: Number,
-      required: true,
-    },
-    modelValue: { type: Number, required: true },
-    pageSize: { type: Number, default: 5 },
-    pending: { type: Boolean, default: false },
-  },
-  computed: {
-    buttonText() {
-      const i = this.transactionLinkCount - this.transactionLinks.length
-      // ONE, not zero: the count is what the sentence is about, and every plural rule
-      // reads 1 as the singular. Zero landed on the plural form in every language --
-      // "die letzten 0 Links nachladen" -- because zero is not one.
-      if (i === 1) return this.$t('link-load', 1)
-      if (i <= this.pageSize) return this.$t('link-load', { n: i })
-      return this.$t('link-load-more', { n: this.pageSize })
-    },
-  },
-  methods: {
-    resetTransactionLinkList() {
-      this.$emit('update:modelValue', 0)
-    },
-    loadMoreLinks() {
-      this.$emit('update:modelValue', this.modelValue + 1)
-    },
-  },
+  modelValue: { type: Number, required: true },
+  pageSize: { type: Number, default: 5 },
+  pending: { type: Boolean, default: false },
+})
+const emit = defineEmits(['update:modelValue'])
+
+const { t } = useI18n()
+
+const buttonText = computed(() => {
+  const i = props.transactionLinkCount - props.transactionLinks.length
+  // ONE, not zero: the count is what the sentence is about, and every plural rule
+  // reads 1 as the singular. Zero landed on the plural form in every language --
+  // "die letzten 0 Links nachladen" -- because zero is not one.
+  if (i === 1) return t('link-load', 1)
+  if (i <= props.pageSize) return t('link-load', { n: i })
+  return t('link-load-more', { n: props.pageSize })
+})
+
+const resetTransactionLinkList = () => {
+  emit('update:modelValue', 0)
+}
+const loadMoreLinks = () => {
+  emit('update:modelValue', props.modelValue + 1)
 }
 </script>

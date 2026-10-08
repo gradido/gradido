@@ -10,16 +10,15 @@ vi.mock('@/composables/useToast', () => ({
   })),
 }))
 
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({ t: (msg) => msg, n: (n) => n }),
+}))
+
 describe('TransactionCollapse', () => {
   let wrapper
 
-  const mocks = {
-    $t: vi.fn((t) => t),
-    $n: vi.fn((n) => n),
-  }
-
   const Wrapper = (propsData) => {
-    return mount(TransactionCollapse, { global: { mocks }, props: propsData })
+    return mount(TransactionCollapse, { props: propsData })
   }
 
   describe('no valid GDT entry type', () => {
@@ -30,12 +29,6 @@ describe('TransactionCollapse', () => {
           gdt: 110,
           factor: 22,
           gdtEntryType: GdtEntryType.FORM,
-        },
-        global: {
-          mocks: {
-            $t: (msg) => msg,
-            $n: (n) => n,
-          },
         },
       })
 

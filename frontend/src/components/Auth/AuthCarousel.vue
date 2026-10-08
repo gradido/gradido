@@ -17,10 +17,10 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'AuthCarousel',
-}
+<script setup>
+import { defineOptions } from 'vue'
+
+defineOptions({ name: 'AuthCarousel' })
 </script>
 
 <style>

@@ -21,7 +21,6 @@ describe('GdtTransactionList', () => {
   let wrapper
 
   const globalMocks = {
-    $store: mockStore,
     $i18n: mockI18n,
     $t: vi.fn((t) => t),
     $n: vi.fn((n) => n),
@@ -39,6 +38,7 @@ describe('GdtTransactionList', () => {
     return mount(GdtTransactionList, {
       props: { ...defaultProps, ...props },
       global: {
+        plugins: [mockStore],
         mocks: globalMocks,
         stubs: {
           BButton,

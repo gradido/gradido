@@ -61,12 +61,13 @@
     </p>
   </div>
 </template>
-<script>
-export default {
-  name: 'TransactionResultSendError',
-  props: {
-    error: { type: Boolean, default: false },
-    errorResult: { type: String, default: '' },
-  },
-}
+<script setup>
+import { defineOptions } from 'vue'
+
+defineOptions({ name: 'TransactionResultSendError' })
+
+defineProps({
+  error: { type: Boolean, default: false },
+  errorResult: { type: String, default: '' },
+})
 </script>

@@ -40,18 +40,10 @@
     </div>
   </div>
 </template>
-<script>
+<script setup>
 import CONFIG from '@/config'
 
-export default {
-  name: 'CommunityMember',
-  props: {
-    totalUsers: { type: Number, required: true },
-  },
-  data() {
-    return {
-      CONFIG,
-    }
-  },
-}
+defineProps({
+  totalUsers: { type: Number, required: true },
+})
 </script>

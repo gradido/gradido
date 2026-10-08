@@ -9,19 +9,16 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'Status',
-  props: {
-    balance: { type: Number, default: 0 },
-    pending: {
-      type: Boolean,
-      default: true,
-    },
-    statusText: {
-      type: String,
-      default: '',
-    },
+<script setup>
+defineProps({
+  balance: { type: Number, default: 0 },
+  pending: {
+    type: Boolean,
+    default: true,
   },
-}
+  statusText: {
+    type: String,
+    default: '',
+  },
+})
 </script>

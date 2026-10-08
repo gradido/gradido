@@ -43,17 +43,10 @@
     </div>
   </div>
 </template>
-<script>
+<script setup>
 import News from '@/assets/News/news.json'
-export default {
-  name: 'CommunityNews',
-  data() {
-    return {
-      News,
-    }
-  },
-}
 </script>
+
 <style scoped>
 .card {
   background-attachment: scroll;

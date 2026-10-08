@@ -362,7 +362,6 @@
         "@vee-validate/rules": "^4.14.1",
         "@vitejs/plugin-vue": "^5.2.3",
         "@vue/apollo-composable": "^4.0.2",
-        "@vue/apollo-option": "^4.0.0",
         "autoprefixer": "^10.4.19",
         "barcode-detector": "^3.2.2",
         "bootstrap": "^5.3.3",

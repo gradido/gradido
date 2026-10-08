@@ -27,8 +27,10 @@ describe('App', () => {
   const createWrapper = (options = {}) => {
     return shallowMount(App, {
       global: {
+        provide: {
+          store: createMockStore(options.state),
+        },
         mocks: {
-          $store: createMockStore(options.state),
           $route: createMockRoute(options.routeMeta),
         },
         stubs: {

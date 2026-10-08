@@ -14,17 +14,11 @@
     </BCard>
   </div>
 </template>
-<script>
+<script setup>
 import RedeemInformation from '@/components/LinkInformations/RedeemInformation'
 
-export default {
-  name: 'RedeemSelfCreator',
-  components: {
-    RedeemInformation,
-  },
-  props: {
-    linkData: { type: Object, required: true },
-    isContributionLink: { type: Boolean, default: false },
-  },
-}
+defineProps({
+  linkData: { type: Object, required: true },
+  isContributionLink: { type: Boolean, default: false },
+})
 </script>

@@ -25,12 +25,9 @@
     </p>
   </div>
 </template>
-<script>
-export default {
-  name: 'TransactionResultSendError',
-  props: {
-    error: { type: Boolean, default: false },
-    errorResult: { type: String, default: '' },
-  },
-}
+<script setup>
+defineProps({
+  error: { type: Boolean, default: false },
+  errorResult: { type: String, default: '' },
+})
 </script>

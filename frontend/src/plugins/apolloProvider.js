@@ -4,7 +4,6 @@ import router from '../routes/router'
 import i18n from '../i18n'
 import { createHttpLink, ApolloLink, ApolloClient, InMemoryCache } from '@apollo/client/core'
 import { onError } from '@apollo/client/link/error'
-import { createApolloProvider } from '@vue/apollo-option'
 import { provideApolloClient } from '@vue/apollo-composable'
 import { registerApolloCacheClear } from '@/plugins/apolloCache'
 import { isSchemaMismatch, markAppOutdated } from '@/composables/useAppOutdated'
@@ -60,7 +59,7 @@ const authLink = new ApolloLink((operation, forward) => {
   })
 })
 
-const apolloClient = new ApolloClient({
+export const apolloClient = new ApolloClient({
   link: ApolloLink.from([outdatedLink, authLink, httpLink]),
   cache: new InMemoryCache({
     possibleTypes: {
@@ -73,7 +72,3 @@ provideApolloClient(apolloClient)
 
 // Handed to the store, which cannot import this file - see apolloCache.js.
 registerApolloCacheClear(() => apolloClient.clearStore())
-
-export const apolloProvider = createApolloProvider({
-  defaultClient: apolloClient,
-})

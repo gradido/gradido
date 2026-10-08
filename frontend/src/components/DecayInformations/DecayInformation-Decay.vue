@@ -23,24 +23,25 @@
     </BRow>
   </div>
 </template>
-<script>
-export default {
-  name: 'DecayInformationDecay',
-  props: {
-    balance: {
-      type: String,
-      required: true,
-    },
-    decay: {
-      type: String,
-      required: true,
-    },
-    previousBalance: {
-      type: String,
-      required: true,
-    },
+<script setup>
+import { defineOptions } from 'vue'
+
+defineOptions({ name: 'DecayInformationDecay' })
+
+defineProps({
+  balance: {
+    type: String,
+    required: true,
   },
-}
+  decay: {
+    type: String,
+    required: true,
+  },
+  previousBalance: {
+    type: String,
+    required: true,
+  },
+})
 </script>
 
 <style scoped lang="scss">

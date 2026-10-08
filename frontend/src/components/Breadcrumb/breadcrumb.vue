@@ -12,24 +12,29 @@
     <h1 v-if="pageTitle" data-test="page-title">{{ pageTitle }}</h1>
   </div>
 </template>
-<script>
+<script setup>
+import { computed, defineOptions } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
+import { useStore } from 'vuex'
 import CONFIG from '@/config'
 
-export default {
-  name: 'Breadcrumb',
-  computed: {
-    pageTitle() {
-      // No key, no heading -- rather than the string "pageTitle.undefined", which is what
-      // a missing meta used to print.
-      if (!this.$route.meta.pageTitle) {
-        return ''
-      }
-      const options = { name: this.$store.state.firstName, community: CONFIG.COMMUNITY_NAME }
-      // eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys
-      return this.$t(`pageTitle.${this.$route.meta.pageTitle}`, options)
-    },
-  },
-}
+defineOptions({ name: 'Breadcrumb' })
+
+const { t } = useI18n()
+const route = useRoute()
+const store = useStore()
+
+const pageTitle = computed(() => {
+  // No key, no heading -- rather than the string "pageTitle.undefined", which is what
+  // a missing meta used to print.
+  if (!route.meta.pageTitle) {
+    return ''
+  }
+  const options = { name: store.state.firstName, community: CONFIG.COMMUNITY_NAME }
+  // eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys
+  return t(`pageTitle.${route.meta.pageTitle}`, options)
+})
 </script>
 
 <style scoped>

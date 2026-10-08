@@ -1,5 +1,5 @@
 <template>
-  <div class="navbar-component">
+  <div ref="root" class="navbar-component">
     <div class="navbar-element">
       <BNavbar toggleable="lg" class="pe-4">
         <BNavbarBrand>
@@ -180,7 +180,9 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useStore } from 'vuex'
 import '@/assets/fonts/afacad/afacad.css'
 import CONFIG from '@/config'
 import { inLogoFace } from '@/utils/logoFace'
@@ -188,83 +190,73 @@ import { avatarLettering } from '@/utils/avatarLettering'
 import { memberAlias } from '@/utils/gradidoAddress'
 import GradidoAddressCopy from '@/components/GradidoAddressCopy'
 import QuickCodeIcon from '@/components/Menu/QuickCodeIcon'
+// How many conversations hold something unread, from the chat's beat -- for the dot.
 import { chatUnreadConversations } from '@/composables/useChatUpdates'
 
-export default {
-  name: 'Navbar',
-  components: {
-    GradidoAddressCopy,
-    QuickCodeIcon,
-  },
-  props: {
-    balance: { type: Number, required: true },
-    /** Whether the phone's menu (MobileSidebar) is open -- the layout keeps it. */
-    menuOpen: { type: Boolean, default: false },
-  },
-  emits: ['toggle-menu'],
-  setup() {
-    // How many conversations hold something unread, from the chat's beat -- for the dot.
-    return { chatUnreadConversations }
-  },
-  data() {
-    return {
-      coin: '/img/brand/gradido-coin.png',
-      communityName: CONFIG.COMMUNITY_NAME,
-      // Where coin and name end, from the left edge of the bar, in px. 0 where they do not
-      // stand (the phone) or nothing lays out.
-      brandEnd: 0,
-      sheet: '/img/template/Blaetter.png',
-    }
-  },
-  computed: {
-    // A name with a letter the wordmark's typeface lacks is set in the page's font, whole.
-    communityInLogoFace() {
-      return inLogoFace(this.communityName)
-    },
-    username() {
-      // The circle's letters are the first two of the user name, here as on the printed
-      // card, on the cheque and in every other member's lists (Bernd, 17.09.2026): a card
-      // handed to somebody must not show two letters that the member's circle in their
-      // wallet does not. The colour keeps hashing the real initials (AS-010), so a new user
-      // name changes the letters and not the colour. The name beside the circle stays the
-      // member's own.
-      const { letters, colorSeed } = avatarLettering({
-        alias: this.$store.state.username,
-        firstName: this.$store.state.firstName,
-        lastName: this.$store.state.lastName,
-      })
-      return {
-        username: `${this.$store.state.firstName} ${this.$store.state.lastName}`,
-        initials: letters,
-        colorSeed,
-      }
-    },
-    alias() {
-      // gradidoID, not gradidoId -- the store spells it with a capital D, and the other
-      // spelling once put the word "undefined" in front of every member without a user
-      // name. It is worth naming at each call site; nothing catches it.
-      return memberAlias(this.$store.state.username, this.$store.state.gradidoID)
-    },
-  },
-  mounted() {
-    // The name's width is the community's, and it changes once more when its typeface has
-    // come: the observer reports both, and the phone's `display: none` as a width of 0.
-    if (typeof ResizeObserver === 'undefined') return
-    this.brandObserver = new ResizeObserver(() => this.measureBrand())
-    this.brandObserver.observe(this.$refs.home.$el)
-  },
-  beforeUnmount() {
-    this.brandObserver?.disconnect()
-  },
-  methods: {
-    measureBrand() {
-      const home = this.$refs.home?.$el
-      if (!home) return
-      const { right, width } = home.getBoundingClientRect()
-      this.brandEnd = width > 0 ? Math.round(right - this.$el.getBoundingClientRect().left) : 0
-    },
-  },
+defineProps({
+  balance: { type: Number, required: true },
+  /** Whether the phone's menu (MobileSidebar) is open -- the layout keeps it. */
+  menuOpen: { type: Boolean, default: false },
+})
+defineEmits(['toggle-menu'])
+
+const store = useStore()
+
+const root = ref(null)
+const home = ref(null)
+
+const coin = '/img/brand/gradido-coin.png'
+const communityName = CONFIG.COMMUNITY_NAME
+// Where coin and name end, from the left edge of the bar, in px. 0 where they do not
+// stand (the phone) or nothing lays out.
+const brandEnd = ref(0)
+const sheet = '/img/template/Blaetter.png'
+
+// A name with a letter the wordmark's typeface lacks is set in the page's font, whole.
+const communityInLogoFace = computed(() => inLogoFace(communityName))
+const username = computed(() => {
+  // The circle's letters are the first two of the user name, here as on the printed
+  // card, on the cheque and in every other member's lists (Bernd, 17.09.2026): a card
+  // handed to somebody must not show two letters that the member's circle in their
+  // wallet does not. The colour keeps hashing the real initials (AS-010), so a new user
+  // name changes the letters and not the colour. The name beside the circle stays the
+  // member's own.
+  const { letters, colorSeed } = avatarLettering({
+    alias: store.state.username,
+    firstName: store.state.firstName,
+    lastName: store.state.lastName,
+  })
+  return {
+    username: `${store.state.firstName} ${store.state.lastName}`,
+    initials: letters,
+    colorSeed,
+  }
+})
+const alias = computed(() => {
+  // gradidoID, not gradidoId -- the store spells it with a capital D, and the other
+  // spelling once put the word "undefined" in front of every member without a user
+  // name. It is worth naming at each call site; nothing catches it.
+  return memberAlias(store.state.username, store.state.gradidoID)
+})
+
+const measureBrand = () => {
+  const homeElement = home.value?.$el
+  if (!homeElement) return
+  const { right, width } = homeElement.getBoundingClientRect()
+  brandEnd.value = width > 0 ? Math.round(right - root.value.getBoundingClientRect().left) : 0
 }
+
+let brandObserver
+onMounted(() => {
+  // The name's width is the community's, and it changes once more when its typeface has
+  // come: the observer reports both, and the phone's `display: none` as a width of 0.
+  if (typeof ResizeObserver === 'undefined') return
+  brandObserver = new ResizeObserver(() => measureBrand())
+  brandObserver.observe(home.value.$el)
+})
+onBeforeUnmount(() => {
+  brandObserver?.disconnect()
+})
 </script>
 
 <style lang="scss">
