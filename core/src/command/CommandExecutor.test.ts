@@ -1,6 +1,5 @@
 // AI-GENERATED — not an architecture reference
 import { afterEach, beforeAll, beforeEach, describe, expect, it, spyOn } from 'bun:test'
-import { randomBytes } from 'node:crypto'
 import { inspect } from 'node:util'
 import * as database from 'database'
 import { getLogger as log4jsGetLogger } from 'log4js'
@@ -39,11 +38,9 @@ const RECIPIENT = {
   emailContact: { email: 'ben@example.org' },
 } as unknown as database.User
 const MESSAGE_UUID = '10000000-0000-4000-8000-000000000001'
-const PICTURE = Buffer.concat([
-  Buffer.from([0xff, 0xd8]),
-  randomBytes(1024),
-  Buffer.from([0xff, 0xd9]),
-]).toString('base64')
+// A picture that decodes -- the command encodes it again before it files it: 4 x 2 grey pixels.
+const PICTURE =
+  '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAA0JCgsKCA0LCgsODg0PEyAVExISEyccHhcgLikxMC4pLSwzOko+MzZGNywtQFdBRkxOUlNSMj5aYVpQYEpRUk//wAALCAACAAQBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAAAP/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AP//Z'
 
 /** The command of a chat message with a picture, as it comes out of its envelope. */
 const command = new CommandJwtPayloadType(

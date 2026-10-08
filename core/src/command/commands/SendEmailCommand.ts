@@ -185,9 +185,9 @@ export class SendEmailCommand extends BaseCommand<
     if (!this.validate()) {
       throw new Error('Invalid command parameters')
     }
-    // P7b: the picture of a chat message is checked before anything is filed, the sender
-    // included, as the sending server checked it; one this server refuses refuses the command.
-    const pictures = this.acceptedPictures()
+    // P7b: the picture of a chat message is checked and encoded again before anything is filed,
+    // the sender included, as the sending server did; one this server refuses refuses the command.
+    const pictures = await this.acceptedPictures()
     // find sender user
     methodLogger.debug(
       `find sender user: ${this.sendEmailCommandParams.senderComUuid} ${this.sendEmailCommandParams.senderGradidoId}`,
@@ -334,9 +334,9 @@ export class SendEmailCommand extends BaseCommand<
   }
 
   /**
-   * The picture of a chat message (P7b), checked as the sending server checked it
-   * (acceptIncomingChatMessageImages): one at most, named by a uuid, a JPEG within the limits --
-   * and the message named by a uuid as well (NO_MESSAGE_UUID). A picture is filed under the uuid
+   * The picture of a chat message (P7b), checked and encoded again as the sending server did
+   * (acceptIncomingChatMessageImages): one at most, named by a uuid, a JPEG within the limits
+   * that decodes -- and the message named by a uuid as well (NO_MESSAGE_UUID). A picture is filed under the uuid
    * the sending server filed its own copy under; with one made up here the two copies would not
    * share it, and a second delivery of the command would file the message and its picture again
    * (coderabbit on #4003). A message without a picture keeps the old way, a uuid of its own.
@@ -346,7 +346,7 @@ export class SendEmailCommand extends BaseCommand<
    * sender is to see "not delivered" rather than a message that lacks its picture over here
    * (E-034: the software says what happens).
    */
-  private acceptedPictures(): ChatMessageImageToStore[] {
+  private async acceptedPictures(): Promise<ChatMessageImageToStore[]> {
     const sentUuid = v.safeParse(uuidv4Schema, this.sendEmailCommandParams.messageUuid)
     const refuse = (reason: string): never => {
       createLogger(`acceptedPictures`).warn(
@@ -354,7 +354,7 @@ export class SendEmailCommand extends BaseCommand<
       )
       throw new Error(`CHAT_IMAGE_NOT_ACCEPTED: ${reason}`)
     }
-    const accepted = acceptIncomingChatMessageImages(this.sendEmailCommandParams.images)
+    const accepted = await acceptIncomingChatMessageImages(this.sendEmailCommandParams.images)
     if (!accepted.success) {
       return refuse(accepted.error)
     }
