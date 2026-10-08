@@ -25,83 +25,79 @@
     </div>
   </div>
 </template>
-<script>
+<script setup>
+import { computed } from 'vue'
 import { memberAlias } from '@/utils/gradidoAddress'
 
-export default {
-  name: 'Name',
-  props: {
-    linkedUser: {
-      type: Object,
-      required: false,
-    },
-    text: {
-      type: String,
-      required: false,
-    },
-    fontColor: {
-      type: String,
-      required: false,
-      default: '',
-    },
-    linkId: {
-      type: Number,
-      required: false,
-      default: null,
-    },
-    /**
-     * Whether the community goes behind the name, after a slash. True everywhere it has
-     * always been -- in a booking row that suffix is what marks a member of ANOTHER
-     * community. The contact list gives the community a line of its own instead (mockup
-     * V02) and switches it off here, rather than handing this component a doctored user.
-     */
-    withCommunity: {
-      type: Boolean,
-      required: false,
-      default: true,
-    },
-    /**
-     * Whether the name is the control that opens this member's contact window.
-     *
-     * ⛔ False where the ROW itself already is that control: in the contact list and in the
-     * contacts column a tap anywhere on the row opens the window. A button inside a button
-     * is invalid HTML with no agreed behaviour, and it would make the row's accessible name
-     * the sum of two controls.
-     *
-     * True everywhere the row means something else -- a booking row toggles its details,
-     * and the column of newest bookings has its own link to the booking -- so there the
-     * name has to be its own control.
-     */
-    opens: {
-      type: Boolean,
-      required: false,
-      default: true,
-    },
+const props = defineProps({
+  linkedUser: {
+    type: Object,
+    required: false,
   },
-  emits: ['open'],
-  computed: {
-    // Nobody to open a window about: a row whose counterparty the backend could not
-    // resolve.
-    //
-    // ⛔ NOT the creation rows, although they name a community rather than a member: the
-    // stand-in the backend links them to carries a gradidoID like anybody else
-    // (backend/src/util/communityUser.ts), so this condition says yes for them. Both lists
-    // that show creations keep them away from this component instead, and print the
-    // community's name as plain text (GddTransaction, RightSide/LastTransactions).
-    opensWindow() {
-      return this.opens && Boolean(this.linkedUser?.gradidoID)
-    },
-    // How the wallet names a member (NU-018), plus the community they belong to.
-    itemText() {
-      if (!this.linkedUser) return this.text
-      const alias = memberAlias(this.linkedUser.alias, this.linkedUser.gradidoID)
-      return this.withCommunity && this.linkedUser.communityName
-        ? alias + ' / ' + this.linkedUser.communityName
-        : alias
-    },
+  text: {
+    type: String,
+    required: false,
   },
-}
+  fontColor: {
+    type: String,
+    required: false,
+    default: '',
+  },
+  linkId: {
+    type: Number,
+    required: false,
+    default: null,
+  },
+  /**
+   * Whether the community goes behind the name, after a slash. True everywhere it has
+   * always been -- in a booking row that suffix is what marks a member of ANOTHER
+   * community. The contact list gives the community a line of its own instead (mockup
+   * V02) and switches it off here, rather than handing this component a doctored user.
+   */
+  withCommunity: {
+    type: Boolean,
+    required: false,
+    default: true,
+  },
+  /**
+   * Whether the name is the control that opens this member's contact window.
+   *
+   * ⛔ False where the ROW itself already is that control: in the contact list and in the
+   * contacts column a tap anywhere on the row opens the window. A button inside a button
+   * is invalid HTML with no agreed behaviour, and it would make the row's accessible name
+   * the sum of two controls.
+   *
+   * True everywhere the row means something else -- a booking row toggles its details,
+   * and the column of newest bookings has its own link to the booking -- so there the
+   * name has to be its own control.
+   */
+  opens: {
+    type: Boolean,
+    required: false,
+    default: true,
+  },
+})
+defineEmits(['open'])
+
+// Nobody to open a window about: a row whose counterparty the backend could not
+// resolve.
+//
+// ⛔ NOT the creation rows, although they name a community rather than a member: the
+// stand-in the backend links them to carries a gradidoID like anybody else
+// (backend/src/util/communityUser.ts), so this condition says yes for them. Both lists
+// that show creations keep them away from this component instead, and print the
+// community's name as plain text (GddTransaction, RightSide/LastTransactions).
+const opensWindow = computed(() => props.opens && Boolean(props.linkedUser?.gradidoID))
+// How the wallet names a member (NU-018), plus the community they belong to.
+const itemText = computed(() => {
+  if (!props.linkedUser) return props.text
+  const alias = memberAlias(props.linkedUser.alias, props.linkedUser.gradidoID)
+  return props.withCommunity && props.linkedUser.communityName
+    ? alias + ' / ' + props.linkedUser.communityName
+    : alias
+})
 </script>
+
 <style scoped>
 /* A 36-character gradidoID fallback must not blow up the booking row on a phone:
    clipped visually with an ellipsis, while the full value stays in the text and stays

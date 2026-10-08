@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import CONFIG from '../config'
 
-vi.mock('@vue/apollo-option')
 vi.mock('@vue/apollo-composable')
 vi.mock('@/store/store')
 vi.mock('../routes/router')
@@ -14,7 +13,6 @@ describe('apolloProvider', () => {
     ApolloLink,
     ApolloClient,
     InMemoryCache,
-    createApolloProvider,
     provideApolloClient,
     onError,
     store,
@@ -47,10 +45,6 @@ describe('apolloProvider', () => {
     const errorLinkModule = await import('@apollo/client/link/error')
     onError = vi.fn((handler) => ({ handler }))
     vi.mocked(errorLinkModule).onError = onError
-
-    const apolloOption = await import('@vue/apollo-option')
-    createApolloProvider = vi.fn()
-    vi.mocked(apolloOption).createApolloProvider = createApolloProvider
 
     const apolloComposable = await import('@vue/apollo-composable')
     provideApolloClient = vi.fn()
@@ -96,10 +90,6 @@ describe('apolloProvider', () => {
 
   it('calls the ApolloClient', () => {
     expect(ApolloClient).toHaveBeenCalled()
-  })
-
-  it('calls the createApolloProvider', () => {
-    expect(createApolloProvider).toHaveBeenCalled()
   })
 
   it('calls provideApolloClient', () => {

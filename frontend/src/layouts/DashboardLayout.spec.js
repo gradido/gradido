@@ -155,7 +155,6 @@ describe('DashboardLayout', () => {
           Breadcrumb: true,
           ContentHeader: true,
           RightSide: true,
-          ContentFooter: true,
           SkeletonOverview: true,
           'fade-transition': true,
           // Last, so a caller can override ANY of them and not only RouterLink. Spread

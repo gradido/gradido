@@ -9,51 +9,39 @@
         ref="download"
         download="GradidoLinkQRCode.png"
         href=""
-        @click="downloadImg(this)"
+        @click="downloadImg()"
       >
         {{ $t('download') }}
       </a>
     </div>
   </div>
 </template>
-<script>
+<script setup>
+import { computed, ref } from 'vue'
 import { QRCanvas } from 'qrcanvas-vue'
 import { COIN_IMAGE_PATH, qrCodeOptions } from '@/utils/qrCode'
 
-export default {
-  name: 'FigureQrCode',
-  components: {
-    QRCanvas,
-  },
-  props: {
-    link: { type: String, required: true },
-  },
-  data() {
-    return {
-      image: null,
-    }
-  },
-  computed: {
-    options() {
-      return qrCodeOptions(this.link, this.image)
-    },
-  },
-  created() {
-    const image = new Image()
-    image.src = COIN_IMAGE_PATH
-    image.onload = () => {
-      this.image = image
-    }
-  },
-  methods: {
-    downloadImg() {
-      const canvas = this.$refs.canvas.$el
-      const image = canvas.toDataURL('image/png')
-      this.$refs.download.href = image
-    },
-  },
+const props = defineProps({
+  link: { type: String, required: true },
+})
+
+const canvas = ref(null)
+const download = ref(null)
+const image = ref(null)
+
+const options = computed(() => qrCodeOptions(props.link, image.value))
+
+const coinImage = new Image()
+coinImage.src = COIN_IMAGE_PATH
+coinImage.onload = () => {
+  image.value = coinImage
+}
+
+const downloadImg = () => {
+  download.value.href = canvas.value.$el.toDataURL('image/png')
 }
 </script>
+
 <style scoped>
 .qrbox {
   padding: 20px;

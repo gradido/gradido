@@ -3,82 +3,76 @@
     <BToastOrchestrator />
     <app-outdated-bar />
     <div :class="$route.meta.requiresAuth ? 'app-content' : ''">
-      <component :is="$route.meta.requiresAuth ? 'DashboardLayout' : 'AuthLayout'" />
+      <component :is="$route.meta.requiresAuth ? DashboardLayout : AuthLayout" />
       <div class="goldrand position-fixed fixed-bottom zindex1000"></div>
     </div>
   </div>
 </template>
 
-<script>
+<script setup>
+import { computed, onBeforeUnmount, watch } from 'vue'
+import { useStore } from 'vuex'
 import DashboardLayout from '@/layouts/DashboardLayout'
 import AuthLayout from '@/layouts/AuthLayout'
 import AppOutdatedBar from '@/components/AppOutdatedBar'
 
-export default {
-  name: 'App',
-  components: {
-    DashboardLayout,
-    AuthLayout,
-    AppOutdatedBar,
-  },
-  computed: {
-    darkMode() {
-      return this.$store.state.darkMode
-    },
-  },
-  watch: {
-    // Teleported UI (modals, toasts) renders on <body>, outside #app, so mirror
-    // the dark-mode class and Bootstrap's color-mode attribute there too. The
-    // data-bs-theme attribute drives Bootstrap's native dark variables; light
-    // mode carries no attribute so it stays a pure :root fallback.
-    darkMode: {
-      immediate: true,
-      handler(val) {
-        document.body.classList.toggle('dark-mode', val)
-        if (val) {
-          document.body.setAttribute('data-bs-theme', 'dark')
-        } else {
-          document.body.removeAttribute('data-bs-theme')
-        }
-        this.syncThemeColor()
-      },
-    },
-  },
-  created() {
-    // Keep following the OS while themeMode is 'system' (re-evaluate on OS
-    // light/dark change). The initial apply happens in main.js before mount.
-    if (!window.matchMedia) return
-    this.themeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    this.themeMediaListener = () => this.$store.dispatch('applyTheme')
-    this.themeMediaQuery.addEventListener('change', this.themeMediaListener)
-  },
-  beforeUnmount() {
-    this.themeMediaQuery?.removeEventListener('change', this.themeMediaListener)
-  },
-  methods: {
-    /**
-     * Keeps <meta name="theme-color"> on the page background. Installed on a home screen
-     * that colour is the status bar, so switching light/dark has to move it too --
-     * index.html only gets the first paint right.
-     *
-     * ⚠️ The value is READ from the --bg token rather than written again here. Two literals
-     * in a second file are two chances to drift, and this way the bar cannot disagree with
-     * the page by construction. Reading after the class toggle above is what makes it the
-     * new value: a class change is live in the CSSOM at once.
-     *
-     * ⛔ No fallback colour when the token comes back empty (dev, before the injected
-     * stylesheet lands). Doing nothing is not a gap -- the tag in index.html already carries
-     * the right value from before first paint, and a guessed literal here could only be
-     * wrong.
-     */
-    syncThemeColor() {
-      const meta = document.querySelector('meta[name="theme-color"]')
-      if (!meta) return
-      const bg = getComputedStyle(document.body).getPropertyValue('--bg').trim()
-      if (bg) meta.setAttribute('content', bg)
-    },
-  },
+const store = useStore()
+
+const darkMode = computed(() => store.state.darkMode)
+
+/**
+ * Keeps <meta name="theme-color"> on the page background. Installed on a home screen
+ * that colour is the status bar, so switching light/dark has to move it too --
+ * index.html only gets the first paint right.
+ *
+ * ⚠️ The value is READ from the --bg token rather than written again here. Two literals
+ * in a second file are two chances to drift, and this way the bar cannot disagree with
+ * the page by construction. Reading after the class toggle below is what makes it the
+ * new value: a class change is live in the CSSOM at once.
+ *
+ * ⛔ No fallback colour when the token comes back empty (dev, before the injected
+ * stylesheet lands). Doing nothing is not a gap -- the tag in index.html already carries
+ * the right value from before first paint, and a guessed literal here could only be
+ * wrong.
+ */
+const syncThemeColor = () => {
+  const meta = document.querySelector('meta[name="theme-color"]')
+  if (!meta) return
+  const bg = getComputedStyle(document.body).getPropertyValue('--bg').trim()
+  if (bg) meta.setAttribute('content', bg)
 }
+
+// Teleported UI (modals, toasts) renders on <body>, outside #app, so mirror
+// the dark-mode class and Bootstrap's color-mode attribute there too. The
+// data-bs-theme attribute drives Bootstrap's native dark variables; light
+// mode carries no attribute so it stays a pure :root fallback.
+watch(
+  darkMode,
+  (val) => {
+    document.body.classList.toggle('dark-mode', val)
+    if (val) {
+      document.body.setAttribute('data-bs-theme', 'dark')
+    } else {
+      document.body.removeAttribute('data-bs-theme')
+    }
+    syncThemeColor()
+  },
+  { immediate: true },
+)
+
+// Keep following the OS while themeMode is 'system' (re-evaluate on OS
+// light/dark change). The initial apply happens in main.js before mount.
+let themeMediaQuery
+let themeMediaListener
+if (window.matchMedia) {
+  themeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+  themeMediaListener = () => store.dispatch('applyTheme')
+  themeMediaQuery.addEventListener('change', themeMediaListener)
+}
+
+onBeforeUnmount(() => {
+  themeMediaQuery?.removeEventListener('change', themeMediaListener)
+})
 </script>
 
 <style>

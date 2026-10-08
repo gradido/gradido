@@ -8,8 +8,8 @@
     </BRow>
   </div>
 </template>
-<script>
-export default {
-  name: 'LastContributions',
-}
+<script setup>
+import { defineOptions } from 'vue'
+
+defineOptions({ name: 'LastContributions' })
 </script>

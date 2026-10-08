@@ -13,11 +13,8 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'GddTransactionListFooter',
-  props: {
-    count: { type: Number },
-  },
-}
+<script setup>
+defineProps({
+  count: { type: Number },
+})
 </script>

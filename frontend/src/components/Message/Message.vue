@@ -18,32 +18,28 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'Message',
-  props: {
-    headline: { type: String, required: true },
-    subtitle: { type: String, required: true },
-    buttonText: { type: String, required: false, default: null },
-    // Both forms really arrive here: `ForgotPassword.vue` passes the path `/login`, every
-    // other caller passes a route object. Declaring only the string made Vue warn on four
-    // of six callers.
-    linkTo: { type: [String, Object], required: false, default: null },
-  },
-  computed: {
-    showButton() {
-      return this.buttonText && this.linkTo
-    },
-    buttonLinkTo() {
-      return this.linkTo ? this.linkTo : null
-    },
-  },
-  methods: {
-    handleNavigation() {
-      if (this.buttonLinkTo) {
-        this.$router.push(this.buttonLinkTo)
-      }
-    },
-  },
+<script setup>
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'
+
+const props = defineProps({
+  headline: { type: String, required: true },
+  subtitle: { type: String, required: true },
+  buttonText: { type: String, required: false, default: null },
+  // Both forms really arrive here: `ForgotPassword.vue` passes the path `/login`, every
+  // other caller passes a route object. Declaring only the string made Vue warn on four
+  // of six callers.
+  linkTo: { type: [String, Object], required: false, default: null },
+})
+
+const router = useRouter()
+
+const showButton = computed(() => props.buttonText && props.linkTo)
+const buttonLinkTo = computed(() => (props.linkTo ? props.linkTo : null))
+
+const handleNavigation = () => {
+  if (buttonLinkTo.value) {
+    router.push(buttonLinkTo.value)
+  }
 }
 </script>

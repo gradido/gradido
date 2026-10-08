@@ -85,7 +85,8 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { computed, watch } from 'vue'
 import TransactionListItem from '@/components/TransactionListItem'
 import TransactionDecay from '@/components/Transactions/TransactionDecay'
 import TransactionLinkSummary from '@/components/Transactions/TransactionLinkSummary'
@@ -93,79 +94,66 @@ import GddTransaction from '@/components/Transactions/GddTransaction.vue'
 import { PAGE_SIZE } from '@/constants'
 import { usePagerFit } from '@/composables/usePagerFit'
 
-export default {
-  name: 'GddTransactionList',
-  components: {
-    GddTransaction,
-    TransactionListItem,
-    TransactionDecay,
-    TransactionLinkSummary,
-  },
-  props: {
-    transactions: { type: Array, default: () => [] },
-    /**
-     * The page these rows ARE -- decided, fetched and held by Transactions.vue, which owns
-     * the query behind them.
-     *
-     * ⛔ Not this component's own state. It was until 30.08.2026, and the two drifted apart
-     * every time a page number survived a navigation that rebuilt this component. The way
-     * to another page is `askForPage`: ask, and the number comes back down here with the
-     * rows it belongs to.
-     */
-    currentPage: { type: Number, default: 1 },
-    pageSize: { type: Number, default: PAGE_SIZE },
-    timestamp: { type: Number, default: 0 },
-    transactionCount: { type: Number, default: 0 },
-    transactionLinkCount: { type: Number, default: 0 },
-    openLinkCount: { type: Number, default: 0 },
-    showPagination: { type: Boolean, default: false },
-    pending: { type: Boolean },
-    /** Whether these rows are the bookings shared with ONE member rather than the account. */
-    narrowed: { type: Boolean, default: false },
-  },
-  // Declared, so that the handler does not also land on the root element as a plain
-  // attribute -- and so that the two events this list raises are readable in one place.
-  emits: ['update-transactions', 'open-member'],
-  setup() {
-    return usePagerFit()
-  },
-  computed: {
-    isPaginationVisible() {
-      return this.showPagination && this.pageSize < this.transactionCount
-    },
-    hasDecayRow() {
-      // `transactions` can be false or null: "no list from the server" is shown further up.
-      return (
-        Array.isArray(this.transactions) &&
-        this.transactions.some(({ typeId }) => typeId === 'DECAY')
-      )
-    },
-  },
-  watch: {
-    // ⚠️ Dead wiring as it stands, and worth knowing before anyone traces it again: nothing
-    // ever changes `timestamp`. Transactions.vue sets it once per mount and never writes to
-    // it, and it is the only place this component is used -- so this handler cannot fire in
-    // production. Left alone because removing a prop is not this change's business.
-    //
-    // ⚠️ Wrapped rather than `handler: 'askForPage'`: a watcher hands its handler the new
-    // value, and the new value here would be the timestamp, going out as a page number.
-    timestamp: {
-      immediate: false,
-      handler() {
-        this.askForPage(this.currentPage)
-      },
-    },
-  },
-  methods: {
-    askForPage(currentPage) {
-      this.$emit('update-transactions', {
-        currentPage,
-        pageSize: this.pageSize,
-      })
-      window.scrollTo(0, 0)
-    },
-  },
+const props = defineProps({
+  transactions: { type: Array, default: () => [] },
+  /**
+   * The page these rows ARE -- decided, fetched and held by Transactions.vue, which owns
+   * the query behind them.
+   *
+   * ⛔ Not this component's own state. It was until 30.08.2026, and the two drifted apart
+   * every time a page number survived a navigation that rebuilt this component. The way
+   * to another page is `askForPage`: ask, and the number comes back down here with the
+   * rows it belongs to.
+   */
+  currentPage: { type: Number, default: 1 },
+  pageSize: { type: Number, default: PAGE_SIZE },
+  timestamp: { type: Number, default: 0 },
+  transactionCount: { type: Number, default: 0 },
+  transactionLinkCount: { type: Number, default: 0 },
+  openLinkCount: { type: Number, default: 0 },
+  showPagination: { type: Boolean, default: false },
+  pending: { type: Boolean },
+  /** Whether these rows are the bookings shared with ONE member rather than the account. */
+  narrowed: { type: Boolean, default: false },
+})
+// Declared, so that the handler does not also land on the root element as a plain
+// attribute -- and so that the two events this list raises are readable in one place.
+const emit = defineEmits(['update-transactions', 'open-member'])
+
+const { pagerLimit, pagerNoEnds } = usePagerFit()
+
+const isPaginationVisible = computed(
+  () => props.showPagination && props.pageSize < props.transactionCount,
+)
+const hasDecayRow = computed(() => {
+  // `transactions` can be false or null: "no list from the server" is shown further up.
+  return (
+    Array.isArray(props.transactions) && props.transactions.some(({ typeId }) => typeId === 'DECAY')
+  )
+})
+
+const askForPage = (currentPage) => {
+  emit('update-transactions', {
+    currentPage,
+    pageSize: props.pageSize,
+  })
+  window.scrollTo(0, 0)
 }
+
+// ⚠️ Dead wiring as it stands, and worth knowing before anyone traces it again: nothing
+// ever changes `timestamp`. Transactions.vue sets it once per mount and never writes to
+// it, and it is the only place this component is used -- so this handler cannot fire in
+// production. Left alone because removing a prop is not this change's business.
+//
+// ⚠️ Wrapped rather than handing `askForPage` over as the callback: a watcher hands its
+// callback the new value, and the new value here would be the timestamp, going out as a
+// page number.
+watch(
+  () => props.timestamp,
+  () => {
+    askForPage(props.currentPage)
+  },
+)
 </script>
 
 <style>

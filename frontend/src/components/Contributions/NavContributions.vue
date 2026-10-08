@@ -36,42 +36,41 @@
     </div>
   </div>
 </template>
-<script>
-export default {
-  name: 'NavContributions',
+<script setup>
+import { useRoute } from 'vue-router'
 
-  props: {
-    allContributions: {
-      type: String,
-      default: '',
-    },
-    contribute: {
-      type: String,
-      default: '',
-    },
-    ownContributions: {
-      type: String,
-      default: '',
-    },
-    routeBase: {
-      type: String,
-      default: '',
-    },
+const props = defineProps({
+  allContributions: {
+    type: String,
+    default: '',
   },
+  contribute: {
+    type: String,
+    default: '',
+  },
+  ownContributions: {
+    type: String,
+    default: '',
+  },
+  routeBase: {
+    type: String,
+    default: '',
+  },
+})
 
-  methods: {
-    stateClasses(route) {
-      if (this.$route.path.includes(route)) {
-        return 'router-link-active router-link-exact-active'
-      }
-      return ''
-    },
-    routeToTab(route) {
-      return this.routeBase + route
-    },
-  },
+const currentRoute = useRoute()
+
+const stateClasses = (route) => {
+  if (currentRoute.path.includes(route)) {
+    return 'router-link-active router-link-exact-active'
+  }
+  return ''
+}
+const routeToTab = (route) => {
+  return props.routeBase + route
 }
 </script>
+
 <style scoped lang="scss">
 .nav-contributions-btn-wrapper {
   background-color: #d1d1d1;

@@ -21,42 +21,29 @@
     </BCollapse>
   </div>
 </template>
-<script>
+<script setup>
+import { computed, ref } from 'vue'
 import CollapseIcon from '../TransactionRows/CollapseIcon'
 import DecayInformationDecay from '../DecayInformations/DecayInformation-Decay'
 
-export default {
-  name: 'TransactionDecay',
-  components: {
-    CollapseIcon,
-    // TypeIcon,
-    DecayInformationDecay,
+const props = defineProps({
+  amount: {
+    type: String,
+    required: true,
   },
-  props: {
-    amount: {
-      type: String,
-      required: true,
-    },
-    balance: {
-      type: String,
-      required: true,
-    },
-    decay: {
-      type: Object,
-      required: true,
-    },
+  balance: {
+    type: String,
+    required: true,
   },
-  data() {
-    return {
-      visible: false,
-    }
+  decay: {
+    type: Object,
+    required: true,
   },
-  computed: {
-    previousBalance() {
-      return String(Number(this.balance) - Number(this.decay.decay))
-    },
-  },
-}
+})
+
+const visible = ref(false)
+
+const previousBalance = computed(() => String(Number(props.balance) - Number(props.decay.decay)))
 </script>
 
 <style scoped lang="scss">

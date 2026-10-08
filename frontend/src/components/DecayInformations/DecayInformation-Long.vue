@@ -67,22 +67,19 @@
     </BRow>
   </div>
 </template>
-<script>
+<script setup>
+import { defineOptions } from 'vue'
 import DurationRow from '@/components/TransactionRows/DurationRow'
 
-export default {
-  name: 'DecayInformationLong',
-  components: {
-    DurationRow,
+defineOptions({ name: 'DecayInformationLong' })
+
+defineProps({
+  balance: { type: String, default: '0' },
+  previousBalance: { type: String, default: '0' },
+  amount: { type: String, default: '0' },
+  typeId: { type: String, default: '' },
+  decay: {
+    type: Object,
   },
-  props: {
-    balance: { type: String, default: '0' },
-    previousBalance: { type: String, default: '0' },
-    amount: { type: String, default: '0' },
-    typeId: { type: String, default: '' },
-    decay: {
-      type: Object,
-    },
-  },
-}
+})
 </script>

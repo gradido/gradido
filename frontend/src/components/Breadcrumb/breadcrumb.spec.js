@@ -7,18 +7,18 @@ import { createStore } from 'vuex'
 
 vi.mock('@/config', () => ({ default: { COMMUNITY_NAME: 'KI Playground' } }))
 
+const route = { meta: {} }
+vi.mock('vue-router', () => ({ useRoute: () => route }))
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({ t: (key, values) => (values ? `${key}:${JSON.stringify(values)}` : key) }),
+}))
+
 const store = createStore({ state: () => ({ firstName: 'Margret' }) })
 
-const mountWith = (meta) =>
-  mount(Breadcrumb, {
-    global: {
-      plugins: [store],
-      mocks: {
-        $t: (key, values) => (values ? `${key}:${JSON.stringify(values)}` : key),
-        $route: { meta },
-      },
-    },
-  })
+const mountWith = (meta) => {
+  route.meta = meta
+  return mount(Breadcrumb, { global: { plugins: [store] } })
+}
 
 /**
  * The page heading, and the box it stands in.

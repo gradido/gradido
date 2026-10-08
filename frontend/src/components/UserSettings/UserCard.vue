@@ -46,30 +46,24 @@
     </div>
   </div>
 </template>
-<script>
+<script setup>
+import { computed } from 'vue'
+import { useStore } from 'vuex'
 import CONFIG from '@/config'
 
-export default {
-  name: 'UserCard',
-  props: {
-    balance: { type: Number, default: 0 },
-    transactionCount: { type: Number, default: 0 },
-  },
-  data() {
-    return {
-      CONFIG,
-    }
-  },
-  computed: {
-    username() {
-      return {
-        username: `${this.$store.state.firstName} ${this.$store.state.lastName}`,
-        initials: `${this.$store.state.firstName[0]}${this.$store.state.lastName[0]}`,
-      }
-    },
-  },
-}
+defineProps({
+  balance: { type: Number, default: 0 },
+  transactionCount: { type: Number, default: 0 },
+})
+
+const store = useStore()
+
+const username = computed(() => ({
+  username: `${store.state.firstName} ${store.state.lastName}`,
+  initials: `${store.state.firstName[0]}${store.state.lastName[0]}`,
+}))
 </script>
+
 <style scoped>
 .center-per-margin {
   padding-left: 44%;

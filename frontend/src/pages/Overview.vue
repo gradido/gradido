@@ -19,27 +19,14 @@
     </BCol>
   </div>
 </template>
-<script>
+<script setup>
+import { computed } from 'vue'
 // import CommunityNews from '@/components/Overview/CommunityNews'
 import CardCircles from '@/components/Overview/CardCircles'
 import CardUserSearch from '@/components/Overview/CardUserSearch'
 import ShowFriendsTile from '@/components/Overview/ShowFriendsTile'
 import CONFIG from '@/config'
 
-export default {
-  name: 'Overview',
-  components: {
-    CardCircles,
-    CardUserSearch,
-    ShowFriendsTile,
-  },
-  computed: {
-    isGmsActive() {
-      return CONFIG.GMS_LEGACY_ACTIVE === true
-    },
-    isHumhubActive() {
-      return CONFIG.HUMHUB_ACTIVE === true
-    },
-  },
-}
+const isGmsActive = computed(() => CONFIG.GMS_LEGACY_ACTIVE === true)
+const isHumhubActive = computed(() => CONFIG.HUMHUB_ACTIVE === true)
 </script>

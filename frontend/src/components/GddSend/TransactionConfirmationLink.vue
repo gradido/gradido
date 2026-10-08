@@ -65,36 +65,33 @@
     </div>
   </div>
 </template>
-<script>
+<script setup>
+import { computed } from 'vue'
 import { LINK_COMPOUND_INTEREST_FACTOR } from '@/constants'
-export default {
-  name: 'TransactionConfirmationLink',
-  props: {
-    balance: { type: Number, required: true },
-    email: { type: String, required: false, default: '' },
-    amount: { type: Number, required: true },
-    memo: { type: String, required: true },
-    loading: { type: Boolean, required: true },
-  },
-  computed: {
-    totalBalance() {
-      return this.balance - this.blockedAmount
-    },
-    blockedAmount() {
-      // correct formula
-      return this.amount * LINK_COMPOUND_INTEREST_FACTOR
-      // same formula as in backend
-      // return 2 * this.amount - this.amount * Math.pow(0.99999997803504048, 1209600)
-    },
-    disabled() {
-      if (this.totalBalance < 0) {
-        return true
-      }
-      return this.loading
-    },
-  },
-}
+
+const props = defineProps({
+  balance: { type: Number, required: true },
+  email: { type: String, required: false, default: '' },
+  amount: { type: Number, required: true },
+  memo: { type: String, required: true },
+  loading: { type: Boolean, required: true },
+})
+
+const blockedAmount = computed(() => {
+  // correct formula
+  return props.amount * LINK_COMPOUND_INTEREST_FACTOR
+  // same formula as in backend
+  // return 2 * props.amount - props.amount * Math.pow(0.99999997803504048, 1209600)
+})
+const totalBalance = computed(() => props.balance - blockedAmount.value)
+const disabled = computed(() => {
+  if (totalBalance.value < 0) {
+    return true
+  }
+  return props.loading
+})
 </script>
+
 <style>
 .gray-background {
   background-color: #ecebe6a3 !important;

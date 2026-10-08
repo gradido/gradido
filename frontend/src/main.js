@@ -20,7 +20,7 @@ import { store } from './store/store'
 
 import router from './routes/router'
 
-import { apolloProvider } from './plugins/apolloProvider'
+import { apolloClient } from './plugins/apolloProvider'
 
 import 'clipboard-polyfill/overwrite-globals'
 
@@ -53,7 +53,6 @@ app.use(i18n)
 app.use(createBootstrap())
 app.use(GlobalDirectives)
 app.use(PortalVue)
-app.use(() => apolloProvider)
 app.use(vueTransitionsPlugin())
 
 const filters = createFilters(i18n)
@@ -63,9 +62,9 @@ app.config.globalProperties.$filters = {
   GDD: filters.GDD,
 }
 
-loadAllRules(i18n.global, apolloProvider.defaultClient)
+loadAllRules(i18n.global, apolloClient)
 
-addNavigationGuards(router, store, apolloProvider.defaultClient)
+addNavigationGuards(router, store, apolloClient)
 
 // Apply the device-local theme (system | light | dark) before mount so the first
 // paint already carries the correct light/dark class.

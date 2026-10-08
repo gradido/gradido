@@ -51,22 +51,16 @@
     </BRow>
   </footer>
 </template>
-<script>
+<script setup>
 import CONFIG from '@/config'
 
-export default {
-  data() {
-    return {
-      dltActive: CONFIG.DLT_ACTIVE,
-      communityUrl: CONFIG.COMMUNITY_URL,
-      year: new Date().getFullYear(),
-      version: CONFIG.APP_VERSION,
-      hash: CONFIG.BUILD_COMMIT,
-      shortHash: CONFIG.BUILD_COMMIT_SHORT,
-      supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
-    }
-  },
-}
+const dltActive = CONFIG.DLT_ACTIVE
+const communityUrl = CONFIG.COMMUNITY_URL
+const year = new Date().getFullYear()
+const version = CONFIG.APP_VERSION
+const hash = CONFIG.BUILD_COMMIT
+const shortHash = CONFIG.BUILD_COMMIT_SHORT
+const supportEmail = CONFIG.COMMUNITY_SUPPORT_MAIL
 </script>
 
 <style scoped>

@@ -19,7 +19,7 @@ import { createBootstrap } from 'bootstrap-vue-next'
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue-next/dist/bootstrap-vue-next.css'
 
-import { apolloProvider } from './plugins/apolloProvider'
+import { apolloClient } from './plugins/apolloProvider'
 
 export function createAdminApp() {
   const app = createApp(App)
@@ -34,9 +34,7 @@ export function createAdminApp() {
   app.use(PortalVue)
   app.use(createBootstrap())
 
-  app.use(() => apolloProvider)
-
-  addNavigationGuards(router, store, apolloProvider.defaultClient, i18n)
+  addNavigationGuards(router, store, apolloClient, i18n)
   return app
 }
 

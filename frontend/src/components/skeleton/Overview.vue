@@ -63,11 +63,9 @@
     </BRow>
   </div>
 </template>
-<script>
+<script setup>
+import { defineOptions } from 'vue'
 import SkeletonLoaderElement from '@/components/SkeletonLoaderElement.vue'
 
-export default {
-  name: 'SkeletonOverview',
-  components: { SkeletonLoaderElement },
-}
+defineOptions({ name: 'SkeletonOverview' })
 </script>

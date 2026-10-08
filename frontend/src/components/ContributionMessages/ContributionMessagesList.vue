@@ -21,31 +21,24 @@
     </div>
   </div>
 </template>
-<script>
+<script setup>
 import ContributionMessagesListItem from '@/components/ContributionMessages/ContributionMessagesListItem'
 import ContributionMessagesFormular from '@/components/ContributionMessages/ContributionMessagesFormular'
 
-export default {
-  name: 'ContributionMessagesList',
-  components: {
-    ContributionMessagesListItem,
-    ContributionMessagesFormular,
+defineProps({
+  contributionId: {
+    type: Number,
+    required: true,
   },
-  props: {
-    contributionId: {
-      type: Number,
-      required: true,
-    },
-    status: {
-      type: String,
-      required: true,
-    },
-    messages: {
-      type: Array,
-      required: true,
-    },
+  status: {
+    type: String,
+    required: true,
   },
-}
+  messages: {
+    type: Array,
+    required: true,
+  },
+})
 </script>
 <style scoped>
 .clearboth {

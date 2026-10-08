@@ -48,15 +48,6 @@
     </div>
   </div>
 </template>
-<script>
+<script setup>
 import CONFIG from '@/config'
-
-export default {
-  name: 'RegisterCommunity',
-  data() {
-    return {
-      CONFIG,
-    }
-  },
-}
 </script>

@@ -19,44 +19,37 @@
     />
   </div>
 </template>
-<script>
+<script setup>
+import { computed } from 'vue'
 import DecayInformationLong from '../DecayInformations/DecayInformation-Long'
 import DecayInformationBeforeStartblock from '../DecayInformations/DecayInformation-BeforeStartblock'
 import DecayInformationDecayStartblock from '../DecayInformations/DecayInformation-DecayStartblock'
 import CONFIG from '@/config'
 
-export default {
-  components: {
-    DecayInformationLong,
-    DecayInformationBeforeStartblock,
-    DecayInformationDecayStartblock,
+const props = defineProps({
+  amount: {
+    type: String,
+    required: true,
   },
-  props: {
-    amount: {
-      type: String,
-      required: true,
-    },
-    decay: {
-      type: Object,
-      required: true,
-    },
-    typeId: {
-      type: String,
-      required: true,
-    },
-    balance: {
-      type: String,
-      required: true,
-    },
-    previousBalance: {
-      type: String,
-      required: true,
-    },
+  decay: {
+    type: Object,
+    required: true,
   },
-  computed: {
-    isStartBlock() {
-      return new Date(this.decay.start).getTime() === CONFIG.DECAY_START_TIME.getTime()
-    },
+  typeId: {
+    type: String,
+    required: true,
   },
-}
+  balance: {
+    type: String,
+    required: true,
+  },
+  previousBalance: {
+    type: String,
+    required: true,
+  },
+})
+
+const isStartBlock = computed(
+  () => new Date(props.decay.start).getTime() === CONFIG.DECAY_START_TIME.getTime(),
+)
 </script>

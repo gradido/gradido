@@ -1,6 +1,5 @@
 import { ApolloClient, ApolloLink, InMemoryCache, HttpLink } from '@apollo/client/core'
 import { onError } from '@apollo/client/link/error'
-import VueApollo from 'vue-apollo'
 import CONFIG from '../config'
 import store from '../store/store'
 import { provideApolloClient } from '@vue/apollo-composable'
@@ -40,13 +39,9 @@ const authLink = new ApolloLink((operation, forward) => {
   })
 })
 
-const apolloClient = new ApolloClient({
+export const apolloClient = new ApolloClient({
   link: ApolloLink.from([outdatedLink, authLink, httpLink]),
   cache: new InMemoryCache(),
 })
 
 provideApolloClient(apolloClient)
-
-export const apolloProvider = new VueApollo({
-  defaultClient: apolloClient,
-})

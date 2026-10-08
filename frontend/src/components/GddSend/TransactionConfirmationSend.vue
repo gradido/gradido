@@ -78,46 +78,44 @@
     </div>
   </div>
 </template>
-<script>
+<script setup>
+import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import CONFIG from '@/config'
 import { thankYouMotif } from '@/utils/thankYouMotifs'
 
-export default {
-  name: 'TransactionConfirmationSend',
-  props: {
-    balance: { type: Number, required: true },
-    identifier: { type: String, required: false, default: '' },
-    amount: { type: Number, required: true },
-    memo: { type: String, required: true },
-    userName: { type: String, default: '' },
-    /**
-     * The picture that goes with the transfer, or null: `{ motif }` or `{ photo }`, as the page
-     * holds it (pages/Send.vue) -- already without a picture where none travels.
-     */
-    picture: { type: Object, default: null },
-    targetCommunity: {
-      type: Object,
-      default: function () {
-        return { uuid: '', name: CONFIG.COMMUNITY_NAME }
-      },
+const props = defineProps({
+  balance: { type: Number, required: true },
+  identifier: { type: String, required: false, default: '' },
+  amount: { type: Number, required: true },
+  memo: { type: String, required: true },
+  userName: { type: String, default: '' },
+  /**
+   * The picture that goes with the transfer, or null: `{ motif }` or `{ photo }`, as the page
+   * holds it (pages/Send.vue) -- already without a picture where none travels.
+   */
+  picture: { type: Object, default: null },
+  targetCommunity: {
+    type: Object,
+    default: function () {
+      return { uuid: '', name: CONFIG.COMMUNITY_NAME }
     },
   },
-  data() {
-    return {
-      disabled: false,
-    }
-  },
-  computed: {
-    /** The picture for the eye: a motif's file and name, or the photo as the member cut it. */
-    pictureShown() {
-      if (this.picture?.photo) {
-        return { src: this.picture.photo.preview, name: this.$t('thank-you-greeting.picture.own') }
-      }
-      return thankYouMotif(this.picture?.motif, this.$t)
-    },
-  },
-}
+})
+
+const { t } = useI18n()
+
+const disabled = ref(false)
+
+/** The picture for the eye: a motif's file and name, or the photo as the member cut it. */
+const pictureShown = computed(() => {
+  if (props.picture?.photo) {
+    return { src: props.picture.photo.preview, name: t('thank-you-greeting.picture.own') }
+  }
+  return thankYouMotif(props.picture?.motif, t)
+})
 </script>
+
 <style>
 .gray-background {
   background-color: #ecebe6a3 !important;

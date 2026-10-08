@@ -1,20 +1,24 @@
 // AI-GENERATED — not an architecture reference
 
 import { mount } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import ContentHeader from './ContentHeader'
+
+const route = { path: '/' }
+vi.mock('vue-router', () => ({ useRoute: () => route }))
 
 // The layout fills one slot per section (#overview, #send, #transactions, #gdt, #settings).
 // Naming a section the layout does not fill leaves the header empty -- which is exactly the
 // fault below, so the test has to be able to see both.
-const mountAt = (path) =>
-  mount(ContentHeader, {
-    global: { mocks: { $route: { path } } },
+const mountAt = (path) => {
+  route.path = path
+  return mount(ContentHeader, {
     slots: {
       overview: '<div data-test="head-overview">balance</div>',
       transactions: '<div data-test="head-transactions">balance</div>',
     },
   })
+}
 
 describe('ContentHeader', () => {
   it('fills the slot of the section the route names', () => {
