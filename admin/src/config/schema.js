@@ -86,7 +86,7 @@ const environment = v.object({
     '/login',
   ),
 
-  // true is only allowed in not-production setup
+  // the rule below keeps it false in production
   DEBUG_DISABLE_AUTH: v.optional(
     v.pipe(booleanSchema, v.description('Flag for disable authorization during development')),
     false,
@@ -128,6 +128,12 @@ const schema = v.pipe(
     'ADMIN_MODULE_PROTOCOL',
     (config) => config.ADMIN_HOSTING === 'nginx' || config.ADMIN_MODULE_PROTOCOL === 'http',
     'ADMIN_MODULE_PROTOCOL must be http unless ADMIN_HOSTING is nginx',
+  ),
+  // never without login in production
+  configRule(
+    'DEBUG_DISABLE_AUTH',
+    (config) => config.NODE_ENV !== 'production' || config.DEBUG_DISABLE_AUTH === false,
+    'DEBUG_DISABLE_AUTH must be false when NODE_ENV is production',
   ),
 )
 
