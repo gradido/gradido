@@ -53,85 +53,65 @@
     </div>
   </div>
 </template>
-<script>
+<script setup>
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import ParseMessage from '@/components/ContributionMessages/ParseMessage'
 import MemberAvatar from '@/components/MemberAvatar.vue'
 import { memberAvatarProps } from '@/composables/useMemberAvatars'
 import { openMemberAvatarZoom } from '@/composables/useMemberAvatarZoom'
+// The one size a face has in this interface, the same as in the wallet.
 import { LIST_AVATAR_SIZE } from '@/constants'
 
-export default {
-  name: 'ContributionMessagesListItem',
-  components: {
-    ParseMessage,
-    MemberAvatar,
+const props = defineProps({
+  message: {
+    type: Object,
+    required: true,
   },
-  props: {
-    message: {
-      type: Object,
-      required: true,
-    },
-    contributionUserId: {
-      type: Number,
-      required: true,
-    },
+  contributionUserId: {
+    type: Number,
+    required: true,
   },
-  data() {
-    // The one size a face has in this interface, the same as in the wallet.
-    return { LIST_AVATAR_SIZE }
-  },
-  computed: {
-    /**
-     * The author of THIS message, as a member is named everywhere: the pair, the alias, and
-     * the colour digit the server computed from the real initials.
-     *
-     * ⛔ Not the contribution's member and not the signed-in moderator -- the message says
-     * who wrote it, and a thread carries both sides. Taking it from anywhere else is how a
-     * face ends up next to somebody else's words.
-     */
-    author() {
-      return {
-        alias: this.message.userAlias,
-        avatarColorIndex: this.message.userAvatarColorIndex,
-        gradidoID: this.message.userGradidoID,
-        communityUuid: this.message.userCommunityUuid,
-        avatarUpdatedAt: this.message.userAvatarUpdatedAt,
-      }
-    },
-    authorAvatar() {
-      return memberAvatarProps(this.author)
-    },
-    authorName() {
-      return this.message.userAlias ?? ''
-    },
-    isModeratorMessage() {
-      return this.contributionUserId !== this.message.userId
-    },
-    isModeratorHiddenMessage() {
-      return this.message.type === 'MODERATOR'
-    },
-    isHistory() {
-      return this.message.type === 'HISTORY'
-    },
-    boxClass() {
-      if (this.isModeratorHiddenMessage) return 'is-moderator is-moderator-hidden-message'
-      if (this.isHistory) return 'is-user is-user-history-message'
-      if (this.isModeratorMessage) return 'is-moderator is-moderator-message'
-      return 'is-user is-user-message'
-    },
-  },
-  methods: {
-    openPicture() {
-      // Without an alias the plain wording -- see the same spot in the contributions table.
-      openMemberAvatarZoom({
-        member: this.author,
-        src: this.authorAvatar.src,
-        label: this.authorName
-          ? this.$t('avatar.zoom-picture', { name: this.authorName })
-          : this.$t('avatar.zoom-picture-plain'),
-      })
-    },
-  },
+})
+
+const { t } = useI18n()
+
+/**
+ * The author of THIS message, as a member is named everywhere: the pair, the alias, and
+ * the colour digit the server computed from the real initials.
+ *
+ * ⛔ Not the contribution's member and not the signed-in moderator -- the message says
+ * who wrote it, and a thread carries both sides. Taking it from anywhere else is how a
+ * face ends up next to somebody else's words.
+ */
+const author = computed(() => ({
+  alias: props.message.userAlias,
+  avatarColorIndex: props.message.userAvatarColorIndex,
+  gradidoID: props.message.userGradidoID,
+  communityUuid: props.message.userCommunityUuid,
+  avatarUpdatedAt: props.message.userAvatarUpdatedAt,
+}))
+const authorAvatar = computed(() => memberAvatarProps(author.value))
+const authorName = computed(() => props.message.userAlias ?? '')
+const isModeratorMessage = computed(() => props.contributionUserId !== props.message.userId)
+const isModeratorHiddenMessage = computed(() => props.message.type === 'MODERATOR')
+const isHistory = computed(() => props.message.type === 'HISTORY')
+const boxClass = computed(() => {
+  if (isModeratorHiddenMessage.value) return 'is-moderator is-moderator-hidden-message'
+  if (isHistory.value) return 'is-user is-user-history-message'
+  if (isModeratorMessage.value) return 'is-moderator is-moderator-message'
+  return 'is-user is-user-message'
+})
+
+const openPicture = () => {
+  // Without an alias the plain wording -- see the same spot in the contributions table.
+  openMemberAvatarZoom({
+    member: author.value,
+    src: authorAvatar.value.src,
+    label: authorName.value
+      ? t('avatar.zoom-picture', { name: authorName.value })
+      : t('avatar.zoom-picture-plain'),
+  })
 }
 </script>
 <style>

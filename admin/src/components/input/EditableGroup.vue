@@ -19,55 +19,42 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'EditableGroup',
-  provide() {
-    return {
-      editableGroup: {
-        valueChanged: this.valueChanged,
-        invalidValues: this.invalidValues,
-      },
-    }
+<script setup>
+import { computed, provide, ref } from 'vue'
+
+defineProps({
+  allowEdit: {
+    type: Boolean,
+    default: false,
   },
-  props: {
-    allowEdit: {
-      type: Boolean,
-      default: false,
-    },
-  },
-  emits: ['save', 'reset'],
-  data() {
-    return {
-      isEditing: false,
-      isValueChanged: false,
-    }
-  },
-  computed: {
-    variant() {
-      return this.isEditing ? 'success' : 'prime'
-    },
-  },
-  methods: {
-    enableEdit() {
-      this.isEditing = true
-    },
-    valueChanged() {
-      this.isValueChanged = true
-    },
-    invalidValues() {
-      this.isValueChanged = false
-    },
-    save() {
-      this.$emit('save')
-      this.isEditing = false
-      this.isValueChanged = false
-    },
-    close() {
-      this.$emit('reset')
-      this.isEditing = false
-      this.isValueChanged = false
-    },
-  },
+})
+
+const emit = defineEmits(['save', 'reset'])
+
+const isEditing = ref(false)
+const isValueChanged = ref(false)
+
+const variant = computed(() => (isEditing.value ? 'success' : 'prime'))
+
+const enableEdit = () => {
+  isEditing.value = true
 }
+const valueChanged = () => {
+  isValueChanged.value = true
+}
+const invalidValues = () => {
+  isValueChanged.value = false
+}
+const save = () => {
+  emit('save')
+  isEditing.value = false
+  isValueChanged.value = false
+}
+const close = () => {
+  emit('reset')
+  isEditing.value = false
+  isValueChanged.value = false
+}
+
+provide('editableGroup', { valueChanged, invalidValues })
 </script>

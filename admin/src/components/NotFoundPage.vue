@@ -1193,36 +1193,13 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'NotFound',
-  data() {
-    return {
-      anime: {
-        targets: '.row svg',
-        translateY: 10,
-        autoplay: true,
-        loop: true,
-        easing: 'easeInOutSine',
-        direction: 'alternate',
-      },
-      anime2: {
-        targets: '#zero',
-        translateX: 10,
-        autoplay: true,
-        loop: true,
-        easing: 'easeInOutSine',
-        direction: 'alternate',
-        scale: [{ value: 1 }, { value: 1.4 }, { value: 1, delay: 250 }],
-        rotateY: { value: '+=180', delay: 200 },
-      },
-    }
-  },
-  methods: {
-    goback() {
-      this.$router.go(-1)
-    },
-  },
+<script setup>
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+const goback = () => {
+  router.go(-1)
 }
 </script>
 <style>

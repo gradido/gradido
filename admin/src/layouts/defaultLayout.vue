@@ -6,14 +6,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import NavBar from '@/components/NavBar'
 import ContentFooter from '@/components/ContentFooter'
-export default {
-  name: 'DefaultLayout',
-  components: {
-    NavBar,
-    ContentFooter,
-  },
-}
 </script>
