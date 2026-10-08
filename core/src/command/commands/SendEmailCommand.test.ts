@@ -589,19 +589,29 @@ describe('SendEmailCommand, what the sending server is answered', () => {
 })
 
 /**
- * P7b: a chat message from another community with its picture. The picture is checked as the
- * sending server checked it, before anything is filed; filed before its message, under the
- * message's uuid; and the mail says there is one. Filing it runs against a database in
+ * P7b: a chat message from another community with its picture. The picture is checked and
+ * encoded again, as the sending server did, before anything is filed; filed before its message,
+ * under the message's uuid; and the mail says there is one. Filing it runs against a database in
  * database/src/queries/chatMessageImages.test.ts; what the command makes of each answer is held
  * here.
  */
 describe('SendEmailCommand, a message with a picture', () => {
   const PICTURE_UUID = '40000000-0000-4000-8000-000000000001'
   const OTHER_PICTURE_UUID = '40000000-0000-4000-8000-000000000002'
-  // A JPEG with something recognisable inside.
+  // A picture that decodes: 4 x 2 grey pixels, as the server's own encoder writes them.
+  const PICTURE = Buffer.from(
+    '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAA0JCgsKCA0LCgsODg0PEyAVExISEyccHhcgLikxMC4pLSwzOko+MzZGNywtQFdBRkxOUlNSMj5aYVpQYEpRUk//wAALCAACAAQBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAAAP/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AP//Z',
+    'base64',
+  )
+  // The same picture as another server may send it: with something recognisable in a comment
+  // segment and behind its end marker.
+  const SECRET = Buffer.from('a private picture of Anna and Ben')
   const JPEG = Buffer.concat([
-    Buffer.from([0xff, 0xd8]),
-    Buffer.from('a private picture of Anna and Ben'),
+    PICTURE.subarray(0, 2),
+    Buffer.from([0xff, 0xfe, 0x00, SECRET.length + 2]),
+    SECRET,
+    PICTURE.subarray(2),
+    SECRET,
     Buffer.from([0xff, 0xd9]),
   ])
   const filed = {
@@ -655,16 +665,17 @@ describe('SendEmailCommand, a message with a picture', () => {
     spies.push(storePicture, removePictures, mutedAt)
   })
 
-  it('files the picture under the message it came with, then the message, then mails that there is one', async () => {
+  // ⛔ Not the bytes the other server sent, and not the size it gave: the picture as this server
+  // encoded it from its pixels, at the size the decoder found.
+  it('files the picture encoded again under the message it came with, then the message, then mails that there is one', async () => {
     await expect(run(withPicture())).resolves.toBe(SEND_MAIL_COMMAND_ANSWER.MAILED)
 
     expect(happened).toEqual(['picture', 'store', 'mail'])
     expect(storePicture.mock.calls).toEqual([
-      [
-        MESSAGE_UUID,
-        { image: JPEG, width: 924, height: 520, imageUuid: PICTURE_UUID, position: 0 },
-      ],
+      [MESSAGE_UUID, { image: PICTURE, width: 4, height: 2, imageUuid: PICTURE_UUID, position: 0 }],
     ])
+    const [[, { image }]] = storePicture.mock.calls as [string, { image: Buffer }][]
+    expect(image.includes(SECRET)).toBe(false)
     const [[message]] = store.mock.calls as [chatMessage.ChatMessageToStore][]
     expect(message.messageUuid).toBe(MESSAGE_UUID)
     // MAIL-008: the mail says there is a picture, and carries none.
@@ -699,10 +710,13 @@ describe('SendEmailCommand, a message with a picture', () => {
 
   // ⛔ A picture this server refuses refuses the whole command: nothing filed -- not even a sender
   // this server does not know yet -- and nothing mailed. The sender sees "not delivered".
-  it('refuses the command for a picture that is no JPEG, too large, too many pixels, without a uuid, or one of two -- and files and mails nothing', async () => {
+  it('refuses the command for a picture that is no JPEG, does not decode, is too large, has too many pixels, no uuid, or is one of two -- and files and mails nothing', async () => {
+    // A JPEG at both ends and no picture between: what a check without a decoder takes.
+    const noPicture = Buffer.concat([Buffer.from([0xff, 0xd8]), SECRET, Buffer.from([0xff, 0xd9])])
     const answers = []
     for (const images of [
       [arrived({ data: Buffer.from('not an image').toString('base64') })],
+      [arrived({ data: noPicture.toString('base64') })],
       [arrived({ data: Buffer.alloc(CHAT_IMAGE_MAX_BYTES + 1, 0xff).toString('base64') })],
       [arrived({ width: 1000, height: 501 })],
       [arrived({ imageUuid: 'not-a-uuid' })],
@@ -717,10 +731,12 @@ describe('SendEmailCommand, a message with a picture', () => {
     }
 
     expect(answers).toEqual(
-      ['NOT_JPEG', 'TOO_LARGE', 'SIZE', 'NO_UUID', 'TOO_MANY', 'MALFORMED'].map((reason) => ({
-        success: false,
-        error: `CHAT_IMAGE_NOT_ACCEPTED: ${reason}`,
-      })),
+      ['NOT_JPEG', 'NOT_JPEG', 'TOO_LARGE', 'SIZE', 'NO_UUID', 'TOO_MANY', 'MALFORMED'].map(
+        (reason) => ({
+          success: false,
+          error: `CHAT_IMAGE_NOT_ACCEPTED: ${reason}`,
+        }),
+      ),
     )
     expect(findUser).not.toHaveBeenCalled()
     expect(fileSender).not.toHaveBeenCalled()

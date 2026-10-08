@@ -27,7 +27,7 @@ const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.logic.ChatMes
  * with its message. The sending server uses it for a message within its community
  * (deliverChatMessageLocally) and for its own copy of one to another community
  * (deliverChatMessageAcrossBorder); the receiving server for a picture from another community
- * (SendEmailCommand, P7b) -- one check for both sides.
+ * (SendEmailCommand, P7b) -- one check for both sides, and both encode the picture again.
  *
  * ⛔ What this writes to the log names messages and pictures by their uuids, never a picture's
  * bytes -- and never a database error's message: a failed Drizzle query carries the parameters
@@ -86,7 +86,7 @@ export const chatMessageImageSizeFits = (width: number, height: number): boolean
 /**
  * A picture sent with a chat message, checked without a decoder (decodeJpegImage): not empty,
  * at most CHAT_IMAGE_MAX_BYTES, a JPEG at both ends -- and a size that fits. Nothing is decoded
- * and nothing changed here. A picture a member of this community sends goes on to
+ * and nothing changed here. No picture is filed on this check alone: every one goes on to
  * acceptAndReencodeChatMessageImage, which is this check and then the decoder.
  */
 export function acceptChatMessageImage({
@@ -116,18 +116,16 @@ export function acceptChatMessageImage({
 }
 
 /**
- * A picture a member of THIS community sends -- with a chat message, with a transfer, as the
- * small rendition of a thank-you greeting --, as it is stored: checked (acceptChatMessageImage),
- * then decoded and encoded again within the same bounds (reencodeJpegImage). What comes back was
+ * A picture as it is stored -- one a member of this community sends with a chat message, with a
+ * transfer or as the small rendition of a thank-you greeting, and one a chat message brings from
+ * another community (acceptIncomingChatMessageImages): checked (acceptChatMessageImage), then
+ * decoded and encoded again within the same bounds (reencodeJpegImage). What comes back was
  * written by this server from pixels alone, with the size the decoder found; the sender's word
  * for the size only decides whether the work is done at all.
  *
  * Refused in the same words: NOT_JPEG for a picture that does not decode, SIZE for one that is
  * larger than its sender said, TOO_LARGE for one that does not fit the bytes at the lowest
  * quality.
- *
- * ⛔ Not for a picture that arrives from another community (acceptIncomingChatMessageImages):
- * that one is still filed as the other server sent it.
  */
 export async function acceptAndReencodeChatMessageImage(
   sent: ChatMessageImageSent,
@@ -222,9 +220,9 @@ export async function storeChatMessageImages(
 
 /**
  * Why the pictures a chat message brought from another community are refused (P7b): what
- * acceptChatMessageImage refuses a picture for, or what is wrong with the list itself -- more
- * than one picture (TOO_MANY), a picture without a uuid to be filed under (NO_UUID), something
- * that is no picture as a command carries one (MALFORMED).
+ * acceptAndReencodeChatMessageImage refuses a picture for, or what is wrong with the list
+ * itself -- more than one picture (TOO_MANY), a picture without a uuid to be filed under
+ * (NO_UUID), something that is no picture as a command carries one (MALFORMED).
  */
 export type IncomingChatMessageImageRefusal =
   | ChatMessageImageRefusal
@@ -237,16 +235,22 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 
 /**
  * The pictures a chat message brought from another community (SendEmailCommandParams.images,
- * P7b), checked as the sending server checked them (acceptChatMessageImage), each with the name
- * the sending server gave it and filed its own copy under -- or why they are refused. Nothing,
- * null or an empty list: no picture, as from a server from before P7b.
+ * P7b), checked and encoded again as this server does it for a picture of its own members
+ * (acceptAndReencodeChatMessageImage), each with the name the sending server gave it and filed
+ * its own copy under -- or why they are refused. Nothing, null or an empty list: no picture, as
+ * from a server from before P7b.
+ *
+ * ⛔ Not filed as the other server sent it. That server is authenticated, not trusted: the
+ * handshake says who sends, not what its software does -- and a server from before the sending
+ * side encoded pictures again passes on what its member's browser gave it. What is filed here
+ * was written by this server from pixels alone, with the size the decoder found.
  *
  * One picture at most, as a message carries one. The sending server checks the same before it
  * sends: a picture refused here is a bug or a forgery.
  */
-export function acceptIncomingChatMessageImages(
+export async function acceptIncomingChatMessageImages(
   images: unknown,
-): Result<ChatMessageImageToStore[], IncomingChatMessageImageRefusal> {
+): Promise<Result<ChatMessageImageToStore[], IncomingChatMessageImageRefusal>> {
   if (images === undefined || images === null) {
     return { success: true, value: [] }
   }
@@ -270,7 +274,7 @@ export function acceptIncomingChatMessageImages(
     if (!imageUuid.success) {
       return { success: false, error: 'NO_UUID' }
     }
-    const checked = acceptChatMessageImage({
+    const checked = await acceptAndReencodeChatMessageImage({
       data: picture.data,
       width: picture.width,
       height: picture.height,

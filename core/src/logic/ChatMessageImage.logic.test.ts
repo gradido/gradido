@@ -35,6 +35,21 @@ const OTHER_JPEG = Buffer.concat([
   Buffer.from([0xff, 0xd9]),
 ])
 
+// A picture that decodes: 4 x 2 grey pixels, as the server's own encoder writes them.
+const PICTURE = Buffer.from(
+  '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAA0JCgsKCA0LCgsODg0PEyAVExISEyccHhcgLikxMC4pLSwzOko+MzZGNywtQFdBRkxOUlNSMj5aYVpQYEpRUk//wAALCAACAAQBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAAAP/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AP//Z',
+  'base64',
+)
+// The same picture with the secret in a comment segment and behind its end marker.
+const WITH_SECRET = Buffer.concat([
+  PICTURE.subarray(0, 2),
+  Buffer.from([0xff, 0xfe, 0x00, SECRET.length + 2]),
+  SECRET,
+  PICTURE.subarray(2),
+  SECRET,
+  Buffer.from([0xff, 0xd9]),
+])
+
 const sent = (width = 800, height = 600, data = JPEG.toString('base64')) => ({
   data,
   width,
@@ -159,21 +174,6 @@ describe('acceptChatMessageImage', () => {
 
 // What a member of this community sends is not filed as it came.
 describe('acceptAndReencodeChatMessageImage', () => {
-  // A picture that decodes: 4 x 2 grey pixels, as the server's own encoder writes them.
-  const PICTURE = Buffer.from(
-    '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAA0JCgsKCA0LCgsODg0PEyAVExISEyccHhcgLikxMC4pLSwzOko+MzZGNywtQFdBRkxOUlNSMj5aYVpQYEpRUk//wAALCAACAAQBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAAAP/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AP//Z',
-    'base64',
-  )
-  // The same picture with the secret in a comment segment and behind its end marker.
-  const WITH_SECRET = Buffer.concat([
-    PICTURE.subarray(0, 2),
-    Buffer.from([0xff, 0xfe, 0x00, SECRET.length + 2]),
-    SECRET,
-    PICTURE.subarray(2),
-    SECRET,
-    Buffer.from([0xff, 0xd9]),
-  ])
-
   it('hands back the picture encoded again, at the size it has, without what was hidden in it', async () => {
     const accepted = await acceptAndReencodeChatMessageImage(
       sent(800, 600, WITH_SECRET.toString('base64')),
@@ -337,68 +337,79 @@ describe('removeChatMessageImages', () => {
 
 /**
  * P7b: the pictures a chat message brings from another community, as its command carries them --
- * checked as the sending server checked them, with the name it gave them.
+ * checked and encoded again as this server does it for its own members' pictures, with the name
+ * the sending server gave them.
  */
 describe('acceptIncomingChatMessageImages', () => {
   const arrived = (rest: Record<string, unknown> = {}) => ({
     imageUuid: FIRST,
     width: 924,
     height: 520,
-    data: JPEG.toString('base64'),
+    data: PICTURE.toString('base64'),
     ...rest,
   })
 
   /** The reason the pictures were refused, or 'taken'. */
-  const incoming = (images: unknown): string => {
-    const accepted = acceptIncomingChatMessageImages(images)
+  const incoming = async (images: unknown): Promise<string> => {
+    const accepted = await acceptIncomingChatMessageImages(images)
     return accepted.success ? 'taken' : accepted.error
   }
 
-  it('takes a picture as the sending server sent it: its bytes, its size, its name, its place', () => {
-    const accepted = acceptIncomingChatMessageImages([arrived()])
+  // ⛔ Not as the sending server sent it: that server is not trusted with what its file carries.
+  it('takes a picture encoded again: its pixels at the size it has, its name, its place -- and nothing that was hidden in it', async () => {
+    const accepted = await acceptIncomingChatMessageImages([
+      arrived({ data: WITH_SECRET.toString('base64') }),
+    ])
 
     expect(accepted.success).toBe(true)
-    expect(accepted.success && accepted.value).toEqual([
-      { image: JPEG, width: 924, height: 520, imageUuid: FIRST, position: 0 },
-    ])
+    if (accepted.success) {
+      // Not the 924 x 520 the sending server gave: what the decoder found.
+      expect(accepted.value).toEqual([
+        { image: PICTURE, width: 4, height: 2, imageUuid: FIRST, position: 0 },
+      ])
+      expect(accepted.value[0].image.includes(SECRET)).toBe(false)
+    }
   })
 
   // A server from before P7b sends no field.
-  it('takes no picture as none', () => {
+  it('takes no picture as none', async () => {
     for (const none of [undefined, null, []]) {
-      expect(acceptIncomingChatMessageImages(none)).toEqual({ success: true, value: [] })
+      expect(await acceptIncomingChatMessageImages(none)).toEqual({ success: true, value: [] })
     }
   })
 
-  it("refuses what the sending server's check refuses, for the same reason", () => {
-    expect(incoming([arrived({ data: '' })])).toBe('EMPTY')
-    expect(incoming([arrived({ data: Buffer.from('not an image').toString('base64') })])).toBe(
-      'NOT_JPEG',
-    )
-    expect(incoming([arrived({ data: jpegOf(CHAT_IMAGE_MAX_BYTES + 1).toString('base64') })])).toBe(
-      'TOO_LARGE',
-    )
-    expect(incoming([arrived({ width: 1000, height: 501 })])).toBe('SIZE')
-    expect(incoming([arrived({ width: 800.5 })])).toBe('SIZE')
+  it("refuses what the sending server's check refuses, for the same reason", async () => {
+    expect(await incoming([arrived({ data: '' })])).toBe('EMPTY')
+    expect(
+      await incoming([arrived({ data: Buffer.from('not an image').toString('base64') })]),
+    ).toBe('NOT_JPEG')
+    expect(
+      await incoming([arrived({ data: jpegOf(CHAT_IMAGE_MAX_BYTES + 1).toString('base64') })]),
+    ).toBe('TOO_LARGE')
+    expect(await incoming([arrived({ width: 1000, height: 501 })])).toBe('SIZE')
+    expect(await incoming([arrived({ width: 800.5 })])).toBe('SIZE')
   })
 
-  it('takes a picture of exactly the limit', () => {
-    expect(incoming([arrived({ data: jpegOf(CHAT_IMAGE_MAX_BYTES).toString('base64') })])).toBe(
-      'taken',
-    )
+  // JPEG is a JPEG at both ends and no picture between: what the check without a decoder took
+  // from another community, and what a server from before the re-encoding may still send.
+  it('refuses what is a JPEG at both ends and no picture between', async () => {
+    expect(await incoming([arrived({ data: JPEG.toString('base64') })])).toBe('NOT_JPEG')
+    expect(
+      await incoming([arrived({ data: jpegOf(CHAT_IMAGE_MAX_BYTES).toString('base64') })]),
+    ).toBe('NOT_JPEG')
   })
 
-  it('refuses more than one picture', () => {
-    expect(incoming([arrived(), arrived({ imageUuid: SECOND })])).toBe('TOO_MANY')
+  it('refuses more than one picture', async () => {
+    expect(await incoming([arrived(), arrived({ imageUuid: SECOND })])).toBe('TOO_MANY')
   })
 
-  it('refuses a picture without a uuid to be filed under', () => {
+  it('refuses a picture without a uuid to be filed under', async () => {
     for (const imageUuid of [undefined, 'not-a-uuid', 42, `${FIRST}-and-more`]) {
-      expect(incoming([arrived({ imageUuid })])).toBe('NO_UUID')
+      expect(await incoming([arrived({ imageUuid })])).toBe('NO_UUID')
     }
   })
 
-  it('refuses what is no picture as a command carries one', () => {
+  it('refuses what is no picture as a command carries one', async () => {
     for (const images of [
       'a picture',
       { 0: arrived() },
@@ -408,7 +419,7 @@ describe('acceptIncomingChatMessageImages', () => {
       [arrived({ width: '924' })],
       [arrived({ height: undefined })],
     ]) {
-      expect(incoming(images)).toBe('MALFORMED')
+      expect(await incoming(images)).toBe('MALFORMED')
     }
   })
 })
