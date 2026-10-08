@@ -194,6 +194,15 @@ describe('Sidebar', () => {
           expect(wrapper.find('[data-test="settings-menu"]').text()).toContain('Settings')
         })
 
+        /**
+         * The shield is a symbol of this menu like the others: `svg-icon` is what gives it
+         * their muted tone and size (navbar.scss). Without the class it took the colour of
+         * the entry's text and was the one lit symbol in the list (Bernd, 08.10.2026).
+         */
+        it("gives the admin entry a symbol in the menu's own tone", () => {
+          expect(wrapper.find('[data-test="admin-menu-icon"]').classes()).toContain('svg-icon')
+        })
+
         it('has nav-item "navigation.admin_area" in navbar', () => {
           const adminItems = wrapper.findAll('.nav-item').slice(7)
           expect(adminItems.length).toBeGreaterThan(1)

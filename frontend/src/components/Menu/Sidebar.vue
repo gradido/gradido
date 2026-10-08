@@ -139,7 +139,11 @@
             @click="$emit('admin')"
           >
             <div class="sidebar-menu-item-wrapper">
-              <IBiShieldCheck />
+              <!-- `svg-icon` like every symbol of this menu: without it the shield took the
+                   colour of the entry's TEXT -- white on dark, near-black on light -- and stood
+                   out as the one lit symbol in the list, although this entry can never be the
+                   open one: it leaves for the admin interface. (Bernd, 08.10.2026) -->
+              <IBiShieldCheck class="svg-icon" data-test="admin-menu-icon" />
               <span class="ms-2">
                 {{ $t('navigation.admin_area') }}
               </span>
