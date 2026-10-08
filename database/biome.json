@@ -131,25 +131,31 @@
       "attributePosition": "auto",
       "bracketSpacing": true
     },
-    "globals": [
-      "document",
-      "navigator",
-      "window",
-      "BufferEncoding",
-      "describe",
-      "test",
-      "it",
-      "expect",
-      "beforeAll",
-      "beforeEach",
-      "afterAll",
-      "afterEach"
-    ]
+    "globals": ["document", "navigator", "window", "BufferEncoding"]
   },
   "overrides": [
     {
       "includes": ["**/*.ts", "**/*.tsx"],
       "linter": { "rules": { "complexity": { "noVoid": "error" } } }
+    },
+    {
+      "includes": ["**/*.test.ts"],
+      "javascript": {
+        "globals": [
+          "document",
+          "navigator",
+          "window",
+          "BufferEncoding",
+          "describe",
+          "test",
+          "it",
+          "expect",
+          "beforeAll",
+          "beforeEach",
+          "afterAll",
+          "afterEach"
+        ]
+      }
     }
   ]
 }

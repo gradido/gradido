@@ -129,20 +129,7 @@
       "attributePosition": "auto",
       "bracketSpacing": true
     },
-    "globals": [
-      "document",
-      "navigator",
-      "window",
-      "describe",
-      "test",
-      "it",
-      "expect",
-      "beforeAll",
-      "beforeEach",
-      "afterAll",
-      "afterEach",
-      "jest"
-    ],
+    "globals": ["document", "navigator", "window"],
     "parser": {
       "unsafeParameterDecoratorsEnabled": true
     }
@@ -152,6 +139,25 @@
       "includes": ["**/*.ts", "**/*.tsx"],
       "linter": { "rules": { "complexity": { "noVoid": "error" } } }
     },
-    { "includes": ["**/*.test.ts"], "linter": { "rules": {} } }
+    {
+      "includes": ["**/*.test.ts"],
+      "linter": { "rules": {} },
+      "javascript": {
+        "globals": [
+          "document",
+          "navigator",
+          "window",
+          "describe",
+          "test",
+          "it",
+          "expect",
+          "beforeAll",
+          "beforeEach",
+          "afterAll",
+          "afterEach",
+          "jest"
+        ]
+      }
+    }
   ]
 }
