@@ -7,7 +7,6 @@ import Icons from 'unplugin-icons/vite'
 import IconsResolve from 'unplugin-icons/resolver'
 import EnvironmentPlugin from 'vite-plugin-environment'
 import { createHtmlPlugin } from 'vite-plugin-html'
-import schema from './src/config/schema'
 import { execSync } from 'node:child_process'
 import { existsSync, constants } from 'node:fs'
 
@@ -19,22 +18,17 @@ import dotenv from 'dotenv'
 dotenv.config() // load env vars from .env
 
 const require = createRequire(import.meta.url)
-const CONFIG = require('./src/config')
 
 // https://vitejs.dev/config/
 export default defineConfig(async ({ command }) => {
   const { vitePluginGraphqlLoader } = await import('vite-plugin-graphql-loader')
-  if (command === 'serve') {
-    CONFIG.FRONTEND_HOSTING = 'nodejs'
-  } else {
-    CONFIG.FRONTEND_HOSTING = 'nginx'
-  }
+  // both read by src/config before it parses the environment
+  process.env.FRONTEND_HOSTING = command === 'serve' ? 'nodejs' : 'nginx'
   if (existsSync('../.git', constants.F_OK)) {
-    CONFIG.BUILD_COMMIT = execSync('git rev-parse HEAD').toString().trim()
-    CONFIG.BUILD_COMMIT_SHORT = (CONFIG.BUILD_COMMIT ?? '0000000').slice(0, 7)
+    process.env.BUILD_COMMIT = execSync('git rev-parse HEAD').toString().trim()
   }
-  // Check config
-  validate(schema, CONFIG)
+  // read and checked here, and once more in the browser from the values handed over below
+  const CONFIG = require('./src/config')
   // make sure that all urls used in browser have the same protocol to prevent mixed content errors
   validate(browserUrls, [
     CONFIG.ADMIN_AUTH_URL,
@@ -91,12 +85,6 @@ export default defineConfig(async ({ command }) => {
         minify: CONFIG.PRODUCTION === true,
         inject: {
           data: {
-            VITE_META_TITLE_DE: CONFIG.META_TITLE_DE,
-            VITE_META_TITLE_EN: CONFIG.META_TITLE_EN,
-            VITE_META_DESCRIPTION_DE: CONFIG.META_DESCRIPTION_DE,
-            VITE_META_DESCRIPTION_EN: CONFIG.META_DESCRIPTION_EN,
-            VITE_META_KEYWORDS_DE: CONFIG.META_KEYWORDS_DE,
-            VITE_META_KEYWORDS_EN: CONFIG.META_KEYWORDS_EN,
             VITE_META_AUTHOR: CONFIG.META_AUTHOR,
             VITE_META_URL: CONFIG.META_URL,
           },
@@ -133,15 +121,10 @@ export default defineConfig(async ({ command }) => {
         COMMUNITY_REGISTER_URL: null,
         COMMUNITY_DESCRIPTION: null,
         COMMUNITY_SUPPORT_MAIL: null,
+        COMMUNITY_LOCATION: CONFIG.COMMUNITY_LOCATION,
         MAP_TILES_URL: CONFIG.MAP_TILES_URL,
         MAP_ASSETS_URL: CONFIG.MAP_ASSETS_URL,
         META_URL: null,
-        META_TITLE_DE: null,
-        META_TITLE_EN: null,
-        META_DESCRIPTION_DE: null,
-        META_DESCRIPTION_EN: null,
-        META_KEYWORDS_DE: null,
-        META_KEYWORDS_EN: null,
         META_AUTHOR: null,
       }),
       vitePluginGraphqlLoader(),

@@ -9,11 +9,12 @@ import {
 import { validate as validateUUID, version as versionUUID } from 'uuid'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { ApiVersionType } from './ApiVersionType'
 
 import { startDHT } from './index'
 
 CONFIG.FEDERATION_DHT_SEED = '64ebcb0e3ad547848fef4197c6e2332f'
-CONFIG.FEDERATION_COMMUNITY_APIS = '1_0,1_1,2_0'
+CONFIG.FEDERATION_COMMUNITY_APIS = [ApiVersionType.V1_0, ApiVersionType.V1_1, ApiVersionType.V2_0]
 
 jest.mock('@hyperswarm/dht')
 
