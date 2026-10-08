@@ -10,7 +10,7 @@ import {
   usersTable,
 } from '../schemas/drizzle.schema'
 
-// TODO: replace results with valibot schema after update to typescript 5 is possible
+// TODO: replace results with valibot schema
 
 const MatchingEntryNotFound = (where: string) => new DBNotFoundError('matching_entries', where)
 const MatchingEntryInsertFailed = (row: MatchingEntryInsert) =>

@@ -5,7 +5,7 @@ import { drizzleDb } from '../AppDatabase'
 import { DBNotFoundError } from '../errorTypes'
 import { UserAvatarInsert, userAvatarsTable, usersTable } from '../schemas/drizzle.schema'
 
-// TODO: replace results with valibot schema after update to typescript 5 is possible
+// TODO: replace results with valibot schema
 
 const UserAvatarNotFound = (where: string) => new DBNotFoundError('user_avatars', where)
 

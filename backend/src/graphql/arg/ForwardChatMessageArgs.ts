@@ -14,8 +14,7 @@ import { MESSAGE_MAX_CHARS } from 'shared'
 import { ArgsType, Field } from 'type-graphql'
 import { CHAT_FORWARD_MAX_TARGETS } from '@/data/ChatConversation.logic'
 
-// TODO: replace the class-validator decorators with a valibot schema after the update to
-// typescript 5 is possible
+// TODO: replace the class-validator decorators with a valibot schema
 
 /**
  * A message forwarded into other conversations (Bernd, 30.09.2026, E-059): which one, by its uuid;

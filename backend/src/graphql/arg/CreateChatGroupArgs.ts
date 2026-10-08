@@ -4,8 +4,7 @@ import { ArrayMaxSize, IsArray, IsString, MaxLength, ValidateNested } from 'clas
 import { ArgsType, Field } from 'type-graphql'
 import { CHAT_GROUP_MAX_MEMBERS, CHAT_GROUP_TITLE_INPUT_MAX } from '@/data/ChatGroup.logic'
 
-// TODO: replace the class-validator decorators with a valibot schema after the update to
-// typescript 5 is possible
+// TODO: replace the class-validator decorators with a valibot schema
 
 /**
  * A new group (P5): its name and the members the founder takes in -- from their own contacts

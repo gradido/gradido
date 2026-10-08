@@ -3,8 +3,7 @@ import { MemberAvatarRefInput } from '@input/MemberAvatarRefInput'
 import { IsUUID, ValidateNested } from 'class-validator'
 import { ArgsType, Field } from 'type-graphql'
 
-// TODO: replace the class-validator decorators with a valibot schema after the update to
-// typescript 5 is possible
+// TODO: replace the class-validator decorators with a valibot schema
 
 /** One member of a group (P5), by their pair -- to be taken out of it. */
 @ArgsType()

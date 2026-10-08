@@ -3,7 +3,6 @@ import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator'
 import { Field, InputType } from 'type-graphql'
 
 // TODO: replace the class-validator decorators with a valibot MemberAvatarRef.schema.ts
-// after the update to typescript 5 is possible
 
 /**
  * Which member is meant -- a picture is being asked about, a heart is given

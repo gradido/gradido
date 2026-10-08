@@ -7,8 +7,7 @@ import { MESSAGE_MAX_CHARS } from 'shared'
 import { ArgsType, Field } from 'type-graphql'
 import { isLongEnoughForChatMessage } from '@/graphql/validator/ChatMessageBody'
 
-// TODO: replace the class-validator decorators with a valibot schema after the update to
-// typescript 5 is possible
+// TODO: replace the class-validator decorators with a valibot schema
 
 /**
  * A chat message to one member: who, what, and whether it should reach them as a mail as well --

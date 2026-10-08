@@ -30,7 +30,7 @@
     "@swc/helpers": "^0.5.17",
     "@swc/jest": "^0.2.38",
     "@types/jest": "27.5.1",
-    "@types/node": "^17.0.45",
+    "@types/node": "^24.9.1",
     "@types/uuid": "^8.3.4",
     "config-schema": "*",
     "database": "*",
@@ -47,7 +47,7 @@
     "tsconfig-paths": "^4.1.1",
     "tsx": "^4.19.4",
     "typeorm": "^0.3.25",
-    "typescript": "~5.6.3",
+    "typescript": "~5.9.3",
     "uuid": "^8.3.2"
   },
   "engines": {
