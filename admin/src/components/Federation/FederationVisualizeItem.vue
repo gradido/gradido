@@ -28,38 +28,28 @@
     </BRow>
   </div>
 </template>
-<script>
+<script setup>
+import { computed } from 'vue'
 import { formatDistanceToNow } from 'date-fns'
 import { useDateLocale } from '@/composables/useDateLocale'
 import VariantIcon from '@/components/VariantIcon.vue'
 
-export default {
-  name: 'FederationVisualizeItem',
-  components: { VariantIcon },
-  props: {
-    item: { type: Object },
-  },
-  computed: {
-    verified() {
-      return new Date(this.item.verifiedAt) >= new Date(this.item.lastAnnouncedAt)
-    },
-    icon() {
-      return this.verified ? 'check' : 'x-circle'
-    },
-    variant() {
-      return this.verified ? 'success' : 'danger'
-    },
-  },
-  methods: {
-    distanceDate(dateString) {
-      return dateString
-        ? formatDistanceToNow(new Date(dateString), {
-            includeSecond: true,
-            addSuffix: true,
-            locale: useDateLocale(),
-          })
-        : ''
-    },
-  },
-}
+const props = defineProps({
+  item: { type: Object },
+})
+
+const verified = computed(
+  () => new Date(props.item.verifiedAt) >= new Date(props.item.lastAnnouncedAt),
+)
+const icon = computed(() => (verified.value ? 'check' : 'x-circle'))
+const variant = computed(() => (verified.value ? 'success' : 'danger'))
+
+const distanceDate = (dateString) =>
+  dateString
+    ? formatDistanceToNow(new Date(dateString), {
+        includeSecond: true,
+        addSuffix: true,
+        locale: useDateLocale(),
+      })
+    : ''
 </script>

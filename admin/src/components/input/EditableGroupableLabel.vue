@@ -4,49 +4,39 @@
   </BFormGroup>
 </template>
 
-<script>
-export default {
-  name: 'EditableGroupableLabel',
-  props: {
-    modelValue: {
-      type: String,
-      required: false,
-      default: null,
-    },
-    label: {
-      type: String,
-      required: true,
-    },
-    idName: {
-      type: String,
-      required: true,
-    },
+<script setup>
+import { inject, ref, watch } from 'vue'
+
+const props = defineProps({
+  modelValue: {
+    type: String,
+    required: false,
+    default: null,
   },
-  emits: ['update:model-value'],
-  data() {
-    return {
-      inputValue: this.modelValue,
-      originalValue: this.modelValue,
-    }
+  label: {
+    type: String,
+    required: true,
   },
-  watch: {
-    inputValue() {
-      this.updateValue()
-    },
+  idName: {
+    type: String,
+    required: true,
   },
-  methods: {
-    updateValue() {
-      if (this.inputValue !== this.originalValue) {
-        if (this.$parent.valueChanged) {
-          this.$parent.valueChanged()
-        }
-      } else {
-        if (this.$parent.invalidValues) {
-          this.$parent.invalidValues()
-        }
-      }
-      this.$emit('update:model-value', this.inputValue)
-    },
-  },
-}
+})
+
+const emit = defineEmits(['update:model-value'])
+
+// Provided by the EditableGroup this label sits in; without one there is nobody to tell.
+const editableGroup = inject('editableGroup', null)
+
+const inputValue = ref(props.modelValue)
+const originalValue = inputValue.value
+
+watch(inputValue, () => {
+  if (inputValue.value !== originalValue) {
+    editableGroup?.valueChanged()
+  } else {
+    editableGroup?.invalidValues()
+  }
+  emit('update:model-value', inputValue.value)
+})
 </script>

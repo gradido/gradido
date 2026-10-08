@@ -43,56 +43,46 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref } from 'vue'
 import ContributionLinkForm from '../ContributionLink/ContributionLinkForm'
 import ContributionLinkList from '../ContributionLink/ContributionLinkList'
+import { useIsAdmin } from '@/composables/useIsAdmin'
 
-export default {
-  name: 'ContributionLink',
-  components: {
-    ContributionLinkForm,
-    ContributionLinkList,
+defineProps({
+  items: {
+    type: Array,
+    required: true,
   },
-  props: {
-    items: {
-      type: Array,
-      required: true,
-    },
-    count: {
-      type: Number,
-      required: true,
-    },
+  count: {
+    type: Number,
+    required: true,
   },
-  emits: ['get-contribution-links'],
-  data: function () {
-    return {
-      visible: false,
-      contributionLinkData: {},
-      editContributionLink: false,
-    }
-  },
-  computed: {
-    // Creating a starting balance is an administrator's job. Moderators may look the links
-    // up and pass them on, so they keep the list and the QR-code view.
-    isAdmin() {
-      return this.$store.state.moderator?.role === 'ADMIN'
-    },
-  },
-  methods: {
-    closeContributionForm() {
-      if (this.visible) {
-        this.visible = false
-        this.editContributionLink = false
-        this.contributionLinkData = {}
-      }
-    },
-    editContributionLinkData(data) {
-      if (!this.visible) {
-        this.visible = true
-      }
-      this.contributionLinkData = data
-      this.editContributionLink = true
-    },
-  },
+})
+
+defineEmits(['get-contribution-links'])
+
+const visible = ref(false)
+const contributionLinkData = ref({})
+const editContributionLink = ref(false)
+
+// Creating a starting balance is an administrator's job. Moderators may look the links
+// up and pass them on, so they keep the list and the QR-code view.
+const isAdmin = useIsAdmin()
+
+const closeContributionForm = () => {
+  if (visible.value) {
+    visible.value = false
+    editContributionLink.value = false
+    contributionLinkData.value = {}
+  }
+}
+
+const editContributionLinkData = (data) => {
+  if (!visible.value) {
+    visible.value = true
+  }
+  contributionLinkData.value = data
+  editContributionLink.value = true
 }
 </script>

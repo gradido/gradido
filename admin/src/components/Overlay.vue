@@ -54,12 +54,10 @@
     </BCard>
   </div>
 </template>
-<script>
-export default {
-  name: 'Overlay',
-  props: {
-    item: { type: Object, required: true },
-  },
-  emits: ['overlay-cancel'],
-}
+<script setup>
+defineProps({
+  item: { type: Object, required: true },
+})
+
+defineEmits(['overlay-cancel'])
 </script>

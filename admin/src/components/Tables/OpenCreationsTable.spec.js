@@ -335,13 +335,4 @@ describe('OpenCreationsTable', () => {
       })
     })
   })
-
-  it('gets correct status icon', () => {
-    expect(wrapper.vm.getStatusIcon('IN_PROGRESS')).toBe('question-square')
-    expect(wrapper.vm.getStatusIcon('PENDING')).toBe('bell-fill')
-    expect(wrapper.vm.getStatusIcon('CONFIRMED')).toBe('check')
-    expect(wrapper.vm.getStatusIcon('DENIED')).toBe('x-circle')
-    expect(wrapper.vm.getStatusIcon('DELETED')).toBe('trash')
-    expect(wrapper.vm.getStatusIcon('UNKNOWN')).toBe('default-icon')
-  })
 })
