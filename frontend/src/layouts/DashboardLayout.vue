@@ -839,4 +839,28 @@ const admin = () => {
   color: var(--icon-muted);
   opacity: 0.7;
 }
+
+/* The tool whose page is open says so, the way the menu's entries do: full ink instead of
+   the muted tone -- the menu's own active values, near-black on light and white on dark.
+   Since the tools' pages stand inside the wallet on the desk the four symbols are on screen
+   WHILE one of them is open, and that is also how the two code symbols get learnt: open
+   one, see which of the two is lit (Bernd, 08.10.2026).
+
+   ⛔ By `aria-current`, not by a class. The router's active class has a name of this
+   wallet's own (`linkActiveClass: 'active'` in routes/router.js), so `.router-link-active`
+   matches nothing here -- measured in the built bundle, where the first version of this
+   rule lit no symbol at all. `aria-current="page"` is what the router sets on the link of
+   the open page whatever the class is called, and it is the same fact a screen reader is
+   told. After the hover rule on purpose, and with hover named: an open tool does not dim
+   under the pointer. */
+.main-page .sidebar-quick-row > a[aria-current='page'],
+.main-page .sidebar-quick-row > a[aria-current='page']:hover {
+  color: rgb(2 2 1);
+  opacity: 1;
+}
+
+.dark-mode .main-page .sidebar-quick-row > a[aria-current='page'],
+.dark-mode .main-page .sidebar-quick-row > a[aria-current='page']:hover {
+  color: #fff;
+}
 </style>
