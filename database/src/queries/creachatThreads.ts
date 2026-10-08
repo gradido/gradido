@@ -9,7 +9,7 @@ import {
   creachatThreadsTable,
 } from '../schemas/drizzle.schema'
 
-// TODO: replace results with valibot schema after update to typescript 5 is possible
+// TODO: replace results with valibot schema
 
 const CreachatThreadNotFound = (where: string) => new DBNotFoundError('creachat_threads', where)
 const CreachatThreadInsertFailed = (row: CreachatThreadInsert) =>

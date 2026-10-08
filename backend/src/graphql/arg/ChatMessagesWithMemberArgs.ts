@@ -4,8 +4,7 @@ import { IsInt, IsPositive, Max, ValidateNested } from 'class-validator'
 import { ArgsType, Field, Int } from 'type-graphql'
 import { CHAT_MESSAGES_PAGE_DEFAULT, CHAT_MESSAGES_PAGE_MAX } from '@/data/ChatConversation.logic'
 
-// TODO: replace the class-validator decorators with a valibot schema after the update to
-// typescript 5 is possible
+// TODO: replace the class-validator decorators with a valibot schema
 
 /**
  * Which conversation, and which page of it: the other member by their pair -- the only thing

@@ -4,7 +4,6 @@ import { MATCHING_ENTRY_DETAILS_MAX_CHARS } from 'shared'
 import { Field, InputType } from 'type-graphql'
 
 // TODO: replace the class-validator decorators with a valibot MatchingEntry.schema.ts
-// after the update to typescript 5 is possible
 
 @InputType()
 export class MatchingEntryInput {

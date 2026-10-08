@@ -3,8 +3,7 @@ import { IsString, IsUUID, MaxLength } from 'class-validator'
 import { MESSAGE_MAX_CHARS } from 'shared'
 import { ArgsType, Field } from 'type-graphql'
 
-// TODO: replace the class-validator decorators with a valibot schema after the update to
-// typescript 5 is possible
+// TODO: replace the class-validator decorators with a valibot schema
 
 /**
  * A message whose writer changes its text (Bernd, 01.10.2026, E-060): which one, by its uuid, and

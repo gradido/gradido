@@ -3,8 +3,7 @@ import { MemberAvatarRefInput } from '@input/MemberAvatarRefInput'
 import { IsInt, IsPositive, ValidateNested } from 'class-validator'
 import { ArgsType, Field, Int } from 'type-graphql'
 
-// TODO: replace the class-validator decorators with a valibot schema after the update to
-// typescript 5 is possible
+// TODO: replace the class-validator decorators with a valibot schema
 
 /** The conversation with this member, read up to this message (E-017). */
 @ArgsType()

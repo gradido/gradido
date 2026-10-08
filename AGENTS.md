@@ -20,23 +20,20 @@ The codebase is mid-transition from an old to a new architecture. Both coexist. 
 | --- | --- | --- |
 | ORM | TypeORM (`database/src/entity`, active record) | Drizzle ORM (`database/src/schemas/drizzle.schema.ts`) |
 | Queries | scattered across resolvers/services | centralized in `database/src/queries/[tableName].ts` |
-| API | type-graphql + Apollo (GraphQL) | ElysiaJS where it fits better; GraphQL stays where it earns its place — **blocked, see below** |
-| Validation | single-purpose validation functions | valibot schemas in `*.schema.ts` — **blocked, see below** |
+| API | type-graphql + Apollo (GraphQL) | ElysiaJS where it fits better; GraphQL stays where it earns its place |
+| Validation | single-purpose validation functions | valibot schemas in `*.schema.ts` |
 | Logic placement | inline in TypeScript resolvers | `interactions/` for complex use cases, `data/*.logic.ts` for simple logic (see below) |
 
 Reference implementation for the target style: `dlt-connector`.
 
 ## Order of work
 
-Two of the five migrations are **not yet actionable**: both ElysiaJS and valibot need TypeScript 5, which is currently blocked by TypeORM and graphql. Removing those unblocks both — so ORM first, then validation and API. Do not start either before the TypeScript 5 upgrade lands; in the meantime, mark intended schema replacements with a TODO (see `queries/creachatThreads.ts`) rather than working around the missing version.
+Migrating queries proceeds in four separate steps, never merged into one:
 
-This makes the ORM migration the critical path: it is not just the foundation, it is what unblocks everything else.
-
-Migrating queries proceeds in three separate steps, never merged into one:
-
-1. **Move** the existing TypeORM query into `database/src/queries/[tableName].ts` unchanged.
-2. **Translate** it to Drizzle.
+1. **Move** the existing TypeORM query into `database/src/queries/[tableName].typeorm.ts` unchanged.
+2. **Translate** it to Drizzle in `database/src/queries/[tableName].ts`; the TypeORM version stays in place beside it.
 3. **Adjust** the caller's types.
+4. **Remove** the TypeORM version from `[tableName].typeorm.ts` once no callers remain.
 
 Transaction safety while both ORMs coexist: `AppDatabase` holds a TypeORM `DataSource` and a separate Drizzle pool — two connection pools, so **a TypeORM transaction does not cover Drizzle writes**. Anything that must be atomic has to sit on one ORM. Migrate along transaction boundaries, not table by table.
 

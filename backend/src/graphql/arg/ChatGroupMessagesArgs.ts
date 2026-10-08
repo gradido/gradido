@@ -3,8 +3,7 @@ import { IsInt, IsPositive, IsUUID, Max } from 'class-validator'
 import { ArgsType, Field, Int } from 'type-graphql'
 import { CHAT_MESSAGES_PAGE_DEFAULT, CHAT_MESSAGES_PAGE_MAX } from '@/data/ChatConversation.logic'
 
-// TODO: replace the class-validator decorators with a valibot schema after the update to
-// typescript 5 is possible
+// TODO: replace the class-validator decorators with a valibot schema
 
 /** Which group, and which page of it: the messages before `before` -- as for a thread. */
 @ArgsType()

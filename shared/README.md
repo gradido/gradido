@@ -6,7 +6,6 @@ Full bun compatible
 
 ## Enums
 All enums used across more than one module
-Additional with zod Schema but working only with zod v4 and this needs typescript 5
 
 ## Schemas
 All schemas for data validation used across more than one module

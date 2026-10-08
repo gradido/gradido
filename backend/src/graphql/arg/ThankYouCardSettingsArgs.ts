@@ -9,8 +9,7 @@ import {
 } from '@/data/ThankYouCard.logic'
 import { IsPositiveGradidoUnit } from '../validator/GradidoUnit'
 
-// TODO: replace the class-validator decorators with a valibot schema after the update to
-// typescript 5 is possible
+// TODO: replace the class-validator decorators with a valibot schema
 
 /**
  * Switching card payment on, and changing it later. The PIN comes as a string rather than

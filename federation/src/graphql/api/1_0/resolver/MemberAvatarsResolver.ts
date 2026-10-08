@@ -38,7 +38,7 @@ interface MemberAvatarsQuestion {
   gradidoIDs: string[]
 }
 
-// TODO: replace with a valibot schema after update to typescript 5 is possible
+// TODO: replace with a valibot schema
 /**
  * The question as the other server wrote it. It arrives as parsed JSON, so the payload type
  * is what the sender promised, not what arrived -- every field is checked before it is used.

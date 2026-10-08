@@ -3,8 +3,7 @@ import { IsString, IsUUID, MaxLength } from 'class-validator'
 import { ArgsType, Field } from 'type-graphql'
 import { CHAT_GROUP_TITLE_INPUT_MAX } from '@/data/ChatGroup.logic'
 
-// TODO: replace the class-validator decorators with a valibot schema after the update to
-// typescript 5 is possible
+// TODO: replace the class-validator decorators with a valibot schema
 
 /** A group (P5) and the name it is to have. */
 @ArgsType()
