@@ -56,7 +56,6 @@
     "vite": "^5.4.14",
     "vite-plugin-commonjs": "^0.10.1",
     "vue": "3.5.13",
-    "vue-apollo": "^3.1.2",
     "vue-i18n": "^9.13.1",
     "vue-router": "^4.4.0",
     "vuex": "^4.1.0",

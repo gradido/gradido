@@ -1,13 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import gql from 'graphql-tag'
+import { ApolloClient } from '@apollo/client/core'
 import { provideApolloClient } from '@vue/apollo-composable'
-import VueApollo from 'vue-apollo'
 import CONFIG from '../config'
 import store from '../store/store'
 import { redirectTo } from '@/utils/redirect'
-import { apolloProvider } from './apolloProvider'
+import { apolloClient } from './apolloProvider'
 
-vi.mock('vue-apollo')
 vi.mock('@vue/apollo-composable')
 vi.mock('@/utils/redirect')
 vi.mock('../config', () => ({
@@ -25,6 +24,9 @@ vi.mock('../store/store', () => ({
 }))
 
 describe('Apollo Provider Setup', () => {
+  // Taken before the first clearAllMocks forgets the call that carried the client.
+  const provided = vi.mocked(provideApolloClient).mock.calls.slice()
+
   beforeEach(() => {
     vi.clearAllMocks()
   })
@@ -33,21 +35,20 @@ describe('Apollo Provider Setup', () => {
   // real chain: if its links could not be chained, ApolloLink.from would throw on import and
   // every test here would fail. The wiring of the outdated-app link is covered separately in
   // apolloOutdatedLink.test.js, which has to mock onError and therefore cannot prove this.
-  it('creates an Apollo provider', () => {
-    expect(apolloProvider).toBeDefined()
-    expect(apolloProvider).toBeInstanceOf(VueApollo)
+  it('creates an Apollo client', () => {
+    expect(apolloClient).toBeInstanceOf(ApolloClient)
   })
 
-  it('has a provide function', () => {
-    expect(apolloProvider.provide).toBeInstanceOf(Function)
+  it('hands that client to the composables', () => {
+    expect(provided).toEqual([[apolloClient]])
   })
 
   it('uses the correct GraphQL URI from config', () => {
     expect(CONFIG.GRAPHQL_URI).toBe('http://test-graphql-uri.com')
   })
 
-  // We can't directly test the auth link functionality since it's inside the mocked provider
-  // However, we can test that the store is set up correctly for potential use
+  // The auth link itself is tested below, through the real client. Here only that the store
+  // it reads and writes is the mocked one.
 
   it('has access to the store', () => {
     expect(store.state.token).toBeDefined()
@@ -59,8 +60,7 @@ describe('Apollo Provider Setup', () => {
 // The chain itself, with nothing of Apollo mocked: a question goes out through the real
 // client to a fetch that answers in its place.
 describe('a request through the real client', () => {
-  // The client the module built, taken where it hands it to the composables: the provider
-  // around it is mocked in this file.
+  // The client the module built, taken where it hands it to the composables.
   const client = () => vi.mocked(provideApolloClient).mock.calls[0][0]
   const calls = vi.mocked(provideApolloClient).mock.calls.slice()
   const QUESTION = gql`

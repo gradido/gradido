@@ -5,7 +5,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 // what stops this file from proving the real chain assembles -- which is why that assertion
 // lives in apolloProvider.test.js, where nothing is mocked. The two belong together.
 vi.mock('@apollo/client/link/error')
-vi.mock('vue-apollo')
 vi.mock('@vue/apollo-composable')
 vi.mock('../config', () => ({
   default: {

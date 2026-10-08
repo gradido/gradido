@@ -29,7 +29,7 @@ vi.mock('./i18n', () => ({
 vi.mock('portal-vue', () => ({ default: {} }))
 vi.mock('bootstrap-vue-next', () => ({ createBootstrap: vi.fn() }))
 vi.mock('./mixins/toaster', () => ({ toasters: {} }))
-vi.mock('./plugins/apolloProvider', () => ({ apolloProvider: { defaultClient: {} } }))
+vi.mock('./plugins/apolloProvider', () => ({ apolloClient: {} }))
 
 describe('main.js', () => {
   let app
@@ -61,10 +61,6 @@ describe('main.js', () => {
   })
 
   it('uses Bootstrap Vue plugin', () => {
-    expect(app.use).toHaveBeenCalled()
-  })
-
-  it('uses Apollo provider', () => {
     expect(app.use).toHaveBeenCalled()
   })
 })
