@@ -19,8 +19,6 @@ import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 
 const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 
-jest.mock('@/password/EncryptorUtils')
-
 // a well-formed uuid that never belongs to a seeded entry
 const NON_EXISTENT_UUID = '00000000-0000-0000-0000-000000000000'
 

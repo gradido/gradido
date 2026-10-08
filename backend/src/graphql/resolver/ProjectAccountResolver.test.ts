@@ -47,7 +47,6 @@ jest.mock('core', () => {
     sendEmailTranslated: jest.fn(),
   }
 })
-jest.mock('@/password/EncryptorUtils')
 
 const supportMail = sendCreationRightRequestSupportEmail as jest.Mock
 

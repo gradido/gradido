@@ -1,6 +1,8 @@
 import 'reflect-metadata'
 
-import { ApolloServer } from 'apollo-server-express'
+import { ApolloServer } from '@apollo/server'
+import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled'
+import { expressMiddleware } from '@as-integrations/express4'
 import { AppDatabase } from 'database'
 import express, { Express } from 'express'
 import { slowDown } from 'express-slow-down'
@@ -71,13 +73,12 @@ export const createServer = async (
   // Apollo Server
   const apollo = new ApolloServer({
     schema: await schema(),
-    // playground: CONFIG.GRAPHIQL,
-    // introspection: CONFIG.GRAPHIQL,
-    // context,
-    plugins,
+    // Without it a browser would be shown Apollo's own landing page instead of nothing.
+    plugins: [...plugins, ApolloServerPluginLandingPageDisabled()],
     logger: apolloLogger,
   })
   await apollo.start()
-  apollo.applyMiddleware({ app, path: '/' })
+  // behind cors and the json body parser above
+  app.use('/', expressMiddleware(apollo))
   return { apollo, app, con: db.getDataSource() }
 }

@@ -27,7 +27,7 @@ function resolveBuildInfo(): { commit: string; source: 'git' | 'env' | 'unknown'
 }
 
 build({
-  entryPoints: ['src/index.ts', 'src/password/worker.js'],
+  entryPoints: ['src/index.ts'],
   outdir: 'build',
   platform: 'node',
   target: 'node24.21.0',

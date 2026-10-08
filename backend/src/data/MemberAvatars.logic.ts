@@ -19,9 +19,8 @@ export const MEMBER_AVATARS_MAX_REFS = 100
  * takes one member, so a limit inside the resolver would count to one however many times
  * the field appears. GraphQL aliasing makes that number unbounded — `a: memberAvatarFull(…)
  * b: memberAvatarFull(…) …` is one document — and at roughly 60 KB a picture, five hundred
- * of them is a thirty-megabyte answer to a single authenticated request. A POST may also
- * batch documents, each with its own copy of the context, so the count lives in the one
- * object they share (RequestBudget in backend/src/server/context.ts).
+ * of them is a thirty-megabyte answer to a single authenticated request. So the count lives
+ * with the request (RequestBudget in backend/src/server/context.ts).
  *
  * Ten rather than one, because a member who opens several faces in a row on a flaky
  * connection may legitimately have a few in flight; and because a limit that the ordinary
@@ -31,7 +30,7 @@ export const MEMBER_AVATARS_FULL_MAX_PER_REQUEST = 10
 
 /**
  * How many times one HTTP request may set the member's picture (setUserAvatar), over every alias
- * and every operation of a batch (RequestBudget): once. Both renditions are decoded and encoded
+ * (RequestBudget): once. Both renditions are decoded and encoded
  * again, and a document could otherwise name them once in its variables and have that work
  * done hundreds of times. The wallet sets the picture once in a request.
  */

@@ -414,7 +414,7 @@ export const usersTable = mysqlTable(
     deletedAt: datetime('deleted_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
     // ⚠️ mode 'bigint' and unsigned, both load-bearing - same reason as
     // thank_you_card_settings.pin: the derivation returns a full unsigned 64 bit word
-    // (`readBigUInt64LE` in EncryptionWorker.js), and as a JS number almost every value
+    // (`deriveKey` in shared-native/napi/passwordHashing.cpp), and as a JS number almost every value
     // loses precision. `unsigned` also keeps drizzle-kit from turning the column signed,
     // which every hash from 2^63 up would overflow.
     password: bigint({ mode: 'bigint', unsigned: true }).default(0n),

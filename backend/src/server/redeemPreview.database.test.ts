@@ -42,7 +42,6 @@ jest.mock('core', () => {
     sendTransactionReceivedEmail: jest.fn(async () => null),
   }
 })
-jest.mock('@/password/EncryptorUtils')
 
 CONFIG.DLT_ACTIVE = false
 

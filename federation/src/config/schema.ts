@@ -3,8 +3,6 @@ import {
   COMMUNITY_HOST,
   COMMUNITY_URL,
   communityUrlOf,
-  GRAPHIQL,
-  graphiqlOnlyInDevelopment,
   httpUrlSchema,
   integerSchema,
   LOG_FILES_BASE_PATH,
@@ -27,7 +25,6 @@ const environment = v.object({
   LOG_FILES_BASE_PATH: v.optional(LOG_FILES_BASE_PATH, '../logs/federation'),
 
   NODE_ENV,
-  GRAPHIQL: v.optional(GRAPHIQL, false),
 
   COMMUNITY_HOST,
   URL_PROTOCOL,
@@ -79,5 +76,4 @@ export const schema = v.pipe(
       FEDERATION_COMMUNITY_URL: env.FEDERATION_COMMUNITY_URL ?? COMMUNITY_URL,
     }
   }),
-  graphiqlOnlyInDevelopment(),
 )

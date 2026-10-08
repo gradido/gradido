@@ -90,6 +90,7 @@ import {
   AVATAR_SMALL_MAX_SIDE,
   languageSchema,
   MemberAvatarPayload,
+  PasswordHashPriority,
   parseOrThrowFirstIssue,
   passwordSchema,
   Result,
@@ -310,7 +311,7 @@ export class UserResolver {
       logger.warn('login failed, user has not set a password yet')
       throw new Error('The User has not set a password yet')
     }
-    if (!(await verifyPassword(dbUser, password))) {
+    if (!(await verifyPassword(dbUser, password, PasswordHashPriority.HIGH))) {
       logger.warn('login failed, wrong password')
       throw new Error('No user with this credentials')
     }
@@ -345,7 +346,7 @@ export class UserResolver {
       await dbUserUpdatePassword(
         dbUser.id,
         PasswordEncryptionType.GRADIDO_ID,
-        await encryptPassword(dbUser, password),
+        await encryptPassword(dbUser, password, PasswordHashPriority.HIGH),
       )
     }
     logger.debug('validation of login credentials successful...')
@@ -1147,10 +1148,8 @@ export class UserResolver {
     @Arg('ref', () => MemberAvatarRefInput) ref: MemberAvatarRefInput,
     @Ctx() context: Context,
   ): Promise<string | null> {
-    // ⛔ Counted in the HTTP request's budget, not in this call and not on the context
-    // itself. One document may carry this field under any number of aliases, and one POST
-    // may carry any number of documents, each with its own copy of the context; the budget
-    // is the one object they all share (RequestBudget in server/context.ts).
+    // ⛔ Counted in the HTTP request's budget, not in this call: one document may carry this
+    // field under any number of aliases (RequestBudget in server/context.ts).
     context.requestBudget.memberAvatarsFullServed += 1
     const served = context.requestBudget.memberAvatarsFullServed
     if (served > MEMBER_AVATARS_FULL_MAX_PER_REQUEST) {

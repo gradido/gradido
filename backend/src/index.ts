@@ -2,6 +2,7 @@ import 'reflect-metadata'
 import 'source-map-support/register'
 import { getHomeCommunityDrizzle } from 'database'
 import { getLogger } from 'log4js'
+import { AppContext } from 'shared'
 import { matchingKeyingRun } from './apis/anthropic/matching/keyingRun'
 import { chatVideoServerPool } from './apis/jitsi/chatVideoServerPool'
 import { seedChatVideoServers } from './apis/jitsi/seedChatVideoServers'
@@ -14,6 +15,12 @@ import { initLogging } from './server/logger'
 
 async function main() {
   initLogging()
+  // The secrets every password and PIN derivation is keyed with, and the hashing threads.
+  // A second init -- the tests initialize it first, at a lower difficulty -- changes nothing.
+  AppContext.getInstance().init({
+    appSecret: CONFIG.LOGIN_APP_SECRET,
+    serverKey: CONFIG.LOGIN_SERVER_KEY,
+  })
   const { app } = await createServer(getLogger('apollo'))
 
   // will throw if a home community is missing
@@ -22,10 +29,6 @@ async function main() {
   app.listen(CONFIG.BACKEND_PORT, () => {
     // biome-ignore lint/suspicious/noConsole: no need for logging the start message
     console.log(`Server is running at http://localhost:${CONFIG.BACKEND_PORT}`)
-    if (CONFIG.GRAPHIQL) {
-      // biome-ignore lint/suspicious/noConsole: no need for logging the start message
-      console.log(`GraphIQL available at http://localhost:${CONFIG.BACKEND_PORT}`)
-    }
   })
   await startValidateCommunities(Number(CONFIG.FEDERATION_VALIDATE_COMMUNITY_TIMER))
   // When the members of other communities last changed their pictures (AS-019): what lets the

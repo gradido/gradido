@@ -25,8 +25,6 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 
 const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 
-jest.mock('@/password/EncryptorUtils')
-
 // A member writes to bibi below, through sendEmail; no mail has to go out for that.
 CORE_CONFIG.EMAIL = false
 

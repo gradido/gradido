@@ -15,8 +15,6 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 // moderator scoped to untagged contributions only carries no groups. Both moderator kinds are
 // checked, because MODERATOR_AI is scoped exactly like MODERATOR.
 
-jest.mock('@/password/EncryptorUtils')
-
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
 let db: AppDatabase

@@ -11,8 +11,8 @@ export const CHAT_MESSAGES_PAGE_DEFAULT = 50
 export const CHAT_MESSAGES_PAGE_MAX = 100
 
 /**
- * How many pages of a conversation one HTTP request may ask for, over every alias and every
- * operation it carries -- counted in RequestBudget (server/context.ts). `limit` caps one page;
+ * How many pages of a conversation one HTTP request may ask for, over every alias -- counted
+ * in RequestBudget (server/context.ts). `limit` caps one page;
  * this caps how often a document may repeat the field, which `limit` cannot: without it one
  * request could read any number of pages of CHAT_MESSAGES_PAGE_MAX messages each (coderabbit
  * on #3965).
@@ -39,8 +39,8 @@ export const CHAT_UPDATE_MESSAGES_DEFAULT = 50
 export const CHAT_UPDATE_MESSAGES_MAX = 100
 
 /**
- * How often one HTTP request may ask newChatMessagesSince, over every alias and every operation
- * it carries -- counted in RequestBudget (server/context.ts), for the reason
+ * How often one HTTP request may ask newChatMessagesSince, over every alias -- counted in
+ * RequestBudget (server/context.ts), for the reason
  * CHAT_MESSAGE_PAGES_MAX_PER_REQUEST gives: `limit` caps one answer, not how often a document
  * repeats the field.
  *
@@ -103,8 +103,7 @@ export const nextChatEditsPosition = (
 
 /**
  * How many pictures of chat messages one HTTP request may be served (chatMessageImage), over
- * every alias and every operation it carries -- counted in RequestBudget (server/context.ts),
- * before anything is read. One picture a call; at up to 35 KB each, five hundred aliases in one
+ * every alias -- counted in RequestBudget (server/context.ts), before anything is read. One picture a call; at up to 35 KB each, five hundred aliases in one
  * document would be an answer of some twenty-four megabytes. Ten, as the full-size avatars
  * (MEMBER_AVATARS_FULL_MAX_PER_REQUEST), for its reason: a thread may show several pictures at
  * once, and a limit ordinary use can reach gets raised by whoever hits it.
@@ -113,7 +112,7 @@ export const CHAT_IMAGES_MAX_PER_REQUEST = 10
 
 /**
  * How many pictures one HTTP request may bring with a chat message or a transfer
- * (acceptedPicture), over every alias and every operation of a batch (RequestBudget): one. Each
+ * (acceptedPicture), over every alias (RequestBudget): one. Each
  * is decoded and encoded again, and a document could otherwise name one picture in its
  * variables and have it worked on hundreds of times. The wallet sends one message, or one
  * transfer, in a request.

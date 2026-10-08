@@ -13,8 +13,6 @@ import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { getOpenCreations, getUserCreation } from './creations'
 
-jest.mock('@/password/EncryptorUtils')
-
 CONFIG.HUMHUB_ACTIVE = false
 
 let mutate: ApolloServerTestClient['mutate']

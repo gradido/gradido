@@ -257,7 +257,10 @@ const errorsLogged = async (errors: unknown[]): Promise<string> => {
     logger,
     request: { query: 'mutation { x }', variables: {}, operationName: null },
   })
-  await hooks.willSendResponse({ context: {}, response: { errors } })
+  await hooks.willSendResponse({
+    contextValue: {},
+    response: { body: { kind: 'single', singleResult: { errors } } },
+  })
   return logger.error.mock.calls.map((args) => args.join(' ')).join('\n')
 }
 
@@ -346,7 +349,10 @@ const answerTraced = async (context: Record<string, unknown>, data: unknown): Pr
     logger,
     request: { query: 'query { x }', variables: {}, operationName: null },
   })
-  await hooks.willSendResponse({ context, response: { data } })
+  await hooks.willSendResponse({
+    contextValue: context,
+    response: { body: { kind: 'single', singleResult: { data } } },
+  })
   return logger.trace.mock.calls.map((args) => args.join(' ')).join('\n')
 }
 

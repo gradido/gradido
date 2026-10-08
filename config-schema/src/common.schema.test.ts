@@ -8,9 +8,6 @@ import {
   DLT_CONNECTOR_URL,
   decayStartTimeSchema,
   dltConnectorUrlRequiredWhenActive,
-  GRAPHIQL,
-  graphiqlOnlyInDevelopment,
-  NODE_ENV,
 } from './common.schema'
 import { DECAY_START_TIME } from './const'
 
@@ -32,20 +29,6 @@ describe('browserUrls', () => {
     expect(accepts(browserUrls, ['http://a.b', 'https://c.d'])).toBe(false)
     expect(accepts(browserUrls, ['http://a.b', null])).toBe(false)
     expect(accepts(browserUrls, ['x'])).toBe(false)
-  })
-})
-
-describe('graphiqlOnlyInDevelopment', () => {
-  const schema = v.pipe(v.strictObject({ NODE_ENV, GRAPHIQL }), graphiqlOnlyInDevelopment())
-
-  it('counts a module without NODE_ENV as development', () => {
-    expect(accepts(schema, { GRAPHIQL: true })).toBe(true)
-    expect(accepts(schema, { NODE_ENV: 'development', GRAPHIQL: 'true' })).toBe(true)
-  })
-
-  it('allows GRAPHIQL only off anywhere else', () => {
-    expect(accepts(schema, { NODE_ENV: 'production', GRAPHIQL: true })).toBe(false)
-    expect(accepts(schema, { NODE_ENV: 'production', GRAPHIQL: false })).toBe(true)
   })
 })
 

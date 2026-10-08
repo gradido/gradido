@@ -14,8 +14,13 @@ const logged = async (variables: Record<string, unknown>, errors?: unknown[]): P
     request: { query: SEND_COMMAND, variables, operationName: null },
   })
   await willSendResponse({
-    context: {},
-    response: errors ? { errors } : { data: { sendCommand: {} } },
+    contextValue: {},
+    response: {
+      body: {
+        kind: 'single',
+        singleResult: errors ? { errors } : { data: { sendCommand: {} } },
+      },
+    },
   })
   return [...logger.info.mock.calls, ...logger.trace.mock.calls, ...logger.error.mock.calls]
     .map((args) =>

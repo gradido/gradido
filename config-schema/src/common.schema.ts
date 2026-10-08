@@ -9,7 +9,7 @@ import {
 } from './base.schema'
 import { DECAY_START_TIME } from './const'
 import { LOG_LEVEL as logLevelSchema } from './log4js-config/types/LogLevel'
-import { configRule, requiredWhen } from './rules'
+import { requiredWhen } from './rules'
 
 // Keys are named like the environment variables they check and describe one value each. A
 // module wraps a key in `v.optional(KEY, default)` where it has a default of its own; the
@@ -120,21 +120,6 @@ export const COMMUNITY_LOCATION = v.pipe(
 export const communityLocationRequiredWhenGmsActive = <
   TConfig extends { GMS_ACTIVE: boolean; COMMUNITY_LOCATION?: string },
 >() => requiredWhen<TConfig>('COMMUNITY_LOCATION', 'GMS_ACTIVE')
-
-export const GRAPHIQL = v.pipe(
-  booleanSchema,
-  v.description('Flag for enabling GraphQL playground for debugging.'),
-)
-
-// only allowed in development mode, false in any other mode
-export const graphiqlOnlyInDevelopment = <
-  TConfig extends { NODE_ENV: string; GRAPHIQL: boolean },
->() =>
-  configRule<TConfig>(
-    'GRAPHIQL',
-    (config) => config.NODE_ENV === 'development' || config.GRAPHIQL === false,
-    'GRAPHIQL must be false unless NODE_ENV is development',
-  )
 
 export const GMS_ACTIVE = v.pipe(
   booleanSchema,

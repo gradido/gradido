@@ -304,9 +304,9 @@ describe('dbFindTransactionLinkForPreview', () => {
     const pool = (drizzleDb() as any).$client
     const original = pool.query
     const sent: string[] = []
-    pool.query = function (query: any, params: unknown[]) {
+    pool.query = function (query: any, ...rest: unknown[]) {
       sent.push(typeof query === 'string' ? query : query.sql)
-      return original.call(this, query, params)
+      return original.call(this, query, ...rest)
     }
     try {
       await run()

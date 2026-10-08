@@ -41,7 +41,7 @@ export const transactionPictureIdsOf = (bookings: BookingPictureColumns[]): numb
 
 /**
  * How many photos one HTTP request is served by transactionPicture, over every alias of the
- * field and every operation of a batch (RequestBudget): as many as a chat's pictures and a
+ * field (RequestBudget): as many as a chat's pictures and a
  * greeting's (CHAT_IMAGES_MAX_PER_REQUEST). The wallet asks for one in a request.
  */
 export const TRANSACTION_PICTURES_MAX_PER_REQUEST = 10

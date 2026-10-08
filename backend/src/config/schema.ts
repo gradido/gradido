@@ -12,8 +12,6 @@ import {
   GDT_ACTIVE,
   GDT_API_URL,
   GMS_ACTIVE,
-  GRAPHIQL,
-  graphiqlOnlyInDevelopment,
   HUMHUB_ACTIVE,
   HUMHUB_API_URL,
   httpsUrlSchema,
@@ -73,7 +71,6 @@ const environment = v.object({
     jwtExpirationSchema('Time for x-community redeem JWT token to expire'),
     '10m',
   ),
-  GRAPHIQL: v.optional(GRAPHIQL, false),
   GDT_ACTIVE: v.optional(GDT_ACTIVE, false),
   GDT_API_URL: v.optional(GDT_API_URL, 'https://gdt.gradido.net'),
   // ES-014: the function-test area in the wallet settings, admins only. On by default, so
@@ -161,15 +158,6 @@ const environment = v.object({
 
   LOGIN_APP_SECRET: v.optional(LOGIN_APP_SECRET, '21ffbbc616fe'),
   LOGIN_SERVER_KEY: v.optional(LOGIN_SERVER_KEY, 'a51ef8ac7ef1abf162fb7a65261acd7a'),
-  USE_CRYPTO_WORKER: v.optional(
-    v.pipe(
-      booleanSchema,
-      v.description(
-        'Flag to enable or disable password encryption in separate thread, should be enabled if possible',
-      ),
-    ),
-    false,
-  ),
 
   EMAIL_LINK_VERIFICATION_PATH: v.optional(
     pathSchema('Path of the link to activate an email, behind COMMUNITY_URL'),
@@ -331,7 +319,6 @@ export const schema = v.pipe(
       HUMHUB_API_URL: env.HUMHUB_API_URL ?? `${COMMUNITY_URL}/community/`,
     }
   }),
-  graphiqlOnlyInDevelopment(),
   requiredWhen('HUMHUB_JWT_KEY', 'HUMHUB_ACTIVE'),
   requiredWhen('ANTHROPIC_API_KEY', 'ANTHROPIC_ACTIVE'),
 )
