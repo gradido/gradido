@@ -15,6 +15,7 @@ import { GraphQLClient } from 'graphql-request'
 import {
   createKeyPair,
   encryptAndSign,
+  MEMBER_AVATARS_MAX_REFS,
   MemberAvatarPayload,
   MemberAvatarsJwtPayloadType,
   MemberAvatarsResponseJwtPayloadType,
@@ -22,7 +23,6 @@ import {
 } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { MEMBER_AVATARS_MAX_REFS } from '@/data/MemberAvatars.logic'
 import { refreshForeignMemberAvatarDates } from './refreshForeignMemberAvatarDates'
 
 /**

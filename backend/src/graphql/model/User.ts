@@ -1,10 +1,10 @@
 import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
 import { PublishNameType } from '@enum/PublishNameType'
 import { DbLoginUser, User as LegacyUser } from 'database'
+import { avatarColorIndex } from 'shared'
 import { Field, Int, ObjectType } from 'type-graphql'
 import { Point } from 'typeorm'
 
-import { avatarColorIndex } from '@/data/AvatarColor.logic'
 import { PublishNameLogic } from '@/data/PublishName.logic'
 import { isLegacyUser } from '@/data/UserLogic'
 import { Point2Location } from '@/graphql/resolver/util/Location2Point'

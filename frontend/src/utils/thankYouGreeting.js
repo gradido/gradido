@@ -7,7 +7,7 @@
  * there -- is the first line, ONE line break, and the sender's own words; or one of the two
  * alone. The line stands a second time in the greeting itself, so that the card can set it in
  * handwriting and the words under it. The server refuses a greeting whose memo does not begin
- * with its line (backend/src/data/ThankYouGreeting.logic.ts, `memoBeginsWithLine`); the two
+ * with its line (shared/src/data/ThankYouGreeting.logic.ts, `memoBeginsWithLine`); the two
  * functions here are the wallet's side of that rule, and thankYouGreeting.drift.spec.js holds
  * them against the server's.
  */

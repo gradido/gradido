@@ -1,15 +1,12 @@
 // AI-GENERATED — not an architecture reference
+
 import { translateForLocale } from 'core'
 import { dbFindTransactionLinkForPreview, driverCodeOfFailedQuery } from 'database'
 import { getLogger } from 'log4js'
+import { GENERAL_PREVIEW_FILE, thankYouMotifPreviewFile, WalletPicture } from 'shared'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { OG_LOCALE, RedeemPreview, redeemPreviewOf } from '@/data/RedeemPreview.logic'
-import {
-  GENERAL_PREVIEW_FILE,
-  thankYouMotifPreviewFile,
-  WalletPicture,
-} from '@/data/ThankYouGreeting.logic'
 import { hasFormOfLinkCode } from '@/data/ThankYouGreetingPicture.logic'
 import { THANK_YOU_GREETING_PICTURE_PATH } from './thankYouGreetingPicture'
 

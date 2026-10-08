@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
+import { isThankYouMotif, ThankYouMotif } from 'shared'
 import * as v from 'valibot'
-import { isThankYouMotif, ThankYouMotif } from './ThankYouGreeting.logic'
 
 /**
  * The picture a member may add to a transfer (sendCoins): one of the motifs of the thank-you

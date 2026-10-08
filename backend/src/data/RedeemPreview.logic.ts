@@ -1,7 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { TransactionLinkForPreview } from 'database'
-import { publicAlias } from 'shared'
-import { isThankYouMotif, ThankYouMotif } from './ThankYouGreeting.logic'
+import { isThankYouMotif, publicAlias, ThankYouMotif } from 'shared'
 import {
   hasFormOfLinkCode,
   pictureLinkIsOpen,

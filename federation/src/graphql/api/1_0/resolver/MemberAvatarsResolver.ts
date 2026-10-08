@@ -13,6 +13,7 @@ import {
   encryptAndSign,
   isMemberAvatarsKind,
   JwtPayloadType,
+  MEMBER_AVATARS_MAX_REFS,
   MemberAvatarPayload,
   MemberAvatarsJwtPayloadType,
   MemberAvatarsKind,
@@ -21,7 +22,6 @@ import {
 } from 'shared'
 import { Arg, Query, Resolver } from 'type-graphql'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { MEMBER_AVATARS_MAX_REFS } from '@/data/MemberAvatars.logic'
 
 const createLogger = (method: string) =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.api.1_0.resolver.MemberAvatarsResolver.${method}`)

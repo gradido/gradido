@@ -89,6 +89,7 @@ import {
   AVATAR_SMALL_MAX_BYTES,
   AVATAR_SMALL_MAX_SIDE,
   languageSchema,
+  MEMBER_AVATARS_MAX_REFS,
   MemberAvatarPayload,
   PasswordHashPriority,
   parseOrThrowFirstIssue,
@@ -126,7 +127,6 @@ import { canEmailResend, isEmailVerificationCodeValid } from '@/data/EmailVerifi
 import { findableWithoutPlace } from '@/data/Location.logic'
 import {
   MEMBER_AVATARS_FULL_MAX_PER_REQUEST,
-  MEMBER_AVATARS_MAX_REFS,
   MEMBER_AVATARS_RELAYS_MAX_PER_REQUEST,
   splitMemberRefsByCommunity,
   USER_AVATARS_ACCEPTED_MAX_PER_REQUEST,

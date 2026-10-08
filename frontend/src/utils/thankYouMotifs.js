@@ -2,7 +2,7 @@
 
 /**
  * The motifs a thank-you greeting can carry: five pictures of one family (ZE-021), each under
- * the key the server stores (backend/src/data/ThankYouGreeting.logic.ts, held together by
+ * the key the server stores (shared/src/data/ThankYouGreeting.logic.ts, held together by
  * thankYouMotifs.drift.spec.js).
  *
  * ⛔ Always shown as an `<img>`, never inlined: the five files share the ids of their

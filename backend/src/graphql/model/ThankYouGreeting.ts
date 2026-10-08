@@ -6,7 +6,7 @@ import { Field, ObjectType } from 'type-graphql'
  * What a thank-you greeting shows beyond its link: the motif, the first line, the name of
  * whom it is for. Readable by whoever holds the link, as the link's memo is.
  *
- * `motif` is a plain string (data/ThankYouGreeting.logic.ts says why) and nullable: a
+ * `motif` is a plain string (shared/src/data/ThankYouGreeting.logic.ts says why) and nullable: a
  * greeting may carry a picture of the member's own -- a photo -- instead.
  */
 @ObjectType()

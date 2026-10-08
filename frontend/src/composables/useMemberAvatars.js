@@ -388,7 +388,7 @@ export const forgetAllMemberAvatars = () => {
 
 /**
  * What one memberAvatars request may name -- the server's cap, in
- * backend/src/data/MemberAvatars.logic.ts. Over it the request is refused WHOLE, so the
+ * shared/src/const/frontendReadable.ts. Over it the request is refused WHOLE, so the
  * two numbers must not drift; useMemberAvatars.drift.spec.js holds them together.
  */
 export const MEMBER_AVATARS_MAX_REFS = 100

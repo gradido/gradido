@@ -11,7 +11,7 @@ import {
   isOneLine,
   memoBeginsWithLine,
   THANK_YOU_LINE_MAX_CHARS,
-} from '../../../backend/src/data/ThankYouGreeting.logic'
+} from '../../../shared/src/data/ThankYouGreeting.logic'
 
 /**
  * The words of the thank-you greeting (`thank-you-greeting.*`), in all ten languages. Rendered

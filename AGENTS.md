@@ -60,6 +60,17 @@ bunx turbo lint
 
 Use `lint:fix` during development to apply Biome's safe automatic fixes. Never use `lint:fix:unsafe` unless explicitly requested.
 
+## Two TypeScript versions
+
+Two compilers are installed side by side, on purpose:
+
+- **`typescript-go`** (an alias for `typescript@7`, the native compiler) runs every `typecheck` script. It is called by path — `node ../node_modules/typescript-go/bin/tsc --noEmit` — because both packages ship a binary named `tsc` and `node_modules/.bin` holds only one of them.
+- **`typescript`** (5.9) stays because TypeScript 7 has no JavaScript API, and three tools need one: `@anatine/esbuild-decorators` in the esbuild builds (`emitDecoratorMetadata` for type-graphql and TypeORM), `ts-node`, and the `ts-jest` preset. It can go once those three are gone.
+
+Every `tsconfig.json` therefore has to be valid for both. That rules out what TypeScript 7 removed — `baseUrl` (write `paths` relative to the file, with a leading `./`) and `moduleResolution: "node"` — and it means `types` is listed explicitly: TypeScript 7 no longer loads everything in `typeRoots` on its own, so a workspace names what it needs, including what the workspace packages it imports need (their sources are checked along with it).
+
+TypeScript 7 resolves packages through their `exports`. A workspace package exposes its types there (`"types": "./src/index.ts"`), and a deep import such as `shared/src/…` does not resolve from another package — export the symbol from the package root instead. The exception is a frontend drift spec, which reads a file in `shared` by relative path; such a file must stay free of imports (see `shared/src/const/frontendReadable.ts`).
+
 The `test` task declares dependencies. For the first test run, always use `bunx turbo test --filter=<scope>` to ensure all dependent tasks are executed.
 As long as no other workspace has been modified and no new database migration has been added, you can run tests locally afterwards using `bun run test` from the package directory.
 

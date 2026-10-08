@@ -1,4 +1,5 @@
 // AI-GENERATED — not an architecture reference
+import { describe, expect, it } from 'bun:test'
 import {
   isOneLine,
   isThankYouMotif,

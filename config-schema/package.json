@@ -14,7 +14,8 @@
       "types": "./src/schema.ts",
       "import": "./build/schema.mjs",
       "require": "./build/schema.cjs"
-    }
+    },
+    "./test/*": "./test/*.ts"
   },
   "repository": "https://github.com/gradido/gradido/config",
   "author": "Gradido Academy - https://www.gradido.net",
@@ -23,7 +24,7 @@
   "scripts": {
     "build": "esbuild src/index.ts --outdir=build --sourcemap --platform=node --target=node24.21.0 --bundle --packages=external && esbuild src/schema.ts --outfile=build/schema.cjs --format=cjs --sourcemap --platform=node --target=node24.21.0 --bundle --packages=external && esbuild src/schema.ts --outfile=build/schema.mjs --format=esm --sourcemap --platform=browser --bundle --packages=external",
     "build:bun": "bun build src/index.ts --outdir=build --target=bun --packages=external && bun build src/schema.ts --outfile=build/schema.cjs --format=cjs --target=node --packages=external && bun build src/schema.ts --outfile=build/schema.mjs --format=esm --target=browser --packages=external",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "node ../node_modules/typescript-go/bin/tsc --noEmit",
     "test": "bun test",
     "test:debug": "bun test --inspect-brk",
     "lint": "biome check --error-on-warnings .",
@@ -33,7 +34,8 @@
     "@biomejs/biome": "2.5.15",
     "@types/node": "^24.9.1",
     "jest": "27.2.4",
-    "typescript": "~5.9.3"
+    "typescript": "~5.9.3",
+    "typescript-go": "npm:typescript@7.0.2"
   },
   "dependencies": {
     "esbuild": "^0.25.2",
