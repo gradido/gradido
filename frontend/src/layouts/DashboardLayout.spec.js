@@ -393,7 +393,7 @@ describe('DashboardLayout', () => {
         wrapper.findComponent({ name: 'ContentHeader' }).element.closest('brow, .row'),
       ]
 
-      it.each(['/my-gradido-card', '/my-thank-you-card', '/scan'])(
+      it.each(['/my-gradido-card', '/my-thank-you-card', '/scan', '/calculator'])(
         'is gone on a phone and back on the desk at %s',
         async (path) => {
           await router.push(path)
@@ -408,15 +408,43 @@ describe('DashboardLayout', () => {
       )
 
       // The other half: a page that asked for the whole screen keeps it at every size.
-      it('stays gone at every size at /calculator', async () => {
+      /**
+       * The calculator prints no heading and stands in the heading's place: the layout marks
+       * the content for it, and for nobody else -- a lifted scanner would run into the heading
+       * it does print.
+       */
+      it("lifts the calculator into the heading's place, and only the calculator", async () => {
         await router.push('/calculator')
         await nextTick()
+        expect(wrapper.find('.main-content').classes()).toContain('content-at-heading')
 
-        expect(rowOf('.main-navbar').classList.contains('d-none')).toBe(true)
-        expect(rowOf('.main-navbar').classList.contains('d-lg-flex')).toBe(false)
-        expect(headingRow().classes()).toContain('d-none')
-        expect(headingRow().classes()).not.toContain('d-lg-flex')
-        expect(wrapper.findComponent({ name: 'Sidebar' }).props('showLogo')).toBe(true)
+        for (const path of ['/scan', '/my-gradido-card', '/overview']) {
+          await router.push(path)
+          await nextTick()
+          expect([
+            path,
+            wrapper.find('.main-content').classes().includes('content-at-heading'),
+          ]).toEqual([path, false])
+        }
+      })
+
+      /**
+       * jsdom lays nothing out, so the lift itself is read off the source, comments stripped:
+       * from the layout's switch-over on, and by a negative margin.
+       */
+      it('lifts on the desk only', () => {
+        const source = readFileSync(
+          join(dirname(fileURLToPath(import.meta.url)), 'DashboardLayout.vue'),
+          'utf8',
+        )
+        const style = source.slice(source.indexOf('<style')).replace(/\/\*[\s\S]*?\*\//g, '')
+        const rules = [...style.matchAll(/\.main-content\.content-at-heading\s*\{([^}]*)\}/g)]
+        expect(rules).toHaveLength(1)
+        expect(rules[0][1]).toMatch(/margin-top:\s*-\d+px/)
+        const desk = style.match(
+          /@media\s*\(width >= 1025px\)\s*\{\s*\.main-page \.main-content\.content-at-heading/,
+        )
+        expect(desk).not.toBeNull()
       })
 
       it('leaves an ordinary page alone', async () => {

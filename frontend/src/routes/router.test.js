@@ -276,21 +276,24 @@ describe('router', () => {
       expect(route.meta.bareChrome).toBe('phone')
     })
 
-    // ⚠️ The page title is not a detail on this route: the breadcrumb prefixes `pageTitle.`
-    // and prints the raw key when it finds nothing there. Counting routes cannot see that.
-    it('gives the calculator a page title the breadcrumb can resolve', () => {
+    // No heading on purpose: on the desk the breadcrumb would print it over the keypad, and
+    // the calculator takes the heading's place instead (Bernd, 08.10.2026). A route without
+    // `pageTitle` prints none -- and not the raw key either, breadcrumb.spec.js holds that.
+    it("gives the calculator no heading, and the heading's place", () => {
       const route = routes.find((r) => r.path === '/calculator')
-      expect(route.meta.pageTitle).toBe('calculator')
+      expect(route.meta.pageTitle).toBeUndefined()
+      expect(route.meta.contentAtHeading).toBe(true)
     })
 
     /**
      * ⚠️ bareChrome is what gives the calculator the whole screen on a phone -- without it
      * the translucent navbar sits exactly over the total, which is the number two people
      * read at arm's length. The layout only drops its chrome for routes that carry the flag.
+     * On a phone only: on the desk the calculator stands inside the wallet like the scanner.
      */
-    it('lets the calculator bring its own head', () => {
+    it('lets the calculator bring its own head on a phone', () => {
       const route = routes.find((r) => r.path === '/calculator')
-      expect(route.meta.bareChrome).toBe(true)
+      expect(route.meta.bareChrome).toBe('phone')
     })
 
     // The order is the whole point, and `routes.find` cannot see it. This is the regression

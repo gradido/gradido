@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import UserPassword from './UserPassword.vue'
@@ -258,5 +261,22 @@ describe('UserPassword', () => {
         expect(toastErrorMock).toHaveBeenCalledWith('Update failed')
       })
     })
+  })
+
+  /**
+   * `.btn` gives the opener a surface and a shadow, so it needs the button's own padding on
+   * both sides. A `padding-left: 0` once stood here and put the words against the left edge
+   * (Bernd, 08.10.2026). jsdom lays nothing out: read off the source, comments stripped.
+   */
+  it('leaves the opener its padding on the left', () => {
+    const source = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'UserPassword.vue'),
+      'utf8',
+    )
+    const style = source.slice(source.indexOf('<style')).replace(/\/\*[\s\S]*?\*\//g, '')
+    const opener = style.match(/\.change-password-form-opener\s*\{([\s\S]*?)\n\}/)?.[1] ?? ''
+
+    expect(opener).toMatch(/display:\s*flex/)
+    expect(opener).not.toMatch(/padding/)
   })
 })
