@@ -23,7 +23,6 @@ import * as v from 'valibot'
 // out of process.env with this, so the keys are the variable names.
 
 const SMTP_USERNAME = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
-const SMTP_PASSWORD = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#]).{8,}$/
 
 const environment = v.object({
   NODE_ENV,
@@ -145,13 +144,5 @@ export const schema = v.pipe(
       config.NODE_ENV === 'development' ||
       (config.EMAIL_USERNAME !== undefined && SMTP_USERNAME.test(config.EMAIL_USERNAME)),
     'Valid SMTP username required in production',
-  ),
-  configRule(
-    'EMAIL_PASSWORD',
-    (config) =>
-      !config.EMAIL ||
-      config.NODE_ENV === 'development' ||
-      (config.EMAIL_PASSWORD !== undefined && SMTP_PASSWORD.test(config.EMAIL_PASSWORD)),
-    'Password must be at least 8 characters long, include uppercase and lowercase letters, a number, and a special character',
   ),
 )
