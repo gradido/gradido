@@ -254,13 +254,12 @@ const environment = v.object({
 
   HUMHUB_ACTIVE: v.optional(HUMHUB_ACTIVE, false),
   HUMHUB_API_URL: v.optional(HUMHUB_API_URL),
-  // '' while HumHub is off, see the rule below
+  // the rule below asks for it once HumHub is on
   HUMHUB_JWT_KEY: v.optional(
     v.pipe(
-      v.string(),
+      nonEmptyStringSchema,
       v.description('JWT key for HumHub integration, must be the same as configured in humhub'),
     ),
-    '',
   ),
 
   ANTHROPIC_ACTIVE: v.optional(ANTHROPIC_ACTIVE, false),
@@ -277,17 +276,15 @@ const environment = v.object({
     v.pipe(booleanSchema, v.description('Whether the matching feature is on for this community')),
     false,
   ),
-  // '' while Anthropic is off, see the rule below
+  // the rule below asks for it once Anthropic is on
   ANTHROPIC_API_KEY: v.optional(
     v.pipe(
       v.string(),
-      v.minLength(1),
       v.regex(/^sk-ant-[A-Za-z0-9-_]{20,}$/, 'must be an Anthropic API key (sk-ant-...)'),
       v.description(
         'API key for the Anthropic (Claude) API, used by the Crea moderation assistant',
       ),
     ),
-    '',
   ),
   ANTHROPIC_MODEL: v.optional(
     v.pipe(

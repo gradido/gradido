@@ -23,7 +23,7 @@ export const configRule = <TConfig extends Config>(
     }
   })
 
-/** `key` must be set, and not '', while `flag` has the value `is` - `true` unless given. */
+/** `key` must be set while `flag` has the value `is` - `true` unless given. */
 export const requiredWhen = <TConfig extends Config>(
   key: keyof TConfig & string,
   flag: keyof TConfig & string,
@@ -31,7 +31,7 @@ export const requiredWhen = <TConfig extends Config>(
 ) =>
   configRule<TConfig>(
     key,
-    (config) => config[flag] !== is || (config[key] !== undefined && config[key] !== ''),
+    (config) => config[flag] !== is || config[key] !== undefined,
     `${key} is required when ${flag} is ${String(is)}`,
   )
 

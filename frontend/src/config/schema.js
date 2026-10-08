@@ -143,40 +143,6 @@ const environment = v.object({
   DECAY_START_TIME: decayStartTimeSchema,
 })
 
-/**
- * What a link preview of this wallet says about it.
- *
- * ⛔ The title, description and keywords are NOT read from the environment, and that is
- * the point of this block. They are the product's own words -- the same on every server --
- * while an environment variable is per-server configuration. The difference is not
- * academic: a server keeps its OWN `.env`, `.env.dist` is only the template it was once
- * copied from, and `frontend/.env.template` used to carry these six names straight through
- * from there. So changing the words here changed nothing anywhere: every server went on
- * serving what its own file said, until somebody with shell access edited all of them by
- * hand. Measured on 20.09.2026, ki-playground and stage1 served byte-identical texts -- the
- * knob had never once been turned, and it was the only thing standing between a decided
- * wording and the people reading it.
- *
- * ✅ Should a community ever want its own wording, it is three lines back: read them from
- * the environment above and hand the names through `frontend/.env.template`. Nobody has
- * wanted it in the four years these have existed.
- *
- * `META_URL` and `META_AUTHOR` stay in the environment: the first genuinely differs per
- * server (it is built from the host), and the second names whoever runs it.
- */
-const meta = {
-  META_TITLE_DE: 'Gradido – Helfen. Schenken. Danken.',
-  META_TITLE_EN: 'Gradido – Help. Give. Thank.',
-  META_DESCRIPTION_DE:
-    'Ein Netzwerk von Menschen, die einander helfen, beschenken und danken. Kostenfrei. Gemeinschaftsbasiert. Open Source.',
-  META_DESCRIPTION_EN:
-    'A network of people who help, give to and thank each other. Free of charge. Community-based. Open source.',
-  META_KEYWORDS_DE:
-    'Helfen, Schenken, Danken, Gemeinschaft, Nachbarschaft, Ehrenamt, Gemeinwohl, Dankbarkeit',
-  META_KEYWORDS_EN:
-    'Helping, Giving, Thanking, Community, Neighbourhood, Volunteering, Common Good, Gratitude',
-}
-
 const schema = v.pipe(
   environment,
   v.transform((env) => {
@@ -188,7 +154,6 @@ const schema = v.pipe(
     const COMMUNITY_URL = env.COMMUNITY_URL ?? FRONTEND_MODULE_URL
     return {
       ...env,
-      ...meta,
       DEBUG: env.NODE_ENV !== 'production',
       PRODUCTION: env.NODE_ENV === 'production',
       BUILD_COMMIT_SHORT: (env.BUILD_COMMIT ?? '0000000').slice(0, 7),

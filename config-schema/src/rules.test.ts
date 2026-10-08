@@ -25,10 +25,7 @@ describe('requiredWhen', () => {
     expect(issue?.input).toBeUndefined()
   })
 
-  it('takes an empty string as not set', () => {
-    expect(firstIssue(schema, { ACTIVE: true, URL: '' })?.message).toBe(
-      'URL is required when ACTIVE is true',
-    )
+  it('is content with any value the key schema took', () => {
     expect(firstIssue(schema, { ACTIVE: true, URL: 'x' })).toBeUndefined()
   })
 

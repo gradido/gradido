@@ -95,19 +95,23 @@ const environment = v.object({
     v.pipe(emailSchema, v.description('Email address used in test mode')),
     'stage1@gradido.net',
   ),
-  // '' while EMAIL is off or in development, a valid SMTP username otherwise: the rule below
+  // the rule below asks for it with EMAIL on outside development
   EMAIL_USERNAME: v.optional(
-    v.pipe(v.string(), v.description('Username for SMTP authentication (optional in development)')),
-    '',
+    v.pipe(
+      nonEmptyStringSchema,
+      v.description('Username for SMTP authentication (optional in development)'),
+    ),
   ),
   EMAIL_SENDER: v.optional(
     v.pipe(emailSchema, v.description('Email address used as sender')),
     'info@gradido.net',
   ),
-  // '' while EMAIL is off or in development, a complex password otherwise: the rule below
+  // the rule below asks for it with EMAIL on outside development
   EMAIL_PASSWORD: v.optional(
-    v.pipe(v.string(), v.description('Password for SMTP authentication (optional in development)')),
-    '',
+    v.pipe(
+      nonEmptyStringSchema,
+      v.description('Password for SMTP authentication (optional in development)'),
+    ),
   ),
   EMAIL_SMTP_HOST: v.optional(
     v.pipe(hostnameSchema, v.description('SMTP server hostname')),
@@ -139,7 +143,7 @@ export const schema = v.pipe(
     (config) =>
       !config.EMAIL ||
       config.NODE_ENV === 'development' ||
-      SMTP_USERNAME.test(config.EMAIL_USERNAME),
+      (config.EMAIL_USERNAME !== undefined && SMTP_USERNAME.test(config.EMAIL_USERNAME)),
     'Valid SMTP username required in production',
   ),
   configRule(
@@ -147,7 +151,7 @@ export const schema = v.pipe(
     (config) =>
       !config.EMAIL ||
       config.NODE_ENV === 'development' ||
-      SMTP_PASSWORD.test(config.EMAIL_PASSWORD),
+      (config.EMAIL_PASSWORD !== undefined && SMTP_PASSWORD.test(config.EMAIL_PASSWORD)),
     'Password must be at least 8 characters long, include uppercase and lowercase letters, a number, and a special character',
   ),
 )
