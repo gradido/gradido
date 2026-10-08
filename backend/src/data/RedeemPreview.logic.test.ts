@@ -1,12 +1,13 @@
 // AI-GENERATED — not an architecture reference
+
 import { ThankYouGreetingPictureInfo, TransactionLinkForPreview } from 'database'
+import { THANK_YOU_MOTIFS } from 'shared'
 import {
   OG_LOCALE,
   PREVIEW_LANGUAGES,
   previewLanguageOf,
   redeemPreviewOf,
 } from './RedeemPreview.logic'
-import { THANK_YOU_MOTIFS } from './ThankYouGreeting.logic'
 import { pictureRenditionsForCodeHolder, pictureToServe } from './ThankYouGreetingPicture.logic'
 
 const NOW = new Date('2026-10-05T14:30:00.000Z')

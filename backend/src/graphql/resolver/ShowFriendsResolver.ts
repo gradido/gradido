@@ -1,9 +1,10 @@
 // AI-GENERATED — not an architecture reference
+
 import { ShowFriends } from '@model/ShowFriends'
 import { dbFindLatestArrival, dbFindMemberAvatarTimestamps, dbFindReferrerAlias } from 'database'
+import { avatarColorIndex } from 'shared'
 import { Authorized, Ctx, Query, Resolver } from 'type-graphql'
 import { RIGHTS } from '@/auth/RIGHTS'
-import { avatarColorIndex } from '@/data/AvatarColor.logic'
 import { Context, getUser } from '@/server/context'
 
 /**

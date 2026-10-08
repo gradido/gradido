@@ -6,7 +6,7 @@ import { Field, ObjectType } from 'type-graphql'
  * The picture a member sent with a transfer, as the booking list names it: the motif's key, or
  * that it is a photo of the member's own. In the names of ThankYouGreeting, its sibling.
  *
- * `motif` is a plain string (data/ThankYouGreeting.logic.ts says why): a wallet older than the
+ * `motif` is a plain string (shared/src/data/ThankYouGreeting.logic.ts says why): a wallet older than the
  * server reads a motif it does not know as a text it has no picture for.
  */
 @ObjectType()

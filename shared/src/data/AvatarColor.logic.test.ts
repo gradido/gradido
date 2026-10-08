@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-
+import { describe, expect, it } from 'bun:test'
 import { avatarColorIndex } from './AvatarColor.logic'
 
 // The full backend-against-frontend comparison lives on the wallet side

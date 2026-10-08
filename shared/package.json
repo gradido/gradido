@@ -6,6 +6,7 @@
   "types": "./src/index.ts",
   "exports": {
     ".": {
+      "types": "./src/index.ts",
       "import": "./build/index.js",
       "require": "./build/index.js"
     }
@@ -18,7 +19,7 @@
     "build": "esbuild src/index.ts --outdir=build --platform=node --target=node24.21.0 --bundle --packages=external",
     "build:bun": "bun build src/index.ts --outdir=build --target=bun --packages=external",
     "test": "bun test",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "node ../node_modules/typescript-go/bin/tsc --noEmit",
     "lint": "biome check --error-on-warnings .",
     "lint:fix": "biome check --error-on-warnings . --write"
   },
@@ -28,6 +29,7 @@
     "@types/node": "^24.9.1",
     "@types/uuid": "^10.0.0",
     "typescript": "~5.9.3",
+    "typescript-go": "npm:typescript@7.0.2",
     "uuid": "^8.3.2"
   },
   "dependencies": {

@@ -1,8 +1,9 @@
 // AI-GENERATED — not an architecture reference
+
 import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { AppDatabase, User as DbUser } from 'database'
 import { GraphQLError } from 'graphql'
-import { avatarColorIndex } from '@/data/AvatarColor.logic'
+import { avatarColorIndex } from 'shared'
 import { userFactory } from '@/seeds/factory/user'
 import { login } from '@/seeds/graphql/mutations'
 import { showFriends } from '@/seeds/graphql/queries'

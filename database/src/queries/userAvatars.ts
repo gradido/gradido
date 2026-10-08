@@ -207,7 +207,7 @@ export async function dbFindMemberAvatarTimestampsByGradidoIds(
  * request at the API layer (MEMBER_AVATARS_FULL_MAX_PER_REQUEST, kept in a budget that
  * every operation of a batched request shares). The second caller, the
  * federation MemberAvatarsResolver, takes exactly one id per field and counts nothing per
- * request; federation/src/data/MemberAvatars.logic.ts says what bounds one there.
+ * request; MEMBER_AVATARS_MAX_REFS in shared says what bounds one there.
  *
  * ⛔ Takes the PAIR, and both halves are used. The batched reader above matches on the id
  * alone and hands the pair back so the caller can sort the answer out; that is right for a

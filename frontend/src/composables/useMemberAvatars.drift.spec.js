@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 
 import { describe, expect, it } from 'vitest'
-import { MEMBER_AVATARS_MAX_REFS as SERVER_MAX } from '../../../backend/src/data/MemberAvatars.logic'
+import { MEMBER_AVATARS_MAX_REFS as SERVER_MAX } from '../../../shared/src/const/frontendReadable'
 import { MEMBER_AVATARS_MAX_REFS } from './useMemberAvatars'
 
 // How many members one picture request may name exists twice: in the backend, which
@@ -13,7 +13,7 @@ import { MEMBER_AVATARS_MAX_REFS } from './useMemberAvatars'
 // server's number without lowering this one and every chunk is refused -- no faces at all,
 // no error anywhere, for everybody.
 //
-// The backend file is imported directly. It is dependency-free by design, and vitest
+// The file in `shared` is imported directly. It is dependency-free by design, and vitest
 // transforms TypeScript on its own, the same way avatarColorIndex.drift.spec.js does.
 
 describe('the picture-request cap on both sides', () => {

@@ -20,8 +20,6 @@ module.exports = {
     '@enum/(.*)': '<rootDir>/src/graphql/enum/$1',
     '@model/(.*)': '<rootDir>/src/graphql/model/$1',
     '@union/(.*)': '<rootDir>/src/graphql/union/$1',
-    '@repository/(.*)': '<rootDir>/src/typeorm/repository/$1',
-    '@typeorm/(.*)': '<rootDir>/src/typeorm/$1',
     '@test/(.*)': '<rootDir>/test/$1',
   },
   transform: {

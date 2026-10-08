@@ -11,7 +11,7 @@
  * other members' real names (NU-019) while no existing circle colour may move (AS-010):
  * the server, which still knows the name, sends the finished digit instead (NU-017).
  *
- * The wallet cannot import from the backend and the backend cannot import from the
+ * The wallet has no dependency on `shared` and the server cannot import from the
  * wallet, so the two copies are guarded by a drift test on the wallet side
  * (frontend/src/utils/avatarColorIndex.drift.spec.js), the same way the admin's copy of
  * avatarColor.js is guarded against the wallet's.

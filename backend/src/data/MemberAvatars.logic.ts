@@ -1,18 +1,6 @@
 // AI-GENERATED — not an architecture reference
 
 /**
- * What one `memberAvatars` request may name.
- *
- * ⛔ Dependency-free on purpose. The wallet chunks its requests by the same number
- * (frontend/src/composables/useMemberAvatars.js) because a request over the cap is refused
- * WHOLE -- so a wallet that keeps sending the old number after the cap is lowered shows no
- * pictures at all, silently. `useMemberAvatars.drift.spec.js` imports this file directly to
- * hold the two together, the way avatarColorIndex.drift.spec.js does, and it can only do
- * that as long as nothing here imports type-graphql or class-validator.
- */
-export const MEMBER_AVATARS_MAX_REFS = 100
-
-/**
  * How many FULL-size pictures one request may be served (AS-018).
  *
  * ⛔ Counted per HTTP REQUEST, not per field, and that is the whole point: `memberAvatarFull`
@@ -91,9 +79,6 @@ export const FOREIGN_AVATAR_DATES_REFRESH_MS = 10 * 60 * 1000
  * ★ Grouped by the PAIR's community, never by the id alone: `users` is unique on
  * (gradido_id, community_uuid), so the same id under two communities is two people and is
  * asked about twice, once in each group.
- *
- * ⛔ The types are spelled out here instead of imported: this file is read directly by two
- * drift tests (the wallet's and the federation module's) and has to stay free of imports.
  */
 export const splitMemberRefsByCommunity = (
   refs: readonly { gradidoID: string; communityUuid?: string | null }[],

@@ -2,12 +2,13 @@ import { ApolloServerTestClient, cleanDB, testEnvironment } from '@test/helpers'
 import { getLogger } from 'config-schema/test/testSetup'
 import {
   AppDatabase,
+  createCommunity,
+  createVerifiedFederatedCommunity,
   Community as DbCommunity,
   FederatedCommunity as DbFederatedCommunity,
   dbSelectHomeCommunity,
   getHomeCommunity,
 } from 'database'
-import { createCommunity, createVerifiedFederatedCommunity } from 'database/src/seeds/community'
 import { GraphQLError } from 'graphql/error/GraphQLError'
 import { v4 as uuidv4 } from 'uuid'
 import { CONFIG } from '@/config'

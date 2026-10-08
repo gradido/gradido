@@ -11,7 +11,7 @@
     "build": "tsx esbuild.config.ts",
     "start": "cross-env TZ=UTC NODE_ENV=production node build/index.js",
     "dev": "cross-env TZ=UTC nodemon -w src --ext ts,json -r tsconfig-paths/register src/index.ts",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "node ../node_modules/typescript-go/bin/tsc --noEmit",
     "lint": "biome check --error-on-warnings .",
     "lint:fix": "biome check --error-on-warnings . --write",
     "test": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_dht jest --verbose --runInBand --forceExit --detectOpenHandles",
@@ -34,7 +34,7 @@
     "@types/uuid": "^8.3.4",
     "config-schema": "*",
     "database": "*",
-    "dotenv": "^10.0.0",
+    "dotenv": "^16.6.1",
     "esbuild": "^0.25.3",
     "jest": "27.5.1",
     "log4js": "^6.9.1",
@@ -48,6 +48,7 @@
     "tsx": "^4.19.4",
     "typeorm": "^0.3.25",
     "typescript": "~5.9.3",
+    "typescript-go": "npm:typescript@7.0.2",
     "uuid": "^8.3.2"
   },
   "engines": {

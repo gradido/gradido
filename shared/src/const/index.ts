@@ -1,5 +1,7 @@
 import { getDecayRespiteCent, getDecayStartTime } from 'shared-native'
 
+export * from './frontendReadable'
+
 export const LOG4JS_BASE_CATEGORY_NAME = 'shared'
 
 // gradido transaction logic constants

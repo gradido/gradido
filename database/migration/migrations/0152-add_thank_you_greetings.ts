@@ -20,7 +20,7 @@
 // afterwards.
 //
 // The columns are wider than what the backend lets in (80 and 40 characters,
-// backend/src/data/ThankYouGreeting.logic.ts), so that changing those bounds is no migration.
+// shared/src/data/ThankYouGreeting.logic.ts), so that changing those bounds is no migration.
 //
 // No foreign key: a link is soft-deleted, and a cascade would never fire. The row is taken
 // out by deleteTransactionLink itself.

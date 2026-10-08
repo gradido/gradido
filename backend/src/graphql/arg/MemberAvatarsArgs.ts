@@ -2,8 +2,8 @@
 
 import { MemberAvatarRefInput } from '@input/MemberAvatarRefInput'
 import { ArrayMaxSize, IsArray, ValidateNested } from 'class-validator'
+import { MEMBER_AVATARS_MAX_REFS } from 'shared'
 import { ArgsType, Field } from 'type-graphql'
-import { MEMBER_AVATARS_MAX_REFS } from '@/data/MemberAvatars.logic'
 
 /**
  * Whose pictures are being asked about.
@@ -12,7 +12,7 @@ import { MEMBER_AVATARS_MAX_REFS } from '@/data/MemberAvatars.logic'
  * one rejects an oversized request before a single row is read, while the one in the
  * resolver is the rule stated where somebody changing the query will see it. Only the
  * first can protect the database, only the second explains itself. The number itself lives
- * in `data/MemberAvatars.logic.ts`, where the wallet's drift spec can read it.
+ * in `shared/src/const/frontendReadable.ts`, where the wallet's drift spec can read it.
  */
 @ArgsType()
 export class MemberAvatarsArgs {
