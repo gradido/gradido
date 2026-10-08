@@ -83,7 +83,6 @@ jest.mock('core', () => {
     sendEmailTranslated: jest.fn(),
   }
 })
-jest.mock('@/password/EncryptorUtils')
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 

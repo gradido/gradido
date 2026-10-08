@@ -25,7 +25,6 @@ const interactionLogger = getLogger(
   `${LOG4JS_BASE_CATEGORY_NAME}.interactions.updateUnconfirmedContribution`,
 )
 
-jest.mock('@/password/EncryptorUtils')
 jest.mock('core', () => {
   const originalModule = jest.requireActual('core')
   return {

@@ -30,8 +30,6 @@ import { bobBaumeister } from '@/seeds/users/bob-baumeister'
  * rule ("this counter counts WRONG PINS") and the code applied it four steps too late.
  */
 
-jest.mock('@/password/EncryptorUtils')
-
 CONFIG.DLT_ACTIVE = false
 
 let mutate: ApolloServerTestClient['mutate']

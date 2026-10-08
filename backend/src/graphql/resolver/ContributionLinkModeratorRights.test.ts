@@ -19,8 +19,6 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 // up and pass it on as promotional material — they just cannot create, change or remove one.
 // Both moderator kinds are checked, because MODERATOR_AI inherits the same rights.
 
-jest.mock('@/password/EncryptorUtils')
-
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
 let db: AppDatabase

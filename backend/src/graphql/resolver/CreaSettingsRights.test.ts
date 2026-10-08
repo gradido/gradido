@@ -27,8 +27,6 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 // switch that spends money to every moderator. Only a request through the schema can
 // see the difference.
 
-jest.mock('@/password/EncryptorUtils')
-
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
 let db: AppDatabase

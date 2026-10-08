@@ -7,6 +7,7 @@ import {
 } from 'database'
 import { internet, name } from 'faker'
 import { getLogger } from 'log4js'
+import { AppContext } from 'shared'
 import { CONFIG } from '@/config'
 import { initLogging } from '@/server/logger'
 import { writeHomeCommunityEntry } from './community'
@@ -26,7 +27,10 @@ const run = async () => {
   await db.init()
   await clearDatabase(db)
   logger.info('clean database successful...')
-  logger.info(`crypto worker enabled: ${CONFIG.USE_CRYPTO_WORKER}`)
+  AppContext.getInstance().init({
+    appSecret: CONFIG.LOGIN_APP_SECRET,
+    serverKey: CONFIG.LOGIN_SERVER_KEY,
+  })
 
   // seed home community
   const homeCommunity = await writeHomeCommunityEntry()

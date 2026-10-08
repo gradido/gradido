@@ -1,90 +1,13 @@
-import { cpus } from 'node:os'
-import path from 'node:path'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
-import { getLogger } from 'log4js'
-import { ResourceExhausted, Result } from 'shared'
-import { crypto_shorthash_KEYBYTES } from 'sodium-native'
 import * as v from 'valibot'
-import { Pool, pool } from 'workerpool'
-import { CONFIG } from '@/config'
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { LogError } from '@/server/LogError'
-import { SecretKeyCryptographyCreateKeyFunc } from './EncryptionWorker.js'
 import { PasswordDataInput, passwordDataSchema } from './passwordData.schema'
 
-const configLoginAppSecret = Buffer.from(CONFIG.LOGIN_APP_SECRET, 'hex')
-const configLoginServerKey = Buffer.from(CONFIG.LOGIN_SERVER_KEY, 'hex')
-
-const createLogger = (method: string) =>
-  getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.password.EncryptoUtils.${method}`)
-
-let encryptionWorkerPool: Pool | undefined
-
-if (CONFIG.USE_CRYPTO_WORKER === true) {
-  encryptionWorkerPool = pool(path.join(__dirname, 'worker.js'), {
-    maxQueueSize: 30 * cpus().length,
-  })
-}
-
 /**
- * @param salt
- * @param password
- * @returns can throw an exception if worker pool is full, if more than 30 * cpu core count logins happen in a time range of 30 seconds
+ * ⛔ Which string a password was derived from. It decides whether a stored hash can be
+ * reproduced at all, so it reads the scheme off the row it is handed and nothing else.
+ * The derivation itself lives in the native app context (shared's AppContext).
  */
-export const SecretKeyCryptographyCreateKey = (
-  salt: string,
-  password: string,
-): Result<Promise<bigint>, ResourceExhausted> => {
-  try {
-    if (configLoginServerKey.length !== crypto_shorthash_KEYBYTES) {
-      throw new LogError(
-        'ServerKey has an invalid size',
-        configLoginServerKey.length,
-        crypto_shorthash_KEYBYTES,
-      )
-    }
-    // let result: bigint
-    if (encryptionWorkerPool) {
-      return {
-        success: true,
-        value: encryptionWorkerPool.exec('SecretKeyCryptographyCreateKeyFunc', [
-          salt,
-          password,
-          configLoginAppSecret,
-          configLoginServerKey,
-        ]),
-      }
-    } else {
-      return {
-        success: true,
-        value: Promise.resolve(
-          SecretKeyCryptographyCreateKeyFunc(
-            salt,
-            password,
-            configLoginAppSecret,
-            configLoginServerKey,
-          ),
-        ),
-      }
-    }
-    // return result
-  } catch (e) {
-    // pool is throwing this error
-    // throw new Error('Max queue size of ' + this.maxQueueSize + ' reached');
-    // will be shown in frontend to user
-    // throw new LogError('Server is full, please try again in 10 minutes.', e)
-    createLogger('SecretKeyCryptographyCreateKey').warn(`Password Hashing throw: ${e}`)
-    return {
-      success: false,
-      error: new ResourceExhausted(
-        'CryptoWorkerPool',
-        'SecretKeyCryptographyCreateKey',
-        'Server is full, please try again in 10 minutes.',
-      ),
-    }
-  }
-}
-
 export const getUserCryptographicSalt = (passwordData: PasswordDataInput): string => {
   const user = v.parse(passwordDataSchema, passwordData)
   switch (user.passwordEncryptionType) {

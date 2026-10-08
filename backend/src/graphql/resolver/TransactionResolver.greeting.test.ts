@@ -51,7 +51,6 @@ jest.mock('core', () => {
     sendTransactionReceivedEmail: jest.fn(async () => null),
   }
 })
-jest.mock('@/password/EncryptorUtils')
 
 const selectGreetings = dbSelectThankYouGreetingsByLinkIds as jest.MockedFunction<
   typeof dbSelectThankYouGreetingsByLinkIds

@@ -113,7 +113,6 @@ FROM base as production
 
 # Copy "binary"-files from build image
 COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/backend/build/index.js ./index.js
-COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/backend/build/worker.js ./worker.js
 
 # add node_modules from production_node_modules
 COPY --chown=app:app --from=production-node-modules ${DOCKER_WORKDIR}/node_modules ./node_modules

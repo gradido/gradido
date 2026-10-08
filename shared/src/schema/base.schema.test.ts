@@ -7,6 +7,7 @@ import {
   blankAsNull,
   durationSchema,
   emailSchema,
+  hexBytesSchema,
   nodeCryptoKeyObjectSchema,
   positiveIntegerSchema,
   uint32Schema,
@@ -19,6 +20,26 @@ describe('uuidv4 schema', () => {
       const uuid = uuidv4()
       expect(v.safeParse(uuidv4Schema, uuid).success).toBeTruthy()
     }
+  })
+})
+
+describe('hexBytes schema', () => {
+  it('turns hex into the bytes it spells, whatever the case and with a prefix', () => {
+    for (const input of ['a51ef8ac', 'A51EF8AC', '0xa51ef8ac', '0ha51ef8ac']) {
+      expect(v.parse(hexBytesSchema, input)).toEqual(Buffer.from('a51ef8ac', 'hex'))
+    }
+  })
+
+  it('refuses what Buffer.from would read wrong', () => {
+    for (const input of ['a51ef8a', 'a51ef8ag', '', 'xyz', ' a51ef8ac']) {
+      expect(v.safeParse(hexBytesSchema, input).success).toBe(false)
+    }
+  })
+
+  it('composes with a length in bytes', () => {
+    const key = v.pipe(hexBytesSchema, v.length(16))
+    expect(v.safeParse(key, 'a51ef8ac7ef1abf162fb7a65261acd7a').success).toBe(true)
+    expect(v.safeParse(key, 'a51ef8ac').success).toBe(false)
   })
 })
 

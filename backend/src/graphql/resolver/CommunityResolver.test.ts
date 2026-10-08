@@ -25,8 +25,6 @@ import {
 } from '@/seeds/graphql/queries'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 
-jest.mock('@/password/EncryptorUtils')
-
 CONFIG.FEDERATION_VALIDATE_COMMUNITY_TIMER = 1000
 
 // to do: We need a setup for the tests that closes the connection
