@@ -141,12 +141,10 @@ const underMemberLock = <T>(userId: number, work: (manager: EntityManager) => Pr
   // `release()` and leaked its pooled connection, and the pool waits rather than erroring once
   // it is empty - and it wraps its rollback in a catch, so a rollback that fails on a dead
   // connection cannot replace the error that caused it.
-  db
-    .getDataSource()
-    .transaction('REPEATABLE READ', async (manager) => {
-      await dbLockUserRow(userId, manager)
-      return work(manager)
-    })
+  db.getDataSource().transaction('REPEATABLE READ', async (manager) => {
+    await dbLockUserRow(userId, manager)
+    return work(manager)
+  })
 
 /**
  * Every way a change can end without being carried out. A fresh row goes, a taken-back one

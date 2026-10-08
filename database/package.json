@@ -31,7 +31,7 @@
     "removeCrossGroupTransactions": "cross-env TZ=UTC bun migration/scripts/removeCrossGroupTransactions.ts"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.0.0",
+    "@biomejs/biome": "2.5.15",
     "@types/faker": "^5.5.9",
     "@types/geojson": "^7946.0.13",
     "@types/mysql": "^2.15.27",

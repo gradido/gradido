@@ -1,5 +1,4 @@
 import { latestDbVersion } from './detectLastDBVersion'
-export { latestDbVersion }
 
 export * from './AppDatabase'
 export * from './entity'
@@ -10,3 +9,4 @@ export * from './logic'
 export * from './queries'
 export * from './schemas'
 export * from './seeds'
+export { latestDbVersion }

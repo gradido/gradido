@@ -23,7 +23,7 @@
     "sodium-universal": "4.0.1"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.0.0",
+    "@biomejs/biome": "2.5.15",
     "@hyperswarm/dht": "6.5.1",
     "@swc/cli": "^0.7.3",
     "@swc/core": "^1.11.24",
