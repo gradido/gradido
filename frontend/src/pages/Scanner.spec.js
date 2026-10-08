@@ -39,6 +39,9 @@ const mockRouter = {
   back: vi.fn(),
   push: vi.fn(),
   options: { history: { state: historyState } },
+  // The back arrow asks what the entry behind the page is (utils/backOrOverview, which has
+  // its own spec against a real router): here everything but the sign-in form is the wallet.
+  resolve: (path) => ({ meta: { requiresAuth: !String(path).startsWith('/login') } }),
 }
 vi.mock('vue-router', () => ({ useRouter: () => mockRouter }))
 
@@ -399,6 +402,15 @@ describe('Scanner page', () => {
       await el(wrapper, 'back').trigger('click')
       expect(scannerMock.stop).toHaveBeenCalled()
       expect(mockRouter.back).toHaveBeenCalled()
+    })
+
+    // The loop of 08.10.2026: behind a page reached through the sign-in form stands the form.
+    it('back does not step to the sign-in form: it stops the camera and lands on the overview', async () => {
+      historyState.back = '/login'
+      const wrapper = mountScanner()
+      await wrapper.find('[data-test="scanner-back"]').trigger('click')
+      expect(mockRouter.back).not.toHaveBeenCalled()
+      expect(mockRouter.push).toHaveBeenCalledWith('/overview')
     })
 
     it('back from a deep link lands on the overview', async () => {

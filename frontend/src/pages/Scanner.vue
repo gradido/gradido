@@ -225,6 +225,7 @@
 import { BButton, BFormInput } from 'bootstrap-vue-next'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { backOrOverview } from '@/utils/backOrOverview'
 import CONFIG from '@/config'
 import { useQrScanner } from '@/composables/useQrScanner'
 import { useParkedAmount } from '@/composables/useParkedAmount'
@@ -394,15 +395,12 @@ const closeManual = () => {
 /**
  * Same landing rule as the calculator: back to wherever the scanner was opened from,
  * and a deep link (no wallet history) lands on the overview instead of walking out of
- * the wallet.
+ * the wallet -- as does a step back that would lead to the sign-in form
+ * (utils/backOrOverview).
  */
 const goBack = () => {
   scanner.stop()
-  if (router.options.history.state.back) {
-    router.back()
-  } else {
-    router.push('/overview')
-  }
+  backOrOverview(router)
 }
 
 // The camera starts as soon as the video element exists — onMounted is the first
