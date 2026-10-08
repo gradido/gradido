@@ -127,8 +127,12 @@ const onSubmit = handleSubmit(async () => {
   align-items: center;
 
   /* No `margin-left: auto` any more -- that was what pushed the button to the right edge,
-     and a flex item without it sits where its column starts. */
-  padding-left: 0;
+     and a flex item without it sits where its column starts.
+
+     ⛔ And no `padding-left: 0`. It was meant for a button without a surface, flush with
+     the column -- but `.btn` gives this one a surface and a shadow, and on it the words
+     stood against the left edge while the pencil had the button's ordinary padding on the
+     right (Bernd, 08.10.2026). The button's own padding on both sides. */
 
   > span {
     margin-right: 15px;
