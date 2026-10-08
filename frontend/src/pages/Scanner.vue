@@ -1,8 +1,12 @@
 <!-- AI-GENERATED — not an architecture reference -->
 <template>
   <div class="scanner" data-test="scanner">
-    <!-- The head is the page's own chrome, like the calculator's: the route is bareChrome,
-         so on a phone this arrow is the only way out. 44px target, pressed one-handed. -->
+    <!-- The head is the page's own chrome, like the calculator's: the route is bareChrome
+         on a phone, so there this arrow is the only way out. 44px target, pressed
+         one-handed. The arrow has a line of its own and the title stands beneath it,
+         centred over the viewfinder -- the same head as the member's own codes
+         (OwnCodeView). From lg on the wallet's chrome is back and the layout prints the
+         title as the page heading, so this head goes (style block). -->
     <div class="scanner-head">
       <button
         type="button"
@@ -13,7 +17,7 @@
       >
         <IMdiArrowLeft />
       </button>
-      <div class="scanner-title">{{ $t('scanner.title') }}</div>
+      <div class="scanner-title fs-5" data-test="scanner-title">{{ $t('scanner.title') }}</div>
     </div>
 
     <!-- ── The viewfinder ─────────────────────────────────────────────────────────── -->
@@ -416,41 +420,63 @@ onUnmounted(() => {
 
 <style lang="scss" scoped>
 /*
-  The scanner belongs to the calculator's tool family: the same dark surface, so at a
-  counter the two read as one instrument. Gold is the wallet's own accent (the gradient
-  of .btn-gradido), here on the corners that say "hold it in here".
+  No surface of its own any more: the scanner stands on the page like the member's own
+  codes do, and on the desk inside the wallet's chrome. The anthracite panel it used to
+  bring made it look like a window from somewhere else (Bernd, 08.10.2026). So the ink
+  follows the colour mode -- through the variables the colour-mode bridge switches
+  (_color-mode-bridge.scss) -- and only the two signal colours need a value per mode,
+  below. Gold is the wallet's own accent (the gradient of .btn-gradido), here on the
+  corners that say "hold it in here".
 
   ⛔ Custom properties on the element, NOT scss variables at the top of the block: the
   style block is parsed by lightningcss when it is bundled, and a declaration outside any
   selector fails there — which neither lint nor the tests catch, only `bun run build`.
 */
 .scanner {
-  --scan-surface: rgb(40 40 40);
-  --scan-ink: rgb(255 253 253);
-  --scan-dim: rgb(150 150 150);
+  --scan-ink: var(--bs-body-color);
+  --scan-dim: var(--bs-secondary-color);
+  --scan-card: var(--bs-secondary-bg);
+  --scan-sheet: var(--bs-body-bg);
   --scan-gold: rgb(249 205 105);
-  --scan-green: rgb(132 174 116);
+  --scan-green: rgb(47 110 34);
+  --scan-red: rgb(176 42 28);
 
   position: relative;
   max-width: 480px;
-
-  /* The pair, not just dvh: engines without dvh (iOS Safari 15.0-15.3, older
-     Chromium) drop the second line entirely and the dark surface would collapse to
-     content height. Same deliberate fallback as MatchingMap. */
-  min-height: 100vh;
-  min-height: 100dvh;
   margin: 0 auto;
   padding-bottom: 24px;
   color: var(--scan-ink);
-  background-color: var(--scan-surface);
-  border-radius: 12px;
-  overflow: hidden;
+}
+
+/* The two signal colours for a dark page; the light ones above are darker so they hold on
+   a light one. The card is a step darker than the mode's muted surface: the dimmed text on
+   it measured 4.23:1 there, and the red 4.40:1. */
+.dark-mode .scanner {
+  --scan-card: rgb(44 45 48);
+  --scan-green: rgb(132 174 116);
+  --scan-red: rgb(240 150 140);
+}
+
+/* On a phone the scanner IS the screen (the route is bare there), and the slid-up cards
+   sit at its bottom edge -- so it has to reach that edge. The pair, not just dvh: engines
+   without dvh (iOS Safari 15.0-15.3, older Chromium) drop the second line entirely. On
+   the desk the page has the wallet around it and takes the height of its content. */
+@media (width <= 1024.98px) {
+  .scanner {
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
 }
 
 .scanner-head {
-  display: flex;
-  align-items: center;
-  padding: 4px 8px;
+  padding: 4px 8px 0;
+}
+
+/* The layout's switch-over (LG_BREAKPOINT_PX), not Bootstrap's 992. */
+@media (width >= 1025px) {
+  .scanner-head {
+    display: none;
+  }
 }
 
 /* 44px stays the target even though the icon reads small -- same rule as the calculator. */
@@ -468,11 +494,13 @@ onUnmounted(() => {
 }
 
 .scanner-head-key:hover {
-  color: rgb(210 210 210);
+  color: var(--scan-ink);
 }
 
+/* The size comes from `fs-5` in the template, as on the own-code pages. */
 .scanner-title {
-  font-size: 18px;
+  text-align: center;
+  padding: 0 8px 8px;
 }
 
 .scanner-frame {
@@ -564,7 +592,7 @@ onUnmounted(() => {
   font-size: 14px;
   text-align: center;
   color: var(--scan-ink);
-  background-color: rgb(60 60 60);
+  background-color: var(--scan-card);
   border-radius: 8px;
 }
 
@@ -585,7 +613,7 @@ onUnmounted(() => {
 .scanner-way-card {
   margin-top: 16px;
   padding: 14px 16px;
-  background-color: rgb(55 55 55);
+  background-color: var(--scan-card);
   border-radius: 12px;
 }
 
@@ -620,7 +648,7 @@ onUnmounted(() => {
   right: 0;
   bottom: 0;
   padding: 18px 20px 16px;
-  background-color: rgb(28 28 28);
+  background-color: var(--scan-sheet);
   border-top-left-radius: 16px;
   border-top-right-radius: 16px;
   box-shadow: 0 -8px 30px rgb(0 0 0 / 45%);
@@ -680,6 +708,6 @@ onUnmounted(() => {
 .scanner-manual-invalid {
   margin-top: 8px;
   font-size: 14px;
-  color: rgb(228 132 120);
+  color: var(--scan-red);
 }
 </style>

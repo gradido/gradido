@@ -376,13 +376,13 @@ describe('DashboardLayout', () => {
     )
 
     /**
-     * The member's own codes are bare on a phone only (`bareChrome: 'phone'`). On the desk
+     * The member's own codes and the scanner are bare on a phone only (`bareChrome: 'phone'`). On the desk
      * they had no navbar, no tools and no heading either, and looked like a page from
      * somewhere else (Bernd, 08.10.2026). So the three rows of chrome are hidden below lg
      * and back from lg on, and the menu does not print the logo a second time -- the
      * navbar that carries it is there.
      */
-    describe('the chrome around the code pages', () => {
+    describe('the chrome around the code pages and the scanner', () => {
       // BRow is not registered in this file, so a row renders as a `brow` element carrying
       // the classes it was given -- which is all these tests read.
       const rowOf = (selector) => wrapper.find(selector).element.closest('brow, .row')
@@ -393,7 +393,7 @@ describe('DashboardLayout', () => {
         wrapper.findComponent({ name: 'ContentHeader' }).element.closest('brow, .row'),
       ]
 
-      it.each(['/my-gradido-card', '/my-thank-you-card'])(
+      it.each(['/my-gradido-card', '/my-thank-you-card', '/scan'])(
         'is gone on a phone and back on the desk at %s',
         async (path) => {
           await router.push(path)
@@ -408,8 +408,8 @@ describe('DashboardLayout', () => {
       )
 
       // The other half: a page that asked for the whole screen keeps it at every size.
-      it.each(['/scan', '/calculator'])('stays gone at every size at %s', async (path) => {
-        await router.push(path)
+      it('stays gone at every size at /calculator', async () => {
+        await router.push('/calculator')
         await nextTick()
 
         expect(rowOf('.main-navbar').classList.contains('d-none')).toBe(true)

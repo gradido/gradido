@@ -269,9 +269,11 @@ describe('router', () => {
       expect(route.meta.pageTitle).toBe('scanner')
     })
 
-    it('lets the scanner bring its own head', () => {
+    // On a phone only, like the member's own codes: on the desk the scanner is an ordinary
+    // page inside the wallet, and `true` would take the wallet away from around it again.
+    it('lets the scanner bring its own head on a phone', () => {
       const route = routes.find((r) => r.path === '/scan')
-      expect(route.meta.bareChrome).toBe(true)
+      expect(route.meta.bareChrome).toBe('phone')
     })
 
     // ⚠️ The page title is not a detail on this route: the breadcrumb prefixes `pageTitle.`
