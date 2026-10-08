@@ -1087,7 +1087,7 @@
   "my-codes": {
     "back": "Zurück",
     "gradido-card": {
-      "hint": "Wer diesen Code scannt, kann Dir Gradido senden."
+      "hint": "Wer diesen Code scannt, gelangt zu Deiner Profilseite und kann Dir dort unter anderem Gradido senden."
     },
     "thank-you-card": {
       "failed": "Die Karte konnte gerade nicht geladen werden.",

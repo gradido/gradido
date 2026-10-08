@@ -376,6 +376,59 @@ describe('DashboardLayout', () => {
     )
 
     /**
+     * The member's own codes are bare on a phone only (`bareChrome: 'phone'`). On the desk
+     * they had no navbar, no tools and no heading either, and looked like a page from
+     * somewhere else (Bernd, 08.10.2026). So the three rows of chrome are hidden below lg
+     * and back from lg on, and the menu does not print the logo a second time -- the
+     * navbar that carries it is there.
+     */
+    describe('the chrome around the code pages', () => {
+      // BRow is not registered in this file, so a row renders as a `brow` element carrying
+      // the classes it was given -- which is all these tests read.
+      const rowOf = (selector) => wrapper.find(selector).element.closest('brow, .row')
+      const headingRow = () => wrapper.find('.breadcrumb')
+      const chromeRows = () => [
+        rowOf('.main-navbar'),
+        headingRow().element,
+        wrapper.findComponent({ name: 'ContentHeader' }).element.closest('brow, .row'),
+      ]
+
+      it.each(['/my-gradido-card', '/my-thank-you-card'])(
+        'is gone on a phone and back on the desk at %s',
+        async (path) => {
+          await router.push(path)
+          await nextTick()
+
+          for (const row of chromeRows()) {
+            expect(row.classList.contains('d-none')).toBe(true)
+            expect(row.classList.contains('d-lg-flex')).toBe(true)
+          }
+          expect(wrapper.findComponent({ name: 'Sidebar' }).props('showLogo')).toBe(false)
+        },
+      )
+
+      // The other half: a page that asked for the whole screen keeps it at every size.
+      it.each(['/scan', '/calculator'])('stays gone at every size at %s', async (path) => {
+        await router.push(path)
+        await nextTick()
+
+        expect(rowOf('.main-navbar').classList.contains('d-none')).toBe(true)
+        expect(rowOf('.main-navbar').classList.contains('d-lg-flex')).toBe(false)
+        expect(headingRow().classes()).toContain('d-none')
+        expect(headingRow().classes()).not.toContain('d-lg-flex')
+        expect(wrapper.findComponent({ name: 'Sidebar' }).props('showLogo')).toBe(true)
+      })
+
+      it('leaves an ordinary page alone', async () => {
+        await router.push('/overview')
+        await nextTick()
+
+        expect(rowOf('.main-navbar').classList.contains('d-none')).toBe(false)
+        expect(wrapper.findComponent({ name: 'Sidebar' }).props('showLogo')).toBe(false)
+      })
+    })
+
+    /**
      * KF-009. The column now has two positions on three routes, and which one it starts on
      * is the route's own answer -- the overview opens on bookings because that is the page
      * one opens to see where one stands; the send form and the booking list open on
