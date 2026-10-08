@@ -41,7 +41,7 @@
     "valibot": "1.1.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.0.0",
+    "@biomejs/biome": "2.5.15",
     "@types/email-templates": "^10.0.4",
     "@types/i18n": "^0.13.4",
     "@types/node": "^24.9.1",

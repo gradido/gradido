@@ -64,6 +64,7 @@
  */
 import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { backOrOverview } from '@/utils/backOrOverview'
 import { renderQrCodeCanvas } from '@/utils/qrCode'
 
 const props = defineProps({
@@ -107,16 +108,11 @@ const draw = async (link) => {
 watch(() => props.link, draw, { immediate: true })
 
 /**
- * Back where they came from, and to the overview when there is no "came from" -- the
- * page can be opened straight from a bookmark or a typed address.
+ * Back where they came from, and to the overview when there is no "came from" inside the
+ * signed-in wallet -- a bookmark, a typed address, or the sign-in form the member passed on
+ * the way here. The rule and its reasons live in utils/backOrOverview.
  */
-const goBack = () => {
-  if (router.options.history.state.back) {
-    router.back()
-  } else {
-    router.push('/overview')
-  }
-}
+const goBack = () => backOrOverview(router)
 </script>
 
 <style lang="scss" scoped>

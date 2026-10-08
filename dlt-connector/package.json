@@ -22,7 +22,7 @@
     "gradido-blockchain-js": "git+https://github.com/gradido/gradido-blockchain-js#9a44a5d702c4314513cf91cf13815ff5f6b60810"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.0.0",
+    "@biomejs/biome": "2.5.15",
     "@hashgraph/sdk": "^2.70.0",
     "@sinclair/typebox": "^0.34.33",
     "@sinclair/typemap": "^0.10.1",
