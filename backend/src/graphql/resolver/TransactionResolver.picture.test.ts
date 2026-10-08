@@ -537,15 +537,16 @@ describe('what a failure leaves behind', () => {
     // statement and its parameters -- the photo -- into the error's message.
     const pool = (drizzle() as any).$client
     const original = pool.query
-    pool.query = function (statement: any, params: unknown[]) {
+    pool.query = function (statement: any, ...rest: unknown[]) {
       const text: string = typeof statement === 'string' ? statement : statement.sql
       if (text.startsWith('insert') && text.includes('`transaction_picture_images`')) {
         pool.query = original
-        return Promise.reject(
+        const done = rest[rest.length - 1] as (error: Error) => void
+        return done(
           Object.assign(new Error('Data too long for column'), { code: 'ER_DATA_TOO_LONG' }),
         )
       }
-      return original.call(this, statement, params)
+      return original.call(this, statement, ...rest)
     }
     let result: Awaited<ReturnType<typeof send>>
     try {

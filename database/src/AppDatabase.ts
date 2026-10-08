@@ -1,12 +1,6 @@
 import { randomUUID } from 'node:crypto'
-import { ExtractTablesWithRelations } from 'drizzle-orm'
-import { MySqlTransaction } from 'drizzle-orm/mysql-core'
-import {
-  drizzle,
-  MySql2Database,
-  MySql2PreparedQueryHKT,
-  MySql2QueryResultHKT,
-} from 'drizzle-orm/mysql2'
+import { EmptyRelations } from 'drizzle-orm'
+import { drizzle, MySql2Database, MySql2Transaction } from 'drizzle-orm/mysql2'
 import Redis from 'ioredis'
 import { getLogger } from 'log4js'
 import { createPool, Pool } from 'mysql2/promise'
@@ -70,7 +64,9 @@ export class AppDatabase {
     if (!this.drizzlePool) {
       throw new Error('Drizzle connection pool not initialized')
     }
-    return drizzle(this.drizzlePool)
+    // The core pool, not the promise pool: drizzle 1.0 reads `client.config`, which the
+    // promise pool of mysql2 does not have, and wraps a core pool into a promise pool itself.
+    return drizzle({ client: this.drizzlePool.pool })
   }
 
   public getDefaultBatchSize(): number {
@@ -292,12 +288,7 @@ export class AppDatabase {
 
 export const getDataSource = () => AppDatabase.getInstance().getDataSource()
 export const drizzleDb = () => AppDatabase.getInstance().getDrizzleDataSource()
-export type DrizzleTransaction = MySqlTransaction<
-  MySql2QueryResultHKT,
-  MySql2PreparedQueryHKT,
-  Record<string, never>,
-  ExtractTablesWithRelations<Record<string, never>>
->
+export type DrizzleTransaction = MySql2Transaction<EmptyRelations>
 
 /**
  * What arrives over Redis: normally `{ sender, message }` as publish() sends it. Anything

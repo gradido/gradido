@@ -304,9 +304,8 @@ export async function dbSelectChatGroupsByMember(member: ChatMemberRef) {
         ),
       // Null for a group without a message yet: decoded the column's way where there is one.
       lastMessageAt:
-        sql`(select ${chatMessagesTable.createdAt} from ${chatMessagesTable} where ${ofThisGroup} and ${chatMessagesTable.deletedAt} is null order by ${chatMessagesTable.id} desc limit 1)`.mapWith(
-          (value): Date | null =>
-            value === null ? null : (chatMessagesTable.createdAt.mapFromDriverValue(value) as Date),
+        sql<Date | null>`(select ${chatMessagesTable.createdAt} from ${chatMessagesTable} where ${ofThisGroup} and ${chatMessagesTable.deletedAt} is null order by ${chatMessagesTable.id} desc limit 1)`.mapWith(
+          chatMessagesTable.createdAt,
         ),
     })
     .from(chatConversationsTable)

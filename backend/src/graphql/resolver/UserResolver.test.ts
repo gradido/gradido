@@ -1138,11 +1138,13 @@ describe('UserResolver', () => {
         const pool = (
           drizzleDb() as unknown as {
             $client: {
-              getConnection(): Promise<{ release(): void }>
-              pool: { config: { connectionLimit: number } }
+              promise(): {
+                getConnection(): Promise<{ release(): void }>
+                pool: { config: { connectionLimit: number } }
+              }
             }
           }
-        ).$client
+        ).$client.promise()
         const held: { release(): void }[] = []
         let timer: NodeJS.Timeout | undefined
         try {
