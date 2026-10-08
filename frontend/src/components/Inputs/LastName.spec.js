@@ -42,14 +42,17 @@ describe('LastName', () => {
     expect(wrapper.find('div.last-name').exists()).toBe(true)
   })
 
-  it('updates lastName when value prop changes', async () => {
-    wrapper.vm.lastName = 'Doe'
+  it('updates lastName when input value changes', async () => {
+    const input = wrapper.find('input')
+    await input.setValue('Doe')
     expect(wrapper.vm.lastName).toBe('Doe')
   })
 
   it('computes lastNameState correctly', async () => {
+    const input = wrapper.find('input')
+    await input.setValue('Do')
     expect(wrapper.vm.lastNameState).toBe(false)
-    await wrapper.setData({ lastName: 'Doe' })
+    await input.setValue('Doe')
     expect(wrapper.vm.lastNameState).toBe(true)
   })
 
