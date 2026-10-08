@@ -1,5 +1,8 @@
 // AI-GENERATED — not an architecture reference
 
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { flushPromises, mount } from '@vue/test-utils'
 import { createI18n } from 'vue-i18n'
 import { createRouter, createWebHistory } from 'vue-router'
@@ -133,6 +136,47 @@ describe('OwnCodeView', () => {
     const wrapper = mountView({ link: '' })
 
     expect(wrapper.find('[data-test="own-code-head"]').text()).toContain('My card')
+  })
+
+  /**
+   * The title is the page's heading on a phone and used to be its smallest writing, in a
+   * fixed 18px beside the arrow. It takes its size from the same class the pages give the
+   * sentence under the code, so the two are the same size by construction.
+   */
+  it('sets the title in the size of the sentence under the code', () => {
+    const wrapper = mountView({ link: '' })
+
+    const title = wrapper.find('[data-test="own-code-title"]')
+    expect(title.text()).toBe('My card')
+    expect(title.classes()).toContain('fs-5')
+  })
+
+  /**
+   * jsdom lays nothing out, so the three rules that carry the new head are read off the
+   * source -- comments stripped first, because this file explains them in prose.
+   */
+  describe('the head in the stylesheet', () => {
+    const source = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'OwnCodeView.vue'),
+      'utf8',
+    )
+    const style = source.slice(source.indexOf('<style')).replace(/\/\*[\s\S]*?\*\//g, '')
+    const rule = (selector, from = style) =>
+      from.match(new RegExp(`${selector.replace('.', '\\.')}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
+
+    it('gives the arrow a line of its own: the head is not a flex row any more', () => {
+      expect(rule('.own-code-head')).not.toMatch(/display:\s*flex/)
+    })
+
+    it('centres the title over the code and leaves its size to fs-5', () => {
+      expect(rule('.own-code-title')).toMatch(/text-align:\s*center/)
+      expect(rule('.own-code-title')).not.toMatch(/font-size/)
+    })
+
+    it('takes the head away where the layout brings navbar and heading back', () => {
+      const desk = style.match(/@media\s*\(width >= 1025px\)\s*\{([\s\S]*?\})\s*\}/)?.[1] ?? ''
+      expect(rule('.own-code-head', desk)).toMatch(/display:\s*none/)
+    })
   })
 
   it('goes back where it came from', async () => {

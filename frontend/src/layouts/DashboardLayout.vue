@@ -199,7 +199,7 @@
                  overview -- air above the page, for a panel it was never going to show. -->
             <BCol
               v-if="showMobilePanel && showMobileColumn"
-              :class="bareChrome ? 'd-none' : 'd-block d-lg-none'"
+              :class="barePhone ? 'd-none' : 'd-block d-lg-none'"
             >
               <right-side :panel="mobilePanelSlot">
                 <template #contributions>
@@ -360,7 +360,15 @@ const { client: apolloClient } = useApolloClient()
 // for, at every size. On a phone the map takes the whole screen, so the footer
 // goes too; on desktop it stays, and the menu keeps the logo the navbar took with
 // it. Every other route leaves these empty and is untouched.
-const bareChrome = computed(() => Boolean(route.meta.bareChrome))
+//
+// `bareChrome: 'phone'` is the same wish for the phone only -- the member's own codes. There
+// the code needs the width; on the desk there is room for the code AND the wallet around
+// it, and without navbar, tools and heading the page looked as if it had left the wallet
+// (Bernd, 08.10.2026). So below lg such a route is bare like the others, and from lg on
+// it is an ordinary page: the navbar is back, the heading is the route's `pageTitle`, and
+// the page's own head steps aside (OwnCodeView).
+const bareChrome = computed(() => route.meta.bareChrome === true)
+const barePhone = computed(() => Boolean(route.meta.bareChrome))
 const settingsChrome = computed(() => Boolean(route.meta.settingsChrome))
 /**
  * Which panel the right-hand column carries, straight from the matched route record.
@@ -500,8 +508,12 @@ const mobilePanelSlot = computed(() => {
   return slot && MOBILE_CARRIES.includes(slot) ? slot : null
 })
 const showMobilePanel = computed(() => Boolean(mobilePanelSlot.value))
-const chromeHidden = computed(() => (bareChrome.value ? 'd-none' : ''))
-const mobileHidden = computed(() => (bareChrome.value ? 'd-none d-lg-block' : ''))
+// ⚠️ `d-lg-flex`, not `d-lg-block`: the three places this lands on are rows.
+const chromeHidden = computed(() => {
+  if (bareChrome.value) return 'd-none'
+  return barePhone.value ? 'd-none d-lg-flex' : ''
+})
+const mobileHidden = computed(() => (barePhone.value ? 'd-none d-lg-block' : ''))
 const bareTopSpace = computed(() => (bareChrome.value ? 'pt-lg-4' : ''))
 
 /**

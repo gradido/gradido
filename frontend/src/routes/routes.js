@@ -247,9 +247,11 @@ const routes = [
     meta: {
       requiresAuth: true,
       pageTitle: 'my-gradido-card',
-      // Like the scanner: the page brings its own head, and on a phone the code needs the
-      // width that the wallet chrome would otherwise take.
-      bareChrome: true,
+      // On a phone like the scanner: the page brings its own head, and the code needs the
+      // width that the wallet chrome would otherwise take. Not on the desk -- there is room
+      // for both, and a page without navbar, tools and heading looked as if it had left
+      // the wallet (Bernd, 08.10.2026). See `bareChrome` in DashboardLayout.
+      bareChrome: 'phone',
     },
   },
   {
@@ -258,7 +260,7 @@ const routes = [
     meta: {
       requiresAuth: true,
       pageTitle: 'my-thank-you-card',
-      bareChrome: true,
+      bareChrome: 'phone',
     },
   },
   {

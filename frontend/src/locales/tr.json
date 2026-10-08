@@ -1087,7 +1087,7 @@
   "my-codes": {
     "back": "Geri",
     "gradido-card": {
-      "hint": "Bu kodu okutan sana Gradido gönderebilir."
+      "hint": "Bu kodu okutan profil sayfana ulaşır ve orada sana, başka şeylerin yanı sıra, Gradido gönderebilir."
     },
     "thank-you-card": {
       "failed": "Kart şu anda yüklenemedi.",

@@ -1087,7 +1087,7 @@
   "my-codes": {
     "back": "Voltar",
     "gradido-card": {
-      "hint": "Quem ler este código pode enviar-te Gradido."
+      "hint": "Quem ler este código chega à tua página de perfil e aí pode, entre outras coisas, enviar-te Gradido."
     },
     "thank-you-card": {
       "failed": "Não foi possível carregar o cartão neste momento.",
