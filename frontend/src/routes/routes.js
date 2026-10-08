@@ -215,11 +215,18 @@ const routes = [
     component: () => import('@/pages/Calculator'),
     meta: {
       requiresAuth: true,
-      pageTitle: 'calculator',
-      // Like the map: the page brings its own head (back arrow, gear), so on a phone the
-      // wallet chrome goes entirely and the keypad gets the screen. On desktop the menu
-      // stays. Without this, the translucent navbar sat exactly over the total.
-      bareChrome: true,
+      // On a phone the page brings its own head (back arrow, gear), the wallet chrome goes
+      // entirely and the keypad gets the screen -- the translucent navbar sat exactly over
+      // the total otherwise. On the desk it is a page inside the wallet like the scanner
+      // and the member's own codes (Bernd, 08.10.2026), with two differences:
+      //
+      // - No `pageTitle`, so the breadcrumb prints no heading. One sees that it is a
+      //   calculator, and the keypad needs the height.
+      // - `contentAtHeading`: the page starts where the heading would have stood, level
+      //   with the four tools, instead of under the heading's row. With both, the whole
+      //   calculator fits on the screen. See DashboardLayout.
+      bareChrome: 'phone',
+      contentAtHeading: true,
     },
   },
   {

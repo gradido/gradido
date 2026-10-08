@@ -739,4 +739,35 @@ describe('Calculator colours', () => {
     )
     expect(own).toEqual([])
   })
+
+  /**
+   * On the desk the wallet's menu stands beside the calculator, so the back arrow goes and
+   * the gear keeps its corner (Bernd, 08.10.2026). Read off the source, comments stripped.
+   */
+  describe('the head on the desk', () => {
+    const source = readFileSync(
+      resolve(dirname(fileURLToPath(import.meta.url)), 'Calculator.vue'),
+      'utf8',
+    )
+    const style = source.slice(source.indexOf('<style')).replace(/\/\*[\s\S]*?\*\//g, '')
+    const desk = style.match(/@media\s*\(width >= 1025px\)\s*\{([\s\S]*?\})\s*\}/)?.[1] ?? ''
+
+    it('takes the arrow away with a selector that beats the key rule', () => {
+      expect(desk).toMatch(/\.calculator-head-key\.calculator-head-back\s*\{[^}]*display:\s*none/)
+    })
+
+    it('keeps the gear on the right', () => {
+      expect(desk).toMatch(/\.calculator-head\s*\{[^}]*justify-content:\s*flex-end/)
+    })
+
+    it('marks the arrow, and only the arrow', () => {
+      const wrapper = mountCalculator()
+      expect(wrapper.find('[data-test="calculator-back"]').classes()).toContain(
+        'calculator-head-back',
+      )
+      expect(wrapper.find('[data-test="calculator-settings-open"]').classes()).not.toContain(
+        'calculator-head-back',
+      )
+    })
+  })
 })
