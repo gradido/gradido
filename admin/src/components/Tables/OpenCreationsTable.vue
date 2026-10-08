@@ -235,315 +235,296 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useStore } from 'vuex'
+import { useI18n } from 'vue-i18n'
 import RowDetails from '../RowDetails'
 import ContributionMessagesList from '../ContributionMessages/ContributionMessagesList'
 import MemberAvatar from '@/components/MemberAvatar.vue'
-import { useDateFormatter } from '@/composables/useDateFormatter'
 import { memberAvatarProps } from '@/composables/useMemberAvatars'
 import { openMemberAvatarZoom } from '@/composables/useMemberAvatarZoom'
 import { creationGroupLabels, creationGroupOption } from '@/utils/creationGroupLabel'
+// The one size a face has in this interface, the same as in the wallet.
 import { LIST_AVATAR_SIZE } from '@/constants'
 
-const iconMap = {
-  IN_PROGRESS: 'question-square',
-  PENDING: 'bell-fill',
-  CONFIRMED: 'check',
-  DELETED: 'trash',
-  DENIED: 'x-circle',
+const props = defineProps({
+  items: {
+    type: Array,
+    required: true,
+  },
+  fields: {
+    type: Array,
+    required: true,
+  },
+  hideResubmission: {
+    type: Boolean,
+    required: true,
+  },
+  resubmissionAt: {
+    type: Date,
+    required: false,
+  },
+  creaOpenOnly: {
+    type: Boolean,
+    default: false,
+  },
+  creationGroups: {
+    type: Array,
+    required: false,
+    default: () => [],
+  },
+  // Counts the group changes the backend refused. A change that did not happen must not stay
+  // on screen, and only the page that runs the mutation knows it failed.
+  groupChangeFailures: {
+    type: Number,
+    required: false,
+    default: 0,
+  },
+})
+
+const emit = defineEmits([
+  'assign-group',
+  'update-contributions',
+  'reload-contribution',
+  'update-status',
+  'show-overlay',
+  'search-for-email',
+  'crea-evaluate',
+  'resubmission-saved',
+])
+
+const store = useStore()
+const { t } = useI18n()
+
+const slotIndex = ref(0)
+const openRow = ref(null)
+const groupChangeModal = ref(false)
+const pendingGroupChange = ref({ contributionId: null, tag: '', fromLabel: '', toLabel: '' })
+// What the group dropdowns show, by contribution id, while a change is waiting for its
+// answer. A picked group only lands here -- the contribution itself is not touched until
+// the backend confirms it. See displayedCreationGroup() for why this is kept by hand.
+const groupSelection = ref({})
+
+// "no group" plus one entry per canonical group, written the way groups are written
+// everywhere else.
+const groupSelectOptions = computed(() => [
+  { value: '', text: t('contribution.noGroup') },
+  ...props.creationGroups.map(creationGroupOption),
+])
+
+// Fresh contributions are the truth again, so the shown picks have done their job.
+watch(
+  () => props.items,
+  () => {
+    groupSelection.value = {}
+  },
+)
+// A refused change never reached the database -- put the dropdowns back.
+watch(
+  () => props.groupChangeFailures,
+  () => {
+    groupSelection.value = {}
+  },
+)
+
+/**
+ * Everything the circle needs about this member, from ONE call -- letters, colour and
+ * the picture where this device holds it (see the composable for why one call).
+ */
+const avatarFor = (user) => memberAvatarProps(user)
+
+// What the picture is called for a screen reader: the alias, because that is what the
+// row shows beside it.
+const memberName = (user) =>
+  user?.alias || `${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim()
+
+const openPicture = (user) => {
+  // Without a name the plain wording: `avatar.zoom-picture` would otherwise read
+  // "Picture of " with a hole where the member should be (coderabbit, #3890).
+  const name = memberName(user)
+  openMemberAvatarZoom({
+    member: user,
+    src: memberAvatarProps(user).src,
+    label: name ? t('avatar.zoom-picture', { name }) : t('avatar.zoom-picture-plain'),
+  })
 }
 
-export default {
-  name: 'OpenCreationsTable',
-  components: {
-    RowDetails,
-    ContributionMessagesList,
-    MemberAvatar,
-  },
-  props: {
-    items: {
-      type: Array,
-      required: true,
-    },
-    fields: {
-      type: Array,
-      required: true,
-    },
-    hideResubmission: {
-      type: Boolean,
-      required: true,
-    },
-    resubmissionAt: {
-      type: Date,
-      required: false,
-    },
-    creaOpenOnly: {
-      type: Boolean,
-      default: false,
-    },
-    creationGroups: {
-      type: Array,
-      required: false,
-      default: () => [],
-    },
-    // Counts the group changes the backend refused. A change that did not happen must not stay
-    // on screen, and only the page that runs the mutation knows it failed.
-    groupChangeFailures: {
-      type: Number,
-      required: false,
-      default: 0,
-    },
-  },
-  emits: [
-    'assign-group',
-    'update-contributions',
-    'reload-contribution',
-    'update-status',
-    'show-overlay',
-    'search-for-email',
-    'crea-evaluate',
-    'resubmission-saved',
-  ],
-  data() {
-    return {
-      // The one size a face has in this interface, the same as in the wallet.
-      LIST_AVATAR_SIZE,
-      slotIndex: 0,
-      openRow: null,
-      groupChangeModal: false,
-      pendingGroupChange: { contributionId: null, tag: '', fromLabel: '', toLabel: '' },
-      // What the group dropdowns show, by contribution id, while a change is waiting for its
-      // answer. A picked group only lands here -- the contribution itself is not touched until
-      // the backend confirms it. See displayedCreationGroup() for why this is kept by hand.
-      groupSelection: {},
+const myself = (item) => item.userId === store.state.moderator.id
+
+// The Crea button appears for other people's contributions; on the "all" tab
+// (creaOpenOnly) it is limited to still-open ones (IN_PROGRESS / PENDING) -- the
+// blue rows a moderator can still act on.
+const showCreaButton = (item) => {
+  if (myself(item)) return false
+  if (!props.creaOpenOnly) return true
+  return item.contributionStatus === 'IN_PROGRESS' || item.contributionStatus === 'PENDING'
+}
+
+const rowClass = (item, type) => {
+  if (!item || type !== 'row') return
+  if (item.contributionStatus === 'CONFIRMED') return 'table-success'
+  if (item.contributionStatus === 'DENIED') return 'table-warning'
+  if (item.contributionStatus === 'DELETED') return 'table-danger'
+  if (item.contributionStatus === 'IN_PROGRESS') return 'table-primary'
+  if (item.contributionStatus === 'PENDING') return 'table-primary'
+}
+
+const updateStatus = (id) => {
+  emit('update-status', id)
+}
+const reloadContribution = (id) => {
+  emit('reload-contribution', id)
+}
+const updateContributions = () => {
+  emit('update-contributions')
+}
+
+const rowToggleDetails = (row, index) => {
+  const isSameRow = openRow.value && openRow.value.index === row.index
+  const isSameSlot = index === slotIndex.value
+
+  if (isSameRow && isSameSlot) {
+    row.toggleDetails()
+    openRow.value = null
+  } else {
+    if (openRow.value) {
+      openRow.value.toggleDetails()
     }
-  },
-  computed: {
-    // "no group" plus one entry per canonical group, written the way groups are written
-    // everywhere else.
-    groupSelectOptions() {
-      return [
-        { value: '', text: this.$t('contribution.noGroup') },
-        ...this.creationGroups.map(creationGroupOption),
-      ]
-    },
-  },
-  watch: {
-    // Fresh contributions are the truth again, so the shown picks have done their job.
-    items() {
-      this.groupSelection = {}
-    },
-    // A refused change never reached the database -- put the dropdowns back.
-    groupChangeFailures() {
-      this.groupSelection = {}
-    },
-  },
-  mounted() {
-    this.addClipboardListener()
-  },
-  beforeUnmount() {
-    this.removeClipboardListener()
-  },
-  methods: {
-    /**
-     * Everything the circle needs about this member, from ONE call -- letters, colour and
-     * the picture where this device holds it (see the composable for why one call).
-     */
-    avatarFor(user) {
-      return memberAvatarProps(user)
-    },
-    // What the picture is called for a screen reader: the alias, because that is what the
-    // row shows beside it.
-    memberName(user) {
-      return user?.alias || `${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim()
-    },
-    openPicture(user) {
-      // Without a name the plain wording: `avatar.zoom-picture` would otherwise read
-      // "Picture of " with a hole where the member should be (coderabbit, #3890).
-      const name = this.memberName(user)
-      openMemberAvatarZoom({
-        member: user,
-        src: memberAvatarProps(user).src,
-        label: name
-          ? this.$t('avatar.zoom-picture', { name })
-          : this.$t('avatar.zoom-picture-plain'),
-      })
-    },
-    ...useDateFormatter(),
-    myself(item) {
-      return item.userId === this.$store.state.moderator.id
-    },
-    // The Crea button appears for other people's contributions; on the "all" tab
-    // (creaOpenOnly) it is limited to still-open ones (IN_PROGRESS / PENDING) -- the
-    // blue rows a moderator can still act on.
-    showCreaButton(item) {
-      if (this.myself(item)) return false
-      if (!this.creaOpenOnly) return true
-      return item.contributionStatus === 'IN_PROGRESS' || item.contributionStatus === 'PENDING'
-    },
-    getStatusIcon(status) {
-      return iconMap[status] ? iconMap[status] : 'default-icon'
-    },
-    rowClass(item, type) {
-      if (!item || type !== 'row') return
-      if (item.contributionStatus === 'CONFIRMED') return 'table-success'
-      if (item.contributionStatus === 'DENIED') return 'table-warning'
-      if (item.contributionStatus === 'DELETED') return 'table-danger'
-      if (item.contributionStatus === 'IN_PROGRESS') return 'table-primary'
-      if (item.contributionStatus === 'PENDING') return 'table-primary'
-    },
-    updateStatus(id) {
-      this.$emit('update-status', id)
-    },
-    reloadContribution(id) {
-      this.$emit('reload-contribution', id)
-    },
-    updateContributions() {
-      this.$emit('update-contributions')
-    },
-    rowToggleDetails(row, index) {
-      const isSameRow = this.openRow && this.openRow.index === row.index
-      const isSameSlot = index === this.slotIndex
-
-      if (isSameRow && isSameSlot) {
-        row.toggleDetails()
-        this.openRow = null
-      } else {
-        if (this.openRow) {
-          this.openRow.toggleDetails()
-        }
-        row.toggleDetails()
-        this.slotIndex = index
-        this.openRow = row
-      }
-    },
-    // Group functions: the group is editable while the contribution is still being worked
-    // on. Once it is confirmed, denied or deleted it is closed and the group is part of the
-    // record — the backend enforces the same list, this only decides what to offer.
-    canEditGroup(item) {
-      return ['PENDING', 'IN_PROGRESS'].includes(item.contributionStatus)
-    },
-    currentCreationGroup(item) {
-      return item.creationGroups?.[0]?.tag ?? ''
-    },
-    // A dropdown is a real DOM control: the browser applies the pick itself, so an unchanged
-    // bound value gives Vue nothing to patch and the pick stays on screen even when it was
-    // never saved. Keeping the shown value in our own state makes dropping a pick a real
-    // change again, which is what pulls the dropdown back to the group the contribution has.
-    displayedCreationGroup(item) {
-      return this.groupSelection[item.id] ?? this.currentCreationGroup(item)
-    },
-    groupOptionLabel(tag) {
-      return this.groupSelectOptions.find((option) => option.value === tag)?.text ?? tag
-    },
-    // Moving a contribution to another group is easy to do by accident and can hand it to a
-    // different moderator, so it goes through a confirmation rather than firing on pick.
-    onGroupPicked(item, tag) {
-      const current = this.currentCreationGroup(item)
-      if (tag === current) {
-        return
-      }
-      this.groupSelection[item.id] = tag
-      this.pendingGroupChange = {
-        contributionId: item.id,
-        tag,
-        // Name every group the contribution currently has, not just the one the dropdown
-        // happens to show. A legacy contribution whose text names two groups carries both,
-        // and saving replaces the whole set -- the dialog has to say what is being given up.
-        fromLabel: (item.creationGroups ?? []).length
-          ? item.creationGroups.map((group) => this.groupOptionLabel(group.tag)).join(', ')
-          : this.groupOptionLabel(''),
-        toLabel: this.groupOptionLabel(tag),
-      }
-      this.groupChangeModal = true
-    },
-    // Every way out of the dialog ends here -- the OK and cancel buttons, the X, Escape and a
-    // click on the backdrop. Only "ok" carries the change out; everything else drops it, so no
-    // exit can leave a group on screen that was never saved.
-    onGroupModalHide(event) {
-      if (event.trigger === 'ok') {
-        this.confirmGroupChange()
-      } else {
-        this.cancelGroupChange()
-      }
-    },
-    // Deliberately keeps the picked group on screen: it stays until the fresh contributions
-    // arrive, so the dropdown does not flick back to the old group and forward again. If the
-    // backend refuses, groupChangeFailures brings it back.
-    confirmGroupChange() {
-      const { contributionId, tag } = this.pendingGroupChange
-      this.$emit('assign-group', { contributionId, tags: tag ? [tag] : [] })
-      this.resetGroupChange()
-    },
-    cancelGroupChange() {
-      this.dropGroupSelection()
-      this.resetGroupChange()
-    },
-    resetGroupChange() {
-      this.pendingGroupChange = { contributionId: null, tag: '', fromLabel: '', toLabel: '' }
-      this.groupChangeModal = false
-    },
-    // Forget the shown pick and let the contribution speak for itself again.
-    dropGroupSelection() {
-      const { contributionId } = this.pendingGroupChange
-      if (contributionId !== null) {
-        delete this.groupSelection[contributionId]
-      }
-    },
-    // Group functions: the groups a contribution belongs to, shown above the text. The form
-    // itself is decided once in utils/creationGroupLabel.
-    groupLabel(item) {
-      return creationGroupLabels(item.creationGroups)
-    },
-    isAddCommentToMemo(item) {
-      return item.closedBy > 0 || item.moderatorId > 0 || item.updatedBy > 0
-    },
-    getMemoComment(item) {
-      let comment = ''
-      if (item.closedBy > 0) {
-        if (item.contributionStatus === 'CONFIRMED') {
-          comment = this.$t('contribution.confirmedBy', { name: item.closedByUserName })
-        } else if (item.contributionStatus === 'DENIED') {
-          comment = this.$t('contribution.deniedBy', { name: item.closedByUserName })
-        } else if (item.contributionStatus === 'DELETED') {
-          comment = this.$t('contribution.deletedBy', { name: item.closedByUserName })
-        }
-      }
-
-      if (item.updatedBy > 0) {
-        if (comment.length) {
-          comment += ' | '
-        }
-        comment += this.$t('moderator.memo-modified', { name: item.updatedByUserName })
-      }
-
-      if (item.moderatorId > 0) {
-        if (comment.length) {
-          comment += ' | '
-        }
-        comment += this.$t('contribution.createdBy', { name: item.moderatorUserName })
-      }
-      return comment
-    },
-    addClipboardListener() {
-      document.addEventListener('copy', this.handleCopy)
-    },
-    removeClipboardListener() {
-      document.removeEventListener('copy', this.handleCopy)
-    },
-    handleCopy(event) {
-      // get from user selected text
-      const selectedText = window.getSelection().toString()
-
-      if (selectedText) {
-        // remove hashtags
-        const cleanedText = selectedText.replace(/#([\p{L}\p{N}_-]+)/gu, '')
-        event.clipboardData.setData('text/plain', cleanedText)
-        event.preventDefault()
-      }
-    },
-  },
+    row.toggleDetails()
+    slotIndex.value = index
+    openRow.value = row
+  }
 }
+
+// Group functions: the group is editable while the contribution is still being worked
+// on. Once it is confirmed, denied or deleted it is closed and the group is part of the
+// record — the backend enforces the same list, this only decides what to offer.
+const canEditGroup = (item) => ['PENDING', 'IN_PROGRESS'].includes(item.contributionStatus)
+
+const currentCreationGroup = (item) => item.creationGroups?.[0]?.tag ?? ''
+
+// A dropdown is a real DOM control: the browser applies the pick itself, so an unchanged
+// bound value gives Vue nothing to patch and the pick stays on screen even when it was
+// never saved. Keeping the shown value in our own state makes dropping a pick a real
+// change again, which is what pulls the dropdown back to the group the contribution has.
+const displayedCreationGroup = (item) => groupSelection.value[item.id] ?? currentCreationGroup(item)
+
+const groupOptionLabel = (tag) =>
+  groupSelectOptions.value.find((option) => option.value === tag)?.text ?? tag
+
+const resetGroupChange = () => {
+  pendingGroupChange.value = { contributionId: null, tag: '', fromLabel: '', toLabel: '' }
+  groupChangeModal.value = false
+}
+
+// Forget the shown pick and let the contribution speak for itself again.
+const dropGroupSelection = () => {
+  const { contributionId } = pendingGroupChange.value
+  if (contributionId !== null) {
+    delete groupSelection.value[contributionId]
+  }
+}
+
+// Moving a contribution to another group is easy to do by accident and can hand it to a
+// different moderator, so it goes through a confirmation rather than firing on pick.
+const onGroupPicked = (item, tag) => {
+  const current = currentCreationGroup(item)
+  if (tag === current) {
+    return
+  }
+  groupSelection.value[item.id] = tag
+  pendingGroupChange.value = {
+    contributionId: item.id,
+    tag,
+    // Name every group the contribution currently has, not just the one the dropdown
+    // happens to show. A legacy contribution whose text names two groups carries both,
+    // and saving replaces the whole set -- the dialog has to say what is being given up.
+    fromLabel: (item.creationGroups ?? []).length
+      ? item.creationGroups.map((group) => groupOptionLabel(group.tag)).join(', ')
+      : groupOptionLabel(''),
+    toLabel: groupOptionLabel(tag),
+  }
+  groupChangeModal.value = true
+}
+
+// Deliberately keeps the picked group on screen: it stays until the fresh contributions
+// arrive, so the dropdown does not flick back to the old group and forward again. If the
+// backend refuses, groupChangeFailures brings it back.
+const confirmGroupChange = () => {
+  const { contributionId, tag } = pendingGroupChange.value
+  emit('assign-group', { contributionId, tags: tag ? [tag] : [] })
+  resetGroupChange()
+}
+
+const cancelGroupChange = () => {
+  dropGroupSelection()
+  resetGroupChange()
+}
+
+// Every way out of the dialog ends here -- the OK and cancel buttons, the X, Escape and a
+// click on the backdrop. Only "ok" carries the change out; everything else drops it, so no
+// exit can leave a group on screen that was never saved.
+const onGroupModalHide = (event) => {
+  if (event.trigger === 'ok') {
+    confirmGroupChange()
+  } else {
+    cancelGroupChange()
+  }
+}
+
+// Group functions: the groups a contribution belongs to, shown above the text. The form
+// itself is decided once in utils/creationGroupLabel.
+const groupLabel = (item) => creationGroupLabels(item.creationGroups)
+
+const isAddCommentToMemo = (item) => item.closedBy > 0 || item.moderatorId > 0 || item.updatedBy > 0
+
+const getMemoComment = (item) => {
+  let comment = ''
+  if (item.closedBy > 0) {
+    if (item.contributionStatus === 'CONFIRMED') {
+      comment = t('contribution.confirmedBy', { name: item.closedByUserName })
+    } else if (item.contributionStatus === 'DENIED') {
+      comment = t('contribution.deniedBy', { name: item.closedByUserName })
+    } else if (item.contributionStatus === 'DELETED') {
+      comment = t('contribution.deletedBy', { name: item.closedByUserName })
+    }
+  }
+
+  if (item.updatedBy > 0) {
+    if (comment.length) {
+      comment += ' | '
+    }
+    comment += t('moderator.memo-modified', { name: item.updatedByUserName })
+  }
+
+  if (item.moderatorId > 0) {
+    if (comment.length) {
+      comment += ' | '
+    }
+    comment += t('contribution.createdBy', { name: item.moderatorUserName })
+  }
+  return comment
+}
+
+const handleCopy = (event) => {
+  // get from user selected text
+  const selectedText = window.getSelection().toString()
+
+  if (selectedText) {
+    // remove hashtags
+    const cleanedText = selectedText.replace(/#([\p{L}\p{N}_-]+)/gu, '')
+    event.clipboardData.setData('text/plain', cleanedText)
+    event.preventDefault()
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('copy', handleCopy)
+})
+onBeforeUnmount(() => {
+  document.removeEventListener('copy', handleCopy)
+})
 </script>
 <style>
 .btn-warning {

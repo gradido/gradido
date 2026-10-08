@@ -11,15 +11,13 @@
   </b-card>
 </template>
 
-<script>
-export default {
-  name: 'RowDetails',
-  props: {
-    row: { required: true, type: Object },
-    slotName: { required: true, type: String },
-    type: { required: true, type: String },
-    index: { required: true, type: Number },
-  },
-  emits: ['row-toggle-details'],
-}
+<script setup>
+defineProps({
+  row: { required: true, type: Object },
+  slotName: { required: true, type: String },
+  type: { required: true, type: String },
+  index: { required: true, type: Number },
+})
+
+defineEmits(['row-toggle-details'])
 </script>
