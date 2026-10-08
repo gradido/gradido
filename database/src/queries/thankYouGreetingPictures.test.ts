@@ -109,9 +109,9 @@ const statementsOf = async (run: () => Promise<unknown>): Promise<string[]> => {
   const pool = (drizzleDb() as any).$client
   const original = pool.query
   const caught: string[] = []
-  pool.query = function (query: any, params: unknown[]) {
+  pool.query = function (query: any, ...rest: unknown[]) {
     caught.push(typeof query === 'string' ? query : query.sql)
-    return original.call(this, query, params)
+    return original.call(this, query, ...rest)
   }
   try {
     await run()

@@ -108,9 +108,9 @@ const statementsOf = async (run: () => Promise<unknown>): Promise<string[]> => {
   const pool = (drizzleDb() as any).$client
   const original = pool.query
   const caught: string[] = []
-  pool.query = function (query: any, params: unknown[]) {
+  pool.query = function (query: any, ...rest: unknown[]) {
     caught.push(typeof query === 'string' ? query : query.sql)
-    return original.call(this, query, params)
+    return original.call(this, query, ...rest)
   }
   try {
     await run()
@@ -124,13 +124,14 @@ const statementsOf = async (run: () => Promise<unknown>): Promise<string[]> => {
 const failNextStatementOn = (table: string, message: string): (() => void) => {
   const pool = (drizzleDb() as any).$client
   const original = pool.query
-  pool.query = function (query: any, params: unknown[]) {
+  pool.query = function (query: any, ...rest: unknown[]) {
     const text: string = typeof query === 'string' ? query : query.sql
     if (text.includes(`\`${table}\``) && text.startsWith('insert')) {
       pool.query = original
-      return Promise.reject(Object.assign(new Error(message), { code: 'ER_DATA_TOO_LONG' }))
+      const done = rest[rest.length - 1] as (error: Error) => void
+      return done(Object.assign(new Error(message), { code: 'ER_DATA_TOO_LONG' }))
     }
-    return original.call(this, query, params)
+    return original.call(this, query, ...rest)
   }
   return () => {
     pool.query = original

@@ -1,4 +1,4 @@
-import { Column, ColumnBaseConfig, ColumnDataType, eq } from 'drizzle-orm'
+import { Column, eq } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/mysql-core'
 import { Result, UnhandledEnum, VoidResult } from 'shared'
 import { LedgerAnchor } from 'shared-native'
@@ -95,10 +95,10 @@ export async function dbUpdateConfirmedDltTransaction(
 }
 
 // dlt transaction with transaction and user (contribution)
-export async function dltTransactionContributionJoinsQuery<
-  F extends Column<ColumnBaseConfig<ColumnDataType, string>, object, object>,
-  V,
->(field: F, value: V) {
+export async function dltTransactionContributionJoinsQuery<F extends Column, V>(
+  field: F,
+  value: V,
+) {
   return drizzleDb()
     .select({
       dltTransaction: {
@@ -127,10 +127,7 @@ export async function dltTransactionContributionJoinsQuery<
 }
 
 // dlt transaction with both transactions (tranfer, redeem)
-export async function dltTransactionTransferJoinsQuery<
-  F extends Column<ColumnBaseConfig<ColumnDataType, string>, object, object>,
-  V,
->(field: F, value: V) {
+export async function dltTransactionTransferJoinsQuery<F extends Column, V>(field: F, value: V) {
   const linkedUsersTable = alias(usersTable, 'linkedUser')
   const linkedTransactionsTable = alias(transactionsTable, 'linkedTransaction')
   const transactionLinkUsersTable = alias(usersTable, 'transactionLinkUser')
@@ -185,10 +182,10 @@ export async function dltTransactionTransferJoinsQuery<
 }
 
 // dlt transaction with user (register address)
-export async function dltTransactionRegisterAddressJoinsQuery<
-  F extends Column<ColumnBaseConfig<ColumnDataType, string>, object, object>,
-  V,
->(field: F, value: V) {
+export async function dltTransactionRegisterAddressJoinsQuery<F extends Column, V>(
+  field: F,
+  value: V,
+) {
   return drizzleDb()
     .select({
       dltTransaction: {
@@ -207,10 +204,10 @@ export async function dltTransactionRegisterAddressJoinsQuery<
 }
 
 // dlt transaction with transaction link
-export async function dltTransactionDeferredTransferJoinsQuery<
-  F extends Column<ColumnBaseConfig<ColumnDataType, string>, object, object>,
-  V,
->(field: F, value: V) {
+export async function dltTransactionDeferredTransferJoinsQuery<F extends Column, V>(
+  field: F,
+  value: V,
+) {
   return drizzleDb()
     .select({
       dltTransaction: {
@@ -252,10 +249,7 @@ export async function dltTransactionDeferredTransferJoinsQuery<
  */
 export async function dbSelectDltTransactionWithJoins<T>(
   ledgerAnchor: LedgerAnchor,
-  queryFn: <F extends Column<ColumnBaseConfig<ColumnDataType, string>, object, object>, V>(
-    field: F,
-    value: V,
-  ) => Promise<T[]>,
+  queryFn: <F extends Column, V>(field: F, value: V) => Promise<T[]>,
   joinNames: (keyof T)[],
 ): Promise<Result<T, Error | DBNotFoundError | DBMissingJoin | UnhandledEnum>> {
   const whereResult = await dltTransactionWhereByLedgerAnchor(ledgerAnchor)
