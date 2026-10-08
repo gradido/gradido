@@ -3,8 +3,7 @@ import { IsInt, IsString, Max, Min } from 'class-validator'
 import { CHAT_IMAGE_MAX_SIDE } from 'shared'
 import { Field, InputType, Int } from 'type-graphql'
 
-// TODO: replace the class-validator decorators with a valibot schema after the update to
-// typescript 5 is possible
+// TODO: replace the class-validator decorators with a valibot schema
 
 /**
  * A picture in a chat message (P7), as the wallet sends it: the JPEG as base64, without a data

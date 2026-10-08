@@ -7,8 +7,7 @@ import {
   CHAT_UPDATE_MESSAGES_MAX,
 } from '@/data/ChatConversation.logic'
 
-// TODO: replace the class-validator decorators with a valibot schema after the update to
-// typescript 5 is possible
+// TODO: replace the class-validator decorators with a valibot schema
 
 /** Where the wallet stands in the chat, and how much it takes at once (E-017). */
 @ArgsType()

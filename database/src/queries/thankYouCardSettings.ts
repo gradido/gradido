@@ -9,7 +9,7 @@ import {
   thankYouCardSettingsTable,
 } from '../schemas/drizzle.schema'
 
-// TODO: replace results with valibot schema after update to typescript 5 is possible
+// TODO: replace results with valibot schema
 
 const SettingsNotFound = (where: string) => new DBNotFoundError('thank_you_card_settings', where)
 

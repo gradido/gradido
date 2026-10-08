@@ -1,5 +1,3 @@
-import * as v from 'valibot'
-
 export enum OptInType {
   EMAIL_OPT_IN_REGISTER = 1,
   EMAIL_OPT_IN_RESET_PASSWORD = 2,
@@ -7,5 +5,3 @@ export enum OptInType {
   // `backend/src/graphql/enum/OptInType.ts`; a test holds the two together.
   EMAIL_OPT_IN_CHANGE = 3,
 }
-
-export const OptInTypeSchema = v.enum(OptInType)

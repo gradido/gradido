@@ -15,7 +15,7 @@ import {
   firstCreationsTable,
 } from '../schemas/drizzle.schema'
 
-// TODO: replace results with valibot schema after update to typescript 5 is possible
+// TODO: replace results with valibot schema
 
 const FirstCreationNotFound = (where: string) => new DBNotFoundError('first_creations', where)
 const FirstCreationInsertFailed = (row: FirstCreationInsert) =>

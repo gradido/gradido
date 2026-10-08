@@ -7,8 +7,8 @@ import {
   projectBrandingsTable,
 } from '../schemas/drizzle.schema'
 
+// TODO: replace with a valibot schema derived from the drizzle db schema
 /**
- * TODO: replace with a valibot schema auto deducted from the drizzle db schema
  * Converts a ProjectBranding object to a ProjectBrandingInsert object to be used in database operations.
  * @param projectBranding - The ProjectBranding object to convert.
  * @returns The converted ProjectBrandingInsert object.

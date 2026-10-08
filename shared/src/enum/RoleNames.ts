@@ -1,5 +1,3 @@
-import * as v from 'valibot'
-
 export enum RoleNames {
   UNAUTHORIZED = 'UNAUTHORIZED',
   USER = 'USER',
@@ -8,5 +6,3 @@ export enum RoleNames {
   ADMIN = 'ADMIN',
   DLT_CONNECTOR = 'DLT_CONNECTOR_ROLE',
 }
-
-export const RoleNamesSchema = v.enum(RoleNames)

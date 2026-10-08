@@ -28,13 +28,12 @@ Reference implementation for the target style: `dlt-connector`.
 
 ## Order of work
 
-The repository is on TypeScript 5.9, so none of the five migrations is blocked by the TypeScript version any more. Where a schema replacement is intended but not done yet, it is marked with a TODO (see `queries/creachatThreads.ts`).
-
 Migrating queries proceeds in three separate steps, never merged into one:
 
-1. **Move** the existing TypeORM query into `database/src/queries/[tableName].ts` unchanged.
+1. **Move** the existing TypeORM query into `database/src/queries/[tableName].typeorm.ts` unchanged.
 2. **Translate** it to Drizzle.
 3. **Adjust** the caller's types.
+4. **Remove** TypeORM Version after no caller no longer exist
 
 Transaction safety while both ORMs coexist: `AppDatabase` holds a TypeORM `DataSource` and a separate Drizzle pool — two connection pools, so **a TypeORM transaction does not cover Drizzle writes**. Anything that must be atomic has to sit on one ORM. Migrate along transaction boundaries, not table by table.
 
