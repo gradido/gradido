@@ -107,16 +107,21 @@ const settle = async () => {
 }
 
 // The page as the layout holds it: under the router's view, with the balance handed in.
-const open = async (path = '/thank-you-greeting', { balance = 100 } = {}) => {
+// `from`: the page the member stood on before -- the entry behind the greeting's first step.
+const open = async (path = '/thank-you-greeting', { balance = 100, from = null } = {}) => {
+  const wallet = { requiresAuth: true }
   router = createRouter({
     history: createWebHistory(),
     routes: [
-      { path: '/thank-you-greeting', component: ThankYouGreeting },
-      { path: '/transactions', component: Stub('transactions') },
-      { path: '/show-friends', component: Stub('show-friends') },
-      { path: '/overview', component: Stub('overview') },
+      { path: '/thank-you-greeting', component: ThankYouGreeting, meta: wallet },
+      { path: '/transactions', component: Stub('transactions'), meta: wallet },
+      { path: '/show-friends', component: Stub('show-friends'), meta: wallet },
+      { path: '/overview', component: Stub('overview'), meta: wallet },
+      // Needs no sign-in, like the real one: the sign-in form is not a wallet page.
+      { path: '/login', component: Stub('login') },
     ],
   })
+  if (from) await router.push(from)
   await router.push(path)
   wrapper = mount(
     {
@@ -1385,6 +1390,31 @@ describe('ThankYouGreeting', () => {
 
     it('leaves the page from the first step: to the page of the two doors where it was opened by its address', async () => {
       await open()
+
+      await data('back').trigger('click')
+      await settle()
+
+      expect(router.currentRoute.value.path).toBe('/show-friends')
+    })
+
+    it('leaves the page from the first step: back to the wallet page the member came from', async () => {
+      await open('/thank-you-greeting', { from: '/transactions' })
+
+      // A real step through the history, and jsdom walks it a tick later than asked.
+      const moved = new Promise((resolve) =>
+        window.addEventListener('popstate', resolve, { once: true }),
+      )
+      await data('back').trigger('click')
+      await moved
+      await settle()
+
+      expect(router.currentRoute.value.path).toBe('/transactions')
+    })
+
+    // After a session has run out the way here leads through the sign-in form, and the form is
+    // the entry behind the page. "Back" must not show it to somebody signed in.
+    it('leaves the page from the first step: not back to the sign-in form, but to the two doors', async () => {
+      await open('/thank-you-greeting', { from: '/login' })
 
       await data('back').trigger('click')
       await settle()
