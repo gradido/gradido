@@ -6,6 +6,11 @@ import { useI18n } from 'vue-i18n'
 // Mock vue-i18n
 vi.mock('vue-i18n')
 
+const mockRouterGo = vi.fn()
+vi.mock('vue-router', () => ({
+  useRouter: () => ({ go: mockRouterGo }),
+}))
+
 describe('NotFoundPage', () => {
   let wrapper
 
@@ -29,5 +34,10 @@ describe('NotFoundPage', () => {
 
   it('renders a back button', () => {
     expect(wrapper.find('.test-back').exists()).toBe(true)
+  })
+
+  it('goes one step back in the history on click', async () => {
+    await wrapper.find('.test-back').trigger('click')
+    expect(mockRouterGo).toHaveBeenCalledWith(-1)
   })
 })

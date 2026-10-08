@@ -10,17 +10,13 @@ const idName = 'test-id-name'
 describe('EditableGroupableLabel', () => {
   let wrapper
 
-  const createWrapper = (props = {}, parentMethods = {}) => {
+  const createWrapper = (props = {}, editableGroup = {}) => {
     const Parent = {
       template: '<editable-groupable-label v-bind="$props" />',
       components: {
         EditableGroupableLabel,
       },
       props: ['modelValue', 'label', 'idName'],
-      methods: {
-        onInput: vi.fn(),
-        ...parentMethods,
-      },
     }
     return mount(Parent, {
       props: {
@@ -30,6 +26,9 @@ describe('EditableGroupableLabel', () => {
         ...props,
       },
       global: {
+        provide: {
+          editableGroup: { valueChanged: vi.fn(), invalidValues: vi.fn(), ...editableGroup },
+        },
         stubs: {
           BFormGroup,
           BFormInput,
@@ -70,7 +69,7 @@ describe('EditableGroupableLabel', () => {
   //   expect(wrapper.vm.onInput).toHaveBeenCalledWith(newValue)
   // })
 
-  it('calls parent.valueChanged when value changes', async () => {
+  it('calls editableGroup.valueChanged when value changes', async () => {
     const valueChangedMock = vi.fn()
     wrapper = createWrapper({}, { valueChanged: valueChangedMock })
 
@@ -81,7 +80,7 @@ describe('EditableGroupableLabel', () => {
     expect(valueChangedMock).toHaveBeenCalled()
   })
 
-  it('calls parent.invalidValues when value is reverted to original', async () => {
+  it('calls editableGroup.invalidValues when value is reverted to original', async () => {
     const invalidValuesMock = vi.fn()
     wrapper = createWrapper({}, { invalidValues: invalidValuesMock })
 
@@ -92,7 +91,7 @@ describe('EditableGroupableLabel', () => {
     expect(invalidValuesMock).toHaveBeenCalled()
   })
 
-  it('does not call parent.valueChanged when value is reverted to original', async () => {
+  it('does not call editableGroup.valueChanged when value is reverted to original', async () => {
     const valueChangedMock = vi.fn()
     wrapper = createWrapper({}, { valueChanged: valueChangedMock })
 
