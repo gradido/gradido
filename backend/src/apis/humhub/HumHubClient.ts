@@ -51,8 +51,16 @@ export class HumHubClient {
     return requestOptions
   }
 
+  // set whenever HumHub is on, which is the only time this client exists (see getInstance)
+  private static jwtKey(): string {
+    if (CONFIG.HUMHUB_JWT_KEY === undefined) {
+      throw new Error('HUMHUB_JWT_KEY is not set')
+    }
+    return CONFIG.HUMHUB_JWT_KEY
+  }
+
   private async createJWTToken(): Promise<string> {
-    const secret = new TextEncoder().encode(CONFIG.HUMHUB_JWT_KEY)
+    const secret = new TextEncoder().encode(HumHubClient.jwtKey())
     const token = await new SignJWT({ 'urn:gradido:claim': true, uid: 1 })
       .setProtectedHeader({ alg: 'HS512' })
       .setIssuedAt()
@@ -64,7 +72,7 @@ export class HumHubClient {
   }
 
   public async createAutoLoginUrl(username: string, project?: string | null) {
-    const secret = new TextEncoder().encode(CONFIG.HUMHUB_JWT_KEY)
+    const secret = new TextEncoder().encode(HumHubClient.jwtKey())
     logger.info(`user ${username} as username for humhub auto-login`)
     let redirectLink: string | undefined | null
     if (project) {

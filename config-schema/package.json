@@ -6,8 +6,14 @@
   "types": "./src/index.ts",
   "exports": {
     ".": {
+      "types": "./src/index.ts",
       "import": "./build/index.js",
       "require": "./build/index.js"
+    },
+    "./schema": {
+      "types": "./src/schema.ts",
+      "import": "./build/schema.mjs",
+      "require": "./build/schema.cjs"
     }
   },
   "repository": "https://github.com/gradido/gradido/config",
@@ -15,8 +21,8 @@
   "license": "Apache-2.0",
   "private": true,
   "scripts": {
-    "build": "esbuild src/index.ts --outdir=build --sourcemap --platform=node --target=node24.21.0 --bundle --packages=external",
-    "build:bun": "bun build src/index.ts --outdir=build --target=bun --packages=external",
+    "build": "esbuild src/index.ts --outdir=build --sourcemap --platform=node --target=node24.21.0 --bundle --packages=external && esbuild src/schema.ts --outfile=build/schema.cjs --format=cjs --sourcemap --platform=node --target=node24.21.0 --bundle --packages=external && esbuild src/schema.ts --outfile=build/schema.mjs --format=esm --sourcemap --platform=browser --bundle --packages=external",
+    "build:bun": "bun build src/index.ts --outdir=build --target=bun --packages=external && bun build src/schema.ts --outfile=build/schema.cjs --format=cjs --target=node --packages=external && bun build src/schema.ts --outfile=build/schema.mjs --format=esm --target=browser --packages=external",
     "typecheck": "tsc --noEmit",
     "test": "bun test",
     "test:debug": "bun test --inspect-brk",
@@ -31,7 +37,6 @@
   },
   "dependencies": {
     "esbuild": "^0.25.2",
-    "joi": "17.13.3",
     "log4js": "^6.9.1",
     "source-map-support": "^0.5.21",
     "yoctocolors-cjs": "^2.1.2",

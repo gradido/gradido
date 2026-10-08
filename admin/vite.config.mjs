@@ -7,7 +7,6 @@ import IconsResolve from 'unplugin-icons/resolver'
 import { BootstrapVueNextResolver } from 'bootstrap-vue-next'
 import EnvironmentPlugin from 'vite-plugin-environment'
 
-import schema from './src/config/schema'
 
 import { execSync } from 'node:child_process'
 import { existsSync, constants } from 'node:fs'
@@ -20,20 +19,16 @@ import dotenv from 'dotenv'
 dotenv.config() // load env vars from .env
 
 const require = createRequire(import.meta.url)
-const CONFIG = require('./src/config')
 
 export default defineConfig(async ({ command }) => {
   const { vitePluginGraphqlLoader } = await import('vite-plugin-graphql-loader')
-  if (command === 'serve') {
-    CONFIG.ADMIN_HOSTING = 'nodejs'
-  } else {
-    CONFIG.ADMIN_HOSTING = 'nginx'
-  }
+  // both read by src/config before it parses the environment
+  process.env.ADMIN_HOSTING = command === 'serve' ? 'nodejs' : 'nginx'
   if (existsSync('../.git', constants.F_OK)) {
-    CONFIG.BUILD_COMMIT = execSync('git rev-parse HEAD').toString().trim()
-    CONFIG.BUILD_COMMIT_SHORT = (CONFIG.BUILD_COMMIT ?? '0000000').slice(0, 7)
+    process.env.BUILD_COMMIT = execSync('git rev-parse HEAD').toString().trim()
   }
-  validate(schema, CONFIG)
+  // read and checked here, and once more in the browser from the values handed over below
+  const CONFIG = require('./src/config')
   // make sure that all urls used in browser have the same protocol to prevent mixed content errors
   validate(browserUrls, [
     CONFIG.ADMIN_AUTH_URL,
@@ -85,11 +80,12 @@ export default defineConfig(async ({ command }) => {
         COMMUNITY_NAME: CONFIG.COMMUNITY_NAME,
         COMMUNITY_URL: CONFIG.COMMUNITY_URL ?? null,
         URL_PROTOCOL: CONFIG.ADMIN_MODULE_PROTOCOL ?? null, // null,
-        WALLET_AUTH_URL: CONFIG.WALLET_AUTH_URL ?? null,
         GRAPHQL_URL: CONFIG.GRAPHQL_URI ?? null, // null,
         GRAPHQL_PATH: process.env.GRAPHQL_PATH ?? '/graphql', // null,
-        WALLET_AUTH_PATH: CONFIG.WALLET_AUTH_PATH ?? null,
-        WALLET_LOGIN_PATH: CONFIG.WALLET_LOGIN_URL ?? null, // null,
+        // the parts the wallet links are built from, the browser builds them the same way
+        WALLET_URL: CONFIG.WALLET_URL ?? null,
+        WALLET_AUTH_PATH: CONFIG.WALLET_AUTH_PATH,
+        WALLET_LOGIN_PATH: CONFIG.WALLET_LOGIN_PATH,
         DEBUG_DISABLE_AUTH: CONFIG.DEBUG_DISABLE_AUTH ?? null, // null,
         ANTHROPIC_ACTIVE: CONFIG.ANTHROPIC_ACTIVE ?? null, // null,
         HUMHUB_ACTIVE: CONFIG.HUMHUB_ACTIVE ?? null, // null,
