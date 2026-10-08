@@ -8,7 +8,7 @@ import {
 } from '../schemas/drizzle.schema'
 
 /**
- * Needed because of TypeScript 4, in TypeScript 5 we can use valibot and auto deduct a valibot schema from drizzle db schema
+ * TODO: replace with a valibot schema auto deducted from the drizzle db schema
  * Converts a ProjectBranding object to a ProjectBrandingInsert object to be used in database operations.
  * @param projectBranding - The ProjectBranding object to convert.
  * @returns The converted ProjectBrandingInsert object.

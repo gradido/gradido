@@ -68,7 +68,7 @@ const pictureDefect = (avatar: string, kind: 'small' | 'full'): string | null =>
   return null
 }
 
-// TODO: replace with a valibot schema after update to typescript 5 is possible
+// TODO: replace with a valibot schema
 /**
  * The answer as the other server wrote it. It arrives as parsed JSON, so the payload type is
  * what that server promised, not what arrived -- every field is checked before it is used.

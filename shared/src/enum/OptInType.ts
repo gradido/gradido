@@ -1,5 +1,5 @@
-// not compatible with typescript 4
-// import { enum as zEnum } from 'zod/v4-mini'
+import * as v from 'valibot'
+
 export enum OptInType {
   EMAIL_OPT_IN_REGISTER = 1,
   EMAIL_OPT_IN_RESET_PASSWORD = 2,
@@ -8,4 +8,4 @@ export enum OptInType {
   EMAIL_OPT_IN_CHANGE = 3,
 }
 
-// export const OptInTypeSchema = zEnum(OptInType)
+export const OptInTypeSchema = v.enum(OptInType)

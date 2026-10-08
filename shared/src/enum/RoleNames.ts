@@ -1,5 +1,4 @@
-// not compatible with typescript 4
-// import { enum as zEnum } from 'zod/v4-mini'
+import * as v from 'valibot'
 
 export enum RoleNames {
   UNAUTHORIZED = 'UNAUTHORIZED',
@@ -10,4 +9,4 @@ export enum RoleNames {
   DLT_CONNECTOR = 'DLT_CONNECTOR_ROLE',
 }
 
-// export const RoleNamesSchema = zEnum(RoleNames)
+export const RoleNamesSchema = v.enum(RoleNames)

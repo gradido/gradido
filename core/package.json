@@ -45,7 +45,7 @@
     "@biomejs/biome": "2.0.0",
     "@types/email-templates": "^10.0.4",
     "@types/i18n": "^0.13.4",
-    "@types/node": "^17.0.21",
+    "@types/node": "^24.9.1",
     "@types/nodemailer": "^6.4.4",
     "@types/sodium-native": "^2.3.5",
     "config-schema": "*",
@@ -57,7 +57,7 @@
     "ncp": "^2.0.0",
     "type-graphql": "2.0.0-rc.3",
     "typed-rest-client": "^1.8.11",
-    "typescript": "~5.6.3"
+    "typescript": "~5.9.3"
   },
   "engines": {
     "node": ">=24"

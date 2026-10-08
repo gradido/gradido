@@ -1,5 +1,4 @@
-// not compatible with typescript 4
-// import { enum as zEnum } from 'zod/v4-mini'
+import * as v from 'valibot'
 
 export enum PasswordEncryptionType {
   NO_PASSWORD = 0,
@@ -7,4 +6,4 @@ export enum PasswordEncryptionType {
   GRADIDO_ID = 2,
 }
 
-// export const PasswordEncryptionTypeSchema = zEnum(PasswordEncryptionType)
+export const PasswordEncryptionTypeSchema = v.enum(PasswordEncryptionType)
