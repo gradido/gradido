@@ -1087,7 +1087,7 @@
   "my-codes": {
     "back": "Indietro",
     "gradido-card": {
-      "hint": "Chi scansiona questo codice può inviarti Gradido."
+      "hint": "Chi scansiona questo codice arriva alla tua pagina del profilo e lì può, tra le altre cose, inviarti Gradido."
     },
     "thank-you-card": {
       "failed": "Al momento non è stato possibile caricare la carta.",

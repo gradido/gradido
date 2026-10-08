@@ -2,7 +2,15 @@
 <template>
   <div class="own-code-view">
     <!-- The page's own chrome, like the scanner's and the calculator's: the route is
-         bareChrome, so on a phone this arrow is the only way out. 44px target. -->
+         bareChrome on a phone, so there this arrow is the only way out. 44px target.
+
+         The arrow has a line of its own and the title stands beneath it, centred over the
+         code and in the size of the sentence under the code (`fs-5`, as the two pages set
+         it): beside the arrow it was the smallest writing on the page, although it is the
+         page's heading. (Bernd, 08.10.2026)
+
+         From lg on the wallet's own chrome is back and the layout prints the title as the
+         page heading, so this head goes -- see the style block. -->
     <div v-if="showHead" class="own-code-head" data-test="own-code-head">
       <button
         type="button"
@@ -13,7 +21,7 @@
       >
         <IMdiArrowLeft />
       </button>
-      <div class="own-code-title">{{ title }}</div>
+      <div class="own-code-title fs-5" data-test="own-code-title">{{ title }}</div>
     </div>
 
     <div class="own-code-body">
@@ -115,9 +123,16 @@ const goBack = () => {
 /* Block comments only: lightningcss parses SFC style blocks and a double slash is not a
    comment to it -- the build fails with "Invalid empty selector". */
 .own-code-head {
-  display: flex;
-  align-items: center;
-  padding: 4px 8px;
+  padding: 4px 8px 0;
+}
+
+/* The layout's switch-over (LG_BREAKPOINT_PX), not Bootstrap's 992: from here on the
+   navbar and the page heading are on screen, and a second heading with a back arrow under
+   them would say the same thing twice. */
+@media (width >= 1025px) {
+  .own-code-head {
+    display: none;
+  }
 }
 
 .own-code-back {
@@ -138,8 +153,11 @@ const goBack = () => {
   opacity: 1;
 }
 
+/* The size comes from `fs-5` in the template -- the same class the pages give the sentence
+   under the code, so the two cannot drift apart. The side padding is the body's. */
 .own-code-title {
-  font-size: 18px;
+  text-align: center;
+  padding: 0 8px 8px;
 }
 
 .own-code-body {

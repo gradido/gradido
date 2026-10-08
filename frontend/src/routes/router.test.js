@@ -248,11 +248,18 @@ describe('router', () => {
     it.each([
       ['/my-gradido-card', 'my-gradido-card'],
       ['/my-thank-you-card', 'my-thank-you-card'],
-    ])('gives %s a page title the breadcrumb can resolve, and its own head', (path, title) => {
-      const route = routes.find((r) => r.path === path)
-      expect(route.meta.pageTitle).toBe(title)
-      expect(route.meta.bareChrome).toBe(true)
-    })
+    ])(
+      'gives %s a page title the breadcrumb can resolve, and its own head on a phone only',
+      (path, title) => {
+        const route = routes.find((r) => r.path === path)
+        // On the desk the title is the page HEADING now -- the breadcrumb prints it -- so an
+        // unresolvable key would stand there in large letters.
+        expect(route.meta.pageTitle).toBe(title)
+        // Not `true`: that would take the navbar, the tools and the heading away on the desk
+        // as well, and the page would look as if it had left the wallet again.
+        expect(route.meta.bareChrome).toBe('phone')
+      },
+    )
 
     // Same two assertions as the calculator below, for the same reasons: the raw key
     // would print if the breadcrumb cannot resolve it, and without bareChrome the
