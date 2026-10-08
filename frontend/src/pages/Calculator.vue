@@ -281,6 +281,7 @@ import { useCalculatorBasket } from '@/composables/useCalculatorBasket'
 import { useCalculatorPrefs } from '@/composables/useCalculatorPrefs'
 import { useCalculatorSound } from '@/composables/useCalculatorSound'
 import { useParkedAmount } from '@/composables/useParkedAmount'
+import { backOrOverview } from '@/utils/backOrOverview'
 import { decimalSeparatorFor } from '@/utils/numberFormat'
 
 /** The daily rate is a rate, not money -- four places, and no currency grouping rules. */
@@ -426,15 +427,10 @@ const parkFailed = ref(false)
  * fixed target would be wrong for all but one of them.
  *
  * ⚠️ A deep link has no wallet history: `state.back` is null then, and a bare history step
- * would walk OUT of the wallet. The overview is the safe landing.
+ * would walk OUT of the wallet. The overview is the safe landing -- also where the step
+ * back would lead to the sign-in form (utils/backOrOverview).
  */
-const goBack = () => {
-  if (router.options.history.state.back) {
-    router.back()
-  } else {
-    router.push('/overview')
-  }
-}
+const goBack = () => backOrOverview(router)
 
 /**
  * Puts one of the two sums into the clipboard, to be typed in somewhere else.
