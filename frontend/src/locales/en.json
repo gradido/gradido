@@ -1087,7 +1087,7 @@
   "my-codes": {
     "back": "Back",
     "gradido-card": {
-      "hint": "Whoever scans this code can send you Gradido."
+      "hint": "Whoever scans this code lands on your profile page and can, among other things, send you Gradido there."
     },
     "thank-you-card": {
       "failed": "The card could not be loaded just now.",
