@@ -28,12 +28,12 @@ Reference implementation for the target style: `dlt-connector`.
 
 ## Order of work
 
-Migrating queries proceeds in three separate steps, never merged into one:
+Migrating queries proceeds in four separate steps, never merged into one:
 
 1. **Move** the existing TypeORM query into `database/src/queries/[tableName].typeorm.ts` unchanged.
-2. **Translate** it to Drizzle.
+2. **Translate** it to Drizzle in `database/src/queries/[tableName].ts`; the TypeORM version stays in place beside it.
 3. **Adjust** the caller's types.
-4. **Remove** TypeORM Version after no caller no longer exist
+4. **Remove** the TypeORM version from `[tableName].typeorm.ts` once no callers remain.
 
 Transaction safety while both ORMs coexist: `AppDatabase` holds a TypeORM `DataSource` and a separate Drizzle pool — two connection pools, so **a TypeORM transaction does not cover Drizzle writes**. Anything that must be atomic has to sit on one ORM. Migrate along transaction boundaries, not table by table.
 
