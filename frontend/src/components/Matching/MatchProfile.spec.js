@@ -777,15 +777,24 @@ describe('MatchProfile', () => {
       ).toEqual(['Gradido senden'])
     })
 
-    it("asks nobody and offers no first word on the member's own ring", async () => {
-      storeState.gradidoID = 'USER-UUID-1'
-      mountProfile(baseMatch())
-      await flushPromises()
+    // The wallet and the GMS each hold the id as they were given it: the same member, whichever
+    // of the two spells it in capitals.
+    it.each([
+      ['as the GMS spells it', 'user-uuid-1', 'user-uuid-1'],
+      ['in capitals in the wallet', 'USER-UUID-1', 'user-uuid-1'],
+      ['in capitals at the GMS', 'user-uuid-1', 'USER-UUID-1'],
+    ])(
+      "asks nobody and offers no first word on the member's own ring, the id %s",
+      async (_, mine, onTheMap) => {
+        storeState.gradidoID = mine
+        mountProfile(baseMatch({ uuid: onTheMap }))
+        await flushPromises()
 
-      expect(apollo.query).not.toHaveBeenCalled()
-      expect(bar().exists()).toBe(false)
-      expect(conversation().exists()).toBe(false)
-    })
+        expect(apollo.query).not.toHaveBeenCalled()
+        expect(bar().exists()).toBe(false)
+        expect(conversation().exists()).toBe(false)
+      },
+    )
 
     it.each([
       ['a ring without a member', { uuid: null }],
