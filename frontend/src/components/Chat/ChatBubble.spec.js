@@ -774,6 +774,105 @@ describe('ChatBubble', () => {
     })
   })
 
+  /**
+   * The quotation over an answer (Bernd, 09.10.2026). The thread's spec holds it with a thread
+   * around it; here what the bubble decides by itself.
+   */
+  describe('the quotation over an answer', () => {
+    const QUOTED = {
+      id: 4,
+      messageUuid: 'uuid-4',
+      mine: false,
+      excerpt: 'Wann treffen wir uns?',
+      hasImage: false,
+      senderUser: null,
+    }
+    const quote = () => wrapper.find('[data-test="chat-bubble-quote"]')
+    const quoteName = () => wrapper.find('[data-test="chat-bubble-quote-name"]')
+    const quoteText = () => wrapper.find('[data-test="chat-bubble-quote-text"]')
+
+    it('hands the quoted message up when it is pressed', async () => {
+      mountBubble({ ...OWN, replyTo: QUOTED })
+
+      await quote().trigger('click')
+
+      expect(wrapper.emitted('showQuoted')).toEqual([[QUOTED]])
+    })
+
+    // In a group the server names the writer with the quotation, as with a group's message.
+    it('names the writer the server named, in a group', () => {
+      mountBubble({
+        ...OWN,
+        replyTo: {
+          ...QUOTED,
+          senderUser: { communityUuid: 'home-uuid', gradidoID: 'carla-id', alias: 'Carla-Sonne' },
+        },
+      })
+
+      expect(quoteName().text()).toBe('Carla-Sonne')
+    })
+
+    it('names the other person between two, and "Du" for one’s own', () => {
+      mountBubble({ ...OWN, replyTo: QUOTED })
+      expect(quoteName().text()).toBe('Lena')
+      wrapper.unmount()
+
+      mountBubble({ ...THEIRS, replyTo: { ...QUOTED, mine: true } })
+      expect(quoteName().text()).toBe('chatThread.you')
+    })
+
+    // The message as the thread holds it goes before what the server sent with the answer.
+    it('quotes the message handed in by the thread before the server’s words', async () => {
+      mountBubble({ ...OWN, replyTo: QUOTED })
+      expect(quoteText().text()).toBe('Wann treffen wir uns?')
+
+      await wrapper.setProps({ quotedMessage: { id: 4, body: 'Um  elf\nam Markt', images: [] } })
+
+      expect(quoteText().text()).toBe('Um elf am Markt')
+    })
+
+    it('is ringed while the bar answers it, and while a quotation led to it', async () => {
+      mountBubble(THEIRS)
+      expect(wrapper.classes()).not.toContain('is-answered')
+      expect(wrapper.classes()).not.toContain('is-shown')
+
+      await wrapper.setProps({ answering: true })
+      expect(wrapper.classes()).toContain('is-answered')
+      await wrapper.setProps({ answering: false, shown: true })
+      expect(wrapper.classes()).toContain('is-shown')
+      expect(wrapper.classes()).not.toContain('is-answered')
+
+      const code = readFileSync(
+        join(dirname(fileURLToPath(import.meta.url)), 'ChatBubble.vue'),
+        'utf8',
+      ).replace(/\/\*[\s\S]*?\*\//g, '')
+      for (const mark of ['is-answered', 'is-shown']) {
+        expect(code).toMatch(
+          new RegExp(
+            `\\.chat-bubble-row\\.${mark} \\.chat-bubble[\\s,][^}]*box-shadow:\\s*0 0 0 2px var\\(--success`,
+          ),
+        )
+      }
+    })
+
+    /**
+     * ⛔ Cut off to one line by a line clamp, not by `nowrap`: a line that may not break asks for
+     * its whole width, through every box around it (skill null-ac).
+     */
+    it('keeps the name and the words to one line each without forbidding them to break', () => {
+      const code = readFileSync(
+        join(dirname(fileURLToPath(import.meta.url)), 'ChatBubble.vue'),
+        'utf8',
+      ).replace(/\/\*[\s\S]*?\*\//g, '')
+      const rule = code.match(
+        /\.chat-bubble-quote-name,\s*\.chat-bubble-quote-text\s*\{([^}]*)\}/,
+      )?.[1]
+      expect(rule).toMatch(/-webkit-line-clamp:\s*1/)
+      expect(rule).toMatch(/overflow:\s*hidden/)
+      expect(code.match(/\.chat-bubble-quote[^{]*\{[^}]*white-space:\s*nowrap/)).toBeNull()
+    })
+  })
+
   // E-060: the message whose text stands in the bar to be changed is ringed, as under its menu.
   it('is ringed while its text is being changed', async () => {
     mountBubble(OWN)

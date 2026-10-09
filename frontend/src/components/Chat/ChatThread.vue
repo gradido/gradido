@@ -87,11 +87,16 @@
               :show-writer="runStarts.has(message.id)"
               :search-current="searchKey === (message.key ?? message.id)"
               :editing="editing !== null && editing.id === message.id"
+              :answering="replying !== null && replying.messageUuid === message.messageUuid"
+              :shown="shownKey !== null && shownKey === (message.key ?? message.id)"
+              :quoted-message="quotedIn(message)"
               @open-image="openImage"
               @open-member="emit('openMember', $event)"
               @duplicate-video="emit('duplicateVideo', $event)"
               @forward="emit('forwardMessage', $event)"
               @edit="startEdit"
+              @reply="startReply"
+              @show-quoted="showQuoted"
             />
           </ol>
         </section>
@@ -123,9 +128,11 @@
       :text-only="textOnly"
       :editing="editingForBar"
       :edit-problem="editProblem"
+      :replying="replying"
       @send="send"
       @save-edit="saveEdit"
       @cancel-edit="stopEdit"
+      @cancel-reply="stopReply"
     />
 
     <!-- A picture of the thread, large (P7): a dialog of its own over the contact window. -->
@@ -139,7 +146,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onBeforeUnmount, ref, toRef, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, shallowRef, toRaw, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useStore } from 'vuex'
 import { useApolloClient, useMutation, useQuery } from '@vue/apollo-composable'
@@ -149,6 +156,7 @@ import ChatImageView from '@/components/Chat/ChatImageView.vue'
 import { openChatImageView, rememberChatImage } from '@/composables/useChatImages'
 import { useChatTransfers } from '@/composables/useChatTransfers'
 import { useChatThreadSearch } from '@/composables/useChatThreadSearch'
+import { useAppToast } from '@/composables/useToast'
 import { onChatMessages, onChatMessagesEdited, pollChatNow } from '@/composables/useChatUpdates'
 import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
 import {
@@ -1121,7 +1129,8 @@ const noticeFor = (own) => {
  *
  * A picture (P7) goes as `$image` -- ⛔ the name the backend's request log masks (LOG-071): under
  * any other name some 44,000 characters of it would be written to the log with every message.
- * Without one, no `image` at all, rather than a null nobody asked for.
+ * Without one, no `image` at all, rather than a null nobody asked for. The same for `replyTo`,
+ * the uuid of the message an answer quotes.
  *
  * ⛔ Into the query's own answer in the cache, not a list of its own and not by asking the
  * server again. Measured with Apollo 3.14 and vue-apollo 4.2 before building: a `network-only`
@@ -1140,7 +1149,7 @@ const noticeFor = (own) => {
 const sendTo = (notify) =>
   inGroup ? { groupUuid, announce: notify === CHAT_NOTIFY_EMAIL } : { ref: memberRef, notify }
 
-const post = async ({ body, notify, image = null }) => {
+const post = async ({ body, notify, image = null, replyTo = null }) => {
   sentNotice.value = ''
   // Whoever writes wants to see what they wrote: back to the bottom, even from further up.
   followNewest = true
@@ -1150,6 +1159,7 @@ const post = async ({ body, notify, image = null }) => {
         ...sendTo(notify),
         body,
         ...(image ? { image } : {}),
+        ...(replyTo ? { replyTo } : {}),
       },
       {
         update: (cache, { data }) => {
@@ -1186,17 +1196,27 @@ const post = async ({ body, notify, image = null }) => {
  * A delivery that failed across the border is no error: the copy comes back FAILED and the
  * bubble says "not delivered" (E-019). Only an error from the server leaves the text in the
  * bar.
+ *
+ * `reply`: the message the bar's message answers, as the bar was handed it (`replying`) when the
+ * button was pressed -- its uuid goes with the message.
  */
-const send = async (message) => {
+const send = async ({ reply = null, ...message }) => {
   if (sending.value) return
   messagesUnderway.value += 1
   sendFailed.value = false
   let outcome = { own: null, refusal: null }
   try {
-    outcome = await post(message)
+    outcome = await post({ ...message, replyTo: reply?.messageUuid ?? null })
   } finally {
     sendFailed.value = outcome.own === null
     sendRefusal.value = outcome.refusal ?? ''
+    // ⛔ The answer went out: the bar lets go of the message it answered -- of THAT one, as the
+    // press found it. The member may have let go of it while the message was on its way, or
+    // taken up another, or this one anew: that is not this message's to end. A message that did
+    // not go through keeps what it answers, as the bar keeps its words.
+    if (outcome.own !== null && reply !== null && toRaw(replying.value) === toRaw(reply)) {
+      replying.value = null
+    }
     messagesUnderway.value -= 1
   }
 }
@@ -1282,6 +1302,8 @@ const startEdit = (message) => {
     return
   }
   editProblem.value = ''
+  // One thing at a time in the bar: a message to be changed answers none.
+  replying.value = null
   editing.value = message
 }
 
@@ -1372,6 +1394,170 @@ const edit = async (changed) => {
   } finally {
     messagesUnderway.value -= 1
   }
+}
+
+/**
+ * The message the bar's next message answers (Bernd, 09.10.2026), or null: what the bar shows of
+ * it over its field -- whose it is, its words on one line, whether it carries a picture -- and its
+ * uuid, which goes with the message (`send`). A new object with every "Antworten", and never
+ * changed: `send` tells by it whether the bar still holds the answer a message went out with.
+ */
+const replying = shallowRef(null)
+
+/**
+ * "Antworten" at a message: it stands over the bar until the next message goes, and the keyboard
+ * goes into the field. A message being changed is let go for it -- one thing at a time in the bar
+ * --, and the bar gets back what stood in it.
+ */
+const startReply = async (message) => {
+  if (editing.value !== null) stopEdit()
+  const user = message.senderUser
+  replying.value = {
+    id: message.id,
+    messageUuid: message.messageUuid,
+    mine: Boolean(message.mine),
+    name: user ? memberAlias(user.alias, user.gradidoID) : props.alias,
+    text: (message.body ?? '').replace(/\s+/g, ' ').trim(),
+    hasImage: (message.images?.length ?? 0) > 0,
+  }
+  await nextTick()
+  composeBar.value?.focus()
+}
+
+/** The answer let go (✕, Esc): the next message answers none. */
+const stopReply = () => {
+  replying.value = null
+}
+
+/**
+ * The messages of the page by their uuid, the way the server compares one: without regard to
+ * case. For the quotations: an answer quotes its message from here where the page holds it.
+ */
+const messagesByUuid = computed(
+  () => new Map(messages.value.map((message) => [message.messageUuid.toLowerCase(), message])),
+)
+
+/** The message this one answers as the page holds it, or null (ChatBubble, `quotedMessage`). */
+const quotedIn = (message) =>
+  message.replyTo
+    ? (messagesByUuid.value.get(message.replyTo.messageUuid.toLowerCase()) ?? null)
+    : null
+
+/** How many older pages a press on a quotation asks for at most: a thousand messages back. */
+const QUOTED_MAX_PAGES = 20
+/** How long one of them may take to come, and then to be on screen (useChatThreadSearch). */
+const QUOTED_PAGE_WAIT_MS = 15000
+const QUOTED_LAND_WAIT_MS = 2000
+/** How long the message a quotation led to stays ringed. */
+const SHOWN_MS = 2000
+
+const { toastError } = useAppToast()
+
+/** The id of the message a quotation led to, while it is ringed; null otherwise. */
+const shownKey = ref(null)
+let shownTimer = null
+/** The quotation whose message is being looked for, while older pages are on their way for it. */
+let seeking = null
+let threadGone = false
+onBeforeUnmount(() => {
+  threadGone = true
+  seeking = null
+  clearTimeout(shownTimer)
+})
+
+/**
+ * Whether the page asked for is on screen within `ms`: the mark the search goes by moved -- more
+ * messages, more transfers, or no more of either. ⚠️ Watched from BEFORE the page is asked for,
+ * as the search does it (useChatThreadSearch, `pageLanded`): `fetchMore` returns before the
+ * merged page is written.
+ */
+const olderPageLanded = (ms) => {
+  const before = searchProgress.value
+  let stop = null
+  let timer = null
+  let settle = null
+  const done = new Promise((resolve) => {
+    settle = resolve
+  })
+  const finish = (landed) => {
+    stop?.()
+    clearTimeout(timer)
+    settle(landed)
+  }
+  stop = watch(searchProgress, (now) => {
+    if (now !== before) finish(true)
+  })
+  return {
+    done,
+    arm: () => {
+      if (searchProgress.value !== before) finish(true)
+      else timer = setTimeout(() => finish(false), ms)
+    },
+    cancel: () => finish(false),
+  }
+}
+
+/** `promise`, or false once `ms` have passed. */
+const withinMs = (promise, ms) => {
+  let timer = null
+  const late = new Promise((resolve) => {
+    timer = setTimeout(() => resolve(false), ms)
+  })
+  return Promise.race([promise, late]).finally(() => clearTimeout(timer))
+}
+
+/**
+ * A press on the quotation over an answer: the thread goes to the quoted message and rings it for
+ * a moment. Where the message is on an older page, the pages before the one on screen are asked
+ * for until it is there -- QUOTED_MAX_PAGES at most; where it does not come, a line says so and
+ * the reader stays where they are.
+ *
+ * ⛔ One search at a time, and its answer only for the press it belongs to: a second quotation
+ * pressed while pages are on their way takes over (`seeking`), and the first gives way once its
+ * page is in -- as a needle typed on does in the search. Nothing is done for a thread that is
+ * gone.
+ */
+const showQuoted = async (quoted) => {
+  if (!quoted) return
+  const sought = { id: quoted.id }
+  seeking = sought
+  const held = () => messages.value.some((message) => message.id === quoted.id)
+  // Only while the quoted message lies before the oldest one on screen: the ids are the order
+  // (E-018), so one that is not on a page it should be on is on none.
+  const liesBefore = () => messages.value.length > 0 && quoted.id < messages.value[0].id
+  for (let pages = 0; !held() && hasMore.value && liesBefore(); pages += 1) {
+    if (pages >= QUOTED_MAX_PAGES) break
+    const landed = olderPageLanded(QUOTED_LAND_WAIT_MS)
+    const asked = await withinMs(loadOlder(), QUOTED_PAGE_WAIT_MS)
+    if (threadGone || seeking !== sought) {
+      landed.cancel()
+      return
+    }
+    if (asked !== true || olderFailed.value) {
+      landed.cancel()
+      break
+    }
+    // A page that came and is not on screen in time: what is there is all there is to go by.
+    landed.arm()
+    const onScreen = await landed.done
+    if (threadGone || seeking !== sought) return
+    if (!onScreen) break
+  }
+  seeking = null
+  if (!held()) {
+    toastError(t('chatThread.quoteNotShown'))
+    return
+  }
+  // After the render that put the older page in, and after the reader's place was put back.
+  await nextTick()
+  if (threadGone) return
+  showItem(quoted.id)
+  shownKey.value = quoted.id
+  clearTimeout(shownTimer)
+  shownTimer = setTimeout(() => {
+    shownKey.value = null
+  }, SHOWN_MS)
+  announce(t('chatThread.quoteShown'))
 }
 
 /**

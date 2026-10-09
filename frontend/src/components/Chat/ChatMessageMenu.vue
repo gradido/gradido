@@ -12,8 +12,23 @@
          message, at its side; under it where there is no room above. A group of buttons, as the
          paperclip's: Tab reaches them, Esc closes (the bubble handles it). Inside the root, not
          over it: one root element takes the bubble's listener. -->
-    <!-- "Bearbeiten" first (Bernd, 01.10.2026, E-060), at one's own message only: its text -- or,
-         at a video invitation, its topic and its time. -->
+    <!-- "Antworten" first (Bernd, 09.10.2026), at every message of the conversation: the next
+         message quotes this one. -->
+    <button
+      v-if="canReply"
+      type="button"
+      class="chat-message-menu-item"
+      data-test="chat-message-reply"
+      @click="emit('reply')"
+    >
+      <i-mdi-reply-outline class="chat-message-menu-icon" aria-hidden="true" />
+      <span class="chat-message-menu-words">
+        <span class="chat-message-menu-label">{{ t('chatThread.reply') }}</span>
+        <span class="chat-message-menu-hint">{{ t('chatThread.replyHint') }}</span>
+      </span>
+    </button>
+    <!-- "Bearbeiten" (Bernd, 01.10.2026, E-060), at one's own message only: its text -- or, at a
+         video invitation, its topic and its time. -->
     <button
       v-if="canEdit"
       type="button"
@@ -63,14 +78,15 @@ import { useI18n } from 'vue-i18n'
 
 /**
  * The entries of the menu at a message (E-059, E-060). What may be done, the bubble decides: only
- * one's own words are changed, a transfer is not forwarded, a picture without words has no text to
- * copy.
+ * one's own words are changed, a transfer is neither answered nor forwarded, a picture without
+ * words has no text to copy.
  */
 defineProps({
   /** One's own message: the menu keeps to the right, as the bubble does. */
   mine: { type: Boolean, default: false },
   /** No room above the message in the thread: the menu opens under it. */
   below: { type: Boolean, default: false },
+  canReply: { type: Boolean, default: false },
   canEdit: { type: Boolean, default: false },
   /** The message is a video invitation: "Bearbeiten" changes its topic and its time. */
   video: { type: Boolean, default: false },
@@ -78,7 +94,7 @@ defineProps({
   canCopy: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['edit', 'forward', 'copy'])
+const emit = defineEmits(['reply', 'edit', 'forward', 'copy'])
 
 const { t } = useI18n()
 </script>

@@ -86,6 +86,18 @@ fragment chatGroupMessageFields on ChatMessage {
     gradidoID
     alias
   }
+  replyTo {
+    id
+    messageUuid
+    mine
+    excerpt
+    hasImage
+    senderUser {
+      communityUuid
+      gradidoID
+      alias
+    }
+  }
 }
 
 # A group's thread, one page at a time, oldest first within the page (E-018), as the thread with
@@ -112,13 +124,23 @@ query chatGroupMessagesQuery($groupUuid: String!, $before: Int, $limit: Int) {
 # ⛔ The variables are called `$body` and `$image` -- the names the backend's request log masks
 # (LOG-071): under any other name the text and some 44,000 characters of a picture would be written
 # to the log with every message.
+#
+# `replyTo`: the uuid of the message of this group the message answers (sendChatMessage,
+# chat.graphql).
 mutation sendChatGroupMessage(
   $groupUuid: String!
   $body: String!
   $announce: Boolean!
   $image: ChatImageInput
+  $replyTo: String
 ) {
-  sendChatGroupMessage(groupUuid: $groupUuid, body: $body, announce: $announce, image: $image) {
+  sendChatGroupMessage(
+    groupUuid: $groupUuid
+    body: $body
+    announce: $announce
+    image: $image
+    replyTo: $replyTo
+  ) {
     ...chatGroupMessageFields
   }
 }

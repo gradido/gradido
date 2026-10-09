@@ -39,6 +39,37 @@
       </button>
     </div>
 
+    <!-- The next message answers one of the thread (Bernd, 09.10.2026): this strip says which --
+         whose it is, and its words on one line, a picture named -- with the way out. Drawn as the
+         strip over a message being changed, which takes its place while one is: the answer waits
+         under it. Everything else goes with an answer as with any message. -->
+    <div v-if="replying && !editing" class="chat-compose-editing" data-test="chat-compose-replying">
+      <i-mdi-reply-outline class="chat-compose-editing-icon" aria-hidden="true" />
+      <div class="chat-compose-editing-words">
+        <span :id="replyingId" class="chat-compose-editing-title">
+          {{ replyingTitle }}
+        </span>
+        <span class="chat-compose-editing-text" data-test="chat-compose-replying-text">
+          <i-mdi-image-outline
+            v-if="replying.hasImage"
+            class="chat-compose-replying-icon"
+            aria-hidden="true"
+          />
+          {{ replying.text || t('chatThread.imageReady') }}
+        </span>
+      </div>
+      <button
+        type="button"
+        class="chat-compose-attached-remove"
+        :aria-label="t('chatThread.replyCancel')"
+        :title="t('chatThread.replyCancel')"
+        data-test="chat-compose-reply-cancel"
+        @click="emit('cancelReply')"
+      >
+        <i-mdi-close class="chat-compose-attached-remove-icon" aria-hidden="true" />
+      </button>
+    </div>
+
     <!-- The picture that goes with the next message (the mockup, "Bild gewählt, vor dem Senden"):
          while it is opened, and again while it is made small for sending, a quiet square and "Bild
          wird vorbereitet …"; otherwise the picture as it will go -- drawn from the picture as
@@ -443,14 +474,21 @@ const props = defineProps({
    * changed". The new text stays in the field.
    */
   editProblem: { type: String, default: '' },
+  /**
+   * The message the next message answers, or null: `{ messageUuid, mine, name, text, hasImage }`
+   * -- whose it is ("Du" is the bar's to say, `mine`), its words on one line, whether it carries a
+   * picture. The thread's own object, handed back with `send` as the press found it.
+   */
+  replying: { type: Object, default: null },
 })
 
 /**
  * `send`: a new message. `saveEdit`: the changed text of the message being changed --
  * `{ messageUuid, body }`. `cancelEdit`: the changing is let go, by the ✕, by Esc in the field, or
- * by saving a text that is the same as before.
+ * by saving a text that is the same as before. `cancelReply`: the next message answers none
+ * after all -- by the ✕, or by Esc in the field.
  */
-const emit = defineEmits(['send', 'saveEdit', 'cancelEdit'])
+const emit = defineEmits(['send', 'saveEdit', 'cancelEdit', 'cancelReply'])
 
 const { t } = useI18n()
 
@@ -465,6 +503,14 @@ const fieldId = `${id}-field`
 const firstId = `${id}-first`
 const remainingId = `${id}-remaining`
 const editingId = `${id}-editing`
+const replyingId = `${id}-replying`
+
+/** "Antwort an [Nutzername]" over the field -- "Antwort auf Deine Nachricht" for one's own. */
+const replyingTitle = computed(() =>
+  props.replying?.mine
+    ? t('chatThread.replyingToOwn')
+    : t('chatThread.replyingTo', { name: props.replying?.name ?? '' }),
+)
 
 const root = ref(null)
 const field = ref(null)
@@ -554,6 +600,7 @@ const describedBy = computed(
     [
       props.first ? firstId : null,
       props.editing ? editingId : null,
+      props.replying && !props.editing ? replyingId : null,
       showRemaining.value ? remainingId : null,
     ]
       .filter(Boolean)
@@ -651,6 +698,9 @@ const submit = async () => {
     // group's window told the bar, is no wish.
     alsoByEmail: alsoByEmail.value && boxShown.value,
     picture: picture.value,
+    // The message answered, as the press found it: a picture is made small before the message
+    // goes, and the member may let go of the answer -- or take up another -- meanwhile.
+    reply: props.replying,
   }
   let image = null
   if (pressed.picture) {
@@ -674,6 +724,8 @@ const submit = async () => {
     // follows too (utils/chatNotify.js).
     notify: chatNotifyFor({ first: props.first, alsoByEmail: pressed.alsoByEmail }),
     image,
+    // Only an answer names what it answers: every other message goes as it always went.
+    ...(pressed.reply ? { reply: pressed.reply } : {}),
   })
 }
 
@@ -909,13 +961,15 @@ const cancelEdit = () => emit('cancelEdit')
 /**
  * ⛔ Esc in the field lets the changing go and nothing more: stopped here, it does not reach the
  * contact window, whose dialog closes on an Esc from anywhere inside it -- the window would shut
- * over a text half changed. Without a message being changed, Esc goes on as always.
+ * over a text half changed. Without a message being changed or answered, Esc goes on as always.
  */
 const cancelEditByKey = (event) => {
-  if (!props.editing) return
+  if (!props.editing && !props.replying) return
   event.stopPropagation()
   event.preventDefault()
-  cancelEdit()
+  // The same for an answer: Esc lets go of it, and the window stays open over the words typed.
+  if (props.editing) cancelEdit()
+  else emit('cancelReply')
 }
 
 /** Why a change did not go through, in the bar's own words (see the template). */
@@ -1139,6 +1193,13 @@ watch(
 .dark-mode .chat-compose-editing-text {
   color: var(--bs-body-color);
   opacity: 0.75;
+}
+
+/* "Bild" before the words of an answered message that carries one. */
+.chat-compose-replying-icon {
+  width: 1.05em;
+  height: 1.05em;
+  vertical-align: -0.15em;
 }
 
 .chat-compose-attached-remove {

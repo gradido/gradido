@@ -12,6 +12,8 @@
         'is-search-current': searchCurrent,
         'has-menu': menuOpen,
         'is-editing': editing,
+        'is-answered': answering,
+        'is-shown': shown,
       },
     ]"
     :style="face ? { '--chat-bubble-face': `${LIST_AVATAR_SIZE}px` } : undefined"
@@ -76,6 +78,30 @@
         </i18n-t>
         <span v-else>{{ t('chatThread.forwarded') }}</span>
       </div>
+      <!-- The message this one answers (Bernd, 09.10.2026), quoted over it: who wrote it and the
+           beginning of its words, each on one line -- a picture named, not shown. A button: a
+           press goes to the quoted message in the thread. The ear hears "Antwort auf" first, so
+           the name and the words after it are not taken for the message's own. -->
+      <button
+        v-if="quote"
+        type="button"
+        class="chat-bubble-quote"
+        data-test="chat-bubble-quote"
+        @click.stop="emit('showQuoted', message.replyTo)"
+      >
+        <span class="visually-hidden">{{ t('chatThread.quoteLead') }}</span>
+        <span class="chat-bubble-quote-name" data-test="chat-bubble-quote-name">
+          {{ quote.name }}
+        </span>
+        <span class="chat-bubble-quote-text" data-test="chat-bubble-quote-text">
+          <i-mdi-image-outline
+            v-if="quote.hasImage"
+            class="chat-bubble-quote-icon"
+            aria-hidden="true"
+          />
+          {{ quote.text || t('chatThread.imageReady') }}
+        </span>
+      </button>
       <!-- The picture a message carries (P7), on top; its caption is the text under it, in the
            same bubble (E-044 F3). One a message. -->
       <chat-bubble-image
@@ -244,10 +270,12 @@
       v-if="menuOpen"
       :mine="message.mine"
       :below="menuBelow"
+      :can-reply="canReply"
       :can-edit="canEdit"
       :video="editsAsVideo"
       :can-forward="canForward"
       :can-copy="canCopy"
+      @reply="reply"
       @edit="edit"
       @forward="forward"
       @copy="copyText"
@@ -339,6 +367,17 @@ const props = defineProps({
   searchCurrent: { type: Boolean, default: false },
   /** The message whose text stands in the bar to be changed (E-060): ringed, as under its menu. */
   editing: { type: Boolean, default: false },
+  /** The message the bar's next message answers: ringed, as the one being changed is. */
+  answering: { type: Boolean, default: false },
+  /** The message a quotation was pressed for, just put in sight: ringed for a moment. */
+  shown: { type: Boolean, default: false },
+  /**
+   * The message this one answers, where the thread holds it: quoted from there, with its words
+   * as they stand in the thread -- a change made since the page came is in them. Null where the
+   * quoted message is on an older page; the bubble quotes what the server sent then
+   * (`message.replyTo`).
+   */
+  quotedMessage: { type: Object, default: null },
 })
 
 /**
@@ -350,9 +389,19 @@ const props = defineProps({
  * message in a group, named over it (E-053) -- the user the server named with it. `forward`: the
  * message, to be forwarded (E-059) -- the page asks where to. `edit`: one's own message, to be
  * changed (E-060) -- the thread puts its text into the bar, or hands a video invitation to the
- * window's question.
+ * window's question. `reply`: the message, to be answered -- the thread puts it over the bar.
+ * `showQuoted`: the quotation over an answer was pressed -- `message.replyTo`, for the thread to
+ * go to the quoted message.
  */
-const emit = defineEmits(['openImage', 'openMember', 'duplicateVideo', 'forward', 'edit'])
+const emit = defineEmits([
+  'openImage',
+  'openMember',
+  'duplicateVideo',
+  'forward',
+  'edit',
+  'reply',
+  'showQuoted',
+])
 
 const { t, d, locale } = useI18n()
 const { toastSuccess, toastError } = useAppToast()
@@ -540,10 +589,34 @@ const forwardedName = computed(() => {
 })
 
 /**
+ * The quotation over an answer: `{ name, text, hasImage }`, or null for a message that answers
+ * none. The name as a message's writer is named -- "Du", in a group the writer the server named,
+ * the other person otherwise. The words on one line, whatever lines the message had; from the
+ * message in the thread where it is there, else the beginning the server sent.
+ */
+const quote = computed(() => {
+  const quoted = props.message.replyTo
+  if (!quoted) return null
+  const live = props.quotedMessage
+  const user = quoted.senderUser
+  return {
+    name: quoted.mine
+      ? t('chatThread.you')
+      : user
+        ? memberAlias(user.alias, user.gradidoID)
+        : props.alias,
+    text: (live ? (live.body ?? '') : (quoted.excerpt ?? '')).replace(/\s+/g, ' ').trim(),
+    hasImage: live ? (live.images?.length ?? 0) > 0 : Boolean(quoted.hasImage),
+  }
+})
+
+/**
  * What the menu at the message offers (E-059): forwarding for every message of the conversation --
  * a transfer is none, and has no row to forward --, and its text to copy where it has one.
  */
 const canForward = computed(() => !props.message.transfer && Boolean(props.message.messageUuid))
+/** "Antworten": every message the server has filed -- a transfer is a booking, and has no row. */
+const canReply = canForward
 const textToCopy = computed(() =>
   props.message.transfer
     ? ''
@@ -574,7 +647,9 @@ const editsAsVideo = computed(
     canEdit.value &&
     readChatVideoInvite({ t, d, locale: locale.value }, props.message.body) !== null,
 )
-const menuEntries = computed(() => [canEdit.value, canForward.value, canCopy.value].filter(Boolean))
+const menuEntries = computed(() =>
+  [canReply.value, canEdit.value, canForward.value, canCopy.value].filter(Boolean),
+)
 const hasMenu = computed(() => menuEntries.value.length > 0)
 
 const row = ref(null)
@@ -647,6 +722,12 @@ const tapBubble = (event) => {
 const forward = () => {
   closeMenu()
   emit('forward', props.message)
+}
+
+/** "Antworten": the message goes up to the thread, which puts it over the bar. */
+const reply = () => {
+  closeMenu()
+  emit('reply', props.message)
 }
 
 /** "Bearbeiten" (E-060): the message goes up to the thread, which knows where it is changed. */
@@ -868,12 +949,60 @@ const copyText = async () => {
   font-weight: 600;
 }
 
-/* The message whose menu is open (E-059), and the one whose text stands in the bar to be changed
-   (E-060): ringed in the wallet's green, as the search rings its hit. After the bubble's own
-   rules, which it outweighs. */
+/* The message whose menu is open (E-059), the one whose text stands in the bar to be changed
+   (E-060), the one the bar's next message answers, and the one a quotation led to: ringed in the
+   wallet's green, as the search rings its hit. After the bubble's own rules, which it outweighs. */
 .chat-bubble-row.has-menu .chat-bubble,
+.chat-bubble-row.is-answered .chat-bubble,
+.chat-bubble-row.is-shown .chat-bubble,
 .chat-bubble-row.is-editing .chat-bubble {
   box-shadow: 0 0 0 2px var(--success, #047006);
+}
+
+/* The quotation over an answer: a button without a button's looks, set off by a line at its left
+   in the gold of the menus' signs (`--menu-icon`, E-061) -- the house gold comes to 2.6 : 1 on
+   the light bubbles, this one reaches the 3 : 1 a sign needs on all four (measured 09.10.2026) --,
+   the name, then the words, each on ONE line. Cut off by a
+   line clamp and not by `nowrap`: the words may break anywhere, so the quotation asks for no
+   width of its own beyond what the bubble may have, and a long one makes the bubble as wide as a
+   bubble gets and no wider. */
+.chat-bubble-quote {
+  display: block;
+  width: 100%;
+  margin: 0.1rem 0 0.3rem;
+  padding: 0.05rem 0 0.05rem 0.5rem;
+  border: 0;
+  border-left: 3px solid var(--menu-icon, #a8732a);
+  border-radius: 0;
+  color: inherit;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  text-align: left;
+  background: transparent;
+  cursor: pointer;
+}
+
+.chat-bubble-quote:focus-visible {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: 2px;
+}
+
+.chat-bubble-quote-name,
+.chat-bubble-quote-text {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.chat-bubble-quote-name {
+  font-weight: 600;
+}
+
+.chat-bubble-quote-icon {
+  width: 1.05em;
+  height: 1.05em;
+  vertical-align: -0.15em;
 }
 
 /* "Weitergeleitet von …" over a forwarded copy (E-059), small and in the muted colour of the time
@@ -1024,14 +1153,16 @@ const copyText = async () => {
 .chat-bubble-meta,
 .chat-bubble-state,
 .chat-bubble-not-mailed,
-.chat-bubble-forwarded {
+.chat-bubble-forwarded,
+.chat-bubble-quote-text {
   color: var(--bs-secondary-color, #6c757d);
 }
 
 .dark-mode .chat-bubble-meta,
 .dark-mode .chat-bubble-state,
 .dark-mode .chat-bubble-not-mailed,
-.dark-mode .chat-bubble-forwarded {
+.dark-mode .chat-bubble-forwarded,
+.dark-mode .chat-bubble-quote-text {
   color: var(--bs-body-color);
   opacity: 0.75;
 }
@@ -1051,6 +1182,12 @@ const copyText = async () => {
 
 .chat-bubble.has-image .chat-bubble-meta {
   padding: 0 0.5rem 0.15rem;
+}
+
+/* The quotation over an answer with a picture: in from the edge as the caption is. */
+.chat-bubble.has-image .chat-bubble-quote {
+  width: calc(100% - 1rem);
+  margin: 0.3rem 0.5rem 0.4rem;
 }
 </style>
 

@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
+import { toRaw } from 'vue'
 import { BModal } from 'bootstrap-vue-next'
 import ChatComposeBar from './ChatComposeBar.vue'
 import { SWISSTRANSFER_URL } from '@/utils/chatFileLink'
@@ -50,6 +51,9 @@ describe('ChatComposeBar', () => {
           // The strip over the field and the tick while a message is being changed (E-060).
           IMdiPencilOutline: true,
           IMdiCheck: true,
+          // The strip over the field while the next message answers one.
+          IMdiReplyOutline: true,
+          IMdiImageOutline: { template: '<i data-test="picture-sign" />' },
           // The editor has its own spec; here it shows what it was given and answers as a test says.
           ChatImageEditor: {
             name: 'ChatImageEditor',
@@ -447,6 +451,146 @@ describe('ChatComposeBar', () => {
    * in. The thread hands the message in (`editing`); the bar shows its text to be changed, says
    * so over the field, turns the arrow into a tick -- and gives back what stood in it before.
    */
+  /**
+   * The next message answers one of the thread (Bernd, 09.10.2026): the strip over the field says
+   * which, the message goes out with what it answers as the press found it, and the ✕ and Esc let
+   * go of the answer -- the words typed stay.
+   */
+  describe('an answer to a message', () => {
+    const LENAS = {
+      messageUuid: 'uuid-1',
+      mine: false,
+      name: 'Lena',
+      text: 'Kommst Du am Samstag?',
+      hasImage: false,
+    }
+    const strip = () => wrapper.find('[data-test="chat-compose-replying"]')
+    const stripText = () => wrapper.find('[data-test="chat-compose-replying-text"]')
+    const letGo = () => wrapper.emitted('cancelReply') ?? []
+
+    it('shows no strip while the next message answers none', () => {
+      mountBar()
+      expect(strip().exists()).toBe(false)
+    })
+
+    it('says whom the message answers, with the words answered on their line', () => {
+      mountBar({ replying: LENAS })
+
+      expect(strip().text()).toContain('chatThread.replyingTo {"name":"Lena"}')
+      expect(stripText().text()).toBe('Kommst Du am Samstag?')
+      expect(stripText().find('[data-test="picture-sign"]').exists()).toBe(false)
+    })
+
+    // One's own message has no name to give: the bar says "Deine Nachricht".
+    it('says so where the message answered is one’s own', () => {
+      mountBar({ replying: { ...LENAS, mine: true, name: 'Bernd' } })
+
+      expect(strip().text()).toContain('chatThread.replyingToOwn')
+      expect(strip().text()).not.toContain('chatThread.replyingTo {')
+    })
+
+    it('names a picture answered, with its caption or with the word for one', () => {
+      mountBar({ replying: { ...LENAS, hasImage: true } })
+      expect(stripText().find('[data-test="picture-sign"]').exists()).toBe(true)
+      expect(stripText().text()).toBe('Kommst Du am Samstag?')
+      wrapper.unmount()
+
+      mountBar({ replying: { ...LENAS, text: '', hasImage: true } })
+      expect(stripText().find('[data-test="picture-sign"]').exists()).toBe(true)
+      expect(stripText().text()).toBe('chatThread.imageReady')
+    })
+
+    // The field is described by the strip: whoever comes back to it hears what it answers.
+    it('describes the field by the strip while it stands, and no longer afterwards', async () => {
+      mountBar({ replying: LENAS })
+      const title = strip().find('.chat-compose-editing-title')
+      expect(title.attributes('id')).toBeTruthy()
+      expect(field().attributes('aria-describedby')).toContain(title.attributes('id'))
+      const described = title.attributes('id')
+
+      await wrapper.setProps({ replying: null })
+
+      expect(field().attributes('aria-describedby') ?? '').not.toContain(described)
+    })
+
+    it('sends the message with what it answers, as it was handed in', async () => {
+      mountBar({ replying: LENAS })
+      await field().setValue('  Ja, gern!  ')
+
+      await wrapper.find('[data-test="chat-compose-send"]').trigger('click')
+      await flushPromises()
+
+      expect(wrapper.emitted('send')).toHaveLength(1)
+      const [sent] = wrapper.emitted('send')[0]
+      expect(sent.body).toBe('Ja, gern!')
+      // The very object the thread handed in: it tells by it which answer went out.
+      expect(toRaw(sent.reply)).toBe(LENAS)
+    })
+
+    // Gegenprobe: every other message goes as it always went -- no `reply` at all.
+    it('sends a message that answers none without a word about it', async () => {
+      mountBar()
+      await field().setValue('Hallo')
+
+      await wrapper.find('[data-test="chat-compose-send"]').trigger('click')
+      await flushPromises()
+
+      expect(wrapper.emitted('send')[0][0]).not.toHaveProperty('reply')
+    })
+
+    it('lets go of the answer with the ✕, and keeps the words typed', async () => {
+      mountBar({ replying: LENAS })
+      await field().setValue('Ja, ge')
+      const cancel = wrapper.find('[data-test="chat-compose-reply-cancel"]')
+      expect(cancel.attributes()).toMatchObject({
+        type: 'button',
+        'aria-label': 'chatThread.replyCancel',
+        title: 'chatThread.replyCancel',
+      })
+
+      await cancel.trigger('click')
+
+      expect(letGo()).toHaveLength(1)
+      expect(field().element.value).toBe('Ja, ge')
+      expect(wrapper.emitted('send')).toBeUndefined()
+    })
+
+    /**
+     * ⛔ Esc in the field lets go of the answer -- and goes no further: the contact window closes
+     * on an Esc from anywhere inside it, and would shut over the words typed.
+     */
+    it('lets go on Esc in the field, and keeps the Esc to itself', async () => {
+      mountBar({ replying: LENAS }, { attachTo: document.body })
+      const heardAbove = vi.fn()
+      document.body.addEventListener('keydown', heardAbove)
+      try {
+        await field().trigger('keydown', { key: 'Escape' })
+      } finally {
+        document.body.removeEventListener('keydown', heardAbove)
+      }
+
+      expect(letGo()).toHaveLength(1)
+      expect(heardAbove).not.toHaveBeenCalled()
+      expect(wrapper.emitted('cancelEdit')).toBeUndefined()
+    })
+
+    /**
+     * A message being changed takes the strip's place, and an Esc then lets go of the changing
+     * only: the answer waits under it.
+     */
+    it('gives its place to a message being changed, and its Esc with it', async () => {
+      mountBar({ replying: LENAS }, { attachTo: document.body })
+
+      await wrapper.setProps({ editing: { messageUuid: 'uuid-7', body: 'Alt', hasImage: false } })
+
+      expect(strip().exists()).toBe(false)
+      expect(wrapper.find('[data-test="chat-compose-editing"]').exists()).toBe(true)
+      await field().trigger('keydown', { key: 'Escape' })
+      expect(wrapper.emitted('cancelEdit')).toHaveLength(1)
+      expect(letGo()).toEqual([])
+    })
+  })
+
   describe('a message being changed (E-060)', () => {
     const MESSAGE = {
       messageUuid: 'uuid-7',
@@ -1567,6 +1711,37 @@ describe('ChatComposeBar', () => {
 
       expect(encoding.encodeChatImage).toHaveBeenCalledTimes(1)
       expect(encoding.encodeChatImage).toHaveBeenCalledWith(READY, CHAT_IMAGE_UNEDITED)
+    })
+
+    /**
+     * ⛔ The picture is made small between the press and the message's going. What the message
+     * answers is what the PRESS found: the member may let go of the answer meanwhile, or take up
+     * another -- that is the next message's.
+     */
+    it('sends a picture with the answer the press found, whatever the bar is handed meanwhile', async () => {
+      framesPassAtOnce()
+      const pressedAt = {
+        messageUuid: 'uuid-1',
+        mine: false,
+        name: 'Lena',
+        text: 'A',
+        hasImage: false,
+      }
+      const takenUpSince = { ...pressedAt, messageUuid: 'uuid-3', text: 'B' }
+      mountBar({ replying: pressedAt })
+      await chooseReady()
+      const small = deferred()
+      encoding.encodeChatImage.mockReturnValueOnce(small.promise)
+
+      await button().trigger('click')
+      await flushPromises()
+      expect(wrapper.emitted('send')).toBeUndefined()
+      await wrapper.setProps({ replying: takenUpSince })
+      small.resolve(JPEG)
+      await flushPromises()
+
+      expect(wrapper.emitted('send')).toHaveLength(1)
+      expect(toRaw(wrapper.emitted('send')[0][0].reply)).toBe(pressedAt)
     })
 
     /**
