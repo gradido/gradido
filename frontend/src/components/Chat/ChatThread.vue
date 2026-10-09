@@ -87,7 +87,11 @@
               :show-writer="runStarts.has(message.id)"
               :search-current="searchKey === (message.key ?? message.id)"
               :editing="editing !== null && editing.id === message.id"
-              :answering="replying !== null && replying.messageUuid === message.messageUuid"
+              :answering="
+                editing === null &&
+                replying !== null &&
+                replying.messageUuid === message.messageUuid
+              "
               :shown="shownKey !== null && shownKey === (message.key ?? message.id)"
               :quoted-message="quotedIn(message)"
               @open-image="openImage"
@@ -1302,8 +1306,6 @@ const startEdit = (message) => {
     return
   }
   editProblem.value = ''
-  // One thing at a time in the bar: a message to be changed answers none.
-  replying.value = null
   editing.value = message
 }
 
@@ -1406,17 +1408,33 @@ const replying = shallowRef(null)
 
 /**
  * "Antworten" at a message: it stands over the bar until the next message goes, and the keyboard
- * goes into the field. A message being changed is let go for it -- one thing at a time in the bar
- * --, and the bar gets back what stood in it.
+ * goes into the field.
+ *
+ * Beside a message being changed there is one thing at a time in the bar, and the answer is the
+ * one that waits: its strip stands again once the changing is over, with the words the bar held
+ * (ChatComposeBar). "Bearbeiten" pressed while an answer is being written leaves the answer where
+ * it is for the same reason -- the words typed for it come back with it. "Antworten" pressed
+ * while a message is being changed lets go of the changing, as the ✕ does.
+ *
+ * ⛔ Not while that change is on its way to the server: let go then, a change that did not go
+ * through would have no place to say so, its text gone with the bar (`saveEdit`). The answer is
+ * taken up at once and waits under the strip -- which goes with a change that went through, and
+ * stays, with the reason, for one that did not.
  */
 const startReply = async (message) => {
-  if (editing.value !== null) stopEdit()
+  if (editing.value !== null && changeUnderway === null) stopEdit()
   const user = message.senderUser
   replying.value = {
     id: message.id,
     messageUuid: message.messageUuid,
     mine: Boolean(message.mine),
-    name: user ? memberAlias(user.alias, user.gradidoID) : props.alias,
+    // In a group the server names the writer; where it could not, their id stands in, as over
+    // their message -- never the group's name.
+    name: user
+      ? memberAlias(user.alias, user.gradidoID)
+      : inGroup
+        ? memberAlias(null, message.sender?.gradidoID)
+        : props.alias,
     text: (message.body ?? '').replace(/\s+/g, ' ').trim(),
     hasImage: (message.images?.length ?? 0) > 0,
   }
@@ -1466,13 +1484,23 @@ onBeforeUnmount(() => {
 })
 
 /**
- * Whether the page asked for is on screen within `ms`: the mark the search goes by moved -- more
- * messages, more transfers, or no more of either. ⚠️ Watched from BEFORE the page is asked for,
- * as the search does it (useChatThreadSearch, `pageLanded`): `fetchMore` returns before the
- * merged page is written.
+ * What moves when an OLDER page is on screen: the oldest message is another one, there are more
+ * transfers, or no more of either. ⛔ Not the number of messages: one's own message, sent while a
+ * page is on its way, is one more at the other end -- taken for the page, the next round would
+ * ask for the same page again, and the thread would hold its messages twice.
+ */
+const olderProgress = computed(
+  () =>
+    `${messages.value[0]?.id}:${hasMore.value}:${transfers.value.length}:${transfersHaveMore.value}`,
+)
+
+/**
+ * Whether the page asked for is on screen within `ms` (`olderProgress`). ⚠️ Watched from BEFORE
+ * the page is asked for, as the search does it (useChatThreadSearch, `pageLanded`): `fetchMore`
+ * returns before the merged page is written.
  */
 const olderPageLanded = (ms) => {
-  const before = searchProgress.value
+  const before = olderProgress.value
   let stop = null
   let timer = null
   let settle = null
@@ -1484,13 +1512,13 @@ const olderPageLanded = (ms) => {
     clearTimeout(timer)
     settle(landed)
   }
-  stop = watch(searchProgress, (now) => {
+  stop = watch(olderProgress, (now) => {
     if (now !== before) finish(true)
   })
   return {
     done,
     arm: () => {
-      if (searchProgress.value !== before) finish(true)
+      if (olderProgress.value !== before) finish(true)
       else timer = setTimeout(() => finish(false), ms)
     },
     cancel: () => finish(false),

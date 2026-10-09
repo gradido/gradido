@@ -3745,22 +3745,63 @@ describe('ChatThread', () => {
         })
       })
 
-      /** One thing at a time in the bar: a message is answered, or one is changed. */
+      /**
+       * One thing at a time in the bar -- and beside a message being changed the answer is the one
+       * that waits, with the words typed for it.
+       */
       describe('beside a message being changed', () => {
-        it('lets go of the answer for "Bearbeiten"', async () => {
+        const saveStrip = async () => {
+          await wrapper.find('[data-test="chat-compose-send"]').trigger('click')
+          await flushPromises()
+        }
+
+        /**
+         * ⛔ Not let go: the words typed for the answer come back when the changing is over, and
+         * without the answer they would go out as a message that answers none, with nothing to
+         * say so.
+         */
+        it('keeps the answer under "Bearbeiten", and shows it again with its words afterwards', async () => {
+          serverSends.mockResolvedValue(ownCopy(99, 'ja gern'))
           mountThread()
           await arrive(page([1, 2, 3]))
           await pressReply(1)
+          await field().setValue('ja gern')
 
           await press(2, 'edit')
 
+          // One strip, one ring: the message being changed.
           expect(strip().exists()).toBe(false)
           expect(editStrip().exists()).toBe(true)
           expect(answered()).toEqual([false, false, false])
-          // Let go for good: after the changing, the bar answers none.
+          expect(field().element.value).toBe('message 2')
+
           await wrapper.find('[data-test="chat-compose-edit-cancel"]').trigger('click')
           await flushPromises()
-          expect(strip().exists()).toBe(false)
+
+          expect(strip().text()).toContain('message 1')
+          expect(answered()).toEqual([true, false, false])
+          expect(field().element.value).toBe('ja gern')
+          await saveStrip()
+          expect(serverSends.mock.calls[0][0]).toMatchObject({ body: 'ja gern', replyTo: 'uuid-1' })
+        })
+
+        it('shows the answer again after a change that was saved', async () => {
+          serverChanges.mockResolvedValue({
+            ...message(2),
+            body: 'neu',
+            editedAt: '2026-09-22T11:00:00.000Z',
+          })
+          mountThread()
+          await arrive(page([1, 2, 3]))
+          await pressReply(1)
+          await press(2, 'edit')
+          await field().setValue('neu')
+
+          await saveStrip()
+
+          expect(editStrip().exists()).toBe(false)
+          expect(strip().text()).toContain('message 1')
+          expect(serverSends).not.toHaveBeenCalled()
         })
 
         it('lets go of the changing for "Antworten", and gives the bar back its words', async () => {
@@ -3776,6 +3817,51 @@ describe('ChatThread', () => {
           expect(strip().exists()).toBe(true)
           expect(field().element.value).toBe('angefangen')
           expect(serverChanges).not.toHaveBeenCalled()
+        })
+
+        /**
+         * ⛔ While the change is on its way it is not let go: one that did not go through keeps its
+         * strip, its text and the reason -- the answer waits under it.
+         */
+        it('does not let go of a change that is on its way: a refused one keeps its text and says why', async () => {
+          const out = deferred()
+          serverChanges.mockReturnValue(out.promise)
+          mountThread()
+          await arrive(page([1, 2, 3]))
+          await press(2, 'edit')
+          await field().setValue('geändert')
+          await saveStrip()
+
+          await pressReply(1)
+          out.reject(new Error('CHAT_MESSAGE_NOT_EDITED: NOT_CONFIRMED'))
+          await flushPromises()
+
+          expect(editStrip().exists()).toBe(true)
+          expect(field().element.value).toBe('geändert')
+          expect(wrapper.find('[data-test="chat-compose-edit-problem"]').exists()).toBe(true)
+          expect(strip().exists()).toBe(false)
+          // The answer waited: it stands once the changing is let go.
+          await wrapper.find('[data-test="chat-compose-edit-cancel"]').trigger('click')
+          await flushPromises()
+          expect(strip().text()).toContain('message 1')
+        })
+
+        it('takes up the answer once a change on its way went through', async () => {
+          const out = deferred()
+          serverChanges.mockReturnValue(out.promise)
+          mountThread()
+          await arrive(page([1, 2, 3]))
+          await press(2, 'edit')
+          await field().setValue('geändert')
+          await saveStrip()
+
+          await pressReply(1)
+          out.resolve({ ...message(2), body: 'geändert', editedAt: '2026-09-22T11:00:00.000Z' })
+          await flushPromises()
+
+          expect(editStrip().exists()).toBe(false)
+          expect(strip().text()).toContain('message 1')
+          expect(bubbleTexts()).toContain('geändert')
         })
       })
     })
@@ -3939,6 +4025,31 @@ describe('ChatThread', () => {
         expect(toasts.error).toEqual([])
         // No page more than it took.
         expect(server.fetchMore).toHaveBeenCalledTimes(2)
+      })
+
+      /**
+       * ⛔ One's own message sent while the page is on its way is one more message at the OTHER
+       * end: not the older page. Taken for it, the next round would ask for the same page again
+       * and the thread would hold its messages twice.
+       */
+      it('does not take a message sent meanwhile for the older page', async () => {
+        serverSends.mockResolvedValue(ownCopy(99, 'Zwischendurch'))
+        mountThread()
+        await arrive(pageWith([message(11), answer(12, 5)], { hasMore: true }))
+        const gate = deferred()
+        server.gate = gate.promise
+        server.olderPages.push(page([5, 6, 7, 8, 9, 10]))
+
+        await quoteOf(12).trigger('click')
+        await flushPromises()
+        await write('Zwischendurch')
+        gate.resolve()
+        await flushPromises()
+
+        expect(server.fetchMore).toHaveBeenCalledTimes(1)
+        const keys = rows().map((row) => row.attributes('data-key'))
+        expect(keys).toEqual(['5', '6', '7', '8', '9', '10', '11', '12', '99'])
+        expect(rowOf(5).classes()).toContain('is-shown')
       })
 
       it('says so where the quoted message is on no page', async () => {

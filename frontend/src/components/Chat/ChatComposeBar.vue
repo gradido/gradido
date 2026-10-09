@@ -42,7 +42,8 @@
     <!-- The next message answers one of the thread (Bernd, 09.10.2026): this strip says which --
          whose it is, and its words on one line, a picture named -- with the way out. Drawn as the
          strip over a message being changed, which takes its place while one is: the answer waits
-         under it. Everything else goes with an answer as with any message. -->
+         under it, as the words typed for it do (`held`), and both stand again afterwards.
+         Everything else goes with an answer as with any message. -->
     <div v-if="replying && !editing" class="chat-compose-editing" data-test="chat-compose-replying">
       <i-mdi-reply-outline class="chat-compose-editing-icon" aria-hidden="true" />
       <div class="chat-compose-editing-words">

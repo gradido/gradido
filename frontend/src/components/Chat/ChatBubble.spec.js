@@ -812,6 +812,21 @@ describe('ChatBubble', () => {
       expect(quoteName().text()).toBe('Carla-Sonne')
     })
 
+    // `alias` is the group's name in a group: a writer the server could not name gets no name.
+    it('names nobody in a group where the server named nobody', () => {
+      wrapper = mount(ChatBubble, {
+        props: {
+          message: { ...OWN, replyTo: QUOTED },
+          alias: 'Gradido-Café Berlin',
+          inGroup: true,
+        },
+      })
+
+      expect(quoteName().exists()).toBe(false)
+      expect(quote().text()).not.toContain('Gradido-Café Berlin')
+      expect(quoteText().text()).toBe('Wann treffen wir uns?')
+    })
+
     it('names the other person between two, and "Du" for one’s own', () => {
       mountBubble({ ...OWN, replyTo: QUOTED })
       expect(quoteName().text()).toBe('Lena')

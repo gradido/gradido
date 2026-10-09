@@ -90,7 +90,7 @@
         @click.stop="emit('showQuoted', message.replyTo)"
       >
         <span class="visually-hidden">{{ t('chatThread.quoteLead') }}</span>
-        <span class="chat-bubble-quote-name" data-test="chat-bubble-quote-name">
+        <span v-if="quote.name" class="chat-bubble-quote-name" data-test="chat-bubble-quote-name">
           {{ quote.name }}
         </span>
         <span class="chat-bubble-quote-text" data-test="chat-bubble-quote-text">
@@ -600,11 +600,15 @@ const quote = computed(() => {
   const live = props.quotedMessage
   const user = quoted.senderUser
   return {
+    // Between two the other person; in a group only whom the server named -- `alias` is the
+    // group's name there, and nobody's.
     name: quoted.mine
       ? t('chatThread.you')
       : user
         ? memberAlias(user.alias, user.gradidoID)
-        : props.alias,
+        : props.inGroup
+          ? ''
+          : props.alias,
     text: (live ? (live.body ?? '') : (quoted.excerpt ?? '')).replace(/\s+/g, ' ').trim(),
     hasImage: live ? (live.images?.length ?? 0) > 0 : Boolean(quoted.hasImage),
   }
