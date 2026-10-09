@@ -758,20 +758,39 @@ describe('ChatComposeBar', () => {
       expect(down.defaultPrevented).toBe(true)
     })
 
-    // With the member's first message the buttons go. Where one of them held the focus -- it was
-    // pressed with the keyboard --, the focus goes into the field instead of nowhere.
-    it('hand the focus to the field where the pressed one held it and goes', async () => {
+    /**
+     * With the member's first message the buttons go -- and in the wallet they go BEFORE the
+     * thread says the message is through: the thread takes the copy in, the bar is drawn anew
+     * without them, and only then does `sending` end. (Measured in the built wallet: a watch that
+     * asked the buttons for the focus at that moment found none of them, and the keyboard was
+     * left on the page's body.) So the tests take the steps apart, as the wallet does.
+     */
+    const theButtonsGo = () => wrapper.setProps({ helloBack: false, firstOwn: false })
+
+    it('hand the focus to the field where the pressed one held it', async () => {
       mountAnswers({}, { attachTo: document.body })
       answer('hello').element.focus()
       expect(document.activeElement).toBe(answer('hello').element)
 
       await answer('hello').trigger('click')
       await onItsWay()
-      // The thread holds the member's message now: no answers any more, no first message.
+      await theButtonsGo()
+      expect(row().exists()).toBe(false)
+      expect(document.activeElement).not.toBe(field().element)
+      await goesThrough()
+
+      expect(document.activeElement).toBe(field().element)
+    })
+
+    it('hand it over as well where the buttons go in the same moment the answer is through', async () => {
+      mountAnswers({}, { attachTo: document.body })
+      answer('more').element.focus()
+
+      await answer('more').trigger('click')
+      await onItsWay()
       await wrapper.setProps({ sending: false, helloBack: false, firstOwn: false })
       await flushPromises()
 
-      expect(row().exists()).toBe(false)
       expect(document.activeElement).toBe(field().element)
     })
 
@@ -783,10 +802,25 @@ describe('ChatComposeBar', () => {
 
       await answer('hello').trigger('click')
       await onItsWay()
-      await wrapper.setProps({ sending: false, helloBack: false, firstOwn: false })
-      await flushPromises()
+      await theButtonsGo()
+      await goesThrough()
 
       expect(document.activeElement).not.toBe(field().element)
+    })
+
+    it('do not take the focus back from where the member put it meanwhile', async () => {
+      mountAnswers({}, { attachTo: document.body })
+      const elsewhere = document.createElement('button')
+      document.body.appendChild(elsewhere)
+      answer('hello').element.focus()
+
+      await answer('hello').trigger('click')
+      await onItsWay()
+      await theButtonsGo()
+      elsewhere.focus()
+      await goesThrough()
+
+      expect(document.activeElement).toBe(elsewhere)
     })
 
     it('leave the focus where it is when the answer did not go through', async () => {
@@ -819,6 +853,26 @@ describe('ChatComposeBar', () => {
         expect(one).toMatch(/min-height: 2\.5rem;/)
         expect(one).toMatch(/max-width: 100%;/)
         expect(one).not.toMatch(/white-space/)
+      })
+
+      // The contact window leaves the thread what is left of the height: three lines of answers
+      // took the message they answer nearly out of sight on a small phone.
+      it('stand on one line, moved sideways, in a low window', () => {
+        const low = code.match(/@media \(height < 640px\) \{([\s\S]*?)\n\}/)?.[1] ?? ''
+        const inLow = (selector) =>
+          low.match(new RegExp(`\\n  ${selector}\\s*\\{([^}]*)\\}`))?.[1]?.replace(/\s+/g, ' ') ??
+          ''
+
+        const all = inLow('\\.chat-compose-hello-back')
+        expect(all).toMatch(/flex-wrap: nowrap;/)
+        expect(all).toMatch(/overflow-x: auto;/)
+        // Room for the focus ring, which a scrolling box cuts -- given and taken back.
+        expect(all).toMatch(/padding: 3px;/)
+        expect(all).toMatch(/margin: -3px -3px calc\(0\.6rem - 3px\);/)
+        const one = inLow('\\.chat-compose-hello-back-answer')
+        expect(one).toMatch(/flex: 0 0 auto;/)
+        expect(one).toMatch(/white-space: nowrap;/)
+        expect(one).toMatch(/max-width: none;/)
       })
 
       it('show that they wait, and where the keyboard is', () => {

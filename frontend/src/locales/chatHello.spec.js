@@ -155,9 +155,12 @@ describe('the first word from the map, in ten languages', () => {
     },
   )
 
-  it('answers a stranger politely in Russian: "Вам" with a capital, "расскажите"', () => {
-    expect(ru.chatHello.backHello).toMatch(/(?<![а-яё])Вам(?![а-яё])/)
+  // "И Вам здравствуйте!" is also what is said to somebody who did not greet at all, and the
+  // answers stand under any first message: the plain greeting cannot be read that way.
+  it('answers a stranger politely in Russian, with a greeting that is no retort', () => {
+    expect(ru.chatHello.backHello).toBe('Здравствуйте!')
     expect(ru.chatHello.backMore).toContain('расскажите')
+    expect(ru.chatHello.backCall).toMatch(/^Давайте /)
   })
 
   it.each(LANGUAGES)('%s ends with the question where nobody signs', (language) => {

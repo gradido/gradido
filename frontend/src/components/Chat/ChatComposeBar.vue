@@ -129,10 +129,13 @@
          words at once, with the box below as it stands; what is typed in the field stays there.
          They are gone with the first message of the member's own -- the thread says when
          (`helloBack`). Not pressed away from the field (`mousedown.prevent`), as the arrow is
-         not: the keyboard of a phone stays where it is. -->
+         not: the keyboard of a phone stays where it is.
+
+         In a window less than 640 px high they stand on one line and are moved sideways (the
+         stylesheet): the contact window has little room, and three lines of answers left 76 px
+         of the message they answer at 320 x 568 -- 44 px in Russian. -->
     <div
       v-if="helloBackShown"
-      ref="helloBackRow"
       class="chat-compose-hello-back"
       role="group"
       :aria-label="t('chatHello.backLabel')"
@@ -146,7 +149,7 @@
         :aria-disabled="helloBackWaits ? 'true' : 'false'"
         :data-test="`chat-compose-hello-back-${answer.key}`"
         @mousedown.prevent
-        @click="sendHelloBack(answer.words)"
+        @click="sendHelloBack(answer.words, $event)"
       >
         {{ answer.words }}
       </button>
@@ -823,8 +826,6 @@ const helloBackShown = computed(() => props.helloBack && !props.group && !props.
 /** They wait as the arrow does: while a message is on its way, or a picture is made small for one. */
 const helloBackWaits = computed(() => props.sending || preparing.value)
 
-const helloBackRow = ref(null)
-
 /**
  * A tap on a short answer: its words go out at once, as an ordinary message -- with the wish of
  * the box as it stands, and as the answer to a message where one is taken up (E-064).
@@ -832,11 +833,21 @@ const helloBackRow = ref(null)
  * ⛔ What is in the bar stays in the bar: the words typed, and a picture chosen. `submitted`
  * says so to the watch that clears what went out -- `text: null` is no field's text, so the
  * field is left alone; the box is emptied, its wish was for this one message.
+ *
+ * `keyboard`: whether the button held the focus when it was pressed. A tap or a click never
+ * gives it the focus (`mousedown.prevent`), a press with the keyboard is made from it -- and
+ * that focus is gone with the buttons once the answer is out. Noted here, at the press: by the
+ * time the answer is back the buttons are no longer in the page to be asked.
  */
-const sendHelloBack = (words) => {
+const sendHelloBack = (words, press) => {
   if (!helloBackShown.value || helloBackWaits.value) return
   const boxed = alsoByEmail.value && boxShown.value
-  submitted = { text: null, alsoByEmail: boxed, picture: null }
+  submitted = {
+    text: null,
+    alsoByEmail: boxed,
+    picture: null,
+    keyboard: Boolean(press?.currentTarget) && press.currentTarget === document.activeElement,
+  }
   emit('send', {
     body: words,
     notify: chatNotifyFor({ first: props.first, alsoByEmail: boxed }),
@@ -1133,12 +1144,13 @@ watch(
     }
     if (sent.picture && picture.value === sent.picture) picture.value = null
     if (alsoByEmail.value === sent.alsoByEmail) alsoByEmail.value = false
-    // A short answer went out (E-069): nothing of the field was sent. Its buttons go with the
-    // member's first message -- and where one of them held the focus, a keyboard would be left
-    // nowhere: it goes into the field. Not after a tap or a click, which never took the focus
-    // (`mousedown.prevent`): on a phone that would open the keyboard unasked.
+    // A short answer went out (E-069): nothing of the field was sent. Its buttons went with the
+    // member's first message -- and where the pressed one held the focus, a keyboard is left
+    // nowhere: it goes into the field, unless the member has taken it elsewhere meanwhile. Not
+    // after a tap or a click, which never took the focus: on a phone that would open the
+    // keyboard unasked.
     if (sent.text === null) {
-      if (!helloBackRow.value?.contains(document.activeElement)) return
+      if (!sent.keyboard || !focusStaysHere()) return
       await nextTick()
       field.value?.focus({ preventScroll: true })
       return
@@ -1633,6 +1645,41 @@ watch(
 .chat-compose-hello-back-answer[aria-disabled='true'] {
   opacity: 0.45;
   cursor: default;
+}
+
+/* In a low window the answers stand on ONE line and are moved sideways -- by a finger, a
+   trackpad, the wheel with Shift, or Tab, which brings each into sight. The contact window's
+   head and the bar leave the thread what is left of the height: with the answers on three lines
+   that was 76 px of the message they answer at 320 x 568 (44 px in Russian). On one line it is
+   172 px there, and 157 px on an iPhone SE with Safari's bars (375 x 553). Each answer keeps
+   its words on one line there; one cut off at the edge is the sign that there is more.
+
+   From 640 px of height on they take the next line: three lines of answers then leave the
+   message 154 px on a phone, measured (some 14 px less in Russian, whose second answer takes
+   two lines), and more at a desk. (The same height from which the profile window's field may
+   be six lines high.)
+
+   The bar on the side is not drawn: under three small buttons it would be the largest thing in
+   the row (Windows draws it 17 px high). The padding and the margin that takes it back again
+   are room for the focus ring, which the scrolling box would cut. */
+@media (height < 640px) {
+  .chat-compose-hello-back {
+    flex-wrap: nowrap;
+    margin: -3px -3px calc(0.6rem - 3px);
+    padding: 3px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .chat-compose-hello-back::-webkit-scrollbar {
+    display: none;
+  }
+
+  .chat-compose-hello-back-answer {
+    flex: 0 0 auto;
+    max-width: none;
+    white-space: nowrap;
+  }
 }
 
 .chat-compose-hello-back-answer:focus-visible {

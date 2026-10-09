@@ -237,10 +237,10 @@
     "youAreOwner": "Grubun sahibisin"
   },
   "chatHello": {
-    "backCall": "Telefonda konuşalım",
+    "backCall": "Telefonlaşalım",
     "backHello": "Sana da merhaba!",
     "backLabel": "Hızlı yanıtlar",
-    "backMore": "Memnuniyetle — biraz daha anlat",
+    "backMore": "Seve seve — biraz daha anlat",
     "distanceKm": "Birbirimize yaklaşık {n} km uzaklıkta yaşıyoruz.",
     "distanceNear": "Birbirimize yakın yaşıyoruz.",
     "found": "Merhaba {name}, seni Gradido haritasında buldum.",
