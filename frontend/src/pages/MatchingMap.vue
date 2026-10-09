@@ -328,7 +328,7 @@
 
 <script setup>
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useQuery } from '@vue/apollo-composable'
 import { useI18n } from 'vue-i18n'
 import { useStore } from 'vuex'
@@ -340,6 +340,7 @@ import {
   useMatches,
   distanceKm,
   forWindow,
+  isUsablePlace,
   withMine,
   withProfile,
   GMS_REJECTED,
@@ -347,6 +348,7 @@ import {
 import { loadMapEngine } from '@/utils/mapEngine'
 import { hasPosition as isPositionSet, isPlace } from '@/utils/matchingPosition'
 import { mapPrefPrefix } from '@/utils/matchingPrefs'
+import { escapeHtml } from '@/utils/escapeHtml'
 import { useEntryDraft } from '@/composables/useEntryDraft'
 import MatchQuery from '@/components/Matching/MatchQuery'
 import GeoSearchField from '@/components/Matching/GeoSearchField.vue'
@@ -442,8 +444,18 @@ const RING_RADIUS = 5
 const RING_WEIGHT = 2
 const RING_TOLERANCE = HIT_MIN / 2 - RING_RADIUS - RING_WEIGHT / 2
 
+// Somebody the map was asked to show (the contact window's pin): a gold ring around their
+// point, wide enough to stand around a glowing match's tap area or the house, and the zoom
+// they are brought into view at -- a town and what lies around it. Their point is the one the
+// GMS blurred; a closer look would claim more than is known.
+const SHOWN_RING = 56
+const SHOWN_ZOOM = 12
+// What names a person in the address: two uuids, as the contacts page is asked with.
+const UUID_SHAPE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 const { t, locale } = useI18n()
 const router = useRouter()
+const route = useRoute()
 const entryDraft = useEntryDraft()
 const store = useStore()
 const { toastError } = useAppToast()
@@ -870,6 +882,147 @@ onResult(({ data }) => {
 onError((error) => toastError(error.message))
 
 /**
+ * Somebody the page was asked to show (Bernd, 09.10.2026): a contact, named in the address by
+ * the pair a conversation is asked for with -- `/matching/karte?with=<gradidoID>&community=<uuid>`,
+ * where the contact window's pin leads. Read off the route, so the page answers to whatever
+ * address it stands under. A pair that is not two uuids names nobody, and the GMS is not asked
+ * about it.
+ */
+const askedPerson = computed(() => {
+  const { with: gradidoID, community: communityUuid } = route.query ?? {}
+  return [gradidoID, communityUuid].every(
+    (part) => typeof part === 'string' && UUID_SHAPE.test(part),
+  )
+    ? { gradidoID, communityUuid }
+    : null
+})
+
+// The person as the map draws them, once the GMS has said where they stand: in a ring's shape
+// (toPresence) -- name, community, the point the GMS blurred -- so the window opens on them as
+// on any ring. Drawn whatever the search is: the circle may be anywhere, and so may they.
+const shown = ref(null)
+let shownLayer = null
+// Counts the persons asked for: an answer for an earlier address, or for a page that is gone,
+// is let go.
+let shownRequest = 0
+
+/**
+ * Ask the GMS where the person stands -- its profile route, which answers for the pair wherever
+ * they live -- then mark them and bring them into view. The search stays where it was: this is
+ * looking, and looking does not search.
+ *
+ * Somebody the GMS does not hold (any more) is not on the map, and the member is told so; the
+ * map then stands as it would without the address. The pin is only offered for somebody who was
+ * there a moment ago, so this is the rare case: "findable" switched off in between, or an
+ * address kept from another day.
+ */
+async function showAsked() {
+  const request = ++shownRequest
+  shown.value = null
+  drawShown()
+  const person = askedPerson.value
+  if (!person || !enabled.value) return
+  // The map itself, also for a member who keeps the list: they asked to see a place. Not
+  // written down -- the list stays their standing choice.
+  mode.value = 'karte'
+  let published = null
+  try {
+    published = await loadProfile(person.gradidoID, person.communityUuid)
+  } catch (err) {
+    if (request !== shownRequest) return
+    // Two whole t() calls rather than one with the key chosen inside it: the i18n lint counts
+    // literal keys only.
+    toastError(
+      err?.status === 404 ? t('matching.map.contactNotOnMap') : t('matching.profile.unavailable'),
+    )
+    return
+  }
+  if (request !== shownRequest) return
+  // The GMS is a foreign system: a point off the globe is finite and is no place, and MapLibre
+  // refuses to stand a marker on one.
+  if (!isUsablePlace(published?.position)) {
+    toastError(t('matching.map.contactNotOnMap'))
+    return
+  }
+  shown.value = {
+    uuid: published.uuid ?? person.gradidoID,
+    name: published.name ?? '',
+    community: published.community?.uuid
+      ? published.community
+      : { uuid: person.communityUuid, name: published.community?.name ?? '' },
+    position: published.position,
+    precision: published.precision,
+  }
+  drawShown()
+  centreOnShown()
+}
+
+/** Whether two records name one person: the pair, however a server spells it. */
+function samePerson(one, other) {
+  const lower = (value) => String(value ?? '').toLowerCase()
+  return (
+    Boolean(one?.uuid) &&
+    lower(one.uuid) === lower(other?.uuid) &&
+    lower(one.community?.uuid) === lower(other?.community?.uuid)
+  )
+}
+
+/**
+ * A tap on the ring or the name: their profile, in the one window (GMS-111). Where the search
+ * found them as well, the window opens on what the search knows -- a match with the entries
+ * that answer me, as a tap on their glow would.
+ */
+function openShown() {
+  const person = shown.value
+  if (!person) return
+  const same = (other) => samePerson(person, other)
+  openProfile(focusedMatches.value.find(same) ?? presence.value.find(same) ?? person)
+}
+
+// ⛔ The name is set as markup's TEXT (escapeHtml): the engine takes a marker's inside as HTML,
+// and the name was written by somebody else and comes back from the GMS. The ring is drawn in a
+// box that lets taps through; the centred core takes them, as on a coloured marker, and the
+// name does too.
+function shownHtml(name) {
+  const label = name ? `<div class="gk-shown-name">${escapeHtml(name)}</div>` : ''
+  return `<div class="gk-shown-ring"></div><div class="gk-hit" style="width:${HIT_MIN}px;height:${HIT_MIN}px"></div>${label}`
+}
+
+function drawShown() {
+  if (shownLayer) {
+    shownLayer.remove()
+    shownLayer = null
+  }
+  if (!map || !shown.value) return
+  const { position, name } = shown.value
+  // Above the matches and the centre disc, under the house (500): a neighbour's ring stands
+  // around one's own house, not over it.
+  shownLayer = map.marker({
+    lat: position.lat,
+    lng: position.lng,
+    className: 'gk-marker gk-clickable gk-shown',
+    html: shownHtml(name),
+    size: [SHOWN_RING, SHOWN_RING],
+    anchor: [SHOWN_RING / 2, SHOWN_RING / 2],
+    interactive: true,
+    focusable: false,
+    zIndex: 450,
+    onClick: openShown,
+  })
+}
+
+// The person in the middle of the view, at once -- they are what the member came to see.
+function centreOnShown() {
+  if (!map || !shown.value) return
+  inClusterZoom = false
+  map.setView(shown.value.position, Math.min(SHOWN_ZOOM, map.getMaxZoom()))
+  updateCentreCover()
+}
+
+// Asked on arrival, and again should the address come to name somebody else.
+watch(askedPerson, showAsked, { immediate: true })
+
+/**
  * Where one setting lives, or null where there is nobody to attribute it to.
  *
  * ⛔ The rule in one place, so both seams keep it: no member, no key. Gluing `null` to the
@@ -1011,7 +1164,17 @@ function chooseLook(next) {
   setMode('karte')
 }
 
+// Whoever came to see a contact on the map goes back into the conversation with them: the
+// address the contacts page opens the window for (P4c), with the pair this page was asked with.
 function goBack() {
+  const person = askedPerson.value
+  if (person) {
+    router.push({
+      path: '/contacts',
+      query: { with: person.gradidoID, community: person.communityUuid },
+    })
+    return
+  }
   router.push('/matching/entries')
 }
 
@@ -1430,8 +1593,13 @@ function updateCentreCover() {
     crosshairOpacity.value = 0
     return
   }
-  const gap = gapToMiddle(searchCenter.value)
-  crosshairOpacity.value = Math.max(0, Math.min(1, (gap - COVER_TOL) / (COVER_FADE - COVER_TOL)))
+  const fade = (gap) => Math.max(0, Math.min(1, (gap - COVER_TOL) / (COVER_FADE - COVER_TOL)))
+  // The same over somebody the map was asked to show: resting on them, a tap on the middle is
+  // a tap on their ring, and must not move the search there instead.
+  crosshairOpacity.value = Math.min(
+    fade(gapToMiddle(searchCenter.value)),
+    shown.value ? fade(gapToMiddle(shown.value.position)) : 1,
+  )
 }
 
 /** How far a place is from the middle of the view, in screen pixels. */
@@ -1525,7 +1693,9 @@ function syncCluster() {
 }
 
 function saveView() {
-  if (!map) return
+  // Not while the map shows somebody it was asked to show: where it stands then is theirs, and
+  // the next visit opens where the member last looked for themselves.
+  if (!map || shown.value) return
   const centre = map.getCenter()
   writePref('view', { lat: centre.lat, lng: centre.lng, zoom: map.getZoom() })
 }
@@ -1541,6 +1711,12 @@ function saveView() {
  */
 function restoreView() {
   if (!map) return
+  // Somebody the map was asked to show comes before where it stood last time: this visit is
+  // about them.
+  if (shown.value) {
+    centreOnShown()
+    return
+  }
   const saved = readPref('view', null)
   if (
     saved &&
@@ -1638,6 +1814,8 @@ function buildMap(createMap) {
 
   drawOwn()
   drawCircle()
+  // Before the view: where the map opens depends on whether there is somebody to show.
+  drawShown()
   restoreView()
   redraw()
   updateCentreCover()
@@ -1674,6 +1852,8 @@ onUnmounted(() => {
   // and Vue empties it on unmount, so a timer left running finds nothing to do.
   // This just spares the wakeup and lets the closure go a quarter second earlier.
   clearTimeout(initTimer)
+  // An answer about somebody to show that is still on its way is for a page that is gone.
+  shownRequest++
   if (map) map.remove()
   map = null
   window.removeEventListener('resize', handleResize)
@@ -1691,6 +1871,10 @@ let restoreDone = false
 watch([matches, presence], () => {
   if (restoreDone || (!matches.value.length && !presence.value.length)) return
   restoreDone = true
+  // A visit that came to show somebody opens no window of its own accord: the member asked for
+  // the map with the person marked, and a window remembered from another visit would stand
+  // over exactly that.
+  if (askedPerson.value) return
   syncProfile()
   syncCluster()
 })
@@ -2442,6 +2626,73 @@ watch(mode, (value) => {
     display: block;
     filter: drop-shadow(0 1px 1px rgb(0 0 0 / 50%));
   }
+}
+
+/* Somebody the map was asked to show (the contact window's pin): a gold ring around their point
+   -- the gold of the house -- with a dark hairline inside and out, so it reads on the dark map
+   and on the two light ones alike, and their name under it. The ring takes no tap; the core in
+   its middle (.gk-hit) and the name do. */
+.gk-shown-ring {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  border: 3px solid #c69130;
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 55%),
+    inset 0 0 0 1px rgb(0 0 0 / 55%);
+  pointer-events: none;
+  animation: gk-shown-land 0.7s cubic-bezier(0.2, 0.7, 0.3, 1) 0.2s both;
+}
+
+/* The ring comes in from wide, once: something that marks a place is found by its movement. */
+@keyframes gk-shown-land {
+  from {
+    opacity: 0;
+    transform: scale(2.4);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gk-shown-ring {
+    animation: none;
+  }
+}
+
+/* The name, centred under the ring, on the face the map's own switch has on that look. One
+   line: a long name loses its end rather than covering the map. */
+.gk-shown-name {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  max-width: 14rem;
+  margin-top: 4px;
+  padding: 1px 8px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: rgb(22 24 29 / 92%);
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 35%);
+  color: #e8eaed;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.map-shell.look-hell .gk-shown-name,
+.map-shell.look-normal .gk-shown-name {
+  background: rgb(255 255 255 / 92%);
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 35%);
+  color: #1f2328;
 }
 
 /* The coloured match markers hand their click to the core inside (pointer-events:auto),

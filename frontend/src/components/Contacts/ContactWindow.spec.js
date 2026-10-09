@@ -39,14 +39,28 @@ vi.mock('@/i18n', () => ({
 vi.mock('@/composables/useMemberAvatars', () => ({
   memberAvatarProps: (user) => ({ initials: (user?.alias ?? '').slice(0, 2).toUpperCase() }),
 }))
-vi.mock('@/config', () => ({
-  default: { COMMUNITY_URL: 'https://gradido.test' },
-}))
+// The instance's switches. Without `MATCHING_ACTIVE`, as an instance without the find map has
+// it; the tests of the pin switch it on.
+const config = vi.hoisted(() => ({ COMMUNITY_URL: 'https://gradido.test' }))
+vi.mock('@/config', () => ({ default: config }))
 // The signed-in member's community, which a member without one is read as (LOG-036). In
 // capitals, as a server may write it: the thread's key is in lower case either way.
 // And the member signed in on this device, whose tick the box "Start in the Jitsi app" keeps (V4b).
+// Neither findable nor with a home on the map; the tests of the pin give them both.
+const storeState = vi.hoisted(() => ({ communityUuid: 'HOME-UUID', gradidoID: 'me-id' }))
 vi.mock('vuex', () => ({
-  useStore: () => ({ state: { communityUuid: 'HOME-UUID', gradidoID: 'me-id' } }),
+  useStore: () => ({ state: storeState }),
+}))
+
+/**
+ * The GMS's profile route (useMatches), which the pin asks whether somebody stands on the find
+ * map: a test answers, holds the answer back, or refuses. ⚠️ Only the route is replaced -- the
+ * window's own composable (useContactOnMap) and the rule for a usable point are the real ones.
+ */
+const mapProfile = vi.hoisted(() => vi.fn())
+vi.mock('@/composables/useMatches', async (importOriginal) => ({
+  ...(await importOriginal()),
+  useMatches: () => ({ profile: mapProfile }),
 }))
 
 /** What the server answers to `setChatConversationMuted`; a test decides, or makes it throw. */
@@ -155,6 +169,7 @@ describe('ContactWindow', () => {
           IMdiBellOutline: true,
           IMdiBellOffOutline: true,
           IMdiVideoOutline: true,
+          IMdiMapMarkerOutline: true,
           IMdiCogOutline: true,
           IMdiLinkVariant: true,
           IMdiCheck: true,
@@ -232,6 +247,10 @@ describe('ContactWindow', () => {
     toastError.mockClear()
     threadsMade = []
     searchSteps = []
+    mapProfile.mockReset()
+    delete config.MATCHING_ACTIVE
+    delete storeState.gmsAllowed
+    delete storeState.userLocation
     vi.restoreAllMocks()
   })
 
@@ -873,6 +892,213 @@ describe('ContactWindow', () => {
     expect(glyph.attributes('src')).toBe('/img/svg/gdd_coin_sw.svg')
     expect(glyph.attributes('alt')).toBe('')
     expect(glyph.attributes('aria-hidden')).toBe('true')
+  })
+
+  /**
+   * The pin (Bernd, 09.10.2026): a contact one has in the chat can be found on the find map as
+   * well. Beside the camera, there only for somebody who stands on the map, and only for a
+   * member who may open the map themselves; a tap leads to the map, which marks the person.
+   */
+  describe('the pin: this person on the find map', () => {
+    const pin = () => wrapper.find('[data-test="contact-window-map"]')
+    const onTheMap = { position: { lat: 49.3, lng: 9.7 } }
+    const notHeld = () =>
+      Object.assign(new Error('community-user/profile: HTTP 404'), { status: 404 })
+
+    /** An answer that is still on its way. */
+    const held = () => {
+      let settle
+      let refuse
+      const promise = new Promise((resolve, reject) => {
+        settle = resolve
+        refuse = reject
+      })
+      return { promise, resolve: settle, reject: refuse }
+    }
+
+    /** The member may open the map: the instance has one, they are findable, they have a home. */
+    const mayOpenTheMap = () => {
+      config.MATCHING_ACTIVE = true
+      storeState.gmsAllowed = true
+      storeState.userLocation = { latitude: 49.28, longitude: 9.69 }
+    }
+
+    beforeEach(() => {
+      mayOpenTheMap()
+      mapProfile.mockResolvedValue(onTheMap)
+    })
+
+    it('asks the GMS about the pair when the window opens, and shows the pin with its answer', async () => {
+      const answer = held()
+      mapProfile.mockReturnValue(answer.promise)
+      mountWindow()
+      await flushPromises()
+
+      expect(mapProfile).toHaveBeenCalledTimes(1)
+      expect(mapProfile).toHaveBeenCalledWith('carla-id', 'home-uuid')
+      // Nothing is offered on a guess: no pin before the GMS has answered.
+      expect(pin().exists()).toBe(false)
+
+      answer.resolve(onTheMap)
+      await flushPromises()
+      expect(pin().exists()).toBe(true)
+    })
+
+    it('is a button that says whom the map will show', async () => {
+      mountWindow()
+      await flushPromises()
+
+      expect(pin().element.tagName).toBe('BUTTON')
+      expect(pin().attributes('type')).toBe('button')
+      expect(pin().attributes('aria-label')).toBe('contacts.showOnMap {"name":"Carla-Sonne"}')
+      expect(pin().attributes('title')).toBe('contacts.showOnMap {"name":"Carla-Sonne"}')
+      expect(pin().text()).toBe('')
+    })
+
+    it('stands beside the camera, before the bell and the heart', async () => {
+      mountWindow()
+      await threadSays({ exists: true, mutedByMe: false })
+
+      const marks = wrapper.find('[data-test="contact-window-marks"]').element
+      expect([...marks.children].map((e) => e.getAttribute('data-test'))).toEqual([
+        'contact-window-video',
+        'contact-window-map',
+        'contact-window-bell',
+        'heart',
+      ])
+    })
+
+    it('leads to the map with the pair in its address, and closes the window on the way', async () => {
+      mountWindow(STRANGER)
+      await flushPromises()
+      await pin().trigger('click')
+
+      expect(wrapper.emitted('update:modelValue')).toEqual([[false]])
+      expect(pushSpy).toHaveBeenCalledTimes(1)
+      expect(pushSpy).toHaveBeenCalledWith({
+        path: '/matching/karte',
+        query: { with: 'sarah-id', community: 'provence-uuid' },
+      })
+    })
+
+    it('shows no pin for somebody the GMS does not hold', async () => {
+      mapProfile.mockRejectedValue(notHeld())
+      mountWindow()
+      await flushPromises()
+
+      expect(mapProfile).toHaveBeenCalledTimes(1)
+      expect(pin().exists()).toBe(false)
+    })
+
+    it('shows no pin for somebody held without a usable point', async () => {
+      mapProfile.mockResolvedValue({ position: { lat: undefined, lng: undefined } })
+      mountWindow()
+      await flushPromises()
+
+      expect(pin().exists()).toBe(false)
+    })
+
+    // The map's own door (`mayFind`): a position AND the permission to be found. Without both
+    // the GMS is not asked at all -- the question would carry the id of the one who asks.
+    it.each([
+      ['an instance without the find map', () => delete config.MATCHING_ACTIVE],
+      ['a member who is not findable', () => (storeState.gmsAllowed = false)],
+      ['a member without a home on the map', () => (storeState.userLocation = null)],
+    ])('neither asks nor shows a pin for %s', async (_, without) => {
+      without()
+      mountWindow()
+      await threadSays({ exists: true, mutedByMe: false })
+
+      expect(mapProfile).not.toHaveBeenCalled()
+      expect(pin().exists()).toBe(false)
+      // And the control: the other marks are there.
+      expect(wrapper.find('[data-test="contact-window-video"]').exists()).toBe(true)
+    })
+
+    // Opened from a booking row the member comes without a community (useContactWindow.openMember):
+    // the GMS is asked with this community's uuid, and the lookup that fills the community in a
+    // moment later is the same person -- no second question, and the pin stays.
+    it('asks with this community for a member who names none, once', async () => {
+      mountWindow({ user: { gradidoID: 'carla-id', alias: 'Carla-Sonne' } })
+      await flushPromises()
+
+      expect(mapProfile).toHaveBeenCalledTimes(1)
+      expect(mapProfile).toHaveBeenCalledWith('carla-id', 'HOME-UUID')
+      expect(pin().exists()).toBe(true)
+
+      await wrapper.setProps({ contact: CONTACT })
+      await flushPromises()
+      expect(mapProfile).toHaveBeenCalledTimes(1)
+      expect(pin().exists()).toBe(true)
+    })
+
+    it('lets the pin go with the person: another one is asked about anew', async () => {
+      mountWindow()
+      await flushPromises()
+      expect(pin().exists()).toBe(true)
+
+      const answer = held()
+      mapProfile.mockReturnValue(answer.promise)
+      await wrapper.setProps({ contact: STRANGER })
+      // Carla's pin does not stand under Sarah's name while the GMS is asked about Sarah.
+      expect(pin().exists()).toBe(false)
+      expect(mapProfile).toHaveBeenCalledTimes(2)
+      expect(mapProfile).toHaveBeenLastCalledWith('sarah-id', 'provence-uuid')
+
+      answer.reject(notHeld())
+      await flushPromises()
+      expect(pin().exists()).toBe(false)
+    })
+
+    it('does not show one person the answer about another', async () => {
+      const aboutCarla = held()
+      mapProfile.mockReturnValueOnce(aboutCarla.promise)
+      mountWindow()
+      await flushPromises()
+
+      // Sarah is not on the map; the answer about Carla says she is, and comes late.
+      mapProfile.mockRejectedValueOnce(notHeld())
+      await wrapper.setProps({ contact: STRANGER })
+      await flushPromises()
+      aboutCarla.resolve(onTheMap)
+      await flushPromises()
+
+      expect(pin().exists()).toBe(false)
+    })
+
+    it('asks nobody while the window is closed, and anew when it opens again', async () => {
+      mountWindow(CONTACT, { modelValue: false })
+      await flushPromises()
+      expect(mapProfile).not.toHaveBeenCalled()
+
+      await wrapper.setProps({ modelValue: true })
+      await flushPromises()
+      expect(mapProfile).toHaveBeenCalledTimes(1)
+      expect(pin().exists()).toBe(true)
+
+      // Closed: what was said about the person is let go, also an answer that is still to come.
+      const late = held()
+      mapProfile.mockReturnValue(late.promise)
+      await wrapper.setProps({ modelValue: false })
+      await wrapper.setProps({ modelValue: true })
+      expect(mapProfile).toHaveBeenCalledTimes(2)
+      expect(pin().exists()).toBe(false)
+    })
+
+    // The first form (E-055): somebody met in a group who is no contact yet gets a first word and
+    // nothing else. The row the pin stands in comes with the first message -- and with it the
+    // question.
+    it('does not ask in the first form, and asks once the first message made a contact', async () => {
+      mountWindow({ user: { ...CONTACT.user }, homeCommunity: true }, { firstContact: true })
+      await threadSays({ exists: false, mutedByMe: false })
+      expect(mapProfile).not.toHaveBeenCalled()
+      expect(pin().exists()).toBe(false)
+
+      await threadSays({ exists: true, mutedByMe: false })
+      expect(mapProfile).toHaveBeenCalledTimes(1)
+      expect(mapProfile).toHaveBeenCalledWith('carla-id', 'home-uuid')
+      expect(pin().exists()).toBe(true)
+    })
   })
 
   describe('the bell', () => {

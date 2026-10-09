@@ -195,10 +195,11 @@
           {{ $t('contacts.sendGradido') }}
         </button>
         <!-- The marks, at the right end of the button's row with an empty stretch before them
-             (Bernd, 26.09.2026): the camera, the bell, the heart -- in this order. The heart at
-             the very right, where it stands in every list; the bell next to it, the two of them
-             marks of one's own on this person that say how they stand; the camera next to the
-             button, since it too is a way of getting in touch. Before, they stood behind the
+             (Bernd, 26.09.2026): the camera, the pin, the bell, the heart -- in this order. The
+             heart at the very right, where it stands in every list; the bell next to it, the two
+             of them marks of one's own on this person that say how they stand; the camera next
+             to the button, since it too is a way of getting in touch, and the pin beside it for
+             somebody who stands on the find map (09.10.2026). Before, they stood behind the
              name and took a long name's room on a phone.
 
              They keep their measure from the name line: the booking row's `gap-2` between them,
@@ -220,6 +221,23 @@
             @click="askVideoCall"
           >
             <i-mdi-video-outline class="contact-window-video-icon" aria-hidden="true" />
+          </button>
+          <!-- The pin: this person on the find map (Bernd, 09.10.2026). There only for somebody
+               who stands on the map -- a home set and "findable" -- and only for a member who may
+               open the map themselves (useContactOnMap): a way that would end in "not on the
+               map" is not offered. It comes a moment after the window, with the GMS's answer.
+               Beside the camera: both lead to the person, the bell and the heart are marks of
+               one's own on them. No word beside it; its name says whom the map will show. -->
+          <button
+            v-if="onMap"
+            type="button"
+            class="contact-window-mark contact-window-map"
+            :aria-label="mapName"
+            :title="mapName"
+            data-test="contact-window-map"
+            @click="toMap"
+          >
+            <i-mdi-map-marker-outline class="contact-window-map-icon" aria-hidden="true" />
           </button>
           <!-- The bell: mutes this conversation for oneself -- no mails about their chat
                messages; the thread shows them as before (E-024). A letter written with the form
@@ -325,6 +343,7 @@ import {
 import { setChatConversationMuted } from '@/graphql/chat.graphql'
 import { useAppToast } from '@/composables/useToast'
 import { useChatWindowSearch } from '@/composables/useChatWindowSearch'
+import { useContactOnMap } from '@/composables/useContactOnMap'
 import { gradidoAddress } from '@/utils/gradidoAddress'
 import { SEND_TYPES } from '@/utils/sendTypes'
 import { bookingsWithMemberRoute } from '@/utils/bookingsRoute'
@@ -499,6 +518,31 @@ const toSend = () => {
 }
 
 /**
+ * The pin: whether this person stands on the find map, and the way there (Bernd, 09.10.2026).
+ * `onMap` is the pair the map is asked to show, once the GMS has said the person is there
+ * (useContactOnMap) -- nothing before that, and nothing for a member who may not open the map.
+ */
+const { onMap, ask: askOnMap } = useContactOnMap()
+
+/** The pin's name: what a tap on it shows, and whom. */
+const mapName = computed(() => t('contacts.showOnMap', { name: alias.value }))
+
+/**
+ * The map, with this person named in its address the way the contacts page is asked for a
+ * conversation (`with`, `community`): the map marks them and leads back here with the same pair.
+ * The window closes on the way, as for the send form -- the list it sits over may stay mounted.
+ */
+const toMap = () => {
+  const pair = onMap.value
+  if (!pair) return
+  emit('update:modelValue', false)
+  router.push({
+    path: '/matching/karte',
+    query: { with: pair.gradidoID, community: pair.communityUuid },
+  })
+}
+
+/**
  * What the thread has learned about the conversation (`ChatThread`, event `chatConversation`).
  * Nothing is known before it has: no bell and no camera until then.
  */
@@ -531,6 +575,18 @@ const takeChatConversation = ({ exists, mutedByMe }) => {
  * contact row in (`contactMade`).
  */
 const firstForm = computed(() => props.firstContact && !chatConversation.value.exists)
+
+// Asked when the window opens on a person, and anew for another one -- the pair the thread is
+// keyed by, so a community the lookup fills in later is no other person and no second question.
+// A closed window knows nobody: what was said about the last person is let go with it. Not in
+// the window's first form (E-055): the row the pin stands in comes with the first message, and
+// with it the question.
+watch(
+  () =>
+    props.modelValue && props.contact?.user?.gradidoID && !firstForm.value ? threadKey.value : '',
+  (person) => askOnMap(person ? props.contact.user : null),
+  { immediate: true },
+)
 
 /** "Hallo …", where the window was opened from a group; the thread puts it in an empty field. */
 const greeting = computed(() =>
@@ -889,6 +945,12 @@ onBeforeUnmount(() => {
 
 /* The camera: in the bell's round and at the heart's glyph size. */
 .contact-window-video-icon {
+  width: 1.35em;
+  height: 1.35em;
+}
+
+/* The pin: the same round, the same glyph size. */
+.contact-window-map-icon {
   width: 1.35em;
   height: 1.35em;
 }

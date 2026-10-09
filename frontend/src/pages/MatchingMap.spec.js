@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeAll, beforeEach, afterEach } from 'vite
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { ref } from 'vue'
+import { reactive, ref } from 'vue'
 import { createStore } from 'vuex'
 import { createI18n } from 'vue-i18n'
 import de from '@/locales/de.json'
@@ -43,8 +43,13 @@ vi.mock('@/utils/mapEngine', async (importOriginal) => {
 
 const replace = vi.fn()
 const push = vi.fn()
+// The address the page stands under. Without a person in it, as the menu leads here; the tests of
+// "somebody the page was asked to show" name one, and one of them changes it under the page --
+// so it is made reactive, anew for every test.
+const route = vi.hoisted(() => ({ current: { query: {} } }))
 vi.mock('vue-router', () => ({
   useRouter: () => ({ push, replace }),
+  useRoute: () => route.current,
 }))
 
 // Keyed by the query document: a mock answering every query the same could not
@@ -166,6 +171,7 @@ const mountMap = ({ gmsAllowed = true, store = makeStore(gmsAllowed) } = {}) => 
 }
 
 beforeEach(() => {
+  route.current = reactive({ query: {} })
   handlers.clear()
   created.length = 0
   replace.mockClear()
@@ -1830,6 +1836,581 @@ describe('MatchingMap', () => {
       expect(ruleOf(source, '  :deep(.maplibregl-ctrl-attrib)')).toMatch(
         /background-color: rgb\(22 24 29 \/ 80%\);/,
       )
+    })
+  })
+})
+
+/**
+ * Bernd, 09.10.2026: a contact one has in the chat can be found on the find map as well. The
+ * contact window's pin leads to `/matching/karte?with=<gradidoID>&community=<uuid>`; the page asks
+ * the GMS where the person stands, brings them into view and marks them with a gold ring and
+ * their name. The search stays where it was.
+ */
+describe('MatchingMap, asked to show somebody', () => {
+  beforeAll(async () => {
+    await import('@/utils/mapEngine/maplibre')
+  })
+
+  const TOBIAS = {
+    with: 'aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa',
+    community: 'cccccccc-0000-4000-8000-cccccccccccc',
+  }
+  const IRA = {
+    with: 'bbbbbbbb-2222-4222-8222-bbbbbbbbbbbb',
+    community: 'dddddddd-3333-4333-8333-dddddddddddd',
+  }
+  const HOME = { lat: 48.2, lng: 11.6 }
+  const HAMBURG = { lat: 53.55, lng: 9.99 }
+  const BERLIN = { lat: 52.52, lng: 13.4 }
+  // Where the map stood last time: away from home and away from Hamburg.
+  const VIEW = { lat: 50.1, lng: 8.7, zoom: 9 }
+
+  /** One person as the profile route hands them over (useMatches.toProfile). */
+  const published = (who = TOBIAS, over = {}) => ({
+    uuid: who.with,
+    name: who === IRA ? 'Ira-Erste' : 'Tobias',
+    community: { uuid: who.community, name: 'KI Playground' },
+    aboutMe: null,
+    position: who === IRA ? BERLIN : HAMBURG,
+    precision: 'ungefaehr',
+    channels: {},
+    ...over,
+  })
+  const notHeld = () =>
+    Object.assign(new Error('community-user/profile: HTTP 404'), { status: 404 })
+
+  /** An answer that is still on its way. */
+  const held = () => {
+    let settle
+    let refuse
+    const promise = new Promise((resolve, reject) => {
+      settle = resolve
+      refuse = reject
+    })
+    return { promise, resolve: settle, reject: refuse }
+  }
+
+  const remember = (name, value) => window.localStorage.setItem(KEY + name, JSON.stringify(value))
+  const remembered = (name) => JSON.parse(window.localStorage.getItem(KEY + name))
+
+  /** The page under an address, with its map built and the member's home known. */
+  const arrive = async (query = TOBIAS, { gmsAllowed = true } = {}) => {
+    route.current.query = query ?? {}
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    const page = mountMap({ gmsAllowed })
+    fire(userLocationQuery, { userLocation: location })
+    await page.vm.$nextTick()
+    vi.advanceTimersByTime(250)
+    vi.useRealTimers()
+    // The engine is fetched after the quarter second; the answer about the person comes in the
+    // same breaths.
+    await flushPromises()
+    await flushPromises()
+    return page
+  }
+
+  const theMap = () => created.at(-1)
+  const centre = () => {
+    const { lat, lng } = theMap().getCenter()
+    return { lat: +lat.toFixed(4), lng: +lng.toFixed(4) }
+  }
+  const marker = (page) => page.find('.gk-shown')
+  const tap = (element) => element.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+  const window_ = (page) => page.findComponent({ name: 'MatchProfile' })
+
+  beforeEach(() => {
+    profile.mockImplementation(async (uuid) =>
+      uuid === IRA.with ? published(IRA) : published(TOBIAS),
+    )
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('asks the GMS about exactly the pair in the address, once', async () => {
+    await arrive()
+
+    expect(profile).toHaveBeenCalledTimes(1)
+    expect(profile).toHaveBeenCalledWith(TOBIAS.with, TOBIAS.community)
+  })
+
+  it('marks the person with a ring and their name, on their point', async () => {
+    const page = await arrive()
+
+    expect(marker(page).exists()).toBe(true)
+    expect(marker(page).find('.gk-shown-ring').exists()).toBe(true)
+    expect(marker(page).find('.gk-shown-name').text()).toBe('Tobias')
+    // The ring's box is centred on the person: its top left corner stands half the ring left of
+    // and above their place, which is the middle of the view.
+    const box = marker(page).element
+    expect([box.style.width, box.style.height]).toEqual(['56px', '56px'])
+    expect(box.style.transform).toContain('translate(-28px, -28px)')
+    // A finger's measure to tap, as on every marker.
+    expect(marker(page).find('.gk-hit').element.style.width).toBe('44px')
+  })
+
+  it('brings them into the middle of the view, at the zoom of a town', async () => {
+    // The control gives the zoom a remembered view of 12 opens at, in the engine's own counting.
+    remember('view', { ...VIEW, zoom: 12 })
+    await arrive(null)
+    const zoomOfTwelve = theMap().getZoom()
+    expect(centre()).toEqual({ lat: VIEW.lat, lng: VIEW.lng })
+    wrapper.unmount()
+    wrapper = null
+
+    remember('view', VIEW)
+    await arrive()
+    expect(centre()).toEqual(HAMBURG)
+    expect(theMap().getZoom()).toBe(zoomOfTwelve)
+  })
+
+  // Looking is not searching: the circle stays around the place the member searches from.
+  it('leaves the search where it was', async () => {
+    await arrive()
+
+    expect(load).toHaveBeenCalled()
+    for (const [search] of load.mock.calls) expect(search.center).toEqual(HOME)
+    expect(remembered('center')).toEqual(HOME)
+  })
+
+  // Where the map stands during such a visit is the person's. The next visit opens where the
+  // member last looked for themselves.
+  it('does not remember the view of such a visit', async () => {
+    remember('view', VIEW)
+    await arrive()
+    theMap().jumpTo({ center: [BERLIN.lng, BERLIN.lat] })
+
+    expect(remembered('view')).toEqual(VIEW)
+  })
+
+  // The control for the one above: without somebody to show, the same move is remembered.
+  it('remembers the view of an ordinary visit', async () => {
+    remember('view', VIEW)
+    await arrive(null)
+    theMap().jumpTo({ center: [BERLIN.lng, BERLIN.lat] })
+
+    expect(remembered('view').lat).toBeCloseTo(BERLIN.lat, 4)
+    expect(remembered('view').lng).toBeCloseTo(BERLIN.lng, 4)
+  })
+
+  // ⛔ The engine takes a marker's inside as HTML, and the name comes back from a foreign system.
+  it('sets a name that is markup as text, not as markup', async () => {
+    const evil = '<img src=x onerror="alert(1)"><b>Tobias</b>'
+    profile.mockResolvedValue(published(TOBIAS, { name: evil }))
+    const page = await arrive()
+
+    expect(marker(page).find('img').exists()).toBe(false)
+    expect(marker(page).find('b').exists()).toBe(false)
+    expect(marker(page).find('.gk-shown-name').element.children).toHaveLength(0)
+    expect(marker(page).find('.gk-shown-name').element.textContent).toBe(evil)
+  })
+
+  it('draws no empty name tag for somebody the GMS names without a name', async () => {
+    profile.mockResolvedValue(published(TOBIAS, { name: undefined }))
+    const page = await arrive()
+
+    expect(marker(page).find('.gk-shown-ring').exists()).toBe(true)
+    expect(marker(page).find('.gk-shown-name').exists()).toBe(false)
+  })
+
+  describe('a tap on them', () => {
+    it('opens their profile from the ring, in the one window, and asks for the rest', async () => {
+      const page = await arrive()
+      expect(window_(page).props('modelValue')).toBe(false)
+
+      tap(marker(page).find('.gk-hit').element)
+      await flushPromises()
+
+      expect(window_(page).props('modelValue')).toBe(true)
+      expect(window_(page).props('match')).toMatchObject({
+        uuid: TOBIAS.with,
+        name: 'Tobias',
+        community: { uuid: TOBIAS.community, name: 'KI Playground' },
+        position: HAMBURG,
+      })
+      // Once to find them, once for the window: the window's own question, as for any ring.
+      expect(profile).toHaveBeenCalledTimes(2)
+      expect(profile).toHaveBeenLastCalledWith(TOBIAS.with, TOBIAS.community)
+    })
+
+    it('opens it from the name as well', async () => {
+      const page = await arrive()
+
+      tap(marker(page).find('.gk-shown-name').element)
+      await flushPromises()
+
+      expect(window_(page).props('modelValue')).toBe(true)
+    })
+
+    // Where the search found them too, the window opens on what the search knows: the entries
+    // of theirs that answer mine, with their strength -- as a tap on their glow would.
+    it('opens the match where the search found the same person, however the pair is spelled', async () => {
+      const page = await arrive()
+      matches.value = [
+        {
+          uuid: TOBIAS.with.toUpperCase(),
+          name: 'Tobias',
+          position: HAMBURG,
+          community: { uuid: TOBIAS.community.toUpperCase(), name: 'KI Playground' },
+          aboutMe: '',
+          precision: 'ungefaehr',
+          channels: {
+            gesuch: [
+              { uuid: 'his-entry', strength: 0.8, matchedEntryUuid: 'mine', summary: 'Cello' },
+            ],
+          },
+          scores: { gesuch: [{ strength: 0.8, entry: 'mine', subject: 'cello' }] },
+        },
+      ]
+      await flushPromises()
+
+      tap(marker(page).find('.gk-hit').element)
+      await flushPromises()
+
+      expect(window_(page).props('match').channels.gesuch?.[0]).toMatchObject({
+        uuid: 'his-entry',
+        strength: 0.8,
+      })
+    })
+
+    // The control: the same uuid in ANOTHER community is another person (a uuid names a person
+    // only within one community), so the window opens on the one the map was asked to show.
+    it('does not take somebody with the same id from another community for them', async () => {
+      const page = await arrive()
+      matches.value = [
+        {
+          uuid: TOBIAS.with,
+          name: 'Namesake',
+          position: HAMBURG,
+          community: { uuid: IRA.community, name: 'Elsewhere' },
+          aboutMe: '',
+          precision: 'genau',
+          channels: { gesuch: [{ uuid: 'other-entry', strength: 0.8, matchedEntryUuid: 'mine' }] },
+          scores: { gesuch: [{ strength: 0.8, entry: 'mine', subject: 'cello' }] },
+        },
+      ]
+      await flushPromises()
+
+      tap(marker(page).find('.gk-hit').element)
+      await flushPromises()
+
+      expect(window_(page).props('match').name).toBe('Tobias')
+      expect(window_(page).props('match').channels.gesuch).toBeUndefined()
+    })
+  })
+
+  describe('the crosshair', () => {
+    const crosshair = (page) => page.find('.map-crosshair').element
+
+    // Resting on the person, the middle of the map is their ring: a tap there opens them and
+    // must not move the search to Hamburg instead.
+    it('steps back over the person it shows', async () => {
+      const page = await arrive()
+      await page.vm.$nextTick()
+
+      expect(crosshair(page).style.opacity).toBe('0')
+      expect(crosshair(page).style.pointerEvents).toBe('none')
+    })
+
+    // The control: an ordinary visit to the same spot keeps its crosshair -- that is how a
+    // search is set there.
+    it('stands on the same spot where nobody is shown', async () => {
+      remember('view', { ...HAMBURG, zoom: 12 })
+      const page = await arrive(null)
+      await page.vm.$nextTick()
+
+      expect(centre()).toEqual(HAMBURG)
+      expect(crosshair(page).style.opacity).toBe('1')
+      expect(crosshair(page).style.pointerEvents).toBe('auto')
+    })
+
+    it('comes back once the map has moved off them', async () => {
+      const page = await arrive()
+      theMap().jumpTo({ center: [BERLIN.lng, BERLIN.lat] })
+      await page.vm.$nextTick()
+
+      expect(crosshair(page).style.opacity).toBe('1')
+    })
+  })
+
+  describe('the way back', () => {
+    it('leads into the conversation with them, by the pair the page was asked with', async () => {
+      const page = await arrive()
+
+      await page.find('.map-back').trigger('click')
+
+      expect(push).toHaveBeenCalledTimes(1)
+      expect(push).toHaveBeenCalledWith({
+        path: '/contacts',
+        query: { with: TOBIAS.with, community: TOBIAS.community },
+      })
+    })
+
+    // Also where they turned out not to be on the map: the member came from that conversation.
+    it('leads there as well when they are not on the map', async () => {
+      profile.mockRejectedValue(notHeld())
+      const page = await arrive()
+
+      await page.find('.map-back').trigger('click')
+
+      expect(push).toHaveBeenCalledWith({
+        path: '/contacts',
+        query: { with: TOBIAS.with, community: TOBIAS.community },
+      })
+    })
+  })
+
+  describe('a member who keeps the list', () => {
+    it('sees the map for this visit, and keeps the list as their choice', async () => {
+      remember('mode', 'liste')
+      const page = await arrive()
+
+      expect(page.findComponent({ name: 'MatchList' }).exists()).toBe(false)
+      expect(page.find('.map-shell').classes()).not.toContain('is-list')
+      expect(remembered('mode')).toBe('liste')
+    })
+
+    // The control: without somebody to show, the same member opens on their list.
+    it('opens on the list on an ordinary visit', async () => {
+      remember('mode', 'liste')
+      const page = await arrive(null)
+
+      expect(page.findComponent({ name: 'MatchList' }).exists()).toBe(true)
+    })
+  })
+
+  describe('a profile window remembered from another visit', () => {
+    const anna = () => ({
+      uuid: 'u-1',
+      name: 'Anna',
+      position: HOME,
+      community: { uuid: 'c-1', name: 'Muenchen' },
+      aboutMe: '',
+      channels: [],
+      scores: {},
+      precision: 'genau',
+    })
+
+    // The member asked for the map with the person marked; a window swinging open over it is
+    // not that.
+    it('does not open of its own accord', async () => {
+      remember('profile', 'u-1')
+      const page = await arrive()
+      matches.value = [anna()]
+      await flushPromises()
+
+      expect(window_(page).props('modelValue')).toBe(false)
+      expect(marker(page).exists()).toBe(true)
+    })
+
+    // The control: the same note on an ordinary visit opens the window, as it always did.
+    it('opens on an ordinary visit', async () => {
+      remember('profile', 'u-1')
+      const page = await arrive(null)
+      matches.value = [anna()]
+      await flushPromises()
+
+      expect(window_(page).props('modelValue')).toBe(true)
+    })
+  })
+
+  describe('somebody who is not on the map', () => {
+    it('says so once, marks nobody and opens the map where it stood', async () => {
+      remember('view', VIEW)
+      profile.mockRejectedValue(notHeld())
+      const page = await arrive()
+
+      expect(toastError).toHaveBeenCalledTimes(1)
+      expect(toastError).toHaveBeenCalledWith('Dieser Kontakt steht gerade nicht auf der Karte.')
+      expect(marker(page).exists()).toBe(false)
+      expect(centre()).toEqual({ lat: VIEW.lat, lng: VIEW.lng })
+    })
+
+    it('says the profile could not be loaded where the GMS did not answer', async () => {
+      profile.mockRejectedValue(Object.assign(new Error('HTTP 503'), { status: 503 }))
+      const page = await arrive()
+
+      expect(toastError).toHaveBeenCalledTimes(1)
+      expect(toastError).toHaveBeenCalledWith('Das Profil konnte gerade nicht geladen werden.')
+      expect(marker(page).exists()).toBe(false)
+    })
+
+    // The GMS is a foreign system: a point off the globe is finite, and MapLibre throws on it.
+    it.each([
+      ['a latitude off the globe', { lat: 91, lng: 9.99 }],
+      ['no numbers', { lat: undefined, lng: undefined }],
+    ])('treats somebody held with %s as not on the map', async (_, position) => {
+      profile.mockResolvedValue(published(TOBIAS, { position }))
+      const page = await arrive()
+
+      expect(toastError).toHaveBeenCalledWith('Dieser Kontakt steht gerade nicht auf der Karte.')
+      expect(marker(page).exists()).toBe(false)
+    })
+  })
+
+  describe('an address that names nobody', () => {
+    it.each([
+      ['no pair', {}],
+      ['half a pair', { with: TOBIAS.with }],
+      ['the other half', { community: TOBIAS.community }],
+      ['something that is no uuid', { with: 'tobias', community: TOBIAS.community }],
+      ['a community that is no uuid', { with: TOBIAS.with, community: 'home' }],
+      ['a pair given twice', { with: [TOBIAS.with, IRA.with], community: TOBIAS.community }],
+    ])('asks the GMS nothing and says nothing for %s', async (_, query) => {
+      remember('view', VIEW)
+      const page = await arrive(query)
+
+      expect(profile).not.toHaveBeenCalled()
+      expect(toastError).not.toHaveBeenCalled()
+      expect(marker(page).exists()).toBe(false)
+      expect(centre()).toEqual({ lat: VIEW.lat, lng: VIEW.lng })
+
+      await page.find('.map-back').trigger('click')
+      expect(push).toHaveBeenCalledWith('/matching/entries')
+    })
+  })
+
+  describe('answers that take their time', () => {
+    it('marks the person when the answer comes after the map is there', async () => {
+      const answer = held()
+      profile.mockReturnValue(answer.promise)
+      remember('view', VIEW)
+      const page = await arrive()
+      expect(marker(page).exists()).toBe(false)
+      expect(centre()).toEqual({ lat: VIEW.lat, lng: VIEW.lng })
+
+      answer.resolve(published())
+      await flushPromises()
+
+      expect(marker(page).find('.gk-shown-name').text()).toBe('Tobias')
+      expect(centre()).toEqual(HAMBURG)
+    })
+
+    // The engine is loaded, not imported: the answer about the person can be there first.
+    it('marks the person when the map comes after the answer', async () => {
+      let open
+      engineLoad.gate = new Promise((resolve) => {
+        open = resolve
+      })
+      remember('view', VIEW)
+      const page = await arrive()
+      expect(profile).toHaveBeenCalledTimes(1)
+      expect(created).toHaveLength(0)
+
+      open()
+      await flushPromises()
+      await flushPromises()
+
+      expect(created).toHaveLength(1)
+      expect(marker(page).find('.gk-shown-name').text()).toBe('Tobias')
+      expect(centre()).toEqual(HAMBURG)
+    })
+
+    it('says nothing about somebody once the page is gone', async () => {
+      const answer = held()
+      profile.mockReturnValue(answer.promise)
+      await arrive()
+      wrapper.unmount()
+      wrapper = null
+
+      answer.reject(notHeld())
+      await flushPromises()
+
+      expect(toastError).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('an address that comes to name somebody else', () => {
+    it('lets the first one go and shows the other', async () => {
+      const page = await arrive()
+      expect(page.findAll('.gk-shown')).toHaveLength(1)
+
+      route.current.query = IRA
+      await flushPromises()
+
+      expect(profile).toHaveBeenLastCalledWith(IRA.with, IRA.community)
+      expect(page.findAll('.gk-shown')).toHaveLength(1)
+      expect(marker(page).find('.gk-shown-name').text()).toBe('Ira-Erste')
+      expect(centre()).toEqual(BERLIN)
+    })
+
+    it('does not show the first one when their answer comes after the second', async () => {
+      const aboutTobias = held()
+      profile.mockReturnValueOnce(aboutTobias.promise)
+      const page = await arrive()
+
+      route.current.query = IRA
+      await flushPromises()
+      aboutTobias.resolve(published())
+      await flushPromises()
+
+      expect(page.findAll('.gk-shown')).toHaveLength(1)
+      expect(marker(page).find('.gk-shown-name').text()).toBe('Ira-Erste')
+      expect(centre()).toEqual(BERLIN)
+    })
+
+    it('takes the mark away when it names nobody any more', async () => {
+      const page = await arrive()
+
+      route.current.query = {}
+      await flushPromises()
+
+      expect(marker(page).exists()).toBe(false)
+    })
+  })
+
+  // The door (`mayFind`) turns such a member away before the page is built; this is the belt
+  // behind it, as for the map itself.
+  it('asks the GMS nothing for a member who is not findable', async () => {
+    await arrive(TOBIAS, { gmsAllowed: false })
+
+    expect(profile).not.toHaveBeenCalled()
+    expect(replace).toHaveBeenCalledWith('/matching/position')
+  })
+
+  // jsdom applies no stylesheet, so what the ring and the name are drawn with is read in the
+  // source: the ring lets taps through to the core, the name takes them, and the name's face
+  // follows the look -- light letters on the dark map, dark ones on the two light maps.
+  describe('the rules it is drawn with', () => {
+    const here = dirname(fileURLToPath(import.meta.url))
+    // Comments first: they name the values, and a guard that reads its own explanation proves
+    // nothing.
+    const source = readFileSync(join(here, 'MatchingMap.vue'), 'utf8').replace(
+      /\/\*[\s\S]*?\*\//g,
+      '',
+    )
+    const ruleOf = (selector) =>
+      source.match(new RegExp(`\\n${selector.replace(/[.()]/g, '\\$&')} \\{([^}]*)\\}`))?.[1]
+
+    it('lets taps through the ring and takes them on the name', () => {
+      expect(ruleOf('.gk-shown-ring')).toMatch(/pointer-events: none;/)
+      expect(ruleOf('.gk-shown-name')).toMatch(/pointer-events: auto;/)
+    })
+
+    it('keeps the name on one line, however long it is', () => {
+      const name = ruleOf('.gk-shown-name')
+      expect(name).toMatch(/white-space: nowrap;/)
+      expect(name).toMatch(/text-overflow: ellipsis;/)
+      expect(name).toMatch(/overflow: hidden;/)
+      expect(name).toMatch(/max-width: 14rem;/)
+    })
+
+    it('gives the name the face of the look it stands on', () => {
+      expect(ruleOf('.gk-shown-name')).toMatch(/color: #e8eaed;/)
+      const light = ruleOf(
+        '.map-shell.look-hell .gk-shown-name,\n.map-shell.look-normal .gk-shown-name',
+      )
+      expect(light, 'no rule for the name on the light maps').toBeDefined()
+      expect(light).toMatch(/color: #1f2328;/)
+    })
+
+    it('holds the ring still for somebody who asked for less movement', () => {
+      const still = source.match(
+        /@media \(prefers-reduced-motion: reduce\) \{\s*\.gk-shown-ring \{([^}]*)\}/,
+      )
+      expect(still, 'no reduced-motion rule for the ring').not.toBeNull()
+      expect(still[1]).toMatch(/animation: none;/)
     })
   })
 })

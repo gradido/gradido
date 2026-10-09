@@ -199,6 +199,14 @@ export function hasUsablePoint(user) {
 }
 
 /**
+ * The same question of a point that is in the map's shape already (`{ lat, lng }`), as a profile
+ * carries it (toProfile): one rule for what can be put on a map, in both shapes.
+ */
+export function isUsablePlace(point) {
+  return hasUsablePoint({ location: [point?.lng, point?.lat] })
+}
+
+/**
  * How precisely a person let themselves be found, from the GMS's publish location
  * type: 0 exact, 1 approximate, 2 random (GMS_PUBLISH_LOCATION_TYPES, by index).
  * Anything else reads as approximate — the coarser end is the one that never
