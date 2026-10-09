@@ -983,6 +983,26 @@ describe('MatchingMap', () => {
       expect(opened.channels.angebot.map((entry) => entry.summary)).toEqual(['Fahrradreparatur'])
     })
 
+    // The first word the window offers says how far apart the two live (Chat E-068): measured
+    // from the member's home and only within their standing reach -- whatever the map is
+    // searching, and wherever.
+    it("hands the window the member's home and their standing reach, also in the wide search", async () => {
+      window.localStorage.setItem(`${KEY}radius`, JSON.stringify(30))
+      window.localStorage.setItem(`${KEY}radiusFern`, JSON.stringify(700))
+      window.localStorage.setItem(`${KEY}reach`, JSON.stringify('fern'))
+      // The search stands somewhere else than home.
+      window.localStorage.setItem(`${KEY}center`, JSON.stringify({ lat: 52.5, lng: 13.4 }))
+      const page = mountMap()
+      // Before the server has said where home is, there is none to measure from.
+      expect(shown(page).props('ownPosition')).toBeNull()
+
+      fire(userLocationQuery, { userLocation: location })
+      await flushPromises()
+
+      expect(shown(page).props('ownPosition')).toEqual({ lat: 48.2, lng: 11.6 })
+      expect(shown(page).props('ownReachKm')).toBe(30)
+    })
+
     // Bauauftrag D, 10.09.2026: the matches route sends one record per pair, so an offer that
     // answers two of my entries came into the window twice until the profile arrived.
     it('shows an entry of theirs once, though it answers two of mine', async () => {

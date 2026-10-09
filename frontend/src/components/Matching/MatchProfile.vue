@@ -89,29 +89,87 @@
       </div>
     </div>
 
-    <!-- The real actions live in the footer, so they stay put while the profile
-         scrolls. No OK/Cancel: those only closed the window, and the × up top
-         already does that. The window is a go-between, not a till — the buttons
-         point at the send form, the e-mail one carrying its mode (?art=email).
-         Icons are the wallet's own send-form glyphs: the coin, the fast mail. -->
+    <!-- The foot stays put while the profile scrolls. No OK/Cancel: those only closed the
+         window, and the × up top already does that.
+
+         A first word, right here (Bernd, 09.10.2026, E-065): for somebody who is no contact yet
+         the chat's own compose bar stands in the foot, the words already in its field
+         (utils/chatHelloText), and the arrow sends them -- the first chat message of the two,
+         which goes by mail and makes them contacts (E-024, KF-012). It took the place of "send
+         an e-mail", which led to the send form's letter: the bar is the same thing, and the
+         answer to it arrives in a conversation. The bar has its place from the first moment, so
+         the window does not grow under a finger once the server has said who this is -- and
+         until then it shows nothing (`helloAsking`): no first word for somebody who may turn out
+         to be a contact, and nothing typed that the answer would take away.
+
+         Afterwards the same place says what became of it, in the server's own words (E-034).
+         Somebody who is a contact already gets the way into their conversation instead: writing
+         into it from here, without seeing it, is not offered.
+
+         "Send Gradido" stays what it was (E-067) -- the window is a go-between, not a till: the
+         button points at the send form. Its glyph is the send form's coin. -->
     <template #footer>
-      <div v-if="match" class="profile-actions">
-        <button type="button" class="send-btn send-gradido" @click="toSend('send')">
-          <img src="/img/svg/gdd_coin_sw.svg" class="send-coin" alt="" aria-hidden="true" />
-          {{ $t('matching.profile.sendGradido') }}
-        </button>
-        <button type="button" class="send-btn send-email" @click="toSend('email')">
-          <i-mdi-email-fast-outline class="send-mail-icon" aria-hidden="true" />
-          {{ $t('matching.profile.sendEmail') }}
-        </button>
+      <div v-if="match" class="profile-foot">
+        <chat-compose-bar
+          v-if="helloOffered"
+          :key="helloKey"
+          class="profile-hello"
+          :class="{ 'is-asking': helloAsking }"
+          :name="match.name"
+          first
+          text-only
+          :sending="helloWaits"
+          :failed="helloFailed"
+          :initial-text="helloWords"
+          data-test="profile-hello"
+          @send="sendHello"
+        />
+        <p v-else-if="helloSent" class="profile-hello-sent" data-test="profile-hello-sent">
+          <i-mdi-check v-if="helloArrived" class="profile-hello-sent-icon" aria-hidden="true" />
+          <span>{{ helloSentWords }}</span>
+        </p>
+
+        <div class="profile-actions" :class="{ 'is-single': !conversationOffered }">
+          <button
+            v-if="conversationOffered"
+            ref="conversationButton"
+            type="button"
+            class="send-btn to-conversation"
+            data-test="profile-conversation"
+            @click="toConversation"
+          >
+            <i-mdi-chat-outline class="to-conversation-icon" aria-hidden="true" />
+            {{ $t('chatHello.toConversation') }}
+          </button>
+          <button
+            type="button"
+            class="send-btn send-gradido"
+            data-test="profile-send-gradido"
+            @click="toSend"
+          >
+            <img src="/img/svg/gdd_coin_sw.svg" class="send-coin" alt="" aria-hidden="true" />
+            {{ $t('matching.profile.sendGradido') }}
+          </button>
+        </div>
+
+        <!-- For the ear: what became of the hello. Always in the page, so the words are
+             announced when they are put in -- a live region that appears together with its text
+             is not. -->
+        <p class="visually-hidden" role="status" data-test="profile-hello-status">
+          {{ helloSentWords }}
+        </p>
       </div>
     </template>
   </BModal>
 </template>
 
 <script setup>
-import { computed, reactive, watch } from 'vue'
+import { computed, nextTick, reactive, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import { useStore } from 'vuex'
+import { useApolloClient } from '@vue/apollo-composable'
+import ChatComposeBar from '@/components/Chat/ChatComposeBar.vue'
 import {
   DEFAULTS,
   LABEL_COLORS,
@@ -119,6 +177,13 @@ import {
   scoreToStage,
 } from '@/components/Matching/displayCore'
 import CollapseIcon from '@/components/TransactionRows/CollapseIcon'
+import {
+  CHAT_HELLO_ASKING,
+  CHAT_HELLO_CONTACT,
+  CHAT_HELLO_STRANGER,
+  useChatHello,
+} from '@/composables/useChatHello'
+import { chatHelloDistance, chatHelloSignature, chatHelloText } from '@/utils/chatHelloText'
 
 // Heart first, then offer, then need — GMS-82's "Herz zuerst".
 const CHANNEL_ORDER = ['interesse', 'angebot', 'gesuch']
@@ -135,10 +200,20 @@ const MAX_ENTRIES = 100
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
   match: { type: Object, default: null },
+  /**
+   * The member's own home as the map holds it (`{ lat, lng }`), and how far their standing reach
+   * goes, in km: what the hello says about how far apart the two live is measured from the one
+   * and kept within the other (utils/chatHelloText). Without them it says nothing about it.
+   */
+  ownPosition: { type: Object, default: null },
+  ownReachKm: { type: Number, default: 0 },
 })
 const emit = defineEmits(['update:modelValue'])
 
 const router = useRouter()
+const store = useStore()
+const { t, locale } = useI18n()
+const { client: apolloClient } = useApolloClient()
 
 const hasAbout = computed(() => Boolean(props.match?.aboutMe && props.match.aboutMe.trim()))
 
@@ -225,12 +300,153 @@ function moreCount(area) {
   return Math.min(area.count, MAX_ENTRIES) - openCount(area)
 }
 
-function toSend(art) {
+function toSend() {
   const community = props.match?.community?.uuid
   const user = props.match?.uuid
   if (!community || !user) return
-  const path = `/send/${community}/${user}`
-  router.push(art === 'email' ? { path, query: { art: 'email' } } : { path })
+  router.push({ path: `/send/${community}/${user}` })
+}
+
+/**
+ * Whom a first word from here would go to: the person the open window shows, by the pair a chat
+ * message is addressed with -- the GMS holds a member under their Gradido ID. Nobody while the
+ * window is shut, for a ring without a pair, and for the member's own ring: the map draws the
+ * seeker too, and nobody says hello to themselves.
+ */
+const helloPerson = computed(() => {
+  const gradidoID = props.match?.uuid
+  const communityUuid = props.match?.community?.uuid
+  if (!props.modelValue || !gradidoID || !communityUuid) return null
+  const own = String(store.state.gradidoID ?? '').toLowerCase()
+  if (own && String(gradidoID).toLowerCase() === own) return null
+  return { gradidoID, communityUuid }
+})
+
+/**
+ * The person as one string. ⛔ The window is handed a new `match` object whenever more of the
+ * same person arrives (their entries, the sentences of mine they answer): what is asked and
+ * shown here goes by the person, or every such arrival would ask the server again and put the
+ * words back over what the member has typed. In lower case: what arrives later comes from
+ * another route of the GMS (the profile), and an id spelled otherwise there is the same person.
+ */
+const helloKey = computed(() =>
+  helloPerson.value
+    ? `${helloPerson.value.communityUuid}/${helloPerson.value.gradidoID}`.toLowerCase()
+    : '',
+)
+
+const {
+  standing: helloStanding,
+  sending: helloSending,
+  failed: helloFailed,
+  sent: helloSent,
+  ask: askHello,
+  send: sendHelloWords,
+} = useChatHello(apolloClient)
+
+watch(helloKey, () => askHello(helloPerson.value), { immediate: true })
+
+/**
+ * The bar stands while a first word can still be written: from the moment the window opens --
+ * the server's answer mostly lands while the window is still fading in -- until the hello has
+ * gone out, or the server says the two are contacts already. Not where the question did not get
+ * through: no first word is offered on a guess.
+ */
+const helloOffered = computed(
+  () =>
+    helloPerson.value !== null &&
+    helloSent.value === null &&
+    (helloStanding.value === CHAT_HELLO_ASKING || helloStanding.value === CHAT_HELLO_STRANGER),
+)
+
+/**
+ * While the server is asked, the bar keeps its place and shows nothing. The window stands in the
+ * middle of the screen: a foot that came with the answer would move the whole window under the
+ * finger. But the words are not shown on a guess either -- to somebody who turns out to be a
+ * contact they would be wrong, and what was typed into them meanwhile would go with the bar.
+ */
+const helloAsking = computed(() => helloStanding.value === CHAT_HELLO_ASKING)
+
+/** The arrow waits: for the server's answer about who this is, and while the hello is on its way. */
+const helloWaits = computed(() => helloSending.value || helloStanding.value !== CHAT_HELLO_STRANGER)
+
+/**
+ * The words in the field. Read by the bar once, when it is made: with the window, each time it
+ * opens, and anew for another person (`helloKey`) -- not while the window stays on one person,
+ * whatever more of them arrives.
+ */
+const helloWords = computed(() =>
+  chatHelloText(t, {
+    name: props.match?.name ?? '',
+    signature: chatHelloSignature(store.state.username),
+    distance: chatHelloDistance({
+      home: props.ownPosition,
+      theirs: props.match?.position ?? null,
+      reachKm: props.ownReachKm,
+    }),
+    locale: locale.value,
+  }),
+)
+
+/**
+ * What became of the hello, as the server says it of its copy -- the words the thread uses for
+ * the same states, and "gets an e-mail" only where a mail went out (E-034).
+ */
+const helloSentWords = computed(() => {
+  const outcome = helloSent.value
+  if (!outcome) return ''
+  if (outcome.delivery === 'FAILED') return t('chatThread.failed')
+  if (outcome.delivery === 'PENDING') return t('chatThread.pending')
+  return outcome.mailed
+    ? t('chatHello.sentMailed', { name: props.match?.name ?? '' })
+    : t('chatHello.sent')
+})
+
+/**
+ * The tick before those words: only where the hello went out. "Not delivered" and "not delivered
+ * yet" are the server's words for a copy that is stored and did not arrive (E-019) -- a green
+ * tick before them would say the opposite.
+ */
+const helloArrived = computed(
+  () =>
+    helloSent.value !== null &&
+    helloSent.value.delivery !== 'FAILED' &&
+    helloSent.value.delivery !== 'PENDING',
+)
+
+/** The way into the conversation: once the hello has gone out, and for a contact. */
+const conversationOffered = computed(
+  () =>
+    helloPerson.value !== null &&
+    (helloSent.value !== null || helloStanding.value === CHAT_HELLO_CONTACT),
+)
+
+const conversationButton = ref(null)
+
+/**
+ * The bar asks; the composable sends. Where the bar then gives way to the way into the
+ * conversation -- the hello is out, or the server says the two are contacts by now --, whatever
+ * held the focus is gone with it: the focus goes to that button, so a keyboard is not left
+ * nowhere.
+ */
+async function sendHello({ body }) {
+  await sendHelloWords(body)
+  if (helloOffered.value || !conversationOffered.value) return
+  await nextTick()
+  conversationButton.value?.focus({ preventScroll: true })
+}
+
+/**
+ * Into the conversation with this person: the address the reply button of a chat mail has
+ * (P4c), which the contacts page opens the window for and takes out of the address at once.
+ */
+function toConversation() {
+  const person = helloPerson.value
+  if (!person) return
+  router.push({
+    path: '/contacts',
+    query: { with: person.gradidoID, community: person.communityUuid },
+  })
 }
 </script>
 
@@ -415,8 +631,70 @@ function toSend(art) {
   font-weight: 600;
 }
 
+/* The foot, top to bottom: the first word (or what became of it), then the ways out of this
+   window. */
+.profile-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+}
+
+/* The chat's compose bar, here with no thread above it: the foot of the window already draws
+   the line the bar would draw over itself. ⛔ Two classes on purpose: with one, this rule and
+   the bar's own (`.chat-compose`) weigh the same, and which of the two wins would be decided by
+   where the two stylesheets land in the bundle. */
+.profile-foot .profile-hello {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+/* While the server is asked whether the two are contacts: the place is held, nothing is shown.
+   `visibility` takes the bar from the keyboard and from a screen reader as well. */
+.profile-foot .profile-hello.is-asking {
+  visibility: hidden;
+}
+
+/* The hello is words the member sends in their own name: they should be seen whole. At 360 px,
+   the commonest width of a phone, they take six lines in five of the ten languages -- one more
+   than the bar shows before it scrolls inside. So here the field may be six lines high, where
+   the screen has the height for it (the bar's own rule: five lines of 1.4em, the padding, the
+   border). */
+@media (height >= 640px) {
+  .profile-foot .profile-hello :deep(.chat-compose-field) {
+    max-height: calc(8.4em + 0.9rem + 2px);
+  }
+}
+
+/* What became of the hello: a line in the place where the bar stood. */
+.profile-hello-sent {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--text);
+}
+
+.profile-hello-sent-icon {
+  flex: 0 0 auto;
+  width: 1.25em;
+  height: 1.25em;
+  margin-top: 0.05em;
+  color: #178d81;
+}
+
+/* ⚠️ `flex-wrap`: the two buttons keep their words on one line, and two long words do not fit
+   side by side in every language -- "Ouvrir la conversation" beside "Envoyer des Gradido" needs
+   a window of 514 px, and between 421 px and there the second button stood out of the window
+   (measured in ten languages; "send an e-mail" before it did the same in five). Where they do
+   not fit, each takes a row of its own, as under 421 px. */
 .profile-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   width: 100%;
 }
@@ -440,7 +718,7 @@ function toSend(art) {
   color: #fff;
 }
 
-.send-email {
+.to-conversation {
   background: transparent;
   color: #178d81;
 }
@@ -454,10 +732,18 @@ function toSend(art) {
   filter: brightness(0) invert(1);
 }
 
-.send-mail-icon {
+.to-conversation-icon {
   width: 20px;
   height: 20px;
   flex: 0 0 auto;
+}
+
+/* One way out alone -- "send Gradido" under the first word -- keeps the width of its word and
+   stands at the left: over the whole width it would be the loudest thing in the foot, louder
+   than the hello above it. Two ways share the row as they always did. */
+.profile-actions.is-single .send-btn {
+  flex: 0 1 auto;
+  align-self: flex-start;
 }
 
 @media (width <= 420px) {

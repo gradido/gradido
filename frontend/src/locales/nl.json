@@ -236,6 +236,15 @@
     "youAreModerator": "Je bent moderator",
     "youAreOwner": "Je bent eigenaar"
   },
+  "chatHello": {
+    "distanceKm": "We wonen ongeveer {n} km van elkaar.",
+    "distanceNear": "We wonen niet ver van elkaar.",
+    "found": "Hallo {name}, ik heb je gevonden op de Gradido-kaart.",
+    "question": "Wil je hallo terugzeggen?",
+    "sent": "Verstuurd.",
+    "sentMailed": "Verstuurd. {name} krijgt een e-mail.",
+    "toConversation": "Naar het gesprek"
+  },
   "chatSearch": {
     "capped": "De laatste {count} berichten zijn doorzocht.",
     "count": "{current} van {count}",
@@ -1023,7 +1032,6 @@
       "aria": "Profiel van {name}",
       "matchesMine": "past bij",
       "more": "nog {n}",
-      "sendEmail": "E-mail versturen",
       "sendGradido": "Gradido versturen",
       "unavailable": "Het profiel kon op dit moment niet worden geladen."
     },

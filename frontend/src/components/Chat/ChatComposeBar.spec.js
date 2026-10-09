@@ -420,6 +420,147 @@ describe('ChatComposeBar', () => {
    * field opens a short hint straight away -- three steps, what the service is, the way there.
    */
   /**
+   * The member's first message in a conversation the other one began (Bernd, 09.10.2026, E-066):
+   * the box begins ticked. Whoever wrote first is mostly not in the wallet when the answer
+   * comes; the box stands there to be seen and unticked, and is empty again after that message.
+   */
+  describe("the member's first message in a conversation the other one began", () => {
+    const words = () => wrapper.find('[data-test="chat-compose-email-words"]').text()
+    const goesThrough = async () => {
+      await wrapper.setProps({ sending: true })
+      await wrapper.setProps({ sending: false })
+      await flushPromises()
+    }
+
+    it('begins with the box ticked, to be seen, and names who the mail goes to', () => {
+      mountBar({ firstOwn: true })
+      expect(box().exists()).toBe(true)
+      expect(box().element.checked).toBe(true)
+      expect(words()).toBe('chatThread.alsoByEmailTo {"name":"Lena"}')
+    })
+
+    it('begins empty everywhere else, as it always did', () => {
+      mountBar()
+      expect(box().element.checked).toBe(false)
+      expect(words()).toBe('chatThread.alsoByEmail')
+    })
+
+    it('asks for the mail with that message, without a tap on the box', async () => {
+      mountBar({ firstOwn: true })
+      await field().setValue('Hallo zurück!')
+      await button().trigger('click')
+      expect(sent()).toEqual([[{ body: 'Hallo zurück!', notify: 'EMAIL', image: null }]])
+    })
+
+    it('asks for none where the member unticks it', async () => {
+      mountBar({ firstOwn: true })
+      await field().setValue('Hallo zurück!')
+      await box().setValue(false)
+      await button().trigger('click')
+      expect(sent()).toEqual([[{ body: 'Hallo zurück!', notify: 'NONE', image: null }]])
+    })
+
+    it('is empty again once that message went through', async () => {
+      mountBar({ firstOwn: true })
+      await field().setValue('Hallo zurück!')
+      await button().trigger('click')
+      await goesThrough()
+      // The thread holds a message of the member's own now.
+      await wrapper.setProps({ firstOwn: false })
+
+      expect(box().element.checked).toBe(false)
+      await field().setValue('Und noch etwas')
+      await button().trigger('click')
+      expect(sent().at(-1)).toEqual([{ body: 'Und noch etwas', notify: 'NONE', image: null }])
+    })
+
+    it('stays ticked where the message did not go through', async () => {
+      mountBar({ firstOwn: true })
+      await field().setValue('Hallo zurück!')
+      await button().trigger('click')
+      await wrapper.setProps({ sending: true })
+      await wrapper.setProps({ sending: false, failed: true })
+      await flushPromises()
+
+      expect(box().element.checked).toBe(true)
+      expect(field().element.value).toBe('Hallo zurück!')
+    })
+
+    // The other person's first message arrives in an open window that held none.
+    it('ticks the box when the message becomes the first one while the bar stands', async () => {
+      mountBar({ first: true })
+      expect(box().exists()).toBe(false)
+
+      await wrapper.setProps({ first: false, firstOwn: true })
+      expect(box().element.checked).toBe(true)
+    })
+
+    // A message of the member's own comes in from another device.
+    it('unticks it when the message stops being the first one', async () => {
+      mountBar({ firstOwn: true })
+      await wrapper.setProps({ firstOwn: false })
+      expect(box().element.checked).toBe(false)
+    })
+
+    it('leaves the box as the member set it, whatever arrives', async () => {
+      mountBar({ firstOwn: true })
+      await box().setValue(false)
+      await wrapper.setProps({ firstOwn: false })
+      await wrapper.setProps({ firstOwn: true })
+      expect(box().element.checked).toBe(false)
+      wrapper.unmount()
+
+      mountBar()
+      await box().setValue(true)
+      await wrapper.setProps({ firstOwn: true })
+      await wrapper.setProps({ firstOwn: false })
+      expect(box().element.checked).toBe(true)
+    })
+
+    it('keeps the tick through the changing of a message, and takes news while it waits', async () => {
+      const MESSAGE = { messageUuid: 'uuid-7', body: 'Eine Nachricht', hasImage: false }
+      mountBar({ firstOwn: true })
+      await wrapper.setProps({ editing: MESSAGE })
+      await flushPromises()
+      expect(box().exists()).toBe(false)
+      await wrapper.setProps({ editing: null })
+      await flushPromises()
+      expect(box().element.checked).toBe(true)
+
+      // While a message is being changed, a message of the member's own arrives from elsewhere:
+      // what waits is no first message any more.
+      await wrapper.setProps({ editing: MESSAGE })
+      await flushPromises()
+      await wrapper.setProps({ firstOwn: false })
+      await wrapper.setProps({ editing: null })
+      await flushPromises()
+      expect(box().element.checked).toBe(false)
+    })
+
+    // A group's box is the announcement, by mail to everybody: never ticked for anybody.
+    it('never ticks the announcement of a group', async () => {
+      mountBar({ group: true, canAnnounce: true, announceTo: 4, firstOwn: true })
+      expect(box().element.checked).toBe(false)
+      await wrapper.setProps({ firstOwn: false })
+      await wrapper.setProps({ firstOwn: true })
+      expect(box().element.checked).toBe(false)
+
+      await field().setValue('Hallo zusammen')
+      await button().trigger('click')
+      expect(sent()).toEqual([[{ body: 'Hallo zusammen', notify: 'NONE', image: null }]])
+    })
+
+    // Before the first message of two there is no box at all: the mail goes in any case.
+    it('shows no box before the first message of a conversation, whatever is handed in', async () => {
+      mountBar({ first: true, firstOwn: true })
+      expect(box().exists()).toBe(false)
+      await field().setValue('Hallo Lena')
+      await button().trigger('click')
+      expect(sent()).toEqual([[{ body: 'Hallo Lena', notify: 'EMAIL', image: null }]])
+    })
+  })
+
+  /**
    * The words not sent yet, across a restart of the wallet (utils/chatReturn): the thread reads
    * them from the bar when the page goes out of sight, and hands them back when it is made anew.
    */
@@ -443,6 +584,132 @@ describe('ChatComposeBar', () => {
 
       await field().setValue('Hier ist die Datei:\n')
       expect(wrapper.vm.draft()).toBe('Hier ist die Datei:\n')
+    })
+  })
+
+  /**
+   * The words the bar begins with take their height in the field at once -- but a bar put into a
+   * window that is not shown yet has no box to measure. The profile window of the map (E-065) has
+   * the bar in its foot before the dialog is shown: in the built wallet the hello stood in a field
+   * a sliver high. jsdom lays nothing out, so what the browser would say is fed in: whether the
+   * field has a box, and how high its words are once it has one.
+   */
+  describe('the height of the words it begins with', () => {
+    const WORDS = 'Hallo Jens, ich habe Dich auf der Gradido-Karte gefunden.'
+    let boxes
+    let watches
+
+    beforeEach(() => {
+      boxes = []
+      watches = []
+      vi.spyOn(Element.prototype, 'getClientRects').mockImplementation(() => boxes)
+      Object.defineProperty(HTMLTextAreaElement.prototype, 'scrollHeight', {
+        configurable: true,
+        get: () => (boxes.length ? 104 : 0),
+      })
+      vi.stubGlobal(
+        'ResizeObserver',
+        class {
+          constructor(report) {
+            this.report = report
+            this.watched = []
+            this.disconnect = vi.fn(() => {
+              this.watched = []
+            })
+            watches.push(this)
+          }
+
+          observe(target) {
+            this.watched.push(target)
+          }
+        },
+      )
+    })
+
+    afterEach(() => {
+      delete HTMLTextAreaElement.prototype.scrollHeight
+    })
+
+    it('measures them at once where the field has a box', () => {
+      boxes = [{}]
+      mountBar({ initialText: WORDS })
+
+      expect(field().element.style.height).toBe('104px')
+      expect(watches).toHaveLength(0)
+    })
+
+    it('writes no height where the window is not shown yet, and waits for the first box', () => {
+      mountBar({ initialText: WORDS })
+
+      // Not "0px": that was the sliver.
+      expect(field().element.style.height).toBe('')
+      expect(watches).toHaveLength(1)
+      expect(watches[0].watched).toEqual([field().element])
+    })
+
+    it('takes the height of the words when the field gets its box', () => {
+      mountBar({ initialText: WORDS })
+
+      boxes = [{}]
+      watches[0].report([])
+
+      expect(field().element.style.height).toBe('104px')
+    })
+
+    it('lets go of the watch before it writes the height, and for good', () => {
+      mountBar({ initialText: WORDS })
+      const heightWhenLetGo = []
+      watches[0].disconnect.mockImplementation(() =>
+        heightWhenLetGo.push(field().element.style.height),
+      )
+
+      boxes = [{}]
+      watches[0].report([])
+
+      // A height written while the field is still watched is what a browser calls a loop.
+      expect(heightWhenLetGo).toEqual([''])
+      expect(watches).toHaveLength(1)
+    })
+
+    it('changes nothing on a report that comes while there is still no box', () => {
+      mountBar({ initialText: WORDS })
+
+      watches[0].report([])
+
+      expect(field().element.style.height).toBe('')
+      expect(watches[0].disconnect).not.toHaveBeenCalled()
+    })
+
+    it('watches nothing where the bar begins empty', () => {
+      mountBar()
+
+      expect(watches).toHaveLength(0)
+      expect(field().element.style.height).toBe('')
+    })
+
+    it('lets go of the watch when the bar goes before its window was ever shown', () => {
+      mountBar({ initialText: WORDS })
+
+      wrapper.unmount()
+
+      expect(watches[0].disconnect).toHaveBeenCalledTimes(1)
+    })
+
+    it('measures at once, as it always did, where nothing can watch', () => {
+      vi.stubGlobal('ResizeObserver', undefined)
+      mountBar({ initialText: WORDS })
+
+      expect(watches).toHaveLength(0)
+      expect(field().element.style.height).toBe('0px')
+    })
+
+    it('grows as it is typed in afterwards, watched or not', async () => {
+      mountBar({ initialText: WORDS })
+      boxes = [{}]
+
+      await field().setValue(`${WORDS}\nUnd noch etwas.`)
+
+      expect(field().element.style.height).toBe('104px')
     })
   })
 

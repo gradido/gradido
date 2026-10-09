@@ -4,6 +4,27 @@ import { ref, watch } from 'vue'
 import { contactByMemberQuery } from '@/graphql/contacts.graphql'
 
 /**
+ * The server's contact row for this member, or null where they are no contact of the one signed
+ * in. Throws where the question did not get through: who asks decides what that means -- the
+ * window reads it as "nothing to fill in" (below), the first word from the map as "not known
+ * yet" (useChatHello).
+ *
+ * ⛔ `no-cache`, for the reason useContactsPanel measures at the same query: a contact row
+ * carries no id to normalise on, so `network-only` would leave one copy per pair in the store
+ * until logout, and nothing ever reads them back.
+ */
+export const lookUpContactRow = async (apolloClient, member) => {
+  const { data } = await apolloClient.query({
+    query: contactByMemberQuery,
+    variables: {
+      ref: { gradidoID: member.gradidoID, communityUuid: member.communityUuid ?? null },
+    },
+    fetchPolicy: 'no-cache',
+  })
+  return data?.contactList?.contacts?.[0] ?? null
+}
+
+/**
  * The contact window's state, for a list that opens one (KF-010).
  *
  * ⛔ One copy, because there are five lists now. The column, the phone strip and the
@@ -72,17 +93,7 @@ export const useContactWindow = (apolloClient = null) => {
    */
   const lookUpContact = async (member) => {
     try {
-      const { data } = await apolloClient.query({
-        query: contactByMemberQuery,
-        variables: {
-          ref: { gradidoID: member.gradidoID, communityUuid: member.communityUuid ?? null },
-        },
-        // ⛔ `no-cache`, for the reason useContactsPanel measures at the same query: a
-        // contact row carries no id to normalise on, so `network-only` would leave one
-        // copy per pair in the store until logout, and nothing ever reads them back.
-        fetchPolicy: 'no-cache',
-      })
-      return data?.contactList?.contacts?.[0] ?? null
+      return await lookUpContactRow(apolloClient, member)
     } catch {
       return null
     }

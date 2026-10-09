@@ -313,10 +313,14 @@
     </BModal>
 
     <!-- The profile of whoever was clicked. One window: a person with no matches
-         opens the same one, only with nothing standing open. -->
+         opens the same one, only with nothing standing open. It gets the member's own home and
+         their standing reach as well: the first word it offers says how far apart the two live,
+         measured from home whatever the map is searching, and only within that reach (E-068). -->
     <MatchProfile
       :model-value="profileOpen"
       :match="windowMatch"
+      :own-position="ownPosition"
+      :own-reach-km="radiusRegional"
       @update:model-value="onProfileModel"
     />
   </div>

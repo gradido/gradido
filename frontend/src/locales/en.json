@@ -236,6 +236,15 @@
     "youAreModerator": "You are a moderator",
     "youAreOwner": "You are the owner"
   },
+  "chatHello": {
+    "distanceKm": "We live about {n} km apart.",
+    "distanceNear": "We do not live far apart.",
+    "found": "Hello {name}, I found you on the Gradido map.",
+    "question": "Would you like to say hello back?",
+    "sent": "Sent.",
+    "sentMailed": "Sent. {name} gets an e-mail.",
+    "toConversation": "To the conversation"
+  },
   "chatSearch": {
     "capped": "The last {count} messages were searched.",
     "count": "{current} of {count}",
@@ -1023,7 +1032,6 @@
       "aria": "Profile of {name}",
       "matchesMine": "matches",
       "more": "{n} more",
-      "sendEmail": "Send e-mail",
       "sendGradido": "Send Gradido",
       "unavailable": "The profile could not be loaded right now."
     },

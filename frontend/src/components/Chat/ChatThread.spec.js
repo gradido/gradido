@@ -1982,6 +1982,210 @@ describe('ChatThread', () => {
     })
   })
 
+  /**
+   * The member's first message in a conversation the other one began (Bernd, 09.10.2026, E-066):
+   * the bar's box "also by e-mail" begins ticked for it. The thread says when that is so --
+   * between two, with the whole conversation in sight and no message of the member's own in it.
+   */
+  describe("the member's first message in a conversation the other one began", () => {
+    const box = () => wrapper.find('[data-test="chat-compose-email"]')
+    const TO_LENA = { gradidoID: 'lena-id', communityUuid: 'home-uuid' }
+
+    it("ticks the box where the thread holds only the other one's messages", async () => {
+      mountThread()
+      await arrive(page([1, 3]))
+
+      expect(bar().props('firstOwn')).toBe(true)
+      expect(bar().props('first')).toBe(false)
+      expect(box().element.checked).toBe(true)
+    })
+
+    it('sends that message with the wish for a mail, and the next one without', async () => {
+      serverSends
+        .mockResolvedValueOnce(
+          ownCopy(4, 'Hallo zurück!', { notify: 'EMAIL', mailState: 'MAILED' }),
+        )
+        .mockResolvedValueOnce(ownCopy(6, 'Und noch etwas'))
+      mountThread()
+      await arrive(page([1, 3]))
+
+      await write('Hallo zurück!')
+      expect(serverSends).toHaveBeenLastCalledWith({
+        ref: TO_LENA,
+        body: 'Hallo zurück!',
+        notify: 'EMAIL',
+      })
+      // The thread holds a message of the member's own now: the box is empty as it always was.
+      expect(bar().props('firstOwn')).toBe(false)
+      expect(box().element.checked).toBe(false)
+
+      await write('Und noch etwas')
+      expect(serverSends).toHaveBeenLastCalledWith({
+        ref: TO_LENA,
+        body: 'Und noch etwas',
+        notify: 'NONE',
+      })
+    })
+
+    it('sends it without a mail where the member unticks the box', async () => {
+      serverSends.mockResolvedValue(ownCopy(4, 'Hallo zurück!'))
+      mountThread()
+      await arrive(page([1, 3]))
+
+      await box().setValue(false)
+      await write('Hallo zurück!')
+      expect(serverSends).toHaveBeenLastCalledWith({
+        ref: TO_LENA,
+        body: 'Hallo zurück!',
+        notify: 'NONE',
+      })
+    })
+
+    it('leaves the box empty where the member has written before', async () => {
+      mountThread()
+      await arrive(page([1, 2, 3]))
+
+      expect(bar().props('firstOwn')).toBe(false)
+      expect(box().element.checked).toBe(false)
+    })
+
+    // With older pages not in sight nobody can say that none of them holds a message of the
+    // member's own.
+    it('leaves it empty where older pages are still unread', async () => {
+      mountThread()
+      await arrive(page([1, 3], { hasMore: true }))
+
+      expect(bar().props('firstOwn')).toBe(false)
+      expect(box().element.checked).toBe(false)
+    })
+
+    // Before the first message of two there is no box: that message goes by mail in any case.
+    it('is not the first message of a conversation, which needs no box', async () => {
+      mountThread()
+      await arrive(page([]))
+
+      expect(bar().props('first')).toBe(true)
+      expect(bar().props('firstOwn')).toBe(false)
+      expect(box().exists()).toBe(false)
+    })
+
+    // The other person's first message arrives in an open window that held none.
+    it("ticks the box when the other one's first message arrives in the open window", async () => {
+      mountThread()
+      await arrive(page([]))
+      expect(box().exists()).toBe(false)
+
+      await beatBrings(message(1))
+
+      expect(bar().props('firstOwn')).toBe(true)
+      expect(box().element.checked).toBe(true)
+    })
+
+    // A message of the member's own, written on another device, comes by the beat.
+    it("unticks it when a message of the member's own arrives from elsewhere", async () => {
+      mountThread()
+      await arrive(page([1, 3]))
+      expect(box().element.checked).toBe(true)
+
+      await beatBrings(message(4, { mine: true }))
+
+      expect(bar().props('firstOwn')).toBe(false)
+      expect(box().element.checked).toBe(false)
+    })
+
+    /**
+     * A message of the member's own that came back "not delivered" is stored here and reached
+     * nobody (E-019): the next one is still the first the other one gets. A hello from the map
+     * that did not get across the border is such a message -- written once more in the
+     * conversation, it would otherwise go without the mail the first one was to bring.
+     */
+    const withOwn = (ids, n, deliveryState) => {
+      const answer = page(ids)
+      answer.messages = answer.messages.map((each) =>
+        each.id === n ? { ...each, mine: true, deliveryState } : each,
+      )
+      return answer
+    }
+
+    it("ticks the box where the member's only message was not delivered", async () => {
+      mountThread()
+      await arrive(withOwn([2], 2, 'FAILED'))
+
+      expect(bar().props('first')).toBe(false)
+      expect(bar().props('firstOwn')).toBe(true)
+      expect(box().element.checked).toBe(true)
+    })
+
+    it('ticks it as well where the other one wrote and the answer was not delivered', async () => {
+      mountThread()
+      await arrive(withOwn([1, 2, 3], 2, 'FAILED'))
+
+      expect(bar().props('firstOwn')).toBe(true)
+      expect(box().element.checked).toBe(true)
+    })
+
+    it.each([['DELIVERED'], ['PENDING'], [null]])(
+      "leaves it empty where a message of the member's own stands as %s",
+      async (deliveryState) => {
+        mountThread()
+        await arrive(withOwn([1, 2, 3], 2, deliveryState))
+
+        expect(bar().props('firstOwn')).toBe(false)
+        expect(box().element.checked).toBe(false)
+      },
+    )
+
+    it('leaves it empty where one of two messages of the member arrived', async () => {
+      mountThread()
+      const answer = withOwn([1, 2, 3, 4], 2, 'FAILED')
+      await arrive(answer)
+
+      // Message 4 is the member's too, and delivered.
+      expect(bar().props('firstOwn')).toBe(false)
+      expect(box().element.checked).toBe(false)
+    })
+
+    it('sends the next message with the wish for a mail after one that was not delivered', async () => {
+      serverSends.mockResolvedValue(
+        ownCopy(4, 'Hallo, noch einmal', { notify: 'EMAIL', mailState: 'MAILED' }),
+      )
+      mountThread()
+      await arrive(withOwn([2], 2, 'FAILED'))
+
+      await write('Hallo, noch einmal')
+
+      expect(serverSends).toHaveBeenLastCalledWith({
+        ref: TO_LENA,
+        body: 'Hallo, noch einmal',
+        notify: 'EMAIL',
+      })
+      expect(bar().props('firstOwn')).toBe(false)
+      expect(box().element.checked).toBe(false)
+    })
+
+    // The box is about chat messages: a transfer the member sent is no message of theirs.
+    it('does not count the transfers between the two', async () => {
+      bookingsAsked.mockImplementation(async () =>
+        bookingsPage([booking(7, { at: '2026-09-22T10:02:30.000Z', sent: true })]),
+      )
+      mountThread()
+      await arrive(page([1, 3]))
+
+      expect(wrapper.findAll('[data-test="chat-bubble"]')).toHaveLength(3)
+      expect(bar().props('firstOwn')).toBe(true)
+      expect(box().element.checked).toBe(true)
+    })
+
+    it('stays out of it where the thread could not be loaded, and while it loads', async () => {
+      mountThread()
+      expect(bar().exists()).toBe(false)
+      server.error.value = new Error('Network error')
+      server.loading.value = false
+      await flushPromises()
+      expect(bar().exists()).toBe(false)
+    })
+  })
+
   describe('the compose bar', () => {
     // Under a thread and under a thread that has nothing yet -- and there it is the first
     // message, which goes by mail in any case (E-024).
