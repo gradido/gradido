@@ -39,14 +39,28 @@ vi.mock('@/i18n', () => ({
 vi.mock('@/composables/useMemberAvatars', () => ({
   memberAvatarProps: (user) => ({ initials: (user?.alias ?? '').slice(0, 2).toUpperCase() }),
 }))
-vi.mock('@/config', () => ({
-  default: { COMMUNITY_URL: 'https://gradido.test' },
-}))
+// The instance's switches. Without `MATCHING_ACTIVE`, as an instance without the find map has
+// it; the tests of the pin switch it on.
+const config = vi.hoisted(() => ({ COMMUNITY_URL: 'https://gradido.test' }))
+vi.mock('@/config', () => ({ default: config }))
 // The signed-in member's community, which a member without one is read as (LOG-036). In
 // capitals, as a server may write it: the thread's key is in lower case either way.
 // And the member signed in on this device, whose tick the box "Start in the Jitsi app" keeps (V4b).
+// Neither findable nor with a home on the map; the tests of the pin give them both.
+const storeState = vi.hoisted(() => ({ communityUuid: 'HOME-UUID', gradidoID: 'me-id' }))
 vi.mock('vuex', () => ({
-  useStore: () => ({ state: { communityUuid: 'HOME-UUID', gradidoID: 'me-id' } }),
+  useStore: () => ({ state: storeState }),
+}))
+
+/**
+ * The GMS's profile route (useMatches), which the pin asks whether somebody stands on the find
+ * map: a test answers, holds the answer back, or refuses. ⚠️ Only the route is replaced -- the
+ * window's own composable (useContactOnMap) and the rule for a usable point are the real ones.
+ */
+const mapProfile = vi.hoisted(() => vi.fn())
+vi.mock('@/composables/useMatches', async (importOriginal) => ({
+  ...(await importOriginal()),
+  useMatches: () => ({ profile: mapProfile }),
 }))
 
 /** What the server answers to `setChatConversationMuted`; a test decides, or makes it throw. */
@@ -155,6 +169,7 @@ describe('ContactWindow', () => {
           IMdiBellOutline: true,
           IMdiBellOffOutline: true,
           IMdiVideoOutline: true,
+          IMdiMapMarkerOutline: true,
           IMdiCogOutline: true,
           IMdiLinkVariant: true,
           IMdiCheck: true,
@@ -232,6 +247,10 @@ describe('ContactWindow', () => {
     toastError.mockClear()
     threadsMade = []
     searchSteps = []
+    mapProfile.mockReset()
+    delete config.MATCHING_ACTIVE
+    delete storeState.gmsAllowed
+    delete storeState.userLocation
     vi.restoreAllMocks()
   })
 
@@ -873,6 +892,276 @@ describe('ContactWindow', () => {
     expect(glyph.attributes('src')).toBe('/img/svg/gdd_coin_sw.svg')
     expect(glyph.attributes('alt')).toBe('')
     expect(glyph.attributes('aria-hidden')).toBe('true')
+  })
+
+  /**
+   * The pin (Bernd, 09.10.2026): a contact one has in the chat can be found on the find map as
+   * well. Beside the camera, there only for somebody who stands on the map, and only for a
+   * member who may open the map themselves; a tap leads to the map, which marks the person.
+   */
+  describe('the pin: this person on the find map', () => {
+    const pin = () => wrapper.find('[data-test="contact-window-map"]')
+    const onTheMap = { position: { lat: 49.3, lng: 9.7 } }
+    const notHeld = () =>
+      Object.assign(new Error('community-user/profile: HTTP 404'), { status: 404 })
+
+    /** An answer that is still on its way. */
+    const held = () => {
+      let settle
+      let refuse
+      const promise = new Promise((resolve, reject) => {
+        settle = resolve
+        refuse = reject
+      })
+      return { promise, resolve: settle, reject: refuse }
+    }
+
+    /** The member may open the map: the instance has one, they are findable, they have a home. */
+    const mayOpenTheMap = () => {
+      config.MATCHING_ACTIVE = true
+      storeState.gmsAllowed = true
+      storeState.userLocation = { latitude: 49.28, longitude: 9.69 }
+    }
+
+    /** The thread's first word: with it the camera and the bell are there. */
+    const threadSpoke = () => threadSays({ exists: true, mutedByMe: false })
+    const marksNow = () =>
+      [...wrapper.find('[data-test="contact-window-marks"]').element.children].map((e) =>
+        e.getAttribute('data-test'),
+      )
+
+    beforeEach(() => {
+      mayOpenTheMap()
+      mapProfile.mockResolvedValue(onTheMap)
+    })
+
+    it('asks the GMS about the pair when the window opens, and shows the pin with its answer', async () => {
+      const answer = held()
+      mapProfile.mockReturnValue(answer.promise)
+      mountWindow()
+      await threadSpoke()
+
+      expect(mapProfile).toHaveBeenCalledTimes(1)
+      expect(mapProfile).toHaveBeenCalledWith('carla-id', 'home-uuid')
+      // Nothing is offered on a guess: no pin before the GMS has answered.
+      expect(pin().exists()).toBe(false)
+
+      answer.resolve(onTheMap)
+      await flushPromises()
+      expect(pin().exists()).toBe(true)
+    })
+
+    it('is a button that says whom the map will show', async () => {
+      mountWindow()
+      await threadSpoke()
+
+      expect(pin().element.tagName).toBe('BUTTON')
+      expect(pin().attributes('type')).toBe('button')
+      expect(pin().attributes('aria-label')).toBe('contacts.showOnMap {"name":"Carla-Sonne"}')
+      expect(pin().attributes('title')).toBe('contacts.showOnMap {"name":"Carla-Sonne"}')
+      expect(pin().text()).toBe('')
+    })
+
+    it('stands at the left end, beside the camera', async () => {
+      mountWindow()
+      await threadSpoke()
+
+      expect(marksNow()).toEqual([
+        'contact-window-map',
+        'contact-window-video',
+        'contact-window-bell',
+        'heart',
+      ])
+    })
+
+    // ⛔ The marks hang at the right end of their row (held in the stylesheet test below), so a
+    // mark that comes later pushes everything to its LEFT one place further left. The GMS's
+    // answer comes after the thread's first word, or before it.
+    describe('coming later than the other marks', () => {
+      // After: the pin comes in at the left end, and the marks that stood there are the same
+      // ones, in the same places counted from the right.
+      it('comes in at the left end, so no mark that stands there moves', async () => {
+        const answer = held()
+        mapProfile.mockReturnValue(answer.promise)
+        mountWindow()
+        await threadSpoke()
+        const before = marksNow()
+        expect(before).toEqual(['contact-window-video', 'contact-window-bell', 'heart'])
+
+        answer.resolve(onTheMap)
+        await flushPromises()
+
+        expect(marksNow().slice(-before.length)).toEqual(before)
+        expect(marksNow()[0]).toBe('contact-window-map')
+      })
+
+      // Before: shown at once it would stand beside the heart, and the camera and the bell
+      // would then push it two places to the left -- with the bell coming to stand where the pin
+      // had been. So it waits for the thread.
+      it('is held back until the thread has spoken, however early the GMS answers', async () => {
+        mountWindow()
+        await flushPromises()
+        expect(mapProfile).toHaveBeenCalledTimes(1)
+        expect(marksNow()).toEqual(['heart'])
+
+        await threadSpoke()
+        expect(marksNow()).toEqual([
+          'contact-window-map',
+          'contact-window-video',
+          'contact-window-bell',
+          'heart',
+        ])
+      })
+
+      // Where there is no conversation yet the camera is there and the bell is not: the pin
+      // still stands left of the camera.
+      it('stands left of the camera where there is no bell', async () => {
+        mountWindow()
+        await threadSays({ exists: false, mutedByMe: false })
+
+        expect(marksNow()).toEqual(['contact-window-map', 'contact-window-video', 'heart'])
+      })
+    })
+
+    it('leads to the map with the pair in its address, and closes the window on the way', async () => {
+      mountWindow(STRANGER)
+      await threadSpoke()
+      await pin().trigger('click')
+
+      expect(wrapper.emitted('update:modelValue')).toEqual([[false]])
+      expect(pushSpy).toHaveBeenCalledTimes(1)
+      expect(pushSpy).toHaveBeenCalledWith({
+        path: '/matching/karte',
+        query: { with: 'sarah-id', community: 'provence-uuid' },
+      })
+    })
+
+    it('shows no pin for somebody the GMS does not hold', async () => {
+      mapProfile.mockRejectedValue(notHeld())
+      mountWindow()
+      await threadSpoke()
+
+      expect(mapProfile).toHaveBeenCalledTimes(1)
+      expect(pin().exists()).toBe(false)
+    })
+
+    it('shows no pin for somebody held without a usable point', async () => {
+      mapProfile.mockResolvedValue({ position: { lat: undefined, lng: undefined } })
+      mountWindow()
+      await threadSpoke()
+
+      expect(pin().exists()).toBe(false)
+      // And the control: with a usable point the same window shows it.
+      mapProfile.mockResolvedValue(onTheMap)
+      await wrapper.setProps({ contact: STRANGER })
+      await threadSpoke()
+      expect(pin().exists()).toBe(true)
+    })
+
+    // The map's own door (`mayFind`): a position AND the permission to be found. Without both
+    // the GMS is not asked at all -- the question would carry the id of the one who asks.
+    it.each([
+      ['an instance without the find map', () => delete config.MATCHING_ACTIVE],
+      ['a member who is not findable', () => (storeState.gmsAllowed = false)],
+      ['a member without a home on the map', () => (storeState.userLocation = null)],
+    ])('neither asks nor shows a pin for %s', async (_, without) => {
+      without()
+      mountWindow()
+      await threadSays({ exists: true, mutedByMe: false })
+
+      expect(mapProfile).not.toHaveBeenCalled()
+      expect(pin().exists()).toBe(false)
+      // And the control: the other marks are there.
+      expect(wrapper.find('[data-test="contact-window-video"]').exists()).toBe(true)
+    })
+
+    // Opened from a booking row the member comes without a community (useContactWindow.openMember):
+    // the GMS is asked with this community's uuid, and the lookup that fills the community in a
+    // moment later is the same person -- no second question, and the pin stays.
+    it('asks with this community for a member who names none, once', async () => {
+      mountWindow({ user: { gradidoID: 'carla-id', alias: 'Carla-Sonne' } })
+      await threadSpoke()
+
+      expect(mapProfile).toHaveBeenCalledTimes(1)
+      expect(mapProfile).toHaveBeenCalledWith('carla-id', 'HOME-UUID')
+      expect(pin().exists()).toBe(true)
+
+      await wrapper.setProps({ contact: CONTACT })
+      await flushPromises()
+      expect(mapProfile).toHaveBeenCalledTimes(1)
+      expect(pin().exists()).toBe(true)
+    })
+
+    it('lets the pin go with the person: another one is asked about anew', async () => {
+      mountWindow()
+      await threadSpoke()
+      expect(pin().exists()).toBe(true)
+
+      const answer = held()
+      mapProfile.mockReturnValue(answer.promise)
+      await wrapper.setProps({ contact: STRANGER })
+      await threadSpoke()
+      // Carla's pin does not stand under Sarah's name while the GMS is asked about Sarah.
+      expect(pin().exists()).toBe(false)
+      expect(mapProfile).toHaveBeenCalledTimes(2)
+      expect(mapProfile).toHaveBeenLastCalledWith('sarah-id', 'provence-uuid')
+
+      answer.reject(notHeld())
+      await flushPromises()
+      expect(pin().exists()).toBe(false)
+    })
+
+    it('does not show one person the answer about another', async () => {
+      const aboutCarla = held()
+      mapProfile.mockReturnValueOnce(aboutCarla.promise)
+      mountWindow()
+      await flushPromises()
+
+      // Sarah is not on the map; the answer about Carla says she is, and comes late.
+      mapProfile.mockRejectedValueOnce(notHeld())
+      await wrapper.setProps({ contact: STRANGER })
+      await threadSpoke()
+      aboutCarla.resolve(onTheMap)
+      await flushPromises()
+
+      expect(pin().exists()).toBe(false)
+      // And the control: the window would show a pin now, had the answer been Sarah's.
+      expect(wrapper.find('[data-test="contact-window-video"]').exists()).toBe(true)
+    })
+
+    it('asks nobody while the window is closed, and anew when it opens again', async () => {
+      mountWindow(CONTACT, { modelValue: false })
+      await flushPromises()
+      expect(mapProfile).not.toHaveBeenCalled()
+
+      await wrapper.setProps({ modelValue: true })
+      await threadSpoke()
+      expect(mapProfile).toHaveBeenCalledTimes(1)
+      expect(pin().exists()).toBe(true)
+
+      // Closed: what was said about the person is let go, also an answer that is still to come.
+      const late = held()
+      mapProfile.mockReturnValue(late.promise)
+      await wrapper.setProps({ modelValue: false })
+      await wrapper.setProps({ modelValue: true })
+      expect(mapProfile).toHaveBeenCalledTimes(2)
+      expect(pin().exists()).toBe(false)
+    })
+
+    // The first form (E-055): somebody met in a group who is no contact yet gets a first word and
+    // nothing else. The row the pin stands in comes with the first message -- and with it the
+    // question.
+    it('does not ask in the first form, and asks once the first message made a contact', async () => {
+      mountWindow({ user: { ...CONTACT.user }, homeCommunity: true }, { firstContact: true })
+      await threadSays({ exists: false, mutedByMe: false })
+      expect(mapProfile).not.toHaveBeenCalled()
+      expect(pin().exists()).toBe(false)
+
+      await threadSays({ exists: true, mutedByMe: false })
+      expect(mapProfile).toHaveBeenCalledTimes(1)
+      expect(mapProfile).toHaveBeenCalledWith('carla-id', 'home-uuid')
+      expect(pin().exists()).toBe(true)
+    })
   })
 
   describe('the bell', () => {
@@ -3708,6 +3997,16 @@ describe('ContactWindow', () => {
     // 0.5rem between the marks, 8px at the root size; closer when tight.
     expect(body('\\.contact-window-marks')).toMatch(/gap:\s*0\.5rem/)
     expect(px('\\.contact-window-send\\.is-tight \\.contact-window-marks', 'gap')).toBeLessThan(8)
+    // The third step (09.10.2026): no coin, and the marks closer than in the second. It is worn
+    // together with `is-tight`, so its rule for the marks has to stand AFTER that one's -- two
+    // rules of the same weight, and the later one counts.
+    const tightMarks = '\\.contact-window-send\\.is-tight \\.contact-window-marks'
+    const tighterMarks = '\\.contact-window-send\\.is-tighter \\.contact-window-marks'
+    expect(body('\\.contact-window-send\\.is-tighter \\.send-coin')).toMatch(/display:\s*none/)
+    expect(px(tighterMarks, 'gap')).toBeLessThan(px(tightMarks, 'gap'))
+    expect(code.search(new RegExp(`\\n${tighterMarks}\\s*\\{`))).toBeGreaterThan(
+      code.search(new RegExp(`\\n${tightMarks}\\s*\\{`)),
+    )
   })
 
   /**
@@ -3973,6 +4272,11 @@ describe('ContactWindow', () => {
       tightMarks = 85.6,
     }) => {
       const rowElement = wrapper.find('.contact-window-send').element
+      // ⚠️ `is-tighter` is worn together with `is-tight`: a reading taken while the row still
+      // wears it would be one of a row without its coin -- narrower than what the decision is
+      // about. The stand-in answers such a reading with a width that always fits, so a row that
+      // is not lifted out of the step before it is measured shows as one that never tightens.
+      const isTighter = () => rowElement.classList.contains('is-tighter')
       const isTight = () => rowElement.classList.contains('is-tight')
       rowElement.style.columnGap = '10px'
       Object.defineProperty(rowElement, 'clientWidth', {
@@ -3981,13 +4285,14 @@ describe('ContactWindow', () => {
       })
       rowElement.getBoundingClientRect = () => ({ width: row })
       rowElement.querySelector('.send-btn').getBoundingClientRect = () => ({
-        width: isTight() ? tightButton : button,
+        width: isTighter() ? 1 : isTight() ? tightButton : button,
       })
       rowElement.querySelector('.contact-window-marks').getBoundingClientRect = () => ({
-        width: isTight() ? tightMarks : marks,
+        width: isTighter() ? 1 : isTight() ? tightMarks : marks,
       })
     }
     const tight = () => wrapper.find('.contact-window-send').classes('is-tight')
+    const tighter = () => wrapper.find('.contact-window-send').classes('is-tighter')
 
     const openWithMarks = async () => {
       mountWindow()
@@ -4038,6 +4343,97 @@ describe('ContactWindow', () => {
       sizesChanged()
       await nextFrame()
       expect(tight()).toBe(false)
+    })
+
+    /**
+     * The third step (Bernd, 09.10.2026, "ohne Münze"): with the pin there are four marks, and
+     * at 320px the languages of the long words do not fit even set closer. Measured in the
+     * wallet, four marks: the row 272; French 199.3 in its own measure and 174 set closer; the
+     * marks 129.6 and 117.6. German: 166 and 143.2.
+     */
+    describe('with four marks', () => {
+      const french = { button: 199.3, tightButton: 174, marks: 129.6, tightMarks: 117.6 }
+      const german = { button: 166, tightButton: 143.2, marks: 129.6, tightMarks: 117.6 }
+
+      // 174 + 10 + 117.6 = 301.6 does not fit into 272.
+      it('gives up the coin where even set closer the marks do not fit', async () => {
+        await openWithMarks()
+        layOut({ row: 272, ...french })
+        sizesChanged()
+        await nextFrame()
+
+        expect(tight()).toBe(true)
+        expect(tighter()).toBe(true)
+      })
+
+      // 143.2 + 10 + 117.6 = 270.8 fits into 272: closer is enough, and the coin stays.
+      it('keeps the coin where set closer is enough', async () => {
+        await openWithMarks()
+        layOut({ row: 272, ...german })
+        sizesChanged()
+        await nextFrame()
+
+        expect(tight()).toBe(true)
+        expect(tighter()).toBe(false)
+      })
+
+      it('wears neither step where the row fits in its own measure', async () => {
+        await openWithMarks()
+        layOut({ row: 342, ...french })
+        sizesChanged()
+        await nextFrame()
+
+        expect(tight()).toBe(false)
+        expect(tighter()).toBe(false)
+      })
+
+      // Read while the row wears the step it would go back, not fit, and take it again -- a
+      // frame each, as long as the window is open.
+      it('decides on readings the row is lifted out of both steps for, so it does not flip', async () => {
+        await openWithMarks()
+        layOut({ row: 272, ...french })
+        sizesChanged()
+        await nextFrame()
+        expect(tighter()).toBe(true)
+
+        sizesChanged()
+        await nextFrame()
+        expect(tight()).toBe(true)
+        expect(tighter()).toBe(true)
+      })
+
+      it('takes the coin back where the window grows', async () => {
+        await openWithMarks()
+        layOut({ row: 272, ...french })
+        sizesChanged()
+        await nextFrame()
+        expect(tighter()).toBe(true)
+
+        // 360px wide: the row 312 -- set closer fits (301.6), its own measure does not.
+        layOut({ row: 312, ...french })
+        sizesChanged()
+        await nextFrame()
+        expect(tight()).toBe(true)
+        expect(tighter()).toBe(false)
+
+        layOut({ row: 342, ...french })
+        sizesChanged()
+        await nextFrame()
+        expect(tight()).toBe(false)
+        expect(tighter()).toBe(false)
+      })
+
+      // The row is put back as it was found: what the page draws from is the two refs, and a
+      // class left on by the reading would be a state nobody set.
+      it('leaves the row wearing what it wore before the reading', async () => {
+        await openWithMarks()
+        layOut({ row: 342, ...french })
+        const rowElement = wrapper.find('.contact-window-send').element
+        sizesChanged()
+        await nextFrame()
+
+        expect([...rowElement.classList]).toEqual(['contact-window-send'])
+      })
     })
 
     // A row of no width is one not laid out yet: every word would "not fit" into it.

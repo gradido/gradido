@@ -16,6 +16,7 @@ import {
   GMS_UNAVAILABLE,
   GMS_REJECTED,
   hasUsablePoint,
+  isUsablePlace,
 } from './useMatches'
 
 // The Apollo client the composable asks for the token. `query` is a spy so a test
@@ -330,6 +331,40 @@ describe('useMatches', () => {
 
     it('shows a person without entries as a person with none', () => {
       expect(toProfile(profileUser({ entries: [], aboutMe: null })).channels).toEqual({})
+    })
+
+    // The profile route is the one read of a location that hasUsablePoint does not stand before.
+    // A person named without a point is a profile without a usable place -- not a thrown error,
+    // which would read as "the profile could not be loaded" while the GMS answered 200.
+    it.each([
+      ['no location at all', undefined],
+      ['a location of null', null],
+      ['an empty location', []],
+    ])('builds the window for a person held with %s, with no usable place', (_, location) => {
+      const person = toProfile(profileUser({ location }))
+
+      expect(person.name).toBe('Marta')
+      expect(person.channels.angebot).toHaveLength(2)
+      expect(isUsablePlace(person.position)).toBe(false)
+    })
+  })
+
+  describe('isUsablePlace', () => {
+    it('asks the rule of hasUsablePoint of a point in the shape of the map', () => {
+      expect(isUsablePlace({ lat: 49.28, lng: 9.69 })).toBe(true)
+      expect(isUsablePlace(toProfile(profileUser()).position)).toBe(true)
+      // 120 is a longitude and no latitude: the two are not taken for each other.
+      expect(isUsablePlace({ lat: 9.69, lng: 120 })).toBe(true)
+      expect(isUsablePlace({ lat: 120, lng: 9.69 })).toBe(false)
+      expect(isUsablePlace({ lat: 49.28, lng: 181 })).toBe(false)
+    })
+
+    it('finds no place where there are no numbers, or no point at all', () => {
+      expect(isUsablePlace({ lat: undefined, lng: undefined })).toBe(false)
+      expect(isUsablePlace({ lat: '49.28', lng: '9.69' })).toBe(false)
+      expect(isUsablePlace({})).toBe(false)
+      expect(isUsablePlace(null)).toBe(false)
+      expect(isUsablePlace(undefined)).toBe(false)
     })
   })
 
@@ -1083,6 +1118,21 @@ describe('useMatches', () => {
       const [url, init] = fetchMock.mock.calls[0]
       expect(url).toBe(`${PROFILE_URL}?uuid=${UUID.marta}&community=${UUID.community}`)
       expect(init.headers.Authorization).toBe('Bearer tok-1')
+    })
+
+    // The GMS answered: a person it holds without a point comes back as a person, and the
+    // caller that needs the point finds none (coderabbit, PR #4115).
+    it.each([
+      ['no location at all', undefined],
+      ['a location of null', null],
+    ])('hands back a person held with %s instead of failing', async (_, location) => {
+      fetchMock.mockImplementation(async () => okJson(profileUser({ location })))
+      const { profile } = useMatches()
+
+      const person = await profile(UUID.marta, UUID.community)
+
+      expect(person.name).toBe('Marta')
+      expect(isUsablePlace(person.position)).toBe(false)
     })
 
     // A window opens on every tap. One round trip through the wallet backend for a

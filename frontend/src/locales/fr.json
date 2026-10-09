@@ -463,6 +463,7 @@
     },
     "search": "Rechercher un contact …",
     "sendGradido": "Envoyer des Gradido",
+    "showOnMap": "Afficher {name} sur la carte",
     "since": "Contact depuis {date}",
     "unreadChatMessages": "{n} nouveau message | {n} nouveaux messages"
   },
@@ -983,6 +984,7 @@
         "gesuch": "Demandes",
         "interesse": "Intérêts"
       },
+      "contactNotOnMap": "Ce contact n’est pas sur la carte pour le moment.",
       "found": "Personnes trouvées : {n}",
       "home": "Revenir chez moi",
       "km": "km",

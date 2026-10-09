@@ -463,6 +463,7 @@
     },
     "search": "Kişi ara …",
     "sendGradido": "Gradido gönder",
+    "showOnMap": "{name} kişisini haritada göster",
     "since": "{date} tarihinden beri kişi",
     "unreadChatMessages": "{n} yeni mesaj"
   },
@@ -983,6 +984,7 @@
         "gesuch": "Talepler",
         "interesse": "İlgi alanları"
       },
+      "contactNotOnMap": "Bu kişi şu anda haritada değil.",
       "found": "Bulunan kişi sayısı: {n}",
       "home": "Evime dön",
       "km": "km",

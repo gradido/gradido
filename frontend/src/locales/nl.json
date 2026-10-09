@@ -463,6 +463,7 @@
     },
     "search": "Contact zoeken …",
     "sendGradido": "Gradido versturen",
+    "showOnMap": "{name} op de kaart tonen",
     "since": "Contact sinds {date}",
     "unreadChatMessages": "{n} nieuw bericht | {n} nieuwe berichten"
   },
@@ -983,6 +984,7 @@
         "gesuch": "Verzoeken",
         "interesse": "Interesses"
       },
+      "contactNotOnMap": "Dit contact staat op dit moment niet op de kaart.",
       "found": "Gevonden mensen: {n}",
       "home": "Terug naar huis",
       "km": "km",
