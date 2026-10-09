@@ -176,14 +176,16 @@
 
            `is-tight`: where a language's word makes the button so wide that the marks no longer
            fit beside it, the row is set closer, with a smaller font -- there only (Bernd,
-           26.09.2026). See `fitSendRow`. -->
+           26.09.2026). `is-tighter`: where even that is too wide, with four marks at 320px in
+           the languages of the long words, the button gives up its coin and the marks stand
+           closer still (Bernd, 09.10.2026). See `fitSendRow`. -->
       <!-- Not in the window's first form (E-055): somebody met in a group who is no contact yet
            gets a first word, and only that -- the row comes with the first message. -->
       <div
         v-if="!firstForm"
         ref="sendRow"
         class="contact-window-send"
-        :class="{ 'is-tight': sendTight }"
+        :class="{ 'is-tight': sendTight, 'is-tighter': sendTighter }"
       >
         <button
           type="button"
@@ -195,17 +197,46 @@
           {{ $t('contacts.sendGradido') }}
         </button>
         <!-- The marks, at the right end of the button's row with an empty stretch before them
-             (Bernd, 26.09.2026): the camera, the pin, the bell, the heart -- in this order. The
+             (Bernd, 26.09.2026): the pin, the camera, the bell, the heart -- in this order. The
              heart at the very right, where it stands in every list; the bell next to it, the two
-             of them marks of one's own on this person that say how they stand; the camera next
-             to the button, since it too is a way of getting in touch, and the pin beside it for
-             somebody who stands on the find map (09.10.2026). Before, they stood behind the
-             name and took a long name's room on a phone.
+             of them marks of one's own on this person that say how they stand; the camera next,
+             since it too is a way of getting in touch, and at the left end, beside the camera,
+             the pin for somebody who stands on the find map (09.10.2026). Before, they stood
+             behind the name and took a long name's room on a phone.
+
+             ⛔ The marks hang at the right end, so one that comes later pushes everything to
+             its left one place further left. The order they stand in is therefore the order
+             they come in, read from the right: the heart at once, camera and bell with the
+             thread's first word, the pin last. Nothing that already stands there moves under a
+             finger on its way to it.
 
              They keep their measure from the name line: the booking row's `gap-2` between them,
              the heart the one of every list -- the same component, the same look, the same
              question before it is taken away (E-030). -->
         <div class="contact-window-marks" data-test="contact-window-marks">
+          <!-- The pin: this person on the find map (Bernd, 09.10.2026). There only for somebody
+               who stands on the map -- a home set and "findable" -- and only for a member who may
+               open the map themselves (useContactOnMap): a way that would end in "not on the
+               map" is not offered. Beside the camera: both lead to the person, the bell and the
+               heart are marks of one's own on them. No word beside it; its name says whom the
+               map will show.
+
+               ⛔ At the left end, and not before the thread has spoken -- that is, never before
+               the camera: see the note on the marks above. The GMS's answer may come before
+               the thread's or after it; standing between camera and bell, the pin came to
+               stand exactly where the camera had stood a moment before, and a finger on its way
+               to a video call opened the map instead (found by the second reader, 09.10.2026). -->
+          <button
+            v-if="onMap && chatConversationKnown"
+            type="button"
+            class="contact-window-mark contact-window-map"
+            :aria-label="mapName"
+            :title="mapName"
+            data-test="contact-window-map"
+            @click="toMap"
+          >
+            <i-mdi-map-marker-outline class="contact-window-map-icon" aria-hidden="true" />
+          </button>
           <!-- The camera: a video call with this person (V2). A room on a checked Jitsi server,
                whose address goes to them as an ordinary chat message. There once the thread has
                said what it knows -- and, unlike the bell, also where there is no conversation
@@ -221,23 +252,6 @@
             @click="askVideoCall"
           >
             <i-mdi-video-outline class="contact-window-video-icon" aria-hidden="true" />
-          </button>
-          <!-- The pin: this person on the find map (Bernd, 09.10.2026). There only for somebody
-               who stands on the map -- a home set and "findable" -- and only for a member who may
-               open the map themselves (useContactOnMap): a way that would end in "not on the
-               map" is not offered. It comes a moment after the window, with the GMS's answer.
-               Beside the camera: both lead to the person, the bell and the heart are marks of
-               one's own on them. No word beside it; its name says whom the map will show. -->
-          <button
-            v-if="onMap"
-            type="button"
-            class="contact-window-mark contact-window-map"
-            :aria-label="mapName"
-            :title="mapName"
-            data-test="contact-window-map"
-            @click="toMap"
-          >
-            <i-mdi-map-marker-outline class="contact-window-map-icon" aria-hidden="true" />
           </button>
           <!-- The bell: mutes this conversation for oneself -- no mails about their chat
                messages; the thread shows them as before (E-024). A letter written with the form
@@ -717,7 +731,10 @@ const forwardMessage = (message) => {
  * The send row: the button with its word, then the marks. Where a language's word makes the
  * button so wide that the marks no longer fit beside it, the row is set closer -- a smaller font,
  * less room inside the button, the marks closer together -- only there (Bernd, 26.09.2026);
- * everywhere else the button keeps the measure of the map's button (see the stylesheet).
+ * everywhere else the button keeps the measure of the map's button (see the stylesheet). And
+ * where even set closer they do not fit -- four marks at 320px, in the languages of the long
+ * words --, the button gives up its coin and the marks stand closer still (Bernd, 09.10.2026):
+ * the marks stay beside the button down to 320px in all ten languages.
  *
  * Measured, not decided by the language: whether it fits depends on the word in the font, on
  * the window's width and on how many marks there are (the camera and the bell come once the
@@ -733,6 +750,10 @@ const forwardMessage = (message) => {
  */
 const sendRow = ref(null)
 const sendTight = ref(false)
+const sendTighter = ref(false)
+
+/** The classes the row is set closer with, in the order they are tried. */
+const SEND_ROW_STEPS = ['is-tight', 'is-tighter']
 
 const fitSendRow = () => {
   const row = sendRow.value
@@ -740,12 +761,21 @@ const fitSendRow = () => {
   const marks = row?.querySelector('.contact-window-marks')
   // Not laid out: the dialog is still hidden, or already gone.
   if (!button || !marks || !row.clientWidth) return
-  const tight = row.classList.contains('is-tight')
+  const worn = SEND_ROW_STEPS.filter((step) => row.classList.contains(step))
+  // The gap is the row's own, and it changes with the step: read anew for each reading.
+  const fits = () =>
+    button.getBoundingClientRect().width +
+      (Number.parseFloat(getComputedStyle(row).columnGap) || 0) +
+      marks.getBoundingClientRect().width <=
+    row.getBoundingClientRect().width
+  row.classList.remove(...SEND_ROW_STEPS)
+  const inOwnMeasure = fits()
+  row.classList.add('is-tight')
+  const setCloser = inOwnMeasure || fits()
   row.classList.remove('is-tight')
-  const gap = Number.parseFloat(getComputedStyle(row).columnGap) || 0
-  const needed = button.getBoundingClientRect().width + gap + marks.getBoundingClientRect().width
-  row.classList.toggle('is-tight', tight)
-  sendTight.value = needed > row.getBoundingClientRect().width
+  for (const step of worn) row.classList.add(step)
+  sendTight.value = !inOwnMeasure
+  sendTighter.value = !setCloser
 }
 
 let sendRowResizes = null
@@ -1052,6 +1082,20 @@ onBeforeUnmount(() => {
 
 .contact-window-send.is-tight .contact-window-marks {
   gap: 4px;
+}
+
+/* The fourth: where even set closer the marks do not fit beside the button -- measured in the
+   wallet with FOUR marks (the pin, 09.10.2026): at 320px French, Dutch, Russian and Greek --,
+   the button gives up its coin and the marks stand 2px apart (Bernd, 09.10.2026, "ohne Münze").
+   The word is what makes it a button; the coin is its emblem. So set, all ten languages keep
+   the marks beside the button at 320px. Narrower than about 316px in French, the marks go to a
+   line of their own as before (`wrap` on the row). Worn together with `is-tight`. */
+.contact-window-send.is-tighter .send-coin {
+  display: none;
+}
+
+.contact-window-send.is-tighter .contact-window-marks {
+  gap: 2px;
 }
 
 /* ⛔ The sheet (below `sm`, where BModal makes the window fullscreen -- the same 575.98px as
