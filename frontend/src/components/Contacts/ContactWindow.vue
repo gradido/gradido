@@ -904,9 +904,10 @@ onBeforeUnmount(() => {
 }
 
 /* ⛔ From here to the focus rule: the map profile's button (MatchProfile.vue), rule for rule,
-   in the compose bar's gold instead of the map's teal (Bernd, 24.09.2026) -- the one
-   difference. ContactWindow.spec holds both: the rules against MatchProfile with the colour
-   swapped, the colour against ChatComposeBar's send button. */
+   in the compose bar's gold (Bernd, 24.09.2026). The gold was the one difference from the
+   map's teal until 09.10.2026; since then the map's profile wears it too (E-070), and the
+   rules are the same in both. ContactWindow.spec holds both: the rules against MatchProfile,
+   the colour against ChatComposeBar's send button. */
 .send-btn {
   display: inline-flex;
   align-items: center;

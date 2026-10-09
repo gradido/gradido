@@ -245,6 +245,7 @@
     "distanceNear": "No vivimos lejos.",
     "found": "Hola {name}, te he encontrado en el mapa de Gradido.",
     "question": "¿Te apetece devolverme el saludo?",
+    "say": "Decir hola:",
     "sent": "Enviado.",
     "sentMailed": "Enviado. {name} recibe un correo electrónico.",
     "toConversation": "Ir a la conversación"

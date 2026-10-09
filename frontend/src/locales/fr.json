@@ -245,6 +245,7 @@
     "distanceNear": "Nous n'habitons pas loin.",
     "found": "Bonjour {name}, j'ai trouvé ton profil sur la carte Gradido.",
     "question": "As-tu envie de me dire bonjour en retour ?",
+    "say": "Dire bonjour :",
     "sent": "Envoyé.",
     "sentMailed": "Envoyé. {name} reçoit un e-mail.",
     "toConversation": "Ouvrir la conversation"

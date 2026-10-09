@@ -3833,11 +3833,14 @@ describe('ContactWindow', () => {
   /**
    * ⛔ "Im Prinzip genauso wie im Matching, nur … in diesem dunkleren Goldton" (Bernd,
    * 24.09.2026). The map's profile window (MatchProfile.vue) and this one each carry the rules,
-   * so the spec holds them against each other with the one difference swapped in -- the gold,
-   * which it takes from the compose bar's send button, so the window's two gold buttons cannot
-   * drift apart either. Flat again since 29.09.2026 ("wieder das etwas dunklere Gold ohne
-   * Verlauf … so wie auch unten der Kreis bei dem Absende-Button"), after two days in the
-   * gradient of the house's golden buttons.
+   * so the spec holds them against each other -- and the gold against the compose bar's send
+   * button, so the window's two gold buttons cannot drift apart either. Flat again since
+   * 29.09.2026 ("wieder das etwas dunklere Gold ohne Verlauf … so wie auch unten der Kreis bei
+   * dem Absende-Button"), after two days in the gradient of the house's golden buttons.
+   *
+   * Until 09.10.2026 the gold was the one difference from the map's teal. Then the other way
+   * round (Bernd, Chat E-070): "Der Button „Gradido senden“ sollte das gleiche Gold bekommen wie
+   * im Chat" -- the map's profile wears it too, and the rules are the same in both, colour and all.
    */
   it("sends with the map profile's button, in the gold of the compose bar's send button", () => {
     const rule = (file, name) =>
@@ -3853,16 +3856,20 @@ describe('ContactWindow', () => {
     for (const name of ['send-btn', 'send-gradido', 'send-coin']) {
       const there = rule('../Matching/MatchProfile.vue', name)
       expect(there, `MatchProfile lost .${name}`).toBeDefined()
-      expect(rule('ContactWindow.vue', name), `.${name}`).toBe(there.replaceAll('#178d81', gold))
+      expect(rule('ContactWindow.vue', name), `.${name}`).toBe(there)
     }
+    // The gold is the compose bar's, in both windows; the map's teal is gone from the button.
+    expect(rule('ContactWindow.vue', 'send-btn')).toContain(`border: 1.5px solid ${gold};`)
+    expect(rule('ContactWindow.vue', 'send-gradido')).toContain(`background: ${gold};`)
+    expect(rule('../Matching/MatchProfile.vue', 'send-gradido')).not.toContain('#178d81')
   })
 
   /**
    * "Dabei ist „Gradido senden“ ja nur eine von vielen Optionen, wenn auch eine der wichtigsten"
    * (Bernd, 29.09.2026, "A"): in this window the button is set smaller than the map's -- a
    * smaller font, less room above and below, a smaller coin -- in the window's own rules, which
-   * outweigh the map's. On the map it is one of the profile window's two ways and keeps its
-   * measure (the rules held against MatchProfile above).
+   * outweigh the three shared ones. (Since 09.10.2026 the map's profile sets it to the same
+   * smaller measure in rules of its own, E-070; MatchProfile.spec holds those against these.)
    */
   it("sets the button smaller than the map's, in the stylesheet", () => {
     const code = styleOf('ContactWindow.vue')
@@ -3874,7 +3881,7 @@ describe('ContactWindow', () => {
     expect(own).toMatch(/(?:^|;|\s)padding:\s*7px 14px;/)
     expect(coin).toMatch(/(?:^|;|\s)width:\s*18px;/)
     expect(coin).toMatch(/(?:^|;|\s)height:\s*18px;/)
-    // The map's measure, which these rules outweigh.
+    // The larger measure of the three shared rules, which these outweigh.
     expect(body('\\.send-btn')).toMatch(/(?:^|;|\s)font-size:\s*15px;/)
     expect(body('\\.send-btn')).toMatch(/(?:^|;|\s)padding:\s*10px 14px;/)
     expect(body('\\.send-coin')).toMatch(/(?:^|;|\s)width:\s*20px;/)
