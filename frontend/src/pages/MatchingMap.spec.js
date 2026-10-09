@@ -1872,8 +1872,8 @@ describe('MatchingMap', () => {
 /**
  * Bernd, 09.10.2026: a contact one has in the chat can be found on the find map as well. The
  * contact window's pin leads to `/matching/karte?with=<gradidoID>&community=<uuid>`; the page asks
- * the GMS where the person stands, brings them into view and marks them with a gold ring and
- * their name. The search stays where it was.
+ * the GMS where the person stands, marks them with a gold ring and their name, and for the visit
+ * puts the search on them: the map frames that circle, and the list names them first.
  */
 describe('MatchingMap, asked to show somebody', () => {
   beforeAll(async () => {
@@ -2062,6 +2062,27 @@ describe('MatchingMap, asked to show somebody', () => {
       expect(load.mock.calls[0][0].center).toEqual(HAMBURG)
     })
 
+    // The page's own fallback is no choice of the member's either (second reader): a remembered
+    // question that points at an entry which is gone is put back to "all", and the search that
+    // goes with it waits like the page's other ones.
+    it('waits as well where a remembered question points at an entry that is gone', async () => {
+      remember('center', HOME)
+      remember('query', { kind: 'entry', uuid: 'gone' })
+      const answer = held()
+      profile.mockReturnValue(answer.promise)
+      await arrive()
+
+      fire(listMatchingEntries, { listMatchingEntries: [entry('a')] })
+      await flushPromises()
+      expect(remembered('query')).toEqual({ kind: 'all' })
+      expect(load).not.toHaveBeenCalled()
+
+      answer.resolve(published())
+      await flushPromises()
+      expect(load).toHaveBeenCalledTimes(1)
+      expect(load.mock.calls[0][0].center).toEqual(HAMBURG)
+    })
+
     // The control: on an ordinary visit those entries ask their search at once.
     it('asks at once for the entries of the member on an ordinary visit', async () => {
       await arrive(null)
@@ -2114,6 +2135,59 @@ describe('MatchingMap, asked to show somebody', () => {
       expect(fitted[0].center[0]).toBeCloseTo(HAMBURG.lng, 2)
       expect(fitted[0].center[1]).toBeCloseTo(HAMBURG.lat, 2)
       expect(theMap().camera.some((move) => move.zoom === VIEW.zoom - 1)).toBe(false)
+    })
+
+    // The order home -> map -> person: the map is there, with the member's own circle, when the
+    // answer comes -- and the circle and its disc move onto the person then.
+    it('moves the circle and its disc onto them where the map was there first', async () => {
+      const answer = held()
+      profile.mockReturnValue(answer.promise)
+      remember('center', HOME)
+      const page = await arrive()
+      const discAt = () => page.find('.gk-centre').element.closest('.maplibregl-marker')
+      // The circle as the engine holds it: a shape in a source, around the member's own centre.
+      const circle = () => JSON.stringify(theMap().getSource('gk-circle').data)
+      const circleBefore = circle()
+
+      answer.resolve(published())
+      await flushPromises()
+
+      expect(discAt().style.transform).toBe(
+        marker(page).element.style.transform.replace('-28px, -28px', '-20px, -20px'),
+      )
+      expect(circle()).not.toBe(circleBefore)
+    })
+
+    // A place name still being looked up for the centre before must not come to name this one.
+    it('is not named by a lookup that was out for the centre before', async () => {
+      let name
+      placeNameAt.mockImplementation(() => new Promise((resolve) => (name = resolve)))
+      remember('mode', 'karte')
+      const page = await arrive(null)
+      // Away from home first: a point set on the house needs no name and looks none up.
+      theMap().jumpTo({ center: [BERLIN.lng, BERLIN.lat], zoom: 11 })
+      await page.find('.map-crosshair').trigger('click')
+      await flushPromises()
+      expect(name).toBeTypeOf('function')
+
+      route.current.query = TOBIAS
+      await flushPromises()
+      name({ place: 'Freising', context: 'München' })
+      await flushPromises()
+      await page.find('.look-switch > .look-btn:last-child').trigger('click')
+
+      expect(page.findComponent({ name: 'MatchList' }).props('centerLabel')).toBe('Tobias')
+      placeNameAt.mockReset()
+      placeNameAt.mockImplementation(async () => null)
+    })
+
+    // Closing an overlay writes it away. One remembered for the way back from the send form is
+    // not this visit's to forget (second reader).
+    it('leaves an overlay remembered from another visit written down', async () => {
+      remember('cluster', ['u-1', 'u-2'])
+      await arrive()
+
+      expect(remembered('cluster')).toEqual(['u-1', 'u-2'])
     })
 
     it('stands the disc of the search centre under their ring', async () => {
@@ -2177,9 +2251,14 @@ describe('MatchingMap, asked to show somebody', () => {
 
     // A search the member moves is their own: written down, with the view of it.
     it("is the member's own again once they move it", async () => {
+      // Another centre than the home is written down, so that the home afterwards is the move's
+      // doing and not what stood there anyway.
+      const elsewhere = { lat: 50.5, lng: 8.5 }
+      remember('center', elsewhere)
       remember('view', VIEW)
       const page = await arrive()
       expect(remembered('view')).toEqual(VIEW)
+      expect(remembered('center')).toEqual(elsewhere)
 
       // The way home: the search goes back to the member's own place, and the map frames it.
       page.find('.gk-home a').element.dispatchEvent(new MouseEvent('click', { bubbles: true }))
@@ -2199,21 +2278,122 @@ describe('MatchingMap, asked to show somebody', () => {
       expect(marker(page).exists()).toBe(true)
     })
 
-    // The radius is the member's own setting, during the visit as ever -- but a new circle
-    // around the person is still the visit's view, and is not remembered.
-    it('keeps the view of the visit unremembered when the member changes the radius', async () => {
-      remember('view', VIEW)
-      const page = await arrive()
+    // The radius and the reach are the member's own settings, during the visit as ever -- but
+    // the view that frames the new circle is the visit's, around the person, and is not written
+    // down. Found by the second reader: the view that WAS written down is then the one of the
+    // old circle, and the next ordinary visit opened on it with a circle that no longer fits.
+    // It is forgotten instead, so that visit frames the member's own circle afresh.
+    describe('with a radius or a reach changed during it', () => {
+      const widen = async (page) => {
+        // As the reach tests above set a radius: the draft where the field would set it, and
+        // the key that submits on the real element.
+        page.vm.radiusDraft = 60
+        await page.find('#map-radius-input').trigger('keyup.enter')
+        await flushPromises()
+      }
 
-      // As the reach tests above set a radius: the draft where the field would set it, and the
-      // key that submits on the real element.
-      page.vm.radiusDraft = 60
-      await page.find('#map-radius-input').trigger('keyup.enter')
-      await flushPromises()
+      it('searches the new circle around the person, and writes the radius down', async () => {
+        remember('view', VIEW)
+        const page = await arrive()
 
-      expect(load.mock.calls.at(-1)[0]).toMatchObject({ center: HAMBURG, radius: 60 })
-      expect(remembered('view')).toEqual(VIEW)
-      expect(remembered('center')).toEqual(HOME)
+        await widen(page)
+
+        expect(load.mock.calls.at(-1)[0]).toMatchObject({ center: HAMBURG, radius: 60 })
+        expect(remembered('radius')).toBe(60)
+        expect(remembered('center')).toEqual(HOME)
+      })
+
+      it("forgets the view of the old circle, and does not write the visit's view in its place", async () => {
+        remember('view', VIEW)
+        const page = await arrive()
+
+        await widen(page)
+        expect(remembered('view')).toBeNull()
+
+        theMap().jumpTo({ center: [BERLIN.lng, BERLIN.lat], zoom: 11 })
+        expect(remembered('view')).toBeNull()
+      })
+
+      it('forgets it for a changed reach as well', async () => {
+        remember('view', VIEW)
+        const page = await arrive()
+
+        await page.findAll('.reach-btn')[1].trigger('click')
+        await flushPromises()
+
+        expect(remembered('reach')).toBe('fern')
+        expect(remembered('view')).toBeNull()
+        expect(load.mock.calls.at(-1)[0]).toMatchObject({ center: HAMBURG, remoteOnly: true })
+      })
+
+      it("lets the next ordinary visit frame the member's own circle afresh", async () => {
+        remember('view', VIEW)
+        const page = await arrive()
+        await widen(page)
+        wrapper.unmount()
+        wrapper = null
+
+        await arrive(null)
+
+        const fitted = theMap().camera.filter((move) => move.how === 'fitBounds')
+        expect(fitted).toHaveLength(1)
+        expect(fitted[0].center[0]).toBeCloseTo(HOME.lng, 2)
+        expect(fitted[0].center[1]).toBeCloseTo(HOME.lat, 1)
+      })
+
+      // The control: on an ordinary visit the same change writes the view of the new circle.
+      it('writes the view of the new circle on an ordinary visit', async () => {
+        remember('view', VIEW)
+        const page = await arrive(null)
+
+        await widen(page)
+
+        expect(remembered('view')).not.toBeNull()
+        expect(remembered('view').lat).toBeCloseTo(HOME.lat, 1)
+      })
+    })
+
+    // ⛔ The list measures from the point the search stands on -- on a visit, the person's
+    // PUBLISHED point, which may be blurred. Found by the second reader: the list was still told
+    // that its origin is exact, and read "3,2 km östlich" from a point that is itself blurred.
+    // The coarser end wins (describeDistance), so the list is told which end this one is.
+    describe('how precisely the list is told its origin is known', () => {
+      const told = (page) => page.findComponent({ name: 'MatchList' }).props('myPrecision')
+      const inList = async (query) => {
+        remember('mode', 'liste')
+        return arrive(query)
+      }
+
+      it("is the person's own precision while the search stands on them", async () => {
+        const page = await inList()
+        expect(told(page)).toBe('ungefaehr')
+      })
+
+      it('is exact for a person whose point is exact', async () => {
+        profile.mockResolvedValue(published(TOBIAS, { precision: 'genau' }))
+        const page = await inList()
+        expect(told(page)).toBe('genau')
+      })
+
+      it("is the member's own on an ordinary visit", async () => {
+        const page = await inList(null)
+        expect(told(page)).toBe('genau')
+      })
+
+      it("is the member's own again once they move the search", async () => {
+        const page = await inList()
+        await page
+          .findComponent({ name: 'MatchList' })
+          .vm.$emit('recenter', { lat: 50.5, lng: 8.5 })
+        await flushPromises()
+        expect(told(page)).toBe('genau')
+      })
+
+      it("is the member's own where the lens measures from their home", async () => {
+        remember('lens', 'wohnort')
+        const page = await inList()
+        expect(told(page)).toBe('genau')
+      })
     })
   })
 
@@ -2376,9 +2556,9 @@ describe('MatchingMap, asked to show somebody', () => {
   })
 
   // The markers of the search are no tab stops: everybody they stand for is in the list, where a
-  // keyboard and a screen reader meet them. Somebody shown from outside the search is in no list,
-  // so their mark is the one place to open them from -- a button with a name, which answers Enter
-  // and the space bar.
+  // keyboard and a screen reader meet them. The person the page shows is who the member came
+  // for: their mark is a button with a name, which answers Enter and the space bar, so a keyboard
+  // on the map reaches them without going to the list first.
   describe('with the keyboard', () => {
     const key = (element, name) => {
       const event = new KeyboardEvent('keydown', { key: name, bubbles: true, cancelable: true })
@@ -3066,14 +3246,17 @@ describe('MatchingMap, asked to show somebody', () => {
   })
 
   // `arrive` lets the member's home come first, as it mostly does. The other order: the person
-  // is known before the home is, and nothing has been searched yet -- the answer about the home
-  // asks, once, and around the person.
-  it('asks its one search around the person where their answer comes before the home is known', async () => {
+  // is known before the home is. The visit's search is asked at once -- an answer about the home
+  // that fails or stays out must not leave the visit without it (second reader) --, and the
+  // answer about the home asks the same search once more, as it does on any visit after the
+  // member's entries. Never around the member's own circle.
+  it('searches around the person at once where their answer comes before the home is known', async () => {
     route.current.query = TOBIAS
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
     const page = mountMap()
     await flushPromises()
-    expect(load).not.toHaveBeenCalled()
+    expect(load).toHaveBeenCalledTimes(1)
+    expect(load.mock.calls[0][0].center).toEqual(HAMBURG)
 
     fire(userLocationQuery, { userLocation: location })
     await page.vm.$nextTick()
@@ -3082,8 +3265,7 @@ describe('MatchingMap, asked to show somebody', () => {
     await flushPromises()
     await flushPromises()
 
-    expect(load).toHaveBeenCalledTimes(1)
-    expect(load.mock.calls[0][0].center).toEqual(HAMBURG)
+    expect(load.mock.calls.map(([search]) => search.center)).toEqual([HAMBURG, HAMBURG])
     expect(remembered('center')).toEqual(HOME)
     expect(centre()).toEqual(HAMBURG)
     expect(marker(page).exists()).toBe(true)

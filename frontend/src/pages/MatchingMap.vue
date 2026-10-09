@@ -82,7 +82,7 @@
           :center="lensOrigin"
           :search-center="searchCenter"
           :center-label="centerLabelShown"
-          :my-precision="MY_PRECISION"
+          :my-precision="originPrecision"
           :reach="reach"
           :radius-km="radius"
           :sort-mode="sortMode"
@@ -572,7 +572,9 @@ onEntries((result) => {
     selection.value.kind === 'entry' &&
     !myEntries.value.some((e) => e.uuid === selection.value.uuid)
   ) {
-    onSelection({ kind: 'all' })
+    // Not the member's choice but the page's own: its search waits like the others the page
+    // asks of its own accord (searchUnasked).
+    onSelection({ kind: 'all' }, { unasked: true })
     // onSelection searches on its own; asking twice would be the same question.
     return
   }
@@ -643,12 +645,13 @@ function answerKeepOffer(answered = true) {
   }
 }
 
-function onSelection(next) {
+function onSelection(next, { unasked = false } = {}) {
   selection.value = next
   writePref('query', next)
   answerKeepOffer(false)
   closeCluster()
-  runSearch()
+  if (unasked) searchUnasked()
+  else runSearch()
 }
 
 // What the search asks for beyond the place: nothing for "everything" and for a
@@ -820,6 +823,19 @@ const centerLabelShown = computed(() => {
   return t('matching.map.centrePoint')
 })
 
+// How precisely the point is known that the list measures from: the member's own, for their home
+// and for a search point they chose. On a visit that shows somebody the search stands on THEIR
+// published point, and that may be blurred -- measured from there, a figure with a decimal and a
+// bearing would claim more than is known. The coarser end wins (describeDistance), so the list
+// is told which end this one is.
+const originPrecision = computed(() => {
+  const person = shown.value
+  const origin = lensOrigin.value
+  const onThem =
+    person && origin && origin.lat === person.position.lat && origin.lng === person.position.lng
+  return onThem ? person.precision : MY_PRECISION
+})
+
 function centreDistance(person) {
   return lensOrigin.value ? distanceKm(lensOrigin.value, person.position) : 0
 }
@@ -879,12 +895,11 @@ onResult(({ data }) => {
   // search — who is near me — and the only moment we get to choose it for them.
   // Nothing is looked up for its name: the list calls it the member's home
   // (centerLabelShown), so the home position is not sent to a reverse lookup (K-002).
-  // Asked of what is written down, not of the live centre: on a visit that shows somebody the
-  // live one may stand on them already (searchAroundShown), and that one is not the member's.
-  if (!readCenter()) {
-    writePref('center', { ...ownPosition.value })
-    if (!visitSearch) searchCenter.value = { ...ownPosition.value }
-  }
+  if (!searchCenter.value) searchCenter.value = { ...ownPosition.value }
+  // Written down is the member's OWN centre. On a visit that shows somebody the live one may
+  // stand on them already (searchAroundShown), and that one is not theirs: the home is.
+  if (!readCenter())
+    writePref('center', visitSearch ? { ...ownPosition.value } : searchCenter.value)
   drawOwn()
   drawCircle()
   restoreView()
@@ -956,6 +971,7 @@ async function showAsked() {
   const request = ++shownRequest
   shown.value = null
   drawShown()
+  updateCentreCover()
   const person = askedPerson.value
   let answer = null
   if (person && enabled.value) {
@@ -974,6 +990,9 @@ async function showAsked() {
   }
   shown.value = answer.person
   drawShown()
+  // The crosshair steps back over them (and comes back where the mark was taken away above):
+  // it is told here, not only by the next move of the map.
+  updateCentreCover()
   if (movedWhileAsking) {
     searchOnOwnAgain()
     return
@@ -1025,7 +1044,9 @@ function searchAroundShown() {
   const { position, name } = shown.value
   visitSearch = true
   inClusterZoom = false
-  closeCluster()
+  // Only an overlay that is open: closing writes it away, and one remembered for the way back
+  // from the send form is not this visit's to forget.
+  if (clusterOpen.value) closeCluster()
   searchCenter.value = { lat: position.lat, lng: position.lng }
   // A lookup still out for the centre before must not name this one.
   labelRequest++
@@ -1034,9 +1055,11 @@ function searchAroundShown() {
   drawCentre()
   visitFramePending = true
   frameVisit()
-  // Before the member's home is known the page's first search is still to come, and the answer
-  // about the home asks it (the location answer above) -- around the person, as it stands now.
-  if (ownPosition.value) runSearch()
+  // Asked at once, whether or not the member's home is known yet: an answer about the home that
+  // fails or stays out must not leave the visit without its search. Where that answer comes
+  // after, it asks the same search once more, as it does after the member's entries on any
+  // visit.
+  runSearch()
 }
 
 // The circle of the visit's search in view, at once -- the person stands in its middle. Once:
@@ -1064,7 +1087,7 @@ function searchOnOwnAgain() {
   visitSearch = false
   visitFramePending = false
   inClusterZoom = false
-  closeCluster()
+  if (clusterOpen.value) closeCluster()
   searchCenter.value = readCenter() ?? (ownPosition.value ? { ...ownPosition.value } : null)
   labelRequest++
   centerLabel.value = readPref('centerLabel', '')
@@ -1297,7 +1320,17 @@ function setReach(next) {
   // to be told; the computed above has already emptied what it draws from.
   drawPresence()
   zoomToCircle({ fly: true })
+  forgetViewOfOldCircle()
   runSearch()
+}
+
+// The radius and the reach are the member's own settings, also on a visit that shows somebody --
+// but the view that frames the new circle is the visit's, around the person, and is not written
+// down. The view written down would then be the one of the OLD circle: the next ordinary visit
+// would open on it with a circle that no longer fits. Forgotten instead, that visit frames the
+// member's own circle afresh (restoreView).
+function forgetViewOfOldCircle() {
+  if (visitSearch) writePref('view', null)
 }
 
 function setSort(next) {
@@ -1498,6 +1531,7 @@ function applyRadius() {
   drawCircle()
   // Frame the new circle: a radius you cannot see is a number without an answer.
   zoomToCircle()
+  forgetViewOfOldCircle()
   runSearch()
 }
 

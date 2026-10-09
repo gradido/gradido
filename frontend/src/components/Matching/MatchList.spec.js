@@ -360,13 +360,30 @@ describe('MatchList', () => {
     // would call every such contact "nearby". Theirs is measured from the member's home, and
     // the line says so.
     it("says how far they live from the member's home, not from the search point", () => {
-      const wrapper = mountList({ contact: contact(), home: HOME, center: CENTRE })
+      // A blurred point, and a home that lies EAST of them: from the search point -- their own
+      // point, no distance away -- the line would read "im Nahbereich", with no direction.
+      const east = { lat: 50, lng: 10.28 }
+      const wrapper = mountList({
+        contact: contact({ person: person({ precision: 'ungefaehr' }) }),
+        home: east,
+        center: CENTRE,
+      })
       const where = wrapper.find('[data-test="match-list-contact-where"]').text()
 
       expect(where).toContain('20 km')
-      expect(where).toContain('nördlich')
+      expect(where).toContain('westlich')
       expect(where).toContain('von Deinem Zuhause aus')
       expect(where).not.toContain('im Nahbereich')
+    })
+
+    // A contact at the member's own address: no distance, and no direction over none.
+    it("names no direction for a contact who lives at the member's own address", () => {
+      const wrapper = mountList({ contact: contact(), home: CENTRE, center: CENTRE })
+      const where = wrapper.find('[data-test="match-list-contact-where"]')
+
+      expect(where.text()).toContain('0 km')
+      expect(where.find('.dir-word').exists()).toBe(false)
+      expect(where.find('.dir-arrow').exists()).toBe(false)
     })
 
     // The control: a match on the very same point is no distance away in its own row --
@@ -386,10 +403,12 @@ describe('MatchList', () => {
 
     // A blurred point within a few kilometres of home is "nearby" -- of the home, and says so.
     it('calls a contact with a blurred point close to home nearby, from home', () => {
+      // The list measures from Prague here: from there the same person is hundreds of
+      // kilometres away, so "nearby" can only be the home's.
       const wrapper = mountList({
         contact: contact({ person: person({ position: NEAR, precision: 'ungefaehr' }) }),
         home: CENTRE,
-        center: NEAR,
+        center: PRAGUE,
       })
       const where = wrapper.find('[data-test="match-list-contact-where"]')
 
