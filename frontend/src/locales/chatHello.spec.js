@@ -33,7 +33,13 @@ const KEYS = [
   'sent',
   'sentMailed',
   'toConversation',
+  // The three short answers to a first word, and their name for the ear (E-069).
+  'backHello',
+  'backMore',
+  'backCall',
+  'backLabel',
 ]
+const ANSWERS = ['backHello', 'backMore', 'backCall']
 
 const i18n = createI18n({ legacy: false, locale: 'de', fallbackLocale: 'en', messages: LOCALES })
 const tIn = (locale) => (key, named) => i18n.global.t(key, named ?? {}, { locale })
@@ -53,7 +59,7 @@ describe('the first word from the map, in ten languages', () => {
     expect(LANGUAGES).toHaveLength(10)
   })
 
-  it.each(LANGUAGES)('%s has the seven texts, and nothing else under the name', (language) => {
+  it.each(LANGUAGES)('%s has the eleven texts, and nothing else under the name', (language) => {
     const texts = LOCALES[language].chatHello
     expect(Object.keys(texts).sort()).toEqual([...KEYS].sort())
     for (const key of KEYS) expect(texts[key].trim(), key).not.toBe('')
@@ -66,7 +72,14 @@ describe('the first word from the map, in ten languages', () => {
       expect(placeholders(texts.found)).toEqual(['{name}'])
       expect(placeholders(texts.distanceKm)).toEqual(['{n}'])
       expect(placeholders(texts.sentMailed)).toEqual(['{name}'])
-      for (const key of ['distanceNear', 'question', 'sent', 'toConversation']) {
+      for (const key of [
+        'distanceNear',
+        'question',
+        'sent',
+        'toConversation',
+        ...ANSWERS,
+        'backLabel',
+      ]) {
         expect(placeholders(texts[key]), key).toEqual([])
       }
     },
@@ -108,6 +121,43 @@ describe('the first word from the map, in ten languages', () => {
     expect(hello(language)).toContain('9')
     expect(hello(language, { distance: { near: true } })).not.toMatch(/\d/)
     expect(hello(language, { distance: null })).not.toMatch(/\d/)
+  })
+
+  it("offers Bernd's three answers, word for word, in German", () => {
+    expect(ANSWERS.map((key) => de.chatHello[key])).toEqual([
+      'Hallo zurück!',
+      'Gern — erzähl mehr',
+      'Lass uns telefonieren',
+    ])
+    expect(de.chatHello.backLabel).toBe('Schnelle Antworten')
+  })
+
+  // A tap sends the words as they stand, as the member's own message: nothing the wallet would
+  // have to fill in, no line break, and short enough for a button -- the longest is the Russian
+  // "gladly, tell me more", which wraps inside its rim.
+  it.each(LANGUAGES)('%s: each answer is a short line that can go out as it stands', (language) => {
+    for (const key of ANSWERS) {
+      const words = LOCALES[language].chatHello[key]
+      expect(words, key).toBe(words.trim())
+      expect(words, key).not.toMatch(/[\n{}|@]/)
+      expect(words.length, key).toBeLessThanOrEqual(40)
+      expect(words.length, key).toBeGreaterThanOrEqual(8)
+    }
+    // Three different answers, and the name of the group is none of them.
+    const all = [...ANSWERS, 'backLabel'].map((key) => LOCALES[language].chatHello[key])
+    expect(new Set(all).size).toBe(4)
+  })
+
+  it.each(LANGUAGES)(
+    '%s writes the dash in "gladly — tell more" as the file writes its dashes',
+    (language) => {
+      expect(LOCALES[language].chatHello.backMore).toMatch(/\S — \S/)
+    },
+  )
+
+  it('answers a stranger politely in Russian: "Вам" with a capital, "расскажите"', () => {
+    expect(ru.chatHello.backHello).toMatch(/(?<![а-яё])Вам(?![а-яё])/)
+    expect(ru.chatHello.backMore).toContain('расскажите')
   })
 
   it.each(LANGUAGES)('%s ends with the question where nobody signs', (language) => {

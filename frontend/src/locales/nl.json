@@ -237,6 +237,10 @@
     "youAreOwner": "Je bent eigenaar"
   },
   "chatHello": {
+    "backCall": "Laten we bellen",
+    "backHello": "Hallo terug!",
+    "backLabel": "Snelle antwoorden",
+    "backMore": "Graag — vertel meer",
     "distanceKm": "We wonen ongeveer {n} km van elkaar.",
     "distanceNear": "We wonen niet ver van elkaar.",
     "found": "Hallo {name}, ik heb je gevonden op de Gradido-kaart.",

@@ -124,6 +124,34 @@
       </button>
     </div>
 
+    <!-- Three short answers, one tap each (Bernd, 09.10.2026, E-069): for the member's first word
+         in a conversation the other one began -- "Hallo zurück!" and two more. A tap sends the
+         words at once, with the box below as it stands; what is typed in the field stays there.
+         They are gone with the first message of the member's own -- the thread says when
+         (`helloBack`). Not pressed away from the field (`mousedown.prevent`), as the arrow is
+         not: the keyboard of a phone stays where it is. -->
+    <div
+      v-if="helloBackShown"
+      ref="helloBackRow"
+      class="chat-compose-hello-back"
+      role="group"
+      :aria-label="t('chatHello.backLabel')"
+      data-test="chat-compose-hello-back"
+    >
+      <button
+        v-for="answer in helloBackAnswers"
+        :key="answer.key"
+        type="button"
+        class="chat-compose-hello-back-answer"
+        :aria-disabled="helloBackWaits ? 'true' : 'false'"
+        :data-test="`chat-compose-hello-back-${answer.key}`"
+        @mousedown.prevent
+        @click="sendHelloBack(answer.words)"
+      >
+        {{ answer.words }}
+      </button>
+    </div>
+
     <div class="chat-compose-row">
       <!-- The paperclip (E-042, E-044 F1): with the pictures (P7) it opens a small menu above it,
            "Bild — Foto oder Bildschirmfoto" and "Datei — über SwissTransfer, bis 50 GB", and on a
@@ -469,6 +497,11 @@ const props = defineProps({
   /** Only the text, no paperclip: the contact window's first form (E-055). */
   textOnly: { type: Boolean, default: false },
   /**
+   * The three short answers stand over the field (E-069). The thread says when: between two, in
+   * a conversation the other one began, while nothing of the member's own is in it.
+   */
+  helloBack: { type: Boolean, default: false },
+  /**
    * The next message is the member's first in a conversation the other one began (E-066): the
    * box "also by e-mail" begins ticked for it. Never in a group, whose box is the announcement.
    */
@@ -774,6 +807,44 @@ const submit = async () => {
   })
 }
 
+/**
+ * The three short answers (E-069), for the member's first word in a conversation the other one
+ * began. Written-out keys, for the i18n lint.
+ */
+const helloBackAnswers = computed(() => [
+  { key: 'hello', words: t('chatHello.backHello') },
+  { key: 'more', words: t('chatHello.backMore') },
+  { key: 'call', words: t('chatHello.backCall') },
+])
+
+/** Where the thread asks for them -- never in a group, and not beside a message being changed. */
+const helloBackShown = computed(() => props.helloBack && !props.group && !props.editing)
+
+/** They wait as the arrow does: while a message is on its way, or a picture is made small for one. */
+const helloBackWaits = computed(() => props.sending || preparing.value)
+
+const helloBackRow = ref(null)
+
+/**
+ * A tap on a short answer: its words go out at once, as an ordinary message -- with the wish of
+ * the box as it stands, and as the answer to a message where one is taken up (E-064).
+ *
+ * ⛔ What is in the bar stays in the bar: the words typed, and a picture chosen. `submitted`
+ * says so to the watch that clears what went out -- `text: null` is no field's text, so the
+ * field is left alone; the box is emptied, its wish was for this one message.
+ */
+const sendHelloBack = (words) => {
+  if (!helloBackShown.value || helloBackWaits.value) return
+  const boxed = alsoByEmail.value && boxShown.value
+  submitted = { text: null, alsoByEmail: boxed, picture: null }
+  emit('send', {
+    body: words,
+    notify: chatNotifyFor({ first: props.first, alsoByEmail: boxed }),
+    image: null,
+    ...(props.replying ? { reply: props.replying } : {}),
+  })
+}
+
 /** The words of the line where a message did not go through (see the template). */
 const failedWords = computed(() => {
   if (props.failedReason === 'IMAGE_NOT_ACCEPTED') return t('chatThread.imageNotAccepted')
@@ -1062,6 +1133,16 @@ watch(
     }
     if (sent.picture && picture.value === sent.picture) picture.value = null
     if (alsoByEmail.value === sent.alsoByEmail) alsoByEmail.value = false
+    // A short answer went out (E-069): nothing of the field was sent. Its buttons go with the
+    // member's first message -- and where one of them held the focus, a keyboard would be left
+    // nowhere: it goes into the field. Not after a tap or a click, which never took the focus
+    // (`mousedown.prevent`): on a phone that would open the keyboard unasked.
+    if (sent.text === null) {
+      if (!helloBackRow.value?.contains(document.activeElement)) return
+      await nextTick()
+      field.value?.focus({ preventScroll: true })
+      return
+    }
     if (text.value !== sent.text) return
     text.value = ''
     await nextTick()
@@ -1522,6 +1603,41 @@ watch(
 .chat-compose-send-icon {
   width: 1.2rem;
   height: 1.2rem;
+}
+
+/* The three short answers (E-069): a row of their own over the field, each as high as a finger
+   needs and as wide as its words; where they do not fit side by side they take the next line,
+   and a long one -- in Russian the second is a whole sentence -- wraps inside its own rim
+   rather than running past the window. Quiet: the field's own rim and the text's own colour,
+   so they read as offers, not as the next thing to press. */
+.chat-compose-hello-back {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.chat-compose-hello-back-answer {
+  min-height: 2.5rem;
+  max-width: 100%;
+  padding: 0.4rem 0.95rem;
+  border: 1px solid var(--bs-border-color, #dee2e6);
+  border-radius: 1.2rem;
+  background: transparent;
+  color: var(--bs-body-color);
+  font-size: 0.95rem;
+  line-height: 1.3;
+  text-align: start;
+}
+
+.chat-compose-hello-back-answer[aria-disabled='true'] {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.chat-compose-hello-back-answer:focus-visible {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: 2px;
 }
 
 /* The box and its word; the word wraps beside the box rather than running past the window in

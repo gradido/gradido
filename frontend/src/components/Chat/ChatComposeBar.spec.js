@@ -561,6 +561,278 @@ describe('ChatComposeBar', () => {
   })
 
   /**
+   * Three short answers, one tap each (Bernd, 09.10.2026, E-069): for the member's first word in
+   * a conversation the other one began. A tap sends the words at once, with the box as it
+   * stands; what is in the bar stays in the bar. The thread says when they stand (`helloBack`).
+   */
+  describe('the three short answers', () => {
+    const row = () => wrapper.find('[data-test="chat-compose-hello-back"]')
+    const answer = (which) => wrapper.find(`[data-test="chat-compose-hello-back-${which}"]`)
+    const answers = () => row().findAll('button')
+    const onItsWay = () => wrapper.setProps({ sending: true })
+    const goesThrough = async () => {
+      await wrapper.setProps({ sending: false })
+      await flushPromises()
+    }
+    // What the thread hands the bar where they stand: the other one began, the box is ticked.
+    const mountAnswers = (props = {}, options = {}) =>
+      mountBar({ helloBack: true, firstOwn: true, ...props }, options)
+
+    it('stand over the field where the thread asks for them: three, each with its words', () => {
+      mountAnswers()
+
+      expect(row().exists()).toBe(true)
+      expect(answers().map((each) => each.text())).toEqual([
+        'chatHello.backHello',
+        'chatHello.backMore',
+        'chatHello.backCall',
+      ])
+      expect(answer('hello').text()).toBe('chatHello.backHello')
+      expect(answer('more').text()).toBe('chatHello.backMore')
+      expect(answer('call').text()).toBe('chatHello.backCall')
+      // Over the field, in the bar: the row comes before the field in the page.
+      expect(
+        row().element.compareDocumentPosition(field().element) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy()
+      expect(wrapper.find('[data-test="chat-compose"]').element.contains(row().element)).toBe(true)
+    })
+
+    it('are a group with a name for the ear, and plain buttons that submit no form', () => {
+      mountAnswers()
+
+      expect(row().attributes('role')).toBe('group')
+      expect(row().attributes('aria-label')).toBe('chatHello.backLabel')
+      for (const each of answers()) {
+        expect(each.attributes('type')).toBe('button')
+        expect(each.attributes('aria-disabled')).toBe('false')
+      }
+    })
+
+    it.each([
+      ['nowhere unless the thread asks', {}],
+      ['not in a group', { helloBack: true, group: true, canAnnounce: true, announceTo: 3 }],
+      [
+        'not beside a message being changed',
+        { helloBack: true, editing: { messageUuid: 'uuid-2', body: 'Vorher', hasImage: false } },
+      ],
+    ])('stand %s', (_, props) => {
+      mountBar(props)
+      expect(row().exists()).toBe(false)
+    })
+
+    it('send their words at once, with the mail the ticked box asks for', async () => {
+      mountAnswers()
+
+      await answer('hello').trigger('click')
+
+      expect(sent()).toEqual([[{ body: 'chatHello.backHello', notify: 'EMAIL', image: null }]])
+    })
+
+    it.each([
+      ['more', 'chatHello.backMore'],
+      ['call', 'chatHello.backCall'],
+    ])('send the words of the one that was tapped (%s)', async (which, words) => {
+      mountAnswers()
+      await answer(which).trigger('click')
+      expect(sent()).toEqual([[{ body: words, notify: 'EMAIL', image: null }]])
+    })
+
+    it('send without a mail where the member unticked the box', async () => {
+      mountAnswers()
+      await box().setValue(false)
+
+      await answer('hello').trigger('click')
+
+      expect(sent()).toEqual([[{ body: 'chatHello.backHello', notify: 'NONE', image: null }]])
+    })
+
+    it('send without a mail where the box was never ticked', async () => {
+      mountAnswers({ firstOwn: false })
+      await answer('hello').trigger('click')
+      expect(sent()).toEqual([[{ body: 'chatHello.backHello', notify: 'NONE', image: null }]])
+    })
+
+    // The member took up one message to answer (E-064) and then taps a short answer: it is the
+    // answer to that message, as the arrow's would be.
+    it('go as the answer to a message where one is taken up', async () => {
+      const taken = {
+        messageUuid: 'uuid-1',
+        name: 'Lena',
+        mine: false,
+        body: 'Hallo',
+        hasImage: false,
+      }
+      mountAnswers({ replying: taken })
+
+      await answer('hello').trigger('click')
+
+      expect(sent()).toHaveLength(1)
+      expect(sent()[0][0]).toEqual({
+        body: 'chatHello.backHello',
+        notify: 'EMAIL',
+        image: null,
+        reply: taken,
+      })
+    })
+
+    it('leave what is typed in the field, before and after the answer went through', async () => {
+      mountAnswers()
+      await field().setValue('Ich schreibe gerade etwas Längeres')
+
+      await answer('hello').trigger('click')
+      expect(sent()).toEqual([[{ body: 'chatHello.backHello', notify: 'EMAIL', image: null }]])
+      expect(field().element.value).toBe('Ich schreibe gerade etwas Längeres')
+
+      await onItsWay()
+      await goesThrough()
+      expect(field().element.value).toBe('Ich schreibe gerade etwas Längeres')
+      expect(wrapper.vm.draft()).toBe('Ich schreibe gerade etwas Längeres')
+    })
+
+    // E-024: the wish is for one message -- the one that went out.
+    it('empty the box once the answer went through', async () => {
+      mountAnswers()
+      await answer('hello').trigger('click')
+      await onItsWay()
+      await goesThrough()
+
+      expect(box().element.checked).toBe(false)
+    })
+
+    it('keep the box and the words where the answer did not go through, and can be tapped again', async () => {
+      mountAnswers()
+      await field().setValue('Getippt')
+      await answer('hello').trigger('click')
+      await onItsWay()
+      await wrapper.setProps({ sending: false, failed: true })
+      await flushPromises()
+
+      expect(box().element.checked).toBe(true)
+      expect(field().element.value).toBe('Getippt')
+      expect(wrapper.find('[data-test="chat-compose-failed"]').exists()).toBe(true)
+
+      await answer('more').trigger('click')
+      expect(sent()).toHaveLength(2)
+      expect(sent()[1][0]).toEqual({ body: 'chatHello.backMore', notify: 'EMAIL', image: null })
+    })
+
+    it('wait while a message is on its way: marked, and a tap sends nothing', async () => {
+      mountAnswers()
+      await answer('hello').trigger('click')
+      await onItsWay()
+
+      for (const each of answers()) expect(each.attributes('aria-disabled')).toBe('true')
+      await answer('more').trigger('click')
+      await answer('hello').trigger('click')
+      expect(sent()).toHaveLength(1)
+    })
+
+    it("wait as well while the arrow's own message is on its way", async () => {
+      mountAnswers()
+      await field().setValue('Mit dem Pfeil')
+      await button().trigger('click')
+      await onItsWay()
+
+      await answer('hello').trigger('click')
+
+      expect(sent()).toEqual([[{ body: 'Mit dem Pfeil', notify: 'EMAIL', image: null }]])
+    })
+
+    // The arrow's message went through while a short answer was never pressed: the field is the
+    // arrow's to empty, as always.
+    it('do not get in the way of the arrow: its message empties the field as always', async () => {
+      mountAnswers()
+      await field().setValue('Mit dem Pfeil')
+      await button().trigger('click')
+      await onItsWay()
+      await goesThrough()
+
+      expect(field().element.value).toBe('')
+    })
+
+    // A press on a button of the bar must not take the keyboard of a phone away from the field.
+    it('do not take the focus from the field when pressed with a finger or the mouse', async () => {
+      mountAnswers()
+      const down = new MouseEvent('mousedown', { bubbles: true, cancelable: true })
+      answer('hello').element.dispatchEvent(down)
+      expect(down.defaultPrevented).toBe(true)
+    })
+
+    // With the member's first message the buttons go. Where one of them held the focus -- it was
+    // pressed with the keyboard --, the focus goes into the field instead of nowhere.
+    it('hand the focus to the field where the pressed one held it and goes', async () => {
+      mountAnswers({}, { attachTo: document.body })
+      answer('hello').element.focus()
+      expect(document.activeElement).toBe(answer('hello').element)
+
+      await answer('hello').trigger('click')
+      await onItsWay()
+      // The thread holds the member's message now: no answers any more, no first message.
+      await wrapper.setProps({ sending: false, helloBack: false, firstOwn: false })
+      await flushPromises()
+
+      expect(row().exists()).toBe(false)
+      expect(document.activeElement).toBe(field().element)
+    })
+
+    // After a tap the focus was never on the button: putting it into the field would open the
+    // keyboard of a phone unasked.
+    it('leave the focus alone where the pressed one never held it', async () => {
+      mountAnswers({}, { attachTo: document.body })
+      expect(document.activeElement).not.toBe(field().element)
+
+      await answer('hello').trigger('click')
+      await onItsWay()
+      await wrapper.setProps({ sending: false, helloBack: false, firstOwn: false })
+      await flushPromises()
+
+      expect(document.activeElement).not.toBe(field().element)
+    })
+
+    it('leave the focus where it is when the answer did not go through', async () => {
+      mountAnswers({}, { attachTo: document.body })
+      answer('hello').element.focus()
+      await answer('hello').trigger('click')
+      await onItsWay()
+      await wrapper.setProps({ sending: false, failed: true })
+      await flushPromises()
+
+      expect(document.activeElement).toBe(answer('hello').element)
+    })
+
+    describe('in the stylesheet', () => {
+      const here = dirname(fileURLToPath(import.meta.url))
+      const code = readFileSync(join(here, 'ChatComposeBar.vue'), 'utf8')
+        .split('<style')[1]
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+      const rule = (selector) =>
+        code.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1]?.replace(/\s+/g, ' ') ?? ''
+
+      it('take the next line where they do not fit side by side', () => {
+        const all = rule('\\.chat-compose-hello-back')
+        expect(all).toMatch(/display: flex;/)
+        expect(all).toMatch(/flex-wrap: wrap;/)
+      })
+
+      it('are as high as a finger needs, and wrap their words rather than leave the window', () => {
+        const one = rule('\\.chat-compose-hello-back-answer')
+        expect(one).toMatch(/min-height: 2\.5rem;/)
+        expect(one).toMatch(/max-width: 100%;/)
+        expect(one).not.toMatch(/white-space/)
+      })
+
+      it('show that they wait, and where the keyboard is', () => {
+        expect(rule("\\.chat-compose-hello-back-answer\\[aria-disabled='true'\\]")).toMatch(
+          /opacity: 0\.45;/,
+        )
+        expect(rule('\\.chat-compose-hello-back-answer:focus-visible')).toMatch(
+          /outline: 2px solid/,
+        )
+      })
+    })
+  })
+
+  /**
    * The words not sent yet, across a restart of the wallet (utils/chatReturn): the thread reads
    * them from the bar when the page goes out of sight, and hands them back when it is made anew.
    */

@@ -308,6 +308,15 @@ describe('ChatThread in a group', () => {
     expect(box.element.checked).toBe(false)
   })
 
+  // E-069 is about a conversation between two as well: no short answers over a group's field.
+  it('never offers the three short answers', async () => {
+    mountThread({ role: 'MEMBER' })
+    await arrive(page([message(1, { writer: 'anna' }), message(3, { writer: 'carla' })]))
+
+    expect(bar().props('helloBack')).toBe(false)
+    expect(wrapper.find('[data-test="chat-compose-hello-back"]').exists()).toBe(false)
+  })
+
   it('names the thread after the group, for the ear', async () => {
     mountThread()
     await arrive(page([message(1)]))
