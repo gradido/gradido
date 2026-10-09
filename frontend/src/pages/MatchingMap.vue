@@ -947,10 +947,15 @@ async function showAsked() {
   visitView = false
   drawShown()
   const person = askedPerson.value
-  if (!person || !enabled.value) return
+  if (!person || !enabled.value) {
+    // The visit is over where the address names nobody any more (the page stays while its
+    // address changes): the map stood in place of a kept list for that visit only.
+    listBackAfterVisit()
+    return
+  }
   // The map itself, also for a member who keeps the list: they asked to see a place. Not
-  // written down -- the list stays their standing choice, and where no map can be drawn at all
-  // they get it back (listBackWithoutMap).
+  // written down -- the list stays their standing choice, and where the visit ends or no map
+  // can be drawn at all they get it back (listBackAfterVisit).
   if (mode.value !== 'karte' && !noWebgl.value) {
     mode.value = 'karte'
     mapForVisit = true
@@ -988,10 +993,11 @@ async function showAsked() {
   centreOnShown()
 }
 
-// Where no map can be drawn -- no WebGL 2, or the engine did not arrive -- there is nobody to
-// show on one. A member who keeps the list gets the list back, instead of an empty frame in its
-// place.
-function listBackWithoutMap() {
+// The map stood in place of the list for one visit (showAsked). Where that visit is over -- the
+// address names nobody any more -- or no map can be drawn for it -- no WebGL 2, or the engine did
+// not arrive --, a member who keeps the list gets the list back, instead of a map they did not
+// choose or an empty frame in its place.
+function listBackAfterVisit() {
   if (!mapForVisit) return
   mapForVisit = false
   mode.value = readMode()
@@ -1845,7 +1851,7 @@ function initMap() {
     (engine) => buildMap(engine.createMap),
     // The engine did not arrive - a dropped connection, or a deploy since the page was loaded
     // renamed its file. There is no map then; the list shows the same matches.
-    () => listBackWithoutMap(),
+    () => listBackAfterVisit(),
   )
 }
 
@@ -1865,7 +1871,7 @@ function buildMap(createMap) {
   // working, every draw below asks for `map` first, and a line under the map says why.
   if (!built.success) {
     noWebgl.value = true
-    listBackWithoutMap()
+    listBackAfterVisit()
     return
   }
   map = built.value

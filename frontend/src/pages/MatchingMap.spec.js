@@ -2460,6 +2460,65 @@ describe('MatchingMap, asked to show somebody', () => {
       expect(created).toHaveLength(0)
       expect(page.findComponent({ name: 'MatchList' }).exists()).toBe(true)
     })
+
+    // coderabbit, PR #4115: the page stays while its address changes. Where the address names
+    // nobody any more the visit is over, and the map stood in place of the list for it only.
+    it('gets the list back when the address names nobody any more', async () => {
+      remember('mode', 'liste')
+      const page = await arrive()
+      expect(page.find('.map-shell').classes()).not.toContain('is-list')
+
+      route.current.query = {}
+      await flushPromises()
+
+      expect(marker(page).exists()).toBe(false)
+      expect(page.findComponent({ name: 'MatchList' }).exists()).toBe(true)
+      expect(page.find('.map-shell').classes()).toContain('is-list')
+      expect(remembered('mode')).toBe('liste')
+    })
+
+    // The visit goes on where the address comes to name somebody else: still the map.
+    it('keeps the map where the address comes to name somebody else', async () => {
+      remember('mode', 'liste')
+      const page = await arrive()
+
+      route.current.query = IRA
+      await flushPromises()
+
+      expect(marker(page).find('.gk-shown-name').text()).toBe('Ira-Erste')
+      expect(page.find('.map-shell').classes()).not.toContain('is-list')
+      expect(page.findComponent({ name: 'MatchList' }).exists()).toBe(false)
+      expect(remembered('mode')).toBe('liste')
+    })
+
+    // What they chose during the visit is their word, also after it: a look is no choice of the
+    // map (the list is back), and "Liste" pressed there needs nothing given back.
+    it('gets the list back after picking a look during the visit', async () => {
+      remember('mode', 'liste')
+      const page = await arrive()
+      await page.findAll('.look-group .look-btn')[2].trigger('click')
+
+      route.current.query = {}
+      await flushPromises()
+
+      expect(page.findComponent({ name: 'MatchList' }).exists()).toBe(true)
+      expect(remembered('mode')).toBe('liste')
+      expect(remembered('look')).toBe('hell')
+    })
+  })
+
+  // The control to the list coming back: a member who keeps the map stays on it when the address
+  // names nobody any more -- nothing was put in place of anything for them.
+  it('leaves a member who keeps the map on it when the address names nobody any more', async () => {
+    const page = await arrive()
+    expect(page.find('.map-shell').classes()).not.toContain('is-list')
+
+    route.current.query = {}
+    await flushPromises()
+
+    expect(marker(page).exists()).toBe(false)
+    expect(page.find('.map-shell').classes()).not.toContain('is-list')
+    expect(page.findComponent({ name: 'MatchList' }).exists()).toBe(false)
   })
 
   // The other half of "no map": a member who keeps the map is told why it stays empty, as on any
