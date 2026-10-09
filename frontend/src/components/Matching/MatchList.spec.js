@@ -272,6 +272,29 @@ describe('MatchList', () => {
     expect(wrapper.emitted('open')).toBeUndefined()
   })
 
+  // Measured in the built wallet (09.10.2026): the name Chrome computes for a line is its text
+  // run together, and the dot between name and community is drawn, not text -- a screen reader
+  // was handed "SofiaGradido Künzelsau". A comma for the ear, in every line; the eye keeps its dot.
+  it("says a member's name and their community apart, in a match's line and in a quiet one", () => {
+    const wrapper = mountList({ matches: [matchItem()], silent: [silentPerson()] })
+
+    expect(wrapper.find('.row-match .row-head').element.textContent).toBe(
+      'Sofia, Gradido Künzelsau',
+    )
+    expect(wrapper.find('.row-silent .row-head').element.textContent).toBe('Paul, Gradido Hamburg')
+    for (const dot of wrapper.findAll('.row-sep')) {
+      expect(dot.attributes('aria-hidden')).toBe('true')
+      expect(dot.text()).toBe('')
+    }
+  })
+
+  // No comma dangling behind a name that stands alone.
+  it('says no comma after a quiet person the GMS names without a community', () => {
+    const wrapper = mountList({ silent: [silentPerson({ uuid: null, community: null })] })
+
+    expect(wrapper.find('.row-silent .row-head').element.textContent).toBe('Paul')
+  })
+
   it('emits the chosen sort', () => {
     const wrapper = mountList({ matches: [matchItem()] })
     wrapper.findComponent(THEMED_SELECT_STUB).vm.$emit('change', 'breite')

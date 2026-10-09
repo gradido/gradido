@@ -145,6 +145,7 @@
             <span class="row-body">
               <span class="row-head">
                 <span class="row-name">{{ item.match.name }}</span>
+                <span class="sr-only">{{ PAUSE }}</span>
                 <span class="row-sep" aria-hidden="true" />
                 <span class="row-community">{{ item.match.community.name }}</span>
               </span>
@@ -181,6 +182,7 @@
               <span class="row-head">
                 <span class="row-name">{{ person.name }}</span>
                 <template v-if="person.community">
+                  <span class="sr-only">{{ PAUSE }}</span>
                   <span class="row-sep" aria-hidden="true" />
                   <span class="row-community">{{ person.community.name }}</span>
                 </template>
@@ -255,7 +257,9 @@ const emit = defineEmits(['open', 'openContact', 'sort', 'lens', 'recenter'])
 const { t, locale } = useI18n()
 
 // A comma for the ear, between two parts of a line that the eye sees a dot between (the dot is
-// CSS, and hidden from a screen reader). A sign, not a word: the same in every language.
+// CSS, and hidden from a screen reader). A sign, not a word: the same in every language. In
+// every line of the list: without it a screen reader was handed "Gaston-TischKI Playground"
+// (measured in the built wallet, the name Chrome computes for the line).
 const PAUSE = ', '
 
 /** What the search took hold of: the reach, the circle where it is wide, the place. */
