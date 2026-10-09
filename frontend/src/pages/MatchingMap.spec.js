@@ -2809,6 +2809,32 @@ describe('MatchingMap, asked to show somebody', () => {
       expect(crosshair(page).style.pointerEvents).toBe('auto')
     })
 
+    // Told when the person is shown, not only by the next move of the map: where the member moved
+    // the search while the answer was on its way, the answer moves nothing -- and the map may
+    // rest on the very spot the ring is then drawn at.
+    it('steps back at once where the ring is drawn under a map that rests there', async () => {
+      const answer = held()
+      profile.mockReturnValue(answer.promise)
+      const page = await arrive()
+      await page.findComponent(GeoSearchField).vm.$emit('pick', {
+        lat: 50.0874654,
+        lng: 14.4212535,
+        label: 'Prag',
+      })
+      await flushPromises()
+      theMap().jumpTo({ center: [HAMBURG.lng, HAMBURG.lat], zoom: 11 })
+      await page.vm.$nextTick()
+      expect(crosshair(page).style.opacity).toBe('1')
+
+      answer.resolve(published())
+      await flushPromises()
+
+      expect(marker(page).exists()).toBe(true)
+      expect(centre()).toEqual(HAMBURG)
+      expect(crosshair(page).style.opacity).toBe('0')
+      expect(crosshair(page).style.pointerEvents).toBe('none')
+    })
+
     it('comes back once the map has moved off them', async () => {
       const page = await arrive()
       theMap().jumpTo({ center: [BERLIN.lng, BERLIN.lat], zoom: 11 })
