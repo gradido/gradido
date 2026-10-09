@@ -1629,6 +1629,9 @@ function drawOwn() {
     size: [34, 34],
     anchor: [17, 17.5],
     interactive: false,
+    // It opens nothing, so it is no button and no tab stop: a keyboard would halt on it and a
+    // screen reader would say "button" with no name. The way home is the button in the corner.
+    focusable: false,
     zIndex: 500,
   })
 }
@@ -1649,6 +1652,8 @@ function drawCentre() {
     size: [40, 40],
     anchor: [20, 20],
     interactive: false,
+    // No button and no tab stop either, as the house is none.
+    focusable: false,
     zIndex: 400,
   })
 }

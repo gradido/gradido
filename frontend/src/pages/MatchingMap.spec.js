@@ -1708,6 +1708,35 @@ describe('MatchingMap', () => {
       expect(page.find('.maplibregl-marker.gk-clickable .gk-hit').exists()).toBe(true)
     })
 
+    // The house and the search centre open nothing, and a match is in the list: a keyboard halts
+    // on none of them, and a screen reader is told of no button without a name. (A marker that IS
+    // one carries both -- the ring of somebody shown, under "with the keyboard" below.)
+    it('makes no tab stop and no button of the house, the search centre or a match', async () => {
+      const page = await openMapLibre({ look: 'hell', people: [anna] })
+
+      const marks = page.findAll('.maplibregl-marker')
+      expect(marks).toHaveLength(3)
+      for (const mark of marks) {
+        expect(mark.attributes('tabindex')).toBeUndefined()
+        expect(mark.attributes('role')).toBeUndefined()
+      }
+    })
+
+    // Drawn anew where the search moves, the centre is the same quiet disc.
+    it('keeps the search centre no tab stop where the search moves', async () => {
+      const page = await openMapLibre({ look: 'hell', people: [anna] })
+      const first = page.find('.gk-centre').element.closest('.maplibregl-marker')
+
+      library().jumpTo({ center: [13.4, 52.5], zoom: 11 })
+      await page.find('.map-crosshair').trigger('click')
+      await flushPromises()
+
+      const centre = page.find('.gk-centre').element.closest('.maplibregl-marker')
+      expect(centre).not.toBe(first)
+      expect(centre.hasAttribute('tabindex')).toBe(false)
+      expect(centre.hasAttribute('role')).toBe(false)
+    })
+
     it('veils the world outside the search circle, in the look of the map', async () => {
       await openMapLibre({ look: 'normal' })
 
