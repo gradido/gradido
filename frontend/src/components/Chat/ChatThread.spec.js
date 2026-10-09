@@ -4037,13 +4037,24 @@ describe('ChatThread', () => {
         mountThread()
         await arrive(pageWith([message(11), answer(12, 5)], { hasMore: true }))
         const gate = deferred()
-        server.gate = gate.promise
-        server.olderPages.push(page([5, 6, 7, 8, 9, 10]))
+        const older = page([5, 6, 7, 8, 9, 10])
+        // As Apollo's `fetchMore` does it, measured in the probe (see the thread): the call
+        // returns BEFORE the merged page is written.
+        server.fetchMore.mockImplementationOnce(async ({ updateQuery }) => {
+          await gate.promise
+          setTimeout(() => {
+            server.result.value = updateQuery(server.result.value, {
+              fetchMoreResult: { chatMessagesWithMember: older },
+            })
+          }, 0)
+          return { data: { chatMessagesWithMember: older } }
+        })
 
         await quoteOf(12).trigger('click')
         await flushPromises()
         await write('Zwischendurch')
         gate.resolve()
+        await new Promise((resolve) => setTimeout(resolve, 20))
         await flushPromises()
 
         expect(server.fetchMore).toHaveBeenCalledTimes(1)
