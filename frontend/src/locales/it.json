@@ -938,6 +938,7 @@
       "centeredOn": "Intorno a {place}",
       "centeredOnFern": "Sovraregionale · {km} km intorno a {place}",
       "centeredOnFernNoPlace": "Sovraregionale · {km} km",
+      "contactHeading": "Il tuo contatto",
       "controlsHeading": "Ricerca e ordinamento",
       "dir": {
         "e": "a est",
@@ -950,6 +951,7 @@
         "w": "a ovest"
       },
       "empty": "Qui al momento non c'è nessuno. Allarga il raggio o cerca in un altro posto.",
+      "fromHome": "da casa tua",
       "heading": "Persone vicino a te",
       "kmEtwa": "circa {n} km",
       "kmExact": "{n} km",

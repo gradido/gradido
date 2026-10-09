@@ -938,6 +938,7 @@
       "centeredOn": "Alrededor de {place}",
       "centeredOnFern": "Suprarregional · {km} km alrededor de {place}",
       "centeredOnFernNoPlace": "Suprarregional · {km} km",
+      "contactHeading": "Tu contacto",
       "controlsHeading": "Búsqueda y orden",
       "dir": {
         "e": "al este",
@@ -950,6 +951,7 @@
         "w": "al oeste"
       },
       "empty": "Ahora mismo no hay nadie aquí. Amplía el radio o busca en otro lugar.",
+      "fromHome": "desde tu casa",
       "heading": "Personas cerca de ti",
       "kmEtwa": "unos {n} km",
       "kmExact": "{n} km",

@@ -938,6 +938,7 @@
       "centeredOn": "{place} çevresinde",
       "centeredOnFern": "Bölge üstü · {place} çevresinde {km} km",
       "centeredOnFernNoPlace": "Bölge üstü · {km} km",
+      "contactHeading": "Kişin",
       "controlsHeading": "Arama ve sıralama",
       "dir": {
         "e": "doğuda",
@@ -950,6 +951,7 @@
         "w": "batıda"
       },
       "empty": "Şu anda burada kimse yok. Yarıçapı büyüt ya da başka bir yer ara.",
+      "fromHome": "evinden",
       "heading": "Yakınındaki insanlar",
       "kmEtwa": "yaklaşık {n} km",
       "kmExact": "{n} km",

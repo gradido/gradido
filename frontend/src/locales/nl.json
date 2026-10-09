@@ -938,6 +938,7 @@
       "centeredOn": "Rondom {place}",
       "centeredOnFern": "Bovenregionaal · {km} km rondom {place}",
       "centeredOnFernNoPlace": "Bovenregionaal · {km} km",
+      "contactHeading": "Jouw contact",
       "controlsHeading": "Zoeken en sorteren",
       "dir": {
         "e": "ten oosten",
@@ -950,6 +951,7 @@
         "w": "ten westen"
       },
       "empty": "Hier is op dit moment niemand. Vergroot de straal of zoek een andere plek.",
+      "fromHome": "vanaf je huis",
       "heading": "Mensen bij jou in de buurt",
       "kmEtwa": "ongeveer {n} km",
       "kmExact": "{n} km",

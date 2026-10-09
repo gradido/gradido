@@ -938,6 +938,7 @@
       "centeredOn": "À volta de {place}",
       "centeredOnFern": "Supra-regional · {km} km à volta de {place}",
       "centeredOnFernNoPlace": "Supra-regional · {km} km",
+      "contactHeading": "O teu contacto",
       "controlsHeading": "Pesquisa e ordenação",
       "dir": {
         "e": "a este",
@@ -950,6 +951,7 @@
         "w": "a oeste"
       },
       "empty": "Neste momento não está aqui ninguém. Aumenta o raio ou procura noutro sítio.",
+      "fromHome": "a partir da tua casa",
       "heading": "Pessoas perto de ti",
       "kmEtwa": "cerca de {n} km",
       "kmExact": "{n} km",

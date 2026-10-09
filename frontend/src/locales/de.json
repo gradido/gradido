@@ -938,6 +938,7 @@
       "centeredOn": "Umkreis um {place}",
       "centeredOnFern": "Überregional · {km} km um {place}",
       "centeredOnFernNoPlace": "Überregional · {km} km",
+      "contactHeading": "Dein Kontakt",
       "controlsHeading": "Suche und Sortierung",
       "dir": {
         "e": "östlich",
@@ -950,6 +951,7 @@
         "w": "westlich"
       },
       "empty": "Hier ist gerade niemand. Vergrößere den Radius oder such einen anderen Ort.",
+      "fromHome": "von Deinem Zuhause aus",
       "heading": "Menschen in Deiner Nähe",
       "kmEtwa": "etwa {n} km",
       "kmExact": "{n} km",

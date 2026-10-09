@@ -938,6 +938,7 @@
       "centeredOn": "Centred on {place}",
       "centeredOnFern": "Supra-regional · {km} km around {place}",
       "centeredOnFernNoPlace": "Supra-regional · {km} km",
+      "contactHeading": "Your contact",
       "controlsHeading": "Search and sort",
       "dir": {
         "e": "east",
@@ -950,6 +951,7 @@
         "w": "west"
       },
       "empty": "No one here right now. Widen the radius or search another place.",
+      "fromHome": "from your home",
       "heading": "People near you",
       "kmEtwa": "about {n} km",
       "kmExact": "{n} km",
