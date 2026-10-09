@@ -97,9 +97,10 @@
          (utils/chatHelloText), and the arrow sends them -- the first chat message of the two,
          which goes by mail and makes them contacts (E-024, KF-012). It took the place of "send
          an e-mail", which led to the send form's letter: the bar is the same thing, and the
-         answer to it arrives in a conversation. The bar stands from the first moment, so the
-         window does not grow under a finger once the server has said who this is; its arrow
-         waits for that answer (`helloWaits`).
+         answer to it arrives in a conversation. The bar has its place from the first moment, so
+         the window does not grow under a finger once the server has said who this is -- and
+         until then it shows nothing (`helloAsking`): no first word for somebody who may turn out
+         to be a contact, and nothing typed that the answer would take away.
 
          Afterwards the same place says what became of it, in the server's own words (E-034).
          Somebody who is a contact already gets the way into their conversation instead: writing
@@ -113,6 +114,7 @@
           v-if="helloOffered"
           :key="helloKey"
           class="profile-hello"
+          :class="{ 'is-asking': helloAsking }"
           :name="match.name"
           first
           text-only
@@ -123,7 +125,7 @@
           @send="sendHello"
         />
         <p v-else-if="helloSent" class="profile-hello-sent" data-test="profile-hello-sent">
-          <i-mdi-check class="profile-hello-sent-icon" aria-hidden="true" />
+          <i-mdi-check v-if="helloArrived" class="profile-hello-sent-icon" aria-hidden="true" />
           <span>{{ helloSentWords }}</span>
         </p>
 
@@ -324,10 +326,13 @@ const helloPerson = computed(() => {
  * The person as one string. ⛔ The window is handed a new `match` object whenever more of the
  * same person arrives (their entries, the sentences of mine they answer): what is asked and
  * shown here goes by the person, or every such arrival would ask the server again and put the
- * words back over what the member has typed.
+ * words back over what the member has typed. In lower case: what arrives later comes from
+ * another route of the GMS (the profile), and an id spelled otherwise there is the same person.
  */
 const helloKey = computed(() =>
-  helloPerson.value ? `${helloPerson.value.communityUuid}/${helloPerson.value.gradidoID}` : '',
+  helloPerson.value
+    ? `${helloPerson.value.communityUuid}/${helloPerson.value.gradidoID}`.toLowerCase()
+    : '',
 )
 
 const {
@@ -354,12 +359,21 @@ const helloOffered = computed(
     (helloStanding.value === CHAT_HELLO_ASKING || helloStanding.value === CHAT_HELLO_STRANGER),
 )
 
+/**
+ * While the server is asked, the bar keeps its place and shows nothing. The window stands in the
+ * middle of the screen: a foot that came with the answer would move the whole window under the
+ * finger. But the words are not shown on a guess either -- to somebody who turns out to be a
+ * contact they would be wrong, and what was typed into them meanwhile would go with the bar.
+ */
+const helloAsking = computed(() => helloStanding.value === CHAT_HELLO_ASKING)
+
 /** The arrow waits: for the server's answer about who this is, and while the hello is on its way. */
 const helloWaits = computed(() => helloSending.value || helloStanding.value !== CHAT_HELLO_STRANGER)
 
 /**
- * The words in the field. Read by the bar once, when it is made -- and it is made anew for
- * another person (`helloKey`), never for the same one.
+ * The words in the field. Read by the bar once, when it is made: with the window, each time it
+ * opens, and anew for another person (`helloKey`) -- not while the window stays on one person,
+ * whatever more of them arrives.
  */
 const helloWords = computed(() =>
   chatHelloText(t, {
@@ -388,6 +402,18 @@ const helloSentWords = computed(() => {
     : t('chatHello.sent')
 })
 
+/**
+ * The tick before those words: only where the hello went out. "Not delivered" and "not delivered
+ * yet" are the server's words for a copy that is stored and did not arrive (E-019) -- a green
+ * tick before them would say the opposite.
+ */
+const helloArrived = computed(
+  () =>
+    helloSent.value !== null &&
+    helloSent.value.delivery !== 'FAILED' &&
+    helloSent.value.delivery !== 'PENDING',
+)
+
 /** The way into the conversation: once the hello has gone out, and for a contact. */
 const conversationOffered = computed(
   () =>
@@ -398,13 +424,14 @@ const conversationOffered = computed(
 const conversationButton = ref(null)
 
 /**
- * The bar asks; the composable sends. Once the hello is out the bar is gone, and with it
- * whatever held the focus: it goes to the way into the conversation, so a keyboard is not left
+ * The bar asks; the composable sends. Where the bar then gives way to the way into the
+ * conversation -- the hello is out, or the server says the two are contacts by now --, whatever
+ * held the focus is gone with it: the focus goes to that button, so a keyboard is not left
  * nowhere.
  */
 async function sendHello({ body }) {
   await sendHelloWords(body)
-  if (helloSent.value === null) return
+  if (helloOffered.value || !conversationOffered.value) return
   await nextTick()
   conversationButton.value?.focus({ preventScroll: true })
 }
@@ -624,6 +651,23 @@ function toConversation() {
   border-top: 0;
 }
 
+/* While the server is asked whether the two are contacts: the place is held, nothing is shown.
+   `visibility` takes the bar from the keyboard and from a screen reader as well. */
+.profile-foot .profile-hello.is-asking {
+  visibility: hidden;
+}
+
+/* The hello is words the member sends in their own name: they should be seen whole. At 360 px,
+   the commonest width of a phone, they take six lines in five of the ten languages -- one more
+   than the bar shows before it scrolls inside. So here the field may be six lines high, where
+   the screen has the height for it (the bar's own rule: five lines of 1.4em, the padding, the
+   border). */
+@media (height >= 640px) {
+  .profile-foot .profile-hello :deep(.chat-compose-field) {
+    max-height: calc(8.4em + 0.9rem + 2px);
+  }
+}
+
 /* What became of the hello: a line in the place where the bar stood. */
 .profile-hello-sent {
   display: flex;
@@ -643,8 +687,14 @@ function toConversation() {
   color: #178d81;
 }
 
+/* ⚠️ `flex-wrap`: the two buttons keep their words on one line, and two long words do not fit
+   side by side in every language -- "Ouvrir la conversation" beside "Envoyer des Gradido" needs
+   a window of 514 px, and between 421 px and there the second button stood out of the window
+   (measured in ten languages; "send an e-mail" before it did the same in five). Where they do
+   not fit, each takes a row of its own, as under 421 px. */
 .profile-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   width: 100%;
 }

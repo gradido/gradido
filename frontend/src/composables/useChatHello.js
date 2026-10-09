@@ -51,7 +51,8 @@ export const useChatHello = (apolloClient) => {
    * is let go, and the server is asked whether the two are contacts already.
    *
    * A question that does not get through ends as "unknown": no first word is offered on a
-   * guess. It would promise a mail that a second message does not send.
+   * guess. To a contact it would be a message into a conversation the member does not see from
+   * here, under a note about a "first message" that it is not.
    *
    * @param {{ gradidoID: string, communityUuid: string } | null} person
    */
@@ -77,8 +78,17 @@ export const useChatHello = (apolloClient) => {
   }
 
   /**
-   * Sends the hello. Only to somebody the server said is no contact yet, and one at a time: a
-   * second press while the first is on its way sends nothing.
+   * Sends the hello: to somebody the server said is no contact yet, once, and not while one is
+   * on its way to them from this window as it stands. (A window shut and opened again asks the
+   * server anew -- a hello that is filed by then makes the two contacts, and no bar is shown.)
+   *
+   * ⛔ A press after an attempt that did not come back asks the server first. "Did not come
+   * back" is not "did not go": the server files the message and then waits -- for the mail, or
+   * for the other community -- and the answer can be lost on the way here (a phone put aside, a
+   * connection gone). The second press would then be a second hello and a second mail to
+   * somebody who has the first. If the two are contacts by now, nothing is sent: the bar gives
+   * way to the way into their conversation, where the first one stands. If the server cannot be
+   * asked, nothing is sent either, and the bar keeps the words.
    *
    * ⚠️ `failed` and `sending` change in one synchronous step, as the thread's do: the compose
    * bar reads "no longer sending, not failed" as "it went through" and empties its field.
@@ -90,6 +100,22 @@ export const useChatHello = (apolloClient) => {
     const mine = asked
     const to = member
     sending.value = true
+    if (failed.value) {
+      let contact = null
+      let answered = true
+      try {
+        contact = await lookUpContactRow(apolloClient, to)
+      } catch {
+        answered = false
+      }
+      if (mine !== asked) return
+      if (!answered || contact) {
+        if (contact) standing.value = CHAT_HELLO_CONTACT
+        failed.value = !contact
+        sending.value = false
+        return
+      }
+    }
     failed.value = false
     let own = null
     try {

@@ -348,5 +348,179 @@ describe('useChatHello', () => {
       )
       expect(hello.sent.value).toEqual({ mailed: true, delivery: 'DELIVERED' })
     })
+
+    /**
+     * "Did not come back" is not "did not go": the server files the message and then waits for
+     * the mail or the other community, and the answer can be lost on the way. A second press
+     * would then be a second hello, and a second mail, to somebody who has the first.
+     */
+    describe('a press after an attempt that did not come back', () => {
+      const lost = async () => {
+        throw new Error('Network error')
+      }
+      const asksFor = (apollo, n) =>
+        expect(apollo.query).toHaveBeenNthCalledWith(n, {
+          query: contactByMemberQuery,
+          variables: { ref: { gradidoID: JENS.gradidoID, communityUuid: JENS.communityUuid } },
+          fetchPolicy: 'no-cache',
+        })
+
+      it('asks the server first, about the same pair and past the cache', async () => {
+        const apollo = client({ mutate: lost })
+        const hello = useChatHello(apollo)
+        await hello.ask(JENS)
+        await hello.send('Hallo')
+        expect(apollo.query).toHaveBeenCalledTimes(1)
+
+        await hello.send('Hallo')
+
+        expect(apollo.query).toHaveBeenCalledTimes(2)
+        asksFor(apollo, 2)
+      })
+
+      it('sends again where the two are still no contacts', async () => {
+        const apollo = client({
+          mutate: vi.fn().mockImplementationOnce(lost).mockResolvedValue(copy()),
+        })
+        const hello = useChatHello(apollo)
+        await hello.ask(JENS)
+        await hello.send('Hallo')
+
+        await hello.send('Hallo')
+
+        expect(apollo.mutate).toHaveBeenCalledTimes(2)
+        expect(hello.sent.value).toEqual({ mailed: true, delivery: 'DELIVERED' })
+        expect(hello.failed.value).toBe(false)
+        expect(hello.sending.value).toBe(false)
+      })
+
+      it('sends nothing where the two are contacts by now: the first one arrived', async () => {
+        const apollo = client({
+          query: vi.fn().mockResolvedValueOnce(noContact).mockResolvedValue(aContact),
+          mutate: lost,
+        })
+        const hello = useChatHello(apollo)
+        await hello.ask(JENS)
+        await hello.send('Hallo')
+        expect(hello.failed.value).toBe(true)
+
+        await hello.send('Hallo')
+
+        expect(apollo.mutate).toHaveBeenCalledTimes(1)
+        expect(hello.standing.value).toBe(CHAT_HELLO_CONTACT)
+        expect(hello.failed.value).toBe(false)
+        expect(hello.sending.value).toBe(false)
+        // Nothing is claimed about a copy nobody saw: no "sent", no "gets an e-mail".
+        expect(hello.sent.value).toBeNull()
+      })
+
+      it('sends nothing where the server cannot be asked, and stays failed', async () => {
+        const apollo = client({
+          query: vi.fn().mockResolvedValueOnce(noContact).mockImplementation(lost),
+          mutate: lost,
+        })
+        const hello = useChatHello(apollo)
+        await hello.ask(JENS)
+        await hello.send('Hallo')
+
+        await hello.send('Hallo')
+
+        expect(apollo.mutate).toHaveBeenCalledTimes(1)
+        expect(hello.standing.value).toBe(CHAT_HELLO_STRANGER)
+        expect(hello.failed.value).toBe(true)
+        expect(hello.sending.value).toBe(false)
+
+        // And the press after that asks once more.
+        apollo.query.mockResolvedValue(noContact)
+        apollo.mutate.mockResolvedValue(copy())
+        await hello.send('Hallo')
+        expect(apollo.query).toHaveBeenCalledTimes(3)
+        expect(apollo.mutate).toHaveBeenCalledTimes(2)
+        expect(hello.sent.value).toEqual({ mailed: true, delivery: 'DELIVERED' })
+      })
+
+      it('makes the arrow wait while the server is asked, and lets no third press through', async () => {
+        const again = held()
+        const apollo = client({
+          query: vi.fn().mockResolvedValueOnce(noContact).mockReturnValue(again.promise),
+          mutate: lost,
+        })
+        const hello = useChatHello(apollo)
+        await hello.ask(JENS)
+        await hello.send('Hallo')
+
+        const second = hello.send('Hallo')
+        expect(hello.sending.value).toBe(true)
+        // Still "failed": the bar keeps its words and its line until this is known.
+        expect(hello.failed.value).toBe(true)
+        await hello.send('Hallo')
+        expect(apollo.query).toHaveBeenCalledTimes(2)
+
+        again.resolve(aContact)
+        await second
+        expect(apollo.mutate).toHaveBeenCalledTimes(1)
+      })
+
+      // As with the sending itself: "no longer sending, not failed" is read as "it went through".
+      it('never shows "no longer sending, not failed" where the server could not be asked', async () => {
+        const again = held()
+        const apollo = client({
+          query: vi.fn().mockResolvedValueOnce(noContact).mockReturnValue(again.promise),
+          mutate: lost,
+        })
+        const hello = useChatHello(apollo)
+        await hello.ask(JENS)
+        await hello.send('Hallo')
+        const second = hello.send('Hallo')
+        const seen = []
+        watch(
+          () => [hello.sending.value, hello.failed.value],
+          ([sending, failed]) => seen.push({ sending, failed }),
+          { flush: 'sync' },
+        )
+
+        again.reject(new Error('Network error'))
+        await second
+
+        expect(seen).toEqual([{ sending: false, failed: true }])
+      })
+
+      it('lets go of that answer too where the window has moved on meanwhile', async () => {
+        const again = held()
+        const apollo = client({
+          query: vi
+            .fn()
+            .mockResolvedValueOnce(noContact)
+            .mockReturnValueOnce(again.promise)
+            .mockResolvedValue(noContact),
+          mutate: lost,
+        })
+        const hello = useChatHello(apollo)
+        await hello.ask(JENS)
+        await hello.send('Hallo Jens')
+        const second = hello.send('Hallo Jens')
+
+        // The window shows Anna now -- and then the answer about Jens comes: a contact.
+        await hello.ask(ANNA)
+        again.resolve(aContact)
+        await second
+        await flushPromises()
+
+        expect(hello.standing.value).toBe(CHAT_HELLO_STRANGER)
+        expect(hello.sending.value).toBe(false)
+        expect(hello.failed.value).toBe(false)
+        expect(apollo.mutate).toHaveBeenCalledTimes(1)
+      })
+
+      it('asks nobody again before a first press', async () => {
+        const apollo = client()
+        const hello = useChatHello(apollo)
+        await hello.ask(JENS)
+        await hello.send('Hallo')
+
+        expect(apollo.query).toHaveBeenCalledTimes(1)
+        expect(apollo.mutate).toHaveBeenCalledTimes(1)
+      })
+    })
   })
 })

@@ -635,10 +635,38 @@ const grow = () => {
   box.style.height = 'auto'
   box.style.height = `${box.scrollHeight + box.offsetHeight - box.clientHeight}px`
 }
-// Words brought back after a restart: the field takes their height at once, as if typed.
+/**
+ * Words the bar begins with -- brought back after a restart, or handed in: the field takes
+ * their height at once, as if typed.
+ *
+ * ⚠️ Not where the bar stands in a window that is not shown yet. The profile window of the map
+ * has the bar in its foot from the moment it opens, and at that moment the dialog is still
+ * `display: none`: nothing has a box, every measure is zero, and the height written was zero --
+ * four lines of words in a field a sliver high (measured in the built wallet; jsdom lays
+ * nothing out, so no test of the height saw it). There the measuring waits for the field's
+ * first box, once: from then on the field is measured as it is typed in.
+ *
+ * The observer is let go BEFORE the height is written: a size changed from inside the callback,
+ * on something still observed, is what the browser reports as a loop. Written there, the height
+ * is in the first picture the window paints.
+ */
+let firstBox = null
 onMounted(() => {
-  if (text.value) grow()
+  const box = field.value
+  if (!text.value || !box) return
+  if (box.getClientRects().length > 0 || typeof ResizeObserver === 'undefined') {
+    grow()
+    return
+  }
+  firstBox = new ResizeObserver(() => {
+    if (box.getClientRects().length === 0) return
+    firstBox?.disconnect()
+    firstBox = null
+    grow()
+  })
+  firstBox.observe(box)
 })
+onBeforeUnmount(() => firstBox?.disconnect())
 
 /**
  * What stood in the bar when the changing of a message began (E-060) -- the words, the box, the

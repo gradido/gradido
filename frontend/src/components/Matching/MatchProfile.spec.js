@@ -447,6 +447,55 @@ describe('MatchProfile', () => {
       expect(bar().props('failed')).toBe(false)
     })
 
+    // The place is held, the words are not shown on a guess: to a contact they would be wrong,
+    // and what the member typed into them meanwhile would go with the bar.
+    it('holds the place of the bar and shows nothing while the server is asked', async () => {
+      const answer = held()
+      apollo.query.mockReturnValue(answer.promise)
+      mountProfile(baseMatch())
+      await wrapper.vm.$nextTick()
+
+      expect(bar().classes()).toContain('profile-hello')
+      expect(bar().classes()).toContain('is-asking')
+      const asked = bar().vm.$.uid
+
+      answer.resolve(noContact)
+      await flushPromises()
+      expect(bar().classes()).toContain('profile-hello')
+      expect(bar().classes()).not.toContain('is-asking')
+      // The same bar, now to be seen: what stood in the place is what is shown.
+      expect(bar().vm.$.uid).toBe(asked)
+    })
+
+    it('never shows the words to somebody who turns out to be a contact', async () => {
+      const answer = held()
+      apollo.query.mockReturnValue(answer.promise)
+      mountProfile(baseMatch())
+      await wrapper.vm.$nextTick()
+      expect(bar().classes()).toContain('is-asking')
+
+      answer.resolve(aContact('user-uuid-1'))
+      await flushPromises()
+
+      expect(bar().exists()).toBe(false)
+      expect(conversation().exists()).toBe(true)
+    })
+
+    it('shows the bar again, not asking, while the hello itself is on its way', async () => {
+      mountProfile(baseMatch())
+      await flushPromises()
+      const going = held()
+      apollo.mutate.mockReturnValue(going.promise)
+
+      bar().vm.$emit('send', { body: WORDS })
+      await wrapper.vm.$nextTick()
+
+      expect(bar().props('sending')).toBe(true)
+      expect(bar().classes()).not.toContain('is-asking')
+      going.resolve(copy())
+      await flushPromises()
+    })
+
     it('hands the bar the name, the first-message note and "only the text"', async () => {
       mountProfile(baseMatch())
       await flushPromises()
@@ -593,22 +642,29 @@ describe('MatchProfile', () => {
     })
 
     it.each([
-      ['a mail went out', {}, 'Gesendet. Sofia bekommt eine E-Mail.'],
-      ['no mail went out', { mailState: null }, 'Gesendet.'],
-      ['the mail was held back', { mailState: 'MUTED' }, 'Gesendet.'],
+      ['a mail went out', {}, 'Gesendet. Sofia bekommt eine E-Mail.', true],
+      ['no mail went out', { mailState: null }, 'Gesendet.', true],
+      ['the mail was held back', { mailState: 'MUTED' }, 'Gesendet.', true],
       [
         'the other community did not take it',
         { mailState: null, deliveryState: 'FAILED' },
         'Nicht zugestellt',
+        false,
       ],
       [
         'it is not known yet whether it arrived',
         { mailState: null, deliveryState: 'PENDING' },
         'Noch nicht zugestellt',
+        false,
       ],
       // Never "gets an e-mail" beside "not delivered", whatever the copy says about a mail.
-      ['a copy says both', { mailState: 'MAILED', deliveryState: 'FAILED' }, 'Nicht zugestellt'],
-    ])("says it in the server's words where %s", async (_, over, words) => {
+      [
+        'a copy says both',
+        { mailState: 'MAILED', deliveryState: 'FAILED' },
+        'Nicht zugestellt',
+        false,
+      ],
+    ])("says it in the server's words where %s", async (_, over, words, ticked) => {
       apollo.mutate.mockResolvedValue(copy(over))
       mountProfile(baseMatch())
       await flushPromises()
@@ -618,6 +674,44 @@ describe('MatchProfile', () => {
       expect(sentLine().text()).toBe(words)
       expect(forTheEar().text()).toBe(words)
       expect(conversation().exists()).toBe(true)
+      // A green tick says "it went out": never before "not delivered".
+      expect(sentLine().find('.profile-hello-sent-icon').exists()).toBe(ticked)
+    })
+
+    // The answer to the first press was lost on the way, the message was not: the second press
+    // asks the server before it sends (useChatHello), and here the bar gives way.
+    it('gives way to the conversation, the focus on it, where a second press finds the two are contacts by now', async () => {
+      apollo.mutate.mockRejectedValue(new Error('Network error'))
+      mountProfile(baseMatch(), { attachTo: document.body })
+      await flushPromises()
+      bar().vm.$emit('send', { body: WORDS, notify: 'EMAIL', image: null })
+      await flushPromises()
+      expect(bar().props('failed')).toBe(true)
+
+      apollo.query.mockResolvedValue(aContact('user-uuid-1'))
+      bar().vm.$emit('send', { body: WORDS, notify: 'EMAIL', image: null })
+      await flushPromises()
+
+      expect(apollo.mutate).toHaveBeenCalledTimes(1)
+      expect(bar().exists()).toBe(false)
+      expect(conversation().exists()).toBe(true)
+      expect(document.activeElement).toBe(conversation().element)
+      // Nothing is said about a copy nobody saw.
+      expect(sentLine().exists()).toBe(false)
+      expect(forTheEar().text()).toBe('')
+    })
+
+    it('leaves the focus where it is while the bar stays', async () => {
+      apollo.mutate.mockRejectedValue(new Error('Network error'))
+      mountProfile(baseMatch(), { attachTo: document.body })
+      await flushPromises()
+      const before = document.activeElement
+
+      bar().vm.$emit('send', { body: WORDS, notify: 'EMAIL', image: null })
+      await flushPromises()
+
+      expect(bar().exists()).toBe(true)
+      expect(document.activeElement).toBe(before)
     })
 
     it('keeps the bar, marked as failed, where the hello did not go through', async () => {
@@ -726,6 +820,26 @@ describe('MatchProfile', () => {
       expect(apollo.query).toHaveBeenCalledTimes(1)
       // The same bar, not one made anew: by the instance's own number.
       expect(bar().vm.$.uid).toBe(before)
+    })
+
+    // What arrives later comes from another route of the GMS: the same person, whatever the case
+    // of the ids there.
+    it('takes ids spelled otherwise for the same person: no new question, no new bar', async () => {
+      mountProfile(baseMatch())
+      await flushPromises()
+      const first = bar().vm.$.uid
+
+      await wrapper.setProps({
+        match: {
+          ...baseMatch(),
+          uuid: 'USER-UUID-1',
+          community: { ...baseMatch().community, uuid: 'COMMUNITY-UUID-1' },
+        },
+      })
+      await flushPromises()
+
+      expect(apollo.query).toHaveBeenCalledTimes(1)
+      expect(bar().vm.$.uid).toBe(first)
     })
 
     it('asks anew for another person and makes the bar anew, with their name in the words', async () => {
@@ -977,6 +1091,34 @@ describe('MatchProfile', () => {
         expect(own).toMatch(/padding-top: 0;/)
         expect(own).toMatch(/border-top: 0;/)
         expect(rule('\\.profile-hello')).toBe('')
+      })
+
+      // Not `display: none` (the window would grow when the answer comes) and not `opacity`
+      // (the field could still be tabbed into and typed in).
+      it('hides the bar while the server is asked, and keeps its place', () => {
+        const asking = rule('\\.profile-foot \\.profile-hello\\.is-asking')
+        expect(asking).toBe(' visibility: hidden; ')
+      })
+
+      // Two long words side by side leave the window between 421 px and where they fit (in
+      // French 514 px): where they do not fit, each takes a row.
+      it('lets the two buttons take a row each where their words do not fit side by side', () => {
+        expect(rule('\\.profile-actions')).toMatch(/flex-wrap: wrap;/)
+        expect(rule('\\.send-btn')).toMatch(/white-space: nowrap;/)
+        expect(rule('\\.send-btn')).toMatch(/flex: 1;/)
+      })
+
+      // Six lines instead of the bar's five, where the screen has the height: the bar's own rule
+      // is 5 x 1.4em + padding + border = 7em + 0.9rem + 2px.
+      it('lets the hello stand a line higher than the bar does elsewhere, on a screen with the height for it', () => {
+        const block = code.match(/@media \(height >= 640px\) \{([\s\S]*?)\n\}/)?.[1] ?? ''
+        expect(block.replace(/\s+/g, ' ')).toBe(
+          ' .profile-foot .profile-hello :deep(.chat-compose-field) { max-height: calc(8.4em + 0.9rem + 2px); }',
+        )
+        const bar = readFileSync(join(here, '../Chat/ChatComposeBar.vue'), 'utf8')
+        expect(bar).toMatch(
+          /\.chat-compose-field \{[^}]*max-height: calc\(7em \+ 0\.9rem \+ 2px\);[^}]*line-height: 1\.4;/,
+        )
       })
 
       it('keeps a button that stands alone as wide as its word, at the left', () => {

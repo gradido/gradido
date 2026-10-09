@@ -127,7 +127,10 @@ describe('the first word from the map, in ten languages', () => {
   it('writes to a stranger politely in Russian, as the whole file does', () => {
     const informal = /(?<![а-яё])(ты|тебя|тебе|тобой|твой|твоя|твоё|твои)(?![а-яё])/i
     for (const key of KEYS) expect(ru.chatHello[key], key).not.toMatch(informal)
-    expect(ru.chatHello.found).toContain('Вам')
+    // In a letter to one person, by name: Вы and Ваш with a capital.
+    expect(ru.chatHello.found).toMatch(/(?<![а-яё])Ва(м|ш)(?![а-яё])/)
+    // "На карте": "с карты" is what is said of a payment card, and the wallet has a card of thanks.
+    expect(ru.chatHello.found).toContain('на карте Gradido')
     expect(ru.chatHello.question).toMatch(/^Хотите /)
   })
 

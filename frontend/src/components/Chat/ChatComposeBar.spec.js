@@ -588,6 +588,132 @@ describe('ChatComposeBar', () => {
   })
 
   /**
+   * The words the bar begins with take their height in the field at once -- but a bar put into a
+   * window that is not shown yet has no box to measure. The profile window of the map (E-065) has
+   * the bar in its foot before the dialog is shown: in the built wallet the hello stood in a field
+   * a sliver high. jsdom lays nothing out, so what the browser would say is fed in: whether the
+   * field has a box, and how high its words are once it has one.
+   */
+  describe('the height of the words it begins with', () => {
+    const WORDS = 'Hallo Jens, ich habe Dich auf der Gradido-Karte gefunden.'
+    let boxes
+    let watches
+
+    beforeEach(() => {
+      boxes = []
+      watches = []
+      vi.spyOn(Element.prototype, 'getClientRects').mockImplementation(() => boxes)
+      Object.defineProperty(HTMLTextAreaElement.prototype, 'scrollHeight', {
+        configurable: true,
+        get: () => (boxes.length ? 104 : 0),
+      })
+      vi.stubGlobal(
+        'ResizeObserver',
+        class {
+          constructor(report) {
+            this.report = report
+            this.watched = []
+            this.disconnect = vi.fn(() => {
+              this.watched = []
+            })
+            watches.push(this)
+          }
+
+          observe(target) {
+            this.watched.push(target)
+          }
+        },
+      )
+    })
+
+    afterEach(() => {
+      delete HTMLTextAreaElement.prototype.scrollHeight
+    })
+
+    it('measures them at once where the field has a box', () => {
+      boxes = [{}]
+      mountBar({ initialText: WORDS })
+
+      expect(field().element.style.height).toBe('104px')
+      expect(watches).toHaveLength(0)
+    })
+
+    it('writes no height where the window is not shown yet, and waits for the first box', () => {
+      mountBar({ initialText: WORDS })
+
+      // Not "0px": that was the sliver.
+      expect(field().element.style.height).toBe('')
+      expect(watches).toHaveLength(1)
+      expect(watches[0].watched).toEqual([field().element])
+    })
+
+    it('takes the height of the words when the field gets its box', () => {
+      mountBar({ initialText: WORDS })
+
+      boxes = [{}]
+      watches[0].report([])
+
+      expect(field().element.style.height).toBe('104px')
+    })
+
+    it('lets go of the watch before it writes the height, and for good', () => {
+      mountBar({ initialText: WORDS })
+      const heightWhenLetGo = []
+      watches[0].disconnect.mockImplementation(() =>
+        heightWhenLetGo.push(field().element.style.height),
+      )
+
+      boxes = [{}]
+      watches[0].report([])
+
+      // A height written while the field is still watched is what a browser calls a loop.
+      expect(heightWhenLetGo).toEqual([''])
+      expect(watches).toHaveLength(1)
+    })
+
+    it('changes nothing on a report that comes while there is still no box', () => {
+      mountBar({ initialText: WORDS })
+
+      watches[0].report([])
+
+      expect(field().element.style.height).toBe('')
+      expect(watches[0].disconnect).not.toHaveBeenCalled()
+    })
+
+    it('watches nothing where the bar begins empty', () => {
+      mountBar()
+
+      expect(watches).toHaveLength(0)
+      expect(field().element.style.height).toBe('')
+    })
+
+    it('lets go of the watch when the bar goes before its window was ever shown', () => {
+      mountBar({ initialText: WORDS })
+
+      wrapper.unmount()
+
+      expect(watches[0].disconnect).toHaveBeenCalledTimes(1)
+    })
+
+    it('measures at once, as it always did, where nothing can watch', () => {
+      vi.stubGlobal('ResizeObserver', undefined)
+      mountBar({ initialText: WORDS })
+
+      expect(watches).toHaveLength(0)
+      expect(field().element.style.height).toBe('0px')
+    })
+
+    it('grows as it is typed in afterwards, watched or not', async () => {
+      mountBar({ initialText: WORDS })
+      boxes = [{}]
+
+      await field().setValue(`${WORDS}\nUnd noch etwas.`)
+
+      expect(field().element.style.height).toBe('104px')
+    })
+  })
+
+  /**
    * E-060 B1 (Bernd, 01.10.2026): a message of one's own is changed in the field it was written
    * in. The thread hands the message in (`editing`); the bar shows its text to be changed, says
    * so over the field, turns the arrow into a tick -- and gives back what stood in it before.

@@ -240,9 +240,9 @@
     "distanceKm": "Birbirimize yaklaşık {n} km uzaklıkta yaşıyoruz.",
     "distanceNear": "Birbirimize yakın yaşıyoruz.",
     "found": "Merhaba {name}, seni Gradido haritasında buldum.",
-    "question": "Sen de bana merhaba der misin?",
+    "question": "Sen de bana merhaba demek ister misin?",
     "sent": "Gönderildi.",
-    "sentMailed": "Gönderildi. {name} kişisine bir e-posta gidiyor.",
+    "sentMailed": "Gönderildi. {name} bir e-posta alacak.",
     "toConversation": "Sohbete git"
   },
   "chatSearch": {
