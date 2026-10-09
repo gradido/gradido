@@ -183,6 +183,7 @@
     "moderatorOff": "Moderator abgeben",
     "moderatorOn": "Zum Moderator machen",
     "muteOff": "Stumm — keine Ankündigungen per E-Mail aus {name}",
+    "muteOn": "Gruppe {name} stumm schalten",
     "muted": "Stumm geschaltet",
     "mutedHint": "Stumm: keine Ankündigungen per E-Mail mehr aus {name}. Neue Nachrichten siehst Du hier.",
     "name": "Name der Gruppe",
@@ -339,7 +340,7 @@
     "menuLabel": "Nachricht",
     "menuMore": "Optionen für diese Nachricht",
     "muteOff": "Stumm — keine E-Mails zu Chat-Nachrichten von {name}",
-    "muteOn": "Stummschalten",
+    "muteOn": "{name} stumm schalten",
     "mutedHint": "Stumm: keine E-Mails mehr zu Chat-Nachrichten von {name}. Neue Nachrichten siehst Du hier. Briefe über „E-Mail senden“ kommen weiter an.",
     "notMailedMuted": "Keine E-Mail — {name} hat E-Mails zu Eurem Gespräch ausgeschaltet.",
     "notReachable": "Der Gesprächsverlauf konnte nicht geladen werden.",
@@ -444,8 +445,8 @@
     "empty": "Noch keine Kontakte. Hier erscheint, wer mit Dir Gradido tauscht — oder durch Dich dazukommt.",
     "favorites": "Favoriten",
     "heart": {
-      "add": "Zu Favoriten hinzufügen",
-      "remove": "Aus Favoriten entfernen"
+      "add": "{name} zu den Favoriten hinzufügen",
+      "remove": "{name} aus den Favoriten entfernen"
     },
     "last": "zuletzt {date}",
     "matches": "Treffer",

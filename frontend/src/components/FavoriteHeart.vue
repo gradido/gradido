@@ -5,7 +5,10 @@
       variant="link"
       class="favorite-heart-button p-0 border-0"
       :class="{ 'is-favorite': favorite }"
-      :aria-label="favorite ? $t('contacts.heart.remove') : $t('contacts.heart.add')"
+      :aria-label="
+        favorite ? $t('contacts.heart.remove', { name }) : $t('contacts.heart.add', { name })
+      "
+      :title="favorite ? $t('contacts.heart.remove', { name }) : $t('contacts.heart.add', { name })"
       :aria-pressed="favorite ? 'true' : 'false'"
       :disabled="busy"
       data-test="favorite-heart"
@@ -53,6 +56,10 @@ import { memberAlias } from '@/utils/gradidoAddress'
  * contact lists, the contact window. One component, so these places cannot come to behave
  * differently -- and a heart only, never with a word beside it: the contact window, the one
  * place that had the word, puts the heart behind the name like every list (Bernd, 24.09.2026).
+ *
+ * Its name says what a tap does and to WHOM (Bernd, 09.10.2026): in a list every heart is
+ * otherwise called the same, and a screen reader reads a column of "add to favourites". The same
+ * words are its tooltip -- the heart is the one mark without a word, so a mouse gets them too.
  *
  * ★ It sits exactly where the name is a link -- the same condition (a gradidoID on the
  * counterparty) decides both, and a creation row, which has no counterparty, gets

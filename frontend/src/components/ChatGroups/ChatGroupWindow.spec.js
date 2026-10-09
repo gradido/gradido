@@ -640,7 +640,10 @@ describe('ChatGroupWindow', () => {
     it('mutes the group for the member, says so, and tells the page', async () => {
       saved.mockResolvedValue({ data: { setChatGroupMuted: true } })
       mountWindow()
-      expect(bell().attributes('aria-label')).toBe('chatThread.muteOn')
+      // Which group a tap mutes, in the group's own words (Bernd, 09.10.2026).
+      expect(bell().attributes('aria-label')).toBe(
+        'chatGroup.muteOn {"name":"Gradido-Café Berlin"}',
+      )
 
       await bell().trigger('click')
       await flushPromises()

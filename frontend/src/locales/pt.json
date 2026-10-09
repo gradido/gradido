@@ -183,6 +183,7 @@
     "moderatorOff": "Retirar o papel de moderador",
     "moderatorOn": "Tornar moderador",
     "muteOff": "Silenciado — sem anúncios por e-mail de {name}",
+    "muteOn": "Silenciar o grupo {name}",
     "muted": "Silenciado",
     "mutedHint": "Silenciado: deixas de receber anúncios por e-mail de {name}. Vês as novas mensagens aqui.",
     "name": "Nome do grupo",
@@ -339,7 +340,7 @@
     "menuLabel": "Mensagem",
     "menuMore": "Mais opções para esta mensagem",
     "muteOff": "Conversa silenciada — sem e-mails sobre as mensagens de chat de {name}",
-    "muteOn": "Silenciar",
+    "muteOn": "Silenciar {name}",
     "mutedHint": "Conversa silenciada: deixas de receber e-mails sobre as mensagens de chat de {name}. Vês as novas mensagens aqui. As cartas enviadas com «Enviar e-mail» continuam a chegar.",
     "notMailedMuted": "Sem e-mail — {name} desativou os e-mails da vossa conversa.",
     "notReachable": "Não foi possível carregar o histórico da conversa.",
@@ -444,8 +445,8 @@
     "empty": "Ainda não há contactos. Aqui aparece quem troca Gradido contigo — ou quem chega graças a ti.",
     "favorites": "Favoritos",
     "heart": {
-      "add": "Adicionar aos favoritos",
-      "remove": "Remover dos favoritos"
+      "add": "Adicionar {name} aos favoritos",
+      "remove": "Remover {name} dos favoritos"
     },
     "last": "último {date}",
     "matches": "Resultados",
