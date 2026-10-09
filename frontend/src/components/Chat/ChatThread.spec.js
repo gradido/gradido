@@ -2093,6 +2093,76 @@ describe('ChatThread', () => {
       expect(box().element.checked).toBe(false)
     })
 
+    /**
+     * A message of the member's own that came back "not delivered" is stored here and reached
+     * nobody (E-019): the next one is still the first the other one gets. A hello from the map
+     * that did not get across the border is such a message -- written once more in the
+     * conversation, it would otherwise go without the mail the first one was to bring.
+     */
+    const withOwn = (ids, n, deliveryState) => {
+      const answer = page(ids)
+      answer.messages = answer.messages.map((each) =>
+        each.id === n ? { ...each, mine: true, deliveryState } : each,
+      )
+      return answer
+    }
+
+    it("ticks the box where the member's only message was not delivered", async () => {
+      mountThread()
+      await arrive(withOwn([2], 2, 'FAILED'))
+
+      expect(bar().props('first')).toBe(false)
+      expect(bar().props('firstOwn')).toBe(true)
+      expect(box().element.checked).toBe(true)
+    })
+
+    it('ticks it as well where the other one wrote and the answer was not delivered', async () => {
+      mountThread()
+      await arrive(withOwn([1, 2, 3], 2, 'FAILED'))
+
+      expect(bar().props('firstOwn')).toBe(true)
+      expect(box().element.checked).toBe(true)
+    })
+
+    it.each([['DELIVERED'], ['PENDING'], [null]])(
+      "leaves it empty where a message of the member's own stands as %s",
+      async (deliveryState) => {
+        mountThread()
+        await arrive(withOwn([1, 2, 3], 2, deliveryState))
+
+        expect(bar().props('firstOwn')).toBe(false)
+        expect(box().element.checked).toBe(false)
+      },
+    )
+
+    it('leaves it empty where one of two messages of the member arrived', async () => {
+      mountThread()
+      const answer = withOwn([1, 2, 3, 4], 2, 'FAILED')
+      await arrive(answer)
+
+      // Message 4 is the member's too, and delivered.
+      expect(bar().props('firstOwn')).toBe(false)
+      expect(box().element.checked).toBe(false)
+    })
+
+    it('sends the next message with the wish for a mail after one that was not delivered', async () => {
+      serverSends.mockResolvedValue(
+        ownCopy(4, 'Hallo, noch einmal', { notify: 'EMAIL', mailState: 'MAILED' }),
+      )
+      mountThread()
+      await arrive(withOwn([2], 2, 'FAILED'))
+
+      await write('Hallo, noch einmal')
+
+      expect(serverSends).toHaveBeenLastCalledWith({
+        ref: TO_LENA,
+        body: 'Hallo, noch einmal',
+        notify: 'EMAIL',
+      })
+      expect(bar().props('firstOwn')).toBe(false)
+      expect(box().element.checked).toBe(false)
+    })
+
     // The box is about chat messages: a transfer the member sent is no message of theirs.
     it('does not count the transfers between the two', async () => {
       bookingsAsked.mockImplementation(async () =>

@@ -376,16 +376,22 @@ const state = computed(() => {
 /**
  * Whether the member's next message is their first in a conversation the other one began
  * (Bernd, 09.10.2026, E-066): the bar's box "also by e-mail" begins ticked for it. Between two
- * only, and only where the whole conversation is in sight -- with older pages still unread
+ * only, and only where every page of the conversation is read -- with older pages still unread
  * nobody can say that none of them holds a message of the member's own, and then the box stays
  * as it always was. The transfers between the two do not count: the box is about chat messages.
+ *
+ * A message of one's own that came back "not delivered" (E-019) does not count either: it is
+ * stored here and reached nobody, so the next one is still the first the other one gets -- a
+ * hello from the map that did not get across the border, written once more in the conversation,
+ * would otherwise go without the mail the first one was to bring. "Not delivered yet" counts:
+ * whether that one arrived is not known.
  */
 const firstOwn = computed(
   () =>
     !inGroup &&
     state.value === 'thread' &&
     !hasMore.value &&
-    !messages.value.some((message) => message.mine),
+    !messages.value.some((message) => message.mine && message.deliveryState !== 'FAILED'),
 )
 
 const at = (iso) => new Date(iso).getTime()
