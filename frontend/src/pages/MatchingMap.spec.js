@@ -11,7 +11,7 @@ import de from '@/locales/de.json'
 import MatchingMap from './MatchingMap.vue'
 import GeoSearchField from '@/components/Matching/GeoSearchField.vue'
 import { listMatchingEntries, userLocationQuery } from '@/graphql/queries'
-import { GMS_REJECTED, GMS_UNAVAILABLE } from '@/composables/useMatches'
+import { GMS_REJECTED, GMS_UNAVAILABLE, toProfile } from '@/composables/useMatches'
 import { created } from '@test/maplibreMock'
 
 // jsdom has no WebGL. MapLibre asks the canvas for a WebGL 2 context and for nothing else, and
@@ -2573,6 +2573,37 @@ describe('MatchingMap, asked to show somebody', () => {
 
       expect(toastError).toHaveBeenCalledWith('Dieser Kontakt steht gerade nicht auf der Karte.')
       expect(marker(page).exists()).toBe(false)
+    })
+
+    // What the real route makes of the GMS's answer (toProfile): somebody it names with no
+    // location at all. Read as an error it would say "could not be loaded" while the GMS
+    // answered -- and the control: the same answer with a place is marked.
+    it.each([
+      ['no location at all', {}],
+      ['a location of null', { location: null }],
+    ])('treats somebody the GMS answers with %s as not on the map', async (_, answer) => {
+      const answered = {
+        uuid: TOBIAS.with,
+        alias: 'Tobias',
+        community: { uuid: TOBIAS.community, name: 'KI Playground' },
+        entries: [],
+        ...answer,
+      }
+      profile.mockImplementation(async () => toProfile(answered))
+      const page = await arrive()
+
+      expect(toastError).toHaveBeenCalledTimes(1)
+      expect(toastError).toHaveBeenCalledWith('Dieser Kontakt steht gerade nicht auf der Karte.')
+      expect(marker(page).exists()).toBe(false)
+      page.unmount()
+
+      toastError.mockClear()
+      profile.mockImplementation(async () =>
+        toProfile({ ...answered, location: [HAMBURG.lng, HAMBURG.lat] }),
+      )
+      const again = await arrive()
+      expect(toastError).not.toHaveBeenCalled()
+      expect(marker(again).find('.gk-shown-name').text()).toBe('Tobias')
     })
   })
 

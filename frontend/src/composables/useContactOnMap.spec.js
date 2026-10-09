@@ -1,6 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { flushPromises } from '@vue/test-utils'
+import { toProfile } from '@/composables/useMatches'
 import { contactMapPair, isOneself, useContactOnMap } from './useContactOnMap'
 
 const OWN_COMMUNITY = 'cccccccc-0000-4000-8000-cccccccccccc'
@@ -163,6 +164,25 @@ describe('useContactOnMap', () => {
 
     expect(profile).toHaveBeenCalledTimes(1)
     expect(onMap.value).toBeNull()
+  })
+
+  // The same through what the real route makes of the GMS's answer (toProfile), the GMS's own
+  // `[lng, lat]` included -- and the control: the same person with a place is offered the way.
+  it.each([
+    ['no location at all', {}],
+    ['a location of null', { location: null }],
+    ['an empty location', { location: [] }],
+    ['a latitude off the globe', { location: [9.7, 91] }],
+  ])('offers no way to somebody the GMS answers with %s', async (_, answer) => {
+    const answered = { uuid: TOBIAS.gradidoID, alias: 'Tobias', entries: [], ...answer }
+    profile.mockImplementation(async () => toProfile(answered))
+    const { onMap, ask } = useContactOnMap()
+    await ask(TOBIAS)
+    expect(onMap.value).toBeNull()
+
+    profile.mockImplementation(async () => toProfile({ ...answered, location: [9.7, 49.3] }))
+    await ask(TOBIAS)
+    expect(onMap.value).toEqual(TOBIAS)
   })
 
   it('does not ask at all for a member who may not open the map', async () => {

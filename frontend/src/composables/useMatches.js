@@ -293,7 +293,11 @@ export function toProfile(person) {
     name: person.alias,
     community: person.community,
     aboutMe: person.aboutMe,
-    position: positionOf(person.location),
+    // The one read of a location that hasUsablePoint does not stand before. A person the GMS
+    // names without one is still a profile -- the window shows somebody the map has placed
+    // already, and whoever needs this point asks whether it is usable (isUsablePlace). Thrown
+    // (positionOf(null)), a GMS that answered would read as a profile that could not be loaded.
+    position: positionOf(person.location ?? []),
     precision: precisionOf(person.type),
     channels,
   }
