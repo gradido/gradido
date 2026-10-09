@@ -1538,7 +1538,8 @@ const withinMs = (promise, ms) => {
  * A press on the quotation over an answer: the thread goes to the quoted message and rings it for
  * a moment. Where the message is on an older page, the pages before the one on screen are asked
  * for until it is there -- QUOTED_MAX_PAGES at most; where it does not come, a line says so and
- * the reader stays where they are.
+ * the reader stays where they are. "There" is drawn in the thread, not only held by the page:
+ * the older transfers are asked for as well where the message waits behind them.
  *
  * ⛔ One search at a time, and its answer only for the press it belongs to: a second quotation
  * pressed while pages are on their way takes over (`seeking`), and the first gives way once its
@@ -1550,10 +1551,18 @@ const showQuoted = async (quoted) => {
   const sought = { id: quoted.id }
   seeking = sought
   const held = () => messages.value.some((message) => message.id === quoted.id)
+  // ⛔ Held is not yet on screen: between two members the thread shows nothing from before the
+  // oldest transfer it has while older transfers wait (`horizon`), and a message held from
+  // before it has no bubble to go to (coderabbit, PR #4111).
+  const drawn = () => timeline.value.some((item) => !item.transfer && item.id === quoted.id)
   // Only while the quoted message lies before the oldest one on screen: the ids are the order
   // (E-018), so one that is not on a page it should be on is on none.
   const liesBefore = () => messages.value.length > 0 && quoted.id < messages.value[0].id
-  for (let pages = 0; !held() && hasMore.value && liesBefore(); pages += 1) {
+  // What an older page can still bring: the message itself -- or, where it is held and waits
+  // behind the horizon, whatever the horizon stands at (`loadOlder` asks for that).
+  const pagesCanBringIt = () =>
+    held() ? hasMore.value || transfersHaveMore.value : hasMore.value && liesBefore()
+  for (let pages = 0; !drawn() && pagesCanBringIt(); pages += 1) {
     if (pages >= QUOTED_MAX_PAGES) break
     const landed = olderPageLanded(QUOTED_LAND_WAIT_MS)
     const asked = await withinMs(loadOlder(), QUOTED_PAGE_WAIT_MS)
@@ -1572,7 +1581,7 @@ const showQuoted = async (quoted) => {
     if (!onScreen) break
   }
   seeking = null
-  if (!held()) {
+  if (!drawn()) {
     toastError(t('chatThread.quoteNotShown'))
     return
   }

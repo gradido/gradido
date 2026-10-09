@@ -4063,6 +4063,56 @@ describe('ChatThread', () => {
         expect(rowOf(5).classes()).toContain('is-shown')
       })
 
+      /**
+       * ⛔ Between two members a message from before the oldest transfer the thread has waits
+       * until the older transfers are in: held by the page, and not drawn. A press on its
+       * quotation asks for those transfers -- and says nothing of a message shown before it is
+       * (coderabbit, PR #4111).
+       */
+      it('brings the older transfers a held message waits behind, and rings it once it is drawn', async () => {
+        bookingsAsked.mockImplementationOnce(async () =>
+          bookingsPage([booking(8, { at: '2026-09-22T10:04:30.000Z' })], 26),
+        )
+        mountThread()
+        await arrive(pageWith([message(1), message(2), { ...answer(5, 1), body: 'message 5' }]))
+        // Held, and behind the horizon: no bubble for message 1.
+        expect(rowOf(1)).toBeUndefined()
+        expect(quoteOf(5).exists()).toBe(true)
+        bookingsAsked.mockImplementationOnce(async () =>
+          bookingsPage([booking(7, { at: '2026-09-22T10:00:30.000Z' })], 26),
+        )
+
+        await quoteOf(5).trigger('click')
+        await flushPromises()
+
+        expect(bookingsAsked).toHaveBeenLastCalledWith(
+          expect.objectContaining({ variables: expect.objectContaining({ currentPage: 2 }) }),
+        )
+        expect(server.fetchMore).not.toHaveBeenCalled()
+        expect(rowOf(1).classes()).toContain('is-shown')
+        expect(status().text()).toBe('chatThread.quoteShown')
+        expect(toasts.error).toEqual([])
+      })
+
+      // Where the older transfers do not come, the message is not drawn: said so, not "shown".
+      it('says so where a held message stays behind transfers that did not come', async () => {
+        bookingsAsked.mockImplementationOnce(async () =>
+          bookingsPage([booking(8, { at: '2026-09-22T10:04:30.000Z' })], 26),
+        )
+        mountThread()
+        await arrive(pageWith([message(1), message(2), { ...answer(5, 1), body: 'message 5' }]))
+        bookingsAsked.mockImplementationOnce(async () => {
+          throw new Error('Network error')
+        })
+
+        await quoteOf(5).trigger('click')
+        await flushPromises()
+
+        expect(toasts.error).toEqual(['chatThread.quoteNotShown'])
+        expect(status().text()).toBe('')
+        expect(rows().filter((row) => row.classes().includes('is-shown'))).toHaveLength(0)
+      })
+
       it('says so where the quoted message is on no page', async () => {
         mountThread()
         await arrive(pageWith([message(11), answer(12, 5)], { hasMore: true }))
