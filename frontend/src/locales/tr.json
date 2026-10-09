@@ -245,6 +245,7 @@
     "distanceNear": "Birbirimize yakın yaşıyoruz.",
     "found": "Merhaba {name}, seni Gradido haritasında buldum.",
     "question": "Sen de bana merhaba demek ister misin?",
+    "say": "Merhaba de:",
     "sent": "Gönderildi.",
     "sentMailed": "Gönderildi. {name} bir e-posta alacak.",
     "toConversation": "Sohbete git"

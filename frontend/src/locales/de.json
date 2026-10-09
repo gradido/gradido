@@ -245,6 +245,7 @@
     "distanceNear": "Wir wohnen nicht weit voneinander.",
     "found": "Hallo {name}, ich habe Dich auf der Gradido-Karte gefunden.",
     "question": "Magst Du Hallo zurücksagen?",
+    "say": "Hallo sagen:",
     "sent": "Gesendet.",
     "sentMailed": "Gesendet. {name} bekommt eine E-Mail.",
     "toConversation": "Zum Gespräch"

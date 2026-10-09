@@ -33,6 +33,8 @@ const KEYS = [
   'sent',
   'sentMailed',
   'toConversation',
+  // "Hallo sagen:" over the words in the profile window (E-070).
+  'say',
   // The three short answers to a first word, and their name for the ear (E-069).
   'backHello',
   'backMore',
@@ -59,7 +61,7 @@ describe('the first word from the map, in ten languages', () => {
     expect(LANGUAGES).toHaveLength(10)
   })
 
-  it.each(LANGUAGES)('%s has the eleven texts, and nothing else under the name', (language) => {
+  it.each(LANGUAGES)('%s has the twelve texts, and nothing else under the name', (language) => {
     const texts = LOCALES[language].chatHello
     expect(Object.keys(texts).sort()).toEqual([...KEYS].sort())
     for (const key of KEYS) expect(texts[key].trim(), key).not.toBe('')
@@ -77,6 +79,7 @@ describe('the first word from the map, in ten languages', () => {
         'question',
         'sent',
         'toConversation',
+        'say',
         ...ANSWERS,
         'backLabel',
       ]) {
@@ -121,6 +124,20 @@ describe('the first word from the map, in ten languages', () => {
     expect(hello(language)).toContain('9')
     expect(hello(language, { distance: { near: true } })).not.toMatch(/\d/)
     expect(hello(language, { distance: null })).not.toMatch(/\d/)
+  })
+
+  it('heads the words with "Hallo sagen:" in German, as Bernd worded it', () => {
+    expect(de.chatHello.say).toBe('Hallo sagen:')
+  })
+
+  // A heading over the field: short, on one line, with the colon as the language writes it --
+  // French sets a space before it.
+  it.each(LANGUAGES)('%s heads the words with a short label that ends in a colon', (language) => {
+    const say = LOCALES[language].chatHello.say
+    expect(say).toBe(say.trim())
+    expect(say.length).toBeLessThanOrEqual(20)
+    expect(say).toMatch(language === 'fr' ? /\S :$/ : /\S:$/)
+    expect(say.slice(0, -1)).not.toMatch(/[.:!?;¿¡]/)
   })
 
   it("offers Bernd's three answers, word for word, in German", () => {

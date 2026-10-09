@@ -95,7 +95,10 @@
          A first word, right here (Bernd, 09.10.2026, E-065): for somebody who is no contact yet
          the chat's own compose bar stands in the foot, the words already in its field
          (utils/chatHelloText), and the arrow sends them -- the first chat message of the two,
-         which goes by mail and makes them contacts (E-024, KF-012). It took the place of "send
+         which goes by mail and makes them contacts (E-024, KF-012). "Hallo sagen:" stands over
+         the words, and the field is drawn as the member's own message is in a conversation --
+         gold rim, light gold ground (Bernd after trying it, E-070). The bar's own sentence about
+         the first mail is left out here: the line below says afterwards that one went out. It took the place of "send
          an e-mail", which led to the send form's letter: the bar is the same thing, and the
          answer to it arrives in a conversation. The bar has its place from the first moment, so
          the window does not grow under a finger once the server has said who this is -- and
@@ -110,20 +113,31 @@
          button points at the send form. Its glyph is the send form's coin. -->
     <template #footer>
       <div v-if="match" class="profile-foot">
-        <chat-compose-bar
+        <div
           v-if="helloOffered"
-          :key="helloKey"
-          class="profile-hello"
+          class="profile-hello-box"
           :class="{ 'is-asking': helloAsking }"
-          :name="match.name"
-          first
-          text-only
-          :sending="helloWaits"
-          :failed="helloFailed"
-          :initial-text="helloWords"
-          data-test="profile-hello"
-          @send="sendHello"
-        />
+          role="group"
+          :aria-labelledby="helloLabelId"
+          data-test="profile-hello-box"
+        >
+          <p :id="helloLabelId" class="profile-hello-label" data-test="profile-hello-label">
+            {{ $t('chatHello.say') }}
+          </p>
+          <chat-compose-bar
+            :key="helloKey"
+            class="profile-hello"
+            :name="match.name"
+            first
+            :first-note="false"
+            text-only
+            :sending="helloWaits"
+            :failed="helloFailed"
+            :initial-text="helloWords"
+            data-test="profile-hello"
+            @send="sendHello"
+          />
+        </div>
         <p v-else-if="helloSent" class="profile-hello-sent" data-test="profile-hello-sent">
           <i-mdi-check v-if="helloArrived" class="profile-hello-sent-icon" aria-hidden="true" />
           <span>{{ helloSentWords }}</span>
@@ -164,7 +178,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, reactive, ref, watch } from 'vue'
+import { computed, nextTick, reactive, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
@@ -423,6 +437,9 @@ const conversationOffered = computed(
 
 const conversationButton = ref(null)
 
+/** What "Hallo sagen:" is found by: it names the group of the words and their arrow. */
+const helloLabelId = `${useId()}-hello`
+
 /**
  * The bar asks; the composable sends. Where the bar then gives way to the way into the
  * conversation -- the hello is out, or the server says the two are contacts by now --, whatever
@@ -651,10 +668,41 @@ function toConversation() {
   border-top: 0;
 }
 
-/* While the server is asked whether the two are contacts: the place is held, nothing is shown.
-   `visibility` takes the bar from the keyboard and from a screen reader as well. */
-.profile-foot .profile-hello.is-asking {
+/* While the server is asked whether the two are contacts: the place is held, nothing is shown --
+   "Hallo sagen:" with the bar, or it would stand alone over an empty place. `visibility` takes
+   both from the keyboard and from a screen reader as well. */
+.profile-hello-box.is-asking {
   visibility: hidden;
+}
+
+/* "Hallo sagen:" over the words (Bernd, 09.10.2026, E-070): the window's own small heading, as
+   "Über mich" is drawn. */
+.profile-hello-label {
+  margin: 0 0 6px;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ⛔ The words stand in the field as the member's own message stands in a conversation (Bernd,
+   E-070: "identisch ... so wie die Bubble, die ich selber schicke ... mit dem entsprechenden
+   Rand und der Hintergrundfarbe"): the bubble's rim, ground and corners, value for value from
+   ChatBubble.vue -- MatchProfile.spec holds the two against each other. The gold thinly over
+   whatever lies below, so it is light on light and dark on dark, as there.
+
+   Not the bubble's 0.9rem: a field under 16 px makes a phone zoom into the page when it is
+   touched (the bar's own rule).
+
+   The focus keeps the bar's green rim: this rule would outweigh it otherwise. */
+.profile-foot .profile-hello :deep(.chat-compose-field) {
+  border-color: var(--gold, #c58d38);
+  border-radius: 1rem;
+  border-bottom-right-radius: 0.3rem;
+  background: rgb(197 141 56 / 12%);
+}
+
+.profile-foot .profile-hello :deep(.chat-compose-field:focus-visible) {
+  border-color: var(--success, #047006);
 }
 
 /* The hello is words the member sends in their own name: they should be seen whole. At 360 px,
@@ -688,10 +736,10 @@ function toConversation() {
 }
 
 /* ⚠️ `flex-wrap`: the two buttons keep their words on one line, and two long words do not fit
-   side by side in every language -- "Ouvrir la conversation" beside "Envoyer des Gradido" needs
-   a window of 514 px, and between 421 px and there the second button stood out of the window
-   (measured in ten languages; "send an e-mail" before it did the same in five). Where they do
-   not fit, each takes a row of its own, as under 421 px. */
+   side by side in every language. Where they do not fit, each takes a row of its own, as under
+   421 px. (Measured in ten languages with the larger measure this row had until E-070: "Ouvrir
+   la conversation" beside "Envoyer des Gradido" needed a window of 514 px, and between 421 px
+   and there the second button stood out of the window.) */
 .profile-actions {
   display: flex;
   flex-wrap: wrap;
@@ -699,6 +747,11 @@ function toConversation() {
   width: 100%;
 }
 
+/* ⛔ From here to the coin: the contact window's button (ContactWindow.vue), rule for rule and
+   in its gold -- "Gradido senden" looks here as it does in the chat (Bernd, 09.10.2026, E-070:
+   "das gleiche Gold ... im Prinzip genau so aussehen wie im Chat"). It began the other way
+   round: the contact window took this button and swapped the map's teal for the compose bar's
+   gold (Bernd, 24.09.2026). ContactWindow.spec holds the three rules against each other. */
 .send-btn {
   display: inline-flex;
   align-items: center;
@@ -709,21 +762,16 @@ function toConversation() {
   border-radius: 26px;
   font-size: 15px;
   font-weight: 700;
-  border: 1.5px solid #178d81;
+  border: 1.5px solid #c08935;
   white-space: nowrap;
 }
 
 .send-gradido {
-  background: #178d81;
+  background: #c08935;
   color: #fff;
 }
 
-.to-conversation {
-  background: transparent;
-  color: #178d81;
-}
-
-/* The coin ships as a dark monochrome glyph; on the teal button it turns white —
+/* The coin ships as a dark monochrome glyph; on the gold button it turns white —
    exactly how the send form flips it on its active tab. */
 .send-coin {
   width: 20px;
@@ -732,10 +780,34 @@ function toConversation() {
   filter: brightness(0) invert(1);
 }
 
+/* The way into the conversation beside it: the gold rim of the button's own border, the word
+   and its glyph in the window's text colour -- as the chat draws its outlined gold marks
+   ("Ankündigung", "In den Kalender"). A word in the gold itself would stand at 3.05 : 1 on the
+   light window. */
+.to-conversation {
+  background: transparent;
+  color: var(--text);
+}
+
 .to-conversation-icon {
   width: 20px;
   height: 20px;
   flex: 0 0 auto;
+}
+
+/* And in the contact window's measure, which is smaller than the rules above (Bernd,
+   29.09.2026, there: "nur eine von vielen Optionen"): 14px instead of 15, 7px above and below
+   instead of 10, the glyph 18px instead of 20 -- 37px high. MatchProfile.spec holds the numbers
+   against ContactWindow.vue. */
+.profile-actions .send-btn {
+  padding: 7px 14px;
+  font-size: 14px;
+}
+
+.profile-actions .send-coin,
+.profile-actions .to-conversation-icon {
+  width: 18px;
+  height: 18px;
 }
 
 /* One way out alone -- "send Gradido" under the first word -- keeps the width of its word and

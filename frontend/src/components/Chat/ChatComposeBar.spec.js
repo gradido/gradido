@@ -561,6 +561,48 @@ describe('ChatComposeBar', () => {
   })
 
   /**
+   * The sentence about the first mail can be left out (Bernd, 09.10.2026, E-070): the profile
+   * window of the map says "Hallo sagen:" over the words instead, and that a mail went out
+   * afterwards. Everything else of "first" holds without the sentence.
+   */
+  describe('the first message without its sentence', () => {
+    const note = () => wrapper.find('[data-test="chat-compose-first"]')
+
+    it('says the sentence unless a window leaves it out', () => {
+      mountBar({ first: true })
+      expect(note().exists()).toBe(true)
+      expect(field().attributes('aria-describedby')).toContain(note().attributes('id'))
+    })
+
+    it('leaves it out where the window asks, for the eye and for the ear', () => {
+      mountBar({ first: true, firstNote: false })
+
+      expect(note().exists()).toBe(false)
+      // Nothing named that is not in the page.
+      for (const id of (field().attributes('aria-describedby') ?? '').split(' ').filter(Boolean)) {
+        expect(document.getElementById(id) ?? wrapper.find(`[id="${id}"]`).element, id).toBeTruthy()
+      }
+      expect(field().attributes('aria-describedby') ?? '').not.toMatch(/-first/)
+    })
+
+    it('is still the first message: no box, and the mail is asked for', async () => {
+      mountBar({ first: true, firstNote: false })
+      expect(box().exists()).toBe(false)
+
+      await field().setValue('Hallo!')
+      await button().trigger('click')
+
+      expect(sent()).toEqual([[{ body: 'Hallo!', notify: 'EMAIL', image: null }]])
+    })
+
+    it('changes nothing where the message is not the first', () => {
+      mountBar({ first: false, firstNote: false })
+      expect(note().exists()).toBe(false)
+      expect(box().exists()).toBe(true)
+    })
+  })
+
+  /**
    * Three short answers, one tap each (Bernd, 09.10.2026, E-069): for the member's first word in
    * a conversation the other one began. A tap sends the words at once, with the box as it
    * stands; what is in the bar stays in the bar. The thread says when they stand (`helloBack`).

@@ -245,6 +245,7 @@
     "distanceNear": "Não moramos longe.",
     "found": "Olá {name}, encontrei-te no mapa do Gradido.",
     "question": "Queres dizer-me olá de volta?",
+    "say": "Dizer olá:",
     "sent": "Enviada.",
     "sentMailed": "Enviada. {name} recebe um e-mail.",
     "toConversation": "Ir para a conversa"

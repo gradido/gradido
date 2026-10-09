@@ -45,6 +45,8 @@ const ComposeBarStub = {
   props: {
     name: String,
     first: Boolean,
+    // As the bar has it: shown unless a window says otherwise.
+    firstNote: { type: Boolean, default: true },
     textOnly: Boolean,
     sending: Boolean,
     failed: Boolean,
@@ -408,6 +410,8 @@ describe('MatchProfile', () => {
    */
   describe('the first word', () => {
     const bar = () => wrapper.findComponent(ComposeBarStub)
+    const box = () => wrapper.find('[data-test="profile-hello-box"]')
+    const label = () => wrapper.find('[data-test="profile-hello-label"]')
     const sentLine = () => wrapper.find('[data-test="profile-hello-sent"]')
     const conversation = () => wrapper.find('[data-test="profile-conversation"]')
     const forTheEar = () => wrapper.find('[data-test="profile-hello-status"]')
@@ -456,13 +460,16 @@ describe('MatchProfile', () => {
       await wrapper.vm.$nextTick()
 
       expect(bar().classes()).toContain('profile-hello')
-      expect(bar().classes()).toContain('is-asking')
+      expect(box().classes()).toContain('is-asking')
+      // "Hallo sagen:" is held with the bar: it does not stand alone over an empty place.
+      expect(box().element.contains(label().element)).toBe(true)
+      expect(box().element.contains(bar().element)).toBe(true)
       const asked = bar().vm.$.uid
 
       answer.resolve(noContact)
       await flushPromises()
       expect(bar().classes()).toContain('profile-hello')
-      expect(bar().classes()).not.toContain('is-asking')
+      expect(box().classes()).not.toContain('is-asking')
       // The same bar, now to be seen: what stood in the place is what is shown.
       expect(bar().vm.$.uid).toBe(asked)
     })
@@ -472,13 +479,55 @@ describe('MatchProfile', () => {
       apollo.query.mockReturnValue(answer.promise)
       mountProfile(baseMatch())
       await wrapper.vm.$nextTick()
-      expect(bar().classes()).toContain('is-asking')
+      expect(box().classes()).toContain('is-asking')
 
       answer.resolve(aContact('user-uuid-1'))
       await flushPromises()
 
       expect(bar().exists()).toBe(false)
+      expect(box().exists()).toBe(false)
+      expect(label().exists()).toBe(false)
       expect(conversation().exists()).toBe(true)
+    })
+
+    /**
+     * After trying it (Bernd, 09.10.2026, E-070): "Hallo sagen:" stands over the words, in the
+     * place of the bar's sentence about the first mail -- which the window says afterwards.
+     */
+    it('says "Hallo sagen:" over the words, and names their group by it', async () => {
+      mountProfile(baseMatch())
+      await flushPromises()
+
+      expect(label().text()).toBe('Hallo sagen:')
+      expect(box().attributes('role')).toBe('group')
+      expect(label().attributes('id')).toBeTruthy()
+      expect(box().attributes('aria-labelledby')).toBe(label().attributes('id'))
+      // Over the words: before the bar in the page.
+      expect(
+        label().element.compareDocumentPosition(bar().element) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy()
+    })
+
+    it('leaves out the sentence about the first mail, and keeps what "first" means', async () => {
+      mountProfile(baseMatch())
+      await flushPromises()
+
+      expect(bar().props('first')).toBe(true)
+      expect(bar().props('firstNote')).toBe(false)
+    })
+
+    it('says "Hallo sagen:" only where a first word can be written', async () => {
+      apollo.mutate.mockResolvedValue(copy())
+      mountProfile(baseMatch())
+      await flushPromises()
+      expect(label().exists()).toBe(true)
+
+      bar().vm.$emit('send', { body: WORDS, notify: 'EMAIL', image: null })
+      await flushPromises()
+
+      // The hello is out: the line says what became of it, nothing is left to say hello with.
+      expect(label().exists()).toBe(false)
+      expect(sentLine().text()).toBe('Gesendet. Sofia bekommt eine E-Mail.')
     })
 
     it('shows the bar again, not asking, while the hello itself is on its way', async () => {
@@ -979,17 +1028,20 @@ describe('MatchProfile', () => {
       const field = () => wrapper.find('[data-test="chat-compose-field"]')
       const arrow = () => wrapper.find('[data-test="chat-compose-send"]')
 
-      it('shows the words in the field, the note about the first mail, and no paperclip', async () => {
+      it('shows "Hallo sagen:" and the words in the field -- no sentence about the mail, no box, no paperclip', async () => {
         mountReal()
         await flushPromises()
 
+        expect(label().text()).toBe('Hallo sagen:')
         expect(field().element.value).toBe(WORDS)
-        expect(wrapper.find('[data-test="chat-compose-first"]').text()).toBe(
-          'Die erste Nachricht geht auch per E-Mail an Sofia.',
-        )
+        // The bar's own sentence is left out here (E-070) ...
+        expect(wrapper.find('[data-test="chat-compose-first"]').exists()).toBe(false)
+        expect(wrapper.text()).not.toContain('geht auch per E-Mail')
         expect(wrapper.find('[data-test="chat-compose-attach"]').exists()).toBe(false)
-        // Before the first message there is no box to tick: the mail goes in any case.
+        // ... and it is still the first message: no box to tick, the mail goes in any case.
         expect(wrapper.find('[data-test="chat-compose-email"]').exists()).toBe(false)
+        // Nothing left behind for the ear to look up.
+        expect(field().attributes('aria-describedby') ?? '').not.toMatch(/first/)
       })
 
       it('holds the arrow back until the server has said who this is', async () => {
@@ -1104,9 +1156,113 @@ describe('MatchProfile', () => {
 
       // Not `display: none` (the window would grow when the answer comes) and not `opacity`
       // (the field could still be tabbed into and typed in).
-      it('hides the bar while the server is asked, and keeps its place', () => {
-        const asking = rule('\\.profile-foot \\.profile-hello\\.is-asking')
+      it('hides the bar and its heading while the server is asked, and keeps their place', () => {
+        const asking = rule('\\.profile-hello-box\\.is-asking')
         expect(asking).toBe(' visibility: hidden; ')
+        expect(rule('\\.profile-foot \\.profile-hello\\.is-asking')).toBe('')
+      })
+
+      /**
+       * ⛔ "Sie muss also identisch aussehen, und zwar so wie die Bubble, die ich selber schicke
+       * ... mit dem entsprechenden Rand und der Hintergrundfarbe" (Bernd, 09.10.2026, E-070). The
+       * field in the foot carries the rim, the ground and the corners of one's own message in a
+       * conversation -- read from ChatBubble.vue, so the two cannot drift apart.
+       */
+      it("draws the field as one's own message in a conversation is drawn", () => {
+        const bubbles = readFileSync(join(here, '../Chat/ChatBubble.vue'), 'utf8')
+          .split('<style')[1]
+          .replace(/\/\*[\s\S]*?\*\//g, '')
+        const of = (sheet, selector) =>
+          sheet.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
+        const value = (body, property) =>
+          body.match(new RegExp(`(?:^|;|\\s)${property}:\\s*([^;]+);`))?.[1]?.trim()
+        const every = of(bubbles, '\\.chat-bubble')
+        const mine = of(bubbles, '\\.chat-bubble-mine \\.chat-bubble')
+        const field = of(code, '\\.profile-foot \\.profile-hello :deep\\(\\.chat-compose-field\\)')
+
+        // What the bubble says of itself, so a change there is noticed here.
+        expect(value(mine, 'background')).toBe('rgb(197 141 56 / 12%)')
+        expect(value(mine, 'border-color')).toBe('var(--gold, #c58d38)')
+        expect(value(mine, 'border-bottom-right-radius')).toBe('0.3rem')
+        expect(value(every, 'border-radius')).toBe('1rem')
+
+        expect(value(field, 'background')).toBe(value(mine, 'background'))
+        expect(value(field, 'border-color')).toBe(value(mine, 'border-color'))
+        expect(value(field, 'border-radius')).toBe(value(every, 'border-radius'))
+        expect(value(field, 'border-bottom-right-radius')).toBe(
+          value(mine, 'border-bottom-right-radius'),
+        )
+        // One pixel of rim on both: the bar's field has it, the bubble has it.
+        const bar = readFileSync(join(here, '../Chat/ChatComposeBar.vue'), 'utf8')
+        expect(bar).toMatch(/\.chat-compose-field \{[^}]*border: 1px solid /)
+        expect(value(every, 'border')).toBe('1px solid transparent')
+        // Not the bubble's smaller letters: a field under 16 px makes a phone zoom in.
+        expect(field).not.toMatch(/font-size/)
+      })
+
+      // The rule above outweighs the bar's own focus rule: the green rim is said again.
+      it("keeps the field's green rim while the keyboard is in it", () => {
+        const focused = rule(
+          '\\.profile-foot \\.profile-hello :deep\\(\\.chat-compose-field:focus-visible\\)',
+        )
+        expect(focused).toBe(' border-color: var(--success, #047006); ')
+        const bar = readFileSync(join(here, '../Chat/ChatComposeBar.vue'), 'utf8')
+        expect(bar).toMatch(
+          /\.chat-compose-field:focus-visible \{\s*border-color: var\(--success, #047006\);/,
+        )
+      })
+
+      it('draws "Hallo sagen:" as the window draws its small headings', () => {
+        const value = (body, property) =>
+          body.match(new RegExp(`(?:^|;|\\s)${property}:\\s*([^;]+);`))?.[1]?.trim()
+        const heading = rule('\\.about-label')
+        const say = rule('\\.profile-hello-label')
+        for (const property of ['font-weight', 'font-size', 'color']) {
+          expect(value(say, property), property).toBe(value(heading, property))
+        }
+      })
+
+      /**
+       * "Der Button „Gradido senden“ sollte das gleiche Gold bekommen wie im Chat, also im
+       * Prinzip genau so aussehen wie im Chat" (Bernd, 09.10.2026, E-070): the gold of the
+       * compose bar's send button, and the contact window's smaller measure -- read from there.
+       * (The three shared rules themselves are held in ContactWindow.spec.)
+       */
+      it('wears the gold of the chat on "Gradido senden", and no teal any more', () => {
+        const gold = readFileSync(join(here, '../Chat/ChatComposeBar.vue'), 'utf8').match(
+          /\n\.chat-compose-send\s*\{[^}]*\sbackground:\s*(#[0-9a-f]{6});/i,
+        )?.[1]
+        expect(gold).toBe('#c08935')
+        expect(rule('\\.send-btn')).toContain(`border: 1.5px solid ${gold};`)
+        expect(rule('\\.send-gradido')).toContain(`background: ${gold};`)
+        expect(rule('\\.send-gradido')).toContain('color: #fff;')
+        for (const selector of ['\\.send-btn', '\\.send-gradido', '\\.to-conversation']) {
+          expect(rule(selector), selector).not.toContain('#178d81')
+        }
+      })
+
+      it("sets the buttons in the contact window's measure", () => {
+        const window = readFileSync(join(here, '../Contacts/ContactWindow.vue'), 'utf8')
+          .split('<style')[1]
+          .replace(/\/\*[\s\S]*?\*\//g, '')
+        const of = (selector) =>
+          window.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
+        const value = (body, property) =>
+          body.match(new RegExp(`(?:^|;|\\s)${property}:\\s*([^;]+);`))?.[1]?.trim()
+        const there = of('\\.contact-window-send \\.send-btn')
+        const coinThere = of('\\.contact-window-send \\.send-coin')
+        const here_ = rule('\\.profile-actions \\.send-btn')
+        const glyphs = code.match(
+          /\n\.profile-actions \.send-coin,\s*\.profile-actions \.to-conversation-icon\s*\{([^}]*)\}/,
+        )?.[1]
+
+        expect(value(there, 'padding')).toBe('7px 14px')
+        expect(value(there, 'font-size')).toBe('14px')
+        expect(value(here_, 'padding')).toBe(value(there, 'padding'))
+        expect(value(here_, 'font-size')).toBe(value(there, 'font-size'))
+        expect(value(glyphs ?? '', 'width')).toBe(value(coinThere, 'width'))
+        expect(value(glyphs ?? '', 'height')).toBe(value(coinThere, 'height'))
+        expect(value(coinThere, 'width')).toBe('18px')
       })
 
       // Two long words side by side leave the window between 421 px and where they fit (in
@@ -1136,9 +1292,11 @@ describe('MatchProfile', () => {
         expect(alone).toMatch(/align-self: flex-start;/)
       })
 
+      // Gold rim (the button's own border), the word in the window's text colour: a word in the
+      // gold itself would stand at 3.05 : 1 on the light window.
       it('draws the way into the conversation as the outlined one of the two buttons', () => {
         expect(rule('\\.to-conversation')).toMatch(/background: transparent;/)
-        expect(rule('\\.to-conversation')).toMatch(/color: #178d81;/)
+        expect(rule('\\.to-conversation')).toMatch(/color: var\(--text\);/)
         expect(rule('\\.send-email')).toBe('')
       })
     })

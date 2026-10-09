@@ -3,8 +3,14 @@
   <div ref="root" class="chat-compose" data-test="chat-compose">
     <!-- The first message of a pair always goes out as a mail too -- the server decides that,
          whatever is asked (E-024) -- so there is nothing to choose, and a sentence says so
-         where the box would stand. -->
-    <p v-if="first" :id="firstId" class="chat-compose-first" data-test="chat-compose-first">
+         where the box would stand. A window that says what it has to say in its own words
+         leaves the sentence out (`firstNote`): there is still nothing to choose, and no box. -->
+    <p
+      v-if="first && firstNote"
+      :id="firstId"
+      class="chat-compose-first"
+      data-test="chat-compose-first"
+    >
       <i-mdi-email-outline class="chat-compose-first-icon" aria-hidden="true" />
       <span>{{ t('chatThread.firstGoesByEmail', { name }) }}</span>
     </p>
@@ -476,6 +482,12 @@ const props = defineProps({
   name: { type: String, default: '' },
   /** No conversation yet: the message will go out as a mail in any case (E-024). */
   first: { type: Boolean, default: false },
+  /**
+   * The sentence that says so. Left out by the profile window of the map (Bernd, 09.10.2026: the
+   * line is one too many there; "Hallo sagen:" stands over the words instead, and the window
+   * says afterwards that a mail went out). Everything else of `first` holds without it.
+   */
+  firstNote: { type: Boolean, default: true },
   /** A message is on its way; the button waits. */
   sending: { type: Boolean, default: false },
   /** The last message did not go through; its text is still in the field. */
@@ -651,7 +663,7 @@ const showRemaining = computed(() => remaining.value < SHOW_REMAINING_BELOW)
 const describedBy = computed(
   () =>
     [
-      props.first ? firstId : null,
+      props.first && props.firstNote ? firstId : null,
       props.editing ? editingId : null,
       props.replying && !props.editing ? replyingId : null,
       showRemaining.value ? remainingId : null,
