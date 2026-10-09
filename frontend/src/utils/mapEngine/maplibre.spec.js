@@ -469,6 +469,81 @@ describe('the MapLibre map engine', () => {
       expect(container.querySelector('.b').getAttribute('tabindex')).toBe('0')
     })
 
+    // A marker that is a tab stop AND opens something is a button: it has a name where it is
+    // given one, and answers Enter and the space bar. The markers that are labels, or only
+    // dragged, have no `onClick`, and nothing changes for them.
+    describe('as a button', () => {
+      const key = (element, name) => {
+        const event = new KeyboardEvent('keydown', { key: name, bubbles: true, cancelable: true })
+        element.dispatchEvent(event)
+        return event
+      }
+
+      it('carries the name it is given, and none where it is given none', async () => {
+        await build()
+
+        map.marker({ ...CENTRE, html: HTML, className: 'a', ariaLabel: 'Profil von Tobias' })
+        map.marker({ lat: 49.3, lng: 9.8, html: HTML, className: 'b' })
+
+        expect(container.querySelector('.a').getAttribute('aria-label')).toBe('Profil von Tobias')
+        expect(container.querySelector('.b').hasAttribute('aria-label')).toBe(false)
+      })
+
+      it.each([
+        ['Enter', 'Enter'],
+        ['the space bar', ' '],
+      ])(
+        'opens on %s what a tap opens, and keeps the key from the page and the map',
+        async (_, name) => {
+          await build()
+          const onClick = vi.fn()
+          const heardByTheMap = vi.fn()
+          container.addEventListener('keydown', heardByTheMap)
+          map.marker({ ...CENTRE, html: HTML, className: 'a', onClick })
+
+          const event = key(container.querySelector('.a'), name)
+
+          expect(onClick).toHaveBeenCalledTimes(1)
+          expect(event.defaultPrevented).toBe(true)
+          expect(heardByTheMap).not.toHaveBeenCalled()
+        },
+      )
+
+      it('leaves every other key alone', async () => {
+        await build()
+        const onClick = vi.fn()
+        const heardByTheMap = vi.fn()
+        container.addEventListener('keydown', heardByTheMap)
+        map.marker({ ...CENTRE, html: HTML, className: 'a', onClick })
+
+        for (const name of ['Tab', 'ArrowLeft', 'a', 'Escape']) {
+          expect(key(container.querySelector('.a'), name).defaultPrevented, name).toBe(false)
+        }
+
+        expect(onClick).not.toHaveBeenCalled()
+        expect(heardByTheMap).toHaveBeenCalledTimes(4)
+      })
+
+      // No tab stop, no key: the markers of the search open by a tap, and by the list.
+      it('answers no key where it is no tab stop', async () => {
+        await build()
+        const onClick = vi.fn()
+        map.marker({ ...CENTRE, html: HTML, className: 'a', focusable: false, onClick })
+
+        expect(key(container.querySelector('.a'), 'Enter').defaultPrevented).toBe(false)
+        expect(onClick).not.toHaveBeenCalled()
+      })
+
+      // The pin of the settings map: a tab stop that is dragged and opens nothing.
+      it('answers no key where there is nothing to open', async () => {
+        await build()
+        map.marker({ ...CENTRE, html: HTML, className: 'a' })
+
+        expect(key(container.querySelector('.a'), 'Enter').defaultPrevented).toBe(false)
+        expect(key(container.querySelector('.a'), ' ').defaultPrevented).toBe(false)
+      })
+    })
+
     // The house and the centre disc take no tap: a tap there reaches the map, as on Leaflet.
     it('lets a tap through where it takes none', async () => {
       await build()

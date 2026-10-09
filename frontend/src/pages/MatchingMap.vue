@@ -39,7 +39,14 @@
 
       <div
         class="map-shell gradido-border-radius app-box-shadow"
-        :class="[`look-${look}`, { 'is-list': mode === 'liste', 'is-cluster': clusterOpen }]"
+        :class="[
+          `look-${look}`,
+          {
+            'is-list': mode === 'liste',
+            'is-cluster': clusterOpen,
+            'shown-is-drawn': shownIsDrawn,
+          },
+        ]"
       >
         <!-- In list mode the map is only decoration behind the list, but it stays in
              the DOM (so the map keeps its size). inert drops the whole map — its
@@ -350,6 +357,7 @@ import { hasPosition as isPositionSet, isPlace } from '@/utils/matchingPosition'
 import { mapPrefPrefix } from '@/utils/matchingPrefs'
 import { escapeHtml } from '@/utils/escapeHtml'
 import { useEntryDraft } from '@/composables/useEntryDraft'
+import { isOneself } from '@/composables/useContactOnMap'
 import MatchQuery from '@/components/Matching/MatchQuery'
 import GeoSearchField from '@/components/Matching/GeoSearchField.vue'
 import { useAppToast } from '@/composables/useToast'
@@ -887,14 +895,17 @@ onError((error) => toastError(error.message))
  * where the contact window's pin leads. Read off the route, so the page answers to whatever
  * address it stands under. A pair that is not two uuids names nobody, and the GMS is not asked
  * about it.
+ *
+ * Nor does the member's own id name anybody to show: the house is their mark. Such an address
+ * is what is left when one account signs out on this page and the contact it showed signs in on
+ * the same browser -- the way back after signing in is the address the first one stood on.
  */
 const askedPerson = computed(() => {
   const { with: gradidoID, community: communityUuid } = route.query ?? {}
-  return [gradidoID, communityUuid].every(
+  const named = [gradidoID, communityUuid].every(
     (part) => typeof part === 'string' && UUID_SHAPE.test(part),
   )
-    ? { gradidoID, communityUuid }
-    : null
+  return named && !isOneself(gradidoID, store.state) ? { gradidoID, communityUuid } : null
 })
 
 // The person as the map draws them, once the GMS has said where they stand: in a ring's shape
@@ -905,6 +916,19 @@ let shownLayer = null
 // Counts the persons asked for: an answer for an earlier address, or for a page that is gone,
 // is let go.
 let shownRequest = 0
+// Whether the map still has to be brought onto the shown person. It is brought there ONCE --
+// when they are known and the map is there, whichever comes last -- and never pulled back: by
+// the next thing that restores the view (a location answer that comes late) the member may have
+// looked elsewhere.
+let shownPending = false
+// Whether the view on screen is the one this page chose for the shown person, and what the
+// member made of it by looking around. That view is not remembered: the next visit opens where
+// the member last looked for themselves. Framing a search hands the view back (zoomToCircle) --
+// a search moved during such a visit is remembered together with the view of it, or the next
+// visit would open on the old place with the circle somewhere else.
+let visitView = false
+// Whether the map stands in place of the list only for this visit (see showAsked).
+let mapForVisit = false
 
 /**
  * Ask the GMS where the person stands -- its profile route, which answers for the pair wherever
@@ -919,12 +943,18 @@ let shownRequest = 0
 async function showAsked() {
   const request = ++shownRequest
   shown.value = null
+  shownPending = false
+  visitView = false
   drawShown()
   const person = askedPerson.value
   if (!person || !enabled.value) return
   // The map itself, also for a member who keeps the list: they asked to see a place. Not
-  // written down -- the list stays their standing choice.
-  mode.value = 'karte'
+  // written down -- the list stays their standing choice, and where no map can be drawn at all
+  // they get it back (listBackWithoutMap).
+  if (mode.value !== 'karte' && !noWebgl.value) {
+    mode.value = 'karte'
+    mapForVisit = true
+  }
   let published = null
   try {
     published = await loadProfile(person.gradidoID, person.communityUuid)
@@ -953,9 +983,33 @@ async function showAsked() {
     position: published.position,
     precision: published.precision,
   }
+  shownPending = true
   drawShown()
   centreOnShown()
 }
+
+// Where no map can be drawn -- no WebGL 2, or the engine did not arrive -- there is nobody to
+// show on one. A member who keeps the list gets the list back, instead of an empty frame in its
+// place.
+function listBackWithoutMap() {
+  if (!mapForVisit) return
+  mapForVisit = false
+  mode.value = readMode()
+}
+
+/**
+ * Whether the search draws the shown person itself -- as a glowing match or a grey ring. Then
+ * the gold ring stands around that mark; where the search does not reach them (they may live
+ * anywhere), the ring carries a point of its own in its middle, so it never stands around
+ * nothing. Said to the stylesheet through a class on the shell, not by drawing the marker anew:
+ * the search answers after the person does, and a marker drawn twice would land twice.
+ */
+const shownIsDrawn = computed(() => {
+  const person = shown.value
+  if (!person) return false
+  const same = (other) => samePerson(person, other)
+  return visibleMatches.value.some(({ match }) => same(match)) || visiblePresence.value.some(same)
+})
 
 /** Whether two records name one person: the pair, however a server spells it. */
 function samePerson(one, other) {
@@ -985,7 +1039,7 @@ function openShown() {
 // name does too.
 function shownHtml(name) {
   const label = name ? `<div class="gk-shown-name">${escapeHtml(name)}</div>` : ''
-  return `<div class="gk-shown-ring"></div><div class="gk-hit" style="width:${HIT_MIN}px;height:${HIT_MIN}px"></div>${label}`
+  return `<div class="gk-shown-ring"></div><div class="gk-shown-point"></div><div class="gk-hit" style="width:${HIT_MIN}px;height:${HIT_MIN}px"></div>${label}`
 }
 
 function drawShown() {
@@ -1005,22 +1059,36 @@ function drawShown() {
     size: [SHOWN_RING, SHOWN_RING],
     anchor: [SHOWN_RING / 2, SHOWN_RING / 2],
     interactive: true,
-    focusable: false,
+    // A tab stop with a name, unlike the markers of the search: those are all in the list, which
+    // is where a keyboard and a screen reader meet them. Somebody shown from outside the search
+    // is in no list, so their mark is the one place to open them from.
+    focusable: true,
+    ariaLabel: t('matching.profile.aria', { name }),
     zIndex: 450,
     onClick: openShown,
   })
 }
 
-// The person in the middle of the view, at once -- they are what the member came to see.
+// The person in the middle of the view, at once -- they are what the member came to see. Once:
+// see `shownPending`.
 function centreOnShown() {
-  if (!map || !shown.value) return
+  if (!map || !shown.value || !shownPending) return
+  shownPending = false
+  visitView = true
   inClusterZoom = false
   map.setView(shown.value.position, Math.min(SHOWN_ZOOM, map.getMaxZoom()))
   updateCentreCover()
 }
 
-// Asked on arrival, and again should the address come to name somebody else.
-watch(askedPerson, showAsked, { immediate: true })
+// Asked on arrival, and again should the address come to name somebody else. By the pair, not
+// by the object: `askedPerson` is made anew with every navigation, and one that keeps the page
+// and the pair is no new question.
+watch(
+  () =>
+    askedPerson.value ? `${askedPerson.value.communityUuid}/${askedPerson.value.gradidoID}` : '',
+  () => showAsked(),
+  { immediate: true },
+)
 
 /**
  * Where one setting lives, or null where there is nobody to attribute it to.
@@ -1127,6 +1195,7 @@ function readVisible() {
 // forth). It rides in the same pref bag as look/radius/centre — no new mechanism.
 function setMode(next) {
   mode.value = next
+  mapForVisit = false
   writePref('mode', next)
 }
 
@@ -1161,7 +1230,10 @@ function setLens(next) {
 // is asking for the map back.
 function chooseLook(next) {
   setLook(next)
-  setMode('karte')
+  // Only where it is a change. On a visit that shows somebody the map stands in place of a
+  // kept list without that being written down, and choosing a colour there is not choosing the
+  // map for good.
+  if (mode.value !== 'karte') setMode('karte')
 }
 
 // Whoever came to see a contact on the map goes back into the conversation with them: the
@@ -1512,6 +1584,8 @@ function drawCircle() {
 
 function zoomToCircle({ fly = false } = {}) {
   if (!map || !searchCenter.value) return
+  // Framing a search is the member's own doing: from here on the view is remembered again.
+  visitView = false
   const metres = radius.value * 1000
   if (!fly) {
     map.fitRadius(searchCenter.value, metres)
@@ -1693,9 +1767,9 @@ function syncCluster() {
 }
 
 function saveView() {
-  // Not while the map shows somebody it was asked to show: where it stands then is theirs, and
-  // the next visit opens where the member last looked for themselves.
-  if (!map || shown.value) return
+  // Not the view this page chose for somebody it was asked to show: the next visit opens where
+  // the member last looked for themselves (see `visitView`).
+  if (!map || visitView) return
   const centre = map.getCenter()
   writePref('view', { lat: centre.lat, lng: centre.lng, zoom: map.getZoom() })
 }
@@ -1712,7 +1786,8 @@ function saveView() {
 function restoreView() {
   if (!map) return
   // Somebody the map was asked to show comes before where it stood last time: this visit is
-  // about them.
+  // about them. Brought into view once (centreOnShown); after that the view is left alone here,
+  // wherever the member has taken it.
   if (shown.value) {
     centreOnShown()
     return
@@ -1765,7 +1840,7 @@ function initMap() {
     (engine) => buildMap(engine.createMap),
     // The engine did not arrive - a dropped connection, or a deploy since the page was loaded
     // renamed its file. There is no map then; the list shows the same matches.
-    () => {},
+    () => listBackWithoutMap(),
   )
 }
 
@@ -1785,6 +1860,7 @@ function buildMap(createMap) {
   // working, every draw below asks for `map` first, and a line under the map says why.
   if (!built.success) {
     noWebgl.value = true
+    listBackWithoutMap()
     return
   }
   map = built.value
@@ -2662,6 +2738,51 @@ watch(mode, (value) => {
   .gk-shown-ring {
     animation: none;
   }
+}
+
+/* The point in the ring's middle, for somebody the search does not draw: the ring then stands
+   around their place, marked in the ring's gold. Where the search draws them -- a glow, a disc,
+   a grey ring -- that mark is in the middle, and the point steps back (`shown-is-drawn` on the
+   shell). */
+.gk-shown-point {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  box-sizing: border-box;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #c69130;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 55%);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.map-shell.shown-is-drawn .gk-shown-point {
+  display: none;
+}
+
+/* Where the search draws the person, the ring is around THEIR mark and takes no tap of its own:
+   a tap in it reaches that mark, with everything a tap on it does -- the crowd question where
+   somebody shares the spot, the grey ring's own tap area. With a core of its own on top, a
+   housemate under it could not be opened at all. The name still takes the tap. */
+.map-shell.shown-is-drawn .gk-shown .gk-hit {
+  pointer-events: none;
+}
+
+/* Reached with the keyboard, the ring shows it: white with a dark rim, which reads on all three
+   looks. The marker's own box is square and would draw a square outline. */
+.gk-shown:focus {
+  outline: none;
+}
+
+.gk-shown:focus-visible .gk-shown-ring {
+  outline: 3px solid #fff;
+  outline-offset: 2px;
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 55%),
+    inset 0 0 0 1px rgb(0 0 0 / 55%),
+    0 0 0 7px rgb(0 0 0 / 60%);
 }
 
 /* The name, centred under the ring, on the face the map's own switch has on that look. One

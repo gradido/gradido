@@ -5,6 +5,12 @@ import CONFIG from '@/config'
 import { isUsablePlace, useMatches } from '@/composables/useMatches'
 import { mayFind } from '@/utils/matchingPosition'
 
+/** Whether an id is the signed-in member's own, however a server spells it. */
+export function isOneself(gradidoID, state) {
+  const own = String(state?.gradidoID ?? '').toLowerCase()
+  return Boolean(own) && String(gradidoID ?? '').toLowerCase() === own
+}
+
 /**
  * The pair the find map is asked about a contact with -- or null where it is not asked at all.
  *
@@ -27,9 +33,7 @@ export function contactMapPair(member, state) {
   if (!CONFIG.MATCHING_ACTIVE || !mayFind(state)) return null
   const gradidoID = member?.gradidoID
   const communityUuid = member?.communityUuid ?? state?.communityUuid
-  if (!gradidoID || !communityUuid) return null
-  const own = String(state?.gradidoID ?? '').toLowerCase()
-  if (own && String(gradidoID).toLowerCase() === own) return null
+  if (!gradidoID || !communityUuid || isOneself(gradidoID, state)) return null
   return { gradidoID, communityUuid }
 }
 

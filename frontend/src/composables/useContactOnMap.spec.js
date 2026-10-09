@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { flushPromises } from '@vue/test-utils'
-import { contactMapPair, useContactOnMap } from './useContactOnMap'
+import { contactMapPair, isOneself, useContactOnMap } from './useContactOnMap'
 
 const OWN_COMMUNITY = 'cccccccc-0000-4000-8000-cccccccccccc'
 const ME = 'eeeeeeee-9999-4999-8999-eeeeeeeeeeee'
@@ -51,6 +51,27 @@ beforeEach(() => {
   })
   profile.mockReset()
   profile.mockResolvedValue(at(49.3, 9.7))
+})
+
+describe('isOneself', () => {
+  it("knows the member's own id, however it is spelled", () => {
+    expect(isOneself(ME, state)).toBe(true)
+    expect(isOneself(ME.toUpperCase(), state)).toBe(true)
+  })
+
+  it('takes nobody else for the member', () => {
+    expect(isOneself(TOBIAS.gradidoID, state)).toBe(false)
+  })
+
+  // Two missing ids are not one person: nobody signed in is nobody, and no id names nobody.
+  it('takes nobody for the member where there is no id on one side or on both', () => {
+    expect(isOneself(undefined, state)).toBe(false)
+    expect(isOneself(null, state)).toBe(false)
+    expect(isOneself(ME, {})).toBe(false)
+    expect(isOneself(undefined, {})).toBe(false)
+    expect(isOneself('', { gradidoID: '' })).toBe(false)
+    expect(isOneself(null, null)).toBe(false)
+  })
 })
 
 describe('contactMapPair', () => {

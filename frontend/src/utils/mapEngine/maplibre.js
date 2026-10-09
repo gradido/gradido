@@ -107,6 +107,7 @@ function makeMarker(map, options) {
     draggable = false,
     zIndex = 0,
     popup = null,
+    ariaLabel = null,
     onClick = null,
     onDragEnd = null,
   } = options
@@ -122,6 +123,8 @@ function makeMarker(map, options) {
     element.tabIndex = 0
     element.setAttribute('role', 'button')
   }
+  // What the marker is called where its inside says too little -- or nothing a reader could hear.
+  if (ariaLabel) element.setAttribute('aria-label', ariaLabel)
   if (zIndex) element.style.zIndex = String(zIndex)
 
   const [anchorX, anchorY] = anchor ?? [size[0] / 2, size[1] / 2]
@@ -162,6 +165,18 @@ function makeMarker(map, options) {
       if (moved > CLICK_TOLERANCE) return
       onClick(event)
     })
+    // A marker that is a tab stop AND opens something is a button, and a button answers Enter and
+    // the space bar. (A div does not by itself; the markers that are only labels or only dragged
+    // have no `onClick`, and nothing changes for them.)
+    if (focusable) {
+      element.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return
+        // The space bar would scroll the page, and neither key is the map's.
+        event.preventDefault()
+        event.stopPropagation()
+        onClick(event)
+      })
+    }
   }
   if (onDragEnd) marker.on('dragend', () => onDragEnd(pointOf(marker.getLngLat())))
 
