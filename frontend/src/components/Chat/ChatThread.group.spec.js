@@ -296,6 +296,18 @@ describe('ChatThread in a group', () => {
     expect(asked.mock.calls.some(([options]) => options.query === transactionsQuery)).toBe(false)
   })
 
+  // E-066 is about a conversation between two. A group's box is the announcement, by mail to
+  // everybody: no first message of anybody's ticks it.
+  it("never begins with the announcement ticked, also for an owner's first message", async () => {
+    mountThread({ role: 'OWNER' })
+    await arrive(page([message(1, { writer: 'anna' }), message(3, { writer: 'carla' })]))
+
+    expect(bar().props('firstOwn')).toBe(false)
+    const box = wrapper.find('[data-test="chat-compose-email"]')
+    expect(box.exists()).toBe(true)
+    expect(box.element.checked).toBe(false)
+  })
+
   it('names the thread after the group, for the ear', async () => {
     mountThread()
     await arrive(page([message(1)]))

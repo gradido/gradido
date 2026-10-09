@@ -130,6 +130,7 @@
       :failed-reason="sendRefusal"
       :initial-text="openingText"
       :text-only="textOnly"
+      :first-own="firstOwn"
       :editing="editingForBar"
       :edit-problem="editProblem"
       :replying="replying"
@@ -371,6 +372,21 @@ const state = computed(() => {
   if (error.value) return 'error'
   return 'loading'
 })
+
+/**
+ * Whether the member's next message is their first in a conversation the other one began
+ * (Bernd, 09.10.2026, E-066): the bar's box "also by e-mail" begins ticked for it. Between two
+ * only, and only where the whole conversation is in sight -- with older pages still unread
+ * nobody can say that none of them holds a message of the member's own, and then the box stays
+ * as it always was. The transfers between the two do not count: the box is about chat messages.
+ */
+const firstOwn = computed(
+  () =>
+    !inGroup &&
+    state.value === 'thread' &&
+    !hasMore.value &&
+    !messages.value.some((message) => message.mine),
+)
 
 const at = (iso) => new Date(iso).getTime()
 

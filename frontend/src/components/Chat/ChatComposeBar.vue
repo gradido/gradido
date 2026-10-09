@@ -283,6 +283,11 @@
          every message sent -- a mail is the exception somebody asks for, not a setting. A real
          checkbox with its word beside it (E-029: a symbol without a word is not read by many).
 
+         One message begins with the box ticked (Bernd, 09.10.2026, E-066): the member's first in
+         a conversation the other one began (`firstOwn`). Whoever wrote first is mostly not in
+         the wallet when the answer comes, and without a mail would not learn of it. The box
+         stands there to be seen and unticked, and is empty again after that one message.
+
          In a group (P5) it is the announcement (E-050 F5): by mail to every member but the sender
          who has not muted the group -- the owner's and the moderators' only, and only where
          anybody else is in the group. -->
@@ -296,6 +301,7 @@
           type="checkbox"
           class="chat-compose-check-box"
           data-test="chat-compose-email"
+          @change="noteBoxTouched"
         />
         <span class="chat-compose-check-text" data-test="chat-compose-email-words">
           {{ boxWords }}
@@ -463,6 +469,11 @@ const props = defineProps({
   /** Only the text, no paperclip: the contact window's first form (E-055). */
   textOnly: { type: Boolean, default: false },
   /**
+   * The next message is the member's first in a conversation the other one began (E-066): the
+   * box "also by e-mail" begins ticked for it. Never in a group, whose box is the announcement.
+   */
+  firstOwn: { type: Boolean, default: false },
+  /**
    * The message of one's own that is being changed (E-060), or null: `{ messageUuid, body,
    * hasImage }` -- its text as it stands, and whether it carries a picture (then the text is its
    * caption, and may be emptied). While it is set the bar changes that message instead of
@@ -516,7 +527,12 @@ const replyingTitle = computed(() =>
 const root = ref(null)
 const field = ref(null)
 const text = ref(props.initialText)
-const alsoByEmail = ref(false)
+const alsoByEmail = ref(props.firstOwn && !props.group)
+/** The member has set the box themselves: from then on it is theirs, whatever arrives. */
+let boxTouched = false
+const noteBoxTouched = () => {
+  boxTouched = true
+}
 
 /**
  * The picture that goes with the next message (P7): `{ source, edit }` -- the picture as chosen,
@@ -1023,6 +1039,21 @@ watch(
     await nextTick()
     grow()
     if (focusStaysHere()) field.value?.focus({ preventScroll: true })
+  },
+)
+
+/**
+ * Whether the next message is the member's first one changes while the bar stands: the other
+ * person's first message arrives in an open window that held none, or a message of the member's
+ * own comes in from another device (E-066). The box follows -- unless the member has set it
+ * themselves. While a message is being changed, it is the box that waits (`held`) that follows.
+ */
+watch(
+  () => props.firstOwn && !props.group,
+  (now) => {
+    if (boxTouched) return
+    if (held) held.alsoByEmail = now
+    else alsoByEmail.value = now
   },
 )
 
