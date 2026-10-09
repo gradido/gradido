@@ -62,6 +62,69 @@
       </p>
     </div>
 
+    <!-- Somebody the page was asked to show -- a contact, from the contact window's pin (Bernd,
+         09.10.2026). First, under a heading of their own, whatever the boxes under the map let
+         through: the member came for this person, and the list is the one place a screen reader
+         meets them (the map is inert under it). The search stands on them, so a distance from
+         the search point would always read "nearby": theirs is measured from the member's home,
+         and says so. Where the search found them as well, the line says what answers the
+         member's entries, as a match's line does -- and they are not listed a second time below
+         (the parent hands the two lists over without them). -->
+    <section v-if="contact" class="list-section" aria-labelledby="match-list-contact-head">
+      <h3 id="match-list-contact-head" class="section-head">
+        {{ $t('matching.list.contactHeading') }}
+      </h3>
+      <ul class="rows">
+        <li>
+          <button
+            type="button"
+            class="row row-match row-contact"
+            data-test="match-list-contact"
+            @click="$emit('openContact')"
+          >
+            <span v-if="contact.item" class="row-dots" aria-hidden="true">
+              <span
+                v-for="channel in dotsFor(contact.item)"
+                :key="channel"
+                class="dot"
+                :style="{ background: LABEL_COLORS[channel] }"
+              />
+            </span>
+            <span class="row-body">
+              <!-- The dot between two parts is drawn (CSS) and hidden from a screen reader, and
+                   the template keeps no space between the spans: without the comma the line's
+                   name would run "Anna-SonneKI Playground" and "im Nahbereichvon Deinem Zuhause
+                   aus" (measured in the built wallet, the name Chrome computes). The comma is
+                   for the ear only. -->
+              <span class="row-head">
+                <span class="row-name">{{ contact.person.name }}</span>
+                <template v-if="contact.person.community?.name">
+                  <span class="sr-only">{{ PAUSE }}</span>
+                  <span class="row-sep" aria-hidden="true" />
+                  <span class="row-community">{{ contact.person.community.name }}</span>
+                </template>
+              </span>
+              <span v-if="home" class="row-where" data-test="match-list-contact-where">
+                <PlaceText
+                  :where="whereFrom(home, contact.person)"
+                  :dir="dirFrom(home, contact.person)"
+                />
+                <span class="sr-only">{{ PAUSE }}</span>
+                <span class="row-sep" aria-hidden="true" />
+                <span>{{ $t('matching.list.fromHome') }}</span>
+              </span>
+              <template v-if="contact.item">
+                <span class="row-line">{{ lineFor(contact.item) }}</span>
+                <span v-if="breadthOf(contact.item) >= 2" class="row-breadth">
+                  {{ $t('matching.list.meets', { n: breadthOf(contact.item) }) }}
+                </span>
+              </template>
+            </span>
+          </button>
+        </li>
+      </ul>
+    </section>
+
     <!-- Your matches. The heading names the group; each person is one item; the
          order is the ranking, spoken as sequence and never as a number. -->
     <section v-if="matches.length" class="list-section" aria-labelledby="match-list-matches-head">
@@ -82,6 +145,7 @@
             <span class="row-body">
               <span class="row-head">
                 <span class="row-name">{{ item.match.name }}</span>
+                <span class="sr-only">{{ PAUSE }}</span>
                 <span class="row-sep" aria-hidden="true" />
                 <span class="row-community">{{ item.match.community.name }}</span>
               </span>
@@ -118,6 +182,7 @@
               <span class="row-head">
                 <span class="row-name">{{ person.name }}</span>
                 <template v-if="person.community">
+                  <span class="sr-only">{{ PAUSE }}</span>
                   <span class="row-sep" aria-hidden="true" />
                   <span class="row-community">{{ person.community.name }}</span>
                 </template>
@@ -131,7 +196,8 @@
       </ul>
     </section>
 
-    <p v-if="!matches.length && !silent.length" class="list-empty">
+    <!-- Not under somebody the page shows: "nobody here" would stand under a name. -->
+    <p v-if="!contact && !matches.length && !silent.length" class="list-empty">
       {{ $t('matching.list.empty') }}
     </p>
   </div>
@@ -158,6 +224,11 @@ const props = defineProps({
   matches: { type: Array, default: () => [] },
   // Presence people, filtered and sorted by the parent. Names are a stub today.
   silent: { type: Array, default: () => [] },
+  // Somebody the page was asked to show, or null: `{ person, item }` -- the person as the map
+  // holds them, and their match item where the search found them (else null). Listed first.
+  contact: { type: Object, default: null },
+  // The member's own home: what the contact's distance is measured from, whatever the lens.
+  home: { type: Object, default: null },
   // Where the distances are measured from: the search centre, or home under the travel lens.
   center: { type: Object, default: null },
   // Where the search is. The address search asks near it - not near `center`, which is the
@@ -181,9 +252,15 @@ const props = defineProps({
   showLens: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['open', 'sort', 'lens', 'recenter'])
+const emit = defineEmits(['open', 'openContact', 'sort', 'lens', 'recenter'])
 
 const { t, locale } = useI18n()
+
+// A comma for the ear, between two parts of a line that the eye sees a dot between (the dot is
+// CSS, and hidden from a screen reader). A sign, not a word: the same in every language. In
+// every line of the list: without it a screen reader was handed "Gaston-TischKI Playground"
+// (measured in the built wallet, the name Chrome computes for the line).
+const PAUSE = ', '
 
 /** What the search took hold of: the reach, the circle where it is wide, the place. */
 const centreLine = computed(() => {
@@ -260,15 +337,24 @@ function breadthOf(item) {
 
 // --- distance and direction, spoken honestly ------------------------------
 
-function whereOf(person) {
-  if (!props.center) return { band: 'near', km: null, showDirection: false, etwa: false }
-  const km = distanceKm(props.center, person.position)
+function whereFrom(origin, person) {
+  if (!origin) return { band: 'near', km: null, showDirection: false, etwa: false }
+  const km = distanceKm(origin, person.position)
   return describeDistance(km, { mine: props.myPrecision, theirs: person.precision })
 }
 
+function dirFrom(origin, person) {
+  if (!origin) return 'n'
+  return bearing8(origin, person.position)
+}
+
+/** From where the list measures: the search centre, or home under the travel lens. */
+function whereOf(person) {
+  return whereFrom(props.center, person)
+}
+
 function dirOf(person) {
-  if (!props.center) return 'n'
-  return bearing8(props.center, person.position)
+  return dirFrom(props.center, person)
 }
 
 /**

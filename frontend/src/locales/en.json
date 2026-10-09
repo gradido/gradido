@@ -183,6 +183,7 @@
     "moderatorOff": "Remove as moderator",
     "moderatorOn": "Make moderator",
     "muteOff": "Muted — no announcements by e-mail from {name}",
+    "muteOn": "Mute the group {name}",
     "muted": "Muted",
     "mutedHint": "Muted: no more announcements by e-mail from {name}. You will see new messages here.",
     "name": "Name of the group",
@@ -339,7 +340,7 @@
     "menuLabel": "Message",
     "menuMore": "Options for this message",
     "muteOff": "Muted — no e-mails about chat messages from {name}",
-    "muteOn": "Mute",
+    "muteOn": "Mute {name}",
     "mutedHint": "Muted: no more e-mails about chat messages from {name}. You will see new messages here. Letters sent with “Send email” still arrive.",
     "notMailedMuted": "No e-mail — {name} has turned off e-mails for your conversation.",
     "notReachable": "The conversation history could not be loaded.",
@@ -444,8 +445,8 @@
     "empty": "No contacts yet. Whoever exchanges Gradido with you — or joins through you — appears here.",
     "favorites": "Favourites",
     "heart": {
-      "add": "Add to favourites",
-      "remove": "Remove from favourites"
+      "add": "Add {name} to favourites",
+      "remove": "Remove {name} from favourites"
     },
     "last": "last {date}",
     "matches": "Matches",
@@ -937,6 +938,7 @@
       "centeredOn": "Centred on {place}",
       "centeredOnFern": "Supra-regional · {km} km around {place}",
       "centeredOnFernNoPlace": "Supra-regional · {km} km",
+      "contactHeading": "Your contact",
       "controlsHeading": "Search and sort",
       "dir": {
         "e": "east",
@@ -949,6 +951,7 @@
         "w": "west"
       },
       "empty": "No one here right now. Widen the radius or search another place.",
+      "fromHome": "from your home",
       "heading": "People near you",
       "kmEtwa": "about {n} km",
       "kmExact": "{n} km",

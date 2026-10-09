@@ -275,6 +275,26 @@ describe('displayCore', () => {
     const approx = { mine: 'genau', theirs: 'ungefaehr' }
     const exact = { mine: 'genau', theirs: 'genau' }
 
+    // The bearing of two equal points is "north": a person on exactly the point the list
+    // measures from read "0 km nördlich" -- a contact at the member's own address, measured from
+    // home (09.10.2026).
+    it('names no direction over no distance', () => {
+      expect(describeDistance(0, exact)).toEqual({
+        band: 'exact',
+        km: 0,
+        showDirection: false,
+        etwa: false,
+      })
+      expect(describeDistance(0.04, exact).showDirection).toBe(false)
+      // The control: the smallest distance that is one names its direction.
+      expect(describeDistance(0.05, exact)).toEqual({
+        band: 'exact',
+        km: 0.1,
+        showDirection: true,
+        etwa: false,
+      })
+    })
+
     it('keeps the near band silent and directionless when a side is blurred', () => {
       expect(describeDistance(4.9, approx)).toEqual({
         band: 'near',

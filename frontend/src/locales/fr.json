@@ -183,6 +183,7 @@
     "moderatorOff": "Retirer le rôle de modérateur",
     "moderatorOn": "Nommer modérateur",
     "muteOff": "En sourdine — pas d'annonces par e-mail de {name}",
+    "muteOn": "Mettre le groupe {name} en sourdine",
     "muted": "En sourdine",
     "mutedHint": "En sourdine : plus d'annonces par e-mail de {name}. Tu vois les nouveaux messages ici.",
     "name": "Nom du groupe",
@@ -339,7 +340,7 @@
     "menuLabel": "Message",
     "menuMore": "Plus d'options pour ce message",
     "muteOff": "Conversation en sourdine — pas d'e-mails pour les messages de chat de {name}",
-    "muteOn": "Mettre en sourdine",
+    "muteOn": "Mettre {name} en sourdine",
     "mutedHint": "Conversation en sourdine : plus d'e-mails pour les messages de chat de {name}. Tu vois les nouveaux messages ici. Les lettres envoyées avec « Envoyer un e-mail » continuent d'arriver.",
     "notMailedMuted": "Pas d'e-mail — {name} a désactivé les e-mails pour votre conversation.",
     "notReachable": "L'historique de conversation n'a pas pu être chargé.",
@@ -444,8 +445,8 @@
     "empty": "Pas encore de contacts. Ici apparaît toute personne qui échange des Gradido avec toi — ou qui arrive grâce à toi.",
     "favorites": "Favoris",
     "heart": {
-      "add": "Ajouter aux favoris",
-      "remove": "Retirer des favoris"
+      "add": "Ajouter {name} aux favoris",
+      "remove": "Retirer {name} des favoris"
     },
     "last": "dernière {date}",
     "matches": "Résultats",
@@ -937,6 +938,7 @@
       "centeredOn": "Autour de {place}",
       "centeredOnFern": "Suprarégional · {km} km autour de {place}",
       "centeredOnFernNoPlace": "Suprarégional · {km} km",
+      "contactHeading": "Ton contact",
       "controlsHeading": "Recherche et tri",
       "dir": {
         "e": "à l'est",
@@ -949,6 +951,7 @@
         "w": "à l'ouest"
       },
       "empty": "Il n'y a personne ici pour le moment. Élargis le rayon ou cherche un autre endroit.",
+      "fromHome": "depuis chez toi",
       "heading": "Des personnes près de toi",
       "kmEtwa": "environ {n} km",
       "kmExact": "{n} km",

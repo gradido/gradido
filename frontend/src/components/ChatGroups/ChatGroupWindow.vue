@@ -384,7 +384,9 @@ watch(
 )
 
 const bellName = computed(() =>
-  muted.value ? t('chatGroup.muteOff', { name: props.group?.title ?? '' }) : t('chatThread.muteOn'),
+  muted.value
+    ? t('chatGroup.muteOff', { name: props.group?.title ?? '' })
+    : t('chatGroup.muteOn', { name: props.group?.title ?? '' }),
 )
 
 /**

@@ -183,6 +183,7 @@
     "moderatorOff": "Moderatorrol afnemen",
     "moderatorOn": "Moderator maken",
     "muteOff": "Gedempt — geen aankondigingen per e-mail uit {name}",
+    "muteOn": "Groep {name} dempen",
     "muted": "Gedempt",
     "mutedHint": "Gedempt: geen aankondigingen per e-mail meer uit {name}. Nieuwe berichten zie je hier.",
     "name": "Groepsnaam",
@@ -339,7 +340,7 @@
     "menuLabel": "Bericht",
     "menuMore": "Meer opties voor dit bericht",
     "muteOff": "Gesprek gedempt — geen e-mails over chatberichten van {name}",
-    "muteOn": "Dempen",
+    "muteOn": "{name} dempen",
     "mutedHint": "Gesprek gedempt: geen e-mails meer over chatberichten van {name}. Nieuwe berichten zie je hier. Brieven via “E-mail versturen” komen nog steeds aan.",
     "notMailedMuted": "Geen e-mail — {name} heeft e-mails over jullie gesprek uitgezet.",
     "notReachable": "De gespreksgeschiedenis kon niet worden geladen.",
@@ -444,8 +445,8 @@
     "empty": "Nog geen contacten. Hier verschijnt wie Gradido met je uitwisselt — of wie via jou binnenkomt.",
     "favorites": "Favorieten",
     "heart": {
-      "add": "Aan favorieten toevoegen",
-      "remove": "Uit favorieten verwijderen"
+      "add": "{name} aan favorieten toevoegen",
+      "remove": "{name} uit favorieten verwijderen"
     },
     "last": "laatst {date}",
     "matches": "Resultaten",
@@ -937,6 +938,7 @@
       "centeredOn": "Rondom {place}",
       "centeredOnFern": "Bovenregionaal · {km} km rondom {place}",
       "centeredOnFernNoPlace": "Bovenregionaal · {km} km",
+      "contactHeading": "Jouw contact",
       "controlsHeading": "Zoeken en sorteren",
       "dir": {
         "e": "ten oosten",
@@ -949,6 +951,7 @@
         "w": "ten westen"
       },
       "empty": "Hier is op dit moment niemand. Vergroot de straal of zoek een andere plek.",
+      "fromHome": "vanaf je huis",
       "heading": "Mensen bij jou in de buurt",
       "kmEtwa": "ongeveer {n} km",
       "kmExact": "{n} km",

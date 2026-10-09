@@ -183,6 +183,7 @@
     "moderatorOff": "Moderatörlüğü kaldır",
     "moderatorOn": "Moderatör yap",
     "muteOff": "Sessizde — {name} grubundan e-postayla duyuru yok",
+    "muteOn": "{name} grubunu sessize al",
     "muted": "Sessizde",
     "mutedHint": "Sessize alındı: {name} grubundan artık e-postayla duyuru gelmeyecek. Yeni mesajları burada görürsün.",
     "name": "Grup adı",
@@ -339,7 +340,7 @@
     "menuLabel": "Mesaj",
     "menuMore": "Bu mesaj için diğer seçenekler",
     "muteOff": "Sessizde — {name} kişisinin sohbet mesajları için e-posta yok",
-    "muteOn": "Sessize al",
+    "muteOn": "{name} kişisini sessize al",
     "mutedHint": "Sessize alındı: {name} kişisinin sohbet mesajları için artık e-posta gelmeyecek. Yeni mesajları burada görürsün. «E-posta gönder» ile gönderilen mektuplar gelmeye devam eder.",
     "notMailedMuted": "E-posta yok — {name} bu sohbet için e-postaları kapattı.",
     "notReachable": "Konuşma geçmişi yüklenemedi.",
@@ -444,8 +445,8 @@
     "empty": "Henüz kişi yok. Seninle Gradido alışverişi yapan — ya da senin sayende gelen — herkes burada görünür.",
     "favorites": "Favoriler",
     "heart": {
-      "add": "Favorilere ekle",
-      "remove": "Favorilerden çıkar"
+      "add": "{name} kişisini favorilere ekle",
+      "remove": "{name} kişisini favorilerden çıkar"
     },
     "last": "son {date}",
     "matches": "Sonuçlar",
@@ -934,9 +935,10 @@
       }
     },
     "list": {
-      "centeredOn": "{place} çevresinde",
-      "centeredOnFern": "Bölge üstü · {place} çevresinde {km} km",
+      "centeredOn": "Arama merkezi: {place}",
+      "centeredOnFern": "Bölge üstü · {km} km · merkez: {place}",
       "centeredOnFernNoPlace": "Bölge üstü · {km} km",
+      "contactHeading": "Kişin",
       "controlsHeading": "Arama ve sıralama",
       "dir": {
         "e": "doğuda",
@@ -949,6 +951,7 @@
         "w": "batıda"
       },
       "empty": "Şu anda burada kimse yok. Yarıçapı büyüt ya da başka bir yer ara.",
+      "fromHome": "senin evinden",
       "heading": "Yakınındaki insanlar",
       "kmEtwa": "yaklaşık {n} km",
       "kmExact": "{n} km",
@@ -974,8 +977,8 @@
       "back": "Geri",
       "breite": "Birden çok kez uyanlar",
       "breiteHint": "Girişlerinden birkaçına birden yanıt veren insanları öne çıkarır.",
-      "centreHome": "Evinin",
-      "centrePoint": "Seçtiğin noktanın",
+      "centreHome": "evin",
+      "centrePoint": "seçtiğin nokta",
       "channels": {
         "andere": "diğer herkes",
         "andereMit": "girişi olan diğerleri",

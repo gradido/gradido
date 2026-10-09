@@ -80,7 +80,6 @@ describe('FavoriteHeart', () => {
     mountWith()
     expect(wrapper.find('[data-test="heart-empty"]').exists()).toBe(true)
     expect(button().attributes('aria-pressed')).toBe('false')
-    expect(button().attributes('aria-label')).toBe('contacts.heart.add')
   })
 
   it('shows a full heart for a favourite', () => {
@@ -88,6 +87,42 @@ describe('FavoriteHeart', () => {
     mountWith()
     expect(wrapper.find('[data-test="heart-full"]').exists()).toBe(true)
     expect(button().attributes('aria-pressed')).toBe('true')
+  })
+
+  // Bernd, 09.10.2026: the heart had a name for a screen reader, but one that named nobody -- a
+  // list read as a column of "add to favourites" --, and no tooltip at all. It says what a tap
+  // does and to whom, in both states, and the same words are its tooltip.
+  describe('its name', () => {
+    it('says whom a tap adds to the favourites, as name and as tooltip', () => {
+      mountWith()
+      expect(button().attributes('aria-label')).toBe('contacts.heart.add {"name":"Carla-Sonne"}')
+      expect(button().attributes('title')).toBe('contacts.heart.add {"name":"Carla-Sonne"}')
+    })
+
+    it('says whom a tap takes out of the favourites, as name and as tooltip', () => {
+      rememberFavorites([CARLA])
+      mountWith()
+      expect(button().attributes('aria-label')).toBe('contacts.heart.remove {"name":"Carla-Sonne"}')
+      expect(button().attributes('title')).toBe('contacts.heart.remove {"name":"Carla-Sonne"}')
+    })
+
+    it('follows the heart: given, it offers to take away, and the other way round', async () => {
+      mountWith()
+      await button().trigger('click')
+      expect(button().attributes('title')).toBe('contacts.heart.remove {"name":"Carla-Sonne"}')
+
+      await button().trigger('click')
+      await wrapper.find('[data-test="dialog-ok"]').trigger('click')
+      await nextTick()
+      expect(button().attributes('title')).toBe('contacts.heart.add {"name":"Carla-Sonne"}')
+      expect(button().attributes('aria-label')).toBe('contacts.heart.add {"name":"Carla-Sonne"}')
+    })
+
+    // Each heart of a list names its own person.
+    it('names the member it stands beside', () => {
+      mountWith({ member: { communityUuid: 'home', gradidoID: 'tobias', alias: 'Tobias' } })
+      expect(button().attributes('aria-label')).toBe('contacts.heart.add {"name":"Tobias"}')
+    })
   })
 
   it('gives the heart on one tap, without asking, and tells the server', async () => {

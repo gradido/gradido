@@ -298,7 +298,9 @@ export function describeDistance(km, tiers = {}) {
   const bothExact = tiers.mine === 'genau' && tiers.theirs === 'genau'
   if (bothExact) {
     const rounded = km < 10 ? Math.round(km * 10) / 10 : Math.round(km)
-    return { band: 'exact', km: rounded, showDirection: true, etwa: false }
+    // No direction over no distance: the bearing of two equal points is "north", and a contact
+    // at the member's own address would read "0 km north".
+    return { band: 'exact', km: rounded, showDirection: rounded > 0, etwa: false }
   }
   if (km < 5) return { band: 'near', km: null, showDirection: false, etwa: false }
   if (km < 10) return { band: 'approx', km: Math.round(km), showDirection: true, etwa: true }

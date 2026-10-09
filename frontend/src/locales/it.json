@@ -183,6 +183,7 @@
     "moderatorOff": "Togli il ruolo di moderatore",
     "moderatorOn": "Nomina moderatore",
     "muteOff": "Silenziato — nessun annuncio via e-mail da {name}",
+    "muteOn": "Silenzia il gruppo {name}",
     "muted": "Silenziato",
     "mutedHint": "Silenziato: niente più annunci via e-mail da {name}. I nuovi messaggi li vedi qui.",
     "name": "Nome del gruppo",
@@ -339,7 +340,7 @@
     "menuLabel": "Messaggio",
     "menuMore": "Altre opzioni per questo messaggio",
     "muteOff": "Conversazione silenziata — nessuna e-mail per i messaggi in chat di {name}",
-    "muteOn": "Silenzia",
+    "muteOn": "Silenzia {name}",
     "mutedHint": "Conversazione silenziata: niente più e-mail per i messaggi in chat di {name}. I nuovi messaggi li vedi qui. Le lettere inviate con «Invia e-mail» continuano ad arrivare.",
     "notMailedMuted": "Nessuna e-mail — {name} ha disattivato le e-mail della vostra conversazione.",
     "notReachable": "Non è stato possibile caricare la cronologia della conversazione.",
@@ -444,8 +445,8 @@
     "empty": "Ancora nessun contatto. Qui compare chi scambia Gradido con te — o chi arriva grazie a te.",
     "favorites": "Preferiti",
     "heart": {
-      "add": "Aggiungi ai preferiti",
-      "remove": "Rimuovi dai preferiti"
+      "add": "Aggiungi {name} ai preferiti",
+      "remove": "Rimuovi {name} dai preferiti"
     },
     "last": "ultimo {date}",
     "matches": "Risultati",
@@ -937,6 +938,7 @@
       "centeredOn": "Intorno a {place}",
       "centeredOnFern": "Sovraregionale · {km} km intorno a {place}",
       "centeredOnFernNoPlace": "Sovraregionale · {km} km",
+      "contactHeading": "Il tuo contatto",
       "controlsHeading": "Ricerca e ordinamento",
       "dir": {
         "e": "a est",
@@ -949,6 +951,7 @@
         "w": "a ovest"
       },
       "empty": "Qui al momento non c'è nessuno. Allarga il raggio o cerca in un altro posto.",
+      "fromHome": "da casa tua",
       "heading": "Persone vicino a te",
       "kmEtwa": "circa {n} km",
       "kmExact": "{n} km",

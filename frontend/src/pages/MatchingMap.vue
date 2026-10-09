@@ -75,18 +75,21 @@
         <MatchList
           v-if="mode === 'liste'"
           class="list-cover"
-          :matches="sortedMatches"
-          :silent="sortedPresence"
+          :matches="listMatches"
+          :silent="listPresence"
+          :contact="listContact"
+          :home="ownPosition"
           :center="lensOrigin"
           :search-center="searchCenter"
           :center-label="centerLabelShown"
-          :my-precision="MY_PRECISION"
+          :my-precision="originPrecision"
           :reach="reach"
           :radius-km="radius"
           :sort-mode="sortMode"
           :lens-mode="lensMode"
           :show-lens="showLens"
           @open="openProfile"
+          @open-contact="openShown"
           @sort="setSort"
           @lens="setLens"
           @recenter="moveSearchTo"
@@ -453,11 +456,9 @@ const RING_WEIGHT = 2
 const RING_TOLERANCE = HIT_MIN / 2 - RING_RADIUS - RING_WEIGHT / 2
 
 // Somebody the map was asked to show (the contact window's pin): a gold ring around their
-// point, wide enough to stand around a glowing match's tap area or the house, and the zoom
-// they are brought into view at -- a town and what lies around it. Their point is the one the
-// GMS blurred; a closer look would claim more than is known.
+// point, wide enough to stand around a glowing match's tap area or the house. Their point is
+// the one the GMS blurred.
 const SHOWN_RING = 56
-const SHOWN_ZOOM = 12
 // What names a person in the address: two uuids, as the contacts page is asked with.
 const UUID_SHAPE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
@@ -571,7 +572,9 @@ onEntries((result) => {
     selection.value.kind === 'entry' &&
     !myEntries.value.some((e) => e.uuid === selection.value.uuid)
   ) {
-    onSelection({ kind: 'all' })
+    // Not the member's choice but the page's own: its search waits like the others the page
+    // asks of its own accord (searchUnasked).
+    onSelection({ kind: 'all' }, { unasked: true })
     // onSelection searches on its own; asking twice would be the same question.
     return
   }
@@ -581,7 +584,7 @@ onEntries((result) => {
   // match answers - on a cold load the list arriving after the location repeats the
   // first search once, a round trip spent for the simpler rule. Before a centre exists
   // runSearch returns without asking.
-  if (entryKey(myEntries.value) !== keyBefore) runSearch()
+  if (entryKey(myEntries.value) !== keyBefore) searchUnasked()
 })
 
 /**
@@ -642,12 +645,13 @@ function answerKeepOffer(answered = true) {
   }
 }
 
-function onSelection(next) {
+function onSelection(next, { unasked = false } = {}) {
   selection.value = next
   writePref('query', next)
   answerKeepOffer(false)
   closeCluster()
-  runSearch()
+  if (unasked) searchUnasked()
+  else runSearch()
 }
 
 // What the search asks for beyond the place: nothing for "everything" and for a
@@ -819,6 +823,19 @@ const centerLabelShown = computed(() => {
   return t('matching.map.centrePoint')
 })
 
+// How precisely the point is known that the list measures from: the member's own, for their home
+// and for a search point they chose. On a visit that shows somebody the search stands on THEIR
+// published point, and that may be blurred -- measured from there, a figure with a decimal and a
+// bearing would claim more than is known. The coarser end wins (describeDistance), so the list
+// is told which end this one is.
+const originPrecision = computed(() => {
+  const person = shown.value
+  const origin = lensOrigin.value
+  const onThem =
+    person && origin && origin.lat === person.position.lat && origin.lng === person.position.lng
+  return onThem ? person.precision : MY_PRECISION
+})
+
 function centreDistance(person) {
   return lensOrigin.value ? distanceKm(lensOrigin.value, person.position) : 0
 }
@@ -878,14 +895,15 @@ onResult(({ data }) => {
   // search — who is near me — and the only moment we get to choose it for them.
   // Nothing is looked up for its name: the list calls it the member's home
   // (centerLabelShown), so the home position is not sent to a reverse lookup (K-002).
-  if (!searchCenter.value) {
-    searchCenter.value = { ...ownPosition.value }
-    writePref('center', searchCenter.value)
-  }
+  if (!searchCenter.value) searchCenter.value = { ...ownPosition.value }
+  // Written down is the member's OWN centre. On a visit that shows somebody the live one may
+  // stand on them already (searchAroundShown), and that one is not theirs: the home is.
+  if (!readCenter())
+    writePref('center', visitSearch ? { ...ownPosition.value } : searchCenter.value)
   drawOwn()
   drawCircle()
   restoreView()
-  runSearch()
+  searchUnasked()
 })
 onError((error) => toastError(error.message))
 
@@ -910,97 +928,174 @@ const askedPerson = computed(() => {
 
 // The person as the map draws them, once the GMS has said where they stand: in a ring's shape
 // (toPresence) -- name, community, the point the GMS blurred -- so the window opens on them as
-// on any ring. Drawn whatever the search is: the circle may be anywhere, and so may they.
+// on any ring, and the list names them first (MatchList, "Dein Kontakt").
 const shown = ref(null)
 let shownLayer = null
 // Counts the persons asked for: an answer for an earlier address, or for a page that is gone,
 // is let go.
 let shownRequest = 0
-// Whether the map still has to be brought onto the shown person. It is brought there ONCE --
-// when they are known and the map is there, whichever comes last -- and never pulled back: by
-// the next thing that restores the view (a location answer that comes late) the member may have
-// looked elsewhere.
-let shownPending = false
-// Whether the view on screen is the one this page chose for the shown person, and what the
-// member made of it by looking around. That view is not remembered: the next visit opens where
-// the member last looked for themselves. Framing a search hands the view back (zoomToCircle) --
-// a search moved during such a visit is remembered together with the view of it, or the next
-// visit would open on the old place with the circle somewhere else.
-let visitView = false
-// Whether the map stands in place of the list only for this visit (see showAsked).
-let mapForVisit = false
+// Whether the search stands on the shown person for this visit only (searchAroundShown). The
+// centre and its name are then not the member's own: neither is written down, and neither is
+// the view -- the next visit opens where the member last searched and looked for themselves. A
+// search the member moves is theirs again, with the view of it (moveSearchTo).
+let visitSearch = false
+// Whether the map still has to be brought onto the circle of that search. It is brought there
+// ONCE -- when the person is known and the map is there, whichever comes last -- and never
+// pulled back: by the next thing that restores the view (a location answer that comes late) the
+// member may have looked elsewhere.
+let visitFramePending = false
+// Whether an answer about the person is still on its way, and whether a search the page asks
+// of its own accord waits for it (searchUnasked).
+let asking = false
+let searchHeld = false
+// Whether the member moved the search themselves while that answer was on its way. Then it
+// stays where they put it: the person is marked and listed, and the search is not taken from
+// under the member's hand.
+let movedWhileAsking = false
 
 /**
  * Ask the GMS where the person stands -- its profile route, which answers for the pair wherever
- * they live -- then mark them and bring them into view. The search stays where it was: this is
- * looking, and looking does not search.
+ * they live --, then mark them, name them first in the list and search around them: for this
+ * visit the search stands on the person (Bernd, 09.10.2026). The map then shows who lives around
+ * them, and the list -- the one representation a blind member has -- reads the same.
  *
  * Somebody the GMS does not hold (any more) is not on the map, and the member is told so; the
- * map then stands as it would without the address. The pin is only offered for somebody who was
+ * page then stands as it would without the address. The pin is only offered for somebody who was
  * there a moment ago, so this is the rare case: "findable" switched off in between, or an
  * address kept from another day.
+ *
+ * ⛔ Every way out of here settles the search: around the person, or as the member left it
+ * (searchOnOwnAgain) -- also where the page stays and only its address changes.
  */
 async function showAsked() {
   const request = ++shownRequest
   shown.value = null
-  shownPending = false
-  visitView = false
   drawShown()
+  updateCentreCover()
   const person = askedPerson.value
-  if (!person || !enabled.value) {
-    // The visit is over where the address names nobody any more (the page stays while its
-    // address changes): the map stood in place of a kept list for that visit only.
-    listBackAfterVisit()
-    return
-  }
-  // The map itself, also for a member who keeps the list: they asked to see a place. Not
-  // written down -- the list stays their standing choice, and where the visit ends or no map
-  // can be drawn at all they get it back (listBackAfterVisit).
-  if (mode.value !== 'karte' && !noWebgl.value) {
-    mode.value = 'karte'
-    mapForVisit = true
-  }
-  let published = null
-  try {
-    published = await loadProfile(person.gradidoID, person.communityUuid)
-  } catch (err) {
+  let answer = null
+  if (person && enabled.value) {
+    asking = true
+    movedWhileAsking = false
+    answer = await whereIs(person)
+    // An answer for an earlier address, or for a page that is gone: the question that came after
+    // it settles the search, and nothing is said about this one.
     if (request !== shownRequest) return
-    // Two whole t() calls rather than one with the key chosen inside it: the i18n lint counts
-    // literal keys only.
-    toastError(
-      err?.status === 404 ? t('matching.map.contactNotOnMap') : t('matching.profile.unavailable'),
-    )
+  }
+  asking = false
+  if (answer?.refusal) toastError(answer.refusal)
+  if (!answer?.person) {
+    searchOnOwnAgain()
     return
   }
-  if (request !== shownRequest) return
-  // The GMS is a foreign system: a point off the globe is finite and is no place, and MapLibre
-  // refuses to stand a marker on one.
-  if (!isUsablePlace(published?.position)) {
-    toastError(t('matching.map.contactNotOnMap'))
-    return
-  }
-  shown.value = {
-    uuid: published.uuid ?? person.gradidoID,
-    name: published.name ?? '',
-    community: published.community?.uuid
-      ? published.community
-      : { uuid: person.communityUuid, name: published.community?.name ?? '' },
-    position: published.position,
-    precision: published.precision,
-  }
-  shownPending = true
+  shown.value = answer.person
   drawShown()
-  centreOnShown()
+  // The crosshair steps back over them (and comes back where the mark was taken away above):
+  // it is told here, not only by the next move of the map.
+  updateCentreCover()
+  if (movedWhileAsking) {
+    searchOnOwnAgain()
+    return
+  }
+  searchAroundShown()
 }
 
-// The map stood in place of the list for one visit (showAsked). Where that visit is over -- the
-// address names nobody any more -- or no map can be drawn for it -- no WebGL 2, or the engine did
-// not arrive --, a member who keeps the list gets the list back, instead of a map they did not
-// choose or an empty frame in its place.
-function listBackAfterVisit() {
-  if (!mapForVisit) return
-  mapForVisit = false
-  mode.value = readMode()
+/**
+ * Where the GMS holds a person: `{ person }` as the map draws them, or `{ refusal }` -- the
+ * sentence for the member -- where there is nobody to show.
+ */
+async function whereIs({ gradidoID, communityUuid }) {
+  let published = null
+  try {
+    published = await loadProfile(gradidoID, communityUuid)
+  } catch (err) {
+    // Two whole t() calls rather than one with the key chosen inside it: the i18n lint counts
+    // literal keys only.
+    return {
+      refusal:
+        err?.status === 404 ? t('matching.map.contactNotOnMap') : t('matching.profile.unavailable'),
+    }
+  }
+  // The GMS is a foreign system: a point off the globe is finite and is no place, and MapLibre
+  // refuses to stand a marker on one.
+  if (!isUsablePlace(published?.position)) return { refusal: t('matching.map.contactNotOnMap') }
+  return {
+    person: {
+      uuid: published.uuid ?? gradidoID,
+      name: published.name ?? '',
+      community: published.community?.uuid
+        ? published.community
+        : { uuid: communityUuid, name: published.community?.name ?? '' },
+      position: published.position,
+      precision: published.precision,
+    },
+  }
+}
+
+/**
+ * For this visit the search stands on the shown person: its centre on their point, the radius as
+ * the member has it, the map framing that circle, and the list's line naming them ("Umkreis um
+ * Margret"). Nothing of it is written down -- see `visitSearch`.
+ *
+ * The centre is named after the person and no place name is looked up for it: that lookup is for
+ * the member's own search point, never for anybody else's position (resolveCenterLabel).
+ */
+function searchAroundShown() {
+  const { position, name } = shown.value
+  visitSearch = true
+  inClusterZoom = false
+  // Only an overlay that is open: closing writes it away, and one remembered for the way back
+  // from the send form is not this visit's to forget.
+  if (clusterOpen.value) closeCluster()
+  searchCenter.value = { lat: position.lat, lng: position.lng }
+  // A lookup still out for the centre before must not name this one.
+  labelRequest++
+  centerLabel.value = name
+  drawCircle()
+  drawCentre()
+  visitFramePending = true
+  frameVisit()
+  // Asked at once, whether or not the member's home is known yet: an answer about the home that
+  // fails or stays out must not leave the visit without its search. Where that answer comes
+  // after, it asks the same search once more, as it does after the member's entries on any
+  // visit.
+  runSearch()
+}
+
+// The circle of the visit's search in view, at once -- the person stands in its middle. Once:
+// see `visitFramePending`.
+function frameVisit() {
+  if (!map || !visitSearch || !visitFramePending) return
+  visitFramePending = false
+  zoomToCircle()
+  updateCentreCover()
+}
+
+/**
+ * No visit (any more): the search stands where the member left it. The page stays while its
+ * address changes, so a visit can end here -- the address names nobody any more, or somebody who
+ * is not on the map -- and the centre the member did not choose goes with it. A first search
+ * that waited for the answer about the person is asked now.
+ */
+function searchOnOwnAgain() {
+  const held = searchHeld
+  searchHeld = false
+  if (!visitSearch) {
+    if (held) runSearch()
+    return
+  }
+  visitSearch = false
+  visitFramePending = false
+  inClusterZoom = false
+  if (clusterOpen.value) closeCluster()
+  searchCenter.value = readCenter() ?? (ownPosition.value ? { ...ownPosition.value } : null)
+  labelRequest++
+  centerLabel.value = readPref('centerLabel', '')
+  drawCircle()
+  drawCentre()
+  restoreView()
+  updateCentreCover()
+  runSearch()
 }
 
 /**
@@ -1016,6 +1111,26 @@ const shownIsDrawn = computed(() => {
   const same = (other) => samePerson(person, other)
   return visibleMatches.value.some(({ match }) => same(match)) || visiblePresence.value.some(same)
 })
+
+// The list names the shown person once: first, under a heading of their own (MatchList), with
+// what the search knows of them where it found them -- and not a second time among the matches
+// or the others below. Whatever the boxes under the map let through: the member came for them.
+const listContact = computed(() => {
+  const person = shown.value
+  if (!person) return null
+  const item = visibleMatches.value.find(({ match }) => samePerson(person, match)) ?? null
+  return { person, item }
+})
+const listMatches = computed(() =>
+  shown.value
+    ? sortedMatches.value.filter(({ match }) => !samePerson(shown.value, match))
+    : sortedMatches.value,
+)
+const listPresence = computed(() =>
+  shown.value
+    ? sortedPresence.value.filter((other) => !samePerson(shown.value, other))
+    : sortedPresence.value,
+)
 
 /** Whether two records name one person: the pair, however a server spells it. */
 function samePerson(one, other) {
@@ -1065,25 +1180,14 @@ function drawShown() {
     size: [SHOWN_RING, SHOWN_RING],
     anchor: [SHOWN_RING / 2, SHOWN_RING / 2],
     interactive: true,
-    // A tab stop with a name, unlike the markers of the search: those are all in the list, which
-    // is where a keyboard and a screen reader meet them. Somebody shown from outside the search
-    // is in no list, so their mark is the one place to open them from.
+    // A tab stop with a name, unlike the markers of the search: this is who the member came
+    // for, and a keyboard on the map reaches them without going to the list first. (The list
+    // names them too, first of all -- that is where a screen reader meets them.)
     focusable: true,
     ariaLabel: t('matching.profile.aria', { name }),
     zIndex: 450,
     onClick: openShown,
   })
-}
-
-// The person in the middle of the view, at once -- they are what the member came to see. Once:
-// see `shownPending`.
-function centreOnShown() {
-  if (!map || !shown.value || !shownPending) return
-  shownPending = false
-  visitView = true
-  inClusterZoom = false
-  map.setView(shown.value.position, Math.min(SHOWN_ZOOM, map.getMaxZoom()))
-  updateCentreCover()
 }
 
 // Asked on arrival, and again should the address come to name somebody else. By the pair, not
@@ -1201,7 +1305,6 @@ function readVisible() {
 // forth). It rides in the same pref bag as look/radius/centre — no new mechanism.
 function setMode(next) {
   mode.value = next
-  mapForVisit = false
   writePref('mode', next)
 }
 
@@ -1217,7 +1320,17 @@ function setReach(next) {
   // to be told; the computed above has already emptied what it draws from.
   drawPresence()
   zoomToCircle({ fly: true })
+  forgetViewOfOldCircle()
   runSearch()
+}
+
+// The radius and the reach are the member's own settings, also on a visit that shows somebody --
+// but the view that frames the new circle is the visit's, around the person, and is not written
+// down. The view written down would then be the one of the OLD circle: the next ordinary visit
+// would open on it with a circle that no longer fits. Forgotten instead, that visit frames the
+// member's own circle afresh (restoreView).
+function forgetViewOfOldCircle() {
+  if (visitSearch) writePref('view', null)
 }
 
 function setSort(next) {
@@ -1236,10 +1349,7 @@ function setLens(next) {
 // is asking for the map back.
 function chooseLook(next) {
   setLook(next)
-  // Only where it is a change. On a visit that shows somebody the map stands in place of a
-  // kept list without that being written down, and choosing a colour there is not choosing the
-  // map for good.
-  if (mode.value !== 'karte') setMode('karte')
+  setMode('karte')
 }
 
 // Whoever came to see a contact on the map goes back into the conversation with them: the
@@ -1256,9 +1366,29 @@ function goBack() {
   router.push('/matching/entries')
 }
 
+/**
+ * A search the page asks of its own accord: its first one, when the member's home is known, and
+ * the one the member's entries ask for when they arrive. Where somebody is still being asked
+ * about, it waits for that answer -- the search will stand on them, or be asked as the member
+ * left it (showAsked). Asked at once, it would search the member's own circle a moment before
+ * the visit's, and the list would read out one place and then another.
+ *
+ * Not for a search the member asks for (a moved centre, a radius, a reach, a question): theirs
+ * is asked at once, whatever is on its way.
+ */
+function searchUnasked() {
+  if (asking) {
+    searchHeld = true
+    return
+  }
+  runSearch()
+}
+
 /** The one place a search is actually asked for. */
 function runSearch() {
   if (!searchCenter.value) return
+  // Whatever waited (searchUnasked) is asked with this one.
+  searchHeld = false
   load({
     center: searchCenter.value,
     radius: radius.value,
@@ -1276,6 +1406,11 @@ function moveSearchTo(next, { fly = false } = {}) {
   // and the two would disagree until the next reload. Both search fields hand their pick
   // straight from an address service, unchecked -- this is where it is checked.
   if (!isPlace(next)) return
+  // The member's own search from here on, written down with the view of it -- also where the
+  // page had put the search on somebody it was asked to show, or is about to (showAsked).
+  visitSearch = false
+  visitFramePending = false
+  if (asking) movedWhileAsking = true
   inClusterZoom = false
   closeCluster()
   searchCenter.value = { lat: next.lat, lng: next.lng }
@@ -1396,6 +1531,7 @@ function applyRadius() {
   drawCircle()
   // Frame the new circle: a radius you cannot see is a number without an answer.
   zoomToCircle()
+  forgetViewOfOldCircle()
   runSearch()
 }
 
@@ -1590,8 +1726,6 @@ function drawCircle() {
 
 function zoomToCircle({ fly = false } = {}) {
   if (!map || !searchCenter.value) return
-  // Framing a search is the member's own doing: from here on the view is remembered again.
-  visitView = false
   const metres = radius.value * 1000
   if (!fly) {
     map.fitRadius(searchCenter.value, metres)
@@ -1709,8 +1843,16 @@ function snapToCentre() {
 // can (identical coordinates), falls through to the cluster list.
 function handleMatchClick(match) {
   if (!map) return
+  // The person the page shows is who the member came for, and the map frames the whole circle
+  // around them: neighbours a few pixels away must not turn a tap on them into a zoom. Only
+  // somebody on the very same point -- a shared address -- makes it a question (the list of that
+  // spot, since no zoom separates them).
+  const cameFor = Boolean(shown.value) && samePerson(shown.value, match)
   const here = map.project(match.position)
   const crowd = visibleMatches.value.filter(({ match: other }) => {
+    if (cameFor) {
+      return other.position.lat === match.position.lat && other.position.lng === match.position.lng
+    }
     const point = map.project(other.position)
     return Math.hypot(here.x - point.x, here.y - point.y) <= CROWD_PX
   })
@@ -1778,9 +1920,9 @@ function syncCluster() {
 }
 
 function saveView() {
-  // Not the view this page chose for somebody it was asked to show: the next visit opens where
-  // the member last looked for themselves (see `visitView`).
-  if (!map || visitView) return
+  // Not the view of a search this page put on somebody it was asked to show: the next visit
+  // opens where the member last looked for themselves (see `visitSearch`).
+  if (!map || visitSearch) return
   const centre = map.getCenter()
   writePref('view', { lat: centre.lat, lng: centre.lng, zoom: map.getZoom() })
 }
@@ -1796,11 +1938,11 @@ function saveView() {
  */
 function restoreView() {
   if (!map) return
-  // Somebody the map was asked to show comes before where it stood last time: this visit is
-  // about them. Brought into view once (centreOnShown); after that the view is left alone here,
+  // A visit that shows somebody opens on the circle of the search around them, not where the
+  // map stood last time. Framed once (frameVisit); after that the view is left alone here,
   // wherever the member has taken it.
-  if (shown.value) {
-    centreOnShown()
+  if (visitSearch) {
+    frameVisit()
     return
   }
   const saved = readPref('view', null)
@@ -1851,7 +1993,7 @@ function initMap() {
     (engine) => buildMap(engine.createMap),
     // The engine did not arrive - a dropped connection, or a deploy since the page was loaded
     // renamed its file. There is no map then; the list shows the same matches.
-    () => listBackAfterVisit(),
+    () => {},
   )
 }
 
@@ -1871,7 +2013,6 @@ function buildMap(createMap) {
   // working, every draw below asks for `map` first, and a line under the map says why.
   if (!built.success) {
     noWebgl.value = true
-    listBackAfterVisit()
     return
   }
   map = built.value

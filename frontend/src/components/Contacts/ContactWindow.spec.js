@@ -1177,7 +1177,9 @@ describe('ContactWindow', () => {
       mountWindow()
       await threadSays({ exists: true, mutedByMe: false })
       expect(bell().attributes('aria-pressed')).toBe('false')
-      expect(bell().attributes('aria-label')).toBe('chatThread.muteOn')
+      // Whom a tap mutes, as the camera beside it says whom it calls (Bernd, 09.10.2026).
+      expect(bell().attributes('aria-label')).toBe('chatThread.muteOn {"name":"Carla-Sonne"}')
+      expect(bell().attributes('title')).toBe('chatThread.muteOn {"name":"Carla-Sonne"}')
       expect(bell().classes()).not.toContain('is-muted')
     })
 

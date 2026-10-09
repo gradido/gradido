@@ -38,6 +38,8 @@ const i18n = createI18n({
           kmExact: '{n} km',
           meets: 'trifft {n} Deiner Einträge',
           empty: 'Hier ist gerade niemand.',
+          contactHeading: 'Dein Kontakt',
+          fromHome: 'von Deinem Zuhause aus',
           dir: {
             n: 'nördlich',
             ne: 'nordöstlich',
@@ -270,6 +272,29 @@ describe('MatchList', () => {
     expect(wrapper.emitted('open')).toBeUndefined()
   })
 
+  // Measured in the built wallet (09.10.2026): the name Chrome computes for a line is its text
+  // run together, and the dot between name and community is drawn, not text -- a screen reader
+  // was handed "SofiaGradido Künzelsau". A comma for the ear, in every line; the eye keeps its dot.
+  it("says a member's name and their community apart, in a match's line and in a quiet one", () => {
+    const wrapper = mountList({ matches: [matchItem()], silent: [silentPerson()] })
+
+    expect(wrapper.find('.row-match .row-head').element.textContent).toBe(
+      'Sofia, Gradido Künzelsau',
+    )
+    expect(wrapper.find('.row-silent .row-head').element.textContent).toBe('Paul, Gradido Hamburg')
+    for (const dot of wrapper.findAll('.row-sep')) {
+      expect(dot.attributes('aria-hidden')).toBe('true')
+      expect(dot.text()).toBe('')
+    }
+  })
+
+  // No comma dangling behind a name that stands alone.
+  it('says no comma after a quiet person the GMS names without a community', () => {
+    const wrapper = mountList({ silent: [silentPerson({ uuid: null, community: null })] })
+
+    expect(wrapper.find('.row-silent .row-head').element.textContent).toBe('Paul')
+  })
+
   it('emits the chosen sort', () => {
     const wrapper = mountList({ matches: [matchItem()] })
     wrapper.findComponent(THEMED_SELECT_STUB).vm.$emit('change', 'breite')
@@ -279,6 +304,210 @@ describe('MatchList', () => {
   it('says so plainly when there is no one', () => {
     const wrapper = mountList()
     expect(wrapper.find('.list-empty').text()).toBe('Hier ist gerade niemand.')
+  })
+
+  // Somebody the page was asked to show (Bernd, 09.10.2026): a contact, from the pin in the
+  // contact window. In the list they could not be found at all -- the map is inert under it --,
+  // so they stand first, under a heading of their own.
+  describe('the contact the page shows', () => {
+    // The search stands on them: `center` is their own point, and home lies ~20 km south of it.
+    const HOME = { lat: 49.82, lng: 10 }
+    const person = (over = {}) => ({
+      uuid: 'c-anna',
+      name: 'Anna-Sonne',
+      community: { uuid: 'c-1', name: 'KI Playground' },
+      position: CENTRE,
+      precision: 'genau',
+      ...over,
+    })
+    const contact = (over = {}) => ({ person: person(), item: null, ...over })
+    const row = (wrapper) => wrapper.find('[data-test="match-list-contact"]')
+    const heads = (wrapper) => wrapper.findAll('.section-head').map((h) => h.text())
+
+    it('stands first, under a heading of their own, before the matches and the others', () => {
+      const wrapper = mountList({
+        contact: contact(),
+        home: HOME,
+        matches: [matchItem()],
+        silent: [silentPerson()],
+      })
+
+      expect(heads(wrapper)).toEqual([
+        'Dein Kontakt',
+        'Deine Treffer',
+        'Weitere Menschen in Deiner Nähe',
+      ])
+      const names = wrapper.findAll('.row-name').map((n) => n.text())
+      expect(names).toEqual(['Anna-Sonne', 'Sofia', 'Paul'])
+      expect(row(wrapper).find('.row-community').text()).toBe('KI Playground')
+    })
+
+    // A heading a screen reader can jump to, naming its section.
+    it('is a section named by its heading, with one item that is a button', () => {
+      const wrapper = mountList({ contact: contact(), home: HOME })
+      const section = row(wrapper).element.closest('section')
+      const head = wrapper.find('#match-list-contact-head')
+
+      expect(section.getAttribute('aria-labelledby')).toBe('match-list-contact-head')
+      expect(head.element.tagName).toBe('H3')
+      expect(head.text()).toBe('Dein Kontakt')
+      expect(section.querySelectorAll('li')).toHaveLength(1)
+      expect(row(wrapper).element.tagName).toBe('BUTTON')
+      expect(row(wrapper).attributes('type')).toBe('button')
+    })
+
+    // The search stands on the person, so the list's own measure -- from the search point --
+    // would call every such contact "nearby". Theirs is measured from the member's home, and
+    // the line says so.
+    it("says how far they live from the member's home, not from the search point", () => {
+      // A blurred point, and a home that lies EAST of them: from the search point -- their own
+      // point, no distance away -- the line would read "im Nahbereich", with no direction.
+      const east = { lat: 50, lng: 10.28 }
+      const wrapper = mountList({
+        contact: contact({ person: person({ precision: 'ungefaehr' }) }),
+        home: east,
+        center: CENTRE,
+      })
+      const where = wrapper.find('[data-test="match-list-contact-where"]').text()
+
+      expect(where).toContain('20 km')
+      expect(where).toContain('westlich')
+      expect(where).toContain('von Deinem Zuhause aus')
+      expect(where).not.toContain('im Nahbereich')
+    })
+
+    // A contact at the member's own address: no distance, and no direction over none.
+    it("names no direction for a contact who lives at the member's own address", () => {
+      const wrapper = mountList({ contact: contact(), home: CENTRE, center: CENTRE })
+      const where = wrapper.find('[data-test="match-list-contact-where"]')
+
+      expect(where.text()).toContain('0 km')
+      expect(where.find('.dir-word').exists()).toBe(false)
+      expect(where.find('.dir-arrow').exists()).toBe(false)
+    })
+
+    // The control: a match on the very same point is no distance away in its own row --
+    // measured, as every row below is, from where the list measures.
+    it('leaves the rows below measured as they were', () => {
+      const wrapper = mountList({
+        contact: contact(),
+        home: HOME,
+        center: CENTRE,
+        matches: [matchItem({ position: CENTRE })],
+      })
+
+      const below = wrapper.find('li .row-match:not(.row-contact) .row-where').text()
+      expect(below).toContain('0 km')
+      expect(below).not.toContain('von Deinem Zuhause aus')
+    })
+
+    // A blurred point within a few kilometres of home is "nearby" -- of the home, and says so.
+    it('calls a contact with a blurred point close to home nearby, from home', () => {
+      // The list measures from Prague here: from there the same person is hundreds of
+      // kilometres away, so "nearby" can only be the home's.
+      const wrapper = mountList({
+        contact: contact({ person: person({ position: NEAR, precision: 'ungefaehr' }) }),
+        home: CENTRE,
+        center: PRAGUE,
+      })
+      const where = wrapper.find('[data-test="match-list-contact-where"]')
+
+      expect(where.text()).toContain('im Nahbereich')
+      expect(where.text()).toContain('von Deinem Zuhause aus')
+    })
+
+    // Measured in the built wallet: the name Chrome computes for a line is its text run together,
+    // and the dot between two parts is drawn, not text -- a screen reader was handed
+    // "Carla-SonneKI Playground im Nahbereichvon Deinem Zuhause aus".
+    it('has a comma for the ear where the eye sees a dot', () => {
+      const wrapper = mountList({
+        contact: contact({ person: person({ position: NEAR, precision: 'ungefaehr' }) }),
+        home: CENTRE,
+      })
+      const said = row(wrapper).element.textContent
+
+      expect(said).toContain('Anna-Sonne, KI Playground')
+      expect(said).toContain('im Nahbereich, von Deinem Zuhause aus')
+      // On screen there is the dot, and the comma stands where only a screen reader meets it.
+      const commas = row(wrapper).findAll('.sr-only')
+      expect(commas).toHaveLength(2)
+      for (const dot of row(wrapper).findAll('.row-sep')) {
+        expect(dot.attributes('aria-hidden')).toBe('true')
+        expect(dot.text()).toBe('')
+      }
+    })
+
+    it('says nothing about a distance while the home is not known', () => {
+      const wrapper = mountList({ contact: contact() })
+
+      expect(row(wrapper).exists()).toBe(true)
+      expect(wrapper.find('[data-test="match-list-contact-where"]').exists()).toBe(false)
+    })
+
+    it('asks the page to open them, and no other line', async () => {
+      const wrapper = mountList({ contact: contact(), home: HOME, matches: [matchItem()] })
+
+      await row(wrapper).trigger('click')
+
+      expect(wrapper.emitted('openContact')).toHaveLength(1)
+      expect(wrapper.emitted('open')).toBeUndefined()
+    })
+
+    // Where the search found them as well, their line says what answers the member's entries,
+    // as a match's line does, with its dots -- they are not listed a second time below.
+    it('carries what the search knows of them where it found them', () => {
+      const item = matchItem({
+        uuid: 'c-anna',
+        name: 'Anna-Sonne',
+        position: CENTRE,
+        channels: {
+          angebot: [entry('Fahrradreparatur', 0.55)],
+          gesuch: [entry('Hilfe im Garten', 0.4)],
+        },
+        scores: {
+          angebot: [{ strength: 0.55, entry: 'my-need', subject: 'fahrrad' }],
+          gesuch: [{ strength: 0.4, entry: 'my-offer', subject: 'garten' }],
+        },
+        stages: { interesse: 0, angebot: 3, gesuch: 2 },
+      })
+      const wrapper = mountList({ contact: contact({ item }), home: HOME })
+
+      expect(row(wrapper).findAll('.dot')).toHaveLength(2)
+      expect(row(wrapper).find('.row-line').text()).toBe('bietet Fahrradreparatur — das suchst Du')
+      expect(row(wrapper).find('.row-breadth').text()).toBe('trifft 2 Deiner Einträge')
+    })
+
+    it('carries neither dots nor a line where the search did not find them', () => {
+      const wrapper = mountList({ contact: contact(), home: HOME })
+
+      expect(row(wrapper).find('.row-dots').exists()).toBe(false)
+      expect(row(wrapper).find('.row-line').exists()).toBe(false)
+    })
+
+    // "Nobody here" would stand under a name.
+    it('does not say that nobody is here under them', () => {
+      const wrapper = mountList({ contact: contact(), home: HOME })
+
+      expect(wrapper.find('.list-empty').exists()).toBe(false)
+    })
+
+    it('leaves no dangling dot for a person whose community has no name', () => {
+      const wrapper = mountList({
+        contact: contact({ person: person({ community: { uuid: 'c-1', name: '' } }) }),
+        home: HOME,
+      })
+
+      expect(row(wrapper).find('.row-community').exists()).toBe(false)
+      expect(row(wrapper).find('.row-head .row-sep').exists()).toBe(false)
+    })
+
+    // The control: an ordinary visit has no such section.
+    it('is not there where the page shows nobody', () => {
+      const wrapper = mountList({ matches: [matchItem()], home: HOME })
+
+      expect(row(wrapper).exists()).toBe(false)
+      expect(heads(wrapper)).toEqual(['Deine Treffer'])
+    })
   })
 
   // The blind member's only way to set the centre. What the field does with it is measured

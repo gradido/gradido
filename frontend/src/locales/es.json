@@ -183,6 +183,7 @@
     "moderatorOff": "Quitar el rol de moderador",
     "moderatorOn": "Nombrar moderador",
     "muteOff": "Silenciado — sin anuncios por correo electrónico de {name}",
+    "muteOn": "Silenciar el grupo {name}",
     "muted": "Silenciado",
     "mutedHint": "Silenciado: ya no recibirás anuncios por correo electrónico de {name}. Los mensajes nuevos los ves aquí.",
     "name": "Nombre del grupo",
@@ -339,7 +340,7 @@
     "menuLabel": "Mensaje",
     "menuMore": "Más opciones para este mensaje",
     "muteOff": "Conversación silenciada — sin correos por los mensajes de chat de {name}",
-    "muteOn": "Silenciar",
+    "muteOn": "Silenciar a {name}",
     "mutedHint": "Conversación silenciada: ya no recibirás correos por los mensajes de chat de {name}. Los mensajes nuevos los ves aquí. Las cartas enviadas con «Enviar correo electrónico» te siguen llegando.",
     "notMailedMuted": "Sin correo electrónico — {name} ha desactivado los correos de vuestra conversación.",
     "notReachable": "No se pudo cargar el historial de conversación.",
@@ -444,8 +445,8 @@
     "empty": "Aún no hay contactos. Aquí aparece quien intercambia Gradido contigo — o quien llega gracias a ti.",
     "favorites": "Favoritos",
     "heart": {
-      "add": "Añadir a favoritos",
-      "remove": "Quitar de favoritos"
+      "add": "Añadir a {name} a favoritos",
+      "remove": "Quitar a {name} de favoritos"
     },
     "last": "último {date}",
     "matches": "Resultados",
@@ -937,6 +938,7 @@
       "centeredOn": "Alrededor de {place}",
       "centeredOnFern": "Suprarregional · {km} km alrededor de {place}",
       "centeredOnFernNoPlace": "Suprarregional · {km} km",
+      "contactHeading": "Tu contacto",
       "controlsHeading": "Búsqueda y orden",
       "dir": {
         "e": "al este",
@@ -949,6 +951,7 @@
         "w": "al oeste"
       },
       "empty": "Ahora mismo no hay nadie aquí. Amplía el radio o busca en otro lugar.",
+      "fromHome": "desde tu casa",
       "heading": "Personas cerca de ti",
       "kmEtwa": "unos {n} km",
       "kmExact": "{n} km",

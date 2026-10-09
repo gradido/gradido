@@ -642,7 +642,9 @@ watch(
 )
 
 const bellName = computed(() =>
-  muted.value ? t('chatThread.muteOff', { name: alias.value }) : t('chatThread.muteOn'),
+  muted.value
+    ? t('chatThread.muteOff', { name: alias.value })
+    : t('chatThread.muteOn', { name: alias.value }),
 )
 
 /** The pair the thread asks with (KF-004): a missing community is this one. */
