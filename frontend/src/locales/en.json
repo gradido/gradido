@@ -237,6 +237,10 @@
     "youAreOwner": "You are the owner"
   },
   "chatHello": {
+    "backCall": "Let's talk on the phone",
+    "backHello": "Hello back!",
+    "backLabel": "Quick replies",
+    "backMore": "Gladly — tell me more",
     "distanceKm": "We live about {n} km apart.",
     "distanceNear": "We do not live far apart.",
     "found": "Hello {name}, I found you on the Gradido map.",

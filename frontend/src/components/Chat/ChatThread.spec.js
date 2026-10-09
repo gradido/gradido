@@ -2186,6 +2186,207 @@ describe('ChatThread', () => {
     })
   })
 
+  /**
+   * Three short answers over the field (Bernd, 09.10.2026, E-069): in a conversation the other
+   * one began, for as long as the member has neither written nor sent anything in it. The thread
+   * says when; the bar shows and sends them.
+   */
+  describe('the three short answers', () => {
+    const row = () => wrapper.find('[data-test="chat-compose-hello-back"]')
+    const answer = (which) => wrapper.find(`[data-test="chat-compose-hello-back-${which}"]`)
+    const box = () => wrapper.find('[data-test="chat-compose-email"]')
+    const TO_LENA = { gradidoID: 'lena-id', communityUuid: 'home-uuid' }
+    const AT = '2026-09-22T10:02:30.000Z'
+    /** An answer that is still on its way, until the test lets it come. */
+    const onItsWay = () => {
+      let come
+      const promise = new Promise((resolve) => {
+        come = resolve
+      })
+      return { promise, come }
+    }
+
+    it("stand where the thread holds only the other one's messages", async () => {
+      mountThread()
+      await arrive(page([1, 3]))
+
+      expect(bar().props('helloBack')).toBe(true)
+      expect(row().exists()).toBe(true)
+      expect(row().findAll('button')).toHaveLength(3)
+    })
+
+    it('send their words with one tap, by mail as the ticked box asks, and are gone', async () => {
+      serverSends.mockResolvedValue(
+        ownCopy(4, 'chatHello.backHello', { notify: 'EMAIL', mailState: 'MAILED' }),
+      )
+      mountThread()
+      await arrive(page([1, 3]))
+      expect(box().element.checked).toBe(true)
+
+      await answer('hello').trigger('click')
+      await flushPromises()
+
+      expect(serverSends).toHaveBeenCalledTimes(1)
+      expect(serverSends).toHaveBeenCalledWith({
+        ref: TO_LENA,
+        body: 'chatHello.backHello',
+        notify: 'EMAIL',
+      })
+      // The member's own message stands in the thread now.
+      expect(wrapper.findAll('[data-test="chat-bubble"]')).toHaveLength(3)
+      expect(bar().props('helloBack')).toBe(false)
+      expect(row().exists()).toBe(false)
+      expect(box().element.checked).toBe(false)
+    })
+
+    it('leave what the member typed in the field', async () => {
+      serverSends.mockResolvedValue(ownCopy(4, 'chatHello.backMore'))
+      mountThread()
+      await arrive(page([1, 3]))
+      await field().setValue('Ich tippe gerade')
+
+      await answer('more').trigger('click')
+      await flushPromises()
+
+      expect(serverSends).toHaveBeenCalledWith({
+        ref: TO_LENA,
+        body: 'chatHello.backMore',
+        notify: 'EMAIL',
+      })
+      expect(field().element.value).toBe('Ich tippe gerade')
+    })
+
+    it('stay, and keep the box, where the answer did not go through', async () => {
+      serverSends.mockRejectedValue(new Error('CHAT_MESSAGE_NOT_SENT: NOT_STORED'))
+      mountThread()
+      await arrive(page([1, 3]))
+
+      await answer('call').trigger('click')
+      await flushPromises()
+
+      expect(row().exists()).toBe(true)
+      expect(box().element.checked).toBe(true)
+      expect(wrapper.find('[data-test="chat-compose-failed"]').exists()).toBe(true)
+    })
+
+    it('send one message for two quick taps', async () => {
+      const going = onItsWay()
+      serverSends.mockReturnValue(going.promise)
+      mountThread()
+      await arrive(page([1, 3]))
+
+      await answer('hello').trigger('click')
+      await answer('more').trigger('click')
+      expect(serverSends).toHaveBeenCalledTimes(1)
+
+      going.come(ownCopy(4, 'chatHello.backHello'))
+      await flushPromises()
+      expect(serverSends).toHaveBeenCalledTimes(1)
+    })
+
+    it('do not stand where the member has written before', async () => {
+      mountThread()
+      await arrive(page([1, 2, 3]))
+
+      expect(bar().props('helloBack')).toBe(false)
+      expect(row().exists()).toBe(false)
+    })
+
+    it('do not stand where older pages are still unread', async () => {
+      mountThread()
+      await arrive(page([1, 3], { hasMore: true }))
+
+      expect(bar().props('helloBack')).toBe(false)
+    })
+
+    it('do not stand before the first message of a conversation', async () => {
+      mountThread()
+      await arrive(page([]))
+
+      expect(bar().props('first')).toBe(true)
+      expect(bar().props('helloBack')).toBe(false)
+      expect(row().exists()).toBe(false)
+    })
+
+    // "Sent" is a transfer: who sent Gradido to the other one has been in touch already.
+    it('do not stand where the member sent the other one a transfer', async () => {
+      bookingsAsked.mockImplementation(async () =>
+        bookingsPage([booking(7, { at: AT, sent: true })]),
+      )
+      mountThread()
+      await arrive(page([1, 3]))
+
+      // The box is about chat messages and stays ticked (E-066); the answers are not offered.
+      expect(bar().props('firstOwn')).toBe(true)
+      expect(bar().props('helloBack')).toBe(false)
+      expect(row().exists()).toBe(false)
+    })
+
+    it('stand where only the other one sent a transfer', async () => {
+      bookingsAsked.mockImplementation(async () => bookingsPage([booking(7, { at: AT })]))
+      mountThread()
+      await arrive(page([1, 3]))
+
+      expect(bar().props('helloBack')).toBe(true)
+    })
+
+    // With older transfers not read nobody can say that none of them is the member's own.
+    it('do not stand where older transfers are still unread', async () => {
+      bookingsAsked.mockImplementation(async () => bookingsPage([booking(7, { at: AT })], 80))
+      mountThread()
+      await arrive(page([1, 3]))
+
+      expect(bar().props('helloBack')).toBe(false)
+    })
+
+    // The transfers come by their own question: until it has answered, the answers wait --
+    // they would stand for a moment over a transfer of the member's own on its way in.
+    it('wait for the transfers to answer', async () => {
+      const transfersComing = onItsWay()
+      bookingsAsked.mockImplementation(() => transfersComing.promise)
+      mountThread()
+      await arrive(page([1, 3]))
+
+      expect(bar().props('firstOwn')).toBe(true)
+      expect(bar().props('helloBack')).toBe(false)
+
+      transfersComing.come(bookingsPage([]))
+      await flushPromises()
+      expect(bar().props('helloBack')).toBe(true)
+    })
+
+    it('stand as well where the transfers could not be read: the thread says nothing of them', async () => {
+      bookingsAsked.mockImplementation(async () => {
+        throw new Error('Network error')
+      })
+      mountThread()
+      await arrive(page([1, 3]))
+
+      expect(bar().props('helloBack')).toBe(true)
+    })
+
+    it("come when the other one's first message arrives in the open window", async () => {
+      mountThread()
+      await arrive(page([]))
+      expect(row().exists()).toBe(false)
+
+      await beatBrings(message(1))
+
+      expect(bar().props('helloBack')).toBe(true)
+      expect(row().exists()).toBe(true)
+    })
+
+    it("go when a message of the member's own arrives from elsewhere", async () => {
+      mountThread()
+      await arrive(page([1, 3]))
+      expect(row().exists()).toBe(true)
+
+      await beatBrings(message(4, { mine: true }))
+
+      expect(row().exists()).toBe(false)
+    })
+  })
+
   describe('the compose bar', () => {
     // Under a thread and under a thread that has nothing yet -- and there it is the first
     // message, which goes by mail in any case (E-024).

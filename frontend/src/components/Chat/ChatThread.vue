@@ -131,6 +131,7 @@
       :initial-text="openingText"
       :text-only="textOnly"
       :first-own="firstOwn"
+      :hello-back="helloBack"
       :editing="editingForBar"
       :edit-problem="editProblem"
       :replying="replying"
@@ -392,6 +393,22 @@ const firstOwn = computed(
     state.value === 'thread' &&
     !hasMore.value &&
     !messages.value.some((message) => message.mine && message.deliveryState !== 'FAILED'),
+)
+
+/**
+ * Whether the three short answers stand over the field (Bernd, 09.10.2026, E-069): in a
+ * conversation the other one began, for as long as the member has neither written nor sent
+ * anything in it. Written: no message of their own that reached the other one (`firstOwn`).
+ * Sent: no transfer of their own among the transfers between the two -- with all of them read,
+ * and not before the first page of them has answered, or the answers would stand for a moment
+ * over a transfer on its way into the thread.
+ */
+const helloBack = computed(
+  () =>
+    firstOwn.value &&
+    transfersSettled.value &&
+    !transfersHaveMore.value &&
+    !transfers.value.some((booking) => booking.typeId === 'SEND'),
 )
 
 const at = (iso) => new Date(iso).getTime()

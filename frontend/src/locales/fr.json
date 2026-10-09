@@ -237,6 +237,10 @@
     "youAreOwner": "Tu es propriétaire"
   },
   "chatHello": {
+    "backCall": "On s'appelle ?",
+    "backHello": "Bonjour à toi aussi !",
+    "backLabel": "Réponses rapides",
+    "backMore": "Avec plaisir — dis-m'en plus",
     "distanceKm": "Nous habitons à environ {n} km de distance.",
     "distanceNear": "Nous n'habitons pas loin.",
     "found": "Bonjour {name}, j'ai trouvé ton profil sur la carte Gradido.",
