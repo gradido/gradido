@@ -935,8 +935,8 @@
       }
     },
     "list": {
-      "centeredOn": "{place} çevresinde",
-      "centeredOnFern": "Bölge üstü · {place} çevresinde {km} km",
+      "centeredOn": "Arama merkezi: {place}",
+      "centeredOnFern": "Bölge üstü · {km} km · merkez: {place}",
       "centeredOnFernNoPlace": "Bölge üstü · {km} km",
       "contactHeading": "Kişin",
       "controlsHeading": "Arama ve sıralama",
@@ -951,7 +951,7 @@
         "w": "batıda"
       },
       "empty": "Şu anda burada kimse yok. Yarıçapı büyüt ya da başka bir yer ara.",
-      "fromHome": "evinden",
+      "fromHome": "senin evinden",
       "heading": "Yakınındaki insanlar",
       "kmEtwa": "yaklaşık {n} km",
       "kmExact": "{n} km",
@@ -977,8 +977,8 @@
       "back": "Geri",
       "breite": "Birden çok kez uyanlar",
       "breiteHint": "Girişlerinden birkaçına birden yanıt veren insanları öne çıkarır.",
-      "centreHome": "Evinin",
-      "centrePoint": "Seçtiğin noktanın",
+      "centreHome": "evin",
+      "centrePoint": "seçtiğin nokta",
       "channels": {
         "andere": "diğer herkes",
         "andereMit": "girişi olan diğerleri",

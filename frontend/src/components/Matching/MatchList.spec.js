@@ -374,6 +374,27 @@ describe('MatchList', () => {
       expect(where.text()).toContain('von Deinem Zuhause aus')
     })
 
+    // Measured in the built wallet: the name Chrome computes for a line is its text run together,
+    // and the dot between two parts is drawn, not text -- a screen reader was handed
+    // "Carla-SonneKI Playground im Nahbereichvon Deinem Zuhause aus".
+    it('has a comma for the ear where the eye sees a dot', () => {
+      const wrapper = mountList({
+        contact: contact({ person: person({ position: NEAR, precision: 'ungefaehr' }) }),
+        home: CENTRE,
+      })
+      const said = row(wrapper).element.textContent
+
+      expect(said).toContain('Anna-Sonne, KI Playground')
+      expect(said).toContain('im Nahbereich, von Deinem Zuhause aus')
+      // On screen there is the dot, and the comma stands where only a screen reader meets it.
+      const commas = row(wrapper).findAll('.sr-only')
+      expect(commas).toHaveLength(2)
+      for (const dot of row(wrapper).findAll('.row-sep')) {
+        expect(dot.attributes('aria-hidden')).toBe('true')
+        expect(dot.text()).toBe('')
+      }
+    })
+
     it('says nothing about a distance while the home is not known', () => {
       const wrapper = mountList({ contact: contact() })
 

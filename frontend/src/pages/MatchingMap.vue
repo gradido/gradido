@@ -582,7 +582,7 @@ onEntries((result) => {
   // match answers - on a cold load the list arriving after the location repeats the
   // first search once, a round trip spent for the simpler rule. Before a centre exists
   // runSearch returns without asking.
-  if (entryKey(myEntries.value) !== keyBefore) runSearch()
+  if (entryKey(myEntries.value) !== keyBefore) searchUnasked()
 })
 
 /**
@@ -888,15 +888,7 @@ onResult(({ data }) => {
   drawOwn()
   drawCircle()
   restoreView()
-  // Where somebody is still being asked about, the search waits for the answer: it will stand
-  // on them, or be asked as the member left it (showAsked). Asked at once, it would search the
-  // member's own circle a moment before the visit's, and the list would read out one place and
-  // then another.
-  if (asking) {
-    searchHeld = true
-    return
-  }
-  runSearch()
+  searchUnasked()
 })
 onError((error) => toastError(error.message))
 
@@ -937,10 +929,14 @@ let visitSearch = false
 // pulled back: by the next thing that restores the view (a location answer that comes late) the
 // member may have looked elsewhere.
 let visitFramePending = false
-// Whether an answer about the person is still on its way, and whether the page's first search
-// waits for it (the location answer above).
+// Whether an answer about the person is still on its way, and whether a search the page asks
+// of its own accord waits for it (searchUnasked).
 let asking = false
 let searchHeld = false
+// Whether the member moved the search themselves while that answer was on its way. Then it
+// stays where they put it: the person is marked and listed, and the search is not taken from
+// under the member's hand.
+let movedWhileAsking = false
 
 /**
  * Ask the GMS where the person stands -- its profile route, which answers for the pair wherever
@@ -964,6 +960,7 @@ async function showAsked() {
   let answer = null
   if (person && enabled.value) {
     asking = true
+    movedWhileAsking = false
     answer = await whereIs(person)
     // An answer for an earlier address, or for a page that is gone: the question that came after
     // it settles the search, and nothing is said about this one.
@@ -977,6 +974,10 @@ async function showAsked() {
   }
   shown.value = answer.person
   drawShown()
+  if (movedWhileAsking) {
+    searchOnOwnAgain()
+    return
+  }
   searchAroundShown()
 }
 
@@ -1033,9 +1034,8 @@ function searchAroundShown() {
   drawCentre()
   visitFramePending = true
   frameVisit()
-  searchHeld = false
-  // Before the member's home is known nothing has been searched yet, and the answer about it
-  // asks (the location answer above).
+  // Before the member's home is known the page's first search is still to come, and the answer
+  // about the home asks it (the location answer above) -- around the person, as it stands now.
   if (ownPosition.value) runSearch()
 }
 
@@ -1333,9 +1333,29 @@ function goBack() {
   router.push('/matching/entries')
 }
 
+/**
+ * A search the page asks of its own accord: its first one, when the member's home is known, and
+ * the one the member's entries ask for when they arrive. Where somebody is still being asked
+ * about, it waits for that answer -- the search will stand on them, or be asked as the member
+ * left it (showAsked). Asked at once, it would search the member's own circle a moment before
+ * the visit's, and the list would read out one place and then another.
+ *
+ * Not for a search the member asks for (a moved centre, a radius, a reach, a question): theirs
+ * is asked at once, whatever is on its way.
+ */
+function searchUnasked() {
+  if (asking) {
+    searchHeld = true
+    return
+  }
+  runSearch()
+}
+
 /** The one place a search is actually asked for. */
 function runSearch() {
   if (!searchCenter.value) return
+  // Whatever waited (searchUnasked) is asked with this one.
+  searchHeld = false
   load({
     center: searchCenter.value,
     radius: radius.value,
@@ -1354,9 +1374,10 @@ function moveSearchTo(next, { fly = false } = {}) {
   // straight from an address service, unchecked -- this is where it is checked.
   if (!isPlace(next)) return
   // The member's own search from here on, written down with the view of it -- also where the
-  // page had put the search on somebody it was asked to show.
+  // page had put the search on somebody it was asked to show, or is about to (showAsked).
   visitSearch = false
   visitFramePending = false
+  if (asking) movedWhileAsking = true
   inClusterZoom = false
   closeCluster()
   searchCenter.value = { lat: next.lat, lng: next.lng }
@@ -1788,8 +1809,16 @@ function snapToCentre() {
 // can (identical coordinates), falls through to the cluster list.
 function handleMatchClick(match) {
   if (!map) return
+  // The person the page shows is who the member came for, and the map frames the whole circle
+  // around them: neighbours a few pixels away must not turn a tap on them into a zoom. Only
+  // somebody on the very same point -- a shared address -- makes it a question (the list of that
+  // spot, since no zoom separates them).
+  const cameFor = Boolean(shown.value) && samePerson(shown.value, match)
   const here = map.project(match.position)
   const crowd = visibleMatches.value.filter(({ match: other }) => {
+    if (cameFor) {
+      return other.position.lat === match.position.lat && other.position.lng === match.position.lng
+    }
     const point = map.project(other.position)
     return Math.hypot(here.x - point.x, here.y - point.y) <= CROWD_PX
   })

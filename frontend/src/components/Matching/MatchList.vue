@@ -91,9 +91,15 @@
               />
             </span>
             <span class="row-body">
+              <!-- The dot between two parts is drawn (CSS) and hidden from a screen reader, and
+                   the template keeps no space between the spans: without the comma the line's
+                   name would run "Anna-SonneKI Playground" and "im Nahbereichvon Deinem Zuhause
+                   aus" (measured in the built wallet, the name Chrome computes). The comma is
+                   for the ear only. -->
               <span class="row-head">
                 <span class="row-name">{{ contact.person.name }}</span>
                 <template v-if="contact.person.community?.name">
+                  <span class="sr-only">{{ PAUSE }}</span>
                   <span class="row-sep" aria-hidden="true" />
                   <span class="row-community">{{ contact.person.community.name }}</span>
                 </template>
@@ -103,6 +109,7 @@
                   :where="whereFrom(home, contact.person)"
                   :dir="dirFrom(home, contact.person)"
                 />
+                <span class="sr-only">{{ PAUSE }}</span>
                 <span class="row-sep" aria-hidden="true" />
                 <span>{{ $t('matching.list.fromHome') }}</span>
               </span>
@@ -246,6 +253,10 @@ const props = defineProps({
 const emit = defineEmits(['open', 'openContact', 'sort', 'lens', 'recenter'])
 
 const { t, locale } = useI18n()
+
+// A comma for the ear, between two parts of a line that the eye sees a dot between (the dot is
+// CSS, and hidden from a screen reader). A sign, not a word: the same in every language.
+const PAUSE = ', '
 
 /** What the search took hold of: the reach, the circle where it is wide, the place. */
 const centreLine = computed(() => {

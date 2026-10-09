@@ -1908,6 +1908,28 @@ describe('MatchingMap, asked to show somebody', () => {
   const notHeld = () =>
     Object.assign(new Error('community-user/profile: HTTP 404'), { status: 404 })
 
+  /** The same people as the SEARCH hands them over: a match, and a grey ring. */
+  const found = (who, over = {}) => ({
+    uuid: who.with,
+    name: who === IRA ? 'Ira-Erste' : 'Tobias',
+    position: who === IRA ? BERLIN : HAMBURG,
+    community: { uuid: who.community, name: 'KI Playground' },
+    aboutMe: '',
+    precision: 'genau',
+    channels: { gesuch: [{ uuid: 'e-1', strength: 0.8, matchedEntryUuid: 'mine' }] },
+    scores: { gesuch: [{ strength: 0.8, entry: 'mine', subject: 'cello' }] },
+    ...over,
+  })
+  const ring = (who) => ({
+    id: 7,
+    uuid: who.with,
+    name: who === IRA ? 'Ira-Erste' : 'Tobias',
+    community: { uuid: who.community, name: 'KI Playground' },
+    hasEntries: false,
+    position: who === IRA ? BERLIN : HAMBURG,
+    precision: 'ungefaehr',
+  })
+
   /** An answer that is still on its way. */
   const held = () => {
     let settle
@@ -2019,6 +2041,64 @@ describe('MatchingMap, asked to show somebody', () => {
 
       expect(load).toHaveBeenCalledTimes(1)
       expect(load.mock.calls[0][0].center).toEqual(HOME)
+    })
+
+    // Found in the built wallet (09.10.2026): for a member who has been here before, the search
+    // their own entries ask for when they arrive ran at once, around the centre written down --
+    // and the page searched there first and around the person after.
+    it("waits as well where the member's entries arrive before the answer about the person", async () => {
+      remember('center', HOME)
+      const answer = held()
+      profile.mockReturnValue(answer.promise)
+      await arrive()
+
+      fire(listMatchingEntries, { listMatchingEntries: [entry('a')] })
+      await flushPromises()
+      expect(load).not.toHaveBeenCalled()
+
+      answer.resolve(published())
+      await flushPromises()
+      expect(load).toHaveBeenCalledTimes(1)
+      expect(load.mock.calls[0][0].center).toEqual(HAMBURG)
+    })
+
+    // The control: on an ordinary visit those entries ask their search at once.
+    it('asks at once for the entries of the member on an ordinary visit', async () => {
+      await arrive(null)
+      load.mockClear()
+
+      fire(listMatchingEntries, { listMatchingEntries: [entry('a')] })
+      await flushPromises()
+
+      expect(load).toHaveBeenCalledTimes(1)
+      expect(load.mock.calls[0][0].center).toEqual(HOME)
+    })
+
+    // ⛔ What can be pressed while the answer is on its way: the search itself. A place the
+    // member picks then is searched at once, and the answer does not take the search from under
+    // their hand -- the person is marked and listed, and the search stays where they put it.
+    it('leaves the search where the member put it while the answer was on its way', async () => {
+      const prag = { lat: 50.0874654, lng: 14.4212535, label: 'Prag' }
+      const answer = held()
+      profile.mockReturnValue(answer.promise)
+      remember('mode', 'liste')
+      const page = await arrive()
+
+      await page.findComponent({ name: 'MatchList' }).vm.$emit('recenter', prag)
+      await flushPromises()
+      expect(load).toHaveBeenCalledTimes(1)
+      expect(load.mock.calls[0][0].center).toEqual({ lat: prag.lat, lng: prag.lng })
+
+      answer.resolve(published())
+      await flushPromises()
+
+      const list = page.findComponent({ name: 'MatchList' })
+      expect(list.props('contact').person.name).toBe('Tobias')
+      expect(list.props('centerLabel')).toBe('Prag')
+      expect(list.props('searchCenter')).toEqual({ lat: prag.lat, lng: prag.lng })
+      // Asked once: the member's search was the one that waited, too.
+      expect(load).toHaveBeenCalledTimes(1)
+      expect(remembered('center')).toEqual({ lat: prag.lat, lng: prag.lng })
     })
 
     it('frames the circle around them, in place of the view the map was left at', async () => {
@@ -2423,6 +2503,81 @@ describe('MatchingMap, asked to show somebody', () => {
       })
     })
 
+    // The map frames the whole circle around them, so a neighbour stands a few pixels away far
+    // more often than at the zoom of a town -- and where the search draws the person, a tap in
+    // the ring goes through to the mark the search drew (the rules below). Found in the built
+    // wallet at 320 px: the tap stepped the map in instead of opening them.
+    describe('on the mark the search drew for them', () => {
+      const NEXT_DOOR = { lat: HAMBURG.lat + 0.01, lng: HAMBURG.lng }
+      const marks = (page) => page.findAll('.gk-clickable').filter((m) => !m.classes('gk-shown'))
+      const cluster = (page) => page.findComponent({ name: 'MatchCluster' })
+
+      it('opens them, however close a neighbour stands', async () => {
+        const page = await arrive()
+        matches.value = [found(TOBIAS), found(IRA, { position: NEXT_DOOR })]
+        await flushPromises()
+        const zoom = theMap().getZoom()
+        expect(marks(page)).toHaveLength(2)
+
+        tap(marks(page)[0].element)
+        await flushPromises()
+
+        expect(window_(page).props('modelValue')).toBe(true)
+        expect(window_(page).props('match').name).toBe('Tobias')
+        expect(theMap().getZoom()).toBe(zoom)
+        expect(cluster(page).exists()).toBe(false)
+      })
+
+      // The control: the neighbour's mark is a mark like any other -- the two cannot be told
+      // apart at this zoom, and the map steps in.
+      it('leaves a tap on the neighbour to the map, which steps in', async () => {
+        const page = await arrive()
+        matches.value = [found(TOBIAS), found(IRA, { position: NEXT_DOOR })]
+        await flushPromises()
+        const zoom = theMap().getZoom()
+
+        tap(marks(page)[1].element)
+        await flushPromises()
+
+        expect(window_(page).props('modelValue')).toBe(false)
+        expect(theMap().getZoom()).toBeGreaterThan(zoom)
+      })
+
+      // And the control on an ordinary visit: the same tap on the same person steps in.
+      it('steps in for the same two on an ordinary visit', async () => {
+        const page = await arrive(null)
+        matches.value = [found(TOBIAS), found(IRA, { position: NEXT_DOOR })]
+        await flushPromises()
+        const zoom = theMap().getZoom()
+
+        tap(marks(page)[0].element)
+        await flushPromises()
+
+        expect(window_(page).props('modelValue')).toBe(false)
+        expect(theMap().getZoom()).toBeGreaterThan(zoom)
+      })
+
+      // Somebody on exactly their point -- a shared address -- is the one case no zoom tells
+      // apart: the list of that spot asks which of them, as it always did.
+      it('asks which of them where somebody else stands on exactly their point', async () => {
+        const page = await arrive()
+        matches.value = [found(TOBIAS), found(IRA, { position: HAMBURG })]
+        await flushPromises()
+
+        tap(marks(page)[0].element)
+        await flushPromises()
+
+        expect(window_(page).props('modelValue')).toBe(false)
+        expect(cluster(page).exists()).toBe(true)
+        expect(
+          cluster(page)
+            .props('people')
+            .map((item) => item.match.name)
+            .sort(),
+        ).toEqual(['Ira-Erste', 'Tobias'])
+      })
+    })
+
     // The control: the same uuid in ANOTHER community is another person (a uuid names a person
     // only within one community), so the window opens on the one the map was asked to show.
     it('does not take somebody with the same id from another community for them', async () => {
@@ -2597,27 +2752,6 @@ describe('MatchingMap, asked to show somebody', () => {
       const page = await arrive()
       return page
     }
-    const found = (who, over = {}) => ({
-      uuid: who.with,
-      name: who === IRA ? 'Ira-Erste' : 'Tobias',
-      position: who === IRA ? BERLIN : HAMBURG,
-      community: { uuid: who.community, name: 'KI Playground' },
-      aboutMe: '',
-      precision: 'genau',
-      channels: { gesuch: [{ uuid: 'e-1', strength: 0.8, matchedEntryUuid: 'mine' }] },
-      scores: { gesuch: [{ strength: 0.8, entry: 'mine', subject: 'cello' }] },
-      ...over,
-    })
-    const ring = (who) => ({
-      id: 7,
-      uuid: who.with,
-      name: who === IRA ? 'Ira-Erste' : 'Tobias',
-      community: { uuid: who.community, name: 'KI Playground' },
-      hasEntries: false,
-      position: who === IRA ? BERLIN : HAMBURG,
-      precision: 'ungefaehr',
-    })
-
     it('is handed the home, which their distance is measured from', async () => {
       const page = await inList()
 
