@@ -236,6 +236,15 @@
     "youAreModerator": "Вы модератор",
     "youAreOwner": "Вы владелец"
   },
+  "chatHello": {
+    "distanceKm": "Мы живём примерно в {n} км друг от друга.",
+    "distanceNear": "Мы живём недалеко друг от друга.",
+    "found": "Здравствуйте, {name}! Пишу Вам с карты Gradido.",
+    "question": "Хотите поздороваться в ответ?",
+    "sent": "Отправлено.",
+    "sentMailed": "Отправлено. {name} получит письмо по электронной почте.",
+    "toConversation": "К переписке"
+  },
   "chatSearch": {
     "capped": "Поиск охватил последние {count} сообщений.",
     "count": "{current} из {count}",
@@ -1023,7 +1032,6 @@
       "aria": "Профиль: {name}",
       "matchesMine": "совпадает с",
       "more": "ещё {n}",
-      "sendEmail": "Отправить эл. письмо",
       "sendGradido": "Отправить Gradido",
       "unavailable": "Сейчас не удалось загрузить профиль."
     },

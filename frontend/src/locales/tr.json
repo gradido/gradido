@@ -236,6 +236,15 @@
     "youAreModerator": "Moderatörsün",
     "youAreOwner": "Grubun sahibisin"
   },
+  "chatHello": {
+    "distanceKm": "Birbirimize yaklaşık {n} km uzaklıkta yaşıyoruz.",
+    "distanceNear": "Birbirimize yakın yaşıyoruz.",
+    "found": "Merhaba {name}, seni Gradido haritasında buldum.",
+    "question": "Sen de bana merhaba der misin?",
+    "sent": "Gönderildi.",
+    "sentMailed": "Gönderildi. {name} kişisine bir e-posta gidiyor.",
+    "toConversation": "Sohbete git"
+  },
   "chatSearch": {
     "capped": "Son {count} mesajda arama yapıldı.",
     "count": "{current}/{count}",
@@ -1023,7 +1032,6 @@
       "aria": "{name} profili",
       "matchesMine": "şununla örtüşüyor",
       "more": "{n} tane daha",
-      "sendEmail": "E-posta gönder",
       "sendGradido": "Gradido gönder",
       "unavailable": "Profil şu anda yüklenemedi."
     },

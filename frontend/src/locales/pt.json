@@ -236,6 +236,15 @@
     "youAreModerator": "És moderador",
     "youAreOwner": "És o proprietário"
   },
+  "chatHello": {
+    "distanceKm": "Moramos a cerca de {n} km de distância.",
+    "distanceNear": "Não moramos longe.",
+    "found": "Olá {name}, encontrei-te no mapa do Gradido.",
+    "question": "Queres dizer-me olá de volta?",
+    "sent": "Enviada.",
+    "sentMailed": "Enviada. {name} recebe um e-mail.",
+    "toConversation": "Ir para a conversa"
+  },
   "chatSearch": {
     "capped": "A pesquisa abrangeu as últimas {count} mensagens.",
     "count": "{current} de {count}",
@@ -1023,7 +1032,6 @@
       "aria": "Perfil de {name}",
       "matchesMine": "corresponde a",
       "more": "mais {n}",
-      "sendEmail": "Enviar e-mail",
       "sendGradido": "Enviar Gradido",
       "unavailable": "Não foi possível carregar o perfil neste momento."
     },

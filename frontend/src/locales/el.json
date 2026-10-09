@@ -236,6 +236,15 @@
     "youAreModerator": "Είσαι συντονιστής",
     "youAreOwner": "Είσαι ο κάτοχος"
   },
+  "chatHello": {
+    "distanceKm": "Μας χωρίζουν περίπου {n} χλμ.",
+    "distanceNear": "Δεν μένουμε μακριά.",
+    "found": "Γεια σου {name}, σε βρήκα στον χάρτη του Gradido.",
+    "question": "Θα ήθελες να μου πεις κι εσύ ένα γεια;",
+    "sent": "Στάλθηκε.",
+    "sentMailed": "Στάλθηκε. Φεύγει και email προς {name}.",
+    "toConversation": "Στη συνομιλία"
+  },
   "chatSearch": {
     "capped": "Η αναζήτηση έγινε στα τελευταία {count} μηνύματα.",
     "count": "{current} από {count}",
@@ -1023,7 +1032,6 @@
       "aria": "Προφίλ: {name}",
       "matchesMine": "ταιριάζει με",
       "more": "{n} ακόμη",
-      "sendEmail": "Αποστολή email",
       "sendGradido": "Αποστολή Gradido",
       "unavailable": "Δεν ήταν δυνατή η φόρτωση του προφίλ αυτή τη στιγμή."
     },
