@@ -780,6 +780,15 @@ function toConversation() {
   filter: brightness(0) invert(1);
 }
 
+/* Without Bootstrap's `.btn` a plain button has no focus ring of its own: the contact window's
+   ring, for both buttons of this row. After a hello sent with the keyboard the focus stands on
+   the way into the conversation, and the browser's own ring took the place of the gold rim
+   there (seen in the built wallet). */
+.send-btn:focus-visible {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: 2px;
+}
+
 /* The way into the conversation beside it: the gold rim of the button's own border, the word
    and its glyph in the window's text colour -- as the chat draws its outlined gold marks
    ("Ankündigung", "In den Kalender"). A word in the gold itself would stand at 3.05 : 1 on the

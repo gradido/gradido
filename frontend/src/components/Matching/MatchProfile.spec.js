@@ -1241,6 +1241,18 @@ describe('MatchProfile', () => {
         }
       })
 
+      // A plain button has no focus ring of its own; the browser's took the place of the gold rim.
+      it('rings the buttons as the contact window rings its button, where the keyboard is', () => {
+        const window = readFileSync(join(here, '../Contacts/ContactWindow.vue'), 'utf8')
+          .split('<style')[1]
+          .replace(/\/\*[\s\S]*?\*\//g, '')
+        const there = window
+          .match(/\n\.send-btn:focus-visible\s*\{([^}]*)\}/)?.[1]
+          ?.replace(/\s+/g, ' ')
+        expect(there).toBe(' outline: 2px solid var(--success, #047006); outline-offset: 2px; ')
+        expect(rule('\\.send-btn:focus-visible')).toBe(there)
+      })
+
       it("sets the buttons in the contact window's measure", () => {
         const window = readFileSync(join(here, '../Contacts/ContactWindow.vue'), 'utf8')
           .split('<style')[1]
