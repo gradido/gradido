@@ -134,3 +134,17 @@ export const CHAT_FORWARD_MAX_TARGETS = 5
 export const isSameChatMember = (a: ChatMemberRef, b: ChatMemberRef): boolean =>
   a.communityUuid.toLowerCase() === b.communityUuid.toLowerCase() &&
   a.gradidoId.toLowerCase() === b.gradidoId.toLowerCase()
+
+/**
+ * How much of a quoted message's text goes with an answer: a quotation is one line in the
+ * thread, cut off by the wallet where the line ends.
+ */
+export const CHAT_QUOTE_MAX_CHARS = 200
+
+/**
+ * The beginning of a message's text, as an answer quotes it: CHAT_QUOTE_MAX_CHARS characters at
+ * most, counted as the text is read -- by code point, so that a sign made of two code units is
+ * taken whole or not at all.
+ */
+export const chatQuoteExcerpt = (body: string): string =>
+  body.length <= CHAT_QUOTE_MAX_CHARS ? body : [...body].slice(0, CHAT_QUOTE_MAX_CHARS).join('')

@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { and, asc, desc, eq, gt, gte, isNull, lt, or, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, gt, gte, inArray, isNull, lt, or, sql } from 'drizzle-orm'
 import { Result, VoidResult } from 'shared'
 import { drizzleDb } from '../AppDatabase'
 import { DBInsertFailed, DBNotFoundError } from '../errorTypes'
@@ -230,6 +230,34 @@ export async function dbSelectChatMessageForMember(
   return found
     ? { success: true, value: found.message }
     : { success: false, error: ChatMessageNotFound(`message_uuid for a member`) }
+}
+
+/**
+ * The messages with these uuids, in one query for a whole page: what the answers on that page
+ * quote (`reply_to_message_uuid`). Messages marked deleted are not among them, and a uuid without
+ * a row has no entry. In no particular order -- the caller matches them by uuid.
+ *
+ * ⛔ Not asked for a member: whether a quoted message may be shown is the caller's to check, by
+ * its conversation -- an answer quotes a message of its own conversation and no other
+ * (chatMessagesOf).
+ *
+ * The uuids are compared the way the column compares them, without regard to case.
+ */
+export async function dbSelectChatMessagesByUuids(
+  messageUuids: string[],
+): Promise<ChatMessageSelect[]> {
+  if (messageUuids.length === 0) {
+    return []
+  }
+  return drizzleDb()
+    .select()
+    .from(chatMessagesTable)
+    .where(
+      and(
+        inArray(chatMessagesTable.messageUuid, messageUuids),
+        isNull(chatMessagesTable.deletedAt),
+      ),
+    )
 }
 
 /**

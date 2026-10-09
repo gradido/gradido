@@ -1,8 +1,10 @@
 // AI-GENERATED — not an architecture reference
 import {
   CHAT_EDITS_CURSOR_PATTERN,
+  CHAT_QUOTE_MAX_CHARS,
   chatEditsCursor,
   chatEditsPosition,
+  chatQuoteExcerpt,
   isSameChatMember,
   nextChatEditsPosition,
 } from './ChatConversation.logic'
@@ -119,5 +121,33 @@ describe('nextChatEditsPosition', () => {
       editedAt: SETTLED,
       id: 0,
     })
+  })
+})
+
+/** How much of a quoted message goes with its answer: the beginning, a line's worth. */
+describe('chatQuoteExcerpt', () => {
+  it('hands a short text on whole, raw as it is', () => {
+    expect(chatQuoteExcerpt('Shall we meet at **ten**?\nAt the market.')).toBe(
+      'Shall we meet at **ten**?\nAt the market.',
+    )
+    expect(chatQuoteExcerpt('')).toBe('')
+  })
+
+  it('cuts a long text off after the characters a quotation carries, and not one earlier', () => {
+    expect(CHAT_QUOTE_MAX_CHARS).toBe(200)
+    const atTheLimit = 'a'.repeat(CHAT_QUOTE_MAX_CHARS)
+    expect(chatQuoteExcerpt(atTheLimit)).toBe(atTheLimit)
+    expect(chatQuoteExcerpt(`${atTheLimit}b`)).toBe(atTheLimit)
+    expect(chatQuoteExcerpt('x'.repeat(2000))).toHaveLength(CHAT_QUOTE_MAX_CHARS)
+  })
+
+  // A sign of two code units is one character: taken whole, or not at all.
+  it('counts as the text is read, and never cuts a sign in two', () => {
+    const excerpt = chatQuoteExcerpt('🌻'.repeat(CHAT_QUOTE_MAX_CHARS + 5))
+    expect([...excerpt]).toHaveLength(CHAT_QUOTE_MAX_CHARS)
+    expect(excerpt).toBe('🌻'.repeat(CHAT_QUOTE_MAX_CHARS))
+    // With the cut falling into the middle of one, counted by code units.
+    const mixed = `${'a'.repeat(CHAT_QUOTE_MAX_CHARS - 1)}🌻🌻`
+    expect(chatQuoteExcerpt(mixed)).toBe(`${'a'.repeat(CHAT_QUOTE_MAX_CHARS - 1)}🌻`)
   })
 })

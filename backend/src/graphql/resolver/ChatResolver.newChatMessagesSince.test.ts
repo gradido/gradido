@@ -80,6 +80,7 @@ const fromMax = (id: number, rest: Partial<ChatMessageSelect> = {}): ChatMessage
   delaySeconds: null,
   forwardedFromCommunityUuid: null,
   forwardedFromGradidoId: null,
+  replyToMessageUuid: null,
   createdAt: new Date('2026-09-25T06:00:00.000Z'),
   editedAt: null,
   deletedAt: null,

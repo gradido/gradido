@@ -61,6 +61,7 @@ import {
   deliverChatMessageLocally,
 } from './util/chatMessageDelivery'
 import { chatMessagesOf } from './util/chatMessagesOf'
+import { checkedReplyTo } from './util/chatReply'
 import { acceptedPicture, callerOf } from './util/chatRequest'
 import { isHomeCommunity, resolveCommunityUuid } from './util/communities'
 
@@ -291,11 +292,16 @@ export class ChatResolver {
    * is that there is no way to deliver at all -- no V1_0 entry, no client for it, no keys
    * exchanged to seal the command with, no uuid to name the recipient by -- and then nothing is
    * filed. No silent true (D V03, section 1).
+   *
+   * `replyTo`: the message of their conversation this one answers (checkedReplyTo); anything
+   * else is refused, CHAT_MESSAGE_NOT_SENT: UNKNOWN_REPLY, before anything is filed. The copy
+   * carries the quotation (`replyTo`). ⚠️ To a member of another community the command does not
+   * carry it yet: the sender's copy quotes, the other server files an ordinary message.
    */
   @Authorized([RIGHTS.SEND_CHAT_MESSAGE])
   @Mutation(() => ChatMessage)
   async sendChatMessage(
-    @Args() { ref, body, notify: requested, image }: SendChatMessageArgs,
+    @Args() { ref, body, notify: requested, image, replyTo }: SendChatMessageArgs,
     @Ctx() context: Context,
   ): Promise<ChatMessage> {
     const images = image ? [await acceptedPicture(image, context)] : []
@@ -308,10 +314,9 @@ export class ChatResolver {
     if (isSameChatMember(caller, other)) {
       throw new LogError('CHAT_MESSAGE_NOT_SENT: TO_ONESELF')
     }
-    const notify = chatMessageNotify(
-      requested,
-      (await dbFindDirectChatConversation(caller, other)) !== null,
-    )
+    const conversation = await dbFindDirectChatConversation(caller, other)
+    const notify = chatMessageNotify(requested, conversation !== null)
+    const replyToMessageUuid = await checkedReplyTo(replyTo, caller, conversation?.id ?? null)
 
     if (await isHomeCommunity(other.communityUuid)) {
       const recipientUser = await findUserByUuids(other.communityUuid, other.gradidoId)
@@ -327,6 +332,7 @@ export class ChatResolver {
         requireStored: true,
         letter: false,
         images,
+        replyToMessageUuid,
       })
       if (!stored) {
         throw new LogError('CHAT_MESSAGE_NOT_SENT: NOT_STORED')
@@ -365,6 +371,7 @@ export class ChatResolver {
       requireStored: true,
       letter: false,
       images,
+      replyToMessageUuid,
     })
     if (!stored) {
       throw new LogError('CHAT_MESSAGE_NOT_SENT: NOT_STORED')

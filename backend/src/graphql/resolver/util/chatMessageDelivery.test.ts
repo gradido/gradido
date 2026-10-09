@@ -68,6 +68,7 @@ const row = (deliveryState: 'delivered' | 'pending'): ChatMessageSelect => ({
   delaySeconds: null,
   forwardedFromCommunityUuid: null,
   forwardedFromGradidoId: null,
+  replyToMessageUuid: null,
   createdAt: new Date('2026-09-24T12:00:00.000Z'),
   editedAt: null,
   deletedAt: null,
@@ -119,6 +120,27 @@ describe('deliverChatMessageLocally', () => {
         memo: 'Shall we meet at ten?',
       }),
     )
+  })
+
+  // What the message answers is filed with it -- and nothing where it answers none.
+  it('files the message with the message it answers, and with none otherwise', async () => {
+    store.mockResolvedValue(row('delivered'))
+    const ANSWERED = 'abcdef00-0000-4000-8000-00000000aa01'
+
+    await deliverChatMessageLocally({
+      senderUser: anna,
+      recipientUser: ben,
+      subject: null,
+      body: 'At ten, then.',
+      notify: 'none',
+      requireStored: true,
+      letter: false,
+      replyToMessageUuid: ANSWERED,
+    })
+    expect(store.mock.calls[0][0].replyToMessageUuid).toBe(ANSWERED)
+
+    await local(true, 'none')
+    expect(store.mock.calls[1][0].replyToMessageUuid).toBeNull()
   })
 
   it('mails nothing that was not asked for, and nothing to a muted recipient', async () => {
@@ -483,6 +505,41 @@ describe('deliverChatMessageAcrossBorder', () => {
     expect(await across(false, 'email', anna, true)).toEqual({ stored: null, error: null })
 
     expect(sendCommandForAnswer).toHaveBeenCalledTimes(1)
+  })
+
+  /**
+   * An answer to a member of another community: this server's own copy is filed with the message
+   * it answers. ⚠️ The command does not carry it yet -- the other server files an ordinary
+   * message, as every server from before the answers would. The step across the border adds the
+   * field; this test then changes with it.
+   */
+  it('files the own copy with the message it answers, and sends the command without it', async () => {
+    store.mockResolvedValue(row('pending'))
+    sendCommandForAnswer.mockResolvedValue({ success: true, value: null })
+    const ANSWERED = 'abcdef00-0000-4000-8000-00000000aa01'
+
+    await deliverChatMessageAcrossBorder({
+      letter: false,
+      senderUser: anna,
+      senderCom,
+      receiverCom,
+      receiverComIdentifier: PEER,
+      cmdClient,
+      recipientGradidoId: BEN,
+      subject: null,
+      body: 'At ten, then.',
+      notify: 'none',
+      requireStored: true,
+      replyToMessageUuid: ANSWERED,
+    })
+
+    expect(store.mock.calls[0][0].replyToMessageUuid).toBe(ANSWERED)
+    const sent = await payload()
+    expect(JSON.stringify(sent)).not.toContain(ANSWERED)
+    expect(Object.keys(sent).filter((key) => /reply/i.test(key))).toEqual([])
+
+    await across(true, 'none')
+    expect(store.mock.calls[1][0].replyToMessageUuid).toBeNull()
   })
 
   // Only a wish for no mail travels: without the field every server mails, the old ones too.

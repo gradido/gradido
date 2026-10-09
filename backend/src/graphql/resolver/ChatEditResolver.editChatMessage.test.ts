@@ -89,6 +89,7 @@ const row = (rest: Partial<ChatMessageSelect> = {}): ChatMessageSelect => ({
   body: TEXT,
   forwardedFromCommunityUuid: null,
   forwardedFromGradidoId: null,
+  replyToMessageUuid: null,
   notify: 'none',
   mailState: null,
   deliveryState: 'delivered',

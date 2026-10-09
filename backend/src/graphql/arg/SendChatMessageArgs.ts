@@ -2,7 +2,7 @@
 import { ChatMessageNotify } from '@enum/ChatMessageNotify'
 import { ChatImageInput } from '@input/ChatImageInput'
 import { MemberAvatarRefInput } from '@input/MemberAvatarRefInput'
-import { IsEnum, IsString, MaxLength, ValidateNested } from 'class-validator'
+import { IsEnum, IsOptional, IsString, IsUUID, MaxLength, ValidateNested } from 'class-validator'
 import { MESSAGE_MAX_CHARS } from 'shared'
 import { ArgsType, Field } from 'type-graphql'
 import { isLongEnoughForChatMessage } from '@/graphql/validator/ChatMessageBody'
@@ -48,4 +48,13 @@ export class SendChatMessageArgs {
   @Field(() => ChatImageInput, { nullable: true })
   @ValidateNested()
   image?: ChatImageInput | null
+
+  /**
+   * The message this one answers, by its uuid: one the sender can read in the same conversation.
+   * The thread shows it as a quotation over the answer.
+   */
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @IsUUID('4')
+  replyTo?: string | null
 }

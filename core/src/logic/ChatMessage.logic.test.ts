@@ -122,6 +122,7 @@ describe('storeChatMessage', () => {
           body: BODY,
           forwardedFromCommunityUuid: null,
           forwardedFromGradidoId: null,
+          replyToMessageUuid: null,
           notify: 'email',
           deliveryState: 'delivered',
         },
