@@ -904,6 +904,9 @@ export const chatMessagesTable = mysqlTable(
       sql`NULL`,
     ),
     forwardedFromGradidoId: char('forwarded_from_gradido_id', { length: 36 }).default(sql`NULL`),
+    // The message this one answers (migration 0157), by its uuid; NULL on every other message.
+    // Read from the answered message when the thread is shown -- nothing of it is copied.
+    replyToMessageUuid: char('reply_to_message_uuid', { length: 36 }).default(sql`NULL`),
     notify: varchar({ length: 8 }).$type<ChatMessageNotify>().notNull(),
     mailState: varchar('mail_state', { length: 8 })
       .$type<ChatMessageMailState>()

@@ -74,6 +74,15 @@ vi.mock('@/utils/chatSearch', async (original) => ({
   CHAT_SEARCH_MAX_MESSAGES: 6,
 }))
 
+// The line the thread shows where a quoted message could not be reached.
+const toasts = vi.hoisted(() => ({ success: [], error: [] }))
+vi.mock('@/composables/useToast', () => ({
+  useAppToast: () => ({
+    toastSuccess: (message) => toasts.success.push(message),
+    toastError: (message) => toasts.error.push(message),
+  }),
+}))
+
 vi.mock('vuex', () => ({
   useStore: () => ({ state: storeState }),
 }))
@@ -389,6 +398,9 @@ describe('ChatThread', () => {
           IMdiContentCopy: true,
           IMdiCheck: true,
           IMdiClose: true,
+          // "Antworten" in the menu, the strip over the bar and the quotation over an answer.
+          IMdiReplyOutline: true,
+          IMdiImageOutline: true,
           BModal: true,
         },
       },
@@ -417,6 +429,8 @@ describe('ChatThread', () => {
     delete storeState.transfersInChat
     serverSends.mockReset()
     serverChanges.mockReset()
+    toasts.success.length = 0
+    toasts.error.length = 0
     videoInviteRead.mockReset()
     videoInviteRead.mockImplementation(() => null)
     beat.pollNow.mockClear()
@@ -3462,6 +3476,741 @@ describe('ChatThread', () => {
         await done
         await flushPromises()
         expect(bar().props('sending')).toBe(false)
+      })
+    })
+  })
+
+  /**
+   * An answer to one particular message (Bernd, 09.10.2026): "Antworten" in the menu at a message
+   * puts it over the bar, the next message goes out with its uuid, and the thread shows the
+   * answered message as a quotation over the answer -- a press on it goes there, through older
+   * pages where it has to.
+   */
+  describe('an answer to a message', () => {
+    const status = () => wrapper.find('[data-test="chat-thread-sent"]')
+    const rows = () => wrapper.findAll('[data-test="chat-bubble"]')
+    const rowOf = (n) => rows().find((bubble) => bubble.attributes('data-key') === String(n))
+    const strip = () => wrapper.find('[data-test="chat-compose-replying"]')
+    const editStrip = () => wrapper.find('[data-test="chat-compose-editing"]')
+    /** Which bubbles are ringed as the one the bar answers. */
+    const answered = () => rows().map((row) => row.classes().includes('is-answered'))
+    /** Which bubbles are ringed as the one a quotation led to. */
+    const shown = () => rows().map((row) => row.classes().includes('is-shown'))
+    const quoteOf = (n) => rowOf(n).find('[data-test="chat-bubble-quote"]')
+    const quoteTextOf = (n) => rowOf(n).find('[data-test="chat-bubble-quote-text"]').text()
+
+    /** An entry of the menu at message `n`, as a member presses it. */
+    const press = async (n, entry) => {
+      const row = rowOf(n)
+      await row.find('[data-test="chat-bubble-more"]').trigger('click')
+      await flushPromises()
+      await row.find(`[data-test="chat-message-${entry}"]`).trigger('click')
+      await flushPromises()
+    }
+    const pressReply = (n) => press(n, 'reply')
+
+    /** A promise a test settles when it wants: the server's answer still out till then. */
+    const deferred = () => {
+      const settle = {}
+      const promise = new Promise((resolve, reject) => Object.assign(settle, { resolve, reject }))
+      return { promise, ...settle }
+    }
+
+    /** Message `n`, answering message `to` -- quoted as the server sends it with the answer. */
+    const answer = (n, to, { excerpt = `message ${to}`, mine = to % 2 === 0, ...rest } = {}) => ({
+      ...message(n),
+      replyTo: {
+        id: to,
+        // In the other case than the page holds it: the server compares without regard to case.
+        messageUuid: `UUID-${to}`,
+        mine,
+        excerpt,
+        hasImage: false,
+        senderUser: null,
+        ...rest,
+      },
+    })
+    const pageWith = (messages, { hasMore = false } = {}) => ({
+      hasMore,
+      mutedByMe: false,
+      messages,
+    })
+
+    describe('written in the bar', () => {
+      it('offers "Antworten" at every message, one’s own and the other one’s', async () => {
+        mountThread()
+        await arrive(page([1, 2]))
+
+        for (const n of [1, 2]) {
+          await rowOf(n).find('[data-test="chat-bubble-more"]').trigger('click')
+          await flushPromises()
+          expect(rowOf(n).find('[data-test="chat-message-reply"]').exists()).toBe(true)
+        }
+      })
+
+      it('puts the message over the bar, rings it, and takes the keyboard into the field', async () => {
+        mountThread(LENA, { attachTo: document.body })
+        await arrive(page([1, 2, 3]))
+        expect(strip().exists()).toBe(false)
+
+        await pressReply(1)
+
+        expect(strip().text()).toContain('chatThread.replyingTo {"name":"Lena"}')
+        expect(strip().text()).toContain('message 1')
+        expect(answered()).toEqual([true, false, false])
+        expect(document.activeElement).toBe(field().element)
+        // Nothing went out, and nothing was asked of the server for it.
+        expect(serverSends).not.toHaveBeenCalled()
+      })
+
+      it('says "Deine Nachricht" where the message answered is one’s own', async () => {
+        mountThread()
+        await arrive(page([1, 2, 3]))
+
+        await pressReply(2)
+
+        expect(strip().text()).toContain('chatThread.replyingToOwn')
+        expect(answered()).toEqual([false, true, false])
+      })
+
+      // The words answered stand on one line in the strip, whatever lines the message had.
+      it('puts the words answered on one line', async () => {
+        mountThread()
+        const first = page([1, 2])
+        first.messages[0] = { ...first.messages[0], body: 'Erste Zeile\n\n  zweite   Zeile ' }
+        await arrive(first)
+
+        await pressReply(1)
+
+        expect(wrapper.find('[data-test="chat-compose-replying-text"]').text()).toBe(
+          'Erste Zeile zweite Zeile',
+        )
+      })
+
+      it('sends the next message with the uuid of the message it answers, and lets go of it', async () => {
+        serverSends.mockResolvedValue({
+          ...ownCopy(99, 'Ja, gern!'),
+          ...answer(99, 1),
+          body: 'Ja, gern!',
+          mine: true,
+        })
+        mountThread()
+        await arrive(page([1, 2, 3]))
+        await pressReply(1)
+
+        await write('Ja, gern!')
+
+        expect(serverSends).toHaveBeenCalledWith({
+          ref: { gradidoID: 'lena-id', communityUuid: 'home-uuid' },
+          body: 'Ja, gern!',
+          notify: 'NONE',
+          replyTo: 'uuid-1',
+        })
+        expect(strip().exists()).toBe(false)
+        expect(answered()).toEqual([false, false, false, false])
+        // The copy hangs under the thread with its quotation.
+        expect(quoteOf(99).exists()).toBe(true)
+        expect(quoteTextOf(99)).toBe('message 1')
+      })
+
+      // Gegenprobe: a message that answers none carries no `replyTo` at all.
+      it('sends every other message without a word about it', async () => {
+        serverSends.mockResolvedValue(ownCopy(99, 'Hallo'))
+        mountThread()
+        await arrive(page([1, 2]))
+
+        await write('Hallo')
+
+        expect(serverSends.mock.calls[0][0]).not.toHaveProperty('replyTo')
+      })
+
+      // Only the message after "Antworten" answers: the one after it is an ordinary one again.
+      it('answers with one message, not with every one after it', async () => {
+        serverSends.mockResolvedValue(ownCopy(99, 'Ja'))
+        mountThread()
+        await arrive(page([1, 2]))
+        await pressReply(1)
+        await write('Ja')
+        serverSends.mockClear()
+        serverSends.mockResolvedValue(ownCopy(100, 'Und noch etwas'))
+
+        await write('Und noch etwas')
+
+        expect(serverSends.mock.calls[0][0]).not.toHaveProperty('replyTo')
+      })
+
+      it('lets go of the answer with the ✕, and the next message answers none', async () => {
+        serverSends.mockResolvedValue(ownCopy(99, 'Hallo'))
+        mountThread()
+        await arrive(page([1, 2]))
+        await pressReply(1)
+
+        await wrapper.find('[data-test="chat-compose-reply-cancel"]').trigger('click')
+        await flushPromises()
+
+        expect(strip().exists()).toBe(false)
+        expect(answered()).toEqual([false, false])
+        await write('Hallo')
+        expect(serverSends.mock.calls[0][0]).not.toHaveProperty('replyTo')
+      })
+
+      // "Antworten" at another message: that one is answered now.
+      it('answers the message "Antworten" was pressed at last', async () => {
+        serverSends.mockResolvedValue(ownCopy(99, 'Ja'))
+        mountThread()
+        await arrive(page([1, 2, 3]))
+        await pressReply(1)
+
+        await pressReply(3)
+
+        expect(answered()).toEqual([false, false, true])
+        await write('Ja')
+        expect(serverSends.mock.calls[0][0].replyTo).toBe('uuid-3')
+      })
+
+      // A message that did not go through keeps what it answers, as the bar keeps its words.
+      it('keeps the answer where the message did not go through', async () => {
+        serverSends.mockRejectedValue(new Error('Network error'))
+        mountThread()
+        await arrive(page([1, 2]))
+        await pressReply(1)
+
+        await write('Ja, gern!')
+
+        expect(strip().exists()).toBe(true)
+        expect(answered()).toEqual([true, false])
+        expect(field().element.value).toBe('Ja, gern!')
+        // The second try goes out with it again.
+        serverSends.mockReset()
+        serverSends.mockResolvedValue(ownCopy(99, 'Ja, gern!'))
+        await wrapper.find('[data-test="chat-compose-send"]').trigger('click')
+        await flushPromises()
+        expect(serverSends.mock.calls[0][0].replyTo).toBe('uuid-1')
+        expect(strip().exists()).toBe(false)
+      })
+
+      /**
+       * ⛔ What the member does while the message is on its way is not that message's to end
+       * (skill null-bn): the answer that went out ends only the answer it went out with.
+       */
+      describe('while the message is on its way', () => {
+        const sendAnswerTo = async (n) => {
+          const out = deferred()
+          serverSends.mockReturnValue(out.promise)
+          await pressReply(n)
+          await write('Ja')
+          return out
+        }
+
+        it('keeps another message taken up meanwhile, for the next message', async () => {
+          mountThread()
+          await arrive(page([1, 2, 3]))
+          const out = await sendAnswerTo(1)
+
+          await pressReply(3)
+          out.resolve(ownCopy(99, 'Ja'))
+          await flushPromises()
+
+          expect(strip().exists()).toBe(true)
+          expect(strip().text()).toContain('message 3')
+          expect(answered()).toEqual([false, false, true, false])
+          expect(serverSends.mock.calls[0][0].replyTo).toBe('uuid-1')
+        })
+
+        // Let go and taken up anew -- the same message: a new answer, which the old one does not end.
+        it('keeps the same message taken up anew meanwhile', async () => {
+          mountThread()
+          await arrive(page([1, 2, 3]))
+          const out = await sendAnswerTo(1)
+
+          await wrapper.find('[data-test="chat-compose-reply-cancel"]').trigger('click')
+          await pressReply(1)
+          out.resolve(ownCopy(99, 'Ja'))
+          await flushPromises()
+
+          expect(strip().exists()).toBe(true)
+          expect(answered()).toEqual([true, false, false, false])
+        })
+
+        it('stays let go where the member let go meanwhile', async () => {
+          mountThread()
+          await arrive(page([1, 2, 3]))
+          const out = await sendAnswerTo(1)
+
+          await wrapper.find('[data-test="chat-compose-reply-cancel"]').trigger('click')
+          out.resolve(ownCopy(99, 'Ja'))
+          await flushPromises()
+
+          expect(strip().exists()).toBe(false)
+        })
+      })
+
+      /**
+       * One thing at a time in the bar -- and beside a message being changed the answer is the one
+       * that waits, with the words typed for it.
+       */
+      describe('beside a message being changed', () => {
+        const saveStrip = async () => {
+          await wrapper.find('[data-test="chat-compose-send"]').trigger('click')
+          await flushPromises()
+        }
+
+        /**
+         * ⛔ Not let go: the words typed for the answer come back when the changing is over, and
+         * without the answer they would go out as a message that answers none, with nothing to
+         * say so.
+         */
+        it('keeps the answer under "Bearbeiten", and shows it again with its words afterwards', async () => {
+          serverSends.mockResolvedValue(ownCopy(99, 'ja gern'))
+          mountThread()
+          await arrive(page([1, 2, 3]))
+          await pressReply(1)
+          await field().setValue('ja gern')
+
+          await press(2, 'edit')
+
+          // One strip, one ring: the message being changed.
+          expect(strip().exists()).toBe(false)
+          expect(editStrip().exists()).toBe(true)
+          expect(answered()).toEqual([false, false, false])
+          expect(field().element.value).toBe('message 2')
+
+          await wrapper.find('[data-test="chat-compose-edit-cancel"]').trigger('click')
+          await flushPromises()
+
+          expect(strip().text()).toContain('message 1')
+          expect(answered()).toEqual([true, false, false])
+          expect(field().element.value).toBe('ja gern')
+          await saveStrip()
+          expect(serverSends.mock.calls[0][0]).toMatchObject({ body: 'ja gern', replyTo: 'uuid-1' })
+        })
+
+        it('shows the answer again after a change that was saved', async () => {
+          serverChanges.mockResolvedValue({
+            ...message(2),
+            body: 'neu',
+            editedAt: '2026-09-22T11:00:00.000Z',
+          })
+          mountThread()
+          await arrive(page([1, 2, 3]))
+          await pressReply(1)
+          await press(2, 'edit')
+          await field().setValue('neu')
+
+          await saveStrip()
+
+          expect(editStrip().exists()).toBe(false)
+          expect(strip().text()).toContain('message 1')
+          expect(serverSends).not.toHaveBeenCalled()
+        })
+
+        it('lets go of the changing for "Antworten", and gives the bar back its words', async () => {
+          mountThread()
+          await arrive(page([1, 2, 3]))
+          await field().setValue('angefangen')
+          await press(2, 'edit')
+          expect(field().element.value).toBe('message 2')
+
+          await pressReply(1)
+
+          expect(editStrip().exists()).toBe(false)
+          expect(strip().exists()).toBe(true)
+          expect(field().element.value).toBe('angefangen')
+          expect(serverChanges).not.toHaveBeenCalled()
+        })
+
+        /**
+         * ⛔ While the change is on its way it is not let go: one that did not go through keeps its
+         * strip, its text and the reason -- the answer waits under it.
+         */
+        it('does not let go of a change that is on its way: a refused one keeps its text and says why', async () => {
+          const out = deferred()
+          serverChanges.mockReturnValue(out.promise)
+          mountThread()
+          await arrive(page([1, 2, 3]))
+          await press(2, 'edit')
+          await field().setValue('geändert')
+          await saveStrip()
+
+          await pressReply(1)
+          out.reject(new Error('CHAT_MESSAGE_NOT_EDITED: NOT_CONFIRMED'))
+          await flushPromises()
+
+          expect(editStrip().exists()).toBe(true)
+          expect(field().element.value).toBe('geändert')
+          expect(wrapper.find('[data-test="chat-compose-edit-problem"]').exists()).toBe(true)
+          expect(strip().exists()).toBe(false)
+          // The answer waited: it stands once the changing is let go.
+          await wrapper.find('[data-test="chat-compose-edit-cancel"]').trigger('click')
+          await flushPromises()
+          expect(strip().text()).toContain('message 1')
+        })
+
+        it('takes up the answer once a change on its way went through', async () => {
+          const out = deferred()
+          serverChanges.mockReturnValue(out.promise)
+          mountThread()
+          await arrive(page([1, 2, 3]))
+          await press(2, 'edit')
+          await field().setValue('geändert')
+          await saveStrip()
+
+          await pressReply(1)
+          out.resolve({ ...message(2), body: 'geändert', editedAt: '2026-09-22T11:00:00.000Z' })
+          await flushPromises()
+
+          expect(editStrip().exists()).toBe(false)
+          expect(strip().text()).toContain('message 1')
+          expect(bubbleTexts()).toContain('geändert')
+        })
+      })
+    })
+
+    describe('quoted over the answer', () => {
+      it('shows no quotation over a message that answers none', async () => {
+        mountThread()
+        await arrive(page([1, 2]))
+
+        expect(wrapper.find('[data-test="chat-bubble-quote"]').exists()).toBe(false)
+      })
+
+      it('names who wrote the quoted message: the other one, or "Du"', async () => {
+        mountThread()
+        await arrive(pageWith([message(1), message(2), answer(3, 1), answer(4, 2)]))
+
+        expect(rowOf(3).find('[data-test="chat-bubble-quote-name"]').text()).toBe('Lena')
+        expect(rowOf(4).find('[data-test="chat-bubble-quote-name"]').text()).toBe('chatThread.you')
+        // For the ear, before the name: these are not the message's own words.
+        expect(quoteOf(3).find('.visually-hidden').text()).toBe('chatThread.quoteLead')
+        expect(quoteOf(3).attributes('type')).toBe('button')
+      })
+
+      /**
+       * From the message in the thread where the thread holds it -- found by its uuid whatever
+       * the case --, so a change that came since the page did is in the quotation.
+       */
+      it('quotes the message as the thread holds it, also after it was changed', async () => {
+        mountThread()
+        await arrive(pageWith([message(1), message(2), answer(3, 1, { excerpt: 'as it was' })]))
+        expect(quoteTextOf(3)).toBe('message 1')
+
+        await beatChanges({
+          ...message(1),
+          body: 'Doch erst um elf',
+          editedAt: '2026-09-22T11:00:00.000Z',
+        })
+
+        expect(quoteTextOf(3)).toBe('Doch erst um elf')
+      })
+
+      // The quoted message is on an older page: what the server sent with the answer stands.
+      it('quotes what the server sent where the thread does not hold the message', async () => {
+        mountThread()
+        await arrive(
+          pageWith([message(11), answer(12, 5, { excerpt: 'Vor   langer\nZeit' })], {
+            hasMore: true,
+          }),
+        )
+
+        expect(quoteTextOf(12)).toBe('Vor langer Zeit')
+      })
+
+      it('names a quoted picture, with its caption or with the word for one', async () => {
+        mountThread()
+        const picture = {
+          ...message(1),
+          body: '',
+          images: [{ imageUuid: 'i', width: 4, height: 3 }],
+        }
+        await arrive(
+          pageWith([
+            picture,
+            answer(3, 1),
+            answer(4, 7, { excerpt: 'Unser Garten', hasImage: true }),
+          ]),
+        )
+
+        // Held by the thread: read from the message itself.
+        expect(quoteTextOf(3)).toBe('chatThread.imageReady')
+        expect(quoteOf(3).find('.chat-bubble-quote-icon').exists()).toBe(true)
+        // Not held: as the server says.
+        expect(quoteTextOf(4)).toBe('Unser Garten')
+        expect(quoteOf(4).find('.chat-bubble-quote-icon').exists()).toBe(true)
+        // Gegenprobe: no sign beside words alone.
+        wrapper.unmount()
+        mountThread()
+        await arrive(pageWith([message(1), answer(3, 1)]))
+        expect(quoteOf(3).find('.chat-bubble-quote-icon').exists()).toBe(false)
+      })
+
+      // A press on the quotation is the quotation's: the message's menu stays shut.
+      it('does not open the menu of the answer', async () => {
+        mountThread()
+        await arrive(pageWith([message(1), message(2), answer(3, 1)]))
+
+        await quoteOf(3).trigger('click')
+        await flushPromises()
+
+        expect(wrapper.find('[data-test="chat-message-menu"]').exists()).toBe(false)
+      })
+    })
+
+    describe('a press on the quotation', () => {
+      it('goes to the quoted message where the thread holds it, and rings it', async () => {
+        mountThread()
+        await arrive(pageWith([message(1), message(2), answer(3, 1)], { hasMore: true }))
+
+        await quoteOf(3).trigger('click')
+        await flushPromises()
+
+        expect(shown()).toEqual([true, false, false])
+        expect(status().text()).toBe('chatThread.quoteShown')
+        // On screen already: no page was asked for, and nothing is said to be missing.
+        expect(server.fetchMore).not.toHaveBeenCalled()
+        expect(toasts.error).toEqual([])
+      })
+
+      it('takes the ring off again after a moment', async () => {
+        vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+        try {
+          mountThread()
+          await arrive(pageWith([message(1), message(2), answer(3, 1)]))
+          await quoteOf(3).trigger('click')
+          await flushPromises()
+          expect(shown()).toEqual([true, false, false])
+
+          // Not at once: just under the two seconds it still stands.
+          vi.advanceTimersByTime(1999)
+          await flushPromises()
+          expect(shown()).toEqual([true, false, false])
+          vi.advanceTimersByTime(1)
+          await flushPromises()
+
+          expect(shown()).toEqual([false, false, false])
+        } finally {
+          vi.useRealTimers()
+        }
+      })
+
+      /**
+       * The quoted message is on an older page: the pages before the one on screen are asked for,
+       * one after the other, until it is there.
+       */
+      it('asks for older pages until the quoted message is there', async () => {
+        mountThread()
+        await arrive(pageWith([message(11), answer(12, 5)], { hasMore: true }))
+        server.olderPages.push(
+          page([8, 9, 10], { hasMore: true }),
+          page([5, 6, 7], { hasMore: true }),
+        )
+
+        await quoteOf(12).trigger('click')
+        await flushPromises()
+
+        expect(server.fetchMore.mock.calls.map(([asked]) => asked.variables)).toEqual([
+          { before: 11 },
+          { before: 8 },
+        ])
+        expect(rows().map((row) => row.attributes('data-key'))).toEqual([
+          '5',
+          '6',
+          '7',
+          '8',
+          '9',
+          '10',
+          '11',
+          '12',
+        ])
+        expect(shown()).toEqual([true, false, false, false, false, false, false, false])
+        expect(toasts.error).toEqual([])
+        // No page more than it took.
+        expect(server.fetchMore).toHaveBeenCalledTimes(2)
+      })
+
+      /**
+       * ⛔ One's own message sent while the page is on its way is one more message at the OTHER
+       * end: not the older page. Taken for it, the next round would ask for the same page again
+       * and the thread would hold its messages twice.
+       */
+      it('does not take a message sent meanwhile for the older page', async () => {
+        serverSends.mockResolvedValue(ownCopy(99, 'Zwischendurch'))
+        mountThread()
+        await arrive(pageWith([message(11), answer(12, 5)], { hasMore: true }))
+        const gate = deferred()
+        const older = page([5, 6, 7, 8, 9, 10])
+        // As Apollo's `fetchMore` does it, measured in the probe (see the thread): the call
+        // returns BEFORE the merged page is written.
+        server.fetchMore.mockImplementationOnce(async ({ updateQuery }) => {
+          await gate.promise
+          setTimeout(() => {
+            server.result.value = updateQuery(server.result.value, {
+              fetchMoreResult: { chatMessagesWithMember: older },
+            })
+          }, 0)
+          return { data: { chatMessagesWithMember: older } }
+        })
+
+        await quoteOf(12).trigger('click')
+        await flushPromises()
+        await write('Zwischendurch')
+        gate.resolve()
+        await new Promise((resolve) => setTimeout(resolve, 20))
+        await flushPromises()
+
+        expect(server.fetchMore).toHaveBeenCalledTimes(1)
+        const keys = rows().map((row) => row.attributes('data-key'))
+        expect(keys).toEqual(['5', '6', '7', '8', '9', '10', '11', '12', '99'])
+        expect(rowOf(5).classes()).toContain('is-shown')
+      })
+
+      /**
+       * ⛔ Between two members a message from before the oldest transfer the thread has waits
+       * until the older transfers are in: held by the page, and not drawn. A press on its
+       * quotation asks for those transfers -- and says nothing of a message shown before it is
+       * (coderabbit, PR #4111).
+       */
+      it('brings the older transfers a held message waits behind, and rings it once it is drawn', async () => {
+        bookingsAsked.mockImplementationOnce(async () =>
+          bookingsPage([booking(8, { at: '2026-09-22T10:04:30.000Z' })], 26),
+        )
+        mountThread()
+        await arrive(pageWith([message(1), message(2), { ...answer(5, 1), body: 'message 5' }]))
+        // Held, and behind the horizon: no bubble for message 1.
+        expect(rowOf(1)).toBeUndefined()
+        expect(quoteOf(5).exists()).toBe(true)
+        bookingsAsked.mockImplementationOnce(async () =>
+          bookingsPage([booking(7, { at: '2026-09-22T10:00:30.000Z' })], 26),
+        )
+
+        await quoteOf(5).trigger('click')
+        await flushPromises()
+
+        expect(bookingsAsked).toHaveBeenLastCalledWith(
+          expect.objectContaining({ variables: expect.objectContaining({ currentPage: 2 }) }),
+        )
+        expect(server.fetchMore).not.toHaveBeenCalled()
+        expect(rowOf(1).classes()).toContain('is-shown')
+        expect(status().text()).toBe('chatThread.quoteShown')
+        expect(toasts.error).toEqual([])
+      })
+
+      // Where the older transfers do not come, the message is not drawn: said so, not "shown".
+      it('says so where a held message stays behind transfers that did not come', async () => {
+        bookingsAsked.mockImplementationOnce(async () =>
+          bookingsPage([booking(8, { at: '2026-09-22T10:04:30.000Z' })], 26),
+        )
+        mountThread()
+        await arrive(pageWith([message(1), message(2), { ...answer(5, 1), body: 'message 5' }]))
+        bookingsAsked.mockImplementationOnce(async () => {
+          throw new Error('Network error')
+        })
+
+        await quoteOf(5).trigger('click')
+        await flushPromises()
+
+        expect(toasts.error).toEqual(['chatThread.quoteNotShown'])
+        expect(status().text()).toBe('')
+        expect(rows().filter((row) => row.classes().includes('is-shown'))).toHaveLength(0)
+      })
+
+      it('says so where the quoted message is on no page', async () => {
+        mountThread()
+        await arrive(pageWith([message(11), answer(12, 5)], { hasMore: true }))
+        // The last page there is, and the message is not on it.
+        server.olderPages.push(page([6, 7, 8]))
+
+        await quoteOf(12).trigger('click')
+        await flushPromises()
+
+        expect(toasts.error).toEqual(['chatThread.quoteNotShown'])
+        expect(shown()).not.toContain(true)
+        expect(status().text()).toBe('')
+        expect(server.fetchMore).toHaveBeenCalledTimes(1)
+      })
+
+      it('says so where an older page did not come, and asks for no further one', async () => {
+        mountThread()
+        await arrive(pageWith([message(11), answer(12, 5)], { hasMore: true }))
+        server.olderPages.push(new Error('Network error'), page([5, 6, 7]))
+
+        await quoteOf(12).trigger('click')
+        await flushPromises()
+
+        expect(toasts.error).toEqual(['chatThread.quoteNotShown'])
+        expect(server.fetchMore).toHaveBeenCalledTimes(1)
+        expect(shown()).not.toContain(true)
+      })
+
+      /**
+       * The ids are the order: a message that should be on the page on screen and is not there
+       * is on no older page either. Nothing is asked for.
+       */
+      it('asks for no page where the quoted message would lie on the page on screen', async () => {
+        mountThread()
+        await arrive(pageWith([message(11), message(13), answer(14, 12)], { hasMore: true }))
+
+        await quoteOf(14).trigger('click')
+        await flushPromises()
+
+        expect(server.fetchMore).not.toHaveBeenCalled()
+        expect(toasts.error).toEqual(['chatThread.quoteNotShown'])
+      })
+
+      // And none where there are no older pages at all.
+      it('asks for no page where there is none', async () => {
+        mountThread()
+        await arrive(pageWith([message(11), answer(12, 5)]))
+
+        await quoteOf(12).trigger('click')
+        await flushPromises()
+
+        expect(server.fetchMore).not.toHaveBeenCalled()
+        expect(toasts.error).toEqual(['chatThread.quoteNotShown'])
+      })
+
+      /**
+       * ⛔ One search at a time, and its end only for the press it belongs to: a second quotation
+       * pressed while a page is on its way takes over, and the first gives way once its page is
+       * in -- no second ring, no line about a message not found.
+       */
+      it('gives way to a quotation pressed while its page is on its way', async () => {
+        mountThread()
+        await arrive(pageWith([message(11), answer(12, 5), answer(13, 11)], { hasMore: true }))
+        const gate = deferred()
+        server.gate = gate.promise
+        // The page the first press waits for does not hold its message, and is the last.
+        server.olderPages.push(page([8, 9, 10]))
+
+        await quoteOf(12).trigger('click')
+        await flushPromises()
+        await quoteOf(13).trigger('click')
+        await flushPromises()
+        expect(rowOf(11).classes()).toContain('is-shown')
+
+        gate.resolve()
+        await flushPromises()
+
+        expect(toasts.error).toEqual([])
+        expect(rows().filter((row) => row.classes().includes('is-shown'))).toHaveLength(1)
+        expect(rowOf(11).classes()).toContain('is-shown')
+        expect(server.fetchMore).toHaveBeenCalledTimes(1)
+      })
+
+      // The window closed while the page was on its way: nothing is said, nothing thrown.
+      it('does nothing for a thread that is gone', async () => {
+        mountThread()
+        await arrive(pageWith([message(11), answer(12, 5)], { hasMore: true }))
+        const gate = deferred()
+        server.gate = gate.promise
+        server.olderPages.push(page([6, 7, 8]))
+        await quoteOf(12).trigger('click')
+        await flushPromises()
+
+        wrapper.unmount()
+        gate.resolve()
+        await flushPromises()
+
+        expect(toasts.error).toEqual([])
       })
     })
   })

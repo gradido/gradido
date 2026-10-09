@@ -18,6 +18,7 @@ import {
   dbInsertChatMessage,
   dbSelectChatMessageForMember,
   dbSelectChatMessagesByConversationId,
+  dbSelectChatMessagesByUuids,
   dbSelectChatMessagesEditedAfter,
   dbSelectChatMessagesPage,
   dbSelectChatMessagesSince,
@@ -923,5 +924,84 @@ describe('dbSelectChatMessagesEditedAfter', () => {
     await expect(
       dbSelectChatMessagesEditedAfter(LENA, { after: { editedAt: at(0), id: -1 }, limit: 50 }),
     ).rejects.toThrow('message id')
+  })
+})
+
+/**
+ * What the answers on a page quote (migration 0157): the quoted messages by their uuids, in one
+ * query -- and the column an answer carries.
+ */
+describe('dbSelectChatMessagesByUuids', () => {
+  const QUOTING = 861
+  const pair = (): ChatMemberRef => ({ communityUuid: HOME, gradidoId: uuidv4() })
+  const OLGA = pair()
+  // With letters in both cases: the column compares without regard to case.
+  const QUOTED = 'abcdef00-0000-4000-8000-00000000aa01'
+  const QUOTED_TOO = 'ABCDEF00-0000-4000-8000-00000000AA02'
+  const DELETED = 'abcdef00-0000-4000-8000-00000000aa03'
+  const ANSWER = 'abcdef00-0000-4000-8000-00000000aa04'
+  const NOBODYS = 'abcdef00-0000-4000-8000-00000000aa09'
+
+  const from = (messageUuid: string, body: string, rest: Partial<ChatMessageInsert> = {}) =>
+    message(messageUuid, {
+      conversationId: QUOTING,
+      senderCommunityUuid: OLGA.communityUuid,
+      senderGradidoId: OLGA.gradidoId,
+      subject: null,
+      body,
+      ...rest,
+    })
+
+  beforeAll(async () => {
+    for (const row of [
+      from(QUOTED, 'the first quoted'),
+      from(QUOTED_TOO, 'the second quoted'),
+      from(DELETED, 'quoted, deleted later'),
+      from(ANSWER, 'an answer', { replyToMessageUuid: QUOTED }),
+    ]) {
+      const stored = await dbInsertChatMessage(row)
+      if (!stored.success) {
+        throw new Error(`fixture: "${row.body}" was not filed`)
+      }
+    }
+    await db
+      .update(chatMessagesTable)
+      .set({ deletedAt: new Date() })
+      .where(eq(chatMessagesTable.messageUuid, DELETED))
+  })
+  afterAll(async () => {
+    await db.delete(chatMessagesTable).where(eq(chatMessagesTable.conversationId, QUOTING))
+  })
+
+  const bodies = async (uuids: string[]) =>
+    (await dbSelectChatMessagesByUuids(uuids)).map((row) => row.body).sort()
+
+  it('hands back the messages named, each once, and no other', async () => {
+    expect(await bodies([QUOTED, QUOTED_TOO, QUOTED])).toEqual([
+      'the first quoted',
+      'the second quoted',
+    ])
+    expect(await bodies([QUOTED])).toEqual(['the first quoted'])
+  })
+
+  it('finds a message whatever the case its uuid is asked in', async () => {
+    expect(await bodies([QUOTED.toUpperCase()])).toEqual(['the first quoted'])
+    expect(await bodies([QUOTED_TOO.toLowerCase()])).toEqual(['the second quoted'])
+  })
+
+  it('leaves out a message marked deleted, and a uuid nothing is filed under', async () => {
+    expect(await bodies([DELETED, NOBODYS])).toEqual([])
+    expect(await bodies([DELETED, QUOTED_TOO])).toEqual(['the second quoted'])
+  })
+
+  it('asks nothing for an empty list', async () => {
+    expect(await dbSelectChatMessagesByUuids([])).toEqual([])
+  })
+
+  it('files what a message answers with it, and nothing on every other message', async () => {
+    const [answer] = await dbSelectChatMessagesByUuids([ANSWER])
+    expect(answer.replyToMessageUuid).toBe(QUOTED)
+    const [quoted] = await dbSelectChatMessagesByUuids([QUOTED])
+    expect(quoted.replyToMessageUuid).toBeNull()
   })
 })

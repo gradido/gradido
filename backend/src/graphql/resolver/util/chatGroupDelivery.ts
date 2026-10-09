@@ -62,6 +62,7 @@ export async function storeChatGroupMessage({
   announce,
   images,
   forwardedFrom = null,
+  replyToMessageUuid = null,
 }: {
   group: ChatConversationSelect
   sender: ChatMemberRef
@@ -72,6 +73,8 @@ export async function storeChatGroupMessage({
   images: ChatMessageImageAccepted[]
   /** The first writer of a copy forwarded into the group (E-059). */
   forwardedFrom?: ChatMemberRef | null
+  /** The message of this group the message answers, checked by the caller. */
+  replyToMessageUuid?: string | null
 }): Promise<ChatMessageSelect | null> {
   const logger = createLogger()
   const messageUuid = uuidv4()
@@ -94,6 +97,7 @@ export async function storeChatGroupMessage({
       body,
       forwardedFromCommunityUuid: forwardedFrom?.communityUuid ?? null,
       forwardedFromGradidoId: forwardedFrom?.gradidoId ?? null,
+      replyToMessageUuid,
       notify: announce ? ChatMessageNotify.EMAIL : ChatMessageNotify.NONE,
       deliveryState: ChatMessageDeliveryState.DELIVERED,
     })

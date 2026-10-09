@@ -6,6 +6,7 @@ import { ChatMemberRef, ChatMessageImageInfo, ChatMessageSelect } from 'database
 import { Field, Int, ObjectType } from 'type-graphql'
 import { isSameChatMember } from '@/data/ChatConversation.logic'
 import { ChatMessageImage } from './ChatMessageImage'
+import { ChatMessageQuote } from './ChatMessageQuote'
 import { MemberRef } from './MemberRef'
 import { User } from './User'
 
@@ -28,6 +29,9 @@ export class ChatMessage {
    * `group`: for a message written in a group (P5), the group's uuid and who wrote it -- read for
    * a whole page at once as well (chatMessagesOf) -- and with it whether it went out as an
    * announcement (`announcement`). Null in a direct conversation.
+   *
+   * `replyTo`: for an answer, the message it quotes -- read for a whole page at once as well
+   * (chatMessagesOf).
    */
   constructor(
     row: ChatMessageSelect,
@@ -35,6 +39,7 @@ export class ChatMessage {
     images: ChatMessageImageInfo[] = [],
     group: { groupUuid: string; senderUser: User | null } | null = null,
     forwardedFrom: User | null = null,
+    replyTo: ChatMessageQuote | null = null,
   ) {
     const sender = { communityUuid: row.senderCommunityUuid, gradidoId: row.senderGradidoId }
     this.id = row.id
@@ -55,6 +60,7 @@ export class ChatMessage {
     this.announcement = group !== null && row.notify === ChatMessageNotify.EMAIL
     this.forwarded = row.forwardedFromGradidoId !== null
     this.forwardedFrom = this.forwarded ? forwardedFrom : null
+    this.replyTo = row.replyToMessageUuid === null ? null : replyTo
   }
 
   /**
@@ -171,4 +177,12 @@ export class ChatMessage {
    */
   @Field(() => User, { nullable: true })
   forwardedFrom: User | null
+
+  /**
+   * The message this one answers, as the thread quotes it over the answer; a press on the
+   * quotation goes to the message. Null for a message that answers none -- and for an answer whose
+   * message is not there to quote: marked deleted, or not known on this server.
+   */
+  @Field(() => ChatMessageQuote, { nullable: true })
+  replyTo: ChatMessageQuote | null
 }

@@ -74,6 +74,8 @@ export interface ChatMessageLocalDelivery {
   images?: ChatMessageImageAccepted[]
   /** A copy the sender forwards (E-059): who wrote it first, and what goes with it in the mail. */
   forwarded?: ChatMessageForwarded | null
+  /** The message of their conversation the message answers, checked by the caller. */
+  replyToMessageUuid?: string | null
 }
 
 /**
@@ -117,6 +119,7 @@ export async function deliverChatMessageLocally({
   letter,
   images = [],
   forwarded = null,
+  replyToMessageUuid = null,
 }: ChatMessageLocalDelivery): Promise<ChatMessageSelect | null> {
   const recipient = {
     communityUuid: recipientUser.communityUuid,
@@ -143,6 +146,7 @@ export async function deliverChatMessageLocally({
       notify,
       deliveryState: ChatMessageDeliveryState.DELIVERED,
       forwardedFrom: forwarded?.from ?? null,
+      replyToMessageUuid,
     },
     'local',
   )
@@ -214,6 +218,12 @@ export interface ChatMessageBorderDelivery {
    * for the form.
    */
   images?: ChatMessageImageAccepted[]
+  /**
+   * The message of their conversation the message answers, checked by the caller. Filed with
+   * this server's own copy only: the command does not carry it yet, and the other server files
+   * an ordinary message.
+   */
+  replyToMessageUuid?: string | null
 }
 
 /**
@@ -259,6 +269,7 @@ export async function deliverChatMessageAcrossBorder({
   requireStored,
   letter,
   images = [],
+  replyToMessageUuid = null,
 }: ChatMessageBorderDelivery): Promise<{ stored: ChatMessageSelect | null; error: string | null }> {
   // The id both copies are filed under: this server's below, the receiving server's from the
   // payload. The same for the pictures: named before the command is sealed.
@@ -344,6 +355,7 @@ export async function deliverChatMessageAcrossBorder({
           body,
           notify,
           deliveryState: ChatMessageDeliveryState.PENDING,
+          replyToMessageUuid,
         },
         'outgoing',
       )

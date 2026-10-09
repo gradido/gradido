@@ -1,5 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { ChatMessage } from '@model/ChatMessage'
+import { ChatMessageQuote } from '@model/ChatMessageQuote'
 import { User } from '@model/User'
 import { ChatMessageSelect } from 'database'
 
@@ -23,6 +24,7 @@ const annasMessage: ChatMessageSelect = {
   delaySeconds: null,
   forwardedFromCommunityUuid: null,
   forwardedFromGradidoId: null,
+  replyToMessageUuid: null,
   createdAt: new Date('2026-09-23T12:00:00.000Z'),
   editedAt: null,
   deletedAt: null,
@@ -160,5 +162,60 @@ describe('ChatMessage', () => {
       expect(new ChatMessage(annasMessage, BEN).announcement).toBe(false)
       expect(new ChatMessage(annasMessage, ANNA).announcement).toBe(false)
     })
+  })
+
+  // An answer carries the message it quotes -- and only an answer does.
+  it('hands on the quotation of an answer, and none for a message that answers none', () => {
+    const answer: ChatMessageSelect = {
+      ...annasMessage,
+      id: 9,
+      replyToMessageUuid: annasMessage.messageUuid,
+    }
+    const quote = new ChatMessageQuote(annasMessage, BEN, false)
+    expect(new ChatMessage(answer, BEN, [], null, null, quote).replyTo).toBe(quote)
+    // The quoted message is not there to quote: an answer all the same, without a quotation.
+    expect(new ChatMessage(answer, BEN).replyTo).toBeNull()
+    // Whatever it is handed: a message that answers none quotes none.
+    expect(new ChatMessage(annasMessage, BEN, [], null, null, quote).replyTo).toBeNull()
+  })
+})
+
+describe('ChatMessageQuote', () => {
+  it('says where the quoted message is, who wrote it, and whether that is the reader', () => {
+    expect(new ChatMessageQuote(annasMessage, BEN, false)).toMatchObject({
+      id: 7,
+      messageUuid: annasMessage.messageUuid,
+      sender: { communityUuid: HOME, gradidoID: ANNA.gradidoId },
+      senderUser: null,
+      mine: false,
+      excerpt: 'Shall we meet at **ten**?',
+      hasImage: false,
+    })
+    expect(new ChatMessageQuote(annasMessage, ANNA, false).mine).toBe(true)
+    // Without regard to case, as the tables compare a member.
+    expect(
+      new ChatMessageQuote(
+        annasMessage,
+        { communityUuid: HOME.toUpperCase(), gradidoId: ANNA.gradidoId.toUpperCase() },
+        false,
+      ).mine,
+    ).toBe(true)
+  })
+
+  it('carries the beginning of a long text, a picture as a word, and the writer where named', () => {
+    const long: ChatMessageSelect = { ...annasMessage, body: 'x'.repeat(500) }
+    const anna = { gradidoID: ANNA.gradidoId, alias: 'anna' } as unknown as User
+    const quote = new ChatMessageQuote(long, BEN, true, anna)
+    expect(quote.excerpt).toBe('x'.repeat(200))
+    expect(quote.hasImage).toBe(true)
+    expect(quote.senderUser).toBe(anna)
+  })
+
+  // ⛔ What only the writer knows of their message is not in a quotation of it: no delivery, no
+  // wish for a mail, no subject -- and nothing of the row beyond what the fields above name.
+  it('carries nothing else of the quoted row', () => {
+    expect(Object.keys(new ChatMessageQuote(annasMessage, ANNA, false)).sort()).toEqual(
+      ['excerpt', 'hasImage', 'id', 'messageUuid', 'mine', 'sender', 'senderUser'].sort(),
+    )
   })
 })

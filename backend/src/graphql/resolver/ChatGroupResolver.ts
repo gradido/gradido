@@ -66,6 +66,7 @@ import {
 import { groupOfCaller, groupOfCallerOrFail } from './util/chatGroupOfCaller'
 import { chatMemberKey, chatMemberUsers } from './util/chatMemberUsers'
 import { chatMessagesOf } from './util/chatMessagesOf'
+import { checkedReplyTo } from './util/chatReply'
 import { acceptedPicture, callerOf } from './util/chatRequest'
 import { resolveCommunityUuid } from './util/communities'
 
@@ -393,11 +394,14 @@ export class ChatGroupResolver {
    *
    * The copy says what the sender asked for (`notify`), never who got a mail: the mails are not
    * waited for, and who muted the group is each member's own business (E-024).
+   *
+   * `replyTo`: the message of this group the message answers (checkedReplyTo); anything else is
+   * refused, CHAT_MESSAGE_NOT_SENT: UNKNOWN_REPLY, before anything is filed.
    */
   @Authorized([RIGHTS.SEND_CHAT_MESSAGE])
   @Mutation(() => ChatMessage)
   async sendChatGroupMessage(
-    @Args() { groupUuid, body, announce, image }: SendChatGroupMessageArgs,
+    @Args() { groupUuid, body, announce, image, replyTo }: SendChatGroupMessageArgs,
     @Ctx() context: Context,
   ): Promise<ChatMessage> {
     const images = image ? [await acceptedPicture(image, context)] : []
@@ -410,7 +414,15 @@ export class ChatGroupResolver {
     // Read before the message is filed: a failure here files nothing, rather than a message
     // whose sender is told it was not sent.
     const recipients = announce ? await chatGroupAnnouncementRecipients(group, caller) : []
-    const stored = await storeChatGroupMessage({ group, sender: caller, body, announce, images })
+    const replyToMessageUuid = await checkedReplyTo(replyTo, caller, group.id)
+    const stored = await storeChatGroupMessage({
+      group,
+      sender: caller,
+      body,
+      announce,
+      images,
+      replyToMessageUuid,
+    })
     if (!stored) {
       throw new LogError('CHAT_MESSAGE_NOT_SENT: NOT_STORED')
     }

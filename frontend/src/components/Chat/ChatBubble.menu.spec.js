@@ -76,6 +76,8 @@ describe('ChatBubble, the menu at a message (E-059)', () => {
           IMdiDotsHorizontal: { template: '<i data-test="dots" />' },
           IMdiShare: { template: '<i data-test="forwarded-sign" />' },
           IMdiPencilOutline: true,
+          IMdiReplyOutline: true,
+          IMdiImageOutline: true,
           IMdiShareOutline: true,
           IMdiContentCopy: true,
           IMdiEmailOutline: true,
@@ -114,7 +116,7 @@ describe('ChatBubble, the menu at a message (E-059)', () => {
   })
 
   describe('on a computer', () => {
-    it('opens the menu from the sign beside the message, with both entries, the first one focused', async () => {
+    it('opens the menu from the sign beside the message, with its entries, the first one focused', async () => {
       mountBubble(THEIRS)
       expect(more().attributes()).toMatchObject({
         'aria-label': 'chatThread.menuMore',
@@ -128,9 +130,11 @@ describe('ChatBubble, the menu at a message (E-059)', () => {
 
       expect(menu().exists()).toBe(true)
       expect(menu().attributes('aria-label')).toBe('chatThread.menuLabel')
+      expect(entry('reply').text()).toContain('chatThread.reply')
+      expect(entry('reply').text()).toContain('chatThread.replyHint')
       expect(entry('forward').text()).toContain('chatThread.forward')
       expect(entry('copy').text()).toContain('chatThread.copyText')
-      expect(document.activeElement).toBe(entry('forward').element)
+      expect(document.activeElement).toBe(entry('reply').element)
       expect(more().attributes('aria-expanded')).toBe('true')
       expect(wrapper.classes()).toContain('has-menu')
     })
@@ -226,17 +230,38 @@ describe('ChatBubble, the menu at a message (E-059)', () => {
     expect(toasts.error).toEqual(['chatThread.textNotCopied'])
   })
 
-  it('offers no copy for a picture without words, and no forwarding for a message not filed yet', async () => {
+  it('offers no copy for a picture without words, and neither forwarding nor an answer for a message not filed yet', async () => {
     mountBubble({ ...THEIRS, body: '', images: [{ imageUuid: 'img-1', width: 320, height: 240 }] })
     await more().trigger('click')
+    expect(entry('reply').exists()).toBe(true)
     expect(entry('forward').exists()).toBe(true)
     expect(entry('copy').exists()).toBe(false)
     wrapper.unmount()
 
     mountBubble({ ...OWN, messageUuid: null })
     await more().trigger('click')
+    expect(entry('reply').exists()).toBe(false)
     expect(entry('forward').exists()).toBe(false)
     expect(entry('copy').exists()).toBe(true)
+  })
+
+  /**
+   * "Antworten" (Bernd, 09.10.2026): the first entry at every message the server has filed --
+   * one's own and somebody else's. The bubble hands the message up; the thread puts it over the
+   * bar.
+   */
+  it('hands the message up to be answered, and closes the menu', async () => {
+    mountBubble(THEIRS)
+    await more().trigger('click')
+    expect(entry('reply').attributes('type')).toBe('button')
+
+    await entry('reply').trigger('click')
+
+    expect(wrapper.emitted('reply')).toEqual([[THEIRS]])
+    expect(menu().exists()).toBe(false)
+    // Nothing else was asked for with it.
+    expect(wrapper.emitted('forward')).toBeUndefined()
+    expect(wrapper.emitted('edit')).toBeUndefined()
   })
 
   it('has no menu at a transfer, and a tap on one opens nothing', async () => {
@@ -298,17 +323,22 @@ describe('ChatBubble, the menu at a message (E-059)', () => {
         .findAll('button')
         .map((button) => button.attributes('data-test'))
 
-    it('is the first entry at one’s own message, and takes the focus', async () => {
+    it('stands after "Antworten" at one’s own message', async () => {
       mountBubble(OWN)
 
       await more().trigger('click')
       await flushPromises()
 
-      expect(entries()).toEqual(['chat-message-edit', 'chat-message-forward', 'chat-message-copy'])
+      expect(entries()).toEqual([
+        'chat-message-reply',
+        'chat-message-edit',
+        'chat-message-forward',
+        'chat-message-copy',
+      ])
       expect(entry('edit').attributes('type')).toBe('button')
       expect(entry('edit').text()).toContain('chatThread.edit')
       expect(entry('edit').text()).toContain('chatThread.editHint')
-      expect(document.activeElement).toBe(entry('edit').element)
+      expect(document.activeElement).toBe(entry('reply').element)
     })
 
     it('is not offered at somebody else’s message', async () => {
@@ -317,8 +347,8 @@ describe('ChatBubble, the menu at a message (E-059)', () => {
       await more().trigger('click')
       await flushPromises()
 
-      expect(entries()).toEqual(['chat-message-forward', 'chat-message-copy'])
-      expect(document.activeElement).toBe(entry('forward').element)
+      expect(entries()).toEqual(['chat-message-reply', 'chat-message-forward', 'chat-message-copy'])
+      expect(document.activeElement).toBe(entry('reply').element)
     })
 
     // A forwarded copy carries somebody else's words; a message not filed yet has no uuid to
@@ -330,7 +360,7 @@ describe('ChatBubble, the menu at a message (E-059)', () => {
         forwardedFrom: { gradidoID: 'anna-id', alias: 'Anna-Sonne' },
       })
       await more().trigger('click')
-      expect(entries()).toEqual(['chat-message-forward', 'chat-message-copy'])
+      expect(entries()).toEqual(['chat-message-reply', 'chat-message-forward', 'chat-message-copy'])
       wrapper.unmount()
 
       mountBubble({ ...OWN, messageUuid: null })
@@ -344,7 +374,7 @@ describe('ChatBubble, the menu at a message (E-059)', () => {
 
       await more().trigger('click')
 
-      expect(entries()).toEqual(['chat-message-edit', 'chat-message-forward'])
+      expect(entries()).toEqual(['chat-message-reply', 'chat-message-edit', 'chat-message-forward'])
     })
 
     it('hands the message up to be changed, and closes the menu', async () => {
@@ -394,15 +424,15 @@ describe('ChatBubble, the menu at a message (E-059)', () => {
     })
 
     /**
-     * The room each number of entries asks for above a message, to the pixel: 140 px for two (as
-     * before "Bearbeiten"), 189 px for three. Measured in the bundle (01.10.2026), three entries
+     * The room each number of entries asks for above a message, to the pixel: 189 px for three
+     * (somebody else's message, with "Antworten"), 238 px for the four at one's own. Measured in the bundle (01.10.2026), three entries
      * and their gap are 170 px in all ten languages -- the same 20 px to spare as two have --, and
      * 186 px where the line under "Bearbeiten" breaks in two: at a video invitation in French and
      * in Greek, at 320 px.
      */
     it.each([
-      ['two entries', THEIRS, 140],
-      ['three entries', OWN, 189],
+      ['three entries', THEIRS, 189],
+      ['four entries', OWN, 238],
     ])('asks for the room of %s above a message', async (_, message, room) => {
       mountBubble(message)
       const box = document.createElement('div')
@@ -425,10 +455,10 @@ describe('ChatBubble, the menu at a message (E-059)', () => {
     })
 
     /**
-     * Three entries need more room above the message than two (189 px against 140): with 160 px
+     * Four entries need more room above the message than three (238 px against 189): with 200 px
      * above it, one's own message opens its menu under it, somebody else's still over it.
      */
-    it('opens under a message where three entries have no room above, and two still have', async () => {
+    it('opens under a message where four entries have no room above, and three still have', async () => {
       const inThreadAt = (top) => {
         const box = document.createElement('div')
         box.className = 'chat-thread-box'
@@ -440,18 +470,18 @@ describe('ChatBubble, the menu at a message (E-059)', () => {
       }
 
       mountBubble(OWN)
-      let box = inThreadAt(160)
+      let box = inThreadAt(200)
       await more().trigger('click')
       expect(menu().classes()).toContain('is-below')
       await more().trigger('click')
-      wrapper.element.getBoundingClientRect = () => ({ top: 100 + 189 })
+      wrapper.element.getBoundingClientRect = () => ({ top: 100 + 238 })
       await more().trigger('click')
       expect(menu().classes()).not.toContain('is-below')
       wrapper.unmount()
       box.remove()
 
       mountBubble(THEIRS)
-      box = inThreadAt(160)
+      box = inThreadAt(200)
       await more().trigger('click')
       expect(menu().classes()).not.toContain('is-below')
       wrapper.unmount()

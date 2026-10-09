@@ -147,6 +147,7 @@ const row = (rest: Partial<ChatMessageSelect> = {}): ChatMessageSelect => ({
   body: TEXT,
   forwardedFromCommunityUuid: null,
   forwardedFromGradidoId: null,
+  replyToMessageUuid: null,
   notify: 'none',
   mailState: null,
   deliveryState: 'delivered',
@@ -326,6 +327,7 @@ describe('forwardChatMessage, what the resolver decides itself (E-059)', () => {
       body: WORDS,
       forwardedFromCommunityUuid: null,
       forwardedFromGradidoId: null,
+      replyToMessageUuid: null,
       notify: 'none',
     })
     expect(store).toHaveBeenCalledTimes(2)

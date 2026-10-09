@@ -33,6 +33,11 @@ export interface ChatMessageToStore {
    * the words. None for every other message.
    */
   forwardedFrom?: ChatMemberRef | null
+  /**
+   * The message this one answers, by its uuid -- checked by the caller: a message of the same
+   * conversation. None for every other message.
+   */
+  replyToMessageUuid?: string | null
 }
 
 /**
@@ -76,6 +81,7 @@ export async function storeChatMessage(
       body: message.body,
       forwardedFromCommunityUuid: message.forwardedFrom?.communityUuid ?? null,
       forwardedFromGradidoId: message.forwardedFrom?.gradidoId ?? null,
+      replyToMessageUuid: message.replyToMessageUuid ?? null,
       notify: message.notify,
       deliveryState: message.deliveryState,
     })

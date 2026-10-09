@@ -117,6 +117,7 @@ const stored = (): ChatMessageSelect => ({
   delaySeconds: null,
   forwardedFromCommunityUuid: null,
   forwardedFromGradidoId: null,
+  replyToMessageUuid: null,
   createdAt: new Date('2026-09-29T08:05:00.000Z'),
   editedAt: null,
   deletedAt: null,

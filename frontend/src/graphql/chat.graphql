@@ -8,6 +8,11 @@
 #
 # `editedAt` (E-060): when its writer changed the text last, null for a message nobody changed --
 # for both sides; the bubble says "bearbeitet" beside the time.
+#
+# `replyTo`: the message an answer quotes, as the bubble shows it over the answer -- who wrote it
+# (`mine`, and in a group `senderUser`), the beginning of its text as it stands now, whether it
+# carries a picture, and its `id`, which the thread pages back to when the quotation is pressed
+# and the message is not on screen. Null for a message that answers none.
 fragment chatMessageFields on ChatMessage {
   id
   messageUuid
@@ -43,6 +48,18 @@ fragment chatMessageFields on ChatMessage {
     communityUuid
     gradidoID
     alias
+  }
+  replyTo {
+    id
+    messageUuid
+    mine
+    excerpt
+    hasImage
+    senderUser {
+      communityUuid
+      gradidoID
+      alias
+    }
   }
 }
 
@@ -158,13 +175,17 @@ mutation markChatConversationRead($ref: MemberAvatarRefInput!, $upToMessageId: I
 # the backend's request log masks (LOG-071). Refused as CHAT_IMAGE_NOT_ACCEPTED: EMPTY | TOO_LARGE |
 # NOT_JPEG | SIZE, or, to another community, CHAT_MESSAGE_NOT_SENT: TOO_LARGE_ACROSS_BORDER (the
 # text is too long to go with it). `images` on the copy names the picture as it was filed.
+#
+# `replyTo`: the uuid of the message of this conversation the message answers. Refused as
+# CHAT_MESSAGE_NOT_SENT: UNKNOWN_REPLY where it is none the sender can read there.
 mutation sendChatMessage(
   $ref: MemberAvatarRefInput!
   $body: String!
   $notify: ChatMessageNotify!
   $image: ChatImageInput
+  $replyTo: String
 ) {
-  sendChatMessage(ref: $ref, body: $body, notify: $notify, image: $image) {
+  sendChatMessage(ref: $ref, body: $body, notify: $notify, image: $image, replyTo: $replyTo) {
     ...chatMessageFields
   }
 }

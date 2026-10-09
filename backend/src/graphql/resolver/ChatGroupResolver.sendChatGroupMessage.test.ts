@@ -12,6 +12,8 @@ import {
   dbInsertChatMessage,
   dbSelectChatConversationMember,
   dbSelectChatConversationMembers,
+  dbSelectChatMessageForMember,
+  dbSelectChatMessagesByUuids,
   dbSelectUsersByUuids,
 } from 'database'
 import { Context, newRequestBudget } from '@/server/context'
@@ -40,6 +42,8 @@ jest.mock('database', () => {
     dbSelectUsersByUuids: jest.fn(),
     dbFindUsersWithEmailContactByIds: jest.fn(),
     dbInsertChatMessage: jest.fn(),
+    dbSelectChatMessageForMember: jest.fn(),
+    dbSelectChatMessagesByUuids: jest.fn(async () => []),
     dbSelectChatMessageImageInfos: jest.fn(async () => []),
     dbSelectChatGroupUuids: jest.fn(async () => new Map([[9, GROUP]])),
     dbFindUsersByIds: jest.fn(),
@@ -108,9 +112,12 @@ const insert = dbInsertChatMessage as jest.Mock
 const usersByIds = dbFindUsersByIds as jest.Mock
 const mail = sendChatGroupMessageEmail as jest.Mock
 
-const write = (announce: boolean, groupUuid = GROUP) =>
+const forMember = dbSelectChatMessageForMember as jest.Mock
+const quotedRows = dbSelectChatMessagesByUuids as jest.Mock
+
+const write = (announce: boolean, groupUuid = GROUP, replyTo: string | null = null) =>
   new ChatGroupResolver().sendChatGroupMessage(
-    { groupUuid, body: TEXT, announce, image: null },
+    { groupUuid, body: TEXT, announce, image: null, replyTo },
     lenasRequest(),
   )
 
@@ -254,5 +261,86 @@ describe('sendChatGroupMessage, what the resolver decides itself', () => {
     findGroup.mockResolvedValue(null)
     await expect(write(false)).rejects.toThrow('CHAT_GROUP_NOT_FOUND')
     expect(insert).not.toHaveBeenCalled()
+  })
+})
+
+/** An answer to a message of the group (Bernd, 09.10.2026): checked before anything is filed. */
+describe('sendChatGroupMessage, answering a message', () => {
+  const ANSWERED = 'abcdef00-0000-4000-8000-00000000aa01'
+  const answeredRow = (conversationId: number) =>
+    ({
+      id: 60,
+      messageUuid: ANSWERED,
+      conversationId,
+      senderCommunityUuid: HOME,
+      senderGradidoId: MAX,
+      body: 'Wer bringt Kuchen mit?',
+      replyToMessageUuid: null,
+      forwardedFromCommunityUuid: null,
+      forwardedFromGradidoId: null,
+      deletedAt: null,
+    }) as ChatMessageSelect
+
+  beforeEach(() => {
+    myRow.mockResolvedValue(memberRow(LENA, 'member'))
+  })
+
+  it('files the answer with the uuid of the message it answers, as that one is filed', async () => {
+    forMember.mockResolvedValue({ success: true, value: answeredRow(group.id) })
+    quotedRows.mockResolvedValue([answeredRow(group.id)])
+
+    const copy = await write(false, GROUP, ANSWERED.toUpperCase())
+
+    expect(forMember).toHaveBeenCalledWith(
+      ANSWERED.toUpperCase(),
+      expect.objectContaining({ communityUuid: HOME, gradidoId: LENA }),
+    )
+    expect(insert).toHaveBeenCalledWith(
+      expect.objectContaining({ conversationId: group.id, replyToMessageUuid: ANSWERED }),
+    )
+    expect(copy.replyTo).toMatchObject({
+      id: 60,
+      messageUuid: ANSWERED,
+      mine: false,
+      excerpt: 'Wer bringt Kuchen mit?',
+    })
+  })
+
+  // Gegenprobe: a message that answers none is filed with none, and nothing is looked up for it.
+  it('files every other message without one', async () => {
+    await write(false)
+
+    expect(forMember).not.toHaveBeenCalled()
+    expect(insert.mock.calls[0][0].replyToMessageUuid).toBeNull()
+  })
+
+  // ⛔ A message the member can read in ANOTHER conversation is not quoted into this group.
+  it('refuses a message of another conversation, filing nothing', async () => {
+    forMember.mockResolvedValue({ success: true, value: answeredRow(group.id + 1) })
+
+    await expect(write(false, GROUP, ANSWERED)).rejects.toThrow(
+      'CHAT_MESSAGE_NOT_SENT: UNKNOWN_REPLY',
+    )
+    expect(insert).not.toHaveBeenCalled()
+  })
+
+  it('refuses a message the member cannot read, filing nothing and mailing nobody', async () => {
+    myRow.mockResolvedValue(memberRow(LENA, 'moderator'))
+    forMember.mockResolvedValue({ success: false, error: new Error('DB_NOT_FOUND') })
+
+    await expect(write(true, GROUP, ANSWERED)).rejects.toThrow(
+      'CHAT_MESSAGE_NOT_SENT: UNKNOWN_REPLY',
+    )
+    expect(insert).not.toHaveBeenCalled()
+    await mailsSent()
+    expect(mail).not.toHaveBeenCalled()
+  })
+
+  // Who is not in the group learns nothing about a message either: the group's answer comes first.
+  it('answers CHAT_GROUP_NOT_FOUND before it looks at the message', async () => {
+    myRow.mockResolvedValue(null)
+
+    await expect(write(false, GROUP, ANSWERED)).rejects.toThrow('CHAT_GROUP_NOT_FOUND')
+    expect(forMember).not.toHaveBeenCalled()
   })
 })
