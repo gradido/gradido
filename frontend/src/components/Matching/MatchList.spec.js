@@ -342,6 +342,42 @@ describe('MatchList', () => {
       expect(row(wrapper).find('.row-community').text()).toBe('KI Playground')
     })
 
+    // The place the contact is found in is read a moment after the search moved onto them
+    // (Bernd, 10.10.2026: the line names the place, not the person). Until it is there the line
+    // keeps its place and says nothing: coming and going it would push the sort up and down
+    // under a finger, and it is announced -- a sentence taken back would be read out twice.
+    it.each([
+      ['regional', {}],
+      ['wide', { reach: 'fern', radiusKm: 500 }],
+    ])('keeps the line of the centre in its place, empty, until it has a name (%s)', (_, reach) => {
+      const waiting = mountList({ contact: contact(), home: HOME, centerLabel: '', ...reach })
+      const line = waiting.find('.center-label')
+
+      expect(line.exists()).toBe(true)
+      expect(line.text()).toBe('')
+      // Still the one line that is announced when the name arrives.
+      expect(line.attributes('role')).toBe('status')
+      expect(line.attributes('aria-live')).toBe('polite')
+    })
+
+    it('names the place of the centre over the contact once it is there', () => {
+      const regional = mountList({
+        contact: contact(),
+        home: HOME,
+        centerLabel: 'Wehlheiden, Kassel',
+      })
+      expect(regional.find('.center-label').text()).toBe('Umkreis um Wehlheiden, Kassel')
+
+      const wide = mountList({
+        contact: contact(),
+        home: HOME,
+        centerLabel: 'Wehlheiden, Kassel',
+        reach: 'fern',
+        radiusKm: 500,
+      })
+      expect(wide.find('.center-label').text()).toBe('Überregional · 500 km um Wehlheiden, Kassel')
+    })
+
     // A heading a screen reader can jump to, naming its section.
     it('is a section named by its heading, with one item that is a button', () => {
       const wrapper = mountList({ contact: contact(), home: HOME })

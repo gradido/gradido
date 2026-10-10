@@ -51,9 +51,13 @@
            ⚠️ And it shows WITHOUT a place name, where the regional one does not. The map
            names every centre once it knows the member's home (a typed name, "your home"
            or "the chosen point"), so the name is only missing before that - "centred on
-           nothing" is worth hiding, but the reach and the circle are not. -->
+           nothing" is worth hiding, but the reach and the circle are not.
+
+           Under a shown contact the line keeps its place while it has nothing to say: the
+           place the contact is found in is read a moment after the search moved onto them,
+           and a line that came and went would push the sort up and down under a finger. -->
       <p
-        v-if="centerLabel || reach === 'fern'"
+        v-if="centerLabel || contact || reach === 'fern'"
         class="center-label"
         role="status"
         aria-live="polite"
@@ -236,7 +240,8 @@ const props = defineProps({
   searchCenter: { type: Object, default: null },
   // The place name of the search centre, resolved by the parent (a typed name, a
   // reverse lookup, "your home" or "the chosen point") and persisted there — so it
-  // survives a mode switch or a reload.
+  // survives a mode switch or a reload. On a visit that shows a contact it is the place the
+  // contact is found in, kept for the visit only, and '' until it is read.
   centerLabel: { type: String, default: '' },
   myPrecision: { type: String, default: 'genau' },
   // How far the search reaches: 'regional' or 'fern'. The list draws the same rows
@@ -264,6 +269,10 @@ const PAUSE = ', '
 
 /** What the search took hold of: the reach, the circle where it is wide, the place. */
 const centreLine = computed(() => {
+  // Under a shown contact a centre without a name is one whose name is on its way (the parent
+  // reads the place from the tiles). Nothing is said until it is there: the line is announced,
+  // and a sentence that is replaced a moment later would be read out twice.
+  if (!props.centerLabel && props.contact) return ''
   if (props.reach !== 'fern') return t('matching.list.centeredOn', { place: props.centerLabel })
   return props.centerLabel
     ? t('matching.list.centeredOnFern', { km: props.radiusKm, place: props.centerLabel })
@@ -495,6 +504,11 @@ function onPick(place) {
   margin: 0;
   font-size: 13px;
   color: var(--text-secondary);
+
+  /* One line, also while it is empty (under a shown contact, until the place is read): the
+     height of a line of its own text, said in em -- `lh` is unknown to the older phones. */
+  line-height: 1.5;
+  min-height: 1.5em;
 }
 
 .control-label {
