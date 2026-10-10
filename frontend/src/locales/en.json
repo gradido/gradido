@@ -1019,10 +1019,12 @@
     },
     "new": {
       "cancel": "Cancel",
+      "choose": "Please choose:",
       "completeSentence": "Complete this sentence:",
       "detailsHeading": "Details — so the right people find you:",
       "remote": "Also available supra-regionally / online",
-      "remoteHint": "You then also appear in the supra-regional search."
+      "remoteHint": "You then also appear in the supra-regional search.",
+      "sentenceStart": "{start} …"
     },
     "position": {
       "accuracyApprox": "A slightly shifted location is shown",

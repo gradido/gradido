@@ -54,8 +54,10 @@ vi.mock('@/composables/useToast', () => ({
   useAppToast: () => ({ toastError: toast.error, toastSuccess: toast.success }),
 }))
 
+// What the map handed over, if anything. Read once on mount, like the real one.
+const kept = vi.hoisted(() => ({ draft: null }))
 vi.mock('@/composables/useEntryDraft', () => ({
-  useEntryDraft: () => ({ put: vi.fn(), take: () => null }),
+  useEntryDraft: () => ({ put: vi.fn(), take: () => kept.draft }),
 }))
 
 const i18n = createI18n({ legacy: false, locale: 'de', messages: { de } })
@@ -121,6 +123,25 @@ const mountPage = (tab = 'entries', extraStubs = {}, options = {}) => {
 
 const openModals = { BModal: { template: '<div class="modal-stub"><slot /></div>' } }
 
+// The entry form with its footer, and with what the page tells the dialog about where to
+// stand. `centered` is the library's own prop name; the page used it before this stub did.
+const entryModal = {
+  BModal: {
+    props: { centered: Boolean },
+    template:
+      '<div class="modal-stub" :data-centered="String(centered)"><slot /><slot name="footer" /></div>',
+  },
+}
+const typeButtons = (page) => page.findAll('.type-choice-btn')
+const pick = (page, key) => page.find(`.type-choice-btn.type-${key}`).trigger('click')
+const openNewEntry = (page) => page.find('[data-test="matching-entries-new"]').trigger('click')
+// The entry form is the first dialog in the page; the position tab's own "save" sits in a later one.
+const saveButton = (page) =>
+  page
+    .find('.modal-stub')
+    .findAll('button')
+    .find((b) => b.text() === de.matching.save)
+
 beforeEach(() => {
   handlers.clear()
   push.mockClear()
@@ -128,6 +149,7 @@ beforeEach(() => {
   toast.success.mockClear()
   mutate.mockReset()
   mutate.mockResolvedValue({})
+  kept.draft = null
   window.localStorage.clear()
   // The store is shared by the whole file; put it back so no case inherits the answers of
   // the one before it.
@@ -173,6 +195,55 @@ describe('Matching', () => {
       await page.vm.$nextTick()
 
       expect(page.text()).not.toContain('Am liebsten samstags')
+    })
+
+    // The empty page used to hide "new entry" under a picture and a paragraph, and move
+    // it to the top right after the first entry. One line now, the same for both.
+    describe('the line above it', () => {
+      const count = (page) => page.find('[data-test="matching-entries-count"]')
+      const empty = (page) => page.find('[data-test="matching-entries-empty"]')
+      const newEntry = (page) => page.findAll('[data-test="matching-entries-new"]')
+
+      it('counts nothing as nothing, and offers the new entry in the same place', async () => {
+        const page = mountPage('entries')
+        fire(listMatchingEntries, { listMatchingEntries: [] })
+        await page.vm.$nextTick()
+
+        expect(count(page).text()).toBe('0 Einträge · 0 live · 0 pausiert')
+        expect(newEntry(page)).toHaveLength(1)
+        expect(empty(page).text()).toContain(de.matching.entries.emptyTitle)
+        expect(empty(page).text()).toContain(de.matching.entries.emptyText)
+        // The second "new entry" stood inside the empty block.
+        expect(empty(page).find('button').exists()).toBe(false)
+      })
+
+      it('keeps that one button where it is once there are entries', async () => {
+        const page = mountPage('entries')
+        fire(listMatchingEntries, { listMatchingEntries: [] })
+        await page.vm.$nextTick()
+        const before = newEntry(page)[0].element
+
+        const paused = { ...entry('b', 'Fahrrad', 'Damenrad'), active: false }
+        fire(listMatchingEntries, {
+          listMatchingEntries: [entry('a', 'Klavierlehrer', 'Samstags'), paused],
+        })
+        await page.vm.$nextTick()
+
+        expect(count(page).text()).toBe('2 Einträge · 1 live · 1 pausiert')
+        expect(newEntry(page)).toHaveLength(1)
+        // The same element, not a second one drawn elsewhere.
+        expect(newEntry(page)[0].element).toBe(before)
+        expect(empty(page).exists()).toBe(false)
+      })
+
+      it('says neither "0" nor "none yet" before the server has answered', () => {
+        const page = mountPage('entries')
+
+        expect(count(page).text()).toBe('')
+        expect(empty(page).exists()).toBe(false)
+        // The button does not wait.
+        expect(newEntry(page)).toHaveLength(1)
+      })
     })
   })
 
@@ -347,17 +418,160 @@ describe('Matching', () => {
     // value through untouched.
     // Since the map has a reach switch the box is a gate, not a label: an entry without
     // it is never found in the wide search. That has to be said where it is ticked.
-    it('says what the supra-regional box now does, under the box', () => {
+    it('says what the supra-regional box now does, under the box', async () => {
       const page = mountPage('entries', openModals)
+      await openNewEntry(page)
+      await pick(page, 'angebot')
 
       expect(page.text()).toContain(de.matching.new.remoteHint)
     })
 
-    it('stops the summary at the length its column can hold', () => {
+    it('stops the summary at the length its column can hold', async () => {
       const page = mountPage('entries', openModals)
+      await openNewEntry(page)
+      await pick(page, 'angebot')
       const summary = page.findAll('input').find((i) => i.attributes('maxlength'))
 
       expect(summary.attributes('maxlength')).toBe('160')
+    })
+
+    // "Interest" used to be lit when the form opened. The three read as a setting already
+    // made, and a first entry became an interest because nobody knew there was a choice.
+    describe('for a new entry', () => {
+      const chooseLine = (page) => page.find('[data-test="matching-entry-choose"]')
+
+      it('opens on the choice alone: nothing picked, nothing to fill in, nothing to save', async () => {
+        const page = mountPage('entries', entryModal)
+        await openNewEntry(page)
+
+        expect(chooseLine(page).text()).toBe(de.matching.new.choose)
+        expect(chooseLine(page).classes()).not.toContain('invisible')
+        expect(typeButtons(page).map((b) => b.attributes('aria-pressed'))).toEqual([
+          'false',
+          'false',
+          'false',
+        ])
+        expect(page.find('.is-sel').exists()).toBe(false)
+        expect(page.find('input').exists()).toBe(false)
+        expect(page.find('textarea').exists()).toBe(false)
+        expect(saveButton(page)).toBeUndefined()
+        expect(page.text()).toContain(de.matching.new.cancel)
+      })
+
+      it('shows on each button the sentence it starts', async () => {
+        const page = mountPage('entries', entryModal)
+        await openNewEntry(page)
+
+        expect(typeButtons(page).map((b) => b.find('.type-choice-starts').text())).toEqual([
+          'Ich liebe …',
+          'Ich biete …',
+          'Ich suche …',
+        ])
+      })
+
+      it('names the three as one choice for a screen reader', async () => {
+        const page = mountPage('entries', entryModal)
+        await openNewEntry(page)
+
+        const group = page.find('[role="group"]')
+        expect(group.attributes('aria-label')).toBe(de.matching.new.choose)
+        expect(group.findAll('.type-choice-btn')).toHaveLength(3)
+      })
+
+      it('brings the fields for the kind that was picked, and keeps the line its place', async () => {
+        const page = mountPage('entries', entryModal)
+        await openNewEntry(page)
+        await pick(page, 'gesuch')
+
+        expect(typeButtons(page).map((b) => b.attributes('aria-pressed'))).toEqual([
+          'false',
+          'false',
+          'true',
+        ])
+        expect(page.find('.entry-prefix').text()).toBe('Ich suche')
+        expect(page.find('input').attributes('placeholder')).toBe(
+          de.matching.type.gesuch.placeholder,
+        )
+        expect(page.find('textarea').exists()).toBe(true)
+        expect(saveButton(page).exists()).toBe(true)
+        // Still there, so the buttons do not move up under the finger; only unseen.
+        expect(chooseLine(page).exists()).toBe(true)
+        expect(chooseLine(page).classes()).toContain('invisible')
+      })
+
+      it('stands at the top of the window, before and after the choice', async () => {
+        const page = mountPage('entries', entryModal)
+        await openNewEntry(page)
+        // The entry form is the first dialog in the page.
+        const dialog = page.find('.modal-stub')
+        expect(dialog.attributes('data-centered')).toBe('false')
+
+        await pick(page, 'interesse')
+
+        expect(dialog.attributes('data-centered')).toBe('false')
+      })
+
+      it('saves the kind that was picked, not the one that used to be the default', async () => {
+        const page = mountPage('entries', entryModal)
+        await openNewEntry(page)
+        await pick(page, 'angebot')
+        await page.find('input').setValue('Fahrradreparatur')
+        await page.find('textarea').setValue('Alte und neue Räder')
+        await saveButton(page).trigger('click')
+
+        expect(mutate).toHaveBeenCalledWith({
+          input: {
+            matchingType: 'offer',
+            summary: 'Fahrradreparatur',
+            details: 'Alte und neue Räder',
+            remote: false,
+          },
+        })
+      })
+
+      it('asks again the next time, whatever was picked last time', async () => {
+        const page = mountPage('entries', entryModal)
+        await openNewEntry(page)
+        await pick(page, 'angebot')
+        await openNewEntry(page)
+
+        expect(page.find('.is-sel').exists()).toBe(false)
+        expect(chooseLine(page).classes()).not.toContain('invisible')
+        expect(page.find('input').exists()).toBe(false)
+      })
+    })
+
+    it('does not ask a search kept from the map, which brings its kind along', async () => {
+      kept.draft = { summary: 'einen Schlosser', matchingType: 'gesuch' }
+      const page = mountPage('entries', entryModal)
+      await page.vm.$nextTick()
+
+      expect(page.find('[data-test="matching-entry-choose"]').exists()).toBe(false)
+      expect(page.find('.is-sel').classes()).toContain('type-gesuch')
+      expect(page.find('input').element.value).toBe('einen Schlosser')
+      expect(page.find('.modal-stub').attributes('data-centered')).toBe('true')
+    })
+
+    it('does not ask for an entry that is being edited', async () => {
+      const page = mountPage('entries', entryModal)
+      fire(listMatchingEntries, {
+        // The server's own word for a request, so the kind shown is the entry's and not the
+        // fallback for a word nobody knows.
+        listMatchingEntries: [
+          { ...entry('a', 'Klavierlehrer', 'Am liebsten samstags'), matchingType: 'need' },
+        ],
+      })
+      await page.vm.$nextTick()
+      // A new entry was begun first, so the form last stood on the choice: editing must not
+      // inherit that.
+      await openNewEntry(page)
+      // Details · Pause · Edit · Delete
+      await page.findAll('.pointer')[2].trigger('click')
+
+      expect(page.find('[data-test="matching-entry-choose"]').exists()).toBe(false)
+      expect(page.find('.is-sel').classes()).toContain('type-gesuch')
+      expect(page.find('input').element.value).toBe('Klavierlehrer')
+      expect(page.find('.modal-stub').attributes('data-centered')).toBe('true')
     })
   })
 
