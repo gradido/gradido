@@ -91,8 +91,8 @@ describe('GmsUser', () => {
 
   /**
    * Somebody who lets themselves be found "approximately" -- what every member starts with --
-   * is told: in the surroundings, never on the doorstep. So their home is not what is sent
-   * (Bernd, 10.10.2026): this server moves the point before it hands it on.
+   * is told by the wallet: within an area, never at your front door. So their home is not what
+   * is sent (Bernd, 10.10.2026): this server moves the point before it hands it on.
    */
   describe('the point of a member who is to be found approximately', () => {
     const HOME = [9.69, 49.28]

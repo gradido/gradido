@@ -3,13 +3,13 @@ import { createHmac } from 'node:crypto'
 
 /**
  * Where a member who lets themselves be found "approximately" is sent to the GMS: their home,
- * moved by a few hundred metres. The wallet tells them so -- "in the surroundings, never on the
- * doorstep" (Bernd, 10.10.2026).
+ * moved by a few hundred metres. The wallet tells them so: "Approximate" shows you within an
+ * area -- never at your front door.
  *
- * Moved on this server, before anything is sent: what is not handed on cannot be shown, kept
- * or logged anywhere else. That is about what THIS SERVER sends. A member's own wallet still
- * asks the GMS around the place it searches from, and that is their home until they move the
- * search.
+ * Moved on this server, before anything is sent (Bernd, 10.10.2026): what is not handed on
+ * cannot be shown, kept or logged anywhere else. That is about what THIS SERVER sends. A
+ * member's own wallet still asks the GMS around the place it searches from, and that is their
+ * home until they move the search.
  *
  * The same point every time, for one member at one home. A point that moved with every update
  * would let somebody who watches it find its middle; one that stays tells no more on the
