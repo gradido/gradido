@@ -149,17 +149,31 @@ describe('approximatePoint', () => {
 
   // How far says nothing about which way: in every direction there are points near and far.
   // Were the two tied to each other, the points would lie on one curve around the home, and a
-  // point on a known curve gives its home away.
-  it('goes near and far in every direction', () => {
-    const ways = members(800).map((member) => wayFrom(HOME, approximatePoint(HOME, member, KEY)))
+  // point on a known curve gives its home away -- to anybody, with no key at all. Asked of
+  // sixty-four directions, not of eight: tied by a saw of seven teeth, each eighth of the turn
+  // still holds near and far (a second reader's measurement, 10.10.2026).
+  it('goes near and far in every direction, also in every sixty-fourth of the turn', () => {
+    const ways = members(6400).map((member) => wayFrom(HOME, approximatePoint(HOME, member, KEY)))
     const halving = Math.sqrt((APPROXIMATE_MIN_METERS ** 2 + APPROXIMATE_MAX_METERS ** 2) / 2)
+    const SLICES = 64
+    const near = new Array<number>(SLICES).fill(0)
+    const far = new Array<number>(SLICES).fill(0)
+    for (const way of ways) {
+      const turn = (Math.atan2(way.east, way.north) / (2 * Math.PI) + 1) % 1
+      const slice = Math.min(SLICES - 1, Math.floor(turn * SLICES))
+      if (Math.hypot(way.north, way.east) < halving) {
+        near[slice]++
+      } else {
+        far[slice]++
+      }
+    }
 
-    for (let direction = 0; direction < 8; direction++) {
-      const meters = ways
-        .filter((way) => directionOf(way) === direction)
-        .map((way) => Math.hypot(way.north, way.east))
-      expect(meters.filter((m) => m < halving).length).toBeGreaterThan(10)
-      expect(meters.filter((m) => m >= halving).length).toBeGreaterThan(10)
+    for (let slice = 0; slice < SLICES; slice++) {
+      const all = near[slice] + far[slice]
+      // About a hundred points in each slice, about half of them on either side.
+      expect(all).toBeGreaterThan(60)
+      expect(near[slice] / all).toBeGreaterThan(0.25)
+      expect(far[slice] / all).toBeGreaterThan(0.25)
     }
   })
 

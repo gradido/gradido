@@ -7,12 +7,16 @@ import { createHmac } from 'node:crypto'
  * doorstep" (Bernd, 10.10.2026).
  *
  * Moved on this server, before anything is sent: what is not handed on cannot be shown, kept
- * or logged anywhere else.
+ * or logged anywhere else. That is about what THIS SERVER sends. A member's own wallet still
+ * asks the GMS around the place it searches from, and that is their home until they move the
+ * search.
  *
  * The same point every time, for one member at one home. A point that moved with every update
  * would let somebody who watches it find its middle; one that stays tells no more on the
  * hundredth look than on the first. A member who sets another home gets another point, and two
- * members under one roof get two.
+ * members under one roof get two -- or everybody who names the same town would stand on one
+ * spot. The price: whoever knows that two members share a roof can narrow that roof down from
+ * their two points.
  *
  * Which point is decided by a keyed hash of the member and their home. Without the key the
  * way back from the point to the home cannot be computed, with it it can -- so the point is as
@@ -24,7 +28,8 @@ export const APPROXIMATE_MIN_METERS = 150
 /** Never out of the neighbourhood: the reach the GMS has always moved such a point by. */
 export const APPROXIMATE_MAX_METERS = 500
 
-// The sphere the wallet and the GMS measure distances on.
+// The mean radius of the earth. The wallet and the GMS measure on spheres a hair off it: less
+// than a millimetre on the distances here.
 const EARTH_RADIUS_METERS = 6_371_000
 
 /** Says what the hash is for, so that the key is not used for two things in one way. */

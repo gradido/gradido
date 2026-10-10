@@ -1,10 +1,15 @@
 // AI-GENERATED — not an architecture reference
 import { User as dbUser } from 'database'
 
+import { CONFIG } from '@/config'
 import { GmsPublishLocationType } from '@/graphql/enum/GmsPublishLocationType'
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
 
-import { APPROXIMATE_MAX_METERS, APPROXIMATE_MIN_METERS } from '../approximatePoint'
+import {
+  APPROXIMATE_MAX_METERS,
+  APPROXIMATE_MIN_METERS,
+  approximatePoint,
+} from '../approximatePoint'
 import { GmsUser } from './GmsUser'
 
 const ABOUT_ME = 'I grow tomatoes and lend out my cargo bike.'
@@ -112,6 +117,30 @@ describe('GmsUser', () => {
       expect(meters).toBeLessThanOrEqual(APPROXIMATE_MAX_METERS + 0.5)
     })
 
+    // Which point, is this server's to decide and nobody else's: by the member's gradidoID, their
+    // home and the server's own secret. No other key, and nothing that differs between two runs
+    // of the server (a second reader: no test noticed another key being handed in).
+    it("is the point that this server's secret decides for this member at this home", () => {
+      const expected = approximatePoint(
+        { latitude: HOME[1], longitude: HOME[0] },
+        '3a2f6f1e-6c1a-4e1a-9d3e-2f1b7c8d9e01',
+        CONFIG.JWT_SECRET,
+      )
+
+      expect(new GmsUser(approximately()).location).toEqual([expected.longitude, expected.latitude])
+    })
+
+    it('is another one on a server with another secret', () => {
+      const here = new GmsUser(approximately()).location
+      const kept = CONFIG.JWT_SECRET
+      CONFIG.JWT_SECRET = 'the secret of another server'
+      try {
+        expect(metersBetween(here, new GmsUser(approximately()).location)).toBeGreaterThan(10)
+      } finally {
+        CONFIG.JWT_SECRET = kept
+      }
+    })
+
     it('still says that it is an approximate one', () => {
       expect(new GmsUser(approximately()).type).toBe(
         GmsPublishLocationType[GmsPublishLocationType.GMS_LOCATION_TYPE_APPROXIMATE],
@@ -143,9 +172,9 @@ describe('GmsUser', () => {
     it('is moved as well for a setting this server does not know', () => {
       const sent = new GmsUser(approximately({ gmsPublishLocation: 2 }))
 
-      expect(metersBetween(HOME, sent.location)).toBeGreaterThanOrEqual(
-        APPROXIMATE_MIN_METERS - 0.5,
-      )
+      const meters = metersBetween(HOME, sent.location)
+      expect(meters).toBeGreaterThanOrEqual(APPROXIMATE_MIN_METERS - 0.5)
+      expect(meters).toBeLessThanOrEqual(APPROXIMATE_MAX_METERS + 0.5)
     })
 
     it('leaves the home of a member who chose "exact" where it is', () => {
