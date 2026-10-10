@@ -1,6 +1,8 @@
 import { User as dbUser } from 'database'
 import { Point } from 'typeorm'
 
+import { approximatePoint } from '@/apis/gms/approximatePoint'
+import { CONFIG } from '@/config'
 import { PublishNameLogic } from '@/data/PublishName.logic'
 import { GmsPublishLocationType } from '@/graphql/enum/GmsPublishLocationType'
 import { GmsPublishPhoneType } from '@/graphql/enum/GmsPublishPhoneType'
@@ -32,11 +34,19 @@ export class GmsUser {
     // The wallet stopped taking an empty point for a place on 09.09.2026; this is the same
     // reader, on the way out.
     const location = Point2Location(user.location as Point)
-    if (location) {
-      this.location = [location.longitude, location.latitude]
-    } else {
+    if (!location) {
       throw new Error('Missing Location')
     }
+    // Only a member who chose "exact" is sent at their home. Everybody else -- "approximate",
+    // and any setting this server does not know -- is sent at a point moved away from it
+    // (approximatePoint): the home itself is not handed on, and the coarser reading is the one
+    // that never hands on more than the member allowed.
+    const sent =
+      (user.gmsPublishLocation as GmsPublishLocationType) ===
+      GmsPublishLocationType.GMS_LOCATION_TYPE_EXACT
+        ? location
+        : approximatePoint(location, user.gradidoID, CONFIG.JWT_SECRET)
+    this.location = [sent.longitude, sent.latitude]
     // use string for http transfer to make sure the correct value reachs the target
     this.type = GmsPublishLocationType[user.gmsPublishLocation]
   }

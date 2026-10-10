@@ -1,9 +1,15 @@
 // AI-GENERATED — not an architecture reference
 import { User as dbUser } from 'database'
 
+import { CONFIG } from '@/config'
 import { GmsPublishLocationType } from '@/graphql/enum/GmsPublishLocationType'
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
 
+import {
+  APPROXIMATE_MAX_METERS,
+  APPROXIMATE_MIN_METERS,
+  approximatePoint,
+} from '../approximatePoint'
 import { GmsUser } from './GmsUser'
 
 const ABOUT_ME = 'I grow tomatoes and lend out my cargo bike.'
@@ -52,15 +58,18 @@ describe('GmsUser', () => {
    * member with none was published to the GMS at `location: []` with an exact publish type.
    */
   describe('location', () => {
+    // Somebody who chose "exact": the pair travels as it is stored, so these read its form.
     const withPoint = (coordinates: number[]) =>
-      ({ ...member(true), location: { type: 'Point', coordinates } }) as unknown as dbUser
+      ({
+        ...member(true),
+        gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_EXACT,
+        location: { type: 'Point', coordinates },
+      }) as unknown as dbUser
 
     it('sends the pair the way the GMS reads it, longitude first', () => {
       const sent = new GmsUser(withPoint([9.69, 49.28]))
       expect(sent.location).toEqual([9.69, 49.28])
-      expect(sent.type).toBe(
-        GmsPublishLocationType[GmsPublishLocationType.GMS_LOCATION_TYPE_APPROXIMATE],
-      )
+      expect(sent.type).toBe(GmsPublishLocationType[GmsPublishLocationType.GMS_LOCATION_TYPE_EXACT])
     })
 
     it('sends a zero coordinate too -- the prime meridian is a place', () => {
@@ -77,6 +86,103 @@ describe('GmsUser', () => {
     it('refuses to send a member without a point at all', () => {
       const pointless = { ...member(true), location: null } as unknown as dbUser
       expect(() => new GmsUser(pointless)).toThrow('Missing Location')
+    })
+  })
+
+  /**
+   * Somebody who lets themselves be found "approximately" -- what every member starts with --
+   * is told by the wallet: within an area, never at your front door. So their home is not what
+   * is sent (Bernd, 10.10.2026): this server moves the point before it hands it on.
+   */
+  describe('the point of a member who is to be found approximately', () => {
+    const HOME = [9.69, 49.28]
+    const approximately = (over: Partial<dbUser> = {}) =>
+      ({ ...member(true), location: { type: 'Point', coordinates: HOME }, ...over }) as dbUser
+    // Metres between two pairs as the GMS reads them, longitude first.
+    const metersBetween = (a: number[], b: number[]) => {
+      const rad = (degrees: number) => (degrees * Math.PI) / 180
+      const h =
+        Math.sin(rad(b[1] - a[1]) / 2) ** 2 +
+        Math.cos(rad(a[1])) * Math.cos(rad(b[1])) * Math.sin(rad(b[0] - a[0]) / 2) ** 2
+      return 2 * 6_371_000 * Math.asin(Math.sqrt(h))
+    }
+
+    it('is not their home, and lies a few hundred metres from it', () => {
+      const sent = new GmsUser(approximately())
+
+      expect(sent.location).toHaveLength(2)
+      expect(sent.location).not.toEqual(HOME)
+      const meters = metersBetween(HOME, sent.location)
+      expect(meters).toBeGreaterThanOrEqual(APPROXIMATE_MIN_METERS - 0.5)
+      expect(meters).toBeLessThanOrEqual(APPROXIMATE_MAX_METERS + 0.5)
+    })
+
+    // Which point, is this server's to decide and nobody else's: by the member's gradidoID, their
+    // home and the server's own secret. No other key, and nothing that differs between two runs
+    // of the server (a second reader: no test noticed another key being handed in).
+    it("is the point that this server's secret decides for this member at this home", () => {
+      const expected = approximatePoint(
+        { latitude: HOME[1], longitude: HOME[0] },
+        '3a2f6f1e-6c1a-4e1a-9d3e-2f1b7c8d9e01',
+        CONFIG.JWT_SECRET,
+      )
+
+      expect(new GmsUser(approximately()).location).toEqual([expected.longitude, expected.latitude])
+    })
+
+    it('is another one on a server with another secret', () => {
+      const here = new GmsUser(approximately()).location
+      const kept = CONFIG.JWT_SECRET
+      CONFIG.JWT_SECRET = 'the secret of another server'
+      try {
+        expect(metersBetween(here, new GmsUser(approximately()).location)).toBeGreaterThan(10)
+      } finally {
+        CONFIG.JWT_SECRET = kept
+      }
+    })
+
+    it('still says that it is an approximate one', () => {
+      expect(new GmsUser(approximately()).type).toBe(
+        GmsPublishLocationType[GmsPublishLocationType.GMS_LOCATION_TYPE_APPROXIMATE],
+      )
+    })
+
+    // Every update of a member sends them again, and the point must not wander with it
+    // (Bernd, 10.10.2026): the veiled place stays, or the mark would jump on the map of the
+    // others. A new entry does not send the member's place at all (syncMatchingEntryToGms).
+    it('is the same one every time the member is sent', () => {
+      const first = new GmsUser(approximately()).location
+      const afterAnUpdate = new GmsUser(approximately({ alias: 'bibi-neu', language: 'en' }))
+        .location
+
+      expect(afterAnUpdate).toEqual(first)
+    })
+
+    it('is another one for another member at the same address', () => {
+      const one = new GmsUser(approximately()).location
+      const other = new GmsUser(
+        approximately({ gradidoID: '7c1d2e3f-4a5b-4c6d-8e7f-9a0b1c2d3e4f' }),
+      ).location
+
+      expect(metersBetween(one, other)).toBeGreaterThan(10)
+    })
+
+    // The coarser reading is the one that never hands on more than the member allowed: only
+    // "exact" sends the home.
+    it('is moved as well for a setting this server does not know', () => {
+      const sent = new GmsUser(approximately({ gmsPublishLocation: 2 }))
+
+      const meters = metersBetween(HOME, sent.location)
+      expect(meters).toBeGreaterThanOrEqual(APPROXIMATE_MIN_METERS - 0.5)
+      expect(meters).toBeLessThanOrEqual(APPROXIMATE_MAX_METERS + 0.5)
+    })
+
+    it('leaves the home of a member who chose "exact" where it is', () => {
+      const sent = new GmsUser(
+        approximately({ gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_EXACT }),
+      )
+
+      expect(sent.location).toEqual(HOME)
     })
   })
 
