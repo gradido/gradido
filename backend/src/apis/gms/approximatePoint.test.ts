@@ -64,15 +64,45 @@ describe('approximatePoint', () => {
   })
 
   // The point itself is part of the promise: a release that computed it another way would move
-  // every such member on the map at their next update. Changed on purpose only. The two numbers
-  // were worked out a second time outside this code (HMAC-SHA256, then 470.5 m on a bearing of
-  // 56.6 degrees), not copied from what the function returned.
+  // every such member on the map at their next update. Changed on purpose only. The numbers
+  // were worked out a second time outside this code (HMAC-SHA256 over the home to seven
+  // decimals, then 457.1 m on a bearing of 161.1 degrees), not copied from what the function
+  // returned.
   it('is the point it has been since it was introduced', () => {
     const point = approximatePoint(HOME, BIBI, KEY)
 
-    expect(point.latitude).toBeCloseTo(49.2823299074, 9)
-    expect(point.longitude).toBeCloseTo(9.6954140275, 9)
-    expect(metersBetween(HOME, point)).toBeCloseTo(470.478, 2)
+    expect(point.latitude).toBeCloseTo(49.2761097769, 9)
+    expect(point.longitude).toBeCloseTo(9.6920375027, 9)
+    expect(metersBetween(HOME, point)).toBeCloseTo(457.128, 2)
+  })
+
+  // A member is sent from memory when they save their home, and from the database on every
+  // update after that. A number may come back with other last digits than it went in with.
+  it('is the same point for a home whose numbers come back with other last digits', () => {
+    const saved = approximatePoint(HOME, BIBI, KEY)
+    const readBack = approximatePoint(
+      { latitude: HOME.latitude + 3e-13, longitude: HOME.longitude - 2e-13 },
+      BIBI,
+      KEY,
+    )
+
+    expect(readBack).toEqual(saved)
+  })
+
+  it('is the same point a hair to either side of the equator and of Greenwich', () => {
+    const one = approximatePoint({ latitude: 1e-10, longitude: 1e-10 }, BIBI, KEY)
+    const other = approximatePoint({ latitude: -1e-10, longitude: -1e-10 }, BIBI, KEY)
+
+    expect(other).toEqual(one)
+  })
+
+  // Not noise any more: a home set ten metres on is another home.
+  it('counts a home moved by ten metres as another home', () => {
+    const before = wayFrom(HOME, approximatePoint(HOME, BIBI, KEY))
+    const nudged = { latitude: HOME.latitude + 0.0001, longitude: HOME.longitude }
+    const after = wayFrom(nudged, approximatePoint(nudged, BIBI, KEY))
+
+    expect(Math.hypot(after.north - before.north, after.east - before.east)).toBeGreaterThan(10)
   })
 
   it('lies between the two circles: never on the doorstep, never out of the neighbourhood', () => {

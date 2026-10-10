@@ -30,6 +30,13 @@ const EARTH_RADIUS_METERS = 6_371_000
 /** Says what the hash is for, so that the key is not used for two things in one way. */
 const PURPOSE = 'gms-approximate-point'
 
+/**
+ * The home counts to seven decimals of a degree, about a centimetre. A number may come back from
+ * the database with other last digits than it went in with, and those must not decide the point:
+ * the member is sent from memory when they save, and from the database on every later update.
+ */
+const HOME_DECIMALS = 7
+
 export interface GeoPoint {
   latitude: number
   longitude: number
@@ -37,6 +44,12 @@ export interface GeoPoint {
 
 const toRadians = (degrees: number): number => (degrees * Math.PI) / 180
 const toDegrees = (radians: number): number => (radians * 180) / Math.PI
+
+// No "-0.0000000" for a home a hair west of Greenwich or south of the equator.
+const toCentimetre = (degrees: number): string => {
+  const text = degrees.toFixed(HOME_DECIMALS)
+  return Number(text) === 0 ? (0).toFixed(HOME_DECIMALS) : text
+}
 
 /** The point reached from `from` after `meters` on the bearing `bearing` (radians, 0 = north). */
 function destination(from: GeoPoint, meters: number, bearing: number): GeoPoint {
@@ -70,8 +83,10 @@ export function approximatePoint(home: GeoPoint, memberId: string, key: string):
   if (!memberId) {
     throw new Error('approximatePoint: no member')
   }
+  const latitude = toCentimetre(home.latitude)
+  const longitude = toCentimetre(home.longitude)
   const digest = createHmac('sha256', key)
-    .update(`${PURPOSE}|${memberId}|${home.latitude}|${home.longitude}`)
+    .update(`${PURPOSE}|${memberId}|${latitude}|${longitude}`)
     .digest()
   // Two numbers in 0..1, from the first eight of its thirty-two bytes.
   const share = digest.readUInt32BE(0) / 2 ** 32
@@ -82,5 +97,10 @@ export function approximatePoint(home: GeoPoint, memberId: string, key: string):
     APPROXIMATE_MIN_METERS ** 2 +
       share * (APPROXIMATE_MAX_METERS ** 2 - APPROXIMATE_MIN_METERS ** 2),
   )
-  return destination(home, meters, turn * 2 * Math.PI)
+  // From the home as it was hashed, so that the point is the same to its last digit.
+  return destination(
+    { latitude: Number(latitude), longitude: Number(longitude) },
+    meters,
+    turn * 2 * Math.PI,
+  )
 }
