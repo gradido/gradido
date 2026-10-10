@@ -175,6 +175,9 @@ services:
   ## MARIADB ##############################################
   #########################################################
   mariadb:
+    # No disk sync on commit: up to a second of writes can be lost in a crash, which this
+    # database can afford, and every write gets about 2 ms cheaper. Not for production.
+    command: --innodb-flush-log-at-trx-commit=0
     networks: 
       - internal-net
       - external-net

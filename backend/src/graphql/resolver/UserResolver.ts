@@ -88,6 +88,7 @@ import {
   AVATAR_FULL_MAX_SIDE,
   AVATAR_SMALL_MAX_BYTES,
   AVATAR_SMALL_MAX_SIDE,
+  isUsableLocation,
   languageSchema,
   MEMBER_AVATARS_MAX_REFS,
   MemberAvatarPayload,
@@ -124,7 +125,6 @@ import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { accountStateFromFields } from '@/data/AccountState.logic'
 import { canEmailResend, isEmailVerificationCodeValid } from '@/data/EmailVerificationCode.logic'
-import { findableWithoutPlace } from '@/data/Location.logic'
 import {
   MEMBER_AVATARS_FULL_MAX_PER_REQUEST,
   MEMBER_AVATARS_RELAYS_MAX_PER_REQUEST,
@@ -718,17 +718,24 @@ export class UserResolver {
       aboutMe: aboutMe !== undefined,
     })
 
-    // Switching findable on needs a place: the GMS cannot hold a member it cannot place
-    // (GmsUser refuses to build one), and migration 0140 switched every member without one
-    // off. Refused before anything is written, and as a code - the wallet says it in the
-    // member's words.
+    // Switching findable (`gmsAllowed`) on needs a place - the one stored, or one sent along
+    // in the same save. Findable hands the member to the GMS, and the GMS cannot hold a member
+    // it cannot place: `GmsUser` refuses to build one without a location ("Missing Location"),
+    // and migration 0140 switched every member without one off for that reason. This is the
+    // same rule on the way in, so a save cannot bring that state back.
+    //
+    // Only the switch from off to on is asked. Switching off, not sending the setting, or
+    // sending it on while it already is, needs no place: a member left findable without one,
+    // before this rule, is not made any worse by a save that keeps it, and can still save the
+    // rest.
+    //
+    // Refused before anything is written, and as a code - the wallet says it in the member's
+    // words.
     if (
-      findableWithoutPlace(
-        gmsAllowed,
-        user.gmsAllowed,
-        Point2Location(user.location as Point),
-        gmsLocation,
-      )
+      gmsAllowed === true &&
+      !user.gmsAllowed &&
+      !isUsableLocation(Point2Location(user.location as Point)) &&
+      !isUsableLocation(gmsLocation)
     ) {
       logger.warn('refused to switch findable on without a location')
       throw new LogError('GMS_LOCATION_REQUIRED')
