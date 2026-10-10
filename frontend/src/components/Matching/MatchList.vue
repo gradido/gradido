@@ -74,7 +74,11 @@
          and says so. Where the search found them as well, the line says what answers the
          member's entries, as a match's line does -- and they are not listed a second time below
          (the parent hands the two lists over without them). -->
-    <section v-if="contact" class="list-section" aria-labelledby="match-list-contact-head">
+    <section
+      v-if="contact"
+      class="list-section list-section-contact"
+      aria-labelledby="match-list-contact-head"
+    >
       <h3 id="match-list-contact-head" class="section-head">
         {{ $t('matching.list.contactHeading') }}
       </h3>
@@ -636,6 +640,37 @@ function onPick(place) {
   font-size: 13px;
   font-weight: 600;
   color: var(--success);
+}
+
+/* The shown contact stands apart from the people around them: heading, name, community and
+   place in the gold of the ring the map draws around them (Bernd, 10.10.2026). At full
+   strength -- the quieter parts of a line are thinned by opacity, and thinned gold would fall
+   under 4.5 : 1. What answers the member's entries keeps its own signs: the dots their colours,
+   the breadth its green.
+
+   Two golds, because the list follows the wallet's theme and the map does not: the ring's own
+   on the dark surface (5.0 : 1, and 4.6 : 1 on the line under the pointer); on the white one
+   the ring's gold comes to 2.8 : 1, so it is the dark gold of the greeting line in the chat
+   (5.5 : 1, and 5.0 : 1 under the pointer). Held by matchListContactGold.spec.js. */
+.list-section-contact {
+  color: #8a6124;
+
+  /* A heading takes its colour from the wallet's rule for headings and inherits none: without
+     this "Dein Kontakt" stayed in the text colour (measured in the built wallet). */
+  .section-head {
+    color: inherit;
+  }
+
+  .section-head,
+  .row-sep,
+  .row-community,
+  .row-where {
+    opacity: 1;
+  }
+}
+
+.dark-mode .list-section-contact {
+  color: #c69130;
 }
 
 .list-empty {

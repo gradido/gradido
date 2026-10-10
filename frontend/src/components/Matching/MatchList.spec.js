@@ -378,6 +378,23 @@ describe('MatchList', () => {
       expect(wide.find('.center-label').text()).toBe('Überregional · 500 km um Wehlheiden, Kassel')
     })
 
+    // The hook of the gold (Bernd, 10.10.2026): the contact's section, and no other one. What the
+    // gold is and that it can be read is held where the colours are (matchListContactGold.spec).
+    it('marks the section of the contact, and only that one, for its gold', () => {
+      const wrapper = mountList({
+        contact: contact(),
+        home: HOME,
+        matches: [matchItem()],
+        silent: [silentPerson()],
+      })
+      const marked = wrapper.findAll('section.list-section-contact')
+
+      expect(marked).toHaveLength(1)
+      expect(marked[0].find('.section-head').text()).toBe('Dein Kontakt')
+      expect(marked[0].find('[data-test="match-list-contact"]').exists()).toBe(true)
+      expect(wrapper.findAll('section.list-section')).toHaveLength(3)
+    })
+
     // A heading a screen reader can jump to, naming its section.
     it('is a section named by its heading, with one item that is a button', () => {
       const wrapper = mountList({ contact: contact(), home: HOME })
