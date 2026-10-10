@@ -2516,6 +2516,21 @@ describe('MatchingMap, asked to show somebody', () => {
         const page = await inList()
         expect(told(page)).toBe('genau')
       })
+
+      // The origin is the person's on their very point only. A search the member moves due east
+      // or due north of them shares one of its two numbers with that point (a change put back
+      // in that compared the latitude alone went through every test, 10.10.2026).
+      it.each([
+        ['due east of them', { lat: HAMBURG.lat, lng: HAMBURG.lng + 0.5 }],
+        ['due north of them', { lat: HAMBURG.lat + 0.5, lng: HAMBURG.lng }],
+      ])("is the member's own for a search they move %s", async (_, point) => {
+        const page = await inList()
+        await page.findComponent({ name: 'MatchList' }).vm.$emit('recenter', point)
+        await flushPromises()
+
+        expect(page.findComponent({ name: 'MatchList' }).props('searchCenter')).toEqual(point)
+        expect(told(page)).toBe('genau')
+      })
     })
   })
 
