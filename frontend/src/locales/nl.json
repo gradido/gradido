@@ -1019,10 +1019,12 @@
     },
     "new": {
       "cancel": "Annuleren",
+      "choose": "Kies:",
       "completeSentence": "Maak deze zin af:",
       "detailsHeading": "Details — zodat de juiste mensen je vinden:",
       "remote": "Ook bovenregionaal / online beschikbaar",
-      "remoteHint": "Je verschijnt dan ook in de bovenregionale zoekresultaten."
+      "remoteHint": "Je verschijnt dan ook in de bovenregionale zoekresultaten.",
+      "sentenceStart": "{start} …"
     },
     "position": {
       "accuracyApprox": "Een iets gewijzigde locatie wordt getoond",

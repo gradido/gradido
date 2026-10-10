@@ -1019,10 +1019,12 @@
     },
     "new": {
       "cancel": "Abbrechen",
+      "choose": "Bitte wähle:",
       "completeSentence": "Vervollständige diesen Satz:",
       "detailsHeading": "Details — damit die Richtigen Dich finden:",
       "remote": "Auch überregional / online verfügbar",
-      "remoteHint": "Du erscheinst dann auch in der überregionalen Suche."
+      "remoteHint": "Du erscheinst dann auch in der überregionalen Suche.",
+      "sentenceStart": "{start} …"
     },
     "position": {
       "accuracyApprox": "Eine leicht veränderte Position wird angezeigt",

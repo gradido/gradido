@@ -55,9 +55,14 @@
 
     <!-- Entries -->
     <div v-if="tab === 'entries'">
-      <template v-if="entries.length">
-        <div class="d-flex align-items-center justify-content-between mb-3 mx-lg-2 page-text">
-          <span class="small text-muted">
+      <!-- One line for the empty page and the full one: the count says "0" where there is
+           nothing, and "new entry" stands where it will stand after the first entry, so
+           nobody has to look for it a second time. The count waits for the answer (an
+           empty page must not say "0" to a member who has six); the button does not, and
+           the line keeps its height either way, so nothing below it moves. -->
+      <div class="d-flex align-items-center justify-content-between mb-3 mx-lg-2 page-text">
+        <span class="small text-muted" data-test="matching-entries-count">
+          <template v-if="entriesLoaded">
             {{
               $t('matching.entries.count', {
                 total: entries.length,
@@ -65,13 +70,20 @@
                 paused: entries.length - liveCount,
               })
             }}
-          </span>
-          <button type="button" class="btn-add" @click="openNew()">
-            <i-bi-plus-lg />
-            {{ $t('matching.entries.new') }}
-          </button>
-        </div>
+          </template>
+        </span>
+        <BButton
+          variant="outline-secondary"
+          class="btn-add"
+          data-test="matching-entries-new"
+          @click="openNew()"
+        >
+          <i-bi-plus-lg />
+          {{ $t('matching.entries.new') }}
+        </BButton>
+      </div>
 
+      <template v-if="entries.length">
         <div
           v-for="e in entries"
           :key="e.uuid"
@@ -136,18 +148,15 @@
         </div>
       </template>
 
-      <div v-else class="text-center text-muted py-5 page-text">
-        <i-bi-hearts class="empty-icon" />
-        <p class="mt-3 mb-3">
-          <strong>{{ $t('matching.entries.emptyTitle') }}</strong>
-          <br />
-          {{ $t('matching.entries.emptyText') }}
-        </p>
-        <button type="button" class="btn-add" @click="openNew()">
-          <i-bi-plus-lg />
-          {{ $t('matching.entries.new') }}
-        </button>
-      </div>
+      <p
+        v-else-if="entriesLoaded"
+        class="text-center text-muted py-5 mb-0 page-text"
+        data-test="matching-entries-empty"
+      >
+        <strong>{{ $t('matching.entries.emptyTitle') }}</strong>
+        <br />
+        {{ $t('matching.entries.emptyText') }}
+      </p>
     </div>
 
     <!-- About -->
@@ -237,70 +246,98 @@
     </div>
 
     <!-- Popup: new entry -->
-    <BModal v-model="showNew" centered>
+    <!-- A form that opens on the choice stands at the top of the window, not in its
+         middle: a centred dialog moves when it grows, and this one grows by its fields
+         the moment a kind is picked -- under the finger that just picked it. -->
+    <BModal v-model="showNew" :centered="!choiceFirst">
       <template #title>
         <span style="font-size: 18px">
           {{ editUuid ? $t('matching.entries.edit') : $t('matching.entries.new') }}
         </span>
       </template>
       <template #default>
-        <div class="d-flex gap-2 mb-3">
+        <!-- Nothing is picked for a new entry: with "interest" already lit, the three
+             read as a setting that is done, and a first entry became an interest by
+             default. The line asks, each button shows the sentence it starts, and the
+             fields only come once one is picked. The line keeps its place afterwards
+             (invisible), so the buttons stay where they were pressed. -->
+        <div
+          v-if="choiceFirst"
+          class="small fw-bold mb-1"
+          :class="{ invisible: newType }"
+          aria-hidden="true"
+          data-test="matching-entry-choose"
+        >
+          {{ $t('matching.new.choose') }}
+        </div>
+        <div class="d-flex gap-2 mb-3" role="group" :aria-label="$t('matching.new.choose')">
           <button
             v-for="ty in types"
             :key="ty.key"
             type="button"
-            class="type-choice-btn flex-fill"
+            class="type-choice-btn"
             :class="[`type-${ty.key}`, { 'is-sel': newType === ty.key }]"
+            :aria-pressed="newType === ty.key"
             @click="newType = ty.key"
           >
             <i-bi-heart-fill v-if="ty.key === 'interesse'" />
             <i-bi-box-seam v-else-if="ty.key === 'angebot'" />
             <i-bi-search v-else />
-            <div>{{ $t(`matching.type.${ty.key}.word`) }}</div>
+            <div class="type-choice-word">{{ $t(`matching.type.${ty.key}.word`) }}</div>
+            <div class="type-choice-starts">
+              {{
+                $t('matching.new.sentenceStart', { start: $t(`matching.type.${ty.key}.prefix`) })
+              }}
+            </div>
           </button>
         </div>
 
-        <label class="small fw-bold d-block mb-1">
-          {{ $t('matching.new.completeSentence') }}
-        </label>
-        <div class="entry-sentence d-flex align-items-center gap-2">
-          <span class="entry-prefix">{{ $t(`matching.type.${newType}.prefix`) }}</span>
-          <!-- The column behind this is varchar(160) and the resolver passes the
+        <template v-if="newType">
+          <label class="small fw-bold d-block mb-1">
+            {{ $t('matching.new.completeSentence') }}
+          </label>
+          <div class="entry-sentence d-flex align-items-center gap-2">
+            <span class="entry-prefix">{{ $t(`matching.type.${newType}.prefix`) }}</span>
+            <!-- The column behind this is varchar(160) and the resolver passes the
                value straight through, so a longer sentence would either come back
                as a raw driver error or be cut off without anyone saying so. -->
-          <input
-            v-model="newSummary"
-            class="form-control"
-            maxlength="160"
-            :placeholder="$t(`matching.type.${newType}.placeholder`)"
-          />
-        </div>
+            <input
+              v-model="newSummary"
+              class="form-control"
+              maxlength="160"
+              :placeholder="$t(`matching.type.${newType}.placeholder`)"
+            />
+          </div>
 
-        <div class="mt-3">
-          <label class="small fw-bold d-block mb-1">{{ $t('matching.new.detailsHeading') }}</label>
-          <textarea
-            v-model="newDetails"
-            class="form-control matching-textarea"
-            rows="5"
-            style="height: auto"
-            :placeholder="$t(`matching.type.${newType}.detailsPlaceholder`)"
-          ></textarea>
-        </div>
+          <div class="mt-3">
+            <label class="small fw-bold d-block mb-1">
+              {{ $t('matching.new.detailsHeading') }}
+            </label>
+            <textarea
+              v-model="newDetails"
+              class="form-control matching-textarea"
+              rows="5"
+              style="height: auto"
+              :placeholder="$t(`matching.type.${newType}.detailsPlaceholder`)"
+            ></textarea>
+          </div>
 
-        <BFormCheckbox v-model="newRemote" class="mt-3">
-          {{ $t('matching.new.remote') }}
-        </BFormCheckbox>
-        <!-- What it now DOES, said where it is set. Since the map has a reach switch,
+          <BFormCheckbox v-model="newRemote" class="mt-3">
+            {{ $t('matching.new.remote') }}
+          </BFormCheckbox>
+          <!-- What it now DOES, said where it is set. Since the map has a reach switch,
              this box is the gate: an entry without it is never found in the wide
              search, however well it fits. It used to be a label on an entry and
              nothing more, so nobody had to be told. -->
-        <div class="small text-muted ms-4 ps-1">{{ $t('matching.new.remoteHint') }}</div>
+          <div class="small text-muted ms-4 ps-1">{{ $t('matching.new.remoteHint') }}</div>
+        </template>
       </template>
       <template #footer>
         <BButton variant="secondary" @click="showNew = false">
           {{ $t('matching.new.cancel') }}
         </BButton>
         <BButton
+          v-if="newType"
           variant="gradido"
           :disabled="!newSummary.trim() || !newDetails.trim()"
           @click="save"
@@ -428,6 +465,7 @@ const enabled = computed(() => !!store.state.gradidoID)
 
 // --- Entries: load from the backend, map onto the UI shape (open is client-only) ---
 const entries = ref([])
+const entriesLoaded = ref(false)
 const {
   refetch: refetchEntries,
   onResult: onEntries,
@@ -451,6 +489,7 @@ onEntries(({ data }) => {
     open: openBefore.get(e.uuid) ?? false,
     date: formatDate(e.createdAt),
   }))
+  entriesLoaded.value = true
 })
 onEntriesError((error) => toastError(error.message))
 
@@ -465,14 +504,20 @@ const { mutate: removeEntry } = useMutation(deleteMatchingEntry)
 const entryDraft = useEntryDraft()
 const showNew = ref(false)
 const editUuid = ref(null)
-const newType = ref('interesse')
+// null until the member picks one. A search kept from the map and an entry being edited
+// bring theirs along.
+const newType = ref(null)
+// Whether this opening began with the choice. Set when the form opens and left alone
+// until the next one, so picking a kind does not change where the window stands.
+const choiceFirst = ref(false)
 const newSummary = ref('')
 const newDetails = ref('')
 const newRemote = ref(false)
 
-function openNew({ summary = '', details = '', matchingType = 'interesse' } = {}) {
+function openNew({ summary = '', details = '', matchingType = null } = {}) {
   editUuid.value = null
   newType.value = matchingType
+  choiceFirst.value = !matchingType
   newSummary.value = summary
   // Carried over from a typed search when there was one. The member wrote these to
   // sharpen that search; a stored entry is judged on the same words, so asking again
@@ -497,6 +542,7 @@ onMounted(() => {
 function openEdit(e) {
   editUuid.value = e.uuid
   newType.value = e.type
+  choiceFirst.value = false
   newSummary.value = e.summary
   newDetails.value = e.details || ''
   newRemote.value = e.remote
@@ -875,21 +921,13 @@ function goPositionFromFind() {
   }
 }
 
-/* "New entry" — subtle grey text action (not a CTA) */
+/* "New entry" — the house's outlined button, so it reads as a button on the empty page
+   too. Only the layout of icon and word is set here; colours come with the variant. */
 .btn-add {
-  border: none;
-  background: none;
-  color: #5f5f5a;
-  font-size: 16px;
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  padding: 6px 4px;
-  cursor: pointer;
-}
-
-.btn-add:hover {
-  color: #383838;
+  white-space: nowrap;
 }
 
 /* Entry-type colours — the three channel colours, kept in sync with LABEL_COLORS
@@ -949,6 +987,12 @@ function goPositionFromFind() {
 /* Type-choice buttons: unselected = pale tint with black text/icon;
    selected = full color with white text/icon and a ring */
 .type-choice-btn {
+  /* Each takes what its word needs and an equal share of the rest; the sentence start
+     below the word wraps and never widens its button. The longest word decides here, and
+     in some languages it is long ("Предложение"): an equal third cannot hold it on a
+     phone, measured at 320 to 390 px in all ten. */
+  flex: 1 1 auto;
+  min-width: 0;
   border: none;
   border-radius: 22px;
   color: #383838 !important;
@@ -975,6 +1019,36 @@ function goPositionFromFind() {
 
 .type-choice-btn svg {
   font-size: 22px;
+}
+
+/* The sentence this kind starts, under its name. Wraps inside its third. */
+.type-choice-starts {
+  /* Takes the width the word gave the button, and asks for none of its own. */
+  width: 0;
+  min-width: 100%;
+  font-size: 12px;
+  line-height: 1.25;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+
+/* The last resort on a screen too narrow for the three words side by side: the word
+   breaks inside its button instead of running into its neighbour. */
+.type-choice-word {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+@media (width <= 575.98px) {
+  .type-choice-btn {
+    padding-inline: 4px;
+  }
+}
+
+@media (width <= 359.98px) {
+  .type-choice-btn {
+    font-size: 13px;
+  }
 }
 
 .type-choice-btn.is-sel {
@@ -1023,11 +1097,6 @@ function goPositionFromFind() {
 /* let textareas grow to their rows — the design system forces .form-control to 50px */
 .matching-textarea {
   height: auto;
-}
-
-.empty-icon {
-  font-size: 36px;
-  color: #c9ccc6;
 }
 
 .min-w-0 {
