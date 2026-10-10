@@ -580,6 +580,13 @@
     "resent": "The confirmation mail is on its way again.",
     "title": "Confirm your e-mail address"
   },
+  "emoji": {
+    "choice": "Emoji",
+    "insert": "Insert emoji",
+    "inserted": "{emoji} inserted",
+    "moreOnMac": "More emoji: ctrl + cmd + space bar",
+    "moreOnWindows": "More emoji: Windows key + period (.)"
+  },
   "error": {
     "email-already-sent": "We already sent you an email less than 10 minutes ago.",
     "empty-transactionlist": "There was an error with the transmission of the number of your transactions.",

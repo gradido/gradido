@@ -580,6 +580,13 @@
     "resent": "Onay e-postası yeniden yolda.",
     "title": "E-posta adresini onayla"
   },
+  "emoji": {
+    "choice": "Emojiler",
+    "insert": "Emoji ekle",
+    "inserted": "{emoji} eklendi",
+    "moreOnMac": "Daha fazla emoji: ctrl + cmd + boşluk tuşu",
+    "moreOnWindows": "Daha fazla emoji: Windows tuşu + nokta (.)"
+  },
   "error": {
     "email-already-sent": "Son 10 dakika içinde sana zaten bir e-posta gönderdik.",
     "empty-transactionlist": "İşlem sayısının iletiminde bir hata oluştu.",

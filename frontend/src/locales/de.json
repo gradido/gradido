@@ -580,6 +580,13 @@
     "resent": "Die Bestätigungs-Mail ist erneut unterwegs.",
     "title": "Bestätige Deine E-Mail-Adresse"
   },
+  "emoji": {
+    "choice": "Emojis",
+    "insert": "Emoji einfügen",
+    "inserted": "{emoji} eingefügt",
+    "moreOnMac": "Mehr Emojis: ctrl + cmd + Leertaste",
+    "moreOnWindows": "Mehr Emojis: Windows-Taste + Punkt (.)"
+  },
   "error": {
     "email-already-sent": "Wir haben Dir bereits eine E-Mail vor weniger als 10 Minuten geschickt.",
     "empty-transactionlist": "Es gab einen Fehler mit der Übermittlung der Anzahl Deiner Transaktionen.",

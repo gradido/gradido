@@ -580,6 +580,13 @@
     "resent": "La mail di conferma è di nuovo in viaggio.",
     "title": "Conferma il tuo indirizzo e-mail"
   },
+  "emoji": {
+    "choice": "Emoji",
+    "insert": "Inserisci emoji",
+    "inserted": "Inserito: {emoji}",
+    "moreOnMac": "Altre emoji: ctrl + cmd + barra spaziatrice",
+    "moreOnWindows": "Altre emoji: tasto Windows + punto (.)"
+  },
   "error": {
     "email-already-sent": "Ti abbiamo già inviato un'e-mail meno di 10 minuti fa.",
     "empty-transactionlist": "Si è verificato un errore nella trasmissione del numero delle tue transazioni.",
