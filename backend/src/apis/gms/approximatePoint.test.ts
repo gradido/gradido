@@ -49,6 +49,12 @@ const members = (count: number): string[] =>
 // Half a metre for the arithmetic: the point is computed and measured in two ways.
 const SLACK = 0.5
 
+// What a member is promised, in plain numbers and not read from the code under test: never on
+// the doorstep, never out of the neighbourhood. Whoever changes the two constants changes these
+// on purpose.
+const NEVER_NEARER = 150
+const NEVER_FARTHER = 500
+
 describe('approximatePoint', () => {
   it('is the same point every time, for one member at one home', () => {
     const first = approximatePoint(HOME, BIBI, KEY)
@@ -86,8 +92,13 @@ describe('approximatePoint', () => {
       }
     }
 
-    expect(nearest).toBeGreaterThanOrEqual(APPROXIMATE_MIN_METERS - SLACK)
-    expect(farthest).toBeLessThanOrEqual(APPROXIMATE_MAX_METERS + SLACK)
+    expect(nearest).toBeGreaterThanOrEqual(NEVER_NEARER - SLACK)
+    expect(farthest).toBeLessThanOrEqual(NEVER_FARTHER + SLACK)
+  })
+
+  it('says the same two distances to whoever reads them from the code', () => {
+    expect(APPROXIMATE_MIN_METERS).toBe(NEVER_NEARER)
+    expect(APPROXIMATE_MAX_METERS).toBe(NEVER_FARTHER)
   })
 
   // What a watcher of many members at one address must not find: a favoured direction, or a
@@ -159,8 +170,8 @@ describe('approximatePoint', () => {
       expect(point.longitude).toBeGreaterThanOrEqual(-180)
       expect(point.longitude).toBeLessThanOrEqual(180)
       const meters = metersBetween(home, point)
-      expect(meters).toBeGreaterThanOrEqual(APPROXIMATE_MIN_METERS - SLACK)
-      expect(meters).toBeLessThanOrEqual(APPROXIMATE_MAX_METERS + SLACK)
+      expect(meters).toBeGreaterThanOrEqual(NEVER_NEARER - SLACK)
+      expect(meters).toBeLessThanOrEqual(NEVER_FARTHER + SLACK)
     }
   })
 
