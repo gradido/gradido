@@ -813,27 +813,43 @@ const showLens = computed(() => {
  * without asking anybody - also where a name is stored for it: until K-002 the first visit and
  * the home button stored the reverse lookup of the home, and that street name would otherwise
  * go on naming it. Any other centre keeps the name it came with (typed, or looked up for a
- * point set on the map), or is the point the member chose. Empty only while the home is not
- * known yet, so the line cannot call a point "chosen" that turns out to be the home.
+ * point set on the map), or is the point the member chose. Empty while the home is not known
+ * yet, so the line cannot call a point "chosen" that turns out to be the home -- and while the
+ * search stands on somebody the page shows and the place they are found in is still being read
+ * (nameVisitCentre): nobody chose that point, and the line says nothing rather than something
+ * it takes back a moment later.
  */
 const centerLabelShown = computed(() => {
   if (isHomePoint(searchCenter.value)) return t('matching.map.centreHome')
   if (centerLabel.value) return centerLabel.value
   if (!ownPosition.value || !searchCenter.value) return ''
+  if (isShownPoint(searchCenter.value)) return ''
   return t('matching.map.centrePoint')
 })
+
+/** Whether two points are one and the same, to the last digit. */
+function isSamePoint(one, other) {
+  return Boolean(one && other) && one.lat === other.lat && one.lng === other.lng
+}
+
+/** Whether a point is the published point of the person the page shows. */
+function isShownPoint(point) {
+  return isSamePoint(point, shown.value?.position)
+}
 
 // How precisely the point is known that the list measures from: the member's own, for their home
 // and for a search point they chose. On a visit that shows somebody the search stands on THEIR
 // published point, and that may be blurred -- measured from there, a figure with a decimal and a
 // bearing would claim more than is known. The coarser end wins (describeDistance), so the list
 // is told which end this one is.
+//
+// The member's own home is known exactly, also where the shown person is found on that very
+// point -- somebody under the same roof, at the same address (coderabbit on #4117): from the
+// home, a distance is as precise as on any visit.
 const originPrecision = computed(() => {
-  const person = shown.value
   const origin = lensOrigin.value
-  const onThem =
-    person && origin && origin.lat === person.position.lat && origin.lng === person.position.lng
-  return onThem ? person.precision : MY_PRECISION
+  if (!isShownPoint(origin) || isSamePoint(origin, ownPosition.value)) return MY_PRECISION
+  return shown.value.precision
 })
 
 function centreDistance(person) {
@@ -1034,11 +1050,9 @@ async function whereIs({ gradidoID, communityUuid }) {
 
 /**
  * For this visit the search stands on the shown person: its centre on their point, the radius as
- * the member has it, the map framing that circle, and the list's line naming them ("Umkreis um
- * Margret"). Nothing of it is written down -- see `visitSearch`.
- *
- * The centre is named after the person and no place name is looked up for it: that lookup is for
- * the member's own search point, never for anybody else's position (resolveCenterLabel).
+ * the member has it, the map framing that circle, and the list's line naming the place they are
+ * found in ("Umkreis um Wehlheiden, Kassel" -- nameVisitCentre). Nothing of it is written down --
+ * see `visitSearch`.
  */
 function searchAroundShown() {
   const { position, name } = shown.value
@@ -1048,9 +1062,7 @@ function searchAroundShown() {
   // from the send form is not this visit's to forget.
   if (clusterOpen.value) closeCluster()
   searchCenter.value = { lat: position.lat, lng: position.lng }
-  // A lookup still out for the centre before must not name this one.
-  labelRequest++
-  centerLabel.value = name
+  nameVisitCentre(position, name)
   drawCircle()
   drawCentre()
   visitFramePending = true
@@ -1448,7 +1460,8 @@ let labelRequest = 0
  *   set on the house by eye is usually looked up like any other point;
  * - any other point set on the map is named from the map's own tile file
  *   (utils/reverseGeocode), and nobody else is asked.
- * Only ever the member's own search point, never anybody else's position.
+ * The member's own search point, written down with its name. The centre of a visit that shows
+ * somebody is named by nameVisitCentre, and not written down.
  */
 async function resolveCenterLabel(next) {
   // Every new centre makes an older lookup stale, the two cases that ask nothing included.
@@ -1468,6 +1481,28 @@ async function resolveCenterLabel(next) {
   setCenterLabel('')
   const label = await reverseName(next.lat, next.lng, locale.value)
   if (mine === labelRequest) setCenterLabel(label)
+}
+
+/**
+ * Name the centre of a visit's search (searchAroundShown): the place the shown person's
+ * published point lies in, as for any point set on the map. A blind member asks the list where
+ * their contact is, and a line that answers "around Margret" does not say (Bernd, 10.10.2026).
+ *
+ * Read from the map's own tile file, the one this very area is drawn from, and nobody else is
+ * asked. Until then no name was looked up for anybody else's position -- a rule from the days
+ * when the lookup asked a service outside (K-002), kept after its reason had gone.
+ *
+ * For the visit only and not written down, like the centre it names. Until the place is read the
+ * line names nothing (centerLabelShown); where no place is near, or the file cannot be read, it
+ * names the person.
+ */
+async function nameVisitCentre(position, name) {
+  // Counted like every new centre (resolveCenterLabel): a lookup still out for the centre before
+  // must not name this one, nor this one the centre that comes after it.
+  const mine = ++labelRequest
+  centerLabel.value = ''
+  const place = await reverseName(position.lat, position.lng, locale.value)
+  if (mine === labelRequest) centerLabel.value = place || name
 }
 
 /** The crosshair: make the map's centre the search's centre, and look there. */

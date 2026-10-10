@@ -51,9 +51,13 @@
            ⚠️ And it shows WITHOUT a place name, where the regional one does not. The map
            names every centre once it knows the member's home (a typed name, "your home"
            or "the chosen point"), so the name is only missing before that - "centred on
-           nothing" is worth hiding, but the reach and the circle are not. -->
+           nothing" is worth hiding, but the reach and the circle are not.
+
+           Under a shown contact the line keeps its place while it has nothing to say: the
+           place the contact is found in is read a moment after the search moved onto them,
+           and a line that came and went would push the sort up and down under a finger. -->
       <p
-        v-if="centerLabel || reach === 'fern'"
+        v-if="centerLabel || contact || reach === 'fern'"
         class="center-label"
         role="status"
         aria-live="polite"
@@ -70,7 +74,11 @@
          and says so. Where the search found them as well, the line says what answers the
          member's entries, as a match's line does -- and they are not listed a second time below
          (the parent hands the two lists over without them). -->
-    <section v-if="contact" class="list-section" aria-labelledby="match-list-contact-head">
+    <section
+      v-if="contact"
+      class="list-section list-section-contact"
+      aria-labelledby="match-list-contact-head"
+    >
       <h3 id="match-list-contact-head" class="section-head">
         {{ $t('matching.list.contactHeading') }}
       </h3>
@@ -236,7 +244,8 @@ const props = defineProps({
   searchCenter: { type: Object, default: null },
   // The place name of the search centre, resolved by the parent (a typed name, a
   // reverse lookup, "your home" or "the chosen point") and persisted there — so it
-  // survives a mode switch or a reload.
+  // survives a mode switch or a reload. On a visit that shows a contact it is the place the
+  // contact is found in, kept for the visit only, and '' until it is read.
   centerLabel: { type: String, default: '' },
   myPrecision: { type: String, default: 'genau' },
   // How far the search reaches: 'regional' or 'fern'. The list draws the same rows
@@ -264,6 +273,10 @@ const PAUSE = ', '
 
 /** What the search took hold of: the reach, the circle where it is wide, the place. */
 const centreLine = computed(() => {
+  // Under a shown contact a centre without a name is one whose name is on its way (the parent
+  // reads the place from the tiles). Nothing is said until it is there: the line is announced,
+  // and a sentence that is replaced a moment later would be read out twice.
+  if (!props.centerLabel && props.contact) return ''
   if (props.reach !== 'fern') return t('matching.list.centeredOn', { place: props.centerLabel })
   return props.centerLabel
     ? t('matching.list.centeredOnFern', { km: props.radiusKm, place: props.centerLabel })
@@ -495,6 +508,11 @@ function onPick(place) {
   margin: 0;
   font-size: 13px;
   color: var(--text-secondary);
+
+  /* One line, also while it is empty (under a shown contact, until the place is read): the
+     height of a line of its own text, said in em -- `lh` is unknown to the older phones. */
+  line-height: 1.5;
+  min-height: 1.5em;
 }
 
 .control-label {
@@ -622,6 +640,37 @@ function onPick(place) {
   font-size: 13px;
   font-weight: 600;
   color: var(--success);
+}
+
+/* The shown contact stands apart from the people around them: heading, name, community and
+   place in the gold of the ring the map draws around them (Bernd, 10.10.2026). At full
+   strength -- the quieter parts of a line are thinned by opacity, and thinned gold would fall
+   under 4.5 : 1. What answers the member's entries keeps its own signs: the dots their colours,
+   the breadth its green.
+
+   Two golds, because the list follows the wallet's theme and the map does not: the ring's own
+   on the dark surface (5.0 : 1, and 4.6 : 1 on the line under the pointer); on the white one
+   the ring's gold comes to 2.8 : 1, so it is the dark gold of the greeting line in the chat
+   (5.5 : 1, and 5.0 : 1 under the pointer). Held by matchListContactGold.spec.js. */
+.list-section-contact {
+  color: #8a6124;
+
+  /* A heading takes its colour from the wallet's rule for headings and inherits none: without
+     this "Dein Kontakt" stayed in the text colour (measured in the built wallet). */
+  .section-head {
+    color: inherit;
+  }
+
+  .section-head,
+  .row-sep,
+  .row-community,
+  .row-where {
+    opacity: 1;
+  }
+}
+
+.dark-mode .list-section-contact {
+  color: #c69130;
 }
 
 .list-empty {

@@ -2009,6 +2009,13 @@ describe('MatchingMap, asked to show somebody', () => {
   // representation a blind member has, reads the same.
   describe('the search of the visit', () => {
     const listLine = (page) => page.findComponent({ name: 'MatchList' }).props('centerLabel')
+    // What the tile file names at Tobias' point, where a test lets it name something.
+    const ST_PAULI = { place: 'St. Pauli', context: 'Hamburg' }
+
+    afterEach(() => {
+      placeNameAt.mockReset()
+      placeNameAt.mockImplementation(async () => null)
+    })
 
     it('stands on the person, with the radius the member has, and is asked once', async () => {
       remember('radius', 40)
@@ -2160,25 +2167,24 @@ describe('MatchingMap, asked to show somebody', () => {
 
     // A place name still being looked up for the centre before must not come to name this one.
     it('is not named by a lookup that was out for the centre before', async () => {
-      let name
-      placeNameAt.mockImplementation(() => new Promise((resolve) => (name = resolve)))
+      const before = held()
+      placeNameAt.mockImplementationOnce(() => before.promise)
       remember('mode', 'karte')
       const page = await arrive(null)
       // Away from home first: a point set on the house needs no name and looks none up.
       theMap().jumpTo({ center: [BERLIN.lng, BERLIN.lat], zoom: 11 })
       await page.find('.map-crosshair').trigger('click')
       await flushPromises()
-      expect(name).toBeTypeOf('function')
+      expect(placeNameAt).toHaveBeenCalledTimes(1)
 
+      placeNameAt.mockImplementation(async () => ST_PAULI)
       route.current.query = TOBIAS
       await flushPromises()
-      name({ place: 'Freising', context: 'München' })
+      before.resolve({ place: 'Freising', context: 'München' })
       await flushPromises()
       await page.find('.look-switch > .look-btn:last-child').trigger('click')
 
-      expect(page.findComponent({ name: 'MatchList' }).props('centerLabel')).toBe('Tobias')
-      placeNameAt.mockReset()
-      placeNameAt.mockImplementation(async () => null)
+      expect(listLine(page)).toBe('St. Pauli, Hamburg')
     })
 
     // Closing an overlay writes it away. One remembered for the way back from the send form is
@@ -2204,11 +2210,15 @@ describe('MatchingMap, asked to show somebody', () => {
     // ⛔ Nothing of it is written down: the next ordinary visit searches where the member last
     // searched for themselves. A blind member has no way home in the list but typing an address.
     it('writes neither the centre nor its name down', async () => {
+      placeNameAt.mockImplementation(async () => ST_PAULI)
       remember('center', HOME)
       remember('centerLabel', 'Mein Dorf')
+      remember('mode', 'liste')
       const page = await arrive()
       await page.vm.$nextTick()
 
+      // The place is named, so the lookup has answered -- and nothing of it is kept.
+      expect(listLine(page)).toBe('St. Pauli, Hamburg')
       expect(remembered('center')).toEqual(HOME)
       expect(remembered('centerLabel')).toBe('Mein Dorf')
     })
@@ -2237,16 +2247,128 @@ describe('MatchingMap, asked to show somebody', () => {
       expect(load.mock.calls[0][0].center).toEqual(HAMBURG)
     })
 
-    // The list's line says where the search stands: around the person, by their name. No place
-    // name is looked up for somebody else's position.
-    it('names the centre after the person, and looks no place name up', async () => {
+    // Bernd, 10.10.2026: the line says WHERE, as it does for any point of the map -- "Umkreis um
+    // Kassel". A blind member asks the list where their contact is, and a line that answers
+    // "around Tobias" does not say. The first build named the centre after the person and looked
+    // no place up: a rule from the days when the lookup asked a service outside.
+    it('names the centre by the place the person is found in, read from the tiles', async () => {
       placeNameAt.mockClear()
+      placeNameAt.mockImplementation(async () => ST_PAULI)
       remember('mode', 'liste')
       const page = await arrive()
-      await page.vm.$nextTick()
 
+      expect(listLine(page)).toBe('St. Pauli, Hamburg')
+      expect(placeNameAt).toHaveBeenCalledTimes(1)
+      const [, lat, lng, locale] = placeNameAt.mock.calls[0]
+      expect({ lat, lng, locale }).toEqual({ ...HAMBURG, locale: 'de' })
+    })
+
+    // The place is read a moment after the search moved. Until then the line names nothing: not
+    // the place the search has left, not the person, and not "the chosen point" -- nobody chose
+    // it, and the line is announced, so a sentence taken back would be read out twice.
+    it('names nothing until the place is read', async () => {
+      const lookup = held()
+      placeNameAt.mockImplementation(() => lookup.promise)
+      remember('center', { lat: 50.5, lng: 8.5 })
+      remember('centerLabel', 'Mein Dorf')
+      remember('mode', 'liste')
+      const page = await arrive()
+      const list = page.findComponent({ name: 'MatchList' })
+      expect(list.props('contact').person.name).toBe('Tobias')
+      expect(list.props('searchCenter')).toEqual(HAMBURG)
+
+      expect(listLine(page)).toBe('')
+
+      lookup.resolve(ST_PAULI)
+      await flushPromises()
+      expect(listLine(page)).toBe('St. Pauli, Hamburg')
+    })
+
+    // No place within reach of their point, or the tile file cannot be read: the line names the
+    // person. That stays true, and says whose surroundings the list shows.
+    it.each([
+      ['name no place there', async () => null],
+      [
+        'cannot be read',
+        async () => {
+          throw new Error('offline')
+        },
+      ],
+    ])('names the person where the tiles %s', async (_, answer) => {
+      placeNameAt.mockImplementation(answer)
+      remember('mode', 'liste')
+      const page = await arrive()
+
+      expect(placeNameAt).toHaveBeenCalledTimes(1)
       expect(listLine(page)).toBe('Tobias')
-      expect(placeNameAt).not.toHaveBeenCalled()
+    })
+
+    // Somebody under the member's own roof: the search stands on the member's home, and the line
+    // calls it that, whatever the tiles name there.
+    it("calls the centre the member's home where the person lives there", async () => {
+      placeNameAt.mockImplementation(async () => ST_PAULI)
+      profile.mockResolvedValue(published(TOBIAS, { position: { ...HOME } }))
+      remember('mode', 'liste')
+      const page = await arrive()
+
+      expect(listLine(page)).toBe(de.matching.map.centreHome)
+    })
+
+    // ⛔ What can be pressed while the place is being read: the search. A place the member picks
+    // then carries its own name and is written down with it -- the answer about the person's
+    // place comes after and names nothing any more.
+    it('names nothing any more once the member has moved the search', async () => {
+      const prag = { lat: 50.0874654, lng: 14.4212535, label: 'Prag' }
+      const lookup = held()
+      placeNameAt.mockImplementation(() => lookup.promise)
+      remember('mode', 'liste')
+      const page = await arrive()
+
+      await page.findComponent({ name: 'MatchList' }).vm.$emit('recenter', prag)
+      await flushPromises()
+      lookup.resolve(ST_PAULI)
+      await flushPromises()
+
+      expect(listLine(page)).toBe('Prag')
+      expect(remembered('centerLabel')).toBe('Prag')
+    })
+
+    // The visit ends while the place is being read: the member's own centre has its own name.
+    it('names nothing any more once the visit is over', async () => {
+      const lookup = held()
+      placeNameAt.mockImplementation(() => lookup.promise)
+      remember('center', { lat: 50.5, lng: 8.5 })
+      remember('centerLabel', 'Mein Dorf')
+      remember('mode', 'liste')
+      const page = await arrive()
+
+      route.current.query = {}
+      await flushPromises()
+      lookup.resolve(ST_PAULI)
+      await flushPromises()
+
+      expect(listLine(page)).toBe('Mein Dorf')
+      expect(remembered('centerLabel')).toBe('Mein Dorf')
+    })
+
+    // The address goes on to somebody else while the first place is being read: the line names
+    // where the second one is found, whatever the first lookup answers afterwards.
+    it('is named for the person the address names now', async () => {
+      const first = held()
+      placeNameAt.mockImplementationOnce(() => first.promise)
+      remember('mode', 'liste')
+      const page = await arrive()
+
+      placeNameAt.mockImplementation(async () => ({ place: 'Mitte', context: 'Berlin' }))
+      route.current.query = IRA
+      await flushPromises()
+      first.resolve(ST_PAULI)
+      await flushPromises()
+
+      expect(page.findComponent({ name: 'MatchList' }).props('contact').person.name).toBe(
+        'Ira-Erste',
+      )
+      expect(listLine(page)).toBe('Mitte, Berlin')
     })
 
     // A search the member moves is their own: written down, with the view of it.
@@ -2392,6 +2514,52 @@ describe('MatchingMap, asked to show somebody', () => {
       it("is the member's own where the lens measures from their home", async () => {
         remember('lens', 'wohnort')
         const page = await inList()
+        expect(told(page)).toBe('genau')
+      })
+
+      // Somebody under the member's own roof, at the same address: their published point IS the
+      // member's home, to the last digit. The home is known exactly -- while the search stands
+      // there for the visit, and after the member pressed the way home (coderabbit on #4117).
+      describe('where the person is found on the very point of the home', () => {
+        beforeEach(() => {
+          profile.mockResolvedValue(published(TOBIAS, { position: { ...HOME } }))
+        })
+
+        it("is the member's own while the search stands on them", async () => {
+          const page = await inList()
+          const list = page.findComponent({ name: 'MatchList' })
+
+          expect(list.props('contact').person.precision).toBe('ungefaehr')
+          expect(list.props('searchCenter')).toEqual(HOME)
+          expect(told(page)).toBe('genau')
+        })
+
+        it("is the member's own after the way home", async () => {
+          remember('mode', 'karte')
+          const page = await arrive()
+          page.find('.gk-home a').element.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+          await flushPromises()
+          await page.find('.look-switch > .look-btn:last-child').trigger('click')
+
+          expect(page.findComponent({ name: 'MatchList' }).props('contact').person.name).toBe(
+            'Tobias',
+          )
+          expect(told(page)).toBe('genau')
+        })
+      })
+
+      // The origin is the person's on their very point only. A search the member moves due east
+      // or due north of them shares one of its two numbers with that point (a change put back
+      // in that compared the latitude alone went through every test, 10.10.2026).
+      it.each([
+        ['due east of them', { lat: HAMBURG.lat, lng: HAMBURG.lng + 0.5 }],
+        ['due north of them', { lat: HAMBURG.lat + 0.5, lng: HAMBURG.lng }],
+      ])("is the member's own for a search they move %s", async (_, point) => {
+        const page = await inList()
+        await page.findComponent({ name: 'MatchList' }).vm.$emit('recenter', point)
+        await flushPromises()
+
+        expect(page.findComponent({ name: 'MatchList' }).props('searchCenter')).toEqual(point)
         expect(told(page)).toBe('genau')
       })
     })
