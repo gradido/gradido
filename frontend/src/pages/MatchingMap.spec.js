@@ -2517,6 +2517,37 @@ describe('MatchingMap, asked to show somebody', () => {
         expect(told(page)).toBe('genau')
       })
 
+      // Somebody under the member's own roof, at the same address: their published point IS the
+      // member's home, to the last digit. The home is known exactly -- while the search stands
+      // there for the visit, and after the member pressed the way home (coderabbit on #4117).
+      describe('where the person is found on the very point of the home', () => {
+        beforeEach(() => {
+          profile.mockResolvedValue(published(TOBIAS, { position: { ...HOME } }))
+        })
+
+        it("is the member's own while the search stands on them", async () => {
+          const page = await inList()
+          const list = page.findComponent({ name: 'MatchList' })
+
+          expect(list.props('contact').person.precision).toBe('ungefaehr')
+          expect(list.props('searchCenter')).toEqual(HOME)
+          expect(told(page)).toBe('genau')
+        })
+
+        it("is the member's own after the way home", async () => {
+          remember('mode', 'karte')
+          const page = await arrive()
+          page.find('.gk-home a').element.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+          await flushPromises()
+          await page.find('.look-switch > .look-btn:last-child').trigger('click')
+
+          expect(page.findComponent({ name: 'MatchList' }).props('contact').person.name).toBe(
+            'Tobias',
+          )
+          expect(told(page)).toBe('genau')
+        })
+      })
+
       // The origin is the person's on their very point only. A search the member moves due east
       // or due north of them shares one of its two numbers with that point (a change put back
       // in that compared the latitude alone went through every test, 10.10.2026).

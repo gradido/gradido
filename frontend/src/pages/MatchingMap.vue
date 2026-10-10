@@ -827,10 +827,14 @@ const centerLabelShown = computed(() => {
   return t('matching.map.centrePoint')
 })
 
+/** Whether two points are one and the same, to the last digit. */
+function isSamePoint(one, other) {
+  return Boolean(one && other) && one.lat === other.lat && one.lng === other.lng
+}
+
 /** Whether a point is the published point of the person the page shows. */
 function isShownPoint(point) {
-  const at = shown.value?.position
-  return Boolean(at && point) && point.lat === at.lat && point.lng === at.lng
+  return isSamePoint(point, shown.value?.position)
 }
 
 // How precisely the point is known that the list measures from: the member's own, for their home
@@ -838,9 +842,15 @@ function isShownPoint(point) {
 // published point, and that may be blurred -- measured from there, a figure with a decimal and a
 // bearing would claim more than is known. The coarser end wins (describeDistance), so the list
 // is told which end this one is.
-const originPrecision = computed(() =>
-  isShownPoint(lensOrigin.value) ? shown.value.precision : MY_PRECISION,
-)
+//
+// The member's own home is known exactly, also where the shown person is found on that very
+// point -- somebody under the same roof, at the same address (coderabbit on #4117): from the
+// home, a distance is as precise as on any visit.
+const originPrecision = computed(() => {
+  const origin = lensOrigin.value
+  if (!isShownPoint(origin) || isSamePoint(origin, ownPosition.value)) return MY_PRECISION
+  return shown.value.precision
+})
 
 function centreDistance(person) {
   return lensOrigin.value ? distanceKm(lensOrigin.value, person.position) : 0
