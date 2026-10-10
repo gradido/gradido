@@ -1019,10 +1019,12 @@
     },
     "new": {
       "cancel": "İptal",
+      "choose": "Lütfen seç:",
       "completeSentence": "Bu cümleyi tamamla:",
       "detailsHeading": "Ayrıntılar — doğru kişiler seni bulsun:",
       "remote": "Bölge üstü / çevrimiçi de mevcut",
-      "remoteHint": "O zaman bölge üstü aramada da görünürsün."
+      "remoteHint": "O zaman bölge üstü aramada da görünürsün.",
+      "sentenceStart": "{start} …"
     },
     "position": {
       "accuracyApprox": "Biraz değiştirilmiş bir konum gösteriliyor",

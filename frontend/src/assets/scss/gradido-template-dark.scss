@@ -634,9 +634,3 @@ html:has(body.dark-mode) {
   box-shadow: 0 0 0 1000px var(--surface-muted) inset;
   caret-color: var(--text);
 }
-
-// Matching "+ Neuer Eintrag" action (.btn-add, a subtle grey #5f5f5a in light) is
-// too dark on the dark canvas -> the light-grey muted token.
-#app.dark-mode .btn-add {
-  color: var(--text-muted) !important;
-}

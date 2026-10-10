@@ -1019,10 +1019,12 @@
     },
     "new": {
       "cancel": "Annuler",
+      "choose": "Choisis :",
       "completeSentence": "Complète cette phrase :",
       "detailsHeading": "Détails — pour que les bonnes personnes te trouvent :",
       "remote": "Aussi disponible en suprarégional / en ligne",
-      "remoteHint": "Tu apparais alors aussi dans la recherche suprarégionale."
+      "remoteHint": "Tu apparais alors aussi dans la recherche suprarégionale.",
+      "sentenceStart": "{start} …"
     },
     "position": {
       "accuracyApprox": "Une position légèrement modifiée est affichée",
