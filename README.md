@@ -202,7 +202,7 @@ describe('test', () => {
 ```
 
 #### Include Paths by test framework: 
-- jest (backend, dht-node, federation): 
+- jest (backend, dht-node): 
 ```ts
 import { clearLogs, printLogs } from 'config-schema/test/testSetup'
 ```
@@ -210,7 +210,7 @@ import { clearLogs, printLogs } from 'config-schema/test/testSetup'
 ```ts
 import { clearLogs, printLogs } from 'config-schema/test/testSetup.vitest'
 ```
-- bun (shared, core, database): 
+- bun (shared, core, database, federation): 
 ```ts
 import { clearLogs, printLogs } from 'config-schema/test/testSetup.bun'
 ```

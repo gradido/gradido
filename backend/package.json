@@ -20,7 +20,7 @@
     "lint:fix": "biome check --error-on-warnings . --write",
     "lint:fix:unsafe": "biome check --fix --unsafe",
     "start": "cross-env TZ=UTC node build/index.js",
-    "typecheck": "node ../node_modules/typescript-go/bin/tsc --noEmit"
+    "typecheck": "bun --bun ../node_modules/typescript-go/bin/tsc --noEmit"
   },
   "nodemonConfig": {
     "ignore": [

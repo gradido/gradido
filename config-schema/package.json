@@ -24,7 +24,7 @@
   "scripts": {
     "build": "esbuild src/index.ts --outdir=build --sourcemap --platform=node --target=node24.21.0 --bundle --packages=external && esbuild src/schema.ts --outfile=build/schema.cjs --format=cjs --sourcemap --platform=node --target=node24.21.0 --bundle --packages=external && esbuild src/schema.ts --outfile=build/schema.mjs --format=esm --sourcemap --platform=browser --bundle --packages=external",
     "build:bun": "bun build src/index.ts --outdir=build --target=bun --packages=external && bun build src/schema.ts --outfile=build/schema.cjs --format=cjs --target=node --packages=external && bun build src/schema.ts --outfile=build/schema.mjs --format=esm --target=browser --packages=external",
-    "typecheck": "node ../node_modules/typescript-go/bin/tsc --noEmit",
+    "typecheck": "bun --bun ../node_modules/typescript-go/bin/tsc --noEmit",
     "test": "bun test",
     "test:debug": "bun test --inspect-brk",
     "lint": "biome check --error-on-warnings .",

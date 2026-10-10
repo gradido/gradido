@@ -1,4 +1,5 @@
 // AI-GENERATED — not an architecture reference
+import { describe, expect, it, jest } from 'bun:test'
 import { inspect } from 'node:util'
 import { logPlugin } from './plugins'
 

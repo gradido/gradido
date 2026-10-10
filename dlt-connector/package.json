@@ -13,7 +13,7 @@
     "migrate": "cross-env TZ=UTC bun src/migrations/db-v2.7.0_to_blockchain-v3.7 --use-only-legacy-ledger-anchor-ids",
     "test": "cross-env TZ=UTC bun test",
     "test:debug": "cross-env TZ=UTC bun test --inspect-brk",
-    "typecheck": "bun node_modules/typescript-go/bin/tsc --noEmit",
+    "typecheck": "bun --bun node_modules/typescript-go/bin/tsc --noEmit",
     "lint": "biome check --error-on-warnings .",
     "lint:fix": "biome check --error-on-warnings . --write"
   },

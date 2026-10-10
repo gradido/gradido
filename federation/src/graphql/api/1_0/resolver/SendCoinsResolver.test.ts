@@ -1,3 +1,4 @@
+import { afterAll, beforeAll, beforeEach, describe, expect, it, jest } from 'bun:test'
 import { ApolloServerTestClient, cleanDB, testEnvironment } from '@test/helpers'
 import { EncryptedTransferArgs } from 'core'
 import {
@@ -41,7 +42,19 @@ let sendContact: DbUserContact
 let recipUser: DbUser
 let recipContact: DbUserContact
 
+// Generating an RSA key pair costs about 50 ms and the tests only read the keys, so one set
+// is made for the whole file instead of a fresh one before every test.
+type KeyPair = Awaited<ReturnType<typeof createKeyPair>>
+let homeKeys: KeyPair
+let foreignKeys: KeyPair
+let thirdKeys: KeyPair
+
 beforeAll(async () => {
+  ;[homeKeys, foreignKeys, thirdKeys] = await Promise.all([
+    createKeyPair(),
+    createKeyPair(),
+    createKeyPair(),
+  ])
   testEnv = await testEnvironment(getLogger('apollo'))
   mutate = testEnv.mutate
   //  query = testEnv.query
@@ -76,8 +89,6 @@ describe('SendCoinsResolver', () => {
 
   beforeEach(async () => {
     await cleanDB()
-    // Generate key pair using jose library
-    const { publicKey: homePublicKey, privateKey: homePrivateKey } = await createKeyPair()
     recipientCom = DbCommunity.create()
     recipientCom.foreign = false
     recipientCom.url = 'homeCom-url'
@@ -89,12 +100,11 @@ describe('SendCoinsResolver', () => {
       '15F92F8EC2EA685D5FD51EE3588F5B4805EBD330EF9EDD16043F3BA9C35C0D91',
       'hex',
     ) // 'homeCom-publicKey', 'hex')
-    recipientCom.publicJwtKey = homePublicKey
-    recipientCom.privateJwtKey = homePrivateKey
+    recipientCom.publicJwtKey = homeKeys.publicKey
+    recipientCom.privateJwtKey = homeKeys.privateKey
     recipientCom.communityUuid = '56a55482-909e-46a4-bfa2-cd025e894eba'
     await DbCommunity.insert(recipientCom)
 
-    const { publicKey: foreignPublicKey, privateKey: foreignPrivateKey } = await createKeyPair()
     senderCom = DbCommunity.create()
     senderCom.foreign = true
     senderCom.url = 'foreignCom-url'
@@ -106,8 +116,8 @@ describe('SendCoinsResolver', () => {
       '15F92F8EC2EA685D5FD51EE3588F5B4805EBD330EF9EDD16043F3BA9C35C0D92',
       'hex',
     ) // 'foreignCom-publicKey', 'hex')
-    senderCom.publicJwtKey = foreignPublicKey
-    senderCom.privateJwtKey = foreignPrivateKey
+    senderCom.publicJwtKey = foreignKeys.publicKey
+    senderCom.privateJwtKey = foreignKeys.privateKey
     senderCom.communityUuid = '56a55482-909e-46a4-bfa2-cd025e894ebb'
     await DbCommunity.insert(senderCom)
 
@@ -175,9 +185,9 @@ describe('SendCoinsResolver', () => {
         expect(graphQLResponse).toEqual(
           expect.objectContaining({
             errors: [
-              new GraphQLError(
-                'voteForSendCoins with wrong recipientCommunityUuid: invalid recipientCom',
-              ),
+              expect.objectContaining({
+                message: 'voteForSendCoins with wrong recipientCommunityUuid: invalid recipientCom',
+              }),
             ],
           }),
         )
@@ -218,9 +228,10 @@ describe('SendCoinsResolver', () => {
         ).toEqual(
           expect.objectContaining({
             errors: [
-              new GraphQLError(
-                'voteForSendCoins with unknown recipientUserIdentifier in the community=homeCom-Name',
-              ),
+              expect.objectContaining({
+                message:
+                  'voteForSendCoins with unknown recipientUserIdentifier in the community=homeCom-Name',
+              }),
             ],
           }),
         )
@@ -441,9 +452,9 @@ describe('SendCoinsResolver', () => {
         ).toEqual(
           expect.objectContaining({
             errors: [
-              new GraphQLError(
-                'revertSendCoins with wrong recipientCommunityUuid=invalid recipientCom',
-              ),
+              expect.objectContaining({
+                message: 'revertSendCoins with wrong recipientCommunityUuid=invalid recipientCom',
+              }),
             ],
           }),
         )
@@ -484,9 +495,10 @@ describe('SendCoinsResolver', () => {
         ).toEqual(
           expect.objectContaining({
             errors: [
-              new GraphQLError(
-                'revertSendCoins with unknown recipientUserIdentifier in the community=homeCom-Name',
-              ),
+              expect.objectContaining({
+                message:
+                  'revertSendCoins with unknown recipientUserIdentifier in the community=homeCom-Name',
+              }),
             ],
           }),
         )
@@ -602,9 +614,9 @@ describe('SendCoinsResolver', () => {
         ).toEqual(
           expect.objectContaining({
             errors: [
-              new GraphQLError(
-                'settleSendCoins with wrong recipientCommunityUuid=invalid recipientCom',
-              ),
+              expect.objectContaining({
+                message: 'settleSendCoins with wrong recipientCommunityUuid=invalid recipientCom',
+              }),
             ],
           }),
         )
@@ -644,10 +656,11 @@ describe('SendCoinsResolver', () => {
         ).toEqual(
           expect.objectContaining({
             errors: [
-              new GraphQLError(
-                'settleSendCoins with unknown recipientUserIdentifier in the community=' +
+              expect.objectContaining({
+                message:
+                  'settleSendCoins with unknown recipientUserIdentifier in the community=' +
                   recipientCom.name,
-              ),
+              }),
             ],
           }),
         )
@@ -764,9 +777,10 @@ describe('SendCoinsResolver', () => {
         ).toEqual(
           expect.objectContaining({
             errors: [
-              new GraphQLError(
-                'revertSettledSendCoins with wrong recipientCommunityUuid=invalid recipientCom',
-              ),
+              expect.objectContaining({
+                message:
+                  'revertSettledSendCoins with wrong recipientCommunityUuid=invalid recipientCom',
+              }),
             ],
           }),
         )
@@ -806,10 +820,11 @@ describe('SendCoinsResolver', () => {
         ).toEqual(
           expect.objectContaining({
             errors: [
-              new GraphQLError(
-                'revertSettledSendCoins with unknown recipientUserIdentifier in the community=' +
+              expect.objectContaining({
+                message:
+                  'revertSettledSendCoins with unknown recipientUserIdentifier in the community=' +
                   recipientCom.name,
-              ),
+              }),
             ],
           }),
         )
@@ -882,7 +897,7 @@ describe('SendCoinsResolver', () => {
 
     /** A community that exists here, so that a payload may name it as the sender's. */
     const createThirdCommunity = async () => {
-      const { publicKey, privateKey } = await createKeyPair()
+      const { publicKey, privateKey } = thirdKeys
       const third = DbCommunity.create()
       third.foreign = true
       third.url = 'thirdCom-url'

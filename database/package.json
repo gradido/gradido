@@ -17,7 +17,7 @@
   "private": true,
   "scripts": {
     "build": "bun ./esbuild.config.ts",
-    "typecheck": "node ../node_modules/typescript-go/bin/tsc --noEmit",
+    "typecheck": "bun --bun ../node_modules/typescript-go/bin/tsc --noEmit",
     "lint": "biome check --error-on-warnings .",
     "lint:fix": "biome check --error-on-warnings . --write",
     "clearDB": "cross-env TZ=UTC tsx migration/index.ts clear",
