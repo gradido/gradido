@@ -7,8 +7,8 @@ import { UpdateUserInfosArgs } from '@/graphql/arg/UpdateUserInfosArgs'
 
 /**
  * The decorator itself, on the args class that really carries it -- not the rule behind it,
- * which has its own test in `data/Location.logic.test.ts`. What is measured here is the
- * wiring: that the mutation refuses what is not a place, and that "not sent" and "sent as
+ * which has its own test in `shared/src/schema/location.schema.test.ts`. What is measured
+ * here is the wiring: that the mutation refuses what is not a place, and that "not sent" and "sent as
  * null" still come through, because one layer up those two mean "leave it alone" and
  * "clear it".
  *

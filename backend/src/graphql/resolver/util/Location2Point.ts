@@ -1,7 +1,6 @@
 import { Location } from '@model/Location'
+import { isUsableLocation } from 'shared'
 import { Point } from 'typeorm'
-
-import { isUsableLocation } from '@/data/Location.logic'
 
 export function Location2Point(location: Location): Point {
   let pointStr: string

@@ -1,7 +1,6 @@
 import { Location } from '@model/Location'
 import { registerDecorator, ValidationArguments, ValidationOptions } from 'class-validator'
-
-import { isUsableLocation } from '@/data/Location.logic'
+import { isUsableLocation } from 'shared'
 
 export function isValidLocation(validationOptions?: ValidationOptions) {
   return function (object: Object, propertyName: string) {
