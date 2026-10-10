@@ -1,4 +1,5 @@
 import { randomBytes } from 'node:crypto'
+import { inspect } from 'node:util'
 import {
   ApolloServerTestClient,
   cleanDB,
@@ -74,6 +75,9 @@ jest.mock('core', () => {
 })
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
+const transferLogger = getLogger(
+  `${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.TransactionResolver`,
+)
 CONFIG.DLT_ACTIVE = false
 CORE_CONFIG.EMAIL = false
 
@@ -424,6 +428,44 @@ describe('send coins', () => {
             },
           }),
         )
+      })
+
+      // Of a transfer the log is told who sent how much to whom, through the log views: not the
+      // rows of the two members as they were loaded, and of the message only its length.
+      it('notes the transfer in the log through the log views', async () => {
+        const noted = (transferLogger.info as jest.Mock).mock.calls
+          .filter(([message]) => message === 'executeTransaction')
+          .pop() as unknown[]
+        const [sender, recipient] = [user[1], user[0]]
+
+        expect(noted.some((arg) => arg instanceof User)).toBe(false)
+        // The line as the log would write it: strings as they are, objects through inspect.
+        const line = noted
+          .map((arg) => (typeof arg === 'string' ? arg : inspect(arg, { depth: 5 })))
+          .join(' ')
+        expect(line).toContain('memoLength: 17')
+        const from = line.indexOf(`"gradidoID":"${sender.gradidoID}"`)
+        const to = line.indexOf(`"gradidoID":"${recipient.gradidoID}"`)
+        expect(from).toBeGreaterThan(-1)
+        expect(to).toBeGreaterThan(from)
+        // A recipient is loaded with the row of their community, and that row holds its keys.
+        const { community } = await User.findOneOrFail({
+          where: { id: recipient.id },
+          relations: ['community'],
+        })
+        const privateKey = Buffer.from(community?.privateKey ?? [])
+          .subarray(0, 16)
+          .toString('hex')
+        expect(privateKey).toHaveLength(32)
+        for (const kept of [
+          'unrepeatable memo',
+          sender.emailContact.email,
+          recipient.emailContact.email,
+          privateKey,
+          (privateKey.match(/../g) as string[]).join(' '),
+        ]) {
+          expect(line).not.toContain(kept)
+        }
       })
 
       it('stores the TRANSACTION_SEND event in the database', async () => {

@@ -45,6 +45,7 @@ import {
   getCommunityWithFederatedCommunityByIdentifier,
   getHomeCommunity,
   getLastTransaction,
+  UserLoggingView,
 } from 'database'
 import { getLogger, Logger } from 'log4js'
 import { Mutex } from 'redis-semaphore'
@@ -158,7 +159,15 @@ export const executeTransaction = async (
   }
 
   try {
-    logger.info('executeTransaction', amount, memo, sender, recipient)
+    // Through the log views, as other log lines name a member: not the two rows as they were
+    // loaded, and of the message only its length.
+    logger.info(
+      'executeTransaction',
+      amount,
+      { memoLength: memo.length },
+      new UserLoggingView(sender),
+      new UserLoggingView(recipient),
+    )
 
     if ((await countOpenPendingTransactions([sender.gradidoID, recipient.gradidoID])) > 0) {
       throw new LogError(
@@ -253,7 +262,8 @@ export const executeTransaction = async (
       logger.debug('send Transaction updated', transactionSend)
 
       if (transactionLink) {
-        logger.info('transactionLink', transactionLink)
+        // Which link it is, not its row: the row holds its code and its text.
+        logger.info('transactionLink', { id: transactionLink.id, userId: transactionLink.userId })
         transactionLink.redeemedAt = receivedCallDate
         transactionLink.redeemedBy = recipient.id
         await queryRunner.manager.update(

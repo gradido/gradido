@@ -1,3 +1,4 @@
+import { inspect } from 'node:util'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import {
   ApolloServerTestClient,
@@ -44,6 +45,9 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 import { transactionLinkCode } from './TransactionLinkResolver'
 
 const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
+const redeemLogger = getLogger(
+  `${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.TransactionLinkResolver.redeemTransactionLink`,
+)
 
 // Only the one mail this file makes assertions about; everything else in `core` stays real.
 jest.mock('core', () => {
@@ -830,6 +834,26 @@ describe('TransactionLinkResolver', () => {
                   senderCommunityUuid: redeemer.user.communityUuid,
                 }),
               )
+              // The log is told which link it was, not its row: not its code, not its text.
+              const noted = (redeemLogger.info as jest.Mock).mock.calls
+              expect(noted).toContainEqual([
+                'transactionLink',
+                { id: myId, userId: expect.any(Number) },
+              ])
+              // All of it as the log would write it: strings as they are, objects through
+              // inspect.
+              const written = noted
+                .map((args) =>
+                  args
+                    .map((arg: unknown) =>
+                      typeof arg === 'string' ? arg : inspect(arg, { depth: 5 }),
+                    )
+                    .join(' '),
+                )
+                .join('\n')
+              expect(written).toContain('executeTransaction')
+              expect(written).not.toContain(myCode)
+              expect(written).not.toContain('This is a transaction link from bibi')
             })
 
             it('stores the TRANSACTION_LINK_REDEEM event in the database', async () => {
