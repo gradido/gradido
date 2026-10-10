@@ -282,6 +282,7 @@
         ref="field"
         v-model="text"
         class="chat-compose-field"
+        :class="{ 'has-emoji': emojiOffered }"
         rows="1"
         :maxlength="MESSAGE_MAX_CHARS"
         :placeholder="placeholder"
@@ -290,6 +291,17 @@
         @input="grow"
         @keydown.enter="sendOnModifiedEnter"
         @keydown.esc="cancelEditByKey"
+      />
+      <!-- The smiley (Bernd, 10.10.2026): inside the field's rim, at its right end -- the wallet's
+           own small choice of emoji, which go into the field where the caret stands. At a computer
+           only (`offersEmojiPicker`): a phone has them on its keyboard. In every form of the bar
+           -- the first word, the text-only one, a message being changed: an emoji is text.
+           Behind the field for the keys: Tab goes from the words to the smiley. -->
+      <emoji-picker
+        v-if="emojiOffered"
+        ref="emojiChoice"
+        class="chat-compose-emoji"
+        :field-id="fieldId"
       />
       <!-- `aria-disabled`, not `disabled`: a focused button that is disabled loses its focus in
            Chrome, and a keyboard that sent with it would be nowhere while the message is on its
@@ -464,7 +476,9 @@ import { SWISSTRANSFER_URL } from '@/utils/chatFileLink'
 import { chatImageProblemWords, encodeChatImage, openChatImage } from '@/utils/chatImage'
 import { CHAT_IMAGE_UNEDITED, chatImageCut, drawChatImageCut } from '@/utils/chatImageEdit'
 import ChatImageEditor from '@/components/Chat/ChatImageEditor.vue'
+import EmojiPicker from '@/components/Inputs/EmojiPicker.vue'
 import { chatNotifyFor } from '@/utils/chatNotify'
+import { offersEmojiPicker } from '@/utils/emojiChoice'
 import { isComputer } from '@/utils/isComputer'
 import { MESSAGE_MAX_CHARS, message as messageSchema } from '@/validationSchemas'
 
@@ -575,6 +589,13 @@ const replyingTitle = computed(() =>
 const root = ref(null)
 const field = ref(null)
 const text = ref(props.initialText)
+/**
+ * Whether the smiley stands in the field: asked once, when the bar is made -- the kind of device
+ * does not change under a bar.
+ */
+const emojiOffered = offersEmojiPicker()
+/** The smiley and its choice (EmojiPicker), to shut the choice when a message goes out. */
+const emojiChoice = ref(null)
 const alsoByEmail = ref(props.firstOwn && !props.group)
 /** The member has set the box themselves: from then on it is theirs, whatever arrives. */
 let boxTouched = false
@@ -682,6 +703,13 @@ const grow = () => {
   if (!box) return
   box.style.height = 'auto'
   box.style.height = `${box.scrollHeight + box.offsetHeight - box.clientHeight}px`
+  // Beyond its five lines the field scrolls inside, and where a scrollbar takes room (Windows; a
+  // Mac with a mouse) it stands at the field's right rim, where the smiley is. The bar is told
+  // how wide it is, and the stylesheet moves the smiley beside it.
+  if (emojiOffered) {
+    const scrollbar = Math.max(0, box.offsetWidth - box.clientWidth - 2 * box.clientLeft)
+    root.value?.style.setProperty('--field-scrollbar', `${scrollbar}px`)
+  }
 }
 /**
  * Words the bar begins with -- brought back after a restart, or handed in: the field takes
@@ -774,6 +802,10 @@ const afterPaint = () =>
  */
 const submit = async () => {
   if (!canSend.value) return
+  // The choice of emoji goes with the message: Cmd/Ctrl+Enter sends from the field and leaves
+  // it open, and an emoji pressed while the message is on its way would stay behind with the
+  // words that went out, to be sent with them a second time.
+  emojiChoice.value?.close()
   if (props.editing) {
     // The same words as before: nothing to change, and nothing to ask the server for. Without the
     // space around them, as they are sent.
@@ -853,6 +885,7 @@ const helloBackWaits = computed(() => props.sending || preparing.value)
  */
 const sendHelloBack = (words, press) => {
   if (!helloBackShown.value || helloBackWaits.value) return
+  emojiChoice.value?.close()
   const boxed = alsoByEmail.value && boxShown.value
   submitted = {
     text: null,
@@ -1581,6 +1614,24 @@ watch(
   border-color: var(--success, #047006);
   outline: 0;
   box-shadow: 0 0 0 1px var(--success, #047006);
+}
+
+/* The smiley stands inside the field's rim, at its right end (EmojiPicker): the words keep clear
+   of it, and the smiley is drawn back over the field by its own width, the row's gap and a rim
+   of 0.2rem -- the margin on its right makes up for what is left, so the field and the arrow
+   stand exactly where they stand without it. At the foot of a field of several lines, as the
+   row's other signs are.
+
+   Where the field scrolls inside and its scrollbar takes room, the smiley stands beside the
+   scrollbar, not on it: further in by the scrollbar's width, which `grow` measures -- taken
+   from the one margin and given to the other, so nothing else moves. */
+.chat-compose-field.has-emoji {
+  padding-right: 2.5rem;
+}
+
+.chat-compose-emoji {
+  margin: 0 calc(0.2rem + var(--field-scrollbar, 0px)) 0.2rem
+    calc(-2.7rem - var(--field-scrollbar, 0px));
 }
 
 /* Round and gold, like one's own messages; the paper plane says what it does, the name says

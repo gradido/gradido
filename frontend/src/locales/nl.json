@@ -580,6 +580,13 @@
     "resent": "De bevestigingsmail is opnieuw onderweg.",
     "title": "Bevestig je e-mailadres"
   },
+  "emoji": {
+    "choice": "Emoji's",
+    "insert": "Emoji invoegen",
+    "inserted": "{emoji} ingevoegd",
+    "moreOnMac": "Meer emoji's: ctrl + cmd + spatiebalk",
+    "moreOnWindows": "Meer emoji's: Windows-toets + punt (.)"
+  },
   "error": {
     "email-already-sent": "Wij hebben jou minder dan 10 minuten geleden een email gestuurd.",
     "empty-transactionlist": "Er was een fout met de overdracht van het aantal van jouw transacties.",

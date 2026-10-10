@@ -580,6 +580,13 @@
     "resent": "El correo de confirmación va de camino otra vez.",
     "title": "Confirma tu dirección de correo"
   },
+  "emoji": {
+    "choice": "Emojis",
+    "insert": "Insertar emoji",
+    "inserted": "Insertado: {emoji}",
+    "moreOnMac": "Más emojis: ctrl + cmd + barra espaciadora",
+    "moreOnWindows": "Más emojis: tecla Windows + punto (.)"
+  },
   "error": {
     "email-already-sent": "Ya te hemos enviado un correo electrónico hace menos de 10 minutos.",
     "empty-transactionlist": "Ha habido un error en la transmisión del número de tus transacciones.",

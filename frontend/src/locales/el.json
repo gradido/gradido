@@ -580,6 +580,13 @@
     "resent": "Το e-mail επιβεβαίωσης είναι ξανά καθ’ οδόν.",
     "title": "Επιβεβαίωσε τη διεύθυνση e-mail σου"
   },
+  "emoji": {
+    "choice": "Emoji",
+    "insert": "Εισαγωγή emoji",
+    "inserted": "Προστέθηκε: {emoji}",
+    "moreOnMac": "Περισσότερα emoji: ctrl + cmd + διάστημα",
+    "moreOnWindows": "Περισσότερα emoji: πλήκτρο Windows + τελεία (.)"
+  },
   "error": {
     "email-already-sent": "Σου έχουμε ήδη στείλει ένα email πριν από λιγότερο από 10 λεπτά.",
     "empty-transactionlist": "Παρουσιάστηκε σφάλμα κατά τη μετάδοση του αριθμού των συναλλαγών σου.",
