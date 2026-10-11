@@ -828,11 +828,19 @@ const hangMenu = () => {
  *
  * ⛔ Measured in the thread first, where it is as wide as the thread lets it be, and never hidden
  * meanwhile: the keyboard may stand on one of its buttons, and what is hidden loses it.
+ *
+ * ⛔ Only the newest run goes on after a wait (`settling`): a window that changes its size calls
+ * in a row, and a run that wakes up behind a newer one would measure the menu where that one
+ * has just put it, and place it by that (coderabbit on #4123). Closing the menu ends every run.
  */
+let settling = 0
 const settleMenu = async () => {
   if (!menuOpen.value) return
+  settling += 1
+  const run = settling
   menuSpot.value = null
   await nextTick()
+  if (run !== settling) return
   const menu = menuElement()
   if (!menu) return
   const box = threadBox()
@@ -845,6 +853,7 @@ const settleMenu = async () => {
   const { left, top } = menu.getBoundingClientRect()
   menuSpot.value = { left, top }
   await nextTick()
+  if (run !== settling) return
   hangMenu()
 }
 
@@ -891,6 +900,7 @@ const openMenu = async () => {
 const closeMenu = ({ focusMore = false } = {}) => {
   if (!menuOpen.value) return
   menuOpen.value = false
+  settling += 1
   forgetMenu()
   if (focusMore) more.value?.focus({ preventScroll: true })
 }

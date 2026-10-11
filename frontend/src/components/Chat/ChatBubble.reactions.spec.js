@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { nextTick } from 'vue'
 import ChatBubble from './ChatBubble.vue'
 import { isComputer } from '@/utils/isComputer'
 
@@ -652,6 +653,90 @@ describe('ChatBubble, the reactions to a message', () => {
       expect(menu().classes()).not.toContain('is-hung')
       expect(spot()).toEqual({ left: '', top: '' })
       expect(shown).toHaveLength(1)
+    })
+
+    /**
+     * ⛔ Only the newest run settles the menu (coderabbit on #4123). A window that changes its
+     * size says so several times in a row, and each run waits twice: one that wakes up behind a
+     * newer one would measure the menu where the newer one has just put it. Seen here by what a
+     * finished run does in a thread that holds the menu -- it brings the menu into sight, once.
+     */
+    it('lets only the newest of several runs settle the menu when the window changes its size in a row', async () => {
+      mountBubble(OWN)
+      inThread(405, 247)
+      await openMenu()
+      expect(shown).toHaveLength(1)
+
+      window.dispatchEvent(new Event('resize'))
+      window.dispatchEvent(new Event('resize'))
+      window.dispatchEvent(new Event('resize'))
+      await flushPromises()
+
+      // Three calls, one run that went on to its end.
+      expect(shown).toHaveLength(2)
+      expect(menu().classes()).not.toContain('is-hung')
+    })
+
+    it('hangs the menu once, by the newest run, where the thread is too low and the window says so in a row', async () => {
+      mountBubble(OWN)
+      inThread(405, 247)
+      await openMenu()
+      const measured = vi.spyOn(Element.prototype, 'getBoundingClientRect')
+
+      inThread(207)
+      window.dispatchEvent(new Event('resize'))
+      window.dispatchEvent(new Event('resize'))
+      await flushPromises()
+
+      expect(menu().classes()).toContain('is-hung')
+      expect(spot()).toEqual({ left: '50px', top: '108px' })
+      // The menu was measured by one run: once to start from where it stands, once to place it.
+      const ofMenu = measured.mock.contexts.filter((element) =>
+        element.classList?.contains('chat-message-menu'),
+      )
+      expect(ofMenu).toHaveLength(2)
+      measured.mockRestore()
+    })
+
+    // The second wait of a run: it has measured the menu and waits to place it over the page.
+    it('ends a run that was waiting to place the menu when a newer one begins', async () => {
+      mountBubble(OWN)
+      inThread(405, 247)
+      await openMenu()
+      const measured = vi.spyOn(Element.prototype, 'getBoundingClientRect')
+      const ofMenu = () =>
+        measured.mock.contexts.filter((element) => element.classList?.contains('chat-message-menu'))
+
+      inThread(207)
+      window.dispatchEvent(new Event('resize'))
+      await nextTick()
+      expect(ofMenu()).toHaveLength(1)
+      // The window says once more that its size changed, before the first run has placed the menu.
+      window.dispatchEvent(new Event('resize'))
+      await flushPromises()
+
+      expect(menu().classes()).toContain('is-hung')
+      expect(spot()).toEqual({ left: '50px', top: '108px' })
+      // The first run measured once and stopped there; the second measured twice.
+      expect(ofMenu()).toHaveLength(3)
+      measured.mockRestore()
+    })
+
+    // A run that waits while the menu closes and opens again must not go on for the new one.
+    it('ends a run that was waiting when the menu closed', async () => {
+      mountBubble(OWN)
+      inThread(405, 247)
+      await openMenu()
+      expect(shown).toHaveLength(1)
+
+      window.dispatchEvent(new Event('resize'))
+      // Closed and opened again before the run wakes up: the opening settles the menu itself.
+      await more().trigger('click')
+      await more().trigger('click')
+      await flushPromises()
+
+      expect(menu().exists()).toBe(true)
+      expect(shown).toHaveLength(2)
     })
 
     /**
