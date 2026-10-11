@@ -1,10 +1,15 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { ref } from 'vue'
+import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
+import { nextTick, ref } from 'vue'
 import { createStore } from 'vuex'
 import Overview from './Overview.vue'
 import MapInvitationTile from '@/components/Overview/MapInvitationTile'
 import ShowFriendsTile from '@/components/Overview/ShowFriendsTile'
+import {
+  FIRST_ANSWER_PATIENCE_MS,
+  MAP_MEMBER_COUNT_STORAGE_KEY,
+} from '@/composables/useMapMemberCount'
+import { mapMemberCount } from '@/graphql/queries'
 import { createRouter, createWebHistory } from 'vue-router'
 import { createI18n } from 'vue-i18n'
 
@@ -28,14 +33,26 @@ vi.mock('@/components/Overview/CommunityNews', () => ({
 // throws, and the two cases below would fail for a reason that has nothing to do with
 // what they are about.
 const queryResult = vi.hoisted(() => ({ value: undefined }))
+// What the page asked, by document, with the way to answer it: the overview holds its tiles
+// back for one of these (the number of people on the map), so a case has to be able to let
+// that answer arrive.
+const asked = vi.hoisted(() => new Map())
 vi.mock('@vue/apollo-composable', () => ({
-  useQuery: vi.fn().mockReturnValue({
-    result: queryResult,
-    onResult: vi.fn(),
-    onError: vi.fn(),
-    loading: { value: false },
-    error: { value: null },
-    refetch: vi.fn(),
+  useQuery: vi.fn((document) => {
+    const question = { result: null, error: null }
+    asked.set(document, question)
+    return {
+      result: queryResult,
+      onResult: (callback) => {
+        question.result = callback
+      },
+      onError: (callback) => {
+        question.error = callback
+      },
+      loading: { value: false },
+      error: { value: null },
+      refetch: vi.fn(),
+    }
   }),
   // ⚠️ Here for the same reason `result` is: the tile takes a client to look a tapped
   // arrival up with, and a mock that answers fewer things than the module tears the
@@ -78,6 +95,8 @@ describe('Overview', () => {
     })
 
   beforeEach(() => {
+    asked.clear()
+    window.localStorage.clear()
     config.HUMHUB_ACTIVE = false
     config.GMS_LEGACY_ACTIVE = false
     config.MATCHING_ACTIVE = false
@@ -141,6 +160,8 @@ describe('Overview', () => {
     // The store of this file names a member and nothing else: no home, no permission.
     it('stands above everything else for a member who is not on the map', () => {
       config.MATCHING_ACTIVE = true
+      // A device that has asked before, so nothing is held back -- see below.
+      window.localStorage.setItem(MAP_MEMBER_COUNT_STORAGE_KEY, 'null')
       const page = mountOverview()
       const html = page.html()
 
@@ -154,6 +175,80 @@ describe('Overview', () => {
       expect(wrapper.html()).not.toContain('data-test="map-invitation-tile"')
       // The tile for showing Gradido is untouched by it.
       expect(wrapper.findComponent(ShowFriendsTile).exists()).toBe(true)
+    })
+
+    /**
+     * The invitation opens with how many people stand on the map, and with that number its
+     * heading is a line taller. A number arriving after the tiles are painted would push
+     * every one of them down under a finger -- so on a device that has never heard it, the
+     * page holds ALL its tiles back for the one answer, and then paints them together. What
+     * waits and for how long is the composable's own spec; that the page obeys it, and hands
+     * the number on, is only held here.
+     */
+    describe('and the number it opens with', () => {
+      const tiles = (page) => page.find('[data-test="overview-tiles"]')
+      const answer = (data) => asked.get(mapMemberCount).result({ data })
+
+      beforeEach(() => {
+        config.MATCHING_ACTIVE = true
+      })
+
+      afterEach(() => {
+        vi.useRealTimers()
+      })
+
+      it('holds every tile back until the number is in, then paints them together', async () => {
+        const page = mountOverview()
+        expect(tiles(page).exists()).toBe(false)
+        expect(page.findComponent(ShowFriendsTile).exists()).toBe(false)
+        expect(page.findComponent(MapInvitationTile).exists()).toBe(false)
+
+        answer({ mapMemberCount: 773 })
+        await nextTick()
+
+        expect(tiles(page).exists()).toBe(true)
+        expect(page.findComponent(ShowFriendsTile).exists()).toBe(true)
+        expect(page.findComponent(MapInvitationTile).props('count')).toBe(773)
+      })
+
+      it('paints them without the number when the answer takes too long', async () => {
+        vi.useFakeTimers()
+        const page = mountOverview()
+        expect(tiles(page).exists()).toBe(false)
+
+        vi.advanceTimersByTime(FIRST_ANSWER_PATIENCE_MS)
+        await nextTick()
+
+        expect(tiles(page).exists()).toBe(true)
+        expect(page.findComponent(ShowFriendsTile).exists()).toBe(true)
+        expect(page.findComponent(MapInvitationTile).props('count')).toBeNull()
+      })
+
+      it('paints them at once with what the device heard before', () => {
+        window.localStorage.setItem(MAP_MEMBER_COUNT_STORAGE_KEY, '773')
+
+        const page = mountOverview()
+
+        expect(tiles(page).exists()).toBe(true)
+        expect(page.findComponent(MapInvitationTile).props('count')).toBe(773)
+      })
+
+      it('leaves the tile as it is when a newer number arrives during the visit', async () => {
+        window.localStorage.setItem(MAP_MEMBER_COUNT_STORAGE_KEY, '773')
+        const page = mountOverview()
+
+        answer({ mapMemberCount: 781 })
+        await nextTick()
+
+        expect(page.findComponent(MapInvitationTile).props('count')).toBe(773)
+      })
+
+      // Everybody else: no question, no wait. `wrapper` is the page of a wallet without
+      // matching, mounted before each case.
+      it('asks nothing and holds nothing back where there is no invitation', () => {
+        expect(tiles(wrapper).exists()).toBe(true)
+        expect(asked.has(mapMemberCount)).toBe(false)
+      })
     })
   })
 })

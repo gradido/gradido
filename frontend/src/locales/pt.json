@@ -950,8 +950,10 @@
     },
     "invitation": {
       "go": "Tornar-me visível no mapa",
+      "question": "Quais delas moram perto de ti?",
       "text": "Marca a tua casa no mapa e vais ver, e os outros veem-te a ti. És tu que decides com que precisão: «Aproximada» mostra-te numa área, nunca à tua porta. E podes sair do mapa a qualquer momento.",
-      "title": "Quem mora perto de ti?"
+      "title": "Quem mora perto de ti?",
+      "titleCount": "{n} pessoas no mapa do Gradido"
     },
     "list": {
       "centeredOn": "À volta de {place}",

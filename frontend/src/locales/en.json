@@ -950,8 +950,10 @@
     },
     "invitation": {
       "go": "Make me visible on the map",
+      "question": "Which of them live near you?",
       "text": "Set your home on the map and you will see — and the others will see you. You decide how precisely: \"Approximate\" shows you within an area, never at your front door. And you can leave again at any time.",
-      "title": "Who lives near you?"
+      "title": "Who lives near you?",
+      "titleCount": "{n} people on the Gradido map"
     },
     "list": {
       "centeredOn": "Centred on {place}",

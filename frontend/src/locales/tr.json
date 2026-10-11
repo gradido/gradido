@@ -950,8 +950,10 @@
     },
     "invitation": {
       "go": "Beni haritada göster",
+      "question": "Onlardan kimler yakınında yaşıyor?",
       "text": "Evini haritada işaretle, o zaman görürsün — başkaları da seni görür. Ne kadar hassas görüneceğine sen karar verirsin: «Yaklaşık» seni bir alan içinde gösterir, asla kapının önünde değil. Ve istediğin zaman haritadan çıkabilirsin.",
-      "title": "Yakınında kim yaşıyor?"
+      "title": "Yakınında kim yaşıyor?",
+      "titleCount": "Gradido haritasında {n} kişi"
     },
     "list": {
       "centeredOn": "Arama merkezi: {place}",

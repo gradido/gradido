@@ -1,4 +1,6 @@
 // AI-GENERATED — not an architecture reference
+import CONFIG from '@/config'
+import { mayFind } from '@/utils/matchingPosition'
 
 /**
  * "Show me on the map": the way from an invitation to the home tab, and how that tab knows
@@ -20,3 +22,16 @@ export const SHOW_ME_ON_THE_MAP = { path: '/matching/position', query: { findabl
 /** Whether this route carries that yes. Other tabs never do: the query goes with the tab. */
 export const saidShowMe = (route) =>
   route?.params?.tab === 'position' && route?.query?.findable === 'yes'
+
+/**
+ * Who the invitation is for: a member who is not on the map, by the one rule that says who
+ * is -- a position AND the permission to be found (`mayFind`).
+ *
+ * And only on a wallet that has a map. The matching routes exist only where matching is
+ * switched on, and routes.js reads the switch the same way; an invitation that led to a page
+ * this wallet does not have would be an invitation to a 404.
+ *
+ * One place, because two ask: the tile, whether it shows, and the overview, whether there is
+ * a number to fetch for it (composables/useMapMemberCount).
+ */
+export const invitedOntoTheMap = (state) => Boolean(CONFIG.MATCHING_ACTIVE) && !mayFind(state)
