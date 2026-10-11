@@ -224,6 +224,44 @@
         </button>
       </div>
       <div class="chat-bubble-meta">
+        <!-- The reactions to the message (Bernd, 11.10.2026): each emoji once, with how many
+             reacted where it is more than one, one's own set apart -- at the left end of the
+             foot line, in its height. ⛔ In the line that is there already, not in one of their
+             own under the bubble: a reaction arrives with the beat, at any time, and a new line
+             would move every message below it under a reading eye or a finger. Not buttons:
+             what is set here is set in the menu, where one's own is the pressed one.
+
+             For the ear a lead, and then each reaction in ONE piece (`reactionSaid`): the emoji,
+             which says its own name, how many, and that it is one's own -- what the eye gets is
+             left out for it. In three pieces a reader stopped three times at each, and "3, yours"
+             could be heard with the emoji before it or with the one after. -->
+        <span
+          v-if="reactions.length > 0"
+          class="chat-bubble-reactions"
+          data-test="chat-bubble-reactions"
+        >
+          <span class="visually-hidden">{{ t('chatThread.reactionsLead') }}</span>
+          <span
+            v-for="reaction in reactions"
+            :key="reaction.emoji"
+            class="chat-bubble-reaction"
+            :class="{ 'is-mine': reaction.mine }"
+            data-test="chat-bubble-reaction"
+          >
+            <span class="chat-bubble-reaction-emoji" aria-hidden="true">{{ reaction.emoji }}</span>
+            <span
+              v-if="reaction.count > 1"
+              class="chat-bubble-reaction-count"
+              aria-hidden="true"
+              data-test="chat-bubble-reaction-count"
+            >
+              {{ reaction.count }}
+            </span>
+            <span class="visually-hidden" data-test="chat-bubble-reaction-said">
+              {{ reactionSaid(reaction) }}
+            </span>
+          </span>
+        </span>
         <!-- Shown to the sender only, on their own message: a mail about it went out too
              (E-034). Where it did not because the recipient muted the conversation, the line
              under the bubble says so instead (`notMailed`). -->
@@ -268,6 +306,8 @@
     </div>
     <chat-message-menu
       v-if="menuOpen"
+      :class="{ 'is-hung': menuSpot !== null }"
+      :style="menuStyle"
       :mine="message.mine"
       :below="menuBelow"
       :can-reply="canReply"
@@ -275,10 +315,15 @@
       :video="editsAsVideo"
       :can-forward="canForward"
       :can-copy="canCopy"
+      :can-react="reacts"
+      :own-reaction="ownReaction"
+      :reacting="reactionUnderway"
       @reply="reply"
       @edit="edit"
       @forward="forward"
       @copy="copyText"
+      @react="react"
+      @resized="settleMenu"
       @keydown.esc.stop.prevent="closeMenu({ focusMore: true })"
     />
     <!-- ⛔ Only where something is not as it should be. "Delivered" under every message of
@@ -314,6 +359,8 @@ import { avatarZoomBindings } from '@/composables/useAvatarZoom'
 import { memberAvatarProps } from '@/composables/useMemberAvatars'
 import { useAppToast } from '@/composables/useToast'
 import { LIST_AVATAR_SIZE } from '@/constants'
+import { CHAT_MENU_GAP_PX, chatMenuSpot } from '@/utils/chatMenuSpot'
+import { ownChatReaction } from '@/utils/chatReactions'
 import { memberAlias } from '@/utils/gradidoAddress'
 import { canWriteByHand } from '@/utils/handwriting'
 import { isComputer } from '@/utils/isComputer'
@@ -378,6 +425,17 @@ const props = defineProps({
    * (`message.replyTo`).
    */
   quotedMessage: { type: Object, default: null },
+  /**
+   * Whether a member may react to the messages of this thread (Bernd, 11.10.2026): the thread
+   * says so -- not in a conversation with a person of another community, whose server a
+   * reaction has no way to yet.
+   */
+  canReact: { type: Boolean, default: false },
+  /**
+   * A reaction of the member's to this message is on its way: the emoji in the menu take no
+   * press until the answer is in, and show it (ChatReactionChoice's `busy`).
+   */
+  reactionUnderway: { type: Boolean, default: false },
 })
 
 /**
@@ -391,7 +449,8 @@ const props = defineProps({
  * changed (E-060) -- the thread puts its text into the bar, or hands a video invitation to the
  * window's question. `reply`: the message, to be answered -- the thread puts it over the bar.
  * `showQuoted`: the quotation over an answer was pressed -- `message.replyTo`, for the thread to
- * go to the quoted message.
+ * go to the quoted message. `react`: an emoji of the menu's reactions was pressed --
+ * `{ message, emoji }`; the thread knows whether that sets it or takes it back.
  */
 const emit = defineEmits([
   'openImage',
@@ -401,6 +460,7 @@ const emit = defineEmits([
   'edit',
   'reply',
   'showQuoted',
+  'react',
 ])
 
 const { t, d, locale } = useI18n()
@@ -654,13 +714,46 @@ const editsAsVideo = computed(
 const menuEntries = computed(() =>
   [canReply.value, canEdit.value, canForward.value, canCopy.value].filter(Boolean),
 )
-const hasMenu = computed(() => menuEntries.value.length > 0)
+/**
+ * The reactions the message carries (Bernd, 11.10.2026): `{ emoji, count, mine }`, each emoji
+ * once -- none on a transfer, which is a booking and has no row to react to.
+ */
+const reactions = computed(() => (props.message.transfer ? [] : (props.message.reactions ?? [])))
+/** The emoji the member reacted with themselves, or null: the pressed one in the menu. */
+const ownReaction = computed(() => ownChatReaction({ reactions: reactions.value }))
+/**
+ * A reaction as it is said, in one piece: the emoji -- it says its own name --, how many where
+ * it is more than one, and that it is one's own.
+ */
+const reactionSaid = ({ emoji, count, mine }) =>
+  [count > 1 ? `${emoji} ${count}` : emoji, ...(mine ? [t('chatThread.reactionMine')] : [])].join(
+    ', ',
+  )
+/**
+ * Whether the menu offers the reactions: where the thread allows them, at every message the
+ * server has filed -- somebody else's and one's own. The server holds the same rules
+ * (setChatMessageReaction).
+ */
+const reacts = computed(
+  () => props.canReact && !props.message.transfer && Boolean(props.message.messageUuid),
+)
+const hasMenu = computed(() => menuEntries.value.length > 0 || reacts.value)
 
 const row = ref(null)
 const more = ref(null)
 const menuOpen = ref(false)
 /** No room above the message in the thread: the menu opens under it. */
 const menuBelow = ref(false)
+/**
+ * Where the menu hangs over the page, in the screen's own pixels -- null while it stands in the
+ * thread, at its message: that is where it stands wherever the thread can hold it. Decided each
+ * time the menu is settled (`settleMenu`), from the thread; what is left of a menu since closed
+ * is read by nobody.
+ */
+const menuSpot = ref(null)
+const menuStyle = computed(() =>
+  menuSpot.value ? { left: `${menuSpot.value.left}px`, top: `${menuSpot.value.top}px` } : undefined,
+)
 /**
  * The room the menu needs above the message: its entries, their frame and its gap. Two entries
  * are 113 px in all ten languages, at 320 and at 1280 px (measured 30.09.2026); three (E-060) are
@@ -669,10 +762,110 @@ const menuBelow = ref(false)
  */
 const MENU_ENTRY_PX = 49
 const MENU_FRAME_PX = 42
-const menuRoom = () => MENU_FRAME_PX + menuEntries.value.length * MENU_ENTRY_PX
+/** The row of reactions over the entries, with the line under it: 44 px, its gap and its rim. */
+const MENU_REACTIONS_PX = 52
+/**
+ * All forty-eight behind "mehr", which stand in the place of the row and of the entries: six
+ * lines of 36 px -- of up to 44 under a finger (ChatReactionChoice's stylesheet, by the same
+ * question). The room has to hold whichever is higher -- 229 px against 216 with three entries,
+ * measured 11.10.2026 --, since the menu stays on its side of the message when "mehr" is pressed.
+ */
+const allReactionsPx = () => (window.matchMedia?.('(hover: none)')?.matches ? 264 : 216)
+const menuRoom = () => {
+  const entries = menuEntries.value.length * MENU_ENTRY_PX
+  return (
+    MENU_FRAME_PX +
+    (reacts.value ? Math.max(entries + MENU_REACTIONS_PX, allReactionsPx()) : entries)
+  )
+}
+
+const menuElement = () => row.value?.querySelector('.chat-message-menu') ?? null
+const threadBox = () => row.value?.closest('.chat-thread-box') ?? null
 
 const closeOnPressElsewhere = (event) => {
   if (!row.value?.contains(event.target)) closeMenu()
+}
+
+/**
+ * The part of the message that is in sight in the thread, in the screen's pixels -- null where
+ * none of it is: the thread has scrolled it away.
+ */
+const messageInSight = () => {
+  const own = row.value?.getBoundingClientRect()
+  const box = threadBox()?.getBoundingClientRect()
+  if (!own || !box) return null
+  const top = Math.max(own.top, box.top)
+  const bottom = Math.min(own.bottom, box.bottom)
+  return bottom > top ? { top, bottom, left: own.left, right: own.right } : null
+}
+
+/** Puts the menu that hangs over the page at its message -- and closes it once that is out of sight. */
+const hangMenu = () => {
+  const menu = menuElement()
+  if (!menu) return
+  const anchor = messageInSight()
+  if (!anchor) {
+    closeMenu()
+    return
+  }
+  const { width, height } = menu.getBoundingClientRect()
+  menuSpot.value = chatMenuSpot({
+    anchor,
+    size: { width, height },
+    screen: { width: document.documentElement.clientWidth, height: window.innerHeight },
+    mine: Boolean(props.message.mine),
+  })
+}
+
+/**
+ * The menu has its size -- as it opens, and again when "mehr" or the window has changed it.
+ *
+ * In the thread, at its message, wherever the thread can hold it: the thread then scrolls just so
+ * far that the whole menu is in sight. Over the page where the thread is lower than the menu
+ * (chatMenuSpot): a phone whose browser leaves 553 px of height has a thread of 207, the menu at
+ * one's own message is 267 with its reactions -- and what stood out of the thread was cut off,
+ * the reactions first, with the window's own buttons in their place (measured 11.10.2026).
+ *
+ * ⛔ Measured in the thread first, where it is as wide as the thread lets it be, and never hidden
+ * meanwhile: the keyboard may stand on one of its buttons, and what is hidden loses it.
+ *
+ * ⛔ Only the newest run goes on after a wait (`settling`): a window that changes its size calls
+ * in a row, and a run that wakes up behind a newer one would measure the menu where that one
+ * has just put it, and place it by that (coderabbit on #4123). Closing the menu ends every run.
+ */
+let settling = 0
+const settleMenu = async () => {
+  if (!menuOpen.value) return
+  settling += 1
+  const run = settling
+  menuSpot.value = null
+  await nextTick()
+  if (run !== settling) return
+  const menu = menuElement()
+  if (!menu) return
+  const box = threadBox()
+  if (!box?.clientHeight || menu.offsetHeight + 2 * CHAT_MENU_GAP_PX <= box.clientHeight) {
+    menu.scrollIntoView?.({ block: 'nearest' })
+    return
+  }
+  // From where it stands, so that nothing jumps: over the page its size is the screen's to
+  // limit, so it is measured again there before it is placed.
+  const { left, top } = menu.getBoundingClientRect()
+  menuSpot.value = { left, top }
+  await nextTick()
+  if (run !== settling) return
+  hangMenu()
+}
+
+/** The thread or the page moved: a menu over the page follows its message; one in the thread moves with it. */
+const followMenu = () => {
+  if (menuSpot.value !== null) hangMenu()
+}
+
+const forgetMenu = () => {
+  document.removeEventListener('pointerdown', closeOnPressElsewhere, true)
+  document.removeEventListener('scroll', followMenu, true)
+  window.removeEventListener('resize', settleMenu)
 }
 
 /**
@@ -680,10 +873,10 @@ const closeOnPressElsewhere = (event) => {
  * the menu stands inside the scrolling thread and nothing scrolls above its beginning. Measured from
  * the thread's beginning, not from what is in sight -- a tall picture half scrolled out at the top
  * has its room above all the same --, and the thread then scrolls just so far that the whole menu
- * is in sight.
+ * is in sight (`settleMenu`).
  */
 const openMenu = async () => {
-  const box = row.value?.closest('.chat-thread-box')
+  const box = threadBox()
   menuBelow.value = Boolean(
     box &&
     row.value.getBoundingClientRect().top - box.getBoundingClientRect().top + box.scrollTop <
@@ -692,19 +885,26 @@ const openMenu = async () => {
   menuOpen.value = true
   // Another message's menu closes as this one opens: the press was elsewhere for it.
   document.addEventListener('pointerdown', closeOnPressElsewhere, true)
-  await nextTick()
-  const menu = row.value?.querySelector('.chat-message-menu')
-  menu?.scrollIntoView?.({ block: 'nearest' })
-  menu?.querySelector('button')?.focus({ preventScroll: true })
+  document.addEventListener('scroll', followMenu, true)
+  window.addEventListener('resize', settleMenu)
+  await settleMenu()
+  const menu = menuElement()
+  // The first ENTRY, as before the reactions stood over them: a second Enter on the sign that
+  // opened the menu must not set a reaction nobody chose. Where a message has no entry, the
+  // reactions are all there is.
+  const first =
+    menu?.querySelector('.chat-message-menu-item') ?? menu?.querySelector('button[tabindex="0"]')
+  first?.focus({ preventScroll: true })
 }
 
 const closeMenu = ({ focusMore = false } = {}) => {
   if (!menuOpen.value) return
   menuOpen.value = false
-  document.removeEventListener('pointerdown', closeOnPressElsewhere, true)
+  settling += 1
+  forgetMenu()
   if (focusMore) more.value?.focus({ preventScroll: true })
 }
-onBeforeUnmount(() => document.removeEventListener('pointerdown', closeOnPressElsewhere, true))
+onBeforeUnmount(forgetMenu)
 
 const toggleMenu = () => (menuOpen.value ? closeMenu({ focusMore: true }) : openMenu())
 
@@ -738,6 +938,16 @@ const reply = () => {
 const edit = () => {
   closeMenu()
   emit('edit', props.message)
+}
+
+/**
+ * An emoji of the reactions was pressed: the message and the emoji go up to the thread, which
+ * knows whether that sets the reaction or takes it back. The menu closes, and the keyboard is
+ * back on the sign that opened it.
+ */
+const react = (emoji) => {
+  closeMenu({ focusMore: true })
+  emit('react', { message: props.message, emoji })
 }
 
 /** "Text kopieren" (E-059 F6): the subject and the text as they were written. */
@@ -1113,6 +1323,69 @@ const copyText = async () => {
   font-size: 0.7rem;
 }
 
+/* The reactions at the left end of the foot line, everything else of the line at its right end
+   as before (`margin-right: auto`). Not words of the message: marking its text takes none of
+   them along.
+
+   ⛔ They take no more of the line's height than the line has: the line is 0.7rem at the bubble's
+   line height of 1.4, and a reaction counts as 1.4em of that -- so a first reaction changes the
+   height of no bubble, and nothing below it moves. It is drawn 1.8em high: what is over hangs
+   into the room the bubble has around the line anyway, a little above (the line's own gap to the
+   words) and more below (the bubble's padding). A short message's bubble grows wider by them,
+   towards the free side. Where they are more than the widest bubble holds in a line -- four
+   different ones or more, in a group on a narrow phone -- they break into a second one, and
+   that bubble does grow. */
+.chat-bubble-reactions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em 0.2rem;
+  margin-right: auto;
+  padding-right: 0.35rem;
+  user-select: none;
+}
+
+.chat-bubble-reaction {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  height: 1.8em;
+  margin: -0.15em 0 -0.25em;
+  padding: 0 0.35rem;
+  border-radius: 0.9em;
+  background: rgb(127 127 127 / 16%);
+  line-height: 1;
+}
+
+/* One's own: a rim of gold -- drawn inside, so that it adds no size. The gold of the menus' signs
+   (`--menu-icon`), which changes with the mode: the rim is all that tells the eye which
+   reaction is one's own, and the plain gold came to 2.6 : 1 on the light bubbles and to 2.2 on
+   the reaction's own grey. This one is 3.6 and 3.1 there, 6.2 and 5.2 on the dark ones
+   (measured 11.10.2026). */
+.chat-bubble-reaction.is-mine {
+  box-shadow: inset 0 0 0 1.5px var(--menu-icon, #a8732a);
+}
+
+/* The device's own coloured drawing, asked for by name (as EmojiPicker has it): 1.5em of the
+   line's 0.7rem, a little larger than an emoji among the message's words. */
+.chat-bubble-reaction-emoji {
+  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+  font-size: 1.5em;
+  line-height: 1;
+}
+
+.chat-bubble-reaction-count {
+  font-variant-numeric: tabular-nums;
+}
+
+/* What else is in the foot line keeps its width beside the reactions: without this the hour gave
+   way to them and broke between its digits (measured 11.10.2026, a group at 320 px). */
+.chat-bubble-mailed,
+.chat-bubble-edited,
+.chat-bubble-time {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
 .chat-bubble-mailed {
   display: inline-flex;
   font-size: 0.85rem;
@@ -1168,6 +1441,15 @@ const copyText = async () => {
 .dark-mode .chat-bubble-forwarded,
 .dark-mode .chat-bubble-quote-text {
   color: var(--bs-body-color);
+}
+
+/* In the foot line the 75 % are for its quiet words, not for the reactions in it: drawn at three
+   quarters, a thumb is a dim thumb -- so each of the others carries them, and not the line. */
+.dark-mode .chat-bubble-meta > :not(.chat-bubble-reactions),
+.dark-mode .chat-bubble-state,
+.dark-mode .chat-bubble-not-mailed,
+.dark-mode .chat-bubble-forwarded,
+.dark-mode .chat-bubble-quote-text {
   opacity: 0.75;
 }
 

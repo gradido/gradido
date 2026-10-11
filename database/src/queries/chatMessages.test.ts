@@ -21,10 +21,12 @@ import {
   dbSelectChatMessagesByUuids,
   dbSelectChatMessagesEditedAfter,
   dbSelectChatMessagesPage,
+  dbSelectChatMessagesReactedAfter,
   dbSelectChatMessagesSince,
   dbUpdateChatMessageBody,
   dbUpdateChatMessageDelivery,
   dbUpdateChatMessageMailState,
+  dbUpdateChatMessageReactedAt,
 } from './chatMessages'
 
 const appDB = AppDatabase.getInstance()
@@ -924,6 +926,228 @@ describe('dbSelectChatMessagesEditedAfter', () => {
     await expect(
       dbSelectChatMessagesEditedAfter(LENA, { after: { editedAt: at(0), id: -1 }, limit: 50 }),
     ).rejects.toThrow('message id')
+  })
+})
+
+/**
+ * Where the reactions changed for one member (migration 0158): the stamp a reaction leaves on its
+ * message, and the read by that stamp. The read is the one behind dbSelectChatMessagesEditedAfter
+ * -- its order, its cap and its going on are held there; here, that it goes by the OTHER clock,
+ * and who may leave the stamp.
+ */
+describe('dbUpdateChatMessageReactedAt and dbSelectChatMessagesReactedAfter', () => {
+  const pair = (): ChatMemberRef => ({ communityUuid: HOME, gradidoId: uuidv4() })
+  const LENA = pair()
+  const MAX = pair()
+  const NIKO = pair()
+  // Lena and Max; and Max and Niko, which Lena is not in.
+  const WITH_MAX = 871
+  const WITHOUT_LENA = 872
+  const at = (second: number, ms = 0) => new Date(Date.UTC(2026, 8, 2, 9, 0, second, ms))
+  // The messages in the order they arrive: conversation, sender, text, when the reactions to it
+  // changed, and when its text was -- the two clocks set apart, so that a read by the wrong one
+  // hands out another order.
+  const ARRIVALS: [number, ChatMemberRef, string, Date | null, Date | null][] = [
+    [WITH_MAX, LENA, 'Lena to Max, reacted to last', at(40), at(5)],
+    [WITHOUT_LENA, MAX, 'Max to Niko, reacted to', at(15), null],
+    [WITH_MAX, MAX, 'Max to Lena, text changed only', null, at(30)],
+    [WITH_MAX, MAX, 'Max to Lena, reacted to first', at(10), at(50)],
+    [WITH_MAX, LENA, 'Lena to Max, deleted later', at(20), null],
+    [WITH_MAX, MAX, 'Max to Lena, in the same moment', at(40), null],
+    [WITH_MAX, MAX, 'Max to Lena, untouched', null, null],
+  ]
+  let filed: ChatMessageSelect[]
+
+  const bodiesOf = (messages: ChatMessageSelect[]) => messages.map((m) => m.body)
+  const from = (moment: Date, member = LENA, limit = 50) =>
+    dbSelectChatMessagesReactedAfter(member, { after: { editedAt: moment, id: 0 }, limit })
+  const rowOf = async (id: number): Promise<ChatMessageSelect> => {
+    const rows = await db.select().from(chatMessagesTable).where(eq(chatMessagesTable.id, id))
+    return rows[0]
+  }
+
+  beforeAll(async () => {
+    await dbInsertChatConversationMembers(WITH_MAX, [LENA, MAX])
+    await dbInsertChatConversationMembers(WITHOUT_LENA, [MAX, NIKO])
+    filed = []
+    for (const [conversationId, sender, body, reactedAt, editedAt] of ARRIVALS) {
+      const stored = await dbInsertChatMessage(
+        message(uuidv4(), {
+          conversationId,
+          senderCommunityUuid: sender.communityUuid,
+          senderGradidoId: sender.gradidoId,
+          subject: null,
+          body,
+        }),
+      )
+      if (!stored.success) {
+        throw new Error(`fixture: "${body}" was not filed`)
+      }
+      filed.push(stored.value)
+      if (reactedAt || editedAt) {
+        await db
+          .update(chatMessagesTable)
+          .set({ reactedAt, editedAt })
+          .where(eq(chatMessagesTable.id, stored.value.id))
+      }
+    }
+    await db
+      .update(chatMessagesTable)
+      .set({ deletedAt: new Date() })
+      .where(eq(chatMessagesTable.id, filed[4].id))
+  })
+
+  afterAll(async () => {
+    await db
+      .delete(chatConversationMembersTable)
+      .where(inArray(chatConversationMembersTable.conversationId, [WITH_MAX, WITHOUT_LENA]))
+  })
+
+  it('files a message without a moment of reactions', () => {
+    expect(filed[6].reactedAt).toBeNull()
+  })
+
+  // ⛔ By `reacted_at`, not by `edited_at`: read by the text's clock, the first message would
+  // come first and the one whose text alone was changed would be among them.
+  it('hands out the messages whose reactions changed, in the order that happened', async () => {
+    const changes = await from(at(0))
+    expect(bodiesOf(changes.messages)).toEqual([
+      'Max to Lena, reacted to first',
+      'Lena to Max, reacted to last',
+      'Max to Lena, in the same moment',
+    ])
+    expect(changes.messages.map((m) => m.reactedAt)).toEqual([at(10), at(40), at(40)])
+    expect(changes.hasMore).toBe(false)
+  })
+
+  it('never hands out a message whose text alone was changed, or one nobody touched', async () => {
+    const bodies = bodiesOf((await from(at(0))).messages)
+    expect(bodies).not.toContain('Max to Lena, text changed only')
+    expect(bodies).not.toContain('Max to Lena, untouched')
+  })
+
+  it('never hands out a message of a conversation the member is not in', async () => {
+    expect(bodiesOf((await from(at(0))).messages)).not.toContain('Max to Niko, reacted to')
+    // Niko gets it, and nothing of the conversation of Lena and Max.
+    expect(bodiesOf((await from(at(0), NIKO)).messages)).toEqual(['Max to Niko, reacted to'])
+  })
+
+  it('leaves out a message marked deleted', async () => {
+    expect(bodiesOf((await from(at(0))).messages)).not.toContain('Lena to Max, deleted later')
+  })
+
+  it('goes on exactly after one message, also within its own moment, and caps the answer', async () => {
+    const [first, lena, max] = (await from(at(0))).messages
+    const after = (message: ChatMessageSelect, limit = 50) =>
+      dbSelectChatMessagesReactedAfter(LENA, {
+        after: { editedAt: message.reactedAt as Date, id: message.id },
+        limit,
+      })
+    expect(bodiesOf((await after(first)).messages)).toEqual([
+      'Lena to Max, reacted to last',
+      'Max to Lena, in the same moment',
+    ])
+    expect(bodiesOf((await after(lena)).messages)).toEqual(['Max to Lena, in the same moment'])
+    expect(await after(max)).toEqual({ messages: [], hasMore: false })
+
+    const capped = await from(at(0), LENA, 2)
+    expect(bodiesOf(capped.messages)).toEqual([
+      'Max to Lena, reacted to first',
+      'Lena to Max, reacted to last',
+    ])
+    expect(capped.hasMore).toBe(true)
+  })
+
+  it('refuses a cap below one, a moment that is none and an id below zero, under its own name', async () => {
+    await expect(from(at(0), LENA, 0)).rejects.toThrow(
+      'dbSelectChatMessagesReactedAfter: 0 is not a page size',
+    )
+    await expect(from(new Date('no moment'))).rejects.toThrow('not a moment')
+    await expect(
+      dbSelectChatMessagesReactedAfter(LENA, { after: { editedAt: at(0), id: -1 }, limit: 50 }),
+    ).rejects.toThrow('message id')
+  })
+
+  // The two clocks are one: what the stamp writes is found from the moment
+  // dbSelectChatUnreadSummary read just before it -- and it moves nothing else on the row.
+  it('stamps a message for a member of its conversation, by the clock the beat reads', async () => {
+    const before = await rowOf(filed[6].id)
+    const { now } = await dbSelectChatUnreadSummary(LENA)
+
+    expect(await dbUpdateChatMessageReactedAt(filed[6].id, LENA)).toEqual({ success: true })
+
+    const stamped = await rowOf(filed[6].id)
+    expect(stamped.reactedAt).toBeInstanceOf(Date)
+    expect((stamped.reactedAt as Date).getTime()).toBeGreaterThanOrEqual(now.getTime())
+    expect({ ...stamped, reactedAt: null }).toEqual(before)
+    const found = await from(now)
+    expect(bodiesOf(found.messages)).toEqual(['Max to Lena, untouched'])
+    // Max, the other member of that conversation, is told as well.
+    expect(bodiesOf((await from(now, MAX)).messages)).toEqual(['Max to Lena, untouched'])
+  })
+
+  it('stamps again for the next change, later than before', async () => {
+    const first = (await rowOf(filed[6].id)).reactedAt as Date
+    expect(await dbUpdateChatMessageReactedAt(filed[6].id, MAX)).toEqual({ success: true })
+    expect(((await rowOf(filed[6].id)).reactedAt as Date).getTime()).toBeGreaterThan(
+      first.getTime(),
+    )
+  })
+
+  // ⛔ The rule is in the statement: somebody who is not in the conversation leaves no stamp.
+  it('stamps nothing for somebody who is not in the conversation of the message', async () => {
+    const before = await rowOf(filed[3].id)
+    const refused = await dbUpdateChatMessageReactedAt(filed[3].id, NIKO)
+    expect(refused.success).toBe(false)
+    expect(!refused.success && refused.error.name).toBe('DBNotFoundError')
+    expect(await rowOf(filed[3].id)).toEqual(before)
+    // Not for somebody in no conversation at all either.
+    expect((await dbUpdateChatMessageReactedAt(filed[3].id, pair())).success).toBe(false)
+    expect(await rowOf(filed[3].id)).toEqual(before)
+  })
+
+  it('stamps nothing on a message marked deleted, and reports an id without a row', async () => {
+    const before = await rowOf(filed[4].id)
+    expect((await dbUpdateChatMessageReactedAt(filed[4].id, LENA)).success).toBe(false)
+    expect(await rowOf(filed[4].id)).toEqual(before)
+    expect((await dbUpdateChatMessageReactedAt(4_000_000_000, LENA)).success).toBe(false)
+  })
+
+  it('finds the member whatever the case of the pair, as the columns compare', async () => {
+    const shouting = { communityUuid: HOME.toUpperCase(), gradidoId: MAX.gradidoId.toUpperCase() }
+    expect(await dbUpdateChatMessageReactedAt(filed[3].id, shouting)).toEqual({ success: true })
+  })
+
+  /**
+   * ⛔ Always later than the moment the row had (11.10.2026). The clock the statement reads is
+   * the moment it began, not the moment it got the row: with two members in one millisecond, or
+   * with a clock set back, a later state of the reactions had the same moment as the one before
+   * it, or an earlier one -- and a wallet passes over what is earlier than what it holds.
+   */
+  it('stamps a moment later than the one the message had, whatever the clock says', async () => {
+    // A moment the clock has not reached: an hour ahead, as it is after a clock was set back.
+    const ahead = new Date(Math.floor(Date.now() / 1000) * 1000 + 3_600_123)
+    await db
+      .update(chatMessagesTable)
+      .set({ reactedAt: ahead })
+      .where(eq(chatMessagesTable.id, filed[6].id))
+
+    expect(await dbUpdateChatMessageReactedAt(filed[6].id, LENA)).toEqual({ success: true })
+    expect((await rowOf(filed[6].id)).reactedAt).toEqual(new Date(ahead.getTime() + 1))
+
+    expect(await dbUpdateChatMessageReactedAt(filed[6].id, MAX)).toEqual({ success: true })
+    expect((await rowOf(filed[6].id)).reactedAt).toEqual(new Date(ahead.getTime() + 2))
+  })
+
+  it('gives each of many stamps in a row a moment of its own, later than the one before', async () => {
+    const moments: number[] = []
+    for (let i = 0; i < 25; i++) {
+      expect((await dbUpdateChatMessageReactedAt(filed[3].id, i % 2 ? LENA : MAX)).success).toBe(
+        true,
+      )
+      moments.push(((await rowOf(filed[3].id)).reactedAt as Date).getTime())
+    }
+    expect(moments.filter((moment, i) => i > 0 && moment <= moments[i - 1])).toEqual([])
   })
 })
 

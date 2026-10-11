@@ -706,6 +706,25 @@ export const editChatMessage = gql`
   }
 `
 
+/** A member's reaction to a chat message, set or taken back (migration 0158). */
+export const setChatMessageReaction = gql`
+  mutation ($messageUuid: String!, $emoji: String) {
+    setChatMessageReaction(messageUuid: $messageUuid, emoji: $emoji) {
+      id
+      messageUuid
+      mine
+      body
+      editedAt
+      reactedAt
+      reactions {
+        emoji
+        count
+        mine
+      }
+    }
+  }
+`
+
 export const createChatGroup = gql`
   mutation ($title: String!, $members: [MemberAvatarRefInput!]!) {
     createChatGroup(title: $title, members: $members) {

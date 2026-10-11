@@ -97,6 +97,7 @@ const row = (rest: Partial<ChatMessageSelect> = {}): ChatMessageSelect => ({
   delaySeconds: null,
   createdAt: new Date('2026-09-30T14:28:00.000Z'),
   editedAt: null,
+  reactedAt: null,
   deletedAt: null,
   ...rest,
 })

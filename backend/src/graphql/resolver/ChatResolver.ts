@@ -22,6 +22,7 @@ import {
   dbSelectChatMessageImageForMember,
   dbSelectChatMessagesEditedAfter,
   dbSelectChatMessagesPage,
+  dbSelectChatMessagesReactedAfter,
   dbSelectChatMessagesSince,
   dbSelectChatUnreadSummary,
   dbUpdateChatConversationMemberLastRead,
@@ -188,11 +189,16 @@ export class ChatResolver {
    * after the last message handed out (nextChatEditsPosition). ⚠️ What that leaves open: a change
    * that takes longer than those seconds to be committed, and a thread the wallet loaded more
    * than those seconds before its first answer here. Either shows when the thread loads again.
+   *
+   * With `reactedCursor` (migration 0158): the messages whose reactions were changed since the
+   * place it names, and `reactedCursor` in the answer -- the same way by the other clock
+   * (`reacted_at`), with the same room to spare and the same going on over the cap. A cursor of
+   * its own: a wallet from before the reactions sends none and is handed none.
    */
   @Authorized([RIGHTS.READ_OWN_CHAT])
   @Query(() => ChatUpdate)
   async newChatMessagesSince(
-    @Args() { afterId, limit, editedCursor }: NewChatMessagesSinceArgs,
+    @Args() { afterId, limit, editedCursor, reactedCursor }: NewChatMessagesSinceArgs,
     @Ctx() context: Context,
   ): Promise<ChatUpdate> {
     // ⛔ Counted in the HTTP request's budget before anything is looked up, as the pages are: a
@@ -221,8 +227,16 @@ export class ChatResolver {
             after: chatEditsPosition(editedCursor),
             limit: cap,
           })
+    const reactions =
+      reactedCursor === null || reactedCursor === undefined
+        ? nothing
+        : await dbSelectChatMessagesReactedAfter(caller, {
+            after: chatEditsPosition(reactedCursor),
+            limit: cap,
+          })
     const last = news.messages[news.messages.length - 1]
     const lastChanged = changes.messages[changes.messages.length - 1]
+    const lastReacted = reactions.messages[reactions.messages.length - 1]
     return new ChatUpdate(
       // The last one handed out -- under hasMore not the highest there is, so that the next call
       // goes on right after it.
@@ -236,6 +250,17 @@ export class ChatResolver {
           settled,
           changes.hasMore && lastChanged?.editedAt
             ? { editedAt: lastChanged.editedAt, id: lastChanged.id }
+            : null,
+        ),
+      ),
+      await chatMessagesOf(reactions.messages, caller),
+      // A place in the order of the other clock: the moment is the reactions', in the field the
+      // place of a changed text has it in.
+      chatEditsCursor(
+        nextChatEditsPosition(
+          settled,
+          reactions.hasMore && lastReacted?.reactedAt
+            ? { editedAt: lastReacted.reactedAt, id: lastReacted.id }
             : null,
         ),
       ),

@@ -22,6 +22,7 @@ import { holdChatText } from '@/utils/chatReturn'
 const beat = vi.hoisted(() => ({
   listeners: new Set(),
   editedListeners: new Set(),
+  reactedListeners: new Set(),
   pollNow: vi.fn(async () => {}),
 }))
 vi.mock('@/composables/useChatUpdates', () => ({
@@ -33,6 +34,10 @@ vi.mock('@/composables/useChatUpdates', () => ({
     beat.editedListeners.add(listener)
     return () => beat.editedListeners.delete(listener)
   },
+  onChatMessagesReacted: (listener) => {
+    beat.reactedListeners.add(listener)
+    return () => beat.reactedListeners.delete(listener)
+  },
   pollChatNow: (...args) => beat.pollNow(...args),
 }))
 const beatBrings = async (...chatMessages) => {
@@ -41,6 +46,10 @@ const beatBrings = async (...chatMessages) => {
 }
 const beatChanges = async (...edited) => {
   for (const listener of [...beat.editedListeners]) listener(edited)
+  await flushPromises()
+}
+const beatReacts = async (...reacted) => {
+  for (const listener of [...beat.reactedListeners]) listener(reacted)
   await flushPromises()
 }
 
