@@ -3,13 +3,18 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { ref } from 'vue'
 import { createStore } from 'vuex'
 import Overview from './Overview.vue'
+import MapInvitationTile from '@/components/Overview/MapInvitationTile'
 import ShowFriendsTile from '@/components/Overview/ShowFriendsTile'
 import { createRouter, createWebHistory } from 'vue-router'
 import { createI18n } from 'vue-i18n'
 
 // Mutable, so each case can say which of the two old services is switched on. Overview reads
 // the flags in computed properties, i.e. at render time.
-const config = vi.hoisted(() => ({ HUMHUB_ACTIVE: false, GMS_LEGACY_ACTIVE: false }))
+const config = vi.hoisted(() => ({
+  HUMHUB_ACTIVE: false,
+  GMS_LEGACY_ACTIVE: false,
+  MATCHING_ACTIVE: false,
+}))
 vi.mock('@/config', () => ({ default: config }))
 
 vi.mock('@/components/Overview/CommunityNews', () => ({
@@ -75,6 +80,7 @@ describe('Overview', () => {
   beforeEach(() => {
     config.HUMHUB_ACTIVE = false
     config.GMS_LEGACY_ACTIVE = false
+    config.MATCHING_ACTIVE = false
     router = createRouter({
       history: createWebHistory(),
       routes: [],
@@ -123,6 +129,31 @@ describe('Overview', () => {
       expect(tile).toBeGreaterThanOrEqual(0)
       expect(tile).toBeLessThan(html.indexOf('class="card-circles"'))
       expect(tile).toBeLessThan(html.indexOf('class="card-user-search"'))
+    })
+  })
+
+  /**
+   * The overview is where a member lands after the first creation, and this tile is the one
+   * thing there that leads to the map. Like the line above, it is wiring: who it shows to
+   * is the tile's own spec, that the page carries it at all is only held here.
+   */
+  describe('the invitation onto the map', () => {
+    // The store of this file names a member and nothing else: no home, no permission.
+    it('stands above everything else for a member who is not on the map', () => {
+      config.MATCHING_ACTIVE = true
+      const page = mountOverview()
+      const html = page.html()
+
+      expect(page.findComponent(MapInvitationTile).exists()).toBe(true)
+      const invitation = html.indexOf('data-test="map-invitation-tile"')
+      expect(invitation).toBeGreaterThanOrEqual(0)
+      expect(invitation).toBeLessThan(html.indexOf('data-test="show-friends-tile"'))
+    })
+
+    it('leaves nothing on the page where matching is switched off', () => {
+      expect(wrapper.html()).not.toContain('data-test="map-invitation-tile"')
+      // The tile for showing Gradido is untouched by it.
+      expect(wrapper.findComponent(ShowFriendsTile).exists()).toBe(true)
     })
   })
 })

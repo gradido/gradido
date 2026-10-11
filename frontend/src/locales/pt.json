@@ -929,9 +929,7 @@
       "later": "Mais tarde",
       "subtitle": "Descobre quem combina contigo",
       "title": "Encontrar no mapa",
-      "titleList": "Encontrar na lista",
-      "toPosition": "Ir para casa",
-      "understood": "Percebido"
+      "titleList": "Encontrar na lista"
     },
     "info": {
       "about": {
@@ -949,6 +947,11 @@
         "p1": "És tu que decides com que precisão apareces. «Aproximada» mostra-te numa área, nunca à tua porta.",
         "p2": "Sem posição não estás no mapa. O interruptor remove-te novamente a qualquer momento."
       }
+    },
+    "invitation": {
+      "go": "Tornar-me visível no mapa",
+      "text": "Marca a tua casa no mapa e vais ver, e os outros veem-te a ti. És tu que decides com que precisão: «Aproximada» mostra-te numa área, nunca à tua porta. E podes sair do mapa a qualquer momento.",
+      "title": "Quem mora perto de ti?"
     },
     "list": {
       "centeredOn": "À volta de {place}",

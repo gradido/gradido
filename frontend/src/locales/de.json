@@ -929,9 +929,7 @@
       "later": "Später",
       "subtitle": "Entdecke, wer zu Dir passt",
       "title": "Auf der Karte finden",
-      "titleList": "In der Liste finden",
-      "toPosition": "Zu meinem Zuhause",
-      "understood": "Verstanden"
+      "titleList": "In der Liste finden"
     },
     "info": {
       "about": {
@@ -949,6 +947,11 @@
         "p1": "Du entscheidest, wie genau Du erscheinst. „Ungefähr“ zeigt Dich im Umkreis — nie auf der Haustür.",
         "p2": "Ohne Position bist Du nicht auf der Karte. Der Schalter nimmt Dich jederzeit wieder heraus."
       }
+    },
+    "invitation": {
+      "go": "Mich auf der Karte zeigen",
+      "text": "Setz Dein Zuhause auf die Karte, dann siehst Du es — und die anderen sehen Dich. Du entscheidest, wie genau: „Ungefähr“ zeigt Dich im Umkreis, nie auf der Haustür. Und Du kannst jederzeit wieder raus.",
+      "title": "Wer wohnt in Deiner Nähe?"
     },
     "list": {
       "centeredOn": "Umkreis um {place}",

@@ -929,9 +929,7 @@
       "later": "Più tardi",
       "subtitle": "Scopri chi è in sintonia con te",
       "title": "Trova sulla mappa",
-      "titleList": "Trova nella lista",
-      "toPosition": "Vai a casa mia",
-      "understood": "Capito"
+      "titleList": "Trova nella lista"
     },
     "info": {
       "about": {
@@ -949,6 +947,11 @@
         "p1": "Decidi tu con quanta precisione appari. «Approssimativa» ti mostra in un'area, mai davanti alla porta di casa.",
         "p2": "Senza posizione non sei sulla mappa. L'interruttore ti rimuove di nuovo in qualsiasi momento."
       }
+    },
+    "invitation": {
+      "go": "Rendimi visibile sulla mappa",
+      "text": "Segna la tua casa sulla mappa e lo vedrai, e gli altri vedranno te. Decidi tu con quanta precisione: «Approssimativa» ti mostra in un'area, mai davanti alla porta di casa. E puoi toglierti dalla mappa in qualsiasi momento.",
+      "title": "Chi abita vicino a te?"
     },
     "list": {
       "centeredOn": "Intorno a {place}",

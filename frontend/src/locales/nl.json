@@ -929,9 +929,7 @@
       "later": "Later",
       "subtitle": "Ontdek wie bij je past",
       "title": "Vinden op de kaart",
-      "titleList": "In de lijst vinden",
-      "toPosition": "Naar Thuis",
-      "understood": "Begrepen"
+      "titleList": "In de lijst vinden"
     },
     "info": {
       "about": {
@@ -949,6 +947,11 @@
         "p1": "Jij bepaalt hoe precies je verschijnt. 'Ongeveer' toont je binnen een omgeving, nooit aan je voordeur.",
         "p2": "Zonder positie sta je niet op de kaart. De schakelaar haalt je op elk moment weer weg."
       }
+    },
+    "invitation": {
+      "go": "Mezelf op de kaart tonen",
+      "text": "Zet je thuis op de kaart, dan zie je het — en de anderen zien jou. Jij bepaalt hoe precies: 'Ongeveer' toont je binnen een omgeving, nooit aan je voordeur. En je kunt er op elk moment weer af.",
+      "title": "Wie woont er bij jou in de buurt?"
     },
     "list": {
       "centeredOn": "Rondom {place}",

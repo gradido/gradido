@@ -184,7 +184,11 @@
            settings page. Coordinates readout hidden to keep the map compact.
            Dragging only remembers — a map is easy to touch by accident, and a
            stray touch must not move where you live. Saving is the button below. -->
-      <div class="bg-white app-box-shadow gradido-border-radius p-2 my-3">
+      <div
+        class="bg-white app-box-shadow gradido-border-radius p-2 my-3"
+        :inert="positionSaving"
+        data-test="position-control"
+      >
         <UserLocationMap
           v-if="userLocationLoaded"
           :user-marker-coords="userLocation"
@@ -197,7 +201,11 @@
 
       <!-- Accuracy — right-aligned below the map (self-explanatory: "exact" /
            "approximate", so no label needed). Deferred like everything here. -->
-      <div class="d-flex justify-content-end mt-3 page-text">
+      <div
+        class="d-flex justify-content-end mt-3 page-text"
+        :inert="positionSaving"
+        data-test="position-control"
+      >
         <UserGMSLocationFormat
           defer
           :exact-toast="$t('matching.position.accuracyExact')"
@@ -208,12 +216,16 @@
 
       <!-- Findable toggle — title on the switch's line, hint below as explanation. Without
            a home it is held, and the hint says what is missing. -->
-      <div class="border-top mt-4 pt-3 page-text">
+      <div
+        class="border-top mt-4 pt-3 page-text"
+        :inert="positionSaving"
+        data-test="position-control"
+      >
         <div class="d-flex align-items-center justify-content-end gap-3">
           <span class="fw-bold">{{ $t('matching.position.findable') }}</span>
           <UserSettingsSwitch
             defer
-            :initial-value="store.state.gmsAllowed"
+            :initial-value="findableAfterSave"
             attr-name="gmsAllowed"
             :label="$t('matching.position.findable')"
             :locked="findableLocked"
@@ -357,15 +369,19 @@
         <p class="mb-0">{{ $t('matching.find.gateText') }}</p>
       </template>
       <template #footer>
-        <BButton variant="secondary" @click="showFind = false">
-          {{ $t('matching.find.later') }}
-        </BButton>
-        <BButton v-if="tab === 'position'" variant="gradido" @click="showFind = false">
-          {{ $t('matching.find.understood') }}
-        </BButton>
-        <BButton v-else variant="gradido" @click="goPositionFromFind">
-          {{ $t('matching.find.toPosition') }}
-        </BButton>
+        <!-- One row where both fit. Where they do not -- a phone, or a language with longer
+             words -- the way on stands above "later": see .find-gate-buttons. -->
+        <div class="find-gate-buttons">
+          <BButton variant="secondary" data-test="find-gate-later" @click="showFind = false">
+            {{ $t('matching.find.later') }}
+          </BButton>
+          <!-- The button of the tile on the overview, and the same yes: the home tab with
+               "findable" switched on. On the home tab itself it is still the thing to press --
+               the window closes and the switch below it stands on. -->
+          <BButton variant="gradido" data-test="find-gate-show-me" @click="showMeFromFind">
+            {{ $t('matching.invitation.go') }}
+          </BButton>
+        </div>
       </template>
     </BModal>
 
@@ -431,6 +447,7 @@ import {
   mayFind,
 } from '@/utils/matchingPosition'
 import { mapPrefPrefix } from '@/utils/matchingPrefs'
+import { SHOW_ME_ON_THE_MAP, saidShowMe } from '@/utils/showMeOnTheMap'
 import UserGMSLocationFormat from '@/components/UserSettings/UserGMSLocationFormat'
 import UserLocationMap from '@/components/UserSettings/UserLocationMap'
 import UserSettingsSwitch from '@/components/UserSettings/UserSettingsSwitch'
@@ -745,10 +762,41 @@ function clearDrafts() {
   draftFindable.value = null
 }
 
+// A member who pressed "show me on the map" - on the overview's tile or in the window
+// behind the find button - arrives having said yes, and the switch says so: it stands on,
+// as a draft like any other on this tab. Nothing is saved by arriving. Without a home the
+// save button stays off and the line under the switch says what is missing; with one, the
+// member still presses save and confirms.
+//
+// Through onPickFindable, like a tap on the switch itself, so a member who is findable
+// already arrives on a clean tab instead of an armed one.
+const showMe = computed(() => saidShowMe(route))
+watch(
+  showMe,
+  (yes) => {
+    if (yes) onPickFindable(true)
+  },
+  { immediate: true },
+)
+
 const showSaveConfirm = ref(false)
+
+// Held while a save is under way. What save sends is what the three controls showed when it
+// was pressed, and its answer replaces the drafts - so a pick made in between was measured
+// against the old state and then thrown away with them. A member who switched "findable"
+// back off in that moment was saved as findable all the same and, having arrived with the
+// yes, carried onto the map (coderabbit on #4124). Nothing can be picked until the answer
+// is in.
+//
+// `inert` on the map, the accuracy and the switch, the way the map page holds its map: no
+// dimming for the fraction of a second this usually takes. Not on the save button - the
+// confirm window hands the focus back to it.
+const positionSaving = ref(false)
 
 async function confirmSavePosition() {
   showSaveConfirm.value = false
+  // Confirmed a second time before the first answer: it is on its way already.
+  if (positionSaving.value) return
   // One mutation for whatever changed: three separate saves could half-succeed
   // and leave the user guessing which half.
   const variables = {}
@@ -762,6 +810,7 @@ async function confirmSavePosition() {
   if (draftFindable.value !== null) variables.gmsAllowed = draftFindable.value
   if (!Object.keys(variables).length) return
 
+  positionSaving.value = true
   try {
     await saveLocation(variables)
     if (variables.gmsLocation) {
@@ -774,6 +823,11 @@ async function confirmSavePosition() {
     if (variables.gmsAllowed !== undefined) store.commit('gmsAllowed', variables.gmsAllowed)
     clearDrafts()
     toastSuccess(t('settings.GMS.location.updateSuccess'))
+    // Whoever came here to be shown on the map is on it now, and the map is what they
+    // came for. Read after the answer, not before the request: a member who has moved on
+    // to another tab in the meantime is no longer asking for it, and one who switched
+    // "findable" back off before saving has only saved a home.
+    if (showMe.value && mayFind(store.state)) router.push('/matching/karte')
   } catch (error) {
     // This page does not send findable without a home: the switch holds and save stays off.
     // The rule is the server's all the same, and should the two ever read a home
@@ -783,6 +837,8 @@ async function confirmSavePosition() {
         ? t('matching.position.needsHome')
         : error.message,
     )
+  } finally {
+    positionSaving.value = false
   }
 }
 
@@ -830,9 +886,13 @@ function openFind() {
   }
   showFind.value = true
 }
-function goPositionFromFind() {
+function showMeFromFind() {
   showFind.value = false
-  goTab('position')
+  // Here with the yes in the address already, the address has nowhere to go, so the arrival
+  // above does not run a second time - and the member may have switched it back off since.
+  // The button says it shows them on the map; it does what the arrival would have done.
+  if (showMe.value) onPickFindable(true)
+  else router.push(SHOW_ME_ON_THE_MAP)
 }
 </script>
 
@@ -843,6 +903,33 @@ function goPositionFromFind() {
    Bootstrap utilities). */
 .matching-page {
   color: #383838;
+}
+
+/* The two buttons of the window behind the find button. "Show me on the map" is longer than
+   the "to my home" it replaced, and on a phone the two no longer fit on one row (measured at
+   390px: buttons of 92 and 317px in a window of 374). A footer that wraps the ordinary way then puts "later" on a row
+   of its own ABOVE the way on. wrap-reverse stacks the rows from the bottom instead, so the
+   second button -- the way on -- stands on top, and where both fit nothing changes.
+
+   An element of this page and not a class on the footer: the window teleports, and the
+   footer is the library's own element, which a scoped rule does not reach. */
+.find-gate-buttons {
+  display: flex;
+  flex: 1 1 0%;
+  flex-wrap: wrap-reverse;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+/* And on its own row the long label still broke in two below 381px, where the house
+   button's 50px at each side no longer leave it 217px. The rule of the tile on the overview
+   (MapInvitationTile.vue), for the same button. */
+@media (width < 400px) {
+  .find-gate-buttons :deep(.btn-gradido) {
+    padding-right: 1rem !important;
+    padding-left: 1rem !important;
+  }
 }
 
 /* Find-map jump-off button (header, top-right of the content column) */
