@@ -22,7 +22,8 @@ import {
   sendChatMessage,
   setChatMessageReaction,
 } from '@/graphql/chat.graphql'
-import { transactionsQuery } from '@/graphql/transactions.graphql'
+import { setTransactionReaction, transactionsQuery } from '@/graphql/transactions.graphql'
+import { onTransactionReaction, reactToTransaction } from '@/composables/useTransactionReactions'
 
 /**
  * The chat's beat as the thread sees it: whoever listens -- for the messages that arrived, and for
@@ -259,10 +260,44 @@ vi.mock('@vue/apollo-composable', async () => {
           options.query === transactionsQuery
             ? bookingsAsked(options)
             : Promise.reject(new Error('no server for this question')),
+        // The reaction to a transfer (Bernd, 11.10.2026) goes by the client itself
+        // (reactToTransaction): what the server answers, a test says.
+        mutate: (options) => bookingReacts(options),
       },
     }),
   }
 })
+
+/**
+ * How often a thread began and stopped listening for reactions to transfers set elsewhere: the
+ * module's own function, counted on its way through.
+ */
+const transferListening = vi.hoisted(() => ({ begun: 0, stopped: 0 }))
+vi.mock('@/composables/useTransactionReactions', async (original) => {
+  const real = await original()
+  return {
+    ...real,
+    onTransactionReaction: (listener) => {
+      transferListening.begun += 1
+      const stop = real.onTransactionReaction(listener)
+      return () => {
+        transferListening.stopped += 1
+        stop()
+      }
+    },
+  }
+})
+
+/**
+ * What the server answers to `setTransactionReaction`: by default the emoji it was sent, as the
+ * real one does. Called with what the client was asked.
+ */
+const bookingReacts = vi.fn()
+const bookingReactsAsAsked = () =>
+  bookingReacts.mockImplementation(async ({ variables }) => ({
+    data: { setTransactionReaction: variables.emoji },
+  }))
+bookingReactsAsAsked()
 
 const LENA = { communityUuid: 'home-uuid', gradidoID: 'lena-id' }
 
@@ -5229,6 +5264,499 @@ describe('ChatThread, the reactions to messages', () => {
 
       wrapper.unmount()
       expect(beat.reactedListeners.size).toBe(before)
+    })
+  })
+})
+
+/**
+ * The reaction to a transfer (Bernd, 11.10.2026): the emoji its recipient answered it with
+ * stands at the booking's bubble, for both of the two, and the recipient sets it there -- by the
+ * booking list's rule, not by the chat's: the server says with the booking whether the member
+ * may, and the reaction goes by the id of their own booking.
+ */
+describe('ChatThread, the reaction to a transfer', () => {
+  let wrapper
+
+  const THUMB = '👍'
+  const HEART = '❤️'
+  const AT = '2026-09-22T10:01:30.000Z'
+  const LATER = '2026-09-22T10:04:30.000Z'
+  /** What the member received from Lena, and may react to; and what they sent her. */
+  const received = (n, extra = {}) => ({
+    ...booking(n, { at: AT }),
+    reaction: null,
+    canReact: true,
+    ...extra,
+  })
+  const sent = (n, extra = {}) => ({
+    ...booking(n, { at: LATER, sent: true }),
+    reaction: null,
+    canReact: false,
+    ...extra,
+  })
+
+  const mountThread = (member = LENA) => {
+    wrapper = mount(ChatThread, {
+      props: { member, alias: 'Lena' },
+      global: { stubs: { BModal: true } },
+    })
+    return wrapper
+  }
+  const arriveWith = async (...bookings) => {
+    bookingsAsked.mockImplementation(async () => bookingsPage(bookings))
+    mountThread()
+    server.result.value = { chatMessagesWithMember: page([1, 2, 3, 4, 5]) }
+    server.loading.value = false
+    await flushPromises()
+  }
+  const bubbleOf = (transactionId) =>
+    wrapper
+      .findAllComponents({ name: 'ChatBubble' })
+      .find((bubble) => bubble.props('message').transactionId === transactionId)
+  const drawn = (transactionId) => bubbleOf(transactionId).props('message')
+  const press = async (transactionId, emoji) => {
+    await bubbleOf(transactionId).vm.$emit('react', { message: drawn(transactionId), emoji })
+    await flushPromises()
+  }
+  const status = () => wrapper.find('[data-test="chat-thread-sent"]')
+
+  afterEach(() => {
+    wrapper?.unmount()
+    markRead.mockClear()
+    bookingsAsked.mockReset()
+    noBookings()
+    bookingReacts.mockReset()
+    bookingReactsAsAsked()
+    serverReacts.mockReset()
+    delete storeState.communityUuid
+    toasts.success.length = 0
+    toasts.error.length = 0
+    beat.pollNow.mockClear()
+  })
+
+  describe('at the bubble', () => {
+    it('hands the booking’s reaction on in the shape a message’s have: the recipient’s own, the sender’s the other person’s', async () => {
+      await arriveWith(sent(8, { reaction: HEART }), received(7, { reaction: THUMB }))
+
+      expect(drawn(7).reactions).toEqual([{ emoji: THUMB, count: 1, mine: true }])
+      expect(drawn(8).reactions).toEqual([{ emoji: HEART, count: 1, mine: false }])
+    })
+
+    it('hands on none for a transfer nobody reacted to, and for a server that says nothing of it', async () => {
+      const { reaction: _reaction, canReact: _canReact, ...older } = received(9)
+      await arriveWith(sent(8), received(7), { ...older, balanceDate: '2026-09-22T10:00:10.000Z' })
+
+      expect(drawn(7).reactions).toEqual([])
+      expect(drawn(8).reactions).toEqual([])
+      expect(drawn(9).reactions).toEqual([])
+      expect(drawn(9).canReact).toBe(false)
+    })
+
+    // ⛔ The server's word, as it came with the booking -- and nothing but a plain yes.
+    it('says the member may react where the booking says so, and nowhere else', async () => {
+      await arriveWith(sent(8), received(7), {
+        ...received(6, { canReact: 'yes' }),
+        balanceDate: '2026-09-22T10:00:10.000Z',
+      })
+
+      expect(drawn(7).canReact).toBe(true)
+      expect(drawn(8).canReact).toBe(false)
+      expect(drawn(6).canReact).toBe(false)
+    })
+
+    // Not the thread's word about its messages: with a person of another community no message
+    // gets a reaction, and the booking says of itself what goes.
+    it('does not go by what the thread offers for its messages', async () => {
+      storeState.communityUuid = 'home-uuid'
+      bookingsAsked.mockImplementation(async () => bookingsPage([received(7)]))
+      mountThread({ communityUuid: 'other-uuid', gradidoID: 'lena-id' })
+      server.result.value = { chatMessagesWithMember: page([1, 2]) }
+      server.loading.value = false
+      await flushPromises()
+
+      const message = wrapper
+        .findAllComponents({ name: 'ChatBubble' })
+        .find((bubble) => bubble.props('message').id === 1)
+      expect(message.props('canReact')).toBe(false)
+      expect(drawn(7).canReact).toBe(true)
+    })
+  })
+
+  describe('a press on an emoji', () => {
+    it('sends the reaction by the id of the booking, past the cache -- and not as a reaction to a message', async () => {
+      await arriveWith(sent(8), received(7))
+
+      await press(7, THUMB)
+
+      expect(bookingReacts.mock.calls).toEqual([
+        [
+          {
+            mutation: setTransactionReaction,
+            variables: { transactionId: 7, emoji: THUMB },
+            fetchPolicy: 'no-cache',
+          },
+        ],
+      ])
+      expect(serverReacts).not.toHaveBeenCalled()
+    })
+
+    it('shows it at the bubble, and says so in the thread', async () => {
+      await arriveWith(sent(8), received(7))
+
+      await press(7, THUMB)
+
+      expect(drawn(7).reactions).toEqual([{ emoji: THUMB, count: 1, mine: true }])
+      // The other transfer is left as it was.
+      expect(drawn(8).reactions).toEqual([])
+      expect(status().text()).toBe(`chatThread.reacted ${JSON.stringify({ emoji: THUMB })}`)
+      expect(toasts.error).toEqual([])
+    })
+
+    // ⛔ Read off the booking as the conversation holds it NOW: the bubble's message may be a
+    // moment older.
+    it('takes the reaction back where the emoji is the booking’s already', async () => {
+      await arriveWith(received(7))
+      const asDrawn = drawn(7)
+      await press(7, THUMB)
+
+      await bubbleOf(7).vm.$emit('react', { message: asDrawn, emoji: THUMB })
+      await flushPromises()
+
+      expect(bookingReacts.mock.calls.map(([asked]) => asked.variables)).toEqual([
+        { transactionId: 7, emoji: THUMB },
+        { transactionId: 7, emoji: null },
+      ])
+      expect(drawn(7).reactions).toEqual([])
+      expect(status().text()).toBe('chatThread.reactionTakenBack')
+    })
+
+    it('sends another emoji as it is, and shows that one', async () => {
+      await arriveWith(received(7, { reaction: THUMB }))
+
+      await press(7, HEART)
+
+      expect(bookingReacts.mock.calls[0][0].variables).toEqual({ transactionId: 7, emoji: HEART })
+      expect(drawn(7).reactions).toEqual([{ emoji: HEART, count: 1, mine: true }])
+    })
+
+    // The server's word counts, not what was pressed.
+    it('shows and says what the server answered', async () => {
+      await arriveWith(received(7))
+      bookingReacts.mockImplementation(async () => ({ data: { setTransactionReaction: HEART } }))
+
+      await press(7, THUMB)
+
+      expect(drawn(7).reactions).toEqual([{ emoji: HEART, count: 1, mine: true }])
+      expect(status().text()).toBe(`chatThread.reacted ${JSON.stringify({ emoji: HEART })}`)
+    })
+
+    // ⛔ Only the recipient reacts: a press that came all the same sends nothing.
+    it('sends nothing for a transfer the member sent', async () => {
+      await arriveWith(sent(8, { reaction: HEART }), received(7))
+
+      await press(8, HEART)
+
+      expect(bookingReacts).not.toHaveBeenCalled()
+      expect(drawn(8).reactions).toEqual([{ emoji: HEART, count: 1, mine: false }])
+      expect(status().text()).toBe('')
+      expect(toasts.error).toEqual([])
+    })
+
+    it('sends nothing for a transfer the conversation does not hold', async () => {
+      await arriveWith(received(7))
+
+      await bubbleOf(7).vm.$emit('react', {
+        message: { ...drawn(7), transactionId: 999 },
+        emoji: THUMB,
+      })
+      await flushPromises()
+
+      expect(bookingReacts).not.toHaveBeenCalled()
+    })
+
+    describe('while the reaction is on its way', () => {
+      const waiting = () => {
+        const answers = []
+        bookingReacts.mockImplementation(
+          () => new Promise((resolve, reject) => answers.push({ resolve, reject })),
+        )
+        return answers
+      }
+
+      it('says so to the bubble of that transfer, and to no other', async () => {
+        await arriveWith(sent(8), received(7), {
+          ...received(6),
+          balanceDate: '2026-09-22T10:00:10.000Z',
+        })
+        const answers = waiting()
+
+        await press(7, THUMB)
+        expect(bubbleOf(7).props('reactionUnderway')).toBe(true)
+        expect(bubbleOf(6).props('reactionUnderway')).toBe(false)
+        expect(bubbleOf(8).props('reactionUnderway')).toBe(false)
+        // Nothing is shown before the server has answered.
+        expect(drawn(7).reactions).toEqual([])
+
+        answers[0].resolve({ data: { setTransactionReaction: THUMB } })
+        await flushPromises()
+        expect(bubbleOf(7).props('reactionUnderway')).toBe(false)
+        expect(drawn(7).reactions).toEqual([{ emoji: THUMB, count: 1, mine: true }])
+      })
+
+      // ⛔ A second press would be read off a state that is about to change.
+      it('passes over a second press at the same transfer, and takes one at another', async () => {
+        await arriveWith(received(7), {
+          ...received(6),
+          balanceDate: '2026-09-22T10:00:10.000Z',
+        })
+        const answers = waiting()
+
+        await press(7, THUMB)
+        await press(7, THUMB)
+        await press(6, HEART)
+
+        expect(bookingReacts.mock.calls.map(([asked]) => asked.variables)).toEqual([
+          { transactionId: 7, emoji: THUMB },
+          { transactionId: 6, emoji: HEART },
+        ])
+        answers[0].resolve({ data: { setTransactionReaction: THUMB } })
+        answers[1].resolve({ data: { setTransactionReaction: HEART } })
+        await flushPromises()
+        expect(drawn(7).reactions).toEqual([{ emoji: THUMB, count: 1, mine: true }])
+        expect(drawn(6).reactions).toEqual([{ emoji: HEART, count: 1, mine: true }])
+      })
+
+      // A message's own way is another matter: by its uuid, with a state of its own.
+      it('does not hold a message’s reaction back, nor a message’s a transfer’s', async () => {
+        await arriveWith(received(7))
+        const answers = waiting()
+        serverReacts.mockImplementation(() => new Promise(() => {}))
+        const message = wrapper
+          .findAllComponents({ name: 'ChatBubble' })
+          .find((bubble) => bubble.props('message').id === 1)
+
+        await message.vm.$emit('react', { message: message.props('message'), emoji: THUMB })
+        await press(7, THUMB)
+
+        expect(serverReacts).toHaveBeenCalledTimes(1)
+        expect(bookingReacts).toHaveBeenCalledTimes(1)
+        expect(message.props('reactionUnderway')).toBe(true)
+        expect(bubbleOf(7).props('reactionUnderway')).toBe(true)
+
+        // Which bookings are on their way is held for the whole wallet: the answer lets go.
+        answers[0].resolve({ data: { setTransactionReaction: THUMB } })
+        await flushPromises()
+        expect(bubbleOf(7).props('reactionUnderway')).toBe(false)
+        expect(message.props('reactionUnderway')).toBe(true)
+      })
+
+      // A window closed while the answer was on its way: the reaction is set all the same, and
+      // whoever else holds the booking -- the list under the window -- is told.
+      it('tells whoever else holds the booking when the thread is gone by then, and calls nothing a failure', async () => {
+        await arriveWith(received(7))
+        const answers = waiting()
+        const heard = []
+        const stop = onTransactionReaction((said) => heard.push(said))
+
+        await press(7, THUMB)
+        wrapper.unmount()
+        wrapper = null
+        answers[0].resolve({ data: { setTransactionReaction: THUMB } })
+        await flushPromises()
+
+        expect(heard).toEqual([{ transactionId: 7, reaction: THUMB }])
+        expect(toasts.error).toEqual([])
+        stop()
+      })
+
+      // What failed is still said -- the reaction the member pressed is not there.
+      it('still says that the reaction was not saved when the thread is gone by then', async () => {
+        await arriveWith(received(7))
+        const answers = waiting()
+
+        await press(7, THUMB)
+        wrapper.unmount()
+        wrapper = null
+        answers[0].reject(new Error('Network error'))
+        await flushPromises()
+
+        expect(toasts.error).toEqual(['chatThread.reactionFailed'])
+      })
+    })
+
+    /**
+     * ⛔ Not while an older page is on its way, as for a reaction to a message: the reader's
+     * place is put back by the next change of the thread after "load older", and a transfer's
+     * reaction written in between would be that change -- the page would then land with nobody
+     * keeping the place (second reading, 11.10.2026).
+     */
+    describe('while an older page is on its way', () => {
+      const WITHIN = '2026-09-22T10:08:30.000Z'
+      /** Ten messages with older ones behind them, a transfer among them, the reader at the top. */
+      const withOlderPageOnItsWay = async (olderAnswer) => {
+        bookingsAsked.mockImplementation(async () =>
+          bookingsPage([{ ...received(7), balanceDate: WITHIN }]),
+        )
+        mountThread()
+        server.result.value = {
+          chatMessagesWithMember: page([6, 7, 8, 9, 10, 11, 12, 13, 14, 15], { hasMore: true }),
+        }
+        server.loading.value = false
+        await flushPromises()
+        const box = wrapper.find('[data-test="chat-thread-log"]').element
+        box.scrollTop = 0
+        server.olderPages.push(olderAnswer)
+        let letGo
+        server.gate = new Promise((resolve) => {
+          letGo = resolve
+        })
+        await wrapper.find('[data-test="chat-thread-older"]').trigger('click')
+        return { box, letGo }
+      }
+
+      it('holds the reaction, and the reader keeps their place when the page lands', async () => {
+        const { box, letGo } = await withOlderPageOnItsWay(page([1, 2, 3, 4, 5], { hasMore: true }))
+        // Eleven bubbles: ten messages and the transfer.
+        expect(box.scrollHeight).toBe(440)
+
+        await press(7, THUMB)
+        // The server was asked and has answered; the bubble waits for the page.
+        expect(bookingReacts).toHaveBeenCalledTimes(1)
+        expect(bubbleOf(7).props('reactionUnderway')).toBe(false)
+        expect(drawn(7).reactions).toEqual([])
+
+        letGo()
+        await flushPromises()
+
+        // As without the reaction: sixteen bubbles, and what was at the top is at the top.
+        expect(box.scrollHeight).toBe(640)
+        expect(box.scrollTop).toBe(200)
+        expect(drawn(7).reactions).toEqual([{ emoji: THUMB, count: 1, mine: true }])
+      })
+
+      it('holds a reaction set elsewhere the same way', async () => {
+        const { box, letGo } = await withOlderPageOnItsWay(page([1, 2, 3, 4, 5], { hasMore: true }))
+
+        await reactToTransaction(
+          { mutate: vi.fn(async () => ({ data: { setTransactionReaction: HEART } })) },
+          received(7),
+          HEART,
+        )
+        await flushPromises()
+        expect(drawn(7).reactions).toEqual([])
+
+        letGo()
+        await flushPromises()
+
+        expect(box.scrollTop).toBe(200)
+        expect(drawn(7).reactions).toEqual([{ emoji: HEART, count: 1, mine: true }])
+      })
+
+      // In the order they came: set, then taken back, is none.
+      it('takes what it held in the order it came', async () => {
+        const { letGo } = await withOlderPageOnItsWay(page([1, 2, 3, 4, 5], { hasMore: true }))
+
+        await press(7, THUMB)
+        await reactToTransaction(
+          { mutate: vi.fn(async () => ({ data: { setTransactionReaction: null } })) },
+          received(7, { reaction: THUMB }),
+          THUMB,
+        )
+        letGo()
+        await flushPromises()
+
+        expect(drawn(7).reactions).toEqual([])
+      })
+
+      it('takes the reaction it held when the older page could not be loaded', async () => {
+        const { letGo } = await withOlderPageOnItsWay(new Error('Network error'))
+
+        await press(7, THUMB)
+        expect(drawn(7).reactions).toEqual([])
+
+        letGo()
+        await flushPromises()
+
+        expect(wrapper.find('[data-test="chat-thread-older-failed"]').exists()).toBe(true)
+        expect(drawn(7).reactions).toEqual([{ emoji: THUMB, count: 1, mine: true }])
+      })
+    })
+
+    describe('where the server refuses', () => {
+      it('says so, and the transfer keeps what it had', async () => {
+        await arriveWith(received(7, { reaction: HEART }))
+        bookingReacts.mockImplementation(async () => {
+          throw new Error('TRANSACTION_REACTION_NOT_SET: UNKNOWN_TRANSFER')
+        })
+
+        await press(7, THUMB)
+
+        expect(toasts.error).toEqual(['chatThread.reactionFailed'])
+        expect(drawn(7).reactions).toEqual([{ emoji: HEART, count: 1, mine: true }])
+        expect(status().text()).toBe('')
+        expect(bubbleOf(7).props('reactionUnderway')).toBe(false)
+      })
+
+      it('takes the next press', async () => {
+        await arriveWith(received(7))
+        bookingReacts.mockImplementationOnce(async () => {
+          throw new Error('Network error')
+        })
+        await press(7, THUMB)
+
+        await press(7, THUMB)
+
+        expect(drawn(7).reactions).toEqual([{ emoji: THUMB, count: 1, mine: true }])
+      })
+    })
+  })
+
+  describe('a reaction set elsewhere', () => {
+    const elsewhere = (emoji) => ({
+      mutate: vi.fn(async () => ({ data: { setTransactionReaction: emoji } })),
+    })
+
+    // In the booking list this window stands over.
+    it('is shown at the bubble of that booking, and said by nobody here', async () => {
+      await arriveWith(sent(8), received(7))
+
+      await reactToTransaction(elsewhere(HEART), received(7), HEART)
+      await flushPromises()
+
+      expect(drawn(7).reactions).toEqual([{ emoji: HEART, count: 1, mine: true }])
+      expect(drawn(8).reactions).toEqual([])
+      expect(status().text()).toBe('')
+    })
+
+    it('is taken off the bubble when it was taken back', async () => {
+      await arriveWith(received(7, { reaction: HEART }))
+
+      await reactToTransaction(elsewhere(null), received(7, { reaction: HEART }), HEART)
+      await flushPromises()
+
+      expect(drawn(7).reactions).toEqual([])
+    })
+
+    it('is passed over for a booking the conversation does not hold', async () => {
+      await arriveWith(received(7))
+      const before = drawn(7)
+
+      await reactToTransaction(elsewhere(HEART), received(99), HEART)
+      await flushPromises()
+
+      expect(drawn(7)).toEqual(before)
+    })
+
+    it('is listened for while the thread is there, and no longer once it is gone', async () => {
+      transferListening.begun = 0
+      transferListening.stopped = 0
+      await arriveWith(received(7))
+      expect(transferListening).toEqual({ begun: 1, stopped: 0 })
+
+      wrapper.unmount()
+      wrapper = null
+
+      expect(transferListening).toEqual({ begun: 1, stopped: 1 })
     })
   })
 })

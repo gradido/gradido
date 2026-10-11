@@ -3,10 +3,14 @@
   <div
     class="chat-message-menu"
     :class="{ 'is-mine': mine, 'is-below': below, 'has-reactions': canReact }"
+    tabindex="-1"
     role="group"
     :aria-label="t('chatThread.menuLabel')"
     data-test="chat-message-menu"
   >
+    <!-- `tabindex="-1"`: a menu without an entry -- at a transfer, where the reactions are all
+         it has -- takes the keyboard itself when it opens (ChatBubble's `openMenu`). No stop
+         for Tab. -->
     <!-- The menu at a message (Bernd, 30.09.2026, E-059): drawn as the paperclip's menu is
          (ChatComposeBar) -- the sign in gold, the word, a quieter line under it -- over the
          message, at its side; under it where there is no room above. A group of buttons, as the
@@ -165,6 +169,12 @@ const showsAll = (shown) => {
 .chat-message-menu.is-below {
   top: calc(100% + 0.35rem);
   bottom: auto;
+}
+
+/* With the keyboard on the menu itself (a menu of reactions alone): the house's ring. */
+.chat-message-menu:focus-visible {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: 2px;
 }
 
 /* With the reactions: as wide as all forty-eight are -- eight squares of 36 px, the padding, the

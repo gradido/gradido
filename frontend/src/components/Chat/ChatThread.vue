@@ -95,7 +95,11 @@
               :shown="shownKey !== null && shownKey === (message.key ?? message.id)"
               :quoted-message="quotedIn(message)"
               :can-react="reactionsOffered"
-              :reaction-underway="reactionsUnderway.has(message.messageUuid)"
+              :reaction-underway="
+                message.transfer
+                  ? isTransactionReactionUnderway(message.transactionId)
+                  : reactionsUnderway.has(message.messageUuid)
+              "
               @open-image="openImage"
               @open-member="emit('openMember', $event)"
               @duplicate-video="emit('duplicateVideo', $event)"
@@ -173,6 +177,12 @@ import {
   pollChatNow,
 } from '@/composables/useChatUpdates'
 import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
+import {
+  isTransactionReactionUnderway,
+  onTransactionReaction,
+  reactToTransaction,
+  transferReactions,
+} from '@/composables/useTransactionReactions'
 import {
   chatMessagesWithMemberQuery,
   editChatMessage,
@@ -331,6 +341,7 @@ const {
   settled: transfersSettled,
   hasMore: transfersHaveMore,
   loadOlderTransfers,
+  takeReaction: takeTransferReaction,
 } = useChatTransfers(apolloClient, memberRef, {
   // The member's own switch (Einstellungen › Nachrichten), on unless switched off: null is a
   // store from before the field. Never in a group: a transfer is between two (E-050 F6).
@@ -459,6 +470,11 @@ const transferBubble = (booking) => {
     // What that photo is asked for by: the id of the member's own row of the booking.
     // ⛔ Not `linkId` above -- a link and a booking are two ranges of numbers.
     transactionId: booking.id,
+    // The emoji the recipient answered the transfer with (Bernd, 11.10.2026), in the shape the
+    // reactions to a message have -- and whether the member may set one here: the server's
+    // word, on their own row of a transfer from a member of this community.
+    reactions: transferReactions(booking),
+    canReact: booking.canReact === true,
   }
 }
 
@@ -851,6 +867,7 @@ watch(
     takeWaitingArrivals()
     takeWaitingEdits()
     takeWaitingReactions()
+    takeWaitingTransferReactions()
   },
   { flush: 'post' },
 )
@@ -919,6 +936,7 @@ const loadOlder = async (event) => {
       takeWaitingArrivals()
       takeWaitingEdits()
       takeWaitingReactions()
+      takeWaitingTransferReactions()
     } finally {
       loadingOlder.value = false
     }
@@ -1202,6 +1220,10 @@ const reactionsUnderway = ref(new Set())
  * while an older page is on its way.
  */
 const reactTo = async ({ message, emoji }) => {
+  if (message?.transfer) {
+    await reactToTransfer(message, emoji)
+    return
+  }
   const messageUuid = message?.messageUuid
   if (!reactionsOffered || !messageUuid || reactionsUnderway.value.has(messageUuid)) return
   const held = messages.value.find((one) => one.messageUuid === messageUuid) ?? message
@@ -1224,6 +1246,60 @@ const reactTo = async ({ message, emoji }) => {
     toastError(t('chatThread.reactionFailed'))
   } finally {
     reactionsUnderway.value.delete(messageUuid)
+  }
+}
+
+/**
+ * Reactions to transfers that were told while an older page is on its way, each as
+ * `[transactionId, reaction]`, in the order they came.
+ *
+ * ⛔ Held as the reactions to messages are (`waitingReactions`), and for the same reason: the
+ * reader's place is put back by the next change of the thread after "load older", and a
+ * transfer's reaction written in between would be that change -- the older page would then land
+ * with nobody keeping the place. Found by the second reading (11.10.2026).
+ */
+let waitingTransferReactions = []
+
+const takeWaitingTransferReactions = () => {
+  if (placeFromBottom !== null || waitingTransferReactions.length === 0) return
+  const told = waitingTransferReactions
+  waitingTransferReactions = []
+  for (const [transactionId, reaction] of told) takeTransferReaction(transactionId, reaction)
+}
+
+/**
+ * A reaction to a transfer was set or taken back (Bernd, 11.10.2026) -- at its bubble here, or
+ * in the booking list this window stands over: the booking the conversation holds gets it.
+ */
+const stopTransferReactions = onTransactionReaction(({ transactionId, reaction }) => {
+  waitingTransferReactions.push([transactionId, reaction])
+  takeWaitingTransferReactions()
+})
+onBeforeUnmount(stopTransferReactions)
+
+/**
+ * An emoji was pressed at a transfer's bubble: the recipient's reaction to the transfer, or the
+ * taking back of it -- read off the booking as the conversation holds it NOW. The rule is the
+ * booking list's and not the conversation's (reactToTransaction): one at a time for a booking,
+ * only where the server said the member may, and what was set is said to every place that
+ * holds the booking -- this conversation among them.
+ */
+const reactToTransfer = async (message, emoji) => {
+  const booking = transfers.value.find((one) => one.id === message.transactionId)
+  if (!booking) return
+  try {
+    const done = await reactToTransaction(apolloClient, booking, emoji)
+    // Said in the thread, if it is still there and something was sent.
+    if (done && !threadGone) {
+      announce(
+        done.reaction === null
+          ? t('chatThread.reactionTakenBack')
+          : t('chatThread.reacted', { emoji: done.reaction }),
+      )
+    }
+  } catch {
+    // Nothing changed: the transfer keeps the reaction it had, and the member is told.
+    toastError(t('chatThread.reactionFailed'))
   }
 }
 

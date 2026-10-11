@@ -26,6 +26,10 @@ const isTransfer = (booking) => booking.typeId === 'SEND' || booking.typeId === 
  * answered or failed -- a failure leaves the conversation as it was without transfers, and says
  * nothing. `hasMore` where the list holds older bookings than the pages asked for.
  *
+ * ⛔ Read once, and not on the chat's beat: the reaction the other person sets to a transfer is
+ * there when the conversation is opened the next time. One's own is taken at once
+ * (`takeReaction`).
+ *
  * `enabled`: the member's own switch (Einstellungen › Nachrichten, "Überweisungen im Chat und per
  * E-Mail", on by default). Off, nothing is asked, and the conversation keeps to its messages.
  *
@@ -73,5 +77,18 @@ export const useChatTransfers = (apolloClient, member, { enabled = true } = {}) 
   /** The next older page; throws where it did not come, for the thread to say so. */
   const loadOlderTransfers = () => askNextPage()
 
-  return { transfers, settled, hasMore, loadOlderTransfers }
+  /**
+   * The reaction to one of the transfers as it stands now (Bernd, 11.10.2026): its recipient set
+   * it or took it back (`reaction` null) -- the member themselves, here or in the booking list.
+   * A booking the conversation does not hold is passed over: a page asked for later brings it
+   * as it stands then.
+   */
+  const takeReaction = (transactionId, reaction) => {
+    if (!transfers.value.some((booking) => booking.id === transactionId)) return
+    transfers.value = transfers.value.map((booking) =>
+      booking.id === transactionId ? { ...booking, reaction } : booking,
+    )
+  }
+
+  return { transfers, settled, hasMore, loadOlderTransfers, takeReaction }
 }

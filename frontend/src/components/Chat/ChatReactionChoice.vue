@@ -120,8 +120,8 @@ const props = defineProps({
 })
 
 /**
- * `react`: an emoji was pressed. `all`: the forty-eight are shown (true) -- for whoever draws
- * something beside the choice that is to make room for them.
+ * `react`: an emoji was pressed. `all`: the forty-eight are shown (true), or the row of six is
+ * back (false) -- for whoever draws something beside the choice that is to make room for them.
  */
 const emit = defineEmits(['react', 'all'])
 
@@ -149,9 +149,28 @@ const rowAt = ref(Math.max(0, shown.value.indexOf(props.own)))
 /** Where it stands among the forty-eight. */
 const gridAt = ref({ row: 0, column: 0 })
 
-/** An emoji was pressed: said upwards -- not while a reaction is on its way. */
-const press = (emoji) => {
-  if (!props.busy) emit('react', emoji)
+/**
+ * An emoji was pressed: said upwards -- not while a reaction is on its way.
+ *
+ * Pressed among the forty-eight, the row of six is back with it: the choice is made. In a menu
+ * that closes with the press nobody sees it; where the choice stays -- in the opened row of the
+ * booking list -- the forty-eight would otherwise stand there for good. The keyboard, where it
+ * stood among them, goes to the emoji that was pressed if the row shows it, else to "mehr":
+ * the button it stood on is gone.
+ */
+const press = async (emoji) => {
+  if (props.busy) return
+  emit('react', emoji)
+  if (!all.value) return
+  const keyboardInside = Boolean(grid.value?.contains(document.activeElement))
+  all.value = false
+  emit('all', false)
+  const at = shown.value.indexOf(emoji)
+  rowAt.value = at === -1 ? shown.value.length : at
+  await nextTick()
+  if (keyboardInside) {
+    row.value?.querySelector(`[data-index="${rowAt.value}"]`)?.focus({ preventScroll: true })
+  }
 }
 
 /** What a press on an emoji does, in words -- for the pointer that rests on it. */

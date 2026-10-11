@@ -224,9 +224,12 @@ describe('ChatBubble, the reactions to a message', () => {
       expect(reaction()).toHaveLength(1)
     })
 
-    it('draws none at a transfer, whatever it carries', () => {
-      mountBubble({ ...TRANSFER, reactions: [{ emoji: THUMB, count: 1, mine: false }] })
+    it('draws none at a transfer nobody reacted to', () => {
+      mountBubble(TRANSFER)
+      expect(reactions().exists()).toBe(false)
 
+      wrapper.unmount()
+      mountBubble({ ...TRANSFER, reactions: [] })
       expect(reactions().exists()).toBe(false)
     })
   })
@@ -266,8 +269,9 @@ describe('ChatBubble, the reactions to a message', () => {
       expect(choice().exists()).toBe(false)
     })
 
-    // A transfer is a booking: it has no menu today, and gets none through the reactions.
-    it('gives a transfer no menu', () => {
+    // A transfer is a booking: the thread's word about its messages gives it no menu. Whether
+    // the member may react to it comes with the booking (below, "at a transfer").
+    it('gives a transfer no menu by the thread’s word', () => {
       mountBubble(TRANSFER)
 
       expect(more().exists()).toBe(false)
@@ -394,6 +398,182 @@ describe('ChatBubble, the reactions to a message', () => {
 
       expect(choice().exists()).toBe(true)
       expect(quick()).toHaveLength(6)
+    })
+  })
+
+  /**
+   * At a transfer (Bernd, 11.10.2026): the emoji its recipient answered it with stands in the
+   * bubble's foot line, for both of the two -- and the recipient sets it in a menu that holds
+   * the reactions alone. Whether the member may is the server's word, which came with the
+   * booking (`message.canReact`), not the thread's about its messages (`canReact`).
+   */
+  describe('at a transfer', () => {
+    /** As the thread draws the booking of what the member received, and may react to. */
+    const RECEIVED = { ...TRANSFER, transactionId: 41, canReact: true, reactions: [] }
+    /** And of what they sent: the reaction on it is the other person's. */
+    const SENT = {
+      ...RECEIVED,
+      id: 't-2',
+      key: 't-2',
+      transactionId: 42,
+      mine: true,
+      canReact: false,
+    }
+    const answered = (message, emoji, mine) => ({
+      ...message,
+      reactions: [{ emoji, count: 1, mine }],
+    })
+
+    describe('in the foot line', () => {
+      it('draws the recipient’s reaction on their own bubble, as their own', () => {
+        mountBubble(answered(RECEIVED, THUMB, true))
+
+        expect(reaction()).toHaveLength(1)
+        expect(reaction()[0].find('.chat-bubble-reaction-emoji').text()).toBe(THUMB)
+        expect(reaction()[0].classes()).toContain('is-mine')
+        expect(reaction()[0].find('[data-test="chat-bubble-reaction-said"]').text()).toBe(
+          `${THUMB}, chatThread.reactionMine`,
+        )
+        // In the foot line that is there, before the time.
+        const meta = wrapper.find('.chat-bubble-meta').element
+        expect(meta.firstElementChild).toBe(reactions().element)
+        expect(meta.querySelector('[data-test="chat-bubble-time"]')).not.toBeNull()
+      })
+
+      it('draws it on the sender’s bubble as the other person’s', () => {
+        mountBubble(answered(SENT, HEART, false))
+
+        expect(reaction()).toHaveLength(1)
+        expect(reaction()[0].classes()).not.toContain('is-mine')
+        expect(reaction()[0].find('[data-test="chat-bubble-reaction-said"]').text()).toBe(HEART)
+      })
+
+      // Read by both, whatever the thread says about reacting to its messages.
+      it('draws it where the thread offers no reactions to messages', () => {
+        mountBubble(answered(SENT, HEART, false), { canReact: false })
+
+        expect(reaction()).toHaveLength(1)
+      })
+    })
+
+    describe('the menu', () => {
+      it('is offered where the booking says the member may react, with the reactions alone', async () => {
+        mountBubble(RECEIVED)
+        expect(more().exists()).toBe(true)
+
+        await openMenu()
+
+        expect(choice().exists()).toBe(true)
+        expect(quick()).toHaveLength(6)
+        expect(entries()).toHaveLength(0)
+        // No line under a row that stands alone.
+        expect(choice().classes()).toContain('is-alone')
+      })
+
+      // ⛔ The booking's word, not the thread's: a transfer is a booking.
+      it('is offered by the booking’s word, whatever the thread says of its messages', async () => {
+        mountBubble(RECEIVED, { canReact: false })
+        await openMenu()
+
+        expect(choice().exists()).toBe(true)
+      })
+
+      // The other way round as well: a MESSAGE goes by the thread's word, whatever it carries.
+      it('offers a message no reactions by a word of its own, where the thread offers none', async () => {
+        mountBubble({ ...THEIRS, canReact: true }, { canReact: false })
+        await openMenu()
+
+        expect(choice().exists()).toBe(false)
+        expect(entries().length).toBeGreaterThan(0)
+      })
+
+      // ⛔ Only the recipient reacts.
+      it.each([
+        ['what the member sent', SENT],
+        ['what the member sent, with the other person’s reaction', answered(SENT, HEART, false)],
+        ['a transfer from another community', { ...RECEIVED, canReact: false }],
+        ['a booking that says nothing of it', { ...RECEIVED, canReact: undefined }],
+        ['a booking that says something else than yes', { ...RECEIVED, canReact: 'yes' }],
+      ])('is not offered at %s, though the thread offers reactions', (_name, message) => {
+        mountBubble(message, { canReact: true })
+
+        expect(more().exists()).toBe(false)
+      })
+
+      it('shows the member’s own reaction pressed', async () => {
+        mountBubble(answered(RECEIVED, HEART, true))
+        await openMenu()
+
+        const pressed = quick().filter((button) => button.attributes('aria-pressed') === 'true')
+        expect(pressed.map((button) => button.text())).toEqual([HEART])
+      })
+
+      it('hands the transfer and the emoji up, closes, and puts the keyboard back on its sign', async () => {
+        mountBubble(RECEIVED)
+        await openMenu()
+
+        await quick()[0].trigger('click')
+        await flushPromises()
+
+        expect(wrapper.emitted('react')).toEqual([[{ message: RECEIVED, emoji: THUMB }]])
+        expect(menu().exists()).toBe(false)
+        expect(document.activeElement).toBe(more().element)
+      })
+
+      // ⛔ A menu of reactions alone has no entry for the keyboard to stand on -- and it must
+      // not stand on an emoji: a second Enter on the sign that opened the menu would set a
+      // reaction nobody chose. It stands on the menu itself; Tab leads into the row.
+      it('puts the keyboard on the menu itself when it opens, not on an emoji', async () => {
+        mountBubble(RECEIVED)
+        await openMenu()
+
+        expect(document.activeElement).toBe(menu().element)
+        expect(menu().attributes('tabindex')).toBe('-1')
+        // The row is still the one stop for Tab behind it.
+        expect(quick().filter((button) => button.attributes('tabindex') === '0')).toHaveLength(1)
+      })
+
+      it('closes with Escape from there, and the keyboard is back on its sign', async () => {
+        mountBubble(RECEIVED)
+        await openMenu()
+
+        await menu().trigger('keydown', { key: 'Escape' })
+
+        expect(menu().exists()).toBe(false)
+        expect(document.activeElement).toBe(more().element)
+        expect(wrapper.emitted('react')).toBeUndefined()
+      })
+
+      it('lets no emoji take a press while a reaction to the transfer is on its way', async () => {
+        mountBubble(RECEIVED, { reactionUnderway: true })
+        await openMenu()
+
+        expect(choice().classes()).toContain('is-busy')
+        await quick()[0].trigger('click')
+        await flushPromises()
+
+        expect(wrapper.emitted('react')).toBeUndefined()
+      })
+
+      it('opens on a phone by a tap on the transfer, where the member may react', async () => {
+        vi.mocked(isComputer).mockReturnValue(false)
+        mountBubble(RECEIVED)
+
+        await wrapper.find('.chat-bubble').trigger('click')
+        await flushPromises()
+
+        expect(choice().exists()).toBe(true)
+      })
+
+      it('opens nothing on a phone by a tap on a transfer the member sent', async () => {
+        vi.mocked(isComputer).mockReturnValue(false)
+        mountBubble(answered(SENT, HEART, false))
+
+        await wrapper.find('.chat-bubble').trigger('click')
+        await flushPromises()
+
+        expect(menu().exists()).toBe(false)
+      })
     })
   })
 

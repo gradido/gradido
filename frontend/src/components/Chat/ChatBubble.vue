@@ -716,9 +716,10 @@ const menuEntries = computed(() =>
 )
 /**
  * The reactions the message carries (Bernd, 11.10.2026): `{ emoji, count, mine }`, each emoji
- * once -- none on a transfer, which is a booking and has no row to react to.
+ * once. At a transfer the one its recipient answered it with, in the same shape -- the thread
+ * reads it off the booking (transferReactions).
  */
-const reactions = computed(() => (props.message.transfer ? [] : (props.message.reactions ?? [])))
+const reactions = computed(() => props.message.reactions ?? [])
 /** The emoji the member reacted with themselves, or null: the pressed one in the menu. */
 const ownReaction = computed(() => ownChatReaction({ reactions: reactions.value }))
 /**
@@ -733,9 +734,15 @@ const reactionSaid = ({ emoji, count, mine }) =>
  * Whether the menu offers the reactions: where the thread allows them, at every message the
  * server has filed -- somebody else's and one's own. The server holds the same rules
  * (setChatMessageReaction).
+ *
+ * At a transfer only its recipient reacts, and whether the member may is the server's word,
+ * which came with the booking (`canReact`, setTransactionReaction) -- not the thread's: a
+ * transfer is a booking, and its rule is the booking list's.
  */
-const reacts = computed(
-  () => props.canReact && !props.message.transfer && Boolean(props.message.messageUuid),
+const reacts = computed(() =>
+  props.message.transfer
+    ? props.message.canReact === true
+    : props.canReact && Boolean(props.message.messageUuid),
 )
 const hasMenu = computed(() => menuEntries.value.length > 0 || reacts.value)
 
@@ -890,10 +897,10 @@ const openMenu = async () => {
   await settleMenu()
   const menu = menuElement()
   // The first ENTRY, as before the reactions stood over them: a second Enter on the sign that
-  // opened the menu must not set a reaction nobody chose. Where a message has no entry, the
-  // reactions are all there is.
-  const first =
-    menu?.querySelector('.chat-message-menu-item') ?? menu?.querySelector('button[tabindex="0"]')
+  // opened the menu must not set a reaction nobody chose. Where there is no entry -- at a
+  // transfer, whose menu is its reactions alone -- the keyboard stands on the menu itself for
+  // the same reason, and Tab leads into the row.
+  const first = menu?.querySelector('.chat-message-menu-item') ?? menu
   first?.focus({ preventScroll: true })
 }
 
