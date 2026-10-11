@@ -60,14 +60,18 @@
            nobody has to look for it a second time. The count waits for the answer (an
            empty page must not say "0" to a member who has six); the button does not, and
            the line keeps its height either way, so nothing below it moves. -->
+      <!-- Three numbers, each with a word that goes with ITS number: one entry is "1 Eintrag"
+           (the line said "1 Einträge"), and in five of the ten languages the word for the
+           live ones is declined as well ("3 entradas · 1 activa"). One message can follow one
+           number only, so each part is its own, and `count` is the line they stand in. -->
       <div class="d-flex align-items-center justify-content-between mb-3 mx-lg-2 page-text">
         <span class="small text-muted" data-test="matching-entries-count">
           <template v-if="entriesLoaded">
             {{
               $t('matching.entries.count', {
-                total: entries.length,
-                live: liveCount,
-                paused: entries.length - liveCount,
+                total: $t('matching.entries.countTotal', entries.length),
+                live: $t('matching.entries.countLive', liveCount),
+                paused: $t('matching.entries.countPaused', pausedCount),
               })
             }}
           </template>
@@ -443,6 +447,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { useAppToast } from '@/composables/useToast'
 import { useEntryDraft } from '@/composables/useEntryDraft'
+import { rememberOwnMatchingEntries } from '@/composables/useOwnMatchingEntries'
 import {
   createMatchingEntry,
   deleteMatchingEntry,
@@ -458,6 +463,7 @@ import {
   mayFind,
 } from '@/utils/matchingPosition'
 import { mapPrefPrefix } from '@/utils/matchingPrefs'
+import { asksForNewEntry } from '@/utils/newMatchingEntry'
 import { SHOW_ME_ON_THE_MAP, saidShowMe } from '@/utils/showMeOnTheMap'
 import UserGMSLocationFormat from '@/components/UserSettings/UserGMSLocationFormat'
 import UserLocationMap from '@/components/UserSettings/UserLocationMap'
@@ -518,10 +524,35 @@ onEntries(({ data }) => {
     date: formatDate(e.createdAt),
   }))
   entriesLoaded.value = true
+  // The overview decides from this what its matching tile is (useOwnMatchingEntries). Told
+  // with every list, because this page is where entries are made and deleted: the member
+  // who goes back to the overview from here finds the tile right at once, without a wait.
+  rememberOwnMatchingEntries(store.state.gradidoID, entries.value.length)
 })
 onEntriesError((error) => toastError(error.message))
 
+/**
+ * One entry more, or one fewer, said to the device the moment the server has confirmed it --
+ * not only with the list that is fetched afterwards. Saving takes the server a round trip to
+ * the GMS, and a member who leaves this page before the list is back (the browser's back
+ * button works over the open form) would find the overview inviting them to a "first" entry
+ * they have just made; with a deletion the tile would stay away. The list, when it comes,
+ * says the real number.
+ *
+ * `member` is who pressed the button, held before the request: a sign-out empties the store
+ * while the answer is on its way. And only where the list is known -- one more than unknown
+ * is unknown.
+ */
+const tellEntriesChanged = (member, by) => {
+  if (!entriesLoaded.value) return
+  rememberOwnMatchingEntries(member, entries.value.length + by)
+}
+
 const liveCount = computed(() => entries.value.filter((e) => e.active).length)
+// Each of the three numbers in the line above the list is handed to its own message, the
+// paused ones too: no language declines that word today, and one that does one day has
+// only a second form to write.
+const pausedCount = computed(() => entries.value.length - liveCount.value)
 
 const { mutate: createEntry } = useMutation(createMatchingEntry)
 const { mutate: updateEntry } = useMutation(updateMatchingEntry)
@@ -566,6 +597,21 @@ function openNew({ summary = '', details = '', matchingType = null } = {}) {
 onMounted(() => {
   const draft = entryDraft.take()
   if (draft) openNew(draft)
+  // Or the overview's matching tile sent the member to write an entry (utils/newMatchingEntry).
+  // The wish is read once and taken out of the address at once, as the contacts page takes
+  // out the conversation it is asked for: a reload, or the way back to this tab, must not
+  // open the form again over what the member closed. A kept search comes first -- it brings
+  // words along, and there is one form.
+  //
+  // Unlike that conversation the form does not line up with the windows of the first logins
+  // (useFirstLoginWindow). From the tile nobody gets here with one of them due: it would be
+  // lying over the overview. Only this address opened afresh -- in a new tab, or after a
+  // sign-in the tap ran into -- by a member whose address is still unconfirmed meets the
+  // reminder and the form together.
+  if (!asksForNewEntry(route)) return
+  const { new: _new, ...rest } = route.query
+  router.replace({ query: rest })
+  if (!draft) openNew()
 })
 function openEdit(e) {
   editUuid.value = e.uuid
@@ -583,11 +629,13 @@ async function save() {
     details: newDetails.value.trim() || null,
     remote: newRemote.value,
   }
+  const member = store.state.gradidoID
   try {
     if (editUuid.value) {
       await updateEntry({ uuid: editUuid.value, input })
     } else {
       await createEntry({ input })
+      tellEntriesChanged(member, 1)
     }
     showNew.value = false
     await refetchEntries()
@@ -614,8 +662,10 @@ async function confirmDelete() {
   const e = delEntry.value
   if (!e) return
   showDelete.value = false
+  const member = store.state.gradidoID
   try {
     await removeEntry({ uuid: e.uuid })
+    tellEntriesChanged(member, -1)
     await refetchEntries()
   } catch (error) {
     toastError(error.message)
@@ -999,7 +1049,7 @@ function showMeFromFind() {
 
 /* On a row of its own the long label still breaks in two on a narrow phone. Below 400px the
    button gets the 1rem the tile on the overview gives the same button
-   (MapInvitationTile.vue). */
+   (MatchingTile.vue). */
 @media (width < 400px) {
   .window-buttons :deep(.btn-gradido) {
     padding-right: 1rem !important;

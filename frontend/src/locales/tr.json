@@ -910,7 +910,10 @@
     },
     "entries": {
       "activate": "Etkinleştir",
-      "count": "{total} giriş · {live} aktif · {paused} duraklatıldı",
+      "count": "{total} · {live} · {paused}",
+      "countLive": "{n} aktif",
+      "countPaused": "{n} duraklatıldı",
+      "countTotal": "{n} giriş",
       "delete": "Sil",
       "deleteConfirm": "Bu giriş silinsin mi?",
       "details": "Ayrıntılar",
@@ -949,6 +952,10 @@
       }
     },
     "invitation": {
+      "entriesGo": "İlk girişini oluştur",
+      "entriesMore": "Bir giriş daha oluştur",
+      "entriesText": "Aradığın, verdiğin ve sevdiğin şeyleri belirt. Eşleşme o zaman sana uyan insanları gösterir — seni de onlara gösterir.",
+      "entriesTitle": "Sana kim uyuyor?",
       "go": "Beni haritada göster",
       "question": "Onlardan kimler yakınında yaşıyor?",
       "text": "Evini haritada işaretle, o zaman görürsün — başkaları da seni görür. Ne kadar hassas görüneceğine sen karar verirsin: «Yaklaşık» seni bir alan içinde gösterir, asla kapının önünde değil. Ve istediğin zaman haritadan çıkabilirsin.",

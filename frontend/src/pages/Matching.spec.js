@@ -8,6 +8,7 @@ import { createI18n } from 'vue-i18n'
 // real button here, because that is where the enabled state is read.
 import { BButton, BCol, BRow } from 'bootstrap-vue-next'
 import de from '@/locales/de.json'
+import es from '@/locales/es.json'
 import Matching from './Matching.vue'
 import UserSettingsSwitch from '@/components/UserSettings/UserSettingsSwitch'
 import { listMatchingEntries, userLocationQuery, verifyLogin } from '@/graphql/queries'
@@ -17,8 +18,13 @@ const push = vi.fn()
 // to the same tab with a query - and the page follows. `push` itself stays a spy: where a
 // case needs the move, it makes it here.
 const place = reactive({ tab: 'entries', query: {} })
+// Replacing is how the page takes a wish out of the address it arrived with. The address
+// follows, as it would: a page that read the wish a second time would find it gone.
+const replace = vi.fn((to) => {
+  if (to?.query) place.query = to.query
+})
 vi.mock('vue-router', () => ({
-  useRouter: () => ({ push }),
+  useRouter: () => ({ push, replace }),
   useRoute: () => ({
     params: {
       get tab() {
@@ -108,12 +114,12 @@ let wrapper = null
 // BModal is stubbed away by default - it teleports, and its content would show up
 // in page.text() for every test whether the dialog is open or not. A test that
 // needs to look inside one passes its own stub.
-const mountPage = (tab = 'entries', extraStubs = {}, options = {}) => {
+const mountPage = (tab = 'entries', extraStubs = {}, options = {}, language = i18n) => {
   place.tab = tab
   wrapper = mount(Matching, {
     ...options,
     global: {
-      plugins: [store, i18n],
+      plugins: [store, language],
       components: { BButton, BRow, BCol },
       stubs: {
         UserLocationMap: UserLocationMapStub,
@@ -139,6 +145,17 @@ const entryModal = {
       '<div class="modal-stub" :data-centered="String(centered)"><slot /><slot name="footer" /></div>',
   },
 }
+// The same, and whether the page has the dialog open: `modelValue` is the library's name for
+// what `v-model` binds. The stubs above draw a dialog's content open or not.
+const shownModal = {
+  BModal: {
+    props: { modelValue: Boolean, centered: Boolean },
+    template:
+      '<div class="modal-stub" :data-open="String(modelValue)" :data-centered="String(centered)"><slot /><slot name="footer" /></div>',
+  },
+}
+// The entry form is the first dialog in the page.
+const formOpen = (page) => page.find('.modal-stub').attributes('data-open') === 'true'
 const typeButtons = (page) => page.findAll('.type-choice-btn')
 const pick = (page, key) => page.find(`.type-choice-btn.type-${key}`).trigger('click')
 const openNewEntry = (page) => page.find('[data-test="matching-entries-new"]').trigger('click')
@@ -152,6 +169,7 @@ const saveButton = (page) =>
 beforeEach(() => {
   handlers.clear()
   push.mockClear()
+  replace.mockClear()
   toast.error.mockClear()
   toast.success.mockClear()
   mutate.mockReset()
@@ -161,6 +179,7 @@ beforeEach(() => {
   window.localStorage.clear()
   // The store is shared by the whole file; put it back so no case inherits the answers of
   // the one before it.
+  store.state.gradidoID = 'a-member'
   store.state.gmsAllowed = true
   store.state.userLocation = null
 })
@@ -205,6 +224,202 @@ describe('Matching', () => {
       expect(page.text()).not.toContain('Am liebsten samstags')
     })
 
+    /**
+     * The overview's matching tile is one of three things by how many entries the member
+     * has (useOwnMatchingEntries), and it must be right the moment they come back from
+     * here -- this is where entries are made and deleted. So the page tells the device with
+     * every list it loads. Wiring: nothing else notices if the line goes, and the overview
+     * would then hold its tiles back to ask, or invite a member to a "first" entry they made
+     * a minute ago.
+     */
+    describe('what it tells the overview', () => {
+      // Written out: the key the overview reads, for the member of this file's store.
+      const told = () => window.localStorage.getItem('own-matching-entries:a-member')
+
+      it('says how many entries the member has, with every list', async () => {
+        mountPage('entries')
+        expect(told()).toBeNull()
+
+        fire(listMatchingEntries, { listMatchingEntries: [] })
+        expect(told()).toBe('0')
+
+        // After a save the list is fetched again, and the answer says one more.
+        fire(listMatchingEntries, { listMatchingEntries: [entry('a', 'Klavierlehrer', '')] })
+        expect(told()).toBe('1')
+
+        // And after deleting it, none again.
+        fire(listMatchingEntries, { listMatchingEntries: [] })
+        expect(told()).toBe('0')
+      })
+
+      it('counts paused entries too, and no further than "arrived"', () => {
+        mountPage('entries')
+        const paused = { ...entry('b', 'Fahrrad', ''), active: false }
+
+        fire(listMatchingEntries, { listMatchingEntries: [entry('a', 'Klavier', ''), paused] })
+        expect(told()).toBe('2')
+
+        fire(listMatchingEntries, {
+          listMatchingEntries: ['a', 'b', 'c', 'd', 'e'].map((uuid) => entry(uuid, uuid, '')),
+        })
+        expect(told()).toBe('3')
+      })
+
+      // The page asks for the list on every tab, so the member who came onto the map on the
+      // home tab is known before they are back on the overview.
+      it.each(['about', 'position'])('says it from the %s tab as well', (tab) => {
+        mountPage(tab)
+
+        fire(listMatchingEntries, { listMatchingEntries: [] })
+
+        expect(told()).toBe('0')
+      })
+
+      it('says nothing for a report without the list', () => {
+        mountPage('entries')
+
+        fire(listMatchingEntries, {})
+        fire(listMatchingEntries, { listMatchingEntries: null })
+
+        expect(told()).toBeNull()
+      })
+
+      /**
+       * A save takes the server a round trip to the GMS, and the list comes back only after
+       * it. A member who leaves the page in between -- the browser's back button works over
+       * the open form -- would find the overview inviting them to a "first" entry they have
+       * just made. So the device is told the moment the server has confirmed the entry, and
+       * the list corrects it when it comes (the second reader's finding, 11.10.2026).
+       *
+       * The refetch of this file's mock answers nothing, which is exactly that case.
+       */
+      describe('before the list is back', () => {
+        const writeEntry = async (page) => {
+          await openNewEntry(page)
+          await pick(page, 'angebot')
+          await page.find('input').setValue('Fahrradreparatur')
+          await page.find('textarea').setValue('Alte und neue Räder')
+          await saveButton(page).trigger('click')
+          await flushPromises()
+        }
+        // The fourth of a card's four: details, pause, edit, delete. Then the window's own button.
+        const deleteFirst = async (page) => {
+          await page.findAll('.pointer')[3].trigger('click')
+          const windows = page.findAll('.modal-stub')
+          const confirm = windows
+            .find((w) => w.text().includes(de.matching.entries.deleteConfirm))
+            .findAll('button')
+            .find((b) => b.text() === de.matching.entries.delete)
+          await confirm.trigger('click')
+          await flushPromises()
+        }
+        const two = [entry('a', 'Klavierlehrer', 'Am liebsten samstags'), entry('b', 'Rad', 'Rot')]
+
+        it('says one more the moment an entry is saved', async () => {
+          const page = mountPage('entries', entryModal)
+          fire(listMatchingEntries, { listMatchingEntries: [] })
+          expect(told()).toBe('0')
+
+          await writeEntry(page)
+
+          expect(mutate).toHaveBeenCalledTimes(1)
+          expect(told()).toBe('1')
+        })
+
+        it('says one fewer the moment an entry is deleted', async () => {
+          const page = mountPage('entries', entryModal)
+          fire(listMatchingEntries, { listMatchingEntries: two })
+          await page.vm.$nextTick()
+          expect(told()).toBe('2')
+
+          await deleteFirst(page)
+
+          expect(mutate).toHaveBeenCalledWith({ uuid: 'a' })
+          expect(told()).toBe('1')
+        })
+
+        it('takes the list for the truth when it comes', async () => {
+          const page = mountPage('entries', entryModal)
+          fire(listMatchingEntries, { listMatchingEntries: [] })
+          await writeEntry(page)
+          expect(told()).toBe('1')
+
+          // Entries made on another device meanwhile.
+          fire(listMatchingEntries, { listMatchingEntries: two.concat(entry('c', 'Chor', 'Alt')) })
+
+          expect(told()).toBe('3')
+        })
+
+        it('says nothing new where the server refuses the entry', async () => {
+          mutate.mockRejectedValueOnce(new Error('the server is away'))
+          const page = mountPage('entries', entryModal)
+          fire(listMatchingEntries, { listMatchingEntries: [] })
+
+          await writeEntry(page)
+
+          expect(toast.error).toHaveBeenCalledWith('the server is away')
+          expect(told()).toBe('0')
+        })
+
+        it('says nothing new where the server refuses the deletion', async () => {
+          mutate.mockRejectedValueOnce(new Error('the server is away'))
+          const page = mountPage('entries', entryModal)
+          fire(listMatchingEntries, { listMatchingEntries: two })
+          await page.vm.$nextTick()
+
+          await deleteFirst(page)
+
+          expect(told()).toBe('2')
+        })
+
+        // An edit changes the words, not the number.
+        it('leaves the number alone for an entry that is edited', async () => {
+          const page = mountPage('entries', entryModal)
+          fire(listMatchingEntries, { listMatchingEntries: [two[0]] })
+          await page.vm.$nextTick()
+          await page.findAll('.pointer')[2].trigger('click')
+          await page.find('input').setValue('Klavierlehrerin')
+          await saveButton(page).trigger('click')
+          await flushPromises()
+
+          expect(mutate).toHaveBeenCalledWith(expect.objectContaining({ uuid: 'a' }))
+          expect(told()).toBe('1')
+        })
+
+        // One more than unknown is unknown: the overview then asks for itself.
+        it('does not guess where the list has not answered yet', async () => {
+          const page = mountPage('entries', entryModal)
+
+          await writeEntry(page)
+
+          expect(mutate).toHaveBeenCalledTimes(1)
+          expect(told()).toBeNull()
+        })
+
+        // A sign-out empties the store while the answer is on its way. The entry is still
+        // that member's.
+        it('files it under the member who saved, whoever the store names by then', async () => {
+          let confirm
+          mutate.mockReturnValueOnce(
+            new Promise((resolve) => {
+              confirm = resolve
+            }),
+          )
+          const page = mountPage('entries', entryModal)
+          fire(listMatchingEntries, { listMatchingEntries: [] })
+          await writeEntry(page)
+          expect(told()).toBe('0')
+
+          store.state.gradidoID = null
+          confirm({})
+          await flushPromises()
+
+          expect(told()).toBe('1')
+          expect(window.localStorage.length).toBe(1)
+        })
+      })
+    })
+
     // The empty page used to hide "new entry" under a picture and a paragraph, and move
     // it to the top right after the first entry. One line now, the same for both.
     describe('the line above it', () => {
@@ -242,6 +457,32 @@ describe('Matching', () => {
         // The same element, not a second one drawn elsewhere.
         expect(newEntry(page)[0].element).toBe(before)
         expect(empty(page).exists()).toBe(false)
+      })
+
+      // "1 Einträge · 1 live · 0 pausiert" stood here: each number has its own word now
+      // (locales/matchingEntriesCount.spec.js has the ten languages).
+      it('counts one entry as one', async () => {
+        const page = mountPage('entries')
+        fire(listMatchingEntries, {
+          listMatchingEntries: [entry('a', 'Klavierlehrer', 'Samstags')],
+        })
+        await page.vm.$nextTick()
+
+        expect(count(page).text()).toBe('1 Eintrag · 1 live · 0 pausiert')
+      })
+
+      // The word for the live ones follows THEIR number, not the number of entries: German
+      // cannot show that ("live" is "live"), Spanish can. Three entries, one of them live.
+      it('declines the live ones by their own number', async () => {
+        const spanish = createI18n({ legacy: false, locale: 'es', messages: { es } })
+        const page = mountPage('entries', {}, {}, spanish)
+        const paused = (uuid) => ({ ...entry(uuid, uuid, ''), active: false })
+        fire(listMatchingEntries, {
+          listMatchingEntries: [entry('a', 'Piano', ''), paused('b'), paused('c')],
+        })
+        await page.vm.$nextTick()
+
+        expect(count(page).text()).toBe('3 entradas · 1 activa · 2 en pausa')
       })
 
       it('says neither "0" nor "none yet" before the server has answered', () => {
@@ -621,6 +862,106 @@ describe('Matching', () => {
         expect(page.find('.is-sel').exists()).toBe(false)
         expect(chooseLine(page).classes()).not.toContain('invisible')
         expect(page.find('input').exists()).toBe(false)
+      })
+    })
+
+    /**
+     * The overview's matching tile leads here with `?new=entry` (utils/newMatchingEntry): its
+     * button means "let me write one now", so the form opens by itself. The wish is read
+     * once and taken out of the address, the way the contacts page does with a conversation
+     * it is asked for -- a reload, or the way back, must not open the form again.
+     */
+    describe('for a member the overview sent to write an entry', () => {
+      const cancel = (page) =>
+        page
+          .find('.modal-stub')
+          .findAll('button')
+          .find((b) => b.text() === de.matching.new.cancel)
+
+      it('opens the form by itself, on the choice of what to enter', async () => {
+        place.query = { new: 'entry' }
+        const page = mountPage('entries', shownModal)
+        await page.vm.$nextTick()
+
+        expect(formOpen(page)).toBe(true)
+        expect(page.find('[data-test="matching-entry-choose"]').text()).toBe(de.matching.new.choose)
+        expect(page.find('.is-sel').exists()).toBe(false)
+        expect(page.find('input').exists()).toBe(false)
+      })
+
+      it('takes the wish out of the address at once, and leaves the rest of it', async () => {
+        place.query = { new: 'entry', pid: '7' }
+        const page = mountPage('entries', shownModal)
+        await page.vm.$nextTick()
+
+        expect(replace).toHaveBeenCalledTimes(1)
+        expect(replace).toHaveBeenCalledWith({ query: { pid: '7' } })
+        // Replaced, not pushed: the way back leads to the overview, not to the wish.
+        expect(push).not.toHaveBeenCalled()
+      })
+
+      it('leaves the form closed for a member who simply opens the tab', async () => {
+        const page = mountPage('entries', shownModal)
+        await page.vm.$nextTick()
+
+        expect(formOpen(page)).toBe(false)
+        expect(replace).not.toHaveBeenCalled()
+      })
+
+      // The query goes with the tab: on the home tab it is not a wish for an entry.
+      it.each(['about', 'position'])('does not read the wish on the %s tab', async (tab) => {
+        place.query = { new: 'entry' }
+        const page = mountPage(tab, shownModal)
+        await page.vm.$nextTick()
+
+        expect(formOpen(page)).toBe(false)
+        expect(replace).not.toHaveBeenCalled()
+      })
+
+      it.each([
+        ['another word', { new: 'yes' }],
+        ['an empty one', { new: '' }],
+        ['the word twice', { new: ['entry', 'entry'] }],
+        ['another name', { entry: 'new' }],
+      ])('does not take %s for the wish', async (_name, query) => {
+        place.query = query
+        const page = mountPage('entries', shownModal)
+        await page.vm.$nextTick()
+
+        expect(formOpen(page)).toBe(false)
+        expect(replace).not.toHaveBeenCalled()
+      })
+
+      // Read once. The member closes the form, looks at another tab and comes back: the
+      // form stays closed, whatever the address says by then.
+      it('does not open the form again after the member closed it', async () => {
+        place.query = { new: 'entry' }
+        const page = mountPage('entries', shownModal)
+        await page.vm.$nextTick()
+        await cancel(page).trigger('click')
+        expect(formOpen(page)).toBe(false)
+
+        place.tab = 'about'
+        await page.vm.$nextTick()
+        place.tab = 'entries'
+        place.query = { new: 'entry' }
+        await page.vm.$nextTick()
+
+        expect(formOpen(page)).toBe(false)
+        expect(replace).toHaveBeenCalledTimes(1)
+      })
+
+      // A search kept from the map brings words along, and there is one form.
+      it('opens with a kept search where there is one, and still clears the address', async () => {
+        kept.draft = { summary: 'einen Schlosser', matchingType: 'gesuch' }
+        place.query = { new: 'entry' }
+        const page = mountPage('entries', shownModal)
+        await page.vm.$nextTick()
+
+        expect(formOpen(page)).toBe(true)
+        expect(page.find('[data-test="matching-entry-choose"]').exists()).toBe(false)
+        expect(page.find('input').element.value).toBe('einen Schlosser')
+        expect(replace).toHaveBeenCalledWith({ query: {} })
       })
     })
 

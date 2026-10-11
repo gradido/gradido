@@ -910,7 +910,10 @@
     },
     "entries": {
       "activate": "Activate",
-      "count": "{total} entries · {live} live · {paused} paused",
+      "count": "{total} · {live} · {paused}",
+      "countLive": "{n} live",
+      "countPaused": "{n} paused",
+      "countTotal": "{n} entry | {n} entries",
       "delete": "Delete",
       "deleteConfirm": "Delete this entry?",
       "details": "Details",
@@ -949,6 +952,10 @@
       }
     },
     "invitation": {
+      "entriesGo": "Make my first entry",
+      "entriesMore": "Make another entry",
+      "entriesText": "Enter what you look for, what you give and what you love. Matching then shows you the people who fit — and shows you to them.",
+      "entriesTitle": "Who fits you?",
       "go": "Make me visible on the map",
       "question": "Which of them live near you?",
       "text": "Set your home on the map and you will see — and the others will see you. You decide how precisely: \"Approximate\" shows you within an area, never at your front door. And you can leave again at any time.",

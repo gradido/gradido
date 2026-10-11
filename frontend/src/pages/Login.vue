@@ -108,6 +108,15 @@ const onSubmit = handleSubmit(async (values) => {
   // this.$root.$bvToast.hide()
   try {
     await signIn({ email: values.email, password: values.password })
+    // The way back is taken ONCE. The guard writes it for somebody who arrives signed out
+    // (routes/guards.js), and it used to stay after it had served: only a sign-out put it
+    // back. A wallet that later starts on this page with its session run out signs nobody
+    // out, so the next sign-in led to that same address again -- into the conversation a
+    // mail had linked to weeks before, instead of the overview (measured in the built
+    // wallet, 11.10.2026). Taken here, after the sign-in has succeeded: a failed attempt
+    // keeps it for the next one.
+    const back = store.state.redirectPath
+    store.commit('redirectPath', '/overview')
     // await loader.hide()
     if (store.state.project) {
       const result = await mutateHumhubAutoLogin({
@@ -120,7 +129,7 @@ const onSubmit = handleSubmit(async (values) => {
     if (route.params.code) {
       await router.push(routeWithParamsAndQuery('Redeem'))
     } else {
-      await router.push(store.state.redirectPath)
+      await router.push(back)
     }
   } catch (error) {
     // ⛔ These two literals are one half of a contract with the backend, and the backend

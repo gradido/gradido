@@ -66,6 +66,10 @@ describe('Login', () => {
       },
       mutations: {
         email: vi.fn(),
+        // As in store.js: no way back is the way to the overview.
+        redirectPath: (state, path) => {
+          state.redirectPath = path || '/overview'
+        },
       },
     })
   }
@@ -79,6 +83,7 @@ describe('Login', () => {
         { path: '/overview', name: 'Overview' },
         { path: '/redeem/:code', name: 'Redeem' },
         { path: '/login/:code?', name: 'Login' },
+        { path: '/contacts', name: 'Contacts' },
       ],
     })
 
@@ -259,6 +264,73 @@ describe('Login', () => {
 
       it('asks nothing else after signing in', () => {
         expect(mockQuery).not.toHaveBeenCalled()
+      })
+    })
+
+    /**
+     * The guard keeps the address somebody asked for while signed out, and this page leads
+     * there after the sign-in (routes/guards.js). It used to keep it afterwards as well: only
+     * a sign-out put it back. A wallet that starts on this page with its session run out
+     * signs nobody out, so every later sign-in led to that old address again -- into the
+     * conversation a mail had linked to, instead of the overview. The way back is taken once.
+     */
+    describe('the way back to the address asked for while signed out', () => {
+      const LINK = '/contacts?with=a-member'
+      const signIn = async () => {
+        await wrapper.find('#email-input-field').setValue('user@example.org')
+        await wrapper.find('#password-input-field').setValue('1234')
+        await wrapper.find('form').trigger('submit')
+        await flushPromises()
+      }
+
+      beforeEach(() => {
+        mockMutate.mockResolvedValue({ data: { login: { language: 'en' } } })
+        store.state.redirectPath = LINK
+      })
+
+      it('leads there after the sign-in, with all of the address', async () => {
+        await signIn()
+
+        expect(router.currentRoute.value.fullPath).toBe(LINK)
+      })
+
+      it('is used up by that: the store holds the way to the overview again', async () => {
+        await signIn()
+
+        expect(store.state.redirectPath).toBe('/overview')
+      })
+
+      it('leads the next sign-in to the overview', async () => {
+        await signIn()
+        await router.push('/login')
+
+        await signIn()
+
+        expect(router.currentRoute.value.fullPath).toBe('/overview')
+      })
+
+      // Taken after the sign-in has succeeded, not before.
+      it('is kept through a sign-in that fails, for the one that follows', async () => {
+        mockMutate.mockRejectedValueOnce(new Error('GraphQL error: No user with this credentials'))
+        await signIn()
+        expect(store.state.redirectPath).toBe(LINK)
+        expect(router.currentRoute.value.fullPath).not.toBe(LINK)
+
+        await signIn()
+
+        expect(router.currentRoute.value.fullPath).toBe(LINK)
+        expect(store.state.redirectPath).toBe('/overview')
+      })
+
+      // The code in the address comes first, as before. The sign-in has happened all the
+      // same, and what was kept from an earlier arrival does not wait for the next one.
+      it('is used up as well by a sign-in that goes on to a redeem page', async () => {
+        await router.push('/login/abcdef0123')
+
+        await signIn()
+
+        expect(router.currentRoute.value.path).toBe('/redeem/abcdef0123')
+        expect(store.state.redirectPath).toBe('/overview')
       })
     })
 

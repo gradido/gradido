@@ -86,8 +86,8 @@ export function useMapMemberCount() {
   const count = ref(heard ?? null)
   const settled = ref(true)
 
-  // Decided when the overview is set up. Nobody gets onto the map or off it while standing
-  // on the overview, and a tile that left would take its question with it.
+  // Decided when the overview is set up, and not looked at again: the tile reads the store
+  // once as well, so that a save still under way on another page cannot change it later.
   if (!invitedOntoTheMap(store.state)) {
     return { settled, count }
   }

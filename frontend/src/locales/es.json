@@ -910,7 +910,10 @@
     },
     "entries": {
       "activate": "Activar",
-      "count": "{total} entradas · {live} activas · {paused} en pausa",
+      "count": "{total} · {live} · {paused}",
+      "countLive": "{n} activa | {n} activas",
+      "countPaused": "{n} en pausa",
+      "countTotal": "{n} entrada | {n} entradas",
       "delete": "Eliminar",
       "deleteConfirm": "¿Eliminar esta entrada?",
       "details": "Detalles",
@@ -949,6 +952,10 @@
       }
     },
     "invitation": {
+      "entriesGo": "Crear mi primera entrada",
+      "entriesMore": "Crear otra entrada",
+      "entriesText": "Indica lo que buscas, lo que das y lo que te encanta. El matching te muestra entonces a las personas que encajan contigo, y también te muestra a ellas.",
+      "entriesTitle": "¿Quién encaja contigo?",
       "go": "Hacerme visible en el mapa",
       "question": "¿Quiénes de ellas viven cerca de ti?",
       "text": "Marca tu casa en el mapa y lo verás, y los demás te verán a ti. Tú decides con qué precisión: «Aproximada» te muestra dentro de un área, nunca en tu puerta. Y puedes salir del mapa en cualquier momento.",

@@ -910,7 +910,10 @@
     },
     "entries": {
       "activate": "Aktivieren",
-      "count": "{total} Einträge · {live} live · {paused} pausiert",
+      "count": "{total} · {live} · {paused}",
+      "countLive": "{n} live",
+      "countPaused": "{n} pausiert",
+      "countTotal": "{n} Eintrag | {n} Einträge",
       "delete": "Löschen",
       "deleteConfirm": "Soll der Eintrag wirklich gelöscht werden?",
       "details": "Details",
@@ -949,6 +952,10 @@
       }
     },
     "invitation": {
+      "entriesGo": "Meinen ersten Eintrag machen",
+      "entriesMore": "Noch einen Eintrag machen",
+      "entriesText": "Trag ein, was Du suchst, was Du gibst und was Du liebst. Das Matching zeigt Dir dann die Menschen, die dazu passen — und zeigt Dich ihnen.",
+      "entriesTitle": "Wer passt zu Dir?",
       "go": "Mich auf der Karte zeigen",
       "question": "Wer davon wohnt in Deiner Nähe?",
       "text": "Setz Dein Zuhause auf die Karte, dann siehst Du es — und die anderen sehen Dich. Du entscheidest, wie genau: „Ungefähr“ zeigt Dich im Umkreis, nie auf der Haustür. Und Du kannst jederzeit wieder raus.",
