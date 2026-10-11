@@ -4,6 +4,7 @@ import { getHomeCommunityDrizzle } from 'database'
 import { getLogger } from 'log4js'
 import { AppContext } from 'shared'
 import { matchingKeyingRun } from './apis/anthropic/matching/keyingRun'
+import { mapMemberCount } from './apis/gms/mapMemberCount'
 import { chatVideoServerPool } from './apis/jitsi/chatVideoServerPool'
 import { seedChatVideoServers } from './apis/jitsi/seedChatVideoServers'
 import { CONFIG } from './config'
@@ -39,6 +40,10 @@ async function main() {
   // by that: entries are stored and served either way, they are just not yet
   // findable by word.
   matchingKeyingRun.start()
+  // How many members stand on the map, for the invitation on the wallet's overview: the GMS
+  // is asked now and every quarter of an hour, in the background -- the query mapMemberCount
+  // only reads what the last answer said. Nothing at all without the GMS.
+  mapMemberCount.start()
   // The chat's video servers: the list is filled once where it is still empty (from
   // CHAT_VIDEO_SERVERS or the default list), then checked now and every ten minutes, in the
   // background -- the query chatVideoRoom only reads what the last check found and never waits

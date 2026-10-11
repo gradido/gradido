@@ -950,8 +950,10 @@
     },
     "invitation": {
       "go": "Rendimi visibile sulla mappa",
+      "question": "Chi di loro abita vicino a te?",
       "text": "Segna la tua casa sulla mappa e lo vedrai, e gli altri vedranno te. Decidi tu con quanta precisione: «Approssimativa» ti mostra in un'area, mai davanti alla porta di casa. E puoi toglierti dalla mappa in qualsiasi momento.",
-      "title": "Chi abita vicino a te?"
+      "title": "Chi abita vicino a te?",
+      "titleCount": "{n} persone sulla mappa di Gradido"
     },
     "list": {
       "centeredOn": "Intorno a {place}",

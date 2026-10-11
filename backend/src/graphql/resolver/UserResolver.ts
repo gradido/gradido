@@ -114,6 +114,7 @@ import {
 import { IRestResponse } from 'typed-rest-client'
 import { EntityNotFoundError, Point } from 'typeorm'
 import * as v from 'valibot'
+import { mapMemberCount } from '@/apis/gms/mapMemberCount'
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
 import { Account as HumhubAccount } from '@/apis/humhub/model/Account'
 import { GetUser } from '@/apis/humhub/model/GetUser'
@@ -1328,6 +1329,24 @@ export class UserResolver {
       return null
     }
     return ensureUrlEndsWithSlash(CONFIG.GMS_DASHBOARD_URL)
+  }
+
+  /**
+   * How many members stand on the map, across every community the GMS holds -- what the
+   * invitation on the wallet's overview opens with (Bernd, 11.10.2026).
+   *
+   * ⛔ Reads what the background refresh last learned (apis/gms/mapMemberCount.ts) and nothing
+   * else: no request to the GMS, no query. The wallet waits for this answer before it paints
+   * its overview for a member it has never asked for before, so it must come back at once.
+   *
+   * `null` where this server has no GMS, where the GMS does not answer the question (one
+   * released before gms_workspace#43), and until the first answer after a start is in. The
+   * invitation then stands without the number.
+   */
+  @Authorized([RIGHTS.GMS_USER_PLAYGROUND])
+  @Query(() => Int, { nullable: true })
+  mapMemberCount(): number | null {
+    return mapMemberCount.known()
   }
 
   // Named apart from the query it answers: the guard of the field `User.userLocation` below

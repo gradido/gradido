@@ -6,8 +6,10 @@ import {
   AuthSigningType,
   authContextSchema,
   createUserToken,
+  DomainError,
   Duration,
   JwtSigner,
+  Result,
   Uuidv4,
   verifyUserToken,
 } from 'shared'
@@ -18,6 +20,7 @@ import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { LogError } from '@/server/LogError'
 import { GmsMatchingEntrySnapshot, GmsUserMatchingEntry } from './model/GmsMatchingEntry'
 import { GmsUser } from './model/GmsUser'
+import { gmsUserCountSchema } from './model/GmsUserCount.schema'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.gms.GmsClient`)
 
@@ -301,6 +304,77 @@ export async function postGmsMatchingVocabulary(
     )
   }
   return result.data?.added ?? 0
+}
+
+/** Why asking the GMS for the number of members on the map brought no number. */
+export type GmsUserCountFailure =
+  // this server runs without the GMS
+  | 'INACTIVE'
+  // no answer: not reachable, or not in time
+  | 'UNREACHABLE'
+  // the GMS does not know the question - one released before gms_workspace#43 answers 404
+  | 'NO_ROUTE'
+  // any other status: the key is not accepted, the GMS is in trouble
+  | 'REFUSED'
+  // an answer that is not a count
+  | 'UNREADABLE'
+
+/**
+ * Asking the GMS how many members stand on the map brought no number. The GMS is outside
+ * this server's control, so this is an expected failure -- returned, never thrown.
+ */
+export class GmsUserCountError extends DomainError {
+  constructor(
+    public readonly reason: GmsUserCountFailure,
+    public readonly detail: string,
+  ) {
+    super(`GMS_USER_COUNT_FAILED ${reason}: ${detail}`)
+  }
+}
+
+/**
+ * How many members stand on the map, across every community the GMS holds (`GET
+ * /user-count`, gradido/gms_workspace#43) - the number the wallet's invitation onto the map
+ * opens with.
+ *
+ * Counted over there with the join the map itself is drawn from, and asked with the
+ * community's key: no member is named in the question, so the answer is the same for a member
+ * the GMS has never heard of - which is who the invitation is for.
+ *
+ * Every way this can go wrong comes back as a result. The caller is a background refresh
+ * that keeps what it knew (mapMemberCount.ts), and a GMS without the route is the normal case
+ * for as long as an older release is running somewhere.
+ */
+export async function getGmsUserCount(apiKey: string): Promise<Result<number, GmsUserCountError>> {
+  const failed = (reason: GmsUserCountFailure, detail: string) =>
+    ({ success: false, error: new GmsUserCountError(reason, detail) }) as const
+  if (!CONFIG.GMS_ACTIVE) {
+    return failed('INACTIVE', 'GMS_ACTIVE=false')
+  }
+  const baseUrl = ensureUrlEndsWithSlash(CONFIG.GMS_API_URL)
+  let data: unknown
+  try {
+    const result = await axios.get(baseUrl.concat('user-count'), {
+      headers: gmsHeaders(apiKey),
+      httpAgent,
+      httpsAgent,
+      // Asked from a background loop, one request at a time: see GMS_REQUEST_TIMEOUT_MS.
+      timeout: GMS_REQUEST_TIMEOUT_MS,
+    })
+    data = result.data
+  } catch (error) {
+    // axios throws for every status outside 2xx, and where no answer came at all.
+    const status = axios.isAxiosError(error) ? error.response?.status : undefined
+    if (status === undefined) {
+      return failed('UNREACHABLE', error instanceof Error ? error.message : String(error))
+    }
+    return failed(status === 404 ? 'NO_ROUTE' : 'REFUSED', `status ${status}`)
+  }
+  const parsed = v.safeParse(gmsUserCountSchema, data)
+  if (!parsed.success) {
+    return failed('UNREADABLE', v.summarize(parsed.issues))
+  }
+  return { success: true, value: parsed.output.count }
 }
 
 function gmsHeaders(apiKey: string) {

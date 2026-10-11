@@ -950,8 +950,10 @@
     },
     "invitation": {
       "go": "Mezelf op de kaart tonen",
+      "question": "Wie van hen woont er bij jou in de buurt?",
       "text": "Zet je thuis op de kaart, dan zie je het — en de anderen zien jou. Jij bepaalt hoe precies: 'Ongeveer' toont je binnen een omgeving, nooit aan je voordeur. En je kunt er op elk moment weer af.",
-      "title": "Wie woont er bij jou in de buurt?"
+      "title": "Wie woont er bij jou in de buurt?",
+      "titleCount": "{n} mensen op de Gradido‑kaart"
     },
     "list": {
       "centeredOn": "Rondom {place}",

@@ -128,6 +128,14 @@ export const gmsDashboardUrl = gql`
   }
 `
 
+// How many members stand on the map across every community, or null where the server has
+// no number - see composables/useMapMemberCount.
+export const mapMemberCount = gql`
+  query {
+    mapMemberCount
+  }
+`
+
 export const userLocationQuery = gql`
   query {
     userLocation {

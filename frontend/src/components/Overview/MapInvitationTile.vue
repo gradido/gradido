@@ -4,7 +4,18 @@
        py-3 and not p-3 for the reason given there. -->
   <div v-if="invited" class="mb-3 py-3 map-invitation-tile" data-test="map-invitation-tile">
     <BContainer class="bg-white app-box-shadow gradido-border-radius p-4 mt--3">
-      <div class="h3" data-test="map-invitation-heading">
+      <!-- With the number the heading counts and the question follows it; without, the
+           question is the heading (Bernd, 11.10.2026). Which of the two is decided before
+           the tile is painted and never after -- see `count` below. -->
+      <template v-if="saysCount">
+        <div class="h3 mb-1 map-invitation-heading" data-test="map-invitation-heading">
+          {{ $t('matching.invitation.titleCount', { n: $n(count) }, count) }}
+        </div>
+        <div data-test="map-invitation-question">
+          {{ $t('matching.invitation.question') }}
+        </div>
+      </template>
+      <div v-else class="h3 map-invitation-heading" data-test="map-invitation-heading">
         {{ $t('matching.invitation.title') }}
       </div>
       <div class="my-3 small" data-test="map-invitation-text">
@@ -31,26 +42,54 @@
  * somebody who had already gone looking. This is the same invitation where a newcomer
  * stands -- a tile that waits, not a fourth window on the first login (Bernd, 11.10.2026).
  *
- * Shown to a member who is not on the map, by the one rule that says who is: a position
- * AND the permission to be found (`mayFind`). It reads the store, which the login fills, so
- * the tile is there with the first paint or not at all.
+ * Shown to a member who is not on the map (`invitedOntoTheMap`). It reads the store, which
+ * the login fills, so the tile is there with the first paint or not at all.
  */
 import { computed } from 'vue'
 import { useStore } from 'vuex'
 import { BButton, BContainer } from 'bootstrap-vue-next'
-import CONFIG from '@/config'
-import { mayFind } from '@/utils/matchingPosition'
-import { SHOW_ME_ON_THE_MAP } from '@/utils/showMeOnTheMap'
+import { invitedOntoTheMap, SHOW_ME_ON_THE_MAP } from '@/utils/showMeOnTheMap'
+
+const props = defineProps({
+  /**
+   * How many people stand on the map across every community, or null where nobody could
+   * say -- a server without a number, or no answer in time.
+   *
+   * ⛔ Handed in by the overview, which decides it once, before this tile is painted, and
+   * never changes it afterwards (composables/useMapMemberCount). The heading with the number
+   * is a line taller than the one without; a number arriving later would push the button
+   * below it down under a finger.
+   */
+  count: { type: Number, default: null },
+})
+
+/**
+ * From how many people on the heading counts them. Below two there is nobody to ask "who of
+ * them" about, and the question stands alone as before.
+ *
+ * Deliberately not a bigger threshold: the number is the whole network's, over 770 where it
+ * is read today, and a test network with a few dozen should show what it has. One line to
+ * turn, should a small number ever read as a reason to stay away.
+ */
+const FEWEST_TO_COUNT = 2
 
 const store = useStore()
 
-// The matching routes exist only where matching is switched on, and routes.js reads the
-// switch the same way; a tile that led to a page this wallet does not have would be an
-// invitation to a 404.
-const invited = computed(() => Boolean(CONFIG.MATCHING_ACTIVE) && !mayFind(store.state))
+const invited = computed(() => invitedOntoTheMap(store.state))
+const saysCount = computed(
+  () => Number.isSafeInteger(props.count) && props.count >= FEWEST_TO_COUNT,
+)
 </script>
 
 <style lang="scss" scoped>
+/* With the number the heading is long enough to wrap on a phone. Balanced, it breaks into
+   lines of like length instead of a full line and one word left over - "12,345 people on the
+   Gradido / map" at 320px, measured in the built wallet. A browser that does not know the
+   property wraps as before. */
+.map-invitation-heading {
+  text-wrap: balance;
+}
+
 /* The house button stands 50px in from each side, and "show me on the map" is a long label:
    217px of text in German, the longest of the ten languages, so the button wants 317px. The
    tile has that from 377px of screen upwards. Below it the label broke in two, one word
