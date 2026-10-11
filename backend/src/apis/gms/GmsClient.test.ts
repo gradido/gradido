@@ -12,7 +12,9 @@ import {
   createGmsHandshakeJWTToken,
   deleteGmsMatchingEntry,
   deleteGmsUser,
+  GmsUserCountError,
   getGmsMatchingVocabulary,
+  getGmsUserCount,
   postGmsMatchingVocabulary,
   putGmsMatchingEntry,
   putGmsMatchingEntrySnapshots,
@@ -30,6 +32,8 @@ jest.mock('axios', () => ({
     post: jest.fn(),
     put: jest.fn(),
     delete: jest.fn(),
+    // The real one reads this mark as well; getGmsUserCount tells a refusal from no answer by it.
+    isAxiosError: (error: unknown) => Boolean((error as { isAxiosError?: boolean })?.isAxiosError),
   },
 }))
 
@@ -456,6 +460,101 @@ describe('GmsClient', () => {
       expect(put.mock.calls[0][2].timeout).toBeGreaterThan(0)
       expect(del.mock.calls[0][1].timeout).toBeGreaterThan(0)
       expect(del.mock.calls[1][1].timeout).toBeGreaterThan(0)
+    })
+  })
+
+  // The number the wallet's invitation onto the map opens with (Bernd, 11.10.2026). Asked by
+  // a background refresh that keeps what it knew, so nothing here may throw: a GMS without
+  // the route is the normal case for as long as an older release runs somewhere.
+  describe('getGmsUserCount', () => {
+    // What axios throws for a status outside 2xx, and for no answer at all.
+    const refusal = (status: number) =>
+      Object.assign(new Error(`Request failed with status code ${status}`), {
+        isAxiosError: true,
+        response: { status },
+      })
+    const noAnswer = (message: string) => Object.assign(new Error(message), { isAxiosError: true })
+    const failure = async () => {
+      const answer = await getGmsUserCount(API_KEY)
+      if (answer.success) {
+        throw new Error(`expected a failure, got ${answer.value}`)
+      }
+      expect(answer.error).toBeInstanceOf(GmsUserCountError)
+      return answer.error
+    }
+
+    it('asks with the community key and hands back the number', async () => {
+      get.mockResolvedValue({ status: 200, data: { count: 773 } })
+
+      await expect(getGmsUserCount(API_KEY)).resolves.toEqual({ success: true, value: 773 })
+
+      expect(get).toHaveBeenCalledTimes(1)
+      const [url, config] = get.mock.calls[0]
+      expect(url).toBe('http://gms.test/api/user-count')
+      expect(config.headers.authorization).toBe(`Bearer ${API_KEY}`)
+      // Asked from a background loop: a hung connection has to end.
+      expect(config.timeout).toBeGreaterThan(0)
+    })
+
+    it('takes a map with nobody on it for an answer', async () => {
+      get.mockResolvedValue({ status: 200, data: { count: 0 } })
+
+      await expect(getGmsUserCount(API_KEY)).resolves.toEqual({ success: true, value: 0 })
+    })
+
+    it('sends nothing while GMS_ACTIVE is off, and says so', async () => {
+      CONFIG.GMS_ACTIVE = false
+
+      expect((await failure()).reason).toBe('INACTIVE')
+      expect(get).not.toHaveBeenCalled()
+    })
+
+    it('says so where the GMS does not know the question', async () => {
+      get.mockRejectedValue(refusal(404))
+
+      const error = await failure()
+      expect(error.reason).toBe('NO_ROUTE')
+      expect(error.message).toBe('GMS_USER_COUNT_FAILED NO_ROUTE: status 404')
+    })
+
+    it.each([401, 400, 500, 503])('returns a refusal for status %i', async (status) => {
+      get.mockRejectedValue(refusal(status))
+
+      const error = await failure()
+      expect(error.reason).toBe('REFUSED')
+      expect(error.detail).toBe(`status ${status}`)
+    })
+
+    it('returns no answer in time as unreachable', async () => {
+      get.mockRejectedValue(noAnswer('timeout of 30000ms exceeded'))
+
+      const error = await failure()
+      expect(error.reason).toBe('UNREACHABLE')
+      expect(error.detail).toBe('timeout of 30000ms exceeded')
+    })
+
+    // Something on the way that is not axios's own error, and not even an Error.
+    it.each([[new Error('socket hang up')], ['ECONNRESET']])(
+      'returns %p as unreachable instead of throwing it',
+      async (thrown) => {
+        get.mockRejectedValue(thrown)
+
+        expect((await failure()).reason).toBe('UNREACHABLE')
+      },
+    )
+
+    it.each([
+      ['no count', {}],
+      ['a count as text', { count: '773' }],
+      ['a negative count', { count: -1 }],
+      ['half a member', { count: 12.5 }],
+      ['null', { count: null }],
+      ['a page instead of an answer', '<html>502</html>'],
+      ['nothing', undefined],
+    ])('does not pass on %s as a number', async (_name, data) => {
+      get.mockResolvedValue({ status: 200, data })
+
+      expect((await failure()).reason).toBe('UNREADABLE')
     })
   })
 

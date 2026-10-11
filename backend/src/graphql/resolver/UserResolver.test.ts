@@ -65,10 +65,12 @@ import { QueryRunner } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
 import {
   deleteGmsUser,
+  getGmsUserCount,
   putGmsMatchingEntrySnapshots,
   upsertGmsUsers,
   verifyAuthToken,
 } from '@/apis/gms/GmsClient'
+import { mapMemberCount } from '@/apis/gms/mapMemberCount'
 import { subscribe } from '@/apis/KlicktippController'
 import { encode } from '@/auth/JWT'
 import { CONFIG } from '@/config'
@@ -104,6 +106,7 @@ import {
   avatarFull,
   checkUsername,
   gmsDashboardUrl,
+  mapMemberCount as mapMemberCountQuery,
   memberAvatarFull,
   memberAvatars,
   queryOptIn,
@@ -152,6 +155,8 @@ jest.mock('@/apis/gms/GmsClient', () => {
     deleteGmsUser: jest.fn(),
     // Watched by the dashboard-url tests: the one call that mints a member token over there.
     verifyAuthToken: jest.fn(),
+    // Watched by the map-member-count tests: the query must never ask the GMS itself.
+    getGmsUserCount: jest.fn(),
   }
 })
 
@@ -5333,6 +5338,101 @@ describe('UserResolver', () => {
           errors: undefined,
           data: { gmsDashboardUrl: null },
         })
+      })
+    })
+  })
+
+  // The number the wallet's invitation onto the map opens with (Bernd, 11.10.2026). The wallet
+  // waits for this answer before it paints the overview of a member it has never asked for
+  // before, so the query may only read what the background refresh last learned.
+  describe('how many members stand on the map', () => {
+    const askMock = getGmsUserCount as jest.Mock
+    const verifyMock = verifyAuthToken as jest.Mock
+    let known: jest.SpyInstance
+
+    beforeAll(async () => {
+      await cleanDB()
+      const homeCom = await writeHomeCommunityEntry()
+      homeCom.gmsApiKey = 'gms-test-key'
+      await DbCommunity.save(homeCom)
+
+      // Exactly who the invitation is for: not taking part, never sent to the GMS.
+      const member = await userFactory(testEnv, bibiBloxberg)
+      await User.update({ id: member.id }, { gmsAllowed: false, gmsRegistered: false })
+    })
+
+    beforeEach(() => {
+      askMock.mockReset()
+      verifyMock.mockReset()
+      CONFIG.GMS_ACTIVE = true
+      known = jest.spyOn(mapMemberCount, 'known')
+    })
+
+    afterEach(() => {
+      known.mockRestore()
+    })
+
+    afterAll(async () => {
+      CONFIG.GMS_ACTIVE = false
+      resetToken()
+      await cleanDB()
+    })
+
+    describe('unauthenticated', () => {
+      it('throws an error', async () => {
+        resetToken()
+        known.mockReturnValue(773)
+
+        await expect(query({ query: mapMemberCountQuery })).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+        expect(known).not.toHaveBeenCalled()
+      })
+    })
+
+    describe('authenticated, as a member who does not take part in the GMS', () => {
+      beforeAll(async () => {
+        await mutate({
+          mutation: login,
+          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+        })
+      })
+
+      it('answers what the last refresh learned', async () => {
+        known.mockReturnValue(773)
+
+        await expect(query({ query: mapMemberCountQuery })).resolves.toMatchObject({
+          errors: undefined,
+          data: { mapMemberCount: 773 },
+        })
+      })
+
+      it('answers a map with nobody on it as zero, not as nothing', async () => {
+        known.mockReturnValue(0)
+
+        await expect(query({ query: mapMemberCountQuery })).resolves.toMatchObject({
+          errors: undefined,
+          data: { mapMemberCount: 0 },
+        })
+      })
+
+      // Nothing starts the refresh in a test, so this is the one of the process as it stands
+      // right after a start - and on a server without the GMS, where it never starts.
+      it('answers null until the GMS has said a number', async () => {
+        await expect(query({ query: mapMemberCountQuery })).resolves.toMatchObject({
+          errors: undefined,
+          data: { mapMemberCount: null },
+        })
+        expect(known).toHaveBeenCalledTimes(1)
+      })
+
+      it('asks the GMS nothing to do so', async () => {
+        await query({ query: mapMemberCountQuery })
+
+        expect(askMock).not.toHaveBeenCalled()
+        expect(verifyMock).not.toHaveBeenCalled()
       })
     })
   })

@@ -31,6 +31,12 @@ export const gmsDashboardUrl = gql`
   }
 `
 
+export const mapMemberCount = gql`
+  query {
+    mapMemberCount
+  }
+`
+
 export const userLocationQuery = gql`
   query {
     userLocation {
