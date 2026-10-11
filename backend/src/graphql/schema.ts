@@ -33,6 +33,7 @@ import { StatisticsResolver } from './resolver/StatisticsResolver'
 import { ThankYouCardPaymentResolver } from './resolver/ThankYouCardPaymentResolver'
 import { ThankYouCardResolver } from './resolver/ThankYouCardResolver'
 import { TransactionLinkResolver } from './resolver/TransactionLinkResolver'
+import { TransactionReactionResolver } from './resolver/TransactionReactionResolver'
 import { TransactionResolver } from './resolver/TransactionResolver'
 import { UserCreationGroupResolver } from './resolver/UserCreationGroupResolver'
 import { UserResolver } from './resolver/UserResolver'
@@ -78,6 +79,7 @@ export const schema = (): Promise<GraphQLSchema> => {
       ThankYouCardPaymentResolver,
       ThankYouCardResolver,
       TransactionLinkResolver,
+      TransactionReactionResolver,
       TransactionResolver,
       UserCreationGroupResolver,
       UserResolver,
