@@ -697,6 +697,9 @@ describe('Matching', () => {
     }
     const saveButton = (page) =>
       page.findAll('button').find((button) => button.text().includes(de.matching.save))
+    // The button of the window that asks before saving. By its mark, not by its word: it
+    // says "save" only where the save leaves the member's place on the map alone.
+    const confirmButton = (page) => page.find('[data-test="position-save-confirm"]')
 
     const openPositionTab = async () => {
       const page = mountPage('position')
@@ -843,6 +846,328 @@ describe('Matching', () => {
       })
     })
 
+    // A member who takes themselves off the map is not "saving position settings", and
+    // neither is one who comes onto it. The window used to ask both exactly that, and the
+    // message afterwards said "location saved" to somebody who had just left (Bernd,
+    // 11.10.2026). Now the window says what the save does and its button names the step;
+    // the message says what happened. A save that leaves the member's place on the map
+    // alone reads as it always did.
+    describe('the window before a save, and the message after it', () => {
+      const noHome = {
+        userLocation: null,
+        communityLocation: { latitude: 48.1, longitude: 11.5 },
+      }
+      // Open windows only, with their title: this is about what they say.
+      const spoken = {
+        BModal: {
+          props: ['modelValue'],
+          template:
+            '<div v-if="modelValue" class="modal-stub"><slot name="title" /><slot /><slot name="footer" /></div>',
+        },
+      }
+      // Every window whether open or not, to hear what a closing one still says.
+      const closingToo = {
+        BModal: {
+          template:
+            '<div class="modal-stub"><slot name="title" /><slot /><slot name="footer" /></div>',
+        },
+      }
+      const LEAVE = {
+        title: de.matching.position.leaveTitle,
+        text: de.matching.position.leaveText,
+        confirm: de.matching.position.leaveGo,
+      }
+      const JOIN = {
+        title: de.matching.position.joinTitle,
+        text: de.matching.position.joinText,
+        confirm: de.matching.invitation.go,
+      }
+      const PLAIN = {
+        title: de.matching.position.saveTitle,
+        text: de.matching.position.saveText,
+        confirm: de.matching.save,
+      }
+      const SAVED = de.settings.GMS.location.updateSuccess
+      const NOW_ON = de.matching.position.findableOn
+      const NOW_OFF = de.matching.position.findableOff
+
+      const words = (page) => ({
+        title: page.find('[data-test="position-save-title"]').text(),
+        text: page.find('[data-test="position-save-text"]').text(),
+        confirm: confirmButton(page).text(),
+      })
+      const open = async ({ findable, home = true, stubs = spoken }) => {
+        store.state.gmsAllowed = findable
+        if (home) store.state.userLocation = { ...location.userLocation }
+        const page = mountPage('position', stubs)
+        fire(userLocationQuery, { userLocation: home ? location : noHome })
+        await page.vm.$nextTick()
+        return page
+      }
+      const flip = async (page, value) => {
+        page.findComponent(UserSettingsSwitch).vm.$emit('value-changed', value)
+        await page.vm.$nextTick()
+      }
+      const moveHome = async (page) => {
+        page
+          .findComponent(UserLocationMapStub)
+          .vm.$emit('update:userPosition', { lat: 49, lng: 12 })
+        await page.vm.$nextTick()
+      }
+      const pickApproximate = async (page) => {
+        page
+          .findComponent({ name: 'UserGMSLocationFormat' })
+          .vm.$emit('gmsPublishLocation', 'GMS_LOCATION_TYPE_APPROXIMATE')
+        await page.vm.$nextTick()
+      }
+      const ask = (page) => saveButton(page).trigger('click')
+      const confirm = async (page) => {
+        await confirmButton(page).trigger('click')
+        await flushPromises()
+      }
+
+      // The texts themselves, so that no case below compares a word with itself.
+      it('has three sets of words that differ in every part', () => {
+        for (const part of ['title', 'text', 'confirm']) {
+          expect(new Set([LEAVE[part], JOIN[part], PLAIN[part]]).size).toBe(3)
+        }
+        expect(new Set([SAVED, NOW_ON, NOW_OFF]).size).toBe(3)
+      })
+
+      describe('for a member who takes themselves off the map', () => {
+        it('says so, and its button names the step', async () => {
+          const page = await open({ findable: true })
+          await flip(page, false)
+
+          await ask(page)
+
+          expect(words(page)).toEqual(LEAVE)
+          // Still beside a way back.
+          expect(page.find('[data-test="position-save-cancel"]').text()).toBe(
+            de.matching.position.cancel,
+          )
+          expect(mutate).not.toHaveBeenCalled()
+        })
+
+        it('says afterwards that they are no longer on the map, not that a location was saved', async () => {
+          const page = await open({ findable: true })
+          await flip(page, false)
+          await ask(page)
+
+          await confirm(page)
+
+          expect(mutate).toHaveBeenCalledWith({ gmsAllowed: false })
+          expect(toast.success).toHaveBeenCalledTimes(1)
+          expect(toast.success).toHaveBeenCalledWith(NOW_OFF)
+          expect(store.state.gmsAllowed).toBe(false)
+          expect(push).not.toHaveBeenCalled()
+        })
+
+        // Leaving is the news, whatever else travels with it.
+        it('says the same when the home was moved in the same save', async () => {
+          const page = await open({ findable: true })
+          await moveHome(page)
+          await flip(page, false)
+
+          await ask(page)
+          expect(words(page)).toEqual(LEAVE)
+          await confirm(page)
+
+          expect(mutate).toHaveBeenCalledWith({
+            gmsLocation: { latitude: 49, longitude: 12 },
+            gmsAllowed: false,
+          })
+          expect(toast.success).toHaveBeenCalledWith(NOW_OFF)
+        })
+
+        // Findable without a home: saved before the server refused it. They can still leave.
+        it('says the same to a member who was findable without a home', async () => {
+          const page = await open({ findable: true, home: false })
+          await flip(page, false)
+
+          await ask(page)
+
+          expect(words(page)).toEqual(LEAVE)
+        })
+      })
+
+      describe('for a member who comes onto the map', () => {
+        it('says so, with the button of the invitation', async () => {
+          const page = await open({ findable: false })
+          await flip(page, true)
+
+          await ask(page)
+
+          expect(words(page)).toEqual(JOIN)
+        })
+
+        it('says afterwards that they are on the map now', async () => {
+          const page = await open({ findable: false })
+          await flip(page, true)
+          await ask(page)
+
+          await confirm(page)
+
+          expect(mutate).toHaveBeenCalledWith({ gmsAllowed: true })
+          expect(toast.success).toHaveBeenCalledTimes(1)
+          expect(toast.success).toHaveBeenCalledWith(NOW_ON)
+          // No yes in the address: they stay on the tab, as before.
+          expect(push).not.toHaveBeenCalled()
+        })
+
+        // The way the invitation leads: the yes in the address, a home set on the map.
+        it('says the same to a member who arrived with the yes and set a home', async () => {
+          place.query = { findable: 'yes' }
+          const page = await open({ findable: false, home: false })
+          await moveHome(page)
+
+          await ask(page)
+          expect(words(page)).toEqual(JOIN)
+          await confirm(page)
+
+          expect(mutate).toHaveBeenCalledWith({
+            gmsLocation: { latitude: 49, longitude: 12 },
+            gmsAllowed: true,
+          })
+          expect(toast.success).toHaveBeenCalledWith(NOW_ON)
+          expect(push).toHaveBeenCalledWith('/matching/karte')
+        })
+
+        it('says the same when the accuracy changes in the same save', async () => {
+          const page = await open({ findable: false })
+          await pickApproximate(page)
+          await flip(page, true)
+
+          await ask(page)
+
+          expect(words(page)).toEqual(JOIN)
+        })
+      })
+
+      describe("for a save that leaves the member's place on the map alone", () => {
+        it('asks as it always did when a member on the map moves their home', async () => {
+          const page = await open({ findable: true })
+          await moveHome(page)
+
+          await ask(page)
+          expect(words(page)).toEqual(PLAIN)
+          await confirm(page)
+
+          expect(mutate).toHaveBeenCalledWith({ gmsLocation: { latitude: 49, longitude: 12 } })
+          expect(toast.success).toHaveBeenCalledTimes(1)
+          expect(toast.success).toHaveBeenCalledWith(SAVED)
+        })
+
+        // A home alone puts nobody on the map, and the message must not say it did.
+        it('asks as it always did when a member who is not on the map sets a home', async () => {
+          const page = await open({ findable: false, home: false })
+          await moveHome(page)
+
+          await ask(page)
+          expect(words(page)).toEqual(PLAIN)
+          await confirm(page)
+
+          expect(mutate).toHaveBeenCalledWith({ gmsLocation: { latitude: 49, longitude: 12 } })
+          expect(toast.success).toHaveBeenCalledWith(SAVED)
+          expect(toast.success).not.toHaveBeenCalledWith(NOW_ON)
+        })
+
+        it('asks as it always did for the accuracy alone', async () => {
+          const page = await open({ findable: true })
+          await pickApproximate(page)
+
+          await ask(page)
+          expect(words(page)).toEqual(PLAIN)
+          await confirm(page)
+
+          expect(mutate).toHaveBeenCalledWith({
+            gmsPublishLocation: 'GMS_LOCATION_TYPE_APPROXIMATE',
+          })
+          expect(toast.success).toHaveBeenCalledWith(SAVED)
+        })
+
+        // Off and on again is no change: the switch is where it was saved.
+        it('asks as it always did when the switch was flipped and flipped back', async () => {
+          const page = await open({ findable: true })
+          await moveHome(page)
+          await flip(page, false)
+          await flip(page, true)
+
+          await ask(page)
+          expect(words(page)).toEqual(PLAIN)
+          await confirm(page)
+
+          expect(mutate).toHaveBeenCalledWith({ gmsLocation: { latitude: 49, longitude: 12 } })
+          expect(toast.success).toHaveBeenCalledWith(SAVED)
+        })
+      })
+
+      // The answer to the save clears the drafts, and it arrives while the window is still
+      // on its way off the screen. Read live, the window would change its title back to
+      // "save position" as it goes.
+      it('keeps its words while it closes, and has the right ones the next time', async () => {
+        const page = await open({ findable: true, stubs: closingToo })
+        await flip(page, false)
+        await ask(page)
+        expect(words(page)).toEqual(LEAVE)
+
+        await confirm(page)
+        expect(store.state.gmsAllowed).toBe(false)
+        expect(words(page)).toEqual(LEAVE)
+
+        await moveHome(page)
+        await ask(page)
+        expect(words(page)).toEqual(PLAIN)
+      })
+
+      it('has the right words after a window that was called off', async () => {
+        const page = await open({ findable: true })
+        await flip(page, false)
+        await ask(page)
+        expect(words(page)).toEqual(LEAVE)
+        await page.find('[data-test="position-save-cancel"]').trigger('click')
+        expect(confirmButton(page).exists()).toBe(false)
+        expect(mutate).not.toHaveBeenCalled()
+
+        // Thought better of it, and moved the home instead.
+        await flip(page, true)
+        await moveHome(page)
+        await ask(page)
+
+        expect(words(page)).toEqual(PLAIN)
+      })
+
+      it('says nothing of the kind when the save fails', async () => {
+        mutate.mockRejectedValueOnce(new Error('the server is away'))
+        const page = await open({ findable: true })
+        await flip(page, false)
+        await ask(page)
+
+        await confirm(page)
+
+        expect(toast.success).not.toHaveBeenCalled()
+        expect(toast.error).toHaveBeenCalledWith('the server is away')
+        // Nothing was saved: still on the map, and the draft still stands.
+        expect(store.state.gmsAllowed).toBe(true)
+        expect(saveButton(page).attributes('disabled')).toBeUndefined()
+      })
+
+      // The browser's back button gets to another tab with the window open. Leaving the tab
+      // drops the drafts, and a button that names a step would then do nothing.
+      it('goes with the tab it asks about', async () => {
+        const page = await open({ findable: true })
+        await flip(page, false)
+        await ask(page)
+        expect(confirmButton(page).exists()).toBe(true)
+
+        place.tab = 'entries'
+        await page.vm.$nextTick()
+
+        expect(confirmButton(page).exists()).toBe(false)
+        expect(mutate).not.toHaveBeenCalled()
+      })
+    })
+
     // The server refuses findable without a home as well (GMS_LOCATION_REQUIRED). This page
     // does not send it, but should the two ever disagree, the member reads the sentence.
     describe('when the server refuses findable', () => {
@@ -863,11 +1188,7 @@ describe('Matching', () => {
         mutate.mockRejectedValueOnce(error)
 
         await saveButton(page).trigger('click')
-        const confirm = page
-          .find('.modal-stub')
-          .findAll('button')
-          .find((button) => button.text() === de.matching.save)
-        await confirm.trigger('click')
+        await confirmButton(page).trigger('click')
         await flushPromises()
       }
 
@@ -910,11 +1231,7 @@ describe('Matching', () => {
       }
       const saveAndConfirm = async (page) => {
         await saveButton(page).trigger('click')
-        const confirm = page
-          .find('.modal-stub')
-          .findAll('button')
-          .find((button) => button.text() === de.matching.save)
-        await confirm.trigger('click')
+        await confirmButton(page).trigger('click')
       }
       const arrive = async ({ home, findable = false, yes = true, stubs = {}, options = {} }) => {
         store.state.gmsAllowed = findable

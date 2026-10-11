@@ -250,7 +250,7 @@
         <BButton
           variant="gradido"
           :disabled="!positionDirty || findableWithoutHome"
-          @click="showSaveConfirm = true"
+          @click="askToSave"
         >
           {{ $t('matching.save') }}
         </BButton>
@@ -370,8 +370,8 @@
       </template>
       <template #footer>
         <!-- One row where both fit. Where they do not -- a phone, or a language with longer
-             words -- the way on stands above "later": see .find-gate-buttons. -->
-        <div class="find-gate-buttons">
+             words -- the way on stands above "later": see .window-buttons. -->
+        <div class="window-buttons">
           <BButton variant="secondary" data-test="find-gate-later" @click="showFind = false">
             {{ $t('matching.find.later') }}
           </BButton>
@@ -385,21 +385,32 @@
       </template>
     </BModal>
 
-    <!-- Saving your own whereabouts is worth one deliberate breath. -->
+    <!-- Saving your own whereabouts is worth one deliberate breath - and the window says what
+         the save does. Coming onto the map and leaving it are not "saving position settings":
+         each has its own title, its own sentence and a button that names the step, like the
+         button of the invitation (Bernd, 11.10.2026). See saveWords. -->
     <BModal v-model="showSaveConfirm" centered>
       <template #title>
-        <span style="font-size: 18px">{{ $t('matching.position.saveTitle') }}</span>
+        <span style="font-size: 18px" data-test="position-save-title">{{ saveWords.title }}</span>
       </template>
       <template #default>
-        <p class="mb-0">{{ $t('matching.position.saveText') }}</p>
+        <p class="mb-0" data-test="position-save-text">{{ saveWords.text }}</p>
       </template>
       <template #footer>
-        <BButton variant="secondary" @click="showSaveConfirm = false">
-          {{ $t('matching.position.cancel') }}
-        </BButton>
-        <BButton variant="gradido" @click="confirmSavePosition">
-          {{ $t('matching.save') }}
-        </BButton>
+        <!-- The button that names the step is as long as the one in the window above, and
+             wraps the same way: see .window-buttons. -->
+        <div class="window-buttons">
+          <BButton
+            variant="secondary"
+            data-test="position-save-cancel"
+            @click="showSaveConfirm = false"
+          >
+            {{ $t('matching.position.cancel') }}
+          </BButton>
+          <BButton variant="gradido" data-test="position-save-confirm" @click="confirmSavePosition">
+            {{ saveWords.confirm }}
+          </BButton>
+        </div>
       </template>
     </BModal>
 
@@ -781,6 +792,46 @@ watch(
 
 const showSaveConfirm = ref(false)
 
+// What the save about to be confirmed does to the member's place on the map: 'join' puts
+// them on it, 'leave' takes them off, null leaves it where it is. The draft says it - it
+// only stands where the switch differs from what is saved.
+//
+// ⚠️ Fixed when the window opens, not read while it stands. The answer to the save clears
+// the drafts, and it arrives while the window is still fading out: read live, the window
+// would change its title back to "save position" on its way off the screen.
+const saveTurn = ref(null)
+function askToSave() {
+  saveTurn.value =
+    draftFindable.value === true ? 'join' : draftFindable.value === false ? 'leave' : null
+  showSaveConfirm.value = true
+}
+
+// The window's words. A member who takes themselves off the map is not "saving position
+// settings", and neither is one who comes onto it; the window used to say so to both, and
+// the message afterwards said "location saved" to somebody who had just left (Bernd,
+// 11.10.2026). The button for coming on is the invitation's own.
+const saveWords = computed(() => {
+  if (saveTurn.value === 'leave') {
+    return {
+      title: t('matching.position.leaveTitle'),
+      text: t('matching.position.leaveText'),
+      confirm: t('matching.position.leaveGo'),
+    }
+  }
+  if (saveTurn.value === 'join') {
+    return {
+      title: t('matching.position.joinTitle'),
+      text: t('matching.position.joinText'),
+      confirm: t('matching.invitation.go'),
+    }
+  }
+  return {
+    title: t('matching.position.saveTitle'),
+    text: t('matching.position.saveText'),
+    confirm: t('matching.save'),
+  }
+})
+
 // Held while a save is under way. What save sends is what the three controls showed when it
 // was pressed, and its answer replaces the drafts - so a pick made in between was measured
 // against the old state and then thrown away with them. A member who switched "findable"
@@ -822,7 +873,15 @@ async function confirmSavePosition() {
       store.commit('gmsPublishLocation', variables.gmsPublishLocation)
     if (variables.gmsAllowed !== undefined) store.commit('gmsAllowed', variables.gmsAllowed)
     clearDrafts()
-    toastSuccess(t('settings.GMS.location.updateSuccess'))
+    // What happened, in the sentence the switch itself would have said had it saved on the
+    // spot - by what was SENT, since the drafts are gone by now.
+    toastSuccess(
+      variables.gmsAllowed === true
+        ? t('matching.position.findableOn')
+        : variables.gmsAllowed === false
+          ? t('matching.position.findableOff')
+          : t('settings.GMS.location.updateSuccess'),
+    )
     // Whoever came here to be shown on the map is on it now, and the map is what they
     // came for. Read after the answer, not before the request: a member who has moved on
     // to another tab in the meantime is no longer asking for it, and one who switched
@@ -849,7 +908,12 @@ async function confirmSavePosition() {
 // A guard that fires next to the point is worse than none — it teaches people to
 // click dialogs away, and the save confirmation is the one that must land.
 watch(tab, (next) => {
-  if (next !== 'position') clearDrafts()
+  if (next === 'position') return
+  clearDrafts()
+  // And the question about saving them, should it be standing (the browser's back button
+  // gets here with the window open): its button names a step, and with the drafts gone it
+  // would do nothing.
+  showSaveConfirm.value = false
 })
 
 // --- Find-map access dialog ---
@@ -905,7 +969,8 @@ function showMeFromFind() {
   color: #383838;
 }
 
-/* The two buttons of the window behind the find button. "Show me on the map" is longer than
+/* The two buttons of a window whose second one names a step: behind the find button, and
+   where coming onto the map or leaving it is confirmed. "Show me on the map" is longer than
    the "to my home" it replaced, and on a phone the two no longer fit on one row (measured at
    390px: buttons of 92 and 317px in a window of 374). A footer that wraps the ordinary way then puts "later" on a row
    of its own ABOVE the way on. wrap-reverse stacks the rows from the bottom instead, so the
@@ -913,7 +978,7 @@ function showMeFromFind() {
 
    An element of this page and not a class on the footer: the window teleports, and the
    footer is the library's own element, which a scoped rule does not reach. */
-.find-gate-buttons {
+.window-buttons {
   display: flex;
   flex: 1 1 0%;
   flex-wrap: wrap-reverse;
@@ -922,11 +987,21 @@ function showMeFromFind() {
   min-width: 0;
 }
 
-/* And on its own row the long label still broke in two below 381px, where the house
-   button's 50px at each side no longer leave it 217px. The rule of the tile on the overview
-   (MapInvitationTile.vue), for the same button. */
+/* The house button stands 50px in from each side. Beside "cancel" in a window 500px wide
+   that is 17px more than a row holds for the longest pair, German "Abbrechen" and "Mich von
+   der Karte nehmen" (126 + 8 + 335 in 452, measured) - so in the language most members read,
+   the two stood in two rows on a desk as well. With 2rem at each side they share the row
+   from 500px of screen upwards in all ten languages; a phone stacks them. */
+.window-buttons :deep(.btn-gradido) {
+  padding-right: 2rem !important;
+  padding-left: 2rem !important;
+}
+
+/* On a row of its own the long label still breaks in two on a narrow phone. Below 400px the
+   button gets the 1rem the tile on the overview gives the same button
+   (MapInvitationTile.vue). */
 @media (width < 400px) {
-  .find-gate-buttons :deep(.btn-gradido) {
+  .window-buttons :deep(.btn-gradido) {
     padding-right: 1rem !important;
     padding-left: 1rem !important;
   }
