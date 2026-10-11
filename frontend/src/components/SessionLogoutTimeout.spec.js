@@ -100,13 +100,18 @@ describe('SessionLogoutTimeout', () => {
       expect(modal.props('modelValue')).toBe(false)
     })
 
-    it('emits logout when time expires', async () => {
+    /**
+     * Not the member's own word: the layout signs out without taking what they wrote in a
+     * conversation and did not send off the device (utils/chatDraft).
+     */
+    it('emits logout when time expires, as a session that ran out', async () => {
       wrapper = createWrapper(setTokenTime(2))
       await nextTick()
       vi.runAllTimers()
       await nextTick()
 
       expect(wrapper.emitted('logout')).toBeTruthy()
+      expect(wrapper.emitted('logout')[0]).toEqual([{ ranOut: true }])
     })
   })
 
@@ -133,15 +138,19 @@ describe('SessionLogoutTimeout', () => {
       await flushPromises()
 
       expect(wrapper.emitted('logout')).toBeTruthy()
+      // The member asked to stay: this sign-out is not their word either.
+      expect(wrapper.emitted('logout')[0]).toEqual([{ ranOut: true }])
       expect(toastError).toHaveBeenCalled()
     })
 
-    it('emits logout on the logout button', async () => {
+    // "Abmelden" in the question is the member's own word: nothing goes with it.
+    it('emits logout on the logout button, as the member’s own word', async () => {
       wrapper = createWrapper(setTokenTime(60))
       await clickButton('navigation.logout')
       await flushPromises()
 
       expect(wrapper.emitted('logout')).toBeTruthy()
+      expect(wrapper.emitted('logout')[0]).toEqual([])
     })
   })
 

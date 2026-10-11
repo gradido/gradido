@@ -220,8 +220,14 @@ const message = (n, { writer = 'anna', day = '2026-09-29', announcement = false 
 const page = (messages, { hasMore = false } = {}) => ({ hasMore, mutedByMe: false, messages })
 
 // What a test leaves in the field waits for the next bar of that conversation (utils/chatDraft) --
-// in the wallet, and here for the next test. Every test begins with none.
-afterEach(() => forgetChatDrafts())
+// in the wallet, and here for the next test: in memory, and its words on the device. Every test
+// begins with none.
+afterEach(() => {
+  forgetChatDrafts()
+  for (const key of Object.keys(window.localStorage)) {
+    if (key.startsWith('chat-drafts:')) window.localStorage.removeItem(key)
+  }
+})
 
 describe('ChatThread in a group', () => {
   let wrapper
