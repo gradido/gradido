@@ -63,7 +63,13 @@ const mountTile = (state = {}, props = {}, language = i18n) => {
 }
 
 const tile = (wrapper) => wrapper.find('[data-test="map-invitation-tile"]')
-const heading = (wrapper) => wrapper.find('[data-test="map-invitation-heading"]')
+// The one heading: with two on the tile - the counted one and the question beside it - a
+// reader of the first alone would see nothing wrong.
+const heading = (wrapper) => {
+  const headings = wrapper.findAll('[data-test="map-invitation-heading"]')
+  expect(headings).toHaveLength(1)
+  return headings[0]
+}
 const question = (wrapper) => wrapper.find('[data-test="map-invitation-question"]')
 
 // Every language the wallet speaks, with the plural rules the wallet gives them.
