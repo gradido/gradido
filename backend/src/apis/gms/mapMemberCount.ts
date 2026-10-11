@@ -53,7 +53,11 @@ export class MapMemberCount {
    * Asks now, then every `intervalMs`. The first answer is not waited for: until it is in,
    * known() is null and the wallet's invitation stands without the number.
    *
-   * Nothing at all on a server without the GMS.
+   * Nothing at all on a server without the GMS, and nothing where matching is switched off:
+   * GMS_ACTIVE alone is the older integration and is on in production, and the wallet shows
+   * the invitation - and asks for this number - only with matching. Said in the log both ways
+   * round, as the keying run does: a refresh that is off because a switch is off looks exactly
+   * like one that is broken.
    *
    * setTimeout twice rather than setInterval, like startValidateCommunities: a round that takes
    * longer than the interval does not overlap the next. unref: this timer alone keeps no process
@@ -62,7 +66,13 @@ export class MapMemberCount {
    * Called from index.ts, once.
    */
   start(intervalMs: number = MAP_MEMBER_COUNT_REFRESH_MS): void {
-    if (this.started || !CONFIG.GMS_ACTIVE) {
+    if (this.started) {
+      return
+    }
+    if (!CONFIG.GMS_ACTIVE || !CONFIG.MATCHING_ACTIVE) {
+      logger.info(
+        `members on the map: the GMS is not asked, ${CONFIG.GMS_ACTIVE ? 'MATCHING_ACTIVE' : 'GMS_ACTIVE'} is false`,
+      )
       return
     }
     this.started = true
@@ -76,30 +86,29 @@ export class MapMemberCount {
 
   /**
    * One round. Never rejects: a round that brings no number -- or throws, where the home
-   * community cannot be read -- is logged, and the next one still comes.
+   * community cannot be read, or where what came back is no answer at all -- is logged, and
+   * the next one still comes. The timer in start() hangs on that.
    *
    * ⛔ A round without a number leaves the last one standing. A GMS that is briefly away must
    * not take the number off every invitation; what stood there an hour or a day ago is as true
    * as this number needs to be.
    */
   async refresh(): Promise<void> {
-    let answer: MapMemberCountAnswer
     try {
-      answer = await this.ask()
+      const answer = await this.ask()
+      if (answer === null) {
+        this.tell('this community has no GMS key, nobody to ask', 'info')
+        return
+      }
+      if (!answer.success) {
+        this.tell(`no number from the GMS: ${answer.error.message}`, 'warn')
+        return
+      }
+      this.count = answer.value
+      this.tell(`${answer.value} members on the map`, 'info')
     } catch (error) {
       this.tell('the question could not be asked', 'error', error)
-      return
     }
-    if (answer === null) {
-      this.tell('this community has no GMS key, nobody to ask', 'info')
-      return
-    }
-    if (!answer.success) {
-      this.tell(`no number from the GMS: ${answer.error.message}`, 'warn')
-      return
-    }
-    this.count = answer.value
-    this.tell(`${answer.value} members on the map`, 'info')
   }
 
   /** The number as the GMS last said it; null until it has. */

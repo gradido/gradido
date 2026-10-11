@@ -53,10 +53,12 @@ const letTheRoundFinish = async () => {
 
 describe('MapMemberCount', () => {
   const originalActive = CONFIG.GMS_ACTIVE
+  const originalMatching = CONFIG.MATCHING_ACTIVE
 
   beforeEach(() => {
     jest.clearAllMocks()
     CONFIG.GMS_ACTIVE = true
+    CONFIG.MATCHING_ACTIVE = true
   })
 
   afterEach(() => {
@@ -65,6 +67,7 @@ describe('MapMemberCount', () => {
 
   afterAll(() => {
     CONFIG.GMS_ACTIVE = originalActive
+    CONFIG.MATCHING_ACTIVE = originalMatching
   })
 
   it('knows nothing before the GMS has answered', () => {
@@ -107,6 +110,23 @@ describe('MapMemberCount', () => {
       await expect(count.refresh()).resolves.toBeUndefined()
 
       expect(count.known()).toBe(773)
+    })
+
+    // Nothing in this server hands back such a thing; a round that met one must not be the
+    // last round. The timer that starts the next hangs on this promise.
+    it('leaves the last one standing and still ends where what came back is no answer', async () => {
+      const count = new MapMemberCount(
+        gmsAnswering(says(773), undefined as unknown as MapMemberCountAnswer),
+      )
+      await count.refresh()
+
+      await expect(count.refresh()).resolves.toBeUndefined()
+
+      expect(count.known()).toBe(773)
+      expect(logger.error).toHaveBeenCalledWith(
+        'members on the map: the question could not be asked',
+        expect.any(TypeError),
+      )
     })
 
     it('leaves nothing standing where there never was a number', async () => {
@@ -265,7 +285,7 @@ describe('MapMemberCount', () => {
       expect(gms).toHaveBeenCalledTimes(1)
     })
 
-    it('asks nobody on a server without the GMS', async () => {
+    it('asks nobody on a server without the GMS, and says so', async () => {
       jest.useFakeTimers()
       CONFIG.GMS_ACTIVE = false
       const gms = gmsAnswering(says(773))
@@ -277,6 +297,46 @@ describe('MapMemberCount', () => {
 
       expect(gms).not.toHaveBeenCalled()
       expect(count.known()).toBeNull()
+      expect(logger.info).toHaveBeenCalledWith(
+        'members on the map: the GMS is not asked, GMS_ACTIVE is false',
+      )
+    })
+
+    // GMS_ACTIVE alone is the older integration, and is on in production. The wallet shows the
+    // invitation -- and asks for this number -- only with matching, so without it the GMS
+    // would be asked every quarter of an hour for a number nobody can request.
+    it('asks nobody where matching is switched off, and says so', async () => {
+      jest.useFakeTimers()
+      CONFIG.MATCHING_ACTIVE = false
+      const gms = gmsAnswering(says(773))
+      const count = new MapMemberCount(gms)
+
+      count.start(1000)
+      jest.advanceTimersByTime(5000)
+      await letTheRoundFinish()
+
+      expect(gms).not.toHaveBeenCalled()
+      expect(count.known()).toBeNull()
+      expect(logger.info).toHaveBeenCalledWith(
+        'members on the map: the GMS is not asked, MATCHING_ACTIVE is false',
+      )
+    })
+
+    // A switch can be off at the first start of a test server and the process is the same one
+    // when somebody calls start again: being told to stay off is not "started".
+    it('starts later, once the switches allow it', async () => {
+      jest.useFakeTimers()
+      CONFIG.MATCHING_ACTIVE = false
+      const gms = gmsAnswering(says(773))
+      const count = new MapMemberCount(gms)
+      count.start(1000)
+
+      CONFIG.MATCHING_ACTIVE = true
+      count.start(1000)
+      jest.advanceTimersByTime(0)
+      await letTheRoundFinish()
+
+      expect(count.known()).toBe(773)
     })
   })
 
