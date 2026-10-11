@@ -184,7 +184,11 @@
            settings page. Coordinates readout hidden to keep the map compact.
            Dragging only remembers — a map is easy to touch by accident, and a
            stray touch must not move where you live. Saving is the button below. -->
-      <div class="bg-white app-box-shadow gradido-border-radius p-2 my-3">
+      <div
+        class="bg-white app-box-shadow gradido-border-radius p-2 my-3"
+        :inert="positionSaving"
+        data-test="position-control"
+      >
         <UserLocationMap
           v-if="userLocationLoaded"
           :user-marker-coords="userLocation"
@@ -197,7 +201,11 @@
 
       <!-- Accuracy — right-aligned below the map (self-explanatory: "exact" /
            "approximate", so no label needed). Deferred like everything here. -->
-      <div class="d-flex justify-content-end mt-3 page-text">
+      <div
+        class="d-flex justify-content-end mt-3 page-text"
+        :inert="positionSaving"
+        data-test="position-control"
+      >
         <UserGMSLocationFormat
           defer
           :exact-toast="$t('matching.position.accuracyExact')"
@@ -208,7 +216,11 @@
 
       <!-- Findable toggle — title on the switch's line, hint below as explanation. Without
            a home it is held, and the hint says what is missing. -->
-      <div class="border-top mt-4 pt-3 page-text">
+      <div
+        class="border-top mt-4 pt-3 page-text"
+        :inert="positionSaving"
+        data-test="position-control"
+      >
         <div class="d-flex align-items-center justify-content-end gap-3">
           <span class="fw-bold">{{ $t('matching.position.findable') }}</span>
           <UserSettingsSwitch
@@ -769,8 +781,22 @@ watch(
 
 const showSaveConfirm = ref(false)
 
+// Held while a save is under way. What save sends is what the three controls showed when it
+// was pressed, and its answer replaces the drafts - so a pick made in between was measured
+// against the old state and then thrown away with them. A member who switched "findable"
+// back off in that moment was saved as findable all the same and, having arrived with the
+// yes, carried onto the map (coderabbit on #4124). Nothing can be picked until the answer
+// is in.
+//
+// `inert` on the map, the accuracy and the switch, the way the map page holds its map: no
+// dimming for the fraction of a second this usually takes. Not on the save button - the
+// confirm window hands the focus back to it.
+const positionSaving = ref(false)
+
 async function confirmSavePosition() {
   showSaveConfirm.value = false
+  // Confirmed a second time before the first answer: it is on its way already.
+  if (positionSaving.value) return
   // One mutation for whatever changed: three separate saves could half-succeed
   // and leave the user guessing which half.
   const variables = {}
@@ -784,6 +810,7 @@ async function confirmSavePosition() {
   if (draftFindable.value !== null) variables.gmsAllowed = draftFindable.value
   if (!Object.keys(variables).length) return
 
+  positionSaving.value = true
   try {
     await saveLocation(variables)
     if (variables.gmsLocation) {
@@ -810,6 +837,8 @@ async function confirmSavePosition() {
         ? t('matching.position.needsHome')
         : error.message,
     )
+  } finally {
+    positionSaving.value = false
   }
 }
 

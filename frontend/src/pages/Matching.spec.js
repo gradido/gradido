@@ -994,6 +994,81 @@ describe('Matching', () => {
         expect(push).not.toHaveBeenCalled()
       })
 
+      // What save sends is what the three controls showed when it was pressed, and its answer
+      // replaces the drafts: a pick in between was measured against the old state and thrown
+      // away. "Off", tapped in that moment, was saved as on, and the member carried onto the
+      // map (coderabbit on #4124). So the map, the accuracy and the switch are held until
+      // the answer is in. jsdom does not act on `inert`; what it does to a tap is measured
+      // in the built wallet.
+      describe('while the save is under way', () => {
+        // jsdom has no `inert` property, so Vue writes the attribute with the value as
+        // text: "true" or "false". A browser gets the property, and the attribute only
+        // while it holds. Read so that both count.
+        const held = (page) =>
+          page.findAll('[data-test="position-control"]').map((control) => {
+            const inert = control.attributes('inert')
+            return inert !== undefined && inert !== 'false'
+          })
+        const holdSave = () => {
+          const answers = {}
+          mutate.mockReturnValueOnce(
+            new Promise((resolve, reject) => {
+              answers.arrive = resolve
+              answers.fail = reject
+            }),
+          )
+          return answers
+        }
+
+        it('holds the three controls, and lets go of them with the answer', async () => {
+          const save = holdSave()
+          const page = await arrive({ home: false })
+          await pickHome(page)
+          expect(held(page)).toEqual([false, false, false])
+
+          await saveAndConfirm(page)
+          expect(held(page)).toEqual([true, true, true])
+
+          save.arrive({})
+          await flushPromises()
+          expect(held(page)).toEqual([false, false, false])
+          expect(push).toHaveBeenCalledWith('/matching/karte')
+        })
+
+        it('lets go of them when the save fails, too', async () => {
+          const save = holdSave()
+          const page = await arrive({ home: false })
+          await pickHome(page)
+          await saveAndConfirm(page)
+          expect(held(page)).toEqual([true, true, true])
+
+          save.fail(new Error('the server is away'))
+          await flushPromises()
+
+          expect(held(page)).toEqual([false, false, false])
+          expect(toast.error).toHaveBeenCalledWith('the server is away')
+          // Nothing was saved, so the draft still stands and can be sent again.
+          expect(findableSwitch(page).props('initialValue')).toBe(true)
+          expect(saveButton(page).attributes('disabled')).toBeUndefined()
+        })
+
+        // The save button is not held - the confirm window hands the focus back to it.
+        it('sends nothing a second time for a second confirm', async () => {
+          const save = holdSave()
+          const page = await arrive({ home: false })
+          await pickHome(page)
+          await saveAndConfirm(page)
+
+          await saveAndConfirm(page)
+          expect(mutate).toHaveBeenCalledTimes(1)
+
+          save.arrive({})
+          await flushPromises()
+          expect(mutate).toHaveBeenCalledTimes(1)
+          expect(push).toHaveBeenCalledTimes(1)
+        })
+      })
+
       it('leaves a member alone who is on the map already', async () => {
         store.state.userLocation = { ...location.userLocation }
         const page = await arrive({ home: true, findable: true })
