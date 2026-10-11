@@ -408,6 +408,30 @@ describe('Matching', () => {
 
         expect(page.findComponent(UserSettingsSwitch).props('initialValue')).toBe(true)
       })
+
+      // Here with the yes in the address already, and the switch turned back off since. The
+      // address cannot change a second time, so the arrival does not run again; the button
+      // said it shows the member on the map and changed nothing (coderabbit on #4124). No
+      // router here that could cover for it: the query stays what it is, as it would.
+      it('stands the switch on again for a member who is here with the yes and took it back', async () => {
+        store.state.gmsAllowed = false
+        place.query = { findable: 'yes' }
+        const page = mountPage('position', openOnly)
+        await answer(page, null)
+        const findable = () => page.findComponent(UserSettingsSwitch)
+        expect(findable().props('initialValue')).toBe(true)
+        findable().vm.$emit('value-changed', false)
+        await page.vm.$nextTick()
+        expect(findable().props('initialValue')).toBe(false)
+
+        await findButton(page).trigger('click')
+        await showMe(page).trigger('click')
+
+        expect(showMe(page).exists()).toBe(false)
+        expect(findable().props('initialValue')).toBe(true)
+        // A draft like the arrival's: nothing is saved by pressing it.
+        expect(mutate).not.toHaveBeenCalled()
+      })
     })
   })
 

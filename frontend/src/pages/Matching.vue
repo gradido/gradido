@@ -859,7 +859,11 @@ function openFind() {
 }
 function showMeFromFind() {
   showFind.value = false
-  router.push(SHOW_ME_ON_THE_MAP)
+  // Here with the yes in the address already, the address has nowhere to go, so the arrival
+  // above does not run a second time - and the member may have switched it back off since.
+  // The button says it shows them on the map; it does what the arrival would have done.
+  if (showMe.value) onPickFindable(true)
+  else router.push(SHOW_ME_ON_THE_MAP)
 }
 </script>
 
