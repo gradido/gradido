@@ -27,6 +27,12 @@ export const saidShowMe = (route) =>
  * Who the invitation is for: a member who is not on the map, by the one rule that says who
  * is -- a position AND the permission to be found (`mayFind`).
  *
+ * ⛔ A MEMBER first. Signing out empties the store while the page it was pressed on still
+ * stands, and an emptied store reads exactly like somebody without a home and without the
+ * permission: the tile flashed in for a member who was on the map, between their sign-out and
+ * the sign-in page (measured in the built wallet, two frames). Nobody signed in, nobody to
+ * invite.
+ *
  * And only on a wallet that has a map. The matching routes exist only where matching is
  * switched on, and routes.js reads the switch the same way; an invitation that led to a page
  * this wallet does not have would be an invitation to a 404.
@@ -34,4 +40,5 @@ export const saidShowMe = (route) =>
  * One place, because two ask: the tile, whether it shows, and the overview, whether there is
  * a number to fetch for it (composables/useMapMemberCount).
  */
-export const invitedOntoTheMap = (state) => Boolean(CONFIG.MATCHING_ACTIVE) && !mayFind(state)
+export const invitedOntoTheMap = (state) =>
+  Boolean(CONFIG.MATCHING_ACTIVE) && Boolean(state.gradidoID) && !mayFind(state)

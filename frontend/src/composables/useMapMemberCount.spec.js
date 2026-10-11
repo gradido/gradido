@@ -32,8 +32,10 @@ vi.mock('@vue/apollo-composable', () => ({
 }))
 
 const HOME = { latitude: 49.28, longitude: 9.69 }
-const NOT_ON_THE_MAP = { gmsAllowed: false, userLocation: null }
-const ON_THE_MAP = { gmsAllowed: true, userLocation: HOME }
+const NOT_ON_THE_MAP = { gradidoID: 'a-member', gmsAllowed: false, userLocation: null }
+const ON_THE_MAP = { gradidoID: 'a-member', gmsAllowed: true, userLocation: HOME }
+// What signing out leaves in the store while the page still stands.
+const SIGNED_OUT = { gradidoID: null, gmsAllowed: null, userLocation: null }
 
 let wrapper = null
 
@@ -84,6 +86,14 @@ describe('useMapMemberCount', () => {
       config.MATCHING_ACTIVE = false
 
       const { settled } = open(NOT_ON_THE_MAP)
+
+      expect(settled.value).toBe(true)
+      expect(asked).toHaveLength(0)
+    })
+
+    // An emptied store reads like somebody without a home: nobody signed in, nobody asked for.
+    it('asks nothing for a store that holds no member', () => {
+      const { settled } = open(SIGNED_OUT)
 
       expect(settled.value).toBe(true)
       expect(asked).toHaveLength(0)
@@ -141,7 +151,7 @@ describe('useMapMemberCount', () => {
       expect(remembered()).toBe('0')
     })
 
-    // The query reports its start as well. That is not an answer.
+    // Should the library ever report without data: that is not an answer.
     it('goes on waiting through a report without data', () => {
       const { settled } = open()
 

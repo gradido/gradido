@@ -39,8 +39,11 @@ const HOME = { latitude: 49.28, longitude: 9.69 }
 // Real mutations: one case moves the member onto the map while the tile is on screen.
 const storeWith = (state) =>
   createStore({
-    state: () => ({ gmsAllowed: false, userLocation: null, ...state }),
+    state: () => ({ gradidoID: 'a-member', gmsAllowed: false, userLocation: null, ...state }),
     mutations: {
+      gradidoID: (s, value) => {
+        s.gradidoID = value
+      },
       gmsAllowed: (s, value) => {
         s.gmsAllowed = value
       },
@@ -141,6 +144,41 @@ describe('MapInvitationTile', () => {
 
       store.commit('gmsAllowed', true)
       await nextTick()
+      expect(tile(wrapper).exists()).toBe(false)
+    })
+  })
+
+  // Signing out empties the store while the overview still stands, and an emptied store
+  // reads like somebody without a home and without the permission. The tile flashed in for a
+  // member who was on the map, on their way to the sign-in page (measured in the built
+  // wallet); it asks first whether anybody is signed in.
+  describe('when the member signs out on the overview', () => {
+    it('does not appear for a member who was on the map', async () => {
+      const { wrapper, store } = mountTile({ userLocation: HOME, gmsAllowed: true })
+      expect(tile(wrapper).exists()).toBe(false)
+
+      // The order of the sign-out action in store.js.
+      store.commit('gradidoID', null)
+      store.commit('gmsAllowed', null)
+      store.commit('userLocation', null)
+      await nextTick()
+
+      expect(tile(wrapper).exists()).toBe(false)
+    })
+
+    it('goes for a member who was looking at it', async () => {
+      const { wrapper, store } = mountTile()
+      expect(tile(wrapper).exists()).toBe(true)
+
+      store.commit('gradidoID', null)
+      await nextTick()
+
+      expect(tile(wrapper).exists()).toBe(false)
+    })
+
+    it('is not there for a store that never held a member', () => {
+      const { wrapper } = mountTile({ gradidoID: null })
+
       expect(tile(wrapper).exists()).toBe(false)
     })
   })

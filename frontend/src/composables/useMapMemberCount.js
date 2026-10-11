@@ -107,7 +107,8 @@ export function useMapMemberCount() {
   // emptied with every sign-in anyway.
   const { onResult, onError } = useQuery(mapMemberCount, null, { fetchPolicy: 'network-only' })
   onResult(({ data }) => {
-    // The query reports its start as well, without data.
+    // Only an answer counts. Asked past the cache, the library reports nothing but the
+    // network's answer today; a report without data, should one ever come, is not "no number".
     if (!data) return
     const answer = isCount(data.mapMemberCount) ? data.mapMemberCount : null
     remember(answer)
