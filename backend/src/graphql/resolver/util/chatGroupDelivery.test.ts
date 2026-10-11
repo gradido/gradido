@@ -120,6 +120,7 @@ const stored = (): ChatMessageSelect => ({
   replyToMessageUuid: null,
   createdAt: new Date('2026-09-29T08:05:00.000Z'),
   editedAt: null,
+  reactedAt: null,
   deletedAt: null,
 })
 

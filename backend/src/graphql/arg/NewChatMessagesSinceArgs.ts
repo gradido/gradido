@@ -22,8 +22,8 @@ export class NewChatMessagesSinceArgs {
   afterId?: number | null
 
   /**
-   * How many new messages at most, and as many changed ones; more than CHAT_UPDATE_MESSAGES_MAX
-   * is refused, not cut.
+   * How many new messages at most, as many changed ones, and as many with changed reactions;
+   * more than CHAT_UPDATE_MESSAGES_MAX is refused, not cut.
    */
   @Field(() => Int, { nullable: true, defaultValue: CHAT_UPDATE_MESSAGES_DEFAULT })
   @IsInt()
@@ -40,4 +40,14 @@ export class NewChatMessagesSinceArgs {
   @Field(() => String, { nullable: true })
   @Matches(CHAT_EDITS_CURSOR_PATTERN)
   editedCursor?: string | null
+
+  /**
+   * From where on the caller wants the messages whose reactions were changed (migration 0158):
+   * what the last answer handed on (its `reactedCursor`), as it came -- a place of the same form
+   * as `editedCursor`, by the other clock. Absent means "I have asked for none yet": the answer
+   * then says where to go on from, and hands out none.
+   */
+  @Field(() => String, { nullable: true })
+  @Matches(CHAT_EDITS_CURSOR_PATTERN)
+  reactedCursor?: string | null
 }

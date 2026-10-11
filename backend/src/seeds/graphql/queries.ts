@@ -1003,6 +1003,57 @@ export const newChatMessagesAndEditsSince = gql`
   }
 `
 
+/** The beat with the messages whose reactions changed beside the new ones (migration 0158). */
+export const newChatMessagesAndReactionsSince = gql`
+  query ($afterId: Int, $limit: Int, $reactedCursor: String) {
+    newChatMessagesSince(afterId: $afterId, limit: $limit, reactedCursor: $reactedCursor) {
+      latestId
+      unreadConversations
+      messages {
+        id
+        body
+        reactedAt
+        reactions {
+          emoji
+          count
+          mine
+        }
+      }
+      reacted {
+        id
+        messageUuid
+        mine
+        body
+        reactedAt
+        reactions {
+          emoji
+          count
+          mine
+        }
+      }
+      reactedCursor
+    }
+  }
+`
+
+/** A thread of two with the reactions under its messages (migration 0158). */
+export const chatMessagesWithMemberAndReactions = gql`
+  query ($ref: MemberAvatarRefInput!) {
+    chatMessagesWithMember(ref: $ref) {
+      messages {
+        messageUuid
+        body
+        reactedAt
+        reactions {
+          emoji
+          count
+          mine
+        }
+      }
+    }
+  }
+`
+
 /** The fields of a chat group as the wallet reads them (P5). */
 const chatGroupFields = `
   groupUuid

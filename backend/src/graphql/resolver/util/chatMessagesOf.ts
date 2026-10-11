@@ -4,26 +4,32 @@ import { ChatMessageQuote } from '@model/ChatMessageQuote'
 import {
   ChatMemberRef,
   ChatMessageImageInfo,
+  ChatMessageReactionSelect,
   ChatMessageSelect,
   dbSelectChatGroupUuids,
   dbSelectChatMessageImageInfos,
+  dbSelectChatMessageReactions,
   dbSelectChatMessagesByUuids,
 } from 'database'
 import { isSameChatMember } from '@/data/ChatConversation.logic'
+import { chatReactionCounts } from '@/data/ChatReaction.logic'
 import { chatMemberKey, chatMemberUsers } from './chatMemberUsers'
 
 /**
  * The messages of these rows as `caller` reads them -- a page of a thread, of a group, or what is
  * new across all of them --, each with what is known about its pictures (P7), for a message
  * written in a group, the group's uuid and who wrote it (P5), for a forwarded copy, who wrote
- * its words first (E-059), and for an answer, the message it quotes.
+ * its words first (E-059), for an answer, the message it quotes, and the emoji the members
+ * reacted with (migration 0158).
  *
  * ⛔ Read for all of them at once, never one query per message: the quoted messages in one query
  * -- asked only where a row answers one --, the pictures in one, which of the conversations are
- * groups in another, and only where there is a group message or a forwarded copy, the users who
+ * groups in another, the reactions in one -- asked only where a row says it has had any
+ * (`reactedAt`) --, and only where there is a group message or a forwarded copy, the users who
  * wrote them (chatMemberUsers) -- the writers of both, and of what a group's answers quote, in
  * one go. A picture is matched to its message by the message's uuid the way the columns compare
- * it, without regard to case, and so is a quoted message to its answer.
+ * it, without regard to case, and so is a quoted message to its answer; a reaction by the
+ * message's id.
  *
  * ⛔ A quoted message is shown only where it lies in the conversation of its answer: `caller`
  * reads that conversation, and nothing says they read another. The senders check it before an
@@ -45,10 +51,22 @@ export async function chatMessagesOf(
       : undefined
     return quoted && quoted.conversationId === row.conversationId ? quoted : null
   }
-  const [infos, groupUuids] = await Promise.all([
+  // A message nobody ever reacted to has no moment of reactions, and no row to look for. ⛔ Asked
+  // as "has a moment", not as "is not null": a row handed in without the column -- one built by
+  // hand -- has none either, and `undefined !== null` would send it to the database.
+  const reactedTo = rows.filter((row) => row.reactedAt instanceof Date).map((row) => row.id)
+  const [infos, groupUuids, reactionRows] = await Promise.all([
     dbSelectChatMessageImageInfos([...rows, ...quotedRows].map((row) => row.messageUuid)),
     dbSelectChatGroupUuids(rows.map((row) => row.conversationId)),
+    reactedTo.length > 0 ? dbSelectChatMessageReactions(reactedTo) : [],
   ])
+  const reactionsByMessage = new Map<number, ChatMessageReactionSelect[]>()
+  for (const reaction of reactionRows) {
+    reactionsByMessage.set(reaction.messageId, [
+      ...(reactionsByMessage.get(reaction.messageId) ?? []),
+      reaction,
+    ])
+  }
   const byMessage = new Map<string, ChatMessageImageInfo[]>()
   for (const info of infos) {
     const key = info.messageUuid.toLowerCase()
@@ -103,6 +121,7 @@ export async function chatMessagesOf(
             imagesOf(quoted).length > 0,
             groupUuid === undefined ? null : (writers.get(chatMemberKey(senderOf(quoted))) ?? null),
           ),
+      chatReactionCounts(reactionsByMessage.get(row.id) ?? [], caller),
     )
   })
 }
