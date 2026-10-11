@@ -1396,6 +1396,90 @@ describe('DashboardLayout', () => {
         })
       })
 
+      /**
+       * The store is told whether the member signed out by their own word: only that takes what
+       * they wrote in a conversation and did not send off this device (utils/chatDraft). A
+       * session that ran out leaves it for them to come back to.
+       */
+      describe('whose word the sign-out is', () => {
+        const told = () => logoutSpy.mock.calls.at(-1)[1]
+        const clock = () => wrapper.findComponent({ name: 'SessionLogoutTimeout' })
+
+        beforeEach(() => {
+          mockMutateFn.mockResolvedValue({ logout: 'success' })
+          store.state.gradidoID = 'aaaa-anna'
+        })
+
+        it('is the member’s where they pressed "Abmelden" in a menu', async () => {
+          await wrapper.findComponent({ name: 'Sidebar' }).vm.$emit('logout')
+          await flushPromises()
+
+          expect(told()).toEqual({ byOwnWord: true, member: 'aaaa-anna' })
+        })
+
+        it('is the member’s where they pressed "Abmelden" in the question before the session ends', async () => {
+          await clock().vm.$emit('logout')
+          await flushPromises()
+
+          expect(told()).toEqual({ byOwnWord: true, member: 'aaaa-anna' })
+        })
+
+        it('is not the member’s where the session ran out', async () => {
+          await clock().vm.$emit('logout', { ranOut: true })
+          await flushPromises()
+
+          expect(told()).toEqual({ byOwnWord: false, member: 'aaaa-anna' })
+        })
+
+        // The session's clock itself, not a stand-in for what it sends: its time runs out, and
+        // the store hears of a sign-out that is not the member's word.
+        it('is not the member’s where the session’s clock ran out by itself', async () => {
+          store.state.tokenTime = Math.floor(Date.now() / 1000) + 2
+
+          await vi.advanceTimersByTimeAsync(4000)
+          await flushPromises()
+
+          expect(logoutSpy).toHaveBeenCalledTimes(1)
+          expect(told()).toEqual({ byOwnWord: false, member: 'aaaa-anna' })
+        })
+
+        it('is told the same way where the server does not answer the sign-out', async () => {
+          mockMutateFn.mockRejectedValue(new Error('error'))
+
+          await clock().vm.$emit('logout', { ranOut: true })
+          await flushPromises()
+          expect(told()).toEqual({ byOwnWord: false, member: 'aaaa-anna' })
+
+          await wrapper.findComponent({ name: 'Sidebar' }).vm.$emit('logout')
+          await flushPromises()
+          expect(told()).toEqual({ byOwnWord: true, member: 'aaaa-anna' })
+        })
+
+        // The server is asked before the store hears of the sign-out. While "Abmelden" is on its
+        // way the session's clock may end the session and clear the store: whose word it was is
+        // what the layout took with the press, not what the store says when the answer is here.
+        it.each([
+          ['the server answers', (answer) => answer.resolve({ logout: 'success' })],
+          ['the server does not answer', (answer) => answer.reject(new Error('error'))],
+        ])(
+          'names who pressed "Abmelden", though the store was cleared before %s',
+          async (_, settle) => {
+            const answer = {}
+            mockMutateFn.mockReturnValue(
+              new Promise((resolve, reject) => Object.assign(answer, { resolve, reject })),
+            )
+
+            await wrapper.findComponent({ name: 'Sidebar' }).vm.$emit('logout')
+            expect(logoutSpy).not.toHaveBeenCalled()
+            store.state.gradidoID = null
+            settle(answer)
+            await flushPromises()
+
+            expect(told()).toEqual({ byOwnWord: true, member: 'aaaa-anna' })
+          },
+        )
+      })
+
       describe('logout fails', () => {
         beforeEach(async () => {
           mockMutateFn.mockRejectedValue(new Error('error'))

@@ -602,13 +602,24 @@ onMounted(() => {
 
 onBeforeUnmount(stopChatUpdates)
 
-const logoutUser = async () => {
+/**
+ * Signs the member out. By their own word -- "Abmelden" in a menu, or in the question before a
+ * session ends -- unless the session's clock says otherwise (`ranOut`, SessionLogoutTimeout):
+ * the time ran out, or could not be extended. The store is told which: only the member's own
+ * word takes what they wrote in a conversation and did not send off this device (utils/chatDraft).
+ *
+ * ⚠️ And whose word it is, taken with the word and not when the store hears of it: the server is
+ * asked first, and by the time it has answered another sign-out may have got ahead and cleared
+ * the store -- the clock ends the session while "Abmelden" is on its way.
+ */
+const logoutUser = async (how) => {
+  const said = { byOwnWord: how?.ranOut !== true, member: store.state.gradidoID }
   try {
     await useLogoutMutation()
-    await store.dispatch('logout')
+    await store.dispatch('logout', said)
     await router.push('/login')
   } catch (err) {
-    await store.dispatch('logout')
+    await store.dispatch('logout', said)
     if (router.currentRoute.value.path !== '/login') await router.push('/login')
   }
 }

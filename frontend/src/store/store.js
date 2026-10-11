@@ -17,7 +17,7 @@ import { stopChatUpdates } from '../composables/useChatUpdates'
 import { forgetParkedAmount } from '../composables/useParkedAmount'
 import { forgetFirstLoginWindows } from '../composables/useFirstLoginWindow'
 import { forgetLegacyMapPrefs } from '../utils/matchingPrefs'
-import { forgetChatDrafts } from '../utils/chatDraft'
+import { forgetChatDrafts, letOldChatDraftsGo } from '../utils/chatDraft'
 import { forgetChatReturn } from '../utils/chatReturn'
 import { clearApolloCache } from '../plugins/apolloCache'
 
@@ -196,8 +196,20 @@ export const actions = {
     // from initials to picture. `?? null` clears the previous member's, for the reason
     // above: not read is not the same as nobody there.
     commit('avatar', data.avatar ?? null)
+    // What members wrote in a conversation and did not send lies on this device, each under their
+    // own key (utils/chatDraft), and is let go after fourteen days. Here as well as at the
+    // sign-out: a wallet closed with its tab runs no sign-out, and whoever uses this browser next
+    // comes through here.
+    letOldChatDraftsGo()
   },
-  logout: async ({ commit, state, dispatch }) => {
+  /**
+   * @param how `{ byOwnWord: true, member }` where the member said "Abmelden" themselves -- an
+   *   entry of a menu, or the button of the question before a session ends --, and who it was
+   *   (DashboardLayout). Every other sign-out goes without that word: a session that ran out, a
+   *   token the server refused, the way into the admin area. It decides one thing only -- see
+   *   the chat's drafts below.
+   */
+  logout: async ({ commit, state, dispatch }, how) => {
     // ⛔ Held before the commits below, not read after them: the parked amount is keyed by
     // this ID, and `commit('gradidoID', null)` is two lines down. Reading it later would
     // give null, there would be no key, and a stranger's amount would stay on the device.
@@ -286,10 +298,16 @@ export const actions = {
     // The conversation to come back to after a restart (utils/chatReturn): whoever signs out is
     // not taken back into it, even where the idle timeout signs out a wallet left in a thread.
     forgetChatReturn(signedOutMember)
-    // And what the member wrote in a conversation and did not send (utils/chatDraft): words, and
-    // a picture chosen, that wait in memory for the bar of that conversation -- not for the next
-    // member on this browser.
-    forgetChatDrafts()
+    // And what the member wrote in a conversation and did not send (utils/chatDraft). What waits
+    // in memory -- a picture chosen, the box -- goes with every sign-out: it is not for the next
+    // member on this browser. The words lie on the device, under this member's key, and go from
+    // it only where the member signed out by their own word: a session that ran out leaves them
+    // for the member to come back to (Bernd's choice, 11.10.2026).
+    //
+    // ⚠️ Whose words: the member the word names, where it names one. The layout takes them with
+    // the press and asks the server before it comes here; a sign-out that got ahead -- the
+    // session's clock -- has cleared the state by then, and nobody is signed in to read here.
+    forgetChatDrafts(how?.member ?? signedOutMember, { fromDevice: how?.byOwnWord === true })
     // ⛔ Only what the FLAT prefix left behind, and only the nameless keys -- the ones the
     // map wrote for the whole device before 10.09.2026, when it had nobody in the key. The
     // member's own settings are keyed by their gradidoID and stay: a radius and a look are

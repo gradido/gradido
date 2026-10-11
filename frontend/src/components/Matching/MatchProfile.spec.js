@@ -148,8 +148,11 @@ describe('MatchProfile', () => {
     wrapper = null
     document.body.innerHTML = ''
     // What a test typed into the bar waits for the next bar of that person (utils/chatDraft) --
-    // in the wallet, not for the next test.
+    // in the wallet, not for the next test: in memory, and its words on the device.
     forgetChatDrafts()
+    for (const key of Object.keys(window.localStorage)) {
+      if (key.startsWith('chat-drafts:')) window.localStorage.removeItem(key)
+    }
   })
 
   it('shows the name and community in the head', () => {

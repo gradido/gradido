@@ -150,6 +150,7 @@ describe('ChatComposeBar and the draft of its conversation', () => {
     wrapper?.unmount()
     wrapper = null
     forgetChatDrafts()
+    window.localStorage.clear()
     encoding.openChatImage.mockReset()
     encoding.encodeChatImage.mockReset()
     vi.unstubAllGlobals()
@@ -741,13 +742,16 @@ describe('ChatComposeBar and the draft of its conversation', () => {
     })
 
     /**
-     * The idle timeout signs out a wallet left in a thread: the sign-out forgets the drafts, and
-     * the bar, still standing for a moment, must not put its own back.
+     * A wallet left in a thread is signed out while the bar still stands for a moment. What the
+     * bar says after that is kept for nobody.
+     *
+     * By the member's own word the drafts are gone from the device as well, and the bar must
+     * not put its own back.
      */
-    it('is not put back by a bar that still stands after its member was signed out', async () => {
+    it('is not put back by a bar that still stands after its member signed out', async () => {
       mountBar()
       await field().setValue('Bis Samstag')
-      forgetChatDrafts()
+      forgetChatDrafts('me-id', { fromDevice: true })
       signedIn = null
 
       await field().setValue('Bis Samstag um zehn')
@@ -756,6 +760,28 @@ describe('ChatComposeBar and the draft of its conversation', () => {
       signedIn = 'me-id'
       openAgain()
       expect(field().element.value).toBe('')
+    })
+
+    /**
+     * A session that ran out leaves the words on the device for the member to come back to
+     * (Bernd's choice, 11.10.2026) -- as they stood when it ran out, not what the bar took in
+     * afterwards with nobody signed in.
+     */
+    it('is there again after a session that ran out, as it stood when it ran out', async () => {
+      mountBar()
+      await field().setValue('Bis Samstag')
+      await choose()
+      forgetChatDrafts('me-id')
+      signedIn = null
+
+      await field().setValue('Bis Samstag um zehn')
+      closeWindow()
+
+      signedIn = 'me-id'
+      openAgain()
+      expect(field().element.value).toBe('Bis Samstag')
+      // The picture waited in memory, and memory goes with every sign-out.
+      expect(attached().exists()).toBe(false)
     })
   })
 })
