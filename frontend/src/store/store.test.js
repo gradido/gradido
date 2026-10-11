@@ -56,6 +56,11 @@ vi.mock('../utils/chatReturn', () => ({
   forgetChatReturn: forgetChatReturnMock,
 }))
 
+const { forgetChatDraftsMock } = vi.hoisted(() => ({ forgetChatDraftsMock: vi.fn() }))
+vi.mock('../utils/chatDraft', () => ({
+  forgetChatDrafts: forgetChatDraftsMock,
+}))
+
 vi.mock('jwt-decode', () => ({
   default: vi.fn(() => ({ exp: '1234' })),
 }))
@@ -443,6 +448,18 @@ describe('Vuex store', () => {
 
         expect(localState.gradidoID).toBeNull()
         expect(forgetChatReturnMock).toHaveBeenCalledWith('user-one')
+      })
+
+      /**
+       * What the member wrote in a conversation and did not send waits in memory for the bar of
+       * that conversation (utils/chatDraft) -- not for the next member on this browser: signing
+       * out does not reload the page.
+       */
+      it('forgets what was written in the conversations and not sent', () => {
+        forgetChatDraftsMock.mockClear()
+        logout({ commit, state, dispatch })
+
+        expect(forgetChatDraftsMock).toHaveBeenCalledTimes(1)
       })
 
       it('commits redirectPath', () => {

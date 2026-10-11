@@ -6,6 +6,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest'
 import ChatThread from './ChatThread.vue'
 import ChatComposeBar from './ChatComposeBar.vue'
+import { chatDraftFor, chatGroupDraftKey, forgetChatDrafts } from '@/utils/chatDraft'
 import { holdChatText, takeHeldChatText } from '@/utils/chatReturn'
 import {
   chatImage,
@@ -437,6 +438,10 @@ afterAll(() => {
   delete HTMLElement.prototype.clientHeight
   delete HTMLElement.prototype.scrollTop
 })
+
+// What a test leaves in the field waits for the next bar of that conversation (utils/chatDraft) --
+// in the wallet, and here for the next test. Every test begins with none.
+afterEach(() => forgetChatDrafts())
 
 describe('ChatThread', () => {
   let wrapper
@@ -943,6 +948,153 @@ describe('ChatThread', () => {
       await arrive(page([1, 2]))
 
       expect(field().element.value).toBe('')
+    })
+  })
+
+  /**
+   * What is written and not sent waits for the next opening of the window (Bernd, 11.10.2026,
+   * after a tester's report: beside the window, to Matching and back -- gone). The bar reads and
+   * writes (ChatComposeBar.draft.spec.js); the thread says which conversation this is.
+   */
+  describe('what was written and not sent', () => {
+    const closeWindow = () => {
+      wrapper.unmount()
+      wrapper = null
+    }
+    const openWindow = async (member = LENA, options = {}, answer = page([1, 2])) => {
+      mountThread(member, options)
+      await arrive(answer)
+    }
+    afterEach(() => {
+      storeState.gradidoID = 'me-id'
+      takeHeldChatText({ gradidoID: '' })
+    })
+
+    it('stands in the field again when the window is opened again', async () => {
+      await openWindow()
+      await field().setValue('Bis Samstag um zehn?')
+      closeWindow()
+
+      await openWindow()
+
+      expect(field().element.value).toBe('Bis Samstag um zehn?')
+    })
+
+    it('waits for the conversation it was written in, and no other', async () => {
+      await openWindow()
+      await field().setValue('für Lena')
+      closeWindow()
+
+      await openWindow({ communityUuid: 'home-uuid', gradidoID: 'anna-id' })
+      expect(field().element.value).toBe('')
+      closeWindow()
+
+      // The same id in another community is another person.
+      await openWindow({ communityUuid: 'other-uuid', gradidoID: 'lena-id' })
+      expect(field().element.value).toBe('')
+    })
+
+    /**
+     * One person, one draft, however the window names them: a member off a booking row comes
+     * without a community, which is this one, and an id may be written in any case
+     * (chatMemberKey).
+     */
+    it('is the draft of the person, whichever way the pair is written', async () => {
+      storeState.communityUuid = 'home-uuid'
+      await openWindow()
+      await field().setValue('Bis Samstag')
+      closeWindow()
+
+      await openWindow({ gradidoID: 'LENA-ID' })
+
+      expect(field().element.value).toBe('Bis Samstag')
+    })
+
+    it('is kept under the key the window gives the thread, where it gives one', async () => {
+      await openWindow(LENA, {
+        props: { member: LENA, alias: 'Lena', memberKey: 'the-window-key' },
+      })
+      await field().setValue('Bis Samstag')
+
+      expect(chatDraftFor(() => 'me-id', 'the-window-key').read().text).toBe('Bis Samstag')
+    })
+
+    it('is not handed to another member signed in on this browser', async () => {
+      await openWindow()
+      await field().setValue('Bis Samstag')
+      closeWindow()
+
+      storeState.gradidoID = 'somebody-else'
+      await openWindow()
+
+      expect(field().element.value).toBe('')
+    })
+
+    it('is gone once it was sent', async () => {
+      serverSends.mockResolvedValue(ownCopy(99, 'Bis Samstag'))
+      await openWindow()
+      await field().setValue('Bis Samstag')
+      await wrapper.find('[data-test="chat-compose-send"]').trigger('click')
+      await flushPromises()
+      closeWindow()
+
+      await openWindow()
+
+      expect(field().element.value).toBe('')
+    })
+
+    it('still waits where the message did not go through', async () => {
+      serverSends.mockRejectedValue(new Error('Network error'))
+      await openWindow()
+      await field().setValue('Bis Samstag')
+      await wrapper.find('[data-test="chat-compose-send"]').trigger('click')
+      await flushPromises()
+      closeWindow()
+
+      await openWindow()
+
+      expect(field().element.value).toBe('Bis Samstag')
+    })
+
+    // The greeting is the window's (E-055); what the member wrote is theirs, and wins.
+    it('takes the place of the greeting a window hands in', async () => {
+      const greeted = { props: { member: LENA, alias: 'Lena', greeting: 'Hallo Lena' } }
+      await openWindow(LENA, greeted, page([]))
+      await field().setValue('Hallo Lena, wir kennen uns vom Markt!')
+      closeWindow()
+
+      await openWindow(LENA, greeted, page([]))
+
+      expect(field().element.value).toBe('Hallo Lena, wir kennen uns vom Markt!')
+    })
+
+    it('is not made of a greeting nobody touched', async () => {
+      await openWindow(
+        LENA,
+        { props: { member: LENA, alias: 'Lena', greeting: 'Hallo Lena' } },
+        page([]),
+      )
+      closeWindow()
+
+      // The two have written since: the window hands in no greeting, and none waits.
+      await openWindow()
+
+      expect(field().element.value).toBe('')
+    })
+
+    /**
+     * The words a start brought back (utils/chatReturn) are the member's own: they stay when the
+     * window closes over them untouched, as anything typed does.
+     */
+    it('keeps the words a start brought back, where the window closes over them untouched', async () => {
+      holdChatText({ gradidoID: 'lena-id', text: 'Hier ist die Datei:' })
+      await openWindow()
+      expect(field().element.value).toBe('Hier ist die Datei:')
+      closeWindow()
+
+      await openWindow()
+
+      expect(field().element.value).toBe('Hier ist die Datei:')
     })
   })
 

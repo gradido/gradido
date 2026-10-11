@@ -554,6 +554,13 @@ const props = defineProps({
    * picture. The thread's own object, handed back with `send` as the press found it.
    */
   replying: { type: Object, default: null },
+  /**
+   * Where what is written and not sent waits while no bar stands for this conversation
+   * (utils/chatDraft, `chatDraftFor`): `{ read, keep }`. The bar begins with what waits there and
+   * tells it of every change, so the next bar for the conversation begins where this one was
+   * left. Read once, when the bar is made. Null: nothing is kept.
+   */
+  draft: { type: Object, default: null },
 })
 
 /**
@@ -588,7 +595,28 @@ const replyingTitle = computed(() =>
 
 const root = ref(null)
 const field = ref(null)
-const text = ref(props.initialText)
+/**
+ * What the member left in a bar for this conversation before this one (`draft`): the words, the
+ * picture, the box where they set it themselves. This bar begins with it -- the window was
+ * closed, not the message given up (Bernd, 11.10.2026).
+ */
+const left = props.draft?.read() ?? null
+/**
+ * The picture that waits with it -- none for a bar that takes no picture (`textOnly`): what it
+ * cannot show, it does not send.
+ */
+const leftPicture = props.textOnly ? null : (left?.picture ?? null)
+/**
+ * The words the window handed in, as the bar found them when it was made (`initialText`): the
+ * window's to give again, and no draft of the member's until they are changed.
+ */
+const handedIn = props.initialText ?? ''
+/**
+ * The field begins with the words that wait; without any, with the window's. Not with the
+ * window's under a picture that waits alone: the member emptied the field over it, and the
+ * greeting is not its caption.
+ */
+const text = ref(left?.text || (leftPicture ? '' : handedIn))
 /**
  * Whether the smiley stands in the field: asked once, when the bar is made -- the kind of device
  * does not change under a bar.
@@ -596,11 +624,16 @@ const text = ref(props.initialText)
 const emojiOffered = offersEmojiPicker()
 /** The smiley and its choice (EmojiPicker), to shut the choice when a message goes out. */
 const emojiChoice = ref(null)
-const alsoByEmail = ref(props.firstOwn && !props.group)
-/** The member has set the box themselves: from then on it is theirs, whatever arrives. */
-let boxTouched = false
+const leftBox = typeof left?.alsoByEmail === 'boolean' ? left.alsoByEmail : null
+const alsoByEmail = ref(leftBox ?? (props.firstOwn && !props.group))
+/**
+ * The member has set the box themselves: from then on it is theirs, whatever arrives -- also
+ * where they set it in a bar before this one, and the draft brought it along.
+ */
+let boxTouched = leftBox !== null
 const noteBoxTouched = () => {
   boxTouched = true
+  noteDraft()
 }
 
 /**
@@ -615,8 +648,11 @@ const noteBoxTouched = () => {
  * and it is still on the device -- whoever lost it chooses it again in two taps, where words typed
  * would be gone for good. A shallow ref: nothing inside it changes, and its base64 is no business
  * of Vue's reactivity.
+ *
+ * It does wait for the next bar while the wallet runs (`draft`), where the window was closed over
+ * it (`leftPicture`).
  */
-const picture = shallowRef(null)
+const picture = shallowRef(leftPicture)
 /** A picture is being opened, or made small for sending; the button waits for it. */
 const preparing = ref(false)
 /** Why the last picture chosen could not be made ready (ChatImageError), or null. */
@@ -771,6 +807,58 @@ defineExpose({
 let submitted = null
 
 /**
+ * What waits for the next bar of this conversation (`draft` of the props): what stands in this
+ * one and has not gone out -- the words, the picture, the box where the member set it.
+ *
+ * - While a message is being changed it is what stood in the bar before (`held`), not the text
+ *   of that message.
+ * - What a press sent on its way is a draft no longer (`submitted`): a window closed over a
+ *   message on its way must not hand its words to the next bar, to be sent a second time. It is
+ *   one again where the message did not go through and this bar still holds it.
+ * - The words the window handed in are the window's until they are changed (`handedIn`).
+ */
+const draftNow = () => {
+  const stands = held ?? {
+    text: text.value,
+    alsoByEmail: alsoByEmail.value,
+    picture: picture.value,
+  }
+  const out = submitted
+  const words = out && out.text === stands.text ? '' : stands.text
+  return {
+    text: words === handedIn ? '' : words,
+    picture: out?.picture && out.picture === stands.picture ? null : stands.picture,
+    // The wish went with the message it was ticked for.
+    alsoByEmail: boxTouched ? stands.alsoByEmail && !out?.alsoByEmail : null,
+  }
+}
+
+/** The window has closed, and the bar is gone with it. */
+let gone = false
+onBeforeUnmount(() => {
+  gone = true
+})
+
+/**
+ * Tells the draft what stands in the bar now -- at every change, so there is nothing left to
+ * hand over when the window closes.
+ *
+ * ⛔ Not from a bar that is gone. What comes in for it later, a picture still being opened, has
+ * no bar to stand in. And a press whose picture was still being made small when the window
+ * closed has sent nothing -- the `send` of a bar that is gone is heard by nobody --, so its words
+ * and its picture are not taken out of the draft as if they were on their way.
+ */
+const noteDraft = () => {
+  if (!gone) props.draft?.keep(draftNow())
+}
+/**
+ * ⛔ `flush: 'sync'`: with the change itself, not before the next picture the page paints. A
+ * window can close in the step in which the last character was typed, and a watcher that waits
+ * for the render is stopped with the bar before it has run.
+ */
+watch([text, picture, alsoByEmail], noteDraft, { flush: 'sync' })
+
+/**
  * How long the bar waits for those two frames at most: a page in the background draws none, and
  * the message is to go all the same (coderabbit, PR #4010).
  */
@@ -843,6 +931,8 @@ const submit = async () => {
     }
   }
   submitted = { text: pressed.text, alsoByEmail: pressed.alsoByEmail, picture: pressed.picture }
+  // On its way, and a draft no longer.
+  noteDraft()
   emit('send', {
     body: pressed.body,
     // The enum NAMES the server takes, by the rule the contact window's video invitation
@@ -893,6 +983,8 @@ const sendHelloBack = (words, press) => {
     picture: null,
     keyboard: Boolean(press?.currentTarget) && press.currentTarget === document.activeElement,
   }
+  // The box's wish goes with the short answer: no longer the draft's.
+  noteDraft()
   emit('send', {
     body: words,
     notify: chatNotifyFor({ first: props.first, alsoByEmail: boxed }),
@@ -943,8 +1035,10 @@ const takePicture = async (event) => {
     const source = await openChatImage(file)
     if (round !== pictureRound) return
     // Opened while a message is being changed (E-060): it waits with the words that wait.
-    if (held) held.picture = { source, edit: CHAT_IMAGE_UNEDITED }
-    else picture.value = { source, edit: CHAT_IMAGE_UNEDITED }
+    if (held) {
+      held.picture = { source, edit: CHAT_IMAGE_UNEDITED }
+      noteDraft()
+    } else picture.value = { source, edit: CHAT_IMAGE_UNEDITED }
   } catch (error) {
     if (round !== pictureRound) return
     // A picture chosen before stays: nothing has taken its place.
@@ -1008,6 +1102,8 @@ watch([picture, preparing], async () => {
   await nextTick()
   drawThumb()
 })
+/** A picture the draft brought along stands in the bar from its first moment: so does its preview. */
+onMounted(drawThumb)
 
 /**
  * The paperclip's menu (E-044, F1): "Foto aufnehmen" on a phone or a tablet (E-047), "Bild" and
@@ -1177,6 +1273,9 @@ watch(
     if (!before || now) return
     const sent = submitted
     submitted = null
+    // Nothing is on its way any more: what did not go through is the draft again, as the bar
+    // holds it. What went through is cleared below, and the draft follows each change.
+    noteDraft()
     if (props.failed || !sent) return
     // It went through while another message is being changed (E-060): what went out waits with
     // the rest of the bar, and is cleared there -- else it would come back into the field once
@@ -1185,6 +1284,7 @@ watch(
       if (sent.picture && held.picture === sent.picture) held.picture = null
       if (held.alsoByEmail === sent.alsoByEmail) held.alsoByEmail = false
       if (held.text === sent.text) held.text = ''
+      noteDraft()
       return
     }
     if (sent.picture && picture.value === sent.picture) picture.value = null

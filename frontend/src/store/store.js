@@ -17,6 +17,7 @@ import { stopChatUpdates } from '../composables/useChatUpdates'
 import { forgetParkedAmount } from '../composables/useParkedAmount'
 import { forgetFirstLoginWindows } from '../composables/useFirstLoginWindow'
 import { forgetLegacyMapPrefs } from '../utils/matchingPrefs'
+import { forgetChatDrafts } from '../utils/chatDraft'
 import { forgetChatReturn } from '../utils/chatReturn'
 import { clearApolloCache } from '../plugins/apolloCache'
 
@@ -285,6 +286,10 @@ export const actions = {
     // The conversation to come back to after a restart (utils/chatReturn): whoever signs out is
     // not taken back into it, even where the idle timeout signs out a wallet left in a thread.
     forgetChatReturn(signedOutMember)
+    // And what the member wrote in a conversation and did not send (utils/chatDraft): words, and
+    // a picture chosen, that wait in memory for the bar of that conversation -- not for the next
+    // member on this browser.
+    forgetChatDrafts()
     // ⛔ Only what the FLAT prefix left behind, and only the nameless keys -- the ones the
     // map wrote for the whole device before 10.09.2026, when it had nobody in the key. The
     // member's own settings are keyed by their gradidoID and stay: a radius and a look are

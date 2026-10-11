@@ -136,6 +136,7 @@
       :failed="sendFailed"
       :failed-reason="sendRefusal"
       :initial-text="openingText"
+      :draft="draft"
       :text-only="textOnly"
       :first-own="firstOwn"
       :hello-back="helloBack"
@@ -205,6 +206,7 @@ import {
   withChatMessagesReacted,
 } from '@/utils/chatReactions'
 import { CHAT_NOTIFY_EMAIL } from '@/utils/chatNotify'
+import { chatDraftFor, chatGroupDraftKey } from '@/utils/chatDraft'
 import { dropChatReturnNote, noteChatReturn, takeHeldChatText } from '@/utils/chatReturn'
 import { readChatVideoInvite } from '@/utils/chatVideoInvite'
 import { memberAlias } from '@/utils/gradidoAddress'
@@ -691,31 +693,45 @@ const openImage = ({ message, image, opener }) => {
 }
 
 /**
+ * What the member wrote in this conversation and did not send (Bernd, 11.10.2026): it waits while
+ * the window is closed (utils/chatDraft), and the bar begins with it the next time. The thread
+ * only says which conversation this is -- by the pair as the window keys it, a group by its
+ * uuid --; the bar reads and writes.
+ */
+const draft = chatDraftFor(
+  () => store.state.gradidoID,
+  inGroup
+    ? chatGroupDraftKey(groupUuid)
+    : props.memberKey || chatMemberKey(memberRef, store.state.communityUuid),
+)
+
+/**
  * The words a start held for this conversation, taken only when the bar can show them -- when
  * the first page is in. Before that they stay where the start put them: a first page that fails
  * shows no bar, and the next opening of the window takes them (coderabbit, PR #3999). A watcher
  * runs before the render it belongs to, so the bar is made with them.
+ *
+ * They go to the bar as the draft they are: the member's own words, which are kept on when the
+ * window closes over them untouched -- not as words the window hands in, which are the window's.
  */
-const heldText = ref('')
 let heldTaken = false
 watch(
   state,
   (now) => {
     if (heldTaken || (now !== 'thread' && now !== 'empty')) return
     heldTaken = true
-    heldText.value = takeHeldChatText(returnTo)
+    const words = takeHeldChatText(returnTo)
+    if (words) draft.keep({ text: words })
   },
   { immediate: true },
 )
 
 /**
- * The words the bar begins with: what a start held for this conversation (above), or -- where
- * the two have never written -- the greeting the window handed in (E-055). The bar reads them
- * once, when it is made; a thread with messages begins with an empty field.
+ * The words the window hands the bar: where the two have never written, the greeting it handed in
+ * (E-055). The bar reads them once, when it is made, and begins with them unless a draft of the
+ * member's waits; a thread with messages hands in none.
  */
-const openingText = computed(
-  () => heldText.value || (state.value === 'empty' ? props.greeting : ''),
-)
+const openingText = computed(() => (state.value === 'empty' ? props.greeting : ''))
 
 /**
  * The read pointer on opening, to the highest id the first page brought (E-017: the marker is

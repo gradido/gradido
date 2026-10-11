@@ -10,6 +10,8 @@ import MatchProfile from './MatchProfile.vue'
 import { distanceKm } from '@/composables/useMatches'
 import { contactByMemberQuery } from '@/graphql/contacts.graphql'
 import { sendChatMessage } from '@/graphql/chat.graphql'
+import { chatDraftFor, forgetChatDrafts } from '@/utils/chatDraft'
+import { chatMemberKey } from '@/utils/chatMemberKey'
 
 const push = vi.fn()
 vi.mock('vue-router', () => ({
@@ -51,6 +53,7 @@ const ComposeBarStub = {
     sending: Boolean,
     failed: Boolean,
     initialText: String,
+    draft: Object,
   },
   emits: ['send'],
   template: '<div class="compose-stub" />',
@@ -144,6 +147,9 @@ describe('MatchProfile', () => {
     wrapper?.unmount()
     wrapper = null
     document.body.innerHTML = ''
+    // What a test typed into the bar waits for the next bar of that person (utils/chatDraft) --
+    // in the wallet, not for the next test.
+    forgetChatDrafts()
   })
 
   it('shows the name and community in the head', () => {
@@ -1111,6 +1117,114 @@ describe('MatchProfile', () => {
         await flushPromises()
         expect(apollo.mutate).toHaveBeenCalledTimes(2)
         expect(wrapper.find('[data-test="profile-hello-sent"]').exists()).toBe(true)
+      })
+
+      /**
+       * What the member made of the words waits while the window is closed (Bernd, 11.10.2026;
+       * utils/chatDraft): the next opening begins with it, not with the sentence anew.
+       */
+      describe('what was written and not sent', () => {
+        const draftForSofia = () =>
+          chatDraftFor(() => storeState.gradidoID, chatMemberKey(SOFIA, storeState.communityUuid))
+        const closeAndOpen = async () => {
+          await wrapper.setProps({ modelValue: false })
+          await flushPromises()
+          expect(field().exists()).toBe(false)
+          await wrapper.setProps({ modelValue: true })
+          await flushPromises()
+        }
+
+        it('stands in the field again when the window opens again', async () => {
+          mountReal()
+          await flushPromises()
+          await field().setValue('Hallo Sofia, magst Du Kaffee?')
+
+          await closeAndOpen()
+
+          expect(field().element.value).toBe('Hallo Sofia, magst Du Kaffee?')
+        })
+
+        it('is the sentence again where the member left it as it stood', async () => {
+          mountReal()
+          await flushPromises()
+
+          await closeAndOpen()
+
+          expect(field().element.value).toBe(WORDS)
+          expect(draftForSofia().read()).toBeNull()
+        })
+
+        // One person, one draft: the contact window names them by the same pair.
+        it('waits under the pair the contact window names the person by', async () => {
+          mountReal()
+          await flushPromises()
+          await field().setValue('Hallo Sofia, magst Du Kaffee?')
+
+          expect(draftForSofia().read().text).toBe('Hallo Sofia, magst Du Kaffee?')
+        })
+
+        it('waits for that person only', async () => {
+          mountReal()
+          await flushPromises()
+          await field().setValue('Hallo Sofia, magst Du Kaffee?')
+          await wrapper.setProps({ modelValue: false })
+          await flushPromises()
+
+          await wrapper.setProps({
+            modelValue: true,
+            match: baseMatch({ uuid: 'user-uuid-2', name: 'Tom' }),
+          })
+          await flushPromises()
+
+          expect(field().element.value).not.toContain('Kaffee')
+          expect(field().element.value).toContain('Hallo Tom')
+        })
+
+        it('is gone once the hello went out', async () => {
+          mountReal()
+          await flushPromises()
+          await field().setValue('Hallo Sofia, magst Du Kaffee?')
+          await arrow().trigger('click')
+          await flushPromises()
+
+          expect(wrapper.find('[data-test="profile-hello-sent"]').exists()).toBe(true)
+          expect(draftForSofia().read()).toBeNull()
+        })
+
+        /**
+         * The field stays writable while the hello is on its way, and what is typed then is kept
+         * as any change is. But this bar is gone with the hello: what stood in it goes with it --
+         * the next bar for the person is the one of their conversation, which holds the hello.
+         */
+        it('lets go of what was typed while the hello was on its way', async () => {
+          const going = held()
+          apollo.mutate.mockReturnValue(going.promise)
+          mountReal()
+          await flushPromises()
+          await field().setValue('Hallo Sofia, magst Du Kaffee?')
+          await arrow().trigger('click')
+          await field().setValue('Hallo Sofia, magst Du Kaffee? Oder Tee?')
+          expect(draftForSofia().read().text).toBe('Hallo Sofia, magst Du Kaffee? Oder Tee?')
+
+          going.resolve(copy())
+          await flushPromises()
+
+          expect(wrapper.find('[data-test="profile-hello-sent"]').exists()).toBe(true)
+          expect(draftForSofia().read()).toBeNull()
+        })
+
+        it('still waits where the hello did not go through and the window closes', async () => {
+          apollo.mutate.mockRejectedValue(new Error('Network error'))
+          mountReal()
+          await flushPromises()
+          await field().setValue('Hallo Sofia, magst Du Kaffee?')
+          await arrow().trigger('click')
+          await flushPromises()
+
+          await closeAndOpen()
+
+          expect(field().element.value).toBe('Hallo Sofia, magst Du Kaffee?')
+        })
       })
 
       it('keeps what the member typed when more of the same person arrives', async () => {
