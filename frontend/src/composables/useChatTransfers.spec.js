@@ -114,4 +114,82 @@ describe('useChatTransfers', () => {
     await expect(loadOlderTransfers()).rejects.toThrow('Network error')
     expect(transfers.value.map((b) => b.id)).toEqual([20])
   })
+
+  /**
+   * The reaction to a transfer (Bernd, 11.10.2026): the member set it or took it back, at the
+   * booking's bubble or in the booking list -- the booking the conversation holds gets it.
+   */
+  describe('takeReaction', () => {
+    it('puts the reaction on the booking with that id, and on no other', async () => {
+      const client = clientAnswering(answer([booking(8, 'SEND'), booking(5), booking(3)]))
+      const { transfers, takeReaction } = useChatTransfers(client, LENA)
+      await flushPromises()
+
+      takeReaction(5, '👍')
+
+      expect(transfers.value.map((b) => [b.id, b.reaction])).toEqual([
+        [3, undefined],
+        [5, '👍'],
+        [8, undefined],
+      ])
+      // Everything else of the booking stays.
+      expect(transfers.value[1]).toEqual({ ...booking(5), reaction: '👍' })
+    })
+
+    it('takes a reaction off again: none', async () => {
+      const client = clientAnswering(answer([{ ...booking(5), reaction: '👍' }]))
+      const { transfers, takeReaction } = useChatTransfers(client, LENA)
+      await flushPromises()
+
+      takeReaction(5, null)
+
+      expect(transfers.value[0].reaction).toBeNull()
+    })
+
+    // The list is replaced, not changed in place: what was drawn from it is drawn again.
+    it('hands out a new list, and a new booking, for what changed', async () => {
+      const client = clientAnswering(answer([booking(5), booking(3)]))
+      const { transfers, takeReaction } = useChatTransfers(client, LENA)
+      await flushPromises()
+      const before = transfers.value
+
+      takeReaction(5, '👍')
+
+      expect(transfers.value).not.toBe(before)
+      expect(transfers.value[1]).not.toBe(before[1])
+      expect(transfers.value[0]).toBe(before[0])
+      expect(before[1].reaction).toBeUndefined()
+    })
+
+    it('passes over a booking the conversation does not hold, and leaves its list as it is', async () => {
+      const client = clientAnswering(answer([booking(5)]))
+      const { transfers, takeReaction } = useChatTransfers(client, LENA)
+      await flushPromises()
+      const before = transfers.value
+
+      takeReaction(99, '👍')
+
+      expect(transfers.value).toBe(before)
+    })
+
+    // An older page asked for meanwhile must not put the earlier state back.
+    it('keeps the reaction when an older page arrives after it', async () => {
+      const client = clientAnswering(
+        answer([booking(20)], 30),
+        // The older page repeats the booking, as it stood before the reaction.
+        answer([booking(20), booking(19)], 30),
+      )
+      const { transfers, loadOlderTransfers, takeReaction } = useChatTransfers(client, LENA)
+      await flushPromises()
+
+      const older = loadOlderTransfers()
+      takeReaction(20, '👍')
+      await older
+
+      expect(transfers.value.map((b) => [b.id, b.reaction])).toEqual([
+        [19, undefined],
+        [20, '👍'],
+      ])
+    })
+  })
 })

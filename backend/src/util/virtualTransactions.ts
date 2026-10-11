@@ -29,6 +29,8 @@ const virtualLinkTransaction = (amount: GradidoUnit, user: User): Transaction =>
     greeting: null,
     // Nor is either a transfer somebody added a picture to.
     picture: null,
+    reaction: null,
+    canReact: false,
   }
 }
 
@@ -63,6 +65,8 @@ const virtualDecayTransaction = (
     greeting: null,
     // Nor is either a transfer somebody added a picture to.
     picture: null,
+    reaction: null,
+    canReact: false,
   }
 }
 

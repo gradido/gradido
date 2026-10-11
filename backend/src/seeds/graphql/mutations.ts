@@ -725,6 +725,13 @@ export const setChatMessageReaction = gql`
   }
 `
 
+/** The recipient's reaction to a transfer, set or taken back (migration 0159). */
+export const setTransactionReaction = gql`
+  mutation ($transactionId: Int!, $emoji: String) {
+    setTransactionReaction(transactionId: $transactionId, emoji: $emoji)
+  }
+`
+
 export const createChatGroup = gql`
   mutation ($title: String!, $members: [MemberAvatarRefInput!]!) {
     createChatGroup(title: $title, members: $members) {

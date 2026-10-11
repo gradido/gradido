@@ -53,6 +53,9 @@ export interface RequestBudget {
   // Reactions to chat messages set or taken back (setChatMessageReaction), capped at
   // CHAT_REACTIONS_MAX_PER_REQUEST: each is a transaction.
   chatReactionsSet: number
+  // Reactions to transfers set or taken back (setTransactionReaction), capped at
+  // TRANSACTION_REACTIONS_MAX_PER_REQUEST.
+  transactionReactionsSet: number
 }
 
 /** A budget with nothing spent. The context function creates one per HTTP request. */
@@ -71,6 +74,7 @@ export const newRequestBudget = (): RequestBudget => ({
   thankYouGreetingLargePicturesServed: 0,
   transactionPicturesServed: 0,
   chatReactionsSet: 0,
+  transactionReactionsSet: 0,
 })
 
 export interface Context {

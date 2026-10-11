@@ -377,6 +377,30 @@ export const transactionsTable = mysqlTable(
 export type TransactionSelect = typeof transactionsTable.$inferSelect
 export type TransactionInsert = typeof transactionsTable.$inferInsert
 
+// The reaction to a transfer (migration 0159): one row for the emoji the RECIPIENT of a transfer
+// answered it with -- one a transfer, which the unique key holds. Taken back, the row is deleted.
+//
+// `transactionId` is the recipient's RECEIVE row; the sender's SEND row is found from it, since
+// the two rows of a transfer of this community name each other (`linkedTransactionId`).
+//
+// ⛔ `emoji` is compared byte by byte in the database (utf8mb4_bin, set by the migration): the
+// tables' own collation takes most emoji for one and the same character.
+export const transactionReactionsTable = mysqlTable(
+  'transaction_reactions',
+  {
+    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
+    transactionId: int('transaction_id', { unsigned: true }).notNull(),
+    emoji: varchar({ length: 16 }).notNull(),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+  },
+  (table) => [uniqueIndex('transaction_reactions_transaction_unique').on(table.transactionId)],
+)
+
+export type TransactionReactionSelect = typeof transactionReactionsTable.$inferSelect
+export type TransactionReactionInsert = typeof transactionReactionsTable.$inferInsert
+
 export const transactionLinksTable = mysqlTable(
   'transaction_links',
   {

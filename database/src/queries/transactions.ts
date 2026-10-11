@@ -1,5 +1,5 @@
 import { and, eq, inArray, isNotNull, isNull, ne, sql } from 'drizzle-orm'
-import { ContactOrigin, GradidoUnit, isAliasEraName, Order, VoidResult } from 'shared'
+import { ContactOrigin, GradidoUnit, isAliasEraName, Order, Result, VoidResult } from 'shared'
 import { FindOptionsWhere, In, IsNull } from 'typeorm'
 import { drizzleDb } from '../AppDatabase'
 import { Transaction as DbTransaction } from '../entity'
@@ -243,6 +243,58 @@ export const dbSelectTransactionsByUserId = async (
 }
 
 const TransactionNotFound = (where: string) => new DBNotFoundError('transactions', where)
+
+/** What a reaction to a transfer has to know of the booking it hangs on. */
+export interface ReceivedTransfer {
+  id: number
+  /**
+   * Whether whoever sent the transfer is a member of THIS server: their `users` row is one of
+   * this community's own. False for a member of another community the federation stored a row
+   * for, and for a sender the booking names by their pair alone.
+   */
+  senderIsMemberHere: boolean
+}
+
+/**
+ * The member's own RECEIVE booking of a transfer, by its id -- the row a reaction to a transfer
+ * hangs on (migration 0159): only the recipient reacts, and this is how a caller is known to be
+ * one.
+ *
+ * ⛔ Whether the sender is a member here is read off this server's own `users` row
+ * (`foreign`), never off the community uuids on the booking: on a booking from afar those are
+ * what another server's request named (Transaction.logic's senderIdOf has the same reasoning).
+ * A booking from afar may carry a `linked_user_id` all the same: `users` holds rows for members
+ * of other communities too. The join reads that row's own word either way.
+ *
+ * DBNotFoundError for everything else, with nothing that tells these apart: no such id,
+ * somebody else's booking, the member's own SEND row, a creation.
+ */
+export async function dbSelectReceivedTransferOfUser(
+  transactionId: number,
+  userId: number,
+): Promise<Result<ReceivedTransfer, DBNotFoundError>> {
+  const rows = await drizzleDb()
+    .select({ id: transactionsTable.id, senderForeign: usersTable.foreign })
+    .from(transactionsTable)
+    .leftJoin(usersTable, eq(usersTable.id, transactionsTable.linkedUserId))
+    .where(
+      and(
+        eq(transactionsTable.id, transactionId),
+        eq(transactionsTable.userId, userId),
+        eq(transactionsTable.typeId, TransactionTypeId.RECEIVE),
+      ),
+    )
+    .limit(1)
+  return rows[0]
+    ? {
+        success: true,
+        value: { id: rows[0].id, senderIsMemberHere: rows[0].senderForeign === false },
+      }
+    : {
+        success: false,
+        error: TransactionNotFound(`id = ${transactionId} as a transfer received by the member`),
+      }
+}
 
 export async function dbUpdateBalanceAndDate(txPart: {
   id: number

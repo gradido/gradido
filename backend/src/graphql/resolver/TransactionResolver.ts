@@ -34,6 +34,7 @@ import {
   dbSelectThankYouGreetingsByLinkIds,
   dbSelectTransactionPictureHeads,
   dbSelectTransactionPictureImageForMember,
+  dbSelectTransactionReactions,
   dbSelectTransactionsByUserId,
   Transaction as dbTransaction,
   TransactionLink as dbTransactionLink,
@@ -63,6 +64,11 @@ import {
   transactionPictureIdsOf,
 } from '@/data/TransactionPicture.logic'
 import { transactionPictureSchema } from '@/data/TransactionPicture.schema'
+import {
+  canReactToBooking,
+  reactionKeysOf,
+  reactionOfBooking,
+} from '@/data/TransactionReaction.logic'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { communityUser } from '@/util/communityUser'
@@ -618,6 +624,24 @@ export class TransactionResolver {
       ),
     )
 
+    /**
+     * The reactions to the transfers on this page (migration 0159), fetched once for all of
+     * them, as the pictures above -- for the member's own RECEIVE rows and for what their SEND
+     * rows name. A page without a transfer between two members of this server asks the table
+     * nothing.
+     *
+     * Who of the page's counterparties is a member here is read off the rows fetched above
+     * (`foreign`), and which booking gets which reaction is the rule of TransactionReaction.logic.
+     */
+    const membersHere: ReadonlySet<number> = new Set(
+      involvedUsers.filter((involved) => !involved.foreign).map((involved) => involved.id),
+    )
+    const reactions = new Map(
+      (await dbSelectTransactionReactions(reactionKeysOf(userTransactions, membersHere))).map(
+        (found) => [found.transactionId, found] as const,
+      ),
+    )
+
     // transactions
     userTransactions.forEach((userTransaction: dbTransaction) => {
       /*
@@ -660,6 +684,8 @@ export class TransactionResolver {
           cardLabel,
           greetingRow ? new ThankYouGreeting(greetingRow) : null,
           pictureHead ? new TransactionPicture(pictureHead) : null,
+          reactionOfBooking(userTransaction, membersHere, reactions),
+          canReactToBooking(userTransaction, membersHere),
         ),
       )
     })

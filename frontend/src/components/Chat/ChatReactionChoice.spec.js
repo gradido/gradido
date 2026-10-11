@@ -320,6 +320,134 @@ describe('ChatReactionChoice', () => {
       expect(wrapper.emitted('react')).toEqual([[CAKE]])
     })
 
+    /**
+     * The choice is made: the row of six is back (11.10.2026). In a menu that closes with the
+     * press nobody sees it; in the opened row of the booking list the choice stays, and the
+     * forty-eight would stand there for good.
+     */
+    describe('after one of the forty-eight was pressed', () => {
+      const pick = async (emoji, { focus = true } = {}) => {
+        await more().trigger('click')
+        await flushPromises()
+        const button = all().find((one) => one.text() === emoji)
+        if (focus) button.element.focus()
+        else document.activeElement?.blur()
+        await button.trigger('click')
+        await flushPromises()
+      }
+
+      it('shows the row of six again, and says so', async () => {
+        mountChoice()
+
+        await pick(CAKE)
+
+        expect(grid().exists()).toBe(false)
+        expect(signs(quick())).toEqual([...CHAT_QUICK_REACTIONS])
+        expect(more().exists()).toBe(true)
+        expect(wrapper.emitted('all')).toEqual([[true], [false]])
+        expect(wrapper.emitted('react')).toEqual([[CAKE]])
+      })
+
+      // ⛔ The press is said FIRST: a menu that closes with it must not be told before that the
+      // row is back -- it would draw its entries again and settle anew, to close a moment later.
+      it('says the press before it says that the row is back', async () => {
+        const said = []
+        wrapper = mount(ChatReactionChoice, {
+          props: {
+            onReact: (emoji) => said.push(`react ${emoji}`),
+            onAll: (shown) => said.push(`all ${shown}`),
+          },
+          attachTo: document.body,
+          global: { stubs: { IMdiPlus: true } },
+        })
+
+        await pick(CAKE)
+
+        expect(said).toEqual(['all true', `react ${CAKE}`, 'all false'])
+      })
+
+      // The button the keyboard stood on is gone, and the emoji is none of the six: "mehr".
+      it('puts the keyboard on "mehr" where the row does not show the emoji', async () => {
+        mountChoice()
+
+        await pick(CAKE)
+
+        expect(focused()).toBe(more().element)
+        expect(more().attributes('tabindex')).toBe('0')
+        expect(quick().filter((button) => button.attributes('tabindex') === '0')).toHaveLength(0)
+      })
+
+      it('puts the keyboard on the emoji where it is one of the six', async () => {
+        mountChoice()
+
+        await pick(HEART)
+
+        const heart = quick().find((button) => button.text() === HEART)
+        expect(focused()).toBe(heart.element)
+        expect(heart.attributes('tabindex')).toBe('0')
+        expect(more().attributes('tabindex')).toBe('-1')
+      })
+
+      // A pointer's press where the keyboard was elsewhere: it is not fetched into the row.
+      it('leaves the keyboard where it was when it stood outside the forty-eight', async () => {
+        mountChoice()
+
+        await pick(CAKE, { focus: false })
+
+        expect(grid().exists()).toBe(false)
+        expect(wrapper.element.contains(focused())).toBe(false)
+      })
+
+      // Once it is the member's own, it stands in the place of the last of the six, pressed.
+      it('shows the emoji in the row once it is the member’s own', async () => {
+        mountChoice()
+        await pick(CAKE)
+
+        await wrapper.setProps({ own: CAKE })
+
+        expect(signs(quick())).toEqual([...CHAT_QUICK_REACTIONS.slice(0, -1), CAKE])
+        expect(quick()[5].attributes('aria-pressed')).toBe('true')
+        // The keyboard stays on "mehr": the buttons are kept by their place.
+        expect(focused()).toBe(more().element)
+      })
+
+      it('opens the forty-eight again by "mehr"', async () => {
+        mountChoice()
+        await pick(CAKE)
+
+        await more().trigger('click')
+        await flushPromises()
+
+        expect(all()).toHaveLength(48)
+        expect(wrapper.emitted('all')).toEqual([[true], [false], [true]])
+      })
+
+      // ⛔ A press that is not taken changes nothing: the forty-eight stay.
+      it('keeps the forty-eight while a reaction is on its way, and says nothing', async () => {
+        mountChoice({ busy: true })
+        await more().trigger('click')
+        await flushPromises()
+
+        await all()[10].trigger('click')
+        await flushPromises()
+
+        expect(grid().exists()).toBe(true)
+        expect(wrapper.emitted('react')).toBeUndefined()
+        expect(wrapper.emitted('all')).toEqual([[true]])
+      })
+    })
+
+    // A press in the row is the row's: nothing is said about the forty-eight.
+    it('says nothing about the forty-eight for a press in the row', async () => {
+      mountChoice()
+
+      await quick()[0].trigger('click')
+      await flushPromises()
+
+      expect(wrapper.emitted('react')).toEqual([[THUMB]])
+      expect(wrapper.emitted('all')).toBeUndefined()
+    })
+
     it('moves through the grid with the arrows, and stops at its edges', async () => {
       mountChoice()
       await more().trigger('click')
