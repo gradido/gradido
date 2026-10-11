@@ -15,7 +15,11 @@ import { peterLustig } from '../seeds/users/peter-lustig'
 import { dbUpdateChatConversationMemberLastRead } from './chatConversationMembers'
 import { dbEnsureDirectChatConversation } from './chatConversations'
 import { dbInsertChatMessage } from './chatMessages'
-import { dbSelectContactsByUserId, dbSelectTransactionsByUserId } from './transactions'
+import {
+  dbSelectContactsByUserId,
+  dbSelectReceivedTransferOfUser,
+  dbSelectTransactionsByUserId,
+} from './transactions'
 import { dbFindUserIdByUuids } from './user'
 
 const appDB = AppDatabase.getInstance()
@@ -499,6 +503,102 @@ describe('dbSelectTransactionsByUserId narrowed to one counterparty', () => {
     const [rows, count] = await page(bibi.id, nobody)
     expect(count).toBe(0)
     expect(rows).toEqual([])
+  })
+})
+
+/**
+ * The row a reaction to a transfer hangs on (migration 0159): the member's own RECEIVE booking.
+ * Only the recipient of a transfer reacts to it, and this read is how a caller is known to be
+ * one.
+ */
+describe('dbSelectReceivedTransferOfUser', () => {
+  /** The bookings of a member with this memo, newest first, as their own list has them. */
+  const bookingsOf = async (user: DbUser) =>
+    (await dbSelectTransactionsByUserId(user.id, 50, 0, Order.DESC))[0]
+  const rowOf = async (user: DbUser, typeId: TransactionTypeId, memo: string) => {
+    const found = (await bookingsOf(user)).find(
+      (booking) => booking.typeId === typeId && booking.memo === memo,
+    )
+    if (!found) {
+      throw new Error(`fixture: no ${typeId} booking "${memo}"`)
+    }
+    return found
+  }
+
+  it("finds the recipient's own RECEIVE row, and that its sender is a member here", async () => {
+    // Peter sent "three" to Bibi.
+    const received = await rowOf(bibi, TransactionTypeId.RECEIVE, 'three')
+
+    const found = await dbSelectReceivedTransferOfUser(received.id, bibi.id)
+
+    expect(found).toEqual({
+      success: true,
+      value: { id: received.id, senderIsMemberHere: true },
+    })
+  })
+
+  // ⛔ Only the recipient: the sender holds the transfer too, as a SEND row.
+  it('finds nothing for the sender, neither by their own row nor by the recipient’s', async () => {
+    const received = await rowOf(bibi, TransactionTypeId.RECEIVE, 'three')
+    const sent = await rowOf(peter, TransactionTypeId.SEND, 'three')
+
+    for (const id of [sent.id, received.id]) {
+      const refused = await dbSelectReceivedTransferOfUser(id, peter.id)
+      expect(refused.success).toBe(false)
+      expect(!refused.success && refused.error.name).toBe('DBNotFoundError')
+    }
+  })
+
+  it('finds nothing for a member the transfer is not between', async () => {
+    const received = await rowOf(bibi, TransactionTypeId.RECEIVE, 'three')
+
+    expect((await dbSelectReceivedTransferOfUser(received.id, bob.id)).success).toBe(false)
+  })
+
+  it("finds nothing for the member's own SEND row, a creation, or an id without a booking", async () => {
+    const sent = await rowOf(bibi, TransactionTypeId.SEND, 'one')
+    const creation = (await bookingsOf(bibi)).find(
+      (booking) => booking.typeId === TransactionTypeId.CREATION,
+    )
+
+    expect((await dbSelectReceivedTransferOfUser(sent.id, bibi.id)).success).toBe(false)
+    expect(creation).toBeDefined()
+    expect((await dbSelectReceivedTransferOfUser(creation?.id as number, bibi.id)).success).toBe(
+      false,
+    )
+    expect((await dbSelectReceivedTransferOfUser(4_000_000_000, bibi.id)).success).toBe(false)
+  })
+
+  // A transfer from another community is found as the member's own -- and says that its
+  // sender is no member here: what follows from that is not this query's to decide.
+  it('finds a transfer from another community, whose sender is no member here', async () => {
+    const received = (await bookingsOf(bibi)).find(
+      (booking) => booking.linkedUserGradidoID === SARAH,
+    )
+
+    expect(await dbSelectReceivedTransferOfUser(received?.id as number, bibi.id)).toEqual({
+      success: true,
+      value: { id: received?.id, senderIsMemberHere: false },
+    })
+  })
+
+  // ⛔ By this server's own row of the sender, not by what the booking says: `users` holds
+  // rows for members of other communities too, and a booking may carry such an id (LOTTE on
+  // peter) -- an id is no proof of a member of this community.
+  it('takes a sender the federation stored a row for as no member here, with or without the id on the booking', async () => {
+    const fromLotte = (await bookingsOf(peter)).filter(
+      (booking) => booking.linkedUserGradidoID === LOTTE,
+    )
+    expect(fromLotte.map((booking) => booking.linkedUserId).sort()).toEqual(
+      [null, lotteRowId].sort(),
+    )
+
+    for (const booking of fromLotte) {
+      expect(await dbSelectReceivedTransferOfUser(booking.id, peter.id)).toEqual({
+        success: true,
+        value: { id: booking.id, senderIsMemberHere: false },
+      })
+    }
   })
 })
 
