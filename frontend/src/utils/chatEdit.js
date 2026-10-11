@@ -1,5 +1,7 @@
 // AI-GENERATED — not an architecture reference
 
+import { keepingLaterReactions } from '@/utils/chatReactions'
+
 /**
  * Why the server did not change a message (E-060), for the bar's and the dialog's own words --
  * read off the error's message, as `chatImageRefusal` reads a refused picture:
@@ -45,6 +47,9 @@ const isEarlierState = (now, held) => {
  * than the one the page holds (`isEarlierState`): the text never goes back to one it had before.
  * Of two states of the same message in `edited`, the last one counts.
  *
+ * The reactions of a message go by a clock of their own: where the page holds a later state of
+ * them than the changed message brings, it keeps them (keepingLaterReactions).
+ *
  * @param {object[]} held the messages of the page
  * @param {object[]} edited the changed messages, of any conversation
  * @returns {{ messages: object[], changed: object[] }} `messages` is `held` itself where nothing changed
@@ -60,8 +65,9 @@ export const withChatMessagesEdited = (held, edited) => {
     const now = byId.get(message.id)
     if (!now || (now.body === message.body && now.editedAt === message.editedAt)) return message
     if (isEarlierState(now, message)) return message
-    changed.push(now)
-    return now
+    const next = keepingLaterReactions(now, message)
+    changed.push(next)
+    return next
   })
   return { messages: changed.length > 0 ? messages : held, changed }
 }

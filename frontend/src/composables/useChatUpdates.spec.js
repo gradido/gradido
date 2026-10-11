@@ -10,6 +10,7 @@ import {
   chatUnreadConversations,
   onChatMessages,
   onChatMessagesEdited,
+  onChatMessagesReacted,
   pollChatNow,
   startChatUpdates,
   stopChatUpdates,
@@ -42,6 +43,8 @@ const update = ({
   hasMore = false,
   edited = [],
   editedCursor = '1759309220000-0',
+  reacted = [],
+  reactedCursor = '1759309220000-0',
 } = {}) => ({
   data: {
     newChatMessagesSince: {
@@ -51,6 +54,8 @@ const update = ({
       hasMore,
       edited,
       editedCursor,
+      reacted,
+      reactedCursor,
     },
   },
 })
@@ -88,6 +93,7 @@ const makeServer = () => {
     },
     afterIds: () => query.mock.calls.map(([options]) => options.variables.afterId),
     editedCursors: () => query.mock.calls.map(([options]) => options.variables.editedCursor),
+    reactedCursors: () => query.mock.calls.map(([options]) => options.variables.reactedCursor),
   }
 }
 
@@ -122,7 +128,12 @@ describe('useChatUpdates', () => {
       expect(server.query).toHaveBeenCalledTimes(1)
       const [options] = server.query.mock.calls[0]
       expect(options.query).toBe(newChatMessagesSince)
-      expect(options.variables).toEqual({ afterId: null, limit: 50, editedCursor: null })
+      expect(options.variables).toEqual({
+        afterId: null,
+        limit: 50,
+        editedCursor: null,
+        reactedCursor: null,
+      })
     })
 
     // Nothing reads these answers back, and every marker would leave its own entry.
@@ -668,6 +679,134 @@ describe('useChatUpdates', () => {
       startChatUpdates(next.client)
       await vi.advanceTimersByTimeAsync(0)
       expect(next.editedCursors()).toEqual([null])
+    })
+  })
+
+  /**
+   * The messages whose reactions were changed (Bernd, 11.10.2026): asked for with a cursor of
+   * their own, and handed to whoever listens for them -- a third channel beside the arrivals and
+   * the changed texts.
+   */
+  describe('the messages whose reactions changed', () => {
+    const reactedTo = (id, emoji = '👍') =>
+      chatMessage(id, {
+        reactedAt: '2026-10-11T06:30:00.000Z',
+        reactions: [{ emoji, count: 1, mine: false }],
+      })
+
+    it('hands back the cursor the last answer handed on, as it came -- its own, beside the other', async () => {
+      server.answer(
+        update({ editedCursor: '1759309220000-0', reactedCursor: '1759309221000-0' }),
+        update({ editedCursor: '1759309235000-0', reactedCursor: '1759309233123-4711' }),
+      )
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+
+      expect(server.reactedCursors()).toEqual([null, '1759309221000-0', '1759309233123-4711'])
+      // Each of the two goes its own way.
+      expect(server.editedCursors()).toEqual([null, '1759309220000-0', '1759309235000-0'])
+    })
+
+    it('hands them to whoever listens for reactions, and to nobody else', async () => {
+      const arrived = vi.fn()
+      const changed = vi.fn()
+      const reactions = vi.fn()
+      onChatMessages(arrived)
+      onChatMessagesEdited(changed)
+      const stop = onChatMessagesReacted(reactions)
+      const reacted = [reactedTo(4), reactedTo(7, '❤️')]
+      server.answer(update(), update({ reacted }))
+
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+
+      expect(reactions).toHaveBeenCalledTimes(1)
+      expect(reactions).toHaveBeenCalledWith(reacted)
+      expect(arrived).not.toHaveBeenCalled()
+      expect(changed).not.toHaveBeenCalled()
+      // A reaction moves no order, no dot and no number: the contact list is not asked again.
+      expect(refreshContactsPanel).not.toHaveBeenCalled()
+
+      stop()
+      server.answer(update({ reacted }))
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+      expect(reactions).toHaveBeenCalledTimes(1)
+    })
+
+    it('hands on all three kinds of one answer, each to its own listeners', async () => {
+      const arrived = vi.fn()
+      const changed = vi.fn()
+      const reactions = vi.fn()
+      onChatMessages(arrived)
+      onChatMessagesEdited(changed)
+      onChatMessagesReacted(reactions)
+      server.answer(
+        update(),
+        update({
+          latestId: 12,
+          messages: [chatMessage(12)],
+          edited: [chatMessage(4, { body: 'changed' })],
+          reacted: [reactedTo(5)],
+        }),
+      )
+
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+
+      expect(arrived.mock.calls).toEqual([[[chatMessage(12)]]])
+      expect(changed.mock.calls).toEqual([[[chatMessage(4, { body: 'changed' })]]])
+      expect(reactions.mock.calls).toEqual([[[reactedTo(5)]]])
+    })
+
+    it('goes on with the others where one listener fails', async () => {
+      const failing = vi.fn(() => {
+        throw new Error('a thread that broke')
+      })
+      const reactions = vi.fn()
+      onChatMessagesReacted(failing)
+      onChatMessagesReacted(reactions)
+      server.answer(update(), update({ reacted: [reactedTo(4)] }), update({ unread: 2 }))
+
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+      expect(reactions).toHaveBeenCalledTimes(1)
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+      expect(chatUnreadConversations.value).toBe(2)
+    })
+
+    it('keeps its cursor over a question that failed, and forgets it when the beat stops', async () => {
+      server.answer(update({ reactedCursor: '1759309221000-0' }), new Error('offline'))
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+      await vi.advanceTimersByTimeAsync(2 * CHAT_POLL_INTERVAL_MS)
+      expect(server.reactedCursors()).toEqual([null, '1759309221000-0', '1759309221000-0'])
+
+      stopChatUpdates()
+      const next = makeServer()
+      startChatUpdates(next.client)
+      await vi.advanceTimersByTimeAsync(0)
+      expect(next.reactedCursors()).toEqual([null])
+    })
+
+    // A server from before the reactions names no cursor for them: none is made up, and the
+    // rest of the beat goes on.
+    it('asks without a cursor as long as no answer names one', async () => {
+      const bare = update({ unread: 1 })
+      delete bare.data.newChatMessagesSince.reacted
+      delete bare.data.newChatMessagesSince.reactedCursor
+      server.answer(bare, update({ unread: 3 }))
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+
+      expect(server.reactedCursors()).toEqual([null, null])
+      expect(chatUnreadConversations.value).toBe(3)
     })
   })
 

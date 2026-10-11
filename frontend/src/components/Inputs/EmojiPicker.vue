@@ -90,6 +90,7 @@
 import { computed, nextTick, onBeforeUnmount, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { EMOJI_ROWS, emojiKeysOf } from '@/utils/emojiChoice'
+import { emojiGridStep } from '@/utils/emojiGridKeys'
 import { insertAtCaret } from '@/utils/insertAtCaret'
 
 /**
@@ -297,20 +298,13 @@ const pick = async (emoji, event) => {
   if (byKey) place()
 }
 
-const STEPS = { ArrowRight: [0, 1], ArrowLeft: [0, -1], ArrowDown: [1, 0], ArrowUp: [-1, 0] }
-
 /**
  * The arrows move through the grid and stop at its edges -- beyond an edge there is no emoji to
  * go to, and the focus stays where it is; Home and End go to the ends of the row. With a modifier
- * they are the browser's own keys and are left alone.
+ * they are the browser's own keys and are left alone (emojiGridStep, shared with the reactions).
  */
 const moveInGrid = (event) => {
-  if (event.altKey || event.ctrlKey || event.metaKey) return
-  const step = STEPS[event.key]
-  let next = null
-  if (step) next = { row: at.value.row + step[0], column: at.value.column + step[1] }
-  else if (event.key === 'Home') next = { row: at.value.row, column: 0 }
-  else if (event.key === 'End') next = { row: at.value.row, column: EMOJI_ROWS[0].length - 1 }
+  const next = emojiGridStep(at.value, event, EMOJI_ROWS[0].length)
   if (!next) return
   // An arrow in a window would move what is behind the choice -- also one at the grid's edge.
   event.preventDefault()

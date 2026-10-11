@@ -13,6 +13,12 @@
 # (`mine`, and in a group `senderUser`), the beginning of its text as it stands now, whether it
 # carries a picture, and its `id`, which the thread pages back to when the quotation is pressed
 # and the message is not on screen. Null for a message that answers none.
+#
+# `reactions` (Bernd, 11.10.2026): the emoji the members of the conversation reacted with, each
+# once in the order it came up -- how many reacted with it (`count`) and whether one did oneself
+# (`mine`). One reaction a member and message. Empty for a message nobody reacted to. `reactedAt`
+# is when they were changed last, by the server's clock: of two answers about one message, the one
+# with the later moment holds the reactions as they stand (utils/chatReactions).
 fragment chatMessageFields on ChatMessage {
   id
   messageUuid
@@ -60,6 +66,12 @@ fragment chatMessageFields on ChatMessage {
       gradidoID
       alias
     }
+  }
+  reactedAt
+  reactions {
+    emoji
+    count
+    mine
   }
 }
 
@@ -138,8 +150,25 @@ query chatMessagesWithMemberQuery($ref: MemberAvatarRefInput!, $before: Int, $li
 # answer brings no changed messages and only says where to go on from, as `latestId` does without
 # `afterId`. ⚠️ A changed message can come twice: the server goes a few seconds back each time, so
 # that a change committed a moment late is not passed over. The same message with the same text.
-query newChatMessagesSince($afterId: Int, $limit: Int, $editedCursor: String) {
-  newChatMessagesSince(afterId: $afterId, limit: $limit, editedCursor: $editedCursor) {
+#
+# `reacted` (Bernd, 11.10.2026): the messages whose reactions were changed since `reactedCursor` --
+# set, replaced or taken back, one's own made elsewhere among them --, as they stand now: a thread
+# that holds one takes its `reactions`. A cursor of its own beside `editedCursor`, handed back as
+# it came; without it the answer brings none and says where to go on from. ⚠️ It can come twice as
+# well, and an answer can arrive after a later one: `reactedAt` says which holds the reactions as
+# they stand.
+query newChatMessagesSince(
+  $afterId: Int
+  $limit: Int
+  $editedCursor: String
+  $reactedCursor: String
+) {
+  newChatMessagesSince(
+    afterId: $afterId
+    limit: $limit
+    editedCursor: $editedCursor
+    reactedCursor: $reactedCursor
+  ) {
     latestId
     unreadConversations
     hasMore
@@ -150,6 +179,10 @@ query newChatMessagesSince($afterId: Int, $limit: Int, $editedCursor: String) {
       ...chatMessageFields
     }
     editedCursor
+    reacted {
+      ...chatMessageFields
+    }
+    reactedCursor
   }
 }
 
@@ -291,6 +324,21 @@ mutation forwardChatMessage(
 # NO_WAY_TO_DELIVER | NOT_CONFIRMED where it did not, PENDING for a message still on its way there.
 mutation editChatMessage($messageUuid: String!, $body: String!) {
   editChatMessage(messageUuid: $messageUuid, body: $body) {
+    ...chatMessageFields
+  }
+}
+
+# One's reaction to a message of a conversation one is in (Bernd, 11.10.2026): one of the wallet's
+# forty-eight emoji (utils/emojiChoice) -- or none, which takes the reaction back. One reaction a
+# member and message: another emoji takes the place of the one before. Answers with the message as
+# it stands then -- the shape of every message, so a thread takes its `reactions` as they are.
+# The others in the conversation get it on their beat (`reacted` above). No mail goes out.
+#
+# Refused as CHAT_REACTION_NOT_SET, and nothing changes: UNKNOWN_EMOJI | UNKNOWN_MESSAGE |
+# OTHER_COMMUNITY (a conversation with a member of another community: a reaction has no way to
+# their server yet, so the wallet does not offer it there) | NOT_STORED.
+mutation setChatMessageReaction($messageUuid: String!, $emoji: String) {
+  setChatMessageReaction(messageUuid: $messageUuid, emoji: $emoji) {
     ...chatMessageFields
   }
 }

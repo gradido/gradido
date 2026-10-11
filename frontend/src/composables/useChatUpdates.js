@@ -9,7 +9,8 @@ import { refreshContactsPanel } from '@/composables/useContactsPanel'
  * the whole app, every fifteen seconds while the page is in sight. The answer brings the number
  * of conversations with something unread (the mark in the menu) and the messages that arrived
  * since, which go to whoever listens: the thread that is open sorts out its own. With them come
- * the messages whose text was changed (E-060), for a thread that holds one to show the new text.
+ * the messages whose text was changed (E-060), for a thread that holds one to show the new text,
+ * and those whose reactions were (Bernd, 11.10.2026).
  *
  * ⛔ One state for the app, here in the module -- not one per window, and not in the store. The
  * Vuex store is written to `localStorage` in full (createPersistedState without `paths`), so a
@@ -54,6 +55,7 @@ export const chatUnreadConversations = readonly(unread)
 
 const listeners = new Set()
 const editedListeners = new Set()
+const reactedListeners = new Set()
 
 const idle = () => ({
   /** The client the questions go through; null while the beat does not run. */
@@ -65,6 +67,11 @@ const idle = () => ({
    * handed on, as it came -- what it names is the server's. Null until the first answer.
    */
   editedCursor: null,
+  /**
+   * Where the next question goes on from for messages with changed reactions: as `editedCursor`,
+   * by the server's other clock. Null until the first answer.
+   */
+  reactedCursor: null,
   /** The pause before the next question. */
   delay: CHAT_POLL_INTERVAL_MS,
   timer: null,
@@ -92,10 +99,10 @@ const inSight = () => typeof document === 'undefined' || !document.hidden
  * `no-cache`: nothing reads these answers back, and every marker would leave an entry of its own
  * in the store until the logout.
  */
-const ask = async (afterId, editedCursor) => {
+const ask = async (afterId, editedCursor, reactedCursor) => {
   const { data } = await beat.client.query({
     query: newChatMessagesSince,
-    variables: { afterId, limit: CHAT_POLL_PAGE, editedCursor },
+    variables: { afterId, limit: CHAT_POLL_PAGE, editedCursor, reactedCursor },
     fetchPolicy: 'no-cache',
     context: { renewSession: false },
   })
@@ -105,8 +112,8 @@ const ask = async (afterId, editedCursor) => {
 }
 
 /**
- * Hands messages on -- the arrived ones, or the changed ones. One listener that fails must not
- * stop the beat for the others.
+ * Hands messages on -- the arrived ones, the changed ones, or those with changed reactions. One
+ * listener that fails must not stop the beat for the others.
  */
 const handOn = (to, chatMessages) => {
   for (const listener of [...to]) {
@@ -130,7 +137,7 @@ const cycle = async (mine) => {
     let rounds = 0
     let more = false
     do {
-      const update = await ask(beat.marker, beat.editedCursor)
+      const update = await ask(beat.marker, beat.editedCursor, beat.reactedCursor)
       if (mine !== generation) return
       // The number moved without anything arriving: a conversation was read -- here, after
       // `pollChatNow`, or on another device -- and a dot in the contact list goes with it. The
@@ -147,6 +154,10 @@ const cycle = async (mine) => {
       // and no dot.
       if (update.editedCursor) beat.editedCursor = update.editedCursor
       if (update.edited?.length > 0) handOn(editedListeners, update.edited)
+      // The messages whose reactions changed, the same way, with their own cursor. Nothing is
+      // asked again for them either: a reaction moves no order, no dot and no number.
+      if (update.reactedCursor) beat.reactedCursor = update.reactedCursor
+      if (update.reacted?.length > 0) handOn(reactedListeners, update.reacted)
       more = update.hasMore
       rounds += 1
     } while (more && rounds < CHAT_POLL_ROUNDS_MAX)
@@ -264,5 +275,21 @@ export const onChatMessagesEdited = (listener) => {
   editedListeners.add(listener)
   return () => {
     editedListeners.delete(listener)
+  }
+}
+
+/**
+ * Hands every message whose reactions were changed -- set, replaced or taken back, by anybody in
+ * the conversation, one's own reactions made elsewhere among them -- to `listener`, as an array
+ * per answer, of all conversations. Each as it stands now; a thread that holds one takes its
+ * reactions (utils/chatReactions, withChatMessagesReacted). Returns the function that ends it.
+ *
+ * ⚠️ The same state comes again with the next answers for some seconds, as a changed text does,
+ * and an answer can come in after a later one: `reactedAt` says which is the later state.
+ */
+export const onChatMessagesReacted = (listener) => {
+  reactedListeners.add(listener)
+  return () => {
+    reactedListeners.delete(listener)
   }
 }
