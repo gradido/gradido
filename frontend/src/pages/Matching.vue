@@ -60,14 +60,18 @@
            nobody has to look for it a second time. The count waits for the answer (an
            empty page must not say "0" to a member who has six); the button does not, and
            the line keeps its height either way, so nothing below it moves. -->
+      <!-- Three numbers, each with a word that goes with ITS number: one entry is "1 Eintrag"
+           (the line said "1 Einträge"), and in five of the ten languages the word for the
+           live ones is declined as well ("3 entradas · 1 activa"). One message can follow one
+           number only, so each part is its own, and `count` is the line they stand in. -->
       <div class="d-flex align-items-center justify-content-between mb-3 mx-lg-2 page-text">
         <span class="small text-muted" data-test="matching-entries-count">
           <template v-if="entriesLoaded">
             {{
               $t('matching.entries.count', {
-                total: entries.length,
-                live: liveCount,
-                paused: entries.length - liveCount,
+                total: $t('matching.entries.countTotal', entries.length),
+                live: $t('matching.entries.countLive', liveCount),
+                paused: $t('matching.entries.countPaused', pausedCount),
               })
             }}
           </template>
@@ -545,6 +549,10 @@ const tellEntriesChanged = (member, by) => {
 }
 
 const liveCount = computed(() => entries.value.filter((e) => e.active).length)
+// Each of the three numbers in the line above the list is handed to its own message, the
+// paused ones too: no language declines that word today, and one that does one day has
+// only a second form to write.
+const pausedCount = computed(() => entries.value.length - liveCount.value)
 
 const { mutate: createEntry } = useMutation(createMatchingEntry)
 const { mutate: updateEntry } = useMutation(updateMatchingEntry)

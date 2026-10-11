@@ -910,7 +910,10 @@
     },
     "entries": {
       "activate": "Activeren",
-      "count": "{total} vermeldingen · {live} live · {paused} gepauzeerd",
+      "count": "{total} · {live} · {paused}",
+      "countLive": "{n} live",
+      "countPaused": "{n} gepauzeerd",
+      "countTotal": "{n} vermelding | {n} vermeldingen",
       "delete": "Verwijderen",
       "deleteConfirm": "Deze vermelding verwijderen?",
       "details": "Details",

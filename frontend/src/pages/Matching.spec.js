@@ -8,6 +8,7 @@ import { createI18n } from 'vue-i18n'
 // real button here, because that is where the enabled state is read.
 import { BButton, BCol, BRow } from 'bootstrap-vue-next'
 import de from '@/locales/de.json'
+import es from '@/locales/es.json'
 import Matching from './Matching.vue'
 import UserSettingsSwitch from '@/components/UserSettings/UserSettingsSwitch'
 import { listMatchingEntries, userLocationQuery, verifyLogin } from '@/graphql/queries'
@@ -113,12 +114,12 @@ let wrapper = null
 // BModal is stubbed away by default - it teleports, and its content would show up
 // in page.text() for every test whether the dialog is open or not. A test that
 // needs to look inside one passes its own stub.
-const mountPage = (tab = 'entries', extraStubs = {}, options = {}) => {
+const mountPage = (tab = 'entries', extraStubs = {}, options = {}, language = i18n) => {
   place.tab = tab
   wrapper = mount(Matching, {
     ...options,
     global: {
-      plugins: [store, i18n],
+      plugins: [store, language],
       components: { BButton, BRow, BCol },
       stubs: {
         UserLocationMap: UserLocationMapStub,
@@ -456,6 +457,32 @@ describe('Matching', () => {
         // The same element, not a second one drawn elsewhere.
         expect(newEntry(page)[0].element).toBe(before)
         expect(empty(page).exists()).toBe(false)
+      })
+
+      // "1 Einträge · 1 live · 0 pausiert" stood here: each number has its own word now
+      // (locales/matchingEntriesCount.spec.js has the ten languages).
+      it('counts one entry as one', async () => {
+        const page = mountPage('entries')
+        fire(listMatchingEntries, {
+          listMatchingEntries: [entry('a', 'Klavierlehrer', 'Samstags')],
+        })
+        await page.vm.$nextTick()
+
+        expect(count(page).text()).toBe('1 Eintrag · 1 live · 0 pausiert')
+      })
+
+      // The word for the live ones follows THEIR number, not the number of entries: German
+      // cannot show that ("live" is "live"), Spanish can. Three entries, one of them live.
+      it('declines the live ones by their own number', async () => {
+        const spanish = createI18n({ legacy: false, locale: 'es', messages: { es } })
+        const page = mountPage('entries', {}, {}, spanish)
+        const paused = (uuid) => ({ ...entry(uuid, uuid, ''), active: false })
+        fire(listMatchingEntries, {
+          listMatchingEntries: [entry('a', 'Piano', ''), paused('b'), paused('c')],
+        })
+        await page.vm.$nextTick()
+
+        expect(count(page).text()).toBe('3 entradas · 1 activa · 2 en pausa')
       })
 
       it('says neither "0" nor "none yet" before the server has answered', () => {

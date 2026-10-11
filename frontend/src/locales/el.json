@@ -910,7 +910,10 @@
     },
     "entries": {
       "activate": "Ενεργοποίηση",
-      "count": "{total} καταχωρίσεις · {live} ενεργές · {paused} σε παύση",
+      "count": "{total} · {live} · {paused}",
+      "countLive": "{n} ενεργή | {n} ενεργές",
+      "countPaused": "{n} σε παύση",
+      "countTotal": "{n} καταχώριση | {n} καταχωρίσεις",
       "delete": "Διαγραφή",
       "deleteConfirm": "Διαγραφή αυτής της καταχώρισης;",
       "details": "Λεπτομέρειες",

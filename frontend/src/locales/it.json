@@ -910,7 +910,10 @@
     },
     "entries": {
       "activate": "Attiva",
-      "count": "{total} voci · {live} attive · {paused} in pausa",
+      "count": "{total} · {live} · {paused}",
+      "countLive": "{n} attiva | {n} attive",
+      "countPaused": "{n} in pausa",
+      "countTotal": "{n} voce | {n} voci",
       "delete": "Elimina",
       "deleteConfirm": "Eliminare questa voce?",
       "details": "Dettagli",

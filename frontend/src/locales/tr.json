@@ -910,7 +910,10 @@
     },
     "entries": {
       "activate": "Etkinleştir",
-      "count": "{total} giriş · {live} aktif · {paused} duraklatıldı",
+      "count": "{total} · {live} · {paused}",
+      "countLive": "{n} aktif",
+      "countPaused": "{n} duraklatıldı",
+      "countTotal": "{n} giriş",
       "delete": "Sil",
       "deleteConfirm": "Bu giriş silinsin mi?",
       "details": "Ayrıntılar",

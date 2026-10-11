@@ -910,7 +910,10 @@
     },
     "entries": {
       "activate": "Activer",
-      "count": "{total} entrées · {live} actives · {paused} en pause",
+      "count": "{total} · {live} · {paused}",
+      "countLive": "{n} active | {n} active | {n} actives",
+      "countPaused": "{n} en pause",
+      "countTotal": "{n} entrée | {n} entrée | {n} entrées",
       "delete": "Supprimer",
       "deleteConfirm": "Supprimer cette entrée ?",
       "details": "Détails",

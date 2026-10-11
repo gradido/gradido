@@ -910,7 +910,10 @@
     },
     "entries": {
       "activate": "Activate",
-      "count": "{total} entries · {live} live · {paused} paused",
+      "count": "{total} · {live} · {paused}",
+      "countLive": "{n} live",
+      "countPaused": "{n} paused",
+      "countTotal": "{n} entry | {n} entries",
       "delete": "Delete",
       "deleteConfirm": "Delete this entry?",
       "details": "Details",

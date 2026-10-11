@@ -910,7 +910,10 @@
     },
     "entries": {
       "activate": "Активировать",
-      "count": "{total} записей · {live} активных · {paused} на паузе",
+      "count": "{total} · {live} · {paused}",
+      "countLive": "{n} активная | {n} активные | {n} активных",
+      "countPaused": "{n} на паузе",
+      "countTotal": "{n} запись | {n} записи | {n} записей",
       "delete": "Удалить",
       "deleteConfirm": "Удалить эту запись?",
       "details": "Подробности",
