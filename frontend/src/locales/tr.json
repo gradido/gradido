@@ -929,9 +929,7 @@
       "later": "Daha sonra",
       "subtitle": "Sana uyanları keşfet",
       "title": "Haritada bul",
-      "titleList": "Listede bul",
-      "toPosition": "Evime git",
-      "understood": "Anlaşıldı"
+      "titleList": "Listede bul"
     },
     "info": {
       "about": {
@@ -949,6 +947,11 @@
         "p1": "Ne kadar hassas görüneceğine sen karar verirsin. «Yaklaşık» seni bir alan içinde gösterir, asla kapının önünde değil.",
         "p2": "Konum olmadan haritada değilsin. Anahtar seni istediğin zaman yeniden çıkarır."
       }
+    },
+    "invitation": {
+      "go": "Beni haritada göster",
+      "text": "Evini haritada işaretle, o zaman görürsün — başkaları da seni görür. Ne kadar hassas görüneceğine sen karar verirsin: «Yaklaşık» seni bir alan içinde gösterir, asla kapının önünde değil. Ve istediğin zaman haritadan çıkabilirsin.",
+      "title": "Yakınında kim yaşıyor?"
     },
     "list": {
       "centeredOn": "Arama merkezi: {place}",

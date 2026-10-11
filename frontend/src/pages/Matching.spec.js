@@ -1,6 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { reactive } from 'vue'
 import { createStore } from 'vuex'
 import { createI18n } from 'vue-i18n'
 // The app registers these through createBootstrap(); the save button has to be a
@@ -12,14 +13,20 @@ import UserSettingsSwitch from '@/components/UserSettings/UserSettingsSwitch'
 import { listMatchingEntries, userLocationQuery, verifyLogin } from '@/graphql/queries'
 
 const push = vi.fn()
-let currentTab = 'entries'
+// Reactive, so a case can move the member on the way the router would - to another tab, or
+// to the same tab with a query - and the page follows. `push` itself stays a spy: where a
+// case needs the move, it makes it here.
+const place = reactive({ tab: 'entries', query: {} })
 vi.mock('vue-router', () => ({
   useRouter: () => ({ push }),
   useRoute: () => ({
     params: {
       get tab() {
-        return currentTab
+        return place.tab
       },
+    },
+    get query() {
+      return place.query
     },
   }),
 }))
@@ -102,7 +109,7 @@ let wrapper = null
 // in page.text() for every test whether the dialog is open or not. A test that
 // needs to look inside one passes its own stub.
 const mountPage = (tab = 'entries', extraStubs = {}, options = {}) => {
-  currentTab = tab
+  place.tab = tab
   wrapper = mount(Matching, {
     ...options,
     global: {
@@ -150,6 +157,7 @@ beforeEach(() => {
   mutate.mockReset()
   mutate.mockResolvedValue({})
   kept.draft = null
+  place.query = {}
   window.localStorage.clear()
   // The store is shared by the whole file; put it back so no case inherits the answers of
   // the one before it.
@@ -349,6 +357,57 @@ describe('Matching', () => {
       await findButton(page).trigger('click')
 
       expect(push).not.toHaveBeenCalled()
+    })
+
+    // What the held-back member is offered instead (Bernd, 11.10.2026): the button of the
+    // tile on the overview, saying what it does, and carrying the yes to the home tab.
+    describe('the window for a member who is not on the map', () => {
+      const openOnly = {
+        BModal: {
+          props: ['modelValue'],
+          template:
+            '<div v-if="modelValue" class="modal-stub"><slot /><slot name="footer" /></div>',
+        },
+      }
+      const showMe = (page) => page.find('[data-test="find-gate-show-me"]')
+      const openWindow = async (tab) => {
+        store.state.gmsAllowed = false
+        const page = mountPage(tab, openOnly)
+        await answer(page, null)
+        await findButton(page).trigger('click')
+        return page
+      }
+
+      it('offers the way on in the words of the tile, and it carries the yes', async () => {
+        const page = await openWindow('entries')
+        expect(showMe(page).text()).toBe(de.matching.invitation.go)
+
+        await showMe(page).trigger('click')
+
+        expect(push).toHaveBeenCalledWith({
+          path: '/matching/position',
+          query: { findable: 'yes' },
+        })
+        expect(showMe(page).exists()).toBe(false)
+      })
+
+      // On the home tab the window used to say "understood" and change nothing. It is the
+      // same button now, and the switch on the tab beneath it stands on once the address
+      // has changed - which the router does, and this case does for it.
+      it('is the same button on the home tab, and stands the switch there on', async () => {
+        const page = await openWindow('position')
+        expect(page.findComponent(UserSettingsSwitch).props('initialValue')).toBe(false)
+
+        await showMe(page).trigger('click')
+        expect(push).toHaveBeenCalledWith({
+          path: '/matching/position',
+          query: { findable: 'yes' },
+        })
+        place.query = { findable: 'yes' }
+        await page.vm.$nextTick()
+
+        expect(page.findComponent(UserSettingsSwitch).props('initialValue')).toBe(true)
+      })
     })
   })
 
@@ -799,6 +858,182 @@ describe('Matching', () => {
         await saveWith(new Error('something else'))
 
         expect(toast.error).toHaveBeenCalledWith('something else')
+      })
+    })
+
+    // A member who pressed "show me on the map" - on the overview's tile or in the window
+    // behind the find button - arrives having said yes (Bernd, 11.10.2026). The switch says
+    // so, nothing is saved by arriving, and after saving the map is where they go.
+    describe('for a member who arrives to be shown on the map', () => {
+      const noHome = {
+        userLocation: null,
+        communityLocation: { latitude: 48.1, longitude: 11.5 },
+      }
+      const confirmOnly = {
+        BModal: {
+          props: ['modelValue'],
+          template:
+            '<div v-if="modelValue" class="modal-stub"><slot /><slot name="footer" /></div>',
+        },
+      }
+      const findableSwitch = (page) => page.findComponent(UserSettingsSwitch)
+      const hint = (page) => page.find('.border-top .text-end.small').text()
+      const pickHome = async (page) => {
+        page
+          .findComponent(UserLocationMapStub)
+          .vm.$emit('update:userPosition', { lat: 49, lng: 12 })
+        await page.vm.$nextTick()
+      }
+      const saveAndConfirm = async (page) => {
+        await saveButton(page).trigger('click')
+        const confirm = page
+          .find('.modal-stub')
+          .findAll('button')
+          .find((button) => button.text() === de.matching.save)
+        await confirm.trigger('click')
+      }
+      const arrive = async ({ home, findable = false, yes = true, stubs = {}, options = {} }) => {
+        store.state.gmsAllowed = findable
+        place.query = yes ? { findable: 'yes' } : {}
+        const page = mountPage('position', { ...confirmOnly, ...stubs }, options)
+        fire(userLocationQuery, { userLocation: home ? location : noHome })
+        await page.vm.$nextTick()
+        return page
+      }
+
+      it('stands the switch on, and saves nothing by arriving', async () => {
+        const page = await arrive({ home: false })
+
+        expect(findableSwitch(page).props('initialValue')).toBe(true)
+        // On is never held; what is missing stands beneath it, and save waits for it.
+        expect(findableSwitch(page).props('locked')).toBe(false)
+        expect(hint(page)).toBe(de.matching.position.needsHome)
+        expect(saveButton(page).attributes('disabled')).toBeDefined()
+        expect(mutate).not.toHaveBeenCalled()
+        expect(push).not.toHaveBeenCalled()
+      })
+
+      it('saves the home and the yes together, and then opens the map', async () => {
+        const page = await arrive({ home: false })
+        await pickHome(page)
+        expect(saveButton(page).attributes('disabled')).toBeUndefined()
+
+        await saveAndConfirm(page)
+        await flushPromises()
+
+        expect(mutate).toHaveBeenCalledTimes(1)
+        expect(mutate).toHaveBeenCalledWith({
+          gmsLocation: { latitude: 49, longitude: 12 },
+          gmsAllowed: true,
+        })
+        expect(push).toHaveBeenCalledTimes(1)
+        expect(push).toHaveBeenCalledWith('/matching/karte')
+      })
+
+      // The yes is the member's to take back: with the switch off again, only a home is
+      // saved, and somebody who is not on the map has no business being carried onto it.
+      it('stays on the tab for a member who switched it back off before saving', async () => {
+        const page = await arrive({ home: false })
+        await pickHome(page)
+        findableSwitch(page).vm.$emit('value-changed', false)
+        await page.vm.$nextTick()
+
+        await saveAndConfirm(page)
+        await flushPromises()
+
+        expect(mutate).toHaveBeenCalledWith({ gmsLocation: { latitude: 49, longitude: 12 } })
+        expect(toast.success).toHaveBeenCalled()
+        expect(push).not.toHaveBeenCalled()
+      })
+
+      // Read after the answer: a save can take a while, and whoever has gone to another tab
+      // in the meantime is no longer asking for the map.
+      it('does not follow a member who moved on while the save was under way', async () => {
+        let answerSave
+        mutate.mockReturnValueOnce(
+          new Promise((resolve) => {
+            answerSave = resolve
+          }),
+        )
+        const page = await arrive({ home: false })
+        await pickHome(page)
+        await saveAndConfirm(page)
+
+        place.tab = 'entries'
+        place.query = {}
+        await page.vm.$nextTick()
+        answerSave({})
+        await flushPromises()
+
+        // Saved all the same - only the journey is no longer theirs.
+        expect(store.state.gmsAllowed).toBe(true)
+        expect(push).not.toHaveBeenCalled()
+      })
+
+      it('leaves a member alone who is on the map already', async () => {
+        store.state.userLocation = { ...location.userLocation }
+        const page = await arrive({ home: true, findable: true })
+
+        expect(findableSwitch(page).props('initialValue')).toBe(true)
+        // Nothing armed: the yes says what the server holds anyway.
+        expect(saveButton(page).attributes('disabled')).toBeDefined()
+        expect(page.text()).not.toContain(de.matching.position.unsaved)
+      })
+
+      // The other side of the rule: the map opens for the yes, not for every save. Somebody
+      // who came to this tab on their own and switches findable on stays where they are.
+      it('does not open the map after a save that came without the yes', async () => {
+        const page = await arrive({ home: true, yes: false })
+        expect(findableSwitch(page).props('initialValue')).toBe(false)
+        findableSwitch(page).vm.$emit('value-changed', true)
+        await page.vm.$nextTick()
+
+        await saveAndConfirm(page)
+        await flushPromises()
+
+        expect(mutate).toHaveBeenCalledWith({ gmsAllowed: true })
+        expect(store.state.gmsAllowed).toBe(true)
+        expect(push).not.toHaveBeenCalled()
+      })
+
+      // The yes belongs to the home tab's address. Typed onto another tab it is nothing,
+      // and it must not wait there as a draft for the moment the member comes over.
+      it('ignores the yes on another tab', async () => {
+        store.state.gmsAllowed = false
+        place.query = { findable: 'yes' }
+        const page = mountPage('entries', confirmOnly)
+        fire(userLocationQuery, { userLocation: location })
+        await page.vm.$nextTick()
+
+        place.tab = 'position'
+        place.query = {}
+        await page.vm.$nextTick()
+
+        expect(findableSwitch(page).props('initialValue')).toBe(false)
+        expect(saveButton(page).attributes('disabled')).toBeDefined()
+      })
+
+      // The wire to the real switch, which the cases above cannot see: they stub it and
+      // read what it was handed. It shows the draft now, in both directions.
+      it('shows the yes on the real switch, and lets the member take it back', async () => {
+        const page = await arrive({
+          home: true,
+          stubs: { UserSettingsSwitch: false },
+          options: { attachTo: document.body },
+        })
+        const input = findableSwitch(page).find('input')
+        expect(input.element.checked).toBe(true)
+        expect(saveButton(page).attributes('disabled')).toBeUndefined()
+
+        await input.trigger('click')
+
+        expect(input.element.checked).toBe(false)
+        expect(saveButton(page).attributes('disabled')).toBeDefined()
+
+        await input.trigger('click')
+
+        expect(input.element.checked).toBe(true)
+        expect(saveButton(page).attributes('disabled')).toBeUndefined()
       })
     })
   })

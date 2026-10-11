@@ -929,9 +929,7 @@
       "later": "Más tarde",
       "subtitle": "Descubre quién encaja contigo",
       "title": "Buscar en el mapa",
-      "titleList": "Encontrar en la lista",
-      "toPosition": "Ir a mi casa",
-      "understood": "Entendido"
+      "titleList": "Encontrar en la lista"
     },
     "info": {
       "about": {
@@ -949,6 +947,11 @@
         "p1": "Tú decides con qué precisión apareces. «Aproximada» te muestra dentro de un área, nunca en tu puerta.",
         "p2": "Sin posición no estás en el mapa. El interruptor te quita de nuevo en cualquier momento."
       }
+    },
+    "invitation": {
+      "go": "Hacerme visible en el mapa",
+      "text": "Marca tu casa en el mapa y lo verás, y los demás te verán a ti. Tú decides con qué precisión: «Aproximada» te muestra dentro de un área, nunca en tu puerta. Y puedes salir del mapa en cualquier momento.",
+      "title": "¿Quién vive cerca de ti?"
     },
     "list": {
       "centeredOn": "Alrededor de {place}",
