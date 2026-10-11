@@ -3,13 +3,13 @@ import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
 import { nextTick, ref } from 'vue'
 import { createStore } from 'vuex'
 import Overview from './Overview.vue'
-import MapInvitationTile from '@/components/Overview/MapInvitationTile'
+import MatchingTile from '@/components/Overview/MatchingTile'
 import ShowFriendsTile from '@/components/Overview/ShowFriendsTile'
 import {
   FIRST_ANSWER_PATIENCE_MS,
   MAP_MEMBER_COUNT_STORAGE_KEY,
 } from '@/composables/useMapMemberCount'
-import { mapMemberCount } from '@/graphql/queries'
+import { listMatchingEntries, mapMemberCount } from '@/graphql/queries'
 import { createRouter, createWebHistory } from 'vue-router'
 import { createI18n } from 'vue-i18n'
 
@@ -34,8 +34,8 @@ vi.mock('@/components/Overview/CommunityNews', () => ({
 // what they are about.
 const queryResult = vi.hoisted(() => ({ value: undefined }))
 // What the page asked, by document, with the way to answer it: the overview holds its tiles
-// back for one of these (the number of people on the map), so a case has to be able to let
-// that answer arrive.
+// back for one of these (the number of people on the map, or the member's own entries), so a
+// case has to be able to let that answer arrive.
 const asked = vi.hoisted(() => new Map())
 vi.mock('@vue/apollo-composable', () => ({
   useQuery: vi.fn((document) => {
@@ -87,6 +87,7 @@ describe('Overview', () => {
         stubs: {
           RouterLink: true,
           IMdiChevronRight: true,
+          ITablerHeartHandshake: true,
           // The window the tile opens is its own component with its own spec; this file
           // is about which tiles the page shows and in what order.
           ContactWindow: true,
@@ -165,7 +166,7 @@ describe('Overview', () => {
       const page = mountOverview()
       const html = page.html()
 
-      expect(page.findComponent(MapInvitationTile).exists()).toBe(true)
+      expect(page.findComponent(MatchingTile).exists()).toBe(true)
       const invitation = html.indexOf('data-test="map-invitation-tile"')
       expect(invitation).toBeGreaterThanOrEqual(0)
       expect(invitation).toBeLessThan(html.indexOf('data-test="show-friends-tile"'))
@@ -201,14 +202,14 @@ describe('Overview', () => {
         const page = mountOverview()
         expect(tiles(page).exists()).toBe(false)
         expect(page.findComponent(ShowFriendsTile).exists()).toBe(false)
-        expect(page.findComponent(MapInvitationTile).exists()).toBe(false)
+        expect(page.findComponent(MatchingTile).exists()).toBe(false)
 
         answer({ mapMemberCount: 773 })
         await nextTick()
 
         expect(tiles(page).exists()).toBe(true)
         expect(page.findComponent(ShowFriendsTile).exists()).toBe(true)
-        expect(page.findComponent(MapInvitationTile).props('count')).toBe(773)
+        expect(page.findComponent(MatchingTile).props('count')).toBe(773)
       })
 
       it('paints them without the number when the answer takes too long', async () => {
@@ -221,7 +222,7 @@ describe('Overview', () => {
 
         expect(tiles(page).exists()).toBe(true)
         expect(page.findComponent(ShowFriendsTile).exists()).toBe(true)
-        expect(page.findComponent(MapInvitationTile).props('count')).toBeNull()
+        expect(page.findComponent(MatchingTile).props('count')).toBeNull()
       })
 
       it('paints them at once with what the device heard before', () => {
@@ -230,7 +231,7 @@ describe('Overview', () => {
         const page = mountOverview()
 
         expect(tiles(page).exists()).toBe(true)
-        expect(page.findComponent(MapInvitationTile).props('count')).toBe(773)
+        expect(page.findComponent(MatchingTile).props('count')).toBe(773)
       })
 
       it('leaves the tile as it is when a newer number arrives during the visit', async () => {
@@ -240,7 +241,7 @@ describe('Overview', () => {
         answer({ mapMemberCount: 781 })
         await nextTick()
 
-        expect(page.findComponent(MapInvitationTile).props('count')).toBe(773)
+        expect(page.findComponent(MatchingTile).props('count')).toBe(773)
       })
 
       // Everybody else: no question, no wait. `wrapper` is the page of a wallet without
@@ -249,6 +250,122 @@ describe('Overview', () => {
         expect(tiles(wrapper).exists()).toBe(true)
         expect(asked.has(mapMemberCount)).toBe(false)
       })
+
+      // The other question is for a member who is on the map. Nobody is both.
+      it('does not ask about entries for a member who is not on the map', () => {
+        mountOverview()
+
+        expect(asked.has(mapMemberCount)).toBe(true)
+        expect(asked.has(listMatchingEntries)).toBe(false)
+      })
+    })
+  })
+
+  /**
+   * The next step of the same tile, for a member who stands on the map: no entry yet invites
+   * to the first one, one or two leave a line, three end it -- three shapes of three heights.
+   * So the page decides this once as well: on a device that has never heard about this
+   * member it holds ALL its tiles back for the one answer. What waits and for how long is
+   * the composable's own spec (useOwnMatchingEntries); that the page obeys it, and hands the
+   * answer on, is only held here.
+   */
+  describe('the invitation to enter something, for a member who is on the map', () => {
+    const tiles = (page) => page.find('[data-test="overview-tiles"]')
+    const answer = (length) =>
+      asked.get(listMatchingEntries).result({
+        data: { listMatchingEntries: Array.from({ length }, (_, i) => ({ uuid: `e-${i}` })) },
+      })
+    // The key the composable keeps for the member of this page's store.
+    const heardBefore = (raw) => window.localStorage.setItem('own-matching-entries:member-1', raw)
+
+    beforeEach(() => {
+      config.MATCHING_ACTIVE = true
+      store = createStore({
+        state: {
+          gradidoID: 'member-1',
+          gmsAllowed: true,
+          userLocation: { latitude: 49.28, longitude: 9.69 },
+        },
+      })
+    })
+
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    it('holds every tile back until the entries are counted, then paints them together', async () => {
+      const page = mountOverview()
+      expect(tiles(page).exists()).toBe(false)
+      expect(page.findComponent(ShowFriendsTile).exists()).toBe(false)
+      expect(page.findComponent(MatchingTile).exists()).toBe(false)
+
+      answer(0)
+      await nextTick()
+
+      expect(tiles(page).exists()).toBe(true)
+      expect(page.findComponent(ShowFriendsTile).exists()).toBe(true)
+      expect(page.findComponent(MatchingTile).props('entries')).toBe(0)
+      // Above everything else, where the invitation onto the map stood before.
+      const html = page.html()
+      const invitation = html.indexOf('data-test="matching-entries-tile"')
+      expect(invitation).toBeGreaterThanOrEqual(0)
+      expect(invitation).toBeLessThan(html.indexOf('data-test="show-friends-tile"'))
+    })
+
+    // Not known is not "none": the other tiles come, this one stays away for the visit.
+    it('paints the others without it when the answer takes too long', async () => {
+      vi.useFakeTimers()
+      const page = mountOverview()
+      expect(tiles(page).exists()).toBe(false)
+
+      vi.advanceTimersByTime(FIRST_ANSWER_PATIENCE_MS)
+      await nextTick()
+
+      expect(tiles(page).exists()).toBe(true)
+      expect(page.findComponent(ShowFriendsTile).exists()).toBe(true)
+      expect(page.findComponent(MatchingTile).props('entries')).toBeNull()
+      expect(page.find('.matching-tile').exists()).toBe(false)
+    })
+
+    it('paints them at once with what the device heard before', () => {
+      heardBefore('1')
+
+      const page = mountOverview()
+
+      expect(tiles(page).exists()).toBe(true)
+      expect(page.findComponent(MatchingTile).props('entries')).toBe(1)
+      expect(page.find('[data-test="matching-more-tile"]').exists()).toBe(true)
+    })
+
+    it('leaves the tile as it is when the server says otherwise during the visit', async () => {
+      heardBefore('0')
+      const page = mountOverview()
+
+      answer(2)
+      await nextTick()
+
+      expect(page.findComponent(MatchingTile).props('entries')).toBe(0)
+      expect(page.find('[data-test="matching-entries-tile"]').exists()).toBe(true)
+    })
+
+    it('shows nothing of it, and asks nothing, for a member who has arrived', () => {
+      heardBefore('3')
+
+      const page = mountOverview()
+
+      expect(tiles(page).exists()).toBe(true)
+      expect(page.find('.matching-tile').exists()).toBe(false)
+      expect(page.findComponent(ShowFriendsTile).exists()).toBe(true)
+      expect(asked.has(listMatchingEntries)).toBe(false)
+    })
+
+    // The other question is for a member who is not on the map. Nobody is both, so the two
+    // waits never add up.
+    it('does not ask how many people stand on the map', () => {
+      mountOverview()
+
+      expect(asked.has(listMatchingEntries)).toBe(true)
+      expect(asked.has(mapMemberCount)).toBe(false)
     })
   })
 })

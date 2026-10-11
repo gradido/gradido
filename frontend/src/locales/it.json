@@ -949,6 +949,10 @@
       }
     },
     "invitation": {
+      "entriesGo": "Crea la mia prima voce",
+      "entriesMore": "Crea un'altra voce",
+      "entriesText": "Indica ciò che cerchi, ciò che dai e ciò che ami. Il matching ti mostra allora le persone in sintonia con te, e mostra te a loro.",
+      "entriesTitle": "Chi è in sintonia con te?",
       "go": "Rendimi visibile sulla mappa",
       "question": "Chi di loro abita vicino a te?",
       "text": "Segna la tua casa sulla mappa e lo vedrai, e gli altri vedranno te. Decidi tu con quanta precisione: «Approssimativa» ti mostra in un'area, mai davanti alla porta di casa. E puoi toglierti dalla mappa in qualsiasi momento.",

@@ -42,3 +42,13 @@ export const saidShowMe = (route) =>
  */
 export const invitedOntoTheMap = (state) =>
   Boolean(CONFIG.MATCHING_ACTIVE) && Boolean(state.gradidoID) && !mayFind(state)
+
+/**
+ * The other half: a member who IS on the map, and whom the overview invites on from there
+ * -- to say what they look for, give and love (components/Overview/MatchingTile).
+ *
+ * Asked the same way as above and for the same reasons, so that every signed-in member of a
+ * wallet with matching is exactly one of the two, and nobody else is either.
+ */
+export const standsOnTheMap = (state) =>
+  Boolean(CONFIG.MATCHING_ACTIVE) && Boolean(state.gradidoID) && mayFind(state)

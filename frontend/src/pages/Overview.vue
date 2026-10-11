@@ -1,15 +1,17 @@
 <template>
   <div class="overview">
-    <!-- Held back only for a member the invitation is for, on a device that has never heard
-         how many people stand on the map, and then for one round trip at most
-         (useMapMemberCount). The tiles come together, so none of them moves another. -->
+    <!-- Held back only where the matching tile waits for an answer this device has never
+         heard -- how many people stand on the map, for a member who is not on it
+         (useMapMemberCount), or how many entries a member has who is (useOwnMatchingEntries)
+         -- and then for one round trip at most. The tiles come together, so none of them
+         moves another. -->
     <BCol v-if="settled" data-test="overview-tiles">
-      <!-- Above everything, for as long as it applies: the member is not on the map yet, and
-           this is where they land after the first creation. It decides for itself whether it
-           shows, and what it says is settled before it is painted -- nothing below it moves
-           later. -->
+      <!-- Above everything, for as long as it applies: the way into matching, a step at a
+           time -- onto the map first, and this is where a member lands after the first
+           creation; then the first entries. It decides for itself whether it shows, and what
+           it is, is settled before it is painted -- nothing below it moves later. -->
       <BRow>
-        <map-invitation-tile :count="count" />
+        <matching-tile :count="count" :entries="entries" />
       </BRow>
       <!-- Always: showing Gradido to somebody needs no service switched on, and the two tiles
            below hang on HumHub and the old GMS search, which are on their way out. -->
@@ -34,13 +36,18 @@ import { computed } from 'vue'
 // import CommunityNews from '@/components/Overview/CommunityNews'
 import CardCircles from '@/components/Overview/CardCircles'
 import CardUserSearch from '@/components/Overview/CardUserSearch'
-import MapInvitationTile from '@/components/Overview/MapInvitationTile'
+import MatchingTile from '@/components/Overview/MatchingTile'
 import ShowFriendsTile from '@/components/Overview/ShowFriendsTile'
 import { useMapMemberCount } from '@/composables/useMapMemberCount'
+import { useOwnMatchingEntries } from '@/composables/useOwnMatchingEntries'
 import CONFIG from '@/config'
 
 const isGmsActive = computed(() => CONFIG.GMS_LEGACY_ACTIVE === true)
 const isHumhubActive = computed(() => CONFIG.HUMHUB_ACTIVE === true)
 
-const { settled, count } = useMapMemberCount()
+// Two questions, and never both: one is for a member who is not on the map, the other for
+// one who is. Whichever is asked, the tiles wait for it together.
+const { settled: countSettled, count } = useMapMemberCount()
+const { settled: entriesSettled, entries } = useOwnMatchingEntries()
+const settled = computed(() => countSettled.value && entriesSettled.value)
 </script>

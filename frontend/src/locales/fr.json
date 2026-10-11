@@ -949,6 +949,10 @@
       }
     },
     "invitation": {
+      "entriesGo": "Créer ma première entrée",
+      "entriesMore": "Créer une autre entrée",
+      "entriesText": "Indique ce que tu cherches, ce que tu donnes et ce que tu aimes. Le matching te montre alors les personnes qui te correspondent, et te montre à elles.",
+      "entriesTitle": "Qui te correspond ?",
       "go": "Me montrer sur la carte",
       "question": "Lesquelles habitent près de chez toi ?",
       "text": "Indique sur la carte où tu habites et tu le verras, et les autres te verront. Tu décides avec quelle précision : « Approximative » te montre dans une zone, jamais devant ta porte. Et tu peux te retirer à tout moment.",
