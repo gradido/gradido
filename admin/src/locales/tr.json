@@ -313,7 +313,7 @@
       "foundNothing": "Hiçbir eski katkı metninde bu grubu anmıyor.",
       "hint": "Yalnızca henüz hiçbir grubu olmayan katkılar aktarılır. Var olan bir grubu adlandırmayan bir kelime sıradan metin olarak kalır.",
       "markChecked": "Denetlendi olarak işaretle",
-      "searchFailed": "Arama başarısız oldu. Lütfen tekrar deneyin.",
+      "searchFailed": "Arama başarısız oldu. Lütfen tekrar dene.",
       "searching": "Katkılarda aranıyor …",
       "stateAdopted": "{date} tarihinde denetlendi — {count} aktarıldı",
       "stateNothing": "{date} tarihinde denetlendi — bir şey bulunamadı",
@@ -412,6 +412,8 @@
   },
   "goTo": {
     "humhubProfile": "Humhub profiline git",
+    "memberMap": "{name} kişisini haritada göster",
+    "memberMapBlocked": "Tarayıcı pencereyi engelledi. Lütfen bu sayfa için açılır pencerelere (pop-up) izin ver.",
     "userSearch": "Kullanıcı aramasına git"
   },
   "help": {
@@ -471,7 +473,7 @@
     "user_search": "Kullanıcı arama"
   },
   "not_open_creations": "Açık oluşturma yok",
-  "notice": "Notice",
+  "notice": "Bildirim",
   "open": "açık",
   "open_creations": "Açık oluşturmalar",
   "overlay": {

@@ -30,6 +30,9 @@ export const searchUsers = gql`
         createdAt
         role
         creationAllowed
+        gradidoID
+        communityUuid
+        findableOnMap
       }
     }
   }

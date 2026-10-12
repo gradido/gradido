@@ -412,6 +412,8 @@
   },
   "goTo": {
     "humhubProfile": "Ir al perfil de Humhub",
+    "memberMap": "Mostrar a {name} en el mapa",
+    "memberMapBlocked": "El navegador ha bloqueado la ventana. Permite las ventanas emergentes para esta página.",
     "userSearch": "Ir a la búsqueda de usuarios"
   },
   "help": {
@@ -471,7 +473,7 @@
     "user_search": "Búsqueda de usuarios"
   },
   "not_open_creations": "No hay creaciones abiertas",
-  "notice": "Notice",
+  "notice": "Aviso",
   "open": "abierta",
   "open_creations": "Creaciones abiertas",
   "overlay": {
