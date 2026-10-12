@@ -3,6 +3,7 @@ import { verifyLogin } from '../graphql/queries'
 import { clearApolloCache } from '../plugins/apolloCache'
 import { mayFind } from '../utils/matchingPosition'
 import { holdChatText, takeChatReturn } from '../utils/chatReturn'
+import { safeWalletPath } from '../utils/safeWalletPath'
 
 /**
  * Whether the stored session still runs: a token, and more than five seconds before it ends --
@@ -40,8 +41,26 @@ const addNavigationGuards = (router, store, apollo) => {
   })
 
   // store token on authenticate
+  //
+  // ⭐ And go on to the page named in `redirect`, where there is one -- written for somebody who
+  // arrives from outside with a sign-in that is running: the admin interface opens the wallet's
+  // map in a window of its own that way, on the member whose pin was pressed
+  // (`/authenticate?token=…&redirect=/matching/karte?with=…&community=…`). Without it, to the
+  // overview as ever. Only an address inside this wallet is followed (safeWalletPath); anything
+  // else ends on the overview too. The page named is entered like any other: every guard below
+  // runs for it, so the map still asks for both of the member's own answers.
+  //
+  // ⛔ Handed to `next` as the string it is. vue-router reads a query only out of `query` when
+  // it is given an object, so `next({ path: '/x?y=z' })` arrives without the query -- the map
+  // would open on nobody.
+  //
+  // Where the token is not accepted -- the admin interface was left open past the end of its
+  // session -- the page named is gone to all the same: it asks for the sign-in itself and
+  // keeps the address for afterwards, like any link into the wallet that is opened without a
+  // sign-in. Without a page named, this guard does what it did before.
   router.beforeEach(async (to, from, next) => {
     if (to.path === '/authenticate' && to.query.token) {
+      const page = safeWalletPath(to.query.redirect)
       // Another account may have been signed in here without logging out. Queries that
       // take no variables share one cache key, so they would answer from that account's
       // cache until the network catches up.
@@ -64,11 +83,15 @@ const addNavigationGuards = (router, store, apollo) => {
           // in again. Without it the page shows the address of the last sign-in until the
           // next one - a reload does not help, because the store is persisted.
           store.commit('email', result.data.verifyLogin.emailContact?.email ?? '')
-          next({ path: '/overview' })
+          next(page ?? { path: '/overview' })
         })
         .catch(() => {
           store.dispatch('logout')
-          next()
+          if (page) {
+            next(page)
+          } else {
+            next()
+          }
         })
     } else {
       next()

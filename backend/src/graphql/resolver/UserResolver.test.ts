@@ -65,10 +65,12 @@ import { QueryRunner } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
 import {
   deleteGmsUser,
+  getGmsUserCount,
   putGmsMatchingEntrySnapshots,
   upsertGmsUsers,
   verifyAuthToken,
 } from '@/apis/gms/GmsClient'
+import { mapMemberCount } from '@/apis/gms/mapMemberCount'
 import { subscribe } from '@/apis/KlicktippController'
 import { encode } from '@/auth/JWT'
 import { CONFIG } from '@/config'
@@ -104,9 +106,11 @@ import {
   avatarFull,
   checkUsername,
   gmsDashboardUrl,
+  mapMemberCount as mapMemberCountQuery,
   memberAvatarFull,
   memberAvatars,
   queryOptIn,
+  queryTransactionLinkFindableOnMap,
   queryTransactionLinkOwnSettings,
   queryTransactionLinkUserLocation,
   searchAdminUsers,
@@ -114,6 +118,7 @@ import {
   userAboutMe,
   userAvatar,
   userEmailContact,
+  userFindableOnMap,
   userLocationQuery,
   userOwnSettings,
   user as userQuery,
@@ -123,6 +128,7 @@ import {
   verifyLoginAboutMe,
   verifyLoginAvatar,
   verifyLoginEmailContact,
+  verifyLoginFindableOnMap,
   verifyLoginOwnSettings,
   verifyLoginTransfersInChat,
   verifyLoginUserLocation,
@@ -152,6 +158,8 @@ jest.mock('@/apis/gms/GmsClient', () => {
     deleteGmsUser: jest.fn(),
     // Watched by the dashboard-url tests: the one call that mints a member token over there.
     verifyAuthToken: jest.fn(),
+    // Watched by the map-member-count tests: the query must never ask the GMS itself.
+    getGmsUserCount: jest.fn(),
   }
 })
 
@@ -3487,6 +3495,36 @@ describe('UserResolver', () => {
           })
         })
 
+        // What the pin behind the username is made of: the pair it addresses the wallet's map
+        // by, and whether the member stands on that map. Held against the rows, field by
+        // field, so that neither half of the pair can stand in for the other. Nobody stands
+        // on the map here -- matching is off in this file wherever a block does not switch it
+        // on, and the block 'findableOnMap' below is the one that does.
+        describe('the pair and the pin', () => {
+          it('names every member by their pair and shows a pin for nobody', async () => {
+            const res: any = await query({
+              query: searchUsers,
+              variables: { ...variablesWithoutTextAndFilters },
+            })
+            expect(res.errors).toBeUndefined()
+            const rows = res.data.searchUsers.userList
+            expect(rows).toHaveLength(4)
+            for (const row of rows) {
+              const stored = await User.findOneOrFail({
+                where: { id: row.userId },
+                withDeleted: true,
+              })
+              expect(row).toEqual(
+                expect.objectContaining({
+                  gradidoID: stored.gradidoID,
+                  communityUuid: stored.communityUuid,
+                  findableOnMap: false,
+                }),
+              )
+            }
+          })
+        })
+
         // Every name is the member's own row in user_aliases, the current one and the ones
         // they held before, and the search reads them all.
         describe('by username', () => {
@@ -3890,6 +3928,242 @@ describe('UserResolver', () => {
       // Asked the same way, it does answer the member whose object it is.
       const own = Object.assign(new UserModel(null), { id: 7, userLocation: BIBIS_PLACE })
       expect(guard.userLocation(own, callerWithId(7))).toEqual(BIBIS_PLACE)
+    })
+  })
+
+  // Whether a member stands on the map of the member search: they allow being found and
+  // have a place pinned. The moderation is told -- the admin interface shows a pin behind
+  // the name of such a member, and the pin opens the wallet's map on them -- and so is the
+  // member; another member is not, nor whoever holds the code of a link. A yes or no and
+  // never the place: the block above holds that the position stays with the member, and
+  // the moderation's case here asks for both in one question.
+  describe('findableOnMap', () => {
+    const BIBIS_PLACE = { longitude: 9.573224, latitude: 49.679437 }
+    const originalGms = CONFIG.GMS_ACTIVE
+    const originalMatching = CONFIG.MATCHING_ACTIVE
+    let homeCom: DbCommunity
+    let bibi: User
+    let bob: User
+    let openLinkCode: string
+    let takenLinkCode: string
+
+    const signIn = (email: string): Promise<any> =>
+      mutate({ mutation: login, variables: { email, password: 'Aa12345_' } })
+
+    const asksFor = (member: User): Promise<any> =>
+      query({
+        query: userFindableOnMap,
+        variables: { identifier: member.gradidoID, communityIdentifier: homeCom.communityUuid },
+      })
+
+    const linkOfBibi = (more: Partial<TransactionLinkInterface> = {}) =>
+      dbTransactionLinkFactory(
+        { email: '', amount: 20, memo: 'Danke fuer die Hilfe im Garten.', ...more },
+        bibi.id,
+      )
+
+    // Nobody is signed in: a link is read by whoever was handed its code.
+    const readsLinkWithoutLogin = async (code: string): Promise<any> => {
+      resetToken()
+      const res: any = await query({
+        query: queryTransactionLinkFindableOnMap,
+        variables: { code },
+      })
+      expect(res.errors).toBeUndefined()
+      return res.data.queryTransactionLink
+    }
+
+    // The member's row in the admin's search, as whoever is signed in is answered.
+    const searchRowOf = async (member: User): Promise<any> => {
+      const res: any = await query({
+        query: searchUsers,
+        variables: { query: '', currentPage: 1, pageSize: 25, filters: null },
+      })
+      expect(res.errors).toBeUndefined()
+      return res.data.searchUsers.userList.find(
+        (row: { userId: number }) => row.userId === member.id,
+      )
+    }
+
+    beforeAll(async () => {
+      await cleanDB()
+      homeCom = await writeHomeCommunityEntry()
+      bibi = await userFactory(testEnv, bibiBloxberg)
+      bob = await userFactory(testEnv, bobBaumeister)
+      await userFactory(testEnv, peterLustig)
+      // Bibi stands on the map: she allows being found and has a place pinned. Bob allows it
+      // and never pinned one. Written to the rows and read back -- no fixture of this file
+      // sets the switch, and with a row that did not take it every "no" below would hold for
+      // a reason that has nothing to do with who is asking.
+      await User.update(
+        { id: bibi.id },
+        { gmsAllowed: true, location: Location2Point(BIBIS_PLACE) },
+      )
+      await User.update({ id: bob.id }, { gmsAllowed: true })
+      const bibisRow = await User.findOneOrFail({ where: { id: bibi.id } })
+      expect(bibisRow.gmsAllowed).toBe(true)
+      expect(bibisRow.location).toEqual(Location2Point(BIBIS_PLACE))
+      const bobsRow = await User.findOneOrFail({ where: { id: bob.id } })
+      expect(bobsRow.gmsAllowed).toBe(true)
+      expect(bobsRow.location ?? null).toBeNull()
+      openLinkCode = (await linkOfBibi()).code
+      takenLinkCode = (await linkOfBibi({ redeemedAt: new Date(), redeemedBy: bob.id })).code
+      // Last, once the rows stand: with the GMS on, saving settings would reach out to it.
+      // Nothing below saves any.
+      CONFIG.GMS_ACTIVE = true
+      CONFIG.MATCHING_ACTIVE = true
+    })
+
+    afterAll(async () => {
+      CONFIG.GMS_ACTIVE = originalGms
+      CONFIG.MATCHING_ACTIVE = originalMatching
+      resetToken()
+      await cleanDB()
+    })
+
+    // The yes first: everything after it expects null or false, and a resolver that never
+    // says yes would pass all of that.
+    it('tells a member that they stand on the map', async () => {
+      await signIn('bibi@bloxberg.de')
+      const res: any = await query({ query: verifyLoginFindableOnMap })
+      expect(res.errors).toBeUndefined()
+      expect(res.data.verifyLogin).toEqual({ gradidoID: bibi.gradidoID, findableOnMap: true })
+    })
+
+    it('tells the moderation, and keeps the place from it', async () => {
+      await signIn('peter@lustig.de')
+      const res: any = await asksFor(bibi)
+      expect(res.errors).toBeUndefined()
+      expect(res.data.user).toEqual({
+        gradidoID: bibi.gradidoID,
+        findableOnMap: true,
+        userLocation: null,
+      })
+    })
+
+    it('does not tell another member', async () => {
+      await signIn('bob@baumeister.de')
+      const res: any = await asksFor(bibi)
+      expect(res.errors).toBeUndefined()
+      // The member is found - only the field is withheld, so this is the field resolver at
+      // work and not a lookup that failed.
+      expect(res.data.user.gradidoID).toBe(bibi.gradidoID)
+      expect(res.data.user.findableOnMap).toBeNull()
+    })
+
+    it('does not tell whoever holds the code of a link the member made', async () => {
+      const link = await readsLinkWithoutLogin(openLinkCode)
+      expect(link.senderUser.gradidoID).toBe(bibi.gradidoID)
+      expect(link.senderUser.findableOnMap).toBeNull()
+    })
+
+    it('nor about the member who took the link', async () => {
+      const link = await readsLinkWithoutLogin(takenLinkCode)
+      expect(link.redeemedBy.gradidoID).toBe(bob.gradidoID)
+      expect(link.redeemedBy.findableOnMap).toBeNull()
+      expect(link.senderUser.gradidoID).toBe(bibi.gradidoID)
+      expect(link.senderUser.findableOnMap).toBeNull()
+    })
+
+    // ⛔ Somebody has to be asking, as for the position: a member object without an id read
+    // by a caller without a login. No query can show it, so the guard is asked directly.
+    it('does not take a member object without an id for the own view of nobody', () => {
+      const guard = new UserResolver()
+      const withoutId = Object.assign(new UserModel(null), { findableOnMap: true })
+      expect(guard.findableOnMap(withoutId, callerWithId(undefined))).toBeNull()
+      // Asked the same way, it does answer the member whose object it is.
+      const own = Object.assign(new UserModel(null), { id: 7, findableOnMap: true })
+      expect(guard.findableOnMap(own, callerWithId(7))).toBe(true)
+    })
+
+    describe('who does not stand on the map', () => {
+      // Whoever is told at all is told no -- the moderation reads false, not null.
+      it('says no for a member who allows being found and has no place pinned', async () => {
+        await signIn('peter@lustig.de')
+        const res: any = await asksFor(bob)
+        expect(res.errors).toBeUndefined()
+        expect(res.data.user).toEqual({
+          gradidoID: bob.gradidoID,
+          findableOnMap: false,
+          userLocation: null,
+        })
+      })
+
+      it('says no to that member themselves as well', async () => {
+        await signIn('bob@baumeister.de')
+        const res: any = await query({ query: verifyLoginFindableOnMap })
+        expect(res.data.verifyLogin).toEqual({ gradidoID: bob.gradidoID, findableOnMap: false })
+      })
+
+      it('says no for a member with a place pinned who does not allow being found', async () => {
+        await signIn('peter@lustig.de')
+        await User.update({ id: bibi.id }, { gmsAllowed: false })
+        try {
+          const res: any = await asksFor(bibi)
+          expect(res.data.user.gradidoID).toBe(bibi.gradidoID)
+          expect(res.data.user.findableOnMap).toBe(false)
+        } finally {
+          await User.update({ id: bibi.id }, { gmsAllowed: true })
+        }
+      })
+
+      // The wallet has the map only with matching on; GMS_ACTIVE alone is the older
+      // integration. Each switch on its own is in findableOnMap.test.ts.
+      it('says no for everybody where the GMS and matching are off', async () => {
+        await signIn('peter@lustig.de')
+        CONFIG.GMS_ACTIVE = false
+        CONFIG.MATCHING_ACTIVE = false
+        try {
+          const res: any = await asksFor(bibi)
+          expect(res.data.user.gradidoID).toBe(bibi.gradidoID)
+          expect(res.data.user.findableOnMap).toBe(false)
+          expect((await searchRowOf(bibi)).findableOnMap).toBe(false)
+        } finally {
+          CONFIG.GMS_ACTIVE = true
+          CONFIG.MATCHING_ACTIVE = true
+        }
+      })
+    })
+
+    // The admin's member search answers with a type of its own, read off a list of columns
+    // the resolver names: the pair, the switch and the place have to be on that list.
+    describe('in the member search of the admin interface', () => {
+      beforeEach(async () => {
+        await signIn('peter@lustig.de')
+      })
+
+      it('shows the pin for the member who stands on the map, with the pair it leads by', async () => {
+        expect(await searchRowOf(bibi)).toEqual(
+          expect.objectContaining({
+            gradidoID: bibi.gradidoID,
+            communityUuid: homeCom.communityUuid,
+            findableOnMap: true,
+          }),
+        )
+      })
+
+      it('shows none for the member without a place', async () => {
+        expect(await searchRowOf(bob)).toEqual(
+          expect.objectContaining({ gradidoID: bob.gradidoID, findableOnMap: false }),
+        )
+      })
+
+      // The search loads deleted members as well, and a deleted account takes no part in
+      // matching any more: no pin for it.
+      it('shows none for a deleted member, whatever their row still holds', async () => {
+        await User.update({ id: bibi.id }, { deletedAt: new Date() })
+        try {
+          const row = await searchRowOf(bibi)
+          // Still found, as deleted, with switch and place untouched in the row.
+          expect(row.gradidoID).toBe(bibi.gradidoID)
+          expect(row.deletedAt).not.toBeNull()
+          expect(row.findableOnMap).toBe(false)
+        } finally {
+          await User.update({ id: bibi.id }, { deletedAt: null })
+        }
+        // And back on the map once the account is back.
+        expect((await searchRowOf(bibi)).findableOnMap).toBe(true)
+      })
     })
   })
 
@@ -5339,6 +5613,101 @@ describe('UserResolver', () => {
           errors: undefined,
           data: { gmsDashboardUrl: null },
         })
+      })
+    })
+  })
+
+  // The number the wallet's invitation onto the map opens with (Bernd, 11.10.2026). The wallet
+  // waits for this answer before it paints the overview of a member it has never asked for
+  // before, so the query may only read what the background refresh last learned.
+  describe('how many members stand on the map', () => {
+    const askMock = getGmsUserCount as jest.Mock
+    const verifyMock = verifyAuthToken as jest.Mock
+    let known: jest.SpyInstance
+
+    beforeAll(async () => {
+      await cleanDB()
+      const homeCom = await writeHomeCommunityEntry()
+      homeCom.gmsApiKey = 'gms-test-key'
+      await DbCommunity.save(homeCom)
+
+      // Exactly who the invitation is for: not taking part, never sent to the GMS.
+      const member = await userFactory(testEnv, bibiBloxberg)
+      await User.update({ id: member.id }, { gmsAllowed: false, gmsRegistered: false })
+    })
+
+    beforeEach(() => {
+      askMock.mockReset()
+      verifyMock.mockReset()
+      CONFIG.GMS_ACTIVE = true
+      known = jest.spyOn(mapMemberCount, 'known')
+    })
+
+    afterEach(() => {
+      known.mockRestore()
+    })
+
+    afterAll(async () => {
+      CONFIG.GMS_ACTIVE = false
+      resetToken()
+      await cleanDB()
+    })
+
+    describe('unauthenticated', () => {
+      it('throws an error', async () => {
+        resetToken()
+        known.mockReturnValue(773)
+
+        await expect(query({ query: mapMemberCountQuery })).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+        expect(known).not.toHaveBeenCalled()
+      })
+    })
+
+    describe('authenticated, as a member who does not take part in the GMS', () => {
+      beforeAll(async () => {
+        await mutate({
+          mutation: login,
+          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+        })
+      })
+
+      it('answers what the last refresh learned', async () => {
+        known.mockReturnValue(773)
+
+        await expect(query({ query: mapMemberCountQuery })).resolves.toMatchObject({
+          errors: undefined,
+          data: { mapMemberCount: 773 },
+        })
+      })
+
+      it('answers a map with nobody on it as zero, not as nothing', async () => {
+        known.mockReturnValue(0)
+
+        await expect(query({ query: mapMemberCountQuery })).resolves.toMatchObject({
+          errors: undefined,
+          data: { mapMemberCount: 0 },
+        })
+      })
+
+      // Nothing starts the refresh in a test, so this is the one of the process as it stands
+      // right after a start - and on a server without the GMS, where it never starts.
+      it('answers null until the GMS has said a number', async () => {
+        await expect(query({ query: mapMemberCountQuery })).resolves.toMatchObject({
+          errors: undefined,
+          data: { mapMemberCount: null },
+        })
+        expect(known).toHaveBeenCalledTimes(1)
+      })
+
+      it('asks the GMS nothing to do so', async () => {
+        await query({ query: mapMemberCountQuery })
+
+        expect(askMock).not.toHaveBeenCalled()
+        expect(verifyMock).not.toHaveBeenCalled()
       })
     })
   })

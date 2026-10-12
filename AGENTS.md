@@ -64,7 +64,7 @@ Use `lint:fix` during development to apply Biome's safe automatic fixes. Never u
 
 Two compilers are installed side by side, on purpose:
 
-- **`typescript-go`** (an alias for `typescript@7`, the native compiler) runs every `typecheck` script. It is called by path — `node ../node_modules/typescript-go/bin/tsc --noEmit` — because both packages ship a binary named `tsc` and `node_modules/.bin` holds only one of them.
+- **`typescript-go`** (an alias for `typescript@7`, the native compiler) runs every `typecheck` script. It is called by path — `bun --bun ../node_modules/typescript-go/bin/tsc --noEmit` — because both packages ship a binary named `tsc` and `node_modules/.bin` holds only one of them.
 - **`typescript`** (5.9) stays because TypeScript 7 has no JavaScript API, and three tools need one: `@anatine/esbuild-decorators` in the esbuild builds (`emitDecoratorMetadata` for type-graphql and TypeORM), `ts-node`, and the `ts-jest` preset. It can go once those three are gone.
 
 Every `tsconfig.json` therefore has to be valid for both. That rules out what TypeScript 7 removed — `baseUrl` (write `paths` relative to the file, with a leading `./`) and `moduleResolution: "node"` — and it means `types` is listed explicitly: TypeScript 7 no longer loads everything in `typeRoots` on its own, so a workspace names what it needs, including what the workspace packages it imports need (their sources are checked along with it).
@@ -76,9 +76,11 @@ As long as no other workspace has been modified and no new database migration ha
 
 Different workspaces use different test frameworks internally:
 
-- `shared`, `core`, `database` → Bun
-- `backend`, `dht-node`, `federation` → Jest
+- `shared`, `core`, `database`, `federation` → Bun
+- `backend`, `dht-node` → Jest
 - `frontend`, `admin` → Vitest
+
+`backend` runs its tests as two kinds (`backend/jest.config.js`). A file that calls `testEnvironment…()` or `cleanDB()` from `test/helpers.ts`, or that carries a line `// jest: serial` with its reason, runs one at a time (`test:serial`). Every other file runs in parallel, with the database and Redis unreachable (`test:parallel`). A test that needs the database therefore sets it up through those helpers — reaching for it any other way fails in the parallel run.
 
 Turbo and `bun run` automatically invoke the correct test runner defined in the package's `package.json`. This also matters for the `config-schema/test/testSetup` import path; see the Testing section in `README.md`.
 
@@ -101,7 +103,7 @@ Turbo and `bun run` automatically invoke the correct test runner defined in the 
 - Base schemas: a schema for a general shape that more than one domain needs -- a uuid, an e-mail address, bytes spelled as hex, a positive integer -- lives in `shared/src/schema/base.schema.ts`, with its test beside it. A domain schema composes it (`v.pipe(hexBytesSchema, v.length(16))`) instead of repeating the regex or the check. Before writing a check, look there; and when a check you are writing is not about your domain, it belongs there.
 - Enums: `src/data/[Name].enum.ts`.
 - Tests: co-located `*.test.ts`, run with `bun test`.
-- Fake timers in Jest tests: use `useFakeTimersForDrizzle()` from `backend/test/helpers.ts` (or `dht-node/test/helpers.ts`) instead of `jest.useFakeTimers()`. Jest also fakes `process.nextTick`, which mysql2 — Drizzle's driver — needs to deliver every result, so any Drizzle query under plain fake timers hangs until the hook or test timeout. TypeORM runs on the `mysql` package and is unaffected, so this only surfaces once a query on that path moves to Drizzle. `federation` has no such helper yet; it needs the same one before a test there fakes timers around a Drizzle query.
+- Fake timers in Jest tests: use `useFakeTimersForDrizzle()` from `backend/test/helpers.ts` (or `dht-node/test/helpers.ts`) instead of `jest.useFakeTimers()`. Jest also fakes `process.nextTick`, which mysql2 — Drizzle's driver — needs to deliver every result, so any Drizzle query under plain fake timers hangs until the hook or test timeout. TypeORM runs on the `mysql` package and is unaffected, so this only surfaces once a query on that path moves to Drizzle.
 
 # Performance
 

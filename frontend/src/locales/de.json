@@ -350,6 +350,15 @@
     "quoteLead": "Antwort auf:",
     "quoteNotShown": "Die zitierte Nachricht konnte nicht geladen werden.",
     "quoteShown": "Zitierte Nachricht angezeigt",
+    "react": "Reagieren",
+    "reactMore": "Mehr Emojis",
+    "reactTakeBack": "Reaktion {emoji} zurücknehmen",
+    "reactWith": "Mit {emoji} reagieren",
+    "reacted": "Deine Reaktion: {emoji}",
+    "reactionFailed": "Die Reaktion konnte nicht gespeichert werden.",
+    "reactionMine": "Deine Reaktion",
+    "reactionTakenBack": "Reaktion zurückgenommen",
+    "reactionsLead": "Reaktionen:",
     "remaining": "noch {n} Zeichen",
     "reply": "Antworten",
     "replyCancel": "Antwort abbrechen",
@@ -579,6 +588,13 @@
     "resend": "Mail erneut senden",
     "resent": "Die Bestätigungs-Mail ist erneut unterwegs.",
     "title": "Bestätige Deine E-Mail-Adresse"
+  },
+  "emoji": {
+    "choice": "Emojis",
+    "insert": "Emoji einfügen",
+    "inserted": "{emoji} eingefügt",
+    "moreOnMac": "Mehr Emojis: ctrl + cmd + Leertaste",
+    "moreOnWindows": "Mehr Emojis: Windows-Taste + Punkt (.)"
   },
   "error": {
     "email-already-sent": "Wir haben Dir bereits eine E-Mail vor weniger als 10 Minuten geschickt.",
@@ -894,7 +910,10 @@
     },
     "entries": {
       "activate": "Aktivieren",
-      "count": "{total} Einträge · {live} live · {paused} pausiert",
+      "count": "{total} · {live} · {paused}",
+      "countLive": "{n} live",
+      "countPaused": "{n} pausiert",
+      "countTotal": "{n} Eintrag | {n} Einträge",
       "delete": "Löschen",
       "deleteConfirm": "Soll der Eintrag wirklich gelöscht werden?",
       "details": "Details",
@@ -913,9 +932,7 @@
       "later": "Später",
       "subtitle": "Entdecke, wer zu Dir passt",
       "title": "Auf der Karte finden",
-      "titleList": "In der Liste finden",
-      "toPosition": "Zu meinem Zuhause",
-      "understood": "Verstanden"
+      "titleList": "In der Liste finden"
     },
     "info": {
       "about": {
@@ -933,6 +950,17 @@
         "p1": "Du entscheidest, wie genau Du erscheinst. „Ungefähr“ zeigt Dich im Umkreis — nie auf der Haustür.",
         "p2": "Ohne Position bist Du nicht auf der Karte. Der Schalter nimmt Dich jederzeit wieder heraus."
       }
+    },
+    "invitation": {
+      "entriesGo": "Meinen ersten Eintrag machen",
+      "entriesMore": "Noch einen Eintrag machen",
+      "entriesText": "Trag ein, was Du suchst, was Du gibst und was Du liebst. Das Matching zeigt Dir dann die Menschen, die dazu passen — und zeigt Dich ihnen.",
+      "entriesTitle": "Wer passt zu Dir?",
+      "go": "Mich auf der Karte zeigen",
+      "question": "Wer davon wohnt in Deiner Nähe?",
+      "text": "Setz Dein Zuhause auf die Karte, dann siehst Du es — und die anderen sehen Dich. Du entscheidest, wie genau: „Ungefähr“ zeigt Dich im Umkreis, nie auf der Haustür. Und Du kannst jederzeit wieder raus.",
+      "title": "Wer wohnt in Deiner Nähe?",
+      "titleCount": "{n} Menschen auf der Gradido‑Karte"
     },
     "list": {
       "centeredOn": "Umkreis um {place}",
@@ -1035,6 +1063,11 @@
       "findableOff": "Du bist nicht mehr auf der Karte auffindbar",
       "findableOn": "Du bist jetzt auf der Karte auffindbar",
       "intro": "Verorte Dich auf der Karte, um beim Matching dabei zu sein — Du erscheinst erst, wenn Du das tust.",
+      "joinText": "Andere finden Dich dann auf der Karte, und Du findest sie. Du kannst jederzeit wieder raus.",
+      "joinTitle": "Auf der Karte zeigen",
+      "leaveGo": "Mich von der Karte nehmen",
+      "leaveText": "Andere finden Dich dann nicht mehr, und Du findest sie nicht mehr. Dein Zuhause und Deine Einträge bleiben gespeichert. Du kannst jederzeit zurück.",
+      "leaveTitle": "Von der Karte nehmen",
       "needsHome": "Setze zuerst Dein Zuhause auf der Karte.",
       "saveText": "Möchtest Du Deine Positionseinstellungen jetzt speichern?",
       "saveTitle": "Position speichern",

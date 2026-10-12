@@ -88,6 +88,7 @@ import {
   AVATAR_FULL_MAX_SIDE,
   AVATAR_SMALL_MAX_BYTES,
   AVATAR_SMALL_MAX_SIDE,
+  isUsableLocation,
   languageSchema,
   MEMBER_AVATARS_MAX_REFS,
   MemberAvatarPayload,
@@ -113,6 +114,7 @@ import {
 import { IRestResponse } from 'typed-rest-client'
 import { EntityNotFoundError, Point } from 'typeorm'
 import * as v from 'valibot'
+import { mapMemberCount } from '@/apis/gms/mapMemberCount'
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
 import { Account as HumhubAccount } from '@/apis/humhub/model/Account'
 import { GetUser } from '@/apis/humhub/model/GetUser'
@@ -124,7 +126,6 @@ import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { accountStateFromFields } from '@/data/AccountState.logic'
 import { canEmailResend, isEmailVerificationCodeValid } from '@/data/EmailVerificationCode.logic'
-import { findableWithoutPlace } from '@/data/Location.logic'
 import {
   MEMBER_AVATARS_FULL_MAX_PER_REQUEST,
   MEMBER_AVATARS_RELAYS_MAX_PER_REQUEST,
@@ -145,6 +146,7 @@ import { resolveCommunityUuid } from './util/communities'
 import { compareGmsRelevantUserSettings } from './util/compareGmsRelevantUserSettings'
 import { getFullUserCreation, getUserCreations } from './util/creations'
 import { extractGraphQLFieldsForSelect } from './util/extractGraphQLFields'
+import { mayKnowFindable } from './util/findableOnMap'
 import { getKlicktippState } from './util/getKlicktippState'
 import { Location2Point, Point2Location } from './util/Location2Point'
 import { maySeeRealName } from './util/maySeeRealName'
@@ -718,17 +720,24 @@ export class UserResolver {
       aboutMe: aboutMe !== undefined,
     })
 
-    // Switching findable on needs a place: the GMS cannot hold a member it cannot place
-    // (GmsUser refuses to build one), and migration 0140 switched every member without one
-    // off. Refused before anything is written, and as a code - the wallet says it in the
-    // member's words.
+    // Switching findable (`gmsAllowed`) on needs a place - the one stored, or one sent along
+    // in the same save. Findable hands the member to the GMS, and the GMS cannot hold a member
+    // it cannot place: `GmsUser` refuses to build one without a location ("Missing Location"),
+    // and migration 0140 switched every member without one off for that reason. This is the
+    // same rule on the way in, so a save cannot bring that state back.
+    //
+    // Only the switch from off to on is asked. Switching off, not sending the setting, or
+    // sending it on while it already is, needs no place: a member left findable without one,
+    // before this rule, is not made any worse by a save that keeps it, and can still save the
+    // rest.
+    //
+    // Refused before anything is written, and as a code - the wallet says it in the member's
+    // words.
     if (
-      findableWithoutPlace(
-        gmsAllowed,
-        user.gmsAllowed,
-        Point2Location(user.location as Point),
-        gmsLocation,
-      )
+      gmsAllowed === true &&
+      !user.gmsAllowed &&
+      !isUsableLocation(Point2Location(user.location as Point)) &&
+      !isUsableLocation(gmsLocation)
     ) {
       logger.warn('refused to switch findable on without a location')
       throw new LogError('GMS_LOCATION_REQUIRED')
@@ -1323,6 +1332,24 @@ export class UserResolver {
     return ensureUrlEndsWithSlash(CONFIG.GMS_DASHBOARD_URL)
   }
 
+  /**
+   * How many members stand on the map, across every community the GMS holds -- what the
+   * invitation on the wallet's overview opens with (Bernd, 11.10.2026).
+   *
+   * ⛔ Reads what the background refresh last learned (apis/gms/mapMemberCount.ts) and nothing
+   * else: no request to the GMS, no query. The wallet waits for this answer before it paints
+   * its overview for a member it has never asked for before, so it must come back at once.
+   *
+   * `null` where this server has no GMS, where the GMS does not answer the question (one
+   * released before gms_workspace#43), and until the first answer after a start is in. The
+   * invitation then stands without the number.
+   */
+  @Authorized([RIGHTS.GMS_USER_PLAYGROUND])
+  @Query(() => Int, { nullable: true })
+  mapMemberCount(): number | null {
+    return mapMemberCount.known()
+  }
+
   // Named apart from the query it answers: the guard of the field `User.userLocation` below
   // has to carry that name itself -- see there.
   @Authorized([RIGHTS.GMS_USER_PLAYGROUND])
@@ -1442,6 +1469,13 @@ export class UserResolver {
       // ES-021: the admin's "may create" switch. Listed here or the row comes back without
       // it and every switch would show "off".
       'creationAllowed',
+      // The pin behind the username: the pair it addresses the wallet's map by, and the two
+      // columns the answer "stands on the map" is read from (isFindableOnMap). Listed here
+      // or the row comes back without them and no member would carry a pin.
+      'gradidoID',
+      'communityUuid',
+      'gmsAllowed',
+      'location',
     ]
     const [users, count] = await dbFindUsers(
       userFields,
@@ -1885,6 +1919,31 @@ export class UserResolver {
       return null
     }
     return user.gmsAllowed ?? null
+  }
+
+  /**
+   * Whether the member stands on the map of the member search -- a yes or no worked out from
+   * the row when the object was built (isFindableOnMap), not the place: that is
+   * `userLocation` above, and its guard is not touched by this one.
+   *
+   * The moderation and the member themselves, everybody else reads null (mayKnowFindable).
+   * Unlike the settings around it this one IS asked about somebody else: the admin interface
+   * shows a pin behind the name of a member who stands on the map, in the member search
+   * (`searchUsers` answers there with a type of its own) and under a contribution, where the
+   * member travels as this type. The pin opens the wallet's map on that member, with the
+   * point the GMS holds -- what the map shows every member who stands on it themselves.
+   *
+   * ⛔ Named after its field, for the reason given at userLocation: under another method name
+   * this guard is silently not installed.
+   *
+   * Null rather than throwing, like the guards above.
+   */
+  @FieldResolver(() => Boolean, { nullable: true })
+  findableOnMap(@Root() user: User, @Ctx() context: Context): boolean | null {
+    if (!mayKnowFindable(context, user)) {
+      return null
+    }
+    return user.findableOnMap ?? null
   }
 
   /** Same guard as hideAmountGDD above. */

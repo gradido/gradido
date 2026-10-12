@@ -93,7 +93,12 @@ const updateRole = (userId, role) => {
 }
 
 const updateDeletedAt = (userId, deletedAt) => {
-  searchResult.value.find((obj) => obj.userId === userId).deletedAt = deletedAt
+  const row = searchResult.value.find((obj) => obj.userId === userId)
+  row.deletedAt = deletedAt
+  // The pin behind the username goes with the account (MemberMapPin): the server gives a
+  // deleted member none, and this row is not asked for again. Brought back, the row shows
+  // none until the list is asked again -- whether they stand on the map only the server knows.
+  if (deletedAt) row.findableOnMap = false
   toastSuccess(deletedAt ? t('user_deleted') : t('user_recovered'))
 }
 

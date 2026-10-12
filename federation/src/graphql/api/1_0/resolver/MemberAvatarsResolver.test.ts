@@ -1,4 +1,5 @@
 // AI-GENERATED — not an architecture reference
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'bun:test'
 import { ApolloServerTestClient, cleanDB, testEnvironment } from '@test/helpers'
 import { EncryptedTransferArgs } from 'core'
 import { AppDatabase, Community as DbCommunity, User as DbUser, userAvatarsTable } from 'database'
@@ -42,7 +43,19 @@ const updatedAt = new Date('2026-09-10T08:00:00.000Z')
 let homeCom: DbCommunity
 let peerCom: DbCommunity
 
+// Generating an RSA key pair costs about 50 ms and the tests only read the keys, so one set
+// is made for the whole file instead of a fresh one before every test.
+type KeyPair = Awaited<ReturnType<typeof createKeyPair>>
+let homeKeys: KeyPair
+let peerKeys: KeyPair
+let strangerKeys: KeyPair
+
 beforeAll(async () => {
+  ;[homeKeys, peerKeys, strangerKeys] = await Promise.all([
+    createKeyPair(),
+    createKeyPair(),
+    createKeyPair(),
+  ])
   testEnv = await testEnvironment(getLogger('apollo'))
   query = testEnv.query
   await cleanDB()
@@ -60,7 +73,7 @@ const createCommunity = async (
   publicKeyHex: string,
   communityUuid: string,
 ): Promise<DbCommunity> => {
-  const { publicKey, privateKey } = await createKeyPair()
+  const { publicKey, privateKey } = foreign ? peerKeys : homeKeys
   const community = DbCommunity.create()
   community.foreign = foreign
   // `name` is varchar(40), a uuid with a suffix does not fit.
@@ -285,10 +298,9 @@ describe('MemberAvatarsResolver', () => {
     })
 
     it('refuses a community it does not know', async () => {
-      const stranger = await createKeyPair()
       const response = await ask(new MemberAvatarsJwtPayloadType('handshakeID', 'small', [SHOWN]), {
         publicKeyHex: '15F92F8EC2EA685D5FD51EE3588F5B4805EBD330EF9EDD16043F3BA9C35C0D93',
-        privateJwtKey: stranger.privateKey,
+        privateJwtKey: strangerKeys.privateKey,
       })
       expect(refusal(response)).toContain('unknown requesting community')
     })
@@ -296,10 +308,9 @@ describe('MemberAvatarsResolver', () => {
     // A known community's public key with somebody else's signature: the envelope does not
     // verify against the key this community holds for the peer.
     it('refuses a known community name signed with another key', async () => {
-      const stranger = await createKeyPair()
       const response = await ask(new MemberAvatarsJwtPayloadType('handshakeID', 'small', [SHOWN]), {
         publicKeyHex: peerCom.publicKey.toString('hex'),
-        privateJwtKey: stranger.privateKey,
+        privateJwtKey: strangerKeys.privateKey,
       })
       expect(refusal(response)).toContain('invalid payload of community')
     })

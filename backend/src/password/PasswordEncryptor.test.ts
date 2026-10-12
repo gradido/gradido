@@ -1,4 +1,5 @@
 // AI-GENERATED — not an architecture reference
+// jest: serial -- measures wall-clock time, which test files running beside it stretch
 import { AppContext, ResourceExhausted } from 'shared'
 import { fakeVerifyPassword } from './PasswordEncryptor'
 

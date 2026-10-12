@@ -350,6 +350,15 @@
     "quoteLead": "Yanıtlanan:",
     "quoteNotShown": "Alıntılanan mesaj yüklenemedi.",
     "quoteShown": "Alıntılanan mesaj gösterildi",
+    "react": "Tepki ver",
+    "reactMore": "Daha fazla emoji",
+    "reactTakeBack": "{emoji} tepkisini geri al",
+    "reactWith": "{emoji} ile tepki ver",
+    "reacted": "{emoji} ile tepki verdin",
+    "reactionFailed": "Tepki kaydedilemedi.",
+    "reactionMine": "senin tepkin",
+    "reactionTakenBack": "Tepki geri alındı",
+    "reactionsLead": "Tepkiler:",
     "remaining": "{n} karakter kaldı",
     "reply": "Yanıtla",
     "replyCancel": "Yanıtı iptal et",
@@ -579,6 +588,13 @@
     "resend": "E-postayı yeniden gönder",
     "resent": "Onay e-postası yeniden yolda.",
     "title": "E-posta adresini onayla"
+  },
+  "emoji": {
+    "choice": "Emojiler",
+    "insert": "Emoji ekle",
+    "inserted": "{emoji} eklendi",
+    "moreOnMac": "Daha fazla emoji: ctrl + cmd + boşluk tuşu",
+    "moreOnWindows": "Daha fazla emoji: Windows tuşu + nokta (.)"
   },
   "error": {
     "email-already-sent": "Son 10 dakika içinde sana zaten bir e-posta gönderdik.",
@@ -894,7 +910,10 @@
     },
     "entries": {
       "activate": "Etkinleştir",
-      "count": "{total} giriş · {live} aktif · {paused} duraklatıldı",
+      "count": "{total} · {live} · {paused}",
+      "countLive": "{n} aktif",
+      "countPaused": "{n} duraklatıldı",
+      "countTotal": "{n} giriş",
       "delete": "Sil",
       "deleteConfirm": "Bu giriş silinsin mi?",
       "details": "Ayrıntılar",
@@ -913,9 +932,7 @@
       "later": "Daha sonra",
       "subtitle": "Sana uyanları keşfet",
       "title": "Haritada bul",
-      "titleList": "Listede bul",
-      "toPosition": "Evime git",
-      "understood": "Anlaşıldı"
+      "titleList": "Listede bul"
     },
     "info": {
       "about": {
@@ -933,6 +950,17 @@
         "p1": "Ne kadar hassas görüneceğine sen karar verirsin. «Yaklaşık» seni bir alan içinde gösterir, asla kapının önünde değil.",
         "p2": "Konum olmadan haritada değilsin. Anahtar seni istediğin zaman yeniden çıkarır."
       }
+    },
+    "invitation": {
+      "entriesGo": "İlk girişini oluştur",
+      "entriesMore": "Bir giriş daha oluştur",
+      "entriesText": "Aradığın, verdiğin ve sevdiğin şeyleri belirt. Eşleşme o zaman sana uyan insanları gösterir — seni de onlara gösterir.",
+      "entriesTitle": "Sana kim uyuyor?",
+      "go": "Beni haritada göster",
+      "question": "Onlardan kimler yakınında yaşıyor?",
+      "text": "Evini haritada işaretle, o zaman görürsün — başkaları da seni görür. Ne kadar hassas görüneceğine sen karar verirsin: «Yaklaşık» seni bir alan içinde gösterir, asla kapının önünde değil. Ve istediğin zaman haritadan çıkabilirsin.",
+      "title": "Yakınında kim yaşıyor?",
+      "titleCount": "Gradido haritasında {n} kişi"
     },
     "list": {
       "centeredOn": "Arama merkezi: {place}",
@@ -1035,6 +1063,11 @@
       "findableOff": "Artık haritada bulunamıyorsun",
       "findableOn": "Artık haritada bulunabilirsin",
       "intro": "Eşleşmeye katılmak için kendini haritaya yerleştir: yalnızca bunu yaptığında görünürsün.",
+      "joinText": "Başkaları seni haritada bulur, sen de onları bulursun. İstediğin zaman haritadan çıkabilirsin.",
+      "joinTitle": "Haritada kendini göster",
+      "leaveGo": "Beni haritadan çıkar",
+      "leaveText": "Başkaları artık seni bulamaz, sen de onları bulamazsın. Evin ve girişlerin kayıtlı kalır. İstediğin zaman geri dönebilirsin.",
+      "leaveTitle": "Haritadan çık",
       "needsHome": "Önce evini haritada işaretle.",
       "saveText": "Konum ayarlarını şimdi kaydetmek ister misin?",
       "saveTitle": "Konumu kaydet",

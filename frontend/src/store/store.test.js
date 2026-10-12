@@ -56,6 +56,15 @@ vi.mock('../utils/chatReturn', () => ({
   forgetChatReturn: forgetChatReturnMock,
 }))
 
+const { forgetChatDraftsMock, letOldChatDraftsGoMock } = vi.hoisted(() => ({
+  forgetChatDraftsMock: vi.fn(),
+  letOldChatDraftsGoMock: vi.fn(),
+}))
+vi.mock('../utils/chatDraft', () => ({
+  forgetChatDrafts: forgetChatDraftsMock,
+  letOldChatDraftsGo: letOldChatDraftsGoMock,
+}))
+
 vi.mock('jwt-decode', () => ({
   default: vi.fn(() => ({ exp: '1234' })),
 }))
@@ -221,6 +230,22 @@ describe('Vuex store', () => {
       it('calls twenty-three commits', () => {
         login({ commit, state }, commitedData)
         expect(commit).toHaveBeenCalledTimes(23)
+      })
+
+      /**
+       * What members wrote in a conversation and did not send lies on the device for fourteen
+       * days (utils/chatDraft). The sign-out lets go of what is older -- and so does the sign-in:
+       * a wallet closed with its tab runs no sign-out, and whoever uses this browser next comes
+       * through here.
+       */
+      it('lets go of the words nobody touched for fourteen days', () => {
+        letOldChatDraftsGoMock.mockClear()
+        forgetChatDraftsMock.mockClear()
+
+        login({ commit, state }, commitedData)
+
+        expect(letOldChatDraftsGoMock).toHaveBeenCalledTimes(1)
+        expect(forgetChatDraftsMock).not.toHaveBeenCalled()
       })
 
       /**
@@ -443,6 +468,58 @@ describe('Vuex store', () => {
 
         expect(localState.gradidoID).toBeNull()
         expect(forgetChatReturnMock).toHaveBeenCalledWith('user-one')
+      })
+
+      /**
+       * What the member wrote in a conversation and did not send (utils/chatDraft). What waits in
+       * memory goes with every sign-out; the words on the device only where the member signed
+       * out by their own word -- a session that ran out leaves them to come back to. Keyed by
+       * who is leaving, read before the clear, for the reason the tests above give.
+       */
+      describe('what was written in the conversations and not sent', () => {
+        const signOut = (how, signedIn = 'user-one') => {
+          const localState = { themeMode: 'dark', gradidoID: signedIn }
+          const applyingCommit = vi.fn((mutation, value) => {
+            if (mutation === 'gradidoID') localState.gradidoID = value
+          })
+          forgetChatDraftsMock.mockClear()
+          if (how === 'nothing said')
+            logout({ commit: applyingCommit, state: localState, dispatch })
+          else logout({ commit: applyingCommit, state: localState, dispatch }, how)
+          expect(localState.gradidoID).toBeNull()
+        }
+
+        it('is taken off the device where the member signed out by their own word', () => {
+          signOut({ byOwnWord: true })
+
+          expect(forgetChatDraftsMock).toHaveBeenCalledTimes(1)
+          expect(forgetChatDraftsMock).toHaveBeenCalledWith('user-one', { fromDevice: true })
+        })
+
+        // The layout names who pressed "Abmelden" with the press and asks the server before it
+        // comes here. A sign-out that got ahead -- the session's clock -- has cleared the state
+        // by then, and the words to take off the device are still the ones of who said it.
+        it.each([
+          ['nobody is signed in any more', null],
+          ['another member is', 'user-two'],
+        ])('is the one of the member the word names, where %s', (_, signedIn) => {
+          signOut({ byOwnWord: true, member: 'user-one' }, signedIn)
+
+          expect(forgetChatDraftsMock).toHaveBeenCalledTimes(1)
+          expect(forgetChatDraftsMock).toHaveBeenCalledWith('user-one', { fromDevice: true })
+        })
+
+        it.each([
+          ['a session that ran out', { byOwnWord: false }],
+          ['a sign-out nothing is said of', 'nothing said'],
+          ['a token the server refused', null],
+          ['a word that is no yes', { byOwnWord: 'yes' }],
+        ])('stays on the device with %s, and is forgotten in memory', (_, how) => {
+          signOut(how)
+
+          expect(forgetChatDraftsMock).toHaveBeenCalledTimes(1)
+          expect(forgetChatDraftsMock).toHaveBeenCalledWith('user-one', { fromDevice: false })
+        })
       })
 
       it('commits redirectPath', () => {

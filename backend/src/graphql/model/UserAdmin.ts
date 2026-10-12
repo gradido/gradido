@@ -2,6 +2,8 @@ import { User } from 'database'
 import { GradidoUnit } from 'shared'
 import { Field, Int, ObjectType } from 'type-graphql'
 
+import { isFindableOnMap } from '@/graphql/resolver/util/findableOnMap'
+
 @ObjectType()
 export class UserAdmin {
   constructor(
@@ -23,6 +25,9 @@ export class UserAdmin {
     this.emailConfirmationSend = emailConfirmationSend
     this.role = user.userRole?.role ?? null
     this.creationAllowed = user.creationAllowed
+    this.gradidoID = user.gradidoID
+    this.communityUuid = user.communityUuid
+    this.findableOnMap = isFindableOnMap(user)
   }
 
   @Field(() => Int)
@@ -67,6 +72,20 @@ export class UserAdmin {
   // ES-021: the admin's "may create" switch reads its position from here.
   @Field(() => Boolean)
   creationAllowed: boolean
+
+  // The pair that names a member everywhere. The pin behind the username addresses the
+  // wallet's map by it; the username cell above still shows the alias and nothing else.
+  @Field(() => String)
+  gradidoID: string
+
+  @Field(() => String)
+  communityUuid: string
+
+  // Whether the member stands on the map of the member search (isFindableOnMap): the table
+  // shows the pin for these members only. A yes or no, never the place. No guard of its
+  // own -- this type leaves through `searchUsers` alone, behind SEARCH_USERS.
+  @Field(() => Boolean)
+  findableOnMap: boolean
 }
 
 @ObjectType()

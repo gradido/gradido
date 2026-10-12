@@ -94,6 +94,12 @@
               "
               :shown="shownKey !== null && shownKey === (message.key ?? message.id)"
               :quoted-message="quotedIn(message)"
+              :can-react="reactionsOffered"
+              :reaction-underway="
+                message.transfer
+                  ? isTransactionReactionUnderway(message.transactionId)
+                  : reactionsUnderway.has(message.messageUuid)
+              "
               @open-image="openImage"
               @open-member="emit('openMember', $event)"
               @duplicate-video="emit('duplicateVideo', $event)"
@@ -101,6 +107,7 @@
               @edit="startEdit"
               @reply="startReply"
               @show-quoted="showQuoted"
+              @react="reactTo"
             />
           </ol>
         </section>
@@ -129,6 +136,7 @@
       :failed="sendFailed"
       :failed-reason="sendRefusal"
       :initial-text="openingText"
+      :draft="draft"
       :text-only="textOnly"
       :first-own="firstOwn"
       :hello-back="helloBack"
@@ -163,13 +171,25 @@ import { openChatImageView, rememberChatImage } from '@/composables/useChatImage
 import { useChatTransfers } from '@/composables/useChatTransfers'
 import { useChatThreadSearch } from '@/composables/useChatThreadSearch'
 import { useAppToast } from '@/composables/useToast'
-import { onChatMessages, onChatMessagesEdited, pollChatNow } from '@/composables/useChatUpdates'
+import {
+  onChatMessages,
+  onChatMessagesEdited,
+  onChatMessagesReacted,
+  pollChatNow,
+} from '@/composables/useChatUpdates'
 import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
+import {
+  isTransactionReactionUnderway,
+  onTransactionReaction,
+  reactToTransaction,
+  transferReactions,
+} from '@/composables/useTransactionReactions'
 import {
   chatMessagesWithMemberQuery,
   editChatMessage,
   markChatConversationRead,
   sendChatMessage,
+  setChatMessageReaction,
 } from '@/graphql/chat.graphql'
 import {
   chatGroupMessagesQuery,
@@ -180,7 +200,13 @@ import { chatEditProblem, withChatMessagesEdited } from '@/utils/chatEdit'
 import { chatImageRefusal } from '@/utils/chatImage'
 import { managesChatGroup } from '@/utils/chatGroupRoles'
 import { chatMemberKey } from '@/utils/chatMemberKey'
+import {
+  chatReactionToSend,
+  offersChatReactions,
+  withChatMessagesReacted,
+} from '@/utils/chatReactions'
 import { CHAT_NOTIFY_EMAIL } from '@/utils/chatNotify'
+import { chatDraftFor, chatGroupDraftKey } from '@/utils/chatDraft'
 import { dropChatReturnNote, noteChatReturn, takeHeldChatText } from '@/utils/chatReturn'
 import { readChatVideoInvite } from '@/utils/chatVideoInvite'
 import { memberAlias } from '@/utils/gradidoAddress'
@@ -298,6 +324,7 @@ const { result, error, fetchMore } = useQuery(THREAD.query, threadVariables, {
 const { mutate: markRead } = useMutation(inGroup ? markChatGroupRead : markChatConversationRead)
 const { mutate: sendToServer } = useMutation(inGroup ? sendChatGroupMessage : sendChatMessage)
 const { mutate: changeOnServer } = useMutation(editChatMessage)
+const { mutate: reactOnServer } = useMutation(setChatMessageReaction)
 const { client: apolloClient } = useApolloClient()
 
 const page = computed(() => result.value?.[THREAD.page] ?? null)
@@ -316,6 +343,7 @@ const {
   settled: transfersSettled,
   hasMore: transfersHaveMore,
   loadOlderTransfers,
+  takeReaction: takeTransferReaction,
 } = useChatTransfers(apolloClient, memberRef, {
   // The member's own switch (Einstellungen › Nachrichten), on unless switched off: null is a
   // store from before the field. Never in a group: a transfer is between two (E-050 F6).
@@ -444,6 +472,11 @@ const transferBubble = (booking) => {
     // What that photo is asked for by: the id of the member's own row of the booking.
     // ⛔ Not `linkId` above -- a link and a booking are two ranges of numbers.
     transactionId: booking.id,
+    // The emoji the recipient answered the transfer with (Bernd, 11.10.2026), in the shape the
+    // reactions to a message have -- and whether the member may set one here: the server's
+    // word, on their own row of a transfer from a member of this community.
+    reactions: transferReactions(booking),
+    canReact: booking.canReact === true,
   }
 }
 
@@ -660,31 +693,45 @@ const openImage = ({ message, image, opener }) => {
 }
 
 /**
+ * What the member wrote in this conversation and did not send (Bernd, 11.10.2026): it waits while
+ * the window is closed (utils/chatDraft), and the bar begins with it the next time. The thread
+ * only says which conversation this is -- by the pair as the window keys it, a group by its
+ * uuid --; the bar reads and writes.
+ */
+const draft = chatDraftFor(
+  () => store.state.gradidoID,
+  inGroup
+    ? chatGroupDraftKey(groupUuid)
+    : props.memberKey || chatMemberKey(memberRef, store.state.communityUuid),
+)
+
+/**
  * The words a start held for this conversation, taken only when the bar can show them -- when
  * the first page is in. Before that they stay where the start put them: a first page that fails
  * shows no bar, and the next opening of the window takes them (coderabbit, PR #3999). A watcher
  * runs before the render it belongs to, so the bar is made with them.
+ *
+ * They go to the bar as the draft they are: the member's own words, which are kept on when the
+ * window closes over them untouched -- not as words the window hands in, which are the window's.
  */
-const heldText = ref('')
 let heldTaken = false
 watch(
   state,
   (now) => {
     if (heldTaken || (now !== 'thread' && now !== 'empty')) return
     heldTaken = true
-    heldText.value = takeHeldChatText(returnTo)
+    const words = takeHeldChatText(returnTo)
+    if (words) draft.keep({ text: words })
   },
   { immediate: true },
 )
 
 /**
- * The words the bar begins with: what a start held for this conversation (above), or -- where
- * the two have never written -- the greeting the window handed in (E-055). The bar reads them
- * once, when it is made; a thread with messages begins with an empty field.
+ * The words the window hands the bar: where the two have never written, the greeting it handed in
+ * (E-055). The bar reads them once, when it is made, and begins with them unless a draft of the
+ * member's waits; a thread with messages hands in none.
  */
-const openingText = computed(
-  () => heldText.value || (state.value === 'empty' ? props.greeting : ''),
-)
+const openingText = computed(() => (state.value === 'empty' ? props.greeting : ''))
 
 /**
  * The read pointer on opening, to the highest id the first page brought (E-017: the marker is
@@ -707,6 +754,7 @@ watch(page, (firstPage) => {
   // Whatever arrived while the page was on its way -- and whatever was changed.
   takeWaitingArrivals()
   takeWaitingEdits()
+  takeWaitingReactions()
 })
 
 /**
@@ -834,6 +882,8 @@ watch(
     // and what was changed meanwhile.
     takeWaitingArrivals()
     takeWaitingEdits()
+    takeWaitingReactions()
+    takeWaitingTransferReactions()
   },
   { flush: 'post' },
 )
@@ -901,6 +951,8 @@ const loadOlder = async (event) => {
       focusWasOnOlder = false
       takeWaitingArrivals()
       takeWaitingEdits()
+      takeWaitingReactions()
+      takeWaitingTransferReactions()
     } finally {
       loadingOlder.value = false
     }
@@ -1115,6 +1167,157 @@ const takeChatEdits = (edited) => {
 }
 const stopEdits = onChatMessagesEdited(takeChatEdits)
 onBeforeUnmount(stopEdits)
+
+/**
+ * Messages whose reactions changed -- the beat's, and the one the member just reacted to, as the
+ * server answered it -- held until the page can take them, for the reasons a changed text waits
+ * (`waitingEdits`).
+ */
+let waitingReactions = []
+
+/**
+ * The reactions into the page: each message the thread holds takes the reactions of its state in
+ * `reacted`, by its id -- of any conversation, since a message this thread does not hold is passed
+ * over, and so is a state earlier than the one it holds (withChatMessagesReacted). Only the
+ * reactions: the words stay as the page has them. Nothing is announced for somebody else's
+ * reaction -- it is no news the way a message is, and makes nothing unread.
+ */
+const takeWaitingReactions = () => {
+  if (!page.value || placeFromBottom !== null || waitingReactions.length === 0) return
+  const reacted = waitingReactions
+  waitingReactions = []
+  apolloClient.cache.updateQuery({ query: THREAD.query, variables: threadVariables }, (current) => {
+    const thread = current?.[THREAD.page]
+    if (!thread) return undefined
+    const { messages: taken, changed } = withChatMessagesReacted(thread.messages, reacted)
+    return changed.length > 0
+      ? { ...current, [THREAD.page]: { ...thread, messages: taken } }
+      : undefined
+  })
+}
+
+/** The beat's messages with changed reactions (useChatUpdates) -- and one's own, as answered. */
+const takeChatReactions = (reacted) => {
+  if (state.value === 'error') return
+  waitingReactions.push(...reacted)
+  takeWaitingReactions()
+}
+const stopReactions = onChatMessagesReacted(takeChatReactions)
+onBeforeUnmount(stopReactions)
+
+/**
+ * Whether the members of this conversation may react to its messages (Bernd, 11.10.2026): in a
+ * group, and with a person of this community. Not with a person of another one -- their server
+ * holds a copy of every message, a reaction has no way there yet, and what one side alone would
+ * see is not offered (offersChatReactions; the server refuses it as well). Taken once, as the
+ * pair is.
+ */
+const reactionsOffered = inGroup || offersChatReactions(props.member, store.state.communityUuid)
+
+/**
+ * The messages a reaction of the member's is on its way for, by their uuid -- held for the
+ * drawing too: the emoji in such a message's menu take no press meanwhile, and show it.
+ */
+const reactionsUnderway = ref(new Set())
+
+/**
+ * An emoji was pressed at a message: the member's reaction -- or, where it is their reaction
+ * already, the taking back of it (chatReactionToSend, read off the message as the page holds it
+ * NOW: the bubble's may be a moment older). The answer is the message as it stands then; its
+ * reactions go into the page the way the beat's do.
+ *
+ * ⛔ One at a time for a message: a second press while the first is on its way would be read off
+ * a state that is about to change -- a reaction set twice in place of set and taken back. The
+ * menu takes none meanwhile (`reactionUnderway`: its emoji stand back), so that no press is
+ * dropped without a sign; this is the same rule once more, for whatever reaches here all the same.
+ *
+ * ⛔ `no-cache`, and into the page by `takeChatReactions`, for the reason a changed text goes
+ * that way (`change`): Apollo would write the answer into the cache the moment it comes, also
+ * while an older page is on its way.
+ */
+const reactTo = async ({ message, emoji }) => {
+  if (message?.transfer) {
+    await reactToTransfer(message, emoji)
+    return
+  }
+  const messageUuid = message?.messageUuid
+  if (!reactionsOffered || !messageUuid || reactionsUnderway.value.has(messageUuid)) return
+  const held = messages.value.find((one) => one.messageUuid === messageUuid) ?? message
+  const wanted = chatReactionToSend(held, emoji)
+  reactionsUnderway.value.add(messageUuid)
+  try {
+    const answer = await reactOnServer({ messageUuid, emoji: wanted }, { fetchPolicy: 'no-cache' })
+    const own = answer?.data?.setChatMessageReaction
+    if (!own) throw new Error('setChatMessageReaction: no answer')
+    takeChatReactions([own])
+    // Said in the thread, if it is still there: a window closed meanwhile has nobody listening.
+    if (!threadGone) {
+      announce(
+        wanted === null ? t('chatThread.reactionTakenBack') : t('chatThread.reacted', { emoji }),
+      )
+    }
+  } catch {
+    // Nothing changed: the message keeps the reactions it had, and the member is told -- also
+    // after the window was closed, since the reaction they pressed is not there.
+    toastError(t('chatThread.reactionFailed'))
+  } finally {
+    reactionsUnderway.value.delete(messageUuid)
+  }
+}
+
+/**
+ * Reactions to transfers that were told while an older page is on its way, each as
+ * `[transactionId, reaction]`, in the order they came.
+ *
+ * ⛔ Held as the reactions to messages are (`waitingReactions`), and for the same reason: the
+ * reader's place is put back by the next change of the thread after "load older", and a
+ * transfer's reaction written in between would be that change -- the older page would then land
+ * with nobody keeping the place. Found by the second reading (11.10.2026).
+ */
+let waitingTransferReactions = []
+
+const takeWaitingTransferReactions = () => {
+  if (placeFromBottom !== null || waitingTransferReactions.length === 0) return
+  const told = waitingTransferReactions
+  waitingTransferReactions = []
+  for (const [transactionId, reaction] of told) takeTransferReaction(transactionId, reaction)
+}
+
+/**
+ * A reaction to a transfer was set or taken back (Bernd, 11.10.2026) -- at its bubble here, or
+ * in the booking list this window stands over: the booking the conversation holds gets it.
+ */
+const stopTransferReactions = onTransactionReaction(({ transactionId, reaction }) => {
+  waitingTransferReactions.push([transactionId, reaction])
+  takeWaitingTransferReactions()
+})
+onBeforeUnmount(stopTransferReactions)
+
+/**
+ * An emoji was pressed at a transfer's bubble: the recipient's reaction to the transfer, or the
+ * taking back of it -- read off the booking as the conversation holds it NOW. The rule is the
+ * booking list's and not the conversation's (reactToTransaction): one at a time for a booking,
+ * only where the server said the member may, and what was set is said to every place that
+ * holds the booking -- this conversation among them.
+ */
+const reactToTransfer = async (message, emoji) => {
+  const booking = transfers.value.find((one) => one.id === message.transactionId)
+  if (!booking) return
+  try {
+    const done = await reactToTransaction(apolloClient, booking, emoji)
+    // Said in the thread, if it is still there and something was sent.
+    if (done && !threadGone) {
+      announce(
+        done.reaction === null
+          ? t('chatThread.reactionTakenBack')
+          : t('chatThread.reacted', { emoji: done.reaction }),
+      )
+    }
+  } catch {
+    // Nothing changed: the transfer keeps the reaction it had, and the member is told.
+    toastError(t('chatThread.reactionFailed'))
+  }
+}
 
 /**
  * How many messages are on their way. The bar's own and a video invitation the window sends

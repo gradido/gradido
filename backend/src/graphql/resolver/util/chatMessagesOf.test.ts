@@ -1,9 +1,11 @@
 // AI-GENERATED — not an architecture reference
 import {
+  ChatMessageReactionSelect,
   ChatMessageSelect,
   dbFindUsersByIds,
   dbSelectChatGroupUuids,
   dbSelectChatMessageImageInfos,
+  dbSelectChatMessageReactions,
   dbSelectChatMessagesByUuids,
   dbSelectUsersByUuids,
 } from 'database'
@@ -11,7 +13,7 @@ import { chatMessagesOf } from './chatMessagesOf'
 
 // What the database answers is mocked here: the subject is what a page of messages is put
 // together from -- here, the quotations over its answers: which message an answer may quote, what
-// is read for them, and in how many questions.
+// is read for them, and in how many questions --, and the reactions under its messages.
 jest.mock('database', () => {
   const originalModule = jest.requireActual('database')
   return {
@@ -19,6 +21,7 @@ jest.mock('database', () => {
     ...originalModule,
     dbSelectChatMessagesByUuids: jest.fn(),
     dbSelectChatMessageImageInfos: jest.fn(),
+    dbSelectChatMessageReactions: jest.fn(),
     dbSelectChatGroupUuids: jest.fn(),
     dbSelectUsersByUuids: jest.fn(),
     dbFindUsersByIds: jest.fn(),
@@ -58,6 +61,7 @@ const row = (rest: Partial<ChatMessageSelect> = {}): ChatMessageSelect => ({
   delaySeconds: null,
   createdAt: new Date('2026-10-09T08:00:00.000Z'),
   editedAt: null,
+  reactedAt: null,
   deletedAt: null,
   ...rest,
 })
@@ -74,6 +78,7 @@ const answer = (rest: Partial<ChatMessageSelect> = {}) =>
 
 const byUuids = dbSelectChatMessagesByUuids as jest.Mock
 const imageInfos = dbSelectChatMessageImageInfos as jest.Mock
+const reactionRows = dbSelectChatMessageReactions as jest.Mock
 const groupUuids = dbSelectChatGroupUuids as jest.Mock
 const usersByUuids = dbSelectUsersByUuids as jest.Mock
 const usersByIds = dbFindUsersByIds as jest.Mock
@@ -85,6 +90,7 @@ beforeEach(() => {
   jest.clearAllMocks()
   byUuids.mockResolvedValue([])
   imageInfos.mockResolvedValue([])
+  reactionRows.mockResolvedValue([])
   groupUuids.mockResolvedValue(new Map())
   usersByUuids.mockImplementation(async (pairs: { gradidoId: string }[]) =>
     pairs.map((pair) => ({ id: IDS[pair.gradidoId] })),
@@ -203,5 +209,114 @@ describe('chatMessagesOf, the quotations over answers', () => {
     expect(
       usersByUuids.mock.calls[0][0].map((pair: { gradidoId: string }) => pair.gradidoId),
     ).toEqual(expect.arrayContaining([LENA, NORA]))
+  })
+})
+
+/**
+ * The reactions under the messages of a page (migration 0158): read in one question for the whole
+ * page, and only where a message says it has had any.
+ */
+describe('chatMessagesOf, the reactions under messages', () => {
+  const REACTED_AT = new Date('2026-10-11T06:30:00.000Z')
+  const THUMB = '👍'
+  const HEART = '❤️'
+  const reaction = (
+    id: number,
+    messageId: number,
+    gradidoId: string,
+    emoji: string,
+    communityUuid = HOME,
+  ): ChatMessageReactionSelect => ({
+    id,
+    messageId,
+    communityUuid,
+    gradidoId,
+    emoji,
+    createdAt: new Date('2026-10-11T06:00:00.000Z'),
+  })
+
+  // A page nobody reacted on costs no question more than before.
+  it('asks for no reactions where no row has had any', async () => {
+    const messages = await chatMessagesOf([quoted(), answer()], reader)
+
+    expect(reactionRows).not.toHaveBeenCalled()
+    expect(messages.map((message) => message.reactions)).toEqual([[], []])
+    expect(messages.map((message) => message.reactedAt)).toEqual([null, null])
+  })
+
+  // ⛔ A row without the column at all -- built by hand, as the tests of the senders build
+  // theirs -- has had no reaction either: `undefined` is not a moment.
+  it('asks for no reactions of a row that comes without the column', async () => {
+    const bare = quoted()
+    delete (bare as Partial<ChatMessageSelect>).reactedAt
+
+    const [message] = await chatMessagesOf([bare], reader)
+
+    expect(reactionRows).not.toHaveBeenCalled()
+    expect(message.reactions).toEqual([])
+    expect(message.reactedAt).toBeNull()
+  })
+
+  it('asks once for the whole page, naming only the messages that have had any', async () => {
+    reactionRows.mockResolvedValue([
+      reaction(1, 5, MAX, THUMB),
+      reaction(2, 7, LENA, HEART),
+      reaction(3, 5, NORA, THUMB),
+      reaction(4, 5, LENA, HEART),
+    ])
+    const rows = [
+      quoted({ reactedAt: REACTED_AT }),
+      answer(),
+      row({ id: 7, messageUuid: 'abcdef00-0000-4000-8000-00000000aa07', reactedAt: REACTED_AT }),
+    ]
+
+    const messages = await chatMessagesOf(rows, reader)
+
+    expect(reactionRows.mock.calls).toEqual([[[5, 7]]])
+    // Each message its own, each emoji once in the order it came up, and whose is the reader's.
+    expect(messages.map((message) => message.reactions)).toEqual([
+      [
+        { emoji: THUMB, count: 2, mine: false },
+        { emoji: HEART, count: 1, mine: true },
+      ],
+      [],
+      [{ emoji: HEART, count: 1, mine: true }],
+    ])
+    expect(messages.map((message) => message.reactedAt)).toEqual([REACTED_AT, null, REACTED_AT])
+  })
+
+  // Every reaction was taken back: the moment stays, and the message has none.
+  it('hands out none for a message whose reactions were all taken back', async () => {
+    const [message] = await chatMessagesOf([quoted({ reactedAt: REACTED_AT })], reader)
+
+    expect(reactionRows).toHaveBeenCalledTimes(1)
+    expect(message.reactions).toEqual([])
+    expect(message.reactedAt).toEqual(REACTED_AT)
+  })
+
+  it('takes the reader for the one who reacted whatever the case of the pair', async () => {
+    reactionRows.mockResolvedValue([
+      reaction(1, 5, LENA.toUpperCase(), THUMB, HOME.toUpperCase()),
+      reaction(2, 5, LENA, HEART, '22222222-2222-4222-8222-222222222222'),
+    ])
+
+    const [message] = await chatMessagesOf([quoted({ reactedAt: REACTED_AT })], reader)
+
+    // The same gradido id in another community is somebody else.
+    expect(message.reactions).toEqual([
+      { emoji: THUMB, count: 1, mine: true },
+      { emoji: HEART, count: 1, mine: false },
+    ])
+  })
+
+  // The quoted message's reactions are not the answer's, and are not asked for.
+  it('asks for no reactions of a message that is only quoted', async () => {
+    byUuids.mockResolvedValue([quoted({ reactedAt: REACTED_AT })])
+
+    const [message] = await chatMessagesOf([answer()], reader)
+
+    expect(message.replyTo).not.toBeNull()
+    expect(reactionRows).not.toHaveBeenCalled()
+    expect(message.reactions).toEqual([])
   })
 })

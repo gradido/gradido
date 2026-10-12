@@ -30,6 +30,7 @@ import { GraphQLError } from 'graphql'
 import { getLogger as originalGetLogger } from 'log4js'
 import { GradidoUnit } from 'shared'
 import { Equal, IsNull, Not } from 'typeorm'
+import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { creations } from '@/seeds/creation/index'
 import { creationFactory } from '@/seeds/factory/creation'
@@ -50,6 +51,7 @@ import {
 import {
   adminListContributionIds,
   adminListContributions,
+  adminListContributionsMemberOnMap,
   contributionById,
   listAllContributions,
   listContributions,
@@ -61,6 +63,7 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
 import { findContributions } from './util/findContributions'
+import { Location2Point } from './util/Location2Point'
 
 // Passes every call through - the tests only read which relations the list asked for.
 jest.mock('./util/findContributions', () => {
@@ -2341,6 +2344,68 @@ describe('ContributionResolver', () => {
             },
           },
         ])
+      })
+
+      // The pin behind the member's name under a contribution reads a yes or no off the
+      // member of the row. The member travels as the wallet's `User` type here, built from
+      // the row this list joined: the switch and the place the answer is made of have to come
+      // along with that join, and the guard on the field has to let the moderation through.
+      // The place itself stays with the member, asked for in the same question.
+      describe('the member of a row, on the map', () => {
+        const BIBIS_PLACE = { longitude: 9.573224, latitude: 49.679437 }
+        const originalGms = CONFIG.GMS_ACTIVE
+        const originalMatching = CONFIG.MATCHING_ACTIVE
+
+        beforeAll(async () => {
+          // Bibi allows being found and has a place pinned; nobody else in this file does.
+          await User.update(
+            { id: bibi.id },
+            { gmsAllowed: true, location: Location2Point(BIBIS_PLACE) },
+          )
+          const stored = await User.findOneOrFail({ where: { id: bibi.id } })
+          expect(stored.gmsAllowed).toBe(true)
+          expect(stored.location).toEqual(Location2Point(BIBIS_PLACE))
+          CONFIG.GMS_ACTIVE = true
+          CONFIG.MATCHING_ACTIVE = true
+        })
+
+        afterAll(async () => {
+          CONFIG.GMS_ACTIVE = originalGms
+          CONFIG.MATCHING_ACTIVE = originalMatching
+          await User.update({ id: bibi.id }, { gmsAllowed: false })
+        })
+
+        it('tells the moderation who stands on the map, and keeps the place from it', async () => {
+          const res: any = await query({
+            query: adminListContributionsMemberOnMap,
+            variables: { paginated: { pageSize: 20 } },
+          })
+          expect(res.errors).toBeUndefined()
+          const members = res.data.adminListContributions.contributionList.map(
+            (row: { user: unknown }) => row.user,
+          )
+          const ofBibi = members.filter(
+            (member: { gradidoID: string }) => member.gradidoID === bibi.gradidoID,
+          )
+          const ofOthers = members.filter(
+            (member: { gradidoID: string }) => member.gradidoID !== bibi.gradidoID,
+          )
+          // Rows of both kinds, or one of the two expectations below says nothing.
+          expect(ofBibi.length).toBeGreaterThan(0)
+          expect(ofOthers.length).toBeGreaterThan(0)
+          for (const member of ofBibi) {
+            expect(member).toEqual({
+              gradidoID: bibi.gradidoID,
+              findableOnMap: true,
+              userLocation: null,
+            })
+          }
+          for (const member of ofOthers) {
+            expect(member).toEqual(
+              expect.objectContaining({ findableOnMap: false, userLocation: null }),
+            )
+          }
+        })
       })
 
       it('returns 18 creations in total', async () => {

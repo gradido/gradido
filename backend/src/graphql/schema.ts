@@ -9,6 +9,7 @@ import { BalanceResolver } from './resolver/BalanceResolver'
 import { ChatEditResolver } from './resolver/ChatEditResolver'
 import { ChatForwardResolver } from './resolver/ChatForwardResolver'
 import { ChatGroupResolver } from './resolver/ChatGroupResolver'
+import { ChatReactionResolver } from './resolver/ChatReactionResolver'
 import { ChatResolver } from './resolver/ChatResolver'
 import { ChatVideoServerResolver } from './resolver/ChatVideoServerResolver'
 import { CommunityResolver } from './resolver/CommunityResolver'
@@ -32,6 +33,7 @@ import { StatisticsResolver } from './resolver/StatisticsResolver'
 import { ThankYouCardPaymentResolver } from './resolver/ThankYouCardPaymentResolver'
 import { ThankYouCardResolver } from './resolver/ThankYouCardResolver'
 import { TransactionLinkResolver } from './resolver/TransactionLinkResolver'
+import { TransactionReactionResolver } from './resolver/TransactionReactionResolver'
 import { TransactionResolver } from './resolver/TransactionResolver'
 import { UserCreationGroupResolver } from './resolver/UserCreationGroupResolver'
 import { UserResolver } from './resolver/UserResolver'
@@ -53,6 +55,7 @@ export const schema = (): Promise<GraphQLSchema> => {
       ChatEditResolver,
       ChatForwardResolver,
       ChatGroupResolver,
+      ChatReactionResolver,
       ChatResolver,
       ChatVideoServerResolver,
       CommunityResolver,
@@ -76,6 +79,7 @@ export const schema = (): Promise<GraphQLSchema> => {
       ThankYouCardPaymentResolver,
       ThankYouCardResolver,
       TransactionLinkResolver,
+      TransactionReactionResolver,
       TransactionResolver,
       UserCreationGroupResolver,
       UserResolver,

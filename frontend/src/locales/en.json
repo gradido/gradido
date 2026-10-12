@@ -350,6 +350,15 @@
     "quoteLead": "In reply to:",
     "quoteNotShown": "The quoted message could not be loaded.",
     "quoteShown": "Quoted message shown",
+    "react": "React",
+    "reactMore": "More emoji",
+    "reactTakeBack": "Remove reaction {emoji}",
+    "reactWith": "React with {emoji}",
+    "reacted": "Reacted with {emoji}",
+    "reactionFailed": "The reaction could not be saved.",
+    "reactionMine": "your reaction",
+    "reactionTakenBack": "Reaction removed",
+    "reactionsLead": "Reactions:",
     "remaining": "{n} character left | {n} characters left",
     "reply": "Reply",
     "replyCancel": "Cancel reply",
@@ -579,6 +588,13 @@
     "resend": "Send mail again",
     "resent": "The confirmation mail is on its way again.",
     "title": "Confirm your e-mail address"
+  },
+  "emoji": {
+    "choice": "Emoji",
+    "insert": "Insert emoji",
+    "inserted": "{emoji} inserted",
+    "moreOnMac": "More emoji: ctrl + cmd + space bar",
+    "moreOnWindows": "More emoji: Windows key + period (.)"
   },
   "error": {
     "email-already-sent": "We already sent you an email less than 10 minutes ago.",
@@ -894,7 +910,10 @@
     },
     "entries": {
       "activate": "Activate",
-      "count": "{total} entries · {live} live · {paused} paused",
+      "count": "{total} · {live} · {paused}",
+      "countLive": "{n} live",
+      "countPaused": "{n} paused",
+      "countTotal": "{n} entry | {n} entries",
       "delete": "Delete",
       "deleteConfirm": "Delete this entry?",
       "details": "Details",
@@ -913,9 +932,7 @@
       "later": "Later",
       "subtitle": "Discover who fits you",
       "title": "Find on the map",
-      "titleList": "Find in the list",
-      "toPosition": "Go to my home",
-      "understood": "Got it"
+      "titleList": "Find in the list"
     },
     "info": {
       "about": {
@@ -933,6 +950,17 @@
         "p1": "You decide how precisely you appear. \"Approximate\" shows you within an area — never at your front door.",
         "p2": "Without a position you are not on the map. The switch takes you out again at any time."
       }
+    },
+    "invitation": {
+      "entriesGo": "Make my first entry",
+      "entriesMore": "Make another entry",
+      "entriesText": "Enter what you look for, what you give and what you love. Matching then shows you the people who fit — and shows you to them.",
+      "entriesTitle": "Who fits you?",
+      "go": "Make me visible on the map",
+      "question": "Which of them live near you?",
+      "text": "Set your home on the map and you will see — and the others will see you. You decide how precisely: \"Approximate\" shows you within an area, never at your front door. And you can leave again at any time.",
+      "title": "Who lives near you?",
+      "titleCount": "{n} people on the Gradido map"
     },
     "list": {
       "centeredOn": "Centred on {place}",
@@ -1035,6 +1063,11 @@
       "findableOff": "You are no longer findable on the map",
       "findableOn": "You are now findable on the map",
       "intro": "Place yourself on the map to take part in matching — you only appear once you do.",
+      "joinText": "Others will find you on the map, and you will find them. You can leave again at any time.",
+      "joinTitle": "Show yourself on the map",
+      "leaveGo": "Take me off the map",
+      "leaveText": "Others will no longer find you, and you will no longer find them. Your home and your entries stay saved. You can come back at any time.",
+      "leaveTitle": "Leave the map",
       "needsHome": "Set your home on the map first.",
       "saveText": "Do you want to save your position settings now?",
       "saveTitle": "Save position",

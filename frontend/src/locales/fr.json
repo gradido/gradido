@@ -350,6 +350,15 @@
     "quoteLead": "En réponse à :",
     "quoteNotShown": "Le message cité n'a pas pu être chargé.",
     "quoteShown": "Message cité affiché",
+    "react": "Réagir",
+    "reactMore": "Plus d'emojis",
+    "reactTakeBack": "Retirer la réaction {emoji}",
+    "reactWith": "Réagir avec {emoji}",
+    "reacted": "Tu as réagi avec {emoji}",
+    "reactionFailed": "La réaction n'a pas pu être enregistrée.",
+    "reactionMine": "ta réaction",
+    "reactionTakenBack": "Réaction retirée",
+    "reactionsLead": "Réactions :",
     "remaining": "Il reste {n} caractère | Il reste {n} caractères",
     "reply": "Répondre",
     "replyCancel": "Annuler la réponse",
@@ -579,6 +588,13 @@
     "resend": "Renvoyer l'e-mail",
     "resent": "L'e-mail de confirmation est de nouveau en route.",
     "title": "Confirme ton adresse e-mail"
+  },
+  "emoji": {
+    "choice": "Emojis",
+    "insert": "Insérer un emoji",
+    "inserted": "Inséré : {emoji}",
+    "moreOnMac": "Plus d'emojis : ctrl + cmd + barre d'espace",
+    "moreOnWindows": "Plus d'emojis : touche Windows + point (.)"
   },
   "error": {
     "email-already-sent": "Nous t'avons déjà envoyé un e-mail il y a moins de 10 minutes.",
@@ -894,7 +910,10 @@
     },
     "entries": {
       "activate": "Activer",
-      "count": "{total} entrées · {live} actives · {paused} en pause",
+      "count": "{total} · {live} · {paused}",
+      "countLive": "{n} active | {n} active | {n} actives",
+      "countPaused": "{n} en pause",
+      "countTotal": "{n} entrée | {n} entrée | {n} entrées",
       "delete": "Supprimer",
       "deleteConfirm": "Supprimer cette entrée ?",
       "details": "Détails",
@@ -913,9 +932,7 @@
       "later": "Plus tard",
       "subtitle": "Découvre qui te correspond",
       "title": "Trouver sur la carte",
-      "titleList": "Trouver dans la liste",
-      "toPosition": "Aller chez moi",
-      "understood": "Compris"
+      "titleList": "Trouver dans la liste"
     },
     "info": {
       "about": {
@@ -933,6 +950,17 @@
         "p1": "Tu décides avec quelle précision tu apparais. « Approximative » te montre dans une zone, jamais devant ta porte.",
         "p2": "Sans position, tu n'es pas sur la carte. L'interrupteur te retire à tout moment."
       }
+    },
+    "invitation": {
+      "entriesGo": "Créer ma première entrée",
+      "entriesMore": "Créer une autre entrée",
+      "entriesText": "Indique ce que tu cherches, ce que tu donnes et ce que tu aimes. Le matching te montre alors les personnes qui te correspondent, et te montre à elles.",
+      "entriesTitle": "Qui te correspond ?",
+      "go": "Me montrer sur la carte",
+      "question": "Lesquelles habitent près de chez toi ?",
+      "text": "Indique sur la carte où tu habites et tu le verras, et les autres te verront. Tu décides avec quelle précision : « Approximative » te montre dans une zone, jamais devant ta porte. Et tu peux te retirer à tout moment.",
+      "title": "Qui habite près de chez toi ?",
+      "titleCount": "{n} personnes sur la carte Gradido"
     },
     "list": {
       "centeredOn": "Autour de {place}",
@@ -1035,6 +1063,11 @@
       "findableOff": "Tu n'es plus visible sur la carte",
       "findableOn": "Tu es maintenant visible sur la carte",
       "intro": "Place-toi sur la carte pour participer au matching : tu n'apparais qu'à ce moment-là.",
+      "joinText": "Les autres te trouveront sur la carte, et tu les trouveras. Tu peux te retirer à tout moment.",
+      "joinTitle": "Se montrer sur la carte",
+      "leaveGo": "Me retirer de la carte",
+      "leaveText": "Les autres ne te trouveront plus, et tu ne les trouveras plus. Ta position et tes entrées restent enregistrées. Tu peux revenir à tout moment.",
+      "leaveTitle": "Se retirer de la carte",
       "needsHome": "Indique d'abord sur la carte où tu habites.",
       "saveText": "Veux-tu sauvegarder maintenant tes réglages de position ?",
       "saveTitle": "Sauvegarder la position",

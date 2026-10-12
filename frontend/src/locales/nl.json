@@ -350,6 +350,15 @@
     "quoteLead": "Antwoord op:",
     "quoteNotShown": "Het geciteerde bericht kon niet worden geladen.",
     "quoteShown": "Geciteerd bericht getoond",
+    "react": "Reageren",
+    "reactMore": "Meer emoji's",
+    "reactTakeBack": "Reactie {emoji} intrekken",
+    "reactWith": "Reageren met {emoji}",
+    "reacted": "Gereageerd met {emoji}",
+    "reactionFailed": "De reactie kon niet worden opgeslagen.",
+    "reactionMine": "jouw reactie",
+    "reactionTakenBack": "Reactie ingetrokken",
+    "reactionsLead": "Reacties:",
     "remaining": "Nog {n} teken | Nog {n} tekens",
     "reply": "Antwoorden",
     "replyCancel": "Antwoord annuleren",
@@ -579,6 +588,13 @@
     "resend": "Mail opnieuw sturen",
     "resent": "De bevestigingsmail is opnieuw onderweg.",
     "title": "Bevestig je e-mailadres"
+  },
+  "emoji": {
+    "choice": "Emoji's",
+    "insert": "Emoji invoegen",
+    "inserted": "{emoji} ingevoegd",
+    "moreOnMac": "Meer emoji's: ctrl + cmd + spatiebalk",
+    "moreOnWindows": "Meer emoji's: Windows-toets + punt (.)"
   },
   "error": {
     "email-already-sent": "Wij hebben jou minder dan 10 minuten geleden een email gestuurd.",
@@ -894,7 +910,10 @@
     },
     "entries": {
       "activate": "Activeren",
-      "count": "{total} vermeldingen · {live} live · {paused} gepauzeerd",
+      "count": "{total} · {live} · {paused}",
+      "countLive": "{n} live",
+      "countPaused": "{n} gepauzeerd",
+      "countTotal": "{n} vermelding | {n} vermeldingen",
       "delete": "Verwijderen",
       "deleteConfirm": "Deze vermelding verwijderen?",
       "details": "Details",
@@ -913,9 +932,7 @@
       "later": "Later",
       "subtitle": "Ontdek wie bij je past",
       "title": "Vinden op de kaart",
-      "titleList": "In de lijst vinden",
-      "toPosition": "Naar Thuis",
-      "understood": "Begrepen"
+      "titleList": "In de lijst vinden"
     },
     "info": {
       "about": {
@@ -933,6 +950,17 @@
         "p1": "Jij bepaalt hoe precies je verschijnt. 'Ongeveer' toont je binnen een omgeving, nooit aan je voordeur.",
         "p2": "Zonder positie sta je niet op de kaart. De schakelaar haalt je op elk moment weer weg."
       }
+    },
+    "invitation": {
+      "entriesGo": "Eerste vermelding plaatsen",
+      "entriesMore": "Nog een vermelding plaatsen",
+      "entriesText": "Geef aan wat je zoekt, wat je geeft en waar je van houdt. Matching toont je dan de mensen die daarbij passen — en toont jou aan hen.",
+      "entriesTitle": "Wie past er bij jou?",
+      "go": "Mezelf op de kaart tonen",
+      "question": "Wie van hen woont er bij jou in de buurt?",
+      "text": "Zet je thuis op de kaart, dan zie je het — en de anderen zien jou. Jij bepaalt hoe precies: 'Ongeveer' toont je binnen een omgeving, nooit aan je voordeur. En je kunt er op elk moment weer af.",
+      "title": "Wie woont er bij jou in de buurt?",
+      "titleCount": "{n} mensen op de Gradido‑kaart"
     },
     "list": {
       "centeredOn": "Rondom {place}",
@@ -1035,6 +1063,11 @@
       "findableOff": "Je bent niet meer vindbaar op de kaart",
       "findableOn": "Je bent nu vindbaar op de kaart",
       "intro": "Plaats jezelf op de kaart om aan matching mee te doen: je verschijnt pas als je dat doet.",
+      "joinText": "Anderen vinden je dan op de kaart, en jij vindt hen. Je kunt er op elk moment weer af.",
+      "joinTitle": "Op de kaart tonen",
+      "leaveGo": "Mezelf van de kaart halen",
+      "leaveText": "Anderen vinden je dan niet meer, en jij vindt hen niet meer. Je thuis en je vermeldingen blijven opgeslagen. Je kunt op elk moment terug.",
+      "leaveTitle": "Van de kaart halen",
       "needsHome": "Zet eerst je thuis op de kaart.",
       "saveText": "Wil je je positie-instellingen nu opslaan?",
       "saveTitle": "Positie opslaan",

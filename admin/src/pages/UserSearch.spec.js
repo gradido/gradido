@@ -38,6 +38,7 @@ const mockSearchUsers = {
       emailChecked: false,
       role: null,
       deletedAt: null,
+      findableOnMap: false,
     },
     {
       userId: 3,
@@ -48,6 +49,7 @@ const mockSearchUsers = {
       role: 'ADMIN',
       emailChecked: true,
       deletedAt: null,
+      findableOnMap: true,
     },
     {
       userId: 2,
@@ -58,6 +60,7 @@ const mockSearchUsers = {
       role: null,
       emailChecked: true,
       deletedAt: new Date(),
+      findableOnMap: false,
     },
     {
       userId: 1,
@@ -68,6 +71,7 @@ const mockSearchUsers = {
       role: null,
       emailChecked: true,
       deletedAt: null,
+      findableOnMap: true,
     },
   ],
 }
@@ -181,6 +185,46 @@ describe('UserSearch', () => {
         .vm.$emit('update-role', 1, 'MODERATOR')
       expect(roleOf(3)).toBe('ADMIN')
       expect(roleOf(4)).toBeNull()
+    })
+  })
+
+  // SearchUserTable re-emits DeletedUserFormular's `{ userId, deletedAt }` as two arguments.
+  describe('update-deleted-at from the table', () => {
+    const table = () => wrapper.findComponent({ name: 'SearchUserTable' })
+    const rowOf = (userId) =>
+      table()
+        .props('items')
+        .find((user) => user.userId === userId)
+    const DELETED = '2026-10-12T11:00:00.000Z'
+
+    it('marks the member as deleted', async () => {
+      await table().vm.$emit('update-deleted-at', 1, DELETED)
+      expect(rowOf(1).deletedAt).toBe(DELETED)
+    })
+
+    // The pin behind the username goes with the account (MemberMapPin): the server gives a
+    // deleted member none, and the row is not asked for again here.
+    it('takes the pin off a member who was just deleted', async () => {
+      expect(rowOf(1).findableOnMap).toBe(true)
+      await table().vm.$emit('update-deleted-at', 1, DELETED)
+      expect(rowOf(1).findableOnMap).toBe(false)
+    })
+
+    it('leaves the pins of the other members', async () => {
+      await table().vm.$emit('update-deleted-at', 1, DELETED)
+      expect(rowOf(3).findableOnMap).toBe(true)
+      expect(rowOf(3).deletedAt).toBeNull()
+    })
+
+    // Whether a member who is brought back stands on the map only the server knows.
+    it('brings a member back, without a pin until the list is asked again', async () => {
+      await table().vm.$emit('update-deleted-at', 2, null)
+      expect(rowOf(2).deletedAt).toBeNull()
+      expect(rowOf(2).findableOnMap).toBe(false)
+
+      await table().vm.$emit('update-deleted-at', 1, DELETED)
+      await table().vm.$emit('update-deleted-at', 1, null)
+      expect(rowOf(1).findableOnMap).toBe(false)
     })
   })
 })

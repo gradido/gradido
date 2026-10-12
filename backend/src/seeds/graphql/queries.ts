@@ -31,6 +31,12 @@ export const gmsDashboardUrl = gql`
   }
 `
 
+export const mapMemberCount = gql`
+  query {
+    mapMemberCount
+  }
+`
+
 export const userLocationQuery = gql`
   query {
     userLocation {
@@ -185,6 +191,9 @@ export const searchUsers = gql`
         deletedAt
         role
         creationAllowed
+        gradidoID
+        communityUuid
+        findableOnMap
       }
     }
   }
@@ -408,6 +417,22 @@ export const adminListContributions = gql`
           id
           tag
           name
+        }
+      }
+    }
+  }
+`
+
+// The member of each row as the pin under a contribution reads them: whether they stand on
+// the map, with the position next to it -- the admin's own document asks for the first alone.
+export const adminListContributionsMemberOnMap = gql`
+  query ($paginated: Paginated) {
+    adminListContributions(paginated: $paginated) {
+      contributionList {
+        user {
+          gradidoID
+          findableOnMap
+          userLocation
         }
       }
     }
@@ -746,6 +771,45 @@ export const queryTransactionLinkUserLocation = gql`
   }
 `
 
+// Whether a member stands on the map of the member search, asked for over the same three ways
+// as the position above -- and with the position next to it wherever somebody else is asked
+// about: the moderation is told the yes or no, never the place.
+export const verifyLoginFindableOnMap = gql`
+  query {
+    verifyLogin {
+      gradidoID
+      findableOnMap
+    }
+  }
+`
+
+export const userFindableOnMap = gql`
+  query ($identifier: String!, $communityIdentifier: String!) {
+    user(identifier: $identifier, communityIdentifier: $communityIdentifier) {
+      gradidoID
+      findableOnMap
+      userLocation
+    }
+  }
+`
+
+export const queryTransactionLinkFindableOnMap = gql`
+  query ($code: String!) {
+    queryTransactionLink(code: $code) {
+      ... on TransactionLink {
+        senderUser {
+          gradidoID
+          findableOnMap
+        }
+        redeemedBy {
+          gradidoID
+          findableOnMap
+        }
+      }
+    }
+  }
+`
+
 // Seven settings a member decides about their own account, asked for over the same three
 // ways as the position above.
 export const verifyLoginOwnSettings = gql`
@@ -999,6 +1063,57 @@ export const newChatMessagesAndEditsSince = gql`
         editedAt
       }
       editedCursor
+    }
+  }
+`
+
+/** The beat with the messages whose reactions changed beside the new ones (migration 0158). */
+export const newChatMessagesAndReactionsSince = gql`
+  query ($afterId: Int, $limit: Int, $reactedCursor: String) {
+    newChatMessagesSince(afterId: $afterId, limit: $limit, reactedCursor: $reactedCursor) {
+      latestId
+      unreadConversations
+      messages {
+        id
+        body
+        reactedAt
+        reactions {
+          emoji
+          count
+          mine
+        }
+      }
+      reacted {
+        id
+        messageUuid
+        mine
+        body
+        reactedAt
+        reactions {
+          emoji
+          count
+          mine
+        }
+      }
+      reactedCursor
+    }
+  }
+`
+
+/** A thread of two with the reactions under its messages (migration 0158). */
+export const chatMessagesWithMemberAndReactions = gql`
+  query ($ref: MemberAvatarRefInput!) {
+    chatMessagesWithMember(ref: $ref) {
+      messages {
+        messageUuid
+        body
+        reactedAt
+        reactions {
+          emoji
+          count
+          mine
+        }
+      }
     }
   }
 `
