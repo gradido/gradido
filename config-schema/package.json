@@ -32,10 +32,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",
-    "@types/node": "^24.9.1",
-    "jest": "30.5.2",
-    "typescript": "~5.9.3",
-    "typescript-go": "npm:typescript@7.0.2"
+    "@types/node": "^24.9.1"
   },
   "dependencies": {
     "esbuild": "^0.25.2",
