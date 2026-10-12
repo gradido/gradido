@@ -13,6 +13,7 @@ import ru from './ru.json'
 import el from './el.json'
 import tr from './tr.json'
 import { chatHelloText } from '@/utils/chatHelloText'
+import { chatMarkdown } from '@/utils/chatMarkdown'
 
 /**
  * The first word from the map (E-065, E-068) in the wallet's ten languages: what stands in the
@@ -240,4 +241,37 @@ describe('the first word from the map, in ten languages', () => {
     // After the name, in whatever case the language puts it, the sentence goes on or ends.
     expect(tIn(language)('chatHello.sentMailed', { name: 'Jens' })).toMatch(/Jens[ .]/)
   })
+
+  /**
+   * E-078: the thread reads every message as Markdown, the first word from the map and the three
+   * answers too -- and none of them is Markdown, whatever the two are called: a user name may
+   * carry an underscore or a hyphen between its letters, and the signature is the last word.
+   */
+  it.each(LANGUAGES)(
+    '%s: the words and the answers stay one stretch of text in the thread',
+    (language) => {
+      const t = tIn(language)
+      const sent = [
+        chatHelloText(t, {
+          name: 'jens_m',
+          signature: 'maren_k-2',
+          distance: { km: 12 },
+          locale: language,
+        }),
+        chatHelloText(t, {
+          name: 'Jens-Uwe',
+          signature: 'a_b_c',
+          distance: { near: true },
+          locale: language,
+        }),
+        chatHelloText(t, { name: 'Jens', distance: null, locale: language }),
+        ...ANSWERS.map((key) => t(`chatHello.${key}`)),
+      ]
+      for (const words of sent) {
+        expect(chatMarkdown(words), words).toEqual([
+          { type: 'text', inline: [{ type: 'text', value: words }] },
+        ])
+      }
+    },
+  )
 })
