@@ -3,9 +3,11 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { flushPromises, mount } from '@vue/test-utils'
-import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach, vi } from 'vitest'
+import { effectScope } from 'vue'
 import ChatThread from './ChatThread.vue'
 import ChatComposeBar from './ChatComposeBar.vue'
+import { useChatWindowSize } from '@/composables/useChatWindowSize'
 import { chatDraftFor, chatGroupDraftKey, forgetChatDrafts } from '@/utils/chatDraft'
 import { holdChatText, takeHeldChatText } from '@/utils/chatReturn'
 import {
@@ -372,11 +374,12 @@ const ownCopy = (
  *
  * Two switches for what the probe measured in a real browser: `hidden` is the window not
  * shown yet (`display: none`, so everything 0 high), `extra` a line the content gains late
- * (a font that arrives after the page).
+ * (a font that arrives after the page). And `row`, how high a bubble is: another height in a
+ * window of another width (E-077).
  */
 const ROW = 40
 const BOX = 200
-const layout = { hidden: false, extra: 0 }
+const layout = { hidden: false, extra: 0, row: ROW }
 const scrollTops = new WeakMap()
 const isThreadBox = (element) => element.classList?.contains('chat-thread-scroll')
 
@@ -411,7 +414,7 @@ beforeAll(() => {
     get() {
       if (!isThreadBox(this) || layout.hidden) return 0
       const bubbles = this.querySelectorAll('[data-test="chat-bubble"]').length
-      return Math.max(BOX, bubbles * ROW + layout.extra)
+      return Math.max(BOX, bubbles * layout.row + layout.extra)
     },
   })
   Object.defineProperty(HTMLElement.prototype, 'clientHeight', {
@@ -511,6 +514,7 @@ describe('ChatThread', () => {
     beat.pollNow.mockClear()
     layout.hidden = false
     layout.extra = 0
+    layout.row = ROW
     delete document.hidden
   })
 
@@ -1597,6 +1601,315 @@ describe('ChatThread', () => {
       sizesChanged()
 
       expect(box.scrollTop).toBe(40)
+    })
+
+    /**
+     * E-077: the window around the thread is made large, or small again (the switch beside the
+     * magnifier, useChatWindowSize). The lines reflow -- here every bubble is half as high in the
+     * large window --, and what stood at the top edge of the box stays there.
+     *
+     * A browser's rectangles for it, on top of the layout above: the box's top edge at 0, the
+     * bubbles under one another from the top of what the box holds, each `layout.row` high.
+     */
+    describe('while the window is made large or small again', () => {
+      let scope
+      let size
+      let rectangles
+
+      const numbered = (from, to) => Array.from({ length: to - from + 1 }, (unused, i) => from + i)
+      const rectangle = (top, height) => ({
+        top,
+        height,
+        bottom: top + height,
+        left: 0,
+        right: 0,
+        width: 0,
+        x: 0,
+        y: top,
+      })
+
+      beforeEach(() => {
+        scope = effectScope()
+        size = scope.run(() => useChatWindowSize())
+        rectangles = vi
+          .spyOn(Element.prototype, 'getBoundingClientRect')
+          .mockImplementation(function laidOut() {
+            if (isThreadBox(this)) return rectangle(0, BOX)
+            const box = this.closest('.chat-thread-scroll')
+            if (!box || !this.matches('[data-key]')) return rectangle(0, 0)
+            const index = [...box.querySelectorAll('[data-key]')].indexOf(this)
+            return rectangle(index * layout.row - box.scrollTop, layout.row)
+          })
+      })
+
+      afterEach(() => {
+        // The size is one for every chat window of the page (module state): back to the usual
+        // one, and nothing of it left on the device.
+        if (size.large.value) size.toggleLarge()
+        scope.stop()
+        rectangles.mockRestore()
+        window.localStorage.removeItem('chat-window-large:me-id')
+      })
+
+      /** The switch is pressed: the window changes, and with it the height of every bubble. */
+      const turnWindow = async (row) => {
+        size.toggleLarge()
+        layout.row = row
+        await flushPromises()
+      }
+
+      it('keeps what stood at the top edge of the box there', async () => {
+        mountThread()
+        await arrive(page(numbered(1, 30)))
+        const box = log().element
+        // 30 bubbles of 40 px. The reader went up: the edge stands half-way into the 13th.
+        box.scrollTop = 500
+        await log().trigger('scroll')
+
+        await turnWindow(20)
+        // Half as high now: the 13th begins at 240, and half-way into it is 250. Left alone the
+        // box would stand at its 500 -- in the 26th.
+        expect(box.scrollTop).toBe(250)
+
+        await turnWindow(ROW)
+        expect(box.scrollTop).toBe(500)
+      })
+
+      /**
+       * While the thread follows its newest message the bottom is the place, and the box's own
+       * observer keeps it. The window's change itself moves nothing: the stand-in box stays at
+       * its number until the observer is told -- a place taken from the top edge here would
+       * have moved it already.
+       */
+      it('leaves the bottom to the observer while the thread follows its newest message', async () => {
+        mountThread()
+        await arrive(page(numbered(1, 30)))
+        const box = log().element
+        expect(box.scrollTop).toBe(1000)
+
+        await turnWindow(20)
+        expect(box.scrollTop).toBe(1000)
+
+        sizesChanged()
+        expect(box.scrollHeight).toBe(600)
+        expect(box.scrollTop).toBe(400)
+      })
+
+      /**
+       * ⛔ The distance from the bottom is corrected for a page that IS on its way, and for that
+       * one only. Taken wherever a place was put back, the next message to arrive would have
+       * been read as that page landing, and the box moved by the message's height -- away from
+       * what the reader was at.
+       */
+      it('takes no message that arrives later for an older page landing', async () => {
+        mountThread()
+        await arrive(page(numbered(1, 30)))
+        const box = log().element
+        box.scrollTop = 500
+        await log().trigger('scroll')
+        await turnWindow(20)
+        expect(box.scrollTop).toBe(250)
+
+        await arrive(page(numbered(1, 31)))
+        expect(box.scrollTop).toBe(250)
+      })
+
+      /**
+       * An older page on its way keeps the reader's place by its distance from the bottom -- and
+       * that distance is another one in a window of another width. Kept as it was, the page
+       * would land with the reader at the top of the NEW messages.
+       */
+      it('keeps the place for an older page that lands after the window changed', async () => {
+        mountThread()
+        await arrive(page(numbered(11, 40), { hasMore: true }))
+        const box = log().element
+        box.scrollTop = 0 // scrolled all the way up, to the button
+        let land
+        server.gate = new Promise((resolve) => {
+          land = resolve
+        })
+        server.olderPages.push(page(numbered(1, 10)))
+        await older().trigger('click')
+
+        await turnWindow(20)
+        land()
+        await flushPromises()
+
+        // 40 bubbles of 20 px now, 800 px; the first of the old page (message 11) starts at 200.
+        expect(box.scrollHeight).toBe(800)
+        expect(box.scrollTop).toBe(200)
+      })
+
+      /**
+       * ⛔ Near the thread's end the large window holds everything below the place: its box stops
+       * at the bottom, and from there the thread follows its newest message. The way back ended at
+       * the thread's END -- under the last lines of the long message whose first line the window
+       * was made large for (the second reader, 12.10.2026). The place is held, and put back.
+       */
+      describe('a place the other window cannot put at its top edge', () => {
+        /** The edge half-way into the 23rd of 30 bubbles, and the window made large. */
+        const enlargedNearTheEnd = async () => {
+          mountThread()
+          await arrive(page(numbered(1, 30)))
+          const box = log().element
+          box.scrollTop = 900
+          await log().trigger('scroll')
+
+          await turnWindow(20)
+          // Half-way into the 23rd is 450 now, and 600 px of thread end at 400 in a box of 200.
+          expect(box.scrollTop).toBe(400)
+          await log().trigger('scroll')
+          sizesChanged()
+          return box
+        }
+
+        it('is put back on the way back, and the thread does not go to its end', async () => {
+          const box = await enlargedNearTheEnd()
+          expect(box.scrollTop).toBe(400)
+
+          await turnWindow(ROW)
+          expect(box.scrollTop).toBe(900)
+          // The observer runs before the scroll is reported: it has to leave the box there.
+          sizesChanged()
+          expect(box.scrollTop).toBe(900)
+          await log().trigger('scroll')
+          sizesChanged()
+          expect(box.scrollTop).toBe(900)
+        })
+
+        /**
+         * The box ended at the thread's end: the thread follows its newest message from there,
+         * at once -- a message that arrives before the browser has reported the scroll is gone
+         * down to as well.
+         */
+        it("leaves the thread following its newest message, where the box came to the thread's end", async () => {
+          mountThread()
+          await arrive(page(numbered(1, 30)))
+          const box = log().element
+          box.scrollTop = 900
+          await log().trigger('scroll')
+          await turnWindow(20)
+          expect(box.scrollTop).toBe(400)
+
+          await arrive(page(numbered(1, 31)))
+          expect(box.scrollTop).toBe(420)
+        })
+
+        // The reader scrolled in the large window: where they are now is the place.
+        it('is let go once the reader has moved', async () => {
+          const box = await enlargedNearTheEnd()
+          box.scrollTop = 300
+          await log().trigger('scroll')
+
+          await turnWindow(ROW)
+          // The 16th bubble stood at the edge: 15 bubbles of 40 px above it now.
+          expect(box.scrollTop).toBe(600)
+        })
+
+        // A new message came and the thread went down to it: the bottom is the place again.
+        it('is let go once the thread went down to a new message', async () => {
+          const box = await enlargedNearTheEnd()
+          await arrive(page(numbered(1, 31)))
+          expect(box.scrollTop).toBe(420)
+
+          await turnWindow(ROW)
+          expect(box.scrollTop).toBe(420)
+          sizesChanged()
+          expect(box.scrollTop).toBe(1040)
+        })
+      })
+
+      /**
+       * ⛔ The hit the search stands on (E-057) stays in the box. The search puts it in the middle,
+       * the place kept is the top edge, and in the narrower window what lies between the two is
+       * longer: the marked message stood below the fold, the bar still counting it as the one
+       * shown. (jsdom knows no height of an item: "the middle" is its top edge at half the box.)
+       */
+      describe('the hit the search stands on', () => {
+        const searchedThread = async () => {
+          mountThread(LENA, { props: { member: LENA, alias: 'Lena', search: '' } })
+          await arrive({
+            hasMore: false,
+            mutedByMe: false,
+            messages: numbered(1, 30).map((n) => ({
+              ...message(n),
+              body: n === 21 ? 'Die Bank am Waldrand' : 'Hallo',
+            })),
+          })
+          return log().element
+        }
+        const search = async () => {
+          await wrapper.setProps({ search: 'bank' })
+          for (let round = 0; round < 5; round += 1) await flushPromises()
+          await log().trigger('scroll')
+        }
+
+        it('is shown again where the window made small put it below the fold', async () => {
+          const box = await searchedThread()
+          await turnWindow(20)
+          sizesChanged()
+          await search()
+          // The 21st bubble begins at 400: its top edge at half the box.
+          expect(box.scrollTop).toBe(300)
+
+          await turnWindow(ROW)
+          // The 16th stood at the top edge, and is there again at 600 -- with the hit at 800,
+          // just under the box. Shown as the search shows it: 800 less half the box.
+          expect(box.scrollTop).toBe(700)
+        })
+
+        it('leaves the place alone where the hit still stands in the box', async () => {
+          const box = await searchedThread()
+          await search()
+          // The 21st begins at 800: the box at 700, half-way into the 18th.
+          expect(box.scrollTop).toBe(700)
+
+          await turnWindow(20)
+          // Half-way into the 18th is 350, and the hit stands 50 px under the edge. Shown anew
+          // it would have been put at half the box: 300.
+          expect(box.scrollTop).toBe(350)
+        })
+
+        // The reader went elsewhere in the thread: that is their place, and the hit is not fetched.
+        it('leaves a reader who scrolled away from the hit where they are', async () => {
+          const box = await searchedThread()
+          await search()
+          box.scrollTop = 100
+          await log().trigger('scroll')
+
+          await turnWindow(20)
+          // Half-way into the 3rd bubble is 50; the hit, at 400, is as far out of the box as before.
+          expect(box.scrollTop).toBe(50)
+        })
+      })
+
+      /**
+       * The bar's field is as high as its text needs -- at the width it has. Written when the
+       * text changes only, the height stayed the other window's: two lines shown of five, the
+       * caret out of sight. A browser's measures for it: the field has a box, and its words are
+       * 88 px high.
+       */
+      it("has the bar's field take its height for the width it has now", async () => {
+        mountThread()
+        await arrive(page(numbered(1, 3)))
+        const words = field().element
+        Object.defineProperty(words, 'scrollHeight', { configurable: true, value: 88 })
+        vi.spyOn(words, 'getClientRects').mockReturnValue([{}])
+        expect(words.style.height).toBe('')
+
+        await turnWindow(20)
+        expect(words.style.height).toBe('88px')
+      })
+
+      // No thread on screen (still loading, or empty): nothing to keep, and nothing breaks.
+      it('does nothing where there is no thread on screen', async () => {
+        mountThread()
+        await turnWindow(20)
+        expect(log().exists()).toBe(false)
+        await arrive(page([]))
+        await turnWindow(ROW)
+        expect(wrapper.find('[data-test="chat-thread-empty"]').exists()).toBe(true)
+      })
     })
 
     it('watches the box and what it holds, and stops watching when the thread goes', async () => {

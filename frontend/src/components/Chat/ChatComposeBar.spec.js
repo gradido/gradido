@@ -1089,6 +1089,48 @@ describe('ChatComposeBar', () => {
 
       expect(field().element.style.height).toBe('104px')
     })
+
+    /**
+     * E-077: the window around the bar is made large, or small again, and the thread asks the bar
+     * for its field's height at the width it has now (`fit`). The height is written when the text
+     * changes, and the same words are two lines in the large window and five in the narrow one:
+     * left alone, the field showed its first two lines and hid the end of the draft with the
+     * caret until the next key.
+     */
+    describe('when its window gets another width', () => {
+      const wordsAre = (height) =>
+        Object.defineProperty(HTMLTextAreaElement.prototype, 'scrollHeight', {
+          configurable: true,
+          get: () => (boxes.length ? height : 0),
+        })
+
+      it('takes the height the words need now', () => {
+        boxes = [{}]
+        mountBar({ initialText: WORDS })
+        expect(field().element.style.height).toBe('104px')
+
+        wordsAre(44)
+        wrapper.vm.fit()
+        expect(field().element.style.height).toBe('44px')
+      })
+
+      // ⛔ A window that is not shown has no box: every measure is zero, and "0px" was the sliver.
+      it('writes no height where its window is not shown', () => {
+        mountBar({ initialText: WORDS })
+
+        wrapper.vm.fit()
+        expect(field().element.style.height).toBe('')
+      })
+
+      it('keeps the height written where the window was closed meanwhile', () => {
+        boxes = [{}]
+        mountBar({ initialText: WORDS })
+        boxes = []
+
+        wrapper.vm.fit()
+        expect(field().element.style.height).toBe('104px')
+      })
+    })
   })
 
   /**

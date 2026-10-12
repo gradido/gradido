@@ -178,6 +178,9 @@ describe('ContactWindow', () => {
           IMdiMagnify: true,
           IMdiChevronUp: true,
           IMdiChevronDown: true,
+          // The switch for the window's size (ChatWindowSizeToggle); its own spec is about it.
+          IMdiArrowExpand: true,
+          IMdiArrowCollapse: true,
           // The thread reads the server; its own spec is about that. Here it only has to say
           // whom it was made for, count how often it was made, and take a video invitation
           // (`deliver`, which the real one exposes) for whom it was made. And it takes the
@@ -251,6 +254,8 @@ describe('ContactWindow', () => {
     delete config.MATCHING_ACTIVE
     delete storeState.gmsAllowed
     delete storeState.userLocation
+    // What a test left of the window's size (useChatWindowSize) is the next window's otherwise.
+    localStorage.removeItem('chat-window-large:me-id')
     vi.restoreAllMocks()
   })
 
@@ -261,6 +266,74 @@ describe('ContactWindow', () => {
   }
   const bell = () => wrapper.find('[data-test="contact-window-bell"]')
   const sendButton = () => wrapper.find('[data-test="contact-window-send"]')
+
+  /**
+   * E-077 (Bernd, 12.10.2026): a switch beside the magnifier makes the window large, for a longer
+   * text, and small again. The dialog carries the measure (`chat-window-large`, with the switch),
+   * the window's inside the column in which the thread gives way (`is-large`).
+   */
+  describe('its size', () => {
+    const size = () => wrapper.find('[data-test="chat-window-size"]')
+    const dialogClass = () => wrapper.findComponent({ name: 'BModal' }).attributes('dialog-class')
+    const inner = () => wrapper.find('.contact-window-inner')
+
+    const top = () =>
+      [...wrapper.find('.contact-window-top').element.children].map((part) =>
+        part.getAttribute('data-test'),
+      )
+
+    it('has the switch at the top, between the magnifier and the cross', () => {
+      mountWindow()
+      expect(top()).toEqual(['contact-window-search', 'chat-window-size', 'contact-window-close'])
+    })
+
+    it('is the usual window until the switch is pressed', () => {
+      mountWindow()
+      expect(dialogClass()).toBeUndefined()
+      expect(inner().classes()).not.toContain('is-large')
+    })
+
+    it('stands large after a press, and as it was after the next', async () => {
+      mountWindow()
+
+      await size().trigger('click')
+      expect(dialogClass()).toBe('chat-window-large')
+      expect(inner().classes()).toContain('is-large')
+
+      await size().trigger('click')
+      expect(dialogClass()).toBeUndefined()
+      expect(inner().classes()).not.toContain('is-large')
+    })
+
+    it('opens large where the member left it large', () => {
+      localStorage.setItem('chat-window-large:me-id', '1')
+      mountWindow()
+      expect(dialogClass()).toBe('chat-window-large')
+      expect(inner().classes()).toContain('is-large')
+    })
+
+    /**
+     * The window's first form (E-055) has no magnifier: there is nothing to search yet. Its size
+     * is the size of every chat window, so the switch is there.
+     *
+     * ⛔ And it stands where it will stand: the row hangs at its right end, and the magnifier
+     * comes with the thread's first word. Before the switch it comes into free room; behind it,
+     * it pushed the switch one place to the left and stood where the switch had been -- a press on
+     * its way to the switch opened the search (the second reader, 12.10.2026).
+     */
+    it('has the switch in its first form too, where the magnifier will not move it', () => {
+      mountWindow({ user: { ...CONTACT.user }, homeCommunity: true }, { firstContact: true })
+      expect(top()).toEqual(['chat-window-size', 'contact-window-close'])
+    })
+
+    // Pressing it is no reason for the window to close, or for its thread to be made anew.
+    it('leaves the window open and its thread standing', async () => {
+      mountWindow()
+      await size().trigger('click')
+      expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+      expect(threadsMade).toEqual(['carla-id'])
+    })
+  })
 
   /**
    * E-057 (Bernd, 30.09.2026): the magnifier by the cross opens the search bar; what is typed goes

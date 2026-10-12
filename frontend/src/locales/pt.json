@@ -430,6 +430,10 @@
     "videoWhenHint": "Hora do teu fuso horário ({zone}).",
     "you": "Tu"
   },
+  "chatWindow": {
+    "enlarge": "Ampliar a janela",
+    "reduce": "Diminuir a janela"
+  },
   "community": {
     "admins": "Administradores",
     "choose-another-community": "Escolher outra comunidade",

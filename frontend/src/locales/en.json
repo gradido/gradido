@@ -430,6 +430,10 @@
     "videoWhenHint": "Times in your time zone ({zone}).",
     "you": "You"
   },
+  "chatWindow": {
+    "enlarge": "Enlarge window",
+    "reduce": "Make window smaller"
+  },
   "community": {
     "admins": "Administrators",
     "choose-another-community": "Choose another community",

@@ -798,6 +798,19 @@ let held = null
 defineExpose({
   draft: () => (held ? held.text : text.value),
   focus: () => field.value?.focus({ preventScroll: true }),
+  /**
+   * The field's height for the width it has NOW (E-077: the window around it was made large, or
+   * small again). The height is written when the text changes, and a text of two lines in the
+   * large window is one of five in the narrow one: left alone, the field showed its first two
+   * lines and hid the end of the draft with the caret until the next key -- and the other way
+   * round it stood five lines high around two, taking that room from the thread.
+   *
+   * ⚠️ Not where the field has no box (its window is not shown): every measure is zero there,
+   * and the height written would be zero (above, `firstBox`).
+   */
+  fit: () => {
+    if (field.value?.getClientRects().length) grow()
+  },
 })
 
 /**
