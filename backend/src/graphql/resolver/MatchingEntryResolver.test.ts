@@ -376,7 +376,10 @@ describe('MatchingEntryResolver', () => {
         })
 
         it('logs the error "MatchingEntry not found"', () => {
-          expect(logErrorLogger.error).toBeCalledWith('MatchingEntry not found', NON_EXISTENT_UUID)
+          expect(logErrorLogger.error).toHaveBeenCalledWith(
+            'MatchingEntry not found',
+            NON_EXISTENT_UUID,
+          )
         })
       })
 
@@ -407,7 +410,7 @@ describe('MatchingEntryResolver', () => {
         })
 
         it('logs the error "Can not access MatchingEntry of another user"', () => {
-          expect(logErrorLogger.error).toBeCalledWith(
+          expect(logErrorLogger.error).toHaveBeenCalledWith(
             'Can not access MatchingEntry of another user',
             uuid,
             bob.id,

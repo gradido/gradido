@@ -33,9 +33,9 @@ describe('syncHumhub', () => {
 
   it('Should not sync if no relevant changes', async () => {
     await syncHumhub(mockUpdateUserInfosArg, new User(), 'username')
-    expect(HumHubClient.getInstance).not.toBeCalled()
-    expect(logger.debug).toBeCalledTimes(1)
-    expect(logger.info).toBeCalledTimes(0)
+    expect(HumHubClient.getInstance).not.toHaveBeenCalled()
+    expect(logger.debug).toHaveBeenCalledTimes(1)
+    expect(logger.info).toHaveBeenCalledTimes(0)
   })
 
   it('Should retrieve user from humhub and sync if relevant changes', async () => {

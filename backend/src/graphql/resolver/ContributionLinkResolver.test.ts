@@ -287,7 +287,7 @@ describe('Contribution Links', () => {
         })
 
         it('logs the error "A Start-Date must be set"', () => {
-          expect(logErrorLogger.error).toBeCalledWith('A Start-Date must be set')
+          expect(logErrorLogger.error).toHaveBeenCalledWith('A Start-Date must be set')
         })
 
         it('returns an error if missing endDate', async () => {
@@ -308,7 +308,7 @@ describe('Contribution Links', () => {
         })
 
         it('logs the error "An End-Date must be set"', () => {
-          expect(logErrorLogger.error).toBeCalledWith('An End-Date must be set')
+          expect(logErrorLogger.error).toHaveBeenCalledWith('An End-Date must be set')
         })
 
         it('returns an error if endDate is before startDate', async () => {
@@ -332,7 +332,7 @@ describe('Contribution Links', () => {
         })
 
         it('logs the error "The value of validFrom must before or equals the validTo"', () => {
-          expect(logErrorLogger.error).toBeCalledWith(
+          expect(logErrorLogger.error).toHaveBeenCalledWith(
             `The value of validFrom must before or equals the validTo`,
           )
         })
@@ -522,7 +522,7 @@ describe('Contribution Links', () => {
         })
 
         it('logs the error "Contribution Link not found"', () => {
-          expect(logErrorLogger.error).toBeCalledWith('Contribution Link not found', -1)
+          expect(logErrorLogger.error).toHaveBeenCalledWith('Contribution Link not found', -1)
         })
 
         describe('valid id', () => {
@@ -604,7 +604,7 @@ describe('Contribution Links', () => {
           })
 
           it('logs the error "Contribution Link not found"', () => {
-            expect(logErrorLogger.error).toBeCalledWith('Contribution Link not found', -1)
+            expect(logErrorLogger.error).toHaveBeenCalledWith('Contribution Link not found', -1)
           })
         })
 

@@ -235,7 +235,10 @@ describe('TransactionLinkResolver', () => {
         })
       })
       it('logs the error "User has not enough GDD"', () => {
-        expect(logErrorLogger.error).toBeCalledWith('User has not enough GDD', expect.any(Number))
+        expect(logErrorLogger.error).toHaveBeenCalledWith(
+          'User has not enough GDD',
+          expect.any(Number),
+        )
       })
     })
   })
@@ -287,11 +290,11 @@ describe('TransactionLinkResolver', () => {
           })
 
           it('logs the error "No contribution link found to given code"', () => {
-            expect(logErrorLogger.error).toBeCalledWith(
+            expect(logErrorLogger.error).toHaveBeenCalledWith(
               'No contribution link found to given code',
               'CL-123456',
             )
-            expect(logErrorLogger.error).toBeCalledWith(
+            expect(logErrorLogger.error).toHaveBeenCalledWith(
               'Creation from contribution link was not successful',
               new Error('No contribution link found to given code'),
             )
@@ -331,11 +334,11 @@ describe('TransactionLinkResolver', () => {
           })
 
           it('logs the error "Contribution link is not valid yet"', () => {
-            expect(logErrorLogger.error).toBeCalledWith(
+            expect(logErrorLogger.error).toHaveBeenCalledWith(
               'Contribution link is not valid yet',
               validFrom,
             )
-            expect(logErrorLogger.error).toBeCalledWith(
+            expect(logErrorLogger.error).toHaveBeenCalledWith(
               'Creation from contribution link was not successful',
               new Error('Contribution link is not valid yet'),
             )
@@ -373,11 +376,11 @@ describe('TransactionLinkResolver', () => {
           })
 
           it('logs the error "Contribution link has unknown cycle"', () => {
-            expect(logErrorLogger.error).toBeCalledWith(
+            expect(logErrorLogger.error).toHaveBeenCalledWith(
               'Contribution link has unknown cycle',
               'INVALID',
             )
-            expect(logErrorLogger.error).toBeCalledWith(
+            expect(logErrorLogger.error).toHaveBeenCalledWith(
               'Creation from contribution link was not successful',
               new Error('Contribution link has unknown cycle'),
             )
@@ -415,11 +418,11 @@ describe('TransactionLinkResolver', () => {
           })
 
           it('logs the error "Contribution link is no longer valid"', () => {
-            expect(logErrorLogger.error).toBeCalledWith(
+            expect(logErrorLogger.error).toHaveBeenCalledWith(
               'Contribution link is no longer valid',
               validTo,
             )
-            expect(logErrorLogger.error).toBeCalledWith(
+            expect(logErrorLogger.error).toHaveBeenCalledWith(
               'Creation from contribution link was not successful',
               new Error('Contribution link is no longer valid'),
             )
@@ -514,7 +517,7 @@ describe('TransactionLinkResolver', () => {
             })
 
             it('logs the error "Creation from contribution link was not successful"', () => {
-              expect(logErrorLogger.error).toBeCalledWith(
+              expect(logErrorLogger.error).toHaveBeenCalledWith(
                 'Creation from contribution link was not successful',
                 new Error(
                   'The amount to be created exceeds the amount still available for this month',
@@ -589,7 +592,7 @@ describe('TransactionLinkResolver', () => {
             })
 
             it('logs the error "Creation from contribution link was not successful"', () => {
-              expect(logErrorLogger.error).toBeCalledWith(
+              expect(logErrorLogger.error).toHaveBeenCalledWith(
                 'Creation from contribution link was not successful',
                 new Error('Contribution link already redeemed today'),
               )
@@ -642,7 +645,7 @@ describe('TransactionLinkResolver', () => {
               })
 
               it('logs the error "Creation from contribution link was not successful"', () => {
-                expect(logErrorLogger.error).toBeCalledWith(
+                expect(logErrorLogger.error).toHaveBeenCalledWith(
                   'Creation from contribution link was not successful',
                   new Error('Contribution link already redeemed today'),
                 )
@@ -676,7 +679,10 @@ describe('TransactionLinkResolver', () => {
             ).resolves.toMatchObject({
               errors: [new GraphQLError('Transaction link not found')],
             })
-            expect(logErrorLogger.error).toBeCalledWith('Transaction link not found', 'not-valid')
+            expect(logErrorLogger.error).toHaveBeenCalledWith(
+              'Transaction link not found',
+              'not-valid',
+            )
           })
         })
 
@@ -747,7 +753,7 @@ describe('TransactionLinkResolver', () => {
               ).resolves.toMatchObject({
                 errors: [new GraphQLError('Cannot redeem own transaction link')],
               })
-              expect(logErrorLogger.error).toBeCalledWith(
+              expect(logErrorLogger.error).toHaveBeenCalledWith(
                 'Cannot redeem own transaction link',
                 expect.any(Number),
               )
@@ -1043,7 +1049,7 @@ describe('TransactionLinkResolver', () => {
           })
 
           it('logs the error "Could not find requested User"', () => {
-            expect(logErrorLogger.error).toBeCalledWith('Could not find requested User', -1)
+            expect(logErrorLogger.error).toHaveBeenCalledWith('Could not find requested User', -1)
           })
         })
 

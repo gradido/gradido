@@ -327,7 +327,7 @@ describe('ContributionResolver', () => {
         })
 
         it('logs the error "No information for available creations for the given date" again', () => {
-          expect(logger.error).toBeCalledWith(
+          expect(logger.error).toHaveBeenCalledWith(
             'No information for available creations for the given date',
             expect.any(Date),
           )
@@ -469,7 +469,7 @@ describe('ContributionResolver', () => {
         })
 
         it('logs the error "Contribution not found"', () => {
-          expect(logger.error).toBeCalledWith('Contribution not found', -1)
+          expect(logger.error).toHaveBeenCalledWith('Contribution not found', -1)
         })
       })
 
@@ -498,7 +498,7 @@ describe('ContributionResolver', () => {
         })
 
         it('logs the error "Can not update contribution of another user"', () => {
-          expect(logger.error).toBeCalledWith(
+          expect(logger.error).toHaveBeenCalledWith(
             'Can not update contribution of another user',
             expect.any(Object),
             expect.any(Number),
@@ -555,7 +555,7 @@ describe('ContributionResolver', () => {
           })
 
           it('logs the error "Contribution can not be updated due to status"', () => {
-            expect(logger.error).toBeCalledWith(
+            expect(logger.error).toHaveBeenCalledWith(
               'Contribution can not be updated due to status',
               ContributionStatus.DELETED,
             )
@@ -590,7 +590,7 @@ describe('ContributionResolver', () => {
         })
 
         it('logs the error "The amount to be created exceeds the amount still available for this month"', () => {
-          expect(logger.error).toBeCalledWith(
+          expect(logger.error).toHaveBeenCalledWith(
             'The amount to be created exceeds the amount still available for this month',
             GradidoUnit.fromNumber(1019),
             GradidoUnit.fromNumber(600),
@@ -617,7 +617,7 @@ describe('ContributionResolver', () => {
         })
 
         it('logs the error "Month of contribution can not be changed"', () => {
-          expect(logger.error).toBeCalledWith('Month of contribution can not be changed')
+          expect(logger.error).toHaveBeenCalledWith('Month of contribution can not be changed')
         })
       })
 
@@ -722,7 +722,7 @@ describe('ContributionResolver', () => {
         })
 
         it('logs the error "Contribution not found"', () => {
-          expect(logger.error).toBeCalledWith('Contribution not found', -1)
+          expect(logger.error).toHaveBeenCalledWith('Contribution not found', -1)
         })
       })
 
@@ -766,7 +766,7 @@ describe('ContributionResolver', () => {
         })
 
         it('logs the error "Contribution not found"', () => {
-          expect(logger.error).toBeCalledWith('Contribution not found', expect.any(Number))
+          expect(logger.error).toHaveBeenCalledWith('Contribution not found', expect.any(Number))
         })
       })
 
@@ -811,7 +811,7 @@ describe('ContributionResolver', () => {
         })
 
         it('logs the error "Contribution not found"', () => {
-          expect(logger.error).toBeCalledWith(`Contribution not found`, expect.any(Number))
+          expect(logger.error).toHaveBeenCalledWith(`Contribution not found`, expect.any(Number))
         })
       })
 
@@ -856,7 +856,7 @@ describe('ContributionResolver', () => {
         })
 
         it('logs the error "Contribution not found"', () => {
-          expect(logger.error).toBeCalledWith(`Contribution not found`, expect.any(Number))
+          expect(logger.error).toHaveBeenCalledWith(`Contribution not found`, expect.any(Number))
         })
       })
 
@@ -890,7 +890,7 @@ describe('ContributionResolver', () => {
         })
 
         it('calls sendContributionDeniedEmail', () => {
-          expect(sendContributionDeniedEmail).toBeCalledWith({
+          expect(sendContributionDeniedEmail).toHaveBeenCalledWith({
             firstName: 'Bibi',
             lastName: 'Bloxberg',
             email: 'bibi@bloxberg.de',
@@ -942,7 +942,7 @@ describe('ContributionResolver', () => {
         })
 
         it('logs the error "Contribution not found"', () => {
-          expect(logger.error).toBeCalledWith('Contribution not found', expect.any(Number))
+          expect(logger.error).toHaveBeenCalledWith('Contribution not found', expect.any(Number))
         })
       })
 
@@ -972,7 +972,7 @@ describe('ContributionResolver', () => {
         })
 
         it('logs the error "Can not delete contribution of another user"', () => {
-          expect(logger.error).toBeCalledWith(
+          expect(logger.error).toHaveBeenCalledWith(
             'Can not delete contribution of another user',
             expect.any(Contribution),
             expect.any(Number),
@@ -1047,7 +1047,7 @@ describe('ContributionResolver', () => {
         })
 
         it('logs the error "A confirmed contribution can not be deleted"', () => {
-          expect(logger.error).toBeCalledWith(
+          expect(logger.error).toHaveBeenCalledWith(
             'A confirmed contribution can not be deleted',
             expect.objectContaining({ contributionStatus: 'CONFIRMED' }),
           )
@@ -1489,7 +1489,7 @@ describe('ContributionResolver', () => {
             })
 
             it('logs the error "Could not find user"', () => {
-              expect(logger.error).toBeCalledWith('Could not find user', 'some@fake.email')
+              expect(logger.error).toHaveBeenCalledWith('Could not find user', 'some@fake.email')
             })
           })
 
@@ -1516,7 +1516,7 @@ describe('ContributionResolver', () => {
             })
 
             it('logs the error "Cannot create contribution since the user was deleted"', () => {
-              expect(logger.error).toBeCalledWith(
+              expect(logger.error).toHaveBeenCalledWith(
                 'Cannot create contribution since the user was deleted',
                 expect.objectContaining({
                   user: expect.objectContaining({
@@ -1552,7 +1552,7 @@ describe('ContributionResolver', () => {
             })
 
             it('logs the error "Cannot create contribution since the users email is not activated"', () => {
-              expect(logger.error).toBeCalledWith(
+              expect(logger.error).toHaveBeenCalledWith(
                 'Cannot create contribution since the users email is not activated',
                 expect.objectContaining({ emailChecked: false }),
               )
@@ -1609,7 +1609,7 @@ describe('ContributionResolver', () => {
               })
 
               it('logs the error "No information for available creations for the given date"', () => {
-                expect(logger.error).toBeCalledWith(
+                expect(logger.error).toHaveBeenCalledWith(
                   'No information for available creations for the given date',
                   new Date(variables.creationDate),
                 )
@@ -1634,7 +1634,7 @@ describe('ContributionResolver', () => {
               })
 
               it('logs the error "No information for available creations for the given date"', () => {
-                expect(logger.error).toBeCalledWith(
+                expect(logger.error).toHaveBeenCalledWith(
                   'No information for available creations for the given date',
                   new Date(variables.creationDate),
                 )
@@ -1659,7 +1659,7 @@ describe('ContributionResolver', () => {
               })
 
               it('logs the error "The amount to be created exceeds the amount still available for this month"', () => {
-                expect(logger.error).toBeCalledWith(
+                expect(logger.error).toHaveBeenCalledWith(
                   'The amount to be created exceeds the amount still available for this month',
                   GradidoUnit.fromNumber(2000),
                   GradidoUnit.fromNumber(790),
@@ -1728,7 +1728,7 @@ describe('ContributionResolver', () => {
                   ).resolves.toMatchObject({
                     errors: [new GraphQLError('Cannot update contribution of moderator')],
                   })
-                  expect(logger.error).toBeCalledWith(
+                  expect(logger.error).toHaveBeenCalledWith(
                     'Cannot update contribution of moderator',
                     expect.any(Object),
                     bibi.id,
@@ -1755,7 +1755,7 @@ describe('ContributionResolver', () => {
               })
 
               it('logs the error "The amount to be created exceeds the amount still available for this month"', () => {
-                expect(logger.error).toBeCalledWith(
+                expect(logger.error).toHaveBeenCalledWith(
                   'The amount to be created exceeds the amount still available for this month',
                   GradidoUnit.fromNumber(1000),
                   GradidoUnit.fromNumber(590),
@@ -1793,7 +1793,7 @@ describe('ContributionResolver', () => {
             })
 
             it('logs the error "Contribution not found"', () => {
-              expect(logger.error).toBeCalledWith('Contribution not found', 728)
+              expect(logger.error).toHaveBeenCalledWith('Contribution not found', 728)
             })
           })
 
@@ -1825,7 +1825,7 @@ describe('ContributionResolver', () => {
             })
 
             it('logs the error "The amount to be created exceeds the amount still available for this month"', () => {
-              expect(logger.error).toBeCalledWith(
+              expect(logger.error).toHaveBeenCalledWith(
                 'The amount to be created exceeds the amount still available for this month',
                 GradidoUnit.fromNumber(1900),
                 GradidoUnit.fromNumber(1000),
@@ -1933,7 +1933,7 @@ describe('ContributionResolver', () => {
             })
 
             it('logs the error "Contribution not found"', () => {
-              expect(logger.error).toBeCalledWith('Contribution not found', -1)
+              expect(logger.error).toHaveBeenCalledWith('Contribution not found', -1)
             })
           })
 
@@ -2000,7 +2000,7 @@ describe('ContributionResolver', () => {
             })
 
             it('calls sendContributionDeletedEmail', () => {
-              expect(sendContributionDeletedEmail).toBeCalledWith({
+              expect(sendContributionDeletedEmail).toHaveBeenCalledWith({
                 firstName: 'Peter',
                 lastName: 'Lustig',
                 email: 'peter@lustig.de',
@@ -2075,7 +2075,7 @@ describe('ContributionResolver', () => {
             })
 
             it('logs the error "Contribution not found"', () => {
-              expect(logger.error).toBeCalledWith('Contribution not found', -1)
+              expect(logger.error).toHaveBeenCalledWith('Contribution not found', -1)
             })
           })
 
@@ -2109,7 +2109,9 @@ describe('ContributionResolver', () => {
             })
 
             it('logs the error "Moderator can not confirm own contribution"', () => {
-              expect(logger.error).toBeCalledWith('Moderator can not confirm own contribution')
+              expect(logger.error).toHaveBeenCalledWith(
+                'Moderator can not confirm own contribution',
+              )
             })
           })
 
@@ -2165,7 +2167,7 @@ describe('ContributionResolver', () => {
             })
 
             it('calls sendContributionConfirmedEmail', () => {
-              expect(sendContributionConfirmedEmail).toBeCalledWith({
+              expect(sendContributionConfirmedEmail).toHaveBeenCalledWith({
                 firstName: 'Bibi',
                 lastName: 'Bloxberg',
                 email: 'bibi@bloxberg.de',
@@ -2196,7 +2198,7 @@ describe('ContributionResolver', () => {
             })
 
             it('logs the error "Contribution already confirmed"', () => {
-              expect(logger.error).toBeCalledWith(
+              expect(logger.error).toHaveBeenCalledWith(
                 'Contribution already confirmed',
                 expect.any(Number),
               )
