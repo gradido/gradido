@@ -9,7 +9,7 @@ module.exports = {
       lines: 82,
     },
   },
-  setupFiles: ['config-schema/test/testSetup.ts'],
+  setupFiles: ['config-schema/test/testSetup'],
   setupFilesAfterEnv: [],
   modulePathIgnorePatterns: ['<rootDir>/build/'],
   moduleNameMapper: {

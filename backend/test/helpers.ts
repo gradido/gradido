@@ -130,7 +130,7 @@ export const testEnvironmentWithApp = async (testLogger = getLogger('apollo')) =
 const realNextTick = process.nextTick
 
 /**
- * `jest.useFakeTimers()` for code that reaches a Drizzle query. Jest 27's modern timers fake
+ * `jest.useFakeTimers()` for code that reaches a Drizzle query. Jest's modern timers fake
  * `process.nextTick` along with the rest, and mysql2 - Drizzle's driver - hands every result
  * over through it: under the plain call a Drizzle query waits forever, and the test dies on
  * the hook timeout. TypeORM runs on the `mysql` package and does not notice, which is why

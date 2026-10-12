@@ -39,7 +39,7 @@ describe('validate Communities', () => {
     })
 
     it('logs loop started', () => {
-      expect(logger.info).toBeCalledWith(
+      expect(logger.info).toHaveBeenCalledWith(
         `Federation: startValidateCommunities loop with an interval of 0 ms...`,
       )
     })
@@ -52,7 +52,7 @@ describe('validate Communities', () => {
     })
 
     it('logs zero communities found', () => {
-      expect(logger.debug).toBeCalledWith(`found 0 dbCommunities`)
+      expect(logger.debug).toHaveBeenCalledWith(`found 0 dbCommunities`)
     })
 
     describe('with one Community of api 1_0 but missing pubKey response', () => {
@@ -82,10 +82,10 @@ describe('validate Communities', () => {
       })
 
       it('logs one community found', () => {
-        expect(logger.debug).toBeCalledWith(`found 1 dbCommunities`)
+        expect(logger.debug).toHaveBeenCalledWith(`found 1 dbCommunities`)
       })
       it('logs requestGetPublicKey missing response data ', () => {
-        expect(federationClientLogger.warn).toBeCalledWith(
+        expect(federationClientLogger.warn).toHaveBeenCalledWith(
           'getPublicKey without response data from endpoint',
           'http//localhost:5001/api/1_0/',
         )
@@ -156,16 +156,16 @@ describe('validate Communities', () => {
       })
 
       it('logs one community found', () => {
-        expect(logger.debug).toBeCalledWith(`found 1 dbCommunities`)
+        expect(logger.debug).toHaveBeenCalledWith(`found 1 dbCommunities`)
       })
       it('logs requestGetPublicKey for community api 1_0 ', () => {
-        expect(federationClientLogger.debug).toBeCalledWith(
+        expect(federationClientLogger.debug).toHaveBeenCalledWith(
           'getPublicKey from endpoint',
           'http//localhost:5001/api/1_0/',
         )
       })
       it('logs not matching publicKeys', () => {
-        expect(logger.debug).toBeCalledWith(
+        expect(logger.debug).toHaveBeenCalledWith(
           'received not matching publicKey:',
           '2222222222222222222222222222222222222222222222222222222222222222',
           expect.stringMatching('1111111111111111111111111111111100000000000000000000000000000000'),
@@ -206,10 +206,10 @@ describe('validate Communities', () => {
       })
 
       it('logs one community found', () => {
-        expect(logger.debug).toBeCalledWith(`found 1 dbCommunities`)
+        expect(logger.debug).toHaveBeenCalledWith(`found 1 dbCommunities`)
       })
       it('logs requestGetPublicKey for community api 1_0 ', () => {
-        expect(federationClientLogger.debug).toBeCalledWith(
+        expect(federationClientLogger.debug).toHaveBeenCalledWith(
           'getPublicKey from endpoint',
           'http//localhost:5001/api/1_0/',
         )
@@ -272,16 +272,16 @@ describe('validate Communities', () => {
         await validateCommunities()
       })
       it('logs two communities found', () => {
-        expect(logger.debug).toBeCalledWith(`found 2 dbCommunities`)
+        expect(logger.debug).toHaveBeenCalledWith(`found 2 dbCommunities`)
       })
       it('logs requestGetPublicKey for community api 1_0 ', () => {
-        expect(federationClientLogger.debug).toBeCalledWith(
+        expect(federationClientLogger.debug).toHaveBeenCalledWith(
           'getPublicKey from endpoint',
           'http//localhost:5001/api/1_0/',
         )
       })
       it('logs requestGetPublicKey for community api 1_1 ', () => {
-        expect(federationClientLogger.debug).toBeCalledWith(
+        expect(federationClientLogger.debug).toHaveBeenCalledWith(
           'getPublicKey from endpoint',
           'http//localhost:5001/api/1_1/',
         )
@@ -324,22 +324,22 @@ describe('validate Communities', () => {
         await validateCommunities()
       })
       it('logs three community found', () => {
-        expect(logger.debug).toBeCalledWith(`found 3 dbCommunities`)
+        expect(logger.debug).toHaveBeenCalledWith(`found 3 dbCommunities`)
       })
       it('logs requestGetPublicKey for community api 1_0 ', () => {
-        expect(federationClientLogger.debug).toBeCalledWith(
+        expect(federationClientLogger.debug).toHaveBeenCalledWith(
           'getPublicKey from endpoint',
           'http//localhost:5001/api/1_0/',
         )
       })
       it('logs requestGetPublicKey for community api 1_1 ', () => {
-        expect(federationClientLogger.debug).toBeCalledWith(
+        expect(federationClientLogger.debug).toHaveBeenCalledWith(
           'getPublicKey from endpoint',
           'http//localhost:5001/api/1_1/',
         )
       })
       it('logs unsupported api for community with api 2_0 ', () => {
-        expect(logger.debug).toBeCalledWith(
+        expect(logger.debug).toHaveBeenCalledWith(
           'dbFedComB with unsupported apiVersion',
           dbCom.endPoint,
           '2_0',

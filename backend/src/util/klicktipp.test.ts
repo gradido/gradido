@@ -52,7 +52,7 @@ describe('klicktipp', () => {
   describe('exportEventDataToKlickTipp', () => {
     it('calls the KlicktippController', async () => {
       await exportEventDataToKlickTipp()
-      expect(addFieldsToSubscriber).toBeCalled()
+      expect(addFieldsToSubscriber).toHaveBeenCalled()
     })
   })
 })

@@ -124,7 +124,7 @@ describe('ContributionMessageResolver', () => {
         })
 
         it('logs the error "ContributionMessage was not sent successfully: Error: Contribution not found"', () => {
-          expect(logErrorLogger.error).toBeCalledWith(
+          expect(logErrorLogger.error).toHaveBeenCalledWith(
             'ContributionMessage was not sent successfully: Error: Contribution not found',
             new Error('Contribution not found'),
           )
@@ -151,7 +151,7 @@ describe('ContributionMessageResolver', () => {
               message: 'Test',
             },
           })
-          expect(interactionLogger.debug).toBeCalledWith(
+          expect(interactionLogger.debug).toHaveBeenCalledWith(
             'use UnconfirmedContributionUserAddMessageRole',
           )
           expect(mutationResult).toEqual(
@@ -201,7 +201,7 @@ describe('ContributionMessageResolver', () => {
         })
 
         it('does not call sendAddedContributionMessageEmail', () => {
-          expect(sendAddedContributionMessageEmail).not.toBeCalled()
+          expect(sendAddedContributionMessageEmail).not.toHaveBeenCalled()
         })
 
         it('does not change contribution status', async () => {
@@ -240,7 +240,7 @@ describe('ContributionMessageResolver', () => {
         })
 
         it('calls sendAddedContributionMessageEmail', () => {
-          expect(sendAddedContributionMessageEmail).toBeCalledWith({
+          expect(sendAddedContributionMessageEmail).toHaveBeenCalledWith({
             firstName: 'Bibi',
             lastName: 'Bloxberg',
             email: 'bibi@bloxberg.de',
@@ -335,7 +335,7 @@ describe('ContributionMessageResolver', () => {
         })
 
         it('logs the error "ContributionMessage was not sent successfully: Error: Contribution not found"', () => {
-          expect(logErrorLogger.error).toBeCalledWith(
+          expect(logErrorLogger.error).toHaveBeenCalledWith(
             'ContributionMessage was not sent successfully: Error: Contribution not found',
             new Error('Contribution not found'),
           )
@@ -356,7 +356,7 @@ describe('ContributionMessageResolver', () => {
             },
           })
 
-          expect(interactionLogger.debug).toBeCalledWith(
+          expect(interactionLogger.debug).toHaveBeenCalledWith(
             'use UnconfirmedContributionAdminAddMessageRole',
           )
 
@@ -388,7 +388,7 @@ describe('ContributionMessageResolver', () => {
               message: 'Test',
             },
           })
-          expect(interactionLogger.debug).toBeCalledWith(
+          expect(interactionLogger.debug).toHaveBeenCalledWith(
             'use UnconfirmedContributionAdminAddMessageRole',
           )
 

@@ -7,7 +7,7 @@
   "author": "Gradido Academy - https://www.gradido.net",
   "license": "Apache-2.0",
   "private": true,
-  "packageManager": "bun@1.4.2",
+  "packageManager": "bun@1.4.3",
   "workspaces": [
     "admin",
     "backend",

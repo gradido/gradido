@@ -19,7 +19,7 @@
     "build": "bun esbuild.config.ts && mkdirp build/templates/ && ncp src/emails/templates build/templates",
     "build:bun": "bun build src/index.ts --outdir=build --target=bun --packages=external",
     "test": "bun test",
-    "typecheck": "bun --bun ../node_modules/typescript-go/bin/tsc --noEmit",
+    "typecheck": "bun check",
     "lint": "biome check --error-on-warnings .",
     "lint:fix": "biome check --error-on-warnings . --write",
     "locales": "bun scripts/sortLocales.ts",
@@ -52,13 +52,12 @@
     "dotenv": "^16.6.1",
     "graphql": "16.14.2",
     "graphql-request": "5.0.0",
-    "jest": "27.2.4",
+    "jest": "30.5.2",
     "mkdirp": "^3.0.1",
     "ncp": "^2.0.0",
     "type-graphql": "2.0.0-rc.3",
     "typed-rest-client": "^1.8.11",
-    "typescript": "~5.9.3",
-    "typescript-go": "npm:typescript@7.0.2"
+    "typescript": "~5.9.3"
   },
   "engines": {
     "node": ">=24"

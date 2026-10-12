@@ -269,12 +269,12 @@ export async function dbWriteMatchingEntryKeying(
  * writing a second query: the member takes part, the member still exists, the member
  * is ours rather than a federated row from another community, and the entry is live.
  *
- * ⚠️ `syncMatchingEntryToGms` - the path a member's own save takes - checks only two
- * of the four (`!user.gmsAllowed || !entry.active`). So the two already disagree:
- * that one will publish an entry of a soft-deleted member, this one will not key it.
- * Widening it is a change to the everyday save path and belongs in its own delivery.
- * What must not happen is a reader adding a fifth condition here in the belief that
- * the two are kept in step.
+ * ⚠️ `syncMatchingEntryToGms` - the path a member's own save takes - checks three of
+ * the four (`!user.gmsAllowed || !entry.active || user.deletedAt`); the deleted account
+ * joined them with the delivery that takes a deleted member off the GMS. It does not
+ * ask whether the member is ours: only a member of this community has a session here
+ * to save an entry with. What must not happen is a reader adding a fifth condition
+ * here in the belief that the two are kept in step.
  */
 const mayReachTheGms = () =>
   and(

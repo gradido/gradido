@@ -9,6 +9,7 @@ import {
 import { putGmsMatchingEntrySnapshots, upsertGmsUsers } from '@/apis/gms/GmsClient'
 import { CONFIG } from '@/config'
 
+import { noteUserDeleteUnderWay } from './gmsUserDeletesUnderWay'
 import { sendUsersToGms } from './sendUserToGms'
 
 jest.mock('@/apis/gms/GmsClient')
@@ -86,6 +87,71 @@ describe('sendUsersToGms', () => {
       // snapshot here would wipe them on every profile edit.
       expect(snapshotMock).not.toHaveBeenCalled()
       expect(selectEntriesMock).not.toHaveBeenCalled()
+    })
+  })
+
+  // ⛔ Deleting an account takes the member off the GMS, and nothing may put them back.
+  // Every way of handing a member over comes through here: so a deleted account is handed
+  // over by none of them, and is not noted as held either.
+  describe('a deleted account', () => {
+    const DELETED = { ...WITH_ENTRIES, deletedAt: new Date('2026-10-12T10:00:00.000Z') } as DbUser
+
+    it('is not handed over on the everyday path, and a batch of nobody is done', async () => {
+      await expect(sendUsersToGms([DELETED], HOME_COM)).resolves.toBe(true)
+
+      expect(upsertMock).not.toHaveBeenCalled()
+      expect(markRegisteredMock).not.toHaveBeenCalled()
+    })
+
+    it('is not handed over on the repair path, with entries or without', async () => {
+      await expect(sendUsersToGms([DELETED], HOME_COM, true)).resolves.toBe(true)
+
+      expect(selectEntriesMock).not.toHaveBeenCalled()
+      expect(upsertMock).not.toHaveBeenCalled()
+      expect(snapshotMock).not.toHaveBeenCalled()
+      expect(markRegisteredMock).not.toHaveBeenCalled()
+    })
+
+    it('leaves a batch, and the others go as they did', async () => {
+      await sendUsersToGms([DELETED, WITHOUT_ENTRIES], HOME_COM, true)
+
+      const [, gmsUsers] = upsertMock.mock.calls[0]
+      expect(gmsUsers.map((gmsUser: { uuid: string }) => gmsUser.uuid)).toEqual([
+        WITHOUT_ENTRIES.gradidoID,
+      ])
+      expect(selectEntriesMock).toHaveBeenCalledWith([WITHOUT_ENTRIES.id])
+      const [, snapshots] = snapshotMock.mock.calls[0]
+      expect(snapshots.map((snapshot: { userUuid: string }) => snapshot.userUuid)).toEqual([
+        WITHOUT_ENTRIES.gradidoID,
+      ])
+      expect(markRegisteredMock).toHaveBeenCalledWith([WITHOUT_ENTRIES.id])
+    })
+  })
+
+  // A delete of a member that failed is tried again in the background for a minute
+  // (removeUserFromGms). Handing the member over ends those tries: one that came afterwards
+  // would take off the member who was just handed over.
+  describe('a delete that is still being tried again', () => {
+    it('is ended for every member who is handed over', async () => {
+      const ofOne = noteUserDeleteUnderWay(WITH_ENTRIES.id)
+      const ofAnother = noteUserDeleteUnderWay(WITHOUT_ENTRIES.id)
+
+      await sendUsersToGms([WITH_ENTRIES], HOME_COM)
+
+      expect(ofOne.stillWanted()).toBe(false)
+      expect(ofAnother.stillWanted()).toBe(true)
+      ofAnother.over()
+    })
+
+    // A deleted account is not handed over -- so the delete it waits for goes on.
+    it('goes on for a deleted account, which is not handed over', async () => {
+      const deleted = { ...WITH_ENTRIES, id: 99, deletedAt: new Date() } as DbUser
+      const itsDelete = noteUserDeleteUnderWay(deleted.id)
+
+      await sendUsersToGms([deleted, WITHOUT_ENTRIES], HOME_COM)
+
+      expect(itsDelete.stillWanted()).toBe(true)
+      itsDelete.over()
     })
   })
 

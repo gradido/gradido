@@ -479,7 +479,7 @@ describe('UserResolver', () => {
 
         // The password exists already, so the set-password link would be the wrong door.
         it('sends the confirm-only mail, not the activation mail', () => {
-          expect(sendAssistedRegistrationConfirmEmail).toBeCalledWith(
+          expect(sendAssistedRegistrationConfirmEmail).toHaveBeenCalledWith(
             expect.objectContaining({
               email: 'carla@table.de',
               firstName: 'Carla',
@@ -488,7 +488,7 @@ describe('UserResolver', () => {
               confirmLink: expect.stringContaining(CONFIG.EMAIL_LINK_CONFIRM_EMAIL),
             }),
           )
-          expect(sendAccountActivationEmail).not.toBeCalledWith(
+          expect(sendAccountActivationEmail).not.toHaveBeenCalledWith(
             expect.objectContaining({ email: 'carla@table.de' }),
           )
         })
@@ -543,7 +543,7 @@ describe('UserResolver', () => {
 
         expect(result.errors).toEqual([new GraphQLError('Guarantor code requires a password')])
         await noAccount('nopassword@table.de')
-        expect(sendAccountActivationEmail).not.toBeCalled()
+        expect(sendAccountActivationEmail).not.toHaveBeenCalled()
       })
 
       // The member who showed the code deleted their account inside the ten minutes: the seal
@@ -559,7 +559,7 @@ describe('UserResolver', () => {
           expect(result.errors).toEqual([new GraphQLError('Guarantor code invalid or expired')])
         }
         await noAccount('orphan@table.de')
-        expect(sendAccountMultiRegistrationEmail).not.toBeCalled()
+        expect(sendAccountMultiRegistrationEmail).not.toHaveBeenCalled()
       })
 
       /**
@@ -621,7 +621,7 @@ describe('UserResolver', () => {
           })
 
           expect(taken.errors).toEqual([new GraphQLError('Vouching limit reached')])
-          expect(sendAccountMultiRegistrationEmail).not.toBeCalled()
+          expect(sendAccountMultiRegistrationEmail).not.toHaveBeenCalled()
         })
 
         // No time window: a guest who has not confirmed for weeks still holds the place.
@@ -765,10 +765,10 @@ describe('UserResolver', () => {
             referrerId,
           }),
         )
-        expect(sendAccountActivationEmail).toBeCalledWith(
+        expect(sendAccountActivationEmail).toHaveBeenCalledWith(
           expect.objectContaining({ email, activationLink: expect.stringMatching(`/${code}$`) }),
         )
-        expect(sendAssistedRegistrationConfirmEmail).not.toBeCalledWith(
+        expect(sendAssistedRegistrationConfirmEmail).not.toHaveBeenCalledWith(
           expect.objectContaining({ email }),
         )
       }
@@ -828,7 +828,7 @@ describe('UserResolver', () => {
         // The password exists already, so the set-password link would be the wrong door; and
         // the mail says the account came of a thank-you, with no member beside the guest.
         it('sends the confirm-only mail of a thank-you, not the activation mail', () => {
-          expect(sendAssistedRegistrationConfirmEmail).toBeCalledWith(
+          expect(sendAssistedRegistrationConfirmEmail).toHaveBeenCalledWith(
             expect.objectContaining({
               email: 'sarah@provence.fr',
               firstName: 'Sarah',
@@ -838,7 +838,7 @@ describe('UserResolver', () => {
               byThanks: true,
             }),
           )
-          expect(sendAccountActivationEmail).not.toBeCalledWith(
+          expect(sendAccountActivationEmail).not.toHaveBeenCalledWith(
             expect.objectContaining({ email: 'sarah@provence.fr' }),
           )
         })
@@ -876,10 +876,10 @@ describe('UserResolver', () => {
 
           expect(answerOf(taken)).toEqual(likeEveryRegistration)
           expect(await User.count()).toBe(before)
-          expect(sendAccountMultiRegistrationEmail).toBeCalledWith(
+          expect(sendAccountMultiRegistrationEmail).toHaveBeenCalledWith(
             expect.objectContaining({ email: 'bibi@bloxberg.de' }),
           )
-          expect(sendAssistedRegistrationConfirmEmail).not.toBeCalled()
+          expect(sendAssistedRegistrationConfirmEmail).not.toHaveBeenCalled()
           // No account came of it, so the link still vouches for one.
           expect(
             answerOf(
@@ -1267,7 +1267,7 @@ describe('UserResolver', () => {
       })
 
       it('calls the klicktipp API', () => {
-        expect(subscribe).toBeCalledWith(
+        expect(subscribe).toHaveBeenCalledWith(
           newUser.emailContact.email,
           newUser.language,
           newUser.firstName,
@@ -1313,7 +1313,7 @@ describe('UserResolver', () => {
       })
 
       it('logs the error thrown', () => {
-        expect(logErrorLogger.error).toBeCalledWith(
+        expect(logErrorLogger.error).toHaveBeenCalledWith(
           'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character, and no spaces!',
         )
       })
@@ -1343,7 +1343,9 @@ describe('UserResolver', () => {
       })
 
       it('logs the error found', () => {
-        expect(setPasswordLogger.warn).toBeCalledWith('invalid emailVerificationCode=not valid')
+        expect(setPasswordLogger.warn).toHaveBeenCalledWith(
+          'invalid emailVerificationCode=not valid',
+        )
       })
     })
   })
@@ -1379,7 +1381,7 @@ describe('UserResolver', () => {
       it('logs the error found', () => {
         // Without the address: an address typed into the login form is personal data
         // whether or not an account exists for it, so it does not go into the log.
-        expect(loginLogger.warn).toBeCalledWith('login failed, user not found')
+        expect(loginLogger.warn).toHaveBeenCalledWith('login failed, user not found')
       })
     })
 
@@ -1432,7 +1434,7 @@ describe('UserResolver', () => {
       })
 
       it('sets the token in the header', () => {
-        expect(headerPushMock).toBeCalledWith({ key: 'token', value: expect.any(String) })
+        expect(headerPushMock).toHaveBeenCalledWith({ key: 'token', value: expect.any(String) })
       })
 
       it('stores the USER_LOGIN event in the database', async () => {
@@ -1469,7 +1471,7 @@ describe('UserResolver', () => {
       })
 
       it('logs warning before error is thrown', () => {
-        expect(loginLogger.warn).toBeCalledWith('login failed, wrong password')
+        expect(loginLogger.warn).toHaveBeenCalledWith('login failed, wrong password')
       })
     })
 
@@ -1501,7 +1503,7 @@ describe('UserResolver', () => {
       })
 
       it('logs warning before error is thrown', () => {
-        expect(loginLogger.warn).toBeCalledWith('login failed, user was deleted')
+        expect(loginLogger.warn).toHaveBeenCalledWith('login failed, user was deleted')
       })
     })
 
@@ -1530,7 +1532,7 @@ describe('UserResolver', () => {
       })
 
       it('logs warning before error is thrown', () => {
-        expect(loginLogger.warn).toBeCalledWith('login failed, user email not checked')
+        expect(loginLogger.warn).toHaveBeenCalledWith('login failed, user email not checked')
       })
     })
 
@@ -1557,7 +1559,9 @@ describe('UserResolver', () => {
       })
 
       it('logs warning before error is thrown', () => {
-        expect(loginLogger.warn).toBeCalledWith('login failed, user has not set a password yet')
+        expect(loginLogger.warn).toHaveBeenCalledWith(
+          'login failed, user has not set a password yet',
+        )
       })
     })
   })
@@ -1759,7 +1763,7 @@ describe('UserResolver', () => {
         })
 
         it('sends reset password email', () => {
-          expect(sendResetPasswordEmail).toBeCalledWith({
+          expect(sendResetPasswordEmail).toHaveBeenCalledWith({
             firstName: 'Bob',
             lastName: 'der Baumeister',
             email: 'bob@baumeister.de',
@@ -1800,7 +1804,7 @@ describe('UserResolver', () => {
         })
 
         it('logs warning before throwing error', () => {
-          expect(forgotPasswordLogger.warn).toBeCalledWith(
+          expect(forgotPasswordLogger.warn).toHaveBeenCalledWith(
             'email already sent 0 minutes ago, min wait time: 10 minutes',
           )
         })
@@ -2043,7 +2047,7 @@ describe('UserResolver', () => {
             const after = await User.findOneOrFail({ where: { id: before.id } })
             expect(after.gmsAllowed).toBe(before.gmsAllowed)
             expect(after.aboutMe).toBe(before.aboutMe)
-            expect(updateUserInfosLogger.warn).toBeCalledWith(
+            expect(updateUserInfosLogger.warn).toHaveBeenCalledWith(
               'refused to switch findable on without a location',
             )
           })
@@ -2153,7 +2157,7 @@ describe('UserResolver', () => {
         })
 
         it('logs the error found', () => {
-          expect(updateUserInfosLogger.warn).toBeCalledWith(
+          expect(updateUserInfosLogger.warn).toHaveBeenCalledWith(
             'try to set unsupported language',
             'not-valid',
           )
@@ -2180,7 +2184,7 @@ describe('UserResolver', () => {
           })
 
           it('logs if logger is in debug mode', () => {
-            expect(updateUserInfosLogger.debug).toBeCalledWith(`old password is invalid`)
+            expect(updateUserInfosLogger.debug).toHaveBeenCalledWith(`old password is invalid`)
           })
         })
 
@@ -2207,7 +2211,7 @@ describe('UserResolver', () => {
           })
 
           it('logs warning', () => {
-            expect(updateUserInfosLogger.warn).toBeCalledWith('try to set invalid password')
+            expect(updateUserInfosLogger.warn).toHaveBeenCalledWith('try to set invalid password')
           })
         })
 
@@ -2265,7 +2269,7 @@ describe('UserResolver', () => {
           })
 
           it('log warning', () => {
-            expect(loginLogger.warn).toBeCalledWith('login failed, wrong password')
+            expect(loginLogger.warn).toHaveBeenCalledWith('login failed, wrong password')
           })
         })
       })
@@ -2563,7 +2567,7 @@ describe('UserResolver', () => {
           })
 
           it('logs the error thrown', () => {
-            expect(logErrorLogger.error).toBeCalledWith(
+            expect(logErrorLogger.error).toHaveBeenCalledWith(
               'Could not find user with given ID',
               admin.id + 1,
             )
@@ -2697,7 +2701,7 @@ describe('UserResolver', () => {
               )
             })
             it('logs the error thrown', () => {
-              expect(logErrorLogger.error).toBeCalledWith(
+              expect(logErrorLogger.error).toHaveBeenCalledWith(
                 'Administrator can not change his own role',
               )
             })
@@ -2742,7 +2746,7 @@ describe('UserResolver', () => {
                 }),
               )
               await expect(UserRole.find({ where: { userId: user.id } })).resolves.toEqual([])
-              expect(logErrorLogger.error).toBeCalledWith('Role can not be assigned=', value)
+              expect(logErrorLogger.error).toHaveBeenCalledWith('Role can not be assigned=', value)
             })
           })
 
@@ -2767,7 +2771,7 @@ describe('UserResolver', () => {
               })
 
               it('logs the error thrown', () => {
-                expect(logErrorLogger.error).toBeCalledWith(
+                expect(logErrorLogger.error).toHaveBeenCalledWith(
                   'User already has role=',
                   RoleNames.ADMIN,
                 )
@@ -2794,7 +2798,7 @@ describe('UserResolver', () => {
               })
 
               it('logs the error thrown', () => {
-                expect(logErrorLogger.error).toBeCalledWith(
+                expect(logErrorLogger.error).toHaveBeenCalledWith(
                   'User already has role=',
                   RoleNames.MODERATOR,
                 )
@@ -2818,7 +2822,7 @@ describe('UserResolver', () => {
               })
 
               it('logs the error thrown', () => {
-                expect(logErrorLogger.error).toBeCalledWith('User is already an usual user')
+                expect(logErrorLogger.error).toHaveBeenCalledWith('User is already an usual user')
               })
             })
           })
@@ -2891,7 +2895,7 @@ describe('UserResolver', () => {
           })
 
           it('logs the error thrown', () => {
-            expect(logErrorLogger.error).toBeCalledWith(
+            expect(logErrorLogger.error).toHaveBeenCalledWith(
               'Could not find user with given ID',
               admin.id + 1,
             )
@@ -2911,7 +2915,9 @@ describe('UserResolver', () => {
           })
 
           it('logs the error thrown', () => {
-            expect(logErrorLogger.error).toBeCalledWith('Moderator can not delete his own account')
+            expect(logErrorLogger.error).toHaveBeenCalledWith(
+              'Moderator can not delete his own account',
+            )
           })
         })
 
@@ -2973,7 +2979,7 @@ describe('UserResolver', () => {
             })
 
             it('logs the error thrown', () => {
-              expect(logErrorLogger.error).toBeCalledWith(
+              expect(logErrorLogger.error).toHaveBeenCalledWith(
                 'Could not find user with given ID',
                 user.id,
               )
@@ -3052,7 +3058,7 @@ describe('UserResolver', () => {
           })
 
           it('logs the error thrown', () => {
-            expect(findUserByEmailLogger.warn).toBeCalledWith(
+            expect(findUserByEmailLogger.warn).toHaveBeenCalledWith(
               'findUserByEmail failed, user with email=invalid not found',
             )
           })
@@ -3072,7 +3078,7 @@ describe('UserResolver', () => {
           })
 
           it('log warning', () => {
-            expect(sendActivationEmailLogger.warn).toBeCalledWith(
+            expect(sendActivationEmailLogger.warn).toHaveBeenCalledWith(
               'call for activation of deleted user',
             )
           })
@@ -3105,7 +3111,7 @@ describe('UserResolver', () => {
             const activationLink = `${
               CONFIG.EMAIL_LINK_SETPASSWORD
             }${userContact.emailVerificationCode.toString()}`
-            expect(sendAccountActivationEmail).toBeCalledWith({
+            expect(sendAccountActivationEmail).toHaveBeenCalledWith({
               firstName: 'Bibi',
               lastName: 'Bloxberg',
               email: 'bibi@bloxberg.de',
@@ -3200,7 +3206,7 @@ describe('UserResolver', () => {
           })
 
           it('logs the error thrown', () => {
-            expect(logErrorLogger.error).toBeCalledWith(
+            expect(logErrorLogger.error).toHaveBeenCalledWith(
               'Could not find user with given ID',
               admin.id + 1,
             )
@@ -3224,7 +3230,7 @@ describe('UserResolver', () => {
           })
 
           it('logs the error thrown', () => {
-            expect(logErrorLogger.error).toBeCalledWith('User is not deleted')
+            expect(logErrorLogger.error).toHaveBeenCalledWith('User is not deleted')
           })
 
           describe('undelete deleted user', () => {
@@ -3639,7 +3645,7 @@ describe('UserResolver', () => {
             errors: [new GraphQLError('401 Unauthorized')],
           }),
         )
-        expect(logErrorLogger.error).toBeCalledWith('401 Unauthorized')
+        expect(logErrorLogger.error).toHaveBeenCalledWith('401 Unauthorized')
       })
     })
   })
@@ -5519,6 +5525,144 @@ describe('UserResolver', () => {
       expect(upsertMock).not.toHaveBeenCalled()
       const stored = await User.findOneOrFail({ where: { id: member.id } })
       expect(stored.gmsRegistered).toBe(false)
+    })
+  })
+
+  // An account the moderation deletes leaves the GMS with it, and one it brings back stands
+  // there again. The export to the GMS leaves a deleted member out, which takes nobody off:
+  // without the first half a deleted member stayed over there; without the second a member
+  // would come back who takes part and is on no map. One story, in order.
+  describe('gms and an account the moderation deletes and brings back', () => {
+    const ENTRY_UUID = 'c7a1d2e3-4f5b-4c6d-9e0f-1a2b3c4d5e6f'
+    const upsertMock = upsertGmsUsers as jest.Mock
+    const snapshotMock = putGmsMatchingEntrySnapshots as jest.Mock
+    const deleteMock = deleteGmsUser as jest.Mock
+    let member: User
+    let outsider: User
+
+    const stored = (user: User) => User.findOneOrFail({ where: { id: user.id }, withDeleted: true })
+
+    beforeAll(async () => {
+      await cleanDB()
+      const homeCom = await writeHomeCommunityEntry()
+      homeCom.gmsApiKey = 'gms-test-key'
+      await DbCommunity.save(homeCom)
+
+      // On the map, with one live entry, and noted as held by the GMS.
+      member = await userFactory(testEnv, bibiBloxberg)
+      await User.update(
+        { id: member.id },
+        {
+          gmsAllowed: true,
+          location: gmsMemberLocation(),
+          gmsRegistered: true,
+          gmsRegisteredAt: new Date(),
+        },
+      )
+      const inserted = await dbInsertMatchingEntry({
+        uuid: ENTRY_UUID,
+        userId: member.id,
+        matchingType: 'offer',
+        summary: 'Lastenrad zum Ausleihen',
+        details: null,
+        remote: false,
+        active: true,
+      })
+      if (!inserted.success) {
+        throw new Error('could not create the matching entry the assertions rely on')
+      }
+      // Never took part, never sent -- with a place all the same, so that it is the taking
+      // part that keeps them from being handed over, and not the missing place.
+      outsider = await userFactory(testEnv, bobBaumeister)
+      await User.update(
+        { id: outsider.id },
+        { gmsAllowed: false, gmsRegistered: false, location: gmsMemberLocation() },
+      )
+
+      await userFactory(testEnv, peterLustig)
+      CONFIG.GMS_ACTIVE = true
+      upsertMock.mockResolvedValue(true)
+      snapshotMock.mockResolvedValue(true)
+      deleteMock.mockResolvedValue(true)
+      await mutate({
+        mutation: login,
+        variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+      })
+    })
+
+    afterAll(async () => {
+      CONFIG.GMS_ACTIVE = false
+      resetToken()
+      await cleanDB()
+    })
+
+    beforeEach(() => {
+      upsertMock.mockClear()
+      snapshotMock.mockClear()
+      deleteMock.mockClear()
+    })
+
+    it('takes the member off the GMS as the account is deleted', async () => {
+      const result = await mutate({ mutation: deleteUser, variables: { userId: member.id } })
+
+      expect(result.errors).toBeUndefined()
+      expect(result.data.deleteUser).toEqual(expect.any(String))
+      expect(deleteMock).toHaveBeenCalledTimes(1)
+      expect(deleteMock).toHaveBeenCalledWith('gms-test-key', member.gradidoID)
+      expect(upsertMock).not.toHaveBeenCalled()
+
+      const row = await stored(member)
+      expect(row.deletedAt).not.toBeNull()
+      expect(row.gmsRegistered).toBe(false)
+      expect(row.gmsRegisteredAt).toBeNull()
+      // What the member chose stays theirs: the account can come back as it was.
+      expect(row.gmsAllowed).toBe(true)
+    })
+
+    it('hands the member over again, entries included, as the account is brought back', async () => {
+      const result = await mutate({ mutation: unDeleteUser, variables: { userId: member.id } })
+
+      expect(result.errors).toBeUndefined()
+      expect(upsertMock).toHaveBeenCalledTimes(1)
+      const [key, gmsUsers] = upsertMock.mock.calls[0]
+      expect(key).toBe('gms-test-key')
+      expect(gmsUsers).toHaveLength(1)
+      expect(gmsUsers[0].uuid).toBe(member.gradidoID)
+
+      expect(snapshotMock).toHaveBeenCalledTimes(1)
+      const [, snapshots] = snapshotMock.mock.calls[0]
+      expect(snapshots).toHaveLength(1)
+      expect(snapshots[0].userUuid).toBe(member.gradidoID)
+      expect(snapshots[0].entries.map((entry: { uuid: string }) => entry.uuid)).toEqual([
+        ENTRY_UUID,
+      ])
+      expect(deleteMock).not.toHaveBeenCalled()
+
+      const row = await stored(member)
+      expect(row.deletedAt).toBeNull()
+      expect(row.gmsRegistered).toBe(true)
+      expect(row.gmsRegisteredAt).not.toBeNull()
+    })
+
+    // That a GMS which cannot be reached does not turn the deletion into an error is held
+    // without a database (util/syncMatchingEntryToGms.test.ts): the delete is tried again
+    // seconds later, and a test here would leave that try to whatever runs next.
+    // The row can say "never there" for a member who stands over there all the same, so the
+    // GMS is asked for every deleted account. Brought back is only who takes part.
+    it('asks for a member whose row says they never were there, and hands back nobody', async () => {
+      const deleted = await mutate({ mutation: deleteUser, variables: { userId: outsider.id } })
+      expect(deleted.errors).toBeUndefined()
+      expect(deleteMock).toHaveBeenCalledTimes(1)
+      expect(deleteMock).toHaveBeenCalledWith('gms-test-key', outsider.gradidoID)
+
+      const restored = await mutate({
+        mutation: unDeleteUser,
+        variables: { userId: outsider.id },
+      })
+      expect(restored.errors).toBeUndefined()
+      expect(upsertMock).not.toHaveBeenCalled()
+      expect(snapshotMock).not.toHaveBeenCalled()
+      expect((await stored(outsider)).deletedAt).toBeNull()
     })
   })
 
