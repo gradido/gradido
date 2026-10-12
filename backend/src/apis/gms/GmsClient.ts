@@ -190,10 +190,10 @@ export async function deleteGmsMatchingEntry(apiKey: string, uuid: string): Prom
  * take part - until now, nothing was sent at all in that case, and their copy simply
  * stayed in the GMS.
  *
- * Deleting an account does not reach this yet: `UserResolver.deleteUser` soft-removes
- * the member and leaves their copy over there. Wiring it up needs an answer for
- * `unDeleteUser` first, which would otherwise bring a member back who is no longer
- * findable.
+ * Sent as well when the moderation deletes an account (`UserResolver.deleteUser`,
+ * `removeDeletedUserFromGms`). `unDeleteUser` is its other half: it hands the member
+ * over again, entries included (`returnRestoredUserToGms`), so that nobody comes back
+ * who takes part and is not findable.
  */
 export async function deleteGmsUser(apiKey: string, userUuid: string): Promise<boolean> {
   if (!CONFIG.GMS_ACTIVE) {
