@@ -220,7 +220,7 @@ export async function removeDeletedUserFromGms(user: DbUser): Promise<void> {
  *
  * And never waits for longer than RESTORE_WAIT_MS: the moderator's mutation awaits this, and
  * the two calls that hand a member over have no timeout. A GMS that does not answer in time
- * is said here, and what is still under way goes on by itself.
+ * is said here, and what is still under way goes on by itself, to its end.
  */
 export async function returnRestoredUserToGms(user: DbUser): Promise<void> {
   if (user.foreign || !user.gmsAllowed || Point2Location(user.location as Point) === null) {
@@ -231,13 +231,12 @@ export async function returnRestoredUserToGms(user: DbUser): Promise<void> {
     giveUpWaiting = setTimeout(() => resolve('late'), RESTORE_WAIT_MS)
   })
   try {
-    const handOver = handOverRestoredUser(user)
-    if ((await Promise.race([handOver, waitedLongEnough])) === 'late') {
+    // Not waited for any longer, the hand-over still goes on to its end - which includes
+    // its look at the account (handOverRestoredUser).
+    if ((await Promise.race([handOverRestoredUser(user), waitedLongEnough])) === 'late') {
       logger.error(
         `the GMS did not take the restored user ${user.id} back within ${RESTORE_WAIT_MS} ms, not waited for any longer`,
       )
-      // What is not waited for any longer still arrives - see takeOffAgainIfDeletedMeanwhile.
-      handOver.then(() => takeOffAgainIfDeletedMeanwhile(user))
     }
   } finally {
     clearTimeout(giveUpWaiting)
@@ -245,26 +244,9 @@ export async function returnRestoredUserToGms(user: DbUser): Promise<void> {
 }
 
 /**
- * A hand-over that was not waited for to its end is held against the account as it stands
- * when it does end. Deleted again meanwhile, the member is taken off once more: the delete
- * of that deletion may have come ahead of what arrives only now, and nothing else takes a
- * deleted account off - the repair run leaves it out, and it cannot be deleted twice.
+ * The hand-over itself, with everything that can go wrong in it said and kept here - and
+ * at its end, where the GMS was asked at all, a look at the account as it stands by then.
  */
-async function takeOffAgainIfDeletedMeanwhile(user: DbUser): Promise<void> {
-  try {
-    const [standing] = await dbFindUsersWithEmailContactByIds([user.id])
-    if (!standing) {
-      logger.warn(
-        `user ${user.id} was deleted again before the GMS took them back, taken off once more`,
-      )
-      await removeUserFromGms(user)
-    }
-  } catch (e) {
-    logger.error(`could not look at user ${user.id} after a late hand-over to the GMS: ${e}`)
-  }
-}
-
-/** The hand-over itself, with everything that can go wrong in it said and kept here. */
 async function handOverRestoredUser(user: DbUser): Promise<void> {
   try {
     const gms = await findGmsApiKey()
@@ -278,6 +260,29 @@ async function handOverRestoredUser(user: DbUser): Promise<void> {
     }
   } catch (e) {
     logger.error(`could not bring the restored user ${user.id} back to the GMS: ${e}`)
+  }
+  await takeOffAgainIfDeletedMeanwhile(user)
+}
+
+/**
+ * ⛔ Every hand-over of a restored account is held against the account as it stands when
+ * the hand-over ends - in time or long after it was no longer waited for, got through or
+ * not. The moderation may have deleted the account again while the GMS was being asked,
+ * and the delete of that deletion may have come ahead of what the GMS takes only now. So a
+ * member whose account is deleted by then is taken off once more: nothing else would do
+ * that - the repair run leaves a deleted account out, and it cannot be deleted twice.
+ */
+async function takeOffAgainIfDeletedMeanwhile(user: DbUser): Promise<void> {
+  try {
+    const [standing] = await dbFindUsersWithEmailContactByIds([user.id])
+    if (!standing) {
+      logger.warn(
+        `user ${user.id} was deleted again while the GMS was asked to take them back, taken off once more`,
+      )
+      await removeUserFromGms(user)
+    }
+  } catch (e) {
+    logger.error(`could not look at user ${user.id} after the hand-over to the GMS: ${e}`)
   }
 }
 

@@ -61,7 +61,7 @@ const homeCommunityMock = getHomeCommunity as jest.Mock
 const clearRegistrationMock = dbClearGmsRegistration as jest.Mock
 const markRegisteredMock = dbMarkUsersGmsRegistered as jest.Mock
 const selectEntriesMock = dbSelectActiveMatchingEntriesByUserIds as jest.Mock
-// How the account stands when a hand-over that was not waited for arrives after all.
+// How the account stands when a hand-over ends: there (one row) or deleted (none).
 const accountNowMock = dbFindUsersWithEmailContactByIds as jest.Mock
 
 const API_KEY = 'gms-test-key'
@@ -129,6 +129,7 @@ describe('the GMS and an account the moderation deletes or brings back', () => {
     clearRegistrationMock.mockResolvedValue({ success: true })
     markRegisteredMock.mockResolvedValue(undefined)
     selectEntriesMock.mockResolvedValue([liveEntry])
+    accountNowMock.mockResolvedValue([member()])
   })
 
   afterEach(() => {
@@ -310,6 +311,7 @@ describe('the GMS and an account the moderation deletes or brings back', () => {
       expect(homeCommunityMock).not.toHaveBeenCalled()
       expect(upsertMock).not.toHaveBeenCalled()
       expect(snapshotMock).not.toHaveBeenCalled()
+      expect(accountNowMock).not.toHaveBeenCalled()
     })
 
     it('hands nobody over on a server that does not use the GMS', async () => {
@@ -322,6 +324,41 @@ describe('the GMS and an account the moderation deletes or brings back', () => {
       homeCommunityMock.mockResolvedValue({ gmsApiKey: null })
       await returnRestoredUserToGms(member())
       expect(upsertMock).not.toHaveBeenCalled()
+      // Nothing was handed over, so there is nothing to hold against the account.
+      expect(accountNowMock).not.toHaveBeenCalled()
+    })
+
+    // ⛔ The moderation may delete the account again while the GMS is being asked to take the
+    // member back, and the delete of that deletion may come ahead of what the GMS takes only
+    // afterwards. So every hand-over ends with a look at the account as it stands then.
+    describe('at the end of a hand-over', () => {
+      it('looks at the account, and leaves a member whose account stands', async () => {
+        await returnRestoredUserToGms(member())
+
+        expect(accountNowMock).toHaveBeenCalledTimes(1)
+        expect(accountNowMock).toHaveBeenCalledWith([7])
+        expect(upsertMock.mock.invocationCallOrder[0]).toBeLessThan(
+          accountNowMock.mock.invocationCallOrder[0],
+        )
+        expect(deleteMock).not.toHaveBeenCalled()
+      })
+
+      it('takes the member off once more where the account was deleted meanwhile', async () => {
+        accountNowMock.mockResolvedValue([])
+        await returnRestoredUserToGms(member())
+
+        expect(deleteMock).toHaveBeenCalledTimes(1)
+        expect(deleteMock).toHaveBeenCalledWith(API_KEY, MEMBER_UUID)
+      })
+
+      // Whether the GMS took them or not is not known for sure where the call failed.
+      it('looks at the account as well where the hand-over did not get through', async () => {
+        upsertMock.mockRejectedValue(new Error('timeout'))
+        accountNowMock.mockResolvedValue([])
+        await returnRestoredUserToGms(member())
+
+        expect(deleteMock).toHaveBeenCalledWith(API_KEY, MEMBER_UUID)
+      })
     })
 
     // The account is restored by then. Whether the publish throws or answers "no" is a switch
@@ -391,8 +428,6 @@ describe('the GMS and an account the moderation deletes or brings back', () => {
       useFakeTimersForDrizzle()
       await returnRestoredUserToGms(member())
       expect(jest.getTimerCount()).toBe(0)
-      // And the account is not looked at again: that is for a hand-over that came late.
-      expect(accountNowMock).not.toHaveBeenCalled()
     })
 
     // ⛔ What is not waited for any longer still arrives. The moderation may have deleted the
@@ -455,7 +490,7 @@ describe('the GMS and an account the moderation deletes or brings back', () => {
         expect(deleteMock).not.toHaveBeenCalled()
         expect(logger.error).toHaveBeenCalledTimes(2)
         expect((logger.error as jest.Mock).mock.calls[1][0]).toContain(
-          'could not look at user 7 after a late hand-over to the GMS',
+          'could not look at user 7 after the hand-over to the GMS',
         )
       })
     })
