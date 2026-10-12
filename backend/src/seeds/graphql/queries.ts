@@ -191,6 +191,9 @@ export const searchUsers = gql`
         deletedAt
         role
         creationAllowed
+        gradidoID
+        communityUuid
+        findableOnMap
       }
     }
   }
@@ -414,6 +417,22 @@ export const adminListContributions = gql`
           id
           tag
           name
+        }
+      }
+    }
+  }
+`
+
+// The member of each row as the pin under a contribution reads them: whether they stand on
+// the map, with the position next to it -- the admin's own document asks for the first alone.
+export const adminListContributionsMemberOnMap = gql`
+  query ($paginated: Paginated) {
+    adminListContributions(paginated: $paginated) {
+      contributionList {
+        user {
+          gradidoID
+          findableOnMap
+          userLocation
         }
       }
     }
@@ -746,6 +765,45 @@ export const queryTransactionLinkUserLocation = gql`
         redeemedBy {
           gradidoID
           userLocation
+        }
+      }
+    }
+  }
+`
+
+// Whether a member stands on the map of the member search, asked for over the same three ways
+// as the position above -- and with the position next to it wherever somebody else is asked
+// about: the moderation is told the yes or no, never the place.
+export const verifyLoginFindableOnMap = gql`
+  query {
+    verifyLogin {
+      gradidoID
+      findableOnMap
+    }
+  }
+`
+
+export const userFindableOnMap = gql`
+  query ($identifier: String!, $communityIdentifier: String!) {
+    user(identifier: $identifier, communityIdentifier: $communityIdentifier) {
+      gradidoID
+      findableOnMap
+      userLocation
+    }
+  }
+`
+
+export const queryTransactionLinkFindableOnMap = gql`
+  query ($code: String!) {
+    queryTransactionLink(code: $code) {
+      ... on TransactionLink {
+        senderUser {
+          gradidoID
+          findableOnMap
+        }
+        redeemedBy {
+          gradidoID
+          findableOnMap
         }
       }
     }
