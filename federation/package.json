@@ -12,7 +12,6 @@
     "start": "cross-env TZ=UTC NODE_ENV=production bun build/index.js",
     "dev": "cross-env TZ=UTC bun --hot src/index.ts",
     "typecheck": "bun check",
-    "typecheck-direct": "../node_modules/@typescript/typescript-linux-x64/lib/tsc --noEmit",
     "test": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_federation bun test --isolate",
     "test:debug": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_federation bun test --isolate --inspect-brk",
     "test:coverage": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_federation bun test --isolate --coverage",
