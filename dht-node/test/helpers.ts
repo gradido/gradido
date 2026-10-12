@@ -33,7 +33,7 @@ export const testEnvironment = async () => {
 const realNextTick = process.nextTick
 
 /**
- * `jest.useFakeTimers()` for code that reaches a Drizzle query - `cleanDB` does. Jest 27's
+ * `jest.useFakeTimers()` for code that reaches a Drizzle query - `cleanDB` does. Jest's
  * modern timers fake `process.nextTick` along with the rest, and mysql2 - Drizzle's driver -
  * hands every result over through it: under the plain call a Drizzle query waits forever.
  * Same helper as in backend/test/helpers.ts. Undone as usual by `jest.useRealTimers()`.

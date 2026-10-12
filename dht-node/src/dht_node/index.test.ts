@@ -140,15 +140,15 @@ describe('federation', () => {
     })
 
     it('calls DHT.hash', () => {
-      expect(hashSpy).toBeCalledWith(Buffer.from(TEST_TOPIC))
+      expect(hashSpy).toHaveBeenCalledWith(Buffer.from(TEST_TOPIC))
     })
 
     it('creates a key pair', () => {
-      expect(keyPairSpy).toBeCalledWith(expect.any(Buffer))
+      expect(keyPairSpy).toHaveBeenCalledWith(expect.any(Buffer))
     })
 
     it('initializes a new DHT object', () => {
-      expect(DHT).toBeCalledWith({ keyPair: keyPairMock })
+      expect(DHT).toHaveBeenCalledWith({ keyPair: keyPairMock })
     })
 
     it('stores the home community in community table ', async () => {
@@ -214,11 +214,11 @@ describe('federation', () => {
 
     describe('DHT node', () => {
       it('creates a server', () => {
-        expect(nodeCreateServerMock).toBeCalled()
+        expect(nodeCreateServerMock).toHaveBeenCalled()
       })
 
       it('listens on the server', () => {
-        expect(serverListenSpy).toBeCalled()
+        expect(serverListenSpy).toHaveBeenCalled()
       })
 
       describe('timers', () => {
@@ -227,11 +227,11 @@ describe('federation', () => {
         })
 
         it('announces on topic', () => {
-          expect(nodeAnnounceMock).toBeCalledWith(Buffer.from(TEST_TOPIC), keyPairMock)
+          expect(nodeAnnounceMock).toHaveBeenCalledWith(Buffer.from(TEST_TOPIC), keyPairMock)
         })
 
         it('looks up on topic', () => {
-          expect(nodeLookupMock).toBeCalledWith(Buffer.from(TEST_TOPIC))
+          expect(nodeLookupMock).toHaveBeenCalledWith(Buffer.from(TEST_TOPIC))
         })
       })
 
@@ -244,7 +244,7 @@ describe('federation', () => {
         })
 
         it('can be triggered', () => {
-          expect(socketOnMock).toBeCalled()
+          expect(socketOnMock).toHaveBeenCalled()
         })
 
         describe('socket events', () => {
@@ -256,11 +256,11 @@ describe('federation', () => {
               })
 
               it('logs the received data', () => {
-                expect(logger.info).toBeCalledWith('data: no-json string')
+                expect(logger.info).toHaveBeenCalledWith('data: no-json string')
               })
 
               it('logs an error of unexpected data format and structure', () => {
-                expect(logger.error).toBeCalledWith(
+                expect(logger.error).toHaveBeenCalledWith(
                   'Error on receiving data from socket:',
                   new SyntaxError(`Unexpected token 'o', "no-json string" is not valid JSON`),
                 )
@@ -284,7 +284,7 @@ describe('federation', () => {
               })
 
               it('logs the binary data as hex', () => {
-                expect(logger.warn).toBeCalledWith(
+                expect(logger.warn).toHaveBeenCalledWith(
                   'received non ascii character, content as hex: 48656c6c6f2c20c2a92048656c6c6f21',
                 )
               })
@@ -298,11 +298,11 @@ describe('federation', () => {
               })
 
               it('logs the received data', () => {
-                expect(logger.info).toBeCalledWith('data: invalid type test,api,url')
+                expect(logger.info).toHaveBeenCalledWith('data: invalid type test,api,url')
               })
 
               it('logs an error of unexpected data format and structure', () => {
-                expect(logger.error).toBeCalledWith(
+                expect(logger.error).toHaveBeenCalledWith(
                   'Error on receiving data from socket:',
                   new SyntaxError(`Unexpected token 'i', "invalid ty"... is not valid JSON`),
                 )
@@ -320,13 +320,13 @@ describe('federation', () => {
               })
 
               it('logs the received data', () => {
-                expect(logger.info).toBeCalledWith(
+                expect(logger.info).toHaveBeenCalledWith(
                   'data: api,url,invalid type in array test,wrong,api,url',
                 )
               })
 
               it('logs an error of unexpected data format and structure', () => {
-                expect(logger.error).toBeCalledWith(
+                expect(logger.error).toHaveBeenCalledWith(
                   'Error on receiving data from socket:',
                   new SyntaxError(`Unexpected token 'a', "api,url,in"... is not valid JSON`),
                 )
@@ -348,13 +348,13 @@ describe('federation', () => {
               })
 
               it('logs the received data', () => {
-                expect(logger.info).toBeCalledWith(
+                expect(logger.info).toHaveBeenCalledWith(
                   'data: [{"api":"1_0","url":"too much versions at the same time test"},{"api":"1_0","url":"url2"},{"api":"1_0","url":"url3"},{"api":"1_0","url":"url4"},{"api":"1_0","url":"url5"}]',
                 )
               })
 
               it('logs a warning of too much apiVersion-Definitions', () => {
-                expect(logger.warn).toBeCalledWith(
+                expect(logger.warn).toHaveBeenCalledWith(
                   `received totaly wrong or too much apiVersions-Definition JSON-String: ${JSON.stringify(
                     jsonArray,
                   )}`,
@@ -438,11 +438,11 @@ describe('federation', () => {
               })
 
               it('logs the received data', () => {
-                expect(logger.info).toBeCalledWith(`data: ${JSON.stringify(jsonArray)}`)
+                expect(logger.info).toHaveBeenCalledWith(`data: ${JSON.stringify(jsonArray)}`)
               })
 
               it('logs a warning of invalid apiVersion-Definition', () => {
-                expect(logger.warn).toBeCalledWith(
+                expect(logger.warn).toHaveBeenCalledWith(
                   `received invalid apiVersion-Definition: ${JSON.stringify(jsonArray[0])}`,
                 )
               })
@@ -460,11 +460,11 @@ describe('federation', () => {
               })
 
               it('logs the received data', () => {
-                expect(logger.info).toBeCalledWith(`data: ${JSON.stringify(jsonArray)}`)
+                expect(logger.info).toHaveBeenCalledWith(`data: ${JSON.stringify(jsonArray)}`)
               })
 
               it('logs a warning of invalid apiVersion-Definition', () => {
-                expect(logger.warn).toBeCalledWith(
+                expect(logger.warn).toHaveBeenCalledWith(
                   `received invalid apiVersion-Definition: ${JSON.stringify(jsonArray[0])}`,
                 )
               })
@@ -483,11 +483,11 @@ describe('federation', () => {
               })
 
               it('logs the received data', () => {
-                expect(logger.info).toBeCalledWith(`data: ${JSON.stringify(jsonArray)}`)
+                expect(logger.info).toHaveBeenCalledWith(`data: ${JSON.stringify(jsonArray)}`)
               })
 
               it('logs a warning of invalid apiVersion-Definition', () => {
-                expect(logger.warn).toBeCalledWith(
+                expect(logger.warn).toHaveBeenCalledWith(
                   `received invalid apiVersion-Definition: ${JSON.stringify(jsonArray[0])}`,
                 )
               })
@@ -506,11 +506,11 @@ describe('federation', () => {
               })
 
               it('logs the received data', () => {
-                expect(logger.info).toBeCalledWith(`data: ${JSON.stringify(jsonArray)}`)
+                expect(logger.info).toHaveBeenCalledWith(`data: ${JSON.stringify(jsonArray)}`)
               })
 
               it('logs a warning of invalid apiVersion-Definition', () => {
-                expect(logger.warn).toBeCalledWith(
+                expect(logger.warn).toHaveBeenCalledWith(
                   `received invalid apiVersion-Definition: ${JSON.stringify(jsonArray[0])}`,
                 )
               })
@@ -529,11 +529,11 @@ describe('federation', () => {
               })
 
               it('logs the received data', () => {
-                expect(logger.info).toBeCalledWith(`data: ${JSON.stringify(jsonArray)}`)
+                expect(logger.info).toHaveBeenCalledWith(`data: ${JSON.stringify(jsonArray)}`)
               })
 
               it('logs a warning of invalid apiVersion-Definition', () => {
-                expect(logger.warn).toBeCalledWith(
+                expect(logger.warn).toHaveBeenCalledWith(
                   `received invalid apiVersion-Definition: ${JSON.stringify(jsonArray[0])}`,
                 )
               })
@@ -558,11 +558,11 @@ describe('federation', () => {
               })
 
               it('logs the received data', () => {
-                expect(logger.info).toBeCalledWith(`data: ${JSON.stringify(jsonArray)}`)
+                expect(logger.info).toHaveBeenCalledWith(`data: ${JSON.stringify(jsonArray)}`)
               })
 
               it('logs a warning of invalid apiVersion-Definition', () => {
-                expect(logger.warn).toBeCalledWith(
+                expect(logger.warn).toHaveBeenCalledWith(
                   `received apiVersion with content longer than max length: ${JSON.stringify(
                     jsonArray[0],
                   )}`,
@@ -589,11 +589,11 @@ describe('federation', () => {
               })
 
               it('logs the received data', () => {
-                expect(logger.info).toBeCalledWith(`data: ${JSON.stringify(jsonArray)}`)
+                expect(logger.info).toHaveBeenCalledWith(`data: ${JSON.stringify(jsonArray)}`)
               })
 
               it('logs a warning of invalid apiVersion-Definition', () => {
-                expect(logger.warn).toBeCalledWith(
+                expect(logger.warn).toHaveBeenCalledWith(
                   `received apiVersion with content longer than max length: ${JSON.stringify(
                     jsonArray[0],
                   )}`,
@@ -620,7 +620,7 @@ describe('federation', () => {
               })
 
               it('logs the received data', () => {
-                expect(logger.info).toBeCalledWith(`data: ${JSON.stringify(jsonArray)}`)
+                expect(logger.info).toHaveBeenCalledWith(`data: ${JSON.stringify(jsonArray)}`)
               })
             })
 
@@ -805,7 +805,7 @@ describe('federation', () => {
               })
 
               it('logs the received data', () => {
-                expect(logger.warn).toBeCalledWith(
+                expect(logger.warn).toHaveBeenCalledWith(
                   `received more than max allowed length of data buffer: ${
                     JSON.stringify(jsonArray).length
                   } against 1141 max allowed`,
@@ -884,7 +884,7 @@ describe('federation', () => {
             })
 
             it('calls socket write with own api versions', () => {
-              expect(socketWriteMock).toBeCalledWith(
+              expect(socketWriteMock).toHaveBeenCalledWith(
                 Buffer.from(
                   JSON.stringify([
                     {

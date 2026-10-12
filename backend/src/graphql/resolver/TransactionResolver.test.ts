@@ -264,7 +264,10 @@ describe('send coins', () => {
       })
 
       it('logs the error thrown', () => {
-        expect(logger.error).toBeCalledWith('Sender and Recipient are the same', expect.any(Number))
+        expect(logger.error).toHaveBeenCalledWith(
+          'Sender and Recipient are the same',
+          expect.any(Number),
+        )
       })
     })
 
@@ -349,7 +352,7 @@ describe('send coins', () => {
       })
 
       it('logs the error thrown', () => {
-        expect(logger.error).toBeCalledWith('User has not enough GDD or amount is < 0', null)
+        expect(logger.error).toHaveBeenCalledWith('User has not enough GDD or amount is < 0', null)
       })
     })
   })

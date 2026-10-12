@@ -263,10 +263,10 @@ describe('AssistedRegistrationResolver', () => {
         variables: { email: realEmail, password: PASSWORD },
       })
       expect(result.errors).toBeUndefined()
-      expect(sendEmailChangeConfirmEmail).toBeCalledWith(
+      expect(sendEmailChangeConfirmEmail).toHaveBeenCalledWith(
         expect.objectContaining({ email: realEmail }),
       )
-      expect(sendEmailChangeNoticeEmail).not.toBeCalled()
+      expect(sendEmailChangeNoticeEmail).not.toHaveBeenCalled()
     })
 
     it('hard-deletes the never-confirmed row on completion: the real address becomes the oldest', async () => {
@@ -295,7 +295,7 @@ describe('AssistedRegistrationResolver', () => {
 
       // ... and the support mail must not ask to merge a typo that never reached the
       // GDT server: the typo-correction flag switches its todo text.
-      expect(sendEmailChangeSupportEmail).toBeCalledWith(
+      expect(sendEmailChangeSupportEmail).toHaveBeenCalledWith(
         expect.objectContaining({
           oldEmail: typoEmail,
           newEmail: realEmail,

@@ -260,7 +260,7 @@ describe('GmsClient', () => {
       await expect(putGmsMatchingEntrySnapshots(API_KEY, snapshots)).rejects.toThrow(
         'HTTP Status Error in community-users/matching-entry-snapshots:',
       )
-      expect(logErrorLogger.error).toBeCalledWith(
+      expect(logErrorLogger.error).toHaveBeenCalledWith(
         'HTTP Status Error in community-users/matching-entry-snapshots:',
         500,
         'Internal Server Error',
@@ -314,7 +314,7 @@ describe('GmsClient', () => {
       await expect(upsertGmsUsers(API_KEY, [member()])).rejects.toThrow(
         'HTTP Status Error in community-users:',
       )
-      expect(logErrorLogger.error).toBeCalledWith(
+      expect(logErrorLogger.error).toHaveBeenCalledWith(
         'HTTP Status Error in community-users:',
         500,
         'Internal Server Error',
