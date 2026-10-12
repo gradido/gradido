@@ -70,6 +70,23 @@ describe('SendChatMessageArgs', () => {
     expect(await checksFailing(argsWith(tooLong, pictureOf(800, 600)))).toEqual(['maxLength'])
   })
 
+  /**
+   * ⛔ What the request budget and the column rest on (chatImageBudget.test.ts in shared): a
+   * character brings ONE variation selector along for nothing -- an emoji with it is one
+   * character --, and every further selector counts as a character of its own. Counted
+   * otherwise, every selector for nothing, a text of one letter and tens of thousands of
+   * selectors would pass as one character.
+   */
+  it('counts one variation selector with its character, and every further one by itself', async () => {
+    const selector = String.fromCodePoint(0xfe0f)
+
+    expect(await checksFailing(argsWith(`😀${selector}`.repeat(MESSAGE_MAX_CHARS)))).toEqual([])
+    expect(await checksFailing(argsWith(`x${selector.repeat(MESSAGE_MAX_CHARS)}`))).toEqual([])
+    expect(await checksFailing(argsWith(`x${selector.repeat(MESSAGE_MAX_CHARS + 1)}`))).toEqual([
+      'maxLength',
+    ])
+  })
+
   it('takes each side of a picture from 1 to 4096', async () => {
     expect(await checksFailing(argsWith('', pictureOf(1, 1)))).toEqual([])
     expect(

@@ -300,8 +300,9 @@ export class ChatResolver {
    * avatar is checked -- and refused as CHAT_IMAGE_NOT_ACCEPTED with the reason, nothing filed.
    * To a member of another community the picture travels in the command, and the recipient's
    * server checks and files it the same way (P7b). Where the sealed command would be larger than
-   * the other server takes -- the wallet's picture with a text made up to be heavy --, the message
-   * is refused, TOO_LARGE_ACROSS_BORDER, before anything is filed or sent.
+   * the other server takes -- a picture with a long text whose characters weigh three bytes or
+   * more, Chinese or emoji (CHAT_IMAGE_MAX_BYTES in shared says how long) --, the message is
+   * refused, TOO_LARGE_ACROSS_BORDER, before anything is filed or sent.
    *
    * Whether it goes out as a mail as well: the first message between the two always does
    * (E-024, decided here against this server's own table, before anything is filed); after it,

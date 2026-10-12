@@ -31,3 +31,18 @@ describe('chat picture size budget', () => {
     expect(worstCase).toBeLessThan(EXPRESS_BODY_LIMIT)
   })
 })
+
+describe('chat message text and its column', () => {
+  // `chat_messages.body` is a `text` (database/src/schemas/drizzle.schema.ts): 65,535 bytes, and
+  // a text over them surfaces as a raw driver error.
+  const TEXT_COLUMN_BYTES = 65_535
+  // The heaviest character MaxLength counts as one, as it is stored: an emoji (four bytes of
+  // UTF-8) with a variation selector (three).
+  const HEAVIEST_STORED_BYTES_PER_CHARACTER = 7
+
+  it('holds the longest text a member may send', () => {
+    expect(MESSAGE_MAX_CHARS * HEAVIEST_STORED_BYTES_PER_CHARACTER).toBeLessThanOrEqual(
+      TEXT_COLUMN_BYTES,
+    )
+  })
+})

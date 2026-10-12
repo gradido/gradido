@@ -50,7 +50,8 @@ export const MEMO_MIN_CHARS = 5
 // characters MaxLength lets through are 35,000 -- but the request a message travels in, with
 // its picture beside it: 100 KB, within this community and on the way to another one. The
 // sums stand at CHAT_IMAGE_MAX_BYTES below; chatImageBudget.test.ts and
-// commandRequestBytes.test.ts (core) hold them. Whoever raises this again reads both first.
+// commandRequestBytes.test.ts (core) hold them. Whoever raises this again reads both first:
+// at some 5,500 characters the first of them no longer holds.
 export const MESSAGE_MAX_CHARS = 5000
 export const MESSAGE_MIN_CHARS = 1
 // matching: what a member writes about themselves, and the long form of a single
@@ -145,7 +146,8 @@ export const JPEG_END_BYTES = [0xff, 0xd9]
 // for every byte of the picture and 1.78 for every byte of the text -- of the text as JSON has
 // written it twice by then: a quotation mark is four bytes, a line break three (measured
 // 27.09.2026 and 12.10.2026). The wallet's 32 KB come to some 80 KB, and what a text may weigh
-// beside them is some 11,800 bytes.
+// beside them is some 11,800 bytes. (What travels is this server's copy of the picture, encoded
+// again: of six pictures from the wallet it was 1.5 to 8.6 % smaller than what the wallet sent.)
 //
 // A text of MESSAGE_MAX_CHARS characters is that light where a letter is one or two bytes --
 // Latin, Cyrillic, Greek, Arabic: every language the wallet speaks. Where a character is three

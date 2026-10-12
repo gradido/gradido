@@ -707,7 +707,7 @@ describe('deliverChatMessageAcrossBorder', () => {
     })
 
     // Cyrillic letters are two bytes each: the heaviest of the languages the wallet speaks.
-    it("sends the wallet's picture with a text of a message's full length", async () => {
+    it("sends the wallet's picture with a text of full length in Cyrillic letters", async () => {
       store.mockResolvedValue(row('pending'))
       sendCommandForAnswer.mockResolvedValue({ success: true, value: null })
       record.mockResolvedValue(new Date())

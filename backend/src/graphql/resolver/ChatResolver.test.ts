@@ -1217,8 +1217,8 @@ describe('sendChatMessage to a member of another community', () => {
       expect(pictures[0].image.equals(JPEG)).toBe(true)
     })
 
-    // What MaxLength counts as a message's full length, the envelope weighs as some 62 KB: with
-    // the wallet's picture, more than the other server takes.
+    // A message's full length in Chinese is 15 KB, and some 27 KB once the envelope is sealed:
+    // with the wallet's picture, more than the other server takes.
     it('refuses a text too heavy to cross with a picture, and files and sends nothing', async () => {
       peerAnswers({ success: true })
       // A picture with the weight of the wallet's largest, and still that heavy once the server
@@ -1226,7 +1226,7 @@ describe('sendChatMessage to a member of another community', () => {
       const walletPicture = await testNoiseJpeg(212, 212)
       expect(walletPicture.length).toBeGreaterThan(32 * 1024)
       expect(walletPicture.length).toBeLessThanOrEqual(CHAT_IMAGE_MAX_BYTES)
-      const heavy = `😀${String.fromCodePoint(0xfe0f)}`.repeat(MESSAGE_MAX_CHARS)
+      const heavy = '你'.repeat(MESSAGE_MAX_CHARS)
       const messagesBefore = await allMessages()
       const picturesBefore = await allPictures()
 

@@ -167,9 +167,11 @@ describe('the command for a chat message with a picture, sealed', () => {
     }
   })
 
-  // How far such a text goes beside a picture -- the numbers the comment at CHAT_IMAGE_MAX_BYTES
-  // (shared) gives. Russian goes whole beside the wallet's picture; beside the largest this server
-  // takes, three kilobytes more, it does not.
+  // How far such a text goes beside a picture: 3,927 characters of Chinese, 4,568 of Hindi and
+  // 2,945 emoji beside the wallet's picture, 4,291 of Russian beside the largest this server takes
+  // (measured 12.10.2026; the comment at CHAT_IMAGE_MAX_BYTES in shared gives them rounded). Held
+  // with more than a hundred characters of room on either side: a few bytes more in the envelope
+  // are not what this is about.
   const HOW_FAR: [
     script: string,
     picture: string,
@@ -178,9 +180,9 @@ describe('the command for a chat message with a picture, sealed', () => {
     tooLong: number,
     sentence: string,
   ][] = [
-    ['Chinese', "the wallet's picture", WALLET_TARGET_BYTES, 3900, 4000, CHINESE],
-    ['Hindi', "the wallet's picture", WALLET_TARGET_BYTES, 4500, 4650, HINDI],
-    ['Russian', 'the largest picture the server takes', CHAT_IMAGE_MAX_BYTES, 4200, 4400, RUSSIAN],
+    ['Chinese', "the wallet's picture", WALLET_TARGET_BYTES, 3800, 4050, CHINESE],
+    ['Hindi', "the wallet's picture", WALLET_TARGET_BYTES, 4400, 4750, HINDI],
+    ['Russian', 'the largest picture the server takes', CHAT_IMAGE_MAX_BYTES, 4100, 4500, RUSSIAN],
   ]
   it.each(HOW_FAR)(
     'takes %s beside %s up to some length',
@@ -192,8 +194,8 @@ describe('the command for a chat message with a picture, sealed', () => {
 
   // An emoji is two units and one character: repeated, not cut by units.
   it("takes emoji beside the wallet's picture up to some length", async () => {
-    expect(commandRequestFits(await sealed('😀'.repeat(2900), WALLET_TARGET_BYTES))).toBe(true)
-    expect(commandRequestFits(await sealed('😀'.repeat(3000), WALLET_TARGET_BYTES))).toBe(false)
+    expect(commandRequestFits(await sealed('😀'.repeat(2850), WALLET_TARGET_BYTES))).toBe(true)
+    expect(commandRequestFits(await sealed('😀'.repeat(3050), WALLET_TARGET_BYTES))).toBe(false)
   })
 
   // Without a picture every text goes, the heaviest of all included -- and that one not by much:
