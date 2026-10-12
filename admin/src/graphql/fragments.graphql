@@ -41,4 +41,7 @@ fragment UserCommonFields on User {
   gradidoID
   communityUuid
   avatarUpdatedAt
+  # Whether the member stands on the map of the member search, for the pin behind their name.
+  # A yes or no; the place is not asked for and would not be answered.
+  findableOnMap
 }
