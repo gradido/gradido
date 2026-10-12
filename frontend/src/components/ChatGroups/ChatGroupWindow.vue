@@ -13,10 +13,11 @@
     no-footer
     :aria-label="group?.title ?? ''"
     body-class="chat-group-window-body"
+    :dialog-class="large ? 'chat-window-large' : undefined"
     data-test="chat-group-window"
     @update:model-value="emit('update:modelValue', $event)"
   >
-    <div v-if="group" class="chat-group-window-inner">
+    <div v-if="group" class="chat-group-window-inner" :class="{ 'is-large': large }">
       <!-- The cross in a line of its own at the very top, as in the contact window (Bernd,
            24.09.2026): beside the name it took the room a long name needs on a phone. -->
       <div class="chat-group-window-top">
@@ -35,6 +36,9 @@
         >
           <i-mdi-magnify aria-hidden="true" />
         </button>
+        <!-- The window large, for a longer text, and back (Bernd, 12.10.2026, E-077): between
+             the magnifier and the cross, where it stands in the contact window. -->
+        <chat-window-size-toggle />
         <button
           type="button"
           class="chat-group-window-close"
@@ -199,6 +203,7 @@ import ChatForwardDialog from '@/components/Chat/ChatForwardDialog.vue'
 import ChatSearchBar from '@/components/Chat/ChatSearchBar.vue'
 import ChatThread from '@/components/Chat/ChatThread.vue'
 import ChatVideoCall from '@/components/Chat/ChatVideoCall.vue'
+import ChatWindowSizeToggle from '@/components/Chat/ChatWindowSizeToggle.vue'
 import ChatGroupMembers from '@/components/ChatGroups/ChatGroupMembers.vue'
 import {
   chatGroupAvatar,
@@ -207,6 +212,7 @@ import {
 } from '@/components/ChatGroups/chatGroupDisplay'
 import { fetchMemberAvatars, memberAvatarProps } from '@/composables/useMemberAvatars'
 import { useChatWindowSearch } from '@/composables/useChatWindowSearch'
+import { useChatWindowSize } from '@/composables/useChatWindowSize'
 import { useAppToast } from '@/composables/useToast'
 import { SMALL_FACE_SIZE } from '@/constants'
 import { chatGroupMembersQuery, setChatGroupMuted } from '@/graphql/chatGroups.graphql'
@@ -428,6 +434,12 @@ const { searchOpen, searchTyped, searchFound, searchToggle, toggleSearch, closeS
     () => props.modelValue,
     () => props.group?.groupUuid,
   )
+
+/**
+ * Whether the window stands large (E-077, useChatWindowSize): the switch beside the magnifier
+ * turns it, for every chat window of the page, and the member's device remembers it.
+ */
+const { large } = useChatWindowSize()
 /** The questions of a video call (ChatVideoCall, E-053). */
 const videoCall = ref(null)
 const videoCallName = computed(() => t('chatGroup.videoCall', { name: props.group?.title ?? '' }))
@@ -679,6 +691,33 @@ watch(
   }
 
   .chat-group-window-thread :deep(.chat-thread-scroll) {
+    max-height: none;
+  }
+}
+
+/* The large window (E-077, ChatWindowSizeToggle): the same column from `sm` up, as high as what
+   it holds -- the contact window's rules under the group window's names. */
+@media (width >= 576px) and (height >= 704px) {
+  .chat-group-window-inner.is-large {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .is-large > .chat-group-window-top,
+  .is-large > .chat-group-window-head,
+  .is-large > .chat-group-window-meta,
+  .is-large > .chat-group-window-row {
+    flex-shrink: 0;
+  }
+
+  .is-large > .chat-group-window-thread {
+    flex: 0 1 auto;
+  }
+
+  /* The floor under the thread: the contact window says why. */
+  .is-large > .chat-group-window-thread :deep(.chat-thread-scroll) {
+    min-height: 6rem;
     max-height: none;
   }
 }

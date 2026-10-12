@@ -430,6 +430,10 @@
     "videoWhenHint": "Kendi saat dilimindeki saat ({zone}).",
     "you": "Sen"
   },
+  "chatWindow": {
+    "enlarge": "Pencereyi büyüt",
+    "reduce": "Pencereyi küçült"
+  },
   "community": {
     "admins": "Yöneticiler",
     "choose-another-community": "Başka bir topluluk seç",

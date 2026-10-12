@@ -170,6 +170,7 @@ import ChatImageView from '@/components/Chat/ChatImageView.vue'
 import { openChatImageView, rememberChatImage } from '@/composables/useChatImages'
 import { useChatTransfers } from '@/composables/useChatTransfers'
 import { useChatThreadSearch } from '@/composables/useChatThreadSearch'
+import { useChatWindowSize } from '@/composables/useChatWindowSize'
 import { useAppToast } from '@/composables/useToast'
 import {
   onChatMessages,
@@ -200,6 +201,7 @@ import { chatEditProblem, withChatMessagesEdited } from '@/utils/chatEdit'
 import { chatImageRefusal } from '@/utils/chatImage'
 import { managesChatGroup } from '@/utils/chatGroupRoles'
 import { chatMemberKey } from '@/utils/chatMemberKey'
+import { chatReadingPlace, chatReadingPlaceOffset } from '@/utils/chatReadingPlace'
 import {
   chatReactionToSend,
   offersChatReactions,
@@ -996,6 +998,95 @@ const {
   show: showItem,
 })
 watch(searchResult, (now) => emit('search', now))
+
+/**
+ * The reader's place while the window around the thread is made large, or small again (E-077, the
+ * switch between the magnifier and the cross): the lines reflow, and what stood at the top edge
+ * of the box stays there (utils/chatReadingPlace). Nothing to keep while the thread follows its
+ * newest message -- the bottom is the place then, and the box's own observer keeps it (above).
+ *
+ * ⚠️ Read in a `sync` watcher: the place has to be read BEFORE the window changes, and the window
+ * is an ancestor -- it is patched before a `pre` watcher of this component runs. Put back once
+ * the change is on screen (`post`).
+ *
+ * ⛔ A place the other window cannot put at its top edge is HELD, not lost. Near the thread's end
+ * the large window holds everything below the place: its box stops at the bottom, the scroll that
+ * follows reads "at the bottom", and from then on the thread follows its newest message. The way
+ * back then ended at the thread's END -- under the last lines of the long message whose first
+ * line the window was made large for (the second reader, 12.10.2026). So the place is kept
+ * together with where the box came to stand, and it is the place put back at the next change,
+ * for as long as the box still stands there: a reader who scrolled meanwhile, or a new message
+ * the thread went down to, has made another place of it.
+ *
+ * ⛔ And the hit the search stands on (E-057) stays in the box. `showItem` puts it in the middle,
+ * the place kept is the top edge, and in the narrower window what lies between the two is longer:
+ * the marked message stood below the fold, the bar still counting it as the one shown.
+ */
+const { large: windowLarge } = useChatWindowSize()
+let placeBeforeResize = null
+/** A place the box could not put at its top edge, and where the box stood instead. */
+let placeHeld = null
+let hitStoodInFull = false
+
+const itemOf = (key) => content.value?.querySelector(`[data-key="${key}"]`) ?? null
+
+/** Whether an item stands in the box from its first line to its last. */
+const standsInFull = (box, item) => {
+  const frame = box.getBoundingClientRect()
+  const { top, bottom } = item.getBoundingClientRect()
+  return top >= frame.top - 1 && bottom <= frame.bottom + 1
+}
+
+watch(
+  windowLarge,
+  () => {
+    const box = scroller.value
+    const held = placeHeld
+    placeHeld = null
+    placeBeforeResize = null
+    hitStoodInFull = false
+    if (!box || !content.value) return
+    if (held && Math.abs(box.scrollTop - held.scrollTop) <= 1) {
+      placeBeforeResize = held.place
+    } else if (!followNewest) {
+      placeBeforeResize = chatReadingPlace(box, content.value.querySelectorAll('[data-key]'))
+    }
+    const hit = searchKey.value === null ? null : itemOf(searchKey.value)
+    hitStoodInFull = Boolean(hit) && standsInFull(box, hit)
+  },
+  { flush: 'sync' },
+)
+
+watch(
+  windowLarge,
+  () => {
+    const place = placeBeforeResize
+    placeBeforeResize = null
+    // First the bar: its field is as high as its text needs at the width it has now, and in the
+    // large window that height is the thread's room.
+    composeBar.value?.fit()
+    const box = scroller.value
+    if (!box) return
+    const item = place && itemOf(place.key)
+    if (item) {
+      box.scrollTop += chatReadingPlaceOffset(box, item, place)
+      // Short of the place: the box is at an end and cannot go further.
+      if (Math.abs(chatReadingPlaceOffset(box, item, place)) > 1) {
+        placeHeld = { place, scrollTop: box.scrollTop }
+      }
+      // What the scroll that follows would say, said now: the observer of the box runs before
+      // that scroll is reported, and a thread still "following" from the window before would
+      // be taken down to its newest message, away from the place just put back.
+      followNewest = box.scrollHeight - box.clientHeight - box.scrollTop < 2
+      // An older page on its way keeps the reader's place by its distance from the bottom
+      // (above), and that distance is another one in a window of another width.
+      if (placeFromBottom !== null) placeFromBottom = box.scrollHeight - box.scrollTop
+    }
+    const hit = hitStoodInFull && searchKey.value !== null ? itemOf(searchKey.value) : null
+    if (hit && !standsInFull(box, hit)) showItem(searchKey.value)
+  },
+  { flush: 'post' },
+)
 
 /**
  * Arrivals the page can take: not twice (an id the thread holds already -- one's own copy comes

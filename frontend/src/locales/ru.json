@@ -430,6 +430,10 @@
     "videoWhenHint": "Время в вашем часовом поясе ({zone}).",
     "you": "Вы"
   },
+  "chatWindow": {
+    "enlarge": "Увеличить окно",
+    "reduce": "Уменьшить окно"
+  },
   "community": {
     "admins": "Администраторы",
     "choose-another-community": "Выбрать другое сообщество",
