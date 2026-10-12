@@ -1,8 +1,9 @@
-import corsLib from 'cors'
+import { cors as corsPlugin } from '@elysia/cors'
 
 const corsOptions = {
   origin: '*',
-  exposedHeaders: ['token'],
+  exposeHeaders: ['token'],
+  credentials: false,
 }
 
-export const cors = corsLib(corsOptions)
+export const cors = corsPlugin(corsOptions)

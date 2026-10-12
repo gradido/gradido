@@ -1,0 +1,57 @@
+// AI-GENERATED — not an architecture reference
+import { afterAll, beforeAll, describe, expect, it } from 'bun:test'
+import { AppDatabase } from 'database'
+import type { AnyElysia } from 'elysia'
+import { getLogger } from 'log4js'
+import { createServer } from './createServer'
+
+let app: AnyElysia
+
+beforeAll(async () => {
+  app = (await createServer(getLogger('apollo'))).app
+})
+
+afterAll(async () => {
+  await AppDatabase.getInstance().destroy()
+})
+
+const post = (body: unknown): Promise<Response> =>
+  app.handle(
+    new Request('http://localhost/', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+    }),
+  )
+
+describe('the http server of the federation', () => {
+  it('answers a posted operation with apollo', async () => {
+    const response = await post({ query: '{ __typename }' })
+    expect(response.status).toBe(200)
+    expect(await response.json()).toEqual({ data: { __typename: 'Query' } })
+  })
+
+  it('lets every origin read the answer and its token header', async () => {
+    const response = await post({ query: '{ __typename }' })
+    expect(response.headers.get('access-control-allow-origin')).toBe('*')
+    expect(response.headers.get('access-control-expose-headers')).toBe('token')
+    expect(response.headers.get('access-control-allow-credentials')).toBeNull()
+  })
+
+  it('sets the security headers on an answer of apollo', async () => {
+    const response = await post({ query: '{ __typename }' })
+    expect(response.headers.get('x-content-type-options')).toBe('nosniff')
+    expect(response.headers.get('x-frame-options')).toBe('SAMEORIGIN')
+    expect(response.headers.get('cross-origin-resource-policy')).toBe('same-origin')
+    expect(response.headers.get('strict-transport-security')).toBe(
+      'max-age=15552000; includeSubDomains',
+    )
+    expect(response.headers.get('content-security-policy')).toStartWith("default-src 'self'")
+  })
+
+  it('shows no landing page', async () => {
+    const response = await app.handle(new Request('http://localhost/'))
+    expect(response.status).toBe(404)
+    expect(response.headers.get('content-type') ?? '').not.toContain('text/html')
+  })
+})
