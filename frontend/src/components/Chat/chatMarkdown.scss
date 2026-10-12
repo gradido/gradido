@@ -1,0 +1,204 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* A chat message read as Markdown (E-078, ChatMessageText): what stands in a bubble besides a
+   stretch of words. Not scoped -- ChatMessageText is a render function without a stylesheet of
+   its own, and the same text stands in a bubble and under a picture in its own view --, so
+   every selector begins with a class nothing else carries.
+
+   ⛔ Every element here has rules of Bootstrap's on it that are made for a page, not for a
+   bubble: a heading its own colour (which does not turn with the dark mode), `code` a pink,
+   lists, quotations and `pre` a bottom margin of a line. Each is set here, and the colours are
+   the bubble's own: the text's colour, and for grounds and lines a grey that is half there --
+   it darkens a light bubble and lightens a dark one, whatever the bubble's colour.
+
+   ⚠️ The grounds are thin on purpose. A light bubble's words stand 5.7 : 1 on it (measured in
+   the built wallet), and every bit of grey under them takes from that: at 16% code still reads
+   4.8 : 1 at least on each of the four bubbles; at 20% it was 4.6. */
+.chat-md > :first-child {
+  margin-top: 0;
+}
+
+.chat-md > :last-child {
+  margin-bottom: 0;
+}
+
+.chat-md-text,
+.chat-md-list,
+.chat-md-quote,
+.chat-md-pre,
+.chat-md-table-box {
+  margin: 0 0 0.5em;
+}
+
+/* ⚠️ With `.chat-md` before it: the dark mode gives every `h4` to `h6` the page's text colour
+   (`.dark-mode h5`), which outweighs a class alone -- and under a picture in its own view the
+   words have another colour than the page. */
+.chat-md .chat-md-heading {
+  margin: 0.7em 0 0.3em;
+  color: inherit;
+  font-family: inherit;
+  font-size: 1em;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.chat-md .chat-md-heading-1 {
+  font-size: 1.3em;
+}
+
+.chat-md .chat-md-heading-2 {
+  font-size: 1.15em;
+}
+
+.chat-md .chat-md-heading-3 {
+  font-size: 1.05em;
+}
+
+/* A list in a bubble: its signs inside the bubble, an entry's lines under its first word.
+
+   ⚠️ The signs are named. The thread itself is a list (`ol.chat-thread-list`), and a browser draws
+   the points of a list IN a list as circles and those a level deeper as squares: left alone, a
+   message's first points were hollow in the thread and full under a picture in its own view. */
+.chat-md-list {
+  padding-left: 1.5em;
+  list-style-type: disc;
+}
+
+ol.chat-md-list {
+  list-style-type: decimal;
+}
+
+.chat-md-list ul.chat-md-list {
+  list-style-type: circle;
+}
+
+.chat-md-list .chat-md-list ul.chat-md-list {
+  list-style-type: square;
+}
+
+.chat-md-task {
+  list-style: none;
+}
+
+/* A box to tick, in the place of the point. Nobody ticks it here: a press on it is a press on
+   the message (`pointer-events`). Its tick stands in the colour of the words, whatever the
+   bubble's colour is. */
+.chat-md-box {
+  width: 1em;
+  height: 1em;
+  margin: 0 0.5em 0 -1.5em;
+  vertical-align: -0.12em;
+  accent-color: currentcolor;
+  pointer-events: none;
+}
+
+.chat-md-quote {
+  padding: 0.05em 0 0.05em 0.7em;
+  border-left: 3px solid rgb(127 127 127 / 55%);
+  font-size: inherit;
+}
+
+/* ⛔ Drawn as a ground, not as a border: the dark mode gives every `hr` its own border colour
+   with `!important` (`.dark-mode hr`), the colour of the page's own lines -- on a bubble that is
+   1.03 : 1, a line nobody sees (the second reader, 12.10.2026). In the colour of the words,
+   thinned: 3 : 1 at least on each of the four bubbles (measured in the built wallet). */
+.chat-md-rule {
+  height: 1px;
+  margin: 0.6em 0;
+  border: 0;
+  background: currentcolor;
+  opacity: 0.75;
+}
+
+.chat-md-code,
+.chat-md-pre {
+  color: inherit;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  font-size: 0.9em;
+  background: rgb(127 127 127 / 16%);
+}
+
+.chat-md-code {
+  padding: 0.05em 0.3em;
+  border-radius: 4px;
+  overflow-wrap: anywhere;
+}
+
+/* Code keeps its lines and its indent; a line longer than the bubble breaks rather than
+   running out of it -- nothing in a bubble scrolls sideways but a table. */
+.chat-md-pre {
+  padding: 0.45em 0.6em;
+  border-radius: 6px;
+  overflow: visible;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.chat-md-pre > code {
+  color: inherit;
+  font-size: inherit;
+  word-break: normal;
+}
+
+/* What stood behind the opening fence, mostly the name of the code's language: a line of its
+   own over the code, in the words' font. */
+.chat-md-pre-lang {
+  display: block;
+  margin-bottom: 0.25em;
+  font-family: var(--bs-body-font-family, sans-serif);
+  font-size: 0.85em;
+  font-weight: 600;
+}
+
+.chat-md-table-box {
+  max-width: 100%;
+  overflow-x: auto;
+  border-radius: 4px;
+}
+
+.chat-md-table-box:focus-visible {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: 2px;
+}
+
+.chat-md-table {
+  border-collapse: collapse;
+  white-space: normal;
+  overflow-wrap: normal;
+}
+
+.chat-md-table th,
+.chat-md-table td {
+  padding: 0.2em 0.55em;
+  border: 1px solid rgb(127 127 127 / 55%);
+  text-align: left;
+  vertical-align: top;
+}
+
+.chat-md-table th {
+  font-weight: 700;
+  background: rgb(127 127 127 / 16%);
+}
+
+.chat-md-table .chat-md-cell-center {
+  text-align: center;
+}
+
+.chat-md-table .chat-md-cell-right {
+  text-align: right;
+}
+
+/* Where a link with words leads, behind the words: smaller, and no part of the link. In the
+   words' own colour -- made paler it read 3.4 : 1 on a light bubble. */
+.chat-md-link-where {
+  font-size: 0.85em;
+}
+
+/* What stands in an entry of a list, or last in a quotation, ends with the entry: no room of
+   its own under it. (At the end: these outweigh the rules above for the same elements.) */
+.chat-md-list .chat-md-list,
+.chat-md-list .chat-md-text,
+.chat-md-list .chat-md-pre,
+.chat-md-quote > :last-child {
+  margin-bottom: 0;
+}

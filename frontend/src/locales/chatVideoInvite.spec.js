@@ -4,6 +4,7 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import i18n from '@/i18n'
+import { chatMarkdown, isPlainChatText } from '@/utils/chatMarkdown'
 import { chatTextParts } from '@/utils/chatTextParts'
 import { withChatVideoTopic } from '@/utils/chatVideoTopic'
 
@@ -265,6 +266,58 @@ describe('the video call in every language', () => {
         )
         expect(text.endsWith(` ${address}`), text).toBe(true)
         expect(chatTextParts(text).at(-1)).toEqual({ type: 'url', value: address })
+      }
+    },
+  )
+
+  /**
+   * E-078: the thread reads every message as Markdown (chatMarkdown), an invitation too -- and an
+   * invitation is none. Whatever language it is in, whoever runs the server and whatever the
+   * topic is: it stays one stretch of text, its words as they were written and the address its
+   * last piece, as the reader before this one showed it. A line that began with a sign of
+   * Markdown's, or a day written "30. September" at the beginning of a line, would have made a
+   * list or a heading of the invitation.
+   */
+  it.each(languages)(
+    'stays one stretch of text for the thread, the address its last piece, in %s',
+    (lang) => {
+      const when = {
+        start: new Date('2026-09-30T13:00:00.000Z'),
+        end: new Date('2026-09-30T14:00:00.000Z'),
+      }
+      const date = new Intl.DateTimeFormat(lang, { dateStyle: 'full' }).format(when.start)
+      const time = i18n.global.t(
+        'chatThread.videoPlannedTime',
+        { from: '15:00', to: '16:00', zone: 'MESZ' },
+        { locale: lang },
+      )
+      for (const operator of OPERATORS) {
+        for (const topic of TOPICS) {
+          for (const [key, address] of [
+            ['videoInvite', URL_OF_A_ROOM],
+            ['videoInviteTopic', withChatVideoTopic(URL_OF_A_ROOM, topic)],
+            ['videoInvitePlanned', withChatVideoTopic(URL_OF_A_ROOM, '', when)],
+            ['videoInvitePlannedTopic', withChatVideoTopic(URL_OF_A_ROOM, topic, when)],
+          ]) {
+            const text = i18n.global.t(
+              `chatThread.${key}`,
+              { topic, date, time, operator, url: address },
+              { locale: lang },
+            )
+            const blocks = chatMarkdown(text)
+            expect(isPlainChatText(blocks), text).toBe(true)
+            expect(blocks[0].inline, text).toEqual(chatTextParts(text))
+            expect(blocks[0].inline.at(-1), text).toEqual({ type: 'url', value: address })
+          }
+        }
+      }
+      for (const topic of TOPICS) {
+        for (const key of ['videoRescheduled', 'videoRescheduledTopic']) {
+          const text = i18n.global.t(`chatThread.${key}`, { topic, date, time }, { locale: lang })
+          expect(chatMarkdown(text), text).toEqual([
+            { type: 'text', inline: [{ type: 'text', value: text }] },
+          ])
+        }
       }
     },
   )
