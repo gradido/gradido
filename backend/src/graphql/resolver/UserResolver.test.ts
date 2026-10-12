@@ -5641,10 +5641,13 @@ describe('UserResolver', () => {
     // That a GMS which cannot be reached does not turn the deletion into an error is held
     // without a database (util/syncMatchingEntryToGms.test.ts): the delete is tried again
     // seconds later, and a test here would leave that try to whatever runs next.
-    it('tells the GMS nothing about a member who never was there', async () => {
+    // The row can say "never there" for a member who stands over there all the same, so the
+    // GMS is asked for every deleted account. Brought back is only who takes part.
+    it('asks for a member whose row says they never were there, and hands back nobody', async () => {
       const deleted = await mutate({ mutation: deleteUser, variables: { userId: outsider.id } })
       expect(deleted.errors).toBeUndefined()
-      expect(deleteMock).not.toHaveBeenCalled()
+      expect(deleteMock).toHaveBeenCalledTimes(1)
+      expect(deleteMock).toHaveBeenCalledWith('gms-test-key', outsider.gradidoID)
 
       const restored = await mutate({
         mutation: unDeleteUser,

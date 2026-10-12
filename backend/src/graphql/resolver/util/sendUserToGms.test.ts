@@ -9,6 +9,7 @@ import {
 import { putGmsMatchingEntrySnapshots, upsertGmsUsers } from '@/apis/gms/GmsClient'
 import { CONFIG } from '@/config'
 
+import { noteUserDeleteUnderWay } from './gmsUserDeletesUnderWay'
 import { sendUsersToGms } from './sendUserToGms'
 
 jest.mock('@/apis/gms/GmsClient')
@@ -124,6 +125,33 @@ describe('sendUsersToGms', () => {
         WITHOUT_ENTRIES.gradidoID,
       ])
       expect(markRegisteredMock).toHaveBeenCalledWith([WITHOUT_ENTRIES.id])
+    })
+  })
+
+  // A delete of a member that failed is tried again in the background for a minute
+  // (removeUserFromGms). Handing the member over ends those tries: one that came afterwards
+  // would take off the member who was just handed over.
+  describe('a delete that is still being tried again', () => {
+    it('is ended for every member who is handed over', async () => {
+      const ofOne = noteUserDeleteUnderWay(WITH_ENTRIES.id)
+      const ofAnother = noteUserDeleteUnderWay(WITHOUT_ENTRIES.id)
+
+      await sendUsersToGms([WITH_ENTRIES], HOME_COM)
+
+      expect(ofOne.stillWanted()).toBe(false)
+      expect(ofAnother.stillWanted()).toBe(true)
+      ofAnother.over()
+    })
+
+    // A deleted account is not handed over -- so the delete it waits for goes on.
+    it('goes on for a deleted account, which is not handed over', async () => {
+      const deleted = { ...WITH_ENTRIES, id: 99, deletedAt: new Date() } as DbUser
+      const itsDelete = noteUserDeleteUnderWay(deleted.id)
+
+      await sendUsersToGms([deleted, WITHOUT_ENTRIES], HOME_COM)
+
+      expect(itsDelete.stillWanted()).toBe(true)
+      itsDelete.over()
     })
   })
 

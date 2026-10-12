@@ -12,6 +12,7 @@ import { GmsUser } from '@/apis/gms/model/GmsUser'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { LogError } from '@/server/LogError'
+import { endUserDeleteUnderWay } from './gmsUserDeletesUnderWay'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.sendUserToGms`)
 
@@ -90,6 +91,9 @@ export async function sendUsersToGms(
     }
     const userIds = members.map((user) => user.id)
     logger.debug(`Users will be send to GMS ${userIds}`)
+    // A delete of one of them that failed and is still being tried again must not come
+    // after this hand-over (gmsUserDeletesUnderWay.ts).
+    userIds.forEach(endUserDeleteUnderWay)
 
     let snapshots: GmsMatchingEntrySnapshot[] | undefined
     if (withMatchingEntries) {

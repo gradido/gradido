@@ -1,4 +1,6 @@
 // AI-GENERATED — not an architecture reference
+
+import { useFakeTimersForDrizzle } from '@test/helpers'
 import { getLogger } from 'config-schema/test/testSetup'
 import {
   Community as DbCommunity,
@@ -155,12 +157,15 @@ describe('the GMS and an account the moderation deletes or brings back', () => {
       expect(deleteMock).toHaveBeenCalledWith(API_KEY, MEMBER_UUID)
     })
 
-    it('tells the GMS nothing about a member who never was there', async () => {
+    // ⛔ The row can say "does not take part, not held" for a member who stands over there
+    // all the same: a delete after a withdrawn consent that failed for good clears the note
+    // here and leaves the copy there. So every deleted account is asked for, whatever its row
+    // says -- the GMS answers for one it does not know as for one it took off.
+    it('takes a member off whose row says they never were there', async () => {
       await removeDeletedUserFromGms(member({ gmsAllowed: false, gmsRegistered: false }))
 
-      expect(homeCommunityMock).not.toHaveBeenCalled()
-      expect(deleteMock).not.toHaveBeenCalled()
-      expect(clearRegistrationMock).not.toHaveBeenCalled()
+      expect(deleteMock).toHaveBeenCalledTimes(1)
+      expect(deleteMock).toHaveBeenCalledWith(API_KEY, MEMBER_UUID)
     })
 
     it('tells the GMS nothing on a server that does not use it', async () => {
@@ -180,7 +185,7 @@ describe('the GMS and an account the moderation deletes or brings back', () => {
     // ⛔ The account is deleted by then. A GMS that cannot be reached must not turn the
     // moderator's deletion into an error -- and the delete is tried again by itself.
     it('does not fail where the GMS cannot be reached, and tries again later', async () => {
-      jest.useFakeTimers()
+      useFakeTimersForDrizzle()
       deleteMock.mockRejectedValueOnce(new Error('connect ECONNREFUSED'))
       const deleted = member()
 
@@ -195,10 +200,50 @@ describe('the GMS and an account the moderation deletes or brings back', () => {
       expect(deleteMock).toHaveBeenLastCalledWith(API_KEY, MEMBER_UUID)
     })
 
+    // ⛔ A try that came after the member was handed over again would take off the member
+    // who was just handed over, entries and all -- and nothing would bring them back, they
+    // are noted as held. So the hand-over ends the tries.
+    it('gives the tries up where the member is handed over again meanwhile', async () => {
+      useFakeTimersForDrizzle()
+      deleteMock.mockRejectedValueOnce(new Error('connect ECONNREFUSED'))
+      const account = member()
+
+      await removeDeletedUserFromGms(account)
+      await returnRestoredUserToGms(member())
+      expect(upsertMock).toHaveBeenCalledTimes(1)
+
+      for (const wait of [2000, 8000, 30000]) {
+        jest.advanceTimersByTime(wait)
+        await letItGoOn()
+      }
+      expect(deleteMock).toHaveBeenCalledTimes(1)
+      expect(logger.info).toHaveBeenCalledWith(
+        'deleting user 7 from the GMS is not wanted any more, not tried again',
+      )
+    })
+
+    // The other side of it: a delete that fails AFTER the hand-over is tried again as ever,
+    // while the tries of the one before it stay given up.
+    it('tries a later delete again, and only that one', async () => {
+      useFakeTimersForDrizzle()
+      deleteMock
+        .mockRejectedValueOnce(new Error('connect ECONNREFUSED'))
+        .mockRejectedValueOnce(new Error('connect ECONNREFUSED'))
+
+      await removeDeletedUserFromGms(member())
+      await returnRestoredUserToGms(member())
+      await removeDeletedUserFromGms(member())
+      expect(deleteMock).toHaveBeenCalledTimes(2)
+
+      jest.advanceTimersByTime(2000)
+      await letItGoOn()
+      expect(deleteMock).toHaveBeenCalledTimes(3)
+    })
+
     // A deleted account has no next save behind it and cannot be deleted a second time: where
     // every try fails, the last line has to say WHOSE copy may still stand over there.
     it('says whose copy may remain where every try fails', async () => {
-      jest.useFakeTimers()
+      useFakeTimersForDrizzle()
       deleteMock.mockRejectedValue(new Error('connect ECONNREFUSED'))
 
       await removeDeletedUserFromGms(member())
@@ -308,6 +353,36 @@ describe('the GMS and an account the moderation deletes or brings back', () => {
     it('writes no error where the member was handed over', async () => {
       await returnRestoredUserToGms(member())
       expect(logger.error).not.toHaveBeenCalled()
+    })
+
+    // ⛔ The moderator's mutation awaits this, and the two calls that hand a member over
+    // carry no timeout. A GMS that does not answer must not keep "bring back" waiting.
+    it('waits half a minute for a GMS that does not answer, and no longer', async () => {
+      useFakeTimersForDrizzle()
+      upsertMock.mockReturnValue(new Promise(() => undefined))
+      let back = false
+      returnRestoredUserToGms(member()).then(() => {
+        back = true
+      })
+
+      await letItGoOn()
+      jest.advanceTimersByTime(29_999)
+      await letItGoOn()
+      expect(back).toBe(false)
+
+      jest.advanceTimersByTime(1)
+      await letItGoOn()
+      expect(back).toBe(true)
+      expect(logger.error).toHaveBeenCalledTimes(1)
+      expect((logger.error as jest.Mock).mock.calls[0][0]).toContain(
+        'the GMS did not take the restored user 7 back within 30000 ms',
+      )
+    })
+
+    it('leaves no clock running where the GMS answered', async () => {
+      useFakeTimersForDrizzle()
+      await returnRestoredUserToGms(member())
+      expect(jest.getTimerCount()).toBe(0)
     })
   })
 

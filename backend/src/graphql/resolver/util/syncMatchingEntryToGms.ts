@@ -12,6 +12,7 @@ import { deleteGmsMatchingEntry, deleteGmsUser, putGmsMatchingEntry } from '@/ap
 import { GmsUserMatchingEntry } from '@/apis/gms/model/GmsMatchingEntry'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { noteUserDeleteUnderWay } from './gmsUserDeletesUnderWay'
 import { Point2Location } from './Location2Point'
 import { sendUsersToGms } from './sendUserToGms'
 
@@ -24,6 +25,14 @@ const logger = getLogger(
 // only means "not visible yet" and heals with the next edit or repair run.
 const DELETE_RETRIES = 3
 const DELETE_RETRY_DELAY_MS = [2000, 8000, 30000]
+
+// How long the moderator's "bring back" waits for the GMS to take the member again: as long
+// as one call that takes a member off may take (GMS_REQUEST_TIMEOUT_MS in the client). The
+// two calls that hand a member over carry no timeout of their own.
+const RESTORE_WAIT_MS = 30_000
+
+/** What a delete that is being tried again is asked before every try, and told at its end. */
+type Wanted = { stillWanted: () => boolean; over: () => void }
 
 async function findGmsApiKey(): Promise<{ community: DbCommunity; apiKey: string } | undefined> {
   if (!CONFIG.GMS_ACTIVE) {
@@ -42,15 +51,27 @@ async function findGmsApiKey(): Promise<{ community: DbCommunity; apiKey: string
  * only survives as long as the process does; making the guarantee durable is what
  * the outbox is for, and that comes with the hardening step.
  */
-function retryInBackground(what: string, operation: () => Promise<unknown>): void {
-  runRetries(what, operation).catch((e) => {
-    logger.error(`retry loop for "${what}" crashed: ${e}`)
-  })
+function retryInBackground(what: string, operation: () => Promise<unknown>, wanted?: Wanted): void {
+  runRetries(what, operation, wanted)
+    .catch((e) => {
+      logger.error(`retry loop for "${what}" crashed: ${e}`)
+    })
+    .finally(() => wanted?.over())
 }
 
-async function runRetries(what: string, operation: () => Promise<unknown>): Promise<void> {
+async function runRetries(
+  what: string,
+  operation: () => Promise<unknown>,
+  wanted?: Wanted,
+): Promise<void> {
   for (let attempt = 0; attempt < DELETE_RETRIES; attempt++) {
     await new Promise((resolve) => setTimeout(resolve, DELETE_RETRY_DELAY_MS[attempt]))
+    // Asked after the wait, right before the try: what the wait was for may have been
+    // overtaken meanwhile (a member who was handed over again).
+    if (wanted && !wanted.stillWanted()) {
+      logger.info(`${what} is not wanted any more, not tried again`)
+      return
+    }
     try {
       await operation()
       logger.info(`${what} succeeded on retry ${attempt + 1}`)
@@ -137,8 +158,12 @@ export async function removeUserFromGms(user: DbUser): Promise<void> {
   } catch (e) {
     logger.warn(`could not delete user ${user.id} from the GMS: ${e}`)
     // Named by id: where every retry fails too, the last line says whose copy may remain.
-    retryInBackground(`deleting user ${user.id} from the GMS`, () =>
-      deleteGmsUser(gms.apiKey, user.gradidoID),
+    // And noted as under way: handing the member over again ends these tries
+    // (gmsUserDeletesUnderWay.ts).
+    retryInBackground(
+      `deleting user ${user.id} from the GMS`,
+      () => deleteGmsUser(gms.apiKey, user.gradidoID),
+      noteUserDeleteUnderWay(user.id),
     )
   }
   await forgetGmsRegistration(user)
@@ -152,18 +177,17 @@ export async function removeUserFromGms(user: DbUser): Promise<void> {
  * (sendUserToGms.ts). So the GMS is told, as it is told when a member withdraws their
  * consent.
  *
- * For a member who takes part, and for one the GMS is marked as holding although they do
- * not: either may stand over there. Deleting there is idempotent, so once too often costs
- * a request and nothing else.
+ * For every account, whatever its row says about the GMS. The row can say "does not take
+ * part, not held" for a member who stands over there all the same -- a delete after a
+ * withdrawn consent that failed for good clears the note here and leaves the copy there.
+ * Deleting there is idempotent and answers for a member it does not know as for one it
+ * took off, so asking once too often costs a request and nothing else.
  *
  * Never throws. The account is deleted by now, and a GMS that cannot be reached must not
  * turn the moderator's deletion into an error; `removeUserFromGms` retries a failed delete
  * by itself, three times within a minute, and says so where that fails as well.
  */
 export async function removeDeletedUserFromGms(user: DbUser): Promise<void> {
-  if (!user.gmsAllowed && !user.gmsRegistered) {
-    return
-  }
   try {
     await removeUserFromGms(user)
   } catch (e) {
@@ -187,11 +211,32 @@ export async function removeDeletedUserFromGms(user: DbUser): Promise<void> {
  * that fails is said here with the member's id and not tried again by itself. The member
  * is handed over whole again when they next change a setting the GMS shows, and by the
  * repair run (`bun run gmsusers`), which nothing starts by itself.
+ *
+ * And never waits for longer than RESTORE_WAIT_MS: the moderator's mutation awaits this, and
+ * the two calls that hand a member over have no timeout. A GMS that does not answer in time
+ * is said here, and what is still under way goes on by itself.
  */
 export async function returnRestoredUserToGms(user: DbUser): Promise<void> {
   if (user.foreign || !user.gmsAllowed || Point2Location(user.location as Point) === null) {
     return
   }
+  let giveUpWaiting: NodeJS.Timeout | undefined
+  const waitedLongEnough = new Promise<'late'>((resolve) => {
+    giveUpWaiting = setTimeout(() => resolve('late'), RESTORE_WAIT_MS)
+  })
+  try {
+    if ((await Promise.race([handOverRestoredUser(user), waitedLongEnough])) === 'late') {
+      logger.error(
+        `the GMS did not take the restored user ${user.id} back within ${RESTORE_WAIT_MS} ms, not waited for any longer`,
+      )
+    }
+  } finally {
+    clearTimeout(giveUpWaiting)
+  }
+}
+
+/** The hand-over itself, with everything that can go wrong in it said and kept here. */
+async function handOverRestoredUser(user: DbUser): Promise<void> {
   try {
     const gms = await findGmsApiKey()
     if (!gms) {
