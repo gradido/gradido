@@ -737,24 +737,55 @@ describe('ChatGroupWindow', () => {
    * each against its twin -- the declarations, whatever their order.
    */
   describe('the measure of the contact window', () => {
+    /** The sheet (below `sm`). */
+    const SHEET = '(width <= 575.98px)'
+
+    /**
+     * A window's rules, each under where it stands and its selector: a rule that holds at every
+     * width under its selector alone, a rule inside a media query under the query's condition and
+     * the selector.
+     *
+     * ⛔ By where they stand: a selector may stand in more than one place -- `-top`, `-head`, `-meta`
+     * and the row have rules of their own and are named again on the sheet --, and one map for all
+     * of them held only the last. Those four were held against the sheet's `flex-shrink: 0` and
+     * never against their own rules. And the stylesheet is read from behind its opening tag: read
+     * with it, the first rule's selector began with the tag's attributes and was held against
+     * nothing.
+     */
     const rulesOf = (file) => {
       const code = readFileSync(join(dirname(fileURLToPath(import.meta.url)), file), 'utf8')
         .split('<style')[1]
+        .replace(/^[^>]*>/, '')
         .replace(/\/\*[\s\S]*?\*\//g, '')
       const rules = new Map()
-      for (const [, selectors, body] of code.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
-        const declarations = body
-          .split(';')
-          .map((part) => part.trim().replace(/\s+/g, ' '))
-          .filter(Boolean)
-          .sort()
-          .join('; ')
-        for (const selector of selectors.split(',')) rules.set(selector.trim(), declarations)
+      const take = (where, css) => {
+        for (const [, selectors, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+          const declarations = body
+            .split(';')
+            .map((part) => part.trim().replace(/\s+/g, ' '))
+            .filter(Boolean)
+            .sort()
+            .join('; ')
+          for (const selector of selectors.split(',')) {
+            rules.set(`${where} ${selector.trim()}`.trim(), declarations)
+          }
+        }
       }
+      const MEDIA = /@media\s*([^{]+)\{((?:[^{}]*\{[^{}]*\})*[^{}]*)\}/g
+      for (const [, condition, inside] of code.matchAll(MEDIA)) take(condition.trim(), inside)
+      take('', code.replace(MEDIA, ''))
       return rules
     }
     const group = rulesOf('ChatGroupWindow.vue')
     const contact = rulesOf('../Contacts/ContactWindow.vue')
+
+    // The reader reads what it should: a rule of the first kind, one of the sheet's, and the
+    // first rule of the stylesheet under its own selector.
+    it('reads the rules by where they stand', () => {
+      expect(contact.get('.contact-window-top')).toContain('justify-content: flex-end')
+      expect(contact.get(`${SHEET} .contact-window-top`)).toBe('flex-shrink: 0')
+      expect([...contact.keys()].filter((key) => key.includes('lang='))).toEqual([])
+    })
 
     const TWINS = [
       ['.chat-group-window-top', '.contact-window-top'],
@@ -771,11 +802,16 @@ describe('ChatGroupWindow', () => {
       ['.chat-group-window-video-icon', '.contact-window-video-icon'],
       ['.chat-group-window-bell.is-muted', '.contact-window-bell.is-muted'],
       ['.chat-group-window-row', '.contact-window-send'],
-      ['.chat-group-window-inner', '.contact-window-inner'],
-      ['.chat-group-window-thread', '.contact-window-thread'],
+      // The sheet: one column over the whole height, in which only the thread gives way.
+      [`${SHEET} .chat-group-window-inner`, `${SHEET} .contact-window-inner`],
+      [`${SHEET} .chat-group-window-top`, `${SHEET} .contact-window-top`],
+      [`${SHEET} .chat-group-window-head`, `${SHEET} .contact-window-head`],
+      [`${SHEET} .chat-group-window-meta`, `${SHEET} .contact-window-meta`],
+      [`${SHEET} .chat-group-window-row`, `${SHEET} .contact-window-send`],
+      [`${SHEET} .chat-group-window-thread`, `${SHEET} .contact-window-thread`],
       [
-        '.chat-group-window-thread :deep(.chat-thread-scroll)',
-        '.contact-window-thread :deep(.chat-thread-scroll)',
+        `${SHEET} .chat-group-window-thread :deep(.chat-thread-scroll)`,
+        `${SHEET} .contact-window-thread :deep(.chat-thread-scroll)`,
       ],
     ]
 
