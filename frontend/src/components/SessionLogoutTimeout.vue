@@ -53,6 +53,13 @@ const { toastError } = useAppToast()
 
 const sessionModalModel = ref(false)
 
+/**
+ * What goes with `logout` where the session ends by the clock and not by the member's word: its
+ * time ran out, or could not be extended. The button "Abmelden" of the question sends none -- that
+ * is the member's own word. The layout tells the two apart (`logoutUser`).
+ */
+const RAN_OUT = Object.freeze({ ranOut: true })
+
 // Renewal must hit the network: every response carries a fresh `token` header that
 // the Apollo afterware writes to the store, sliding the expiry forward. A cache-first
 // query would often skip the network and never actually renew the session.
@@ -111,7 +118,7 @@ const handleOk = async () => {
   // Renewal failed (network error or empty response): tell the user in plain
   // language before logging out, instead of a silent redirect.
   toastError(t('error.session-renewal-failed'))
-  emit('logout')
+  emit('logout', RAN_OUT)
 }
 
 onMounted(() => {
@@ -124,6 +131,6 @@ onUnmounted(() => {
 })
 
 watch(remainingTime, (newTime) => {
-  if (newTime <= 0) emit('logout')
+  if (newTime <= 0) emit('logout', RAN_OUT)
 })
 </script>

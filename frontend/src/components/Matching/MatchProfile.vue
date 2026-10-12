@@ -134,6 +134,7 @@
             :sending="helloWaits"
             :failed="helloFailed"
             :initial-text="helloWords"
+            :draft="helloDraft"
             data-test="profile-hello"
             @send="sendHello"
           />
@@ -197,7 +198,9 @@ import {
   CHAT_HELLO_STRANGER,
   useChatHello,
 } from '@/composables/useChatHello'
+import { chatDraftFor } from '@/utils/chatDraft'
 import { chatHelloDistance, chatHelloSignature, chatHelloText } from '@/utils/chatHelloText'
+import { chatMemberKey } from '@/utils/chatMemberKey'
 
 // Heart first, then offer, then need — GMS-82's "Herz zuerst".
 const CHANNEL_ORDER = ['interesse', 'angebot', 'gesuch']
@@ -349,6 +352,21 @@ const helloKey = computed(() =>
     : '',
 )
 
+/**
+ * What the member wrote to this person and did not send (utils/chatDraft): the bar begins with it
+ * the next time, in place of the sentence the window hands in -- here, and in the contact window,
+ * which names the person the same way (`chatMemberKey`). Made anew with the bar, for the person
+ * the bar is for.
+ */
+const helloDraft = computed(() =>
+  helloPerson.value
+    ? chatDraftFor(
+        () => store.state.gradidoID,
+        chatMemberKey(helloPerson.value, store.state.communityUuid),
+      )
+    : null,
+)
+
 const {
   standing: helloStanding,
   sending: helloSending,
@@ -447,7 +465,14 @@ const helloLabelId = `${useId()}-hello`
  * nowhere.
  */
 async function sendHello({ body }) {
+  const person = helloKey.value
+  const draft = helloDraft.value
   await sendHelloWords(body)
+  // The first word is said, and the bar is gone with whatever stood in it -- also what was typed
+  // while the hello was on its way, which the bar had kept as a draft. It goes with the bar: the
+  // next bar for this person is the one of their conversation, which holds the hello as a
+  // message and must not begin with its words. Only where the window still shows that person.
+  if (!helloOffered.value && helloKey.value === person) draft?.keep()
   if (helloOffered.value || !conversationOffered.value) return
   await nextTick()
   conversationButton.value?.focus({ preventScroll: true })

@@ -71,6 +71,10 @@ describe('the fields of a chat message', () => {
       // -- with the beat, or as the answer to one's own change.
       edited: messageFieldsOf(chat, 'newChatMessagesSince', 'edited'),
       editedCopy: copyFieldsOf(chat, 'editChatMessage'),
+      // A message whose reactions changed comes whole as well -- with the beat, or as the answer
+      // to one's own reaction; the thread takes its reactions.
+      reacted: messageFieldsOf(chat, 'newChatMessagesSince', 'reacted'),
+      reactedCopy: copyFieldsOf(chat, 'setChatMessageReaction'),
     }
     for (const [name, fields] of Object.entries(shapes)) {
       expect({ [name]: fields }).toEqual({ [name]: beat })
@@ -108,12 +112,14 @@ describe('the fields of a chat message', () => {
       'afterId',
       'limit',
       'editedCursor',
+      'reactedCursor',
     ])
     const answer = operation.selectionSet.selections[0]
     expect(answer.arguments.map((argument) => argument.name.value)).toEqual([
       'afterId',
       'limit',
       'editedCursor',
+      'reactedCursor',
     ])
     expect(answer.selectionSet.selections.map((selection) => selection.name.value)).toEqual([
       'latestId',
@@ -122,6 +128,8 @@ describe('the fields of a chat message', () => {
       'messages',
       'edited',
       'editedCursor',
+      'reacted',
+      'reactedCursor',
     ])
   })
 

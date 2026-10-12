@@ -81,6 +81,14 @@ const filterVariables = (variables: any) => {
   if (vars?.gmsLocation) {
     vars.gmsLocation = '***'
   }
+  // The emoji a member reacts to a chat message with (setChatMessageReaction, `$emoji`): what one
+  // member says to the others of a conversation, as the words of a message are -- and this line
+  // names the message beside it, the next one the member. Whether the request sets a reaction or
+  // takes one back stays readable: taken back, the emoji comes as null. No other document of
+  // wallet or admin names a variable so; the wallet's has to.
+  if (vars?.emoji) {
+    vars.emoji = '***'
+  }
   return vars
 }
 

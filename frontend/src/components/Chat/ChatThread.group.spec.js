@@ -4,6 +4,7 @@ import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
 import ChatThread from './ChatThread.vue'
 import ChatBubble from './ChatBubble.vue'
 import ChatComposeBar from './ChatComposeBar.vue'
+import { chatDraftFor, chatGroupDraftKey, forgetChatDrafts } from '@/utils/chatDraft'
 import { editChatMessage } from '@/graphql/chat.graphql'
 import {
   chatGroupMessagesQuery,
@@ -22,6 +23,7 @@ import { holdChatText } from '@/utils/chatReturn'
 const beat = vi.hoisted(() => ({
   listeners: new Set(),
   editedListeners: new Set(),
+  reactedListeners: new Set(),
   pollNow: vi.fn(async () => {}),
 }))
 vi.mock('@/composables/useChatUpdates', () => ({
@@ -33,6 +35,10 @@ vi.mock('@/composables/useChatUpdates', () => ({
     beat.editedListeners.add(listener)
     return () => beat.editedListeners.delete(listener)
   },
+  onChatMessagesReacted: (listener) => {
+    beat.reactedListeners.add(listener)
+    return () => beat.reactedListeners.delete(listener)
+  },
   pollChatNow: (...args) => beat.pollNow(...args),
 }))
 const beatBrings = async (...chatMessages) => {
@@ -41,6 +47,10 @@ const beatBrings = async (...chatMessages) => {
 }
 const beatChanges = async (...edited) => {
   for (const listener of [...beat.editedListeners]) listener(edited)
+  await flushPromises()
+}
+const beatReacts = async (...reacted) => {
+  for (const listener of [...beat.reactedListeners]) listener(reacted)
   await flushPromises()
 }
 
@@ -209,6 +219,16 @@ const message = (n, { writer = 'anna', day = '2026-09-29', announcement = false 
 
 const page = (messages, { hasMore = false } = {}) => ({ hasMore, mutedByMe: false, messages })
 
+// What a test leaves in the field waits for the next bar of that conversation (utils/chatDraft) --
+// in the wallet, and here for the next test: in memory, and its words on the device. Every test
+// begins with none.
+afterEach(() => {
+  forgetChatDrafts()
+  for (const key of Object.keys(window.localStorage)) {
+    if (key.startsWith('chat-drafts:')) window.localStorage.removeItem(key)
+  }
+})
+
 describe('ChatThread in a group', () => {
   let wrapper
 
@@ -253,6 +273,51 @@ describe('ChatThread in a group', () => {
     await wrapper.find('[data-test="chat-compose-send"]').trigger('click')
     await flushPromises()
   }
+
+  /**
+   * What is written in a group and not sent waits for the next opening of its window, as in the
+   * thread with one person (utils/chatDraft): by the group's uuid.
+   */
+  describe('what was written and not sent', () => {
+    const field = () => wrapper.find('[data-test="chat-compose-field"]')
+    const closeWindow = () => {
+      wrapper.unmount()
+      wrapper = null
+    }
+
+    it('stands in the field again when the group’s window is opened again', async () => {
+      mountThread()
+      await arrive(page([message(1)]))
+      await field().setValue('Bis Samstag im Café')
+      closeWindow()
+
+      mountThread()
+      await arrive(page([message(1)]))
+
+      expect(field().element.value).toBe('Bis Samstag im Café')
+    })
+
+    it('waits for that group only', async () => {
+      mountThread()
+      await arrive(page([message(1)]))
+      await field().setValue('Bis Samstag im Café')
+      closeWindow()
+
+      mountThread({ groupUuid: 'garden-uuid' })
+      await arrive(page([message(1)]))
+
+      expect(field().element.value).toBe('')
+    })
+
+    it('is kept by the group’s uuid, apart from every person', async () => {
+      mountThread({ groupUuid: 'CAFE-Uuid' })
+      await arrive(page([message(1)]))
+      await field().setValue('Bis Samstag im Café')
+
+      expect(chatGroupDraftKey('CAFE-Uuid')).toBe('group/cafe-uuid')
+      expect(chatDraftFor(() => 'me-id', 'group/cafe-uuid').read().text).toBe('Bis Samstag im Café')
+    })
+  })
 
   beforeEach(() => {
     serverSends.mockImplementation(async ({ body, announce }) => ({

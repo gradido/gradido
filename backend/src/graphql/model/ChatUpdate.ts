@@ -6,7 +6,7 @@ import { ChatMessage } from './ChatMessage'
  * What is new in the chat for the member asking, in one answer for the threads and for the mark
  * in the menu (E-017): the messages since the wallet's cursor, where the cursor goes next, and
  * how many conversations hold something unread -- and the messages whose text was changed
- * (E-060), with where to go on from next.
+ * (E-060) and those whose reactions were (migration 0158), each with where to go on from next.
  *
  * It tells the caller nothing about another member beyond their messages: no read pointer of
  * anybody else, no "online", no "typing", no read receipt (E-016, E-008 invariant 2).
@@ -20,6 +20,8 @@ export class ChatUpdate {
     hasMore: boolean,
     edited: ChatMessage[],
     editedCursor: string,
+    reacted: ChatMessage[],
+    reactedCursor: string,
   ) {
     this.latestId = latestId
     this.unreadConversations = unreadConversations
@@ -27,6 +29,8 @@ export class ChatUpdate {
     this.hasMore = hasMore
     this.edited = edited
     this.editedCursor = editedCursor
+    this.reacted = reacted
+    this.reactedCursor = reactedCursor
   }
 
   /**
@@ -71,4 +75,22 @@ export class ChatUpdate {
    */
   @Field(() => String)
   editedCursor: string
+
+  /**
+   * The messages of all the caller's conversations whose reactions were changed since the caller's
+   * `reactedCursor` (migration 0158) -- set, replaced or taken back, the caller's own too --, in
+   * the order that happened, each as it stands now: its `reactions` take the place of the ones
+   * the wallet holds. Empty for a call without `reactedCursor`. ⚠️ A message may come again with
+   * a later call, unchanged, as a changed text does; its `reactedAt` says which answer is the
+   * later one.
+   */
+  @Field(() => [ChatMessage])
+  reacted: ChatMessage[]
+
+  /**
+   * Where the next call goes on from for reactions -- its `reactedCursor`, to be handed back as
+   * it is. Its own cursor beside `editedCursor`: the two clocks go each their own way.
+   */
+  @Field(() => String)
+  reactedCursor: string
 }

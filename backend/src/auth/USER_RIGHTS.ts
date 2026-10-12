@@ -67,6 +67,9 @@ export const USER_RIGHTS = [
   // Seeing the photo of a transfer one sent or received, through one's own booking row. Not on
   // any RESTRICTED_* list, like the picture of a greeting.
   RIGHTS.TRANSACTION_PICTURE,
+  // A reaction to a transfer one received. On RESTRICTED_WHILE_UNCONFIRMED, like a reaction to
+  // a chat message (SEND_CHAT_MESSAGE): the sender sees it.
+  RIGHTS.REACT_TO_TRANSACTION,
   // The contact list is a view on the caller's own bookings and conversations, the hearts
   // are the caller's own rows; there is nothing here that reaches anybody else's data.
   RIGHTS.MANAGE_OWN_CONTACTS,

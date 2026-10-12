@@ -5,8 +5,10 @@ import { ChatMessageNotify } from '@enum/ChatMessageNotify'
 import { ChatMemberRef, ChatMessageImageInfo, ChatMessageSelect } from 'database'
 import { Field, Int, ObjectType } from 'type-graphql'
 import { isSameChatMember } from '@/data/ChatConversation.logic'
+import { ChatReactionCount } from '@/data/ChatReaction.logic'
 import { ChatMessageImage } from './ChatMessageImage'
 import { ChatMessageQuote } from './ChatMessageQuote'
+import { ChatMessageReaction } from './ChatMessageReaction'
 import { MemberRef } from './MemberRef'
 import { User } from './User'
 
@@ -32,6 +34,9 @@ export class ChatMessage {
    *
    * `replyTo`: for an answer, the message it quotes -- read for a whole page at once as well
    * (chatMessagesOf).
+   *
+   * `reactions`: the emoji under the message as `reader` reads them (chatReactionCounts) -- read
+   * for a whole page at once as well (chatMessagesOf).
    */
   constructor(
     row: ChatMessageSelect,
@@ -40,6 +45,7 @@ export class ChatMessage {
     group: { groupUuid: string; senderUser: User | null } | null = null,
     forwardedFrom: User | null = null,
     replyTo: ChatMessageQuote | null = null,
+    reactions: ChatReactionCount[] = [],
   ) {
     const sender = { communityUuid: row.senderCommunityUuid, gradidoId: row.senderGradidoId }
     this.id = row.id
@@ -61,6 +67,8 @@ export class ChatMessage {
     this.forwarded = row.forwardedFromGradidoId !== null
     this.forwardedFrom = this.forwarded ? forwardedFrom : null
     this.replyTo = row.replyToMessageUuid === null ? null : replyTo
+    this.reactions = reactions.map((reaction) => new ChatMessageReaction(reaction))
+    this.reactedAt = row.reactedAt ?? null
   }
 
   /**
@@ -185,4 +193,21 @@ export class ChatMessage {
    */
   @Field(() => ChatMessageQuote, { nullable: true })
   replyTo: ChatMessageQuote | null
+
+  /**
+   * The emoji the members of the conversation reacted to the message with (migration 0158), each
+   * once, in the order they came up: how many reacted with it, and whether the reader did. One
+   * reaction a member -- so the counts add up to the members who reacted. Empty for a message
+   * nobody reacted to. For everybody who reads the message, as its text is.
+   */
+  @Field(() => [ChatMessageReaction])
+  reactions: ChatMessageReaction[]
+
+  /**
+   * When the reactions were changed last -- set, replaced or taken back --, by this server's
+   * clock; null for a message nobody ever reacted to. What a wallet tells two answers about one
+   * message apart by: the one with the later moment holds the reactions as they stand.
+   */
+  @Field(() => Date, { nullable: true })
+  reactedAt: Date | null
 }

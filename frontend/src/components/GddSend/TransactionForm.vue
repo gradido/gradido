@@ -163,20 +163,32 @@
 
             <BRow>
               <BCol>
-                <ValidatedInput
-                  v-if="validationSchema.fields.memo"
-                  id="memo"
-                  :model-value="form.memo"
-                  name="memo"
-                  :label="$t('form.message')"
-                  :placeholder="$t('form.message')"
-                  :rules="validationSchema.fields.memo"
-                  textarea="true"
-                  :max-rows="14"
-                  :disabled="isFormDisabled"
-                  :disable-smart-valid-state="disableSmartValidState"
-                  @update:model-value="updateField"
-                />
+                <!-- The message and its smiley (Bernd, 10.10.2026): the wallet's own small choice
+                     of emoji, in all three forms of the page -- a transfer, a link, a letter. The
+                     smiley stands at the end of the label's line, and the choice hangs over
+                     the page from what wraps the field. At a computer only (`offersEmojiPicker`),
+                     and not at a field that takes no words. -->
+                <div class="memo-with-emoji">
+                  <ValidatedInput
+                    v-if="validationSchema.fields.memo"
+                    id="memo"
+                    :model-value="form.memo"
+                    name="memo"
+                    :label="$t('form.message')"
+                    :placeholder="$t('form.message')"
+                    :rules="validationSchema.fields.memo"
+                    textarea="true"
+                    :max-rows="14"
+                    :disabled="isFormDisabled"
+                    :disable-smart-valid-state="disableSmartValidState"
+                    @update:model-value="updateField"
+                  />
+                  <emoji-picker
+                    v-if="emojiOffered && validationSchema.fields.memo && !isFormDisabled"
+                    :field-id="MEMO_FIELD_ID"
+                    corner
+                  />
+                </div>
               </BCol>
             </BRow>
             <!-- "Bild dazu" (ZE-016): with a transfer to a member, and only there -- a link has
@@ -243,6 +255,7 @@ import { BLink } from 'bootstrap-vue-next'
 import { SEND_TYPES } from '@/utils/sendTypes'
 import CommunitySwitch from '@/components/CommunitySwitch.vue'
 import ValidatedInput from '@/components/Inputs/ValidatedInput.vue'
+import EmojiPicker from '@/components/Inputs/EmojiPicker.vue'
 import TransactionPictureField from '@/components/GddSend/TransactionPictureField.vue'
 import {
   amount as amountSchemaUpTo,
@@ -252,6 +265,7 @@ import {
   subject as subjectSchema,
 } from '@/validationSchemas'
 import { object } from 'yup'
+import { offersEmojiPicker } from '@/utils/emojiChoice'
 import { memberAlias, sameHost, splitRecipient } from '@/utils/gradidoAddress'
 import { user } from '@/graphql/queries'
 import CONFIG from '@/config'
@@ -277,6 +291,14 @@ const props = defineProps({
    */
   picture: { type: Object, default: null },
 })
+
+/**
+ * The id the message's field carries -- LabeledInput makes it of the field's name --, by which
+ * the smiley finds it (EmojiPicker). The spec holds it against the field as it is rendered.
+ */
+const MEMO_FIELD_ID = 'memo-input-field'
+/** Whether the smiley stands at the message: asked once, when the form is made. */
+const emojiOffered = offersEmojiPicker()
 
 // ⛔ Without the picture: `form` is what the validation schema casts and what goes on to the
 // page as the transfer's fields -- and a cast lets a field it does not know pass. The picture
@@ -728,6 +750,12 @@ label {
 :deep(label.form-check-label) {
   width: 100%;
   cursor: pointer;
+}
+
+/* What the smiley of the message is placed in (EmojiPicker, `corner`): its upper right corner
+   is the end of the label's line, and the choice hangs from it. */
+.memo-with-emoji {
+  position: relative;
 }
 
 /* The field that leads to the thank-you greeting: a small motif, two lines and a link, in a

@@ -134,6 +134,49 @@ describe('withChatMessagesEdited (E-060)', () => {
   })
 })
 
+/**
+ * ⛔ The reactions have a clock of their own (11.10.2026): a changed text carries the reactions
+ * the server read with it, and that reading can be older than what the thread holds -- the beat
+ * brought a reaction in between. The words are taken, the later reactions stay.
+ */
+describe('withChatMessagesEdited, and the reactions of the message', () => {
+  const THUMB = [{ emoji: '👍', count: 1, mine: false }]
+  const R1 = '2026-10-11T06:30:00.000Z'
+  const R2 = '2026-10-11T06:30:09.000Z'
+
+  it('takes the words of a changed message and keeps a later state of its reactions', () => {
+    const held = [{ ...message(2, 'erste Fassung'), reactions: THUMB, reactedAt: R2 }]
+    const now = { ...message(2, 'zweite Fassung', T2), reactions: [], reactedAt: null }
+
+    const { messages, changed } = withChatMessagesEdited(held, [now])
+
+    expect(messages).toEqual([{ ...now, reactions: THUMB, reactedAt: R2 }])
+    expect(changed).toEqual(messages)
+  })
+
+  it('keeps them as well where the changed message carries an earlier state, not none', () => {
+    const held = [{ ...message(2, 'erste Fassung'), reactions: THUMB, reactedAt: R2 }]
+    const earlier = [{ emoji: '❤️', count: 1, mine: true }]
+    const now = { ...message(2, 'zweite Fassung', T2), reactions: earlier, reactedAt: R1 }
+
+    expect(withChatMessagesEdited(held, [now]).messages[0]).toMatchObject({
+      body: 'zweite Fassung',
+      reactions: THUMB,
+      reactedAt: R2,
+    })
+  })
+
+  it('takes the reactions of the changed message where they are the later state, or the same', () => {
+    const held = [{ ...message(2, 'erste Fassung'), reactions: [], reactedAt: R1 }]
+    const now = { ...message(2, 'zweite Fassung', T2), reactions: THUMB, reactedAt: R2 }
+
+    expect(withChatMessagesEdited(held, [now]).messages).toEqual([now])
+
+    const same = { ...message(2, 'dritte Fassung', T2), reactions: THUMB, reactedAt: R1 }
+    expect(withChatMessagesEdited(held, [same]).messages).toEqual([same])
+  })
+})
+
 describe('chatEditProblem (E-060)', () => {
   // B5: across the border a change counts only once the other server has taken it.
   it.each([

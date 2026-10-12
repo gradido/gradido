@@ -20,6 +20,15 @@ vi.mock('vue-i18n', () => ({
 // A computer unless a test says otherwise; the check itself has its own spec.
 vi.mock('@/utils/isComputer', () => ({ isComputer: vi.fn(() => true) }))
 
+// The smiley stands in the field in every test here, as at a computer. Whether it stands is asked
+// through its own rule, answered here directly: the questions the paperclip asks of `isComputer`
+// are counted below, and the smiley's one question would be counted with them. The smiley in the
+// bar has a spec of its own (ChatComposeBar.emoji.spec.js).
+vi.mock('@/utils/emojiChoice', async (importOriginal) => ({
+  ...(await importOriginal()),
+  offersEmojiPicker: () => true,
+}))
+
 /**
  * Opening a picture and making it small have their own spec (utils/chatImage.spec.js); here they
  * answer as a test says -- with a picture, a refusal, or not yet.
@@ -63,6 +72,7 @@ describe('ChatComposeBar', () => {
           },
           IMdiCellphone: true,
           IMdiOpenInNew: true,
+          IMdiEmoticonHappyOutline: true,
           // Shows what it holds while it is open, the footer under it. The names written on the
           // real tag are held against the installed package below.
           BModal: {

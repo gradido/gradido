@@ -68,6 +68,13 @@ fragment transactionFields on Transaction {
     motif
     hasPicture
   }
+  # The emoji the RECIPIENT of a transfer answered it with (Bernd, 11.10.2026), or null -- on
+  # the recipient's row and on the sender's, where the two are members of this community. The
+  # row of the booking list shows it beside the date, the conversation of the two at the
+  # booking's bubble. `canReact`: whether the member may set one here -- the server says so, on
+  # the recipient's own row alone, and no screen decides it (setTransactionReaction below).
+  reaction
+  canReact
 }
 
 # The booking list itself, one page at a time (Transactions.vue). `counterparty` narrows it
@@ -107,4 +114,15 @@ query transactionsUserCountQuery($currentPage: Int = 1, $pageSize: Int = 25, $or
   communityStatistics {
     totalUsers
   }
+}
+
+# The recipient's reaction to a transfer, set, replaced or taken back (`emoji: null`) -- by the
+# id of their OWN booking of it (`canReact` above). Answers the emoji that stands at the
+# transfer then, or null. The sender sees it when their list or their conversation is read
+# again; no mail goes out.
+#
+# Refused as TRANSACTION_REACTION_NOT_SET, and nothing changes: UNKNOWN_EMOJI |
+# UNKNOWN_TRANSFER (not a transfer the member received) | OTHER_COMMUNITY | NOT_STORED.
+mutation setTransactionReaction($transactionId: Int!, $emoji: String) {
+  setTransactionReaction(transactionId: $transactionId, emoji: $emoji)
 }

@@ -71,6 +71,7 @@ const row = (deliveryState: 'delivered' | 'pending'): ChatMessageSelect => ({
   replyToMessageUuid: null,
   createdAt: new Date('2026-09-24T12:00:00.000Z'),
   editedAt: null,
+  reactedAt: null,
   deletedAt: null,
 })
 

@@ -1,3 +1,4 @@
+import { jest } from 'bun:test'
 import {
   AppDatabase,
   dbDeleteAllRowsExceptMigrations,
@@ -8,7 +9,7 @@ import { DocumentNode, GraphQLError } from 'graphql'
 
 import { createServer } from '@/server/createServer'
 
-import { getLogger } from 'config-schema/test/testSetup'
+import { getLogger } from 'config-schema/test/testSetup.bun'
 
 export const headerPushMock = jest.fn((t) => {
   context.token = t.value

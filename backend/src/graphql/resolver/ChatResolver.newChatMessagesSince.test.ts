@@ -1,9 +1,12 @@
 // AI-GENERATED — not an architecture reference
 import {
+  ChatMessageReactionSelect,
   ChatMessageSelect,
   User as DbUser,
   dbSelectChatMessageImageInfos,
+  dbSelectChatMessageReactions,
   dbSelectChatMessagesEditedAfter,
+  dbSelectChatMessagesReactedAfter,
   dbSelectChatMessagesSince,
   dbSelectChatUnreadSummary,
 } from 'database'
@@ -26,7 +29,9 @@ jest.mock('database', () => {
     dbSelectChatUnreadSummary: jest.fn(),
     dbSelectChatMessagesSince: jest.fn(),
     dbSelectChatMessagesEditedAfter: jest.fn(),
+    dbSelectChatMessagesReactedAfter: jest.fn(),
     dbSelectChatMessageImageInfos: jest.fn(),
+    dbSelectChatMessageReactions: jest.fn(),
     // No group among these conversations: the messages here are between two members (P5 asks
     // for every page and update which of its conversations are groups).
     dbSelectChatGroupUuids: jest.fn(async () => new Map()),
@@ -52,8 +57,14 @@ const since = dbSelectChatMessagesSince as jest.MockedFunction<typeof dbSelectCh
 const editedAfter = dbSelectChatMessagesEditedAfter as jest.MockedFunction<
   typeof dbSelectChatMessagesEditedAfter
 >
+const reactedAfter = dbSelectChatMessagesReactedAfter as jest.MockedFunction<
+  typeof dbSelectChatMessagesReactedAfter
+>
 const infos = dbSelectChatMessageImageInfos as jest.MockedFunction<
   typeof dbSelectChatMessageImageInfos
+>
+const reactionRows = dbSelectChatMessageReactions as jest.MockedFunction<
+  typeof dbSelectChatMessageReactions
 >
 
 /** A request of Lena's, with a budget of its own. */
@@ -83,6 +94,7 @@ const fromMax = (id: number, rest: Partial<ChatMessageSelect> = {}): ChatMessage
   replyToMessageUuid: null,
   createdAt: new Date('2026-09-25T06:00:00.000Z'),
   editedAt: null,
+  reactedAt: null,
   deletedAt: null,
   ...rest,
 })
@@ -91,8 +103,35 @@ const fromMax = (id: number, rest: Partial<ChatMessageSelect> = {}): ChatMessage
 const changed = (id: number, editedAt: Date): ChatMessageSelect =>
   fromMax(id, { body: 'hello, changed', editedAt })
 
-const ask = (afterId: number | null, limit: number | null = null, cursor: string | null = null) =>
-  new ChatResolver().newChatMessagesSince({ afterId, limit, editedCursor: cursor }, lenasRequest())
+/** The same message with its reactions changed at that moment. */
+const reactedTo = (id: number, reactedAt: Date, rest: Partial<ChatMessageSelect> = {}) =>
+  fromMax(id, { reactedAt, ...rest })
+
+/** A member's reaction to the message filed under that id, in the order of `id`. */
+const reaction = (
+  id: number,
+  messageId: number,
+  gradidoId: string,
+  emoji: string,
+): ChatMessageReactionSelect => ({
+  id,
+  messageId,
+  communityUuid: HOME,
+  gradidoId,
+  emoji,
+  createdAt: new Date('2026-10-11T06:00:00.000Z'),
+})
+
+const ask = (
+  afterId: number | null,
+  limit: number | null = null,
+  cursor: string | null = null,
+  reactedCursor: string | null = null,
+) =>
+  new ChatResolver().newChatMessagesSince(
+    { afterId, limit, editedCursor: cursor, reactedCursor },
+    lenasRequest(),
+  )
 
 /** Where the caller stands, read at the beat's moment. */
 const standing = (latestId: number, unreadConversations: number) => ({
@@ -105,10 +144,14 @@ beforeEach(() => {
   summary.mockReset()
   since.mockReset()
   editedAfter.mockReset()
+  reactedAfter.mockReset()
   infos.mockReset()
+  reactionRows.mockReset()
   infos.mockResolvedValue([])
+  reactionRows.mockResolvedValue([])
   since.mockResolvedValue({ messages: [], hasMore: false })
   editedAfter.mockResolvedValue({ messages: [], hasMore: false })
+  reactedAfter.mockResolvedValue({ messages: [], hasMore: false })
 })
 
 describe('newChatMessagesSince, what the resolver decides itself', () => {
@@ -155,6 +198,8 @@ describe('newChatMessagesSince, what the resolver decides itself', () => {
       hasMore: false,
       edited: [],
       editedCursor: SETTLED_CURSOR,
+      reacted: [],
+      reactedCursor: SETTLED_CURSOR,
     })
   })
 
@@ -168,9 +213,12 @@ describe('newChatMessagesSince, what the resolver decides itself', () => {
       hasMore: false,
       edited: [],
       editedCursor: SETTLED_CURSOR,
+      reacted: [],
+      reactedCursor: SETTLED_CURSOR,
     })
     expect(since).not.toHaveBeenCalled()
     expect(editedAfter).not.toHaveBeenCalled()
+    expect(reactedAfter).not.toHaveBeenCalled()
   })
 
   it('asks for the default number of messages when the caller names none, for the caller', async () => {
@@ -339,5 +387,167 @@ describe('newChatMessagesSince, the changed messages (E-060)', () => {
 
     expect(infos.mock.calls).toEqual([[[fromMax(7).messageUuid]]])
     expect(update.edited[0].images).toEqual([{ imageUuid: PICTURE, width: 4, height: 3 }])
+  })
+})
+
+/**
+ * The messages whose reactions were changed (migration 0158), on the same beat and in the same
+ * way as a changed text -- by the OTHER clock, with a cursor of its own.
+ */
+describe('newChatMessagesSince, the messages with changed reactions', () => {
+  const THUMB = '👍'
+  const HEART = '❤️'
+
+  beforeEach(() => {
+    summary.mockResolvedValue(standing(60, 0))
+  })
+
+  it('hands out the messages whose reactions changed after the place the caller names, with the reactions as they stand', async () => {
+    const at = before(2_000)
+    reactedAfter.mockResolvedValue({ messages: [reactedTo(7, at)], hasMore: false })
+    reactionRows.mockResolvedValue([
+      reaction(1, 7, MAX, THUMB),
+      reaction(2, 7, LENA, HEART),
+      reaction(3, 7, 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', THUMB),
+    ])
+
+    const update = await ask(60, null, null, chatEditsCursor({ editedAt: before(5_000), id: 3 }))
+
+    expect(reactedAfter).toHaveBeenCalledWith(
+      { communityUuid: HOME, gradidoId: LENA },
+      { after: { editedAt: before(5_000), id: 3 }, limit: CHAT_UPDATE_MESSAGES_DEFAULT },
+    )
+    expect(reactionRows.mock.calls).toEqual([[[7]]])
+    expect(update.reacted).toHaveLength(1)
+    expect(update.reacted[0]).toMatchObject({ id: 7, reactedAt: at, editedAt: null })
+    // Each emoji once, in the order it came up; Lena reads which one is her own.
+    expect(update.reacted[0].reactions).toEqual([
+      { emoji: THUMB, count: 2, mine: false },
+      { emoji: HEART, count: 1, mine: true },
+    ])
+    // Neither new nor a changed text.
+    expect(update.messages).toEqual([])
+    expect(update.edited).toEqual([])
+    expect(editedAfter).not.toHaveBeenCalled()
+  })
+
+  // A reaction taken back leaves no row: the message comes all the same, with none.
+  it('hands out a message whose last reaction was taken back, with none', async () => {
+    reactedAfter.mockResolvedValue({ messages: [reactedTo(7, before(2_000))], hasMore: false })
+
+    const update = await ask(60, null, null, cursorFrom(5_000))
+
+    expect(update.reacted.map((message) => message.reactions)).toEqual([[]])
+  })
+
+  it('looks for no reactions without a cursor of theirs, and says where to go on from', async () => {
+    const update = await ask(60, null, cursorFrom(5_000))
+
+    expect(reactedAfter).not.toHaveBeenCalled()
+    expect(update.reacted).toEqual([])
+    expect(update.reactedCursor).toBe(SETTLED_CURSOR)
+  })
+
+  // ⛔ A wallet from before the reactions -- a tab kept open across the deploy -- does not name
+  // the argument at all: it is `undefined` there, not null. Read as a cursor, that would be none,
+  // and the beat of every such tab would fail (found by an injection, 11.10.2026).
+  it('looks for no reactions for a wallet that does not know the argument, and answers as before', async () => {
+    const update = await new ChatResolver().newChatMessagesSince(
+      { afterId: 60, limit: null, editedCursor: cursorFrom(5_000) },
+      lenasRequest(),
+    )
+
+    expect(reactedAfter).not.toHaveBeenCalled()
+    expect(update.reacted).toEqual([])
+    expect(update.latestId).toBe(60)
+  })
+
+  // ⛔ The clock comes with the first read, as for a changed text.
+  it('reads the clock before it looks for the reactions', async () => {
+    const steps: string[] = []
+    summary.mockImplementation(async () => {
+      steps.push('clock asked')
+      await new Promise((resolve) => setImmediate(resolve))
+      steps.push('clock answered')
+      return standing(60, 0)
+    })
+    reactedAfter.mockImplementation(async () => {
+      steps.push('reactions asked')
+      return { messages: [], hasMore: false }
+    })
+
+    await ask(60, null, null, cursorFrom(5_000))
+
+    expect(steps).toEqual(['clock asked', 'clock answered', 'reactions asked'])
+  })
+
+  it('goes each of the two cursors its own way', async () => {
+    editedAfter.mockResolvedValue({ messages: [changed(7, before(2_000))], hasMore: false })
+    reactedAfter.mockResolvedValue({ messages: [reactedTo(8, before(1_000))], hasMore: false })
+
+    const both = await ask(60, 9, cursorFrom(5_000), cursorFrom(7_000))
+
+    expect(editedAfter.mock.calls[0][1]).toEqual({
+      after: { editedAt: before(5_000), id: 0 },
+      limit: 9,
+    })
+    expect(reactedAfter.mock.calls[0][1]).toEqual({
+      after: { editedAt: before(7_000), id: 0 },
+      limit: 9,
+    })
+    expect(both.edited.map((message) => message.id)).toEqual([7])
+    expect(both.reacted.map((message) => message.id)).toEqual([8])
+    expect([both.editedCursor, both.reactedCursor]).toEqual([SETTLED_CURSOR, SETTLED_CURSOR])
+  })
+
+  // ⛔ More are left over the cap: on from the last one's moment of REACTIONS and its id -- not
+  // from the moment its text was changed, which this message has as well.
+  it('goes on exactly after the last message it hands out where more are left, by the reactions clock', async () => {
+    const last = before(60_000)
+    reactedAfter.mockResolvedValue({
+      messages: [
+        reactedTo(7, before(90_000)),
+        reactedTo(8, last, { editedAt: before(200_000), body: 'hello, changed long ago' }),
+      ],
+      hasMore: true,
+    })
+
+    const update = await ask(60, 2, null, cursorFrom(120_000))
+
+    expect(update.reacted.map((message) => message.id)).toEqual([7, 8])
+    expect(update.reactedCursor).toBe(chatEditsCursor({ editedAt: last, id: 8 }))
+    // The other cursor is not moved by it.
+    expect(update.editedCursor).toBe(SETTLED_CURSOR)
+  })
+
+  // ⛔ A reaction stamped before what is settled may still be on its way: the cursor never
+  // passes it.
+  it('never goes on from later than what is settled, even where more are left', async () => {
+    reactedAfter.mockResolvedValue({
+      messages: [reactedTo(7, before(1_000)), reactedTo(8, new Date(SETTLED.getTime() + 4_000))],
+      hasMore: true,
+    })
+
+    expect((await ask(60, 2, null, cursorFrom(5_000))).reactedCursor).toBe(SETTLED_CURSOR)
+  })
+
+  // One query for the reactions of everything an answer hands out with any -- new messages,
+  // changed texts and changed reactions each ask once, for their own.
+  it('asks for the reactions only of the messages that have had any', async () => {
+    since.mockResolvedValue({
+      messages: [fromMax(61), reactedTo(62, before(500)), fromMax(63)],
+      hasMore: false,
+    })
+    reactionRows.mockResolvedValue([reaction(1, 62, MAX, THUMB)])
+
+    const update = await ask(60)
+
+    expect(reactionRows.mock.calls).toEqual([[[62]]])
+    expect(update.messages.map((message) => message.reactions)).toEqual([
+      [],
+      [{ emoji: THUMB, count: 1, mine: false }],
+      [],
+    ])
+    expect(update.messages.map((message) => message.reactedAt)).toEqual([null, before(500), null])
   })
 })

@@ -52,6 +52,25 @@
         </div>
         <span class="small">{{ $d(new Date(props.transaction.balanceDate), 'short') }}</span>
         <span class="ms-4 small">{{ $d(new Date(props.transaction.balanceDate), 'time') }}</span>
+        <!-- The emoji the recipient of the transfer answered it with (Bernd, 11.10.2026): behind
+             the time, in the line's own height -- on the recipient's row, where it is their own
+             and has the rim one's own reaction has in a conversation, and on the sender's.
+             ⛔ In the line that is there already: set in the opened row below, it must move
+             nothing of the list under the member's hand. Not a control: it is set in the
+             opened row. For the ear a lead and the reaction in one piece, as in a conversation
+             (ChatBubble). -->
+        <span
+          v-if="reaction"
+          class="transaction-reaction"
+          :class="{ 'is-mine': reactionMine }"
+          data-test="transaction-reaction"
+        >
+          <span class="visually-hidden">{{ $t('chatThread.reactionsLead') }}</span>
+          <span class="transaction-reaction-emoji" aria-hidden="true">{{ reaction }}</span>
+          <span class="visually-hidden" data-test="transaction-reaction-said">
+            {{ reactionSaid }}
+          </span>
+        </span>
       </BCol>
       <!-- On the phone the amount and the arrow start a line of their own, together -- this
            break is what makes them one line rather than two. From `md` on it is gone and
@@ -186,6 +205,36 @@
       </BCol>
     </BRow>
     <BCollapse :model-value="visible" class="pb-4 pt-3">
+      <!-- Reacting to a transfer one received (Bernd, 11.10.2026): the choice a conversation has
+           at a message -- six emoji a press away, "+" for all forty-eight --, over the booking's
+           numbers. Only where the server says the member may (`canReact`): on their own row of
+           a transfer from a member of this community. One's own reaction is the pressed one,
+           and a press on it takes it back.
+
+           Made when the row is opened for the first time, and kept while it closes:
+           twenty-five rows of a page would each hold seven buttons nobody sees, and what is
+           taken out of a row that is closing makes it jump. Made anew each time the row
+           opens (`openings`): the forty-eight left open are the six again, as in a menu that
+           is opened again. A press in it is not a press on the row, which would close the
+           booking under the member's hand. -->
+      <div
+        v-if="opened && props.transaction.canReact"
+        class="transaction-react px-1"
+        data-test="transaction-react"
+        @click.stop
+      >
+        <div class="mb-2" aria-hidden="true">
+          <i-mdi-emoticon-happy-outline class="me-2" />
+          <b>{{ $t('chatThread.react') }}</b>
+        </div>
+        <chat-reaction-choice
+          :key="openings"
+          class="transaction-react-choice"
+          :own="reaction"
+          :busy="reacting"
+          @react="react"
+        />
+      </div>
       <decay-information
         :type-id="props.transaction.typeId"
         :decay="props.transaction.decay"
@@ -198,8 +247,9 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, onBeforeUnmount, watch } from 'vue'
 import { useStore } from 'vuex'
+import { useApolloClient } from '@vue/apollo-composable'
 import CollapseIcon from '../TransactionRows/CollapseIcon'
 import Name from '../TransactionRows/Name'
 import FavoriteHeart from '@/components/FavoriteHeart.vue'
@@ -212,7 +262,14 @@ import { memberAvatarProps } from '@/composables/useMemberAvatars'
 import { memberAlias } from '@/utils/gradidoAddress'
 import { LIST_AVATAR_SIZE } from '@/constants'
 import { useI18n } from 'vue-i18n'
+import ChatReactionChoice from '@/components/Chat/ChatReactionChoice.vue'
 import ThankYouGreetingPhoto from '@/components/ThankYouGreeting/ThankYouGreetingPhoto.vue'
+import {
+  isTransactionReactionUnderway,
+  onTransactionReaction,
+  reactToTransaction,
+} from '@/composables/useTransactionReactions'
+import { useAppToast } from '@/composables/useToast'
 import { THANK_YOU_MOTIF_HEIGHT, THANK_YOU_MOTIF_WIDTH } from '@/utils/thankYouMotifs'
 import { transactionPictureShown } from '@/utils/transactionPicture'
 
@@ -229,12 +286,77 @@ const gddTransaction = ref(null)
 
 const store = useStore()
 const visible = ref(false)
+/** The row has been opened at least once: what only the opened row shows is made from then on. */
+const opened = ref(false)
+/** How often it has been opened: the choice of a reaction begins anew each time. */
+const openings = ref(0)
 
 const toggleVisible = () => {
   visible.value = !visible.value
 }
+watch(
+  visible,
+  (now) => {
+    if (!now) return
+    opened.value = true
+    openings.value += 1
+  },
+  { immediate: true },
+)
 
 const { t } = useI18n()
+const { toastError } = useAppToast()
+// Asked for its client when an emoji is pressed, not here: the row is drawn in places that
+// hold none (and `client` throws where none is provided).
+const apollo = useApolloClient()
+
+/**
+ * The emoji the recipient of this transfer answered it with (Bernd, 11.10.2026), or null: as the
+ * booking came from the server -- and as the member set it since, here or at the booking's
+ * bubble in the conversation, which is said to every place that holds the booking
+ * (onTransactionReaction).
+ *
+ * A list read again is the server's word again: by the BOOKING it hands in, not by a changed
+ * value -- a booking that comes without a reaction a second time says that there is none now,
+ * whatever was set here in between (it was taken back on another device).
+ */
+const reaction = ref(props.transaction.reaction ?? null)
+watch(
+  () => props.transaction,
+  (now) => {
+    reaction.value = now.reaction ?? null
+  },
+)
+const stopReactions = onTransactionReaction(({ transactionId, reaction: now }) => {
+  if (transactionId === props.transaction.id) reaction.value = now
+})
+onBeforeUnmount(stopReactions)
+
+/** Only the recipient reacts: on the row of what the member received, the reaction is their own. */
+const reactionMine = computed(() => props.transaction.typeId === 'RECEIVE')
+/** The reaction as it is said, in one piece: the emoji, and that it is one's own. */
+const reactionSaid = computed(() =>
+  reactionMine.value ? `${reaction.value}, ${t('chatThread.reactionMine')}` : reaction.value,
+)
+/** A reaction of the member's to this booking is on its way: the emoji take no press meanwhile. */
+const reacting = computed(() => isTransactionReactionUnderway(props.transaction.id))
+
+/**
+ * An emoji of the choice was pressed: the member's reaction, or the taking back of it where it
+ * is the booking's already -- read off the reaction as this row holds it now. Where the server
+ * refuses, nothing has changed, and the member is told.
+ */
+const react = async (emoji) => {
+  try {
+    await reactToTransaction(
+      apollo.client,
+      { ...props.transaction, reaction: reaction.value },
+      emoji,
+    )
+  } catch {
+    toastError(t('chatThread.reactionFailed'))
+  }
+}
 
 /**
  * The picture the sender added to this transfer, as the opened row shows it: `{ photo: true }`
@@ -402,6 +524,62 @@ watch(
   border-radius: 10px;
   background: #fbf3de;
   object-fit: cover;
+}
+
+/* The reaction to a transfer, behind the time. ⛔ It takes no more of the line's height than the
+   line has: the line is 0.875em at a line height of 1.5, the reaction counts as 1.4em of its own
+   0.875em -- less than the line -- and is drawn 1.7em high: what is over hangs into the room
+   around the line. So a reaction that is set changes the height of no row. Not words of the
+   booking: marking its text takes nothing of it along. The pill of a reaction in a conversation
+   (ChatBubble). */
+.transaction-reaction {
+  display: inline-flex;
+  align-items: center;
+  height: 1.7em;
+  margin: -0.2em 0 -0.2em 0.75rem;
+  padding: 0 0.4rem;
+  border-radius: 0.85em;
+  background: rgb(127 127 127 / 16%);
+  font-size: 0.875em;
+  line-height: 1;
+  vertical-align: middle;
+  user-select: none;
+}
+
+/* One's own: the rim of gold one's own reaction has in a conversation, drawn inside so that it
+   adds no size -- the gold of the menus' signs, which changes with the mode. */
+.transaction-reaction.is-mine {
+  box-shadow: inset 0 0 0 1.5px var(--menu-icon, #a8732a);
+}
+
+/* The device's own coloured drawing, asked for by name (as ChatBubble has it). */
+.transaction-reaction-emoji {
+  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+  font-size: 1.2em;
+  line-height: 1;
+}
+
+/* The choice in the opened row: the row of six and "+" on the menus' own grey, as at a message
+   -- and as wide as all forty-eight are (eight squares of 36 px, the padding, the rim: the
+   menu's own 18.825rem), so that "+" changes its height and not its width. Under a finger the
+   squares are up to 44 px (ChatReactionChoice), and the panel as wide as eight of them, where
+   the row has that room. */
+.transaction-react {
+  margin-bottom: 1.5rem;
+}
+
+.transaction-react-choice {
+  width: min(18.825rem, 100%);
+  padding: 0.35rem;
+  border: 1px solid var(--menu-border, #b3bac2);
+  border-radius: 0.85rem;
+  background: var(--menu-surface, #dde1e6);
+}
+
+@media (hover: none) {
+  .transaction-react-choice {
+    width: min(22.825rem, 100%);
+  }
 }
 
 /* The memo, marked as something somebody wrote by italics and the muted colour of the row's

@@ -61,6 +61,21 @@ describe('the request log', () => {
     expect(text).toContain('"gradidoID": "g"')
   })
 
+  // A reaction is what one member says to the others of a conversation, as a message's words
+  // are: which message stays readable, and whether a reaction is set or taken back -- which
+  // emoji does not. (Found by the second reader, 11.10.2026: the resolver's own line left the
+  // emoji out, and this one wrote it, with the member's id in the line after.)
+  it('writes no emoji a member reacts with, and still whether one is set or taken back', () => {
+    const set = logged({ messageUuid: '0b6f7a3e-5d0c-4c1b-9d7a-0f6a1c2b3d4e', emoji: '❤️' })
+    expect(set).not.toContain('❤')
+    expect(set).toContain('"emoji": "***"')
+    expect(set).toContain('"messageUuid": "0b6f7a3e-5d0c-4c1b-9d7a-0f6a1c2b3d4e"')
+
+    const takenBack = logged({ messageUuid: '0b6f7a3e-5d0c-4c1b-9d7a-0f6a1c2b3d4e', emoji: null })
+    expect(takenBack).toContain('"emoji": null')
+    expect(takenBack).not.toContain('***')
+  })
+
   // P7: one member's picture for another -- and some 80,000 characters in every line that carried
   // it. What is left of it is its size.
   it('writes no picture of a chat message, only its size', () => {
