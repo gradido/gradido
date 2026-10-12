@@ -1204,10 +1204,10 @@ describe('chatMarkdownInline', () => {
     })
 
     /**
-     * A message is 2000 characters at most (MESSAGE_MAX_CHARS); these are ten times that, and of
-     * the kinds that took the square of their length before each was looked at once: opening
-     * signs without partners, brackets never closed, a numbered stretch under a line of text.
-     * Read in a moment, they are; the limit is wide, for a slow machine.
+     * A message is 5000 characters at most (MESSAGE_MAX_CHARS); these are four times that and
+     * more, and of the kinds that took the square of their length before each was looked at
+     * once: opening signs without partners, brackets never closed, a numbered stretch under a
+     * line of text. Read in a moment, they are; the limit is wide, for a slow machine.
      */
     it.each([
       ['opening stars', '*a '.repeat(7000)],

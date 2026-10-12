@@ -85,10 +85,12 @@ export const memo = string()
 
 // A person-to-person message carries no amount and is stored in no varchar column,
 // so it may be longer than a memo, and a short reply like "Yes" has to pass as well.
-// Keep in step with MESSAGE_*_CHARS in the shared package. Reuses the memo wording:
-// those texts already say "message" and interpolate the bound.
-// The upper bound is exported for the chat's compose bar, whose field stops there.
-export const MESSAGE_MAX_CHARS = 2000
+// Keep in step with MESSAGE_*_CHARS in the shared package -- validationSchemas.drift.spec.js
+// holds the two together, and shared says what the upper bound is bounded by. Reuses the memo
+// wording: those texts already say "message" and interpolate the bound.
+// The upper bound is exported for the fields that stop there: the chat's compose bar, and the
+// words that go with a forwarded message.
+export const MESSAGE_MAX_CHARS = 5000
 
 export const message = string()
   .required('form.validation.memo.required')

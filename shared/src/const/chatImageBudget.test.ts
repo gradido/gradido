@@ -14,8 +14,9 @@ const asBase64 = (bytes: number) => Math.ceil(bytes / 3) * 4
 // together with the character before it as one.
 const WORST_BYTES_PER_CHARACTER = 9
 // The mutation text, the variable names, the recipient's pair, the size of the picture and the
-// JSON around them. Measured generously: the real wrapper is a few hundred bytes.
-const REQUEST_OVERHEAD = 2 * 1024
+// JSON around them. Measured generously: the wallet's request is some 1.5 KB around the two
+// (12.10.2026) -- 1.1 KB of it the document with the fields of a message, which grow.
+const REQUEST_OVERHEAD = 4 * 1024
 
 describe('chat picture size budget', () => {
   // Raising the picture's limit, or the text's, is exactly the change that would break this, and
