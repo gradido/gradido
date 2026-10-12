@@ -7,10 +7,12 @@ import {
   MatchingEntrySelect,
 } from 'database'
 import { getLogger } from 'log4js'
+import { Point } from 'typeorm'
 import { deleteGmsMatchingEntry, deleteGmsUser, putGmsMatchingEntry } from '@/apis/gms/GmsClient'
 import { GmsUserMatchingEntry } from '@/apis/gms/model/GmsMatchingEntry'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { Point2Location } from './Location2Point'
 import { sendUsersToGms } from './sendUserToGms'
 
 const logger = getLogger(
@@ -65,8 +67,12 @@ async function runRetries(what: string, operation: () => Promise<unknown>): Prom
  * Bring one entry in line with the GMS.
  *
  * Only entries that may actually be found belong there: the member takes part
- * (gmsAllowed) and the entry is live (active). Anything else is removed - which
- * makes pausing an entry and deleting it the very same operation towards the GMS.
+ * (gmsAllowed), their account is not deleted, and the entry is live (active).
+ * Anything else is removed - which makes pausing an entry and deleting it the very
+ * same operation towards the GMS.
+ *
+ * The account: the GMS may still hold a deleted member where taking them off failed,
+ * and would take an entry of theirs.
  */
 export async function syncMatchingEntryToGms(
   user: DbUser,
@@ -77,7 +83,7 @@ export async function syncMatchingEntryToGms(
     return
   }
 
-  if (!user.gmsAllowed || !entry.active) {
+  if (!user.gmsAllowed || !entry.active || user.deletedAt) {
     await removeMatchingEntryFromGms(entry.uuid)
     return
   }
@@ -129,10 +135,76 @@ export async function removeUserFromGms(user: DbUser): Promise<void> {
   try {
     await deleteGmsUser(gms.apiKey, user.gradidoID)
   } catch (e) {
-    logger.warn(`could not delete user from the GMS: ${e}`)
-    retryInBackground('deleting user from the GMS', () => deleteGmsUser(gms.apiKey, user.gradidoID))
+    logger.warn(`could not delete user ${user.id} from the GMS: ${e}`)
+    // Named by id: where every retry fails too, the last line says whose copy may remain.
+    retryInBackground(`deleting user ${user.id} from the GMS`, () =>
+      deleteGmsUser(gms.apiKey, user.gradidoID),
+    )
   }
   await forgetGmsRegistration(user)
+}
+
+/**
+ * The moderation deleted an account: the member leaves the GMS with it.
+ *
+ * ⛔ An account is deleted softly here, and the export to the GMS leaves a deleted member
+ * out - which takes nobody off: a member left out of a batch is not touched over there
+ * (sendUserToGms.ts). So the GMS is told, as it is told when a member withdraws their
+ * consent.
+ *
+ * For a member who takes part, and for one the GMS is marked as holding although they do
+ * not: either may stand over there. Deleting there is idempotent, so once too often costs
+ * a request and nothing else.
+ *
+ * Never throws. The account is deleted by now, and a GMS that cannot be reached must not
+ * turn the moderator's deletion into an error; `removeUserFromGms` retries a failed delete
+ * by itself, three times within a minute, and says so where that fails as well.
+ */
+export async function removeDeletedUserFromGms(user: DbUser): Promise<void> {
+  if (!user.gmsAllowed && !user.gmsRegistered) {
+    return
+  }
+  try {
+    await removeUserFromGms(user)
+  } catch (e) {
+    logger.error(`could not take the deleted user ${user.id} off the GMS: ${e}`)
+  }
+}
+
+/**
+ * The moderation brought a deleted account back: a member who takes part stands in the GMS
+ * again, their live entries with them.
+ *
+ * The deletion asked the GMS to take the member and everything of theirs off. So what is
+ * handed over here is the whole member, and their entries travel along as the full set -
+ * as for a member who gives their consent again (UserResolver, updateUserInfos).
+ *
+ * Only a member of this community who takes part and has a place - whom the repair run
+ * would send as well (apis/gms/ExportUsers). `GmsUser` refuses one without a place, and a
+ * restored account without one is nothing to write an error about.
+ *
+ * Never throws: the account is restored by now, as it is deleted by then above. A publish
+ * that fails is said here with the member's id and not tried again by itself. The member
+ * is handed over whole again when they next change a setting the GMS shows, and by the
+ * repair run (`bun run gmsusers`), which nothing starts by itself.
+ */
+export async function returnRestoredUserToGms(user: DbUser): Promise<void> {
+  if (user.foreign || !user.gmsAllowed || Point2Location(user.location as Point) === null) {
+    return
+  }
+  try {
+    const gms = await findGmsApiKey()
+    if (!gms) {
+      return
+    }
+    // false where the GMS did not take them and GMS_CREATE_USER_THROW_ERRORS is off: the
+    // line it writes then names nobody, so this one does.
+    if (!(await sendUsersToGms([user], gms.community, true))) {
+      logger.error(`could not bring the restored user ${user.id} back to the GMS`)
+    }
+  } catch (e) {
+    logger.error(`could not bring the restored user ${user.id} back to the GMS: ${e}`)
+  }
 }
 
 /**
