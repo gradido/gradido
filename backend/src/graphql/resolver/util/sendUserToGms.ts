@@ -27,13 +27,6 @@ const GMS_MAX_SNAPSHOTS_PER_CALL = 400
 const GMS_MAX_ENTRIES_PER_CALL = 2500
 
 /**
- * @param withMatchingEntries send each user's live entries along, stating their
- *   full set: the GMS writes what it receives and removes what is missing. This is
- *   the repair path (ExportUsers) - it also cleans up entries that were paused or
- *   deleted while the GMS was unreachable. The everyday path leaves it out, and
- *   the GMS keeps the entries it has.
- */
-/**
  * Split a batch of snapshots so that no call exceeds what the GMS accepts.
  *
  * Two bounds at once - members per call and entries across the call - because the GMS
@@ -71,6 +64,15 @@ function chunkByEntryCount(snapshots: GmsMatchingEntrySnapshot[]): GmsMatchingEn
   return chunks
 }
 
+/**
+ * Hands members over to the GMS: creates them there or brings them up to date.
+ *
+ * @param withMatchingEntries send each user's live entries along, stating their
+ *   full set: the GMS writes what it receives and removes what is missing. This is
+ *   the repair path (ExportUsers) - it also cleans up entries that were paused or
+ *   deleted while the GMS was unreachable. The everyday path leaves it out, and
+ *   the GMS keeps the entries it has.
+ */
 export async function sendUsersToGms(
   users: DbUser[],
   homeCom: DbCommunity,

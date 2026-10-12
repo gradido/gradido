@@ -6,6 +6,7 @@ import {
   Community as DbCommunity,
   User as DbUser,
   dbClearGmsRegistration,
+  dbFindUsersWithEmailContactByIds,
   dbMarkUsersGmsRegistered,
   dbSelectActiveMatchingEntriesByUserIds,
   getHomeCommunity,
@@ -42,6 +43,7 @@ jest.mock('database', () => {
     ...actual,
     getHomeCommunity: jest.fn(),
     dbClearGmsRegistration: jest.fn(),
+    dbFindUsersWithEmailContactByIds: jest.fn(),
     dbSelectActiveMatchingEntriesByUserIds: jest.fn(),
     dbMarkUsersGmsRegistered: jest.fn(),
   }
@@ -59,6 +61,8 @@ const homeCommunityMock = getHomeCommunity as jest.Mock
 const clearRegistrationMock = dbClearGmsRegistration as jest.Mock
 const markRegisteredMock = dbMarkUsersGmsRegistered as jest.Mock
 const selectEntriesMock = dbSelectActiveMatchingEntriesByUserIds as jest.Mock
+// How the account stands when a hand-over that was not waited for arrives after all.
+const accountNowMock = dbFindUsersWithEmailContactByIds as jest.Mock
 
 const API_KEY = 'gms-test-key'
 const HOME_COM = { gmsApiKey: API_KEY } as DbCommunity
@@ -97,9 +101,13 @@ const liveEntry = {
   active: true,
 } as unknown as MatchingEntrySelect
 
-/** Lets what waits on an answer go on: the steps of a retry between two turns of the clock. */
+/**
+ * Lets what waits on an answer go on: the steps of a retry between two turns of the clock, or
+ * of a hand-over from the GMS's answer to its last line. Generously many -- a step too few
+ * reads as "did not happen".
+ */
 const letItGoOn = async () => {
-  for (let step = 0; step < 10; step++) {
+  for (let step = 0; step < 50; step++) {
     await Promise.resolve()
   }
 }
@@ -383,6 +391,73 @@ describe('the GMS and an account the moderation deletes or brings back', () => {
       useFakeTimersForDrizzle()
       await returnRestoredUserToGms(member())
       expect(jest.getTimerCount()).toBe(0)
+      // And the account is not looked at again: that is for a hand-over that came late.
+      expect(accountNowMock).not.toHaveBeenCalled()
+    })
+
+    // ⛔ What is not waited for any longer still arrives. The moderation may have deleted the
+    // account again by then, and the delete of that deletion may have come first: so a late
+    // hand-over is held against the account as it stands, and a deleted one is taken off once
+    // more. Nothing else would -- the repair run leaves a deleted account out.
+    describe('a hand-over that arrives after it was no longer waited for', () => {
+      let arrives: (taken: boolean) => void
+
+      const comesLate = async () => {
+        useFakeTimersForDrizzle()
+        upsertMock.mockReturnValue(
+          new Promise<boolean>((resolve) => {
+            arrives = resolve
+          }),
+        )
+        // Not awaited: without the bound it would never come back, and this test would wait
+        // for the house's time limit instead of failing.
+        let back = false
+        returnRestoredUserToGms(member()).then(() => {
+          back = true
+        })
+        await letItGoOn()
+        jest.advanceTimersByTime(30_000)
+        await letItGoOn()
+        expect(back).toBe(true)
+      }
+
+      it('takes the member off once more where the account was deleted again meanwhile', async () => {
+        await comesLate()
+        expect(deleteMock).not.toHaveBeenCalled()
+
+        accountNowMock.mockResolvedValue([])
+        arrives(true)
+        await letItGoOn()
+
+        expect(accountNowMock).toHaveBeenCalledWith([7])
+        expect(deleteMock).toHaveBeenCalledTimes(1)
+        expect(deleteMock).toHaveBeenCalledWith(API_KEY, MEMBER_UUID)
+      })
+
+      it('leaves the member where the account still stands', async () => {
+        await comesLate()
+
+        accountNowMock.mockResolvedValue([member()])
+        arrives(true)
+        await letItGoOn()
+
+        expect(accountNowMock).toHaveBeenCalledWith([7])
+        expect(deleteMock).not.toHaveBeenCalled()
+      })
+
+      it('says so where the account cannot be read then, and fails nothing', async () => {
+        await comesLate()
+
+        accountNowMock.mockRejectedValue(new Error('Connection lost'))
+        arrives(true)
+        await letItGoOn()
+
+        expect(deleteMock).not.toHaveBeenCalled()
+        expect(logger.error).toHaveBeenCalledTimes(2)
+        expect((logger.error as jest.Mock).mock.calls[1][0]).toContain(
+          'could not look at user 7 after a late hand-over to the GMS',
+        )
+      })
     })
   })
 

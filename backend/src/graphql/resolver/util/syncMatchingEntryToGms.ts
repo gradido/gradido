@@ -3,6 +3,7 @@ import {
   Community as DbCommunity,
   User as DbUser,
   dbClearGmsRegistration,
+  dbFindUsersWithEmailContactByIds,
   getHomeCommunity,
   MatchingEntrySelect,
 } from 'database'
@@ -59,6 +60,11 @@ function retryInBackground(what: string, operation: () => Promise<unknown>, want
     .finally(() => wanted?.over())
 }
 
+/**
+ * The tries themselves: after each wait one more, until one gets through or the last has
+ * failed - which is then said as an error, so that somebody sees it. With `wanted`, a try
+ * is only made while what it is for is still wanted.
+ */
 async function runRetries(
   what: string,
   operation: () => Promise<unknown>,
@@ -225,13 +231,36 @@ export async function returnRestoredUserToGms(user: DbUser): Promise<void> {
     giveUpWaiting = setTimeout(() => resolve('late'), RESTORE_WAIT_MS)
   })
   try {
-    if ((await Promise.race([handOverRestoredUser(user), waitedLongEnough])) === 'late') {
+    const handOver = handOverRestoredUser(user)
+    if ((await Promise.race([handOver, waitedLongEnough])) === 'late') {
       logger.error(
         `the GMS did not take the restored user ${user.id} back within ${RESTORE_WAIT_MS} ms, not waited for any longer`,
       )
+      // What is not waited for any longer still arrives - see takeOffAgainIfDeletedMeanwhile.
+      handOver.then(() => takeOffAgainIfDeletedMeanwhile(user))
     }
   } finally {
     clearTimeout(giveUpWaiting)
+  }
+}
+
+/**
+ * A hand-over that was not waited for to its end is held against the account as it stands
+ * when it does end. Deleted again meanwhile, the member is taken off once more: the delete
+ * of that deletion may have come ahead of what arrives only now, and nothing else takes a
+ * deleted account off - the repair run leaves it out, and it cannot be deleted twice.
+ */
+async function takeOffAgainIfDeletedMeanwhile(user: DbUser): Promise<void> {
+  try {
+    const [standing] = await dbFindUsersWithEmailContactByIds([user.id])
+    if (!standing) {
+      logger.warn(
+        `user ${user.id} was deleted again before the GMS took them back, taken off once more`,
+      )
+      await removeUserFromGms(user)
+    }
+  } catch (e) {
+    logger.error(`could not look at user ${user.id} after a late hand-over to the GMS: ${e}`)
   }
 }
 
