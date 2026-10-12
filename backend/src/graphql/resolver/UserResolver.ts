@@ -60,7 +60,6 @@ import {
   dbFindUserContactByCodeOrFail,
   dbFindUserLoginByEmail,
   dbFindUsers,
-  dbFindUsersWithEmailContactByIds,
   dbInsertEvent,
   dbInsertUserAlias,
   dbMarkAliasAdopted,
@@ -158,7 +157,7 @@ import { syncHumhub } from './util/syncHumhub'
 import {
   removeDeletedUserFromGms,
   removeUserFromGms,
-  returnRestoredUserToGms,
+  returnRestoredAccountToGms,
 } from './util/syncMatchingEntryToGms'
 
 const db = AppDatabase.getInstance()
@@ -1626,13 +1625,9 @@ export class UserResolver {
       affectedUserId: user.id,
       actingUserId: getUser(context).id,
     })
-    // And back to the GMS, which the deletion asked to take them off (returnRestoredUserToGms).
-    // Read anew, as the repair run reads its members: the row as it stands now, not the one
-    // that was loaded as deleted - and nobody, should it have been deleted again meanwhile.
-    const [restored] = await dbFindUsersWithEmailContactByIds([userId])
-    if (restored) {
-      await returnRestoredUserToGms(restored)
-    }
+    // And back to the GMS, which the deletion asked to take them off. Without an error of its
+    // own, like its counterpart above (returnRestoredAccountToGms).
+    await returnRestoredAccountToGms(userId)
     return null
   }
 

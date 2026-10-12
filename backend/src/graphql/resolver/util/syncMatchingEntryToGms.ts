@@ -202,6 +202,26 @@ export async function removeDeletedUserFromGms(user: DbUser): Promise<void> {
 }
 
 /**
+ * What `unDeleteUser` does towards the GMS, as one step that cannot fail it: the row read
+ * anew - as it stands now, not the one that was loaded as deleted, with the query the repair
+ * run reads its members with - and handed over (returnRestoredUserToGms). Nobody, should the
+ * account have been deleted again meanwhile.
+ *
+ * Never throws, the read included: the account is restored by now, and a row that cannot be
+ * read for the GMS is no reason to tell the moderator that restoring failed.
+ */
+export async function returnRestoredAccountToGms(userId: number): Promise<void> {
+  try {
+    const [restored] = await dbFindUsersWithEmailContactByIds([userId])
+    if (restored) {
+      await returnRestoredUserToGms(restored)
+    }
+  } catch (e) {
+    logger.error(`could not read the restored user ${userId} for the GMS: ${e}`)
+  }
+}
+
+/**
  * The moderation brought a deleted account back: a member who takes part stands in the GMS
  * again, their live entries with them.
  *

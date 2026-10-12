@@ -24,6 +24,7 @@ import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
 import {
   removeDeletedUserFromGms,
+  returnRestoredAccountToGms,
   returnRestoredUserToGms,
   syncMatchingEntryToGms,
 } from './syncMatchingEntryToGms'
@@ -493,6 +494,49 @@ describe('the GMS and an account the moderation deletes or brings back', () => {
           'could not look at user 7 after the hand-over to the GMS',
         )
       })
+    })
+  })
+
+  // What `unDeleteUser` calls: the row read anew and handed over, as one step that cannot
+  // fail the moderator's restore -- the read included.
+  describe('returnRestoredAccountToGms', () => {
+    it('reads the row anew and hands that member over', async () => {
+      const asItStandsNow = member({ alias: 'bibi-now' })
+      accountNowMock.mockResolvedValueOnce([asItStandsNow])
+
+      await returnRestoredAccountToGms(7)
+
+      expect(accountNowMock).toHaveBeenNthCalledWith(1, [7])
+      expect(upsertMock).toHaveBeenCalledTimes(1)
+      const [, gmsUsers] = upsertMock.mock.calls[0]
+      expect(gmsUsers[0].uuid).toBe(MEMBER_UUID)
+      expect(gmsUsers[0].alias).toBe('bibi-now')
+    })
+
+    // Deleted again between the restore and this read: there is no row, and nobody to hand over.
+    it('hands nobody over where the account is deleted again by then', async () => {
+      accountNowMock.mockResolvedValueOnce([])
+
+      await returnRestoredAccountToGms(7)
+
+      expect(homeCommunityMock).not.toHaveBeenCalled()
+      expect(upsertMock).not.toHaveBeenCalled()
+      // Nobody there is no failure, and is not written down as one.
+      expect(logger.error).not.toHaveBeenCalled()
+    })
+
+    // ⛔ The account is restored by now. A row that cannot be read for the GMS is no reason
+    // to tell the moderator that restoring failed.
+    it('does not fail where the row cannot be read, and says whose', async () => {
+      accountNowMock.mockRejectedValueOnce(new Error('Connection lost'))
+
+      await expect(returnRestoredAccountToGms(7)).resolves.toBeUndefined()
+
+      expect(upsertMock).not.toHaveBeenCalled()
+      expect(logger.error).toHaveBeenCalledTimes(1)
+      expect((logger.error as jest.Mock).mock.calls[0][0]).toContain(
+        'could not read the restored user 7 for the GMS',
+      )
     })
   })
 
