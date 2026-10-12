@@ -80,6 +80,8 @@ Different workspaces use different test frameworks internally:
 - `backend`, `dht-node` → Jest
 - `frontend`, `admin` → Vitest
 
+`backend` runs its tests as two kinds (`backend/jest.config.js`). A file that calls `testEnvironment…()` or `cleanDB()` from `test/helpers.ts`, or that carries a line `// jest: serial` with its reason, runs one at a time (`test:serial`). Every other file runs in parallel, with the database and Redis unreachable (`test:parallel`). A test that needs the database therefore sets it up through those helpers — reaching for it any other way fails in the parallel run.
+
 Turbo and `bun run` automatically invoke the correct test runner defined in the package's `package.json`. This also matters for the `config-schema/test/testSetup` import path; see the Testing section in `README.md`.
 
 # Conventions

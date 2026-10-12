@@ -10,7 +10,9 @@
   "scripts": {
     "build": "ts-node ./esbuild.config.ts && mkdirp build/templates/ && ncp ../core/build/templates build/templates",
     "dev": "cross-env TZ=UTC nodemon -w src --ext ts,pug,json,css -r tsconfig-paths/register src/index.ts",
-    "test": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_backend jest --runInBand --forceExit --detectOpenHandles",
+    "test": "bun run test:parallel && bun run test:serial",
+    "test:parallel": "cross-env TZ=UTC NODE_ENV=development TEST_KIND=parallel DB_PORT=1 DB_CONNECT_RETRY_COUNT=1 REDIS_URL=redis://127.0.0.1:1 jest --forceExit",
+    "test:serial": "cross-env TZ=UTC NODE_ENV=development TEST_KIND=serial DB_DATABASE=gradido_test_backend jest --runInBand --forceExit --detectOpenHandles",
     "test:coverage": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_backend jest --coverage --runInBand --forceExit --detectOpenHandles",
     "seed": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/seeds/index.ts",
     "klicktipp": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/util/executeKlicktipp.ts",
