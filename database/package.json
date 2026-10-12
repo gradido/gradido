@@ -17,7 +17,7 @@
   "private": true,
   "scripts": {
     "build": "bun ./esbuild.config.ts",
-    "typecheck": "bun --bun ../node_modules/typescript-go/bin/tsc --noEmit",
+    "typecheck": "bun check",
     "lint": "biome check --error-on-warnings .",
     "lint:fix": "biome check --error-on-warnings . --write",
     "clearDB": "cross-env TZ=UTC tsx migration/index.ts clear",
@@ -40,8 +40,7 @@
     "drizzle-kit": "1.0.0-rc.4",
     "random-bigint": "^0.0.1",
     "ts-node": "^10.9.2",
-    "typescript": "~5.9.3",
-    "typescript-go": "npm:typescript@7.0.2"
+    "typescript": "~5.9.3"
   },
   "dependencies": {
     "@types/uuid": "^8.3.4",
