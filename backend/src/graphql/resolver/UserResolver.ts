@@ -146,6 +146,7 @@ import { resolveCommunityUuid } from './util/communities'
 import { compareGmsRelevantUserSettings } from './util/compareGmsRelevantUserSettings'
 import { getFullUserCreation, getUserCreations } from './util/creations'
 import { extractGraphQLFieldsForSelect } from './util/extractGraphQLFields'
+import { mayKnowFindable } from './util/findableOnMap'
 import { getKlicktippState } from './util/getKlicktippState'
 import { Location2Point, Point2Location } from './util/Location2Point'
 import { maySeeRealName } from './util/maySeeRealName'
@@ -1468,6 +1469,13 @@ export class UserResolver {
       // ES-021: the admin's "may create" switch. Listed here or the row comes back without
       // it and every switch would show "off".
       'creationAllowed',
+      // The pin behind the username: the pair it addresses the wallet's map by, and the two
+      // columns the answer "stands on the map" is read from (isFindableOnMap). Listed here
+      // or the row comes back without them and no member would carry a pin.
+      'gradidoID',
+      'communityUuid',
+      'gmsAllowed',
+      'location',
     ]
     const [users, count] = await dbFindUsers(
       userFields,
@@ -1911,6 +1919,31 @@ export class UserResolver {
       return null
     }
     return user.gmsAllowed ?? null
+  }
+
+  /**
+   * Whether the member stands on the map of the member search -- a yes or no worked out from
+   * the row when the object was built (isFindableOnMap), not the place: that is
+   * `userLocation` above, and its guard is not touched by this one.
+   *
+   * The moderation and the member themselves, everybody else reads null (mayKnowFindable).
+   * Unlike the settings around it this one IS asked about somebody else: the admin interface
+   * shows a pin behind the name of a member who stands on the map, in the member search
+   * (`searchUsers` answers there with a type of its own) and under a contribution, where the
+   * member travels as this type. The pin opens the wallet's map on that member, with the
+   * point the GMS holds -- what the map shows every member who stands on it themselves.
+   *
+   * ⛔ Named after its field, for the reason given at userLocation: under another method name
+   * this guard is silently not installed.
+   *
+   * Null rather than throwing, like the guards above.
+   */
+  @FieldResolver(() => Boolean, { nullable: true })
+  findableOnMap(@Root() user: User, @Ctx() context: Context): boolean | null {
+    if (!mayKnowFindable(context, user)) {
+      return null
+    }
+    return user.findableOnMap ?? null
   }
 
   /** Same guard as hideAmountGDD above. */

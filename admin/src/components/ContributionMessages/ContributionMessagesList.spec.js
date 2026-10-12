@@ -2,6 +2,7 @@ import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { ref } from 'vue'
 import ContributionMessagesList from './ContributionMessagesList.vue'
+import MemberMapPin from '../MemberMapPin.vue'
 import { useApolloClient, useQuery } from '@vue/apollo-composable'
 import { useAppToast } from '@/composables/useToast'
 import { BContainer } from 'bootstrap-vue-next'
@@ -137,6 +138,7 @@ describe('ContributionMessagesList', () => {
         stubs: {
           'contribution-messages-list-item': true,
           'contribution-messages-formular': true,
+          IBiGeoAltFill: true,
         },
       },
     })
@@ -195,6 +197,64 @@ describe('ContributionMessagesList', () => {
     await wrapper.vm.updateContributions()
     expect(wrapper.emitted('update-contributions')).toBeTruthy()
   })
+  // Behind the username in the card of the member who handed the contribution in: the pin of
+  // a member who stands on the wallet's map (MemberMapPin). This spec installs no store, and
+  // the pin asks for none until it is pressed -- so the card is set up here as it always was.
+  describe('the pin behind the username', () => {
+    const onTheMap = {
+      ...defaultUser,
+      alias: 'peterl',
+      gradidoID: '1b2c3d4e-5f60-4a7b-8c9d-0e1f2a3b4c5d',
+      communityUuid: '9f8e7d6c-5b4a-4c3d-9e2f-1a0b9c8d7e6f',
+      findableOnMap: true,
+    }
+    const showsMember = (user) =>
+      wrapper.setProps({
+        contribution: {
+          id: 42,
+          memo: 'test memo',
+          userId: 108,
+          contributionStatus: 'PENDING',
+          user,
+        },
+      })
+    const pin = () => wrapper.find('[data-test="member-map-pin"]')
+
+    it('is not there for a member who does not stand on the map', async () => {
+      expect(pin().exists()).toBe(false)
+      await showsMember({ ...onTheMap, findableOnMap: false })
+      expect(pin().exists()).toBe(false)
+    })
+
+    it('is there for a member who does', async () => {
+      await showsMember(onTheMap)
+      expect(pin().exists()).toBe(true)
+    })
+
+    it('is handed the member of the contribution, named by username or else by first name', async () => {
+      await showsMember(onTheMap)
+      expect(wrapper.findComponent(MemberMapPin).props()).toEqual({
+        member: onTheMap,
+        name: 'peterl',
+      })
+
+      await showsMember({ ...onTheMap, alias: null })
+      expect(wrapper.findComponent(MemberMapPin).props('name')).toBe('Peter')
+    })
+
+    // Behind the username, and ahead of the way to the member's HumHub profile.
+    it('stands behind the username', async () => {
+      await showsMember(onTheMap)
+      const card = wrapper.find('.list-group-item').html()
+      const username = card.indexOf('peterl')
+      const mapPin = card.indexOf('data-test="member-map-pin"')
+      const humhub = card.indexOf('humhub-username')
+      expect(username).toBeGreaterThan(-1)
+      expect(mapPin).toBeGreaterThan(username)
+      expect(humhub).toBeGreaterThan(mapPin)
+    })
+  })
+
   /**
    * ⛔ ONE round trip for the whole thread, with every author in it -- not one per message.
    * A moderator who wrote three of them is one member, and the picture store keys by member.

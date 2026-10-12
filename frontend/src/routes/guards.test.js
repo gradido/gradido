@@ -136,6 +136,118 @@ describe('navigation guards', () => {
       expect(storeDispatchMock).toHaveBeenCalledWith('logout')
       expect(router.currentRoute.value.path).toBe('/authenticate')
     })
+
+    // The hand-over with a page to go on to: the admin interface opens the wallet's map in a
+    // window of its own, on the member whose pin was pressed.
+    describe('with a redirect', () => {
+      const place = { latitude: 51.314472, longitude: 9.495606 }
+      const WITH = '1b2c3d4e-5f60-4a7b-8c9d-0e1f2a3b4c5d'
+      const COMMUNITY = '9f8e7d6c-5b4a-4c3d-9e2f-1a0b9c8d7e6f'
+      const MAP = `/matching/karte?with=${WITH}&community=${COMMUNITY}`
+
+      // The store of this file is a mock: the commits of the hand-over change nothing in it.
+      // What the guards behind the hand-over read -- a sign-in that runs, both answers for the
+      // map -- is put there by hand, as the real commits would have left it. Without that the
+      // way on ends at the sign-in form, whatever the hand-over did.
+      //
+      // And away to a page that is neither the overview nor the map first: every case below
+      // names where it ends, and must not have stood there already.
+      beforeEach(async () => {
+        store.state.token = 'valid-token'
+        store.state.tokenTime = Math.floor(Date.now() / 1000) + 600
+        store.state.gmsAllowed = true
+        store.state.userLocation = place
+        await router.push('/register')
+        vi.clearAllMocks()
+      })
+
+      const handsOver = (redirect) =>
+        router.push({ path: '/authenticate', query: { token: 'valid-token', redirect } })
+
+      it('goes on to the page named, with its query', async () => {
+        await handsOver(MAP)
+
+        // The hand-over itself, as without a redirect.
+        expect(storeCommitMock).toHaveBeenCalledWith('token', 'valid-token')
+        expect(storeDispatchMock).toHaveBeenCalledWith(
+          'login',
+          expect.objectContaining({ firstName: 'Peter' }),
+        )
+        // ⛔ fullPath and the query, not the path alone: a map that opens without them opens
+        // on nobody, and `path` reads the same either way.
+        expect(router.currentRoute.value.name).toBe('MatchingMap')
+        expect(router.currentRoute.value.fullPath).toBe(MAP)
+        expect(router.currentRoute.value.query).toEqual({ with: WITH, community: COMMUNITY })
+      })
+
+      it('goes on to any page of the wallet', async () => {
+        await handsOver('/contributions/contribute')
+        expect(router.currentRoute.value.fullPath).toBe('/contributions/contribute')
+      })
+
+      it('ends on the overview without one, as before', async () => {
+        await router.push({ path: '/authenticate', query: { token: 'valid-token' } })
+        expect(storeDispatchMock).toHaveBeenCalledWith('login', expect.anything())
+        expect(router.currentRoute.value.fullPath).toBe('/overview')
+      })
+
+      // Only an address inside this wallet is followed (utils/safeWalletPath has the whole
+      // list). The hand-over itself still takes place.
+      it.each([
+        ['an address somewhere else', 'https://example.org/matching/karte'],
+        ['another host, as a browser spells it', '//example.org/matching/karte'],
+        ['a script', 'javascript:alert(1)'],
+        ['a backslash for a slash', '/\\example.org'],
+        ['a path that does not start at the root', 'matching/karte'],
+      ])('does not follow %s and ends on the overview', async (_name, redirect) => {
+        await handsOver(redirect)
+        expect(storeCommitMock).toHaveBeenCalledWith('token', 'valid-token')
+        expect(storeDispatchMock).toHaveBeenCalledWith('login', expect.anything())
+        expect(router.currentRoute.value.fullPath).toBe('/overview')
+      })
+
+      it('does not follow one given twice', async () => {
+        await router.push('/authenticate?token=valid-token&redirect=/send&redirect=/register')
+        expect(router.currentRoute.value.fullPath).toBe('/overview')
+      })
+
+      // The page named is entered like any other. The map asks for both of the member's own
+      // answers, whoever sent them there: a moderator who is not on the map lands where the
+      // answers are given, as every member does.
+      it('lets the map send a member who is not findable to the position tab', async () => {
+        store.state.gmsAllowed = false
+        await handsOver(MAP)
+        expect(router.currentRoute.value.path).toBe('/matching/position')
+      })
+
+      // The admin interface left open past the end of its session hands over a token that is
+      // not accepted any more. The page named asks for the sign-in itself then, and keeps the
+      // address for afterwards -- instead of a window that shows nothing.
+      describe('where the token is not accepted', () => {
+        beforeEach(() => {
+          apolloQueryMock.mockRejectedValueOnce(new Error('Server error'))
+          // What the real sign-out does first, and what the sign-in guard goes by.
+          storeDispatchMock.mockImplementationOnce(() => {
+            store.state.token = null
+          })
+        })
+
+        it('goes to the page named all the same, which asks for the sign-in and keeps the address', async () => {
+          await handsOver(MAP)
+          expect(storeDispatchMock).toHaveBeenCalledWith('logout')
+          expect(storeDispatchMock).not.toHaveBeenCalledWith('login', expect.anything())
+          expect(router.currentRoute.value.path).toBe('/login')
+          expect(storeCommitMock).toHaveBeenCalledWith('redirectPath', MAP)
+        })
+
+        it('stays where it is with an address that is not followed, as without one', async () => {
+          await handsOver('//example.org/matching/karte')
+          expect(storeDispatchMock).toHaveBeenCalledWith('logout')
+          expect(router.currentRoute.value.path).toBe('/authenticate')
+          expect(storeCommitMock).not.toHaveBeenCalledWith('redirectPath', expect.anything())
+        })
+      })
+    })
   })
 
   // ES-021: the creation area is gone for a project account, from the address bar too.
@@ -669,6 +781,173 @@ describe('a start with a running session', () => {
       await started.push('/overview')
       expect(started.currentRoute.value.fullPath).toBe('/overview')
       expect(noted()).not.toBeNull()
+    })
+  })
+})
+
+/**
+ * The hand-over as the pin of the admin interface uses it: a window of its own, whose FIRST
+ * page is `/authenticate?token=…&redirect=…`. What comes of the hand-over is entered from
+ * START_LOCATION then, not from inside a wallet that is running -- so the start guard has its
+ * say as well. A router of its own per case, as in the block above, and a store that keeps what
+ * it is told: the guards behind the hand-over read the sign-in and the member's two answers for
+ * the map off it.
+ */
+describe('a start on the hand-over, with a page to go on to', () => {
+  const now = () => Math.floor(Date.now() / 1000)
+  const Page = { render: () => null }
+  const place = { latitude: 51.314472, longitude: 9.495606 }
+  const MODERATOR = { gradidoID: 'me-id', gmsAllowed: true, userLocation: place }
+  const SIGNED_OUT = {
+    token: null,
+    tokenTime: null,
+    gradidoID: null,
+    gmsAllowed: null,
+    userLocation: null,
+  }
+  const MAP =
+    '/matching/karte?with=1b2c3d4e-5f60-4a7b-8c9d-0e1f2a3b4c5d&community=9f8e7d6c-5b4a-4c3d-9e2f-1a0b9c8d7e6f'
+  const handOver = (redirect) =>
+    '/authenticate?token=handed-token' +
+    (redirect === undefined ? '' : `&redirect=${encodeURIComponent(redirect)}`)
+
+  /**
+   * A window that starts at `address`. `answer` is what the server says to the token handed
+   * over: the member it belongs to, or an Error where it is not accepted. `state` is what an
+   * earlier use of the wallet left in this browser.
+   */
+  const startAt = async (address, { answer = MODERATOR, state = {} } = {}) => {
+    const started = createRouter({
+      history: createMemoryHistory(),
+      routes: [
+        { path: '/authenticate', name: 'Authenticate', component: Page },
+        { path: '/login/:code?', name: 'Login', component: Page },
+        { path: '/overview', name: 'Overview', component: Page, meta: { requiresAuth: true } },
+        { path: '/contacts', name: 'Contacts', component: Page, meta: { requiresAuth: true } },
+        {
+          path: '/matching/karte',
+          name: 'MatchingMap',
+          component: Page,
+          meta: { requiresAuth: true, requiresFindable: true },
+        },
+        { path: '/matching/:tab', name: 'Matching', component: Page, meta: { requiresAuth: true } },
+      ],
+    })
+    // The three things the real store does that the guards behind the hand-over go by: a token
+    // runs for a session from when it is taken, a sign-in brings the member, a sign-out takes
+    // both away.
+    const own = {
+      state: { ...SIGNED_OUT, ...state },
+      commit: vi.fn((name, value) => {
+        if (name === 'token') {
+          Object.assign(own.state, { token: value, tokenTime: value ? now() + 600 : null })
+        }
+      }),
+      dispatch: vi.fn((name, member) => {
+        if (name === 'login') Object.assign(own.state, member)
+        if (name === 'logout') Object.assign(own.state, SIGNED_OUT)
+      }),
+    }
+    const server = {
+      query:
+        answer instanceof Error
+          ? vi.fn().mockRejectedValue(answer)
+          : vi.fn().mockResolvedValue({ data: { verifyLogin: answer } }),
+    }
+    addNavigationGuards(started, own, server)
+    await started.push(address)
+    return { at: started.currentRoute.value.fullPath, own, server }
+  }
+
+  it('starts the window on the page named, with its query, signed in by the token handed over', async () => {
+    const { at, own, server } = await startAt(handOver(MAP))
+
+    expect(at).toBe(MAP)
+    expect(own.commit).toHaveBeenCalledWith('token', 'handed-token')
+    expect(server.query).toHaveBeenCalledTimes(1)
+    expect(own.dispatch).toHaveBeenCalledWith('login', MODERATOR)
+    expect(own.commit).not.toHaveBeenCalledWith('redirectPath', expect.anything())
+  })
+
+  it('starts it on the overview without a page named, as before', async () => {
+    expect((await startAt(handOver())).at).toBe('/overview')
+  })
+
+  it('starts it on the overview with an address that is not followed', async () => {
+    expect((await startAt(handOver('//example.org/matching/karte'))).at).toBe('/overview')
+  })
+
+  // The rule of the map, for a moderator as for every member.
+  it('starts it where the two answers are given, for a moderator who is not on the map', async () => {
+    const { at } = await startAt(handOver(MAP), { answer: { ...MODERATOR, gmsAllowed: false } })
+    expect(at).toBe('/matching/position')
+  })
+
+  // The admin interface left open past the end of its session hands over a token that ran out.
+  describe('where the token is not accepted', () => {
+    const REFUSED = new Error('403.13 - Client certificate revoked')
+
+    it('starts the window on the form, with the page named kept for after the sign-in', async () => {
+      const { at, own } = await startAt(handOver(MAP), { answer: REFUSED })
+
+      expect(at).toBe('/login')
+      expect(own.dispatch).toHaveBeenCalledWith('logout')
+      expect(own.dispatch).not.toHaveBeenCalledWith('login', expect.anything())
+      expect(own.commit).toHaveBeenCalledWith('redirectPath', MAP)
+      expect(own.state.token).toBeNull()
+    })
+
+    // The token handed over takes the place of the one that was there before the server is
+    // asked about it. So a window in which the wallet was signed in is signed out by a
+    // hand-over that is refused -- which is why the pin keeps the admin interface's own
+    // sign-in from running out while a moderator works with it (MemberMapPin.vue).
+    it('ends a sign-in that was running in this window', async () => {
+      const { at, own } = await startAt(handOver(MAP), {
+        answer: REFUSED,
+        state: { ...MODERATOR, token: 'the-window-s-own', tokenTime: now() + 600 },
+      })
+
+      expect(at).toBe('/login')
+      expect(own.state.token).toBeNull()
+      expect(own.commit).toHaveBeenCalledWith('redirectPath', MAP)
+    })
+  })
+
+  /**
+   * The note the chat leaves for a wallet that went out of sight with a conversation open
+   * (utils/chatReturn) serves the one start after it, whatever that start becomes -- and a
+   * window opened by a pin is such a start. It is taken, and only a start that ends on the
+   * overview opens the conversation: the hand-over without a page named does, as it did for
+   * "Mein Konto" before; the one with a page named goes to that page.
+   */
+  describe('with a conversation left open in this browser', () => {
+    const noted = () => window.localStorage.getItem('chat-return:me-id')
+    beforeEach(() => {
+      window.localStorage.setItem(
+        'chat-return:me-id',
+        JSON.stringify({
+          gradidoID: 'anna-id',
+          communityUuid: 'other-uuid',
+          at: Date.now(),
+          text: 'Hier ist die Datei:',
+        }),
+      )
+    })
+    afterEach(() => {
+      window.localStorage.clear()
+      takeHeldChatText({ gradidoID: '' })
+    })
+
+    it('goes to the page named, and the note goes with this start', async () => {
+      expect((await startAt(handOver(MAP))).at).toBe(MAP)
+      expect(noted()).toBeNull()
+      expect(takeHeldChatText({ gradidoID: 'anna-id' })).toBe('')
+    })
+
+    it('opens the conversation without a page named, as before', async () => {
+      expect((await startAt(handOver())).at).toBe('/contacts?with=anna-id&community=other-uuid')
+      expect(noted()).toBeNull()
+      expect(takeHeldChatText({ gradidoID: 'anna-id' })).toBe('Hier ist die Datei:')
     })
   })
 })

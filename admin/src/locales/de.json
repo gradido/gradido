@@ -412,6 +412,8 @@
   },
   "goTo": {
     "humhubProfile": "Zum Humhub Profil gehen",
+    "memberMap": "{name} auf der Karte zeigen",
+    "memberMapBlocked": "Der Browser hat das Fenster blockiert. Bitte Pop-ups für diese Seite erlauben.",
     "userSearch": "Zur Nutzersuche gehen"
   },
   "help": {

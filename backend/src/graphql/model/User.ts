@@ -7,6 +7,7 @@ import { Point } from 'typeorm'
 
 import { PublishNameLogic } from '@/data/PublishName.logic'
 import { isLegacyUser } from '@/data/UserLogic'
+import { isFindableOnMap } from '@/graphql/resolver/util/findableOnMap'
 import { Point2Location } from '@/graphql/resolver/util/Location2Point'
 
 import { KlickTipp } from './KlickTipp'
@@ -94,6 +95,8 @@ export class User {
       // guard here asked whether a point EXISTS, which is a different question, and an
       // account that had never set a position came through it as an empty object.
       this.userLocation = Point2Location(dbUser.location as Point)
+      // The yes or no next to it, from the one rule both readers share (isFindableOnMap).
+      this.findableOnMap = isFindableOnMap(dbUser)
       // Unrestricted by default; verifyLogin fills in a scoped moderator's real groups.
       this.visibleCreationGroups = []
       this.seesAllCreationGroups = true
@@ -318,4 +321,16 @@ export class User {
 
   @Field(() => Location, { nullable: true })
   userLocation: Location | null
+
+  // Whether this member stands on the map of the member search: they allow being found and
+  // have a place pinned -- the rule the wallet applies to its own member (`mayFind`), see
+  // isFindableOnMap. A yes or no, and one the map itself gives to every member who stands on
+  // it; the place is `userLocation` above and stays with the member.
+  //
+  // For the moderation and the member themselves, guarded by a field resolver in
+  // UserResolver like the fields around it: the pin behind a member's name in the admin
+  // interface is its one reader. Nullable for that reason alone -- null means "not yours to
+  // know", and it is what a member object that was not built from a row reads as well.
+  @Field(() => Boolean, { nullable: true })
+  findableOnMap: boolean | null
 }
