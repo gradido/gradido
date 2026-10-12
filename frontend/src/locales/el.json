@@ -430,6 +430,10 @@
     "videoWhenHint": "Ώρα στη ζώνη ώρας σου ({zone}).",
     "you": "Εσύ"
   },
+  "chatWindow": {
+    "enlarge": "Μεγέθυνση παραθύρου",
+    "reduce": "Σμίκρυνση παραθύρου"
+  },
   "community": {
     "admins": "Διαχειριστές",
     "choose-another-community": "Επίλεξε άλλη κοινότητα",

@@ -430,6 +430,10 @@
     "videoWhenHint": "Tijd in jouw tijdzone ({zone}).",
     "you": "Jij"
   },
+  "chatWindow": {
+    "enlarge": "Venster vergroten",
+    "reduce": "Venster verkleinen"
+  },
   "community": {
     "admins": "Beheerders",
     "choose-another-community": "Kies een andere gemeenschap",

@@ -35,10 +35,11 @@
     no-footer
     :aria-label="alias"
     body-class="contact-window-body"
+    :dialog-class="large ? 'chat-window-large' : undefined"
     data-test="contact-window"
     @update:model-value="emit('update:modelValue', $event)"
   >
-    <div v-if="contact" class="contact-window-inner">
+    <div v-if="contact" class="contact-window-inner" :class="{ 'is-large': large }">
       <!-- The cross at the very top, in a line of its own, and the name with its marks one
            line below it (Bernd, 24.09.2026): beside the name the cross took the room the name
            and its marks need -- on a phone the name was down to a few letters. The
@@ -68,6 +69,14 @@
         >
           <i-mdi-magnify aria-hidden="true" />
         </button>
+        <!-- The window large, for a longer text, and back (Bernd, 12.10.2026, E-077).
+
+             ⛔ Between the magnifier and the cross, not before the magnifier. The row hangs at
+             its right end, and the magnifier comes with the thread's first word: at the left
+             end it comes into free room; behind the switch it would push the switch one place
+             to the left and stand where the switch stood, under a finger on its way to it (the
+             marks' rule, below). -->
+        <chat-window-size-toggle />
         <button
           type="button"
           class="contact-window-close"
@@ -347,6 +356,7 @@ import ChatForwardDialog from '@/components/Chat/ChatForwardDialog.vue'
 import ChatSearchBar from '@/components/Chat/ChatSearchBar.vue'
 import ChatThread from '@/components/Chat/ChatThread.vue'
 import ChatVideoCall from '@/components/Chat/ChatVideoCall.vue'
+import ChatWindowSizeToggle from '@/components/Chat/ChatWindowSizeToggle.vue'
 import FavoriteHeart from '@/components/FavoriteHeart.vue'
 import {
   CONTACT_META_SEPARATOR,
@@ -357,6 +367,7 @@ import {
 import { setChatConversationMuted } from '@/graphql/chat.graphql'
 import { useAppToast } from '@/composables/useToast'
 import { useChatWindowSearch } from '@/composables/useChatWindowSearch'
+import { useChatWindowSize } from '@/composables/useChatWindowSize'
 import { useContactOnMap } from '@/composables/useContactOnMap'
 import { gradidoAddress } from '@/utils/gradidoAddress'
 import { SEND_TYPES } from '@/utils/sendTypes'
@@ -427,6 +438,12 @@ const threadKey = computed(() => chatMemberKey(props.contact?.user, store.state.
 /** The search in the conversation (E-057, useChatWindowSearch): closed with the window, and anew for another person. */
 const { searchOpen, searchTyped, searchFound, searchToggle, toggleSearch, closeSearch, takeFound } =
   useChatWindowSearch(() => props.modelValue, threadKey)
+
+/**
+ * Whether the window stands large (E-077, useChatWindowSize): the switch beside the magnifier
+ * turns it, for every chat window of the page, and the member's device remembers it.
+ */
+const { large } = useChatWindowSize()
 
 /**
  * The member's address, and only where this wallet is the one that can name the host.
@@ -1134,6 +1151,41 @@ onBeforeUnmount(() => {
   }
 
   .contact-window-thread :deep(.chat-thread-scroll) {
+    max-height: none;
+  }
+}
+
+/* The large window (E-077, ChatWindowSizeToggle), as high as the screen lets it be: the same
+   column as the sheet's, in which only the thread gives way -- but as high as what it holds and
+   no higher, so a short thread leaves a short window. The dialog's own measure (how wide, how
+   high) stands with the switch, for both windows; where the screen is too low for it, the large
+   window is wide only and the thread keeps its cap. */
+@media (width >= 576px) and (height >= 704px) {
+  .contact-window-inner.is-large {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .is-large > .contact-window-top,
+  .is-large > .contact-window-head,
+  .is-large > .contact-window-meta,
+  .is-large > .contact-window-send {
+    flex-shrink: 0;
+  }
+
+  .is-large > .contact-window-thread {
+    flex: 0 1 auto;
+  }
+
+  /* ⛔ A floor under the thread. It is the one part that gives way, and with the search bar
+     open, an answer's strip over the field, five lines typed and a picture chosen, it gave way
+     to nothing: head and bar with no conversation between them. Below the floor the bar does
+     not push the thread any further -- the window's body scrolls instead, as the usual window
+     does. Under the height of the shortest thread there is (one message of one line, some
+     110px), so a short thread is not stretched to it. */
+  .is-large > .contact-window-thread :deep(.chat-thread-scroll) {
+    min-height: 6rem;
     max-height: none;
   }
 }

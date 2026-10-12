@@ -149,6 +149,9 @@ describe('ChatGroupWindow', () => {
           IMdiMagnify: true,
           IMdiChevronUp: true,
           IMdiChevronDown: true,
+          // The switch for the window's size (ChatWindowSizeToggle); its own spec is about it.
+          IMdiArrowExpand: true,
+          IMdiArrowCollapse: true,
           // The dialog reads the server and has a spec of its own; here: what it was opened with.
           ChatForwardDialog: {
             name: 'ChatForwardDialog',
@@ -322,6 +325,66 @@ describe('ChatGroupWindow', () => {
     saved.mockReset()
     toastSuccess.mockClear()
     toastError.mockClear()
+    // What a test left of the window's size (useChatWindowSize) is the next window's otherwise.
+    localStorage.removeItem('chat-window-large:me-id')
+  })
+
+  /**
+   * E-077 (Bernd, 12.10.2026): the switch beside the magnifier makes the window large and small
+   * again, as in the contact window -- one switch for every chat window of the page.
+   */
+  describe('its size', () => {
+    const size = () => find('chat-window-size')
+    const dialogClass = () => wrapper.findComponent({ name: 'BModal' }).attributes('dialog-class')
+    const inner = () => wrapper.find('.chat-group-window-inner')
+
+    // Where it stands in the contact window, which has a reason for the order (its spec).
+    it('has the switch at the top, between the magnifier and the cross', () => {
+      mountWindow()
+      const top = [...wrapper.find('.chat-group-window-top').element.children]
+      expect(top.map((part) => part.getAttribute('data-test'))).toEqual([
+        'chat-group-window-search',
+        'chat-window-size',
+        'chat-group-window-close',
+      ])
+    })
+
+    it('is the usual window until the switch is pressed', () => {
+      mountWindow()
+      expect(dialogClass()).toBeUndefined()
+      expect(inner().classes()).not.toContain('is-large')
+    })
+
+    it('stands large after a press, and as it was after the next', async () => {
+      mountWindow()
+
+      await size().trigger('click')
+      expect(dialogClass()).toBe('chat-window-large')
+      expect(inner().classes()).toContain('is-large')
+
+      await size().trigger('click')
+      expect(dialogClass()).toBeUndefined()
+      expect(inner().classes()).not.toContain('is-large')
+    })
+
+    it('opens large where the member left it large', () => {
+      localStorage.setItem('chat-window-large:me-id', '1')
+      mountWindow()
+      expect(dialogClass()).toBe('chat-window-large')
+      expect(inner().classes()).toContain('is-large')
+    })
+
+    // Pressing it does not close the window, and asks the server nothing.
+    it('leaves the window open, and asks nothing', async () => {
+      mountWindow()
+      await flushPromises()
+      const askedBefore = asked.mock.calls.length
+      await size().trigger('click')
+      await flushPromises()
+      expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+      expect(asked.mock.calls.length).toBe(askedBefore)
+      expect(saved).not.toHaveBeenCalled()
+    })
   })
 
   describe('the head', () => {
@@ -737,8 +800,9 @@ describe('ChatGroupWindow', () => {
    * each against its twin -- the declarations, whatever their order.
    */
   describe('the measure of the contact window', () => {
-    /** The sheet (below `sm`). */
+    /** The sheet (below `sm`), and the large window where the screen is high enough (E-077). */
     const SHEET = '(width <= 575.98px)'
+    const LARGE = '(width >= 576px) and (height >= 704px)'
 
     /**
      * A window's rules, each under where it stands and its selector: a rule that holds at every
@@ -779,18 +843,31 @@ describe('ChatGroupWindow', () => {
     const group = rulesOf('ChatGroupWindow.vue')
     const contact = rulesOf('../Contacts/ContactWindow.vue')
 
-    // The reader reads what it should: a rule of the first kind, one of the sheet's, and the
-    // first rule of the stylesheet under its own selector.
+    // The reader reads what it should: a rule of the first kind, one of each query, and the first
+    // rule of the stylesheet under its own selector.
     it('reads the rules by where they stand', () => {
       expect(contact.get('.contact-window-top')).toContain('justify-content: flex-end')
       expect(contact.get(`${SHEET} .contact-window-top`)).toBe('flex-shrink: 0')
+      expect(contact.get(`${LARGE} .is-large > .contact-window-top`)).toBe('flex-shrink: 0')
       expect([...contact.keys()].filter((key) => key.includes('lang='))).toEqual([])
     })
 
     const TWINS = [
       ['.chat-group-window-top', '.contact-window-top'],
+      // The magnifier, and the bar it opens. The switch between the magnifier and the cross is
+      // drawn as the contact window's magnifier is (ChatWindowSizeToggle's spec): held against
+      // nothing, the group window's own could drift from the switch beside it.
+      ['.chat-group-window-search-toggle', '.contact-window-search-toggle'],
+      ['.chat-group-window-search-toggle:hover', '.contact-window-search-toggle:hover'],
+      [
+        '.chat-group-window-search-toggle:focus-visible',
+        '.contact-window-search-toggle:focus-visible',
+      ],
+      ['.chat-group-window-search-toggle.is-on', '.contact-window-search-toggle.is-on'],
+      ['.chat-group-window-search', '.contact-window-search'],
       ['.chat-group-window-close', '.contact-window-close'],
       ['.chat-group-window-close:hover', '.contact-window-close:hover'],
+      ['.chat-group-window-close:focus-visible', '.contact-window-close:focus-visible'],
       ['.chat-group-window-head', '.contact-window-head'],
       ['.chat-group-window-who', '.contact-window-who'],
       ['.chat-group-window-community', '.contact-window-community'],
@@ -813,11 +890,55 @@ describe('ChatGroupWindow', () => {
         `${SHEET} .chat-group-window-thread :deep(.chat-thread-scroll)`,
         `${SHEET} .contact-window-thread :deep(.chat-thread-scroll)`,
       ],
+      // The large window (E-077): the same column, as high as what it holds.
+      [`${LARGE} .chat-group-window-inner.is-large`, `${LARGE} .contact-window-inner.is-large`],
+      [`${LARGE} .is-large > .chat-group-window-top`, `${LARGE} .is-large > .contact-window-top`],
+      [`${LARGE} .is-large > .chat-group-window-head`, `${LARGE} .is-large > .contact-window-head`],
+      [`${LARGE} .is-large > .chat-group-window-meta`, `${LARGE} .is-large > .contact-window-meta`],
+      [`${LARGE} .is-large > .chat-group-window-row`, `${LARGE} .is-large > .contact-window-send`],
+      [
+        `${LARGE} .is-large > .chat-group-window-thread`,
+        `${LARGE} .is-large > .contact-window-thread`,
+      ],
+      [
+        `${LARGE} .is-large > .chat-group-window-thread :deep(.chat-thread-scroll)`,
+        `${LARGE} .is-large > .contact-window-thread :deep(.chat-thread-scroll)`,
+      ],
     ]
 
     it.each(TWINS)('%s is %s', (ours, theirs) => {
       expect(contact.get(theirs), `${theirs} is gone from the contact window`).toBeTruthy()
       expect(group.get(ours)).toBe(contact.get(theirs))
+    })
+
+    /**
+     * The large window (E-077) is the sheet's column -- only that it is as high as what it holds
+     * and no higher: no height of its own, and free to give way (`min-height: 0`) inside a body
+     * that is a column itself (ChatWindowSizeToggle). Held here by what the rules say: the twins
+     * above hold the two windows against each other, not against what they are for.
+     */
+    it("builds the large window as the sheet's column, without the sheet's height", () => {
+      expect(contact.get(`${SHEET} .contact-window-inner`)).toBe(
+        'display: flex; flex-direction: column; height: 100%',
+      )
+      expect(contact.get(`${LARGE} .contact-window-inner.is-large`)).toBe(
+        'display: flex; flex-direction: column; min-height: 0',
+      )
+      for (const part of ['top', 'head', 'meta', 'send', 'thread']) {
+        expect(contact.get(`${LARGE} .is-large > .contact-window-${part}`), part).toBe(
+          contact.get(`${SHEET} .contact-window-${part}`),
+        )
+      }
+      expect(contact.get(`${SHEET} .contact-window-thread`)).toBe('flex: 0 1 auto')
+      // The thread without its cap, as on the sheet -- and with a floor the sheet does not have:
+      // it is the one part that gives way, and below the floor the window's body scrolls instead
+      // (search bar, an answer's strip, five lines and a picture left the thread nothing).
+      expect(contact.get(`${SHEET} .contact-window-thread :deep(.chat-thread-scroll)`)).toBe(
+        'max-height: none',
+      )
+      expect(
+        contact.get(`${LARGE} .is-large > .contact-window-thread :deep(.chat-thread-scroll)`),
+      ).toBe('max-height: none; min-height: 6rem')
     })
 
     // ⛔ One rule differs on purpose: a group's name wraps where a person's is cut -- it may run to
