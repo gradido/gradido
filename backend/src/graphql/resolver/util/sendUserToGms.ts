@@ -12,6 +12,7 @@ import { GmsUser } from '@/apis/gms/model/GmsUser'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { LogError } from '@/server/LogError'
+import { endUserDeleteUnderWay } from './gmsUserDeletesUnderWay'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.sendUserToGms`)
 
@@ -25,13 +26,6 @@ const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.sen
 const GMS_MAX_SNAPSHOTS_PER_CALL = 400
 const GMS_MAX_ENTRIES_PER_CALL = 2500
 
-/**
- * @param withMatchingEntries send each user's live entries along, stating their
- *   full set: the GMS writes what it receives and removes what is missing. This is
- *   the repair path (ExportUsers) - it also cleans up entries that were paused or
- *   deleted while the GMS was unreachable. The everyday path leaves it out, and
- *   the GMS keeps the entries it has.
- */
 /**
  * Split a batch of snapshots so that no call exceeds what the GMS accepts.
  *
@@ -70,6 +64,15 @@ function chunkByEntryCount(snapshots: GmsMatchingEntrySnapshot[]): GmsMatchingEn
   return chunks
 }
 
+/**
+ * Hands members over to the GMS: creates them there or brings them up to date.
+ *
+ * @param withMatchingEntries send each user's live entries along, stating their
+ *   full set: the GMS writes what it receives and removes what is missing. This is
+ *   the repair path (ExportUsers) - it also cleans up entries that were paused or
+ *   deleted while the GMS was unreachable. The everyday path leaves it out, and
+ *   the GMS keeps the entries it has.
+ */
 export async function sendUsersToGms(
   users: DbUser[],
   homeCom: DbCommunity,
@@ -80,8 +83,19 @@ export async function sendUsersToGms(
   }
 
   try {
-    const userIds = users.map((user) => user.id)
+    // ⛔ A deleted account is handed over by no caller. Deleting it took the member off the
+    // GMS (removeDeletedUserFromGms), and nothing may put them back. Asked here, where
+    // every way of handing a member over comes through, rather than at each of them - a
+    // batch of nobody is done.
+    const members = users.filter((user) => !user.deletedAt)
+    if (members.length === 0) {
+      return true
+    }
+    const userIds = members.map((user) => user.id)
     logger.debug(`Users will be send to GMS ${userIds}`)
+    // A delete of one of them that failed and is still being tried again must not come
+    // after this hand-over (gmsUserDeletesUnderWay.ts).
+    userIds.forEach(endUserDeleteUnderWay)
 
     let snapshots: GmsMatchingEntrySnapshot[] | undefined
     if (withMatchingEntries) {
@@ -96,13 +110,14 @@ export async function sendUsersToGms(
       // `foreign: false, gmsAllowed: true` with `deleted_at is null`; the resolver
       // path sits inside `user.gmsAllowed`; registration inside `dbUser.gmsAllowed`.
       // Measured at the call sites, not inferred - and kept here anyway, because this
-      // is the only place that knows what a snapshot now carries.
+      // is the only place that knows what a snapshot now carries. (A deleted account
+      // has left the batch above by now; the condition stays, it costs nothing.)
       //
       // Left out entirely rather than sent with an empty list: an empty snapshot
       // means "this member has no live entries", which would delete what the GMS
       // holds. For somebody who has withdrawn, that removal belongs to
       // `removeUserFromGms`, which does it properly and retries.
-      snapshots = users
+      snapshots = members
         .filter((user) => user.gmsAllowed && !user.deletedAt && !user.foreign)
         // One snapshot per remaining user, the ones without entries included. An empty
         // list matters: it tells the GMS this member has no live entries, so any it
@@ -114,7 +129,7 @@ export async function sendUsersToGms(
 
     const result = await upsertGmsUsers(
       homeCom.gmsApiKey,
-      users.map((user) => new GmsUser(user)),
+      members.map((user) => new GmsUser(user)),
     )
     if (result) {
       if (snapshots) {

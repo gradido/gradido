@@ -154,7 +154,11 @@ import { describeModeratorCreationGroups } from './util/moderatorCreationGroupSc
 import { deleteUserRole, setUserRole } from './util/modifyUserRole'
 import { sendUsersToGms } from './util/sendUserToGms'
 import { syncHumhub } from './util/syncHumhub'
-import { removeUserFromGms } from './util/syncMatchingEntryToGms'
+import {
+  removeDeletedUserFromGms,
+  removeUserFromGms,
+  returnRestoredAccountToGms,
+} from './util/syncMatchingEntryToGms'
 
 const db = AppDatabase.getInstance()
 const createLogger = (method: string) =>
@@ -1582,6 +1586,10 @@ export class UserResolver {
     }
     // soft-delete user
     await dbSoftRemoveUser(user)
+    // The member leaves the GMS with their account: right after the deletion, ahead of
+    // everything else that could still go wrong here, and without an error of its own
+    // (removeDeletedUserFromGms).
+    await removeDeletedUserFromGms(user)
     await dbInsertEvent({
       type: EventType.ADMIN_USER_DELETE,
       affectedUserId: user.id,
@@ -1617,6 +1625,9 @@ export class UserResolver {
       affectedUserId: user.id,
       actingUserId: getUser(context).id,
     })
+    // And back to the GMS, which the deletion asked to take them off. Without an error of its
+    // own, like its counterpart above (returnRestoredAccountToGms).
+    await returnRestoredAccountToGms(userId)
     return null
   }
 
