@@ -412,6 +412,8 @@
   },
   "goTo": {
     "humhubProfile": "Naar Humhub-profiel gaan",
+    "memberMap": "{name} op de kaart tonen",
+    "memberMapBlocked": "De browser heeft het venster geblokkeerd. Sta pop-ups voor deze pagina toe.",
     "userSearch": "Naar gebruikerszoekopdracht gaan"
   },
   "help": {
@@ -471,7 +473,7 @@
     "user_search": "Gebruikers zoeken"
   },
   "not_open_creations": "Geen openstaande creaties",
-  "notice": "Notice",
+  "notice": "Melding",
   "open": "open",
   "open_creations": "Openstaande creaties",
   "overlay": {

@@ -412,6 +412,8 @@
   },
   "goTo": {
     "humhubProfile": "Go to Humhub profile",
+    "memberMap": "Show {name} on the map",
+    "memberMapBlocked": "The browser blocked the window. Please allow pop-ups for this site.",
     "userSearch": "Go to user search"
   },
   "help": {

@@ -13,6 +13,10 @@
         </BTooltip>
         &nbsp;
         {{ contribution.user.publicName }}
+        <member-map-pin
+          :member="contribution.user"
+          :name="contribution.user.alias || contribution.user.firstName"
+        />
         &nbsp;
         <span>
           <a
@@ -70,6 +74,7 @@ import { adminListContributionMessages } from '../../graphql/adminListContributi
 import { useAppToast } from '@/composables/useToast'
 import { BListGroupItem } from 'bootstrap-vue-next'
 import CONFIG from '@/config'
+import MemberMapPin from '../MemberMapPin.vue'
 
 const props = defineProps({
   contribution: {
