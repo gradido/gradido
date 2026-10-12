@@ -60,14 +60,18 @@
            nobody has to look for it a second time. The count waits for the answer (an
            empty page must not say "0" to a member who has six); the button does not, and
            the line keeps its height either way, so nothing below it moves. -->
+      <!-- Three numbers, each with a word that goes with ITS number: one entry is "1 Eintrag"
+           (the line said "1 Einträge"), and in five of the ten languages the word for the
+           live ones is declined as well ("3 entradas · 1 activa"). One message can follow one
+           number only, so each part is its own, and `count` is the line they stand in. -->
       <div class="d-flex align-items-center justify-content-between mb-3 mx-lg-2 page-text">
         <span class="small text-muted" data-test="matching-entries-count">
           <template v-if="entriesLoaded">
             {{
               $t('matching.entries.count', {
-                total: entries.length,
-                live: liveCount,
-                paused: entries.length - liveCount,
+                total: $t('matching.entries.countTotal', entries.length),
+                live: $t('matching.entries.countLive', liveCount),
+                paused: $t('matching.entries.countPaused', pausedCount),
               })
             }}
           </template>
@@ -184,7 +188,11 @@
            settings page. Coordinates readout hidden to keep the map compact.
            Dragging only remembers — a map is easy to touch by accident, and a
            stray touch must not move where you live. Saving is the button below. -->
-      <div class="bg-white app-box-shadow gradido-border-radius p-2 my-3">
+      <div
+        class="bg-white app-box-shadow gradido-border-radius p-2 my-3"
+        :inert="positionSaving"
+        data-test="position-control"
+      >
         <UserLocationMap
           v-if="userLocationLoaded"
           :user-marker-coords="userLocation"
@@ -197,7 +205,11 @@
 
       <!-- Accuracy — right-aligned below the map (self-explanatory: "exact" /
            "approximate", so no label needed). Deferred like everything here. -->
-      <div class="d-flex justify-content-end mt-3 page-text">
+      <div
+        class="d-flex justify-content-end mt-3 page-text"
+        :inert="positionSaving"
+        data-test="position-control"
+      >
         <UserGMSLocationFormat
           defer
           :exact-toast="$t('matching.position.accuracyExact')"
@@ -208,12 +220,16 @@
 
       <!-- Findable toggle — title on the switch's line, hint below as explanation. Without
            a home it is held, and the hint says what is missing. -->
-      <div class="border-top mt-4 pt-3 page-text">
+      <div
+        class="border-top mt-4 pt-3 page-text"
+        :inert="positionSaving"
+        data-test="position-control"
+      >
         <div class="d-flex align-items-center justify-content-end gap-3">
           <span class="fw-bold">{{ $t('matching.position.findable') }}</span>
           <UserSettingsSwitch
             defer
-            :initial-value="store.state.gmsAllowed"
+            :initial-value="findableAfterSave"
             attr-name="gmsAllowed"
             :label="$t('matching.position.findable')"
             :locked="findableLocked"
@@ -238,7 +254,7 @@
         <BButton
           variant="gradido"
           :disabled="!positionDirty || findableWithoutHome"
-          @click="showSaveConfirm = true"
+          @click="askToSave"
         >
           {{ $t('matching.save') }}
         </BButton>
@@ -357,33 +373,48 @@
         <p class="mb-0">{{ $t('matching.find.gateText') }}</p>
       </template>
       <template #footer>
-        <BButton variant="secondary" @click="showFind = false">
-          {{ $t('matching.find.later') }}
-        </BButton>
-        <BButton v-if="tab === 'position'" variant="gradido" @click="showFind = false">
-          {{ $t('matching.find.understood') }}
-        </BButton>
-        <BButton v-else variant="gradido" @click="goPositionFromFind">
-          {{ $t('matching.find.toPosition') }}
-        </BButton>
+        <!-- One row where both fit. Where they do not -- a phone, or a language with longer
+             words -- the way on stands above "later": see .window-buttons. -->
+        <div class="window-buttons">
+          <BButton variant="secondary" data-test="find-gate-later" @click="showFind = false">
+            {{ $t('matching.find.later') }}
+          </BButton>
+          <!-- The button of the tile on the overview, and the same yes: the home tab with
+               "findable" switched on. On the home tab itself it is still the thing to press --
+               the window closes and the switch below it stands on. -->
+          <BButton variant="gradido" data-test="find-gate-show-me" @click="showMeFromFind">
+            {{ $t('matching.invitation.go') }}
+          </BButton>
+        </div>
       </template>
     </BModal>
 
-    <!-- Saving your own whereabouts is worth one deliberate breath. -->
+    <!-- Saving your own whereabouts is worth one deliberate breath - and the window says what
+         the save does. Coming onto the map and leaving it are not "saving position settings":
+         each has its own title, its own sentence and a button that names the step, like the
+         button of the invitation (Bernd, 11.10.2026). See saveWords. -->
     <BModal v-model="showSaveConfirm" centered>
       <template #title>
-        <span style="font-size: 18px">{{ $t('matching.position.saveTitle') }}</span>
+        <span style="font-size: 18px" data-test="position-save-title">{{ saveWords.title }}</span>
       </template>
       <template #default>
-        <p class="mb-0">{{ $t('matching.position.saveText') }}</p>
+        <p class="mb-0" data-test="position-save-text">{{ saveWords.text }}</p>
       </template>
       <template #footer>
-        <BButton variant="secondary" @click="showSaveConfirm = false">
-          {{ $t('matching.position.cancel') }}
-        </BButton>
-        <BButton variant="gradido" @click="confirmSavePosition">
-          {{ $t('matching.save') }}
-        </BButton>
+        <!-- The button that names the step is as long as the one in the window above, and
+             wraps the same way: see .window-buttons. -->
+        <div class="window-buttons">
+          <BButton
+            variant="secondary"
+            data-test="position-save-cancel"
+            @click="showSaveConfirm = false"
+          >
+            {{ $t('matching.position.cancel') }}
+          </BButton>
+          <BButton variant="gradido" data-test="position-save-confirm" @click="confirmSavePosition">
+            {{ saveWords.confirm }}
+          </BButton>
+        </div>
       </template>
     </BModal>
 
@@ -416,6 +447,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { useAppToast } from '@/composables/useToast'
 import { useEntryDraft } from '@/composables/useEntryDraft'
+import { rememberOwnMatchingEntries } from '@/composables/useOwnMatchingEntries'
 import {
   createMatchingEntry,
   deleteMatchingEntry,
@@ -431,6 +463,8 @@ import {
   mayFind,
 } from '@/utils/matchingPosition'
 import { mapPrefPrefix } from '@/utils/matchingPrefs'
+import { asksForNewEntry } from '@/utils/newMatchingEntry'
+import { SHOW_ME_ON_THE_MAP, saidShowMe } from '@/utils/showMeOnTheMap'
 import UserGMSLocationFormat from '@/components/UserSettings/UserGMSLocationFormat'
 import UserLocationMap from '@/components/UserSettings/UserLocationMap'
 import UserSettingsSwitch from '@/components/UserSettings/UserSettingsSwitch'
@@ -490,10 +524,35 @@ onEntries(({ data }) => {
     date: formatDate(e.createdAt),
   }))
   entriesLoaded.value = true
+  // The overview decides from this what its matching tile is (useOwnMatchingEntries). Told
+  // with every list, because this page is where entries are made and deleted: the member
+  // who goes back to the overview from here finds the tile right at once, without a wait.
+  rememberOwnMatchingEntries(store.state.gradidoID, entries.value.length)
 })
 onEntriesError((error) => toastError(error.message))
 
+/**
+ * One entry more, or one fewer, said to the device the moment the server has confirmed it --
+ * not only with the list that is fetched afterwards. Saving takes the server a round trip to
+ * the GMS, and a member who leaves this page before the list is back (the browser's back
+ * button works over the open form) would find the overview inviting them to a "first" entry
+ * they have just made; with a deletion the tile would stay away. The list, when it comes,
+ * says the real number.
+ *
+ * `member` is who pressed the button, held before the request: a sign-out empties the store
+ * while the answer is on its way. And only where the list is known -- one more than unknown
+ * is unknown.
+ */
+const tellEntriesChanged = (member, by) => {
+  if (!entriesLoaded.value) return
+  rememberOwnMatchingEntries(member, entries.value.length + by)
+}
+
 const liveCount = computed(() => entries.value.filter((e) => e.active).length)
+// Each of the three numbers in the line above the list is handed to its own message, the
+// paused ones too: no language declines that word today, and one that does one day has
+// only a second form to write.
+const pausedCount = computed(() => entries.value.length - liveCount.value)
 
 const { mutate: createEntry } = useMutation(createMatchingEntry)
 const { mutate: updateEntry } = useMutation(updateMatchingEntry)
@@ -538,6 +597,21 @@ function openNew({ summary = '', details = '', matchingType = null } = {}) {
 onMounted(() => {
   const draft = entryDraft.take()
   if (draft) openNew(draft)
+  // Or the overview's matching tile sent the member to write an entry (utils/newMatchingEntry).
+  // The wish is read once and taken out of the address at once, as the contacts page takes
+  // out the conversation it is asked for: a reload, or the way back to this tab, must not
+  // open the form again over what the member closed. A kept search comes first -- it brings
+  // words along, and there is one form.
+  //
+  // Unlike that conversation the form does not line up with the windows of the first logins
+  // (useFirstLoginWindow). From the tile nobody gets here with one of them due: it would be
+  // lying over the overview. Only this address opened afresh -- in a new tab, or after a
+  // sign-in the tap ran into -- by a member whose address is still unconfirmed meets the
+  // reminder and the form together.
+  if (!asksForNewEntry(route)) return
+  const { new: _new, ...rest } = route.query
+  router.replace({ query: rest })
+  if (!draft) openNew()
 })
 function openEdit(e) {
   editUuid.value = e.uuid
@@ -555,11 +629,13 @@ async function save() {
     details: newDetails.value.trim() || null,
     remote: newRemote.value,
   }
+  const member = store.state.gradidoID
   try {
     if (editUuid.value) {
       await updateEntry({ uuid: editUuid.value, input })
     } else {
       await createEntry({ input })
+      tellEntriesChanged(member, 1)
     }
     showNew.value = false
     await refetchEntries()
@@ -586,8 +662,10 @@ async function confirmDelete() {
   const e = delEntry.value
   if (!e) return
   showDelete.value = false
+  const member = store.state.gradidoID
   try {
     await removeEntry({ uuid: e.uuid })
+    tellEntriesChanged(member, -1)
     await refetchEntries()
   } catch (error) {
     toastError(error.message)
@@ -745,10 +823,81 @@ function clearDrafts() {
   draftFindable.value = null
 }
 
+// A member who pressed "show me on the map" - on the overview's tile or in the window
+// behind the find button - arrives having said yes, and the switch says so: it stands on,
+// as a draft like any other on this tab. Nothing is saved by arriving. Without a home the
+// save button stays off and the line under the switch says what is missing; with one, the
+// member still presses save and confirms.
+//
+// Through onPickFindable, like a tap on the switch itself, so a member who is findable
+// already arrives on a clean tab instead of an armed one.
+const showMe = computed(() => saidShowMe(route))
+watch(
+  showMe,
+  (yes) => {
+    if (yes) onPickFindable(true)
+  },
+  { immediate: true },
+)
+
 const showSaveConfirm = ref(false)
+
+// What the save about to be confirmed does to the member's place on the map: 'join' puts
+// them on it, 'leave' takes them off, null leaves it where it is. The draft says it - it
+// only stands where the switch differs from what is saved.
+//
+// ⚠️ Fixed when the window opens, not read while it stands. The answer to the save clears
+// the drafts, and it arrives while the window is still fading out: read live, the window
+// would change its title back to "save position" on its way off the screen.
+const saveTurn = ref(null)
+function askToSave() {
+  saveTurn.value =
+    draftFindable.value === true ? 'join' : draftFindable.value === false ? 'leave' : null
+  showSaveConfirm.value = true
+}
+
+// The window's words. A member who takes themselves off the map is not "saving position
+// settings", and neither is one who comes onto it; the window used to say so to both, and
+// the message afterwards said "location saved" to somebody who had just left (Bernd,
+// 11.10.2026). The button for coming on is the invitation's own.
+const saveWords = computed(() => {
+  if (saveTurn.value === 'leave') {
+    return {
+      title: t('matching.position.leaveTitle'),
+      text: t('matching.position.leaveText'),
+      confirm: t('matching.position.leaveGo'),
+    }
+  }
+  if (saveTurn.value === 'join') {
+    return {
+      title: t('matching.position.joinTitle'),
+      text: t('matching.position.joinText'),
+      confirm: t('matching.invitation.go'),
+    }
+  }
+  return {
+    title: t('matching.position.saveTitle'),
+    text: t('matching.position.saveText'),
+    confirm: t('matching.save'),
+  }
+})
+
+// Held while a save is under way. What save sends is what the three controls showed when it
+// was pressed, and its answer replaces the drafts - so a pick made in between was measured
+// against the old state and then thrown away with them. A member who switched "findable"
+// back off in that moment was saved as findable all the same and, having arrived with the
+// yes, carried onto the map (coderabbit on #4124). Nothing can be picked until the answer
+// is in.
+//
+// `inert` on the map, the accuracy and the switch, the way the map page holds its map: no
+// dimming for the fraction of a second this usually takes. Not on the save button - the
+// confirm window hands the focus back to it.
+const positionSaving = ref(false)
 
 async function confirmSavePosition() {
   showSaveConfirm.value = false
+  // Confirmed a second time before the first answer: it is on its way already.
+  if (positionSaving.value) return
   // One mutation for whatever changed: three separate saves could half-succeed
   // and leave the user guessing which half.
   const variables = {}
@@ -762,6 +911,7 @@ async function confirmSavePosition() {
   if (draftFindable.value !== null) variables.gmsAllowed = draftFindable.value
   if (!Object.keys(variables).length) return
 
+  positionSaving.value = true
   try {
     await saveLocation(variables)
     if (variables.gmsLocation) {
@@ -773,7 +923,20 @@ async function confirmSavePosition() {
       store.commit('gmsPublishLocation', variables.gmsPublishLocation)
     if (variables.gmsAllowed !== undefined) store.commit('gmsAllowed', variables.gmsAllowed)
     clearDrafts()
-    toastSuccess(t('settings.GMS.location.updateSuccess'))
+    // What happened, in the sentence the switch itself would have said had it saved on the
+    // spot - by what was SENT, since the drafts are gone by now.
+    toastSuccess(
+      variables.gmsAllowed === true
+        ? t('matching.position.findableOn')
+        : variables.gmsAllowed === false
+          ? t('matching.position.findableOff')
+          : t('settings.GMS.location.updateSuccess'),
+    )
+    // Whoever came here to be shown on the map is on it now, and the map is what they
+    // came for. Read after the answer, not before the request: a member who has moved on
+    // to another tab in the meantime is no longer asking for it, and one who switched
+    // "findable" back off before saving has only saved a home.
+    if (showMe.value && mayFind(store.state)) router.push('/matching/karte')
   } catch (error) {
     // This page does not send findable without a home: the switch holds and save stays off.
     // The rule is the server's all the same, and should the two ever read a home
@@ -783,6 +946,8 @@ async function confirmSavePosition() {
         ? t('matching.position.needsHome')
         : error.message,
     )
+  } finally {
+    positionSaving.value = false
   }
 }
 
@@ -793,7 +958,12 @@ async function confirmSavePosition() {
 // A guard that fires next to the point is worse than none — it teaches people to
 // click dialogs away, and the save confirmation is the one that must land.
 watch(tab, (next) => {
-  if (next !== 'position') clearDrafts()
+  if (next === 'position') return
+  clearDrafts()
+  // And the question about saving them, should it be standing (the browser's back button
+  // gets here with the window open): its button names a step, and with the drafts gone it
+  // would do nothing.
+  showSaveConfirm.value = false
 })
 
 // --- Find-map access dialog ---
@@ -830,9 +1000,13 @@ function openFind() {
   }
   showFind.value = true
 }
-function goPositionFromFind() {
+function showMeFromFind() {
   showFind.value = false
-  goTab('position')
+  // Here with the yes in the address already, the address has nowhere to go, so the arrival
+  // above does not run a second time - and the member may have switched it back off since.
+  // The button says it shows them on the map; it does what the arrival would have done.
+  if (showMe.value) onPickFindable(true)
+  else router.push(SHOW_ME_ON_THE_MAP)
 }
 </script>
 
@@ -843,6 +1017,44 @@ function goPositionFromFind() {
    Bootstrap utilities). */
 .matching-page {
   color: #383838;
+}
+
+/* The two buttons of a window whose second one names a step: behind the find button, and
+   where coming onto the map or leaving it is confirmed. "Show me on the map" is longer than
+   the "to my home" it replaced, and on a phone the two no longer fit on one row (measured at
+   390px: buttons of 92 and 317px in a window of 374). A footer that wraps the ordinary way then puts "later" on a row
+   of its own ABOVE the way on. wrap-reverse stacks the rows from the bottom instead, so the
+   second button -- the way on -- stands on top, and where both fit nothing changes.
+
+   An element of this page and not a class on the footer: the window teleports, and the
+   footer is the library's own element, which a scoped rule does not reach. */
+.window-buttons {
+  display: flex;
+  flex: 1 1 0%;
+  flex-wrap: wrap-reverse;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+/* The house button stands 50px in from each side. Beside "cancel" in a window 500px wide
+   that is 17px more than a row holds for the longest pair, German "Abbrechen" and "Mich von
+   der Karte nehmen" (126 + 8 + 335 in 452, measured) - so in the language most members read,
+   the two stood in two rows on a desk as well. With 2rem at each side they share the row
+   from 500px of screen upwards in all ten languages; a phone stacks them. */
+.window-buttons :deep(.btn-gradido) {
+  padding-right: 2rem !important;
+  padding-left: 2rem !important;
+}
+
+/* On a row of its own the long label still breaks in two on a narrow phone. Below 400px the
+   button gets the 1rem the tile on the overview gives the same button
+   (MatchingTile.vue). */
+@media (width < 400px) {
+  .window-buttons :deep(.btn-gradido) {
+    padding-right: 1rem !important;
+    padding-left: 1rem !important;
+  }
 }
 
 /* Find-map jump-off button (header, top-right of the content column) */

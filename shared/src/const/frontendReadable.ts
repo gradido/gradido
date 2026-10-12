@@ -26,3 +26,23 @@
 // useMemberAvatars.js) and has no dependency on `shared`; useMemberAvatars.drift.spec.js
 // holds its copy against this one.
 export const MEMBER_AVATARS_MAX_REFS = 100
+
+// The emoji a member may react to a chat message with (migration 0158): the wallet's own choice
+// of forty-eight, row by row as the wallet shows them (frontend/src/utils/emojiChoice.js,
+// EMOJI_ROWS). The backend takes no other reaction (setChatMessageReaction): what one wallet
+// offers, every wallet draws, and nothing else is filed under a message for everybody to see.
+//
+// A sign of two code points carries the selector that asks for its coloured drawing (the heart,
+// the sun, the two fingers); the wallet sends it as it stands here, and it is compared whole.
+//
+// The wallet has no dependency on `shared`; emojiChoice.drift.spec.js holds its rows against
+// these. Whoever changes an emoji changes it in both -- and leaves the reactions filed with the
+// old one as they are: they are still read and shown.
+export const CHAT_REACTION_EMOJI_ROWS: readonly (readonly string[])[] = [
+  ['🙂', '😊', '😄', '😂', '🤣', '😉', '😍', '🥰'],
+  ['😘', '🤗', '😎', '🤔', '😮', '😅', '😢', '😴'],
+  ['👍', '👏', '🙏', '🙌', '👋', '🤝', '💪', '✌️'],
+  ['❤️', '🧡', '💛', '💚', '💙', '💜', '💖', '✨'],
+  ['🌱', '🌻', '🌈', '☀️', '🍀', '🎉', '🎁', '🎂'],
+  ['☕', '🍰', '🏡', '🚲', '📅', '✅', '❓', '❗'],
+]

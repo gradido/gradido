@@ -16,6 +16,8 @@ export class Transaction {
     thankYouCardLabel: string | null = null,
     greeting: ThankYouGreeting | null = null,
     picture: TransactionPicture | null = null,
+    reaction: string | null = null,
+    canReact = false,
   ) {
     this.id = transaction.id
     this.user = user
@@ -38,6 +40,8 @@ export class Transaction {
     this.thankYouCardLabel = thankYouCardLabel
     this.greeting = greeting
     this.picture = picture
+    this.reaction = reaction
+    this.canReact = canReact
   }
 
   @Field(() => Int)
@@ -126,4 +130,24 @@ export class Transaction {
    */
   @Field(() => TransactionPicture, { nullable: true })
   picture: TransactionPicture | null
+
+  /**
+   * The emoji the RECIPIENT of this transfer answered it with (migration 0159), or null: one of
+   * the wallet's forty-eight. On both rows, the recipient's RECEIVE row and the sender's SEND
+   * row, and on nobody else's list: a booking list is always the member's own.
+   *
+   * Null for every booking that is no transfer between two members of this server. Which
+   * booking gets which reaction is decided where the list is built (TransactionReaction.logic):
+   * `linkedTransactionId` above alone is no way to it.
+   */
+  @Field(() => String, { nullable: true })
+  reaction: string | null
+
+  /**
+   * Whether the member whose list this is may react to the booking (setTransactionReaction):
+   * true on their own RECEIVE row of a transfer from a member of this server, false on
+   * everything else -- only the recipient reacts. Said here so that no screen has to decide it.
+   */
+  @Field(() => Boolean)
+  canReact: boolean
 }

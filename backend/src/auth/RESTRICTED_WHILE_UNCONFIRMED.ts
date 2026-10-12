@@ -25,6 +25,10 @@ export const RESTRICTED_WHILE_UNCONFIRMED = [
   // Taking somebody into a chat group mails them (P5). Leaving one stays open (READ_OWN_CHAT),
   // as muting does.
   RIGHTS.MANAGE_CHAT_GROUPS,
+  // A reaction to a transfer is seen by its sender, as a reaction to a chat message is by the
+  // conversation (that one is behind SEND_CHAT_MESSAGE). Taking one back is behind it too: the
+  // mutation is one.
+  RIGHTS.REACT_TO_TRANSACTION,
   RIGHTS.CREATE_TRANSACTION_LINK,
   RIGHTS.REDEEM_TRANSACTION_LINK,
   RIGHTS.DISBURSE_TRANSACTION_LINK,

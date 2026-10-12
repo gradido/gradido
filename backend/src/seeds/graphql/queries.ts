@@ -31,6 +31,12 @@ export const gmsDashboardUrl = gql`
   }
 `
 
+export const mapMemberCount = gql`
+  query {
+    mapMemberCount
+  }
+`
+
 export const userLocationQuery = gql`
   query {
     userLocation {
@@ -999,6 +1005,57 @@ export const newChatMessagesAndEditsSince = gql`
         editedAt
       }
       editedCursor
+    }
+  }
+`
+
+/** The beat with the messages whose reactions changed beside the new ones (migration 0158). */
+export const newChatMessagesAndReactionsSince = gql`
+  query ($afterId: Int, $limit: Int, $reactedCursor: String) {
+    newChatMessagesSince(afterId: $afterId, limit: $limit, reactedCursor: $reactedCursor) {
+      latestId
+      unreadConversations
+      messages {
+        id
+        body
+        reactedAt
+        reactions {
+          emoji
+          count
+          mine
+        }
+      }
+      reacted {
+        id
+        messageUuid
+        mine
+        body
+        reactedAt
+        reactions {
+          emoji
+          count
+          mine
+        }
+      }
+      reactedCursor
+    }
+  }
+`
+
+/** A thread of two with the reactions under its messages (migration 0158). */
+export const chatMessagesWithMemberAndReactions = gql`
+  query ($ref: MemberAvatarRefInput!) {
+    chatMessagesWithMember(ref: $ref) {
+      messages {
+        messageUuid
+        body
+        reactedAt
+        reactions {
+          emoji
+          count
+          mine
+        }
+      }
     }
   }
 `

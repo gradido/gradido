@@ -52,14 +52,31 @@ const asRgb = (hex) => {
   return `rgb(${r}, ${g}, ${b})`
 }
 
-const mountQuery = (selection = { kind: 'all' }) =>
-  mount(MatchQuery, {
+/** Every bar a test mounted with `mountQuery`, to be taken down after it. */
+const standing = []
+
+const mountQuery = (selection = { kind: 'all' }) => {
+  const wrapper = mount(MatchQuery, {
     props: { entries, selection },
     global: {
       plugins: [i18n],
       stubs: ['i-bi-search', 'i-bi-chevron-down', 'i-bi-check', 'i-bi-pencil', 'i-bi-x-lg'],
     },
   })
+  standing.push(wrapper)
+  return wrapper
+}
+
+/**
+ * ⛔ Every bar is taken down after its test. Typing starts the pause before the offers are asked
+ * for (150 ms, a real timer in most of these tests), and the bar lets go of that timer only when
+ * it is unmounted. Left standing, the bars' timers ran out after the file was through -- in a CI
+ * run of 11.10.2026 after the test environment had been torn down, where the render they caused
+ * found no `window`: two unhandled errors, and a red run whose 9,093 tests had all passed.
+ */
+afterEach(() => {
+  while (standing.length > 0) standing.pop().unmount()
+})
 
 const emitted = (wrapper) => wrapper.emitted('update:selection') ?? []
 const last = (wrapper) => emitted(wrapper).at(-1)?.[0]

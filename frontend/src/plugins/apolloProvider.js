@@ -6,6 +6,7 @@ import { createHttpLink, ApolloLink, ApolloClient, InMemoryCache } from '@apollo
 import { onError } from '@apollo/client/link/error'
 import { provideApolloClient } from '@vue/apollo-composable'
 import { registerApolloCacheClear } from '@/plugins/apolloCache'
+import { APOLLO_TYPE_POLICIES } from '@/plugins/apolloCachePolicies'
 import { isSchemaMismatch, markAppOutdated } from '@/composables/useAppOutdated'
 
 const httpLink = createHttpLink({ uri: CONFIG.GRAPHQL_URI })
@@ -65,6 +66,7 @@ export const apolloClient = new ApolloClient({
     possibleTypes: {
       QueryLinkResult: ['TransactionLink', 'ContributionLink'],
     },
+    typePolicies: APOLLO_TYPE_POLICIES,
   }),
 })
 

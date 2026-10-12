@@ -377,6 +377,30 @@ export const transactionsTable = mysqlTable(
 export type TransactionSelect = typeof transactionsTable.$inferSelect
 export type TransactionInsert = typeof transactionsTable.$inferInsert
 
+// The reaction to a transfer (migration 0159): one row for the emoji the RECIPIENT of a transfer
+// answered it with -- one a transfer, which the unique key holds. Taken back, the row is deleted.
+//
+// `transactionId` is the recipient's RECEIVE row; the sender's SEND row is found from it, since
+// the two rows of a transfer of this community name each other (`linkedTransactionId`).
+//
+// ⛔ `emoji` is compared byte by byte in the database (utf8mb4_bin, set by the migration): the
+// tables' own collation takes most emoji for one and the same character.
+export const transactionReactionsTable = mysqlTable(
+  'transaction_reactions',
+  {
+    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
+    transactionId: int('transaction_id', { unsigned: true }).notNull(),
+    emoji: varchar({ length: 16 }).notNull(),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+  },
+  (table) => [uniqueIndex('transaction_reactions_transaction_unique').on(table.transactionId)],
+)
+
+export type TransactionReactionSelect = typeof transactionReactionsTable.$inferSelect
+export type TransactionReactionInsert = typeof transactionReactionsTable.$inferInsert
+
 export const transactionLinksTable = mysqlTable(
   'transaction_links',
   {
@@ -922,17 +946,55 @@ export const chatMessagesTable = mysqlTable(
     // When the text was changed last (E-060, migration 0151) -- the database's clock, utc, as
     // dbUpdateChatMessageBody writes it; NULL for a message nobody changed.
     editedAt: datetime('edited_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+    // When the reactions to it were changed last (migration 0158) -- set, replaced or taken
+    // back --, by the database's clock in utc, as dbUpdateChatMessageReactedAt writes it; NULL for a
+    // message nobody reacted to. The reactions themselves are in `chat_message_reactions`.
+    reactedAt: datetime('reacted_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
     deletedAt: datetime('deleted_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
   },
   (table) => [
     uniqueIndex('chat_messages_message_uuid_unique').on(table.messageUuid),
     index('chat_messages_conversation_id_idx').on(table.conversationId, table.id),
     index('chat_messages_edited_at_idx').on(table.editedAt),
+    index('chat_messages_reacted_at_idx').on(table.reactedAt),
   ],
 )
 
 export type ChatMessageSelect = typeof chatMessagesTable.$inferSelect
 export type ChatMessageInsert = typeof chatMessagesTable.$inferInsert
+
+// The reactions to chat messages (migration 0158): one row for a member's reaction to a message
+// -- one a member and message, which the unique key holds. Taken back, the row is deleted; when
+// anything about a message's reactions changed, its `reacted_at` says so.
+//
+// The member by their pair, as `chat_conversation_members` names a member. `id` is the order the
+// members reacted in; a reaction changed for another keeps its place.
+//
+// ⛔ `emoji` is compared byte by byte in the database (utf8mb4_bin, set by the migration): the
+// tables' own collation takes most emoji for one and the same character.
+export const chatMessageReactionsTable = mysqlTable(
+  'chat_message_reactions',
+  {
+    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
+    messageId: int('message_id', { unsigned: true }).notNull(),
+    communityUuid: char('community_uuid', { length: 36 }).notNull(),
+    gradidoId: char('gradido_id', { length: 36 }).notNull(),
+    emoji: varchar({ length: 16 }).notNull(),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex('chat_message_reactions_message_member_unique').on(
+      table.messageId,
+      table.communityUuid,
+      table.gradidoId,
+    ),
+  ],
+)
+
+export type ChatMessageReactionSelect = typeof chatMessageReactionsTable.$inferSelect
+export type ChatMessageReactionInsert = typeof chatMessageReactionsTable.$inferInsert
 
 // The pictures in chat messages (P7, migration 0146), stored in the form of the avatar's
 // (`user_avatars`): the JPEG's bytes in a mediumblob, its mime type, a time stamp -- so that

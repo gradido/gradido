@@ -98,6 +98,12 @@ fragment chatGroupMessageFields on ChatMessage {
       alias
     }
   }
+  reactedAt
+  reactions {
+    emoji
+    count
+    mine
+  }
 }
 
 # A group's thread, one page at a time, oldest first within the page (E-018), as the thread with

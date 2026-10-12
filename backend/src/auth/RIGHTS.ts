@@ -70,6 +70,10 @@ export enum RIGHTS {
   // (TransactionResolver.transactionPicture). Adding a picture is not behind it: that is
   // SEND_COINS's.
   TRANSACTION_PICTURE = 'TRANSACTION_PICTURE',
+  // Answering a transfer with an emoji (setTransactionReaction): the recipient's, by the id of
+  // their own RECEIVE row -- and that row says so. Acts outward, as a chat message does: the
+  // sender sees it. Reading a reaction is not behind it: it comes with the booking list.
+  REACT_TO_TRANSACTION = 'REACT_TO_TRANSACTION',
   // Moderator
   SEARCH_USERS = 'SEARCH_USERS',
   ADMIN_CREATE_CONTRIBUTION = 'ADMIN_CREATE_CONTRIBUTION',
