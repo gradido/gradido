@@ -15,6 +15,7 @@ import { forgetViewport } from '@/composables/useViewport'
 import { transactionsUserCountQuery } from '@/graphql/transactions.graphql'
 import { LAST_TRANSACTIONS_PAGE_SIZE } from '@/constants'
 import FirstCreation from '@/components/FirstCreation.vue'
+import CONFIG from '@/config'
 
 // `fileURLToPath`, not `new URL(...)`: jsdom brings its own `URL`, which node rejects.
 const here = dirname(fileURLToPath(import.meta.url))
@@ -1596,6 +1597,67 @@ describe('DashboardLayout', () => {
           'http://localhost/admin/authenticate?token=valid-token',
         )
       })
+    })
+  })
+
+  /**
+   * The menu entry "Admin" (the sidebar emits `admin`). It leaves for the admin interface in
+   * this window and signs the wallet out -- except in the window the admin interface opened
+   * for a look at the map (the pin behind a member's name there). In that window it is the way
+   * BACK: the admin interface is still there behind it, signed in and where the moderator left
+   * it, so the window closes. Going there in this window made it a second admin interface,
+   * and one that carried the map's name -- the next pin pressed in it replaced it by the
+   * wallet (Bernd, 13.10.2026). What decides is utils/adminMapWindow, with its own tests.
+   */
+  describe('"Admin" in the menu', () => {
+    const adminAuthUrl = CONFIG.ADMIN_AUTH_URL
+    let closeSpy
+
+    const adminBehind = (pathname = '/admin/user') => ({
+      closed: false,
+      location: { origin: window.location.origin, pathname },
+    })
+    const pressAdmin = () => wrapper.findComponent({ name: 'Sidebar' }).vm.$emit('admin')
+
+    beforeEach(async () => {
+      // A fresh layout starts on the skeleton, and the skeleton has no menu.
+      vi.advanceTimersByTime(1500)
+      await nextTick()
+      closeSpy = vi.spyOn(window, 'close').mockImplementation(() => undefined)
+      // An address this test window can go to: jsdom moves within a page and nowhere else.
+      CONFIG.ADMIN_AUTH_URL = `${window.location.origin}/admin/authenticate?token=`
+    })
+
+    afterEach(() => {
+      closeSpy.mockRestore()
+      CONFIG.ADMIN_AUTH_URL = adminAuthUrl
+      window.name = ''
+      window.opener = null
+      window.location.hash = ''
+    })
+
+    it('closes the window the admin interface opened for the map, and signs nobody out', async () => {
+      window.name = 'gradido-wallet-map'
+      window.opener = adminBehind()
+
+      await pressAdmin()
+
+      expect(closeSpy).toHaveBeenCalledTimes(1)
+      expect(logoutSpy).not.toHaveBeenCalled()
+    })
+
+    // Where the admin interface is NOT there behind the window any more -- closed, or on the
+    // wallet's sign-in page after its sign-in ran out -- is decided and tested in
+    // utils/adminMapWindow. Here only: the entry asks, with this window and the address of the
+    // admin interface.
+    it('leaves for the admin interface as ever in any other window', async () => {
+      CONFIG.ADMIN_AUTH_URL = '#admin-authenticate?token='
+
+      await pressAdmin()
+
+      expect(closeSpy).not.toHaveBeenCalled()
+      expect(window.location.hash).toBe('#admin-authenticate?token=valid-token')
+      expect(logoutSpy).toHaveBeenCalledTimes(1)
     })
   })
 })

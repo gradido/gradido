@@ -20,6 +20,7 @@ import { useApolloClient } from '@vue/apollo-composable'
 import CONFIG from '@/config'
 import { useAppToast } from '@/composables/useToast'
 import { verifyLogin } from '@/graphql/verifyLogin'
+import { MAP_WINDOW_NAME, dropMapWindowName } from '@/utils/mapWindow'
 
 /**
  * A pin behind a member's name: one press shows the member on the wallet's map, in a browser
@@ -40,6 +41,11 @@ import { verifyLogin } from '@/graphql/verifyLogin'
  * One window, named, for every pin: the next member opens in the same window instead of a
  * new one each time, and the browser is asked to bring it to the front, where it may have
  * slipped behind the admin interface.
+ *
+ * ⛔ Opened WITH its opener (no `noopener`): the wallet in that window tells by it that the
+ * admin interface is still there behind it, and its menu entry "Admin" then closes the
+ * window instead of turning it into a second admin interface
+ * (frontend/src/utils/adminMapWindow.js).
  */
 const props = defineProps({
   // The member as the row carries them: the pair that names them (gradidoID, communityUuid)
@@ -49,7 +55,7 @@ const props = defineProps({
   name: { type: String, default: '' },
 })
 
-const WINDOW_NAME = 'gradido-wallet-map'
+const WINDOW_NAME = MAP_WINDOW_NAME
 // Just below the width at which the wallet sets its menu beside the page (1025 px): the map
 // takes the whole window.
 const WINDOW_FEATURES = 'popup,width=1000,height=760'
@@ -96,6 +102,8 @@ const showOnMap = (blockedText) => {
     encodeURIComponent(store.state.token) +
     '&redirect=' +
     encodeURIComponent(map)
+  // ⛔ Never this window itself: see dropMapWindowName.
+  dropMapWindowName()
   const opened = window.open(address, WINDOW_NAME, WINDOW_FEATURES)
   if (opened) {
     opened.focus()
