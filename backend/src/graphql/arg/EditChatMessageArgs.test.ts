@@ -31,14 +31,14 @@ const edit = (messageUuid: unknown, body: unknown): EditChatMessageArgs =>
   Object.assign(new EditChatMessageArgs(), { messageUuid, body })
 
 describe('EditChatMessageArgs', () => {
-  it('takes a text up to 2000 characters, and an empty one', async () => {
+  it('takes a text up to the length of a message, and an empty one', async () => {
     expect(await checksFailing(edit(MESSAGE, 'x'))).toEqual([])
     expect(await checksFailing(edit(MESSAGE, 'x'.repeat(MESSAGE_MAX_CHARS)))).toEqual([])
     // Whether an empty text is one: the resolver knows whether the message carries a picture.
     expect(await checksFailing(edit(MESSAGE, ''))).toEqual([])
   })
 
-  it('refuses more than 2000 characters, and what is no text', async () => {
+  it('refuses a text longer than a message may be, and what is no text', async () => {
     expect(await checksFailing(edit(MESSAGE, 'x'.repeat(MESSAGE_MAX_CHARS + 1)))).toEqual([
       'maxLength',
     ])

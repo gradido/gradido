@@ -41,8 +41,8 @@ export interface ChatMessageEditNotCarried {
  * two members go on reading the same words.
  *
  * Nothing is written here, on either side of a failure. The text is not measured against the
- * request limit: a full text fits beside a picture (FEDERATION_REQUEST_MAX_BYTES), so alone it
- * always fits.
+ * request limit (FEDERATION_REQUEST_MAX_BYTES): a change carries no picture, and without one
+ * every text fits, the heaviest included (commandRequestBytes.test.ts in core holds that).
  *
  * Never throws for what the other server does; the keys are checked, not asserted.
  */

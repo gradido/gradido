@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import ChatComposeBar from './ChatComposeBar.vue'
 import EmojiPicker from '@/components/Inputs/EmojiPicker.vue'
 import { isComputer } from '@/utils/isComputer'
+import { MESSAGE_MAX_CHARS } from '@/validationSchemas'
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
@@ -232,7 +233,7 @@ describe('ChatComposeBar, the smiley', () => {
 
     it('is counted as the field counts it: two of the characters that are left', async () => {
       mountBar()
-      await typed('a'.repeat(1900))
+      await typed('a'.repeat(MESSAGE_MAX_CHARS - 100))
       const left = () => wrapper.find('[data-test="chat-compose-remaining"]').text()
       expect(left()).toBe('chatThread.remaining {"n":100}')
       await click(smiley())
@@ -244,12 +245,12 @@ describe('ChatComposeBar, the smiley', () => {
 
     it('is not put in by halves where the field is all but full', async () => {
       mountBar()
-      await typed('a'.repeat(1999))
+      await typed('a'.repeat(MESSAGE_MAX_CHARS - 1))
       await click(smiley())
 
       await click(emoji('🙏'))
 
-      expect(field().element.value).toHaveLength(1999)
+      expect(field().element.value).toHaveLength(MESSAGE_MAX_CHARS - 1)
     })
 
     it('stays in the field when a message could not be sent', async () => {
