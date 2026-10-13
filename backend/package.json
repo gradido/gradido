@@ -37,7 +37,7 @@
   "devDependencies": {
     "@anatine/esbuild-decorators": "^0.2.19",
     "@anthropic-ai/sdk": "^0.110.0",
-    "@apollo/server": "^5.5.1",
+    "@apollo/server": "4.10.4",
     "@as-integrations/express4": "^1.1.2",
     "@biomejs/biome": "2.5.15",
     "@swc/cli": "^0.7.3",

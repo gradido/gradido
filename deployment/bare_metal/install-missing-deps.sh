@@ -15,7 +15,7 @@ install_nvm() {
     nvm install 
     nvm use 
     nvm alias default 
-    npm i -g pm2 turbo
+    npm i -g pm2 turbo@^2
     pm2 startup
 }
 nvm use || install_nvm
@@ -53,7 +53,7 @@ fi
 if ! command -v turbo > /dev/null
 then
     echo "'turbo' is missing, will be installed now!"
-    npm i -g turbo
+    npm i -g turbo@^2
 fi
 
 # rust and grass 

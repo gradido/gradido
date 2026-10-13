@@ -240,7 +240,7 @@ sudo -u gradido bash <<EOF
         nvm install
     fi
     # Install pm2 and turbo
-    npm i -g pm2 turbo
+    npm i -g pm2 turbo@^2
 
     echo "'bun' v$BUN_VERSION will be installed now!"
     curl -fsSL https://bun.com/install | bash -s "bun-v${BUN_VERSION}"
