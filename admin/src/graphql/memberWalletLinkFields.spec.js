@@ -6,12 +6,14 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
 /**
- * ⛔ The pin behind a member's name reads three things off the member: the pair it addresses
- * the wallet's map by, and whether the member stands on that map. A field a document never
- * asks for arrives as `undefined` -- and the pin's answer to that is to stay away. No pin for
- * anybody, nothing crashes, and no component spec notices, because each of them invents its
- * own rows. So this holds the documents against the component instead, in both places the
- * pin stands: the member search and the member under a contribution.
+ * ⛔ What stands behind a member's name -- the pin onto the wallet's map, or the arrow into its
+ * send form -- reads a handful of things off the member: the pair it addresses the wallet by,
+ * whether the member stands on the map, whether the account was deleted, and the member's
+ * number. A field a document never asks for arrives as `undefined` -- and the answer to that
+ * is to stay away. No pin and no arrow for anybody, nothing crashes, and no component spec
+ * notices, because each of them invents its own rows. So this holds the documents against the
+ * component instead, in both places it stands: the member search and the member under a
+ * contribution.
  */
 const here = dirname(fileURLToPath(import.meta.url))
 const read = (relativePath) => readFileSync(resolve(here, relativePath), 'utf8')
@@ -27,16 +29,30 @@ const withoutComments = (source) =>
 const readOffTheMember = () => [
   ...new Set(
     [
-      ...withoutComments(read('../components/MemberMapPin.vue')).matchAll(/\bmember\??\.(\w+)/g),
+      ...withoutComments(read('../components/MemberWalletLink.vue')).matchAll(
+        /\bmember\??\.(\w+)/g,
+      ),
     ].map((match) => match[1]),
   ),
 ]
 
 const fieldsOf = (block) => withoutComments(block).split(/\s+/).filter(Boolean)
 
-describe('what the pin behind a member reads, and what the documents ask for', () => {
-  it('reads the pair and the yes or no, and nothing else', () => {
-    expect(readOffTheMember().sort()).toEqual(['communityUuid', 'findableOnMap', 'gradidoID'])
+// The member's number has two names: `userId` on a row of the member search (UserAdmin), `id`
+// with the member of a contribution (User). The component reads whichever is there.
+const NUMBER_IN_THE_SEARCH = 'userId'
+const NUMBER_WITH_A_CONTRIBUTION = 'id'
+
+describe('what stands behind a member reads, and what the documents ask for', () => {
+  it('reads the pair, the yes or no, the deletion and the number, and nothing else', () => {
+    expect(readOffTheMember().sort()).toEqual([
+      'communityUuid',
+      'deletedAt',
+      'findableOnMap',
+      'gradidoID',
+      NUMBER_WITH_A_CONTRIBUTION,
+      NUMBER_IN_THE_SEARCH,
+    ])
   })
 
   it('is asked for on every row of the member search', () => {
@@ -44,7 +60,7 @@ describe('what the pin behind a member reads, and what the documents ask for', (
 
     // The search proves itself: this is the block that carries the row.
     expect(fieldsOf(rows)).toContain('alias')
-    for (const field of readOffTheMember()) {
+    for (const field of readOffTheMember().filter((f) => f !== NUMBER_WITH_A_CONTRIBUTION)) {
       expect(fieldsOf(rows)).toContain(field)
     }
   })
@@ -55,7 +71,7 @@ describe('what the pin behind a member reads, and what the documents ask for', (
     )[1]
 
     expect(fieldsOf(fragment)).toContain('alias')
-    for (const field of readOffTheMember()) {
+    for (const field of readOffTheMember().filter((f) => f !== NUMBER_IN_THE_SEARCH)) {
       expect(fieldsOf(fragment)).toContain(field)
     }
   })

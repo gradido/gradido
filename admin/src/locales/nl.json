@@ -414,6 +414,7 @@
     "humhubProfile": "Naar Humhub-profiel gaan",
     "memberMap": "{name} op de kaart tonen",
     "memberMapBlocked": "De browser heeft het venster geblokkeerd. Sta pop-ups voor deze pagina toe.",
+    "memberSend": "Naar {name} sturen",
     "userSearch": "Naar gebruikerszoekopdracht gaan"
   },
   "help": {

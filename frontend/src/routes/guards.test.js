@@ -900,7 +900,7 @@ describe('a start on the hand-over, with a page to go on to', () => {
     // The token handed over takes the place of the one that was there before the server is
     // asked about it. So a window in which the wallet was signed in is signed out by a
     // hand-over that is refused -- which is why the pin keeps the admin interface's own
-    // sign-in from running out while a moderator works with it (MemberMapPin.vue).
+    // sign-in from running out while a moderator works with it (MemberWalletLink.vue).
     it('ends a sign-in that was running in this window', async () => {
       const { at, own } = await startAt(handOver(MAP), {
         answer: REFUSED,

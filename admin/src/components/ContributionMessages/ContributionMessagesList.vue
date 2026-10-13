@@ -13,7 +13,7 @@
         </BTooltip>
         &nbsp;
         {{ contribution.user.publicName }}
-        <member-map-pin
+        <member-wallet-link
           :member="contribution.user"
           :name="contribution.user.alias || contribution.user.firstName"
         />
@@ -74,7 +74,7 @@ import { adminListContributionMessages } from '../../graphql/adminListContributi
 import { useAppToast } from '@/composables/useToast'
 import { BListGroupItem } from 'bootstrap-vue-next'
 import CONFIG from '@/config'
-import MemberMapPin from '../MemberMapPin.vue'
+import MemberWalletLink from '../MemberWalletLink.vue'
 
 const props = defineProps({
   contribution: {

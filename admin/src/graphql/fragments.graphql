@@ -44,4 +44,7 @@ fragment UserCommonFields on User {
   # Whether the member stands on the map of the member search, for the pin behind their name.
   # A yes or no; the place is not asked for and would not be answered.
   findableOnMap
+  # For the arrow into the wallet's send form, which stands behind every other name -- but not
+  # behind that of a deleted member, to whom nothing can be sent.
+  deletedAt
 }

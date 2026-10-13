@@ -15,6 +15,10 @@ import { readFileSync } from 'node:fs'
  * its own. Without one the sort under it would jump down by a line when the name arrives, under
  * a finger. Measured in the built wallet: 19.5 px with its text and without, at 1280, 390 and
  * 320 px.
+ *
+ * Since 13.10.2026 the line is set larger (16 px, bold: Bernd found it overlooked), and one line
+ * is 24 px. On a phone a place such as "Umkreis um Amrichshausen, Künzelsau" then needs a second
+ * line, so on a visit that shows somebody two lines are kept free up to 575.98 px.
  */
 const here = dirname(fileURLToPath(import.meta.url))
 const source = readFileSync(resolve(here, './MatchList.vue'), 'utf8')
@@ -42,5 +46,29 @@ describe('MatchList, what only a browser lays out', () => {
     // A plain factor and the same factor in em: both follow the line's own font size.
     expect(lineHeight).toMatch(/^\d+(\.\d+)?$/)
     expect(least).toBe(`${lineHeight}em`)
+  })
+
+  it('sets that line like a name in the rows below, a step larger', () => {
+    const [name] = ruleOf('.row-name')
+    const [head] = ruleOf('.row-head')
+
+    expect(valueOf(line, 'font-weight')).toBe(valueOf(name, 'font-weight'))
+    expect(parseFloat(valueOf(line, 'font-size'))).toBeGreaterThan(
+      parseFloat(valueOf(head, 'font-size')),
+    )
+    // No colour of its own: the text's. It used to name a token the wallet does not have.
+    expect(valueOf(line, 'color')).toBeUndefined()
+    expect(styles).not.toContain('--text-secondary')
+  })
+
+  it('keeps two of its lines free on a phone, on a visit that shows somebody', () => {
+    const phone = styles.match(
+      /@media \(width <= 575\.98px\) \{\s*\.center-label-visit \{([^{}]*)\}\s*\}/,
+    )
+
+    expect(phone).not.toBeNull()
+    expect(valueOf(phone[1].trim(), 'min-height')).toBe(`${2 * valueOf(line, 'line-height')}em`)
+    // The line carries that class exactly where somebody is shown.
+    expect(source).toContain(`:class="{ 'center-label-visit': !!contact }"`)
   })
 })

@@ -4,7 +4,7 @@ import { createI18n } from 'vue-i18n'
 import { createStore } from 'vuex'
 import { DefaultApolloClient } from '@vue/apollo-composable'
 import SearchUserTable from './SearchUserTable.vue'
-import MemberMapPin from '../MemberMapPin.vue'
+import MemberWalletLink from '../MemberWalletLink.vue'
 import { BTable } from 'bootstrap-vue-next'
 
 vi.mock('../CreationFormular.vue', () => ({
@@ -135,7 +135,7 @@ describe('SearchUserTable', () => {
           BTable,
         },
         plugins: [i18n, store],
-        // A pressed pin asks the server about the sign-in (MemberMapPin).
+        // A pressed pin asks the server about the sign-in (MemberWalletLink).
         provide: { [DefaultApolloClient]: { query: vi.fn().mockResolvedValue({ data: {} }) } },
         stubs: {
           IPhCaretUpFill: true,
@@ -194,9 +194,10 @@ describe('SearchUserTable', () => {
   })
 
   // Behind the username of a member who stands on the wallet's map: one press shows them
-  // there, in a window of its own (MemberMapPin). The rows as the search delivers them, with
-  // the pair that names the member and the server's yes or no.
-  describe('the pin behind the username', () => {
+  // there, in a window of its own. Behind every other: the arrow into the wallet's send form
+  // (MemberWalletLink). The rows as the search delivers them, with the pair that names the
+  // member and the server's yes or no.
+  describe('the pin or the arrow behind the username', () => {
     const COMMUNITY = '9f8e7d6c-5b4a-4c3d-9e2f-1a0b9c8d7e6f'
     const [bibi, benjamin, peter, newUser] = propsData.items
     const rows = [
@@ -232,13 +233,16 @@ describe('SearchUserTable', () => {
     ]
     const fields = [...propsData.fields, { key: 'alias', label: 'username' }]
 
+    // The rows of the members: an open row brings rows of its own under it (its details).
+    const memberRows = () =>
+      wrapper.findAll('tbody > tr').filter((tr) => tr.findAll('td').length === fields.length)
     const usernameCell = (row) =>
-      wrapper
-        .findAll('tbody > tr')
+      memberRows()
         .at(row)
         .findAll('td')
         .at(fields.length - 1)
     const pinIn = (row) => usernameCell(row).find('[data-test="member-map-pin"]')
+    const arrowIn = (row) => usernameCell(row).find('[data-test="member-send-arrow"]')
 
     beforeEach(() => {
       wrapper = createWrapper({ items: rows, fields })
@@ -252,6 +256,15 @@ describe('SearchUserTable', () => {
       expect(pinIn(3).exists()).toBe(false)
     })
 
+    // Every member can be reached: over the map, or over the send form.
+    it('leaves the other rows the arrow into the send form, and no row both', () => {
+      expect(wrapper.findAll('[data-test="member-send-arrow"]')).toHaveLength(2)
+      expect(arrowIn(0).exists()).toBe(false)
+      expect(arrowIn(1).exists()).toBe(true)
+      expect(arrowIn(2).exists()).toBe(false)
+      expect(arrowIn(3).exists()).toBe(true)
+    })
+
     // The cell itself as before: the username, and nothing where the member has none -- no
     // gradidoID stands in for it.
     it('leaves the username as it was, and the cell empty where there is none', () => {
@@ -262,7 +275,7 @@ describe('SearchUserTable', () => {
     })
 
     it('hands the pin the member of its row, named by username or else by first name', () => {
-      const pins = wrapper.findAllComponents(MemberMapPin)
+      const pins = wrapper.findAllComponents(MemberWalletLink)
       expect(pins).toHaveLength(rows.length)
       rows.forEach((row, index) => {
         expect(pins.at(index).props('member')).toMatchObject({
@@ -273,6 +286,9 @@ describe('SearchUserTable', () => {
       })
       expect(pins.at(0).props('name')).toBe('bibi')
       expect(pins.at(2).props('name')).toBe('Peter')
+      // The rows with the arrow, named the same way.
+      expect(pins.at(1).props('name')).toBe('benni')
+      expect(pins.at(3).props('name')).toBe(rows[3].firstName)
     })
 
     describe('pressed', () => {
@@ -295,15 +311,119 @@ describe('SearchUserTable', () => {
         )
       })
 
+      it('opens the send form to the member of its row', async () => {
+        await arrowIn(3).trigger('click')
+
+        expect(window.open).toHaveBeenCalledTimes(1)
+        const address = new URL(window.open.mock.calls[0][0])
+        expect(address.searchParams.get('token')).toBe('valid-token')
+        expect(address.searchParams.get('redirect')).toBe(
+          `/send/${COMMUNITY}/${rows[3].gradidoID}#send-form`,
+        )
+      })
+
       // The row opens its details on a click anywhere in it -- anywhere but on a button, which
       // the table leaves alone. Measured on the real table, in both directions.
       it('does not open the row it stands in', async () => {
         await pinIn(0).trigger('click')
+        await arrowIn(1).trigger('click')
         expect(wrapper.vm.myItems.some((item) => item._showDetails)).toBe(false)
 
         await usernameCell(0).trigger('click')
         expect(wrapper.vm.myItems[0]._showDetails).toBe(true)
       })
+    })
+
+    // ⛔ The table draws rows of its own -- copies of the members the page hands in. A member
+    // deleted in their open row used to stay as they were on the screen until the list was asked
+    // again: the page was told, and its rows are not the ones drawn. The pin or the arrow then
+    // led to somebody who was gone (measured in the built admin interface, 13.10.2026).
+    describe('where the member is deleted or brought back in the open row', () => {
+      const DELETED = '2026-10-13T10:00:00.000Z'
+      const deletedIconIn = (row) => memberRows().at(row).find('.test-deleted-icon')
+      // The form under the open row, as the spec replaces it: it reports what the server said.
+      const formReports = (report) =>
+        wrapper.findComponent('.deleted-user-formular').vm.$emit('updateDeletedAt', report)
+
+      beforeEach(async () => {
+        await usernameCell(0).trigger('click')
+      })
+
+      it('takes the pin off the member who was deleted, and marks the row', async () => {
+        expect(pinIn(0).exists()).toBe(true)
+        expect(deletedIconIn(0).exists()).toBe(false)
+
+        await formReports({ userId: rows[0].userId, deletedAt: DELETED })
+
+        expect(pinIn(0).exists()).toBe(false)
+        expect(arrowIn(0).exists()).toBe(false)
+        expect(deletedIconIn(0).exists()).toBe(true)
+      })
+
+      it('takes the arrow off a member who was deleted', async () => {
+        expect(arrowIn(1).exists()).toBe(true)
+
+        await formReports({ userId: rows[1].userId, deletedAt: DELETED })
+
+        expect(arrowIn(1).exists()).toBe(false)
+        expect(pinIn(1).exists()).toBe(false)
+      })
+
+      it('leaves every other row as it is', async () => {
+        await formReports({ userId: rows[0].userId, deletedAt: DELETED })
+
+        expect(arrowIn(1).exists()).toBe(true)
+        expect(pinIn(2).exists()).toBe(true)
+        expect(arrowIn(3).exists()).toBe(true)
+        expect(wrapper.findAll('.test-deleted-icon')).toHaveLength(1)
+      })
+
+      it('keeps the row open, with the way to bring the member back', async () => {
+        await formReports({ userId: rows[0].userId, deletedAt: DELETED })
+
+        expect(wrapper.vm.myItems[0]._showDetails).toBe(true)
+        expect(wrapper.findAll('.deleted-user-formular')).toHaveLength(1)
+      })
+
+      it('tells the page, as before', async () => {
+        await formReports({ userId: rows[0].userId, deletedAt: DELETED })
+        expect(wrapper.emitted('update-deleted-at')).toEqual([[rows[0].userId, DELETED]])
+      })
+
+      // The form that brings a member back used to report into nothing: nobody listened to it.
+      // Whether the member stands on the map only the server knows, so the row shows the arrow
+      // until the list is asked again.
+      it('shows a member who was brought back as that: no mark, and the arrow', async () => {
+        await formReports({ userId: rows[0].userId, deletedAt: DELETED })
+        await formReports({ userId: rows[0].userId, deletedAt: null })
+
+        expect(deletedIconIn(0).exists()).toBe(false)
+        expect(arrowIn(0).exists()).toBe(true)
+        expect(pinIn(0).exists()).toBe(false)
+        expect(wrapper.emitted('update-deleted-at')).toEqual([
+          [rows[0].userId, DELETED],
+          [rows[0].userId, null],
+        ])
+      })
+
+      it('does not trip over a member who is not among its rows', async () => {
+        await formReports({ userId: 4711, deletedAt: DELETED })
+
+        expect(wrapper.findAll('.test-deleted-icon')).toHaveLength(0)
+        expect(wrapper.emitted('update-deleted-at')).toEqual([[4711, DELETED]])
+      })
+    })
+
+    // The form of the role keeps what it shows by itself, but only while the row is open: opened
+    // again it reads the role off the row.
+    it('notes a new role in its own row, and tells the page', async () => {
+      await usernameCell(0).trigger('click')
+      expect(wrapper.vm.myItems[0].role).toBeNull()
+
+      await wrapper.find('.change-user-role-formular button').trigger('click')
+
+      expect(wrapper.vm.myItems[0].role).toBe('ADMIN')
+      expect(wrapper.emitted('update-role')).toEqual([[1, 'ADMIN']])
     })
   })
 })

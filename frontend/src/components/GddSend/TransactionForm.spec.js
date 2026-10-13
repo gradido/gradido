@@ -116,6 +116,111 @@ describe('TransactionForm', () => {
     expect(wrapper.find('div.transaction-form').exists()).toBe(true)
   })
 
+  // ⛔ The admin interface opens the wallet on /send/<community>/<member>#send-form, in a window
+  // 760 px high: the arrow behind a member's name (admin/src/components/MemberWalletLink.vue).
+  // The router scrolls to that hash, so the form has to be the element of this id -- the two
+  // apps share no code, and a word changed on one side alone is a page that opens at its top,
+  // with the form and the member in it below the fold.
+  it('is the element a link lands on that asks for the form itself', () => {
+    expect(wrapper.element.id).toBe('send-form')
+    expect(wrapper.element.classList.contains('transaction-form')).toBe(true)
+  })
+
+  // The router scrolls to a hash only where its element stands already, and on the first page
+  // of a visit the form does not yet. So it brings itself into view once it stands.
+  describe('where the address asks for the form itself', () => {
+    let scrolled
+
+    beforeEach(() => {
+      scrolled = []
+      // jsdom lays nothing out and knows no scrollIntoView.
+      Element.prototype.scrollIntoView = function (options) {
+        scrolled.push({ element: this, options })
+      }
+    })
+
+    afterEach(() => {
+      delete Element.prototype.scrollIntoView
+      vi.mocked(useRoute).mockImplementation(() => ({ params: {}, query: {} }))
+    })
+
+    const openedOn = (route) => {
+      vi.mocked(useRoute).mockImplementation(() => ({ params: {}, query: {}, ...route }))
+      return createWrapper()
+    }
+
+    it('brings itself into view, its top at the top', () => {
+      const form = openedOn({ hash: '#send-form' })
+
+      expect(scrolled).toHaveLength(1)
+      expect(scrolled[0].element).toBe(form.element)
+      expect(scrolled[0].options).toEqual({ block: 'start' })
+    })
+
+    it.each([
+      ['an address without a hash', {}],
+      ['an empty hash', { hash: '' }],
+      ['the hash of something else', { hash: '#memo' }],
+      ['a hash that only begins alike', { hash: '#send-form-2' }],
+    ])('stays where the page stands with %s', (_name, route) => {
+      openedOn(route)
+      expect(scrolled).toEqual([])
+    })
+
+    it('does not trip over a browser that cannot scroll an element into view', () => {
+      delete Element.prototype.scrollIntoView
+      expect(() => openedOn({ hash: '#send-form' })).not.toThrow()
+    })
+
+    // Up to 450 px the navbar stays at the top of the window (Menu/Navbar.vue), and the switch
+    // between sending, link and e-mail stood under it.
+    describe('under a navbar that stays at the top of the window', () => {
+      let bar
+
+      const navbar = ({ position, bottom }) => {
+        bar = document.createElement('div')
+        bar.className = 'navbar-element'
+        bar.style.position = position
+        bar.getBoundingClientRect = () => ({ top: 0, bottom, height: bottom })
+        document.body.appendChild(bar)
+      }
+
+      afterEach(() => {
+        bar?.remove()
+        bar = null
+      })
+
+      it('comes to stand under it, by the height the navbar has', () => {
+        navbar({ position: 'fixed', bottom: 167.3 })
+        const form = openedOn({ hash: '#send-form' })
+
+        expect(form.element.style.scrollMarginTop).toBe('168px')
+        expect(scrolled).toHaveLength(1)
+      })
+
+      it('comes to the top of the window where the navbar scrolls away with the page', () => {
+        navbar({ position: 'relative', bottom: 167.3 })
+        const form = openedOn({ hash: '#send-form' })
+
+        expect(form.element.style.scrollMarginTop).toBe('')
+        expect(scrolled).toHaveLength(1)
+      })
+
+      it('keeps no room free where the address did not ask for the form', () => {
+        navbar({ position: 'fixed', bottom: 167.3 })
+        const form = openedOn({})
+
+        expect(form.element.style.scrollMarginTop).toBe('')
+        expect(scrolled).toEqual([])
+      })
+    })
+
+    it('comes to the top of the window where there is no navbar at all', () => {
+      const form = openedOn({ hash: '#send-form' })
+      expect(form.element.style.scrollMarginTop).toBe('')
+    })
+  })
+
   describe('send type from the route', () => {
     it('opens in e-mail mode when ?art=email', () => {
       useRoute.mockReturnValueOnce({ params: {}, query: { art: 'email' } })
