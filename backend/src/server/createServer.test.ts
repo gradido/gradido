@@ -49,7 +49,7 @@ const ask = (
 type RequestOptions = { method?: string; headers?: Record<string, string>; body?: string }
 
 const operation = (body: unknown): Promise<Answer> =>
-  ask('/', {
+  ask('/graphql', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -80,7 +80,7 @@ describe('the http server of the backend', () => {
     })
 
     it('shows no landing page', async () => {
-      const answer = await ask('/')
+      const answer = await ask('/graphql')
       expect(answer.status).toBe(404)
       expect(answer.headers['content-type'] ?? '').not.toContain('text/html')
     })
@@ -99,7 +99,7 @@ describe('the http server of the backend', () => {
           {
             host: '127.0.0.1',
             port,
-            path: '/',
+            path: '/graphql',
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Transfer-Encoding': 'chunked' },
           },

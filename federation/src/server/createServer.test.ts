@@ -17,7 +17,7 @@ afterAll(async () => {
 
 const post = (body: unknown): Promise<Response> =>
   app.handle(
-    new Request('http://localhost/', {
+    new Request('http://localhost/api/1_0/', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify(body),
@@ -61,7 +61,7 @@ describe('the http server of the federation', () => {
   it('answers an operation asked for with a bare GET, as the backend sends it, with apollo', async () => {
     const response = await app.handle(
       new Request(
-        `http://localhost/?query=${encodeURIComponent('{ __typename }')}&variables=%7B%7D`,
+        `http://localhost/api/1_0/?query=${encodeURIComponent('{ __typename }')}&variables=%7B%7D`,
       ),
     )
     expect(response.status).toBe(200)
@@ -71,7 +71,7 @@ describe('the http server of the federation', () => {
 
   it('shows no landing page', async () => {
     const response = await app.handle(
-      new Request('http://localhost/', { headers: { accept: 'text/html' } }),
+      new Request('http://localhost/api/1_0/', { headers: { accept: 'text/html' } }),
     )
     expect(response.status).toBe(406)
     expect(response.headers.get('content-type') ?? '').not.toContain('text/html')

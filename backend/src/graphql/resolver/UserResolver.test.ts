@@ -5202,7 +5202,7 @@ describe('UserResolver', () => {
               {
                 host: '127.0.0.1',
                 port,
-                path: '/',
+                path: '/graphql',
                 method: 'POST',
                 headers: {
                   'content-type': 'application/json',

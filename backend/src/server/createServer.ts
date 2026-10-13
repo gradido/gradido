@@ -21,6 +21,9 @@ import { versionRoutes } from './version'
 // What express.json() accepted at most.
 const MAX_REQUEST_BODY_SIZE = 100 * 1024
 
+// The address nginx hands on unchanged, and the one wallet and admin ask at.
+const GRAPHQL_PATH = '/graphql'
+
 interface ServerDef extends ApolloServerDef {
   app: AnyElysia
 }
@@ -84,7 +87,7 @@ export async function createServer(apolloLogger: Logger): Promise<ServerDef> {
     // Apollo Server, started by the plugin and answering a POST. One context per HTTP request.
     .use(
       await apollo.createHandler({
-        path: '/',
+        path: GRAPHQL_PATH,
         enablePlayground: false,
         // the plugin types the argument as the context it returns; it hands on Elysia's own
         context: async (elysiaContext) =>
@@ -92,7 +95,7 @@ export async function createServer(apolloLogger: Logger): Promise<ServerDef> {
       }),
     )
     // The plugin answers a GET with a landing page of its own, whatever Apollo's plugins say.
-    .get('/', () => status(404))
+    .get(GRAPHQL_PATH, () => status(404))
   logger.info(
     `running with PRODUCTION=${CONFIG.PRODUCTION}, sending EMAIL enabled=${CORE_CONFIG.EMAIL} and EMAIL_TEST_MODUS=${CORE_CONFIG.EMAIL_TEST_MODUS} ...`,
   )
