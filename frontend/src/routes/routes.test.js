@@ -14,6 +14,9 @@ const loadRoutes = async (matchingActive) => {
 
 const pathsOf = (routes) => routes.map((route) => route.path)
 const matchingPathsOf = (routes) => pathsOf(routes).filter((path) => path.startsWith('/matching'))
+// Everything the flag switches on: the matching pages, and the page that builds the links
+// which end in a matching entry.
+const hangsOnMatching = (path) => path.startsWith('/matching') || path === '/event-matching'
 
 afterEach(() => {
   vi.doUnmock('@/config')
@@ -198,11 +201,32 @@ describe('routes', () => {
       const entry = routes.find((route) => route.path === '/matching')
       expect(entry.redirect()).toEqual({ path: '/matching/entries' })
     })
+
+    // Event matching, the host's page. Without `requiresAuth`, which is what makes it public
+    // AND what puts it into the layout whose footer links to it.
+    it('registers the page that builds event links, for everybody', async () => {
+      const routes = await loadRoutes(true)
+      const builder = routes.filter((route) => route.path === '/event-matching')
+      expect(builder).toHaveLength(1)
+      expect(builder[0].meta?.requiresAuth).not.toBe(true)
+    })
+
+    it('keeps that page ahead of the catch-all, or it would never be reached', async () => {
+      const paths = pathsOf(await loadRoutes(true))
+      expect(paths.indexOf('/event-matching')).toBeGreaterThan(-1)
+      expect(paths.indexOf('/event-matching')).toBeLessThan(paths.indexOf('/:catchAll(.*)'))
+    })
   })
 
   describe('with MATCHING_ACTIVE off', () => {
     it('registers no matching route at all', async () => {
       expect(matchingPathsOf(await loadRoutes(false))).toEqual([])
+    })
+
+    // An instance without matching has no entries for such a link to end in. The page would
+    // build links that lead nowhere, so it is not there either.
+    it('does not register the page that builds event links', async () => {
+      expect(pathsOf(await loadRoutes(false))).not.toContain('/event-matching')
     })
 
     it('leaves the catch-all in place, so /matching lands on not found', async () => {
@@ -215,9 +239,7 @@ describe('routes', () => {
     })
 
     it('touches nothing else — the other routes are unchanged', async () => {
-      const withMatching = pathsOf(await loadRoutes(true)).filter(
-        (path) => !path.startsWith('/matching'),
-      )
+      const withMatching = pathsOf(await loadRoutes(true)).filter((path) => !hangsOnMatching(path))
       const withoutMatching = pathsOf(await loadRoutes(false))
       expect(withoutMatching).toEqual(withMatching)
     })

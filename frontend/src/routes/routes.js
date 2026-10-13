@@ -64,6 +64,22 @@ const matchingRoutes = CONFIG.MATCHING_ACTIVE
     ]
   : []
 
+// Event matching: the page on which a host builds the link that puts their event into their
+// guests' accounts as a first matching entry. Public, because a host needs no account for
+// it, and in the layout of the sign-in pages, whose footer links to it.
+//
+// Registered only with MATCHING_ACTIVE, for the reason given above: the link it builds ends
+// in a matching entry, so on an instance without matching the page would build links that
+// lead nowhere. The footer link hangs on the same flag (AuthFooter.vue).
+const eventMatchingRoutes = CONFIG.MATCHING_ACTIVE
+  ? [
+      {
+        path: '/event-matching',
+        component: () => import('@/pages/EventMatchingBuilder'),
+      },
+    ]
+  : []
+
 const settingsRoutes = [
   {
     path: '/settings',
@@ -420,6 +436,7 @@ const routes = [
     path: '/register-community',
     component: () => import('@/pages/RegisterCommunity'),
   },
+  ...eventMatchingRoutes,
   // {
   //   path: '/select-community',
   //   component: () => import('@/pages/SelectCommunity'),

@@ -610,6 +610,34 @@
     "session-renewal-failed": "Ta session n'a pas pu être prolongée. Reconnecte-toi.",
     "unknown-error": "Erreur inconnue : "
   },
+  "eventMatching": {
+    "builder": {
+      "codeAlt": "QR code qui mène à ton lien",
+      "codeFailed": "Le QR code ne peut pas être dessiné pour le moment. Le lien fonctionne.",
+      "codeLabel": "Ton QR code",
+      "codeTooLong": "Ce lien est trop long pour un QR code. Avec moins de texte, le QR code apparaîtra. Le lien fonctionne quand même.",
+      "copyFailed": "Malheureusement, ton appareil ne permet pas de copier. Sélectionne le texte et copie-le à la main.",
+      "copyLink": "Copier le lien",
+      "copyMail": "Copier le paragraphe",
+      "detailsCount": "{count} / {max}",
+      "detailsHint": "Une ou deux phrases qui expliquent ton thème.",
+      "downloadCode": "Télécharger le QR code",
+      "intro": "Toute personne qui ouvre ce lien reçoit dans son compte Gradido ton congrès comme première entrée sur la carte — et trouve les autres personnes de ton congrès.",
+      "linkCopied": "Lien copié.",
+      "linkLabel": "Ton lien",
+      "mailCopied": "Paragraphe copié.",
+      "mailLabel": "Ton paragraphe pour l'e-mail",
+      "mailText": "Gradido inclus : avec ce lien, tu obtiens ton compte Gradido, 100 Gradido pour commencer et la carte qui mène aux personnes de notre congrès. La carte ne montre ta position qu'aux membres, et seulement de façon approximative.",
+      "nothingStored": "Rien n'est enregistré. Tu crées le lien, tu le transmets.",
+      "remoteHint": "Tes participants apparaissent alors aussi dans la recherche suprarégionale.",
+      "sentenceDefault": "Congrès",
+      "sentenceHint": "Le nom court de ton congrès, tel que tes participants le diraient. Le mot « Congrès » peut rester devant — « Formation », « Cours » ou « Retraite » conviennent aussi.",
+      "sentencePreview": "« {sentence} »",
+      "subtitle": "Ton lien pour ton congrès, ta formation, ton cours",
+      "title": "Event Matching",
+      "waiting": "Saisis ci-dessus le nom de ton congrès — ton lien, ton QR code et un paragraphe pour ton e-mail apparaîtront ici."
+    }
+  },
   "existingGradidoAccount": "Tu as déjà un compte {communityName} ?",
   "firstCreation": {
     "again": "+ Il y avait encore autre chose",
@@ -696,6 +724,7 @@
       "link": "Académie Gradido",
       "year": "© {year}"
     },
+    "eventMatching": "Event Matching",
     "imprint": "Notification légale",
     "inspector": "Inspecteur (expérimental)",
     "privacy_policy": "Politique de confidentialité",
