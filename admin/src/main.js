@@ -22,9 +22,15 @@ import 'bootstrap-vue-next/dist/bootstrap-vue-next.css'
 import { apolloClient } from './plugins/apolloProvider'
 import { dropMapWindowName } from './utils/mapWindow'
 
+/**
+ * Builds the admin interface: the app with its router, store, language and plugins, and the
+ * guards on its routes.
+ *
+ * It may be starting in the window a pin opened for the map. So the name of that window is
+ * taken off this one first: no pin, of this window or another, may take it for the map window
+ * (utils/mapWindow.js).
+ */
 export function createAdminApp() {
-  // The admin interface may be starting in the window a pin opened for the map: no pin, of
-  // this window or another, may take it for that window (utils/mapWindow.js).
   dropMapWindowName()
 
   const app = createApp(App)
