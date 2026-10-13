@@ -32,7 +32,7 @@ const i18n = createI18n({
           centeredOn: 'Umkreis um {place}',
           centeredOnFern: 'Überregional · {km} km um {place}',
           centeredOnFernNoPlace: 'Überregional · {km} km',
-          othersHeading: 'Weitere Menschen in Deiner Nähe',
+          othersHeading: 'Weitere Menschen in der Nähe',
           near: 'im Nahbereich',
           kmEtwa: 'etwa {n} km',
           kmExact: '{n} km',
@@ -253,7 +253,7 @@ describe('MatchList', () => {
   it('shows silent people in their own section, each a button that opens them', async () => {
     const wrapper = mountList({ silent: [silentPerson()] })
     const heads = wrapper.findAll('.section-head').map((h) => h.text())
-    expect(heads).toContain('Weitere Menschen in Deiner Nähe')
+    expect(heads).toContain('Weitere Menschen in der Nähe')
 
     const row = wrapper.find('.row-silent')
     expect(row.element.tagName).toBe('BUTTON')
@@ -335,7 +335,7 @@ describe('MatchList', () => {
       expect(heads(wrapper)).toEqual([
         'Dein Kontakt',
         'Deine Treffer',
-        'Weitere Menschen in Deiner Nähe',
+        'Weitere Menschen in der Nähe',
       ])
       const names = wrapper.findAll('.row-name').map((n) => n.text())
       expect(names).toEqual(['Anna-Sonne', 'Sofia', 'Paul'])
