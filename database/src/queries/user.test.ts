@@ -36,6 +36,7 @@ import {
   dbHasGuestRegisteredByLink,
   dbInsertForeignUser,
   dbInsertUser,
+  dbIsHomeCommunityUserExistByUuid,
   dbLocalUserGradidoIdExist,
   dbLockUserRowDrizzle,
   dbMarkUsersGmsRegistered,
@@ -434,6 +435,45 @@ describe('user.queries', () => {
         await dbFindUserIdByUuids('99999999-9999-9999-9999-999999999999', bibi.gradidoID),
       ).toBeNull()
       expect(await dbFindUserIdByUuids(home, '00000000-0000-0000-0000-000000000000')).toBeNull()
+    })
+  })
+
+  describe('dbIsHomeCommunityUserExistByUuid', () => {
+    const PEER = '33333333-3333-4333-8333-333333333333'
+    const FOREIGN = '55555555-5555-4555-8555-555555555551'
+    let bibi: DbUser
+    let bob: DbUser
+
+    beforeAll(async () => {
+      await dbDeleteAllRowsExceptMigrations()
+      await createCommunity(false)
+      bibi = await userFactory(bibiBloxberg)
+      bob = await userFactory(bobBaumeister)
+      await DbUser.update({ id: bob.id }, { deletedAt: new Date() })
+      // a member of another community, filed here without a contact
+      const foreign = DbUser.create()
+      foreign.foreign = true
+      foreign.communityUuid = PEER
+      foreign.gradidoID = FOREIGN
+      await foreign.save()
+    })
+
+    it('is true for a member of this community', async () => {
+      expect(await dbIsHomeCommunityUserExistByUuid(bibi.gradidoID)).toBe(true)
+    })
+
+    it('is false for a gradido id nobody has', async () => {
+      expect(await dbIsHomeCommunityUserExistByUuid('00000000-0000-4000-8000-000000000000')).toBe(
+        false,
+      )
+    })
+
+    it('is false for a member of another community', async () => {
+      expect(await dbIsHomeCommunityUserExistByUuid(FOREIGN)).toBe(false)
+    })
+
+    it('is false for a member whose account is deleted', async () => {
+      expect(await dbIsHomeCommunityUserExistByUuid(bob.gradidoID)).toBe(false)
     })
   })
 

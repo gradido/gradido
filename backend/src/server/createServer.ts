@@ -1,103 +1,98 @@
-import { expressMiddleware } from '@as-integrations/express4'
+import { node } from '@elysia/node'
 import { CONFIG as CORE_CONFIG } from 'core'
-import express, { Express, json, urlencoded } from 'express'
-import { slowDown } from 'express-slow-down'
-import helmet from 'helmet'
+import { type AnyElysia, Elysia, status } from 'elysia'
+import { helmet } from 'elysia-helmet'
 import { getLogger, Logger } from 'log4js'
-import { GRADIDO_REALM } from 'shared'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { jwks, openidConfiguration } from '@/openIDConnect'
-import { elopageWebhook } from '@/webhook/elopage'
-import { gmsWebhook } from '@/webhook/gms'
+import { openIdConnectRoutes } from '@/openIDConnect'
+import { elopageWebhookRoutes } from '@/webhook/elopage'
+import { gmsWebhookRoutes } from '@/webhook/gms'
 import { context as serverContext } from './context'
 import { cors } from './cors'
 import { ApolloServerDef, createApolloServer } from './createApolloServer'
-import { apiRedeemPreview, REDEEM_PREVIEW_PATH } from './redeemPreview'
-import {
-  apiThankYouGreetingPicture,
-  THANK_YOU_GREETING_PICTURE_PATH,
-} from './thankYouGreetingPicture'
-import { apiVersion } from './version'
+import { redeemPreviewRoutes } from './redeemPreview'
+import { thankYouGreetingPictureRoutes } from './thankYouGreetingPicture'
+import { versionRoutes } from './version'
 
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
 
+// What express.json() accepted at most.
+const MAX_REQUEST_BODY_SIZE = 100 * 1024
+
 interface ServerDef extends ApolloServerDef {
-  app: Express
+  app: AnyElysia
 }
 
-export const createServer = async (apolloLogger: Logger): Promise<ServerDef> => {
+export async function createServer(apolloLogger: Logger): Promise<ServerDef> {
   const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.createServer`)
   logger.debug('createServer...')
 
   // the database connection and Apollo on it
   const { apollo, con, db } = await createApolloServer(apolloLogger)
 
-  // Express Server
-  const app = express()
+  // Elysia Server, on node
+  const app = new Elysia({ adapter: node() })
+    .use(cors)
 
-  // cors
-  app.use(cors)
+    // Helmet helps secure Elysia apps by setting HTTP response headers.
+    // Without originAgentCluster: elysia-helmet 3.1.0 writes its value into
+    // Cross-Origin-Resource-Policy instead (tobias-kaerst-software/elysia-helmet#12).
+    .use(
+      helmet({
+        originAgentCluster: false,
+        crossOriginEmbedderPolicy: true,
+      }),
+    )
 
-  // Helmet helps secure Express apps by setting HTTP response headers.
+    // A body is measured by the length it announces, so one that announces none (chunked) is
+    // not taken: caps on what one request may ask for count on this limit
+    // (data/MemberAvatars.logic.ts). nginx in front buffers a request and names its length.
+    .onRequest(({ request }) => {
+      if (request.headers.has('transfer-encoding')) {
+        return status(411)
+      }
+      if (Number(request.headers.get('content-length')) > MAX_REQUEST_BODY_SIZE) {
+        return status(413)
+      }
+    })
 
-  app.use(helmet())
+    // Elopage Webhook
+    .use(elopageWebhookRoutes)
 
-  // rate limiter/ slow down to many requests
-  const limiter = slowDown({
-    windowMs: 1000, // 1 second
-    delayAfter: 10, // Allow 10 requests per 1 second.
-    delayMs: (hits) => hits * 50, // Add 100 ms of delay to every request after the 10th one.
-    /**
-     * So:
-     *
-     * - requests 1-10 are not delayed.
-     * - request 11 is delayed by 550ms
-     * - request 12 is delayed by 600ms
-     * - request 13 is delayed by 650ms
-     *
-     * and so on. After 1 seconds, the delay is reset to 0.
-     */
-  })
-  app.use(limiter)
-  // because of nginx proxy, needed for limiter
-  app.set('trust proxy', 1)
+    // GMS Webhook
+    .use(gmsWebhookRoutes)
 
-  // bodyparser json
-  app.use(json())
-  // bodyparser urlencoded for elopage
-  app.use(urlencoded({ extended: true }))
+    // OpenID Connect
+    .use(openIdConnectRoutes)
 
-  // Elopage Webhook
+    // Build version — lets a backend-only deploy be verified from outside (the frontend/
+    // admin bundle hashes only track their own builds). Public, read-only, no secrets.
+    .use(versionRoutes)
 
-  app.post('/hook/elopage/' + CONFIG.WEBHOOK_ELOPAGE_SECRET, elopageWebhook)
+    // The picture of a thank-you greeting, for whoever holds the code of an OPEN link -- public
+    // like the page of the link itself, a plain image for an <img>. Behind nginx's limiter for
+    // /api; it has none of its own.
+    .use(thankYouGreetingPictureRoutes)
 
-  // GMS Webhook
+    // What a messenger is shown of a redeem link: a small document with the title and the
+    // picture of an OPEN link, for whoever holds its code -- public like the page of the link
+    // itself. Behind the same limiter.
+    .use(redeemPreviewRoutes)
 
-  app.get('/hook/gms/' + CONFIG.GMS_WEBHOOK_SECRET, gmsWebhook)
-
-  // OpenID Connect
-  app.get(`/realms/${GRADIDO_REALM}/.well-known/openid-configuration`, openidConfiguration)
-  app.get(`/realms/${GRADIDO_REALM}/protocol/openid-connect/certs`, jwks)
-
-  // Build version — lets a backend-only deploy be verified from outside (the frontend/
-  // admin bundle hashes only track their own builds). Public, read-only, no secrets.
-  app.get('/api/version', apiVersion)
-
-  // The picture of a thank-you greeting, for whoever holds the code of an OPEN link -- public
-  // like the page of the link itself, a plain image for an <img>. Behind the limiter above and
-  // nginx's own for /api; it has none of its own. Mounted with `use`: everything below the
-  // address is its own to answer, before Apollo, which stands under `/`.
-  app.use(THANK_YOU_GREETING_PICTURE_PATH, apiThankYouGreetingPicture)
-
-  // What a messenger is shown of a redeem link: a small document with the title and the
-  // picture of an OPEN link, for whoever holds its code -- public like the page of the link
-  // itself. Behind the same two limiters, mounted the same way and for the same reason.
-  app.use(REDEEM_PREVIEW_PATH, apiRedeemPreview)
-
-  // Apollo Server, behind cors and the json body parser above. One context per HTTP request.
-  app.use('/', expressMiddleware(apollo, { context: async (args) => serverContext(args) }))
+    // Apollo Server, started by the plugin and answering a POST. One context per HTTP request.
+    .use(
+      await apollo.createHandler({
+        path: '/',
+        enablePlayground: false,
+        // the plugin types the argument as the context it returns; it hands on Elysia's own
+        context: async (elysiaContext) =>
+          serverContext(elysiaContext as unknown as { request: Request }),
+      }),
+    )
+    // The plugin answers a GET with a landing page of its own, whatever Apollo's plugins say.
+    .get('/', () => status(404))
   logger.info(
     `running with PRODUCTION=${CONFIG.PRODUCTION}, sending EMAIL enabled=${CORE_CONFIG.EMAIL} and EMAIL_TEST_MODUS=${CORE_CONFIG.EMAIL_TEST_MODUS} ...`,
   )

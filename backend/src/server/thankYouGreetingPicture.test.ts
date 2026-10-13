@@ -1,6 +1,8 @@
 // AI-GENERATED — not an architecture reference
 import { request as httpRequest, IncomingHttpHeaders, Server } from 'node:http'
 import { AddressInfo } from 'node:net'
+import { node } from '@elysia/node'
+import { listenOnFreePort } from '@test/helpers'
 import { getLogger } from 'config-schema/test/testSetup'
 import {
   DBNotFoundError,
@@ -9,14 +11,13 @@ import {
   ThankYouGreetingPicturesOfLink,
 } from 'database'
 import { DrizzleQueryError } from 'drizzle-orm'
-import express from 'express'
-import helmet from 'helmet'
+import { Elysia } from 'elysia'
+import { helmet } from 'elysia-helmet'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { cors } from './cors'
 import {
-  apiThankYouGreetingPicture,
-  THANK_YOU_GREETING_PICTURE_PATH,
   thankYouGreetingPictureForCode,
+  thankYouGreetingPictureRoutes,
 } from './thankYouGreetingPicture'
 
 // What the database answers is mocked here: the subject is what the address decides itself --
@@ -198,17 +199,16 @@ describe('GET /api/thank-you-greeting-picture/<code>', () => {
   let port: number
 
   beforeAll(async () => {
-    const app = express()
-    app.use(cors)
-    app.use(helmet())
-    app.use(THANK_YOU_GREETING_PICTURE_PATH, apiThankYouGreetingPicture)
-    // What stands under `/` in createServer, after the address: Apollo, which answers a GET it
-    // cannot read with a 400 and words of its own. Nothing below the address may get there.
-    app.use((_req, res) => {
-      res.status(400).send('GET query missing.')
-    })
-    server = app.listen(0, '127.0.0.1')
-    await new Promise((resolve) => server.once('listening', resolve))
+    const app = new Elysia({ adapter: node() })
+      .use(cors)
+      .use(
+        helmet({
+          originAgentCluster: false,
+          crossOriginEmbedderPolicy: true,
+        }),
+      )
+      .use(thankYouGreetingPictureRoutes)
+    server = await listenOnFreePort(app)
     port = (server.address() as AddressInfo).port
   })
   afterAll(async () => {
@@ -364,50 +364,47 @@ describe('GET /api/thank-you-greeting-picture/<code>', () => {
   /** The empty answer, as the address gives it for a text that is no code. */
   const emptyAnswer = async () => withoutDate(await ask(addressOf('no-code')))
 
-  it('is no address for anything but reading: the same empty answer', async () => {
-    const empty = await emptyAnswer()
-    for (const method of ['POST', 'PUT', 'DELETE', 'PATCH']) {
-      const answer = await ask(addressOf(CODE), { method })
-      expect(withoutDate(answer)).toEqual(empty)
-    }
-    expect(picturesOf).not.toHaveBeenCalled()
-    expect(imageOf).not.toHaveBeenCalled()
-  })
-
   /**
-   * ⛔ Everything below the address is the address's own to answer, and gets the one empty
-   * answer: a file's ending, a further part, nothing at all, an escape that cannot be decoded.
-   * None of them falls through to what stands under `/` behind it, and none reaches the database.
+   * One part after the address is the text held against the form of a code: with a file's
+   * ending or an escape it is no code, gets the one empty answer and does not reach the
+   * database.
    */
-  it('takes a code and nothing after it: the same empty answer for every path below it', async () => {
+  it('takes a code and nothing after it: the same empty answer for a text with more in it', async () => {
     const empty = await emptyAnswer()
     expect(empty.status).toBe(404)
     for (const path of [
-      `${addressOf(CODE)}/x`,
       `${addressOf(CODE)}.jpg`,
-      `${addressOf(CODE)}/`,
       `${addressOf(CODE)}%2Fx`,
-      '/api/thank-you-greeting-picture/',
-      '/api/thank-you-greeting-picture',
       '/api/thank-you-greeting-picture/%E0%A4',
       '/api/thank-you-greeting-picture/%',
       `/api/thank-you-greeting-picture/..%2F${CODE}`,
-      `/api/thank-you-greeting-picture/x/${CODE}`,
     ]) {
       const answer = await ask(path)
       // with the path beside it, so that a failure names the one it was
       expect({ path, answer: withoutDate(answer) }).toEqual({ path, answer: empty })
-      expect(answer.body.toString()).not.toContain('GET query missing')
     }
     expect(picturesOf).not.toHaveBeenCalled()
     expect(imageOf).not.toHaveBeenCalled()
   })
 
-  // The address is this path and no other that begins like it.
-  it('leaves a path that only begins like the address to what stands behind it', async () => {
-    const answer = await ask(`/api/thank-you-greeting-picture-x/${CODE}`)
-
-    expect(answer.status).toBe(400)
+  // The route is GET and HEAD of one part after the address. Anything else is no route of
+  // this server, whatever the code in it.
+  it('is no route for another method, a further part, or a path that only begins like it', async () => {
+    for (const [method, path] of [
+      ['POST', addressOf(CODE)],
+      ['PUT', addressOf(CODE)],
+      ['DELETE', addressOf(CODE)],
+      ['PATCH', addressOf(CODE)],
+      ['GET', `${addressOf(CODE)}/x`],
+      ['GET', `/api/thank-you-greeting-picture/x/${CODE}`],
+      ['GET', '/api/thank-you-greeting-picture/'],
+      ['GET', '/api/thank-you-greeting-picture'],
+      ['GET', `/api/thank-you-greeting-picture-x/${CODE}`],
+    ]) {
+      const answer = await ask(path, { method })
+      expect({ method, path, status: answer.status }).toEqual({ method, path, status: 404 })
+    }
     expect(picturesOf).not.toHaveBeenCalled()
+    expect(imageOf).not.toHaveBeenCalled()
   })
 })

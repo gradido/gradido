@@ -3,6 +3,7 @@ import {
   dbSelectThankYouGreetingPictureImage,
   dbSelectThankYouGreetingPicturesByLinkCode,
 } from 'database'
+import { Elysia } from 'elysia'
 import { getLogger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import {
@@ -23,10 +24,10 @@ import {
  *
  * ⛔ One empty answer for everything else -- a text that is no code, an unknown code, a link
  * without a picture, a link that is not open, a link whose maker's account is deleted, a
- * database that does not answer --, with nothing that tells these apart. And for everything
- * BELOW the address: it is mounted with `app.use`, so a path with a file's ending, with a
- * further part or with an escape that cannot be decoded comes here as well and is a text that is
- * no code -- instead of falling through to whatever else answers under `/`.
+ * database that does not answer --, with nothing that tells these apart.
+ *
+ * The route is GET and HEAD of `/<code>` and nothing else: any other method, and a path with a
+ * further part, is no route of this server and gets its 404 -- whatever the code.
  *
  * An address and not base64 in a query, because an <img> and the preview of a link in a
  * messenger need one. Outside GraphQL like /api/version, so the request log of the GraphQL
@@ -74,18 +75,12 @@ export async function thankYouGreetingPictureForCode(
   return image.success ? image.value : null
 }
 
-/**
- * The code a request names: what stands after the address, as it was written -- for a GET (and
- * the HEAD that goes with it). Not decoded: a code is 24 hex characters and needs no escape, and
- * anything else is no code whatever it decodes to.
- */
-const codeOf = (req: { method?: string; path?: string }): string | null =>
-  req.method === 'GET' || req.method === 'HEAD' ? String(req.path ?? '').slice(1) : null
-
-export async function apiThankYouGreetingPicture(req: any, res: any): Promise<void> {
+export const thankYouGreetingPictureRoutes = new Elysia({
+  prefix: THANK_YOU_GREETING_PICTURE_PATH,
+}).get('/:code', async ({ params: { code } }) => {
   let image: Buffer | null = null
   try {
-    image = await thankYouGreetingPictureForCode(codeOf(req), new Date())
+    image = await thankYouGreetingPictureForCode(code, new Date())
   } catch (error) {
     const failed = error as { cause?: { code?: unknown }; code?: unknown } | null
     createLogger().error(
@@ -102,15 +97,20 @@ export async function apiThankYouGreetingPicture(req: any, res: any): Promise<vo
   // a browser from reading it as anything else. Its
   // `Cross-Origin-Resource-Policy: same-origin` keeps other sites from showing it as theirs.
   if (!image) {
-    res.writeHead(404, { 'Cache-Control': 'no-store', 'Content-Length': 0 })
-    res.end()
-    return
+    return new Response(null, {
+      status: 404,
+      headers: { 'Cache-Control': 'no-store', 'Content-Length': '0' },
+    })
   }
-  res.writeHead(200, {
-    'Cache-Control': 'no-store',
-    'Content-Type': 'image/jpeg',
-    'Content-Length': image.length,
-    'Content-Security-Policy': PICTURE_CONTENT_POLICY,
+  // A HEAD is answered with the headers of the picture and without it: Elysia answers it from
+  // the GET route and leaves the picture out.
+  return new Response(image as Uint8Array<ArrayBuffer>, {
+    status: 200,
+    headers: {
+      'Cache-Control': 'no-store',
+      'Content-Type': 'image/jpeg',
+      'Content-Length': String(image.length),
+      'Content-Security-Policy': PICTURE_CONTENT_POLICY,
+    },
   })
-  res.end(image)
-}
+})

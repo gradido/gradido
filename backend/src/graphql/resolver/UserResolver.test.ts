@@ -1,5 +1,4 @@
 import { randomBytes } from 'node:crypto'
-import { once } from 'node:events'
 import { request as httpRequest } from 'node:http'
 import { AddressInfo } from 'node:net'
 import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
@@ -12,6 +11,7 @@ import {
   ApolloServerTestClient,
   cleanDB,
   headerPushMock,
+  listenOnFreePort,
   resetToken,
   TEST_AVATAR_200_PIXELS_BASE64,
   TEST_AVATAR_FULL_BASE64,
@@ -5180,7 +5180,8 @@ describe('UserResolver', () => {
        * ⛔ One operation per HTTP request, which is what lets the cap above be the cap of a
        * request: a POST whose body is an array of operations would otherwise bring the cap
        * once per operation. Apollo Server refuses such a body unless it is told to take it
-       * (`allowBatchedHttpRequests`), and this server does not tell it.
+       * (`allowBatchedHttpRequests`), and this server does not tell it -- and the address of
+       * the Elysia plugin in front of it takes an object and nothing else.
        *
        * Through a real HTTP request: the test client above cannot send an array at all.
        */
@@ -5193,10 +5194,7 @@ describe('UserResolver', () => {
         const token = encode(requester.gradidoID)
 
         const { app } = await createServer(getLogger('apollo'))
-        // On the loopback interface only, and read the port once it is bound: with a host
-        // given, listen() resolves it first and address() is null until 'listening'.
-        const httpServer = app.listen(0, '127.0.0.1')
-        await once(httpServer, 'listening')
+        const httpServer = await listenOnFreePort(app)
         try {
           const { port } = httpServer.address() as AddressInfo
           const answer = await new Promise<{ status?: number; body: string }>((resolve, reject) => {
@@ -5225,11 +5223,10 @@ describe('UserResolver', () => {
             req.end(payload)
           })
 
-          expect(answer.status).toBe(400)
-          const result: { data?: unknown; errors?: { message: string }[] } = JSON.parse(answer.body)
-          expect(result.errors?.map((error) => error.message)).toEqual([
-            'Operation batching disabled.',
-          ])
+          // Refused before Apollo sees it: the address takes one operation, an object.
+          expect(answer.status).toBe(422)
+          const result: { data?: unknown; type?: string; on?: string } = JSON.parse(answer.body)
+          expect(result).toMatchObject({ type: 'validation', on: 'body' })
           // No picture, in whatever shape: nothing of the two operations was run.
           expect(result.data).toBeUndefined()
           expect(answer.body).not.toContain(JPEG_FULL_BASE64)

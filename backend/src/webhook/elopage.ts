@@ -26,15 +26,39 @@
 */
 
 import { LoginElopageBuys } from 'database'
+import { Elysia } from 'elysia'
 import { getLogger } from 'log4js'
+import { parse as parseUrlencoded } from 'qs'
+import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { checkEmailExists, UserResolver } from '@/graphql/resolver/UserResolver'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.webhook.elopage`)
 
-export const elopageWebhook = async (req: any, res: any): Promise<void> => {
-  logger.info('Elopage Hook received')
-  res.status(200).end() // Responding is important
+export const elopageWebhookRoutes = new Elysia().post(
+  '/hook/elopage/' + CONFIG.WEBHOOK_ELOPAGE_SECRET,
+  async ({ request }) => {
+    logger.info('Elopage Hook received')
+    /**
+     * What elopage posted: a form whose fields are nested (`payer[email]=...`), read the way
+     * express read it, or JSON.
+     */
+    const text = await request.text()
+    const jsonBody = request.headers.get('content-type')?.includes('application/json')
+      ? JSON.parse(text)
+      : parseUrlencoded(text)
+
+    // Responding is important: what was bought is filed after the answer, not before it.
+    saveElopageBuy(jsonBody)
+    return new Response(null, { status: 200 })
+  },
+  {
+    // the route reads its body itself: the fields of the form are nested
+    parse: 'none',
+  },
+)
+
+async function saveElopageBuy(body: any): Promise<void> {
   const loginElopageBuy = new LoginElopageBuys()
 
   const {
@@ -47,7 +71,7 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
     success_date,
     event,
     membership,
-  } = req.body
+  } = body
 
   // Do not process certain events
   if (['lesson.viewed', 'lesson.completed', 'lesson.commented'].includes(event)) {

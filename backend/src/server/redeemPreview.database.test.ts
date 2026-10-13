@@ -1,7 +1,13 @@
 // AI-GENERATED — not an architecture reference
 import { request as httpRequest, IncomingHttpHeaders, Server } from 'node:http'
 import { AddressInfo } from 'node:net'
-import { ApolloServerTestClient, cleanDB, resetToken, testEnvironmentWithApp } from '@test/helpers'
+import {
+  ApolloServerTestClient,
+  cleanDB,
+  listenOnFreePort,
+  resetToken,
+  testEnvironmentWithApp,
+} from '@test/helpers'
 import {
   AppDatabase,
   TransactionLink as DbTransactionLink,
@@ -172,8 +178,7 @@ beforeAll(async () => {
   const testEnv = await testEnvironmentWithApp()
   mutate = testEnv.mutate
   db = testEnv.db
-  server = testEnv.app.listen(0, '127.0.0.1')
-  await new Promise((resolve) => server.once('listening', resolve))
+  server = await listenOnFreePort(testEnv.app)
   port = (server.address() as AddressInfo).port
   await cleanDB()
   // The admin has to exist for creationFactory.
@@ -272,15 +277,19 @@ describe('GET /api/redeem-preview/<code>, against a database', () => {
       expect(answer.body.toString()).toBe(document)
     })
 
-    it('answers every path below the address itself, before Apollo', async () => {
-      for (const path of [
-        `/api/redeem-preview/${link.code}.html`,
-        `/api/redeem-preview/${link.code}/x`,
-        '/api/redeem-preview/',
+    // In the server as createServer builds it: the route is reading one part after the
+    // address, and nothing else there is a route -- nor Apollo's, which stands at `/` alone.
+    it('has no route for a further part or another method, also for an open link', async () => {
+      expectSentOn(await atThePath(`/api/redeem-preview/${link.code}.html`))
+      for (const [method, path] of [
+        ['GET', `/api/redeem-preview/${link.code}/x`],
+        ['GET', '/api/redeem-preview/'],
+        ['POST', `/api/redeem-preview/${link.code}`],
       ]) {
-        expectSentOn(await atThePath(path))
+        const answer = await atThePath(path, method)
+        expect({ method, path, status: answer.status }).toEqual({ method, path, status: 404 })
+        expect(answer.body.toString()).not.toContain('og:title')
       }
-      expectSentOn(await atThePath(`/api/redeem-preview/${link.code}`, 'POST'))
     })
   })
 
@@ -319,12 +328,12 @@ describe('GET /api/redeem-preview/<code>, against a database', () => {
   })
 
   /**
-   * Two kinds of request never reach the address: createServer mounts cors and the body
-   * parsers in front of every address of the server, and they answer an OPTIONS and a body
-   * they refuse themselves. What they answer says nothing about a link: it is the same for an
-   * open link, for a code no link has and for a text that is no code -- and never the document.
+   * Two kinds of request get no document: an OPTIONS, which cors in front of every address
+   * of the server answers itself, and a POST, whose body nobody reads -- the address has no
+   * other method than reading. What they are answered says nothing about a link: it is the
+   * same for an open link, for a code no link has and for a text that is no code.
    */
-  it('is answered alike for every code where a request does not get as far as the address', async () => {
+  it('is answered alike for every code where a request is not one that reads', async () => {
     const link = await withMotif()
     resetToken()
     expect((await previewOf(link.code)).status).toBe(200)
@@ -334,10 +343,6 @@ describe('GET /api/redeem-preview/<code>, against a database', () => {
 
     for (const [method, request] of [
       ['OPTIONS', { headers: { 'Access-Control-Request-Headers': 'x-probe' } }],
-      [
-        'GET',
-        { headers: { 'Content-Type': 'application/json', 'Content-Length': '1' }, body: '{' },
-      ],
       [
         'POST',
         { headers: { 'Content-Type': 'application/json', 'Content-Length': '1' }, body: '{' },
@@ -443,7 +448,7 @@ describe('GET /api/redeem-preview/<code>, against a database', () => {
     })
 
     it('for a code no link has, and for a text that is no code', async () => {
-      for (const code of ['00000000000000000000beef', 'no-code', '']) {
+      for (const code of ['00000000000000000000beef', 'no-code']) {
         const answer = await previewOf(code)
         expectSentOn(answer)
         sentOn.push(answer)
@@ -470,7 +475,7 @@ describe('GET /api/redeem-preview/<code>, against a database', () => {
 
     // ⛔ One answer: nothing on the wire tells the cases above apart.
     it('with one and the same answer for all of them', () => {
-      expect(sentOn).toHaveLength(8)
+      expect(sentOn).toHaveLength(7)
       for (const answer of sentOn) {
         expect(withoutDate(answer)).toEqual(withoutDate(sentOn[0]))
       }

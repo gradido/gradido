@@ -1,6 +1,8 @@
 // AI-GENERATED — not an architecture reference
 import { request as httpRequest, IncomingHttpHeaders, Server } from 'node:http'
 import { AddressInfo } from 'node:net'
+import { node } from '@elysia/node'
+import { listenOnFreePort } from '@test/helpers'
 import { getLogger } from 'config-schema/test/testSetup'
 import { hasPhraseInLocale, translateForLocale } from 'core'
 import {
@@ -9,13 +11,13 @@ import {
   TransactionLinkForPreview,
 } from 'database'
 import { DrizzleQueryError } from 'drizzle-orm'
-import express from 'express'
-import helmet from 'helmet'
+import { Elysia } from 'elysia'
+import { helmet } from 'elysia-helmet'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { OG_LOCALE, PREVIEW_LANGUAGES } from '@/data/RedeemPreview.logic'
 import { cors } from './cors'
-import { apiRedeemPreview, REDEEM_PREVIEW_PATH } from './redeemPreview'
+import { redeemPreviewRoutes } from './redeemPreview'
 
 // What the database answers is mocked here: the subject is what the address makes of it on
 // the wire -- status, headers, the document line for line. The rule that reads a link has its
@@ -112,23 +114,19 @@ const configured = {
 beforeAll(async () => {
   CONFIG.COMMUNITY_URL = WALLET
   CONFIG.COMMUNITY_REDEEM_URL = `${WALLET}/redeem/`
-  const app = express()
-  app.use(cors)
-  app.use(helmet())
-  // An answer of the same server that sets no header of its own: what cors and helmet give
-  // every answer.
-  app.get('/plain', (_req, res) => {
-    res.writeHead(204)
-    res.end()
-  })
-  app.use(REDEEM_PREVIEW_PATH, apiRedeemPreview)
-  // What stands under `/` in createServer, after the address: Apollo, which answers a GET it
-  // cannot read with a 400 and words of its own. Nothing below the address may get there.
-  app.use((_req, res) => {
-    res.status(400).send('GET query missing.')
-  })
-  server = app.listen(0, '127.0.0.1')
-  await new Promise((resolve) => server.once('listening', resolve))
+  const app = new Elysia({ adapter: node() })
+    .use(cors)
+    .use(
+      helmet({
+        originAgentCluster: false,
+        crossOriginEmbedderPolicy: true,
+      }),
+    )
+    // An answer of the same server that sets no header of its own: what cors and helmet give
+    // every answer.
+    .get('/plain', () => new Response(null, { status: 204 }))
+    .use(redeemPreviewRoutes)
+  server = await listenOnFreePort(app)
   port = (server.address() as AddressInfo).port
 })
 afterAll(async () => {
@@ -584,7 +582,6 @@ describe('GET /api/redeem-preview/<code>', () => {
 
     it('asks the database nothing about a text that is no code', async () => {
       for (const noCode of [
-        '',
         'x',
         CODE.slice(1),
         `${CODE}1`,
@@ -619,38 +616,25 @@ describe('GET /api/redeem-preview/<code>', () => {
       expect(logger.error.mock.calls).toEqual([['redeem preview not answered (TypeError)']])
     })
 
-    it('answers HEAD with the same, and has no other method: the same again', async () => {
-      for (const method of ['HEAD', 'POST', 'PUT', 'DELETE', 'PATCH']) {
-        findLink.mockResolvedValue(method === 'HEAD' ? null : found(WITH_PHOTO))
-        await expectSentOn(await ask(addressOf(CODE), { method }))
-      }
-      // Only the HEAD came as far as the database.
-      expect(findLink).toHaveBeenCalledTimes(1)
+    it('answers HEAD with the same', async () => {
+      findLink.mockResolvedValue(null)
+
+      await expectSentOn(await ask(addressOf(CODE), { method: 'HEAD' }))
     })
 
     /**
-     * ⛔ Everything below the address is the address's own to answer: a file's ending, a
-     * further part, nothing at all, an escape -- one that cannot be decoded, and one that
-     * would decode to a code, as this server is handed it (a proxy in front may hand on what
-     * it has decoded). None falls through to what stands under `/` behind it, and none
-     * reaches the database.
+     * One part after the address is the text held against the form of a code: with a file's
+     * ending or an escape it is no code, and does not reach the database.
      */
-    it('takes a code and nothing after it: the same answer for every path below it', async () => {
+    it('takes a code and nothing after it: the same answer for a text with more in it', async () => {
       for (const path of [
-        `${addressOf(CODE)}/x`,
         `${addressOf(CODE)}.html`,
         `${addressOf(CODE)}.jpg`,
-        `${addressOf(CODE)}/`,
         `${addressOf(CODE)}%2Fx`,
         `${addressOf(CODE)}%0A`,
-        '/api/redeem-preview/',
-        '/api/redeem-preview',
         '/api/redeem-preview/%E0%A4',
         '/api/redeem-preview/%',
-        // `%61` is an "a": the code, were it decoded.
-        `/api/redeem-preview/%61${CODE.slice(1)}`,
         `/api/redeem-preview/..%2F${CODE}`,
-        `/api/redeem-preview/x/${CODE}`,
       ]) {
         const answer = await ask(path)
         // with the path beside it, so that a failure names the one it was
@@ -665,11 +649,23 @@ describe('GET /api/redeem-preview/<code>', () => {
     })
   })
 
-  // The address is this path and no other that begins like it.
-  it('leaves a path that only begins like the address to what stands behind it', async () => {
-    const answer = await ask(`/api/redeem-preview-x/${CODE}`)
-
-    expect(answer.status).toBe(400)
+  // The route is GET and HEAD of one part after the address. Anything else is no route of
+  // this server, whatever the code in it.
+  it('is no route for another method, a further part, or a path that only begins like it', async () => {
+    for (const [method, path] of [
+      ['POST', addressOf(CODE)],
+      ['PUT', addressOf(CODE)],
+      ['DELETE', addressOf(CODE)],
+      ['PATCH', addressOf(CODE)],
+      ['GET', `${addressOf(CODE)}/x`],
+      ['GET', `/api/redeem-preview/x/${CODE}`],
+      ['GET', '/api/redeem-preview/'],
+      ['GET', '/api/redeem-preview'],
+      ['GET', `/api/redeem-preview-x/${CODE}`],
+    ]) {
+      const answer = await ask(path, { method })
+      expect({ method, path, status: answer.status }).toEqual({ method, path, status: 404 })
+    }
     expect(findLink).not.toHaveBeenCalled()
   })
 

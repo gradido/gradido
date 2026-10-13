@@ -1,7 +1,13 @@
 // AI-GENERATED — not an architecture reference
 import { request as httpRequest, IncomingHttpHeaders, Server } from 'node:http'
 import { AddressInfo } from 'node:net'
-import { ApolloServerTestClient, cleanDB, resetToken, testEnvironmentWithApp } from '@test/helpers'
+import {
+  ApolloServerTestClient,
+  cleanDB,
+  listenOnFreePort,
+  resetToken,
+  testEnvironmentWithApp,
+} from '@test/helpers'
 import { getLogger } from 'config-schema/test/testSetup'
 import {
   AppDatabase,
@@ -330,8 +336,7 @@ beforeAll(async () => {
   mutate = testEnv.mutate
   query = testEnv.query
   db = testEnv.db
-  server = testEnv.app.listen(0, '127.0.0.1')
-  await new Promise((resolve) => server.once('listening', resolve))
+  server = await listenOnFreePort(testEnv.app)
   port = (server.address() as AddressInfo).port
   await cleanDB()
   // The admin has to exist for creationFactory.
@@ -816,27 +821,29 @@ describe('an open greeting with a picture', () => {
   })
 
   /**
-   * ⛔ Everything below the address is its own to answer, in the server as createServer builds
-   * it -- before Apollo, which stands under `/` and answers a GET it cannot read with words of
-   * its own: a file's ending, a further part, an escape that cannot be decoded, another method.
-   * Each gets the one empty answer, also for the code of an open link with a picture.
+   * In the server as createServer builds it: the route is reading one part after the address.
+   * A text with a file's ending or an escape that cannot be decoded is no code and gets the
+   * one empty answer; a further part and another method are no route of this server -- nor
+   * Apollo's, which stands at `/` alone -- and serve no picture, also for an open link.
    */
-  it('answers empty for every path below the address, and for every method but reading', async () => {
+  it('serves no picture for a text with more in it, a further part or another method', async () => {
     const address = `/api/thank-you-greeting-picture/${link.code}`
-    for (const path of [
-      `${address}.jpg`,
-      `${address}/x`,
-      `${address}/`,
-      '/api/thank-you-greeting-picture/',
-      '/api/thank-you-greeting-picture',
-      '/api/thank-you-greeting-picture/%E0%A4',
-    ]) {
+    for (const path of [`${address}.jpg`, '/api/thank-you-greeting-picture/%E0%A4']) {
       const answer = await atThePath(path)
       expectEmpty(answer)
       expect(answer.headers['content-length']).toBe('0')
     }
-    for (const method of ['POST', 'PUT', 'DELETE']) {
-      expectEmpty(await atThePath(address, method))
+    for (const [method, path] of [
+      ['GET', `${address}/x`],
+      ['GET', '/api/thank-you-greeting-picture/'],
+      ['GET', '/api/thank-you-greeting-picture'],
+      ['POST', address],
+      ['PUT', address],
+      ['DELETE', address],
+    ]) {
+      const answer = await atThePath(path, method)
+      expect({ method, path, status: answer.status }).toEqual({ method, path, status: 404 })
+      expect(answer.headers['content-type']).not.toBe('image/jpeg')
     }
     // …and the address itself still serves the picture.
     expect((await atTheAddress(link.code)).body.equals(LARGE_STORED)).toBe(true)

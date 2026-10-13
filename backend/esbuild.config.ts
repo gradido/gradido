@@ -35,7 +35,8 @@ build({
   keepNames: true,
   entryNames: '[name]',
   // legalComments: 'inline',
-  external: ['sodium-native', 'email-templates', 'shared-native'],
+  // @elysia/node: bundled, it reads import.meta.url, which a CommonJS bundle does not have
+  external: ['sodium-native', 'email-templates', 'shared-native', '@elysia/node'],
   plugins: [
     esbuildDecorators(),
     {
