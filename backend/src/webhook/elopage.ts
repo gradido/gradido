@@ -37,19 +37,29 @@ const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.webhook.elopage`)
 
 export const elopageWebhookRoutes = new Elysia().post(
   '/hook/elopage/' + CONFIG.WEBHOOK_ELOPAGE_SECRET,
-  async ({ request }) => {
+  async ({ request, status }) => {
     logger.info('Elopage Hook received')
     /**
      * What elopage posted: a form whose fields are nested (`payer[email]=...`), read the way
      * express read it, or JSON.
      */
     const text = await request.text()
-    const jsonBody = request.headers.get('content-type')?.includes('application/json')
-      ? JSON.parse(text)
-      : parseUrlencoded(text)
+    let jsonBody: unknown
+    if (request.headers.get('content-type')?.includes('application/json')) {
+      try {
+        jsonBody = JSON.parse(text)
+      } catch {
+        logger.warn('Elopage Hook: body is no JSON')
+        return status(400)
+      }
+    } else {
+      jsonBody = parseUrlencoded(text)
+    }
 
     // Responding is important: what was bought is filed after the answer, not before it.
-    saveElopageBuy(jsonBody)
+    // Nobody waits for it, so what it throws is caught here: an unhandled rejection would
+    // shut the server down.
+    saveElopageBuy(jsonBody).catch((error) => logger.error('Elopage Hook: not processed', error))
     return new Response(null, { status: 200 })
   },
   {

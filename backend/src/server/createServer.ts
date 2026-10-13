@@ -61,6 +61,16 @@ export async function createServer(apolloLogger: Logger): Promise<ServerDef> {
       }
     })
 
+    // What a route throws is written to the log and answered without its message: Elysia on
+    // its own would send the message to whoever asked. A request that fits no route or no
+    // schema keeps Elysia's answer.
+    .onError(({ code, error }) => {
+      if (code === 'UNKNOWN' || code === 'INTERNAL_SERVER_ERROR') {
+        logger.error('request failed', error)
+        return status(500, 'Internal Server Error')
+      }
+    })
+
     // Elopage Webhook
     .use(elopageWebhookRoutes)
 

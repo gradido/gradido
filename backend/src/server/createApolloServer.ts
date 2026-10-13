@@ -13,8 +13,6 @@ export interface ApolloServerDef {
   con: DataSource
   db: AppDatabase
 }
-// parse the schema once on module mounting, not on every initApolloServer call, which will be called often in tests
-const g_schema = schema()
 
 /**
  * The database connection and the Apollo Server on it, not started yet: createServer has the
@@ -30,7 +28,7 @@ export async function createApolloServer(
   await db.init()
 
   const apollo = new ElysiaApolloServer<Context>({
-    schema: await g_schema,
+    schema: await schema(),
     introspection: false,
     // Without it a browser would be shown Apollo's own landing page instead of nothing.
     plugins: [...plugins, ApolloServerPluginLandingPageDisabled()],

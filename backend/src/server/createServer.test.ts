@@ -2,9 +2,22 @@
 import { request as httpRequest, IncomingHttpHeaders, Server } from 'node:http'
 import { AddressInfo } from 'node:net'
 import { cleanDB, listenOnFreePort, testEnvironmentWithApp } from '@test/helpers'
+import { getLogger } from 'config-schema/test/testSetup'
 import { AppDatabase, LoginElopageBuys } from 'database'
 import { GRADIDO_REALM } from 'shared'
+import { verifyGmsHandshakeJWTToken } from '@/apis/gms/GmsClient'
 import { CONFIG } from '@/config'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+
+// The real client, with the check of a token wrapped so that one test can have it throw.
+jest.mock('@/apis/gms/GmsClient', () => {
+  const original = jest.requireActual('@/apis/gms/GmsClient')
+  return {
+    __esModule: true,
+    ...original,
+    verifyGmsHandshakeJWTToken: jest.fn(original.verifyGmsHandshakeJWTToken),
+  }
+})
 
 type Answer = { status: number; headers: IncomingHttpHeaders; body: string }
 
@@ -134,6 +147,45 @@ describe('the http server of the backend', () => {
     const answer = await ask(`/hook/gms/${CONFIG.GMS_WEBHOOK_SECRET}`)
     expect(answer.status).toBe(400)
     expect(JSON.parse(answer.body)).toEqual({ message: 'false' })
+  })
+
+  it('answers what a route throws without its message', async () => {
+    jest.mocked(verifyGmsHandshakeJWTToken).mockImplementationOnce(() => {
+      throw new Error('select from users where gradido_id = secret')
+    })
+    const answer = await ask(`/hook/gms/${CONFIG.GMS_WEBHOOK_SECRET}?token=x`)
+    expect(answer.status).toBe(500)
+    expect(answer.body).toBe('Internal Server Error')
+  })
+
+  it('refuses an elopage hook whose JSON cannot be read, and files nothing', async () => {
+    const save = jest.spyOn(LoginElopageBuys, 'save')
+    const answer = await ask(`/hook/elopage/${CONFIG.WEBHOOK_ELOPAGE_SECRET}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{',
+    })
+    expect(answer.status).toBe(400)
+    expect(save).not.toHaveBeenCalled()
+    save.mockRestore()
+  })
+
+  // A buyer without an address: filing throws after the answer is out, with nobody waiting.
+  it('writes to the log what filing an elopage hook throws, instead of leaving it unhandled', async () => {
+    const elopageLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.webhook.elopage`)
+    const logged = new Promise<unknown[]>((resolve) => {
+      elopageLogger.error.mockImplementationOnce((...args: unknown[]) => resolve(args))
+    })
+    jest.spyOn(LoginElopageBuys, 'save').mockImplementationOnce(async (buy: any) => buy)
+    const answer = await ask(`/hook/elopage/${CONFIG.WEBHOOK_ELOPAGE_SECRET}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body:
+        'payer[first_name]=Theodora&publisher[id]=691&product_id=43944&product[price]=40.0' +
+        '&membership[id]=43944&event=payment.successful',
+    })
+    expect(answer.status).toBe(200)
+    expect(await logged).toEqual(['Elopage Hook: not processed', expect.any(TypeError)])
   })
 
   it('reads the nested fields of the form elopage posts', async () => {
