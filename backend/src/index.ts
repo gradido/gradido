@@ -27,10 +27,20 @@ async function main() {
   // will throw if a home community is missing
   await getHomeCommunityDrizzle()
 
-  app.listen(CONFIG.BACKEND_PORT, () => {
-    // biome-ignore lint/suspicious/noConsole: no need for logging the start message
-    console.log(`Server is running at http://localhost:${CONFIG.BACKEND_PORT}`)
+  // The node adapter with two of its defaults turned off, which express did not have:
+  // - reusePort: a second backend on the same port has to fail to start, not share the port.
+  // - gracefulShutdown: it takes SIGINT and SIGTERM for itself and closes the server only --
+  //   with the timers below still running, the process would never end.
+  // Neither is an option of Bun, which is what Elysia's types name.
+  const options = { port: CONFIG.BACKEND_PORT, reusePort: false, gracefulShutdown: false }
+  // The adapter calls back before the port is bound and keeps a failure to itself: ready()
+  // of the server underneath is what says so. A port already taken ends the start.
+  const started = await new Promise<{ raw: { ready(): Promise<unknown> } }>((resolve) => {
+    app.listen(options as object, (server: unknown) => resolve(server as never))
   })
+  await started.raw.ready()
+  // biome-ignore lint/suspicious/noConsole: no need for logging the start message
+  console.log(`Server is running at http://localhost:${CONFIG.BACKEND_PORT}`)
   await startValidateCommunities(Number(CONFIG.FEDERATION_VALIDATE_COMMUNITY_TIMER))
   // When the members of other communities last changed their pictures (AS-019): what lets the
   // lists show their faces. The first run comes one interval after the start.

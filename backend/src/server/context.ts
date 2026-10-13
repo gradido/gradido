@@ -1,4 +1,3 @@
-import { ExpressContextFunctionArgument } from '@as-integrations/express4'
 import { Transaction as dbTransaction, User as dbUser } from 'database'
 import { GradidoUnit } from 'shared'
 
@@ -97,9 +96,9 @@ export interface Context {
   requestBudget: RequestBudget
 }
 
-export const context = (args: ExpressContextFunctionArgument): Context => {
-  const authorization = args.req.headers.authorization
-  const clientTimezoneOffset = args.req.headers.clienttimezoneoffset
+export const context = ({ request }: { request: Request }): Context => {
+  const authorization = request.headers.get('authorization')
+  const clientTimezoneOffset = request.headers.get('clienttimezoneoffset')
   const context: Context = {
     token: null,
     setHeaders: [],
@@ -108,7 +107,7 @@ export const context = (args: ExpressContextFunctionArgument): Context => {
   if (authorization) {
     context.token = authorization.replace(/^Bearer /, '')
   }
-  if (clientTimezoneOffset && typeof clientTimezoneOffset === 'string') {
+  if (clientTimezoneOffset) {
     context.clientTimezoneOffset = Number(clientTimezoneOffset)
   }
   return context

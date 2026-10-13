@@ -440,7 +440,7 @@ do
   log_step " start $MODULENAME listening on port=$FEDERATION_PORT"
   log_step "===================================================="
   pm2 start --name $MODULENAME \
-    "env TZ=UTC NODE_ENV=production node ./build/index.js" \
+    "env TZ=UTC NODE_ENV=production bun ./build/index.js" \
     --cwd $PROJECT_ROOT/federation \
     -l $GRADIDO_LOG_PATH/pm2.$MODULENAME.$TODAY.log \
     --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'

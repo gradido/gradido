@@ -43,7 +43,7 @@ export default defineConfig({
     video: true,
     retries: 0,
     env: {
-      backendURL: 'http://127.0.0.1:4000',
+      backendURL: 'http://127.0.0.1:4000/graphql',
       mailserverURL: 'http://127.0.0.1:1080',
       loginQuery: `mutation ($email: String!, $password: String!, $publisherId: Int) {
         login(email: $email, password: $password, publisherId: $publisherId) {

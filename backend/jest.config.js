@@ -51,7 +51,7 @@ module.exports = {
     '@test/(.*)': '<rootDir>/test/$1',
   },
   transform: {
-    '^.+\\.(t|j)sx?$': ['@swc/jest', {
+    '^.+\\.m?(t|j)sx?$': ['@swc/jest', {
       jsc: {
         parser: {
           syntax: 'typescript',
@@ -64,7 +64,7 @@ module.exports = {
       }
     }],
   },
-  transformIgnorePatterns: ['/node_modules/(?!(drizzle-orm|valibot)/)'],
+  transformIgnorePatterns: ['/node_modules/(?!(drizzle-orm|valibot|crossws|srvx|elysia-helmet)/)'],
   collectCoverage: false,
   collectCoverageFrom: ['src/**/*.ts', '!**/node_modules/**', '!src/seeds/**', '!build/**'],
   coverageThreshold: {

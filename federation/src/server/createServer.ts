@@ -8,6 +8,7 @@ import { type AnyElysia, Elysia } from 'elysia'
 import { helmet } from 'elysia-helmet'
 import { Logger } from 'log4js'
 import { DataSource } from 'typeorm'
+import { CONFIG } from '@/config'
 // graphql
 import { schema } from '@/graphql/schema'
 // server
@@ -49,6 +50,10 @@ export const createServer = async (
     csrfPrevention: false,
   })
 
+  // The address nginx hands on unchanged, and the one the other communities ask at: one
+  // federation service per api version.
+  const apiPath = `/api/${CONFIG.FEDERATION_API}`
+
   // Elysia Server
   const app = new Elysia({ serve: { maxRequestBodySize: MAX_REQUEST_BODY_SIZE } })
     // cors
@@ -58,11 +63,11 @@ export const createServer = async (
     // Cross-Origin-Resource-Policy instead (tobias-kaerst-software/elysia-helmet#12).
     .use(helmet({ originAgentCluster: false }))
     // starts apollo and answers a POST with it
-    .use(await apollo.createHandler({ path: '/', enablePlayground: false }))
+    .use(await apollo.createHandler({ path: apiPath, enablePlayground: false }))
     // The plugin answers a GET with a landing page of its own, whatever the plugins above say.
     // Apollo answers it instead, as it did behind express: the backend's FederationClient asks
     // for the public key and the community info with a GET.
-    .get('/', async ({ request }) => {
+    .get(apiPath, async ({ request }) => {
       const headers = new HeaderMap()
       request.headers.forEach((value, key) => headers.set(key, value))
       const answer = await apollo.executeHTTPGraphQLRequest({

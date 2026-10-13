@@ -7,6 +7,7 @@ import {
   PasswordEncryptionType,
   publicAlias,
   Result,
+  Uuidv4,
   VoidResult,
 } from 'shared'
 import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
@@ -230,6 +231,20 @@ export async function dbFindUserIdByUuids(
     .where(and(eq(usersTable.communityUuid, communityUuid), eq(usersTable.gradidoId, gradidoID)))
     .limit(1)
   return rows[0]?.id ?? null
+}
+
+export async function dbIsHomeCommunityUserExistByUuid(gradidoId: Uuidv4): Promise<boolean> {
+  const rows = await drizzleDb()
+    .select({ id: usersTable.id })
+    .from(usersTable)
+    .where(
+      and(
+        eq(usersTable.foreign, false),
+        eq(usersTable.gradidoId, gradidoId),
+        isNull(usersTable.deletedAt),
+      ),
+    )
+  return rows.length === 1
 }
 
 /**

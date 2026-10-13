@@ -1,5 +1,7 @@
+import { Server } from 'node:http'
 import { deflateSync } from 'node:zlib'
 import { ApolloServer, HTTPGraphQLHead } from '@apollo/server'
+import { AnyElysia } from 'elysia'
 import { DocumentNode, GraphQLError } from 'graphql'
 import { dbDeleteAllRowsExceptMigrations } from 'database'
 import {
@@ -107,12 +109,14 @@ export const cleanDB = async () => {
 // Apollo on the database, and nothing of HTTP: operations run through the test client.
 export const testEnvironment = async (testLogger = getLogger('apollo')) => {
   const server = await createApolloServer(testLogger)
+  await server.apollo.start()
   const testClient = createTestClient(server.apollo, operationContext)
   return { mutate: testClient.mutate, query: testClient.query, con: server.con, db: server.db }
 }
 
-// The same with the Express application around it (`app`), for a test that asks an address
-// outside GraphQL. It is not listening: the test starts it on a port of its own. What comes
+// The same with the Elysia application around it (`app`), for a test that asks an address
+// outside GraphQL. It is not listening: the test starts it on a port of its own
+// (`listenOnFreePort`). What comes
 // in over that port gets the context of a real request; the test client keeps its own.
 export const testEnvironmentWithApp = async (testLogger = getLogger('apollo')) => {
   const server = await createServer(testLogger)
@@ -125,6 +129,23 @@ export const testEnvironmentWithApp = async (testLogger = getLogger('apollo')) =
     app: server.app,
   }
 }
+
+/**
+ * Starts an application on a free port of the loopback interface and hands out node's own
+ * server once it listens: its address() names the port, close() stops it. The adapter itself
+ * names the port it was asked for, which is 0 here.
+ */
+export const listenOnFreePort = (app: AnyElysia): Promise<Server> =>
+  new Promise((resolve) => {
+    app.listen({ port: 0, hostname: '127.0.0.1' }, (started) => {
+      const server: Server = (started as any).raw.node.server
+      if (server.listening) {
+        resolve(server)
+      } else {
+        server.once('listening', () => resolve(server))
+      }
+    })
+  })
 
 // Taken while it is still the real one - see useFakeTimersForDrizzle.
 const realNextTick = process.nextTick

@@ -1,3 +1,6 @@
+import { Elysia } from 'elysia'
+import * as v from 'valibot'
+
 // esbuild.config.ts rewrites it into a literal `const BUILD_INFO = { commit, source }` computed at build time. See
 // esbuild.config.ts. `as const` narrows `source` to the BuildSource union.
 export const BUILD_INFO = { commit: 'dev', source: 'unknown' } as const
@@ -9,6 +12,11 @@ export const BUILD_INFO = { commit: 'dev', source: 'unknown' } as const
  *
  */
 
-export async function apiVersion(req: any, res: any): Promise<void> {
-  res.json(BUILD_INFO)
-}
+export const versionRoutes = new Elysia().get('/api/version', () => BUILD_INFO, {
+  response: {
+    200: v.object({
+      commit: v.string(),
+      source: v.picklist(['git', 'env', 'unknown']),
+    }),
+  },
+})

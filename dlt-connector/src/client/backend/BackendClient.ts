@@ -32,14 +32,14 @@ export class BackendClient {
    */
   private constructor() {
     this.logger = getLogger(`${LOG4JS_BASE_CATEGORY}.client.BackendClient`)
-    this.urlValue = `http://localhost:${CONFIG.BACKEND_PORT}`
+    this.urlValue = `http://localhost:${CONFIG.BACKEND_PORT}/graphql`
     this.logger.addContext('url', this.urlValue)
 
     this.client = new GraphQLClient(this.urlValue, {
       headers: {
         'content-type': 'application/json',
       },
-      method: 'GET',
+      method: 'POST',
       jsonSerializer: {
         parse: JSON.parse,
         stringify: JSON.stringify,
