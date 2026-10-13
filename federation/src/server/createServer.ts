@@ -1,10 +1,10 @@
 import 'reflect-metadata'
 
-import { ApolloServer } from '@apollo/server'
+import { ApolloServer, HeaderMap } from '@apollo/server'
 import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled'
 import { ElysiaApolloServer } from '@elysia/apollo'
 import { AppDatabase } from 'database'
-import { type AnyElysia, Elysia, status } from 'elysia'
+import { type AnyElysia, Elysia } from 'elysia'
 import { helmet } from 'elysia-helmet'
 import { Logger } from 'log4js'
 import { DataSource } from 'typeorm'
@@ -41,6 +41,12 @@ export const createServer = async (
     // Without it a browser would be shown Apollo's own landing page instead of nothing.
     plugins: [...plugins, ApolloServerPluginLandingPageDisabled()],
     logger: apolloLogger,
+    // No client sends a hash in place of the query, and the handler below requires `query` anyway.
+    persistedQueries: false,
+    // The backend's FederationClient asks with a GET that carries neither a content-type nor one
+    // of apollo's headers, which this check turns down. It guards a browser's cookies, and this
+    // api knows none: who asks is proven by a signed jwt among the arguments.
+    csrfPrevention: false,
   })
 
   // Elysia Server
@@ -54,6 +60,24 @@ export const createServer = async (
     // starts apollo and answers a POST with it
     .use(await apollo.createHandler({ path: '/', enablePlayground: false }))
     // The plugin answers a GET with a landing page of its own, whatever the plugins above say.
-    .get('/', () => status(404))
+    // Apollo answers it instead, as it did behind express: the backend's FederationClient asks
+    // for the public key and the community info with a GET.
+    .get('/', async ({ request }) => {
+      const headers = new HeaderMap()
+      request.headers.forEach((value, key) => headers.set(key, value))
+      const answer = await apollo.executeHTTPGraphQLRequest({
+        httpGraphQLRequest: {
+          method: request.method,
+          headers,
+          search: new URL(request.url).search,
+          body: undefined,
+        },
+        context: async () => ({}),
+      })
+      return new Response(answer.body.kind === 'complete' ? answer.body.string : '', {
+        status: answer.status ?? 200,
+        headers: Object.fromEntries(answer.headers),
+      })
+    })
   return { apollo, app, con: db.getDataSource() }
 }

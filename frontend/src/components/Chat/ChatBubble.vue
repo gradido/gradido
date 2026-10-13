@@ -1038,8 +1038,9 @@ const copyText = async () => {
    the modal 987 px high on an 844 px screen).
 
    `overflow-wrap: anywhere`: a long run without a space -- a pasted link, a row of letters --
-   breaks inside the bubble, which never grows past 80% of the thread. Measured with a message
-   of 2000 characters and a link of 200: nothing past the window at 390 or 1024 px. */
+   breaks inside the bubble, which never grows past 80% of the thread. Measured with messages
+   of 5000 characters -- a letter, and one word of that length -- and a link of 200: nothing
+   past the thread from 320 to 1280 px (12.10.2026). */
 .chat-bubble {
   position: relative;
   max-width: 80%;

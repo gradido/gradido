@@ -237,11 +237,11 @@ export interface ChatMessageBorderDelivery {
  * with a uuid: the receiving server looks the recipient up by nothing else.
  *
  * ⛔ The sealed command is measured before anything is filed or sent. The federation module takes
- * a request of 100 KB at most, and a picture comes close to it: the wallet's picture with an
- * ordinary text fits (CHAT_IMAGE_MAX_BYTES says by how much), with a text made up to be heavy it
- * does not -- MaxLength counts characters, the envelope weighs bytes. Such a message is refused,
- * TOO_LARGE_ACROSS_BORDER, rather than filed as sent and then refused by the other server with a
- * bare 413.
+ * a request of 100 KB at most, and a picture comes close to it: the wallet's picture with a text
+ * of full length fits where a letter is one or two bytes; in Chinese, Hindi or emoji a text of
+ * full length does not (CHAT_IMAGE_MAX_BYTES in shared says how much does) -- MaxLength counts
+ * characters, the envelope weighs bytes. Such a message is refused, TOO_LARGE_ACROSS_BORDER,
+ * rather than filed as sent and then refused by the other server with a bare 413.
  *
  * A message with pictures (P7b): the pictures first, under the message's uuid and under the
  * names the command gives them, then the own copy -- as deliverChatMessageLocally does. Where the

@@ -692,10 +692,10 @@ const boxWords = computed(() => {
 const body = computed(() => text.value.trim())
 
 /**
- * Without a picture, the rule the e-mail form holds a message to (1 to 2000 characters), asked
- * of what would be sent -- a field of spaces sends nothing. With a picture the text may be empty,
- * 0 to 2000, as the server takes it (P7a). Nothing while a picture is being made small: it was
- * chosen to go with this message.
+ * Without a picture, the rule the e-mail form holds a message to (1 to MESSAGE_MAX_CHARS
+ * characters), asked of what would be sent -- a field of spaces sends nothing. With a picture the
+ * text may be empty, 0 to as many, as the server takes it (P7a). Nothing while a picture is being
+ * made small: it was chosen to go with this message.
  */
 const canSend = computed(() => {
   if (props.sending) return false

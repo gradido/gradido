@@ -118,11 +118,11 @@ import { pollChatNow } from '@/composables/useChatUpdates'
 import { useAppToast } from '@/composables/useToast'
 import { forwardChatMessage } from '@/graphql/chat.graphql'
 import { memberAlias } from '@/utils/gradidoAddress'
+// The words' length is any message's, the compose bar's.
+import { MESSAGE_MAX_CHARS } from '@/validationSchemas'
 
 /** How many conversations at once, groups and contacts together (E-059 F3; the backend's limit). */
 const CHAT_FORWARD_MAX_TARGETS = 5
-/** The words' length, as any message's (MESSAGE_MAX_CHARS in `shared`, the compose bar's). */
-const MESSAGE_MAX_CHARS = 2000
 
 /**
  * Forwards a message (E-059): the member chooses where to, writes words to go with it where they
