@@ -81,6 +81,7 @@ describe('MemberMapPin', () => {
 
   afterEach(() => {
     vi.restoreAllMocks()
+    window.name = ''
   })
 
   describe('a member who does not stand on the map', () => {
@@ -189,6 +190,33 @@ describe('MemberMapPin', () => {
     it('brings the window to the front', async () => {
       await pinOf(createWrapper()).trigger('click')
       expect(opened.focus).toHaveBeenCalledTimes(1)
+    })
+
+    // ⛔ Bernd, 13.10.2026: "the click switches to the wallet, and the admin interface is gone."
+    // He had come back from the map through the wallet's menu entry "Admin", which takes the
+    // window it is clicked in to the admin interface -- so the admin interface ran in the window
+    // that carries the map's name, and the pin named its own window as the one to open.
+    describe('in an admin interface that runs in the window named for the map', () => {
+      it('takes that name off its own window before it opens the map', async () => {
+        window.name = 'gradido-wallet-map'
+        let ownNameAtTheOpening
+        window.open.mockImplementation(() => {
+          ownNameAtTheOpening = window.name
+          return opened
+        })
+
+        await pinOf(createWrapper()).trigger('click')
+
+        expect(ownNameAtTheOpening).toBe('')
+        // The window it asks for is still the one named for the map: a window of its own now.
+        expect(window.open.mock.calls[0][1]).toBe('gradido-wallet-map')
+      })
+
+      it('leaves a window alone that carries another name', async () => {
+        window.name = 'my-admin'
+        await pinOf(createWrapper()).trigger('click')
+        expect(window.name).toBe('my-admin')
+      })
     })
 
     it('opens the next member in the same window', async () => {
