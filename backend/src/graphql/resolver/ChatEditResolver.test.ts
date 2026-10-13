@@ -354,7 +354,7 @@ describe('editChatMessage refused', () => {
       )
     })
 
-    it('with more than 2000 characters, and with what is no uuid', async () => {
+    it('with a text longer than a message may be, and with what is no uuid', async () => {
       const tooLong = await edit(bibis.messageUuid, 'x'.repeat(MESSAGE_MAX_CHARS + 1))
       expect(tooLong.errors?.[0]?.message).toContain('Argument Validation Error')
       const noUuid = await edit('5', 'Which one?')

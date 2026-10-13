@@ -4,6 +4,7 @@ import { describe, it, expect, afterEach, vi } from 'vitest'
 import { ref } from 'vue'
 import ChatForwardDialog from './ChatForwardDialog.vue'
 import { forwardChatMessage } from '@/graphql/chat.graphql'
+import { MESSAGE_MAX_CHARS } from '@/validationSchemas'
 
 vi.mock('@/i18n', () => ({
   default: { global: { t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key) } },
@@ -214,6 +215,14 @@ describe('ChatForwardDialog (E-059)', () => {
     // The beat asks at once: the copies show in an open thread, and every list asks again.
     expect(polled).toHaveBeenCalledTimes(1)
     expect(wrapper.props('modelValue')).toBe(false)
+  })
+
+  // The words are a message of their own right after the copy: as long as any message, no longer.
+  it('lets the words be as long as a message may be', async () => {
+    mountDialog()
+    await open()
+
+    expect(find('chat-forward-words').attributes('maxlength')).toBe(String(MESSAGE_MAX_CHARS))
   })
 
   it('sends no words that are only spaces, and no box without a contact', async () => {

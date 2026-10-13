@@ -694,8 +694,8 @@ describe('sendChatMessage refused', () => {
     expect(await allMessages()).toEqual(before)
   })
 
-  it('with no text, and with more than 2000 characters', async () => {
-    for (const body of ['', 'x'.repeat(2001)]) {
+  it('with no text, and with a text longer than a message may be', async () => {
+    for (const body of ['', 'x'.repeat(MESSAGE_MAX_CHARS + 1)]) {
       const res = await say(ref(raeuber), body, 'EMAIL')
       expect(res.errors?.[0]?.message).toContain('Argument Validation Error')
     }
@@ -808,7 +808,7 @@ describe('sendChatMessage with a picture', () => {
     expect(await picturesOf(copy.messageUuid)).toHaveLength(1)
   })
 
-  it('refuses a caption of more than 2000 characters all the same', async () => {
+  it('refuses a caption longer than a message may be all the same', async () => {
     const res = await say(ref(raeuber), 'x'.repeat(MESSAGE_MAX_CHARS + 1), 'EMAIL', pictureOf(JPEG))
     expect(res.errors?.[0]?.message).toContain('Argument Validation Error')
   })
@@ -1217,8 +1217,8 @@ describe('sendChatMessage to a member of another community', () => {
       expect(pictures[0].image.equals(JPEG)).toBe(true)
     })
 
-    // What MaxLength counts as 2000 characters, the envelope weighs as some 25 KB: with the
-    // wallet's picture, more than the other server takes.
+    // A message's full length in Chinese is 15 KB, and some 27 KB once the envelope is sealed:
+    // with the wallet's picture, more than the other server takes.
     it('refuses a text too heavy to cross with a picture, and files and sends nothing', async () => {
       peerAnswers({ success: true })
       // A picture with the weight of the wallet's largest, and still that heavy once the server
@@ -1226,7 +1226,7 @@ describe('sendChatMessage to a member of another community', () => {
       const walletPicture = await testNoiseJpeg(212, 212)
       expect(walletPicture.length).toBeGreaterThan(32 * 1024)
       expect(walletPicture.length).toBeLessThanOrEqual(CHAT_IMAGE_MAX_BYTES)
-      const heavy = `😀${String.fromCodePoint(0xfe0f)}`.repeat(MESSAGE_MAX_CHARS)
+      const heavy = '你'.repeat(MESSAGE_MAX_CHARS)
       const messagesBefore = await allMessages()
       const picturesBefore = await allPictures()
 

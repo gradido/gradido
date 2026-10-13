@@ -10,6 +10,7 @@ import ChatComposeBar from './ChatComposeBar.vue'
 import { SWISSTRANSFER_URL } from '@/utils/chatFileLink'
 import { isComputer } from '@/utils/isComputer'
 import { CHAT_IMAGE_UNEDITED } from '@/utils/chatImageEdit'
+import { MESSAGE_MAX_CHARS } from '@/validationSchemas'
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
@@ -224,7 +225,7 @@ describe('ChatComposeBar', () => {
 
     it('stops at the length the server takes', () => {
       mountBar()
-      expect(field().attributes('maxlength')).toBe('2000')
+      expect(field().attributes('maxlength')).toBe(String(MESSAGE_MAX_CHARS))
     })
 
     /**
@@ -234,10 +235,10 @@ describe('ChatComposeBar', () => {
     it('counts what is left only under 200 characters', async () => {
       mountBar()
 
-      await field().setValue('x'.repeat(1800))
+      await field().setValue('x'.repeat(MESSAGE_MAX_CHARS - 200))
       expect(wrapper.find('[data-test="chat-compose-remaining"]').exists()).toBe(false)
 
-      await field().setValue('x'.repeat(1801))
+      await field().setValue('x'.repeat(MESSAGE_MAX_CHARS - 199))
       const count = wrapper.find('[data-test="chat-compose-remaining"]')
       expect(count.text()).toBe('chatThread.remaining {"n":199}')
       expect(field().attributes('aria-describedby')).toContain(count.attributes('id'))
@@ -1456,11 +1457,11 @@ describe('ChatComposeBar', () => {
         expect(button().attributes('aria-disabled')).toBe('true')
         await button().trigger('click')
 
-        await field().setValue('x'.repeat(2001))
+        await field().setValue('x'.repeat(MESSAGE_MAX_CHARS + 1))
         expect(button().attributes('aria-disabled')).toBe('true')
         await button().trigger('click')
 
-        await field().setValue('x'.repeat(2000))
+        await field().setValue('x'.repeat(MESSAGE_MAX_CHARS))
         expect(button().attributes('aria-disabled')).toBe('false')
 
         expect(saved()).toEqual([])
@@ -1483,7 +1484,7 @@ describe('ChatComposeBar', () => {
         mountBar()
         await startEditing(CAPTION)
 
-        await field().setValue('x'.repeat(2001))
+        await field().setValue('x'.repeat(MESSAGE_MAX_CHARS + 1))
 
         expect(button().attributes('aria-disabled')).toBe('true')
       })

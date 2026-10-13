@@ -10,7 +10,7 @@ import {
   V1_0_CommandClient,
 } from 'core'
 import { ChatMessageSelect, Community as DbCommunity, User as DbUser } from 'database'
-import { CommandJwtPayloadType, createKeyPair, verifyAndDecrypt } from 'shared'
+import { CommandJwtPayloadType, createKeyPair, MESSAGE_MAX_CHARS, verifyAndDecrypt } from 'shared'
 import { deliverChatMessageAcrossBorder, deliverChatMessageLocally } from './chatMessageDelivery'
 
 // What the database would do is mocked here: the helper's own decisions are the subject --
@@ -644,7 +644,6 @@ describe('deliverChatMessageAcrossBorder', () => {
       Buffer.from(Array.from({ length: 32 * 1024 - 4 }, (_, n) => (n * 7919) % 251)),
       Buffer.from([0xff, 0xd9]),
     ])
-    const VARIATION_SELECTOR = String.fromCodePoint(0xfe0f)
 
     const withPicture = (image: Buffer, body = 'Look at this') =>
       deliverChatMessageAcrossBorder({
@@ -707,26 +706,31 @@ describe('deliverChatMessageAcrossBorder', () => {
       expect(removePictures).not.toHaveBeenCalled()
     })
 
-    it("sends the wallet's picture with a text of 2000 characters", async () => {
+    // Cyrillic letters are two bytes each: the heaviest of the languages the wallet speaks.
+    it("sends the wallet's picture with a text of full length in Cyrillic letters", async () => {
       store.mockResolvedValue(row('pending'))
       sendCommandForAnswer.mockResolvedValue({ success: true, value: null })
       record.mockResolvedValue(new Date())
+      const russian = 'Привет из Москвы, до встречи завтра утром! '
+        .repeat(MESSAGE_MAX_CHARS)
+        .slice(0, MESSAGE_MAX_CHARS)
 
-      await withPicture(WALLET_PICTURE, '😀'.repeat(2000))
+      await withPicture(WALLET_PICTURE, russian)
 
       expect(sendCommandForAnswer).toHaveBeenCalledTimes(1)
       expect((await payload()).images[0].data).toBe(WALLET_PICTURE.toString('base64'))
     })
 
-    // ⛔ MaxLength counts 2000 characters, the envelope weighs some 25 KB of them: too large for
-    // the other server. Refused before anything is filed or sent.
+    // ⛔ What MaxLength counts and what the envelope weighs are two things: a message's full
+    // length in Chinese is 15 KB, and some 27 KB once it is sealed -- beside the wallet's picture
+    // too large for the other server. Refused before anything is filed or sent.
     it('refuses a command too large for the other server, and files and sends nothing', async () => {
       store.mockResolvedValue(row('pending'))
       sendCommandForAnswer.mockResolvedValue({ success: true, value: null })
 
-      await expect(
-        withPicture(WALLET_PICTURE, `😀${VARIATION_SELECTOR}`.repeat(2000)),
-      ).rejects.toThrow('CHAT_MESSAGE_NOT_SENT: TOO_LARGE_ACROSS_BORDER')
+      await expect(withPicture(WALLET_PICTURE, '你'.repeat(MESSAGE_MAX_CHARS))).rejects.toThrow(
+        'CHAT_MESSAGE_NOT_SENT: TOO_LARGE_ACROSS_BORDER',
+      )
 
       expect(storePictures).not.toHaveBeenCalled()
       expect(store).not.toHaveBeenCalled()

@@ -346,6 +346,7 @@ import { startChatUpdates, stopChatUpdates } from '@/composables/useChatUpdates'
 import { useRightSidePref } from '@/composables/useRightSidePref'
 import { useViewport } from '@/composables/useViewport'
 import { routeSection } from '@/utils/routeSection'
+import { isMapWindowOfAdmin } from '@/utils/adminMapWindow'
 import CONFIG from '@/config'
 import { LAST_TRANSACTIONS_PAGE_SIZE } from '@/constants'
 import { useAppToast } from '@/composables/useToast'
@@ -728,6 +729,15 @@ onError((error) => {
 })
 
 const admin = () => {
+  // ⭐ In the window the admin interface opened for a look at the map, "Admin" is the way back:
+  // that admin interface is still there behind this window, signed in and where the
+  // moderator left it. So the window closes, and nobody is signed out -- the wallet stays
+  // signed in as it does when the window is closed by hand (isMapWindowOfAdmin says why this
+  // is not done by going there in this window).
+  if (isMapWindowOfAdmin(window, CONFIG.ADMIN_AUTH_URL)) {
+    window.close()
+    return
+  }
   window.location.assign(CONFIG.ADMIN_AUTH_URL + store.state.token)
   store.dispatch('logout') // logout without redirect
 }

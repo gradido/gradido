@@ -44,7 +44,15 @@ export const MEMO_MAX_CHARS = 512
 export const MEMO_MIN_CHARS = 5
 // a person-to-person message carries no amount and is stored in no varchar column,
 // so it can be roomier than a memo. A short reply like "Yes" has to pass as well.
-export const MESSAGE_MAX_CHARS = 2000
+//
+// 5000 characters (it was 2000 until 12.10.2026): some 700 words, three pages. What bounds it
+// is not the column -- `chat_messages.body` is a `text` of 65,535 bytes, and the heaviest 5000
+// characters MaxLength lets through are 35,000 -- but the request a message travels in, with
+// its picture beside it: 100 KB, within this community and on the way to another one. The
+// sums stand at CHAT_IMAGE_MAX_BYTES below; chatImageBudget.test.ts and
+// commandRequestBytes.test.ts (core) hold them. Whoever raises this again reads both first:
+// at some 5,500 characters the first of them no longer holds.
+export const MESSAGE_MAX_CHARS = 5000
 export const MESSAGE_MIN_CHARS = 1
 // matching: what a member writes about themselves, and the long form of a single
 // entry. Both are `text` columns, so the database bound is 65535 BYTES — under
@@ -134,19 +142,29 @@ export const JPEG_END_BYTES = [0xff, 0xd9]
 // across its border (E-046). To a member of another community the picture travels inside the
 // command that carries its message, and the federation module takes a request of 100 KB at most
 // (express.json() without a limit, federation/src/server/createServer.ts). The command is
-// encrypted and signed on its way (shared/src/jwt/JWT.ts), which costs some 2.5 KB and 2.37 bytes
-// for every byte of the picture (measured 27.09.2026): the wallet's 32 KB come to some 80 KB, and
-// a text of MESSAGE_MAX_CHARS characters fits beside them -- emoji and quotation marks, which
-// weigh the most, included. Only a text made up to be heavy does not: 2000 emoji or control
-// characters, each with a variation selector, which MaxLength counts as one character with it.
-// The sending server measures the finished request and refuses it before anything is filed
-// (commandRequestBytes in core).
+// encrypted and signed on its way (shared/src/jwt/JWT.ts), which costs some 2.5 KB, 2.37 bytes
+// for every byte of the picture and 1.78 for every byte of the text -- of the text as JSON has
+// written it twice by then: a quotation mark is four bytes, a line break three (measured
+// 27.09.2026 and 12.10.2026). The wallet's 32 KB come to some 80 KB, and what a text may weigh
+// beside them is some 11,800 bytes. (What travels is this server's copy of the picture, encoded
+// again: of six pictures from the wallet it was 1.5 to 8.6 % smaller than what the wallet sent.)
+//
+// A text of MESSAGE_MAX_CHARS characters is that light where a letter is one or two bytes --
+// Latin, Cyrillic, Greek, Arabic: every language the wallet speaks. Where a character is three
+// bytes or more it is not, at its full length: beside the picture go some 3,900 characters of
+// Chinese or Japanese, 4,500 of Hindi, 2,900 emoji. And beside the largest picture this server
+// takes, three kilobytes more than the wallet's, a full text goes where a letter is one byte;
+// of Russian, some 4,300 characters. Without a picture every text goes, the heaviest MaxLength
+// lets through included (a control character with a variation selector, which it counts as
+// one). The sending server measures the finished request and refuses it before anything is
+// filed (commandRequestBytes in core; its test holds these numbers), and the wallet says that
+// the text is too long to go with the picture.
 //
 // Within this community the picture travels as base64 in the same mutation as the text, under
 // express's 100 KB as well (backend/src/server/createServer.ts), as the two avatar renditions do,
-// and there is more room: 35 KB arrive as 47,788 characters of base64, the text is at most
-// 18,000 bytes (chatImageBudget.test.ts says which characters and holds the sum), the query
-// around them some hundred bytes.
+// and every text fits beside it: 35 KB arrive as 47,788 characters of base64, the text is at
+// most 45,000 bytes (chatImageBudget.test.ts says which characters and holds the sum), the
+// query around them some 1.5 KB.
 //
 // A backstop, as the avatar's limits are: the wallet encodes the picture under 32 KB (an area of
 // 800 x 600). That target belongs to the wallet, as AVATAR_*_TARGET_BYTES do.
