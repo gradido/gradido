@@ -943,6 +943,9 @@ describe('chatMarkdownInline', () => {
       '[klick](https://example.org/"onmouseover="x)',
       '[klick](mailto:anna@example.org?subject=x)',
       '[klick]()',
+      // The round bracket closes on the next line, or behind code: no address reaches that far.
+      '[klick](https://example.org/\n)',
+      '[klick](https://example.org/`x`)',
       '[](https://example.org)',
       '[ ](https://example.org)',
       '[klick] (https://example.org)',
@@ -981,6 +984,26 @@ describe('chatMarkdownInline', () => {
       expect(chatMarkdownInline("[a](https://example.org/it's)")).toEqual([
         link("https://example.org/it's", txt('a')),
       ])
+    })
+
+    it('takes room before the address and a scheme in capitals', () => {
+      expect(chatMarkdownInline('[a](   https://example.org/x )')).toEqual([
+        link('https://example.org/x', txt('a')),
+      ])
+      expect(chatMarkdownInline('[a](HTTPS://example.org/x)')).toEqual([
+        link('HTTPS://example.org/x', txt('a')),
+      ])
+    })
+
+    // Longer than that, what stands in the round brackets is no address (MAX_ADDRESS).
+    it('takes an address of up to 2047 signs between the round brackets', () => {
+      const address = `https://example.org/${'x'.repeat(2027)}`
+      expect(address).toHaveLength(2047)
+
+      expect(chatMarkdownInline(`[a](${address})`)).toEqual([link(address, txt('a'))])
+      expect(chatMarkdownInline(`[a](${address}x)`).some((part) => part.type === 'link')).toBe(
+        false,
+      )
     })
 
     // ⛔ Nothing is fetched: a picture's address would tell its server who reads the message.
@@ -1204,10 +1227,10 @@ describe('chatMarkdownInline', () => {
     })
 
     /**
-     * A message is 2000 characters at most (MESSAGE_MAX_CHARS); these are ten times that, and of
-     * the kinds that took the square of their length before each was looked at once: opening
-     * signs without partners, brackets never closed, a numbered stretch under a line of text.
-     * Read in a moment, they are; the limit is wide, for a slow machine.
+     * A message is 5000 characters at most (MESSAGE_MAX_CHARS); these are three and a half times
+     * that and more, and of the kinds that took the square of their length before each was
+     * looked at once: opening signs without partners, brackets never closed, a numbered stretch
+     * under a line of text. Read in a moment, they are; the limit is wide, for a slow machine.
      */
     it.each([
       ['opening stars', '*a '.repeat(7000)],
@@ -1223,6 +1246,9 @@ describe('chatMarkdownInline', () => {
       // Five times longer than the others: a link is looked for only where a bracket still
       // closes on the line, and without that every one of these looked 2000 characters ahead.
       ['links never closed', '[a](b'.repeat(20000)],
+      // Forty times the longest message: every one of these counted its round brackets anew,
+      // as far as an address may reach (two seconds; of the longest message, 37 ms).
+      ['links in links', `${'[a]('.repeat(40000)}${')'.repeat(40000)}`],
       ['angle brackets', '<a'.repeat(10000)],
       // Brackets in brackets around a long run of spaces and a quote: every one of them looked
       // back over the spaces for a title (half a second for a message of 2000 characters).

@@ -175,13 +175,35 @@ const squareBrackets = (items) => {
   return closes
 }
 
-/** For every place, whether a `)` still follows on its line: where none does, no address ends. */
-const roundBracketsAhead = (items) => {
-  const ahead = new Array(items.length + 1).fill(false)
-  for (let at = items.length - 1; at >= 0; at -= 1) {
-    ahead[at] = items[at] !== '\n' && (items[at] === ')' || ahead[at + 1])
-  }
-  return ahead
+/**
+ * Which `)` closes which `(` -- on its line, with nothing but signs between the two --, found
+ * once for the whole text as the square brackets are: counted anew from every `](`, a message of
+ * links in links took its length times the length of an address.
+ */
+const roundBrackets = (items) => {
+  const closes = new Map()
+  let open = []
+  items.forEach((item, at) => {
+    if (!isChar(item) || item === '\n') open = []
+    else if (item === '(') open.push(at)
+    else if (item === ')' && open.length) closes.set(open.pop(), at)
+  })
+  return closes
+}
+
+/** How an address a link may lead to begins (see WEB_ADDRESS and MAIL_ADDRESS). */
+const SCHEME = /^(?:https?:\/\/|ftp:\/\/|mailto:)/i
+
+/**
+ * Whether an address can stand from `from` up to `end`: after room and one `<`, its scheme.
+ * Asked before the address is put together: most round brackets behind square ones hold no
+ * address, and putting each of them together to find that out is what took the time.
+ */
+const beginsWithScheme = (items, from, end) => {
+  let j = from
+  while (j < end && /\s/.test(items[j])) j += 1
+  if (items[j] === '<') j += 1
+  return SCHEME.test(items.slice(j, Math.min(end, j + 8)).join(''))
 }
 
 /**
@@ -190,7 +212,7 @@ const roundBracketsAhead = (items) => {
  */
 const withLinks = (items) => {
   const closes = squareBrackets(items)
-  const closable = roundBracketsAhead(items)
+  const rounds = roundBrackets(items)
   const out = []
   let i = 0
   while (i < items.length) {
@@ -198,7 +220,7 @@ const withLinks = (items) => {
     const at = image ? i + 1 : i
     if (items[at] === '[') {
       const close = closes.get(at)
-      const link = close !== undefined && closable[close + 1] ? linkAt(items, at, close) : null
+      const link = close === undefined ? null : linkAt(items, at, close, rounds.get(close + 1))
       if (link) {
         out.push({ type: 'link', href: link.href, parts: emphasised(link.words) })
         i = link.end
@@ -234,21 +256,14 @@ const withoutTitle = (inside) => {
   return opens > 0 && /\s/.test(inside[opens - 1]) ? inside.slice(0, opens).trimEnd() : inside
 }
 
-/** The link whose `[` stands at `at` and is closed at `close`: its words, its address, its end. */
-const linkAt = (items, at, close) => {
-  if (close === at + 1 || items[close + 1] !== '(') return null
-  let j = close + 2
-  let round = 1
-  const last = Math.min(items.length, j + MAX_ADDRESS)
-  while (j < last && isChar(items[j]) && items[j] !== '\n') {
-    if (items[j] === '(') round += 1
-    if (items[j] === ')') {
-      round -= 1
-      if (round === 0) break
-    }
-    j += 1
-  }
-  if (items[j] !== ')' || round !== 0) return null
+/**
+ * The link whose `[` stands at `at` and is closed at `close`: its words, its address, its end.
+ * `j` is where the round bracket right behind the `]` is closed (roundBrackets); without one,
+ * there is no address.
+ */
+const linkAt = (items, at, close, j) => {
+  if (close === at + 1 || j === undefined) return null
+  if (j - (close + 2) >= MAX_ADDRESS || !beginsWithScheme(items, close + 2, j)) return null
   const address = withoutTitle(
     items
       .slice(close + 2, j)

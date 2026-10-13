@@ -186,7 +186,7 @@ describe('EditChatMessageCommand, a change from another community (E-060)', () =
       nothingWritten()
     })
 
-    // The bounds of a message being sent: 2000 characters, an emoji counted as one.
+    // The bounds of a message being sent (MESSAGE_MAX_CHARS), an emoji counted as one.
     it('a text longer than a message may be', async () => {
       expect(await outcome(params({ body: 'x'.repeat(MESSAGE_MAX_CHARS + 1) }))).toBe(
         EDIT_CHAT_MESSAGE_COMMAND_REFUSED.INVALID,

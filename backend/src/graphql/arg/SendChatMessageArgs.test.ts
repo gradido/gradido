@@ -9,8 +9,8 @@ import { SendChatMessageArgs } from './SendChatMessageArgs'
 /**
  * The bounds of a chat message, on the args class that carries them, with the options type-graphql
  * validates with (graphql/schema.ts). The rule they hold (P7, E-044): without a picture the text
- * is 1 to 2000 characters, as before; with a picture 0 to 2000 -- a picture without a caption is
- * a message.
+ * is 1 to MESSAGE_MAX_CHARS characters, as before; with a picture 0 to as many -- a picture
+ * without a caption is a message.
  *
  * ⛔ The upper bound with a picture is the one to watch. A MinLength behind @ValidateIf would have
  * switched off every check of the field, MaxLength included.
@@ -49,7 +49,7 @@ const checksFailing = async (args: SendChatMessageArgs): Promise<string[]> =>
   refusedBy(await validate(args, SCHEMA_VALIDATE_OPTIONS))
 
 describe('SendChatMessageArgs', () => {
-  it('takes a text of 1 to 2000 characters without a picture, as before', async () => {
+  it('takes a text of 1 character to the length of a message without a picture, as before', async () => {
     expect(await checksFailing(argsWith('x'))).toEqual([])
     expect(await checksFailing(argsWith('x'.repeat(MESSAGE_MAX_CHARS)))).toEqual([])
   })
@@ -63,11 +63,28 @@ describe('SendChatMessageArgs', () => {
     expect(await checksFailing(argsWith('', pictureOf(800, 600)))).toEqual([])
   })
 
-  it('refuses more than 2000 characters -- with a picture as well', async () => {
+  it('refuses a text longer than a message may be -- with a picture as well', async () => {
     const tooLong = 'x'.repeat(MESSAGE_MAX_CHARS + 1)
 
     expect(await checksFailing(argsWith(tooLong))).toEqual(['maxLength'])
     expect(await checksFailing(argsWith(tooLong, pictureOf(800, 600)))).toEqual(['maxLength'])
+  })
+
+  /**
+   * ⛔ What the request budget and the column rest on (chatImageBudget.test.ts in shared): a
+   * character brings ONE variation selector along for nothing -- an emoji with it is one
+   * character --, and every further selector counts as a character of its own. Counted
+   * otherwise, every selector for nothing, a text of one letter and tens of thousands of
+   * selectors would pass as one character.
+   */
+  it('counts one variation selector with its character, and every further one by itself', async () => {
+    const selector = String.fromCodePoint(0xfe0f)
+
+    expect(await checksFailing(argsWith(`😀${selector}`.repeat(MESSAGE_MAX_CHARS)))).toEqual([])
+    expect(await checksFailing(argsWith(`x${selector.repeat(MESSAGE_MAX_CHARS)}`))).toEqual([])
+    expect(await checksFailing(argsWith(`x${selector.repeat(MESSAGE_MAX_CHARS + 1)}`))).toEqual([
+      'maxLength',
+    ])
   })
 
   it('takes each side of a picture from 1 to 4096', async () => {

@@ -64,11 +64,11 @@ describe('validationSchemas', () => {
 
   describe('message (person to person, no amount)', () => {
     it('accepts a message far longer than a memo may be', () => {
-      expect(message.isValidSync(stringOfLength(2000))).toBe(true)
+      expect(message.isValidSync(stringOfLength(5000))).toBe(true)
     })
 
     it('rejects a message beyond the agreed limit', () => {
-      expect(message.isValidSync(stringOfLength(2001))).toBe(false)
+      expect(message.isValidSync(stringOfLength(5001))).toBe(false)
     })
 
     it('accepts a short reply such as "Ja"', () => {
