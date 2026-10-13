@@ -84,8 +84,8 @@ describe('router', () => {
       expect(defaultRoute.redirect()).toEqual({ path: '/login' })
     })
 
-    it('has 43 routes defined', () => {
-      expect(routes).toHaveLength(43)
+    it('has 44 routes defined', () => {
+      expect(routes).toHaveLength(44)
     })
 
     // ZE-020, F12: the layout's greeting is left out on the redeem page, so that what the
@@ -213,6 +213,9 @@ describe('router', () => {
     // Gradido card landed on "page not found". Public on purpose -- a phone camera opens the
     // default browser, so most visitors arrive logged out.
     testRoute('/u/:alias', 'PublicProfile', false)
+    // The entrance of an event link (Event-Matching). Public for the same reason: it arrives
+    // out of a mail or off a slide, in a browser that is mostly not signed in.
+    testRoute('/event', 'EventMatchingLanding', false)
     testRoute('/dk/:code', 'ThankYouCardPayment')
     testRoute('/calculator', 'Calculator')
     testRoute('/scan', 'Scanner')

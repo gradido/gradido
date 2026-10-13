@@ -75,6 +75,53 @@ describe('useAuthLinks', () => {
   })
 
   /**
+   * The entrance of an event link (`/event?interest=…`, Event-Matching). Its query is what the
+   * link offers -- somebody else's words -- and whatever else stands in such an address is not
+   * the link's to say either: a referrer, a guarantor code, a project. The route says so
+   * (`queryStaysBehind`, routes.js), and the two links of the bar above the page hand none of
+   * it on to the registration or the sign-in.
+   */
+  describe('on the entrance of an event link', () => {
+    const entrance = {
+      name: 'EventMatchingLanding',
+      params: {},
+      meta: { queryStaysBehind: true },
+      query: {
+        interest: 'Kongress X',
+        details: 'Zwei Zeilen',
+        remote: '1',
+        v: '1',
+        referrer: 'bernd',
+        guarantor: CODE,
+        project: 'garden',
+      },
+    }
+
+    it('leaves the whole query behind', () => {
+      const withParamsAndQuery = linksOn(entrance)
+
+      for (const name of ['Register', 'Login']) {
+        expect(withParamsAndQuery(name)).toEqual({ name, params: {}, query: {} })
+      }
+    })
+
+    it('still hands on what the link itself names', () => {
+      const withParamsAndQuery = linksOn(entrance)
+
+      expect(withParamsAndQuery('Register', { query: { referrer: 'somebody' } }).query).toEqual({
+        referrer: 'somebody',
+      })
+    })
+
+    // The switch is the route's, not the name's: the same address without it carries its query.
+    it('carries the query on from a page whose route does not say so', () => {
+      const withParamsAndQuery = linksOn({ ...entrance, meta: {} })
+
+      expect(withParamsAndQuery('Login').query).toEqual(entrance.query)
+    })
+  })
+
+  /**
    * ⛔ The redeem code of a registration over a transaction or contribution link. The
    * confirmation mail opens `/checkEmail/<optin>/<code>`, and from there the code is handed
    * from page to page as the route param `code` until it is redeemed: over the sign-in to the

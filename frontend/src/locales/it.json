@@ -610,6 +610,16 @@
     "session-renewal-failed": "Non è stato possibile rinnovare la tua sessione. Accedi di nuovo.",
     "unknown-error": "Errore sconosciuto: "
   },
+  "eventMatching": {
+    "landing": {
+      "alreadyThere": "Hai già questa voce.",
+      "firstEntry": "La tua prima voce:",
+      "haveAccount": "Ho già un account",
+      "headline": "La mappa che ti porta alle persone del tuo congresso",
+      "otherCommunity": "Il tuo account è in un'altra comunità? Allora accedi lì e inserisci la frase a mano.",
+      "register": "Crea un account"
+    }
+  },
   "existingGradidoAccount": "Hai già un account {communityName}?",
   "firstCreation": {
     "again": "+ C'era dell'altro",

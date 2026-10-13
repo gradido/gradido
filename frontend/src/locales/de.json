@@ -610,6 +610,16 @@
     "session-renewal-failed": "Deine Sitzung konnte nicht verlängert werden. Bitte melde Dich erneut an.",
     "unknown-error": "Unbekannter Fehler: "
   },
+  "eventMatching": {
+    "landing": {
+      "alreadyThere": "Diesen Eintrag hast Du schon.",
+      "firstEntry": "Dein erster Eintrag:",
+      "haveAccount": "Ich habe schon ein Konto",
+      "headline": "Die Karte zu den Menschen Deines Kongresses",
+      "otherCommunity": "Dein Konto ist in einer anderen Gemeinschaft? Dann melde Dich dort an und trage den Satz von Hand ein.",
+      "register": "Konto anlegen"
+    }
+  },
   "existingGradidoAccount": "Du hast schon ein {communityName} Konto?",
   "firstCreation": {
     "again": "+ Da war noch mehr",

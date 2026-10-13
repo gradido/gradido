@@ -610,6 +610,16 @@
     "session-renewal-failed": "Your session could not be renewed. Please log in again.",
     "unknown-error": "Unknown error: "
   },
+  "eventMatching": {
+    "landing": {
+      "alreadyThere": "You already have this entry.",
+      "firstEntry": "Your first entry:",
+      "haveAccount": "I already have an account",
+      "headline": "The map to the people of your congress",
+      "otherCommunity": "Is your account in another community? Then sign in there and type the sentence by hand.",
+      "register": "Create an account"
+    }
+  },
   "existingGradidoAccount": "Already have a {communityName} account?",
   "firstCreation": {
     "again": "+ There was more",

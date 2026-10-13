@@ -610,6 +610,16 @@
     "session-renewal-failed": "Oturumun yenilenemedi. Lütfen tekrar giriş yap.",
     "unknown-error": "Bilinmeyen hata: "
   },
+  "eventMatching": {
+    "landing": {
+      "alreadyThere": "Bu girişin zaten var.",
+      "firstEntry": "İlk eşleşme girişin:",
+      "haveAccount": "Zaten bir hesabım var",
+      "headline": "Seni kongrendeki insanlara götüren harita",
+      "otherCommunity": "Hesabın başka bir toplulukta mı? O zaman orada giriş yap ve cümleyi elle gir.",
+      "register": "Hesap aç"
+    }
+  },
   "existingGradidoAccount": "Zaten bir {communityName} hesabın var mı?",
   "firstCreation": {
     "again": "+ Daha fazlası vardı",

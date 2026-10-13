@@ -81,6 +81,7 @@ const {
   humhubAllowed,
   gmsPublishLocation,
   publisherId,
+  eventMatchingEntry,
   role,
   hasElopage,
   hideAmountGDD,
@@ -193,6 +194,36 @@ describe('Vuex store', () => {
         const state = { redirectPath: '/overview' }
         redirectPath(state, null)
         expect(state.redirectPath).toEqual('/overview')
+      })
+    })
+
+    // What an event link offered somebody who was not signed in, with the moment it was kept
+    // (utils/eventMatchingLink).
+    describe('eventMatchingEntry', () => {
+      const entry = {
+        summary: 'Kongress Frequency Healing',
+        details: null,
+        remote: true,
+        keptAt: 1791892800000,
+      }
+
+      it('holds the entry of the link', () => {
+        const state = { eventMatchingEntry: null }
+        eventMatchingEntry(state, entry)
+        expect(state.eventMatchingEntry).toEqual(entry)
+      })
+
+      it('lets it go', () => {
+        const state = { eventMatchingEntry: entry }
+        eventMatchingEntry(state, null)
+        expect(state.eventMatchingEntry).toBeNull()
+      })
+
+      // One value for "nothing held", whatever a caller hands over.
+      it('holds null, never undefined', () => {
+        const state = { eventMatchingEntry: entry }
+        eventMatchingEntry(state, undefined)
+        expect(state.eventMatchingEntry).toBeNull()
       })
     })
   })
@@ -402,9 +433,16 @@ describe('Vuex store', () => {
         expect(forgetLegacyMapPrefsMock).toHaveBeenCalled()
       })
 
-      it('calls twenty-six commits', () => {
+      it('calls twenty-seven commits', () => {
         logout({ commit, state, dispatch })
-        expect(commit).toHaveBeenCalledTimes(26)
+        expect(commit).toHaveBeenCalledTimes(27)
+      })
+
+      // What an event link offered goes with whoever signs out, like the publisher's id. (For
+      // a browser nobody signs out of, it ends by itself: keptEventMatchingEntry.)
+      it('lets the entry of an event link go', () => {
+        logout({ commit, state, dispatch })
+        expect(commit).toHaveBeenCalledWith('eventMatchingEntry', null)
       })
 
       // The next member on this device starts from "not known", not from the last one's switch.

@@ -610,6 +610,16 @@
     "session-renewal-failed": "Не удалось продлить вашу сессию. Пожалуйста, войдите снова.",
     "unknown-error": "Неизвестная ошибка: "
   },
+  "eventMatching": {
+    "landing": {
+      "alreadyThere": "Такая запись у вас уже есть.",
+      "firstEntry": "Ваша первая запись:",
+      "haveAccount": "У меня уже есть аккаунт",
+      "headline": "Карта, которая ведёт к людям вашего конгресса",
+      "otherCommunity": "Ваш аккаунт в другом сообществе? Тогда войдите там и введите эту фразу вручную.",
+      "register": "Создать аккаунт"
+    }
+  },
   "existingGradidoAccount": "У вас уже есть аккаунт {communityName}?",
   "firstCreation": {
     "again": "+ Было ещё кое-что",

@@ -474,6 +474,33 @@ const routes = [
     path: '/u/:alias',
     component: () => import('@/pages/PublicProfile'),
   },
+  // The entrance of an event link, `community-host/event?interest=…` (Event-Matching): a host
+  // hands it to the people of a congress, and it offers whoever opens it one entry for the
+  // matching. Public like the Gradido address above, for the same reason -- it arrives out of
+  // a mail or off a slide, in a browser that is mostly not signed in. What the link says is
+  // read by a guard (routes/guards.js): with a session running it leads on to the member's
+  // entries and this page is never shown.
+  //
+  // ⛔ The path and the names of its parameters are a promise (utils/eventMatchingLink): a
+  // link that stands in a mail has to work for good.
+  //
+  // queryStaysBehind: the query of this address is what the link offers, in somebody else's
+  // words. The links of the bar above the page -- "register", "sign in" -- hand a page's query
+  // on to the next (useAuthLinks); from here they must not. Whatever else stands in such an
+  // address, a `referrer` or a `guarantor`, is not the link's to say either.
+  //
+  // Only where the matching is offered at all, like the matching routes: without it the link
+  // lands on "not found" instead of promising a map this community does not have.
+  ...(CONFIG.MATCHING_ACTIVE
+    ? [
+        {
+          name: 'EventMatchingLanding',
+          path: '/event',
+          component: () => import('@/pages/EventMatchingLanding'),
+          meta: { queryStaysBehind: true },
+        },
+      ]
+    : []),
   // Where a scanned thank you card lands. Its own namespace rather than a query on the
   // Gradido address, because the card carries neither a name nor an address, only its
   // code -- which keeps the profile page out of this entirely.

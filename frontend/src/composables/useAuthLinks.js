@@ -25,6 +25,11 @@ export function useAuthLinks() {
    * Params are picked by their NAME only, from the entries the params object itself has: a
    * value that happens to read like another param's name (`optin: 'code'`) is still only a
    * value and does not travel.
+   *
+   * The query of a page that says `queryStaysBehind` (its route's meta) does not go along: on
+   * the entrance of an event link the query is what the link offers -- somebody else's words,
+   * and nothing the registration or the sign-in is to read (routes.js). What the caller hands
+   * in as `options.query` still does.
    * @param {string} name
    * @param {{ params: {}, query: {} }} options
    * @returns {{ name: string, params: {}, query: {} }} a vue3 routing object for :to
@@ -35,7 +40,7 @@ export function useAuthLinks() {
     return {
       name,
       params: Object.fromEntries(Object.entries(params).filter(([key]) => expectedParams.has(key))),
-      query: { ...route.query, ...options.query },
+      query: { ...(route.meta?.queryStaysBehind ? {} : route.query), ...options.query },
     }
   }
 

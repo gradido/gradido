@@ -31,7 +31,14 @@ export function clearEntryDraft() {
 
 export function useEntryDraft() {
   return {
-    /** @param {{summary: string, details: string, matchingType: string}} next */
+    /**
+     * @param {{summary: string, details: string, matchingType: string, remote?: boolean,
+     *   unlessThere?: boolean}} next `remote`: whether the form opens with "found from afar"
+     *   ticked (off where it is not said); `unlessThere`: where the member has this very
+     *   sentence already, the entries page says so instead of opening the form. Both are what
+     *   an event link brings (utils/eventMatchingLink) -- its words come out of an address,
+     *   so the reason above for keeping a search out of one does not stand in its way.
+     */
     put(next) {
       draft.value = next
     },

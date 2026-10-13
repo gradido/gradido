@@ -610,6 +610,16 @@
     "session-renewal-failed": "No se pudo renovar tu sesión. Vuelve a iniciar sesión.",
     "unknown-error": "Error desconocido: "
   },
+  "eventMatching": {
+    "landing": {
+      "alreadyThere": "Ya tienes esta entrada.",
+      "firstEntry": "Tu primera entrada:",
+      "haveAccount": "Ya tengo una cuenta",
+      "headline": "El mapa que te lleva a las personas de tu congreso",
+      "otherCommunity": "¿Tu cuenta está en otra comunidad? Entonces inicia sesión allí y escribe la frase a mano.",
+      "register": "Crear una cuenta"
+    }
+  },
   "existingGradidoAccount": "¿Ya tienes una cuenta de {communityName}?",
   "firstCreation": {
     "again": "+ Había algo más",
