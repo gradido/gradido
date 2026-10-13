@@ -414,6 +414,7 @@
     "humhubProfile": "Aller au profil Humhub",
     "memberMap": "Afficher {name} sur la carte",
     "memberMapBlocked": "Le navigateur a bloqué la fenêtre. Autorise les fenêtres pop-up pour cette page.",
+    "memberSend": "Envoyer à {name}",
     "userSearch": "Aller à la recherche d'utilisateurs"
   },
   "help": {

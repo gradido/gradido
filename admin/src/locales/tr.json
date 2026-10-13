@@ -414,6 +414,7 @@
     "humhubProfile": "Humhub profiline git",
     "memberMap": "{name} kişisini haritada göster",
     "memberMapBlocked": "Tarayıcı pencereyi engelledi. Lütfen bu sayfa için açılır pencerelere (pop-up) izin ver.",
+    "memberSend": "{name} kişisine gönder",
     "userSearch": "Kullanıcı aramasına git"
   },
   "help": {
