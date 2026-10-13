@@ -149,6 +149,7 @@ import { extractGraphQLFieldsForSelect } from './util/extractGraphQLFields'
 import { mayKnowFindable } from './util/findableOnMap'
 import { getKlicktippState } from './util/getKlicktippState'
 import { Location2Point, Point2Location } from './util/Location2Point'
+import { makeEventMatchingEntry } from './util/makeEventMatchingEntry'
 import { maySeeRealName } from './util/maySeeRealName'
 import { describeModeratorCreationGroups } from './util/moderatorCreationGroupScope'
 import { deleteUserRole, setUserRole } from './util/modifyUserRole'
@@ -447,6 +448,11 @@ export class UserResolver {
     if (args.guarantorCode) {
       infos.push('guarantorCode')
     }
+    // That an event link's entry came along, never its words: an interest named beside an
+    // address says something about the person. The request log masks it too (filterVariables).
+    if (args.eventMatchingEntry) {
+      infos.push('eventMatchingEntry')
+    }
     logger.info(`createUser(${infos.join(', ')})`)
 
     return (await registerUser(parseOrThrowFirstIssue(createUserSchema, args), logger)) !== 0
@@ -590,6 +596,12 @@ export class UserResolver {
     } finally {
       await queryRunner.release()
     }
+
+    // The address is confirmed from here on, and that stands whatever follows. An entry an
+    // event link noted at the registration is made now (Event-Matching) -- after the commit,
+    // because it is written through the other connection pool and must not be made for a
+    // confirmation that then fell through. It does not throw, and makes the entry once.
+    await makeEventMatchingEntry(user.id)
 
     // Sign into Klicktipp
     // TODO do we always signUp the user? How to handle things with old users?

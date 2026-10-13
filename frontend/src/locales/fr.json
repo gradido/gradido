@@ -644,6 +644,9 @@
       "headline": "La carte qui te mène aux personnes de ton congrès",
       "otherCommunity": "Ton compte est dans une autre communauté ? Alors identifie-toi là-bas et saisis la phrase à la main.",
       "register": "Créer un compte"
+    },
+    "register": {
+      "firstEntry": "Ta première entrée :"
     }
   },
   "existingGradidoAccount": "Tu as déjà un compte {communityName} ?",

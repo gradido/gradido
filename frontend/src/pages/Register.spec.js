@@ -61,6 +61,13 @@ describe('Register', () => {
         email: 'peter@lustig.de',
         language: 'en',
         publisherId: 'test-publisher-id',
+        eventMatchingEntry: null,
+      },
+      mutations: {
+        // As in store.js.
+        eventMatchingEntry: (state, entry) => {
+          state.eventMatchingEntry = entry ?? null
+        },
       },
     })
   }
@@ -558,6 +565,32 @@ describe('Register', () => {
     })
 
     // The account can be used at once: the answer leads to the sign-in, not to the mailbox.
+    // Whichever way the account is opened, the entry an event link offered goes along
+    // (Event-Matching): an account a member vouches for notes it like any other.
+    it('sends the entry of an event link along with the code', async () => {
+      store.state.eventMatchingEntry = {
+        summary: 'Kongress Frequency Healing',
+        details: null,
+        remote: true,
+        keptAt: Date.now() - 60 * 1000,
+      }
+      const code = inTenMinutes()
+      const page = await pageAt({ referrer: 'MeisterBob', guarantor: code })
+
+      expect(await sent(page)).toEqual(
+        expect.objectContaining({
+          referrerAlias: 'MeisterBob',
+          guarantorCode: code,
+          password: PASSWORD,
+          eventMatchingEntry: {
+            summary: 'Kongress Frequency Healing',
+            details: null,
+            remote: true,
+          },
+        }),
+      )
+    })
+
     it('answers with the way to sign in', async () => {
       const page = await pageAt({ referrer: 'MeisterBob', guarantor: inTenMinutes() })
       await sent(page)
@@ -727,6 +760,185 @@ describe('Register', () => {
         expect(argument?.value.kind).toBe('Variable')
         expect(argument?.value.name.value).toBe(name)
       }
+    })
+  })
+
+  /**
+   * Event-Matching: an event link was opened in this browser before anybody was signed in
+   * (`/event?interest=…`), and the store has kept the entry it offers, for an hour. The
+   * registration takes it along; the server notes it at the account it opens and makes the
+   * entry once the address is confirmed. Every test above runs without one, unchanged.
+   */
+  describe('the entry of an event link', () => {
+    const ENTRY = { summary: 'Kongress Frequency Healing', details: 'Selbstheilung', remote: true }
+    const MINUTE = 60 * 1000
+    const keptAgo = (ms, entry = ENTRY) => ({ ...entry, keptAt: Date.now() - ms })
+
+    const pageWith = async (kept, query = {}) => {
+      store.state.eventMatchingEntry = kept
+      const entryRouter = createRouter({
+        history: createWebHistory(),
+        routes: [
+          { path: '/register/:code?', name: 'Register', component: { template: '<div />' } },
+        ],
+      })
+      await entryRouter.push({ name: 'Register', query })
+      await entryRouter.isReady()
+      return mount(Register, {
+        global: {
+          plugins: [
+            entryRouter,
+            store,
+            createI18n({ legacy: false, locale: 'en', messages: { en } }),
+          ],
+          stubs: {
+            BContainer,
+            BForm,
+            BRow,
+            BCol,
+            BFormGroup,
+            BFormInput,
+            BFormInvalidFeedback,
+            BFormCheckbox,
+            BButton,
+            InputEmail,
+            Message: true,
+            AuthTriads: true,
+          },
+        },
+      })
+    }
+    const fillIn = async (page) => {
+      await page.find('#registerFirstname').setValue('Max')
+      await page.find('#registerLastname').setValue('Mustermann')
+      await page.find('#email-input-field').setValue('max.mustermann@gradido.net')
+      await page.find('#registerCheckbox').setValue(true)
+    }
+    const submit = async (page) => {
+      mockMutate.mockResolvedValue({ data: { createUser: true } })
+      await fillIn(page)
+      await page.find('form').trigger('submit')
+      await flushPromises()
+      expect(mockMutate).toHaveBeenCalledTimes(1)
+      return mockMutate.mock.calls[0][0]
+    }
+    const line = (page) => page.find('[data-test="register-event-entry"]')
+
+    it('says above the form what the first entry will be, in the words of the link', async () => {
+      const page = await pageWith(keptAgo(2 * MINUTE))
+
+      expect(line(page).text().replace(/\s+/g, ' ')).toBe(
+        `${en.eventMatching.register.firstEntry} ${en.matching.type.interesse.prefix} Kongress Frequency Healing`,
+      )
+      expect(
+        line(page).element.compareDocumentPosition(page.find('form').element) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy()
+    })
+
+    // The sentence, the details and the reach as the link said them -- and not the moment the
+    // store kept them at, which is the device's own.
+    it('sends the entry with the registration', async () => {
+      const page = await pageWith(keptAgo(2 * MINUTE))
+
+      const sent = await submit(page)
+
+      expect(sent.eventMatchingEntry).toEqual({
+        summary: 'Kongress Frequency Healing',
+        details: 'Selbstheilung',
+        remote: true,
+      })
+    })
+
+    it('sends an entry without details, found only where the member lives, as it is', async () => {
+      const page = await pageWith(
+        keptAgo(MINUTE, { summary: 'Training X', details: null, remote: false }),
+      )
+
+      expect((await submit(page)).eventMatchingEntry).toEqual({
+        summary: 'Training X',
+        details: null,
+        remote: false,
+      })
+    })
+
+    /**
+     * The answer is the same whether an account was opened or the address was taken. A member
+     * who registered again by mistake then signs in, and the sign-in still offers the form; for
+     * a new account whose entry the server has made by then, the entries say "you have this one
+     * already". So the store keeps it, for its hour.
+     */
+    it('keeps it in the store after the registration, for the sign-in that may follow', async () => {
+      const kept = keptAgo(2 * MINUTE)
+      const page = await pageWith(kept)
+
+      await submit(page)
+
+      expect(store.state.eventMatchingEntry).toEqual(kept)
+    })
+
+    it('keeps it in the store where the registration fails, for the next attempt', async () => {
+      const kept = keptAgo(2 * MINUTE)
+      const page = await pageWith(kept)
+      mockMutate.mockRejectedValue(new Error('Unknown error'))
+      await fillIn(page)
+
+      await page.find('form').trigger('submit')
+      await flushPromises()
+
+      expect(store.state.eventMatchingEntry).toEqual(kept)
+      expect(line(page).exists()).toBe(true)
+    })
+
+    // Not an empty value but no field at all: a registration without an event link sends
+    // exactly what it sent before.
+    it('shows no line and sends no entry where no event link was opened', async () => {
+      const page = await pageWith(null)
+
+      expect(line(page).exists()).toBe(false)
+      expect(await submit(page)).not.toHaveProperty('eventMatchingEntry')
+    })
+
+    // Kept longer ago than an hour, it is no longer the wish of whoever registers now.
+    it('shows no line and sends no entry for one kept more than an hour ago', async () => {
+      const page = await pageWith(keptAgo(61 * MINUTE))
+
+      expect(line(page).exists()).toBe(false)
+      expect(await submit(page)).not.toHaveProperty('eventMatchingEntry')
+    })
+
+    it('still takes one kept just under an hour ago', async () => {
+      const page = await pageWith(keptAgo(59 * MINUTE))
+
+      expect(line(page).exists()).toBe(true)
+      expect(await submit(page)).toHaveProperty('eventMatchingEntry')
+    })
+
+    // The words are the link's -- whoever built it wrote them.
+    it('shows markup in the sentence as the text it is, and sends it as it is', async () => {
+      const summary = '<b>Kongress</b> <img src=x onerror="window.hit=1"> {name} @:signup'
+      const page = await pageWith(keptAgo(MINUTE, { summary, details: null, remote: true }))
+
+      expect(line(page).text()).toContain(summary)
+      expect(line(page).find('b').exists()).toBe(false)
+      expect(line(page).find('img').exists()).toBe(false)
+      expect((await submit(page)).eventMatchingEntry.summary).toBe(summary)
+    })
+
+    // Like the referrer and the guarantor code above: an undeclared variable is dropped on the
+    // way out without an error, and the component tests cannot see that.
+    it('sends a document that declares the entry and hands it to createUser', () => {
+      const operation = createUser.definitions[0]
+      const field = operation.selectionSet.selections[0]
+      const declared = operation.variableDefinitions.find(
+        (v) => v.variable.name.value === 'eventMatchingEntry',
+      )
+
+      expect(declared?.type.kind).toBe('NamedType')
+      expect(declared?.type.name.value).toBe('EventMatchingEntryInput')
+      const argument = field.arguments.find((a) => a.name.value === 'eventMatchingEntry')
+      expect(argument?.value.kind).toBe('Variable')
+      expect(argument?.value.name.value).toBe('eventMatchingEntry')
     })
   })
 })

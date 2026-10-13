@@ -137,6 +137,7 @@ export const createUser = gql`
     $referrerAlias: String
     $guarantorCode: String
     $password: String
+    $eventMatchingEntry: EventMatchingEntryInput
   ) {
     createUser(
       alias: $alias
@@ -150,6 +151,7 @@ export const createUser = gql`
       referrerAlias: $referrerAlias
       guarantorCode: $guarantorCode
       password: $password
+      eventMatchingEntry: $eventMatchingEntry
     )
   }
 `

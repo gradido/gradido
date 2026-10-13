@@ -644,6 +644,9 @@
       "headline": "The map to the people of your congress",
       "otherCommunity": "Is your account in another community? Then sign in there and type the sentence by hand.",
       "register": "Create an account"
+    },
+    "register": {
+      "firstEntry": "Your first entry:"
     }
   },
   "existingGradidoAccount": "Already have a {communityName} account?",

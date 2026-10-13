@@ -22,11 +22,13 @@ import {
   confirmEmail,
   confirmEmailChange,
   createContribution,
+  createMatchingEntry,
   createUser,
   login,
   requestEmailChange,
   resendConfirmationEmail,
 } from '@/seeds/graphql/mutations'
+import { listMatchingEntries } from '@/seeds/graphql/queries'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 
 jest.mock('core', () => {
@@ -58,6 +60,7 @@ CONFIG.EMAIL_CODE_REQUEST_TIME = 10
 const PASSWORD = 'Aa12345_'
 
 let mutate: ApolloServerTestClient['mutate']
+let query: ApolloServerTestClient['query']
 let db: AppDatabase
 let communityUuid: string
 let bob: DbUser
@@ -71,8 +74,13 @@ const loginAs = (email: string, password = PASSWORD) =>
  * scanned Bob's live card chooses a password in the registration form (createUser with a
  * guarantor code). Checked rather than trusted: a taken address would get the silent answer
  * of every registration, and no account.
+ *
+ * `more`: what else the registration brings -- the entry of an event link.
  */
-const openAtTheTable = async (email: string): Promise<DbUser> => {
+const openAtTheTable = async (
+  email: string,
+  more: Record<string, unknown> = {},
+): Promise<DbUser> => {
   const result = await mutate({
     mutation: createUser,
     variables: {
@@ -83,6 +91,7 @@ const openAtTheTable = async (email: string): Promise<DbUser> => {
       referrerAlias: 'MeisterBob',
       guarantorCode: mintGuarantorCode(bob.id, communityUuid).code,
       password: PASSWORD,
+      ...more,
     },
   })
   expect(result.errors).toBeUndefined()
@@ -111,6 +120,7 @@ const ageContactRow = async (id: number, hoursAgo: number) => {
 beforeAll(async () => {
   const testEnv = await testEnvironment()
   mutate = testEnv.mutate
+  query = testEnv.query
   db = testEnv.db
   await cleanDB()
   communityUuid = (await writeHomeCommunityEntry()).communityUuid as string
@@ -304,6 +314,211 @@ describe('AssistedRegistrationResolver', () => {
           typoCorrection: true,
         }),
       )
+    })
+  })
+
+  /**
+   * Event-Matching. A guest at the table may have come through an event link as well: the
+   * registration then brings the entry the link offered. Such an account signs in at once --
+   * and the entry waits all the same, until the address is confirmed, by whichever of the two
+   * doors this account takes.
+   */
+  describe('the entry of an event link', () => {
+    const eventMatchingEntry = {
+      summary: 'Kongress Frequency Healing',
+      details: 'Selbstheilung, Biohacking',
+      remote: true,
+    }
+    const madeEntry = {
+      matching_type: 'interest',
+      summary: 'Kongress Frequency Healing',
+      details: 'Selbstheilung, Biohacking',
+      remote: 1,
+      active: 1,
+    }
+    const notesOf = (userId: number): Promise<unknown[]> =>
+      db
+        .getDataSource()
+        .query('SELECT summary, details, remote FROM event_matching_entries WHERE user_id = ?', [
+          userId,
+        ])
+    const entriesOf = (userId: number): Promise<unknown[]> =>
+      db
+        .getDataSource()
+        .query(
+          'SELECT matching_type, summary, details, remote, active FROM matching_entries WHERE user_id = ?',
+          [userId],
+        )
+
+    describe('at an account that confirms its address by the mail', () => {
+      const email = 'event-guest@example.org'
+      let guest: DbUser
+
+      beforeAll(async () => {
+        guest = await openAtTheTable(email, { eventMatchingEntry })
+      })
+
+      it('waits while the address is unconfirmed: the guest signs in and has no entry', async () => {
+        expect(await notesOf(guest.id)).toEqual([
+          {
+            summary: 'Kongress Frequency Healing',
+            details: 'Selbstheilung, Biohacking',
+            remote: 1,
+          },
+        ])
+        expect(await entriesOf(guest.id)).toEqual([])
+
+        await loginAs(email)
+        const listed = await query({ query: listMatchingEntries })
+        expect(listed.errors).toBeUndefined()
+        expect(listed.data.listMatchingEntries).toEqual([])
+      })
+
+      it('is made when the address is confirmed, and the note is gone', async () => {
+        const confirmed = await mutate({
+          mutation: confirmEmail,
+          variables: { code: guest.emailContact.emailVerificationCode.toString() },
+        })
+        expect(confirmed.errors).toBeUndefined()
+        expect(confirmed.data.confirmEmail).toBe(true)
+
+        expect(await entriesOf(guest.id)).toEqual([madeEntry])
+        expect(await notesOf(guest.id)).toEqual([])
+      })
+
+      it('stands in the guest’s own list like an entry they saved', async () => {
+        await loginAs(email)
+        const listed = await query({ query: listMatchingEntries })
+
+        expect(listed.errors).toBeUndefined()
+        expect(listed.data.listMatchingEntries).toEqual([
+          {
+            uuid: expect.any(String),
+            matchingType: 'interest',
+            summary: 'Kongress Frequency Healing',
+            details: 'Selbstheilung, Biohacking',
+            remote: true,
+            active: true,
+          },
+        ])
+      })
+
+      // The second click finds the address confirmed and answers at once (confirmEmail): it
+      // does not come near the entry. Held here as what the member sees.
+      it('the second click on the mail finds the address confirmed, and makes nothing more', async () => {
+        const again = await mutate({
+          mutation: confirmEmail,
+          variables: { code: guest.emailContact.emailVerificationCode.toString() },
+        })
+        expect(again.data.confirmEmail).toBe(true)
+
+        expect(await entriesOf(guest.id)).toHaveLength(1)
+      })
+    })
+
+    /**
+     * Such an account signs in at once. Before its mail is clicked it may open the link again,
+     * find the form and save the entry itself -- the note then has nothing left to make: no
+     * second entry with the same words.
+     */
+    describe('at an account that saved the entry itself before it confirmed', () => {
+      const email = 'event-early@example.org'
+      let guest: DbUser
+
+      beforeAll(async () => {
+        guest = await openAtTheTable(email, { eventMatchingEntry })
+        await loginAs(email)
+        const saved = await mutate({
+          mutation: createMatchingEntry,
+          variables: {
+            input: {
+              matchingType: 'interest',
+              summary: 'kongress frequency HEALING',
+              details: 'Mit eigenen Worten',
+              remote: false,
+            },
+          },
+        })
+        expect(saved.errors).toBeUndefined()
+        resetToken()
+      })
+
+      it('makes no second entry when the address is confirmed, and lets the note go', async () => {
+        const confirmed = await mutate({
+          mutation: confirmEmail,
+          variables: { code: guest.emailContact.emailVerificationCode.toString() },
+        })
+        expect(confirmed.data.confirmEmail).toBe(true)
+
+        expect(await entriesOf(guest.id)).toEqual([
+          {
+            matching_type: 'interest',
+            summary: 'kongress frequency HEALING',
+            details: 'Mit eigenen Worten',
+            remote: 0,
+            active: 1,
+          },
+        ])
+        expect(await notesOf(guest.id)).toEqual([])
+      })
+    })
+
+    // The third door: the guest mistyped the address at the table and corrects it. Confirming
+    // the corrected address is what confirms this account -- and what makes its entry.
+    describe('at an account that corrects its address before it confirmed one', () => {
+      const typoEmail = 'event-typo@example.org'
+      const realEmail = 'event-real@example.org'
+      let guest: DbUser
+
+      beforeAll(async () => {
+        guest = await openAtTheTable(typoEmail, {
+          eventMatchingEntry: { summary: 'Training Rücken', details: null, remote: false },
+        })
+        await loginAs(typoEmail)
+        const requested = await mutate({
+          mutation: requestEmailChange,
+          variables: { email: realEmail, password: PASSWORD },
+        })
+        expect(requested.errors).toBeUndefined()
+        resetToken()
+      })
+
+      it('waits until the corrected address is confirmed, and is made then', async () => {
+        expect(await entriesOf(guest.id)).toEqual([])
+
+        const pending = await DbUserContact.findOneOrFail({ where: { email: realEmail } })
+        const result = await mutate({
+          mutation: confirmEmailChange,
+          variables: { code: pending.emailVerificationCode.toString() },
+        })
+        expect(result.errors).toBeUndefined()
+
+        // Only where the member lives, and without details: as the link said.
+        expect(await entriesOf(guest.id)).toEqual([
+          {
+            matching_type: 'interest',
+            summary: 'Training Rücken',
+            details: null,
+            remote: 0,
+            active: 1,
+          },
+        ])
+        expect(await notesOf(guest.id)).toEqual([])
+      })
+    })
+
+    // Every account without an event link -- nearly all of them: the confirmation is the one
+    // it was, and no entry appears.
+    it('makes nothing for an account that came without one', async () => {
+      const plain = await openAtTheTable('no-event@example.org')
+      const confirmed = await mutate({
+        mutation: confirmEmail,
+        variables: { code: plain.emailContact.emailVerificationCode.toString() },
+      })
+      expect(confirmed.data.confirmEmail).toBe(true)
+
+      expect(await notesOf(plain.id)).toEqual([])
+      expect(await entriesOf(plain.id)).toEqual([])
     })
   })
 })

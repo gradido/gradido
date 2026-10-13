@@ -308,6 +308,29 @@ export const matchingEntriesTable = mysqlTable(
 export type MatchingEntrySelect = typeof matchingEntriesTable.$inferSelect
 export type MatchingEntryInsert = typeof matchingEntriesTable.$inferInsert
 
+// The entry an event link notes at a registration, until the address is confirmed and the
+// entry is made of it (migration 0160): one row an account, there only while it waits.
+export const eventMatchingEntriesTable = mysqlTable(
+  'event_matching_entries',
+  {
+    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
+    // `unsigned`, because `users.id` is `int(10) unsigned` and migration 0160 mirrors it.
+    userId: int('user_id', { unsigned: true }).notNull(),
+    summary: varchar({ length: 160 }).notNull(),
+    details: text().default(sql`NULL`),
+    // boolean() for the reason given at `matching_entries.remote`: the value goes on into an
+    // entry, and from there to the GMS as JSON.
+    remote: boolean().default(true).notNull(),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+  },
+  (table) => [uniqueIndex('event_matching_entries_user_unique').on(table.userId)],
+)
+
+export type EventMatchingEntrySelect = typeof eventMatchingEntriesTable.$inferSelect
+export type EventMatchingEntryInsert = typeof eventMatchingEntriesTable.$inferInsert
+
 export const projectBrandingsTable = mysqlTable(
   'project_brandings',
   {

@@ -14,6 +14,7 @@ jest.mock('database', () => ({
   dbHasGuestRegisteredByLink: jest.fn(),
   dbHomeCommunityGetUuid: jest.fn(),
   dbInsertEvent: jest.fn(),
+  dbInsertEventMatchingEntry: jest.fn(),
   dbInsertUser: jest.fn(),
   dbInsertUserAlias: jest.fn(),
   dbInsertUserContact: jest.fn(),
@@ -56,6 +57,7 @@ import {
   ALIAS_ORIGIN_CHOSEN,
   CommunitiesSelect,
   DBDuplicateEntryError,
+  DBInsertFailed,
   DbUser,
   dbCountUnconfirmedVouchedAccounts,
   dbFindContributionLinkIdByCode,
@@ -70,6 +72,7 @@ import {
   dbHasGuestRegisteredByLink,
   dbHomeCommunityGetUuid,
   dbInsertEvent,
+  dbInsertEventMatchingEntry,
   dbInsertUser,
   dbInsertUserAlias,
   dbInsertUserContact,
@@ -82,6 +85,7 @@ import {
   dbUserUpdateField,
   dbUserUpdatePassword,
   drizzleDb,
+  EventMatchingEntryInsert,
   EventType,
   getHomeCommunityDrizzle,
   ProjectBrandingSelect,
@@ -136,6 +140,11 @@ const storedVerificationCode = (): string =>
 
 const insertedEvents = () => mocked(dbInsertEvent).mock.calls.map(([event]) => event)
 
+// The entry an event link offered (Event-Matching), as a registration brings it along, and the
+// row it is noted as at the account the registration opens.
+const eventEntry = { summary: 'Kongress Frequency Healing', details: 'Selbstheilung', remote: true }
+const notedRow: EventMatchingEntryInsert = { userId: USER_ID, ...eventEntry }
+
 // The transaction run() opens: it hands its callback this stand-in and answers with what the
 // callback answers - and when the callback throws, so does the transaction, which is where the
 // database would roll back.
@@ -153,6 +162,7 @@ beforeEach(() => {
   mocked(dbInsertUserContact).mockResolvedValue({ success: true, value: CONTACT_ID })
   mocked(dbUserUpdateField).mockResolvedValue(1)
   mocked(dbInsertUserAlias).mockResolvedValue({ success: true, value: ALIAS_ID })
+  mocked(dbInsertEventMatchingEntry).mockResolvedValue({ success: true })
   mocked(dbFindUserAliasesExisting).mockResolvedValue([])
   mocked(dbFindUserWithContactById).mockResolvedValue(storedUser)
   mocked(sendAccountActivationEmail).mockResolvedValue({})
@@ -357,6 +367,138 @@ describe('RegisterUserRole', () => {
   })
 })
 
+/**
+ * The entry an event link offered (Event-Matching) comes with the registration and is noted at
+ * the account it opens. Nothing is made of it here: the entry is made once the address is
+ * confirmed (makeEventMatchingEntry).
+ */
+describe('RegisterUserRole with the entry of an event link', () => {
+  // The order in which the mocks were called, by the last call of the first and the first call
+  // of the second.
+  const lastCall = (fn: (...args: never[]) => unknown): number =>
+    mocked(fn).mock.invocationCallOrder.slice(-1)[0]
+  const firstCall = (fn: (...args: never[]) => unknown): number =>
+    mocked(fn).mock.invocationCallOrder[0]
+
+  it('notes nothing where the registration brings none', async () => {
+    for (const eventMatchingEntry of [undefined, null]) {
+      expect(await new RegisterUserRole(input({ eventMatchingEntry })).run(logger)).toBe(USER_ID)
+    }
+    expect(await new RegisterUserRole(input()).run(logger)).toBe(USER_ID)
+
+    expect(dbInsertEventMatchingEntry).not.toHaveBeenCalled()
+  })
+
+  it('notes it at the account the registration opens, in the transaction of the account', async () => {
+    expect(await new RegisterUserRole(input({ eventMatchingEntry: eventEntry })).run(logger)).toBe(
+      USER_ID,
+    )
+
+    expect(dbInsertEventMatchingEntry).toHaveBeenCalledTimes(1)
+    expect(dbInsertEventMatchingEntry).toHaveBeenCalledWith(notedRow, tx)
+  })
+
+  it('notes an entry that is only found where the member lives, and one without details', async () => {
+    await new RegisterUserRole(
+      input({ eventMatchingEntry: { summary: 'Training Rücken', details: '  ', remote: false } }),
+    ).run(logger)
+    await new RegisterUserRole(
+      input({ eventMatchingEntry: { summary: 'Kongress X', remote: true } }),
+    ).run(logger)
+
+    expect(mocked(dbInsertEventMatchingEntry).mock.calls.map(([row]) => row)).toEqual([
+      { userId: USER_ID, summary: 'Training Rücken', details: null, remote: false },
+      { userId: USER_ID, summary: 'Kongress X', details: null, remote: true },
+    ])
+  })
+
+  // Noted once the account and its name stand, and before the account is read back: what the
+  // registration answers with is an account whose entry is noted.
+  it('notes it after the account and its name are stored', async () => {
+    await new RegisterUserRole(input({ eventMatchingEntry: eventEntry })).run(logger)
+
+    expect(firstCall(dbInsertEventMatchingEntry)).toBeGreaterThan(lastCall(dbUserUpdateField))
+    expect(firstCall(dbInsertEventMatchingEntry)).toBeGreaterThan(firstCall(dbInsertUserAlias))
+    expect(firstCall(dbInsertEventMatchingEntry)).toBeLessThan(firstCall(dbFindUserWithContactById))
+  })
+
+  // The account and the entry it registered with stand together or not at all: where the entry
+  // cannot be noted, the transaction ends by throwing, and nothing after it runs.
+  it('opens no account where the entry cannot be noted, and sends nothing', async () => {
+    mocked(dbInsertEventMatchingEntry).mockResolvedValue({
+      success: false,
+      error: new DBInsertFailed('event_matching_entries', notedRow),
+    })
+
+    await expect(
+      new RegisterUserRole(input({ eventMatchingEntry: eventEntry })).run(logger),
+    ).rejects.toThrow('Error while noting the event matching entry')
+    await settled()
+
+    expect(dbFindUserWithContactById).not.toHaveBeenCalled()
+    expect(sendAccountActivationEmail).not.toHaveBeenCalled()
+    expect(dbInsertEvent).not.toHaveBeenCalled()
+    expect(syncHumhub).not.toHaveBeenCalled()
+  })
+
+  // What the registration says of a failure names the step, never the words of the entry.
+  it('says nothing of the entry in the error', async () => {
+    mocked(dbInsertEventMatchingEntry).mockResolvedValue({
+      success: false,
+      error: new DBInsertFailed('event_matching_entries', notedRow),
+    })
+
+    const error: Error = await new RegisterUserRole(input({ eventMatchingEntry: eventEntry }))
+      .run(logger)
+      .then(
+        () => new Error('not refused'),
+        (refused) => refused,
+      )
+
+    expect(error.message).toBe('Error while noting the event matching entry')
+    expect(JSON.stringify({ ...error, message: error.message })).not.toContain('Kongress')
+  })
+
+  // Where the statement itself fails -- a lock that waited too long, a lost connection --,
+  // Drizzle writes its parameters, the words of the entry, into the message. What leaves the
+  // registration names the step and the driver's code.
+  it('says nothing of the entry where the statement itself fails', async () => {
+    mocked(dbInsertEventMatchingEntry).mockRejectedValue(
+      Object.assign(
+        new Error(
+          'Failed query: insert into `event_matching_entries` ... params: 17,Kongress Frequency Healing,Selbstheilung,true',
+        ),
+        {
+          cause: Object.assign(new Error('Lock wait timeout exceeded'), {
+            code: 'ER_LOCK_WAIT_TIMEOUT',
+          }),
+        },
+      ),
+    )
+
+    const error: Error = await new RegisterUserRole(input({ eventMatchingEntry: eventEntry }))
+      .run(logger)
+      .then(
+        () => new Error('not refused'),
+        (refused) => refused,
+      )
+
+    expect(error.message).toBe('Error while noting the event matching entry: ER_LOCK_WAIT_TIMEOUT')
+    expect(JSON.stringify({ ...error, message: error.message })).not.toContain('Kongress')
+    expect(JSON.stringify({ ...error, message: error.message })).not.toContain('Selbstheilung')
+    expect(sendAccountActivationEmail).not.toHaveBeenCalled()
+  })
+
+  it('notes nothing where storing the account fails before', async () => {
+    mocked(dbUserUpdateField).mockImplementation(async (_id, field) => (field === 'alias' ? 0 : 1))
+
+    await expect(
+      new RegisterUserRole(input({ eventMatchingEntry: eventEntry })).run(logger),
+    ).rejects.toThrow('Error while storing the generated alias')
+    expect(dbInsertEventMatchingEntry).not.toHaveBeenCalled()
+  })
+})
+
 // Somebody's change typed the address in and never confirmed it: the contact insert collides,
 // nobody holds the address as their account's, and the pending change yields to the registration.
 describe('RegisterUserRole with an address a pending change holds', () => {
@@ -444,6 +586,16 @@ describe('RegisterUserRole with an address that is taken', () => {
     expect(addContextSpy).toHaveBeenCalledWith('user', 3)
     expect(removeContextSpy).toHaveBeenCalledWith('email')
   })
+
+  // Nobody notes an entry at somebody else's account by registering with their address: not at
+  // the owner's, and not at the row that is taken back.
+  it('notes no entry of an event link, at nobody', async () => {
+    const answer = await new RegisterUserRole(input({ eventMatchingEntry: eventEntry })).run(logger)
+
+    expect(answer).toBeGreaterThan(0)
+    expect(dbInsertEventMatchingEntry).not.toHaveBeenCalled()
+    expect(sendAccountMultiRegistrationEmail).toHaveBeenCalledTimes(1)
+  })
 })
 
 describe('RegisterUserReferrerRole', () => {
@@ -476,6 +628,20 @@ describe('RegisterUserReferrerRole', () => {
       affectedUserId: USER_ID,
       actingUserId: USER_ID,
     })
+  })
+
+  it('notes the entry of an event link with the account', async () => {
+    mocked(dbFindLocalUserByAlias).mockResolvedValue({ id: REFERRER_ID } as UserSelect)
+
+    await new RegisterUserReferrerRole(
+      input({ referrerAlias: 'PeterL', eventMatchingEntry: eventEntry }),
+    ).run(logger)
+
+    expect(dbInsertEventMatchingEntry).toHaveBeenCalledWith(notedRow, tx)
+    expect(dbInsertUser).toHaveBeenCalledWith(
+      expect.objectContaining({ referrerId: REFERRER_ID }),
+      tx,
+    )
   })
 })
 
@@ -521,6 +687,20 @@ describe('RegisterUserFromTransactionLinkRole', () => {
       involvedTransactionLinkId: 11,
     })
   })
+
+  it('notes the entry of an event link with the account', async () => {
+    mocked(dbFindContributionLinkIdByCode).mockResolvedValue(9)
+
+    await new RegisterUserFromTransactionLinkRole(
+      input({ redeemCode: 'CL-abc', eventMatchingEntry: eventEntry }),
+    ).run(logger)
+
+    expect(dbInsertEventMatchingEntry).toHaveBeenCalledWith(notedRow, tx)
+    expect(dbInsertUser).toHaveBeenCalledWith(
+      expect.objectContaining({ contributionLinkId: 9 }),
+      tx,
+    )
+  })
 })
 
 describe('RegisterUserForProjectRole', () => {
@@ -539,6 +719,19 @@ describe('RegisterUserForProjectRole', () => {
       }),
     )
     expect(syncHumhub).toHaveBeenCalledWith(null, storedUser, storedUser.gradidoId, 42)
+  })
+
+  it('notes the entry of an event link with the account', async () => {
+    mocked(dbFindProjectBrandingByAlias).mockResolvedValue({
+      logoUrl: 'https://logo',
+      spaceId: 42,
+    } as ProjectBrandingSelect)
+
+    await new RegisterUserForProjectRole(
+      input({ project: 'garden', eventMatchingEntry: eventEntry }),
+    ).run(logger)
+
+    expect(dbInsertEventMatchingEntry).toHaveBeenCalledWith(notedRow, tx)
   })
 })
 
@@ -612,6 +805,25 @@ describe('RegisterUserGuarantorRole', () => {
     expect(sendAccountActivationEmail).not.toHaveBeenCalled()
   })
 
+  // An account a member vouches for can sign in before its address is confirmed. Its entry
+  // waits all the same: noted, and not an entry yet.
+  it('notes the entry of an event link with the account', async () => {
+    const withEntry = input({
+      guarantorCode: '1700000000.AbCdEfGhIjKlMnOpQrStUv',
+      password: 'Aa1!aaaa',
+      eventMatchingEntry: eventEntry,
+    })
+
+    expect(await new RegisterUserGuarantorRole(withEntry).run(logger)).toBe(USER_ID)
+
+    expect(dbInsertEventMatchingEntry).toHaveBeenCalledTimes(1)
+    expect(dbInsertEventMatchingEntry).toHaveBeenCalledWith(notedRow, tx)
+    expect(dbInsertUser).toHaveBeenCalledWith(
+      expect.objectContaining({ accountState: AccountState.PARTLY_ACTIVATED_GUARANTOR }),
+      tx,
+    )
+  })
+
   it('refuses an invalid code before anything is stored', async () => {
     mocked(verifyGuarantorCode).mockReturnValue(null)
 
@@ -619,6 +831,21 @@ describe('RegisterUserGuarantorRole', () => {
       'Guarantor code invalid or expired',
     )
     expect(dbInsertUser).not.toHaveBeenCalled()
+  })
+
+  it('notes no entry where the code is refused', async () => {
+    mocked(verifyGuarantorCode).mockReturnValue(null)
+
+    await expect(
+      new RegisterUserGuarantorRole(
+        input({
+          guarantorCode: '1700000000.AbCdEfGhIjKlMnOpQrStUv',
+          password: 'Aa1!aaaa',
+          eventMatchingEntry: eventEntry,
+        }),
+      ).run(logger),
+    ).rejects.toThrow('Guarantor code invalid or expired')
+    expect(dbInsertEventMatchingEntry).not.toHaveBeenCalled()
   })
 
   it('refuses when the member vouches for too many unconfirmed accounts', async () => {
@@ -777,6 +1004,16 @@ describe('RegisterUserFromVouchingLinkRole', () => {
       expect(dbUserUpdatePassword).toHaveBeenCalled()
     })
 
+    it('notes the entry of an event link with the account', async () => {
+      await new RegisterUserFromVouchingLinkRole(linkInput({ eventMatchingEntry: eventEntry })).run(
+        logger,
+      )
+
+      expect(dbInsertEventMatchingEntry).toHaveBeenCalledTimes(1)
+      expect(dbInsertEventMatchingEntry).toHaveBeenCalledWith(notedRow, tx)
+      expect(dbUserUpdatePassword).toHaveBeenCalled()
+    })
+
     // The hash runs beside the rest, and starts for an account that stands: the address was
     // free. Started before the account is stored, it ran for a taken address as well.
     it('starts to encrypt the password once the account is stored, for the id it has', async () => {
@@ -909,6 +1146,17 @@ describe('RegisterUserFromVouchingLinkRole', () => {
       expect(dbLockUserRowDrizzle).not.toHaveBeenCalled()
       expect(dbFindTransactionLinkWithOwner).not.toHaveBeenCalled()
     })
+
+    it('notes the entry of an event link on the way through the mail as well', async () => {
+      mocked(dbHasGuestRegisteredByLink).mockResolvedValue(true)
+
+      await expectTheWayThroughTheMail(
+        await new RegisterUserFromVouchingLinkRole(
+          linkInput({ eventMatchingEntry: eventEntry }),
+        ).run(logger),
+      )
+      expect(dbInsertEventMatchingEntry).toHaveBeenCalledWith(notedRow, tx)
+    })
   })
 
   // No member's link, so nobody to vouch: not even the lock is taken.
@@ -991,6 +1239,14 @@ describe('RegisterUserFromVouchingLinkRole', () => {
       expect(insertedEvents()).toEqual([
         { type: EventType.EMAIL_ACCOUNT_MULTIREGISTRATION, affectedUserId: 3, actingUserId: 0 },
       ])
+    })
+
+    it('notes no entry of an event link', async () => {
+      await new RegisterUserFromVouchingLinkRole(linkInput({ eventMatchingEntry: eventEntry })).run(
+        logger,
+      )
+
+      expect(dbInsertEventMatchingEntry).not.toHaveBeenCalled()
     })
   })
 })

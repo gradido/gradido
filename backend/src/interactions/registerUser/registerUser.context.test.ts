@@ -117,4 +117,34 @@ describe('registerUser', () => {
   it('registers plainly when nothing else came along', async () => {
     expect(await roleChosenFor(input())).toBe('RegisterUserRole')
   })
+
+  // The entry an event link offered comes along with whatever else the registration brings,
+  // and is noted by each variant. It chooses none of them.
+  it('lets the entry of an event link decide nothing', async () => {
+    const eventMatchingEntry = { summary: 'Kongress X', details: null, remote: true }
+    const code = { guarantorCode: '1700000000.AbCdEfGhIjKlMnOpQrStUv', password: 'Aa1!aaaa' }
+    const chosen = async (extra: Record<string, unknown>) => [
+      await roleChosenFor(input(extra)),
+      await roleChosenFor(input({ ...extra, eventMatchingEntry })),
+    ]
+
+    expect(await chosen({})).toEqual(['RegisterUserRole', 'RegisterUserRole'])
+    expect(await chosen({ project: 'garden' })).toEqual([
+      'RegisterUserForProjectRole',
+      'RegisterUserForProjectRole',
+    ])
+    expect(await chosen({ redeemCode: 'CL-abc' })).toEqual([
+      'RegisterUserFromTransactionLinkRole',
+      'RegisterUserFromTransactionLinkRole',
+    ])
+    expect(await chosen({ redeemCode: 'abc123', password: 'Aa1!aaaa' })).toEqual([
+      'RegisterUserFromVouchingLinkRole',
+      'RegisterUserFromVouchingLinkRole',
+    ])
+    expect(await chosen(code)).toEqual(['RegisterUserGuarantorRole', 'RegisterUserGuarantorRole'])
+    expect(await chosen({ referrerAlias: 'PeterL' })).toEqual([
+      'RegisterUserReferrerRole',
+      'RegisterUserReferrerRole',
+    ])
+  })
 })

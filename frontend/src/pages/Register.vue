@@ -7,6 +7,16 @@
       <p v-if="referrerAlias" class="alert gradido-border-radius" data-test="register-shown-by">
         {{ $t('site.signup.shownBy', { name: referrerAlias }) }}
       </p>
+      <!-- An event link offered an entry in this browser within the last hour (`/event?…`,
+           Event-Matching): said here once more, because it goes along with the registration
+           and becomes the newcomer's first entry once they have confirmed their address. The
+           words are the link's -- text, never markup, and never handed to a message as one. -->
+      <p v-if="eventEntry" class="alert gradido-border-radius" data-test="register-event-entry">
+        {{ $t('eventMatching.register.firstEntry') }}
+        <span class="register-event-sentence">
+          {{ $t('matching.type.interesse.prefix') }} {{ eventEntry.summary }}
+        </span>
+      </p>
       <!-- A guarantor code that had run out when the page opened: the form is the classic one. -->
       <p
         v-if="guarantorExpiredOnArrival"
@@ -94,6 +104,7 @@ import { useStore } from 'vuex'
 import { useRoute } from 'vue-router'
 import { useAuthLinks } from '@/composables/useAuthLinks'
 import CONFIG from '@/config'
+import { keptEventMatchingEntry } from '@/utils/eventMatchingLink'
 import { isValidUsername } from '@/validationSchemas'
 
 const { toastError } = useAppToast()
@@ -134,6 +145,14 @@ const guarantorExpiredOnArrival = hasGuarantorCode && !guarantorActive
 const guarantorFailed = ref(false)
 const guarantorLimited = ref(false)
 
+// What an event link offered in this browser before anybody was signed in (`/event?…`,
+// routes/guards.js): the entry "I love ‹summary›", kept in the store for an hour
+// (keptEventMatchingEntry). The registration takes it along, and the server notes it at the
+// account it opens -- it becomes an entry when the address is confirmed, also where the mail
+// is opened on another device. Decided once, when the page opens, like the guarantor code:
+// what stands above the form is what is sent.
+const eventEntry = keptEventMatchingEntry(store.state.eventMatchingEntry)
+
 const enterData = computed(() => {
   return !showPageMessage.value
 })
@@ -154,7 +173,15 @@ async function onSubmit() {
       ...(referrerAlias ? { referrerAlias } : {}),
       // Without a guarantor code, neither of the two: the classic registration sends what it sent.
       ...(guarantorActive ? { guarantorCode: guarantor, password: formValues.newPassword } : {}),
+      // Without an event link, the field stays out of the request.
+      ...(eventEntry ? { eventMatchingEntry: eventEntry } : {}),
     })
+    // The store keeps the entry after the registration as well, for its hour. The answer is
+    // the same whether an account was opened or the address was taken, and a member who
+    // registered again by mistake then signs in and still finds the form. Where the server
+    // has made the entry by the time of that sign-in, the member's entries say "you have this
+    // one already" instead (Matching.vue), and the server makes no second one where the member
+    // saves it before the confirmation (makeEventMatchingEntry).
     showPageMessage.value = true
   } catch (error) {
     // The code ran out while the form was being filled in. What was typed stays; a new scan
@@ -173,6 +200,12 @@ async function onSubmit() {
 </script>
 
 <style scoped>
+/* The link's words: a title without a single blank breaks rather than widen the strip. */
+.register-event-sentence {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
 :deep(.btn-gradido) {
   padding-right: 0;
   padding-left: 0;

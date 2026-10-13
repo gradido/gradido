@@ -644,6 +644,9 @@
       "headline": "Seni kongrendeki insanlara götüren harita",
       "otherCommunity": "Hesabın başka bir toplulukta mı? O zaman orada giriş yap ve cümleyi elle gir.",
       "register": "Hesap aç"
+    },
+    "register": {
+      "firstEntry": "İlk eşleşme girişin:"
     }
   },
   "existingGradidoAccount": "Zaten bir {communityName} hesabın var mı?",
