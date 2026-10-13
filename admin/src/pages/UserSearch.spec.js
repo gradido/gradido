@@ -10,9 +10,10 @@ vi.mock('../composables/useCreationMonths', () => ({
     creationLabel: () => 'Creation Date',
   }),
 }))
+const { mockToastSuccess } = vi.hoisted(() => ({ mockToastSuccess: vi.fn() }))
 vi.mock('@/composables/useToast', () => ({
   useAppToast: () => ({
-    toastSuccess: vi.fn(),
+    toastSuccess: mockToastSuccess,
   }),
 }))
 vi.mock('vue-router', () => ({
@@ -80,15 +81,8 @@ describe('UserSearch', () => {
   let wrapper
   const mockT = vi.fn((key) => key) // Mock translation function
 
-  beforeEach(() => {
-    // Mock the useQuery composable, with a copy per test: the page writes role changes into
-    // the list it was handed.
-    useQuery.mockReturnValue({
-      result: { value: { searchUsers: structuredClone(mockSearchUsers) } },
-      refetch: vi.fn(),
-    })
-
-    wrapper = mount(UserSearch, {
+  const mountPage = () =>
+    mount(UserSearch, {
       global: {
         stubs: {
           UserQuery: true,
@@ -103,6 +97,17 @@ describe('UserSearch', () => {
         },
       },
     })
+
+  beforeEach(() => {
+    mockToastSuccess.mockClear()
+    // Mock the useQuery composable, with a copy per test: the page writes role changes into
+    // the list it was handed.
+    useQuery.mockReturnValue({
+      result: { value: { searchUsers: structuredClone(mockSearchUsers) } },
+      refetch: vi.fn(),
+    })
+
+    wrapper = mountPage()
   })
 
   it('renders the component', () => {
@@ -225,6 +230,77 @@ describe('UserSearch', () => {
       await table().vm.$emit('update-deleted-at', 1, DELETED)
       await table().vm.$emit('update-deleted-at', 1, null)
       expect(rowOf(1).findableOnMap).toBe(false)
+    })
+  })
+
+  // ⛔ The client freezes the answers it keeps, and hands them out as they are. The page notes a
+  // new role and a deletion in the rows it shows: written to the answer itself, both threw.
+  // A member deleted in their row was deleted on the server, and the page said nothing --
+  // measured in the built admin interface (13.10.2026). So the page works on copies.
+  describe('with the answer as the client hands it out: read-only', () => {
+    const DELETED = '2026-10-13T10:00:00.000Z'
+    const deepFreeze = (value) => {
+      for (const part of Object.values(value)) {
+        if (part && typeof part === 'object' && !Object.isFrozen(part)) deepFreeze(part)
+      }
+      return Object.freeze(value)
+    }
+    let answer
+    const table = () => wrapper.findComponent({ name: 'SearchUserTable' })
+    const rowOf = (userId) =>
+      table()
+        .props('items')
+        .find((user) => user.userId === userId)
+    const answered = (userId) => answer.searchUsers.userList.find((user) => user.userId === userId)
+
+    beforeEach(() => {
+      answer = deepFreeze({ searchUsers: structuredClone(mockSearchUsers) })
+      useQuery.mockReturnValue({ result: { value: answer }, refetch: vi.fn() })
+      wrapper = mountPage()
+      mockToastSuccess.mockClear()
+    })
+
+    it('proves itself: a row of the answer cannot be written to', () => {
+      expect(() => {
+        answered(1).deletedAt = DELETED
+      }).toThrow(TypeError)
+    })
+
+    it('hands the table rows it may write to, with everything the answer says', () => {
+      expect(table().props('items')).toEqual(answer.searchUsers.userList)
+      expect(Object.isFrozen(rowOf(1))).toBe(false)
+      expect(rowOf(1)).not.toBe(answered(1))
+    })
+
+    it('notes a deletion in its row, takes the pin off and says that the member is deleted', async () => {
+      await table().vm.$emit('update-deleted-at', 1, DELETED)
+
+      expect(rowOf(1).deletedAt).toBe(DELETED)
+      expect(rowOf(1).findableOnMap).toBe(false)
+      expect(mockToastSuccess).toHaveBeenCalledTimes(1)
+      expect(mockToastSuccess).toHaveBeenCalledWith('user_deleted')
+    })
+
+    it('notes that a member was brought back, and says so', async () => {
+      await table().vm.$emit('update-deleted-at', 2, null)
+
+      expect(rowOf(2).deletedAt).toBeNull()
+      expect(mockToastSuccess).toHaveBeenCalledTimes(1)
+      expect(mockToastSuccess).toHaveBeenCalledWith('user_recovered')
+    })
+
+    it('notes a new role in its row', async () => {
+      await table().vm.$emit('update-role', 1, 'MODERATOR')
+      expect(rowOf(1).role).toBe('MODERATOR')
+    })
+
+    it('leaves the answer itself as the client keeps it', async () => {
+      await table().vm.$emit('update-deleted-at', 1, DELETED)
+      await table().vm.$emit('update-role', 1, 'MODERATOR')
+
+      expect(answered(1).deletedAt).toBeNull()
+      expect(answered(1).findableOnMap).toBe(true)
+      expect(answered(1).role).toBeNull()
     })
   })
 })

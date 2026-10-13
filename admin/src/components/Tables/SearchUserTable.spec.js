@@ -233,9 +233,11 @@ describe('SearchUserTable', () => {
     ]
     const fields = [...propsData.fields, { key: 'alias', label: 'username' }]
 
+    // The rows of the members: an open row brings rows of its own under it (its details).
+    const memberRows = () =>
+      wrapper.findAll('tbody > tr').filter((tr) => tr.findAll('td').length === fields.length)
     const usernameCell = (row) =>
-      wrapper
-        .findAll('tbody > tr')
+      memberRows()
         .at(row)
         .findAll('td')
         .at(fields.length - 1)
@@ -330,6 +332,98 @@ describe('SearchUserTable', () => {
         await usernameCell(0).trigger('click')
         expect(wrapper.vm.myItems[0]._showDetails).toBe(true)
       })
+    })
+
+    // ⛔ The table draws rows of its own -- copies of the members the page hands in. A member
+    // deleted in their open row used to stay as they were on the screen until the list was asked
+    // again: the page was told, and its rows are not the ones drawn. The pin or the arrow then
+    // led to somebody who was gone (measured in the built admin interface, 13.10.2026).
+    describe('where the member is deleted or brought back in the open row', () => {
+      const DELETED = '2026-10-13T10:00:00.000Z'
+      const deletedIconIn = (row) => memberRows().at(row).find('.test-deleted-icon')
+      // The form under the open row, as the spec replaces it: it reports what the server said.
+      const formReports = (report) =>
+        wrapper.findComponent('.deleted-user-formular').vm.$emit('updateDeletedAt', report)
+
+      beforeEach(async () => {
+        await usernameCell(0).trigger('click')
+      })
+
+      it('takes the pin off the member who was deleted, and marks the row', async () => {
+        expect(pinIn(0).exists()).toBe(true)
+        expect(deletedIconIn(0).exists()).toBe(false)
+
+        await formReports({ userId: rows[0].userId, deletedAt: DELETED })
+
+        expect(pinIn(0).exists()).toBe(false)
+        expect(arrowIn(0).exists()).toBe(false)
+        expect(deletedIconIn(0).exists()).toBe(true)
+      })
+
+      it('takes the arrow off a member who was deleted', async () => {
+        expect(arrowIn(1).exists()).toBe(true)
+
+        await formReports({ userId: rows[1].userId, deletedAt: DELETED })
+
+        expect(arrowIn(1).exists()).toBe(false)
+        expect(pinIn(1).exists()).toBe(false)
+      })
+
+      it('leaves every other row as it is', async () => {
+        await formReports({ userId: rows[0].userId, deletedAt: DELETED })
+
+        expect(arrowIn(1).exists()).toBe(true)
+        expect(pinIn(2).exists()).toBe(true)
+        expect(arrowIn(3).exists()).toBe(true)
+        expect(wrapper.findAll('.test-deleted-icon')).toHaveLength(1)
+      })
+
+      it('keeps the row open, with the way to bring the member back', async () => {
+        await formReports({ userId: rows[0].userId, deletedAt: DELETED })
+
+        expect(wrapper.vm.myItems[0]._showDetails).toBe(true)
+        expect(wrapper.findAll('.deleted-user-formular')).toHaveLength(1)
+      })
+
+      it('tells the page, as before', async () => {
+        await formReports({ userId: rows[0].userId, deletedAt: DELETED })
+        expect(wrapper.emitted('update-deleted-at')).toEqual([[rows[0].userId, DELETED]])
+      })
+
+      // The form that brings a member back used to report into nothing: nobody listened to it.
+      // Whether the member stands on the map only the server knows, so the row shows the arrow
+      // until the list is asked again.
+      it('shows a member who was brought back as that: no mark, and the arrow', async () => {
+        await formReports({ userId: rows[0].userId, deletedAt: DELETED })
+        await formReports({ userId: rows[0].userId, deletedAt: null })
+
+        expect(deletedIconIn(0).exists()).toBe(false)
+        expect(arrowIn(0).exists()).toBe(true)
+        expect(pinIn(0).exists()).toBe(false)
+        expect(wrapper.emitted('update-deleted-at')).toEqual([
+          [rows[0].userId, DELETED],
+          [rows[0].userId, null],
+        ])
+      })
+
+      it('does not trip over a member who is not among its rows', async () => {
+        await formReports({ userId: 4711, deletedAt: DELETED })
+
+        expect(wrapper.findAll('.test-deleted-icon')).toHaveLength(0)
+        expect(wrapper.emitted('update-deleted-at')).toEqual([[4711, DELETED]])
+      })
+    })
+
+    // The form of the role keeps what it shows by itself, but only while the row is open: opened
+    // again it reads the role off the row.
+    it('notes a new role in its own row, and tells the page', async () => {
+      await usernameCell(0).trigger('click')
+      expect(wrapper.vm.myItems[0].role).toBeNull()
+
+      await wrapper.find('.change-user-role-formular button').trigger('click')
+
+      expect(wrapper.vm.myItems[0].role).toBe('ADMIN')
+      expect(wrapper.emitted('update-role')).toEqual([[1, 'ADMIN']])
     })
   })
 })
