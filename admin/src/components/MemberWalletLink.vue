@@ -1,34 +1,43 @@
 <!-- AI-GENERATED — not an architecture reference -->
 <template>
+  <!-- One button for the three faces. Where the arrow becomes the bubble -- the moderator comes
+       back from the wallet's window, where a first booking made a contact of the member --, it
+       stays the same element: a keyboard that stood on it stands on it still. -->
   <button
-    v-if="onMap"
+    v-if="face"
     type="button"
     class="member-wallet-link"
-    data-test="member-map-pin"
-    :title="$t('goTo.memberMap', { name })"
-    :aria-label="$t('goTo.memberMap', { name })"
-    @click="openInWallet(mapPage(), $t('goTo.memberMapBlocked'))"
+    :data-test="face.test"
+    :title="label"
+    :aria-label="label"
+    @click="openInWallet(face.page(), t('goTo.memberMapBlocked'))"
   >
-    <IBiGeoAltFill aria-hidden="true" />
+    <IBiGeoAltFill v-if="face === FACES.map" aria-hidden="true" />
+    <IMdiChatOutline v-else-if="face === FACES.chat" aria-hidden="true" />
+    <IBiSend v-else aria-hidden="true" />
   </button>
-  <button
-    v-else-if="canBeSentTo"
-    type="button"
+  <!-- The room of the bubble or the arrow, kept free while the server is asked which of the
+       two it is -- three seconds at the most: what comes a moment later moves nothing in the
+       row. -->
+  <span
+    v-else-if="reach === 'wait'"
     class="member-wallet-link"
-    data-test="member-send-arrow"
-    :title="$t('goTo.memberSend', { name })"
-    :aria-label="$t('goTo.memberSend', { name })"
-    @click="openInWallet(sendPage(), $t('goTo.memberMapBlocked'))"
-  >
-    <IBiSend aria-hidden="true" />
-  </button>
+    data-test="member-wallet-link-wait"
+    aria-hidden="true"
+  />
 </template>
 
 <script setup>
-import { computed, inject } from 'vue'
+import { computed, inject, onBeforeUnmount, onMounted, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { storeKey } from 'vuex'
 import { useApolloClient } from '@vue/apollo-composable'
 import CONFIG from '@/config'
+import {
+  MODERATOR_CONTACTS_RETURN_MS,
+  askModeratorContacts,
+  moderatorContact,
+} from '@/composables/useModeratorContacts'
 import { useAppToast } from '@/composables/useToast'
 import { verifyLogin } from '@/graphql/verifyLogin'
 import { MAP_WINDOW_NAME, dropMapWindowName } from '@/utils/mapWindow'
@@ -48,16 +57,24 @@ import { MAP_WINDOW_NAME, dropMapWindowName } from '@/utils/mapWindow'
  * the map or over that form -- but for two, who get neither: a deleted member, to whom nothing
  * can be sent, and the moderator, who cannot send to themselves.
  *
+ * And in the arrow's place the bubble of the wallet's chat, where the moderator is in contact
+ * with the member already (Bernd, 13.10.2026): it leads straight into the conversation with
+ * them. Whom the moderator is in contact with is asked once for all the names on the screen
+ * (composables/useModeratorContacts), and anew when the moderator comes back to this window;
+ * the wallet opens a conversation from an address for a contact only, and both go by the same
+ * list of the server. A contact who stands on the map keeps the pin: the map names them as a
+ * contact and offers the conversation there.
+ *
  * The window is the wallet itself. It is handed this moderator's sign-in the way "Mein Konto"
  * hands it over (NavBar.vue, handleWallet), with the page to go on to: the map on the member
- * named by their pair, or the send form to them. What those pages then show is what they
- * show every member.
+ * named by their pair, the conversation with them, or the send form to them. What those pages
+ * then show is what they show every member.
  *
  * ⛔ No sign-out here, unlike handleWallet. There the moderator LEAVES for the wallet; here
  * the admin interface stays the place of work and the window is a look at the map. Both run
  * side by side: the two keep their sign-ins under separate keys.
  *
- * One window, named, for every pin and every arrow: the next member opens in the same window
+ * One window, named, for every pin, bubble and arrow: the next member opens in the same window
  * instead of a new one each time, and the browser is asked to bring it to the front, where it
  * may have slipped behind the admin interface.
  *
@@ -71,7 +88,7 @@ const props = defineProps({
   // whether they stand on the map (findableOnMap), whether the account was deleted (deletedAt)
   // and their number -- `userId` on a row of the member search, `id` with a contribution.
   member: { type: Object, default: null },
-  // How the row speaks of them, for the label of the pin or the arrow.
+  // How the row speaks of them, for the label of the pin, the bubble or the arrow.
   name: { type: String, default: '' },
 })
 
@@ -87,6 +104,7 @@ const WINDOW_FEATURES = 'popup,width=1000,height=760'
 // Not useStore(): it warns where no store is installed, and this stands in components that
 // are mounted without one in their specs. A signed-in admin interface always has it.
 const store = inject(storeKey, null)
+const { t } = useI18n()
 const { toastWarning } = useAppToast()
 // Not destructured, and resolved at the press: where a spec mocks the composable
 // away it answers undefined, and taking that apart at setup would throw (CreaEvaluationModal
@@ -127,9 +145,75 @@ const canBeSentTo = computed(() => {
   return mine === undefined || mine === null || (member.userId ?? member.id) !== mine
 })
 
+/**
+ * How a member who is not on the map is reached: 'chat' where the moderator is in contact with
+ * them, 'send' where not -- and 'wait' while the server is asked which it is. null: not at all.
+ *
+ * ⛔ The arrow where nothing can be known -- the question failed, took too long, or cannot be
+ * asked. The send form takes every member; the conversation opens for a contact only. Where
+ * the answer comes after all, the arrow of a contact becomes the bubble.
+ */
+const reach = computed(() => {
+  if (!canBeSentTo.value) return null
+  const contact = moderatorContact(store?.state.moderator?.id, props.member)
+  if (contact === 'yes') return 'chat'
+  return contact === 'asking' ? 'wait' : 'send'
+})
+
+// Asked where a name needs the answer -- once for all of them (askModeratorContacts sees to
+// that), and again by the names of a page that is opened later. Asked as the name is set up,
+// ahead of its first drawing: it then draws the room at once, and not the arrow first that
+// the answer turns into the bubble a moment later. And where the row comes to show somebody
+// else, or somebody who can be sent to now.
+const askWhomTheModeratorKnows = (freshFor) => {
+  if (!canBeSentTo.value) return
+  let client = null
+  try {
+    client = apollo?.resolveClient?.() ?? null
+  } catch {
+    // No client where a spec mounts this without one.
+  }
+  askModeratorContacts(client, store?.state.moderator?.id, freshFor)
+}
+askWhomTheModeratorKnows()
+watch([canBeSentTo, () => props.member?.gradidoID, () => props.member?.communityUuid], () =>
+  askWhomTheModeratorKnows(),
+)
+
+/**
+ * Back in this window, the question is asked anew. A first booking or a first message makes a
+ * contact of a member, and both happen in the wallet's window that the arrow opens: a moderator
+ * who comes back from there finds the bubble in the arrow's place, without loading the page
+ * again. What the names show stays as it is until the answer is there.
+ *
+ * Both events, because a browser that opens the wallet as a tab tells the way back by the
+ * second and not always by the first; they come together, and the question is asked once.
+ */
+const askAgainOnReturn = () => {
+  if (document.visibilityState === 'hidden') return
+  askWhomTheModeratorKnows(MODERATOR_CONTACTS_RETURN_MS)
+}
+onMounted(() => {
+  window.addEventListener('focus', askAgainOnReturn)
+  document.addEventListener('visibilitychange', askAgainOnReturn)
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('focus', askAgainOnReturn)
+  document.removeEventListener('visibilitychange', askAgainOnReturn)
+})
+
 /** The wallet's map, on this member. */
 const mapPage = () =>
   '/matching/karte' +
+  `?with=${encodeURIComponent(props.member.gradidoID)}` +
+  `&community=${encodeURIComponent(props.member.communityUuid)}`
+
+/**
+ * The conversation with this member, in the contact window of the wallet: its contacts page
+ * reads the two off the address, and opens it for a contact (frontend/src/pages/Contacts.vue).
+ */
+const chatPage = () =>
+  '/contacts' +
   `?with=${encodeURIComponent(props.member.gradidoID)}` +
   `&community=${encodeURIComponent(props.member.communityUuid)}`
 
@@ -143,6 +227,31 @@ const sendPage = () =>
   `/${encodeURIComponent(props.member.communityUuid)}` +
   `/${encodeURIComponent(props.member.gradidoID)}` +
   SEND_FORM_ANCHOR
+
+/**
+ * The three faces: the name the specs and the measurements know each by, what it is called for
+ * this member, and the page of the wallet it opens.
+ */
+const FACES = {
+  map: {
+    test: 'member-map-pin',
+    label: () => t('goTo.memberMap', { name: props.name }),
+    page: mapPage,
+  },
+  chat: {
+    test: 'member-chat-bubble',
+    label: () => t('goTo.memberChat', { name: props.name }),
+    page: chatPage,
+  },
+  send: {
+    test: 'member-send-arrow',
+    label: () => t('goTo.memberSend', { name: props.name }),
+    page: sendPage,
+  },
+}
+// The pin first: a contact who stands on the map keeps it (Bernd, 13.10.2026).
+const face = computed(() => (onMap.value ? FACES.map : (FACES[reach.value] ?? null)))
+const label = computed(() => face.value?.label() ?? '')
 
 const openInWallet = (page, blockedText) => {
   const address =
@@ -166,9 +275,9 @@ const openInWallet = (page, blockedText) => {
 </script>
 
 <style scoped>
-/* The pin or the arrow: a square of 24 px to press, standing in a line of text. The line counts it as 20 px high
-   (the negative margins above and below): with all of its 24 px a line grew by 1.8 px, and
-   a row with a pin was taller than one without. Its right edge gives 2 px back as well,
+/* The pin, the bubble or the arrow: a square of 24 px to press, standing in a line of text.
+   The line counts it as 20 px high (the negative margins above and below): with all of its
+   24 px a line grew by 1.8 px, and a row with a pin was taller than one without. Its right edge gives 2 px back as well,
    because every pixel a cell of the member search gains is taken from the columns beside
    it, which wrap sooner for it. The space ahead of it is the one the template leaves behind
    the name; the ring of the keyboard stands in it without touching the last letter. */

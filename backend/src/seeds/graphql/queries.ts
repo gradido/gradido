@@ -1261,6 +1261,15 @@ export const favoriteList = gql`
   }
 `
 
+export const contactRefs = gql`
+  query {
+    contactRefs {
+      communityUuid
+      gradidoID
+    }
+  }
+`
+
 export const dynamicStatisticsQuery = gql`
   query {
     communityStatistics {
