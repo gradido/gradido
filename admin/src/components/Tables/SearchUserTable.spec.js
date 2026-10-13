@@ -4,7 +4,7 @@ import { createI18n } from 'vue-i18n'
 import { createStore } from 'vuex'
 import { DefaultApolloClient } from '@vue/apollo-composable'
 import SearchUserTable from './SearchUserTable.vue'
-import MemberMapPin from '../MemberMapPin.vue'
+import MemberWalletLink from '../MemberWalletLink.vue'
 import { BTable } from 'bootstrap-vue-next'
 
 vi.mock('../CreationFormular.vue', () => ({
@@ -135,7 +135,7 @@ describe('SearchUserTable', () => {
           BTable,
         },
         plugins: [i18n, store],
-        // A pressed pin asks the server about the sign-in (MemberMapPin).
+        // A pressed pin asks the server about the sign-in (MemberWalletLink).
         provide: { [DefaultApolloClient]: { query: vi.fn().mockResolvedValue({ data: {} }) } },
         stubs: {
           IPhCaretUpFill: true,
@@ -194,9 +194,10 @@ describe('SearchUserTable', () => {
   })
 
   // Behind the username of a member who stands on the wallet's map: one press shows them
-  // there, in a window of its own (MemberMapPin). The rows as the search delivers them, with
-  // the pair that names the member and the server's yes or no.
-  describe('the pin behind the username', () => {
+  // there, in a window of its own. Behind every other: the arrow into the wallet's send form
+  // (MemberWalletLink). The rows as the search delivers them, with the pair that names the
+  // member and the server's yes or no.
+  describe('the pin or the arrow behind the username', () => {
     const COMMUNITY = '9f8e7d6c-5b4a-4c3d-9e2f-1a0b9c8d7e6f'
     const [bibi, benjamin, peter, newUser] = propsData.items
     const rows = [
@@ -239,6 +240,7 @@ describe('SearchUserTable', () => {
         .findAll('td')
         .at(fields.length - 1)
     const pinIn = (row) => usernameCell(row).find('[data-test="member-map-pin"]')
+    const arrowIn = (row) => usernameCell(row).find('[data-test="member-send-arrow"]')
 
     beforeEach(() => {
       wrapper = createWrapper({ items: rows, fields })
@@ -252,6 +254,15 @@ describe('SearchUserTable', () => {
       expect(pinIn(3).exists()).toBe(false)
     })
 
+    // Every member can be reached: over the map, or over the send form.
+    it('leaves the other rows the arrow into the send form, and no row both', () => {
+      expect(wrapper.findAll('[data-test="member-send-arrow"]')).toHaveLength(2)
+      expect(arrowIn(0).exists()).toBe(false)
+      expect(arrowIn(1).exists()).toBe(true)
+      expect(arrowIn(2).exists()).toBe(false)
+      expect(arrowIn(3).exists()).toBe(true)
+    })
+
     // The cell itself as before: the username, and nothing where the member has none -- no
     // gradidoID stands in for it.
     it('leaves the username as it was, and the cell empty where there is none', () => {
@@ -262,7 +273,7 @@ describe('SearchUserTable', () => {
     })
 
     it('hands the pin the member of its row, named by username or else by first name', () => {
-      const pins = wrapper.findAllComponents(MemberMapPin)
+      const pins = wrapper.findAllComponents(MemberWalletLink)
       expect(pins).toHaveLength(rows.length)
       rows.forEach((row, index) => {
         expect(pins.at(index).props('member')).toMatchObject({
@@ -273,6 +284,9 @@ describe('SearchUserTable', () => {
       })
       expect(pins.at(0).props('name')).toBe('bibi')
       expect(pins.at(2).props('name')).toBe('Peter')
+      // The rows with the arrow, named the same way.
+      expect(pins.at(1).props('name')).toBe('benni')
+      expect(pins.at(3).props('name')).toBe(rows[3].firstName)
     })
 
     describe('pressed', () => {
@@ -295,10 +309,22 @@ describe('SearchUserTable', () => {
         )
       })
 
+      it('opens the send form to the member of its row', async () => {
+        await arrowIn(3).trigger('click')
+
+        expect(window.open).toHaveBeenCalledTimes(1)
+        const address = new URL(window.open.mock.calls[0][0])
+        expect(address.searchParams.get('token')).toBe('valid-token')
+        expect(address.searchParams.get('redirect')).toBe(
+          `/send/${COMMUNITY}/${rows[3].gradidoID}#send-form`,
+        )
+      })
+
       // The row opens its details on a click anywhere in it -- anywhere but on a button, which
       // the table leaves alone. Measured on the real table, in both directions.
       it('does not open the row it stands in', async () => {
         await pinIn(0).trigger('click')
+        await arrowIn(1).trigger('click')
         expect(wrapper.vm.myItems.some((item) => item._showDetails)).toBe(false)
 
         await usernameCell(0).trigger('click')

@@ -13,11 +13,12 @@
       @row-clicked="onRowClicked"
     >
       <!-- The username as before -- an empty cell where the member has none -- and behind it
-           the pin of a member who stands on the map. The pin is a button, and a press on a
-           button does not open the row. -->
+           the way to reach them in the wallet: the pin of a member who stands on the map, the
+           arrow into the send form for every other. Both are buttons, and a press on a button
+           does not open the row. -->
       <template #cell(alias)="row">
         {{ row.value }}
-        <member-map-pin :member="row.item" :name="row.item.alias || row.item.firstName" />
+        <member-wallet-link :member="row.item" :name="row.item.alias || row.item.firstName" />
       </template>
 
       <template #cell(creation)="data">
@@ -151,7 +152,7 @@ import CreationTransactionList from '../CreationTransactionList.vue'
 import TransactionLinkList from '../TransactionLinkList.vue'
 import ChangeUserRoleFormular from '../ChangeUserRoleFormular.vue'
 import DeletedUserFormular from '../DeletedUserFormular.vue'
-import MemberMapPin from '../MemberMapPin.vue'
+import MemberWalletLink from '../MemberWalletLink.vue'
 
 const { t } = useI18n()
 const { confirm } = useModalController()

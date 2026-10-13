@@ -202,7 +202,7 @@ describe('UserSearch', () => {
       expect(rowOf(1).deletedAt).toBe(DELETED)
     })
 
-    // The pin behind the username goes with the account (MemberMapPin): the server gives a
+    // The pin behind the username goes with the account (MemberWalletLink): the server gives a
     // deleted member none, and the row is not asked for again here.
     it('takes the pin off a member who was just deleted', async () => {
       expect(rowOf(1).findableOnMap).toBe(true)
