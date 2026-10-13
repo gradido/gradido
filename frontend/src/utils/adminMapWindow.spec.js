@@ -10,8 +10,9 @@ import { ADMIN_MAP_WINDOW_NAME, isMapWindowOfAdmin } from './adminMapWindow'
  */
 describe('adminMapWindow', () => {
   const ADMIN = 'https://gradido.example/admin/authenticate?token='
-  /** The admin interface on an origin of its own. */
+  /** The admin interface on an origin of its own: at its root, and under a directory. */
   const ADMIN_ELSEWHERE = 'https://admin.example/authenticate?token='
+  const ADMIN_ELSEWHERE_DEEPER = 'https://admin.example/admin/authenticate?token='
 
   /**
    * A window as the pin opens it: named, on the wallet. Spread, not defaulted: a name that is
@@ -69,14 +70,6 @@ describe('adminMapWindow', () => {
         ),
       ).toBe(true)
     })
-
-    // What the window behind shows cannot be read there. It is the window that opened this
-    // one under this name, and only the admin interface does that.
-    it('is told where the admin interface lives on another origin and the window behind cannot be read', () => {
-      expect(isMapWindowOfAdmin(mapWindow({ opener: behindElsewhere() }), ADMIN_ELSEWHERE)).toBe(
-        true,
-      )
-    })
   })
 
   describe('any other window', () => {
@@ -94,9 +87,6 @@ describe('adminMapWindow', () => {
       ['nothing is known of what opened it', undefined],
     ])('is not taken for it where %s', (_name, opener) => {
       expect(isMapWindowOfAdmin(mapWindow({ opener }), ADMIN)).toBe(false)
-      // Nor where the admin interface lives on another origin, and its window could not be
-      // read if there was one.
-      expect(isMapWindowOfAdmin(mapWindow({ opener }), ADMIN_ELSEWHERE)).toBe(false)
     })
   })
 
@@ -104,12 +94,6 @@ describe('adminMapWindow', () => {
     it('is not taken for it where the window behind was closed', () => {
       expect(
         isMapWindowOfAdmin(mapWindow({ opener: behind('/admin/user', { closed: true }) }), ADMIN),
-      ).toBe(false)
-      expect(
-        isMapWindowOfAdmin(
-          mapWindow({ opener: behindElsewhere({ closed: true }) }),
-          ADMIN_ELSEWHERE,
-        ),
       ).toBe(false)
     })
 
@@ -122,14 +106,20 @@ describe('adminMapWindow', () => {
     ])('is not taken for it where the window behind shows %s', (_name, pathname) => {
       expect(isMapWindowOfAdmin(mapWindow({ opener: behind(pathname) }), ADMIN)).toBe(false)
     })
+  })
 
-    // Where the admin interface lives on the wallet's origin, it can be read. A window behind
-    // that cannot has gone to another site.
+  // ⛔ A window closed on a guess leaves the moderator without the admin interface: "Admin"
+  // closed the window, and what is behind it is something else.
+  describe('where it cannot be told what the window behind shows', () => {
+    // It left for another site, or the admin interface lives on an origin of its own: what a
+    // window of another origin shows cannot be read, the one as little as the other.
     it.each([
-      ['an address with its host', ADMIN],
-      ['an address that names no host', '/admin/authenticate?token='],
+      ['on this origin', ADMIN],
+      ['on this origin, its address without a host', '/admin/authenticate?token='],
+      ['on another origin', ADMIN_ELSEWHERE],
+      ['on another origin, under a directory', ADMIN_ELSEWHERE_DEEPER],
     ])(
-      'is not taken for it where the window behind cannot be read and the admin interface lives on this origin: %s',
+      'is not taken for it where the window behind cannot be read, the admin interface %s',
       (_name, adminAuthUrl) => {
         expect(isMapWindowOfAdmin(mapWindow({ opener: behindElsewhere() }), adminAuthUrl)).toBe(
           false,
@@ -137,9 +127,31 @@ describe('adminMapWindow', () => {
       },
     )
 
-    it('is not taken for it where the window behind shows another origin than the admin interface', () => {
-      const opener = behind('/admin/user', { origin: 'https://gradido.example' })
-      expect(isMapWindowOfAdmin(mapWindow({ opener }), ADMIN_ELSEWHERE)).toBe(false)
+    // The window behind can be read, so it stands on the wallet's origin: no admin interface
+    // of another origin is there, whatever its path looks like.
+    it('is not taken for it where the admin interface lives on another origin than the window behind', () => {
+      expect(
+        isMapWindowOfAdmin(mapWindow({ opener: behind('/admin/user') }), ADMIN_ELSEWHERE_DEEPER),
+      ).toBe(false)
+    })
+
+    // Every path begins with '/': an address that names no directory tells no page of the
+    // admin interface from one of the wallet.
+    describe.each([
+      ['a page at the root of this origin', 'https://gradido.example/authenticate?token='],
+      ['the same, without a host', '/authenticate?token='],
+      ['a path without its directory', '/admin?token='],
+      ['this origin and nothing else', 'https://gradido.example'],
+    ])('the address of the admin interface names no directory: %s', (_name, adminAuthUrl) => {
+      it.each([
+        ["the wallet's sign-in page", '/login'],
+        ['the overview', '/overview'],
+        ['the member search of an admin interface', '/admin/user'],
+      ])('is not taken for it where the window behind shows %s', (_page, pathname) => {
+        expect(isMapWindowOfAdmin(mapWindow({ opener: behind(pathname) }), adminAuthUrl)).toBe(
+          false,
+        )
+      })
     })
   })
 

@@ -16,13 +16,17 @@ export const ADMIN_MAP_WINDOW_NAME = 'gradido-wallet-map'
  * the window a second admin interface, and one that carried the map's name: the next pin
  * pressed in it named its own window and replaced it (Bernd, 13.10.2026).
  *
- * "Still there": the window that opened this one is not closed and, where that can be read,
- * still shows the admin interface. It can be read where the admin interface lives on the
- * wallet's origin; a moderator whose sign-in ran out there finds the wallet's sign-in page
- * in that window, and then "Admin" has to lead to the admin interface as ever. A window
- * behind that cannot be read stands on another origin than this wallet: where the admin
- * interface lives on another origin, it is the window that opened this one under this name,
- * and only the admin interface does that; where it lives on this one, that window has left it.
+ * "Still there": the window that opened this one is not closed and still shows the admin
+ * interface. That can be told where the admin interface lives on the wallet's origin, under a
+ * directory of its own (`/admin/`): a moderator whose sign-in ran out there finds the wallet's
+ * sign-in page in that window, and then "Admin" has to lead to the admin interface as ever.
+ *
+ * ⛔ Where it cannot be told, the window is not taken for it, and "Admin" leads to the admin
+ * interface as ever: a window closed on a guess would leave the moderator without one. It
+ * cannot be told where the window behind stands on another origin than this wallet -- what
+ * such a window shows cannot be read, the admin interface on an origin of its own as little
+ * as a site the window left for -- and where the address of the admin interface names no
+ * directory: then no path tells its pages from the wallet's.
  *
  * @param win the window asked about
  * @param adminAuthUrl where the wallet hands over to the admin interface (CONFIG.ADMIN_AUTH_URL)
@@ -38,13 +42,14 @@ export const isMapWindowOfAdmin = (win, adminAuthUrl) => {
   } catch {
     return false
   }
+  // '/admin/authenticate' -> '/admin/': everything under it is the admin interface.
+  const home = admin.pathname.replace(/[^/]*$/, '')
+  if (home === '/') return false
   try {
-    // '/admin/authenticate' -> '/admin/': everything under it is the admin interface.
-    const home = admin.pathname.replace(/[^/]*$/, '')
     return (
       behind.location.origin === admin.origin && `${behind.location.pathname}/`.startsWith(home)
     )
   } catch {
-    return admin.origin !== win.location.origin
+    return false
   }
 }
