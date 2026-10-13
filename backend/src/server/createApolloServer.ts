@@ -33,6 +33,9 @@ export async function createApolloServer(
     // Without it a browser would be shown Apollo's own landing page instead of nothing.
     plugins: [...plugins, ApolloServerPluginLandingPageDisabled()],
     logger: apolloLogger,
+    // No client sends a hash in place of the query, and the plugin's handler requires `query`
+    // anyway.
+    persistedQueries: false,
   })
 
   return { apollo, con: db.getDataSource(), db }

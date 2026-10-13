@@ -52,6 +52,11 @@ export const elopageWebhookRoutes = new Elysia().post(
         logger.warn('Elopage Hook: body is no JSON')
         return status(400)
       }
+      // As express.json() had it: a body is an object or an array, not `null` or a bare value.
+      if (typeof jsonBody !== 'object' || jsonBody === null) {
+        logger.warn('Elopage Hook: body is no JSON object')
+        return status(400)
+      }
     } else {
       jsonBody = parseUrlencoded(text)
     }
