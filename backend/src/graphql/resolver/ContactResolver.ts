@@ -226,6 +226,42 @@ export class ContactResolver {
   }
 
   /**
+   * Everybody the caller is in contact with, as pairs and nothing else -- for whoever has to
+   * tell of MANY members at once which of them is a contact. That is the admin interface: a
+   * moderator who is in contact with a member finds, behind their name in a list of members,
+   * the way into the conversation with them (MemberWalletLink).
+   *
+   * `contactList` cannot answer that in one go. It answers about one member (`ref`) or builds
+   * whole contacts for a page -- users, pictures, community names --, and a list of
+   * twenty-five members would ask it twenty-five times. The view behind it is read whole
+   * either way (dbSelectContactsByUserId groups everything and narrows in memory), so this
+   * reads it once and hands out what it is asked for here: who.
+   *
+   * ⛔ The SAME view, so the same people: who is named here is who `contactList` answers
+   * about when it is asked by the pair -- and that is the question the wallet puts before it
+   * opens a conversation from an address (`/contacts?with=…`). A second rule here would draw
+   * a way into a conversation the wallet then does not open.
+   *
+   * The caller's own contacts, under the right their contact list has. A row without a
+   * community uuid is left out: half a pair names nobody, and `contactList` asked by a pair
+   * finds no such row either.
+   */
+  @Authorized([RIGHTS.MANAGE_OWN_CONTACTS])
+  @Query(() => [MemberRef])
+  async contactRefs(@Ctx() context: Context): Promise<MemberRef[]> {
+    const user = getUser(context)
+    const { contacts } = await dbSelectContactsByUserId(user.id, {
+      member: { communityUuid: user.communityUuid, gradidoId: user.gradidoID },
+      // Everybody: the view pages in memory, and this asks for no page.
+      limit: Number.MAX_SAFE_INTEGER,
+      offset: 0,
+    })
+    return contacts.flatMap((row) =>
+      row.communityUuid ? [new MemberRef(row.communityUuid, row.gradidoId)] : [],
+    )
+  }
+
+  /**
    * The caller's hearts, as pairs -- small enough to be fetched once per session and held
    * beside the booking list, which is why `transactionList` needs no field for it.
    */

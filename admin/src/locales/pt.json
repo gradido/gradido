@@ -412,6 +412,7 @@
   },
   "goTo": {
     "humhubProfile": "Ir para o perfil Humhub",
+    "memberChat": "Ir para a conversa com {name}",
     "memberMap": "Mostrar {name} no mapa",
     "memberMapBlocked": "O navegador bloqueou a janela. Permite os pop-ups para esta página.",
     "memberSend": "Enviar para {name}",
