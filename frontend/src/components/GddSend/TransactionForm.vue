@@ -1,5 +1,10 @@
 <template>
-  <div class="transaction-form">
+  <div id="send-form" ref="formRoot" class="transaction-form">
+    <!-- `id="send-form"` above: where a link into the wallet lands that names a recipient and
+         wants the form in view. The arrow behind a member's name in the admin interface opens
+         /send/<community>/<member>#send-form in a window 760 px high, where the form begins
+         below the fold (showFormWhereAsked). The admin interface writes the word down as well
+         (admin/src/components/MemberWalletLink.vue): the two apps share no code. -->
     <BRow>
       <BCol cols="12">
         <BCard class="app-box-shadow gradido-border-radius" body-class="p-4">
@@ -248,7 +253,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, reactive } from 'vue'
+import { ref, computed, watch, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuery } from '@vue/apollo-composable'
 import { BLink } from 'bootstrap-vue-next'
@@ -335,6 +340,31 @@ const emit = defineEmits(['send-email', 'set-transaction', 'set-send-type', 'upd
 
 const route = useRoute()
 const router = useRouter()
+
+/**
+ * ⭐ The form brings itself into view where the address asks for it (`#send-form`).
+ *
+ * The router scrolls to the hash of an address, but only to an element that stands already
+ * (routes/router.js) -- and on the first page of a visit this one does not yet: the hand-over
+ * from the admin interface starts the wallet on the form (measured in the built wallet,
+ * 13.10.2026: the page stayed at its top, the form 650 px down). So the form does it itself
+ * once it stands, as the contribution list does for its own anchor.
+ */
+const formRoot = ref(null)
+const showFormWhereAsked = () => {
+  const form = formRoot.value
+  if (route.hash !== '#send-form' || !form?.scrollIntoView) return
+  // Up to 450 px the navbar stays at the top of the window, over whatever scrolls under it
+  // (Menu/Navbar.vue). There the form is brought to the navbar's lower edge, not to the
+  // window's: the switch between sending, link and e-mail stood under it (measured in the
+  // built wallet). Its height is read, not written down a second time -- it grows with the
+  // tools in it.
+  const bar = document.querySelector('.navbar-element')
+  const stays = bar && getComputedStyle(bar).position === 'fixed'
+  form.style.scrollMarginTop = stays ? `${Math.ceil(bar.getBoundingClientRect().bottom)}px` : ''
+  form.scrollIntoView({ block: 'start' })
+}
+onMounted(showFormWhereAsked)
 const { toastError } = useAppToast()
 
 // A link may name the send type it wants (?art=…), so a button elsewhere can land

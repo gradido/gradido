@@ -83,7 +83,12 @@ response.value = result.value
 
 watchEffect(() => {
   if (result.value) {
-    searchResult.value = result.value.searchUsers.userList
+    // ⛔ Copies, which this page may write to. It notes a new role and a deletion in the rows it
+    // holds (updateRole, updateDeletedAt), and what the client hands out is read-only: it
+    // freezes the answers it keeps. Written to the answer itself, both threw -- a member
+    // deleted in their row was deleted on the server, and the page said nothing (measured in
+    // the built admin interface, 13.10.2026).
+    searchResult.value = result.value.searchUsers.userList.map((row) => ({ ...row }))
     rows.value = result.value.searchUsers.userCount
   }
 })
@@ -95,9 +100,9 @@ const updateRole = (userId, role) => {
 const updateDeletedAt = (userId, deletedAt) => {
   const row = searchResult.value.find((obj) => obj.userId === userId)
   row.deletedAt = deletedAt
-  // The pin behind the username goes with the account (MemberMapPin): the server gives a
-  // deleted member none, and this row is not asked for again. Brought back, the row shows
-  // none until the list is asked again -- whether they stand on the map only the server knows.
+  // The pin behind the username goes with the account (MemberWalletLink): the server gives
+  // a deleted member none, and this row is not asked for again. The table draws rows of its
+  // own and notes the same there (SearchUserTable, updateDeletedAt); these are kept in step.
   if (deletedAt) row.findableOnMap = false
   toastSuccess(deletedAt ? t('user_deleted') : t('user_recovered'))
 }

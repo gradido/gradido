@@ -18,7 +18,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { userFactory } from '@/seeds/factory/user'
 import { addFavorite, login, removeFavorite, sendEmail } from '@/seeds/graphql/mutations'
-import { contactList, favoriteList, transactionsQuery } from '@/seeds/graphql/queries'
+import { contactList, contactRefs, favoriteList, transactionsQuery } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { peterLustig } from '@/seeds/users/peter-lustig'
@@ -65,6 +65,48 @@ const loginAs = async (email: string): Promise<void> => {
 }
 
 const ref = (user: User) => ({ communityUuid: user.communityUuid, gradidoID: user.gradidoID })
+
+/**
+ * ⛔ `contactRefs` and `contactList` have to name the SAME people for whoever is logged in:
+ * the admin interface draws a way into a conversation behind every member the first names, and
+ * the wallet opens that conversation only for somebody the second knows. Asked at every source
+ * a contact can come from -- a booking, the referral trace, a conversation.
+ */
+const pairKey = (pair: { communityUuid: string; gradidoID: string }): string =>
+  `${pair.communityUuid}/${pair.gradidoID}`
+
+const pairsOfTheContactList = async (): Promise<string[]> => {
+  const res: any = await query({ query: contactList, variables: { pageSize: 1000 } })
+  expect(res.errors).toBeUndefined()
+  expect(res.data.contactList.contacts).toHaveLength(res.data.contactList.count)
+  return res.data.contactList.contacts.map((contact: any) => pairKey(contact.user)).sort()
+}
+
+const pairsOfTheContactRefs = async (): Promise<string[]> => {
+  const res: any = await query({ query: contactRefs })
+  expect(res.errors).toBeUndefined()
+  return res.data.contactRefs.map(pairKey).sort()
+}
+
+/**
+ * And the very question the wallet asks before it opens a conversation from an address: the
+ * list narrowed to one pair. Whoever `contactRefs` names has to be found by it, alone.
+ */
+const pairsFoundOneByOne = async (): Promise<string[]> => {
+  const refs: any = await query({ query: contactRefs })
+  expect(refs.errors).toBeUndefined()
+  const found: string[] = []
+  for (const pair of refs.data.contactRefs) {
+    const res: any = await query({
+      query: contactList,
+      variables: { ref: { communityUuid: pair.communityUuid, gradidoID: pair.gradidoID } },
+    })
+    expect(res.errors).toBeUndefined()
+    expect(res.data.contactList.count).toBe(1)
+    found.push(...res.data.contactList.contacts.map((contact: any) => pairKey(contact.user)))
+  }
+  return found.sort()
+}
 
 /** The booking list of whoever is logged in, narrowed to one member -- what the window links to. */
 const narrowed = async (member: { gradidoID: string; communityUuid: string | null }) => {
@@ -118,6 +160,7 @@ describe('ContactResolver', () => {
       })
       expect(await query({ query: contactList })).toEqual(unauthorized)
       expect(await query({ query: favoriteList })).toEqual(unauthorized)
+      expect(await query({ query: contactRefs })).toEqual(unauthorized)
       expect(await mutate({ mutation: addFavorite, variables: { ref: ref(bob) } })).toEqual(
         unauthorized,
       )
@@ -151,6 +194,31 @@ describe('ContactResolver', () => {
       expect(bobRow.user.lastName).toBeNull()
       expect(new Date(bobRow.firstAt).getTime()).toBe(day(1).getTime())
       expect(new Date(bobRow.lastAt).getTime()).toBe(day(2).getTime())
+    })
+
+    // For whoever has to tell of many members at once which of them is a contact: the admin
+    // interface, with a list of members in front of a moderator.
+    it('names each of them by the pair and by nothing else, in one answer', async () => {
+      const res: any = await query({ query: contactRefs })
+      expect(res.errors).toBeUndefined()
+      expect(res.data.contactRefs).toHaveLength(3)
+      expect(res.data.contactRefs).toEqual(
+        expect.arrayContaining([
+          { communityUuid: peter.communityUuid, gradidoID: peter.gradidoID },
+          { communityUuid: bob.communityUuid, gradidoID: bob.gradidoID },
+          { communityUuid: FOREIGN_COMMUNITY, gradidoID: ANNA },
+        ]),
+      )
+    })
+
+    it('names by the pairs exactly the people the list holds', async () => {
+      expect(await pairsOfTheContactRefs()).toEqual(await pairsOfTheContactList())
+    })
+
+    it('names nobody the list would not find when it is asked by the pair', async () => {
+      const refs = await pairsOfTheContactRefs()
+      expect(refs).toHaveLength(3)
+      expect(await pairsFoundOneByOne()).toEqual(refs)
     })
 
     it('searches the alias and counts only the matches', async () => {
@@ -464,6 +532,14 @@ describe('ContactResolver', () => {
       const favorites: any = await query({ query: favoriteList })
       expect(favorites.data.favoriteList).toEqual([])
     })
+
+    it("is named his own contacts by the pair, and none of bibi's", async () => {
+      const res: any = await query({ query: contactRefs })
+      expect(res.errors).toBeUndefined()
+      expect(res.data.contactRefs).toEqual([
+        { communityUuid: bibi.communityUuid, gradidoID: bibi.gradidoID },
+      ])
+    })
   })
 
   /**
@@ -653,6 +729,13 @@ describe('ContactResolver', () => {
       await resetToken()
     })
 
+    it('names by the pairs exactly the people the list holds, the one from the trace among them', async () => {
+      const refs = await pairsOfTheContactRefs()
+      expect(refs).toEqual(await pairsOfTheContactList())
+      expect(refs).toContain(pairKey(ref(carla) as { communityUuid: string; gradidoID: string }))
+      expect(await pairsFoundOneByOne()).toEqual(refs)
+    })
+
     it('brings somebody with no bookings at all into the list, with their origin', async () => {
       const { list, row } = await contactFor(carla)
       // The three from the bookings plus carla; bob and peter were contacts already.
@@ -836,6 +919,14 @@ describe('ContactResolver', () => {
       expect(row.lastChatMessageAt).not.toBeNull()
     })
 
+    it('names by the pairs exactly the people the list holds, those who only wrote among them', async () => {
+      const refs = await pairsOfTheContactRefs()
+      expect(refs).toEqual(await pairsOfTheContactList())
+      expect(refs).toContain(pairKey(ref(dora) as { communityUuid: string; gradidoID: string }))
+      expect(refs).toContain(pairKey({ communityUuid: FOREIGN_COMMUNITY, gradidoID: FRIDA }))
+      expect(await pairsFoundOneByOne()).toEqual(refs)
+    })
+
     it('counts both as people, and puts the fresh conversations above the older bookings', async () => {
       const list = await contacts()
       expect(list.count).toBe(5)
@@ -870,6 +961,55 @@ describe('ContactResolver', () => {
       expect(fridaAlone.count).toBe(1)
       expect(fridaAlone.contacts[0]).toMatchObject({ bookings: 0, unreadChatMessages: 0 })
       expect(fridaAlone.contacts[0].lastChatMessageAt).not.toBeNull()
+    })
+  })
+
+  /**
+   * ⛔ `contactRefs` asks for no page. A member with more contacts than a page of the list
+   * holds (25) is named all of them: one page of them would leave the admin interface drawing
+   * the arrow behind every contact beyond it, and nothing would say so.
+   */
+  describe('with more contacts than a page of the list holds', () => {
+    const MANY = 30
+    let many: User
+
+    const stranger = (n: number) => ({
+      communityUuid: FOREIGN_COMMUNITY,
+      gradidoID: `aaaaaaaa-aaaa-4aaa-8aaa-${String(n).padStart(12, '0')}`,
+      name: `Stranger ${n}`,
+    })
+
+    beforeAll(async () => {
+      // A member of their own: nobody above counts on their bookings.
+      many = await userFactory(testEnv, {
+        email: 'many@contacts.de',
+        firstName: 'Many',
+        lastName: 'Contacts',
+        alias: 'manyContacts',
+        emailChecked: true,
+        createdAt: day(10),
+      })
+      // In date order, as every seeded booking has to be (see the first beforeAll).
+      for (let n = 0; n < MANY; n++) {
+        await foreignReceive(many, stranger(n), new Date(day(11).getTime() + n * 60_000))
+      }
+      await loginAs('many@contacts.de')
+    })
+
+    afterAll(async () => {
+      // The member this block created; their bookings go with the database at the end.
+      await User.delete(many.id)
+      await UserContact.delete({ userId: many.id })
+      await resetToken()
+    })
+
+    it('names every one of them, and the same as the whole list', async () => {
+      const refs = await pairsOfTheContactRefs()
+      expect(refs).toHaveLength(MANY)
+      expect(refs).toEqual(
+        Array.from({ length: MANY }, (_unused, n) => pairKey(stranger(n))).sort(),
+      )
+      expect(refs).toEqual(await pairsOfTheContactList())
     })
   })
 })

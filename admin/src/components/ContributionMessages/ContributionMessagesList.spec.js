@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { ref } from 'vue'
 import ContributionMessagesList from './ContributionMessagesList.vue'
-import MemberMapPin from '../MemberMapPin.vue'
+import MemberWalletLink from '../MemberWalletLink.vue'
 import { useApolloClient, useQuery } from '@vue/apollo-composable'
 import { useAppToast } from '@/composables/useToast'
 import { BContainer } from 'bootstrap-vue-next'
@@ -198,9 +198,10 @@ describe('ContributionMessagesList', () => {
     expect(wrapper.emitted('update-contributions')).toBeTruthy()
   })
   // Behind the username in the card of the member who handed the contribution in: the pin of
-  // a member who stands on the wallet's map (MemberMapPin). This spec installs no store, and
-  // the pin asks for none until it is pressed -- so the card is set up here as it always was.
-  describe('the pin behind the username', () => {
+  // a member who stands on the wallet's map, the arrow into the wallet's send form for every
+  // other (MemberWalletLink). This spec installs no store, and neither asks for one until it
+  // is pressed -- so the card is set up here as it always was.
+  describe('the pin or the arrow behind the username', () => {
     const onTheMap = {
       ...defaultUser,
       alias: 'peterl',
@@ -219,11 +220,38 @@ describe('ContributionMessagesList', () => {
         },
       })
     const pin = () => wrapper.find('[data-test="member-map-pin"]')
+    const arrow = () => wrapper.find('[data-test="member-send-arrow"]')
 
     it('is not there for a member who does not stand on the map', async () => {
       expect(pin().exists()).toBe(false)
       await showsMember({ ...onTheMap, findableOnMap: false })
       expect(pin().exists()).toBe(false)
+    })
+
+    // The member of this spec's own contribution was never asked whether they stand there:
+    // neither the one nor the other.
+    it('leaves a member alone of whom the server said nothing', () => {
+      expect(pin().exists()).toBe(false)
+      expect(arrow().exists()).toBe(false)
+    })
+
+    it('gives a member who does not stand on the map the arrow into the send form', async () => {
+      await showsMember({ ...onTheMap, findableOnMap: false })
+      expect(arrow().exists()).toBe(true)
+
+      await showsMember(onTheMap)
+      expect(arrow().exists()).toBe(false)
+    })
+
+    it('sets the arrow where the pin stands: behind the username, ahead of the HumHub profile', async () => {
+      await showsMember({ ...onTheMap, findableOnMap: false })
+      const card = wrapper.find('.list-group-item').html()
+      const username = card.indexOf('peterl')
+      const sendArrow = card.indexOf('data-test="member-send-arrow"')
+      const humhub = card.indexOf('humhub-username')
+      expect(username).toBeGreaterThan(-1)
+      expect(sendArrow).toBeGreaterThan(username)
+      expect(humhub).toBeGreaterThan(sendArrow)
     })
 
     it('is there for a member who does', async () => {
@@ -233,13 +261,13 @@ describe('ContributionMessagesList', () => {
 
     it('is handed the member of the contribution, named by username or else by first name', async () => {
       await showsMember(onTheMap)
-      expect(wrapper.findComponent(MemberMapPin).props()).toEqual({
+      expect(wrapper.findComponent(MemberWalletLink).props()).toEqual({
         member: onTheMap,
         name: 'peterl',
       })
 
       await showsMember({ ...onTheMap, alias: null })
-      expect(wrapper.findComponent(MemberMapPin).props('name')).toBe('Peter')
+      expect(wrapper.findComponent(MemberWalletLink).props('name')).toBe('Peter')
     })
 
     // Behind the username, and ahead of the way to the member's HumHub profile.

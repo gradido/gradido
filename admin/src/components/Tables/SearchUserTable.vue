@@ -13,11 +13,12 @@
       @row-clicked="onRowClicked"
     >
       <!-- The username as before -- an empty cell where the member has none -- and behind it
-           the pin of a member who stands on the map. The pin is a button, and a press on a
-           button does not open the row. -->
+           the way to reach them in the wallet: the pin of a member who stands on the map, the
+           arrow into the send form for every other. Both are buttons, and a press on a button
+           does not open the row. -->
       <template #cell(alias)="row">
         {{ row.value }}
-        <member-map-pin :member="row.item" :name="row.item.alias || row.item.firstName" />
+        <member-wallet-link :member="row.item" :name="row.item.alias || row.item.firstName" />
       </template>
 
       <template #cell(creation)="data">
@@ -130,6 +131,7 @@
                 v-else
                 ref="undeletedUserForm"
                 :item="row.item"
+                @update-deleted-at="updateDeletedAt"
                 @show-undelete-modal="showUndeleteModal"
               />
             </BTab>
@@ -151,12 +153,12 @@ import CreationTransactionList from '../CreationTransactionList.vue'
 import TransactionLinkList from '../TransactionLinkList.vue'
 import ChangeUserRoleFormular from '../ChangeUserRoleFormular.vue'
 import DeletedUserFormular from '../DeletedUserFormular.vue'
-import MemberMapPin from '../MemberMapPin.vue'
+import MemberWalletLink from '../MemberWalletLink.vue'
 
 const { t } = useI18n()
 const { confirm } = useModalController()
 const store = useStore()
-const { toastError, toastSuccess } = useAppToast()
+const { toastError } = useAppToast()
 
 const props = defineProps({
   items: {
@@ -272,8 +274,9 @@ const showUndeleteModal = async () => {
   })
     .then((ok) => {
       if (ok) {
+        // What came of it the form reports (update-deleted-at), and the page says so then.
+        // The success used to be announced here, before the server had answered.
         undeletedUserForm.value.undeleteUserMutation()
-        toastSuccess(t('user_recovered'))
       }
     })
     .catch((error) => {
@@ -285,11 +288,34 @@ const updateUserData = (rowItem, newCreation) => {
   rowItem.creation = newCreation
 }
 
+/**
+ * The row as this table draws it: a copy of the member the page handed in (the watch at the
+ * end). What a form under the row changed is written there, as a new address and a creation
+ * are -- the page is told as well, but its rows are not the ones on the screen.
+ */
+const ownRow = (userId) => myItems.value.find((obj) => obj.userId === userId)
+
 const updateRole = ({ userId, role }) => {
+  const row = ownRow(userId)
+  if (row) row.role = role
   emit('update-role', userId, role)
 }
 
+/**
+ * ⛔ A member deleted or brought back in their open row is shown as that at once. The row used
+ * to stay as it was until the list was asked again: the button went on offering to delete a
+ * member who was deleted, and the pin or the arrow behind the username led to somebody who
+ * was gone (measured in the built admin interface, 13.10.2026).
+ */
 const updateDeletedAt = ({ userId, deletedAt }) => {
+  const row = ownRow(userId)
+  if (row) {
+    row.deletedAt = deletedAt
+    // The pin goes with the account: the server gives a deleted member none. Brought back,
+    // the row shows the arrow until the list is asked again -- whether they stand on the map
+    // only the server knows.
+    if (deletedAt) row.findableOnMap = false
+  }
   emit('update-deleted-at', userId, deletedAt)
 }
 

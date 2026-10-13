@@ -55,10 +55,12 @@
 
            Under a shown contact the line keeps its place while it has nothing to say: the
            place the contact is found in is read a moment after the search moved onto them,
-           and a line that came and went would push the sort up and down under a finger. -->
+           and a line that came and went would push the sort up and down under a finger. On
+           a phone that place is two lines (center-label-visit). -->
       <p
         v-if="centerLabel || contact || reach === 'fern'"
         class="center-label"
+        :class="{ 'center-label-visit': !!contact }"
         role="status"
         aria-live="polite"
       >
@@ -506,13 +508,28 @@ function onPick(place) {
   flex: 0 0 100%;
   order: 2;
   margin: 0;
-  font-size: 13px;
-  color: var(--text-secondary);
+
+  /* Where the list looks is the most important line above it, and it was the smallest: 13 px
+     under a search field that looked far bigger (Bernd, 13.10.2026). So it is set like a name
+     in the rows below, a step larger. In the colour of the text, as it always was: the quiet
+     colour this rule used to name (`--text-secondary`) is no token of the wallet. */
+  font-size: 16px;
+  font-weight: 700;
 
   /* One line, also while it is empty (under a shown contact, until the place is read): the
      height of a line of its own text, said in em -- `lh` is unknown to the older phones. */
   line-height: 1.5;
   min-height: 1.5em;
+}
+
+/* On a visit that shows somebody, the place is read a moment after the list stands -- and at
+   this size it needs a second line on a phone ("Umkreis um Amrichshausen, Künzelsau" from
+   360 px down, the wide reach from 430 px; measured in the built wallet). So two lines are
+   kept free there, and the sort under it stays where it is when the name arrives. */
+@media (width <= 575.98px) {
+  .center-label-visit {
+    min-height: 3em;
+  }
 }
 
 .control-label {
