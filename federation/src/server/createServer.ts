@@ -41,6 +41,8 @@ export const createServer = async (
     // Without it a browser would be shown Apollo's own landing page instead of nothing.
     plugins: [...plugins, ApolloServerPluginLandingPageDisabled()],
     logger: apolloLogger,
+    // No client sends a hash in place of the query, and the handler below requires `query` anyway.
+    persistedQueries: false,
   })
 
   // Elysia Server

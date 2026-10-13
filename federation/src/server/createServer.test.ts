@@ -31,6 +31,15 @@ describe('the http server of the federation', () => {
     expect(await response.json()).toEqual({ data: { __typename: 'Query' } })
   })
 
+  it('turns down a persisted query', async () => {
+    const response = await post({
+      query: '{ __typename }',
+      extensions: { persistedQuery: { version: 1, sha256Hash: 'a'.repeat(64) } },
+    })
+    const { errors } = await response.json()
+    expect(errors[0].extensions.code).toBe('PERSISTED_QUERY_NOT_SUPPORTED')
+  })
+
   it('lets every origin read the answer and its token header', async () => {
     const response = await post({ query: '{ __typename }' })
     expect(response.headers.get('access-control-allow-origin')).toBe('*')
