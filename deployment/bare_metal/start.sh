@@ -365,7 +365,7 @@ bun install --frozen-lockfile
 
 # build all modules
 log_step 'build all modules'
-turbo build --env-mode=loose --concurrency=$(nproc)
+bunx turbo build --env-mode=loose --concurrency=$(nproc)
 
 # build inspector and dlt-connector
 if [ "$DLT_ACTIVE" = true ]; then
@@ -386,12 +386,12 @@ fi
 log_step 'Updating database'
 if [ "$DEPLOY_SEED_DATA" = "true" ]; then
   log_step 'Clearing database'
-  turbo clear --env-mode=loose
-  turbo up --env-mode=loose
+  bunx turbo clear --env-mode=loose
+  bunx turbo up --env-mode=loose
   log_step 'Seeding database'
-  turbo seed --env-mode=loose
+  bunx turbo seed --env-mode=loose
 else
-  turbo up --env-mode=loose
+  bunx turbo up --env-mode=loose
 fi
 
 # start after building all to use up less ressources

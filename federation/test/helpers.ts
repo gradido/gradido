@@ -79,7 +79,18 @@ export const createTestClient = (server: ApolloServer<any>): ApolloServerTestCli
   return { query: test, mutate: test }
 }
 
+const TEST_DATABASE_PREFIX = 'gradido_test'
+
 export const cleanDB = async () => {
+  // Never the database of a community: a test run without DB_DATABASE would empty
+  // gradido_community, the name the config falls back to.
+  const database = process.env.DB_DATABASE
+  if (!database?.startsWith(TEST_DATABASE_PREFIX)) {
+    throw new Error(
+      `cleanDB empties every table: '${database}' is no test database (${TEST_DATABASE_PREFIX}…)`,
+    )
+  }
+
   // Every table except `migrations`, in one statement that reads the table list itself - a
   // table with or without a TypeORM entity, and one added tomorrow, alike.
   await dbDeleteAllRowsExceptMigrations()

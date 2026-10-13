@@ -44,7 +44,7 @@ LABEL maintainer="support@gradido.net"
 RUN curl -fsSL https://bun.sh/install | BUN_INSTALL=/usr/local bash
 # Add bun to PATH
 # Install turbo globally
-RUN bun install --global turbo
+RUN bun install --global turbo@^2
 # Add bun's global bin directory to PATH
 ENV PATH="/root/.bun/bin:${PATH}"
 
@@ -135,7 +135,7 @@ COPY --chown=app:app --from=build /app/turbo.json ./turbo.json
 # and Turbo cache to prevent rebuilding 
 COPY --chown=app:app --from=build /tmp/turbo ./tmp/turbo
 
-RUN yarn global add turbo
+RUN yarn global add turbo@^2
 
 COPY --chown=app:app --from=build /app/backend ./backend
 COPY --chown=app:app --from=build /app/frontend ./frontend
