@@ -5,12 +5,20 @@
         <div
           class="d-flex justify-content-center justify-content-md-center justify-content-lg-start ms-3"
         >
-          <BNav class="nav-footer">
+          <!-- Centred like the row around it, also where the links take a second line: the
+               list is then as wide as the page, and without this its lines would start at the
+               left edge and pull the first two links out of the middle. -->
+          <BNav class="nav-footer justify-content-center justify-content-lg-start">
             <BNavItem :href="`https://gradido.net/${$i18n.locale}/impressum/`" target="_blank">
               {{ $t('footer.imprint') }}
             </BNavItem>
             <BNavItem :href="`https://gradido.net/${$i18n.locale}/datenschutz/`" target="_blank">
               {{ $t('footer.privacy_policy') }}
+            </BNavItem>
+            <!-- A page of this wallet, so it opens in place. Only where the route exists:
+                 routes.js registers it with the same flag. -->
+            <BNavItem v-if="eventMatching" to="/event-matching" data-test="footer-event-matching">
+              {{ $t('footer.eventMatching') }}
             </BNavItem>
           </BNav>
         </div>
@@ -52,8 +60,11 @@
 
 <script setup>
 import { defineOptions } from 'vue'
+import CONFIG from '@/config'
 
 defineOptions({ name: 'AuthFooter' })
+
+const eventMatching = CONFIG.MATCHING_ACTIVE
 </script>
 
 <style scoped>

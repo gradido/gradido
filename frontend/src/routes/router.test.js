@@ -84,8 +84,8 @@ describe('router', () => {
       expect(defaultRoute.redirect()).toEqual({ path: '/login' })
     })
 
-    it('has 43 routes defined', () => {
-      expect(routes).toHaveLength(43)
+    it('has 44 routes defined', () => {
+      expect(routes).toHaveLength(44)
     })
 
     // ZE-020, F12: the layout's greeting is left out on the redeem page, so that what the
@@ -204,6 +204,9 @@ describe('router', () => {
     testRoute('/register/:code?', 'Register', false)
     testRoute('/forgot-password', 'ForgotPassword', false)
     testRoute('/register-community', 'RegisterCommunity', false)
+    // Where a host builds the link for their event. Public: a host needs no account for it,
+    // and without `requiresAuth` it stands in the layout of the sign-in pages (App.vue).
+    testRoute('/event-matching', 'EventMatchingBuilder', false)
     testRoute('/reset-password/:optin', 'ResetPassword', false)
     testRoute('/email-change/revoke/:changeCode', 'EmailChange', false)
     testRoute('/email-change/:changeCode', 'EmailChange', false)
