@@ -26,6 +26,16 @@ import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { syncMatchingEntryToGms } from './util/syncMatchingEntryToGms'
 
+// Passed through to the database, so that one test can hold the first read of a member's entries
+// (the same link opened twice at once).
+jest.mock('database', () => {
+  const actual = jest.requireActual('database')
+  return {
+    ...actual,
+    dbSelectMatchingEntriesByUserId: jest.fn(actual.dbSelectMatchingEntriesByUserId),
+  }
+})
+
 // Passed through to the real hand-over, and counted: acceptEventMatchingEntry has to hand a new
 // entry to the GMS, and nothing that was there already. (A spy cannot wrap the module's export
 // here -- ts-jest defines it as a property that cannot be redefined.)
@@ -388,13 +398,34 @@ describe('MatchingEntryResolver', () => {
       expect(await bibisWith(SENTENCE)).toHaveLength(1)
     })
 
+    /**
+     * The first call's read of the member's entries is held until the second call has finished
+     * or has waited a second. Without the member's line the second reads "not there" while the
+     * first is held, and both make the entry; with it the second waits for the first, and finds
+     * it. Held on purpose: two calls left to themselves overlap only by chance.
+     */
     it('makes one entry for the same link opened twice at once', async () => {
-      const answers = await Promise.all([accept(offered), accept(offered)])
+      const select = dbSelectMatchingEntriesByUserId as jest.Mock
+      select.mockClear()
+      const { dbSelectMatchingEntriesByUserId: read } = jest.requireActual('database')
+      let release: () => void = () => undefined
+      const held = new Promise<void>((resolve) => (release = resolve))
+      select.mockImplementationOnce(async (...args: unknown[]) => {
+        const rows = await read(...args)
+        await held
+        return rows
+      })
+      const first = accept(offered)
+      for (let i = 0; i < 200 && select.mock.calls.length === 0; i++) {
+        await new Promise((resolve) => setTimeout(resolve, 10))
+      }
+      expect(select).toHaveBeenCalled()
+      const second = accept(offered)
+      await Promise.race([second, new Promise((resolve) => setTimeout(resolve, 1000))])
+      release()
+      const answers = await Promise.all([first, second])
       expect(answers.map((res) => res.errors)).toEqual([undefined, undefined])
-      expect(answers.map((res) => res.data.acceptEventMatchingEntry.created).sort()).toEqual([
-        false,
-        true,
-      ])
+      expect(answers.map((res) => res.data.acceptEventMatchingEntry.created)).toEqual([true, false])
       expect(await bibisWith(SENTENCE)).toHaveLength(1)
     })
 
