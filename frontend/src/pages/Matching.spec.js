@@ -1241,6 +1241,26 @@ describe('Matching', () => {
 
           expect(toast.error).toHaveBeenCalledWith('Invalid length')
           expect(formOpen(page)).toBe(false)
+        })
+
+        // The entry may be stored already: a refusal can come from the hand-over to the GMS,
+        // which follows the row. The list says what is there.
+        it('fetches the list again after a refusal nobody expects', async () => {
+          kept.draft = offered()
+          mutate.mockRejectedValueOnce(graphQLRefusal('GMS lookup failed'))
+          mountPage('entries', shownModal)
+          await flushPromises()
+
+          expect(refetch()).toHaveBeenCalledTimes(1)
+          expect(toast.error).toHaveBeenCalledTimes(1)
+        })
+
+        it('fetches nothing after a refusal the member is told elsewhere', async () => {
+          kept.draft = offered()
+          mutate.mockRejectedValueOnce(graphQLRefusal('401 Unauthorized'))
+          mountPage('entries', shownModal)
+          await flushPromises()
+
           expect(refetch()).not.toHaveBeenCalled()
         })
 

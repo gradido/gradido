@@ -628,7 +628,15 @@ async function acceptEventEntry(offered) {
     })
     accepted = result?.data?.acceptEventMatchingEntry
   } catch (error) {
-    if (!quietRefusal(error) && store.state.gradidoID === member) toastError(error.message)
+    if (quietRefusal(error) || store.state.gradidoID !== member) return
+    toastError(error.message)
+    // The server stores the entry before it hands it to the GMS, and a refusal can come from
+    // that second step: the list says what is there (coderabbit, #4149).
+    try {
+      await refetchEntries()
+    } catch {
+      // The red toast has said it already.
+    }
     return
   }
   if (!accepted?.created || store.state.gradidoID !== member) return
