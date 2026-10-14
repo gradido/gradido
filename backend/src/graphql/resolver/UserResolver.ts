@@ -114,6 +114,7 @@ import {
 import { IRestResponse } from 'typed-rest-client'
 import { EntityNotFoundError, Point } from 'typeorm'
 import * as v from 'valibot'
+import { matchingKeyingRun } from '@/apis/anthropic/matching/keyingRun'
 import { mapMemberCount } from '@/apis/gms/mapMemberCount'
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
 import { Account as HumhubAccount } from '@/apis/humhub/model/Account'
@@ -767,6 +768,9 @@ export class UserResolver {
     // rather than replaced by it: a member whose publish failed on the way in is
     // not marked as registered, and their copy may still have landed over there.
     const gmsConsentWithdrawn = user.gmsAllowed && updateUserInfosArgs.gmsAllowed === false
+    // And the way in, read before the update as well: the member starts taking part with this
+    // save, and the words of their entries are worked out from now on (below).
+    const joinsGms = !user.gmsAllowed && updateUserInfosArgs.gmsAllowed === true
     const publishNameLogic = new PublishNameLogic(user)
     const oldHumhubUsername = publishNameLogic.getUserIdentifier(
       user.humhubPublishName as PublishNameType,
@@ -912,8 +916,19 @@ export class UserResolver {
           // and everything of theirs, and this is what brings the entries back when
           // they join again. For a member the GMS already holds, sending the settings
           // alone is enough and leaves their entries untouched.
-          await sendUsersToGms([user], homeCom, !user.gmsRegistered)
+          const sent = await sendUsersToGms([user], homeCom, !user.gmsRegistered)
           logger.debug(`sendUserToGms successfully.`)
+          // The words of a member's entries are worked out only while the member takes part
+          // (mayReachTheGms), so a member who joins with this save - registered through an event
+          // link, say - has entries the GMS now holds without words, and a search finds nothing
+          // with them. The keying run is asked now rather than at its next tick, up to a minute
+          // away: the map searches the moment it opens. Only where the send went through, so
+          // the words are published to a member the GMS holds; where it did not, the run's tick
+          // tries as before. Not on the other saves of a member who takes part already: they
+          // leave no entry without words.
+          if (sent && joinsGms) {
+            matchingKeyingRun.nudge()
+          }
         }
       }
     } catch (e) {

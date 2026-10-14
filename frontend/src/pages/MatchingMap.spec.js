@@ -57,13 +57,14 @@ vi.mock('vue-router', () => ({
 // the whole point of one of the tests below.
 const handlers = new Map()
 const fire = (document, data) => handlers.get(document)?.result?.({ data })
+const listQuestion = vi.hoisted(() => vi.fn())
 
 vi.mock('@vue/apollo-composable', () => ({
   useQuery: (document) => {
-    const handler = { result: null, error: null }
+    const handler = { result: null, error: null, refetch: vi.fn() }
     handlers.set(document, handler)
     return {
-      refetch: vi.fn(),
+      refetch: handler.refetch,
       onResult: (callback) => {
         handler.result = callback
       },
@@ -73,6 +74,8 @@ vi.mock('@vue/apollo-composable', () => ({
     }
   },
   useMutation: () => ({ mutate: vi.fn().mockResolvedValue({}) }),
+  // The page's own question for the list while an entry waits for its words (askForWords).
+  useApolloClient: () => ({ client: { query: listQuestion } }),
 }))
 
 const load = vi.fn()
@@ -173,6 +176,8 @@ const mountMap = ({ gmsAllowed = true, store = makeStore(gmsAllowed) } = {}) => 
 beforeEach(() => {
   route.current = reactive({ query: {} })
   handlers.clear()
+  listQuestion.mockReset()
+  listQuestion.mockResolvedValue({ data: { listMatchingEntries: [] } })
   created.length = 0
   replace.mockClear()
   push.mockClear()
@@ -829,6 +834,313 @@ describe('MatchingMap', () => {
       await page.vm.$nextTick()
 
       expect(load).toHaveBeenCalledTimes(asked)
+    })
+  })
+
+  /**
+   * An entry of mine without its words yet: the GMS finds nothing with it, so the search on
+   * arrival comes back empty. The page asks for the list again, less often as time goes on,
+   * and searches again as soon as an entry has its words (Bernd, 14.10.2026: an empty map
+   * right after the event link and "home", stars only after leaving and coming back).
+   */
+  describe('while an entry of mine waits for its words', () => {
+    const unkeyed = (uuid) => ({ ...entry(uuid), keyed: false })
+    const keyed = (uuid) => ({ ...entry(uuid), keyed: true })
+    const answer = (...list) => ({ data: { listMatchingEntries: list } })
+    const person = (uuid) => ({
+      uuid,
+      name: 'Anna',
+      position: { lat: 48.2, lng: 11.6 },
+      community: { name: 'Muenchen' },
+      aboutMe: '',
+      channels: [],
+      scores: {},
+      precision: 'genau',
+    })
+
+    beforeEach(() => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    })
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    const arrive = async (list, options) => {
+      const page = mountMap(options)
+      fire(userLocationQuery, { userLocation: location })
+      fire(listMatchingEntries, { listMatchingEntries: list })
+      await page.vm.$nextTick()
+      return page
+    }
+    // One pause of the page, and the answer the question got.
+    const pause = async (ms) => {
+      vi.advanceTimersByTime(ms)
+      await flushPromises()
+    }
+
+    it('asks for the list again after two seconds, and not before', async () => {
+      await arrive([unkeyed('a')])
+
+      await pause(1999)
+      expect(listQuestion).not.toHaveBeenCalled()
+      await pause(1)
+      expect(listQuestion).toHaveBeenCalledTimes(1)
+    })
+
+    // A question the member did not cause must not move the idle logout on
+    // (plugins/apolloProvider.js) -- and it asks the server, not the cache.
+    it('asks without renewing the session, and past the cache', async () => {
+      await arrive([unkeyed('a')])
+      await pause(2000)
+
+      expect(listQuestion).toHaveBeenCalledWith({
+        query: listMatchingEntries,
+        fetchPolicy: 'network-only',
+        context: { renewSession: false },
+      })
+    })
+
+    it('searches again once the entry has its words, and asks no more', async () => {
+      await arrive([unkeyed('a')])
+      const searched = load.mock.calls.length
+      listQuestion.mockResolvedValueOnce(answer(keyed('a')))
+      await pause(2000)
+
+      expect(load).toHaveBeenCalledTimes(searched + 1)
+      expect(load.mock.calls.at(-1)[0].mineUuids).toEqual(['a'])
+      await pause(600000)
+      expect(listQuestion).toHaveBeenCalledTimes(1)
+    })
+
+    /**
+     * `keyed` says the words were worked out here; they reach the GMS a moment later, with the
+     * keying run's publish. One more search three seconds on catches a publish that was slower
+     * than the first search (coderabbit, #4150) -- on its own clock, not out of the list's count.
+     */
+    it('searches once more three seconds after the words, and no more', async () => {
+      await arrive([unkeyed('a')])
+      const searched = load.mock.calls.length
+      listQuestion.mockResolvedValueOnce(answer(keyed('a')))
+      await pause(2000)
+      expect(load).toHaveBeenCalledTimes(searched + 1)
+
+      await pause(2999)
+      expect(load).toHaveBeenCalledTimes(searched + 1)
+      await pause(1)
+      expect(load).toHaveBeenCalledTimes(searched + 2)
+      await pause(600000)
+      expect(load).toHaveBeenCalledTimes(searched + 2)
+    })
+
+    it('searches once more after the last question of all, too', async () => {
+      await arrive([unkeyed('a')])
+      const searched = load.mock.calls.length
+      listQuestion.mockResolvedValue(answer(unkeyed('a')))
+      for (let i = 0; i < 10; i++) await pause(30000)
+      listQuestion.mockResolvedValue(answer(keyed('a')))
+      await pause(30000)
+      expect(listQuestion).toHaveBeenCalledTimes(11)
+      expect(load).toHaveBeenCalledTimes(searched + 1)
+
+      await pause(3000)
+      expect(load).toHaveBeenCalledTimes(searched + 2)
+    })
+
+    it('does not search once more once the page is gone', async () => {
+      const page = await arrive([unkeyed('a')])
+      const searched = load.mock.calls.length
+      listQuestion.mockResolvedValueOnce(answer(keyed('a')))
+      await pause(2000)
+      page.unmount()
+      wrapper = null
+
+      await pause(600000)
+      expect(load).toHaveBeenCalledTimes(searched + 1)
+    })
+
+    it('does not search again for an answer in which the entry still has none', async () => {
+      await arrive([unkeyed('a')])
+      const searched = load.mock.calls.length
+      listQuestion.mockResolvedValue(answer(unkeyed('a')))
+      await pause(2000)
+
+      expect(load).toHaveBeenCalledTimes(searched)
+      await pause(3000)
+      expect(listQuestion).toHaveBeenCalledTimes(2)
+    })
+
+    it('searches again when one of two gets its words, and goes on asking for the other', async () => {
+      await arrive([unkeyed('a'), unkeyed('b')])
+      const searched = load.mock.calls.length
+      listQuestion.mockResolvedValue(answer(keyed('a'), unkeyed('b')))
+      await pause(2000)
+
+      expect(load).toHaveBeenCalledTimes(searched + 1)
+      await pause(3000)
+      expect(listQuestion).toHaveBeenCalledTimes(2)
+      // the one more search after the words, and no other
+      expect(load).toHaveBeenCalledTimes(searched + 2)
+    })
+
+    it('searches once more when the last one gets its words, then stops asking', async () => {
+      await arrive([keyed('a'), unkeyed('b')])
+      const searched = load.mock.calls.length
+      listQuestion.mockResolvedValue(answer(keyed('a'), keyed('b')))
+      await pause(2000)
+
+      expect(load).toHaveBeenCalledTimes(searched + 1)
+      await pause(600000)
+      expect(listQuestion).toHaveBeenCalledTimes(1)
+      expect(load).toHaveBeenCalledTimes(searched + 2)
+    })
+
+    // The answer is written to the cache too, and comes back through the page's own list:
+    // one search for it, not two.
+    it('searches once where the answer also comes back through the list', async () => {
+      const page = await arrive([unkeyed('a')])
+      const searched = load.mock.calls.length
+      listQuestion.mockImplementationOnce(async () => {
+        fire(listMatchingEntries, { listMatchingEntries: [keyed('a')] })
+        return answer(keyed('a'))
+      })
+      await pause(2000)
+      await page.vm.$nextTick()
+
+      expect(load).toHaveBeenCalledTimes(searched + 1)
+    })
+
+    /**
+     * A list that comes in while the question is on its way -- the arrival's network answer --
+     * is not written over by the answer to the question (coderabbit, #4150): that answer was
+     * read before it. The page goes on asking from the list it took.
+     */
+    it('lets an answer go where a list came in while it was on its way', async () => {
+      const page = await arrive([unkeyed('a')])
+      let give
+      listQuestion.mockReturnValueOnce(new Promise((resolve) => (give = resolve)))
+      vi.advanceTimersByTime(2000)
+      fire(listMatchingEntries, { listMatchingEntries: [unkeyed('a'), unkeyed('b')] })
+      await page.vm.$nextTick()
+
+      give(answer(keyed('a')))
+      await flushPromises()
+
+      expect(load.mock.calls.at(-1)[0].mineUuids).toEqual(['a', 'b'])
+      listQuestion.mockResolvedValue(answer(unkeyed('a'), unkeyed('b')))
+      await pause(3000)
+      expect(listQuestion).toHaveBeenCalledTimes(2)
+    })
+
+    it('asks eleven times at most, a little over two minutes in all', async () => {
+      await arrive([unkeyed('a')])
+      listQuestion.mockResolvedValue(answer(unkeyed('a')))
+      for (let i = 0; i < 20; i++) await pause(30000)
+
+      expect(listQuestion).toHaveBeenCalledTimes(11)
+    })
+
+    it('asks again after the next pause when a question fails', async () => {
+      await arrive([unkeyed('a')])
+      listQuestion.mockRejectedValueOnce(new Error('no list'))
+      await pause(2000)
+      await pause(3000)
+
+      expect(listQuestion).toHaveBeenCalledTimes(2)
+    })
+
+    // An answer without the list is no answer: taken, it would empty the page's own entries.
+    it('asks again after the next pause when an answer holds no list', async () => {
+      await arrive([unkeyed('a')])
+      const searched = load.mock.calls.length
+      listQuestion.mockResolvedValue(answer(unkeyed('a')))
+      listQuestion.mockResolvedValueOnce({ data: {} })
+      await pause(2000)
+      await pause(3000)
+
+      expect(listQuestion).toHaveBeenCalledTimes(2)
+      expect(load).toHaveBeenCalledTimes(searched)
+    })
+
+    // cache-and-network answers twice on arrival: one chain of questions, not two.
+    it('asks once for two answers that come together', async () => {
+      const page = await arrive([unkeyed('a')])
+      fire(listMatchingEntries, { listMatchingEntries: [unkeyed('a')] })
+      await page.vm.$nextTick()
+
+      await pause(2000)
+      expect(listQuestion).toHaveBeenCalledTimes(1)
+    })
+
+    it('does not ask where every entry has its words', async () => {
+      await arrive([keyed('a')])
+      await pause(600000)
+      expect(listQuestion).not.toHaveBeenCalled()
+    })
+
+    // The words are worked out for members who take part; for anybody else none would come.
+    it('does not ask for a member who is not findable', async () => {
+      await arrive([unkeyed('a')], { gmsAllowed: false })
+      await pause(600000)
+      expect(listQuestion).not.toHaveBeenCalled()
+    })
+
+    // A paused entry is in nobody's search, and gets no words while it is.
+    it('does not ask for a paused entry', async () => {
+      await arrive([{ ...unkeyed('a'), active: false }])
+      await pause(600000)
+      expect(listQuestion).not.toHaveBeenCalled()
+    })
+
+    it('asks no more once the page is gone', async () => {
+      const page = await arrive([unkeyed('a')])
+      page.unmount()
+      wrapper = null
+      await pause(600000)
+      expect(listQuestion).not.toHaveBeenCalled()
+    })
+
+    it('does nothing with an answer that comes after the page is gone', async () => {
+      const page = await arrive([unkeyed('a')])
+      let give
+      listQuestion.mockReturnValueOnce(new Promise((resolve) => (give = resolve)))
+      vi.advanceTimersByTime(2000)
+      const searched = load.mock.calls.length
+      page.unmount()
+      wrapper = null
+      give(answer(keyed('a')))
+      await flushPromises()
+
+      expect(load).toHaveBeenCalledTimes(searched)
+      await pause(600000)
+      expect(listQuestion).toHaveBeenCalledTimes(1)
+    })
+
+    /**
+     * The search after the words is a later one, not the arrival's: a window left open last
+     * time (off to the send form and back) is not brought back by it. Minutes into a visit it
+     * would pop up over whatever the member is doing.
+     */
+    it('does not reopen a window remembered from last time with the search after the words', async () => {
+      window.localStorage.setItem(`${KEY}profile`, JSON.stringify('u-1'))
+      const page = await arrive([unkeyed('a')])
+      listQuestion.mockResolvedValueOnce(answer(keyed('a')))
+      await pause(2000)
+
+      matches.value = [person('u-1')]
+      await page.vm.$nextTick()
+
+      expect(page.findComponent({ name: 'MatchProfile' }).props('modelValue')).toBe(false)
+    })
+
+    // The control: the arrival's own results still bring it back.
+    it('still reopens it with the results of the arrival', async () => {
+      window.localStorage.setItem(`${KEY}profile`, JSON.stringify('u-1'))
+      const page = await arrive([unkeyed('a')])
+
+      matches.value = [person('u-1')]
+      await page.vm.$nextTick()
+
+      expect(page.findComponent({ name: 'MatchProfile' }).props('modelValue')).toBe(true)
     })
   })
 

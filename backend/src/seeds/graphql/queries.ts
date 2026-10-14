@@ -641,6 +641,16 @@ export const listMatchingEntries = gql`
   }
 `
 
+// Whether each entry has its words, on its own: the list above is asserted on whole elsewhere.
+export const listMatchingEntriesKeyed = gql`
+  query {
+    listMatchingEntries {
+      uuid
+      keyed
+    }
+  }
+`
+
 // Two narrow queries for the aboutMe field resolver: the shared `user` and
 // `verifyLogin` queries are asserted on elsewhere, so this asks for the field on its
 // own rather than widening them.

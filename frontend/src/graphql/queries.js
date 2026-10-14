@@ -109,6 +109,7 @@ export const listMatchingEntries = gql`
       remote
       active
       createdAt
+      keyed
     }
   }
 `
