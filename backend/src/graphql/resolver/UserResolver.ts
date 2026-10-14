@@ -114,6 +114,7 @@ import {
 import { IRestResponse } from 'typed-rest-client'
 import { EntityNotFoundError, Point } from 'typeorm'
 import * as v from 'valibot'
+import { matchingKeyingRun } from '@/apis/anthropic/matching/keyingRun'
 import { mapMemberCount } from '@/apis/gms/mapMemberCount'
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
 import { Account as HumhubAccount } from '@/apis/humhub/model/Account'
@@ -914,6 +915,14 @@ export class UserResolver {
           // alone is enough and leaves their entries untouched.
           await sendUsersToGms([user], homeCom, !user.gmsRegistered)
           logger.debug(`sendUserToGms successfully.`)
+          // The words of a member's entries are worked out only while the member takes part
+          // (mayReachTheGms), so a member who has just joined - registered through an event
+          // link, say, and findable from this save on - has entries the GMS holds without
+          // words, and a search finds nothing with them. Asked now rather than at the run's
+          // next tick, up to a minute away: the map searches the moment it opens. After the
+          // send, so the words are published to a member the GMS already holds. Cheap where
+          // there is nothing to key: the run asks that first.
+          matchingKeyingRun.nudge()
         }
       }
     } catch (e) {

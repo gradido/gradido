@@ -13,6 +13,7 @@ export class MatchingEntry {
     this.active = dbMatchingEntry.active
     this.createdAt = dbMatchingEntry.createdAt
     this.updatedAt = dbMatchingEntry.updatedAt
+    this.keyed = Boolean(dbMatchingEntry.keyedAt)
   }
 
   @Field(() => String)
@@ -38,4 +39,13 @@ export class MatchingEntry {
 
   @Field(() => Date)
   updatedAt: Date
+
+  /**
+   * Whether the entry has its words yet - the keying run's. The GMS finds with an entry only
+   * once it has them (its `findMatches` reads the keyed entries of the member), and they are
+   * worked out a moment after a save, or after the member joins the GMS. The map asks again
+   * while one of the member's entries has none (MatchingMap.vue). An edit clears them.
+   */
+  @Field(() => Boolean)
+  keyed: boolean
 }

@@ -5,6 +5,7 @@ import {
   AppDatabase,
   dbSelectMatchingEntriesByUserId,
   dbSelectMatchingEntryByUuid,
+  dbWriteMatchingEntryKeying,
   MatchingEntrySelect,
   User,
 } from 'database'
@@ -500,6 +501,45 @@ describe('MatchingEntryResolver', () => {
         expect(resBob.data.listMatchingEntries.map((entry: any) => entry.summary)).toEqual([
           'Bob needs bricks',
         ])
+      })
+    })
+
+    /**
+     * Whether an entry has its words: the map asks again while one has none (the GMS finds
+     * with an entry only once it has them). A new entry has none, the keying run gives them,
+     * and an edit takes them away again until the run has been round.
+     */
+    describe('keyed', () => {
+      const keyedOf = async (uuid: string): Promise<boolean> => {
+        const res: any = await query({ query: listMatchingEntries })
+        return res.data.listMatchingEntries.find((entry: any) => entry.uuid === uuid).keyed
+      }
+
+      it('is false for a new entry, true once the words are written, false again after an edit', async () => {
+        await clearEntries()
+        await loginBibi()
+        const uuid = await seedEntry({ matchingType: 'interest', summary: 'Kongress X' })
+        expect(await keyedOf(uuid)).toBe(false)
+
+        const written = await dbWriteMatchingEntryKeying(await entryByUuid(uuid), {
+          keyWords: ['kongress'],
+          keySubject: 'kongress',
+          keyActivity: null,
+          keyCategory: null,
+          keyArea: null,
+          keyActor: null,
+          keySoughtActor: null,
+          keyTraits: [],
+          instructionVersion: 'test',
+        })
+        expect(written.success).toBe(true)
+        expect(await keyedOf(uuid)).toBe(true)
+
+        await mutate({
+          mutation: updateMatchingEntry,
+          variables: { uuid, input: { matchingType: 'interest', summary: 'Kongress Y' } },
+        })
+        expect(await keyedOf(uuid)).toBe(false)
       })
     })
 

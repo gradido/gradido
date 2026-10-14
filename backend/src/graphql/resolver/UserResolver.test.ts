@@ -63,6 +63,7 @@ import {
 import { reencodeImage } from 'shared-native'
 import { QueryRunner } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
+import { matchingKeyingRun } from '@/apis/anthropic/matching/keyingRun'
 import {
   deleteGmsUser,
   getGmsUserCount,
@@ -5616,6 +5617,38 @@ describe('UserResolver', () => {
       expect(upsertMock.mock.invocationCallOrder[0]).toBeLessThan(
         snapshotMock.mock.invocationCallOrder[0],
       )
+    })
+
+    // The words of a member's entries are worked out only while the member takes part, so the
+    // entries of one who joins reach the GMS without them, and the map finds nothing with them.
+    // The keying run is asked at once, after the member and the entries are over there - not
+    // left to its next tick, up to a minute away.
+    it('asks the keying run for the words of the member who joins, after sending them over', async () => {
+      await mutate({ mutation: updateUserInfos, variables: { gmsAllowed: false } })
+      upsertMock.mockClear()
+      snapshotMock.mockClear()
+      const nudge = jest.spyOn(matchingKeyingRun, 'nudge').mockImplementation(() => undefined)
+      try {
+        await mutate({ mutation: updateUserInfos, variables: { gmsAllowed: true } })
+
+        expect(nudge).toHaveBeenCalledTimes(1)
+        expect(snapshotMock.mock.invocationCallOrder[0]).toBeLessThan(
+          nudge.mock.invocationCallOrder[0],
+        )
+      } finally {
+        nudge.mockRestore()
+      }
+    })
+
+    it('does not ask it for a member who leaves', async () => {
+      const nudge = jest.spyOn(matchingKeyingRun, 'nudge').mockImplementation(() => undefined)
+      try {
+        await mutate({ mutation: updateUserInfos, variables: { gmsAllowed: false } })
+
+        expect(nudge).not.toHaveBeenCalled()
+      } finally {
+        nudge.mockRestore()
+      }
     })
   })
 
