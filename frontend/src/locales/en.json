@@ -605,7 +605,7 @@
     "empty-transactionlist": "There was an error with the transmission of the number of your transactions.",
     "no-account": "Unfortunately we could not find an (activated) account to the given data.",
     "no-transactionlist": "Unfortunately, there was an error. No transactions have been sent from the server.",
-    "no-user": "No user with this credentials.",
+    "no-user": "No user with these credentials.",
     "session-expired": "The session was closed for security reasons.",
     "session-renewal-failed": "Your session could not be renewed. Please log in again.",
     "unknown-error": "Unknown error: "

@@ -125,7 +125,7 @@
     "not-allowed": {
       "button": "Configurar..."
     },
-    "text": "Círculos locales, círculos de estudio, proyectos, ev entos y congresos"
+    "text": "Círculos locales, círculos de estudio, proyectos, eventos y congresos"
   },
   "card-user-search": {
     "allowed": {
@@ -862,7 +862,7 @@
     "share-line2": "«{memo}»",
     "share-line3": "¿Quieres aceptar el agradecimiento?",
     "share-line4": "Te espera hasta el {date}. Si no lo aceptas, no pasa nada.",
-    "to-login": "iniciar sesión",
+    "to-login": "Iniciar sesión",
     "to-register": "Registra una nueva cuenta.",
     "to-switch": "Redirigir ahora",
     "validUntil": "Válido hasta"
@@ -910,7 +910,7 @@
   "language": "Idioma",
   "link-load": "recargar el último enlace | recargar los últimos {n} enlaces",
   "link-load-more": "descargar más {n} enlaces",
-  "login": "iniciar sesión",
+  "login": "Iniciar sesión",
   "matching": {
     "about": {
       "counter": "{count} / ~1000 caracteres",
