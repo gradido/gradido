@@ -24,7 +24,15 @@ import {
 import { listMatchingEntries } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
-import * as gmsSync from './util/syncMatchingEntryToGms'
+import { syncMatchingEntryToGms } from './util/syncMatchingEntryToGms'
+
+// Passed through to the real hand-over, and counted: acceptEventMatchingEntry has to hand a new
+// entry to the GMS, and nothing that was there already. (A spy cannot wrap the module's export
+// here -- ts-jest defines it as a property that cannot be redefined.)
+jest.mock('./util/syncMatchingEntryToGms', () => {
+  const actual = jest.requireActual('./util/syncMatchingEntryToGms')
+  return { ...actual, syncMatchingEntryToGms: jest.fn(actual.syncMatchingEntryToGms) }
+})
 
 const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 
@@ -236,18 +244,17 @@ describe('MatchingEntryResolver', () => {
         (entry) => entry.summary.trim().toLowerCase() === summary.trim().toLowerCase(),
       )
 
-    let syncSpy: jest.SpyInstance
+    const syncSpy = syncMatchingEntryToGms as jest.Mock
     let nudgeSpy: jest.SpyInstance
 
     beforeEach(async () => {
       await clearEntries()
       await loginBibi()
-      syncSpy = jest.spyOn(gmsSync, 'syncMatchingEntryToGms')
+      syncSpy.mockClear()
       nudgeSpy = jest.spyOn(matchingKeyingRun, 'nudge')
     })
 
     afterEach(() => {
-      syncSpy.mockRestore()
       nudgeSpy.mockRestore()
     })
 
