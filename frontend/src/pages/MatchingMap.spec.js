@@ -961,6 +961,28 @@ describe('MatchingMap', () => {
       expect(load).toHaveBeenCalledTimes(searched + 1)
     })
 
+    /**
+     * A list that comes in while the question is on its way -- the arrival's network answer --
+     * is not written over by the answer to the question (coderabbit, #4150): that answer was
+     * read before it. The page goes on asking from the list it took.
+     */
+    it('lets an answer go where a list came in while it was on its way', async () => {
+      const page = await arrive([unkeyed('a')])
+      let give
+      listQuestion.mockReturnValueOnce(new Promise((resolve) => (give = resolve)))
+      vi.advanceTimersByTime(2000)
+      fire(listMatchingEntries, { listMatchingEntries: [unkeyed('a'), unkeyed('b')] })
+      await page.vm.$nextTick()
+
+      give(answer(keyed('a')))
+      await flushPromises()
+
+      expect(load.mock.calls.at(-1)[0].mineUuids).toEqual(['a', 'b'])
+      listQuestion.mockResolvedValue(answer(unkeyed('a'), unkeyed('b')))
+      await pause(3000)
+      expect(listQuestion).toHaveBeenCalledTimes(2)
+    })
+
     it('asks eleven times at most, a little over two minutes in all', async () => {
       await arrive([unkeyed('a')])
       listQuestion.mockResolvedValue(answer(unkeyed('a')))

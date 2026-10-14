@@ -596,20 +596,28 @@ function askAgainForWords() {
  * One question for the list, the page's own and not the member's doing: ⛔ `renewSession:
  * false`, or every one of them would move the idle logout ten minutes on
  * (plugins/apolloProvider.js) -- eleven of them where the words never come. A question of
- * Apollo's own (`refetch`) cannot say so. Its answer is taken here; written to the cache as well,
- * it reaches onEntries a second time where it changed the list, and finds nothing new there.
- * A question that fails is asked again after the next pause, within the same count.
+ * Apollo's own (`refetch`) cannot say so. A question that fails is asked again after the next
+ * pause, within the same count.
+ *
+ * ⛔ Its answer is taken only where no list has come in while it was on its way (`listsTaken`):
+ * the page's own list may have answered meanwhile -- the arrival's network answer, or this very
+ * answer, which the cache hands to onEntries as well where it changed the list -- and an answer
+ * read before it must not write over it (coderabbit, #4150). Where that list still has an entry
+ * without words, it has asked again itself (takeEntries). Written to the cache all the same:
+ * the next visit then starts on the words this one found.
  */
+let listsTaken = 0
 async function askForWords() {
   wordsTimer = null
   wordsAsked++
+  const takenBefore = listsTaken
   try {
     const { data } = await apolloClient.query({
       query: listMatchingEntries,
       fetchPolicy: 'network-only',
       context: { renewSession: false },
     })
-    if (!pageAlive) return
+    if (!pageAlive || listsTaken !== takenBefore) return
     if (!data?.listMatchingEntries) throw new Error('listMatchingEntries: no answer')
     takeEntries(data.listMatchingEntries)
   } catch {
@@ -619,6 +627,7 @@ async function askForWords() {
 
 onEntries((result) => takeEntries(result.data?.listMatchingEntries))
 function takeEntries(list) {
+  listsTaken++
   const keyBefore = entryKey(myEntries.value)
   const keyedBefore = keyedKey(myEntries.value)
   myEntries.value = (list ?? []).filter((entry) => entry.active)
