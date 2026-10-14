@@ -867,6 +867,16 @@ describe('MatchingMap', () => {
       expect(asksForList()).toHaveBeenCalledTimes(1)
     })
 
+    // cache-and-network answers twice on arrival: one chain of questions, not two.
+    it('asks once for two answers that come together', async () => {
+      const page = await arrive([unkeyed('a')])
+      fire(listMatchingEntries, { listMatchingEntries: [unkeyed('a')] })
+      await page.vm.$nextTick()
+
+      vi.advanceTimersByTime(2000)
+      expect(asksForList()).toHaveBeenCalledTimes(1)
+    })
+
     it('searches again once the entry has its words, and asks no more', async () => {
       const page = await arrive([unkeyed('a')])
       const searched = load.mock.calls.length
