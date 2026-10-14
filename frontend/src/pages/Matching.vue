@@ -87,6 +87,30 @@
         </BButton>
       </div>
 
+      <!-- An event link offered a sentence the member has already (see `settleEventEntry`):
+           said here instead of opening the form over an entry that is there.
+
+           Under the line with "new entry", over the list: the line stands before the list
+           has answered, and what comes with the answer must not push a button away from
+           under a finger. The list comes with the same answer, so nothing that stood there
+           is moved.
+
+           The region is there from the start and empty; the card comes into it. A screen
+           reader says what is put into a region it already knows -- one that arrives
+           together with its words is passed over by some.
+
+           A card like the entries below: it speaks of one of them, and stands in their
+           form, with their edge, width and ground. -->
+      <div role="status" data-test="matching-entry-already-there-region">
+        <div
+          v-if="alreadyThere"
+          class="bg-white app-box-shadow gradido-border-radius p-3 mb-4"
+          data-test="matching-entry-already-there"
+        >
+          {{ $t('eventMatching.landing.alreadyThere') }}
+        </div>
+      </div>
+
       <template v-if="entries.length">
         <div
           v-for="e in entries"
@@ -500,6 +524,11 @@ const enabled = computed(() => !!store.state.gradidoID)
 // --- Entries: load from the backend, map onto the UI shape (open is client-only) ---
 const entries = ref([])
 const entriesLoaded = ref(false)
+// What an event link offered and the list has yet to answer, and -- where the answer was "you
+// have that one already" -- which entry that is. See `settleEventEntry`; up here because the
+// list's answer below reads them.
+let eventEntry = null
+const offeredAndThere = ref(null)
 const {
   refetch: refetchEntries,
   onResult: onEntries,
@@ -528,8 +557,12 @@ onEntries(({ data }) => {
   // with every list, because this page is where entries are made and deleted: the member
   // who goes back to the overview from here finds the tile right at once, without a wait.
   rememberOwnMatchingEntries(store.state.gradidoID, entries.value.length)
+  settleEventEntry()
 })
-onEntriesError((error) => toastError(error.message))
+onEntriesError((error) => {
+  toastError(error.message)
+  settleEventEntry()
+})
 
 /**
  * One entry more, or one fewer, said to the device the moment the server has confirmed it --
@@ -573,7 +606,7 @@ const newSummary = ref('')
 const newDetails = ref('')
 const newRemote = ref(false)
 
-function openNew({ summary = '', details = '', matchingType = null } = {}) {
+function openNew({ summary = '', details = '', matchingType = null, remote = false } = {}) {
   editUuid.value = null
   newType.value = matchingType
   choiceFirst.value = !matchingType
@@ -582,8 +615,58 @@ function openNew({ summary = '', details = '', matchingType = null } = {}) {
   // sharpen that search; a stored entry is judged on the same words, so asking again
   // would be asking them to repeat themselves.
   newDetails.value = details
-  newRemote.value = false
+  // Off unless whoever opens the form says otherwise: the map and the overview's tile say
+  // nothing, an event link brings its own answer (utils/eventMatchingLink).
+  newRemote.value = remote
   showNew.value = true
+}
+
+/**
+ * The entry an event link offers (`/event?interest=…`): handed over like a search kept from the
+ * map, with one difference -- where the member has that very sentence already, the form stays
+ * shut and a line above the list says so. Whoever taps the link in every mail of a congress
+ * is not asked each time to save what they saved the first time.
+ *
+ * "Already" needs the list, so the entry waits for its first answer. Where that answer is an
+ * error, the list is empty and the form opens all the same: the member decides.
+ *
+ * The very sentence: the same kind and the same words, whatever their case and the blanks
+ * around them, in an entry that is live. A paused one is not in anybody's search; with only
+ * that, the form opens, and the member saves anew or resumes the old one.
+ *
+ * ⛔ The answer comes a moment after the page, and the page is the member's in between. A
+ * form they have opened by then is theirs -- the link's words would write over what they
+ * typed -- and whoever has gone on to another tab did not come for a form over that one. In
+ * both cases the offer is let go; the link is still there to be opened again.
+ *
+ * The line "you have this one already" is said for as long as it is true: it goes when the
+ * member deletes that entry, pauses it or gives it other words.
+ */
+const sameWords = (a, b) => a.trim().toLowerCase() === b.trim().toLowerCase()
+const isThatEntry = (e, offered) =>
+  e.active && e.type === offered.matchingType && sameWords(e.summary, offered.summary)
+const alreadyThere = computed(() => {
+  const offered = offeredAndThere.value
+  return (
+    Boolean(offered) &&
+    entries.value.some((e) => e.uuid === offered.uuid && isThatEntry(e, offered))
+  )
+})
+function settleEventEntry() {
+  const offered = eventEntry
+  if (!offered) return
+  eventEntry = null
+  const there = entries.value.find((e) => isThatEntry(e, offered))
+  if (there) {
+    offeredAndThere.value = {
+      uuid: there.uuid,
+      matchingType: offered.matchingType,
+      summary: offered.summary,
+    }
+    return
+  }
+  if (showNew.value || tab.value !== 'entries') return
+  openNew(offered)
 }
 
 /**
@@ -596,7 +679,15 @@ function openNew({ summary = '', details = '', matchingType = null } = {}) {
  */
 onMounted(() => {
   const draft = entryDraft.take()
-  if (draft) openNew(draft)
+  if (draft?.unlessThere) {
+    eventEntry = draft
+    // The list's answer settles it. The library hands every answer on a tick after this
+    // page is mounted, also one out of the cache; should an answer ever come before, it
+    // found nothing to settle, and this line does it.
+    if (entriesLoaded.value) settleEventEntry()
+  } else if (draft) {
+    openNew(draft)
+  }
   // Or the overview's matching tile sent the member to write an entry (utils/newMatchingEntry).
   // The wish is read once and taken out of the address at once, as the contacts page takes
   // out the conversation it is asked for: a reload, or the way back to this tab, must not
@@ -1016,7 +1107,11 @@ function showMeFromFind() {
    gradido-border-radius; inputs: .form-control/.form-select; spacing/colors:
    Bootstrap utilities). */
 .matching-page {
-  color: #383838;
+  /* The text colour of the page's mode (_design-tokens.scss): #383838 in light, as it was,
+     and the light one in dark. It stood here as the light value alone, so every text that
+     stands on the page without a colour of its own was dark on the dark ground -- each
+     one patched where it showed (gradido-template-dark.scss), and the next one not. */
+  color: var(--text);
 }
 
 /* The two buttons of a window whose second one names a step: behind the find button, and

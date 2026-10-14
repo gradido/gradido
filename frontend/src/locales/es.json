@@ -637,6 +637,14 @@
       "subtitle": "Tu enlace para tu congreso, tu formación, tu curso",
       "title": "Event Matching",
       "waiting": "Escribe arriba el nombre de tu congreso — entonces aparecerán aquí tu enlace, tu código QR y un párrafo para tu correo."
+    },
+    "landing": {
+      "alreadyThere": "Ya tienes esta entrada.",
+      "firstEntry": "Tu primera entrada:",
+      "haveAccount": "Ya tengo una cuenta",
+      "headline": "El mapa que te lleva a las personas de tu congreso",
+      "otherCommunity": "¿Tu cuenta está en otra comunidad? Entonces inicia sesión allí y escribe la frase a mano.",
+      "register": "Crear una cuenta"
     }
   },
   "existingGradidoAccount": "¿Ya tienes una cuenta de {communityName}?",
@@ -882,7 +890,7 @@
     "share-line2": "«{memo}»",
     "share-line3": "¿Quieres aceptar el agradecimiento?",
     "share-line4": "Te espera hasta el {date}. Si no lo aceptas, no pasa nada.",
-    "to-login": "iniciar sesión",
+    "to-login": "Iniciar sesión",
     "to-register": "Registra una nueva cuenta.",
     "to-switch": "Redirigir ahora",
     "validUntil": "Válido hasta"
@@ -930,7 +938,7 @@
   "language": "Idioma",
   "link-load": "recargar el último enlace | recargar los últimos {n} enlaces",
   "link-load-more": "descargar más {n} enlaces",
-  "login": "iniciar sesión",
+  "login": "Iniciar sesión",
   "matching": {
     "about": {
       "counter": "{count} / ~1000 caracteres",

@@ -637,6 +637,14 @@
       "subtitle": "Kongren, eğitimin, kursun için linkin",
       "title": "Event Matching",
       "waiting": "Yukarıya kongrenin adını yaz — o zaman linkin, QR kodun ve e-postana ekleyeceğin bir paragraf burada görünür."
+    },
+    "landing": {
+      "alreadyThere": "Bu girişin zaten var.",
+      "firstEntry": "İlk eşleşme girişin:",
+      "haveAccount": "Zaten bir hesabım var",
+      "headline": "Seni kongrendeki insanlara götüren harita",
+      "otherCommunity": "Hesabın başka bir toplulukta mı? O zaman orada giriş yap ve cümleyi elle gir.",
+      "register": "Hesap aç"
     }
   },
   "existingGradidoAccount": "Zaten bir {communityName} hesabın var mı?",
