@@ -621,6 +621,7 @@
       "copyMail": "Copia paragrafo",
       "detailsCount": "{count} / {max}",
       "detailsHint": "Una o due frasi che spiegano il tuo tema.",
+      "detailsMissing": "Ora scrivi qui sopra i dettagli — poi compariranno qui il tuo link, il tuo codice QR e un paragrafo per la tua e-mail.",
       "downloadCode": "Scarica il codice QR",
       "intro": "Chi apre questo link riceve nel proprio account Gradido il tuo congresso come prima voce sulla mappa — e trova le altre persone del tuo congresso.",
       "linkCopied": "Link copiato.",

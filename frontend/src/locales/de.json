@@ -621,6 +621,7 @@
       "copyMail": "Absatz kopieren",
       "detailsCount": "{count} / {max}",
       "detailsHint": "Ein, zwei Sätze, die Dein Thema erklären.",
+      "detailsMissing": "Trag oben noch die Details ein — dann erscheinen hier Dein Link, Dein QR-Code und ein Absatz für Deine Mail.",
       "downloadCode": "QR-Code herunterladen",
       "intro": "Wer diesen Link öffnet, bekommt im Gradido-Konto Deinen Kongress als ersten Eintrag auf der Karte — und findet die anderen Menschen Deines Kongresses.",
       "linkCopied": "Link kopiert.",

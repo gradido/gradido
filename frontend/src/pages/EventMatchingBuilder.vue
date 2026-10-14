@@ -48,6 +48,7 @@
         class="form-control builder-area"
         rows="4"
         :maxlength="DETAILS_MAX"
+        aria-required="true"
         aria-describedby="event-matching-details-hint event-matching-details-count"
         data-test="builder-details"
       ></textarea>
@@ -166,7 +167,9 @@
         </BButton>
       </div>
       <p v-else class="small text-muted mb-0" data-test="builder-waiting">
-        {{ $t('eventMatching.builder.waiting') }}
+        {{
+          named ? $t('eventMatching.builder.detailsMissing') : $t('eventMatching.builder.waiting')
+        }}
       </p>
     </BContainer>
   </div>
@@ -258,7 +261,12 @@ const typedSentence = computed(() => clip(sentence.value, SENTENCE_MAX))
 const typedDetails = computed(() => clip(details.value, DETAILS_MAX))
 const interest = computed(() => typedSentence.value.trim())
 const explanation = computed(() => typedDetails.value.trim())
-const ready = computed(() => interest.value !== '' && interest.value !== suggested.value.trim())
+// Whether the host has written a name of their own: more than the suggested word.
+const named = computed(() => interest.value !== '' && interest.value !== suggested.value.trim())
+// And details. The form a guest's link opens saves an entry only with details, so a link
+// without them would open it with "Save" greyed out (Bernd, 13.10.2026: the builder asks for
+// them).
+const ready = computed(() => named.value && explanation.value !== '')
 
 // The whole sentence as a guest will read it in their entry, in the reader's language.
 const wholeSentence = computed(() => {
@@ -272,7 +280,7 @@ const link = computed(() => {
   if (!ready.value) return ''
   const address = new URL('/event', CONFIG.COMMUNITY_URL || window.location.origin)
   address.searchParams.set('interest', interest.value)
-  if (explanation.value) address.searchParams.set('details', explanation.value)
+  address.searchParams.set('details', explanation.value)
   address.searchParams.set('remote', remote.value ? '1' : '0')
   address.searchParams.set('v', LINK_VERSION)
   return address.toString()

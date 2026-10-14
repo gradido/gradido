@@ -621,6 +621,7 @@
       "copyMail": "Alinea kopiëren",
       "detailsCount": "{count} / {max}",
       "detailsHint": "Een of twee zinnen die je onderwerp uitleggen.",
+      "detailsMissing": "Vul hierboven nu ook de details in — dan verschijnen hier je link, je QR-code en een alinea voor je e-mail.",
       "downloadCode": "QR-code downloaden",
       "intro": "Wie deze link opent, krijgt in het Gradido-account jouw congres als eerste vermelding op de kaart — en vindt de andere mensen van je congres.",
       "linkCopied": "Link gekopieerd.",

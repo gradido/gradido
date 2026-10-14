@@ -621,6 +621,7 @@
       "copyMail": "Paragrafı kopyala",
       "detailsCount": "{count} / {max}",
       "detailsHint": "Konunu açıklayan bir iki cümle.",
+      "detailsMissing": "Şimdi yukarıya ayrıntıları da yaz — o zaman linkin, QR kodun ve e-postana ekleyeceğin bir paragraf burada görünür.",
       "downloadCode": "QR kodunu indir",
       "intro": "Bu linki açan kişi, kendi Gradido hesabında senin kongreni haritadaki ilk girişi olarak alır — ve kongrendeki diğer insanları bulur.",
       "linkCopied": "Link kopyalandı.",

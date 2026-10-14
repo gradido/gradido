@@ -621,6 +621,7 @@
       "copyMail": "Copy paragraph",
       "detailsCount": "{count} / {max}",
       "detailsHint": "A sentence or two that explain your topic.",
+      "detailsMissing": "Now add the details above — then your link, your QR code and a paragraph for your email appear here.",
       "downloadCode": "Download QR code",
       "intro": "Whoever opens this link gets your congress as the first entry on the map in their Gradido account — and finds the other people of your congress.",
       "linkCopied": "Link copied.",
