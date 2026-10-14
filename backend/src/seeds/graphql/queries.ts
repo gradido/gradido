@@ -637,6 +637,15 @@ export const listMatchingEntries = gql`
       details
       remote
       active
+    }
+  }
+`
+
+// Whether each entry has its words, on its own: the list above is asserted on whole elsewhere.
+export const listMatchingEntriesKeyed = gql`
+  query {
+    listMatchingEntries {
+      uuid
       keyed
     }
   }

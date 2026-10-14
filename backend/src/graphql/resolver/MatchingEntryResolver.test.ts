@@ -22,7 +22,7 @@ import {
   setMatchingEntryActive,
   updateMatchingEntry,
 } from '@/seeds/graphql/mutations'
-import { listMatchingEntries } from '@/seeds/graphql/queries'
+import { listMatchingEntries, listMatchingEntriesKeyed } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { syncMatchingEntryToGms } from './util/syncMatchingEntryToGms'
@@ -511,7 +511,7 @@ describe('MatchingEntryResolver', () => {
      */
     describe('keyed', () => {
       const keyedOf = async (uuid: string): Promise<boolean> => {
-        const res: any = await query({ query: listMatchingEntries })
+        const res: any = await query({ query: listMatchingEntriesKeyed })
         return res.data.listMatchingEntries.find((entry: any) => entry.uuid === uuid).keyed
       }
 
