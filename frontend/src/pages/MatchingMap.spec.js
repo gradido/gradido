@@ -982,6 +982,7 @@ describe('MatchingMap', () => {
     it('asks again after the next pause when an answer holds no list', async () => {
       await arrive([unkeyed('a')])
       const searched = load.mock.calls.length
+      listQuestion.mockResolvedValue(answer(unkeyed('a')))
       listQuestion.mockResolvedValueOnce({ data: {} })
       await pause(2000)
       await pause(3000)
