@@ -912,6 +912,52 @@ describe('MatchingMap', () => {
       expect(listQuestion).toHaveBeenCalledTimes(1)
     })
 
+    /**
+     * `keyed` says the words were worked out here; they reach the GMS a moment later, with the
+     * keying run's publish. One more search three seconds on catches a publish that was slower
+     * than the first search (coderabbit, #4150) -- on its own clock, not out of the list's count.
+     */
+    it('searches once more three seconds after the words, and no more', async () => {
+      await arrive([unkeyed('a')])
+      const searched = load.mock.calls.length
+      listQuestion.mockResolvedValueOnce(answer(keyed('a')))
+      await pause(2000)
+      expect(load).toHaveBeenCalledTimes(searched + 1)
+
+      await pause(2999)
+      expect(load).toHaveBeenCalledTimes(searched + 1)
+      await pause(1)
+      expect(load).toHaveBeenCalledTimes(searched + 2)
+      await pause(600000)
+      expect(load).toHaveBeenCalledTimes(searched + 2)
+    })
+
+    it('searches once more after the last question of all, too', async () => {
+      await arrive([unkeyed('a')])
+      const searched = load.mock.calls.length
+      listQuestion.mockResolvedValue(answer(unkeyed('a')))
+      for (let i = 0; i < 10; i++) await pause(30000)
+      listQuestion.mockResolvedValue(answer(keyed('a')))
+      await pause(30000)
+      expect(listQuestion).toHaveBeenCalledTimes(11)
+      expect(load).toHaveBeenCalledTimes(searched + 1)
+
+      await pause(3000)
+      expect(load).toHaveBeenCalledTimes(searched + 2)
+    })
+
+    it('does not search once more once the page is gone', async () => {
+      const page = await arrive([unkeyed('a')])
+      const searched = load.mock.calls.length
+      listQuestion.mockResolvedValueOnce(answer(keyed('a')))
+      await pause(2000)
+      page.unmount()
+      wrapper = null
+
+      await pause(600000)
+      expect(load).toHaveBeenCalledTimes(searched + 1)
+    })
+
     it('does not search again for an answer in which the entry still has none', async () => {
       await arrive([unkeyed('a')])
       const searched = load.mock.calls.length
@@ -932,7 +978,8 @@ describe('MatchingMap', () => {
       expect(load).toHaveBeenCalledTimes(searched + 1)
       await pause(3000)
       expect(listQuestion).toHaveBeenCalledTimes(2)
-      expect(load).toHaveBeenCalledTimes(searched + 1)
+      // the one more search after the words, and no other
+      expect(load).toHaveBeenCalledTimes(searched + 2)
     })
 
     it('searches once more when the last one gets its words, then stops asking', async () => {
@@ -944,6 +991,7 @@ describe('MatchingMap', () => {
       expect(load).toHaveBeenCalledTimes(searched + 1)
       await pause(600000)
       expect(listQuestion).toHaveBeenCalledTimes(1)
+      expect(load).toHaveBeenCalledTimes(searched + 2)
     })
 
     // The answer is written to the cache too, and comes back through the page's own list:

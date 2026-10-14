@@ -586,6 +586,24 @@ const WORDS_ASKED_AFTER_MS = [2000, 3000, 4000, 5000, 6000, 8000, 10000, 15000, 
 let wordsAsked = 0
 let wordsTimer = null
 let pageAlive = true
+/**
+ * The search after the words, asked once more a moment later. `keyed` says the words were worked
+ * out here; they reach the GMS with the keying run's publish right after, and a search that is
+ * quicker than that publish finds nothing with them (coderabbit, #4150). One more search three
+ * seconds on catches a publish that was slow, on its own clock: the list's questions may be used
+ * up by then. A publish that failed it cannot mend -- the member's next edit or a repair run does.
+ */
+const SEARCH_AGAIN_AFTER_WORDS_MS = 3000
+let wordsSearchTimer = null
+function searchAfterWords() {
+  arrivalOver()
+  searchUnasked()
+  clearTimeout(wordsSearchTimer)
+  wordsSearchTimer = setTimeout(() => {
+    wordsSearchTimer = null
+    if (pageAlive) searchUnasked()
+  }, SEARCH_AGAIN_AFTER_WORDS_MS)
+}
 const waitsForWords = () =>
   Boolean(store.state.gmsAllowed) && myEntries.value.some((entry) => entry.keyed === false)
 function askAgainForWords() {
@@ -659,8 +677,7 @@ function takeEntries(list) {
   if (entryKey(myEntries.value) !== keyBefore) {
     searchUnasked()
   } else if (keyedKey(myEntries.value) !== keyedBefore) {
-    arrivalOver()
-    searchUnasked()
+    searchAfterWords()
   }
 }
 
@@ -2196,6 +2213,8 @@ onUnmounted(() => {
   pageAlive = false
   clearTimeout(wordsTimer)
   wordsTimer = null
+  clearTimeout(wordsSearchTimer)
+  wordsSearchTimer = null
   // An answer about somebody to show that is still on its way is for a page that is gone.
   shownRequest++
   if (map) map.remove()
