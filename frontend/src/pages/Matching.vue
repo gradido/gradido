@@ -99,10 +99,8 @@
            reader says what is put into a region it already knows -- one that arrives
            together with its words is passed over by some.
 
-           A card like the entries below, not a line on the page: text that stands directly
-           on this page takes the page's own colour, which is one for both modes and cannot
-           be read on the dark ground (measured: #383838 on #17181a). A card brings the
-           colour that goes with its ground. -->
+           A card like the entries below: it speaks of one of them, and stands in their
+           form, with their edge, width and ground. -->
       <div role="status" data-test="matching-entry-already-there-region">
         <div
           v-if="alreadyThere"
@@ -1109,7 +1107,11 @@ function showMeFromFind() {
    gradido-border-radius; inputs: .form-control/.form-select; spacing/colors:
    Bootstrap utilities). */
 .matching-page {
-  color: #383838;
+  /* The text colour of the page's mode (_design-tokens.scss): #383838 in light, as it was,
+     and the light one in dark. It stood here as the light value alone, so every text that
+     stands on the page without a colour of its own was dark on the dark ground -- each
+     one patched where it showed (gradido-template-dark.scss), and the next one not. */
+  color: var(--text);
 }
 
 /* The two buttons of a window whose second one names a step: behind the find button, and

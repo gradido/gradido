@@ -493,12 +493,6 @@ html:has(body.dark-mode) {
   border-color: var(--text-muted);
 }
 
-// Matching position "Bin ich auffindbar?" label inherits a hardcoded #383838 from
-// the scoped matching styles -> light. (The hint below already uses text-muted.)
-#app.dark-mode .matching-page .fw-bold {
-  color: var(--text) !important;
-}
-
 // AppModal (custom teleported modal: QR code, delete link) close button is a plain
 // <button> with a black IBiX glyph inheriting the browser default -> light. (The
 // modal shell + BCard body are already dark via the .modal-content / .card rules.)

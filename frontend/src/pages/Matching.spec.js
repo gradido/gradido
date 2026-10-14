@@ -1,5 +1,8 @@
 // AI-GENERATED — not an architecture reference
 import { flushPromises, mount } from '@vue/test-utils'
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { reactive } from 'vue'
 import { createStore } from 'vuex'
@@ -2253,5 +2256,30 @@ describe('Matching', () => {
         expect(saveButton(page).attributes('disabled')).toBeUndefined()
       })
     })
+  })
+})
+
+/**
+ * The colour of text that stands on the page itself, without one of its own: the colour of the
+ * mode (`--text`, _design-tokens.scss and gradido-template-dark.scss). It stood here as the
+ * light value alone, and every such text was dark on the dark ground until it was patched
+ * where it showed (measured in the built wallet, 14.10.2026). A test of the component cannot
+ * see a colour, so this holds the rule.
+ */
+describe('the text colour of the matching page', () => {
+  const here = dirname(fileURLToPath(import.meta.url))
+  const rule = (() => {
+    const source = readFileSync(join(here, 'Matching.vue'), 'utf8')
+    const [, style] = source.match(/<style[^>]*>([\s\S]*?)<\/style>/) ?? []
+    const [, body] = (style ?? '').match(/\.matching-page \{([^}]*)\}/) ?? []
+    // The comment says why, and names the colour it replaced.
+    return body?.replace(/\/\*[\s\S]*?\*\//g, '')
+  })()
+
+  it('is the colour of the mode, not a colour of its own', () => {
+    // The fixture has to prove itself: no rule would compare nothing with nothing.
+    expect(rule).toBeDefined()
+    expect(rule).toMatch(/color: var\(--text\);/)
+    expect(rule).not.toMatch(/#[0-9a-f]{3,8}/i)
   })
 })
