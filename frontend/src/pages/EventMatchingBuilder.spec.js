@@ -44,10 +44,14 @@ const field = (name) => wrapper.find(`[data-test="builder-${name}"]`)
 const link = () => field('link').element.value
 // How long the page waits after the last key before it draws the code.
 const PAUSE = 600
+// Details the builder asks for before it makes a link. A test about something else types its
+// sentence alone and gets these, once; a test about the details gives its own.
+const DETAILS = 'Selbstheilung'
 /** Typing alone: the text is in the fields, the code has not been asked for yet. */
 const type = async (sentence, details) => {
   await field('sentence').setValue(sentence)
   if (details !== undefined) await field('details').setValue(details)
+  else if (field('details').element.value === '') await field('details').setValue(DETAILS)
 }
 /** Time passing, and whatever was waiting on it. */
 const wait = async (ms) => {
@@ -124,6 +128,48 @@ describe('EventMatchingBuilder', () => {
       },
     )
 
+    // The details are asked for as well: the form a guest's link opens saves an entry only
+    // with details, and without them would open with its button greyed out.
+    it('asks for the details once there is a name, and makes no link without them', async () => {
+      mountBuilder()
+      await write('Kongress Frequency Healing', '')
+
+      expect(field('result').exists()).toBe(false)
+      expect(field('waiting').text()).toBe(de.eventMatching.builder.detailsMissing)
+      expect(renderQrCodeCanvas).not.toHaveBeenCalled()
+
+      await write('Kongress Frequency Healing', 'Selbstheilung')
+      expect(field('result').exists()).toBe(true)
+      expect(field('waiting').exists()).toBe(false)
+    })
+
+    it('takes details that are only space for none', async () => {
+      mountBuilder()
+      await write('Kongress Frequency Healing', ' \n ')
+
+      expect(field('result').exists()).toBe(false)
+      expect(field('waiting').text()).toBe(de.eventMatching.builder.detailsMissing)
+    })
+
+    it('asks for the name first, whether or not the details are there', async () => {
+      mountBuilder()
+      await write('Kongress ', '')
+      expect(field('waiting').text()).toBe(de.eventMatching.builder.waiting)
+
+      await write('Kongress ', 'Selbstheilung')
+      expect(field('waiting').text()).toBe(de.eventMatching.builder.waiting)
+    })
+
+    it('takes back the result when the details are taken out', async () => {
+      mountBuilder()
+      await write('Kongress Frequency Healing', 'Selbstheilung')
+      expect(field('code-picture').exists()).toBe(true)
+
+      await write('Kongress Frequency Healing', '')
+      expect(field('result').exists()).toBe(false)
+      expect(field('waiting').text()).toBe(de.eventMatching.builder.detailsMissing)
+    })
+
     it('takes a sentence without the suggested word as it is', async () => {
       mountBuilder()
       await write('Training Rücken ohne Bewegung')
@@ -162,12 +208,14 @@ describe('EventMatchingBuilder', () => {
   })
 
   describe('the link', () => {
-    it('is the entrance of this community with the sentence, remote and the version', async () => {
+    it('is the entrance of this community with the sentence, the details, remote and the version', async () => {
       mountBuilder()
-      await write('Kongress Frequency Healing')
+      await write('Kongress Frequency Healing', 'Selbstheilung')
 
-      // The whole string: nothing in front, nothing behind, and no details where none were given.
-      expect(link()).toBe(`${HOME}/event?interest=Kongress+Frequency+Healing&remote=1&v=1`)
+      // The whole string: nothing in front, nothing behind.
+      expect(link()).toBe(
+        `${HOME}/event?interest=Kongress+Frequency+Healing&details=Selbstheilung&remote=1&v=1`,
+      )
     })
 
     it('carries the details once there are some, without the space around them', async () => {
@@ -180,13 +228,6 @@ describe('EventMatchingBuilder', () => {
         remote: '1',
         v: '1',
       })
-    })
-
-    it('leaves the details out where they are only space', async () => {
-      mountBuilder()
-      await write('Kongress Frequency Healing', ' \n ')
-
-      expect(Object.keys(query())).toEqual(['interest', 'remote', 'v'])
     })
 
     it('says remote=0 once the box is unticked, and remote=1 with it ticked', async () => {
@@ -207,7 +248,6 @@ describe('EventMatchingBuilder', () => {
     it('never carries anything but the four parameters', async () => {
       mountBuilder()
       for (const [sentence, details] of [
-        ['Kongress A', ''],
         ['Kongress A', 'mit Details'],
         ['Kurs ?x=1&y=2#z', 'a=b&c=d'],
       ]) {
@@ -501,8 +541,8 @@ describe('EventMatchingBuilder', () => {
         await write('Kongress A')
         await write('Kongress AB')
         expect(held.map((drawing) => drawing.address)).toEqual([
-          `${HOME}/event?interest=Kongress+A&remote=1&v=1`,
-          `${HOME}/event?interest=Kongress+AB&remote=1&v=1`,
+          `${HOME}/event?interest=Kongress+A&details=Selbstheilung&remote=1&v=1`,
+          `${HOME}/event?interest=Kongress+AB&details=Selbstheilung&remote=1&v=1`,
         ])
 
         held[1].finish()
@@ -642,7 +682,7 @@ describe('EventMatchingBuilder', () => {
         held[0].finish()
         await flushPromises()
 
-        expect(field('code-picture').attributes('src')).toContain('interest=Kongress+A&remote')
+        expect(field('code-picture').attributes('src')).toContain('interest=Kongress+A&details')
         expect(saved).toEqual([])
       })
 
@@ -801,7 +841,9 @@ describe('EventMatchingBuilder', () => {
         mountBuilder()
         await write('Kongress Frequency Healing')
 
-        expect(link()).toBe(`${HOME}/event?interest=Kongress+Frequency+Healing&remote=1&v=1`)
+        expect(link()).toBe(
+          `${HOME}/event?interest=Kongress+Frequency+Healing&details=Selbstheilung&remote=1&v=1`,
+        )
         expect(field('mail').element.value.endsWith(`\n${link()}`)).toBe(true)
       })
 
@@ -1097,6 +1139,13 @@ describe('EventMatchingBuilder', () => {
       expect(described(wrapper.find('input[type="checkbox"]'))).toEqual([
         de.eventMatching.builder.remoteHint,
       ])
+    })
+
+    it('says that the details are required', () => {
+      mountBuilder()
+
+      expect(field('details').attributes('aria-required')).toBe('true')
+      expect(field('sentence').attributes('aria-required')).toBeUndefined()
     })
 
     it('points every description at something that is there exactly once', async () => {
