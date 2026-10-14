@@ -60,10 +60,10 @@ const fire = (document, data) => handlers.get(document)?.result?.({ data })
 
 vi.mock('@vue/apollo-composable', () => ({
   useQuery: (document) => {
-    const handler = { result: null, error: null }
+    const handler = { result: null, error: null, refetch: vi.fn() }
     handlers.set(document, handler)
     return {
-      refetch: vi.fn(),
+      refetch: handler.refetch,
       onResult: (callback) => {
         handler.result = callback
       },
@@ -829,6 +829,143 @@ describe('MatchingMap', () => {
       await page.vm.$nextTick()
 
       expect(load).toHaveBeenCalledTimes(asked)
+    })
+  })
+
+  /**
+   * An entry of mine without its words yet: the GMS finds nothing with it, so the search on
+   * arrival comes back empty. The page asks for the list again, less often as time goes on,
+   * and searches again as soon as an entry has its words (Bernd, 14.10.2026: an empty map
+   * right after the event link and "home", stars only after leaving and coming back).
+   */
+  describe('while an entry of mine waits for its words', () => {
+    const unkeyed = (uuid) => ({ ...entry(uuid), keyed: false })
+    const keyed = (uuid) => ({ ...entry(uuid), keyed: true })
+    const asksForList = () => handlers.get(listMatchingEntries).refetch
+
+    beforeEach(() => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    })
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    const arrive = async (list, options) => {
+      const page = mountMap(options)
+      fire(userLocationQuery, { userLocation: location })
+      fire(listMatchingEntries, { listMatchingEntries: list })
+      await page.vm.$nextTick()
+      return page
+    }
+
+    it('asks for the list again after two seconds, and not before', async () => {
+      await arrive([unkeyed('a')])
+
+      vi.advanceTimersByTime(1999)
+      expect(asksForList()).not.toHaveBeenCalled()
+      vi.advanceTimersByTime(1)
+      expect(asksForList()).toHaveBeenCalledTimes(1)
+    })
+
+    it('searches again once the entry has its words, and asks no more', async () => {
+      const page = await arrive([unkeyed('a')])
+      const searched = load.mock.calls.length
+      vi.advanceTimersByTime(2000)
+
+      fire(listMatchingEntries, { listMatchingEntries: [keyed('a')] })
+      await page.vm.$nextTick()
+
+      expect(load).toHaveBeenCalledTimes(searched + 1)
+      expect(load.mock.calls.at(-1)[0].mineUuids).toEqual(['a'])
+      vi.advanceTimersByTime(600000)
+      expect(asksForList()).toHaveBeenCalledTimes(1)
+    })
+
+    it('does not search again for an answer in which the entry still has none', async () => {
+      const page = await arrive([unkeyed('a')])
+      const searched = load.mock.calls.length
+      vi.advanceTimersByTime(2000)
+
+      fire(listMatchingEntries, { listMatchingEntries: [unkeyed('a')] })
+      await page.vm.$nextTick()
+
+      expect(load).toHaveBeenCalledTimes(searched)
+      vi.advanceTimersByTime(3000)
+      expect(asksForList()).toHaveBeenCalledTimes(2)
+    })
+
+    it('searches again when one of two gets its words, and goes on asking for the other', async () => {
+      const page = await arrive([unkeyed('a'), unkeyed('b')])
+      const searched = load.mock.calls.length
+      vi.advanceTimersByTime(2000)
+
+      fire(listMatchingEntries, { listMatchingEntries: [keyed('a'), unkeyed('b')] })
+      await page.vm.$nextTick()
+
+      expect(load).toHaveBeenCalledTimes(searched + 1)
+      vi.advanceTimersByTime(3000)
+      expect(asksForList()).toHaveBeenCalledTimes(2)
+    })
+
+    it('searches once more when the last one gets its words, then stops asking', async () => {
+      const page = await arrive([keyed('a'), unkeyed('b')])
+      const searched = load.mock.calls.length
+      vi.advanceTimersByTime(2000)
+
+      fire(listMatchingEntries, { listMatchingEntries: [keyed('a'), keyed('b')] })
+      await page.vm.$nextTick()
+
+      expect(load).toHaveBeenCalledTimes(searched + 1)
+      vi.advanceTimersByTime(600000)
+      expect(asksForList()).toHaveBeenCalledTimes(1)
+    })
+
+    it('asks eleven times at most, a little over two minutes in all', async () => {
+      const page = await arrive([unkeyed('a')])
+      for (let i = 0; i < 20; i++) {
+        vi.advanceTimersByTime(30000)
+        fire(listMatchingEntries, { listMatchingEntries: [unkeyed('a')] })
+        await page.vm.$nextTick()
+      }
+      expect(asksForList()).toHaveBeenCalledTimes(11)
+    })
+
+    it('asks again after the next pause when a question fails', async () => {
+      await arrive([unkeyed('a')])
+      asksForList().mockReturnValueOnce(Promise.reject(new Error('no list')))
+      vi.advanceTimersByTime(2000)
+      await flushPromises()
+
+      vi.advanceTimersByTime(3000)
+      expect(asksForList()).toHaveBeenCalledTimes(2)
+    })
+
+    it('does not ask where every entry has its words', async () => {
+      await arrive([keyed('a')])
+      vi.advanceTimersByTime(600000)
+      expect(asksForList()).not.toHaveBeenCalled()
+    })
+
+    // The words are worked out for members who take part; for anybody else none would come.
+    it('does not ask for a member who is not findable', async () => {
+      await arrive([unkeyed('a')], { gmsAllowed: false })
+      vi.advanceTimersByTime(600000)
+      expect(asksForList()).not.toHaveBeenCalled()
+    })
+
+    // A paused entry is in nobody's search, and gets no words while it is.
+    it('does not ask for a paused entry', async () => {
+      await arrive([{ ...unkeyed('a'), active: false }])
+      vi.advanceTimersByTime(600000)
+      expect(asksForList()).not.toHaveBeenCalled()
+    })
+
+    it('asks no more once the page is gone', async () => {
+      const page = await arrive([unkeyed('a')])
+      page.unmount()
+      wrapper = null
+      vi.advanceTimersByTime(600000)
+      expect(asksForList()).not.toHaveBeenCalled()
     })
   })
 
