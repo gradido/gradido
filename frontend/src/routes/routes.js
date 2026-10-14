@@ -71,11 +71,30 @@ const matchingRoutes = CONFIG.MATCHING_ACTIVE
 // Registered only with MATCHING_ACTIVE, for the reason given above: the link it builds ends
 // in a matching entry, so on an instance without matching the page would build links that
 // lead nowhere. The footer link hangs on the same flag (AuthFooter.vue).
+//
+// And the entrance of such a link, `community-host/event?interest=…`: it offers whoever opens
+// it one entry for the matching. Public for the same reason as the Gradido address -- it
+// arrives out of a mail or off a slide, in a browser that is mostly not signed in. What the
+// link says is read by a guard (routes/guards.js, by the name of this record): with a session
+// running it leads on to the member's entries and this page is never shown. ⛔ The path and
+// the names of its parameters are a promise (utils/eventMatchingLink): a link that stands in a
+// mail has to work for good.
+//
+// queryStaysBehind: the query of that address is what the link offers, in somebody else's
+// words. The links of the bar above the page -- "register", "sign in" -- hand a page's query on
+// to the next (useAuthLinks); from there they must not. Whatever else stands in such an
+// address, a `referrer` or a `guarantor`, is not the link's to say either.
 const eventMatchingRoutes = CONFIG.MATCHING_ACTIVE
   ? [
       {
         path: '/event-matching',
         component: () => import('@/pages/EventMatchingBuilder'),
+      },
+      {
+        name: 'EventMatchingLanding',
+        path: '/event',
+        component: () => import('@/pages/EventMatchingLanding'),
+        meta: { queryStaysBehind: true },
       },
     ]
   : []

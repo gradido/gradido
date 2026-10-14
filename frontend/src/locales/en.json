@@ -605,7 +605,7 @@
     "empty-transactionlist": "There was an error with the transmission of the number of your transactions.",
     "no-account": "Unfortunately we could not find an (activated) account to the given data.",
     "no-transactionlist": "Unfortunately, there was an error. No transactions have been sent from the server.",
-    "no-user": "No user with this credentials.",
+    "no-user": "No user with these credentials.",
     "session-expired": "The session was closed for security reasons.",
     "session-renewal-failed": "Your session could not be renewed. Please log in again.",
     "unknown-error": "Unknown error: "
@@ -636,6 +636,14 @@
       "subtitle": "Your link for your congress, your training, your course",
       "title": "Event Matching",
       "waiting": "Enter the name of your congress above — then your link, your QR code and a paragraph for your email appear here."
+    },
+    "landing": {
+      "alreadyThere": "You already have this entry.",
+      "firstEntry": "Your first entry:",
+      "haveAccount": "I already have an account",
+      "headline": "The map to the people of your congress",
+      "otherCommunity": "Is your account in another community? Then sign in there and type the sentence by hand.",
+      "register": "Create an account"
     }
   },
   "existingGradidoAccount": "Already have a {communityName} account?",

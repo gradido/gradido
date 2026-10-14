@@ -109,6 +109,21 @@ export const mutations = {
     if (isNaN(pubId)) pubId = null
     state.publisherId = pubId
   },
+  // What an event link offered somebody who was not signed in (`/event?interest=…`,
+  // utils/eventMatchingLink): the entry "I love ‹summary›", as `{ summary, details, remote,
+  // keptAt }`, or null. Written where the wallet is entered (routes/guards.js), for the sign-in
+  // that follows: the sign-in page takes it out and opens the form for a new entry with it
+  // (Login.vue). It lies in the device's storage with the rest of this store, so a page
+  // loaded anew on the way -- a mail's link to set a new password -- still finds it.
+  //
+  // ⛔ Nobody is signed in when it is written, so it is nobody's: it counts for an hour
+  // (keptEventMatchingEntry), the next sign-in on the sign-in page takes it whether it uses it
+  // or not, and a sign-out lets it go.
+  //
+  // The text is the link's, not the member's -- whoever built the link wrote it.
+  eventMatchingEntry: (state, eventMatchingEntry) => {
+    state.eventMatchingEntry = eventMatchingEntry ?? null
+  },
   role(state, role) {
     state.role = role
   },
@@ -230,6 +245,7 @@ export const actions = {
     commit('hasElopage', false)
     commit('project', null)
     commit('publisherId', null)
+    commit('eventMatchingEntry', null)
     commit('role', null)
     commit('hideAmountGDD', false)
     commit('hideAmountGDT', true)
@@ -388,6 +404,7 @@ try {
       hasElopage: false,
       project: null,
       publisherId: null,
+      eventMatchingEntry: null,
       hideAmountGDD: null,
       hideAmountGDT: null,
       // EM-013: whether the member's address is confirmed, and when the account was

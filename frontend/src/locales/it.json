@@ -636,6 +636,14 @@
       "subtitle": "Il tuo link per il tuo congresso, la tua formazione, il tuo corso",
       "title": "Event Matching",
       "waiting": "Scrivi qui sopra il nome del tuo congresso — poi compariranno qui il tuo link, il tuo codice QR e un paragrafo per la tua e-mail."
+    },
+    "landing": {
+      "alreadyThere": "Hai già questa voce.",
+      "firstEntry": "La tua prima voce:",
+      "haveAccount": "Ho già un account",
+      "headline": "La mappa che ti porta alle persone del tuo congresso",
+      "otherCommunity": "Il tuo account è in un'altra comunità? Allora accedi lì e inserisci la frase a mano.",
+      "register": "Crea un account"
     }
   },
   "existingGradidoAccount": "Hai già un account {communityName}?",

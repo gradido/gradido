@@ -636,6 +636,14 @@
       "subtitle": "Dein Link für Deinen Kongress, Dein Training, Deinen Kurs",
       "title": "Event-Matching",
       "waiting": "Trag oben den Namen Deines Kongresses ein — dann erscheinen hier Dein Link, Dein QR-Code und ein Absatz für Deine Mail."
+    },
+    "landing": {
+      "alreadyThere": "Diesen Eintrag hast Du schon.",
+      "firstEntry": "Dein erster Eintrag:",
+      "haveAccount": "Ich habe schon ein Konto",
+      "headline": "Die Karte zu den Menschen Deines Kongresses",
+      "otherCommunity": "Dein Konto ist in einer anderen Gemeinschaft? Dann melde Dich dort an und trage den Satz von Hand ein.",
+      "register": "Konto anlegen"
     }
   },
   "existingGradidoAccount": "Du hast schon ein {communityName} Konto?",
