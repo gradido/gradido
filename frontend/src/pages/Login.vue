@@ -123,7 +123,7 @@ const onSubmit = handleSubmit(async (values) => {
     // What an event link offered in this browser before anybody was signed in (`/event?…`,
     // routes/guards.js) is taken ONCE as well, by the sign-in that follows the link: used
     // below, or let go. Nobody was signed in when it was kept, so nothing says whose it is --
-    // left in the store, it would open the form for whoever signs in here next. And only if
+    // left in the store, it would be made for whoever signs in here next. And only if
     // it was kept within the hour (keptEventMatchingEntry).
     const offered = keptEventMatchingEntry(store.state.eventMatchingEntry)
     store.commit('eventMatchingEntry', null)
@@ -140,8 +140,8 @@ const onSubmit = handleSubmit(async (values) => {
       await router.push(routeWithParamsAndQuery('Redeem'))
       return
     }
-    // The event link's entry now has a member to offer it to: on to their entries, where the
-    // form for a new entry opens with the link's words in it.
+    // The event link's entry now has a member to offer it to: on to their entries, where it is
+    // made at once, or nothing happens where the member has it already (KA-014).
     //
     // ⛔ Only where no page is waiting. Of the two wishes kept for after a sign-in the
     // younger one counts: opening an event link puts the way back to the overview

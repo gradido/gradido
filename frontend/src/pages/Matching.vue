@@ -610,8 +610,10 @@ function openNew({ summary = '', details = '', matchingType = null, remote = fal
  * ⛔ The answer comes a moment after the page, and the member may have signed out by then: the
  * toast and the count on the device belong to who opened the link, and only to them.
  */
+// No connection: the request never reached a server, so there is no status. A server that
+// answered with an error status (a 502 while it restarts, a 500) is not "no connection".
 const quietRefusal = (error) =>
-  Boolean(error?.networkError) ||
+  Boolean(error?.networkError && !error.networkError.statusCode) ||
   (error?.graphQLErrors ?? []).some((e) => e?.message === '401 Unauthorized')
 async function acceptEventEntry(offered) {
   const member = store.state.gradidoID
@@ -641,7 +643,7 @@ async function acceptEventEntry(offered) {
   try {
     await refetchEntries()
   } catch (error) {
-    toastError(error.message)
+    if (store.state.gradidoID === member) toastError(error.message)
   }
 }
 

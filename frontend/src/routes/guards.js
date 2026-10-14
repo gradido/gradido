@@ -148,23 +148,23 @@ const addNavigationGuards = (router, store, apollo) => {
   // matching -- "I love ‹interest›". What becomes of it depends on who opens it:
   //
   // - No sentence in it: no event link. On to the sign-in page, without a word.
-  // - A session runs: on to the member's entries at once, where the form for a new entry opens
-  //   with the link's words in it (pages/Matching.vue takes them, once). Nothing is made by
-  //   that: the member reads, changes and saves, or closes the form.
+  // - A session runs: on to the member's entries at once, where the entry is made without a
+  //   form (pages/Matching.vue takes it, once; KA-014) -- or nothing happens, where the member
+  //   has it already.
   // - Nobody signed in: the store keeps the entry for an hour, and the page says what the link
   //   offers and leads on to the registration and the sign-in (pages/EventMatchingLanding.vue).
-  //   A sign-in on the sign-in page within that hour opens the same form (Login.vue).
+  //   A sign-in on the sign-in page within that hour makes the entry the same way (Login.vue).
   //
   // A session that has run out counts as nobody, and is put away first, as before a page that
   // asks for a sign-in (below). Left in the store, the old token would be signed out by the
   // next such page -- the overview a bookmark opens -- and that sign-out takes what is kept
   // here with it: the member would sign in and find nothing of the link.
   //
-  // ⛔ The form opens only where the wallet STARTS on the link -- a tap on it in a mail, a QR
+  // ⛔ The entry is made only where the wallet STARTS on the link -- a tap on it in a mail, a QR
   // code, the address typed. A session can also come back to the link by the browser's back
   // button: whoever saw the page signed out, went on to the sign-in and signed in has it one
-  // step behind the entries. That step must not open the form again over what the member
-  // saved or closed, and it must not stay in the way either: it is replaced by the entries, so
+  // step behind the entries. That step must not offer the entry again, and it must not stay in
+  // the way either: it is replaced by the entries, so
   // the step after it leads out. It stays a step within the document after a reload on the
   // entries, too: the browser hands it to the wallet and loads nothing (measured in the built
   // wallet, 13.10.2026). (A way to the link from inside the running wallet would be read as

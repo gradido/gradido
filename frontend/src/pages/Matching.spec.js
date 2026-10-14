@@ -1125,6 +1125,30 @@ describe('Matching', () => {
           expect(told()).toBe('1')
         })
 
+        it('says so in red where the list cannot be fetched again', async () => {
+          kept.draft = offered()
+          mutate.mockResolvedValueOnce(answer(true))
+          mountPage('entries', shownModal)
+          refetch().mockRejectedValueOnce(new Error('no list'))
+          await flushPromises()
+
+          expect(toast.success).toHaveBeenCalledTimes(1)
+          expect(toast.error).toHaveBeenCalledWith('no list')
+        })
+
+        it('keeps that red toast from whoever is there once the member has signed out', async () => {
+          kept.draft = offered()
+          mutate.mockResolvedValueOnce(answer(true))
+          mountPage('entries', shownModal)
+          refetch().mockImplementationOnce(async () => {
+            store.state.gradidoID = null
+            throw new Error('no list')
+          })
+          await flushPromises()
+
+          expect(toast.error).not.toHaveBeenCalled()
+        })
+
         // The answer belongs to who opened the link: the member may have signed out by then.
         it('says nothing to whoever is there once the member has signed out', async () => {
           kept.draft = offered()
@@ -1193,6 +1217,20 @@ describe('Matching', () => {
 
           expect(toast.error).not.toHaveBeenCalled()
           expect(formOpen(page)).toBe(false)
+        })
+
+        // A server that answered with an error status is not "no connection".
+        it('shows the red toast where the server answered with an error status', async () => {
+          kept.draft = offered()
+          mutate.mockRejectedValueOnce(
+            Object.assign(new Error('Response not successful: Received status code 502'), {
+              networkError: Object.assign(new Error('502'), { statusCode: 502 }),
+            }),
+          )
+          mountPage('entries', shownModal)
+          await flushPromises()
+
+          expect(toast.error).toHaveBeenCalledTimes(1)
         })
 
         it('shows the usual red toast for a refusal nobody expects, and opens no form', async () => {

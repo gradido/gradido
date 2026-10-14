@@ -19,8 +19,8 @@
  * ⛔ All of it is somebody else's text. It is shown as text and never as markup, it is cut to
  * what an entry holds, and none of the four says where to go on to: the page's own buttons and
  * the links of the bar above it lead to the registration and the sign-in without the address's
- * query (`queryStaysBehind` on the route). The member decides whether it becomes an entry, with
- * "save" in the form.
+ * query (`queryStaysBehind` on the route). The tap on the link is the yes: the entry is made
+ * without a form, and stands in the member's list to be paused or deleted (KA-014).
  *
  * (One parameter of another kind works in this address as in that of every page of the same
  * layout: `project`, which the layout reads off the address itself. It names a project this
@@ -35,8 +35,8 @@ export const EVENT_MATCHING_DETAILS_MAX_CHARS = 2000
 /**
  * As long as the wallet keeps what a link offered somebody who was not signed in: an hour. It
  * is kept for the sign-in that follows the link -- the page's button, the form, perhaps a
- * password looked up -- and there is nobody yet whose it could be. Without an end it would
- * open the form for whoever signs in on this browser next, weeks after the event.
+ * password looked up -- and there is nobody yet whose it could be. Without an end it would be
+ * made for whoever signs in on this browser next, weeks after the event.
  */
 export const EVENT_MATCHING_ENTRY_KEPT_MS = 60 * 60 * 1000
 
@@ -99,7 +99,7 @@ export const keptEventMatchingEntry = (kept, now = Date.now()) => {
 }
 
 /**
- * The entry of an event link as the form for a new entry takes it (useEntryDraft): always an
+ * The entry of an event link as the entries page takes it (useEntryDraft): always an
  * interest -- an offer or a need is the member's own to add -- and `unlessThere`: the entries
  * page makes it at once, without the form, and says nothing where the member has it (KA-014).
  *
