@@ -611,6 +611,32 @@
     "unknown-error": "Errore sconosciuto: "
   },
   "eventMatching": {
+    "builder": {
+      "codeAlt": "Codice QR che porta al tuo link",
+      "codeFailed": "Al momento non è possibile disegnare il codice QR. Il link funziona.",
+      "codeLabel": "Il tuo codice QR",
+      "codeTooLong": "Questo link è troppo lungo per un codice QR. Con meno testo il codice comparirà. Il link funziona comunque.",
+      "copyFailed": "Purtroppo il tuo dispositivo non consente la copia. Seleziona il testo e copialo a mano.",
+      "copyLink": "Copia link",
+      "copyMail": "Copia paragrafo",
+      "detailsCount": "{count} / {max}",
+      "detailsHint": "Una o due frasi che spiegano il tuo tema.",
+      "downloadCode": "Scarica il codice QR",
+      "intro": "Chi apre questo link riceve nel proprio account Gradido il tuo congresso come prima voce sulla mappa — e trova le altre persone del tuo congresso.",
+      "linkCopied": "Link copiato.",
+      "linkLabel": "Il tuo link",
+      "mailCopied": "Paragrafo copiato.",
+      "mailLabel": "Il tuo paragrafo per l'e-mail",
+      "mailText": "Gradido incluso: con questo link ottieni il tuo account Gradido, 100 Gradido per iniziare e la mappa che ti porta alle persone del nostro congresso. La mappa mostra la tua posizione solo ai membri, e solo in modo approssimativo.",
+      "nothingStored": "Non viene salvato nulla. Tu crei il link, tu lo condividi.",
+      "remoteHint": "Così i tuoi partecipanti compaiono anche nella ricerca sovraregionale.",
+      "sentenceDefault": "Congresso",
+      "sentenceHint": "Il nome breve del tuo congresso, così come lo direbbero i tuoi partecipanti. La parola «Congresso» può restare davanti — vanno bene anche «Formazione», «Corso» o «Ritiro».",
+      "sentencePreview": "«{sentence}»",
+      "subtitle": "Il tuo link per il tuo congresso, la tua formazione, il tuo corso",
+      "title": "Event Matching",
+      "waiting": "Scrivi qui sopra il nome del tuo congresso — poi compariranno qui il tuo link, il tuo codice QR e un paragrafo per la tua e-mail."
+    },
     "landing": {
       "alreadyThere": "Hai già questa voce.",
       "firstEntry": "La tua prima voce:",
@@ -706,6 +732,7 @@
       "link": "Gradido-Akademie",
       "year": "© {year}"
     },
+    "eventMatching": "Event Matching",
     "imprint": "Note legali",
     "inspector": "Inspector (sperimentale)",
     "privacy_policy": "Informativa sulla privacy",

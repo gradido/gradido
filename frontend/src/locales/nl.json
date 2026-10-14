@@ -611,6 +611,32 @@
     "unknown-error": "Onbekende fout: "
   },
   "eventMatching": {
+    "builder": {
+      "codeAlt": "QR-code die naar je link leidt",
+      "codeFailed": "De QR-code kan nu niet worden getekend. De link zelf werkt.",
+      "codeLabel": "Jouw QR-code",
+      "codeTooLong": "Deze link is te lang voor een QR-code. Met minder tekst verschijnt de code. De link zelf werkt gewoon.",
+      "copyFailed": "Je apparaat staat kopiëren helaas niet toe. Selecteer de tekst en kopieer hem met de hand.",
+      "copyLink": "Link kopiëren",
+      "copyMail": "Alinea kopiëren",
+      "detailsCount": "{count} / {max}",
+      "detailsHint": "Een of twee zinnen die je onderwerp uitleggen.",
+      "downloadCode": "QR-code downloaden",
+      "intro": "Wie deze link opent, krijgt in het Gradido-account jouw congres als eerste vermelding op de kaart — en vindt de andere mensen van je congres.",
+      "linkCopied": "Link gekopieerd.",
+      "linkLabel": "Jouw link",
+      "mailCopied": "Alinea gekopieerd.",
+      "mailLabel": "Jouw alinea voor de e-mail",
+      "mailText": "Gradido inbegrepen: met deze link krijg je jouw Gradido-account, 100 Gradido om te beginnen en de kaart die je naar de mensen van ons congres brengt. De kaart toont je locatie alleen aan leden, en alleen ongeveer.",
+      "nothingStored": "Er wordt niets opgeslagen. Jij maakt de link, jij geeft hem door.",
+      "remoteHint": "Je deelnemers verschijnen dan ook in de bovenregionale zoekresultaten.",
+      "sentenceDefault": "Congres",
+      "sentenceHint": "De korte naam van je congres, zoals je deelnemers het zouden zeggen. Het woord “Congres” ervoor mag blijven staan — “Training”, “Cursus” of “Retreat” kan ook.",
+      "sentencePreview": "“{sentence}”",
+      "subtitle": "Jouw link voor jouw congres, jouw training, jouw cursus",
+      "title": "Event Matching",
+      "waiting": "Vul hierboven de naam van je congres in — dan verschijnen hier je link, je QR-code en een alinea voor je e-mail."
+    },
     "landing": {
       "alreadyThere": "Deze vermelding heb je al.",
       "firstEntry": "Je eerste vermelding:",
@@ -706,6 +732,7 @@
       "link": "Gradido-Academie",
       "year": "© {year}"
     },
+    "eventMatching": "Event Matching",
     "imprint": "Colofon",
     "inspector": "Inspecteur (experimenteel)",
     "privacy_policy": "Privacyverklaring",

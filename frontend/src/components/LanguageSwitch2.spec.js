@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import LanguageSwitch from './LanguageSwitch2.vue'
 import locales from '@/locales/'
@@ -44,13 +44,21 @@ describe('LanguageSwitch2', () => {
     state: {
       gradidoID: 'current-user-id',
       language: null,
+      preLoginLanguage: null,
+      token: 'token',
+      tokenTime: null,
     },
     mutations: {
       language(state, lang) {
         state.language = lang
       },
+      setPreLoginLanguage(state, lang) {
+        state.preLoginLanguage = lang
+      },
     },
   })
+  // When the session ends, in seconds by this device's clock (the `token` mutation in store.js).
+  const inSeconds = (seconds) => Math.floor(Date.now() / 1000) + seconds
 
   const i18n = createI18n({
     legacy: false,
@@ -75,6 +83,11 @@ describe('LanguageSwitch2', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    // A member whose session runs for another hour.
+    store.state.gradidoID = 'current-user-id'
+    store.state.token = 'token'
+    store.state.tokenTime = inSeconds(3600)
+    store.state.preLoginLanguage = null
     wrapper = createWrapper()
   })
 
@@ -144,5 +157,46 @@ describe('LanguageSwitch2', () => {
         expect(updateUserInfosMutationMock).toHaveBeenCalledWith({ locale: code })
       })
     })
+
+    it('says that it is saved, and keeps nothing for a later sign-in', async () => {
+      await itemByCode(wrapper, 'de').trigger('click')
+      await flushPromises()
+
+      expect(mockToastSuccess).toHaveBeenCalledTimes(1)
+      expect(store.state.preLoginLanguage).toBe(null)
+    })
+  })
+
+  // Asked with a session that has run out, the server signs the member out, and the wallet
+  // sends them to the sign-in page: what they had typed on the page they were on was gone.
+  describe('selecting a language without a running session', () => {
+    beforeEach(async () => {
+      store.state.language = 'en'
+      await wrapper.vm.setCurrentLanguage()
+    })
+
+    it.each([
+      ['a member whose session has run out', () => (store.state.tokenTime = inSeconds(-60))],
+      // The margin the router's guard allows too (`sessionRuns` in routes/guards.js).
+      [
+        'a member whose session ends within five seconds',
+        () => (store.state.tokenTime = inSeconds(4)),
+      ],
+      ['a member without a token', () => (store.state.token = null)],
+      ['nobody signed in', () => (store.state.gradidoID = null)],
+    ])(
+      'does not ask the server for %s, and keeps the choice for the next sign-in',
+      async (_who, set) => {
+        set()
+        await itemByCode(wrapper, 'de').trigger('click')
+        await flushPromises()
+
+        expect(updateUserInfosMutationMock).not.toHaveBeenCalled()
+        expect(store.state.language).toBe('de')
+        expect(store.state.preLoginLanguage).toBe('de')
+        expect(mockToastSuccess).not.toHaveBeenCalled()
+        expect(mockToastError).not.toHaveBeenCalled()
+      },
+    )
   })
 })

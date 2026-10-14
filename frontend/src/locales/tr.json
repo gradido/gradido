@@ -611,6 +611,32 @@
     "unknown-error": "Bilinmeyen hata: "
   },
   "eventMatching": {
+    "builder": {
+      "codeAlt": "Linkine götüren QR kodu",
+      "codeFailed": "QR kodu şu anda çizilemiyor. Link çalışıyor.",
+      "codeLabel": "QR kodun",
+      "codeTooLong": "Bu link bir QR kodu için fazla uzun. Daha az metinle QR kodu görünür. Link yine de çalışır.",
+      "copyFailed": "Maalesef cihazın kopyalamaya izin vermiyor. Metni seç ve elle kopyala.",
+      "copyLink": "Linki kopyala",
+      "copyMail": "Paragrafı kopyala",
+      "detailsCount": "{count} / {max}",
+      "detailsHint": "Konunu açıklayan bir iki cümle.",
+      "downloadCode": "QR kodunu indir",
+      "intro": "Bu linki açan kişi, kendi Gradido hesabında senin kongreni haritadaki ilk girişi olarak alır — ve kongrendeki diğer insanları bulur.",
+      "linkCopied": "Link kopyalandı.",
+      "linkLabel": "Linkin",
+      "mailCopied": "Paragraf kopyalandı.",
+      "mailLabel": "E-postan için paragrafın",
+      "mailText": "Gradido dahil: bu linkle Gradido hesabını, başlangıç için 100 Gradido'yu ve kongremizdeki insanlara götüren haritayı alırsın. Harita konumunu yalnızca üyelere ve yalnızca yaklaşık olarak gösterir.",
+      "nothingStored": "Hiçbir şey kaydedilmez. Linki sen oluşturursun, sen paylaşırsın.",
+      "remoteHint": "O zaman katılımcıların bölge üstü aramada da görünür.",
+      "sentenceDefault": "Kongre",
+      "sentenceHint": "Kongrenin kısa adı; katılımcılarının söyleyeceği şekilde. Baştaki «Kongre» kelimesi kalabilir — «Eğitim», «Kurs» ya da «Retreat» de olur.",
+      "sentencePreview": "«{sentence}»",
+      "subtitle": "Kongren, eğitimin, kursun için linkin",
+      "title": "Event Matching",
+      "waiting": "Yukarıya kongrenin adını yaz — o zaman linkin, QR kodun ve e-postana ekleyeceğin bir paragraf burada görünür."
+    },
     "landing": {
       "alreadyThere": "Bu girişin zaten var.",
       "firstEntry": "İlk eşleşme girişin:",
@@ -706,6 +732,7 @@
       "link": "Gradido-Akademisi",
       "year": "© {year}"
     },
+    "eventMatching": "Event Matching",
     "imprint": "Yasal uyarı",
     "inspector": "Denetleyici (deneysel)",
     "privacy_policy": "Gizlilik politikası",

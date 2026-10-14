@@ -611,6 +611,32 @@
     "unknown-error": "Error desconocido: "
   },
   "eventMatching": {
+    "builder": {
+      "codeAlt": "Código QR que lleva a tu enlace",
+      "codeFailed": "Ahora mismo no se puede dibujar el código QR. El enlace funciona.",
+      "codeLabel": "Tu código QR",
+      "codeTooLong": "Este enlace es demasiado largo para un código QR. Con menos texto, el código aparecerá. El enlace funciona igualmente.",
+      "copyFailed": "Desafortunadamente, tu dispositivo no permite copiar. Selecciona el texto y cópialo a mano.",
+      "copyLink": "Copiar enlace",
+      "copyMail": "Copiar párrafo",
+      "detailsCount": "{count} / {max}",
+      "detailsHint": "Una o dos frases que expliquen tu tema.",
+      "downloadCode": "Descargar código QR",
+      "intro": "Quien abra este enlace recibe en su cuenta de Gradido tu congreso como primera entrada en el mapa — y encuentra a las demás personas de tu congreso.",
+      "linkCopied": "Enlace copiado.",
+      "linkLabel": "Tu enlace",
+      "mailCopied": "Párrafo copiado.",
+      "mailLabel": "Tu párrafo para el correo",
+      "mailText": "Gradido incluido: con este enlace obtienes tu cuenta de Gradido, 100 Gradido para empezar y el mapa que te lleva a las personas de nuestro congreso. El mapa muestra tu ubicación solo a los miembros, y solo de forma aproximada.",
+      "nothingStored": "No se guarda nada. Tú creas el enlace, tú lo compartes.",
+      "remoteHint": "Así tus participantes también aparecen en la búsqueda suprarregional.",
+      "sentenceDefault": "Congreso",
+      "sentenceHint": "El nombre corto de tu congreso, tal como lo dirían tus participantes. La palabra «Congreso» puede quedarse delante — también valen «Formación», «Curso» o «Retiro».",
+      "sentencePreview": "«{sentence}»",
+      "subtitle": "Tu enlace para tu congreso, tu formación, tu curso",
+      "title": "Event Matching",
+      "waiting": "Escribe arriba el nombre de tu congreso — entonces aparecerán aquí tu enlace, tu código QR y un párrafo para tu correo."
+    },
     "landing": {
       "alreadyThere": "Ya tienes esta entrada.",
       "firstEntry": "Tu primera entrada:",
@@ -706,6 +732,7 @@
       "link": "Gradido-Akademie",
       "year": "© {year}"
     },
+    "eventMatching": "Event Matching",
     "imprint": "Aviso legal",
     "inspector": "Inspector (experimental)",
     "privacy_policy": "Protección de Datos",

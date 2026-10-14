@@ -611,6 +611,32 @@
     "unknown-error": "Unknown error: "
   },
   "eventMatching": {
+    "builder": {
+      "codeAlt": "QR code that leads to your link",
+      "codeFailed": "The QR code cannot be drawn right now. The link itself works.",
+      "codeLabel": "Your QR code",
+      "codeTooLong": "This link is too long for a QR code. With less text the code appears. The link itself works all the same.",
+      "copyFailed": "Unfortunately, your device does not allow copying. Select the text and copy it by hand.",
+      "copyLink": "Copy link",
+      "copyMail": "Copy paragraph",
+      "detailsCount": "{count} / {max}",
+      "detailsHint": "A sentence or two that explain your topic.",
+      "downloadCode": "Download QR code",
+      "intro": "Whoever opens this link gets your congress as the first entry on the map in their Gradido account — and finds the other people of your congress.",
+      "linkCopied": "Link copied.",
+      "linkLabel": "Your link",
+      "mailCopied": "Paragraph copied.",
+      "mailLabel": "Your email paragraph",
+      "mailText": "Gradido included: with this link you get your Gradido account, 100 Gradido to start with and the map to the people of our congress. The map shows your location to members only, and only approximately.",
+      "nothingStored": "Nothing is stored. You build the link, you pass it on.",
+      "remoteHint": "Your participants then also appear in the supra-regional search.",
+      "sentenceDefault": "Congress",
+      "sentenceHint": "The short name of your congress, the way your participants would say it. The word “Congress” may stay in front — “Training”, “Course” or “Retreat” work too.",
+      "sentencePreview": "“{sentence}”",
+      "subtitle": "Your link for your congress, your training, your course",
+      "title": "Event Matching",
+      "waiting": "Enter the name of your congress above — then your link, your QR code and a paragraph for your email appear here."
+    },
     "landing": {
       "alreadyThere": "You already have this entry.",
       "firstEntry": "Your first entry:",
@@ -706,6 +732,7 @@
       "link": "Gradido-Akademie",
       "year": "© {year}"
     },
+    "eventMatching": "Event Matching",
     "imprint": "Legal notice",
     "inspector": "Inspector (experimental)",
     "privacy_policy": "Privacy policy",
