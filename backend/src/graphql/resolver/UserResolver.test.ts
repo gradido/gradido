@@ -5640,6 +5640,37 @@ describe('UserResolver', () => {
       }
     })
 
+    // A member who takes part already leaves no entry without words by saving their name or
+    // their text; the run's tick is enough for them.
+    it('does not ask it on another save of a member who takes part already', async () => {
+      const nudge = jest.spyOn(matchingKeyingRun, 'nudge').mockImplementation(() => undefined)
+      try {
+        upsertMock.mockClear()
+        await mutate({ mutation: updateUserInfos, variables: { aboutMe: 'Ich bin wieder da.' } })
+
+        expect(upsertMock).toHaveBeenCalled()
+        expect(nudge).not.toHaveBeenCalled()
+      } finally {
+        nudge.mockRestore()
+      }
+    })
+
+    // Where the member could not be sent, the words would go to a member the GMS does not
+    // hold. The run's tick tries as before.
+    it('does not ask it when sending the member who joins failed', async () => {
+      await mutate({ mutation: updateUserInfos, variables: { gmsAllowed: false } })
+      upsertMock.mockRejectedValueOnce(new Error('the GMS is away'))
+      const nudge = jest.spyOn(matchingKeyingRun, 'nudge').mockImplementation(() => undefined)
+      try {
+        await mutate({ mutation: updateUserInfos, variables: { gmsAllowed: true } })
+
+        expect(upsertMock).toHaveBeenCalled()
+        expect(nudge).not.toHaveBeenCalled()
+      } finally {
+        nudge.mockRestore()
+      }
+    })
+
     it('does not ask it for a member who leaves', async () => {
       const nudge = jest.spyOn(matchingKeyingRun, 'nudge').mockImplementation(() => undefined)
       try {

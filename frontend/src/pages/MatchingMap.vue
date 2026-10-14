@@ -339,7 +339,7 @@
 <script setup>
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useQuery } from '@vue/apollo-composable'
+import { useApolloClient, useQuery } from '@vue/apollo-composable'
 import { useI18n } from 'vue-i18n'
 import { useStore } from 'vuex'
 import { listMatchingEntries, userLocationQuery } from '@/graphql/queries'
@@ -552,15 +552,18 @@ const myEntries = ref([])
 // cache-and-network, not cache-first: the entries tab writes this same list, and a
 // member who adds an entry and comes straight here would otherwise not find it in
 // the menu - the one thing they just made.
-const { onResult: onEntries, refetch: refetchEntries } = useQuery(listMatchingEntries, null, {
+const { onResult: onEntries } = useQuery(listMatchingEntries, null, {
   fetchPolicy: 'cache-and-network',
 })
+const { client: apolloClient } = useApolloClient()
 const entryKey = (entries) =>
   entries
     .map((entry) => entry.uuid)
     .sort()
     .join()
-// The entries the GMS can find with: those that have their words (`keyed`).
+// The entries that have their words here (`keyed`). The GMS finds with them once the keying run
+// has handed the words over, a moment later -- or, where that send failed, not before the
+// member's next edit: `keyed` says "worked out", not "arrived over there".
 const keyedKey = (entries) => entryKey(entries.filter((entry) => entry.keyed))
 
 /**
@@ -582,23 +585,43 @@ const keyedKey = (entries) => entryKey(entries.filter((entry) => entry.keyed))
 const WORDS_ASKED_AFTER_MS = [2000, 3000, 4000, 5000, 6000, 8000, 10000, 15000, 20000, 25000, 30000]
 let wordsAsked = 0
 let wordsTimer = null
+let pageAlive = true
 const waitsForWords = () =>
   Boolean(store.state.gmsAllowed) && myEntries.value.some((entry) => entry.keyed === false)
 function askAgainForWords() {
   if (wordsTimer || !waitsForWords() || wordsAsked >= WORDS_ASKED_AFTER_MS.length) return
-  wordsTimer = setTimeout(() => {
-    wordsTimer = null
-    wordsAsked++
-    // Its answer comes through onEntries, which asks again from there while words are missing.
-    // A question that fails is asked again after the next pause, within the same count.
-    refetchEntries()?.catch?.(() => askAgainForWords())
-  }, WORDS_ASKED_AFTER_MS[wordsAsked])
+  wordsTimer = setTimeout(askForWords, WORDS_ASKED_AFTER_MS[wordsAsked])
+}
+/**
+ * One question for the list, the page's own and not the member's doing: ⛔ `renewSession:
+ * false`, or every one of them would move the idle logout ten minutes on
+ * (plugins/apolloProvider.js) -- eleven of them where the words never come. A question of
+ * Apollo's own (`refetch`) cannot say so. Its answer is taken here; written to the cache as well,
+ * it reaches onEntries a second time where it changed the list, and finds nothing new there.
+ * A question that fails is asked again after the next pause, within the same count.
+ */
+async function askForWords() {
+  wordsTimer = null
+  wordsAsked++
+  try {
+    const { data } = await apolloClient.query({
+      query: listMatchingEntries,
+      fetchPolicy: 'network-only',
+      context: { renewSession: false },
+    })
+    if (!pageAlive) return
+    if (!data?.listMatchingEntries) throw new Error('listMatchingEntries: no answer')
+    takeEntries(data.listMatchingEntries)
+  } catch {
+    if (pageAlive) askAgainForWords()
+  }
 }
 
-onEntries((result) => {
+onEntries((result) => takeEntries(result.data?.listMatchingEntries))
+function takeEntries(list) {
   const keyBefore = entryKey(myEntries.value)
   const keyedBefore = keyedKey(myEntries.value)
-  myEntries.value = (result.data?.listMatchingEntries ?? []).filter((entry) => entry.active)
+  myEntries.value = (list ?? []).filter((entry) => entry.active)
   askAgainForWords()
   // A remembered choice can outlive what it points at: the entry may have been
   // deleted or paused since. Left standing it would show as "all my entries" in the
@@ -622,11 +645,15 @@ onEntries((result) => {
   // runSearch returns without asking.
   //
   // And once an entry of mine has its words: the GMS finds with it from then on, and the search
-  // asked before them found nothing with it (askAgainForWords).
-  if (entryKey(myEntries.value) !== keyBefore || keyedKey(myEntries.value) !== keyedBefore) {
+  // asked before them found nothing with it (askAgainForWords). That search is a later one, not
+  // the arrival's: a window left open last time is not brought back by it (arrivalOver).
+  if (entryKey(myEntries.value) !== keyBefore) {
+    searchUnasked()
+  } else if (keyedKey(myEntries.value) !== keyedBefore) {
+    arrivalOver()
     searchUnasked()
   }
-})
+}
 
 /**
  * Take a typed search over to the entry form, filled in.
@@ -2156,7 +2183,8 @@ onUnmounted(() => {
   // and Vue empties it on unmount, so a timer left running finds nothing to do.
   // This just spares the wakeup and lets the closure go a quarter second earlier.
   clearTimeout(initTimer)
-  // Nobody is left to show the words to.
+  // Nobody is left to show the words to, and an answer still on its way finds no page.
+  pageAlive = false
   clearTimeout(wordsTimer)
   wordsTimer = null
   // An answer about somebody to show that is still on its way is for a page that is gone.
@@ -2173,6 +2201,12 @@ watch([matches, presence], redraw, { deep: true })
 // which is exactly what syncProfile's own note says must not happen. One shot, on
 // the first results that actually carry something.
 let restoreDone = false
+// Called by a search the page asks later of its own accord (the words of an entry arrived):
+// from then on nothing is restored -- a window popping up minutes into a visit is what the note
+// above rules out.
+function arrivalOver() {
+  restoreDone = true
+}
 // Matches or rings: the window may have been left open on either, and a search can
 // bring rings and no match at all.
 watch([matches, presence], () => {
