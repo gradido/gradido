@@ -202,6 +202,48 @@ describe('the request log', () => {
     expect(variables.gmsLocation).toEqual({ latitude: 49.679437, longitude: 9.573224 })
   })
 
+  // The entry an event link offered comes with a registration (createUser,
+  // `$eventMatchingEntry` in the wallet's mutations.js): what somebody is interested in, in the
+  // line that carries their name and their address.
+  it('writes no entry an event link sends along with a registration, only that there is one', () => {
+    const registration = {
+      email: 'maren@example.org',
+      firstName: 'Maren',
+      lastName: 'Sommer',
+      language: 'de',
+      eventMatchingEntry: {
+        summary: 'Kongress Frequency Healing',
+        details: 'Selbstheilung, Biohacking',
+        remote: true,
+      },
+    }
+    const text = logged(registration)
+    expect(text).not.toContain('Frequency Healing')
+    expect(text).not.toContain('Biohacking')
+    expect(text).toContain('"eventMatchingEntry": "***"')
+    // The rest of the registration is written as before.
+    expect(text).toContain('"firstName": "Maren"')
+    expect(text).toContain('"language": "de"')
+  })
+
+  it('writes a registration without such an entry as before', () => {
+    for (const eventMatchingEntry of [null, undefined]) {
+      const text = logged({ email: 'maren@example.org', firstName: 'Maren', eventMatchingEntry })
+      expect(text).not.toContain('***')
+      expect(text).toContain('"firstName": "Maren"')
+    }
+  })
+
+  it('leaves the entry in the request itself', () => {
+    const variables = { eventMatchingEntry: { summary: 'Kongress X', details: null, remote: true } }
+    logged(variables)
+    expect(variables.eventMatchingEntry).toEqual({
+      summary: 'Kongress X',
+      details: null,
+      remote: true,
+    })
+  })
+
   // coderabbit on #4001: a client of its own may write a value into the document itself instead
   // of into a variable, where filterVariables never sees it.
   it('writes no string the document itself carries -- a picture, a text, a password', () => {

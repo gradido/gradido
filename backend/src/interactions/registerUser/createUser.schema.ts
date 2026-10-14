@@ -5,10 +5,33 @@ import {
   emailSchema,
   firstNameSchema,
   lastNameSchema,
+  MATCHING_ENTRY_DETAILS_MAX_CHARS,
+  MATCHING_ENTRY_SUMMARY_MAX_CHARS,
   passwordSchema,
 } from 'shared'
 import * as v from 'valibot'
 import { guarantorCodeSchema } from '@/data/GuarantorCode.logic'
+
+// The entry an event link offered (Event-Matching): an interest, "I love ‹summary›", with a line
+// or two that explain it and whether it is found from afar. The lengths are those of an
+// entry's columns, because an entry is made of it once the address is confirmed -- so what is
+// noted at the registration is always something an entry can hold. A sentence also has to say
+// something: blank, it is refused.
+//
+// The wallet cuts the link's words to these lengths before it sends them. Anything longer comes
+// from another client, and is refused rather than cut: this server says what it took.
+export const eventMatchingEntrySchema = v.object({
+  summary: v.pipe(
+    v.string(),
+    v.trim(),
+    v.minLength(1),
+    v.maxLength(MATCHING_ENTRY_SUMMARY_MAX_CHARS),
+  ),
+  details: blankAsNull(v.pipe(v.string(), v.trim(), v.maxLength(MATCHING_ENTRY_DETAILS_MAX_CHARS))),
+  remote: v.boolean(),
+})
+export type EventMatchingEntryUnparsed = v.InferInput<typeof eventMatchingEntrySchema>
+export type EventMatchingEntry = v.InferOutput<typeof eventMatchingEntrySchema>
 
 // Everything a registration may bring. Which of the optional fields it brings decides the
 // variant (registerUser.context); each variant parses again with its own schema below, in
@@ -27,6 +50,8 @@ export const createUserSchema = v.object({
   referrerAlias: blankAsNull(aliasSchema),
   guarantorCode: blankAsNull(guarantorCodeSchema),
   password: v.nullish(passwordSchema),
+  // Decides no variant: whichever way the account is opened, the entry is noted with it.
+  eventMatchingEntry: v.nullish(eventMatchingEntrySchema),
 })
 
 export type CreateUserInput = v.InferInput<typeof createUserSchema>

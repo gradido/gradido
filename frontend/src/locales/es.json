@@ -645,6 +645,9 @@
       "headline": "El mapa que te lleva a las personas de tu congreso",
       "otherCommunity": "¿Tu cuenta está en otra comunidad? Entonces inicia sesión allí y escribe la frase a mano.",
       "register": "Crear una cuenta"
+    },
+    "register": {
+      "firstEntry": "Tu primera entrada:"
     }
   },
   "existingGradidoAccount": "¿Ya tienes una cuenta de {communityName}?",

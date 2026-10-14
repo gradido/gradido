@@ -645,6 +645,9 @@
       "headline": "Die Karte zu den Menschen Deines Kongresses",
       "otherCommunity": "Dein Konto ist in einer anderen Gemeinschaft? Dann melde Dich dort an und trage den Satz von Hand ein.",
       "register": "Konto anlegen"
+    },
+    "register": {
+      "firstEntry": "Dein erster Eintrag:"
     }
   },
   "existingGradidoAccount": "Du hast schon ein {communityName} Konto?",

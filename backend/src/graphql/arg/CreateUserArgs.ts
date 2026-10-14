@@ -1,5 +1,6 @@
-import { IsEmail, IsInt, IsString } from 'class-validator'
+import { IsEmail, IsInt, IsString, ValidateNested } from 'class-validator'
 import { ArgsType, Field, Int } from 'type-graphql'
+import { EventMatchingEntryInput } from '@/graphql/input/EventMatchingEntryInput'
 
 @ArgsType()
 export class CreateUserArgs {
@@ -54,4 +55,11 @@ export class CreateUserArgs {
   @Field(() => String, { nullable: true })
   @IsString()
   password?: string | null
+
+  // The entry an event link offered (`/event?interest=…` in the wallet): noted at the account
+  // the registration opens, and made once its address is confirmed. What it may hold is
+  // checked by `eventMatchingEntrySchema` in createUserSchema; here only its shape.
+  @Field(() => EventMatchingEntryInput, { nullable: true })
+  @ValidateNested()
+  eventMatchingEntry?: EventMatchingEntryInput | null
 }

@@ -645,6 +645,9 @@
       "headline": "De kaart naar de mensen van je congres",
       "otherCommunity": "Staat je account in een andere gemeenschap? Meld je dan daar aan en voer de zin met de hand in.",
       "register": "Account aanmaken"
+    },
+    "register": {
+      "firstEntry": "Je eerste vermelding:"
     }
   },
   "existingGradidoAccount": "Heb je al een {communityName}-account?",
