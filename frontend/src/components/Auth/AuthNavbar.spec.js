@@ -1,11 +1,11 @@
 // AI-GENERATED — not an architecture reference
 import { describe, it, expect, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, RouterLinkStub } from '@vue/test-utils'
 import { createStore } from 'vuex'
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { BImg, BNavbar, BNavbarBrand, BNavbarNav } from 'bootstrap-vue-next'
+import { BImg, BLink, BNavbar, BNavbarBrand, BNavbarNav } from 'bootstrap-vue-next'
 import AuthNavbar from './AuthNavbar.vue'
 
 const route = vi.hoisted(() => ({ current: { params: {}, query: {} } }))
@@ -19,16 +19,23 @@ vi.mock('vue-router', () => ({
   }),
 }))
 
+// The community's own address, as each server has it in its configuration.
+const config = vi.hoisted(() => ({ COMMUNITY_URL: 'https://ki-playground.gradido.net' }))
+vi.mock('@/config', () => ({ default: config }))
+
 vi.mock('../Menu/NavItem.vue', () => ({
   default: { name: 'NavItem', props: ['to'], template: '<li class="nav-item"><slot /></li>' },
 }))
 
-const mountWith = (darkMode) =>
+const mountWith = (darkMode, gradidoID = null) =>
   mount(AuthNavbar, {
     global: {
-      plugins: [createStore({ state: { darkMode } })],
-      components: { BImg, BNavbar, BNavbarBrand, BNavbarNav },
-      stubs: { BCollapse: { template: '<div class="navbar-collapse"><slot /></div>' } },
+      plugins: [createStore({ state: { darkMode, gradidoID } })],
+      components: { BImg, BLink, BNavbar, BNavbarBrand, BNavbarNav },
+      stubs: {
+        BCollapse: { template: '<div class="navbar-collapse"><slot /></div>' },
+        RouterLink: RouterLinkStub,
+      },
       mocks: { $t: (key) => key },
     },
   })
@@ -46,7 +53,8 @@ describe('AuthNavbar', () => {
   it('shows the logo on its own below lg, where no picture stands beside the form', () => {
     const logo = mountWith(true).find('[data-test="auth-logo-small"]')
     expect(logo.exists()).toBe(true)
-    expect(logo.classes()).toContain('d-lg-none')
+    // Shown below lg only -- the class sits on the link around it since the logo leads home.
+    expect(logo.element.closest('.d-lg-none')).not.toBeNull()
     // ⛔ Not inside the brand: dark mode darkens every image there that is not the logo on
     // the blob (the blob itself, to brightness 0.13), and this logo would go black with it.
     expect(logo.element.closest('.navbar-brand')).toBeNull()
@@ -59,6 +67,71 @@ describe('AuthNavbar', () => {
     expect(mountWith(false).find('[data-test="auth-logo-small"]').attributes('src')).toBe(
       '/img/brand/gradido-logo.png',
     )
+  })
+
+  /**
+   * Bernd, 14.10.2026: from a page without a session -- the link builder, an event link, the
+   * registration -- the logo leads back to the start page: the community's own address, on
+   * every server the wallet, which begins at the sign-in. With a session it leads to the
+   * overview, as the logo of the signed-in wallet does.
+   */
+  describe('where the logo leads', () => {
+    const homes = (wrapper) => [
+      wrapper.find('[data-test="auth-home"]'),
+      wrapper.find('[data-test="auth-home-small"]'),
+    ]
+
+    it('signed out, to the start page of this community, on the desk and on a phone', () => {
+      for (const home of homes(mountWith(true))) {
+        expect(home.element.tagName).toBe('A')
+        expect(home.attributes('href')).toBe('https://ki-playground.gradido.net/')
+        expect(home.attributes('target')).toBeUndefined()
+      }
+    })
+
+    // Nothing of the page's address goes along: not the event link's sentence, not a code.
+    it('takes nothing of the page address along', () => {
+      route.current = {
+        params: { alias: 'bernd' },
+        query: { interest: 'Kongress X', guarantor: 'c' },
+      }
+      try {
+        for (const home of homes(mountWith(true))) {
+          expect(home.attributes('href')).toBe('https://ki-playground.gradido.net/')
+        }
+      } finally {
+        route.current = { params: {}, query: {} }
+      }
+    })
+
+    it('writes one slash where the address ends in one', () => {
+      const before = config.COMMUNITY_URL
+      config.COMMUNITY_URL = 'https://gdd.gradido.net/'
+      try {
+        expect(mountWith(false).find('[data-test="auth-home"]').attributes('href')).toBe(
+          'https://gdd.gradido.net/',
+        )
+      } finally {
+        config.COMMUNITY_URL = before
+      }
+    })
+
+    it('with a session, to the overview', () => {
+      const wrapper = mountWith(false, 'a-member')
+      const links = wrapper.findAllComponents(RouterLinkStub)
+      expect(links.map((link) => link.props('to'))).toEqual(['/overview', '/overview'])
+      for (const home of homes(wrapper)) {
+        expect(home.attributes('href')).not.toBe('https://ki-playground.gradido.net/')
+      }
+    })
+
+    // Named by what it shows; the blob behind it says nothing.
+    it('is named "Gradido" by its picture, and the blob is not read out', () => {
+      const wrapper = mountWith(true)
+      const [desk, phone] = homes(wrapper)
+      expect(desk.findAll('img').map((img) => img.attributes('alt'))).toEqual(['Gradido', ''])
+      expect(phone.findAll('img').map((img) => img.attributes('alt'))).toEqual(['Gradido'])
+    })
   })
 
   it('keeps both links on every width', () => {
@@ -153,6 +226,14 @@ describe('AuthNavbar', () => {
       expect(media('767.98px')).toMatch(/:deep\(#nav-collapse\)\s*\{[^}]*flex-basis:\s*100%;/)
       // ... and from md up beside it, as before.
       expect(media('1024.98px')).not.toMatch(/flex-basis/)
+    })
+
+    // The logo is a link: a keyboard has to see it, in both modes.
+    it('rings the logo when the keyboard is on it, in both modes', () => {
+      expect(css).toMatch(/\.auth-home:focus-visible\s*\{[^}]*outline:\s*2px solid #276e6f;/)
+      expect(css).toMatch(
+        /\.dark-mode \.auth-home:focus-visible\s*\{[^}]*outline-color:\s*#8ed0d1;/,
+      )
     })
 
     it('keeps the links on the right, below the logo as beside it', () => {
