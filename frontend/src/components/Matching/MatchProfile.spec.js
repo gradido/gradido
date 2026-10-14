@@ -275,8 +275,9 @@ describe('MatchProfile', () => {
     expect(wrapper.find('.more-btn').text()).toBe('1 weitere')
   })
 
-  // The dot is drawn by the stylesheet (.has-dot::before) from three variables; jsdom paints
-  // nothing, so what can be read here is which sentence asks for a dot, and with what.
+  // The dot is drawn by the stylesheet (.has-dot::before) from three variables set on the entry
+  // (its thread reads them too); jsdom paints nothing, so what can be read here is which sentence
+  // asks for a dot, and with what.
   it('puts a dot before a match only, sized and lit by its step, in the colour of its area', async () => {
     const wrapper = mountProfile(
       baseMatch({
@@ -297,9 +298,9 @@ describe('MatchProfile', () => {
         s.element.textContent,
         s.classes('has-dot'),
         s.classes('is-match'),
-        s.element.style.getPropertyValue('--dot-size'),
-        s.element.style.getPropertyValue('--dot-opacity'),
-        s.element.style.getPropertyValue('--dot-color'),
+        s.element.closest('.entry').style.getPropertyValue('--dot-size'),
+        s.element.closest('.entry').style.getPropertyValue('--dot-opacity'),
+        s.element.closest('.entry').style.getPropertyValue('--dot-color'),
       ])
     expect(dots).toEqual([
       ['Stufe vier', true, true, '12px', '0.865', '#10b981'],
@@ -314,7 +315,39 @@ describe('MatchProfile', () => {
     expect(rest.element.textContent).toBe('kein Treffer')
     expect(rest.classes()).not.toContain('has-dot')
     expect(rest.classes()).not.toContain('is-match')
-    expect(rest.attributes('style')).toBeUndefined()
+    expect(rest.element.closest('.entry').getAttribute('style')).toBeNull()
+  })
+
+  // Bernd, 14.10.2026 (GMS-229): what belongs to a matched entry should look as if it belongs to
+  // it. A thread hangs from the dot where something stands under the sentence.
+  it('hangs a thread from the dot of a match with details or lines under it, and nowhere else', async () => {
+    const wrapper = mountProfile(
+      baseMatch({
+        channels: {
+          angebot: [
+            entry('details', 'mit Details', 0.865, 'Auch am Wochenende'),
+            {
+              ...entry('lines', 'mit Zeilen', 0.73),
+              matches: [{ uuid: 'mine-1', matchingType: 'need', summary: 'jemanden für die Post' }],
+            },
+            { ...entry('bare', 'nur der Satz', 0.595), matches: [] },
+            entry('rest', 'kein Treffer, mit Details', null, 'Auch Hausbesuche'),
+          ],
+        },
+      }),
+    )
+    // Three matches stand open; the fourth entry (no match) sits behind "1 weitere".
+    const threads = () =>
+      wrapper
+        .findAll('.entry')
+        .map((item) => [item.find('.entry-summary').text(), item.classes('has-thread')])
+    expect(threads()).toEqual([
+      ['mit Details', true],
+      ['mit Zeilen', true],
+      ['nur der Satz', false],
+    ])
+    await wrapper.find('.more-btn').trigger('click')
+    expect(threads()[3]).toEqual(['kein Treffer, mit Details', false])
   })
 
   it('names the entries of mine a match answers, one line each, and none under the rest', async () => {
@@ -363,6 +396,55 @@ describe('MatchProfile', () => {
     expect(wrapper.find('.has-dot').exists()).toBe(false)
     expect(wrapper.find('.is-match').exists()).toBe(false)
     expect(wrapper.find('.entry-mine').exists()).toBe(false)
+  })
+
+  /**
+   * Bernd, 14.10.2026 (GMS-229, chosen at a mockup as "B"): an entry is a sub-point of its area.
+   * jsdom draws nothing; what is held here is that the rules stand in the stylesheet, read
+   * without its comments (a rule named in a comment is not a rule).
+   */
+  describe('the entry as a sub-point, in the stylesheet', () => {
+    const here = dirname(fileURLToPath(import.meta.url))
+    const code = readFileSync(join(here, 'MatchProfile.vue'), 'utf8')
+      .split('<style')[1]
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+    const rule = (selector) =>
+      code.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1]?.replace(/\s+/g, ' ') ?? ''
+    const px = (body, property) => Number(body.match(new RegExp(`${property}: (-?[\\d.]+)px;`))[1])
+
+    it('draws the dot of a match hollow, so it does not look like the dot of its area', () => {
+      const dot = rule('\\.entry-summary\\.has-dot::before')
+      expect(dot).toContain('border: 2px solid var(--dot-color);')
+      expect(dot).toContain('background: transparent;')
+      expect(dot).not.toContain('background: var(--dot-color)')
+    })
+
+    it('sets the lines "passt zu" in to where the text of the details box begins', () => {
+      const inset = rule('\\.entry-details').match(/padding: \S+ (\S+);/)[1]
+      expect(rule('\\.entry-mine')).toContain(`margin-left: ${inset};`)
+    })
+
+    it('leaves more room between two entries than between the parts of one', () => {
+      const padding = Number(rule('\\.entry').match(/padding: (\d+)px 0;/)[1])
+      expect(2 * padding + px(rule('\\.entry \\+ \\.entry'), 'margin-top')).toBe(24)
+      expect(px(rule('\\.entry-details'), 'margin-top')).toBe(4)
+      expect(px(rule('\\.entry-mine'), 'margin-top')).toBe(4)
+    })
+
+    it('hangs the thread in the middle of the dot column, in its colour, stronger when dark', () => {
+      const thread = rule('\\.entry\\.has-thread::before')
+      // The dot column is the head dot's width, the list's indent to the left of the sentence.
+      const indent = Number(rule('\\.entry-list').match(/padding: 0 0 \S+ (\d+)px;/)[1])
+      const column = px(rule('\\.area-dot'), 'width')
+      expect(px(thread, 'left')).toBe(column / 2 - indent - px(thread, 'width') / 2)
+      expect(thread).toContain('background: var(--dot-color);')
+      expect(rule('\\.entry\\.has-thread')).toContain('position: relative;')
+      const share = (body) =>
+        Number(body.match(/opacity: calc\(var\(--dot-opacity\) \* ([\d.]+)\);/)[1])
+      expect(share(rule('\\.dark-mode \\.entry\\.has-thread::before'))).toBeGreaterThan(
+        share(thread),
+      )
+    })
   })
 
   it('shows the count as a plain tally, never a score', () => {
