@@ -978,13 +978,16 @@ describe('MatchingMap', () => {
       expect(listQuestion).toHaveBeenCalledTimes(2)
     })
 
+    // An answer without the list is no answer: taken, it would empty the page's own entries.
     it('asks again after the next pause when an answer holds no list', async () => {
       await arrive([unkeyed('a')])
-      listQuestion.mockResolvedValueOnce({ data: null })
+      const searched = load.mock.calls.length
+      listQuestion.mockResolvedValueOnce({ data: {} })
       await pause(2000)
       await pause(3000)
 
       expect(listQuestion).toHaveBeenCalledTimes(2)
+      expect(load).toHaveBeenCalledTimes(searched)
     })
 
     // cache-and-network answers twice on arrival: one chain of questions, not two.
