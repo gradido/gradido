@@ -178,10 +178,10 @@ async function onSubmit() {
     })
     // The store keeps the entry after the registration as well, for its hour. The answer is
     // the same whether an account was opened or the address was taken, and a member who
-    // registered again by mistake then signs in and still finds the form. Where the server
-    // has made the entry by the time of that sign-in, the member's entries say "you have this
-    // one already" instead (Matching.vue), and the server makes no second one where the member
-    // saves it before the confirmation (makeEventMatchingEntry).
+    // registered again by mistake then signs in and still gets the entry. Where the server
+    // has made it by the time of that sign-in, nothing happens (Matching.vue,
+    // acceptEventMatchingEntry), and the confirmation makes no second one where the member has
+    // it already (makeEventMatchingEntry).
     showPageMessage.value = true
   } catch (error) {
     // The code ran out while the form was being filled in. What was typed stays; a new scan

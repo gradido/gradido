@@ -639,7 +639,7 @@
       "waiting": "Scrivi qui sopra il nome del tuo congresso — poi compariranno qui il tuo link, il tuo codice QR e un paragrafo per la tua e-mail."
     },
     "landing": {
-      "alreadyThere": "Hai già questa voce.",
+      "added": "La tua voce è stata aggiunta: {sentence}",
       "firstEntry": "La tua prima voce:",
       "haveAccount": "Ho già un account",
       "headline": "La mappa che ti porta alle persone del tuo congresso",

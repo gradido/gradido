@@ -639,7 +639,7 @@
       "waiting": "Enter the name of your congress above — then your link, your QR code and a paragraph for your email appear here."
     },
     "landing": {
-      "alreadyThere": "You already have this entry.",
+      "added": "Your entry is in: {sentence}",
       "firstEntry": "Your first entry:",
       "haveAccount": "I already have an account",
       "headline": "The map to the people of your congress",

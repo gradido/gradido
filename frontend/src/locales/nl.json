@@ -639,7 +639,7 @@
       "waiting": "Vul hierboven de naam van je congres in — dan verschijnen hier je link, je QR-code en een alinea voor je e-mail."
     },
     "landing": {
-      "alreadyThere": "Deze vermelding heb je al.",
+      "added": "Je vermelding is toegevoegd: {sentence}",
       "firstEntry": "Je eerste vermelding:",
       "haveAccount": "Ik heb al een account",
       "headline": "De kaart naar de mensen van je congres",

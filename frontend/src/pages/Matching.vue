@@ -87,30 +87,6 @@
         </BButton>
       </div>
 
-      <!-- An event link offered a sentence the member has already (see `settleEventEntry`):
-           said here instead of opening the form over an entry that is there.
-
-           Under the line with "new entry", over the list: the line stands before the list
-           has answered, and what comes with the answer must not push a button away from
-           under a finger. The list comes with the same answer, so nothing that stood there
-           is moved.
-
-           The region is there from the start and empty; the card comes into it. A screen
-           reader says what is put into a region it already knows -- one that arrives
-           together with its words is passed over by some.
-
-           A card like the entries below: it speaks of one of them, and stands in their
-           form, with their edge, width and ground. -->
-      <div role="status" data-test="matching-entry-already-there-region">
-        <div
-          v-if="alreadyThere"
-          class="bg-white app-box-shadow gradido-border-radius p-3 mb-4"
-          data-test="matching-entry-already-there"
-        >
-          {{ $t('eventMatching.landing.alreadyThere') }}
-        </div>
-      </div>
-
       <template v-if="entries.length">
         <div
           v-for="e in entries"
@@ -473,6 +449,7 @@ import { useAppToast } from '@/composables/useToast'
 import { useEntryDraft } from '@/composables/useEntryDraft'
 import { rememberOwnMatchingEntries } from '@/composables/useOwnMatchingEntries'
 import {
+  acceptEventMatchingEntry,
   createMatchingEntry,
   deleteMatchingEntry,
   setMatchingEntryActive,
@@ -524,11 +501,6 @@ const enabled = computed(() => !!store.state.gradidoID)
 // --- Entries: load from the backend, map onto the UI shape (open is client-only) ---
 const entries = ref([])
 const entriesLoaded = ref(false)
-// What an event link offered and the list has yet to answer, and -- where the answer was "you
-// have that one already" -- which entry that is. See `settleEventEntry`; up here because the
-// list's answer below reads them.
-let eventEntry = null
-const offeredAndThere = ref(null)
 const {
   refetch: refetchEntries,
   onResult: onEntries,
@@ -557,11 +529,9 @@ onEntries(({ data }) => {
   // with every list, because this page is where entries are made and deleted: the member
   // who goes back to the overview from here finds the tile right at once, without a wait.
   rememberOwnMatchingEntries(store.state.gradidoID, entries.value.length)
-  settleEventEntry()
 })
 onEntriesError((error) => {
   toastError(error.message)
-  settleEventEntry()
 })
 
 /**
@@ -591,6 +561,7 @@ const { mutate: createEntry } = useMutation(createMatchingEntry)
 const { mutate: updateEntry } = useMutation(updateMatchingEntry)
 const { mutate: setEntryActive } = useMutation(setMatchingEntryActive)
 const { mutate: removeEntry } = useMutation(deleteMatchingEntry)
+const { mutate: acceptEntry } = useMutation(acceptEventMatchingEntry)
 
 // --- New / edit entry modal ---
 const entryDraft = useEntryDraft()
@@ -616,57 +587,72 @@ function openNew({ summary = '', details = '', matchingType = null, remote = fal
   // would be asking them to repeat themselves.
   newDetails.value = details
   // Off unless whoever opens the form says otherwise: the map and the overview's tile say
-  // nothing, an event link brings its own answer (utils/eventMatchingLink).
+  // nothing. (An event link opens no form, see `acceptEventEntry`.)
   newRemote.value = remote
   showNew.value = true
 }
 
 /**
- * The entry an event link offers (`/event?interest=…`): handed over like a search kept from the
- * map, with one difference -- where the member has that very sentence already, the form stays
- * shut and a line above the list says so. Whoever taps the link in every mail of a congress
- * is not asked each time to save what they saved the first time.
+ * The entry an event link offers (`/event?interest=…`), handed over by the link's guard or the
+ * sign-in (utils/eventMatchingLink, `unlessThere`): made at once, without a form -- the tap on
+ * the link is the yes (KA-014). The server compares it with the member's own entries
+ * (`acceptEventMatchingEntry`): where the member has that sentence already, live or paused,
+ * nothing is made, and this page says nothing either. Whoever taps the link in every mail of a
+ * congress is not told each time what they know.
  *
- * "Already" needs the list, so the entry waits for its first answer. Where that answer is an
- * error, the list is empty and the form opens all the same: the member decides.
+ * Made, the entry is said in a toast with its sentence, as the list shows it, and the list is
+ * fetched again -- the entry stands in it, to be paused or deleted like any other.
  *
- * The very sentence: the same kind and the same words, whatever their case and the blanks
- * around them, in an entry that is live. A paused one is not in anybody's search; with only
- * that, the form opens, and the member saves anew or resumes the old one.
+ * Refused, nothing is said where the member has a reason told elsewhere: no connection, or an
+ * account whose address waits for its confirmation (401 -- the reminder says what to do). Only
+ * a refusal nobody expects gets the usual red toast.
  *
- * ⛔ The answer comes a moment after the page, and the page is the member's in between. A
- * form they have opened by then is theirs -- the link's words would write over what they
- * typed -- and whoever has gone on to another tab did not come for a form over that one. In
- * both cases the offer is let go; the link is still there to be opened again.
- *
- * The line "you have this one already" is said for as long as it is true: it goes when the
- * member deletes that entry, pauses it or gives it other words.
+ * ⛔ The answer comes a moment after the page, and the member may have signed out by then: the
+ * toast and the count on the device belong to who opened the link, and only to them.
  */
-const sameWords = (a, b) => a.trim().toLowerCase() === b.trim().toLowerCase()
-const isThatEntry = (e, offered) =>
-  e.active && e.type === offered.matchingType && sameWords(e.summary, offered.summary)
-const alreadyThere = computed(() => {
-  const offered = offeredAndThere.value
-  return (
-    Boolean(offered) &&
-    entries.value.some((e) => e.uuid === offered.uuid && isThatEntry(e, offered))
-  )
-})
-function settleEventEntry() {
-  const offered = eventEntry
-  if (!offered) return
-  eventEntry = null
-  const there = entries.value.find((e) => isThatEntry(e, offered))
-  if (there) {
-    offeredAndThere.value = {
-      uuid: there.uuid,
-      matchingType: offered.matchingType,
-      summary: offered.summary,
+// No connection: the request never reached a server, so there is no status. A server that
+// answered with an error status (a 502 while it restarts, a 500) is not "no connection".
+const quietRefusal = (error) =>
+  Boolean(error?.networkError && !error.networkError.statusCode) ||
+  (error?.graphQLErrors ?? []).some((e) => e?.message === '401 Unauthorized')
+async function acceptEventEntry(offered) {
+  const member = store.state.gradidoID
+  let accepted
+  try {
+    const result = await acceptEntry({
+      eventMatchingEntry: {
+        summary: offered.summary,
+        details: offered.details || null,
+        remote: offered.remote,
+      },
+    })
+    accepted = result?.data?.acceptEventMatchingEntry
+  } catch (error) {
+    if (quietRefusal(error) || store.state.gradidoID !== member) return
+    toastError(error.message)
+    // The server stores the entry before it hands it to the GMS, and a refusal can come from
+    // that second step: the list says what is there (coderabbit, #4149).
+    try {
+      await refetchEntries()
+    } catch {
+      // The red toast has said it already.
     }
     return
   }
-  if (showNew.value || tab.value !== 'entries') return
-  openNew(offered)
+  if (!accepted?.created || store.state.gradidoID !== member) return
+  toastSuccess(
+    t('eventMatching.landing.added', {
+      sentence: `${t('matching.type.interesse.prefix')} ${accepted.entry.summary}`,
+    }),
+  )
+  // Told only where the list does not hold it yet: a list that came after the entry was made
+  // counts it already.
+  if (!entries.value.some((e) => e.uuid === accepted.entry.uuid)) tellEntriesChanged(member, 1)
+  try {
+    await refetchEntries()
+  } catch (error) {
+    if (store.state.gradidoID === member) toastError(error.message)
+  }
 }
 
 /**
@@ -680,11 +666,7 @@ function settleEventEntry() {
 onMounted(() => {
   const draft = entryDraft.take()
   if (draft?.unlessThere) {
-    eventEntry = draft
-    // The list's answer settles it. The library hands every answer on a tick after this
-    // page is mounted, also one out of the cache; should an answer ever come before, it
-    // found nothing to settle, and this line does it.
-    if (entriesLoaded.value) settleEventEntry()
+    acceptEventEntry(draft)
   } else if (draft) {
     openNew(draft)
   }

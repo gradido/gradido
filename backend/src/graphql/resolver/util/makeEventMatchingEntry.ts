@@ -20,7 +20,7 @@ const logger = getLogger(
 )
 
 // An event link offers an interest -- "I love ‹summary›" --, always.
-const EVENT_ENTRY_KIND = 'interest'
+export const EVENT_ENTRY_KIND = 'interest'
 
 /**
  * How long a noted entry waits for the address to be confirmed: thirty days. A registration
@@ -32,9 +32,10 @@ const EVENT_ENTRY_KEPT_DAYS = 30
 const DAY_MS = 24 * 60 * 60 * 1000
 
 // The member's own sentence counts as this one where it has the same words, whatever their
-// case and the blanks around them -- as the wallet compares before it opens the form for a link
-// (pages/Matching.vue, `sameWords`).
-const sameWords = (a: string, b: string): boolean =>
+// case and the blanks around them. One comparison for both ways an event link makes an entry:
+// here, at the confirmation, and when a signed-in member opens the link
+// (MatchingEntryResolver, `acceptEventMatchingEntry`).
+export const sameWords = (a: string, b: string): boolean =>
   a.trim().toLowerCase() === b.trim().toLowerCase()
 
 // What is logged of a failure: its driver code or its kind, never the error itself. A failed
@@ -64,11 +65,10 @@ async function entryOfTheNote(userId: number): Promise<string | null> {
         )
         return null
       }
-      // An account a member vouches for can sign in before its address is confirmed, open the
-      // link again and save the entry in the form. The note then has nothing left to make --
-      // also where the member has paused that entry since: paused, it was taken out of the search
-      // on purpose, and the link must not put it back live. (The wallet's form asks the member
-      // and lets a paused one count for nothing; here nobody is asked.)
+      // An account a member vouches for can sign in before its address is confirmed and open
+      // the link again, which makes the entry at once (acceptEventMatchingEntry). The note then
+      // has nothing left to make -- also where the member has paused that entry since: paused,
+      // it was taken out of the search on purpose, and the link must not put it back live.
       const own = await dbSelectMatchingEntriesByUserId(userId, tx)
       if (
         own.some(

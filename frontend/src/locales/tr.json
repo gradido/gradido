@@ -639,7 +639,7 @@
       "waiting": "Yukarıya kongrenin adını yaz — o zaman linkin, QR kodun ve e-postana ekleyeceğin bir paragraf burada görünür."
     },
     "landing": {
-      "alreadyThere": "Bu girişin zaten var.",
+      "added": "Eşleşme girişin eklendi: {sentence}",
       "firstEntry": "İlk eşleşme girişin:",
       "haveAccount": "Zaten bir hesabım var",
       "headline": "Seni kongrendeki insanlara götüren harita",

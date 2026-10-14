@@ -54,10 +54,10 @@ const early = new Map()
 
 vi.mock('@vue/apollo-composable', () => ({
   useQuery: (document) => {
-    const handler = { result: null, error: null }
+    const handler = { result: null, error: null, refetch: vi.fn() }
     handlers.set(document, handler)
     return {
-      refetch: vi.fn(),
+      refetch: handler.refetch,
       onResult: (callback) => {
         handler.result = callback
         if (early.has(document)) callback({ data: early.get(document) })
@@ -985,10 +985,9 @@ describe('Matching', () => {
     })
 
     /**
-     * An event link (`/event?interest=…`, utils/eventMatchingLink) hands its entry over like a
-     * search kept from the map, with the answer it gives for "found from afar" and with
-     * `unlessThere`: where the member has that very sentence already, the page says so instead
-     * of opening the form. That needs the list, so the entry waits for it.
+     * An event link (`/event?interest=…`, utils/eventMatchingLink) hands its entry over with
+     * `unlessThere`: the page makes it at once, without the form, and the server says whether
+     * it was there already -- then nothing is said at all (KA-014).
      */
     describe('for an entry an event link offers', () => {
       const offered = (over = {}) => ({
@@ -999,423 +998,308 @@ describe('Matching', () => {
         unlessThere: true,
         ...over,
       })
-      const interest = (uuid, summary, over = {}) => ({
-        ...entry(uuid, summary, 'so wie ich es schrieb'),
-        matchingType: 'interest',
-        ...over,
+      const answer = (created, summary = 'Kongress Frequency Healing', uuid = 'made') => ({
+        data: { acceptEventMatchingEntry: { created, entry: { uuid, summary } } },
       })
       const list = (...entries) => fire(listMatchingEntries, { listMatchingEntries: entries })
-      const alreadyThere = (page) => page.find('[data-test="matching-entry-already-there"]')
-      const region = (page) => page.find('[data-test="matching-entry-already-there-region"]')
-      /** Whether `first` stands before `second` on the page. */
-      const standsBefore = (first, second) =>
-        Boolean(
-          first.element.compareDocumentPosition(second.element) & Node.DOCUMENT_POSITION_FOLLOWING,
-        )
+      const refetch = () => handlers.get(listMatchingEntries).refetch
+      const told = () => window.localStorage.getItem('own-matching-entries:a-member')
+      const sentAt = (call = 0) => mutate.mock.calls[call][0]
+      const graphQLRefusal = (message) =>
+        Object.assign(new Error(message), { graphQLErrors: [{ message }] })
 
-      it('waits for the list before it opens anything', async () => {
+      it('makes it at once, before the list has answered, and opens no form', async () => {
         kept.draft = offered()
+        mutate.mockResolvedValueOnce(answer(true))
         const page = mountPage('entries', shownModal)
         await page.vm.$nextTick()
 
-        expect(formOpen(page)).toBe(false)
-        expect(alreadyThere(page).exists()).toBe(false)
-      })
-
-      it('opens the form with the words of the link once the list is there', async () => {
-        kept.draft = offered()
-        const page = mountPage('entries', shownModal)
-        list(interest('a', 'Permakultur'))
-        await page.vm.$nextTick()
-
-        expect(formOpen(page)).toBe(true)
-        // The kind comes with the link: the form does not ask for it.
-        expect(page.find('[data-test="matching-entry-choose"]').exists()).toBe(false)
-        expect(page.find('.is-sel').classes()).toContain('type-interesse')
-        expect(page.find('input').element.value).toBe('Kongress Frequency Healing')
-        expect(page.find('textarea').element.value).toBe('Selbstheilung, Biohacking, Longevity')
-        expect(alreadyThere(page).exists()).toBe(false)
-      })
-
-      it('opens it for a member who has no entry at all', async () => {
-        kept.draft = offered()
-        const page = mountPage('entries', shownModal)
-        list()
-        await page.vm.$nextTick()
-
-        expect(formOpen(page)).toBe(true)
-      })
-
-      // Nothing is made by opening: what the member saves is what the form holds, and
-      // "found from afar" is the link's answer, not the form's usual one.
-      it('saves an interest found from afar where the link says so', async () => {
-        kept.draft = offered()
-        const page = mountPage('entries', shownModal)
-        list()
-        await page.vm.$nextTick()
-        expect(mutate).not.toHaveBeenCalled()
-
-        await saveButton(page).trigger('click')
-
-        expect(mutate).toHaveBeenCalledWith({
-          input: {
-            matchingType: 'interest',
+        expect(mutate).toHaveBeenCalledTimes(1)
+        expect(sentAt()).toEqual({
+          eventMatchingEntry: {
             summary: 'Kongress Frequency Healing',
             details: 'Selbstheilung, Biohacking, Longevity',
             remote: true,
           },
         })
+        expect(formOpen(page)).toBe(false)
       })
 
-      it('saves one found only where the member lives where the link says that', async () => {
-        kept.draft = offered({ remote: false })
-        const page = mountPage('entries', shownModal)
+      it('sends "found from afar: no" as the link says it, and no details as none', async () => {
+        kept.draft = offered({ remote: false, details: '' })
+        mountPage('entries', shownModal)
+        await flushPromises()
+
+        expect(sentAt().eventMatchingEntry).toEqual({
+          summary: 'Kongress Frequency Healing',
+          details: null,
+          remote: false,
+        })
+      })
+
+      it('makes it once, however often the list answers', async () => {
+        kept.draft = offered()
+        mutate.mockResolvedValue(answer(true))
+        mountPage('entries', shownModal)
         list()
-        await page.vm.$nextTick()
-        await saveButton(page).trigger('click')
-
-        expect(mutate.mock.calls[0][0].input.remote).toBe(false)
-      })
-
-      // The form's own rule stands: without details there is nothing to save yet.
-      it('opens with empty details where the link brings none, and waits for the member', async () => {
-        kept.draft = offered({ details: '' })
-        const page = mountPage('entries', shownModal)
         list()
-        await page.vm.$nextTick()
+        await flushPromises()
+        list()
 
-        expect(formOpen(page)).toBe(true)
-        expect(page.find('textarea').element.value).toBe('')
-        expect(saveButton(page).attributes('disabled')).toBeDefined()
+        expect(mutate).toHaveBeenCalledTimes(1)
       })
 
-      describe('where the member has that sentence already', () => {
-        it('says so and leaves the form shut', async () => {
+      describe('where the server made it', () => {
+        it('says so with the sentence, as the list shows it', async () => {
           kept.draft = offered()
-          const page = mountPage('entries', shownModal)
-          list(interest('a', 'Permakultur'), interest('b', 'Kongress Frequency Healing'))
-          await page.vm.$nextTick()
+          mutate.mockResolvedValueOnce(answer(true))
+          mountPage('entries', shownModal)
+          await flushPromises()
 
-          expect(formOpen(page)).toBe(false)
-          expect(alreadyThere(page).text()).toBe(de.eventMatching.landing.alreadyThere)
+          expect(toast.success).toHaveBeenCalledTimes(1)
+          expect(toast.success).toHaveBeenCalledWith(
+            'Dein Eintrag ist da: Ich liebe Kongress Frequency Healing',
+          )
+          expect(toast.error).not.toHaveBeenCalled()
         })
 
-        /**
-         * Under the line with "new entry", over the list. That line stands before the list
-         * has answered, and what comes with the answer must not push a button away from
-         * under a finger; the list comes with the same answer, so nothing that stood there
-         * is moved.
-         */
-        it('says it under the line with "new entry" and over the list', async () => {
-          kept.draft = offered()
-          const page = mountPage('entries', shownModal)
-          list(interest('a', 'Permakultur'), interest('b', 'Kongress Frequency Healing'))
-          await page.vm.$nextTick()
+        // The words as the server stored them: trimmed, where the link brought blanks.
+        it('says the sentence the server stored', async () => {
+          kept.draft = offered({ summary: '  Kongress Frequency Healing ' })
+          mutate.mockResolvedValueOnce(answer(true))
+          mountPage('entries', shownModal)
+          await flushPromises()
 
-          const newEntry = page.find('[data-test="matching-entries-new"]')
-          const firstEntry = page.find('.entry-avatar')
-          expect(newEntry.exists()).toBe(true)
-          expect(firstEntry.exists()).toBe(true)
-          expect(standsBefore(newEntry, alreadyThere(page))).toBe(true)
-          expect(standsBefore(alreadyThere(page), firstEntry)).toBe(true)
-        })
-
-        // A screen reader says what is put into a region it already knows; one that arrives
-        // together with its words is passed over by some. So the region is there from the
-        // start, empty, and the line comes into it.
-        it('says it in a status region that stood there, empty, before the list answered', async () => {
-          kept.draft = offered()
-          const page = mountPage('entries', shownModal)
-          await page.vm.$nextTick()
-
-          expect(region(page).attributes('role')).toBe('status')
-          expect(region(page).element.children).toHaveLength(0)
-          expect(region(page).text()).toBe('')
-          const before = region(page).element
-
-          list(interest('b', 'Kongress Frequency Healing'))
-          await page.vm.$nextTick()
-
-          expect(region(page).element).toBe(before)
-          expect(region(page).find('[data-test="matching-entry-already-there"]').exists()).toBe(
-            true,
+          expect(toast.success.mock.calls[0][0]).toBe(
+            'Dein Eintrag ist da: Ich liebe Kongress Frequency Healing',
           )
         })
 
-        it('keeps the region empty for a member no link sent', async () => {
-          const page = mountPage('entries', shownModal)
-          list(interest('b', 'Kongress Frequency Healing'))
-          await page.vm.$nextTick()
+        // The toast writes its message as text; the sentence goes into it as it came.
+        it('keeps markup in the sentence as text', async () => {
+          kept.draft = offered({ summary: '<b>Kongress</b>' })
+          mutate.mockResolvedValueOnce(answer(true, '<b>Kongress</b>'))
+          mountPage('entries', shownModal)
+          await flushPromises()
 
-          expect(region(page).attributes('role')).toBe('status')
-          expect(region(page).element.children).toHaveLength(0)
+          expect(toast.success.mock.calls[0][0]).toBe(
+            'Dein Eintrag ist da: Ich liebe <b>Kongress</b>',
+          )
         })
 
-        it('reads the sentence whatever its case and the blanks around it', async () => {
-          kept.draft = offered({ summary: '  kongress frequency HEALING ' })
-          const page = mountPage('entries', shownModal)
-          list(interest('b', 'Kongress Frequency Healing'))
-          await page.vm.$nextTick()
-
-          expect(formOpen(page)).toBe(false)
-          expect(alreadyThere(page).exists()).toBe(true)
-        })
-
-        // "I offer congress X" is another sentence than "I love congress X".
-        it('opens the form where only an entry of another kind has the words', async () => {
+        it('fetches the list again, where the entry stands', async () => {
           kept.draft = offered()
-          const page = mountPage('entries', shownModal)
-          list(interest('b', 'Kongress Frequency Healing', { matchingType: 'offer' }))
-          await page.vm.$nextTick()
+          mutate.mockResolvedValueOnce(answer(true))
+          mountPage('entries', shownModal)
+          await flushPromises()
 
-          expect(formOpen(page)).toBe(true)
-          expect(alreadyThere(page).exists()).toBe(false)
+          expect(refetch()).toHaveBeenCalledTimes(1)
         })
 
-        // A paused entry is in nobody's search: the member saves anew, or resumes the old one.
-        it('opens the form where only a paused entry has the sentence', async () => {
+        it('tells the device one entry more at once, where the list came before', async () => {
           kept.draft = offered()
-          const page = mountPage('entries', shownModal)
-          list(interest('b', 'Kongress Frequency Healing', { active: false }))
-          await page.vm.$nextTick()
-
-          expect(formOpen(page)).toBe(true)
-          expect(alreadyThere(page).exists()).toBe(false)
-        })
-
-        it('opens the form where another sentence only begins the same way', async () => {
-          kept.draft = offered()
-          const page = mountPage('entries', shownModal)
-          list(interest('b', 'Kongress Frequency Healing 2025'))
-          await page.vm.$nextTick()
-
-          expect(formOpen(page)).toBe(true)
-        })
-
-        /**
-         * The line is said for as long as it is true. Saving, pausing or deleting brings the
-         * list again: with that entry still there the line stays; without it the line goes --
-         * and never turns into a form, which was settled with the first answer.
-         */
-        describe('and the list comes again', () => {
-          const settled = async () => {
-            kept.draft = offered()
-            const page = mountPage('entries', shownModal)
-            list(interest('a', 'Permakultur'), interest('b', 'Kongress Frequency Healing'))
-            await page.vm.$nextTick()
-            return page
-          }
-          const again = async (page, ...entries) => {
-            list(...entries)
-            await page.vm.$nextTick()
-          }
-
-          it('keeps the line while that entry is there, also beside a new one', async () => {
-            const page = await settled()
-
-            await again(
-              page,
-              interest('a', 'Permakultur'),
-              interest('b', 'Kongress Frequency Healing'),
-              interest('c', 'Waldgarten'),
-            )
-
-            expect(alreadyThere(page).exists()).toBe(true)
-            expect(formOpen(page)).toBe(false)
-          })
-
-          it('takes the line away once the member has deleted that entry', async () => {
-            const page = await settled()
-
-            await again(page, interest('a', 'Permakultur'))
-
-            expect(alreadyThere(page).exists()).toBe(false)
-            expect(formOpen(page)).toBe(false)
-          })
-
-          it('takes it away once the member has paused that entry', async () => {
-            const page = await settled()
-
-            await again(
-              page,
-              interest('a', 'Permakultur'),
-              interest('b', 'Kongress Frequency Healing', { active: false }),
-            )
-
-            expect(alreadyThere(page).exists()).toBe(false)
-          })
-
-          it('takes it away once the member has given that entry other words', async () => {
-            const page = await settled()
-
-            await again(page, interest('a', 'Permakultur'), interest('b', 'Kongress 2027'))
-
-            expect(alreadyThere(page).exists()).toBe(false)
-          })
-
-          // The line speaks of the entry it was said for, not of any entry with those words.
-          it('does not say it for another entry that gets the same words later', async () => {
-            const page = await settled()
-
-            await again(page, interest('a', 'Kongress Frequency Healing'))
-
-            expect(alreadyThere(page).exists()).toBe(false)
-          })
-        })
-      })
-
-      /**
-       * ⛔ The answer comes a moment after the page, and the page is the member's in between.
-       * What they have done by then is not written over.
-       */
-      describe('where the member did something before the list answered', () => {
-        const openByHand = async (page) => {
-          await page.find('[data-test="matching-entries-new"]').trigger('click')
-          expect(formOpen(page)).toBe(true)
-        }
-
-        it('leaves a form they opened as they left it', async () => {
-          kept.draft = offered()
-          const page = mountPage('entries', shownModal)
-          await openByHand(page)
-          // The form they opened begins with the choice of the kind; the link's would not.
-          expect(page.find('[data-test="matching-entry-choose"]').exists()).toBe(true)
-
-          list(interest('a', 'Permakultur'))
-          await page.vm.$nextTick()
-
-          expect(formOpen(page)).toBe(true)
-          expect(page.find('[data-test="matching-entry-choose"]').exists()).toBe(true)
-          expect(page.find('.modal-stub').text()).not.toContain('Kongress Frequency Healing')
-        })
-
-        // The offer is let go with that: it does not wait behind the form for its turn.
-        it('does not open the link’s form once theirs is closed', async () => {
-          kept.draft = offered()
-          const page = mountPage('entries', shownModal)
-          await openByHand(page)
+          let made
+          mutate.mockReturnValueOnce(new Promise((resolve) => (made = resolve)))
+          mountPage('entries', shownModal)
           list()
-          await page.vm.$nextTick()
-          await page
-            .find('.modal-stub')
-            .findAll('button')
-            .find((b) => b.text() === de.matching.new.cancel)
-            .trigger('click')
-          expect(formOpen(page)).toBe(false)
+          expect(told()).toBe('0')
 
-          list()
-          await page.vm.$nextTick()
+          made(answer(true))
+          await flushPromises()
 
-          expect(formOpen(page)).toBe(false)
+          expect(told()).toBe('1')
         })
 
-        it('still says "already" behind a form they opened', async () => {
+        // A list that came after the entry was made counts it already.
+        it('tells no more where the list holds the entry already', async () => {
           kept.draft = offered()
-          const page = mountPage('entries', shownModal)
-          await openByHand(page)
+          let made
+          mutate.mockReturnValueOnce(new Promise((resolve) => (made = resolve)))
+          mountPage('entries', shownModal)
+          list({ ...entry('made', 'Kongress Frequency Healing', ''), matchingType: 'interest' })
+          expect(told()).toBe('1')
 
-          list(interest('b', 'Kongress Frequency Healing'))
-          await page.vm.$nextTick()
+          made(answer(true))
+          await flushPromises()
 
-          expect(alreadyThere(page).exists()).toBe(true)
+          expect(told()).toBe('1')
         })
 
-        it('leaves a form they opened alone where the list does not come, too', async () => {
+        it('says so in red where the list cannot be fetched again', async () => {
           kept.draft = offered()
-          const page = mountPage('entries', shownModal)
-          await openByHand(page)
+          mutate.mockResolvedValueOnce(answer(true))
+          mountPage('entries', shownModal)
+          refetch().mockRejectedValueOnce(new Error('no list'))
+          await flushPromises()
 
-          handlers.get(listMatchingEntries).error(new Error('no list'))
-          await page.vm.$nextTick()
-
-          expect(page.find('[data-test="matching-entry-choose"]').exists()).toBe(true)
+          expect(toast.success).toHaveBeenCalledTimes(1)
+          expect(toast.error).toHaveBeenCalledWith('no list')
         })
 
-        // The three tabs are one page: whoever has gone on to another one did not come for
-        // a form over that one.
-        it.each([['about'], ['position']])('opens no form over the tab "%s"', async (tab) => {
+        it('keeps that red toast from whoever is there once the member has signed out', async () => {
           kept.draft = offered()
-          const page = mountPage(tab, shownModal)
-
-          list(interest('a', 'Permakultur'))
-          await page.vm.$nextTick()
-
-          expect(formOpen(page)).toBe(false)
-        })
-      })
-
-      it('does not open the form again with a later list, once the member closed it', async () => {
-        kept.draft = offered()
-        const page = mountPage('entries', shownModal)
-        list()
-        await page.vm.$nextTick()
-        await page
-          .find('.modal-stub')
-          .findAll('button')
-          .find((b) => b.text() === de.matching.new.cancel)
-          .trigger('click')
-        expect(formOpen(page)).toBe(false)
-
-        list()
-        await page.vm.$nextTick()
-
-        expect(formOpen(page)).toBe(false)
-      })
-
-      // A net, not a path the wallet takes today: the library hands every answer on a tick
-      // after the page is mounted, also one out of the cache. Should an answer ever come
-      // before the page stands, nothing answers later -- so the entry is settled where it is
-      // taken.
-      describe('should the list ever be there before the page stands', () => {
-        it('opens the form at once', async () => {
-          kept.draft = offered()
-          early.set(listMatchingEntries, { listMatchingEntries: [interest('a', 'Permakultur')] })
-          const page = mountPage('entries', shownModal)
-          await page.vm.$nextTick()
-
-          expect(formOpen(page)).toBe(true)
-          expect(page.find('input').element.value).toBe('Kongress Frequency Healing')
-        })
-
-        it('says "already" at once where the list holds the sentence', async () => {
-          kept.draft = offered()
-          early.set(listMatchingEntries, {
-            listMatchingEntries: [interest('b', 'Kongress Frequency Healing')],
+          mutate.mockResolvedValueOnce(answer(true))
+          mountPage('entries', shownModal)
+          refetch().mockImplementationOnce(async () => {
+            store.state.gradidoID = null
+            throw new Error('no list')
           })
-          const page = mountPage('entries', shownModal)
-          await page.vm.$nextTick()
+          await flushPromises()
 
-          expect(formOpen(page)).toBe(false)
-          expect(alreadyThere(page).exists()).toBe(true)
+          expect(toast.error).not.toHaveBeenCalled()
+        })
+
+        // The answer belongs to who opened the link: the member may have signed out by then.
+        it('says nothing to whoever is there once the member has signed out', async () => {
+          kept.draft = offered()
+          let made
+          mutate.mockReturnValueOnce(new Promise((resolve) => (made = resolve)))
+          mountPage('entries', shownModal)
+          list()
+          store.state.gradidoID = null
+
+          made(answer(true))
+          await flushPromises()
+
+          expect(toast.success).not.toHaveBeenCalled()
+          expect(refetch()).not.toHaveBeenCalled()
         })
       })
 
-      // "Already" cannot be told then, and the member decides.
-      it('opens the form all the same where the list does not come', async () => {
-        kept.draft = offered()
-        const page = mountPage('entries', shownModal)
-        handlers.get(listMatchingEntries).error(new Error('no list'))
-        await page.vm.$nextTick()
+      describe('where the member had it already', () => {
+        it('says nothing, opens nothing, and fetches nothing', async () => {
+          kept.draft = offered()
+          mutate.mockResolvedValueOnce(answer(false))
+          const page = mountPage('entries', shownModal)
+          list({ ...entry('b', 'Kongress Frequency Healing', ''), matchingType: 'interest' })
+          await flushPromises()
 
-        expect(formOpen(page)).toBe(true)
-        expect(page.find('input').element.value).toBe('Kongress Frequency Healing')
-        expect(alreadyThere(page).exists()).toBe(false)
+          expect(toast.success).not.toHaveBeenCalled()
+          expect(toast.error).not.toHaveBeenCalled()
+          expect(formOpen(page)).toBe(false)
+          expect(refetch()).not.toHaveBeenCalled()
+          expect(told()).toBe('1')
+        })
+
+        // The line "you have this one already" is gone: nothing stands above the list.
+        it('puts nothing above the list', async () => {
+          kept.draft = offered()
+          mutate.mockResolvedValueOnce(answer(false))
+          const page = mountPage('entries', shownModal)
+          list({ ...entry('b', 'Kongress Frequency Healing', ''), matchingType: 'interest' })
+          await flushPromises()
+
+          const count = page.find('[data-test="matching-entries-count"]').element.parentElement
+          expect(count.nextElementSibling.classList).toContain('bg-white')
+        })
       })
 
-      // The overview's wish for an empty form and the link's entry: one form, the link's
-      // words in it, and the wish still leaves the address.
+      describe('where the server refuses', () => {
+        // An account whose address waits for its confirmation: the reminder says what to do.
+        it('says nothing to an account that may not make entries yet (401)', async () => {
+          kept.draft = offered()
+          mutate.mockRejectedValueOnce(graphQLRefusal('401 Unauthorized'))
+          const page = mountPage('entries', shownModal)
+          await flushPromises()
+
+          expect(toast.error).not.toHaveBeenCalled()
+          expect(toast.success).not.toHaveBeenCalled()
+          expect(formOpen(page)).toBe(false)
+        })
+
+        it('says nothing where the connection failed', async () => {
+          kept.draft = offered()
+          mutate.mockRejectedValueOnce(
+            Object.assign(new Error('Failed to fetch'), { networkError: new TypeError('x') }),
+          )
+          const page = mountPage('entries', shownModal)
+          await flushPromises()
+
+          expect(toast.error).not.toHaveBeenCalled()
+          expect(formOpen(page)).toBe(false)
+        })
+
+        // A server that answered with an error status is not "no connection".
+        it('shows the red toast where the server answered with an error status', async () => {
+          kept.draft = offered()
+          mutate.mockRejectedValueOnce(
+            Object.assign(new Error('Response not successful: Received status code 502'), {
+              networkError: Object.assign(new Error('502'), { statusCode: 502 }),
+            }),
+          )
+          mountPage('entries', shownModal)
+          await flushPromises()
+
+          expect(toast.error).toHaveBeenCalledTimes(1)
+        })
+
+        it('shows the usual red toast for a refusal nobody expects, and opens no form', async () => {
+          kept.draft = offered()
+          mutate.mockRejectedValueOnce(graphQLRefusal('Invalid length'))
+          const page = mountPage('entries', shownModal)
+          await flushPromises()
+
+          expect(toast.error).toHaveBeenCalledWith('Invalid length')
+          expect(formOpen(page)).toBe(false)
+        })
+
+        // The entry may be stored already: a refusal can come from the hand-over to the GMS,
+        // which follows the row. The list says what is there.
+        it('fetches the list again after a refusal nobody expects', async () => {
+          kept.draft = offered()
+          mutate.mockRejectedValueOnce(graphQLRefusal('GMS lookup failed'))
+          mountPage('entries', shownModal)
+          await flushPromises()
+
+          expect(refetch()).toHaveBeenCalledTimes(1)
+          expect(toast.error).toHaveBeenCalledTimes(1)
+        })
+
+        it('fetches nothing after a refusal the member is told elsewhere', async () => {
+          kept.draft = offered()
+          mutate.mockRejectedValueOnce(graphQLRefusal('401 Unauthorized'))
+          mountPage('entries', shownModal)
+          await flushPromises()
+
+          expect(refetch()).not.toHaveBeenCalled()
+        })
+
+        it('keeps that toast from whoever is there once the member has signed out', async () => {
+          kept.draft = offered()
+          let refused
+          mutate.mockReturnValueOnce(new Promise((resolve, reject) => (refused = reject)))
+          mountPage('entries', shownModal)
+          store.state.gradidoID = null
+
+          refused(graphQLRefusal('Invalid length'))
+          await flushPromises()
+
+          expect(toast.error).not.toHaveBeenCalled()
+        })
+      })
+
+      // The overview's wish for an empty form and the link's entry: the entry is made, no form
+      // opens, and the wish still leaves the address.
       it('comes before the wish for an empty form', async () => {
         kept.draft = offered()
+        mutate.mockResolvedValueOnce(answer(true))
         place.query = { new: 'entry' }
         const page = mountPage('entries', shownModal)
-        await page.vm.$nextTick()
+        await flushPromises()
+
+        expect(mutate).toHaveBeenCalledTimes(1)
         expect(formOpen(page)).toBe(false)
-        list()
-        await page.vm.$nextTick()
+        expect(replace).toHaveBeenCalledWith({ query: {} })
+      })
+
+      // A search kept from the map has no `unlessThere`: it opens the form, and makes nothing.
+      it('leaves a search kept from the map to the form', async () => {
+        kept.draft = { summary: 'einen Schlosser', details: '', matchingType: 'gesuch' }
+        const page = mountPage('entries', shownModal)
+        await flushPromises()
 
         expect(formOpen(page)).toBe(true)
-        expect(page.find('input').element.value).toBe('Kongress Frequency Healing')
-        expect(replace).toHaveBeenCalledWith({ query: {} })
+        expect(mutate).not.toHaveBeenCalled()
       })
     })
 
@@ -1429,14 +1313,6 @@ describe('Matching', () => {
       await saveButton(page).trigger('click')
 
       expect(mutate.mock.calls[0][0].input.remote).toBe(false)
-    })
-
-    it('says nothing above the list to a member no link sent', async () => {
-      const page = mountPage('entries', shownModal)
-      fire(listMatchingEntries, { listMatchingEntries: [entry('a', 'Klavierlehrer', 'samstags')] })
-      await page.vm.$nextTick()
-
-      expect(page.find('[data-test="matching-entry-already-there"]').exists()).toBe(false)
     })
 
     it('does not ask for an entry that is being edited', async () => {
