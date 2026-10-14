@@ -7,14 +7,20 @@ import {
   dbUpdateMatchingEntry,
   MatchingEntrySelect,
 } from 'database'
+import { parseOrThrowFirstIssue } from 'shared'
 import { Arg, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
 import { matchingKeyingRun } from '@/apis/anthropic/matching/keyingRun'
 import { RIGHTS } from '@/auth/RIGHTS'
+import { inMemberLine } from '@/data/MemberLine.logic'
+import { EventMatchingEntryInput } from '@/graphql/input/EventMatchingEntryInput'
 import { MatchingEntryInput } from '@/graphql/input/MatchingEntryInput'
+import { EventMatchingEntryAccepted } from '@/graphql/model/EventMatchingEntryAccepted'
 import { MatchingEntry } from '@/graphql/model/MatchingEntry'
+import { eventMatchingEntrySchema } from '@/interactions/registerUser'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { createMatchingEntryFor, readBackMatchingEntry } from './util/createMatchingEntryFor'
+import { EVENT_ENTRY_KIND, sameWords } from './util/makeEventMatchingEntry'
 import { removeMatchingEntryFromGms, syncMatchingEntryToGms } from './util/syncMatchingEntryToGms'
 
 /**
@@ -61,6 +67,49 @@ export class MatchingEntryResolver {
       remote: input.remote ?? false,
     })
     return new MatchingEntry(entry)
+  }
+
+  /**
+   * The entry an event link offers (Event-Matching), for a member who opens the link signed in
+   * or signs in after opening it: made at once, without a form -- the tap on the link is the yes
+   * (KA-014). Where the member has that entry already, nothing is made and `created` is false:
+   * the same kind, the same words whatever their case and the blanks around them (`sameWords`,
+   * the comparison the confirmation of a registration makes), live or paused. A paused one was
+   * taken out of the search on purpose, and the link does not put it back live. A deleted one is
+   * gone, and the link makes it anew.
+   *
+   * The input is checked as at a registration (`eventMatchingEntrySchema`): the lengths of an
+   * entry's columns, a sentence that says something, details blank as none.
+   *
+   * ⛔ One call after another per member (`inMemberLine`): the same link opened twice at once --
+   * two tabs, a sign-in and a session running beside it -- must not read "not there" twice and
+   * make two entries.
+   */
+  @Authorized([RIGHTS.CREATE_MATCHING_ENTRY])
+  @Mutation(() => EventMatchingEntryAccepted)
+  async acceptEventMatchingEntry(
+    @Arg('input', () => EventMatchingEntryInput) input: EventMatchingEntryInput,
+    @Ctx() context: Context,
+  ): Promise<EventMatchingEntryAccepted> {
+    const user = getUser(context)
+    const offered = parseOrThrowFirstIssue(eventMatchingEntrySchema, input)
+    return inMemberLine(user.id, async () => {
+      const own = await dbSelectMatchingEntriesByUserId(user.id)
+      const there = own.find(
+        (entry) =>
+          entry.matchingType === EVENT_ENTRY_KIND && sameWords(entry.summary, offered.summary),
+      )
+      if (there) {
+        return new EventMatchingEntryAccepted(false, there)
+      }
+      const made = await createMatchingEntryFor(user, {
+        matchingType: EVENT_ENTRY_KIND,
+        summary: offered.summary,
+        details: offered.details ?? null,
+        remote: offered.remote,
+      })
+      return new EventMatchingEntryAccepted(true, made)
+    })
   }
 
   @Authorized([RIGHTS.UPDATE_MATCHING_ENTRY])

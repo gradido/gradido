@@ -534,6 +534,22 @@ export const createMatchingEntry = gql`
   }
 `
 
+export const acceptEventMatchingEntry = gql`
+  mutation ($eventMatchingEntry: EventMatchingEntryInput!) {
+    acceptEventMatchingEntry(input: $eventMatchingEntry) {
+      created
+      entry {
+        uuid
+        matchingType
+        summary
+        details
+        remote
+        active
+      }
+    }
+  }
+`
+
 export const updateMatchingEntry = gql`
   mutation ($uuid: String!, $input: MatchingEntryInput!) {
     updateMatchingEntry(uuid: $uuid, input: $input) {
