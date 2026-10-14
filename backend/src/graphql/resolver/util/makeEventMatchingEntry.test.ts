@@ -335,9 +335,9 @@ describe('makeEventMatchingEntry', () => {
 
   /**
    * An account a member vouches for can sign in before its address is confirmed, open the link
-   * again and save the entry in the form. The note then has nothing left to make -- by the rule
-   * the wallet asks by: the same kind, the same words whatever their case and the blanks around
-   * them, in an entry that is live.
+   * again and save the entry in the form. The note then has nothing left to make: the same kind,
+   * the same words whatever their case and the blanks around them -- live, or paused by the
+   * member since.
    */
   describe('where the member has that entry already', () => {
     it('lets the note go and makes no second one', async () => {
@@ -353,8 +353,17 @@ describe('makeEventMatchingEntry', () => {
       )
     })
 
+    // Paused, it was taken out of the search on purpose: the link must not put it back live.
+    it('lets the note go where the member has paused that entry', async () => {
+      ownMock.mockResolvedValue([own({ active: false })])
+
+      await makeEventMatchingEntry(MAREN)
+
+      expect(insertMock).not.toHaveBeenCalled()
+      expect(transactions).toEqual(['committed'])
+    })
+
     it.each<[string, Partial<MatchingEntrySelect>]>([
-      ['a paused one', { active: false }],
       ['one of another kind', { matchingType: 'offer' }],
       ['one whose words only begin the same way', { summary: 'Kongress Frequency Healing 2027' }],
     ])('makes it where the member has only %s', async (_what, changed) => {

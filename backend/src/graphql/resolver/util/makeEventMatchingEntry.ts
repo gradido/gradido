@@ -32,8 +32,8 @@ const EVENT_ENTRY_KEPT_DAYS = 30
 const DAY_MS = 24 * 60 * 60 * 1000
 
 // The member's own sentence counts as this one where it has the same words, whatever their
-// case and the blanks around them -- the rule the wallet asks by before it opens the form for
-// a link (pages/Matching.vue, `sameWords`).
+// case and the blanks around them -- as the wallet compares before it opens the form for a link
+// (pages/Matching.vue, `sameWords`).
 const sameWords = (a: string, b: string): boolean =>
   a.trim().toLowerCase() === b.trim().toLowerCase()
 
@@ -65,14 +65,15 @@ async function entryOfTheNote(userId: number): Promise<string | null> {
         return null
       }
       // An account a member vouches for can sign in before its address is confirmed, open the
-      // link again and save the entry in the form. The note then has nothing left to make.
+      // link again and save the entry in the form. The note then has nothing left to make --
+      // also where the member has paused that entry since: paused, it was taken out of the search
+      // on purpose, and the link must not put it back live. (The wallet's form asks the member
+      // and lets a paused one count for nothing; here nobody is asked.)
       const own = await dbSelectMatchingEntriesByUserId(userId, tx)
       if (
         own.some(
           (entry) =>
-            entry.active &&
-            entry.matchingType === EVENT_ENTRY_KIND &&
-            sameWords(entry.summary, noted.summary),
+            entry.matchingType === EVENT_ENTRY_KIND && sameWords(entry.summary, noted.summary),
         )
       ) {
         logger.info(`user ${userId} has the entry an event link noted already; the note is let go`)
