@@ -639,7 +639,7 @@
       "waiting": "Saisis ci-dessus le nom de ton congrès — ton lien, ton QR code et un paragraphe pour ton e-mail apparaîtront ici."
     },
     "landing": {
-      "alreadyThere": "Tu as déjà cette entrée.",
+      "added": "Ton entrée a été ajoutée : {sentence}",
       "firstEntry": "Ta première entrée :",
       "haveAccount": "J'ai déjà un compte",
       "headline": "La carte qui te mène aux personnes de ton congrès",

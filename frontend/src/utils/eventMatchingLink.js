@@ -100,8 +100,8 @@ export const keptEventMatchingEntry = (kept, now = Date.now()) => {
 
 /**
  * The entry of an event link as the form for a new entry takes it (useEntryDraft): always an
- * interest -- an offer or a need is the member's own to add -- and `unlessThere`: where the
- * member has that very sentence already, the page says so instead of opening the form.
+ * interest -- an offer or a need is the member's own to add -- and `unlessThere`: the entries
+ * page makes it at once, without the form, and says nothing where the member has it (KA-014).
  *
  * @param {{ summary: string, details: string | null, remote: boolean }} entry
  */

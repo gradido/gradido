@@ -114,6 +114,21 @@ export const createMatchingEntry = gql`
   }
 `
 
+// The entry an event link offers, made at once for a signed-in member (pages/Matching.vue,
+// `acceptEventEntry`). The variable is named as createUser's: the server's request log masks
+// it by that name (server/plugins.ts) -- what somebody is interested in.
+export const acceptEventMatchingEntry = gql`
+  mutation ($eventMatchingEntry: EventMatchingEntryInput!) {
+    acceptEventMatchingEntry(input: $eventMatchingEntry) {
+      created
+      entry {
+        uuid
+        summary
+      }
+    }
+  }
+`
+
 export const updateMatchingEntry = gql`
   mutation ($uuid: String!, $input: MatchingEntryInput!) {
     updateMatchingEntry(uuid: $uuid, input: $input) {
