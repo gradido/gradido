@@ -599,9 +599,10 @@ function searchAfterWords() {
   arrivalOver()
   searchUnasked()
   clearTimeout(wordsSearchTimer)
+  // Cleared on unmount, so it never searches for a page that is gone.
   wordsSearchTimer = setTimeout(() => {
     wordsSearchTimer = null
-    if (pageAlive) searchUnasked()
+    searchUnasked()
   }, SEARCH_AGAIN_AFTER_WORDS_MS)
 }
 const waitsForWords = () =>
