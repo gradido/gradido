@@ -160,16 +160,34 @@ describe('MemberWalletLink', () => {
       expect(wrapper.findAll('button')).toHaveLength(1)
     })
 
+    // It opens the form on its tab "E-Mail senden", and says so (Bernd, 16.10.2026).
     it('names the member in its label and its tooltip', () => {
       const arrow = arrowOf(createWrapper({ member: RAEUBER, name: 'raeuber' }))
-      expect(arrow.attributes('aria-label')).toBe('Send to raeuber')
-      expect(arrow.attributes('title')).toBe('Send to raeuber')
+      expect(arrow.attributes('aria-label')).toBe('Send an email to raeuber')
+      expect(arrow.attributes('title')).toBe('Send an email to raeuber')
     })
 
     it('names them in the language of the moderator', () => {
       const arrow = arrowOf(createWrapper({ member: RAEUBER, name: 'raeuber', locale: 'de' }))
-      expect(arrow.attributes('aria-label')).toBe('An raeuber senden')
+      expect(arrow.attributes('aria-label')).toBe('E-Mail an raeuber senden')
     })
+
+    // Every language says it with the member's name in it, and nothing of the message syntax
+    // shows (the Italian value carries an apostrophe).
+    it.each(['de', 'en', 'fr', 'es', 'nl', 'it', 'pt', 'tr', 'ru', 'el'])(
+      'names the member in %s',
+      async (locale) => {
+        const messages = (await import(`@/locales/${locale}.json`)).default
+        const said = createI18n({
+          legacy: false,
+          locale,
+          messages: { [locale]: messages },
+        }).global.t('goTo.memberSend', { name: 'raeuber' })
+        expect(said).toContain('raeuber')
+        expect(said).not.toMatch(/[{}@|]/)
+        expect(said).not.toBe('goTo.memberSend')
+      },
+    )
 
     it('keeps the icon out of what a screen reader reads', () => {
       const arrow = arrowOf(createWrapper({ member: RAEUBER }))
@@ -996,10 +1014,21 @@ describe('MemberWalletLink', () => {
       expect(address.origin + address.pathname + '?token=').toBe(CONFIG.WALLET_AUTH_URL)
       expect([...address.searchParams.keys()]).toEqual(['token', 'redirect'])
       expect(address.searchParams.get('token')).toBe(TOKEN)
-      // The route of the wallet's send form: the community first, then the member.
+      // The route of the wallet's send form: the community first, then the member; its tab
+      // "E-Mail senden".
       expect(address.searchParams.get('redirect')).toBe(
-        `/send/${RAEUBER.communityUuid}/${RAEUBER.gradidoID}#send-form`,
+        `/send/${RAEUBER.communityUuid}/${RAEUBER.gradidoID}?art=email#send-form`,
       )
+    })
+
+    // ⭐ Bernd, 16.10.2026: "der Pfeil soll auf den Tab „E-Mail senden“ gehen" -- writing to the
+    // member is what it is for. The wallet's form reads the tab off `?art`
+    // (TransactionForm.vue, sendTypeFromQuery) and takes nothing else there.
+    it('opens the form on its tab "E-Mail senden"', async () => {
+      await press()
+      const page = new URL(openedAddress().searchParams.get('redirect'), 'https://wallet.example')
+      expect([...page.searchParams.keys()]).toEqual(['art'])
+      expect(page.searchParams.get('art')).toBe('email')
     })
 
     // In a window of 760 px the send page begins with the moderator's own accounts: the form,
@@ -1021,7 +1050,7 @@ describe('MemberWalletLink', () => {
       const address = openedAddress()
       expect([...address.searchParams.keys()]).toEqual(['token', 'redirect'])
       const page = new URL(address.searchParams.get('redirect'), address.origin)
-      expect(page.search).toBe('')
+      expect(page.search).toBe('?art=email')
       expect(page.hash).toBe('#send-form')
       const parts = page.pathname.split('/')
       expect(parts).toHaveLength(4)

@@ -41,10 +41,11 @@
           </BButton>
         </div>
       </template>
-      <!-- The same filter that sits inside the details row, lifted into a column of its
-           own so it can be reached without opening a contribution first. Its own column
-           rather than an icon beside the name: the name column wraps, and a click target
-           that moves with the text is hard to hit. -->
+      <!-- The filter by the member's e-mail, in a column of its own so it can be reached
+           without opening a contribution first. Its own column rather than an icon beside the
+           name: the name column wraps, and a click target that moves with the text is hard to
+           hit. The details row had the same filter as a funnel beside the address; it went on
+           16.10.2026 (Bernd: the same function twice, the magnifier is enough). -->
       <template #cell(searchUser)="row">
         <BButton
           v-if="row.item.user && row.item.user.emailContact"
@@ -206,7 +207,6 @@
               @update-status="updateStatus"
               @reload-contribution="reloadContribution"
               @update-contributions="updateContributions"
-              @search-for-email="$emit('search-for-email', $event)"
               @resubmission-saved="$emit('resubmission-saved', $event)"
             />
           </template>

@@ -78,7 +78,9 @@ import { MAP_WINDOW_NAME, dropMapWindowName } from '@/utils/mapWindow'
  * the wallet's chat where the moderator is in contact with the member already (Bernd,
  * 13.10.2026), which leads straight into the conversation with them; the arrow of the wallet's
  * "Senden" for everybody else (Bernd, 13.10.2026), which opens the wallet's send form with
- * them entered as the recipient. Until 16.10.2026 a member on the map had the pin alone, and the
+ * them entered as the recipient -- on its tab "E-Mail senden" (Bernd, 16.10.2026: writing to
+ * them is what the arrow is for; Gradido sent from here "dürfte eher der seltene Fall sein",
+ * and it is a tab away). Until 16.10.2026 a member on the map had the pin alone, and the
  * conversation with a contact there took the way over the map. So every member can be written
  * to -- but for two, who get neither: a deleted member, to whom nothing can be sent, and the
  * moderator, who cannot write to themselves. Whom the moderator is in contact with is asked once
@@ -118,6 +120,10 @@ const WINDOW_NAME = MAP_WINDOW_NAME
 // two apps share no code, so the word is written down in both; where the wallet does not know
 // it, the page opens at its top as it would without.
 const SEND_FORM_ANCHOR = '#send-form'
+// The wallet's word for the tab "E-Mail senden" of that form (`sendTypeFromQuery` there): the
+// matching profile and the contact window open it so as well. A wallet that does not know it
+// opens the tab "GDD senden", as it did before.
+const SEND_FORM_EMAIL = '?art=email'
 // Just below the width at which the wallet sets its menu beside the page (1025 px): the map
 // takes the whole window.
 const WINDOW_FEATURES = 'popup,width=1000,height=760'
@@ -243,14 +249,16 @@ const chatPage = () =>
   `&community=${encodeURIComponent(props.member.communityUuid)}`
 
 /**
- * The wallet's send form, with this member as the recipient: its route names the two. And
- * scrolled to the form (SEND_FORM_ANCHOR) -- in a window of this height the page begins with
- * the moderator's own accounts, and the form with the member in it stood below the fold.
+ * The wallet's send form, with this member as the recipient: its route names the two. On the
+ * tab "E-Mail senden" (SEND_FORM_EMAIL). And scrolled to the form (SEND_FORM_ANCHOR) -- in a
+ * window of this height the page begins with the moderator's own accounts, and the form with
+ * the member in it stood below the fold.
  */
 const sendPage = () =>
   '/send' +
   `/${encodeURIComponent(props.member.communityUuid)}` +
   `/${encodeURIComponent(props.member.gradidoID)}` +
+  SEND_FORM_EMAIL +
   SEND_FORM_ANCHOR
 
 /**

@@ -415,7 +415,7 @@
     "memberChat": "Naar het gesprek met {name}",
     "memberMap": "{name} op de kaart tonen",
     "memberMapBlocked": "De browser heeft het venster geblokkeerd. Sta pop-ups voor deze pagina toe.",
-    "memberSend": "Naar {name} sturen",
+    "memberSend": "E-mail naar {name} sturen",
     "userSearch": "Naar gebruikerszoekopdracht gaan"
   },
   "help": {

@@ -335,4 +335,83 @@ describe('OpenCreationsTable', () => {
       })
     })
   })
+
+  // The magnifier in its own column puts the member's address into the search of the page.
+  // Since 16.10.2026 it is the only way to it: the details row had the same as a funnel beside
+  // the address, and Bernd let it go ("dieselbe Funktion … die Lupe").
+  describe('the magnifier', () => {
+    const member = (email) => ({ firstName: 'Peter', lastName: 'Lustig', emailContact: { email } })
+    const items = [
+      { id: 5, contributionStatus: 'PENDING', userId: 6, user: member('peter@example.org') },
+      { id: 6, contributionStatus: 'PENDING', userId: 7, user: null },
+    ]
+    const rowScope = (item, index) => ({
+      item,
+      index,
+      detailsShowing: true,
+      toggleDetails: () => {},
+    })
+    // Renders the column of the magnifier and the details row, which the automatic stub swallows.
+    const slotRenderingTable = {
+      name: 'BTableLite',
+      props: { items: { type: Array, default: () => [] } },
+      render() {
+        return h(
+          'div',
+          this.items.map((item, index) =>
+            h('div', { class: 'contribution-row' }, [
+              this.$slots['cell(searchUser)']?.(rowScope(item, index)),
+              this.$slots['row-details']?.(rowScope(item, index)),
+            ]),
+          ),
+        )
+      },
+    }
+    const slotRenderingRowDetails = {
+      name: 'RowDetails',
+      props: { row: Object, slotName: String, type: String, index: Number },
+      render() {
+        return h('div', this.$slots[this.slotName]?.())
+      },
+    }
+    const slotRenderingButton = {
+      name: 'BButton',
+      render() {
+        return h('button', this.$slots.default?.())
+      },
+    }
+
+    beforeEach(() => {
+      wrapper = shallowMount(OpenCreationsTable, {
+        props: { items, fields: mockFields, hideResubmission: false },
+        global: {
+          plugins: [store],
+          mocks: { $t: (key) => key },
+          stubs: {
+            BTableLite: slotRenderingTable,
+            RowDetails: slotRenderingRowDetails,
+            BButton: slotRenderingButton,
+            IBiSearch: true,
+          },
+        },
+      })
+    })
+
+    it('puts the address of the member into the search', async () => {
+      const magnifiers = wrapper.findAll('button')
+      // None for a contribution without a member.
+      expect(magnifiers).toHaveLength(1)
+      expect(magnifiers[0].attributes('title')).toBe('filter.byEmail')
+      expect(magnifiers[0].attributes('aria-label')).toBe('filter.byEmail')
+
+      await magnifiers[0].trigger('click')
+      expect(wrapper.emitted('search-for-email')).toEqual([['peter@example.org']])
+    })
+
+    it('is the only way to it: the details row is handed nothing to search with', () => {
+      const panels = wrapper.findAllComponents({ name: 'ContributionMessagesList' })
+      expect(panels).toHaveLength(2)
+      panels.forEach((panel) => expect(panel.vm.$attrs).not.toHaveProperty('onSearchForEmail'))
+    })
+  })
 })
