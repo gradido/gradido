@@ -140,6 +140,7 @@
 import { nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppModal from '@/components/AppModal.vue'
+import { usePastedImage } from '@/composables/usePastedImage'
 import {
   AVATAR_FULL_SIZE,
   AVATAR_FULL_TARGET_BYTES,
@@ -303,6 +304,14 @@ function onDrop(event) {
   // no picture, no word, and no way for the member to tell whether the drop even landed.
   showError(t('avatar.error-format'))
 }
+
+/**
+ * A picture pasted with Ctrl+V (Cmd+V) while the window is open: taken as a dropped one (Bernd,
+ * 16.10.2026). Wherever the paste lands -- this window is the wallet's own (AppModal), which does
+ * not take the keyboard: it stays on the page behind the window. Not while the window asks
+ * whether to remove the picture. A paste that carries words is left alone (utils/pastedImage).
+ */
+usePastedImage(readFile, () => isOpen.value && !confirmRemove.value)
 
 function loadImage(dataUrl, fileName) {
   const probe = new Image()
