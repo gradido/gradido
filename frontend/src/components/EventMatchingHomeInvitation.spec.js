@@ -33,6 +33,7 @@ vi.mock('@vue/apollo-composable', () => ({
 vi.mock('bootstrap-vue-next', () => ({
   BButton: { template: '<button @click="$emit(`click`)"><slot></slot></button>' },
   BModal: {
+    name: 'BModal',
     props: ['modelValue', 'centered'],
     emits: ['update:modelValue'],
     template: `<div v-if="modelValue" data-test="modal">
@@ -234,6 +235,20 @@ describe('EventMatchingHomeInvitation', () => {
       expect(windowOnScreen()).toBe(false)
     })
 
+    // BModal writes the closing back when its `modelValue` goes false on its own -- a window before
+    // this one took the screen. Read as an answer, the invitation would be over unseen.
+    it('is not answered by a window before it taking the screen', async () => {
+      await mountWindow()
+      setFirstLoginWindowWanted('email', true)
+      await flushPromises()
+      await wrapper.findComponent({ name: 'BModal' }).vm.$emit('update:modelValue', false)
+
+      setFirstLoginWindowWanted('email', false)
+      await flushPromises()
+
+      expect(windowOnScreen()).toBe(true)
+    })
+
     it('counts the cross as an answer as well', async () => {
       await mountWindow()
 
@@ -404,6 +419,19 @@ describe('EventMatchingHomeInvitation', () => {
       await mountWindow({ at: '/matching/entries' })
 
       expect(windowOnScreen()).toBe(false)
+    })
+
+    // Over is over: a second link of the same session holds nothing back while it is answered.
+    it('holds nothing back once it is over, also while another link is answered', async () => {
+      await mountWindow({ state: { gmsAllowed: true, userLocation: HOME } })
+      eventLinkUnderway('marens-gradido-id')(SENTENCE)
+      await flushPromises()
+      setFirstLoginWindowWanted('firstCreation', true)
+
+      eventLinkUnderway('marens-gradido-id')
+      await flushPromises()
+
+      expect(firstLoginWindow.value).toBe('firstCreation')
     })
 
     it('keeps the windows after it waiting while that answer is on its way', async () => {
