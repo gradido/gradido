@@ -3,7 +3,7 @@ const {
   APP_VERSION,
   BUILD_COMMIT,
   booleanSchema,
-  COMMUNITY_NAME,
+  communityNameSchema,
   COMMUNITY_URL,
   configRule,
   GRAPHQL_URI,
@@ -96,7 +96,7 @@ const environment = v.object({
   ANTHROPIC_ACTIVE: v.optional(ANTHROPIC_ACTIVE, false),
   // Printed on the starting bonus cheque, where it tells the guest which community
   // the code belongs to. Same value and same fallback as in the wallet.
-  COMMUNITY_NAME: v.optional(COMMUNITY_NAME, 'Gradido Entwicklung'),
+  COMMUNITY_NAME: v.optional(communityNameSchema, 'Gradido Entwicklung'),
 })
 
 const schema = v.pipe(

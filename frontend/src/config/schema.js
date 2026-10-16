@@ -2,9 +2,9 @@ const {
   APP_VERSION,
   BUILD_COMMIT,
   booleanSchema,
-  COMMUNITY_DESCRIPTION,
+  communityDescriptionSchema,
   COMMUNITY_LOCATION,
-  COMMUNITY_NAME,
+  communityNameSchema,
   COMMUNITY_SUPPORT_MAIL,
   COMMUNITY_URL,
   configRule,
@@ -103,13 +103,13 @@ const environment = v.object({
     '/admin/authenticate?token=',
   ),
 
-  COMMUNITY_NAME: v.optional(COMMUNITY_NAME, 'Gradido Entwicklung'),
+  COMMUNITY_NAME: v.optional(communityNameSchema, 'Gradido Entwicklung'),
   COMMUNITY_REGISTER_PATH: v.optional(
     pathSchema('Path for registering a new account, behind COMMUNITY_URL'),
     '/register',
   ),
   COMMUNITY_DESCRIPTION: v.optional(
-    COMMUNITY_DESCRIPTION,
+    communityDescriptionSchema,
     'Die lokale Entwicklungsumgebung von Gradido.',
   ),
   COMMUNITY_SUPPORT_MAIL: v.optional(COMMUNITY_SUPPORT_MAIL, 'support@supportmail.com'),
