@@ -64,17 +64,22 @@ const member = computed(() => store.state.gradidoID || null)
  * opened on another device than the link, or long after it, whom nothing on this device can
  * know. `undefined` while it is asked, `null` for no invitation, else the sentence.
  *
- * Asked once for every member who signs in, and only on a wallet that has a map: the matching
- * routes, the link and the map exist only there. `network-only`: the query takes no
- * arguments, so a cached answer would be everybody's. And held to the member it was asked
- * for -- a sign-out empties the store while the answer may still be on its way.
+ * Asked once for a member who signs in and does not stand on the map -- whoever stands on it
+ * has nobody to be invited for, and every round trip costs --, and only on a wallet that has
+ * a map: the matching routes, the link and the map exist only there. `network-only`: the query
+ * takes no arguments, so a cached answer would be everybody's. And held to the member it was
+ * asked for -- a sign-out empties the store while the answer may still be on its way.
+ *
+ * (An invitation that is due at an account whose member came onto the map without ever being
+ * asked -- not possible on the ordinary way, every way onto the map passes a sign-in that asks
+ * -- stays at the account unasked, one row; it would be asked again if the member left the map.)
  */
 const fromServer = ref(undefined)
 watch(
   member,
   async (who) => {
     fromServer.value = undefined
-    if (!CONFIG.MATCHING_ACTIVE || !who) {
+    if (!CONFIG.MATCHING_ACTIVE || !who || !invitedOntoTheMap(store.state)) {
       fromServer.value = null
       return
     }
@@ -161,8 +166,9 @@ const visible = computed({
 
 /**
  * The account's invitation is over once it has had the screen -- it comes once (KA-015) --, or
- * once it is clear that there is nobody to invite: the member stands on the map, or the entry
- * it was for is gone (then the server answers null and keeps nothing to name).
+ * once it is clear that there is nobody to invite: the member stands on the map by the time
+ * the answer is in, or comes onto it in this session another way (the overview's tile, the
+ * home tab). Where the entry it was for is gone, the server answers null and names nothing.
  *
  * Said once for each member. Where saying it fails, the invitation comes again at the next
  * start, and with it the first creation waits once more: a cost of one start, not a loss.
@@ -180,10 +186,8 @@ const settle = async (who) => {
 watch(onScreen, (shown) => {
   if (shown && typeof fromServer.value === 'string') settle(member.value)
 })
-watch(fromServer, (answer) => {
-  if (typeof answer === 'string' && member.value && !invitedOntoTheMap(store.state)) {
-    settle(member.value)
-  }
+watch([fromServer, () => invitedOntoTheMap(store.state)], ([answer, invited]) => {
+  if (typeof answer === 'string' && member.value && !invited) settle(member.value)
 })
 
 function later() {

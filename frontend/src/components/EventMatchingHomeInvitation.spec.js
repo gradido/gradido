@@ -251,12 +251,45 @@ describe('EventMatchingHomeInvitation', () => {
   })
 
   describe('a member who stands on the map already', () => {
-    it('is not invited, and the invitation is ended at the account', async () => {
+    // Nobody to be invited for, and every round trip costs.
+    it('is not invited, and the account is not even asked', async () => {
       accountSays(SENTENCE)
       await mountWindow({ state: { gmsAllowed: true, userLocation: HOME } })
 
       expect(windowOnScreen()).toBe(false)
+      expect(apollo.query).not.toHaveBeenCalled()
+      expect(apollo.settle).not.toHaveBeenCalled()
+    })
+
+    it('is not invited where they came onto the map while the account was asked', async () => {
+      const release = accountHoldsItsAnswer()
+      await mountWindow()
+
+      store.commit('userLocation', HOME)
+      store.commit('gmsAllowed', true)
+      release(SENTENCE)
+      await flushPromises()
+
+      expect(windowOnScreen()).toBe(false)
       expect(apollo.settle).toHaveBeenCalledTimes(1)
+    })
+
+    // Another way onto the map in the same session -- the overview's tile, the home tab -- ends
+    // the invitation that was due, without it ever having had the screen.
+    it('ends the invitation at the account once they come onto the map another way', async () => {
+      accountSays(SENTENCE)
+      setFirstLoginWindowWanted('alias', true)
+      await mountWindow()
+      expect(apollo.settle).not.toHaveBeenCalled()
+
+      store.commit('userLocation', HOME)
+      store.commit('gmsAllowed', true)
+      await flushPromises()
+
+      expect(apollo.settle).toHaveBeenCalledTimes(1)
+      setFirstLoginWindowWanted('alias', false)
+      await flushPromises()
+      expect(windowOnScreen()).toBe(false)
     })
 
     it('lets the first creation come', async () => {
