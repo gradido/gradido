@@ -14,8 +14,9 @@
     >
       <!-- The username as before -- an empty cell where the member has none -- and behind it
            the way to reach them in the wallet: the pin of a member who stands on the map, the
-           arrow into the send form for every other. Both are buttons, and a press on a button
-           does not open the row. -->
+           arrow into the send form for every other, and the bubble into the conversation with
+           a contact of the moderator, behind the pin or in the arrow's place. All are buttons,
+           and a press on a button does not open the row. -->
       <template #cell(alias)="row">
         {{ row.value }}
         <member-wallet-link :member="row.item" :name="row.item.alias || row.item.firstName" />
@@ -312,8 +313,8 @@ const updateDeletedAt = ({ userId, deletedAt }) => {
   if (row) {
     row.deletedAt = deletedAt
     // The pin goes with the account: the server gives a deleted member none. Brought back,
-    // the row shows the arrow until the list is asked again -- whether they stand on the map
-    // only the server knows.
+    // the row shows the arrow (the bubble, for a contact) until the list is asked again --
+    // whether they stand on the map only the server knows.
     if (deletedAt) row.findableOnMap = false
   }
   emit('update-deleted-at', userId, deletedAt)

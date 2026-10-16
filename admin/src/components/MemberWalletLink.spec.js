@@ -131,17 +131,22 @@ describe('MemberWalletLink', () => {
       expect(pinOf(createWrapper({ member })).exists()).toBe(false)
     })
 
-    // ⛔ The arrow says "not on the map", and only the server can say that. A document that does
-    // not ask for the field delivers nothing -- and an arrow behind every name would then say it
-    // of members who stand there.
+    // Writing to a member does not hang on the map (Bernd, 16.10.2026). Until then the arrow
+    // said "not on the map", and only the server's no could say that.
     it.each([
       ['whose row says nothing', { ...RAEUBER, findableOnMap: null }],
       ['whose row was never asked', { ...RAEUBER, findableOnMap: undefined }],
       ['whose row holds something else', { ...RAEUBER, findableOnMap: 'false' }],
       ['whose row holds a zero', { ...RAEUBER, findableOnMap: 0 }],
-      ['who is not there at all', null],
-    ])('gets nothing at all where the server did not say no: one %s', (_name, member) => {
+    ])('gets the arrow, and no pin, where the server did not say yes: one %s', (_name, member) => {
       const wrapper = createWrapper({ member })
+      expect(arrowOf(wrapper).exists()).toBe(true)
+      expect(pinOf(wrapper).exists()).toBe(false)
+      expect(wrapper.findAll('button')).toHaveLength(1)
+    })
+
+    it('gets nothing where there is no member', () => {
+      const wrapper = createWrapper({ member: null })
       expect(wrapper.find('button').exists()).toBe(false)
     })
 
@@ -235,14 +240,6 @@ describe('MemberWalletLink', () => {
           expect(arrowOf(wrapper).exists()).toBe(true)
         })
       })
-    })
-
-    // A member who stands on the map is reached over the map, and gets the pin alone.
-    it('is never drawn beside a pin', () => {
-      const wrapper = createWrapper({ member: { ...RAEUBER, findableOnMap: true } })
-      expect(pinOf(wrapper).exists()).toBe(true)
-      expect(arrowOf(wrapper).exists()).toBe(false)
-      expect(wrapper.findAll('button')).toHaveLength(1)
     })
   })
 
@@ -444,26 +441,177 @@ describe('MemberWalletLink', () => {
       })
     })
 
-    // ✓ Bernd, 13.10.2026: a contact who stands on the map keeps the pin.
-    it('keeps the pin where they stand on the map, and the server is not asked for it', async () => {
-      const wrapper = await settled({ member: { ...RAEUBER, findableOnMap: true } })
+    // ⭐ Bernd, 16.10.2026: "… auch eine Sprechblase erscheinen, auch wenn bereits eine
+    // Stecknadel vorhanden ist" -- the conversation without the way over the map, and every
+    // contact told apart at a glance. Until then a contact on the map kept the pin alone.
+    describe('who stands on the map', () => {
+      const ON_MAP = { ...RAEUBER, findableOnMap: true }
 
-      expect(pinOf(wrapper).exists()).toBe(true)
-      expect(bubbleOf(wrapper).exists()).toBe(false)
-      expect(wrapper.findAll('button')).toHaveLength(1)
-      expect(client.query).not.toHaveBeenCalled()
+      it('gets the bubble behind the pin', async () => {
+        const wrapper = await settled({ member: ON_MAP })
+        const buttons = wrapper.findAll('button')
+
+        expect(buttons).toHaveLength(2)
+        expect(buttons[0].attributes('data-test')).toBe('member-map-pin')
+        expect(buttons[1].attributes('data-test')).toBe('member-chat-bubble')
+        expect(buttons[1].attributes('type')).toBe('button')
+        expect(arrowOf(wrapper).exists()).toBe(false)
+        expect(waitOf(wrapper).exists()).toBe(false)
+      })
+
+      it('names the member in the label and the tooltip of each', async () => {
+        const wrapper = await settled({ member: ON_MAP, locale: 'de' })
+
+        expect(pinOf(wrapper).attributes('aria-label')).toBe('raeuber auf der Karte zeigen')
+        expect(pinOf(wrapper).attributes('title')).toBe('raeuber auf der Karte zeigen')
+        expect(bubbleOf(wrapper).attributes('aria-label')).toBe('Zum Gespräch mit raeuber')
+        expect(bubbleOf(wrapper).attributes('title')).toBe('Zum Gespräch mit raeuber')
+      })
+
+      it('asks the server whom the moderator is in contact with', async () => {
+        await settled({ member: ON_MAP })
+        expect(asked(contactRefs)).toEqual([[{ query: contactRefs, fetchPolicy: 'no-cache' }]])
+      })
+
+      it('opens the map with the pin and the conversation with the bubble, in the one window', async () => {
+        const wrapper = await settled({ member: ON_MAP })
+        await pinOf(wrapper).trigger('click')
+        await bubbleOf(wrapper).trigger('click')
+
+        expect(window.open).toHaveBeenCalledTimes(2)
+        expect(window.open.mock.calls[1][1]).toBe(window.open.mock.calls[0][1])
+        expect(openedAddress(0).searchParams.get('redirect')).toBe(
+          `/matching/karte?with=${RAEUBER.gradidoID}&community=${RAEUBER.communityUuid}`,
+        )
+        expect(openedAddress(1).searchParams.get('redirect')).toBe(
+          `/contacts?with=${RAEUBER.gradidoID}&community=${RAEUBER.communityUuid}`,
+        )
+      })
+
+      // ⛔ The pin waits for no answer, and what comes later moves nothing in the row: neither
+      // the pin, nor what stands behind the name (the circle of the community's network under a
+      // contribution).
+      describe('while the server is asked', () => {
+        let answer
+
+        beforeEach(() => {
+          client = {
+            query: vi.fn(
+              ({ query }) =>
+                new Promise((resolve) => {
+                  if (query === contactRefs) answer = resolve
+                  else resolve({ data: { verifyLogin: {} } })
+                }),
+            ),
+          }
+        })
+
+        it('shows the pin at once, and keeps the room behind it free', () => {
+          const wrapper = createWrapper({ member: ON_MAP })
+          const buttons = wrapper.findAll('button')
+
+          expect(buttons).toHaveLength(1)
+          expect(buttons[0].attributes('data-test')).toBe('member-map-pin')
+          const room = waitOf(wrapper)
+          expect(room.exists()).toBe(true)
+          expect(room.element.tagName).toBe('SPAN')
+          expect(room.attributes('aria-hidden')).toBe('true')
+          // The same box as the button that follows.
+          expect(room.classes()).toContain('member-wallet-link')
+          // Behind the pin, not ahead of it.
+          expect(room.element.previousElementSibling).toBe(pinOf(wrapper).element)
+        })
+
+        it('sets the bubble into the room when the answer names them, and leaves the pin as it was', async () => {
+          const wrapper = createWrapper({ member: ON_MAP, attachTo: document.body })
+          const pin = pinOf(wrapper).element
+          pin.focus()
+
+          answer({ data: { contactRefs: [pair(RAEUBER)] } })
+          await flushPromises()
+
+          expect(bubbleOf(wrapper).exists()).toBe(true)
+          expect(bubbleOf(wrapper).element.previousElementSibling).toBe(pin)
+          expect(waitOf(wrapper).exists()).toBe(false)
+          expect(pinOf(wrapper).element).toBe(pin)
+          expect(document.activeElement).toBe(pin)
+        })
+
+        it('sets the arrow into the room when the answer does not', async () => {
+          const wrapper = createWrapper({ member: ON_MAP })
+          answer({ data: { contactRefs: [pair(BIBI)] } })
+          await flushPromises()
+
+          expect(arrowOf(wrapper).exists()).toBe(true)
+          expect(arrowOf(wrapper).element.previousElementSibling).toBe(pinOf(wrapper).element)
+          expect(bubbleOf(wrapper).exists()).toBe(false)
+          expect(waitOf(wrapper).exists()).toBe(false)
+        })
+
+        it('shows the arrow behind the pin after three seconds, and the bubble once the slow answer names them', async () => {
+          vi.useFakeTimers()
+          const wrapper = createWrapper({ member: ON_MAP })
+          vi.advanceTimersByTime(MODERATOR_CONTACTS_WAIT_MS - 1)
+          await wrapper.vm.$nextTick()
+          expect(waitOf(wrapper).exists()).toBe(true)
+
+          vi.advanceTimersByTime(1)
+          await wrapper.vm.$nextTick()
+          expect(arrowOf(wrapper).exists()).toBe(true)
+          expect(pinOf(wrapper).exists()).toBe(true)
+
+          answer({ data: { contactRefs: [pair(RAEUBER)] } })
+          await flushPromises()
+          expect(bubbleOf(wrapper).exists()).toBe(true)
+          expect(arrowOf(wrapper).exists()).toBe(false)
+        })
+      })
+
+      it('gets the arrow behind the pin where the server does not answer', async () => {
+        client = {
+          query: vi.fn(({ query }) =>
+            query === contactRefs
+              ? Promise.reject(new Error('no answer'))
+              : Promise.resolve({ data: { verifyLogin: {} } }),
+          ),
+        }
+        const wrapper = await settled({ member: ON_MAP })
+
+        expect(pinOf(wrapper).exists()).toBe(true)
+        expect(arrowOf(wrapper).exists()).toBe(true)
+        expect(bubbleOf(wrapper).exists()).toBe(false)
+        expect(waitOf(wrapper).exists()).toBe(false)
+      })
+
+      // Nobody writes to themselves.
+      it('gets the pin alone on the moderator’s own row, and the server is not asked', async () => {
+        const wrapper = await settled({ member: { ...ON_MAP, userId: MODERATOR } })
+
+        expect(pinOf(wrapper).exists()).toBe(true)
+        expect(wrapper.findAll('button')).toHaveLength(1)
+        expect(waitOf(wrapper).exists()).toBe(false)
+        expect(client.query).not.toHaveBeenCalled()
+      })
     })
 
     it.each([
       ['whose account was deleted', { ...RAEUBER, deletedAt: '2026-10-12T16:08:33.000Z' }],
       ['who is the moderator themselves', { ...RAEUBER, userId: MODERATOR }],
-      ['of whom the server said nothing about the map', { ...RAEUBER, findableOnMap: null }],
     ])('gets nothing where they are one %s, and the server is not asked', async (_name, member) => {
       const wrapper = await settled({ member })
 
       expect(wrapper.find('button').exists()).toBe(false)
       expect(waitOf(wrapper).exists()).toBe(false)
       expect(client.query).not.toHaveBeenCalled()
+    })
+
+    // Writing to them does not hang on the map.
+    it('gets the bubble where the server said nothing about the map', async () => {
+      const wrapper = await settled({ member: { ...RAEUBER, findableOnMap: null } })
+
+      expect(bubbleOf(wrapper).exists()).toBe(true)
+      expect(pinOf(wrapper).exists()).toBe(false)
+      expect(asked(contactRefs)).toHaveLength(1)
     })
 
     // A row that comes to need the answer later: a member brought back in their open row.
@@ -690,8 +838,29 @@ describe('MemberWalletLink', () => {
         expect(asked(contactRefs)).toHaveLength(1)
       })
 
+      // The pin opens the wallet's window as well, and a first message written from the map
+      // makes a contact just the same.
+      it('asks for a member who stands on the map, and the arrow behind the pin becomes the bubble', async () => {
+        const now = vi.spyOn(Date, 'now').mockReturnValue(T0)
+        const wrapper = await settled({
+          member: { ...RAEUBER, findableOnMap: true },
+          attachTo: document.body,
+        })
+        const pin = pinOf(wrapper).element
+        const arrow = arrowOf(wrapper).element
+        arrow.focus()
+
+        nowTheServerNames([pair(RAEUBER)])
+        now.mockReturnValue(T0 + MODERATOR_CONTACTS_RETURN_MS)
+        await comeBack()
+
+        expect(asked(contactRefs)).toHaveLength(2)
+        expect(bubbleOf(wrapper).element).toBe(arrow)
+        expect(document.activeElement).toBe(arrow)
+        expect(pinOf(wrapper).element).toBe(pin)
+      })
+
       it.each([
-        ['who stands on the map', { ...RAEUBER, findableOnMap: true }],
         ['whose account was deleted', { ...RAEUBER, deletedAt: '2026-10-12T16:08:33.000Z' }],
         ['who is the moderator themselves', { ...RAEUBER, userId: MODERATOR }],
       ])('asks nothing for a member %s', async (_name, member) => {
@@ -936,6 +1105,30 @@ describe('MemberWalletLink', () => {
       expect(pin.exists()).toBe(true)
       expect(pin.element.tagName).toBe('BUTTON')
       expect(pin.attributes('type')).toBe('button')
+    })
+
+    // ⭐ Bernd, 16.10.2026: two things, two buttons -- finding them on the map, and writing to
+    // them ("ein Knopf die Stecknadel … und der andere Knopf wahlweise der Pfeil … oder die
+    // Sprechblase"). Until then a member on the map had the pin alone.
+    it('gets the arrow into the send form behind the pin', () => {
+      const wrapper = createWrapper()
+      const buttons = wrapper.findAll('button')
+
+      expect(buttons).toHaveLength(2)
+      expect(buttons[0].attributes('data-test')).toBe('member-map-pin')
+      expect(buttons[1].attributes('data-test')).toBe('member-send-arrow')
+    })
+
+    it('gets the pin alone on the moderator’s own row', () => {
+      const wrapper = createWrapper({
+        member: { ...BIBI, userId: 3 },
+        plugins: [
+          sentences('en'),
+          createStore({ state: { token: TOKEN, moderator: { id: 3, role: 'ADMIN' } } }),
+        ],
+      })
+      expect(pinOf(wrapper).exists()).toBe(true)
+      expect(wrapper.findAll('button')).toHaveLength(1)
     })
 
     it('names the member in its label and its tooltip', () => {
