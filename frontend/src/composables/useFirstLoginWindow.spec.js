@@ -1,9 +1,11 @@
 // AI-GENERATED — not an architecture reference
 import { describe, it, expect, beforeEach } from 'vitest'
 import {
+  endFirstCreationHold,
   firstLoginWindow,
   firstLoginWindowOnScreen,
   forgetFirstLoginWindows,
+  holdFirstCreationForThisSession,
   setFirstLoginWindowUndecided,
   setFirstLoginWindowWanted,
 } from './useFirstLoginWindow'
@@ -110,9 +112,10 @@ describe('useFirstLoginWindow', () => {
     })
 
     // "Erst beim nächsten Neustart": answered or not, the first creation does not come in the
-    // session the invitation was due in.
+    // session the invitation was due in. The window says so the moment it is due.
     it('lets the first creation wait for the rest of the session once it was due', () => {
       wants('home', 'firstCreation')
+      holdFirstCreationForThisSession()
       expect(firstLoginWindow.value).toBe('home')
 
       // "Later", or "show me on the map": the invitation is done.
@@ -122,19 +125,18 @@ describe('useFirstLoginWindow', () => {
       expect(firstLoginWindowOnScreen('firstCreation').value).toBe(false)
     })
 
-    it('holds the first creation back also where it was wanted before the invitation came', () => {
+    // On the home tab the invitation does not open -- it leads there -- and is due all the same.
+    it('holds the first creation back also where the invitation never opened', () => {
       wants('firstCreation')
       expect(firstLoginWindow.value).toBe('firstCreation')
 
-      wants('home')
-      setFirstLoginWindowWanted('home', false)
+      holdFirstCreationForThisSession()
 
       expect(firstLoginWindow.value).toBeNull()
     })
 
     it('holds nothing before it: the address and the name still come', () => {
-      wants('home')
-      setFirstLoginWindowWanted('home', false)
+      holdFirstCreationForThisSession()
 
       wants('email', 'alias')
 
@@ -145,8 +147,7 @@ describe('useFirstLoginWindow', () => {
 
     // The next start is a new sign-in, or the page loaded anew -- this module then starts empty.
     it('lets the first creation come again after the logout', () => {
-      wants('home')
-      setFirstLoginWindowWanted('home', false)
+      holdFirstCreationForThisSession()
 
       forgetFirstLoginWindows()
       wants('firstCreation')
@@ -154,9 +155,32 @@ describe('useFirstLoginWindow', () => {
       expect(firstLoginWindow.value).toBe('firstCreation')
     })
 
-    it('lets the first creation come in a session in which the invitation was never due', () => {
-      setFirstLoginWindowWanted('home', false)
+    it('lets the first creation come again at the next sign-in', () => {
       wants('firstCreation')
+      holdFirstCreationForThisSession()
+
+      endFirstCreationHold()
+
+      expect(firstLoginWindow.value).toBe('firstCreation')
+    })
+
+    // What the mounted windows said stands: only they say it again.
+    it('leaves what the windows said where a sign-in ends the hold', () => {
+      wants('alias', 'firstCreation')
+      setFirstLoginWindowUndecided('home', true)
+      holdFirstCreationForThisSession()
+
+      endFirstCreationHold()
+
+      expect(firstLoginWindow.value).toBe('alias')
+      setFirstLoginWindowWanted('alias', false)
+      expect(firstLoginWindow.value).toBeNull()
+    })
+
+    // Wanting is not the hold: an invitation that was never due holds nothing back.
+    it('lets the first creation come in a session in which the invitation was never due', () => {
+      wants('home', 'firstCreation')
+      setFirstLoginWindowWanted('home', false)
 
       expect(firstLoginWindow.value).toBe('firstCreation')
     })
@@ -203,6 +227,51 @@ describe('useFirstLoginWindow', () => {
 
         expect(firstLoginWindow.value).toBe('firstCreation')
       })
+    })
+  })
+
+  /**
+   * The question of the name cannot say whether it comes until `aliasStatus` has answered -- and
+   * that answer is often the slower one. Meanwhile the windows after it wait: without this the
+   * invitation onto the map, or the first creation, took the screen for the round trip and was
+   * pushed off it again by the window that comes first (KA-015).
+   */
+  describe('the question of the name, while it cannot say yet', () => {
+    it('gives the screen to none of the windows after it', () => {
+      wants('home', 'firstCreation')
+      setFirstLoginWindowUndecided('alias', true)
+
+      expect(firstLoginWindow.value).toBeNull()
+      expect(firstLoginWindowOnScreen('home').value).toBe(false)
+    })
+
+    it('lets them come in their order once the answer is in', () => {
+      wants('home', 'firstCreation')
+      setFirstLoginWindowUndecided('alias', true)
+
+      setFirstLoginWindowUndecided('alias', false)
+
+      expect(firstLoginWindow.value).toBe('home')
+    })
+
+    it('holds back none of the windows before it', () => {
+      wants('contact', 'email', 'home')
+      setFirstLoginWindowUndecided('alias', true)
+
+      expect(firstLoginWindow.value).toBe('contact')
+      setFirstLoginWindowWanted('contact', false)
+      expect(firstLoginWindow.value).toBe('email')
+      setFirstLoginWindowWanted('email', false)
+      expect(firstLoginWindow.value).toBeNull()
+    })
+
+    it('is forgotten on logout', () => {
+      setFirstLoginWindowUndecided('alias', true)
+
+      forgetFirstLoginWindows()
+      wants('home')
+
+      expect(firstLoginWindow.value).toBe('home')
     })
   })
 })

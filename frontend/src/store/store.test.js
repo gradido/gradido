@@ -12,11 +12,18 @@ import {
   startChatUpdates,
 } from '@/composables/useChatUpdates'
 import {
+  endEventLinkInvitation,
   eventLinkAnswerUnderway,
+  eventLinkInvitationOver,
   eventLinkSentence,
   eventLinkUnderway,
 } from '@/composables/useEventMatchingArrival'
-import { firstLoginWindow, setFirstLoginWindowWanted } from '@/composables/useFirstLoginWindow'
+import {
+  firstLoginWindow,
+  forgetFirstLoginWindows,
+  holdFirstCreationForThisSession,
+  setFirstLoginWindowWanted,
+} from '@/composables/useFirstLoginWindow'
 import {
   chatImage,
   chatImageViewState,
@@ -402,6 +409,57 @@ describe('Vuex store', () => {
 
       // ... (other login action tests remain largely the same)
 
+      /**
+       * A sign-in is a new start (KA-015: the first creation comes "beim nächsten Neustart"),
+       * and it reloads nothing: `/login` opens over a running session, and the handover from the
+       * admin area signs in without one. What the session before held back, and the event link
+       * it was opened by, are not this session's.
+       */
+      describe('as a new start', () => {
+        const member = ref('my-gradido-id')
+
+        beforeEach(() => {
+          forgetFirstLoginWindows()
+        })
+
+        it('lets the first creation come that waited behind an invitation onto the map', () => {
+          holdFirstCreationForThisSession()
+          setFirstLoginWindowWanted('firstCreation', true)
+          // The fixture proves itself: the first creation waits.
+          expect(firstLoginWindow.value).toBeNull()
+
+          login({ commit, state }, commitedData)
+
+          expect(firstLoginWindow.value).toBe('firstCreation')
+          forgetFirstLoginWindows()
+        })
+
+        it('lets go of the event link of the session before, and of its answered invitation', () => {
+          eventLinkUnderway(member.value)('Kongress Frequency Healing')
+          eventLinkUnderway(member.value)
+          endEventLinkInvitation(member.value)
+          expect(eventLinkSentence(member).value).toBe('Kongress Frequency Healing')
+          expect(eventLinkAnswerUnderway.value).toBe(true)
+          expect(eventLinkInvitationOver(member).value).toBe(true)
+
+          login({ commit, state }, commitedData)
+
+          expect(eventLinkSentence(member).value).toBeNull()
+          expect(eventLinkAnswerUnderway.value).toBe(false)
+          expect(eventLinkInvitationOver(member).value).toBe(false)
+        })
+
+        // Which windows would show, the windows say themselves, mounted with the layout.
+        it('leaves what the windows said', () => {
+          setFirstLoginWindowWanted('alias', true)
+
+          login({ commit, state }, commitedData)
+
+          expect(firstLoginWindow.value).toBe('alias')
+          forgetFirstLoginWindows()
+        })
+      })
+
       it('does not set the theme from server data (theme is device-local)', () => {
         login({ commit, state }, commitedData)
         expect(commit).not.toHaveBeenCalledWith('setDarkMode', expect.anything())
@@ -763,19 +821,21 @@ describe('Vuex store', () => {
         const member = ref('marens-gradido-id')
         eventLinkUnderway(member.value)('Kongress Frequency Healing')
         eventLinkUnderway(member.value)
-        setFirstLoginWindowWanted('home', true)
-        setFirstLoginWindowWanted('home', false)
+        endEventLinkInvitation(member.value)
+        holdFirstCreationForThisSession()
         setFirstLoginWindowWanted('firstCreation', true)
-        // The fixture proves itself: a sentence is held, an answer is underway, and the first
-        // creation waits.
+        // The fixture proves itself: a sentence is held, an answer is underway, the invitation
+        // is answered, and the first creation waits.
         expect(eventLinkSentence(member).value).toBe('Kongress Frequency Healing')
         expect(eventLinkAnswerUnderway.value).toBe(true)
+        expect(eventLinkInvitationOver(member).value).toBe(true)
         expect(firstLoginWindow.value).toBeNull()
 
         logout({ commit, state, dispatch })
 
         expect(eventLinkSentence(member).value).toBeNull()
         expect(eventLinkAnswerUnderway.value).toBe(false)
+        expect(eventLinkInvitationOver(member).value).toBe(false)
         setFirstLoginWindowWanted('firstCreation', true)
         expect(firstLoginWindow.value).toBe('firstCreation')
       })

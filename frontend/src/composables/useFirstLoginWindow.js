@@ -63,19 +63,23 @@ const wanted = reactive({
 /**
  * A window that cannot say yet whether it would show, because its answer is on its way: it
  * holds back the ones after it, and none of them gets the screen in the meantime. Without
- * this the first creation took the screen for the moment the invitation's question was out,
- * and was pushed off it again when the answer said "invite" -- a window that flashes in and
- * away. The ones before it are not held: they come first anyway.
+ * this a window further down took the screen for the moment of the round trip and was pushed
+ * off it again when the answer came -- a window that flashes in and away: the first creation
+ * before the invitation onto the map, and the invitation (or the first creation) before the
+ * question of the name, whose answer is often the slower one. The ones before it are not
+ * held: they come first anyway.
  */
-const undecided = reactive({ home: false })
+const undecided = reactive({ alias: false, home: false })
 
 /**
  * Once the invitation onto the map was due in this session, the first creation waits for the
  * next start -- a new sign-in, or the page loaded anew (KA-015: "erst beim nächsten Neustart").
- * Whatever the member answered the invitation: one ask at a time, and not two in the first
- * minutes. A ref in this module, so a reload ends it; the logout ends it as well (below).
+ * Whatever the member answered the invitation, and wherever they stood when it was due (on
+ * the home tab it does not open, it leads there): one ask at a time, and not two in the first
+ * minutes. A ref in this module, so a reload ends it; the logout and a new sign-in end it as
+ * well (store.js).
  */
-const homeCameThisSession = ref(false)
+const firstCreationHeld = ref(false)
 
 /**
  * The window that has the screen, or null.
@@ -84,7 +88,7 @@ const homeCameThisSession = ref(false)
 export const firstLoginWindow = computed(() => {
   for (const name of ORDER) {
     if (undecided[name]) return null
-    if (name === 'firstCreation' && homeCameThisSession.value) return null
+    if (name === 'firstCreation' && firstCreationHeld.value) return null
     if (wanted[name]) return name
   }
   return null
@@ -107,14 +111,32 @@ export const firstLoginWindowOnScreen = (name) => computed(() => firstLoginWindo
  */
 export const setFirstLoginWindowWanted = (name, value) => {
   wanted[name] = value
-  if (name === 'home' && value) homeCameThisSession.value = true
 }
 
 /**
- * Said by a window whose answer is on its way ("I cannot say yet"), and again when it is in.
- * Only the invitation onto the map has one.
+ * Said by the invitation onto the map the moment it is due -- a member who came by an event
+ * link and does not stand on the map -- whether it can open where the member stands or not:
+ * the first creation waits for the next start.
+ */
+export const holdFirstCreationForThisSession = () => {
+  firstCreationHeld.value = true
+}
+
+/**
+ * A new start, at a sign-in (store.js, `login`): the first creation no longer waits for the
+ * invitation of a session before. Only that -- which windows would show, the windows say
+ * themselves, mounted with the layout, and resetting it from outside would leave a mounted one
+ * believing what is no longer written here.
+ */
+export const endFirstCreationHold = () => {
+  firstCreationHeld.value = false
+}
+
+/**
+ * Said by a window whose answer is on its way ("I cannot say yet"), and again when it is in:
+ * the question of the name, and the invitation onto the map.
  *
- * @param {'home'} name
+ * @param {'alias'|'home'} name
  * @param {boolean} value
  */
 export const setFirstLoginWindowUndecided = (name, value) => {
@@ -125,12 +147,13 @@ export const setFirstLoginWindowUndecided = (name, value) => {
  * Forgotten on logout, like the hearts and the open portrait beside it in store.js. Logging
  * out does not reload the page, so this module outlives the session that filled it -- and
  * the next member on this browser must meet their own windows, not the last member's
- * unanswered ones.
+ * unanswered ones. (A sign-in ends only the hold, `endFirstCreationHold`.)
  */
 export const forgetFirstLoginWindows = () => {
   ORDER.forEach((name) => {
     wanted[name] = false
   })
+  undecided.alias = false
   undecided.home = false
-  homeCameThisSession.value = false
+  firstCreationHeld.value = false
 }

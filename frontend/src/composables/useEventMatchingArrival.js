@@ -26,6 +26,8 @@ const state = reactive({
   sentence: null,
   /** The answers still on their way, one token each: until they are in, nobody knows yet. */
   underway: new Set(),
+  /** Whose invitation onto the map is over in this session: answered, or no longer needed. */
+  over: null,
 })
 
 /**
@@ -58,11 +60,29 @@ export const eventLinkSentence = (member) =>
 export const eventLinkAnswerUnderway = computed(() => state.underway.size > 0)
 
 /**
- * Forgotten on logout, like the windows of the first logins beside it (store.js). Logging out does
- * not reload the page, and the next member on this browser did not open that link.
+ * The invitation onto the map is over for `member` until the next start: answered -- "Später",
+ * the cross, the way to the map -- or no longer needed, the member standing on the map. Kept here
+ * and not in the window, which is mounted anew with its layout: "Später" holds for the session,
+ * not for one mount, and so does a member who left the map again after coming onto it (KA-015).
+ *
+ * @param {string} member the gradidoID
+ */
+export const endEventLinkInvitation = (member) => {
+  state.over = member
+}
+
+/** Whether the invitation onto the map is over for `member` in this session. */
+export const eventLinkInvitationOver = (member) =>
+  computed(() => Boolean(member.value) && state.over === member.value)
+
+/**
+ * Forgotten on logout, like the windows of the first logins beside it, and on a sign-in, which is
+ * a new start (store.js). Neither reloads the page, and the next member on this browser did not
+ * open that link.
  */
 export const forgetEventLinkArrival = () => {
   state.member = null
   state.sentence = null
   state.underway.clear()
+  state.over = null
 }

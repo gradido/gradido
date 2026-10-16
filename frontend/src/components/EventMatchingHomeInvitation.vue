@@ -40,9 +40,15 @@ import { useApolloClient, useMutation } from '@vue/apollo-composable'
 import { BButton, BModal } from 'bootstrap-vue-next'
 import { eventMatchingArrival } from '@/graphql/queries'
 import { settleEventMatchingArrival } from '@/graphql/mutations'
-import { eventLinkAnswerUnderway, eventLinkSentence } from '@/composables/useEventMatchingArrival'
+import {
+  endEventLinkInvitation,
+  eventLinkAnswerUnderway,
+  eventLinkInvitationOver,
+  eventLinkSentence,
+} from '@/composables/useEventMatchingArrival'
 import {
   firstLoginWindowOnScreen,
+  holdFirstCreationForThisSession,
   setFirstLoginWindowUndecided,
   setFirstLoginWindowWanted,
 } from '@/composables/useFirstLoginWindow'
@@ -59,6 +65,34 @@ const { mutate: settleMutation } = useMutation(settleEventMatchingArrival)
 const member = computed(() => store.state.gradidoID || null)
 
 /**
+ * How long the account's answer is waited for -- the first creation waits with it (`undecided`
+ * below). An answer that comes later is let go: the invitation stays due at the account and comes
+ * at the next start, rather than pushing a window off the screen that has been on it for seconds.
+ */
+const ANSWER_WITHIN_MS = 8000
+const TOO_LATE = Symbol('too late')
+
+const askTheAccount = async () => {
+  // A failure after the limit stays unheard: the race below has settled, and it holds the only
+  // handler.
+  const asked = client.query({ query: eventMatchingArrival, fetchPolicy: 'network-only' })
+  let timer
+  const limit = new Promise((resolve) => {
+    timer = setTimeout(() => resolve(TOO_LATE), ANSWER_WITHIN_MS)
+  })
+  try {
+    const first = await Promise.race([asked, limit])
+    return first === TOO_LATE ? null : (first?.data?.eventMatchingArrival ?? null)
+  } catch {
+    // Where the server cannot say, there is nobody to invite: the first creation comes as
+    // ever, and the invitation, still due at the account, at the next start.
+    return null
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+/**
  * What the account says, after a sign-in: the sentence of the entry the confirmation of a
  * registration through the link made (`eventMatchingArrival`) -- the newcomer whose mail was
  * opened on another device than the link, or long after it, whom nothing on this device can
@@ -67,34 +101,27 @@ const member = computed(() => store.state.gradidoID || null)
  * Asked once for a member who signs in and does not stand on the map -- whoever stands on it
  * has nobody to be invited for, and every round trip costs --, and only on a wallet that has
  * a map: the matching routes, the link and the map exist only there. `network-only`: the query
- * takes no arguments, so a cached answer would be everybody's. And held to the member it was
- * asked for -- a sign-out empties the store while the answer may still be on its way.
+ * takes no arguments, so a cached answer would be everybody's. And held to the question asked
+ * last, for the member it was asked for -- a sign-out empties the store while the answer may
+ * still be on its way.
  *
  * (An invitation that is due at an account whose member came onto the map without ever being
  * asked -- not possible on the ordinary way, every way onto the map passes a sign-in that asks
  * -- stays at the account unasked, one row; it would be asked again if the member left the map.)
  */
 const fromServer = ref(undefined)
+let asking = 0
 watch(
   member,
   async (who) => {
+    const mine = ++asking
     fromServer.value = undefined
     if (!CONFIG.MATCHING_ACTIVE || !who || !invitedOntoTheMap(store.state)) {
       fromServer.value = null
       return
     }
-    let answer = null
-    try {
-      const { data } = await client.query({
-        query: eventMatchingArrival,
-        fetchPolicy: 'network-only',
-      })
-      answer = data?.eventMatchingArrival ?? null
-    } catch {
-      // Where the server cannot say, there is nobody to invite: the first creation comes as
-      // ever, and the invitation, still due at the account, at the next start.
-    }
-    if (member.value === who) fromServer.value = answer
+    const answer = await askTheAccount()
+    if (mine === asking && member.value === who) fromServer.value = answer
   },
   { immediate: true },
 )
@@ -110,7 +137,12 @@ const wholeSentence = computed(() =>
   sentence.value ? `${t('matching.type.interesse.prefix')} ${sentence.value}` : '',
 )
 
-const dismissed = ref(false)
+/**
+ * Over for this member until the next start: answered, or no longer needed (`finish` below).
+ * Kept with the session and not in this window (useEventMatchingArrival): the window is mounted
+ * anew with its layout.
+ */
+const over = eventLinkInvitationOver(member)
 
 // Where the window leads to already, it does not stand in the way: the home tab of the entries
 // page (/matching/:tab, read off the route's record and not its letters).
@@ -118,23 +150,22 @@ const onHomeTab = computed(
   () => route.matched.at(-1)?.path === '/matching/:tab' && route.params?.tab === 'position',
 )
 // Never over the settings, like the first creation: the windows before this one send members
-// there. Not a dismissal -- leaving the settings brings it back.
+// there. Not an answer -- leaving the settings brings it back.
 const onSettings = computed(() => route.path.startsWith('/settings'))
 
 /**
- * Whether there is somebody to invite -- not the same as being on screen (useFirstLoginWindow
- * decides that): a sentence from the link, and a member who does not stand on the map yet, by
- * the one rule the overview's tile asks as well (`invitedOntoTheMap`: a home AND "findable").
- * Whoever stands on it finds the others already.
+ * Whether there is somebody to invite: a sentence from the link, and a member who does not stand
+ * on the map yet, by the one rule the overview's tile asks as well (`invitedOntoTheMap`: a home
+ * AND "findable"). Whoever stands on it finds the others already.
+ *
+ * Due is not on screen -- useFirstLoginWindow decides that, and the route below -- and the first
+ * creation waits for the next start from the moment the invitation is due, wherever the member
+ * stands: on the home tab the window does not open, it leads there (KA-015).
  */
-const wants = computed(
-  () =>
-    !dismissed.value &&
-    Boolean(sentence.value) &&
-    invitedOntoTheMap(store.state) &&
-    !onSettings.value &&
-    !onHomeTab.value,
-)
+const due = computed(() => !over.value && Boolean(sentence.value) && invitedOntoTheMap(store.state))
+watch(due, (value) => value && holdFirstCreationForThisSession(), { immediate: true })
+
+const wants = computed(() => due.value && !onSettings.value && !onHomeTab.value)
 watch(wants, (value) => setFirstLoginWindowWanted('home', value), { immediate: true })
 onBeforeUnmount(() => setFirstLoginWindowWanted('home', false))
 
@@ -142,33 +173,23 @@ onBeforeUnmount(() => setFirstLoginWindowWanted('home', false))
  * Until both answers are in -- the account's, and that of the entries page for a link opened
  * just now -- nobody knows whether the invitation comes. The windows after it wait meanwhile;
  * the first creation would otherwise take the screen for the moment of the round trip and be
- * pushed off it again.
+ * pushed off it again. (The entries page's answer has no limit of its own: the member waits on
+ * that page for the entry the link makes.)
  */
 const undecided = computed(
   () =>
     Boolean(CONFIG.MATCHING_ACTIVE) &&
     Boolean(member.value) &&
+    !over.value &&
     (fromServer.value === undefined || eventLinkAnswerUnderway.value),
 )
 watch(undecided, (value) => setFirstLoginWindowUndecided('home', value), { immediate: true })
 onBeforeUnmount(() => setFirstLoginWindowUndecided('home', false))
 
-const onScreen = firstLoginWindowOnScreen('home')
-const visible = computed({
-  get: () => onScreen.value,
-  set: (open) => {
-    // Only the member closing it counts. The getter also goes false when a window before this
-    // one takes the screen, and BModal writes that back -- read as an answer, the invitation
-    // would be over without having been seen.
-    if (!open && onScreen.value) dismissed.value = true
-  },
-})
-
 /**
  * The account's invitation is over once it has had the screen -- it comes once (KA-015) --, or
- * once it is clear that there is nobody to invite: the member stands on the map by the time
- * the answer is in, or comes onto it in this session another way (the overview's tile, the
- * home tab). Where the entry it was for is gone, the server answers null and names nothing.
+ * once the invitation is over in this session (`finish`). Where the entry it was for is gone,
+ * the server answers null and names nothing.
  *
  * Said once for each member. Where saying it fails, the invitation comes again at the next
  * start, and with it the first creation waits once more: a cost of one start, not a loss.
@@ -183,19 +204,46 @@ const settle = async (who) => {
     // See above: it is due again at the next start.
   }
 }
+
+/**
+ * The invitation is over until the next start: answered -- "Später", the cross, the way to the
+ * map -- or no longer needed, because the member stands on the map by now. Leaving the map later
+ * in the session does not bring it back.
+ */
+const finish = () => {
+  if (!member.value) return
+  endEventLinkInvitation(member.value)
+  if (typeof fromServer.value === 'string') settle(member.value)
+}
+
+const onScreen = firstLoginWindowOnScreen('home')
+const visible = computed({
+  get: () => onScreen.value,
+  set: (open) => {
+    // Only the member closing it counts. The getter also goes false when a window before this
+    // one takes the screen, and BModal writes that back -- read as an answer, the invitation
+    // would be over without having been seen.
+    if (!open && onScreen.value) finish()
+  },
+})
+
 watch(onScreen, (shown) => {
   if (shown && typeof fromServer.value === 'string') settle(member.value)
 })
-watch([fromServer, () => invitedOntoTheMap(store.state)], ([answer, invited]) => {
-  if (typeof answer === 'string' && member.value && !invited) settle(member.value)
-})
+// On the map without the window -- the overview's tile, the home tab, or there already when the
+// link was opened: nobody to invite.
+watch(
+  () => Boolean(sentence.value) && !invitedOntoTheMap(store.state),
+  (onTheMap) => onTheMap && finish(),
+  { immediate: true },
+)
 
 function later() {
-  dismissed.value = true
+  finish()
 }
 
 function showMe() {
-  dismissed.value = true
+  finish()
   router.push(SHOW_ME_ON_THE_MAP)
 }
 </script>

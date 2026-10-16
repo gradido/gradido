@@ -10,6 +10,7 @@ import { eventLinkUnderway, forgetEventLinkArrival } from '@/composables/useEven
 import {
   firstLoginWindow,
   forgetFirstLoginWindows,
+  setFirstLoginWindowUndecided,
   setFirstLoginWindowWanted,
 } from '@/composables/useFirstLoginWindow'
 import { SHOW_ME_ON_THE_MAP } from '@/utils/showMeOnTheMap'
@@ -172,6 +173,21 @@ describe('EventMatchingHomeInvitation', () => {
       expect(windowOnScreen()).toBe(true)
     })
 
+    // The name's answer is often the slower one: until it is in, the invitation does not take
+    // the screen -- and is not ended at the account for a moment it was never seen in.
+    it('waits while the question of the name cannot say yet whether it comes', async () => {
+      setFirstLoginWindowUndecided('alias', true)
+      await mountWindow()
+      expect(windowOnScreen()).toBe(false)
+      expect(apollo.settle).not.toHaveBeenCalled()
+
+      setFirstLoginWindowUndecided('alias', false)
+      await flushPromises()
+
+      expect(windowOnScreen()).toBe(true)
+      expect(apollo.settle).toHaveBeenCalledTimes(1)
+    })
+
     it('ends the invitation at the account once it has had the screen -- not before', async () => {
       setFirstLoginWindowWanted('alias', true)
       await mountWindow()
@@ -202,6 +218,18 @@ describe('EventMatchingHomeInvitation', () => {
       await router.push('/matching/entries')
       await router.push('/overview')
       await flushPromises()
+
+      expect(windowOnScreen()).toBe(false)
+    })
+
+    // The window is mounted anew with its layout; "Später" holds until the next start all the
+    // same -- also where the account, its ending lost on the way, still names the sentence.
+    it('stays closed where the window is mounted anew', async () => {
+      await mountWindow()
+      await wrapper.find('[data-test="event-matching-home-later"]').trigger('click')
+      wrapper.unmount()
+
+      await mountWindow()
 
       expect(windowOnScreen()).toBe(false)
     })
@@ -241,6 +269,21 @@ describe('EventMatchingHomeInvitation', () => {
       await mountWindow({ at: '/matching/position' })
 
       expect(windowOnScreen()).toBe(false)
+    })
+
+    // Due is due, wherever the member stands: the first creation waits for the next start also
+    // where the invitation never opened because the member was on its way already.
+    it('keeps the first creation off the screen on the home tab as well', async () => {
+      setFirstLoginWindowWanted('firstCreation', true)
+      await mountWindow({ at: '/matching/position' })
+
+      expect(firstLoginWindow.value).toBeNull()
+
+      store.commit('userLocation', HOME)
+      store.commit('gmsAllowed', true)
+      await flushPromises()
+
+      expect(firstLoginWindow.value).toBeNull()
     })
 
     it('opens on the other tabs of the entries page', async () => {
@@ -292,6 +335,22 @@ describe('EventMatchingHomeInvitation', () => {
       expect(windowOnScreen()).toBe(false)
     })
 
+    // Leaving the map again later in the session is a choice, not a reason to be asked again.
+    it('is not invited where they leave the map again in the session', async () => {
+      accountSays(SENTENCE)
+      setFirstLoginWindowWanted('alias', true)
+      await mountWindow()
+      store.commit('userLocation', HOME)
+      store.commit('gmsAllowed', true)
+      await flushPromises()
+
+      store.commit('gmsAllowed', false)
+      setFirstLoginWindowWanted('alias', false)
+      await flushPromises()
+
+      expect(windowOnScreen()).toBe(false)
+    })
+
     it('lets the first creation come', async () => {
       accountSays(SENTENCE)
       setFirstLoginWindowWanted('firstCreation', true)
@@ -321,6 +380,30 @@ describe('EventMatchingHomeInvitation', () => {
       expect(text()).toContain('„Ich liebe Kongress Frequency Healing“')
       // Nothing is due at the account for it: nothing to end there.
       expect(apollo.settle).not.toHaveBeenCalled()
+    })
+
+    it('is not invited where they stand on the map, nor after they leave it', async () => {
+      await mountWindow({ state: { gmsAllowed: true, userLocation: HOME } })
+      eventLinkUnderway('marens-gradido-id')(SENTENCE)
+      await flushPromises()
+      expect(windowOnScreen()).toBe(false)
+
+      store.commit('gmsAllowed', false)
+      await flushPromises()
+
+      expect(windowOnScreen()).toBe(false)
+    })
+
+    it('stays closed after "later" where the window is mounted anew', async () => {
+      await mountWindow({ at: '/matching/entries' })
+      eventLinkUnderway('marens-gradido-id')(SENTENCE)
+      await flushPromises()
+      await wrapper.find('[data-test="event-matching-home-later"]').trigger('click')
+      wrapper.unmount()
+
+      await mountWindow({ at: '/matching/entries' })
+
+      expect(windowOnScreen()).toBe(false)
     })
 
     it('keeps the windows after it waiting while that answer is on its way', async () => {
@@ -363,6 +446,68 @@ describe('EventMatchingHomeInvitation', () => {
       expect(windowOnScreen()).toBe(true)
     })
 
+    /**
+     * The first creation waits with the account's answer, so that answer has a limit: 8 s. One
+     * that comes later is let go -- the invitation stays due at the account, for the next start
+     * -- rather than pushing a window off the screen that has been on it for seconds.
+     */
+    describe('for at most 8 seconds', () => {
+      beforeEach(() => {
+        // Only the clock of the limit: flushPromises and the router keep their own.
+        vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+      })
+      afterEach(() => {
+        vi.useRealTimers()
+      })
+
+      it('lets the first creation come once they are over, and lets a later answer go', async () => {
+        const release = accountHoldsItsAnswer()
+        setFirstLoginWindowWanted('firstCreation', true)
+        await mountWindow()
+
+        await vi.advanceTimersByTimeAsync(7999)
+        expect(firstLoginWindow.value).toBeNull()
+        await vi.advanceTimersByTimeAsync(1)
+        expect(firstLoginWindow.value).toBe('firstCreation')
+
+        release(SENTENCE)
+        await flushPromises()
+
+        expect(firstLoginWindow.value).toBe('firstCreation')
+        expect(windowOnScreen()).toBe(false)
+        expect(apollo.settle).not.toHaveBeenCalled()
+      })
+
+      it('takes an answer that comes within them, and leaves no clock running', async () => {
+        const release = accountHoldsItsAnswer()
+        setFirstLoginWindowWanted('firstCreation', true)
+        await mountWindow()
+
+        await vi.advanceTimersByTimeAsync(7900)
+        release(SENTENCE)
+        await flushPromises()
+
+        expect(firstLoginWindow.value).toBe('home')
+        expect(vi.getTimerCount()).toBe(0)
+      })
+
+      it('lets a failure that comes after them go unheard', async () => {
+        let fail
+        apollo.query.mockReturnValue(
+          new Promise((_resolve, reject) => {
+            fail = reject
+          }),
+        )
+        await mountWindow()
+        await vi.advanceTimersByTimeAsync(8000)
+
+        fail(new Error('Network error'))
+        await flushPromises()
+
+        expect(windowOnScreen()).toBe(false)
+      })
+    })
+
     // ⛔ A sign-out empties the store while the answer is on its way: it is nobody's.
     it('drops an answer that comes after the member signed out', async () => {
       const release = accountHoldsItsAnswer()
@@ -372,6 +517,25 @@ describe('EventMatchingHomeInvitation', () => {
       release(SENTENCE)
       await flushPromises()
 
+      expect(windowOnScreen()).toBe(false)
+    })
+
+    // The same member out and in again: only the question asked last is answered.
+    it('drops the answer to a question asked before the one asked last', async () => {
+      const first = accountHoldsItsAnswer()
+      await mountWindow()
+      store.commit('gradidoID', null)
+      await flushPromises()
+      const second = accountHoldsItsAnswer()
+      store.commit('gradidoID', 'marens-gradido-id')
+      await flushPromises()
+
+      first(SENTENCE)
+      await flushPromises()
+      expect(windowOnScreen()).toBe(false)
+
+      second(null)
+      await flushPromises()
       expect(windowOnScreen()).toBe(false)
     })
 

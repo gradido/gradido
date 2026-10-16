@@ -35,6 +35,7 @@ vi.mock('bootstrap-vue-next', () => ({
 }))
 
 const statusMock = ref({ aliasStatus: { aliasSettled: false } })
+const statusError = ref(null)
 const refetchMock = vi.fn()
 const adoptMock = vi.fn()
 const updateMock = vi.fn()
@@ -62,7 +63,7 @@ vi.mock('@vue/apollo-composable', () => ({
    */
   useQuery: vi.fn((query, variables, options) => {
     if (query === 'ALIAS_STATUS') {
-      return { result: statusMock, loading: ref(false), error: ref(null), refetch: refetchMock }
+      return { result: statusMock, loading: ref(false), error: statusError, refetch: refetchMock }
     }
 
     const result = ref(undefined)
@@ -135,8 +136,12 @@ const i18n = createI18n({
   },
 })
 
-const mountComponent = (username = 'BerndH') =>
-  mount(AliasFirstChoice, {
+// Every window a test mounts, unmounted after it. The answer of `aliasStatus` is one ref for
+// all of them, and a window left standing from an earlier test would go on saying, in the one
+// module they share, what that answer means to it (useFirstLoginWindow).
+const mounted = []
+const mountComponent = (username = 'BerndH') => {
+  const wrapper = mount(AliasFirstChoice, {
     global: {
       plugins: [
         createStore({
@@ -147,6 +152,9 @@ const mountComponent = (username = 'BerndH') =>
       ],
     },
   })
+  mounted.push(wrapper)
+  return wrapper
+}
 
 describe('AliasFirstChoice', () => {
   let wrapper
@@ -173,6 +181,7 @@ describe('AliasFirstChoice', () => {
     vi.useFakeTimers()
     vi.clearAllMocks()
     statusMock.value = { aliasStatus: { aliasSettled: false } }
+    statusError.value = null
     takenNames.value = []
     failingNames.value = []
     holdAnswer.value = false
@@ -181,6 +190,10 @@ describe('AliasFirstChoice', () => {
   })
 
   afterEach(() => {
+    mounted
+      .splice(0)
+      .filter((window) => !window.vm.$.isUnmounted)
+      .forEach((window) => window.unmount())
     vi.useRealTimers()
   })
 
@@ -237,6 +250,71 @@ describe('AliasFirstChoice', () => {
       expect(firstLoginWindow.value).toBe('alias')
       wrapper.unmount()
       expect(firstLoginWindow.value).toBeNull()
+    })
+
+    /**
+     * Until `aliasStatus` has answered, nobody knows whether this question comes -- and the
+     * windows after it wait. Without it the invitation onto the map took the screen for the
+     * round trip, was ended at the account for having had it, and was pushed off again (KA-015).
+     */
+    describe('while its answer is on its way', () => {
+      const answerOnItsWay = () => {
+        wrapper.unmount()
+        statusMock.value = undefined
+        wrapper = mountComponent()
+        setFirstLoginWindowWanted('home', true)
+      }
+
+      it('gives the screen to none of the windows after it', () => {
+        answerOnItsWay()
+
+        expect(firstLoginWindow.value).toBeNull()
+      })
+
+      it('lets them come once the answer says there is nothing to ask', async () => {
+        answerOnItsWay()
+
+        statusMock.value = { aliasStatus: { aliasSettled: true } }
+        await nextTick()
+
+        expect(firstLoginWindow.value).toBe('home')
+      })
+
+      it('comes first where the answer says there is', async () => {
+        answerOnItsWay()
+
+        statusMock.value = { aliasStatus: { aliasSettled: false } }
+        await nextTick()
+
+        expect(firstLoginWindow.value).toBe('alias')
+      })
+
+      // A question that cannot be asked holds nobody back: the name question comes next time.
+      it('lets them come where the answer failed', async () => {
+        answerOnItsWay()
+
+        statusError.value = new Error('Network error')
+        await nextTick()
+
+        expect(firstLoginWindow.value).toBe('home')
+      })
+
+      it('holds nobody back for a member without a name to ask about', () => {
+        wrapper.unmount()
+        statusMock.value = undefined
+        wrapper = mountComponent('')
+        setFirstLoginWindowWanted('home', true)
+
+        expect(firstLoginWindow.value).toBe('home')
+      })
+
+      it('lets go when it is unmounted', () => {
+        answerOnItsWay()
+
+        wrapper.unmount()
+
+        expect(firstLoginWindow.value).toBe('home')
+      })
     })
   })
 

@@ -16,7 +16,7 @@ import { forgetContactsPanel } from '../composables/useContactsPanel'
 import { stopChatUpdates } from '../composables/useChatUpdates'
 import { forgetParkedAmount } from '../composables/useParkedAmount'
 import { forgetEventLinkArrival } from '../composables/useEventMatchingArrival'
-import { forgetFirstLoginWindows } from '../composables/useFirstLoginWindow'
+import { endFirstCreationHold, forgetFirstLoginWindows } from '../composables/useFirstLoginWindow'
 import { forgetLegacyMapPrefs } from '../utils/matchingPrefs'
 import { forgetChatDrafts, letOldChatDraftsGo } from '../utils/chatDraft'
 import { forgetChatReturn } from '../utils/chatReturn'
@@ -217,6 +217,12 @@ export const actions = {
     // sign-out: a wallet closed with its tab runs no sign-out, and whoever uses this browser next
     // comes through here.
     letOldChatDraftsGo()
+    // A sign-in is a new start (KA-015: the first creation comes "beim nächsten Neustart"): the
+    // first creation no longer waits for an invitation onto the map of the session before, and
+    // an event link opened in that session is not this one's. Neither the sign-in nor the
+    // handover from the admin area reloads the page, and `/login` opens over a running session.
+    endFirstCreationHold()
+    forgetEventLinkArrival()
   },
   /**
    * @param how `{ byOwnWord: true, member }` where the member said "Abmelden" themselves -- an

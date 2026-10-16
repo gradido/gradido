@@ -2,7 +2,9 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { ref } from 'vue'
 import {
+  endEventLinkInvitation,
   eventLinkAnswerUnderway,
+  eventLinkInvitationOver,
   eventLinkSentence,
   eventLinkUnderway,
   forgetEventLinkArrival,
@@ -71,14 +73,42 @@ describe('useEventMatchingArrival', () => {
     expect(eventLinkAnswerUnderway.value).toBe(true)
   })
 
-  it('forgets the sentence and every answer underway on logout', () => {
+  /**
+   * Over until the next start -- answered, or no longer needed -- and kept here rather than in
+   * the window, which is mounted anew with its layout.
+   */
+  describe('the end of the invitation', () => {
+    it('is not there before it is said', () => {
+      expect(eventLinkInvitationOver(maren).value).toBe(false)
+    })
+
+    it('holds for the member it was said for, and nobody else', () => {
+      endEventLinkInvitation('marens-gradido-id')
+
+      expect(eventLinkInvitationOver(maren).value).toBe(true)
+      expect(eventLinkInvitationOver(ref('somebody-else')).value).toBe(false)
+      expect(eventLinkInvitationOver(ref(null)).value).toBe(false)
+    })
+
+    it('leaves the sentence where it is, for the window that is closing', () => {
+      eventLinkUnderway('marens-gradido-id')('Kongress Frequency Healing')
+
+      endEventLinkInvitation('marens-gradido-id')
+
+      expect(eventLinkSentence(maren).value).toBe('Kongress Frequency Healing')
+    })
+  })
+
+  it('forgets the sentence, every answer underway and the end of the invitation', () => {
     eventLinkUnderway('marens-gradido-id')('Kongress Frequency Healing')
     eventLinkUnderway('marens-gradido-id')
+    endEventLinkInvitation('marens-gradido-id')
 
     forgetEventLinkArrival()
 
     expect(eventLinkSentence(maren).value).toBeNull()
     expect(eventLinkAnswerUnderway.value).toBe(false)
+    expect(eventLinkInvitationOver(maren).value).toBe(false)
   })
 
   // ⛔ The answer of a request sent before a sign-out arrives after it: it is nobody's.
