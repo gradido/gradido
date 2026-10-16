@@ -1,43 +1,48 @@
 <!-- AI-GENERATED — not an architecture reference -->
 <template>
-  <!-- Finding them on the map: the pin of a member who stands there. The row says so, the pin
-       waits for no answer. -->
-  <button
-    v-if="onMap"
-    type="button"
-    class="member-wallet-link"
-    :data-test="FACES.map.test"
-    :title="pinLabel"
-    :aria-label="pinLabel"
-    @click="openInWallet(mapPage(), t('goTo.memberMapBlocked'))"
-  >
-    <IBiGeoAltFill aria-hidden="true" />
-  </button>
-  <!-- Writing to them: one button for the bubble and the arrow, behind the pin where there is
-       one. Where the arrow becomes the bubble -- the moderator comes back from the wallet's
-       window, where a first booking made a contact of the member --, it stays the same element:
-       a keyboard that stood on it stands on it still. -->
-  <button
-    v-if="face"
-    type="button"
-    class="member-wallet-link"
-    :data-test="face.test"
-    :title="label"
-    :aria-label="label"
-    @click="openInWallet(face.page(), t('goTo.memberMapBlocked'))"
-  >
-    <IMdiChatOutline v-if="face === FACES.chat" aria-hidden="true" />
-    <IBiSend v-else aria-hidden="true" />
-  </button>
-  <!-- The room of the bubble or the arrow, kept free while the server is asked which of the
-       two it is -- three seconds at the most: what comes a moment later moves nothing in the
-       row. -->
-  <span
-    v-else-if="reach === 'wait'"
-    class="member-wallet-link"
-    data-test="member-wallet-link-wait"
-    aria-hidden="true"
-  />
+  <!-- One line for the two: a cell too narrow for the name and both buttons breaks ahead of the
+       pin, never between the pin and what stands behind it (measured in the member search with
+       a name of 20 characters: the arrow stood alone on a line of its own). -->
+  <span class="member-wallet-links">
+    <!-- Finding them on the map: the pin of a member who stands there. The row says so, the
+         pin waits for no answer. -->
+    <button
+      v-if="onMap"
+      type="button"
+      class="member-wallet-link"
+      :data-test="FACES.map.test"
+      :title="pinLabel"
+      :aria-label="pinLabel"
+      @click="openInWallet(mapPage(), t('goTo.memberMapBlocked'))"
+    >
+      <IBiGeoAltFill aria-hidden="true" />
+    </button>
+    <!-- Writing to them: one button for the bubble and the arrow, behind the pin where there is
+         one. Where the arrow becomes the bubble -- the moderator comes back from the wallet's
+         window, where a first booking made a contact of the member --, it stays the same
+         element: a keyboard that stood on it stands on it still. -->
+    <button
+      v-if="face"
+      type="button"
+      class="member-wallet-link"
+      :data-test="face.test"
+      :title="label"
+      :aria-label="label"
+      @click="openInWallet(face.page(), t('goTo.memberMapBlocked'))"
+    >
+      <IMdiChatOutline v-if="face === FACES.chat" aria-hidden="true" />
+      <IBiSend v-else aria-hidden="true" />
+    </button>
+    <!-- The room of the bubble or the arrow, kept free while the server is asked which of the
+         two it is -- three seconds at the most: what comes a moment later moves nothing in the
+         row. -->
+    <span
+      v-else-if="reach === 'wait'"
+      class="member-wallet-link"
+      data-test="member-wallet-link-wait"
+      aria-hidden="true"
+    />
+  </span>
 </template>
 
 <script setup>
@@ -296,6 +301,11 @@ const openInWallet = (page, blockedText) => {
 </script>
 
 <style scoped>
+/* Without it a line may break between two buttons standing side by side. */
+.member-wallet-links {
+  white-space: nowrap;
+}
+
 /* The pin, the bubble, the arrow: a square of 24 px to press, standing in a line of text.
    The line counts it as 20 px high (the negative margins above and below): with all of its
    24 px a line grew by 1.8 px, and a row with a pin was taller than one without. Its right edge gives 2 px back as well,

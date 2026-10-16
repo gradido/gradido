@@ -1119,6 +1119,14 @@ describe('MemberWalletLink', () => {
       expect(buttons[1].attributes('data-test')).toBe('member-send-arrow')
     })
 
+    // The two keep to one line (white-space in the style): measured in the built member search,
+    // a long name broke the line between them.
+    it('holds the pin and the button behind it in one element', () => {
+      const [pin, arrow] = createWrapper().findAll('button')
+      expect(pin.element.parentElement).toBe(arrow.element.parentElement)
+      expect(pin.element.parentElement.classList.contains('member-wallet-links')).toBe(true)
+    })
+
     it('gets the pin alone on the moderator’s own row', () => {
       const wrapper = createWrapper({
         member: { ...BIBI, userId: 3 },
