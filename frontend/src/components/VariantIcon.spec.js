@@ -3,32 +3,32 @@ import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import VariantIcon from './VariantIcon.vue'
 
+// The icons come from unplugin-icons, which the test setup does not load: each one used here
+// is stubbed under the name the template asks for, so a misspelt name finds no stub.
 const draw = (icon) =>
   mount(VariantIcon, {
     props: { icon },
-    global: { stubs: { IBiLink45deg: { template: '<svg data-test="icon-link" />' } } },
+    global: {
+      stubs: {
+        IBiBalloonHeart: { template: '<svg data-test="icon-balloon-heart" />' },
+        IBiLink45deg: { template: '<svg data-test="icon-link" />' },
+      },
+    },
   })
 
 describe('VariantIcon', () => {
-  // The one icon drawn here rather than taken from a set: the bunch of flowers of a greeting.
-  it('draws the bunch of flowers: three blossoms and their stems', () => {
-    const bouquet = draw('bouquet').find('[data-test="icon-bouquet"]')
+  // The icon of a thank-you greeting, from the set the wallet takes its other icons from.
+  it('shows the heart-shaped balloon for a thank-you greeting', () => {
+    const balloon = draw('balloon-heart').find('[data-test="icon-balloon-heart"]')
 
-    expect(bouquet.findAll('circle')).toHaveLength(3)
-    expect(bouquet.find('path').exists()).toBe(true)
-    // Held out, not standing: the whole drawing is turned, blossoms and stems together.
-    const turned = bouquet.find('g')
-    expect(turned.attributes('transform')).toBe('rotate(22 8 8.5)')
-    expect(turned.findAll('circle')).toHaveLength(3)
-    expect(turned.find('path').exists()).toBe(true)
-    expect(bouquet.attributes('aria-hidden')).toBe('true')
-    expect(bouquet.classes()).toContain('icon-variant')
+    expect(balloon.exists()).toBe(true)
+    expect(balloon.classes()).toContain('icon-variant')
   })
 
-  it('draws it for no other icon', () => {
+  it('shows it for no other icon', () => {
     const wrapper = draw('link45deg')
 
-    expect(wrapper.find('[data-test="icon-bouquet"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="icon-balloon-heart"]').exists()).toBe(false)
     expect(wrapper.find('[data-test="icon-link"]').exists()).toBe(true)
   })
 })
