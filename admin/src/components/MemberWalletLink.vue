@@ -1,30 +1,48 @@
 <!-- AI-GENERATED — not an architecture reference -->
 <template>
-  <!-- One button for the three faces. Where the arrow becomes the bubble -- the moderator comes
-       back from the wallet's window, where a first booking made a contact of the member --, it
-       stays the same element: a keyboard that stood on it stands on it still. -->
-  <button
-    v-if="face"
-    type="button"
-    class="member-wallet-link"
-    :data-test="face.test"
-    :title="label"
-    :aria-label="label"
-    @click="openInWallet(face.page(), t('goTo.memberMapBlocked'))"
-  >
-    <IBiGeoAltFill v-if="face === FACES.map" aria-hidden="true" />
-    <IMdiChatOutline v-else-if="face === FACES.chat" aria-hidden="true" />
-    <IBiSend v-else aria-hidden="true" />
-  </button>
-  <!-- The room of the bubble or the arrow, kept free while the server is asked which of the
-       two it is -- three seconds at the most: what comes a moment later moves nothing in the
-       row. -->
-  <span
-    v-else-if="reach === 'wait'"
-    class="member-wallet-link"
-    data-test="member-wallet-link-wait"
-    aria-hidden="true"
-  />
+  <!-- One line for the two: a cell too narrow for the name and both buttons breaks ahead of the
+       pin, never between the pin and what stands behind it (measured in the member search with
+       a name of 20 characters: the arrow stood alone on a line of its own). -->
+  <span class="member-wallet-links">
+    <!-- Finding them on the map: the pin of a member who stands there. The row says so, the
+         pin waits for no answer. -->
+    <button
+      v-if="onMap"
+      type="button"
+      class="member-wallet-link"
+      :data-test="FACES.map.test"
+      :title="pinLabel"
+      :aria-label="pinLabel"
+      @click="openInWallet(mapPage(), t('goTo.memberMapBlocked'))"
+    >
+      <IBiGeoAltFill aria-hidden="true" />
+    </button>
+    <!-- Writing to them: one button for the bubble and the arrow, behind the pin where there is
+         one. Where the arrow becomes the bubble -- the moderator comes back from the wallet's
+         window, where a first booking made a contact of the member --, it stays the same
+         element: a keyboard that stood on it stands on it still. -->
+    <button
+      v-if="face"
+      type="button"
+      class="member-wallet-link"
+      :data-test="face.test"
+      :title="label"
+      :aria-label="label"
+      @click="openInWallet(face.page(), t('goTo.memberMapBlocked'))"
+    >
+      <IMdiChatOutline v-if="face === FACES.chat" aria-hidden="true" />
+      <IBiSend v-else aria-hidden="true" />
+    </button>
+    <!-- The room of the bubble or the arrow, kept free while the server is asked which of the
+         two it is -- three seconds at the most: what comes a moment later moves nothing in the
+         row. -->
+    <span
+      v-else-if="reach === 'wait'"
+      class="member-wallet-link"
+      data-test="member-wallet-link-wait"
+      aria-hidden="true"
+    />
+  </span>
 </template>
 
 <script setup>
@@ -46,24 +64,27 @@ import { MAP_WINDOW_NAME, dropMapWindowName } from '@/utils/mapWindow'
  * What stands behind a member's name, for the moderator who wants to reach them: one press
  * opens the wallet on this member, in a browser window of its own next to the admin interface.
  *
+ * Two things, each a button of its own (Bernd, 16.10.2026: "Jemanden auf der Karte zu finden,
+ * sofern er sich auf der Karte eingetragen hat" -- "Jemanden zu kontaktieren bzw.
+ * anzuschreiben"):
+ *
  * A pin (Bernd, 12.10.2026) for a member who stands on the wallet's map -- they allow being
  * found and have a place pinned; the server says so (`findableOnMap`) and says nothing about
  * where. It shows them on that map. The server answers from its own rows and does not ask
  * the map: where the map holds nobody for a member with a pin, the window says that they are
  * not on it.
  *
- * The arrow of the wallet's "Senden" (Bernd, 13.10.2026) for every other member: it opens the
- * wallet's send form with them entered as the recipient. So every member can be reached, over
- * the map or over that form -- but for two, who get neither: a deleted member, to whom nothing
- * can be sent, and the moderator, who cannot send to themselves.
- *
- * And in the arrow's place the bubble of the wallet's chat, where the moderator is in contact
- * with the member already (Bernd, 13.10.2026): it leads straight into the conversation with
- * them. Whom the moderator is in contact with is asked once for all the names on the screen
- * (composables/useModeratorContacts), and anew when the moderator comes back to this window;
- * the wallet opens a conversation from an address for a contact only, and both go by the same
- * list of the server. A contact who stands on the map keeps the pin: the map names them as a
- * contact and offers the conversation there.
+ * And behind it -- in its place where there is none -- the way to write to them: the bubble of
+ * the wallet's chat where the moderator is in contact with the member already (Bernd,
+ * 13.10.2026), which leads straight into the conversation with them; the arrow of the wallet's
+ * "Senden" for everybody else (Bernd, 13.10.2026), which opens the wallet's send form with
+ * them entered as the recipient. Until 16.10.2026 a member on the map had the pin alone, and the
+ * conversation with a contact there took the way over the map. So every member can be written
+ * to -- but for two, who get neither: a deleted member, to whom nothing can be sent, and the
+ * moderator, who cannot write to themselves. Whom the moderator is in contact with is asked once
+ * for all the names on the screen (composables/useModeratorContacts), and anew when the
+ * moderator comes back to this window; the wallet opens a conversation from an address for a
+ * contact only, and both go by the same list of the server.
  *
  * The window is the wallet itself. It is handed this moderator's sign-in the way "Mein Konto"
  * hands it over (NavBar.vue, handleWallet), with the page to go on to: the map on the member
@@ -134,27 +155,31 @@ const renewSignIn = () => {
 
 const onMap = computed(() => props.member?.findableOnMap === true)
 
-// ⛔ `false`, said by the server -- not "anything but true". A document that does not ask for
-// the field delivers `undefined`, and an arrow behind every name would then say of members who
-// stand on the map that they do not.
-const canBeSentTo = computed(() => {
+/**
+ * Whether the member can be written to: the row names them by their pair, the account was not
+ * deleted, and they are not the moderator.
+ *
+ * Whether they stand on the map has no part in it. Until 16.10.2026 it had: the arrow stood for
+ * members who are not on the map, and only the server's `false` could say that.
+ */
+const canBeWrittenTo = computed(() => {
   const { member } = props
-  if (member?.findableOnMap !== false || member.deletedAt) return false
+  if (!member || member.deletedAt) return false
   if (!member.gradidoID || !member.communityUuid) return false
   const mine = store?.state.moderator?.id
   return mine === undefined || mine === null || (member.userId ?? member.id) !== mine
 })
 
 /**
- * How a member who is not on the map is reached: 'chat' where the moderator is in contact with
- * them, 'send' where not -- and 'wait' while the server is asked which it is. null: not at all.
+ * How the member is written to: 'chat' where the moderator is in contact with them, 'send'
+ * where not -- and 'wait' while the server is asked which it is. null: not at all.
  *
  * ⛔ The arrow where nothing can be known -- the question failed, took too long, or cannot be
  * asked. The send form takes every member; the conversation opens for a contact only. Where
  * the answer comes after all, the arrow of a contact becomes the bubble.
  */
 const reach = computed(() => {
-  if (!canBeSentTo.value) return null
+  if (!canBeWrittenTo.value) return null
   const contact = moderatorContact(store?.state.moderator?.id, props.member)
   if (contact === 'yes') return 'chat'
   return contact === 'asking' ? 'wait' : 'send'
@@ -164,9 +189,9 @@ const reach = computed(() => {
 // that), and again by the names of a page that is opened later. Asked as the name is set up,
 // ahead of its first drawing: it then draws the room at once, and not the arrow first that
 // the answer turns into the bubble a moment later. And where the row comes to show somebody
-// else, or somebody who can be sent to now.
+// else, or somebody who can be written to now.
 const askWhomTheModeratorKnows = (freshFor) => {
-  if (!canBeSentTo.value) return
+  if (!canBeWrittenTo.value) return
   let client = null
   try {
     client = apollo?.resolveClient?.() ?? null
@@ -176,7 +201,7 @@ const askWhomTheModeratorKnows = (freshFor) => {
   askModeratorContacts(client, store?.state.moderator?.id, freshFor)
 }
 askWhomTheModeratorKnows()
-watch([canBeSentTo, () => props.member?.gradidoID, () => props.member?.communityUuid], () =>
+watch([canBeWrittenTo, () => props.member?.gradidoID, () => props.member?.communityUuid], () =>
   askWhomTheModeratorKnows(),
 )
 
@@ -249,8 +274,9 @@ const FACES = {
     page: sendPage,
   },
 }
-// The pin first: a contact who stands on the map keeps it (Bernd, 13.10.2026).
-const face = computed(() => (onMap.value ? FACES.map : (FACES[reach.value] ?? null)))
+const pinLabel = computed(() => FACES.map.label())
+// The way to write to them: the bubble or the arrow. None while the server is asked (the room).
+const face = computed(() => FACES[reach.value] ?? null)
 const label = computed(() => face.value?.label() ?? '')
 
 const openInWallet = (page, blockedText) => {
@@ -275,7 +301,12 @@ const openInWallet = (page, blockedText) => {
 </script>
 
 <style scoped>
-/* The pin, the bubble or the arrow: a square of 24 px to press, standing in a line of text.
+/* Without it a line may break between two buttons standing side by side. */
+.member-wallet-links {
+  white-space: nowrap;
+}
+
+/* The pin, the bubble, the arrow: a square of 24 px to press, standing in a line of text.
    The line counts it as 20 px high (the negative margins above and below): with all of its
    24 px a line grew by 1.8 px, and a row with a pin was taller than one without. Its right edge gives 2 px back as well,
    because every pixel a cell of the member search gains is taken from the columns beside
@@ -295,6 +326,13 @@ const openInWallet = (page, blockedText) => {
   color: var(--bs-link-color);
   line-height: 1;
   vertical-align: middle;
+}
+
+/* The bubble or the arrow behind the pin, or their room: the 2 px the pin gives back are taken
+   again, so that the two squares stand edge to edge and the rings of the keyboard do not
+   overlap. */
+.member-wallet-link + .member-wallet-link {
+  margin-left: 0.125rem;
 }
 
 .member-wallet-link:hover {

@@ -214,9 +214,9 @@ describe('SearchUserTable', () => {
   })
 
   // Behind the username of a member who stands on the wallet's map: one press shows them
-  // there, in a window of its own. Behind every other: the arrow into the wallet's send form
-  // (MemberWalletLink). The rows as the search delivers them, with the pair that names the
-  // member and the server's yes or no.
+  // there, in a window of its own. Behind it -- in its place where there is none -- the arrow
+  // into the wallet's send form (MemberWalletLink). The rows as the search delivers them, with
+  // the pair that names the member and the server's yes or no.
   describe('the pin or the arrow behind the username', () => {
     const COMMUNITY = '9f8e7d6c-5b4a-4c3d-9e2f-1a0b9c8d7e6f'
     const [bibi, benjamin, peter, newUser] = propsData.items
@@ -280,13 +280,14 @@ describe('SearchUserTable', () => {
       expect(pinIn(3).exists()).toBe(false)
     })
 
-    // Every member can be reached: over the map, or over the send form.
-    it('leaves the other rows the arrow into the send form, and no row both', () => {
-      expect(wrapper.findAll('[data-test="member-send-arrow"]')).toHaveLength(2)
-      expect(arrowIn(0).exists()).toBe(false)
-      expect(arrowIn(1).exists()).toBe(true)
-      expect(arrowIn(2).exists()).toBe(false)
-      expect(arrowIn(3).exists()).toBe(true)
+    // Every member can be written to, on the map or not (Bernd, 16.10.2026: finding them and
+    // writing to them are two buttons).
+    it('gives every row the arrow into the send form, behind the pin where there is one', () => {
+      expect(wrapper.findAll('[data-test="member-send-arrow"]')).toHaveLength(4)
+      rows.forEach((_row, index) => expect(arrowIn(index).exists()).toBe(true))
+      const [pin, arrow] = usernameCell(0).findAll('button')
+      expect(pin.attributes('data-test')).toBe('member-map-pin')
+      expect(arrow.attributes('data-test')).toBe('member-send-arrow')
     })
 
     // The cell itself as before: the username, and nothing where the member has none -- no
@@ -299,7 +300,8 @@ describe('SearchUserTable', () => {
     })
 
     // ⭐ Bernd, 13.10.2026: where the member is a contact of the moderator already, the bubble
-    // of the chat stands in the arrow's place and leads into the conversation with them.
+    // of the chat stands in the arrow's place and leads into the conversation with them -- on
+    // the map or not (Bernd, 16.10.2026).
     describe('with a member the moderator is in contact with', () => {
       beforeEach(async () => {
         forgetModeratorContacts()
@@ -312,29 +314,57 @@ describe('SearchUserTable', () => {
         await flushPromises()
       })
 
-      it('sets the bubble in the place of the arrow, in their row alone', () => {
-        expect(wrapper.findAll('[data-test="member-chat-bubble"]')).toHaveLength(1)
+      it('sets the bubble in the place of the arrow, in the row of the contact', () => {
         expect(bubbleIn(1).exists()).toBe(true)
         expect(arrowIn(1).exists()).toBe(false)
+        expect(usernameCell(1).findAll('button')).toHaveLength(1)
+      })
+
+      it('sets the bubble in the place of the arrow behind the pin of a contact on the map', () => {
+        const [pin, bubble, ...more] = usernameCell(2).findAll('button')
+        expect(pin.attributes('data-test')).toBe('member-map-pin')
+        expect(bubble.attributes('data-test')).toBe('member-chat-bubble')
+        expect(more).toEqual([])
+        expect(arrowIn(2).exists()).toBe(false)
+      })
+
+      // bibi stands on the map, the member of the last row does not; neither is a contact.
+      it('leaves everybody else the arrow', () => {
+        expect(wrapper.findAll('[data-test="member-chat-bubble"]')).toHaveLength(2)
+        expect(arrowIn(0).exists()).toBe(true)
+        expect(pinIn(0).exists()).toBe(true)
         expect(arrowIn(3).exists()).toBe(true)
+        expect(bubbleIn(0).exists()).toBe(false)
+        expect(bubbleIn(3).exists()).toBe(false)
       })
 
-      it('leaves a contact who stands on the map the pin', () => {
-        expect(pinIn(2).exists()).toBe(true)
-        expect(bubbleIn(2).exists()).toBe(false)
-        expect(wrapper.findAll('[data-test="member-map-pin"]')).toHaveLength(2)
-      })
+      it.each([
+        ['in the place of the arrow', 1],
+        ['behind the pin', 2],
+      ])(
+        'opens the conversation with the member of its row %s, and not the row',
+        async (_name, row) => {
+          vi.spyOn(window, 'open').mockReturnValue({ focus: vi.fn() })
+          await bubbleIn(row).trigger('click')
 
-      it('opens the conversation with the member of its row, and not the row', async () => {
+          expect(window.open).toHaveBeenCalledTimes(1)
+          const address = new URL(window.open.mock.calls[0][0])
+          expect(address.searchParams.get('redirect')).toBe(
+            `/contacts?with=${rows[row].gradidoID}&community=${COMMUNITY}`,
+          )
+          expect(wrapper.vm.myItems.some((item) => item._showDetails)).toBe(false)
+          vi.restoreAllMocks()
+        },
+      )
+
+      it('still opens the map with the pin of a contact', async () => {
         vi.spyOn(window, 'open').mockReturnValue({ focus: vi.fn() })
-        await bubbleIn(1).trigger('click')
+        await pinIn(2).trigger('click')
 
-        expect(window.open).toHaveBeenCalledTimes(1)
         const address = new URL(window.open.mock.calls[0][0])
         expect(address.searchParams.get('redirect')).toBe(
-          `/contacts?with=${rows[1].gradidoID}&community=${COMMUNITY}`,
+          `/matching/karte?with=${rows[2].gradidoID}&community=${COMMUNITY}`,
         )
-        expect(wrapper.vm.myItems.some((item) => item._showDetails)).toBe(false)
         vi.restoreAllMocks()
       })
     })

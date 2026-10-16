@@ -8,9 +8,10 @@ import { memberKey } from '@/composables/useMemberAvatars'
  * them: everybody they share a booking, the referral trace or a conversation with.
  *
  * For what stands behind a member's name (components/MemberWalletLink.vue): a moderator who is
- * in contact with a member gets the way into the conversation with them there, instead of the
- * arrow into the send form (Bernd, 13.10.2026). The server answers with all of them at once,
- * as pairs; a list of members is then told apart here, without a question per row.
+ * in contact with a member gets the way into the conversation with them there -- instead of the
+ * arrow into the send form (Bernd, 13.10.2026), and behind the pin of a member on the map
+ * (Bernd, 16.10.2026). The server answers with all of them at once, as pairs; a list of
+ * members is then told apart here, without a question per row.
  *
  * ⛔ Held for ONE moderator. The same browser is used by more than one, and the admin
  * interface can be entered as another moderator without the one before signing out (the
