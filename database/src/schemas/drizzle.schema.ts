@@ -331,6 +331,25 @@ export const eventMatchingEntriesTable = mysqlTable(
 export type EventMatchingEntrySelect = typeof eventMatchingEntriesTable.$inferSelect
 export type EventMatchingEntryInsert = typeof eventMatchingEntriesTable.$inferInsert
 
+// The invitation onto the map that is due after an event link (migration 0161): the
+// confirmation made the entry of the link, and the wallet has not invited the member yet.
+export const eventMatchingArrivalsTable = mysqlTable(
+  'event_matching_arrivals',
+  {
+    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
+    // `unsigned`, as in event_matching_entries: `users.id` is `int(10) unsigned`.
+    userId: int('user_id', { unsigned: true }).notNull(),
+    matchingEntryUuid: char('matching_entry_uuid', { length: 36 }).notNull(),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+  },
+  (table) => [uniqueIndex('event_matching_arrivals_user_unique').on(table.userId)],
+)
+
+export type EventMatchingArrivalSelect = typeof eventMatchingArrivalsTable.$inferSelect
+export type EventMatchingArrivalInsert = typeof eventMatchingArrivalsTable.$inferInsert
+
 export const projectBrandingsTable = mysqlTable(
   'project_brandings',
   {
