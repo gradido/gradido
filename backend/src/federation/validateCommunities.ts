@@ -1,4 +1,4 @@
-import { PeerApiClient, PeerApiClientCache } from 'core'
+import { PeerApiClientCache } from 'core'
 import {
   CommunitiesInsert,
   CommunityHandshakeStateType,
@@ -122,10 +122,11 @@ async function federatedCommunityGetInfoCheckPublicKey(fedComB: FederatedCommuni
   logger.addContext('apiUrl', fedComB.endPoint)
 
   const peerClient = PeerApiClientCache.getInstance().get(fedComB.endPoint, fedComB.publicKey)
-  const { data: rawPubComInfo } = await peerClient.getCommunityInfos()
+  // the client refuses an answer whose signature does not verify against fedComB.publicKey
+  const { data: rawPubComInfo, error } = await peerClient.getCommunityInfos()
   // TODO: write last error into db
   if (!rawPubComInfo) {
-    logger.warn('missing result of getPublicCommunityInfo')
+    logger.warn('missing result of getPublicCommunityInfo', error?.value)
     return null
   }
   const pubComInfo = v.parse(foreignCommunityInfoSchema, rawPubComInfo)

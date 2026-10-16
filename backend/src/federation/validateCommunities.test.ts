@@ -129,7 +129,20 @@ describe('federatedCommunityGetInfoCheckPublicKey', () => {
     mockGetPeerApiClient.mockReturnValue(peerClient({ communityInfos: { data: null } }))
 
     expect(await federatedCommunityGetInfoCheckPublicKey(federatedCommunity(1))).toBeNull()
-    expect(mockLogger.warn).toHaveBeenCalledWith('missing result of getPublicCommunityInfo')
+    expect(mockLogger.warn).toHaveBeenCalledWith(
+      'missing result of getPublicCommunityInfo',
+      undefined,
+    )
+  })
+
+  it('names why there is no answer', async () => {
+    const reason = new Error('invalid response signature: signature does not match')
+    mockGetPeerApiClient.mockReturnValue(
+      peerClient({ communityInfos: { data: null, error: { status: 503, value: reason } } }),
+    )
+
+    expect(await federatedCommunityGetInfoCheckPublicKey(federatedCommunity(1))).toBeNull()
+    expect(mockLogger.warn).toHaveBeenCalledWith('missing result of getPublicCommunityInfo', reason)
   })
 
   it('hands out nothing when the answer carries another public key', async () => {
