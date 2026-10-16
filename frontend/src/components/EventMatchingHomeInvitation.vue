@@ -116,7 +116,9 @@ watch(
   async (who) => {
     const mine = ++asking
     fromServer.value = undefined
-    if (!CONFIG.MATCHING_ACTIVE || !who || !invitedOntoTheMap(store.state)) {
+    // Nobody signed in, a member on the map, a wallet without one: `invitedOntoTheMap` asks all
+    // three, as for the overview's tile.
+    if (!invitedOntoTheMap(store.state)) {
       fromServer.value = null
       return
     }
