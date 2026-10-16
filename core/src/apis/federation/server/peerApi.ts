@@ -21,4 +21,4 @@ export const peerApiRoutesV1 = new Elysia({ prefix: 'v1' })
     response: v.boolean(),
   })
 
-export const peerApiRoutes = new Elysia({ prefix: 'peerApi' }).use(peerApiRoutesV1)
+export const peerApiRoutes = new Elysia({ prefix: 'peer-api' }).use(peerApiRoutesV1)

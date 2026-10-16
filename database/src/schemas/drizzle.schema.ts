@@ -19,7 +19,6 @@ import {
   uniqueIndex,
   varchar,
 } from 'drizzle-orm/mysql-core'
-import { createSelectSchema } from 'drizzle-orm/valibot'
 
 import { AccountState } from '../enum/AccountState'
 import { CommunityHandshakeStateType } from '../enum/CommunityHandshakeStateType'
@@ -79,7 +78,8 @@ export const communitiesTable = mysqlTable(
     privateJwtKey: varchar('private_jwt_key', { length: 2048 }).default(sql`NULL`),
     location: customGeometry().default(null),
     hieroTopicId: varchar('hiero_topic_id', { length: 512 }).default(sql`NULL`),
-    creationDate: datetime('creation_date', { mode: 'date', fsp: 3 }).notNull(),
+    // TODO: update to not nullable
+    creationDate: datetime('creation_date', { mode: 'date', fsp: 3 }).default(sql`NULL`),
     createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
       .default(sql`current_timestamp(3)`)
       .notNull(),
@@ -88,7 +88,6 @@ export const communitiesTable = mysqlTable(
   (table) => [unique('url_key').on(table.url), unique('uuid_key').on(table.communityUuid)],
 )
 
-export const communitiesSelectSchema = createSelectSchema(communitiesTable)
 export type CommunitiesSelect = typeof communitiesTable.$inferSelect
 export type CommunitiesInsert = typeof communitiesTable.$inferInsert
 
@@ -128,6 +127,7 @@ export const communityHandshakeStatesTable = mysqlTable(
     oneTimeCode: int('one_time_code', { unsigned: true }).default(sql`NULL`),
     publicKey: customBinary('public_key', { length: 32 }).notNull(),
     apiVersion: varchar('api_version', { length: 255 }).notNull(),
+    // TODO: use the english word state for this
     status: varchar({ length: 255 })
       .$type<CommunityHandshakeStateType>()
       .$defaultFn(() => CommunityHandshakeStateType.START_COMMUNITY_AUTHENTICATION)

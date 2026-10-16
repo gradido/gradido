@@ -1,9 +1,14 @@
 import * as v from 'valibot'
 import { dateSchema, ed25519PublicKeySchema, positiveIntegerSchema } from './base.schema'
 
+export const federationApiVersions = ['1_0', '1_1']
+
 export const federationApiSchema = v.optional(
-  v.pipe(v.picklist(['1_0', '1_1']), v.description('Federation API version, defaults to 1_0')),
-  '1_0',
+  v.pipe(
+    v.picklist(federationApiVersions),
+    v.description('Federation API version, defaults to 1_0'),
+  ),
+  federationApiVersions[0],
 )
 // TODO: Move into community
 // TODO: Target structure for optimized federated communities table
@@ -25,13 +30,8 @@ export const federatedCommunitySchema = v.pipe(
     verifiedAt: v.nullable(dateSchema),
     lastErrorAt: v.nullable(dateSchema),
     createdAt: dateSchema,
-    updatedAt: dateSchema,
+    updatedAt: v.nullable(dateSchema),
   }),
-  v.transform((input) => ({
-    ...input,
-    // TEMP: while refactore federation api, in target version, this will be stored in db and validated with v.pipe(v.string(), v.url())
-    apiUrl: `${input.endPoint.slice(0, input.endPoint.lastIndexOf('api/'))}/peer-api/${input.apiVersion === '1_0' ? '1' : '2'}`,
-  })),
 )
 
 export type FederatedCommunity = v.InferOutput<typeof federatedCommunitySchema>

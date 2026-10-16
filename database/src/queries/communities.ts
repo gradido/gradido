@@ -1,4 +1,4 @@
-import { and, eq, isNull, lt, ne, or, sql } from 'drizzle-orm'
+import { and, eq, gte, inArray, isNull, ne, notExists, notInArray, or, sql } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import {
   CachedValue,
@@ -16,6 +16,7 @@ import { FindOptionsOrder, FindOptionsWhere, IsNull, MoreThanOrEqual, Not } from
 import * as v from 'valibot'
 import { AppDatabase, DrizzleTransaction, drizzleDb } from '../AppDatabase'
 import { Community as DbCommunity } from '../entity'
+import { CommunityHandshakeStateType } from '../enum'
 import {
   CommunitiesInsert,
   CommunitiesSelect,
@@ -218,7 +219,7 @@ export async function getNotReachableCommunities(
 
 // return all foreign communities which have authenticatedAt or communityUuid at null or has a new url and where are not already a handshake is pending
 export async function dbFindForeignCommunitiesNeedingHandshake(
-  limit: number,
+  federatedCommunityIds: number[],
   tx: DrizzleTransaction | MySql2Database = drizzleDb(),
 ): Promise<CommunityHandshakeData[]> {
   const authenticationTimeout = new Date(Date.now() - FEDERATION_AUTHENTICATION_TIMEOUT_MS)
@@ -234,11 +235,8 @@ export async function dbFindForeignCommunitiesNeedingHandshake(
       and(
         eq(communitiesTable.publicKey, federatedCommunitiesTable.publicKey),
         eq(federatedCommunitiesTable.apiVersion, '1_0'),
+        inArray(federatedCommunitiesTable.id, federatedCommunityIds),
       ),
-    )
-    .leftJoin(
-      communityHandshakeStatesTable,
-      eq(communityHandshakeStatesTable.publicKey, communitiesTable.publicKey),
     )
     .where(
       and(
@@ -248,13 +246,25 @@ export async function dbFindForeignCommunitiesNeedingHandshake(
           isNull(communitiesTable.communityUuid),
           ne(communitiesTable.url, federatedCommunitiesTable.endPoint),
         ),
-        or(
-          isNull(communityHandshakeStatesTable.updatedAt),
-          lt(communityHandshakeStatesTable.updatedAt, authenticationTimeout),
+        // no handshake still running: one that is neither finished nor timed out
+        notExists(
+          tx
+            .select({ id: communityHandshakeStatesTable.id })
+            .from(communityHandshakeStatesTable)
+            .where(
+              and(
+                eq(communityHandshakeStatesTable.publicKey, communitiesTable.publicKey),
+                notInArray(communityHandshakeStatesTable.status, [
+                  CommunityHandshakeStateType.EXPIRED,
+                  CommunityHandshakeStateType.FAILED,
+                  CommunityHandshakeStateType.SUCCESS,
+                ]),
+                gte(communityHandshakeStatesTable.updatedAt, authenticationTimeout),
+              ),
+            ),
         ),
       ),
     )
-    .limit(limit)
   return rows.map((data) => v.parse(communityHandshakeDataSchema, data))
 }
 

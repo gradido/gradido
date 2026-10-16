@@ -30,10 +30,10 @@ export class PeerApiClient {
   }
 
   public getCommunityInfos() {
-    return this.elysiaJsClient.peerApi.v1.communityInfos.get()
+    return this.elysiaJsClient['peer-api'].v1.communityInfos.get()
   }
   public postHandshake1Open(handshakeId: number) {
-    return this.elysiaJsClientEncryptSign.peerApi.v1.handshake1Open.post({ handshakeId })
+    return this.elysiaJsClientEncryptSign['peer-api'].v1.handshake1Open.post({ handshakeId })
   }
   public toString(): string {
     return this.url

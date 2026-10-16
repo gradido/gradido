@@ -1,6 +1,12 @@
-import { and, eq, inArray, isNull, lt, or } from 'drizzle-orm'
+import { and, asc, eq, gt, inArray, isNull, lt, or } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
-import { FederatedCommunity, federatedCommunitySchema, Result, VoidResult } from 'shared'
+import {
+  FederatedCommunity,
+  federatedCommunitySchema,
+  federationApiVersions,
+  Result,
+  VoidResult,
+} from 'shared'
 import * as v from 'valibot'
 import { DrizzleTransaction, drizzleDb, federatedCommunitiesTable } from '..'
 import { FederatedCommunity as DbFederatedCommunity } from '../entity'
@@ -37,19 +43,23 @@ export async function dbFindFederatedCommunityByPublicKeyAndApi(
 
 export async function dbFindFederatedCommunitiesNotVerified(
   limit: number,
+  lastFederatedCommunityId: number,
 ): Promise<FederatedCommunity[]> {
   const rows = await drizzleDb()
     .select()
     .from(federatedCommunitiesTable)
     .where(
-      or(
-        and(
-          eq(federatedCommunitiesTable.foreign, true),
+      and(
+        eq(federatedCommunitiesTable.foreign, true),
+        inArray(federatedCommunitiesTable.apiVersion, federationApiVersions),
+        or(
           isNull(federatedCommunitiesTable.verifiedAt),
+          lt(federatedCommunitiesTable.verifiedAt, federatedCommunitiesTable.lastAnnouncedAt),
         ),
-        lt(federatedCommunitiesTable.verifiedAt, federatedCommunitiesTable.lastAnnouncedAt),
+        gt(federatedCommunitiesTable.id, lastFederatedCommunityId),
       ),
     )
+    .orderBy(asc(federatedCommunitiesTable.id))
     .limit(limit)
   return rows.map((federatedCommunity) => v.parse(federatedCommunitySchema, federatedCommunity))
 }

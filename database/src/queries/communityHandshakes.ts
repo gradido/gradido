@@ -50,20 +50,11 @@ export function findPendingCommunityHandshakeOrFailByOneTimeCode(
   })
 }
 
-export async function dbUpsertCommunityHandshakeState(
+export async function dbInsertCommunityHandshakeState(
   handshakeState: CommunityHandshakeStatesInsert,
   tx: DrizzleTransaction | MySql2Database = drizzleDb(),
 ): Promise<number> {
-  const rows = await tx
-    .insert(communityHandshakeStatesTable)
-    .values(handshakeState)
-    .onDuplicateKeyUpdate({
-      set: {
-        status: sql`values${communityHandshakeStatesTable.status})`,
-        handshakeId: sql`values${communityHandshakeStatesTable.handshakeId})`,
-        updatedAt: sql`now()`,
-      },
-    })
+  const rows = await tx.insert(communityHandshakeStatesTable).values(handshakeState)
   return rows[0].insertId
 }
 

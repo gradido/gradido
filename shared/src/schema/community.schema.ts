@@ -6,6 +6,7 @@ import {
   dateStringSchema,
   ed25519PrivateKeySchema,
   ed25519PublicKeySchema,
+  positiveIntegerSchema,
   publicKeyHexStringSchema,
   urlSchema,
   uuidv4Schema,
@@ -39,13 +40,15 @@ export const homeCommunityInsertSchema = v.object({
 
 export type HomeCommunityInsertInput = v.InferInput<typeof homeCommunityInsertSchema>
 
+// TODO: check if we can make only one schema instead two: communityInfoWireSchema + foreignCommunityInfoSchema
+
 export const communityInfoWireSchema = v.object({
   name: communityNameSchema,
   description: communityDescriptionSchema,
   creationDate: dateStringSchema,
   publicKey: publicKeyHexStringSchema,
   publicJwtKey: publicJwtKeySchema,
-  hieroTopicId: hieroIdSchema,
+  hieroTopicId: v.nullable(hieroIdSchema),
 })
 
 export const foreignCommunityInfoSchema = v.object({
@@ -54,7 +57,7 @@ export const foreignCommunityInfoSchema = v.object({
   creationDate: dateSchema,
   publicKey: ed25519PublicKeySchema,
   publicJwtKey: publicJwtKeySchema,
-  hieroTopicId: hieroIdSchema,
+  hieroTopicId: v.nullable(hieroIdSchema),
 })
 
 export type ForeignCommunityInfo = v.InferOutput<typeof foreignCommunityInfoSchema>

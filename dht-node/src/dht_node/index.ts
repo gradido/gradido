@@ -227,6 +227,7 @@ async function writeFederatedHomeCommunityEntries(pubKey: string): Promise<Commu
 
 async function writeHomeCommunityEntry(keyPair: KeyPair): Promise<void> {
   try {
+    // TODO: replace with upsert
     // fields set in update and in insert
     const upsertFields = {
       publicKey: keyPair.publicKey,

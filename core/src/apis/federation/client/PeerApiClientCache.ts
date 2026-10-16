@@ -16,11 +16,16 @@ export class PeerApiClientCache {
   private constructor() {
     this.peerApiClients = new Map<string, PeerApiClient>()
   }
+  // url: the federation endpoint as announced, e.g. `https://host/api/`; the peer api lives beside it
   public get(url: string, publicKey: Buffer): PeerApiClient {
-    let client = this.peerApiClients.get(url)
-    if (!client) {
-      client = new PeerApiClient(url, publicKey)
-      this.peerApiClients.set(url, client)
+    // TEMP: while refactoring the federation api, the endpoint is still the graphql one
+    const apiIndex = url.lastIndexOf('api/')
+    const baseUrl = apiIndex > 0 ? url.slice(0, apiIndex) : url
+    let client = this.peerApiClients.get(baseUrl)
+    // another community now answers at that url
+    if (!client || !client.publicKey.equals(publicKey)) {
+      client = new PeerApiClient(baseUrl, publicKey)
+      this.peerApiClients.set(baseUrl, client)
     }
     return client
   }

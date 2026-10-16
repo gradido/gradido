@@ -1,8 +1,8 @@
 import {
-  COMMUNITY_DESCRIPTION,
   COMMUNITY_HOST,
-  COMMUNITY_NAME,
   COMMUNITY_URL,
+  communityDescriptionSchema,
+  communityNameSchema,
   communityUrlOf,
   configRule,
   httpUrlSchema,
@@ -30,9 +30,9 @@ const environment = v.object({
 
   NODE_ENV,
 
-  COMMUNITY_NAME: v.optional(COMMUNITY_NAME, 'Gradido Entwicklung'),
+  COMMUNITY_NAME: v.optional(communityNameSchema, 'Gradido Entwicklung'),
   COMMUNITY_DESCRIPTION: v.optional(
-    COMMUNITY_DESCRIPTION,
+    communityDescriptionSchema,
     'Gradido-Community einer lokalen Entwicklungsumgebung.',
   ),
   COMMUNITY_HOST,
