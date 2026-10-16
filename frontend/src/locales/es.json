@@ -638,6 +638,10 @@
       "title": "Event Matching",
       "waiting": "Escribe arriba el nombre de tu congreso — entonces aparecerán aquí tu enlace, tu código QR y un párrafo para tu correo."
     },
+    "home": {
+      "text": "Para que os encontréis como personas afines: marca tu casa en el mapa. Así verás a los demás que han añadido «{sentence}», y ellos te verán a ti. Solo los miembros ven el mapa. Tú decides con qué precisión: «Aproximada» te muestra dentro de un área, nunca en tu puerta. Y puedes salir del mapa en cualquier momento.",
+      "title": "¿Dónde vives?"
+    },
     "landing": {
       "added": "Tu entrada se ha añadido: {sentence}",
       "firstEntry": "Tu primera entrada:",
