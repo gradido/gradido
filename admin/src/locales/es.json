@@ -415,7 +415,7 @@
     "memberChat": "Ir a la conversación con {name}",
     "memberMap": "Mostrar a {name} en el mapa",
     "memberMapBlocked": "El navegador ha bloqueado la ventana. Permite las ventanas emergentes para esta página.",
-    "memberSend": "Enviar a {name}",
+    "memberSend": "Enviar un correo electrónico a {name}",
     "userSearch": "Ir a la búsqueda de usuarios"
   },
   "help": {
