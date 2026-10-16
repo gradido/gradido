@@ -109,7 +109,7 @@
           data-test="via-greeting"
         >
           {{ $t('via_greeting') }}
-          <variant-icon icon="bouquet" variant="muted" class="m-mb-1" />
+          <variant-icon icon="balloon-heart" variant="muted" class="m-mb-1" />
         </div>
         <div v-else-if="props.transaction.linkId" class="small">
           {{ $t('via_link') }}
