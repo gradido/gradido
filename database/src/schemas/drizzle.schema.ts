@@ -19,8 +19,10 @@ import {
   uniqueIndex,
   varchar,
 } from 'drizzle-orm/mysql-core'
+import { createSelectSchema } from 'drizzle-orm/valibot'
 
 import { AccountState } from '../enum/AccountState'
+import { CommunityHandshakeStateType } from '../enum/CommunityHandshakeStateType'
 import { customBinary, customGeometry, customGradidoUnit, customMediumBlob } from './customTypes'
 
 export const communitiesTable = mysqlTable(
@@ -77,7 +79,7 @@ export const communitiesTable = mysqlTable(
     privateJwtKey: varchar('private_jwt_key', { length: 2048 }).default(sql`NULL`),
     location: customGeometry().default(null),
     hieroTopicId: varchar('hiero_topic_id', { length: 512 }).default(sql`NULL`),
-    creationDate: datetime('creation_date', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+    creationDate: datetime('creation_date', { mode: 'date', fsp: 3 }).notNull(),
     createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
       .default(sql`current_timestamp(3)`)
       .notNull(),
@@ -86,8 +88,63 @@ export const communitiesTable = mysqlTable(
   (table) => [unique('url_key').on(table.url), unique('uuid_key').on(table.communityUuid)],
 )
 
+export const communitiesSelectSchema = createSelectSchema(communitiesTable)
 export type CommunitiesSelect = typeof communitiesTable.$inferSelect
 export type CommunitiesInsert = typeof communitiesTable.$inferInsert
+
+export const federatedCommunitiesTable = mysqlTable(
+  'federated_communities',
+  {
+    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
+    // TODO: remove home community entries from this table, because entries are redundant
+    foreign: boolean().default(true).notNull(),
+    publicKey: customBinary('public_key', { length: 32 }).notNull(),
+    apiVersion: varchar('api_version', { length: 10 }).notNull(),
+    endPoint: varchar('end_point', { length: 255 }).notNull(),
+    lastAnnouncedAt: datetime('last_announced_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+    verifiedAt: datetime('verified_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+    lastErrorAt: datetime('last_error_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+    updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+  },
+  (table) => [uniqueIndex('public_api_key').on(table.publicKey, table.apiVersion)],
+)
+
+export type FederatedCommunitiesSelect = typeof federatedCommunitiesTable.$inferSelect
+export type FederatedCommunitiesInsert = typeof federatedCommunitiesTable.$inferInsert
+
+// `status` defaults to 'OPEN_CONNECTION' in the table itself (migration 0095), a value
+// CommunityHandshakeStateType does not know. The TypeORM entity always writes its own default,
+// START_COMMUNITY_AUTHENTICATION, and $defaultFn does the same for inserts through Drizzle.
+// `updated_at` carries `ON UPDATE current_timestamp(3)` in the table itself; Drizzle's
+// onUpdateNow() only describes DDL and knows no precision, so it is left out.
+export const communityHandshakeStatesTable = mysqlTable(
+  'community_handshake_states',
+  {
+    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
+    handshakeId: int('handshake_id', { unsigned: true }).notNull(),
+    oneTimeCode: int('one_time_code', { unsigned: true }).default(sql`NULL`),
+    publicKey: customBinary('public_key', { length: 32 }).notNull(),
+    apiVersion: varchar('api_version', { length: 255 }).notNull(),
+    status: varchar({ length: 255 })
+      .$type<CommunityHandshakeStateType>()
+      .$defaultFn(() => CommunityHandshakeStateType.START_COMMUNITY_AUTHENTICATION)
+      .notNull(),
+    lastError: text('last_error').default(sql`NULL`),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+    updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+  },
+  (table) => [index('idx_public_key').on(table.publicKey)],
+)
+
+export type CommunityHandshakeStatesSelect = typeof communityHandshakeStatesTable.$inferSelect
+export type CommunityHandshakeStatesInsert = typeof communityHandshakeStatesTable.$inferInsert
 
 export const contributionsTable = mysqlTable(
   'contributions',

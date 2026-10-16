@@ -1,5 +1,8 @@
-// AI-GENERATED — not an architecture reference
-import { Result } from 'shared'
+import { and, eq, inArray, isNull, lt, or } from 'drizzle-orm'
+import { MySql2Database } from 'drizzle-orm/mysql2'
+import { FederatedCommunity, federatedCommunitySchema, Result, VoidResult } from 'shared'
+import * as v from 'valibot'
+import { DrizzleTransaction, drizzleDb, federatedCommunitiesTable } from '..'
 import { FederatedCommunity as DbFederatedCommunity } from '../entity'
 import { DBNotFoundError } from '../errorTypes'
 
@@ -30,4 +33,42 @@ export async function dbFindFederatedCommunityByPublicKeyAndApi(
     }
   }
   return { success: true, value: federatedCommunity }
+}
+
+export async function dbFindFederatedCommunitiesNotVerified(
+  limit: number,
+): Promise<FederatedCommunity[]> {
+  const rows = await drizzleDb()
+    .select()
+    .from(federatedCommunitiesTable)
+    .where(
+      or(
+        and(
+          eq(federatedCommunitiesTable.foreign, true),
+          isNull(federatedCommunitiesTable.verifiedAt),
+        ),
+        lt(federatedCommunitiesTable.verifiedAt, federatedCommunitiesTable.lastAnnouncedAt),
+      ),
+    )
+    .limit(limit)
+  return rows.map((federatedCommunity) => v.parse(federatedCommunitySchema, federatedCommunity))
+}
+
+export async function dbClearFederatedCommunities(): Promise<void> {
+  await drizzleDb()
+    .delete(federatedCommunitiesTable)
+    .where(eq(federatedCommunitiesTable.foreign, true))
+}
+
+export async function dbUpdateFederatedCommunitiesVerified(
+  ids: number[],
+  now: Date,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<number> {
+  const rows = await tx
+    .update(federatedCommunitiesTable)
+    .set({ verifiedAt: now, updatedAt: now })
+    .where(inArray(federatedCommunitiesTable.id, ids))
+
+  return rows[0].affectedRows
 }

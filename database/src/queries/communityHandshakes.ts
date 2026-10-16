@@ -1,6 +1,17 @@
+import { eq, sql } from 'drizzle-orm'
+import { MySql2Database } from 'drizzle-orm/mysql2'
 import { Ed25519PublicKey } from 'shared'
 import { In, Not } from 'typeorm'
-import { CommunityHandshakeState, CommunityHandshakeStateType } from '..'
+import {
+  CommunityHandshakeState,
+  CommunityHandshakeStateType,
+  DrizzleTransaction,
+  drizzleDb,
+} from '..'
+import {
+  CommunityHandshakeStatesInsert,
+  communityHandshakeStatesTable,
+} from '../schemas/drizzle.schema'
 
 /**
  * Find a pending community handshake by public key.
@@ -37,4 +48,33 @@ export function findPendingCommunityHandshakeOrFailByOneTimeCode(
   return CommunityHandshakeState.findOneOrFail({
     where: { oneTimeCode },
   })
+}
+
+export async function dbUpsertCommunityHandshakeState(
+  handshakeState: CommunityHandshakeStatesInsert,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<number> {
+  const rows = await tx
+    .insert(communityHandshakeStatesTable)
+    .values(handshakeState)
+    .onDuplicateKeyUpdate({
+      set: {
+        status: sql`values${communityHandshakeStatesTable.status})`,
+        handshakeId: sql`values${communityHandshakeStatesTable.handshakeId})`,
+        updatedAt: sql`now()`,
+      },
+    })
+  return rows[0].insertId
+}
+
+// return: affected rows
+export async function dbUpdateCommunityHandshakeStateError(
+  id: number,
+  error: string,
+): Promise<number> {
+  const rows = await drizzleDb()
+    .update(communityHandshakeStatesTable)
+    .set({ lastError: error, status: CommunityHandshakeStateType.FAILED })
+    .where(eq(communityHandshakeStatesTable.id, id))
+  return rows[0].affectedRows
 }

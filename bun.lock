@@ -179,8 +179,11 @@
       "name": "core",
       "version": "3.1.1",
       "dependencies": {
+        "@elysia/eden": "1.4.10",
+        "config-schema": "*",
         "database": "*",
         "drizzle-orm": "1.0.0-rc.4",
+        "elysia": "1.4.30",
         "email-templates": "^10.0.1",
         "esbuild": "^0.25.2",
         "i18n": "^0.15.1",
@@ -201,7 +204,6 @@
         "@types/node": "^24.9.1",
         "@types/nodemailer": "^6.4.4",
         "@types/sodium-native": "^2.3.5",
-        "config-schema": "*",
         "dotenv": "^16.6.1",
         "graphql": "16.14.2",
         "graphql-request": "5.0.0",
@@ -432,6 +434,7 @@
       "name": "shared",
       "version": "3.1.1",
       "dependencies": {
+        "config-schema": "*",
         "esbuild": "^0.25.2",
         "jose": "^4.14.4",
         "log4js": "^6.9.1",
@@ -637,6 +640,8 @@
     "@elysia/apollo": ["@elysia/apollo@1.4.1", "", { "dependencies": { "@apollo/server": "4.10.4", "@apollo/server-plugin-landing-page-graphql-playground": "^4.0.1", "graphql": "^16.6.0", "graphql-tag": "^2.12.6" }, "peerDependencies": { "elysia": ">= 1.4.0" } }, "sha512-scx8/9eydck0Vc3OqrDKVJlAG8FkagYKgo/bYaTWMrpFFaHNWW+QZgo4XxSViGywM//1OlIm1gUsmNidXtdfeQ=="],
 
     "@elysia/cors": ["@elysia/cors@1.4.2", "", { "peerDependencies": { "elysia": ">= 1.4.0" } }, "sha512-dXkfo1IxZWJkJReNYnPJorJqb+XpWno0D/YWlMEJSkiFIFd751zJ4R/YswAYdo88mLWo8cycEj673o7L+gbxsw=="],
+
+    "@elysia/eden": ["@elysia/eden@1.4.10", "", { "peerDependencies": { "elysia": ">=1.4.19" } }, "sha512-vcZXQcW6wZj6rhTxaiTkuCbVuS/yAJQ9jqCM6b83a5hu99F5Aj3HOyWXL17iod2Rz+pJpYsQGX0XaeoCsMpw2g=="],
 
     "@elysia/node": ["@elysia/node@1.4.5", "", { "dependencies": { "crossws": "^0.4.1", "srvx": "^0.11.2" }, "peerDependencies": { "elysia": ">= 1.4.0" } }, "sha512-w2beVMIyKjrizERjQTs37Ep957n8JBE5zISrY9rFVE7BOwKrSI8eo19U7o/2A+0N0IlB7o8kfvbeySQ0zvu2Ew=="],
 

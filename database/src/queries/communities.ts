@@ -1,7 +1,11 @@
-import { eq } from 'drizzle-orm'
+import { and, eq, isNull, lt, ne, or, sql } from 'drizzle-orm'
+import { MySql2Database } from 'drizzle-orm/mysql2'
 import {
   CachedValue,
+  CommunityHandshakeData,
+  communityHandshakeDataSchema,
   Ed25519PublicKey,
+  FEDERATION_AUTHENTICATION_TIMEOUT_MS,
   HomeCommunityInsertInput,
   homeCommunityInsertSchema,
   MissingHomeCommunityError,
@@ -10,9 +14,15 @@ import {
 } from 'shared'
 import { FindOptionsOrder, FindOptionsWhere, IsNull, MoreThanOrEqual, Not } from 'typeorm'
 import * as v from 'valibot'
-import { AppDatabase, drizzleDb } from '../AppDatabase'
+import { AppDatabase, DrizzleTransaction, drizzleDb } from '../AppDatabase'
 import { Community as DbCommunity } from '../entity'
-import { CommunitiesInsert, CommunitiesSelect, communitiesTable } from '../schemas'
+import {
+  CommunitiesInsert,
+  CommunitiesSelect,
+  communitiesTable,
+  communityHandshakeStatesTable,
+  federatedCommunitiesTable,
+} from '../schemas'
 
 /** Announces a change of the home community row, see `AppDatabase.publish()`. */
 export const HOME_COMMUNITY_CHANGED_CHANNEL = 'home_community_changed'
@@ -206,6 +216,48 @@ export async function getNotReachableCommunities(
   })
 }
 
+// return all foreign communities which have authenticatedAt or communityUuid at null or has a new url and where are not already a handshake is pending
+export async function dbFindForeignCommunitiesNeedingHandshake(
+  limit: number,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<CommunityHandshakeData[]> {
+  const authenticationTimeout = new Date(Date.now() - FEDERATION_AUTHENTICATION_TIMEOUT_MS)
+  const rows = await tx
+    .select({
+      publicKey: communitiesTable.publicKey,
+      publicJwtKey: communitiesTable.publicJwtKey,
+      url: communitiesTable.url,
+    })
+    .from(communitiesTable)
+    .innerJoin(
+      federatedCommunitiesTable,
+      and(
+        eq(communitiesTable.publicKey, federatedCommunitiesTable.publicKey),
+        eq(federatedCommunitiesTable.apiVersion, '1_0'),
+      ),
+    )
+    .leftJoin(
+      communityHandshakeStatesTable,
+      eq(communityHandshakeStatesTable.publicKey, communitiesTable.publicKey),
+    )
+    .where(
+      and(
+        eq(communitiesTable.foreign, true),
+        or(
+          isNull(communitiesTable.authenticatedAt),
+          isNull(communitiesTable.communityUuid),
+          ne(communitiesTable.url, federatedCommunitiesTable.endPoint),
+        ),
+        or(
+          isNull(communityHandshakeStatesTable.updatedAt),
+          lt(communityHandshakeStatesTable.updatedAt, authenticationTimeout),
+        ),
+      ),
+    )
+    .limit(limit)
+  return rows.map((data) => v.parse(communityHandshakeDataSchema, data))
+}
+
 /**
  * The other communities this one may ask about their members' pictures: foreign, through the
  * authentication handshake, with a JWT key to seal the question for, and a uuid to file the
@@ -239,4 +291,23 @@ export async function getAuthorizedCommunities(
     ],
     order,
   })
+}
+
+export async function dbUpsertVerifiedForeignCommunities(
+  foreignCommunities: CommunitiesInsert[],
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<number> {
+  const rows = await tx
+    .insert(communitiesTable)
+    .values(foreignCommunities)
+    .onDuplicateKeyUpdate({
+      set: {
+        description: sql`values(${communitiesTable.description})`,
+        name: sql`values(${communitiesTable.name})`,
+        // url: sql`values(${communitiesTable.url})`,
+        hieroTopicId: sql`values(${communitiesTable.hieroTopicId})`,
+        updatedAt: sql`values(${communitiesTable.updatedAt})`,
+      },
+    })
+  return rows[0].affectedRows
 }

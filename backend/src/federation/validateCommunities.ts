@@ -1,124 +1,162 @@
-import { ApiVersionType } from 'core'
-import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from 'database'
-import { getLogger } from 'log4js'
-import { Ed25519PublicKey } from 'shared'
-import { IsNull } from 'typeorm'
+import { PeerApiClient, PeerApiClientCache } from 'core'
+import {
+  CommunitiesInsert,
+  CommunityHandshakeStateType,
+  dbClearFederatedCommunities,
+  dbFindFederatedCommunitiesNotVerified,
+  dbFindForeignCommunitiesNeedingHandshake,
+  dbUpdateCommunityHandshakeStateError,
+  dbUpdateFederatedCommunitiesVerified,
+  dbUpsertCommunityHandshakeState,
+  dbUpsertVerifiedForeignCommunities,
+  drizzleDb,
+} from 'database'
+import { getLogger, Logger } from 'log4js'
+import { FederatedCommunity, foreignCommunityInfoSchema } from 'shared'
+import { randombytes_random } from 'sodium-native'
+import * as v from 'valibot'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { FederationClient as V1_0_FederationClient } from '@/federation/client/1_0/FederationClient'
-import { PublicCommunityInfo } from '@/federation/client/1_0/model/PublicCommunityInfo'
-import { FederationClientFactory } from '@/federation/client/FederationClientFactory'
-import { LogError } from '@/server/LogError'
-import { startCommunityAuthentication } from './authenticateCommunities'
-import { PublicCommunityInfoLoggingView } from './client/1_0/logging/PublicCommunityInfoLogging.view'
 
-const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.validateCommunities`)
+const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.validateCommunities`)
+const VALIDATE_COMMUNITIES_BATCH_SIZE = 100
 
 export async function startValidateCommunities(timerInterval: number): Promise<void> {
-  if (Number.isNaN(timerInterval) || timerInterval <= 0) {
-    throw new LogError('FEDERATION_VALIDATE_COMMUNITY_TIMER is not a positive number')
-  }
+  const logger = createLogger()
   logger.info(`startValidateCommunities loop with an interval of ${timerInterval} ms...`)
   // delete all foreign federated community entries to avoid increasing validation efforts and log-files
-  await DbFederatedCommunity.delete({ foreign: true })
+  await dbClearFederatedCommunities()
 
   // TODO: replace the timer-loop by an event-based communication to verify announced foreign communities
   // better to use setTimeout twice than setInterval once -> see https://javascript.info/settimeout-setinterval
   setTimeout(async function run() {
-    await validateCommunities()
+    await validateCommunities(logger)
     setTimeout(run, timerInterval)
   }, timerInterval)
 }
 
-export async function validateCommunities(): Promise<void> {
-  // search all foreign federated communities which are still not verified or have not been verified since last dht-announcement
-  const dbFederatedCommunities: DbFederatedCommunity[] =
-    await DbFederatedCommunity.createQueryBuilder()
-      .where({ foreign: true, verifiedAt: IsNull() })
-      .orWhere('verified_at < last_announced_at')
-      .getMany()
+export async function validateCommunities(logger: Logger): Promise<void> {
+  try {
+    // search all foreign federated communities which are still not verified or have not been verified since last dht-announcement
+    const federatedCommunities = await dbFindFederatedCommunitiesNotVerified(
+      VALIDATE_COMMUNITIES_BATCH_SIZE,
+    )
+    // FedCom = Federated Community
+    logger.debug(`found ${federatedCommunities.length} dbCommunities`)
 
-  logger.debug(`found ${dbFederatedCommunities.length} dbCommunities`)
-  for (const dbFedComB of dbFederatedCommunities) {
-    logger.debug(`verify federation community: ${dbFedComB.endPoint}${dbFedComB.apiVersion}`)
-    const apiValueStrings: string[] = Object.values(ApiVersionType)
-    if (!apiValueStrings.includes(dbFedComB.apiVersion)) {
-      logger.debug(
-        'dbFedComB with unsupported apiVersion',
-        dbFedComB.endPoint,
-        dbFedComB.apiVersion,
-      )
-      logger.debug(`supported ApiVersions=`, apiValueStrings)
-      continue
-    }
-    try {
-      const client = FederationClientFactory.getInstance(dbFedComB)
+    // Step 1: call get info at all federated communities and compare public key with stored public key
+    const getFedComInfoCheckPublicKeyPromises = federatedCommunities.map((fedComB) =>
+      federatedCommunityGetInfoCheckPublicKey(fedComB),
+    )
+    const getFedComInfoResults = await Promise.allSettled(getFedComInfoCheckPublicKeyPromises)
+    const now = new Date()
+    const fedComIds: number[] = []
+    const fedComInfos: CommunitiesInsert[] = []
 
-      if (client instanceof V1_0_FederationClient) {
-        // throw if key isn't valid hex with length 64
-        const clientPublicKey = new Ed25519PublicKey(await client.getPublicKey())
-        // throw if key isn't valid hex with length 64
-        const fedComBPublicKey = new Ed25519PublicKey(dbFedComB.publicKey)
-        if (clientPublicKey.isSame(fedComBPublicKey)) {
-          await DbFederatedCommunity.update({ id: dbFedComB.id }, { verifiedAt: new Date() })
-          // logger.debug(`verified dbFedComB with:`, dbFedComB.endPoint)
-          const pubComInfo = await client.getPublicCommunityInfo()
-          if (pubComInfo) {
-            await writeForeignCommunity(dbFedComB, pubComInfo)
-            logger.debug(
-              `wrote response of getPublicCommunityInfo in dbFedComB ${dbFedComB.endPoint}`,
-            )
-            try {
-              const result = await startCommunityAuthentication(dbFedComB)
-              logger.info(
-                `${dbFedComB.endPoint}${dbFedComB.apiVersion} verified, authentication state: ${result}`,
-              )
-            } catch (err) {
-              logger.warn(
-                `Warning: Authentication of community ${dbFedComB.endPoint} still ongoing:`,
-                err,
-              )
-            }
-          } else {
-            logger.debug('missing result of getPublicCommunityInfo')
-          }
-        } else {
-          logger.debug(
-            'received not matching publicKey:',
-            clientPublicKey.asHex(),
-            fedComBPublicKey.asHex(),
-          )
-        }
+    // Filter out all Federated Communities which don't answear or had a wrong public key
+    for (const result of getFedComInfoResults) {
+      if (result.status !== 'fulfilled' || !result.value) {
+        continue
       }
-    } catch (err) {
-      logger.error(`Error:`, err)
+
+      fedComIds.push(result.value.federatedCommunityId)
+      fedComInfos.push({
+        ...result.value.foreignCommunity,
+        creationDate: now,
+        updatedAt: now,
+      })
     }
+
+    const handshakeCommunities = await drizzleDb().transaction(async (tx) => {
+      // Step 2: update verifiedAt field on all Federated Communities which answeared
+      const verifiedCount = await dbUpdateFederatedCommunitiesVerified(fedComIds, now, tx)
+      if (verifiedCount !== fedComIds.length) {
+        logger.error(
+          `only ${verifiedCount} federated communities verified from ${fedComIds.length}`,
+        )
+      }
+
+      // Step 3: upsert all verified federated communities as foreign community in communities table
+      const upsertedCount = await dbUpsertVerifiedForeignCommunities(fedComInfos, tx)
+      if (upsertedCount !== fedComInfos.length) {
+        logger.error(
+          `only ${upsertedCount} communities (foreign = true) from ${fedComInfos.length} are created/updated`,
+        )
+      }
+
+      return await dbFindForeignCommunitiesNeedingHandshake(VALIDATE_COMMUNITIES_BATCH_SIZE, tx)
+    })
+    // Step 4: start handshake with all not handshaked communities or on url change, one after another
+    for (const com of handshakeCommunities) {
+      await startCommunityAuthentication(
+        PeerApiClientCache.getInstance().get(com.url, com.publicKey),
+      )
+    }
+  } catch (e) {
+    logger.error('Error: ', e)
   }
 }
 
-async function writeForeignCommunity(
-  dbCom: DbFederatedCommunity,
-  pubInfo: PublicCommunityInfo,
-): Promise<void> {
-  if (!dbCom || !pubInfo || !(dbCom.publicKey.toString('hex') === pubInfo.publicKey)) {
-    const pubInfoView = new PublicCommunityInfoLoggingView(pubInfo)
-    logger.error(
-      `Error in writeForeignCommunity: missmatching parameters or publicKey. pubInfo:${pubInfoView.toString(
-        true,
-      )}`,
+async function federatedCommunityGetInfoCheckPublicKey(fedComB: FederatedCommunity): Promise<{
+  foreignCommunity: Omit<CommunitiesInsert, 'creationDate'>
+  federatedCommunityId: number
+} | null> {
+  const logger = createLogger()
+  logger.addContext('apiUrl', fedComB.apiUrl)
+
+  const peerClient = PeerApiClientCache.getInstance().get(fedComB.apiUrl, fedComB.publicKey)
+  const { data: rawPubComInfo } = await peerClient.getCommunityInfos()
+  // TODO: write last error into db
+  if (!rawPubComInfo) {
+    logger.debug('missing result of getPublicCommunityInfo')
+    return null
+  }
+  const pubComInfo = v.parse(foreignCommunityInfoSchema, rawPubComInfo)
+  peerClient.publicJwtKey = pubComInfo.publicJwtKey
+
+  // TODO: write last error into db
+  if (!pubComInfo.publicKey.equals(fedComB.publicKey)) {
+    logger.debug(
+      'received not matching publicKey',
+      pubComInfo.publicKey.toString('hex'),
+      fedComB.publicKey.toString('hex'),
     )
+    return null
+  }
+  return {
+    foreignCommunity: {
+      foreign: true,
+      url: fedComB.endPoint,
+      publicJwtKey: pubComInfo.publicJwtKey,
+      ...fedComB,
+    },
+    federatedCommunityId: fedComB.id,
+  }
+}
+
+async function startCommunityAuthentication(client: PeerApiClient): Promise<void> {
+  const logger = createLogger()
+  const handshakeId = randombytes_random()
+  logger.addContext('handshakeId', handshakeId)
+
+  const stateId = await dbUpsertCommunityHandshakeState({
+    publicKey: client.publicKey,
+    apiVersion: '1_0', // temp while refactoring, later removed
+    status: CommunityHandshakeStateType.START_COMMUNITY_AUTHENTICATION,
+    handshakeId,
+  })
+  logger.debug('[START_COMMUNITY_AUTHENTICATION] community handshake state created')
+
+  const result = await client.postHandshake1Open(handshakeId)
+  if (result.data === true) {
+    logger.debug(`successful initiated at community:`, client)
   } else {
-    let com = await DbCommunity.findOneBy({ publicKey: dbCom.publicKey, foreign: true })
-    if (!com) {
-      com = DbCommunity.create()
+    if (result.error) {
+      logger.error(`http error: `, result.error)
+      await dbUpdateCommunityHandshakeStateError(stateId, JSON.stringify(result.error))
+    } else {
+      const errorMsg = `can't initiate at community: ${client}`
+      logger.error(errorMsg)
+      await dbUpdateCommunityHandshakeStateError(stateId, errorMsg)
     }
-    com.creationDate = pubInfo.creationDate
-    com.description = pubInfo.description
-    com.foreign = true
-    com.name = pubInfo.name
-    com.publicKey = dbCom.publicKey
-    com.publicJwtKey = pubInfo.publicJwtKey
-    com.url = dbCom.endPoint
-    com.hieroTopicId = pubInfo.hieroTopicId
-    await DbCommunity.save(com)
   }
 }
