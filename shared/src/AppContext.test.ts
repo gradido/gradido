@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { afterAll, describe, expect, it } from 'bun:test'
+import { afterAll, describe, expect, it, spyOn } from 'bun:test'
 import * as v from 'valibot'
 import { AppContext, appContextOptionsSchema } from './AppContext'
 import {
@@ -60,35 +60,38 @@ describe('AppContext', () => {
     expect(AppContext.getInstance().derivePinKey('fixed-salt', '000000')).toBe(4194897870853666154n)
   })
 
-  it('answers whether a derivation handed in now would be refused', async () => {
+  it('answers whether a derivation handed in now would be refused', () => {
     const context = AppContext.getInstance()
-    expect(context.passwordHashingRefusalNow()).toBeUndefined()
-    // one derivation at a time on one thread, and a budget nothing fits into but the first
     context.destroy()
-    context.init({
-      ...secrets,
-      passwordHashing: {
-        opsLimit: 1,
-        memLimit: 8 * 1024 * 1024,
-        threadCount: 1,
-        maxExpectedWaitMs: 1,
-      },
-    })
-    const results = []
-    for (let i = 0; i < 20; i++) {
-      results.push(context.hashPassword(`salt-${i}`, 'pw', PasswordHashPriority.LOW))
-    }
-    const refusal = context.passwordHashingRefusalNow()
-    expect(refusal).toBeInstanceOf(ResourceExhausted)
-    expect(refusal?.clientMessage).toBe('Server is full, please try again in 10 minutes.')
-    await Promise.all(results.map((result) => (result.success ? result.value : undefined)))
+    context.init({ ...secrets, passwordHashing: MINIMAL_PASSWORD_HASHING })
+    // nothing queued
     expect(context.passwordHashingRefusalNow()).toBeUndefined()
+
+    // The rule is asked on figures set here, not on a queue filled for the question: a
+    // derivation takes about 3 ms, and whenever the test thread is held up that long, the
+    // hashing thread has drained the queue before the question is asked. That the native
+    // admission refuses a full queue is 'reports a full queue as ResourceExhausted'.
+    const idle = context.getPasswordHashingStats()
+    const stats = spyOn(context, 'getPasswordHashingStats')
+    try {
+      stats.mockReturnValue({ ...idle, expectedWaitMs: idle.maxExpectedWaitMs - 0.001 })
+      expect(context.passwordHashingRefusalNow()).toBeUndefined()
+
+      // from the limit on, as the native admission (it admits below expectedWaitMs < max)
+      stats.mockReturnValue({ ...idle, expectedWaitMs: idle.maxExpectedWaitMs })
+      const refusal = context.passwordHashingRefusalNow()
+      expect(refusal).toBeInstanceOf(ResourceExhausted)
+      expect(refusal?.clientMessage).toBe('Server is full, please try again in 10 minutes.')
+    } finally {
+      stats.mockRestore()
+    }
   })
 
   it('reports a full queue as ResourceExhausted', async () => {
     const context = AppContext.getInstance()
-    // a few milliseconds per derivation and a small budget: the one thread is busy for long
-    // enough that everything handed in below is still waiting, and it is over soon
+    // a few milliseconds per derivation and a small budget: the loop below hands in jobs in
+    // microseconds, while the one thread takes one off the queue every few milliseconds, so the
+    // queue outgrows the budget long before the thread can drain it, and it is over soon
     context.destroy()
     context.init({
       ...secrets,

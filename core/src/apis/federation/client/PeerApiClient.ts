@@ -1,5 +1,5 @@
 import { treaty } from '@elysia/eden'
-import { verifySignedResponse } from 'shared'
+import { createSignatureNonce, verifySignedResponse } from 'shared'
 import { peerApiRoutes } from '../server'
 
 export type ElysiaApiRoutesClientType = ReturnType<typeof treaty<typeof peerApiRoutes>>
@@ -29,7 +29,12 @@ export class PeerApiClient {
   // verify against the announced public key is refused: the throw reaches the caller through Eden
   // as { data: null, error: { status: 503, value: InvalidResponseSignatureError } }.
   // Error answers are not signed and carry no data, they pass as they are.
+  // The nonce to expect is read from the url that was actually requested.
   protected async fetchVerified(url: RequestInfo | URL, options?: RequestInit): Promise<Response> {
+    const nonce = new URL(url instanceof Request ? url.url : url).searchParams.get('nonce')
+    if (!nonce) {
+      throw new Error(`a public route is requested without nonce: ${url}`)
+    }
     const response = await fetch(url, options)
     if (!response.ok) {
       return response
@@ -39,6 +44,7 @@ export class PeerApiClient {
     await verifySignedResponse(
       { status: response.status, headers: response.headers, body },
       this.publicKey,
+      nonce,
     )
     return new Response(body, { status: response.status, headers: response.headers })
   }
@@ -52,7 +58,9 @@ export class PeerApiClient {
   }
 
   public getCommunityInfos() {
-    return this.elysiaJsClient['peer-api'].v1.communityInfos.get()
+    return this.elysiaJsClient['peer-api'].v1.communityInfos.get({
+      query: { nonce: createSignatureNonce() },
+    })
   }
   public postHandshake1Open(handshakeId: number) {
     return this.elysiaJsClientEncryptSign['peer-api'].v1.handshake1Open.post({ handshakeId })

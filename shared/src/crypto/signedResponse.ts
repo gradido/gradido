@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
-import { createHash, createPrivateKey, createPublicKey, KeyObject } from 'node:crypto'
+import { createHash, createPrivateKey, createPublicKey, KeyObject, randomBytes } from 'node:crypto'
 import { createSigner, createVerifier, httpbis } from 'http-message-signatures'
-import { DomainError, VoidResult } from '../errorTypes'
+import { DomainError } from '../errorTypes'
 
 /** The Ed25519 key pair a community signs with, as libsodium stores it: privateKey = seed || publicKey. */
 export type SigningCommunity = { publicKey: Buffer; privateKey: Buffer | null }
@@ -14,11 +14,12 @@ export class InvalidResponseSignatureError extends DomainError {
 
 // What an RFC 9421 response signature covers. The body is covered through content-digest (RFC 9530).
 const COVERED_RESPONSE_FIELDS = ['@status', 'content-type', 'content-digest']
-// keyid, alg, created and expires are what signMessage sets by default; a verifier insists on all four
-const REQUIRED_SIGNATURE_PARAMS = ['keyid', 'alg', 'created', 'expires']
-const MAX_SIGNATURE_AGE_SECONDS = 5 * 60
-// how far the clocks of two community servers may drift apart
-const CLOCK_TOLERANCE_SECONDS = 30
+// The nonce of the request makes a response fresh: it answers this one request and no other.
+// No created or expires, so the clocks of the two community servers do not have to agree.
+const SIGNATURE_PARAMS = ['keyid', 'alg', 'nonce']
+
+/** 128 random bits as hex, for a request whose response is to be signed, see signatureNonceSchema */
+export const createSignatureNonce = (): string => randomBytes(16).toString('hex')
 
 // DER headers of Ed25519 keys in PKCS#8 and SPKI; the 32 raw bytes follow them (RFC 8410)
 const ED25519_PKCS8_PREFIX = Buffer.from('302e020100300506032b657004220420', 'hex')
@@ -43,13 +44,15 @@ const ed25519PublicKey = (publicKey: Buffer): KeyObject =>
 
 /**
  * Serializes value as JSON and signs the response with the community's Ed25519 key (RFC 9421).
- * keyid is the community public key as hex, the same key the DHT announces.
+ * keyid is the community public key as hex, the same key the DHT announces; nonce is the one
+ * the request brought, as hex.
  * @throws Error if the community has no private key - a home community always has one
  */
 export async function signedJsonResponse(
   value: unknown,
   status: number,
   community: SigningCommunity,
+  nonce: string,
 ): Promise<Response> {
   if (!community.privateKey) {
     throw new Error('community has no private key, cannot sign the response')
@@ -63,6 +66,8 @@ export async function signedJsonResponse(
         community.publicKey.toString('hex'),
       ),
       fields: COVERED_RESPONSE_FIELDS,
+      params: SIGNATURE_PARAMS,
+      paramValues: { nonce },
     },
     {
       status,
@@ -78,12 +83,19 @@ export async function signedJsonResponse(
 }
 
 /**
- * Whether the response was signed by the community with this public key, over this body,
- * within the last MAX_SIGNATURE_AGE_SECONDS.
+ * Resolves if the response was signed by the community with this public key, over this body,
+ * as the answer to the request that carried this nonce.
+ * @throws InvalidResponseSignatureError if the digest does not match the body, the response is
+ *         not signed, a signature is by another key, the nonce is not the one of the request,
+ *         or the signature does not match
+ * @throws the errors of http-message-signatures, as they are, for malformed or incomplete
+ *         signatures (UnacceptableSignatureError, MalformedSignatureError, and a plain Error
+ *         'Incomplete signature headers' where only one of Signature and Signature-Input is set)
  */
 export async function verifySignedResponse(
   response: { status: number; headers: Headers; body: string },
   publicKey: Buffer,
+  nonce: string,
 ): Promise<void> {
   // the signature covers the digest header only, the body is bound by comparing it here
   if (response.headers.get('content-digest') !== contentDigest(response.body)) {
@@ -93,18 +105,25 @@ export async function verifySignedResponse(
   const verify = createVerifier(ed25519PublicKey(publicKey), 'ed25519')
   const verified = await httpbis.verifyMessage(
     {
-      // signatures by any other key count as absent
-      keyLookup: async (params) =>
-        params.keyid === keyid ? { id: keyid, algs: ['ed25519'], verify } : null,
+      keyLookup: async (params) => {
+        // a signature by any other key refuses the whole response, even beside a valid one
+        if (params.keyid !== keyid) {
+          throw new InvalidResponseSignatureError(`no signature by key ${keyid}`)
+        }
+        // a signed answer to another request, replayed
+        if (params.nonce !== nonce) {
+          throw new InvalidResponseSignatureError('nonce is not the one of the request')
+        }
+        return { id: keyid, algs: ['ed25519'], verify }
+      },
       requiredFields: COVERED_RESPONSE_FIELDS,
-      requiredParams: REQUIRED_SIGNATURE_PARAMS,
-      maxAge: MAX_SIGNATURE_AGE_SECONDS,
-      tolerance: CLOCK_TOLERANCE_SECONDS,
+      requiredParams: SIGNATURE_PARAMS,
     },
     { status: response.status, headers: Object.fromEntries(response.headers) },
   )
+  // null: neither Signature nor Signature-Input, the library asked for no key
   if (verified === null) {
-    throw new InvalidResponseSignatureError(`no signature by key ${keyid}`)
+    throw new InvalidResponseSignatureError('response is not signed')
   }
   if (!verified) {
     throw new InvalidResponseSignatureError('signature does not match')
