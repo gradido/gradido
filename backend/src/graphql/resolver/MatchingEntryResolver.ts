@@ -1,6 +1,8 @@
 // AI-GENERATED — not an architecture reference
 import {
+  dbDeleteEventMatchingArrival,
   dbDeleteMatchingEntryByUuid,
+  dbSelectEventMatchingArrival,
   dbSelectMatchingEntriesByUserId,
   dbSelectMatchingEntryByUuid,
   dbSetMatchingEntryActive,
@@ -110,6 +112,42 @@ export class MatchingEntryResolver {
       })
       return new EventMatchingEntryAccepted(true, made)
     })
+  }
+
+  /**
+   * The sentence of the entry an event link made at this account's confirmation, for as long as
+   * the wallet has not invited the member onto the map for it (Event-Matching, KA-015) -- null
+   * where no invitation is due. The wallet asks after a sign-in: the mail of the registration is
+   * often opened on another device than the link, and only the account knows how its owner came.
+   *
+   * The sentence is read off the entry itself, never kept beside it: where the member has changed
+   * it, the invitation names it as it stands; where the entry is gone, or is not the member's own,
+   * there is nothing to invite them for, and the answer is null.
+   */
+  @Authorized([RIGHTS.LIST_MATCHING_ENTRY])
+  @Query(() => String, { nullable: true })
+  async eventMatchingArrival(@Ctx() context: Context): Promise<string | null> {
+    const user = getUser(context)
+    const arrival = await dbSelectEventMatchingArrival(user.id)
+    if (!arrival) {
+      return null
+    }
+    const entry = await dbSelectMatchingEntryByUuid(arrival.matchingEntryUuid)
+    if (!entry.success || entry.value.userId !== user.id) {
+      return null
+    }
+    return entry.value.summary
+  }
+
+  /**
+   * The invitation onto the map is over: it had the screen, or the member stands on the map
+   * without it. It comes once (KA-015). True also where none was due -- two tabs may both say it.
+   */
+  @Authorized([RIGHTS.LIST_MATCHING_ENTRY])
+  @Mutation(() => Boolean)
+  async settleEventMatchingArrival(@Ctx() context: Context): Promise<boolean> {
+    await dbDeleteEventMatchingArrival(getUser(context).id)
+    return true
   }
 
   @Authorized([RIGHTS.UPDATE_MATCHING_ENTRY])

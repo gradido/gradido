@@ -641,6 +641,12 @@ export const listMatchingEntries = gql`
   }
 `
 
+export const eventMatchingArrival = gql`
+  query {
+    eventMatchingArrival
+  }
+`
+
 // Whether each entry has its words, on its own: the list above is asserted on whole elsewhere.
 export const listMatchingEntriesKeyed = gql`
   query {

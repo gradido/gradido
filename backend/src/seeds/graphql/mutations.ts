@@ -550,6 +550,12 @@ export const acceptEventMatchingEntry = gql`
   }
 `
 
+export const settleEventMatchingArrival = gql`
+  mutation {
+    settleEventMatchingArrival
+  }
+`
+
 export const updateMatchingEntry = gql`
   mutation ($uuid: String!, $input: MatchingEntryInput!) {
     updateMatchingEntry(uuid: $uuid, input: $input) {

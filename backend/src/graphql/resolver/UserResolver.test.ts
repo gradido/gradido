@@ -106,6 +106,7 @@ import {
   authenticateGmsUserSearch,
   avatarFull,
   checkUsername,
+  eventMatchingArrival,
   gmsDashboardUrl,
   listMatchingEntries,
   mapMemberCount as mapMemberCountQuery,
@@ -1323,6 +1324,20 @@ describe('UserResolver', () => {
             'SELECT matching_type, summary, details, remote, active FROM matching_entries WHERE user_id = ?',
             [userId],
           )
+      // The invitation onto the map that is due for the account (KA-015), and the entries it
+      // could name.
+      const arrivals = (): Promise<unknown[]> =>
+        db
+          .getDataSource()
+          .query('SELECT matching_entry_uuid FROM event_matching_arrivals WHERE user_id = ?', [
+            userId,
+          ])
+      const entryUuids = async (): Promise<string[]> =>
+        (
+          await db
+            .getDataSource()
+            .query('SELECT uuid FROM matching_entries WHERE user_id = ?', [userId])
+        ).map((row: { uuid: string }) => row.uuid)
       const setThePassword = () =>
         mutate({
           mutation: setPassword,
@@ -1358,6 +1373,8 @@ describe('UserResolver', () => {
           },
         ])
         expect(await entries()).toEqual([])
+        // Nothing to invite anybody onto the map for before the mail was clicked.
+        expect(await arrivals()).toEqual([])
       })
 
       // That an entry came along, never its words: they say something about a person, and
@@ -1422,9 +1439,11 @@ describe('UserResolver', () => {
         })
         expect(account.emailContact.emailChecked).toBe(true)
         expect(account.accountState).toBe(AccountState.ACTIVATED)
-        // Taken back with the transaction: the note is there again, and no entry is.
+        // Taken back with the transaction: the note is there again, and no entry is -- nor an
+        // invitation for an entry that does not exist.
         expect(await notes()).toHaveLength(1)
         expect(await entries()).toEqual([])
+        expect(await arrivals()).toEqual([])
         // Said by the driver's code, never by the statement with the words in it.
         expect(makeEntryLogger.error).toHaveBeenCalledWith(
           `could not make the entry an event link noted for user ${userId}, it waits on:`,
@@ -1447,6 +1466,8 @@ describe('UserResolver', () => {
         ])
         // Nothing of it is kept: its words are the member's entry now.
         expect(await notes()).toEqual([])
+        // And the invitation onto the map is due, naming that entry (KA-015).
+        expect(await arrivals()).toEqual([{ matching_entry_uuid: (await entryUuids())[0] }])
       })
 
       it('lists it for the member like an entry they saved themselves', async () => {
@@ -1470,12 +1491,29 @@ describe('UserResolver', () => {
         ])
       })
 
+      // Whichever device the member signs in on: the account says how they came.
+      it('tells the wallet after the sign-in that the invitation onto the map is due, with the sentence', async () => {
+        await mutate({
+          mutation: login,
+          variables: { email: createUserVariables.email, password: 'Aa12345_' },
+        })
+        const asked = await query({ query: eventMatchingArrival })
+        resetToken()
+
+        expect(asked.errors).toBeUndefined()
+        expect(asked.data.eventMatchingArrival).toBe('Kongress Frequency Healing')
+      })
+
       // The link of the mail opened once more.
       it('makes no second entry when the password is set again', async () => {
+        const before = await arrivals()
         const answer = await setThePassword()
 
         expect(answer).toEqual(expect.objectContaining({ data: { setPassword: true } }))
         expect(await entries()).toHaveLength(1)
+        // Nor a second invitation: the one that is due stays as it was.
+        expect(await arrivals()).toEqual(before)
+        expect(before).toHaveLength(1)
       })
 
       // A member who deleted the entry does not get it back with the next password.

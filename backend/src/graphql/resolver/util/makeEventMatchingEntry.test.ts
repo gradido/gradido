@@ -5,6 +5,7 @@ import {
   dbFindUsersWithEmailContactByIds,
   dbHasEventMatchingEntry,
   dbInsertMatchingEntry,
+  dbMarkEventMatchingArrival,
   dbSelectMatchingEntriesByUserId,
   dbSelectMatchingEntryByUuid,
   dbTakeEventMatchingEntry,
@@ -31,6 +32,7 @@ jest.mock('database', () => ({
   dbFindUsersWithEmailContactByIds: jest.fn(),
   dbHasEventMatchingEntry: jest.fn(),
   dbInsertMatchingEntry: jest.fn(),
+  dbMarkEventMatchingArrival: jest.fn(),
   dbSelectMatchingEntriesByUserId: jest.fn(),
   dbSelectMatchingEntryByUuid: jest.fn(),
   dbTakeEventMatchingEntry: jest.fn(),
@@ -45,6 +47,7 @@ const hasMock = dbHasEventMatchingEntry as jest.Mock
 const takeMock = dbTakeEventMatchingEntry as jest.Mock
 const ownMock = dbSelectMatchingEntriesByUserId as jest.Mock
 const insertMock = dbInsertMatchingEntry as jest.Mock
+const markArrivalMock = dbMarkEventMatchingArrival as jest.Mock
 const selectMock = dbSelectMatchingEntryByUuid as jest.Mock
 const usersMock = dbFindUsersWithEmailContactByIds as jest.Mock
 const syncMock = syncMatchingEntryToGms as jest.Mock
@@ -142,6 +145,7 @@ beforeEach(() => {
   takeMock.mockResolvedValue(noted())
   ownMock.mockResolvedValue([])
   insertMock.mockResolvedValue({ success: true })
+  markArrivalMock.mockResolvedValue(undefined)
   selectMock.mockImplementation(async () => ({ success: true, value: stored(storedRow()) }))
   usersMock.mockResolvedValue([maren])
   syncMock.mockResolvedValue(undefined)
@@ -163,6 +167,7 @@ describe('makeEventMatchingEntry', () => {
       expect(transactions).toEqual([])
       expect(takeMock).not.toHaveBeenCalled()
       expect(insertMock).not.toHaveBeenCalled()
+      expect(markArrivalMock).not.toHaveBeenCalled()
       expect(usersMock).not.toHaveBeenCalled()
       expect(selectMock).not.toHaveBeenCalled()
       expect(syncMock).not.toHaveBeenCalled()
@@ -181,8 +186,64 @@ describe('makeEventMatchingEntry', () => {
 
     expect(transactions).toEqual(['committed'])
     expect(insertMock).not.toHaveBeenCalled()
+    expect(markArrivalMock).not.toHaveBeenCalled()
     expect(ownMock).not.toHaveBeenCalled()
     expect(logger.error).not.toHaveBeenCalled()
+  })
+
+  /**
+   * KA-015: the account came in by the link, so the wallet invites the member onto the map after
+   * their next sign-in -- on whichever device. Noted with the entry it names: an invitation for
+   * an entry that is not there names nothing, and an entry nobody leads to the map is half of
+   * what the link promised.
+   */
+  describe('the invitation onto the map', () => {
+    it('is noted with the entry, naming it, in the same transaction and after it', async () => {
+      await makeEventMatchingEntry(MAREN)
+
+      expect(markArrivalMock).toHaveBeenCalledTimes(1)
+      expect(markArrivalMock).toHaveBeenCalledWith(MAREN, storedRow().uuid, tx)
+      expect(markArrivalMock.mock.invocationCallOrder[0]).toBeGreaterThan(
+        insertMock.mock.invocationCallOrder[0],
+      )
+      expect(transactions).toEqual(['committed'])
+    })
+
+    it.each<[string, () => void]>([
+      [
+        'the note is older than thirty days',
+        () => takeMock.mockResolvedValue(noted({ createdAt: new Date(Date.now() - 31 * DAY_MS) })),
+      ],
+      ['the member has that entry already', () => ownMock.mockResolvedValue([own()])],
+      [
+        'the entry cannot be stored',
+        () => insertMock.mockResolvedValue({ success: false, error: new Error('insert failed') }),
+      ],
+    ])('is not noted where %s', async (_where, arrange) => {
+      arrange()
+
+      await makeEventMatchingEntry(MAREN)
+
+      expect(markArrivalMock).not.toHaveBeenCalled()
+    })
+
+    // Both, or neither: the entry goes back with it, the note waits for a later confirmation,
+    // and nothing is handed on.
+    it('takes the entry back with it where it cannot be noted', async () => {
+      markArrivalMock.mockRejectedValue(failedQuery('ER_LOCK_WAIT_TIMEOUT'))
+
+      await expect(makeEventMatchingEntry(MAREN)).resolves.toBeUndefined()
+
+      expect(insertMock).toHaveBeenCalledTimes(1)
+      expect(transactions).toEqual(['rolled back'])
+      expect(usersMock).not.toHaveBeenCalled()
+      expect(syncMock).not.toHaveBeenCalled()
+      expect(nudgeMock).not.toHaveBeenCalled()
+      expect(logger.error).toHaveBeenCalledWith(
+        `could not make the entry an event link noted for user ${MAREN}, it waits on:`,
+        'ER_LOCK_WAIT_TIMEOUT',
+      )
+    })
   })
 
   describe('for an account an event link noted an entry at', () => {

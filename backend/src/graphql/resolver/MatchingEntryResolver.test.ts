@@ -3,6 +3,7 @@ import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@t
 import { getLogger } from 'config-schema/test/testSetup'
 import {
   AppDatabase,
+  dbMarkEventMatchingArrival,
   dbSelectMatchingEntriesByUserId,
   dbSelectMatchingEntryByUuid,
   dbWriteMatchingEntryKeying,
@@ -20,9 +21,14 @@ import {
   deleteMatchingEntry,
   login,
   setMatchingEntryActive,
+  settleEventMatchingArrival,
   updateMatchingEntry,
 } from '@/seeds/graphql/mutations'
-import { listMatchingEntries, listMatchingEntriesKeyed } from '@/seeds/graphql/queries'
+import {
+  eventMatchingArrival,
+  listMatchingEntries,
+  listMatchingEntriesKeyed,
+} from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { syncMatchingEntryToGms } from './util/syncMatchingEntryToGms'
@@ -468,6 +474,121 @@ describe('MatchingEntryResolver', () => {
       const words = `${'Geheimnis '.repeat(16)}x`
       const res = await accept({ ...offered, summary: words })
       expect(res.errors[0].message).not.toContain('Geheimnis')
+    })
+  })
+
+  /**
+   * The invitation onto the map after an event link (KA-015): noted at the account by the
+   * confirmation that makes the entry (makeEventMatchingEntry, held in UserResolver.test.ts),
+   * asked by the wallet after a sign-in, taken away once it had the screen. Noted here straight
+   * through the query layer, which its own test covers.
+   */
+  describe('eventMatchingArrival and settleEventMatchingArrival', () => {
+    const SENTENCE = 'Kongress Frequency Healing'
+    const asked = (): Promise<any> => query({ query: eventMatchingArrival })
+    const settle = (): Promise<any> => mutate({ mutation: settleEventMatchingArrival })
+
+    beforeEach(async () => {
+      await clearEntries()
+      await db.getDataSource().query('DELETE FROM event_matching_arrivals')
+      await loginBibi()
+    })
+
+    describe('unauthenticated', () => {
+      it('returns an error for both, and leaves the invitation where it is', async () => {
+        const uuid = await seedEntry({ matchingType: 'interest', summary: SENTENCE })
+        await dbMarkEventMatchingArrival(bibi.id, uuid)
+        resetToken()
+
+        expect((await asked()).errors).toEqual([new GraphQLError('401 Unauthorized')])
+        expect((await settle()).errors).toEqual([new GraphQLError('401 Unauthorized')])
+        await loginBibi()
+        expect((await asked()).data.eventMatchingArrival).toBe(SENTENCE)
+      })
+    })
+
+    it('answers null where no invitation is due', async () => {
+      await seedEntry({ matchingType: 'interest', summary: SENTENCE })
+
+      const res = await asked()
+      expect(res.errors).toBeUndefined()
+      expect(res.data.eventMatchingArrival).toBeNull()
+    })
+
+    it('names the sentence of the entry the invitation is for', async () => {
+      const uuid = await seedEntry({ matchingType: 'interest', summary: SENTENCE })
+      await dbMarkEventMatchingArrival(bibi.id, uuid)
+
+      const res = await asked()
+      expect(res.errors).toBeUndefined()
+      expect(res.data.eventMatchingArrival).toBe(SENTENCE)
+    })
+
+    // Read off the entry, never kept beside it.
+    it('names the sentence as it stands, where the member has changed it since', async () => {
+      const uuid = await seedEntry({ matchingType: 'interest', summary: SENTENCE })
+      await dbMarkEventMatchingArrival(bibi.id, uuid)
+      await mutate({
+        mutation: updateMatchingEntry,
+        variables: { uuid, input: { matchingType: 'interest', summary: `${SENTENCE} 2026` } },
+      })
+
+      expect((await asked()).data.eventMatchingArrival).toBe(`${SENTENCE} 2026`)
+    })
+
+    it('answers null where the entry is gone', async () => {
+      const uuid = await seedEntry({ matchingType: 'interest', summary: SENTENCE })
+      await dbMarkEventMatchingArrival(bibi.id, uuid)
+      await mutate({ mutation: deleteMatchingEntry, variables: { uuid } })
+
+      expect((await asked()).data.eventMatchingArrival).toBeNull()
+    })
+
+    // ⛔ Only the member's own entry is ever named: a row that pointed at somebody else's would
+    // hand out that member's words.
+    it('never names an entry of another member, whatever the row points at', async () => {
+      await loginBob()
+      const bobs = await seedEntry({ matchingType: 'interest', summary: 'Bob loves bricks' })
+      await loginBibi()
+      await dbMarkEventMatchingArrival(bibi.id, bobs)
+
+      const res = await asked()
+      expect(res.errors).toBeUndefined()
+      expect(res.data.eventMatchingArrival).toBeNull()
+    })
+
+    it('answers every member for their own account', async () => {
+      const uuid = await seedEntry({ matchingType: 'interest', summary: SENTENCE })
+      await dbMarkEventMatchingArrival(bibi.id, uuid)
+      await loginBob()
+
+      expect((await asked()).data.eventMatchingArrival).toBeNull()
+    })
+
+    it('is over once settled -- for the member who settles it, and for nobody else', async () => {
+      const uuid = await seedEntry({ matchingType: 'interest', summary: SENTENCE })
+      await dbMarkEventMatchingArrival(bibi.id, uuid)
+      await loginBob()
+      const bobs = await seedEntry({ matchingType: 'interest', summary: 'Bob loves bricks' })
+      await dbMarkEventMatchingArrival(bob.id, bobs)
+      await loginBibi()
+
+      const res = await settle()
+      expect(res.errors).toBeUndefined()
+      expect(res.data.settleEventMatchingArrival).toBe(true)
+      expect((await asked()).data.eventMatchingArrival).toBeNull()
+      // The entry stays: only the invitation is over.
+      expect(await entryExists(uuid)).toBe(true)
+      await loginBob()
+      expect((await asked()).data.eventMatchingArrival).toBe('Bob loves bricks')
+    })
+
+    // Two tabs may both say it.
+    it('settles where none is due as well', async () => {
+      const res = await settle()
+
+      expect(res.errors).toBeUndefined()
+      expect(res.data.settleEventMatchingArrival).toBe(true)
     })
   })
 
