@@ -89,9 +89,11 @@
       class="send-picture-open"
       data-test="send-picture-open"
     >
+      <!-- A picture pasted on the page (Ctrl+V) comes into the choice while it is open. -->
       <thank-you-picture-choice
         :motif="picture?.motif ?? null"
         :photo="picture?.photo ?? null"
+        :takes-paste="open"
         @update:motif="onMotif"
         @update:photo="onPhoto"
       />
