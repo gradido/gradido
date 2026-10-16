@@ -598,4 +598,103 @@ describe('ThankYouPictureChoice', () => {
       expect(data('picture-problem').text()).toBe('Dieses Bild kann Dein Browser nicht öffnen.')
     })
   })
+
+  /**
+   * Ctrl+V (Bernd, 16.10.2026): a picture pasted on the page goes into the editor as a photo chosen
+   * on the device -- wherever the keyboard stands on the page, not from a window over it.
+   */
+  describe('a picture pasted on the page (Ctrl+V)', () => {
+    const png = () => new File(['PNG'], 'image.png', { type: 'image/png' })
+
+    /** What the clipboard holds -- a screenshot unless a test says otherwise --, pasted on `target`. */
+    const paste = async ({ text = '', files = [png()] } = {}, target = document.body) => {
+      const event = new Event('paste', { bubbles: true, cancelable: true })
+      Object.defineProperty(event, 'clipboardData', {
+        value: { getData: (type) => (type === 'text/plain' ? text : ''), files, items: [] },
+      })
+      target.dispatchEvent(event)
+      await flushPromises()
+      return event
+    }
+
+    /** A window over the page: Bootstrap's dialog, shown -- or the wallet's own. */
+    const windowOver = (className = 'modal show') => {
+      const box = document.createElement('div')
+      box.className = className
+      box.appendChild(document.createElement('button'))
+      return document.body.appendChild(box)
+    }
+
+    it('opens the editor with it, filling the card’s frame, as a photo chosen', async () => {
+      mountChoice()
+      const shot = png()
+
+      const event = await paste({ files: [shot] })
+
+      expect(pictures.openChatImage).toHaveBeenCalledWith(shot)
+      expect(event.defaultPrevented).toBe(true)
+      expect(editor().props('modelValue')).toBe(true)
+      expect(editor().props('source')).toBe(PHOTO)
+      expect(editor().props('edit')).toEqual(CARD_EDIT)
+      // Nothing is chosen before "Fertig".
+      expect(wrapper.emitted('update:photo')).toBeUndefined()
+    })
+
+    it('takes it wherever the keyboard stands on the page: on a tile as well', async () => {
+      mountChoice()
+
+      await paste({}, tiles()[0].element)
+
+      expect(pictures.openChatImage).toHaveBeenCalledTimes(1)
+    })
+
+    it('leaves a paste with words alone', async () => {
+      mountChoice()
+
+      const event = await paste({ text: 'Danke!' })
+
+      expect(pictures.openChatImage).not.toHaveBeenCalled()
+      expect(event.defaultPrevented).toBe(false)
+      expect(editor().props('modelValue')).toBe(false)
+    })
+
+    it('leaves a paste alone from a window over the page, and while one lies over it', async () => {
+      mountChoice()
+      const dialog = windowOver()
+      await paste({}, dialog.firstChild)
+      dialog.remove()
+      // The wallet's own window (the avatar's) leaves the keyboard on the page.
+      windowOver('modal-overlay')
+      await paste({}, document.body)
+
+      expect(pictures.openChatImage).not.toHaveBeenCalled()
+    })
+
+    it('takes none where the page says so: the transfer’s choice while it is closed', async () => {
+      mountChoice({ takesPaste: false })
+
+      await paste()
+
+      expect(pictures.openChatImage).not.toHaveBeenCalled()
+    })
+
+    it('takes none while a photo is on its way from elsewhere', async () => {
+      mountChoice({ busy: true })
+
+      await paste()
+
+      expect(pictures.openChatImage).not.toHaveBeenCalled()
+    })
+
+    it('takes none while the editor is open over a photo', async () => {
+      mountChoice()
+      await paste()
+      expect(editor().props('modelValue')).toBe(true)
+
+      await paste({ files: [png()] })
+
+      expect(pictures.openChatImage).toHaveBeenCalledTimes(1)
+      expect(editor().props('source')).toBe(PHOTO)
+    })
+  })
 })

@@ -480,6 +480,8 @@ import EmojiPicker from '@/components/Inputs/EmojiPicker.vue'
 import { chatNotifyFor } from '@/utils/chatNotify'
 import { offersEmojiPicker } from '@/utils/emojiChoice'
 import { isComputer } from '@/utils/isComputer'
+import { pasteIsFor } from '@/utils/pastedImage'
+import { usePastedImage } from '@/composables/usePastedImage'
 import { MESSAGE_MAX_CHARS, message as messageSchema } from '@/validationSchemas'
 
 /**
@@ -1032,15 +1034,10 @@ const pictureStatus = computed(() => {
 let pictureRound = 0
 
 /**
- * The picture the device's picker answered with, opened for the message: decoded and kept whole
- * (utils/chatImage), not edited yet.
+ * A picture chosen for the message -- in the device's picker, or pasted --, opened for it: decoded
+ * and kept whole (utils/chatImage), not edited yet.
  */
-const takePicture = async (event) => {
-  const input = event.target
-  const file = input.files?.[0]
-  // Emptied, so the same file chosen again is a change again.
-  input.value = ''
-  if (!file) return
+const openPicture = async (file) => {
   const round = ++pictureRound
   pictureProblem.value = null
   preparing.value = true
@@ -1060,6 +1057,32 @@ const takePicture = async (event) => {
     if (round === pictureRound) preparing.value = false
   }
 }
+
+/** The picture the device's picker answered with (the camera's field and "Bild"'s). */
+const takePicture = (event) => {
+  const input = event.target
+  const file = input.files?.[0]
+  // Emptied, so the same file chosen again is a change again.
+  input.value = ''
+  if (file) openPicture(file)
+}
+
+/**
+ * A picture pasted with Ctrl+V (Cmd+V) in the window the bar stands in -- in the field, in the
+ * thread, on the window itself, which has the keyboard when it opens: it goes with the next
+ * message as if chosen under "Bild" (Bernd, 16.10.2026). Not where the bar takes no picture --
+ * the text-only bar, a message being changed --, and not while another window lies over this one
+ * (the editor, the picture large, a portrait enlarged, the video call): see utils/pastedImage.
+ *
+ * Pasted while the paperclip's menu is open, it closes the menu as a choice there does.
+ */
+usePastedImage(
+  (file) => {
+    closeMenu({ focusClip: true })
+    openPicture(file)
+  },
+  (event) => !props.textOnly && !props.editing && pasteIsFor(event, root.value),
+)
 
 /** "Bild entfernen": the picture is taken off; the focus goes to the paperclip, for another one. */
 const removePicture = () => {

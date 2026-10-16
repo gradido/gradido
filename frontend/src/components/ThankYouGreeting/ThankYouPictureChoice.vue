@@ -5,7 +5,7 @@
        chat's picture editor (ZE-017 F9, ZE-024). One building block for the greeting and, later,
        for a picture with a transfer: it keeps nothing itself. The motif and the photo are its two
        models, and the photo lives in the memory of the page that uses it. -->
-  <div class="thank-you-picture-choice" data-test="thank-you-greeting-picture-choice">
+  <div ref="root" class="thank-you-picture-choice" data-test="thank-you-greeting-picture-choice">
     <div class="tyg-motifs">
       <button
         v-for="tile in motifs"
@@ -210,6 +210,8 @@ import { useI18n } from 'vue-i18n'
 import ChatImageEditor from '@/components/Chat/ChatImageEditor.vue'
 import { chatImageProblemWords, openChatImage } from '@/utils/chatImage'
 import { isComputer } from '@/utils/isComputer'
+import { pasteIsFor } from '@/utils/pastedImage'
+import { usePastedImage } from '@/composables/usePastedImage'
 import {
   THANK_YOU_MOTIF_HEIGHT,
   THANK_YOU_MOTIF_WIDTH,
@@ -236,11 +238,18 @@ const props = defineProps({
    * five motifs stay what they are: a tap on one is the member's own choice.
    */
   busy: { type: Boolean, default: false },
+  /**
+   * Whether a picture pasted on the page (Ctrl+V) comes here, as one chosen on the device. The
+   * transfer's field says no while its choice is closed: it is hidden then, not taken down.
+   */
+  takesPaste: { type: Boolean, default: true },
 })
 
 const emit = defineEmits(['update:motif', 'update:photo'])
 
 const { t } = useI18n()
+
+const root = ref(null)
 
 const motifs = computed(() => thankYouMotifs(t))
 
@@ -296,15 +305,10 @@ const onPhotoTile = () => {
 let pictureRound = 0
 
 /**
- * The photo the device's picker or its camera answered with: opened, and handed to the editor
- * filling the card's frame. Nothing is chosen yet -- "Fertig" there takes it over.
+ * A photo chosen -- in the device's picker, with its camera, or pasted --: opened, and handed to
+ * the editor filling the card's frame. Nothing is chosen yet -- "Fertig" there takes it over.
  */
-const takePicture = async (event) => {
-  const input = event.target
-  const file = input.files?.[0]
-  // Emptied, so the same file chosen again is a change again.
-  input.value = ''
-  if (!file) return
+const openPhoto = async (file) => {
   const round = ++pictureRound
   problem.value = null
   preparing.value = true
@@ -320,6 +324,27 @@ const takePicture = async (event) => {
     if (round === pictureRound) preparing.value = false
   }
 }
+
+/** The photo the device's picker or its camera answered with. */
+const takePicture = (event) => {
+  const input = event.target
+  const file = input.files?.[0]
+  // Emptied, so the same file chosen again is a change again.
+  input.value = ''
+  if (file) openPhoto(file)
+}
+
+/**
+ * A picture pasted with Ctrl+V (Cmd+V) on the page: it goes into the editor as a photo chosen on
+ * the device (Bernd, 16.10.2026). From the page, wherever the keyboard stands on it -- not from a
+ * window over the page (utils/pastedImage) --, and only where a photo could be chosen now: not
+ * while the choice is hidden (`takesPaste`), while a photo is on its way from elsewhere (`busy`,
+ * whose field takes none either), or while the editor is open over a photo.
+ */
+usePastedImage(
+  openPhoto,
+  (event) => props.takesPaste && !props.busy && !editorOpen.value && pasteIsFor(event, root.value),
+)
 
 /**
  * "Fertig" in the editor: the photo, with what was done to it, is in its tile and is the choice.
