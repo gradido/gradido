@@ -2669,6 +2669,114 @@ describe('ChatComposeBar', () => {
       expect(shown()).toBe(READY.image)
     })
 
+    /**
+     * Ctrl+V (Bernd, 16.10.2026): a paste with a picture and no words goes with the next message as
+     * one chosen under "Bild" -- from anywhere in the window the bar stands in (utils/pastedImage).
+     */
+    describe('a picture pasted (Ctrl+V)', () => {
+      /** The contact window around the bar: Bootstrap's dialog, shown. */
+      let dialog
+      const mountInWindow = (props = {}) => {
+        dialog = document.createElement('div')
+        dialog.className = 'modal show'
+        document.body.appendChild(dialog)
+        return mountBar(props, { attachTo: dialog })
+      }
+
+      /** What the clipboard holds -- a screenshot unless a test says otherwise --, pasted on `target`. */
+      const shot = () => new File(['PNG'], 'image.png', { type: 'image/png' })
+      const paste = async ({ text = '', files = [shot()] } = {}, target = field().element) => {
+        const event = new Event('paste', { bubbles: true, cancelable: true })
+        Object.defineProperty(event, 'clipboardData', {
+          value: { getData: (type) => (type === 'text/plain' ? text : ''), files, items: [] },
+        })
+        target.dispatchEvent(event)
+        await flushPromises()
+        return event
+      }
+
+      it('takes a screenshot pasted in the field as a picture chosen under "Bild"', async () => {
+        mountInWindow()
+        encoding.openChatImage.mockResolvedValueOnce(READY)
+        const file = shot()
+
+        const event = await paste({ files: [file] })
+
+        expect(encoding.openChatImage).toHaveBeenCalledWith(file)
+        expect(event.defaultPrevented).toBe(true)
+        expect(shown()).toBe(READY.image)
+        expect(words().text()).toBe('chatThread.imageReady chatThread.imageReadyHint')
+      })
+
+      it('takes one pasted on the window itself, which has the keyboard when it opens', async () => {
+        mountInWindow()
+        encoding.openChatImage.mockResolvedValueOnce(READY)
+
+        await paste({}, dialog)
+
+        expect(encoding.openChatImage).toHaveBeenCalledTimes(1)
+        expect(shown()).toBe(READY.image)
+      })
+
+      it('leaves a paste with words alone: a spreadsheet puts a picture of them along', async () => {
+        mountInWindow()
+
+        const event = await paste({ text: 'Zeile 1\tZeile 2' })
+
+        expect(encoding.openChatImage).not.toHaveBeenCalled()
+        expect(event.defaultPrevented).toBe(false)
+        expect(attached().exists()).toBe(false)
+      })
+
+      it('leaves a paste alone from another window over it, and from the page under it', async () => {
+        mountInWindow()
+        const editor = document.createElement('div')
+        editor.className = 'modal show'
+        const inEditor = editor.appendChild(document.createElement('button'))
+        document.body.appendChild(editor)
+
+        await paste({}, inEditor)
+        await paste({}, document.body)
+
+        expect(encoding.openChatImage).not.toHaveBeenCalled()
+        expect(attached().exists()).toBe(false)
+      })
+
+      it('takes none in the bar that takes no picture', async () => {
+        mountInWindow({ textOnly: true })
+
+        await paste()
+
+        expect(encoding.openChatImage).not.toHaveBeenCalled()
+        expect(attached().exists()).toBe(false)
+      })
+
+      // E-060: no picture goes with a change, and no other takes the place of the one it has.
+      it('takes none while a message is being changed', async () => {
+        mountInWindow({ editing: { messageUuid: 'uuid-1', body: 'Hallo', hasImage: false } })
+        await flushPromises()
+
+        await paste()
+
+        expect(encoding.openChatImage).not.toHaveBeenCalled()
+      })
+
+      it('closes the paperclip’s menu, and the keyboard goes back to the paperclip', async () => {
+        mountInWindow()
+        encoding.openChatImage.mockResolvedValueOnce(READY)
+        const menu = () => wrapper.find('[data-test="chat-compose-menu"]')
+        await clip().trigger('click')
+        await flushPromises()
+        expect(menu().classes()).toContain('is-open')
+
+        await paste({}, document.activeElement)
+
+        expect(menu().classes()).not.toContain('is-open')
+        expect(document.activeElement).toBe(clip().element)
+        expect(shown()).toBe(READY.image)
+      })
+    })
+
     /** E-047: the pencil opens the editor -- a choice beside the picture, never a step on the way. */
     describe('the editor', () => {
       const editor = () => wrapper.findComponent({ name: 'ChatImageEditor' })
@@ -2778,6 +2886,18 @@ describe('ChatComposeBar', () => {
       await chooseReady()
 
       expect(emptied).toBe('')
+    })
+
+    it('does nothing where the picker was closed without a file', async () => {
+      mountBar()
+      const picker = wrapper.find('[data-test="chat-compose-picker"]')
+      Object.defineProperty(picker.element, 'files', { value: [], configurable: true })
+
+      await picker.trigger('change')
+      await flushPromises()
+
+      expect(encoding.openChatImage).not.toHaveBeenCalled()
+      expect(attached().exists()).toBe(false)
     })
 
     it('takes the picture off with its button, and gives the focus to the paperclip', async () => {
