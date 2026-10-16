@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { reactive } from 'vue'
+import { reactive, ref } from 'vue'
 import { createStore } from 'vuex'
 import { createI18n } from 'vue-i18n'
 // The app registers these through createBootstrap(); the save button has to be a
@@ -15,6 +15,11 @@ import es from '@/locales/es.json'
 import Matching from './Matching.vue'
 import UserSettingsSwitch from '@/components/UserSettings/UserSettingsSwitch'
 import { listMatchingEntries, userLocationQuery, verifyLogin } from '@/graphql/queries'
+import {
+  eventLinkAnswerUnderway,
+  eventLinkSentence,
+  forgetEventLinkArrival,
+} from '@/composables/useEventMatchingArrival'
 
 const push = vi.fn()
 // Reactive, so a case can move the member on the way the router would - to another tab, or
@@ -190,6 +195,7 @@ beforeEach(() => {
   store.state.gradidoID = 'a-member'
   store.state.gmsAllowed = true
   store.state.userLocation = null
+  forgetEventLinkArrival()
 })
 
 afterEach(() => {
@@ -1275,6 +1281,89 @@ describe('Matching', () => {
           await flushPromises()
 
           expect(toast.error).not.toHaveBeenCalled()
+        })
+      })
+
+      /**
+       * KA-015: where the link made the entry, the invitation onto the map follows
+       * (EventMatchingHomeInvitation). The page says it -- with the sentence the server stored
+       * -- and until its answer is in, the windows after that invitation wait.
+       */
+      describe('for the invitation onto the map', () => {
+        const sentence = () => eventLinkSentence(ref('a-member')).value
+
+        it('says the sentence where the server made the entry', async () => {
+          kept.draft = offered({ summary: '  Kongress Frequency Healing ' })
+          mutate.mockResolvedValueOnce(answer(true))
+          mountPage('entries', shownModal)
+          await flushPromises()
+
+          expect(sentence()).toBe('Kongress Frequency Healing')
+          expect(eventLinkAnswerUnderway.value).toBe(false)
+        })
+
+        it('is underway from the moment the page asks until the answer is in', async () => {
+          kept.draft = offered()
+          let made
+          mutate.mockReturnValueOnce(new Promise((resolve) => (made = resolve)))
+          mountPage('entries', shownModal)
+          await flushPromises()
+          expect(eventLinkAnswerUnderway.value).toBe(true)
+          expect(sentence()).toBeNull()
+
+          made(answer(true))
+          await flushPromises()
+
+          expect(eventLinkAnswerUnderway.value).toBe(false)
+        })
+
+        // KA-014: a link opened again is silent, and so is its invitation.
+        it('says nothing where the member had the entry already', async () => {
+          kept.draft = offered()
+          mutate.mockResolvedValueOnce(answer(false))
+          mountPage('entries', shownModal)
+          await flushPromises()
+
+          expect(sentence()).toBeNull()
+          expect(eventLinkAnswerUnderway.value).toBe(false)
+        })
+
+        it.each([
+          ['a refusal the member is told elsewhere', graphQLRefusal('401 Unauthorized')],
+          ['a refusal nobody expects', graphQLRefusal('Invalid length')],
+          ['no connection', Object.assign(new Error('Failed to fetch'), { networkError: {} })],
+        ])('says nothing after %s', async (_what, error) => {
+          kept.draft = offered()
+          mutate.mockRejectedValueOnce(error)
+          mountPage('entries', shownModal)
+          await flushPromises()
+
+          expect(sentence()).toBeNull()
+          expect(eventLinkAnswerUnderway.value).toBe(false)
+        })
+
+        // The answer belongs to who opened the link.
+        it('says nothing where the member signed out before the answer came', async () => {
+          kept.draft = offered()
+          let made
+          mutate.mockReturnValueOnce(new Promise((resolve) => (made = resolve)))
+          mountPage('entries', shownModal)
+          store.state.gradidoID = null
+
+          made(answer(true))
+          await flushPromises()
+
+          expect(sentence()).toBeNull()
+          expect(eventLinkAnswerUnderway.value).toBe(false)
+        })
+
+        it('asks nothing of it for a search kept from the map', async () => {
+          kept.draft = { summary: 'einen Schlosser', details: '', matchingType: 'gesuch' }
+          mountPage('entries', shownModal)
+          await flushPromises()
+
+          expect(eventLinkAnswerUnderway.value).toBe(false)
+          expect(sentence()).toBeNull()
         })
       })
 

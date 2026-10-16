@@ -15,6 +15,7 @@ import { forgetViewport } from '@/composables/useViewport'
 import { transactionsUserCountQuery } from '@/graphql/transactions.graphql'
 import { LAST_TRANSACTIONS_PAGE_SIZE } from '@/constants'
 import FirstCreation from '@/components/FirstCreation.vue'
+import EventMatchingHomeInvitation from '@/components/EventMatchingHomeInvitation.vue'
 import CONFIG from '@/config'
 
 // `fileURLToPath`, not `new URL(...)`: jsdom brings its own `URL`, which node rejects.
@@ -157,6 +158,9 @@ describe('DashboardLayout', () => {
           ContentHeader: true,
           RightSide: true,
           SkeletonOverview: true,
+          // ⚠️ Asks the account through `useApolloClient` (this file's shared `mockApolloQuery`),
+          // which other cases here count. Its own spec mounts it; here only its place counts.
+          EventMatchingHomeInvitation: true,
           'fade-transition': true,
           // Last, so a caller can override ANY of them and not only RouterLink. Spread
           // first, an override was silently ignored for every other name.
@@ -1536,6 +1540,12 @@ describe('DashboardLayout', () => {
 
       it('hangs beside the other two first-login windows', () => {
         expect(wrapper.findComponent(FirstCreation).exists()).toBe(true)
+      })
+
+      // KA-015: the invitation onto the map after an event link hangs here as well, for every
+      // page of the wallet. Present, not its behaviour: that is EventMatchingHomeInvitation.spec.js.
+      it('has the invitation onto the map beside them', () => {
+        expect(wrapper.findComponent(EventMatchingHomeInvitation).exists()).toBe(true)
       })
 
       it('reads this layout´s balance rather than fetching one of its own', async () => {

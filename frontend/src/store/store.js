@@ -15,6 +15,7 @@ import { forgetFavorites } from '../composables/useFavorites'
 import { forgetContactsPanel } from '../composables/useContactsPanel'
 import { stopChatUpdates } from '../composables/useChatUpdates'
 import { forgetParkedAmount } from '../composables/useParkedAmount'
+import { forgetEventLinkArrival } from '../composables/useEventMatchingArrival'
 import { forgetFirstLoginWindows } from '../composables/useFirstLoginWindow'
 import { forgetLegacyMapPrefs } from '../utils/matchingPrefs'
 import { forgetChatDrafts, letOldChatDraftsGo } from '../utils/chatDraft'
@@ -310,6 +311,9 @@ export const actions = {
     // this action, and the next member on this browser must meet their own windows rather
     // than find all three silenced by a question the last member left unanswered.
     forgetFirstLoginWindows()
+    // And whether the member came in by an event link in this session: the invitation onto the
+    // map is theirs, not the next member's (useEventMatchingArrival).
+    forgetEventLinkArrival()
     forgetParkedAmount(signedOutMember)
     // The conversation to come back to after a restart (utils/chatReturn): whoever signs out is
     // not taken back into it, even where the idle timeout signs out a wallet left in a thread.

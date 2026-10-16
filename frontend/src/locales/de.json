@@ -638,6 +638,10 @@
       "title": "Event-Matching",
       "waiting": "Trag oben den Namen Deines Kongresses ein — dann erscheinen hier Dein Link, Dein QR-Code und ein Absatz für Deine Mail."
     },
+    "home": {
+      "text": "Damit Ihr Euch als Gleichgesinnte findet: Setz Dein Zuhause auf die Karte. Dann siehst Du die anderen, die „{sentence}“ eingetragen haben — und sie sehen Dich. Nur Mitglieder sehen die Karte. Du entscheidest, wie genau: „Ungefähr“ zeigt Dich im Umkreis, nie auf der Haustür. Und Du kannst jederzeit wieder raus.",
+      "title": "Wo wohnst Du?"
+    },
     "landing": {
       "added": "Dein Eintrag ist da: {sentence}",
       "firstEntry": "Dein erster Eintrag:",

@@ -286,12 +286,14 @@
         </BCol>
       </BRow>
       <session-logout-timeout @logout="logoutUser" />
-      <!-- The three windows a member meets on their first logins. Which of them is on
+      <!-- The four windows a member meets on their first logins. Which of them is on
            screen is decided in `useFirstLoginWindow`, not by their order here: two BModals
            stack, and the one underneath is then reachable only by answering the one on top.
            Their order in this template is free (they teleport) and must stay a detail. -->
       <alias-first-choice />
       <email-confirmation-reminder />
+      <!-- KA-015: who came in by an event link is invited onto the map after the name. -->
+      <event-matching-home-invitation />
       <!-- ES-002: what good have you already done? The balance comes off this layout's own
            booking query rather than a second one of its own, so the number in the window
            and the number in the header are the same answer. -->
@@ -328,6 +330,7 @@ import SessionLogoutTimeout from '@/components/SessionLogoutTimeout'
 import AliasFirstChoice from '@/components/AliasFirstChoice'
 import AvatarZoom from '@/components/Avatar/AvatarZoom.vue'
 import EmailConfirmationReminder from '@/components/EmailConfirmationReminder'
+import EventMatchingHomeInvitation from '@/components/EventMatchingHomeInvitation.vue'
 import FirstCreation from '@/components/FirstCreation.vue'
 import ContentFooter from '@/components/ContentFooter'
 import GddAmount from '@/components/Template/ContentHeader/GddAmount'

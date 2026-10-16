@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { ref } from 'vue'
 import { mount } from '@vue/test-utils'
 import { mutations, actions, THEME_MODE_STORAGE_KEY } from './store'
 import i18n from '../i18n'
@@ -10,6 +11,11 @@ import {
   pollChatNow,
   startChatUpdates,
 } from '@/composables/useChatUpdates'
+import {
+  eventLinkAnswerUnderway,
+  eventLinkSentence,
+  eventLinkUnderway,
+} from '@/composables/useEventMatchingArrival'
 import { firstLoginWindow, setFirstLoginWindowWanted } from '@/composables/useFirstLoginWindow'
 import {
   chatImage,
@@ -745,6 +751,33 @@ describe('Vuex store', () => {
         logout({ commit, state, dispatch })
 
         expect(firstLoginWindow.value).toBeNull()
+      })
+
+      /**
+       * ⛔ And whether the member came in by an event link in this session (KA-015): the
+       * invitation onto the map is theirs, and the first creation waits only in their session.
+       * Left standing, the next member on this browser would be invited for a link they never
+       * opened -- and would not see their own first creation.
+       */
+      it('lets go of the event link the member came in by, and of the wait behind it', () => {
+        const member = ref('marens-gradido-id')
+        eventLinkUnderway(member.value)('Kongress Frequency Healing')
+        eventLinkUnderway(member.value)
+        setFirstLoginWindowWanted('home', true)
+        setFirstLoginWindowWanted('home', false)
+        setFirstLoginWindowWanted('firstCreation', true)
+        // The fixture proves itself: a sentence is held, an answer is underway, and the first
+        // creation waits.
+        expect(eventLinkSentence(member).value).toBe('Kongress Frequency Healing')
+        expect(eventLinkAnswerUnderway.value).toBe(true)
+        expect(firstLoginWindow.value).toBeNull()
+
+        logout({ commit, state, dispatch })
+
+        expect(eventLinkSentence(member).value).toBeNull()
+        expect(eventLinkAnswerUnderway.value).toBe(false)
+        setFirstLoginWindowWanted('firstCreation', true)
+        expect(firstLoginWindow.value).toBe('firstCreation')
       })
 
       /**

@@ -129,6 +129,14 @@ export const acceptEventMatchingEntry = gql`
   }
 `
 
+// The invitation onto the map after an event link is over: it had the screen
+// (components/EventMatchingHomeInvitation).
+export const settleEventMatchingArrival = gql`
+  mutation {
+    settleEventMatchingArrival
+  }
+`
+
 export const updateMatchingEntry = gql`
   mutation ($uuid: String!, $input: MatchingEntryInput!) {
     updateMatchingEntry(uuid: $uuid, input: $input) {
