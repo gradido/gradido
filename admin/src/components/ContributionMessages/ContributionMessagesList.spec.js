@@ -197,6 +197,16 @@ describe('ContributionMessagesList', () => {
     await wrapper.vm.updateContributions()
     expect(wrapper.emitted('update-contributions')).toBeTruthy()
   })
+
+  // Bernd, 16.10.2026: the funnel beside the address put it into the search of the page --
+  // what the magnifier in the row does (OpenCreationsTable, column `searchUser`). One is enough.
+  it('has no filter of its own beside the address', () => {
+    const card = wrapper.find('.list-group-item')
+    expect(card.find('#filter-by-email').exists()).toBe(false)
+    expect(card.html()).not.toMatch(/filter/i)
+    expect(card.find('a[href="mailto:peter.lustig@example.com"]').exists()).toBe(true)
+  })
+
   // Behind the username in the card of the member who handed the contribution in: the pin of
   // a member who stands on the wallet's map, and behind it -- in its place where there is
   // none -- the arrow into the wallet's send form (MemberWalletLink). This spec installs no
