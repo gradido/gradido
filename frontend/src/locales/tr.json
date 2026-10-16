@@ -638,6 +638,10 @@
       "title": "Event Matching",
       "waiting": "Yukarıya kongrenin adını yaz — o zaman linkin, QR kodun ve e-postana ekleyeceğin bir paragraf burada görünür."
     },
+    "home": {
+      "text": "Benzer düşünen insanlarla buluşabilmen için evini haritada işaretle. O zaman «{sentence}» girişini ekleyen diğerlerini görürsün — onlar da seni görür. Haritayı yalnızca üyeler görür. Ne kadar hassas görüneceğine sen karar verirsin: «Yaklaşık» seni bir alan içinde gösterir, asla kapının önünde değil. Ve istediğin zaman haritadan çıkabilirsin.",
+      "title": "Nerede yaşıyorsun?"
+    },
     "landing": {
       "added": "Eşleşme girişin eklendi: {sentence}",
       "firstEntry": "İlk eşleşme girişin:",

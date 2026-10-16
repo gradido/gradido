@@ -638,6 +638,10 @@
       "title": "Event Matching",
       "waiting": "Scrivi qui sopra il nome del tuo congresso — poi compariranno qui il tuo link, il tuo codice QR e un paragrafo per la tua e-mail."
     },
+    "home": {
+      "text": "Perché possiate trovarvi tra persone affini: segna la tua casa sulla mappa. Così vedrai gli altri che hanno aggiunto «{sentence}», e loro vedranno te. Solo i membri vedono la mappa. Decidi tu con quanta precisione: «Approssimativa» ti mostra in un'area, mai davanti alla porta di casa. E puoi toglierti dalla mappa in qualsiasi momento.",
+      "title": "Dove abiti?"
+    },
     "landing": {
       "added": "La tua voce è stata aggiunta: {sentence}",
       "firstEntry": "La tua prima voce:",

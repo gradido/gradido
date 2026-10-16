@@ -638,6 +638,10 @@
       "title": "Event Matching",
       "waiting": "Saisis ci-dessus le nom de ton congrès — ton lien, ton QR code et un paragraphe pour ton e-mail apparaîtront ici."
     },
+    "home": {
+      "text": "Pour que vous vous retrouviez entre personnes partageant les mêmes intérêts : indique sur la carte où tu habites. Tu verras alors les autres qui ont ajouté « {sentence} », et ils te verront. Seuls les membres voient la carte. Tu décides avec quelle précision : « Approximative » te montre dans une zone, jamais devant ta porte. Et tu peux te retirer à tout moment.",
+      "title": "Où habites-tu ?"
+    },
     "landing": {
       "added": "Ton entrée a été ajoutée : {sentence}",
       "firstEntry": "Ta première entrée :",

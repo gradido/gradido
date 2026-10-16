@@ -447,6 +447,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { useAppToast } from '@/composables/useToast'
 import { useEntryDraft } from '@/composables/useEntryDraft'
+import { eventLinkUnderway } from '@/composables/useEventMatchingArrival'
 import { rememberOwnMatchingEntries } from '@/composables/useOwnMatchingEntries'
 import {
   acceptEventMatchingEntry,
@@ -601,7 +602,10 @@ function openNew({ summary = '', details = '', matchingType = null, remote = fal
  * congress is not told each time what they know.
  *
  * Made, the entry is said in a toast with its sentence, as the list shows it, and the list is
- * fetched again -- the entry stands in it, to be paused or deleted like any other.
+ * fetched again -- the entry stands in it, to be paused or deleted like any other. And the
+ * invitation onto the map follows, for a member who does not stand on it yet (KA-015,
+ * components/EventMatchingHomeInvitation): the page says here that the link made the entry, and
+ * until the answer is in, the windows after that invitation wait (useEventMatchingArrival).
  *
  * Refused, nothing is said where the member has a reason told elsewhere: no connection, or an
  * account whose address waits for its confirmation (401 -- the reminder says what to do). Only
@@ -617,6 +621,7 @@ const quietRefusal = (error) =>
   (error?.graphQLErrors ?? []).some((e) => e?.message === '401 Unauthorized')
 async function acceptEventEntry(offered) {
   const member = store.state.gradidoID
+  const answered = eventLinkUnderway(member)
   let accepted
   try {
     const result = await acceptEntry({
@@ -628,6 +633,7 @@ async function acceptEventEntry(offered) {
     })
     accepted = result?.data?.acceptEventMatchingEntry
   } catch (error) {
+    answered(null)
     if (quietRefusal(error) || store.state.gradidoID !== member) return
     toastError(error.message)
     // The server stores the entry before it hands it to the GMS, and a refusal can come from
@@ -639,7 +645,11 @@ async function acceptEventEntry(offered) {
     }
     return
   }
-  if (!accepted?.created || store.state.gradidoID !== member) return
+  if (!accepted?.created || store.state.gradidoID !== member) {
+    answered(null)
+    return
+  }
+  answered(accepted.entry.summary)
   toastSuccess(
     t('eventMatching.landing.added', {
       sentence: `${t('matching.type.interesse.prefix')} ${accepted.entry.summary}`,

@@ -4,6 +4,7 @@ import {
   dbFindUsersWithEmailContactByIds,
   dbHasEventMatchingEntry,
   dbInsertMatchingEntry,
+  dbMarkEventMatchingArrival,
   dbSelectMatchingEntriesByUserId,
   dbTakeEventMatchingEntry,
   driverCodeOfFailedQuery,
@@ -44,9 +45,10 @@ const kindOf = (error: unknown): string =>
   driverCodeOfFailedQuery(error) ?? (error instanceof Error ? error.name : 'unknown')
 
 /**
- * The note becomes the entry, in one transaction: the uuid of the entry, or null where nothing
- * is to be made -- nothing waited, the note was too old, or the member has that very entry
- * already --, or where it could not be made, and the note waits on.
+ * The note becomes the entry, in one transaction, and with the entry the invitation onto the
+ * map is noted as due: the uuid of the entry, or null where nothing is to be made -- nothing
+ * waited, the note was too old, or the member has that very entry already --, or where it
+ * could not be made, and the note waits on.
  */
 async function entryOfTheNote(userId: number): Promise<string | null> {
   try {
@@ -90,6 +92,10 @@ async function entryOfTheNote(userId: number): Promise<string | null> {
         // Thrown, so that the transaction ends with the note still there.
         throw new Error('MatchingEntry not stored')
       }
+      // And the invitation onto the map is due now (KA-015): after the next sign-in, on
+      // whichever device, the wallet asks this member for their home, so that they find the
+      // others of the event. With the entry it names, in the same transaction.
+      await dbMarkEventMatchingArrival(userId, row.uuid, tx)
       return row.uuid
     })
   } catch (error) {
@@ -141,7 +147,8 @@ async function handOver(userId: number, uuid: string): Promise<void> {
  * (Event-Matching). The registration brought it along and noted it (RegisterUserRole,
  * `noteEventMatchingEntry`); from here on it is an entry like one the member saved in the
  * wallet -- live, found from afar as the link said, handed to the keying run, and to the GMS
- * once the member takes part.
+ * once the member takes part. And the wallet invites the member onto the map after their next
+ * sign-in (`event_matching_arrivals`, KA-015), since this account came in by the link.
  *
  * Called at each of the three places an address is confirmed: `setPassword`, the mail of a
  * registration; `confirmEmail`, the mail of an account a member vouched for; and

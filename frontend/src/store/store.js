@@ -15,7 +15,8 @@ import { forgetFavorites } from '../composables/useFavorites'
 import { forgetContactsPanel } from '../composables/useContactsPanel'
 import { stopChatUpdates } from '../composables/useChatUpdates'
 import { forgetParkedAmount } from '../composables/useParkedAmount'
-import { forgetFirstLoginWindows } from '../composables/useFirstLoginWindow'
+import { forgetEventLinkArrival } from '../composables/useEventMatchingArrival'
+import { endFirstCreationHold, forgetFirstLoginWindows } from '../composables/useFirstLoginWindow'
 import { forgetLegacyMapPrefs } from '../utils/matchingPrefs'
 import { forgetChatDrafts, letOldChatDraftsGo } from '../utils/chatDraft'
 import { forgetChatReturn } from '../utils/chatReturn'
@@ -216,6 +217,12 @@ export const actions = {
     // sign-out: a wallet closed with its tab runs no sign-out, and whoever uses this browser next
     // comes through here.
     letOldChatDraftsGo()
+    // A sign-in is a new start (KA-015: the first creation comes "beim nächsten Neustart"): the
+    // first creation no longer waits for an invitation onto the map of the session before, and
+    // an event link opened in that session is not this one's. Neither the sign-in nor the
+    // handover from the admin area reloads the page, and `/login` opens over a running session.
+    endFirstCreationHold()
+    forgetEventLinkArrival()
   },
   /**
    * @param how `{ byOwnWord: true, member }` where the member said "Abmelden" themselves -- an
@@ -310,6 +317,9 @@ export const actions = {
     // this action, and the next member on this browser must meet their own windows rather
     // than find all three silenced by a question the last member left unanswered.
     forgetFirstLoginWindows()
+    // And whether the member came in by an event link in this session: the invitation onto the
+    // map is theirs, not the next member's (useEventMatchingArrival).
+    forgetEventLinkArrival()
     forgetParkedAmount(signedOutMember)
     // The conversation to come back to after a restart (utils/chatReturn): whoever signs out is
     // not taken back into it, even where the idle timeout signs out a wallet left in a thread.

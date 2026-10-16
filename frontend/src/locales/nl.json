@@ -638,6 +638,10 @@
       "title": "Event Matching",
       "waiting": "Vul hierboven de naam van je congres in — dan verschijnen hier je link, je QR-code en een alinea voor je e-mail."
     },
+    "home": {
+      "text": "Zo vinden jullie elkaar als gelijkgestemden: zet je thuis op de kaart. Dan zie je de anderen die '{sentence}' hebben toegevoegd — en zij zien jou. Alleen leden zien de kaart. Jij bepaalt hoe precies: 'Ongeveer' toont je binnen een omgeving, nooit aan je voordeur. En je kunt er op elk moment weer af.",
+      "title": "Waar woon je?"
+    },
     "landing": {
       "added": "Je vermelding is toegevoegd: {sentence}",
       "firstEntry": "Je eerste vermelding:",
