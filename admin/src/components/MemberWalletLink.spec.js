@@ -996,10 +996,21 @@ describe('MemberWalletLink', () => {
       expect(address.origin + address.pathname + '?token=').toBe(CONFIG.WALLET_AUTH_URL)
       expect([...address.searchParams.keys()]).toEqual(['token', 'redirect'])
       expect(address.searchParams.get('token')).toBe(TOKEN)
-      // The route of the wallet's send form: the community first, then the member.
+      // The route of the wallet's send form: the community first, then the member; its tab
+      // "E-Mail senden".
       expect(address.searchParams.get('redirect')).toBe(
-        `/send/${RAEUBER.communityUuid}/${RAEUBER.gradidoID}#send-form`,
+        `/send/${RAEUBER.communityUuid}/${RAEUBER.gradidoID}?art=email#send-form`,
       )
+    })
+
+    // ⭐ Bernd, 16.10.2026: "der Pfeil soll auf den Tab „E-Mail senden“ gehen" -- writing to the
+    // member is what it is for. The wallet's form reads the tab off `?art`
+    // (TransactionForm.vue, sendTypeFromQuery) and takes nothing else there.
+    it('opens the form on its tab "E-Mail senden"', async () => {
+      await press()
+      const page = new URL(openedAddress().searchParams.get('redirect'), 'https://wallet.example')
+      expect([...page.searchParams.keys()]).toEqual(['art'])
+      expect(page.searchParams.get('art')).toBe('email')
     })
 
     // In a window of 760 px the send page begins with the moderator's own accounts: the form,
@@ -1021,7 +1032,7 @@ describe('MemberWalletLink', () => {
       const address = openedAddress()
       expect([...address.searchParams.keys()]).toEqual(['token', 'redirect'])
       const page = new URL(address.searchParams.get('redirect'), address.origin)
-      expect(page.search).toBe('')
+      expect(page.search).toBe('?art=email')
       expect(page.hash).toBe('#send-form')
       const parts = page.pathname.split('/')
       expect(parts).toHaveLength(4)

@@ -406,14 +406,14 @@ describe('SearchUserTable', () => {
         )
       })
 
-      it('opens the send form to the member of its row', async () => {
+      it('opens the send form to the member of its row, on its tab "E-Mail senden"', async () => {
         await arrowIn(3).trigger('click')
 
         expect(window.open).toHaveBeenCalledTimes(1)
         const address = new URL(window.open.mock.calls[0][0])
         expect(address.searchParams.get('token')).toBe('valid-token')
         expect(address.searchParams.get('redirect')).toBe(
-          `/send/${COMMUNITY}/${rows[3].gradidoID}#send-form`,
+          `/send/${COMMUNITY}/${rows[3].gradidoID}?art=email#send-form`,
         )
       })
 
