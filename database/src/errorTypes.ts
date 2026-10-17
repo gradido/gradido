@@ -19,6 +19,17 @@ export class DBDuplicateEntryError extends DomainError {
   }
 }
 
+/** A unique key refused the row; uniqueKey names which, for a table with more than one. */
+export class DBUniqueKeyViolation<K extends string> extends DBDuplicateEntryError {
+  constructor(
+    table: string,
+    public readonly uniqueKey: K,
+    value: string,
+  ) {
+    super(table, uniqueKey, value)
+  }
+}
+
 export class DBMissingJoin extends DomainError {
   constructor(
     public readonly table: string,
@@ -71,4 +82,25 @@ export const driverCodeOfFailedQuery = (error: unknown): string | null => {
       driverError?: { code?: string }
     } | null) ?? {}
   return wrapped.cause?.code ?? wrapped.driverError?.code ?? wrapped.code ?? null
+}
+
+/**
+ * The name of the unique key a duplicate entry violated, or null where the error is none.
+ * MariaDB names it in the message: "Duplicate entry '…' for key 'public_key_key'" (MySQL 8
+ * puts the table before it: 'communities.public_key_key'). The same three shapes as
+ * isDuplicateEntry reads.
+ */
+export const duplicateEntryKey = (error: unknown): string | null => {
+  if (!isDuplicateEntry(error)) {
+    return null
+  }
+  const wrapped =
+    (error as {
+      sqlMessage?: string
+      cause?: { sqlMessage?: string }
+      driverError?: { sqlMessage?: string }
+    } | null) ?? {}
+  const message =
+    wrapped.cause?.sqlMessage ?? wrapped.driverError?.sqlMessage ?? wrapped.sqlMessage ?? ''
+  return /for key '(?:[^'.]*\.)?([^']+)'$/.exec(message)?.[1] ?? null
 }

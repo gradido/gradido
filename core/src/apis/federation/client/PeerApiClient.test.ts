@@ -34,17 +34,21 @@ const communityInfo = {
 }
 
 // answers on the path of the peer api and signs like the public routes in peerApi.ts;
-// answerNonce decides which nonce goes into the signature
-const peerAnswering = (answerNonce: (requestNonce: string) => string) =>
+// answerNonce decides which nonce goes into the signature, answerRequest which request
+const peerAnswering = (
+  answerNonce: (requestNonce: string) => string,
+  answerRequest: (request: Request) => { method: string; url: string } = (request) => request,
+) =>
   new Elysia()
     .get('peer-api/v1/communityInfos', () => communityInfo, {
       query: v.object({ nonce: signatureNonceSchema }),
-      mapResponse: async ({ responseValue, set, query }) =>
+      mapResponse: async ({ responseValue, set, query, request }) =>
         signedJsonResponse(
           responseValue,
           statusNumber(set.status),
           community,
           answerNonce(query.nonce),
+          answerRequest(request),
         ),
     })
     .listen(0)
@@ -53,11 +57,29 @@ const honestPeer = peerAnswering((requestNonce) => requestNonce)
 // signs every answer with one and the same nonce, as an answer captured once and replayed carries it
 const capturedNonce = createSignatureNonce()
 const replayingPeer = peerAnswering(() => capturedNonce)
+// signs as the answer of another of its routes, as when the nonce was passed on to that one
+const otherRoutePeer = peerAnswering(
+  (requestNonce) => requestNonce,
+  (request) => ({ method: request.method, url: request.url.replace('communityInfos', 'other') }),
+)
+// accepts the request and never answers
+const silentPeer = new Elysia()
+  .get(
+    'peer-api/v1/communityInfos',
+    () =>
+      new Promise<never>(() => {
+        // never resolved
+      }),
+  )
+  .listen(0)
 afterAll(() => {
   honestPeer.stop()
   replayingPeer.stop()
+  otherRoutePeer.stop()
+  // the request of the timeout test is still open
+  silentPeer.stop(true)
 })
-const urlOf = (peer: typeof honestPeer) => `http://localhost:${peer.server?.port}/`
+const urlOf = (peer: Pick<Elysia, 'server'>) => `http://localhost:${peer.server?.port}/`
 
 describe('PeerApiClient.getCommunityInfos', () => {
   it('hands out the answer signed by the announced key for this request', async () => {
@@ -88,6 +110,28 @@ describe('PeerApiClient.getCommunityInfos', () => {
     expect(error?.value).toBeInstanceOf(InvalidResponseSignatureError)
     expect(String(error?.value)).toContain('nonce is not the one of the request')
   })
+
+  it('refuses a signed answer of another route', async () => {
+    const { data, error } = await new PeerApiClient(
+      urlOf(otherRoutePeer),
+      community.publicKey,
+    ).getCommunityInfos()
+    expect(data).toBeNull()
+    // a SignatureError of http-message-sig, handed on as it is
+    expect((error?.value as { code?: string } | undefined)?.code).toBe('VerificationFailed')
+  })
+
+  it('gives up a community that does not answer in time', async () => {
+    const started = performance.now()
+    const { data, error } = await new PeerApiClient(
+      urlOf(silentPeer),
+      community.publicKey,
+      50,
+    ).getCommunityInfos()
+    expect(data).toBeNull()
+    expect((error?.value as DOMException | undefined)?.name).toBe('TimeoutError')
+    expect(performance.now() - started).toBeLessThan(1000)
+  })
 })
 
 describe('a signed route', () => {
@@ -95,8 +139,14 @@ describe('a signed route', () => {
     new Elysia().get('info', answer, {
       query: v.object({ nonce: signatureNonceSchema }),
       response: v.object({ name: v.string() }),
-      mapResponse: async ({ responseValue, set, query }) =>
-        signedJsonResponse(responseValue, statusNumber(set.status), community, query.nonce),
+      mapResponse: async ({ responseValue, set, query, request }) =>
+        signedJsonResponse(
+          responseValue,
+          statusNumber(set.status),
+          community,
+          query.nonce,
+          request,
+        ),
     })
   const nonce = createSignatureNonce()
 

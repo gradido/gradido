@@ -17,19 +17,21 @@ const mockLogger = {
   error: jest.fn(),
   addContext: jest.fn(),
 }
+// the error class validateCommunities tells a refused insert by, and the values it reads of the enum
+class mockDBUniqueKeyViolation {
+  constructor(public readonly uniqueKey: string) {}
+}
 const mockDatabase = {
-  // the values validateCommunities writes, nothing of the real enum is asked
-  CommunityHandshakeStateType: {
-    START_COMMUNITY_AUTHENTICATION: 'START_COMMUNITY_AUTHENTICATION',
-  },
+  CommunityUniqueKey: { COMMUNITY_UUID: 'uuid_key', PUBLIC_KEY: 'public_key_key', URL: 'url_key' },
+  DBUniqueKeyViolation: mockDBUniqueKeyViolation,
   dbClearFederatedCommunities: jest.fn(),
   dbFindFederatedCommunitiesNotVerified: jest.fn(),
-  dbFindForeignCommunitiesNeedingHandshake: jest.fn(),
-  dbInsertCommunityHandshakeState: jest.fn(),
-  dbUpdateCommunityHandshakeStateError: jest.fn(),
+  dbFindForeignCommunitiesByUuid: jest.fn(),
+  dbInsertForeignCommunity: jest.fn(),
   dbUpdateFederatedCommunitiesVerified: jest.fn(),
-  dbUpsertVerifiedForeignCommunities: jest.fn(),
+  dbUpdateForeignCommunity: jest.fn(),
   drizzleDb: jest.fn(),
+  getHomeCommunityDrizzle: jest.fn(),
 }
 const mockGetPeerApiClient = jest.fn()
 
@@ -38,11 +40,9 @@ jest.mock('database', () => mockDatabase)
 jest.mock('core', () => ({
   PeerApiClientCache: { getInstance: () => ({ get: mockGetPeerApiClient }) },
 }))
-jest.mock('sodium-native', () => ({ randombytes_random: () => 4711 }))
 
 type ValidateCommunitiesModule = typeof import('./validateCommunities')
 let federatedCommunityGetInfoCheckPublicKey: ValidateCommunitiesModule['federatedCommunityGetInfoCheckPublicKey__test']
-let startCommunityAuthentication: ValidateCommunitiesModule['startCommunityAuthentication__test']
 let validateCommunities: ValidateCommunitiesModule['validateCommunities__test']
 let startValidateCommunities: ValidateCommunitiesModule['startValidateCommunities']
 
@@ -50,7 +50,6 @@ let publicJwtKey: string
 beforeAll(async () => {
   const module = await import('./validateCommunities')
   federatedCommunityGetInfoCheckPublicKey = module.federatedCommunityGetInfoCheckPublicKey__test
-  startCommunityAuthentication = module.startCommunityAuthentication__test
   validateCommunities = module.validateCommunities__test
   startValidateCommunities = module.startValidateCommunities
   publicJwtKey = (await createKeyPair()).publicKey
@@ -59,9 +58,13 @@ beforeAll(async () => {
 // reset, not only clear: a `mock…Once` a test left unused must not answer in the next one
 beforeEach(() => {
   jest.resetAllMocks()
+  mockDatabase.getHomeCommunityDrizzle.mockResolvedValue({ communityUuid: HOME_UUID })
 })
 
 const END_POINT = 'http://foreign.example/api/'
+const HOME_UUID = '00000000-0000-4000-8000-ffffffffffff'
+// every community its own uuid, told apart by the first byte of its public key like the rest
+const uuidOf = (id: number) => `00000000-0000-4000-8000-${id.toString(16).padStart(12, '0')}`
 
 // an announced entry as dbFindFederatedCommunitiesNotVerified hands it out
 const federatedCommunity = (id: number, publicKey = Buffer.alloc(32, id)) => ({
@@ -78,6 +81,7 @@ const federatedCommunity = (id: number, publicKey = Buffer.alloc(32, id)) => ({
 
 // what another community answers on GET communityInfos, as it travels over the wire
 const communityInfoOf = (publicKey: Buffer) => ({
+  communityUuid: uuidOf(publicKey[0]),
   name: 'Foreign-Community',
   description: 'Description of the Foreign-Community',
   creationDate: '2024-05-06T07:08:09.123Z',
@@ -87,11 +91,8 @@ const communityInfoOf = (publicKey: Buffer) => ({
 })
 
 // the peer client of one community, as far as validateCommunities uses it
-const peerClient = (answers: { communityInfos?: unknown; handshake1Open?: unknown } = {}) => ({
-  publicJwtKey: undefined as string | undefined,
+const peerClient = (answers: { communityInfos?: unknown } = {}) => ({
   getCommunityInfos: jest.fn().mockResolvedValue(answers.communityInfos ?? { data: null }),
-  postHandshake1Open: jest.fn().mockResolvedValue(answers.handshake1Open ?? { data: true }),
-  toString: () => 'http://foreign.example/',
 })
 
 describe('federatedCommunityGetInfoCheckPublicKey', () => {
@@ -114,6 +115,7 @@ describe('federatedCommunityGetInfoCheckPublicKey', () => {
       foreignCommunity: {
         foreign: true,
         url: END_POINT,
+        communityUuid: uuidOf(1),
         name: 'Foreign-Community',
         description: 'Description of the Foreign-Community',
         creationDate: new Date('2024-05-06T07:08:09.123Z'),
@@ -160,6 +162,19 @@ describe('federatedCommunityGetInfoCheckPublicKey', () => {
     )
   })
 
+  it('hands out nothing when the answer carries the uuid of the home community', async () => {
+    const fedCom = federatedCommunity(1)
+    mockGetPeerApiClient.mockReturnValue(
+      peerClient({
+        communityInfos: {
+          data: { ...communityInfoOf(fedCom.publicKey), communityUuid: HOME_UUID },
+        },
+      }),
+    )
+
+    expect(await federatedCommunityGetInfoCheckPublicKey(fedCom)).toBeNull()
+  })
+
   it('rejects an answer that is no valid community info', async () => {
     const fedCom = federatedCommunity(1)
     mockGetPeerApiClient.mockReturnValue(
@@ -172,64 +187,8 @@ describe('federatedCommunityGetInfoCheckPublicKey', () => {
   })
 })
 
-describe('startCommunityAuthentication', () => {
-  const community = {
-    publicKey: Buffer.alloc(32, 1),
-    publicJwtKey: 'stored-public-jwt-key',
-    url: END_POINT,
-  }
-
-  it('records the handshake, then opens it at the community with the stored jwt key', async () => {
-    const client = peerClient({ handshake1Open: { data: true } })
-    mockGetPeerApiClient.mockReturnValue(client)
-    mockDatabase.dbInsertCommunityHandshakeState.mockResolvedValue(17)
-
-    await startCommunityAuthentication(community)
-
-    expect(mockGetPeerApiClient).toHaveBeenCalledWith(END_POINT, community.publicKey)
-    expect(client.publicJwtKey).toBe('stored-public-jwt-key')
-    expect(mockDatabase.dbInsertCommunityHandshakeState).toHaveBeenCalledWith({
-      publicKey: community.publicKey,
-      apiVersion: '1_0',
-      status: 'START_COMMUNITY_AUTHENTICATION',
-      handshakeId: 4711,
-    })
-    expect(client.postHandshake1Open).toHaveBeenCalledWith(4711)
-    expect(mockDatabase.dbUpdateCommunityHandshakeStateError).not.toHaveBeenCalled()
-    expect(mockLogger.error).not.toHaveBeenCalled()
-  })
-
-  it('records the error the community answered with', async () => {
-    const error = { status: 400, value: { message: 'refused' } }
-    mockGetPeerApiClient.mockReturnValue(peerClient({ handshake1Open: { data: null, error } }))
-    mockDatabase.dbInsertCommunityHandshakeState.mockResolvedValue(17)
-
-    await startCommunityAuthentication(community)
-
-    expect(mockDatabase.dbUpdateCommunityHandshakeStateError).toHaveBeenCalledWith(
-      17,
-      JSON.stringify(error),
-    )
-    expect(mockLogger.error).toHaveBeenCalledWith('http error: ', error)
-  })
-
-  it('records a failure when the community answers neither true nor with an error', async () => {
-    mockGetPeerApiClient.mockReturnValue(
-      peerClient({ handshake1Open: { data: false, error: null } }),
-    )
-    mockDatabase.dbInsertCommunityHandshakeState.mockResolvedValue(17)
-
-    await startCommunityAuthentication(community)
-
-    expect(mockDatabase.dbUpdateCommunityHandshakeStateError).toHaveBeenCalledWith(
-      17,
-      "can't initiate at community: http://foreign.example/",
-    )
-  })
-})
-
-// federatedCommunityGetInfoCheckPublicKey and startCommunityAuthentication are called from
-// inside the module and cannot be replaced: they run for real, on the peer clients above.
+// federatedCommunityGetInfoCheckPublicKey is called from inside the module and cannot be
+// replaced: it runs for real, on the peer clients above.
 describe('validateCommunities', () => {
   const tx = { name: 'the transaction' }
   beforeEach(() => {
@@ -255,9 +214,14 @@ describe('validateCommunities', () => {
   }
   const writesSucceed = (count: number) => {
     mockDatabase.dbUpdateFederatedCommunitiesVerified.mockResolvedValue(count)
-    mockDatabase.dbUpsertVerifiedForeignCommunities.mockResolvedValue(count)
-    mockDatabase.dbFindForeignCommunitiesNeedingHandshake.mockResolvedValue([])
+    mockDatabase.dbFindForeignCommunitiesByUuid.mockResolvedValue(new Map())
+    mockDatabase.dbInsertForeignCommunity.mockResolvedValue({ success: true })
   }
+  // the public keys of the inserted communities, by their first byte
+  const inserted = () =>
+    mockDatabase.dbInsertForeignCommunity.mock.calls.map(
+      ([community]: [{ publicKey: Buffer }]) => community.publicKey[0],
+    )
 
   it('stops when there is nothing to verify', async () => {
     batches()
@@ -283,7 +247,7 @@ describe('validateCommunities', () => {
     ])
   })
 
-  it('verifies and writes the answering communities only, in one transaction', async () => {
+  it('verifies the answering communities only and inserts the new ones, in one transaction', async () => {
     batches([federatedCommunity(1), federatedCommunity(2), federatedCommunity(3)])
     answering([2])
     writesSucceed(2)
@@ -295,15 +259,27 @@ describe('validateCommunities', () => {
       expect.any(Date),
       tx,
     )
-    const [written, writtenIn] = mockDatabase.dbUpsertVerifiedForeignCommunities.mock.calls[0]
-    expect(written.map((community: { publicKey: Buffer }) => community.publicKey[0])).toEqual([
-      1, 3,
-    ])
-    expect(written[0].updatedAt).toEqual(
-      mockDatabase.dbUpdateFederatedCommunitiesVerified.mock.calls[0][1],
-    )
-    expect(writtenIn).toBe(tx)
-    expect(mockDatabase.dbFindForeignCommunitiesNeedingHandshake).toHaveBeenCalledWith([1, 3], tx)
+    const [askedUuids, askedIn] = mockDatabase.dbFindForeignCommunitiesByUuid.mock.calls[0]
+    expect(askedUuids).toEqual([uuidOf(1), uuidOf(3)])
+    expect(askedIn).toBe(tx)
+    expect(inserted()).toEqual([1, 3])
+    for (const [, writtenIn] of mockDatabase.dbInsertForeignCommunity.mock.calls) {
+      expect(writtenIn).toBe(tx)
+    }
+  })
+
+  // without a handshake, the signed answer with the announced key is the authentication
+  it('marks a new community as authenticated when it was verified', async () => {
+    batches([federatedCommunity(1)])
+    answering()
+    writesSucceed(1)
+
+    await validateCommunities(mockLogger as never)
+
+    const verifiedAt = mockDatabase.dbUpdateFederatedCommunitiesVerified.mock.calls[0][1]
+    const [[written]] = mockDatabase.dbInsertForeignCommunity.mock.calls
+    expect(written.authenticatedAt).toEqual(verifiedAt)
+    expect(written.updatedAt).toEqual(verifiedAt)
   })
 
   it('writes nothing for a batch nobody answered, and goes on with the next', async () => {
@@ -342,22 +318,86 @@ describe('validateCommunities', () => {
     )
   })
 
-  it('opens a handshake with every community that needs one', async () => {
+  // a foreign community as dbFindForeignCommunitiesByUuid hands it out: the one that answered
+  // as federatedCommunity(id), unless changed
+  const storedCommunity = (id: number, changes: Record<string, unknown> = {}) => ({
+    id: 100 + id,
+    foreign: true,
+    url: END_POINT,
+    publicKey: Buffer.alloc(32, id),
+    communityUuid: uuidOf(id),
+    name: 'Foreign-Community',
+    description: 'Description of the Foreign-Community',
+    hieroTopicId: '0.0.2',
+    ...changes,
+  })
+  const known = (...communities: ReturnType<typeof storedCommunity>[]) => {
+    mockDatabase.dbFindForeignCommunitiesByUuid.mockResolvedValue(
+      new Map(communities.map((community) => [community.communityUuid, community])),
+    )
+  }
+  it('inserts only the communities not known yet, and logs nothing', async () => {
     batches([federatedCommunity(1), federatedCommunity(2)])
     answering()
     writesSucceed(2)
-    const needingHandshake = [
-      { publicKey: Buffer.alloc(32, 1), publicJwtKey, url: END_POINT },
-      { publicKey: Buffer.alloc(32, 2), publicJwtKey, url: END_POINT },
-    ]
-    mockDatabase.dbFindForeignCommunitiesNeedingHandshake.mockResolvedValue(needingHandshake)
-    mockDatabase.dbInsertCommunityHandshakeState.mockResolvedValue(1)
+    known(storedCommunity(1))
 
     await validateCommunities(mockLogger as never)
 
-    expect(
-      mockDatabase.dbInsertCommunityHandshakeState.mock.calls.map(([state]) => state.publicKey),
-    ).toEqual([needingHandshake[0].publicKey, needingHandshake[1].publicKey])
+    expect(inserted()).toEqual([2])
+    expect(mockDatabase.dbUpdateForeignCommunity).not.toHaveBeenCalled()
+    expect(mockLogger.error).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    ['name', { name: 'Old-name' }],
+    ['description', { description: 'Old description' }],
+    ['hiero topic id', { hieroTopicId: '0.0.1' }],
+  ])('updates a known community whose %s changed, in the transaction', async (_, changes) => {
+    batches([federatedCommunity(1)])
+    answering()
+    writesSucceed(1)
+    known(storedCommunity(1, changes))
+    mockDatabase.dbUpdateForeignCommunity.mockResolvedValue(true)
+
+    await validateCommunities(mockLogger as never)
+
+    expect(mockDatabase.dbUpdateForeignCommunity).toHaveBeenCalledWith(
+      101,
+      {
+        name: 'Foreign-Community',
+        description: 'Description of the Foreign-Community',
+        hieroTopicId: '0.0.2',
+        updatedAt: mockDatabase.dbUpdateFederatedCommunitiesVerified.mock.calls[0][1],
+      },
+      tx,
+    )
+    expect(inserted()).toEqual([])
+    expect(mockLogger.error).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    [
+      'public key',
+      { publicKey: Buffer.alloc(32, 9) },
+      "Old-name foreign community public key isn't equal to the stored version",
+    ],
+    [
+      'url',
+      { url: 'http://old.example/api/' },
+      `Old-name changed url from http://old.example/api/ to ${END_POINT}`,
+    ],
+  ])('neither updates nor inserts a known community whose %s changed', async (_, changes, log) => {
+    batches([federatedCommunity(1)])
+    answering()
+    writesSucceed(1)
+    known(storedCommunity(1, { name: 'Old-name', ...changes }))
+
+    await validateCommunities(mockLogger as never)
+
+    expect(mockDatabase.dbUpdateForeignCommunity).not.toHaveBeenCalled()
+    expect(inserted()).toEqual([])
+    expect(mockLogger.error).toHaveBeenCalledWith(log)
   })
 
   it('logs when fewer entries were verified than answered', async () => {
@@ -371,22 +411,67 @@ describe('validateCommunities', () => {
     expect(mockLogger.error).toHaveBeenCalledWith('only 1 federated communities verified from 2')
   })
 
-  // affected rows of an upsert: 1 per insert, 2 per update, 0 per row left as it was
+  // the unique keys refuse what the uuid lookup cannot see: a known key or url under a new uuid,
+  // or the uuid of the home community
+  const refusedBy = (uniqueKey: string, publicKeyByte: number) => {
+    mockDatabase.dbInsertForeignCommunity.mockImplementation(async (community) =>
+      community.publicKey[0] === publicKeyByte
+        ? { success: false, error: new mockDBUniqueKeyViolation(uniqueKey) }
+        : { success: true },
+    )
+  }
+
   it.each([
-    [2, false],
-    [4, false],
-    [3, false],
-    [1, true],
-    [5, true],
-  ])('with %i affected rows for 2 communities logs an error: %s', async (affectedRows, logged) => {
-    batches([federatedCommunity(1), federatedCommunity(2)])
+    ['public key', 'public_key_key', 'error', `public key already in use: ${'01'.repeat(32)}`],
+    [
+      'url',
+      'url_key',
+      'warn',
+      `foreign community url already in use: name: Foreign-Community, url: ${END_POINT}`,
+    ],
+  ] as const)(
+    'logs a %s in use and goes on with the next community',
+    async (_, uniqueKey, level, log) => {
+      batches([federatedCommunity(1), federatedCommunity(2)])
+      answering()
+      writesSucceed(2)
+      refusedBy(uniqueKey, 1)
+
+      await validateCommunities(mockLogger as never)
+
+      expect(mockLogger[level]).toHaveBeenCalledWith(log)
+      expect(inserted()).toEqual([1, 2])
+    },
+  )
+
+  it('breaks off the round at an insert that failed otherwise', async () => {
+    batches([federatedCommunity(1), federatedCommunity(2)], [federatedCommunity(3)])
     answering()
     writesSucceed(2)
-    mockDatabase.dbUpsertVerifiedForeignCommunities.mockResolvedValue(affectedRows)
+    const failed = new Error('insert failed')
+    mockDatabase.dbInsertForeignCommunity.mockResolvedValueOnce({ success: false, error: failed })
 
     await validateCommunities(mockLogger as never)
 
-    expect(mockLogger.error).toHaveBeenCalledTimes(logged ? 1 : 0)
+    expect(mockLogger.error).toHaveBeenCalledWith('Error: ', failed)
+    expect(inserted()).toEqual([1])
+    expect(mockDatabase.dbFindFederatedCommunitiesNotVerified).toHaveBeenCalledTimes(1)
+  })
+
+  // two new communities in one batch claiming the same uuid: the lookup before the inserts
+  // knows neither, the unique key refuses the second
+  it('logs a uuid in use and goes on with the next community', async () => {
+    batches([federatedCommunity(1), federatedCommunity(2)], [federatedCommunity(3)])
+    answering()
+    writesSucceed(2)
+    refusedBy('uuid_key', 1)
+
+    await validateCommunities(mockLogger as never)
+
+    expect(mockLogger.error).toHaveBeenCalledWith(
+      `Community UUID Collision detected with uuid: ${uuidOf(1)}`,
+    )
+    expect(inserted()).toEqual([1, 2, 3])
   })
 
   it('logs a failing query instead of throwing it', async () => {

@@ -97,6 +97,8 @@ export const ed25519PublicKeySchema = v.pipe(
   v.check((value) => value.length === 32, 'Expected 32 Bytes'),
 )
 
+export type PublicKey = v.InferOutput<typeof ed25519PublicKeySchema>
+
 export const ed25519PrivateKeySchema = v.pipe(
   hexBytesSchema,
   v.check((value) => value.length === 64, 'Expected 64 Bytes'),

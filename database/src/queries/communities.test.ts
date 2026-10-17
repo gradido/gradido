@@ -1,33 +1,22 @@
 import { randomBytes } from 'node:crypto'
 import { eq } from 'drizzle-orm'
-import {
-  createKeyPair,
-  Ed25519PublicKey,
-  FEDERATION_AUTHENTICATION_TIMEOUT_MS,
-  MissingHomeCommunityError,
-} from 'shared'
+import { createKeyPair, Ed25519PublicKey, MissingHomeCommunityError } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
-import {
-  CommunityHandshakeStateType,
-  Community as DbCommunity,
-  FederatedCommunity as DbFederatedCommunity,
-} from '..'
+import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from '..'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
-import {
-  CommunitiesInsert,
-  communitiesTable,
-  communityHandshakeStatesTable,
-  federatedCommunitiesTable,
-} from '../schemas'
+import { CommunityUniqueKey } from '../enum'
+import { DBUniqueKeyViolation } from '../errorTypes'
+import { CommunitiesInsert, communitiesTable } from '../schemas'
 import { createCommunity, createVerifiedFederatedCommunity } from '../seeds/community'
 import {
-  dbFindForeignCommunitiesNeedingHandshake,
+  dbFindForeignCommunitiesByUuid,
+  dbInsertForeignCommunity,
   dbInsertHomeCommunity,
   dbIsMatchingKeyingActive,
   dbSelectAuthenticatedForeignCommunities,
   dbSelectHomeCommunity,
+  dbUpdateForeignCommunity,
   dbUpdateHomeCommunity,
-  dbUpsertVerifiedForeignCommunities,
   getCommunityByPublicKeyOrFail,
   getHomeCommunity,
   getHomeCommunityDrizzle,
@@ -248,7 +237,8 @@ describe('community.queries', () => {
       return await community.save()
     }
 
-    it('finds the foreign communities through the handshake with a key and a uuid, and no other', async () => {
+    // a community without uuid cannot exist any more: community_uuid is NOT NULL since 0160
+    it('finds the foreign communities through the handshake with a key, and no other', async () => {
       // `createCommunity(true)` is already authenticated and has a uuid; each of the others
       // lacks exactly one part.
       const first = await withJwtKey(await createCommunity(true))
@@ -256,9 +246,6 @@ describe('community.queries', () => {
       const notAuthenticated = await createCommunity(true)
       notAuthenticated.authenticatedAt = null
       await withJwtKey(notAuthenticated)
-      const withoutUuid = await createCommunity(true)
-      withoutUuid.communityUuid = null
-      await withJwtKey(withoutUuid)
       const home = await createCommunity(false)
       home.authenticatedAt = new Date()
       await withJwtKey(home)
@@ -356,202 +343,158 @@ describe('community.queries', () => {
     })
   })
 
-  describe('dbUpsertVerifiedForeignCommunities', () => {
-    // a foreign community as the validation writes it from the answer of its community info
-    const answerOf = (publicKey: Buffer, url: string): CommunitiesInsert => ({
-      foreign: true,
-      url,
-      publicKey,
-      name: 'Answered-name',
-      description: 'Answered-description',
-      creationDate: new Date('2024-05-06T07:08:09.123Z'),
-      publicJwtKey: 'answered-public-jwt-key',
-      hieroTopicId: '0.0.2',
-      updatedAt: new Date('2026-01-02T03:04:05.678Z'),
-    })
-    const communitiesOf = (publicKey: Buffer) =>
-      drizzleDb().select().from(communitiesTable).where(eq(communitiesTable.publicKey, publicKey))
+  // a foreign community as the validation writes it from the answer of its community info
+  const answerOf = (publicKey: Buffer, url: string): CommunitiesInsert => ({
+    foreign: true,
+    url,
+    publicKey,
+    communityUuid: uuidv4(),
+    name: 'Answered-name',
+    description: 'Answered-description',
+    creationDate: new Date('2024-05-06T07:08:09.123Z'),
+    publicJwtKey: 'answered-public-jwt-key',
+    hieroTopicId: '0.0.2',
+    authenticatedAt: new Date('2026-01-02T03:04:05.678Z'),
+    updatedAt: new Date('2026-01-02T03:04:05.678Z'),
+  })
+  const communitiesOf = (publicKey: Buffer) =>
+    drizzleDb().select().from(communitiesTable).where(eq(communitiesTable.publicKey, publicKey))
 
+  describe('dbInsertForeignCommunity', () => {
     it('inserts a community not known yet', async () => {
       const publicKey = randomBytes(32)
+      const answer = answerOf(publicKey, 'http://foreign.example/api/')
 
-      expect(
-        await dbUpsertVerifiedForeignCommunities([
-          answerOf(publicKey, 'http://foreign.example/api/'),
-        ]),
-      ).toBe(1)
+      expect(await dbInsertForeignCommunity(answer)).toEqual({ success: true })
 
       const communities = await communitiesOf(publicKey)
       expect(communities).toHaveLength(1)
-      expect(communities[0]).toMatchObject(answerOf(publicKey, 'http://foreign.example/api/'))
-      expect(communities[0].communityUuid).toBeNull()
-      expect(communities[0].authenticatedAt).toBeNull()
+      expect(communities[0]).toMatchObject(answer)
     })
 
-    // `communities` has no unique key on public_key (lost in migration 0068), so the row is
-    // found through its url only.
-    it('updates the community at that url and keeps what the answer does not carry', async () => {
+    // the unique keys of communities, migration 0160 restored the one on the public key
+    describe('names the unique key that refused it', () => {
+      const refusedBy = async (community: CommunitiesInsert, uniqueKey: CommunityUniqueKey) => {
+        const result = await dbInsertForeignCommunity(community)
+        expect(result.success).toBe(false)
+        const error = !result.success ? result.error : null
+        expect(error).toBeInstanceOf(DBUniqueKeyViolation)
+        expect((error as DBUniqueKeyViolation<CommunityUniqueKey>).uniqueKey).toBe(uniqueKey)
+      }
+
+      it('a uuid in use', async () => {
+        const stored = await createCommunity(true)
+        await refusedBy(
+          {
+            ...answerOf(randomBytes(32), 'http://new.example/api/'),
+            communityUuid: stored.communityUuid,
+          },
+          CommunityUniqueKey.COMMUNITY_UUID,
+        )
+      })
+
+      it('a public key in use', async () => {
+        const stored = await createCommunity(true)
+        await refusedBy(
+          answerOf(stored.publicKey, 'http://moved.example/api/'),
+          CommunityUniqueKey.PUBLIC_KEY,
+        )
+        expect(await communitiesOf(stored.publicKey)).toHaveLength(1)
+      })
+
+      it('a url in use', async () => {
+        const stored = await createCommunity(true)
+        await refusedBy(answerOf(randomBytes(32), stored.url), CommunityUniqueKey.URL)
+      })
+    })
+
+    it('leaves the transaction going on after a refusal', async () => {
+      const stored = await createCommunity(true)
+      const next = randomBytes(32)
+
+      await drizzleDb().transaction(async (tx) => {
+        const refused = await dbInsertForeignCommunity(
+          answerOf(stored.publicKey, 'http://moved.example/api/'),
+          tx,
+        )
+        expect(refused.success).toBe(false)
+        expect(
+          await dbInsertForeignCommunity(answerOf(next, 'http://next.example/api/'), tx),
+        ).toEqual({ success: true })
+      })
+
+      expect(await communitiesOf(next)).toHaveLength(1)
+    })
+  })
+
+  describe('dbUpdateForeignCommunity', () => {
+    it('changes what it is given and keeps the rest', async () => {
       const community = await createCommunity(true)
       community.publicJwtKey = 'stored-public-jwt-key'
       await community.save()
 
-      await dbUpsertVerifiedForeignCommunities([answerOf(community.publicKey, community.url)])
+      expect(
+        await dbUpdateForeignCommunity(community.id, {
+          name: 'Answered-name',
+          description: 'Answered-description',
+          hieroTopicId: '0.0.2',
+        }),
+      ).toBe(true)
 
-      const communities = await communitiesOf(community.publicKey)
-      expect(communities).toHaveLength(1)
-      expect(communities[0]).toMatchObject({
-        id: community.id,
+      const [stored] = await communitiesOf(community.publicKey)
+      expect(stored).toMatchObject({
         name: 'Answered-name',
         description: 'Answered-description',
         hieroTopicId: '0.0.2',
+        url: community.url,
         communityUuid: community.communityUuid,
+        publicJwtKey: 'stored-public-jwt-key',
+        creationDate: community.creationDate,
         authenticatedAt: community.authenticatedAt,
       })
     })
 
-    // creation date and public jwt key of a known community must not change: both stay as
-    // first written, whatever the answer says
-    it('keeps creation date and public jwt key of a community already there', async () => {
-      const community = await createCommunity(true)
-      community.publicJwtKey = 'stored-public-jwt-key'
-      await community.save()
+    it('leaves the home community alone', async () => {
+      const home = await createCommunity(false)
 
-      await dbUpsertVerifiedForeignCommunities([answerOf(community.publicKey, community.url)])
+      expect(await dbUpdateForeignCommunity(home.id, { name: 'Answered-name' })).toBe(false)
 
-      const [stored] = await communitiesOf(community.publicKey)
-      expect(stored.creationDate).toEqual(community.creationDate)
-      expect(stored.publicJwtKey).toBe('stored-public-jwt-key')
-    })
-
-    it('writes several communities in one statement', async () => {
-      const first = randomBytes(32)
-      const second = randomBytes(32)
-
-      await dbUpsertVerifiedForeignCommunities([
-        answerOf(first, 'http://first.example/api/'),
-        answerOf(second, 'http://second.example/api/'),
-      ])
-
-      expect(await communitiesOf(first)).toHaveLength(1)
-      expect(await communitiesOf(second)).toHaveLength(1)
+      const [stored] = await communitiesOf(home.publicKey)
+      expect(stored.name).toBe(home.name)
     })
   })
 
-  describe('dbFindForeignCommunitiesNeedingHandshake', () => {
-    let publicJwtKey: string
-    beforeAll(async () => {
-      publicJwtKey = (await createKeyPair()).publicKey
-    })
+  describe('dbFindForeignCommunitiesByUuid', () => {
+    it('hands out the foreign communities with these uuids, by their uuid', async () => {
+      const first = await createCommunity(true)
+      const second = await createCommunity(true)
 
-    // a verified foreign community with its federated entry, as the validation leaves it
-    const verifiedForeign = async (
-      community: Partial<CommunitiesInsert> = {},
-      apiVersion = '1_0',
-    ): Promise<{ publicKey: Buffer; url: string; federatedCommunityId: number }> => {
-      const publicKey = randomBytes(32)
-      const url = `http://foreign-${publicKey.toString('hex')}.example/api/`
-      await drizzleDb()
-        .insert(communitiesTable)
-        .values({
-          foreign: true,
-          publicKey,
-          url,
-          publicJwtKey,
-          creationDate: new Date(),
-          ...community,
-        })
-      const inserted = await drizzleDb()
-        .insert(federatedCommunitiesTable)
-        .values({ publicKey, apiVersion, endPoint: url, lastAnnouncedAt: new Date() })
-        .$returningId()
-      return { publicKey, url, federatedCommunityId: inserted[0].id }
-    }
-    const handshakeState = (
-      publicKey: Buffer,
-      status: CommunityHandshakeStateType,
-      updatedAt: Date,
-    ) =>
-      drizzleDb()
-        .insert(communityHandshakeStatesTable)
-        .values({ publicKey, apiVersion: '1_0', handshakeId: 1, status, updatedAt })
-    const longAgo = () => new Date(Date.now() - FEDERATION_AUTHENTICATION_TIMEOUT_MS - 60_000)
-
-    it('finds a community not authenticated yet, with what the handshake needs', async () => {
-      const community = await verifiedForeign()
-
-      const found = await dbFindForeignCommunitiesNeedingHandshake([community.federatedCommunityId])
-
-      expect(found).toEqual([{ publicKey: community.publicKey, url: community.url, publicJwtKey }])
-    })
-
-    it('finds a community without uuid, or whose endpoint moved away from its url', async () => {
-      const withoutUuid = await verifiedForeign({ authenticatedAt: new Date() })
-      const moved = await verifiedForeign({
-        authenticatedAt: new Date(),
-        communityUuid: uuidv4(),
-      })
-      await drizzleDb()
-        .update(federatedCommunitiesTable)
-        .set({ endPoint: 'http://moved.example/api/' })
-        .where(eq(federatedCommunitiesTable.id, moved.federatedCommunityId))
-
-      const found = await dbFindForeignCommunitiesNeedingHandshake([
-        withoutUuid.federatedCommunityId,
-        moved.federatedCommunityId,
+      const found = await dbFindForeignCommunitiesByUuid([
+        first.communityUuid!,
+        second.communityUuid!,
       ])
 
-      expect(found.map((community) => community.publicKey)).toEqual([
-        withoutUuid.publicKey,
-        moved.publicKey,
-      ])
-    })
-
-    it('skips a community through the handshake, and one not asked about', async () => {
-      const authenticated = await verifiedForeign({
-        authenticatedAt: new Date(),
-        communityUuid: uuidv4(),
+      expect([...found.keys()].sort()).toEqual([first.communityUuid, second.communityUuid].sort())
+      expect(found.get(first.communityUuid!)).toMatchObject({
+        id: first.id,
+        url: first.url,
+        publicKey: first.publicKey,
       })
-      await verifiedForeign()
-      const onlyOtherApi = await verifiedForeign({}, '1_1')
-
-      expect(
-        await dbFindForeignCommunitiesNeedingHandshake([
-          authenticated.federatedCommunityId,
-          onlyOtherApi.federatedCommunityId,
-        ]),
-      ).toEqual([])
     })
 
-    it('skips a community with a handshake still running', async () => {
-      const community = await verifiedForeign()
-      await handshakeState(
-        community.publicKey,
-        CommunityHandshakeStateType.START_COMMUNITY_AUTHENTICATION,
-        new Date(),
-      )
+    it('skips other uuids and the home community', async () => {
+      const home = await createCommunity(false)
+      await createCommunity(true)
 
-      expect(
-        await dbFindForeignCommunitiesNeedingHandshake([community.federatedCommunityId]),
-      ).toEqual([])
+      const found = await dbFindForeignCommunitiesByUuid([home.communityUuid!, uuidv4()])
+
+      expect(found.size).toBe(0)
     })
 
-    it('finds a community again once its handshakes timed out or ended, once only', async () => {
-      const community = await verifiedForeign()
-      await handshakeState(
-        community.publicKey,
-        CommunityHandshakeStateType.START_COMMUNITY_AUTHENTICATION,
-        longAgo(),
-      )
-      await handshakeState(
-        community.publicKey,
-        CommunityHandshakeStateType.START_AUTHENTICATION,
-        longAgo(),
-      )
-      await handshakeState(community.publicKey, CommunityHandshakeStateType.FAILED, new Date())
+    it('hands out nothing for no uuids', async () => {
+      await createCommunity(true)
 
-      const found = await dbFindForeignCommunitiesNeedingHandshake([community.federatedCommunityId])
-
-      expect(found.map((found) => found.publicKey)).toEqual([community.publicKey])
+      expect((await dbFindForeignCommunitiesByUuid([])).size).toBe(0)
     })
   })
 })

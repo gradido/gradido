@@ -10,7 +10,6 @@ export {
 } from './UserAlias'
 
 import { Community } from './Community'
-import { CommunityHandshakeState } from './CommunityHandshakeState'
 import { Contribution } from './Contribution'
 import { ContributionCreationGroup } from './ContributionCreationGroup'
 import { ContributionLink } from './ContributionLink'
@@ -33,7 +32,6 @@ import { UserRole } from './UserRole'
 
 export {
   Community,
-  CommunityHandshakeState,
   Contribution,
   ContributionCreationGroup,
   ContributionLink,
@@ -59,7 +57,6 @@ export {
 export const entities = [
   UserAlias,
   Community,
-  CommunityHandshakeState,
   Contribution,
   ContributionCreationGroup,
   ContributionLink,

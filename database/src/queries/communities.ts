@@ -1,29 +1,23 @@
-import { and, eq, gte, inArray, isNull, ne, notExists, notInArray, or, sql } from 'drizzle-orm'
+import { and, eq, inArray } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import {
   CachedValue,
-  CommunityHandshakeData,
-  communityHandshakeDataSchema,
   Ed25519PublicKey,
-  FEDERATION_AUTHENTICATION_TIMEOUT_MS,
   HomeCommunityInsertInput,
   homeCommunityInsertSchema,
   MissingHomeCommunityError,
+  Uuidv4,
   urlSchema,
   uuidv4Schema,
+  VoidResult,
 } from 'shared'
 import { FindOptionsOrder, FindOptionsWhere, IsNull, MoreThanOrEqual, Not } from 'typeorm'
 import * as v from 'valibot'
 import { AppDatabase, DrizzleTransaction, drizzleDb } from '../AppDatabase'
 import { Community as DbCommunity } from '../entity'
-import { CommunityHandshakeStateType } from '../enum'
-import {
-  CommunitiesInsert,
-  CommunitiesSelect,
-  communitiesTable,
-  communityHandshakeStatesTable,
-  federatedCommunitiesTable,
-} from '../schemas'
+import { CommunityUniqueKey } from '../enum'
+import { DBInsertFailed, DBUniqueKeyViolation, duplicateEntryKey } from '../errorTypes'
+import { CommunitiesInsert, CommunitiesSelect, communitiesTable } from '../schemas'
 
 /** Announces a change of the home community row, see `AppDatabase.publish()`. */
 export const HOME_COMMUNITY_CHANGED_CHANNEL = 'home_community_changed'
@@ -217,55 +211,28 @@ export async function getNotReachableCommunities(
   })
 }
 
-// return all foreign communities which have authenticatedAt or communityUuid at null or has a new url and where are not already a handshake is pending
-export async function dbFindForeignCommunitiesNeedingHandshake(
-  federatedCommunityIds: number[],
+// return map with communityUuid as key
+export async function dbFindForeignCommunitiesByUuid(
+  communityUuids: Uuidv4[],
   tx: DrizzleTransaction | MySql2Database = drizzleDb(),
-): Promise<CommunityHandshakeData[]> {
-  const authenticationTimeout = new Date(Date.now() - FEDERATION_AUTHENTICATION_TIMEOUT_MS)
+): Promise<Map<string, CommunitiesSelect>> {
+  const map = new Map<string, CommunitiesSelect>()
+  if (!communityUuids.length) {
+    return map
+  }
   const rows = await tx
-    .select({
-      publicKey: communitiesTable.publicKey,
-      publicJwtKey: communitiesTable.publicJwtKey,
-      url: communitiesTable.url,
-    })
+    .select()
     .from(communitiesTable)
-    .innerJoin(
-      federatedCommunitiesTable,
-      and(
-        eq(communitiesTable.publicKey, federatedCommunitiesTable.publicKey),
-        eq(federatedCommunitiesTable.apiVersion, '1_0'),
-        inArray(federatedCommunitiesTable.id, federatedCommunityIds),
-      ),
-    )
     .where(
       and(
+        inArray(communitiesTable.communityUuid, communityUuids),
         eq(communitiesTable.foreign, true),
-        or(
-          isNull(communitiesTable.authenticatedAt),
-          isNull(communitiesTable.communityUuid),
-          ne(communitiesTable.url, federatedCommunitiesTable.endPoint),
-        ),
-        // no handshake still running: one that is neither finished nor timed out
-        notExists(
-          tx
-            .select({ id: communityHandshakeStatesTable.id })
-            .from(communityHandshakeStatesTable)
-            .where(
-              and(
-                eq(communityHandshakeStatesTable.publicKey, communitiesTable.publicKey),
-                notInArray(communityHandshakeStatesTable.status, [
-                  CommunityHandshakeStateType.EXPIRED,
-                  CommunityHandshakeStateType.FAILED,
-                  CommunityHandshakeStateType.SUCCESS,
-                ]),
-                gte(communityHandshakeStatesTable.updatedAt, authenticationTimeout),
-              ),
-            ),
-        ),
       ),
     )
-  return rows.map((data) => v.parse(communityHandshakeDataSchema, data))
+  for (const row of rows) {
+    map.set(row.communityUuid, row)
+  }
+  return map
 }
 
 /**
@@ -284,7 +251,6 @@ export async function dbSelectAuthenticatedForeignCommunities(): Promise<DbCommu
       foreign: true,
       authenticatedAt: Not(IsNull()),
       publicJwtKey: Not(IsNull()),
-      communityUuid: Not(IsNull()),
     },
     order: { id: 'ASC' },
   })
@@ -303,21 +269,63 @@ export async function getAuthorizedCommunities(
   })
 }
 
-export async function dbUpsertVerifiedForeignCommunities(
-  foreignCommunities: CommunitiesInsert[],
+// the value a unique key refused, readable in a log
+const uniqueValueOf = (uniqueKey: CommunityUniqueKey, community: CommunitiesInsert): string => {
+  switch (uniqueKey) {
+    case CommunityUniqueKey.COMMUNITY_UUID:
+      return community.communityUuid
+    case CommunityUniqueKey.PUBLIC_KEY:
+      return community.publicKey.toString('hex')
+    case CommunityUniqueKey.URL:
+      return community.url
+  }
+}
+
+/**
+ * Inserts one foreign community. A uuid, public key or url another row has already comes back
+ * as DBUniqueKeyViolation, its uniqueKey says which. In a transaction MariaDB takes back only
+ * the refused statement, the transaction goes on.
+ * @throws the driver error for every other failure, and for a unique key this function does
+ *         not know - the schema then has one more than CommunityUniqueKey
+ */
+export async function dbInsertForeignCommunity(
+  foreignCommunity: CommunitiesInsert,
   tx: DrizzleTransaction | MySql2Database = drizzleDb(),
-): Promise<number> {
+): Promise<
+  VoidResult<DBUniqueKeyViolation<CommunityUniqueKey> | DBInsertFailed<CommunitiesInsert>>
+> {
+  try {
+    const rows = await tx.insert(communitiesTable).values(foreignCommunity)
+    if (rows[0].affectedRows === 1) {
+      return { success: true }
+    }
+  } catch (error) {
+    const uniqueKey = Object.values(CommunityUniqueKey).find(
+      (key) => key === duplicateEntryKey(error),
+    )
+    if (uniqueKey) {
+      return {
+        success: false,
+        error: new DBUniqueKeyViolation(
+          'communities',
+          uniqueKey,
+          uniqueValueOf(uniqueKey, foreignCommunity),
+        ),
+      }
+    }
+    throw error
+  }
+  return { success: false, error: new DBInsertFailed('communities', foreignCommunity) }
+}
+
+export async function dbUpdateForeignCommunity(
+  id: number,
+  foreignCommunity: Partial<CommunitiesInsert>,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<boolean> {
   const rows = await tx
-    .insert(communitiesTable)
-    .values(foreignCommunities)
-    .onDuplicateKeyUpdate({
-      set: {
-        description: sql`values(${communitiesTable.description})`,
-        name: sql`values(${communitiesTable.name})`,
-        // url: sql`values(${communitiesTable.url})`,
-        hieroTopicId: sql`values(${communitiesTable.hieroTopicId})`,
-        updatedAt: sql`values(${communitiesTable.updatedAt})`,
-      },
-    })
-  return rows[0].affectedRows
+    .update(communitiesTable)
+    .set(foreignCommunity)
+    .where(and(eq(communitiesTable.id, id), eq(communitiesTable.foreign, true)))
+  return rows[0].affectedRows === 1
 }

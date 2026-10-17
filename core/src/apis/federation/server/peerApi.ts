@@ -13,22 +13,16 @@ export const peerApiRoutesV1 = new Elysia({ prefix: 'v1' })
     {
       query: v.object({ nonce: signatureNonceSchema }),
       response: communityInfoWireSchema,
-      mapResponse: async ({ responseValue, set, query }) =>
+      mapResponse: async ({ responseValue, set, query, request }) =>
         signedJsonResponse(
           responseValue,
           statusNumber(set.status),
           // TODO: create AppContext and use
           await getHomeCommunityDrizzle(),
           query.nonce,
+          request,
         ),
     },
   )
-  // encrypted and signed routes
-  .post('handshake1Open', async ({ body: { handshakeId } }) => true, {
-    body: v.object({
-      handshakeId: v.number(),
-    }),
-    response: v.boolean(),
-  })
 
 export const peerApiRoutes = new Elysia({ prefix: 'peer-api' }).use(peerApiRoutesV1)

@@ -1,19 +1,25 @@
 import { PeerApiClientCache } from 'core'
 import {
   CommunitiesInsert,
-  CommunityHandshakeStateType,
+  CommunityUniqueKey,
+  DBUniqueKeyViolation,
   dbClearFederatedCommunities,
   dbFindFederatedCommunitiesNotVerified,
-  dbFindForeignCommunitiesNeedingHandshake,
-  dbInsertCommunityHandshakeState,
-  dbUpdateCommunityHandshakeStateError,
+  dbFindForeignCommunitiesByUuid,
+  dbInsertForeignCommunity,
   dbUpdateFederatedCommunitiesVerified,
-  dbUpsertVerifiedForeignCommunities,
+  dbUpdateForeignCommunity,
   drizzleDb,
+  getHomeCommunityDrizzle,
 } from 'database'
 import { getLogger, Logger } from 'log4js'
-import { CommunityHandshakeData, FederatedCommunity, foreignCommunityInfoSchema } from 'shared'
-import { randombytes_random } from 'sodium-native'
+import {
+  FederatedCommunity,
+  foreignCommunityInfoSchema,
+  foreignCommunityInsertSchema,
+  foreignCommunityUpdatesSchema,
+  Uuidv4,
+} from 'shared'
 import * as v from 'valibot'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
@@ -58,6 +64,7 @@ async function validateCommunities(logger: Logger): Promise<void> {
       const fedComInfoResults = await Promise.allSettled(getFedComInfoCheckPublicKeyPromises)
       const now = new Date()
       const fedComIds: number[] = []
+      const fedComUuids: Uuidv4[] = []
       const fedComInfos: CommunitiesInsert[] = []
 
       // Filter out all Federated Communities which don't answear or had a wrong public key
@@ -74,14 +81,15 @@ async function validateCommunities(logger: Logger): Promise<void> {
         }
 
         fedComIds.push(result.value.federatedCommunityId)
-        fedComInfos.push({ ...result.value.foreignCommunity, updatedAt: now })
+        fedComUuids.push(result.value.foreignCommunity.communityUuid)
+        fedComInfos.push({ ...result.value.foreignCommunity, updatedAt: now, authenticatedAt: now })
       }
       // nobody in this batch answered, the next batch may
       if (!fedComIds.length) {
         continue
       }
 
-      const handshakeCommunities = await drizzleDb().transaction(async (tx) => {
+      await drizzleDb().transaction(async (tx) => {
         // Step 2: update verifiedAt field on all Federated Communities which answeared
         const verifiedCount = await dbUpdateFederatedCommunitiesVerified(fedComIds, now, tx)
         if (verifiedCount !== fedComIds.length) {
@@ -89,24 +97,61 @@ async function validateCommunities(logger: Logger): Promise<void> {
             `only ${verifiedCount} federated communities verified from ${fedComIds.length}`,
           )
         }
-
-        // Step 3: upsert all verified federated communities as foreign community in communities table
-        const upsertAffectedRows = await dbUpsertVerifiedForeignCommunities(fedComInfos, tx)
-        if (
-          upsertAffectedRows < fedComInfos.length ||
-          upsertAffectedRows > fedComInfos.length * 2
-        ) {
-          logger.error(
-            `upsertAffectedRows: ${upsertAffectedRows} on ${fedComInfos.length} communities (per community: 0: nothing happend, 1: insert, 2: update)`,
-          )
+        const existingFederatedCommunities = await dbFindForeignCommunitiesByUuid(fedComUuids, tx)
+        // Step 3: insert all new verified federated communities as foreign community in communities table or update if exist and something was changed
+        for (const fedCom of fedComInfos) {
+          const existingCom = existingFederatedCommunities.get(fedCom.communityUuid)
+          if (existingCom) {
+            if (!fedCom.publicKey.equals(existingCom.publicKey)) {
+              logger.error(
+                `${existingCom.name} foreign community public key isn't equal to the stored version`,
+              )
+            } else if (fedCom.url !== existingCom.url) {
+              // TODO: show the admin, let admin decide if update was legit
+              logger.error(
+                `${existingCom.name} changed url from ${existingCom.url} to ${fedCom.url}`,
+              )
+            } else if (
+              fedCom.name !== existingCom.name ||
+              fedCom.description !== existingCom.description ||
+              fedCom.hieroTopicId !== existingCom.hieroTopicId
+            ) {
+              await dbUpdateForeignCommunity(
+                existingCom.id,
+                v.parse(foreignCommunityUpdatesSchema, fedCom),
+                tx,
+              )
+            }
+          } else {
+            const result = await dbInsertForeignCommunity(
+              v.parse(foreignCommunityInsertSchema, fedCom),
+              tx,
+            )
+            if (!result.success) {
+              if (result.error instanceof DBUniqueKeyViolation) {
+                const field = result.error.uniqueKey
+                if (field === CommunityUniqueKey.COMMUNITY_UUID) {
+                  logger.error(
+                    `Community UUID Collision detected with uuid: ${fedCom.communityUuid}`,
+                  )
+                  continue
+                } else if (field === CommunityUniqueKey.PUBLIC_KEY) {
+                  logger.error(`public key already in use: ${fedCom.publicKey.toString('hex')}`)
+                  continue
+                } else if (field === CommunityUniqueKey.URL) {
+                  logger.warn(
+                    `foreign community url already in use: name: ${fedCom.name}, url: ${fedCom.url}`,
+                  )
+                  continue
+                }
+              }
+              throw result.error
+            } else {
+              logger.info(`new community added: ${fedCom.name}`)
+            }
+          }
         }
-
-        return await dbFindForeignCommunitiesNeedingHandshake(fedComIds, tx)
       })
-      // Step 4: start handshake with all not handshaked communities or on url change, one after another
-      for (const com of handshakeCommunities) {
-        await startCommunityAuthentication(com)
-      }
     }
   } catch (e) {
     logger.error('Error: ', e)
@@ -140,6 +185,13 @@ async function federatedCommunityGetInfoCheckPublicKey(fedComB: FederatedCommuni
     )
     return null
   }
+  if (pubComInfo.communityUuid === (await getHomeCommunityDrizzle()).communityUuid) {
+    logger.error(
+      `another community uses our own community uuid: ${pubComInfo.name}`,
+      fedComB.endPoint,
+    )
+    return null
+  }
   return {
     foreignCommunity: {
       foreign: true,
@@ -151,37 +203,3 @@ async function federatedCommunityGetInfoCheckPublicKey(fedComB: FederatedCommuni
 }
 
 export const federatedCommunityGetInfoCheckPublicKey__test = federatedCommunityGetInfoCheckPublicKey
-
-async function startCommunityAuthentication(com: CommunityHandshakeData): Promise<void> {
-  const logger = createLogger()
-  const handshakeId = randombytes_random()
-  logger.addContext('handshakeId', handshakeId)
-
-  const peerClient = PeerApiClientCache.getInstance().get(com.url, com.publicKey)
-  // the key as last answered, it may have changed since the client was created
-  peerClient.publicJwtKey = com.publicJwtKey
-
-  const stateId = await dbInsertCommunityHandshakeState({
-    publicKey: com.publicKey,
-    apiVersion: '1_0', // temp while refactoring, later removed
-    status: CommunityHandshakeStateType.START_COMMUNITY_AUTHENTICATION,
-    handshakeId,
-  })
-  logger.debug('[START_COMMUNITY_AUTHENTICATION] community handshake state created')
-
-  const result = await peerClient.postHandshake1Open(handshakeId)
-  if (result.data === true) {
-    logger.debug(`successful initiated at community:`, peerClient)
-  } else {
-    if (result.error) {
-      logger.error(`http error: `, result.error)
-      await dbUpdateCommunityHandshakeStateError(stateId, JSON.stringify(result.error))
-    } else {
-      const errorMsg = `can't initiate at community: ${peerClient}`
-      logger.error(errorMsg)
-      await dbUpdateCommunityHandshakeStateError(stateId, errorMsg)
-    }
-  }
-}
-
-export const startCommunityAuthentication__test = startCommunityAuthentication
