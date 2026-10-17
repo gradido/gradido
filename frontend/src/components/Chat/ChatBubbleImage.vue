@@ -1,8 +1,8 @@
 <!-- AI-GENERATED — not an architecture reference -->
 <template>
   <!-- The picture of a message, in its bubble (E-044 F3/F5; the mockup, "Bilder im Faden"): the
-       width of the bubble, at most 22rem high -- a tall screenshot shows its top, and all of it in
-       the large view a tap opens. A button, because a tap on it does something. -->
+       width of the bubble up to 16rem, at most 22rem high -- a tall screenshot shows its top, and
+       all of it in the large view a tap opens. A button, because a tap on it does something. -->
   <div
     v-if="missing"
     ref="root"
@@ -94,16 +94,27 @@ onBeforeUnmount(() => watcher?.disconnect())
 </script>
 
 <style lang="scss" scoped>
-/* As wide as the bubble, the corners a little rounder than the bubble's padding. */
+/* As wide as the bubble, and at most 16rem -- what a bubble of 16.5rem holds inside its padding
+   (E-044). A long caption makes the bubble wider, not the picture: it stays at the top, at the
+   bubble's start, and the words under it take the room (Bernd, 17.10.2026).
+
+   ⛔ `contain: inline-size` keeps the picture out of the bubble's own measure. A width in percent
+   counts as `auto` while the bubble works out how wide it wants to be, and the picture would ask
+   for its own pixels there -- 800 of them for a landscape --: every bubble with a picture would
+   stand at 80 % of the thread, however short its caption.
+
+   The corners a little rounder than the bubble's padding. */
 .chat-bubble-image {
   display: block;
   width: 100%;
+  max-width: 16rem;
   padding: 0;
   overflow: hidden;
   border: 0;
   border-radius: 0.6rem;
   background: transparent;
   cursor: zoom-in;
+  contain: inline-size;
 }
 
 .chat-bubble-image:focus-visible {
