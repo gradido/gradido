@@ -1,7 +1,8 @@
 // AI-GENERATED — not an architecture reference
 import { and, asc, desc, eq, inArray, isNull, ne, notInArray, or, sql } from 'drizzle-orm'
+import { MySql2Database } from 'drizzle-orm/mysql2'
 import { Result, VoidResult } from 'shared'
-import { drizzleDb } from '../AppDatabase'
+import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
 import { DBInsertFailed, DBNotFoundError } from '../errorTypes'
 import {
   MatchingEntryInsert,
@@ -56,10 +57,13 @@ const NO_KEYING = {
   keyedAt: null,
 } as const
 
+// With `tx`, in the caller's transaction: the entry an event link noted is made in the
+// transaction that takes the note away (dbTakeEventMatchingEntry), so the two go together.
 export async function dbInsertMatchingEntry(
   row: MatchingEntryInsert,
+  tx?: DrizzleTransaction | MySql2Database,
 ): Promise<VoidResult<DBInsertFailed<MatchingEntryInsert>>> {
-  const result = await drizzleDb().insert(matchingEntriesTable).values(row)
+  const result = await (tx ?? drizzleDb()).insert(matchingEntriesTable).values(row)
 
   const firstRow = result[0]
   if (firstRow && firstRow.affectedRows === 1) {
@@ -97,8 +101,9 @@ export async function dbSelectMatchingEntryByUuid(
  */
 export async function dbSelectMatchingEntriesByUserId(
   userId: number,
+  tx?: DrizzleTransaction | MySql2Database,
 ): Promise<MatchingEntrySelect[]> {
-  return drizzleDb()
+  return (tx ?? drizzleDb())
     .select()
     .from(matchingEntriesTable)
     .where(eq(matchingEntriesTable.userId, userId))

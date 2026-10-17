@@ -61,6 +61,9 @@ export const MESSAGE_MIN_CHARS = 1
 // also cap what is forwarded to the GMS.
 export const ABOUT_ME_MAX_CHARS = 2000
 export const MATCHING_ENTRY_DETAILS_MAX_CHARS = 2000
+// The one sentence of an entry: the length of its column (`matching_entries.summary`,
+// varchar(160)), and of the field the wallet's form takes it in.
+export const MATCHING_ENTRY_SUMMARY_MAX_CHARS = 160
 
 // matching, the keying of an entry: a language model turns the one sentence a member
 // wrote into the words their entry can be found under, plus seven fields saying what

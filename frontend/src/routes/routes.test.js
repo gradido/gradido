@@ -14,6 +14,10 @@ const loadRoutes = async (matchingActive) => {
 
 const pathsOf = (routes) => routes.map((route) => route.path)
 const matchingPathsOf = (routes) => pathsOf(routes).filter((path) => path.startsWith('/matching'))
+// Everything the flag switches on: the matching pages, and the page that builds the links
+// which end in a matching entry.
+const hangsOnMatching = (path) =>
+  path.startsWith('/matching') || path === '/event-matching' || path === '/event'
 
 afterEach(() => {
   vi.doUnmock('@/config')
@@ -198,11 +202,32 @@ describe('routes', () => {
       const entry = routes.find((route) => route.path === '/matching')
       expect(entry.redirect()).toEqual({ path: '/matching/entries' })
     })
+
+    // Event matching, the host's page. Without `requiresAuth`, which is what makes it public
+    // AND what puts it into the layout whose footer links to it.
+    it('registers the page that builds event links, for everybody', async () => {
+      const routes = await loadRoutes(true)
+      const builder = routes.filter((route) => route.path === '/event-matching')
+      expect(builder).toHaveLength(1)
+      expect(builder[0].meta?.requiresAuth).not.toBe(true)
+    })
+
+    it('keeps that page ahead of the catch-all, or it would never be reached', async () => {
+      const paths = pathsOf(await loadRoutes(true))
+      expect(paths.indexOf('/event-matching')).toBeGreaterThan(-1)
+      expect(paths.indexOf('/event-matching')).toBeLessThan(paths.indexOf('/:catchAll(.*)'))
+    })
   })
 
   describe('with MATCHING_ACTIVE off', () => {
     it('registers no matching route at all', async () => {
       expect(matchingPathsOf(await loadRoutes(false))).toEqual([])
+    })
+
+    // An instance without matching has no entries for such a link to end in. The page would
+    // build links that lead nowhere, so it is not there either.
+    it('does not register the page that builds event links', async () => {
+      expect(pathsOf(await loadRoutes(false))).not.toContain('/event-matching')
     })
 
     it('leaves the catch-all in place, so /matching lands on not found', async () => {
@@ -214,12 +239,64 @@ describe('routes', () => {
       expect(catchAll.path).toBe('/:catchAll(.*)')
     })
 
+    // The event link leads into the matching, so it goes with it (below); nothing else does.
     it('touches nothing else — the other routes are unchanged', async () => {
-      const withMatching = pathsOf(await loadRoutes(true)).filter(
-        (path) => !path.startsWith('/matching'),
-      )
+      const withMatching = pathsOf(await loadRoutes(true)).filter((path) => !hangsOnMatching(path))
       const withoutMatching = pathsOf(await loadRoutes(false))
       expect(withoutMatching).toEqual(withMatching)
+    })
+  })
+
+  /**
+   * The entrance of an event link, `/event?interest=…` (Event-Matching). It offers an entry
+   * for the matching and the map on which the people of an event find each other -- so it
+   * exists where the matching does, and nowhere else.
+   */
+  describe('the entrance of an event link', () => {
+    const entranceOf = (routes) => routes.find((route) => route.path === '/event')
+
+    it('is registered with the matching, under the name its guard reads', async () => {
+      const entrance = entranceOf(await loadRoutes(true))
+
+      expect(entrance).toBeDefined()
+      expect(entrance.name).toBe('EventMatchingLanding')
+    })
+
+    // Whoever opens the link is mostly not signed in, and App.vue picks the layout from this
+    // one field.
+    it('asks for no sign-in', async () => {
+      const entrance = entranceOf(await loadRoutes(true))
+
+      expect(entrance.meta?.requiresAuth).not.toBe(true)
+    })
+
+    it('stands ahead of the catch-all, which would swallow it', async () => {
+      const paths = pathsOf(await loadRoutes(true))
+
+      expect(paths.indexOf('/event')).toBeGreaterThan(-1)
+      expect(paths.indexOf('/event')).toBeLessThan(paths.indexOf('/:catchAll(.*)'))
+    })
+
+    // The query of this address is what the link offers, in somebody else's words. The links
+    // of the bar above the page hand a page's query on to the next (useAuthLinks) -- from
+    // here they must not, and this is the switch they read.
+    it('says that its query stays behind', async () => {
+      const entrance = entranceOf(await loadRoutes(true))
+
+      expect(entrance.meta).toEqual({ queryStaysBehind: true })
+    })
+
+    // The only page that says so: every other one hands its query on as before.
+    it('is the only route whose query stays behind', async () => {
+      const staying = (await loadRoutes(true)).filter((route) => route.meta?.queryStaysBehind)
+
+      expect(staying.map((route) => route.path)).toEqual(['/event'])
+    })
+
+    // Without the matching the link lands on "not found", instead of promising a map this
+    // community does not have.
+    it('is not registered without the matching', async () => {
+      expect(entranceOf(await loadRoutes(false))).toBeUndefined()
     })
   })
 })

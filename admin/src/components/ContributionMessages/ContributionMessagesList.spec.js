@@ -197,10 +197,21 @@ describe('ContributionMessagesList', () => {
     await wrapper.vm.updateContributions()
     expect(wrapper.emitted('update-contributions')).toBeTruthy()
   })
+
+  // Bernd, 16.10.2026: the funnel beside the address put it into the search of the page --
+  // what the magnifier in the row does (OpenCreationsTable, column `searchUser`). One is enough.
+  it('has no filter of its own beside the address', () => {
+    const card = wrapper.find('.list-group-item')
+    expect(card.find('#filter-by-email').exists()).toBe(false)
+    expect(card.html()).not.toMatch(/filter/i)
+    expect(card.find('a[href="mailto:peter.lustig@example.com"]').exists()).toBe(true)
+  })
+
   // Behind the username in the card of the member who handed the contribution in: the pin of
-  // a member who stands on the wallet's map, the arrow into the wallet's send form for every
-  // other (MemberWalletLink). This spec installs no store, and neither asks for one until it
-  // is pressed -- so the card is set up here as it always was.
+  // a member who stands on the wallet's map, and behind it -- in its place where there is
+  // none -- the arrow into the wallet's send form (MemberWalletLink). This spec installs no
+  // store, and neither asks for one until it is pressed -- so the card is set up here as it
+  // always was.
   describe('the pin or the arrow behind the username', () => {
     const onTheMap = {
       ...defaultUser,
@@ -228,19 +239,21 @@ describe('ContributionMessagesList', () => {
       expect(pin().exists()).toBe(false)
     })
 
-    // The member of this spec's own contribution was never asked whether they stand there:
-    // neither the one nor the other.
+    // The member of this spec's own contribution comes without the pair that names them, and
+    // was never asked whether they stand on the map: neither the one nor the other.
     it('leaves a member alone of whom the server said nothing', () => {
       expect(pin().exists()).toBe(false)
       expect(arrow().exists()).toBe(false)
     })
 
-    it('gives a member who does not stand on the map the arrow into the send form', async () => {
+    // Bernd, 16.10.2026: finding them on the map and writing to them are two buttons.
+    it('gives the member the arrow into the send form, on the map or not', async () => {
       await showsMember({ ...onTheMap, findableOnMap: false })
       expect(arrow().exists()).toBe(true)
 
       await showsMember(onTheMap)
-      expect(arrow().exists()).toBe(false)
+      expect(arrow().exists()).toBe(true)
+      expect(pin().exists()).toBe(true)
     })
 
     it('sets the arrow where the pin stands: behind the username, ahead of the HumHub profile', async () => {
@@ -270,16 +283,19 @@ describe('ContributionMessagesList', () => {
       expect(wrapper.findComponent(MemberWalletLink).props('name')).toBe('Peter')
     })
 
-    // Behind the username, and ahead of the way to the member's HumHub profile.
+    // Behind the username, the arrow behind the pin, and both ahead of the way to the member's
+    // HumHub profile.
     it('stands behind the username', async () => {
       await showsMember(onTheMap)
       const card = wrapper.find('.list-group-item').html()
       const username = card.indexOf('peterl')
       const mapPin = card.indexOf('data-test="member-map-pin"')
+      const sendArrow = card.indexOf('data-test="member-send-arrow"')
       const humhub = card.indexOf('humhub-username')
       expect(username).toBeGreaterThan(-1)
       expect(mapPin).toBeGreaterThan(username)
-      expect(humhub).toBeGreaterThan(mapPin)
+      expect(sendArrow).toBeGreaterThan(mapPin)
+      expect(humhub).toBeGreaterThan(sendArrow)
     })
   })
 

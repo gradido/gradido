@@ -89,6 +89,14 @@ const filterVariables = (variables: any) => {
   if (vars?.emoji) {
     vars.emoji = '***'
   }
+  // The entry an event link offered, sent along with a registration (createUser,
+  // `$eventMatchingEntry` in the wallet's mutations.js): what somebody is interested in, in the
+  // same line as their name and address. That a registration brings one stays readable. The
+  // wallet names the variable so for a signed-in member's link as well
+  // (acceptEventMatchingEntry), and this line covers it there too.
+  if (vars?.eventMatchingEntry) {
+    vars.eventMatchingEntry = '***'
+  }
   return vars
 }
 

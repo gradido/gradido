@@ -91,6 +91,23 @@ describe('Vuex Store', () => {
       expect(localStorageMock.clear).not.toHaveBeenCalled()
     })
 
+    // Whom this moderator is in contact with: theirs, and nobody's who signs in next on the
+    // same browser.
+    it('takes with it whom the moderator is in contact with', async () => {
+      const { askModeratorContacts, moderatorContact } =
+        await import('@/composables/useModeratorContacts')
+      const bibi = { gradidoID: 'g-bibi', communityUuid: 'home' }
+      await askModeratorContacts(
+        { query: vi.fn().mockResolvedValue({ data: { contactRefs: [bibi] } }) },
+        1,
+      )
+      expect(moderatorContact(1, bibi)).toBe('yes')
+
+      testStore.dispatch('logout')
+
+      expect(moderatorContact(1, bibi)).toBe('unknown')
+    })
+
     /**
      * ⛔ The faces this session fetched, and the one that is OPEN -- two different things.
      * The zoom window hangs on the token and unmounts at logout, but the state it reads lives

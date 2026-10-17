@@ -55,6 +55,11 @@ export const elopageWebhookRoutes = new Elysia().post(
     } else {
       jsonBody = parseUrlencoded(text)
     }
+    // As express.json() had it: a body is an object or an array, not `null` or a bare value.
+    if (typeof jsonBody !== 'object' || jsonBody === null) {
+      logger.warn('Elopage Hook: body is no JSON object')
+      return status(400)
+    }
 
     // Responding is important: what was bought is filed after the answer, not before it.
     // Nobody waits for it, so what it throws is caught here: an unhandled rejection would

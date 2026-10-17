@@ -610,6 +610,50 @@
     "session-renewal-failed": "Deine Sitzung konnte nicht verlängert werden. Bitte melde Dich erneut an.",
     "unknown-error": "Unbekannter Fehler: "
   },
+  "eventMatching": {
+    "builder": {
+      "codeAlt": "QR-Code, der zu Deinem Link führt",
+      "codeFailed": "Der QR-Code lässt sich gerade nicht zeichnen. Der Link selbst funktioniert.",
+      "codeLabel": "Dein QR-Code",
+      "codeTooLong": "Für einen QR-Code ist dieser Link zu lang. Mit weniger Text erscheint der Code. Der Link selbst funktioniert auch so.",
+      "copyFailed": "Dein Gerät lässt das Kopieren leider nicht zu. Markiere den Text und kopiere ihn von Hand.",
+      "copyLink": "Link kopieren",
+      "copyMail": "Absatz kopieren",
+      "detailsCount": "{count} / {max}",
+      "detailsHint": "Ein, zwei Sätze, die Dein Thema erklären.",
+      "detailsMissing": "Trag oben noch die Details ein — dann erscheinen hier Dein Link, Dein QR-Code und ein Absatz für Deine Mail.",
+      "downloadCode": "QR-Code herunterladen",
+      "intro": "Wer diesen Link öffnet, bekommt im Gradido-Konto Deinen Kongress als ersten Eintrag auf der Karte — und findet die anderen Menschen Deines Kongresses.",
+      "linkCopied": "Link kopiert.",
+      "linkLabel": "Dein Link",
+      "mailCopied": "Absatz kopiert.",
+      "mailLabel": "Dein Mail-Absatz",
+      "mailText": "Gradido inklusive: Mit diesem Link bekommst Du Dein Gradido-Konto, 100 Gradido zum Start und die Karte zu den Menschen unseres Kongresses. Die Karte zeigt nur Mitgliedern Deinen Ort, und nur ungefähr.",
+      "nothingStored": "Nichts wird gespeichert. Du baust den Link, Du gibst ihn weiter.",
+      "remoteHint": "Deine Teilnehmer erscheinen dann auch in der überregionalen Suche.",
+      "sentenceDefault": "Kongress",
+      "sentenceHint": "Der Kurzname Deines Kongresses, so wie Deine Teilnehmer ihn sagen würden. Das Wort „Kongress“ davor darf bleiben — auch „Training“, „Kurs“ oder „Retreat“.",
+      "sentencePreview": "„{sentence}“",
+      "subtitle": "Dein Link für Deinen Kongress, Dein Training, Deinen Kurs",
+      "title": "Event-Matching",
+      "waiting": "Trag oben den Namen Deines Kongresses ein — dann erscheinen hier Dein Link, Dein QR-Code und ein Absatz für Deine Mail."
+    },
+    "home": {
+      "text": "Damit Ihr Euch als Gleichgesinnte findet: Setz Dein Zuhause auf die Karte. Dann siehst Du die anderen, die „{sentence}“ eingetragen haben — und sie sehen Dich. Nur Mitglieder sehen die Karte. Du entscheidest, wie genau: „Ungefähr“ zeigt Dich im Umkreis, nie auf der Haustür. Und Du kannst jederzeit wieder raus.",
+      "title": "Wo wohnst Du?"
+    },
+    "landing": {
+      "added": "Dein Eintrag ist da: {sentence}",
+      "firstEntry": "Dein erster Eintrag:",
+      "haveAccount": "Ich habe schon ein Konto",
+      "headline": "Die Karte zu den Menschen Deines Kongresses",
+      "otherCommunity": "Dein Konto ist in einer anderen Gemeinschaft? Dann melde Dich dort an und trage den Satz von Hand ein.",
+      "register": "Konto anlegen"
+    },
+    "register": {
+      "firstEntry": "Dein erster Eintrag:"
+    }
+  },
   "existingGradidoAccount": "Du hast schon ein {communityName} Konto?",
   "firstCreation": {
     "again": "+ Da war noch mehr",
@@ -696,6 +740,7 @@
       "link": "Gradido-Akademie",
       "year": "© {year}"
     },
+    "eventMatching": "Event-Matching",
     "imprint": "Impressum",
     "inspector": "Inspektor (experimentell)",
     "privacy_policy": "Datenschutzerklärung",
@@ -1287,7 +1332,7 @@
   },
   "send_email": "E‑Mail senden",
   "send_gdd": "GDD senden",
-  "send_per_link": "Link, Scheck, QR",
+  "send_per_link": "Link, Scheck, QR, Gruß",
   "session": {
     "extend": "Angemeldet bleiben",
     "lightText": "Wenn Du länger als 10 Minuten keine Aktion getätigt hast, wirst Du aus Sicherheitsgründen abgemeldet.",

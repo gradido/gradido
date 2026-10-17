@@ -1,10 +1,17 @@
 // AI-GENERATED — not an architecture reference
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import i18n from '@/i18n'
 import ThankYouPictureChoice from '@/components/ThankYouGreeting/ThankYouPictureChoice.vue'
 import TransactionPictureField from './TransactionPictureField.vue'
+
+/** Opening a photo has its own spec (utils/chatImage.spec.js); here it answers as a test says. */
+const opening = vi.hoisted(() => ({ openChatImage: vi.fn() }))
+vi.mock('@/utils/chatImage', async (importOriginal) => ({
+  ...(await importOriginal()),
+  openChatImage: (...args) => opening.openChatImage(...args),
+}))
 
 /**
  * "Bild dazu" in the form of a transfer (ZE-016): nothing chosen, the choice open in place, a
@@ -142,6 +149,55 @@ describe('TransactionPictureField', () => {
 
       expect(isOpen()).toBe(true)
       expect(said()).toEqual([])
+    })
+  })
+
+  /**
+   * Ctrl+V (Bernd, 16.10.2026): a picture pasted on the page goes into the open choice, as a photo
+   * chosen there -- and nowhere while the choice is closed: it is hidden then, not taken down.
+   */
+  describe('a picture pasted (Ctrl+V)', () => {
+    const paste = async () => {
+      const event = new Event('paste', { bubbles: true, cancelable: true })
+      Object.defineProperty(event, 'clipboardData', {
+        value: {
+          getData: () => '',
+          files: [new File(['PNG'], 'image.png', { type: 'image/png' })],
+          items: [],
+        },
+      })
+      document.body.dispatchEvent(event)
+      await flushPromises()
+    }
+    const editor = () => wrapper.findComponent({ name: 'ChatImageEditor' })
+
+    beforeEach(() => {
+      opening.openChatImage.mockReset()
+      opening.openChatImage.mockResolvedValue({ image: {}, width: 4, height: 3 })
+    })
+
+    it('goes into the open choice, whose editor opens with it', async () => {
+      mountField()
+      await at('send-picture-choose').trigger('click')
+
+      await paste()
+
+      expect(choice().props('takesPaste')).toBe(true)
+      expect(opening.openChatImage).toHaveBeenCalledTimes(1)
+      expect(editor().props('modelValue')).toBe(true)
+    })
+
+    it('goes nowhere while the choice is closed, before it was opened and after', async () => {
+      mountField()
+      await paste()
+      await at('send-picture-choose').trigger('click')
+      await tile('giving-hands').trigger('click')
+      expect(isOpen()).toBe(false)
+
+      await paste()
+
+      expect(choice().props('takesPaste')).toBe(false)
+      expect(opening.openChatImage).not.toHaveBeenCalled()
     })
   })
 

@@ -18,6 +18,7 @@ import {
   dbFindUserWithContactById,
   dbHomeCommunityGetUuid,
   dbInsertEvent,
+  dbInsertEventMatchingEntry,
   dbInsertUser,
   dbInsertUserAlias,
   dbInsertUserContact,
@@ -28,6 +29,7 @@ import {
   dbRemoveUser,
   dbUserUpdateField,
   dbUserUpdatePassword,
+  driverCodeOfFailedQuery,
   drizzleDb,
   EventType,
   getHomeCommunityDrizzle,
@@ -238,6 +240,38 @@ export class RegisterUserRole<
     throw new Error("Couldn't generate valid alias")
   }
 
+  // The entry an event link offered (Event-Matching; `eventMatchingEntry`, read off
+  // `/event?interest=…` by the wallet) is noted at the account it came with. Nothing is made of
+  // it here: the entry is made once the address is confirmed (makeEventMatchingEntry), so
+  // nothing of the account is found by others before a mail was clicked -- and noted at the
+  // account, not in the browser, it is still there when the mail is opened on another device.
+  //
+  // In the transaction of the account: both stand, or neither. An address that is taken has
+  // left `run` before this -- nobody notes an entry at somebody else's account by registering
+  // with their address, and a second registration does not change what the first one noted.
+  //
+  // Whichever variant registers: the entry decides none (registerUser.context).
+  public async noteEventMatchingEntry(userId: number, tx: DrizzleTransaction): Promise<void> {
+    const entry = this.user.eventMatchingEntry
+    if (!entry) {
+      return
+    }
+    // A statement that fails carries its parameters -- the words of the entry -- in its message,
+    // and an error that leaves the registration reaches the answer and the log. Thrown on by
+    // the driver's code instead: the transaction ends all the same.
+    const noted = await dbInsertEventMatchingEntry(
+      { userId, summary: entry.summary, details: entry.details ?? null, remote: entry.remote },
+      tx,
+    ).catch((error: unknown) => {
+      throw new Error(
+        `Error while noting the event matching entry: ${driverCodeOfFailedQuery(error) ?? 'unknown'}`,
+      )
+    })
+    if (!noted.success) {
+      throw new Error('Error while noting the event matching entry')
+    }
+  }
+
   public async run(logger: Logger): Promise<number> {
     const preparedUser = await this.prepareUser()
     const createUserResult = await drizzleDb().transaction(
@@ -256,6 +290,7 @@ export class RegisterUserRole<
           logger.error(`update user with id: ${userId} with alias: ${finalAlias} failed`)
           throw new Error('Error while storing the generated alias')
         }
+        await this.noteEventMatchingEntry(userId, tx)
         if (!this.emailVerificationCode) {
           throw new Error('Missing email verification code')
         }

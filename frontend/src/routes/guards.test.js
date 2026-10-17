@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import addNavigationGuards from './guards'
 import { createMemoryHistory, createRouter, createWebHistory } from 'vue-router'
 import { verifyLogin } from '../graphql/queries'
+import { useEntryDraft } from '../composables/useEntryDraft'
 import { takeHeldChatText } from '../utils/chatReturn'
 
 vi.mock('../graphql/queries', () => ({
@@ -948,6 +949,326 @@ describe('a start on the hand-over, with a page to go on to', () => {
       expect((await startAt(handOver())).at).toBe('/contacts?with=anna-id&community=other-uuid')
       expect(noted()).toBeNull()
       expect(takeHeldChatText({ gradidoID: 'anna-id' })).toBe('Hier ist die Datei:')
+    })
+  })
+})
+
+/**
+ * The event link, `/event?interest=…` (Event-Matching): what a host hands to the people of a
+ * congress. Each case builds a router of its own, for the reason given above -- whether the
+ * wallet STARTS on the link decides what a running session does with it.
+ */
+describe('the event link', () => {
+  const now = () => Math.floor(Date.now() / 1000)
+  const RUNNING = { token: 'running-token', tokenTime: now() + 600 }
+  const RUN_OUT = { token: 'old-token', tokenTime: now() - 3600 }
+  const Page = { render: () => null }
+  const LINK = '/event?interest=Kongress%20Frequency%20Healing&details=Selbstheilung&remote=1&v=1'
+  const ENTRY = { summary: 'Kongress Frequency Healing', details: 'Selbstheilung', remote: true }
+  // As the store keeps it: with the moment it was kept.
+  const KEPT = { ...ENTRY, keptAt: expect.any(Number) }
+  const entryDraft = useEntryDraft()
+
+  /** A router with the records that matter here, and a store that can be signed in later. */
+  const wallet = (state) => {
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: [
+        { path: '/', redirect: () => ({ path: '/login' }) },
+        { path: '/login/:code?', name: 'Login', component: Page },
+        { path: '/register/:code?', name: 'Register', component: Page },
+        { path: '/overview', name: 'Overview', component: Page, meta: { requiresAuth: true } },
+        { path: '/event', name: 'EventMatchingLanding', component: Page },
+        { path: '/matching/:tab', name: 'Matching', component: Page, meta: { requiresAuth: true } },
+      ],
+    })
+    const own = { commit: vi.fn(), dispatch: vi.fn(), state: { token: null, ...state } }
+    addNavigationGuards(router, own, { query: vi.fn() })
+    return { router, own, at: () => router.currentRoute.value.fullPath }
+  }
+  const startAt = async (address, state) => {
+    const started = wallet(state)
+    await started.router.push(address)
+    return started
+  }
+  /** One step of the browser's history, waited for until the wallet stands somewhere. */
+  const step = (router, delta) =>
+    new Promise((resolve) => {
+      const off = router.afterEach(() => {
+        off()
+        resolve()
+      })
+      router.go(delta)
+    })
+
+  // The draft lives in a module: nothing a case leaves behind may open the next one's form.
+  afterEach(() => {
+    entryDraft.take()
+  })
+
+  describe('opened by somebody who is not signed in', () => {
+    it('shows its page and keeps the entry for the sign-in that follows', async () => {
+      const { at, own } = await startAt(LINK)
+
+      expect(at()).toBe(LINK)
+      expect(own.commit).toHaveBeenCalledWith('eventMatchingEntry', KEPT)
+    })
+
+    // Nobody is signed in, so the entry is nobody's: it counts for an hour from now
+    // (keptEventMatchingEntry), and "now" is what is written beside it.
+    it('writes the moment beside it', async () => {
+      const before = Date.now()
+      const { own } = await startAt(LINK)
+      const after = Date.now()
+
+      const [, kept] = own.commit.mock.calls.find(([name]) => name === 'eventMatchingEntry')
+      expect(kept.keptAt).toBeGreaterThanOrEqual(before)
+      expect(kept.keptAt).toBeLessThanOrEqual(after)
+    })
+
+    it('hands nothing to the form: there is nobody to offer it to', async () => {
+      await startAt(LINK)
+
+      expect(entryDraft.take()).toBeNull()
+    })
+
+    // Of the two wishes kept for after a sign-in the younger one counts (Login.vue): the link
+    // is the latest, so a page that waited from an earlier visit goes.
+    it('puts the way back to the overview', async () => {
+      const { own } = await startAt(LINK, { redirectPath: '/contacts?with=member-1' })
+
+      expect(own.commit).toHaveBeenCalledWith('redirectPath', '/overview')
+    })
+
+    /**
+     * A session that has run out counts as nobody -- and is put away first. Left in the store,
+     * the old token would be signed out by the next page that asks for a sign-in (the overview
+     * a bookmark opens), and that sign-out lets go of what is kept here: the member would sign
+     * in and find nothing of the link.
+     */
+    it('puts a session that has run out away first, and keeps the entry after that', async () => {
+      const { at, own } = await startAt(LINK, RUN_OUT)
+
+      expect(at()).toBe(LINK)
+      expect(own.dispatch).toHaveBeenCalledWith('logout')
+      expect(own.commit).toHaveBeenCalledWith('eventMatchingEntry', KEPT)
+      // In this order: the sign-out lets go of a kept entry itself (store.js).
+      const signedOut = own.dispatch.mock.invocationCallOrder[0]
+      const kept =
+        own.commit.mock.invocationCallOrder[
+          own.commit.mock.calls.findIndex(([name]) => name === 'eventMatchingEntry')
+        ]
+      expect(kept).toBeGreaterThan(signedOut)
+    })
+
+    it('signs nobody out where no token lies in the store', async () => {
+      const { own } = await startAt(LINK)
+
+      expect(own.dispatch).not.toHaveBeenCalled()
+    })
+
+    // The sign-out takes the token first; what can fail after that is clearing up -- storage
+    // refused in a private window. That must not keep the visitor from the page.
+    it('shows the page and keeps the entry all the same where the clearing-up fails', async () => {
+      const started = wallet(RUN_OUT)
+      started.own.dispatch.mockRejectedValue(new Error('storage refused'))
+
+      await started.router.push(LINK)
+
+      expect(started.at()).toBe(LINK)
+      expect(started.own.commit).toHaveBeenCalledWith('eventMatchingEntry', KEPT)
+    })
+
+    it('counts the last five seconds of a session as over, as every guard here does', async () => {
+      const { at } = await startAt(LINK, { token: 'ending-token', tokenTime: now() + 3 })
+
+      expect(at()).toBe(LINK)
+    })
+
+    it('keeps the newer entry where a second link is opened', async () => {
+      const { router, own } = await startAt(LINK)
+      await router.push('/event?interest=Training%20X&remote=0')
+
+      expect(own.commit).toHaveBeenLastCalledWith('redirectPath', '/overview')
+      expect(own.commit).toHaveBeenCalledWith('eventMatchingEntry', {
+        summary: 'Training X',
+        details: null,
+        remote: false,
+        keptAt: expect.any(Number),
+      })
+    })
+
+    // Back on the page by the browser's back button, from the sign-in or from another site:
+    // the visitor reads what the link offers once more, and it is kept from that moment.
+    it('keeps the entry anew where the visitor comes back to the page', async () => {
+      const { router, own, at } = await startAt(LINK)
+      await router.push('/login')
+      own.commit.mockClear()
+
+      await step(router, -1)
+
+      expect(at()).toBe(LINK)
+      expect(own.commit).toHaveBeenCalledWith('eventMatchingEntry', KEPT)
+    })
+  })
+
+  describe('without a sentence', () => {
+    it.each([['/event'], ['/event?interest='], ['/event?interest=%20%20'], ['/event?details=x']])(
+      'is no event link, and %s leads to the sign-in page',
+      async (address) => {
+        const { at, own } = await startAt(address)
+
+        expect(at()).toBe('/login')
+        expect(own.commit).not.toHaveBeenCalledWith('eventMatchingEntry', expect.anything())
+      },
+    )
+
+    // The sign-in page of a wallet that starts with its session running goes on to the
+    // overview (the guard above); the form opens with nothing in it.
+    it('leads a running session to the overview, with nothing for the form', async () => {
+      const { at } = await startAt('/event', RUNNING)
+
+      expect(at()).toBe('/overview')
+      expect(entryDraft.take()).toBeNull()
+    })
+
+    it('leaves an entry kept from an earlier link where it is', async () => {
+      const { own } = await startAt('/event', { eventMatchingEntry: ENTRY })
+
+      expect(own.commit).not.toHaveBeenCalledWith('eventMatchingEntry', expect.anything())
+    })
+  })
+
+  describe('opened with a session running', () => {
+    it('leads on to the entries at once, and its page is never shown', async () => {
+      const { at } = await startAt(LINK, RUNNING)
+
+      expect(at()).toBe('/matching/entries')
+    })
+
+    it('hands the entry to the form: an interest, with the answer the link gives for afar', async () => {
+      await startAt(LINK, RUNNING)
+
+      expect(entryDraft.take()).toEqual({
+        summary: 'Kongress Frequency Healing',
+        details: 'Selbstheilung',
+        remote: true,
+        matchingType: 'interesse',
+        unlessThere: true,
+      })
+    })
+
+    it('hands over empty details as the form holds them, and "only here" as the link says it', async () => {
+      await startAt('/event?interest=Training%20X&remote=0', RUNNING)
+
+      expect(entryDraft.take()).toEqual({
+        summary: 'Training X',
+        details: '',
+        remote: false,
+        matchingType: 'interesse',
+        unlessThere: true,
+      })
+    })
+
+    // The member has the form to decide in; the store is for somebody not signed in.
+    it('keeps nothing in the store', async () => {
+      const { own } = await startAt(LINK, RUNNING)
+
+      expect(own.commit).not.toHaveBeenCalledWith('eventMatchingEntry', expect.anything())
+      expect(own.commit).not.toHaveBeenCalledWith('redirectPath', expect.anything())
+    })
+
+    it('takes none of the link along in the address', async () => {
+      const { router } = await startAt(LINK, RUNNING)
+
+      expect(router.currentRoute.value.query).toEqual({})
+    })
+
+    // vue-router matches the record whatever the case and with a slash behind it, and leaves
+    // the address as it was typed. Read off the route's name, every spelling is the link. And
+    // a blank may be written as a plus, as a form writes it: the router reads it as a blank.
+    it.each([
+      ['/EVENT?interest=Kongress%20X'],
+      ['/event/?interest=Kongress%20X'],
+      ['/event?interest=Kongress+X'],
+    ])('reads %s as the link too', async (address) => {
+      const { at } = await startAt(address, RUNNING)
+
+      expect(at()).toBe('/matching/entries')
+      expect(entryDraft.take()?.summary).toBe('Kongress X')
+    })
+  })
+
+  /**
+   * Whoever saw the page signed out, went on to the sign-in and signed in has the link one step
+   * behind the entries. That step is not a start on the link: it opens no form again over
+   * what the member saved or closed, and it does not stay in the way -- it becomes the
+   * entries, so the step after it leads out of the wallet.
+   */
+  describe('come back to by the back button, signed in meanwhile', () => {
+    const signedInAfterTheLink = async () => {
+      const started = await startAt(LINK)
+      await started.router.push('/login')
+      // The sign-in: a session runs, and Login.vue goes on to the entries in the form's place.
+      Object.assign(started.own.state, RUNNING)
+      await started.router.replace('/matching/entries')
+      started.own.commit.mockClear()
+      return started
+    }
+
+    it('ends on the entries', async () => {
+      const { router, at } = await signedInAfterTheLink()
+
+      await step(router, -1)
+
+      expect(at()).toBe('/matching/entries')
+    })
+
+    it('opens no form again', async () => {
+      const { router } = await signedInAfterTheLink()
+
+      await step(router, -1)
+
+      expect(entryDraft.take()).toBeNull()
+    })
+
+    it('keeps nothing in the store either', async () => {
+      const { router, own } = await signedInAfterTheLink()
+
+      await step(router, -1)
+
+      expect(own.commit).not.toHaveBeenCalledWith('eventMatchingEntry', expect.anything())
+    })
+
+    // Replaced, not pushed: a step pushed here would lie BEHIND the link, and every press of
+    // the back button would land on the link again and be sent forward -- no way out.
+    //
+    // And written at all: the step back comes from the entries, and vue-router drops a
+    // navigation to the page it stands on. Without `force` nothing is written, and the
+    // address bar keeps the link while the entries are shown.
+    it('takes the place of the link in the history instead of adding a step behind it', async () => {
+      const { router, at } = await signedInAfterTheLink()
+      const history = router.options.history
+      const replace = vi.spyOn(history, 'replace')
+      const push = vi.spyOn(history, 'push')
+
+      await step(router, -1)
+
+      expect(at()).toBe('/matching/entries')
+      expect(replace).toHaveBeenCalledWith('/matching/entries', expect.anything())
+      expect(push).not.toHaveBeenCalled()
+      expect(history.location).toBe('/matching/entries')
+    })
+
+    it('does the same where the step back comes from another page', async () => {
+      const { router, at } = await signedInAfterTheLink()
+      await router.replace('/overview')
+      const history = router.options.history
+
+      await step(router, -1)
+
+      expect(at()).toBe('/matching/entries')
+      expect(history.location).toBe('/matching/entries')
     })
   })
 })

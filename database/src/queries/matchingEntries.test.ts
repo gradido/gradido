@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { eq, inArray } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
-import { AppDatabase, drizzleDb } from '../AppDatabase'
+import { AppDatabase, DrizzleTransaction, drizzleDb } from '../AppDatabase'
 import { matchingEntriesTable, usersTable } from '../schemas'
 import {
   dbDeleteMatchingEntryByUuid,
@@ -235,6 +235,39 @@ describe('matchingEntries query test', () => {
     const result = await dbDeleteMatchingEntryByUuid('uuid-offer')
     expect(result.success).toBe(true)
     expect(await rowOf('uuid-offer')).toBeUndefined()
+  })
+
+  // The entry an event link noted is made in the transaction that takes the note away
+  // (dbTakeEventMatchingEntry): both go together, or neither.
+  it('should write in the callers transaction, and go back with it', async () => {
+    class Undone extends Error {}
+    await db
+      .transaction(async (tx: DrizzleTransaction) => {
+        await dbInsertMatchingEntry(
+          {
+            uuid: 'uuid-in-a-transaction',
+            userId: 7,
+            matchingType: 'interest',
+            summary: 'Kongress X',
+            details: null,
+            remote: true,
+            active: true,
+          },
+          tx,
+        )
+        // Seen inside the transaction, by the list of the member's own entries as well.
+        expect((await dbSelectMatchingEntriesByUserId(7, tx)).map((e) => e.uuid)).toContain(
+          'uuid-in-a-transaction',
+        )
+        throw new Undone()
+      })
+      .catch((error) => {
+        if (!(error instanceof Undone)) {
+          throw error
+        }
+      })
+
+    expect(await rowOf('uuid-in-a-transaction')).toBeUndefined()
   })
 
   it('should report a missing entry when deleting one that is already gone', async () => {

@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { IsBoolean, IsIn, IsOptional, IsString, MaxLength } from 'class-validator'
-import { MATCHING_ENTRY_DETAILS_MAX_CHARS } from 'shared'
+import { MATCHING_ENTRY_DETAILS_MAX_CHARS, MATCHING_ENTRY_SUMMARY_MAX_CHARS } from 'shared'
 import { Field, InputType } from 'type-graphql'
 
 // TODO: replace the class-validator decorators with a valibot MatchingEntry.schema.ts
@@ -14,7 +14,7 @@ export class MatchingEntryInput {
 
   @Field(() => String)
   @IsString()
-  @MaxLength(160)
+  @MaxLength(MATCHING_ENTRY_SUMMARY_MAX_CHARS)
   summary: string
 
   @Field(() => String, { nullable: true })

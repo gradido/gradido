@@ -20,6 +20,7 @@ import { canEmailResend, isEmailVerificationCodeValid } from '@/data/EmailVerifi
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { getTimeDurationObject, printTimeDuration } from '@/util/time'
+import { makeEventMatchingEntry } from './util/makeEventMatchingEntry'
 
 const createLogger = (method: string) =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.AssistedRegistrationResolver.${method}`)
@@ -84,6 +85,11 @@ export class AssistedRegistrationResolver {
     await dbConfirmRegistrationContact(userContact.id).catch((error) => {
       throw new LogError('Error saving userContact', error)
     })
+
+    // The other door an address is confirmed at (the first is `setPassword`): an entry an
+    // event link noted at the registration is made now. An account a member vouched for may
+    // have registered through such a link as well. It does not throw, and makes the entry once.
+    await makeEventMatchingEntry(user.id)
 
     // Sign into Klicktipp — same moment as setPassword does it for the classic path.
     try {

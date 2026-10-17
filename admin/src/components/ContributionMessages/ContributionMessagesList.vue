@@ -7,10 +7,6 @@
         </routerLink>
         &nbsp;
         <a :href="mailtoLink">{{ email }}</a>
-        <IBiFilter id="filter-by-email" class="ms-1 pointer" @click="searchForEmail" />
-        <BTooltip target="filter-by-email" triggers="hover">
-          {{ $t('filter.byEmail') }}
-        </BTooltip>
         &nbsp;
         {{ contribution.user.publicName }}
         <member-wallet-link
@@ -95,7 +91,6 @@ const emit = defineEmits([
   'update-status',
   'reload-contribution',
   'update-contributions',
-  'search-for-email',
   'resubmission-saved',
 ])
 const email = computed(() => {
@@ -162,10 +157,6 @@ const reloadContribution = (id) => {
 
 const updateContributions = () => {
   emit('update-contributions')
-}
-
-const searchForEmail = () => {
-  emit('search-for-email', email.value)
 }
 </script>
 <style scoped>

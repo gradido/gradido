@@ -1,21 +1,55 @@
 // AI-GENERATED — not an architecture reference
 import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { getLogger } from 'config-schema/test/testSetup'
-import { AppDatabase, dbSelectMatchingEntryByUuid, MatchingEntrySelect, User } from 'database'
+import {
+  AppDatabase,
+  dbMarkEventMatchingArrival,
+  dbSelectMatchingEntriesByUserId,
+  dbSelectMatchingEntryByUuid,
+  dbWriteMatchingEntryKeying,
+  MatchingEntrySelect,
+  User,
+} from 'database'
 import { GraphQLError } from 'graphql'
-import { MATCHING_ENTRY_DETAILS_MAX_CHARS } from 'shared'
+import { MATCHING_ENTRY_DETAILS_MAX_CHARS, MATCHING_ENTRY_SUMMARY_MAX_CHARS } from 'shared'
+import { matchingKeyingRun } from '@/apis/anthropic/matching/keyingRun'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { userFactory } from '@/seeds/factory/user'
 import {
+  acceptEventMatchingEntry,
   createMatchingEntry,
   deleteMatchingEntry,
   login,
   setMatchingEntryActive,
+  settleEventMatchingArrival,
   updateMatchingEntry,
 } from '@/seeds/graphql/mutations'
-import { listMatchingEntries } from '@/seeds/graphql/queries'
+import {
+  eventMatchingArrival,
+  listMatchingEntries,
+  listMatchingEntriesKeyed,
+} from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
+import { syncMatchingEntryToGms } from './util/syncMatchingEntryToGms'
+
+// Passed through to the database, so that one test can hold the first read of a member's entries
+// (the same link opened twice at once).
+jest.mock('database', () => {
+  const actual = jest.requireActual('database')
+  return {
+    ...actual,
+    dbSelectMatchingEntriesByUserId: jest.fn(actual.dbSelectMatchingEntriesByUserId),
+  }
+})
+
+// Passed through to the real hand-over, and counted: acceptEventMatchingEntry has to hand a new
+// entry to the GMS, and nothing that was there already. (A spy cannot wrap the module's export
+// here -- ts-jest defines it as a property that cannot be redefined.)
+jest.mock('./util/syncMatchingEntryToGms', () => {
+  const actual = jest.requireActual('./util/syncMatchingEntryToGms')
+  return { ...actual, syncMatchingEntryToGms: jest.fn(actual.syncMatchingEntryToGms) }
+})
 
 const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 
@@ -210,6 +244,354 @@ describe('MatchingEntryResolver', () => {
     })
   })
 
+  describe('acceptEventMatchingEntry', () => {
+    const SENTENCE = 'Kongress Frequency Healing'
+    const offered = {
+      summary: SENTENCE,
+      details: 'Online, 1.-10. November',
+      remote: true,
+    }
+
+    const accept = (eventMatchingEntry: Record<string, unknown>): Promise<any> =>
+      mutate({ mutation: acceptEventMatchingEntry, variables: { eventMatchingEntry } })
+
+    // Bibi's entries with the link's words, of any kind, as the database holds them.
+    const bibisWith = async (summary: string): Promise<MatchingEntrySelect[]> =>
+      (await dbSelectMatchingEntriesByUserId(bibi.id)).filter(
+        (entry) => entry.summary.trim().toLowerCase() === summary.trim().toLowerCase(),
+      )
+
+    const syncSpy = syncMatchingEntryToGms as jest.Mock
+    let nudgeSpy: jest.SpyInstance
+
+    beforeEach(async () => {
+      await clearEntries()
+      await loginBibi()
+      syncSpy.mockClear()
+      nudgeSpy = jest.spyOn(matchingKeyingRun, 'nudge')
+    })
+
+    afterEach(() => {
+      nudgeSpy.mockRestore()
+    })
+
+    describe('unauthenticated', () => {
+      it('returns an error and makes nothing', async () => {
+        resetToken()
+        const { errors: errorObjects } = await accept(offered)
+        expect(errorObjects).toEqual([new GraphQLError('401 Unauthorized')])
+        expect(await bibisWith(SENTENCE)).toHaveLength(0)
+      })
+    })
+
+    it('makes the entry where the member has none: a live interest, found from afar as the link says', async () => {
+      const res = await accept(offered)
+      expect(res.errors).toBeUndefined()
+      expect(res.data.acceptEventMatchingEntry).toMatchObject({
+        created: true,
+        entry: {
+          uuid: expect.any(String),
+          matchingType: 'interest',
+          summary: SENTENCE,
+          details: 'Online, 1.-10. November',
+          remote: true,
+          active: true,
+        },
+      })
+      const stored = await bibisWith(SENTENCE)
+      expect(stored).toHaveLength(1)
+      expect(stored[0]).toMatchObject({
+        uuid: res.data.acceptEventMatchingEntry.entry.uuid,
+        userId: bibi.id,
+        matchingType: 'interest',
+        remote: true,
+        active: true,
+      })
+    })
+
+    it('hands the new entry to the GMS and tells the keying run, as a saved one is', async () => {
+      const res = await accept(offered)
+      expect(syncSpy).toHaveBeenCalledTimes(1)
+      expect(syncSpy.mock.calls[0][0]).toMatchObject({ id: bibi.id })
+      expect(syncSpy.mock.calls[0][1]).toMatchObject({
+        uuid: res.data.acceptEventMatchingEntry.entry.uuid,
+      })
+      expect(nudgeSpy).toHaveBeenCalledTimes(1)
+    })
+
+    it('takes "found from afar: no" as the link says it', async () => {
+      const res = await accept({ ...offered, remote: false })
+      expect(res.data.acceptEventMatchingEntry.entry.remote).toBe(false)
+    })
+
+    it('stores the words trimmed and blank details as none', async () => {
+      const res = await accept({ summary: `  ${SENTENCE} `, details: '   ', remote: true })
+      expect(res.data.acceptEventMatchingEntry.entry).toMatchObject({
+        summary: SENTENCE,
+        details: null,
+      })
+    })
+
+    it('answers created: false where the member has the entry live, and makes no second one', async () => {
+      const first = await accept(offered)
+      syncSpy.mockClear()
+      nudgeSpy.mockClear()
+      const second = await accept(offered)
+      expect(second.errors).toBeUndefined()
+      expect(second.data.acceptEventMatchingEntry).toMatchObject({
+        created: false,
+        entry: { uuid: first.data.acceptEventMatchingEntry.entry.uuid, active: true },
+      })
+      expect(await bibisWith(SENTENCE)).toHaveLength(1)
+      expect(syncSpy).not.toHaveBeenCalled()
+      expect(nudgeSpy).not.toHaveBeenCalled()
+    })
+
+    it('answers created: false where the member has paused the entry, and leaves it paused', async () => {
+      const first = await accept(offered)
+      const uuid = first.data.acceptEventMatchingEntry.entry.uuid
+      await mutate({ mutation: setMatchingEntryActive, variables: { uuid, active: false } })
+      syncSpy.mockClear()
+      const second = await accept(offered)
+      expect(second.data.acceptEventMatchingEntry).toMatchObject({
+        created: false,
+        entry: { uuid, active: false },
+      })
+      expect(await bibisWith(SENTENCE)).toHaveLength(1)
+      expect((await entryByUuid(uuid)).active).toBe(false)
+      expect(syncSpy).not.toHaveBeenCalled()
+    })
+
+    it('counts the same words in another case and with blanks around them as there', async () => {
+      await seedEntry({ matchingType: 'interest', summary: 'kongress FREQUENCY healing' })
+      const res = await accept({ ...offered, summary: `  ${SENTENCE.toUpperCase()}  ` })
+      expect(res.data.acceptEventMatchingEntry.created).toBe(false)
+      expect(res.data.acceptEventMatchingEntry.entry.summary).toBe('kongress FREQUENCY healing')
+      expect(await bibisWith(SENTENCE)).toHaveLength(1)
+    })
+
+    it('does not count an offer with the same words: it is another kind', async () => {
+      await seedEntry({ matchingType: 'offer', summary: SENTENCE })
+      const res = await accept(offered)
+      expect(res.data.acceptEventMatchingEntry).toMatchObject({
+        created: true,
+        entry: { matchingType: 'interest' },
+      })
+      expect(await bibisWith(SENTENCE)).toHaveLength(2)
+    })
+
+    it('does not count other words of the same kind', async () => {
+      await seedEntry({ matchingType: 'interest', summary: `${SENTENCE} 2027` })
+      const res = await accept(offered)
+      expect(res.data.acceptEventMatchingEntry.created).toBe(true)
+    })
+
+    it("does not count another member's entry with the same words", async () => {
+      await loginBob()
+      await accept(offered)
+      await loginBibi()
+      const res = await accept(offered)
+      expect(res.data.acceptEventMatchingEntry.created).toBe(true)
+      expect(await bibisWith(SENTENCE)).toHaveLength(1)
+    })
+
+    it('makes the entry anew after the member deleted it', async () => {
+      const first = await accept(offered)
+      const uuid = first.data.acceptEventMatchingEntry.entry.uuid
+      await mutate({ mutation: deleteMatchingEntry, variables: { uuid } })
+      const again = await accept(offered)
+      expect(again.data.acceptEventMatchingEntry.created).toBe(true)
+      expect(again.data.acceptEventMatchingEntry.entry.uuid).not.toBe(uuid)
+      expect(await bibisWith(SENTENCE)).toHaveLength(1)
+    })
+
+    /**
+     * The first call's read of the member's entries is held until the second call has finished
+     * or has waited a second. Without the member's line the second reads "not there" while the
+     * first is held, and both make the entry; with it the second waits for the first, and finds
+     * it. Held on purpose: two calls left to themselves overlap only by chance.
+     */
+    it('makes one entry for the same link opened twice at once', async () => {
+      const select = dbSelectMatchingEntriesByUserId as jest.Mock
+      select.mockClear()
+      const { dbSelectMatchingEntriesByUserId: read } = jest.requireActual('database')
+      let release: () => void = () => undefined
+      const held = new Promise<void>((resolve) => (release = resolve))
+      select.mockImplementationOnce(async (...args: unknown[]) => {
+        const rows = await read(...args)
+        await held
+        return rows
+      })
+      const first = accept(offered)
+      for (let i = 0; i < 200 && select.mock.calls.length === 0; i++) {
+        await new Promise((resolve) => setTimeout(resolve, 10))
+      }
+      expect(select).toHaveBeenCalled()
+      const second = accept(offered)
+      await Promise.race([second, new Promise((resolve) => setTimeout(resolve, 1000))])
+      release()
+      const answers = await Promise.all([first, second])
+      expect(answers.map((res) => res.errors)).toEqual([undefined, undefined])
+      expect(answers.map((res) => res.data.acceptEventMatchingEntry.created)).toEqual([true, false])
+      expect(await bibisWith(SENTENCE)).toHaveLength(1)
+    })
+
+    it('refuses a sentence longer than an entry holds, and makes nothing', async () => {
+      const res = await accept({
+        ...offered,
+        summary: 'x'.repeat(MATCHING_ENTRY_SUMMARY_MAX_CHARS + 1),
+      })
+      expect(res.errors).toHaveLength(1)
+      expect(res.data).toBeNull()
+      expect(await dbSelectMatchingEntriesByUserId(bibi.id)).toHaveLength(0)
+    })
+
+    it('takes a sentence of exactly the length an entry holds', async () => {
+      const res = await accept({
+        ...offered,
+        summary: 'x'.repeat(MATCHING_ENTRY_SUMMARY_MAX_CHARS),
+      })
+      expect(res.errors).toBeUndefined()
+      expect(res.data.acceptEventMatchingEntry.created).toBe(true)
+    })
+
+    it('refuses a blank sentence, and makes nothing', async () => {
+      const res = await accept({ ...offered, summary: '   ' })
+      expect(res.errors).toHaveLength(1)
+      expect(await dbSelectMatchingEntriesByUserId(bibi.id)).toHaveLength(0)
+    })
+
+    it('refuses details longer than an entry holds, and makes nothing', async () => {
+      const res = await accept({
+        ...offered,
+        details: 'y'.repeat(MATCHING_ENTRY_DETAILS_MAX_CHARS + 1),
+      })
+      expect(res.errors).toHaveLength(1)
+      expect(await dbSelectMatchingEntriesByUserId(bibi.id)).toHaveLength(0)
+    })
+
+    it('keeps the words out of the refusal', async () => {
+      const words = `${'Geheimnis '.repeat(16)}x`
+      const res = await accept({ ...offered, summary: words })
+      expect(res.errors[0].message).not.toContain('Geheimnis')
+    })
+  })
+
+  /**
+   * The invitation onto the map after an event link (KA-015): noted at the account by the
+   * confirmation that makes the entry (makeEventMatchingEntry, held in UserResolver.test.ts),
+   * asked by the wallet after a sign-in, taken away once it had the screen. Noted here straight
+   * through the query layer, which its own test covers.
+   */
+  describe('eventMatchingArrival and settleEventMatchingArrival', () => {
+    const SENTENCE = 'Kongress Frequency Healing'
+    const asked = (): Promise<any> => query({ query: eventMatchingArrival })
+    const settle = (): Promise<any> => mutate({ mutation: settleEventMatchingArrival })
+
+    beforeEach(async () => {
+      await clearEntries()
+      await db.getDataSource().query('DELETE FROM event_matching_arrivals')
+      await loginBibi()
+    })
+
+    describe('unauthenticated', () => {
+      it('returns an error for both, and leaves the invitation where it is', async () => {
+        const uuid = await seedEntry({ matchingType: 'interest', summary: SENTENCE })
+        await dbMarkEventMatchingArrival(bibi.id, uuid)
+        resetToken()
+
+        expect((await asked()).errors).toEqual([new GraphQLError('401 Unauthorized')])
+        expect((await settle()).errors).toEqual([new GraphQLError('401 Unauthorized')])
+        await loginBibi()
+        expect((await asked()).data.eventMatchingArrival).toBe(SENTENCE)
+      })
+    })
+
+    it('answers null where no invitation is due', async () => {
+      await seedEntry({ matchingType: 'interest', summary: SENTENCE })
+
+      const res = await asked()
+      expect(res.errors).toBeUndefined()
+      expect(res.data.eventMatchingArrival).toBeNull()
+    })
+
+    it('names the sentence of the entry the invitation is for', async () => {
+      const uuid = await seedEntry({ matchingType: 'interest', summary: SENTENCE })
+      await dbMarkEventMatchingArrival(bibi.id, uuid)
+
+      const res = await asked()
+      expect(res.errors).toBeUndefined()
+      expect(res.data.eventMatchingArrival).toBe(SENTENCE)
+    })
+
+    // Read off the entry, never kept beside it.
+    it('names the sentence as it stands, where the member has changed it since', async () => {
+      const uuid = await seedEntry({ matchingType: 'interest', summary: SENTENCE })
+      await dbMarkEventMatchingArrival(bibi.id, uuid)
+      await mutate({
+        mutation: updateMatchingEntry,
+        variables: { uuid, input: { matchingType: 'interest', summary: `${SENTENCE} 2026` } },
+      })
+
+      expect((await asked()).data.eventMatchingArrival).toBe(`${SENTENCE} 2026`)
+    })
+
+    it('answers null where the entry is gone', async () => {
+      const uuid = await seedEntry({ matchingType: 'interest', summary: SENTENCE })
+      await dbMarkEventMatchingArrival(bibi.id, uuid)
+      await mutate({ mutation: deleteMatchingEntry, variables: { uuid } })
+
+      expect((await asked()).data.eventMatchingArrival).toBeNull()
+    })
+
+    // ⛔ Only the member's own entry is ever named: a row that pointed at somebody else's would
+    // hand out that member's words.
+    it('never names an entry of another member, whatever the row points at', async () => {
+      await loginBob()
+      const bobs = await seedEntry({ matchingType: 'interest', summary: 'Bob loves bricks' })
+      await loginBibi()
+      await dbMarkEventMatchingArrival(bibi.id, bobs)
+
+      const res = await asked()
+      expect(res.errors).toBeUndefined()
+      expect(res.data.eventMatchingArrival).toBeNull()
+    })
+
+    it('answers every member for their own account', async () => {
+      const uuid = await seedEntry({ matchingType: 'interest', summary: SENTENCE })
+      await dbMarkEventMatchingArrival(bibi.id, uuid)
+      await loginBob()
+
+      expect((await asked()).data.eventMatchingArrival).toBeNull()
+    })
+
+    it('is over once settled -- for the member who settles it, and for nobody else', async () => {
+      const uuid = await seedEntry({ matchingType: 'interest', summary: SENTENCE })
+      await dbMarkEventMatchingArrival(bibi.id, uuid)
+      await loginBob()
+      const bobs = await seedEntry({ matchingType: 'interest', summary: 'Bob loves bricks' })
+      await dbMarkEventMatchingArrival(bob.id, bobs)
+      await loginBibi()
+
+      const res = await settle()
+      expect(res.errors).toBeUndefined()
+      expect(res.data.settleEventMatchingArrival).toBe(true)
+      expect((await asked()).data.eventMatchingArrival).toBeNull()
+      // The entry stays: only the invitation is over.
+      expect(await entryExists(uuid)).toBe(true)
+      await loginBob()
+      expect((await asked()).data.eventMatchingArrival).toBe('Bob loves bricks')
+    })
+
+    // Two tabs may both say it.
+    it('settles where none is due as well', async () => {
+      const res = await settle()
+
+      expect(res.errors).toBeUndefined()
+      expect(res.data.settleEventMatchingArrival).toBe(true)
+    })
+  })
+
   describe('listMatchingEntries', () => {
     describe('unauthenticated', () => {
       it('returns an error', async () => {
@@ -240,6 +622,45 @@ describe('MatchingEntryResolver', () => {
         expect(resBob.data.listMatchingEntries.map((entry: any) => entry.summary)).toEqual([
           'Bob needs bricks',
         ])
+      })
+    })
+
+    /**
+     * Whether an entry has its words: the map asks again while one has none (the GMS finds
+     * with an entry only once it has them). A new entry has none, the keying run gives them,
+     * and an edit takes them away again until the run has been round.
+     */
+    describe('keyed', () => {
+      const keyedOf = async (uuid: string): Promise<boolean> => {
+        const res: any = await query({ query: listMatchingEntriesKeyed })
+        return res.data.listMatchingEntries.find((entry: any) => entry.uuid === uuid).keyed
+      }
+
+      it('is false for a new entry, true once the words are written, false again after an edit', async () => {
+        await clearEntries()
+        await loginBibi()
+        const uuid = await seedEntry({ matchingType: 'interest', summary: 'Kongress X' })
+        expect(await keyedOf(uuid)).toBe(false)
+
+        const written = await dbWriteMatchingEntryKeying(await entryByUuid(uuid), {
+          keyWords: ['kongress'],
+          keySubject: 'kongress',
+          keyActivity: null,
+          keyCategory: null,
+          keyArea: null,
+          keyActor: null,
+          keySoughtActor: null,
+          keyTraits: [],
+          instructionVersion: 'test',
+        })
+        expect(written.success).toBe(true)
+        expect(await keyedOf(uuid)).toBe(true)
+
+        await mutate({
+          mutation: updateMatchingEntry,
+          variables: { uuid, input: { matchingType: 'interest', summary: 'Kongress Y' } },
+        })
+        expect(await keyedOf(uuid)).toBe(false)
       })
     })
 

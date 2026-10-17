@@ -1,16 +1,23 @@
 import { START_LOCATION } from 'vue-router'
 import { verifyLogin } from '../graphql/queries'
 import { clearApolloCache } from '../plugins/apolloCache'
+import { useEntryDraft } from '../composables/useEntryDraft'
 import { mayFind } from '../utils/matchingPosition'
 import { holdChatText, takeChatReturn } from '../utils/chatReturn'
+import {
+  eventMatchingEntryDraft,
+  eventMatchingEntryToKeep,
+  readEventMatchingLink,
+} from '../utils/eventMatchingLink'
 import { safeWalletPath } from '../utils/safeWalletPath'
 
 /**
  * Whether the stored session still runs: a token, and more than five seconds before it ends --
  * the margin the redeem page allows too (TransactionLink.vue). `tokenTime` is when the session
- * ends by this device's clock, in seconds (the `token` mutation in store.js).
+ * ends by this device's clock, in seconds (the `token` mutation in store.js). The language
+ * switch asks the same before it saves a language to the account (LanguageSwitch2.vue).
  */
-const sessionRuns = (state) =>
+export const sessionRuns = (state) =>
   Boolean(state.token) && Boolean(state.tokenTime) && state.tokenTime * 1000 - Date.now() > 5000
 
 /** Whether a route is the overview, however its address was written (the record decides). */
@@ -134,6 +141,65 @@ const addNavigationGuards = (router, store, apollo) => {
       return next(conversationWith(back))
     }
     return to.name === 'Login' ? next({ path: '/overview' }) : next()
+  })
+
+  // ⭐ The event link, `/event?interest=…` (Event-Matching, utils/eventMatchingLink): a host
+  // hands it to the people of a congress, and it offers whoever opens it one entry for the
+  // matching -- "I love ‹interest›". What becomes of it depends on who opens it:
+  //
+  // - No sentence in it: no event link. On to the sign-in page, without a word.
+  // - A session runs: on to the member's entries at once, where the entry is made without a
+  //   form (pages/Matching.vue takes it, once; KA-014) -- or nothing happens, where the member
+  //   has it already.
+  // - Nobody signed in: the store keeps the entry for an hour, and the page says what the link
+  //   offers and leads on to the registration and the sign-in (pages/EventMatchingLanding.vue).
+  //   A sign-in on the sign-in page within that hour makes the entry the same way (Login.vue).
+  //
+  // A session that has run out counts as nobody, and is put away first, as before a page that
+  // asks for a sign-in (below). Left in the store, the old token would be signed out by the
+  // next such page -- the overview a bookmark opens -- and that sign-out takes what is kept
+  // here with it: the member would sign in and find nothing of the link.
+  //
+  // ⛔ The entry is made only where the wallet STARTS on the link -- a tap on it in a mail, a QR
+  // code, the address typed. A session can also come back to the link by the browser's back
+  // button: whoever saw the page signed out, went on to the sign-in and signed in has it one
+  // step behind the entries. That step must not offer the entry again, and it must not stay in
+  // the way either: it is replaced by the entries, so
+  // the step after it leads out. It stays a step within the document after a reload on the
+  // entries, too: the browser hands it to the wallet and loads nothing (measured in the built
+  // wallet, 13.10.2026). (A way to the link from inside the running wallet would be read as
+  // coming back as well; there is none.)
+  //
+  // `force`, because that step back usually comes FROM the entries: vue-router drops a
+  // navigation to the page it stands on as a duplicate, and the address bar would keep the
+  // link while the entries are shown.
+  //
+  // Read off the route's name, not off the address: every spelling of it that reaches the
+  // page carries the name.
+  router.beforeEach(async (to, from, next) => {
+    if (to.name !== 'EventMatchingLanding') return next()
+    const entry = readEventMatchingLink(to.query)
+    if (!entry) return next({ path: '/login' })
+    if (!sessionRuns(store.state)) {
+      if (store.state.token) {
+        try {
+          await store.dispatch('logout')
+        } catch {
+          // The sign-in is gone already; what failed was housekeeping.
+        }
+      }
+      store.commit('eventMatchingEntry', eventMatchingEntryToKeep(entry))
+      // The link is the visitor's latest wish for after a sign-in. A page that waited there
+      // from an earlier visit (`redirectPath`, written below for somebody signed out) is older
+      // and goes; one asked for after this is younger, and the link's entry goes (Login.vue).
+      store.commit('redirectPath', '/overview')
+      return next()
+    }
+    if (from !== START_LOCATION) {
+      return next({ path: '/matching/entries', replace: true, force: true })
+    }
+    useEntryDraft().put(eventMatchingEntryDraft(entry))
+    return next({ path: '/matching/entries' })
   })
 
   // handle authentication

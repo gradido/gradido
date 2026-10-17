@@ -610,6 +610,50 @@
     "session-renewal-failed": "Não foi possível renovar a tua sessão. Inicia sessão novamente.",
     "unknown-error": "Erro desconhecido: "
   },
+  "eventMatching": {
+    "builder": {
+      "codeAlt": "Código QR que leva ao teu link",
+      "codeFailed": "De momento não é possível desenhar o código QR. O link funciona.",
+      "codeLabel": "O teu código QR",
+      "codeTooLong": "Este link é demasiado longo para um código QR. Com menos texto, o código aparece. O link funciona na mesma.",
+      "copyFailed": "Infelizmente, o teu dispositivo não permite copiar. Seleciona o texto e copia-o à mão.",
+      "copyLink": "Copiar link",
+      "copyMail": "Copiar parágrafo",
+      "detailsCount": "{count} / {max}",
+      "detailsHint": "Uma ou duas frases que expliquem o teu tema.",
+      "detailsMissing": "Agora escreve acima os detalhes — depois aparecem aqui o teu link, o teu código QR e um parágrafo para o teu e-mail.",
+      "downloadCode": "Descarregar código QR",
+      "intro": "Quem abrir este link recebe na sua conta Gradido o teu congresso como primeira entrada no mapa — e encontra as outras pessoas do teu congresso.",
+      "linkCopied": "Link copiado.",
+      "linkLabel": "O teu link",
+      "mailCopied": "Parágrafo copiado.",
+      "mailLabel": "O teu parágrafo para o e-mail",
+      "mailText": "Gradido incluído: com este link recebes a tua conta Gradido, 100 Gradido para começar e o mapa que te leva às pessoas do nosso congresso. O mapa mostra a tua localização apenas aos membros, e apenas de forma aproximada.",
+      "nothingStored": "Nada é guardado. És tu que crias o link, és tu que o partilhas.",
+      "remoteHint": "Assim os teus participantes também aparecem na pesquisa supra-regional.",
+      "sentenceDefault": "Congresso",
+      "sentenceHint": "O nome curto do teu congresso, tal como os teus participantes o diriam. A palavra «Congresso» pode ficar à frente — «Formação», «Curso» ou «Retiro» também servem.",
+      "sentencePreview": "«{sentence}»",
+      "subtitle": "O teu link para o teu congresso, a tua formação, o teu curso",
+      "title": "Event Matching",
+      "waiting": "Escreve acima o nome do teu congresso — depois aparecem aqui o teu link, o teu código QR e um parágrafo para o teu e-mail."
+    },
+    "home": {
+      "text": "Para que se encontrem como pessoas com os mesmos interesses: marca a tua casa no mapa. Assim vês os outros que adicionaram «{sentence}», e eles veem-te a ti. Só os membros veem o mapa. És tu que decides com que precisão: «Aproximada» mostra-te numa área, nunca à tua porta. E podes sair do mapa a qualquer momento.",
+      "title": "Onde moras?"
+    },
+    "landing": {
+      "added": "A tua entrada foi adicionada: {sentence}",
+      "firstEntry": "A tua primeira entrada:",
+      "haveAccount": "Já tenho uma conta",
+      "headline": "O mapa que te leva às pessoas do teu congresso",
+      "otherCommunity": "A tua conta está noutra comunidade? Então inicia sessão lá e escreve a frase à mão.",
+      "register": "Criar conta"
+    },
+    "register": {
+      "firstEntry": "A tua primeira entrada:"
+    }
+  },
   "existingGradidoAccount": "Já tens uma conta {communityName}?",
   "firstCreation": {
     "again": "+ Houve mais",
@@ -696,6 +740,7 @@
       "link": "Gradido-Akademie",
       "year": "© {year}"
     },
+    "eventMatching": "Event Matching",
     "imprint": "Aviso legal",
     "inspector": "Inspetor (experimental)",
     "privacy_policy": "Política de privacidade",
@@ -1287,7 +1332,7 @@
   },
   "send_email": "Enviar e‑mail",
   "send_gdd": "Enviar GDD",
-  "send_per_link": "Link, cheque, QR",
+  "send_per_link": "Link, cheque, QR, postal",
   "session": {
     "extend": "Manter sessão iniciada",
     "lightText": "Se não realizares qualquer ação durante mais de 10 minutos, terminarás a sessão por motivos de segurança.",

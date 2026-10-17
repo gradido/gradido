@@ -58,6 +58,7 @@ import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { getTimeDurationObject, printDateTime, printTimeDuration } from '@/util/time'
+import { makeEventMatchingEntry } from './util/makeEventMatchingEntry'
 
 /**
  * Changing the e-mail address of one's own account.
@@ -624,6 +625,13 @@ export class EmailChangeResolver {
     }
     const { user, newEmail, oldEmail, oldWasConfirmed, takeBack } = settled
     logger.info('confirmEmailChange... marker moved')
+
+    // The third door an address is confirmed at, beside `setPassword` and `confirmEmail`: an
+    // account a member vouched for that corrected a mistyped address is confirmed by this
+    // very change. An entry an event link noted at its registration is made now
+    // (Event-Matching). After the commit, as there; it does not throw, and for every account
+    // that has nothing noted -- nearly all that come through here -- it is one read.
+    await makeEventMatchingEntry(user.id)
 
     const common = { firstName: user.firstName, lastName: user.lastName, language: user.language }
     // Both addresses hear of it: the new one because it is now in force, the old one

@@ -617,7 +617,7 @@ describe('GddTransaction', () => {
 
     expect(wrapper.find('[data-test="via-greeting"]').text()).toContain('via_greeting')
     expect(wrapper.find('[data-test="via-greeting"] [data-icon]').attributes('data-icon')).toBe(
-      'bouquet',
+      'balloon-heart',
     )
     expect(wrapper.text()).not.toContain('via_link')
   })

@@ -447,8 +447,10 @@ import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { useAppToast } from '@/composables/useToast'
 import { useEntryDraft } from '@/composables/useEntryDraft'
+import { eventLinkUnderway } from '@/composables/useEventMatchingArrival'
 import { rememberOwnMatchingEntries } from '@/composables/useOwnMatchingEntries'
 import {
+  acceptEventMatchingEntry,
   createMatchingEntry,
   deleteMatchingEntry,
   setMatchingEntryActive,
@@ -529,7 +531,9 @@ onEntries(({ data }) => {
   // who goes back to the overview from here finds the tile right at once, without a wait.
   rememberOwnMatchingEntries(store.state.gradidoID, entries.value.length)
 })
-onEntriesError((error) => toastError(error.message))
+onEntriesError((error) => {
+  toastError(error.message)
+})
 
 /**
  * One entry more, or one fewer, said to the device the moment the server has confirmed it --
@@ -558,6 +562,7 @@ const { mutate: createEntry } = useMutation(createMatchingEntry)
 const { mutate: updateEntry } = useMutation(updateMatchingEntry)
 const { mutate: setEntryActive } = useMutation(setMatchingEntryActive)
 const { mutate: removeEntry } = useMutation(deleteMatchingEntry)
+const { mutate: acceptEntry } = useMutation(acceptEventMatchingEntry)
 
 // --- New / edit entry modal ---
 const entryDraft = useEntryDraft()
@@ -573,7 +578,7 @@ const newSummary = ref('')
 const newDetails = ref('')
 const newRemote = ref(false)
 
-function openNew({ summary = '', details = '', matchingType = null } = {}) {
+function openNew({ summary = '', details = '', matchingType = null, remote = false } = {}) {
   editUuid.value = null
   newType.value = matchingType
   choiceFirst.value = !matchingType
@@ -582,8 +587,82 @@ function openNew({ summary = '', details = '', matchingType = null } = {}) {
   // sharpen that search; a stored entry is judged on the same words, so asking again
   // would be asking them to repeat themselves.
   newDetails.value = details
-  newRemote.value = false
+  // Off unless whoever opens the form says otherwise: the map and the overview's tile say
+  // nothing. (An event link opens no form, see `acceptEventEntry`.)
+  newRemote.value = remote
   showNew.value = true
+}
+
+/**
+ * The entry an event link offers (`/event?interest=…`), handed over by the link's guard or the
+ * sign-in (utils/eventMatchingLink, `unlessThere`): made at once, without a form -- the tap on
+ * the link is the yes (KA-014). The server compares it with the member's own entries
+ * (`acceptEventMatchingEntry`): where the member has that sentence already, live or paused,
+ * nothing is made, and this page says nothing either. Whoever taps the link in every mail of a
+ * congress is not told each time what they know.
+ *
+ * Made, the entry is said in a toast with its sentence, as the list shows it, and the list is
+ * fetched again -- the entry stands in it, to be paused or deleted like any other. And the
+ * invitation onto the map follows, for a member who does not stand on it yet (KA-015,
+ * components/EventMatchingHomeInvitation): the page says here that the link made the entry, and
+ * until the answer is in, the windows after that invitation wait (useEventMatchingArrival).
+ *
+ * Refused, nothing is said where the member has a reason told elsewhere: no connection, or an
+ * account whose address waits for its confirmation (401 -- the reminder says what to do). Only
+ * a refusal nobody expects gets the usual red toast.
+ *
+ * ⛔ The answer comes a moment after the page, and the member may have signed out by then: the
+ * toast and the count on the device belong to who opened the link, and only to them.
+ */
+// No connection: the request never reached a server, so there is no status. A server that
+// answered with an error status (a 502 while it restarts, a 500) is not "no connection".
+const quietRefusal = (error) =>
+  Boolean(error?.networkError && !error.networkError.statusCode) ||
+  (error?.graphQLErrors ?? []).some((e) => e?.message === '401 Unauthorized')
+async function acceptEventEntry(offered) {
+  const member = store.state.gradidoID
+  const answered = eventLinkUnderway(member)
+  let accepted
+  try {
+    const result = await acceptEntry({
+      eventMatchingEntry: {
+        summary: offered.summary,
+        details: offered.details || null,
+        remote: offered.remote,
+      },
+    })
+    accepted = result?.data?.acceptEventMatchingEntry
+  } catch (error) {
+    answered(null)
+    if (quietRefusal(error) || store.state.gradidoID !== member) return
+    toastError(error.message)
+    // The server stores the entry before it hands it to the GMS, and a refusal can come from
+    // that second step: the list says what is there (coderabbit, #4149).
+    try {
+      await refetchEntries()
+    } catch {
+      // The red toast has said it already.
+    }
+    return
+  }
+  if (!accepted?.created || store.state.gradidoID !== member) {
+    answered(null)
+    return
+  }
+  answered(accepted.entry.summary)
+  toastSuccess(
+    t('eventMatching.landing.added', {
+      sentence: `${t('matching.type.interesse.prefix')} ${accepted.entry.summary}`,
+    }),
+  )
+  // Told only where the list does not hold it yet: a list that came after the entry was made
+  // counts it already.
+  if (!entries.value.some((e) => e.uuid === accepted.entry.uuid)) tellEntriesChanged(member, 1)
+  try {
+    await refetchEntries()
+  } catch (error) {
+    if (store.state.gradidoID === member) toastError(error.message)
+  }
 }
 
 /**
@@ -596,7 +675,11 @@ function openNew({ summary = '', details = '', matchingType = null } = {}) {
  */
 onMounted(() => {
   const draft = entryDraft.take()
-  if (draft) openNew(draft)
+  if (draft?.unlessThere) {
+    acceptEventEntry(draft)
+  } else if (draft) {
+    openNew(draft)
+  }
   // Or the overview's matching tile sent the member to write an entry (utils/newMatchingEntry).
   // The wish is read once and taken out of the address at once, as the contacts page takes
   // out the conversation it is asked for: a reload, or the way back to this tab, must not
@@ -1016,7 +1099,11 @@ function showMeFromFind() {
    gradido-border-radius; inputs: .form-control/.form-select; spacing/colors:
    Bootstrap utilities). */
 .matching-page {
-  color: #383838;
+  /* The text colour of the page's mode (_design-tokens.scss): #383838 in light, as it was,
+     and the light one in dark. It stood here as the light value alone, so every text that
+     stands on the page without a colour of its own was dark on the dark ground -- each
+     one patched where it showed (gradido-template-dark.scss), and the next one not. */
+  color: var(--text);
 }
 
 /* The two buttons of a window whose second one names a step: behind the find button, and

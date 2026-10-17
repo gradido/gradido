@@ -114,6 +114,29 @@ export const createMatchingEntry = gql`
   }
 `
 
+// The entry an event link offers, made at once for a signed-in member (pages/Matching.vue,
+// `acceptEventEntry`). The variable is named as createUser's: the server's request log masks
+// it by that name (server/plugins.ts) -- what somebody is interested in.
+export const acceptEventMatchingEntry = gql`
+  mutation ($eventMatchingEntry: EventMatchingEntryInput!) {
+    acceptEventMatchingEntry(input: $eventMatchingEntry) {
+      created
+      entry {
+        uuid
+        summary
+      }
+    }
+  }
+`
+
+// The invitation onto the map after an event link is over: it had the screen
+// (components/EventMatchingHomeInvitation).
+export const settleEventMatchingArrival = gql`
+  mutation {
+    settleEventMatchingArrival
+  }
+`
+
 export const updateMatchingEntry = gql`
   mutation ($uuid: String!, $input: MatchingEntryInput!) {
     updateMatchingEntry(uuid: $uuid, input: $input) {
@@ -160,6 +183,7 @@ export const createUser = gql`
     $referrerAlias: String
     $guarantorCode: String
     $password: String
+    $eventMatchingEntry: EventMatchingEntryInput
   ) {
     createUser(
       email: $email
@@ -172,6 +196,7 @@ export const createUser = gql`
       referrerAlias: $referrerAlias
       guarantorCode: $guarantorCode
       password: $password
+      eventMatchingEntry: $eventMatchingEntry
     )
   }
 `

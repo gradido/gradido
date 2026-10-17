@@ -63,6 +63,7 @@ import {
 import { reencodeImage } from 'shared-native'
 import { QueryRunner } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
+import { matchingKeyingRun } from '@/apis/anthropic/matching/keyingRun'
 import {
   deleteGmsUser,
   getGmsUserCount,
@@ -105,7 +106,9 @@ import {
   authenticateGmsUserSearch,
   avatarFull,
   checkUsername,
+  eventMatchingArrival,
   gmsDashboardUrl,
+  listMatchingEntries,
   mapMemberCount as mapMemberCountQuery,
   memberAvatarFull,
   memberAvatars,
@@ -1277,6 +1280,266 @@ describe('UserResolver', () => {
 
       it('returns true', () => {
         expect(result).toBeTruthy()
+      })
+
+      // Nearly every confirmation: the registration brought no entry of an event link.
+      it('makes no entry for the matching', async () => {
+        await expect(
+          db
+            .getDataSource()
+            .query('SELECT id FROM matching_entries WHERE user_id = ?', [newUser.id]),
+        ).resolves.toEqual([])
+      })
+    })
+
+    /**
+     * Event-Matching: the entry an event link offered comes along with the registration,
+     * waits at the account, and is made when the address is confirmed -- for a registration
+     * through the mail, here.
+     *
+     * The cases follow one another: one account, confirmed again and again.
+     */
+    describe('with an entry an event link noted at the registration', () => {
+      const eventMatchingEntry = {
+        summary: 'Kongress Frequency Healing',
+        details: 'Selbstheilung, Biohacking',
+        remote: true,
+      }
+      const makeEntryLogger = getLogger(
+        `${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.makeEventMatchingEntry`,
+      )
+      let registered: any
+      let userId: number
+
+      const notes = (): Promise<unknown[]> =>
+        db
+          .getDataSource()
+          .query('SELECT summary, details, remote FROM event_matching_entries WHERE user_id = ?', [
+            userId,
+          ])
+      const entries = (): Promise<unknown[]> =>
+        db
+          .getDataSource()
+          .query(
+            'SELECT matching_type, summary, details, remote, active FROM matching_entries WHERE user_id = ?',
+            [userId],
+          )
+      // The invitation onto the map that is due for the account (KA-015), and the entries it
+      // could name.
+      const arrivals = (): Promise<unknown[]> =>
+        db
+          .getDataSource()
+          .query('SELECT matching_entry_uuid FROM event_matching_arrivals WHERE user_id = ?', [
+            userId,
+          ])
+      const entryUuids = async (): Promise<string[]> =>
+        (
+          await db
+            .getDataSource()
+            .query('SELECT uuid FROM matching_entries WHERE user_id = ?', [userId])
+        ).map((row: { uuid: string }) => row.uuid)
+      const setThePassword = () =>
+        mutate({
+          mutation: setPassword,
+          variables: { code: emailVerificationCode, password: 'Aa12345_' },
+        })
+
+      beforeAll(async () => {
+        jest.clearAllMocks()
+        await writeHomeCommunityEntry()
+        registered = await mutate({
+          mutation: createUser,
+          variables: { ...createUserVariables, eventMatchingEntry },
+        })
+        const emailContact = await UserContact.findOneOrFail({
+          where: { email: createUserVariables.email },
+        })
+        userId = emailContact.userId
+        emailVerificationCode = emailContact.emailVerificationCode.toString()
+      })
+
+      afterAll(async () => {
+        resetToken()
+        await cleanDB()
+      })
+
+      it('notes the entry at the registration, and makes none yet', async () => {
+        expect(registered).toEqual(expect.objectContaining({ data: { createUser: true } }))
+        expect(await notes()).toEqual([
+          {
+            summary: 'Kongress Frequency Healing',
+            details: 'Selbstheilung, Biohacking',
+            remote: 1,
+          },
+        ])
+        expect(await entries()).toEqual([])
+        // Nothing to invite anybody onto the map for before the mail was clicked.
+        expect(await arrivals()).toEqual([])
+      })
+
+      // That an entry came along, never its words: they say something about a person, and
+      // the line carries the start of the address.
+      it('says in the log of the registration that an entry came along, without its words', () => {
+        const createUserLogger = resolverLogger('createUser')
+        expect(createUserLogger.info).toHaveBeenCalledWith(
+          expect.stringMatching(/^createUser\(.*eventMatchingEntry.*\)$/),
+        )
+        const logged = JSON.stringify(createUserLogger.info.mock.calls)
+        expect(logged).not.toContain('Kongress')
+        expect(logged).not.toContain('Selbstheilung')
+      })
+
+      // A link that has run out confirms nothing, so it makes nothing either: the note waits.
+      it('leaves the note waiting where the code of the mail has run out', async () => {
+        const dayAndAHourAgo = new Date(Date.now() - 25 * 60 * 60 * 1000)
+        await db
+          .getDataSource()
+          .query('UPDATE user_contacts SET created_at = ?, updated_at = ? WHERE user_id = ?', [
+            dayAndAHourAgo,
+            dayAndAHourAgo,
+            userId,
+          ])
+        try {
+          const refused = await setThePassword()
+          expect(refused.errors?.[0]?.message).toMatch(/^Email was sent more than/)
+        } finally {
+          const now = new Date()
+          await db
+            .getDataSource()
+            .query('UPDATE user_contacts SET created_at = ?, updated_at = ? WHERE user_id = ?', [
+              now,
+              now,
+              userId,
+            ])
+        }
+
+        expect(await notes()).toHaveLength(1)
+        expect(await entries()).toEqual([])
+      })
+
+      /**
+       * ⛔ The address is confirmed whatever becomes of the entry. Here the table of the
+       * entries is away for this one confirmation, so the entry cannot be written -- in the
+       * database itself, with the statement and the transaction as they are. The password is
+       * set and the address confirmed all the same, and the note waits on.
+       */
+      it('confirms the address all the same where the entry cannot be made', async () => {
+        await db.getDataSource().query('RENAME TABLE matching_entries TO matching_entries_away')
+        let answer: any
+        try {
+          answer = await setThePassword()
+        } finally {
+          await db.getDataSource().query('RENAME TABLE matching_entries_away TO matching_entries')
+        }
+
+        expect(answer).toEqual(expect.objectContaining({ data: { setPassword: true } }))
+        const account = await User.findOneOrFail({
+          where: { id: userId },
+          relations: ['emailContact'],
+        })
+        expect(account.emailContact.emailChecked).toBe(true)
+        expect(account.accountState).toBe(AccountState.ACTIVATED)
+        // Taken back with the transaction: the note is there again, and no entry is -- nor an
+        // invitation for an entry that does not exist.
+        expect(await notes()).toHaveLength(1)
+        expect(await entries()).toEqual([])
+        expect(await arrivals()).toEqual([])
+        // Said by the driver's code, never by the statement with the words in it.
+        expect(makeEntryLogger.error).toHaveBeenCalledWith(
+          `could not make the entry an event link noted for user ${userId}, it waits on:`,
+          'ER_NO_SUCH_TABLE',
+        )
+      })
+
+      it('makes the entry with the next confirmation: an interest, live, found from afar', async () => {
+        const answer = await setThePassword()
+
+        expect(answer).toEqual(expect.objectContaining({ data: { setPassword: true } }))
+        expect(await entries()).toEqual([
+          {
+            matching_type: 'interest',
+            summary: 'Kongress Frequency Healing',
+            details: 'Selbstheilung, Biohacking',
+            remote: 1,
+            active: 1,
+          },
+        ])
+        // Nothing of it is kept: its words are the member's entry now.
+        expect(await notes()).toEqual([])
+        // And the invitation onto the map is due, naming that entry (KA-015).
+        expect(await arrivals()).toEqual([{ matching_entry_uuid: (await entryUuids())[0] }])
+      })
+
+      it('lists it for the member like an entry they saved themselves', async () => {
+        await mutate({
+          mutation: login,
+          variables: { email: createUserVariables.email, password: 'Aa12345_' },
+        })
+        const listed = await query({ query: listMatchingEntries })
+        resetToken()
+
+        expect(listed.errors).toBeUndefined()
+        expect(listed.data.listMatchingEntries).toEqual([
+          {
+            uuid: expect.any(String),
+            matchingType: 'interest',
+            summary: 'Kongress Frequency Healing',
+            details: 'Selbstheilung, Biohacking',
+            remote: true,
+            active: true,
+          },
+        ])
+      })
+
+      // Whichever device the member signs in on: the account says how they came.
+      it('tells the wallet after the sign-in that the invitation onto the map is due, with the sentence', async () => {
+        await mutate({
+          mutation: login,
+          variables: { email: createUserVariables.email, password: 'Aa12345_' },
+        })
+        const asked = await query({ query: eventMatchingArrival })
+        resetToken()
+
+        expect(asked.errors).toBeUndefined()
+        expect(asked.data.eventMatchingArrival).toBe('Kongress Frequency Healing')
+      })
+
+      // The link of the mail opened once more.
+      it('makes no second entry when the password is set again', async () => {
+        const before = await arrivals()
+        const answer = await setThePassword()
+
+        expect(answer).toEqual(expect.objectContaining({ data: { setPassword: true } }))
+        expect(await entries()).toHaveLength(1)
+        // Nor a second invitation: the one that is due stays as it was.
+        expect(await arrivals()).toEqual(before)
+        expect(before).toHaveLength(1)
+      })
+
+      // A member who deleted the entry does not get it back with the next password.
+      it('does not bring back an entry the member has deleted', async () => {
+        await db.getDataSource().query('DELETE FROM matching_entries WHERE user_id = ?', [userId])
+
+        await setThePassword()
+
+        expect(await entries()).toEqual([])
+      })
+
+      // Thirty days: what waited longer is no answer to the link any more, and must not go
+      // live years later with a new password.
+      it('lets a note older than thirty days go, and makes nothing of it', async () => {
+        await db
+          .getDataSource()
+          .query(
+            'INSERT INTO event_matching_entries (user_id, summary, remote, created_at) VALUES (?, ?, 1, ?)',
+            [userId, 'Kongress von damals', new Date(Date.now() - 31 * 24 * 60 * 60 * 1000)],
+          )
+
+        const answer = await setThePassword()
+
+        expect(answer).toEqual(expect.objectContaining({ data: { setPassword: true } }))
+        expect(await entries()).toEqual([])
+        expect(await notes()).toEqual([])
       })
     })
 
@@ -5392,6 +5655,69 @@ describe('UserResolver', () => {
       expect(upsertMock.mock.invocationCallOrder[0]).toBeLessThan(
         snapshotMock.mock.invocationCallOrder[0],
       )
+    })
+
+    // The words of a member's entries are worked out only while the member takes part, so the
+    // entries of one who joins reach the GMS without them, and the map finds nothing with them.
+    // The keying run is asked at once, after the member and the entries are over there - not
+    // left to its next tick, up to a minute away.
+    it('asks the keying run for the words of the member who joins, after sending them over', async () => {
+      await mutate({ mutation: updateUserInfos, variables: { gmsAllowed: false } })
+      upsertMock.mockClear()
+      snapshotMock.mockClear()
+      const nudge = jest.spyOn(matchingKeyingRun, 'nudge').mockImplementation(() => undefined)
+      try {
+        await mutate({ mutation: updateUserInfos, variables: { gmsAllowed: true } })
+
+        expect(nudge).toHaveBeenCalledTimes(1)
+        expect(snapshotMock.mock.invocationCallOrder[0]).toBeLessThan(
+          nudge.mock.invocationCallOrder[0],
+        )
+      } finally {
+        nudge.mockRestore()
+      }
+    })
+
+    // A member who takes part already leaves no entry without words by saving their name or
+    // their text; the run's tick is enough for them.
+    it('does not ask it on another save of a member who takes part already', async () => {
+      const nudge = jest.spyOn(matchingKeyingRun, 'nudge').mockImplementation(() => undefined)
+      try {
+        upsertMock.mockClear()
+        await mutate({ mutation: updateUserInfos, variables: { aboutMe: 'Ich bin wieder da.' } })
+
+        expect(upsertMock).toHaveBeenCalled()
+        expect(nudge).not.toHaveBeenCalled()
+      } finally {
+        nudge.mockRestore()
+      }
+    })
+
+    // Where the member could not be sent, the words would go to a member the GMS does not
+    // hold. The run's tick tries as before.
+    it('does not ask it when sending the member who joins failed', async () => {
+      await mutate({ mutation: updateUserInfos, variables: { gmsAllowed: false } })
+      upsertMock.mockRejectedValueOnce(new Error('the GMS is away'))
+      const nudge = jest.spyOn(matchingKeyingRun, 'nudge').mockImplementation(() => undefined)
+      try {
+        await mutate({ mutation: updateUserInfos, variables: { gmsAllowed: true } })
+
+        expect(upsertMock).toHaveBeenCalled()
+        expect(nudge).not.toHaveBeenCalled()
+      } finally {
+        nudge.mockRestore()
+      }
+    })
+
+    it('does not ask it for a member who leaves', async () => {
+      const nudge = jest.spyOn(matchingKeyingRun, 'nudge').mockImplementation(() => undefined)
+      try {
+        await mutate({ mutation: updateUserInfos, variables: { gmsAllowed: false } })
+
+        expect(nudge).not.toHaveBeenCalled()
+      } finally {
+        nudge.mockRestore()
+      }
     })
   })
 

@@ -1,7 +1,10 @@
 // AI-GENERATED — not an architecture reference
 import { flushPromises, mount } from '@vue/test-utils'
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { reactive } from 'vue'
+import { reactive, ref } from 'vue'
 import { createStore } from 'vuex'
 import { createI18n } from 'vue-i18n'
 // The app registers these through createBootstrap(); the save button has to be a
@@ -12,6 +15,11 @@ import es from '@/locales/es.json'
 import Matching from './Matching.vue'
 import UserSettingsSwitch from '@/components/UserSettings/UserSettingsSwitch'
 import { listMatchingEntries, userLocationQuery, verifyLogin } from '@/graphql/queries'
+import {
+  eventLinkAnswerUnderway,
+  eventLinkSentence,
+  forgetEventLinkArrival,
+} from '@/composables/useEventMatchingArrival'
 
 const push = vi.fn()
 // Reactive, so a case can move the member on the way the router would - to another tab, or
@@ -45,15 +53,19 @@ const handlers = new Map()
 const toast = vi.hoisted(() => ({ error: vi.fn(), success: vi.fn() }))
 const mutate = vi.hoisted(() => vi.fn())
 const fire = (document, data) => handlers.get(document)?.result?.({ data })
+// What a query answers the moment the page asks for it, before the page stands: the cache,
+// where it holds the answer already. Keyed by the document, like the handlers.
+const early = new Map()
 
 vi.mock('@vue/apollo-composable', () => ({
   useQuery: (document) => {
-    const handler = { result: null, error: null }
+    const handler = { result: null, error: null, refetch: vi.fn() }
     handlers.set(document, handler)
     return {
-      refetch: vi.fn(),
+      refetch: handler.refetch,
       onResult: (callback) => {
         handler.result = callback
+        if (early.has(document)) callback({ data: early.get(document) })
       },
       onError: (callback) => {
         handler.error = callback
@@ -168,6 +180,7 @@ const saveButton = (page) =>
 
 beforeEach(() => {
   handlers.clear()
+  early.clear()
   push.mockClear()
   replace.mockClear()
   toast.error.mockClear()
@@ -182,6 +195,7 @@ beforeEach(() => {
   store.state.gradidoID = 'a-member'
   store.state.gmsAllowed = true
   store.state.userLocation = null
+  forgetEventLinkArrival()
 })
 
 afterEach(() => {
@@ -974,6 +988,420 @@ describe('Matching', () => {
       expect(page.find('.is-sel').classes()).toContain('type-gesuch')
       expect(page.find('input').element.value).toBe('einen Schlosser')
       expect(page.find('.modal-stub').attributes('data-centered')).toBe('true')
+    })
+
+    /**
+     * An event link (`/event?interest=…`, utils/eventMatchingLink) hands its entry over with
+     * `unlessThere`: the page makes it at once, without the form, and the server says whether
+     * it was there already -- then nothing is said at all (KA-014).
+     */
+    describe('for an entry an event link offers', () => {
+      const offered = (over = {}) => ({
+        summary: 'Kongress Frequency Healing',
+        details: 'Selbstheilung, Biohacking, Longevity',
+        remote: true,
+        matchingType: 'interesse',
+        unlessThere: true,
+        ...over,
+      })
+      const answer = (created, summary = 'Kongress Frequency Healing', uuid = 'made') => ({
+        data: { acceptEventMatchingEntry: { created, entry: { uuid, summary } } },
+      })
+      const list = (...entries) => fire(listMatchingEntries, { listMatchingEntries: entries })
+      const refetch = () => handlers.get(listMatchingEntries).refetch
+      const told = () => window.localStorage.getItem('own-matching-entries:a-member')
+      const sentAt = (call = 0) => mutate.mock.calls[call][0]
+      const graphQLRefusal = (message) =>
+        Object.assign(new Error(message), { graphQLErrors: [{ message }] })
+
+      it('makes it at once, before the list has answered, and opens no form', async () => {
+        kept.draft = offered()
+        mutate.mockResolvedValueOnce(answer(true))
+        const page = mountPage('entries', shownModal)
+        await page.vm.$nextTick()
+
+        expect(mutate).toHaveBeenCalledTimes(1)
+        expect(sentAt()).toEqual({
+          eventMatchingEntry: {
+            summary: 'Kongress Frequency Healing',
+            details: 'Selbstheilung, Biohacking, Longevity',
+            remote: true,
+          },
+        })
+        expect(formOpen(page)).toBe(false)
+      })
+
+      it('sends "found from afar: no" as the link says it, and no details as none', async () => {
+        kept.draft = offered({ remote: false, details: '' })
+        mountPage('entries', shownModal)
+        await flushPromises()
+
+        expect(sentAt().eventMatchingEntry).toEqual({
+          summary: 'Kongress Frequency Healing',
+          details: null,
+          remote: false,
+        })
+      })
+
+      it('makes it once, however often the list answers', async () => {
+        kept.draft = offered()
+        mutate.mockResolvedValue(answer(true))
+        mountPage('entries', shownModal)
+        list()
+        list()
+        await flushPromises()
+        list()
+
+        expect(mutate).toHaveBeenCalledTimes(1)
+      })
+
+      describe('where the server made it', () => {
+        it('says so with the sentence, as the list shows it', async () => {
+          kept.draft = offered()
+          mutate.mockResolvedValueOnce(answer(true))
+          mountPage('entries', shownModal)
+          await flushPromises()
+
+          expect(toast.success).toHaveBeenCalledTimes(1)
+          expect(toast.success).toHaveBeenCalledWith(
+            'Dein Eintrag ist da: Ich liebe Kongress Frequency Healing',
+          )
+          expect(toast.error).not.toHaveBeenCalled()
+        })
+
+        // The words as the server stored them: trimmed, where the link brought blanks.
+        it('says the sentence the server stored', async () => {
+          kept.draft = offered({ summary: '  Kongress Frequency Healing ' })
+          mutate.mockResolvedValueOnce(answer(true))
+          mountPage('entries', shownModal)
+          await flushPromises()
+
+          expect(toast.success.mock.calls[0][0]).toBe(
+            'Dein Eintrag ist da: Ich liebe Kongress Frequency Healing',
+          )
+        })
+
+        // The toast writes its message as text; the sentence goes into it as it came.
+        it('keeps markup in the sentence as text', async () => {
+          kept.draft = offered({ summary: '<b>Kongress</b>' })
+          mutate.mockResolvedValueOnce(answer(true, '<b>Kongress</b>'))
+          mountPage('entries', shownModal)
+          await flushPromises()
+
+          expect(toast.success.mock.calls[0][0]).toBe(
+            'Dein Eintrag ist da: Ich liebe <b>Kongress</b>',
+          )
+        })
+
+        it('fetches the list again, where the entry stands', async () => {
+          kept.draft = offered()
+          mutate.mockResolvedValueOnce(answer(true))
+          mountPage('entries', shownModal)
+          await flushPromises()
+
+          expect(refetch()).toHaveBeenCalledTimes(1)
+        })
+
+        it('tells the device one entry more at once, where the list came before', async () => {
+          kept.draft = offered()
+          let made
+          mutate.mockReturnValueOnce(new Promise((resolve) => (made = resolve)))
+          mountPage('entries', shownModal)
+          list()
+          expect(told()).toBe('0')
+
+          made(answer(true))
+          await flushPromises()
+
+          expect(told()).toBe('1')
+        })
+
+        // A list that came after the entry was made counts it already.
+        it('tells no more where the list holds the entry already', async () => {
+          kept.draft = offered()
+          let made
+          mutate.mockReturnValueOnce(new Promise((resolve) => (made = resolve)))
+          mountPage('entries', shownModal)
+          list({ ...entry('made', 'Kongress Frequency Healing', ''), matchingType: 'interest' })
+          expect(told()).toBe('1')
+
+          made(answer(true))
+          await flushPromises()
+
+          expect(told()).toBe('1')
+        })
+
+        it('says so in red where the list cannot be fetched again', async () => {
+          kept.draft = offered()
+          mutate.mockResolvedValueOnce(answer(true))
+          mountPage('entries', shownModal)
+          refetch().mockRejectedValueOnce(new Error('no list'))
+          await flushPromises()
+
+          expect(toast.success).toHaveBeenCalledTimes(1)
+          expect(toast.error).toHaveBeenCalledWith('no list')
+        })
+
+        it('keeps that red toast from whoever is there once the member has signed out', async () => {
+          kept.draft = offered()
+          mutate.mockResolvedValueOnce(answer(true))
+          mountPage('entries', shownModal)
+          refetch().mockImplementationOnce(async () => {
+            store.state.gradidoID = null
+            throw new Error('no list')
+          })
+          await flushPromises()
+
+          expect(toast.error).not.toHaveBeenCalled()
+        })
+
+        // The answer belongs to who opened the link: the member may have signed out by then.
+        it('says nothing to whoever is there once the member has signed out', async () => {
+          kept.draft = offered()
+          let made
+          mutate.mockReturnValueOnce(new Promise((resolve) => (made = resolve)))
+          mountPage('entries', shownModal)
+          list()
+          store.state.gradidoID = null
+
+          made(answer(true))
+          await flushPromises()
+
+          expect(toast.success).not.toHaveBeenCalled()
+          expect(refetch()).not.toHaveBeenCalled()
+        })
+      })
+
+      describe('where the member had it already', () => {
+        it('says nothing, opens nothing, and fetches nothing', async () => {
+          kept.draft = offered()
+          mutate.mockResolvedValueOnce(answer(false))
+          const page = mountPage('entries', shownModal)
+          list({ ...entry('b', 'Kongress Frequency Healing', ''), matchingType: 'interest' })
+          await flushPromises()
+
+          expect(toast.success).not.toHaveBeenCalled()
+          expect(toast.error).not.toHaveBeenCalled()
+          expect(formOpen(page)).toBe(false)
+          expect(refetch()).not.toHaveBeenCalled()
+          expect(told()).toBe('1')
+        })
+
+        // The line "you have this one already" is gone: nothing stands above the list.
+        it('puts nothing above the list', async () => {
+          kept.draft = offered()
+          mutate.mockResolvedValueOnce(answer(false))
+          const page = mountPage('entries', shownModal)
+          list({ ...entry('b', 'Kongress Frequency Healing', ''), matchingType: 'interest' })
+          await flushPromises()
+
+          const count = page.find('[data-test="matching-entries-count"]').element.parentElement
+          expect(count.nextElementSibling.classList).toContain('bg-white')
+        })
+      })
+
+      describe('where the server refuses', () => {
+        // An account whose address waits for its confirmation: the reminder says what to do.
+        it('says nothing to an account that may not make entries yet (401)', async () => {
+          kept.draft = offered()
+          mutate.mockRejectedValueOnce(graphQLRefusal('401 Unauthorized'))
+          const page = mountPage('entries', shownModal)
+          await flushPromises()
+
+          expect(toast.error).not.toHaveBeenCalled()
+          expect(toast.success).not.toHaveBeenCalled()
+          expect(formOpen(page)).toBe(false)
+        })
+
+        it('says nothing where the connection failed', async () => {
+          kept.draft = offered()
+          mutate.mockRejectedValueOnce(
+            Object.assign(new Error('Failed to fetch'), { networkError: new TypeError('x') }),
+          )
+          const page = mountPage('entries', shownModal)
+          await flushPromises()
+
+          expect(toast.error).not.toHaveBeenCalled()
+          expect(formOpen(page)).toBe(false)
+        })
+
+        // A server that answered with an error status is not "no connection".
+        it('shows the red toast where the server answered with an error status', async () => {
+          kept.draft = offered()
+          mutate.mockRejectedValueOnce(
+            Object.assign(new Error('Response not successful: Received status code 502'), {
+              networkError: Object.assign(new Error('502'), { statusCode: 502 }),
+            }),
+          )
+          mountPage('entries', shownModal)
+          await flushPromises()
+
+          expect(toast.error).toHaveBeenCalledTimes(1)
+        })
+
+        it('shows the usual red toast for a refusal nobody expects, and opens no form', async () => {
+          kept.draft = offered()
+          mutate.mockRejectedValueOnce(graphQLRefusal('Invalid length'))
+          const page = mountPage('entries', shownModal)
+          await flushPromises()
+
+          expect(toast.error).toHaveBeenCalledWith('Invalid length')
+          expect(formOpen(page)).toBe(false)
+        })
+
+        // The entry may be stored already: a refusal can come from the hand-over to the GMS,
+        // which follows the row. The list says what is there.
+        it('fetches the list again after a refusal nobody expects', async () => {
+          kept.draft = offered()
+          mutate.mockRejectedValueOnce(graphQLRefusal('GMS lookup failed'))
+          mountPage('entries', shownModal)
+          await flushPromises()
+
+          expect(refetch()).toHaveBeenCalledTimes(1)
+          expect(toast.error).toHaveBeenCalledTimes(1)
+        })
+
+        it('fetches nothing after a refusal the member is told elsewhere', async () => {
+          kept.draft = offered()
+          mutate.mockRejectedValueOnce(graphQLRefusal('401 Unauthorized'))
+          mountPage('entries', shownModal)
+          await flushPromises()
+
+          expect(refetch()).not.toHaveBeenCalled()
+        })
+
+        it('keeps that toast from whoever is there once the member has signed out', async () => {
+          kept.draft = offered()
+          let refused
+          mutate.mockReturnValueOnce(new Promise((resolve, reject) => (refused = reject)))
+          mountPage('entries', shownModal)
+          store.state.gradidoID = null
+
+          refused(graphQLRefusal('Invalid length'))
+          await flushPromises()
+
+          expect(toast.error).not.toHaveBeenCalled()
+        })
+      })
+
+      /**
+       * KA-015: where the link made the entry, the invitation onto the map follows
+       * (EventMatchingHomeInvitation). The page says it -- with the sentence the server stored
+       * -- and until its answer is in, the windows after that invitation wait.
+       */
+      describe('for the invitation onto the map', () => {
+        const sentence = () => eventLinkSentence(ref('a-member')).value
+
+        it('says the sentence where the server made the entry', async () => {
+          kept.draft = offered({ summary: '  Kongress Frequency Healing ' })
+          mutate.mockResolvedValueOnce(answer(true))
+          mountPage('entries', shownModal)
+          await flushPromises()
+
+          expect(sentence()).toBe('Kongress Frequency Healing')
+          expect(eventLinkAnswerUnderway.value).toBe(false)
+        })
+
+        it('is underway from the moment the page asks until the answer is in', async () => {
+          kept.draft = offered()
+          let made
+          mutate.mockReturnValueOnce(new Promise((resolve) => (made = resolve)))
+          mountPage('entries', shownModal)
+          await flushPromises()
+          expect(eventLinkAnswerUnderway.value).toBe(true)
+          expect(sentence()).toBeNull()
+
+          made(answer(true))
+          await flushPromises()
+
+          expect(eventLinkAnswerUnderway.value).toBe(false)
+        })
+
+        // KA-014: a link opened again is silent, and so is its invitation.
+        it('says nothing where the member had the entry already', async () => {
+          kept.draft = offered()
+          mutate.mockResolvedValueOnce(answer(false))
+          mountPage('entries', shownModal)
+          await flushPromises()
+
+          expect(sentence()).toBeNull()
+          expect(eventLinkAnswerUnderway.value).toBe(false)
+        })
+
+        it.each([
+          ['a refusal the member is told elsewhere', graphQLRefusal('401 Unauthorized')],
+          ['a refusal nobody expects', graphQLRefusal('Invalid length')],
+          ['no connection', Object.assign(new Error('Failed to fetch'), { networkError: {} })],
+        ])('says nothing after %s', async (_what, error) => {
+          kept.draft = offered()
+          mutate.mockRejectedValueOnce(error)
+          mountPage('entries', shownModal)
+          await flushPromises()
+
+          expect(sentence()).toBeNull()
+          expect(eventLinkAnswerUnderway.value).toBe(false)
+        })
+
+        // The answer belongs to who opened the link.
+        it('says nothing where the member signed out before the answer came', async () => {
+          kept.draft = offered()
+          let made
+          mutate.mockReturnValueOnce(new Promise((resolve) => (made = resolve)))
+          mountPage('entries', shownModal)
+          store.state.gradidoID = null
+
+          made(answer(true))
+          await flushPromises()
+
+          expect(sentence()).toBeNull()
+          expect(eventLinkAnswerUnderway.value).toBe(false)
+        })
+
+        it('asks nothing of it for a search kept from the map', async () => {
+          kept.draft = { summary: 'einen Schlosser', details: '', matchingType: 'gesuch' }
+          mountPage('entries', shownModal)
+          await flushPromises()
+
+          expect(eventLinkAnswerUnderway.value).toBe(false)
+          expect(sentence()).toBeNull()
+        })
+      })
+
+      // The overview's wish for an empty form and the link's entry: the entry is made, no form
+      // opens, and the wish still leaves the address.
+      it('comes before the wish for an empty form', async () => {
+        kept.draft = offered()
+        mutate.mockResolvedValueOnce(answer(true))
+        place.query = { new: 'entry' }
+        const page = mountPage('entries', shownModal)
+        await flushPromises()
+
+        expect(mutate).toHaveBeenCalledTimes(1)
+        expect(formOpen(page)).toBe(false)
+        expect(replace).toHaveBeenCalledWith({ query: {} })
+      })
+
+      // A search kept from the map has no `unlessThere`: it opens the form, and makes nothing.
+      it('leaves a search kept from the map to the form', async () => {
+        kept.draft = { summary: 'einen Schlosser', details: '', matchingType: 'gesuch' }
+        const page = mountPage('entries', shownModal)
+        await flushPromises()
+
+        expect(formOpen(page)).toBe(true)
+        expect(mutate).not.toHaveBeenCalled()
+      })
+    })
+
+    // The map says nothing about "found from afar", and its search opens at once.
+    it('opens a search kept from the map at once, and not found from afar', async () => {
+      kept.draft = { summary: 'einen Schlosser', details: 'für alte Türen', matchingType: 'gesuch' }
+      const page = mountPage('entries', shownModal)
+      await page.vm.$nextTick()
+      expect(formOpen(page)).toBe(true)
+
+      await saveButton(page).trigger('click')
+
+      expect(mutate.mock.calls[0][0].input.remote).toBe(false)
     })
 
     it('does not ask for an entry that is being edited', async () => {
@@ -1793,5 +2221,30 @@ describe('Matching', () => {
         expect(saveButton(page).attributes('disabled')).toBeUndefined()
       })
     })
+  })
+})
+
+/**
+ * The colour of text that stands on the page itself, without one of its own: the colour of the
+ * mode (`--text`, _design-tokens.scss and gradido-template-dark.scss). It stood here as the
+ * light value alone, and every such text was dark on the dark ground until it was patched
+ * where it showed (measured in the built wallet, 14.10.2026). A test of the component cannot
+ * see a colour, so this holds the rule.
+ */
+describe('the text colour of the matching page', () => {
+  const here = dirname(fileURLToPath(import.meta.url))
+  const rule = (() => {
+    const source = readFileSync(join(here, 'Matching.vue'), 'utf8')
+    const [, style] = source.match(/<style[^>]*>([\s\S]*?)<\/style>/) ?? []
+    const [, body] = (style ?? '').match(/\.matching-page \{([^}]*)\}/) ?? []
+    // The comment says why, and names the colour it replaced.
+    return body?.replace(/\/\*[\s\S]*?\*\//g, '')
+  })()
+
+  it('is the colour of the mode, not a colour of its own', () => {
+    // The fixture has to prove itself: no rule would compare nothing with nothing.
+    expect(rule).toBeDefined()
+    expect(rule).toMatch(/color: var\(--text\);/)
+    expect(rule).not.toMatch(/#[0-9a-f]{3,8}/i)
   })
 })

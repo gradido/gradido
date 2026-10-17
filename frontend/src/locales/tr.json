@@ -610,6 +610,50 @@
     "session-renewal-failed": "Oturumun yenilenemedi. Lütfen tekrar giriş yap.",
     "unknown-error": "Bilinmeyen hata: "
   },
+  "eventMatching": {
+    "builder": {
+      "codeAlt": "Linkine götüren QR kodu",
+      "codeFailed": "QR kodu şu anda çizilemiyor. Link çalışıyor.",
+      "codeLabel": "QR kodun",
+      "codeTooLong": "Bu link bir QR kodu için fazla uzun. Daha az metinle QR kodu görünür. Link yine de çalışır.",
+      "copyFailed": "Maalesef cihazın kopyalamaya izin vermiyor. Metni seç ve elle kopyala.",
+      "copyLink": "Linki kopyala",
+      "copyMail": "Paragrafı kopyala",
+      "detailsCount": "{count} / {max}",
+      "detailsHint": "Konunu açıklayan bir iki cümle.",
+      "detailsMissing": "Şimdi yukarıya ayrıntıları da yaz — o zaman linkin, QR kodun ve e-postana ekleyeceğin bir paragraf burada görünür.",
+      "downloadCode": "QR kodunu indir",
+      "intro": "Bu linki açan kişi, kendi Gradido hesabında senin kongreni haritadaki ilk girişi olarak alır — ve kongrendeki diğer insanları bulur.",
+      "linkCopied": "Link kopyalandı.",
+      "linkLabel": "Linkin",
+      "mailCopied": "Paragraf kopyalandı.",
+      "mailLabel": "E-postan için paragrafın",
+      "mailText": "Gradido dahil: bu linkle Gradido hesabını, başlangıç için 100 Gradido'yu ve kongremizdeki insanlara götüren haritayı alırsın. Harita konumunu yalnızca üyelere ve yalnızca yaklaşık olarak gösterir.",
+      "nothingStored": "Hiçbir şey kaydedilmez. Linki sen oluşturursun, sen paylaşırsın.",
+      "remoteHint": "O zaman katılımcıların bölge üstü aramada da görünür.",
+      "sentenceDefault": "Kongre",
+      "sentenceHint": "Kongrenin kısa adı; katılımcılarının söyleyeceği şekilde. Baştaki «Kongre» kelimesi kalabilir — «Eğitim», «Kurs» ya da «Retreat» de olur.",
+      "sentencePreview": "«{sentence}»",
+      "subtitle": "Kongren, eğitimin, kursun için linkin",
+      "title": "Event Matching",
+      "waiting": "Yukarıya kongrenin adını yaz — o zaman linkin, QR kodun ve e-postana ekleyeceğin bir paragraf burada görünür."
+    },
+    "home": {
+      "text": "Benzer düşünen insanlarla buluşabilmen için evini haritada işaretle. O zaman «{sentence}» girişini ekleyen diğerlerini görürsün — onlar da seni görür. Haritayı yalnızca üyeler görür. Ne kadar hassas görüneceğine sen karar verirsin: «Yaklaşık» seni bir alan içinde gösterir, asla kapının önünde değil. Ve istediğin zaman haritadan çıkabilirsin.",
+      "title": "Nerede yaşıyorsun?"
+    },
+    "landing": {
+      "added": "Eşleşme girişin eklendi: {sentence}",
+      "firstEntry": "İlk eşleşme girişin:",
+      "haveAccount": "Zaten bir hesabım var",
+      "headline": "Seni kongrendeki insanlara götüren harita",
+      "otherCommunity": "Hesabın başka bir toplulukta mı? O zaman orada giriş yap ve cümleyi elle gir.",
+      "register": "Hesap aç"
+    },
+    "register": {
+      "firstEntry": "İlk eşleşme girişin:"
+    }
+  },
   "existingGradidoAccount": "Zaten bir {communityName} hesabın var mı?",
   "firstCreation": {
     "again": "+ Daha fazlası vardı",
@@ -696,6 +740,7 @@
       "link": "Gradido-Akademisi",
       "year": "© {year}"
     },
+    "eventMatching": "Event Matching",
     "imprint": "Yasal uyarı",
     "inspector": "Denetleyici (deneysel)",
     "privacy_policy": "Gizlilik politikası",
@@ -1287,7 +1332,7 @@
   },
   "send_email": "E‑posta gönder",
   "send_gdd": "GDD gönder",
-  "send_per_link": "Link, çek, QR",
+  "send_per_link": "Link, çek, QR, teşekkür mesajı",
   "session": {
     "extend": "Oturumunu açık tut",
     "lightText": "10 dakikadan daha uzun bir süre herhangi bir işlem yapmadıysan, güvenlik nedeniyle oturumun kapatılacak.",
@@ -1742,7 +1787,7 @@
     "text": "Hangi topluluğa ait olursan ol, Geo Matching System ile tüm toplulukların üyelerini bir haritada bulabilirsin. Tekliflere ve ihtiyaçlara göre filtreleyebilir ve sana uygun kullanıcıları görüntüleyebilirsin.\n\nDüğmeyle, çevrendeki kullanıcıların bir haritada gösterildiği yeni bir tarayıcı penceresi açılır."
   },
   "via_card": "kart ile",
-  "via_greeting": "mesaj yoluyla",
+  "via_greeting": "teşekkür mesajı yoluyla",
   "via_link": "link yoluyla",
   "welcome": "Topluluğa hoş geldin"
 }

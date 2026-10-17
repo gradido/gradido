@@ -109,9 +109,19 @@ export const listMatchingEntries = gql`
       remote
       active
       createdAt
+      keyed
     }
   }
 `
+// The sentence of the entry an event link made at the confirmation of this account, while the
+// invitation onto the map is due -- null otherwise (components/EventMatchingHomeInvitation).
+// No arguments: read with `network-only`, a cached answer would be everybody's.
+export const eventMatchingArrival = gql`
+  query {
+    eventMatchingArrival
+  }
+`
+
 export const authenticateGmsUserSearch = gql`
   query {
     authenticateGmsUserSearch {

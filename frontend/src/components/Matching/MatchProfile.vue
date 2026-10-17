@@ -4,7 +4,10 @@
        theirs. The match decides what stands open and says why - a dot before each
        entry that matches, and under it the entry of mine it answers (Bernd,
        10.09.2026; GMS-111 had left that out). One window, not two: a grey ring is
-       the same window with no open areas. See GMS-111. -->
+       the same window with no open areas. See GMS-111.
+       An entry is a sub-point of its area (Bernd, 14.10.2026, GMS-229): its dot is
+       hollow, a thread hangs from it down along what belongs to the entry, and more
+       room stands between two entries than between the parts of one. -->
   <BModal
     :model-value="modelValue"
     :aria-label="match ? $t('matching.profile.aria', { name: match.name }) : ''"
@@ -48,14 +51,21 @@
 
         <BCollapse :model-value="areaOpen[area.key]">
           <ul class="entry-list">
-            <li v-for="entry in shownEntries(area)" :key="entry.uuid" class="entry">
+            <!-- A match wears a dot, drawn by the stylesheet before the sentence (.has-dot),
+                 and a thread hangs from it where something stands under the sentence
+                 (.has-thread). Both take size, colour and brightness from the variables set
+                 on the entry. -->
+            <li
+              v-for="entry in shownEntries(area)"
+              :key="entry.uuid"
+              class="entry"
+              :class="{ 'has-thread': hasThread(entry) }"
+              :style="dotStyle(area.key, entry)"
+            >
               <div class="entry-line">
-                <!-- A match wears a dot, drawn by the stylesheet before the sentence
-                     (.has-dot): its size, colour and brightness come in as variables. -->
                 <span
                   class="entry-summary"
                   :class="{ 'is-match': entry.strength != null, 'has-dot': stageOf(entry) > 0 }"
-                  :style="dotStyle(area.key, entry)"
                 >
                   {{ entry.summary }}
                 </span>
@@ -208,7 +218,7 @@ const CHANNEL_ORDER = ['interesse', 'angebot', 'gesuch']
 // it, and "X more" folds only the rest (openCount).
 const SHOWN = 2
 // The dot of a matched entry grows with its step, like the glow on the map, brought
-// down to the size of a line of text.
+// down to the size of a line of text. Drawn hollow (GMS-229).
 const DOT_SIZE = [8, 9, 10, 12]
 // An honest ceiling, not pagination: thirty entries are ~3 KB, so blattering is
 // a tool without an opponent — but a runaway list still gets cut, plainly.
@@ -290,7 +300,10 @@ function stageOf(entry) {
   return scoreToStage(entry.strength)
 }
 
-/** What the stylesheet needs to draw the dot of a match; nothing for an entry without one. */
+/**
+ * What the stylesheet needs to draw the dot of a match and its thread; nothing for an entry
+ * without one. Set on the entry, so both its sentence and the entry itself read it.
+ */
 function dotStyle(key, entry) {
   const stage = stageOf(entry)
   if (!stage) return null
@@ -299,6 +312,14 @@ function dotStyle(key, entry) {
     '--dot-color': dotColor(key),
     '--dot-opacity': DEFAULTS.stageBright[stage - 1],
   }
+}
+
+/**
+ * A thread hangs from the dot where something stands under the sentence: its details, or the
+ * lines "passt zu". An entry without a dot has nothing to hang it from; its room sets it apart.
+ */
+function hasThread(entry) {
+  return stageOf(entry) > 0 && Boolean(entry.details || entry.matches?.length)
 }
 
 // Everything that matches stands open, and never fewer than SHOWN: a single match stands
@@ -593,6 +614,43 @@ function toConversation() {
   padding: 6px 0;
 }
 
+/* More room between two entries (24 px) than between the parts of one (4 to 6 px): what
+   belongs to an entry stands together, and the next one stands apart (Bernd, 14.10.2026,
+   GMS-229). */
+.entry + .entry {
+  margin-top: 12px;
+}
+
+/* The thread (GMS-229): what belongs to a matched entry -- its details, the lines "passt zu"
+   -- hangs from its dot. A line in the dot's column and colour, quieter than the dot, from
+   just under the dot down to the entry's last line, and only where something stands under the
+   sentence (hasThread). The middle of the dot's column is 16 px left of the sentence (see the
+   dot below), so a 2 px line starts at -17 px. The dot stands in the middle of the first line
+   (6 px of padding and half a line of 22.5 px); the thread begins about 4 px under it and ends
+   4 px above the entry's padding. */
+.entry.has-thread {
+  position: relative;
+}
+
+.entry.has-thread::before {
+  content: '';
+  position: absolute;
+  left: -17px;
+  top: calc(21px + var(--dot-size) / 2);
+  bottom: 10px;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--dot-color);
+  opacity: calc(var(--dot-opacity) * 0.45);
+}
+
+/* The same share of a colour reads weaker on the dark window: the red thread of the strongest
+   step stood at 1.4 : 1 there against 2.0 : 1 on the light one. A little more of it brings it to
+   2.0 : 1 as well. */
+.dark-mode .entry.has-thread::before {
+  opacity: calc(var(--dot-opacity) * 0.75);
+}
+
 .entry-line {
   display: flex;
   align-items: baseline;
@@ -615,24 +673,31 @@ function toConversation() {
    12 px column 22 px left of the sentence (the head's 12 px dot and its 10 px gap, which
    is the indent of .entry-list). Its margins and its width add up to nothing, so the
    sentence stays where it is. Drawn before the first letter, so it stays on the first
-   line of a long sentence; `middle` centres it on the letters. */
+   line of a long sentence; `middle` centres it on the letters.
+   Hollow (Bernd, 14.10.2026, GMS-229): filled, it looked like the area's own dot, though
+   the entry is a sub-point of the area. It keeps its step's size and brightness. */
 .entry-summary.has-dot::before {
   content: '';
   display: inline-block;
+  box-sizing: border-box;
   width: var(--dot-size);
   height: var(--dot-size);
   margin-right: calc(16px - var(--dot-size) / 2);
   margin-left: calc((12px - var(--dot-size)) / 2 - 22px);
+  border: 2px solid var(--dot-color);
   border-radius: 50%;
-  background: var(--dot-color);
+  background: transparent;
   opacity: var(--dot-opacity);
   vertical-align: middle;
 }
 
 /* Why it matches: my own entry, in the voice of a note - muted, the sentence in
-   italics - so the person's own words stay the loudest thing in the window. */
+   italics - so the person's own words stay the loudest thing in the window. One step in,
+   to where the text of the details box begins (its 10 px padding): the lines belong under
+   the entry (GMS-229). */
 .entry-mine {
   margin-top: 4px;
+  margin-left: 10px;
   font-size: 14px;
   font-weight: 600;
   color: var(--text-muted);
@@ -663,8 +728,11 @@ function toConversation() {
   word-break: break-word;
 }
 
+/* "X more" stands about as far from the last entry as the entries stand from each other (26 px
+   with the list's own padding, against 24): it belongs to the list, not to the entry above it
+   (GMS-229). */
 .more-btn {
-  margin: 2px 0 8px 22px;
+  margin: 14px 0 8px 22px;
   padding: 0;
   border: 0;
   background: transparent;

@@ -36,6 +36,7 @@ import { useAppToast } from '@/composables/useToast'
 import locales from '@/locales/'
 import { onMounted, onUnmounted, ref, computed } from 'vue'
 import { updateUserInfos } from '@/graphql/mutations'
+import { sessionRuns } from '@/routes/guards'
 
 const store = useStore()
 const { t, locale } = useI18n()
@@ -72,7 +73,11 @@ const saveLocale = async (newLocale) => {
   if (locale.value === newLocale) return
 
   setLocale(newLocale)
-  if (store.state.gradidoID) {
+  // Saved to the account only while the session runs. One that has run out stays in the store
+  // until somebody signs in again, and asked with it the server signs the member out: the
+  // wallet then sends them to the sign-in page, and what they had typed on a public page --
+  // the event-matching builder, the registration -- is gone.
+  if (store.state.gradidoID && sessionRuns(store.state)) {
     try {
       await mutate({ locale: newLocale })
       toastSuccess(t('settings.language.success'))
@@ -80,8 +85,8 @@ const saveLocale = async (newLocale) => {
       toastError(t('settings.language.error'))
     }
   } else {
-    // Not logged in yet: remember this deliberate choice so the next login keeps it
-    // (and syncs it to the account) instead of overwriting it with the account language.
+    // Not logged in (yet, or any more): remember this deliberate choice so the next login keeps
+    // it (and syncs it to the account) instead of overwriting it with the account language.
     store.commit('setPreLoginLanguage', newLocale)
   }
 }

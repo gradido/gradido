@@ -5,6 +5,8 @@ import * as v from 'valibot'
 import {
   createUserSchema,
   guarantorRegistrationSchema,
+  projectRegistrationSchema,
+  redeemRegistrationSchema,
   referrerRegistrationSchema,
 } from './createUser.schema'
 
@@ -104,6 +106,98 @@ describe('createUserSchema', () => {
   it('keeps what an optional field brings, and still checks it', () => {
     expect(v.parse(createUserSchema, { ...valid, redeemCode: 'CL-abc' }).redeemCode).toBe('CL-abc')
     expect(v.safeParse(createUserSchema, { ...valid, referrerAlias: 'a b' }).success).toBe(false)
+  })
+})
+
+// The entry an event link offered (Event-Matching). What is noted here is made an entry once the
+// address is confirmed, so it is held to an entry's own bounds.
+describe('the entry of an event link', () => {
+  const entry = { summary: 'Kongress Frequency Healing', details: null, remote: true }
+  const parsed = (eventMatchingEntry: unknown) =>
+    v.parse(createUserSchema, { ...valid, eventMatchingEntry }).eventMatchingEntry
+  const taken = (eventMatchingEntry: unknown) =>
+    v.safeParse(createUserSchema, { ...valid, eventMatchingEntry }).success
+
+  it('is not needed: a registration without one is the registration it was', () => {
+    expect(v.parse(createUserSchema, valid).eventMatchingEntry).toBeUndefined()
+    expect(parsed(null)).toBeNull()
+    expect(parsed(undefined)).toBeUndefined()
+  })
+
+  it('takes the sentence, the details and the reach as they come', () => {
+    expect(
+      parsed({ summary: 'Kongress Frequency Healing', details: 'Selbstheilung', remote: false }),
+    ).toEqual({ summary: 'Kongress Frequency Healing', details: 'Selbstheilung', remote: false })
+    expect(parsed(entry)).toEqual(entry)
+  })
+
+  it('trims the sentence and the details', () => {
+    expect(
+      parsed({ summary: '  Kongress X \n', details: '\n Zwei Zeilen\ndazu  ', remote: true }),
+    ).toEqual({ summary: 'Kongress X', details: 'Zwei Zeilen\ndazu', remote: true })
+  })
+
+  it('takes details that are left out or blank as none', () => {
+    expect(parsed({ summary: 'Kongress X', remote: true })?.details).toBeUndefined()
+    for (const details of ['', '   ', '\n\t']) {
+      expect(parsed({ ...entry, details })?.details).toBeNull()
+    }
+  })
+
+  it('refuses an entry without a sentence', () => {
+    for (const summary of ['', '   ', '\n', undefined, null, 7]) {
+      expect(taken({ ...entry, summary })).toBe(false)
+    }
+  })
+
+  // The wallet cuts the words of the link before it sends them: longer ones come from another
+  // client, and are refused rather than cut.
+  it('holds the sentence to 160 characters and the details to 2000, counted after trimming', () => {
+    expect(taken({ ...entry, summary: 'x'.repeat(160) })).toBe(true)
+    expect(taken({ ...entry, summary: `  ${'x'.repeat(160)}  ` })).toBe(true)
+    expect(taken({ ...entry, summary: 'x'.repeat(161) })).toBe(false)
+    expect(taken({ ...entry, details: 'x'.repeat(2000) })).toBe(true)
+    expect(taken({ ...entry, details: ` ${'x'.repeat(2000)} ` })).toBe(true)
+    expect(taken({ ...entry, details: 'x'.repeat(2001) })).toBe(false)
+  })
+
+  // GraphQL has refused these before the schema is asked; a caller that is not GraphQL has not.
+  it('takes the reach only as true or false', () => {
+    for (const remote of [undefined, null, 'true', '0', 1, 0]) {
+      expect(taken({ ...entry, remote })).toBe(false)
+    }
+  })
+
+  it('keeps markup as the text it is: nothing is stripped, nothing escaped', () => {
+    const summary = '<b>Kongress</b> "X" & <script>alert(1)</script>'
+    expect(parsed({ ...entry, summary })?.summary).toBe(summary)
+  })
+
+  // Each variant parses what the registration brought once more, with its own schema.
+  it('comes through the schema of every variant, and through a second parse unchanged', () => {
+    const once = v.parse(createUserSchema, {
+      ...valid,
+      eventMatchingEntry: { summary: ' Kongress X ', details: ' ', remote: false },
+    })
+    const expected = { summary: 'Kongress X', details: null, remote: false }
+    expect(once.eventMatchingEntry).toEqual(expected)
+    expect(v.parse(createUserSchema, once).eventMatchingEntry).toEqual(expected)
+    expect(
+      v.parse(projectRegistrationSchema, { ...once, project: 'garden' }).eventMatchingEntry,
+    ).toEqual(expected)
+    expect(
+      v.parse(redeemRegistrationSchema, { ...once, redeemCode: 'CL-abc' }).eventMatchingEntry,
+    ).toEqual(expected)
+    expect(
+      v.parse(referrerRegistrationSchema, { ...once, referrerAlias: 'PeterL' }).eventMatchingEntry,
+    ).toEqual(expected)
+    expect(
+      v.parse(guarantorRegistrationSchema, {
+        ...once,
+        guarantorCode: '1700000000.AbCdEfGhIjKlMnOpQrStUv',
+        password: 'Aa1!aaaa',
+      }).eventMatchingEntry,
+    ).toEqual(expected)
   })
 })
 

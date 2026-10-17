@@ -84,8 +84,8 @@ describe('router', () => {
       expect(defaultRoute.redirect()).toEqual({ path: '/login' })
     })
 
-    it('has 43 routes defined', () => {
-      expect(routes).toHaveLength(43)
+    it('has 45 routes defined', () => {
+      expect(routes).toHaveLength(45)
     })
 
     // ZE-020, F12: the layout's greeting is left out on the redeem page, so that what the
@@ -204,6 +204,9 @@ describe('router', () => {
     testRoute('/register/:code?', 'Register', false)
     testRoute('/forgot-password', 'ForgotPassword', false)
     testRoute('/register-community', 'RegisterCommunity', false)
+    // Where a host builds the link for their event. Public: a host needs no account for it,
+    // and without `requiresAuth` it stands in the layout of the sign-in pages (App.vue).
+    testRoute('/event-matching', 'EventMatchingBuilder', false)
     testRoute('/reset-password/:optin', 'ResetPassword', false)
     testRoute('/email-change/revoke/:changeCode', 'EmailChange', false)
     testRoute('/email-change/:changeCode', 'EmailChange', false)
@@ -213,6 +216,9 @@ describe('router', () => {
     // Gradido card landed on "page not found". Public on purpose -- a phone camera opens the
     // default browser, so most visitors arrive logged out.
     testRoute('/u/:alias', 'PublicProfile', false)
+    // The entrance of an event link (Event-Matching). Public for the same reason: it arrives
+    // out of a mail or off a slide, in a browser that is mostly not signed in.
+    testRoute('/event', 'EventMatchingLanding', false)
     testRoute('/dk/:code', 'ThankYouCardPayment')
     testRoute('/calculator', 'Calculator')
     testRoute('/scan', 'Scanner')

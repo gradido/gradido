@@ -1,15 +1,21 @@
 <template>
   <div class="auth-header position-sticky">
     <BNavbar :toggleable="false" :container="false" class="d-flex">
-      <BNavbarBrand class="d-none d-lg-block">
-        <BImg class="position-absolute p-2" :src="logo" width="200" alt="Logo" />
-        <BImg :src="backgroundHeader" width="230" alt="Background Image"></BImg>
+      <!-- The logo leads home (Bernd, 14.10.2026): to the start page of this community -- its
+           address, which is where somebody signed out begins -- and, with a session running,
+           to the overview, as the logo of the signed-in wallet does. Named by what it shows,
+           "Gradido"; the blob behind it says nothing. -->
+      <BNavbarBrand class="auth-home d-none d-lg-block" v-bind="home" data-test="auth-home">
+        <BImg class="position-absolute p-2" :src="logo" width="200" alt="Gradido" />
+        <BImg :src="backgroundHeader" width="230" alt=""></BImg>
       </BNavbarBrand>
       <!-- Below lg no picture stands beside the form, so the logo needs no blob to stand on:
            it stands on the page, top left, where the leaves used to be. The links keep the
            place they have on the desk, top right, and the coin that stood in the card with
            them is gone -- the logo carries it. (Bernd, 21.09.2026) -->
-      <BImg class="auth-logo-small d-lg-none" :src="logo" alt="Logo" data-test="auth-logo-small" />
+      <BLink class="auth-home auth-home-small d-lg-none" v-bind="home" data-test="auth-home-small">
+        <BImg class="auth-logo-small" :src="logo" alt="Gradido" data-test="auth-logo-small" />
+      </BLink>
       <BCollapse id="nav-collapse" is-nav>
         <BNavbarNav class="auth-links ms-auto me-lg-4" right>
           <NavItem
@@ -34,6 +40,7 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useStore } from 'vuex'
+import CONFIG from '@/config'
 import { useAuthLinks } from '@/composables/useAuthLinks'
 import NavItem from '../Menu/NavItem.vue'
 
@@ -53,6 +60,19 @@ const guarantorCodeReferrer = () =>
   route.query.guarantor && route.params.alias
     ? { referrer: route.query.referrer ?? route.params.alias }
     : {}
+
+/**
+ * Where the logo leads. Signed out: the start page of this community, its own address
+ * (`COMMUNITY_URL`), loaded afresh like the address typed -- on every server today the wallet,
+ * which begins at the sign-in, and a community whose address is a homepage of its own gets
+ * that. With a session: the overview, as the logo of the signed-in wallet (Navbar.vue).
+ * Nothing of the page's address goes along.
+ */
+const home = computed(() =>
+  store.state.gradidoID
+    ? { to: '/overview' }
+    : { href: `${(CONFIG.COMMUNITY_URL || '').replace(/\/+$/, '')}/` },
+)
 
 const backgroundHeader = '/img/template/gradido_background_header.png'
 // Dark mode uses a transparent, light-inked logo so it reads on the darkened
@@ -121,6 +141,23 @@ const logo = computed(() =>
   .auth-links > :last-child :deep(.nav-link) {
     padding-right: 0;
   }
+}
+
+/* The logo is a link now: a keyboard has to see where it stands, on the page and on the blob,
+   in both modes -- the ring of the avatar (AppAvatar.vue), drawn outside the picture. */
+.auth-home:focus-visible {
+  outline: 2px solid #276e6f;
+  outline-offset: 2px;
+}
+
+.dark-mode .auth-home:focus-visible {
+  outline-color: #8ed0d1;
+}
+
+/* The link takes the picture's size, not a line of text around it. */
+.auth-home-small {
+  display: inline-block;
+  line-height: 0;
 }
 
 /*

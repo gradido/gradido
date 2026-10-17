@@ -90,6 +90,10 @@ const routeToTab = (route) => {
     color: black !important;
     border-radius: 25px;
 
+    /* As on the send page: where a label needs two lines or more, lines of about the same
+       length. A browser that does not know the value wraps as before. */
+    text-wrap: balance;
+
     /* 8px at each side, for the active tab as for the others (it was 20px, from .btn and from
        the active rule below): of a third of a phone, 42px were padding and border. */
     padding-right: 8px;

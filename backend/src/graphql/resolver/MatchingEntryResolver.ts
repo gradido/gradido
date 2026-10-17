@@ -1,21 +1,28 @@
 // AI-GENERATED — not an architecture reference
 import {
+  dbDeleteEventMatchingArrival,
   dbDeleteMatchingEntryByUuid,
-  dbInsertMatchingEntry,
+  dbSelectEventMatchingArrival,
   dbSelectMatchingEntriesByUserId,
   dbSelectMatchingEntryByUuid,
   dbSetMatchingEntryActive,
   dbUpdateMatchingEntry,
   MatchingEntrySelect,
 } from 'database'
+import { parseOrThrowFirstIssue } from 'shared'
 import { Arg, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
-import { v4 as uuidv4 } from 'uuid'
 import { matchingKeyingRun } from '@/apis/anthropic/matching/keyingRun'
 import { RIGHTS } from '@/auth/RIGHTS'
+import { inMemberLine } from '@/data/MemberLine.logic'
+import { EventMatchingEntryInput } from '@/graphql/input/EventMatchingEntryInput'
 import { MatchingEntryInput } from '@/graphql/input/MatchingEntryInput'
+import { EventMatchingEntryAccepted } from '@/graphql/model/EventMatchingEntryAccepted'
 import { MatchingEntry } from '@/graphql/model/MatchingEntry'
+import { eventMatchingEntrySchema } from '@/interactions/registerUser'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
+import { createMatchingEntryFor, readBackMatchingEntry } from './util/createMatchingEntryFor'
+import { EVENT_ENTRY_KIND, sameWords } from './util/makeEventMatchingEntry'
 import { removeMatchingEntryFromGms, syncMatchingEntryToGms } from './util/syncMatchingEntryToGms'
 
 /**
@@ -32,21 +39,6 @@ const findOwnEntry = async (uuid: string, userId: number): Promise<MatchingEntry
   }
   if (result.value.userId !== userId) {
     throw new LogError('Can not access MatchingEntry of another user', uuid, userId)
-  }
-  return result.value
-}
-
-/**
- * The stored row after a write, for the answer and for the GMS.
- *
- * Read back rather than assembled from the input: `created_at` and `updated_at` belong
- * to the database, and both the member's list order and the GMS copy are built from
- * them. A row missing here is not an expected failure — it was written a moment ago.
- */
-const readBackEntry = async (uuid: string): Promise<MatchingEntrySelect> => {
-  const result = await dbSelectMatchingEntryByUuid(uuid)
-  if (!result.success) {
-    throw new LogError('MatchingEntry vanished right after it was written', uuid)
   }
   return result.value
 }
@@ -68,28 +60,94 @@ export class MatchingEntryResolver {
     @Ctx() context: Context,
   ): Promise<MatchingEntry> {
     const user = getUser(context)
-    const uuid = uuidv4()
-    const inserted = await dbInsertMatchingEntry({
-      uuid,
-      userId: user.id,
+    // Stored, read back, handed to the GMS and to the keying run: the steps of a new entry,
+    // shared with the one an event link noted (util/createMatchingEntryFor).
+    const entry = await createMatchingEntryFor(user, {
       matchingType: input.matchingType,
       summary: input.summary,
       details: input.details ?? null,
       remote: input.remote ?? false,
-      active: true,
     })
-    if (!inserted.success) {
-      throw new LogError('Could not store MatchingEntry', uuid)
-    }
-
-    const entry = await readBackEntry(uuid)
-    await syncMatchingEntryToGms(user, entry)
-    // Returns at once: the words are worked out by a language model, which takes
-    // seconds and can fail, and neither belongs in the member's save button. Until
-    // the run has been round, the entry is stored and served but not yet findable by
-    // word - the same trade the GMS makes with its vectors.
-    matchingKeyingRun.nudge()
     return new MatchingEntry(entry)
+  }
+
+  /**
+   * The entry an event link offers (Event-Matching), for a member who opens the link signed in
+   * or signs in after opening it: made at once, without a form -- the tap on the link is the yes
+   * (KA-014). Where the member has that entry already, nothing is made and `created` is false:
+   * the same kind, the same words whatever their case and the blanks around them (`sameWords`,
+   * the comparison the confirmation of a registration makes), live or paused. A paused one was
+   * taken out of the search on purpose, and the link does not put it back live. A deleted one is
+   * gone, and the link makes it anew.
+   *
+   * The input is checked as at a registration (`eventMatchingEntrySchema`): the lengths of an
+   * entry's columns, a sentence that says something, details blank as none.
+   *
+   * ⛔ One call after another per member (`inMemberLine`): the same link opened twice at once --
+   * two tabs, a sign-in and a session running beside it -- must not read "not there" twice and
+   * make two entries.
+   */
+  @Authorized([RIGHTS.CREATE_MATCHING_ENTRY])
+  @Mutation(() => EventMatchingEntryAccepted)
+  async acceptEventMatchingEntry(
+    @Arg('input', () => EventMatchingEntryInput) input: EventMatchingEntryInput,
+    @Ctx() context: Context,
+  ): Promise<EventMatchingEntryAccepted> {
+    const user = getUser(context)
+    const offered = parseOrThrowFirstIssue(eventMatchingEntrySchema, input)
+    return inMemberLine(user.id, async () => {
+      const own = await dbSelectMatchingEntriesByUserId(user.id)
+      const there = own.find(
+        (entry) =>
+          entry.matchingType === EVENT_ENTRY_KIND && sameWords(entry.summary, offered.summary),
+      )
+      if (there) {
+        return new EventMatchingEntryAccepted(false, there)
+      }
+      const made = await createMatchingEntryFor(user, {
+        matchingType: EVENT_ENTRY_KIND,
+        summary: offered.summary,
+        details: offered.details ?? null,
+        remote: offered.remote,
+      })
+      return new EventMatchingEntryAccepted(true, made)
+    })
+  }
+
+  /**
+   * The sentence of the entry an event link made at this account's confirmation, for as long as
+   * the wallet has not invited the member onto the map for it (Event-Matching, KA-015) -- null
+   * where no invitation is due. The wallet asks after a sign-in: the mail of the registration is
+   * often opened on another device than the link, and only the account knows how its owner came.
+   *
+   * The sentence is read off the entry itself, never kept beside it: where the member has changed
+   * it, the invitation names it as it stands; where the entry is gone, or is not the member's own,
+   * there is nothing to invite them for, and the answer is null.
+   */
+  @Authorized([RIGHTS.LIST_MATCHING_ENTRY])
+  @Query(() => String, { nullable: true })
+  async eventMatchingArrival(@Ctx() context: Context): Promise<string | null> {
+    const user = getUser(context)
+    const arrival = await dbSelectEventMatchingArrival(user.id)
+    if (!arrival) {
+      return null
+    }
+    const entry = await dbSelectMatchingEntryByUuid(arrival.matchingEntryUuid)
+    if (!entry.success || entry.value.userId !== user.id) {
+      return null
+    }
+    return entry.value.summary
+  }
+
+  /**
+   * The invitation onto the map is over: it had the screen, or the member stands on the map
+   * without it. It comes once (KA-015). True also where none was due -- two tabs may both say it.
+   */
+  @Authorized([RIGHTS.LIST_MATCHING_ENTRY])
+  @Mutation(() => Boolean)
+  async settleEventMatchingArrival(@Ctx() context: Context): Promise<boolean> {
+    await dbDeleteEventMatchingArrival(getUser(context).id)
+    return true
   }
 
   @Authorized([RIGHTS.UPDATE_MATCHING_ENTRY])
@@ -114,7 +172,7 @@ export class MatchingEntryResolver {
       throw new LogError('Could not update MatchingEntry', uuid)
     }
 
-    const entry = await readBackEntry(uuid)
+    const entry = await readBackMatchingEntry(uuid)
     await syncMatchingEntryToGms(user, entry)
     matchingKeyingRun.nudge()
     return new MatchingEntry(entry)
@@ -134,7 +192,7 @@ export class MatchingEntryResolver {
       throw new LogError('Could not change MatchingEntry state', uuid)
     }
 
-    const entry = await readBackEntry(uuid)
+    const entry = await readBackMatchingEntry(uuid)
     // Pausing removes it from the GMS, resuming puts it back - the sync reads the
     // state and does the right thing either way.
     await syncMatchingEntryToGms(user, entry)

@@ -125,7 +125,7 @@
     "not-allowed": {
       "button": "Configurar..."
     },
-    "text": "Círculos locales, círculos de estudio, proyectos, ev entos y congresos"
+    "text": "Círculos locales, círculos de estudio, proyectos, eventos y congresos"
   },
   "card-user-search": {
     "allowed": {
@@ -610,6 +610,50 @@
     "session-renewal-failed": "No se pudo renovar tu sesión. Vuelve a iniciar sesión.",
     "unknown-error": "Error desconocido: "
   },
+  "eventMatching": {
+    "builder": {
+      "codeAlt": "Código QR que lleva a tu enlace",
+      "codeFailed": "Ahora mismo no se puede dibujar el código QR. El enlace funciona.",
+      "codeLabel": "Tu código QR",
+      "codeTooLong": "Este enlace es demasiado largo para un código QR. Con menos texto, el código aparecerá. El enlace funciona igualmente.",
+      "copyFailed": "Desafortunadamente, tu dispositivo no permite copiar. Selecciona el texto y cópialo a mano.",
+      "copyLink": "Copiar enlace",
+      "copyMail": "Copiar párrafo",
+      "detailsCount": "{count} / {max}",
+      "detailsHint": "Una o dos frases que expliquen tu tema.",
+      "detailsMissing": "Ahora escribe arriba los detalles — entonces aparecerán aquí tu enlace, tu código QR y un párrafo para tu correo.",
+      "downloadCode": "Descargar código QR",
+      "intro": "Quien abra este enlace recibe en su cuenta de Gradido tu congreso como primera entrada en el mapa — y encuentra a las demás personas de tu congreso.",
+      "linkCopied": "Enlace copiado.",
+      "linkLabel": "Tu enlace",
+      "mailCopied": "Párrafo copiado.",
+      "mailLabel": "Tu párrafo para el correo",
+      "mailText": "Gradido incluido: con este enlace obtienes tu cuenta de Gradido, 100 Gradido para empezar y el mapa que te lleva a las personas de nuestro congreso. El mapa muestra tu ubicación solo a los miembros, y solo de forma aproximada.",
+      "nothingStored": "No se guarda nada. Tú creas el enlace, tú lo compartes.",
+      "remoteHint": "Así tus participantes también aparecen en la búsqueda suprarregional.",
+      "sentenceDefault": "Congreso",
+      "sentenceHint": "El nombre corto de tu congreso, tal como lo dirían tus participantes. La palabra «Congreso» puede quedarse delante — también valen «Formación», «Curso» o «Retiro».",
+      "sentencePreview": "«{sentence}»",
+      "subtitle": "Tu enlace para tu congreso, tu formación, tu curso",
+      "title": "Event Matching",
+      "waiting": "Escribe arriba el nombre de tu congreso — entonces aparecerán aquí tu enlace, tu código QR y un párrafo para tu correo."
+    },
+    "home": {
+      "text": "Para que os encontréis como personas afines: marca tu casa en el mapa. Así verás a los demás que han añadido «{sentence}», y ellos te verán a ti. Solo los miembros ven el mapa. Tú decides con qué precisión: «Aproximada» te muestra dentro de un área, nunca en tu puerta. Y puedes salir del mapa en cualquier momento.",
+      "title": "¿Dónde vives?"
+    },
+    "landing": {
+      "added": "Tu entrada se ha añadido: {sentence}",
+      "firstEntry": "Tu primera entrada:",
+      "haveAccount": "Ya tengo una cuenta",
+      "headline": "El mapa que te lleva a las personas de tu congreso",
+      "otherCommunity": "¿Tu cuenta está en otra comunidad? Entonces inicia sesión allí y escribe la frase a mano.",
+      "register": "Crear una cuenta"
+    },
+    "register": {
+      "firstEntry": "Tu primera entrada:"
+    }
+  },
   "existingGradidoAccount": "¿Ya tienes una cuenta de {communityName}?",
   "firstCreation": {
     "again": "+ Había algo más",
@@ -696,6 +740,7 @@
       "link": "Gradido-Akademie",
       "year": "© {year}"
     },
+    "eventMatching": "Event Matching",
     "imprint": "Aviso legal",
     "inspector": "Inspector (experimental)",
     "privacy_policy": "Protección de Datos",
@@ -852,7 +897,7 @@
     "share-line2": "«{memo}»",
     "share-line3": "¿Quieres aceptar el agradecimiento?",
     "share-line4": "Te espera hasta el {date}. Si no lo aceptas, no pasa nada.",
-    "to-login": "iniciar sesión",
+    "to-login": "Iniciar sesión",
     "to-register": "Registra una nueva cuenta.",
     "to-switch": "Redirigir ahora",
     "validUntil": "Válido hasta"
@@ -900,7 +945,7 @@
   "language": "Idioma",
   "link-load": "recargar el último enlace | recargar los últimos {n} enlaces",
   "link-load-more": "descargar más {n} enlaces",
-  "login": "iniciar sesión",
+  "login": "Iniciar sesión",
   "matching": {
     "about": {
       "counter": "{count} / ~1000 caracteres",
@@ -1287,7 +1332,7 @@
   },
   "send_email": "Enviar correo electrónico",
   "send_gdd": "Enviar GDD",
-  "send_per_link": "Enlace, cheque, QR",
+  "send_per_link": "Enlace, cheque, QR, saludo",
   "session": {
     "extend": "Permanecer en sesión iniciada",
     "lightText": "Si no has realizado ninguna acción durante más de 10 minutos, se cerrará tu sesión por razones de seguridad.",

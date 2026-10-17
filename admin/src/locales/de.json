@@ -412,9 +412,10 @@
   },
   "goTo": {
     "humhubProfile": "Zum Humhub Profil gehen",
+    "memberChat": "Zum Gespräch mit {name}",
     "memberMap": "{name} auf der Karte zeigen",
     "memberMapBlocked": "Der Browser hat das Fenster blockiert. Bitte Pop-ups für diese Seite erlauben.",
-    "memberSend": "An {name} senden",
+    "memberSend": "E-Mail an {name} senden",
     "userSearch": "Zur Nutzersuche gehen"
   },
   "help": {

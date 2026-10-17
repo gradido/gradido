@@ -137,6 +137,7 @@ export const createUser = gql`
     $referrerAlias: String
     $guarantorCode: String
     $password: String
+    $eventMatchingEntry: EventMatchingEntryInput
   ) {
     createUser(
       alias: $alias
@@ -150,6 +151,7 @@ export const createUser = gql`
       referrerAlias: $referrerAlias
       guarantorCode: $guarantorCode
       password: $password
+      eventMatchingEntry: $eventMatchingEntry
     )
   }
 `
@@ -529,6 +531,28 @@ export const createMatchingEntry = gql`
       remote
       active
     }
+  }
+`
+
+export const acceptEventMatchingEntry = gql`
+  mutation ($eventMatchingEntry: EventMatchingEntryInput!) {
+    acceptEventMatchingEntry(input: $eventMatchingEntry) {
+      created
+      entry {
+        uuid
+        matchingType
+        summary
+        details
+        remote
+        active
+      }
+    }
+  }
+`
+
+export const settleEventMatchingArrival = gql`
+  mutation {
+    settleEventMatchingArrival
   }
 `
 

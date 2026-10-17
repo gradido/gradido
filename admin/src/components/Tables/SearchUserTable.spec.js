@@ -1,10 +1,12 @@
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
 import { createStore } from 'vuex'
 import { DefaultApolloClient } from '@vue/apollo-composable'
 import SearchUserTable from './SearchUserTable.vue'
 import MemberWalletLink from '../MemberWalletLink.vue'
+import { contactRefs } from '@/graphql/contactRefs'
+import { forgetModeratorContacts } from '@/composables/useModeratorContacts'
 import { BTable } from 'bootstrap-vue-next'
 
 vi.mock('../CreationFormular.vue', () => ({
@@ -111,6 +113,8 @@ const propsData = {
 
 describe('SearchUserTable', () => {
   let wrapper
+  // Whom the server names as contacts of the moderator (MemberWalletLink asks, once per page).
+  let contactsOfTheModerator
 
   const createWrapper = (props = propsData) => {
     const i18n = createI18n({
@@ -135,12 +139,25 @@ describe('SearchUserTable', () => {
           BTable,
         },
         plugins: [i18n, store],
-        // A pressed pin asks the server about the sign-in (MemberWalletLink).
-        provide: { [DefaultApolloClient]: { query: vi.fn().mockResolvedValue({ data: {} }) } },
+        // A pressed pin asks the server about the sign-in, and the names ask whom the
+        // moderator is in contact with (MemberWalletLink).
+        provide: {
+          [DefaultApolloClient]: {
+            query: vi.fn(({ query }) =>
+              Promise.resolve(
+                query === contactRefs
+                  ? { data: { contactRefs: contactsOfTheModerator } }
+                  : { data: {} },
+              ),
+            ),
+          },
+        },
         stubs: {
           IPhCaretUpFill: true,
           IPhCaretDown: true,
           IBiGeoAltFill: true,
+          IBiSend: true,
+          IMdiChatOutline: true,
         },
       },
       props,
@@ -148,6 +165,9 @@ describe('SearchUserTable', () => {
   }
 
   beforeEach(() => {
+    // Held beside the components: every test starts from nothing.
+    forgetModeratorContacts()
+    contactsOfTheModerator = []
     wrapper = createWrapper()
   })
 
@@ -194,9 +214,9 @@ describe('SearchUserTable', () => {
   })
 
   // Behind the username of a member who stands on the wallet's map: one press shows them
-  // there, in a window of its own. Behind every other: the arrow into the wallet's send form
-  // (MemberWalletLink). The rows as the search delivers them, with the pair that names the
-  // member and the server's yes or no.
+  // there, in a window of its own. Behind it -- in its place where there is none -- the arrow
+  // into the wallet's send form (MemberWalletLink). The rows as the search delivers them, with
+  // the pair that names the member and the server's yes or no.
   describe('the pin or the arrow behind the username', () => {
     const COMMUNITY = '9f8e7d6c-5b4a-4c3d-9e2f-1a0b9c8d7e6f'
     const [bibi, benjamin, peter, newUser] = propsData.items
@@ -244,8 +264,12 @@ describe('SearchUserTable', () => {
     const pinIn = (row) => usernameCell(row).find('[data-test="member-map-pin"]')
     const arrowIn = (row) => usernameCell(row).find('[data-test="member-send-arrow"]')
 
-    beforeEach(() => {
+    const bubbleIn = (row) => usernameCell(row).find('[data-test="member-chat-bubble"]')
+
+    beforeEach(async () => {
       wrapper = createWrapper({ items: rows, fields })
+      // The names ask the server whom the moderator is in contact with; here: nobody.
+      await flushPromises()
     })
 
     it('stands only in the rows of members who stand on the map', () => {
@@ -256,13 +280,14 @@ describe('SearchUserTable', () => {
       expect(pinIn(3).exists()).toBe(false)
     })
 
-    // Every member can be reached: over the map, or over the send form.
-    it('leaves the other rows the arrow into the send form, and no row both', () => {
-      expect(wrapper.findAll('[data-test="member-send-arrow"]')).toHaveLength(2)
-      expect(arrowIn(0).exists()).toBe(false)
-      expect(arrowIn(1).exists()).toBe(true)
-      expect(arrowIn(2).exists()).toBe(false)
-      expect(arrowIn(3).exists()).toBe(true)
+    // Every member can be written to, on the map or not (Bernd, 16.10.2026: finding them and
+    // writing to them are two buttons).
+    it('gives every row the arrow into the send form, behind the pin where there is one', () => {
+      expect(wrapper.findAll('[data-test="member-send-arrow"]')).toHaveLength(4)
+      rows.forEach((_row, index) => expect(arrowIn(index).exists()).toBe(true))
+      const [pin, arrow] = usernameCell(0).findAll('button')
+      expect(pin.attributes('data-test')).toBe('member-map-pin')
+      expect(arrow.attributes('data-test')).toBe('member-send-arrow')
     })
 
     // The cell itself as before: the username, and nothing where the member has none -- no
@@ -272,6 +297,76 @@ describe('SearchUserTable', () => {
       expect(usernameCell(1).text()).toBe('benni')
       expect(usernameCell(2).text()).toBe('')
       expect(usernameCell(3).text()).toBe('')
+    })
+
+    // ⭐ Bernd, 13.10.2026: where the member is a contact of the moderator already, the bubble
+    // of the chat stands in the arrow's place and leads into the conversation with them -- on
+    // the map or not (Bernd, 16.10.2026).
+    describe('with a member the moderator is in contact with', () => {
+      beforeEach(async () => {
+        forgetModeratorContacts()
+        // benni has no pin, peter stands on the map.
+        contactsOfTheModerator = [rows[1], rows[2]].map(({ communityUuid, gradidoID }) => ({
+          communityUuid,
+          gradidoID,
+        }))
+        wrapper = createWrapper({ items: rows, fields })
+        await flushPromises()
+      })
+
+      it('sets the bubble in the place of the arrow, in the row of the contact', () => {
+        expect(bubbleIn(1).exists()).toBe(true)
+        expect(arrowIn(1).exists()).toBe(false)
+        expect(usernameCell(1).findAll('button')).toHaveLength(1)
+      })
+
+      it('sets the bubble in the place of the arrow behind the pin of a contact on the map', () => {
+        const [pin, bubble, ...more] = usernameCell(2).findAll('button')
+        expect(pin.attributes('data-test')).toBe('member-map-pin')
+        expect(bubble.attributes('data-test')).toBe('member-chat-bubble')
+        expect(more).toEqual([])
+        expect(arrowIn(2).exists()).toBe(false)
+      })
+
+      // bibi stands on the map, the member of the last row does not; neither is a contact.
+      it('leaves everybody else the arrow', () => {
+        expect(wrapper.findAll('[data-test="member-chat-bubble"]')).toHaveLength(2)
+        expect(arrowIn(0).exists()).toBe(true)
+        expect(pinIn(0).exists()).toBe(true)
+        expect(arrowIn(3).exists()).toBe(true)
+        expect(bubbleIn(0).exists()).toBe(false)
+        expect(bubbleIn(3).exists()).toBe(false)
+      })
+
+      it.each([
+        ['in the place of the arrow', 1],
+        ['behind the pin', 2],
+      ])(
+        'opens the conversation with the member of its row %s, and not the row',
+        async (_name, row) => {
+          vi.spyOn(window, 'open').mockReturnValue({ focus: vi.fn() })
+          await bubbleIn(row).trigger('click')
+
+          expect(window.open).toHaveBeenCalledTimes(1)
+          const address = new URL(window.open.mock.calls[0][0])
+          expect(address.searchParams.get('redirect')).toBe(
+            `/contacts?with=${rows[row].gradidoID}&community=${COMMUNITY}`,
+          )
+          expect(wrapper.vm.myItems.some((item) => item._showDetails)).toBe(false)
+          vi.restoreAllMocks()
+        },
+      )
+
+      it('still opens the map with the pin of a contact', async () => {
+        vi.spyOn(window, 'open').mockReturnValue({ focus: vi.fn() })
+        await pinIn(2).trigger('click')
+
+        const address = new URL(window.open.mock.calls[0][0])
+        expect(address.searchParams.get('redirect')).toBe(
+          `/matching/karte?with=${rows[2].gradidoID}&community=${COMMUNITY}`,
+        )
+        vi.restoreAllMocks()
+      })
     })
 
     it('hands the pin the member of its row, named by username or else by first name', () => {
@@ -311,14 +406,14 @@ describe('SearchUserTable', () => {
         )
       })
 
-      it('opens the send form to the member of its row', async () => {
+      it('opens the send form to the member of its row, on its tab "E-Mail senden"', async () => {
         await arrowIn(3).trigger('click')
 
         expect(window.open).toHaveBeenCalledTimes(1)
         const address = new URL(window.open.mock.calls[0][0])
         expect(address.searchParams.get('token')).toBe('valid-token')
         expect(address.searchParams.get('redirect')).toBe(
-          `/send/${COMMUNITY}/${rows[3].gradidoID}#send-form`,
+          `/send/${COMMUNITY}/${rows[3].gradidoID}?art=email#send-form`,
         )
       })
 

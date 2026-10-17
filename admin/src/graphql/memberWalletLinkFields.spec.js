@@ -6,8 +6,8 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
 /**
- * ⛔ What stands behind a member's name -- the pin onto the wallet's map, or the arrow into its
- * send form -- reads a handful of things off the member: the pair it addresses the wallet by,
+ * ⛔ What stands behind a member's name -- the pin onto the wallet's map, the bubble into a
+ * conversation, or the arrow into the send form -- reads a handful of things off the member: the pair it addresses the wallet by,
  * whether the member stands on the map, whether the account was deleted, and the member's
  * number. A field a document never asks for arrives as `undefined` -- and the answer to that
  * is to stay away. No pin and no arrow for anybody, nothing crashes, and no component spec
@@ -74,6 +74,15 @@ describe('what stands behind a member reads, and what the documents ask for', ()
     for (const field of readOffTheMember().filter((f) => f !== NUMBER_IN_THE_SEARCH)) {
       expect(fieldsOf(fragment)).toContain(field)
     }
+  })
+
+  // Whom the moderator is in contact with is told apart by the pair (useModeratorContacts). A
+  // pair that arrives without its community matches no row: every contact would keep the arrow,
+  // and no component spec would notice -- each of them invents the answer.
+  it('asks for the pair of everybody the moderator is in contact with', () => {
+    const refs = read('./contactRefs.js').match(/contactRefs \{([^}]*)\}/)[1]
+
+    expect(fieldsOf(refs).sort()).toEqual(['communityUuid', 'gradidoID'])
   })
 
   // The list and the one row that replaces a row of it after the moderator acted: both hand

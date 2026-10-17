@@ -100,6 +100,7 @@ import { USERNAME_REGEX } from '@/validationSchemas'
 import { useAppToast } from '@/composables/useToast'
 import {
   firstLoginWindowOnScreen,
+  setFirstLoginWindowUndecided,
   setFirstLoginWindowWanted,
 } from '@/composables/useFirstLoginWindow'
 import CONFIG from '@/config'
@@ -119,7 +120,9 @@ const { toastError } = useAppToast()
 // a single cache key for everybody. The cache is emptied on logout now, which is the
 // real fix; this is the second lock, for every way a member can change without that
 // action running - and it keeps the quota honest when it was spent in another tab.
-const { result, refetch } = useQuery(aliasStatus, null, { fetchPolicy: 'cache-and-network' })
+const { result, error, refetch } = useQuery(aliasStatus, null, {
+  fetchPolicy: 'cache-and-network',
+})
 const { mutate: adopt } = useMutation(adoptAlias)
 const { mutate: updateUser } = useMutation(updateUserInfos)
 
@@ -180,6 +183,15 @@ const wants = computed(
 )
 watch(wants, (value) => setFirstLoginWindowWanted('alias', value), { immediate: true })
 onBeforeUnmount(() => setFirstLoginWindowWanted('alias', false))
+
+// Until `aliasStatus` has answered -- or failed --, nobody knows whether this question comes,
+// and the windows after it wait (useFirstLoginWindow, `undecided`). Without this the invitation
+// onto the map, or the first creation, took the screen for the moment of the round trip and was
+// pushed off it again when the name question arrived: a window that flashed in before the one
+// that comes first (KA-015).
+const undecided = computed(() => !!currentAlias.value && !result.value?.aliasStatus && !error.value)
+watch(undecided, (value) => setFirstLoginWindowUndecided('alias', value), { immediate: true })
+onBeforeUnmount(() => setFirstLoginWindowUndecided('alias', false))
 
 const onScreen = firstLoginWindowOnScreen('alias')
 const visible = computed({

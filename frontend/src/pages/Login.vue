@@ -71,8 +71,10 @@ import { useForm } from 'vee-validate'
 import { useMutation } from '@vue/apollo-composable'
 import { useAppToast } from '@/composables/useToast'
 import { useAuthLinks } from '@/composables/useAuthLinks'
+import { useEntryDraft } from '@/composables/useEntryDraft'
 import { useSignIn } from '@/composables/useSignIn'
 import CONFIG from '@/config'
+import { eventMatchingEntryDraft, keptEventMatchingEntry } from '@/utils/eventMatchingLink'
 
 // import { useLoading } from 'vue-loading-overlay'
 
@@ -82,6 +84,7 @@ const store = useStore()
 const { t } = useI18n()
 // The steps of signing in are shared with the page where a thank-you is accepted.
 const { signIn } = useSignIn()
+const entryDraft = useEntryDraft()
 const { mutate: mutateHumhubAutoLogin } = useMutation(authenticateHumhubAutoLoginProject)
 // const $loading = useLoading() // TODO needs to be updated but there is some sort of an issue that breaks the app.
 const { toastError } = useAppToast()
@@ -117,6 +120,13 @@ const onSubmit = handleSubmit(async (values) => {
     // keeps it for the next one.
     const back = store.state.redirectPath
     store.commit('redirectPath', '/overview')
+    // What an event link offered in this browser before anybody was signed in (`/event?…`,
+    // routes/guards.js) is taken ONCE as well, by the sign-in that follows the link: used
+    // below, or let go. Nobody was signed in when it was kept, so nothing says whose it is --
+    // left in the store, it would be made for whoever signs in here next. And only if
+    // it was kept within the hour (keptEventMatchingEntry).
+    const offered = keptEventMatchingEntry(store.state.eventMatchingEntry)
+    store.commit('eventMatchingEntry', null)
     // await loader.hide()
     if (store.state.project) {
       const result = await mutateHumhubAutoLogin({
@@ -128,9 +138,29 @@ const onSubmit = handleSubmit(async (values) => {
 
     if (route.params.code) {
       await router.push(routeWithParamsAndQuery('Redeem'))
-    } else {
-      await router.push(back)
+      return
     }
+    // The event link's entry now has a member to offer it to: on to their entries, where it is
+    // made at once, or nothing happens where the member has it already (KA-014).
+    //
+    // ⛔ Only where no page is waiting. Of the two wishes kept for after a sign-in the
+    // younger one counts: opening an event link puts the way back to the overview
+    // (guards.js), so a way back that leads anywhere else was written AFTER the link -- the
+    // reply button of a mail pressed since leads into its conversation, and the entry is let
+    // go. A project and a redeem code went first, above, for the same reason: they have a
+    // place of their own to lead to.
+    //
+    // The overview by its record, not by the letters of the address: `/overview/` typed with
+    // a slash is the overview all the same.
+    //
+    // `replace`: the sign-in form is done with, and the back button should not offer it to
+    // somebody who has just signed in.
+    if (offered && router.resolve(back).matched.at(-1)?.path === '/overview') {
+      entryDraft.put(eventMatchingEntryDraft(offered))
+      await router.replace('/matching/entries')
+      return
+    }
+    await router.push(back)
   } catch (error) {
     // ⛔ These two literals are one half of a contract with the backend, and the backend
     // cannot be imported here. Both were wrong - a word order apart from what `login`

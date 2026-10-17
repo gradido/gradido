@@ -76,6 +76,16 @@ describe('the http server of the backend', () => {
       expect(JSON.parse(answer.body)).toEqual({ data: { __typename: 'Query' } })
     })
 
+    it('turns down a persisted query', async () => {
+      const answer = await operation({
+        query: '{ __typename }',
+        extensions: { persistedQuery: { version: 1, sha256Hash: 'a'.repeat(64) } },
+      })
+      expect(JSON.parse(answer.body).errors[0].extensions.code).toBe(
+        'PERSISTED_QUERY_NOT_SUPPORTED',
+      )
+    })
+
     it('lets every origin read the answer and its token header', async () => {
       const { headers } = await operation({ query: '{ __typename }' })
       expect(headers['access-control-allow-origin']).toBe('*')
@@ -158,14 +168,16 @@ describe('the http server of the backend', () => {
     expect(answer.body).toBe('Internal Server Error')
   })
 
-  it('refuses an elopage hook whose JSON cannot be read, and files nothing', async () => {
+  it('refuses an elopage hook whose JSON cannot be read or is no object, and files nothing', async () => {
     const save = jest.spyOn(LoginElopageBuys, 'save')
-    const answer = await ask(`/hook/elopage/${CONFIG.WEBHOOK_ELOPAGE_SECRET}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: '{',
-    })
-    expect(answer.status).toBe(400)
+    for (const body of ['{', 'null', '42', '"text"', 'true']) {
+      const answer = await ask(`/hook/elopage/${CONFIG.WEBHOOK_ELOPAGE_SECRET}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+      })
+      expect({ body, status: answer.status }).toEqual({ body, status: 400 })
+    }
     expect(save).not.toHaveBeenCalled()
     save.mockRestore()
   })
