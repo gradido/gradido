@@ -24,24 +24,19 @@ export class Community extends BaseEntity {
   @Column({ name: 'url', type: 'varchar', length: 255, nullable: false })
   url: string
 
-  @Column({ name: 'public_key', type: 'binary', length: 32, nullable: false })
+  @Column({ name: 'public_key', type: 'binary', length: 32, nullable: false, unique: true })
   publicKey: Buffer
 
   @Column({ name: 'private_key', type: 'binary', length: 64, nullable: true })
   privateKey: Buffer | null
 
-  /**
-   * Most of time a uuidv4 value, but could be also a uint32 number for a short amount of time, so please check before use
-   * in community authentication this field is used to store a oneTimePassCode (uint32 number)
-   */
   @Column({
     name: 'community_uuid',
     type: 'char',
     length: 36,
-    nullable: true,
-    collation: 'utf8mb4_unicode_ci',
+    nullable: false,
   })
-  communityUuid: string | null
+  communityUuid: string
 
   @Column({ name: 'authenticated_at', type: 'datetime', precision: 3, nullable: true })
   authenticatedAt: Date | null

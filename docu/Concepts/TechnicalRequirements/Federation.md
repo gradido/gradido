@@ -34,11 +34,7 @@ As soon as a Gradido Community is up and running the DHT-Modul first writes the 
 
 The background of this exchanged data base on the supported api-versions a community will support with its own federation-modules. Each running federation-module in a community will support exact one graphql api-version of a cross-community-communication. To reach a dedicated federation-module with the correct api-version during a cross-community-communication the url for this federation-module must be known by both communities. As shown in the picture above the graphql-client with api-version V1_0 in the left community will interact with the federation-module with api-version V1_0 on the right community. During the lifecycle of the gradido-application it will be necessary to extent the features and interfaces for the cross-community-communication. To keep a backwards compatibilty and not to force each community to always upgrade their running software version on the last api-version at the same time, it will be necessary to support several api-versions in parallel. The different running api-version modules are responsible to convert and treat the exchanged data in a correct way to ensure konsistent data in the local database of the community.
 
-The up and running Backend-Module contains a validation logic to verify the community entries from the own DHT-Module. For each announced but unverified community-entry the GraphQL-Client is used to invoke a getPublicKey-Request. Depending on the containing api-version the matching GraphQL-Client is used and the getPublicKey-Request will be send to the given URL.
-
-As soon as the federation-module of the associated community received the getPublicKey-request the own publicKey is read from database and send back in the response.
-
-The GraphQL-Client will read the publicKey of the other community from the returned response data and compare it with the data of the community-entry, which caused the getPublicKey-Request. If they match the community-entry will be updated by inserting the current timestamp in the verifiedAt-field of this community-entry.
+The up and running Backend-Module contains a validation logic to verify the community entries from the own DHT-Module. For each announced but unverified community-entry it asks the federation-module at the announced URL for its community infos with one signed request, see [Verification of a community by its signed community infos](#verification-of-a-community-by-its-signed-community-infos). If the answer is signed by the announced public key, the community-entry is marked as verified and the foreign community is inserted into, or updated in, the communities table.
 
 This federation and verification logic will work the whole time and can be monitored by observing the communities-table changes. The Admin-UI will contain a Page to have a look on the current state of the communities table content.
 
@@ -276,9 +272,80 @@ For the first federation release the *DHT-Node* will be part of the *apollo serv
            | communityApiVersion.apiversion            | keep existing value         |
            | communityApiVersion.validFrom             | exchangedData.API.validFrom |
            | communityApiVersion.verifiedAt            | keep existing value         |
-   3. After all received data is stored successfully, the *DHT-Node* starts the *stage2 - Authentication* of the federation handshake
+   3. After all received data is stored successfully, the *backend* verifies the announced community in its next round, see [Verification of a community by its signed community infos](#verification-of-a-community-by-its-signed-community-infos). The *DHT-Node* starts no further stage.
+
+### Verification of a community by its signed community infos
+
+> This replaces the handshake of *Stage2 - Authentication* below. That chapter is kept to document the former design; it is no longer implemented.
+
+#### What has to be proven
+
+The DHT already proves one thing: the socket of *hyperswarm dht* is encrypted with the Noise protocol, and `socket.remotePublicKey` is the key of the node on the other side. The url and api version a node announces over that socket therefore come from the owner of that key. What the DHT cannot prove is that the server answering at that url outside the DHT is the same community. This is the only thing left to verify: the server at the announced url holds the private key of the announced public key.
+
+The identity of a community is its url, its public key and its uuid together. The first verified answer binds the three to each other (trust on first use, as SSH does with `known_hosts`); afterwards none of them can change without the others, see step 5 below.
+
+The uuid is an identifier, not a secret. It is part of every user address, of transactions, contacts and e-mail links, and every user of a community sees it. It is therefore delivered openly with the signed community infos. Knowing a uuid must never be enough to act in the name of a community: a request from another community is accepted only as signed by that community's key, and the community it acts for is the one the signature belongs to, never a uuid named in its payload.
+
+#### Sequence
+
+1. The *backend* (`validateCommunities`) reads in batches of 100 the announced entries of `federated_communities` that are not verified since their last announcement.
+2. For each entry of a batch, all in parallel, it sends one request to the federation-module at the announced url:
+
+   `GET https://<foreign.url>/peer-api/v1/communityInfos?nonce=<128 random bits as hex>`
+
+   A community that has not answered completely within 5 seconds (`FEDERATION_REQUEST_TIMEOUT_MS`) is given up for this round. A batch therefore takes as long as its slowest community, at most the timeout: a round over 1000 communities takes a few seconds, and no more than about 50 seconds however many of them do not answer.
+3. The federation-module of the foreign community answers with its community infos (uuid, name, description, creation date, public key, public JWT key, hiero topic id) and signs the answer with the Ed25519 key of its home community as an HTTP Message Signature ([RFC 9421](https://www.rfc-editor.org/rfc/rfc9421)):
+   * covered components: `@status`, `content-type`, `content-digest`, and of the request answered `@method;req` and `@path;req`
+   * the body is covered through `content-digest` (SHA-256, [RFC 9530](https://www.rfc-editor.org/rfc/rfc9530))
+   * signature parameters: `keyid` (the public key as hex, the same key the DHT announces), `alg="ed25519"` and the `nonce` of the request
+
+   Only an answer that passed the response schema is signed. A request without a nonce of exactly 32 hex characters, and an answer that does not fit the schema, get a 422 without signature. Error answers carry no signature and no data; the backend never takes community infos from them.
+4. The backend accepts the answer only if
+   * it carries exactly one signature, and that one names the **announced** public key as `keyid` and verifies against it, not against a key the answer names,
+   * the nonce is the one of its own request,
+   * method and path are those of its own request,
+   * the digest matches the body,
+   * the public key in the community infos is the announced one,
+   * the uuid is not the one of the own home community.
+
+   Any other answer, and no answer within the timeout, leaves the entry unverified; it is asked again in the next round.
+5. For each accepted answer, in one transaction:
+   * the entry in `federated_communities` gets `verified_at`,
+   * a community not known by its uuid is inserted with `authenticated_at` set: the signed answer is the authentication,
+   * a known community whose name, description or hiero topic id changed is updated; only these three fields can change this way,
+   * a known community answering with another public key or another url is not changed, the difference is logged. How an admin confirms a legitimate change of url or key is not designed yet; until then such a community keeps its stored url and key,
+   * the unique keys of `communities` (`uuid_key`, `public_key_key`, `url_key`) refuse a new community that claims the uuid, key or url of another one; the refusal is logged and the next community is processed.
+
+The nonce makes an answer fresh: it answers this one request and no other, so a recorded answer cannot be replayed. No `created` or `expires` parameter is used, so the clocks of the two community servers do not have to agree. Binding method and path keeps a signed answer of another route of the same community from passing as this one. Scheme, host and port are not covered, because a proxy in front of the federation-module changes them.
+
+The nonce is the only part of the signed data the requesting side chooses. It is restricted to 32 hex characters and placed as a parameter into a signature base built by RFC 9421, which always starts with `"@status":`. A requester therefore cannot make the community sign bytes of its choice, nor anything that could be mistaken for another format signed with the same key: the endpoint is no signing oracle.
+
+The public JWT key arrives inside the signed answer. It used to be fetched from the url without any signature, so whoever answered at the url could hand out a key of its own; now it is vouched for by the key the DHT announced.
+
+The implementation is `shared/src/crypto/signedResponse.ts` (on top of [http-message-sig](https://www.npmjs.com/package/http-message-sig)), used by the `communityInfos` route of the peer api and by `PeerApiClient`.
+
+#### Why the former handshake was replaced
+
+The former authentication sent several GraphQL requests in both directions: the backend asked for the public key, then opened a connection with encrypted and signed data, the foreign community called back with a one-time code, and the original side authenticated with that code to finally learn the uuid. This had several drawbacks:
+
+* **Many steps, both directions.** Both communities had to reach each other's federation-module, and every step could fail on its own. A failure in the middle left a half-finished handshake.
+* **State on the server.** The progress of each handshake was kept in the table `community_handshake_states`, with its own states, timeouts and expiry, which had to be cleaned up and kept consistent across the services.
+* **The uuid came last.** A foreign community was stored before its uuid was known, so `communities.community_uuid` had to allow NULL, and every reader had to deal with a community without uuid.
+* **Hand-built cryptography.** Encrypting and signing the payloads and the one-time code was an own protocol, harder to review than a standard.
+* **Slow.** The backend verified one entry after the other, with one entry per api version and several requests each. With 1000 communities a round took 10 to 15 minutes, and every community that did not answer added the 10 seconds of the connect timeout, or up to 5 minutes if it accepted the connection and never answered. With 10 % of them not answering, a round took about 45 minutes.
+
+  Now one request per community, 100 in parallel, with a timeout of 5 seconds: a round over 1000 communities takes about 5 to 10 seconds, about a hundred times faster, and no more than about 50 seconds however many of them do not answer. Each community also answers one request per round instead of about four, signed with Ed25519 instead of RSA. All figures are estimates for a round-trip time of about 100 ms, not measurements.
+
+Nothing of what the handshake checked is lost:
+
+* The call back with the one-time code only showed that the foreign community can reach the own one. Each community checks this in its own round anyway, when it verifies the other side, and every cross-community request goes to the url the sender has verified itself.
+* The check that the one-time code came back from the community it was handed to was not effective in any of the former versions; the signature over the nonce is what makes this binding now.
+
+The signed community infos prove the same, that the server at the url holds the private key of the announced public key, with one request and a standard ([RFC 9421](https://www.rfc-editor.org/rfc/rfc9421), [RFC 9530](https://www.rfc-editor.org/rfc/rfc9530)). Nothing is stored between request and answer, and the uuid arrives together with the signed infos before the community is inserted. Migration `0160` therefore makes `community_uuid` NOT NULL, restores the unique key on `public_key`, and drops `community_handshake_states`.
 
 ### Stage2 - Authentication
+
+> Former design, replaced by [Verification of a community by its signed community infos](#verification-of-a-community-by-its-signed-community-infos).
 
 The 2nd stage of federation is called *authentication*, because during the 1st stage the *hyperswarm dht* only ensures the knowledge that one node is the owner of its keypairs *pubKey* and *privateKey*. The exchanged data between two nodes during the *direct exchange* on the *hyperswarm dht channel* must be verified, means ensure if the proclaimed *url(s)* and *apiversion(s)* of a node is the correct address to reach the same node outside the hyperswarm infrastructure.
 

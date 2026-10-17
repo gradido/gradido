@@ -23,7 +23,6 @@ export { compareConfirmedTransaction } from './interactions/compareConfirmedTran
 export { hasPhraseInLocale, translateForLocale } from './locales/localization'
 export * from './logic/ChatMessage.logic'
 export * from './logic/ChatMessageImage.logic'
-export * from './logic/CommunityHandshakeState.logic'
 export * from './logic/community.logic'
 export * from './logic/JpegImage.logic'
 export * from './logic/ThankYouGreetingPicture.logic'

@@ -92,14 +92,14 @@ export const GRAPHQL_URI = v.pipe(
   ),
 )
 
-export const COMMUNITY_NAME = v.pipe(
+export const communityNameSchema = v.pipe(
   nonEmptyStringSchema,
   v.minLength(3),
   v.maxLength(40),
   v.description('The name of the community'),
 )
 
-export const COMMUNITY_DESCRIPTION = v.pipe(
+export const communityDescriptionSchema = v.pipe(
   nonEmptyStringSchema,
   v.minLength(10),
   v.maxLength(255),

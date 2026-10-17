@@ -12,9 +12,11 @@ import {
   portSchema,
   URL_PROTOCOL,
 } from 'config-schema'
+import { federationApiSchema } from 'shared'
 import * as v from 'valibot'
 
 // What the environment can set, and the value used where it does not. CONFIG is read straight
+
 // out of process.env with this, so the keys are the variable names.
 
 const environment = v.object({
@@ -30,10 +32,7 @@ const environment = v.object({
   URL_PROTOCOL,
   COMMUNITY_URL: v.optional(COMMUNITY_URL),
 
-  FEDERATION_API: v.optional(
-    v.pipe(v.picklist(['1_0', '1_1']), v.description('Federation API version, defaults to 1_0')),
-    '1_0',
-  ),
+  FEDERATION_API: federationApiSchema,
   FEDERATION_PORT: v.optional(
     v.pipe(portSchema, v.description('Port number for the federation service, defaults to 5010')),
     5010,

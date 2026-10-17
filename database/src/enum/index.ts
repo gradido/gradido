@@ -1,5 +1,5 @@
 export * from './AccountState'
-export * from './CommunityHandshakeStateType'
+export * from './CommunityUniqueKey'
 export * from './ContributionCycleType'
 export * from './ContributionStatus'
 export * from './ContributionType'
