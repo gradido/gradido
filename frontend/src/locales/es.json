@@ -1332,7 +1332,7 @@
   },
   "send_email": "Enviar correo electrónico",
   "send_gdd": "Enviar GDD",
-  "send_per_link": "Enlace, cheque, QR",
+  "send_per_link": "Enlace, cheque, QR, saludo",
   "session": {
     "extend": "Permanecer en sesión iniciada",
     "lightText": "Si no has realizado ninguna acción durante más de 10 minutos, se cerrará tu sesión por razones de seguridad.",

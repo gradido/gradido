@@ -1332,7 +1332,7 @@
   },
   "send_email": "E‑mail versturen",
   "send_gdd": "GDD sturen",
-  "send_per_link": "Link, cheque, QR",
+  "send_per_link": "Link, cheque, QR, groetje",
   "session": {
     "extend": "Aangemeld blijven",
     "lightText": "Wanneer je langer dan 10 minuten geen actie ondernomen hebt, word je om veiligheidsredenen afgemeld.",

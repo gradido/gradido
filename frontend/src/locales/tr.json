@@ -1332,7 +1332,7 @@
   },
   "send_email": "E‑posta gönder",
   "send_gdd": "GDD gönder",
-  "send_per_link": "Link, çek, QR",
+  "send_per_link": "Link, çek, QR, teşekkür mesajı",
   "session": {
     "extend": "Oturumunu açık tut",
     "lightText": "10 dakikadan daha uzun bir süre herhangi bir işlem yapmadıysan, güvenlik nedeniyle oturumun kapatılacak.",

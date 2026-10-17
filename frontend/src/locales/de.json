@@ -1332,7 +1332,7 @@
   },
   "send_email": "E‑Mail senden",
   "send_gdd": "GDD senden",
-  "send_per_link": "Link, Scheck, QR",
+  "send_per_link": "Link, Scheck, QR, Gruß",
   "session": {
     "extend": "Angemeldet bleiben",
     "lightText": "Wenn Du länger als 10 Minuten keine Aktion getätigt hast, wirst Du aus Sicherheitsgründen abgemeldet.",
