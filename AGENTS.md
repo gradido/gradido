@@ -86,6 +86,7 @@ Turbo and `bun run` automatically invoke the correct test runner defined in the 
 
 # Conventions
 
+- Workspace dependencies point one way: `config-schema` and `shared-native` → `shared` → `database` → `core` → the services (`backend`, `federation`, `dht-node`). A package imports only from packages before it, never from one after it. `config-schema` sits at the very top, above `shared`: `shared` may take a schema from it (`communityNameSchema`), `config-schema` never imports from `shared`.
 - Naming: DB tables and columns are `snake_case`; the TypeScript representation is `camelCase`. A table `user_contacts` maps to the schema export `userContactsTable` and the query file `database/src/queries/userContacts.ts`. Existing singular file names (e.g. `queries/user.ts` for `users`) are legacy — new files follow the table name.
 - Queries: every DB access lives in `database/src/queries/[tableName].ts` — never inline in a resolver, service, or interaction. Co-located tests are `[tableName].test.ts`.
 - **A query belongs to the table it selects `from`**, regardless of what it joins or returns. `from users join transactions` is a user query. Specialized projections have no table of their own, so the return type cannot decide this — `from` can, and it is mechanically checkable.
@@ -102,8 +103,53 @@ Turbo and `bun run` automatically invoke the correct test runner defined in the 
 - Validation: valibot schemas in `*.schema.ts`, kept next to what they validate. Validate at the boundary, then trust the parsed type inward. Export both `v.InferInput` and `v.InferOutput` types where a schema transforms.
 - Base schemas: a schema for a general shape that more than one domain needs -- a uuid, an e-mail address, bytes spelled as hex, a positive integer -- lives in `shared/src/schema/base.schema.ts`, with its test beside it. A domain schema composes it (`v.pipe(hexBytesSchema, v.length(16))`) instead of repeating the regex or the check. Before writing a check, look there; and when a check you are writing is not about your domain, it belongs there.
 - Enums: `src/data/[Name].enum.ts`.
-- Tests: co-located `*.test.ts`, run with `bun test`.
+- Tests: co-located `*.test.ts`, run with `bun test`. What a test covers and how it mocks: see *Testing strategy* below.
 - Fake timers in Jest tests: use `useFakeTimersForDrizzle()` from `backend/test/helpers.ts` (or `dht-node/test/helpers.ts`) instead of `jest.useFakeTimers()`. Jest also fakes `process.nextTick`, which mysql2 — Drizzle's driver — needs to deliver every result, so any Drizzle query under plain fake timers hangs until the hook or test timeout. TypeORM runs on the `mysql` package and is unaffected, so this only surfaces once a query on that path moves to Drizzle.
+
+# Testing strategy
+
+Three levels, each testing what only it can see. None replaces another.
+
+| Level | Tests | Where | Database |
+| --- | --- | --- | --- |
+| Unit | the logic of one function, everything it calls is mocked | next to the function | no |
+| Query | the SQL semantics of a query | `database/src/queries/[tableName].test.ts` | yes, real |
+| Integration | one use case end to end, only the foreign system (`fetch`, clock) faked | next to the use case's entry point | yes, real |
+
+**Unit tests are the default.** Every function with its own logic gets them. A test checks the function's own decisions — which branch, which arguments go out, what comes back, which failure is returned or thrown — and nothing below it. What a called function does is that function's test.
+
+**Query tests** cover what a mock cannot: joins, conditions, upsert behaviour, paging, constraints.
+
+**Integration tests stay few** — one or two per use case, for the happy path and the most important failure. They catch what unit tests structurally cannot: a mock that no longer matches the real signature, a URL built differently than the server routes it, a cache returning a stale object, a transaction that does not cover what it should. Do not write them per branch; branches belong in unit tests.
+
+## Unit tests that run under Jest and Bun
+
+`backend` and `dht-node` still run Jest, the target is Bun. A unit test is written so it runs under both without change. Reference implementation: `backend/src/federation/validateCommunities.test.ts`. The rules:
+
+- Use only what both offer: `jest.fn`, `jest.mock`, `mockReturnValue…`, `mockResolvedValue…`, `mockImplementation…`, the `…Once` variants. Bun has **no `jest.requireActual` and no `jest.mocked`**.
+- A `jest.mock` factory therefore returns its own fakes, never a spread of the real module. With Jest the factory replaces the **whole** module, so it must supply everything the module under test imports from it — including enum values it reads (only the values used, not the whole enum). A real module that pulls in `database` (e.g. `core`) is mocked as well, or the test needs a database after all.
+- Declare the fakes **before** the `jest.mock` calls and name them `mock…` (Jest only lets a hoisted factory reach variables with that prefix).
+- Import the module under test with `await import(...)` in `beforeAll`, not with a static `import`. Jest hoists `jest.mock`, Bun does not; the dynamic import makes sure every mock is registered first in both. Static imports are fine for modules that are not mocked (e.g. `shared`).
+- `jest.resetAllMocks()` in `beforeEach`, not `clearAllMocks`: `clear` leaves unused `…Once` values queued, and they answer in the next test.
+- Bun keeps a module mock for the rest of the process. A workspace whose Bun tests mock modules runs `bun test --isolate` so each file gets a fresh module registry. Without it, a mock leaks into every later file.
+- No `testEnvironment()`/`cleanDB()`: a unit test in `backend` runs in the parallel run, where the database is unreachable — which proves it does not need one.
+- Fake timers: plain `jest.useFakeTimers()`. No query runs, so the mysql2 problem above does not arise. Do not import `test/helpers.ts` into a unit test: it pulls in `database`, the server and Apollo.
+
+## Mocking calls inside the same module
+
+`jest.mock` and Bun's `mock.module` replace a module as seen by its importers. A call from one function to another **inside the same file** never goes through that, so it cannot be mocked. Exporting the callee (e.g. as `…__test`) makes it testable on its own, but the caller's test still runs it for real.
+
+When a function's test needs a callee mocked, the callee belongs in its own module — which is usually what the architecture asks for anyway: steps of a multi-step flow are roles under `interactions/`, plain rules go to `data/*.logic.ts`. Do not work around it with spies on the module object or by passing functions as parameters only for the test.
+
+## What not to assert
+
+- Log messages, unless the log *is* the behaviour (an error report nobody else sees). Asserting log text ties the test to wording.
+- The exact call sequence of things the function does not decide. Assert arguments and outcomes that carry meaning; a pure refactoring must not turn a test red.
+- Every mock that was not called — only those whose absence is the point (no handshake when nothing was verified, no write when the batch is empty).
+
+## Checking that a test can fail
+
+A new unit test is only worth something if it fails for the bug it is about. When the test guards a specific decision, break that decision once (`continue` → `break`, `<` → `<=`) and check that exactly the matching test turns red — not none, and not half the file.
 
 # Performance
 

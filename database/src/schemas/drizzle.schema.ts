@@ -31,7 +31,7 @@ export const communitiesTable = mysqlTable(
     url: varchar({ length: 255 }).notNull(),
     publicKey: customBinary('public_key', { length: 32 }).notNull(),
     privateKey: customBinary('private_key', { length: 64 }).default(sql`NULL`),
-    communityUuid: char('community_uuid', { length: 36 }).default(sql`NULL`),
+    communityUuid: char('community_uuid', { length: 36 }).notNull(),
     authenticatedAt: datetime('authenticated_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
     name: varchar({ length: 40 }).default(sql`NULL`),
     description: varchar({ length: 255 }).default(sql`NULL`),
@@ -77,17 +77,45 @@ export const communitiesTable = mysqlTable(
     privateJwtKey: varchar('private_jwt_key', { length: 2048 }).default(sql`NULL`),
     location: customGeometry().default(null),
     hieroTopicId: varchar('hiero_topic_id', { length: 512 }).default(sql`NULL`),
+    // TODO: update to not nullable
     creationDate: datetime('creation_date', { mode: 'date', fsp: 3 }).default(sql`NULL`),
     createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
       .default(sql`current_timestamp(3)`)
       .notNull(),
     updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
   },
-  (table) => [unique('url_key').on(table.url), unique('uuid_key').on(table.communityUuid)],
+  (table) => [
+    unique('url_key').on(table.url),
+    unique('uuid_key').on(table.communityUuid),
+    unique('public_key_key').on(table.publicKey),
+  ],
 )
 
 export type CommunitiesSelect = typeof communitiesTable.$inferSelect
 export type CommunitiesInsert = typeof communitiesTable.$inferInsert
+
+export const federatedCommunitiesTable = mysqlTable(
+  'federated_communities',
+  {
+    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
+    // TODO: remove home community entries from this table, because entries are redundant
+    foreign: boolean().default(true).notNull(),
+    publicKey: customBinary('public_key', { length: 32 }).notNull(),
+    apiVersion: varchar('api_version', { length: 10 }).notNull(),
+    endPoint: varchar('end_point', { length: 255 }).notNull(),
+    lastAnnouncedAt: datetime('last_announced_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+    verifiedAt: datetime('verified_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+    lastErrorAt: datetime('last_error_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+    updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+  },
+  (table) => [uniqueIndex('public_api_key').on(table.publicKey, table.apiVersion)],
+)
+
+export type FederatedCommunitiesSelect = typeof federatedCommunitiesTable.$inferSelect
+export type FederatedCommunitiesInsert = typeof federatedCommunitiesTable.$inferInsert
 
 export const contributionsTable = mysqlTable(
   'contributions',

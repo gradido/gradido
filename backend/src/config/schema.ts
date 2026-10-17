@@ -1,11 +1,11 @@
 import {
   ANTHROPIC_ACTIVE,
   booleanSchema,
-  COMMUNITY_DESCRIPTION,
   COMMUNITY_HOST,
-  COMMUNITY_NAME,
   COMMUNITY_SUPPORT_MAIL,
   COMMUNITY_URL,
+  communityDescriptionSchema,
+  communityNameSchema,
   communityUrlOf,
   DLT_ACTIVE,
   DLT_CONNECTOR_URL,
@@ -141,7 +141,7 @@ const environment = v.object({
   ),
   DLT_CONNECTOR_URL: v.optional(DLT_CONNECTOR_URL),
 
-  COMMUNITY_NAME: v.optional(COMMUNITY_NAME, 'Gradido Entwicklung'),
+  COMMUNITY_NAME: v.optional(communityNameSchema, 'Gradido Entwicklung'),
   COMMUNITY_REDEEM_PATH: v.optional(
     pathSchema('The path for redeeming link transactions, behind COMMUNITY_URL'),
     '/redeem/',
@@ -151,7 +151,7 @@ const environment = v.object({
     '/redeem/CL-',
   ),
   COMMUNITY_DESCRIPTION: v.optional(
-    COMMUNITY_DESCRIPTION,
+    communityDescriptionSchema,
     'Die lokale Entwicklungsumgebung von Gradido.',
   ),
   COMMUNITY_SUPPORT_MAIL: v.optional(COMMUNITY_SUPPORT_MAIL, 'support@supportmail.com'),

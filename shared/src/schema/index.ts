@@ -1,5 +1,7 @@
 export * from './base.schema'
 export * from './community.schema'
+export * from './federation.schema'
 export * from './location.schema'
 export * from './projectBranding.schema'
+export * from './typeGuard.schema'
 export * from './user.schema'

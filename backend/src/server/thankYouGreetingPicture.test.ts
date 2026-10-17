@@ -63,7 +63,8 @@ const openLink = {
   id: 7,
   code: CODE,
   userId: 4711,
-  validUntil: new Date('2026-10-17T14:00:00.000Z'),
+  // open for NOW and for the real clock the HTTP route reads
+  validUntil: new Date(Date.now() + 60 * 60 * 1000),
   redeemedAt: null as Date | null,
   redeemedBy: null as number | null,
   deletedAt: null as Date | null,

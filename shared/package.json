@@ -32,7 +32,9 @@
     "uuid": "^8.3.2"
   },
   "dependencies": {
+    "config-schema": "*",
     "esbuild": "^0.25.2",
+    "http-message-sig": "0.3.0",
     "shared-native": "*",
     "jose": "^4.14.4",
     "log4js": "^6.9.1",

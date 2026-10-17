@@ -246,8 +246,8 @@ describe('CommunityResolver', () => {
         comForeignCom1.url = 'http://stage-2.gradido.net'
         comForeignCom1.publicKey = Buffer.from(ed25519KeyPairStaticHex[3].public, 'hex')
         comForeignCom1.privateKey = Buffer.from(ed25519KeyPairStaticHex[3].private, 'hex')
-        // foreignCom1.communityUuid = 'Stage2-Com-UUID'
-        // foreignCom1.authenticatedAt = new Date()
+        // community_uuid is NOT NULL since migration 0160; not authenticated all the same
+        comForeignCom1.communityUuid = 'Stage2-Com-UUID'
         comForeignCom1.name = 'Stage-2_Community-name'
         comForeignCom1.description = 'Stage-2_Community-description'
         comForeignCom1.creationDate = new Date()
@@ -418,7 +418,7 @@ describe('CommunityResolver', () => {
                 gmsApiKey: null,
                 name: comForeignCom1.name,
                 updatedAt: null,
-                uuid: null,
+                uuid: comForeignCom1.communityUuid,
                 federatedCommunities: [
                   {
                     id: foreignCom1.id,

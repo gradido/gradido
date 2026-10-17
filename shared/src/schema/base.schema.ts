@@ -23,6 +23,13 @@ export const emailSchema = v.pipe(
 )
 export const urlSchema = v.pipe(v.string(), v.url('Invalid url'))
 
+const rawHexStringSchema = v.pipe(
+  v.string(),
+  v.hexadecimal('Invalid hex'),
+  v.transform((hex) => hex.replace(/^0[hx]/, '')),
+  v.check((hex) => hex.length % 2 === 0, 'Hex needs an even number of digits'),
+)
+
 /**
  * Bytes spelled as hex, the way the environment holds a key or a secret, into a Buffer.
  * valibot's `hexadecimal` lets a `0x`/`0h` prefix (lowercase) and an odd number of digits through, and
@@ -31,23 +38,26 @@ export const urlSchema = v.pipe(v.string(), v.url('Invalid url'))
  * `v.pipe(hexBytesSchema, v.length(16))`.
  */
 export const hexBytesSchema = v.pipe(
-  v.union([
-    v.pipe(
-      v.string(),
-      v.hexadecimal('Invalid hex'),
-      v.transform((hex) => hex.replace(/^0[hx]/, '')),
-      v.check((hex) => hex.length % 2 === 0, 'Hex needs an even number of digits'),
-    ),
-    v.instance(Buffer),
-  ]),
+  v.union([rawHexStringSchema, v.instance(Buffer)]),
   v.transform((hex) => {
     if (typeof hex === 'string') {
       return Buffer.from(hex, 'hex')
-    } else {
-      return hex
     }
+    return hex
   }),
 )
+
+export const hexStringSchema = v.pipe(
+  v.union([rawHexStringSchema, v.instance(Buffer)]),
+  v.transform((hex) => {
+    if (hex instanceof Buffer) {
+      return hex.toString('hex')
+    }
+    return hex
+  }),
+)
+
+export const publicKeyHexStringSchema = v.pipe(hexStringSchema, v.length(64))
 
 export const uint32Schema = v.pipe(v.number(), v.gtValue(0), v.maxValue(4294967295))
 
@@ -83,12 +93,14 @@ export type Decay = v.InferOutput<typeof decaySchema>
 
 // TODO: actually check for valid ed25519 Keys/Key Pair
 export const ed25519PublicKeySchema = v.pipe(
-  v.instance(Buffer),
+  hexBytesSchema,
   v.check((value) => value.length === 32, 'Expected 32 Bytes'),
 )
 
+export type PublicKey = v.InferOutput<typeof ed25519PublicKeySchema>
+
 export const ed25519PrivateKeySchema = v.pipe(
-  v.instance(Buffer),
+  hexBytesSchema,
   v.check((value) => value.length === 64, 'Expected 64 Bytes'),
 )
 
@@ -106,6 +118,17 @@ export const dateSchema = v.pipe(
   v.union([v.string(), v.date(), integerSchema]),
   v.transform((input) => new Date(input)),
   v.date(),
+)
+
+export const dateStringSchema = v.pipe(
+  v.union([v.string('expect string type'), v.instance(Date, 'expect Date object')]),
+  v.transform<string | Date, string>((input) => {
+    if (input instanceof Date) {
+      return input.toISOString()
+    } else {
+      return new Date(input).toISOString()
+    }
+  }),
 )
 
 export const locationPointSchema = v.object({

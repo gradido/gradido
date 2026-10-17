@@ -44,7 +44,7 @@ export function updateAllDefinedAndChanged<T extends object>(
 }
 
 /**
- * Collects the fields of incoming which differ from current, Buffers compared by content.
+ * Collects the fields of incoming which differ from current, Buffers and Dates compared by content.
  * incoming should contain only keys with values: an undefined value counts as a change.
  * @returns success: true with the changed fields, success: false if nothing changed
  */
@@ -62,6 +62,8 @@ export function getChangedFields<T extends object>(
 
     if (Buffer.isBuffer(currentValue) && Buffer.isBuffer(incomingValue)) {
       equal = currentValue.equals(incomingValue)
+    } else if (currentValue instanceof Date && incomingValue instanceof Date) {
+      equal = currentValue.getTime() === incomingValue.getTime()
     } else {
       equal = Object.is(currentValue, incomingValue)
     }

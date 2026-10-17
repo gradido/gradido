@@ -99,6 +99,16 @@ describe('getChangedFields', () => {
       value: { key: Buffer.from('incoming') },
     })
   })
+  it('compares dates by point in time, not by reference', () => {
+    const current = { date: new Date('2026-01-01T00:00:00.000Z') }
+    const incoming = { date: new Date('2026-01-01T00:00:00.000Z') }
+    expect(getChangedFields(current, incoming)).toEqual({ success: false })
+  })
+  it('detects a changed date', () => {
+    const current = { date: new Date('2026-01-01T00:00:00.000Z') }
+    const incoming = { date: new Date('2026-01-02T00:00:00.000Z') }
+    expect(getChangedFields(current, incoming)).toEqual({ success: true, value: incoming })
+  })
   it('detects a change from null to a value', () => {
     const current: { field: string | null } = { field: null }
     expect(getChangedFields(current, { field: 'incoming' })).toEqual({
