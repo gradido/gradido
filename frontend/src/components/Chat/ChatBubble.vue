@@ -1464,11 +1464,12 @@ const copyText = async () => {
 /* A message with a picture (E-044; the mockup, "Bilder im Faden"): at least 16.5rem wide, little
    room around the picture -- the caption and the time under it keep the room text needs.
 
-   At least, not exactly (Bernd, 17.10.2026): a long caption takes the width any message may have,
-   80 % of the thread, and the picture keeps its size at the top (ChatBubbleImage). With a fixed
-   width the caption stood 240 px wide in the large window (E-077), beside messages three times as
-   wide. `min()`: where 80 % of the thread is less than 16.5rem -- a narrow phone --, the bubble
-   is that 80 %, as it was. */
+   At least, not exactly (Bernd, 17.10.2026): the bubble is as wide as its picture -- which stands
+   as large as a greeting's picture (ChatBubbleImage) -- or as its caption, up to the 80 % of the
+   thread any message may have; a long caption makes it wider than its picture, which keeps its
+   place at the top. With a fixed width the caption stood 240 px wide in the large window (E-077),
+   beside messages three times as wide. `min()`: where 80 % of the thread is less than 16.5rem --
+   a narrow phone --, the bubble is that 80 %, as it was. */
 .chat-bubble.has-image {
   min-width: min(16.5rem, 80%);
   padding: 0.25rem;

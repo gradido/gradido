@@ -92,9 +92,24 @@ const name = computed(() => (large.value ? t('chatWindow.reduce') : t('chatWindo
    they take -- some 390px with the dialog's margins --, and the thread gets the rest. The usual
    window gives its thread 45% of the screen's height: below about 700px the thread of the
    "large" window would be the LOWER one. There the large window is wide only, and the thread
-   keeps the cap it always had. */
+   keeps the cap it always had.
+
+   And the pictures of the messages stand higher here (ChatBubbleImage, Bernd 17.10.2026): as
+   high as a greeting's picture at the window's full width -- 34rem; it is 767 x 533 px there --,
+   but no higher than the thread can show it whole with a line of caption and the time under it
+   (55px, and the 4px around a message): the thread is the screen's height less 383px in a
+   contact's window (measured from 720 to 1200px high) and 3px less in a group's, so 29rem come
+   off, with a little air. And never lower than in the usual window, 22rem -- on a screen under
+   816px high that is the higher of the two, as it always was.
+
+   ⛔ vh, not dvh. A custom property takes any value, so an engine without dvh would not drop the
+   line, as it drops a plain one (the pair of vh and dvh in ChatThread): the picture would lose its
+   whole measure where it reads the property. At a desk, where this applies, the two are alike;
+   on a tablet they differ by the browser's own bar. */
 @media (width >= 576px) and (height >= 704px) {
   .modal-dialog.chat-window-large {
+    --chat-image-height: clamp(22rem, 100vh - 29rem, 34rem);
+
     height: calc(100% - var(--bs-modal-margin) * 2);
   }
 

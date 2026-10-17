@@ -1518,12 +1518,16 @@ describe('ChatBubble', () => {
 
     /**
      * What only the stylesheet holds (jsdom lays nothing out): the bubble at least 16.5rem wide and
-     * never more than 80 %, little room around the picture; the picture as wide as the bubble, at
-     * most 22rem high, cut at the bottom with its top in sight (E-044 F5).
+     * never more than 80 %, little room around the picture -- no fixed width: a long caption takes
+     * the width any message may have (Bernd, 17.10.2026, in the morning).
      *
-     * A long caption takes the width any message may have, and the picture keeps its size (Bernd,
-     * 17.10.2026): no fixed width at the bubble, the picture at most 16rem, and kept out of the
-     * bubble's measure -- without `contain` its own pixels would make every such bubble 80 % wide.
+     * The picture as large as a greeting's (Bernd, 17.10.2026): as wide as the bubble may be and
+     * whole, no higher than `--chat-image-height` (22rem where nothing sets it), so a picture
+     * higher than wide is narrower; at least 16rem wide, and a long screenshot cut at the bottom
+     * with its top in sight (E-044 F5); at most twice its own size above those 16rem -- the floor
+     * wins, so a picture under 8rem stands 16rem wide, as it always did. Its width a length the
+     * bubble grows to, never a percentage: that would count as `auto` while the bubble is
+     * measured, and the picture would ask for its own pixels.
      */
     it('draws the bubble and the picture as the mockup has them', () => {
       const bubbleCode = style('ChatBubble.vue')
@@ -1534,18 +1538,45 @@ describe('ChatBubble', () => {
       expect(rule(bubbleCode, '\\.chat-bubble')).toMatch(/max-width:\s*80%/)
 
       const pictureCode = style('ChatBubbleImage.vue')
-      const button = rule(pictureCode, '\\.chat-bubble-image')
-      expect(button).toMatch(/(^|[\s;])width:\s*100%/)
-      expect(button).toMatch(/max-width:\s*16rem/)
-      expect(button).toMatch(/contain:\s*inline-size/)
+      const button = rule(pictureCode, '\\.chat-bubble-image').replace(/\s+/g, ' ')
+      expect(button).toContain(
+        'width: max( 16rem, min(var(--chat-image-twice), var(--chat-image-height, 22rem) * var(--chat-image-ratio)) );',
+      )
+      expect(button).toMatch(/max-width:\s*100%/)
+      expect(button).not.toMatch(/(^|[\s;])width:[^;]*%/)
+      expect(button).not.toMatch(/contain\s*:/)
       const img = rule(pictureCode, '\\.chat-bubble-image-picture')
       expect(img).toMatch(/width:\s*100%/)
-      expect(img).toMatch(/max-height:\s*22rem/)
+      expect(img).toMatch(/max-height:\s*var\(--chat-image-height,\s*22rem\)/)
       expect(img).toMatch(/object-fit:\s*cover/)
       expect(img).toMatch(/object-position:\s*top/)
+      // Two rules name the missing box (its surface, then its measure): the one with the measure.
+      expect(pictureCode).toMatch(
+        /\n\.chat-bubble-image\.is-missing\s*\{[^}]*max-height:\s*var\(--chat-image-height,\s*22rem\)/,
+      )
       expect(rule(pictureCode, '\\.chat-bubble-image:focus-visible')).toMatch(
         /outline:\s*2px solid/,
       )
+    })
+
+    /**
+     * What the stylesheet sizes the picture by: its proportions as a number, and twice its size --
+     * on the button and on the box that says "Bild nicht verfügbar", so a missing picture keeps the
+     * room the picture would have had. Not on the picture itself: its own proportions are its room.
+     */
+    it('hands the stylesheet its proportions and twice its size', async () => {
+      mountBubble(WITH)
+
+      expect(button().attributes('style')).toContain('--chat-image-ratio: 1.3333333333333333')
+      expect(button().attributes('style')).toContain('--chat-image-twice: 1600px')
+      expect(button().attributes('style')).not.toContain('aspect-ratio')
+
+      await answer(0, null)
+
+      const room = missing().attributes('style')
+      expect(room).toContain('aspect-ratio: 800 / 600')
+      expect(room).toContain('--chat-image-ratio: 1.3333333333333333')
+      expect(room).toContain('--chat-image-twice: 1600px')
     })
   })
 
