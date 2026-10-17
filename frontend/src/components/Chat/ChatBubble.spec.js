@@ -1517,17 +1517,27 @@ describe('ChatBubble', () => {
       code.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
 
     /**
-     * What only the stylesheet holds (jsdom lays nothing out): the bubble 16.5rem wide and never
-     * more than 80 %, little room around the picture; the picture as wide as the bubble, at most
-     * 22rem high, cut at the bottom with its top in sight (E-044 F5).
+     * What only the stylesheet holds (jsdom lays nothing out): the bubble at least 16.5rem wide and
+     * never more than 80 %, little room around the picture; the picture as wide as the bubble, at
+     * most 22rem high, cut at the bottom with its top in sight (E-044 F5).
+     *
+     * A long caption takes the width any message may have, and the picture keeps its size (Bernd,
+     * 17.10.2026): no fixed width at the bubble, the picture at most 16rem, and kept out of the
+     * bubble's measure -- without `contain` its own pixels would make every such bubble 80 % wide.
      */
     it('draws the bubble and the picture as the mockup has them', () => {
       const bubbleCode = style('ChatBubble.vue')
-      expect(rule(bubbleCode, '\\.chat-bubble\\.has-image')).toMatch(/width:\s*16\.5rem/)
-      expect(rule(bubbleCode, '\\.chat-bubble\\.has-image')).toMatch(/padding:\s*0\.25rem/)
+      const bubble = rule(bubbleCode, '\\.chat-bubble\\.has-image')
+      expect(bubble).toMatch(/min-width:\s*min\(16\.5rem,\s*80%\)/)
+      expect(bubble).not.toMatch(/(^|[\s;])width\s*:/)
+      expect(bubble).toMatch(/padding:\s*0\.25rem/)
       expect(rule(bubbleCode, '\\.chat-bubble')).toMatch(/max-width:\s*80%/)
 
       const pictureCode = style('ChatBubbleImage.vue')
+      const button = rule(pictureCode, '\\.chat-bubble-image')
+      expect(button).toMatch(/(^|[\s;])width:\s*100%/)
+      expect(button).toMatch(/max-width:\s*16rem/)
+      expect(button).toMatch(/contain:\s*inline-size/)
       const img = rule(pictureCode, '\\.chat-bubble-image-picture')
       expect(img).toMatch(/width:\s*100%/)
       expect(img).toMatch(/max-height:\s*22rem/)
