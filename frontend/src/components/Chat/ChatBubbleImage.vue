@@ -112,7 +112,9 @@ onBeforeUnmount(() => watcher?.disconnect())
 
    Only a picture that would then be narrower than 16rem -- a long screenshot -- stays 16rem wide
    and is cut at the bottom, its top in sight (E-044 F5). And at most twice its own size, as in the
-   large view: a small picture blown up to a bubble's width shows its blocks, not its subject.
+   large view -- a small picture blown up to a bubble's width shows its blocks, not its subject --,
+   but never narrower than those 16rem: a picture under 8rem wide stands 16rem wide, as it always
+   did. The floor wins over the cap (`max` outside `min`).
 
    ⛔ The width is a length, never a percentage. It is what the picture asks of the bubble while
    the bubble works out how wide it wants to be, and the bubble grows to it -- up to its 80 %,

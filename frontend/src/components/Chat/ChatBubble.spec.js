@@ -1524,9 +1524,10 @@ describe('ChatBubble', () => {
      * The picture as large as a greeting's (Bernd, 17.10.2026): as wide as the bubble may be and
      * whole, no higher than `--chat-image-height` (22rem where nothing sets it), so a picture
      * higher than wide is narrower; at least 16rem wide, and a long screenshot cut at the bottom
-     * with its top in sight (E-044 F5); at most twice its own size. Its width a length the bubble
-     * grows to, never a percentage: that would count as `auto` while the bubble is measured, and
-     * the picture would ask for its own pixels.
+     * with its top in sight (E-044 F5); at most twice its own size above those 16rem -- the floor
+     * wins, so a picture under 8rem stands 16rem wide, as it always did. Its width a length the
+     * bubble grows to, never a percentage: that would count as `auto` while the bubble is
+     * measured, and the picture would ask for its own pixels.
      */
     it('draws the bubble and the picture as the mockup has them', () => {
       const bubbleCode = style('ChatBubble.vue')
