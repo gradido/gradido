@@ -1332,7 +1332,7 @@
   },
   "send_email": "Send email",
   "send_gdd": "Send GDD",
-  "send_per_link": "Link, cheque, QR",
+  "send_per_link": "Link, cheque, QR, greeting",
   "session": {
     "extend": "Stay logged in",
     "lightText": "If you have not performed any action for more than 10 minutes, you will be logged out for security reasons.",

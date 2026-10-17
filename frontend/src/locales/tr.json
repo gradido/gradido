@@ -1332,7 +1332,7 @@
   },
   "send_email": "E‑posta gönder",
   "send_gdd": "GDD gönder",
-  "send_per_link": "Link, çek, QR",
+  "send_per_link": "Link, çek, QR, teşekkür mesajı",
   "session": {
     "extend": "Oturumunu açık tut",
     "lightText": "10 dakikadan daha uzun bir süre herhangi bir işlem yapmadıysan, güvenlik nedeniyle oturumun kapatılacak.",
@@ -1787,7 +1787,7 @@
     "text": "Hangi topluluğa ait olursan ol, Geo Matching System ile tüm toplulukların üyelerini bir haritada bulabilirsin. Tekliflere ve ihtiyaçlara göre filtreleyebilir ve sana uygun kullanıcıları görüntüleyebilirsin.\n\nDüğmeyle, çevrendeki kullanıcıların bir haritada gösterildiği yeni bir tarayıcı penceresi açılır."
   },
   "via_card": "kart ile",
-  "via_greeting": "mesaj yoluyla",
+  "via_greeting": "teşekkür mesajı yoluyla",
   "via_link": "link yoluyla",
   "welcome": "Topluluğa hoş geldin"
 }

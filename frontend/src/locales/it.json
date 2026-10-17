@@ -1332,7 +1332,7 @@
   },
   "send_email": "Invia e‑mail",
   "send_gdd": "Invia GDD",
-  "send_per_link": "Link, assegno, QR",
+  "send_per_link": "Link, assegno, QR, biglietto",
   "session": {
     "extend": "Rimani connesso",
     "lightText": "Se non esegui alcuna azione per più di 10 minuti, verrai disconnesso per motivi di sicurezza.",
