@@ -218,7 +218,7 @@ describe('ChatWindowSizeToggle', () => {
       expect(high).toHaveLength(1)
       const rules = rulesOf(high[0][1])
       expect(rules.get('.modal-dialog.chat-window-large')).toBe(
-        'height: calc(100% - var(--bs-modal-margin) * 2)',
+        '--chat-image-height: clamp(22rem, 100vh - 29rem, 34rem); height: calc(100% - var(--bs-modal-margin) * 2)',
       )
       expect(rules.get('.modal-dialog.chat-window-large > .modal-content')).toBe(
         'max-height: 100%; overflow: hidden',
@@ -229,6 +229,31 @@ describe('ChatWindowSizeToggle', () => {
       // No height outside that block.
       const [wide] = mediaOf(unscoped).filter(([condition]) => condition === '(width >= 576px)')
       expect(wide[1]).not.toMatch(/(?:^|[\s;{])(?:max-)?height\s*:/)
+    })
+
+    /**
+     * The pictures of the messages stand higher in the large window (Bernd, 17.10.2026): up to a
+     * greeting's height, never higher than its thread shows, never lower than in the usual window
+     * -- and only where the window is high, as its thread is. The usual window's height is the
+     * picture's own fallback (ChatBubbleImage), so both files say the same 22rem.
+     */
+    it('lets the pictures stand higher only where the window is high', () => {
+      const declared = [...unscoped.matchAll(/--chat-image-height\s*:\s*([^;]+);/g)].map((m) =>
+        m[1].trim(),
+      )
+      expect(declared).toEqual(['clamp(22rem, 100vh - 29rem, 34rem)'])
+      const [wide] = mediaOf(unscoped).filter(([condition]) => condition === '(width >= 576px)')
+      expect(wide[1]).not.toContain('--chat-image-height')
+
+      const picture = readFileSync(join(here, 'ChatBubbleImage.vue'), 'utf8').replace(
+        /\/\*[\s\S]*?\*\//g,
+        '',
+      )
+      const fallbacks = [...picture.matchAll(/var\(--chat-image-height,\s*([^)]+)\)/g)].map((m) =>
+        m[1].trim(),
+      )
+      expect(fallbacks).toHaveLength(3)
+      expect(new Set(fallbacks)).toEqual(new Set(['22rem']))
     })
   })
 })
