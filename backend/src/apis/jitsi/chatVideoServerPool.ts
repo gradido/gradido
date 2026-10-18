@@ -46,8 +46,8 @@ export interface ChatVideoServerState {
 /**
  * The servers of the list and what the last check found about them, held in the process.
  * The check runs here, every ten minutes and never in a member's request: chatVideoRoom only
- * calls pick(), which reads what the last check found -- a request never waits for a server
- * somewhere else. The admin page may ask for a check at once (refreshNow).
+ * calls pick() or pickServer(), which read what the last check found -- a request never waits
+ * for a server somewhere else. The admin page may ask for a check at once (refreshNow).
  */
 export class ChatVideoServerPool {
   private states: ChatVideoServerState[] = []

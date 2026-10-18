@@ -730,7 +730,13 @@ describe('MatchProfile', () => {
       expect(apollo.mutate).toHaveBeenCalledTimes(1)
       expect(apollo.mutate).toHaveBeenCalledWith({
         mutation: sendChatMessage,
-        variables: { ref: SOFIA, body: 'Hallo Sofia, magst Du Kaffee?', notify: 'EMAIL' },
+        // origin: said from the map -- the server counts it for the community figures.
+        variables: {
+          ref: SOFIA,
+          body: 'Hallo Sofia, magst Du Kaffee?',
+          notify: 'EMAIL',
+          origin: 'MAP',
+        },
       })
     })
 
@@ -1162,7 +1168,7 @@ describe('MatchProfile', () => {
         expect(apollo.mutate).toHaveBeenCalledTimes(1)
         expect(apollo.mutate).toHaveBeenCalledWith({
           mutation: sendChatMessage,
-          variables: { ref: SOFIA, body: WORDS, notify: 'EMAIL' },
+          variables: { ref: SOFIA, body: WORDS, notify: 'EMAIL', origin: 'MAP' },
         })
         expect(wrapper.find('[data-test="profile-hello-sent"]').text()).toBe(
           'Gesendet. Sofia bekommt eine E-Mail.',

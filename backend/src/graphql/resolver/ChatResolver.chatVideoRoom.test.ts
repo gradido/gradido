@@ -1,6 +1,12 @@
 // AI-GENERATED — not an architecture reference
 import { getLogger } from 'config-schema/test/testSetup'
-import { ChatVideoServerSelect, dbSelectChatVideoServers } from 'database'
+import {
+  ChatVideoServerSelect,
+  User as DbUser,
+  dbInsertEvent,
+  dbSelectChatVideoServers,
+  EventType,
+} from 'database'
 import { chatVideoServerPool } from '@/apis/jitsi/chatVideoServerPool'
 import { probeJitsiServer } from '@/apis/jitsi/jitsiProbe'
 import { JitsiProbeError } from '@/apis/jitsi/jitsiProbe.logic'
@@ -17,14 +23,17 @@ import { ChatResolver } from './ChatResolver'
 // No server is asked here: the probe answers as the test says. No database either: the rows of
 // chat_video_servers are what each test lays down, as the pool reads them (V3). The pool is the
 // one of the process, as the resolver reads it, and its timer is never started -- the tests check
-// it with refreshNow(). ChatResolver.test.ts asks the query through the server, logged in.
+// it with refreshNow(). ChatResolver.test.ts asks the query through the server, logged in. The
+// event of a room handed out is not written either: the mock of dbInsertEvent holds what would be.
 jest.mock('@/apis/jitsi/jitsiProbe', () => ({ probeJitsiServer: jest.fn() }))
 const probe = probeJitsiServer as jest.MockedFunction<typeof probeJitsiServer>
 jest.mock('database', () => ({
   ...jest.requireActual('database'),
   dbSelectChatVideoServers: jest.fn(),
+  dbInsertEvent: jest.fn(async () => undefined),
 }))
 const selectRows = dbSelectChatVideoServers as jest.MockedFunction<typeof dbSelectChatVideoServers>
+const insertEvent = dbInsertEvent as jest.MockedFunction<typeof dbInsertEvent>
 
 const resolverLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.ChatResolver`)
 
@@ -46,8 +55,16 @@ const tableSeededFrom = (configured: string, off: string[] = []): void => {
   selectRows.mockResolvedValue(rows)
 }
 
-/** A request with a budget of its own. The query names nobody, so it needs no user. */
-const aRequest = (): Context => ({ token: null, setHeaders: [], requestBudget: newRequestBudget() })
+/** The member who asks: a room handed out is noted by their account number. */
+const MEMBER_ID = 7
+
+/** A request with a budget of its own, by the member. */
+const aRequest = (): Context => ({
+  token: null,
+  setHeaders: [],
+  requestBudget: newRequestBudget(),
+  user: { id: MEMBER_ID } as DbUser,
+})
 
 const ask = (request: Context = aRequest(), serverId?: number | null) =>
   new ChatResolver().chatVideoRoom({ serverId }, request)
@@ -73,14 +90,14 @@ beforeEach(() => {
 })
 
 describe('chatVideoRoom', () => {
-  it('answers CHAT_VIDEO_NO_SERVER until the first check is through', () => {
-    expect(() => ask()).toThrow('CHAT_VIDEO_NO_SERVER')
+  it('answers CHAT_VIDEO_NO_SERVER until the first check is through', async () => {
+    await expect(ask()).rejects.toThrow('CHAT_VIDEO_NO_SERVER')
   })
 
   it('hands out a room on a server of the default list, and names who runs it', async () => {
     serversPass()
     await chatVideoServerPool.refreshNow()
-    const room = ask()
+    const room = await ask()
     const entry = CHAT_VIDEO_SERVERS_DEFAULT.find(
       (server) => server.baseUrl === `https://${room.host}/`,
     )
@@ -94,7 +111,10 @@ describe('chatVideoRoom', () => {
   it('names another room every time', async () => {
     serversPass()
     await chatVideoServerPool.refreshNow()
-    const names = new Set(Array.from({ length: 20 }, () => new URL(ask().url).pathname))
+    const names = new Set<string>()
+    for (let call = 0; call < 20; call++) {
+      names.add(new URL((await ask()).url).pathname)
+    }
     expect(names.size).toBe(20)
   })
 
@@ -102,7 +122,7 @@ describe('chatVideoRoom', () => {
     serversPass(['meet.systemli.org'])
     await chatVideoServerPool.refreshNow()
     for (let call = 0; call < 20; call++) {
-      expect(ask().host).toBe('meet.systemli.org')
+      expect((await ask()).host).toBe('meet.systemli.org')
     }
   })
 
@@ -116,21 +136,21 @@ describe('chatVideoRoom', () => {
     serversPass()
     await chatVideoServerPool.refreshNow()
     for (let call = 0; call < 20; call++) {
-      expect(ask().host).toBe('meet.ffmuc.net')
+      expect((await ask()).host).toBe('meet.ffmuc.net')
     }
   })
 
   it('answers CHAT_VIDEO_NO_SERVER where no server passed', async () => {
     serversPass([])
     await chatVideoServerPool.refreshNow()
-    expect(() => ask()).toThrow('CHAT_VIDEO_NO_SERVER')
+    await expect(ask()).rejects.toThrow('CHAT_VIDEO_NO_SERVER')
   })
 
   it("puts the server's prefix before the random part -- the Akademie's fairmeeting rooms", async () => {
     tableSeededFrom(AKADEMIE)
     serversPass()
     await chatVideoServerPool.refreshNow()
-    const room = ask()
+    const room = await ask()
     expect(room.url).toMatch(/^https:\/\/fairmeeting\.net\/GradidoAkademie[a-z0-9]{12}$/)
     expect(room).toMatchObject({ host: 'fairmeeting.net', operator: 'fairmeeting (fairkom)' })
   })
@@ -139,7 +159,7 @@ describe('chatVideoRoom', () => {
     tableSeededFrom('https://meet.example.org')
     serversPass()
     await chatVideoServerPool.refreshNow()
-    expect(ask()).toMatchObject({ host: 'meet.example.org', operator: null })
+    expect(await ask()).toMatchObject({ host: 'meet.example.org', operator: null })
   })
 
   it('hands out five rooms in one request and refuses the sixth; the next request starts anew', async () => {
@@ -147,17 +167,17 @@ describe('chatVideoRoom', () => {
     await chatVideoServerPool.refreshNow()
     const request = aRequest()
     for (let room = 0; room < CHAT_VIDEO_ROOMS_MAX_PER_REQUEST; room++) {
-      ask(request)
+      await ask(request)
     }
-    expect(() => ask(request)).toThrow('Too many chat video rooms requested at once')
-    expect(ask(aRequest()).url).toMatch(/^https:\/\//)
+    await expect(ask(request)).rejects.toThrow('Too many chat video rooms requested at once')
+    expect((await ask(aRequest())).url).toMatch(/^https:\/\//)
   })
 
   // ⛔ Whoever knows the room name can join the call.
   it('logs the host it handed a room out on, and nowhere the room name', async () => {
     serversPass(['meet.ffmuc.net'])
     await chatVideoServerPool.refreshNow()
-    const room = ask()
+    const room = await ask()
     const name = new URL(room.url).pathname.slice(1)
     expect(resolverLogger.trace).toHaveBeenCalledWith(
       'chat video room handed out on meet.ffmuc.net',
@@ -212,7 +232,7 @@ describe('chatVideoRoom on the server the member chose', () => {
     serversPass()
     await chatVideoServerPool.refreshNow()
     for (let call = 0; call < 20; call++) {
-      const room = ask(aRequest(), idOf('meet.meerfarbig.net'))
+      const room = await ask(aRequest(), idOf('meet.meerfarbig.net'))
       expect(room.host).toBe('meet.meerfarbig.net')
       expect(room.url).toMatch(/^https:\/\/meet\.meerfarbig\.net\/[a-z0-9]{12}$/)
       expect(room.operator).toBe('meerfarbig GmbH & Co. KG')
@@ -223,7 +243,7 @@ describe('chatVideoRoom on the server the member chose', () => {
     tableSeededFrom(`https://meet.example.org;${AKADEMIE}`)
     serversPass()
     await chatVideoServerPool.refreshNow()
-    expect(ask(aRequest(), 2).url).toMatch(
+    expect((await ask(aRequest(), 2)).url).toMatch(
       /^https:\/\/fairmeeting\.net\/GradidoAkademie[a-z0-9]{12}$/,
     )
   })
@@ -232,7 +252,7 @@ describe('chatVideoRoom on the server the member chose', () => {
   it('answers CHAT_VIDEO_SERVER_UNAVAILABLE where the server did not pass the last check', async () => {
     serversPass(['meet.ffmuc.net'])
     await chatVideoServerPool.refreshNow()
-    expect(() => ask(aRequest(), idOf('meet.systemli.org'))).toThrow(
+    await expect(ask(aRequest(), idOf('meet.systemli.org'))).rejects.toThrow(
       'CHAT_VIDEO_SERVER_UNAVAILABLE',
     )
   })
@@ -241,7 +261,7 @@ describe('chatVideoRoom on the server the member chose', () => {
     tableSeededFrom('', ['meet.systemli.org'])
     serversPass()
     await chatVideoServerPool.refreshNow()
-    expect(() => ask(aRequest(), idOf('meet.systemli.org'))).toThrow(
+    await expect(ask(aRequest(), idOf('meet.systemli.org'))).rejects.toThrow(
       'CHAT_VIDEO_SERVER_UNAVAILABLE',
     )
   })
@@ -249,7 +269,7 @@ describe('chatVideoRoom on the server the member chose', () => {
   it('answers CHAT_VIDEO_SERVER_UNAVAILABLE for a row that is not in the list', async () => {
     serversPass()
     await chatVideoServerPool.refreshNow()
-    expect(() => ask(aRequest(), 99)).toThrow('CHAT_VIDEO_SERVER_UNAVAILABLE')
+    await expect(ask(aRequest(), 99)).rejects.toThrow('CHAT_VIDEO_SERVER_UNAVAILABLE')
   })
 
   it("counts a chosen room in the request's budget as well", async () => {
@@ -257,9 +277,9 @@ describe('chatVideoRoom on the server the member chose', () => {
     await chatVideoServerPool.refreshNow()
     const request = aRequest()
     for (let room = 0; room < CHAT_VIDEO_ROOMS_MAX_PER_REQUEST; room++) {
-      ask(request, idOf('meet.ffmuc.net'))
+      await ask(request, idOf('meet.ffmuc.net'))
     }
-    expect(() => ask(request, idOf('meet.ffmuc.net'))).toThrow(
+    await expect(ask(request, idOf('meet.ffmuc.net'))).rejects.toThrow(
       'Too many chat video rooms requested at once',
     )
   })
@@ -267,7 +287,7 @@ describe('chatVideoRoom on the server the member chose', () => {
   it('logs the host of a chosen room as well, and nowhere the room name', async () => {
     serversPass()
     await chatVideoServerPool.refreshNow()
-    const room = ask(aRequest(), idOf('meet.weimarnetz.de'))
+    const room = await ask(aRequest(), idOf('meet.weimarnetz.de'))
     const name = new URL(room.url).pathname.slice(1)
     expect(resolverLogger.trace).toHaveBeenCalledWith(
       'chat video room handed out on meet.weimarnetz.de',
@@ -275,5 +295,71 @@ describe('chatVideoRoom on the server the member chose', () => {
     for (const level of ['trace', 'debug', 'info', 'warn', 'error'] as const) {
       expect(JSON.stringify(resolverLogger[level].mock.calls)).not.toContain(name)
     }
+  })
+})
+
+// The community figures: a room handed out is noted as an event -- the member's account number
+// and the time, never the room's name -- and where no room is handed out, nothing is noted.
+describe('chatVideoRoom notes the room it hands out', () => {
+  beforeEach(async () => {
+    serversPass()
+    await chatVideoServerPool.refreshNow()
+  })
+
+  it('writes one event with the type and the member, and no room name in it', async () => {
+    const room = await ask()
+
+    expect(insertEvent).toHaveBeenCalledTimes(1)
+    expect(insertEvent).toHaveBeenCalledWith({
+      type: EventType.CHAT_VIDEO_ROOM_CREATE,
+      affectedUserId: MEMBER_ID,
+      actingUserId: MEMBER_ID,
+    })
+    // ⛔ Whoever knows the room name can join the call.
+    expect(JSON.stringify(insertEvent.mock.calls)).not.toContain(
+      new URL(room.url).pathname.slice(1),
+    )
+  })
+
+  it('writes one for a room on the server the member chose as well', async () => {
+    await ask(aRequest(), idOf('meet.ffmuc.net'))
+
+    expect(insertEvent).toHaveBeenCalledTimes(1)
+    expect(insertEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: EventType.CHAT_VIDEO_ROOM_CREATE,
+        affectedUserId: MEMBER_ID,
+      }),
+    )
+  })
+
+  it('writes none where no server passed', async () => {
+    serversPass([])
+    await chatVideoServerPool.refreshNow()
+
+    await expect(ask()).rejects.toThrow('CHAT_VIDEO_NO_SERVER')
+    expect(insertEvent).not.toHaveBeenCalled()
+  })
+
+  it('writes none where the chosen server is not to be had', async () => {
+    await expect(ask(aRequest(), 99)).rejects.toThrow('CHAT_VIDEO_SERVER_UNAVAILABLE')
+    expect(insertEvent).not.toHaveBeenCalled()
+  })
+
+  it('writes one for each room within the budget, and none for the one it refuses', async () => {
+    const request = aRequest()
+    for (let room = 0; room < CHAT_VIDEO_ROOMS_MAX_PER_REQUEST; room++) {
+      await ask(request)
+    }
+    await expect(ask(request)).rejects.toThrow('Too many chat video rooms requested at once')
+
+    expect(insertEvent).toHaveBeenCalledTimes(CHAT_VIDEO_ROOMS_MAX_PER_REQUEST)
+  })
+
+  // Awaited, as every event of the house: a row that could not be written is an error, not a room.
+  it('hands out no room where the event cannot be written', async () => {
+    insertEvent.mockRejectedValueOnce(new Error('the database is gone'))
+
+    await expect(ask()).rejects.toThrow('the database is gone')
   })
 })
