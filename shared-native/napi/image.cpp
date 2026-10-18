@@ -1,5 +1,6 @@
 // AI-GENERATED — not an architecture reference
 #include "image.h"
+#include "napiUtils.h"
 
 #include <napi.h>
 
@@ -210,13 +211,7 @@ namespace gradido::image {
         }
 
         Napi::Object failure(Napi::Env env, const char* name, int32_t status) {
-            Napi::Object error = Napi::Object::New(env);
-            error.Set("name", Napi::String::New(env, name));
-            error.Set("message", Napi::String::New(env, rimg_status_string(status)));
-            Napi::Object result = Napi::Object::New(env);
-            result.Set("success", Napi::Boolean::New(env, false));
-            result.Set("error", error);
-            return result;
+            return failureResult(env, name, rimg_status_string(status));
         }
 
         // decoding and encoding is CPU work for the length of the call, so it leaves the event loop
@@ -266,7 +261,6 @@ namespace gradido::image {
 
             void OnOK() override {
                 Napi::Env env = Env();
-                Napi::Object result = Napi::Object::New(env);
                 if (mStatus == RIMG_OK) {
                     Napi::Object value = Napi::Object::New(env);
                     value.Set("data", Napi::Buffer<uint8_t>::Copy(env, mOutput.data(), mOutputLength));
@@ -275,9 +269,7 @@ namespace gradido::image {
                     value.Set("height", Napi::Number::New(env, mInfo.height));
                     value.Set("hasAlpha", Napi::Boolean::New(env, mInfo.has_alpha != 0));
                     value.Set("inputJpegQuality", Napi::Number::New(env, mInfo.input_jpeg_quality));
-                    result.Set("success", Napi::Boolean::New(env, true));
-                    result.Set("value", value);
-                    mDeferred.Resolve(result);
+                    mDeferred.Resolve(successResult(env, value));
                     return;
                 }
                 const char* name = expectedFailureName(mStatus);
@@ -288,7 +280,7 @@ namespace gradido::image {
                     mDeferred.Reject(Napi::Error::New(env, message).Value());
                     return;
                 }
-                result = failure(env, name, mStatus);
+                Napi::Object result = failure(env, name, mStatus);
                 if (mStatus == RIMG_ERR_BUFFER_TOO_SMALL) {
                     Napi::Object error = result.Get("error").As<Napi::Object>();
                     error.Set("requiredBytes", Napi::Number::New(env, (double)mOutputLength));
@@ -352,10 +344,7 @@ namespace gradido::image {
         value.Set("height", Napi::Number::New(env, probed.height));
         value.Set("hasAlpha", Napi::Boolean::New(env, probed.has_alpha != 0));
         value.Set("inputJpegQuality", Napi::Number::New(env, probed.input_jpeg_quality));
-        Napi::Object result = Napi::Object::New(env);
-        result.Set("success", Napi::Boolean::New(env, true));
-        result.Set("value", value);
-        return result;
+        return successResult(env, value);
     }
 
     Napi::Value Reencode(const Napi::CallbackInfo& info)

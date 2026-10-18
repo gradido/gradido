@@ -125,19 +125,10 @@ namespace gradido::data::runtime {
             // the scratch arena is only read while decoding; what is kept lives in m_tx's own memory
             free(dynBuffer);
         };
-        Napi::Object result = Napi::Object::New(env);
         if (ARNM_SUCCESS != init_result) {
-            std::string message = "deserialize or mapping failed: ";
-            message += grd_result_to_string(init_result);
-            Napi::Object error = Napi::Object::New(env);
-            error.Set("name", Napi::String::New(env, grd_result_to_string(init_result)));
-            error.Set("message", Napi::String::New(env, "Deserialize or mapping failed"));
-            result.Set("success", Napi::Boolean::New(env, false));
-            result.Set("error", error);
-            return result;
+            return failureResult(env, grd_result_to_string(init_result), "Deserialize or mapping failed");
         }
-        result.Set("success", Napi::Boolean::New(env, true));
-        return result;
+        return successResult(env);
     }
 
     Napi::Value CompleteTransaction::Validate(const Napi::CallbackInfo& info)
@@ -167,9 +158,8 @@ namespace gradido::data::runtime {
             return env.Undefined();
         }
         grdi_validate_result_type validateResult = grdi_validate_complete_transaction(&m_tx, &opt, &errorDetails);
-        Napi::Object result = Napi::Object::New(env);
+        Napi::Object result;
         if (validateResult != GRDI_VALIDATE_SUCCESS) {
-            result.Set("success", Napi::Boolean::New(env, false));
             Napi::Object error = Napi::Object::New(env);
             error.Set("name", Napi::String::New(env, grdi_validate_result_to_string(validateResult)));
             if (errorDetails.message) {
@@ -181,9 +171,9 @@ namespace gradido::data::runtime {
             if (errorDetails.expected) {
                 error.Set("expected", Napi::String::New(env, errorDetails.expected));
             }
-            result.Set("error", error);
+            result = failureResult(env, error);
         } else {
-            result.Set("success", Napi::Boolean::New(env, true));
+            result = successResult(env);
         }
         grd_error_details_release(&errorDetails);
         return result;

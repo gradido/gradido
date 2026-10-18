@@ -49,3 +49,51 @@ bool getInt32FromObject(const Napi::CallbackInfo& info, Napi::Object obj, const 
   }
   return true;
 }
+
+bool readBytes(Napi::Env env, Napi::Value value, const char* where, const char* name, size_t size, Napi::Buffer<uint8_t>& out)
+{
+    if (!value.IsBuffer()) {
+        Napi::TypeError::New(env, std::string("[") + where + "] Expected " + name + " to be a Uint8Array").ThrowAsJavaScriptException();
+        return false;
+    }
+    out = value.As<Napi::Buffer<uint8_t>>();
+    if (out.Length() != size) {
+        Napi::TypeError::New(
+            env,
+            std::string("[") + where + "] Expected " + name + " to be " + std::to_string(size)
+            + " bytes, got " + std::to_string(out.Length())
+        ).ThrowAsJavaScriptException();
+        return false;
+    }
+    return true;
+}
+
+Napi::Object successResult(Napi::Env env, Napi::Value value)
+{
+    Napi::Object result = successResult(env);
+    result.Set("value", value);
+    return result;
+}
+
+Napi::Object successResult(Napi::Env env)
+{
+    Napi::Object result = Napi::Object::New(env);
+    result.Set("success", Napi::Boolean::New(env, true));
+    return result;
+}
+
+Napi::Object failureResult(Napi::Env env, Napi::Object error)
+{
+    Napi::Object result = Napi::Object::New(env);
+    result.Set("success", Napi::Boolean::New(env, false));
+    result.Set("error", error);
+    return result;
+}
+
+Napi::Object failureResult(Napi::Env env, const char* name, const std::string& message)
+{
+    Napi::Object error = Napi::Object::New(env);
+    error.Set("name", Napi::String::New(env, name));
+    error.Set("message", Napi::String::New(env, message));
+    return failureResult(env, error);
+}

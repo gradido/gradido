@@ -1,5 +1,6 @@
 // AI-GENERATED — not an architecture reference
 #include "AppContext.h"
+#include "napiUtils.h"
 
 #include "arnm/mono_timer.h"
 
@@ -10,18 +11,6 @@
 namespace gradido {
 
     namespace {
-        // A Buffer property of options into bytes. Throws and returns false when it is not one.
-        bool readBytes(Napi::Env env, Napi::Object options, const char* name, std::vector<uint8_t>& out)
-        {
-            if (!options.Has(name) || !options.Get(name).IsBuffer()) {
-                Napi::TypeError::New(env, std::string("[NativeAppContext] Expected options.") + name + " to be a Uint8Array").ThrowAsJavaScriptException();
-                return false;
-            }
-            auto buffer = options.Get(name).As<Napi::Buffer<uint8_t>>();
-            out.assign(buffer.Data(), buffer.Data() + buffer.Length());
-            return true;
-        }
-
         // A positive integer property. Where it is optional, an absent one leaves out untouched.
         bool readCount(Napi::Env env, Napi::Object options, const char* name, size_t& out, bool required)
         {
@@ -44,28 +33,12 @@ namespace gradido {
             out = static_cast<size_t>(number);
             return true;
         }
-
-        Napi::Object failure(Napi::Env env, const char* name, const std::string& message)
-        {
-            Napi::Object error = Napi::Object::New(env);
-            error.Set("name", Napi::String::New(env, name));
-            error.Set("message", Napi::String::New(env, message));
-            Napi::Object result = Napi::Object::New(env);
-            result.Set("success", Napi::Boolean::New(env, false));
-            result.Set("error", error);
-            return result;
-        }
     } // namespace
 
     Napi::Object AppContext::Init(Napi::Env env, Napi::Object exports)
     {
-        // both idempotent; the timer times the derivations, which only Windows needs set up for
+        // idempotent; the timer times the derivations, which only Windows needs set up for
         arnm_mono_timer_init();
-        // the core may well have done it already
-        if (sodium_init() < 0) {
-            Napi::Error::New(env, "[NativeAppContext] sodium_init failed").ThrowAsJavaScriptException();
-            return exports;
-        }
         Napi::Function func = DefineClass(env, "NativeAppContext", {
             InstanceMethod("hashPassword", &AppContext::HashPassword),
             InstanceMethod("derivePinKey", &AppContext::DerivePinKey),
@@ -85,23 +58,21 @@ namespace gradido {
             return;
         }
         Napi::Object options = info[0].As<Napi::Object>();
-        if (!readBytes(env, options, "appSecret", mSecrets.appSecret) || !readBytes(env, options, "serverKey", mSecrets.serverKey)) {
+        if (!options.Get("appSecret").IsBuffer()) {
+            Napi::TypeError::New(env, "[NativeAppContext] Expected options.appSecret to be a Uint8Array").ThrowAsJavaScriptException();
             return;
         }
-        if (mSecrets.appSecret.empty()) {
+        Napi::Buffer<uint8_t> appSecret = options.Get("appSecret").As<Napi::Buffer<uint8_t>>();
+        Napi::Buffer<uint8_t> serverKey;
+        if (!readBytes(env, options.Get("serverKey"), "NativeAppContext", "options.serverKey", crypto_shorthash_KEYBYTES, serverKey)) {
+            return;
+        }
+        if (appSecret.Length() == 0) {
             Napi::TypeError::New(env, "[NativeAppContext] Expected options.appSecret not to be empty").ThrowAsJavaScriptException();
             return;
         }
-        if (mSecrets.serverKey.size() != crypto_shorthash_KEYBYTES) {
-            Napi::TypeError::New(
-                env,
-                "[NativeAppContext] Expected options.serverKey to be "
-                + std::to_string(crypto_shorthash_KEYBYTES)
-                + " bytes, got "
-                + std::to_string(mSecrets.serverKey.size())
-            ).ThrowAsJavaScriptException();
-            return;
-        }
+        mSecrets.appSecret.assign(appSecret.Data(), appSecret.Data() + appSecret.Length());
+        mSecrets.serverKey.assign(serverKey.Data(), serverKey.Data() + serverKey.Length());
 
         password::Difficulty difficulty = { 0, 0 };
         size_t threadCount = password::HashingPool::defaultThreadCount();
@@ -173,7 +144,7 @@ namespace gradido {
         );
         if (!admission.admitted) {
             auto stats = mPasswordHashing->stats();
-            return failure(
+            return failureResult(
                 env,
                 "PASSWORD_HASH_QUEUE_FULL",
                 "an expected wait of " + std::to_string(static_cast<long long>(admission.expectedWaitMs))
@@ -183,10 +154,7 @@ namespace gradido {
                 + std::to_string(stats.threadCount) + (stats.threadCount == 1 ? " thread)" : " threads)")
             );
         }
-        Napi::Object result = Napi::Object::New(env);
-        result.Set("success", Napi::Boolean::New(env, true));
-        result.Set("value", deferred.Promise());
-        return result;
+        return successResult(env, deferred.Promise());
     }
 
     Napi::Value AppContext::DerivePinKey(const Napi::CallbackInfo& info)

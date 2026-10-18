@@ -120,6 +120,106 @@ export function signKeyPairDeriveAccountFromCommunity(
 
 export function hashGeneric(data: Uint8Array): Uint8Array
 
+/** A key pair's bytes as copies; `privateKey` is null when the pair has only a public key. */
+export type KeyPairBuffers = { publicKey: Buffer; privateKey: Buffer | null }
+export type KeyPairHex = { publicKey: string; privateKey: string | null }
+
+/**
+ * Why decrypting failed: the bytes are too short to be a ciphertext, they start with a format
+ * byte other than the one expected, or the MAC did not match (altered, or the wrong keys).
+ */
+export type DecryptError = NativeError & {
+  name: 'MalformedCiphertext' | 'UnknownVersion' | 'DecryptFailed'
+}
+
+/**
+ * Both key pair classes keep a private key in memory from sodium_malloc, guarded and on pages
+ * of its own: 4 kernel memory mappings per key. A process has about 65000 of them (Linux
+ * vm.max_map_count), shared with everything else, so at most about 16000 key pairs with private
+ * key can be alive at once; past that the process dies out of memory. Their memory is freed
+ * only after a GC, asynchronously, so a synchronous loop creating them piles them up even when
+ * none stays reachable. Meant for the few long-lived key pairs, not one per user in a loop.
+ * Key pairs with only a public key are not affected.
+ */
+
+/**
+ * An Ed25519 key pair (libsodium crypto_sign) whose bytes stay on the native side; sign and
+ * verify do not copy them across. Plain libsodium keys, not SLIP-10 -- the derivation tree is
+ * `signKeyPairGenerateFromSeed` and the other `signKeyPair*` functions, and from the same seed
+ * the two give different keys.
+ *
+ * Programmer errors throw: arguments of the wrong type or size, a private key that does not
+ * belong to the public key, `sign` or a private key export on a pair without private key.
+ */
+export class Ed25519KeyPair {
+  /** random without a seed; with a seed of 32 bytes deterministic (crypto_sign_seed_keypair) */
+  public static generate(seed?: Uint8Array): Ed25519KeyPair
+
+  /**
+   * @param publicKey - 32 bytes
+   * @param privateKey - 32 bytes, the seed; checked against publicKey
+   */
+  public constructor(publicKey: Uint8Array, privateKey?: Uint8Array)
+
+  public hasPrivateKey(): boolean
+
+  /** @returns the 64 bytes detached signature */
+  public sign(message: Uint8Array): Buffer
+  /** @param signature - 64 bytes; another size throws, check it where it comes in */
+  public verify(message: Uint8Array, signature: Uint8Array): boolean
+
+  public toBuffer(): KeyPairBuffers
+  public toHex(): KeyPairHex
+  public publicKeyToBuffer(): Buffer
+  public publicKeyToHex(): string
+  /** 32 bytes, the seed */
+  public privateKeyToBuffer(): Buffer
+  public privateKeyToHex(): string
+}
+
+/**
+ * An X25519 key pair (libsodium crypto_box) whose bytes stay on the native side, for
+ * authenticated encryption.
+ *
+ * `encrypt`/`decrypt` run between this pair, which needs its private key, and a peer that
+ * carries only its public key: a peer with a private key throws, so the two cannot be swapped.
+ * `encryptSecret`/`decryptSecret` are for this pair alone (a secret it keeps, e.g. in the
+ * database): XChaCha20-Poly1305 with a key derived from the private key.
+ *
+ * A ciphertext is one format byte (1 for encrypt, 2 for encryptSecret), a random 24 bytes
+ * nonce, then the encrypted payload with its 16 bytes MAC -- payload size + 41 bytes.
+ *
+ * Programmer errors throw, as with Ed25519KeyPair; a ciphertext that does not decrypt is an
+ * expected failure and comes back as a Result.
+ */
+export class X25519KeyPair {
+  /** random without a seed; with a seed of 32 bytes deterministic (crypto_box_seed_keypair) */
+  public static generate(seed?: Uint8Array): X25519KeyPair
+
+  /**
+   * @param publicKey - 32 bytes
+   * @param privateKey - 32 bytes, checked against publicKey
+   */
+  public constructor(publicKey: Uint8Array, privateKey?: Uint8Array)
+
+  public hasPrivateKey(): boolean
+
+  /** @param recipient - with public key only */
+  public encrypt(payload: Uint8Array, recipient: X25519KeyPair): Buffer
+  /** @param sender - with public key only */
+  public decrypt(box: Uint8Array, sender: X25519KeyPair): Result<Buffer, DecryptError>
+
+  public encryptSecret(payload: Uint8Array): Buffer
+  public decryptSecret(box: Uint8Array): Result<Buffer, DecryptError>
+
+  public toBuffer(): KeyPairBuffers
+  public toHex(): KeyPairHex
+  public publicKeyToBuffer(): Buffer
+  public publicKeyToHex(): string
+  public privateKeyToBuffer(): Buffer
+  public privateKeyToHex(): string
+}
+
 /**
  * Gradido Blockchain Core – Enum Type Definitions
  *
