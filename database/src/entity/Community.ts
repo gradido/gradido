@@ -59,6 +59,12 @@ export class Community extends BaseEntity {
   @Column({ name: 'private_jwt_key', type: 'varchar', length: 2048, nullable: true })
   privateJwtKey: string | null
 
+  @Column({ name: 'public_encryption_key', type: 'binary', length: 32, nullable: false })
+  publicEncryptionKey: Buffer
+
+  @Column({ name: 'private_encryption_key', type: 'binary', length: 32, nullable: true })
+  privateEncryptionKey: Buffer | null
+
   @Column({
     name: 'location',
     type: 'geometry',

@@ -11,6 +11,7 @@ import { Community, FederatedCommunity } from '../entity'
 export async function createCommunity(foreign: boolean, store: boolean = true): Promise<Community> {
   const community = new Community()
   community.publicKey = randomBytes(32)
+  community.publicEncryptionKey = randomBytes(32)
   community.communityUuid = uuidv4()
   community.name = 'HomeCommunity-name'
   community.creationDate = new Date()
@@ -25,6 +26,7 @@ export async function createCommunity(foreign: boolean, store: boolean = true): 
     community.foreign = false
     // todo: generate valid public/private key pair (ed25519)
     community.privateKey = randomBytes(64)
+    community.privateEncryptionKey = randomBytes(32)
     community.name = 'HomeCommunity-name'
     community.description = 'HomeCommunity-description'
     community.url = 'http://localhost/api'

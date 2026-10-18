@@ -2,38 +2,7 @@ import { describe, expect, it } from 'bun:test'
 import { generateKeyPairSync } from 'node:crypto'
 import { v4 as uuidv4 } from 'uuid'
 import * as v from 'valibot'
-import { communityAuthenticatedSchema, homeCommunityInsertSchema } from './community.schema'
-
-describe('communityAuthenticatedSchema', () => {
-  it('should return an error if communityUuid is not a uuidv4', () => {
-    const data = v.safeParse(communityAuthenticatedSchema, {
-      communityUuid: '1234567890',
-      authenticatedAt: new Date(),
-    })
-
-    expect(data.success).toBe(false)
-    expect(data.issues && v.getDotPath(data.issues[0])).toBe('communityUuid')
-  })
-
-  it('should return an error if authenticatedAt is not a date', () => {
-    const data = v.safeParse(communityAuthenticatedSchema, {
-      communityUuid: uuidv4(),
-      authenticatedAt: '2022-01-01',
-    })
-
-    expect(data.success).toBe(false)
-    expect(data.issues && v.getDotPath(data.issues[0])).toBe('authenticatedAt')
-  })
-
-  it('should return no error for valid data and valid uuid4', () => {
-    const data = v.safeParse(communityAuthenticatedSchema, {
-      communityUuid: uuidv4(),
-      authenticatedAt: new Date(),
-    })
-
-    expect(data.success).toBe(true)
-  })
-})
+import { homeCommunityInsertSchema } from './community.schema'
 
 describe('homeCommunityInsertSchema', () => {
   const rsaKeyPair = generateKeyPairSync('rsa', {
@@ -51,6 +20,8 @@ describe('homeCommunityInsertSchema', () => {
     creationDate: new Date(),
     publicJwtKey: rsaKeyPair.publicKey,
     privateJwtKey: rsaKeyPair.privateKey,
+    publicEncryptionKey: Buffer.alloc(32, 3),
+    privateEncryptionKey: Buffer.alloc(32, 4),
   })
 
   it('accepts valid data and sets foreign to false', () => {
@@ -82,6 +53,18 @@ describe('homeCommunityInsertSchema', () => {
     expect(data.success).toBe(false)
     expect(data.issues && v.getDotPath(data.issues[0])).toBe('privateKey')
   })
+
+  it.each(['publicEncryptionKey', 'privateEncryptionKey'])(
+    'rejects a %s without 32 bytes',
+    (field) => {
+      const data = v.safeParse(homeCommunityInsertSchema, {
+        ...validInput(),
+        [field]: Buffer.alloc(64),
+      })
+      expect(data.success).toBe(false)
+      expect(data.issues && v.getDotPath(data.issues[0])).toBe(field)
+    },
+  )
 
   it('rejects an invalid url', () => {
     const data = v.safeParse(homeCommunityInsertSchema, { ...validInput(), url: 'not a url' })

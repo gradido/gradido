@@ -341,7 +341,7 @@ Nothing of what the handshake checked is lost:
 * The call back with the one-time code only showed that the foreign community can reach the own one. Each community checks this in its own round anyway, when it verifies the other side, and every cross-community request goes to the url the sender has verified itself.
 * The check that the one-time code came back from the community it was handed to was not effective in any of the former versions; the signature over the nonce is what makes this binding now.
 
-The signed community infos prove the same, that the server at the url holds the private key of the announced public key, with one request and a standard ([RFC 9421](https://www.rfc-editor.org/rfc/rfc9421), [RFC 9530](https://www.rfc-editor.org/rfc/rfc9530)). Nothing is stored between request and answer, and the uuid arrives together with the signed infos before the community is inserted. Migration `0160` therefore makes `community_uuid` NOT NULL, restores the unique key on `public_key`, and drops `community_handshake_states`.
+The signed community infos prove the same, that the server at the url holds the private key of the announced public key, with one request and a standard ([RFC 9421](https://www.rfc-editor.org/rfc/rfc9421), [RFC 9530](https://www.rfc-editor.org/rfc/rfc9530)). Nothing is stored between request and answer, and the uuid arrives together with the signed infos before the community is inserted. Migration `0162` therefore makes `community_uuid` NOT NULL, restores the unique key on `public_key`, and drops `community_handshake_states`.
 
 ### Stage2 - Authentication
 

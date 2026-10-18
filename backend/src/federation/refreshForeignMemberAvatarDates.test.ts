@@ -125,6 +125,7 @@ beforeAll(async () => {
   await DbCommunity.create({
     foreign: false,
     url: 'http://home.invalid/api/',
+    publicEncryptionKey: randomBytes(32),
     publicKey: randomBytes(32),
     communityUuid: uuidv4(),
     name: 'Home community',
@@ -137,6 +138,7 @@ beforeAll(async () => {
   peer = await DbCommunity.create({
     foreign: true,
     url: 'http://peer.invalid/api/',
+    publicEncryptionKey: randomBytes(32),
     publicKey: randomBytes(32),
     communityUuid: peerUuid,
     authenticatedAt: new Date(),
@@ -374,6 +376,7 @@ describe('refreshForeignMemberAvatarDates', () => {
       stranger = await DbCommunity.create({
         foreign: true,
         url: 'http://stranger.invalid/api/',
+        publicEncryptionKey: randomBytes(32),
         publicKey: randomBytes(32),
         communityUuid: uuidv4(),
         authenticatedAt: null,

@@ -8,7 +8,7 @@ import { PeerApiClient } from 'core'
 import { AppDatabase, dbInsertHomeCommunity } from 'database'
 import type { AnyElysia } from 'elysia'
 import { getLogger } from 'log4js'
-import { createKeyPair, InvalidResponseSignatureError } from 'shared'
+import { createEncryptionKeyPair, createKeyPair, InvalidResponseSignatureError } from 'shared'
 import { crypto_sign_keypair } from 'sodium-native'
 import { createServer } from './createServer'
 
@@ -21,6 +21,7 @@ const libsodiumKeyPair = () => {
 }
 
 const homeKeys = libsodiumKeyPair()
+const homeEncryptionKeys = createEncryptionKeyPair()
 const home = {
   communityUuid: '56a55482-909e-46a4-bfa2-cd025e894eba',
   url: 'http://home.example/api/',
@@ -43,6 +44,8 @@ beforeAll(async () => {
     ...homeKeys,
     publicJwtKey,
     privateJwtKey: jwtKeys.privateKey,
+    publicEncryptionKey: homeEncryptionKeys.publicKey,
+    privateEncryptionKey: homeEncryptionKeys.privateKey,
   })
   app.listen(0)
   url = `http://localhost:${app.server?.port}/`
@@ -67,6 +70,8 @@ describe('GET peer-api/v1/communityInfos', () => {
       creationDate: home.creationDate,
       publicKey: homeKeys.publicKey.toString('hex'),
       publicJwtKey,
+      // the public key only, the private one stays home
+      publicEncryptionKey: homeEncryptionKeys.publicKey.toString('hex'),
       hieroTopicId: null,
     })
   })

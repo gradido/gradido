@@ -8,7 +8,11 @@ import {
   dbUpdateHomeCommunity,
 } from 'database'
 import { getLogger } from 'log4js'
-import { createKeyPair as createJWTKeyPair, getChangedFields } from 'shared'
+import {
+  createEncryptionKeyPair,
+  createKeyPair as createJWTKeyPair,
+  getChangedFields,
+} from 'shared'
 import { v4 as uuidv4 } from 'uuid'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
@@ -249,12 +253,15 @@ async function writeHomeCommunityEntry(keyPair: KeyPair): Promise<void> {
       }
     } else {
       const jwtKeyPair = await createJWTKeyPair()
+      const encryptionKeyPair = createEncryptionKeyPair()
       await dbInsertHomeCommunity({
         ...upsertFields,
         communityUuid: await newCommunityUuid(),
         creationDate: new Date(),
         publicJwtKey: jwtKeyPair.publicKey,
         privateJwtKey: jwtKeyPair.privateKey,
+        publicEncryptionKey: encryptionKeyPair.publicKey,
+        privateEncryptionKey: encryptionKeyPair.privateKey,
       })
       logger.info('home-community inserted successfully')
     }

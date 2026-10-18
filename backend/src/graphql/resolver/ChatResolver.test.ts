@@ -1042,6 +1042,7 @@ describe('sendChatMessage to a member of another community', () => {
     peer = await DbCommunity.create({
       foreign: true,
       url: 'http://chat-peer.invalid/api/',
+      publicEncryptionKey: randomBytes(32),
       publicKey: randomBytes(32),
       communityUuid: peerUuid,
       authenticatedAt: new Date(),
@@ -1059,6 +1060,7 @@ describe('sendChatMessage to a member of another community', () => {
     later = await DbCommunity.create({
       foreign: true,
       url: 'http://chat-later.invalid/api/',
+      publicEncryptionKey: randomBytes(32),
       publicKey: randomBytes(32),
       communityUuid: laterUuid,
       authenticatedAt: new Date(),

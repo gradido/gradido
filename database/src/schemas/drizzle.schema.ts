@@ -75,6 +75,9 @@ export const communitiesTable = mysqlTable(
     matchingKeyingActive: boolean('matching_keying_active').default(false).notNull(),
     publicJwtKey: varchar('public_jwt_key', { length: 512 }).default(sql`NULL`),
     privateJwtKey: varchar('private_jwt_key', { length: 2048 }).default(sql`NULL`),
+    // X25519, authenticated encryption; the private key only of the home community
+    publicEncryptionKey: customBinary('public_encryption_key', { length: 32 }).notNull(),
+    privateEncryptionKey: customBinary('private_encryption_key', { length: 32 }).default(sql`NULL`),
     location: customGeometry().default(null),
     hieroTopicId: varchar('hiero_topic_id', { length: 512 }).default(sql`NULL`),
     // TODO: update to not nullable

@@ -166,6 +166,8 @@ describe('federation', () => {
           description: 'Community to test the federation',
           publicJwtKey: expect.stringContaining('-----BEGIN PUBLIC KEY-----'),
           privateJwtKey: expect.stringContaining('-----BEGIN PRIVATE KEY-----'),
+          publicEncryptionKey: expect.any(Buffer),
+          privateEncryptionKey: expect.any(Buffer),
           creationDate: expect.any(Date),
           createdAt: expect.any(Date),
           updatedAt: null,

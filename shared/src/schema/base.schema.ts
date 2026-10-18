@@ -104,6 +104,17 @@ export const ed25519PrivateKeySchema = v.pipe(
   v.check((value) => value.length === 64, 'Expected 64 Bytes'),
 )
 
+// X25519, the key pair of authenticated encryption (libsodium crypto_box): both keys raw 32 bytes
+export const x25519PublicKeySchema = v.pipe(
+  hexBytesSchema,
+  v.check((value) => value.length === 32, 'Expected 32 Bytes'),
+)
+
+export const x25519PrivateKeySchema = v.pipe(
+  hexBytesSchema,
+  v.check((value) => value.length === 32, 'Expected 32 Bytes'),
+)
+
 // node:crypto KeyObject of any type (secret, public, private), narrow it where the type matters
 export const nodeCryptoKeyObjectSchema = v.custom<KeyObject>((val) => val instanceof KeyObject)
 // a Duration instance, a string like "10m" must be converted first: Duration.fromString
