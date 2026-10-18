@@ -8,6 +8,7 @@ import {
   inArray,
   isNotNull,
   lt,
+  lte,
   notExists,
   SQL,
   sql,
@@ -20,8 +21,6 @@ import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
 import { ContributionLink as DbContributionLink, Event as DbEvent, User as DbUser } from '../entity'
 import { EventType } from '../enum/EventType'
 import { EventInsert, eventsTable, usersTable } from '../schemas'
-
-const DAY_MS = 24 * 60 * 60 * 1000
 
 export async function findModeratorCreatingContributionLink(
   contributionLink: DbContributionLink,
@@ -187,6 +186,40 @@ export async function dbCountDistinctActingUsersOfType(
 }
 
 /**
+ * How many members an outcome of their first creation concerns (`FIRST_CREATION_DONE`, `_SKIP`,
+ * `_REVIEW`), each once, from each moment on -- without an administrator's function tests
+ * (ES-014): an outcome written after the member's `FIRST_CREATION_TEST` belongs to a test run.
+ * An outcome from before the member's first test counts.
+ */
+export async function dbCountFirstCreationMembers(
+  type: EventType,
+  froms: (Date | null)[],
+): Promise<number[]> {
+  const test = aliasedTable(eventsTable, 'function_test')
+  const [row] = await drizzleDb()
+    .select(countFields(froms, membersFrom(eventsTable.affectedUserId)))
+    .from(eventsTable)
+    .where(
+      and(
+        eq(eventsTable.type, type),
+        notExists(
+          drizzleDb()
+            .select({ id: test.id })
+            .from(test)
+            .where(
+              and(
+                eq(test.type, EventType.FIRST_CREATION_TEST),
+                eq(test.affectedUserId, eventsTable.affectedUserId),
+                lte(test.createdAt, eventsTable.createdAt),
+              ),
+            ),
+        ),
+      ),
+    )
+  return countsOfRow(row, froms)
+}
+
+/**
  * How many accounts were registered the plain way by somebody who brought them along: the
  * `USER_REGISTER` events whose account names a referrer -- an address `/u/…`, a business card
  * and its QR code (RegisterUserReferrerRole). The other registrations that note a referrer
@@ -204,16 +237,19 @@ export async function dbCountRegisterEventsWithReferrer(froms: (Date | null)[]):
 }
 
 /**
- * How many members came back from `since` on after a quiet time: they signed in from `since`
- * on, had signed in before the `quietDays` that end at `since`, and not within them. A member
- * who kept signing in is not counted, nor one who never signed in before. Only the logins the
- * event protocol holds count: a member whose last login is older than its first entries is not
+ * How many members came back from `since` on after a quiet time: they signed in from `since` on,
+ * and before that login lay `quietDays` without one -- with a login before them. The quiet time
+ * is measured back from the login that ends it, so it may reach over `since`: somebody last seen
+ * 60 days before `since` who returns 40 days after it was quiet for 100 days. A member who kept
+ * signing in is not counted, nor one who never signed in before. Only the logins the event
+ * protocol holds count: a member whose last login is older than its first entries is not
  * counted either.
  */
 export async function dbCountReturningMembers(since: Date, quietDays = 90): Promise<number> {
-  const quietFrom = new Date(since.getTime() - quietDays * DAY_MS)
   const before = aliasedTable(eventsTable, 'login_before')
   const within = aliasedTable(eventsTable, 'login_within')
+  // The first moment of the quiet time before the login of the outer row.
+  const quietFrom = sql`${eventsTable.createdAt} - interval ${quietDays} day`
   const [row] = await drizzleDb()
     .select({ members: countDistinct(eventsTable.affectedUserId) })
     .from(eventsTable)
@@ -242,7 +278,7 @@ export async function dbCountReturningMembers(since: Date, quietDays = 90): Prom
                 eq(within.type, EventType.USER_LOGIN),
                 eq(within.affectedUserId, eventsTable.affectedUserId),
                 gte(within.createdAt, quietFrom),
-                lt(within.createdAt, since),
+                lt(within.createdAt, eventsTable.createdAt),
               ),
             ),
         ),

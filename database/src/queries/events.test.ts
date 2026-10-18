@@ -14,6 +14,7 @@ import {
   dbCountDistinctActingUsersOfType,
   dbCountDistinctAffectedUsersOfType,
   dbCountEventsOfTypes,
+  dbCountFirstCreationMembers,
   dbCountRegisterEventsWithReferrer,
   dbCountReturningMembers,
   dbFindLatestEventForAffectedUser,
@@ -313,12 +314,14 @@ describe('the counts of the figures page', () => {
   })
 
   describe('dbCountReturningMembers', () => {
-    // Counted from ten days ago; the 90 quiet days before that end there.
+    // Counted from ten days ago; each return is measured back from its own login.
     const since = daysAgo(10)
     const RETURNER = 1
     const REGULAR = 2
     const NEWCOMER = 3
     const GONE = 4
+    const SPANNING = 5
+    const EARLY = 6
 
     beforeAll(async () => {
       await dbDeleteAllRowsExceptMigrations()
@@ -337,20 +340,61 @@ describe('the counts of the figures page', () => {
       await note(EventType.USER_LOGIN, NEWCOMER, daysAgo(2))
       // Signed in long before and never again: has not come back.
       await note(EventType.USER_LOGIN, GONE, daysAgo(200))
+      // Quiet for 92 days before the login three days ago -- days that reach over the reference
+      // day: comes back.
+      await note(EventType.USER_LOGIN, SPANNING, daysAgo(95))
+      await note(EventType.USER_LOGIN, SPANNING, daysAgo(3))
+      // Came back before the reference day, and signs in again since: no return since then.
+      await note(EventType.USER_LOGIN, EARLY, daysAgo(200))
+      await note(EventType.USER_LOGIN, EARLY, daysAgo(12))
+      await note(EventType.USER_LOGIN, EARLY, daysAgo(5))
     })
 
-    it('counts the member who signs in again after the quiet days, and only them', async () => {
-      expect(await dbCountReturningMembers(since)).toBe(1)
+    it('counts each member who signs in again after the quiet days, and only them', async () => {
+      expect(await dbCountReturningMembers(since)).toBe(2)
     })
 
     it('takes the quiet days it is given', async () => {
-      // Twenty quiet days end at the same moment, so the regular's login 40 days ago lies
-      // before them: the regular comes back, too.
-      expect(await dbCountReturningMembers(since, 20)).toBe(2)
+      // Twenty quiet days before the regular's login two days ago hold none of theirs, the one
+      // 40 days ago lies before them: the regular comes back, too.
+      expect(await dbCountReturningMembers(since, 20)).toBe(3)
     })
 
     it('counts nobody from a moment still to come', async () => {
       expect(await dbCountReturningMembers(new Date(now + 24 * HOUR_MS))).toBe(0)
+    })
+  })
+
+  describe('dbCountFirstCreationMembers', () => {
+    const MEMBER = 1
+    const ADMIN = 2
+    const TESTER = 3
+
+    beforeAll(async () => {
+      await dbDeleteAllRowsExceptMigrations()
+      // A member's first creation, done two days ago -- and skipped twice before that.
+      await note(EventType.FIRST_CREATION_SKIP, MEMBER, daysAgo(4))
+      await note(EventType.FIRST_CREATION_SKIP, MEMBER, daysAgo(3))
+      await note(EventType.FIRST_CREATION_DONE, MEMBER, daysAgo(2), 9)
+      // An administrator's own first creation long ago, and a function test of it now.
+      await note(EventType.FIRST_CREATION_DONE, ADMIN, daysAgo(200), 9)
+      await note(EventType.FIRST_CREATION_TEST, ADMIN, daysAgo(3))
+      await note(EventType.FIRST_CREATION_DONE, ADMIN, daysAgo(3), 9)
+      // An administrator who never created: a test, closed empty.
+      await note(EventType.FIRST_CREATION_TEST, TESTER, daysAgo(1))
+      await note(EventType.FIRST_CREATION_SKIP, TESTER, daysAgo(1))
+    })
+
+    it('counts each member once, from each moment on', async () => {
+      expect(
+        await dbCountFirstCreationMembers(EventType.FIRST_CREATION_SKIP, [daysAgo(5), null]),
+      ).toEqual([1, 1])
+    })
+
+    it('leaves out the outcomes of a function test, not the first creation before it', async () => {
+      expect(
+        await dbCountFirstCreationMembers(EventType.FIRST_CREATION_DONE, [daysAgo(5), null]),
+      ).toEqual([1, 2])
     })
   })
 })

@@ -20,6 +20,7 @@ const mockDatabase = {
   dbCountDistinctActingUsersOfType: jest.fn(),
   dbCountDistinctAffectedUsersOfType: jest.fn(),
   dbCountEventsOfTypes: jest.fn(),
+  dbCountFirstCreationMembers: jest.fn(),
   dbCountRegisterEventsWithReferrer: jest.fn(),
   dbCountReturningMembers: jest.fn(),
   dbCountUsers: jest.fn(),
@@ -52,6 +53,8 @@ const byTypes: Record<string, number[]> = {
 }
 const membersByType: Record<string, number[]> = {
   USER_LOGIN: [81, 82, 83],
+}
+const firstCreationsByType: Record<string, number[]> = {
   FIRST_CREATION_DONE: [111, 112, 113],
   FIRST_CREATION_SKIP: [121, 122, 123],
   FIRST_CREATION_REVIEW: [131, 132, 133],
@@ -70,6 +73,9 @@ beforeEach(() => {
   mockDatabase.dbCountReturningMembers.mockResolvedValue(71)
   mockDatabase.dbCountDistinctAffectedUsersOfType.mockImplementation(
     async (type: string) => membersByType[type],
+  )
+  mockDatabase.dbCountFirstCreationMembers.mockImplementation(
+    async (type: string) => firstCreationsByType[type],
   )
   mockDatabase.dbCountUsersDeleted.mockResolvedValue([91, 92, 93])
   mockDatabase.dbCountUsers.mockResolvedValue(101)
@@ -115,10 +121,7 @@ describe('countCommunityFigures', () => {
     )
     expect(mockDatabase.dbCountUsersDeleted).toHaveBeenCalledWith(everyColumn)
     for (const type of ['FIRST_CREATION_DONE', 'FIRST_CREATION_SKIP', 'FIRST_CREATION_REVIEW']) {
-      expect(mockDatabase.dbCountDistinctAffectedUsersOfType).toHaveBeenCalledWith(
-        type,
-        everyColumn,
-      )
+      expect(mockDatabase.dbCountFirstCreationMembers).toHaveBeenCalledWith(type, everyColumn)
     }
   })
 

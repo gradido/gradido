@@ -78,6 +78,9 @@ beforeAll(async () => {
   await note(EventType.FIRST_CREATION_SKIP, raeuber.id, 9)
   await note(EventType.FIRST_CREATION_SKIP, raeuber.id, 9)
   await note(EventType.FIRST_CREATION_REVIEW, garrick.id, 20, peter.id)
+  // Peter, an admin, tests the first creation on his own account: not counted.
+  await note(EventType.FIRST_CREATION_TEST, peter.id, 3)
+  await note(EventType.FIRST_CREATION_DONE, peter.id, 3, peter.id)
   // A member of another community the federation stored: nobody's account here.
   await dbInsertForeignUser({
     communityUuid: '66666666-6666-4666-8666-666666666666',

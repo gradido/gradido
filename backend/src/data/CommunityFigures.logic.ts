@@ -3,6 +3,7 @@ import {
   dbCountDistinctActingUsersOfType,
   dbCountDistinctAffectedUsersOfType,
   dbCountEventsOfTypes,
+  dbCountFirstCreationMembers,
   dbCountRegisterEventsWithReferrer,
   dbCountReturningMembers,
   dbCountUsers,
@@ -41,9 +42,12 @@ const ofTypes =
   (froms: (Date | null)[]) =>
     dbCountEventsOfTypes(types, froms)
 
-/** The members events of this type concern, each once: a member who skipped twice skipped. */
-const membersOf = (type: EventType) => (froms: (Date | null)[]) =>
-  dbCountDistinctAffectedUsersOfType(type, froms)
+/**
+ * The members an outcome of their first creation concerns, each once (a member who skipped twice
+ * skipped), without the function tests of administrators.
+ */
+const firstCreationMembersOf = (type: EventType) => (froms: (Date | null)[]) =>
+  dbCountFirstCreationMembers(type, froms)
 
 // The figures of the page, in its order.
 const FIGURES: Figure[] = [
@@ -87,11 +91,11 @@ const FIGURES: Figure[] = [
   inEveryColumn('accountsDeleted', dbCountUsersDeleted),
   // A stock, not a flow: it has nothing to count from a day on.
   async () => ({ key: 'accountsTotal', since: null, week: null, total: await dbCountUsers() }),
-  inEveryColumn('firstCreationsDone', membersOf(EventType.FIRST_CREATION_DONE)),
-  inEveryColumn('firstCreationsSkipped', membersOf(EventType.FIRST_CREATION_SKIP)),
+  inEveryColumn('firstCreationsDone', firstCreationMembersOf(EventType.FIRST_CREATION_DONE)),
+  inEveryColumn('firstCreationsSkipped', firstCreationMembersOf(EventType.FIRST_CREATION_SKIP)),
   // The step into the review, not what is in review today: a review that was settled since
   // still counts.
-  inEveryColumn('firstCreationsReview', membersOf(EventType.FIRST_CREATION_REVIEW)),
+  inEveryColumn('firstCreationsReview', firstCreationMembersOf(EventType.FIRST_CREATION_REVIEW)),
 ]
 
 /**
