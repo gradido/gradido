@@ -43,139 +43,11 @@ jobs:
 
       - name: Boot up test system | docker-compose mariadb mailserver redis
         run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach mariadb mailserver redis
-
-      - name: Prepare test system
-        run: |
-          sudo chown runner:docker -R *
-          bun install --frozen-lockfile
-          sudo cp ./nginx/e2e-test.conf /etc/nginx/sites-available/default
-
-      - name: Boot up test system | seed backend
-        run: bun turbo seed
-
-      - name: Moving logs after seeding
-        run: |
-          mkdir -p /home/runner/work/gradido/gradido/logs/backend/seed
-          mv /home/runner/work/gradido/gradido/logs/backend/*.log /home/runner/work/gradido/gradido/logs/backend/seed/
-
-      - name: Boot up test system | docker-compose backend, frontend
-        run: |
-          cd backend
-          cp .env.test_e2e .env
-          cd ..
-          bun turbo backend#build frontend#build --env-mode=loose
-          bun turbo backend#start frontend#start --env-mode=loose &
-        
-      - name: End-to-end tests | prepare
-        run: |
-          wget --no-verbose -O /opt/cucumber-json-formatter "https://github.com/cucumber/json-formatter/releases/download/v19.0.0/cucumber-json-formatter-linux-386"
-          chmod +x /opt/cucumber-json-formatter
-          sudo ln -fs /opt/cucumber-json-formatter /usr/bin/cucumber-json-formatter
-          cd e2e-tests/
-          bun install  --production
-
-      - name: wait for frontend and backend to be ready
-        run: |
-          until nc -z 127.0.0.1 3000; do echo waiting for frontend; sleep 1; done;
-          until nc -z 127.0.0.1 4000; do echo waiting for backend; sleep 1; done;
-        
-      - name: Start local nginx webserver
-        run: |
-          sudo nginx -t
-          sudo systemctl start nginx 
-
-      - name: wait for nginx, mailserver and redis to be ready
-        run: |
-          until nc -z 127.0.0.1 80; do echo waiting for nginx; sleep 1; done;
-          until nc -z 127.0.0.1 1025; do echo waiting for mailserver; sleep 1; done;
-          until nc -z 127.0.0.1 6379; do echo waiting for redis; sleep 1; done;
-
-      - name: End-to-end tests | run tests
-        id: e2e-tests
-        run: |
-          cd e2e-tests/
-          bun cypress run
-
-      - name: End-to-end tests | if tests failed, compile html report
-        if: ${{ failure() && steps.e2e-tests.conclusion == 'failure' }}
-        run: |
-          cd e2e-tests/
-          node create-cucumber-html-report.js
-
-      - name: End-to-end tests | if tests failed, get pr number
-        id: pr
-        if: ${{ failure() && steps.e2e-tests.conclusion == 'failure' }}
-        uses: 8BitJonny/gh-get-current-pr@2.2.0
-
-      - name: End-to-end tests | if tests failed, upload report
-        id: e2e-report
-        if: ${{ failure() && steps.e2e-tests.conclusion == 'failure' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: cypress-report-pr-#${{ steps.pr.outputs.number }}
-          path: /home/runner/work/gradido/gradido/e2e-tests/cypress/reports/cucumber_html_report
-
-      - name: End-to-end tests | if tests failed, upload video
-        id: e2e-video
-        if: ${{ failure() && steps.e2e-tests.conclusion == 'failure' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: cypress-videos-pr-#${{ steps.pr.outputs.number }}
-          path: /home/runner/work/gradido/gradido/e2e-tests/cypress/videos
-      
-      - name: End-to-end tests | if tests failed, upload logs
-        if: ${{ failure() && steps.e2e-tests.conclusion == 'failure' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: backend-logs-pr-#${{ steps.pr.outputs.number }}
-          path: /home/runner/work/gradido/gradido/logs/backend
-
-  end-to-end-tests-playwright:
-    name: End-to-End Tests Playwright
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Set Node.js version
-        uses: actions/setup-node@v6
-        with:
-          node-version-file: '.nvmrc'
-
-      # c-cpp-zig-build keeps the Zig toolchain and the packages fetched from build.zig.zon
-      # here. The key moves with the c-cpp-zig-build version (package.json) and the pinned
-      # packages (build.zig.zon), so this hits on virtually every run.
-      - name: Cache Zig toolchain & packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.zig-build
-          key: zig-toolchain-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('shared-native/package.json', 'shared-native/build.zig.zon') }}
-
-      # Zig's local build cache: the compiled objects of the addon and of the packages it
-      # links. Zig's cache is content-addressed - restoring an outdated one
-      # via restore-keys is safe and turns a cold build into an incremental one.
-      # runner.os/arch are part of the key because shared_native.node is platform-specific.
-      - name: Cache Zig build cache
-        uses: actions/cache@v4
-        with:
-          path: shared-native/.zig-cache
-          key: zig-cache-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('shared-native/build.zig', 'shared-native/build.zig.zon', 'shared-native/napi/**') }}
-          restore-keys: |
-            zig-cache-v1-${{ runner.os }}-${{ runner.arch }}-
-
-      - name: install bun 
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version-file: '.bun-version'
-
-      - name: Boot up test system | docker-compose mariadb mailserver redis
-        run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach mariadb mailserver redis
       
       - name: Prepare test system
         run: |
           sudo chown runner:docker -R *
           bun install --frozen-lockfile
-          sudo cp ./nginx/e2e-test.conf /etc/nginx/sites-available/default
       
       - name: Boot up test system | seed backend
         run: bun turbo seed
@@ -199,35 +71,41 @@ jobs:
         
       - name: End-to-end tests | prepare
         run: |
-          cd e2e-tests/playwright/typescript
-          bun install 
+          cd e2e-tests
+          bun install --frozen-lockfile
 
       - name: wait for frontend and backend to be ready
         run: |
           until nc -z 127.0.0.1 3000; do echo waiting for frontend; sleep 1; done;
           until nc -z 127.0.0.1 4000; do echo waiting for backend; sleep 1; done;
         
-      - name: Start local nginx webserver
+      - name: wait for mailserver and redis to be ready
         run: |
-          sudo nginx -t
-          sudo systemctl start nginx 
-
-      - name: wait for nginx, mailserver and redis to be ready
-        run: |
-          until nc -z 127.0.0.1 80; do echo waiting for nginx; sleep 1; done;
           until nc -z 127.0.0.1 1025; do echo waiting for mailserver; sleep 1; done;
+          until nc -z 127.0.0.1 1080; do echo waiting for mailserver api; sleep 1; done;
           until nc -z 127.0.0.1 6379; do echo waiting for redis; sleep 1; done;
 
       - name: End-to-end tests | run tests
         id: e2e-tests
         run: |
-          cd e2e-tests/playwright/typescript
+          cd e2e-tests
           bun run test --project="Google Chrome"
         
-      - name: End-to-end tests | if tests failed, upload video
-        id: e2e-video
+      - name: End-to-end tests | if tests failed, get pr number
+        id: pr
+        if: ${{ failure() && steps.e2e-tests.conclusion == 'failure' }}
+        uses: 8BitJonny/gh-get-current-pr@2.2.0
+
+      - name: End-to-end tests | if tests failed, upload videos and traces
         if: ${{ failure() && steps.e2e-tests.conclusion == 'failure' }}
         uses: actions/upload-artifact@v4
         with:
-          name: cypress-videos-pr-#${{ steps.pr.outputs.number }}
-          path: /home/runner/work/gradido/gradido/e2e-tests/playwright/typescript/test-results
+          name: e2e-test-results-pr-#${{ steps.pr.outputs.number }}
+          path: /home/runner/work/gradido/gradido/e2e-tests/test-results
+
+      - name: End-to-end tests | if tests failed, upload logs
+        if: ${{ failure() && steps.e2e-tests.conclusion == 'failure' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-logs-pr-#${{ steps.pr.outputs.number }}
+          path: /home/runner/work/gradido/gradido/logs/backend
