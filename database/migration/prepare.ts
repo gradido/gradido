@@ -6,6 +6,8 @@ import { MIGRATIONS_TABLE } from '../src/config/const'
 
 export enum DatabaseState {
   NOT_CONNECTED = 'NOT_CONNECTED',
+  // no table at all, not even `migrations`: `up` builds it from drizzle.schema.ts
+  EMPTY = 'EMPTY',
   LOWER_VERSION = 'LOWER_VERSION',
   HIGHER_VERSION = 'HIGHER_VERSION',
   SAME_VERSION = 'SAME_VERSION',
@@ -74,10 +76,17 @@ export const getDatabaseState = async (): Promise<DatabaseState> => {
   if (result.affectedRows === 1) {
     // biome-ignore lint/suspicious/noConsole: no logger present
     console.log(`Database ${CONFIG.DB_DATABASE} created`)
-    return DatabaseState.LOWER_VERSION
+    connection.destroy()
+    return DatabaseState.EMPTY
   }
 
   await connection.query(`USE ${CONFIG.DB_DATABASE}`)
+
+  const [tables] = await connection.query<RowDataPacket[]>('SHOW TABLES')
+  if (tables.length === 0) {
+    connection.destroy()
+    return DatabaseState.EMPTY
+  }
 
   // check structure of fileNames, normally they should all ends with .ts
   // but from older version they can end all on .js, that we need to fix
