@@ -2,13 +2,10 @@ import {
   AccountState,
   Community as DbCommunity,
   User as DbUser,
-  UserContact as DbUserContact,
   findForeignUserByUuids,
-  UserContactLoggingView,
   UserLoggingView,
 } from 'database'
 import { getLogger } from 'log4js'
-import { UserContactType } from 'shared'
 import { SendCoinsResult } from '../../apis'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
 
