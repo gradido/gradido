@@ -1286,6 +1286,20 @@ export const contactRefs = gql`
   }
 `
 
+export const communityFiguresQuery = gql`
+  query ($since: DateTime!) {
+    communityFigures(since: $since) {
+      since
+      rows {
+        key
+        since
+        week
+        total
+      }
+    }
+  }
+`
+
 export const dynamicStatisticsQuery = gql`
   query {
     communityStatistics {

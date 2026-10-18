@@ -12,6 +12,7 @@ import { ChatGroupResolver } from './resolver/ChatGroupResolver'
 import { ChatReactionResolver } from './resolver/ChatReactionResolver'
 import { ChatResolver } from './resolver/ChatResolver'
 import { ChatVideoServerResolver } from './resolver/ChatVideoServerResolver'
+import { CommunityFiguresResolver } from './resolver/CommunityFiguresResolver'
 import { CommunityResolver } from './resolver/CommunityResolver'
 import { ContactResolver } from './resolver/ContactResolver'
 import { ContributionLinkResolver } from './resolver/ContributionLinkResolver'
@@ -58,6 +59,7 @@ export const schema = (): Promise<GraphQLSchema> => {
       ChatReactionResolver,
       ChatResolver,
       ChatVideoServerResolver,
+      CommunityFiguresResolver,
       CommunityResolver,
       ContactResolver,
       ContributionLinkResolver,
