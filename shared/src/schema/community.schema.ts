@@ -9,20 +9,10 @@ import {
   publicKeyHexStringSchema,
   urlSchema,
   uuidv4Schema,
+  x25519PrivateKeySchema,
+  x25519PublicKeySchema,
 } from './base.schema'
 import { hieroIdSchema } from './typeGuard.schema'
-
-export const communityAuthenticatedSchema = v.object({
-  communityUuid: uuidv4Schema,
-  authenticatedAt: v.date(),
-})
-
-export const communityHandshakeDataSchema = v.object({
-  publicKey: ed25519PublicKeySchema,
-  publicJwtKey: publicJwtKeySchema,
-  url: urlSchema,
-})
-export type CommunityHandshakeData = v.InferOutput<typeof communityHandshakeDataSchema>
 
 export const homeCommunityInsertSchema = v.object({
   foreign: v.optional(v.literal(false), false),
@@ -35,6 +25,8 @@ export const homeCommunityInsertSchema = v.object({
   creationDate: v.date(),
   publicJwtKey: publicJwtKeySchema,
   privateJwtKey: privateJwtKeySchema,
+  publicEncryptionKey: x25519PublicKeySchema,
+  privateEncryptionKey: x25519PrivateKeySchema,
 })
 
 export type HomeCommunityInsertInput = v.InferInput<typeof homeCommunityInsertSchema>
@@ -48,6 +40,7 @@ export const foreignCommunityInsertSchema = v.object({
   name: communityNameSchema,
   description: communityDescriptionSchema,
   publicJwtKey: publicJwtKeySchema,
+  publicEncryptionKey: x25519PublicKeySchema,
   hieroTopicId: v.nullable(hieroIdSchema),
   creationDate: dateSchema,
   updatedAt: dateSchema,
@@ -65,6 +58,7 @@ export const communityInfoWireSchema = v.object({
   creationDate: dateStringSchema,
   publicKey: publicKeyHexStringSchema,
   publicJwtKey: publicJwtKeySchema,
+  publicEncryptionKey: publicKeyHexStringSchema,
   hieroTopicId: v.nullable(hieroIdSchema),
 })
 
@@ -75,6 +69,7 @@ export const foreignCommunityInfoSchema = v.object({
   creationDate: dateSchema,
   publicKey: ed25519PublicKeySchema,
   publicJwtKey: publicJwtKeySchema,
+  publicEncryptionKey: x25519PublicKeySchema,
   hieroTopicId: v.nullable(hieroIdSchema),
 })
 

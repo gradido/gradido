@@ -29,7 +29,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       .map((row: { publicKey: string; ids: string }) => `${row.publicKey} (ids ${row.ids})`)
       .join(', ')
     throw new Error(
-      `0160: ${duplicates.length} public key(s) used by more than one communities row: ${list}. ` +
+      `0162: ${duplicates.length} public key(s) used by more than one communities row: ${list}. ` +
         'A public key names exactly one community; resolve these rows by hand before migrating.',
     )
   }
@@ -44,7 +44,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       )
       .join(', ')
     throw new Error(
-      `0160: ${withoutUuid.length} communities row(s) without community_uuid: ${list}. ` +
+      `0162: ${withoutUuid.length} communities row(s) without community_uuid: ${list}. ` +
         'Set their uuid or delete them by hand before migrating; a foreign community is inserted again with its uuid on the next validation.',
     )
   }

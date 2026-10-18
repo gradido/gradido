@@ -120,6 +120,7 @@ describe('send coins', () => {
     homeCom.foreign = false
     homeCom.name = 'homeCom name'
     homeCom.privateKey = Buffer.from('homeCom privateKey')
+    homeCom.publicEncryptionKey = randomBytes(32)
     homeCom.publicKey = Buffer.from('homeCom publicKey')
     homeCom.url = 'homeCom url'
     homeCom = await DbCommunity.save(homeCom)
@@ -131,6 +132,7 @@ describe('send coins', () => {
     foreignCom.foreign = true
     foreignCom.name = 'foreignCom name'
     foreignCom.privateKey = Buffer.from('foreignCom privateKey')
+    foreignCom.publicEncryptionKey = randomBytes(32)
     foreignCom.publicKey = Buffer.from('foreignCom publicKey')
     foreignCom.url = 'foreignCom_url'
     foreignCom.authenticatedAt = new Date('2000-06-12')
@@ -1311,6 +1313,7 @@ describe('sendEmail', () => {
       peer = await DbCommunity.create({
         foreign: true,
         url: 'http://chat-peer.invalid/api/',
+        publicEncryptionKey: randomBytes(32),
         publicKey: randomBytes(32),
         communityUuid: peerUuid,
         authenticatedAt: new Date(),

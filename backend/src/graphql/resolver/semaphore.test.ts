@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto'
 import {
   ApolloServerTestClient,
   cleanDB,
@@ -99,6 +100,7 @@ describe('semaphore fullstack', () => {
     homeCom.foreign = false
     homeCom.name = 'homeCom name'
     homeCom.privateKey = Buffer.from('homeCom privateKey')
+    homeCom.publicEncryptionKey = randomBytes(32)
     homeCom.publicKey = Buffer.from('homeCom publicKey')
     homeCom.url = 'homeCom url'
     homeCom = await DbCommunity.save(homeCom)

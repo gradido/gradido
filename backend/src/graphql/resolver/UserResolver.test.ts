@@ -327,6 +327,7 @@ describe('UserResolver', () => {
         const otherCommunity = await DbCommunity.create({
           foreign: true,
           url: 'http://other.invalid/api/',
+          publicEncryptionKey: randomBytes(32),
           publicKey: randomBytes(32),
           communityUuid: uuidv4(),
           authenticatedAt: new Date(),
@@ -3863,6 +3864,7 @@ describe('UserResolver', () => {
       homeCom1 = DbCommunity.create()
       homeCom1.foreign = false
       homeCom1.url = 'http://localhost/api'
+      homeCom1.publicEncryptionKey = randomBytes(32)
       homeCom1.publicKey = Buffer.from('publicKey-HomeCommunity')
       homeCom1.privateKey = Buffer.from('privateKey-HomeCommunity')
       homeCom1.communityUuid = uuidv4() // 'HomeCom-UUID'
@@ -3875,6 +3877,7 @@ describe('UserResolver', () => {
       foreignCom1 = DbCommunity.create()
       foreignCom1.foreign = true
       foreignCom1.url = 'http://stage-2.gradido.net/api'
+      foreignCom1.publicEncryptionKey = randomBytes(32)
       foreignCom1.publicKey = Buffer.from('publicKey-stage-2_Community')
       foreignCom1.privateKey = Buffer.from('privateKey-stage-2_Community')
       foreignCom1.communityUuid = uuidv4() // 'Stage2-Com-UUID'
@@ -5179,6 +5182,7 @@ describe('UserResolver', () => {
           peer = await DbCommunity.create({
             foreign: true,
             url: 'http://peer.invalid/api/',
+            publicEncryptionKey: randomBytes(32),
             publicKey: randomBytes(32),
             communityUuid: peerUuid,
             authenticatedAt: new Date(),

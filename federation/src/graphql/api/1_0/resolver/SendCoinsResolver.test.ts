@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, jest } from 'bun:test'
+import { randomBytes } from 'node:crypto'
 import { ApolloServerTestClient, cleanDB, testEnvironment } from '@test/helpers'
 import { EncryptedTransferArgs } from 'core'
 import {
@@ -95,6 +96,7 @@ describe('SendCoinsResolver', () => {
     recipientCom.name = 'homeCom-Name'
     recipientCom.description = 'homeCom-Description'
     recipientCom.creationDate = new Date()
+    recipientCom.publicEncryptionKey = randomBytes(32)
     recipientCom.publicKey = Buffer.alloc(
       32,
       '15F92F8EC2EA685D5FD51EE3588F5B4805EBD330EF9EDD16043F3BA9C35C0D91',
@@ -111,6 +113,7 @@ describe('SendCoinsResolver', () => {
     senderCom.name = 'foreignCom-Name'
     senderCom.description = 'foreignCom-Description'
     senderCom.creationDate = new Date()
+    senderCom.publicEncryptionKey = randomBytes(32)
     senderCom.publicKey = Buffer.alloc(
       32,
       '15F92F8EC2EA685D5FD51EE3588F5B4805EBD330EF9EDD16043F3BA9C35C0D92',
@@ -904,6 +907,7 @@ describe('SendCoinsResolver', () => {
       third.name = 'thirdCom-Name'
       third.description = 'thirdCom-Description'
       third.creationDate = new Date()
+      third.publicEncryptionKey = randomBytes(32)
       third.publicKey = Buffer.from(
         '15F92F8EC2EA685D5FD51EE3588F5B4805EBD330EF9EDD16043F3BA9C35C0D93',
         'hex',

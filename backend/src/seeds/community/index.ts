@@ -1,4 +1,5 @@
 import { Community as DbCommunity } from 'database'
+import { createEncryptionKeyPair } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
 
 import { CONFIG } from '@/config'
@@ -26,6 +27,9 @@ export async function writeHomeCommunityEntry(): Promise<DbCommunity> {
       homeCom.name = CONFIG.COMMUNITY_NAME
       homeCom.description = CONFIG.COMMUNITY_DESCRIPTION
       homeCom.creationDate = new Date()
+      const encryptionKeyPair = createEncryptionKeyPair()
+      homeCom.publicEncryptionKey = encryptionKeyPair.publicKey
+      homeCom.privateEncryptionKey = encryptionKeyPair.privateKey
       await DbCommunity.insert(homeCom)
     }
     return homeCom

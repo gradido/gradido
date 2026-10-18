@@ -111,6 +111,10 @@ async function validateCommunities(logger: Logger): Promise<void> {
               logger.error(
                 `${existingCom.name} changed url from ${existingCom.url} to ${fedCom.url}`,
               )
+            } else if (!fedCom.publicEncryptionKey.equals(existingCom.publicEncryptionKey)) {
+              logger.error(
+                `${existingCom.name} foreign community public encryption key isn't equal to the stored version`,
+              )
             } else if (
               fedCom.name !== existingCom.name ||
               fedCom.description !== existingCom.description ||

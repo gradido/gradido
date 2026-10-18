@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto'
 import { ApolloServerTestClient, cleanDB, testEnvironment } from '@test/helpers'
 import { getLogger } from 'config-schema/test/testSetup'
 import {
@@ -232,6 +233,7 @@ describe('CommunityResolver', () => {
         comHomeCom1 = DbCommunity.create()
         comHomeCom1.foreign = false
         comHomeCom1.url = 'http://localhost'
+        comHomeCom1.publicEncryptionKey = randomBytes(32)
         comHomeCom1.publicKey = Buffer.from(ed25519KeyPairStaticHex[0].public, 'hex')
         comHomeCom1.privateKey = Buffer.from(ed25519KeyPairStaticHex[0].private, 'hex')
         comHomeCom1.communityUuid = 'HomeCom-UUID'
@@ -244,9 +246,10 @@ describe('CommunityResolver', () => {
         comForeignCom1 = DbCommunity.create()
         comForeignCom1.foreign = true
         comForeignCom1.url = 'http://stage-2.gradido.net'
+        comForeignCom1.publicEncryptionKey = randomBytes(32)
         comForeignCom1.publicKey = Buffer.from(ed25519KeyPairStaticHex[3].public, 'hex')
         comForeignCom1.privateKey = Buffer.from(ed25519KeyPairStaticHex[3].private, 'hex')
-        // community_uuid is NOT NULL since migration 0160; not authenticated all the same
+        // community_uuid is NOT NULL since migration 0162; not authenticated all the same
         comForeignCom1.communityUuid = 'Stage2-Com-UUID'
         comForeignCom1.name = 'Stage-2_Community-name'
         comForeignCom1.description = 'Stage-2_Community-description'
@@ -256,6 +259,7 @@ describe('CommunityResolver', () => {
         comForeignCom2 = DbCommunity.create()
         comForeignCom2.foreign = true
         comForeignCom2.url = 'http://stage-3.gradido.net'
+        comForeignCom2.publicEncryptionKey = randomBytes(32)
         comForeignCom2.publicKey = Buffer.from(ed25519KeyPairStaticHex[4].public, 'hex')
         comForeignCom2.privateKey = Buffer.from(ed25519KeyPairStaticHex[4].private, 'hex')
         comForeignCom2.communityUuid = 'Stage3-Com-UUID'

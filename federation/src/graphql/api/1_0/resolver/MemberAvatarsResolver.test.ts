@@ -1,5 +1,7 @@
 // AI-GENERATED — not an architecture reference
+
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'bun:test'
+import { randomBytes } from 'node:crypto'
 import { ApolloServerTestClient, cleanDB, testEnvironment } from '@test/helpers'
 import { EncryptedTransferArgs } from 'core'
 import { AppDatabase, Community as DbCommunity, User as DbUser, userAvatarsTable } from 'database'
@@ -81,6 +83,7 @@ const createCommunity = async (
   community.name = foreign ? 'peerCom-Name' : 'homeCom-Name'
   community.description = foreign ? 'peerCom-Description' : 'homeCom-Description'
   community.creationDate = new Date()
+  community.publicEncryptionKey = randomBytes(32)
   community.publicKey = Buffer.from(publicKeyHex, 'hex')
   community.publicJwtKey = publicKey
   // The peer's private key is kept here only because the test plays the peer as well.

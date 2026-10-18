@@ -79,6 +79,9 @@ const federatedCommunity = (id: number, publicKey = Buffer.alloc(32, id)) => ({
   updatedAt: null,
 })
 
+// every community its own encryption key, by the same first byte
+const encryptionKeyOf = (id: number) => Buffer.alloc(32, 0x80 + id)
+
 // what another community answers on GET communityInfos, as it travels over the wire
 const communityInfoOf = (publicKey: Buffer) => ({
   communityUuid: uuidOf(publicKey[0]),
@@ -87,6 +90,7 @@ const communityInfoOf = (publicKey: Buffer) => ({
   creationDate: '2024-05-06T07:08:09.123Z',
   publicKey: publicKey.toString('hex'),
   publicJwtKey,
+  publicEncryptionKey: encryptionKeyOf(publicKey[0]).toString('hex'),
   hieroTopicId: '0.0.2',
 })
 
@@ -121,6 +125,7 @@ describe('federatedCommunityGetInfoCheckPublicKey', () => {
         creationDate: new Date('2024-05-06T07:08:09.123Z'),
         publicKey: fedCom.publicKey,
         publicJwtKey,
+        publicEncryptionKey: encryptionKeyOf(1),
         hieroTopicId: '0.0.2',
       },
       federatedCommunityId: 1,
@@ -325,6 +330,7 @@ describe('validateCommunities', () => {
     foreign: true,
     url: END_POINT,
     publicKey: Buffer.alloc(32, id),
+    publicEncryptionKey: encryptionKeyOf(id),
     communityUuid: uuidOf(id),
     name: 'Foreign-Community',
     description: 'Description of the Foreign-Community',
@@ -386,6 +392,11 @@ describe('validateCommunities', () => {
       'url',
       { url: 'http://old.example/api/' },
       `Old-name changed url from http://old.example/api/ to ${END_POINT}`,
+    ],
+    [
+      'public encryption key',
+      { publicEncryptionKey: encryptionKeyOf(9) },
+      "Old-name foreign community public encryption key isn't equal to the stored version",
     ],
   ])('neither updates nor inserts a known community whose %s changed', async (_, changes, log) => {
     batches([federatedCommunity(1)])

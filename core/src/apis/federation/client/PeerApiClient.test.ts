@@ -30,6 +30,7 @@ const communityInfo = {
   creationDate: '2026-01-01T00:00:00.000Z',
   publicKey: community.publicKey.toString('hex'),
   publicJwtKey: null,
+  publicEncryptionKey: Buffer.alloc(32, 1).toString('hex'),
   hieroTopicId: null,
 }
 

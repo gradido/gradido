@@ -1,6 +1,11 @@
 import { randomBytes } from 'node:crypto'
 import { eq } from 'drizzle-orm'
-import { createKeyPair, Ed25519PublicKey, MissingHomeCommunityError } from 'shared'
+import {
+  createEncryptionKeyPair,
+  createKeyPair,
+  Ed25519PublicKey,
+  MissingHomeCommunityError,
+} from 'shared'
 import { v4 as uuidv4 } from 'uuid'
 import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from '..'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
@@ -80,6 +85,7 @@ describe('community.queries', () => {
   describe('dbInsertHomeCommunity', () => {
     const homeCommunityInput = async () => {
       const jwtKeyPair = await createKeyPair()
+      const encryptionKeyPair = createEncryptionKeyPair()
       return {
         publicKey: randomBytes(32),
         privateKey: randomBytes(64),
@@ -90,13 +96,16 @@ describe('community.queries', () => {
         creationDate: new Date('2026-01-01T12:00:00.000Z'),
         publicJwtKey: jwtKeyPair.publicKey,
         privateJwtKey: jwtKeyPair.privateKey,
+        publicEncryptionKey: encryptionKeyPair.publicKey,
+        privateEncryptionKey: encryptionKeyPair.privateKey,
       }
     }
 
     it('inserts the home community as not foreign', async () => {
       const input = await homeCommunityInput()
       await dbInsertHomeCommunity(input)
-      const rows = await DbCommunity.find()
+      // Drizzle: the TypeORM entity does not know the encryption keys
+      const rows = await drizzleDb().select().from(communitiesTable)
       expect(rows).toEqual([
         expect.objectContaining({
           ...input,
@@ -237,7 +246,7 @@ describe('community.queries', () => {
       return await community.save()
     }
 
-    // a community without uuid cannot exist any more: community_uuid is NOT NULL since 0160
+    // a community without uuid cannot exist any more: community_uuid is NOT NULL since 0162
     it('finds the foreign communities through the handshake with a key, and no other', async () => {
       // `createCommunity(true)` is already authenticated and has a uuid; each of the others
       // lacks exactly one part.
@@ -353,6 +362,7 @@ describe('community.queries', () => {
     description: 'Answered-description',
     creationDate: new Date('2024-05-06T07:08:09.123Z'),
     publicJwtKey: 'answered-public-jwt-key',
+    publicEncryptionKey: randomBytes(32),
     hieroTopicId: '0.0.2',
     authenticatedAt: new Date('2026-01-02T03:04:05.678Z'),
     updatedAt: new Date('2026-01-02T03:04:05.678Z'),
@@ -372,7 +382,7 @@ describe('community.queries', () => {
       expect(communities[0]).toMatchObject(answer)
     })
 
-    // the unique keys of communities, migration 0160 restored the one on the public key
+    // the unique keys of communities, migration 0162 restored the one on the public key
     describe('names the unique key that refused it', () => {
       const refusedBy = async (community: CommunitiesInsert, uniqueKey: CommunityUniqueKey) => {
         const result = await dbInsertForeignCommunity(community)
