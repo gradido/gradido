@@ -1,4 +1,3 @@
-import { Decimal } from 'decimal.js-light'
 import { getLogger } from 'log4js'
 import { GradidoUnit } from 'shared'
 import { CONFIG } from '../config'

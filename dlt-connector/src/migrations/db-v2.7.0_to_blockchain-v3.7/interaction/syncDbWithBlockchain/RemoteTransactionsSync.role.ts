@@ -16,7 +16,6 @@ import * as v from 'valibot'
 import { Uuidv4 } from '../../../../schemas/typeGuard.schema'
 import { addToBlockchain } from '../../blockchain'
 import { Context } from '../../Context'
-import { DecayCalculationType } from '../../data/DecayCalculationType'
 import { TransactionTypeId } from '../../data/TransactionTypeId'
 import { transactionsTable, usersTable } from '../../drizzle.schema'
 import {

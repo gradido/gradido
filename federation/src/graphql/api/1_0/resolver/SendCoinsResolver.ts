@@ -21,12 +21,9 @@ import {
   PendingTransactionState,
   SendCoinsJwtPayloadType,
   SendCoinsResponseJwtPayloadType,
-  verifyAndDecrypt,
 } from 'shared'
 import { Arg, Mutation, Resolver } from 'type-graphql'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { fullName } from '@/graphql/util/fullName'
-import { LogError } from '@/server/LogError'
 import { TransactionTypeId } from '../enum/TransactionTypeId'
 import { calculateRecipientBalance } from '../util/calculateRecipientBalance'
 // import { checkTradingLevel } from '@/graphql/util/checkTradingLevel'

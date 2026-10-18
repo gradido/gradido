@@ -1,7 +1,7 @@
 import { sql } from 'drizzle-orm'
 import { customType, MySqlVarbinaryOptions } from 'drizzle-orm/mysql-core'
 import { type Geometry } from 'geojson'
-import { GradidoUnit, locationPointSchema } from 'shared'
+import { GradidoUnit } from 'shared'
 import { Geometry as WkxGeometry } from 'wkx'
 
 export const customGradidoUnit = customType<{ data: GradidoUnit; driverData: bigint }>({

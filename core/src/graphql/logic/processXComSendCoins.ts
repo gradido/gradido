@@ -38,7 +38,7 @@ import {
 import { SendEmailCommand } from '../../command/commands/SendEmailCommand'
 import { CONFIG as CONFIG_CORE } from '../../config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
-import { sendTransactionLinkRedeemedEmail, sendTransactionReceivedEmail } from '../../emails'
+import { sendTransactionLinkRedeemedEmail } from '../../emails'
 import { TransactionTypeId } from '../../graphql/enum/TransactionTypeId'
 import { EncryptedTransferArgs } from '../../graphql/model/EncryptedTransferArgs'
 import { calculateSenderBalance } from '../../util/calculateSenderBalance'

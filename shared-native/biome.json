@@ -58,6 +58,7 @@
         "noUnsafeFinally": "error",
         "noUnsafeOptionalChaining": "error",
         "noUnusedLabels": "error",
+        "noUnusedImports": { "level": "error", "fix": "safe" },
         "noUnusedVariables": "error",
         "useIsNan": "error",
         "useValidForDirection": "error",

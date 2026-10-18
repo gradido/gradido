@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { and, asc, count, eq, isNull, like, sql } from 'drizzle-orm'
+import { and, asc, eq, isNull, like, sql } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import { OptInType, Result } from 'shared'
 import { DrizzleTransaction, drizzleDb } from '../AppDatabase'

@@ -3,7 +3,6 @@ import { v4 as uuidv4 } from 'uuid'
 import * as v from 'valibot'
 import {
   HieroTransactionIdString,
-  hieroIdSchema,
   hieroTransactionIdStringSchema,
   Uuidv4,
   uuidv4Schema,
