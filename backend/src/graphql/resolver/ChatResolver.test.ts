@@ -10,7 +10,7 @@ import {
   testNoiseJpeg,
 } from '@test/helpers'
 import { getLogger } from 'config-schema/test/testSetup'
-import { CONFIG as CORE_CONFIG, sendCustomEmail } from 'core'
+import { ChatMessageToStore, CONFIG as CORE_CONFIG, sendCustomEmail, storeChatMessage } from 'core'
 import {
   AppDatabase,
   chatMessageImagesTable,
@@ -20,6 +20,8 @@ import {
   FederatedCommunity as DbFederatedCommunity,
   User as DbUser,
   UserContact as DbUserContact,
+  dbEnsureDirectChatConversation,
+  dbFindDirectChatConversation,
   EventType,
   User,
 } from 'database'
@@ -65,13 +67,16 @@ import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
 
 // The mail is watched, to see which messages go out as one, and answers as a mail that went
 // out: the chat notes MAILED only for such a mail (E-034), and with mail switched off here the
-// real function would answer null. Nothing is sent either way.
+// real function would answer null. Nothing is sent either way. Filing a message is the real one,
+// watched only so that a test can let one fail -- the way it fails in production, see there.
+// (A mock of `database` would not reach core: test/testSetup.ts loads core before this file.)
 jest.mock('core', () => {
   const originalModule = jest.requireActual('core')
   return {
     __esModule: true,
     ...originalModule,
     sendCustomEmail: jest.fn(async () => ({ accepted: ['watched'] })),
+    storeChatMessage: jest.fn(originalModule.storeChatMessage),
   }
 })
 
@@ -568,6 +573,107 @@ describe('the first message of a pair', () => {
 
     expect(copy.notify).toBe('NONE')
     expect(mailed()).toEqual([])
+  })
+})
+
+/** The rows that note a hello from the map (community figures) of one sender, oldest first. */
+const hellosOf = (sender: User) =>
+  DbEvent.find({
+    where: { type: EventType.CHAT_HELLO_SEND, affectedUserId: sender.id },
+    order: { id: 'ASC' },
+  })
+
+/** Writes from the map profile's "say hello" to `to`, as whoever is logged in. */
+const sayFromMap = (to: ChatRef, body: string): Promise<any> =>
+  mutate({
+    mutation: sendChatMessage,
+    variables: { ref: to, body, notify: 'EMAIL', origin: 'MAP' },
+  })
+
+/**
+ * The community figures: the first message of a conversation sent from the map profile (`origin`
+ * MAP) is noted as an event -- the sender affected and acting, the recipient involved, and the
+ * time. A later message, one without `origin` and one that was not filed note nothing.
+ */
+describe('a hello from the map', () => {
+  let hanna: User
+  let ida: User
+  let jan: User
+  let kai: User
+
+  beforeAll(async () => {
+    const member = (name: string) =>
+      userFactory(testEnv, {
+        email: `${name}@hello.example`,
+        firstName: name,
+        lastName: 'Map',
+        alias: `${name}Map`,
+        emailChecked: true,
+      })
+    hanna = await member('hanna')
+    ida = await member('ida')
+    jan = await member('jan')
+    kai = await member('kai')
+    await loginAs('hanna@hello.example')
+  })
+  beforeEach(() => clearMails())
+  afterAll(() => resetToken())
+
+  it('notes the first message once, with the sender affected and acting and the recipient involved', async () => {
+    const res = await sayFromMap(ref(ida), 'Hallo Ida, ich habe Dich auf der Karte gefunden.')
+    expect(res.errors).toBeUndefined()
+
+    expect(await hellosOf(hanna)).toEqual([
+      expect.objectContaining({
+        type: EventType.CHAT_HELLO_SEND,
+        affectedUserId: hanna.id,
+        actingUserId: hanna.id,
+        involvedUserId: ida.id,
+      }),
+    ])
+  })
+
+  it('notes no second hello for a second message from the map to the same member', async () => {
+    const before = await hellosOf(hanna)
+    const res = await sayFromMap(ref(ida), 'Noch eine Frage.')
+    expect(res.errors).toBeUndefined()
+
+    expect(await hellosOf(hanna)).toEqual(before)
+  })
+
+  it('notes nothing for a first message without origin, nor for one from the map after it', async () => {
+    const before = await hellosOf(hanna)
+    await said(ref(jan), 'Hallo Jan.', 'EMAIL')
+    const res = await sayFromMap(ref(jan), 'Ich bin es noch mal, von der Karte.')
+    expect(res.errors).toBeUndefined()
+
+    expect(await hellosOf(hanna)).toEqual(before)
+  })
+
+  // The row is the message: what was not filed was not said. Filing opens the conversation before
+  // the message goes in, so a refused insert leaves it behind, empty -- and the retry, filed into
+  // it, is no first message any more, as for the mail of the first message (E-024): no row either.
+  it('notes nothing where the message could not be filed, nor for the retry into the conversation the attempt opened', async () => {
+    const before = await hellosOf(hanna)
+    // As core's storeChatMessage fails where the database refuses the insert: the conversation
+    // is opened first, then the message is refused, and the function answers null.
+    ;(storeChatMessage as jest.Mock).mockImplementationOnce(async (message: ChatMessageToStore) => {
+      await dbEnsureDirectChatConversation(message.sender, message.recipient)
+      return null
+    })
+    const refused = await sayFromMap(ref(kai), 'Hallo Kai.')
+    expect(refused.errors).toEqual([new GraphQLError('CHAT_MESSAGE_NOT_SENT: NOT_STORED')])
+    expect(await hellosOf(hanna)).toEqual(before)
+    // As in production: the attempt opened the conversation before its message was refused.
+    const pair = (member: User) => ({
+      communityUuid: member.communityUuid,
+      gradidoId: member.gradidoID,
+    })
+    expect(await dbFindDirectChatConversation(pair(hanna), pair(kai))).not.toBeNull()
+
+    const res = await sayFromMap(ref(kai), 'Hallo Kai.')
+    expect(res.errors).toBeUndefined()
+    expect(await hellosOf(hanna)).toEqual(before)
   })
 })
 
@@ -1127,6 +1233,26 @@ describe('sendChatMessage to a member of another community', () => {
     ])
     // Written first, then delivered (E-019).
     expect(inFlight).toEqual(['pending'])
+  })
+
+  // The community figures: a hello from the map across the border is noted as well -- with no
+  // recipient named, as the other member belongs to another community.
+  it('notes a first message from the map with no recipient named', async () => {
+    peerAnswers({ success: true, data: 'mailed' })
+    const stranger = { communityUuid: peerUuid, gradidoID: uuidv4() }
+    const before = await hellosOf(bob)
+
+    const res = await sayFromMap(stranger, 'Hallo von der Karte')
+    expect(res.errors).toBeUndefined()
+
+    expect(await hellosOf(bob)).toEqual([
+      ...before,
+      expect.objectContaining({
+        affectedUserId: bob.id,
+        actingUserId: bob.id,
+        involvedUserId: null,
+      }),
+    ])
   })
 
   it('carries a wish for no mail in the command', async () => {

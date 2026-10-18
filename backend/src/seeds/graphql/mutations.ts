@@ -679,8 +679,9 @@ export const sendChatMessage = gql`
     $body: String!
     $notify: ChatMessageNotify!
     $image: ChatImageInput
+    $origin: ChatMessageOrigin
   ) {
-    sendChatMessage(ref: $ref, body: $body, notify: $notify, image: $image) {
+    sendChatMessage(ref: $ref, body: $body, notify: $notify, image: $image, origin: $origin) {
       id
       messageUuid
       conversationId

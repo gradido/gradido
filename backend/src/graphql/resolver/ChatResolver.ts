@@ -6,6 +6,7 @@ import { MarkChatConversationReadArgs } from '@arg/MarkChatConversationReadArgs'
 import { NewChatMessagesSinceArgs } from '@arg/NewChatMessagesSinceArgs'
 import { SendChatMessageArgs } from '@arg/SendChatMessageArgs'
 import { SetChatConversationMutedArgs } from '@arg/SetChatConversationMutedArgs'
+import { ChatMessageOrigin } from '@enum/ChatMessageOrigin'
 import { MemberAvatarRefInput } from '@input/MemberAvatarRefInput'
 import { ChatMessage } from '@model/ChatMessage'
 import { ChatMessagePage } from '@model/ChatMessagePage'
@@ -98,6 +99,20 @@ const roomOn = ({ baseUrl, host, operator, prefix }: ChatVideoServer): ChatVideo
   createLogger().trace(`chat video room handed out on ${host}`)
   return new ChatVideoRoom(`${baseUrl}${chatVideoRoomName(prefix)}`, host, operator)
 }
+
+/**
+ * A hello from the map, for the community figures: the first message of a conversation, sent
+ * from the map profile. The sender's account number, the recipient's where they are a member
+ * here (none across the border), and the time -- never the text. Written once the message is
+ * filed: the row is the message.
+ */
+const insertHelloFromMapEvent = (senderId: number, recipientId: number | null): Promise<void> =>
+  dbInsertEvent({
+    type: EventType.CHAT_HELLO_SEND,
+    affectedUserId: senderId,
+    actingUserId: senderId,
+    involvedUserId: recipientId,
+  })
 
 /**
  * The chat: the thread with one contact and the caller's marks in it -- the read pointer and
@@ -325,11 +340,16 @@ export class ChatResolver {
    * else is refused, CHAT_MESSAGE_NOT_SENT: UNKNOWN_REPLY, before anything is filed. The copy
    * carries the quotation (`replyTo`). ⚠️ To a member of another community the command does not
    * carry it yet: the sender's copy quotes, the other server files an ordinary message.
+   *
+   * `origin` MAP: sent from the map profile's "say hello". Where the message is the first of the
+   * two, it is noted as an event as well (CHAT_HELLO_SEND, the community figures), once it is
+   * filed -- on both ways. A later message, or one without `origin`, writes none; neither does
+   * one that could not be filed.
    */
   @Authorized([RIGHTS.SEND_CHAT_MESSAGE])
   @Mutation(() => ChatMessage)
   async sendChatMessage(
-    @Args() { ref, body, notify: requested, image, replyTo }: SendChatMessageArgs,
+    @Args() { ref, body, notify: requested, image, replyTo, origin }: SendChatMessageArgs,
     @Ctx() context: Context,
   ): Promise<ChatMessage> {
     const images = image ? [await acceptedPicture(image, context)] : []
@@ -345,6 +365,11 @@ export class ChatResolver {
     const conversation = await dbFindDirectChatConversation(caller, other)
     const notify = chatMessageNotify(requested, conversation !== null)
     const replyToMessageUuid = await checkedReplyTo(replyTo, caller, conversation?.id ?? null)
+    // No conversation yet: the first message of the two, as for the mail above (E-024). A later
+    // one finds the conversation -- so does the retry after an attempt that could not be filed,
+    // as filing opens the conversation before the message. Two first messages sent at the same
+    // moment, from two devices, both count.
+    const helloFromMap = origin === ChatMessageOrigin.MAP && conversation === null
 
     if (await isHomeCommunity(other.communityUuid)) {
       const recipientUser = await findUserByUuids(other.communityUuid, other.gradidoId)
@@ -364,6 +389,9 @@ export class ChatResolver {
       })
       if (!stored) {
         throw new LogError('CHAT_MESSAGE_NOT_SENT: NOT_STORED')
+      }
+      if (helloFromMap) {
+        await insertHelloFromMapEvent(senderUser.id, recipientUser.id)
       }
       const [copy] = await chatMessagesOf([stored], caller)
       return copy
@@ -403,6 +431,11 @@ export class ChatResolver {
     })
     if (!stored) {
       throw new LogError('CHAT_MESSAGE_NOT_SENT: NOT_STORED')
+    }
+    if (helloFromMap) {
+      // Filed here as the sender's copy, also where the delivery failed (E-019). The recipient is a
+      // member of another community: the row names nobody for them.
+      await insertHelloFromMapEvent(senderUser.id, null)
     }
     if (error !== null) {
       createLogger().warn(
