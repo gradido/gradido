@@ -31,9 +31,9 @@ export function migrationRows(dir: string): { version: number; fileName: string 
  * Expects the database to hold nothing but the `migrations` table, empty, as
  * `Migration.initialize()` leaves it - that table's DDL stays the library's own.
  *
- * DDL is not transactional in MariaDB. Should a table fail, the ones created before it are
- * dropped again and `migrations` is left empty, so the next `up` finds a database that is
- * not empty and runs the migrations the long way.
+ * DDL is not transactional in MariaDB. Should a table or the recording of the migrations
+ * fail, the tables created are dropped again and `migrations` is left empty, so the next
+ * `up` finds a database that is not empty and runs the migrations the long way.
  *
  * Returns the file name of the last migration recorded.
  */
@@ -53,15 +53,14 @@ export async function createDatabaseFromSchema(query: QueryFn, dir: string): Pro
       await query(createTableSql(table, schema.tableCollations[name]))
       created.push(name)
     }
+    // One statement, so the database is either recorded at the latest version or not at all.
+    const values = rows.map((row) => `(${row.version}, '${row.fileName}')`).join(', ')
+    await query(`INSERT INTO ${MIGRATIONS_TABLE} (version, fileName) VALUES ${values}`)
   } catch (error) {
     for (const name of created) {
       await query(`DROP TABLE IF EXISTS \`${name}\``)
     }
     throw error
   }
-
-  // One statement, so the database is either recorded at the latest version or not at all.
-  const values = rows.map((row) => `(${row.version}, '${row.fileName}')`).join(', ')
-  await query(`INSERT INTO ${MIGRATIONS_TABLE} (version, fileName) VALUES ${values}`)
   return rows[rows.length - 1].fileName
 }

@@ -5,9 +5,9 @@ import os from 'node:os'
 import path from 'node:path'
 import { Connection, createConnection, RowDataPacket } from 'mysql2/promise'
 import { CONFIG } from '../src/config'
-import { migrationRows } from './createFromSchema'
+import { createDatabaseFromSchema, migrationRows } from './createFromSchema'
 
-describe('migrationRows', () => {
+describe('with migration files', () => {
   let dir: string
 
   beforeAll(() => {
@@ -27,6 +27,20 @@ describe('migrationRows', () => {
       { version: 2, fileName: '0010-ten.ts' },
       { version: 3, fileName: '0100-hundred.ts' },
     ])
+  })
+
+  it('drops every table it created when the migrations cannot be recorded', async () => {
+    const statements: string[] = []
+    const query = async (statement: string) => {
+      statements.push(statement)
+      if (statement.startsWith('INSERT INTO')) {
+        throw new Error('insert failed')
+      }
+    }
+    await expect(createDatabaseFromSchema(query, dir)).rejects.toThrow('insert failed')
+    const created = statements.filter((s) => s.startsWith('CREATE TABLE')).length
+    expect(created).toBeGreaterThan(40)
+    expect(statements.filter((s) => s.startsWith('DROP TABLE')).length).toBe(created)
   })
 })
 
