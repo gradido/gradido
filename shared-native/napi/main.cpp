@@ -1,16 +1,28 @@
-#include "AppContext.h"
+#include "AddonData.h"
+#include "PasswordContext.h"
 #include "CompleteTransaction.h"
 #include "crypto.h"
+#include "Ed25519KeyPair.h"
 #include "gradidoUnit.h"
+#include "HomeCommunityNative.h"
 #include "image.h"
 #include "LedgerAnchor.h"
 #include "types.h"
 #include "utils.h"
+#include "X25519KeyPair.h"
 
 #include <napi.h>
 
+#include <sodium.h>
+
 // Module initialization
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
+    // first: everything below may use libsodium (randombytes, sodium_malloc, ...). Failing here
+    // makes the require fail, instead of a broken addon that only shows it at its first use.
+    if (sodium_init() < 0) {
+        Napi::Error::New(env, "[shared-native] sodium_init failed").ThrowAsJavaScriptException();
+        return exports;
+    }
     if (!gradido::image::CheckAbi(env)) {
         return exports;
     }
@@ -36,10 +48,15 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
     exports.Set("reencodeImage", Napi::Function::New(env, gradido::image::Reencode));
 
     // classes
-    gradido::AppContext::Init(env, exports);
+    // before the classes' Init: they keep their constructors in it
+    env.SetInstanceData<gradido::AddonData>(new gradido::AddonData());
+    gradido::PasswordContext::Init(env, exports);
     gradido::data::runtime::CompleteTransaction::Init(env, exports);
     gradido::utils::MonotonicTimer::Init(env, exports);
     gradido::data::wire::LedgerAnchor::Init(env, exports);
+    gradido::crypto::Ed25519KeyPair::Init(env, exports);
+    gradido::crypto::X25519KeyPair::Init(env, exports);
+    gradido::HomeCommunityNative::Init(env, exports);
 
     return exports;
 }

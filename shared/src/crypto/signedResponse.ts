@@ -1,13 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import {
-  createHash,
-  createPrivateKey,
-  createPublicKey,
-  KeyObject,
-  randomBytes,
-  sign,
-  verify,
-} from 'node:crypto'
+import { createHash, randomBytes } from 'node:crypto'
 import {
   appendSignature,
   component,
@@ -19,10 +11,9 @@ import {
   Verifier,
   verifySignature,
 } from 'http-message-sig'
+import { Ed25519KeyPair } from 'shared-native'
+import { AppContext } from '../AppContext'
 import { DomainError } from '../errorTypes'
-
-/** The Ed25519 key pair a community signs with, as libsodium stores it: privateKey = seed || publicKey. */
-export type SigningCommunity = { publicKey: Buffer; privateKey: Buffer | null }
 
 /** The request a response answers, as far as its signature covers it. */
 export type SignedRequest = { method: string; url: string }
@@ -50,29 +41,13 @@ const COVERED_RESPONSE_COMPONENTS = [
 // No created or expires, so the clocks of the two community servers do not have to agree.
 const REQUIRED_SIGNATURE_PARAMS = ['keyid', 'alg', 'nonce']
 const ALGORITHM = 'ed25519'
+const SIGNATURE_SIZE = 64
 
 /** 128 random bits as hex, for a request whose response is to be signed, see signatureNonceSchema */
 export const createSignatureNonce = (): string => randomBytes(16).toString('hex')
 
 export const contentDigest = (body: string): string =>
   `sha-256=:${createHash('sha256').update(body).digest('base64')}:`
-
-const ed25519PrivateKey = (libsodiumPrivateKey: Buffer): KeyObject =>
-  createPrivateKey({
-    key: {
-      kty: 'OKP',
-      crv: 'Ed25519',
-      d: libsodiumPrivateKey.subarray(0, 32).toString('base64url'),
-      x: libsodiumPrivateKey.subarray(32).toString('base64url'),
-    },
-    format: 'jwk',
-  })
-
-const ed25519PublicKey = (publicKey: Buffer): KeyObject =>
-  createPublicKey({
-    key: { kty: 'OKP', crv: 'Ed25519', x: publicKey.toString('base64url') },
-    format: 'jwk',
-  })
 
 // only method and url of the request are covered, its fields are not
 const requestDescriptor = ({ method, url }: SignedRequest): RequestDescriptor => ({
@@ -83,23 +58,19 @@ const requestDescriptor = ({ method, url }: SignedRequest): RequestDescriptor =>
 })
 
 /**
- * Serializes value as JSON and signs the response with the community's Ed25519 key (RFC 9421).
- * keyid is the community public key as hex, the same key the DHT announces; nonce is the one
- * the request brought, as hex; request is the request answered, its method and path are signed too.
- * @throws Error if the community has no private key - a home community always has one
+ * Serializes value as JSON and signs the response with the home community's Ed25519 key
+ * (RFC 9421). keyid is the community public key as hex, the same key the DHT announces; nonce is
+ * the one the request brought, as hex; request is the request answered, its method and path are
+ * signed too.
  */
 export async function signedJsonResponse(
   value: unknown,
   status: number,
-  community: SigningCommunity,
   nonce: string,
   request: SignedRequest,
 ): Promise<Response> {
-  if (!community.privateKey) {
-    throw new Error('community has no private key, cannot sign the response')
-  }
-  const key = ed25519PrivateKey(community.privateKey)
-  const signer: Signer = { algorithm: ALGORITHM, sign: (data) => sign(null, data, key) }
+  const community = AppContext.getInstance().getHomeCommunity()
+  const signer: Signer = { algorithm: ALGORITHM, sign: (data) => community.sign(data) }
   const body = JSON.stringify(value)
   const fields = [
     { name: 'content-type', value: 'application/json' },
@@ -121,7 +92,7 @@ export async function signedJsonResponse(
 }
 
 /**
- * Resolves if the response was signed by the community with this public key, over this body,
+ * Resolves if the response was signed by the community of this key pair, over this body,
  * as the answer to the request that carried this nonce, with this method and path.
  * @throws InvalidResponseSignatureError if the digest does not match the body, the response is
  *         not signed, the signature is by another key, or the nonce is not the one of the request
@@ -132,7 +103,7 @@ export async function signedJsonResponse(
  */
 export async function verifySignedResponse(
   response: { status: number; headers: Headers; body: string },
-  publicKey: Buffer,
+  keyPair: Ed25519KeyPair,
   nonce: string,
   request: SignedRequest,
 ): Promise<void> {
@@ -143,11 +114,13 @@ export async function verifySignedResponse(
   if (!response.headers.has('signature') && !response.headers.has('signature-input')) {
     throw new InvalidResponseSignatureError('response is not signed')
   }
-  const keyid = publicKey.toString('hex')
-  const key = ed25519PublicKey(publicKey)
+  const keyid = keyPair.publicKeyToHex()
   const verifier: Verifier = {
     algorithm: ALGORITHM,
-    verify: (data, signature) => verify(null, data, key, signature),
+    // the signature is what the other community sent; Ed25519KeyPair.verify throws for one of
+    // another size, here it is simply not valid
+    verify: (data, signature) =>
+      signature.length === SIGNATURE_SIZE && keyPair.verify(data, signature),
   }
   try {
     // No label is named: the library verifies the one signature a response carries, and refuses

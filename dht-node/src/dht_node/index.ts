@@ -1,9 +1,9 @@
 import DHT from '@hyperswarm/dht'
 import {
-  CommunitiesInsert,
   Community as DbCommunity,
   FederatedCommunity as DbFederatedCommunity,
   dbInsertHomeCommunity,
+  dbReplaceHomeCommunitySigningKeys,
   dbSelectHomeCommunity,
   dbUpdateHomeCommunity,
 } from 'database'
@@ -12,6 +12,7 @@ import {
   createEncryptionKeyPair,
   createKeyPair as createJWTKeyPair,
   getChangedFields,
+  HomeCommunityUpdateInput,
 } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
 import { CONFIG } from '@/config'
@@ -42,18 +43,16 @@ function isAscii(buffer: Buffer): boolean {
 }
 
 export const startDHT = async (topic: string): Promise<void> => {
+  // the home community's key pair, the same on every start; a seed that does not belong to the
+  // home community must stop the start, so this is outside the catch below
+  const keyPair = DHT.keyPair(Buffer.from(CONFIG.FEDERATION_DHT_SEED, 'hex')) as KeyPair
+  const pubKeyString = keyPair.publicKey.toString('hex')
+  logger.info(`keyPairDHT: publicKey=${pubKeyString}`)
+  logger.debug(`keyPairDHT: secretKey=${keyPair.secretKey.toString('hex').slice(0, 6)}`)
+  await writeHomeCommunityEntry(keyPair)
+
   try {
     const TOPIC = DHT.hash(Buffer.from(topic))
-    // uses a config defined seed or null, which will generate a random seed for the key pair
-    const keyPair = DHT.keyPair(
-      CONFIG.FEDERATION_DHT_SEED
-        ? Buffer.alloc(KEY_SECRET_SEEDBYTES, CONFIG.FEDERATION_DHT_SEED)
-        : null,
-    ) as KeyPair
-    const pubKeyString = keyPair.publicKey.toString('hex')
-    logger.info(`keyPairDHT: publicKey=${pubKeyString}`)
-    logger.debug(`keyPairDHT: secretKey=${keyPair.secretKey.toString('hex').slice(0, 6)}`)
-    await writeHomeCommunityEntry(keyPair)
 
     const ownApiVersions = await writeFederatedHomeCommunityEntries(pubKeyString)
     logger.info(`ApiList: ${JSON.stringify(ownApiVersions)}`)
@@ -232,18 +231,19 @@ async function writeFederatedHomeCommunityEntries(pubKey: string): Promise<Commu
 async function writeHomeCommunityEntry(keyPair: KeyPair): Promise<void> {
   try {
     // TODO: replace with upsert
-    // fields set in update and in insert
-    const upsertFields = {
-      publicKey: keyPair.publicKey,
-      privateKey: keyPair.secretKey,
+    // the fields an existing home community takes over from the config; its keys never change
+    const updatableFields = {
       url: `${CONFIG.FEDERATION_COMMUNITY_URL}/api/`,
       name: CONFIG.COMMUNITY_NAME,
       description: CONFIG.COMMUNITY_DESCRIPTION,
-    } satisfies Partial<CommunitiesInsert>
+    } satisfies HomeCommunityUpdateInput
 
     const homeCom = await dbSelectHomeCommunity()
     if (homeCom) {
-      const updateFields = getChangedFields(homeCom, upsertFields)
+      if (!homeCom.publicKey.equals(keyPair.publicKey)) {
+        await replaceFillSeedKeys(homeCom.publicKey, keyPair)
+      }
+      const updateFields = getChangedFields(homeCom, updatableFields)
       if (updateFields.success) {
         // simply update the existing entry, but it MUST keep the ID and UUID because of possible relations
         await dbUpdateHomeCommunity(updateFields.value)
@@ -255,7 +255,9 @@ async function writeHomeCommunityEntry(keyPair: KeyPair): Promise<void> {
       const jwtKeyPair = await createJWTKeyPair()
       const encryptionKeyPair = createEncryptionKeyPair()
       await dbInsertHomeCommunity({
-        ...upsertFields,
+        ...updatableFields,
+        publicKey: keyPair.publicKey,
+        privateKey: keyPair.secretKey,
         communityUuid: await newCommunityUuid(),
         creationDate: new Date(),
         publicJwtKey: jwtKeyPair.publicKey,
@@ -268,6 +270,25 @@ async function writeHomeCommunityEntry(keyPair: KeyPair): Promise<void> {
   } catch (err) {
     throw new Error(`Federation: Error writing HomeCommunity-Entry: ${err}`)
   }
+}
+
+/**
+ * Until 10.2026 the seed was not decoded from hex but used as fill string, its first 32
+ * characters as bytes. A home community with the key of that seed gets the key of the decoded
+ * one, once; any other key does not belong to FEDERATION_DHT_SEED and stops the start.
+ * TODO: remove once every community has started once with the decoded seed
+ */
+async function replaceFillSeedKeys(storedPublicKey: Buffer, keyPair: KeyPair): Promise<void> {
+  const fillSeedKeyPair = DHT.keyPair(
+    Buffer.alloc(KEY_SECRET_SEEDBYTES, CONFIG.FEDERATION_DHT_SEED),
+  ) as KeyPair
+  if (!storedPublicKey.equals(fillSeedKeyPair.publicKey)) {
+    throw new Error('FEDERATION_DHT_SEED does not belong to the existing home community')
+  }
+  await dbReplaceHomeCommunitySigningKeys(keyPair.publicKey, keyPair.secretKey)
+  logger.warn(
+    `home-community key replaced, now derived from the hex-decoded seed: ${storedPublicKey.toString('hex')} -> ${keyPair.publicKey.toString('hex')}`,
+  )
 }
 
 const newCommunityUuid = async (): Promise<string> => {

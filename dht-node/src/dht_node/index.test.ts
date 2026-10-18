@@ -13,7 +13,7 @@ import { ApiVersionType } from './ApiVersionType'
 
 import { startDHT } from './index'
 
-CONFIG.FEDERATION_DHT_SEED = '64ebcb0e3ad547848fef4197c6e2332f'
+CONFIG.FEDERATION_DHT_SEED = '64ebcb0e3ad547848fef4197c6e2332f64ebcb0e3ad547848fef4197c6e2332f'
 CONFIG.FEDERATION_COMMUNITY_APIS = [ApiVersionType.V1_0, ApiVersionType.V1_1, ApiVersionType.V2_0]
 
 jest.mock('@hyperswarm/dht')
@@ -143,8 +143,8 @@ describe('federation', () => {
       expect(hashSpy).toHaveBeenCalledWith(Buffer.from(TEST_TOPIC))
     })
 
-    it('creates a key pair', () => {
-      expect(keyPairSpy).toHaveBeenCalledWith(expect.any(Buffer))
+    it('creates the key pair from the hex-decoded seed', () => {
+      expect(keyPairSpy).toHaveBeenCalledWith(Buffer.from(CONFIG.FEDERATION_DHT_SEED, 'hex'))
     })
 
     it('initializes a new DHT object', () => {
@@ -967,6 +967,70 @@ describe('federation', () => {
               updatedAt: expect.any(Date),
             },
           ])
+        })
+      })
+
+      describe('with a seed that does not belong to the home community', () => {
+        beforeEach(async () => {
+          DHT.mockClear()
+          jest.clearAllMocks()
+          homeCommunity = (await DbCommunity.find())[0]
+          const otherKeyPair = {
+            publicKey: Buffer.alloc(32, 'otherPublicKey'),
+            secretKey: Buffer.alloc(64, 'otherSecretKey'),
+          }
+          // the decoded seed and the former fill-string seed alike
+          DHT.keyPair.mockImplementationOnce(() => otherKeyPair)
+          DHT.keyPair.mockImplementationOnce(() => otherKeyPair)
+        })
+
+        it('stops the start and keeps the keys of the home community', async () => {
+          await expect(startDHT(TEST_TOPIC)).rejects.toThrow(
+            'FEDERATION_DHT_SEED does not belong to the existing home community',
+          )
+          expect(DHT).not.toHaveBeenCalled()
+          await expect(DbCommunity.find()).resolves.toEqual([homeCommunity])
+        })
+      })
+
+      describe('with the key of the seed used as fill string, as until 10.2026', () => {
+        const fillSeedKeyPair = {
+          publicKey: Buffer.alloc(32, 'fillSeedPublicKey'),
+          secretKey: Buffer.alloc(64, 'fillSeedSecretKey'),
+        }
+        beforeEach(async () => {
+          DHT.mockClear()
+          jest.clearAllMocks()
+          await DbCommunity.update(
+            { foreign: false },
+            { publicKey: fillSeedKeyPair.publicKey, privateKey: fillSeedKeyPair.secretKey },
+          )
+          homeCommunity = (await DbCommunity.find())[0]
+          DHT.keyPair.mockImplementation((seed: Buffer) =>
+            seed.equals(Buffer.alloc(32, CONFIG.FEDERATION_DHT_SEED))
+              ? fillSeedKeyPair
+              : keyPairMock,
+          )
+          await startDHT(TEST_TOPIC)
+        })
+
+        afterEach(() => {
+          DHT.keyPair.mockImplementation(() => keyPairMock)
+        })
+
+        it('replaces it once with the key of the decoded seed', async () => {
+          await expect(DbCommunity.find()).resolves.toEqual([
+            {
+              ...homeCommunity,
+              publicKey: keyPairMock.publicKey,
+              privateKey: keyPairMock.secretKey,
+              updatedAt: expect.any(Date),
+            },
+          ])
+        })
+
+        it('announces with the key of the decoded seed', () => {
+          expect(DHT).toHaveBeenCalledWith({ keyPair: keyPairMock })
         })
       })
 

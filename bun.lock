@@ -91,7 +91,6 @@
         "@elysia/node": "1.4.5",
         "cross-env": "^7.0.3",
         "email-templates": "^10.0.1",
-        "sodium-native": "^3.4.1",
       },
       "devDependencies": {
         "@anatine/esbuild-decorators": "^0.2.19",
@@ -111,7 +110,6 @@
         "@types/lodash.clonedeep": "^4.5.6",
         "@types/node": "^24.9.1",
         "@types/qs": "^6.15.1",
-        "@types/sodium-native": "^2.3.5",
         "@types/source-map-support": "^0.5.10",
         "@types/uuid": "^8.3.4",
         "await-semaphore": "^0.1.3",
@@ -194,7 +192,6 @@
         "redis-semaphore": "^5.6.2",
         "shared": "*",
         "shared-native": "*",
-        "sodium-native": "^3.4.1",
         "valibot": "1.1.0",
       },
       "devDependencies": {
@@ -203,7 +200,6 @@
         "@types/i18n": "^0.13.4",
         "@types/node": "^24.9.1",
         "@types/nodemailer": "^6.4.4",
-        "@types/sodium-native": "^2.3.5",
         "dotenv": "^16.6.1",
         "graphql": "16.14.2",
         "graphql-request": "5.0.0",
@@ -295,7 +291,6 @@
       "dependencies": {
         "cross-env": "^7.0.3",
         "email-templates": "^10.0.1",
-        "sodium-native": "^3.4.1",
       },
       "devDependencies": {
         "@anatine/esbuild-decorators": "^0.2.19",
@@ -306,7 +301,6 @@
         "@types/bun": "1.4.3",
         "@types/lodash.clonedeep": "^4.5.6",
         "@types/node": "^24.9.1",
-        "@types/sodium-native": "^2.3.5",
         "@types/uuid": "^8.3.4",
         "await-semaphore": "0.1.3",
         "class-validator": "^0.14.3",
@@ -1193,8 +1187,6 @@
     "@types/send": ["@types/send@0.17.6", "", { "dependencies": { "@types/mime": "^1", "@types/node": "*" } }, "sha512-Uqt8rPBE8SY0RK8JB1EzVOIZ32uqy8HwdxCnoCOsYrvnswqmFZ/k+9Ikidlk/ImhsdvBsloHbAlewb2IEBV/Og=="],
 
     "@types/serve-static": ["@types/serve-static@1.15.10", "", { "dependencies": { "@types/http-errors": "*", "@types/node": "*", "@types/send": "<1" } }, "sha512-tRs1dB+g8Itk72rlSI2ZrW6vZg0YrLI81iQSTkMmOqnqCaNr/8Ek4VwWcN5vZgCYWbg/JJSGBlUaYGAOP73qBw=="],
-
-    "@types/sodium-native": ["@types/sodium-native@2.3.9", "", { "dependencies": { "@types/node": "*" } }, "sha512-jZIg5ltGH1okmnH3FrLQsgwjcjOVozMSHwSiEm1/LpMekhOMHbQqp21P4H24mizh1BjwI6Q8qmphmD/HJuAqWg=="],
 
     "@types/source-map-support": ["@types/source-map-support@0.5.10", "", { "dependencies": { "source-map": "^0.6.0" } }, "sha512-tgVP2H469x9zq34Z0m/fgPewGhg/MLClalNOiPIzQlXrSS2YrKu/xCdSCKnEDwkFha51VKEKB6A9wW26/ZNwzA=="],
 
@@ -2644,8 +2636,6 @@
 
     "node-fetch": ["node-fetch@2.7.0", "", { "dependencies": { "whatwg-url": "^5.0.0" }, "peerDependencies": { "encoding": "^0.1.0" }, "optionalPeers": ["encoding"] }, "sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A=="],
 
-    "node-gyp-build": ["node-gyp-build@4.8.4", "", { "bin": { "node-gyp-build": "bin.js", "node-gyp-build-optional": "optional.js", "node-gyp-build-test": "build-test.js" } }, "sha512-LA4ZjwlnUblHVgq0oBF3Jl/6h/Nvs5fzBLwdEF4nuxnFdsfajde4WfxtJr3CaiH+F6ewcIB/q4jQ4UzPyid+CQ=="],
-
     "node-html-parser": ["node-html-parser@5.4.2", "", { "dependencies": { "css-select": "^4.2.1", "he": "1.2.0" } }, "sha512-RaBPP3+51hPne/OolXxcz89iYvQvKOydaqoePpOgXcrOKZhjVIzmpKZz+Hd/RBO2/zN2q6CNJhQzucVz+u3Jyw=="],
 
     "node-int64": ["node-int64@0.4.0", "", {}, "sha512-O5lz91xSOeoXP6DulyHfllpq+Eg00MWitZIbtPfoSEvqIHdl5gfcY6hYzDWnj0qD5tz52PI08u9qUvSVeUBeHw=="],
@@ -3042,7 +3032,7 @@
 
     "slick": ["slick@1.12.2", "", {}, "sha512-4qdtOGcBjral6YIBCWJ0ljFSKNLz9KkhbWtuGvUyRowl1kxfuE1x/Z/aJcaiilpb3do9bl5K7/1h9XC5wWpY/A=="],
 
-    "sodium-native": ["sodium-native@3.4.1", "", { "dependencies": { "node-gyp-build": "^4.3.0" } }, "sha512-PaNN/roiFWzVVTL6OqjzYct38NSXewdl2wz8SRB51Br/MLIJPrbM3XexhVWkq7D3UWMysfrhKVf1v1phZq6MeQ=="],
+    "sodium-native": ["sodium-native@4.3.3", "", { "dependencies": { "require-addon": "^1.1.0" } }, "sha512-OnxSlN3uyY8D0EsLHpmm2HOFmKddQVvEMmsakCrXUzSd8kjjbzL413t4ZNF3n0UxSwNgwTyUvkmZHTfuCeiYSw=="],
 
     "sodium-secretstream": ["sodium-secretstream@1.2.0", "", { "dependencies": { "b4a": "^1.1.1", "sodium-universal": "^5.0.0" } }, "sha512-q/DbraNFXm1KfCiiZvapmz5UC3OlpirYFIvBK2MhGaOFSb3gRyk8OXTi17UI9SGfshQNCpsVvlopogbzZNyW6Q=="],
 
@@ -3823,8 +3813,6 @@
     "simple-update-notifier/semver": ["semver@7.0.0", "", { "bin": { "semver": "bin/semver.js" } }, "sha512-+GB6zVA9LWh6zovYQLALHwv5rb2PHGlJi3lfiqIHxR0uuwCgefcOJc59v9fv1w8GbStwxuuqqAjI9NMAOOgq1A=="],
 
     "sodium-secretstream/sodium-universal": ["sodium-universal@5.0.1", "", { "dependencies": { "sodium-native": "^5.0.1" }, "peerDependencies": { "sodium-javascript": "~0.8.0" }, "optionalPeers": ["sodium-javascript"] }, "sha512-rv+aH+tnKB5H0MAc2UadHShLMslpJsc4wjdnHRtiSIEYpOetCgu8MS4ExQRia+GL/MK3uuCyZPeEsi+J3h+Q+Q=="],
-
-    "sodium-universal/sodium-native": ["sodium-native@4.3.3", "", { "dependencies": { "require-addon": "^1.1.0" } }, "sha512-OnxSlN3uyY8D0EsLHpmm2HOFmKddQVvEMmsakCrXUzSd8kjjbzL413t4ZNF3n0UxSwNgwTyUvkmZHTfuCeiYSw=="],
 
     "source-map-support/source-map": ["source-map@0.6.1", "", {}, "sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g=="],
 

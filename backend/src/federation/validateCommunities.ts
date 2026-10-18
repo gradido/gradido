@@ -20,6 +20,7 @@ import {
   foreignCommunityUpdatesSchema,
   Uuidv4,
 } from 'shared'
+import { Ed25519KeyPair } from 'shared-native'
 import * as v from 'valibot'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
@@ -170,8 +171,10 @@ async function federatedCommunityGetInfoCheckPublicKey(fedComB: FederatedCommuni
   const logger = createLogger()
   logger.addContext('apiUrl', fedComB.endPoint)
 
-  const peerClient = PeerApiClientCache.getInstance().get(fedComB.endPoint, fedComB.publicKey)
-  // the client refuses an answer whose signature does not verify against fedComB.publicKey
+  // the announced public key as a key pair, as soon as it is used as a key
+  const keyPair = new Ed25519KeyPair(fedComB.publicKey)
+  const peerClient = PeerApiClientCache.getInstance().get(fedComB.endPoint, keyPair)
+  // the client refuses an answer whose signature does not verify against that key
   const { data: rawPubComInfo, error } = await peerClient.getCommunityInfos()
   // TODO: write last error into db
   if (!rawPubComInfo) {

@@ -5,22 +5,24 @@
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test'
 import { cleanDB } from '@test/helpers'
 import { PeerApiClient } from 'core'
-import { AppDatabase, dbInsertHomeCommunity } from 'database'
+import { AppDatabase, dbInsertHomeCommunity, getHomeCommunityDrizzle } from 'database'
 import type { AnyElysia } from 'elysia'
 import { getLogger } from 'log4js'
-import { createEncryptionKeyPair, createKeyPair, InvalidResponseSignatureError } from 'shared'
-import { crypto_sign_keypair } from 'sodium-native'
+import {
+  AppContext,
+  createEncryptionKeyPair,
+  createKeyPair,
+  InvalidResponseSignatureError,
+} from 'shared'
+import { Ed25519KeyPair } from 'shared-native'
 import { createServer } from './createServer'
 
-// a key pair as the dht-node stores it: libsodium, privateKey = seed || publicKey
-const libsodiumKeyPair = () => {
-  const publicKey = Buffer.alloc(32)
-  const privateKey = Buffer.alloc(64)
-  crypto_sign_keypair(publicKey, privateKey)
-  return { publicKey, privateKey }
+// the keys as the dht-node stores them: libsodium, privateKey = seed || publicKey
+const homeKeyPair = Ed25519KeyPair.generate()
+const homeKeys = {
+  publicKey: homeKeyPair.publicKeyToBuffer(),
+  privateKey: Buffer.concat([homeKeyPair.privateKeyToBuffer(), homeKeyPair.publicKeyToBuffer()]),
 }
-
-const homeKeys = libsodiumKeyPair()
 const homeEncryptionKeys = createEncryptionKeyPair()
 const home = {
   communityUuid: '56a55482-909e-46a4-bfa2-cd025e894eba',
@@ -47,6 +49,8 @@ beforeAll(async () => {
     publicEncryptionKey: homeEncryptionKeys.publicKey,
     privateEncryptionKey: homeEncryptionKeys.privateKey,
   })
+  // as federation's main does at start
+  AppContext.getInstance().setHomeCommunity(await getHomeCommunityDrizzle())
   app.listen(0)
   url = `http://localhost:${app.server?.port}/`
 })
@@ -59,7 +63,10 @@ afterAll(async () => {
 
 describe('GET peer-api/v1/communityInfos', () => {
   it('hands the peer the home community, signed by its key', async () => {
-    const { data, error } = await new PeerApiClient(url, homeKeys.publicKey).getCommunityInfos()
+    const { data, error } = await new PeerApiClient(
+      url,
+      new Ed25519KeyPair(homeKeys.publicKey),
+    ).getCommunityInfos()
 
     expect(error).toBeNull()
     // Eden types the date as the string on the wire, and hands it out read as Date
@@ -79,7 +86,7 @@ describe('GET peer-api/v1/communityInfos', () => {
   it('is refused by a peer that expects another key', async () => {
     const { data, error } = await new PeerApiClient(
       url,
-      libsodiumKeyPair().publicKey,
+      new Ed25519KeyPair(Ed25519KeyPair.generate().publicKeyToBuffer()),
     ).getCommunityInfos()
 
     expect(data).toBeNull()

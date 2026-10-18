@@ -4,7 +4,9 @@ import {
   CachedValue,
   Ed25519PublicKey,
   HomeCommunityInsertInput,
+  HomeCommunityUpdateInput,
   homeCommunityInsertSchema,
+  homeCommunityUpdateSchema,
   MissingHomeCommunityError,
   Uuidv4,
   urlSchema,
@@ -22,8 +24,8 @@ import { CommunitiesInsert, CommunitiesSelect, communitiesTable } from '../schem
 /** Announces a change of the home community row, see `AppDatabase.publish()`. */
 export const HOME_COMMUNITY_CHANGED_CHANNEL = 'home_community_changed'
 
-// Shared between processes: the dht-node rewrites the row at startup, backend and federation
-// each hold their own cached copy.
+// Shared between processes: the dht-node writes url, name and description at startup, the
+// backend's admin the settings; backend and federation each hold their own cached copy.
 const homeCommunityCache = new CachedValue(
   async () => {
     const homeCom = await dbSelectHomeCommunity()
@@ -86,11 +88,42 @@ export async function dbInsertHomeCommunity(
   homeCommunityCache.invalidateEverywhere()
 }
 
-export async function dbUpdateHomeCommunity(values: Partial<CommunitiesInsert>): Promise<void> {
+/**
+ * Writes the fields homeCommunityUpdateSchema allows; any other field, a key above all, is
+ * dropped by the parse.
+ */
+export async function dbUpdateHomeCommunity(values: HomeCommunityUpdateInput): Promise<void> {
   // updatedAt: the TypeORM entity sets it via @UpdateDateColumn, the column itself has no ON UPDATE
   const result = await drizzleDb()
     .update(communitiesTable)
-    .set({ ...values, updatedAt: new Date() })
+    .set({ ...v.parse(homeCommunityUpdateSchema, values), updatedAt: new Date() })
+    .where(eq(communitiesTable.foreign, false))
+  homeCommunityCache.invalidateEverywhere()
+  if (!result[0].affectedRows) {
+    throw new MissingHomeCommunityError()
+  }
+}
+
+/**
+ * Replaces the signing key pair of the home community. Only for the one-time move of the
+ * dht-node from a FEDERATION_DHT_SEED used as fill string to the hex-decoded one; apart from it
+ * the keys never change, see homeCommunityUpdateSchema.
+ * TODO: remove once every community has started once with the decoded seed
+ */
+export async function dbReplaceHomeCommunitySigningKeys(
+  publicKey: Buffer,
+  privateKey: Buffer,
+): Promise<void> {
+  const keys = v.parse(
+    v.object({
+      publicKey: homeCommunityInsertSchema.entries.publicKey,
+      privateKey: homeCommunityInsertSchema.entries.privateKey,
+    }),
+    { publicKey, privateKey },
+  )
+  const result = await drizzleDb()
+    .update(communitiesTable)
+    .set({ ...keys, updatedAt: new Date() })
     .where(eq(communitiesTable.foreign, false))
   homeCommunityCache.invalidateEverywhere()
   if (!result[0].affectedRows) {

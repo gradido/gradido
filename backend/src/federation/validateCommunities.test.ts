@@ -9,6 +9,7 @@
 //   after every declaration, for bun too, which does not hoist at all
 // - bun keeps a module mock for the rest of the process: `--isolate` gives each file its own
 import { createKeyPair } from 'shared'
+import { Ed25519KeyPair } from 'shared-native'
 
 const mockLogger = {
   debug: jest.fn(),
@@ -106,7 +107,12 @@ describe('federatedCommunityGetInfoCheckPublicKey', () => {
 
     await federatedCommunityGetInfoCheckPublicKey(fedCom)
 
-    expect(mockGetPeerApiClient).toHaveBeenCalledWith(END_POINT, fedCom.publicKey)
+    expect(mockGetPeerApiClient).toHaveBeenCalledTimes(1)
+    const [url, keyPair] = mockGetPeerApiClient.mock.calls[0] as [string, Ed25519KeyPair]
+    expect(url).toBe(END_POINT)
+    // the announced key, as a key pair without private key
+    expect(keyPair.publicKeyToBuffer()).toEqual(fedCom.publicKey)
+    expect(keyPair.hasPrivateKey()).toBe(false)
   })
 
   it('hands out the parsed answer as foreign community at the announced endpoint', async () => {
@@ -211,11 +217,12 @@ describe('validateCommunities', () => {
   }
   // every community answers with its own key, except those named
   const answering = (silent: number[] = []) => {
-    mockGetPeerApiClient.mockImplementation((_url: string, publicKey: Buffer) =>
-      silent.includes(publicKey[0])
+    mockGetPeerApiClient.mockImplementation((_url: string, keyPair: Ed25519KeyPair) => {
+      const publicKey = keyPair.publicKeyToBuffer()
+      return silent.includes(publicKey[0])
         ? peerClient()
-        : peerClient({ communityInfos: { data: communityInfoOf(publicKey) } }),
-    )
+        : peerClient({ communityInfos: { data: communityInfoOf(publicKey) } })
+    })
   }
   const writesSucceed = (count: number) => {
     mockDatabase.dbUpdateFederatedCommunitiesVerified.mockResolvedValue(count)
@@ -304,11 +311,12 @@ describe('validateCommunities', () => {
 
   it('logs an answer that could not be read and goes on with the others', async () => {
     batches([federatedCommunity(1), federatedCommunity(2)])
-    mockGetPeerApiClient.mockImplementation((_url: string, publicKey: Buffer) =>
-      publicKey[0] === 1
+    mockGetPeerApiClient.mockImplementation((_url: string, keyPair: Ed25519KeyPair) => {
+      const publicKey = keyPair.publicKeyToBuffer()
+      return publicKey[0] === 1
         ? peerClient({ communityInfos: { data: { name: 'not a community info' } } })
-        : peerClient({ communityInfos: { data: communityInfoOf(publicKey) } }),
-    )
+        : peerClient({ communityInfos: { data: communityInfoOf(publicKey) } })
+    })
     writesSucceed(1)
 
     await validateCommunities(mockLogger as never)
