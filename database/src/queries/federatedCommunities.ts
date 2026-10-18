@@ -1,12 +1,6 @@
 import { and, asc, eq, gt, inArray, isNull, lt, or } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
-import {
-  FederatedCommunity,
-  federatedCommunitySchema,
-  federationApiVersions,
-  Result,
-  VoidResult,
-} from 'shared'
+import { FederatedCommunity, federatedCommunitySchema, federationApiVersions, Result } from 'shared'
 import * as v from 'valibot'
 import { DrizzleTransaction, drizzleDb, federatedCommunitiesTable } from '..'
 import { FederatedCommunity as DbFederatedCommunity } from '../entity'
