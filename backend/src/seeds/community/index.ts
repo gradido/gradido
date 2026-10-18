@@ -17,10 +17,8 @@ export async function writeHomeCommunityEntry(): Promise<DbCommunity> {
     // check for existing homeCommunity entry
     let homeCom = await DbCommunity.findOne({ where: { foreign: false } })
     if (homeCom) {
-      // simply update the existing entry, but it MUST keep the ID and UUID because of possible relations
-      const { publicKey, privateKey } = signingKeys()
-      homeCom.publicKey = publicKey
-      homeCom.privateKey = privateKey
+      // simply update the existing entry, but it MUST keep the ID and UUID because of possible
+      // relations, and its keys never change
       homeCom.url = 'http://localhost/api/'
       homeCom.name = CONFIG.COMMUNITY_NAME
       homeCom.description = CONFIG.COMMUNITY_DESCRIPTION

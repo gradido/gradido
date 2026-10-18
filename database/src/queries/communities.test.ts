@@ -145,6 +145,14 @@ describe('community.queries', () => {
         updatedAt: expect.any(Date),
       })
     })
+    it('does not write the keys', async () => {
+      const homeCom = await createCommunity(false)
+      // as plain JS would hand them in, past the type
+      const values = { name: 'new name', publicKey: randomBytes(32), privateKey: randomBytes(64) }
+      await dbUpdateHomeCommunity(values)
+      const updated = await DbCommunity.findOneByOrFail({ id: homeCom.id })
+      expect(updated).toEqual({ ...homeCom, name: 'new name', updatedAt: expect.any(Date) })
+    })
     it('leaves other communities alone', async () => {
       const foreign = await createCommunity(true)
       await createCommunity(false)

@@ -13,7 +13,7 @@ import { ApiVersionType } from './ApiVersionType'
 
 import { startDHT } from './index'
 
-CONFIG.FEDERATION_DHT_SEED = '64ebcb0e3ad547848fef4197c6e2332f'
+CONFIG.FEDERATION_DHT_SEED = '64ebcb0e3ad547848fef4197c6e2332f64ebcb0e3ad547848fef4197c6e2332f'
 CONFIG.FEDERATION_COMMUNITY_APIS = [ApiVersionType.V1_0, ApiVersionType.V1_1, ApiVersionType.V2_0]
 
 jest.mock('@hyperswarm/dht')
@@ -967,6 +967,26 @@ describe('federation', () => {
               updatedAt: expect.any(Date),
             },
           ])
+        })
+      })
+
+      describe('with a seed that does not belong to the home community', () => {
+        beforeEach(async () => {
+          DHT.mockClear()
+          jest.clearAllMocks()
+          homeCommunity = (await DbCommunity.find())[0]
+          DHT.keyPair.mockImplementationOnce(() => ({
+            publicKey: Buffer.alloc(32, 'otherPublicKey'),
+            secretKey: Buffer.alloc(64, 'otherSecretKey'),
+          }))
+        })
+
+        it('stops the start and keeps the keys of the home community', async () => {
+          await expect(startDHT(TEST_TOPIC)).rejects.toThrow(
+            'FEDERATION_DHT_SEED does not belong to the existing home community',
+          )
+          expect(DHT).not.toHaveBeenCalled()
+          await expect(DbCommunity.find()).resolves.toEqual([homeCommunity])
         })
       })
 

@@ -16,12 +16,7 @@ async function main() {
   const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}`)
   // open mysql connection
   await AppDatabase.getInstance().init()
-  logger.debug(`dhtseed set by CONFIG.FEDERATION_DHT_SEED=${CONFIG.FEDERATION_DHT_SEED}`)
-  logger.info(
-    `starting Federation on ${CONFIG.FEDERATION_DHT_TOPIC} ${
-      CONFIG.FEDERATION_DHT_SEED ? 'with seed...' : 'without seed...'
-    }`,
-  )
+  logger.info(`starting Federation on ${CONFIG.FEDERATION_DHT_TOPIC}`)
   await startDHT(CONFIG.FEDERATION_DHT_TOPIC)
 }
 

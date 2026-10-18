@@ -4,7 +4,6 @@ import {
   communityDescriptionSchema,
   communityNameSchema,
   communityUrlOf,
-  configRule,
   httpUrlSchema,
   LOG_FILES_BASE_PATH,
   LOG_LEVEL,
@@ -46,17 +45,11 @@ const environment = v.object({
     ),
     'GRADIDO_HUB',
   ),
-  // null without a seed, allowed in development; the rule below asks for the seed otherwise
-  FEDERATION_DHT_SEED: v.optional(
-    v.nullable(
-      v.pipe(
-        nonEmptyStringSchema,
-        v.description(
-          'Seed for libsodium crypto_sign_seed_keypair. Valid hex with 64 characters in production',
-        ),
-      ),
-    ),
-    null,
+  // required everywhere: the home community's key pair is derived from it and never changes
+  FEDERATION_DHT_SEED: v.pipe(
+    v.string(),
+    v.regex(HEX_64, 'need to be valid hex with 64 character'),
+    v.description('Seed for libsodium crypto_sign_seed_keypair, valid hex with 64 characters'),
   ),
   FEDERATION_COMMUNITY_URL: v.optional(
     v.pipe(httpUrlSchema, v.description('Community URL for federation, defaults to COMMUNITY_URL')),
@@ -86,11 +79,4 @@ export const schema = v.pipe(
       FEDERATION_COMMUNITY_URL: env.FEDERATION_COMMUNITY_URL ?? COMMUNITY_URL,
     }
   }),
-  configRule(
-    'FEDERATION_DHT_SEED',
-    (config) =>
-      config.NODE_ENV === 'development' ||
-      (typeof config.FEDERATION_DHT_SEED === 'string' && HEX_64.test(config.FEDERATION_DHT_SEED)),
-    'need to be valid hex with 64 character',
-  ),
 )

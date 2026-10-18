@@ -3,7 +3,6 @@ import { EditCommunityInput } from '@input/EditCommunityInput'
 import { AdminCommunityView } from '@model/AdminCommunityView'
 import { Community } from '@model/Community'
 import {
-  CommunitiesInsert,
   Community as DbCommunity,
   dbGetCommunityByUuid,
   dbUpdateHomeCommunity,
@@ -11,7 +10,12 @@ import {
   getHomeCommunity,
   getReachableCommunities,
 } from 'database'
-import { getChangedFields, isLocationPointsEqual, updateAllDefinedAndChanged } from 'shared'
+import {
+  getChangedFields,
+  HomeCommunityUpdateInput,
+  isLocationPointsEqual,
+  updateAllDefinedAndChanged,
+} from 'shared'
 import { Arg, Args, Authorized, Mutation, Query, Resolver } from 'type-graphql'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
@@ -90,7 +94,7 @@ export class CommunityResolver {
     }
 
     // undefined means "don't change", null clears the field
-    const updateFields: Partial<CommunitiesInsert> = {}
+    const updateFields: HomeCommunityUpdateInput = {}
     if (typeof gmsApiKey !== 'undefined') {
       updateFields.gmsApiKey = gmsApiKey
     }
