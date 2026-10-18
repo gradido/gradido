@@ -17,15 +17,15 @@ import { initLogging } from './server/logger'
 async function main() {
   initLogging()
   // The secrets every password and PIN derivation is keyed with, and the hashing threads.
-  // A second init -- the tests initialize it first, at a lower difficulty -- changes nothing.
-  AppContext.getInstance().init({
+  // A second initPasswordHashing -- the tests initialize it first, at a lower difficulty -- changes nothing.
+  AppContext.getInstance().initPasswordHashing({
     appSecret: CONFIG.LOGIN_APP_SECRET,
     serverKey: CONFIG.LOGIN_SERVER_KEY,
   })
   const { app } = await createServer(getLogger('apollo'))
 
   // will throw if a home community is missing
-  await getHomeCommunityDrizzle()
+  AppContext.getInstance().setHomeCommunity(await getHomeCommunityDrizzle())
 
   // The node adapter with two of its defaults turned off, which express did not have:
   // - reusePort: a second backend on the same port has to fail to start, not share the port.

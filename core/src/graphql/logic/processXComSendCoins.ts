@@ -1,3 +1,4 @@
+import { randomInt } from 'node:crypto'
 import {
   CommunityLoggingView,
   countOpenPendingTransactions,
@@ -24,7 +25,6 @@ import {
   SendCoinsResponseJwtPayloadType,
   verifyAndDecrypt,
 } from 'shared'
-import { randombytes_random } from 'sodium-native'
 import {
   CommandClientFactory,
   memberAvatarDateForTransfer,
@@ -249,7 +249,7 @@ export async function processXComPendingSendCoins(
       methodLogger.error(errmsg)
       throw new Error(errmsg)
     }
-    const handshakeID = randombytes_random().toString()
+    const handshakeID = randomInt(2 ** 32).toString()
     methodLogger.addContext('handshakeID', handshakeID)
     // first calculate the sender balance and check if the transaction is allowed
     const senderBalance = await calculateSenderBalance(sender.id, amount.negated(), creationDate)
@@ -420,7 +420,7 @@ export async function processXComCommittingSendCoins(
   transactionLinkId?: number,
 ): Promise<SendCoinsResult> {
   const methodLogger = createLogger(`processXComCommittingSendCoins`)
-  const handshakeID = randombytes_random().toString()
+  const handshakeID = randomInt(2 ** 32).toString()
   methodLogger.addContext('handshakeID', handshakeID)
   const sendCoinsResult = new SendCoinsResult()
   try {

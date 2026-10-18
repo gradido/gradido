@@ -1,9 +1,10 @@
 #include "AddonData.h"
-#include "AppContext.h"
+#include "PasswordContext.h"
 #include "CompleteTransaction.h"
 #include "crypto.h"
 #include "Ed25519KeyPair.h"
 #include "gradidoUnit.h"
+#include "HomeCommunityNative.h"
 #include "image.h"
 #include "LedgerAnchor.h"
 #include "types.h"
@@ -49,12 +50,13 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
     // classes
     // before the classes' Init: they keep their constructors in it
     env.SetInstanceData<gradido::AddonData>(new gradido::AddonData());
-    gradido::AppContext::Init(env, exports);
+    gradido::PasswordContext::Init(env, exports);
     gradido::data::runtime::CompleteTransaction::Init(env, exports);
     gradido::utils::MonotonicTimer::Init(env, exports);
     gradido::data::wire::LedgerAnchor::Init(env, exports);
     gradido::crypto::Ed25519KeyPair::Init(env, exports);
     gradido::crypto::X25519KeyPair::Init(env, exports);
+    gradido::HomeCommunityNative::Init(env, exports);
 
     return exports;
 }

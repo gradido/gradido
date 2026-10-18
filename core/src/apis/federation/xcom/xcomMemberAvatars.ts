@@ -1,4 +1,6 @@
 // AI-GENERATED — not an architecture reference
+
+import { randomInt } from 'node:crypto'
 import { Community as DbCommunity, dbFindFederatedCommunityByPublicKeyAndApi } from 'database'
 import {
   AVATAR_FULL_MAX_BYTES,
@@ -16,7 +18,6 @@ import {
   XComRequestError,
 } from 'shared'
 import { probeImage } from 'shared-native'
-import { randombytes_random } from 'sodium-native'
 import { CONFIG as CONFIG_CORE } from '../../../config'
 import { EncryptedTransferArgs } from '../../../graphql/model/EncryptedTransferArgs'
 import { decodeJpegImage } from '../../../logic/JpegImage.logic'
@@ -191,7 +192,7 @@ export async function xcomMemberAvatars(
     return failure(`no client for api ${entry.value.apiVersion}`)
   }
 
-  const handshakeID = randombytes_random().toString()
+  const handshakeID = randomInt(2 ** 32).toString()
   let jwt: string
   try {
     jwt = await encryptAndSign(

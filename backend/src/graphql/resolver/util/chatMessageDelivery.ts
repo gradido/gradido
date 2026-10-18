@@ -1,5 +1,6 @@
 // AI-GENERATED — not an architecture reference
 
+import { randomInt } from 'node:crypto'
 import {
   CHAT_MESSAGE_NOTIFY_LETTER,
   ChatMessageImageAccepted,
@@ -30,7 +31,6 @@ import {
   User as DbUser,
 } from 'database'
 import { CommandJwtPayloadType, encryptAndSign, uuidv4Schema } from 'shared'
-import { randombytes_random } from 'sodium-native'
 import { v4 as uuidv4 } from 'uuid'
 import * as v from 'valibot'
 import { PublishNameLogic } from '@/data/PublishName.logic'
@@ -279,7 +279,7 @@ export async function deliverChatMessageAcrossBorder({
     imageUuid: uuidv4(),
     position,
   }))
-  const handshakeID = randombytes_random().toString()
+  const handshakeID = randomInt(2 ** 32).toString()
   const params: SendEmailCommandParams = {
     mailType: 'sendCustomEmail',
     senderComUuid: senderUser.communityUuid,

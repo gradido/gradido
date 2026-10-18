@@ -126,6 +126,26 @@ describe('Ed25519KeyPair', () => {
     })
   })
 
+  describe('equals', () => {
+    const keyPair = Ed25519KeyPair.generate(rfcSeed)
+
+    it('is true for the same public key, with or without private key', () => {
+      assert.equal(keyPair.equals(new Ed25519KeyPair(keyPair.publicKeyToBuffer())), true)
+      assert.equal(new Ed25519KeyPair(keyPair.publicKeyToBuffer()).equals(keyPair), true)
+      assert.equal(keyPair.equals(keyPair), true)
+    })
+
+    it('is false for another public key', () => {
+      assert.equal(keyPair.equals(Ed25519KeyPair.generate()), false)
+    })
+
+    it('throws for anything but an Ed25519KeyPair', () => {
+      assert.throws(() => keyPair.equals(keyPair.publicKeyToBuffer()), TypeError)
+      assert.throws(() => keyPair.equals(X25519KeyPair.generate()), TypeError)
+      assert.throws(() => keyPair.equals(), TypeError)
+    })
+  })
+
   it('is not an X25519KeyPair', () => {
     assert.equal(Ed25519KeyPair.generate() instanceof X25519KeyPair, false)
   })

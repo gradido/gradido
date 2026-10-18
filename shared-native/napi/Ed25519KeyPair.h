@@ -2,9 +2,9 @@
 
 #include "KeyPair.h"
 
-#include <napi.h>
+#include "crypto/Ed25519Keys.h"
 
-#include <sodium.h>
+#include <napi.h>
 
 namespace gradido::crypto {
 
@@ -14,8 +14,7 @@ namespace gradido::crypto {
      * Without a private key it can only verify. Plain libsodium keys, not SLIP-10: for the
      * derivation tree see the signKeyPair* functions in crypto.h. See index.d.ts for the API.
      *
-     * The private key is the 32 bytes seed only; libsodium's 64 bytes form (seed and public key)
- * is put together on the stack for sign, so the public key is not kept twice.
+     * The keys are an Ed25519Keys (src/crypto), this class reads the arguments and throws.
      */
     class Ed25519KeyPair : public Napi::ObjectWrap<Ed25519KeyPair>, public KeyPair {
     public:
@@ -28,11 +27,26 @@ namespace gradido::crypto {
         // (publicKey) | (publicKey, privateKey), 32 bytes each; privateKey is the seed
         Ed25519KeyPair(const Napi::CallbackInfo& info);
 
-    private:
-        // (message) -> 64 bytes detached signature; throws without private key
-        Napi::Value Sign(const Napi::CallbackInfo& info);
+        // sign and verify on `keys`, for every class that holds Ed25519Keys; `where` names the
+        // method in the errors. SignWith needs keys with private key.
+        // (message) -> 64 bytes detached signature
+        static Napi::Value SignWith(const Napi::CallbackInfo& info, const Ed25519Keys& keys, const char* where);
         // (message, signature: 64 bytes) -> boolean; throws for a signature of another size
+        static Napi::Value VerifyWith(const Napi::CallbackInfo& info, const Ed25519Keys& keys, const char* where);
+
+    protected:
+        const Keys& keys() const override { return mKeys; }
+        KeyResult SetKeys(const uint8_t* publicKey, const uint8_t* privateKey) override { return mKeys.set(publicKey, privateKey); }
+        KeyResult GenerateKeys(const uint8_t* seed) override { return mKeys.generate(seed); }
+
+    private:
+        // throws without private key
+        Napi::Value Sign(const Napi::CallbackInfo& info);
         Napi::Value Verify(const Napi::CallbackInfo& info);
+        // (other: Ed25519KeyPair) -> boolean; the same public key, with or without private key
+        Napi::Value Equals(const Napi::CallbackInfo& info);
+
+        Ed25519Keys mKeys;
     };
 
 } // namespace gradido::crypto

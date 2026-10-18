@@ -1,6 +1,11 @@
 import { getHomeCommunityDrizzle } from 'database'
 import { Elysia } from 'elysia'
-import { communityInfoWireSchema, signatureNonceSchema, signedJsonResponse } from 'shared'
+import {
+  AppContext,
+  communityInfoWireSchema,
+  signatureNonceSchema,
+  signedJsonResponse,
+} from 'shared'
 import * as v from 'valibot'
 import { statusNumber } from './utils'
 
@@ -14,14 +19,7 @@ export const peerApiRoutesV1 = new Elysia({ prefix: 'v1' })
       query: v.object({ nonce: signatureNonceSchema }),
       response: communityInfoWireSchema,
       mapResponse: async ({ responseValue, set, query, request }) =>
-        signedJsonResponse(
-          responseValue,
-          statusNumber(set.status),
-          // TODO: create AppContext and use
-          await getHomeCommunityDrizzle(),
-          query.nonce,
-          request,
-        ),
+        signedJsonResponse(responseValue, statusNumber(set.status), query.nonce, request),
     },
   )
 

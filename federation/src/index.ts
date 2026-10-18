@@ -2,8 +2,9 @@ import 'source-map-support/register'
 
 import { defaultCategory, initLogger } from 'config-schema'
 import { initializeCommands } from 'core'
+import { getHomeCommunityDrizzle } from 'database'
 import { getLogger } from 'log4js'
-import { onShutdown, printServerCrashAsciiArt, ShutdownReason } from 'shared'
+import { AppContext, onShutdown, printServerCrashAsciiArt, ShutdownReason } from 'shared'
 // config
 import { CONFIG } from './config'
 import { LOG4JS_BASE_CATEGORY_NAME } from './config/const'
@@ -21,6 +22,9 @@ async function main() {
 
   // init server
   const { app } = await createServer(getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apollo`))
+
+  // the keys the peer api signs with; will throw if a home community is missing
+  AppContext.getInstance().setHomeCommunity(await getHomeCommunityDrizzle())
 
   app.listen(CONFIG.FEDERATION_PORT, () => {
     const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}`)

@@ -2,9 +2,9 @@
 
 #include "napiUtils.h"
 
-#include <napi.h>
+#include "crypto/Keys.h"
 
-#include <sodium.h>
+#include <napi.h>
 
 #include <cstddef>
 #include <cstdint>
@@ -14,34 +14,34 @@
 namespace gradido::crypto {
 
     /**
-     * What Ed25519KeyPair and X25519KeyPair share: the public key, the private key in
-     * sodium_malloc'd memory (null when there is none), the exports, and how a key pair is
-     * generated. A subclass derives from Napi::ObjectWrap<itself> and from this, and registers
-     * InstanceMethods<itself>() beside its own methods.
+     * What Ed25519KeyPair and X25519KeyPair share on the Node-API side: the exports, the
+     * constructor and how a key pair is generated. The keys themselves are a member of the
+     * subclass (Ed25519Keys, X25519Keys in src/crypto), reached through keys(), SetKeys() and
+     * GenerateKeys(). A subclass derives from Napi::ObjectWrap<itself> and from this, and
+     * registers InstanceMethods<itself>() beside its own methods.
      *
-     * Limit: sodium_malloc puts every private key on pages of its own, between guard pages --
-     * 4 kernel memory mappings per key (measured on Linux). A process has vm.max_map_count of
-     * them, 65530 by default, shared with V8 and everything else, so at most about 16000 key
-     * pairs with private key can be alive at once. Past that every mmap fails and the process
-     * dies out of memory. The memory comes back only when the finalizer runs, after a GC and
-     * asynchronously, so a synchronous loop that creates them piles them up even when none
-     * stays reachable. Fine for the few long-lived ones (the home community's keys); not for
-     * one per user in a loop. Key pairs with only a public key take no such memory.
+     * For the limit sodium_malloc puts on how many key pairs with private key can be alive at
+     * once, see src/crypto/Keys.h.
      */
     class KeyPair {
     public:
-        static constexpr size_t PUBLIC_KEY_SIZE = 32;
+        bool hasPrivateKey() const { return keys().hasPrivateKey(); }
 
-        bool hasPrivateKey() const { return mPrivateKey != nullptr; }
+        /**
+         * Throws for every result but SUCCESS: a TypeError "[where] privateName does not belong
+         * to publicName", or an Error for out of memory. False then.
+         */
+        static bool CheckKeyResult(Napi::Env env, KeyResult result, const char* where, const char* privateName, const char* publicName);
 
     protected:
-        using RandomKeyPairFunction = int (*)(uint8_t* publicKey, uint8_t* privateKey);
-        using SeedKeyPairFunction = int (*)(uint8_t* publicKey, uint8_t* privateKey, const uint8_t* seed);
-        // the public key belonging to a private key; non-zero for a private key that has none
-        using PublicKeyFunction = int (*)(uint8_t* publicKey, const uint8_t* privateKey);
+        explicit KeyPair(const char* name);
+        virtual ~KeyPair() = default;
 
-        KeyPair(const char* name, size_t privateKeySize);
-        ~KeyPair();
+        virtual const Keys& keys() const = 0;
+        // privateKey may be null
+        virtual KeyResult SetKeys(const uint8_t* publicKey, const uint8_t* privateKey) = 0;
+        // seed may be null
+        virtual KeyResult GenerateKeys(const uint8_t* seed) = 0;
 
         // the JavaScript methods every key pair has
         template <typename T>
@@ -64,13 +64,8 @@ namespace gradido::crypto {
          * key never sits anywhere else.
          */
         template <typename T>
-        static Napi::Value Generate(
-            const Napi::CallbackInfo& info,
-            Napi::FunctionReference& constructor,
-            size_t seedSize,
-            RandomKeyPairFunction randomKeyPair,
-            SeedKeyPairFunction seedKeyPair
-        ) {
+        static Napi::Value Generate(const Napi::CallbackInfo& info, Napi::FunctionReference& constructor, size_t seedSize)
+        {
             Napi::Env env = info.Env();
             Napi::Buffer<uint8_t> seed;
             bool hasSeed = info.Length() > 0 && !info[0].IsUndefined();
@@ -79,29 +74,19 @@ namespace gradido::crypto {
             }
             Napi::Object obj = constructor.New({Napi::External<char>::New(env, &GENERATE_TOKEN)});
             KeyPair* keyPair = T::Unwrap(obj);
-            if (!keyPair->AllocatePrivateKey(env)) {
+            if (!CheckKeyResult(env, keyPair->GenerateKeys(hasSeed ? seed.Data() : nullptr), T::NAME, "privateKey", "publicKey")) {
                 return env.Null();
-            }
-            if (hasSeed) {
-                seedKeyPair(keyPair->mPublicKey, keyPair->mPrivateKey, seed.Data());
-            } else {
-                randomKeyPair(keyPair->mPublicKey, keyPair->mPrivateKey);
             }
             return obj;
         }
 
         /**
-         * The whole subclass constructor: reads (publicKey) or (publicKey, privateKey), checks
-         * the private key against the public key with `publicKeyOf` and keeps it. Does nothing
-         * when Generate called it, which fills the keys itself. Wrong arguments leave a
-         * TypeError pending.
+         * The whole subclass constructor: reads (publicKey) or (publicKey, privateKey), 32 bytes
+         * each, and hands them to SetKeys, which checks the private key against the public key.
+         * Does nothing when Generate called it, which fills the keys itself. Wrong arguments
+         * leave a TypeError pending.
          */
-        void InitKeys(const Napi::CallbackInfo& info, PublicKeyFunction publicKeyOf);
-
-        // false with an Error pending when sodium_malloc has nothing to give
-        bool AllocatePrivateKey(Napi::Env env);
-        // zeroes and frees the private key; the pair has only its public key after it
-        void FreePrivateKey();
+        void InitKeys(const Napi::CallbackInfo& info);
 
         // throws a TypeError naming `method` and returns false unless this pair has a private key
         bool RequirePrivateKey(const Napi::CallbackInfo& info, const char* method) const;
@@ -115,16 +100,12 @@ namespace gradido::crypto {
         Napi::Value PrivateKeyToHex(const Napi::CallbackInfo& info);
 
         const char* mName;
-        const size_t mPrivateKeySize;
-        uint8_t mPublicKey[PUBLIC_KEY_SIZE];
-        // null without private key, else mPrivateKeySize bytes from sodium_malloc
-        uint8_t* mPrivateKey;
 
     private:
         // what Generate hands the constructor, wrapped in an External JavaScript cannot make
         static char GENERATE_TOKEN;
 
-        // data as lowercase hex, with arnm_binary_to_hex; size at most the largest private key
+        // data as lowercase hex, with arnm_binary_to_hex; size at most Keys::PRIVATE_KEY_SIZE
         Napi::Value Hex(Napi::Env env, const uint8_t* data, size_t size) const;
     };
 

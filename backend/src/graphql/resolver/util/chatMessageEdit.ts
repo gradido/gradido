@@ -1,4 +1,6 @@
 // AI-GENERATED — not an architecture reference
+
+import { randomInt } from 'node:crypto'
 import {
   ApiVersionType,
   CommandClientFactory,
@@ -14,7 +16,6 @@ import {
   getCommunityWithFederatedCommunityByIdentifier,
 } from 'database'
 import { CommandJwtPayloadType, encryptAndSign, VoidResult } from 'shared'
-import { randombytes_random } from 'sodium-native'
 
 /**
  * Why a changed text did not reach the other server, for the member's wallet and for the log:
@@ -74,7 +75,7 @@ export async function carryChatMessageEditAcrossBorder({
       error: { reason: 'NO_WAY_TO_DELIVER', detail: otherCommunityUuid },
     }
   }
-  const handshakeID = randombytes_random().toString()
+  const handshakeID = randomInt(2 ** 32).toString()
   const params: EditChatMessageCommandParams = {
     senderComUuid: writer.communityUuid,
     senderGradidoId: writer.gradidoId,

@@ -133,10 +133,11 @@ export type DecryptError = NativeError & {
 }
 
 /**
- * Both key pair classes keep a private key in memory from sodium_malloc, guarded and on pages
- * of its own: 4 kernel memory mappings per key. A process has about 65000 of them (Linux
- * vm.max_map_count), shared with everything else, so at most about 16000 key pairs with private
- * key can be alive at once; past that the process dies out of memory. Their memory is freed
+ * Both key pair classes, and HomeCommunityNative with its two, keep a private key in memory
+ * from sodium_malloc, guarded and on pages of its own: 4 kernel memory mappings per key. A
+ * process has about 65000 of them (Linux vm.max_map_count), shared with everything else, so at
+ * most about 16000 key pairs with private key can be alive at once; past that the process dies
+ * out of memory. Their memory is freed
  * only after a GC, asynchronously, so a synchronous loop creating them piles them up even when
  * none stays reachable. Meant for the few long-lived key pairs, not one per user in a loop.
  * Key pairs with only a public key are not affected.
@@ -167,6 +168,11 @@ export class Ed25519KeyPair {
   public sign(message: Uint8Array): Buffer
   /** @param signature - 64 bytes; another size throws, check it where it comes in */
   public verify(message: Uint8Array, signature: Uint8Array): boolean
+  /**
+   * The same public key, with or without private key on either side: a private key a pair
+   * holds always belongs to its public key.
+   */
+  public equals(other: Ed25519KeyPair): boolean
 
   public toBuffer(): KeyPairBuffers
   public toHex(): KeyPairHex
@@ -218,6 +224,39 @@ export class X25519KeyPair {
   public publicKeyToHex(): string
   public privateKeyToBuffer(): Buffer
   public privateKeyToHex(): string
+}
+
+/**
+ * The two key pairs of the home community, on the native side: the Ed25519 one it signs with
+ * and the X25519 one it encrypts with, both with private key. The methods are those of
+ * Ed25519KeyPair and X25519KeyPair, with the same arguments, results and errors, one call each;
+ * the private keys never come back to JavaScript, there is no export for them.
+ *
+ * The TypeScript HomeCommunity of `shared` holds the one instance and forwards to it.
+ */
+export class HomeCommunityNative {
+  /**
+   * 32 bytes each; privateKey is the Ed25519 seed. Each private key is checked against its
+   * public key.
+   */
+  public constructor(
+    publicKey: Uint8Array,
+    privateKey: Uint8Array,
+    publicEncryptionKey: Uint8Array,
+    privateEncryptionKey: Uint8Array,
+  )
+
+  /** @returns the 64 bytes detached signature */
+  public sign(message: Uint8Array): Buffer
+  /** @param signature - 64 bytes; another size throws, check it where it comes in */
+  public verify(message: Uint8Array, signature: Uint8Array): boolean
+
+  /** @param recipient - with its public key only */
+  public encrypt(payload: Uint8Array, recipient: X25519KeyPair): Buffer
+  /** @param sender - with its public key only */
+  public decrypt(box: Uint8Array, sender: X25519KeyPair): Result<Buffer, DecryptError>
+  public encryptSecret(payload: Uint8Array): Buffer
+  public decryptSecret(box: Uint8Array): Result<Buffer, DecryptError>
 }
 
 /**
@@ -597,7 +636,7 @@ export interface PasswordHashingOptions {
   threadCount?: number
 }
 
-export interface NativeAppContextOptions {
+export interface NativePasswordContextOptions {
   /** The salt component every derivation starts from; the backend's LOGIN_APP_SECRET */
   appSecret: Uint8Array
   /** 16 bytes, crypto_shorthash_KEYBYTES; the backend's LOGIN_SERVER_KEY */
@@ -634,8 +673,8 @@ export type PasswordHashQueueFullError = { name: 'PASSWORD_HASH_QUEUE_FULL'; mes
  * The threads prefer the high priority queue, but while both queues wait every third pick
  * goes to the low one, so a run of logins cannot starve the password changes.
  */
-export class NativeAppContext {
-  public constructor(options: NativeAppContextOptions)
+export class NativePasswordContext {
+  public constructor(options: NativePasswordContextOptions)
 
   /**
    * The password derivation: sha512(salt + appSecret) as the argon2id salt, argon2id over the

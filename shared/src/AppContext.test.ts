@@ -1,5 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { afterAll, describe, expect, it, spyOn } from 'bun:test'
+import { Ed25519KeyPair, X25519KeyPair } from 'shared-native'
 import * as v from 'valibot'
 import { AppContext, appContextOptionsSchema } from './AppContext'
 import {
@@ -15,35 +16,38 @@ const secrets = { appSecret: '21ffbbc616fe', serverKey: 'a51ef8ac7ef1abf162fb7a6
 
 describe('AppContext', () => {
   afterAll(() => {
-    AppContext.getInstance().destroy()
+    AppContext.getInstance().destroyPasswordHashing()
   })
 
   it('is one instance that answers nothing before init', () => {
     const context = AppContext.getInstance()
     expect(AppContext.getInstance()).toBe(context)
-    expect(context.isInitialized()).toBe(false)
+    expect(context.isPasswordHashingInitialized()).toBe(false)
     expect(() => context.derivePinKey('salt', '000000')).toThrow('AppContext not initialized')
   })
 
   it('refuses a server key of the wrong size at init, not at the first login', () => {
-    expect(() => AppContext.getInstance().init({ ...secrets, serverKey: 'a51ef8' })).toThrow(
-      /32 hex characters/,
-    )
-    expect(AppContext.getInstance().isInitialized()).toBe(false)
+    expect(() =>
+      AppContext.getInstance().initPasswordHashing({ ...secrets, serverKey: 'a51ef8' }),
+    ).toThrow(/32 hex characters/)
+    expect(AppContext.getInstance().isPasswordHashingInitialized()).toBe(false)
   })
 
   it('initializes once', () => {
     const context = AppContext.getInstance()
-    context.init({ ...secrets, passwordHashing: MINIMAL_PASSWORD_HASHING })
-    expect(context.isInitialized()).toBe(true)
-    const native = context.getNative()
-    // the second init keeps the native context it has
-    context.init({ ...secrets, passwordHashing: { ...MINIMAL_PASSWORD_HASHING, threadCount: 3 } })
-    expect(context.getNative()).toBe(native)
+    context.initPasswordHashing({ ...secrets, passwordHashing: MINIMAL_PASSWORD_HASHING })
+    expect(context.isPasswordHashingInitialized()).toBe(true)
+    const native = context.getPasswordContext()
+    // the second call keeps the password context it has
+    context.initPasswordHashing({
+      ...secrets,
+      passwordHashing: { ...MINIMAL_PASSWORD_HASHING, threadCount: 3 },
+    })
+    expect(context.getPasswordContext()).toBe(native)
     expect(native.getPasswordHashingStats().threadCount).toBe(1)
   })
 
-  // the same vectors as shared-native/tests/appContext.test.js
+  // the same vectors as shared-native/tests/passwordContext.test.js
   it('derives the password key at the difficulty it was initialized with', async () => {
     const result = AppContext.getInstance().hashPassword(
       'fixed-salt',
@@ -62,8 +66,8 @@ describe('AppContext', () => {
 
   it('answers whether a derivation handed in now would be refused', () => {
     const context = AppContext.getInstance()
-    context.destroy()
-    context.init({ ...secrets, passwordHashing: MINIMAL_PASSWORD_HASHING })
+    context.destroyPasswordHashing()
+    context.initPasswordHashing({ ...secrets, passwordHashing: MINIMAL_PASSWORD_HASHING })
     // nothing queued
     expect(context.passwordHashingRefusalNow()).toBeUndefined()
 
@@ -92,8 +96,8 @@ describe('AppContext', () => {
     // a few milliseconds per derivation and a small budget: the loop below hands in jobs in
     // microseconds, while the one thread takes one off the queue every few milliseconds, so the
     // queue outgrows the budget long before the thread can drain it, and it is over soon
-    context.destroy()
-    context.init({
+    context.destroyPasswordHashing()
+    context.initPasswordHashing({
       ...secrets,
       passwordHashing: {
         opsLimit: 1,
@@ -102,7 +106,9 @@ describe('AppContext', () => {
         maxExpectedWaitMs: 20,
       },
     })
-    const { maxExpectedWaitMs, averageDurationMs } = context.getNative().getPasswordHashingStats()
+    const { maxExpectedWaitMs, averageDurationMs } = context
+      .getPasswordContext()
+      .getPasswordHashingStats()
     const fit = Math.ceil(maxExpectedWaitMs / averageDurationMs)
     const results = []
     // far more than fit: how many exactly are refused shifts with the average as the first
@@ -116,12 +122,27 @@ describe('AppContext', () => {
     await Promise.all(results.map((result) => (result.success ? result.value : undefined)))
   })
 
+  it('holds the home community it was given, without initPasswordHashing', () => {
+    const context = AppContext.getInstance()
+    context.destroyPasswordHashing()
+    expect(() => context.getHomeCommunity()).toThrow('no home community')
+    const signKeys = Ed25519KeyPair.generate().toBuffer()
+    const encryptionKeys = X25519KeyPair.generate().toBuffer()
+    context.setHomeCommunity({
+      publicKey: signKeys.publicKey,
+      privateKey: Buffer.concat([signKeys.privateKey as Buffer, signKeys.publicKey]),
+      publicEncryptionKey: encryptionKeys.publicKey,
+      privateEncryptionKey: encryptionKeys.privateKey,
+    })
+    expect(context.getHomeCommunity().publicKey).toEqual(signKeys.publicKey)
+  })
+
   it('can be destroyed and initialized again', () => {
     const context = AppContext.getInstance()
-    context.destroy()
-    expect(context.isInitialized()).toBe(false)
-    context.init({ ...secrets, passwordHashing: MINIMAL_PASSWORD_HASHING })
-    expect(context.isInitialized()).toBe(true)
+    context.destroyPasswordHashing()
+    expect(context.isPasswordHashingInitialized()).toBe(false)
+    context.initPasswordHashing({ ...secrets, passwordHashing: MINIMAL_PASSWORD_HASHING })
+    expect(context.isPasswordHashingInitialized()).toBe(true)
     // what MINIMAL_PASSWORD_HASHING leaves open comes from the constant
     expect(context.getPasswordHashingStats().maxExpectedWaitMs).toBe(
       PASSWORD_HASH_MAX_EXPECTED_WAIT_MS,

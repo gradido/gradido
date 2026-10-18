@@ -1,5 +1,6 @@
 import { treaty } from '@elysia/eden'
 import { createSignatureNonce, FEDERATION_REQUEST_TIMEOUT_MS, verifySignedResponse } from 'shared'
+import { Ed25519KeyPair } from 'shared-native'
 import { peerApiRoutes } from '../server'
 
 export type ElysiaApiRoutesClientType = ReturnType<typeof treaty<typeof peerApiRoutes>>
@@ -10,9 +11,10 @@ export class PeerApiClient {
   public publicJwtKey: string | undefined
   // private sharedSecret:
 
+  /** keyPair: the announced public key; every signed answer is verified against it */
   public constructor(
     public readonly url: string,
-    public readonly publicKey: Buffer,
+    public readonly keyPair: Ed25519KeyPair,
     private readonly timeoutMs = FEDERATION_REQUEST_TIMEOUT_MS,
   ) {
     const self = this
@@ -50,7 +52,7 @@ export class PeerApiClient {
     // throw on error
     await verifySignedResponse(
       { status: response.status, headers: response.headers, body },
-      this.publicKey,
+      this.keyPair,
       nonce,
       requested,
     )
