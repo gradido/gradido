@@ -16,9 +16,11 @@ import {
   chatMessageImagesTable,
   chatMessagesTable,
   Community as DbCommunity,
+  Event as DbEvent,
   FederatedCommunity as DbFederatedCommunity,
   User as DbUser,
   UserContact as DbUserContact,
+  EventType,
   User,
 } from 'database'
 import { eq } from 'drizzle-orm'
@@ -1625,6 +1627,32 @@ describe('chatVideoRoom', () => {
       await videoServersChecked(false)
       const res: any = await query({ query: chatVideoRoom })
       expect(res.errors?.map((error: any) => error.message)).toEqual(['CHAT_VIDEO_NO_SERVER'])
+    })
+
+    // The community figures: a room handed out is a row of the member's -- and no room, no row.
+    it('notes the room handed out as an event of the member, and nothing where there is none', async () => {
+      const roomsOf = (member: User) =>
+        DbEvent.find({
+          where: { type: EventType.CHAT_VIDEO_ROOM_CREATE, affectedUserId: member.id },
+          order: { id: 'ASC' },
+        })
+      await videoServersChecked(true)
+      const before = await roomsOf(bibi)
+      expect((await query({ query: chatVideoRoom })).errors).toBeUndefined()
+      const after = await roomsOf(bibi)
+      expect(after).toEqual([
+        ...before,
+        expect.objectContaining({
+          affectedUserId: bibi.id,
+          actingUserId: bibi.id,
+          involvedUserId: null,
+        }),
+      ])
+
+      await videoServersChecked(false)
+      const none: any = await query({ query: chatVideoRoom })
+      expect(none.errors?.map((error: any) => error.message)).toEqual(['CHAT_VIDEO_NO_SERVER'])
+      expect(await roomsOf(bibi)).toEqual(after)
     })
 
     // V5: the servers to choose from, and a room on the one chosen.

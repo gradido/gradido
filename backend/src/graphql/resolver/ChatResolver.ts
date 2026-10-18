@@ -18,6 +18,7 @@ import {
   ChatMemberRef,
   ChatMessageSelect,
   dbFindDirectChatConversation,
+  dbInsertEvent,
   dbSelectChatConversationMember,
   dbSelectChatMessageImageForMember,
   dbSelectChatMessagesEditedAfter,
@@ -27,6 +28,7 @@ import {
   dbSelectChatUnreadSummary,
   dbUpdateChatConversationMemberLastRead,
   dbUpdateChatConversationMemberMuted,
+  EventType,
   findUserByUuids,
   getCommunityByUuid,
   getCommunityWithFederatedCommunityByIdentifier,
@@ -476,8 +478,10 @@ export class ChatResolver {
    * A fresh video room for a call (V1): on one of the servers that passed the last check,
    * each of them equally likely, named with the server's prefix and 12 random characters. The
    * check runs in the process every ten minutes (chatVideoServerPool), never in this request.
-   * Nothing is stored and nobody is named: the wallet sends the address as an ordinary chat
-   * message (V2), and the room is open to whoever has it.
+   * The room is stored nowhere and names nobody: the wallet sends the address as an ordinary chat
+   * message (V2), and the room is open to whoever has it. What is written is THAT a room was
+   * handed out (CHAT_VIDEO_ROOM_CREATE, for the community figures): the member's account number
+   * and the time, never the room's name -- and nothing where no room was handed out.
    *
    * Behind SEND_CHAT_MESSAGE, because the room is asked for to be sent: an account that may not
    * write may not start a call either (RESTRICTED_WHILE_UNCONFIRMED).
@@ -492,7 +496,10 @@ export class ChatResolver {
    */
   @Authorized([RIGHTS.SEND_CHAT_MESSAGE])
   @Query(() => ChatVideoRoom)
-  chatVideoRoom(@Args() { serverId }: ChatVideoRoomArgs, @Ctx() context: Context): ChatVideoRoom {
+  async chatVideoRoom(
+    @Args() { serverId }: ChatVideoRoomArgs,
+    @Ctx() context: Context,
+  ): Promise<ChatVideoRoom> {
     // ⛔ Counted in the HTTP request's budget, as the pages are: a document may repeat this field
     // under any number of aliases (RequestBudget).
     context.requestBudget.chatVideoRoomsServed += 1
@@ -500,18 +507,27 @@ export class ChatResolver {
     if (served > CHAT_VIDEO_ROOMS_MAX_PER_REQUEST) {
       throw new LogError('Too many chat video rooms requested at once', served)
     }
+    let server: ChatVideoServer
     if (serverId != null) {
       const wanted = chatVideoServerPool.pickServer(serverId)
       if (!wanted) {
         throw new LogError('CHAT_VIDEO_SERVER_UNAVAILABLE', serverId)
       }
-      return roomOn(wanted.server)
+      server = wanted.server
+    } else {
+      const chosen = chatVideoServerPool.pick()
+      if (!chosen) {
+        throw new LogError('CHAT_VIDEO_NO_SERVER')
+      }
+      server = chosen.server
     }
-    const chosen = chatVideoServerPool.pick()
-    if (!chosen) {
-      throw new LogError('CHAT_VIDEO_NO_SERVER')
-    }
-    return roomOn(chosen.server)
+    const user = getUser(context)
+    await dbInsertEvent({
+      type: EventType.CHAT_VIDEO_ROOM_CREATE,
+      affectedUserId: user.id,
+      actingUserId: user.id,
+    })
+    return roomOn(server)
   }
 
   /**
