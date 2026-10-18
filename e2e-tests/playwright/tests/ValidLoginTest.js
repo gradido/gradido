@@ -1,6 +1,7 @@
+// AI-GENERATED — not an architecture reference
 import { test, expect } from '@playwright/test'
-import { LoginPage } from '../pages/LoginPage'
-import { FRONTEND_URL } from '../config'
+import { LoginPage } from '../pages/LoginPage.js'
+import { FRONTEND_URL } from '../config/index.js'
 
 test('valid login', async ({ page }) => {
   const loginPage = new LoginPage(page)

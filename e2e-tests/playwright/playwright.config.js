@@ -1,3 +1,4 @@
+// AI-GENERATED — not an architecture reference
 import { defineConfig, devices } from '@playwright/test';
 
 /**

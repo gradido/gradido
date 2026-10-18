@@ -1,11 +1,11 @@
 {
-  "name": "typescript",
+  "name": "e2e-playwright",
   "version": "1.0.0",
-  "main": "index.js",
+  "type": "module",
   "license": "MIT",
   "devDependencies": {
-    "@playwright/test": "^1.53.1",
-    "@types/node": "^24.0.7"
+    "@playwright/test": "^1.64.1",
+    "@types/node": "^24.19.2"
   },
   "scripts": {
     "test": "playwright test --reporter=list"
