@@ -5,6 +5,7 @@ import {
   char,
   datetime,
   decimal,
+  double,
   index,
   int,
   json,
@@ -23,10 +24,33 @@ import {
 import { AccountState } from '../enum/AccountState'
 import { customBinary, customGeometry, customGradidoUnit, customMediumBlob } from './customTypes'
 
+// The tables an empty database is built with (migration/createFromSchema.ts), so this file
+// has to describe them exactly as the migrations leave them - column order, types,
+// collations and index names included; migration/createFromSchema.test.ts holds the two
+// against each other.
+//
+// The collation a table is created with, where it is not utf8mb4_unicode_ci. mysqlTable()
+// takes no table options, so they live here. It is what a later `ALTER TABLE ... ADD`
+// without its own COLLATE inherits; a column that differs from its table names its
+// collation itself with `.collate()`.
+export const tableCollations: Record<string, string> = {
+  communities: 'utf8mb4_general_ci',
+  contributions: 'utf8mb4_general_ci',
+  contribution_links: 'utf8mb4_general_ci',
+  dlt_transactions: 'utf8mb4_general_ci',
+  events: 'utf8mb4_general_ci',
+  federated_communities: 'utf8mb4_general_ci',
+  login_elopage_buys: 'utf8mb4_general_ci',
+  pending_transactions: 'utf8mb4_general_ci',
+  user_aliases: 'utf8mb4_general_ci',
+  user_contacts: 'utf8mb4_general_ci',
+  user_roles: 'utf8mb4_general_ci',
+}
+
 export const communitiesTable = mysqlTable(
   'communities',
   {
-    id: int().autoincrement().primaryKey().notNull(),
+    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
     foreign: boolean().default(true).notNull(),
     url: varchar({ length: 255 }).notNull(),
     publicKey: customBinary('public_key', { length: 32 }).notNull(),
@@ -36,6 +60,19 @@ export const communitiesTable = mysqlTable(
     name: varchar({ length: 40 }).default(sql`NULL`),
     description: varchar({ length: 255 }).default(sql`NULL`),
     gmsApiKey: varchar('gms_api_key', { length: 512 }).default(sql`NULL`),
+    publicJwtKey: varchar('public_jwt_key', { length: 512 }).default(sql`NULL`),
+    privateJwtKey: varchar('private_jwt_key', { length: 2048 }).default(sql`NULL`),
+    // X25519, authenticated encryption; the private key only of the home community
+    publicEncryptionKey: customBinary('public_encryption_key', { length: 32 }).notNull(),
+    privateEncryptionKey: customBinary('private_encryption_key', { length: 32 }).default(sql`NULL`),
+    location: customGeometry().default(null),
+    hieroTopicId: varchar('hiero_topic_id', { length: 512 }).default(sql`NULL`),
+    // TODO: update to not nullable
+    creationDate: datetime('creation_date', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+    updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
     /**
      * Whether this community pays a language model to key its matching entries.
      *
@@ -73,19 +110,6 @@ export const communitiesTable = mysqlTable(
      *
      */
     matchingKeyingActive: boolean('matching_keying_active').default(false).notNull(),
-    publicJwtKey: varchar('public_jwt_key', { length: 512 }).default(sql`NULL`),
-    privateJwtKey: varchar('private_jwt_key', { length: 2048 }).default(sql`NULL`),
-    // X25519, authenticated encryption; the private key only of the home community
-    publicEncryptionKey: customBinary('public_encryption_key', { length: 32 }).notNull(),
-    privateEncryptionKey: customBinary('private_encryption_key', { length: 32 }).default(sql`NULL`),
-    location: customGeometry().default(null),
-    hieroTopicId: varchar('hiero_topic_id', { length: 512 }).default(sql`NULL`),
-    // TODO: update to not nullable
-    creationDate: datetime('creation_date', { mode: 'date', fsp: 3 }).default(sql`NULL`),
-    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
-      .default(sql`current_timestamp(3)`)
-      .notNull(),
-    updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
   },
   (table) => [
     unique('url_key').on(table.url),
@@ -123,7 +147,7 @@ export type FederatedCommunitiesInsert = typeof federatedCommunitiesTable.$infer
 export const contributionsTable = mysqlTable(
   'contributions',
   {
-    id: int().autoincrement().primaryKey().notNull(),
+    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
     userId: int('user_id').default(sql`NULL`),
     createdAt: datetime('created_at', { mode: 'date' }).default(sql`NULL`),
     resubmissionAt: datetime('resubmission_at', { mode: 'date' }).default(sql`NULL`),
@@ -134,23 +158,37 @@ export const contributionsTable = mysqlTable(
     ),
     amount: customGradidoUnit('amount_gdd4').default(sql`NULL`),
     moderatorId: int('moderator_id').default(sql`NULL`),
-    contributionLinkId: int('contribution_link_id').default(sql`NULL`),
-    confirmedBy: int('confirmed_by').default(sql`NULL`),
+    contributionLinkId: int('contribution_link_id', { unsigned: true }).default(sql`NULL`),
+    confirmedBy: int('confirmed_by', { unsigned: true }).default(sql`NULL`),
     confirmedAt: datetime('confirmed_at', { mode: 'date' }).default(sql`NULL`),
     deniedAt: datetime('denied_at', { mode: 'date' }).default(sql`NULL`),
-    deniedBy: int('denied_by').default(sql`NULL`),
-    type: varchar('contribution_type', { length: 12 }).default(sql`ADMIN`).notNull(),
-    status: varchar('contribution_status', { length: 12 }).default(sql`PENDING`).notNull(),
+    deniedBy: int('denied_by', { unsigned: true }).default(sql`NULL`),
+    type: varchar('contribution_type', { length: 12 })
+      .collate('utf8mb4_unicode_ci')
+      .default('ADMIN')
+      .notNull(),
+    status: varchar('contribution_status', { length: 12 })
+      .collate('utf8mb4_unicode_ci')
+      .default('PENDING')
+      .notNull(),
     deletedAt: datetime('deleted_at', { mode: 'date' }).default(sql`NULL`),
-    transactionId: int('transaction_id').default(sql`NULL`),
+    transactionId: int('transaction_id', { unsigned: true }).default(sql`NULL`),
     updatedAt: datetime('updated_at', { mode: 'date' }).default(sql`NULL`),
-    updatedBy: int('updated_by').default(sql`NULL`),
-    deletedBy: int('deleted_by').default(sql`NULL`),
+    updatedBy: int('updated_by', { unsigned: true }).default(sql`NULL`),
+    deletedBy: int('deleted_by', { unsigned: true }).default(sql`NULL`),
+    creationGroupsSetAt: datetime('creation_groups_set_at', { mode: 'date', fsp: 3 }).default(
+      sql`NULL`,
+    ),
   },
   (table) => [
-    index('user_id').on(table.userId),
-    index('created_at').on(table.createdAt),
-    index('deleted_at').on(table.deletedAt),
+    index('idx_contributions_user_created').on(table.userId, table.createdAt),
+    index('idx_contributions_transaction_id').on(table.transactionId),
+    index('idx_contributions_feed').on(
+      table.status,
+      table.contributionLinkId,
+      table.confirmedAt,
+      table.transactionId,
+    ),
   ],
 )
 
@@ -159,13 +197,13 @@ export type ContributionsInsert = typeof contributionsTable.$inferInsert
 
 export const contributionLinksTable = mysqlTable('contribution_links', {
   id: int('id', { unsigned: true }).autoincrement().primaryKey(),
-  name: varchar('name', { length: 100 }).notNull(),
+  name: varchar('name', { length: 100 }).collate('utf8mb4_unicode_ci').notNull(),
   memo: varchar('memo', { length: 512 }).notNull(),
   validFrom: datetime('valid_from', { mode: 'date' }).notNull(),
   validTo: datetime('valid_to', { mode: 'date' }),
   amountLegacy: customGradidoUnit('amount_legacy'),
   amountGdd4: customGradidoUnit('amount_gdd4'),
-  cycle: varchar('cycle', { length: 12 }).notNull().default('ONCE'),
+  cycle: varchar('cycle', { length: 12 }).collate('utf8mb4_unicode_ci').notNull().default('ONCE'),
   maxPerCycle: int('max_per_cycle', { unsigned: true }).notNull().default(1),
   maxAmountPerMonthLegacy: customGradidoUnit('max_amount_per_month_legacy'),
   maxAmountPerMonthGdd4: customGradidoUnit('max_amount_per_month_gdd4'),
@@ -177,12 +215,52 @@ export const contributionLinksTable = mysqlTable('contribution_links', {
   minGapHours: int('min_gap_hours', { unsigned: true }),
   createdAt: datetime('created_at', { mode: 'date' }).default(sql`current_timestamp()`).notNull(),
   deletedAt: datetime('deleted_at', { mode: 'date' }),
-  code: varchar('code', { length: 24 }).notNull(),
+  code: varchar('code', { length: 24 }).collate('utf8mb4_unicode_ci').notNull(),
   linkEnabled: tinyint('link_enabled', { unsigned: false }).notNull().default(1),
 })
 
 export type ContributionLinksSelect = typeof contributionLinksTable.$inferSelect
 export type ContributionLinksInsert = typeof contributionLinksTable.$inferInsert
+
+export const contributionCreationGroupsTable = mysqlTable(
+  'contribution_creation_groups',
+  {
+    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
+    contributionId: int('contribution_id', { unsigned: true }).notNull(),
+    creationGroupId: int('creation_group_id', { unsigned: true }).notNull(),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+  },
+  (table) => [
+    unique('uniq_contribution_creation_group').on(table.contributionId, table.creationGroupId),
+    index('idx_ccg_contribution_id').on(table.contributionId),
+    index('idx_ccg_creation_group_id').on(table.creationGroupId),
+  ],
+)
+
+export type ContributionCreationGroupSelect = typeof contributionCreationGroupsTable.$inferSelect
+export type ContributionCreationGroupInsert = typeof contributionCreationGroupsTable.$inferInsert
+
+export const contributionMessagesTable = mysqlTable(
+  'contribution_messages',
+  {
+    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
+    contributionId: int('contribution_id', { unsigned: true }).notNull(),
+    userId: int('user_id', { unsigned: true }).notNull(),
+    message: varchar({ length: 2000 }).notNull(),
+    createdAt: datetime('created_at', { mode: 'date' }).default(sql`current_timestamp()`).notNull(),
+    updatedAt: datetime('updated_at', { mode: 'date' }).default(sql`NULL`),
+    deletedAt: datetime('deleted_at', { mode: 'date' }).default(sql`NULL`),
+    deletedBy: int('deleted_by', { unsigned: true }).default(sql`NULL`),
+    type: varchar({ length: 12 }).default('DIALOG').notNull(),
+    isModerator: boolean('is_moderator').default(false).notNull(),
+  },
+  (table) => [index('contribution_id').on(table.contributionId)],
+)
+
+export type ContributionMessageSelect = typeof contributionMessagesTable.$inferSelect
+export type ContributionMessageInsert = typeof contributionMessagesTable.$inferInsert
 
 // One moderator conversation with Crea in the admin chat window (CreaChat). The
 // Anthropic Messages API is stateless, so the whole exchange lives here as a JSON array
@@ -192,14 +270,14 @@ export const creachatThreadsTable = mysqlTable(
   'creachat_threads',
   {
     id: char({ length: 36 }).primaryKey().notNull(),
-    userId: int('user_id').notNull(),
+    userId: int('user_id', { unsigned: true }).notNull(),
     messages: longtext().notNull(),
     createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
       .default(sql`current_timestamp(3)`)
       .notNull(),
-    // Maintained by dbUpdateCreachatThreadMessages, not by an ON UPDATE clause: drizzle
-    // cannot express one on a datetime column, and a column half-owned by the DDL and
-    // half by the query is the kind of thing nobody can answer a question about later.
+    // Maintained by dbUpdateCreachatThreadMessages, not by an ON UPDATE clause: a column
+    // half-owned by the DDL and half by the query is the kind of thing nobody can answer a
+    // question about later.
     updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 })
       .default(sql`current_timestamp(3)`)
       .notNull(),
@@ -213,14 +291,100 @@ export const creachatThreadsTable = mysqlTable(
 export type CreachatThreadSelect = typeof creachatThreadsTable.$inferSelect
 export type CreachatThreadInsert = typeof creachatThreadsTable.$inferInsert
 
+export const creaRecordsTable = mysqlTable(
+  'crea_records',
+  {
+    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
+    recordUuid: char('record_uuid', { length: 36 }).notNull(),
+    contributionRef: varchar('contribution_ref', { length: 64 }).notNull(),
+    communityUuid: char('community_uuid', { length: 36 }).default(sql`NULL`),
+    personPseudonym: varchar('person_pseudonym', { length: 64 }).default(sql`NULL`),
+    activity: varchar({ length: 255 }).notNull(),
+    categoryKey: varchar('category_key', { length: 48 }).notNull(),
+    outputType: varchar('output_type', { length: 24 }).notNull(),
+    hours: double().default(sql`NULL`),
+    hoursEstimated: boolean('hours_estimated').default(false).notNull(),
+    creaVerdict: varchar('crea_verdict', { length: 12 }).notNull(),
+    confidence: varchar({ length: 8 }).notNull(),
+    appliedRule: varchar('applied_rule', { length: 48 }).default(sql`NULL`),
+    discrepancy: varchar({ length: 24 }).default('none').notNull(),
+    overallVerdict: varchar('overall_verdict', { length: 12 }).default(sql`NULL`),
+    moderatorFinal: varchar('moderator_final', { length: 24 }).default(sql`NULL`),
+    moderatorComment: text('moderator_comment').default(sql`NULL`),
+    rawText: text('raw_text').default(sql`NULL`),
+    taxonomyVersion: int('taxonomy_version', { unsigned: true }).default(1).notNull(),
+    rulesetVersion: int('ruleset_version', { unsigned: true }).default(1).notNull(),
+    behaviorVersion: int('behavior_version', { unsigned: true }).default(1).notNull(),
+    model: varchar({ length: 48 }).default(sql`NULL`),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+    updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .onUpdateNow({ fsp: 3 })
+      .notNull(),
+  },
+  (table) => [
+    unique('uniq_crea_records_record_uuid').on(table.recordUuid),
+    index('idx_crea_records_contribution_ref').on(table.contributionRef),
+    index('idx_crea_records_community_uuid').on(table.communityUuid),
+    index('idx_crea_records_person_pseudonym').on(table.personPseudonym),
+    index('idx_crea_records_category_key').on(table.categoryKey),
+  ],
+)
+
+export type CreaRecordSelect = typeof creaRecordsTable.$inferSelect
+export type CreaRecordInsert = typeof creaRecordsTable.$inferInsert
+
+// A single-row singleton (id = 1), no autoincrement.
+export const creaSettingsTable = mysqlTable('crea_settings', {
+  id: int({ unsigned: true }).primaryKey().notNull(),
+  model: varchar({ length: 64 }).default(sql`NULL`),
+  effort: varchar({ length: 12 }).default(sql`NULL`),
+  updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 })
+    .default(sql`current_timestamp(3)`)
+    .onUpdateNow({ fsp: 3 })
+    .notNull(),
+  fastMode: boolean('fast_mode').default(false).notNull(),
+  firstCreationSignerUserId: int('first_creation_signer_user_id', { unsigned: true }).default(
+    sql`NULL`,
+  ),
+})
+
+export type CreaSettingSelect = typeof creaSettingsTable.$inferSelect
+export type CreaSettingInsert = typeof creaSettingsTable.$inferInsert
+
+// `tag` is stored without the leading '#'.
+export const creationGroupsTable = mysqlTable(
+  'creation_groups',
+  {
+    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
+    tag: varchar({ length: 64 }).notNull(),
+    name: varchar({ length: 255 }).default(sql`NULL`),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+    updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .onUpdateNow({ fsp: 3 })
+      .notNull(),
+    hashtagsAdoptedAt: datetime('hashtags_adopted_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+    hashtagsAdoptedCount: int('hashtags_adopted_count', { unsigned: true }).default(sql`NULL`),
+  },
+  (table) => [unique('uniq_creation_groups_tag').on(table.tag)],
+)
+
+export type CreationGroupSelect = typeof creationGroupsTable.$inferSelect
+export type CreationGroupInsert = typeof creationGroupsTable.$inferInsert
+
 export const dltTransactionsTable = mysqlTable(
   'dlt_transactions',
   {
-    id: int().autoincrement().primaryKey().notNull(),
-    transactionId: int('transaction_id').default(sql`NULL`),
-    userId: int('user_id').default(sql`NULL`),
-    transactionLinkId: int('transaction_link_id').default(sql`NULL`),
-    typeId: int('type_id').notNull(),
+    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
+    transactionId: int('transaction_id', { unsigned: true }).default(sql`NULL`),
+    userId: int('user_id', { unsigned: true }).default(sql`NULL`),
+    transactionLinkId: int('transaction_link_id', { unsigned: true }).default(sql`NULL`),
+    typeId: int('type_id', { unsigned: true }).notNull(),
     hieroTransactionId: varchar('hiero_transaction_id', { length: 255 }).default(sql`NULL`),
     verified: tinyint().default(0).notNull(),
     createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
@@ -230,36 +394,49 @@ export const dltTransactionsTable = mysqlTable(
     error: text().default(sql`NULL`),
   },
   (table) => [
-    uniqueIndex('dlt_transactions_hiero_transacion_id_unique').on(table.hieroTransactionId),
+    uniqueIndex('hiero_transaction_id').on(table.hieroTransactionId),
+    index('idx_dlt_transaction_id').on(table.transactionId),
+    index('idx_dlt_transaction_link_id').on(table.transactionLinkId),
+    index('idx_dlt_user_id').on(table.userId),
   ],
 )
 
 export type DltTransactionSelect = typeof dltTransactionsTable.$inferSelect
 export type DltTransactionInsert = typeof dltTransactionsTable.$inferInsert
 
-export const eventsTable = mysqlTable('events', {
-  id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
-  type: varchar({ length: 100 }).notNull(),
-  createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
-    .default(sql`current_timestamp(3)`)
-    .notNull(),
-  affectedUserId: int('affected_user_id', { unsigned: true }).notNull(),
-  actingUserId: int('acting_user_id', { unsigned: true }).notNull(),
-  involvedUserId: int('involved_user_id', { unsigned: true }).default(sql`NULL`),
-  involvedTransactionId: int('involved_transaction_id', { unsigned: true }).default(sql`NULL`),
-  involvedContributionId: int('involved_contribution_id', { unsigned: true }).default(sql`NULL`),
-  involvedContributionMessageId: int('involved_contribution_message_id', {
-    unsigned: true,
-  }).default(sql`NULL`),
-  involvedTransactionLinkId: int('involved_transaction_link_id', { unsigned: true }).default(
-    sql`NULL`,
-  ),
-  involvedContributionLinkId: int('involved_contribution_link_id', { unsigned: true }).default(
-    sql`NULL`,
-  ),
-  amountLegacy: customGradidoUnit('amount_legacy').default(sql`NULL`),
-  amountGdd4: customGradidoUnit('amount_gdd4').default(sql`NULL`),
-})
+export const eventsTable = mysqlTable(
+  'events',
+  {
+    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
+    type: varchar({ length: 100 }).collate('utf8mb4_unicode_ci').notNull(),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+    affectedUserId: int('affected_user_id', { unsigned: true }).notNull(),
+    actingUserId: int('acting_user_id', { unsigned: true }).notNull(),
+    involvedUserId: int('involved_user_id', { unsigned: true }).default(sql`NULL`),
+    involvedTransactionId: int('involved_transaction_id', { unsigned: true }).default(sql`NULL`),
+    involvedContributionId: int('involved_contribution_id', { unsigned: true }).default(sql`NULL`),
+    involvedContributionMessageId: int('involved_contribution_message_id', {
+      unsigned: true,
+    }).default(sql`NULL`),
+    involvedTransactionLinkId: int('involved_transaction_link_id', { unsigned: true }).default(
+      sql`NULL`,
+    ),
+    involvedContributionLinkId: int('involved_contribution_link_id', { unsigned: true }).default(
+      sql`NULL`,
+    ),
+    amountLegacy: customGradidoUnit('amount_legacy').default(sql`NULL`),
+    amountGdd4: customGradidoUnit('amount_gdd4').default(sql`NULL`),
+  },
+  (table) => [
+    index('IDX_events_type_affected_user_created').on(
+      table.type,
+      table.affectedUserId,
+      table.createdAt,
+    ),
+  ],
+)
 
 export type EventSelect = typeof eventsTable.$inferSelect
 export type EventInsert = typeof eventsTable.$inferInsert
@@ -267,9 +444,9 @@ export type EventInsert = typeof eventsTable.$inferInsert
 export const matchingEntriesTable = mysqlTable(
   'matching_entries',
   {
-    id: int().autoincrement().primaryKey().notNull(),
+    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
     uuid: char({ length: 36 }).notNull(),
-    userId: int('user_id').notNull(),
+    userId: int('user_id', { unsigned: true }).notNull(),
     matchingType: varchar('matching_type', { length: 12 }).notNull(),
     summary: varchar({ length: 160 }).notNull(),
     details: text().default(sql`NULL`),
@@ -279,6 +456,13 @@ export const matchingEntriesTable = mysqlTable(
     // payload — this keeps the conversion in one place instead of at every call site.
     remote: boolean().default(false).notNull(),
     active: boolean().default(true).notNull(),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+    updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .onUpdateNow({ fsp: 3 })
+      .notNull(),
     // --- the keying ------------------------------------------------------------
     //
     // What a language model made of `summary`: the words this entry can be found
@@ -317,12 +501,6 @@ export const matchingEntriesTable = mysqlTable(
     instructionVersion: varchar('instruction_version', { length: 32 }).default(sql`NULL`),
     keyedAt: datetime('keyed_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
     // --- end of the keying -----------------------------------------------------
-    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
-      .default(sql`current_timestamp(3)`)
-      .notNull(),
-    updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 })
-      .default(sql`current_timestamp(3)`)
-      .notNull(),
   },
   (table) => [
     unique('uniq_matching_entries_uuid').on(table.uuid),
@@ -381,14 +559,84 @@ export const eventMatchingArrivalsTable = mysqlTable(
 export type EventMatchingArrivalSelect = typeof eventMatchingArrivalsTable.$inferSelect
 export type EventMatchingArrivalInsert = typeof eventMatchingArrivalsTable.$inferInsert
 
+// ⚠️ `payer_email` and `publisher_email` are utf8mb3_bin: compared byte by byte, so
+// case-sensitive.
+export const loginElopageBuysTable = mysqlTable('login_elopage_buys', {
+  id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
+  elopageUserId: int('elopage_user_id').default(sql`NULL`),
+  affiliateProgramId: int('affiliate_program_id').default(sql`NULL`),
+  publisherId: int('publisher_id').default(sql`NULL`),
+  orderId: int('order_id').default(sql`NULL`),
+  productId: int('product_id').default(sql`NULL`),
+  productPrice: int('product_price').notNull(),
+  payerEmail: varchar('payer_email', { length: 255 })
+    .charSet('utf8mb3')
+    .collate('utf8mb3_bin')
+    .notNull(),
+  publisherEmail: varchar('publisher_email', { length: 255 })
+    .charSet('utf8mb3')
+    .collate('utf8mb3_bin')
+    .notNull(),
+  payed: tinyint().notNull(),
+  successDate: datetime('success_date', { mode: 'date' }).notNull(),
+  event: varchar({ length: 255 }).notNull(),
+})
+
+export type LoginElopageBuySelect = typeof loginElopageBuysTable.$inferSelect
+export type LoginElopageBuyInsert = typeof loginElopageBuysTable.$inferInsert
+
+// Mirrors the table as the migrations leave it, not the TypeORM entity: the entity reads
+// `type_id` and the gdd4 columns as not null and `linked_user_gradido_id` as nullable, the
+// table has it the other way round.
+export const pendingTransactionsTable = mysqlTable('pending_transactions', {
+  id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
+  state: int().notNull(),
+  previous: int({ unsigned: true }).default(sql`NULL`),
+  typeId: int('type_id').default(sql`NULL`),
+  transactionLinkId: int('transaction_link_id', { unsigned: true }).default(sql`NULL`),
+  amountLegacy: decimal('amount_legacy', { precision: 40, scale: 20, mode: 'string' }).default(
+    sql`NULL`,
+  ),
+  amount: customGradidoUnit('amount_gdd4').default(sql`NULL`),
+  balanceLegacy: decimal('balance_legacy', { precision: 40, scale: 20, mode: 'string' }).default(
+    sql`NULL`,
+  ),
+  balance: customGradidoUnit('balance_gdd4').default(sql`NULL`),
+  balanceDate: datetime('balance_date', { mode: 'date', fsp: 3 })
+    .default(sql`current_timestamp(3)`)
+    .notNull(),
+  decayLegacy: decimal('decay_legacy', { precision: 40, scale: 20, mode: 'string' }).default(
+    sql`NULL`,
+  ),
+  decay: customGradidoUnit('decay_gdd4').default(sql`NULL`),
+  decayStart: datetime('decay_start', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+  decayCalculationType: int('decay_calculation_type').default(0),
+  memo: varchar({ length: 512 }).notNull(),
+  creationDate: datetime('creation_date', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+  userId: int('user_id', { unsigned: true }).notNull(),
+  userGradidoId: char('user_gradido_id', { length: 36 }).notNull(),
+  userName: varchar('user_name', { length: 512 }).collate('utf8mb4_unicode_ci').default(sql`NULL`),
+  userCommunityUuid: char('user_community_uuid', { length: 36 }).notNull(),
+  linkedUserId: int('linked_user_id', { unsigned: true }).default(sql`NULL`),
+  linkedUserGradidoId: char('linked_user_gradido_id', { length: 36 }).notNull(),
+  linkedUserName: varchar('linked_user_name', { length: 512 })
+    .collate('utf8mb4_unicode_ci')
+    .default(sql`NULL`),
+  linkedUserCommunityUuid: char('linked_user_community_uuid', { length: 36 }).notNull(),
+  linkedTransactionId: int('linked_transaction_id').default(sql`NULL`),
+})
+
+export type PendingTransactionSelect = typeof pendingTransactionsTable.$inferSelect
+export type PendingTransactionInsert = typeof pendingTransactionsTable.$inferInsert
+
 export const projectBrandingsTable = mysqlTable(
   'project_brandings',
   {
-    id: int().autoincrement().primaryKey().notNull(),
+    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
     name: varchar({ length: 255 }).notNull(),
     alias: varchar({ length: 32 }).notNull(),
     description: text().default(sql`NULL`),
-    spaceId: int('space_id').default(sql`NULL`),
+    spaceId: int('space_id', { unsigned: true }).default(sql`NULL`),
     spaceUrl: varchar('space_url', { length: 255 }).default(sql`NULL`),
     newUserToSpace: tinyint('new_user_to_space').default(0).notNull(),
     logoUrl: varchar('logo_url', { length: 255 }).default(sql`NULL`),
@@ -402,41 +650,44 @@ export type ProjectBrandingInsert = typeof projectBrandingsTable.$inferInsert
 export const transactionsTable = mysqlTable(
   'transactions',
   {
-    id: int().autoincrement().primaryKey().notNull(),
-    previous: int().default(sql`NULL`),
+    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
+    previous: int({ unsigned: true }).default(sql`NULL`),
     typeId: int('type_id').default(sql`NULL`),
-    transactionLinkId: int('transaction_link_id').default(sql`NULL`),
+    transactionLinkId: int('transaction_link_id', { unsigned: true }).default(sql`NULL`),
+    thankYouCardId: int('thank_you_card_id', { unsigned: true }).default(sql`NULL`),
+    // The picture sent with a transfer (`transaction_pictures`, migration 0154), on both rows.
+    transactionPictureId: int('transaction_picture_id', { unsigned: true }).default(sql`NULL`),
+    amountLegacy: decimal('amount_legacy', { precision: 40, scale: 20, mode: 'string' }).default(
+      sql`NULL`,
+    ),
     amount: customGradidoUnit('amount_gdd4').default(sql`NULL`),
+    balanceLegacy: decimal('balance_legacy', { precision: 40, scale: 20, mode: 'string' }).default(
+      sql`NULL`,
+    ),
     balance: customGradidoUnit('balance_gdd4').default(sql`NULL`),
     balanceDate: datetime('balance_date', { mode: 'date', fsp: 3 })
       .default(sql`current_timestamp(3)`)
       .notNull(),
-    memo: varchar({ length: 512 }).notNull(),
-    userId: int('user_id').notNull(),
-    linkedUserId: int('linked_user_id').default(sql`NULL`),
-    linkedTransactionId: int('linked_transaction_id').default(sql`NULL`),
-    // The rest of the row as the TypeORM entity (`entity/Transaction.ts`) has carried it for
-    // years. Added when the contact list needed the counterparty columns: a query over
-    // `transactions` in drizzle could only see half the row until then, and a schema that
-    // mirrors the table in part invites the next query to be written against the entity.
-    thankYouCardId: int('thank_you_card_id').default(sql`NULL`),
-    // The picture sent with a transfer (`transaction_pictures`, migration 0154), on both rows.
-    transactionPictureId: int('transaction_picture_id', { unsigned: true }).default(sql`NULL`),
-    decay: customGradidoUnit('decay_gdd4').notNull(),
-    decayStart: datetime('decay_start', { mode: 'date', fsp: 3 }).default(sql`NULL`),
-    decayCalculationType: int('decay_calculation_type').default(0).notNull(),
-    creationDate: datetime('creation_date', { mode: 'date', fsp: 3 }).default(sql`NULL`),
-    userCommunityUuid: varchar('user_community_uuid', { length: 36 }).default(sql`NULL`),
-    userGradidoId: varchar('user_gradido_id', { length: 36 }).notNull(),
-    userName: varchar('user_name', { length: 512 }).default(sql`NULL`),
-    // The counterparty of a SEND or RECEIVE row, written by executeTransaction on both
-    // rows of a transfer. `linkedUserId` above is set for a member of this community;
-    // the uuid pair alone identifies a member of another one.
-    linkedUserCommunityUuid: varchar('linked_user_community_uuid', { length: 36 }).default(
+    decayLegacy: decimal('decay_legacy', { precision: 40, scale: 20, mode: 'string' }).default(
       sql`NULL`,
     ),
-    linkedUserGradidoId: varchar('linked_user_gradido_id', { length: 36 }).default(sql`NULL`),
+    decay: customGradidoUnit('decay_gdd4').default(sql`NULL`),
+    decayStart: datetime('decay_start', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+    decayCalculationType: int('decay_calculation_type').default(0),
+    memo: varchar({ length: 512 }).notNull(),
+    creationDate: datetime('creation_date', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+    userId: int('user_id', { unsigned: true }).notNull(),
+    userCommunityUuid: char('user_community_uuid', { length: 36 }).default(sql`NULL`),
+    userGradidoId: char('user_gradido_id', { length: 36 }).notNull(),
+    userName: varchar('user_name', { length: 512 }).default(sql`NULL`),
+    // The counterparty of a SEND or RECEIVE row, written by executeTransaction on both
+    // rows of a transfer. `linkedUserId` is set for a member of this community; the uuid
+    // pair alone identifies a member of another one.
+    linkedUserId: int('linked_user_id', { unsigned: true }).default(sql`NULL`),
+    linkedUserCommunityUuid: char('linked_user_community_uuid', { length: 36 }).default(sql`NULL`),
+    linkedUserGradidoId: char('linked_user_gradido_id', { length: 36 }).default(sql`NULL`),
     linkedUserName: varchar('linked_user_name', { length: 512 }).default(sql`NULL`),
+    linkedTransactionId: int('linked_transaction_id').default(sql`NULL`),
   },
   (table) => [
     index('user_id').on(table.userId),
@@ -456,14 +707,14 @@ export type TransactionInsert = typeof transactionsTable.$inferInsert
 // `transactionId` is the recipient's RECEIVE row; the sender's SEND row is found from it, since
 // the two rows of a transfer of this community name each other (`linkedTransactionId`).
 //
-// ⛔ `emoji` is compared byte by byte in the database (utf8mb4_bin, set by the migration): the
-// tables' own collation takes most emoji for one and the same character.
+// ⛔ `emoji` is compared byte by byte in the database (utf8mb4_bin): the tables' own
+// collation takes most emoji for one and the same character.
 export const transactionReactionsTable = mysqlTable(
   'transaction_reactions',
   {
     id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
     transactionId: int('transaction_id', { unsigned: true }).notNull(),
-    emoji: varchar({ length: 16 }).notNull(),
+    emoji: varchar({ length: 16 }).collate('utf8mb4_bin').notNull(),
     createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
       .default(sql`current_timestamp(3)`)
       .notNull(),
@@ -477,9 +728,17 @@ export type TransactionReactionInsert = typeof transactionReactionsTable.$inferI
 export const transactionLinksTable = mysqlTable(
   'transaction_links',
   {
-    id: int().autoincrement().primaryKey().notNull(),
-    userId: int().notNull(),
+    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
+    userId: int({ unsigned: true }).notNull(),
+    amountLegacy: decimal('amount_legacy', { precision: 40, scale: 20, mode: 'string' }).default(
+      sql`NULL`,
+    ),
     amount: customGradidoUnit('amount_gdd4').default(sql`NULL`),
+    holdAvailableAmountLegacy: decimal('hold_available_amount_legacy', {
+      precision: 40,
+      scale: 20,
+      mode: 'string',
+    }).default(sql`NULL`),
     holdAvailableAmount: customGradidoUnit('hold_available_amount_gdd4').default(sql`NULL`),
     memo: varchar({ length: 512 }).notNull(),
     code: varchar({ length: 24 }).notNull(),
@@ -487,9 +746,12 @@ export const transactionLinksTable = mysqlTable(
     deletedAt: datetime({ mode: 'date' }).default(sql`NULL`),
     validUntil: datetime({ mode: 'date' }).notNull(),
     redeemedAt: datetime({ mode: 'date' }).default(sql`NULL`),
-    redeemedBy: int().default(sql`NULL`),
+    redeemedBy: int({ unsigned: true }).default(sql`NULL`),
   },
-  (table) => [index('idx_userId').on(table.userId)],
+  (table) => [
+    index('idx_userId').on(table.userId),
+    index('idx_user_id_valid_until').on(table.userId, table.validUntil, table.id),
+  ],
 )
 
 export type TransactionLinksSelect = typeof transactionLinksTable.$inferSelect
@@ -498,16 +760,18 @@ export type TransactionLinksInsert = typeof transactionLinksTable.$inferInsert
 export const usersTable = mysqlTable(
   'users',
   {
-    id: int().autoincrement().primaryKey().notNull(),
+    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
     foreign: boolean().default(false).notNull(),
     gradidoId: char('gradido_id', { length: 36 }).notNull(),
-    communityUuid: char('community_uuid', { length: 36 }).notNull(),
+    communityUuid: varchar('community_uuid', { length: 36 })
+      .collate('utf8mb4_general_ci')
+      .notNull(),
     alias: varchar({ length: 20 }).default(sql`NULL`),
     emailId: int('email_id').default(sql`NULL`),
     firstName: varchar('first_name', { length: 255 }).default(sql`NULL`),
     lastName: varchar('last_name', { length: 255 }).default(sql`NULL`),
-    gmsPublishName: int('gms_publish_name').default(0).notNull(),
-    humhubPublishName: int('humhub_publish_name').default(0).notNull(),
+    gmsPublishName: int('gms_publish_name', { unsigned: true }).default(0).notNull(),
+    humhubPublishName: int('humhub_publish_name', { unsigned: true }).default(0).notNull(),
     deletedAt: datetime('deleted_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
     // ⚠️ mode 'bigint' and unsigned, both load-bearing - same reason as
     // thank_you_card_settings.pin: the derivation returns a full unsigned 64 bit word
@@ -520,11 +784,11 @@ export const usersTable = mysqlTable(
       .default(sql`current_timestamp(3)`)
       .notNull(),
     language: varchar({ length: 4 }).default(sql`'de'`).notNull(),
-    referrerId: int('referrer_id').default(sql`NULL`),
-    contributionLinkId: int('contribution_link_id').default(sql`NULL`),
+    referrerId: int('referrer_id', { unsigned: true }).default(sql`NULL`),
+    contributionLinkId: int('contribution_link_id', { unsigned: true }).default(sql`NULL`),
     publisherId: int('publisher_id').default(0),
-    hideAmountGdd: boolean().default(false),
-    hideAmountGdt: boolean().default(false),
+    hideAmountGdd: boolean('hideAmountGDD').default(false),
+    hideAmountGdt: boolean('hideAmountGDT').default(false),
     gmsAllowed: boolean('gms_allowed').default(false).notNull(),
     // The member's own position, as a POINT. Readable at last -- the line that used to
     // stand here said "Can't parse geometry from database", which is what drizzle-kit
@@ -532,7 +796,7 @@ export const usersTable = mysqlTable(
     // short version is that mysql2 hands a point over as `{ x, y }` and a write has to
     // go through ST_GeomFromText().
     location: customGeometry().default(null),
-    gmsPublishLocation: int('gms_publish_location').default(1).notNull(),
+    gmsPublishLocation: int('gms_publish_location', { unsigned: true }).default(1).notNull(),
     aboutMe: text('about_me').default(sql`NULL`),
     avatarVisibleToMembers: boolean('avatar_visible_to_members').default(true).notNull(),
     // ES-021: a person may create, a project account may not. 1 for every account that
@@ -541,7 +805,6 @@ export const usersTable = mysqlTable(
     // The transfers in the conversations and the mail about one received: the holder's switch,
     // on by default (migration 0147).
     transfersInChat: boolean('transfers_in_chat').default(true).notNull(),
-    salutation: varchar({ length: 255 }).default(sql`NULL`),
     gmsRegistered: boolean('gms_registered').default(false).notNull(),
     gmsRegisteredAt: datetime('gms_registered_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
     humhubAllowed: boolean('humhub_allowed').default(false).notNull(),
@@ -551,8 +814,12 @@ export const usersTable = mysqlTable(
     accountState: mysqlEnum('account_state', AccountState)
       .default(AccountState.REGISTERED)
       .notNull(),
+    gender: varchar({ length: 8 }).default(sql`NULL`),
+    salutation: varchar({ length: 255 }).default(sql`NULL`),
+    creaSignature: varchar('crea_signature', { length: 255 }).default(sql`NULL`),
   },
   (table) => [
+    index('IDX_users_email_id').on(table.emailId),
     index('idx_users_created_id_uuid').on(table.createdAt, table.id, table.communityUuid),
     // Who brought a member here. Read by the overview tile and, from the contact list on,
     // by every page of contacts and every tap on a name -- see migration 0139.
@@ -573,15 +840,13 @@ export type UserInsert = typeof usersTable.$inferInsert
 // ⚠️ The verification and veto codes are unsigned 64 bit words: mode 'bigint' and
 // unsigned, for the reason users.password gives - as a JS number almost every code would
 // come back as a different one. (The entity reads them as strings.)
-// `updated_at` carries `ON UPDATE current_timestamp(3)` in the table itself; Drizzle's
-// onUpdateNow() only describes DDL and knows no precision, so it is left out.
 export const userContactsTable = mysqlTable(
   'user_contacts',
   {
     id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
-    type: varchar({ length: 100 }).notNull(),
+    type: varchar({ length: 100 }).collate('utf8mb4_unicode_ci').notNull(),
     userId: int('user_id', { unsigned: true }).notNull(),
-    email: varchar({ length: 255 }).notNull(),
+    email: varchar({ length: 255 }).collate('utf8mb4_unicode_ci').notNull(),
     emailVerificationCode: bigint('email_verification_code', {
       mode: 'bigint',
       unsigned: true,
@@ -594,12 +859,14 @@ export const userContactsTable = mysqlTable(
     emailChecked: boolean('email_checked').default(false).notNull(),
     gmsPublishEmail: boolean('gms_publish_email').default(false).notNull(),
     countryCode: varchar('country_code', { length: 255 }).default(sql`NULL`),
-    phone: varchar({ length: 255 }).default(sql`NULL`),
+    phone: varchar({ length: 255 }).collate('utf8mb4_unicode_ci').default(sql`NULL`),
     gmsPublishPhone: int('gms_publish_phone', { unsigned: true }).default(0).notNull(),
     createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
       .default(sql`current_timestamp(3)`)
       .notNull(),
-    updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+    updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 })
+      .default(sql`NULL`)
+      .onUpdateNow({ fsp: 3 }),
     deletedAt: datetime('deleted_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
   },
   (table) => [
@@ -620,8 +887,8 @@ export const userAliasesTable = mysqlTable(
   {
     id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
     userId: int('user_id', { unsigned: true }).notNull(),
-    alias: varchar({ length: 20 }).notNull(),
-    origin: varchar({ length: 8 }).default('chosen').notNull(),
+    alias: varchar({ length: 20 }).collate('utf8mb4_unicode_ci').notNull(),
+    origin: varchar({ length: 8 }).collate('utf8mb4_unicode_ci').default('chosen').notNull(),
     createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
       .default(sql`current_timestamp(3)`)
       .notNull(),
@@ -650,7 +917,7 @@ export type UserAliasInsert = typeof userAliasesTable.$inferInsert
 // leave the community"). It is left standing as the history it is; this comment is the one
 // that is current.
 export const userAvatarsTable = mysqlTable('user_avatars', {
-  userId: int('user_id').primaryKey().notNull(),
+  userId: int('user_id', { unsigned: true }).primaryKey().notNull(),
   avatarSmall: customMediumBlob('avatar_small').notNull(),
   avatarFull: customMediumBlob('avatar_full').notNull(),
   mimeType: varchar('mime_type', { length: 32 }).notNull(),
@@ -671,8 +938,8 @@ export type UserAvatarInsert = typeof userAvatarsTable.$inferInsert
 export const userRolesTable = mysqlTable(
   'user_roles',
   {
-    id: int().autoincrement().primaryKey().notNull(),
-    userId: int('user_id').notNull(),
+    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
+    userId: int('user_id', { unsigned: true }).notNull(),
     role: varchar({ length: 40 }).notNull(),
     // A moderator's visibility scope: a JSON array of creation-group names plus the
     // sentinels '*all' / '*untagged', as text. NULL is no restriction, which is what
@@ -721,6 +988,31 @@ export const userFavoritesTable = mysqlTable(
 export type UserFavoriteSelect = typeof userFavoritesTable.$inferSelect
 export type UserFavoriteInsert = typeof userFavoritesTable.$inferInsert
 
+export const userCreationGroupsTable = mysqlTable(
+  'user_creation_groups',
+  {
+    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
+    userId: int('user_id', { unsigned: true }).notNull(),
+    creationGroupId: int('creation_group_id', { unsigned: true }).notNull(),
+    sortOrder: int('sort_order', { unsigned: true }).default(0).notNull(),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+    updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .onUpdateNow({ fsp: 3 })
+      .notNull(),
+  },
+  (table) => [
+    unique('uniq_user_creation_group').on(table.userId, table.creationGroupId),
+    index('idx_ucg_user_id').on(table.userId),
+    index('idx_ucg_creation_group_id').on(table.creationGroupId),
+  ],
+)
+
+export type UserCreationGroupSelect = typeof userCreationGroupsTable.$inferSelect
+export type UserCreationGroupInsert = typeof userCreationGroupsTable.$inferInsert
+
 // When a member of ANOTHER community last changed the picture their community lets members
 // see, as this community last heard it (see migration 0137, AS-019). Written by the backend
 // timer refreshForeignMemberAvatarDates, read by the booking list and the contact list.
@@ -754,7 +1046,7 @@ export type ForeignMemberAvatarDateInsert = typeof foreignMemberAvatarDatesTable
 // The existence of a settings row IS the on/off switch -- enabling means setting a PIN,
 // disabling means deleting it. "Enabled but without a PIN" therefore cannot exist.
 export const thankYouCardSettingsTable = mysqlTable('thank_you_card_settings', {
-  userId: int('user_id').primaryKey().notNull(),
+  userId: int('user_id', { unsigned: true }).primaryKey().notNull(),
   // A keyed BLAKE2b, cut to 64 bit (see backend/src/password/PinEncryptor.ts) -- NOT the
   // users.password derivation, deliberately, and with its own salt: a leak must not let
   // one of the two secrets say anything about the other.
@@ -795,8 +1087,8 @@ export type ThankYouCardSettingsInsert = typeof thankYouCardSettingsTable.$infer
 export const thankYouCardsTable = mysqlTable(
   'thank_you_cards',
   {
-    id: int().autoincrement().primaryKey().notNull(),
-    userId: int('user_id').notNull(),
+    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
+    userId: int('user_id', { unsigned: true }).notNull(),
     // "DK-" plus 32 hex characters: 16 fully random bytes, no timestamp. Length inside a
     // QR code is free, so there is no reason to spend part of it on the creation time
     // the way transaction links do.
@@ -804,7 +1096,7 @@ export const thankYouCardsTable = mysqlTable(
     label: varchar({ length: 64 }).notNull(),
     // Counted on the card, not on the person: once more than one card may be valid,
     // guessing at one must not block the other.
-    failedAttempts: int('failed_attempts').default(0).notNull(),
+    failedAttempts: int('failed_attempts', { unsigned: true }).default(0).notNull(),
     blockedAt: datetime('blocked_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
     createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
       .default(sql`current_timestamp(3)`)
@@ -830,9 +1122,9 @@ export type ThankYouCardInsert = typeof thankYouCardsTable.$inferInsert
 export const thankYouCardPaymentsTable = mysqlTable(
   'thank_you_card_payments',
   {
-    id: int().autoincrement().primaryKey().notNull(),
-    cardId: int('card_id').notNull(),
-    recipientId: int('recipient_id').notNull(),
+    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
+    cardId: int('card_id', { unsigned: true }).notNull(),
+    recipientId: int('recipient_id', { unsigned: true }).notNull(),
     amount: customGradidoUnit('amount_gdd4').notNull(),
     memo: varchar({ length: 512 }).notNull(),
     state: varchar({ length: 16 }).default('open').notNull(),
@@ -863,7 +1155,7 @@ export type ThankYouCardPaymentInsert = typeof thankYouCardPaymentsTable.$inferI
 export const firstCreationsTable = mysqlTable(
   'first_creations',
   {
-    id: int().autoincrement().primaryKey().notNull(),
+    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
     // `unsigned`, because `users.id` is `int(10) unsigned` and migration 0130 mirrors it.
     userId: int('user_id', { unsigned: true }).notNull(),
     status: varchar({ length: 16 }).notNull(),
@@ -878,7 +1170,7 @@ export const firstCreationsTable = mysqlTable(
       .default(sql`current_timestamp(3)`)
       .notNull(),
     // Maintained by the update queries, not by an ON UPDATE clause — same reason as
-    // creachat_threads: drizzle cannot express one on a datetime column.
+    // creachat_threads.
     updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 })
       .default(sql`current_timestamp(3)`)
       .notNull(),
@@ -1043,8 +1335,8 @@ export type ChatMessageInsert = typeof chatMessagesTable.$inferInsert
 // The member by their pair, as `chat_conversation_members` names a member. `id` is the order the
 // members reacted in; a reaction changed for another keeps its place.
 //
-// ⛔ `emoji` is compared byte by byte in the database (utf8mb4_bin, set by the migration): the
-// tables' own collation takes most emoji for one and the same character.
+// ⛔ `emoji` is compared byte by byte in the database (utf8mb4_bin): the tables' own
+// collation takes most emoji for one and the same character.
 export const chatMessageReactionsTable = mysqlTable(
   'chat_message_reactions',
   {
@@ -1052,7 +1344,7 @@ export const chatMessageReactionsTable = mysqlTable(
     messageId: int('message_id', { unsigned: true }).notNull(),
     communityUuid: char('community_uuid', { length: 36 }).notNull(),
     gradidoId: char('gradido_id', { length: 36 }).notNull(),
-    emoji: varchar({ length: 16 }).notNull(),
+    emoji: varchar({ length: 16 }).collate('utf8mb4_bin').notNull(),
     createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
       .default(sql`current_timestamp(3)`)
       .notNull(),

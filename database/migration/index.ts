@@ -2,13 +2,17 @@ import { CONFIG } from '../src/config'
 import { DatabaseState, getDatabaseState } from './prepare'
 
 import path from 'node:path'
+import { promisify } from 'node:util'
 import { createPool } from 'mysql'
 import { Migration } from 'ts-mysql-migrate'
 import { clearDatabase } from './clear'
+import { createDatabaseFromSchema } from './createFromSchema'
 import { latestDbVersion } from '../src/detectLastDBVersion'
 import { MIGRATIONS_TABLE } from '../src/config/const'
 
-const run = async (command: string) => {
+// `up --migrations` runs every migration even on an empty database, instead of building it
+// from drizzle.schema.ts.
+const run = async (command: string, flags: string[]) => {
   if (command === 'clear') {
     if (CONFIG.NODE_ENV === 'production') {
       throw new Error('Clearing database in production is not allowed')
@@ -50,18 +54,28 @@ const run = async (command: string) => {
     bigNumberStrings: true,
     multipleStatements: true
   })
+  const migrationsDir = path.join(__dirname, 'migrations')
   const migration = new Migration({
     conn: pool,
     tableName: MIGRATIONS_TABLE,
     silent: true,
-    dir: path.join(__dirname, 'migrations'),
+    dir: migrationsDir,
   })
   await migration.initialize()
 
   // Execute command
   switch (command) {
     case 'up':
-      await migration.up() // use for upgrade script
+      if (state === DatabaseState.EMPTY && !flags.includes('--migrations')) {
+        const fileName = await createDatabaseFromSchema(
+          promisify(pool.query).bind(pool),
+          migrationsDir,
+        )
+        // biome-ignore lint/suspicious/noConsole: no logger present
+        console.log(`Empty database built from drizzle.schema, recorded up to: ${fileName}`)
+      } else {
+        await migration.up() // use for upgrade script
+      }
       break
     case 'down':
       await migration.down() // use for downgrade script
@@ -95,7 +109,7 @@ const run = async (command: string) => {
   pool.end()
 }
 
-run(process.argv[2])
+run(process.argv[2], process.argv.slice(3))
   .catch((err) => {
     // biome-ignore lint/suspicious/noConsole: no logger present
     console.log(err)
