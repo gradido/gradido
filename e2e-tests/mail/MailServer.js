@@ -18,7 +18,8 @@ export class MailServer {
   /** @param {APIRequestContext} request */
   constructor(request) {
     this.request = request
-    this.since = Date.now()
+    // maildev stores the arrival time in whole seconds
+    this.since = Math.floor(Date.now() / 1000) * 1000
   }
 
   /**
