@@ -15,6 +15,18 @@ export enum EventType {
   // ES-021: an administrator switched an account's creation right on or off.
   ADMIN_USER_CREATION_ALLOWED_SET = 'ADMIN_USER_CREATION_ALLOWED_SET',
   ADMIN_USER_SALUTATION_SET = 'ADMIN_USER_SALUTATION_SET',
+  // The community figures (the admin's start page): three moments no other table records. Account
+  // numbers and time only, as every event here -- never a text, a code or a room name.
+  // The first message of a conversation, sent from the map profile ("say hello"): affected and
+  // acting = the sender, involved = the recipient where they are a member here (none across the
+  // border).
+  CHAT_HELLO_SEND = 'CHAT_HELLO_SEND',
+  // A video room handed out -- for a call started, or ahead of one as the wallet's gear opens, and
+  // anew for each server chosen there: a room, not a call. Affected and acting = the member.
+  CHAT_VIDEO_ROOM_CREATE = 'CHAT_VIDEO_ROOM_CREATE',
+  // A table code minted for the page "show it to your friends", which shows it or hands it to the
+  // form of a guest without a phone: affected and acting = the member whose code it is.
+  GUARANTOR_CODE_SHOW = 'GUARANTOR_CODE_SHOW',
   CONTRIBUTION_CREATE = 'CONTRIBUTION_CREATE',
   CONTRIBUTION_DELETE = 'CONTRIBUTION_DELETE',
   CONTRIBUTION_UPDATE = 'CONTRIBUTION_UPDATE',

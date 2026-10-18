@@ -162,6 +162,8 @@ describe('useChatHello', () => {
           ref: { gradidoID: JENS.gradidoID, communityUuid: JENS.communityUuid },
           body: 'Hallo Jens, ich habe Dich auf der Gradido-Karte gefunden.',
           notify: 'EMAIL',
+          // Where it was said: the server counts the first message from the map (CHAT_HELLO_SEND).
+          origin: 'MAP',
         },
       })
       // Neither a picture nor an answered message goes with a hello: no such field at all.

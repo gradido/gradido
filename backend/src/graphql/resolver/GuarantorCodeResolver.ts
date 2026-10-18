@@ -1,7 +1,12 @@
 // AI-GENERATED — not an architecture reference
 
 import { GuarantorCode } from '@model/GuarantorCode'
-import { dbFindUnconfirmedVouchedAccounts, getHomeCommunity } from 'database'
+import {
+  dbFindUnconfirmedVouchedAccounts,
+  dbInsertEvent,
+  EventType,
+  getHomeCommunity,
+} from 'database'
 import { aliasSchema } from 'shared'
 import { Authorized, Ctx, Query, Resolver } from 'type-graphql'
 import * as v from 'valibot'
@@ -52,10 +57,17 @@ export class GuarantorCodeResolver {
     if (unconfirmedGuests.length >= GUARANTOR_LIMIT) {
       return { code: null, alias: user.alias, expiresAt: null, remainingMs: 0, unconfirmedGuests }
     }
-    return {
-      ...mintGuarantorCode(user.id, homeCom.communityUuid),
-      alias: user.alias,
-      unconfirmedGuests,
-    }
+    const minted = mintGuarantorCode(user.id, homeCom.communityUuid)
+    // A query that writes, on purpose: the minting is the event (GUARANTOR_CODE_SHOW, for the
+    // community figures). Every code minted here is one the member was shown -- the page asks
+    // when it opens (the door that holds the code is open on arrival), on "show a new code", and
+    // on "no phone with you?", which hands the code to the guest's form. No code, no row: none at
+    // the limit, none without a user name (both answered above).
+    await dbInsertEvent({
+      type: EventType.GUARANTOR_CODE_SHOW,
+      affectedUserId: user.id,
+      actingUserId: user.id,
+    })
+    return { ...minted, alias: user.alias, unconfirmedGuests }
   }
 }
