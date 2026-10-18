@@ -1,11 +1,6 @@
 import { getHomeCommunityDrizzle } from 'database'
 import { Elysia } from 'elysia'
-import {
-  AppContext,
-  communityInfoWireSchema,
-  signatureNonceSchema,
-  signedJsonResponse,
-} from 'shared'
+import { communityInfoWireSchema, signatureNonceSchema, signedJsonResponse } from 'shared'
 import * as v from 'valibot'
 import { statusNumber } from './utils'
 
