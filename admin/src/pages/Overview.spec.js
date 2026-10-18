@@ -214,6 +214,12 @@ describe('Overview', () => {
         'figures.group.accounts',
         'figures.group.firstCreation',
       ])
+      // For a screen reader: a group heading names the rows below it, a label its own row.
+      expect(wrapper.findAll('tr.figures-group th').map((th) => th.attributes('scope'))).toEqual([
+        'rowgroup',
+        'rowgroup',
+      ])
+      expect(wrapper.find('[data-test="figure-accountsNew"] th').attributes('scope')).toBe('row')
       for (const { key, since, week, total } of ROWS) {
         const shown = (value) => (value === null ? '–' : `#${value}`)
         expect(cellsOf(key)).toEqual([

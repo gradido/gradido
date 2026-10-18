@@ -33,7 +33,7 @@
       <BTbody v-for="group in groups" :key="group.key">
         <BTr class="figures-group">
           <!-- Plain th: BTh sets a scope of its own ("col", or "colspan" with a colspan). -->
-          <th colspan="4" scope="colgroup">{{ group.label }}</th>
+          <th colspan="4" scope="rowgroup">{{ group.label }}</th>
         </BTr>
         <BTr v-for="row in group.rows" :key="row.key" :data-test="`figure-${row.key}`">
           <th scope="row" class="fw-normal">{{ row.label }}</th>
