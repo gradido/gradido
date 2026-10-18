@@ -211,14 +211,25 @@ mutation markChatConversationRead($ref: MemberAvatarRefInput!, $upToMessageId: I
 #
 # `replyTo`: the uuid of the message of this conversation the message answers. Refused as
 # CHAT_MESSAGE_NOT_SENT: UNKNOWN_REPLY where it is none the sender can read there.
+#
+# `origin`: MAP from the map profile's "say hello" (useChatHello), left out everywhere else. The
+# server notes the first message of a conversation sent so as an event, for the community figures.
 mutation sendChatMessage(
   $ref: MemberAvatarRefInput!
   $body: String!
   $notify: ChatMessageNotify!
   $image: ChatImageInput
   $replyTo: String
+  $origin: ChatMessageOrigin
 ) {
-  sendChatMessage(ref: $ref, body: $body, notify: $notify, image: $image, replyTo: $replyTo) {
+  sendChatMessage(
+    ref: $ref
+    body: $body
+    notify: $notify
+    image: $image
+    replyTo: $replyTo
+    origin: $origin
+  ) {
     ...chatMessageFields
   }
 }

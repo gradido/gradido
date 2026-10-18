@@ -1153,6 +1153,8 @@ describe('ChatThread', () => {
           body: 'Hallo Lena',
         }),
       )
+      // A first message from the contact window is no hello from the map: no origin with it.
+      expect(serverSends.mock.calls[0][0]).not.toHaveProperty('origin')
     })
 
     it('offers only the text in the first form, and the paperclip with the conversation', async () => {
@@ -2966,6 +2968,8 @@ describe('ChatThread', () => {
         body: 'Hallo Lena',
         notify: 'EMAIL',
       })
+      // Only the map profile's hello says where it was written (useChatHello): not the thread.
+      expect(serverSends.mock.calls[0][0]).not.toHaveProperty('origin')
     })
 
     /**

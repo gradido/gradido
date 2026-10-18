@@ -56,8 +56,8 @@ async function main() {
   mapMemberCount.start()
   // The chat's video servers: the list is filled once where it is still empty (from
   // CHAT_VIDEO_SERVERS or the default list), then checked now and every ten minutes, in the
-  // background -- the query chatVideoRoom only reads what the last check found and never waits
-  // for a server.
+  // background -- the query chatVideoRoom takes what the last check found and never waits for a
+  // server.
   await seedChatVideoServers()
   chatVideoServerPool.start()
 }

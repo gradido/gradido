@@ -5,8 +5,10 @@ import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@t
 import {
   AccountState,
   AppDatabase,
+  Event as DbEvent,
   User as DbUser,
   UserContact as DbUserContact,
+  EventType,
   getHomeCommunity,
 } from 'database'
 import { GraphQLError } from 'graphql'
@@ -68,6 +70,13 @@ const loginAs = async (email: string): Promise<void> => {
   const { errors } = await mutate({ mutation: login, variables: { email, password: PASSWORD } })
   expect(errors).toBeUndefined()
 }
+
+/** The rows that note a code shown (community figures): of one member, or of everybody. */
+const codesShown = (user?: DbUser) =>
+  DbEvent.find({
+    where: { type: EventType.GUARANTOR_CODE_SHOW, ...(user ? { affectedUserId: user.id } : {}) },
+    order: { id: 'ASC' },
+  })
 
 const ageRows = async (user: DbUser, hoursAgo: number): Promise<void> => {
   const then = new Date(Date.now() - hoursAgo * 60 * 60 * 1000)
@@ -174,6 +183,48 @@ describe('GuarantorCodeResolver', () => {
   })
 
   /**
+   * The community figures: every code minted is a code the member was shown, noted as an event --
+   * the member's account number and the time, nothing of the code. No code, no row (the limit
+   * further down).
+   */
+  describe('the event of a code shown', () => {
+    it('notes one code with exactly one row, the member affected and acting', async () => {
+      await loginAs('bibi@bloxberg.de')
+      const before = await codesShown()
+      const { errors } = await query({ query: guarantorCode })
+      expect(errors).toBeUndefined()
+
+      const after = await codesShown()
+      expect(after).toHaveLength(before.length + 1)
+      expect(after[after.length - 1]).toMatchObject({
+        type: EventType.GUARANTOR_CODE_SHOW,
+        affectedUserId: bibi.id,
+        actingUserId: bibi.id,
+        involvedUserId: null,
+      })
+    })
+
+    it('notes two codes with two rows', async () => {
+      await loginAs('bob@baumeister.de')
+      const before = await codesShown(bob)
+      expect((await query({ query: guarantorCode })).errors).toBeUndefined()
+      expect((await query({ query: guarantorCode })).errors).toBeUndefined()
+
+      expect(await codesShown(bob)).toHaveLength(before.length + 2)
+    })
+
+    it('notes nothing for a member without a user name', async () => {
+      await loginAs('peter@lustig.de')
+      const before = await codesShown()
+      await expect(query({ query: guarantorCode })).resolves.toMatchObject({
+        data: { guarantorCode: null },
+      })
+
+      expect(await codesShown()).toHaveLength(before.length)
+    })
+  })
+
+  /**
    * E-019 and E-020: under the code the member sees the guests they vouch for who have not
    * confirmed yet, with first name, last name and user name. At GUARANTOR_LIMIT there
    * is no code - the member sees it on their own screen before a guest scans.
@@ -231,6 +282,15 @@ describe('GuarantorCodeResolver', () => {
       expect(answer).toMatchObject({ code: null, expiresAt: null, remainingMs: 0 })
       expect(aliases(answer)).toHaveLength(GUARANTOR_LIMIT)
       expect(aliases(answer).slice(0, 3)).toEqual(['tischgast1', 'tischgast2', 'tischgast3'])
+    })
+
+    // The community figures: no code at the limit, so no row of a code shown either.
+    it('notes no code shown at the limit', async () => {
+      const before = await codesShown()
+      const answer = await askAs('bibi@bloxberg.de')
+
+      expect(answer.code).toBeNull()
+      expect(await codesShown()).toHaveLength(before.length)
     })
 
     it('mints again once one of them confirms, and lists the others', async () => {

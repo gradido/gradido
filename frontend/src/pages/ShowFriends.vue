@@ -257,9 +257,10 @@
  * the thank-you greeting is built it is the link from the send form. Under it the address
  * alone, with a sentence around it, handed to the device's share sheet.
  *
- * Nothing here is stored. The page reads the member's name from the store like the card page
- * does, and asks the server for nothing but the guarantor code - and, for the guest without a phone,
- * to sign the member out.
+ * The page stores nothing. It reads the member's name from the store like the card page does, and
+ * asks the server for nothing but the guarantor code - and, for the guest without a phone, to sign
+ * the member out. The server notes every code it mints for the community figures
+ * (GUARANTOR_CODE_SHOW): the member's account number and the time, nothing of the code.
  */
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useStore } from 'vuex'
