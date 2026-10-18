@@ -22,6 +22,7 @@ import {
   UserContact as DbUserContact,
   dbEnsureDirectChatConversation,
   dbFindDirectChatConversation,
+  dbInsertEvent,
   EventType,
   User,
 } from 'database'
@@ -69,7 +70,7 @@ import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
 // out: the chat notes MAILED only for such a mail (E-034), and with mail switched off here the
 // real function would answer null. Nothing is sent either way. Filing a message is the real one,
 // watched only so that a test can let one fail -- the way it fails in production, see there.
-// (A mock of `database` would not reach core: test/testSetup.ts loads core before this file.)
+// (A mock of `database` would not reach core's own calls: test/testSetup.ts loads core first.)
 jest.mock('core', () => {
   const originalModule = jest.requireActual('core')
   return {
@@ -77,6 +78,17 @@ jest.mock('core', () => {
     ...originalModule,
     sendCustomEmail: jest.fn(async () => ({ accepted: ['watched'] })),
     storeChatMessage: jest.fn(originalModule.storeChatMessage),
+  }
+})
+
+// Writing an event is the real one, watched only so that a test can let the hello's event fail.
+// The resolver is loaded after this file, so this reaches its calls (not core's, see above).
+jest.mock('database', () => {
+  const original = jest.requireActual('database')
+  return {
+    __esModule: true,
+    ...original,
+    dbInsertEvent: jest.fn(original.dbInsertEvent),
   }
 })
 
@@ -101,6 +113,7 @@ const videoServersChecked = async (pass: boolean): Promise<void> => {
 }
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
+const resolverLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.ChatResolver`)
 // The messages are written through sendEmail, as a member writes them; no mail has to go out.
 CORE_CONFIG.EMAIL = false
 
@@ -600,6 +613,7 @@ describe('a hello from the map', () => {
   let ida: User
   let jan: User
   let kai: User
+  let mia: User
 
   beforeAll(async () => {
     const member = (name: string) =>
@@ -614,6 +628,7 @@ describe('a hello from the map', () => {
     ida = await member('ida')
     jan = await member('jan')
     kai = await member('kai')
+    mia = await member('mia')
     await loginAs('hanna@hello.example')
   })
   beforeEach(() => clearMails())
@@ -674,6 +689,22 @@ describe('a hello from the map', () => {
     const res = await sayFromMap(ref(kai), 'Hallo Kai.')
     expect(res.errors).toBeUndefined()
     expect(await hellosOf(hanna)).toEqual(before)
+  })
+
+  // The event is the trace of a message already filed and mailed (Bernd, 18.10.2026): a trace that
+  // cannot be written is logged, and the sender gets the copy, not an error.
+  it('answers with the message where its hello cannot be noted, and logs that', async () => {
+    const before = await hellosOf(hanna)
+    ;(dbInsertEvent as jest.Mock).mockRejectedValueOnce(new Error('events refused in the test'))
+    const res = await sayFromMap(ref(mia), 'Hallo Mia.')
+
+    expect(res.errors).toBeUndefined()
+    expect(res.data.sendChatMessage).toMatchObject({ mine: true, body: 'Hallo Mia.' })
+    expect(await hellosOf(hanna)).toEqual(before)
+    expect(resolverLogger.error).toHaveBeenCalledWith(
+      `chat hello event not written: user_id=${hanna.id}`,
+      expect.objectContaining({ message: 'events refused in the test' }),
+    )
   })
 })
 

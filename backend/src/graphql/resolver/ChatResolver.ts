@@ -104,15 +104,25 @@ const roomOn = ({ baseUrl, host, operator, prefix }: ChatVideoServer): ChatVideo
  * A hello from the map, for the community figures: the first message of a conversation, sent
  * from the map profile. The sender's account number, the recipient's where they are a member
  * here (none across the border), and the time -- never the text. Written once the message is
- * filed: the row is the message.
+ * filed: the row is the message, the event only its trace. A trace that cannot be written is
+ * logged, never turned into an answer that says the message was not sent -- it was, and mailed
+ * (Bernd, 18.10.2026; the rule the first creation's events follow).
  */
-const insertHelloFromMapEvent = (senderId: number, recipientId: number | null): Promise<void> =>
-  dbInsertEvent({
-    type: EventType.CHAT_HELLO_SEND,
-    affectedUserId: senderId,
-    actingUserId: senderId,
-    involvedUserId: recipientId,
-  })
+const insertHelloFromMapEvent = async (
+  senderId: number,
+  recipientId: number | null,
+): Promise<void> => {
+  try {
+    await dbInsertEvent({
+      type: EventType.CHAT_HELLO_SEND,
+      affectedUserId: senderId,
+      actingUserId: senderId,
+      involvedUserId: recipientId,
+    })
+  } catch (error) {
+    createLogger().error(`chat hello event not written: user_id=${senderId}`, error)
+  }
+}
 
 /**
  * The chat: the thread with one contact and the caller's marks in it -- the read pointer and
@@ -344,7 +354,7 @@ export class ChatResolver {
    * `origin` MAP: sent from the map profile's "say hello". Where the message is the first of the
    * two, it is noted as an event as well (CHAT_HELLO_SEND, the community figures), once it is
    * filed -- on both ways. A later message, or one without `origin`, writes none; neither does
-   * one that could not be filed.
+   * one that could not be filed. An event that cannot be written is logged; the message stays sent.
    */
   @Authorized([RIGHTS.SEND_CHAT_MESSAGE])
   @Mutation(() => ChatMessage)
