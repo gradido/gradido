@@ -11,8 +11,9 @@ import { CodeType } from './CodeType.enum'
  * registration form. The account is usable at once, unconfirmed, with the grace period and
  * the blockade after it (EM-013).
  *
- * Stateless on purpose - expiry instead of use (E-017 point 3). Nothing is stored; the server
- * checks the seal and the clock. Two guests inside the same ten minutes both get through, and
+ * Stateless on purpose - expiry instead of use (E-017 point 3). Nothing of the code is stored (the
+ * resolver notes only THAT one was minted, GUARANTOR_CODE_SHOW); the server checks the seal and
+ * the clock. Two guests inside the same ten minutes both get through, and
  * "one code per guest" is the member's button, not a counter.
  *
  * Shape: `<exp>.<block>`. `exp` is the expiry in Unix seconds, in clear, because the wallet reads

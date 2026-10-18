@@ -25,13 +25,7 @@ import {
 } from 'database'
 import { GraphQLError } from 'graphql'
 import { GraphQLClient } from 'graphql-request'
-import {
-  CommandJwtPayloadType,
-  createKeyPair,
-  GradidoUnit,
-  uuidv4Schema,
-  verifyAndDecrypt,
-} from 'shared'
+import { CommandJwtPayloadType, createKeyPair, uuidv4Schema, verifyAndDecrypt } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
 import * as v from 'valibot'
 import { CONFIG } from '@/config'

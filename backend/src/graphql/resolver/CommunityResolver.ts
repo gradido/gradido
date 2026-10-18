@@ -16,7 +16,7 @@ import { Arg, Args, Authorized, Mutation, Query, Resolver } from 'type-graphql'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
 import { LogError } from '@/server/LogError'
-import { getAllCommunities, getCommunityByIdentifier, getCommunityByUuid } from './util/communities'
+import { getAllCommunities, getCommunityByIdentifier } from './util/communities'
 import { Location2Point } from './util/Location2Point'
 
 @Resolver()

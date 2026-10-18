@@ -113,7 +113,9 @@ export const CHAT_VIDEO_CHECK_MAX_AGE_MS = 2 * CHAT_VIDEO_CHECK_INTERVAL_MS
 /**
  * How many video rooms one HTTP request may ask for, over every alias -- counted in
  * RequestBudget (server/context.ts): nothing in a single call keeps a
- * document from repeating the field. The wallet asks for one room per call a member starts.
+ * document from repeating the field. The wallet asks for one room at a time: when a call is
+ * started, or ahead of it as the gear opens (so that "copy link" finds it ready), and anew for
+ * every other server chosen there.
  * Five rather than one for the reason MEMBER_AVATARS_FULL_MAX_PER_REQUEST gives: a limit that
  * ordinary use can reach gets raised by whoever hits it, without the reasoning being read again.
  */

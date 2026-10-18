@@ -12,7 +12,6 @@ import {
   foreignMemberAvatarDateKey,
   userAvatarsTable,
 } from 'database'
-import { GraphQLError } from 'graphql'
 import { getLogger } from 'log4js'
 import {
   createKeyPair,

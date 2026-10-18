@@ -5,12 +5,7 @@ import { MySql2Database } from 'drizzle-orm/mysql2'
 import { Order, Result } from 'shared'
 import { EntityManager, FindOptionsWhere, MoreThan } from 'typeorm'
 import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
-import {
-  ALIAS_ORIGIN_ADOPTED,
-  ALIAS_ORIGIN_CHOSEN,
-  AliasOrigin,
-  UserAlias as DbUserAlias,
-} from '../entity'
+import { ALIAS_ORIGIN_ADOPTED, ALIAS_ORIGIN_CHOSEN, UserAlias as DbUserAlias } from '../entity'
 import { DBDuplicateEntryError, DBInsertFailed, isDuplicateEntry } from '../errorTypes'
 import { UserAliasInsert, UserSelect, userAliasesTable, usersTable } from '../schemas'
 

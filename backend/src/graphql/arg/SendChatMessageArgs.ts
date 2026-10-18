@@ -1,5 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { ChatMessageNotify } from '@enum/ChatMessageNotify'
+import { ChatMessageOrigin } from '@enum/ChatMessageOrigin'
 import { ChatImageInput } from '@input/ChatImageInput'
 import { MemberAvatarRefInput } from '@input/MemberAvatarRefInput'
 import { IsEnum, IsOptional, IsString, IsUUID, MaxLength, ValidateNested } from 'class-validator'
@@ -57,4 +58,14 @@ export class SendChatMessageArgs {
   @IsOptional()
   @IsUUID('4')
   replyTo?: string | null
+
+  /**
+   * Where the message was written: MAP from the map profile's "say hello", left out everywhere
+   * else. The first message of a conversation sent so is noted as an event (CHAT_HELLO_SEND);
+   * nothing else changes, and nothing of it is filed with the message.
+   */
+  @Field(() => ChatMessageOrigin, { nullable: true })
+  @IsOptional()
+  @IsEnum(ChatMessageOrigin)
+  origin?: ChatMessageOrigin | null
 }

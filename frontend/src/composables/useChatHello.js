@@ -127,6 +127,8 @@ export const useChatHello = (apolloClient) => {
           // The first message of two goes by mail whatever is asked; asking for it keeps the
           // request honest about what will happen (utils/chatNotify).
           notify: CHAT_NOTIFY_EMAIL,
+          // Said from the map: the server counts the hello for the community figures.
+          origin: 'MAP',
         },
       })
       own = answer?.data?.sendChatMessage ?? null
