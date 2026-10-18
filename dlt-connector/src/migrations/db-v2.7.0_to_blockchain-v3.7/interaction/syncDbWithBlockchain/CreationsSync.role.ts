@@ -9,7 +9,6 @@ import {
   GRDT_TRANSACTION_CREATION,
   GradidoTransactionBuilder,
   KeyPairEd25519,
-  LedgerAnchor,
   MemoryBlockPtr,
   SearchDirection_DESC,
   TransferAmount,
