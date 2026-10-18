@@ -1,0 +1,14 @@
+# AI-GENERATED — not an architecture reference
+# The figures of the admin's start page: one row per figure, in three columns.
+
+query communityFigures($since: DateTime!) {
+  communityFigures(since: $since) {
+    since
+    rows {
+      key
+      since
+      week
+      total
+    }
+  }
+}

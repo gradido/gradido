@@ -387,6 +387,37 @@
     "verified": "Verifiziert",
     "verifiedAt": "Verifiziert am"
   },
+  "figures": {
+    "col": {
+      "since": "seit {date}",
+      "total": "gesamt",
+      "week": "7 Tage"
+    },
+    "group": {
+      "accounts": "Konten",
+      "firstCreation": "Erster Dank"
+    },
+    "row": {
+      "accountsDeleted": "Gelöschte Konten",
+      "accountsNew": "Neue Konten",
+      "accountsTotal": "Konten insgesamt",
+      "accountsViaAddress": "davon über Adresse oder Visitenkarte",
+      "accountsViaLink": "davon über Einlöse-Link",
+      "accountsViaTableCode": "davon über Tisch-Code",
+      "activeAccounts": "Aktive Konten (gesamt: 30 Tage)",
+      "codesShown": "Tisch-Codes gezeigt",
+      "firstCreationsDone": "Erst-Schöpfungen erledigt",
+      "firstCreationsReview": "Erst-Schöpfungen zur Prüfung",
+      "firstCreationsSkipped": "Erst-Schöpfungen übersprungen",
+      "hostsWithGuest": "Gastgeber mit Gast",
+      "returners": "Rückkehrer (nach 90 Tagen Stille)"
+    },
+    "since": "Stichtag",
+    "title": "Zahlen",
+    "today": "Heute: {n} offene Schöpfungen",
+    "todayNone": "Heute: keine offenen Schöpfungen",
+    "todayOne": "Heute: eine offene Schöpfung"
+  },
   "filter": {
     "byEmail": "Nach E-Mail filtern"
   },
@@ -474,10 +505,8 @@
     "statistic": "Statistik",
     "user_search": "Nutzersuche"
   },
-  "not_open_creations": "Keine offenen Schöpfungen",
   "notice": "Hinweis",
   "open": "offen",
-  "open_creations": "Offene Schöpfungen",
   "overlay": {
     "cancel": "Abbrechen",
     "changeUserRole": {
