@@ -137,6 +137,12 @@ describe('X25519KeyPair', () => {
       )
     })
 
+    it('throws for an object that only has the prototype of an X25519KeyPair', () => {
+      const prototypeOnly = Object.create(X25519KeyPair.prototype)
+      assert.throws(() => aliceKeys.encrypt(message, prototypeOnly), /Invalid argument/)
+      assert.throws(() => aliceKeys.decrypt(Buffer.alloc(64), prototypeOnly), /Invalid argument/)
+    })
+
     it('throws without own private key', () => {
       assert.throws(
         () => publicOf(aliceKeys).encrypt(message, publicOf(bobKeys)),

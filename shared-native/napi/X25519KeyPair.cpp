@@ -66,7 +66,11 @@ namespace gradido::crypto {
                 .ThrowAsJavaScriptException();
             return nullptr;
         }
+        // null for an object that only has the prototype (Object.create), the exception is pending
         X25519KeyPair* peer = X25519KeyPair::Unwrap(info[index].As<Napi::Object>());
+        if (!peer) {
+            return nullptr;
+        }
         if (peer->hasPrivateKey()) {
             Napi::TypeError::New(
                 env,

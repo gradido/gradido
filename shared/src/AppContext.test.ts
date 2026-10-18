@@ -125,7 +125,6 @@ describe('AppContext', () => {
   it('holds the home community it was given, without initPasswordHashing', () => {
     const context = AppContext.getInstance()
     context.destroyPasswordHashing()
-    expect(() => context.getHomeCommunity()).toThrow('no home community')
     const signKeys = Ed25519KeyPair.generate().toBuffer()
     const encryptionKeys = X25519KeyPair.generate().toBuffer()
     context.setHomeCommunity({

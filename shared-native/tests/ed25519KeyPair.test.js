@@ -144,6 +144,13 @@ describe('Ed25519KeyPair', () => {
       assert.throws(() => keyPair.equals(X25519KeyPair.generate()), TypeError)
       assert.throws(() => keyPair.equals(), TypeError)
     })
+
+    it('throws for an object that only has the prototype of an Ed25519KeyPair', () => {
+      assert.throws(
+        () => keyPair.equals(Object.create(Ed25519KeyPair.prototype)),
+        /Invalid argument/,
+      )
+    })
   })
 
   it('is not an X25519KeyPair', () => {

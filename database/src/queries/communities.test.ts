@@ -18,6 +18,7 @@ import {
   dbInsertForeignCommunity,
   dbInsertHomeCommunity,
   dbIsMatchingKeyingActive,
+  dbReplaceHomeCommunitySigningKeys,
   dbSelectAuthenticatedForeignCommunities,
   dbSelectHomeCommunity,
   dbUpdateForeignCommunity,
@@ -202,6 +203,26 @@ describe('community.queries', () => {
       expect((await getHomeCommunityDrizzle())?.name).toBe('HomeCommunity-name')
       await dbUpdateHomeCommunity({ name: 'new name' })
       expect((await getHomeCommunityDrizzle())?.name).toBe('new name')
+    })
+  })
+  describe('dbReplaceHomeCommunitySigningKeys', () => {
+    it('replaces the signing keys and leaves the rest', async () => {
+      const homeCom = await createCommunity(false)
+      const publicKey = randomBytes(32)
+      const privateKey = randomBytes(64)
+      await dbReplaceHomeCommunitySigningKeys(publicKey, privateKey)
+      expect(await DbCommunity.findOneByOrFail({ id: homeCom.id })).toEqual({
+        ...homeCom,
+        publicKey,
+        privateKey,
+        updatedAt: expect.any(Date),
+      })
+    })
+    it('throws for keys of the wrong size', async () => {
+      await createCommunity(false)
+      await expect(
+        dbReplaceHomeCommunitySigningKeys(randomBytes(32), randomBytes(32)),
+      ).rejects.toThrow()
     })
   })
   describe('dbIsMatchingKeyingActive', () => {

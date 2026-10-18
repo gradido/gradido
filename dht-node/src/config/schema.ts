@@ -49,7 +49,7 @@ const environment = v.object({
   FEDERATION_DHT_SEED: v.pipe(
     v.string(),
     v.regex(HEX_64, 'need to be valid hex with 64 character'),
-    v.description('Seed for libsodium crypto_sign_seed_keypair, valid hex with 64 characters'),
+    v.description('Seed for libsodium crypto_sign_seed_keypair: 32 bytes as 64 hex characters'),
   ),
   FEDERATION_COMMUNITY_URL: v.optional(
     v.pipe(httpUrlSchema, v.description('Community URL for federation, defaults to COMMUNITY_URL')),

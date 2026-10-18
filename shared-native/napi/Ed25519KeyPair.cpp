@@ -80,7 +80,11 @@ namespace gradido::crypto {
             Napi::TypeError::New(env, "[Ed25519KeyPair.equals] Expected other to be an Ed25519KeyPair").ThrowAsJavaScriptException();
             return env.Null();
         }
+        // null for an object that only has the prototype (Object.create), the exception is pending
         const Ed25519KeyPair* other = Ed25519KeyPair::Unwrap(info[0].As<Napi::Object>());
+        if (!other) {
+            return env.Null();
+        }
         return Napi::Boolean::New(env, mKeys.samePublicKey(other->mKeys));
     }
 

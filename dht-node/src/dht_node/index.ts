@@ -3,6 +3,7 @@ import {
   Community as DbCommunity,
   FederatedCommunity as DbFederatedCommunity,
   dbInsertHomeCommunity,
+  dbReplaceHomeCommunitySigningKeys,
   dbSelectHomeCommunity,
   dbUpdateHomeCommunity,
 } from 'database'
@@ -44,9 +45,7 @@ function isAscii(buffer: Buffer): boolean {
 export const startDHT = async (topic: string): Promise<void> => {
   // the home community's key pair, the same on every start; a seed that does not belong to the
   // home community must stop the start, so this is outside the catch below
-  const keyPair = DHT.keyPair(
-    Buffer.alloc(KEY_SECRET_SEEDBYTES, CONFIG.FEDERATION_DHT_SEED),
-  ) as KeyPair
+  const keyPair = DHT.keyPair(Buffer.from(CONFIG.FEDERATION_DHT_SEED, 'hex')) as KeyPair
   const pubKeyString = keyPair.publicKey.toString('hex')
   logger.info(`keyPairDHT: publicKey=${pubKeyString}`)
   logger.debug(`keyPairDHT: secretKey=${keyPair.secretKey.toString('hex').slice(0, 6)}`)
@@ -242,7 +241,7 @@ async function writeHomeCommunityEntry(keyPair: KeyPair): Promise<void> {
     const homeCom = await dbSelectHomeCommunity()
     if (homeCom) {
       if (!homeCom.publicKey.equals(keyPair.publicKey)) {
-        throw new Error('FEDERATION_DHT_SEED does not belong to the existing home community')
+        await replaceFillSeedKeys(homeCom.publicKey, keyPair)
       }
       const updateFields = getChangedFields(homeCom, updatableFields)
       if (updateFields.success) {
@@ -271,6 +270,25 @@ async function writeHomeCommunityEntry(keyPair: KeyPair): Promise<void> {
   } catch (err) {
     throw new Error(`Federation: Error writing HomeCommunity-Entry: ${err}`)
   }
+}
+
+/**
+ * Until 10.2026 the seed was not decoded from hex but used as fill string, its first 32
+ * characters as bytes. A home community with the key of that seed gets the key of the decoded
+ * one, once; any other key does not belong to FEDERATION_DHT_SEED and stops the start.
+ * TODO: remove once every community has started once with the decoded seed
+ */
+async function replaceFillSeedKeys(storedPublicKey: Buffer, keyPair: KeyPair): Promise<void> {
+  const fillSeedKeyPair = DHT.keyPair(
+    Buffer.alloc(KEY_SECRET_SEEDBYTES, CONFIG.FEDERATION_DHT_SEED),
+  ) as KeyPair
+  if (!storedPublicKey.equals(fillSeedKeyPair.publicKey)) {
+    throw new Error('FEDERATION_DHT_SEED does not belong to the existing home community')
+  }
+  await dbReplaceHomeCommunitySigningKeys(keyPair.publicKey, keyPair.secretKey)
+  logger.warn(
+    `home-community key replaced, now derived from the hex-decoded seed: ${storedPublicKey.toString('hex')} -> ${keyPair.publicKey.toString('hex')}`,
+  )
 }
 
 const newCommunityUuid = async (): Promise<string> => {

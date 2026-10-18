@@ -104,6 +104,33 @@ export async function dbUpdateHomeCommunity(values: HomeCommunityUpdateInput): P
   }
 }
 
+/**
+ * Replaces the signing key pair of the home community. Only for the one-time move of the
+ * dht-node from a FEDERATION_DHT_SEED used as fill string to the hex-decoded one; apart from it
+ * the keys never change, see homeCommunityUpdateSchema.
+ * TODO: remove once every community has started once with the decoded seed
+ */
+export async function dbReplaceHomeCommunitySigningKeys(
+  publicKey: Buffer,
+  privateKey: Buffer,
+): Promise<void> {
+  const keys = v.parse(
+    v.object({
+      publicKey: homeCommunityInsertSchema.entries.publicKey,
+      privateKey: homeCommunityInsertSchema.entries.privateKey,
+    }),
+    { publicKey, privateKey },
+  )
+  const result = await drizzleDb()
+    .update(communitiesTable)
+    .set({ ...keys, updatedAt: new Date() })
+    .where(eq(communitiesTable.foreign, false))
+  homeCommunityCache.invalidateEverywhere()
+  if (!result[0].affectedRows) {
+    throw new MissingHomeCommunityError()
+  }
+}
+
 export async function dbGetCommunityByUuid(
   communityUuid: string,
 ): Promise<CommunitiesSelect | null> {
