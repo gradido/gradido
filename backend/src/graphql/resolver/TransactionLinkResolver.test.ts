@@ -21,7 +21,6 @@ import {
 } from 'database'
 import { GraphQLError } from 'graphql'
 import { GradidoUnit } from 'shared'
-import { DataSource } from 'typeorm'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { creations } from '@/seeds/creation/index'

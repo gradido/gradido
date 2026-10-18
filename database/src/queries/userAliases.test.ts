@@ -7,7 +7,7 @@ import {
 import { AppDatabase } from '../AppDatabase'
 import { DBDuplicateEntryError } from '../errorTypes'
 import { createCommunity } from '../seeds/community'
-import { userFactory, userFactoryBulk } from '../seeds/factory/user'
+import { userFactory } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { peterLustig } from '../seeds/users/peter-lustig'
 import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'

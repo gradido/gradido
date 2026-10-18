@@ -1,4 +1,3 @@
-import { dbFindUserByEmail } from 'database'
 import { Logger } from 'log4js'
 import { AbstractRegisterUserRole } from './AbstractRegisterUser.role'
 import { CreateUser } from './createUser.schema'

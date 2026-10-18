@@ -10,7 +10,7 @@ import {
   UserLoggingView,
 } from 'database'
 import { getLogger } from 'log4js'
-import { DecayCalculationType, GradidoUnit, PendingTransactionState } from 'shared'
+import { GradidoUnit, PendingTransactionState } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { getLastTransaction } from '@/graphql/util/getLastTransaction'
 import { TRANSACTIONS_LOCK } from '@/graphql/util/TRANSACTIONS_LOCK'

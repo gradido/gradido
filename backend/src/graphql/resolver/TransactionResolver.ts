@@ -10,7 +10,6 @@ import { User } from '@model/User'
 import {
   ApiVersionType,
   CommandClientFactory,
-  fullName,
   processXComCompleteTransaction,
   redeemDeferredTransferTransaction,
   sendTransactionLinkRedeemedEmail,
@@ -44,7 +43,6 @@ import {
   findUserByIdentifier,
   getCommunityByUuid,
   getCommunityWithFederatedCommunityByIdentifier,
-  getHomeCommunity,
   getLastTransaction,
   UserLoggingView,
 } from 'database'

@@ -3,7 +3,6 @@ import { OptInType } from '@enum/OptInType'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { sendAssistedRegistrationConfirmEmail } from 'core'
 import {
-  User as DbUser,
   dbConfirmRegistrationContact,
   dbFindRegisterUserContactByCodeOrFail,
   dbInsertEvent,

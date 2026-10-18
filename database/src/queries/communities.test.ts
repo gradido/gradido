@@ -7,7 +7,7 @@ import {
   MissingHomeCommunityError,
 } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
-import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from '..'
+import { Community as DbCommunity } from '..'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
 import { CommunityUniqueKey } from '../enum'
 import { DBUniqueKeyViolation } from '../errorTypes'
