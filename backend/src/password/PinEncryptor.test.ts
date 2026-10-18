@@ -17,7 +17,7 @@ describe('deriveKeyedPinKey', () => {
 
   /**
    * ⛔ The exact output for fixed inputs, pinned on purpose (and once more in
-   * shared-native/tests/appContext.test.js, against the native class). If this test falls,
+   * shared-native/tests/passwordContext.test.js, against the native class). If this test falls,
    * the derivation changed -- and every stored KEYED_HASH pin on every server would stop
    * matching, with no way to tell that apart from a wrong PIN. A change here needs a new
    * `pin_derivation` value, never an edit in place.

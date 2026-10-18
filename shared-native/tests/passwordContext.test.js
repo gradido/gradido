@@ -2,7 +2,7 @@
 const { describe, it, after } = require('node:test')
 const { strict } = require('node:assert')
 const assert = strict
-const { NativeAppContext } = require('../')
+const { NativePasswordContext } = require('../')
 
 // the development secrets of backend/.env.dist
 const appSecret = Buffer.from('21ffbbc616fe', 'hex')
@@ -17,10 +17,10 @@ const minimal = { ...production, opsLimit: 1, memLimit: 8192, threadCount: 1 }
 // queues the rest, short enough to be over soon. For the tests of the queue itself.
 const quick = { opsLimit: 1, memLimit: 8 * 1024 * 1024, threadCount: 1, maxExpectedWaitMs: 20 }
 
-describe('NativeAppContext', () => {
+describe('NativePasswordContext', () => {
   const contexts = []
   const create = (options) => {
-    const context = new NativeAppContext({ appSecret, serverKey, ...options })
+    const context = new NativePasswordContext({ appSecret, serverKey, ...options })
     contexts.push(context)
     return context
   }
@@ -33,20 +33,20 @@ describe('NativeAppContext', () => {
   describe('constructor', () => {
     it('refuses a server key of the wrong size', () => {
       assert.throws(
-        () => new NativeAppContext({ appSecret, serverKey: Buffer.alloc(3) }),
+        () => new NativePasswordContext({ appSecret, serverKey: Buffer.alloc(3) }),
         /16 bytes, got 3/,
       )
     })
     it('refuses an empty app secret', () => {
       assert.throws(
-        () => new NativeAppContext({ appSecret: Buffer.alloc(0), serverKey }),
+        () => new NativePasswordContext({ appSecret: Buffer.alloc(0), serverKey }),
         /appSecret/,
       )
     })
     it('refuses a difficulty below what argon2id accepts', () => {
       assert.throws(
         () =>
-          new NativeAppContext({
+          new NativePasswordContext({
             appSecret,
             serverKey,
             passwordHashing: { ...production, memLimit: 4096 },
@@ -55,7 +55,7 @@ describe('NativeAppContext', () => {
       )
       assert.throws(
         () =>
-          new NativeAppContext({
+          new NativePasswordContext({
             appSecret,
             serverKey,
             passwordHashing: { ...production, opsLimit: 0 },
@@ -67,26 +67,31 @@ describe('NativeAppContext', () => {
       for (const left_out of ['opsLimit', 'memLimit']) {
         const { [left_out]: _, ...without } = production
         assert.throws(
-          () => new NativeAppContext({ appSecret, serverKey, passwordHashing: without }),
+          () => new NativePasswordContext({ appSecret, serverKey, passwordHashing: without }),
           new RegExp(`${left_out} to be a number`),
         )
       }
       assert.throws(
-        () => new NativeAppContext({ appSecret, serverKey }),
+        () => new NativePasswordContext({ appSecret, serverKey }),
         /passwordHashing to be an object/,
       )
       assert.throws(
-        () => new NativeAppContext({ appSecret, serverKey, passwordHashing: { threadCount: 1 } }),
+        () =>
+          new NativePasswordContext({ appSecret, serverKey, passwordHashing: { threadCount: 1 } }),
         /maxExpectedWaitMs to be a number/,
       )
       assert.throws(
         () =>
-          new NativeAppContext({ appSecret, serverKey, passwordHashing: { maxExpectedWaitMs: 0 } }),
+          new NativePasswordContext({
+            appSecret,
+            serverKey,
+            passwordHashing: { maxExpectedWaitMs: 0 },
+          }),
         /maxExpectedWaitMs to be a positive integer/,
       )
       assert.throws(
         () =>
-          new NativeAppContext({
+          new NativePasswordContext({
             appSecret,
             serverKey,
             passwordHashing: { ...production, maxExpectedWaitMs: 0.5 },
@@ -226,7 +231,7 @@ describe('NativeAppContext', () => {
     })
 
     it('throws once the context is destroyed', () => {
-      const context = new NativeAppContext({ appSecret, serverKey, passwordHashing: minimal })
+      const context = new NativePasswordContext({ appSecret, serverKey, passwordHashing: minimal })
       context.destroy()
       // a second time changes nothing
       context.destroy()
@@ -234,7 +239,7 @@ describe('NativeAppContext', () => {
     })
 
     it('leaves the jobs under way unanswered when destroyed, and answers nothing after', async () => {
-      const context = new NativeAppContext({
+      const context = new NativePasswordContext({
         appSecret,
         serverKey,
         passwordHashing: { ...quick, maxExpectedWaitMs: production.maxExpectedWaitMs },
@@ -269,12 +274,12 @@ describe('NativeAppContext', () => {
 
     it('changes with the app secret and the server key', () => {
       const base = context().derivePinKey('salt-1', '123456')
-      const otherSecret = new NativeAppContext({
+      const otherSecret = new NativePasswordContext({
         appSecret: Buffer.from('ff', 'hex'),
         serverKey,
         passwordHashing: minimal,
       })
-      const otherKey = new NativeAppContext({
+      const otherKey = new NativePasswordContext({
         appSecret,
         serverKey: Buffer.from('b51ef8ac7ef1abf162fb7a65261acd7a', 'hex'),
         passwordHashing: minimal,

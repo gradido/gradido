@@ -1,3 +1,4 @@
+import { randomInt } from 'node:crypto'
 import { OptInType } from '@enum/OptInType'
 import { UserContactType } from '@enum/UserContactType'
 import {
@@ -47,7 +48,6 @@ import {
   primaryAliasCandidate,
   Result,
 } from 'shared'
-import { randombytes_random } from 'sodium-native'
 import { v4 as uuidv4 } from 'uuid'
 import { CONFIG } from '@/config'
 import { GUARANTOR_LIMIT } from '@/data/GuarantorCode.logic'
@@ -410,11 +410,7 @@ export class RegisterUserRole<
       affectedUserId: existingUser.id,
       actingUserId: 0,
     })
-    let fakeUserId = 0
-    while (!fakeUserId) {
-      fakeUserId = (randombytes_random() % (2048 * 16)) + 1
-    }
-    return fakeUserId
+    return randomInt(1, 2048 * 16 + 1)
   }
 
   // for overloading from child classes, called before run is returning user id

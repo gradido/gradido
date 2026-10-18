@@ -1,36 +1,43 @@
 // AI-GENERATED — not an architecture reference
-import { afterAll, describe, expect, it } from 'bun:test'
+import { afterAll, beforeAll, describe, expect, it } from 'bun:test'
 import { treaty } from '@elysia/eden'
 import { Elysia } from 'elysia'
 import {
+  AppContext,
   createSignatureNonce,
   InvalidResponseSignatureError,
-  SigningCommunity,
   signatureNonceSchema,
   signedJsonResponse,
 } from 'shared'
-import { crypto_sign_keypair } from 'sodium-native'
+import { Ed25519KeyPair, X25519KeyPair } from 'shared-native'
 import * as v from 'valibot'
 import { statusNumber } from '../server/utils'
 import { PeerApiClient } from './PeerApiClient'
 
-// a key pair as the dht-node stores it: libsodium, privateKey = seed || publicKey
-const libsodiumKeyPair = (): SigningCommunity & { privateKey: Buffer } => {
-  const publicKey = Buffer.alloc(32)
-  const privateKey = Buffer.alloc(64)
-  crypto_sign_keypair(publicKey, privateKey)
-  return { publicKey, privateKey }
+// a home community with fresh keys, its row as the dht-node writes it: privateKey = seed || publicKey
+const signKeys = Ed25519KeyPair.generate().toBuffer()
+const encryptionKeys = X25519KeyPair.generate().toBuffer()
+const homeCommunityKeys = {
+  publicKey: signKeys.publicKey,
+  privateKey: Buffer.concat([signKeys.privateKey as Buffer, signKeys.publicKey]),
+  publicEncryptionKey: encryptionKeys.publicKey,
+  privateEncryptionKey: encryptionKeys.privateKey,
 }
-
-const community = libsodiumKeyPair()
+const communityPublicKey = signKeys.publicKey
+// the community as a peer knows it: its announced public key only
+const communityKeyPair = new Ed25519KeyPair(communityPublicKey)
+// signedJsonResponse signs with the home community of the AppContext, as at server start
+beforeAll(() => {
+  AppContext.getInstance().setHomeCommunity(homeCommunityKeys)
+})
 
 const communityInfo = {
   name: 'Gradido Akademie',
   description: 'Eine Community zum Testen der Signatur',
   creationDate: '2026-01-01T00:00:00.000Z',
-  publicKey: community.publicKey.toString('hex'),
+  publicKey: communityPublicKey.toString('hex'),
   publicJwtKey: null,
-  publicEncryptionKey: Buffer.alloc(32, 1).toString('hex'),
+  publicEncryptionKey: encryptionKeys.publicKey.toString('hex'),
   hieroTopicId: null,
 }
 
@@ -47,7 +54,6 @@ const peerAnswering = (
         signedJsonResponse(
           responseValue,
           statusNumber(set.status),
-          community,
           answerNonce(query.nonce),
           answerRequest(request),
         ),
@@ -86,7 +92,7 @@ describe('PeerApiClient.getCommunityInfos', () => {
   it('hands out the answer signed by the announced key for this request', async () => {
     const { data, error } = await new PeerApiClient(
       urlOf(honestPeer),
-      community.publicKey,
+      communityKeyPair,
     ).getCommunityInfos()
     expect(error).toBeNull()
     // Eden reads an ISO date string as Date
@@ -96,7 +102,7 @@ describe('PeerApiClient.getCommunityInfos', () => {
   it('refuses the answer under another announced key', async () => {
     const { data, error } = await new PeerApiClient(
       urlOf(honestPeer),
-      libsodiumKeyPair().publicKey,
+      new Ed25519KeyPair(Ed25519KeyPair.generate().publicKeyToBuffer()),
     ).getCommunityInfos()
     expect(data).toBeNull()
     expect(error?.value).toBeInstanceOf(InvalidResponseSignatureError)
@@ -105,7 +111,7 @@ describe('PeerApiClient.getCommunityInfos', () => {
   it('refuses a signed answer to another request', async () => {
     const { data, error } = await new PeerApiClient(
       urlOf(replayingPeer),
-      community.publicKey,
+      communityKeyPair,
     ).getCommunityInfos()
     expect(data).toBeNull()
     expect(error?.value).toBeInstanceOf(InvalidResponseSignatureError)
@@ -115,7 +121,7 @@ describe('PeerApiClient.getCommunityInfos', () => {
   it('refuses a signed answer of another route', async () => {
     const { data, error } = await new PeerApiClient(
       urlOf(otherRoutePeer),
-      community.publicKey,
+      communityKeyPair,
     ).getCommunityInfos()
     expect(data).toBeNull()
     // a SignatureError of http-message-sig, handed on as it is
@@ -126,7 +132,7 @@ describe('PeerApiClient.getCommunityInfos', () => {
     const started = performance.now()
     const { data, error } = await new PeerApiClient(
       urlOf(silentPeer),
-      community.publicKey,
+      communityKeyPair,
       50,
     ).getCommunityInfos()
     expect(data).toBeNull()
@@ -141,13 +147,7 @@ describe('a signed route', () => {
       query: v.object({ nonce: signatureNonceSchema }),
       response: v.object({ name: v.string() }),
       mapResponse: async ({ responseValue, set, query, request }) =>
-        signedJsonResponse(
-          responseValue,
-          statusNumber(set.status),
-          community,
-          query.nonce,
-          request,
-        ),
+        signedJsonResponse(responseValue, statusNumber(set.status), query.nonce, request),
     })
   const nonce = createSignatureNonce()
 

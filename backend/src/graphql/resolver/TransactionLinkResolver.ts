@@ -25,7 +25,7 @@ import {
   removeThankYouGreetingPictures,
   TransactionTypeId,
 } from 'core'
-import { randomBytes } from 'crypto'
+import { randomBytes, randomInt } from 'crypto'
 import {
   AppDatabase,
   Contribution as DbContribution,
@@ -65,7 +65,6 @@ import {
   SignedTransferPayloadType,
   verify,
 } from 'shared'
-import { randombytes_random } from 'sodium-native'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
@@ -365,7 +364,7 @@ export class TransactionLinkResolver {
   @Query(() => QueryLinkResult)
   async queryTransactionLink(@Arg('code') code: string): Promise<typeof QueryLinkResult> {
     const methodLogger = createLogger('queryTransactionLink')
-    methodLogger.addContext('handshakeID', randombytes_random().toString())
+    methodLogger.addContext('handshakeID', randomInt(2 ** 32).toString())
     methodLogger.debug('queryTransactionLink...')
     if (code.match(/^CL-/)) {
       const contributionLink = await DbContributionLink.findOneOrFail({
@@ -748,7 +747,7 @@ export class TransactionLinkResolver {
       const args = new EncryptedTransferArgs()
       args.publicKey = senderCom.publicKey.toString('hex')
       args.jwt = redeemJwt
-      args.handshakeID = randombytes_random().toString()
+      args.handshakeID = randomInt(2 ** 32).toString()
       if (methodLogger.isDebugEnabled()) {
         methodLogger.debug('successfully created RedeemJWT-Response with args:', args)
       }
@@ -798,7 +797,7 @@ export class TransactionLinkResolver {
     @Arg('validUntil', { nullable: true }) validUntil?: string,
     @Arg('recipientAlias', { nullable: true }) recipientAlias?: string,
   ): Promise<boolean> {
-    const handshakeID = randombytes_random().toString()
+    const handshakeID = randomInt(2 ** 32).toString()
     const methodLogger = createLogger(`disburseTransactionLink`)
     methodLogger.addContext('handshakeID', handshakeID)
     if (methodLogger.isDebugEnabled()) {

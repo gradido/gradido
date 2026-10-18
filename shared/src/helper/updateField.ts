@@ -48,11 +48,11 @@ export function updateAllDefinedAndChanged<T extends object>(
  * incoming should contain only keys with values: an undefined value counts as a change.
  * @returns success: true with the changed fields, success: false if nothing changed
  */
-export function getChangedFields<T extends object>(
+export function getChangedFields<T extends object, I extends Partial<T>>(
   current: T,
-  incoming: Partial<T>,
-): ResultNoError<Partial<T>> {
-  const changedFields: Partial<T> = {}
+  incoming: I,
+): ResultNoError<Partial<I>> {
+  const changedFields: Partial<I> = {}
 
   let changed = false
   for (const [field, incomingValue] of Object.entries(incoming)) {

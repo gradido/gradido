@@ -1,4 +1,5 @@
 #include "LedgerAnchor.h"
+#include "AddonData.h"
 #include "napiUtils.h"
 
 #include "gradido_blockchain_core/data/wire/ledger_anchor.h"
@@ -24,11 +25,9 @@ namespace gradido::data::wire {
         });
 
         // https://github.com/nodejs/node-addon-api/blob/main/doc/object_wrap.md
-        Napi::FunctionReference* constructor = new Napi::FunctionReference();
-        *constructor = Napi::Persistent(func);
+        env.GetInstanceData<AddonData>()->ledgerAnchor = Napi::Persistent(func);
 
         exports.Set("LedgerAnchor", func);
-        env.SetInstanceData<Napi::FunctionReference>(constructor);
 
         return exports;
     }
@@ -36,7 +35,7 @@ namespace gradido::data::wire {
     Napi::Value LedgerAnchor::CreateCopy(const Napi::CallbackInfo& info, const grdw_ledger_anchor* ledger_anchor)
     {
         auto env = info.Env();
-        Napi::FunctionReference* constructor = env.GetInstanceData<Napi::FunctionReference>();
+        Napi::FunctionReference* constructor = &env.GetInstanceData<AddonData>()->ledgerAnchor;
         auto obj = constructor->New({});
         LedgerAnchor* wrapper = LedgerAnchor::Unwrap(obj);
         memcpy(&wrapper->mLedgerAnchor, ledger_anchor, sizeof(grdw_ledger_anchor));
@@ -77,7 +76,7 @@ namespace gradido::data::wire {
           return env.Null();
       }
 
-      Napi::FunctionReference* constructor = env.GetInstanceData<Napi::FunctionReference>();
+      Napi::FunctionReference* constructor = &env.GetInstanceData<AddonData>()->ledgerAnchor;
       auto obj = constructor->New({});
       LedgerAnchor* wrapper = LedgerAnchor::Unwrap(obj);
       wrapper->mLedgerAnchor.type = GRDT_LEDGER_ANCHOR_HIERO_TRANSACTION_ID;

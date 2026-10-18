@@ -32,8 +32,7 @@
   "dependencies": {
     "@elysia/node": "1.4.5",
     "cross-env": "^7.0.3",
-    "email-templates": "^10.0.1",
-    "sodium-native": "^3.4.1"
+    "email-templates": "^10.0.1"
   },
   "devDependencies": {
     "@anatine/esbuild-decorators": "^0.2.19",
@@ -53,7 +52,6 @@
     "@types/lodash.clonedeep": "^4.5.6",
     "@types/node": "^24.9.1",
     "@types/qs": "^6.15.1",
-    "@types/sodium-native": "^2.3.5",
     "@types/source-map-support": "^0.5.10",
     "@types/uuid": "^8.3.4",
     "await-semaphore": "^0.1.3",

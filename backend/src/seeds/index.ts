@@ -27,7 +27,7 @@ const run = async () => {
   await db.init()
   await clearDatabase(db)
   logger.info('clean database successful...')
-  AppContext.getInstance().init({
+  AppContext.getInstance().initPasswordHashing({
     appSecret: CONFIG.LOGIN_APP_SECRET,
     serverKey: CONFIG.LOGIN_SERVER_KEY,
   })
