@@ -1,4 +1,4 @@
-import { and, count, desc, eq, inArray, isNull, ne, or, sql } from 'drizzle-orm'
+import { and, count, desc, eq, gte, inArray, isNotNull, isNull, ne, or, sql } from 'drizzle-orm'
 import { alias as aliasedTable, type BuildAliasTable, unionAll } from 'drizzle-orm/mysql-core'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import {
@@ -1071,4 +1071,42 @@ export async function dbSelectReferralContactsByUserId(
     ...showedMe.map((row) => asContact(row, ContactOrigin.REFERRER)),
     ...cameOverMe.map((row) => asContact(row, ContactOrigin.ARRIVAL)),
   ]
+}
+
+// The figures of the admin's start page (CommunityFiguresResolver): sums, never who. An account
+// is one of this community's own: a row the federation stores for a member of another community
+// (`foreign`) is nobody's account here.
+
+/** How many accounts this community has: its own, not deleted. */
+export async function dbCountUsers(): Promise<number> {
+  const [row] = await drizzleDb()
+    .select({ accounts: count() })
+    .from(usersTable)
+    .where(and(eq(usersTable.foreign, false), isNull(usersTable.deletedAt)))
+  return row?.accounts ?? 0
+}
+
+/**
+ * How many of this community's accounts were deleted, from each moment on -- one number per
+ * moment, in the order given; `null` counts every deleted account. One statement for all of them.
+ * An account that was restored since is not deleted any more and not counted.
+ */
+export async function dbCountUsersDeleted(froms: (Date | null)[]): Promise<number[]> {
+  if (froms.length === 0) {
+    throw new Error('dbCountUsersDeleted needs at least one moment to count from')
+  }
+  const [row] = await drizzleDb()
+    .select(
+      Object.fromEntries(
+        froms.map((from, index) => [
+          `n${index}`,
+          from === null
+            ? count()
+            : count(sql`case when ${gte(usersTable.deletedAt, from)} then 1 end`),
+        ]),
+      ),
+    )
+    .from(usersTable)
+    .where(and(eq(usersTable.foreign, false), isNotNull(usersTable.deletedAt)))
+  return froms.map((_, index) => row?.[`n${index}`] ?? 0)
 }

@@ -387,6 +387,38 @@
     "verified": "Vérifié",
     "verifiedAt": "Vérifié le"
   },
+  "figures": {
+    "col": {
+      "since": "since {date}",
+      "total": "total",
+      "week": "7 days"
+    },
+    "group": {
+      "accounts": "Accounts",
+      "firstCreation": "First thanks"
+    },
+    "row": {
+      "accountsDeleted": "Deleted accounts",
+      "accountsNew": "New accounts",
+      "accountsTotal": "Accounts in total",
+      "accountsViaAddress": "of which via address or business card",
+      "accountsViaEvent": "of which via event link",
+      "accountsViaLink": "of which via redeem link",
+      "accountsViaTableCode": "of which via table code",
+      "activeAccounts": "Active accounts (total: 30 days)",
+      "codesShown": "Table codes shown",
+      "firstCreationsDone": "First creations done",
+      "firstCreationsReview": "First creations sent to review",
+      "firstCreationsSkipped": "First creations skipped",
+      "hostsWithGuest": "Hosts with a guest",
+      "returners": "Returners (after 90 quiet days)"
+    },
+    "since": "Reference date",
+    "title": "Figures",
+    "today": "Today: {n} open creations",
+    "todayNone": "Today: no open creations",
+    "todayOne": "Today: one open creation"
+  },
   "filter": {
     "byEmail": "Filtrer par e-mail"
   },
@@ -474,10 +506,8 @@
     "statistic": "Statistique",
     "user_search": "Recherche d'utilisateurs"
   },
-  "not_open_creations": "Aucune création ouverte",
   "notice": "Notification",
   "open": "ouverte",
-  "open_creations": "Créations ouvertes",
   "overlay": {
     "cancel": "Annuler",
     "changeUserRole": {

@@ -18,6 +18,7 @@ import { userFactory } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '../seeds/users/bob-baumeister'
 import { peterLustig } from '../seeds/users/peter-lustig'
+import { stephenHawking } from '../seeds/users/stephen-hawking'
 import { dbInsertEvent } from './events'
 import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 import { getLastTransaction } from './transactions'
@@ -25,6 +26,8 @@ import {
   aliasExists,
   dbClearGmsRegistration,
   dbCountUnconfirmedVouchedAccounts,
+  dbCountUsers,
+  dbCountUsersDeleted,
   dbFindGmsAllowedLocalUserIds,
   dbFindLatestArrival,
   dbFindReferrerAlias,
@@ -1476,6 +1479,48 @@ describe('user.queries', () => {
         expect(await dbRemoveUser(created.id)).toBe(1)
         expect(await DbUser.findOne({ where: { id: created.id }, withDeleted: true })).toBeNull()
       })
+    })
+  })
+
+  // The counts of the admin's start page: this community's own accounts, never a row the
+  // federation stores for a member of another community.
+  describe('dbCountUsers and dbCountUsersDeleted', () => {
+    const now = Date.now()
+    const daysAgo = (days: number): Date => new Date(now - days * 24 * 60 * 60 * 1000)
+    const PEER = '66666666-6666-4666-8666-666666666666'
+
+    beforeAll(async () => {
+      await dbDeleteAllRowsExceptMigrations()
+      const homeCom = await createCommunity(false)
+      await userFactory(bibiBloxberg, homeCom)
+      await userFactory(peterLustig, homeCom)
+      // Deleted yesterday, and in 2018 (the seed says so).
+      const bob = await userFactory(bobBaumeister, homeCom)
+      await dbUserUpdateField(bob.id, 'deletedAt', daysAgo(1))
+      await userFactory(stephenHawking, homeCom)
+      // Two members of another community, one of them deleted: nobody's account here.
+      await dbInsertForeignUser({ communityUuid: PEER, gradidoId: v4() })
+      const gone = await dbInsertForeignUser({ communityUuid: PEER, gradidoId: v4() })
+      if (!gone.success) {
+        throw gone.error
+      }
+      await dbUserUpdateField(gone.value, 'deletedAt', daysAgo(1))
+    })
+
+    it('counts the accounts of this community that are not deleted', async () => {
+      expect(await dbCountUsers()).toBe(2)
+    })
+
+    it('counts the deleted accounts of this community, once from each moment on', async () => {
+      expect(await dbCountUsersDeleted([daysAgo(5), null])).toEqual([1, 2])
+    })
+
+    it('counts no account deleted from a moment still to come', async () => {
+      expect(await dbCountUsersDeleted([new Date(now + 24 * 60 * 60 * 1000)])).toEqual([0])
+    })
+
+    it('refuses to count without a moment', async () => {
+      await expect(dbCountUsersDeleted([])).rejects.toThrow()
     })
   })
 })

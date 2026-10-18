@@ -336,6 +336,16 @@ export class RegisterUserRole<
       })
 
     this.storeUserRegisterEvent().catch((e) => logger.error(`error on write register event: ${e}`))
+    // The registration came over an event link: the admin's start page counts these, and the
+    // noted entry cannot tell it later -- its row is gone once the address is confirmed. A count,
+    // not part of the account: written after it, and a failure is logged (like the event above).
+    if (this.user.eventMatchingEntry) {
+      dbInsertEvent({
+        type: EventType.EVENT_MATCHING_ENTRY_NOTE,
+        affectedUserId: dbUser.id,
+        actingUserId: dbUser.id,
+      }).catch((e) => logger.error(`error on write event matching entry event: ${e}`))
+    }
 
     if (CONFIG.DLT_ACTIVE) {
       // register user into blockchain

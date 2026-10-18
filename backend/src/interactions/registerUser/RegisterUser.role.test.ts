@@ -422,6 +422,51 @@ describe('RegisterUserRole with the entry of an event link', () => {
     expect(firstCall(dbInsertEventMatchingEntry)).toBeLessThan(firstCall(dbFindUserWithContactById))
   })
 
+  // The admin's start page counts the registrations over an event link by an event of their own:
+  // the noted entry is gone once the address is confirmed.
+  it('records the registration as one over an event link', async () => {
+    await new RegisterUserRole(input({ eventMatchingEntry: eventEntry })).run(logger)
+    await settled()
+
+    expect(insertedEvents()).toEqual(
+      expect.arrayContaining([
+        {
+          type: EventType.EVENT_MATCHING_ENTRY_NOTE,
+          affectedUserId: USER_ID,
+          actingUserId: USER_ID,
+        },
+      ]),
+    )
+  })
+
+  it('records no such event where the registration brings no entry', async () => {
+    for (const eventMatchingEntry of [undefined, null]) {
+      await new RegisterUserRole(input({ eventMatchingEntry })).run(logger)
+    }
+    await settled()
+
+    expect(insertedEvents().map((event) => event.type)).not.toContain(
+      EventType.EVENT_MATCHING_ENTRY_NOTE,
+    )
+  })
+
+  // A count, not part of the account: where it cannot be written, the account stands.
+  it('keeps the account when that event cannot be written', async () => {
+    const logError = jest.spyOn(logger, 'error').mockImplementation(() => undefined)
+    mocked(dbInsertEvent).mockRejectedValue(new Error('events down'))
+
+    expect(await new RegisterUserRole(input({ eventMatchingEntry: eventEntry })).run(logger)).toBe(
+      USER_ID,
+    )
+    await settled()
+
+    expect(dbRemoveUser).not.toHaveBeenCalled()
+    expect(logError).toHaveBeenCalledWith(
+      'error on write event matching entry event: Error: events down',
+    )
+    logError.mockRestore()
+  })
+
   // The account and the entry it registered with stand together or not at all: where the entry
   // cannot be noted, the transaction ends by throwing, and nothing after it runs.
   it('opens no account where the entry cannot be noted, and sends nothing', async () => {
