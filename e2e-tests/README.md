@@ -1,73 +1,65 @@
-# Gradido End-to-End Testing with [Cypress](https://www.cypress.io/) (CI-ready via Docker)
+# Gradido End-to-End Tests with [Playwright](https://playwright.dev/)
 
-A setup to show-case Cypress as an end-to-end testing tool for Gradido running in a Docker container.
-The tests are organized in feature files written in Gherkin syntax.
-
+The tests drive the frontend in a real browser against a running backend, database and fake
+mail server ([maildev](https://github.com/maildev/maildev)). They are plain JavaScript, run on
+Node.js; Bun is only the package manager.
 
 ## Features under test
 
-So far these features are initially tested
-- [User authentication](https://github.com/gradido/gradido/blob/master/e2e-tests/cypress/tests/cypress/e2e/User.Authentication.feature)
-- [User profile - change password](https://github.com/gradido/gradido/blob/master/e2e-tests/cypress/tests/cypress/e2e/UserProfile.ChangePassword.feature)
-- [User registration]((https://github.com/gradido/gradido/blob/master/e2e-tests/cypress/tests/cypress/e2e/User.Registration.feature)) (WIP)
+- Login with valid and invalid credentials (`tests/ValidLoginTest.js`, `tests/InvalidLoginTest.js`, `tests/UserAuthenticationTest.js`)
+- Password reset: not registered, deleted, not yet activated and activated user (`tests/ResetPasswordTest.js`)
+- Change password in the settings (`tests/ChangePasswordTest.js`)
+- Registration with activation e-mail (`tests/RegistrationTest.js`)
 
+Every test that changes data creates its own user with a unique e-mail address (`api/users.js`).
+The tests can therefore run repeatedly without seeding in between, and in several browsers in
+parallel.
+
+## Layout
+
+| Folder | Content |
+| --- | --- |
+| `tests/` | the test cases |
+| `pages/` | page objects, one per frontend page |
+| `components/` | page objects for parts shown on several pages (toasts, menu, first-login window) |
+| `api/` | setting up test users over the GraphQL API |
+| `mail/` | reading e-mails from maildev's REST API |
+| `config/` | URLs of frontend, backend and mail server |
 
 ## Precondition
 
-Before running the tests, change to the repo's root directory (gradido).
-
-### Boot up the system under test
+From the repository root:
 
 ```bash
-docker-compose up
+# database, mail server and redis
+docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach mariadb mailserver redis
+
+bun install
+# seed once, the seeded users are only read by the tests
+bun turbo seed
+
+# test configuration: the frontend talks to the backend directly, the backend sends
+# mails without a waiting time in between (EMAIL_CODE_REQUEST_TIME=0)
+cp frontend/.env.test_e2e frontend/.env
+cp backend/.env.test_e2e backend/.env
+
+bun turbo backend#build frontend#build --env-mode=loose
+bun turbo backend#start frontend#start --env-mode=loose
 ```
 
-### Seed the database
-
-The database has to be seeded upfront to every test run.
+## Run the tests
 
 ```bash
-# change to the backend directory 
-cd /path/to/gradido/gradido/backend
+cd e2e-tests
+bun install
+# browsers for the projects chromium, firefox and webkit
+bunx playwright install
 
-# install all dependencies
-yarn 
-
-# seed the database (everytime before running the tests)
-yarn seed
+# all browsers
+bun run test
+# only one, as in the GitHub workflow
+bun run test --project="Google Chrome"
 ```
 
-## Execute the test
-
-This setup will be integrated in the Gradido Github Actions to automatically support the CI/CD process.
-For now the test setup can only be used locally in two modes.
-
-### Run Cypress directly from the code
-
-```bash
-# change to the tests directory 
-cd /path/to/gradido/e2e-tests/
-
-# install all dependencies
-yarn install
-
-# a) run the tests on command line
-yarn cypress run
-
-# b) open the Cypress GUI to run the tests in interactive mode
-yarn cypress open
-```
-
-
-### Run Cyprss from a separate Docker container
-
-```bash
-# change to the cypress directory 
-cd /path/to/gradido/e2e-tests/
-
-# build a Docker image from the Dockerfile
-docker build -t gradido_e2e-tests-cypress .
-
-# run the Docker image and execute the given tests
-docker run -it --network=host gradido_e2e-tests-cypress yarn cypress-e2e
-```
+Videos and traces of failed tests land in `test-results/`; open a trace with
+`bunx playwright show-trace test-results/<test>/trace.zip`.
