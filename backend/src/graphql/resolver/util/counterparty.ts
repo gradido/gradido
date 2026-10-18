@@ -8,7 +8,6 @@ import {
   dbSelectForeignMemberAvatarDates,
   findForeignUserByUuids,
   foreignMemberAvatarDateKey,
-  getHomeCommunity,
 } from 'database'
 import { Logger } from 'log4js'
 import { isAliasEraName } from 'shared'

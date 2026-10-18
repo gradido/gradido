@@ -1,5 +1,4 @@
 import { ColoredContextLayoutConfig } from './ColoredContextLayoutConfig'
-import { LogLevel } from './LogLevel'
 /**
  * use default dateFile Template for custom file appenders
  *
