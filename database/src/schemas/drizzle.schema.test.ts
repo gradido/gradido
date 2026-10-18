@@ -5,9 +5,10 @@ import { AppDatabase } from '../AppDatabase'
 import * as schema from './drizzle.schema'
 
 /**
- * The schema describes the tables the migrations (ts-mysql-migrate) create; nothing is
- * generated from it. So nothing but a test notices when the two drift apart. This one holds
- * the primary keys against the database - Drizzle reads them for `$returningId()`.
+ * The schema describes the tables the migrations (ts-mysql-migrate) create, and an empty
+ * database is built from it (migration/createFromSchema.test.ts compares the whole
+ * structure). This one holds the primary keys against the database - Drizzle reads them for
+ * `$returningId()`.
  */
 
 const appDB = AppDatabase.getInstance()

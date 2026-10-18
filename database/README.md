@@ -26,6 +26,18 @@ TypeError: undefined is not an object (evaluating 'module.parent.parent.require'
 turbo up
 ```
 
+On a database without any table, `up` does not run the migrations: it builds the tables from
+`src/schemas/drizzle.schema.ts` and records every migration in `migrations` as done, so the
+next `up` starts after the last one. That takes about a second instead of running all of
+them. `migration/createFromSchema.test.ts` holds the result against a database built by the
+migrations, so a migration that changes a table has to change the schema with it.
+
+To run every migration on an empty database anyway:
+
+```bash
+bun run up --migrations
+```
+
 ## Downgrade migrations 
 
 ```bash
