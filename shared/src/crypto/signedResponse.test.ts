@@ -1,27 +1,33 @@
 // AI-GENERATED — not an architecture reference
-import { describe, expect, it } from 'bun:test'
-import { generateKeyPairSync } from 'node:crypto'
+import { beforeAll, describe, expect, it } from 'bun:test'
+import { Ed25519KeyPair, X25519KeyPair } from 'shared-native'
 import * as v from 'valibot'
+import { AppContext } from '../AppContext'
 import { signatureNonceSchema } from '../schema/federation.schema'
 import {
   contentDigest,
   createSignatureNonce,
   InvalidResponseSignatureError,
-  SigningCommunity,
   signedJsonResponse,
   verifySignedResponse,
 } from './signedResponse'
 
-// a key pair as the dht-node stores it: libsodium, privateKey = seed || publicKey
-const libsodiumKeyPair = (): SigningCommunity & { privateKey: Buffer } => {
-  const keyPair = generateKeyPairSync('ed25519')
-  // the raw 32 bytes close both DER encodings
-  const seed = keyPair.privateKey.export({ format: 'der', type: 'pkcs8' }).subarray(-32)
-  const publicKey = keyPair.publicKey.export({ format: 'der', type: 'spki' }).subarray(-32)
-  return { publicKey, privateKey: Buffer.concat([seed, publicKey]) }
+// a home community with fresh keys, its row as the dht-node writes it: privateKey = seed || publicKey
+const signKeys = Ed25519KeyPair.generate().toBuffer()
+const encryptionKeys = X25519KeyPair.generate().toBuffer()
+const homeCommunityKeys = {
+  publicKey: signKeys.publicKey,
+  privateKey: Buffer.concat([signKeys.privateKey as Buffer, signKeys.publicKey]),
+  publicEncryptionKey: encryptionKeys.publicKey,
+  privateEncryptionKey: encryptionKeys.privateKey,
 }
-
-const community = libsodiumKeyPair()
+const communityPublicKey = signKeys.publicKey
+// the community as a peer knows it: its announced public key only
+const communityKeyPair = new Ed25519KeyPair(communityPublicKey)
+// signedJsonResponse signs with the home community of the AppContext, as at server start
+beforeAll(() => {
+  AppContext.getInstance().setHomeCommunity(homeCommunityKeys)
+})
 const nonce = createSignatureNonce()
 // the request as the community behind its proxy sees it, and as the peer sent it
 const answered = {
@@ -34,13 +40,7 @@ const sent = {
 }
 
 const signedInfo = async () => {
-  const response = await signedJsonResponse(
-    { name: 'Gradido Akademie' },
-    200,
-    community,
-    nonce,
-    answered,
-  )
+  const response = await signedJsonResponse({ name: 'Gradido Akademie' }, 200, nonce, answered)
   return { status: response.status, headers: response.headers, body: await response.text() }
 }
 
@@ -71,7 +71,7 @@ describe('signedJsonResponse', () => {
     expect(JSON.parse(response.body)).toEqual({ name: 'Gradido Akademie' })
     expect(response.headers.get('content-digest')).toBe(contentDigest(response.body))
     const signatureInput = response.headers.get('signature-input')
-    expect(signatureInput).toContain(`keyid="${community.publicKey.toString('hex')}"`)
+    expect(signatureInput).toContain(`keyid="${communityPublicKey.toString('hex')}"`)
     expect(signatureInput).toContain(`nonce="${nonce}"`)
     expect(signatureInput).toContain('"@method";req "@path";req')
     // the nonce makes it fresh, no clock is consulted
@@ -79,20 +79,8 @@ describe('signedJsonResponse', () => {
     expect(signatureInput).not.toContain('expires=')
     // scheme, host and port differ behind the proxy, the path does not
     await expect(
-      verifySignedResponse(response, community.publicKey, nonce, sent),
+      verifySignedResponse(response, communityKeyPair, nonce, sent),
     ).resolves.toBeUndefined()
-  })
-
-  it('throws for a community without private key', async () => {
-    await expect(
-      signedJsonResponse(
-        {},
-        200,
-        { publicKey: community.publicKey, privateKey: null },
-        nonce,
-        answered,
-      ),
-    ).rejects.toThrow('no private key')
   })
 })
 
@@ -100,17 +88,17 @@ describe('verifySignedResponse refuses', () => {
   const expectRefused = async (
     response: Awaited<ReturnType<typeof signedInfo>>,
     reason: string,
-    publicKey = community.publicKey,
+    keyPair = communityKeyPair,
     expectedNonce = nonce,
     request = sent,
   ) => {
-    await expect(verifySignedResponse(response, publicKey, expectedNonce, request)).rejects.toThrow(
+    await expect(verifySignedResponse(response, keyPair, expectedNonce, request)).rejects.toThrow(
       reason,
     )
   }
 
   it('a signature by another community', async () => {
-    const otherKey = libsodiumKeyPair().publicKey
+    const otherKey = new Ed25519KeyPair(Ed25519KeyPair.generate().publicKeyToBuffer())
     await expect(
       verifySignedResponse(await signedInfo(), otherKey, nonce, sent),
     ).rejects.toBeInstanceOf(InvalidResponseSignatureError)
@@ -121,7 +109,7 @@ describe('verifySignedResponse refuses', () => {
     await expectRefused(
       await signedInfo(),
       'nonce is not the one of the request',
-      community.publicKey,
+      communityKeyPair,
       createSignatureNonce(),
     )
   })
@@ -131,7 +119,7 @@ describe('verifySignedResponse refuses', () => {
     const response = withSignatureInput(await signedInfo(), (input) =>
       input.replace(nonce, otherNonce),
     )
-    await expectRefused(response, 'Signature verification failed', community.publicKey, otherNonce)
+    await expectRefused(response, 'Signature verification failed', communityKeyPair, otherNonce)
   })
 
   it('a signature without nonce', async () => {
@@ -146,7 +134,7 @@ describe('verifySignedResponse refuses', () => {
     await expectRefused(
       await signedInfo(),
       'Signature verification failed',
-      community.publicKey,
+      communityKeyPair,
       nonce,
       {
         ...sent,
@@ -159,7 +147,7 @@ describe('verifySignedResponse refuses', () => {
     await expectRefused(
       await signedInfo(),
       'Signature verification failed',
-      community.publicKey,
+      communityKeyPair,
       nonce,
       {
         ...sent,
@@ -189,6 +177,15 @@ describe('verifySignedResponse refuses', () => {
     const headers = new Headers(response.headers)
     headers.set('content-digest', contentDigest(body))
     await expectRefused({ ...response, headers, body }, 'Signature verification failed')
+  })
+
+  // what the other community sent comes in here, a wrong size is not a bug of ours
+  it('a signature of another size', async () => {
+    const response = await signedInfo()
+    const headers = new Headers(response.headers)
+    const shortened = `:${Buffer.alloc(63).toString('base64')}:`
+    headers.set('signature', (headers.get('signature') ?? '').replace(/:[^:]+:/, shortened))
+    await expectRefused({ ...response, headers }, 'Signature verification failed')
   })
 
   it('another status', async () => {

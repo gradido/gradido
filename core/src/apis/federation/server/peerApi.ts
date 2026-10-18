@@ -14,14 +14,7 @@ export const peerApiRoutesV1 = new Elysia({ prefix: 'v1' })
       query: v.object({ nonce: signatureNonceSchema }),
       response: communityInfoWireSchema,
       mapResponse: async ({ responseValue, set, query, request }) =>
-        signedJsonResponse(
-          responseValue,
-          statusNumber(set.status),
-          // TODO: create AppContext and use
-          await getHomeCommunityDrizzle(),
-          query.nonce,
-          request,
-        ),
+        signedJsonResponse(responseValue, statusNumber(set.status), query.nonce, request),
     },
   )
 

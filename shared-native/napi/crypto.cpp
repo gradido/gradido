@@ -1,4 +1,5 @@
 #include <napi.h>
+#include "napiUtils.h"
 #include "gradido_blockchain_core/const.h"
 #include "gradido_blockchain_core/crypto/hash.h"
 #include "gradido_blockchain_core/crypto/sign.h"
@@ -47,24 +48,12 @@ namespace gradido::crypto {
                 .ThrowAsJavaScriptException();
             return env.Null();
         }
-        if (!info[0].IsBuffer()) {
-            Napi::TypeError::New(env, "[signKeyPairDerive] Expected parentKeyPair to be a Uint8Array").ThrowAsJavaScriptException();
+        Napi::Buffer<uint8_t> parentKeyPair;
+        if (!readBytes(env, info[0], "signKeyPairDerive", "parentKeyPair", sizeof(grdc_sign_key_pair), parentKeyPair)) {
             return env.Null();
         }
         if (!info[1].IsNumber()) {
             Napi::TypeError::New(env, "[signKeyPairDerive] Expected index to be a number").ThrowAsJavaScriptException();
-            return env.Null();
-        }
-
-        Napi::Buffer<uint8_t> parentKeyPair = info[0].As<Napi::Buffer<uint8_t>>();
-        if (parentKeyPair.Length() != sizeof(grdc_sign_key_pair)) {
-            Napi::TypeError::New(
-                env,
-                "[signKeyPairDerive] Expected parentKeyPair to be "
-                + std::to_string(sizeof(grdc_sign_key_pair))
-                + " Bytes, got "
-                + std::to_string(parentKeyPair.Length())
-            ).ThrowAsJavaScriptException();
             return env.Null();
         }
 
@@ -101,34 +90,10 @@ namespace gradido::crypto {
                 .ThrowAsJavaScriptException();
             return env.Null();
         }
-        if (!info[0].IsBuffer()) {
-            Napi::TypeError::New(env, "[signKeyPairDeriveUuid] Expected parentKeyPair to be a Uint8Array").ThrowAsJavaScriptException();
-            return env.Null();
-        }
-        if (!info[1].IsBuffer()) {
-            Napi::TypeError::New(env, "[signKeyPairDeriveUuid] Expected uuid to be a Uint8Array").ThrowAsJavaScriptException();
-            return env.Null();
-        }
-
-        Napi::Buffer<uint8_t> parentKeyPair = info[0].As<Napi::Buffer<uint8_t>>();
-        if (parentKeyPair.Length() != sizeof(grdc_sign_key_pair)) {
-            Napi::TypeError::New(
-                env,
-                "[signKeyPairDeriveUuid] Expected parentKeyPair to be 96 Bytes, got "
-                + std::to_string(parentKeyPair.Length())
-                + " bytes"
-            ).ThrowAsJavaScriptException();
-            return env.Null();
-        }
-
-        Napi::Buffer<uint8_t> uuid = info[1].As<Napi::Buffer<uint8_t>>();
-        if (uuid.Length() != ARNM_UUID_BINARY_SIZE) {
-            Napi::TypeError::New(
-                env,
-                "[signKeyPairDeriveUuid] Expected a valid uuid (16 Bytes), got "
-                + std::to_string(uuid.Length())
-                + " bytes"
-            ).ThrowAsJavaScriptException();
+        Napi::Buffer<uint8_t> parentKeyPair;
+        Napi::Buffer<uint8_t> uuid;
+        if (!readBytes(env, info[0], "signKeyPairDeriveUuid", "parentKeyPair", sizeof(grdc_sign_key_pair), parentKeyPair)
+            || !readBytes(env, info[1], "signKeyPairDeriveUuid", "uuid", ARNM_UUID_BINARY_SIZE, uuid)) {
             return env.Null();
         }
 
@@ -157,34 +122,10 @@ namespace gradido::crypto {
                 .ThrowAsJavaScriptException();
             return env.Null();
         }
-        if (!info[0].IsBuffer()) {
-            Napi::TypeError::New(env, "[signKeyPairDeriveAccountFromCommunity] Expected communitySeed to be a Uint8Array").ThrowAsJavaScriptException();
-            return env.Null();
-        }
-        if (!info[1].IsBuffer()) {
-            Napi::TypeError::New(env, "[signKeyPairDeriveAccountFromCommunity] Expected userUuid to be a Uint8Array").ThrowAsJavaScriptException();
-            return env.Null();
-        }
-
-        Napi::Buffer<uint8_t> communitySeed = info[0].As<Napi::Buffer<uint8_t>>();
-        if (communitySeed.Length() != SIGN_SEED_SIZE) {
-            Napi::TypeError::New(
-                env,
-                "[signKeyPairDeriveAccountFromCommunity] Expected a valid community seed (32 Bytes), got "
-                + std::to_string(communitySeed.Length())
-                + " bytes"
-            ).ThrowAsJavaScriptException();
-            return env.Null();
-        }
-
-        Napi::Buffer<uint8_t> userUuid = info[1].As<Napi::Buffer<uint8_t>>();
-        if (userUuid.Length() != ARNM_UUID_BINARY_SIZE) {
-            Napi::TypeError::New(
-                env,
-                "[signKeyPairDeriveAccountFromCommunity] Expected a valid uuid (16 Bytes), got "
-                + std::to_string(userUuid.Length())
-                + " bytes"
-            ).ThrowAsJavaScriptException();
+        Napi::Buffer<uint8_t> communitySeed;
+        Napi::Buffer<uint8_t> userUuid;
+        if (!readBytes(env, info[0], "signKeyPairDeriveAccountFromCommunity", "communitySeed", SIGN_SEED_SIZE, communitySeed)
+            || !readBytes(env, info[1], "signKeyPairDeriveAccountFromCommunity", "userUuid", ARNM_UUID_BINARY_SIZE, userUuid)) {
             return env.Null();
         }
 

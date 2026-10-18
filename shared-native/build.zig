@@ -24,8 +24,9 @@ fn rustImageFfiDependencyName(target: std.Build.ResolvedTarget) ?[]const u8 {
 }
 
 pub fn build(b: *std.Build) !void {
-    // Compiles everything under napi/ and installs shared_native.node into the output
-    // directory. See the c-cpp-zig-build README for the options.
+    // Compiles everything under src/ (the C++ free of Node-API) and napi/ (the bindings) and
+    // installs shared_native.node into the output directory. See the c-cpp-zig-build README
+    // for the options.
     const addon = try czb.addNodeAddon(b, .{ .name = "shared_native" });
 
     // The crypto half of the core - signing, key derivation, the generic hash, base64 -
@@ -68,6 +69,8 @@ pub fn build(b: *std.Build) !void {
         // so a consumer of its public headers needs third_party/ on the search path as well.
         compile.addIncludePath(core.path("third_party"));
         compile.addIncludePath(arnm.path("include"));
+        // napi/ includes the Node-API free half as "crypto/Ed25519Keys.h" and so on
+        compile.addIncludePath(b.path("src"));
 
         // What the object needs beside itself (NATIVE_LIBS.txt in the archive) is libc and an
         // unwinder, both linked already, on macOS iconv, and on Windows, where the archive holds

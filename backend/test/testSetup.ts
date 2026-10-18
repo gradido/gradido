@@ -8,10 +8,10 @@ CORE_CONFIG.EMAIL_TEST_MODUS = false
 CONFIG.HUMHUB_ACTIVE = false
 CONFIG.GMS_ACTIVE = false
 
-// Before the server is created: its init then changes nothing, and every password a test
+// Before the server is created: its initPasswordHashing then changes nothing, and every password a test
 // hashes takes microseconds instead of 32 MiB of argon2id. A hash made this way matches no
 // production hash, which no test compares against.
-AppContext.getInstance().init({
+AppContext.getInstance().initPasswordHashing({
   appSecret: CONFIG.LOGIN_APP_SECRET,
   serverKey: CONFIG.LOGIN_SERVER_KEY,
   passwordHashing: MINIMAL_PASSWORD_HASHING,

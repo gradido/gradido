@@ -1,26 +1,29 @@
 import { getLogger } from 'log4js'
-import { NativeAppContext, PasswordHashingStats } from 'shared-native'
+import { NativePasswordContext, PasswordHashingStats } from 'shared-native'
 import * as v from 'valibot'
 import {
   DEFAULT_PASSWORD_HASHING,
   LOG4JS_BASE_CATEGORY_NAME,
   PASSWORD_HASH_MAX_EXPECTED_WAIT_MS,
 } from './const'
+import { HomeCommunity, HomeCommunityKeys } from './data/HomeCommunity'
 import { PasswordHashPriority } from './enum/PasswordHashPriority'
 import { ResourceExhausted, Result } from './errorTypes'
 import { hexBytesSchema, positiveIntegerSchema } from './schema/base.schema'
 
 /**
  * What the process is configured with once, at start, and does not change while it runs.
- * It holds the one native app context, where such things are kept: the secrets every
- * password and PIN derivation is keyed with, and the threads that derive password keys.
+ * It holds the one native password context, where such things are kept: the secrets every
+ * password and PIN derivation is keyed with, and the threads that derive password keys. Beside
+ * it the home community, with its key pairs on the native side.
  *
- * A singleton like AppDatabase: `getInstance().init(...)` once at server start, before the
- * first login; a second init changes nothing.
+ * A singleton like AppDatabase: `getInstance().initPasswordHashing(...)` once at server start,
+ * before the first login, in a process that has logins; a second call changes nothing.
  */
 export class AppContext {
   private static instance: AppContext
-  private native: NativeAppContext | undefined
+  private passwordContext: NativePasswordContext | undefined
+  private homeCommunity: HomeCommunity | undefined
 
   private constructor() {}
 
@@ -31,36 +34,55 @@ export class AppContext {
     return AppContext.instance
   }
 
-  public isInitialized(): boolean {
-    return this.native !== undefined
+  public isPasswordHashingInitialized(): boolean {
+    return this.passwordContext !== undefined
   }
 
   /**
    * Copies the secrets to the native side and starts the password hashing threads. Wrong
    * options (a server key that is not 16 bytes, a difficulty argon2id refuses) throw here,
-   * at start, rather than on the first login; see appContextOptionsSchema.
+   * at start, rather than on the first login; see appContextOptionsSchema. A process without
+   * logins (federation) does not call it and holds no login secrets.
    */
-  public init(options: AppContextOptionsInput): void {
-    if (this.native) {
+  public initPasswordHashing(options: AppContextOptionsInput): void {
+    if (this.passwordContext) {
       return
     }
-    this.native = new NativeAppContext(v.parse(appContextOptionsSchema, options))
+    this.passwordContext = new NativePasswordContext(v.parse(appContextOptionsSchema, options))
+  }
+
+  /**
+   * The home community, set once at start from its row. Independent of initPasswordHashing:
+   * a process without logins has one all the same. A second call replaces it.
+   * @throws as the HomeCommunity constructor, for a row without private keys or with keys
+   *         that do not belong together
+   */
+  public setHomeCommunity(keys: HomeCommunityKeys): void {
+    this.homeCommunity = new HomeCommunity(keys)
+  }
+
+  /** @throws Error before setHomeCommunity */
+  public getHomeCommunity(): HomeCommunity {
+    if (!this.homeCommunity) {
+      throw new Error('AppContext has no home community, set it at start')
+    }
+    return this.homeCommunity
   }
 
   /**
    * Finishes the derivations under way, drops the waiting ones and stops the threads. The
-   * next init starts a new native context. Not needed for the process to exit.
+   * next initPasswordHashing starts a new password context. Not needed for the process to exit.
    */
-  public destroy(): void {
-    this.native?.destroy()
-    this.native = undefined
+  public destroyPasswordHashing(): void {
+    this.passwordContext?.destroy()
+    this.passwordContext = undefined
   }
 
-  public getNative(): NativeAppContext {
-    if (!this.native) {
+  public getPasswordContext(): NativePasswordContext {
+    if (!this.passwordContext) {
       throw new Error('AppContext not initialized')
     }
-    return this.native
+    return this.passwordContext
   }
 
   /**
@@ -78,7 +100,7 @@ export class AppContext {
     password: string,
     priority: PasswordHashPriority,
   ): Result<Promise<bigint>, ResourceExhausted> {
-    const result = this.getNative().hashPassword(salt, password, priority)
+    const result = this.getPasswordContext().hashPassword(salt, password, priority)
     if (result.success) {
       return result
     }
@@ -112,19 +134,19 @@ export class AppContext {
 
   /** What the hashing threads measure and hold right now; see the native type */
   public getPasswordHashingStats(): PasswordHashingStats {
-    return this.getNative().getPasswordHashingStats()
+    return this.getPasswordContext().getPasswordHashingStats()
   }
 
   /** The thank-you-card PIN derivation; microseconds, on the calling thread */
   public derivePinKey(salt: string, pin: string): bigint {
-    return this.getNative().derivePinKey(salt, pin)
+    return this.getPasswordContext().derivePinKey(salt, pin)
   }
 }
 
 /**
- * What AppContext.init takes, and parsed, what the native context is created with: the two
- * secrets as the backend's config holds them, and the options of the password hashing
- * threads. Everything left out of those is the production value; the minimums are argon2id's
+ * What AppContext.initPasswordHashing takes, and parsed, what the native password context is
+ * created with: the two secrets as the backend's config holds them, and the options of the
+ * password hashing threads. Everything left out of those is the production value; the minimums are argon2id's
  * (libsodium's crypto_pwhash_OPSLIMIT_MIN and MEMLIMIT_MIN), which the native side insists
  * on as well.
  *

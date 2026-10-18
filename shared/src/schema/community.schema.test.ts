@@ -2,7 +2,7 @@ import { describe, expect, it } from 'bun:test'
 import { generateKeyPairSync } from 'node:crypto'
 import { v4 as uuidv4 } from 'uuid'
 import * as v from 'valibot'
-import { homeCommunityInsertSchema } from './community.schema'
+import { homeCommunityInsertSchema, homeCommunityUpdateSchema } from './community.schema'
 
 describe('homeCommunityInsertSchema', () => {
   const rsaKeyPair = generateKeyPairSync('rsa', {
@@ -119,5 +119,57 @@ describe('homeCommunityInsertSchema', () => {
       'Not an RSA public key',
       'Not an RSA private key',
     ])
+  })
+})
+
+describe('homeCommunityUpdateSchema', () => {
+  it('keeps the fields that may change', () => {
+    const input = {
+      url: 'https://test.gradido.net/api/',
+      name: 'Gradido Test Community',
+      description: 'Community to test the federation',
+      gmsApiKey: null,
+      location: { type: 'Point' as const, coordinates: [13.4, 52.5] },
+      hieroTopicId: null,
+      matchingKeyingActive: true,
+    }
+    expect(v.parse(homeCommunityUpdateSchema, input)).toEqual(input)
+  })
+
+  it('accepts no field at all', () => {
+    expect(v.parse(homeCommunityUpdateSchema, {})).toEqual({})
+  })
+
+  it('drops the keys, the uuid and the creation date', () => {
+    const data = v.parse(homeCommunityUpdateSchema, {
+      name: 'Gradido Test Community',
+      publicKey: Buffer.alloc(32, 1),
+      privateKey: Buffer.alloc(64, 2),
+      publicJwtKey: 'public',
+      privateJwtKey: 'private',
+      publicEncryptionKey: Buffer.alloc(32, 3),
+      privateEncryptionKey: Buffer.alloc(32, 4),
+      communityUuid: uuidv4(),
+      creationDate: new Date(),
+    })
+    expect(data).toEqual({ name: 'Gradido Test Community' })
+  })
+
+  it('accepts a point without coordinates, which is "no position"', () => {
+    const location = { type: 'Point' as const, coordinates: [] }
+    expect(v.parse(homeCommunityUpdateSchema, { location })).toEqual({ location })
+  })
+
+  it('rejects a point with one coordinate', () => {
+    const data = v.safeParse(homeCommunityUpdateSchema, {
+      location: { type: 'Point', coordinates: [13.4] },
+    })
+    expect(data.success).toBe(false)
+  })
+
+  it('rejects a too short name', () => {
+    const data = v.safeParse(homeCommunityUpdateSchema, { name: 'ab' })
+    expect(data.success).toBe(false)
+    expect(data.issues && v.getDotPath(data.issues[0])).toBe('name')
   })
 })

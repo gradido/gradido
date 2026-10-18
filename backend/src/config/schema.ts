@@ -7,6 +7,7 @@ import {
   communityDescriptionSchema,
   communityNameSchema,
   communityUrlOf,
+  configRule,
   DLT_ACTIVE,
   DLT_CONNECTOR_URL,
   GDT_ACTIVE,
@@ -37,6 +38,10 @@ import * as v from 'valibot'
 // time in minutes, at most 30 days
 const minutesSchema = (description: string) =>
   v.pipe(integerSchema, v.minValue(1), v.maxValue(43200), v.description(description))
+
+// like minutesSchema, but 0 is allowed as well: no wait at all
+const minutesOrZeroSchema = (description: string) =>
+  v.pipe(integerSchema, v.minValue(0), v.maxValue(43200), v.description(description))
 
 // a time span like "10m", "1h", "1d" as a numeric string
 const jwtExpirationSchema = (description: string) =>
@@ -175,7 +180,9 @@ const environment = v.object({
   EMAIL_CODE_VALID_TIME: v.optional(minutesSchema('Time in minutes a code is valid'), 1440),
   // time in minutes that must pass to request a new optin code
   EMAIL_CODE_REQUEST_TIME: v.optional(
-    minutesSchema('Time in minutes before a new code can be requested'),
+    minutesOrZeroSchema(
+      'Time in minutes before a new code can be requested, 0 only outside production',
+    ),
     10,
   ),
 
@@ -321,4 +328,11 @@ export const schema = v.pipe(
   }),
   requiredWhen('HUMHUB_JWT_KEY', 'HUMHUB_ACTIVE'),
   requiredWhen('ANTHROPIC_API_KEY', 'ANTHROPIC_ACTIVE'),
+  // 0 lets the e2e tests ask for a password reset right after the registration mail; in
+  // production it would let anybody flood an address with mails
+  configRule(
+    'EMAIL_CODE_REQUEST_TIME',
+    (config) => config.NODE_ENV !== 'production' || config.EMAIL_CODE_REQUEST_TIME > 0,
+    'EMAIL_CODE_REQUEST_TIME must be at least 1 in production',
+  ),
 )

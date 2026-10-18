@@ -99,7 +99,6 @@ RUN envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < frontend/.env.template 
 RUN envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < admin/.env.template > admin/.env
 
 # Configure dht-node
-RUN FEDERATION_DHT_SEED=$(< /dev/urandom tr -dc a-f0-9 | head -c 32; echo);
 RUN envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < dht-node/.env.template > dht-node/.env
 
 # Configure federation

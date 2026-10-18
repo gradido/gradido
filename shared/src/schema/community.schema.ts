@@ -6,6 +6,7 @@ import {
   dateStringSchema,
   ed25519PrivateKeySchema,
   ed25519PublicKeySchema,
+  locationPointSchema,
   publicKeyHexStringSchema,
   urlSchema,
   uuidv4Schema,
@@ -30,6 +31,34 @@ export const homeCommunityInsertSchema = v.object({
 })
 
 export type HomeCommunityInsertInput = v.InferInput<typeof homeCommunityInsertSchema>
+
+/**
+ * What may change on the existing home community, each field optional. Its keys, its uuid and
+ * its creation date are not in here: they are set once, on insert, and every process holds the
+ * keys from its start on. A field that is not in here is dropped by the parse.
+ */
+export const homeCommunityUpdateSchema = v.partial(
+  v.object({
+    url: homeCommunityInsertSchema.entries.url,
+    name: homeCommunityInsertSchema.entries.name,
+    description: homeCommunityInsertSchema.entries.description,
+    gmsApiKey: v.nullable(v.string()),
+    // a point without coordinates is how Location2Point writes "no position"
+    location: v.nullable(
+      v.object({
+        type: locationPointSchema.entries.type,
+        coordinates: v.union([
+          locationPointSchema.entries.coordinates,
+          v.pipe(v.array(v.number()), v.length(0)),
+        ]),
+      }),
+    ),
+    hieroTopicId: v.nullable(hieroIdSchema),
+    matchingKeyingActive: v.boolean(),
+  }),
+)
+
+export type HomeCommunityUpdateInput = v.InferInput<typeof homeCommunityUpdateSchema>
 
 export const foreignCommunityInsertSchema = v.object({
   foreign: v.optional(v.literal(true), true),
