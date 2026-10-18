@@ -1,20 +1,24 @@
 // AI-GENERATED — not an architecture reference
-// The use case end to end, once: a member asks for the figures of the start page and gets every
-// row from the database, in the order of the page -- and a request without a login gets none.
+// The use case end to end, once: a moderator asks for the figures of the start page and gets every
+// row from the database, in the order of the page -- and nobody else gets any: no request without
+// a login, no ordinary member, no unconfirmed guest (RIGHTS.COMMUNITY_FIGURES).
 // What each count counts is tested in `database`, which count each figure asks in
 // CommunityFigures.logic.test.ts.
 import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import {
   AppDatabase,
+  UserContact as DbUserContact,
   dbInsertEvent,
   dbInsertForeignUser,
   dbUserUpdateField,
   EventType,
 } from 'database'
 import { GraphQLError } from 'graphql'
+import { RIGHTS } from '@/auth/RIGHTS'
+import { ROLE_ADMIN, ROLE_MODERATOR, ROLE_MODERATOR_AI, ROLE_USER } from '@/auth/ROLES'
 import { userFactory } from '@/seeds/factory/user'
 import { login } from '@/seeds/graphql/mutations'
-import { communityFiguresQuery } from '@/seeds/graphql/queries'
+import { communityFiguresQuery as communityFigures } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
@@ -67,9 +71,10 @@ beforeAll(async () => {
   // Peter showed his table code yesterday and three weeks ago.
   await note(EventType.GUARANTOR_CODE_SHOW, peter.id, 1)
   await note(EventType.GUARANTOR_CODE_SHOW, peter.id, 20)
-  // Bibi was quiet since long before the chosen day and signs in below: she comes back. Peter
-  // kept signing in; Bob signed in for the first time.
+  // Bibi was quiet since long before the chosen day and signed in again today: she comes back.
+  // Peter kept signing in (and signs in below to ask); Bob signed in for the first time.
   await note(EventType.USER_LOGIN, bibi.id, 200)
+  await note(EventType.USER_LOGIN, bibi.id, 0)
   await note(EventType.USER_LOGIN, peter.id, 200)
   await note(EventType.USER_LOGIN, peter.id, 50)
   await note(EventType.USER_LOGIN, peter.id, 1)
@@ -93,28 +98,30 @@ afterAll(async () => {
   await db.destroy()
 })
 
+const loginAs = async (email: string): Promise<void> => {
+  resetToken()
+  const { errors } = await mutate({ mutation: login, variables: { email, password: 'Aa12345_' } })
+  // A login that failed leaves the token empty, and an empty token is refused with the very words
+  // the refusals below assert: without this line they would pass with nobody logged in.
+  expect(errors).toBeUndefined()
+}
+
+const askFigures = () =>
+  query({ query: communityFigures, variables: { since: since.toISOString() } })
+
 describe('communityFigures', () => {
   it('answers nobody who is not signed in', async () => {
     resetToken()
 
-    const { errors } = await query({
-      query: communityFiguresQuery,
-      variables: { since: since.toISOString() },
-    })
+    const { errors } = await askFigures()
 
     expect(errors).toEqual([new GraphQLError('401 Unauthorized')])
   })
 
-  it('answers a member with every figure of the start page, counted from the chosen day', async () => {
-    await mutate({
-      mutation: login,
-      variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
-    })
+  it('answers a moderator with every figure of the start page, counted from the chosen day', async () => {
+    await loginAs('peter@lustig.de')
 
-    const { data, errors } = await query({
-      query: communityFiguresQuery,
-      variables: { since: since.toISOString() },
-    })
+    const { data, errors } = await askFigures()
 
     expect(errors).toBeUndefined()
     expect(data.communityFigures).toEqual({
@@ -128,7 +135,7 @@ describe('communityFigures', () => {
         { key: 'hostsWithGuest', since: 1, week: 1, total: 1 },
         { key: 'codesShown', since: 1, week: 1, total: 2 },
         { key: 'returners', since: 1, week: null, total: null },
-        // Bibi's login of just now counts: she, Peter and Bob; over seven days not Bob.
+        // Bibi, Peter and Bob; over seven days not Bob.
         { key: 'activeAccounts', since: 3, week: 2, total: 3 },
         { key: 'accountsDeleted', since: 1, week: 1, total: 2 },
         { key: 'accountsTotal', since: null, week: null, total: 4 },
@@ -137,5 +144,29 @@ describe('communityFigures', () => {
         { key: 'firstCreationsReview', since: 0, week: 0, total: 1 },
       ],
     })
+  })
+
+  // Last in the file: their logins come after the figures above were counted.
+  it('answers no ordinary member', async () => {
+    await loginAs('bibi@bloxberg.de')
+
+    expect((await askFigures()).errors).toEqual([new GraphQLError('401 Unauthorized')])
+  })
+
+  it('answers no unconfirmed guest either', async () => {
+    // Bob, unconfirmed and two days old: past the grace period, as a guest from a table is.
+    const bob = await DbUserContact.findOneByOrFail({ email: 'bob@baumeister.de' })
+    await DbUserContact.update({ id: bob.id }, { emailChecked: false })
+    await dbUserUpdateField(bob.userId, 'createdAt', daysAgo(2))
+    await loginAs('bob@baumeister.de')
+
+    expect((await askFigures()).errors).toEqual([new GraphQLError('401 Unauthorized')])
+  })
+
+  it('is a right of the moderation, held by no ordinary member', () => {
+    for (const role of [ROLE_MODERATOR, ROLE_MODERATOR_AI, ROLE_ADMIN]) {
+      expect(role.hasRight(RIGHTS.COMMUNITY_FIGURES)).toBe(true)
+    }
+    expect(ROLE_USER.hasRight(RIGHTS.COMMUNITY_FIGURES)).toBe(false)
   })
 })

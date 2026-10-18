@@ -7,8 +7,9 @@ import { countCommunityFigures } from '@/data/CommunityFigures.logic'
 
 @Resolver()
 export class CommunityFiguresResolver {
-  // Sums, never who: behind the right of the statistics page, which every member holds.
-  @Authorized([RIGHTS.COMMUNITY_STATISTICS])
+  // Sums, never who -- for moderators: over a window chosen to the millisecond, a sum can tell
+  // one person's step (RIGHTS.COMMUNITY_FIGURES).
+  @Authorized([RIGHTS.COMMUNITY_FIGURES])
   @Query(() => CommunityFigures)
   async communityFigures(@Args() { since }: CommunityFiguresArgs): Promise<CommunityFigures> {
     return { since, rows: await countCommunityFigures(since, new Date()) }

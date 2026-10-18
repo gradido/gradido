@@ -90,6 +90,11 @@ export enum RIGHTS {
   MODERATOR_UPDATE_CONTRIBUTION_MEMO = 'MODERATOR_UPDATE_CONTRIBUTION_MEMO',
   DENY_CONTRIBUTION = 'DENY_CONTRIBUTION',
   ADMIN_OPEN_CREATIONS = 'ADMIN_OPEN_CREATIONS',
+  // The figures of the admin's start page (communityFigures). Moderation only: they are sums,
+  // but over windows the caller chooses to the millisecond, so two calls minutes apart tell
+  // whether one observed person signed in, deleted their account or had a first creation sent
+  // to review. ⛔ Not in USER_RIGHTS; communityStatistics (totals only) stays there.
+  COMMUNITY_FIGURES = 'COMMUNITY_FIGURES',
   ADMIN_LIST_ALL_CONTRIBUTION_MESSAGES = 'ADMIN_LIST_ALL_CONTRIBUTION_MESSAGES',
   VIEW_USER_CONTACT = 'VIEW_USER_CONTACT',
   MANAGE_USER_CREATION_GROUPS = 'MANAGE_USER_CREATION_GROUPS',

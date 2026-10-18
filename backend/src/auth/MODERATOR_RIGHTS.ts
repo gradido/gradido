@@ -17,6 +17,8 @@ export const MODERATOR_RIGHTS = [
   RIGHTS.ADMIN_LIST_ALL_CONTRIBUTION_MESSAGES,
   RIGHTS.DENY_CONTRIBUTION,
   RIGHTS.ADMIN_OPEN_CREATIONS,
+  // The figures of the start page: windows chosen by the caller, see RIGHTS.COMMUNITY_FIGURES.
+  RIGHTS.COMMUNITY_FIGURES,
   RIGHTS.VIEW_USER_CONTACT,
   RIGHTS.MANAGE_USER_CREATION_GROUPS,
   // Reading the curated salutation is a moderation right, not a user one: the admin
