@@ -62,6 +62,8 @@ beforeAll(async () => {
   await note(EventType.USER_REGISTER, raeuber.id, 10, peter.id)
   await note(EventType.USER_REGISTER_GUARANTOR, garrick.id, 3, peter.id)
   await note(EventType.USER_REGISTER_REDEEM, stephen.id, 40)
+  // Bob came over an event link.
+  await note(EventType.EVENT_MATCHING_ENTRY_NOTE, bob.id, 2)
   // Peter showed his table code yesterday and three weeks ago.
   await note(EventType.GUARANTOR_CODE_SHOW, peter.id, 1)
   await note(EventType.GUARANTOR_CODE_SHOW, peter.id, 20)
@@ -119,6 +121,7 @@ describe('communityFigures', () => {
         { key: 'accountsViaTableCode', since: 1, week: 1, total: 1 },
         { key: 'accountsViaLink', since: 0, week: 0, total: 1 },
         { key: 'accountsViaAddress', since: 1, week: 0, total: 1 },
+        { key: 'accountsViaEvent', since: 1, week: 1, total: 1 },
         { key: 'hostsWithGuest', since: 1, week: 1, total: 1 },
         { key: 'codesShown', since: 1, week: 1, total: 2 },
         { key: 'returners', since: 1, week: null, total: null },

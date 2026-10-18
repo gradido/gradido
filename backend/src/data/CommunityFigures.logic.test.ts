@@ -9,6 +9,7 @@ const mockEventType = {
   USER_REGISTER_GUARANTOR: 'USER_REGISTER_GUARANTOR',
   USER_REGISTER_REDEEM: 'USER_REGISTER_REDEEM',
   GUARANTOR_CODE_SHOW: 'GUARANTOR_CODE_SHOW',
+  EVENT_MATCHING_ENTRY_NOTE: 'EVENT_MATCHING_ENTRY_NOTE',
   USER_LOGIN: 'USER_LOGIN',
   FIRST_CREATION_DONE: 'FIRST_CREATION_DONE',
   FIRST_CREATION_SKIP: 'FIRST_CREATION_SKIP',
@@ -47,6 +48,7 @@ const byTypes: Record<string, number[]> = {
   USER_REGISTER_GUARANTOR: [21, 22, 23],
   USER_REGISTER_REDEEM: [31, 32, 33],
   GUARANTOR_CODE_SHOW: [61, 62, 63],
+  EVENT_MATCHING_ENTRY_NOTE: [141, 142, 143],
 }
 const membersByType: Record<string, number[]> = {
   USER_LOGIN: [81, 82, 83],
@@ -80,6 +82,7 @@ describe('countCommunityFigures', () => {
       { key: 'accountsViaTableCode', since: 21, week: 22, total: 23 },
       { key: 'accountsViaLink', since: 31, week: 32, total: 33 },
       { key: 'accountsViaAddress', since: 41, week: 42, total: 43 },
+      { key: 'accountsViaEvent', since: 141, week: 142, total: 143 },
       { key: 'hostsWithGuest', since: 51, week: 52, total: 53 },
       { key: 'codesShown', since: 61, week: 62, total: 63 },
       { key: 'returners', since: 71, week: null, total: null },
@@ -101,6 +104,7 @@ describe('countCommunityFigures', () => {
       ['USER_REGISTER_GUARANTOR'],
       ['USER_REGISTER_REDEEM'],
       ['GUARANTOR_CODE_SHOW'],
+      ['EVENT_MATCHING_ENTRY_NOTE'],
     ]) {
       expect(mockDatabase.dbCountEventsOfTypes).toHaveBeenCalledWith(types, everyColumn)
     }

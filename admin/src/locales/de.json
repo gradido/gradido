@@ -402,6 +402,7 @@
       "accountsNew": "Neue Konten",
       "accountsTotal": "Konten insgesamt",
       "accountsViaAddress": "davon über Adresse oder Visitenkarte",
+      "accountsViaEvent": "davon über Event-Link",
       "accountsViaLink": "davon über Einlöse-Link",
       "accountsViaTableCode": "davon über Tisch-Code",
       "activeAccounts": "Aktive Konten (gesamt: 30 Tage)",

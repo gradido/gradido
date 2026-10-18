@@ -22,6 +22,7 @@ const ROWS = [
   { key: 'accountsViaTableCode', since: 1, week: 1, total: 5 },
   { key: 'accountsViaLink', since: 0, week: 0, total: 6 },
   { key: 'accountsViaAddress', since: 1, week: 0, total: 7 },
+  { key: 'accountsViaEvent', since: 4, week: 1, total: 4 },
   { key: 'hostsWithGuest', since: 1, week: 1, total: 4 },
   { key: 'codesShown', since: 9, week: 2, total: 20 },
   { key: 'returners', since: 2, week: null, total: null },

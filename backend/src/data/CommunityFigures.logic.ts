@@ -59,6 +59,9 @@ const FIGURES: Figure[] = [
   // A redeem link of either kind: a Gradido link or thank-you greeting, and a contribution link.
   inEveryColumn('accountsViaLink', ofTypes(EventType.USER_REGISTER_REDEEM)),
   inEveryColumn('accountsViaAddress', dbCountRegisterEventsWithReferrer),
+  // Written from the release that brought EVENT_MATCHING_ENTRY_NOTE on: an event link before it
+  // left no trace. An event link comes with any of the ways above, so the rows can overlap.
+  inEveryColumn('accountsViaEvent', ofTypes(EventType.EVENT_MATCHING_ENTRY_NOTE)),
   // The host is the member who wrote the registration of the guest (RegisterUserGuarantorRole).
   inEveryColumn('hostsWithGuest', (froms) =>
     dbCountDistinctActingUsersOfType(EventType.USER_REGISTER_GUARANTOR, froms),

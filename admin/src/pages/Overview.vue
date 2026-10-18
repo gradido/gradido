@@ -174,6 +174,7 @@ const groups = computed(() => {
         ['accountsViaTableCode', t('figures.row.accountsViaTableCode')],
         ['accountsViaLink', t('figures.row.accountsViaLink')],
         ['accountsViaAddress', t('figures.row.accountsViaAddress')],
+        ['accountsViaEvent', t('figures.row.accountsViaEvent')],
         ['hostsWithGuest', t('figures.row.hostsWithGuest')],
         ['codesShown', t('figures.row.codesShown')],
         ['returners', t('figures.row.returners')],
