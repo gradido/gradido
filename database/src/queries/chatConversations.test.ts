@@ -18,6 +18,7 @@ import {
   dbUpdateChatConversationMemberMuted,
 } from './chatConversationMembers'
 import {
+  dbCountChatConversationsOfKind,
   dbEnsureDirectChatConversation,
   dbFindChatGroupByUuid,
   dbFindDirectChatConversation,
@@ -577,5 +578,46 @@ describe('groups (P5)', () => {
     const doras = await groupsOf(DORA)
     expect(doras.find((group) => group.id === cafe.id)?.mutedAt?.getTime()).toBe(mutedAt.getTime())
     expect((await groupsOf(CARL))[0].mutedAt).toBeNull()
+  })
+})
+
+// The counts of the admin's start page. Every conversation is opened at its moment, and every
+// moment is days away from one `now` -- far enough from the moments the counts start at that
+// the seconds a test runs change nothing.
+describe('dbCountChatConversationsOfKind', () => {
+  const now = Date.now()
+  const daysAgo = (days: number): Date => new Date(now - days * 24 * 60 * 60 * 1000)
+
+  const open = (kind: 'direct' | 'group', days: number) =>
+    db.insert(chatConversationsTable).values({
+      conversationUuid: uuidv4(),
+      kind,
+      // A pair key for a direct conversation, as directChatPairKey writes one; none for a group.
+      directPairKey: kind === 'direct' ? `${HOME}/${uuidv4()}|${HOME}/${uuidv4()}` : null,
+      homeCommunityUuid: kind === 'group' ? HOME : null,
+      title: kind === 'group' ? `Gruppe ${days}` : null,
+      createdByCommunityUuid: ANNA.communityUuid,
+      createdByGradidoId: ANNA.gradidoId,
+      createdAt: daysAgo(days),
+    })
+
+  beforeAll(async () => {
+    await db.delete(chatConversationMembersTable)
+    await db.delete(chatConversationsTable)
+    // Two direct conversations, yesterday and forty days ago; two groups, ten and forty days ago.
+    await open('direct', 1)
+    await open('direct', 40)
+    await open('group', 10)
+    await open('group', 40)
+  })
+
+  it('counts the conversations of one kind opened, once from each moment on', async () => {
+    const moments = [daysAgo(5), daysAgo(20), null]
+    expect(await dbCountChatConversationsOfKind('direct', moments)).toEqual([1, 1, 2])
+    expect(await dbCountChatConversationsOfKind('group', moments)).toEqual([0, 1, 2])
+  })
+
+  it('refuses to count without a moment', async () => {
+    await expect(dbCountChatConversationsOfKind('direct', [])).rejects.toThrow()
   })
 })

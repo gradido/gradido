@@ -7,13 +7,24 @@
 import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import {
   AppDatabase,
+  chatConversationsTable,
+  User as DbUser,
   UserContact as DbUserContact,
+  dbEnsureDirectChatConversation,
+  dbInsertChatGroup,
   dbInsertEvent,
   dbInsertForeignUser,
+  dbInsertMatchingEntry,
   dbUserUpdateField,
   EventType,
+  TransactionTypeId,
+  transactionsTable,
 } from 'database'
+import { eq } from 'drizzle-orm'
 import { GraphQLError } from 'graphql'
+import { GradidoUnit } from 'shared'
+import { v4 as uuidv4 } from 'uuid'
+import { mapMemberCount } from '@/apis/gms/mapMemberCount'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { ROLE_ADMIN, ROLE_MODERATOR, ROLE_MODERATOR_AI, ROLE_USER } from '@/auth/ROLES'
 import { userFactory } from '@/seeds/factory/user'
@@ -42,6 +53,49 @@ const note = (type: EventType, affectedUserId: number, days: number, actingUserI
     actingUserId: actingUserId ?? affectedUserId,
     createdAt: daysAgo(days),
   })
+
+/** One booking row as the server writes it: a SEND row carries the amount negative. */
+const book = (typeId: TransactionTypeId, user: DbUser, gddCent: bigint, days: number) =>
+  db
+    .getDrizzleDataSource()
+    .insert(transactionsTable)
+    .values({
+      typeId,
+      userId: user.id,
+      userGradidoId: user.gradidoID,
+      userCommunityUuid: user.communityUuid,
+      amount: new GradidoUnit(gddCent),
+      memo: 'Danke',
+      balanceDate: daysAgo(days),
+    })
+
+/** An entry on the map, written days ago. */
+const write = async (user: DbUser, matchingType: string, days: number, active = true) => {
+  const written = await dbInsertMatchingEntry({
+    uuid: uuidv4(),
+    userId: user.id,
+    matchingType,
+    summary: `Eintrag von ${user.alias}`,
+    details: null,
+    remote: false,
+    active,
+    createdAt: daysAgo(days),
+  })
+  expect(written.success).toBe(true)
+}
+
+/** A conversation opened days ago: the moment it was written with is moved back. */
+const openedDaysAgo = (conversationId: number, days: number) =>
+  db
+    .getDrizzleDataSource()
+    .update(chatConversationsTable)
+    .set({ createdAt: daysAgo(days) })
+    .where(eq(chatConversationsTable.id, conversationId))
+
+const memberOf = (user: DbUser) => ({
+  communityUuid: user.communityUuid as string,
+  gradidoId: user.gradidoID,
+})
 
 beforeAll(async () => {
   const testEnv = await testEnvironment()
@@ -91,6 +145,36 @@ beforeAll(async () => {
     communityUuid: '66666666-6666-4666-8666-666666666666',
     gradidoId: '66666666-6666-4666-8666-000000000001',
   })
+
+  // Thanks: Bibi sent Peter 20 GDD yesterday and 5.5 GDD forty days ago -- a SEND and a RECEIVE
+  // row each -- and Bob's creation of 100 GDD was booked three days ago.
+  await book(TransactionTypeId.SEND, bibi, -200000n, 1)
+  await book(TransactionTypeId.RECEIVE, peter, 200000n, 1)
+  await book(TransactionTypeId.SEND, bibi, -55000n, 40)
+  await book(TransactionTypeId.RECEIVE, peter, 55000n, 40)
+  await book(TransactionTypeId.CREATION, bob, 1000000n, 3)
+  // The map: Bibi lives in Berlin and can be found, Peter lives in Hamburg and cannot.
+  await dbUserUpdateField(bibi.id, 'location', { type: 'Point', coordinates: [13.405, 52.52] })
+  await dbUserUpdateField(bibi.id, 'gmsAllowed', true)
+  await dbUserUpdateField(peter.id, 'location', { type: 'Point', coordinates: [9.9937, 53.5511] })
+  // An entry of each kind -- a love two days ago, an offer twenty, a need forty, paused.
+  await write(bibi, 'interest', 2)
+  await write(peter, 'offer', 20)
+  await write(bob, 'need', 40, false)
+  // Conversations: Bibi wrote to Peter for the first time yesterday; Peter founded a group
+  // forty days ago. Bibi said hello from the map yesterday, Peter took a video room twenty days
+  // ago.
+  const direct = await dbEnsureDirectChatConversation(memberOf(bibi), memberOf(peter))
+  await openedDaysAgo(direct.id, 1)
+  const group = await dbInsertChatGroup({
+    groupUuid: uuidv4(),
+    title: 'Gartenfreunde',
+    homeCommunityUuid: peter.communityUuid as string,
+    createdBy: memberOf(peter),
+  })
+  await openedDaysAgo(group.id, 40)
+  await note(EventType.CHAT_HELLO_SEND, peter.id, 1, bibi.id)
+  await note(EventType.CHAT_VIDEO_ROOM_CREATE, peter.id, 20)
 })
 
 afterAll(async () => {
@@ -142,8 +226,46 @@ describe('communityFigures', () => {
         { key: 'firstCreationsDone', since: 1, week: 1, total: 1 },
         { key: 'firstCreationsSkipped', since: 1, week: 0, total: 1 },
         { key: 'firstCreationsReview', since: 0, week: 0, total: 1 },
+        { key: 'transfersSent', since: 1, week: 1, total: 2 },
+        // 25.5 over all of it, in whole Gradido.
+        { key: 'gddSent', since: 20, week: 20, total: 26 },
+        { key: 'creationsBooked', since: 1, week: 1, total: 1 },
+        { key: 'gddCreated', since: 100, week: 100, total: 100 },
+        { key: 'homesSet', since: null, week: null, total: 2 },
+        { key: 'findableOnMap', since: null, week: null, total: 1 },
+        { key: 'entriesInterest', since: 1, week: 1, total: 1 },
+        { key: 'entriesOffer', since: 0, week: 0, total: 1 },
+        { key: 'entriesNeed', since: 0, week: 0, total: 1 },
+        // Bob's need is paused.
+        { key: 'entriesActive', since: null, week: null, total: 2 },
+        { key: 'membersWithEntry', since: null, week: null, total: 2 },
+        // The GMS was never asked in this process.
+        { key: 'membersOnMap', since: null, week: null, total: null },
+        { key: 'conversationsNew', since: 1, week: 1, total: 1 },
+        { key: 'groupsNew', since: 0, week: 0, total: 1 },
+        { key: 'hellosFromMap', since: 1, week: 1, total: 1 },
+        { key: 'videoRoomsCreated', since: 0, week: 0, total: 1 },
       ],
     })
+  })
+
+  it('shows the members on the map as the GMS last said them', async () => {
+    const known = jest.spyOn(mapMemberCount, 'known').mockReturnValue(773)
+    try {
+      await loginAs('peter@lustig.de')
+
+      const { data, errors } = await askFigures()
+
+      expect(errors).toBeUndefined()
+      expect(data.communityFigures.rows).toContainEqual({
+        key: 'membersOnMap',
+        since: null,
+        week: null,
+        total: 773,
+      })
+    } finally {
+      known.mockRestore()
+    }
   })
 
   // Last in the file: their logins come after the figures above were counted.

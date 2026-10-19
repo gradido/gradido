@@ -1,6 +1,5 @@
 import {
   and,
-  count,
   countDistinct,
   eq,
   exists,
@@ -21,6 +20,7 @@ import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
 import { ContributionLink as DbContributionLink, Event as DbEvent, User as DbUser } from '../entity'
 import { EventType } from '../enum/EventType'
 import { EventInsert, eventsTable, usersTable } from '../schemas'
+import { countFields, countsOfRow, rowsFrom } from './figureCounts'
 
 export async function findModeratorCreatingContributionLink(
   contributionLink: DbContributionLink,
@@ -113,30 +113,11 @@ export async function dbInsertEventInTransaction(
   await manager.insert(DbEvent, { ...columns, amount: amountGdd4 ?? null })
 }
 
-// The figures of the admin's start page (CommunityFiguresResolver): sums, never who.
-//
-// Each count is asked for several moments at once and answers with one number per moment, in
-// the order given; `null` counts everything of its kind. One statement per count, however
-// many columns the page shows of it.
-
-/** The fields of one select, one count per moment: `n0`, `n1`, … */
-function countFields(
-  froms: (Date | null)[],
-  countFrom: (from: Date | null) => SQL<number>,
-): Record<string, SQL<number>> {
-  if (froms.length === 0) {
-    throw new Error('a count needs at least one moment to count from')
-  }
-  return Object.fromEntries(froms.map((from, index) => [`n${index}`, countFrom(from)]))
-}
-
-/** The numbers of a select built by countFields, in the order of its moments. */
-const countsOfRow = (row: Record<string, number> | undefined, froms: (Date | null)[]): number[] =>
-  froms.map((_, index) => row?.[`n${index}`] ?? 0)
+// The figures of the admin's start page (CommunityFiguresResolver): sums, never who. How a count
+// answers for several moments at once: figureCounts.ts.
 
 /** The matching events, from one moment on. */
-const eventsFrom = (from: Date | null): SQL<number> =>
-  from === null ? count() : count(sql`case when ${gte(eventsTable.createdAt, from)} then 1 end`)
+const eventsFrom = rowsFrom(eventsTable.createdAt)
 
 /** The members one column of the matching events names, each once, from one moment on. */
 const membersFrom =

@@ -1,5 +1,18 @@
 // AI-GENERATED — not an architecture reference
-import { and, asc, desc, eq, inArray, isNull, ne, notInArray, or, sql } from 'drizzle-orm'
+import {
+  and,
+  asc,
+  count,
+  countDistinct,
+  desc,
+  eq,
+  inArray,
+  isNull,
+  ne,
+  notInArray,
+  or,
+  sql,
+} from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import { Result, VoidResult } from 'shared'
 import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
@@ -10,6 +23,7 @@ import {
   matchingEntriesTable,
   usersTable,
 } from '../schemas/drizzle.schema'
+import { countFields, countsOfRow, rowsFrom } from './figureCounts'
 
 // TODO: replace results with valibot schema
 
@@ -427,4 +441,49 @@ export async function dbDeleteMatchingEntryByUuid(
     return { success: true }
   }
   return { success: false, error: MatchingEntryNotFound(`uuid = ${uuid}`) }
+}
+
+// The figures of the admin's start page (CommunityFiguresResolver): sums, never who. How a count
+// answers for several moments at once: figureCounts.ts.
+
+/**
+ * How many entries of each kind were written, from each moment on: the kind (`interest`,
+ * `offer`, `need`) to one number per moment, in one statement. A kind nobody wrote is not in the
+ * answer. An entry its member deleted since is gone and not counted; one of a member whose
+ * account was deleted since still counts -- it was written.
+ */
+export async function dbCountMatchingEntriesByType(
+  froms: (Date | null)[],
+): Promise<Record<string, number[]>> {
+  const rows = await drizzleDb()
+    .select({
+      matchingType: matchingEntriesTable.matchingType,
+      counts: countFields(froms, rowsFrom(matchingEntriesTable.createdAt)),
+    })
+    .from(matchingEntriesTable)
+    .groupBy(matchingEntriesTable.matchingType)
+  return Object.fromEntries(rows.map((row) => [row.matchingType, countsOfRow(row.counts, froms)]))
+}
+
+/** The entries that are live as of now: not paused, of a member whose account is not deleted. */
+const liveEntry = and(eq(matchingEntriesTable.active, true), isNull(usersTable.deletedAt))
+
+/** How many entries are live as of now: a stock. */
+export async function dbCountActiveMatchingEntries(): Promise<number> {
+  const [row] = await drizzleDb()
+    .select({ entries: count() })
+    .from(matchingEntriesTable)
+    .innerJoin(usersTable, eq(usersTable.id, matchingEntriesTable.userId))
+    .where(liveEntry)
+  return row?.entries ?? 0
+}
+
+/** How many members have at least one live entry as of now, each once: a stock. */
+export async function dbCountMembersWithActiveEntry(): Promise<number> {
+  const [row] = await drizzleDb()
+    .select({ members: countDistinct(matchingEntriesTable.userId) })
+    .from(matchingEntriesTable)
+    .innerJoin(usersTable, eq(usersTable.id, matchingEntriesTable.userId))
+    .where(liveEntry)
+  return row?.members ?? 0
 }

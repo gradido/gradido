@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gte, inArray, isNotNull, isNull, ne, or, sql } from 'drizzle-orm'
+import { and, count, desc, eq, inArray, isNotNull, isNull, ne, or, sql } from 'drizzle-orm'
 import { alias as aliasedTable, type BuildAliasTable, unionAll } from 'drizzle-orm/mysql-core'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import {
@@ -31,6 +31,7 @@ import {
   userRolesTable,
   usersTable,
 } from '../schemas/drizzle.schema'
+import { countFields, countsOfRow, rowsFrom } from './figureCounts'
 
 // Drizzle only. The `users` queries still on TypeORM live in `./user.typeorm` until they
 // are translated.
@@ -1092,21 +1093,52 @@ export async function dbCountUsers(): Promise<number> {
  * An account that was restored since is not deleted any more and not counted.
  */
 export async function dbCountUsersDeleted(froms: (Date | null)[]): Promise<number[]> {
-  if (froms.length === 0) {
-    throw new Error('dbCountUsersDeleted needs at least one moment to count from')
-  }
   const [row] = await drizzleDb()
-    .select(
-      Object.fromEntries(
-        froms.map((from, index) => [
-          `n${index}`,
-          from === null
-            ? count()
-            : count(sql`case when ${gte(usersTable.deletedAt, from)} then 1 end`),
-        ]),
-      ),
-    )
+    .select(countFields(froms, rowsFrom(usersTable.deletedAt)))
     .from(usersTable)
     .where(and(eq(usersTable.foreign, false), isNotNull(usersTable.deletedAt)))
-  return froms.map((_, index) => row?.[`n${index}`] ?? 0)
+  return countsOfRow(row, froms)
+}
+
+/**
+ * A home the map can draw: a point with two usable coordinates -- the rule the backend applies
+ * when it reads the column (`Point2Location`, which asks `isUsableLocation` in `shared`). A pin
+ * saved without a position is stored as NULL (customGeometry), and a row from before 10.09.2026
+ * may still hold a latitude of 91, which the backend reads as no position. The point is
+ * (longitude latitude), as GeoJSON orders it.
+ */
+const hasUsableHome = and(
+  isNotNull(usersTable.location),
+  sql`st_x(${usersTable.location}) between -180 and 180`,
+  sql`st_y(${usersTable.location}) between -90 and 90`,
+)
+
+/** How many of this community's accounts have set a home, not deleted: a stock, as of now. */
+export async function dbCountUsersWithHome(): Promise<number> {
+  const [row] = await drizzleDb()
+    .select({ accounts: count() })
+    .from(usersTable)
+    .where(and(eq(usersTable.foreign, false), isNull(usersTable.deletedAt), hasUsableHome))
+  return row?.accounts ?? 0
+}
+
+/**
+ * How many of this community's accounts can be found on the map, as of now: they allow it and
+ * have set a home, and are not deleted -- the rule of `isFindableOnMap` (backend), without the
+ * two switches of the server. Where those are off, nobody is shown, and this still says how many
+ * members put themselves on the map.
+ */
+export async function dbCountUsersFindable(): Promise<number> {
+  const [row] = await drizzleDb()
+    .select({ accounts: count() })
+    .from(usersTable)
+    .where(
+      and(
+        eq(usersTable.foreign, false),
+        isNull(usersTable.deletedAt),
+        eq(usersTable.gmsAllowed, true),
+        hasUsableHome,
+      ),
+    )
+  return row?.accounts ?? 0
 }

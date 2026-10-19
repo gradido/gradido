@@ -3,8 +3,9 @@ import { ContactOrigin, GradidoUnit, Order } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
 import { clearDatabase } from '../../migration/clear'
 import { User as DbUser, UserContact as DbUserContact } from '..'
-import { AppDatabase } from '../AppDatabase'
+import { AppDatabase, drizzleDb } from '../AppDatabase'
 import { TransactionTypeId } from '../enum'
+import { transactionsTable } from '../schemas'
 import { createCommunity } from '../seeds/community'
 import { creationFactory, nMonthsBefore } from '../seeds/factory/creation'
 import { foreignReceive, transferGradidos } from '../seeds/factory/transaction'
@@ -15,7 +16,9 @@ import { peterLustig } from '../seeds/users/peter-lustig'
 import { dbUpdateChatConversationMemberLastRead } from './chatConversationMembers'
 import { dbEnsureDirectChatConversation } from './chatConversations'
 import { dbInsertChatMessage } from './chatMessages'
+import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 import {
+  dbCountAndSumTransactionsOfType,
   dbSelectContactsByUserId,
   dbSelectReceivedTransferOfUser,
   dbSelectTransactionsByUserId,
@@ -1034,5 +1037,62 @@ describe('dbSelectContactsByUserId with one person spelled two ways', () => {
       expect(page.contacts[0]).toMatchObject({ bookings: 1, unreadChatMessages: 0 })
       expect(page.contacts[0].lastChatMessageAt?.getTime()).toBe(day(15).getTime())
     }
+  })
+})
+
+// The counts of the admin's start page. Every booking is written with its moment, and every
+// moment is days away from one `now` -- far enough from the moments the counts start at that
+// the seconds a test runs change nothing. Last in the file: it empties the database.
+describe('dbCountAndSumTransactionsOfType', () => {
+  const now = Date.now()
+  const daysAgo = (days: number): Date => new Date(now - days * 24 * 60 * 60 * 1000)
+
+  /** One row as the server books it: a SEND row carries the amount negative, the sender's loss. */
+  const book = (typeId: TransactionTypeId, user: DbUser, gddCent: bigint, days: number) =>
+    drizzleDb()
+      .insert(transactionsTable)
+      .values({
+        typeId,
+        userId: user.id,
+        userGradidoId: user.gradidoID,
+        userCommunityUuid: user.communityUuid,
+        amount: new GradidoUnit(gddCent),
+        memo: 'figures',
+        balanceDate: daysAgo(days),
+      })
+
+  beforeAll(async () => {
+    await dbDeleteAllRowsExceptMigrations()
+    await createCommunity(false)
+    const sender = await userFactory(bibiBloxberg)
+    const recipient = await userFactory(peterLustig)
+    // 20 GDD yesterday and 5.5 GDD forty days ago, each a SEND and a RECEIVE row.
+    await book(TransactionTypeId.SEND, sender, -200000n, 1)
+    await book(TransactionTypeId.RECEIVE, recipient, 200000n, 1)
+    await book(TransactionTypeId.SEND, sender, -55000n, 40)
+    await book(TransactionTypeId.RECEIVE, recipient, 55000n, 40)
+    // A creation of 100 GDD, booked ten days ago.
+    await book(TransactionTypeId.CREATION, sender, 1000000n, 10)
+  })
+
+  const moments = [daysAgo(5), daysAgo(20), null]
+
+  it('counts the rows of one type and the Gradido they moved, in whole ones, from each moment on', async () => {
+    // 25.5 over all of it, rounded.
+    expect(await dbCountAndSumTransactionsOfType(TransactionTypeId.SEND, moments)).toEqual({
+      counts: [1, 1, 2],
+      gdd: [20, 20, 26],
+    })
+  })
+
+  it('counts each type on its own', async () => {
+    expect(await dbCountAndSumTransactionsOfType(TransactionTypeId.CREATION, moments)).toEqual({
+      counts: [0, 1, 1],
+      gdd: [0, 100, 100],
+    })
+  })
+
+  it('refuses to count without a moment', async () => {
+    await expect(dbCountAndSumTransactionsOfType(TransactionTypeId.SEND, [])).rejects.toThrow()
   })
 })
