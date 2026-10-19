@@ -413,6 +413,7 @@
       "accountsViaLink": "of which via redeem link",
       "accountsViaTableCode": "of which via table code",
       "activeAccounts": "Active accounts (total: 30 days)",
+      "activeAccountsWeekly": "Accounts with a sign-in per week",
       "activeUsers": "Accounts with bookings",
       "codesShown": "Table codes shown",
       "conversationsNew": "New one-to-one conversations",
@@ -445,7 +446,9 @@
     "title": "Figures",
     "today": "Today: {n} open creations",
     "todayNone": "Today: no open creations",
-    "todayOne": "Today: one open creation"
+    "todayOne": "Today: one open creation",
+    "weekCurrent": "in progress",
+    "weeks": "By week"
   },
   "filter": {
     "byEmail": "Фильтровать по эл. почте"

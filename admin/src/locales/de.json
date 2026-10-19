@@ -413,6 +413,7 @@
       "accountsViaLink": "davon über Einlöse-Link",
       "accountsViaTableCode": "davon über Tisch-Code",
       "activeAccounts": "Aktive Konten (gesamt: 30 Tage)",
+      "activeAccountsWeekly": "Konten mit Anmeldung je Woche",
       "activeUsers": "Konten mit Buchungen",
       "codesShown": "Tisch-Codes gezeigt",
       "conversationsNew": "Neue Zweiergespräche",
@@ -445,7 +446,9 @@
     "title": "Zahlen",
     "today": "Heute: {n} offene Schöpfungen",
     "todayNone": "Heute: keine offenen Schöpfungen",
-    "todayOne": "Heute: eine offene Schöpfung"
+    "todayOne": "Heute: eine offene Schöpfung",
+    "weekCurrent": "läuft",
+    "weeks": "Nach Wochen"
   },
   "filter": {
     "byEmail": "Nach E-Mail filtern"
