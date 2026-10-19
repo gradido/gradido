@@ -1,13 +1,13 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { reactive } from 'vue'
-import NavBar from './NavBar'
-import { adminStore } from '../../test/adminStore'
-import { useAdminStore } from '@/store/useAdminStore'
 import { createRouter, createWebHistory } from 'vue-router'
-import CONFIG from '../config'
 import { NAV_AVATAR_SIZE } from '@/constants'
+import { useAdminStore } from '@/store/useAdminStore'
 import { redirectTo } from '@/utils/redirect'
+import { adminStore } from '../../test/adminStore'
+import CONFIG from '../config'
+import NavBar from './NavBar'
 
 // The route the bar believes it is on. Reactive, so a test can move to another page.
 const route = vi.hoisted(() => ({ current: null }))

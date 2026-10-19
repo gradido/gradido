@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { mount } from '@vue/test-utils'
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import ParseMessage from './ParseMessage.vue'
 
 // The moderator's own view of the message. It has to agree with what the member sees

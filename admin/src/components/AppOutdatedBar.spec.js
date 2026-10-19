@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import AppOutdatedBar from './AppOutdatedBar'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { markAppOutdated, resetAppOutdated } from '@/composables/useAppOutdated'
+import AppOutdatedBar from './AppOutdatedBar'
 
 // ⚠️ The reload is caught at the composable, not at window.location. Under the vmThreads pool
 // the global is jsdom's own window, whose location can be neither deleted nor replaced --

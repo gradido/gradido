@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach } from 'vitest'
 import { shallowMount } from '@vue/test-utils'
-import { adminStore } from '../test/adminStore'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { createRouter, createWebHistory } from 'vue-router'
-import App from './App.vue'
 import defaultLayout from '@/layouts/defaultLayout'
+import { adminStore } from '../test/adminStore'
+import App from './App.vue'
 
 const router = createRouter({
   history: createWebHistory(),

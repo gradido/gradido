@@ -31,7 +31,9 @@ const epoch = ref(0)
 export const memberKey = ({ communityUuid, gradidoID }) => `${communityUuid ?? ''}/${gradidoID}`
 
 const asTime = (date) => {
-  if (!date) return null
+  if (!date) {
+    return null
+  }
   const time = new Date(date).getTime()
   return Number.isNaN(time) ? null : time
 }
@@ -39,7 +41,9 @@ const asTime = (date) => {
 /** What this device holds for one member, if its date still matches the list's. */
 const current = (member) => {
   const held = pictures.get(memberKey(member))
-  if (!held) return null
+  if (!held) {
+    return null
+  }
   return held.at === asTime(member.avatarUpdatedAt) ? held : null
 }
 
@@ -50,7 +54,9 @@ const current = (member) => {
  * pictures arrive.
  */
 export const memberAvatarSource = (member) => {
-  if (!member?.gradidoID) return ''
+  if (!member?.gradidoID) {
+    return ''
+  }
   // ⛔ Read, not ignored: this is what makes a computed built on this function re-evaluate
   // when the pictures arrive. A plain Map is not reactive, and without this line a row that
   // rendered before the answer would keep its initials until something else re-rendered it.
@@ -92,14 +98,20 @@ export const fetchMemberAvatars = async (apolloClient, members) => {
   // would otherwise be named three times in one request.
   const wanted = new Map()
   for (const member of members ?? []) {
-    if (!member?.gradidoID || asTime(member.avatarUpdatedAt) === null) continue
-    if (current(member)) continue
+    if (!member?.gradidoID || asTime(member.avatarUpdatedAt) === null) {
+      continue
+    }
+    if (current(member)) {
+      continue
+    }
     wanted.set(memberKey(member), {
       gradidoID: member.gradidoID,
       communityUuid: member.communityUuid ?? null,
     })
   }
-  if (wanted.size === 0) return
+  if (wanted.size === 0) {
+    return
+  }
 
   // Read BEFORE the request, compared after it: the one thing a late answer must never
   // survive is a logout in between.
@@ -114,7 +126,9 @@ export const fetchMemberAvatars = async (apolloClient, members) => {
       // decision is made against the date on the list, before we get here.
       fetchPolicy: 'no-cache',
     })
-    if (asked !== generation) return
+    if (asked !== generation) {
+      return
+    }
     for (const answer of data?.memberAvatars ?? []) {
       pictures.set(memberKey(answer), {
         avatar: answer.avatar,

@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import vueJsx from '@vitejs/plugin-vue-jsx'
 import commonjs from 'vite-plugin-commonjs'
 import Icons from 'unplugin-icons/vite'
 import Components from 'unplugin-vue-components/vite'
@@ -57,15 +58,8 @@ export default defineConfig(async ({ command }) => {
     },
 
     plugins: [
-      vue({
-        template: {
-          compilerOptions: {
-            compatConfig: {
-              MODE: 2,
-            },
-          },
-        },
-      }),
+      vue(),
+      vueJsx(),
       Components({
         resolvers: [IconsResolve(), BootstrapVueNextResolver()],
         dts: true,

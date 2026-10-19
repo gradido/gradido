@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { shallowMount } from '@vue/test-utils'
-import { adminStore } from '../../../test/adminStore'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { h } from 'vue'
+import { adminStore } from '../../../test/adminStore'
 import OpenCreationsTable from './OpenCreationsTable.vue'
 
 vi.mock('../RowDetails', () => ({ default: { name: 'RowDetails' } }))
@@ -257,7 +257,7 @@ describe('OpenCreationsTable', () => {
       item,
       index,
       detailsShowing: true,
-      toggleDetails: () => {},
+      toggleDetails: () => undefined,
     })
 
     // Stands in for BTableLite: the automatic stub renders none of its scoped slots, so
@@ -353,7 +353,7 @@ describe('OpenCreationsTable', () => {
       item,
       index,
       detailsShowing: true,
-      toggleDetails: () => {},
+      toggleDetails: () => undefined,
     })
     // Renders the column of the magnifier and the details row, which the automatic stub swallows.
     const slotRenderingTable = {

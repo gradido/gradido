@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import Coordinates from './Coordinates.vue'
 import { BFormGroup, BFormInput } from 'bootstrap-vue-next'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import Coordinates from './Coordinates.vue'
 
 const modelValue = {
   latitude: 56.78,

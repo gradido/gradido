@@ -1,13 +1,13 @@
-import { flushPromises, mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { createI18n } from 'vue-i18n'
-import { adminStore } from '../../../test/adminStore'
 import { DefaultApolloClient } from '@vue/apollo-composable'
-import SearchUserTable from './SearchUserTable.vue'
-import MemberWalletLink from '../MemberWalletLink.vue'
-import { contactRefs } from '@/graphql/contactRefs'
-import { forgetModeratorContacts } from '@/composables/useModeratorContacts'
+import { flushPromises, mount } from '@vue/test-utils'
 import { BTable } from 'bootstrap-vue-next'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createI18n } from 'vue-i18n'
+import { forgetModeratorContacts } from '@/composables/useModeratorContacts'
+import { contactRefs } from '@/graphql/contactRefs'
+import { adminStore } from '../../../test/adminStore'
+import MemberWalletLink from '../MemberWalletLink.vue'
+import SearchUserTable from './SearchUserTable.vue'
 
 vi.mock('../CreationFormular.vue', () => ({
   default: {

@@ -357,14 +357,14 @@
 // })
 
 import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { BCol, BFormGroup, BListGroup, BListGroupItem, BRow } from 'bootstrap-vue-next'
+import { formatDistanceToNow } from 'date-fns'
+import { de, enUS as en, es, fr, nl } from 'date-fns/locale'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { nextTick, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { adminStore } from '../../../test/adminStore'
 import CommunityVisualizeItem from './CommunityVisualizeItem.vue'
-import { BCol, BFormGroup, BListGroup, BListGroupItem, BRow } from 'bootstrap-vue-next'
-import { de, enUS as en, fr, es, nl } from 'date-fns/locale'
-import { useI18n } from 'vue-i18n'
-import { nextTick, ref } from 'vue'
-import { formatDistanceToNow } from 'date-fns'
 
 vi.mock('@/composables/useToast', () => ({
   useAppToast: vi.fn(() => ({

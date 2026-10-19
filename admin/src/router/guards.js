@@ -1,8 +1,8 @@
-import { verifyLogin } from '../graphql/verifyLogin'
 import CONFIG from '../config'
+import { verifyLogin } from '../graphql/verifyLogin'
 import { takeHandedOverToken } from '../utils/authToken'
 
-const addNavigationGuards = (router, store, apollo, i18n) => {
+export const addNavigationGuards = (router, store, apollo, i18n) => {
   // store token on `authenticate`
   //
   // ⛔ The token comes out of localStorage where the wallet shares this origin, and out of the
@@ -65,5 +65,3 @@ const addNavigationGuards = (router, store, apollo, i18n) => {
     }
   })
 }
-
-export default addNavigationGuards

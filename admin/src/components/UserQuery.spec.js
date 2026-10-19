@@ -1,8 +1,8 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import UserQuery from './UserQuery.vue'
-import { useI18n } from 'vue-i18n'
 import { BFormInput, BInputGroupText } from 'bootstrap-vue-next'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { useI18n } from 'vue-i18n'
+import UserQuery from './UserQuery.vue'
 
 vi.mock('vue-i18n')
 

@@ -30,7 +30,9 @@ const STYLE_ID = 'print-font-open-sans'
 const WEIGHTS = [400, 500, 600, 700]
 
 const declareOnce = () => {
-  if (document.getElementById(STYLE_ID)) return
+  if (document.getElementById(STYLE_ID)) {
+    return
+  }
   const style = document.createElement('style')
   style.id = STYLE_ID
   style.textContent = declaration
@@ -49,7 +51,9 @@ const declareOnce = () => {
  */
 export const printFontReady = async (texts) => {
   const fonts = typeof document === 'undefined' ? undefined : document.fonts
-  if (!fonts || typeof fonts.load !== 'function') return
+  if (!fonts || typeof fonts.load !== 'function') {
+    return
+  }
 
   const text = (Array.isArray(texts) ? texts : [texts])
     .filter((part) => typeof part === 'string' && part.length > 0)

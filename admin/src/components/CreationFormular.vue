@@ -70,7 +70,7 @@ import { useMutation, useQuery } from '@vue/apollo-composable'
 import { useAdminStore } from '@/store/useAdminStore'
 import { adminCreateContribution } from '../graphql/adminCreateContribution'
 import { adminOpenCreations } from '../graphql/adminOpenCreations'
-import useCreationMonths from '../composables/useCreationMonths'
+import { useCreationMonths } from '../composables/useCreationMonths'
 import {
   BFormInput,
   BFormRadioGroup,

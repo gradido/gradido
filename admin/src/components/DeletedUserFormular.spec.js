@@ -1,13 +1,13 @@
-import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import DeletedUserFormular from './DeletedUserFormular.vue'
-import { deleteUser } from '../graphql/deleteUser'
-import { unDeleteUser } from '../graphql/unDeleteUser'
 import { useApolloClient } from '@vue/apollo-composable'
+import { mount } from '@vue/test-utils'
+import { BButton } from 'bootstrap-vue-next'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useI18n } from 'vue-i18n'
 import { useAppToast } from '@/composables/useToast'
 import { adminStore } from '../../test/adminStore'
-import { BButton } from 'bootstrap-vue-next'
+import { deleteUser } from '../graphql/deleteUser'
+import { unDeleteUser } from '../graphql/unDeleteUser'
+import DeletedUserFormular from './DeletedUserFormular.vue'
 
 vi.mock('@vue/apollo-composable')
 vi.mock('vue-i18n')

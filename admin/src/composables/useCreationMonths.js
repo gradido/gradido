@@ -1,10 +1,10 @@
-import { ref, computed, watch } from 'vue'
-import { adminOpenCreations } from '../graphql/adminOpenCreations'
 import { useQuery } from '@vue/apollo-composable'
-import { useI18n } from 'vue-i18n'
 import toast from 'bootstrap/js/src/toast'
+import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { adminOpenCreations } from '../graphql/adminOpenCreations'
 
-export default () => {
+export const useCreationMonths = () => {
   const { d } = useI18n()
 
   const creation = ref([1000, 1000, 1000])

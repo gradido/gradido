@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createApp } from 'vue'
 import { createAdminApp } from '../src/main'
 
@@ -13,13 +13,13 @@ vi.mock('vue', () => ({
 
 vi.mock('./App.vue', () => ({ default: {} }))
 vi.mock('./store/store', () => ({
-  default: { moderator: { language: 'en' } },
+  store: { moderator: { language: 'en' } },
   pinia: {},
 }))
-vi.mock('./router/router', () => ({ default: {} }))
-vi.mock('./router/guards', () => ({ default: vi.fn() }))
+vi.mock('./router/router', () => ({ router: {} }))
+vi.mock('./router/guards', () => ({ addNavigationGuards: vi.fn() }))
 vi.mock('./i18n', () => ({
-  default: {
+  i18n: {
     global: {
       locale: { value: 'en' },
     },

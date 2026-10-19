@@ -1,15 +1,15 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
 import de from './locales/de.json'
+import el from './locales/el.json'
 import en from './locales/en.json'
 import es from './locales/es.json'
 import fr from './locales/fr.json'
-import nl from './locales/nl.json'
 import itLocale from './locales/it.json'
-import tr from './locales/tr.json'
-import ru from './locales/ru.json'
+import nl from './locales/nl.json'
 import pt from './locales/pt.json'
-import el from './locales/el.json'
+import ru from './locales/ru.json'
+import tr from './locales/tr.json'
 
 vi.mock('vue-i18n')
 vi.mock('./locales/de.json', () => ({ default: { test: 'Test DE' } }))
@@ -41,7 +41,7 @@ describe('i18n', () => {
       },
     })
 
-    const i18n = (await import('./i18n')).default
+    const { i18n } = await import('./i18n')
 
     expect(mockCreateI18n).toHaveBeenCalledWith({
       locale: 'en',

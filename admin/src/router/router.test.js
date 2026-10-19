@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createRouter, createWebHistory } from 'vue-router'
 
 const mockComponents = {
@@ -11,7 +11,7 @@ const mockComponents = {
 }
 
 vi.mock('./routes', () => ({
-  default: [
+  routes: [
     { path: '/', component: () => Promise.resolve(mockComponents.overview) },
     { path: '/logout', component: () => Promise.resolve(mockComponents.notFound) },
     { path: '/user', component: () => Promise.resolve(mockComponents.UserSearch) },
@@ -37,13 +37,10 @@ vi.mock('vue-router', () => ({
 }))
 
 describe('Router', () => {
-  // eslint-disable-next-line no-unused-vars
-  let router
-
   beforeEach(async () => {
     vi.clearAllMocks()
     vi.resetModules()
-    router = (await import('./router')).default
+    await import('./router')
   })
 
   describe('options', () => {

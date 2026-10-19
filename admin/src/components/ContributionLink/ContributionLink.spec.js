@@ -1,8 +1,8 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach } from 'vitest'
+import { BButton, BCard, BCardText, BCollapse } from 'bootstrap-vue-next'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { adminStore } from '../../../test/adminStore'
 import ContributionLink from './ContributionLink.vue'
-import { BButton, BCard, BCardText, BCollapse } from 'bootstrap-vue-next'
 
 const createAdminStore = (role = 'ADMIN') => adminStore({ moderator: { role } })
 

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Covers the one line the sibling file cannot: what the outdated-app link's handler actually
 // does. Mocking onError is the only way to get hold of that handler, and mocking it is also
@@ -13,11 +13,12 @@ vi.mock('../config', () => ({
   },
 }))
 vi.mock('../store/store', () => ({
-  default: { token: '', logout: vi.fn(), setToken: vi.fn() },
+  store: { token: '', logout: vi.fn(), setToken: vi.fn() },
 }))
 
 describe('the outdated-app link', () => {
-  let handler, appOutdated
+  let handler
+  let appOutdated
 
   beforeEach(async () => {
     vi.resetModules()

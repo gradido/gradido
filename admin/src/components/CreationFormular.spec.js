@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { BFormRadioGroup } from 'bootstrap-vue-next'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick, ref } from 'vue'
 import CreationFormular from './CreationFormular.vue'
-import { BFormRadioGroup } from 'bootstrap-vue-next'
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
@@ -33,7 +33,7 @@ vi.mock('@/store/useAdminStore', () => ({
 }))
 
 vi.mock('../composables/useCreationMonths', () => ({
-  default: () => ({
+  useCreationMonths: () => ({
     creationDateObjects: ref([
       { short: 'Jan', year: '2024', date: '2024-01-01' },
       { short: 'Feb', year: '2024', date: '2024-02-01' },

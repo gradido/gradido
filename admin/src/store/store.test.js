@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { nextTick } from 'vue'
 import { createPinia } from 'pinia'
-import store from './store'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { nextTick } from 'vue'
+import { store } from './store'
 import { useAdminStore } from './useAdminStore'
 
 vi.mock('../config', () => ({
@@ -81,8 +81,9 @@ describe('Pinia Store', () => {
     // Whom this moderator is in contact with: theirs, and nobody's who signs in next on the
     // same browser.
     it('takes with it whom the moderator is in contact with', async () => {
-      const { askModeratorContacts, moderatorContact } =
-        await import('@/composables/useModeratorContacts')
+      const { askModeratorContacts, moderatorContact } = await import(
+        '@/composables/useModeratorContacts'
+      )
       const bibi = { gradidoID: 'g-bibi', communityUuid: 'home' }
       await askModeratorContacts(
         { query: vi.fn().mockResolvedValue({ data: { contactRefs: [bibi] } }) },
@@ -102,10 +103,12 @@ describe('Pinia Store', () => {
      * previous one's face open in their first second. (coderabbit, #3890.)
      */
     it("takes other people's faces with it, the open one included", async () => {
-      const { fetchMemberAvatars, memberAvatarSource } =
-        await import('@/composables/useMemberAvatars')
-      const { memberAvatarZoomState, openMemberAvatarZoom } =
-        await import('@/composables/useMemberAvatarZoom')
+      const { fetchMemberAvatars, memberAvatarSource } = await import(
+        '@/composables/useMemberAvatars'
+      )
+      const { memberAvatarZoomState, openMemberAvatarZoom } = await import(
+        '@/composables/useMemberAvatarZoom'
+      )
       const margret = {
         gradidoID: 'g-margret',
         communityUuid: 'home',
@@ -207,7 +210,7 @@ describe('Pinia Store', () => {
       storageOfTheStore.setItem('auth-token', JSON.stringify({ token: kept, at: Date.now() }))
       storageOfTheStore.setItem('gradido-admin', JSON.stringify(blob))
       vi.resetModules()
-      return (await import('./store')).default
+      return (await import('./store')).store
     }
 
     it('is what the admin interface opens with, and not a token in a blob saved before', async () => {
@@ -247,7 +250,7 @@ describe('Pinia Store', () => {
       vi.resetModules()
       const { default: config } = await import('../config')
       config.DEBUG_DISABLE_AUTH = true
-      const debugStore = (await import('./store')).default
+      const debugStore = (await import('./store')).store
       expect(debugStore.token).toBe('validToken')
       config.DEBUG_DISABLE_AUTH = false
     })

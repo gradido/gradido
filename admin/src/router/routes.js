@@ -1,4 +1,4 @@
-const routes = [
+export const routes = [
   {
     path: '/authenticate',
   },
@@ -69,5 +69,3 @@ const routes = [
     component: () => import('@/components/NotFoundPage.vue'),
   },
 ]
-
-export default routes

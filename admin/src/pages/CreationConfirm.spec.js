@@ -1,13 +1,13 @@
+import { useApolloClient, useMutation, useQuery } from '@vue/apollo-composable'
 import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { BBadge, BPagination, BTab, BTabs } from 'bootstrap-vue-next'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick, ref } from 'vue'
-import CreationConfirm from './CreationConfirm.vue'
-import { useApolloClient, useQuery, useMutation } from '@vue/apollo-composable'
-import { adminStore } from '../../test/adminStore'
-import { useAdminStore } from '@/store/useAdminStore'
 import { useI18n } from 'vue-i18n'
 import { useAppToast } from '@/composables/useToast'
-import { BBadge, BPagination, BTab, BTabs } from 'bootstrap-vue-next'
+import { useAdminStore } from '@/store/useAdminStore'
+import { adminStore } from '../../test/adminStore'
+import CreationConfirm from './CreationConfirm.vue'
 
 vi.mock('@vue/apollo-composable')
 
@@ -119,9 +119,7 @@ describe('CreationConfirm', () => {
     const mockData = {
       adminListContributions: {
         contributionCount: 5,
-        contributionList: Array(5)
-          .fill({})
-          .map((_, i) => ({ id: i + 1 })),
+        contributionList: new Array(5).fill({}).map((_, i) => ({ id: i + 1 })),
       },
     }
 
@@ -165,9 +163,7 @@ describe('CreationConfirm', () => {
     const mockData = {
       adminListContributions: {
         contributionCount: 10,
-        contributionList: Array(10)
-          .fill({})
-          .map((_, i) => ({ id: i + 1 })),
+        contributionList: new Array(10).fill({}).map((_, i) => ({ id: i + 1 })),
       },
     }
 

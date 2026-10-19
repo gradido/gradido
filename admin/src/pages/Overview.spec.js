@@ -1,17 +1,18 @@
 // AI-GENERATED — not an architecture reference
+
+import { useQuery } from '@vue/apollo-composable'
 import { flushPromises, mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { h, nextTick, ref } from 'vue'
-import Overview from './Overview.vue'
+import { useI18n } from 'vue-i18n'
+import { useAppToast } from '@/composables/useToast'
 import { adminListContributionsCount } from '@/graphql/adminListContributions.graphql'
 import { communityFigureSeries } from '@/graphql/communityFigureSeries.graphql'
 import { communityFigures } from '@/graphql/communityFigures.graphql'
 import { communityStatistics } from '@/graphql/communityStatistics'
-import { useQuery } from '@vue/apollo-composable'
-import { adminStore } from '../../test/adminStore'
 import { useAdminStore } from '@/store/useAdminStore'
-import { useAppToast } from '@/composables/useToast'
-import { useI18n } from 'vue-i18n'
+import { adminStore } from '../../test/adminStore'
+import Overview from './Overview.vue'
 
 vi.mock('@vue/apollo-composable')
 vi.mock('@/composables/useToast')
@@ -293,7 +294,7 @@ describe('Overview', () => {
       ])
       // For a screen reader: a group heading names the rows below it, a label its own row.
       expect(wrapper.findAll('tr.figures-group th').map((th) => th.attributes('scope'))).toEqual(
-        Array(5).fill('rowgroup'),
+        new Array(5).fill('rowgroup'),
       )
       expect(wrapper.find('[data-test="figure-accountsNew"] th').attributes('scope')).toBe('row')
       for (const { key, since, week, total } of ROWS) {

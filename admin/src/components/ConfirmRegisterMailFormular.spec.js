@@ -1,10 +1,10 @@
-import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { ref } from 'vue'
-import ConfirmRegisterMailFormular from './ConfirmRegisterMailFormular.vue'
 import { useMutation, useQuery } from '@vue/apollo-composable'
+import { mount } from '@vue/test-utils'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppToast } from '@/composables/useToast'
+import ConfirmRegisterMailFormular from './ConfirmRegisterMailFormular.vue'
 
 vi.mock('@vue/apollo-composable')
 vi.mock('vue-i18n')

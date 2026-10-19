@@ -1,9 +1,9 @@
-import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import ChangeUserRoleFormular from './ChangeUserRoleFormular.vue'
 import { useMutation } from '@vue/apollo-composable'
+import { mount } from '@vue/test-utils'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useAdminStore } from '@/store/useAdminStore'
 import { setCreationAllowed as setCreationAllowedMutation } from '../graphql/setCreationAllowed'
+import ChangeUserRoleFormular from './ChangeUserRoleFormular.vue'
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({

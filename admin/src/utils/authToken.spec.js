@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 
-import { describe, it, expect, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
   AUTH_TOKEN_KEY,
   followAuthToken,
@@ -178,7 +178,9 @@ describe('authToken', () => {
   describe('followAuthToken', () => {
     const followed = (token, keptAtStart) => {
       const win = windowOn()
-      if (keptAtStart) win.localStorage.items.set(AUTH_TOKEN_KEY, JSON.stringify(keptAtStart))
+      if (keptAtStart) {
+        win.localStorage.items.set(AUTH_TOKEN_KEY, JSON.stringify(keptAtStart))
+      }
       const store = {
         token,
         setToken: vi.fn(),
@@ -186,8 +188,11 @@ describe('authToken', () => {
       }
       followAuthToken(store, win)
       const changeTo = (kept) => {
-        if (kept) win.localStorage.items.set(AUTH_TOKEN_KEY, JSON.stringify(kept))
-        else win.localStorage.items.delete(AUTH_TOKEN_KEY)
+        if (kept) {
+          win.localStorage.items.set(AUTH_TOKEN_KEY, JSON.stringify(kept))
+        } else {
+          win.localStorage.items.delete(AUTH_TOKEN_KEY)
+        }
         win.changedElsewhere(AUTH_TOKEN_KEY)
       }
       return { win, store, changeTo }

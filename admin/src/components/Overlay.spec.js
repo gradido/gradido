@@ -1,16 +1,20 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import Overlay from './Overlay.vue'
-import { useI18n } from 'vue-i18n'
 import { BButton, BCard, BCol, BContainer, BRow } from 'bootstrap-vue-next'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { useI18n } from 'vue-i18n'
+import Overlay from './Overlay.vue'
 
 vi.mock('vue-i18n')
 
 describe('Overlay', () => {
   const mockT = vi.fn((key) => key)
   const mockD = vi.fn((date, format) => {
-    if (format === 'month') return 'January'
-    if (format === 'year') return '2023'
+    if (format === 'month') {
+      return 'January'
+    }
+    if (format === 'year') {
+      return '2023'
+    }
     return date.toISOString()
   })
   let wrapper

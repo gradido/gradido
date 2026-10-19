@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import routes from './routes'
+import { routes } from './routes'
 
-const router = createRouter({
+export const router = createRouter({
   routes,
   linkActiveClass: 'active',
   history: createWebHistory('/admin/'),
@@ -15,5 +15,3 @@ const router = createRouter({
     return { left: 0, top: 0 }
   },
 })
-
-export default router

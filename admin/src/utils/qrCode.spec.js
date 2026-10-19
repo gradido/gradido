@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 
-import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { qrcanvas } from 'qrcanvas'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { COIN_IMAGE_PATH, qrCodeOptions, renderQrCodeCanvas } from './qrCode'
 
 vi.mock('qrcanvas', () => ({ qrcanvas: vi.fn(() => ({ width: 360 })) }))

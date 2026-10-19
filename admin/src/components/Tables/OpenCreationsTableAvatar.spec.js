@@ -1,12 +1,12 @@
 // AI-GENERATED — not an architecture reference
 import { mount } from '@vue/test-utils'
+import { BTableLite } from 'bootstrap-vue-next'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { adminStore } from '../../../test/adminStore'
 import MemberAvatar from '@/components/MemberAvatar.vue'
 import { fetchMemberAvatars, forgetAllMemberAvatars } from '@/composables/useMemberAvatars'
 import { closeMemberAvatarZoom, memberAvatarZoomState } from '@/composables/useMemberAvatarZoom'
 import { LIST_AVATAR_SIZE } from '@/constants'
-import { BTableLite } from 'bootstrap-vue-next'
+import { adminStore } from '../../../test/adminStore'
 import OpenCreationsTable from './OpenCreationsTable.vue'
 
 vi.mock('vue-i18n', () => ({

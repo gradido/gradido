@@ -1,9 +1,9 @@
 // AI-GENERATED — not an architecture reference
 import { mount } from '@vue/test-utils'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick, ref } from 'vue'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import CreaSettings from './CreaSettings.vue'
 import { searchUsers } from '@/graphql/searchUsers.js'
+import CreaSettings from './CreaSettings.vue'
 
 // ⛔ Hoisted and stable. The previous mock built fresh, uncaptured spies per call, so
 // nothing could see which message was raised - swapping the success and conflict arms

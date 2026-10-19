@@ -5,8 +5,12 @@ import { availableParallelism } from 'node:os'
 
 export default defineConfig(async () => {
   const { vitePluginGraphqlLoader } = await import('vite-plugin-graphql-loader')
+  const { default: VueJsx } = await import('@vitejs/plugin-vue-jsx')
+  // resolves the explicit `~icons/…` imports of .tsx files; .vue templates get theirs by name
+  // through unplugin-vue-components, which the tests leave out
+  const { default: Icons } = await import('unplugin-icons/vite')
   return {
-    plugins: [Vue(), vitePluginGraphqlLoader()],
+    plugins: [Vue(), VueJsx(), Icons({ compiler: 'vue3' }), vitePluginGraphqlLoader()],
     test: {
       globals: true,
       environment: 'jsdom',
@@ -40,10 +44,10 @@ export default defineConfig(async () => {
       coverage: {
         provider: 'v8',
         reporter: ['text', 'json', 'html'],
-        exclude: ['node_modules/**', 'src/assets/**', '**/*.{spec,test}.js'],
+        exclude: ['node_modules/**', 'src/assets/**', '**/*.{spec,test}.{js,jsx,ts,tsx}'],
         lines: 95,
       },
-      include: ['**/?(*.)+(spec|test).js?(x)'],
+      include: ['**/?(*.)+(spec|test).[jt]s?(x)'],
       moduleNameMapper: {
         '^@/(.*)$': path.resolve(__dirname, './src/$1'),
         '\\.(css|less)$': 'identity-obj-proxy',

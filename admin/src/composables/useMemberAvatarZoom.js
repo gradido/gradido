@@ -25,7 +25,9 @@ export const openMemberAvatarZoom = ({ member, src, label = '' }) => {
   // Both halves are required and neither is a formality: without `src` there is no picture
   // on this device, so there is nothing to open -- the circle shows letters, and enlarging
   // letters is not a thing anybody asked for.
-  if (!member?.gradidoID || !src) return
+  if (!member?.gradidoID || !src) {
+    return
+  }
   state.value = {
     member: { gradidoID: member.gradidoID, communityUuid: member.communityUuid ?? null },
     src,

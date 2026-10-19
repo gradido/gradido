@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { ref } from 'vue'
-import { contactRefs } from '@/graphql/contactRefs'
 import { memberKey } from '@/composables/useMemberAvatars'
+import { contactRefs } from '@/graphql/contactRefs'
 
 /**
  * Whom the signed-in moderator is in contact with -- their own contacts as the wallet counts
@@ -92,8 +92,12 @@ export const forgetModeratorContacts = () => startOver(null)
  */
 export const moderatorContact = (owner, member) => {
   const version = epoch.value
-  if (version < 0 || owner === null || owner === undefined || held.owner !== owner) return 'unknown'
-  if (held.keys === null) return held.asking && !held.waitOver ? 'asking' : 'unknown'
+  if (version < 0 || owner === null || owner === undefined || held.owner !== owner) {
+    return 'unknown'
+  }
+  if (held.keys === null) {
+    return held.asking && !held.waitOver ? 'asking' : 'unknown'
+  }
   return held.keys.has(pairKey(member)) ? 'yes' : 'no'
 }
 
@@ -114,16 +118,26 @@ export const askModeratorContacts = (
   owner,
   freshFor = MODERATOR_CONTACTS_FRESH_MS,
 ) => {
-  if (!apolloClient || owner === null || owner === undefined) return Promise.resolve()
-  if (held.owner !== owner) startOver(owner)
-  if (held.asking) return held.asking
-  if (held.keys !== null && Date.now() - held.at < freshFor) return Promise.resolve()
+  if (!apolloClient || owner === null || owner === undefined) {
+    return Promise.resolve()
+  }
+  if (held.owner !== owner) {
+    startOver(owner)
+  }
+  if (held.asking) {
+    return held.asking
+  }
+  if (held.keys !== null && Date.now() - held.at < freshFor) {
+    return Promise.resolve()
+  }
   const mine = generation
   // The first answer is waited for, and not for ever.
   const waitedLongEnough = held.waitOver
     ? null
     : setTimeout(() => {
-        if (mine !== generation || held.waitOver) return
+        if (mine !== generation || held.waitOver) {
+          return
+        }
         held.waitOver = true
         epoch.value++
       }, MODERATOR_CONTACTS_WAIT_MS)
@@ -133,14 +147,18 @@ export const askModeratorContacts = (
     resolve(apolloClient.query({ query: contactRefs, fetchPolicy: 'no-cache' }))
   })
     .then((answer) => {
-      if (mine !== generation) return
+      if (mine !== generation) {
+        return
+      }
       held.keys = new Set((answer?.data?.contactRefs ?? []).map(pairKey))
       held.at = Date.now()
     })
     .catch(() => undefined)
     .finally(() => {
       clearTimeout(waitedLongEnough)
-      if (mine !== generation) return
+      if (mine !== generation) {
+        return
+      }
       held.asking = null
       held.waitOver = true
       epoch.value++
