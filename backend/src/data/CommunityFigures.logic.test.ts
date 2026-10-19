@@ -85,41 +85,38 @@ const conversationsByKind: Record<string, number[]> = {
   group: [291, 292, 293],
 }
 
+// What each count answers, by its name: every one with numbers of its own.
+const answers: Record<string, (...args: never[]) => Promise<unknown>> = {
+  dbCountEventsOfTypes: async (types: string[]) => byTypes[types.join(',')],
+  dbCountRegisterEventsWithReferrer: async () => [41, 42, 43],
+  dbCountDistinctActingUsersOfType: async (type: string) =>
+    type === 'USER_REGISTER_GUARANTOR' ? [51, 52, 53] : undefined,
+  dbCountReturningMembers: async () => 71,
+  dbCountDistinctAffectedUsersOfType: async (type: string) => membersByType[type],
+  dbCountFirstCreationMembers: async (type: string) => firstCreationsByType[type],
+  dbCountUsersDeleted: async () => [91, 92, 93],
+  dbCountUsers: async () => 101,
+  dbCountAndSumTransactionsOfType: async (typeId: number) => bookingsByType[typeId],
+  dbCountUsersWithHome: async () => 211,
+  dbCountUsersFindable: async () => 221,
+  // Nobody wrote a need: the answer has no line for it.
+  dbCountMatchingEntriesByType: async () => ({
+    interest: [231, 232, 233],
+    offer: [241, 242, 243],
+  }),
+  dbCountActiveMatchingEntries: async () => 251,
+  dbCountMembersWithActiveEntry: async () => 261,
+  dbCountChatConversationsOfKind: async (kind: string) => conversationsByKind[kind],
+}
+const countsOf = mockDatabase as unknown as Record<string, jest.Mock>
+
 // reset, not only clear: an answer a test left unused must not answer in the next one
 beforeEach(() => {
   jest.resetAllMocks()
-  mockDatabase.dbCountEventsOfTypes.mockImplementation(
-    async (types: string[]) => byTypes[types.join(',')],
-  )
-  mockDatabase.dbCountRegisterEventsWithReferrer.mockResolvedValue([41, 42, 43])
-  mockDatabase.dbCountDistinctActingUsersOfType.mockImplementation(async (type: string) =>
-    type === 'USER_REGISTER_GUARANTOR' ? [51, 52, 53] : undefined,
-  )
-  mockDatabase.dbCountReturningMembers.mockResolvedValue(71)
-  mockDatabase.dbCountDistinctAffectedUsersOfType.mockImplementation(
-    async (type: string) => membersByType[type],
-  )
-  mockDatabase.dbCountFirstCreationMembers.mockImplementation(
-    async (type: string) => firstCreationsByType[type],
-  )
-  mockDatabase.dbCountUsersDeleted.mockResolvedValue([91, 92, 93])
-  mockDatabase.dbCountUsers.mockResolvedValue(101)
-  mockDatabase.dbCountAndSumTransactionsOfType.mockImplementation(
-    async (typeId: number) => bookingsByType[typeId],
-  )
-  mockDatabase.dbCountUsersWithHome.mockResolvedValue(211)
-  mockDatabase.dbCountUsersFindable.mockResolvedValue(221)
-  // Nobody wrote a need: the answer has no line for it.
-  mockDatabase.dbCountMatchingEntriesByType.mockResolvedValue({
-    interest: [231, 232, 233],
-    offer: [241, 242, 243],
-  })
-  mockDatabase.dbCountActiveMatchingEntries.mockResolvedValue(251)
-  mockDatabase.dbCountMembersWithActiveEntry.mockResolvedValue(261)
+  for (const [name, answer] of Object.entries(answers)) {
+    countsOf[name].mockImplementation(answer)
+  }
   mockMapMemberCount.known.mockReturnValue(271)
-  mockDatabase.dbCountChatConversationsOfKind.mockImplementation(
-    async (kind: string) => conversationsByKind[kind],
-  )
 })
 
 describe('countCommunityFigures', () => {
@@ -198,6 +195,60 @@ describe('countCommunityFigures', () => {
     // The three kinds of entry in one count.
     expect(mockDatabase.dbCountMatchingEntriesByType).toHaveBeenCalledTimes(1)
     expect(mockDatabase.dbCountMatchingEntriesByType).toHaveBeenCalledWith(everyColumn)
+  })
+
+  it('asks four counts at a time, not all at once, and answers in the order of the page', async () => {
+    // Every count waits a moment for its answer, as a statement does -- the early ones longest,
+    // so that the answers come in another order than the counts were asked.
+    let asked = 0
+    let asking = 0
+    let mostAtOnce = 0
+    for (const [name, answer] of Object.entries(answers)) {
+      countsOf[name].mockImplementation(async (...args: never[]) => {
+        const wait = Math.max(1, 30 - asked++)
+        asking++
+        mostAtOnce = Math.max(mostAtOnce, asking)
+        await new Promise((resolve) => setTimeout(resolve, wait))
+        asking--
+        return answer(...args)
+      })
+    }
+
+    const rows = await countCommunityFigures(SINCE, NOW)
+
+    expect(mostAtOnce).toBe(4)
+    expect(rows.map((row) => row.key)).toEqual([
+      'accountsNew',
+      'accountsViaTableCode',
+      'accountsViaLink',
+      'accountsViaAddress',
+      'accountsViaEvent',
+      'hostsWithGuest',
+      'codesShown',
+      'returners',
+      'activeAccounts',
+      'accountsDeleted',
+      'accountsTotal',
+      'firstCreationsDone',
+      'firstCreationsSkipped',
+      'firstCreationsReview',
+      'transfersSent',
+      'gddSent',
+      'creationsBooked',
+      'gddCreated',
+      'homesSet',
+      'findableOnMap',
+      'entriesInterest',
+      'entriesOffer',
+      'entriesNeed',
+      'entriesActive',
+      'membersWithEntry',
+      'membersOnMap',
+      'conversationsNew',
+      'groupsNew',
+      'hellosFromMap',
+      'videoRoomsCreated',
+    ])
   })
 
   it('leaves the members on the map open while the GMS has said no number', async () => {
