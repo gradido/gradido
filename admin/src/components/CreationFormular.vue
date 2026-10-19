@@ -67,7 +67,7 @@ import { ref, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppToast } from '@/composables/useToast'
 import { useMutation, useQuery } from '@vue/apollo-composable'
-import { useStore } from 'vuex'
+import { useAdminStore } from '@/store/useAdminStore'
 import { adminCreateContribution } from '../graphql/adminCreateContribution'
 import { adminOpenCreations } from '../graphql/adminOpenCreations'
 import useCreationMonths from '../composables/useCreationMonths'
@@ -111,7 +111,7 @@ const props = defineProps({
 })
 
 const { t } = useI18n()
-const store = useStore()
+const store = useAdminStore()
 
 const text = ref(!props.creationUserData.memo ? '' : props.creationUserData.memo)
 const value = ref(!props.creationUserData.amount ? 0 : props.creationUserData.amount)
@@ -166,7 +166,7 @@ const submitCreation = async () => {
 
     emit('update-user-data', props.item, result.data.adminCreateContribution)
 
-    store.commit('openCreationsPlus', 1)
+    store.openCreationsPlus(1)
 
     toastSuccess(
       t('creation_form.toasted', {

@@ -6,7 +6,7 @@ import { unDeleteUser } from '../graphql/unDeleteUser'
 import { useApolloClient } from '@vue/apollo-composable'
 import { useI18n } from 'vue-i18n'
 import { useAppToast } from '@/composables/useToast'
-import { createStore } from 'vuex'
+import { adminStore } from '../../test/adminStore'
 import { BButton } from 'bootstrap-vue-next'
 
 vi.mock('@vue/apollo-composable')
@@ -16,13 +16,11 @@ vi.mock('@/composables/useToast')
 // The moderator, named by the pair as every member is; a row is theirs where it names the same.
 const MODERATOR = { gradidoID: 'moderator-gid', communityUuid: 'home' }
 
-const createVuexStore = () => {
-  return createStore({
-    state: {
-      moderator: {
-        ...MODERATOR,
-        name: 'test moderator',
-      },
+const createAdminStore = () => {
+  return adminStore({
+    moderator: {
+      ...MODERATOR,
+      name: 'test moderator',
     },
   })
 }
@@ -36,7 +34,7 @@ describe('DeletedUserFormular', () => {
   const date = new Date()
 
   beforeEach(() => {
-    store = createVuexStore()
+    store = createAdminStore()
 
     useApolloClient.mockReturnValue({
       client: {
@@ -109,7 +107,7 @@ describe('DeletedUserFormular', () => {
 
   describe('when user is a moderator', () => {
     beforeEach(() => {
-      store = createVuexStore()
+      store = createAdminStore()
       wrapper = mount(DeletedUserFormular, {
         props: {
           item: {

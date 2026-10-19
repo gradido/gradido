@@ -33,6 +33,7 @@
     "graphql": "16.14.2",
     "graphql-tag": "^2.12.6",
     "identity-obj-proxy": "^3.0.0",
+    "pinia": "3.0.4",
     "portal-vue": "3.0.0",
     "qrcanvas": "^3.1.2",
     "qrcanvas-vue": "3.0.0",
@@ -46,8 +47,6 @@
     "vue-i18n": "9.13.1",
     "vue-router": "4.4.0",
     "vue3-datepicker": "^0.4.0",
-    "vuex": "4.1.0",
-    "vuex-persistedstate": "4.1.0",
     "yup": "^1.6.1"
   },
   "devDependencies": {

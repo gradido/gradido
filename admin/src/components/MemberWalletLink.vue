@@ -46,9 +46,8 @@
 </template>
 
 <script setup>
-import { computed, inject, onBeforeUnmount, onMounted, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { storeKey } from 'vuex'
 import { useApolloClient } from '@vue/apollo-composable'
 import CONFIG from '@/config'
 import {
@@ -60,6 +59,7 @@ import { useAppToast } from '@/composables/useToast'
 import { verifyLogin } from '@/graphql/verifyLogin'
 import { MAP_WINDOW_NAME, dropMapWindowName } from '@/utils/mapWindow'
 import { handOverAddress } from '@/utils/authToken'
+import { useAdminStore } from '@/store/useAdminStore'
 import { isTheModerator, moderatorKey } from '@/utils/theModerator'
 
 /**
@@ -130,9 +130,7 @@ const SEND_FORM_EMAIL = '?art=email'
 // takes the whole window.
 const WINDOW_FEATURES = 'popup,width=1000,height=760'
 
-// Not useStore(): it warns where no store is installed, and this stands in components that
-// are mounted without one in their specs. A signed-in admin interface always has it.
-const store = inject(storeKey, null)
+const store = useAdminStore()
 const { t } = useI18n()
 const { toastWarning } = useAppToast()
 // Not destructured, and resolved at the press: where a spec mocks the composable
@@ -174,7 +172,7 @@ const canBeWrittenTo = computed(() => {
   const { member } = props
   if (!member || member.deletedAt) return false
   if (!member.gradidoID || !member.communityUuid) return false
-  return !isTheModerator(store?.state.moderator, member)
+  return !isTheModerator(store.moderator, member)
 })
 
 /**
@@ -187,7 +185,7 @@ const canBeWrittenTo = computed(() => {
  */
 const reach = computed(() => {
   if (!canBeWrittenTo.value) return null
-  const contact = moderatorContact(moderatorKey(store?.state.moderator), props.member)
+  const contact = moderatorContact(moderatorKey(store.moderator), props.member)
   if (contact === 'yes') return 'chat'
   return contact === 'asking' ? 'wait' : 'send'
 })
@@ -205,7 +203,7 @@ const askWhomTheModeratorKnows = (freshFor) => {
   } catch {
     // No client where a spec mounts this without one.
   }
-  askModeratorContacts(client, moderatorKey(store?.state.moderator), freshFor)
+  askModeratorContacts(client, moderatorKey(store.moderator), freshFor)
 }
 askWhomTheModeratorKnows()
 watch([canBeWrittenTo, () => props.member?.gradidoID, () => props.member?.communityUuid], () =>
@@ -290,9 +288,7 @@ const label = computed(() => face.value?.label() ?? '')
 
 const openInWallet = (page, blockedText) => {
   const address =
-    handOverAddress(CONFIG.WALLET_AUTH_URL, store.state.token) +
-    '&redirect=' +
-    encodeURIComponent(page)
+    handOverAddress(CONFIG.WALLET_AUTH_URL, store.token) + '&redirect=' + encodeURIComponent(page)
   // ⛔ Never this window itself: see dropMapWindowName.
   dropMapWindowName()
   const opened = window.open(address, WINDOW_NAME, WINDOW_FEATURES)

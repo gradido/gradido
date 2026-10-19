@@ -23,7 +23,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useStore } from 'vuex'
+import { useAdminStore } from '@/store/useAdminStore'
 import { useApolloClient } from '@vue/apollo-composable'
 import { BButton, vBModal } from 'bootstrap-vue-next'
 import { deleteUser } from '../graphql/deleteUser'
@@ -41,10 +41,10 @@ const props = defineProps({
 const emit = defineEmits(['update-deleted-at', 'show-delete-modal', 'show-undelete-modal'])
 
 const { client } = useApolloClient()
-const store = useStore()
+const store = useAdminStore()
 const { toastError } = useAppToast()
 
-const isUserModerator = computed(() => isTheModerator(store.state.moderator, props.item))
+const isUserModerator = computed(() => isTheModerator(store.moderator, props.item))
 
 const showDeleteModal = () => {
   emit('show-delete-modal')

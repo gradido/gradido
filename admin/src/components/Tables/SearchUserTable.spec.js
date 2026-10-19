@@ -1,7 +1,7 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
-import { createStore } from 'vuex'
+import { adminStore } from '../../../test/adminStore'
 import { DefaultApolloClient } from '@vue/apollo-composable'
 import SearchUserTable from './SearchUserTable.vue'
 import MemberWalletLink from '../MemberWalletLink.vue'
@@ -122,15 +122,13 @@ describe('SearchUserTable', () => {
       locale: 'en',
     })
 
-    const store = createStore({
-      state: {
-        token: 'valid-token',
-        moderator: {
-          gradidoID: 'moderator-gid',
-          communityUuid: 'home',
-          name: 'test moderator',
-          role: 'ADMIN',
-        },
+    const store = adminStore({
+      token: 'valid-token',
+      moderator: {
+        gradidoID: 'moderator-gid',
+        communityUuid: 'home',
+        name: 'test moderator',
+        role: 'ADMIN',
       },
     })
 

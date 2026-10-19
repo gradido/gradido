@@ -127,7 +127,7 @@
 
 <script setup>
 import { ref, computed, nextTick } from 'vue'
-import { useStore } from 'vuex'
+import { useAdminStore } from '@/store/useAdminStore'
 import { useDateLocale } from '@/composables/useDateLocale'
 import { useMutation } from '@vue/apollo-composable'
 import { useI18n } from 'vue-i18n'
@@ -179,7 +179,7 @@ const emit = defineEmits([
 ])
 
 const { t } = useI18n()
-const store = useStore()
+const store = useAdminStore()
 const dateLocale = useDateLocale()
 const { toastError, toastSuccess } = useAppToast()
 const form = ref({
@@ -282,7 +282,7 @@ const appendCreaSupplement = () => {
   // transition window" was in truth a whole working day of permanent bookings carrying a
   // real first name. A marker without a name is cosmetic and heals itself at the next
   // sign-in; a real name in a booking memo does not.
-  const moderatorName = store.state.moderator?.alias ?? ''
+  const moderatorName = store.moderator?.alias ?? ''
   const marker = moderatorName
     ? `${MEMO_MARKER} ${moderatorName}: ${supplement}`
     : `${MEMO_MARKER} ${supplement}`

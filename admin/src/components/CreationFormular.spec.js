@@ -26,9 +26,9 @@ vi.mock('@vue/apollo-composable', () => ({
   }),
 }))
 
-vi.mock('vuex', () => ({
-  useStore: () => ({
-    commit: vi.fn(),
+vi.mock('@/store/useAdminStore', () => ({
+  useAdminStore: () => ({
+    openCreationsPlus: vi.fn(),
   }),
 }))
 

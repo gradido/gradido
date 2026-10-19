@@ -28,14 +28,6 @@ const createWrapper = (propsData) => {
         $t: (key) => key,
         $d: vi.fn((date) => date.toISOString()),
         $n: vi.fn((n) => n.toString()),
-        $store: {
-          state: {
-            moderator: {
-              firstName: 'Peter',
-              lastName: 'Lustig',
-            },
-          },
-        },
       },
       stubs: {
         BAvatar: true,

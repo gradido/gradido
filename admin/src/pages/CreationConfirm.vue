@@ -24,8 +24,8 @@
           <template #title>
             <IBiBellFill style="color: #0d6efd" />
             {{ $t('contributions.open') }}
-            <BBadge v-if="$store.state.openCreations > 0" variant="danger">
-              {{ $store.state.openCreations }}
+            <BBadge v-if="store.openCreations > 0" variant="danger">
+              {{ store.openCreations }}
             </BBadge>
           </template>
         </BTab>
@@ -118,7 +118,7 @@
 import { ref, computed, watch } from 'vue'
 import { useApolloClient, useQuery, useMutation } from '@vue/apollo-composable'
 import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
-import { useStore } from 'vuex'
+import { useAdminStore } from '@/store/useAdminStore'
 import { useI18n } from 'vue-i18n'
 import { useModal } from 'bootstrap-vue-next'
 import { creationGroupOption } from '@/utils/creationGroupLabel'
@@ -147,7 +147,7 @@ const FILTER_TAB_MAP = [
   ['IN_PROGRESS', 'PENDING', 'CONFIRMED', 'DENIED', 'DELETED'],
 ]
 
-const store = useStore()
+const store = useAdminStore()
 const { t } = useI18n()
 const { toastError, toastSuccess, toastWarning } = useAppToast()
 
@@ -193,7 +193,7 @@ const baseFields = {
   },
 }
 
-const role = computed(() => store.state.moderator?.role ?? null)
+const role = computed(() => store.moderator?.role ?? null)
 const isAdmin = computed(() => role.value === 'ADMIN')
 const isAiUser = computed(() => isAdmin.value || role.value === 'MODERATOR_AI')
 // Who sees the Crea button: AI moderators on the open tab (0) and on the "all" tab (4) --
@@ -354,7 +354,7 @@ const { result: creationGroupsResult } = useQuery(creationGroups)
 //
 // A changeover aid: it can go once no live session predates the rename. The line below does
 // the same for a field added earlier, for the same reason.
-const moderator = computed(() => store.state.moderator)
+const moderator = computed(() => store.moderator)
 const seesAllCreationGroups = computed(
   () => moderator.value?.seesAllCreationGroups ?? moderator.value?.seesAllGroups ?? true,
 )
@@ -365,7 +365,7 @@ const visibleCreationGroups = computed(
 // "one group plus the ungrouped ones" would look exactly like that one group, and the
 // ungrouped contributions the moderator is assigned to would have no filter that reaches
 // them. Older sessions predate the field, hence the fallback.
-const seesUntagged = computed(() => store.state.moderator?.seesUntagged ?? false)
+const seesUntagged = computed(() => store.moderator?.seesUntagged ?? false)
 
 const creationGroupFilterOptions = computed(() => {
   const allGroups = creationGroupsResult.value?.creationGroups ?? []
@@ -463,7 +463,7 @@ onResult(() => {
     items.value.map((contribution) => contribution.user).filter(Boolean),
   )
   if (statusFilter.value.toString() === FILTER_TAB_MAP[0].toString()) {
-    store.commit('setOpenCreations', result.value.adminListContributions.contributionCount)
+    store.setOpenCreations(result.value.adminListContributions.contributionCount)
   }
 })
 
@@ -576,7 +576,7 @@ const confirmCreation = () => {
 
 const updatePendingCreations = (id) => {
   items.value = items.value.filter((obj) => obj.id !== id)
-  store.commit('openCreationsMinus', 1)
+  store.openCreationsMinus(1)
 }
 
 const showOverlay = (selectedItem, selectedVariant) => {

@@ -4,7 +4,7 @@
       <span class="h2">{{ $t('projectBranding.title') }}</span>
       <div>
         <BButton
-          v-if="store.state.moderator.role === 'ADMIN'"
+          v-if="store.moderator.role === 'ADMIN'"
           variant="primary"
           data-test="project-branding-add-btn"
           font-scale="2"
@@ -33,7 +33,7 @@
           {{ $t('projectBranding.newUserToSpace') }}
         </BCol>
         <BCol cols="3">{{ $t('logo') }}</BCol>
-        <BCol v-if="store.state.moderator.role === 'ADMIN'" cols="1">
+        <BCol v-if="store.moderator.role === 'ADMIN'" cols="1">
           {{ $t('actions') }}
         </BCol>
       </BRow>
@@ -51,12 +51,12 @@
 <script setup>
 import { computed, watch, ref } from 'vue'
 import { useQuery } from '@vue/apollo-composable'
-import { useStore } from 'vuex'
+import { useAdminStore } from '@/store/useAdminStore'
 import { useAppToast } from '@/composables/useToast'
 import { projectBrandings as projectBrandingsQuery } from '@/graphql/projectBranding.graphql'
 
 const { toastError } = useAppToast()
-const store = useStore()
+const store = useAdminStore()
 
 const { result, loading, refetch, error } = useQuery(projectBrandingsQuery, null, {
   fetchPolicy: 'network-only',

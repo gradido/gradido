@@ -114,7 +114,7 @@
 import { computed, ref, watch } from 'vue'
 import { useMutation, useQuery, useApolloClient } from '@vue/apollo-composable'
 import { useI18n } from 'vue-i18n'
-import { useStore } from 'vuex'
+import { useAdminStore } from '@/store/useAdminStore'
 import { useAppToast } from '@/composables/useToast'
 import {
   creationGroups as creationGroupsQuery,
@@ -125,10 +125,10 @@ import {
 } from '@/graphql/creationGroups.graphql'
 
 const { t, d } = useI18n()
-const store = useStore()
+const store = useAdminStore()
 const { toastSuccess, toastError } = useAppToast()
 
-const isAdmin = computed(() => store.state.moderator.role === 'ADMIN')
+const isAdmin = computed(() => store.moderator.role === 'ADMIN')
 
 const { result, error, refetch } = useQuery(creationGroupsQuery, null, {
   fetchPolicy: 'network-only',

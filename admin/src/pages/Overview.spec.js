@@ -8,7 +8,8 @@ import { communityFigureSeries } from '@/graphql/communityFigureSeries.graphql'
 import { communityFigures } from '@/graphql/communityFigures.graphql'
 import { communityStatistics } from '@/graphql/communityStatistics'
 import { useQuery } from '@vue/apollo-composable'
-import { createStore } from 'vuex'
+import { adminStore } from '../../test/adminStore'
+import { useAdminStore } from '@/store/useAdminStore'
 import { useAppToast } from '@/composables/useToast'
 import { useI18n } from 'vue-i18n'
 
@@ -78,15 +79,7 @@ const STATISTICS = {
   },
 }
 
-const createVuexStore = () =>
-  createStore({
-    state: { openCreations: 0 },
-    mutations: {
-      setOpenCreations(state, count) {
-        state.openCreations = count
-      },
-    },
-  })
+const createAdminStore = () => adminStore({ openCreations: 0 })
 
 // The router link, as far as the page uses it: where it goes, and its text.
 const BLinkStub = {
@@ -129,7 +122,7 @@ describe('Overview', () => {
     vi.setSystemTime(new Date('2026-10-18T10:00:00.000Z'))
     localStorage.clear()
     mockToastError.mockClear()
-    store = createVuexStore()
+    store = createAdminStore()
     creationsResult = ref(null)
     onCreationsResult = vi.fn()
     onCreationsError = vi.fn()
@@ -214,7 +207,7 @@ describe('Overview', () => {
     it('passes the open creations on to the badge in the menu', () => {
       const [handler] = onCreationsResult.mock.calls[0]
       handler({ data: { adminListContributions: { contributionCount: 3 } } })
-      expect(store.state.openCreations).toBe(3)
+      expect(useAdminStore(store).openCreations).toBe(3)
     })
 
     it('says nothing about them before the answer is there', () => {

@@ -34,14 +34,12 @@ vi.mock('@vue/apollo-composable', () => ({
   useApolloClient: vi.fn(() => ({ client: { query: clientQuery } })),
 }))
 
-vi.mock('vuex', () => ({
-  useStore: vi.fn(() => ({
-    state: {
-      moderator: {
-        id: 0,
-        name: 'test moderator',
-        role: 'ADMIN',
-      },
+vi.mock('@/store/useAdminStore', () => ({
+  useAdminStore: vi.fn(() => ({
+    moderator: {
+      id: 0,
+      name: 'test moderator',
+      role: 'ADMIN',
     },
   })),
 }))

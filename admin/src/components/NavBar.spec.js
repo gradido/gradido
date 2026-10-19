@@ -2,7 +2,8 @@ import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { reactive } from 'vue'
 import NavBar from './NavBar'
-import { createStore } from 'vuex'
+import { adminStore } from '../../test/adminStore'
+import { useAdminStore } from '@/store/useAdminStore'
 import { createRouter, createWebHistory } from 'vue-router'
 import CONFIG from '../config'
 import { NAV_AVATAR_SIZE } from '@/constants'
@@ -33,17 +34,15 @@ const moderator = (role, more = {}) => ({
   ...more,
 })
 
-const createVuexStore = (role = 'ADMIN', more = {}) =>
-  createStore({
-    state: {
-      openCreations: 1,
-      token: 'valid-token',
-      moderator: moderator(role, more),
-    },
-    actions: {
-      logout: vi.fn(),
-    },
+const createAdminStore = (role = 'ADMIN', more = {}) => {
+  const pinia = adminStore({
+    openCreations: 1,
+    token: 'valid-token',
+    moderator: moderator(role, more),
   })
+  useAdminStore(pinia).logout = vi.fn()
+  return pinia
+}
 
 vi.mock('@vue/apollo-composable', () => ({
   useMutation: vi.fn(() => ({
@@ -81,7 +80,7 @@ describe('NavBar', () => {
 
   beforeEach(() => {
     route.current = reactive({ name: 'user' })
-    store = createVuexStore()
+    store = createAdminStore()
     router = createRouter({
       history: createWebHistory(),
       routes: [
@@ -205,7 +204,7 @@ describe('NavBar', () => {
     // backend rights are the boundary.
     describe('as a moderator', () => {
       beforeEach(() => {
-        store = createVuexStore('MODERATOR')
+        store = createAdminStore('MODERATOR')
         wrapper = createWrapper()
       })
 
@@ -222,7 +221,7 @@ describe('NavBar', () => {
 
     describe('as a KI-Moderator', () => {
       beforeEach(() => {
-        store = createVuexStore('MODERATOR_AI')
+        store = createAdminStore('MODERATOR_AI')
         wrapper = createWrapper()
       })
 
@@ -299,7 +298,7 @@ describe('NavBar', () => {
 
     describe('with a picture', () => {
       beforeEach(() => {
-        store = createVuexStore('ADMIN', { avatar: 'PICTURE' })
+        store = createAdminStore('ADMIN', { avatar: 'PICTURE' })
         wrapper = createWrapper()
       })
 
@@ -325,7 +324,7 @@ describe('NavBar', () => {
       ['MODERATOR', 'userRole.selectRoles.moderator'],
       ['MODERATOR_AI', 'userRole.selectRoles.moderatorAi'],
     ])('names the role of a %s', (role, label) => {
-      store = createVuexStore(role)
+      store = createAdminStore(role)
       wrapper = createWrapper()
       expect(account().find('.navbar-account-role').text()).toBe(label)
     })
@@ -338,26 +337,26 @@ describe('NavBar', () => {
     })
 
     it('goes to the wallet from its entry', async () => {
-      const dispatchSpy = vi.spyOn(store, 'dispatch')
+      const { logout } = useAdminStore(store)
       await account().find('[data-test="navbar-wallet"]').trigger('click')
       expect(redirectTo).toHaveBeenCalledWith(CONFIG.WALLET_AUTH_URL + 'valid-token')
-      expect(dispatchSpy).toHaveBeenCalledWith('logout')
+      expect(logout).toHaveBeenCalled()
     })
 
     it('logs out from its entry', async () => {
-      const dispatchSpy = vi.spyOn(store, 'dispatch')
+      const { logout } = useAdminStore(store)
       await account().find('[data-test="navbar-logout"]').trigger('click')
       expect(redirectTo).toHaveBeenCalledWith(CONFIG.WALLET_LOGIN_URL)
-      expect(dispatchSpy).toHaveBeenCalledWith('logout')
+      expect(logout).toHaveBeenCalled()
     })
   })
 
   describe('wallet', () => {
-    it('changes window location to wallet and dispatches logout', async () => {
-      const dispatchSpy = vi.spyOn(store, 'dispatch')
+    it('changes window location to wallet and logs out', async () => {
+      const { logout } = useAdminStore(store)
       await wrapper.vm.handleWallet()
       expect(redirectTo).toHaveBeenCalledWith(CONFIG.WALLET_AUTH_URL + 'valid-token')
-      expect(dispatchSpy).toHaveBeenCalledWith('logout')
+      expect(logout).toHaveBeenCalled()
     })
 
     // The wallet on this origin, as on every deployment: both apps keep the one token
@@ -366,20 +365,20 @@ describe('NavBar', () => {
     it('names no token and signs nobody out where the wallet is on this origin', async () => {
       const walletAuthUrl = CONFIG.WALLET_AUTH_URL
       CONFIG.WALLET_AUTH_URL = `${window.location.origin}/authenticate?token=`
-      const dispatchSpy = vi.spyOn(store, 'dispatch')
+      const { logout } = useAdminStore(store)
       await wrapper.vm.handleWallet()
       expect(redirectTo).toHaveBeenCalledWith(CONFIG.WALLET_AUTH_URL)
-      expect(dispatchSpy).not.toHaveBeenCalledWith('logout')
+      expect(logout).not.toHaveBeenCalled()
       CONFIG.WALLET_AUTH_URL = walletAuthUrl
     })
   })
 
   describe('logout', () => {
-    it('redirects to login page and dispatches logout', async () => {
-      const dispatchSpy = vi.spyOn(store, 'dispatch')
+    it('redirects to login page and logs out', async () => {
+      const { logout } = useAdminStore(store)
       await wrapper.vm.handleLogout()
       expect(redirectTo).toHaveBeenCalledWith(CONFIG.WALLET_LOGIN_URL)
-      expect(dispatchSpy).toHaveBeenCalledWith('logout')
+      expect(logout).toHaveBeenCalled()
     })
   })
 })

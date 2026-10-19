@@ -106,17 +106,13 @@ export const followAuthToken = (store, win = window) => {
   onAuthTokenChange((kept) => {
     if (!kept) {
       lastSubject = null
-      if (store.state.token) {
-        Promise.resolve(store.dispatch('logout')).catch(() => {
-          // The sign-in is gone already; what failed was housekeeping.
-        })
-      }
+      if (store.token) store.logout()
       return
     }
     const subject = tokenSubject(kept.token)
-    if (tokenBelongsTo(store.state.token, subject)) {
-      store.commit('token', kept.token)
-    } else if (store.state.token || subject !== lastSubject) {
+    if (tokenBelongsTo(store.token, subject)) {
+      store.setToken(kept.token)
+    } else if (store.token || subject !== lastSubject) {
       lastSubject = subject
       win.location.reload()
     }

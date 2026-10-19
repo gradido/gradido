@@ -1,11 +1,11 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { createStore } from 'vuex'
+import { adminStore } from '../../../test/adminStore'
 import ContributionLinkList from './ContributionLinkList.vue'
 import { BButton, BCard, BCardText, BModal, BTable } from 'bootstrap-vue-next'
 import * as apolloComposable from '@vue/apollo-composable'
 
-const createVuexStore = (role = 'ADMIN') => createStore({ state: { moderator: { role } } })
+const createAdminStore = (role = 'ADMIN') => adminStore({ moderator: { role } })
 
 vi.mock('vue-i18n', () => ({
   useI18n: vi.fn(() => ({
@@ -69,7 +69,7 @@ describe('ContributionLinkList', () => {
         ],
       },
       global: {
-        plugins: [createVuexStore(role)],
+        plugins: [createAdminStore(role)],
         components: {
           BTable,
           BButton,

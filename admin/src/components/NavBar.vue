@@ -112,7 +112,7 @@
 </template>
 <script setup>
 import CONFIG from '../config'
-import { useStore } from 'vuex'
+import { useAdminStore } from '@/store/useAdminStore'
 import { computed, ref } from 'vue'
 import { useMutation } from '@vue/apollo-composable'
 import { useI18n } from 'vue-i18n'
@@ -145,17 +145,17 @@ const HELP_URL = 'https://gradido.net/coin/moderators-tutorial/'
 const MENU_OFFSET = 10
 const ACCOUNT_MENU_OFFSET = 8
 
-const store = useStore()
+const store = useAdminStore()
 const route = useRoute()
 const { t } = useI18n()
 
-const openCreations = computed(() => store.state.openCreations)
+const openCreations = computed(() => store.openCreations)
 
 const communityName = CONFIG.COMMUNITY_NAME
 
 // Entries whose pages create or change things only an administrator may touch. Menu
 // visibility is a convenience; the route guard and the backend rights are the boundary.
-const isAdmin = computed(() => store.state.moderator?.role === 'ADMIN')
+const isAdmin = computed(() => store.moderator?.role === 'ADMIN')
 
 const currentRouteName = computed(() => {
   return route.name
@@ -211,7 +211,7 @@ const roleName = (role) => {
 // shows whatever their switch for other members says; without one the circle takes the
 // letters and the colour every other circle of this member has.
 const account = computed(() => {
-  const moderator = store.state.moderator
+  const moderator = store.moderator
   const { letters, colorSeed, colorIndex } = avatarLettering(moderator)
   return {
     name:
@@ -239,16 +239,16 @@ const { mutate: executeLogout } = useMutation(logout)
 
 const handleLogout = async () => {
   redirectTo(CONFIG.WALLET_LOGIN_URL)
-  await store.dispatch('logout')
+  store.logout()
   await executeLogout()
 }
 
 const handleWallet = () => {
-  redirectTo(handOverAddress(CONFIG.WALLET_AUTH_URL, store.state.token))
+  redirectTo(handOverAddress(CONFIG.WALLET_AUTH_URL, store.token))
   // Signed out only where the wallet is on another origin (development), as it always was:
   // there the token went along in the address. On one origin both apps hold the one token
   // (utils/authToken.js), and signing out here would sign the wallet out as well.
-  if (!sharesOrigin(CONFIG.WALLET_AUTH_URL)) store.dispatch('logout') // logout without redirect
+  if (!sharesOrigin(CONFIG.WALLET_AUTH_URL)) store.logout() // logout without redirect
 }
 </script>
 

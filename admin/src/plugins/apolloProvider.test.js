@@ -17,9 +17,9 @@ vi.mock('../config', () => ({
 }))
 vi.mock('../store/store', () => ({
   default: {
-    state: { token: '' },
-    dispatch: vi.fn(),
-    commit: vi.fn(),
+    token: '',
+    logout: vi.fn(),
+    setToken: vi.fn(),
   },
 }))
 
@@ -51,9 +51,9 @@ describe('Apollo Provider Setup', () => {
   // it reads and writes is the mocked one.
 
   it('has access to the store', () => {
-    expect(store.state.token).toBeDefined()
-    expect(store.dispatch).toBeInstanceOf(Function)
-    expect(store.commit).toBeInstanceOf(Function)
+    expect(store.token).toBeDefined()
+    expect(store.logout).toBeInstanceOf(Function)
+    expect(store.setToken).toBeInstanceOf(Function)
   })
 })
 
@@ -81,7 +81,7 @@ describe('a request through the real client', () => {
     vi.clearAllMocks()
     // ... which forgets the call that carried the client as well
     vi.mocked(provideApolloClient).mock.calls.push(...calls)
-    store.state.token = ''
+    store.token = ''
   })
 
   afterEach(() => {
@@ -89,7 +89,7 @@ describe('a request through the real client', () => {
   })
 
   it('sends the token and the time zone offset, to the configured address', async () => {
-    store.state.token = 'the-token'
+    store.token = 'the-token'
     const fetch = answers({ data: { answer: 'yes' } })
     vi.stubGlobal('fetch', fetch)
 
@@ -118,7 +118,7 @@ describe('a request through the real client', () => {
 
     await client().query({ query: QUESTION, fetchPolicy: 'no-cache' })
 
-    expect(store.commit).toHaveBeenCalledWith('token', 'fresh-token')
+    expect(store.setToken).toHaveBeenCalledWith('fresh-token')
   })
 
   it('leaves the token alone where an answer carries none', async () => {
@@ -126,7 +126,7 @@ describe('a request through the real client', () => {
 
     await client().query({ query: QUESTION, fetchPolicy: 'no-cache' })
 
-    expect(store.commit).not.toHaveBeenCalled()
+    expect(store.setToken).not.toHaveBeenCalled()
   })
 
   it('signs out and leaves for the wallet when the session was revoked', async () => {
@@ -139,8 +139,8 @@ describe('a request through the real client', () => {
       '403.13 - Client certificate revoked',
     )
 
-    expect(store.dispatch).toHaveBeenCalledWith('logout', null)
+    expect(store.logout).toHaveBeenCalled()
     expect(redirectTo).toHaveBeenCalledWith('http://test-wallet-login-url.com')
-    expect(store.commit).not.toHaveBeenCalled()
+    expect(store.setToken).not.toHaveBeenCalled()
   })
 })

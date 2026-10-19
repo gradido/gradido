@@ -237,7 +237,7 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { useStore } from 'vuex'
+import { useAdminStore } from '@/store/useAdminStore'
 import { useI18n } from 'vue-i18n'
 import RowDetails from '../RowDetails'
 import ContributionMessagesList from '../ContributionMessages/ContributionMessagesList'
@@ -295,7 +295,7 @@ const emit = defineEmits([
   'resubmission-saved',
 ])
 
-const store = useStore()
+const store = useAdminStore()
 const { t } = useI18n()
 
 const slotIndex = ref(0)
@@ -351,7 +351,7 @@ const openPicture = (user) => {
   })
 }
 
-const myself = (item) => isTheModerator(store.state.moderator, item.user)
+const myself = (item) => isTheModerator(store.moderator, item.user)
 
 // The Crea button appears for other people's contributions; on the "all" tab
 // (creaOpenOnly) it is limited to still-open ones (IN_PROGRESS / PENDING) -- the

@@ -10,8 +10,8 @@ import { useCreaSupplement } from '@/composables/useCreaSupplement'
 const { storeState } = vi.hoisted(() => ({
   storeState: { moderator: { firstName: 'Bernd', alias: 'berndh' } },
 }))
-vi.mock('vuex', () => ({
-  useStore: () => ({ state: storeState }),
+vi.mock('@/store/useAdminStore', () => ({
+  useAdminStore: () => storeState,
 }))
 
 const mockToastError = vi.fn()

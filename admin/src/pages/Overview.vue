@@ -113,7 +113,7 @@ import { communityFigureSeries } from '@/graphql/communityFigureSeries.graphql'
 import { communityFigures } from '@/graphql/communityFigures.graphql'
 import { communityStatistics } from '@/graphql/communityStatistics'
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
-import { useStore } from 'vuex'
+import { useAdminStore } from '@/store/useAdminStore'
 import { useQuery } from '@vue/apollo-composable'
 import {
   BButton,
@@ -130,7 +130,7 @@ import {
 import { useAppToast } from '@/composables/useToast'
 import { useI18n } from 'vue-i18n'
 
-const store = useStore()
+const store = useAdminStore()
 const { t, d, n } = useI18n()
 const { toastError } = useAppToast()
 
@@ -148,7 +148,7 @@ const {
 })
 
 onResult(({ data }) => {
-  store.commit('setOpenCreations', data?.adminListContributions.contributionCount)
+  store.setOpenCreations(data?.adminListContributions.contributionCount)
 })
 
 onError((error) => {
