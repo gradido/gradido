@@ -4,6 +4,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { h, nextTick, ref } from 'vue'
 import Overview from './Overview.vue'
 import { adminListContributionsCount } from '@/graphql/adminListContributions.graphql'
+import { communityFigureSeries } from '@/graphql/communityFigureSeries.graphql'
 import { communityFigures } from '@/graphql/communityFigures.graphql'
 import { communityStatistics } from '@/graphql/communityStatistics'
 import { useQuery } from '@vue/apollo-composable'
@@ -51,6 +52,18 @@ const ROWS = [
   { key: 'videoRoomsCreated', since: 7, week: 3, total: 7 },
 ]
 
+// The answer of communityFigureSeries: three weeks, the last one running, and a few flows of the
+// page -- one in a group each but the first -- and one of a newer server.
+const WEEKS = ['2026-09-28T00:00:00.000Z', '2026-10-05T00:00:00.000Z', '2026-10-12T00:00:00.000Z']
+const SERIES_ROWS = [
+  { key: 'accountsNew', counts: [3, 0, 2] },
+  { key: 'activeAccounts', counts: [9, 7, 8] },
+  { key: 'gddSent', counts: [100, 0, 160] },
+  { key: 'entriesNeed', counts: [0, 1, 0] },
+  { key: 'videoRoomsCreated', counts: [2, 3, 0] },
+  { key: 'accountsNEW', counts: [1, 1, 1] },
+]
+
 // The answer of communityStatistics, the totals since the beginning: its sums as GradidoUnit,
 // decimal strings.
 const STATISTICS = {
@@ -94,8 +107,13 @@ describe('Overview', () => {
   let figuresOptions
   let onFiguresError
   let statisticsResult
+  let statisticsLoading
   let statisticsArguments
   let onStatisticsError
+  let seriesResult
+  let seriesVariables
+  let seriesOptions
+  let onSeriesError
   const mockToastError = vi.fn()
 
   const mountPage = () =>
@@ -118,7 +136,10 @@ describe('Overview', () => {
     figuresResult = ref(null)
     onFiguresError = vi.fn()
     statisticsResult = ref(null)
+    statisticsLoading = ref(false)
     onStatisticsError = vi.fn()
+    seriesResult = ref(null)
+    onSeriesError = vi.fn()
 
     // Each query answers as itself: a page that asked the wrong one would get nothing.
     useQuery.mockImplementation((document, variables, options) => {
@@ -132,7 +153,12 @@ describe('Overview', () => {
       }
       if (document === communityStatistics) {
         statisticsArguments = [variables, options]
-        return { result: statisticsResult, onError: onStatisticsError }
+        return { result: statisticsResult, loading: statisticsLoading, onError: onStatisticsError }
+      }
+      if (document === communityFigureSeries) {
+        seriesVariables = variables
+        seriesOptions = options
+        return { result: seriesResult, onError: onSeriesError }
       }
       throw new Error('a query the page does not send')
     })
@@ -157,7 +183,17 @@ describe('Overview', () => {
     statisticsResult.value = { communityStatistics: statistics }
     await nextTick()
   }
-  const groupHeadings = () => wrapper.findAll('tr.figures-group').map((row) => row.text())
+  const answerSeries = async (rows = SERIES_ROWS, weeks = WEEKS) => {
+    seriesResult.value = {
+      communityFigureSeries: { since: '2026-10-01T00:00:00.000Z', weeks, rows },
+    }
+    await nextTick()
+  }
+  const groupHeadings = () =>
+    wrapper
+      .find('[data-test="figures"]')
+      .findAll('tr.figures-group')
+      .map((row) => row.text())
   const cellsOf = (key) =>
     wrapper
       .find(`[data-test="figure-${key}"]`)
@@ -400,6 +436,171 @@ describe('Overview', () => {
     })
   })
 
+  describe('the weeks', () => {
+    const weeksTable = () => wrapper.find('[data-test="figures-weeks"]')
+    const weekHeadings = () =>
+      weeksTable()
+        .findAll('th[data-test^="week-2"]')
+        .map((th) => th.text())
+    const weekCellsOf = (key) =>
+      weeksTable()
+        .find(`[data-test="week-figure-${key}"]`)
+        .findAll('th, td')
+        .map((cell) => cell.text())
+
+    it('asks for the weeks of the chosen day, by its date at 00:00 UTC, whenever the page opens', async () => {
+      localStorage.setItem(STORAGE_KEY, '2026-10-15')
+      wrapper = mountPage()
+      expect(seriesVariables()).toEqual({ since: '2026-10-15T00:00:00.000Z' })
+      expect(seriesOptions()).toEqual({ enabled: true, fetchPolicy: 'cache-and-network' })
+
+      await wrapper.find('[data-test="figures-since"]').setValue('2026-10-01')
+      expect(seriesVariables()).toEqual({ since: '2026-10-01T00:00:00.000Z' })
+      await wrapper.find('[data-test="figures-since"]').setValue('')
+      expect(seriesOptions().enabled).toBe(false)
+    })
+
+    it('asks for the week of a Monday chosen east of Greenwich, not for the week before it', () => {
+      // In Berlin the first moment of Monday 12 October is 22:00 UTC on the Sunday before: the
+      // figures count from that moment, the weeks begin with the Monday's own week.
+      const ClockDate = Date
+      class BerlinDate extends ClockDate {
+        constructor(...args) {
+          const localMoment =
+            args.length === 1 && typeof args[0] === 'string' && /T\d\d:\d\d:\d\d$/.test(args[0])
+          if (localMoment) {
+            super(new ClockDate(`${args[0]}Z`).getTime() - 2 * 60 * 60 * 1000)
+          } else {
+            super(...args)
+          }
+        }
+      }
+      vi.stubGlobal('Date', BerlinDate)
+      try {
+        localStorage.setItem(STORAGE_KEY, '2026-10-12')
+        wrapper = mountPage()
+        expect(figuresVariables()).toEqual({ since: '2026-10-11T22:00:00.000Z' })
+        expect(seriesVariables()).toEqual({ since: '2026-10-12T00:00:00.000Z' })
+      } finally {
+        vi.unstubAllGlobals()
+      }
+    })
+
+    describe('once the page stands', () => {
+      beforeEach(() => {
+        wrapper = mountPage()
+      })
+
+      it('shows no weeks before their answer, and the table above stands without them', async () => {
+        await answerFigures()
+        expect(weeksTable().exists()).toBe(false)
+        expect(wrapper.find('[data-test="figures"]').exists()).toBe(true)
+      })
+
+      it('shows the weeks only once the table above stands, not before it', async () => {
+        await answerSeries()
+        expect(weeksTable().exists()).toBe(false)
+
+        await answerFigures()
+        expect(weeksTable().exists()).toBe(true)
+      })
+
+      it('waits for the totals before showing the weeks, and shows them when the totals fail', async () => {
+        statisticsLoading.value = true
+        await answerFigures()
+        await answerSeries()
+        expect(weeksTable().exists()).toBe(false)
+
+        // An error ends the waiting as an answer does.
+        statisticsLoading.value = false
+        await nextTick()
+        expect(weeksTable().exists()).toBe(true)
+      })
+
+      it('stands below the table, under a heading of its own', async () => {
+        await answerFigures()
+        await answerSeries()
+        expect(
+          wrapper
+            .find('[data-test="figures"]')
+            .element.compareDocumentPosition(weeksTable().element),
+        ).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+        expect(weeksTable().find('h3').text()).toBe('figures.weeks')
+      })
+
+      it('heads a column with each Monday on its own date, in their order, and marks the running week', async () => {
+        await answerFigures()
+        await answerSeries()
+        // Each Monday read as noon of its date where the admin sits: never the day before.
+        expect(weekHeadings()).toEqual([
+          'short:2026-09-28T12:00:00.000Z',
+          'short:2026-10-05T12:00:00.000Z',
+          'short:2026-10-12T12:00:00.000Z figures.weekCurrent',
+        ])
+      })
+
+      it('shows the rows of the answer in the groups of the page, a number for every week, 0 too', async () => {
+        await answerFigures()
+        await answerSeries()
+        expect(
+          weeksTable()
+            .findAll('tr.figures-group')
+            .map((row) => row.text()),
+        ).toEqual([
+          'figures.group.accounts',
+          'figures.group.thanks',
+          'figures.group.map',
+          'figures.group.conversations',
+        ])
+        expect(weekCellsOf('accountsNew')).toEqual(['figures.row.accountsNew', '#3', '#0', '#2'])
+        expect(weekCellsOf('gddSent')).toEqual(['figures.row.gddSent', '#100', '#0', '#160'])
+        expect(weekCellsOf('entriesNeed')).toEqual(['figures.row.entriesNeed', '#0', '#1', '#0'])
+        expect(weekCellsOf('videoRoomsCreated')).toEqual([
+          'figures.row.videoRoomsCreated',
+          '#2',
+          '#3',
+          '#0',
+        ])
+        // A row of a newer server waits for its label here.
+        expect(weeksTable().find('[data-test="week-figure-accountsNEW"]').exists()).toBe(false)
+      })
+
+      it('calls the active accounts by week what they are: the accounts with a sign-in that week', async () => {
+        await answerFigures()
+        await answerSeries()
+        expect(weekCellsOf('activeAccounts')).toEqual([
+          'figures.row.activeAccountsWeekly',
+          '#9',
+          '#7',
+          '#8',
+        ])
+      })
+
+      it('is a region of its own that rolls sideways and the keyboard can reach, not stacked', async () => {
+        await answerFigures()
+        await answerSeries()
+        const region = weeksTable().find('[role="region"]')
+        expect(region.classes()).toContain('table-responsive')
+        expect(region.attributes('tabindex')).toBe('0')
+        const heading = weeksTable().find('h3')
+        expect(region.attributes('aria-labelledby')).toBe(heading.attributes('id'))
+        expect(region.find('table').classes().join(' ')).not.toMatch(/stacked/)
+        // The labels stand still while the weeks roll: they name their rows and groups.
+        expect(
+          region.findAll('tbody th').every((th) => th.classes().includes('figures-weeks-label')),
+        ).toBe(true)
+      })
+
+      it('tells an error of the weeks and leaves the table above standing', async () => {
+        await answerFigures()
+        onSeriesError.mock.calls[0][0]({ message: 'Weeks error' })
+        expect(mockToastError).toHaveBeenCalledWith('Weeks error')
+        expect(wrapper.find('[data-test="figures"]').exists()).toBe(true)
+        expect(weeksTable().exists()).toBe(false)
+      })
+    })
+  })
+
   describe('the copy for the review', () => {
     let writeText
 
@@ -469,6 +670,36 @@ describe('Overview', () => {
       expect(copyField().exists()).toBe(false)
     })
 
+    it('carries the weeks below the table, once they are there', async () => {
+      await answerFigures(FEW_ROWS)
+      await answerStatistics()
+      await answerSeries()
+      await copyButton().trigger('click')
+      await flushPromises()
+
+      expect(writeText).toHaveBeenCalledWith(
+        [
+          BLOCK,
+          '',
+          'figures.weeks',
+          'short:2026-09-28T12:00:00.000Z · short:2026-10-05T12:00:00.000Z · short:2026-10-12T12:00:00.000Z (figures.weekCurrent)',
+          '',
+          'figures.group.accounts',
+          'figures.row.accountsNew: #3 · #0 · #2',
+          'figures.row.activeAccountsWeekly: #9 · #7 · #8',
+          '',
+          'figures.group.thanks',
+          'figures.row.gddSent: #100 · #0 · #160',
+          '',
+          'figures.group.map',
+          'figures.row.entriesNeed: #0 · #1 · #0',
+          '',
+          'figures.group.conversations',
+          'figures.row.videoRoomsCreated: #2 · #3 · #0',
+        ].join('\n'),
+      )
+    })
+
     it('says so for a moment only', async () => {
       // The clock of the file fakes the date alone; this one needs the timers as well.
       vi.useRealTimers()
@@ -527,6 +758,43 @@ describe('Overview', () => {
       expect(copyStatus().text()).toBe('figures.copied')
 
       await answerStatistics()
+      expect(copyStatus().text()).toBe('')
+    })
+
+    it('leaves the weeks out of the block while they are not shown', async () => {
+      statisticsLoading.value = true
+      await answerFigures(FEW_ROWS)
+      await answerSeries()
+      await copyButton().trigger('click')
+      await flushPromises()
+
+      expect(writeText).toHaveBeenCalledTimes(1)
+      expect(writeText.mock.calls[0][0]).not.toContain('figures.weeks')
+    })
+
+    it('takes "copied" back when the weeks show up', async () => {
+      statisticsLoading.value = true
+      await answerFigures(FEW_ROWS)
+      await answerSeries()
+      await copyButton().trigger('click')
+      await flushPromises()
+      expect(copyStatus().text()).toBe('figures.copied')
+
+      // The totals failed: no new numbers, but the weeks appear below the table.
+      statisticsLoading.value = false
+      await nextTick()
+      expect(copyStatus().text()).toBe('')
+    })
+
+    it('takes "copied" back when new weeks come', async () => {
+      // The weeks already stand: only the new answer can end the press.
+      await answerFigures(FEW_ROWS)
+      await answerSeries()
+      await copyButton().trigger('click')
+      await flushPromises()
+      expect(copyStatus().text()).toBe('figures.copied')
+
+      await answerSeries(SERIES_ROWS.slice(0, 2))
       expect(copyStatus().text()).toBe('')
     })
 

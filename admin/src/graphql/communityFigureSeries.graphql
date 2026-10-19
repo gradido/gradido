@@ -1,0 +1,14 @@
+# AI-GENERATED — not an architecture reference
+# The flows of the admin's start page by calendar week: the Mondays from the week of the chosen
+# day to the running one, and for each flow one number per week.
+
+query communityFigureSeries($since: DateTime!) {
+  communityFigureSeries(since: $since) {
+    since
+    weeks
+    rows {
+      key
+      counts
+    }
+  }
+}

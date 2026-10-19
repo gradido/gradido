@@ -19,6 +19,7 @@ import {
 } from './chatConversationMembers'
 import {
   dbCountChatConversationsOfKind,
+  dbCountChatConversationsOfKindByWeek,
   dbEnsureDirectChatConversation,
   dbFindChatGroupByUuid,
   dbFindDirectChatConversation,
@@ -619,5 +620,44 @@ describe('dbCountChatConversationsOfKind', () => {
 
   it('refuses to count without a moment', async () => {
     await expect(dbCountChatConversationsOfKind('direct', [])).rejects.toThrow()
+  })
+})
+
+// The same by calendar week, from Monday 7 September 2026: two direct conversations in its
+// week -- one at its very last moment --, none in the week after, one in the week of 21
+// September, one in the week before the first; and a group in the first week.
+describe('dbCountChatConversationsOfKindByWeek', () => {
+  const from = new Date('2026-09-07T00:00:00.000Z')
+
+  const openAt = (kind: 'direct' | 'group', moment: string) =>
+    db.insert(chatConversationsTable).values({
+      conversationUuid: uuidv4(),
+      kind,
+      directPairKey: kind === 'direct' ? `${HOME}/${uuidv4()}|${HOME}/${uuidv4()}` : null,
+      homeCommunityUuid: kind === 'group' ? HOME : null,
+      title: kind === 'group' ? `Gruppe ${moment}` : null,
+      createdByCommunityUuid: ANNA.communityUuid,
+      createdByGradidoId: ANNA.gradidoId,
+      createdAt: new Date(moment),
+    })
+
+  beforeAll(async () => {
+    await db.delete(chatConversationMembersTable)
+    await db.delete(chatConversationsTable)
+    await openAt('direct', '2026-09-07T00:00:00.000Z')
+    await openAt('direct', '2026-09-13T23:59:59.999Z')
+    await openAt('direct', '2026-09-23T12:00:00.000Z')
+    await openAt('direct', '2026-09-02T12:00:00.000Z')
+    await openAt('group', '2026-09-09T12:00:00.000Z')
+  })
+
+  it('counts the conversations of one kind opened in each week, from the Monday it is given on', async () => {
+    expect(await dbCountChatConversationsOfKindByWeek('direct', from)).toEqual([
+      { weekStart: '2026-09-07', n: 2 },
+      { weekStart: '2026-09-21', n: 1 },
+    ])
+    expect(await dbCountChatConversationsOfKindByWeek('group', from)).toEqual([
+      { weekStart: '2026-09-07', n: 1 },
+    ])
   })
 })

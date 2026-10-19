@@ -30,6 +30,7 @@ import {
   dbCountUnconfirmedVouchedAccounts,
   dbCountUsers,
   dbCountUsersDeleted,
+  dbCountUsersDeletedByWeek,
   dbCountUsersFindable,
   dbCountUsersWithHome,
   dbFindGmsAllowedLocalUserIds,
@@ -1525,6 +1526,42 @@ describe('user.queries', () => {
 
     it('refuses to count without a moment', async () => {
       await expect(dbCountUsersDeleted([])).rejects.toThrow()
+    })
+  })
+
+  // By calendar week, from Monday 7 September 2026: two accounts deleted in its week -- one at
+  // its very last moment --, none in the week after, one in the week of 21 September, and one in
+  // the week before the first.
+  describe('dbCountUsersDeletedByWeek', () => {
+    const from = new Date('2026-09-07T00:00:00.000Z')
+    const PEER = '66666666-6666-4666-8666-666666666666'
+
+    beforeAll(async () => {
+      await dbDeleteAllRowsExceptMigrations()
+      const homeCom = await createCommunity(false)
+      const deleted = async (seed: typeof bibiBloxberg, moment: string) => {
+        const user = await userFactory(seed, homeCom)
+        await dbUserUpdateField(user.id, 'deletedAt', new Date(moment))
+      }
+      await deleted(bibiBloxberg, '2026-09-08T12:00:00.000Z')
+      await deleted(peterLustig, '2026-09-13T23:59:59.000Z')
+      await deleted(bobBaumeister, '2026-09-22T12:00:00.000Z')
+      await deleted(raeuberHotzenplotz, '2026-09-04T12:00:00.000Z')
+      // Deleted in 2018, says the seed.
+      await userFactory(stephenHawking, homeCom)
+      // A member of another community, deleted in the first week: nobody's account here.
+      const gone = await dbInsertForeignUser({ communityUuid: PEER, gradidoId: v4() })
+      if (!gone.success) {
+        throw gone.error
+      }
+      await dbUserUpdateField(gone.value, 'deletedAt', new Date('2026-09-09T12:00:00.000Z'))
+    })
+
+    it('counts the deleted accounts of this community in each week, from the Monday it is given on', async () => {
+      expect(await dbCountUsersDeletedByWeek(from)).toEqual([
+        { weekStart: '2026-09-07', n: 2 },
+        { weekStart: '2026-09-21', n: 1 },
+      ])
     })
   })
 

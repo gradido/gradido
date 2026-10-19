@@ -19,6 +19,7 @@ import { dbInsertChatMessage } from './chatMessages'
 import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 import {
   dbCountAndSumTransactionsOfType,
+  dbCountAndSumTransactionsOfTypeByWeek,
   dbSelectContactsByUserId,
   dbSelectReceivedTransferOfUser,
   dbSelectTransactionsByUserId,
@@ -1042,7 +1043,8 @@ describe('dbSelectContactsByUserId with one person spelled two ways', () => {
 
 // The counts of the admin's start page. Every booking is written with its moment, and every
 // moment is days away from one `now` -- far enough from the moments the counts start at that
-// the seconds a test runs change nothing. Last in the file: it empties the database.
+// the seconds a test runs change nothing. Last in the file with the counts by week below: both
+// empty the database.
 describe('dbCountAndSumTransactionsOfType', () => {
   const now = Date.now()
   const daysAgo = (days: number): Date => new Date(now - days * 24 * 60 * 60 * 1000)
@@ -1094,5 +1096,56 @@ describe('dbCountAndSumTransactionsOfType', () => {
 
   it('refuses to count without a moment', async () => {
     await expect(dbCountAndSumTransactionsOfType(TransactionTypeId.SEND, [])).rejects.toThrow()
+  })
+})
+
+// The same by calendar week, from Monday 7 September 2026: two transfers in its week -- one at its
+// very last moment --, none in the week after, one in the week of 21 September, one in the week
+// before the first. Last in the file: it empties the database.
+describe('dbCountAndSumTransactionsOfTypeByWeek', () => {
+  const from = new Date('2026-09-07T00:00:00.000Z')
+
+  const book = (typeId: TransactionTypeId, user: DbUser, gddCent: bigint, moment: string) =>
+    drizzleDb()
+      .insert(transactionsTable)
+      .values({
+        typeId,
+        userId: user.id,
+        userGradidoId: user.gradidoID,
+        userCommunityUuid: user.communityUuid,
+        amount: new GradidoUnit(gddCent),
+        memo: 'figures by week',
+        balanceDate: new Date(moment),
+      })
+
+  beforeAll(async () => {
+    await dbDeleteAllRowsExceptMigrations()
+    await createCommunity(false)
+    const sender = await userFactory(bibiBloxberg)
+    const recipient = await userFactory(peterLustig)
+    // 20 GDD and 5.5 GDD in the first week, each a SEND and a RECEIVE row.
+    await book(TransactionTypeId.SEND, sender, -200000n, '2026-09-08T12:00:00.000Z')
+    await book(TransactionTypeId.RECEIVE, recipient, 200000n, '2026-09-08T12:00:00.000Z')
+    await book(TransactionTypeId.SEND, sender, -55000n, '2026-09-13T23:59:59.999Z')
+    await book(TransactionTypeId.RECEIVE, recipient, 55000n, '2026-09-13T23:59:59.999Z')
+    // 1 GDD in the third week, 3 GDD the week before the first.
+    await book(TransactionTypeId.SEND, sender, -10000n, '2026-09-21T00:00:00.000Z')
+    await book(TransactionTypeId.SEND, sender, -30000n, '2026-09-06T23:59:59.999Z')
+    // A creation of 100 GDD, booked in the first week.
+    await book(TransactionTypeId.CREATION, sender, 1000000n, '2026-09-09T12:00:00.000Z')
+  })
+
+  it('counts the rows of one type and the Gradido they moved in each week, in whole ones', async () => {
+    // 25.5 in the first week, rounded.
+    expect(await dbCountAndSumTransactionsOfTypeByWeek(TransactionTypeId.SEND, from)).toEqual([
+      { weekStart: '2026-09-07', n: 2, gdd: 26 },
+      { weekStart: '2026-09-21', n: 1, gdd: 1 },
+    ])
+  })
+
+  it('counts each type on its own', async () => {
+    expect(await dbCountAndSumTransactionsOfTypeByWeek(TransactionTypeId.CREATION, from)).toEqual([
+      { weekStart: '2026-09-07', n: 1, gdd: 100 },
+    ])
   })
 })

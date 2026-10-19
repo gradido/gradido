@@ -1,4 +1,4 @@
-import { and, eq, gte, inArray, isNotNull, isNull, ne, SQL, sql } from 'drizzle-orm'
+import { and, count, eq, gte, inArray, isNotNull, isNull, ne, SQL, sql } from 'drizzle-orm'
 import { ContactOrigin, GradidoUnit, isAliasEraName, Order, Result, VoidResult } from 'shared'
 import { FindOptionsWhere, In, IsNull } from 'typeorm'
 import { drizzleDb } from '../AppDatabase'
@@ -8,7 +8,7 @@ import { DBNotFoundError } from '../errorTypes'
 import { transactionsTable, usersTable } from '../schemas'
 import { ChatMemberRef } from './chatConversationMembers'
 import { dbSelectDirectChatContactsByMember } from './chatConversations'
-import { countFields, countsOfRow, rowsFrom } from './figureCounts'
+import { countFields, countsOfRow, rowsFrom, WeeklyCount, weekStartOf } from './figureCounts'
 import { dbSelectReferralContactsByUserId, ReferralContact } from './user'
 
 export const getLastTransaction = async (
@@ -678,4 +678,26 @@ export async function dbCountAndSumTransactionsOfType(
     .from(transactionsTable)
     .where(eq(transactionsTable.typeId, typeId))
   return { counts: countsOfRow(row?.counts, froms), gdd: countsOfRow(row?.gdd, froms) }
+}
+
+/**
+ * dbCountAndSumTransactionsOfType by calendar week (figureCounts.ts): the bookings of one type in
+ * each week from `from` on by their booking time, and the Gradido they moved, whole and rounded,
+ * without their sign -- one statement. A week without a booking is not in the answer.
+ */
+export async function dbCountAndSumTransactionsOfTypeByWeek(
+  typeId: TransactionTypeId,
+  from: Date,
+): Promise<(WeeklyCount & { gdd: number })[]> {
+  const week = weekStartOf(transactionsTable.balanceDate)
+  return drizzleDb()
+    .select({
+      weekStart: week,
+      n: count(),
+      gdd: sql<number>`round(sum(abs(${transactionsTable.amount})) / 10000)`.mapWith(Number),
+    })
+    .from(transactionsTable)
+    .where(and(eq(transactionsTable.typeId, typeId), gte(transactionsTable.balanceDate, from)))
+    .groupBy(week)
+    .orderBy(week)
 }

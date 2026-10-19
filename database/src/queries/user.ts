@@ -1,4 +1,4 @@
-import { and, count, desc, eq, inArray, isNotNull, isNull, ne, or, sql } from 'drizzle-orm'
+import { and, count, desc, eq, gte, inArray, isNotNull, isNull, ne, or, sql } from 'drizzle-orm'
 import { alias as aliasedTable, type BuildAliasTable, unionAll } from 'drizzle-orm/mysql-core'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import {
@@ -31,7 +31,7 @@ import {
   userRolesTable,
   usersTable,
 } from '../schemas/drizzle.schema'
-import { countFields, countsOfRow, rowsFrom } from './figureCounts'
+import { countFields, countsOfRow, rowsFrom, WeeklyCount, weekStartOf } from './figureCounts'
 
 // Drizzle only. The `users` queries still on TypeORM live in `./user.typeorm` until they
 // are translated.
@@ -1098,6 +1098,20 @@ export async function dbCountUsersDeleted(froms: (Date | null)[]): Promise<numbe
     .from(usersTable)
     .where(and(eq(usersTable.foreign, false), isNotNull(usersTable.deletedAt)))
   return countsOfRow(row, froms)
+}
+
+/**
+ * dbCountUsersDeleted by calendar week (figureCounts.ts): this community's accounts deleted in
+ * each week from `from` on. A week without one is not in the answer.
+ */
+export async function dbCountUsersDeletedByWeek(from: Date): Promise<WeeklyCount[]> {
+  const week = weekStartOf(usersTable.deletedAt)
+  return drizzleDb()
+    .select({ weekStart: week, n: count() })
+    .from(usersTable)
+    .where(and(eq(usersTable.foreign, false), gte(usersTable.deletedAt, from)))
+    .groupBy(week)
+    .orderBy(week)
 }
 
 /**
