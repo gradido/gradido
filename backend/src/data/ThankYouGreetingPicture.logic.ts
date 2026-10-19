@@ -103,8 +103,9 @@ export const pictureRenditionsForMember = (
  * The renditions a member who is signed in gets by the id of a link where they ask for the
  * LARGE one, the one wanted first: the large one, and the small one where no large one is
  * filed -- for the member who MADE the link, while it is neither accepted nor deleted (open or
- * run out) and their own account stands (`makerDeletedAt`). It is what lets a duplicate of a
- * greeting carry the photo of the old one, without the member choosing it anew (ZE-030).
+ * run out). It is what lets a duplicate of a greeting carry the photo of the old one, without
+ * the member choosing it anew (ZE-030). In this case the maker IS the member asking, signed
+ * in -- so their account stands without being asked: a deleted account has no session.
  *
  * ⛔ For everybody else and in every other state the answer is the one of
  * pictureRenditionsForMember, as if the large one had not been asked for: the member who
@@ -113,10 +114,9 @@ export const pictureRenditionsForMember = (
  */
 export const pictureRenditionsForMemberAskingLarge = (
   link: PictureLinkState,
-  makerDeletedAt: Date | null,
   memberId: number,
 ): readonly ThankYouGreetingPictureRendition[] =>
-  link.userId === memberId && makerDeletedAt === null && !pictureLinkIsAcceptedOrDeleted(link)
+  link.userId === memberId && !pictureLinkIsAcceptedOrDeleted(link)
     ? [LARGE, SMALL]
     : pictureRenditionsForMember(link, memberId)
 

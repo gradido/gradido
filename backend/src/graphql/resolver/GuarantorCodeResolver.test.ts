@@ -152,16 +152,16 @@ describe('GuarantorCodeResolver', () => {
     })
   })
 
-  // The session loads deleted users too, and the registration does not find them: a code of
-  // theirs would open accounts with nobody recorded as having vouched.
-  it('mints none for a member deleted while still signed in', async () => {
+  // A session does not outlive the deletion of its account: the auth layer finds no member
+  // behind the token any more. A code of theirs would open accounts with nobody recorded as
+  // having vouched - the registration does not find a deleted member.
+  it('refuses a member deleted while still signed in', async () => {
     const bibi = await DbUser.findOneOrFail({ where: { alias: 'BBB' } })
     await loginAs('bibi@bloxberg.de')
     await DbUser.update(bibi.id, { deletedAt: new Date() })
     try {
       await expect(query({ query: guarantorCode })).resolves.toMatchObject({
-        data: { guarantorCode: null },
-        errors: undefined,
+        errors: [new GraphQLError('401 Unauthorized')],
       })
     } finally {
       await DbUser.update(bibi.id, { deletedAt: null })

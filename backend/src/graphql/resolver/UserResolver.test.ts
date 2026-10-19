@@ -2055,6 +2055,23 @@ describe('UserResolver', () => {
         })
       })
 
+      describe('with an address that differs from the stored one only in an accent', () => {
+        // The lookup's collation ignores accents, so this finds Bob's account. Whoever owns
+        // the look-alike domain must not be the one who gets his reset link.
+        beforeAll(() => {
+          CONFIG.EMAIL_CODE_REQUEST_TIME = 0
+          jest.clearAllMocks()
+        })
+
+        it('sends the reset password email to the stored address', async () => {
+          await mutate({ mutation: forgotPassword, variables: { email: 'bob@baumeistér.de' } })
+          expect(sendResetPasswordEmail).toHaveBeenCalledTimes(1)
+          expect(sendResetPasswordEmail).toHaveBeenCalledWith(
+            expect.objectContaining({ email: 'bob@baumeister.de' }),
+          )
+        })
+      })
+
       describe('request reset password again', () => {
         it('throws an error', async () => {
           CONFIG.EMAIL_CODE_REQUEST_TIME = emailCodeRequestTime
@@ -3399,6 +3416,20 @@ describe('UserResolver', () => {
                 affectedUserId: userContact.user.id,
                 actingUserId: admin.id,
               }),
+            )
+          })
+
+          // The lookup's collation ignores accents, so this finds Bibi's account. The link in
+          // the mail sets her password, so it must reach her and not the look-alike domain.
+          it('sends the activation email to the stored address', async () => {
+            jest.clearAllMocks()
+            await mutate({
+              mutation: sendActivationEmail,
+              variables: { email: 'bibi@blöxberg.de' },
+            })
+            expect(sendAccountActivationEmail).toHaveBeenCalledTimes(1)
+            expect(sendAccountActivationEmail).toHaveBeenCalledWith(
+              expect.objectContaining({ email: 'bibi@bloxberg.de' }),
             )
           })
         })

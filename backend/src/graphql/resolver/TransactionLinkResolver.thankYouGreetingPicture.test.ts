@@ -331,10 +331,10 @@ describe('thankYouGreetingPicture', () => {
     const largeAnswerFor = async (
       member: number,
       state: Partial<typeof openLink>,
-      { makerDeletedAt = null as Date | null, pictures = [small, large] } = {},
+      { pictures = [small, large] } = {},
     ) => {
       jest.clearAllMocks()
-      picturesOf.mockResolvedValue({ ...found(state, pictures), makerDeletedAt })
+      picturesOf.mockResolvedValue(found(state, pictures))
       const answer = await askLarge(member)
       return { answer, read: imageOf.mock.calls.map(([id]) => id) }
     }
@@ -368,14 +368,6 @@ describe('thankYouGreetingPicture', () => {
       expect(await largeAnswerFor(SENDER, accepted)).toEqual(theSmall)
       expect(await largeAnswerFor(SENDER, deleted)).toEqual(nothing)
       expect(await largeAnswerFor(SENDER, { ...runOut, ...deleted })).toEqual(nothing)
-    })
-
-    // A deleted account whose session still stands: what it gets without asking, and no more.
-    it('the member who made the link, their own account deleted: the small one as ever', async () => {
-      const gone = { makerDeletedAt: new Date('2026-10-04T08:00:00.000Z') }
-
-      expect(await largeAnswerFor(SENDER, {}, gone)).toEqual(theSmall)
-      expect(await largeAnswerFor(SENDER, runOut, gone)).toEqual(theSmall)
     })
 
     it('the member who accepted it: the small one and never the large one', async () => {
