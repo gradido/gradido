@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import addNavigationGuards from './guards'
-import { verifyLogin } from '../graphql/verifyLogin'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import CONFIG from '../config'
+import { verifyLogin } from '../graphql/verifyLogin'
+import { addNavigationGuards } from './guards'
 
 vi.mock('../graphql/verifyLogin', () => ({
   verifyLogin: 'mocked-verify-login-query',
@@ -14,7 +14,13 @@ vi.mock('../config', () => ({
 }))
 
 describe('Navigation Guards', () => {
-  let router, store, apollo, i18n, setTokenMock, setModeratorMock, apolloQueryMock
+  let router
+  let store
+  let apollo
+  let i18n
+  let setTokenMock
+  let setModeratorMock
+  let apolloQueryMock
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -50,7 +56,8 @@ describe('Navigation Guards', () => {
   })
 
   describe('First Navigation Guard', () => {
-    let firstGuard, next
+    let firstGuard
+    let next
 
     beforeEach(() => {
       firstGuard = router.beforeEach.mock.calls[0][0]
@@ -159,7 +166,8 @@ describe('Navigation Guards', () => {
   })
 
   describe('Second Navigation Guard', () => {
-    let secondGuard, next
+    let secondGuard
+    let next
 
     beforeEach(() => {
       secondGuard = router.beforeEach.mock.calls[1][0]
@@ -212,7 +220,8 @@ describe('Navigation Guards', () => {
   // Menu visibility is a convenience, not an access boundary. This third guard enforces the
   // administrator-only routes for the route itself; the backend rights remain the final word.
   describe('Third Navigation Guard — administrator-only routes', () => {
-    let thirdGuard, next
+    let thirdGuard
+    let next
 
     beforeEach(() => {
       thirdGuard = router.beforeEach.mock.calls[2][0]

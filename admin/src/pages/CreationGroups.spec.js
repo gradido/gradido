@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import CreationGroups from './CreationGroups.vue'
 
 vi.mock('vue-i18n', () => ({

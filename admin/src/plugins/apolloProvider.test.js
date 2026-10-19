@@ -1,10 +1,10 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import gql from 'graphql-tag'
 import { ApolloClient } from '@apollo/client/core'
 import { provideApolloClient } from '@vue/apollo-composable'
-import CONFIG from '../config'
-import store from '../store/store'
+import gql from 'graphql-tag'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { redirectTo } from '@/utils/redirect'
+import CONFIG from '../config'
+import { store } from '../store/store'
 import { apolloClient } from './apolloProvider'
 
 vi.mock('@vue/apollo-composable')
@@ -16,7 +16,7 @@ vi.mock('../config', () => ({
   },
 }))
 vi.mock('../store/store', () => ({
-  default: {
+  store: {
     token: '',
     logout: vi.fn(),
     setToken: vi.fn(),

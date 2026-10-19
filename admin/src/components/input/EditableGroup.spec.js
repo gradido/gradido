@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, expect } from 'vitest'
-import EditableGroup from './EditableGroup.vue'
 import { BButton, BFormGroup } from 'bootstrap-vue-next'
+import { describe, expect, it } from 'vitest'
+import EditableGroup from './EditableGroup.vue'
 
 const viewValue = 'test label value'
 const editValue = 'test edit value'

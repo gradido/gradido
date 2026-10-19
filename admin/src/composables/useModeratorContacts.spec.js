@@ -1,15 +1,15 @@
 // AI-GENERATED — not an architecture reference
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { contactRefs } from '@/graphql/contactRefs'
 import {
+  askModeratorContacts,
+  forgetModeratorContacts,
   MODERATOR_CONTACTS_FRESH_MS,
   MODERATOR_CONTACTS_RETURN_MS,
   MODERATOR_CONTACTS_WAIT_MS,
-  askModeratorContacts,
-  forgetModeratorContacts,
   moderatorContact,
 } from './useModeratorContacts'
-import { contactRefs } from '@/graphql/contactRefs'
 
 /**
  * Whom the signed-in moderator is in contact with, asked once for all the names on a screen.

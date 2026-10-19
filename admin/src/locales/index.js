@@ -1,4 +1,4 @@
-const locales = [
+export const locales = [
   {
     name: 'English',
     code: 'en',
@@ -12,5 +12,3 @@ const locales = [
     enabled: true,
   },
 ]
-
-export default locales

@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import locales from './index.js'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { locales } from './index.js'
 
 describe('locales', () => {
   let localeCopy

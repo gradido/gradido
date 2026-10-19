@@ -1,6 +1,6 @@
 import { createPinia } from 'pinia'
-import CONFIG from '../config'
 import { followAuthToken, readAuthToken, tokenBelongsTo } from '@/utils/authToken'
+import CONFIG from '../config'
 import { STATE_KEY, useAdminStore } from './useAdminStore'
 
 // The token is kept for both apps (utils/authToken.js), not in this app's own blob: read when
@@ -12,7 +12,9 @@ const withoutToken = ({ token, ...rest }) => rest
 const savedState = () => {
   try {
     const saved = JSON.parse(localStorage.getItem(STATE_KEY))
-    if (!saved) return {}
+    if (!saved) {
+      return {}
+    }
     // Only what the store still knows: a blob saved before may carry more.
     const { moderator, openCreations } = withoutToken(saved)
     return {
@@ -45,7 +47,7 @@ const keptToken = () => {
 
 export const pinia = createPinia()
 
-const store = useAdminStore(pinia)
+export const store = useAdminStore(pinia)
 
 store.$patch({
   ...savedState(),
@@ -66,5 +68,3 @@ store.$subscribe(
 // this window would go on with its own token -- and its next renewal would keep it again,
 // signing in once more whoever signed out.
 followAuthToken(store)
-
-export default store

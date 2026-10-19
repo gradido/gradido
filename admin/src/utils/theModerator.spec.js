@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { isTheModerator, moderatorKey } from './theModerator'
 
 describe('theModerator', () => {

@@ -1,9 +1,9 @@
 // AI-GENERATED — not an architecture reference
 
-import { describe, it, expect } from 'vitest'
-import { readFileSync, readdirSync, statSync } from 'node:fs'
+import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { dirname, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { describe, expect, it } from 'vitest'
 
 // The admin makes no visitor's browser fetch from a foreign host when a page loads. Until
 // October 2026 every page did: index.html linked a stylesheet at fonts.googleapis.com and
@@ -65,7 +65,9 @@ const styleAddresses = (css) => {
 /** What a file contributes to the stylesheets: all of it, or the style blocks of a component. */
 const stylesOf = (file) => {
   const text = read(file)
-  if (!file.endsWith('.vue')) return text
+  if (!file.endsWith('.vue')) {
+    return text
+  }
   return [...text.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)]
     .map(([, body]) => body)
     .join('\n')
@@ -76,7 +78,9 @@ const stylesOf = (file) => {
 const styleFiles = (dir) =>
   readdirSync(dir).flatMap((name) => {
     const path = join(dir, name)
-    if (statSync(path).isDirectory()) return styleFiles(path)
+    if (statSync(path).isDirectory()) {
+      return styleFiles(path)
+    }
     return /\.(?:scss|css|vue)$/.test(name) ? [path] : []
   })
 

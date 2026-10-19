@@ -1,8 +1,8 @@
+import { useApolloClient, useMutation } from '@vue/apollo-composable'
 import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import CreaEvaluationModal from './CreaEvaluationModal.vue'
-import { useMutation, useApolloClient } from '@vue/apollo-composable'
 
 // This file exists because the [ANREDE] fill moved OUT of the tested backend and INTO
 // this component. Without it the salutation handling had no test on either side of the

@@ -1,5 +1,5 @@
+import { de, enUS as en, es, fr, nl } from 'date-fns/locale'
 import { useI18n } from 'vue-i18n'
-import { de, enUS as en, fr, es, nl } from 'date-fns/locale'
 
 const locales = { en, de, es, fr, nl }
 

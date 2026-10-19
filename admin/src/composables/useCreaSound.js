@@ -6,9 +6,13 @@
 let audioContext = null
 
 function getContext() {
-  if (typeof window === 'undefined') return null
+  if (typeof window === 'undefined') {
+    return null
+  }
   const Ctx = window.AudioContext || window.webkitAudioContext
-  if (!Ctx) return null
+  if (!Ctx) {
+    return null
+  }
   if (!audioContext) {
     audioContext = new Ctx()
   }
@@ -48,7 +52,9 @@ function playTone(ctx, freq, startAt, { attack, hold, tail, peak }) {
 
 export function playCreaSound() {
   const ctx = getContext()
-  if (!ctx) return
+  if (!ctx) {
+    return
+  }
   if (ctx.state === 'suspended') {
     ctx.resume()
   }

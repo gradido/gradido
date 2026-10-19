@@ -1,9 +1,9 @@
 // AI-GENERATED — not an architecture reference
 
-import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { describe, expect, it } from 'vitest'
 
 // The colour rule has no home of its own either: the wallet and the admin share no
 // package, and thankYouCheque.js needs it in both. What the copies must not do is

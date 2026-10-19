@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 
-import { describe, it, expect, afterEach } from 'vitest'
-import { MAP_WINDOW_NAME, dropMapWindowName } from './mapWindow'
+import { afterEach, describe, expect, it } from 'vitest'
+import { dropMapWindowName, MAP_WINDOW_NAME } from './mapWindow'
 
 describe('mapWindow', () => {
   afterEach(() => {

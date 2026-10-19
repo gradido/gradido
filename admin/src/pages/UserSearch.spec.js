@@ -1,12 +1,12 @@
-import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import UserSearch from './UserSearch.vue'
 import { useQuery } from '@vue/apollo-composable'
+import { mount } from '@vue/test-utils'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import UserSearch from './UserSearch.vue'
 
 // Mock the composables and components
 vi.mock('@vue/apollo-composable')
 vi.mock('../composables/useCreationMonths', () => ({
-  default: () => ({
+  useCreationMonths: () => ({
     creationLabel: () => 'Creation Date',
   }),
 }))
@@ -241,7 +241,9 @@ describe('UserSearch', () => {
     const DELETED = '2026-10-13T10:00:00.000Z'
     const deepFreeze = (value) => {
       for (const part of Object.values(value)) {
-        if (part && typeof part === 'object' && !Object.isFrozen(part)) deepFreeze(part)
+        if (part && typeof part === 'object' && !Object.isFrozen(part)) {
+          deepFreeze(part)
+        }
       }
       return Object.freeze(value)
     }

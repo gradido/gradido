@@ -1,9 +1,9 @@
+import * as apolloComposable from '@vue/apollo-composable'
 import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { BButton, BCard, BCardText, BModal, BTable } from 'bootstrap-vue-next'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { adminStore } from '../../../test/adminStore'
 import ContributionLinkList from './ContributionLinkList.vue'
-import { BButton, BCard, BCardText, BModal, BTable } from 'bootstrap-vue-next'
-import * as apolloComposable from '@vue/apollo-composable'
 
 const createAdminStore = (role = 'ADMIN') => adminStore({ moderator: { role } })
 

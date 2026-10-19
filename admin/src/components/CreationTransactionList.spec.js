@@ -1,10 +1,10 @@
-import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import CreationTransactionList from './CreationTransactionList.vue'
 import { useQuery } from '@vue/apollo-composable'
-import { adminListContributionsShort } from '../graphql/adminListContributions.graphql'
+import { mount } from '@vue/test-utils'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useI18n } from 'vue-i18n'
 import { useAppToast } from '@/composables/useToast'
+import { adminListContributionsShort } from '../graphql/adminListContributions.graphql'
+import CreationTransactionList from './CreationTransactionList.vue'
 
 vi.mock('@vue/apollo-composable')
 vi.mock('vue-i18n')

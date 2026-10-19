@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { tenureBucket } from './tenure'
 
 const now = new Date('2026-07-11T10:00:00')

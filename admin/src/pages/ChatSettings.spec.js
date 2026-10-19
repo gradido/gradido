@@ -1,8 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { flushPromises, mount } from '@vue/test-utils'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import ChatSettings from './ChatSettings.vue'
 import {
   chatVideoServers,
   checkChatVideoServersNow,
@@ -10,6 +9,7 @@ import {
   deleteChatVideoServer,
   updateChatVideoServer,
 } from '@/graphql/chatVideoServers.graphql'
+import ChatSettings from './ChatSettings.vue'
 
 // Stable spies: a test has to see WHICH message was raised.
 const { toastSuccess, toastError } = vi.hoisted(() => ({
@@ -45,10 +45,18 @@ const sent = {
   check: vi.fn(),
 }
 const mutationFor = (document) => {
-  if (document === createChatVideoServer) return sent.create
-  if (document === updateChatVideoServer) return sent.update
-  if (document === deleteChatVideoServer) return sent.remove
-  if (document === checkChatVideoServersNow) return sent.check
+  if (document === createChatVideoServer) {
+    return sent.create
+  }
+  if (document === updateChatVideoServer) {
+    return sent.update
+  }
+  if (document === deleteChatVideoServer) {
+    return sent.remove
+  }
+  if (document === checkChatVideoServersNow) {
+    return sent.check
+  }
   throw new Error('the page asked for a mutation this spec does not know')
 }
 vi.mock('@vue/apollo-composable', () => ({

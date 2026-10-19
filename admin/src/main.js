@@ -4,16 +4,12 @@ import App from './App.vue'
 // without this async calls are not working
 import 'regenerator-runtime'
 
-import store, { pinia } from './store/store'
-
-import router from './router/router'
-import addNavigationGuards from './router/guards'
-
-import i18n from './i18n'
-
-import PortalVue from 'portal-vue'
-
 import { createBootstrap } from 'bootstrap-vue-next'
+import PortalVue from 'portal-vue'
+import { i18n } from './i18n'
+import { addNavigationGuards } from './router/guards'
+import { router } from './router/router'
+import { pinia, store } from './store/store'
 
 // Add the necessary CSS
 import 'bootstrap/dist/css/bootstrap.css'

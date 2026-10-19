@@ -1,5 +1,5 @@
-import { useI18n } from 'vue-i18n'
 import { useToastController } from 'bootstrap-vue-next'
+import { useI18n } from 'vue-i18n'
 
 export function useAppToast() {
   const { t } = useI18n()
@@ -26,7 +26,9 @@ export function useAppToast() {
   }
 
   const toast = (message, options = {}) => {
-    if (message.replace) message = message.replace(/^GraphQL error: /, '')
+    if (message.replace) {
+      message = message.replace(/^GraphQL error: /, '')
+    }
     options = {
       solid: true,
       toaster: 'b-toaster-top-right',

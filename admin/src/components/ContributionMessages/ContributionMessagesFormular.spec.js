@@ -1,10 +1,10 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { nextTick } from 'vue'
-import ContributionMessagesFormular from './ContributionMessagesFormular'
 import { BButton, BForm } from 'bootstrap-vue-next'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { nextTick } from 'vue'
 import { useCreaClipboard } from '@/composables/useCreaClipboard'
 import { useCreaSupplement } from '@/composables/useCreaSupplement'
+import ContributionMessagesFormular from './ContributionMessagesFormular'
 
 // Mutable so single tests can model a stale stored moderator (no alias yet).
 const { storeState } = vi.hoisted(() => ({

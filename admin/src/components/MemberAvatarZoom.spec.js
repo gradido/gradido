@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { flushPromises, mount } from '@vue/test-utils'
+import { BModal } from 'bootstrap-vue-next'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import {
@@ -10,7 +11,6 @@ import {
   memberAvatarZoomState,
   openMemberAvatarZoom,
 } from '@/composables/useMemberAvatarZoom'
-import { BModal } from 'bootstrap-vue-next'
 import MemberAvatarZoom from './MemberAvatarZoom.vue'
 
 const { mockQuery } = vi.hoisted(() => ({ mockQuery: vi.fn() }))

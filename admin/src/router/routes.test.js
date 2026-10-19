@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
-import { describe, it, expect, vi } from 'vitest'
-import routes from './routes'
+import { describe, expect, it, vi } from 'vitest'
+import { routes } from './routes'
 
 // router.test.js replaces the routes with a list of its own, so nothing there reads this file.
 vi.mock('@/pages/ChatSettings.vue', () => ({ default: { name: 'ChatSettings' } }))

@@ -1,11 +1,11 @@
-import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import { ref } from 'vue'
-import ContributionMessagesList from './ContributionMessagesList.vue'
-import MemberWalletLink from '../MemberWalletLink.vue'
 import { useApolloClient, useQuery } from '@vue/apollo-composable'
-import { useAppToast } from '@/composables/useToast'
+import { mount } from '@vue/test-utils'
 import { BContainer } from 'bootstrap-vue-next'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { ref } from 'vue'
+import { useAppToast } from '@/composables/useToast'
+import MemberWalletLink from '../MemberWalletLink.vue'
+import ContributionMessagesList from './ContributionMessagesList.vue'
 
 vi.mock('vue', async () => {
   const actual = await vi.importActual('vue')

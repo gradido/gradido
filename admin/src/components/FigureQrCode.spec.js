@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import FigureQrCode from './FigureQrCode.vue'
 import { QRCanvas } from 'qrcanvas-vue'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import FigureQrCode from './FigureQrCode.vue'
 
 // Mock QRCanvas component
 vi.mock('qrcanvas-vue', () => ({

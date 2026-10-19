@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { creationGroupLabel, creationGroupLabels, creationGroupOption } from './creationGroupLabel'
 
 // ⚠️ The admin's form differs from the wallet's on purpose: it keeps the tag, because the

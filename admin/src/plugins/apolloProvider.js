@@ -1,10 +1,10 @@
-import { ApolloClient, ApolloLink, InMemoryCache, HttpLink } from '@apollo/client/core'
+import { ApolloClient, ApolloLink, HttpLink, InMemoryCache } from '@apollo/client/core'
 import { onError } from '@apollo/client/link/error'
-import CONFIG from '../config'
-import store from '../store/store'
 import { provideApolloClient } from '@vue/apollo-composable'
 import { isSchemaMismatch, markAppOutdated } from '@/composables/useAppOutdated'
 import { redirectTo } from '@/utils/redirect'
+import CONFIG from '../config'
+import { store } from '../store/store'
 
 const httpLink = new HttpLink({ uri: CONFIG.GRAPHQL_URI })
 
@@ -34,7 +34,9 @@ const authLink = new ApolloLink((operation, forward) => {
       return response
     }
     const newToken = operation.getContext().response.headers.get('token')
-    if (newToken) store.setToken(newToken)
+    if (newToken) {
+      store.setToken(newToken)
+    }
     return response
   })
 })

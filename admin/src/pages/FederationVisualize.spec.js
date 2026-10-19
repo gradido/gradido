@@ -1,10 +1,10 @@
-import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { nextTick, ref } from 'vue'
-import FederationVisualize from './FederationVisualize.vue'
 import { useQuery } from '@vue/apollo-composable'
+import { mount } from '@vue/test-utils'
+import { BButton, BCol, BListGroup, BListGroupItem, BRow } from 'bootstrap-vue-next'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { nextTick, ref } from 'vue'
 import { useAppToast } from '@/composables/useToast'
-import { BButton, BListGroup, BRow, BCol, BListGroupItem } from 'bootstrap-vue-next'
+import FederationVisualize from './FederationVisualize.vue'
 
 vi.mock('@vue/apollo-composable')
 vi.mock('@/composables/useToast')

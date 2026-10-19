@@ -62,7 +62,9 @@ export const keepAuthToken = (token, win = window, now = Date.now()) => {
 export const onAuthTokenChange = (handle, win = window) => {
   win.addEventListener('storage', (event) => {
     // `key` null: the other window cleared all of localStorage.
-    if (event.key === AUTH_TOKEN_KEY || event.key === null) handle(readAuthToken(win))
+    if (event.key === AUTH_TOKEN_KEY || event.key === null) {
+      handle(readAuthToken(win))
+    }
   })
 }
 
@@ -106,7 +108,9 @@ export const followAuthToken = (store, win = window) => {
   onAuthTokenChange((kept) => {
     if (!kept) {
       lastSubject = null
-      if (store.token) store.logout()
+      if (store.token) {
+        store.logout()
+      }
       return
     }
     const subject = tokenSubject(kept.token)
@@ -121,7 +125,9 @@ export const followAuthToken = (store, win = window) => {
 
 /** Whether `url` lies on the origin `win` is opened on. */
 export const sharesOrigin = (url, win = window) => {
-  if (typeof url !== 'string' || url === '') return false
+  if (typeof url !== 'string' || url === '') {
+    return false
+  }
   try {
     return new URL(url, win.location.href).origin === win.location.origin
   } catch {
@@ -143,6 +149,8 @@ export const handOverAddress = (authUrl, token, win = window) =>
  * not.
  */
 export const takeHandedOverToken = (tokenInAddress, otherAppUrl, win = window) => {
-  if (sharesOrigin(otherAppUrl, win)) return readAuthToken(win)?.token ?? null
+  if (sharesOrigin(otherAppUrl, win)) {
+    return readAuthToken(win)?.token ?? null
+  }
   return typeof tokenInAddress === 'string' && tokenInAddress !== '' ? tokenInAddress : null
 }

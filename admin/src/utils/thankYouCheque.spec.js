@@ -1,9 +1,9 @@
 // AI-GENERATED — not an architecture reference
 
-import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { describe, expect, it } from 'vitest'
 
 // The drawing function has no home of its own: the wallet and the admin share no
 // package, so each of them keeps a copy. What the copies must not do is drift. A

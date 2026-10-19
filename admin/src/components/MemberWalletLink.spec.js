@@ -1,23 +1,23 @@
 // AI-GENERATED — not an architecture reference
 
-import { config, enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
-import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest'
-import { createI18n } from 'vue-i18n'
-import { adminStore } from '../../test/adminStore'
-import { useAdminStore } from '@/store/useAdminStore'
 import { DefaultApolloClient } from '@vue/apollo-composable'
-import MemberWalletLink from './MemberWalletLink.vue'
-import CONFIG from '@/config'
-import { contactRefs } from '@/graphql/contactRefs'
-import { verifyLogin } from '@/graphql/verifyLogin'
+import { config, enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createI18n } from 'vue-i18n'
 import {
+  forgetModeratorContacts,
   MODERATOR_CONTACTS_FRESH_MS,
   MODERATOR_CONTACTS_RETURN_MS,
   MODERATOR_CONTACTS_WAIT_MS,
-  forgetModeratorContacts,
 } from '@/composables/useModeratorContacts'
+import CONFIG from '@/config'
+import { contactRefs } from '@/graphql/contactRefs'
+import { verifyLogin } from '@/graphql/verifyLogin'
 import de from '@/locales/de.json'
 import en from '@/locales/en.json'
+import { useAdminStore } from '@/store/useAdminStore'
+import { adminStore } from '../../test/adminStore'
+import MemberWalletLink from './MemberWalletLink.vue'
 
 const mockToastWarning = vi.fn()
 vi.mock('@/composables/useToast', () => ({
@@ -347,8 +347,11 @@ describe('MemberWalletLink', () => {
           query: vi.fn(
             ({ query }) =>
               new Promise((resolve) => {
-                if (query === contactRefs) answer = resolve
-                else resolve({ data: { verifyLogin: {} } })
+                if (query === contactRefs) {
+                  answer = resolve
+                } else {
+                  resolve({ data: { verifyLogin: {} } })
+                }
               }),
           ),
         }
@@ -522,8 +525,11 @@ describe('MemberWalletLink', () => {
             query: vi.fn(
               ({ query }) =>
                 new Promise((resolve) => {
-                  if (query === contactRefs) answer = resolve
-                  else resolve({ data: { verifyLogin: {} } })
+                  if (query === contactRefs) {
+                    answer = resolve
+                  } else {
+                    resolve({ data: { verifyLogin: {} } })
+                  }
                 }),
             ),
           }
@@ -678,8 +684,11 @@ describe('MemberWalletLink', () => {
       let visibility
 
       const comeBack = async (told = 'focus') => {
-        if (told === 'focus') window.dispatchEvent(new Event('focus'))
-        else document.dispatchEvent(new Event('visibilitychange'))
+        if (told === 'focus') {
+          window.dispatchEvent(new Event('focus'))
+        } else {
+          document.dispatchEvent(new Event('visibilitychange'))
+        }
         await flushPromises()
       }
       const nowTheServerNames = (refs) =>

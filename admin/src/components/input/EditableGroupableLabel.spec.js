@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import EditableGroupableLabel from './EditableGroupableLabel.vue'
 import { BFormGroup, BFormInput } from 'bootstrap-vue-next'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import EditableGroupableLabel from './EditableGroupableLabel.vue'
 
 const modelValue = 'test label value'
 const label = 'Test Label'

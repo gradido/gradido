@@ -87,7 +87,9 @@ export const wrapText = (ctx, text, maxWidth, maxLines = Infinity) => {
     .trim()
     .split(' ')
     .filter(Boolean)
-  if (!words.length) return []
+  if (!words.length) {
+    return []
+  }
 
   const lines = []
   let current = ''
@@ -99,9 +101,13 @@ export const wrapText = (ctx, text, maxWidth, maxLines = Infinity) => {
     }
     lines.push(current)
     current = word
-    if (lines.length === maxLines) break
+    if (lines.length === maxLines) {
+      break
+    }
   }
-  if (lines.length < maxLines) lines.push(current)
+  if (lines.length < maxLines) {
+    lines.push(current)
+  }
 
   const truncated = lines.length === maxLines && lines.join(' ') !== words.join(' ')
   if (truncated) {
@@ -116,8 +122,10 @@ export const wrapText = (ctx, text, maxWidth, maxLines = Infinity) => {
 
 // Characters Windows rejects in file names, plus control characters. Spaces and
 // hyphens are kept on purpose so that "Dank-Scheck" keeps its hyphen.
-// eslint-disable-next-line no-control-regex
+/* eslint-disable no-control-regex */
+// biome-ignore lint/suspicious/noControlCharactersInRegex: control characters are what it removes
 const WINDOWS_FORBIDDEN = /[<>:"/\\|?*\u0000-\u001f]/g
+/* eslint-enable no-control-regex */
 const WINDOWS_RESERVED = new Set([
   'CON',
   'PRN',
@@ -150,7 +158,9 @@ export const chequeFileName = (occasion, amount, maxChars = 50) => {
   }
   name = name.replace(/[\s.]+$/, '')
 
-  if (!name || WINDOWS_RESERVED.has(name.toUpperCase())) name = 'Gradido-Scheck'
+  if (!name || WINDOWS_RESERVED.has(name.toUpperCase())) {
+    name = 'Gradido-Scheck'
+  }
   const prefix = amount ? `${amount} GDD - ` : ''
   return `${prefix}${name}.png`
 }

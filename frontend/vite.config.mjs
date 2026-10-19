@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import path from 'node:path'
 import commonjs from 'vite-plugin-commonjs'
 import vue from '@vitejs/plugin-vue'
+import vueJsx from '@vitejs/plugin-vue-jsx'
 import Components from 'unplugin-vue-components/vite'
 import Icons from 'unplugin-icons/vite'
 import IconsResolve from 'unplugin-icons/resolver'
@@ -81,6 +82,7 @@ export default defineConfig(async ({ command }) => {
     },
     plugins: [
       vue(),
+      vueJsx(),
       createHtmlPlugin({
         minify: CONFIG.PRODUCTION === true,
         inject: {

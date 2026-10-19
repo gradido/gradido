@@ -1,9 +1,9 @@
 // AI-GENERATED — not an architecture reference
 
-import { afterEach, describe, expect, it, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { printFontReady } from './printFont'
 
 // fileURLToPath is handed the string import.meta.url, never a URL object built here.
@@ -89,7 +89,9 @@ describe('printFontReady', () => {
       '600 16px "Open Sans"',
       '700 16px "Open Sans"',
     ])
-    for (const [, text] of load.mock.calls) expect(text).toBe('Сообщество www.gradido.net')
+    for (const [, text] of load.mock.calls) {
+      expect(text).toBe('Сообщество www.gradido.net')
+    }
   })
 
   // ⛔ One weight failing must not end the wait for the others. `Promise.all` gives up at the
@@ -168,8 +170,10 @@ describe('the starting-bonus cheque', () => {
               return { width: String(text).length * 10 }
             }
           }
-          if (key === 'fillText') return () => order.push({ step: 'fillText' })
-          return key in target ? target[key] : () => {}
+          if (key === 'fillText') {
+            return () => order.push({ step: 'fillText' })
+          }
+          return key in target ? target[key] : () => undefined
         },
         set: (target, key, value) => {
           target[key] = value
@@ -179,7 +183,9 @@ describe('the starting-bonus cheque', () => {
     )
     const original = document.createElement.bind(document)
     vi.spyOn(document, 'createElement').mockImplementation((tag) => {
-      if (tag !== 'canvas') return original(tag)
+      if (tag !== 'canvas') {
+        return original(tag)
+      }
       return {
         width: 0,
         height: 0,

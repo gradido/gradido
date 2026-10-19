@@ -1,14 +1,14 @@
 import { createI18n } from 'vue-i18n'
 import de from './locales/de.json'
+import el from './locales/el.json'
 import en from './locales/en.json'
 import es from './locales/es.json'
 import fr from './locales/fr.json'
-import nl from './locales/nl.json'
 import it from './locales/it.json'
-import tr from './locales/tr.json'
-import ru from './locales/ru.json'
+import nl from './locales/nl.json'
 import pt from './locales/pt.json'
-import el from './locales/el.json'
+import ru from './locales/ru.json'
+import tr from './locales/tr.json'
 
 const decimalFormat = {
   decimal: {
@@ -100,7 +100,7 @@ const datetimeFormats = {
   el: datetimeFormatDayFirst,
 }
 
-const i18n = createI18n({
+export const i18n = createI18n({
   locale: 'en',
   legacy: false,
   fallbackLocale: 'en',
@@ -108,5 +108,3 @@ const i18n = createI18n({
   numberFormats,
   datetimeFormats,
 })
-
-export default i18n

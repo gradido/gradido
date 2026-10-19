@@ -1,10 +1,10 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import ContributionMessagesListItem from './ContributionMessagesListItem.vue'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import MemberAvatar from '@/components/MemberAvatar.vue'
 import { fetchMemberAvatars, forgetAllMemberAvatars } from '@/composables/useMemberAvatars'
 import { closeMemberAvatarZoom, memberAvatarZoomState } from '@/composables/useMemberAvatarZoom'
 import { LIST_AVATAR_SIZE } from '@/constants'
+import ContributionMessagesListItem from './ContributionMessagesListItem.vue'
 
 // The avatar builds its label through `useI18n`, which needs an i18n instance this file does
 // not install.
