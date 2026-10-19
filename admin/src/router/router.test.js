@@ -7,7 +7,6 @@ const mockComponents = {
   UserSearch: { name: 'UserSearch' },
   CreationConfirm: { name: 'CreationConfirm' },
   ContributionLinks: { name: 'ContributionLinks' },
-  CommunityStatistic: { name: 'CommunityStatistic' },
   FederationVisualize: { name: 'FederationVisualize' },
 }
 
@@ -21,7 +20,6 @@ vi.mock('./routes', () => ({
       path: '/contribution-links',
       component: () => Promise.resolve(mockComponents.ContributionLinks),
     },
-    { path: '/statistic', component: () => Promise.resolve(mockComponents.CommunityStatistic) },
     { path: '/federation', component: () => Promise.resolve(mockComponents.FederationVisualize) },
     { path: '/:pathMatch(.*)*', component: () => Promise.resolve(mockComponents.notFound) },
   ],
@@ -89,8 +87,8 @@ describe('Router', () => {
         routes = createRouter.mock.calls[0][0].routes
       })
 
-      it('has eight routes defined', () => {
-        expect(routes).toHaveLength(8)
+      it('has seven routes defined', () => {
+        expect(routes).toHaveLength(7)
       })
 
       it('has "/" as default', async () => {
@@ -116,11 +114,6 @@ describe('Router', () => {
       it('loads the "ContributionLinks" page for contribution-links', async () => {
         const component = await routes.find((r) => r.path === '/contribution-links').component()
         expect(component.name).toBe('ContributionLinks')
-      })
-
-      it('loads the "CommunityStatistic" page for statistics', async () => {
-        const component = await routes.find((r) => r.path === '/statistic').component()
-        expect(component.name).toBe('CommunityStatistic')
       })
 
       it('loads the "FederationVisualize" page for federation', async () => {

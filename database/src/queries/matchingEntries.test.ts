@@ -3,7 +3,17 @@ import { eq, inArray } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import { AppDatabase, DrizzleTransaction, drizzleDb } from '../AppDatabase'
 import { matchingEntriesTable, usersTable } from '../schemas'
+import { createCommunity } from '../seeds/community'
+import { userFactory } from '../seeds/factory/user'
+import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
+import { bobBaumeister } from '../seeds/users/bob-baumeister'
+import { peterLustig } from '../seeds/users/peter-lustig'
+import { raeuberHotzenplotz } from '../seeds/users/raeuber-hotzenplotz'
+import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 import {
+  dbCountActiveMatchingEntries,
+  dbCountMatchingEntriesByType,
+  dbCountMembersWithActiveEntry,
   dbDeleteMatchingEntryByUuid,
   dbInsertMatchingEntry,
   dbSelectActiveMatchingEntriesByUserIds,
@@ -16,6 +26,7 @@ import {
   dbWriteMatchingEntryKeying,
   type MatchingEntryKeying,
 } from './matchingEntries'
+import { dbUserUpdateField } from './user'
 
 const appDB = AppDatabase.getInstance()
 let db: MySql2Database
@@ -737,5 +748,80 @@ describe('the keying of a matching entry', () => {
       const pending = await dbSelectMatchingEntriesNeedingKeying('gms176-1', 1)
       expect(pending.map((row) => row.entry.uuid)).toEqual(['uuid-key-1'])
     })
+  })
+})
+
+// The counts of the admin's start page. Every entry is written with its moment, and every
+// moment is days away from one `now` -- far enough from the moments the counts start at that
+// the seconds a test runs change nothing.
+describe('the counts of the figures page', () => {
+  const now = Date.now()
+  const daysAgo = (days: number): Date => new Date(now - days * 24 * 60 * 60 * 1000)
+
+  const write = async (
+    uuid: string,
+    userId: number,
+    matchingType: string,
+    days: number,
+    active = true,
+  ) => {
+    const written = await dbInsertMatchingEntry({
+      uuid,
+      userId,
+      matchingType,
+      summary: `Eintrag ${uuid}`,
+      details: null,
+      remote: false,
+      active,
+      createdAt: daysAgo(days),
+    })
+    if (!written.success) {
+      throw written.error
+    }
+  }
+
+  beforeAll(async () => {
+    await dbDeleteAllRowsExceptMigrations()
+    const homeCom = await createCommunity(false)
+    const bibi = await userFactory(bibiBloxberg, homeCom)
+    const peter = await userFactory(peterLustig, homeCom)
+    const raeuber = await userFactory(raeuberHotzenplotz, homeCom)
+    const bob = await userFactory(bobBaumeister, homeCom)
+    await dbUserUpdateField(bob.id, 'deletedAt', daysAgo(1))
+    // Bibi: a love yesterday and an offer ten days ago, both live, and a need she paused.
+    await write('figures-1', bibi.id, 'interest', 1)
+    await write('figures-2', bibi.id, 'offer', 10)
+    await write('figures-3', bibi.id, 'need', 40, false)
+    // Peter: a love long ago, live. Räuber: one need, paused -- his only entry.
+    await write('figures-4', peter.id, 'interest', 40)
+    await write('figures-5', raeuber.id, 'need', 2, false)
+    // Bob wrote an offer yesterday and deleted his account since.
+    await write('figures-6', bob.id, 'offer', 1)
+  })
+
+  it('counts the entries written of each kind, once from each moment on', async () => {
+    expect(await dbCountMatchingEntriesByType([daysAgo(5), daysAgo(20), null])).toEqual({
+      interest: [1, 1, 2],
+      offer: [1, 2, 2],
+      need: [1, 1, 2],
+    })
+  })
+
+  it('counts the live entries: not paused, of an account not deleted', async () => {
+    // Bibi's love and offer, Peter's love.
+    expect(await dbCountActiveMatchingEntries()).toBe(3)
+  })
+
+  it('counts each member with a live entry once', async () => {
+    // Bibi and Peter; not Räuber, whose one entry is paused, nor Bob, who deleted his account.
+    expect(await dbCountMembersWithActiveEntry()).toBe(2)
+  })
+
+  // Last: it takes entries away.
+  it('leaves out a kind nobody wrote, and refuses to count without a moment', async () => {
+    await dbDeleteMatchingEntryByUuid('figures-3')
+    await dbDeleteMatchingEntryByUuid('figures-5')
+    expect(await dbCountMatchingEntriesByType([null])).toEqual({ interest: [2], offer: [2] })
+    await expect(dbCountMatchingEntriesByType([])).rejects.toThrow()
   })
 })

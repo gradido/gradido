@@ -6,12 +6,14 @@ import { v4 as uuidv4 } from 'uuid'
 import { drizzleDb } from '../AppDatabase'
 import { DBNotFoundError } from '../errorTypes'
 import {
+  ChatConversationKind,
   ChatConversationSelect,
   chatConversationMembersTable,
   chatConversationsTable,
   chatMessagesTable,
 } from '../schemas/drizzle.schema'
 import { ChatMemberRef, dbInsertChatConversationMembers } from './chatConversationMembers'
+import { countFields, countsOfRow, rowsFrom } from './figureCounts'
 import { dbSelectUsersByUuids } from './user'
 
 const ChatGroupNotFound = (where: string) => new DBNotFoundError('chat_conversations', where)
@@ -321,4 +323,21 @@ export async function dbSelectChatGroupsByMember(member: ChatMemberRef) {
   const lastActivity = (group: (typeof groups)[number]) =>
     (group.lastMessageAt ?? group.createdAt).getTime()
   return groups.sort((a, b) => lastActivity(b) - lastActivity(a) || b.id - a.id)
+}
+
+/**
+ * How many conversations of one kind were opened, from each moment on -- one number per moment,
+ * in one statement (the figures of the admin's start page, figureCounts.ts). A direct
+ * conversation opens with the first message two members exchange (dbEnsureDirectChatConversation),
+ * a group when it is founded.
+ */
+export async function dbCountChatConversationsOfKind(
+  kind: ChatConversationKind,
+  froms: (Date | null)[],
+): Promise<number[]> {
+  const [row] = await drizzleDb()
+    .select(countFields(froms, rowsFrom(chatConversationsTable.createdAt)))
+    .from(chatConversationsTable)
+    .where(eq(chatConversationsTable.kind, kind))
+  return countsOfRow(row, froms)
 }

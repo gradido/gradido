@@ -241,9 +241,15 @@ async function healSubmitted(
       const moved = await dbUpdateFirstCreationOutcome(row.id, FirstCreationStatus.SUBMITTED, {
         status: FirstCreationStatus.DONE,
       })
-      return moved.success
-        ? { ...row, status: FirstCreationStatus.DONE }
-        : ((await dbSelectFirstCreationByUserId(user.id)) ?? row)
+      if (!moved.success) {
+        return (await dbSelectFirstCreationByUserId(user.id)) ?? row
+      }
+      // Done when its last contribution was confirmed, as the process would have noted it then.
+      const doneAt = new Date(
+        Math.max(...entries.map((entry) => entry.confirmedAt?.getTime() ?? 0)),
+      )
+      await noteHealedDone(user, row, doneAt)
+      return { ...row, status: FirstCreationStatus.DONE }
     }
     logger.warn(`first creation ${row.id} of user ${user.id} stale in SUBMITTED, handing to review`)
     const signer = await loadSignerFor(user.id)
@@ -260,6 +266,35 @@ async function healSubmitted(
     return (await dbSelectFirstCreationByUserId(user.id)) ?? row
   } finally {
     await releaseQuietly(mutex, user.id)
+  }
+}
+
+/**
+ * The outcome event of a bundle that was booked and thanked while its process died before the
+ * row moved on: the line the process writes itself (FIRST_CREATION_DONE -- the member affected,
+ * the signer acting, the first contribution), so that the healed bundle counts as done on the
+ * figures page -- dated `doneAt`, when it was done, not when the next status read found it. The
+ * row forgets its signer while it is SUBMITTED, so the one configured now is named; without one
+ * there is nobody to name and no line, as settleInReview writes none. A line that fails is
+ * logged, and the healed row stands.
+ */
+async function noteHealedDone(user: DbUser, row: FirstCreationSelect, doneAt: Date): Promise<void> {
+  try {
+    const signer = await loadSignerFor(user.id)
+    const first = row.contributionIds[0]
+    if (!signer.success || first === undefined) {
+      logger.warn(`first creation ${row.id}: healed to DONE with no signer to name, no event`)
+      return
+    }
+    await dbInsertEvent({
+      type: EventType.FIRST_CREATION_DONE,
+      affectedUserId: user.id,
+      actingUserId: signer.value.user.id,
+      involvedContributionId: first,
+      createdAt: doneAt,
+    })
+  } catch (error) {
+    logger.error(`first creation ${row.id}: outcome event of the healing failed`, error)
   }
 }
 

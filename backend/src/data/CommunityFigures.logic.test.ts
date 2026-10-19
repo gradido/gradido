@@ -14,20 +14,35 @@ const mockEventType = {
   FIRST_CREATION_DONE: 'FIRST_CREATION_DONE',
   FIRST_CREATION_SKIP: 'FIRST_CREATION_SKIP',
   FIRST_CREATION_REVIEW: 'FIRST_CREATION_REVIEW',
+  CHAT_HELLO_SEND: 'CHAT_HELLO_SEND',
+  CHAT_VIDEO_ROOM_CREATE: 'CHAT_VIDEO_ROOM_CREATE',
 }
+// The booking types the figures ask for, with the numbers the enum gives them.
+const mockTransactionTypeId = { CREATION: 1, SEND: 2 }
 const mockDatabase = {
   EventType: mockEventType,
+  TransactionTypeId: mockTransactionTypeId,
+  dbCountActiveMatchingEntries: jest.fn(),
+  dbCountAndSumTransactionsOfType: jest.fn(),
+  dbCountChatConversationsOfKind: jest.fn(),
   dbCountDistinctActingUsersOfType: jest.fn(),
   dbCountDistinctAffectedUsersOfType: jest.fn(),
   dbCountEventsOfTypes: jest.fn(),
   dbCountFirstCreationMembers: jest.fn(),
+  dbCountMatchingEntriesByType: jest.fn(),
+  dbCountMembersWithActiveEntry: jest.fn(),
   dbCountRegisterEventsWithReferrer: jest.fn(),
   dbCountReturningMembers: jest.fn(),
   dbCountUsers: jest.fn(),
   dbCountUsersDeleted: jest.fn(),
+  dbCountUsersFindable: jest.fn(),
+  dbCountUsersWithHome: jest.fn(),
 }
+// The GMS's number of members on the map, as the process holds it.
+const mockMapMemberCount = { known: jest.fn() }
 
 jest.mock('database', () => mockDatabase)
+jest.mock('@/apis/gms/mapMemberCount', () => ({ mapMemberCount: mockMapMemberCount }))
 
 type CommunityFiguresModule = typeof import('./CommunityFigures.logic')
 let countCommunityFigures: CommunityFiguresModule['countCommunityFigures']
@@ -50,6 +65,8 @@ const byTypes: Record<string, number[]> = {
   USER_REGISTER_REDEEM: [31, 32, 33],
   GUARANTOR_CODE_SHOW: [61, 62, 63],
   EVENT_MATCHING_ENTRY_NOTE: [141, 142, 143],
+  CHAT_HELLO_SEND: [151, 152, 153],
+  CHAT_VIDEO_ROOM_CREATE: [161, 162, 163],
 }
 const membersByType: Record<string, number[]> = {
   USER_LOGIN: [81, 82, 83],
@@ -59,26 +76,47 @@ const firstCreationsByType: Record<string, number[]> = {
   FIRST_CREATION_SKIP: [121, 122, 123],
   FIRST_CREATION_REVIEW: [131, 132, 133],
 }
+const bookingsByType: Record<number, { counts: number[]; gdd: number[] }> = {
+  2: { counts: [171, 172, 173], gdd: [181, 182, 183] },
+  1: { counts: [191, 192, 193], gdd: [201, 202, 203] },
+}
+const conversationsByKind: Record<string, number[]> = {
+  direct: [281, 282, 283],
+  group: [291, 292, 293],
+}
+
+// What each count answers, by its name: every one with numbers of its own.
+const answers: Record<string, (...args: never[]) => Promise<unknown>> = {
+  dbCountEventsOfTypes: async (types: string[]) => byTypes[types.join(',')],
+  dbCountRegisterEventsWithReferrer: async () => [41, 42, 43],
+  dbCountDistinctActingUsersOfType: async (type: string) =>
+    type === 'USER_REGISTER_GUARANTOR' ? [51, 52, 53] : undefined,
+  dbCountReturningMembers: async () => 71,
+  dbCountDistinctAffectedUsersOfType: async (type: string) => membersByType[type],
+  dbCountFirstCreationMembers: async (type: string) => firstCreationsByType[type],
+  dbCountUsersDeleted: async () => [91, 92, 93],
+  dbCountUsers: async () => 101,
+  dbCountAndSumTransactionsOfType: async (typeId: number) => bookingsByType[typeId],
+  dbCountUsersWithHome: async () => 211,
+  dbCountUsersFindable: async () => 221,
+  // Nobody wrote a need: the answer has no line for it.
+  dbCountMatchingEntriesByType: async () => ({
+    interest: [231, 232, 233],
+    offer: [241, 242, 243],
+  }),
+  dbCountActiveMatchingEntries: async () => 251,
+  dbCountMembersWithActiveEntry: async () => 261,
+  dbCountChatConversationsOfKind: async (kind: string) => conversationsByKind[kind],
+}
+const countsOf = mockDatabase as unknown as Record<string, jest.Mock>
 
 // reset, not only clear: an answer a test left unused must not answer in the next one
 beforeEach(() => {
   jest.resetAllMocks()
-  mockDatabase.dbCountEventsOfTypes.mockImplementation(
-    async (types: string[]) => byTypes[types.join(',')],
-  )
-  mockDatabase.dbCountRegisterEventsWithReferrer.mockResolvedValue([41, 42, 43])
-  mockDatabase.dbCountDistinctActingUsersOfType.mockImplementation(async (type: string) =>
-    type === 'USER_REGISTER_GUARANTOR' ? [51, 52, 53] : undefined,
-  )
-  mockDatabase.dbCountReturningMembers.mockResolvedValue(71)
-  mockDatabase.dbCountDistinctAffectedUsersOfType.mockImplementation(
-    async (type: string) => membersByType[type],
-  )
-  mockDatabase.dbCountFirstCreationMembers.mockImplementation(
-    async (type: string) => firstCreationsByType[type],
-  )
-  mockDatabase.dbCountUsersDeleted.mockResolvedValue([91, 92, 93])
-  mockDatabase.dbCountUsers.mockResolvedValue(101)
+  for (const [name, answer] of Object.entries(answers)) {
+    countsOf[name].mockImplementation(answer)
+  }
+  mockMapMemberCount.known.mockReturnValue(271)
 })
 
 describe('countCommunityFigures', () => {
@@ -98,6 +136,23 @@ describe('countCommunityFigures', () => {
       { key: 'firstCreationsDone', since: 111, week: 112, total: 113 },
       { key: 'firstCreationsSkipped', since: 121, week: 122, total: 123 },
       { key: 'firstCreationsReview', since: 131, week: 132, total: 133 },
+      { key: 'transfersSent', since: 171, week: 172, total: 173 },
+      { key: 'gddSent', since: 181, week: 182, total: 183 },
+      { key: 'creationsBooked', since: 191, week: 192, total: 193 },
+      { key: 'gddCreated', since: 201, week: 202, total: 203 },
+      { key: 'homesSet', since: null, week: null, total: 211 },
+      { key: 'findableOnMap', since: null, week: null, total: 221 },
+      { key: 'entriesInterest', since: 231, week: 232, total: 233 },
+      { key: 'entriesOffer', since: 241, week: 242, total: 243 },
+      // A kind nobody wrote: none of it, in every column.
+      { key: 'entriesNeed', since: 0, week: 0, total: 0 },
+      { key: 'entriesActive', since: null, week: null, total: 251 },
+      { key: 'membersWithEntry', since: null, week: null, total: 261 },
+      { key: 'membersOnMap', since: null, week: null, total: 271 },
+      { key: 'conversationsNew', since: 281, week: 282, total: 283 },
+      { key: 'groupsNew', since: 291, week: 292, total: 293 },
+      { key: 'hellosFromMap', since: 151, week: 152, total: 153 },
+      { key: 'videoRoomsCreated', since: 161, week: 162, total: 163 },
     ])
   })
 
@@ -111,6 +166,8 @@ describe('countCommunityFigures', () => {
       ['USER_REGISTER_REDEEM'],
       ['GUARANTOR_CODE_SHOW'],
       ['EVENT_MATCHING_ENTRY_NOTE'],
+      ['CHAT_HELLO_SEND'],
+      ['CHAT_VIDEO_ROOM_CREATE'],
     ]) {
       expect(mockDatabase.dbCountEventsOfTypes).toHaveBeenCalledWith(types, everyColumn)
     }
@@ -123,6 +180,86 @@ describe('countCommunityFigures', () => {
     for (const type of ['FIRST_CREATION_DONE', 'FIRST_CREATION_SKIP', 'FIRST_CREATION_REVIEW']) {
       expect(mockDatabase.dbCountFirstCreationMembers).toHaveBeenCalledWith(type, everyColumn)
     }
+    expect(mockDatabase.dbCountChatConversationsOfKind).toHaveBeenCalledWith('direct', everyColumn)
+    expect(mockDatabase.dbCountChatConversationsOfKind).toHaveBeenCalledWith('group', everyColumn)
+  })
+
+  it('asks a count that fills several rows once, not once per row', async () => {
+    await countCommunityFigures(SINCE, NOW)
+
+    const everyColumn = [SINCE, WEEK, null]
+    // The SEND rows and the creations, each once for its number and its Gradido.
+    expect(mockDatabase.dbCountAndSumTransactionsOfType).toHaveBeenCalledTimes(2)
+    expect(mockDatabase.dbCountAndSumTransactionsOfType).toHaveBeenCalledWith(2, everyColumn)
+    expect(mockDatabase.dbCountAndSumTransactionsOfType).toHaveBeenCalledWith(1, everyColumn)
+    // The three kinds of entry in one count.
+    expect(mockDatabase.dbCountMatchingEntriesByType).toHaveBeenCalledTimes(1)
+    expect(mockDatabase.dbCountMatchingEntriesByType).toHaveBeenCalledWith(everyColumn)
+  })
+
+  it('asks four counts at a time, not all at once, and answers in the order of the page', async () => {
+    // Every count waits a moment for its answer, as a statement does -- the early ones longest,
+    // so that the answers come in another order than the counts were asked.
+    let asked = 0
+    let asking = 0
+    let mostAtOnce = 0
+    for (const [name, answer] of Object.entries(answers)) {
+      countsOf[name].mockImplementation(async (...args: never[]) => {
+        const wait = Math.max(1, 30 - asked++)
+        asking++
+        mostAtOnce = Math.max(mostAtOnce, asking)
+        await new Promise((resolve) => setTimeout(resolve, wait))
+        asking--
+        return answer(...args)
+      })
+    }
+
+    const rows = await countCommunityFigures(SINCE, NOW)
+
+    expect(mostAtOnce).toBe(4)
+    expect(rows.map((row) => row.key)).toEqual([
+      'accountsNew',
+      'accountsViaTableCode',
+      'accountsViaLink',
+      'accountsViaAddress',
+      'accountsViaEvent',
+      'hostsWithGuest',
+      'codesShown',
+      'returners',
+      'activeAccounts',
+      'accountsDeleted',
+      'accountsTotal',
+      'firstCreationsDone',
+      'firstCreationsSkipped',
+      'firstCreationsReview',
+      'transfersSent',
+      'gddSent',
+      'creationsBooked',
+      'gddCreated',
+      'homesSet',
+      'findableOnMap',
+      'entriesInterest',
+      'entriesOffer',
+      'entriesNeed',
+      'entriesActive',
+      'membersWithEntry',
+      'membersOnMap',
+      'conversationsNew',
+      'groupsNew',
+      'hellosFromMap',
+      'videoRoomsCreated',
+    ])
+  })
+
+  it('leaves the members on the map open while the GMS has said no number', async () => {
+    mockMapMemberCount.known.mockReturnValue(null)
+
+    expect(await countCommunityFigures(SINCE, NOW)).toContainEqual({
+      key: 'membersOnMap',
+      since: null,
+      week: null,
+      total: null,
+    })
   })
 
   it('counts the active accounts of the last thirty days as their "all of it"', async () => {

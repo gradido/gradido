@@ -171,7 +171,6 @@ const page = (name, to, label, title) => ({ to, label, title, active: isActive(n
 const groups = computed(() => {
   const information = [
     ...(isAdmin.value ? [page('federation', '/federation', t('navbar.instances'))] : []),
-    page('statistic', '/statistic', t('navbar.statistic')),
     { href: HELP_URL, label: t('help.help'), active: false },
   ]
   const settings = [

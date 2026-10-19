@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNotNull, isNull, ne, sql } from 'drizzle-orm'
+import { and, eq, gte, inArray, isNotNull, isNull, ne, SQL, sql } from 'drizzle-orm'
 import { ContactOrigin, GradidoUnit, isAliasEraName, Order, Result, VoidResult } from 'shared'
 import { FindOptionsWhere, In, IsNull } from 'typeorm'
 import { drizzleDb } from '../AppDatabase'
@@ -8,6 +8,7 @@ import { DBNotFoundError } from '../errorTypes'
 import { transactionsTable, usersTable } from '../schemas'
 import { ChatMemberRef } from './chatConversationMembers'
 import { dbSelectDirectChatContactsByMember } from './chatConversations'
+import { countFields, countsOfRow, rowsFrom } from './figureCounts'
 import { dbSelectReferralContactsByUserId, ReferralContact } from './user'
 
 export const getLastTransaction = async (
@@ -646,4 +647,35 @@ export async function dbSelectContactsByUserId(
     contacts: matching.slice(options.offset, options.offset + options.limit),
     count: matching.length,
   }
+}
+
+/**
+ * How many bookings of one type there were, and how many Gradido they moved, from each moment on
+ * by their booking time (`balance_date`) -- both in one statement, one number per moment (the
+ * figures of the admin's start page, figureCounts.ts). `creation_date` is not asked: for a
+ * creation it is the month created for, not the moment it was booked.
+ *
+ * The Gradido in whole ones, rounded: the column holds ten thousandths. Added without their sign,
+ * because a SEND row carries the amount as the sender's loss. A transfer within this community is
+ * two rows, SEND and RECEIVE; ask for one side to count it once.
+ */
+export async function dbCountAndSumTransactionsOfType(
+  typeId: TransactionTypeId,
+  froms: (Date | null)[],
+): Promise<{ counts: number[]; gdd: number[] }> {
+  const amount = sql`abs(${transactionsTable.amount})`
+  const gddFrom = (from: Date | null): SQL<number> =>
+    sql<number>`round(sum(${
+      from === null
+        ? amount
+        : sql`case when ${gte(transactionsTable.balanceDate, from)} then ${amount} end`
+    }) / 10000)`.mapWith(Number)
+  const [row] = await drizzleDb()
+    .select({
+      counts: countFields(froms, rowsFrom(transactionsTable.balanceDate)),
+      gdd: countFields(froms, gddFrom),
+    })
+    .from(transactionsTable)
+    .where(eq(transactionsTable.typeId, typeId))
+  return { counts: countsOfRow(row?.counts, froms), gdd: countsOfRow(row?.gdd, froms) }
 }

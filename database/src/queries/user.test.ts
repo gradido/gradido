@@ -17,7 +17,9 @@ import { foreignReceive, transferGradidos } from '../seeds/factory/transaction'
 import { userFactory } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '../seeds/users/bob-baumeister'
+import { garrickOllivander } from '../seeds/users/garrick-ollivander'
 import { peterLustig } from '../seeds/users/peter-lustig'
+import { raeuberHotzenplotz } from '../seeds/users/raeuber-hotzenplotz'
 import { stephenHawking } from '../seeds/users/stephen-hawking'
 import { dbInsertEvent } from './events'
 import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
@@ -28,6 +30,8 @@ import {
   dbCountUnconfirmedVouchedAccounts,
   dbCountUsers,
   dbCountUsersDeleted,
+  dbCountUsersFindable,
+  dbCountUsersWithHome,
   dbFindGmsAllowedLocalUserIds,
   dbFindLatestArrival,
   dbFindReferrerAlias,
@@ -1521,6 +1525,56 @@ describe('user.queries', () => {
 
     it('refuses to count without a moment', async () => {
       await expect(dbCountUsersDeleted([])).rejects.toThrow()
+    })
+  })
+
+  describe('dbCountUsersWithHome and dbCountUsersFindable', () => {
+    const PEER = '66666666-6666-4666-8666-666666666666'
+    /** A home as the column holds it: GeoJSON, longitude first. */
+    const home = (longitude: number, latitude: number) => ({
+      type: 'Point' as const,
+      coordinates: [longitude, latitude],
+    })
+
+    beforeAll(async () => {
+      await dbDeleteAllRowsExceptMigrations()
+      const homeCom = await createCommunity(false)
+      // Bibi lives in Berlin and can be found; Peter lives in London, west of the meridian,
+      // and cannot.
+      const bibi = await userFactory(bibiBloxberg, homeCom)
+      await dbUserUpdateField(bibi.id, 'location', home(13.405, 52.52))
+      await dbUserUpdateField(bibi.id, 'gmsAllowed', true)
+      const peter = await userFactory(peterLustig, homeCom)
+      await dbUserUpdateField(peter.id, 'location', home(-0.1276, 51.5072))
+      // Bob allows being found and has set no home.
+      const bob = await userFactory(bobBaumeister, homeCom)
+      await dbUserUpdateField(bob.id, 'gmsAllowed', true)
+      // Two points no map can draw, written before the rule on the way in: a latitude of 91
+      // and a longitude of 190. Neither is a home.
+      const raeuber = await userFactory(raeuberHotzenplotz, homeCom)
+      await dbUserUpdateField(raeuber.id, 'location', home(10, 91))
+      await dbUserUpdateField(raeuber.id, 'gmsAllowed', true)
+      const garrick = await userFactory(garrickOllivander, homeCom)
+      await dbUserUpdateField(garrick.id, 'location', home(190, 10))
+      // A deleted account (the seed says so) and a member of another community, both with a
+      // home and findable: nobody's account here.
+      const stephen = await userFactory(stephenHawking, homeCom)
+      await dbUserUpdateField(stephen.id, 'location', home(0.1218, 52.2053))
+      await dbUserUpdateField(stephen.id, 'gmsAllowed', true)
+      const foreign = await dbInsertForeignUser({ communityUuid: PEER, gradidoId: v4() })
+      if (!foreign.success) {
+        throw foreign.error
+      }
+      await dbUserUpdateField(foreign.value, 'location', home(2.3522, 48.8566))
+      await dbUserUpdateField(foreign.value, 'gmsAllowed', true)
+    })
+
+    it('counts the accounts of this community with a home the map can draw', async () => {
+      expect(await dbCountUsersWithHome()).toBe(2)
+    })
+
+    it('counts the accounts that allow being found and have such a home', async () => {
+      expect(await dbCountUsersFindable()).toBe(1)
     })
   })
 })
