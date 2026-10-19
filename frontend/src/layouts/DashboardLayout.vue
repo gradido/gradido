@@ -742,8 +742,7 @@ const admin = () => {
     window.close()
     return
   }
-  const address = handOverAddress(CONFIG.ADMIN_AUTH_URL, store.state.token)
-  window.location.assign(address)
+  window.location.assign(handOverAddress(CONFIG.ADMIN_AUTH_URL, store.state.token))
   // Signed out only where the admin interface is on another origin (development), as it always
   // was: there the token went along in the address. On one origin both apps hold the one token
   // (utils/authToken.js), and signing out here would sign the admin interface out as well.
