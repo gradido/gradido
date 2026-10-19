@@ -401,7 +401,13 @@ describe('the errors in the request log', () => {
 
 /** What the request log writes at level trace when it sends the answer of a request. */
 const answerTraced = async (context: Record<string, unknown>, data: unknown): Promise<string> => {
-  const logger = { debug: jest.fn(), info: jest.fn(), trace: jest.fn(), error: jest.fn() }
+  const logger = {
+    debug: jest.fn(),
+    info: jest.fn(),
+    trace: jest.fn(),
+    error: jest.fn(),
+    isTraceEnabled: () => true,
+  }
   const hooks = await logPlugin.requestDidStart({
     logger,
     request: { query: 'query { x }', variables: {}, operationName: null },
@@ -510,5 +516,34 @@ describe('the answer in the request log', () => {
       { contactList: { contactCount: 3 } },
     )
     expect(traced).toContain('"contactCount": 3')
+  })
+
+  it('is not even formatted while level trace is off', async () => {
+    const logger = {
+      debug: jest.fn(),
+      info: jest.fn(),
+      trace: jest.fn(),
+      error: jest.fn(),
+      isTraceEnabled: () => false,
+    }
+    const hooks = await logPlugin.requestDidStart({
+      logger,
+      request: { query: 'query { x }', variables: {}, operationName: null },
+    })
+    const stringify = jest.spyOn(JSON, 'stringify')
+    try {
+      await hooks.willSendResponse({
+        contextValue: { requestBudget: newRequestBudget() },
+        response: {
+          body: { kind: 'single', singleResult: { data: { contactList: { contactCount: 3 } } } },
+        },
+      })
+      expect(stringify).not.toHaveBeenCalled()
+      expect(logger.trace).not.toHaveBeenCalled()
+      // The rest of the log goes on as before.
+      expect(logger.info).toHaveBeenCalledWith('Response Success!')
+    } finally {
+      stringify.mockRestore()
+    }
   })
 })

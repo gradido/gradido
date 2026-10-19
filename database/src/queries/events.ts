@@ -1,5 +1,6 @@
 import {
   and,
+  count,
   countDistinct,
   eq,
   exists,
@@ -20,7 +21,7 @@ import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
 import { ContributionLink as DbContributionLink, Event as DbEvent, User as DbUser } from '../entity'
 import { EventType } from '../enum/EventType'
 import { EventInsert, eventsTable, usersTable } from '../schemas'
-import { countFields, countsOfRow, rowsFrom } from './figureCounts'
+import { countFields, countsOfRow, rowsFrom, WeeklyCount, weekStartOf } from './figureCounts'
 
 export async function findModeratorCreatingContributionLink(
   contributionLink: DbContributionLink,
@@ -167,6 +168,26 @@ export async function dbCountDistinctActingUsersOfType(
 }
 
 /**
+ * The event is no outcome of an administrator's function test (ES-014): no `FIRST_CREATION_TEST`
+ * of the same member was written before it, or at its moment.
+ */
+function outsideFunctionTests(): SQL {
+  const test = aliasedTable(eventsTable, 'function_test')
+  return notExists(
+    drizzleDb()
+      .select({ id: test.id })
+      .from(test)
+      .where(
+        and(
+          eq(test.type, EventType.FIRST_CREATION_TEST),
+          eq(test.affectedUserId, eventsTable.affectedUserId),
+          lte(test.createdAt, eventsTable.createdAt),
+        ),
+      ),
+  )
+}
+
+/**
  * How many members an outcome of their first creation concerns (`FIRST_CREATION_DONE`, `_SKIP`,
  * `_REVIEW`), each once, from each moment on -- without an administrator's function tests
  * (ES-014): an outcome written after the member's `FIRST_CREATION_TEST` belongs to a test run.
@@ -176,29 +197,18 @@ export async function dbCountFirstCreationMembers(
   type: EventType,
   froms: (Date | null)[],
 ): Promise<number[]> {
-  const test = aliasedTable(eventsTable, 'function_test')
   const [row] = await drizzleDb()
     .select(countFields(froms, membersFrom(eventsTable.affectedUserId)))
     .from(eventsTable)
-    .where(
-      and(
-        eq(eventsTable.type, type),
-        notExists(
-          drizzleDb()
-            .select({ id: test.id })
-            .from(test)
-            .where(
-              and(
-                eq(test.type, EventType.FIRST_CREATION_TEST),
-                eq(test.affectedUserId, eventsTable.affectedUserId),
-                lte(test.createdAt, eventsTable.createdAt),
-              ),
-            ),
-        ),
-      ),
-    )
+    .where(and(eq(eventsTable.type, type), outsideFunctionTests()))
   return countsOfRow(row, froms)
 }
+
+/** A plain registration of an account that names a referrer -- with the account joined. */
+const registeredWithReferrer = and(
+  eq(eventsTable.type, EventType.USER_REGISTER),
+  isNotNull(usersTable.referrerId),
+)
 
 /**
  * How many accounts were registered the plain way by somebody who brought them along: the
@@ -213,7 +223,7 @@ export async function dbCountRegisterEventsWithReferrer(froms: (Date | null)[]):
     .select(countFields(froms, eventsFrom))
     .from(eventsTable)
     .innerJoin(usersTable, eq(usersTable.id, eventsTable.affectedUserId))
-    .where(and(eq(eventsTable.type, EventType.USER_REGISTER), isNotNull(usersTable.referrerId)))
+    .where(registeredWithReferrer)
   return countsOfRow(row, froms)
 }
 
@@ -266,4 +276,76 @@ export async function dbCountReturningMembers(since: Date, quietDays = 90): Prom
       ),
     )
   return row?.members ?? 0
+}
+
+// The same counts by calendar week, for the series below the table (figureCounts.ts): one
+// statement each, grouped by the Monday of the week an event was written in, from `from` on --
+// the Monday of the first week, so that it counts whole. A week without an event is not in the
+// answer.
+
+/** The Monday of the week an event was written in. */
+const eventWeek = weekStartOf(eventsTable.createdAt)
+
+/** How many events of these types were written, in each week from `from` on. */
+export async function dbCountEventsOfTypesByWeek(
+  types: EventType[],
+  from: Date,
+): Promise<WeeklyCount[]> {
+  if (types.length === 0) {
+    throw new Error('dbCountEventsOfTypesByWeek needs at least one event type')
+  }
+  return drizzleDb()
+    .select({ weekStart: eventWeek, n: count() })
+    .from(eventsTable)
+    .where(and(inArray(eventsTable.type, types), gte(eventsTable.createdAt, from)))
+    .groupBy(eventWeek)
+    .orderBy(eventWeek)
+}
+
+/**
+ * How many members events of this type concern (`affected`) or were written by (`acting`), each
+ * once in a week, in each week from `from` on. A member of two weeks counts in both.
+ */
+export async function dbCountDistinctUsersOfTypeByWeek(
+  type: EventType,
+  column: 'affected' | 'acting',
+  from: Date,
+): Promise<WeeklyCount[]> {
+  const member = column === 'affected' ? eventsTable.affectedUserId : eventsTable.actingUserId
+  return drizzleDb()
+    .select({ weekStart: eventWeek, n: countDistinct(member) })
+    .from(eventsTable)
+    .where(and(eq(eventsTable.type, type), gte(eventsTable.createdAt, from)))
+    .groupBy(eventWeek)
+    .orderBy(eventWeek)
+}
+
+/** dbCountRegisterEventsWithReferrer by week: in each week from `from` on. */
+export async function dbCountRegisterEventsWithReferrerByWeek(from: Date): Promise<WeeklyCount[]> {
+  return drizzleDb()
+    .select({ weekStart: eventWeek, n: count() })
+    .from(eventsTable)
+    .innerJoin(usersTable, eq(usersTable.id, eventsTable.affectedUserId))
+    .where(and(registeredWithReferrer, gte(eventsTable.createdAt, from)))
+    .groupBy(eventWeek)
+    .orderBy(eventWeek)
+}
+
+/**
+ * dbCountFirstCreationMembers by week: the members an outcome of their first creation concerns,
+ * each once in a week, in each week from `from` on -- without the function tests of
+ * administrators. A member who skipped in two weeks counts in both.
+ */
+export async function dbCountFirstCreationMembersByWeek(
+  type: EventType,
+  from: Date,
+): Promise<WeeklyCount[]> {
+  return drizzleDb()
+    .select({ weekStart: eventWeek, n: countDistinct(eventsTable.affectedUserId) })
+    .from(eventsTable)
+    .where(
+      and(eq(eventsTable.type, type), gte(eventsTable.createdAt, from), outsideFunctionTests()),
+    )
+    .groupBy(eventWeek)
+    .orderBy(eventWeek)
 }

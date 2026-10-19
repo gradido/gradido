@@ -6,6 +6,7 @@ import {
   countDistinct,
   desc,
   eq,
+  gte,
   inArray,
   isNull,
   ne,
@@ -23,7 +24,7 @@ import {
   matchingEntriesTable,
   usersTable,
 } from '../schemas/drizzle.schema'
-import { countFields, countsOfRow, rowsFrom } from './figureCounts'
+import { countFields, countsOfRow, rowsFrom, weekStartOf } from './figureCounts'
 
 // TODO: replace results with valibot schema
 
@@ -463,6 +464,22 @@ export async function dbCountMatchingEntriesByType(
     .from(matchingEntriesTable)
     .groupBy(matchingEntriesTable.matchingType)
   return Object.fromEntries(rows.map((row) => [row.matchingType, countsOfRow(row.counts, froms)]))
+}
+
+/**
+ * dbCountMatchingEntriesByType by calendar week (figureCounts.ts): the entries written of each
+ * kind in each week from `from` on, in one statement -- a line per kind and week that has one.
+ */
+export async function dbCountMatchingEntriesByTypeByWeek(
+  from: Date,
+): Promise<{ matchingType: string; weekStart: string; n: number }[]> {
+  const week = weekStartOf(matchingEntriesTable.createdAt)
+  return drizzleDb()
+    .select({ matchingType: matchingEntriesTable.matchingType, weekStart: week, n: count() })
+    .from(matchingEntriesTable)
+    .where(gte(matchingEntriesTable.createdAt, from))
+    .groupBy(matchingEntriesTable.matchingType, week)
+    .orderBy(week, matchingEntriesTable.matchingType)
 }
 
 /** The entries that are live as of now: not paused, of a member whose account is not deleted. */

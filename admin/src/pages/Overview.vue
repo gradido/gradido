@@ -63,10 +63,53 @@
         </BTr>
       </BTbody>
     </BTableSimple>
+    <section v-if="weeksShown" class="figures-weeks mt-4" data-test="figures-weeks">
+      <h3 id="figures-weeks-heading" class="h5 mb-2">{{ t('figures.weeks') }}</h3>
+      <!-- Not stacked: on a narrow screen the weeks roll sideways under the labels, which stand
+           still. The region takes the focus, so that the keyboard can roll it as well. -->
+      <div
+        class="table-responsive"
+        role="region"
+        aria-labelledby="figures-weeks-heading"
+        tabindex="0"
+      >
+        <BTableSimple striped class="figures-weeks-table">
+          <BThead>
+            <BTr>
+              <BTh class="figures-weeks-label" />
+              <BTh
+                v-for="week in weekColumns"
+                :key="week.day"
+                class="text-end text-nowrap"
+                :data-test="`week-${week.day}`"
+              >
+                {{ week.date }}
+                <span v-if="week.running" class="d-block small fw-normal">
+                  {{ t('figures.weekCurrent') }}
+                </span>
+              </BTh>
+            </BTr>
+          </BThead>
+          <BTbody v-for="group in weekGroups" :key="group.key">
+            <BTr class="figures-group">
+              <th scope="rowgroup" class="figures-weeks-label">{{ group.label }}</th>
+              <td :colspan="weekColumns.length" />
+            </BTr>
+            <BTr v-for="row in group.rows" :key="row.key" :data-test="`week-figure-${row.key}`">
+              <th scope="row" class="figures-weeks-label fw-normal">{{ row.label }}</th>
+              <BTd v-for="(cell, index) in row.cells" :key="index" class="text-end">
+                {{ cell }}
+              </BTd>
+            </BTr>
+          </BTbody>
+        </BTableSimple>
+      </div>
+    </section>
   </div>
 </template>
 <script setup>
 import { adminListContributionsCount } from '@/graphql/adminListContributions.graphql'
+import { communityFigureSeries } from '@/graphql/communityFigureSeries.graphql'
 import { communityFigures } from '@/graphql/communityFigures.graphql'
 import { communityStatistics } from '@/graphql/communityStatistics'
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
@@ -177,7 +220,11 @@ const figures = computed(() => figuresResult.value?.communityFigures ?? null)
 // once a session, as they were there; an error here leaves the other groups alone. The account
 // counts of that query are not shown: the group "Accounts" counts them without the rows the
 // federation keeps for members of other communities.
-const { result: statisticsResult, onError: onStatisticsError } = useQuery(communityStatistics)
+const {
+  result: statisticsResult,
+  loading: statisticsLoading,
+  onError: onStatisticsError,
+} = useQuery(communityStatistics)
 
 onStatisticsError((error) => {
   toastError(error.message)
@@ -187,6 +234,27 @@ const totals = computed(() => {
   const statistics = statisticsResult.value?.communityStatistics
   return statistics ? { ...statistics, ...statistics.dynamicStatisticsFields } : null
 })
+
+// The flows by calendar week, for the second table: asked for the chosen day by its date, at
+// 00:00 UTC. The server counts weeks from Monday to Sunday in UTC and begins with the week the
+// moment it gets lies in -- and the first moment of the day where the admin sits lies on the
+// evening before in UTC east of Greenwich: a Monday chosen there would bring the week before it
+// along. An error here leaves the table above standing.
+const seriesSince = computed(() =>
+  isDay(sinceDay.value) ? `${sinceDay.value}T00:00:00.000Z` : null,
+)
+
+const { result: seriesResult, onError: onSeriesError } = useQuery(
+  communityFigureSeries,
+  () => ({ since: seriesSince.value }),
+  () => ({ enabled: seriesSince.value !== null, fetchPolicy: 'cache-and-network' }),
+)
+
+onSeriesError((error) => {
+  toastError(error.message)
+})
+
+const series = computed(() => seriesResult.value?.communityFigureSeries ?? null)
 
 // The day the numbers on the screen count from, from their own answer: while a new day is
 // asked, the heading stays with the numbers below it.
@@ -199,6 +267,71 @@ const shown = (value) => (value === null || value === undefined ? '–' : n(valu
 // The sums of the totals come as GradidoUnit, a decimal string: two places, as /statistic had.
 const shownGdd = (value) =>
   value === null || value === undefined ? '–' : n(Number(value), 'decimal')
+
+// The groups of the page and the rows of each -- [key, label] -- in its order, for the table and
+// its weeks alike.
+const figureGroups = computed(() => [
+  {
+    key: 'accounts',
+    label: t('figures.group.accounts'),
+    rows: [
+      ['accountsNew', t('figures.row.accountsNew')],
+      ['accountsViaTableCode', t('figures.row.accountsViaTableCode')],
+      ['accountsViaLink', t('figures.row.accountsViaLink')],
+      ['accountsViaAddress', t('figures.row.accountsViaAddress')],
+      ['accountsViaEvent', t('figures.row.accountsViaEvent')],
+      ['hostsWithGuest', t('figures.row.hostsWithGuest')],
+      ['codesShown', t('figures.row.codesShown')],
+      ['returners', t('figures.row.returners')],
+      ['activeAccounts', t('figures.row.activeAccounts')],
+      ['accountsDeleted', t('figures.row.accountsDeleted')],
+      ['accountsTotal', t('figures.row.accountsTotal')],
+    ],
+  },
+  {
+    key: 'firstCreation',
+    label: t('figures.group.firstCreation'),
+    rows: [
+      ['firstCreationsDone', t('figures.row.firstCreationsDone')],
+      ['firstCreationsSkipped', t('figures.row.firstCreationsSkipped')],
+      ['firstCreationsReview', t('figures.row.firstCreationsReview')],
+    ],
+  },
+  {
+    key: 'thanks',
+    label: t('figures.group.thanks'),
+    rows: [
+      ['transfersSent', t('figures.row.transfersSent')],
+      ['gddSent', t('figures.row.gddSent')],
+      ['creationsBooked', t('figures.row.creationsBooked')],
+      ['gddCreated', t('figures.row.gddCreated')],
+    ],
+  },
+  {
+    key: 'map',
+    label: t('figures.group.map'),
+    rows: [
+      ['homesSet', t('figures.row.homesSet')],
+      ['findableOnMap', t('figures.row.findableOnMap')],
+      ['entriesInterest', t('figures.row.entriesInterest')],
+      ['entriesOffer', t('figures.row.entriesOffer')],
+      ['entriesNeed', t('figures.row.entriesNeed')],
+      ['entriesActive', t('figures.row.entriesActive')],
+      ['membersWithEntry', t('figures.row.membersWithEntry')],
+      ['membersOnMap', t('figures.row.membersOnMap')],
+    ],
+  },
+  {
+    key: 'conversations',
+    label: t('figures.group.conversations'),
+    rows: [
+      ['conversationsNew', t('figures.row.conversationsNew')],
+      ['groupsNew', t('figures.row.groupsNew')],
+      ['hellosFromMap', t('figures.row.hellosFromMap')],
+      ['videoRoomsCreated', t('figures.row.videoRoomsCreated')],
+    ],
+  },
+])
 
 // The figures of this page, in its groups and order, each row as the table shows it -- the label
 // and its three cells -- for the table and for the block the copy button makes of it alike. A row
@@ -223,66 +356,7 @@ const groups = computed(() => {
         }))
       : []
   return [
-    {
-      key: 'accounts',
-      label: t('figures.group.accounts'),
-      rows: ofFigures([
-        ['accountsNew', t('figures.row.accountsNew')],
-        ['accountsViaTableCode', t('figures.row.accountsViaTableCode')],
-        ['accountsViaLink', t('figures.row.accountsViaLink')],
-        ['accountsViaAddress', t('figures.row.accountsViaAddress')],
-        ['accountsViaEvent', t('figures.row.accountsViaEvent')],
-        ['hostsWithGuest', t('figures.row.hostsWithGuest')],
-        ['codesShown', t('figures.row.codesShown')],
-        ['returners', t('figures.row.returners')],
-        ['activeAccounts', t('figures.row.activeAccounts')],
-        ['accountsDeleted', t('figures.row.accountsDeleted')],
-        ['accountsTotal', t('figures.row.accountsTotal')],
-      ]),
-    },
-    {
-      key: 'firstCreation',
-      label: t('figures.group.firstCreation'),
-      rows: ofFigures([
-        ['firstCreationsDone', t('figures.row.firstCreationsDone')],
-        ['firstCreationsSkipped', t('figures.row.firstCreationsSkipped')],
-        ['firstCreationsReview', t('figures.row.firstCreationsReview')],
-      ]),
-    },
-    {
-      key: 'thanks',
-      label: t('figures.group.thanks'),
-      rows: ofFigures([
-        ['transfersSent', t('figures.row.transfersSent')],
-        ['gddSent', t('figures.row.gddSent')],
-        ['creationsBooked', t('figures.row.creationsBooked')],
-        ['gddCreated', t('figures.row.gddCreated')],
-      ]),
-    },
-    {
-      key: 'map',
-      label: t('figures.group.map'),
-      rows: ofFigures([
-        ['homesSet', t('figures.row.homesSet')],
-        ['findableOnMap', t('figures.row.findableOnMap')],
-        ['entriesInterest', t('figures.row.entriesInterest')],
-        ['entriesOffer', t('figures.row.entriesOffer')],
-        ['entriesNeed', t('figures.row.entriesNeed')],
-        ['entriesActive', t('figures.row.entriesActive')],
-        ['membersWithEntry', t('figures.row.membersWithEntry')],
-        ['membersOnMap', t('figures.row.membersOnMap')],
-      ]),
-    },
-    {
-      key: 'conversations',
-      label: t('figures.group.conversations'),
-      rows: ofFigures([
-        ['conversationsNew', t('figures.row.conversationsNew')],
-        ['groupsNew', t('figures.row.groupsNew')],
-        ['hellosFromMap', t('figures.row.hellosFromMap')],
-        ['videoRoomsCreated', t('figures.row.videoRoomsCreated')],
-      ]),
-    },
+    ...figureGroups.value.map((group) => ({ ...group, rows: ofFigures(group.rows) })),
     {
       key: 'totals',
       label: t('figures.group.totals'),
@@ -297,8 +371,51 @@ const groups = computed(() => {
   ].filter((group) => group.rows.length > 0)
 })
 
-// The copy button: the table as plain text, for the review in the weekly mail -- a title with
-// today's date, the heading of the columns, then each group and each row in the table's order.
+// The weeks as the second table heads them: each Monday on the day it names wherever the admin
+// sits -- the server gives it as 00:00 UTC, which west of Greenwich is still the Sunday before.
+// The last week is the running one: the server counts up to it.
+const weekColumns = computed(() => {
+  const weeks = series.value?.weeks ?? []
+  return weeks.map((week, index) => {
+    const day = week.slice(0, 10)
+    return {
+      day,
+      date: d(new Date(`${day}T12:00:00`), 'short'),
+      running: index === weeks.length - 1,
+    }
+  })
+})
+
+// The weeks stand below everything that comes later: they are shown once the table above stands
+// with every group it will have -- its figures there, the totals answered or failed --, so that
+// nothing arriving afterwards pushes them down while somebody reads or rolls them.
+const weeksShown = computed(
+  () => figures.value !== null && !statisticsLoading.value && weekColumns.value.length > 0,
+)
+
+// The groups of the page by week: the rows the answer has, each with a number for every week, in
+// the groups and order of the table. The active accounts of the table count thirty days; by week
+// they are the accounts with a sign-in that week, and their label says so.
+const weekGroups = computed(() => {
+  const countsOf = new Map((series.value?.rows ?? []).map((row) => [row.key, row.counts]))
+  return figureGroups.value
+    .map(({ key, label, rows }) => ({
+      key,
+      label,
+      rows: rows
+        .filter(([rowKey]) => countsOf.has(rowKey))
+        .map(([rowKey, rowLabel]) => ({
+          key: rowKey,
+          label: rowKey === 'activeAccounts' ? t('figures.row.activeAccountsWeekly') : rowLabel,
+          cells: countsOf.get(rowKey).map(shown),
+        })),
+    }))
+    .filter((group) => group.rows.length > 0)
+})
+
+// The copy button: the tables as plain text, for the review in the weekly mail -- a title with
+// today's date, the heading of the columns, then each group and each row in the table's order;
+// below, once they are there, the weeks: their Mondays, then the same groups by week.
 const COPIED_MS = 2000
 // What the last press came to: COPIED for a moment, BY_HAND while the block is shown to copy.
 const copyState = ref(null)
@@ -315,16 +432,29 @@ const copyStatus = computed(() => {
   return ''
 })
 
+// The groups of a table as lines of text: a blank line, the group's label, then its rows.
+const groupsAsLines = (groupsOfTable) =>
+  groupsOfTable.flatMap((group) => [
+    '',
+    group.label,
+    ...group.rows.map((row) => `${row.label}: ${row.cells.join(' · ')}`),
+  ])
+
 const figuresAsText = () => {
   const lines = [
     `${t('figures.title')} · ${d(new Date(), 'short')}`,
     [sinceHeading.value, t('figures.col.week'), t('figures.col.total')].join(' · '),
+    ...groupsAsLines(groups.value),
   ]
-  for (const group of groups.value) {
-    lines.push('', group.label)
-    for (const row of group.rows) {
-      lines.push(`${row.label}: ${row.cells.join(' · ')}`)
-    }
+  if (weeksShown.value) {
+    lines.push(
+      '',
+      t('figures.weeks'),
+      weekColumns.value
+        .map((week) => (week.running ? `${week.date} (${t('figures.weekCurrent')})` : week.date))
+        .join(' · '),
+      ...groupsAsLines(weekGroups.value),
+    )
   }
   return lines.join('\n')
 }
@@ -361,9 +491,10 @@ const copyFigures = async () => {
   }, COPIED_MS)
 }
 
-// A block -- shown, or still on its way to the clipboard -- says what the table said when it was
-// made: new numbers take it away, and the button makes a fresh one.
-watch([figures, totals], () => {
+// A block -- shown, or still on its way to the clipboard -- says what the tables said when it was
+// made: new numbers take it away, new weeks too, or weeks that show up, and the button makes a
+// fresh one.
+watch([figures, totals, series, weeksShown], () => {
   endPress()
   copyText.value = null
 })
@@ -389,7 +520,29 @@ onBeforeUnmount(endPress)
   font-size: 0.875rem;
 }
 
-.figures-table {
+.figures-table,
+.figures-weeks-table {
   width: auto;
+}
+
+/* The labels stand still while the weeks roll sideways under them; a cell of the table paints a
+   background of its own, so nothing shows through. */
+.figures-weeks-label {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+}
+
+/* The Mondays on one line, the mark of the running week below its own. */
+.figures-weeks-table thead th {
+  vertical-align: top;
+}
+
+/* Where the table above stops stacking, a label keeps to one line: the weeks roll anyway, and a
+   label broken over three lines would make every row three lines high. */
+@media (width >= 768px) {
+  .figures-weeks-label {
+    white-space: nowrap;
+  }
 }
 </style>
