@@ -26,18 +26,18 @@
 </template>
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useI18n } from 'vue-i18n'
 import SettingsSection from '@/components/UserSettings/SettingsSection.vue'
 import UserLanguage from '@/components/LanguageSwitch2.vue'
 import { BRow, BCol, BFormRadioGroup } from 'bootstrap-vue-next'
 
 const { t } = useI18n()
-const store = useStore()
+const store = useWalletStore()
 
 // Theme mode (system | light | dark): apply immediately, persisted device-local.
 // App.vue toggles the .dark-mode class from the effective value.
-const themeMode = ref(store.state.themeMode)
+const themeMode = ref(store.themeMode)
 
 const themeOptions = computed(() => [
   { value: 'system', text: t('settings.theme.system') },
@@ -46,7 +46,7 @@ const themeOptions = computed(() => [
 ])
 
 watch(themeMode, (val) => {
-  store.commit('setThemeMode', val)
-  store.dispatch('applyTheme')
+  store.setThemeMode(val)
+  store.applyTheme()
 })
 </script>

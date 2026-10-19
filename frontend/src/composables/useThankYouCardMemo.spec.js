@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useThankYouCardMemo } from './useThankYouCardMemo'
 
 const state = { gradidoID: null }
-vi.mock('vuex', () => ({ useStore: () => ({ state }) }))
+vi.mock('@/store/useWalletStore', () => ({ useWalletStore: () => state }))
 
 describe('useThankYouCardMemo', () => {
   beforeEach(() => {

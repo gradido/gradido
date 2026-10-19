@@ -37,15 +37,15 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useMutation } from '@vue/apollo-composable'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { authenticateHumhubAutoLogin } from '@/graphql/mutations'
 
-const store = useStore()
+const store = useWalletStore()
 
 const enableButton = ref(false)
 const humhubUri = ref('')
 
-const humhubAllowed = computed(() => store.state.humhubAllowed)
+const humhubAllowed = computed(() => store.humhubAllowed)
 
 const {
   onDone,
@@ -71,7 +71,7 @@ onDone(({ data }) => {
 onError(() => {
   enableButton.value = true
   humhubUri.value = ''
-  store.commit('humhubAllowed', false)
+  store.setHumhubAllowed(false)
 })
 
 onMounted(() => {

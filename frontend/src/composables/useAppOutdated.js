@@ -11,7 +11,7 @@ import { readonly, ref } from 'vue'
 // is reload on the member's behalf -- someone who has just typed a contribution would lose
 // it. So this only raises a flag, and the bar built on it offers the reload as a button.
 //
-// ⚠️ Deliberately NOT in the vuex store: that store is persisted to localStorage, and a
+// ⚠️ Deliberately NOT in the store: that store is persisted to localStorage, and a
 // flag that survives the reload it asks for would keep the bar on screen forever.
 //
 // ⚠️ This file exists twice, once here and once under admin/. That is deliberate, not an

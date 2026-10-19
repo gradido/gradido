@@ -18,7 +18,7 @@ vi.mock('@/config', () => ({ default: config }))
 
 // The member who asks. Findable with a home by default: both answers the map's door wants.
 const state = vi.hoisted(() => ({}))
-vi.mock('vuex', () => ({ useStore: () => ({ state }) }))
+vi.mock('@/store/useWalletStore', () => ({ useWalletStore: () => state }))
 
 // The GMS's profile route (useMatches), which a test answers -- or holds back, or refuses.
 // ⚠️ Only the composable is replaced: the rule for a usable point is the real one.

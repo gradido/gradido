@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
 import { nextTick, ref } from 'vue'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
 import Overview from './Overview.vue'
 import MatchingTile from '@/components/Overview/MatchingTile'
 import ShowFriendsTile from '@/components/Overview/ShowFriendsTile'
@@ -106,7 +106,7 @@ describe('Overview', () => {
       routes: [],
     })
     // The tile remembers per member, so it needs somebody to be named.
-    store = createStore({ state: { gradidoID: 'member-1' } })
+    store = walletStore({ gradidoID: 'member-1' })
 
     i18n = createI18n({
       legacy: false,
@@ -280,12 +280,10 @@ describe('Overview', () => {
 
     beforeEach(() => {
       config.MATCHING_ACTIVE = true
-      store = createStore({
-        state: {
-          gradidoID: 'member-1',
-          gmsAllowed: true,
-          userLocation: { latitude: 49.28, longitude: 9.69 },
-        },
+      store = walletStore({
+        gradidoID: 'member-1',
+        gmsAllowed: true,
+        userLocation: { latitude: 49.28, longitude: 9.69 },
       })
     })
 

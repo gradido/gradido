@@ -22,7 +22,7 @@ import en from '@/locales/en.json'
  */
 
 const state = { gradidoID: 'user-one' }
-vi.mock('vuex', () => ({ useStore: () => ({ state }) }))
+vi.mock('@/store/useWalletStore', () => ({ useWalletStore: () => state }))
 
 /**
  * The page's own back arrow. `historyState.back` is what vue-router remembers about where

@@ -3,7 +3,7 @@
 import { mount } from '@vue/test-utils'
 import { ref } from 'vue'
 import { createI18n } from 'vue-i18n'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
 import { createRouter, createWebHistory } from 'vue-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import ShowFriendsTile from './ShowFriendsTile.vue'
@@ -91,7 +91,7 @@ const arrival = (daysAgo, first) => ({
 
 // What the store holds after signing in: this wallet's own community. An arrival is a
 // member of it by construction, which is why the tile pairs it with their identifier.
-const store = createStore({ state: () => ({ communityUuid: 'home-uuid' }) })
+const store = walletStore({ communityUuid: 'home-uuid' })
 
 const mountTile = () =>
   mount(ShowFriendsTile, {

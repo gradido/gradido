@@ -2,14 +2,12 @@ import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import GdtTransactionList from './GdtTransactionList'
 import { GdtEntryType } from '@/graphql/enums'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
 import { nextTick } from 'vue'
 import { BButton, BPagination } from 'bootstrap-vue-next'
 
-const mockStore = createStore({
-  state: {
-    language: 'en',
-  },
+const mockStore = walletStore({
+  language: 'en',
 })
 
 const mockI18n = {

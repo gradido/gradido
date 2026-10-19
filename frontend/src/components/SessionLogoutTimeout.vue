@@ -36,7 +36,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useLazyQuery } from '@vue/apollo-composable'
 import { verifyLogin } from '@/graphql/queries'
 import { BButton, BCard, BCardText, BModal } from 'bootstrap-vue-next'
@@ -46,7 +46,7 @@ import { useAppToast } from '@/composables/useToast'
 // Warn the user this many seconds before the session (JWT) expires.
 const MODAL_WARNING_SECONDS = 75
 
-const store = useStore()
+const store = useWalletStore()
 const emit = defineEmits(['logout'])
 const { t } = useI18n()
 const { toastError } = useAppToast()
@@ -73,7 +73,7 @@ let verifyLoginLoaded = false
 const remainingTime = ref(0)
 let intervalId = null
 
-const tokenExpirationTime = computed(() => new Date(store.state.tokenTime * 1000))
+const tokenExpirationTime = computed(() => new Date(store.tokenTime * 1000))
 
 const calculateRemainingTime = () => {
   const diff = tokenExpirationTime.value - new Date()

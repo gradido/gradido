@@ -17,6 +17,7 @@ import i18n from '@/i18n'
 import { clearLinkDraft, useLinkDraft } from '@/composables/useLinkDraft'
 import { amount as amountUpTo } from '@/validationSchemas'
 import TransactionForm from './TransactionForm.vue'
+import { walletStore } from '@test/walletStore'
 
 /**
  * A plain link duplicated from the member's own list (ZE-030), as the send form opens with it:
@@ -35,7 +36,7 @@ vi.mock('@vue/apollo-composable', () => ({
 }))
 vi.mock('@/composables/useToast', () => ({ useAppToast: () => ({ toastError: vi.fn() }) }))
 
-const EMMA = { state: { gradidoID: 'uuid-emma' } }
+const EMMA = { gradidoID: 'uuid-emma' }
 const OLD_LINK = { id: 4711, amount: 12.5, memo: 'Danke fürs Rasenmähen!', greeting: null }
 
 // What the row of the list does: hand the link over, as the member whose list it is.
@@ -47,7 +48,7 @@ const handOver = (link, store = EMMA) => {
         return () => null
       },
     },
-    { global: { provide: { store } } },
+    { global: { plugins: [walletStore(store)] } },
   )
 }
 
@@ -55,8 +56,7 @@ let wrapper
 const openForm = (props = {}, store = EMMA) => {
   wrapper = mount(TransactionForm, {
     global: {
-      plugins: [i18n],
-      provide: { store },
+      plugins: [i18n, walletStore(store)],
       components: {
         BButton,
         BCard,
@@ -217,7 +217,7 @@ describe('TransactionForm, a duplicated link', () => {
   })
 
   it('does not take what another member handed over', () => {
-    handOver(OLD_LINK, { state: { gradidoID: 'uuid-dave' } })
+    handOver(OLD_LINK, { gradidoID: 'uuid-dave' })
     openForm()
 
     expect(amountField().element.value).toBe('')

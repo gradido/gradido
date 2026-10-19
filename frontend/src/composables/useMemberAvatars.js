@@ -3,8 +3,8 @@
 // The pictures of OTHER members, kept between visits so a booking list does not fetch the
 // same faces again on every load.
 //
-// ⛔⛔ Deliberately NOT in the vuex store. `createPersistedState` there writes the ENTIRE
-// state to localStorage on EVERY mutation, so twenty-five pictures parked in it would mean
+// ⛔⛔ Deliberately NOT in the store. store.js writes the ENTIRE
+// state to localStorage on EVERY change, so twenty-five pictures parked in it would mean
 // serialising a quarter of a megabyte each time anything in the wallet changes -- the very
 // cost that fetching pictures on demand is meant to avoid, just moved somewhere less
 // visible. Same reasoning as useAppOutdated, for a different reason.
@@ -30,7 +30,7 @@ const STORAGE_KEY = 'gradido-avatars'
 // ⚠️ Measured, because the first estimate here was out by the whole budget. What is stored
 // is base64, and browsers bill localStorage in UTF-16 code units -- two bytes per
 // character. Chrome refuses at exactly 5,242,880 characters, and this origin is shared with
-// the vuex blob (`gradido-frontend`), the theme key, and the admin app.
+// the store's blob (`gradido-frontend`), the theme key, and the admin app.
 //
 //   200 entries at the 8 KB target  -> ~2.21 M chars, 42% of that budget
 //   200 entries at the 10 KB cap    -> ~2.77 M chars, 53%
@@ -38,9 +38,9 @@ const STORAGE_KEY = 'gradido-avatars'
 // So the cap holds with room to spare in Chrome. It is deliberately not raised: WebKit's
 // classic budget is half of Chrome's, which would put this cache alone near the whole
 // origin -- and the failure is not graceful. `save` swallows its own QuotaExceededError,
-// while `vuex-persistedstate` writes with a bare `setItem` from a store subscriber, so a
-// full origin throws out of `commit`, and at boot `assertStorage` throws before the store
-// is even created.
+// while store.js writes with a bare `setItem` as the store changes, so on a full origin the
+// wallet's own state is no longer saved: the member's settings and profile are lost with the
+// next reload.
 const MAX_ENTRIES = 200
 
 // ★ The retreat, if browser storage ever turns out to be a problem: set this to false.

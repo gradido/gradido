@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { ref, watch } from 'vue'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 
 /**
  * Whether the chat's windows stand large -- a contact's window and a group's alike (Bernd,
@@ -16,8 +16,8 @@ import { useStore } from 'vuex'
  * login answer, after signing out) nothing is read and nothing written -- the windows stand as
  * they stood, and a switch pressed then holds until somebody is named.
  *
- * ⛔ Not in the vuex store: `createPersistedState` writes the whole store to localStorage on
- * every mutation (useRightSidePref).
+ * ⛔ Not in the store: store.js writes the whole store to localStorage on
+ * every change (useRightSidePref).
  */
 const KEY_PREFIX = 'chat-window-large:'
 
@@ -66,7 +66,7 @@ const large = ref(false)
  * windows stand large, and the switch
  */
 export const useChatWindowSize = () => {
-  const store = useStore()
+  const store = useWalletStore()
 
   // Read for whoever is signed in, with every chat window that is made, and anew when somebody
   // else is: the id arrives with the login answer, and signing out does not reload the page.
@@ -76,7 +76,7 @@ export const useChatWindowSize = () => {
   // and "nobody remembered anything" read as "the usual window" made a large one jump to the
   // narrow one on its way out. The next member's first chat window reads for them.
   watch(
-    () => store.state.gradidoID,
+    () => store.gradidoID,
     (gradidoID) => {
       if (gradidoID) large.value = readChatWindowLarge(gradidoID)
     },
@@ -85,7 +85,7 @@ export const useChatWindowSize = () => {
 
   const toggleLarge = () => {
     large.value = !large.value
-    rememberChatWindowLarge(store.state.gradidoID, large.value)
+    rememberChatWindowLarge(store.gradidoID, large.value)
   }
 
   return { large, toggleLarge }

@@ -17,7 +17,7 @@ vi.mock('@/composables/useGradidoCard', () => ({
 }))
 
 const storeState = { username: 'bernd', gradidoID: 'uuid-1' }
-vi.mock('vuex', () => ({ useStore: () => ({ state: storeState }) }))
+vi.mock('@/store/useWalletStore', () => ({ useWalletStore: () => storeState }))
 
 const wrapperFor = async () => {
   const wrapper = mount(UserGradidoCard, {

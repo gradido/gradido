@@ -17,8 +17,8 @@ import { MESSAGE_MAX_CHARS } from '@/validationSchemas'
  * reload, a closed tab and a session that ran out): `chat-drafts:<gradidoID>` in localStorage,
  * by conversation, each with the time it was last written. What cannot lie there waits in
  * memory, for as long as the wallet runs in this tab: the picture -- a chat picture is never put
- * into the device's storage (E-041, point 5) -- and the box. Not in the vuex store, which is
- * written whole to localStorage on every mutation.
+ * into the device's storage (E-041, point 5) -- and the box. Not in the store, which is
+ * written whole to localStorage on every change.
  *
  * ⛔ A draft belongs to the member who wrote it. One browser serves several members, and signing
  * out does not reload the page.

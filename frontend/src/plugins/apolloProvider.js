@@ -23,10 +23,10 @@ const outdatedLink = onError((failure) => {
 })
 
 const authLink = new ApolloLink((operation, forward) => {
-  const token = store.state.token
+  const token = store.token
   // Who is signed in as the question goes out: the session its answer belongs to. A member is
   // named by the pair -- the id alone is unique within one community only.
-  const { gradidoID: member, communityUuid: community } = store.state
+  const { gradidoID: member, communityUuid: community } = store
   operation.setContext({
     headers: {
       Authorization: token && token.length > 0 ? `Bearer ${token}` : '',
@@ -36,7 +36,7 @@ const authLink = new ApolloLink((operation, forward) => {
   return forward(operation).map((response) => {
     if (response.errors && response.errors[0].message === '403.13 - Client certificate revoked') {
       response.errors[0].message = i18n.global.t('error.session-expired')
-      store.dispatch('logout', null)
+      store.logout(null)
       if (router.currentRoute.path !== '/login') router.push('/login')
       return response
     }
@@ -51,10 +51,10 @@ const authLink = new ApolloLink((operation, forward) => {
     // its answer carries a fresh token of the session that is over. So the token is taken while
     // the member who asked is the one in the store. The answer to a sign-in begins a session
     // and is taken whatever the store holds by then.
-    const sameMember = store.state.gradidoID === member && store.state.communityUuid === community
+    const sameMember = store.gradidoID === member && store.communityUuid === community
     const sameSession = sameMember || Boolean(response.data?.login)
     if (newToken && context.renewSession !== false && sameSession) {
-      store.commit('token', newToken)
+      store.setToken(newToken)
     }
     return response
   })

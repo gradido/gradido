@@ -31,11 +31,11 @@ import { useAppToast } from '@/composables/useToast'
 import UserLocationMap from '@/components/UserSettings/UserLocationMap'
 import { BButton, BModal } from 'bootstrap-vue-next'
 import { userLocationQuery } from '@/graphql/queries'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { configuredCommunityPoint, hasPosition } from '@/utils/matchingPosition'
 
 const { t } = useI18n()
-const store = useStore()
+const store = useWalletStore()
 const { mutate: updateUserInfo } = useMutation(updateUserInfos)
 const { onResult, onError } = useQuery(userLocationQuery, {}, { fetchPolicy: 'network-only' })
 const { toastSuccess, toastError } = useAppToast()
@@ -80,7 +80,7 @@ const saveUserLocation = async () => {
     toastSuccess(t('settings.GMS.location.updateSuccess'))
     userLocation.value = capturedLocation.value
     // update in local storage to update button on overview
-    store.commit('userLocation', loc)
+    store.setUserLocation(loc)
     isModalOpen.value = false
   } catch (error) {
     toastError(error.message)

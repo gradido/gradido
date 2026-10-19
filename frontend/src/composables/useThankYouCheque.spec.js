@@ -34,8 +34,8 @@ const storeState = {
   gradidoID: 'uuid-1',
   avatar: null,
 }
-vi.mock('vuex', () => ({
-  useStore: () => ({ state: storeState }),
+vi.mock('@/store/useWalletStore', () => ({
+  useWalletStore: () => storeState,
 }))
 
 // `n` formats as the wallet's German does for the format it is asked for: the cheque has to

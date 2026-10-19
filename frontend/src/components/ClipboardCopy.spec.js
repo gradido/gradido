@@ -11,8 +11,8 @@ vi.mock('@/composables/useToast', () => ({
   useAppToast: () => ({ toastSuccess: mockToastSuccess, toastError: mockToastError }),
 }))
 
-vi.mock('vuex', () => ({
-  useStore: () => ({ state: { username: 'bernd', gradidoID: 'uuid-1' } }),
+vi.mock('@/store/useWalletStore', () => ({
+  useWalletStore: () => ({ username: 'bernd', gradidoID: 'uuid-1' }),
 }))
 
 const LINK = 'https://gdd.gradido.net/redeem/7f3a9c1e84b2'

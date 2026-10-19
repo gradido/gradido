@@ -182,7 +182,7 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import '@/assets/fonts/afacad/afacad.css'
 import CONFIG from '@/config'
 import { inLogoFace } from '@/utils/logoFace'
@@ -200,7 +200,7 @@ defineProps({
 })
 defineEmits(['toggle-menu'])
 
-const store = useStore()
+const store = useWalletStore()
 
 const root = ref(null)
 const home = ref(null)
@@ -222,12 +222,12 @@ const username = computed(() => {
   // name changes the letters and not the colour. The name beside the circle stays the
   // member's own.
   const { letters, colorSeed } = avatarLettering({
-    alias: store.state.username,
-    firstName: store.state.firstName,
-    lastName: store.state.lastName,
+    alias: store.username,
+    firstName: store.firstName,
+    lastName: store.lastName,
   })
   return {
-    username: `${store.state.firstName} ${store.state.lastName}`,
+    username: `${store.firstName} ${store.lastName}`,
     initials: letters,
     colorSeed,
   }
@@ -236,7 +236,7 @@ const alias = computed(() => {
   // gradidoID, not gradidoId -- the store spells it with a capital D, and the other
   // spelling once put the word "undefined" in front of every member without a user
   // name. It is worth naming at each call site; nothing catches it.
-  return memberAlias(store.state.username, store.state.gradidoID)
+  return memberAlias(store.username, store.gradidoID)
 })
 
 const measureBrand = () => {

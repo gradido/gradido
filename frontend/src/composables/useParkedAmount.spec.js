@@ -12,7 +12,7 @@ import { PARKED_AMOUNT_TTL_MS, forgetParkedAmount, useParkedAmount } from './use
  */
 
 const state = { gradidoID: 'user-one' }
-vi.mock('vuex', () => ({ useStore: () => ({ state }) }))
+vi.mock('@/store/useWalletStore', () => ({ useWalletStore: () => state }))
 
 const KEY = 'calculator-parked-amount:user-one'
 

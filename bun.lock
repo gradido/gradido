@@ -354,6 +354,7 @@
         "jwt-decode": "^3.1.2",
         "maplibre-gl": "6.10.0",
         "pbf": "^5.1.2",
+        "pinia": "3.0.4",
         "pmtiles": "^4.5.0",
         "portal-vue": "^3.0.0",
         "qrcanvas": "^3.1.2",
@@ -368,8 +369,6 @@
         "vue": "3.5.13",
         "vue-i18n": "^9.13.1",
         "vue-router": "^4.4.0",
-        "vuex": "^4.1.0",
-        "vuex-persistedstate": "^4.1.0",
         "yup": "^1.6.1",
         "zxing-wasm": "3.1.3",
       },
@@ -3011,8 +3010,6 @@
 
     "shell-quote": ["shell-quote@1.9.0", "", {}, "sha512-Iov+JwFv/2HcTpcwNMKd8+IWNb8tboQJNQTkAY/LLVK7gGH9jy+LGkVqPxfekHl+yMmiqXszdGWXgkfml7hjqA=="],
 
-    "shvl": ["shvl@2.0.3", "", {}, "sha512-V7C6S9Hlol6SzOJPnQ7qzOVEWUQImt3BNmmzh40wObhla3XOYMe4gGiYzLrJd5TFa+cI2f9LKIRJTTKZSTbWgw=="],
-
     "side-channel": ["side-channel@1.1.1", "", { "dependencies": { "es-errors": "^1.3.0", "object-inspect": "^1.13.4", "side-channel-list": "^1.0.1", "side-channel-map": "^1.0.1", "side-channel-weakmap": "^1.0.2" } }, "sha512-6x6dK6zJdpTzF4sQeNYxwtvBzf6Eg4GtlesS94HOvTudUeyK2WXAaIfmDgsyslYrRBeFIlsi54AYsFGUuhmvrQ=="],
 
     "side-channel-list": ["side-channel-list@1.0.1", "", { "dependencies": { "es-errors": "^1.3.0", "object-inspect": "^1.13.4" } }, "sha512-mjn/0bi/oUURjc5Xl7IaWi/OJJJumuoJFQJfDDyO46+hBWsfaVM65TBHq2eoZBhzl9EchxOijpkbRC8SVBQU0w=="],
@@ -3360,10 +3357,6 @@
     "vue-router": ["vue-router@4.4.0", "", { "dependencies": { "@vue/devtools-api": "^6.5.1" }, "peerDependencies": { "vue": "^3.2.0" } }, "sha512-HB+t2p611aIZraV2aPSRNXf0Z/oLZFrlygJm+sZbdJaW6lcFqEDQwnzUBXn+DApw+/QzDU/I9TeWx9izEjTmsA=="],
 
     "vue3-datepicker": ["vue3-datepicker@0.4.0", "", { "dependencies": { "date-fns": "^2.22.1" }, "peerDependencies": { "vue": "^3.0.0" } }, "sha512-o0/y4yuZZc0DXYhiAlX8Znrkm/zvkeYuyV9PUt0UAvwxkno2jqMS388jVUa9Ns+a2s2pOAAybyXo5uQ9YAIwVw=="],
-
-    "vuex": ["vuex@4.1.0", "", { "dependencies": { "@vue/devtools-api": "^6.0.0-beta.11" }, "peerDependencies": { "vue": "^3.2.0" } }, "sha512-hmV6UerDrPcgbSy9ORAtNXDr9M4wlNP4pEFKye4ujJF8oqgFFuxDCdOLS3eNoRTtq5O3hoBDh9Doj1bQMYHRbQ=="],
-
-    "vuex-persistedstate": ["vuex-persistedstate@4.1.0", "", { "dependencies": { "deepmerge": "^4.2.2", "shvl": "^2.0.3" }, "peerDependencies": { "vuex": "^3.0 || ^4.0.0-rc" } }, "sha512-3SkEj4NqwM69ikJdFVw6gObeB0NHyspRYMYkR/EbhR0hbvAKyR5gksVhtAfY1UYuWUOCCA0QNGwv9pOwdj+XUQ=="],
 
     "w3c-xmlserializer": ["w3c-xmlserializer@5.0.0", "", { "dependencies": { "xml-name-validator": "^5.0.0" } }, "sha512-o8qghlI8NZHU1lLPrpi2+Uq7abh4GGPpYANlalzWxyWteJOCsr/P+oPBA49TOLu5FTZO4d3F9MnWJfiMo4BkmA=="],
 
@@ -3894,8 +3887,6 @@
     "vue-i18n/@vue/devtools-api": ["@vue/devtools-api@6.6.4", "", {}, "sha512-sGhTPMuXqZ1rVOk32RylztWkfXTRhuS7vgAKv0zjqk8gbsHkJ7xfFf+jbySxt7tWObEJwyKaHMikV/WGDiQm8g=="],
 
     "vue-router/@vue/devtools-api": ["@vue/devtools-api@6.6.4", "", {}, "sha512-sGhTPMuXqZ1rVOk32RylztWkfXTRhuS7vgAKv0zjqk8gbsHkJ7xfFf+jbySxt7tWObEJwyKaHMikV/WGDiQm8g=="],
-
-    "vuex/@vue/devtools-api": ["@vue/devtools-api@6.6.4", "", {}, "sha512-sGhTPMuXqZ1rVOk32RylztWkfXTRhuS7vgAKv0zjqk8gbsHkJ7xfFf+jbySxt7tWObEJwyKaHMikV/WGDiQm8g=="],
 
     "web-resource-inliner/htmlparser2": ["htmlparser2@5.0.1", "", { "dependencies": { "domelementtype": "^2.0.1", "domhandler": "^3.3.0", "domutils": "^2.4.2", "entities": "^2.0.0" } }, "sha512-vKZZra6CSe9qsJzh0BjBGXo8dvzNsq/oGvsjfRdOrrryfeD9UOBEEQdeoqCRmKZchF5h2zOBMQ6YuQ0uRUmdbQ=="],
 

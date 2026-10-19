@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { useMutation } from '@vue/apollo-composable'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { login, updateUserInfos } from '@/graphql/mutations'
 import { clearApolloCache } from '@/plugins/apolloCache'
 
@@ -13,7 +13,7 @@ import { clearApolloCache } from '@/plugins/apolloCache'
  * the server refuses. `signIn` throws what the mutation throws.
  */
 export function useSignIn() {
-  const store = useStore()
+  const store = useWalletStore()
   const { mutate } = useMutation(login)
   const { mutate: mutateUpdateUserInfos } = useMutation(updateUserInfos)
 
@@ -21,8 +21,8 @@ export function useSignIn() {
     const result = await mutate({
       email,
       password,
-      publisherId: store.state.publisherId,
-      project: store.state.project,
+      publisherId: store.publisherId,
+      project: store.project,
     })
     const { login: loginResponse } = result.data
     // ⛔ Before this member is written into the store, and it is the same reason the
@@ -40,13 +40,13 @@ export function useSignIn() {
     await clearApolloCache()
     // Capture a deliberate login-page language choice before the login action
     // consumes it, then persist it to the account so it sticks everywhere.
-    const preLoginLanguage = store.state.preLoginLanguage
+    const preLoginLanguage = store.preLoginLanguage
     // Everything the wallet needs from signing in is in this one answer, the member's own
     // picture, its visibility switch and creationAllowed included -- the login resolver
     // reads them with the user row. A verifyLogin of its own used to follow right here to
     // fetch those three; it is gone, and with it a second connection pool in the one
     // request path every member takes.
-    await store.dispatch('login', loginResponse)
+    await store.login(loginResponse)
 
     if (preLoginLanguage && preLoginLanguage !== loginResponse.language) {
       try {
@@ -62,7 +62,7 @@ export function useSignIn() {
     // in (the alias already works that way, deliberately), this quietly starts writing a
     // stale address into the store again. What keeps it fresh AFTERWARDS is the
     // `/authenticate` guard, which commits the address from a real `verifyLogin` answer.
-    store.commit('email', email)
+    store.setEmail(email)
     // Release the field before the page changes under it: in the iPhone's home-screen app, iOS
     // kept offering the saved password after every later tap (Bernd, 28.09.2026) -- the form
     // went away while its field still held the focus.

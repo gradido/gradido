@@ -54,7 +54,7 @@ import { useI18n } from 'vue-i18n'
 import CollapseIcon from './TransactionRows/CollapseIcon'
 import TransactionCollapse from './TransactionCollapse'
 import { GdtEntryType } from '../graphql/enums'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 
 const props = defineProps({
   amount: Number,
@@ -72,13 +72,13 @@ const props = defineProps({
 const collapseStatus = ref([])
 const visible = ref(false)
 
-const store = useStore()
+const store = useWalletStore()
 
 const { t, n } = useI18n()
 
 const collapseId = computed(() => 'gdt-collapse-' + String(props.id))
 
-const transactionToHighlightId = computed(() => store.state.transactionToHighlightId)
+const transactionToHighlightId = computed(() => store.transactionToHighlightId)
 
 const getLinesByType = computed(() => {
   switch (props.gdtEntryType) {

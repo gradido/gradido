@@ -48,8 +48,8 @@ vi.mock('@/config', () => ({ default: config }))
 // And the member signed in on this device, whose tick the box "Start in the Jitsi app" keeps (V4b).
 // Neither findable nor with a home on the map; the tests of the pin give them both.
 const storeState = vi.hoisted(() => ({ communityUuid: 'HOME-UUID', gradidoID: 'me-id' }))
-vi.mock('vuex', () => ({
-  useStore: () => ({ state: storeState }),
+vi.mock('@/store/useWalletStore', () => ({
+  useWalletStore: () => storeState,
 }))
 
 /**
@@ -2112,8 +2112,8 @@ describe('ContactWindow', () => {
     /**
      * ⛔ The address is the call's secret: whoever has it can join. It goes into the message and
      * into the room's window -- into no log and nothing written to the browser's storage (the
-     * vuex store is written whole into localStorage). The store this window reads is a stand-in
-     * without `commit` or `dispatch`: a write would throw.
+     * store is written whole into localStorage). The store this window reads is a stand-in
+     * without setters: a setter called would throw.
      */
     it('writes the address into no log and no storage, nor the topic that goes with it', async () => {
       const logs = ['log', 'info', 'warn', 'error', 'debug'].map((level) =>

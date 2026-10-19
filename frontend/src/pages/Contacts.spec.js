@@ -44,7 +44,7 @@ vi.mock('vue-router', () => ({
   useRoute: () => route,
   useRouter: () => ({ replace: routerReplace, push: routerPush }),
 }))
-vi.mock('vuex', () => ({ useStore: () => ({ state: storeState }) }))
+vi.mock('@/store/useWalletStore', () => ({ useWalletStore: () => storeState }))
 
 vi.mock('@/graphql/contacts.graphql', () => ({
   contactListQuery: 'contactListQuery',

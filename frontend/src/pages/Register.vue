@@ -100,7 +100,7 @@ import { useAppToast } from '@/composables/useToast'
 import { useForm } from 'vee-validate'
 import { createUser } from '@/graphql/mutations'
 import { useI18n } from 'vue-i18n'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useRoute } from 'vue-router'
 import { useAuthLinks } from '@/composables/useAuthLinks'
 import CONFIG from '@/config'
@@ -116,11 +116,11 @@ const { mutate } = useMutation(createUser)
 const { values: formValues, meta: formMeta } = useForm()
 
 const { t } = useI18n()
-const store = useStore()
+const store = useWalletStore()
 const { params, query } = useRoute()
 
 const showPageMessage = ref(false)
-const publisherId = ref(store.state.publisherId)
+const publisherId = ref(store.publisherId)
 // vue-router hands the absent optional parameter over as '' when the page is reached by its
 // path (/register?referrer=…&guarantor=…, the way a QR code or a link arrives), and as nothing
 // when it is reached by its name: both mean "no code", and neither goes out as one.
@@ -151,7 +151,7 @@ const guarantorLimited = ref(false)
 // account it opens -- it becomes an entry when the address is confirmed, also where the mail
 // is opened on another device. Decided once, when the page opens, like the guarantor code:
 // what stands above the form is what is sent.
-const eventEntry = keptEventMatchingEntry(store.state.eventMatchingEntry)
+const eventEntry = keptEventMatchingEntry(store.eventMatchingEntry)
 
 const enterData = computed(() => {
   return !showPageMessage.value
@@ -165,10 +165,10 @@ async function onSubmit() {
       email: formValues.email,
       firstName: formValues.firstname,
       lastName: formValues.lastname,
-      language: store.state.language,
+      language: store.language,
       publisherId: publisherId.value,
       redeemCode: redeemCode.value,
-      project: store.state.project,
+      project: store.project,
       // Without an address to come from, the field stays out of the request.
       ...(referrerAlias ? { referrerAlias } : {}),
       // Without a guarantor code, neither of the two: the classic registration sends what it sent.

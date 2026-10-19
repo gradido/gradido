@@ -1,12 +1,14 @@
 // AI-GENERATED — not an architecture reference
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi } from 'vitest'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
 import { BCol, BRow } from 'bootstrap-vue-next'
 import Appearance from './Appearance.vue'
 import SettingsSection from '@/components/UserSettings/SettingsSection.vue'
 
 vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key) => key }) }))
+// The store sets the language on the app's own i18n, which needs the real vue-i18n.
+vi.mock('@/i18n', () => ({ default: { global: { locale: { value: 'en' } } } }))
 // The menu itself saves through the server; its own spec holds that.
 vi.mock('@/components/LanguageSwitch2.vue', () => ({
   default: { name: 'LanguageSwitch2', template: '<div data-test="language-switch" />' },
@@ -15,7 +17,7 @@ vi.mock('@/components/LanguageSwitch2.vue', () => ({
 const mountAppearance = () =>
   mount(Appearance, {
     global: {
-      plugins: [createStore({ state: () => ({ themeMode: 'system' }) })],
+      plugins: [walletStore({ themeMode: 'system' })],
       // The real section: the class under test has to arrive on ITS card.
       components: { SettingsSection },
       stubs: {

@@ -59,7 +59,7 @@ const storeState = vi.hoisted(() => ({
   username: 'Bernd',
   communityUuid: 'home-uuid',
 }))
-vi.mock('vuex', () => ({ useStore: () => ({ state: storeState }) }))
+vi.mock('@/store/useWalletStore', () => ({ useWalletStore: () => storeState }))
 
 vi.mock('@/i18n', () => ({
   default: { global: { t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key) } },

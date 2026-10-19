@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useI18n } from 'vue-i18n'
 import { useAmountInText } from '@/composables/useAmountInText'
 import { useAppToast } from '@/composables/useToast'
@@ -15,7 +15,7 @@ import { shareText } from '@/utils/shareText'
 export const useCopyLinks = ({ link, amount, memo, validUntil, greeting = null }) => {
   const canCopyLink = ref(true)
 
-  const store = useStore()
+  const store = useWalletStore()
   const { toastSuccess, toastError } = useAppToast()
   const { t, d } = useI18n()
   const amountInText = useAmountInText()
@@ -65,7 +65,7 @@ export const useCopyLinks = ({ link, amount, memo, validUntil, greeting = null }
   const plainText = () =>
     [
       t('gdd_per_link.share-line1', {
-        name: memberAlias(store.state.username, store.state.gradidoID),
+        name: memberAlias(store.username, store.gradidoID),
         amount: amountInText(amount),
       }),
       t('gdd_per_link.share-line2', { memo }),

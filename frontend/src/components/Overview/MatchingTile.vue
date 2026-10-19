@@ -103,7 +103,7 @@
  * is followed is the member leaving: signed out, the tile goes.
  */
 import { computed } from 'vue'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { BBadge, BButton, BContainer } from 'bootstrap-vue-next'
 import { ENTRIES_TO_ARRIVE, NEW_MATCHING_ENTRY } from '@/utils/newMatchingEntry'
 import { invitedOntoTheMap, SHOW_ME_ON_THE_MAP, standsOnTheMap } from '@/utils/showMeOnTheMap'
@@ -146,7 +146,7 @@ const TESTS = {
   [MORE]: 'matching-more-tile',
 }
 
-const store = useStore()
+const store = useWalletStore()
 
 /**
  * Whom the tile is for, read ONCE.
@@ -157,14 +157,14 @@ const store = useStore()
  * invitation onto the map under their finger -- or the invitation vanish, and the tiles
  * below jump up. What was painted stays for this visit; the next one decides anew.
  */
-const member = store.state.gradidoID
-const invited = invitedOntoTheMap(store.state)
-const onTheMap = standsOnTheMap(store.state)
+const member = store.gradidoID
+const invited = invitedOntoTheMap(store)
+const onTheMap = standsOnTheMap(store)
 
 const stage = computed(() => {
   // The one thing followed live. Signing out empties the store while the overview still
   // stands, and whoever was painted a tile is no longer there to read it.
-  if (store.state.gradidoID !== member) return null
+  if (store.gradidoID !== member) return null
   if (invited) return MAP
   // A wallet without matching.
   if (!onTheMap) return null

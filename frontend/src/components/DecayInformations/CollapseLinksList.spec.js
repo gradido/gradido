@@ -1,9 +1,12 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import CollapseLinksList from './CollapseLinksList.vue'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
 import { createI18n } from 'vue-i18n'
 import { BButton } from 'bootstrap-vue-next'
+
+// The store sets the language of the app's i18n; that one is built with the real vue-i18n.
+vi.mock('@/i18n', () => ({ default: { global: { locale: { value: 'de' } } } }))
 
 // Mock translations
 const mockT = vi.fn((key, params) => {
@@ -47,17 +50,14 @@ describe('CollapseLinksList', () => {
   let store
   let i18n
 
-  const createVuexStore = () => {
-    return createStore({
-      state: {
-        firstName: 'Bibi',
-        lastName: 'Bloxberg',
-      },
+  const createWalletStore = () =>
+    walletStore({
+      firstName: 'Bibi',
+      lastName: 'Bloxberg',
     })
-  }
 
   const createWrapper = (props = {}) => {
-    store = createVuexStore()
+    store = createWalletStore()
     i18n = createI18n()
 
     return mount(CollapseLinksList, {

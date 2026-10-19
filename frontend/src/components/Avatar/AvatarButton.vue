@@ -38,7 +38,7 @@
 import { useMutation } from '@vue/apollo-composable'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import AppAvatar from '@/components/AppAvatar.vue'
 import AvatarCropper from '@/components/Avatar/AvatarCropper.vue'
 import { useAppToast } from '@/composables/useToast'
@@ -70,12 +70,12 @@ defineProps({
   },
 })
 
-const store = useStore()
+const store = useWalletStore()
 const toast = useAppToast()
 const { t } = useI18n()
 const isCropperOpen = ref(false)
 
-const avatar = computed(() => store.state.avatar)
+const avatar = computed(() => store.avatar)
 const avatarSource = computed(() => (avatar.value ? `data:image/jpeg;base64,${avatar.value}` : ''))
 
 const { mutate: mutateSet } = useMutation(setUserAvatar)
@@ -90,7 +90,7 @@ async function onSaved({ small, full }) {
     //
     // Written to the store only after the server accepted it, so the wallet never shows
     // a picture that is not stored.
-    store.commit('avatar', small)
+    store.setAvatar(small)
     // No confirmation here, deliberately: the toast covered the very picture it was
     // announcing, and the avatar changing IS the confirmation. (Bernd, 25.08.2026.)
     // Removing keeps its own message -- there the picture is gone, so something has to
@@ -103,7 +103,7 @@ async function onSaved({ small, full }) {
 async function onRemoved() {
   try {
     await mutateRemove()
-    store.commit('avatar', null)
+    store.setAvatar(null)
     toast.toastSuccess(t('avatar.removed'))
   } catch (error) {
     toast.toastError(error.message)

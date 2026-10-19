@@ -39,8 +39,8 @@ vi.mock('vue-router', () => ({
   useRouter: vi.fn(() => ({ replace: mockRouterReplace })),
 }))
 
-vi.mock('vuex', () => ({
-  useStore: vi.fn(() => ({ state: { community: { name: 'Gradido Community' } } })),
+vi.mock('@/store/useWalletStore', () => ({
+  useWalletStore: vi.fn(() => ({ community: { name: 'Gradido Community' } })),
 }))
 
 const mockPrintThankYouCardSheet = vi.fn()

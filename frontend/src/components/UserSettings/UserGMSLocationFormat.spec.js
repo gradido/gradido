@@ -2,13 +2,13 @@ import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import UserGMSLocationFormat from './UserGMSLocationFormat.vue'
 import { useI18n } from 'vue-i18n'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useMutation } from '@vue/apollo-composable'
 import { useAppToast } from '@/composables/useToast'
 
 // Mock dependencies
 vi.mock('vue-i18n')
-vi.mock('vuex')
+vi.mock('@/store/useWalletStore')
 vi.mock('@vue/apollo-composable')
 vi.mock('@/composables/useToast')
 vi.mock('bootstrap-vue-next', () => ({
@@ -25,10 +25,8 @@ vi.mock('bootstrap-vue-next', () => ({
 describe('UserGMSLocationFormat', () => {
   let wrapper
   const mockStore = {
-    state: {
-      gmsPublishLocation: 'GMS_LOCATION_TYPE_APPROXIMATE',
-    },
-    commit: vi.fn(),
+    gmsPublishLocation: 'GMS_LOCATION_TYPE_APPROXIMATE',
+    setGmsPublishLocation: vi.fn(),
   }
   const mockMutate = vi.fn()
   const mockToastSuccess = vi.fn()
@@ -38,7 +36,7 @@ describe('UserGMSLocationFormat', () => {
     useI18n.mockReturnValue({
       t: (key) => key,
     })
-    useStore.mockReturnValue(mockStore)
+    useWalletStore.mockReturnValue(mockStore)
     useMutation.mockReturnValue({ mutate: mockMutate })
     useAppToast.mockReturnValue({
       toastSuccess: mockToastSuccess,
@@ -73,10 +71,7 @@ describe('UserGMSLocationFormat', () => {
       gmsPublishLocation: 'GMS_LOCATION_TYPE_APPROXIMATE',
     })
     expect(mockToastSuccess).toHaveBeenCalledWith('settings.GMS.publish-location.updated')
-    expect(mockStore.commit).toHaveBeenCalledWith(
-      'gmsPublishLocation',
-      'GMS_LOCATION_TYPE_APPROXIMATE',
-    )
+    expect(mockStore.setGmsPublishLocation).toHaveBeenCalledWith('GMS_LOCATION_TYPE_APPROXIMATE')
     // Check for emitted event
     expect(wrapper.emitted('gmsPublishLocation')).toBeTruthy()
     expect(wrapper.emitted('gmsPublishLocation')[0]).toEqual(['GMS_LOCATION_TYPE_APPROXIMATE'])
@@ -94,7 +89,7 @@ describe('UserGMSLocationFormat', () => {
       await wrapper.findAll('.dropdown-item').at(0).trigger('click')
 
       expect(mockMutate).not.toHaveBeenCalled()
-      expect(mockStore.commit).not.toHaveBeenCalled()
+      expect(mockStore.setGmsPublishLocation).not.toHaveBeenCalled()
       expect(mockToastSuccess).not.toHaveBeenCalled()
       expect(wrapper.emitted('gmsPublishLocation')[0]).toEqual(['GMS_LOCATION_TYPE_EXACT'])
     })

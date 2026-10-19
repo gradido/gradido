@@ -73,12 +73,12 @@
 import { computed, ref } from 'vue'
 import { BButton } from 'bootstrap-vue-next'
 import { useQuery } from '@vue/apollo-composable'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import OwnCodeView from '@/components/QrCode/OwnCodeView'
 import { thankYouCards, thankYouCardSettings } from '@/graphql/thankYouCard.graphql'
 import CONFIG from '@/config'
 
-const store = useStore()
+const store = useWalletStore()
 
 const settings = ref(null)
 const cards = ref([])
@@ -155,5 +155,5 @@ const link = computed(() =>
   activeCard.value ? `${window.location.origin}/dk/${activeCard.value.code}` : '',
 )
 
-const community = computed(() => CONFIG.COMMUNITY_NAME ?? store.state.community?.name ?? '')
+const community = computed(() => CONFIG.COMMUNITY_NAME ?? store.community?.name ?? '')
 </script>

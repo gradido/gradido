@@ -2,7 +2,8 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import LanguageSwitch from './LanguageSwitch2.vue'
 import locales from '@/locales/'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
+import { useWalletStore } from '@/store/useWalletStore'
 import { createI18n } from 'vue-i18n'
 
 const updateUserInfosMutationMock = vi.fn().mockResolvedValue({
@@ -40,24 +41,15 @@ const itemByCode = (wrapper, code) =>
 describe('LanguageSwitch2', () => {
   let wrapper
 
-  const store = createStore({
-    state: {
-      gradidoID: 'current-user-id',
-      language: null,
-      preLoginLanguage: null,
-      token: 'token',
-      tokenTime: null,
-    },
-    mutations: {
-      language(state, lang) {
-        state.language = lang
-      },
-      setPreLoginLanguage(state, lang) {
-        state.preLoginLanguage = lang
-      },
-    },
+  const pinia = walletStore({
+    gradidoID: 'current-user-id',
+    language: null,
+    preLoginLanguage: null,
+    token: 'token',
+    tokenTime: null,
   })
-  // When the session ends, in seconds by this device's clock (the `token` mutation in store.js).
+  const store = useWalletStore(pinia)
+  // When the session ends, in seconds by this device's clock (`setToken` in useWalletStore.js).
   const inSeconds = (seconds) => Math.floor(Date.now() / 1000) + seconds
 
   const i18n = createI18n({
@@ -68,7 +60,7 @@ describe('LanguageSwitch2', () => {
 
   const mountOptions = {
     global: {
-      plugins: [store, i18n],
+      plugins: [pinia, i18n],
       mocks: {
         $apollo: {
           mutate: updateUserInfosMutationMock,
@@ -84,10 +76,10 @@ describe('LanguageSwitch2', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     // A member whose session runs for another hour.
-    store.state.gradidoID = 'current-user-id'
-    store.state.token = 'token'
-    store.state.tokenTime = inSeconds(3600)
-    store.state.preLoginLanguage = null
+    store.gradidoID = 'current-user-id'
+    store.token = 'token'
+    store.tokenTime = inSeconds(3600)
+    store.preLoginLanguage = null
     wrapper = createWrapper()
   })
 
@@ -99,7 +91,7 @@ describe('LanguageSwitch2', () => {
     it('defaults to the navigator language English when the store is empty', async () => {
       const languageGetter = vi.spyOn(navigator, 'language', 'get')
       languageGetter.mockReturnValue('en-US')
-      store.state.language = null
+      store.language = null
       await wrapper.vm.setCurrentLanguage()
       expect(wrapper.find('.ls-current').text()).toBe('English')
     })
@@ -107,13 +99,13 @@ describe('LanguageSwitch2', () => {
     it('falls back to English when there is no navigator language', async () => {
       const languageGetter = vi.spyOn(navigator, 'language', 'get')
       languageGetter.mockReturnValue(null)
-      store.state.language = null
+      store.language = null
       await wrapper.vm.setCurrentLanguage()
       expect(wrapper.find('.ls-current').text()).toBe('English')
     })
 
     it('shows the stored language as its autonym', async () => {
-      store.state.language = 'es'
+      store.language = 'es'
       await wrapper.vm.setCurrentLanguage()
       expect(wrapper.find('.ls-current').text()).toBe('Español')
     })
@@ -121,7 +113,7 @@ describe('LanguageSwitch2', () => {
 
   describe('the language menu', () => {
     beforeEach(async () => {
-      store.state.language = 'de'
+      store.language = 'de'
       await wrapper.vm.setCurrentLanguage()
     })
 
@@ -147,7 +139,7 @@ describe('LanguageSwitch2', () => {
 
   describe('selecting a language calls the API', () => {
     beforeEach(async () => {
-      store.state.language = 'en'
+      store.language = 'en'
       await wrapper.vm.setCurrentLanguage()
     })
 
@@ -163,7 +155,7 @@ describe('LanguageSwitch2', () => {
       await flushPromises()
 
       expect(mockToastSuccess).toHaveBeenCalledTimes(1)
-      expect(store.state.preLoginLanguage).toBe(null)
+      expect(store.preLoginLanguage).toBe(null)
     })
   })
 
@@ -171,19 +163,16 @@ describe('LanguageSwitch2', () => {
   // sends them to the sign-in page: what they had typed on the page they were on was gone.
   describe('selecting a language without a running session', () => {
     beforeEach(async () => {
-      store.state.language = 'en'
+      store.language = 'en'
       await wrapper.vm.setCurrentLanguage()
     })
 
     it.each([
-      ['a member whose session has run out', () => (store.state.tokenTime = inSeconds(-60))],
+      ['a member whose session has run out', () => (store.tokenTime = inSeconds(-60))],
       // The margin the router's guard allows too (`sessionRuns` in routes/guards.js).
-      [
-        'a member whose session ends within five seconds',
-        () => (store.state.tokenTime = inSeconds(4)),
-      ],
-      ['a member without a token', () => (store.state.token = null)],
-      ['nobody signed in', () => (store.state.gradidoID = null)],
+      ['a member whose session ends within five seconds', () => (store.tokenTime = inSeconds(4))],
+      ['a member without a token', () => (store.token = null)],
+      ['nobody signed in', () => (store.gradidoID = null)],
     ])(
       'does not ask the server for %s, and keeps the choice for the next sign-in',
       async (_who, set) => {
@@ -192,8 +181,8 @@ describe('LanguageSwitch2', () => {
         await flushPromises()
 
         expect(updateUserInfosMutationMock).not.toHaveBeenCalled()
-        expect(store.state.language).toBe('de')
-        expect(store.state.preLoginLanguage).toBe('de')
+        expect(store.language).toBe('de')
+        expect(store.preLoginLanguage).toBe('de')
         expect(mockToastSuccess).not.toHaveBeenCalled()
         expect(mockToastError).not.toHaveBeenCalled()
       },

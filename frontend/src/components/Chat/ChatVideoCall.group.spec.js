@@ -23,7 +23,7 @@ vi.mock('vue-i18n', () => ({
     locale: { value: 'de' },
   }),
 }))
-vi.mock('vuex', () => ({ useStore: () => ({ state: { gradidoID: 'me-id' } }) }))
+vi.mock('@/store/useWalletStore', () => ({ useWalletStore: () => ({ gradidoID: 'me-id' }) }))
 
 const serverRooms = vi.fn()
 const serverChoices = vi.fn()

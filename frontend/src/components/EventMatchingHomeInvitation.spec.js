@@ -2,7 +2,8 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
+import { useWalletStore } from '@/store/useWalletStore'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import de from '@/locales/de.json'
 import { eventMatchingArrival } from '@/graphql/queries'
@@ -54,24 +55,11 @@ const routes = [
 ]
 
 const storeWith = (state) =>
-  createStore({
-    state: () => ({
-      gradidoID: 'marens-gradido-id',
-      gmsAllowed: false,
-      userLocation: null,
-      ...state,
-    }),
-    mutations: {
-      gradidoID: (s, value) => {
-        s.gradidoID = value
-      },
-      gmsAllowed: (s, value) => {
-        s.gmsAllowed = value
-      },
-      userLocation: (s, value) => {
-        s.userLocation = value
-      },
-    },
+  walletStore({
+    gradidoID: 'marens-gradido-id',
+    gmsAllowed: false,
+    userLocation: null,
+    ...state,
   })
 
 /** The account's answer, or one that waits until the test lets it go. */
@@ -95,8 +83,9 @@ const mountWindow = async ({ state = {}, at = '/overview' } = {}) => {
   router = createRouter({ history: createMemoryHistory(), routes })
   await router.push(at)
   await router.isReady()
-  store = storeWith(state)
-  wrapper = mount(EventMatchingHomeInvitation, { global: { plugins: [i18n, router, store] } })
+  const pinia = storeWith(state)
+  store = useWalletStore(pinia)
+  wrapper = mount(EventMatchingHomeInvitation, { global: { plugins: [i18n, router, pinia] } })
   await flushPromises()
   return wrapper
 }
@@ -294,8 +283,8 @@ describe('EventMatchingHomeInvitation', () => {
 
       expect(firstLoginWindow.value).toBeNull()
 
-      store.commit('userLocation', HOME)
-      store.commit('gmsAllowed', true)
+      store.setUserLocation(HOME)
+      store.setGmsAllowed(true)
       await flushPromises()
 
       expect(firstLoginWindow.value).toBeNull()
@@ -323,8 +312,8 @@ describe('EventMatchingHomeInvitation', () => {
       const release = accountHoldsItsAnswer()
       await mountWindow()
 
-      store.commit('userLocation', HOME)
-      store.commit('gmsAllowed', true)
+      store.setUserLocation(HOME)
+      store.setGmsAllowed(true)
       release(SENTENCE)
       await flushPromises()
 
@@ -340,8 +329,8 @@ describe('EventMatchingHomeInvitation', () => {
       await mountWindow()
       expect(apollo.settle).not.toHaveBeenCalled()
 
-      store.commit('userLocation', HOME)
-      store.commit('gmsAllowed', true)
+      store.setUserLocation(HOME)
+      store.setGmsAllowed(true)
       await flushPromises()
 
       expect(apollo.settle).toHaveBeenCalledTimes(1)
@@ -355,11 +344,11 @@ describe('EventMatchingHomeInvitation', () => {
       accountSays(SENTENCE)
       setFirstLoginWindowWanted('alias', true)
       await mountWindow()
-      store.commit('userLocation', HOME)
-      store.commit('gmsAllowed', true)
+      store.setUserLocation(HOME)
+      store.setGmsAllowed(true)
       await flushPromises()
 
-      store.commit('gmsAllowed', false)
+      store.setGmsAllowed(false)
       setFirstLoginWindowWanted('alias', false)
       await flushPromises()
 
@@ -403,7 +392,7 @@ describe('EventMatchingHomeInvitation', () => {
       await flushPromises()
       expect(windowOnScreen()).toBe(false)
 
-      store.commit('gmsAllowed', false)
+      store.setGmsAllowed(false)
       await flushPromises()
 
       expect(windowOnScreen()).toBe(false)
@@ -541,7 +530,7 @@ describe('EventMatchingHomeInvitation', () => {
       const release = accountHoldsItsAnswer()
       await mountWindow()
 
-      store.commit('gradidoID', null)
+      store.setGradidoID(null)
       release(SENTENCE)
       await flushPromises()
 
@@ -552,10 +541,10 @@ describe('EventMatchingHomeInvitation', () => {
     it('drops the answer to a question asked before the one asked last', async () => {
       const first = accountHoldsItsAnswer()
       await mountWindow()
-      store.commit('gradidoID', null)
+      store.setGradidoID(null)
       await flushPromises()
       const second = accountHoldsItsAnswer()
-      store.commit('gradidoID', 'marens-gradido-id')
+      store.setGradidoID('marens-gradido-id')
       await flushPromises()
 
       first(SENTENCE)
@@ -569,11 +558,11 @@ describe('EventMatchingHomeInvitation', () => {
 
     it('asks again for the next member who signs in on the same page', async () => {
       await mountWindow()
-      store.commit('gradidoID', null)
+      store.setGradidoID(null)
       await flushPromises()
       accountSays(SENTENCE)
 
-      store.commit('gradidoID', 'jonas-gradido-id')
+      store.setGradidoID('jonas-gradido-id')
       await flushPromises()
 
       expect(apollo.query).toHaveBeenCalledTimes(2)

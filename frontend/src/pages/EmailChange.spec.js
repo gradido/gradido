@@ -2,7 +2,8 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { nextTick } from 'vue'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
+import { useWalletStore } from '@/store/useWalletStore'
 import { createI18n } from 'vue-i18n'
 import EmailChange from './EmailChange.vue'
 import { confirmEmailChange, revokeEmailChange } from '@/graphql/mutations'
@@ -57,12 +58,12 @@ const i18n = createI18n({
   },
 })
 
-const emailCommit = vi.fn()
-const makeStore = (token) =>
-  createStore({
-    state: () => ({ token, email: 'old@example.org' }),
-    mutations: { email: emailCommit },
-  })
+const setEmail = vi.fn()
+const makeStore = (token) => {
+  const pinia = walletStore({ token, email: 'old@example.org' })
+  useWalletStore(pinia).setEmail = setEmail
+  return pinia
+}
 
 const mountPage = (token = '') =>
   mount(EmailChange, { global: { plugins: [makeStore(token), i18n] } })
@@ -91,7 +92,7 @@ describe('EmailChange page', () => {
       await nextTick()
       expect(confirmMock).toHaveBeenCalledWith({ code: 'the-code' })
       expect(wrapper.find('[data-test="message"]').text()).toBe('Done | confirmed')
-      expect(emailCommit).not.toHaveBeenCalled()
+      expect(setEmail).not.toHaveBeenCalled()
     })
 
     // The code is public, and the wallet signed in on this device need not be the account
@@ -103,7 +104,7 @@ describe('EmailChange page', () => {
       await nextTick()
       await nextTick()
       expect(wrapper.find('[data-test="message"]').text()).toBe('Done | confirmed')
-      expect(emailCommit).not.toHaveBeenCalled()
+      expect(setEmail).not.toHaveBeenCalled()
     })
 
     /**

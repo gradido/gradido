@@ -131,7 +131,7 @@
  */
 import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useApolloClient, useQuery } from '@vue/apollo-composable'
 import { BButton, BContainer } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
@@ -149,7 +149,7 @@ const MIRROR = 'mirror'
 const ROW = 'row'
 
 const { locale } = useI18n()
-const store = useStore()
+const store = useWalletStore()
 const { client: apolloClient } = useApolloClient()
 const { seen } = useShowFriendsSeen()
 
@@ -174,7 +174,7 @@ const arrivalMember = computed(() =>
   arrival.value
     ? {
         gradidoID: arrival.value.gradidoID,
-        communityUuid: store.state.communityUuid ?? null,
+        communityUuid: store.communityUuid ?? null,
         alias: arrival.value.alias,
         avatarColorIndex: arrival.value.avatarColorIndex,
         avatarUpdatedAt: arrival.value.avatarUpdatedAt,

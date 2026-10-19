@@ -327,7 +327,7 @@
 
 <script setup>
 import { computed, nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useMutation, useQuery } from '@vue/apollo-composable'
@@ -386,7 +386,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update-transactions'])
 
-const store = useStore()
+const store = useWalletStore()
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
@@ -415,7 +415,7 @@ const { mutate: sendDeclare } = useMutation(declareProjectAccount)
  * does the same thing one floor down (`greetingAnonymous` in core).
  */
 const welcome = computed(() => {
-  const name = (store.state.firstName ?? '').trim()
+  const name = (store.firstName ?? '').trim()
   return name ? t('firstCreation.welcome', { name }) : t('firstCreation.welcomeAnonymous')
 })
 
@@ -876,7 +876,7 @@ const declareProject = async () => {
   projectFailed.value = ''
   try {
     await sendDeclare()
-    store.commit('creationAllowed', false)
+    store.setCreationAllowed(false)
     close()
   } catch (error) {
     const message = error?.message ?? ''

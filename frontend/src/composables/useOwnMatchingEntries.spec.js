@@ -1,7 +1,8 @@
 // AI-GENERATED — not an architecture reference
 
 import { mount } from '@vue/test-utils'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
+import { useWalletStore } from '@/store/useWalletStore'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { FIRST_ANSWER_PATIENCE_MS } from '@/composables/useMapMemberCount'
 import { listMatchingEntries } from '@/graphql/queries'
@@ -46,14 +47,8 @@ let store = null
 // The composable as the overview uses it: in a component's setup, with a store.
 const open = (state = ON_THE_MAP) => {
   let held
-  store = createStore({
-    state: () => ({ ...state }),
-    mutations: {
-      gradidoID: (s, value) => {
-        s.gradidoID = value
-      },
-    },
-  })
+  const pinia = walletStore({ ...state })
+  store = useWalletStore(pinia)
   wrapper = mount(
     {
       setup() {
@@ -61,7 +56,7 @@ const open = (state = ON_THE_MAP) => {
         return () => null
       },
     },
-    { global: { plugins: [store] } },
+    { global: { plugins: [pinia] } },
   )
   return held
 }
@@ -351,7 +346,7 @@ describe('useOwnMatchingEntries', () => {
     it('remembers it for the member who asked', () => {
       open()
 
-      store.commit('gradidoID', null)
+      store.setGradidoID(null)
       answer(1)
 
       expect(remembered()).toBe('1')
@@ -361,7 +356,7 @@ describe('useOwnMatchingEntries', () => {
     it('never files it under whoever is named by then', () => {
       open()
 
-      store.commit('gradidoID', 'somebody-else')
+      store.setGradidoID('somebody-else')
       answer(1)
 
       expect(remembered()).toBe('1')

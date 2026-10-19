@@ -1,7 +1,8 @@
 // AI-GENERATED — not an architecture reference
 import { flushPromises, mount } from '@vue/test-utils'
 import { createRouter, createWebHistory } from 'vue-router'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
+import { useWalletStore } from '@/store/useWalletStore'
 import { BFormGroup, BFormInput, BFormInvalidFeedback, BFormTextarea } from 'bootstrap-vue-next'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import i18n from '@/i18n'
@@ -96,6 +97,8 @@ const answerTo = ({ amount, memo, greeting: { picture, ...greeting } }) => ({
 const Stub = (name) => ({ template: `<div data-test="${name}-page" />` })
 let router
 let wrapper
+// The wallet store of the page mounted last.
+let pinia
 const updates = vi.fn()
 
 const data = (name) => wrapper.find(`[data-test="thank-you-greeting-${name}"]`)
@@ -134,7 +137,7 @@ const open = async (path = '/thank-you-greeting', { balance = 100, from = null }
         plugins: [
           i18n,
           router,
-          createStore({ state: () => ({ username: 'Oma-Emma', gradidoID: 'uuid-emma' }) }),
+          (pinia = walletStore({ username: 'Oma-Emma', gradidoID: 'uuid-emma' })),
         ],
         // The house's input (ValidatedInput) takes these from the app's global registration.
         components: { BFormGroup, BFormInput, BFormInvalidFeedback, BFormTextarea },
@@ -920,19 +923,21 @@ describe('ThankYouGreeting', () => {
        */
       it('puts nothing of the photo into the store', async () => {
         await open()
-        const store = wrapper.vm.$store
-        const before = JSON.stringify(store.state)
-        const committed = vi.spyOn(store, 'commit')
-        const dispatched = vi.spyOn(store, 'dispatch')
+        const store = useWalletStore(pinia)
+        const before = JSON.stringify(store.$state)
+        const changed = []
+        store.$subscribe(() => changed.push(store.$state), { flush: 'sync' })
+        const acted = []
+        store.$onAction(({ name }) => acted.push(name))
 
         await choosePhoto()
         await toPreview()
         await finish()
 
         expect(step()).toBe('done')
-        expect(committed).not.toHaveBeenCalled()
-        expect(dispatched).not.toHaveBeenCalled()
-        expect(JSON.stringify(store.state)).toBe(before)
+        expect(changed).toEqual([])
+        expect(acted).toEqual([])
+        expect(JSON.stringify(store.$state)).toBe(before)
       })
     })
 
@@ -1620,7 +1625,7 @@ describe('ThankYouGreeting', () => {
         const kept = [
           address(),
           JSON.stringify(window.history.state),
-          JSON.stringify(wrapper.vm.$store.state),
+          JSON.stringify(useWalletStore(pinia).$state),
           JSON.stringify({ ...localStorage }),
           JSON.stringify({ ...sessionStorage }),
         ].join(' ')
@@ -2226,7 +2231,7 @@ describe('ThankYouGreeting', () => {
             return () => null
           },
         },
-        { global: { provide: { store: { state: { gradidoID } } } } },
+        { global: { plugins: [walletStore({ gradidoID })] } },
       )
     }
 
@@ -2528,7 +2533,7 @@ describe('ThankYouGreeting', () => {
 
           const kept = [
             JSON.stringify(window.history.state),
-            JSON.stringify(wrapper.vm.$store.state),
+            JSON.stringify(useWalletStore(pinia).$state),
             JSON.stringify({ ...localStorage }),
             JSON.stringify({ ...sessionStorage }),
             window.location.href,
@@ -3144,7 +3149,7 @@ describe('ThankYouGreeting', () => {
 
         const kept = [
           JSON.stringify(window.history.state),
-          JSON.stringify(wrapper.vm.$store.state),
+          JSON.stringify(useWalletStore(pinia).$state),
           JSON.stringify({ ...localStorage }),
           JSON.stringify({ ...sessionStorage }),
         ].join(' ')

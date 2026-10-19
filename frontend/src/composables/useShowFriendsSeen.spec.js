@@ -2,7 +2,8 @@
 
 import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useShowFriendsSeen } from './useShowFriendsSeen'
 
 const KEY = 'show-friends-seen:'
@@ -22,15 +23,7 @@ const host = (store) => {
   return { wrapper, api: () => api }
 }
 
-const storeWith = (gradidoID) =>
-  createStore({
-    state: { gradidoID },
-    mutations: {
-      gradidoID(state, value) {
-        state.gradidoID = value
-      },
-    },
-  })
+const storeWith = (gradidoID) => walletStore({ gradidoID })
 
 beforeEach(() => {
   window.localStorage.clear()
@@ -69,7 +62,7 @@ describe('useShowFriendsSeen', () => {
     const { wrapper, api } = host(store)
     expect(api().seen.value).toBe(true)
 
-    store.commit('gradidoID', 'member-2')
+    useWalletStore(store).setGradidoID('member-2')
     await wrapper.vm.$nextTick()
 
     expect(api().seen.value).toBe(false)
@@ -95,7 +88,7 @@ describe('useShowFriendsSeen', () => {
     api().markSeen()
     expect(api().seen.value).toBe(true)
 
-    store.commit('gradidoID', 'member-1')
+    useWalletStore(store).setGradidoID('member-1')
     await wrapper.vm.$nextTick()
 
     expect(api().seen.value).toBe(true)

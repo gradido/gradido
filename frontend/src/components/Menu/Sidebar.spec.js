@@ -2,7 +2,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, afterEach, beforeAll, vi } from 'vitest'
 import Sidebar from './Sidebar.vue'
 import { startChatUpdates, stopChatUpdates } from '@/composables/useChatUpdates'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
 import { createI18n } from 'vue-i18n'
 import CONFIG from '../../config'
 import { BBadge, BImg, BNav, BNavItem } from 'bootstrap-vue-next'
@@ -51,17 +51,11 @@ const i18n = createI18n({
   },
 })
 
-// Mock Vuex store
-const createVuexStore = (state = {}) =>
-  createStore({
-    state: () => ({
-      hasElopage: true,
-      role: null,
-      ...state,
-    }),
-    getters: {
-      isAdmin: (state) => state.role === 'ADMIN',
-    },
+const createWalletStore = (state = {}) =>
+  walletStore({
+    hasElopage: true,
+    role: null,
+    ...state,
   })
 
 CONFIG.GMS_ACTIVE = true
@@ -75,7 +69,7 @@ describe('Sidebar', () => {
   let store
 
   const mountComponent = (storeState = {}) => {
-    store = createVuexStore(storeState)
+    store = createWalletStore(storeState)
     return mount(Sidebar, {
       global: {
         plugins: [store, i18n],
@@ -223,7 +217,7 @@ describe('Sidebar and the project account', () => {
   const mountSidebar = (state) =>
     mount(Sidebar, {
       global: {
-        plugins: [createVuexStore(state), i18n],
+        plugins: [createWalletStore(state), i18n],
         stubs: ['router-link', 'i-bi-cash'],
         components: { BNav, BBadge, BNavItem, BImg },
       },
@@ -265,7 +259,7 @@ describe('Sidebar with MATCHING_ACTIVE off', () => {
   const mountSidebar = () =>
     mount(Sidebar, {
       global: {
-        plugins: [createVuexStore(), i18n],
+        plugins: [createWalletStore(), i18n],
         stubs: ['router-link', 'i-bi-cash'],
         components: { BNav, BBadge, BNavItem, BImg },
       },
@@ -339,7 +333,7 @@ describe('Sidebar and the chat', () => {
     await flushPromises()
     return mount(Sidebar, {
       global: {
-        plugins: [createVuexStore(), i18n],
+        plugins: [createWalletStore(), i18n],
         stubs: ['router-link', 'i-bi-cash'],
         components: { BNav, BBadge, BNavItem, BImg },
       },
@@ -432,7 +426,7 @@ describe('Sidebar and the chat', () => {
   const wrapperClassOfTheEntry = () => {
     const wrapper = mount(Sidebar, {
       global: {
-        plugins: [createVuexStore(), i18n],
+        plugins: [createWalletStore(), i18n],
         stubs: ['router-link', 'i-bi-cash'],
         components: { BNav, BBadge, BNavItem, BImg },
       },

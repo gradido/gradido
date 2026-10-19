@@ -263,7 +263,7 @@
  * (GUARANTOR_CODE_SHOW): the member's account number and the time, nothing of the code.
  */
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useI18n } from 'vue-i18n'
 import { loadRouteLocation, useRouter } from 'vue-router'
 import { useMutation, useQuery } from '@vue/apollo-composable'
@@ -282,7 +282,7 @@ import { shareText } from '@/utils/shareText'
 const HERE = 'here'
 const AWAY = 'away'
 
-const store = useStore()
+const store = useWalletStore()
 const router = useRouter()
 const { t, d } = useI18n()
 const { mutate: logoutMutation } = useMutation(logout)
@@ -299,7 +299,7 @@ const toast = useAppToast()
 const hasMap = CONFIG.MATCHING_ACTIVE === true
 
 // gradidoID with a capital D, as the store spells it (see MyGradidoCard).
-const alias = computed(() => memberAlias(store.state.username, store.state.gradidoID))
+const alias = computed(() => memberAlias(store.username, store.gradidoID))
 
 /**
  * Only a confirmed member vouches (E-018): the server refuses the others at once, so a member
@@ -307,11 +307,11 @@ const alias = computed(() => memberAlias(store.state.username, store.state.gradi
  * (`null`, a session from before the field) asks - the server decides.
  *
  * A computed, not a plain read: the store's copy is renewed on every pass through
- * `/authenticate` (the guard dispatches `login` with the `verifyLogin` answer), and a member
+ * `/authenticate` (the guard calls `login` with the `verifyLogin` answer), and a member
  * who confirms their address mid-session must not stay locked out of their own code on a page
  * that is still mounted. It also keeps `enabled` below a ref, which is what it is read as.
  */
-const confirmed = computed(() => store.state.emailChecked !== false)
+const confirmed = computed(() => store.emailChecked !== false)
 
 /**
  * The guarantor code, fresh on every visit (`network-only`: the query takes no argument, so a cached
@@ -362,7 +362,7 @@ const noPhone = async () => {
   } catch {
     // As in the header: signed out here all the same when the server does not answer.
   }
-  await store.dispatch('logout')
+  await store.logout()
   await router.push(form)
 }
 

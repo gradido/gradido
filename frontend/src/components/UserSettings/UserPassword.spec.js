@@ -6,7 +6,7 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import UserPassword from './UserPassword.vue'
 import { nextTick } from 'vue'
 import { createI18n } from 'vue-i18n'
-import Vuex from 'vuex'
+import { walletStore } from '@test/walletStore'
 import { BButton, BCard, BCol, BForm, BRow } from 'bootstrap-vue-next'
 import { useForm } from 'vee-validate'
 
@@ -112,17 +112,10 @@ describe('UserPassword', () => {
   let handleSubmit
   let resetForm
 
-  const createVuexStore = () => {
-    return new Vuex.Store({
-      state: {},
-      mutations: {},
-      actions: {},
-      getters: {},
-    })
-  }
+  const createWalletStore = () => walletStore()
 
   const mountComponent = () => {
-    store = createVuexStore()
+    store = createWalletStore()
     return mount(UserPassword, {
       global: {
         components: {

@@ -16,7 +16,7 @@ import 'regenerator-runtime'
 
 import addNavigationGuards from './routes/guards'
 
-import { store } from './store/store'
+import { pinia, store } from './store/store'
 
 import router from './routes/router'
 
@@ -48,7 +48,7 @@ installNewVersionCheck({ router })
 const app = createApp(App)
 
 app.use(router)
-app.use(store)
+app.use(pinia)
 app.use(i18n)
 app.use(createBootstrap())
 app.use(GlobalDirectives)
@@ -68,16 +68,16 @@ addNavigationGuards(router, store, apolloClient)
 
 // Apply the device-local theme (system | light | dark) before mount so the first
 // paint already carries the correct light/dark class.
-store.dispatch('applyTheme')
+store.applyTheme()
 
-// Restore the persisted UI language before mount. vuex-persistedstate rehydrates
-// state.language without firing the `language` mutation (which is what sets the
+// Restore the persisted UI language before mount. store.js restores
+// state.language without calling `setLanguage` (which is what sets the
 // i18n locale). Previously this was masked by the login layout briefly rendering
 // its language switcher on boot; now that we mount straight into the target route
 // (see router.isReady below), sync the locale here so the app is not stuck on the
 // default language until Settings is opened.
-if (store.state.language) {
-  i18n.global.locale.value = store.state.language
+if (store.language) {
+  i18n.global.locale.value = store.language
 }
 
 if (!store) {

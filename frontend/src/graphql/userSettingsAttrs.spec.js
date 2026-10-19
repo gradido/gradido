@@ -5,9 +5,10 @@ import { readFileSync, readdirSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { updateUserInfos } from './mutations'
-import { mutations as storeMutations } from '../store/store'
+import { createPinia } from 'pinia'
+import { useWalletStore } from '../store/useWalletStore'
 
-// The store is only read for its mutation names, but importing it runs the module, and
+// The store is only read for the names of its fields, but importing it runs the module, and
 // that reaches i18n. Mocked the way store.test.js does it -- vi.mock is hoisted above the
 // imports, so this takes effect even though it is written below them.
 vi.mock('../i18n', () => ({
@@ -16,16 +17,16 @@ vi.mock('../i18n', () => ({
 
 // UserSettingsSwitch and UserNamingFormat are handed an attribute NAME and use it blind,
 // in two places at once: it becomes the variable of updateUserInfos, and it becomes the
-// store mutation that is committed after a successful save. Each half fails silently on
+// store field that is set after a successful save. Each half fails silently on
 // its own, which is why neither can be left to a component test:
 //
 //   * a GraphQL document carries only the variables it DECLARES. An undeclared one is
 //     dropped on the way out without an error -- the switch flips, says "saved", and
 //     nothing reaches the server.
-//   * Vuex answers an unknown mutation type with a console line, not an exception, so the
+//   * the store's $patch takes an unknown name as a new field, without a word, so the
 //     save succeeds, the success toast fires, and only the screen goes stale.
 //
-// A component test cannot see either: it mocks the mutation and builds its own store, so
+// A component test cannot see either: it mocks the save and builds its own store, so
 // the two layers that would have dropped the name are exactly the two that were replaced.
 // So this holds the pages against the real document and the real store.
 //
@@ -113,7 +114,7 @@ describe('the attr-names the pages hand to the self-saving components', () => {
     expect(declared).toContain(attrName)
   })
 
-  it.each(literal)('%s has a store mutation of the same name', (attrName) => {
-    expect(Object.keys(storeMutations)).toContain(attrName)
+  it.each(literal)('%s is a field of the store of the same name', (attrName) => {
+    expect(Object.keys(useWalletStore(createPinia()).$state)).toContain(attrName)
   })
 })

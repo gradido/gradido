@@ -6,7 +6,7 @@
 <script setup>
 import { computed, defineOptions, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 
 defineOptions({ name: 'LanguageSwitch' })
 
@@ -16,7 +16,7 @@ defineProps({
 const emit = defineEmits(['update-language'])
 
 const { t } = useI18n()
-const store = useStore()
+const store = useWalletStore()
 
 const selected = ref(null)
 const options = [
@@ -33,5 +33,5 @@ watch(selected, () => {
   emit('update-language', languageObject.value)
 })
 
-selected.value = store.state.language
+selected.value = store.language
 </script>

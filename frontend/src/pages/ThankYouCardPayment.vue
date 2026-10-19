@@ -230,7 +230,7 @@
 import { BButton, BFormCheckbox, BFormInput } from 'bootstrap-vue-next'
 import { computed, nextTick, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useMutation, useQuery } from '@vue/apollo-composable'
 import { useRoute, useRouter } from 'vue-router'
 import {
@@ -253,7 +253,7 @@ const pinType = pinInputType()
 
 const route = useRoute()
 const { t, n } = useI18n()
-const store = useStore()
+const store = useWalletStore()
 const { toastError } = useAppToast()
 const { readRememberedMemo, writeRememberedMemo } = useThankYouCardMemo()
 const { readParked, readParkedRest, clearParked } = useParkedAmount()
@@ -297,7 +297,7 @@ const router = useRouter()
  *
  * The alias, not the real name (NU-021/KLAR-09): the payer reads this screen too.
  */
-const recipientName = computed(() => memberAlias(store.state.username, store.state.gradidoID))
+const recipientName = computed(() => memberAlias(store.username, store.gradidoID))
 
 const unusable = computed(() => targetStatus.value !== null && targetStatus.value !== 'SUCCESS')
 const statusKey = computed(() => targetStatus.value ?? 'CARD_UNKNOWN')

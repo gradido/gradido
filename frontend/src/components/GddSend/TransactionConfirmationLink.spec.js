@@ -19,13 +19,6 @@ vi.mock('vue-i18n', () => ({
   }),
 }))
 
-// Mock the Vuex store
-vi.mock('vuex', () => ({
-  useStore: vi.fn(() => ({
-    // Add any necessary store mock implementations here
-  })),
-}))
-
 describe('TransactionConfirmationLink', () => {
   let wrapper
 

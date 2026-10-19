@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import RegisterCommunity from './RegisterCommunity.vue'
 import { createRouter, createWebHistory } from 'vue-router'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
 import { BButton, BCol, BContainer, BRow } from 'bootstrap-vue-next'
 
 // Mock the CONFIG import
@@ -19,17 +19,14 @@ describe('RegisterCommunity', () => {
   let router
   let store
 
-  const createVuexStore = () => {
-    return createStore({
-      state: {
-        community: {
-          name: '',
-          description: '',
-          url: '',
-        },
+  const createWalletStore = () =>
+    walletStore({
+      community: {
+        name: '',
+        description: '',
+        url: '',
       },
     })
-  }
 
   beforeEach(() => {
     router = createRouter({
@@ -40,7 +37,7 @@ describe('RegisterCommunity', () => {
         { path: '/login', name: 'Login' },
       ],
     })
-    store = createVuexStore()
+    store = createWalletStore()
 
     wrapper = mount(RegisterCommunity, {
       global: {

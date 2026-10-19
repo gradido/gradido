@@ -2,7 +2,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { ref, nextTick } from 'vue'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
 import { createI18n } from 'vue-i18n'
 import UserEmail from './UserEmail.vue'
 import { cancelEmailChange, requestEmailChange, resendEmailChange } from '@/graphql/mutations'
@@ -84,9 +84,7 @@ vi.mock('@/composables/useToast', () => ({
   }),
 }))
 
-const store = createStore({
-  state: () => ({ email: 'old@example.org' }),
-})
+const store = walletStore({ email: 'old@example.org' })
 
 const mountComponent = () => mount(UserEmail, { global: { plugins: [store, i18n] } })
 

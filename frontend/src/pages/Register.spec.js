@@ -4,7 +4,8 @@ import Register from './Register.vue'
 import AuthTriads from '@/components/Auth/AuthTriads.vue'
 import flushPromises from 'flush-promises'
 import { createRouter, createWebHistory } from 'vue-router'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
+import { useWalletStore } from '@/store/useWalletStore'
 import { createI18n } from 'vue-i18n'
 import {
   BButton,
@@ -55,29 +56,20 @@ describe('Register', () => {
   let store
   let i18n
 
-  const createVuexStore = () => {
-    return createStore({
-      state: {
-        email: 'peter@lustig.de',
-        language: 'en',
-        publisherId: 'test-publisher-id',
-        eventMatchingEntry: null,
-      },
-      mutations: {
-        // As in store.js.
-        eventMatchingEntry: (state, entry) => {
-          state.eventMatchingEntry = entry ?? null
-        },
-      },
+  const createWalletStore = () =>
+    walletStore({
+      email: 'peter@lustig.de',
+      language: 'en',
+      publisherId: 'test-publisher-id',
+      eventMatchingEntry: null,
     })
-  }
 
   beforeEach(() => {
     router = createRouter({
       history: createWebHistory(),
       routes: [{ path: '/register', name: 'Register' }],
     })
-    store = createVuexStore()
+    store = createWalletStore()
     i18n = createI18n({
       legacy: false,
       locale: 'en',
@@ -281,6 +273,8 @@ describe('Register', () => {
           language: 'en',
           publisherId: 'test-publisher-id',
           redeemCode: undefined,
+          // The store's own default: no project the member came in for.
+          project: null,
         })
       })
 
@@ -568,7 +562,7 @@ describe('Register', () => {
     // Whichever way the account is opened, the entry an event link offered goes along
     // (Event-Matching): an account a member vouches for notes it like any other.
     it('sends the entry of an event link along with the code', async () => {
-      store.state.eventMatchingEntry = {
+      useWalletStore(store).eventMatchingEntry = {
         summary: 'Kongress Frequency Healing',
         details: null,
         remote: true,
@@ -775,7 +769,7 @@ describe('Register', () => {
     const keptAgo = (ms, entry = ENTRY) => ({ ...entry, keptAt: Date.now() - ms })
 
     const pageWith = async (kept, query = {}) => {
-      store.state.eventMatchingEntry = kept
+      useWalletStore(store).eventMatchingEntry = kept
       const entryRouter = createRouter({
         history: createWebHistory(),
         routes: [
@@ -874,7 +868,7 @@ describe('Register', () => {
 
       await submit(page)
 
-      expect(store.state.eventMatchingEntry).toEqual(kept)
+      expect(useWalletStore(store).eventMatchingEntry).toEqual(kept)
     })
 
     it('keeps it in the store where the registration fails, for the next attempt', async () => {
@@ -886,7 +880,7 @@ describe('Register', () => {
       await page.find('form').trigger('submit')
       await flushPromises()
 
-      expect(store.state.eventMatchingEntry).toEqual(kept)
+      expect(useWalletStore(store).eventMatchingEntry).toEqual(kept)
       expect(line(page).exists()).toBe(true)
     })
 

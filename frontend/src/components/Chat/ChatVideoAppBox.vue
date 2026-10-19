@@ -7,7 +7,7 @@
       v-model="inApp"
       box-test="chat-video-app-box"
       :title="$t('chatThread.videoInAppHint')"
-      @change="(ticked) => rememberChatVideoInApp(store.state.gradidoID, ticked)"
+      @change="(ticked) => rememberChatVideoInApp(store.gradidoID, ticked)"
     >
       {{ $t('chatThread.videoStartInApp') }}
     </ChatCheck>
@@ -16,7 +16,7 @@
 
 <script setup>
 import { defineModel } from 'vue'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import ChatCheck from '@/components/Chat/ChatCheck.vue'
 import { rememberChatVideoInApp } from '@/utils/chatVideoApp'
 
@@ -27,5 +27,5 @@ import { rememberChatVideoInApp } from '@/utils/chatVideoApp'
  * change is remembered at once, for the member on this device (chatVideoApp).
  */
 const inApp = defineModel({ type: Boolean, default: false })
-const store = useStore()
+const store = useWalletStore()
 </script>

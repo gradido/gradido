@@ -35,7 +35,7 @@ describe('verifyLogin', () => {
     // The guard is the one place a member passes through regularly without signing in
     // again, so it is where a changed address reaches the store.
     const guards = read('../routes/guards.js')
-    expect(guards).toMatch(/commit\(\s*'email',[^)]*verifyLogin\.emailContact/)
+    expect(guards).toMatch(/setEmail\([^)]*verifyLogin\.emailContact/)
   })
 
   it('does not ask the login mutation for it, which is not where it changes', () => {

@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 
 import { mount } from '@vue/test-utils'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mapMemberCount } from '@/graphql/queries'
 import {
@@ -49,7 +49,7 @@ const open = (state = NOT_ON_THE_MAP) => {
         return () => null
       },
     },
-    { global: { plugins: [createStore({ state: () => ({ ...state }) })] } },
+    { global: { plugins: [walletStore({ ...state })] } },
   )
   return held
 }

@@ -28,7 +28,7 @@ const i18n = vi.hoisted(() => ({
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({ t: i18n.t, d: i18n.d, locale: { value: i18n.locale } }),
 }))
-vi.mock('vuex', () => ({ useStore: () => ({ state: { gradidoID: 'me-id' } }) }))
+vi.mock('@/store/useWalletStore', () => ({ useWalletStore: () => ({ gradidoID: 'me-id' }) }))
 
 const serverRooms = vi.fn()
 const serverChoices = vi.fn()

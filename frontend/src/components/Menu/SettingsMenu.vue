@@ -36,7 +36,7 @@
 </template>
 <script setup>
 import { computed } from 'vue'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useI18n } from 'vue-i18n'
 import { useQuery } from '@vue/apollo-composable'
 import CONFIG from '@/config'
@@ -45,7 +45,7 @@ import { thankYouCardSettings, thankYouCards } from '@/graphql/thankYouCard.grap
 import SettingsMenuIcon from './SettingsMenuIcon.vue'
 
 const { t } = useI18n()
-const store = useStore()
+const store = useWalletStore()
 
 // Read once: the flags are baked in at build time, they cannot change while the app runs.
 const isCommunityService = CONFIG.GMS_LEGACY_ACTIVE || CONFIG.HUMHUB_ACTIVE
@@ -89,8 +89,8 @@ const onOff = (value) => (value ? t('settings.menu.state.on') : t('settings.menu
  * an empty space, for the reason the thank-you card's state gives above.
  */
 const notificationsState = computed(() => {
-  const mails = Boolean(store.state.newsletterState)
-  const transfers = store.state.transfersInChat !== false
+  const mails = Boolean(store.newsletterState)
+  const transfers = store.transfersInChat !== false
   return mails === transfers ? onOff(mails) : null
 })
 
@@ -108,7 +108,7 @@ const { result: firstCreation } = useQuery(firstCreationStatus, null, {
 })
 const showFunctionTests = computed(
   () =>
-    store.state.role === 'ADMIN' &&
+    store.role === 'ADMIN' &&
     firstCreation.value?.firstCreationStatus?.functionTestsEnabled === true,
 )
 
@@ -143,7 +143,7 @@ const entries = computed(() => {
       to: '/settings/visibility',
       test: 'visibility',
       label: t('settings.menu.visibility'),
-      state: onOff(store.state.avatarVisibleToMembers),
+      state: onOff(store.avatarVisibleToMembers),
     },
     {
       to: '/settings/notifications',

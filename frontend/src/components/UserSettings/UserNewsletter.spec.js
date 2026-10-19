@@ -2,7 +2,8 @@ import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import UserNewsletter from './UserNewsletter'
 import { unsubscribeNewsletter, subscribeNewsletter } from '@/graphql/mutations'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
+import { useWalletStore } from '@/store/useWalletStore'
 import { createI18n } from 'vue-i18n'
 import * as bootstrapVueNext from 'bootstrap-vue-next'
 import { nextTick } from 'vue'
@@ -37,18 +38,11 @@ describe('UserNewsletter', () => {
   let store
   let i18n
 
-  const createVuexStore = (initialState = {}) =>
-    createStore({
-      state: {
-        language: 'de',
-        newsletterState: true,
-        ...initialState,
-      },
-      mutations: {
-        newsletterState(state, value) {
-          state.newsletterState = value
-        },
-      },
+  const createWalletStore = (initialState = {}) =>
+    walletStore({
+      language: 'de',
+      newsletterState: true,
+      ...initialState,
     })
 
   const createI18nInstance = () =>
@@ -64,7 +58,7 @@ describe('UserNewsletter', () => {
     })
 
   const createWrapper = (storeState = {}) => {
-    store = createVuexStore(storeState)
+    store = createWalletStore(storeState)
     i18n = createI18nInstance()
 
     return mount(UserNewsletter, {
@@ -114,7 +108,7 @@ describe('UserNewsletter', () => {
     })
 
     it('updates the store', () => {
-      expect(store.state.newsletterState).toBe(false)
+      expect(useWalletStore(store).newsletterState).toBe(false)
     })
 
     it('toasts a success message', () => {
@@ -143,7 +137,7 @@ describe('UserNewsletter', () => {
     })
 
     it('updates the store', () => {
-      expect(store.state.newsletterState).toBe(true)
+      expect(useWalletStore(store).newsletterState).toBe(true)
     })
 
     it('toasts a success message', () => {
@@ -164,7 +158,7 @@ describe('UserNewsletter', () => {
     })
 
     it('resets the newsletterState', () => {
-      expect(store.state.newsletterState).toBe(true)
+      expect(useWalletStore(store).newsletterState).toBe(true)
     })
 
     it('toasts an error message', () => {

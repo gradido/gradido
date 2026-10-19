@@ -341,7 +341,7 @@ import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from
 import { useRoute, useRouter } from 'vue-router'
 import { useApolloClient, useQuery } from '@vue/apollo-composable'
 import { useI18n } from 'vue-i18n'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { listMatchingEntries, userLocationQuery } from '@/graphql/queries'
 import { useGmsBase } from '@/composables/useGmsBase'
 import { makeGeoProvider } from '@/utils/geoSearchProvider'
@@ -466,7 +466,7 @@ const { t, locale } = useI18n()
 const router = useRouter()
 const route = useRoute()
 const entryDraft = useEntryDraft()
-const store = useStore()
+const store = useWalletStore()
 const { toastError } = useAppToast()
 // The address the GMS search answers under. Asked for here because it needs the Apollo client,
 // which only setup can reach - the control that searches with it is built a quarter second
@@ -483,7 +483,7 @@ const noWebgl = ref(false)
 // The sweep of those old flat keys used to stand here and now runs at sign-out, beside the
 // seven other things that must not outlive one member: an account without a position never
 // reaches this page, so on exactly those devices the old keys were never cleared.
-const prefPrefix = mapPrefPrefix(store.state.gradidoID)
+const prefPrefix = mapPrefPrefix(store.gradidoID)
 
 const mapContainer = ref(null)
 // The element initMap hangs on the map as the search control.
@@ -606,7 +606,7 @@ function searchAfterWords() {
   }, SEARCH_AGAIN_AFTER_WORDS_MS)
 }
 const waitsForWords = () =>
-  Boolean(store.state.gmsAllowed) && myEntries.value.some((entry) => entry.keyed === false)
+  Boolean(store.gmsAllowed) && myEntries.value.some((entry) => entry.keyed === false)
 function askAgainForWords() {
   if (wordsTimer || !waitsForWords() || wordsAsked >= WORDS_ASKED_AFTER_MS.length) return
   wordsTimer = setTimeout(askForWords, WORDS_ASKED_AFTER_MS[wordsAsked])
@@ -971,7 +971,7 @@ const sortedPresence = computed(() =>
   [...visiblePresence.value].sort((a, b) => centreDistance(a) - centreDistance(b)),
 )
 
-const enabled = computed(() => Boolean(store.state.gmsAllowed))
+const enabled = computed(() => Boolean(store.gmsAllowed))
 const { onResult, onError } = useQuery(
   userLocationQuery,
   {},
@@ -994,7 +994,7 @@ onResult(({ data }) => {
     // Correct the store on the way out, not only the navigation. The guard in front of
     // this page reads it, so leaving a stale yes standing would admit the member again on
     // the next attempt and the bounce would repeat, silently, every time.
-    store.commit('userLocation', null)
+    store.setUserLocation(null)
     router.replace('/matching/position')
     return
   }
@@ -1034,7 +1034,7 @@ const askedPerson = computed(() => {
   const named = [gradidoID, communityUuid].every(
     (part) => typeof part === 'string' && UUID_SHAPE.test(part),
   )
-  return named && !isOneself(gradidoID, store.state) ? { gradidoID, communityUuid } : null
+  return named && !isOneself(gradidoID, store) ? { gradidoID, communityUuid } : null
 })
 
 // The person as the map draws them, once the GMS has said where they stand: in a ring's shape

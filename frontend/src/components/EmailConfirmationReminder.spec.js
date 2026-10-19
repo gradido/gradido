@@ -2,7 +2,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { nextTick } from 'vue'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
 import { createI18n } from 'vue-i18n'
 import { BModal } from 'bootstrap-vue-next'
 import EmailConfirmationReminder from './EmailConfirmationReminder.vue'
@@ -65,7 +65,7 @@ const hoursAgo = (hours) => new Date(Date.now() - hours * 60 * 60 * 1000).toISOS
 const mountWith = (state) =>
   mount(EmailConfirmationReminder, {
     global: {
-      plugins: [createStore({ state: () => ({ language: 'en', ...state }) }), i18n],
+      plugins: [walletStore({ language: 'en', ...state }), i18n],
     },
   })
 

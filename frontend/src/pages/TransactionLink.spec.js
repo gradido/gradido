@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import TransactionLink from './TransactionLink.vue'
 import { useMutation, useQuery } from '@vue/apollo-composable'
 import { useRouter } from 'vue-router'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useAppToast } from '@/composables/useToast'
 import TransactionLinkItem from '@/components/TransactionLinkItem.vue'
 import AuthTriads from '@/components/Auth/AuthTriads.vue'
@@ -17,13 +17,11 @@ vi.mock('vue-router', () => ({
   })),
 }))
 
-vi.mock('vuex', () => ({
-  useStore: vi.fn(() => ({
-    state: {
-      token: null,
-      tokenTime: null,
-      gradidoID: 'current-user-id',
-    },
+vi.mock('@/store/useWalletStore', () => ({
+  useWalletStore: vi.fn(() => ({
+    token: null,
+    tokenTime: null,
+    gradidoID: 'current-user-id',
   })),
 }))
 
@@ -66,11 +64,9 @@ describe('TransactionLink', () => {
     mockUseMutation = vi.fn()
     mockRouter = { push: vi.fn() }
     mockStore = {
-      state: {
-        token: null,
-        tokenTime: null,
-        gradidoID: 'current-user-id',
-      },
+      token: null,
+      tokenTime: null,
+      gradidoID: 'current-user-id',
     }
     mockToast = {
       toastError: vi.fn(),
@@ -95,7 +91,7 @@ describe('TransactionLink', () => {
     })
 
     vi.mocked(useRouter).mockReturnValue(mockRouter)
-    vi.mocked(useStore).mockReturnValue(mockStore)
+    vi.mocked(useWalletStore).mockReturnValue(mockStore)
     vi.mocked(useAppToast).mockReturnValue(mockToast)
 
     wrapper = mount(TransactionLink, {

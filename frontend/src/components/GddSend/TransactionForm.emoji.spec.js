@@ -20,6 +20,7 @@ import i18n from '@/i18n'
 import EmojiPicker from '@/components/Inputs/EmojiPicker.vue'
 import { isComputer } from '@/utils/isComputer'
 import TransactionForm from './TransactionForm.vue'
+import { walletStore } from '@test/walletStore'
 
 /**
  * The smiley at the message of the send form (Bernd, 10.10.2026), with the house's real input
@@ -45,8 +46,7 @@ const openForm = (props = {}) => {
     // In the page: the choice finds the message's field by its id.
     attachTo: document.body,
     global: {
-      plugins: [i18n],
-      provide: { store: { state: { gradidoID: 'uuid-emma' } } },
+      plugins: [i18n, walletStore({ gradidoID: 'uuid-emma' })],
       components: {
         BButton,
         BCard,

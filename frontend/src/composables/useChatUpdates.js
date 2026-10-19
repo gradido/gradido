@@ -13,7 +13,7 @@ import { refreshContactsPanel } from '@/composables/useContactsPanel'
  * and those whose reactions were (Bernd, 11.10.2026).
  *
  * ⛔ One state for the app, here in the module -- not one per window, and not in the store. The
- * Vuex store is written to `localStorage` in full (createPersistedState without `paths`), so a
+ * store is written to `localStorage` in full (store.js saves it whole), so a
  * marker or a message put there would outlive the session on the device. Nothing in this file
  * reads or writes the store or any storage.
  *

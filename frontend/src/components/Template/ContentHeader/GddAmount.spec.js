@@ -5,23 +5,19 @@ import { updateUserInfos } from '@/graphql/mutations'
 import { nextTick, ref } from 'vue'
 import { BBadge, BCol, BRow } from 'bootstrap-vue-next'
 
-// Mock vuex store
+// Mock the wallet store
 const mockHideAmountGDD = ref(false)
-const mockCommit = vi.fn((mutation, value) => {
-  if (mutation === 'hideAmountGDD') {
-    mockHideAmountGDD.value = value
-  }
+const mockSetHideAmountGDD = vi.fn((value) => {
+  mockHideAmountGDD.value = value
 })
 const mockStore = {
-  state: {
-    get hideAmountGDD() {
-      return mockHideAmountGDD.value
-    },
+  get hideAmountGDD() {
+    return mockHideAmountGDD.value
   },
-  commit: mockCommit,
+  setHideAmountGDD: mockSetHideAmountGDD,
 }
-vi.mock('vuex', () => ({
-  useStore: () => mockStore,
+vi.mock('@/store/useWalletStore', () => ({
+  useWalletStore: () => mockStore,
 }))
 
 // Mock vue-i18n
@@ -71,7 +67,6 @@ describe('GddAmount', () => {
       global: {
         mocks: {
           $t: (key) => key,
-          $store: mockStore,
           $filters: {
             GDD: mockGDDFilter,
           },
@@ -197,7 +192,7 @@ describe('GddAmount', () => {
       expect(mockMutate).toHaveBeenCalledWith({
         hideAmountGDD: true,
       })
-      expect(mockCommit).toHaveBeenCalledWith('hideAmountGDD', true)
+      expect(mockSetHideAmountGDD).toHaveBeenCalledWith(true)
       // ⛔ No toast: the whole result of this switch is on screen the moment it lands, and
       // switched quickly back and forth they piled up. What the screen cannot show is a
       // FAILED save -- that is why toastError stays, and it has a test of its own above.
@@ -226,7 +221,7 @@ describe('GddAmount', () => {
       expect(mockMutate).toHaveBeenCalledWith({
         hideAmountGDD: false,
       })
-      expect(mockCommit).toHaveBeenCalledWith('hideAmountGDD', false)
+      expect(mockSetHideAmountGDD).toHaveBeenCalledWith(false)
       // ⛔ No toast: the whole result of this switch is on screen the moment it lands, and
       // switched quickly back and forth they piled up. What the screen cannot show is a
       // FAILED save -- that is why toastError stays, and it has a test of its own above.

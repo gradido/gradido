@@ -2,7 +2,8 @@
 import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 import { createRouter, createMemoryHistory } from 'vue-router'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
+import { useWalletStore } from '@/store/useWalletStore'
 import {
   BButton,
   BCol,
@@ -235,34 +236,27 @@ const signedOut = { token: null, tokenTime: null, gradidoID: null, firstName: nu
  * A store that signs a member in as the wallet's does, as far as the page reads it: the token
  * and who it is. The rest of the session is what the registration form sends along.
  */
-const newStore = (session) =>
-  createStore({
-    state: {
-      language: 'de',
-      publisherId: 2896,
-      project: null,
-      preLoginLanguage: null,
-      email: null,
-      ...session,
-    },
-    mutations: {
-      email: (state, email) => {
-        state.email = email
-      },
-      member: (state, member) => Object.assign(state, member),
-    },
-    actions: {
-      login: ({ commit }, user) =>
-        commit('member', {
-          token: 'token-of-the-new-session',
-          tokenTime: Math.floor(Date.now() / 1000) + 600,
-          gradidoID: user.gradidoID,
-          firstName: user.firstName,
-          alias: user.alias,
-          language: user.language,
-        }),
-    },
+const newStore = (session) => {
+  const pinia = walletStore({
+    language: 'de',
+    publisherId: 2896,
+    project: null,
+    preLoginLanguage: null,
+    email: null,
+    ...session,
   })
+  const store = useWalletStore(pinia)
+  store.login = (user) =>
+    store.$patch({
+      token: 'token-of-the-new-session',
+      tokenTime: Math.floor(Date.now() / 1000) + 600,
+      gradidoID: user.gradidoID,
+      firstName: user.firstName,
+      alias: user.alias,
+      language: user.language,
+    })
+  return pinia
+}
 const signedInAs = (gradidoID) => ({
   token: 'token',
   tokenTime: Math.floor(Date.now() / 1000) + 600,
@@ -290,10 +284,10 @@ const open = async (answer, { session = signedOut, code = CODE } = {}) => {
   })
   await router.push(`/redeem/${code}`)
   await router.isReady()
-  const store = newStore(session)
+  const pinia = newStore(session)
   const wrapper = mount(shell, {
     global: {
-      plugins: [i18n, router, store],
+      plugins: [i18n, router, pinia],
       // The switch of communities and the fields of the form name their Bootstrap parts
       // without importing them.
       components: {
@@ -317,7 +311,7 @@ const open = async (answer, { session = signedOut, code = CODE } = {}) => {
   })
   mounted.push(wrapper)
   await flushPromises()
-  return { wrapper, router, store }
+  return { wrapper, router, store: useWalletStore(pinia) }
 }
 const mounted = []
 
@@ -793,9 +787,9 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
           publisherId: 2896,
           project: null,
         })
-        expect(store.state.token).toBe('token-of-the-new-session')
-        expect(store.state.gradidoID).toBe(ME)
-        expect(store.state.email).toBe('sarah@provence.fr')
+        expect(store.token).toBe('token-of-the-new-session')
+        expect(store.gradidoID).toBe(ME)
+        expect(store.email).toBe('sarah@provence.fr')
       })
 
       // As on the login page: what the previous member's queries answered is still lying in
@@ -804,7 +798,7 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
         const { wrapper, store } = await ready()
         let tokenWhenCleared = 'not asked'
         cache.clear = vi.fn(async () => {
-          tokenWhenCleared = store.state.token
+          tokenWhenCleared = store.token
         })
 
         await send(wrapper)
@@ -994,8 +988,8 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
 
         expect(apollo.redeem).not.toHaveBeenCalled()
         expect(cache.clear).not.toHaveBeenCalled()
-        expect(store.state.token).toBeNull()
-        expect(store.state.gradidoID).toBeNull()
+        expect(store.token).toBeNull()
+        expect(store.gradidoID).toBeNull()
       })
 
       it('leads to the sign-in with the code, and back to the link from there', async () => {
@@ -1071,7 +1065,7 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
 
         expect(toasts.toastError).toHaveBeenCalledTimes(1)
         expect(toasts.toastError).toHaveBeenCalledWith('Transaction link already redeemed')
-        expect(store.state.token).toBe('token-of-the-new-session')
+        expect(store.token).toBe('token-of-the-new-session')
         expect(thanks(wrapper).props('stage')).toBeNull()
         expect(title(wrapper).text()).toBe('Dieser Dank ist angenommen.')
         expect(router.currentRoute.value.path).toBe(`/redeem/${CODE}`)
@@ -1208,7 +1202,7 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
       const SECRET = 'Zx9!kLm2-geheim'
       const everywhere = ({ router, store }) =>
         [
-          JSON.stringify(store.state),
+          JSON.stringify(store.$state),
           router.currentRoute.value.fullPath,
           JSON.stringify(router.currentRoute.value.query),
           JSON.stringify(window.history.state),

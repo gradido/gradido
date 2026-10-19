@@ -311,7 +311,7 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useApolloClient, useQuery, useMutation } from '@vue/apollo-composable'
@@ -355,7 +355,7 @@ import CONFIG from '@/config'
 import { LAST_TRANSACTIONS_PAGE_SIZE } from '@/constants'
 import { useAppToast } from '@/composables/useToast'
 
-const store = useStore()
+const store = useWalletStore()
 const route = useRoute()
 const { t } = useI18n()
 const { client: apolloClient } = useApolloClient()
@@ -618,13 +618,13 @@ onBeforeUnmount(stopChatUpdates)
  * the store -- the clock ends the session while "Abmelden" is on its way.
  */
 const logoutUser = async (how) => {
-  const said = { byOwnWord: how?.ranOut !== true, member: store.state.gradidoID }
+  const said = { byOwnWord: how?.ranOut !== true, member: store.gradidoID }
   try {
     await useLogoutMutation()
-    await store.dispatch('logout', said)
+    await store.logout(said)
     await router.push('/login')
   } catch (err) {
-    await store.dispatch('logout', said)
+    await store.logout(said)
     if (router.currentRoute.value.path !== '/login') await router.push('/login')
   }
 }
@@ -742,11 +742,11 @@ const admin = () => {
     window.close()
     return
   }
-  window.location.assign(handOverAddress(CONFIG.ADMIN_AUTH_URL, store.state.token))
+  window.location.assign(handOverAddress(CONFIG.ADMIN_AUTH_URL, store.token))
   // Signed out only where the admin interface is on another origin (development), as it always
   // was: there the token went along in the address. On one origin both apps hold the one token
   // (utils/authToken.js), and signing out here would sign the admin interface out as well.
-  if (!sharesOrigin(CONFIG.ADMIN_AUTH_URL)) store.dispatch('logout') // logout without redirect
+  if (!sharesOrigin(CONFIG.ADMIN_AUTH_URL)) store.logout() // logout without redirect
 }
 </script>
 <style>

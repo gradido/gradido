@@ -59,11 +59,13 @@ vi.mock('@vue/apollo-composable', () => ({
  * first line, so every test that taps anything but the name would be reporting the
  * exception rather than the behaviour.
  */
-const { mockDispatch, mockReplace } = vi.hoisted(() => ({
-  mockDispatch: vi.fn(),
+const { mockChangeTransactionToHighlightId, mockReplace } = vi.hoisted(() => ({
+  mockChangeTransactionToHighlightId: vi.fn(),
   mockReplace: vi.fn(),
 }))
-vi.mock('vuex', () => ({ useStore: () => ({ dispatch: mockDispatch }) }))
+vi.mock('@/store/useWalletStore', () => ({
+  useWalletStore: () => ({ changeTransactionToHighlightId: mockChangeTransactionToHighlightId }),
+}))
 vi.mock('vue-router', () => ({
   useRouter: () => ({ replace: mockReplace }),
   useRoute: () => ({ name: 'Overview' }),
@@ -754,7 +756,7 @@ describe('LastTransactions', () => {
     const memoLine = () => wrapper.find('[data-test="last-transactions-memo"]')
 
     beforeEach(() => {
-      mockDispatch.mockReset()
+      mockChangeTransactionToHighlightId.mockReset()
       mockReplace.mockReset()
     })
 
@@ -813,7 +815,7 @@ describe('LastTransactions', () => {
 
       await memoLine().trigger('click')
 
-      expect(mockDispatch).toHaveBeenCalledWith('changeTransactionToHighlightId', 12)
+      expect(mockChangeTransactionToHighlightId).toHaveBeenCalledWith(12)
       expect(mockReplace).toHaveBeenCalledWith({ name: 'Transactions' })
     })
 
@@ -828,7 +830,7 @@ describe('LastTransactions', () => {
       await memoLine().find('a').trigger('click')
       document.removeEventListener('click', noNavigation, true)
 
-      expect(mockDispatch).not.toHaveBeenCalled()
+      expect(mockChangeTransactionToHighlightId).not.toHaveBeenCalled()
       expect(mockReplace).not.toHaveBeenCalled()
     })
   })

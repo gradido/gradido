@@ -36,8 +36,8 @@ const router = createRouter({
   ],
 })
 
-const storeCommitMock = vi.fn()
-const storeDispatchMock = vi.fn()
+const storeSetMock = vi.fn()
+const storeActionMock = vi.fn()
 const apolloQueryMock = vi.fn().mockResolvedValue({
   data: {
     verifyLogin: {
@@ -48,13 +48,26 @@ const apolloQueryMock = vi.fn().mockResolvedValue({
   },
 })
 
-const store = {
-  commit: storeCommitMock,
-  state: {
-    token: null,
-  },
-  dispatch: storeDispatchMock,
+/**
+ * The store as the guards use it, over `state`: its fields are read there, and what is done to
+ * it is recorded by name -- a setter under the field it sets (`setToken(t)` as
+ * `set('token', t)`), an action under its own (`act('logout')`).
+ */
+const fakeStore = (state, set, act) => {
+  const setting = (field) => (value) => set(field, value)
+  const done = {
+    setPublisherId: setting('publisherId'),
+    setToken: setting('token'),
+    setEmail: setting('email'),
+    setEventMatchingEntry: setting('eventMatchingEntry'),
+    setRedirectPath: setting('redirectPath'),
+    login: (...args) => act('login', ...args),
+    logout: (...args) => act('logout', ...args),
+  }
+  return new Proxy(state, { get: (target, key) => done[key] ?? target[key] })
 }
+
+const store = fakeStore({ token: null }, storeSetMock, storeActionMock)
 
 const apollo = {
   query: apolloQueryMock,
@@ -74,22 +87,22 @@ describe('navigation guards', () => {
     vi.clearAllMocks()
     // The store is shared by the whole file. Put back everything any block sets, or a case
     // added later inherits answers that are nowhere in its own body.
-    store.state.token = null
-    store.state.tokenTime = null
-    store.state.creationAllowed = null
-    store.state.gmsAllowed = null
-    store.state.userLocation = null
+    store.token = null
+    store.tokenTime = null
+    store.creationAllowed = null
+    store.gmsAllowed = null
+    store.userLocation = null
   })
 
   describe('publisher ID', () => {
-    it('commits the pid to the store when present', async () => {
+    it('sets the pid in the store when present', async () => {
       await router.push({ path: '/register', query: { pid: '42' } })
-      expect(storeCommitMock).toHaveBeenCalledWith('publisherId', '42')
+      expect(storeSetMock).toHaveBeenCalledWith('publisherId', '42')
     })
 
-    it('does not commit the pid when not present', async () => {
+    it('does not set the pid when not present', async () => {
       await router.push({ path: '/forgot-password' })
-      expect(storeCommitMock).not.toHaveBeenCalledWith('publisherId', expect.anything())
+      expect(storeSetMock).not.toHaveBeenCalledWith('publisherId', expect.anything())
     })
   })
 
@@ -97,12 +110,12 @@ describe('navigation guards', () => {
     it('handles valid token correctly', async () => {
       await router.push({ path: '/authenticate', query: { token: 'valid-token' } })
 
-      expect(storeCommitMock).toHaveBeenCalledWith('token', 'valid-token')
+      expect(storeSetMock).toHaveBeenCalledWith('token', 'valid-token')
       expect(apolloQueryMock).toHaveBeenCalledWith({
         query: verifyLogin,
         fetchPolicy: 'network-only',
       })
-      expect(storeDispatchMock).toHaveBeenCalledWith('login', {
+      expect(storeActionMock).toHaveBeenCalledWith('login', {
         firstName: 'Peter',
         avatar: 'base64-picture',
         avatarVisibleToMembers: false,
@@ -120,12 +133,12 @@ describe('navigation guards', () => {
     it('leaves the picture and its visibility setting to the login action', async () => {
       await router.push({ path: '/authenticate', query: { token: 'valid-token' } })
 
-      expect(storeDispatchMock).toHaveBeenCalledWith(
+      expect(storeActionMock).toHaveBeenCalledWith(
         'login',
         expect.objectContaining({ avatar: 'base64-picture', avatarVisibleToMembers: false }),
       )
-      expect(storeCommitMock).not.toHaveBeenCalledWith('avatar', expect.anything())
-      expect(storeCommitMock).not.toHaveBeenCalledWith('avatarVisibleToMembers', expect.anything())
+      expect(storeSetMock).not.toHaveBeenCalledWith('avatar', expect.anything())
+      expect(storeSetMock).not.toHaveBeenCalledWith('avatarVisibleToMembers', expect.anything())
     })
 
     it('handles server error correctly', async () => {
@@ -133,9 +146,9 @@ describe('navigation guards', () => {
 
       await router.push({ path: '/authenticate', query: { token: 'invalid-token' } })
 
-      expect(storeCommitMock).toHaveBeenCalledWith('token', 'invalid-token')
+      expect(storeSetMock).toHaveBeenCalledWith('token', 'invalid-token')
       expect(apolloQueryMock).toHaveBeenCalled()
-      expect(storeDispatchMock).toHaveBeenCalledWith('logout')
+      expect(storeActionMock).toHaveBeenCalledWith('logout')
       expect(router.currentRoute.value.path).toBe('/authenticate')
     })
 
@@ -162,15 +175,15 @@ describe('navigation guards', () => {
 
         await router.push({ path: '/authenticate', query: { token: 'from-a-link' } })
 
-        expect(storeCommitMock).toHaveBeenCalledWith('token', 'handed-token')
-        expect(storeCommitMock).not.toHaveBeenCalledWith('token', 'from-a-link')
+        expect(storeSetMock).toHaveBeenCalledWith('token', 'handed-token')
+        expect(storeSetMock).not.toHaveBeenCalledWith('token', 'from-a-link')
         expect(router.currentRoute.value.path).toBe('/overview')
       })
 
       it('signs nobody in by a token in the address alone', async () => {
         await router.push({ path: '/authenticate', query: { token: 'from-a-link' } })
 
-        expect(storeCommitMock).not.toHaveBeenCalledWith('token', expect.anything())
+        expect(storeSetMock).not.toHaveBeenCalledWith('token', expect.anything())
         expect(apolloQueryMock).not.toHaveBeenCalled()
       })
     })
@@ -191,10 +204,10 @@ describe('navigation guards', () => {
       // And away to a page that is neither the overview nor the map first: every case below
       // names where it ends, and must not have stood there already.
       beforeEach(async () => {
-        store.state.token = 'valid-token'
-        store.state.tokenTime = Math.floor(Date.now() / 1000) + 600
-        store.state.gmsAllowed = true
-        store.state.userLocation = place
+        store.token = 'valid-token'
+        store.tokenTime = Math.floor(Date.now() / 1000) + 600
+        store.gmsAllowed = true
+        store.userLocation = place
         await router.push('/register')
         vi.clearAllMocks()
       })
@@ -206,8 +219,8 @@ describe('navigation guards', () => {
         await handsOver(MAP)
 
         // The hand-over itself, as without a redirect.
-        expect(storeCommitMock).toHaveBeenCalledWith('token', 'valid-token')
-        expect(storeDispatchMock).toHaveBeenCalledWith(
+        expect(storeSetMock).toHaveBeenCalledWith('token', 'valid-token')
+        expect(storeActionMock).toHaveBeenCalledWith(
           'login',
           expect.objectContaining({ firstName: 'Peter' }),
         )
@@ -225,7 +238,7 @@ describe('navigation guards', () => {
 
       it('ends on the overview without one, as before', async () => {
         await router.push({ path: '/authenticate', query: { token: 'valid-token' } })
-        expect(storeDispatchMock).toHaveBeenCalledWith('login', expect.anything())
+        expect(storeActionMock).toHaveBeenCalledWith('login', expect.anything())
         expect(router.currentRoute.value.fullPath).toBe('/overview')
       })
 
@@ -239,8 +252,8 @@ describe('navigation guards', () => {
         ['a path that does not start at the root', 'matching/karte'],
       ])('does not follow %s and ends on the overview', async (_name, redirect) => {
         await handsOver(redirect)
-        expect(storeCommitMock).toHaveBeenCalledWith('token', 'valid-token')
-        expect(storeDispatchMock).toHaveBeenCalledWith('login', expect.anything())
+        expect(storeSetMock).toHaveBeenCalledWith('token', 'valid-token')
+        expect(storeActionMock).toHaveBeenCalledWith('login', expect.anything())
         expect(router.currentRoute.value.fullPath).toBe('/overview')
       })
 
@@ -253,7 +266,7 @@ describe('navigation guards', () => {
       // answers, whoever sent them there: a moderator who is not on the map lands where the
       // answers are given, as every member does.
       it('lets the map send a member who is not findable to the position tab', async () => {
-        store.state.gmsAllowed = false
+        store.gmsAllowed = false
         await handsOver(MAP)
         expect(router.currentRoute.value.path).toBe('/matching/position')
       })
@@ -265,24 +278,24 @@ describe('navigation guards', () => {
         beforeEach(() => {
           apolloQueryMock.mockRejectedValueOnce(new Error('Server error'))
           // What the real sign-out does first, and what the sign-in guard goes by.
-          storeDispatchMock.mockImplementationOnce(() => {
-            store.state.token = null
+          storeActionMock.mockImplementationOnce(() => {
+            store.token = null
           })
         })
 
         it('goes to the page named all the same, which asks for the sign-in and keeps the address', async () => {
           await handsOver(MAP)
-          expect(storeDispatchMock).toHaveBeenCalledWith('logout')
-          expect(storeDispatchMock).not.toHaveBeenCalledWith('login', expect.anything())
+          expect(storeActionMock).toHaveBeenCalledWith('logout')
+          expect(storeActionMock).not.toHaveBeenCalledWith('login', expect.anything())
           expect(router.currentRoute.value.path).toBe('/login')
-          expect(storeCommitMock).toHaveBeenCalledWith('redirectPath', MAP)
+          expect(storeSetMock).toHaveBeenCalledWith('redirectPath', MAP)
         })
 
         it('stays where it is with an address that is not followed, as without one', async () => {
           await handsOver('//example.org/matching/karte')
-          expect(storeDispatchMock).toHaveBeenCalledWith('logout')
+          expect(storeActionMock).toHaveBeenCalledWith('logout')
           expect(router.currentRoute.value.path).toBe('/authenticate')
-          expect(storeCommitMock).not.toHaveBeenCalledWith('redirectPath', expect.anything())
+          expect(storeSetMock).not.toHaveBeenCalledWith('redirectPath', expect.anything())
         })
       })
     })
@@ -291,22 +304,22 @@ describe('navigation guards', () => {
   // ES-021: the creation area is gone for a project account, from the address bar too.
   describe('the creation area and the project account', () => {
     beforeEach(() => {
-      store.state.token = 'valid-token'
+      store.token = 'valid-token'
       // Signed in means a sign-in that still runs (the sign-in guard).
-      store.state.tokenTime = Math.floor(Date.now() / 1000) + 600
+      store.tokenTime = Math.floor(Date.now() / 1000) + 600
     })
 
     it('sends a project account from the creation area to the overview', async () => {
-      store.state.creationAllowed = false
+      store.creationAllowed = false
       await router.push('/contributions/contribute')
       expect(router.currentRoute.value.path).toBe('/overview')
     })
 
     it('lets a person in, and an account the store does not know yet', async () => {
-      store.state.creationAllowed = true
+      store.creationAllowed = true
       await router.push('/contributions')
       expect(router.currentRoute.value.path).toBe('/contributions')
-      store.state.creationAllowed = null
+      store.creationAllowed = null
       await router.push('/contributions/contribute')
       expect(router.currentRoute.value.path).toBe('/contributions/contribute')
     })
@@ -323,10 +336,10 @@ describe('navigation guards', () => {
     // already on, guards and all, so a test starting where the last one ended would
     // measure nothing and pass.
     beforeEach(async () => {
-      store.state.token = 'valid-token'
-      store.state.tokenTime = Math.floor(Date.now() / 1000) + 600
-      store.state.gmsAllowed = true
-      store.state.userLocation = place
+      store.token = 'valid-token'
+      store.tokenTime = Math.floor(Date.now() / 1000) + 600
+      store.gmsAllowed = true
+      store.userLocation = place
       await router.push('/overview')
     })
 
@@ -336,13 +349,13 @@ describe('navigation guards', () => {
     })
 
     it('sends a member without findability to the position tab', async () => {
-      store.state.gmsAllowed = false
+      store.gmsAllowed = false
       await router.push('/matching/karte')
       expect(router.currentRoute.value.path).toBe('/matching/position')
     })
 
     it('sends a member without a position to the position tab', async () => {
-      store.state.userLocation = null
+      store.userLocation = null
       await router.push('/matching/karte')
       expect(router.currentRoute.value.path).toBe('/matching/position')
     })
@@ -352,7 +365,7 @@ describe('navigation guards', () => {
     // persisted store of every device that signed in before the fix. A truthy check here
     // would wave through exactly the members it exists to stop.
     it('sends a member whose stored position is an empty object to the position tab', async () => {
-      store.state.userLocation = {}
+      store.userLocation = {}
       await router.push('/matching/karte')
       expect(router.currentRoute.value.path).toBe('/matching/position')
     })
@@ -362,7 +375,7 @@ describe('navigation guards', () => {
     // through -- a bookmark or a mail client that normalises the slash walks past the gate
     // and the map opens on nothing.
     it.each(['/matching/karte/', '/Matching/Karte'])('gates %s as well', async (address) => {
-      store.state.userLocation = null
+      store.userLocation = null
       await router.push(address)
       expect(router.currentRoute.value.path).toBe('/matching/position')
     })
@@ -370,8 +383,8 @@ describe('navigation guards', () => {
     // The position tab is where both answers are given, so it can never be gated -- a
     // guard that caught it would send a member without a position round in circles.
     it('never stands in the way of the position tab itself', async () => {
-      store.state.gmsAllowed = false
-      store.state.userLocation = null
+      store.gmsAllowed = false
+      store.userLocation = null
       await router.push('/matching/position')
       expect(router.currentRoute.value.path).toBe('/matching/position')
     })
@@ -393,14 +406,14 @@ describe('navigation guards', () => {
 
       const authGuard = addedGuards.find(
         (guard) =>
-          guard.toString().includes('requiresAuth') && guard.toString().includes('redirectPath'),
+          guard.toString().includes('requiresAuth') && guard.toString().includes('setRedirectPath'),
       )
 
       await authGuard(to, from, next)
 
       expect(nextCalled).toBe(true)
       expect(nextArg).toEqual({ path: '/login' })
-      expect(storeCommitMock).toHaveBeenCalledWith('redirectPath', '/protected')
+      expect(storeSetMock).toHaveBeenCalledWith('redirectPath', '/protected')
     })
 
     // The one that actually measures the fix: here path and fullPath differ, so a guard
@@ -415,12 +428,12 @@ describe('navigation guards', () => {
 
       const authGuard = addedGuards.find(
         (guard) =>
-          guard.toString().includes('requiresAuth') && guard.toString().includes('redirectPath'),
+          guard.toString().includes('requiresAuth') && guard.toString().includes('setRedirectPath'),
       )
 
       await authGuard(to, {}, () => {})
 
-      expect(storeCommitMock).toHaveBeenCalledWith(
+      expect(storeSetMock).toHaveBeenCalledWith(
         'redirectPath',
         '/contributions/own-contributions/1?art=email#contributionListItem-42',
       )
@@ -435,16 +448,16 @@ describe('navigation guards', () => {
       }
       const authGuard = addedGuards.find(
         (guard) =>
-          guard.toString().includes('requiresAuth') && guard.toString().includes('redirectPath'),
+          guard.toString().includes('requiresAuth') && guard.toString().includes('setRedirectPath'),
       )
       await authGuard(to, {}, () => {})
-      expect(storeCommitMock).toHaveBeenCalledWith('redirectPath', '/contacts?group=cafe-uuid')
+      expect(storeSetMock).toHaveBeenCalledWith('redirectPath', '/contacts?group=cafe-uuid')
     })
 
     it('does not redirect to login when authorized', async () => {
-      store.state.token = 'valid-token'
+      store.token = 'valid-token'
       // A sign-in counts while it runs, not merely because a token is kept.
-      store.state.tokenTime = Math.floor(Date.now() / 1000) + 600
+      store.tokenTime = Math.floor(Date.now() / 1000) + 600
 
       // fullPath as well as path: the real router always provides it, and the guard
       // stores it so a query or hash survives the login.
@@ -460,7 +473,7 @@ describe('navigation guards', () => {
 
       const authGuard = addedGuards.find(
         (guard) =>
-          guard.toString().includes('requiresAuth') && guard.toString().includes('redirectPath'),
+          guard.toString().includes('requiresAuth') && guard.toString().includes('setRedirectPath'),
       )
 
       await authGuard(to, from, next)
@@ -479,7 +492,8 @@ describe('navigation guards', () => {
       const authGuard = () =>
         addedGuards.find(
           (guard) =>
-            guard.toString().includes('requiresAuth') && guard.toString().includes('redirectPath'),
+            guard.toString().includes('requiresAuth') &&
+            guard.toString().includes('setRedirectPath'),
         )
       const link = {
         path: '/contacts',
@@ -488,21 +502,21 @@ describe('navigation guards', () => {
       }
 
       it('is put away before the link waits at the form, so the logout cannot overwrite it', async () => {
-        store.state.token = 'old-token'
-        store.state.tokenTime = Math.floor(Date.now() / 1000) - 3600
+        store.token = 'old-token'
+        store.tokenTime = Math.floor(Date.now() / 1000) - 3600
         const order = []
         // Done only after a turn, as an action that waits on something would be: the guard has
         // to wait for it, not merely start it.
-        storeDispatchMock.mockImplementationOnce(async (action) => {
+        storeActionMock.mockImplementationOnce(async (action) => {
           await Promise.resolve()
           order.push(`dispatch ${action}`)
         })
-        storeCommitMock.mockImplementation((mutation, value) => order.push(`${mutation} ${value}`))
+        storeSetMock.mockImplementation((mutation, value) => order.push(`${mutation} ${value}`))
         let nextArg
         await authGuard()(link, {}, (arg) => {
           nextArg = arg
         })
-        storeCommitMock.mockReset()
+        storeSetMock.mockReset()
         expect(order).toEqual([
           'dispatch logout',
           'redirectPath /contacts?with=member-1&community=community-1',
@@ -511,14 +525,14 @@ describe('navigation guards', () => {
       })
 
       it('goes to the form with the link even where clearing up after the logout fails', async () => {
-        store.state.token = 'old-token'
-        store.state.tokenTime = Math.floor(Date.now() / 1000) - 3600
-        storeDispatchMock.mockRejectedValueOnce(new Error('storage refused'))
+        store.token = 'old-token'
+        store.tokenTime = Math.floor(Date.now() / 1000) - 3600
+        storeActionMock.mockRejectedValueOnce(new Error('storage refused'))
         let nextArg
         await authGuard()(link, {}, (arg) => {
           nextArg = arg
         })
-        expect(storeCommitMock).toHaveBeenCalledWith(
+        expect(storeSetMock).toHaveBeenCalledWith(
           'redirectPath',
           '/contacts?with=member-1&community=community-1',
         )
@@ -526,35 +540,35 @@ describe('navigation guards', () => {
       })
 
       it('counts a token without an end as run out', async () => {
-        store.state.token = 'old-token'
-        store.state.tokenTime = null
+        store.token = 'old-token'
+        store.tokenTime = null
         let nextArg
         await authGuard()(link, {}, (arg) => {
           nextArg = arg
         })
-        expect(storeDispatchMock).toHaveBeenCalledWith('logout')
+        expect(storeActionMock).toHaveBeenCalledWith('logout')
         expect(nextArg).toEqual({ path: '/login' })
       })
 
       it('signs nobody out who was never signed in', async () => {
         await authGuard()(link, {}, () => {})
-        expect(storeDispatchMock).not.toHaveBeenCalled()
-        expect(storeCommitMock).toHaveBeenCalledWith(
+        expect(storeActionMock).not.toHaveBeenCalled()
+        expect(storeSetMock).toHaveBeenCalledWith(
           'redirectPath',
           '/contacts?with=member-1&community=community-1',
         )
       })
 
       it('leaves a page without a sign-in alone, and the old token with it', async () => {
-        store.state.token = 'old-token'
-        store.state.tokenTime = Math.floor(Date.now() / 1000) - 3600
+        store.token = 'old-token'
+        store.tokenTime = Math.floor(Date.now() / 1000) - 3600
         let nextArg = 'not called'
         await authGuard()({ path: '/login', fullPath: '/login', meta: {} }, {}, (arg) => {
           nextArg = arg
         })
         expect(nextArg).toBeUndefined()
-        expect(storeDispatchMock).not.toHaveBeenCalled()
-        expect(storeCommitMock).not.toHaveBeenCalled()
+        expect(storeActionMock).not.toHaveBeenCalled()
+        expect(storeSetMock).not.toHaveBeenCalled()
       })
     })
   })
@@ -578,7 +592,7 @@ describe('a link out of a mail after the sign-in ran out', () => {
       ],
     })
     const own = { commit: vi.fn(), dispatch: vi.fn(), state: { token: null, ...state } }
-    addNavigationGuards(started, own, { query: vi.fn() })
+    addNavigationGuards(started, fakeStore(own.state, own.commit, own.dispatch), { query: vi.fn() })
     await started.push(address)
     return { at: started.currentRoute.value.fullPath, own }
   }
@@ -639,7 +653,7 @@ describe('a start with a running session', () => {
       ],
     })
     const own = { commit: vi.fn(), dispatch: vi.fn(), state: { token: null, ...state } }
-    addNavigationGuards(started, own, { query: vi.fn() })
+    addNavigationGuards(started, fakeStore(own.state, own.commit, own.dispatch), { query: vi.fn() })
     await started.push(address)
     return started
   }
@@ -892,7 +906,7 @@ describe('a start on the hand-over, with a page to go on to', () => {
           ? vi.fn().mockRejectedValue(answer)
           : vi.fn().mockResolvedValue({ data: { verifyLogin: answer } }),
     }
-    addNavigationGuards(started, own, server)
+    addNavigationGuards(started, fakeStore(own.state, own.commit, own.dispatch), server)
     await started.push(address)
     return { at: started.currentRoute.value.fullPath, own, server }
   }
@@ -1020,7 +1034,7 @@ describe('the event link', () => {
       ],
     })
     const own = { commit: vi.fn(), dispatch: vi.fn(), state: { token: null, ...state } }
-    addNavigationGuards(router, own, { query: vi.fn() })
+    addNavigationGuards(router, fakeStore(own.state, own.commit, own.dispatch), { query: vi.fn() })
     return { router, own, at: () => router.currentRoute.value.fullPath }
   }
   const startAt = async (address, state) => {

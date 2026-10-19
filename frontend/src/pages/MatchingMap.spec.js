@@ -5,7 +5,8 @@ import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { reactive, ref } from 'vue'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
+import { useWalletStore } from '@/store/useWalletStore'
 import { createI18n } from 'vue-i18n'
 import de from '@/locales/de.json'
 import MatchingMap from './MatchingMap.vue'
@@ -137,14 +138,18 @@ const MEMBER = 'a-member'
 const KEY = `pref.gms.map.${MEMBER}.`
 
 const makeStore = (gmsAllowed) =>
-  createStore({
-    state: { gradidoID: MEMBER, gmsAllowed, userLocation: { latitude: 48.2, longitude: 11.6 } },
-    mutations: {
-      userLocation: (state, value) => {
-        state.userLocation = value
-      },
-    },
+  walletStore({
+    gradidoID: MEMBER,
+    gmsAllowed,
+    userLocation: { latitude: 48.2, longitude: 11.6 },
   })
+
+// A store whose member is not known, and which takes no position either.
+const nameless = () => {
+  const pinia = walletStore({ gmsAllowed: true, userLocation: { latitude: 48.2, longitude: 11.6 } })
+  useWalletStore(pinia).setUserLocation = vi.fn()
+  return pinia
+}
 
 const location = {
   userLocation: { latitude: 48.2, longitude: 11.6 },
@@ -338,10 +343,7 @@ describe('MatchingMap', () => {
     // made-up one (`null` glued to the setting name) would litter the browser with keys
     // nobody can attribute or clean up. So: read nothing, write nothing, open on defaults.
     it('writes nothing at all when the store cannot say who is signed in', async () => {
-      const namenlos = createStore({
-        state: { gmsAllowed: true, userLocation: { latitude: 48.2, longitude: 11.6 } },
-        mutations: { userLocation: () => {} },
-      })
+      const namenlos = nameless()
       const page = mountMap({ store: namenlos })
 
       fire(userLocationQuery, { userLocation: location })
@@ -358,10 +360,7 @@ describe('MatchingMap', () => {
     // writes it" is a claim about every program on it, and not one this page can make.
     it('reads nothing either when the store cannot say who is signed in', async () => {
       window.localStorage.setItem('nullmode', JSON.stringify('liste'))
-      const namenlos = createStore({
-        state: { gmsAllowed: true, userLocation: { latitude: 48.2, longitude: 11.6 } },
-        mutations: { userLocation: () => {} },
-      })
+      const namenlos = nameless()
       const page = mountMap({ store: namenlos })
       await page.vm.$nextTick()
 
@@ -719,12 +718,13 @@ describe('MatchingMap', () => {
     // would let it admit the member again on the next attempt, and the bounce would
     // repeat, silently, every time.
     it('corrects the store the guard reads, not only the navigation', async () => {
-      const page = mountMap()
+      const store = makeStore(true)
+      const page = mountMap({ store })
 
       fire(userLocationQuery, { userLocation: { ...location, userLocation: {} } })
       await page.vm.$nextTick()
 
-      expect(page.vm.$store.state.userLocation).toBeNull()
+      expect(useWalletStore(store).userLocation).toBeNull()
     })
   })
 
@@ -3562,17 +3562,10 @@ describe('MatchingMap, asked to show somebody', () => {
   // this page and the contact it showed signs in on the same browser. The house is one's own mark.
   describe('an address that names the member themselves', () => {
     const asTobias = () =>
-      createStore({
-        state: {
-          gradidoID: TOBIAS.with.toUpperCase(),
-          gmsAllowed: true,
-          userLocation: { latitude: 48.2, longitude: 11.6 },
-        },
-        mutations: {
-          userLocation: (state, value) => {
-            state.userLocation = value
-          },
-        },
+      walletStore({
+        gradidoID: TOBIAS.with.toUpperCase(),
+        gmsAllowed: true,
+        userLocation: { latitude: 48.2, longitude: 11.6 },
       })
 
     it('asks the GMS nothing, marks nobody and says nothing', async () => {

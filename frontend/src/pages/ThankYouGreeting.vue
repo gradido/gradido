@@ -337,7 +337,7 @@
  */
 import { computed, nextTick, onUnmounted, reactive, ref, shallowRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useI18n } from 'vue-i18n'
 import { useApolloClient, useMutation } from '@vue/apollo-composable'
 import { BButton, BFormInput, BFormTextarea } from 'bootstrap-vue-next'
@@ -396,7 +396,7 @@ const emit = defineEmits(['update-transactions'])
 
 const route = useRoute()
 const router = useRouter()
-const store = useStore()
+const store = useWalletStore()
 const { t } = useI18n()
 
 // The keys are written out one by one, here and below: the unused-keys rule of the linter only
@@ -612,7 +612,7 @@ const greeting = computed(() => ({
 const previewLink = computed(() => ({
   amount: amountToSend.value,
   memo: memo.value,
-  senderUser: { alias: store.state.username, gradidoID: store.state.gradidoID },
+  senderUser: { alias: store.username, gradidoID: store.gradidoID },
   // `hasPicture`: what the server will say of the greeting once it is made.
   greeting: { ...greeting.value, hasPicture: photoChosen.value },
 }))

@@ -811,7 +811,7 @@ describe('useChatUpdates', () => {
   })
 
   /**
-   * ⛔ The beat's state lives in this module and nowhere else: the Vuex store is written to
+   * ⛔ The beat's state lives in this module and nowhere else: the store is written to
    * localStorage in full, so a marker or a message put there would outlive the session. And the
    * beat is a constant of the chat, not CONFIG.AUTO_POLL_INTERVAL (0 on the servers). Only the
    * source can say both -- read with the comments taken out, because the comments name the very

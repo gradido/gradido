@@ -48,7 +48,7 @@
 </template>
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useI18n } from 'vue-i18n'
 import { useMutation } from '@vue/apollo-composable'
 import { BFormRadioGroup, BModal } from 'bootstrap-vue-next'
@@ -60,7 +60,7 @@ const PERSON = 'person'
 const PROJECT = 'project'
 
 const { t } = useI18n()
-const store = useStore()
+const store = useWalletStore()
 const { toastSuccess, toastError } = useAppToast()
 
 const { mutate: declare } = useMutation(declareProjectAccount)
@@ -68,10 +68,10 @@ const { mutate: request } = useMutation(requestCreationRight)
 
 // null in the store is "not known", and not-known means what every account is by default:
 // a person. The store value is the one source; the radio only mirrors it.
-const fromStore = () => (store.state.creationAllowed === false ? PROJECT : PERSON)
+const fromStore = () => (store.creationAllowed === false ? PROJECT : PERSON)
 const selected = ref(fromStore())
 watch(
-  () => store.state.creationAllowed,
+  () => store.creationAllowed,
   () => {
     selected.value = fromStore()
   },
@@ -112,7 +112,7 @@ const confirmed = async () => {
   try {
     if (choice === PROJECT) {
       await declare()
-      store.commit('creationAllowed', false)
+      store.setCreationAllowed(false)
       toastSuccess(t('settings.creationAccount.declared'))
     } else {
       // The way back changes nothing here: a person checks it. The radio therefore goes

@@ -3,7 +3,7 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { createI18n } from 'vue-i18n'
 import { createRouter, createWebHistory } from 'vue-router'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import MyThankYouCard from './MyThankYouCard.vue'
 import { renderQrCodeCanvas } from '@/utils/qrCode'
@@ -99,7 +99,7 @@ const BLOCKED_CARD = {
 const mountPage = () =>
   mount(MyThankYouCard, {
     global: {
-      plugins: [i18n, router, createStore({ state: () => ({ community: { name: 'Fallback' } }) })],
+      plugins: [i18n, router, walletStore({ community: { name: 'Fallback' } })],
     },
   })
 

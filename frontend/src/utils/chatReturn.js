@@ -26,8 +26,8 @@ import { MESSAGE_MAX_CHARS } from '@/validationSchemas'
  * person by the pair, and the start opens it as the group's mails do (`/contacts?group=`).
  *
  * ⛔ Key `chat-return:<gradidoID>` of the member signed in, never one shared key: one browser
- * serves several members (chatVideoApp). Not in the vuex store, which is written whole to
- * localStorage on every mutation.
+ * serves several members (chatVideoApp). Not in the store, which is written whole to
+ * localStorage on every change.
  */
 const KEY_PREFIX = 'chat-return:'
 

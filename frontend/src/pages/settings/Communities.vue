@@ -8,7 +8,7 @@
         </BCol>
         <BCol cols="12" md="6" lg="6" class="text-end">
           <user-settings-switch
-            :initial-value="state.humhubAllowed"
+            :initial-value="store.humhubAllowed"
             :attr-name="'humhubAllowed'"
             :disabled="isHumhubActivated"
             :enabled-text="$t('settings.humhub.enabled')"
@@ -30,7 +30,7 @@
         </BCol>
         <BCol cols="12" md="6" lg="6" class="text-start">
           <user-settings-switch
-            :initial-value="state.gmsAllowed"
+            :initial-value="store.gmsAllowed"
             :attr-name="'gmsAllowed'"
             :enabled-text="$t('settings.GMS.enabled')"
             :disabled-text="$t('settings.GMS.disabled')"
@@ -74,18 +74,17 @@
 <script setup>
 import SettingsSection from '@/components/UserSettings/SettingsSection.vue'
 import { computed, ref } from 'vue'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import CONFIG from '@/config'
 import UserSettingsSwitch from '@/components/UserSettings/UserSettingsSwitch.vue'
 import UserGMSLocationFormat from '@/components/UserSettings/UserGMSLocationFormat'
 import UserGmsLocationCapturing from '@/components/UserSettings/UserGmsLocationCapturing'
 import { BRow, BCol } from 'bootstrap-vue-next'
 
-const store = useStore()
-const state = store.state
+const store = useWalletStore()
 
-const gmsAllowed = ref(state.gmsAllowed)
-const humhubAllowed = ref(state.humhubAllowed)
+const gmsAllowed = ref(store.gmsAllowed)
+const humhubAllowed = ref(store.humhubAllowed)
 
 const isHumhubActivated = computed(() => humhubAllowed.value === true)
 

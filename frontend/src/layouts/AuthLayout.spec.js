@@ -3,7 +3,8 @@ import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { mount } from '@vue/test-utils'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
+import { useWalletStore } from '@/store/useWalletStore'
 import { __bannerResult } from '@vue/apollo-composable'
 import AuthLayout from './AuthLayout'
 import routes from '@/routes/routes'
@@ -52,18 +53,10 @@ vi.mock('@/config', () => ({
 
 describe('AuthLayout', () => {
   let wrapper
-  const createVuexStore = () => {
-    return createStore({
-      state: {
-        project: '',
-      },
-      actions: {
-        project: vi.fn(),
-      },
-      mutations: {
-        project: vi.fn(),
-      },
-    })
+  const createWalletStore = () => {
+    const pinia = walletStore({ project: '' })
+    useWalletStore(pinia).setProject = vi.fn()
+    return pinia
   }
 
   const createWrapper = (meta = { hideFooter: false }) => {
@@ -80,7 +73,7 @@ describe('AuthLayout', () => {
           BImg,
           BPopover,
         },
-        plugins: [createVuexStore()],
+        plugins: [createWalletStore()],
         mocks: {
           $i18n: {
             locale: 'en',
@@ -144,7 +137,7 @@ describe('AuthLayout', () => {
     beforeEach(() => {
       wrapper = mount(AuthLayout, {
         global: {
-          plugins: [createVuexStore()],
+          plugins: [createWalletStore()],
           mocks: {
             $i18n: {
               locale: 'en',

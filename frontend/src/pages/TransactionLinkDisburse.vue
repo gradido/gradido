@@ -30,7 +30,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useQuery, useMutation } from '@vue/apollo-composable'
 import TransactionLinkItem from '@/components/TransactionLinkItem'
 import RedeemLoggedOut from '@/components/LinkInformations/RedeemLoggedOut'
@@ -45,7 +45,7 @@ import { useI18n } from 'vue-i18n'
 const { toastError, toastSuccess } = useAppToast()
 const router = useRouter()
 const { params } = useRoute()
-const store = useStore()
+const store = useWalletStore()
 const { d, t } = useI18n()
 
 const linkData = ref({
@@ -77,7 +77,7 @@ const isContributionLink = computed(() => {
 
 const tokenExpiresInSeconds = computed(() => {
   const remainingSecs = Math.floor(
-    (new Date(store.state.tokenTime * 1000).getTime() - new Date().getTime()) / 1000,
+    (new Date(store.tokenTime * 1000).getTime() - new Date().getTime()) / 1000,
   )
   return remainingSecs <= 0 ? 0 : remainingSecs
 })
@@ -91,9 +91,9 @@ const itemType = computed(() => {
   if (new Date(linkData.value.validUntil) < new Date()) return 'TEXT_EXPIRED'
   if (linkData.value.redeemedAt) return 'TEXT_REDEEMED'
 
-  if (store.state.token && store.state.tokenTime) {
+  if (store.token && store.tokenTime) {
     if (tokenExpiresInSeconds.value < 5) return 'LOGGED_OUT'
-    if (linkData.value.user && store.state.gradidoID === linkData.value.user.gradidoID)
+    if (linkData.value.user && store.gradidoID === linkData.value.user.gradidoID)
       return 'SELF_CREATOR'
     if (!linkData.value.redeemedAt && !linkData.value.deletedAt) return 'VALID'
   }
@@ -153,7 +153,7 @@ function setTransactionLinkInformation() {
   const { queryTransactionLink } = result.value
   if (queryTransactionLink) {
     linkData.value = queryTransactionLink
-    if (linkData.value.__typename === 'ContributionLink' && store.state.token) {
+    if (linkData.value.__typename === 'ContributionLink' && store.token) {
       mutationLink(linkData.value.amount)
     }
   }

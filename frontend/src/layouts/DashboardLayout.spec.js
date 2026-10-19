@@ -5,7 +5,8 @@ import { dirname, join } from 'node:path'
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { nextTick, ref } from 'vue'
 import DashboardLayout from './DashboardLayout'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
+import { useWalletStore } from '@/store/useWalletStore'
 import { createRouter, createWebHistory } from 'vue-router'
 import routes from '@/routes/routes'
 import { useQuery } from '@vue/apollo-composable'
@@ -114,21 +115,21 @@ describe('DashboardLayout', () => {
   // ⚠️ `gradidoID` is what the remembered column choice is filed under, and it is null by
   // default here on purpose: that is the state a layout mounted inside the gap between the
   // token and the login answer is really in, and nothing may be remembered then.
-  const createVuexStore = (gradidoID = null) => {
+  const createWalletStore = (gradidoID = null) => {
     logoutSpy = vi.fn()
-    return createStore({
-      state: {
-        publisherId: 123,
-        firstName: 'User',
-        lastName: 'Example',
-        token: 'valid-token',
-        role: null,
-        gradidoID,
-      },
-      actions: {
-        logout: logoutSpy,
-      },
+    const pinia = walletStore({
+      publisherId: 123,
+      firstName: 'User',
+      lastName: 'Example',
+      token: 'valid-token',
+      role: null,
+      gradidoID,
+      // No session clock: the clock keeps ticking idle until a test gives it an end. With null
+      // it would read the session as over at once and stop for good.
+      tokenTime: undefined,
     })
+    useWalletStore(pinia).logout = logoutSpy
+    return pinia
   }
 
   /**
@@ -138,7 +139,7 @@ describe('DashboardLayout', () => {
    * A test that needs to see inside a link passes a stub that renders its children.
    */
   const createWrapper = (stubs = {}, gradidoID = null) => {
-    store = createVuexStore(gradidoID)
+    store = createWalletStore(gradidoID)
     routerPushSpy = vi.spyOn(router, 'push')
     return mount(DashboardLayout, {
       global: {
@@ -1392,7 +1393,7 @@ describe('DashboardLayout', () => {
           expect(mockMutateFn).toHaveBeenCalled()
         })
 
-        it('dispatches logout to store', () => {
+        it('signs out in the store', () => {
           expect(logoutSpy).toHaveBeenCalled()
         })
 
@@ -1407,12 +1408,12 @@ describe('DashboardLayout', () => {
        * session that ran out leaves it for them to come back to.
        */
       describe('whose word the sign-out is', () => {
-        const told = () => logoutSpy.mock.calls.at(-1)[1]
+        const told = () => logoutSpy.mock.calls.at(-1)[0]
         const clock = () => wrapper.findComponent({ name: 'SessionLogoutTimeout' })
 
         beforeEach(() => {
           mockMutateFn.mockResolvedValue({ logout: 'success' })
-          store.state.gradidoID = 'aaaa-anna'
+          useWalletStore(store).gradidoID = 'aaaa-anna'
         })
 
         it('is the member’s where they pressed "Abmelden" in a menu', async () => {
@@ -1439,7 +1440,7 @@ describe('DashboardLayout', () => {
         // The session's clock itself, not a stand-in for what it sends: its time runs out, and
         // the store hears of a sign-out that is not the member's word.
         it('is not the member’s where the session’s clock ran out by itself', async () => {
-          store.state.tokenTime = Math.floor(Date.now() / 1000) + 2
+          useWalletStore(store).tokenTime = Math.floor(Date.now() / 1000) + 2
 
           await vi.advanceTimersByTimeAsync(4000)
           await flushPromises()
@@ -1476,7 +1477,7 @@ describe('DashboardLayout', () => {
 
             await wrapper.findComponent({ name: 'Sidebar' }).vm.$emit('logout')
             expect(logoutSpy).not.toHaveBeenCalled()
-            store.state.gradidoID = null
+            useWalletStore(store).gradidoID = null
             settle(answer)
             await flushPromises()
 
@@ -1492,7 +1493,7 @@ describe('DashboardLayout', () => {
           await nextTick()
         })
 
-        it('dispatches logout to store', () => {
+        it('signs out in the store', () => {
           expect(logoutSpy).toHaveBeenCalled()
         })
 
@@ -1598,8 +1599,8 @@ describe('DashboardLayout', () => {
         wrapper.findComponent({ name: 'NavbarNew' }).vm.$emit('admin')
       })
 
-      it('dispatches logout to store', () => {
-        expect(store.dispatch).toHaveBeenCalledWith('logout')
+      it('signs out in the store', () => {
+        expect(logoutSpy).toHaveBeenCalled()
       })
 
       it('changes window location to admin interface', () => {

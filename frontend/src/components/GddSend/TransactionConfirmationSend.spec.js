@@ -19,9 +19,9 @@ vi.mock('vue-i18n', () => ({
   }),
 }))
 
-// Mock the Vuex store
-vi.mock('vuex', () => ({
-  useStore: vi.fn(() => ({
+// Mock the wallet store
+vi.mock('@/store/useWalletStore', () => ({
+  useWalletStore: vi.fn(() => ({
     // Add any necessary store mock implementations here
   })),
 }))

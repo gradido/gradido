@@ -39,14 +39,14 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import CONFIG from '@/config'
 import { useAuthLinks } from '@/composables/useAuthLinks'
 import NavItem from '../Menu/NavItem.vue'
 
 const { routeWithParamsAndQuery } = useAuthLinks()
 const route = useRoute()
-const store = useStore()
+const store = useWalletStore()
 
 /**
  * The guarantor code (E-017) names the member who showed it by itself; the registration page
@@ -69,7 +69,7 @@ const guarantorCodeReferrer = () =>
  * Nothing of the page's address goes along.
  */
 const home = computed(() =>
-  store.state.gradidoID
+  store.gradidoID
     ? { to: '/overview' }
     : { href: `${(CONFIG.COMMUNITY_URL || '').replace(/\/+$/, '')}/` },
 )
@@ -80,7 +80,7 @@ const backgroundHeader = '/img/template/gradido_background_header.png'
 // logged-in wallet uses: below lg the logo also stands without the blob, 109px wide on a
 // phone, and a 3x screen asks 327 pixels of a file that had 200.
 const logo = computed(() =>
-  store.state.darkMode ? '/img/brand/gradido-logo-white.png' : '/img/brand/gradido-logo.png',
+  store.darkMode ? '/img/brand/gradido-logo-white.png' : '/img/brand/gradido-logo.png',
 )
 </script>
 

@@ -26,7 +26,7 @@ vi.mock('bootstrap-vue-next', () => ({
 vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key) => key }) }))
 
 const storeState = { role: null }
-vi.mock('vuex', () => ({ useStore: () => ({ state: storeState }) }))
+vi.mock('@/store/useWalletStore', () => ({ useWalletStore: () => storeState }))
 
 const pushed = []
 const replaced = []

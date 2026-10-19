@@ -1,6 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { actions } from './store'
+import { createPinia } from 'pinia'
+import { useWalletStore } from './useWalletStore'
 import { chatDraftFor, forgetChatDrafts } from '@/utils/chatDraft'
 
 vi.mock('../i18n', () => ({
@@ -25,15 +26,13 @@ describe('the store and what was written in a conversation and not sent', () => 
   const THREAD = 'home-uuid/lena-id'
   const onDevice = (member = 'user-one') =>
     JSON.parse(window.localStorage.getItem(`chat-drafts:${member}`))
-  /** A store as its actions see it: who is signed in, and commits that sign them out. */
+  /** A store of its own, with who is signed in. */
   const wallet = (signedIn = 'user-one') => {
-    const state = { themeMode: 'dark', gradidoID: signedIn }
-    const commit = vi.fn((mutation, value) => {
-      if (mutation === 'gradidoID') state.gradidoID = value
-    })
-    return { state, commit, dispatch: vi.fn() }
+    const store = useWalletStore(createPinia())
+    store.$patch({ themeMode: 'dark', gradidoID: signedIn })
+    return store
   }
-  const draftIn = (store) => chatDraftFor(() => store.state.gradidoID, THREAD)
+  const draftIn = (store) => chatDraftFor(() => store.gradidoID, THREAD)
   const picture = () => ({ source: { image: { name: 'photo' } }, edit: { turns: 0 } })
 
   beforeEach(() => {
@@ -53,9 +52,9 @@ describe('the store and what was written in a conversation and not sent', () => 
     expect(onDevice()[THREAD].text).toBe('Bis Samstag')
 
     // As DashboardLayout tells it: the member's own word, and who said it.
-    await actions.logout(store, { byOwnWord: true, member: 'user-one' })
+    await store.logout({ byOwnWord: true, member: 'user-one' })
 
-    expect(store.state.gradidoID).toBeNull()
+    expect(store.gradidoID).toBeNull()
     expect(onDevice()).toBeNull()
   })
 
@@ -66,11 +65,11 @@ describe('the store and what was written in a conversation and not sent', () => 
     const store = wallet()
     draftIn(store).keep({ text: 'Bis Samstag', picture: picture() })
 
-    await actions.logout(store, how)
+    await store.logout(how)
 
     expect(onDevice()[THREAD].text).toBe('Bis Samstag')
     // The member signs in again and opens the conversation.
-    store.state.gradidoID = 'user-one'
+    store.gradidoID = 'user-one'
     expect(draftIn(store).read()).toEqual({
       text: 'Bis Samstag',
       picture: null,
@@ -84,9 +83,9 @@ describe('the store and what was written in a conversation and not sent', () => 
     const store = wallet()
     draftIn(store).keep({ text: 'Bis Samstag' })
 
-    await actions.logout(store, { byOwnWord: false, member: 'user-one' })
+    await store.logout({ byOwnWord: false, member: 'user-one' })
     expect(onDevice()[THREAD].text).toBe('Bis Samstag')
-    await actions.logout(store, { byOwnWord: true, member: 'user-one' })
+    await store.logout({ byOwnWord: true, member: 'user-one' })
 
     expect(onDevice()).toBeNull()
   })
@@ -101,7 +100,7 @@ describe('the store and what was written in a conversation and not sent', () => 
       JSON.stringify({ [THREAD]: { text: 'jung', at: NOW - DAY } }),
     )
 
-    actions.login(wallet(null), { gradidoID: 'user-one', klickTipp: {} })
+    wallet(null).login({ gradidoID: 'user-one', klickTipp: {} })
 
     expect(onDevice('long-gone')).toBeNull()
     expect(onDevice('user-two')[THREAD].text).toBe('jung')

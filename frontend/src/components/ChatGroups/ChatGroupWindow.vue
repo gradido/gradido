@@ -195,7 +195,7 @@
 <script setup>
 import { computed, provide, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useApolloClient, useMutation } from '@vue/apollo-composable'
 import { BModal } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
@@ -265,7 +265,7 @@ const openWriter = (user) => {
 }
 
 const { t, d } = useI18n()
-const store = useStore()
+const store = useWalletStore()
 const { toastSuccess, toastError } = useAppToast()
 const { mutate: saveMuted } = useMutation(setChatGroupMuted)
 const { client: apolloClient } = useApolloClient()
@@ -351,7 +351,7 @@ const countLine = computed(() =>
  */
 const isMe = (user) =>
   Boolean(user?.gradidoID) &&
-  user.gradidoID.toLowerCase() === String(store.state.gradidoID ?? '').toLowerCase()
+  user.gradidoID.toLowerCase() === String(store.gradidoID ?? '').toLowerCase()
 
 /**
  * "Gruppe seit September 2026 · angelegt von Anna" -- the month, as the contact window says since
