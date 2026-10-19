@@ -94,7 +94,6 @@ describe('NavBar', () => {
         { path: '/creaSettings', name: 'creaSettings', component: Page },
         { path: '/chat', name: 'chat', component: Page },
         { path: '/creation-groups', name: 'creation-groups', component: Page },
-        { path: '/statistic', name: 'statistic', component: Page },
       ],
     })
     vi.mocked(redirectTo).mockClear()
@@ -144,7 +143,7 @@ describe('NavBar', () => {
 
     it('gathers what informs under one menu', () => {
       expect(menu('information').find('.dropdown-toggle').text()).toBe('navbar.information')
-      expect(menuLinks('information')).toEqual(['/federation', '/statistic', HELP])
+      expect(menuLinks('information')).toEqual(['/federation', HELP])
     })
 
     it('gathers the settings under one menu', () => {
@@ -215,9 +214,9 @@ describe('NavBar', () => {
         // they cannot do — create, change, delete — is hidden on the page itself. It is the
         // one settings page they see, so it stands in the bar rather than alone in a menu.
         expect(barLinks()).toEqual(['/user', '/creation-confirm', '/contribution-links'])
-        expect(menuLinks('information')).toEqual(['/statistic', HELP])
+        expect(menuLinks('information')).toEqual([HELP])
         expect(menu('settings').exists()).toBe(false)
-        expect(listed()).toEqual(['navbar.information', '/statistic', HELP])
+        expect(listed()).toEqual(['navbar.information', HELP])
       })
     })
 
@@ -229,9 +228,9 @@ describe('NavBar', () => {
 
       it('leaves them out just the same', () => {
         expect(barLinks()).toEqual(['/user', '/creation-confirm', '/contribution-links'])
-        expect(menuLinks('information')).toEqual(['/statistic', HELP])
+        expect(menuLinks('information')).toEqual([HELP])
         expect(menu('settings').exists()).toBe(false)
-        expect(listed()).toEqual(['navbar.information', '/statistic', HELP])
+        expect(listed()).toEqual(['navbar.information', HELP])
       })
     })
   })
