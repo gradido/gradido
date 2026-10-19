@@ -14,12 +14,13 @@ vi.mock('../config', () => ({
 }))
 
 describe('Navigation Guards', () => {
-  let router, store, apollo, i18n, storeCommitMock, apolloQueryMock
+  let router, store, apollo, i18n, setTokenMock, setModeratorMock, apolloQueryMock
 
   beforeEach(() => {
     vi.clearAllMocks()
 
-    storeCommitMock = vi.fn()
+    setTokenMock = vi.fn()
+    setModeratorMock = vi.fn()
     apolloQueryMock = vi.fn()
 
     router = {
@@ -27,11 +28,10 @@ describe('Navigation Guards', () => {
     }
 
     store = {
-      commit: storeCommitMock,
-      state: {
-        token: null,
-        moderator: null,
-      },
+      setToken: setTokenMock,
+      setModerator: setModeratorMock,
+      token: null,
+      moderator: null,
     }
 
     apollo = {
@@ -74,9 +74,9 @@ describe('Navigation Guards', () => {
         })
       })
 
-      it('commits token to store', async () => {
+      it('sets the token in the store', async () => {
         await firstGuard({ path: '/authenticate', query: { token: 'valid-token' } }, {}, next)
-        expect(storeCommitMock).toHaveBeenCalledWith('token', 'valid-token')
+        expect(setTokenMock).toHaveBeenCalledWith('valid-token')
       })
 
       it('calls apollo query with correct parameters', async () => {
@@ -92,9 +92,9 @@ describe('Navigation Guards', () => {
         expect(i18n.global.locale.value).toBe('de')
       })
 
-      it('commits moderator to store', async () => {
+      it('sets the moderator in the store', async () => {
         await firstGuard({ path: '/authenticate', query: { token: 'valid-token' } }, {}, next)
-        expect(storeCommitMock).toHaveBeenCalledWith('moderator', {
+        expect(setModeratorMock).toHaveBeenCalledWith({
           role: 'ADMIN',
           language: 'de',
         })
@@ -143,14 +143,14 @@ describe('Navigation Guards', () => {
             JSON.stringify({ token: 'handed-token', at: Date.now() }),
           )
           await firstGuard({ path: '/authenticate', query: { token: 'from-a-link' } }, {}, next)
-          expect(storeCommitMock).toHaveBeenCalledWith('token', 'handed-token')
-          expect(storeCommitMock).not.toHaveBeenCalledWith('token', 'from-a-link')
+          expect(setTokenMock).toHaveBeenCalledWith('handed-token')
+          expect(setTokenMock).not.toHaveBeenCalledWith('from-a-link')
           expect(next).toHaveBeenCalledWith({ path: '/' })
         })
 
         it('signs nobody in by a token in the address alone', async () => {
           await firstGuard({ path: '/authenticate', query: { token: 'from-a-link' } }, {}, next)
-          expect(storeCommitMock).not.toHaveBeenCalledWith('token', expect.anything())
+          expect(setTokenMock).not.toHaveBeenCalled()
           expect(apolloQueryMock).not.toHaveBeenCalled()
           expect(next).toHaveBeenCalledWith()
         })
@@ -179,21 +179,21 @@ describe('Navigation Guards', () => {
     })
 
     it('redirects to not-found when no moderator', () => {
-      store.state.token = 'valid-token'
+      store.token = 'valid-token'
       secondGuard({ path: '/' }, {}, next)
       expect(next).toHaveBeenCalledWith({ path: '/not-found' })
     })
 
     it('redirects to not-found when moderator has no role', () => {
-      store.state.token = 'valid-token'
-      store.state.moderator = { role: null }
+      store.token = 'valid-token'
+      store.moderator = { role: null }
       secondGuard({ path: '/' }, {}, next)
       expect(next).toHaveBeenCalledWith({ path: '/not-found' })
     })
 
     it('allows navigation for authenticated admin', () => {
-      store.state.token = 'valid-token'
-      store.state.moderator = { role: 'ADMIN' }
+      store.token = 'valid-token'
+      store.moderator = { role: 'ADMIN' }
       secondGuard({ path: '/' }, {}, next)
       expect(next).toHaveBeenCalledWith()
     })
@@ -217,42 +217,42 @@ describe('Navigation Guards', () => {
     beforeEach(() => {
       thirdGuard = router.beforeEach.mock.calls[2][0]
       next = vi.fn()
-      store.state.token = 'valid-token'
+      store.token = 'valid-token'
     })
 
     it('lets an administrator in', () => {
-      store.state.moderator = { role: 'ADMIN' }
+      store.moderator = { role: 'ADMIN' }
       thirdGuard({ path: '/contribution-links', meta: { requiresAdmin: true } }, {}, next)
       expect(next).toHaveBeenCalledWith()
     })
 
     it('turns a moderator away', () => {
-      store.state.moderator = { role: 'MODERATOR' }
+      store.moderator = { role: 'MODERATOR' }
       thirdGuard({ path: '/contribution-links', meta: { requiresAdmin: true } }, {}, next)
       expect(next).toHaveBeenCalledWith({ path: '/not-found' })
     })
 
     it('turns a KI-Moderator away just the same', () => {
-      store.state.moderator = { role: 'MODERATOR_AI' }
+      store.moderator = { role: 'MODERATOR_AI' }
       thirdGuard({ path: '/projectBranding', meta: { requiresAdmin: true } }, {}, next)
       expect(next).toHaveBeenCalledWith({ path: '/not-found' })
     })
 
     it('leaves the ordinary routes alone', () => {
-      store.state.moderator = { role: 'MODERATOR' }
+      store.moderator = { role: 'MODERATOR' }
       thirdGuard({ path: '/creation-confirm', meta: {} }, {}, next)
       expect(next).toHaveBeenCalledWith()
     })
 
     it('leaves a route without meta alone', () => {
-      store.state.moderator = { role: 'MODERATOR' }
+      store.moderator = { role: 'MODERATOR' }
       thirdGuard({ path: '/user' }, {}, next)
       expect(next).toHaveBeenCalledWith()
     })
 
     it('allows navigation when auth is disabled for debug', () => {
       CONFIG.DEBUG_DISABLE_AUTH = true
-      store.state.moderator = { role: 'MODERATOR' }
+      store.moderator = { role: 'MODERATOR' }
       thirdGuard({ path: '/contribution-links', meta: { requiresAdmin: true } }, {}, next)
       expect(next).toHaveBeenCalledWith()
       CONFIG.DEBUG_DISABLE_AUTH = false

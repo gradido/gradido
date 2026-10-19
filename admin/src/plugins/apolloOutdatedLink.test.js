@@ -13,7 +13,7 @@ vi.mock('../config', () => ({
   },
 }))
 vi.mock('../store/store', () => ({
-  default: { state: { token: '' }, dispatch: vi.fn(), commit: vi.fn() },
+  default: { token: '', logout: vi.fn(), setToken: vi.fn() },
 }))
 
 describe('the outdated-app link', () => {

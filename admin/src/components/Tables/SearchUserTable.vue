@@ -120,7 +120,7 @@
                 @update-creation-allowed="row.item.creationAllowed = $event.creationAllowed"
               />
             </BTab>
-            <BTab v-if="store.state.moderator.role === 'ADMIN'" :title="$t('delete_user')">
+            <BTab v-if="store.moderator.role === 'ADMIN'" :title="$t('delete_user')">
               <deleted-user-formular
                 v-if="!row.item.deletedAt"
                 ref="deletedUserForm"
@@ -145,7 +145,7 @@
 <script setup>
 import { ref, nextTick, watch, computed } from 'vue'
 import { BTable, BTab, BTabs, BCard, useModalController } from 'bootstrap-vue-next'
-import { useStore } from 'vuex'
+import { useAdminStore } from '@/store/useAdminStore'
 import { useI18n } from 'vue-i18n'
 import { useAppToast } from '@/composables/useToast'
 import CreationFormular from '../CreationFormular.vue'
@@ -158,7 +158,7 @@ import MemberWalletLink from '../MemberWalletLink.vue'
 
 const { t } = useI18n()
 const { confirm } = useModalController()
-const store = useStore()
+const store = useAdminStore()
 const { toastError } = useAppToast()
 
 const props = defineProps({

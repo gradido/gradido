@@ -3,7 +3,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { nextTick, ref } from 'vue'
 import CreationConfirm from './CreationConfirm.vue'
 import { useApolloClient, useQuery, useMutation } from '@vue/apollo-composable'
-import { createStore } from 'vuex'
+import { adminStore } from '../../test/adminStore'
+import { useAdminStore } from '@/store/useAdminStore'
 import { useI18n } from 'vue-i18n'
 import { useAppToast } from '@/composables/useToast'
 import { BBadge, BPagination, BTab, BTabs } from 'bootstrap-vue-next'
@@ -21,21 +22,7 @@ vi.mock('@/composables/useMemberAvatars', async (importOriginal) => ({
 vi.mock('vue-i18n')
 vi.mock('@/composables/useToast')
 
-const createVuexStore = () => {
-  return createStore({
-    state: {
-      openCreations: 0,
-    },
-    mutations: {
-      setOpenCreations(state, count) {
-        state.openCreations = count
-      },
-      openCreationsMinus(state, count) {
-        state.openCreations -= count
-      },
-    },
-  })
-}
+const createAdminStore = () => adminStore({ openCreations: 0 })
 
 describe('CreationConfirm', () => {
   let wrapper
@@ -51,8 +38,8 @@ describe('CreationConfirm', () => {
   const mockD = vi.fn((date) => date.toISOString())
 
   beforeEach(() => {
-    store = createVuexStore()
-    vi.spyOn(store, 'commit')
+    store = createAdminStore()
+    vi.spyOn(useAdminStore(store), 'setOpenCreations')
 
     mockResult = ref(null)
     mockRefetch = vi.fn()
@@ -140,7 +127,7 @@ describe('CreationConfirm', () => {
 
     await simulateQueryResult(mockData)
 
-    expect(store.commit).toHaveBeenCalledWith('setOpenCreations', 5)
+    expect(useAdminStore(store).setOpenCreations).toHaveBeenCalledWith(5)
     expect(wrapper.vm.rows).toBe(5)
     expect(wrapper.vm.items).toEqual(mockData.adminListContributions.contributionList)
   })
@@ -186,7 +173,7 @@ describe('CreationConfirm', () => {
 
     await simulateQueryResult(mockData)
 
-    expect(store.commit).not.toHaveBeenCalledWith('setOpenCreations', 10)
+    expect(useAdminStore(store).setOpenCreations).not.toHaveBeenCalledWith(10)
     expect(wrapper.vm.rows).toBe(10)
     expect(wrapper.vm.items).toEqual(mockData.adminListContributions.contributionList)
   })
@@ -238,17 +225,7 @@ describe('CreationConfirm', () => {
     ]
 
     const mountWithModerator = (moderator) => {
-      const scopedStore = createStore({
-        state: { openCreations: 0, moderator },
-        mutations: {
-          setOpenCreations(state, count) {
-            state.openCreations = count
-          },
-          openCreationsMinus(state, count) {
-            state.openCreations -= count
-          },
-        },
-      })
+      const scopedStore = adminStore({ openCreations: 0, moderator })
       return mount(CreationConfirm, {
         global: {
           plugins: [scopedStore],

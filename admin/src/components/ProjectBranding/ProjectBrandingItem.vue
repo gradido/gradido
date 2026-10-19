@@ -27,7 +27,7 @@
       <BCol cols="3" class="me-2">
         <img class="img-fluid" :src="item.logoUrl" :alt="item.logoUrl" />
       </BCol>
-      <BCol v-if="store.state.moderator.role === 'ADMIN'" cols="1">
+      <BCol v-if="store.moderator.role === 'ADMIN'" cols="1">
         <BButton v-b-tooltip.hover variant="danger" :title="$t('delete')" @click.stop="deleteItem">
           <IBiTrash />
         </BButton>
@@ -48,13 +48,13 @@ import { computed, ref, toRefs } from 'vue'
 import ProjectBrandingForm from './ProjectBrandingForm.vue'
 import { deleteProjectBranding, upsertProjectBranding } from '@/graphql/projectBranding.graphql'
 import { useI18n } from 'vue-i18n'
-import { useStore } from 'vuex'
+import { useAdminStore } from '@/store/useAdminStore'
 import { useMutation } from '@vue/apollo-composable'
 import CONFIG from '@/config'
 import { useAppToast } from '@/composables/useToast'
 
 const { t } = useI18n()
-const store = useStore()
+const store = useAdminStore()
 const { toastSuccess, toastError } = useAppToast()
 
 const props = defineProps({
@@ -81,7 +81,7 @@ async function copyToClipboard(text) {
 }
 
 function toggleDetails() {
-  if (store.state.moderator.role === 'ADMIN') {
+  if (store.moderator.role === 'ADMIN') {
     details.value = !details.value
   }
 }

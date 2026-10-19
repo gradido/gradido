@@ -4,7 +4,7 @@ import App from './App.vue'
 // without this async calls are not working
 import 'regenerator-runtime'
 
-import store from './store/store'
+import store, { pinia } from './store/store'
 
 import router from './router/router'
 import addNavigationGuards from './router/guards'
@@ -36,10 +36,10 @@ export function createAdminApp() {
   const app = createApp(App)
 
   app.use(router)
-  app.use(store)
+  app.use(pinia)
 
   i18n.global.locale.value =
-    store.state.moderator && store.state.moderator.language ? store.state.moderator.language : 'en'
+    store.moderator && store.moderator.language ? store.moderator.language : 'en'
 
   app.use(i18n)
   app.use(PortalVue)

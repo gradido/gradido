@@ -33,7 +33,7 @@
           </BListGroupItem>
           <BListGroupItem v-if="!item.foreign">
             <editable-group
-              :allow-edit="$store.state.moderator.role === 'ADMIN'"
+              :allow-edit="store.moderator.role === 'ADMIN'"
               @save="handleUpdateHomeCommunity"
               @reset="resetHomeCommunityEditable"
             >
@@ -110,6 +110,7 @@ import { updateHomeCommunity } from '@/graphql/updateHomeCommunity'
 import Coordinates from '../input/Coordinates.vue'
 import EditableGroupableLabel from '../input/EditableGroupableLabel.vue'
 import { useAppToast } from '@/composables/useToast'
+import { useAdminStore } from '@/store/useAdminStore'
 
 const props = defineProps({
   item: { type: Object, required: true },
@@ -120,6 +121,7 @@ const { item } = toRefs(props)
 const { t } = useI18n()
 
 const { toastSuccess, toastError } = useAppToast()
+const store = useAdminStore()
 
 const details = ref(false)
 const gmsApiKey = ref(item.value.gmsApiKey)

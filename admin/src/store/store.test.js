@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { createStore } from 'vuex'
-import createPersistedState from 'vuex-persistedstate'
-import CONFIG from '../config'
-import store, { mutations, actions } from './store'
+import { nextTick } from 'vue'
+import { createPinia } from 'pinia'
+import store from './store'
+import { useAdminStore } from './useAdminStore'
 
 vi.mock('../config', () => ({
   default: {
@@ -13,7 +13,7 @@ vi.mock('../config', () => ({
 // The storage the real store was created with; the tests below put a mock in its place.
 const storageOfTheStore = window.localStorage
 
-describe('Vuex Store', () => {
+describe('Pinia Store', () => {
   let testStore
   let localStorageMock
 
@@ -33,63 +33,47 @@ describe('Vuex Store', () => {
       writable: true,
     })
 
-    testStore = createStore({
-      plugins: [createPersistedState()],
-      state: {
-        token: null,
-        moderator: null,
-        openCreations: 0,
-        userSelectedInMassCreation: [],
-      },
-      mutations,
-      actions,
-    })
+    testStore = useAdminStore(createPinia())
   })
 
-  describe('Mutations', () => {
+  describe('Setters', () => {
     it('openCreationsPlus', () => {
-      testStore.commit('openCreationsPlus', 5)
-      expect(testStore.state.openCreations).toBe(5)
+      testStore.openCreationsPlus(5)
+      expect(testStore.openCreations).toBe(5)
     })
 
     it('openCreationsMinus', () => {
-      testStore.state.openCreations = 10
-      testStore.commit('openCreationsMinus', 3)
-      expect(testStore.state.openCreations).toBe(7)
+      testStore.openCreations = 10
+      testStore.openCreationsMinus(3)
+      expect(testStore.openCreations).toBe(7)
     })
 
-    it('resetOpenCreations', () => {
-      testStore.state.openCreations = 10
-      testStore.commit('resetOpenCreations')
-      expect(testStore.state.openCreations).toBe(0)
-    })
-
-    it('token', () => {
-      testStore.commit('token', '1234')
-      expect(testStore.state.token).toBe('1234')
+    it('setToken', () => {
+      testStore.setToken('1234')
+      expect(testStore.token).toBe('1234')
     })
 
     it('setOpenCreations', () => {
-      testStore.commit('setOpenCreations', 15)
-      expect(testStore.state.openCreations).toBe(15)
+      testStore.setOpenCreations(15)
+      expect(testStore.openCreations).toBe(15)
     })
 
-    it('moderator', () => {
+    it('setModerator', () => {
       const moderator = { id: 1, name: 'Test' }
-      testStore.commit('moderator', moderator)
-      expect(testStore.state.moderator).toEqual(moderator)
+      testStore.setModerator(moderator)
+      expect(testStore.moderator).toEqual(moderator)
     })
   })
 
   describe('Actions', () => {
     it('logout', () => {
-      testStore.state.token = 'someToken'
-      testStore.state.moderator = { id: 1 }
+      testStore.token = 'someToken'
+      testStore.moderator = { id: 1 }
 
-      testStore.dispatch('logout')
+      testStore.logout()
 
-      expect(testStore.state.token).toBeNull()
-      expect(testStore.state.moderator).toBeNull()
+      expect(testStore.token).toBeNull()
+      expect(testStore.moderator).toBeNull()
       expect(localStorageMock.removeItem).toHaveBeenCalledWith('gradido-admin')
       expect(localStorageMock.clear).not.toHaveBeenCalled()
     })
@@ -106,7 +90,7 @@ describe('Vuex Store', () => {
       )
       expect(moderatorContact(1, bibi)).toBe('yes')
 
-      testStore.dispatch('logout')
+      testStore.logout()
 
       expect(moderatorContact(1, bibi)).toBe('unknown')
     })
@@ -140,7 +124,7 @@ describe('Vuex Store', () => {
       openMemberAvatarZoom({ member: margret, src: memberAvatarSource(margret) })
       expect(memberAvatarZoomState.value).not.toBeNull()
 
-      testStore.dispatch('logout')
+      testStore.logout()
 
       expect(memberAvatarSource(margret)).toBe('')
       expect(memberAvatarZoomState.value).toBeNull()
@@ -153,12 +137,7 @@ describe('Vuex Store', () => {
       // logout keeps the key by never touching it: it removes its own blob and
       // nothing else. A return to clear() would fail here.
       localStorageMock.getItem = vi.fn((key) => (key === 'gradido-theme-mode' ? 'dark' : null))
-      // Count only what the logout does. vuex-persistedstate probes the storage when the
-      // store is created (setItem('@@', 1) + removeItem('@@')), so the counter would
-      // otherwise be measuring the library's handshake as well.
-      localStorageMock.removeItem.mockClear()
-
-      testStore.dispatch('logout')
+      testStore.logout()
 
       expect(localStorageMock.clear).not.toHaveBeenCalled()
       // Exactly two removals: the admin's own blob, and the token both apps keep -- signing
@@ -188,29 +167,38 @@ describe('Vuex Store', () => {
       storageOfTheStore.removeItem('gradido-admin')
     })
 
-    it('is kept by the token commit, and left out of the blob', () => {
-      store.commit('token', 'token')
+    it('is kept by setToken, and left out of the blob', () => {
+      store.setToken('token')
       expect(JSON.parse(storageOfTheStore.getItem('auth-token')).token).toBe('token')
       expect(JSON.parse(storageOfTheStore.getItem('gradido-admin'))).not.toHaveProperty('token')
-      store.commit('token', null)
+      store.setToken(null)
       expect(storageOfTheStore.getItem('auth-token')).toBeNull()
     })
 
+    // ⛔ The logout removes the blob after its last change. A save that came later -- after
+    // the next tick, as Pinia saves by default -- would write the blob back.
+    it('leaves no blob behind after a logout', async () => {
+      store.setModerator({ gradidoID: BIBI })
+      store.logout()
+      await nextTick()
+      expect(storageOfTheStore.getItem('gradido-admin')).toBeNull()
+    })
+
     it('is renewed here where another window renews it', () => {
-      store.commit('token', tokenOf(BIBI, { iat: 1 }))
+      store.setToken(tokenOf(BIBI, { iat: 1 }))
       storageOfTheStore.setItem(
         'auth-token',
         JSON.stringify({ token: tokenOf(BIBI, { iat: 2 }), at: Date.now() }),
       )
       window.dispatchEvent(new StorageEvent('storage', { key: 'auth-token' }))
-      expect(store.state.token).toBe(tokenOf(BIBI, { iat: 2 }))
+      expect(store.token).toBe(tokenOf(BIBI, { iat: 2 }))
     })
 
     it('signs out here where another window signs out', () => {
-      store.commit('token', 'token')
+      store.setToken('token')
       storageOfTheStore.removeItem('auth-token')
       window.dispatchEvent(new StorageEvent('storage', { key: 'auth-token' }))
-      expect(store.state.token).toBeNull()
+      expect(store.token).toBeNull()
     })
 
     // Last: each of these opens a store of its own, which goes on listening to the windows
@@ -227,8 +215,8 @@ describe('Vuex Store', () => {
         kept: tokenOf(BIBI),
         blob: { token: 'from-the-blob', moderator: { gradidoID: BIBI }, openCreations: 3 },
       })
-      expect(opened.state.token).toBe(tokenOf(BIBI))
-      expect(opened.state.openCreations).toBe(3)
+      expect(opened.token).toBe(tokenOf(BIBI))
+      expect(opened.openCreations).toBe(3)
     })
 
     // ⛔ Bob's token under the role of Bibi: the page sends to not-found, and the way over from
@@ -239,7 +227,7 @@ describe('Vuex Store', () => {
       ['no moderator', {}],
     ])('is not opened with where the blob holds %s', async (_name, blob) => {
       const opened = await openedOn({ kept: tokenOf(BOB), blob })
-      expect(opened.state.token).toBeNull()
+      expect(opened.token).toBeNull()
       // Nor removed: it is Bob's session, in the wallet.
       expect(JSON.parse(storageOfTheStore.getItem('auth-token')).token).toBe(tokenOf(BOB))
     })
@@ -247,29 +235,21 @@ describe('Vuex Store', () => {
 
   describe('Initial State', () => {
     it('sets correct initial state when DEBUG_DISABLE_AUTH is false', () => {
-      expect(store.state).toEqual({
+      expect(store.$state).toEqual({
         token: null,
         moderator: null,
         openCreations: 0,
-        userSelectedInMassCreation: [],
       })
     })
 
-    it('sets correct initial state when DEBUG_DISABLE_AUTH is true', () => {
-      CONFIG.DEBUG_DISABLE_AUTH = true
-      const debugStore = createStore({
-        plugins: [createPersistedState()],
-        state: {
-          token: CONFIG.DEBUG_DISABLE_AUTH ? 'validToken' : null,
-          moderator: null,
-          openCreations: 0,
-          userSelectedInMassCreation: [],
-        },
-        mutations,
-        actions,
-      })
-      expect(debugStore.state.token).toBe('validToken')
-      CONFIG.DEBUG_DISABLE_AUTH = false
+    it('sets correct initial state when DEBUG_DISABLE_AUTH is true', async () => {
+      Object.defineProperty(window, 'localStorage', { value: storageOfTheStore, writable: true })
+      vi.resetModules()
+      const { default: config } = await import('../config')
+      config.DEBUG_DISABLE_AUTH = true
+      const debugStore = (await import('./store')).default
+      expect(debugStore.token).toBe('validToken')
+      config.DEBUG_DISABLE_AUTH = false
     })
   })
 })

@@ -358,7 +358,7 @@
 
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { createStore } from 'vuex'
+import { adminStore } from '../../../test/adminStore'
 import CommunityVisualizeItem from './CommunityVisualizeItem.vue'
 import { BCol, BFormGroup, BListGroup, BListGroupItem, BRow } from 'bootstrap-vue-next'
 import { de, enUS as en, fr, es, nl } from 'date-fns/locale'
@@ -445,11 +445,9 @@ describe('CommunityVisualizeItem', () => {
   let mockI18n
 
   const createWrapper = (props = {}, locale = 'en') => {
-    store = createStore({
-      state: {
-        moderator: {
-          role: 'ADMIN',
-        },
+    store = adminStore({
+      moderator: {
+        role: 'ADMIN',
       },
     })
 

@@ -13,9 +13,8 @@ vi.mock('vue', () => ({
 
 vi.mock('./App.vue', () => ({ default: {} }))
 vi.mock('./store/store', () => ({
-  default: {
-    state: { moderator: { language: 'en' } },
-  },
+  default: { moderator: { language: 'en' } },
+  pinia: {},
 }))
 vi.mock('./router/router', () => ({ default: {} }))
 vi.mock('./router/guards', () => ({ default: vi.fn() }))
@@ -48,7 +47,7 @@ describe('main.js', () => {
     expect(app.use).toHaveBeenCalled()
   })
 
-  it('uses the Vuex store', () => {
+  it('uses the Pinia store', () => {
     expect(app.use).toHaveBeenCalled()
   })
 

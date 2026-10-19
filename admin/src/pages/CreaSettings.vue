@@ -132,7 +132,7 @@
 import { computed, ref, watch } from 'vue'
 import { useMutation, useQuery } from '@vue/apollo-composable'
 import { useI18n } from 'vue-i18n'
-import { useStore } from 'vuex'
+import { useAdminStore } from '@/store/useAdminStore'
 import { useAppToast } from '@/composables/useToast'
 import {
   creaSettings as creaSettingsQuery,
@@ -144,10 +144,10 @@ import {
 import { searchUsers } from '@/graphql/searchUsers.js'
 
 const { t } = useI18n()
-const store = useStore()
+const store = useAdminStore()
 const { toastSuccess, toastError } = useAppToast()
 
-const isAdmin = computed(() => store.state.moderator.role === 'ADMIN')
+const isAdmin = computed(() => store.moderator.role === 'ADMIN')
 
 // The form holds display defaults until the query answers, never the server's values, and
 // setCreaSettings overwrites all FOUR settings at once - the fourth being the one that

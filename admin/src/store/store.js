@@ -1,17 +1,28 @@
-import { createStore } from 'vuex'
-import createPersistedState from 'vuex-persistedstate'
+import { createPinia } from 'pinia'
 import CONFIG from '../config'
-import { forgetAllMemberAvatars } from '@/composables/useMemberAvatars'
-import { closeMemberAvatarZoom } from '@/composables/useMemberAvatarZoom'
-import { forgetModeratorContacts } from '@/composables/useModeratorContacts'
-import { followAuthToken, keepAuthToken, readAuthToken, tokenBelongsTo } from '@/utils/authToken'
-
-const STATE_KEY = 'gradido-admin'
+import { followAuthToken, readAuthToken, tokenBelongsTo } from '@/utils/authToken'
+import { STATE_KEY, useAdminStore } from './useAdminStore'
 
 // The token is kept for both apps (utils/authToken.js), not in this app's own blob: read when
 // the admin interface opens, and left out of what the blob saves and gives back. A blob saved
 // before the token moved out still carries one, and it is not taken.
 const withoutToken = ({ token, ...rest }) => rest
+
+/** What the blob holds of the state, or nothing where it cannot be read. */
+const savedState = () => {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STATE_KEY))
+    if (!saved) return {}
+    // Only what the store still knows: a blob saved before may carry more.
+    const { moderator, openCreations } = withoutToken(saved)
+    return {
+      ...(moderator !== undefined && { moderator }),
+      ...(openCreations !== undefined && { openCreations }),
+    }
+  } catch {
+    return {}
+  }
+}
 
 /**
  * The token kept, where it is the moderator's whom the blob holds, or null.
@@ -32,77 +43,23 @@ const keptToken = () => {
   return kept && tokenBelongsTo(kept.token, moderator?.gradidoID) ? kept.token : null
 }
 
-export const mutations = {
-  openCreationsPlus: (state, i) => {
-    state.openCreations += i
-  },
-  openCreationsMinus: (state, i) => {
-    state.openCreations -= i
-  },
-  resetOpenCreations: (state) => {
-    state.openCreations = 0
-  },
-  token: (state, token) => {
-    state.token = token
-    keepAuthToken(token)
-  },
-  setOpenCreations: (state, openCreations) => {
-    state.openCreations = openCreations
-  },
-  moderator: (state, moderator) => {
-    state.moderator = moderator
-  },
-}
+export const pinia = createPinia()
 
-export const actions = {
-  logout: ({ commit, state }) => {
-    commit('token', null)
-    commit('moderator', null)
-    // The member pictures this session fetched. They are other people's faces, held only to
-    // save round trips -- whoever signs in next has no business with them, and the same
-    // browser is routinely used by more than one moderator.
-    forgetAllMemberAvatars()
-    // ⛔ And the picture that is OPEN, which is not the same thing. The window hangs on the
-    // token, so it unmounts at logout -- but the state it reads lives in a module and would
-    // still be there when the next moderator signs in, opening the previous one's face in
-    // their first second. (coderabbit, #3890.)
-    closeMemberAvatarZoom()
-    // Whom this moderator is in contact with: theirs, and nobody's who signs in next.
-    forgetModeratorContacts()
-    // Remove only the admin's own persisted state. The token is not in this blob -- the
-    // `token` commit above has removed it from where both apps keep it, and with it the
-    // wallet's session (utils/authToken.js). The wallet and admin share one origin, so
-    // localStorage.clear() would also wipe the wallet's state and the shared dark-mode theme key.
-    window.localStorage.removeItem(STATE_KEY)
-  },
-}
+const store = useAdminStore(pinia)
 
-const store = createStore({
-  plugins: [
-    createPersistedState({
-      key: STATE_KEY,
-      storage: window.localStorage,
-      reducer: withoutToken,
-      getState: (key, storage) => {
-        try {
-          const saved = JSON.parse(storage.getItem(key))
-          return saved ? withoutToken(saved) : undefined
-        } catch {
-          return undefined
-        }
-      },
-    }),
-  ],
-  state: {
-    token: CONFIG.DEBUG_DISABLE_AUTH ? 'validToken' : keptToken(),
-    moderator: null,
-    openCreations: 0,
-    userSelectedInMassCreation: [],
-  },
-  // Syncronous mutation of the state
-  mutations,
-  actions,
+store.$patch({
+  ...savedState(),
+  token: CONFIG.DEBUG_DISABLE_AUTH ? 'validToken' : keptToken(),
 })
+
+// Saved with every change, as it is made: `logout` removes the blob after its last change, and
+// a save that came later would write it back.
+store.$subscribe(
+  (_mutation, state) => {
+    window.localStorage.setItem(STATE_KEY, JSON.stringify(withoutToken(state)))
+  },
+  { detached: true, flush: 'sync' },
+)
 
 // A renewal in the wallet, or in another window of the admin interface, renews this one too;
 // a logout there signs this one out, and a sign-in of somebody else reloads it. Without that,

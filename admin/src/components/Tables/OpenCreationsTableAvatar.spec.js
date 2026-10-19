@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { createStore } from 'vuex'
+import { adminStore } from '../../../test/adminStore'
 import MemberAvatar from '@/components/MemberAvatar.vue'
 import { fetchMemberAvatars, forgetAllMemberAvatars } from '@/composables/useMemberAvatars'
 import { closeMemberAvatarZoom, memberAvatarZoomState } from '@/composables/useMemberAvatarZoom'
@@ -49,7 +49,7 @@ const mountTable = () =>
       hideResubmission: false,
     },
     global: {
-      plugins: [createStore({ state: { moderator: {} } })],
+      plugins: [adminStore({ moderator: {} })],
       // ⚠️ The real table, handed over explicitly: the build auto-imports it
       // (unplugin-vue-components) and vitest does not, so without this it renders as an
       // unknown element and no cell slot is called at all.
@@ -133,7 +133,7 @@ describe('the member behind a contribution', () => {
         hideResubmission: false,
       },
       global: {
-        plugins: [createStore({ state: { moderator: {} } })],
+        plugins: [adminStore({ moderator: {} })],
         components: { BTableLite },
         mocks: { $t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key) },
         stubs: { BModal: true },

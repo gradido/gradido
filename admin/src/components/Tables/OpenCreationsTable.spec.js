@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { shallowMount } from '@vue/test-utils'
-import { createStore } from 'vuex'
+import { adminStore } from '../../../test/adminStore'
 import { h } from 'vue'
 import OpenCreationsTable from './OpenCreationsTable.vue'
 
@@ -29,12 +29,10 @@ describe('OpenCreationsTable', () => {
   ]
 
   beforeEach(() => {
-    store = createStore({
-      state: {
-        moderator: {
-          gradidoID: 'moderator-gid',
-          communityUuid: 'home',
-        },
+    store = adminStore({
+      moderator: {
+        gradidoID: 'moderator-gid',
+        communityUuid: 'home',
       },
     })
 

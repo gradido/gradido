@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { shallowMount } from '@vue/test-utils'
-import { createStore } from 'vuex'
+import { adminStore } from '../test/adminStore'
 import { createRouter, createWebHistory } from 'vue-router'
 import App from './App.vue'
 import defaultLayout from '@/layouts/defaultLayout'
@@ -10,12 +10,8 @@ const router = createRouter({
   routes: [{ path: '/', component: { template: '<div>Mock Route</div>' } }],
 })
 
-const createVuexStore = (initialState = { token: null }) => {
-  return createStore({
-    state() {
-      return initialState
-    },
-  })
+const createAdminStore = (initialState = { token: null }) => {
+  return adminStore(initialState)
 }
 
 describe('App.vue', () => {
@@ -23,7 +19,7 @@ describe('App.vue', () => {
   let wrapper
 
   const createWrapper = (token = null) => {
-    store = createVuexStore({ token })
+    store = createAdminStore({ token })
     return shallowMount(App, {
       global: {
         plugins: [store, router],

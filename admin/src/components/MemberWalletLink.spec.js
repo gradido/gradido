@@ -3,7 +3,8 @@
 import { config, enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
-import { createStore } from 'vuex'
+import { adminStore } from '../../test/adminStore'
+import { useAdminStore } from '@/store/useAdminStore'
 import { DefaultApolloClient } from '@vue/apollo-composable'
 import MemberWalletLink from './MemberWalletLink.vue'
 import CONFIG from '@/config'
@@ -99,12 +100,8 @@ describe('MemberWalletLink', () => {
     // from nothing.
     forgetModeratorContacts()
     warnings = []
-    store = createStore({
-      state: { token: TOKEN },
-      mutations: { token: (state, token) => (state.token = token) },
-      actions: { logout: vi.fn() },
-    })
-    vi.spyOn(store, 'dispatch')
+    store = adminStore({ token: TOKEN })
+    useAdminStore(store).logout = vi.fn()
     client = { query: vi.fn().mockResolvedValue({ data: { verifyLogin: {} } }) }
     opened = { focus: vi.fn() }
     vi.spyOn(window, 'open').mockReturnValue(opened)
@@ -224,7 +221,7 @@ describe('MemberWalletLink', () => {
       // recipient, and the server would refuse the transfer.
       describe('or who is the moderator', () => {
         const signedInAs = (moderator) =>
-          createStore({ state: { token: TOKEN, moderator: { ...moderator, role: 'ADMIN' } } })
+          adminStore({ token: TOKEN, moderator: { ...moderator, role: 'ADMIN' } })
         const asRaeuber = signedInAs({
           gradidoID: RAEUBER.gradidoID,
           communityUuid: RAEUBER.communityUuid,
@@ -257,7 +254,7 @@ describe('MemberWalletLink', () => {
 
         // A moderator whose pair is not known yet is nobody's row.
         it.each([
-          ['a store that does not know the moderator', createStore({ state: { token: TOKEN } })],
+          ['a store that does not know the moderator', adminStore({ token: TOKEN })],
           ['a moderator without a pair', signedInAs({})],
         ])('gets it with %s', (_name, aStore) => {
           const wrapper = createWrapper({
@@ -294,12 +291,8 @@ describe('MemberWalletLink', () => {
     const asked = (document) => client.query.mock.calls.filter(([q]) => q.query === document)
 
     beforeEach(() => {
-      store = createStore({
-        state: { token: TOKEN, moderator: { ...MODERATOR, role: 'ADMIN' } },
-        mutations: { token: (state, token) => (state.token = token) },
-        actions: { logout: vi.fn() },
-      })
-      vi.spyOn(store, 'dispatch')
+      store = adminStore({ token: TOKEN, moderator: { ...MODERATOR, role: 'ADMIN' } })
+      useAdminStore(store).logout = vi.fn()
       client = clientThatKnows([pair(RAEUBER)])
     })
 
@@ -988,8 +981,8 @@ describe('MemberWalletLink', () => {
       it('does not sign the moderator out of the admin interface', async () => {
         await press()
 
-        expect(store.dispatch).not.toHaveBeenCalled()
-        expect(store.state.token).toBe(TOKEN)
+        expect(useAdminStore(store).logout).not.toHaveBeenCalled()
+        expect(useAdminStore(store).token).toBe(TOKEN)
         expect(mockToastWarning).not.toHaveBeenCalled()
       })
 
@@ -1073,7 +1066,7 @@ describe('MemberWalletLink', () => {
 
     it('takes the token the store holds when it is pressed', async () => {
       const wrapper = createWrapper({ member: RAEUBER })
-      store.commit('token', 'a-newer-token')
+      useAdminStore(store).token = 'a-newer-token'
       await arrowOf(wrapper).trigger('click')
       expect(openedAddress().searchParams.get('token')).toBe('a-newer-token')
     })
@@ -1110,8 +1103,8 @@ describe('MemberWalletLink', () => {
     it('does not sign the moderator out of the admin interface', async () => {
       await press()
 
-      expect(store.dispatch).not.toHaveBeenCalled()
-      expect(store.state.token).toBe(TOKEN)
+      expect(useAdminStore(store).logout).not.toHaveBeenCalled()
+      expect(useAdminStore(store).token).toBe(TOKEN)
       expect(mockToastWarning).not.toHaveBeenCalled()
     })
 
@@ -1173,7 +1166,7 @@ describe('MemberWalletLink', () => {
         member: BIBI,
         plugins: [
           sentences('en'),
-          createStore({ state: { token: TOKEN, moderator: { ...BIBI, role: 'ADMIN' } } }),
+          adminStore({ token: TOKEN, moderator: { ...BIBI, role: 'ADMIN' } }),
         ],
       })
       expect(pinOf(wrapper).exists()).toBe(true)
@@ -1223,7 +1216,7 @@ describe('MemberWalletLink', () => {
     })
 
     it('carries the token as it is, whatever it is made of', async () => {
-      store.commit('token', AWKWARD_TOKEN)
+      useAdminStore(store).token = AWKWARD_TOKEN
       await pinOf(createWrapper()).trigger('click')
 
       const address = openedAddress()
@@ -1252,7 +1245,7 @@ describe('MemberWalletLink', () => {
     // press is the one that counts, not the one the pin was drawn with.
     it('takes the token the store holds when it is pressed', async () => {
       const wrapper = createWrapper()
-      store.commit('token', 'a-newer-token')
+      useAdminStore(store).token = 'a-newer-token'
       await pinOf(wrapper).trigger('click')
       expect(openedAddress().searchParams.get('token')).toBe('a-newer-token')
     })
@@ -1305,8 +1298,8 @@ describe('MemberWalletLink', () => {
     it('does not sign the moderator out of the admin interface', async () => {
       await pinOf(createWrapper()).trigger('click')
 
-      expect(store.dispatch).not.toHaveBeenCalled()
-      expect(store.state.token).toBe(TOKEN)
+      expect(useAdminStore(store).logout).not.toHaveBeenCalled()
+      expect(useAdminStore(store).token).toBe(TOKEN)
     })
 
     it('says nothing where the window opened', async () => {
@@ -1380,7 +1373,7 @@ describe('MemberWalletLink', () => {
         }
         expect(opened.focus).toHaveBeenCalledTimes(1)
         expect(mockToastWarning).not.toHaveBeenCalled()
-        expect(store.dispatch).not.toHaveBeenCalled()
+        expect(useAdminStore(store).logout).not.toHaveBeenCalled()
       })
     })
   })
@@ -1408,7 +1401,7 @@ describe('MemberWalletLink', () => {
 
     it('still signs nobody out', async () => {
       await pinOf(createWrapper()).trigger('click')
-      expect(store.dispatch).not.toHaveBeenCalled()
+      expect(useAdminStore(store).logout).not.toHaveBeenCalled()
     })
 
     // A press is a press: a sign-in that ran out shows at once, not after the pop-ups are

@@ -1,10 +1,10 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach } from 'vitest'
-import { createStore } from 'vuex'
+import { adminStore } from '../../../test/adminStore'
 import ContributionLink from './ContributionLink.vue'
 import { BButton, BCard, BCardText, BCollapse } from 'bootstrap-vue-next'
 
-const createVuexStore = (role = 'ADMIN') => createStore({ state: { moderator: { role } } })
+const createAdminStore = (role = 'ADMIN') => adminStore({ moderator: { role } })
 
 const mockItems = [
   {
@@ -31,7 +31,7 @@ describe('ContributionLink', () => {
         count: 1,
       },
       global: {
-        plugins: [createVuexStore(role)],
+        plugins: [createAdminStore(role)],
         mocks: {
           $t: (key) => key,
           $d: (d) => d,

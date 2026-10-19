@@ -14,7 +14,7 @@ const addNavigationGuards = (router, store, apollo, i18n) => {
         ? takeHandedOverToken(to.query?.token, CONFIG.WALLET_AUTH_URL)
         : null
     if (token) {
-      store.commit('token', token)
+      store.setToken(token)
       await apollo
         .query({
           query: verifyLogin,
@@ -24,7 +24,7 @@ const addNavigationGuards = (router, store, apollo, i18n) => {
           const moderator = result.data.verifyLogin
           if (moderator.role) {
             i18n.global.locale.value = moderator.language
-            store.commit('moderator', moderator)
+            store.setModerator(moderator)
             next({ path: '/' })
           } else {
             next({ path: '/not-found' })
@@ -42,9 +42,9 @@ const addNavigationGuards = (router, store, apollo, i18n) => {
   router.beforeEach((to, from, next) => {
     if (
       !CONFIG.DEBUG_DISABLE_AUTH && // we did not disabled the auth module for debug purposes
-      (!store.state.token || // we do not have a token
-        !store.state.moderator || // no moderator set in store
-        !store.state.moderator.role) && // user is no admin
+      (!store.token || // we do not have a token
+        !store.moderator || // no moderator set in store
+        !store.moderator.role) && // user is no admin
       to.path !== '/not-found' && // we are not on `not-found`
       to.path !== '/logout' // we are not on `logout`
     ) {
@@ -58,11 +58,7 @@ const addNavigationGuards = (router, store, apollo, i18n) => {
   // convenience, not an access boundary, so the restriction is enforced here on the route
   // itself as well; the backend rights remain the final word.
   router.beforeEach((to, from, next) => {
-    if (
-      !CONFIG.DEBUG_DISABLE_AUTH &&
-      to.meta?.requiresAdmin &&
-      store.state.moderator?.role !== 'ADMIN'
-    ) {
+    if (!CONFIG.DEBUG_DISABLE_AUTH && to.meta?.requiresAdmin && store.moderator?.role !== 'ADMIN') {
       next({ path: '/not-found' })
     } else {
       next()

@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import ChangeUserRoleFormular from './ChangeUserRoleFormular.vue'
 import { useMutation } from '@vue/apollo-composable'
-import { useStore } from 'vuex'
+import { useAdminStore } from '@/store/useAdminStore'
 import { setCreationAllowed as setCreationAllowedMutation } from '../graphql/setCreationAllowed'
 
 vi.mock('vue-i18n', () => ({
@@ -23,15 +23,13 @@ vi.mock('@vue/apollo-composable', () => ({
   })),
 }))
 
-vi.mock('vuex', () => ({
-  useStore: vi.fn(() => ({
-    state: {
-      moderator: {
-        gradidoID: 'moderator-gid',
-        communityUuid: 'home',
-        name: 'test moderator',
-        role: 'ADMIN',
-      },
+vi.mock('@/store/useAdminStore', () => ({
+  useAdminStore: vi.fn(() => ({
+    moderator: {
+      gradidoID: 'moderator-gid',
+      communityUuid: 'home',
+      name: 'test moderator',
+      role: 'ADMIN',
     },
   })),
 }))
@@ -214,14 +212,12 @@ describe('ChangeUserRoleFormular', () => {
 
   describe('authenticated user is MODERATOR', () => {
     beforeEach(() => {
-      vi.mocked(useStore).mockReturnValue({
-        state: {
-          moderator: {
-            gradidoID: 'moderator-gid',
-            communityUuid: 'home',
-            name: 'test moderator',
-            role: 'MODERATOR',
-          },
+      vi.mocked(useAdminStore).mockReturnValue({
+        moderator: {
+          gradidoID: 'moderator-gid',
+          communityUuid: 'home',
+          name: 'test moderator',
+          role: 'MODERATOR',
         },
       })
       propsData = {
@@ -246,14 +242,12 @@ describe('ChangeUserRoleFormular', () => {
   describe('the may-create switch', () => {
     let creationMutate
     const asAdmin = () =>
-      vi.mocked(useStore).mockReturnValue({
-        state: {
-          moderator: {
-            gradidoID: 'moderator-gid',
-            communityUuid: 'home',
-            name: 'test moderator',
-            role: 'ADMIN',
-          },
+      vi.mocked(useAdminStore).mockReturnValue({
+        moderator: {
+          gradidoID: 'moderator-gid',
+          communityUuid: 'home',
+          name: 'test moderator',
+          role: 'ADMIN',
         },
       })
     const flush = () => new Promise((resolve) => setTimeout(resolve, 0))
@@ -284,14 +278,12 @@ describe('ChangeUserRoleFormular', () => {
     })
 
     it('shows a moderator where the switch stands, without a switch', () => {
-      vi.mocked(useStore).mockReturnValue({
-        state: {
-          moderator: {
-            gradidoID: 'moderator-gid',
-            communityUuid: 'home',
-            name: 'test moderator',
-            role: 'MODERATOR',
-          },
+      vi.mocked(useAdminStore).mockReturnValue({
+        moderator: {
+          gradidoID: 'moderator-gid',
+          communityUuid: 'home',
+          name: 'test moderator',
+          role: 'MODERATOR',
         },
       })
       propsData = { item: { userId: 1, role: null, creationAllowed: false } }

@@ -180,9 +180,9 @@ describe('authToken', () => {
       const win = windowOn()
       if (keptAtStart) win.localStorage.items.set(AUTH_TOKEN_KEY, JSON.stringify(keptAtStart))
       const store = {
-        state: { token },
-        commit: vi.fn(),
-        dispatch: vi.fn(() => Promise.resolve()),
+        token,
+        setToken: vi.fn(),
+        logout: vi.fn(),
       }
       followAuthToken(store, win)
       const changeTo = (kept) => {
@@ -196,7 +196,7 @@ describe('authToken', () => {
     it('takes over a renewal for the member signed in here', () => {
       const { win, store, changeTo } = followed(tokenOf(BIBI, { iat: 1 }))
       changeTo({ token: tokenOf(BIBI, { iat: 2 }), at: NOW })
-      expect(store.commit).toHaveBeenCalledWith('token', tokenOf(BIBI, { iat: 2 }))
+      expect(store.setToken).toHaveBeenCalledWith(tokenOf(BIBI, { iat: 2 }))
       expect(win.location.reload).not.toHaveBeenCalled()
     })
 
@@ -206,15 +206,15 @@ describe('authToken', () => {
       const { win, store, changeTo } = followed(tokenOf(BIBI))
       changeTo({ token: tokenOf(BOB), at: NOW })
       expect(win.location.reload).toHaveBeenCalledTimes(1)
-      expect(store.commit).not.toHaveBeenCalled()
-      expect(store.dispatch).not.toHaveBeenCalled()
+      expect(store.setToken).not.toHaveBeenCalled()
+      expect(store.logout).not.toHaveBeenCalled()
     })
 
     it('reloads where somebody signs in while nobody is signed in here', () => {
       const { win, store, changeTo } = followed(null)
       changeTo({ token: tokenOf(BOB), at: NOW })
       expect(win.location.reload).toHaveBeenCalledTimes(1)
-      expect(store.commit).not.toHaveBeenCalled()
+      expect(store.setToken).not.toHaveBeenCalled()
     })
 
     // The other app renews with every answer. A window signed in as nobody that reloaded on
@@ -242,12 +242,12 @@ describe('authToken', () => {
     it('signs out where the token is gone, and only where somebody is signed in', () => {
       const signedIn = followed(tokenOf(BIBI))
       signedIn.changeTo(null)
-      expect(signedIn.store.dispatch).toHaveBeenCalledWith('logout')
+      expect(signedIn.store.logout).toHaveBeenCalled()
       expect(signedIn.win.location.reload).not.toHaveBeenCalled()
 
       const signedOut = followed(null)
       signedOut.changeTo(null)
-      expect(signedOut.store.dispatch).not.toHaveBeenCalled()
+      expect(signedOut.store.logout).not.toHaveBeenCalled()
     })
   })
 

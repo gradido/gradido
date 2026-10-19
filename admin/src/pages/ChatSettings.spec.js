@@ -26,8 +26,8 @@ vi.mock('vue-i18n', () => ({
   }),
 }))
 
-const { store } = vi.hoisted(() => ({ store: { state: { moderator: { role: 'ADMIN' } } } }))
-vi.mock('vuex', () => ({ useStore: () => store }))
+const { store } = vi.hoisted(() => ({ store: { moderator: { role: 'ADMIN' } } }))
+vi.mock('@/store/useAdminStore', () => ({ useAdminStore: () => store }))
 
 // The list as the server answers it: a real ref, handed over after the mount where a test needs
 // to see "not answered yet" first.
@@ -130,7 +130,7 @@ const checkboxIn = (wrapper, selector) => wrapper.find(`${selector} input[type="
 describe('ChatSettings', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    store.state.moderator.role = 'ADMIN'
+    store.moderator.role = 'ADMIN'
     serversResult.value = { chatVideoServers: [FAIRMEETING, FFMUC, SYSTEMLI] }
     serversError.value = null
     sent.create.mockResolvedValue({ data: { createChatVideoServer: SYSTEMLI } })
@@ -141,7 +141,7 @@ describe('ChatSettings', () => {
 
   describe('for somebody who is not an administrator', () => {
     beforeEach(() => {
-      store.state.moderator.role = 'MODERATOR'
+      store.moderator.role = 'MODERATOR'
     })
 
     it('shows only the sentence, and asks the server for nothing', () => {

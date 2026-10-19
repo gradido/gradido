@@ -89,12 +89,12 @@ import {
   setUserCreationGroups as setUserCreationGroupsMutation,
   setModeratorCreationGroupScope as setModeratorCreationGroupScopeMutation,
 } from '../graphql/creationGroups.graphql'
-import { useStore } from 'vuex'
+import { useAdminStore } from '@/store/useAdminStore'
 import { useAppToast } from '@/composables/useToast'
 import { isTheModerator } from '@/utils/theModerator'
 
 const { t } = useI18n()
-const store = useStore()
+const store = useAdminStore()
 const { toastError, toastSuccess } = useAppToast()
 
 const rolesValues = {
@@ -117,8 +117,8 @@ const currentRole = ref(getCurrentRole())
 const roleSelected = ref(getCurrentRole())
 
 const emit = defineEmits(['update-role', 'show-modal', 'select-role', 'update-creation-allowed'])
-const isModeratorRoleAdmin = computed(() => store.state.moderator.role === 'ADMIN')
-const isSelf = computed(() => isTheModerator(store.state.moderator, props.item))
+const isModeratorRoleAdmin = computed(() => store.moderator.role === 'ADMIN')
+const isSelf = computed(() => isTheModerator(store.moderator, props.item))
 
 const roles = computed(() => [
   { value: rolesValues.USER, text: t('userRole.selectRoles.user') },
