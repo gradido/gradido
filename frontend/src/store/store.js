@@ -21,11 +21,42 @@ import { forgetLegacyMapPrefs } from '../utils/matchingPrefs'
 import { forgetChatDrafts, letOldChatDraftsGo } from '../utils/chatDraft'
 import { forgetChatReturn } from '../utils/chatReturn'
 import { clearApolloCache } from '../plugins/apolloCache'
+import { keepAuthToken, onAuthTokenChange, readAuthToken } from '../utils/authToken'
 
 // Dedicated localStorage key mirroring state.themeMode. The pre-paint script in
 // index.html reads it with a single getItem, so it never has to parse the whole
 // persisted-state blob on the blocking boot path. Kept in sync by applyTheme.
 export const THEME_MODE_STORAGE_KEY = 'gradido-theme-mode'
+
+/**
+ * When the session of `token` ends by THIS device's clock, in seconds: the token's own lifetime
+ * (`exp - iat`, the server's setting) counted from `receivedAt`, when this device received it.
+ * Not `exp` itself, which is the server's clock: a computer whose clock runs hours ahead -- a
+ * wrong time zone, the time put right by hand -- would read every session as over, and the
+ * sign-in guard (routes/guards.js) would send it back to the form on every page. A token without
+ * `iat` keeps `exp`.
+ */
+const sessionEndOf = (token, receivedAt) => {
+  const { exp, iat } = jwtDecode(token)
+  return iat ? Math.floor(receivedAt / 1000) + (exp - iat) : exp
+}
+
+/**
+ * The session as it is kept for both apps (utils/authToken.js), not in this app's own blob:
+ * read when the wallet opens, and left out of what the blob saves and gives back. A blob
+ * saved before the token moved out still carries one, and it is not taken.
+ */
+const keptSession = () => {
+  const kept = readAuthToken()
+  if (!kept) return { token: null, tokenTime: null }
+  try {
+    return { token: kept.token, tokenTime: sessionEndOf(kept.token, kept.at) }
+  } catch {
+    // No token that can be read: the sign-in guard signs it out.
+    return { token: kept.token, tokenTime: null }
+  }
+}
+const withoutSession = ({ token, tokenTime, ...rest }) => rest
 
 export const mutations = {
   language: (state, language) => {
@@ -58,23 +89,15 @@ export const mutations = {
   token: (state, token) => {
     state.token = token
     if (token) {
-      // When the session ends by THIS device's clock: the token's own lifetime (`exp - iat`, the
-      // server's setting) counted from now, as the answer carrying the token arrives. Not `exp`
-      // itself, which is the server's clock: a computer whose clock runs hours ahead -- a wrong
-      // time zone, the time put right by hand -- would read every session as over, and the sign-in
-      // guard (routes/guards.js) would send it back to the form on every page. A token without
-      // `iat` keeps `exp`.
-      //
-      // ⚠️ The lifetime, not the time left, and that holds because every token taken here is
-      // fresh from the answer that carries it: the renewal header of every answer
-      // (apolloProvider.js), and the token in /authenticate's address is replaced by the one
-      // verifyLogin's answer brings before any page opens (guards.js). A token kept from
-      // anywhere else would need its time left instead.
-      const { exp, iat } = jwtDecode(token)
-      state.tokenTime = iat ? Math.floor(Date.now() / 1000) + (exp - iat) : exp
+      // Counted from when this device received the token: now, for one fresh from an answer
+      // (apolloProvider.js); for the one kept already -- another app or window of this origin
+      // received it -- from then (utils/authToken.js).
+      const kept = readAuthToken()
+      state.tokenTime = sessionEndOf(token, kept?.token === token ? kept.at : Date.now())
     } else {
       state.tokenTime = null
     }
+    keepAuthToken(token)
   },
   newsletterState: (state, newsletterState) => {
     state.newsletterState = newsletterState
@@ -271,9 +294,11 @@ export const actions = {
     // empty.
     clearLinkDraft()
     const themeMode = state.themeMode
-    // Remove only this app's own persisted state (session + token live in this blob).
-    // The wallet and admin share one origin, so localStorage.clear() would also wipe
-    // the other app's session and the shared dark-mode theme key. Re-commit the theme
+    // Remove only this app's own persisted state. The token is not in this blob -- the
+    // `token` commit above has removed it from where both apps keep it, and with it the
+    // admin interface's session (utils/authToken.js). The wallet and admin share one origin,
+    // so localStorage.clear() would also wipe the other app's state and the shared dark-mode
+    // theme key. Re-commit the theme
     // so the recreated blob keeps the device-local choice for the next session.
     // Other members' pictures live under their own key, outside that blob and outside this
     // store, so removing the blob does not touch them. They have to go for the same reason
@@ -391,6 +416,15 @@ try {
       createPersistedState({
         key: 'gradido-frontend',
         storage: window.localStorage,
+        reducer: withoutSession,
+        getState: (key, storage) => {
+          try {
+            const saved = JSON.parse(storage.getItem(key))
+            return saved ? withoutSession(saved) : undefined
+          } catch {
+            return undefined
+          }
+        },
       }),
     ],
     state: {
@@ -401,8 +435,7 @@ try {
       firstName: '',
       lastName: '',
       username: '',
-      token: null,
-      tokenTime: null,
+      ...keptSession(),
       role: null,
       newsletterState: null,
       gmsAllowed: null,
@@ -433,6 +466,17 @@ try {
     // Synchronous mutation of the state
     mutations,
     actions,
+  })
+  // A renewal in the admin interface, or in another window of the wallet, renews this one too;
+  // a logout there signs this one out. Without that, this window would go on with its own
+  // token -- and its next renewal would keep it again, signing in once more whoever signed out.
+  onAuthTokenChange((kept) => {
+    if (kept) store.commit('token', kept.token)
+    else if (store.state.token) {
+      store.dispatch('logout').catch(() => {
+        // The sign-in is gone already; what failed was housekeeping.
+      })
+    }
   })
 } catch (error) {
   // eslint-disable-next-line no-console

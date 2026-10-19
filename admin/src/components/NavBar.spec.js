@@ -359,6 +359,19 @@ describe('NavBar', () => {
       expect(redirectTo).toHaveBeenCalledWith(CONFIG.WALLET_AUTH_URL + 'valid-token')
       expect(dispatchSpy).toHaveBeenCalledWith('logout')
     })
+
+    // The wallet on this origin, as on every deployment: both apps keep the one token
+    // (utils/authToken), so the address names none, and signing out here would sign the wallet
+    // out as well. The cases above have it on another origin, as in development.
+    it('names no token and signs nobody out where the wallet is on this origin', async () => {
+      const walletAuthUrl = CONFIG.WALLET_AUTH_URL
+      CONFIG.WALLET_AUTH_URL = `${window.location.origin}/authenticate?token=`
+      const dispatchSpy = vi.spyOn(store, 'dispatch')
+      await wrapper.vm.handleWallet()
+      expect(redirectTo).toHaveBeenCalledWith(CONFIG.WALLET_AUTH_URL)
+      expect(dispatchSpy).not.toHaveBeenCalledWith('logout')
+      CONFIG.WALLET_AUTH_URL = walletAuthUrl
+    })
   })
 
   describe('logout', () => {

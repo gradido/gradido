@@ -10,6 +10,8 @@ import {
   readEventMatchingLink,
 } from '../utils/eventMatchingLink'
 import { safeWalletPath } from '../utils/safeWalletPath'
+import { takeHandedOverToken } from '../utils/authToken'
+import CONFIG from '../config'
 
 /**
  * Whether the stored session still runs: a token, and more than five seconds before it ends --
@@ -65,14 +67,22 @@ const addNavigationGuards = (router, store, apollo) => {
   // session -- the page named is gone to all the same: it asks for the sign-in itself and
   // keeps the address for afterwards, like any link into the wallet that is opened without a
   // sign-in. Without a page named, this guard does what it did before.
+  //
+  // ⛔ The token comes out of localStorage where the admin interface shares this origin, and
+  // out of the address only where it does not (utils/authToken.js): on a deployment, a link with
+  // `?token=` signs nobody in.
   router.beforeEach(async (to, from, next) => {
-    if (to.path === '/authenticate' && to.query.token) {
+    const token =
+      to.path === '/authenticate'
+        ? takeHandedOverToken(to.query.token, CONFIG.ADMIN_AUTH_URL)
+        : null
+    if (token) {
       const page = safeWalletPath(to.query.redirect)
       // Another account may have been signed in here without logging out. Queries that
       // take no variables share one cache key, so they would answer from that account's
       // cache until the network catches up.
       await clearApolloCache()
-      store.commit('token', to.query.token)
+      store.commit('token', token)
       await apollo
         .query({
           query: verifyLogin,

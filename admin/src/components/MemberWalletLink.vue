@@ -59,6 +59,7 @@ import {
 import { useAppToast } from '@/composables/useToast'
 import { verifyLogin } from '@/graphql/verifyLogin'
 import { MAP_WINDOW_NAME, dropMapWindowName } from '@/utils/mapWindow'
+import { handOverAddress } from '@/utils/authToken'
 
 /**
  * What stands behind a member's name, for the moderator who wants to reach them: one press
@@ -289,8 +290,7 @@ const label = computed(() => face.value?.label() ?? '')
 
 const openInWallet = (page, blockedText) => {
   const address =
-    CONFIG.WALLET_AUTH_URL +
-    encodeURIComponent(store.state.token) +
+    handOverAddress(CONFIG.WALLET_AUTH_URL, store.state.token) +
     '&redirect=' +
     encodeURIComponent(page)
   // ⛔ Never this window itself: see dropMapWindowName.

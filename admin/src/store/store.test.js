@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { createStore } from 'vuex'
 import createPersistedState from 'vuex-persistedstate'
 import CONFIG from '../config'
@@ -9,6 +9,9 @@ vi.mock('../config', () => ({
     DEBUG_DISABLE_AUTH: false,
   },
 }))
+
+// The storage the real store was created with; the tests below put a mock in its place.
+const storageOfTheStore = window.localStorage
 
 describe('Vuex Store', () => {
   let testStore
@@ -158,11 +161,58 @@ describe('Vuex Store', () => {
       testStore.dispatch('logout')
 
       expect(localStorageMock.clear).not.toHaveBeenCalled()
-      // Exactly one removal, and it is the admin's own blob. Naming the theme key alone
+      // Exactly two removals: the admin's own blob, and the token both apps keep -- signing
+      // out here signs the wallet out as well (utils/authToken.js). Naming the theme key alone
       // would still pass if the logout started removing some other key the wallet owns;
       // counting closes that off without having to list every key there is.
-      expect(localStorageMock.removeItem).toHaveBeenCalledTimes(1)
+      expect(localStorageMock.removeItem).toHaveBeenCalledTimes(2)
       expect(localStorageMock.removeItem).toHaveBeenCalledWith('gradido-admin')
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith('auth-token')
+    })
+  })
+
+  // The token lives where both apps keep it (utils/authToken.js), not in the admin's own blob.
+  describe('the token kept for both apps', () => {
+    beforeEach(() => {
+      Object.defineProperty(window, 'localStorage', { value: storageOfTheStore, writable: true })
+    })
+
+    afterEach(() => {
+      storageOfTheStore.removeItem('auth-token')
+    })
+
+    it('is kept by the token commit, and left out of the blob', () => {
+      store.commit('token', 'token')
+      expect(JSON.parse(storageOfTheStore.getItem('auth-token')).token).toBe('token')
+      expect(JSON.parse(storageOfTheStore.getItem('gradido-admin'))).not.toHaveProperty('token')
+      store.commit('token', null)
+      expect(storageOfTheStore.getItem('auth-token')).toBeNull()
+    })
+
+    it('is what the admin interface opens with, and not a token in a blob saved before', async () => {
+      storageOfTheStore.setItem('auth-token', JSON.stringify({ token: 'kept', at: Date.now() }))
+      storageOfTheStore.setItem(
+        'gradido-admin',
+        JSON.stringify({ token: 'from-the-blob', openCreations: 3 }),
+      )
+      vi.resetModules()
+      const { default: opened } = await import('./store')
+      expect(opened.state.token).toBe('kept')
+      expect(opened.state.openCreations).toBe(3)
+      storageOfTheStore.removeItem('gradido-admin')
+    })
+
+    it('is renewed here where another window renews it', () => {
+      storageOfTheStore.setItem('auth-token', JSON.stringify({ token: 'renewed', at: Date.now() }))
+      window.dispatchEvent(new StorageEvent('storage', { key: 'auth-token' }))
+      expect(store.state.token).toBe('renewed')
+    })
+
+    it('signs out here where another window signs out', () => {
+      store.commit('token', 'token')
+      storageOfTheStore.removeItem('auth-token')
+      window.dispatchEvent(new StorageEvent('storage', { key: 'auth-token' }))
+      expect(store.state.token).toBeNull()
     })
   })
 

@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { ref } from 'vue'
 import { mount } from '@vue/test-utils'
-import { mutations, actions, THEME_MODE_STORAGE_KEY } from './store'
+import { mutations, actions, store, THEME_MODE_STORAGE_KEY } from './store'
 import i18n from '../i18n'
 import jwtDecode from 'jwt-decode'
 import { avatarZoomState, openAvatarZoom } from '@/composables/useAvatarZoom'
@@ -132,6 +132,11 @@ describe('Vuex store', () => {
     })
 
     describe('token', () => {
+      // What one test keeps for both apps would count as received for the next.
+      beforeEach(() => {
+        localStorage.removeItem('auth-token')
+      })
+
       it('sets the state of token', () => {
         const state = { token: null }
         token(state, '1234')
@@ -159,6 +164,31 @@ describe('Vuex store', () => {
           vi.useRealTimers()
           expect(state.tokenTime).toBe(1000000 + 7200 + 3600)
         })
+
+        it('keeps the token for both apps, with when it was received', () => {
+          vi.useFakeTimers()
+          vi.setSystemTime(1000000 * 1000)
+          token({ token: null, tokenTime: null }, 'token')
+          vi.useRealTimers()
+          expect(JSON.parse(localStorage.getItem('auth-token'))).toEqual({
+            token: 'token',
+            at: 1000000 * 1000,
+          })
+        })
+
+        // The token kept already -- the admin interface, or another window, received it --
+        // counts from when it was received there, not from now: by now part of its lifetime
+        // is gone.
+        it('counts the lifetime of the token kept already from when it was received', () => {
+          localStorage.setItem('auth-token', JSON.stringify({ token: 'token', at: 1000000 * 1000 }))
+          vi.useFakeTimers()
+          vi.setSystemTime((1000000 + 600) * 1000)
+          jwtDecode.mockReturnValueOnce({ iat: 1000000, exp: 1003600 })
+          const state = { token: null, tokenTime: null }
+          token(state, 'token')
+          vi.useRealTimers()
+          expect(state.tokenTime).toBe(1003600)
+        })
       })
 
       describe('token has null value', () => {
@@ -168,6 +198,13 @@ describe('Vuex store', () => {
           token(state, null)
           expect(jwtDecode).not.toHaveBeenCalled()
           expect(state.tokenTime).toEqual(null)
+        })
+
+        // And with it the admin interface's session: both keep the one token.
+        it('removes the token kept for both apps', () => {
+          localStorage.setItem('auth-token', JSON.stringify({ token: 'token', at: 1 }))
+          token({ token: 'token', tokenTime: '123' }, null)
+          expect(localStorage.getItem('auth-token')).toBeNull()
         })
       })
     })
@@ -919,6 +956,49 @@ describe('Vuex store', () => {
         expect(setItem).toHaveBeenCalledWith(THEME_MODE_STORAGE_KEY, 'dark')
         vi.unstubAllGlobals()
       })
+    })
+  })
+
+  // The token lives where both apps keep it (utils/authToken.js), not in the wallet's own blob.
+  describe('the session kept for both apps', () => {
+    afterEach(() => {
+      localStorage.removeItem('auth-token')
+    })
+
+    it('is left out of the blob', () => {
+      store.commit('token', 'token')
+      const blob = JSON.parse(localStorage.getItem('gradido-frontend'))
+      expect(blob).not.toHaveProperty('token')
+      expect(blob).not.toHaveProperty('tokenTime')
+      expect(JSON.parse(localStorage.getItem('auth-token')).token).toBe('token')
+      store.commit('token', null)
+    })
+
+    it('is what the wallet opens with, and not a token in a blob saved before', async () => {
+      localStorage.setItem('auth-token', JSON.stringify({ token: 'kept', at: Date.now() }))
+      localStorage.setItem(
+        'gradido-frontend',
+        JSON.stringify({ token: 'from-the-blob', tokenTime: 1, firstName: 'Bibi' }),
+      )
+      vi.resetModules()
+      const { store: opened } = await import('./store')
+      expect(opened.state.token).toBe('kept')
+      expect(opened.state.tokenTime).toBe('1234')
+      expect(opened.state.firstName).toBe('Bibi')
+      localStorage.removeItem('gradido-frontend')
+    })
+
+    it('is renewed here where another window renews it', () => {
+      localStorage.setItem('auth-token', JSON.stringify({ token: 'renewed', at: Date.now() }))
+      window.dispatchEvent(new StorageEvent('storage', { key: 'auth-token' }))
+      expect(store.state.token).toBe('renewed')
+    })
+
+    it('signs out here where another window signs out', () => {
+      store.commit('token', 'token')
+      localStorage.removeItem('auth-token')
+      window.dispatchEvent(new StorageEvent('storage', { key: 'auth-token' }))
+      expect(store.state.token).toBeNull()
     })
   })
 })

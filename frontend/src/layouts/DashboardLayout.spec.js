@@ -1660,13 +1660,26 @@ describe('DashboardLayout', () => {
     // wallet's sign-in page after its sign-in ran out -- is decided and tested in
     // utils/adminMapWindow. Here only: the entry asks, with this window and the address of the
     // admin interface.
-    it('leaves for the admin interface as ever in any other window', async () => {
+    // The admin interface on this origin, as on every deployment: both apps keep the one
+    // token (utils/authToken), so the address names none, and signing out here would sign the
+    // admin interface out as well.
+    it('leaves for the admin interface in any other window, and signs nobody out', async () => {
       CONFIG.ADMIN_AUTH_URL = '#admin-authenticate?token='
 
       await pressAdmin()
 
       expect(closeSpy).not.toHaveBeenCalled()
-      expect(window.location.hash).toBe('#admin-authenticate?token=valid-token')
+      expect(window.location.hash).toBe('#admin-authenticate?token=')
+      expect(logoutSpy).not.toHaveBeenCalled()
+    })
+
+    // The admin interface on another origin, as in development: the token goes in the address,
+    // and the wallet signs out, as it always did. (jsdom does not go there; it only says so.)
+    it('signs out where the admin interface is on another origin', async () => {
+      CONFIG.ADMIN_AUTH_URL = 'http://admin.elsewhere.example/authenticate?token='
+
+      await pressAdmin()
+
       expect(logoutSpy).toHaveBeenCalledTimes(1)
     })
   })
