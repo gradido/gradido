@@ -26,11 +26,9 @@ export class GuarantorCodeResolver {
    * it), and a code of its own would let one unconfirmed account open the next.
    *
    * ⚠️ Only for a member with a user name: the card carries the code on the link of their
-   * Gradido address, `/u/<alias>`. And not for a member deleted while still signed in (the
-   * session loads deleted users too): the registration does not find them, and refuses the
-   * code.
+   * Gradido address, `/u/<alias>`.
    *
-   * Both answer null, not an error: for a member without a user name that is the expected
+   * That answers null, not an error: for a member without a user name it is the expected
    * answer on every visit, and the wallet tells it apart from a failure - it shows the card
    * without a code, and offers a new try only after a failure.
    *
@@ -46,7 +44,7 @@ export class GuarantorCodeResolver {
     if (!user.emailContact?.emailChecked) {
       throw new LogError('Confirm your address first')
     }
-    if (user.deletedAt || !v.safeParse(aliasSchema, user.alias).success) {
+    if (!v.safeParse(aliasSchema, user.alias).success) {
       return null
     }
     const homeCom = await getHomeCommunity()

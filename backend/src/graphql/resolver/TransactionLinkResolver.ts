@@ -1018,8 +1018,8 @@ export class TransactionLinkResolver {
    * these apart.
    *
    * With `large` the member who MADE the link gets its large rendition instead -- and the small
-   * one where no large one is filed --, while the link is neither accepted nor deleted and their
-   * own account stands (pictureRenditionsForMemberAskingLarge): a duplicate of a greeting
+   * one where no large one is filed --, while the link is neither accepted nor deleted
+   * (pictureRenditionsForMemberAskingLarge): a duplicate of a greeting
    * carries the photo of the old one along (ZE-030). ⛔ For everybody else, and in every other
    * state, `large` changes nothing about the answer.
    *
@@ -1067,7 +1067,7 @@ export class TransactionLinkResolver {
       return null
     }
     const wanted = large
-      ? pictureRenditionsForMemberAskingLarge(found.link, found.makerDeletedAt, user.id)
+      ? pictureRenditionsForMemberAskingLarge(found.link, user.id)
       : pictureRenditionsForMember(found.link, user.id)
     const picture = pictureToServe(found.pictures, wanted)
     if (!picture) {

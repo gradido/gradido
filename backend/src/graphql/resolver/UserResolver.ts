@@ -502,10 +502,16 @@ export class UserResolver {
       throw new LogError('Unable to save email verification code', user.emailContact.id)
     })
 
+    // ⛔ To the stored address, never to the one typed in. The lookup compares under
+    // utf8mb4_unicode_ci, which ignores accents: "admin@gradidó.net" finds the account of
+    // "admin@gradido.net", and a mail sent to the input would hand that account's reset
+    // link to whoever owns the look-alike domain. Not fixed by validating the input with
+    // emailSchema: the stored address is the salt of PasswordEncryptionType.EMAIL and
+    // must stay findable as it is.
     await sendResetPasswordEmail({
       firstName: user.firstName,
       lastName: user.lastName,
-      email,
+      email: user.emailContact.email,
       language: user.language,
       resetLink: activationLink(user.emailContact.emailVerificationCode, logger),
       timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
@@ -1677,10 +1683,12 @@ export class UserResolver {
     user.emailContact.emailResendCount++
     await user.emailContact.save()
 
+    // ⛔ To the stored address, for the reason given in forgotPassword: the lookup ignores
+    // accents, and the link in this mail sets the account's password.
     await sendAccountActivationEmail({
       firstName: user.firstName,
       lastName: user.lastName,
-      email,
+      email: user.emailContact.email,
       language: user.language,
       activationLink: activationLink(user.emailContact.emailVerificationCode, logger),
       timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),

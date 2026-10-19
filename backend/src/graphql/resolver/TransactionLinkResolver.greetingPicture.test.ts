@@ -1076,20 +1076,19 @@ describe('an open greeting of a member whose account is deleted', () => {
   })
 
   /**
-   * ⛔ And the member themselves, in a session that still stands, gets no large rendition by
-   * asking for it: what the query hands them is the small one, as without asking. No sign-in
-   * between the two -- a deleted account cannot sign in, and the session is from before.
+   * ⛔ And the member themselves gets no picture by asking for it: a session from before the
+   * deletion does not outlive it, the auth layer finds no member behind the token any more.
+   * No sign-in between the two -- a deleted account cannot sign in, and the session is from
+   * before.
    */
-  it('hands the member no large rendition by the query, and hands it again once the account is back', async () => {
+  it('hands the member nothing by the query, and the large rendition again once the account is back', async () => {
     const link = await withBothRenditions()
     const askLarge = () => query({ query: largePictureOfLink, variables: { linkId: link.id } })
     expect((await askLarge()).data.thankYouGreetingPicture).toBe(LARGE_STORED.toString('base64'))
 
     await User.update({ id: bibi.id }, { deletedAt: new Date() })
     try {
-      const result = await askLarge()
-      expect(result.errors).toBeUndefined()
-      expect(result.data.thankYouGreetingPicture).toBe(SMALL_STORED.toString('base64'))
+      expect((await askLarge()).errors).toEqual([new GraphQLError('401 Unauthorized')])
     } finally {
       await User.update({ id: bibi.id }, { deletedAt: null })
     }

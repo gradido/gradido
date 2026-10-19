@@ -271,9 +271,8 @@ export class EmailChangeResolver {
       // has: this lock body throws refusals the wallet matches on verbatim (the guard
       // below, the rate limit, 'Email address already in use') - wrapping those would
       // change their messages. What it catches is the one read that can fail on its own:
-      // a member soft-deleted mid-session is still authenticated (the auth layer reads
-      // withDeleted) but has no row here, and the raw EntityNotFoundError names the
-      // internal id and writes no log line.
+      // a member soft-deleted after the auth layer let this request through has no row
+      // here, and the raw EntityNotFoundError names the internal id and writes no log line.
       const lockedUser = await dbGetUserById(user.id, false, true, manager).catch((e) => {
         throw new LogError('Error requesting the email change', e)
       })
