@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { and, eq, inArray, isNull, ne, or, sql } from 'drizzle-orm'
+import { and, count, eq, gte, inArray, isNull, ne, or, sql } from 'drizzle-orm'
 import { alias as aliasedTable } from 'drizzle-orm/mysql-core'
 import { VoidResult } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
@@ -13,7 +13,7 @@ import {
   chatMessagesTable,
 } from '../schemas/drizzle.schema'
 import { ChatMemberRef, dbInsertChatConversationMembers } from './chatConversationMembers'
-import { countFields, countsOfRow, rowsFrom } from './figureCounts'
+import { countFields, countsOfRow, rowsFrom, WeeklyCount, weekStartOf } from './figureCounts'
 import { dbSelectUsersByUuids } from './user'
 
 const ChatGroupNotFound = (where: string) => new DBNotFoundError('chat_conversations', where)
@@ -340,4 +340,21 @@ export async function dbCountChatConversationsOfKind(
     .from(chatConversationsTable)
     .where(eq(chatConversationsTable.kind, kind))
   return countsOfRow(row, froms)
+}
+
+/**
+ * dbCountChatConversationsOfKind by calendar week (figureCounts.ts): the conversations of one kind
+ * opened in each week from `from` on. A week without one is not in the answer.
+ */
+export async function dbCountChatConversationsOfKindByWeek(
+  kind: ChatConversationKind,
+  from: Date,
+): Promise<WeeklyCount[]> {
+  const week = weekStartOf(chatConversationsTable.createdAt)
+  return drizzleDb()
+    .select({ weekStart: week, n: count() })
+    .from(chatConversationsTable)
+    .where(and(eq(chatConversationsTable.kind, kind), gte(chatConversationsTable.createdAt, from)))
+    .groupBy(week)
+    .orderBy(week)
 }

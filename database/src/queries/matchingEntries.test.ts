@@ -13,6 +13,7 @@ import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 import {
   dbCountActiveMatchingEntries,
   dbCountMatchingEntriesByType,
+  dbCountMatchingEntriesByTypeByWeek,
   dbCountMembersWithActiveEntry,
   dbDeleteMatchingEntryByUuid,
   dbInsertMatchingEntry,
@@ -823,5 +824,49 @@ describe('the counts of the figures page', () => {
     await dbDeleteMatchingEntryByUuid('figures-5')
     expect(await dbCountMatchingEntriesByType([null])).toEqual({ interest: [2], offer: [2] })
     await expect(dbCountMatchingEntriesByType([])).rejects.toThrow()
+  })
+})
+
+// The same by calendar week, from Monday 7 September 2026: two loves and a need in its week -- one
+// love at its very last moment --, nothing in the week after, an offer in the week of 21
+// September, and a love in the week before the first.
+describe('the counts of the figures page by week', () => {
+  const from = new Date('2026-09-07T00:00:00.000Z')
+
+  const write = async (uuid: string, userId: number, matchingType: string, moment: string) => {
+    const written = await dbInsertMatchingEntry({
+      uuid,
+      userId,
+      matchingType,
+      summary: `Eintrag ${uuid}`,
+      details: null,
+      remote: false,
+      // A paused entry was written all the same.
+      active: matchingType !== 'need',
+      createdAt: new Date(moment),
+    })
+    if (!written.success) {
+      throw written.error
+    }
+  }
+
+  beforeAll(async () => {
+    await dbDeleteAllRowsExceptMigrations()
+    const homeCom = await createCommunity(false)
+    const bibi = await userFactory(bibiBloxberg, homeCom)
+    const peter = await userFactory(peterLustig, homeCom)
+    await write('weeks-1', bibi.id, 'interest', '2026-09-08T12:00:00.000Z')
+    await write('weeks-2', peter.id, 'interest', '2026-09-13T23:59:59.999Z')
+    await write('weeks-3', peter.id, 'need', '2026-09-09T12:00:00.000Z')
+    await write('weeks-4', bibi.id, 'offer', '2026-09-22T12:00:00.000Z')
+    await write('weeks-5', bibi.id, 'interest', '2026-09-04T12:00:00.000Z')
+  })
+
+  it('counts the entries written of each kind in each week, a line for each kind and week that has one', async () => {
+    expect(await dbCountMatchingEntriesByTypeByWeek(from)).toEqual([
+      { matchingType: 'interest', weekStart: '2026-09-07', n: 2 },
+      { matchingType: 'need', weekStart: '2026-09-07', n: 1 },
+      { matchingType: 'offer', weekStart: '2026-09-21', n: 1 },
+    ])
   })
 })

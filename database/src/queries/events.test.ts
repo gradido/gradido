@@ -13,9 +13,13 @@ import { stephenHawking } from '../seeds/users/stephen-hawking'
 import {
   dbCountDistinctActingUsersOfType,
   dbCountDistinctAffectedUsersOfType,
+  dbCountDistinctUsersOfTypeByWeek,
   dbCountEventsOfTypes,
+  dbCountEventsOfTypesByWeek,
   dbCountFirstCreationMembers,
+  dbCountFirstCreationMembersByWeek,
   dbCountRegisterEventsWithReferrer,
+  dbCountRegisterEventsWithReferrerByWeek,
   dbCountReturningMembers,
   dbFindLatestEventForAffectedUser,
   dbHasRegisterRedeemEvent,
@@ -395,6 +399,171 @@ describe('the counts of the figures page', () => {
       expect(
         await dbCountFirstCreationMembers(EventType.FIRST_CREATION_DONE, [daysAgo(5), null]),
       ).toEqual([1, 2])
+    })
+  })
+})
+
+// The same counts by calendar week. Counted from Monday 7 September 2026: the week of 7 September
+// has events -- one at its very first moment, one at its last --, the week of 14 September has
+// none, the week of 21 September has one, and the week of 31 August lies before the first one.
+describe('the counts of the figures page by week', () => {
+  const from = new Date('2026-09-07T00:00:00.000Z')
+  const at = (moment: string): Date => new Date(moment)
+  const FIRST_MOMENT = '2026-09-07T00:00:00.000Z'
+  const LAST_MOMENT = '2026-09-13T23:59:59.999Z'
+
+  const note = (type: EventType, affectedUserId: number, moment: string, actingUserId?: number) =>
+    dbInsertEvent({
+      type,
+      affectedUserId,
+      actingUserId: actingUserId ?? affectedUserId,
+      createdAt: at(moment),
+    })
+
+  const REGISTRATIONS = [
+    EventType.USER_REGISTER,
+    EventType.USER_REGISTER_GUARANTOR,
+    EventType.USER_REGISTER_REDEEM,
+  ]
+
+  describe('dbCountEventsOfTypesByWeek', () => {
+    beforeAll(async () => {
+      await dbDeleteAllRowsExceptMigrations()
+      await note(EventType.USER_REGISTER, 1, '2026-09-02T12:00:00.000Z')
+      await note(EventType.USER_REGISTER, 2, FIRST_MOMENT)
+      await note(EventType.USER_REGISTER_GUARANTOR, 3, LAST_MOMENT, 7)
+      await note(EventType.USER_REGISTER_REDEEM, 4, '2026-09-21T00:00:00.000Z')
+      // Of a type nobody asks for here.
+      await note(EventType.USER_LOGIN, 1, '2026-09-09T12:00:00.000Z')
+    })
+
+    it('counts the events of the types it is given in each week, from the Monday it is given on', async () => {
+      expect(await dbCountEventsOfTypesByWeek(REGISTRATIONS, from)).toEqual([
+        { weekStart: '2026-09-07', n: 2 },
+        { weekStart: '2026-09-21', n: 1 },
+      ])
+    })
+
+    it('counts only the types it is given', async () => {
+      expect(await dbCountEventsOfTypesByWeek([EventType.USER_REGISTER_GUARANTOR], from)).toEqual([
+        { weekStart: '2026-09-07', n: 1 },
+      ])
+    })
+
+    it('refuses to count without a type', async () => {
+      await expect(dbCountEventsOfTypesByWeek([], from)).rejects.toThrow()
+    })
+  })
+
+  describe('dbCountDistinctUsersOfTypeByWeek', () => {
+    beforeAll(async () => {
+      await dbDeleteAllRowsExceptMigrations()
+      // Member 1 signs in twice in the first week and once in the third, member 2 once in the
+      // first; member 3 signed in the week before.
+      await note(EventType.USER_LOGIN, 1, '2026-09-08T09:00:00.000Z')
+      await note(EventType.USER_LOGIN, 1, LAST_MOMENT)
+      await note(EventType.USER_LOGIN, 2, FIRST_MOMENT)
+      await note(EventType.USER_LOGIN, 1, '2026-09-23T12:00:00.000Z')
+      await note(EventType.USER_LOGIN, 3, '2026-09-03T12:00:00.000Z')
+      // Host 7 brought two guests in the first week, host 8 one in the third.
+      await note(EventType.USER_REGISTER_GUARANTOR, 101, '2026-09-08T12:00:00.000Z', 7)
+      await note(EventType.USER_REGISTER_GUARANTOR, 102, '2026-09-10T12:00:00.000Z', 7)
+      await note(EventType.USER_REGISTER_GUARANTOR, 103, '2026-09-22T12:00:00.000Z', 8)
+    })
+
+    it('counts each member the events concern once in a week', async () => {
+      expect(
+        await dbCountDistinctUsersOfTypeByWeek(EventType.USER_LOGIN, 'affected', from),
+      ).toEqual([
+        { weekStart: '2026-09-07', n: 2 },
+        { weekStart: '2026-09-21', n: 1 },
+      ])
+    })
+
+    it('counts each member who wrote the events once in a week', async () => {
+      expect(
+        await dbCountDistinctUsersOfTypeByWeek(EventType.USER_REGISTER_GUARANTOR, 'acting', from),
+      ).toEqual([
+        { weekStart: '2026-09-07', n: 1 },
+        { weekStart: '2026-09-21', n: 1 },
+      ])
+    })
+
+    it('tells the member the events concern from the member who wrote them', async () => {
+      expect(
+        await dbCountDistinctUsersOfTypeByWeek(EventType.USER_REGISTER_GUARANTOR, 'affected', from),
+      ).toEqual([
+        { weekStart: '2026-09-07', n: 2 },
+        { weekStart: '2026-09-21', n: 1 },
+      ])
+    })
+  })
+
+  describe('dbCountRegisterEventsWithReferrerByWeek', () => {
+    beforeAll(async () => {
+      await dbDeleteAllRowsExceptMigrations()
+      await createCommunity(false)
+      // Peter brings Bibi, Räuber and Stephen along; Bob came on his own.
+      const peter = await userFactory(peterLustig)
+      const bibi = await userFactory(bibiBloxberg)
+      const bob = await userFactory(bobBaumeister)
+      const raeuber = await userFactory(raeuberHotzenplotz)
+      const stephen = await userFactory(stephenHawking)
+      for (const guest of [bibi, raeuber, stephen]) {
+        await dbUserUpdateField(guest.id, 'referrerId', peter.id)
+      }
+      await note(EventType.USER_REGISTER, bibi.id, FIRST_MOMENT, peter.id)
+      await note(EventType.USER_REGISTER, bob.id, '2026-09-08T12:00:00.000Z')
+      await note(EventType.USER_REGISTER_GUARANTOR, raeuber.id, LAST_MOMENT, peter.id)
+      await note(EventType.USER_REGISTER, stephen.id, '2026-09-22T12:00:00.000Z', peter.id)
+      // Before the first week.
+      await note(EventType.USER_REGISTER, raeuber.id, '2026-09-04T12:00:00.000Z', peter.id)
+    })
+
+    it('counts the plain registrations of accounts that name a referrer in each week', async () => {
+      expect(await dbCountRegisterEventsWithReferrerByWeek(from)).toEqual([
+        { weekStart: '2026-09-07', n: 1 },
+        { weekStart: '2026-09-21', n: 1 },
+      ])
+    })
+  })
+
+  describe('dbCountFirstCreationMembersByWeek', () => {
+    const MEMBER = 1
+    const OTHER = 2
+    const ADMIN = 3
+    const LATE_TESTER = 4
+
+    beforeAll(async () => {
+      await dbDeleteAllRowsExceptMigrations()
+      // A member skipped twice in the first week and was done in the third; another member
+      // skipped in the third, and a third one the week before.
+      await note(EventType.FIRST_CREATION_SKIP, MEMBER, FIRST_MOMENT)
+      await note(EventType.FIRST_CREATION_SKIP, MEMBER, LAST_MOMENT)
+      await note(EventType.FIRST_CREATION_DONE, MEMBER, '2026-09-22T12:00:00.000Z', 9)
+      await note(EventType.FIRST_CREATION_SKIP, OTHER, '2026-09-23T12:00:00.000Z')
+      await note(EventType.FIRST_CREATION_SKIP, 5, '2026-09-01T12:00:00.000Z')
+      // An administrator tests the first creation in the third week: the outcome of the test is
+      // not counted.
+      await note(EventType.FIRST_CREATION_TEST, ADMIN, '2026-09-24T08:00:00.000Z')
+      await note(EventType.FIRST_CREATION_DONE, ADMIN, '2026-09-24T08:00:01.000Z', 9)
+      // An administrator who was done in the first week and tested only later: counted.
+      await note(EventType.FIRST_CREATION_DONE, LATE_TESTER, '2026-09-09T12:00:00.000Z', 9)
+      await note(EventType.FIRST_CREATION_TEST, LATE_TESTER, '2026-09-10T12:00:00.000Z')
+    })
+
+    it('counts each member once in a week', async () => {
+      expect(await dbCountFirstCreationMembersByWeek(EventType.FIRST_CREATION_SKIP, from)).toEqual([
+        { weekStart: '2026-09-07', n: 1 },
+        { weekStart: '2026-09-21', n: 1 },
+      ])
+    })
+
+    it('leaves out the outcomes of a function test, not the first creation before it', async () => {
+      expect(await dbCountFirstCreationMembersByWeek(EventType.FIRST_CREATION_DONE, from)).toEqual([
+        { weekStart: '2026-09-07', n: 1 },
+        { weekStart: '2026-09-21', n: 1 },
+      ])
     })
   })
 })

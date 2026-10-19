@@ -19,6 +19,7 @@ import {
   TransactionTypeId,
 } from 'database'
 import { mapMemberCount } from '@/apis/gms/mapMemberCount'
+import { countInTurns, ENTRY_KINDS } from './FigureCounts.logic'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
@@ -82,13 +83,6 @@ const bookings =
     const { counts, gdd } = await dbCountAndSumTransactionsOfType(typeId, everyColumn(moments))
     return [inColumns(countKey, counts), inColumns(gddKey, gdd)]
   }
-
-/** The kinds of entry on the map, in the wallet's order -- love, offer, need -- and their rows. */
-const ENTRY_KINDS: [kind: string, key: string][] = [
-  ['interest', 'entriesInterest'],
-  ['offer', 'entriesOffer'],
-  ['need', 'entriesNeed'],
-]
 
 /** The entries written of each kind, in one count and on a row each. */
 const entriesByKind: Figures = async (moments) => {
@@ -165,13 +159,6 @@ const FIGURES: Figures[] = [
 ]
 
 /**
- * How many counts are asked at once. They share the pool of the Drizzle connections (20,
- * AppDatabase) with every member's request, and the page asks about two dozen: all at once, one
- * look at the page would hold every connection while the bookings are counted.
- */
-const COUNTS_AT_ONCE = 4
-
-/**
  * The figures of the admin's start page, counted from `since` and back from `now`: sums, never
  * who. One statement per count, all of its columns in it; COUNTS_AT_ONCE of them at a time,
  * the rows in the order of the page.
@@ -185,14 +172,6 @@ export async function countCommunityFigures(
     week: new Date(now.getTime() - 7 * DAY_MS),
     month: new Date(now.getTime() - 30 * DAY_MS),
   }
-  const rows: CommunityFigureCount[][] = new Array(FIGURES.length)
-  let next = 0
-  const countOneAfterAnother = async (): Promise<void> => {
-    while (next < FIGURES.length) {
-      const index = next++
-      rows[index] = await FIGURES[index](moments)
-    }
-  }
-  await Promise.all(Array.from({ length: COUNTS_AT_ONCE }, () => countOneAfterAnother()))
+  const rows = await countInTurns(FIGURES.map((figures) => () => figures(moments)))
   return rows.flat()
 }

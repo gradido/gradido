@@ -1300,6 +1300,19 @@ export const communityFiguresQuery = gql`
   }
 `
 
+export const communityFigureSeriesQuery = gql`
+  query ($since: DateTime!) {
+    communityFigureSeries(since: $since) {
+      since
+      weeks
+      rows {
+        key
+        counts
+      }
+    }
+  }
+`
+
 export const totalGradidoQuery = gql`
   query {
     communityStatistics {
