@@ -1300,6 +1300,15 @@ export const communityFiguresQuery = gql`
   }
 `
 
+export const totalGradidoQuery = gql`
+  query {
+    communityStatistics {
+      totalGradidoCreated
+      totalGradidoDecayed
+    }
+  }
+`
+
 export const dynamicStatisticsQuery = gql`
   query {
     communityStatistics {

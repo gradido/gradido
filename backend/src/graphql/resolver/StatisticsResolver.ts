@@ -45,7 +45,8 @@ export class StatisticsResolver {
         .from(DbTransaction, 'transaction')
         .where('transaction.typeId = 1')
         .getRawOne()
-      return GradidoUnit.fromGradidoCent(BigInt(totalGradidoCreated))
+      // A sum of no rows is NULL: a community without a booked creation has created nothing yet.
+      return GradidoUnit.fromGradidoCent(BigInt(totalGradidoCreated ?? 0))
     } finally {
       await queryRunner.release()
     }
@@ -62,7 +63,8 @@ export class StatisticsResolver {
         .from(DbTransaction, 'transaction')
         .where('transaction.decay IS NOT NULL')
         .getRawOne()
-      return GradidoUnit.fromGradidoCent(BigInt(totalGradidoDecayed))
+      // A sum of no rows is NULL: without a booking nothing has decayed yet.
+      return GradidoUnit.fromGradidoCent(BigInt(totalGradidoDecayed ?? 0))
     } finally {
       await queryRunner.release()
     }
