@@ -37,11 +37,56 @@ describe('countInTurns', () => {
       return index
     }
     const answers = countInTurns([slow, ...[1, 2, 3, 4, 5, 6].map(quick)])
-    await new Promise((resolve) => setTimeout(resolve, 0))
-    expect(asked).toEqual([0, 1, 2, 3, 4, 5, 6])
-
-    releaseSlow?.()
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 0))
+      expect(asked).toEqual([0, 1, 2, 3, 4, 5, 6])
+    } finally {
+      // Its turn ends either way: the turns are the process's, and the next test needs them.
+      releaseSlow?.()
+    }
     expect(await answers).toEqual([0, 1, 2, 3, 4, 5, 6])
+  })
+
+  it('asks four at a time over every call, also a call that comes while counts wait their turn', async () => {
+    // The table and its weeks are asked together, and a second moderator may come in while the
+    // first one's counts still wait: a turn that ends goes to a count that waits, never to both.
+    let asking = 0
+    let mostAtOnce = 0
+    const countsOf = (call: number) =>
+      Array.from({ length: 8 }, (_, index) => async () => {
+        asking++
+        mostAtOnce = Math.max(mostAtOnce, asking)
+        await new Promise((resolve) => setTimeout(resolve, 5 + ((index * 7) % 11)))
+        asking--
+        return `${call}.${index}`
+      })
+
+    const first = countInTurns(countsOf(1))
+    // Some counts of the first call have ended by now, and some of it still wait.
+    await new Promise((resolve) => setTimeout(resolve, 10))
+    const second = countInTurns(countsOf(2))
+
+    expect(await first).toEqual(['1.0', '1.1', '1.2', '1.3', '1.4', '1.5', '1.6', '1.7'])
+    expect(await second).toEqual(['2.0', '2.1', '2.2', '2.3', '2.4', '2.5', '2.6', '2.7'])
+    expect(mostAtOnce).toBe(COUNTS_AT_ONCE)
+  })
+
+  it('takes up the turns again after a call whose count failed', async () => {
+    const failing = async () => {
+      throw new Error('count failed')
+    }
+    await expect(countInTurns([failing, failing, failing, failing, failing])).rejects.toThrow()
+    // Every turn came back: four counts run at once again, not fewer.
+    let asking = 0
+    let mostAtOnce = 0
+    const counts = Array.from({ length: 8 }, () => async () => {
+      asking++
+      mostAtOnce = Math.max(mostAtOnce, asking)
+      await new Promise((resolve) => setTimeout(resolve, 5))
+      asking--
+    })
+    await countInTurns(counts)
+    expect(mostAtOnce).toBe(COUNTS_AT_ONCE)
   })
 
   it('fails as a whole where a count fails', async () => {

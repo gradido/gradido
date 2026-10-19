@@ -11,25 +11,45 @@ export const ENTRY_KINDS: [kind: string, key: string][] = [
 ]
 
 /**
- * How many counts are asked at once. They share the pool of the Drizzle connections (20,
- * AppDatabase) with every member's request, and the page asks about two dozen: all at once, one
- * look at the page would hold every connection while the bookings are counted.
+ * How many counts are asked at once, in the whole process. They share the pool of the Drizzle
+ * connections (20, AppDatabase) with every member's request, and one look at the page asks about
+ * four dozen -- the table and its weeks at the same time --, a second moderator as many again:
+ * all at once, they would hold every connection while the bookings are counted.
  */
 export const COUNTS_AT_ONCE = 4
 
+// The counts being asked right now, over every call, and the ones waiting for a turn.
+let asking = 0
+const waiting: (() => void)[] = []
+
 /**
- * Asks the counts COUNTS_AT_ONCE at a time, each as soon as one before it has answered, and gives
- * their answers in the order of the counts, whichever came first.
+ * One count, in its turn. A count that ends hands its turn straight to the next one waiting,
+ * rather than freeing it: a count asked in that moment could otherwise take it as well, and five
+ * would run.
  */
-export async function countInTurns<T>(counts: (() => Promise<T>)[]): Promise<T[]> {
-  const answers: T[] = new Array(counts.length)
-  let next = 0
-  const countOneAfterAnother = async (): Promise<void> => {
-    while (next < counts.length) {
-      const index = next++
-      answers[index] = await counts[index]()
+async function inTurn<T>(count: () => Promise<T>): Promise<T> {
+  if (asking < COUNTS_AT_ONCE) {
+    asking++
+  } else {
+    await new Promise<void>((takeTurn) => waiting.push(takeTurn))
+  }
+  try {
+    return await count()
+  } finally {
+    const next = waiting.shift()
+    if (next) {
+      next()
+    } else {
+      asking--
     }
   }
-  await Promise.all(Array.from({ length: COUNTS_AT_ONCE }, () => countOneAfterAnother()))
-  return answers
+}
+
+/**
+ * Asks the counts in turns, at most COUNTS_AT_ONCE of them at a time over every call in the
+ * process, each as soon as a count before it has answered, and gives their answers in the order
+ * of the counts, whichever came first.
+ */
+export async function countInTurns<T>(counts: (() => Promise<T>)[]): Promise<T[]> {
+  return Promise.all(counts.map((count) => inTurn(count)))
 }
