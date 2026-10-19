@@ -95,21 +95,33 @@ export const tokenBelongsTo = (token, gradidoID) => {
  *   in memory belongs to the member before: the store's profile, the Apollo cache, drafts,
  *   pictures. A reload lets all of it go and opens on the session there, without signing out:
  *   that would remove the token just kept (`logout` removes it, keepAuthToken).
+ *
+ * A window signed in as nobody -- the admin on not-found, its stored moderator not the member
+ * of the token -- reloads only where somebody new signs in, not on every renewal there: the
+ * other app renews with every answer, and the window would reload with every click. So it
+ * remembers whom the kept token named last, from the start on, and before it reloads.
  */
-export const followAuthToken = (store, win = window) =>
+export const followAuthToken = (store, win = window) => {
+  let lastSubject = tokenSubject(readAuthToken(win)?.token)
   onAuthTokenChange((kept) => {
     if (!kept) {
+      lastSubject = null
       if (store.state.token) {
         Promise.resolve(store.dispatch('logout')).catch(() => {
           // The sign-in is gone already; what failed was housekeeping.
         })
       }
-    } else if (tokenBelongsTo(store.state.token, tokenSubject(kept.token))) {
+      return
+    }
+    const subject = tokenSubject(kept.token)
+    if (tokenBelongsTo(store.state.token, subject)) {
       store.commit('token', kept.token)
-    } else {
+    } else if (store.state.token || subject !== lastSubject) {
+      lastSubject = subject
       win.location.reload()
     }
   }, win)
+}
 
 /** Whether `url` lies on the origin `win` is opened on. */
 export const sharesOrigin = (url, win = window) => {

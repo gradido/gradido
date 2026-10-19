@@ -176,8 +176,9 @@ describe('authToken', () => {
   })
 
   describe('followAuthToken', () => {
-    const followed = (token) => {
+    const followed = (token, keptAtStart) => {
       const win = windowOn()
+      if (keptAtStart) win.localStorage.items.set(AUTH_TOKEN_KEY, JSON.stringify(keptAtStart))
       const store = {
         state: { token },
         commit: vi.fn(),
@@ -214,6 +215,28 @@ describe('authToken', () => {
       changeTo({ token: tokenOf(BOB), at: NOW })
       expect(win.location.reload).toHaveBeenCalledTimes(1)
       expect(store.commit).not.toHaveBeenCalled()
+    })
+
+    // The other app renews with every answer. A window signed in as nobody that reloaded on
+    // each would reload with every click there.
+    it('reloads once, not on every renewal, while nobody is signed in here', () => {
+      const { win, changeTo } = followed(null)
+      changeTo({ token: tokenOf(BOB, { iat: 1 }), at: NOW })
+      changeTo({ token: tokenOf(BOB, { iat: 2 }), at: NOW })
+      expect(win.location.reload).toHaveBeenCalledTimes(1)
+    })
+
+    it('does not reload for a renewal of the token it found at the start', () => {
+      const { win, changeTo } = followed(null, { token: tokenOf(BOB, { iat: 1 }), at: NOW })
+      changeTo({ token: tokenOf(BOB, { iat: 2 }), at: NOW })
+      expect(win.location.reload).not.toHaveBeenCalled()
+    })
+
+    it('reloads again where somebody signs in after a logout there', () => {
+      const { win, changeTo } = followed(null, { token: tokenOf(BOB), at: NOW })
+      changeTo(null)
+      changeTo({ token: tokenOf(BOB), at: NOW })
+      expect(win.location.reload).toHaveBeenCalledTimes(1)
     })
 
     it('signs out where the token is gone, and only where somebody is signed in', () => {
