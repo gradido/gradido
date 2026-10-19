@@ -1034,10 +1034,18 @@ describe('FirstCreationResolver', () => {
           updatedAt: new Date(Date.now() - 6 * 60 * 1000),
         })
         .where(eq(firstCreationsTable.id, row.id))
+      const doneBefore = (await eventsOf(EventType.FIRST_CREATION_DONE, bob)).length
       await loginAs('bob@baumeister.de')
       const { data } = await query({ query: firstCreationStatus })
       expect(data.firstCreationStatus.state).toBe(FirstCreationStatus.DONE)
       expect((await rowOf(bob)).status).toBe(FirstCreationStatus.DONE)
+      // The healing writes the outcome event the process would have written, in the signer's name.
+      const done = await eventsOf(EventType.FIRST_CREATION_DONE, bob)
+      expect(done).toHaveLength(doneBefore + 1)
+      expect(done[done.length - 1]).toMatchObject({
+        actingUserId: peter.id,
+        involvedContributionId: row.contributionIds[0],
+      })
     })
 
     it('leaves a young SUBMITTED row alone and hands a stale one to a human', async () => {
