@@ -961,8 +961,15 @@ describe('Vuex store', () => {
 
   // The token lives where both apps keep it (utils/authToken.js), not in the wallet's own blob.
   describe('the session kept for both apps', () => {
+    // Tokens naming a member, as the server writes them (the subject is all that is read here).
+    const tokenOf = (sub, more = {}) =>
+      `h.${btoa(JSON.stringify({ sub, ...more })).replace(/=+$/, '')}.s`
+    const BIBI = '1b2c3d4e-5f60-4a7b-8c9d-0e1f2a3b4c5d'
+    const BOB = '7a6b5c4d-3e2f-4a1b-8c0d-9e8f7a6b5c4d'
+
     afterEach(() => {
       localStorage.removeItem('auth-token')
+      localStorage.removeItem('gradido-frontend')
     })
 
     it('is left out of the blob', () => {
@@ -974,24 +981,14 @@ describe('Vuex store', () => {
       store.commit('token', null)
     })
 
-    it('is what the wallet opens with, and not a token in a blob saved before', async () => {
-      localStorage.setItem('auth-token', JSON.stringify({ token: 'kept', at: Date.now() }))
-      localStorage.setItem(
-        'gradido-frontend',
-        JSON.stringify({ token: 'from-the-blob', tokenTime: 1, firstName: 'Bibi' }),
-      )
-      vi.resetModules()
-      const { store: opened } = await import('./store')
-      expect(opened.state.token).toBe('kept')
-      expect(opened.state.tokenTime).toBe('1234')
-      expect(opened.state.firstName).toBe('Bibi')
-      localStorage.removeItem('gradido-frontend')
-    })
-
     it('is renewed here where another window renews it', () => {
-      localStorage.setItem('auth-token', JSON.stringify({ token: 'renewed', at: Date.now() }))
+      store.commit('token', tokenOf(BIBI, { iat: 1 }))
+      localStorage.setItem(
+        'auth-token',
+        JSON.stringify({ token: tokenOf(BIBI, { iat: 2 }), at: Date.now() }),
+      )
       window.dispatchEvent(new StorageEvent('storage', { key: 'auth-token' }))
-      expect(store.state.token).toBe('renewed')
+      expect(store.state.token).toBe(tokenOf(BIBI, { iat: 2 }))
     })
 
     it('signs out here where another window signs out', () => {
@@ -999,6 +996,34 @@ describe('Vuex store', () => {
       localStorage.removeItem('auth-token')
       window.dispatchEvent(new StorageEvent('storage', { key: 'auth-token' }))
       expect(store.state.token).toBeNull()
+    })
+
+    // Last: each of these opens a store of its own, which goes on listening to the windows
+    // around it -- an event of a test after them would reach it too.
+    const openedOn = async ({ kept, blob }) => {
+      localStorage.setItem('auth-token', JSON.stringify({ token: kept, at: Date.now() }))
+      localStorage.setItem('gradido-frontend', JSON.stringify(blob))
+      vi.resetModules()
+      return (await import('./store')).store
+    }
+
+    it('is what the wallet opens with, and not a token in a blob saved before', async () => {
+      const opened = await openedOn({
+        kept: tokenOf(BIBI),
+        blob: { token: 'from-the-blob', tokenTime: 1, gradidoID: BIBI, firstName: 'Bibi' },
+      })
+      expect(opened.state.token).toBe(tokenOf(BIBI))
+      expect(opened.state.tokenTime).toBe('1234')
+      expect(opened.state.firstName).toBe('Bibi')
+    })
+
+    // ⛔ Bob's token under Bibi's name, picture and settings: the wallet opens on the sign-in.
+    it('is not opened with where the blob holds the profile of somebody else', async () => {
+      const opened = await openedOn({ kept: tokenOf(BOB), blob: { gradidoID: BIBI } })
+      expect(opened.state.token).toBeNull()
+      expect(opened.state.tokenTime).toBeNull()
+      // Nor removed: it is Bob's session, in the admin interface or another window.
+      expect(JSON.parse(localStorage.getItem('auth-token')).token).toBe(tokenOf(BOB))
     })
   })
 })

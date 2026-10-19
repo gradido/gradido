@@ -21,7 +21,7 @@ import { forgetLegacyMapPrefs } from '../utils/matchingPrefs'
 import { forgetChatDrafts, letOldChatDraftsGo } from '../utils/chatDraft'
 import { forgetChatReturn } from '../utils/chatReturn'
 import { clearApolloCache } from '../plugins/apolloCache'
-import { keepAuthToken, onAuthTokenChange, readAuthToken } from '../utils/authToken'
+import { followAuthToken, keepAuthToken, readAuthToken, tokenBelongsTo } from '../utils/authToken'
 
 // Dedicated localStorage key mirroring state.themeMode. The pre-paint script in
 // index.html reads it with a single getItem, so it never has to parse the whole
@@ -41,14 +41,31 @@ const sessionEndOf = (token, receivedAt) => {
   return iat ? Math.floor(receivedAt / 1000) + (exp - iat) : exp
 }
 
+const STATE_KEY = 'gradido-frontend'
+
+/** The member the wallet's own blob holds the profile of, or null. */
+const memberOfTheBlob = () => {
+  try {
+    return JSON.parse(localStorage.getItem(STATE_KEY))?.gradidoID ?? null
+  } catch {
+    return null
+  }
+}
+
 /**
  * The session as it is kept for both apps (utils/authToken.js), not in this app's own blob:
  * read when the wallet opens, and left out of what the blob saves and gives back. A blob
  * saved before the token moved out still carries one, and it is not taken.
+ *
+ * ⛔ Only a token of the member whose profile the blob holds. Another one would run under the
+ * name, the picture and the settings of somebody else; without it the wallet opens on the
+ * sign-in, and the way over from the admin interface (/authenticate) brings the profile anew.
  */
 const keptSession = () => {
   const kept = readAuthToken()
-  if (!kept) return { token: null, tokenTime: null }
+  if (!kept || !tokenBelongsTo(kept.token, memberOfTheBlob())) {
+    return { token: null, tokenTime: null }
+  }
   try {
     return { token: kept.token, tokenTime: sessionEndOf(kept.token, kept.at) }
   } catch {
@@ -368,7 +385,7 @@ export const actions = {
     // position never reaches that page -- the gate sends it to the position tab first -- so
     // on those devices the old keys stayed lying about. Every account passes through here.
     forgetLegacyMapPrefs()
-    localStorage.removeItem('gradido-frontend')
+    localStorage.removeItem(STATE_KEY)
     commit('setThemeMode', themeMode)
     dispatch('applyTheme')
     // Last, and for the same reason as `clearEntryDraft` above: nothing here reloads the
@@ -414,7 +431,7 @@ try {
   store = createStore({
     plugins: [
       createPersistedState({
-        key: 'gradido-frontend',
+        key: STATE_KEY,
         storage: window.localStorage,
         reducer: withoutSession,
         getState: (key, storage) => {
@@ -468,16 +485,10 @@ try {
     actions,
   })
   // A renewal in the admin interface, or in another window of the wallet, renews this one too;
-  // a logout there signs this one out. Without that, this window would go on with its own
-  // token -- and its next renewal would keep it again, signing in once more whoever signed out.
-  onAuthTokenChange((kept) => {
-    if (kept) store.commit('token', kept.token)
-    else if (store.state.token) {
-      store.dispatch('logout').catch(() => {
-        // The sign-in is gone already; what failed was housekeeping.
-      })
-    }
-  })
+  // a logout there signs this one out, and a sign-in of somebody else reloads it. Without that,
+  // this window would go on with its own token -- and its next renewal would keep it again,
+  // signing in once more whoever signed out.
+  followAuthToken(store)
 } catch (error) {
   // eslint-disable-next-line no-console
   console.log(error)

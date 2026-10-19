@@ -3,12 +3,15 @@
 import { describe, it, expect, vi } from 'vitest'
 import {
   AUTH_TOKEN_KEY,
+  followAuthToken,
   handOverAddress,
   keepAuthToken,
   onAuthTokenChange,
   readAuthToken,
   sharesOrigin,
   takeHandedOverToken,
+  tokenBelongsTo,
+  tokenSubject,
 } from './authToken'
 
 /**
@@ -35,10 +38,23 @@ describe('authToken', () => {
     }
   }
 
+  /** A token naming `sub`, written as the server writes one: base64url, without padding. */
+  const tokenOf = (sub, more = {}) =>
+    `eyJhbGciOiJIUzI1NiJ9.${btoa(JSON.stringify({ sub, ...more }))
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '')}.signature`
+  const BIBI = '1b2c3d4e-5f60-4a7b-8c9d-0e1f2a3b4c5d'
+  const BOB = '7a6b5c4d-3e2f-4a1b-8c0d-9e8f7a6b5c4d'
+
   const windowOn = (localStorage = storage()) => {
     const listeners = []
     return {
-      location: { href: 'https://gradido.example/overview', origin: 'https://gradido.example' },
+      location: {
+        href: 'https://gradido.example/overview',
+        origin: 'https://gradido.example',
+        reload: vi.fn(),
+      },
       localStorage,
       addEventListener: (type, listener) => type === 'storage' && listeners.push(listener),
       /** What the browser does when another window of the origin changes localStorage. */
@@ -123,6 +139,92 @@ describe('authToken', () => {
       onAuthTokenChange(handle, win)
       win.changedElsewhere('gradido-theme-mode')
       expect(handle).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('tokenSubject', () => {
+    it('reads whom the token names, lowercased', () => {
+      expect(tokenSubject(tokenOf(BIBI.toUpperCase()))).toBe(BIBI)
+    })
+
+    // A payload whose base64url needs the two characters base64 writes otherwise.
+    it('reads a payload with the characters of base64url', () => {
+      const token = tokenOf(BIBI, { note: '??>>' })
+      expect(token).toMatch(/[-_]/)
+      expect(tokenSubject(token)).toBe(BIBI)
+    })
+
+    it('is null for a token that names nobody, or is none', () => {
+      expect(tokenSubject(tokenOf(''))).toBeNull()
+      expect(tokenSubject(tokenOf(undefined))).toBeNull()
+      expect(tokenSubject('no-token')).toBeNull()
+      expect(tokenSubject(null)).toBeNull()
+    })
+  })
+
+  describe('tokenBelongsTo', () => {
+    it('is true for the member the token names, however the id is written', () => {
+      expect(tokenBelongsTo(tokenOf(BIBI), BIBI.toUpperCase())).toBe(true)
+    })
+
+    it('is false for anybody else, and where either names nobody', () => {
+      expect(tokenBelongsTo(tokenOf(BIBI), BOB)).toBe(false)
+      expect(tokenBelongsTo(tokenOf(BIBI), null)).toBe(false)
+      expect(tokenBelongsTo('no-token', null)).toBe(false)
+      expect(tokenBelongsTo(null, undefined)).toBe(false)
+    })
+  })
+
+  describe('followAuthToken', () => {
+    const followed = (token) => {
+      const win = windowOn()
+      const store = {
+        state: { token },
+        commit: vi.fn(),
+        dispatch: vi.fn(() => Promise.resolve()),
+      }
+      followAuthToken(store, win)
+      const changeTo = (kept) => {
+        if (kept) win.localStorage.items.set(AUTH_TOKEN_KEY, JSON.stringify(kept))
+        else win.localStorage.items.delete(AUTH_TOKEN_KEY)
+        win.changedElsewhere(AUTH_TOKEN_KEY)
+      }
+      return { win, store, changeTo }
+    }
+
+    it('takes over a renewal for the member signed in here', () => {
+      const { win, store, changeTo } = followed(tokenOf(BIBI, { iat: 1 }))
+      changeTo({ token: tokenOf(BIBI, { iat: 2 }), at: NOW })
+      expect(store.commit).toHaveBeenCalledWith('token', tokenOf(BIBI, { iat: 2 }))
+      expect(win.location.reload).not.toHaveBeenCalled()
+    })
+
+    // ⛔ Not taken over: the store, the cache and the drafts here are Bibi's. And not signed
+    // out: that would remove Bob's token, kept just now.
+    it('reloads where somebody else signs in, and signs nobody out', () => {
+      const { win, store, changeTo } = followed(tokenOf(BIBI))
+      changeTo({ token: tokenOf(BOB), at: NOW })
+      expect(win.location.reload).toHaveBeenCalledTimes(1)
+      expect(store.commit).not.toHaveBeenCalled()
+      expect(store.dispatch).not.toHaveBeenCalled()
+    })
+
+    it('reloads where somebody signs in while nobody is signed in here', () => {
+      const { win, store, changeTo } = followed(null)
+      changeTo({ token: tokenOf(BOB), at: NOW })
+      expect(win.location.reload).toHaveBeenCalledTimes(1)
+      expect(store.commit).not.toHaveBeenCalled()
+    })
+
+    it('signs out where the token is gone, and only where somebody is signed in', () => {
+      const signedIn = followed(tokenOf(BIBI))
+      signedIn.changeTo(null)
+      expect(signedIn.store.dispatch).toHaveBeenCalledWith('logout')
+      expect(signedIn.win.location.reload).not.toHaveBeenCalled()
+
+      const signedOut = followed(null)
+      signedOut.changeTo(null)
+      expect(signedOut.store.dispatch).not.toHaveBeenCalled()
     })
   })
 

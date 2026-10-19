@@ -29,6 +29,7 @@ import { BButton, vBModal } from 'bootstrap-vue-next'
 import { deleteUser } from '../graphql/deleteUser'
 import { unDeleteUser } from '../graphql/unDeleteUser'
 import { useAppToast } from '@/composables/useToast'
+import { isTheModerator } from '@/utils/theModerator'
 
 const props = defineProps({
   item: {
@@ -43,7 +44,7 @@ const { client } = useApolloClient()
 const store = useStore()
 const { toastError } = useAppToast()
 
-const isUserModerator = computed(() => props.item.userId === store.state.moderator.id)
+const isUserModerator = computed(() => isTheModerator(store.state.moderator, props.item))
 
 const showDeleteModal = () => {
   emit('show-delete-modal')

@@ -60,6 +60,7 @@ import { useAppToast } from '@/composables/useToast'
 import { verifyLogin } from '@/graphql/verifyLogin'
 import { MAP_WINDOW_NAME, dropMapWindowName } from '@/utils/mapWindow'
 import { handOverAddress } from '@/utils/authToken'
+import { isTheModerator, moderatorKey } from '@/utils/theModerator'
 
 /**
  * What stands behind a member's name, for the moderator who wants to reach them: one press
@@ -173,8 +174,7 @@ const canBeWrittenTo = computed(() => {
   const { member } = props
   if (!member || member.deletedAt) return false
   if (!member.gradidoID || !member.communityUuid) return false
-  const mine = store?.state.moderator?.id
-  return mine === undefined || mine === null || (member.userId ?? member.id) !== mine
+  return !isTheModerator(store?.state.moderator, member)
 })
 
 /**
@@ -187,7 +187,7 @@ const canBeWrittenTo = computed(() => {
  */
 const reach = computed(() => {
   if (!canBeWrittenTo.value) return null
-  const contact = moderatorContact(store?.state.moderator?.id, props.member)
+  const contact = moderatorContact(moderatorKey(store?.state.moderator), props.member)
   if (contact === 'yes') return 'chat'
   return contact === 'asking' ? 'wait' : 'send'
 })
@@ -205,7 +205,7 @@ const askWhomTheModeratorKnows = (freshFor) => {
   } catch {
     // No client where a spec mounts this without one.
   }
-  askModeratorContacts(client, store?.state.moderator?.id, freshFor)
+  askModeratorContacts(client, moderatorKey(store?.state.moderator), freshFor)
 }
 askWhomTheModeratorKnows()
 watch([canBeWrittenTo, () => props.member?.gradidoID, () => props.member?.communityUuid], () =>

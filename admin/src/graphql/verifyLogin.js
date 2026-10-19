@@ -7,7 +7,8 @@ export const verifyLogin = gql`
       lastName
       alias
       role
-      id
+      gradidoID
+      communityUuid
       language
       avatar
       avatarColorIndex

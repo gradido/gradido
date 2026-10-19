@@ -4,7 +4,7 @@
       <div v-if="!isModeratorRoleAdmin" class="m-3 mb-4">
         {{ roles.find((role) => role.value === currentRole.value)?.text }}
       </div>
-      <div v-else-if="item.userId === moderatorId" class="m-3 mb-4">
+      <div v-else-if="isSelf" class="m-3 mb-4">
         {{ $t('userRole.notChangeYourSelf') }}
       </div>
       <div v-else class="m-3">
@@ -91,6 +91,7 @@ import {
 } from '../graphql/creationGroups.graphql'
 import { useStore } from 'vuex'
 import { useAppToast } from '@/composables/useToast'
+import { isTheModerator } from '@/utils/theModerator'
 
 const { t } = useI18n()
 const store = useStore()
@@ -117,7 +118,7 @@ const roleSelected = ref(getCurrentRole())
 
 const emit = defineEmits(['update-role', 'show-modal', 'select-role', 'update-creation-allowed'])
 const isModeratorRoleAdmin = computed(() => store.state.moderator.role === 'ADMIN')
-const moderatorId = computed(() => store.state.moderator.id)
+const isSelf = computed(() => isTheModerator(store.state.moderator, props.item))
 
 const roles = computed(() => [
   { value: rolesValues.USER, text: t('userRole.selectRoles.user') },

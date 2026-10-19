@@ -66,6 +66,51 @@ export const onAuthTokenChange = (handle, win = window) => {
   })
 }
 
+/**
+ * Whom `token` names: its `sub`, the member's gradidoID, lowercased -- read, not verified (the
+ * server verifies every request). null where it names nobody.
+ */
+export const tokenSubject = (token) => {
+  try {
+    const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
+    const { sub } = JSON.parse(atob(payload))
+    return typeof sub === 'string' && sub !== '' ? sub.toLowerCase() : null
+  } catch {
+    return null
+  }
+}
+
+/** Whether `token` names the member of `gradidoID`. */
+export const tokenBelongsTo = (token, gradidoID) => {
+  const subject = tokenSubject(token)
+  return subject !== null && typeof gradidoID === 'string' && subject === gradidoID.toLowerCase()
+}
+
+/**
+ * Follows the token kept as another window of this origin changes it (onAuthTokenChange):
+ *
+ * - a renewal -- a token of the member this window is signed in as -- is taken over;
+ * - a logout there is a logout here;
+ * - a token of anybody else -- somebody signed in there -- reloads this window. What it holds
+ *   in memory belongs to the member before: the store's profile, the Apollo cache, drafts,
+ *   pictures. A reload lets all of it go and opens on the session there, without signing out:
+ *   that would remove the token just kept (`logout` removes it, keepAuthToken).
+ */
+export const followAuthToken = (store, win = window) =>
+  onAuthTokenChange((kept) => {
+    if (!kept) {
+      if (store.state.token) {
+        Promise.resolve(store.dispatch('logout')).catch(() => {
+          // The sign-in is gone already; what failed was housekeeping.
+        })
+      }
+    } else if (tokenBelongsTo(store.state.token, tokenSubject(kept.token))) {
+      store.commit('token', kept.token)
+    } else {
+      win.location.reload()
+    }
+  }, win)
+
 /** Whether `url` lies on the origin `win` is opened on. */
 export const sharesOrigin = (url, win = window) => {
   if (typeof url !== 'string' || url === '') return false

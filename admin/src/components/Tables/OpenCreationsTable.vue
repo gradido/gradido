@@ -247,6 +247,7 @@ import { openMemberAvatarZoom } from '@/composables/useMemberAvatarZoom'
 import { creationGroupLabels, creationGroupOption } from '@/utils/creationGroupLabel'
 // The one size a face has in this interface, the same as in the wallet.
 import { LIST_AVATAR_SIZE } from '@/constants'
+import { isTheModerator } from '@/utils/theModerator'
 
 const props = defineProps({
   items: {
@@ -350,7 +351,7 @@ const openPicture = (user) => {
   })
 }
 
-const myself = (item) => item.userId === store.state.moderator.id
+const myself = (item) => isTheModerator(store.state.moderator, item.user)
 
 // The Crea button appears for other people's contributions; on the "all" tab
 // (creaOpenOnly) it is limited to still-open ones (IN_PROGRESS / PENDING) -- the

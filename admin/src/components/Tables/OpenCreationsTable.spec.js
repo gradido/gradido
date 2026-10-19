@@ -32,7 +32,8 @@ describe('OpenCreationsTable', () => {
     store = createStore({
       state: {
         moderator: {
-          id: 1,
+          gradidoID: 'moderator-gid',
+          communityUuid: 'home',
         },
       },
     })
@@ -102,8 +103,13 @@ describe('OpenCreationsTable', () => {
   })
 
   it('identifies if the item belongs to the current user', () => {
-    expect(wrapper.vm.myself({ userId: 1 })).toBe(true)
-    expect(wrapper.vm.myself({ userId: 2 })).toBe(false)
+    expect(wrapper.vm.myself({ user: { gradidoID: 'moderator-gid', communityUuid: 'home' } })).toBe(
+      true,
+    )
+    expect(wrapper.vm.myself({ user: { gradidoID: 'other-gid', communityUuid: 'home' } })).toBe(
+      false,
+    )
+    expect(wrapper.vm.myself({ user: null })).toBe(false)
   })
 
   it('emits update-contributions event', async () => {
