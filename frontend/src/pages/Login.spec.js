@@ -4,7 +4,8 @@ import Login from './Login.vue'
 import AuthTriads from '@/components/Auth/AuthTriads.vue'
 import flushPromises from 'flush-promises'
 import { createRouter, createWebHistory } from 'vue-router'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
+import { useWalletStore } from '@/store/useWalletStore'
 import { createI18n } from 'vue-i18n'
 import { BButton, BCol, BContainer, BFormInput, BRow } from 'bootstrap-vue-next'
 import InputEmail from '@/components/Inputs/InputEmail.vue'
@@ -54,30 +55,21 @@ describe('Login', () => {
   let wrapper
   let router
   let store
+  let wallet
   let i18n
 
-  const createVuexStore = () => {
-    return createStore({
-      state: {
-        publisherId: 12345,
-        redirectPath: '/overview',
-        eventMatchingEntry: null,
-      },
-      actions: {
-        login: vi.fn(),
-      },
-      mutations: {
-        email: vi.fn(),
-        // As in store.js.
-        eventMatchingEntry: (state, entry) => {
-          state.eventMatchingEntry = entry ?? null
-        },
-        // As in store.js: no way back is the way to the overview.
-        redirectPath: (state, path) => {
-          state.redirectPath = path || '/overview'
-        },
-      },
+  // The real store, with the sign-in and the address taken out: setEventMatchingEntry and
+  // setRedirectPath stay as they are (no way back is the way to the overview).
+  const createWalletStore = () => {
+    const pinia = walletStore({
+      publisherId: 12345,
+      redirectPath: '/overview',
+      eventMatchingEntry: null,
     })
+    const created = useWalletStore(pinia)
+    created.login = vi.fn()
+    created.setEmail = vi.fn()
+    return pinia
   }
 
   beforeEach(() => {
@@ -94,11 +86,9 @@ describe('Login', () => {
       ],
     })
 
-    store = createVuexStore()
+    store = createWalletStore()
+    wallet = useWalletStore(store)
     clearApolloCacheMock.mockClear()
-
-    vi.spyOn(store, 'dispatch')
-    vi.spyOn(store, 'commit')
 
     i18n = createI18n({
       legacy: false,
@@ -216,11 +206,13 @@ describe('Login', () => {
           email: 'user@example.org',
           password: '1234',
           publisherId: 12345,
+          // The store's own default: no project the member came in for.
+          project: null,
         })
       })
 
-      it('dispatches server response to store', () => {
-        expect(store.dispatch).toHaveBeenCalledWith('login', expect.objectContaining({}))
+      it('hands the server response to the store', () => {
+        expect(wallet.login).toHaveBeenCalledWith(expect.objectContaining({}))
       })
 
       /**
@@ -237,12 +229,12 @@ describe('Login', () => {
       it('empties the cache of whoever was signed in before, first', () => {
         expect(clearApolloCacheMock).toHaveBeenCalled()
         expect(clearApolloCacheMock.mock.invocationCallOrder[0]).toBeLessThan(
-          store.dispatch.mock.invocationCallOrder[0],
+          wallet.login.mock.invocationCallOrder[0],
         )
       })
 
-      it('commits email to store', () => {
-        expect(store.commit).toHaveBeenCalledWith('email', 'user@example.org')
+      it('sets the email in the store', () => {
+        expect(wallet.setEmail).toHaveBeenCalledWith('user@example.org')
       })
 
       it('redirects to overview page', () => {
@@ -250,7 +242,7 @@ describe('Login', () => {
       })
 
       // ⛔ The picture, its visibility switch and creationAllowed ride ON the login answer
-      // and reach the store through the action, not through commits of this page's own. A
+      // and reach the store through the action, not through setters of this page's own. A
       // verifyLogin of its own used to follow the sign-in right here to fetch those three,
       // and this page is where it must not come back: it put a second connection pool into
       // the one request path every member and every test takes, and the member watched
@@ -259,8 +251,7 @@ describe('Login', () => {
       // What the fields then DO is store.test.js's business -- the action is a mock here.
       // What is checked here is that they arrive at all, and that nothing is asked twice.
       it('hands the picture and its two own-view companions to the store action', () => {
-        expect(store.dispatch).toHaveBeenCalledWith(
-          'login',
+        expect(wallet.login).toHaveBeenCalledWith(
           expect.objectContaining({
             avatar: 'base64-picture',
             avatarVisibleToMembers: false,
@@ -292,7 +283,7 @@ describe('Login', () => {
 
       beforeEach(() => {
         mockMutate.mockResolvedValue({ data: { login: { language: 'en' } } })
-        store.state.redirectPath = LINK
+        wallet.redirectPath = LINK
       })
 
       it('leads there after the sign-in, with all of the address', async () => {
@@ -304,7 +295,7 @@ describe('Login', () => {
       it('is used up by that: the store holds the way to the overview again', async () => {
         await signIn()
 
-        expect(store.state.redirectPath).toBe('/overview')
+        expect(wallet.redirectPath).toBe('/overview')
       })
 
       it('leads the next sign-in to the overview', async () => {
@@ -320,13 +311,13 @@ describe('Login', () => {
       it('is kept through a sign-in that fails, for the one that follows', async () => {
         mockMutate.mockRejectedValueOnce(new Error('GraphQL error: No user with this credentials'))
         await signIn()
-        expect(store.state.redirectPath).toBe(LINK)
+        expect(wallet.redirectPath).toBe(LINK)
         expect(router.currentRoute.value.fullPath).not.toBe(LINK)
 
         await signIn()
 
         expect(router.currentRoute.value.fullPath).toBe(LINK)
-        expect(store.state.redirectPath).toBe('/overview')
+        expect(wallet.redirectPath).toBe('/overview')
       })
 
       // The code in the address comes first, as before. The sign-in has happened all the
@@ -337,7 +328,7 @@ describe('Login', () => {
         await signIn()
 
         expect(router.currentRoute.value.path).toBe('/redeem/abcdef0123')
-        expect(store.state.redirectPath).toBe('/overview')
+        expect(wallet.redirectPath).toBe('/overview')
       })
     })
 
@@ -365,7 +356,7 @@ describe('Login', () => {
 
       beforeEach(() => {
         mockMutate.mockResolvedValue({ data: { login: { language: 'en' } } })
-        store.state.eventMatchingEntry = keptAgo(2 * MINUTE)
+        wallet.eventMatchingEntry = keptAgo(2 * MINUTE)
       })
       // The draft lives in a module: nothing a case leaves behind may reach the next one.
       afterEach(() => {
@@ -392,7 +383,7 @@ describe('Login', () => {
 
       it('takes it out of the store, so the next sign-in leads where it always did', async () => {
         await signIn()
-        expect(store.state.eventMatchingEntry).toBeNull()
+        expect(wallet.eventMatchingEntry).toBeNull()
         entryDraft.take()
         await router.push('/login')
 
@@ -415,10 +406,10 @@ describe('Login', () => {
 
       // Taken after the sign-in has succeeded, not before.
       it('is kept through a sign-in that fails, for the one that follows', async () => {
-        const kept = store.state.eventMatchingEntry
+        const kept = wallet.eventMatchingEntry
         mockMutate.mockRejectedValueOnce(new Error('GraphQL error: No user with this credentials'))
         await signIn()
-        expect(store.state.eventMatchingEntry).toEqual(kept)
+        expect(wallet.eventMatchingEntry).toEqual(kept)
         expect(entryDraft.take()).toBeNull()
 
         await signIn()
@@ -432,7 +423,7 @@ describe('Login', () => {
        */
       describe('kept more than an hour ago', () => {
         beforeEach(() => {
-          store.state.eventMatchingEntry = keptAgo(61 * MINUTE)
+          wallet.eventMatchingEntry = keptAgo(61 * MINUTE)
         })
 
         it('leads to the overview, with nothing for the form', async () => {
@@ -445,12 +436,12 @@ describe('Login', () => {
         it('lets the old entry go', async () => {
           await signIn()
 
-          expect(store.state.eventMatchingEntry).toBeNull()
+          expect(wallet.eventMatchingEntry).toBeNull()
         })
       })
 
       it('still offers an entry kept just under an hour ago', async () => {
-        store.state.eventMatchingEntry = keptAgo(59 * MINUTE)
+        wallet.eventMatchingEntry = keptAgo(59 * MINUTE)
 
         await signIn()
 
@@ -459,20 +450,20 @@ describe('Login', () => {
 
       // What the store holds without its moment says nothing about its age.
       it('offers nothing that carries no moment, and lets it go', async () => {
-        store.state.eventMatchingEntry = { ...ENTRY }
+        wallet.eventMatchingEntry = { ...ENTRY }
 
         await signIn()
 
         expect(router.currentRoute.value.fullPath).toBe('/overview')
         expect(entryDraft.take()).toBeNull()
-        expect(store.state.eventMatchingEntry).toBeNull()
+        expect(wallet.eventMatchingEntry).toBeNull()
       })
 
       // The overview by its record, not by the letters of the address.
       it.each([['/overview/'], ['/Overview'], ['/overview?from=mail']])(
         'reads the way back %s as the overview, and offers the entry',
         async (back) => {
-          store.state.redirectPath = back
+          wallet.redirectPath = back
 
           await signIn()
 
@@ -490,7 +481,7 @@ describe('Login', () => {
       describe('and a page that was asked for after the link', () => {
         const LINK = '/contacts?with=a-member'
         beforeEach(() => {
-          store.state.redirectPath = LINK
+          wallet.redirectPath = LINK
         })
 
         it('leads to that page', async () => {
@@ -508,7 +499,7 @@ describe('Login', () => {
         // Not kept for a later sign-in: by then it would be offered to whoever comes next.
         it('lets the entry go: the sign-in after leads to the overview', async () => {
           await signIn()
-          expect(store.state.eventMatchingEntry).toBeNull()
+          expect(wallet.eventMatchingEntry).toBeNull()
           await router.push('/login')
 
           await signIn()
@@ -534,7 +525,7 @@ describe('Login', () => {
           await signIn()
 
           expect(entryDraft.take()).toBeNull()
-          expect(store.state.eventMatchingEntry).toBeNull()
+          expect(wallet.eventMatchingEntry).toBeNull()
         })
       })
 
@@ -543,13 +534,13 @@ describe('Login', () => {
       // ahead of the entries, so nothing was handed to the form.
       describe('and a project the sign-in belongs to', () => {
         beforeEach(() => {
-          store.state.project = 'garden'
+          wallet.project = 'garden'
           mockMutate
             .mockResolvedValueOnce({ data: { login: { language: 'en' } } })
             .mockRejectedValueOnce(new Error('the space is away'))
         })
         afterEach(() => {
-          store.state.project = null
+          wallet.project = null
         })
 
         it('goes the project’s way first: nothing is handed to the form', async () => {
@@ -563,7 +554,7 @@ describe('Login', () => {
         it('lets the entry go all the same', async () => {
           await signIn()
 
-          expect(store.state.eventMatchingEntry).toBeNull()
+          expect(wallet.eventMatchingEntry).toBeNull()
         })
       })
     })

@@ -11,14 +11,14 @@
 
 <script setup>
 import { computed, onBeforeUnmount, watch } from 'vue'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import DashboardLayout from '@/layouts/DashboardLayout'
 import AuthLayout from '@/layouts/AuthLayout'
 import AppOutdatedBar from '@/components/AppOutdatedBar'
 
-const store = useStore()
+const store = useWalletStore()
 
-const darkMode = computed(() => store.state.darkMode)
+const darkMode = computed(() => store.darkMode)
 
 /**
  * Keeps <meta name="theme-color"> on the page background. Installed on a home screen
@@ -66,7 +66,7 @@ let themeMediaQuery
 let themeMediaListener
 if (window.matchMedia) {
   themeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-  themeMediaListener = () => store.dispatch('applyTheme')
+  themeMediaListener = () => store.applyTheme()
   themeMediaQuery.addEventListener('change', themeMediaListener)
 }
 

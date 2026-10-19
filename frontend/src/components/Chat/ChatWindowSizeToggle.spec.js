@@ -9,7 +9,7 @@ import ChatWindowSizeToggle from './ChatWindowSizeToggle.vue'
 vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key) => key }) }))
 
 const storeState = vi.hoisted(() => ({ gradidoID: 'me-id' }))
-vi.mock('vuex', () => ({ useStore: () => ({ state: storeState }) }))
+vi.mock('@/store/useWalletStore', () => ({ useWalletStore: () => storeState }))
 
 const KEY = 'chat-window-large:me-id'
 

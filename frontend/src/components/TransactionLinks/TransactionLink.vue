@@ -216,7 +216,7 @@ import { computed, ref } from 'vue'
 import { useMutation } from '@vue/apollo-composable'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useAppToast } from '@/composables/useToast'
 import { useCopyLinks } from '@/composables/useCopyLinks'
 import { greetingPicture } from '@/composables/useGreetingPictures'
@@ -254,7 +254,7 @@ const showDeleteLinkModal = ref(false)
 const emit = defineEmits(['reset-transaction-link-list'])
 
 const { t } = useI18n()
-const store = useStore()
+const store = useWalletStore()
 const { toastSuccess, toastError } = useAppToast()
 // A greeting is shared with its own sentence, the one its result page showed (useCopyLinks).
 const { copyLink, share } = useCopyLinks({
@@ -330,7 +330,7 @@ const motif = computed(() => thankYouMotif(props.greeting?.motif, t))
 // The list is the member's own: the photo of a greeting in it is theirs, under their user name.
 const photoAlt = computed(() =>
   t('thank-you-greeting.photo-of', {
-    name: memberAlias(store.state.username, store.state.gradidoID),
+    name: memberAlias(store.username, store.gradidoID),
   }),
 )
 // The server gave nothing for the photo (useGreetingPictures): the chat's sentence says so.

@@ -1,8 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { nextTick } from 'vue'
-import { createStore } from 'vuex'
+import { nextTick, reactive } from 'vue'
 import UserCreationAccount from './UserCreationAccount.vue'
 
 // The radio group is a stub that a test can drive the way the member does: by choosing.
@@ -48,18 +47,24 @@ vi.mock('@vue/apollo-composable', () => ({
   }),
 }))
 vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key) => key }) }))
+// The store is a fake: the real one pulls in the language and the queries this spec mocks away.
+const mockWallet = vi.hoisted(() => ({ current: null }))
+vi.mock('@/store/useWalletStore', () => ({ useWalletStore: () => mockWallet.current }))
 
 const toastSuccess = vi.fn()
 const toastError = vi.fn()
 vi.mock('@/composables/useToast', () => ({ useAppToast: () => ({ toastSuccess, toastError }) }))
 
 const build = (creationAllowed) => {
-  const store = createStore({
-    state: () => ({ creationAllowed }),
-    mutations: { creationAllowed: (state, value) => (state.creationAllowed = value) },
+  const store = reactive({
+    creationAllowed,
+    setCreationAllowed(value) {
+      this.creationAllowed = value
+    },
   })
+  mockWallet.current = store
   const wrapper = mount(UserCreationAccount, {
-    global: { plugins: [store], mocks: { $t: (key) => key } },
+    global: { mocks: { $t: (key) => key } },
   })
   return { wrapper, store }
 }
@@ -105,7 +110,7 @@ describe('UserCreationAccount', () => {
       await wrapper.find('[data-test="choice-project"]').trigger('change')
       await settle()
       expect(declareMock).not.toHaveBeenCalled()
-      expect(store.state.creationAllowed).toBe(true)
+      expect(store.creationAllowed).toBe(true)
       expect(checkedChoice(wrapper)).toBe('choice-person')
       expect(wrapper.find('[data-test="confirm-declare"]').exists()).toBe(true)
     })
@@ -118,7 +123,7 @@ describe('UserCreationAccount', () => {
       await settle()
       expect(wrapper.find('[data-test="modal-open"]').exists()).toBe(false)
       expect(declareMock).not.toHaveBeenCalled()
-      expect(store.state.creationAllowed).toBe(true)
+      expect(store.creationAllowed).toBe(true)
     })
 
     it('declares the project account and writes the store once the modal is answered', async () => {
@@ -128,7 +133,7 @@ describe('UserCreationAccount', () => {
       await confirmModal(wrapper)
       expect(declareMock).toHaveBeenCalledTimes(1)
       expect(requestMock).not.toHaveBeenCalled()
-      expect(store.state.creationAllowed).toBe(false)
+      expect(store.creationAllowed).toBe(false)
       expect(checkedChoice(wrapper)).toBe('choice-project')
       expect(toastSuccess).toHaveBeenCalledWith('settings.creationAccount.declared')
       expect(wrapper.find('[data-test="modal-open"]').exists()).toBe(false)
@@ -140,7 +145,7 @@ describe('UserCreationAccount', () => {
       await wrapper.find('[data-test="choice-project"]').trigger('change')
       await settle()
       await confirmModal(wrapper)
-      expect(store.state.creationAllowed).toBe(true)
+      expect(store.creationAllowed).toBe(true)
       expect(checkedChoice(wrapper)).toBe('choice-person')
       expect(toastError).toHaveBeenCalledWith('settings.creationAccount.openContributions')
     })
@@ -164,7 +169,7 @@ describe('UserCreationAccount', () => {
       expect(requestMock).toHaveBeenCalledTimes(1)
       expect(declareMock).not.toHaveBeenCalled()
       // Nothing changed on the account: the switch is the administrator's.
-      expect(store.state.creationAllowed).toBe(false)
+      expect(store.creationAllowed).toBe(false)
       expect(checkedChoice(wrapper)).toBe('choice-project')
       expect(wrapper.find('[data-test="creation-account-hint"]').text()).toBe(
         'settings.creationAccount.requested',

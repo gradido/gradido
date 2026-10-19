@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 
 import { useI18n } from 'vue-i18n'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import CONFIG from '@/config'
 import { useAmountInText } from '@/composables/useAmountInText'
 import { useAppToast } from '@/composables/useToast'
@@ -22,7 +22,7 @@ import { chequeFileName, drawCheque } from '@/utils/thankYouCheque'
  * appear.
  */
 export const useThankYouCheque = ({ link, amount, memo, validUntil }) => {
-  const store = useStore()
+  const store = useWalletStore()
   const { t, d } = useI18n()
   const { toastError } = useAppToast()
   const amountInText = useAmountInText()
@@ -31,7 +31,7 @@ export const useThankYouCheque = ({ link, amount, memo, validUntil }) => {
     // gradidoID, not gradidoId -- the store spells it with a capital D, and reading the
     // other spelling put the word "undefined" on the printed cheque of every member who
     // has no user name yet.
-    const { firstName, lastName, username, gradidoID, avatar } = store.state
+    const { firstName, lastName, username, gradidoID, avatar } = store
     const alias = memberAlias(username, gradidoID)
     // Letters from the alias, colour from the real initials -- the wallet's split
     // (AS-010), so the disc on paper matches the member's circle on screen.

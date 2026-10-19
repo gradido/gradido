@@ -3,7 +3,7 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { createI18n } from 'vue-i18n'
 import { createRouter, createWebHistory } from 'vue-router'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import MyGradidoCard from './MyGradidoCard.vue'
 import { renderQrCodeCanvas } from '@/utils/qrCode'
@@ -43,7 +43,7 @@ const router = createRouter({
 const mountPage = (state) =>
   mount(MyGradidoCard, {
     global: {
-      plugins: [i18n, router, createStore({ state: () => state })],
+      plugins: [i18n, router, walletStore(state)],
     },
   })
 

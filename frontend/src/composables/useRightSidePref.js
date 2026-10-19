@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 
 import { computed, ref, toValue, watch } from 'vue'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 
 /**
  * Which way the right-hand column stands, remembered on THIS DEVICE (KF-009).
@@ -11,8 +11,8 @@ import { useStore } from 'vuex'
  * survive is only the picking -- so it lives in the browser, the way the calculator's
  * counter settings do.
  *
- * ⛔ Not in the vuex store: `createPersistedState` writes the WHOLE store to localStorage
- * on every mutation, and this changes with a click.
+ * ⛔ Not in the store: store.js writes the WHOLE store to localStorage on every change,
+ * and this changes with a click.
  *
  * Key: `right-side:<gradidoID>:<routeKey>` -- one answer per member per route, because
  * KF-009 gives each of the three routes its own factory setting and somebody who wants
@@ -44,7 +44,7 @@ const write = (key, value) => {
  * @param {string[]} allowed the positions this switch has
  */
 export const useRightSidePref = (routeKey, fallback, allowed) => {
-  const store = useStore()
+  const store = useWalletStore()
 
   /** What the device remembers for the key that is open right now. */
   const stored = ref(null)
@@ -61,7 +61,7 @@ export const useRightSidePref = (routeKey, fallback, allowed) => {
 
   const read = () => {
     const key = toValue(routeKey)
-    const storage = storageKey(store.state.gradidoID, key)
+    const storage = storageKey(store.gradidoID, key)
     if (!storage) {
       // Nobody named: nothing can be read, and a choice made in this gap is all there is.
       stored.value = pending && pending.routeKey === key ? pending.value : null
@@ -102,7 +102,7 @@ export const useRightSidePref = (routeKey, fallback, allowed) => {
    * that outlives it, and `gradidoID` arrives with the login answer rather than with the
    * token the route guard checks.
    */
-  watch([() => toValue(routeKey), () => store.state.gradidoID], read, { immediate: true })
+  watch([() => toValue(routeKey), () => store.gradidoID], read, { immediate: true })
 
   /** The position in force: what was picked here, else what the route brings. */
   const choice = computed(() => stored.value ?? toValue(fallback) ?? null)
@@ -113,7 +113,7 @@ export const useRightSidePref = (routeKey, fallback, allowed) => {
     }
     stored.value = value
     const key = toValue(routeKey)
-    const storage = storageKey(store.state.gradidoID, key)
+    const storage = storageKey(store.gradidoID, key)
     if (!storage) {
       // Held until somebody is named -- see `pending`. The column turns for this visit
       // either way: `stored` above is what the template reads.

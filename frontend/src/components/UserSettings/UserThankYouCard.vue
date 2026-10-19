@@ -291,7 +291,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useMutation, useQuery } from '@vue/apollo-composable'
 import { useRoute, useRouter } from 'vue-router'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import {
   blockThankYouCard,
   createThankYouCard,
@@ -311,7 +311,7 @@ import CONFIG from '@/config'
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
-const store = useStore()
+const store = useWalletStore()
 const { toastError, toastSuccess } = useAppToast()
 
 const settings = ref(null)
@@ -496,7 +496,7 @@ const confirmBlock = () => {
 const cardOptions = () => ({
   url: `${window.location.origin}/dk/${activeCard.value.code}`,
   label: activeCard.value.label,
-  community: CONFIG.COMMUNITY_NAME ?? store.state.community?.name ?? '',
+  community: CONFIG.COMMUNITY_NAME ?? store.community?.name ?? '',
   title: t('thank-you-card.name'),
   slogan: cardSlogan(t),
 })

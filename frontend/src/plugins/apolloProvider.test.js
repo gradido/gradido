@@ -52,9 +52,11 @@ describe('apolloProvider', () => {
 
     const storeModule = await import('@/store/store')
     store = {
-      state: { token: 'some-token', gradidoID: 'member-a', communityUuid: 'community-a' },
-      dispatch: vi.fn(),
-      commit: vi.fn(),
+      token: 'some-token',
+      gradidoID: 'member-a',
+      communityUuid: 'community-a',
+      logout: vi.fn(),
+      setToken: vi.fn(),
     }
     vi.mocked(storeModule).store = store
 
@@ -126,7 +128,7 @@ describe('apolloProvider', () => {
     })
 
     it('sets empty authorization header when no token exists', () => {
-      store.state.token = null
+      store.token = null
       const setContextMock = vi.fn()
       const getContextMock = vi.fn()
       const forwardMock = vi.fn().mockReturnValue({
@@ -154,11 +156,11 @@ describe('apolloProvider', () => {
 
       authLink({ setContext: setContextMock, getContext: getContextMock }, forwardMock)
 
-      expect(store.dispatch).toHaveBeenCalledWith('logout', null)
+      expect(store.logout).toHaveBeenCalledWith(null)
       expect(router.push).toHaveBeenCalledWith('/login')
     })
 
-    it('commits new token to store when apollo response has new token', () => {
+    it('sets the new token in the store when apollo response has new token', () => {
       const setContextMock = vi.fn()
       const getContextMock = vi.fn().mockReturnValue({
         response: {
@@ -173,7 +175,7 @@ describe('apolloProvider', () => {
 
       authLink({ setContext: setContextMock, getContext: getContextMock }, forwardMock)
 
-      expect(store.commit).toHaveBeenCalledWith('token', 'new-token')
+      expect(store.setToken).toHaveBeenCalledWith('new-token')
     })
 
     /**
@@ -197,7 +199,7 @@ describe('apolloProvider', () => {
 
       authLink({ setContext: vi.fn(), getContext: getContextMock }, forwardMock)
 
-      expect(store.commit).not.toHaveBeenCalledWith('token', expect.anything())
+      expect(store.setToken).not.toHaveBeenCalled()
     })
 
     // Only `false` holds the clock: a context that says nothing about it renews as ever.
@@ -212,13 +214,13 @@ describe('apolloProvider', () => {
 
       authLink({ setContext: vi.fn(), getContext: getContextMock }, forwardMock)
 
-      expect(store.commit).toHaveBeenCalledWith('token', 'new-token')
+      expect(store.setToken).toHaveBeenCalledWith('new-token')
     })
 
     /**
      * ⛔ An answer renews the session it was asked in, and no other. A question may still be
      * under way when its session ends, and its answer carries a fresh token of the session that
-     * is over. The test "commits new token to store" above is the Gegenprobe: while the member
+     * is over. The test "sets the new token in the store" above is the Gegenprobe: while the member
      * who asked stands in the store, the token IS taken.
      */
     describe('an answer that comes when its session is over', () => {
@@ -242,59 +244,59 @@ describe('apolloProvider', () => {
 
         answer({ data: { transactionList: {} } })
 
-        expect(store.commit).toHaveBeenCalledWith('token', 'new-token')
+        expect(store.setToken).toHaveBeenCalledWith('new-token')
       })
 
       it('leaves the store alone where the member signed out meanwhile', () => {
         ask()
-        store.state.token = null
-        store.state.gradidoID = null
+        store.token = null
+        store.gradidoID = null
 
         answer({ data: { createTransactionLink: {} } })
 
-        expect(store.commit).not.toHaveBeenCalled()
+        expect(store.setToken).not.toHaveBeenCalled()
       })
 
       it('leaves the store alone where somebody else signed in meanwhile', () => {
         ask()
-        store.state.token = 'the-token-of-member-b'
-        store.state.gradidoID = 'member-b'
+        store.token = 'the-token-of-member-b'
+        store.gradidoID = 'member-b'
 
         answer({ data: { createTransactionLink: {} } })
 
-        expect(store.commit).not.toHaveBeenCalled()
+        expect(store.setToken).not.toHaveBeenCalled()
       })
 
       // A member is named by the pair: the id alone is unique within one community only.
       it('leaves the store alone where a member of the same id from another community signed in', () => {
         ask()
-        store.state.token = 'the-token-of-the-other-member'
-        store.state.communityUuid = 'community-b'
+        store.token = 'the-token-of-the-other-member'
+        store.communityUuid = 'community-b'
 
         answer({ data: { createTransactionLink: {} } })
 
-        expect(store.commit).not.toHaveBeenCalled()
+        expect(store.setToken).not.toHaveBeenCalled()
       })
 
       // Signed out, and the same member signed in again: the answer is theirs either way.
       it('takes the token where the same member signed in again', () => {
         ask()
-        store.state.token = 'a-later-token-of-member-a'
+        store.token = 'a-later-token-of-member-a'
 
         answer({ data: { createTransactionLink: {} } })
 
-        expect(store.commit).toHaveBeenCalledWith('token', 'new-token')
+        expect(store.setToken).toHaveBeenCalledWith('new-token')
       })
 
       describe('to a sign-in', () => {
         it('is taken in a wallet nobody is signed in to', () => {
-          store.state.token = null
-          store.state.gradidoID = null
+          store.token = null
+          store.gradidoID = null
           ask()
 
           answer({ data: { login: { gradidoID: 'member-b' } } })
 
-          expect(store.commit).toHaveBeenCalledWith('token', 'new-token')
+          expect(store.setToken).toHaveBeenCalledWith('new-token')
         })
 
         // Signing in over an open session: the form is asked as the member before.
@@ -303,28 +305,28 @@ describe('apolloProvider', () => {
 
           answer({ data: { login: { gradidoID: 'member-b' } } })
 
-          expect(store.commit).toHaveBeenCalledWith('token', 'new-token')
+          expect(store.setToken).toHaveBeenCalledWith('new-token')
         })
 
         // The session before ended while the form was under way: the sign-in still counts.
         it('is taken whatever became of the session it was asked in', () => {
           ask()
-          store.state.token = null
-          store.state.gradidoID = null
+          store.token = null
+          store.gradidoID = null
 
           answer({ data: { login: { gradidoID: 'member-b' } } })
 
-          expect(store.commit).toHaveBeenCalledWith('token', 'new-token')
+          expect(store.setToken).toHaveBeenCalledWith('new-token')
         })
 
         it('is no sign-in where the server refused it', () => {
           ask()
-          store.state.token = null
-          store.state.gradidoID = null
+          store.token = null
+          store.gradidoID = null
 
           answer({ data: null, errors: [{ message: 'No user with this credentials' }] })
 
-          expect(store.commit).not.toHaveBeenCalled()
+          expect(store.setToken).not.toHaveBeenCalled()
         })
       })
     })

@@ -44,17 +44,17 @@
 <script setup>
 import SettingsSection from '@/components/UserSettings/SettingsSection.vue'
 import { computed } from 'vue'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import UserNewsletter from '@/components/UserSettings/UserNewsletter.vue'
 import UserSettingsSwitch from '@/components/UserSettings/UserSettingsSwitch.vue'
 import { BRow, BCol } from 'bootstrap-vue-next'
 
-const store = useStore()
+const store = useWalletStore()
 // Computed, not a ref taken once: the switch beside this line writes to the store, and a
 // snapshot would leave the sentence below it saying the opposite of the switch until the
 // next reload. (It was a snapshot on the old page too.)
-const newsletterState = computed(() => store.state.newsletterState)
+const newsletterState = computed(() => store.newsletterState)
 // On unless the member switched it off: null is "not known yet" (a store from before the
 // field), and the column's default is on.
-const transfersInChat = computed(() => store.state.transfersInChat !== false)
+const transfersInChat = computed(() => store.transfersInChat !== false)
 </script>

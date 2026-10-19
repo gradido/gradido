@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
 import UserSettingsSwitch from './UserSettingsSwitch'
 
 const mockToastError = vi.fn()
@@ -15,7 +15,7 @@ vi.mock('@vue/apollo-composable', () => ({
   useMutation: () => ({ mutate: mockMutate }),
 }))
 
-const store = createStore({ state: {}, mutations: { gmsAllowed: () => {} } })
+const store = walletStore()
 
 let wrapper = null
 

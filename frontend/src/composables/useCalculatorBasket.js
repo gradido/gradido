@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { PARKED_AMOUNT_TTL_MS } from '@/composables/useParkedAmount'
 
 /**
@@ -32,10 +32,10 @@ import { PARKED_AMOUNT_TTL_MS } from '@/composables/useParkedAmount'
 const KEY_PREFIX = 'calculator-basket:'
 
 export const useCalculatorBasket = () => {
-  const store = useStore()
+  const store = useWalletStore()
 
   const storageKey = () => {
-    const { gradidoID } = store.state
+    const { gradidoID } = store
     return gradidoID ? `${KEY_PREFIX}${gradidoID}` : null
   }
 

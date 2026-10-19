@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { onBeforeUnmount, ref } from 'vue'
 import { useQuery } from '@vue/apollo-composable'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { mapMemberCount } from '@/graphql/queries'
 import { invitedOntoTheMap } from '@/utils/showMeOnTheMap'
 
@@ -81,14 +81,14 @@ const remember = (count) => {
  * `count` is written at most once, on the way to `settled`, and never after it.
  */
 export function useMapMemberCount() {
-  const store = useStore()
+  const store = useWalletStore()
   const heard = remembered()
   const count = ref(heard ?? null)
   const settled = ref(true)
 
   // Decided when the overview is set up, and not looked at again: the tile reads the store
   // once as well, so that a save still under way on another page cannot change it later.
-  if (!invitedOntoTheMap(store.state)) {
+  if (!invitedOntoTheMap(store)) {
     return { settled, count }
   }
 

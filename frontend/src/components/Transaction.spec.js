@@ -6,7 +6,10 @@ import { BAvatar, BCol, BCollapse, BRow } from 'bootstrap-vue-next'
 import TransactionCollapse from '@/components/TransactionCollapse.vue'
 import { GdtEntryType } from '@/graphql/enums'
 import VariantIcon from '@/components/VariantIcon.vue'
-import { createStore } from 'vuex'
+// The store is a fake: the real one pulls in the language and the queries this spec mocks away.
+vi.mock('@/store/useWalletStore', () => ({
+  useWalletStore: () => ({ transactionToHighlightId: '' }),
+}))
 
 const mockToastError = vi.fn()
 vi.mock('@/composables/useToast', () => ({
@@ -33,13 +36,6 @@ describe('Transaction', () => {
         ...props,
       },
       global: {
-        plugins: [
-          createStore({
-            state: {
-              transactionToHighlightId: '',
-            },
-          }),
-        ],
         mocks: {
           $d: (value) => value?.toString() ?? '',
           $n: (value) => value?.toString() ?? '',

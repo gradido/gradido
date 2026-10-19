@@ -22,8 +22,8 @@ vi.mock('vue-router', () => ({
 // starts from this one again.
 const ME = { gradidoID: '11111111-aaaa-4aaa-8aaa-111111111111', username: 'Maren' }
 const storeState = vi.hoisted(() => ({ gradidoID: '', username: '' }))
-vi.mock('vuex', () => ({
-  useStore: () => ({ state: storeState }),
+vi.mock('@/store/useWalletStore', () => ({
+  useWalletStore: () => storeState,
 }))
 
 // The server, as the window asks it: whether the two are contacts (`query`), and the hello

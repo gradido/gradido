@@ -444,7 +444,7 @@ import { useMutation, useQuery } from '@vue/apollo-composable'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useAppToast } from '@/composables/useToast'
 import { useEntryDraft } from '@/composables/useEntryDraft'
 import { eventLinkUnderway } from '@/composables/useEventMatchingArrival'
@@ -474,7 +474,7 @@ import UserSettingsSwitch from '@/components/UserSettings/UserSettingsSwitch'
 const { t, locale } = useI18n()
 const route = useRoute()
 const router = useRouter()
-const store = useStore()
+const store = useWalletStore()
 const { toastSuccess, toastError } = useAppToast()
 
 // The active tab is driven by the route param (/matching/:tab) so the
@@ -497,7 +497,7 @@ const formatDate = (iso) =>
     : ''
 
 // Only fire the authenticated queries once we actually have a session.
-const enabled = computed(() => !!store.state.gradidoID)
+const enabled = computed(() => !!store.gradidoID)
 
 // --- Entries: load from the backend, map onto the UI shape (open is client-only) ---
 const entries = ref([])
@@ -529,7 +529,7 @@ onEntries(({ data }) => {
   // The overview decides from this what its matching tile is (useOwnMatchingEntries). Told
   // with every list, because this page is where entries are made and deleted: the member
   // who goes back to the overview from here finds the tile right at once, without a wait.
-  rememberOwnMatchingEntries(store.state.gradidoID, entries.value.length)
+  rememberOwnMatchingEntries(store.gradidoID, entries.value.length)
 })
 onEntriesError((error) => {
   toastError(error.message)
@@ -620,7 +620,7 @@ const quietRefusal = (error) =>
   Boolean(error?.networkError && !error.networkError.statusCode) ||
   (error?.graphQLErrors ?? []).some((e) => e?.message === '401 Unauthorized')
 async function acceptEventEntry(offered) {
-  const member = store.state.gradidoID
+  const member = store.gradidoID
   const answered = eventLinkUnderway(member)
   let accepted
   try {
@@ -634,7 +634,7 @@ async function acceptEventEntry(offered) {
     accepted = result?.data?.acceptEventMatchingEntry
   } catch (error) {
     answered(null)
-    if (quietRefusal(error) || store.state.gradidoID !== member) return
+    if (quietRefusal(error) || store.gradidoID !== member) return
     toastError(error.message)
     // The server stores the entry before it hands it to the GMS, and a refusal can come from
     // that second step: the list says what is there (coderabbit, #4149).
@@ -645,7 +645,7 @@ async function acceptEventEntry(offered) {
     }
     return
   }
-  if (!accepted?.created || store.state.gradidoID !== member) {
+  if (!accepted?.created || store.gradidoID !== member) {
     answered(null)
     return
   }
@@ -661,7 +661,7 @@ async function acceptEventEntry(offered) {
   try {
     await refetchEntries()
   } catch (error) {
-    if (store.state.gradidoID === member) toastError(error.message)
+    if (store.gradidoID === member) toastError(error.message)
   }
 }
 
@@ -712,7 +712,7 @@ async function save() {
     details: newDetails.value.trim() || null,
     remote: newRemote.value,
   }
-  const member = store.state.gradidoID
+  const member = store.gradidoID
   try {
     if (editUuid.value) {
       await updateEntry({ uuid: editUuid.value, input })
@@ -745,7 +745,7 @@ async function confirmDelete() {
   const e = delEntry.value
   if (!e) return
   showDelete.value = false
-  const member = store.state.gradidoID
+  const member = store.gradidoID
   try {
     await removeEntry({ uuid: e.uuid })
     tellEntriesChanged(member, -1)
@@ -827,18 +827,18 @@ onUserLocation(({ data }) => {
   // what the server just said and the guard would send the member straight back on what
   // the store still believes. A button that does nothing, silently.
   //
-  // Only when it actually differs. Every mutation makes vuex-persistedstate serialize the
+  // Only when it actually differs. Every change makes store.js serialize the
   // WHOLE store and write it to localStorage, and the store carries the member's avatar as
-  // base64 -- so an unconditional commit would put a ~12 KB synchronous write behind every
+  // base64 -- so an unconditional set would put a ~12 KB synchronous write behind every
   // answer of a network-only query, to store two floats that did not change.
-  const known = store.state.userLocation
+  const known = store.userLocation
   const fresh = hasPosition.value ? { ...loc.userLocation } : null
   if (
     isPositionSet(known) !== isPositionSet(fresh) ||
     known?.latitude !== fresh?.latitude ||
     known?.longitude !== fresh?.longitude
   ) {
-    store.commit('userLocation', fresh)
+    store.setUserLocation(fresh)
   }
   userLocationLoaded.value = true
 })
@@ -870,7 +870,7 @@ const hasHome = computed(() => hasPosition.value || draftPosition.value !== null
 // Not said before the location query has answered: until then nobody knows, and "set your
 // home first" would reach members who have one.
 const homeMissing = computed(() => userLocationLoaded.value && !hasHome.value)
-const findableAfterSave = computed(() => draftFindable.value ?? Boolean(store.state.gmsAllowed))
+const findableAfterSave = computed(() => draftFindable.value ?? Boolean(store.gmsAllowed))
 // Only the way on is held. A member who is findable without a home - saved before the
 // server refused it - can still switch it off.
 const findableLocked = computed(() => homeMissing.value && !findableAfterSave.value)
@@ -894,10 +894,10 @@ function onPickPosition(coords) {
   draftPosition.value = { lat: coords.lat, lng: coords.lng }
 }
 function onPickAccuracy(value) {
-  draftAccuracy.value = value === store.state.gmsPublishLocation ? null : value
+  draftAccuracy.value = value === store.gmsPublishLocation ? null : value
 }
 function onPickFindable(value) {
-  draftFindable.value = value === Boolean(store.state.gmsAllowed) ? null : value
+  draftFindable.value = value === Boolean(store.gmsAllowed) ? null : value
 }
 
 function clearDrafts() {
@@ -999,12 +999,11 @@ async function confirmSavePosition() {
     await saveLocation(variables)
     if (variables.gmsLocation) {
       userLocation.value = { ...draftPosition.value }
-      store.commit('userLocation', variables.gmsLocation)
+      store.setUserLocation(variables.gmsLocation)
       hasPosition.value = true
     }
-    if (variables.gmsPublishLocation)
-      store.commit('gmsPublishLocation', variables.gmsPublishLocation)
-    if (variables.gmsAllowed !== undefined) store.commit('gmsAllowed', variables.gmsAllowed)
+    if (variables.gmsPublishLocation) store.setGmsPublishLocation(variables.gmsPublishLocation)
+    if (variables.gmsAllowed !== undefined) store.setGmsAllowed(variables.gmsAllowed)
     clearDrafts()
     // What happened, in the sentence the switch itself would have said had it saved on the
     // spot - by what was SENT, since the drafts are gone by now.
@@ -1019,7 +1018,7 @@ async function confirmSavePosition() {
     // came for. Read after the answer, not before the request: a member who has moved on
     // to another tab in the meantime is no longer asking for it, and one who switched
     // "findable" back off before saving has only saved a home.
-    if (showMe.value && mayFind(store.state)) router.push('/matching/karte')
+    if (showMe.value && mayFind(store)) router.push('/matching/karte')
   } catch (error) {
     // This page does not send findable without a home: the switch holds and save stays off.
     // The rule is the server's all the same, and should the two ever read a home
@@ -1058,7 +1057,7 @@ const showFind = ref(false)
 // flat key here would show this member the look the PREVIOUS one left on the device, and
 // it is the second reader of that key, which is exactly how such a change goes half done.
 function readMapMode() {
-  const prefix = mapPrefPrefix(store.state.gradidoID)
+  const prefix = mapPrefPrefix(store.gradidoID)
   if (!prefix) return 'karte'
   try {
     const raw = window.localStorage?.getItem(`${prefix}mode`)
@@ -1071,7 +1070,7 @@ const findList = readMapMode() === 'liste'
 // The same rule the router guard applies, from the same module and the same source: the
 // store, which the handler above keeps in step with the server. Restating it here as
 // `gmsAllowed && hasPosition` was how the button and the gate came to disagree.
-const findHasAccess = computed(() => mayFind(store.state))
+const findHasAccess = computed(() => mayFind(store))
 function openFind() {
   // The button is disabled until then; this is the second lock, for anything that
   // reaches the handler another way. We cannot say "you have no position" while we

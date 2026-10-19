@@ -8,7 +8,7 @@
       </BCol>
       <BCol cols="12" md="6" lg="6" class="text-end">
         <user-settings-switch
-          :initial-value="state.avatarVisibleToMembers"
+          :initial-value="store.avatarVisibleToMembers"
           :attr-name="'avatarVisibleToMembers'"
           :enabled-text="$t('settings.avatar.enabled')"
           :disabled-text="$t('settings.avatar.disabled')"
@@ -19,10 +19,9 @@
 </template>
 <script setup>
 import SettingsSection from '@/components/UserSettings/SettingsSection.vue'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import UserSettingsSwitch from '@/components/UserSettings/UserSettingsSwitch.vue'
 import { BRow, BCol } from 'bootstrap-vue-next'
 
-const store = useStore()
-const state = store.state
+const store = useWalletStore()
 </script>

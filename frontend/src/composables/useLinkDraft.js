@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 
 /**
  * A one-shot handover from a link in the member's own list to the way a link is made
@@ -29,7 +29,7 @@ export function clearLinkDraft() {
 }
 
 export function useLinkDraft() {
-  const store = useStore()
+  const store = useWalletStore()
 
   // Reads and clears in one go. What is held goes to the way it was meant for and to the member
   // it came from; anything else is left over from a visit that went elsewhere, and is let go.
@@ -37,7 +37,7 @@ export function useLinkDraft() {
     const was = held
     held = null
     if (!was) return null
-    const mine = Boolean(was.owner) && was.owner === store.state.gradidoID
+    const mine = Boolean(was.owner) && was.owner === store.gradidoID
     return mine && (was.link.greeting !== null) === ofGreeting ? was.link : null
   }
 
@@ -49,7 +49,7 @@ export function useLinkDraft() {
      * @returns {object} what was handed over, for `drop`
      */
     put(link) {
-      held = { link, owner: store.state.gradidoID }
+      held = { link, owner: store.gradidoID }
       return held
     },
 

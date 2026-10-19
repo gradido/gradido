@@ -159,7 +159,7 @@
  */
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { BButton } from 'bootstrap-vue-next'
 import { useCopyLinks } from '@/composables/useCopyLinks'
 import { useThankYouGreetingSheet } from '@/composables/useThankYouGreetingSheet'
@@ -179,14 +179,14 @@ const props = defineProps({
 const emit = defineEmits(['another'])
 
 const { t } = useI18n()
-const store = useStore()
+const store = useWalletStore()
 
 const motif = computed(() => thankYouMotif(props.created.greeting?.motif, t))
 const hasPhoto = computed(() => props.created.greeting?.hasPicture === true)
 // Whose photo it is, by the name the card shows: the member's own user name (NU-021).
 const photoAlt = computed(() =>
   t('thank-you-greeting.photo-of', {
-    name: memberAlias(store.state.username, store.state.gradidoID),
+    name: memberAlias(store.username, store.gradidoID),
   }),
 )
 const recipientName = computed(() => props.created.greeting?.recipientName ?? '')

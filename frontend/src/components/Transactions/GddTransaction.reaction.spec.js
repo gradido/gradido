@@ -14,8 +14,8 @@ import { setTransactionReaction } from '@/graphql/transactions.graphql'
  * choice that sets it. A file of its own beside GddTransaction.spec.js: it needs a server.
  */
 
-vi.mock('vuex', () => ({
-  useStore: () => ({ state: { username: 'bernd', gradidoID: 'me-id' } }),
+vi.mock('@/store/useWalletStore', () => ({
+  useWalletStore: () => ({ username: 'bernd', gradidoID: 'me-id' }),
 }))
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({

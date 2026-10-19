@@ -3,7 +3,7 @@
 import { ref } from 'vue'
 import { useApolloClient } from '@vue/apollo-composable'
 import { useI18n } from 'vue-i18n'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useAmountInText } from '@/composables/useAmountInText'
 import { awaitGreetingPicture } from '@/composables/useGreetingPictures'
 import { useAppToast } from '@/composables/useToast'
@@ -66,7 +66,7 @@ export const useThankYouGreetingSheet = (
   { id = null, link, amount, memo, validUntil, greeting, picture = null },
   { secondTap = false } = {},
 ) => {
-  const store = useStore()
+  const store = useWalletStore()
   const { t, d, locale } = useI18n()
   const { toastError } = useAppToast()
   const amountInText = useAmountInText()
@@ -99,7 +99,7 @@ export const useThankYouGreetingSheet = (
   /** What the drawer is given: everything that stands on the paper. */
   const sheetOf = (pictureAddress) => {
     const { line, words } = greetingParts(memo, greeting?.line)
-    const alias = memberAlias(store.state.username, store.state.gradidoID)
+    const alias = memberAlias(store.username, store.gradidoID)
     return {
       link,
       picture: pictureAddress,

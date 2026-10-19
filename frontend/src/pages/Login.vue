@@ -64,7 +64,7 @@ import InputEmail from '@/components/Inputs/InputEmail'
 import Message from '@/components/Message/Message'
 import { authenticateHumhubAutoLoginProject } from '@/graphql/mutations'
 import { ref, computed } from 'vue'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useI18n } from 'vue-i18n'
 import { useRouter, useRoute } from 'vue-router'
 import { useForm } from 'vee-validate'
@@ -80,7 +80,7 @@ import { eventMatchingEntryDraft, keptEventMatchingEntry } from '@/utils/eventMa
 
 const router = useRouter()
 const route = useRoute()
-const store = useStore()
+const store = useWalletStore()
 const { t } = useI18n()
 // The steps of signing in are shared with the page where a thank-you is accepted.
 const { signIn } = useSignIn()
@@ -118,19 +118,19 @@ const onSubmit = handleSubmit(async (values) => {
     // mail had linked to weeks before, instead of the overview (measured in the built
     // wallet, 11.10.2026). Taken here, after the sign-in has succeeded: a failed attempt
     // keeps it for the next one.
-    const back = store.state.redirectPath
-    store.commit('redirectPath', '/overview')
+    const back = store.redirectPath
+    store.setRedirectPath('/overview')
     // What an event link offered in this browser before anybody was signed in (`/event?…`,
     // routes/guards.js) is taken ONCE as well, by the sign-in that follows the link: used
     // below, or let go. Nobody was signed in when it was kept, so nothing says whose it is --
     // left in the store, it would be made for whoever signs in here next. And only if
     // it was kept within the hour (keptEventMatchingEntry).
-    const offered = keptEventMatchingEntry(store.state.eventMatchingEntry)
-    store.commit('eventMatchingEntry', null)
+    const offered = keptEventMatchingEntry(store.eventMatchingEntry)
+    store.setEventMatchingEntry(null)
     // await loader.hide()
-    if (store.state.project) {
+    if (store.project) {
       const result = await mutateHumhubAutoLogin({
-        project: store.state.project,
+        project: store.project,
       })
       window.location.href = result.data.authenticateHumhubAutoLogin
       return

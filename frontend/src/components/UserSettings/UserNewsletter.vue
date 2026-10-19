@@ -12,7 +12,7 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { subscribeNewsletter, unsubscribeNewsletter } from '@/graphql/mutations'
 import { useMutation } from '@vue/apollo-composable'
 import { BFormCheckbox } from 'bootstrap-vue-next'
@@ -20,10 +20,10 @@ import { useAppToast } from '@/composables/useToast'
 import { useI18n } from 'vue-i18n'
 
 const { toastSuccess, toastError } = useAppToast()
-const store = useStore()
+const store = useWalletStore()
 const { t } = useI18n()
 
-const localNewsletterState = ref(store.state.newsletterState)
+const localNewsletterState = ref(store.newsletterState)
 
 const { mutate: newsletterSubscribe } = useMutation(subscribeNewsletter)
 const { mutate: newsletterUnsubscribe } = useMutation(unsubscribeNewsletter)
@@ -38,7 +38,7 @@ const onSubmit = async () => {
   try {
     localNewsletterState.value ? await newsletterSubscribe() : await newsletterUnsubscribe()
 
-    store.commit('newsletterState', localNewsletterState.value)
+    store.setNewsletterState(localNewsletterState.value)
 
     toastSuccess(
       localNewsletterState.value
@@ -46,13 +46,13 @@ const onSubmit = async () => {
         : t('settings.newsletter.newsletterFalse'),
     )
   } catch (error) {
-    localNewsletterState.value = store.state.newsletterState
+    localNewsletterState.value = store.newsletterState
     toastError(error.message)
   }
 }
 
 watch(
-  () => store.state.newsletterState,
+  () => store.newsletterState,
   (newState) => {
     localNewsletterState.value = newState
   },

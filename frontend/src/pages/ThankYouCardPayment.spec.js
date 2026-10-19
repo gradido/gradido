@@ -41,7 +41,7 @@ vi.mock('vue-router', () => ({
 // The merchant, i.e. whoever is signed in on this device. The closing screen names them,
 // so the store has to answer here the same way it does in the wallet.
 const state = { firstName: 'Max', lastName: 'Mustermann', username: 'maxm', gradidoID: 'max-uuid' }
-vi.mock('vuex', () => ({ useStore: () => ({ state }) }))
+vi.mock('@/store/useWalletStore', () => ({ useWalletStore: () => state }))
 
 /**
  * ⚠️ `n` is a real Intl call, not a stub that hands back a string of our own: the whole point

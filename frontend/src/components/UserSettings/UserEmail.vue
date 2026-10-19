@@ -90,7 +90,7 @@
 
 <script setup>
 import { computed, onUnmounted, ref } from 'vue'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useI18n } from 'vue-i18n'
 import { useMutation, useQuery } from '@vue/apollo-composable'
 import { BButton, BForm, BFormGroup, BFormInput } from 'bootstrap-vue-next'
@@ -98,11 +98,11 @@ import { cancelEmailChange, requestEmailChange, resendEmailChange } from '@/grap
 import { pendingEmailChange } from '@/graphql/queries'
 import { useAppToast } from '@/composables/useToast'
 
-const store = useStore()
+const store = useWalletStore()
 const { t } = useI18n()
 const { toastError, toastSuccess } = useAppToast()
 
-const currentEmail = computed(() => store.state.email || '')
+const currentEmail = computed(() => store.email || '')
 
 // `cache-and-network`: this query takes no variables and therefore lives under one cache
 // key for everybody. The cache is emptied on logout, which is the real fix; this is the

@@ -248,7 +248,7 @@
 
 <script setup>
 import { ref, computed, onBeforeUnmount, watch } from 'vue'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useApolloClient } from '@vue/apollo-composable'
 import CollapseIcon from '../TransactionRows/CollapseIcon'
 import Name from '../TransactionRows/Name'
@@ -284,7 +284,7 @@ const emit = defineEmits(['open-member'])
 
 const gddTransaction = ref(null)
 
-const store = useStore()
+const store = useWalletStore()
 const visible = ref(false)
 /** The row has been opened at least once: what only the opened row shows is made from then on. */
 const opened = ref(false)
@@ -376,7 +376,7 @@ const pictureShown = computed(() => greetingShown.value ?? transferPictureShown.
 /** Whose photo it is, for the ear: whoever sent the transfer -- the member, or the other one. */
 const pictureSender = computed(() =>
   props.transaction.typeId === 'SEND'
-    ? memberAlias(store.state.username, store.state.gradidoID)
+    ? memberAlias(store.username, store.gradidoID)
     : memberAlias(props.transaction.linkedUser?.alias, props.transaction.linkedUser?.gradidoID),
 )
 
@@ -489,7 +489,7 @@ const handleOpenAfterScroll = (scrollY) => {
   window.scrollTo(0, scrollY)
 }
 
-const transactionToHighlightId = computed(() => store.state.transactionToHighlightId)
+const transactionToHighlightId = computed(() => store.transactionToHighlightId)
 
 watch(
   transactionToHighlightId,
@@ -501,7 +501,7 @@ watch(
         const yVal = element.getBoundingClientRect().top + window.pageYOffset - 16
         handleOpenAfterScroll(yVal)
       }, 300)
-      await store.dispatch('changeTransactionToHighlightId', '')
+      await store.changeTransactionToHighlightId('')
     }
   },
   { immediate: true },

@@ -16,14 +16,14 @@
 import { computed, defineOptions } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import CONFIG from '@/config'
 
 defineOptions({ name: 'Breadcrumb' })
 
 const { t } = useI18n()
 const route = useRoute()
-const store = useStore()
+const store = useWalletStore()
 
 const pageTitle = computed(() => {
   // No key, no heading -- rather than the string "pageTitle.undefined", which is what
@@ -31,7 +31,7 @@ const pageTitle = computed(() => {
   if (!route.meta.pageTitle) {
     return ''
   }
-  const options = { name: store.state.firstName, community: CONFIG.COMMUNITY_NAME }
+  const options = { name: store.firstName, community: CONFIG.COMMUNITY_NAME }
   // eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys
   return t(`pageTitle.${route.meta.pageTitle}`, options)
 })

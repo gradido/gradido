@@ -50,7 +50,7 @@
 </template>
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useMutation, useQuery } from '@vue/apollo-composable'
@@ -63,7 +63,7 @@ import { firstCreationStatus, startFirstCreationTest } from '@/graphql/firstCrea
 const FIRST_CREATION_RUNS_PER_MONTH = 10
 
 const { t } = useI18n()
-const store = useStore()
+const store = useWalletStore()
 const router = useRouter()
 
 /**
@@ -73,7 +73,7 @@ const router = useRouter()
 const { result } = useQuery(firstCreationStatus, null, { fetchPolicy: 'cache-and-network' })
 const status = computed(() => result.value?.firstCreationStatus ?? null)
 
-const isAdmin = computed(() => store.state.role === 'ADMIN')
+const isAdmin = computed(() => store.role === 'ADMIN')
 
 /**
  * Both halves, the same two the menu entry hangs on. The route itself is registered

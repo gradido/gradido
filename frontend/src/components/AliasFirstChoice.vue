@@ -89,7 +89,7 @@
 
 <script setup>
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useI18n } from 'vue-i18n'
 import { useMutation, useQuery } from '@vue/apollo-composable'
 import { BModal, BButton, BFormInput } from 'bootstrap-vue-next'
@@ -112,7 +112,7 @@ import CONFIG from '@/config'
  * either leaves the question open, so it comes back next time - which is the point,
  * because a window with no way out would be an imposition at exactly the wrong moment.
  */
-const store = useStore()
+const store = useWalletStore()
 const { t } = useI18n()
 const { toastError } = useAppToast()
 
@@ -130,7 +130,7 @@ const dismissed = ref(false)
 const choosing = ref(false)
 const typed = ref('')
 
-const currentAlias = computed(() => store.state.username || '')
+const currentAlias = computed(() => store.username || '')
 // The address is what the name is for, so it is shown rather than explained - and in
 // the form it takes on paper, without the scheme.
 const addressPrefix = computed(() => {
@@ -320,7 +320,7 @@ const errorText = (message) =>
 const saveChosen = async () => {
   try {
     await updateUser({ alias: typed.value })
-    store.commit('username', typed.value)
+    store.setUsername(typed.value)
     dismissed.value = true
     await refetch()
   } catch (error) {

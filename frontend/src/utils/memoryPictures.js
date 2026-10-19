@@ -6,7 +6,7 @@ import { shallowReactive } from 'vue'
 // asked for when their place comes into sight and kept for the rest of the session.
 //
 // The way of the chat's pictures (useChatImages), and for its reasons:
-// ⛔ in MEMORY only, never in the device's storage and never in the vuex store, which is written
+// ⛔ in MEMORY only, never in the device's storage and never in the store, which is written
 //   whole into localStorage;
 // ⛔ no base64 in Apollo's cache: the query is asked `no-cache`.
 //

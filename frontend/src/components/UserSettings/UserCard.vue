@@ -48,7 +48,7 @@
 </template>
 <script setup>
 import { computed } from 'vue'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import CONFIG from '@/config'
 
 defineProps({
@@ -56,11 +56,11 @@ defineProps({
   transactionCount: { type: Number, default: 0 },
 })
 
-const store = useStore()
+const store = useWalletStore()
 
 const username = computed(() => ({
-  username: `${store.state.firstName} ${store.state.lastName}`,
-  initials: `${store.state.firstName[0]}${store.state.lastName[0]}`,
+  username: `${store.firstName} ${store.lastName}`,
+  initials: `${store.firstName[0]}${store.lastName[0]}`,
 }))
 </script>
 

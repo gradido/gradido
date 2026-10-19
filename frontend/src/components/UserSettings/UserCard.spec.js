@@ -3,6 +3,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import UserCard from './UserCard.vue'
 import { BCol, BRow } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
+import { walletStore } from '@test/walletStore'
 
 vi.mock('vue-avatar', () => ({
   default: {
@@ -21,12 +22,7 @@ vi.mock('@/config', () => ({
 describe('UserCard', () => {
   let wrapper
 
-  const mockStore = {
-    state: {
-      firstName: 'Bibi',
-      lastName: 'Bloxberg',
-    },
-  }
+  const signedIn = { firstName: 'Bibi', lastName: 'Bloxberg' }
 
   const mocks = {
     $t: vi.fn((t) => t),
@@ -51,7 +47,7 @@ describe('UserCard', () => {
           },
         },
         mocks,
-        provide: { store: mockStore },
+        plugins: [walletStore(signedIn)],
       },
       props: {
         balance: 100,

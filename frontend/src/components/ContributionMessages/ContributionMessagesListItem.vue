@@ -69,7 +69,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import ParseMessage from '@/components/ContributionMessages/ParseMessage'
 import AppAvatar from '@/components/AppAvatar.vue'
 import { avatarLettering } from '@/utils/avatarLettering'
@@ -86,19 +86,19 @@ const props = defineProps({
   },
 })
 
-const store = useStore()
+const store = useWalletStore()
 
 // The member's own side, from the store the wallet fills at login. Letters from the
 // alias, colour from the real initials (AS-010) -- avatarLettering holds that pair
 // together, the same as in the booking rows.
 const storeName = computed(() => {
   const { letters, colorSeed } = avatarLettering({
-    alias: store.state.username,
-    firstName: store.state.firstName,
-    lastName: store.state.lastName,
+    alias: store.username,
+    firstName: store.firstName,
+    lastName: store.lastName,
   })
   return {
-    username: store.state.username,
+    username: store.username,
     initials: letters,
     colorSeed,
   }
@@ -123,7 +123,7 @@ const storeName = computed(() => {
  * enlarged rather than the full one. No error, a little softer.
  */
 const ownAvatar = computed(() => {
-  const avatar = store.state.avatar
+  const avatar = store.avatar
   const avatarProps = {
     name: storeName.value.username,
     initials: storeName.value.initials,
@@ -134,8 +134,8 @@ const ownAvatar = computed(() => {
     ...avatarProps,
     ...avatarZoomBindings(
       {
-        gradidoID: store.state.gradidoID,
-        communityUuid: store.state.communityUuid,
+        gradidoID: store.gradidoID,
+        communityUuid: store.communityUuid,
         alias: storeName.value.username,
       },
       avatarProps,

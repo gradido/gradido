@@ -1067,7 +1067,7 @@ describe('EventMatchingBuilder', () => {
     // The page's own code. What the built wallet asks for while a host types was counted in the
     // browser: the coin of the code and nothing else.
     it.each([
-      ['a store', /vuex|useStore|\$store/],
+      ['a store', /vuex|pinia|useStore|useWalletStore|\$store/],
       [
         'a request',
         /apollo|useQuery|useLazyQuery|useMutation|fetch\(|XMLHttpRequest|sendBeacon|new Image|WebSocket|EventSource/,

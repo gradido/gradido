@@ -5,9 +5,7 @@ import { ref } from 'vue'
 import ChatVideoAppBox from './ChatVideoAppBox.vue'
 
 const member = vi.hoisted(() => ({ gradidoID: 'me-id' }))
-vi.mock('vuex', () => ({
-  useStore: () => ({ state: member }),
-}))
+vi.mock('@/store/useWalletStore', () => ({ useWalletStore: () => member }))
 
 /** The box as the dialogs hold it: bound with v-model to a value of their own. */
 const Dialog = {

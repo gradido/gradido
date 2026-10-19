@@ -101,8 +101,8 @@ export const offersJitsiApp = () => isComputer()
  * after signing out) nothing is read and nothing written -- the box starts empty, and a tick made
  * then holds for that call only.
  *
- * ⛔ Not in the vuex store: `createPersistedState` writes the whole store to localStorage on every
- * mutation (useRightSidePref).
+ * ⛔ Not in the store: store.js writes the whole store to localStorage on every
+ * change (useRightSidePref).
  */
 const IN_APP_KEY_PREFIX = 'chat-video-in-app:'
 

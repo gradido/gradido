@@ -21,7 +21,7 @@ import en from '@/locales/en.json'
  */
 
 const state = { gradidoID: 'user-one' }
-vi.mock('vuex', () => ({ useStore: () => ({ state }) }))
+vi.mock('@/store/useWalletStore', () => ({ useWalletStore: () => state }))
 
 /**
  * The configured community host — the second entry of the page's own-host list. The

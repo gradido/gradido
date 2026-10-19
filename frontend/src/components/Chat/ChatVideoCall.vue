@@ -409,7 +409,7 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, reactive, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useApolloClient } from '@vue/apollo-composable'
 import { BButton, BModal } from 'bootstrap-vue-next'
 import ChatCheck from '@/components/Chat/ChatCheck.vue'
@@ -480,7 +480,7 @@ const props = defineProps({
 })
 
 const { t, d, locale } = useI18n()
-const store = useStore()
+const store = useWalletStore()
 
 /** The member's language, as the invitation's words are written in it (chatVideoInvite). */
 const inviteWords = () => ({ t, d, locale: locale.value })
@@ -548,7 +548,7 @@ const videoProblem = ref('')
  * The room, where the invitation went out and the browser held its window back: the member
  * opens it from the dialog. So too where the box sent the call to the Jitsi app and the address
  * unexpectedly is none the app takes. ⛔ The address is the call's secret -- it lives here only
- * while the dialog shows it, and in no store (the vuex store is written whole into localStorage)
+ * while the dialog shows it, and in no store (the store is written whole into localStorage)
  * and no log.
  */
 const videoRoomToOpen = ref('')
@@ -728,8 +728,8 @@ let videoAttempt = 0
 const askVideoCall = () => {
   videoAlsoByEmail.value = false
   videoTopic.value = t('chatThread.videoTopicDefault')
-  videoInApp.value = readChatVideoInApp(store.state.gradidoID)
-  videoServerWanted.value = readChatVideoServer(store.state.gradidoID)
+  videoInApp.value = readChatVideoInApp(store.gradidoID)
+  videoServerWanted.value = readChatVideoServer(store.gradidoID)
   videoServerChoices.value = []
   videoDay.value = ''
   videoFrom.value = ''
@@ -827,7 +827,7 @@ const loadVideoServerChoices = async () => {
 const chooseVideoServer = (id) => {
   videoAttempt += 1
   videoServerWanted.value = id
-  rememberChatVideoServer(store.state.gradidoID, id)
+  rememberChatVideoServer(store.gradidoID, id)
   videoRoomAsked = null
   videoLinkCopied.value = false
   videoLinkShown.value = ''
@@ -1370,7 +1370,7 @@ let stopJoinAppWatch = null
 /** Asked by a click on the link of a video invitation in the thread (ChatMessageText). */
 const askJoinVideoCall = (roomUrl) => {
   videoJoinRoom.value = roomUrl
-  videoInApp.value = readChatVideoInApp(store.state.gradidoID)
+  videoInApp.value = readChatVideoInApp(store.gradidoID)
   videoJoining.value = true
 }
 

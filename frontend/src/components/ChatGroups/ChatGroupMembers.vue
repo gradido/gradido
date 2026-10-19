@@ -228,7 +228,7 @@
 <script setup>
 import { computed, nextTick, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useMutation } from '@vue/apollo-composable'
 import { BButton, BModal } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
@@ -282,7 +282,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'changed', 'left', 'openMember'])
 
 const { t } = useI18n()
-const store = useStore()
+const store = useWalletStore()
 const menuId = `${useId()}-menu`
 const nameId = `${useId()}-name`
 
@@ -298,7 +298,7 @@ const manages = computed(() => managesChatGroup(role.value))
 
 /** By the Gradido ID, as the group's window asks it (every member is of this community, E-026). */
 const isMe = (user) =>
-  String(user?.gradidoID ?? '').toLowerCase() === String(store.state.gradidoID ?? '').toLowerCase()
+  String(user?.gradidoID ?? '').toLowerCase() === String(store.gradidoID ?? '').toLowerCase()
 
 /**
  * Whom the member may do something with (E-050 F4): the owner with everybody else; a moderator

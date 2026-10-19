@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 
 /**
  * The reference a till puts on card payments, remembered on the device.
@@ -23,7 +23,7 @@ import { useStore } from 'vuex'
 const KEY_PREFIX = 'thank-you-card-memo:'
 
 export const useThankYouCardMemo = () => {
-  const store = useStore()
+  const store = useWalletStore()
 
   /**
    * Without an ID there is no key, and no key means nothing is remembered.
@@ -34,7 +34,7 @@ export const useThankYouCardMemo = () => {
    * same device. Not remembering is the safe direction.
    */
   const storageKey = () => {
-    const { gradidoID } = store.state
+    const { gradidoID } = store
     return gradidoID ? `${KEY_PREFIX}${gradidoID}` : null
   }
 

@@ -1,47 +1,8 @@
-import { createStore } from 'vuex'
-import createPersistedState from 'vuex-persistedstate'
-// import { localeChanged } from 'vee-validate'
+import { createPinia } from 'pinia'
+import { followAuthToken, readAuthToken, tokenBelongsTo } from '../utils/authToken'
+import { STATE_KEY, sessionEndOf, useWalletStore } from './useWalletStore'
 
-import jwtDecode from 'jwt-decode'
-import i18n from '../i18n'
-import { clearEntryDraft } from '../composables/useEntryDraft'
-import { clearLinkDraft } from '../composables/useLinkDraft'
-import { closeAvatarZoom } from '../composables/useAvatarZoom'
-import { forgetAllMemberAvatars } from '../composables/useMemberAvatars'
-import { closeChatImageView, forgetAllChatImages } from '../composables/useChatImages'
-import { forgetAllGreetingPictures } from '../composables/useGreetingPictures'
-import { forgetAllTransactionPictures } from '../composables/useTransactionPictures'
-import { forgetFavorites } from '../composables/useFavorites'
-import { forgetContactsPanel } from '../composables/useContactsPanel'
-import { stopChatUpdates } from '../composables/useChatUpdates'
-import { forgetParkedAmount } from '../composables/useParkedAmount'
-import { forgetEventLinkArrival } from '../composables/useEventMatchingArrival'
-import { endFirstCreationHold, forgetFirstLoginWindows } from '../composables/useFirstLoginWindow'
-import { forgetLegacyMapPrefs } from '../utils/matchingPrefs'
-import { forgetChatDrafts, letOldChatDraftsGo } from '../utils/chatDraft'
-import { forgetChatReturn } from '../utils/chatReturn'
-import { clearApolloCache } from '../plugins/apolloCache'
-import { followAuthToken, keepAuthToken, readAuthToken, tokenBelongsTo } from '../utils/authToken'
-
-// Dedicated localStorage key mirroring state.themeMode. The pre-paint script in
-// index.html reads it with a single getItem, so it never has to parse the whole
-// persisted-state blob on the blocking boot path. Kept in sync by applyTheme.
-export const THEME_MODE_STORAGE_KEY = 'gradido-theme-mode'
-
-/**
- * When the session of `token` ends by THIS device's clock, in seconds: the token's own lifetime
- * (`exp - iat`, the server's setting) counted from `receivedAt`, when this device received it.
- * Not `exp` itself, which is the server's clock: a computer whose clock runs hours ahead -- a
- * wrong time zone, the time put right by hand -- would read every session as over, and the
- * sign-in guard (routes/guards.js) would send it back to the form on every page. A token without
- * `iat` keeps `exp`.
- */
-const sessionEndOf = (token, receivedAt) => {
-  const { exp, iat } = jwtDecode(token)
-  return iat ? Math.floor(receivedAt / 1000) + (exp - iat) : exp
-}
-
-const STATE_KEY = 'gradido-frontend'
+export { THEME_MODE_STORAGE_KEY } from './useWalletStore'
 
 /** The member the wallet's own blob holds the profile of, or null. */
 const memberOfTheBlob = () => {
@@ -75,420 +36,41 @@ const keptSession = () => {
 }
 const withoutSession = ({ token, tokenTime, ...rest }) => rest
 
-export const mutations = {
-  language: (state, language) => {
-    i18n.global.locale.value = language
-    // localeChanged(language)
-    state.language = language
-  },
-  setPreLoginLanguage: (state, preLoginLanguage) => {
-    state.preLoginLanguage = preLoginLanguage
-  },
-  gradidoID: (state, gradidoID) => {
-    state.gradidoID = gradidoID
-  },
-  // ⛔ The other half of the pair that names a member. `users` is unique on (gradido_id,
-  // community_uuid), and every query that asks about a member asks about both -- a missing
-  // uuid is read as IS NULL and matches nobody who registered normally. Kept here because
-  // the member's OWN picture is asked for the same way anybody else's is.
-  communityUuid: (state, communityUuid) => {
-    state.communityUuid = communityUuid
-  },
-  username: (state, username) => {
-    state.username = username
-  },
-  firstName: (state, firstName) => {
-    state.firstName = firstName
-  },
-  lastName: (state, lastName) => {
-    state.lastName = lastName
-  },
-  token: (state, token) => {
-    state.token = token
-    if (token) {
-      // Counted from when this device received the token: now, for one fresh from an answer
-      // (apolloProvider.js); for the one kept already -- another app or window of this origin
-      // received it -- from then (utils/authToken.js).
-      const kept = readAuthToken()
-      state.tokenTime = sessionEndOf(token, kept?.token === token ? kept.at : Date.now())
-    } else {
-      state.tokenTime = null
-    }
-    keepAuthToken(token)
-  },
-  newsletterState: (state, newsletterState) => {
-    state.newsletterState = newsletterState
-  },
-  gmsAllowed: (state, gmsAllowed) => {
-    state.gmsAllowed = gmsAllowed
-  },
-  avatarVisibleToMembers: (state, avatarVisibleToMembers) => {
-    state.avatarVisibleToMembers = avatarVisibleToMembers
-  },
-  // ES-021: true = a person who creates, false = a project account, null = not known yet
-  // (a store persisted before the field existed, or a login answer that does not carry it).
-  creationAllowed: (state, creationAllowed) => {
-    state.creationAllowed = creationAllowed
-  },
-  // Whether the transfers stand in the conversations and a mail goes out about one received
-  // (Einstellungen › Nachrichten). null = not known yet, and read as on, the column's default:
-  // a store persisted before the field existed must not hide anybody's transfers.
-  transfersInChat: (state, transfersInChat) => {
-    state.transfersInChat = transfersInChat
-  },
-  humhubAllowed: (state, humhubAllowed) => {
-    state.humhubAllowed = humhubAllowed
-  },
-  gmsPublishLocation: (state, gmsPublishLocation) => {
-    state.gmsPublishLocation = gmsPublishLocation
-  },
-  project: (state, project) => {
-    state.project = project
-  },
-  publisherId: (state, publisherId) => {
-    let pubId = parseInt(publisherId)
-    if (isNaN(pubId)) pubId = null
-    state.publisherId = pubId
-  },
-  // What an event link offered somebody who was not signed in (`/event?interest=…`,
-  // utils/eventMatchingLink): the entry "I love ‹summary›", as `{ summary, details, remote,
-  // keptAt }`, or null. Written where the wallet is entered (routes/guards.js), for the sign-in
-  // that follows: the sign-in page takes it out and opens the form for a new entry with it
-  // (Login.vue). It lies in the device's storage with the rest of this store, so a page
-  // loaded anew on the way -- a mail's link to set a new password -- still finds it.
-  //
-  // ⛔ Nobody is signed in when it is written, so it is nobody's: it counts for an hour
-  // (keptEventMatchingEntry), the next sign-in on the sign-in page takes it whether it uses it
-  // or not, and a sign-out lets it go.
-  //
-  // The text is the link's, not the member's -- whoever built the link wrote it.
-  eventMatchingEntry: (state, eventMatchingEntry) => {
-    state.eventMatchingEntry = eventMatchingEntry ?? null
-  },
-  role(state, role) {
-    state.role = role
-  },
-  hasElopage: (state, hasElopage) => {
-    state.hasElopage = hasElopage
-  },
-  hideAmountGDD: (state, hideAmountGDD) => {
-    state.hideAmountGDD = !!hideAmountGDD
-  },
-  hideAmountGDT: (state, hideAmountGDT) => {
-    state.hideAmountGDT = !!hideAmountGDT
-  },
-  emailChecked: (state, emailChecked) => {
-    state.emailChecked = emailChecked
-  },
-  accountCreatedAt: (state, accountCreatedAt) => {
-    state.accountCreatedAt = accountCreatedAt
-  },
-  email: (state, email) => {
-    state.email = email || ''
-  },
-  setDarkMode: (state, darkMode) => {
-    state.darkMode = !!darkMode
-  },
-  setThemeMode: (state, themeMode) => {
-    state.themeMode = ['system', 'light', 'dark'].includes(themeMode) ? themeMode : 'system'
-  },
-  userLocation: (state, userLocation) => {
-    state.userLocation = userLocation
-  },
-  // The member's own profile picture as base64, or null. Persisted with the rest of the
-  // state, so it is there on the first paint after a reload instead of the avatar
-  // jumping from initials to picture.
-  avatar: (state, avatar) => {
-    state.avatar = avatar
-  },
-  redirectPath: (state, redirectPath) => {
-    state.redirectPath = redirectPath || '/overview'
-  },
-  setTransactionToHighlightId: (state, id) => {
-    state.transactionToHighlightId = id
-  },
+/** What the blob holds of the state, or nothing where it cannot be read. */
+const savedState = (state) => {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STATE_KEY))
+    if (!saved) return {}
+    // Only what the store still knows: a blob saved before may carry more.
+    return Object.fromEntries(
+      Object.entries(withoutSession(saved)).filter(([key]) => Object.hasOwn(state, key)),
+    )
+  } catch {
+    return {}
+  }
 }
 
-export const actions = {
-  login: ({ commit, state }, data) => {
-    commit('gradidoID', data.gradidoID)
-    // ?? null, like the fields below: a caller that does not select it must write null
-    // rather than undefined, or the persisted store keeps the PREVIOUS member's uuid.
-    commit('communityUuid', data.communityUuid ?? null)
-    // A language deliberately chosen on the login page wins over the account
-    // language, then is cleared once consumed. Browser auto-detection does not set
-    // preLoginLanguage, so it never overrides the account language here.
-    commit('language', state.preLoginLanguage || data.language)
-    commit('setPreLoginLanguage', null)
-    commit('username', data.alias)
-    commit('firstName', data.firstName)
-    commit('lastName', data.lastName)
-    commit('newsletterState', data.klickTipp.newsletterState)
-    commit('gmsAllowed', data.gmsAllowed)
-    // Own-view only -- a field resolver hands it to nobody but its owner -- and read off
-    // the payload now that BOTH callers carry it: guards.js hands this action a
-    // verifyLogin answer, Login.vue a login answer, and since the login puts the member
-    // it has just authenticated on the context before it answers, its own guard matches
-    // too. `?? null` because null means "not known" and undefined would leave the
-    // PREVIOUS member's setting in the persisted store -- a session expires after ten
-    // minutes without anyone logging out, so the next member routinely arrives on a store
-    // that still holds the last one's.
-    commit('avatarVisibleToMembers', data.avatarVisibleToMembers ?? null)
-    commit('creationAllowed', data.creationAllowed ?? null)
-    commit('transfersInChat', data.transfersInChat ?? null)
-    commit('humhubAllowed', data.humhubAllowed)
-    commit('gmsPublishLocation', data.gmsPublishLocation)
-    commit('hasElopage', data.hasElopage)
-    commit('publisherId', data.publisherId)
-    commit('role', data.role ?? null)
-    commit('hideAmountGDD', data.hideAmountGDD)
-    commit('hideAmountGDT', data.hideAmountGDT)
-    // ?? null keeps a caller that does not select the two fields from writing undefined
-    commit('emailChecked', data.emailChecked ?? null)
-    commit('accountCreatedAt', data.createdAt ?? null)
-    commit('userLocation', data.userLocation)
-    // The member's own picture, from the same answer -- the login joins it onto the user
-    // row it reads, so the wallet shows a face from the first screen instead of jumping
-    // from initials to picture. `?? null` clears the previous member's, for the reason
-    // above: not read is not the same as nobody there.
-    commit('avatar', data.avatar ?? null)
-    // What members wrote in a conversation and did not send lies on this device, each under their
-    // own key (utils/chatDraft), and is let go after fourteen days. Here as well as at the
-    // sign-out: a wallet closed with its tab runs no sign-out, and whoever uses this browser next
-    // comes through here.
-    letOldChatDraftsGo()
-    // A sign-in is a new start (KA-015: the first creation comes "beim nächsten Neustart"): the
-    // first creation no longer waits for an invitation onto the map of the session before, and
-    // an event link opened in that session is not this one's. Neither the sign-in nor the
-    // handover from the admin area reloads the page, and `/login` opens over a running session.
-    endFirstCreationHold()
-    forgetEventLinkArrival()
-  },
-  /**
-   * @param how `{ byOwnWord: true, member }` where the member said "Abmelden" themselves -- an
-   *   entry of a menu, or the button of the question before a session ends --, and who it was
-   *   (DashboardLayout). Every other sign-out goes without that word: a session that ran out, a
-   *   token the server refused, the way into the admin area. It decides one thing only -- see
-   *   the chat's drafts below.
-   */
-  logout: async ({ commit, state, dispatch }, how) => {
-    // ⛔ Held before the commits below, not read after them: the parked amount is keyed by
-    // this ID, and `commit('gradidoID', null)` is two lines down. Reading it later would
-    // give null, there would be no key, and a stranger's amount would stay on the device.
-    const signedOutMember = state.gradidoID
-    commit('token', null)
-    commit('username', '')
-    commit('gradidoID', null)
-    commit('communityUuid', null)
-    commit('firstName', '')
-    commit('lastName', '')
-    commit('newsletterState', null)
-    commit('gmsAllowed', null)
-    commit('avatarVisibleToMembers', null)
-    commit('creationAllowed', null)
-    commit('transfersInChat', null)
-    commit('humhubAllowed', null)
-    commit('gmsPublishLocation', null)
-    commit('hasElopage', false)
-    commit('project', null)
-    commit('publisherId', null)
-    commit('eventMatchingEntry', null)
-    commit('role', null)
-    commit('hideAmountGDD', false)
-    commit('hideAmountGDT', true)
-    commit('emailChecked', null)
-    commit('accountCreatedAt', null)
-    commit('email', '')
-    commit('userLocation', null)
-    commit('avatar', null)
-    commit('redirectPath', '/overview')
-    // Held outside the store, in a module that survives this action because logging
-    // out does not reload the page.
-    clearEntryDraft()
-    // And what a link of the member's own handed over to be made once more (useLinkDraft): an
-    // amount, a memo and the name of whom it was for. The guard signs a run-out session out on
-    // its way to the sign-in page -- with this, the next member to sign in here finds that way
-    // empty.
-    clearLinkDraft()
-    const themeMode = state.themeMode
-    // Remove only this app's own persisted state. The token is not in this blob -- the
-    // `token` commit above has removed it from where both apps keep it, and with it the
-    // admin interface's session (utils/authToken.js). The wallet and admin share one origin,
-    // so localStorage.clear() would also wipe the other app's state and the shared dark-mode
-    // theme key. Re-commit the theme
-    // so the recreated blob keeps the device-local choice for the next session.
-    // Other members' pictures live under their own key, outside that blob and outside this
-    // store, so removing the blob does not touch them. They have to go for the same reason
-    // the blob does: the next member to sign in on this browser must not be handed the
-    // faces the previous one was allowed to see.
-    //
-    // ⚠️ Before the line below, not after. Storage can refuse -- quota, private mode -- and
-    // the throw would take every following line of this action with it. Of the two, the
-    // faces are the ones that must not survive a logout.
-    forgetAllMemberAvatars()
-    // And the pictures of the chat's messages, for the same reason: they are kept in memory for
-    // the session (useChatImages), and the next member to sign in on this browser must not be
-    // handed the pictures of the conversations of the one before.
-    forgetAllChatImages()
-    // And the photos of thank-you greetings (useGreetingPictures), kept the same way.
-    forgetAllGreetingPictures()
-    // And the photos sent with transfers (useTransactionPictures), kept the same way.
-    forgetAllTransactionPictures()
-    // Same reason, same moment: the hearts are one member's, not the device's.
-    forgetFavorites()
-    // And the contacts the right-hand column holds, which name the people this member has
-    // exchanged Gradido with -- the next member on this browser must not be handed them.
-    forgetContactsPanel()
-    // And the chat's beat, which holds where this member's chat stood and how many of their
-    // conversations wait. It lives outside this store and stops with the layout as well; here,
-    // because the way into the admin area signs out without leaving the layout first. An answer
-    // still on its way is dropped when it lands.
-    stopChatUpdates()
-    // ⚠️ A picture that is OPEN at this moment lives somewhere else again: the zoom keeps
-    // the one face being looked at in its own module, outside the store and outside the
-    // avatar cache above. The idle-timeout logout is the realistic path -- it fires
-    // precisely when somebody is sitting still and looking at a face -- and without this
-    // line that face and its owner's id stayed in memory for the life of the tab, through
-    // the next member's sign-in, which is the one thing the paragraph above forbids.
-    closeAvatarZoom()
-    // And the chat's picture open large, for the same reason: the view keeps it in its own
-    // module (useChatImages), and a logout while somebody looks at a picture -- the idle timeout
-    // -- would leave it there, and its sender's name, for the next member.
-    closeChatImageView()
-    // Which first-login window had the screen, for the same reason: that module outlives
-    // this action, and the next member on this browser must meet their own windows rather
-    // than find all three silenced by a question the last member left unanswered.
-    forgetFirstLoginWindows()
-    // And whether the member came in by an event link in this session: the invitation onto the
-    // map is theirs, not the next member's (useEventMatchingArrival).
-    forgetEventLinkArrival()
-    forgetParkedAmount(signedOutMember)
-    // The conversation to come back to after a restart (utils/chatReturn): whoever signs out is
-    // not taken back into it, even where the idle timeout signs out a wallet left in a thread.
-    forgetChatReturn(signedOutMember)
-    // And what the member wrote in a conversation and did not send (utils/chatDraft). What waits
-    // in memory -- a picture chosen, the box -- goes with every sign-out: it is not for the next
-    // member on this browser. The words lie on the device, under this member's key, and go from
-    // it only where the member signed out by their own word: a session that ran out leaves them
-    // for the member to come back to (Bernd's choice, 11.10.2026).
-    //
-    // ⚠️ Whose words: the member the word names, where it names one. The layout takes them with
-    // the press and asks the server before it comes here; a sign-out that got ahead -- the
-    // session's clock -- has cleared the state by then, and nobody is signed in to read here.
-    forgetChatDrafts(how?.member ?? signedOutMember, { fromDevice: how?.byOwnWord === true })
-    // ⛔ Only what the FLAT prefix left behind, and only the nameless keys -- the ones the
-    // map wrote for the whole device before 10.09.2026, when it had nobody in the key. The
-    // member's own settings are keyed by their gradidoID and stay: a radius and a look are
-    // what the map IS for them, the same line useParkedAmount draws for the till beside it.
-    //
-    // Here rather than on the map page, where it stood until now: an account without a
-    // position never reaches that page -- the gate sends it to the position tab first -- so
-    // on those devices the old keys stayed lying about. Every account passes through here.
-    forgetLegacyMapPrefs()
-    localStorage.removeItem(STATE_KEY)
-    commit('setThemeMode', themeMode)
-    dispatch('applyTheme')
-    // Last, and for the same reason as `clearEntryDraft` above: nothing here reloads the
-    // page, so every answer the previous member's queries returned is still lying in the
-    // Apollo cache. `aliasStatus` takes no variables at all, so it sits under a single
-    // key - the next member to sign in was shown their predecessor's remaining name
-    // changes, and never saw the window at first login because the cached answer said
-    // the question had been settled.
-    //
-    // Kept at the end on purpose: everything above is local clean-up and stays
-    // synchronous, so a caller that does not await still gets all of it.
-    await clearApolloCache()
-  },
-  // Compute the effective dark mode from the device-local themeMode
-  // (system | light | dark) plus the OS preference, then set the darkMode flag
-  // that App.vue and the dark stylesheet consume.
-  // It also mirrors themeMode into THEME_MODE_STORAGE_KEY. applyTheme runs on boot,
-  // on every theme change and on OS changes, so the key that the pre-paint script
-  // in index.html reads stays in sync without that script parsing the whole blob.
-  applyTheme: ({ state, commit }) => {
-    try {
-      if (typeof localStorage !== 'undefined') {
-        localStorage.setItem(THEME_MODE_STORAGE_KEY, state.themeMode)
-      }
-    } catch (e) {
-      // storage can be unavailable (private mode); the theme still applies below
-    }
-    const systemDark =
-      typeof window !== 'undefined' && window.matchMedia
-        ? window.matchMedia('(prefers-color-scheme: dark)').matches
-        : false
-    const effective = state.themeMode === 'dark' || (state.themeMode === 'system' && systemDark)
-    commit('setDarkMode', effective)
-  },
-  changeTransactionToHighlightId({ commit }, id) {
-    commit('setTransactionToHighlightId', id)
-  },
-}
+export const pinia = createPinia()
 
 let store
 
 try {
-  store = createStore({
-    plugins: [
-      createPersistedState({
-        key: STATE_KEY,
-        storage: window.localStorage,
-        reducer: withoutSession,
-        getState: (key, storage) => {
-          try {
-            const saved = JSON.parse(storage.getItem(key))
-            return saved ? withoutSession(saved) : undefined
-          } catch {
-            return undefined
-          }
-        },
-      }),
-    ],
-    state: {
-      language: null,
-      preLoginLanguage: null,
-      gradidoID: null,
-      communityUuid: null,
-      firstName: '',
-      lastName: '',
-      username: '',
-      ...keptSession(),
-      role: null,
-      newsletterState: null,
-      gmsAllowed: null,
-      avatarVisibleToMembers: null,
-      creationAllowed: null,
-      transfersInChat: null,
-      humhubAllowed: null,
-      gmsPublishLocation: null,
-      hasElopage: false,
-      project: null,
-      publisherId: null,
-      eventMatchingEntry: null,
-      hideAmountGDD: null,
-      hideAmountGDT: null,
-      // EM-013: whether the member's address is confirmed, and when the account was
-      // created — the confirm-reminder modal derives its deadline from the two.
-      emailChecked: null,
-      accountCreatedAt: null,
-      email: '',
-      darkMode: false,
-      themeMode: 'system',
-      userLocation: null,
-      avatar: null,
-      redirectPath: '/overview',
-      transactionToHighlightId: '',
+  const wallet = useWalletStore(pinia)
+  wallet.$patch({ ...savedState(wallet.$state), ...keptSession() })
+  // Saved with every change, as it is made: what reads the blob -- another window, the next
+  // load -- never meets a change that is not in it yet.
+  wallet.$subscribe(
+    (_mutation, state) => {
+      window.localStorage.setItem(STATE_KEY, JSON.stringify(withoutSession(state)))
     },
-    getters: {},
-    // Synchronous mutation of the state
-    mutations,
-    actions,
-  })
+    { detached: true, flush: 'sync' },
+  )
   // A renewal in the admin interface, or in another window of the wallet, renews this one too;
   // a logout there signs this one out, and a sign-in of somebody else reloads it. Without that,
   // this window would go on with its own token -- and its next renewal would keep it again,
   // signing in once more whoever signed out.
-  followAuthToken(store)
+  followAuthToken(wallet)
+  store = wallet
 } catch (error) {
   // eslint-disable-next-line no-console
   console.log(error)

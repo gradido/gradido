@@ -6,7 +6,7 @@ import { memberKey } from '@/utils/gradidoAddress'
 /**
  * The hearts this member has given, held once per session beside the booking list.
  *
- * ⛔ Not in the vuex store: that store is persisted to localStorage on EVERY mutation,
+ * ⛔ Not in the store: that store is persisted to localStorage on EVERY change,
  * and a set that changes with each tap on a heart would be rewritten there each time.
  * Module state instead, the way the member pictures are kept (useMemberAvatars).
  *

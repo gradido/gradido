@@ -24,7 +24,7 @@ vi.mock('@vue/apollo-composable', async () => {
   }
 })
 
-vi.mock('vuex', () => ({ useStore: () => session.store }))
+vi.mock('@/store/useWalletStore', () => ({ useWalletStore: () => session.store }))
 
 vi.mock('@/plugins/apolloCache', () => ({
   clearApolloCache: (...args) => cache.clear(...args),
@@ -47,14 +47,16 @@ describe('useSignIn', () => {
     apollo.updateUserInfos = step('updateUserInfos', { data: { updateUserInfos: true } })
     cache.clear = step('clear the cache')
     session.store = {
-      state: { publisherId: 2896, project: 'probe', preLoginLanguage: null },
-      dispatch: step('store: login', (_, member) => {
+      publisherId: 2896,
+      project: 'probe',
+      preLoginLanguage: null,
+      login: step('store: login', (member) => {
         // As the wallet's action: it takes the language that was chosen before signing in.
-        session.store.state.preLoginLanguage = null
+        session.store.preLoginLanguage = null
         return member
       }),
-      commit: vi.fn((name) => {
-        steps.push(`store: ${name}`)
+      setEmail: vi.fn(() => {
+        steps.push('store: email')
       }),
     }
   })
@@ -77,8 +79,8 @@ describe('useSignIn', () => {
     await useSignIn().signIn(TYPED)
 
     expect(steps).toEqual(['login', 'clear the cache', 'store: login', 'store: email'])
-    expect(session.store.dispatch).toHaveBeenCalledWith('login', MEMBER)
-    expect(session.store.commit).toHaveBeenCalledWith('email', 'sarah@provence.fr')
+    expect(session.store.login).toHaveBeenCalledWith(MEMBER)
+    expect(session.store.setEmail).toHaveBeenCalledWith('sarah@provence.fr')
   })
 
   it('hands back the member the server signed in', async () => {
@@ -94,13 +96,13 @@ describe('useSignIn', () => {
     await expect(useSignIn().signIn(TYPED)).rejects.toBe(refusal)
 
     expect(cache.clear).not.toHaveBeenCalled()
-    expect(session.store.dispatch).not.toHaveBeenCalled()
-    expect(session.store.commit).not.toHaveBeenCalled()
+    expect(session.store.login).not.toHaveBeenCalled()
+    expect(session.store.setEmail).not.toHaveBeenCalled()
   })
 
   describe('a language chosen before signing in', () => {
     it('is written to the account where it is another one', async () => {
-      session.store.state.preLoginLanguage = 'fr'
+      session.store.preLoginLanguage = 'fr'
 
       await useSignIn().signIn(TYPED)
 
@@ -115,10 +117,10 @@ describe('useSignIn', () => {
     })
 
     it('is not written where the account has it already, or none was chosen', async () => {
-      session.store.state.preLoginLanguage = 'de'
+      session.store.preLoginLanguage = 'de'
       await useSignIn().signIn(TYPED)
 
-      session.store.state.preLoginLanguage = null
+      session.store.preLoginLanguage = null
       await useSignIn().signIn(TYPED)
 
       expect(apollo.updateUserInfos).not.toHaveBeenCalled()
@@ -126,11 +128,11 @@ describe('useSignIn', () => {
 
     // Best effort: the language chosen applies in the wallet already.
     it('does not stop the sign-in where it cannot be written', async () => {
-      session.store.state.preLoginLanguage = 'fr'
+      session.store.preLoginLanguage = 'fr'
       apollo.updateUserInfos = vi.fn().mockRejectedValue(new Error('Failed to fetch'))
 
       await expect(useSignIn().signIn(TYPED)).resolves.toEqual(MEMBER)
-      expect(session.store.commit).toHaveBeenCalledWith('email', 'sarah@provence.fr')
+      expect(session.store.setEmail).toHaveBeenCalledWith('sarah@provence.fr')
     })
   })
 
@@ -152,9 +154,9 @@ describe('useSignIn', () => {
     await useSignIn().signIn(TYPED)
 
     const kept = JSON.stringify([
-      session.store.dispatch.mock.calls,
-      session.store.commit.mock.calls,
-      session.store.state,
+      session.store.login.mock.calls,
+      session.store.setEmail.mock.calls,
+      session.store,
     ])
     expect(kept).not.toContain('Aa12345_')
   })

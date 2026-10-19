@@ -139,14 +139,14 @@
 <script setup>
 import { BButton, BCol, BFormCheckbox, BFormTextarea, BRow } from 'bootstrap-vue-next'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import AppModal from '@/components/AppModal'
 import { useGradidoCard } from '@/composables/useGradidoCard'
 import { memberAlias } from '@/utils/gradidoAddress'
 import { CONTACT_MAX_LINES, contactLines } from '@/utils/gradidoCard'
 
 const { drawCard, downloadCard, printCardSheet } = useGradidoCard()
-const store = useStore()
+const store = useWalletStore()
 
 const preview = ref('')
 const isBusy = ref(false)
@@ -181,7 +181,7 @@ const printRealName = ref(true)
  * and the gate can go.
  */
 const hasAlias = computed(() => {
-  const { username, gradidoID } = store.state
+  const { username, gradidoID } = store
   // ⛔ Not `Boolean(username)`. `memberAlias` needs three characters and falls back to the
   // Gradido ID below that -- so a stored name of one or two characters, which predates the
   // rule and really exists, opened this gate and then printed a 36-character identifier
@@ -221,7 +221,7 @@ const tooManyLines = computed(
  * prevent. Not remembering is the safe direction.
  */
 const storageKey = (name = 'contact') => {
-  const { gradidoID } = store.state
+  const { gradidoID } = store
   return gradidoID ? `gradido-card-${name}:${gradidoID}` : null
 }
 

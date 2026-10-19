@@ -57,7 +57,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useQuery, useMutation } from '@vue/apollo-composable'
 import AuthTriads from '@/components/Auth/AuthTriads'
 import TransactionLinkItem from '@/components/TransactionLinkItem'
@@ -78,7 +78,7 @@ import CONFIG from '@/config'
 const { toastError, toastSuccess } = useAppToast()
 const router = useRouter()
 const { params, meta } = useRoute()
-const store = useStore()
+const store = useWalletStore()
 const { d, t } = useI18n()
 
 const isTransactionLinkLoaded = ref(false)
@@ -147,7 +147,7 @@ const redeemCode = computed(() => params.code)
 
 const tokenExpiresInSeconds = computed(() => {
   const remainingSecs = Math.floor(
-    (new Date(store.state.tokenTime * 1000).getTime() - new Date().getTime()) / 1000,
+    (new Date(store.tokenTime * 1000).getTime() - new Date().getTime()) / 1000,
   )
   return remainingSecs <= 0 ? 0 : remainingSecs
 })
@@ -203,7 +203,7 @@ const itemType = computed(() => {
       // console.log('TransactionLink.itemType... TEXT_DELETED')
       return 'TEXT_DELETED'
     }
-    if (store.state.token && store.state.tokenTime) {
+    if (store.token && store.tokenTime) {
       if (tokenExpiresInSeconds.value < 5) {
         // console.log(
         //   'TransactionLink.itemType... CONFIG.CROSS_TX_REDEEM_LINK_ACTIVE=',
@@ -223,7 +223,7 @@ const itemType = computed(() => {
     //   linkData.value.recipientUser,
     // )
     // console.log('TransactionLink.itemType... linkData.value=', linkData.value)
-    // console.log('TransactionLink.itemType... store.state.gradidoID=', store.state.gradidoID)
+    // console.log('TransactionLink.itemType... store.gradidoID=', store.gradidoID)
     // console.log('TransactionLink.itemType... isRedeemJwtLink=', isRedeemJwtLink.value)
     // console.log('TransactionLink.itemType... linkData.value.senderUser=', linkData.value.senderUser)
     // console.log(
@@ -246,11 +246,11 @@ const itemType = computed(() => {
       linkData.value.senderUser &&
       linkData.value.recipientUser &&
       linkData.value.senderUser.gradidoID !== linkData.value.recipientUser.gradidoID &&
-      store.state.gradidoID === linkData.value.recipientUser.gradidoID
+      store.gradidoID === linkData.value.recipientUser.gradidoID
     ) {
       // console.log('TransactionLink.itemType... VALID')
       // console.log('TransactionLink.itemType... linkData.value=', linkData.value)
-      // console.log('TransactionLink.itemType... store.state.gradidoID=', store.state.gradidoID)
+      // console.log('TransactionLink.itemType... store.gradidoID=', store.gradidoID)
       // console.log(
       //   'TransactionLink.itemType... linkData.value.recipientUser.gradidoID=',
       //   linkData.value.recipientUser.gradidoID,
@@ -371,16 +371,16 @@ function setTransactionLinkInformation(answer = result.value) {
   if (deepCopy && deepCopy.queryTransactionLink.__typename === 'TransactionLink') {
     // console.log('TransactionLink.setTransactionLinkInformation... typename === TransactionLink')
     // recipientUser is only set if the user is logged in
-    if (store.state.gradidoID !== null) {
+    if (store.gradidoID !== null) {
       // console.log(
       //   'TransactionLink.setTransactionLinkInformation... gradidoID=',
-      //   store.state.gradidoID,
+      //   store.gradidoID,
       // )
       deepCopy.queryTransactionLink.recipientUser = {
         __typename: 'User',
-        gradidoID: store.state.gradidoID,
-        firstName: store.state.firstName,
-        alias: store.state.alias,
+        gradidoID: store.gradidoID,
+        firstName: store.firstName,
+        alias: store.alias,
       }
       // console.log(
       //   'TransactionLink.setTransactionLinkInformation... deepCopy.queryTransactionLink.recipientUser=',
@@ -394,7 +394,7 @@ function setTransactionLinkInformation(answer = result.value) {
 
 function setContributionLinkInformation() {
   linkData.value = result.value.queryTransactionLink
-  if (linkData.value.__typename === 'ContributionLink' && store.state.token) {
+  if (linkData.value.__typename === 'ContributionLink' && store.token) {
     // console.log('TransactionLink.setTransactionLinkInformation... typename === ContributionLink')
     // explicit no await
     mutationLink(linkData.value.amount)
@@ -407,13 +407,13 @@ function setRedeemJwtLinkInformation() {
   // console.log('TransactionLink.setRedeemJwtLinkInformation... deepCopy=', deepCopy)
   if (deepCopy) {
     // console.log('TransactionLink.setRedeemJwtLinkInformation... recipientUser is only set if the user is logged in')
-    if (store.state.gradidoID !== null) {
-      // console.log('TransactionLink.setRedeemJwtLinkInformation... gradidoID=', store.state.gradidoID)
+    if (store.gradidoID !== null) {
+      // console.log('TransactionLink.setRedeemJwtLinkInformation... gradidoID=', store.gradidoID)
       deepCopy.queryTransactionLink.recipientUser = {
         __typename: 'User',
-        gradidoID: store.state.gradidoID,
-        firstName: store.state.firstName,
-        alias: store.state.alias,
+        gradidoID: store.gradidoID,
+        firstName: store.firstName,
+        alias: store.alias,
       }
     }
     // console.log(
@@ -491,10 +491,10 @@ async function openAccount({ firstName, lastName, email, password }) {
         email,
         firstName,
         lastName,
-        language: store.state.language,
-        publisherId: store.state.publisherId,
+        language: store.language,
+        publisherId: store.publisherId,
         redeemCode: redeemCode.value,
-        project: store.state.project,
+        project: store.project,
         password,
       })
       accountOpenedFor = email

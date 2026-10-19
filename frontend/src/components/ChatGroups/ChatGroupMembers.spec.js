@@ -24,7 +24,7 @@ vi.mock('vue-i18n', () => ({
 }))
 
 const storeState = vi.hoisted(() => ({ gradidoID: 'me-id' }))
-vi.mock('vuex', () => ({ useStore: () => ({ state: storeState }) }))
+vi.mock('@/store/useWalletStore', () => ({ useWalletStore: () => storeState }))
 
 /** What the server answers to every change: a test sets it; called with document and variables. */
 const server = vi.hoisted(() => vi.fn(async () => ({ data: {} })))

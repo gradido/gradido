@@ -31,16 +31,16 @@
  * shown address and a printed one from drifting apart.
  */
 import { computed } from 'vue'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import OwnCodeView from '@/components/QrCode/OwnCodeView'
 import GradidoAddressCopy from '@/components/GradidoAddressCopy'
 import { gradidoAddress, memberAlias } from '@/utils/gradidoAddress'
 
-const store = useStore()
+const store = useWalletStore()
 
 // gradidoID, not gradidoId -- the store spells it with a capital D, and the other
 // spelling once put the word "undefined" in front of every member without a user name.
-const alias = computed(() => memberAlias(store.state.username, store.state.gradidoID))
+const alias = computed(() => memberAlias(store.username, store.gradidoID))
 
 /**
  * No alias, no code.

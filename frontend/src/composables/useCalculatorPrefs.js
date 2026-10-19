@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 
 import { ref, watch } from 'vue'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 
 /**
  * What the calculator remembers, and why it remembers it on the DEVICE.
@@ -13,7 +13,7 @@ import { useStore } from 'vuex'
  * reference (see `useThankYouCardMemo`). Hanging them on the account would mean a settings
  * page and a table for a convenience.
  *
- * ⛔ Not in the vuex store, which is written to localStorage on EVERY mutation. These
+ * ⛔ Not in the store, which is written to localStorage on EVERY change. These
  * change while somebody types in a panel.
  *
  * ⚠️ Same trade as the memo: this protects against being carried over to the NEXT person on
@@ -32,7 +32,7 @@ const DEFAULTS = {
 }
 
 export const useCalculatorPrefs = () => {
-  const store = useStore()
+  const store = useWalletStore()
 
   const percent = ref(DEFAULTS.percent)
   const factor = ref(DEFAULTS.factor)
@@ -47,7 +47,7 @@ export const useCalculatorPrefs = () => {
    * same device.
    */
   const storageKey = () => {
-    const { gradidoID } = store.state
+    const { gradidoID } = store
     return gradidoID ? `${KEY_PREFIX}${gradidoID}` : null
   }
 
@@ -141,7 +141,7 @@ export const useCalculatorPrefs = () => {
 
   restore()
   watch(
-    () => store.state.gradidoID,
+    () => store.gradidoID,
     () => restore(),
   )
   watch(

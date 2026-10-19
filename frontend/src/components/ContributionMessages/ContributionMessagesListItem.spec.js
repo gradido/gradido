@@ -8,6 +8,7 @@ import { BCol, BRow } from 'bootstrap-vue-next'
 import { forgetAllMemberAvatars, rememberMemberAvatars } from '@/composables/useMemberAvatars'
 import { avatarZoomState, closeAvatarZoom } from '@/composables/useAvatarZoom'
 import { LIST_AVATAR_SIZE } from '@/constants'
+import { walletStore } from '@test/walletStore'
 
 export default defineComponent({
   computed: {
@@ -61,16 +62,14 @@ describe('ContributionMessagesListItem', () => {
           $t: mockT,
           $d: mockD,
         },
-        provide: {
-          store: {
-            state: {
-              firstName: 'Peter',
-              lastName: 'Lustig',
-              username: 'peterl',
-              ...store,
-            },
-          },
-        },
+        plugins: [
+          walletStore({
+            firstName: 'Peter',
+            lastName: 'Lustig',
+            username: 'peterl',
+            ...store,
+          }),
+        ],
         components: {
           BRow,
           BCol,

@@ -25,7 +25,7 @@ vi.mock('vue-i18n', () => ({
 }))
 
 const storeState = vi.hoisted(() => ({ gradidoID: 'me-id', communityUuid: 'home-uuid' }))
-vi.mock('vuex', () => ({ useStore: () => ({ state: storeState }) }))
+vi.mock('@/store/useWalletStore', () => ({ useWalletStore: () => storeState }))
 
 const { toastSuccess, toastError } = vi.hoisted(() => ({
   toastSuccess: vi.fn(),

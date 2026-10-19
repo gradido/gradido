@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { describe, it, expect, vi } from 'vitest'
 import { mount, RouterLinkStub } from '@vue/test-utils'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -30,7 +30,7 @@ vi.mock('../Menu/NavItem.vue', () => ({
 const mountWith = (darkMode, gradidoID = null) =>
   mount(AuthNavbar, {
     global: {
-      plugins: [createStore({ state: { darkMode, gradidoID } })],
+      plugins: [walletStore({ darkMode, gradidoID })],
       components: { BImg, BLink, BNavbar, BNavbarBrand, BNavbarNav },
       stubs: {
         BCollapse: { template: '<div class="navbar-collapse"><slot /></div>' },

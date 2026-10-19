@@ -257,10 +257,13 @@
 import { mount } from '@vue/test-utils'
 import { describe, beforeEach, it, expect, vi } from 'vitest'
 import ResetPassword from './ResetPassword.vue'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
 import { createRouter, createWebHistory } from 'vue-router'
 import { BButton, BCol, BForm, BRow } from 'bootstrap-vue-next'
 import flushPromises from 'flush-promises'
+
+// The store sets the language of the app's i18n; that one is built with the real vue-i18n.
+vi.mock('@/i18n', () => ({ default: { global: { locale: { value: 'de' } } } }))
 
 const mockToastError = vi.fn()
 vi.mock('@/composables/useToast', () => ({
@@ -302,14 +305,7 @@ const router = createRouter({
   ],
 })
 
-const store = createStore({
-  state() {
-    return {
-      // Add any necessary state for your tests
-    }
-  },
-  // Add mutations and actions if needed for your tests
-})
+const store = walletStore()
 
 const mockSetFieldValue = vi.fn()
 const mockHandleSubmit = vi.fn()

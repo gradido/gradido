@@ -2,17 +2,19 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { computed, nextTick, ref } from 'vue'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useRightSidePref } from './useRightSidePref'
 
 const POSITIONS = ['bookings', 'contacts']
 
 /**
- * A component, because the composable reads the vuex store and watches it -- calling it
+ * A component, because the composable reads the wallet store and watches it -- calling it
  * outside a setup scope would test something the wallet never runs.
  */
 const mountPref = (gradidoID, routeKey = '/overview', fallback = 'bookings') => {
-  const store = createStore({ state: { gradidoID } })
+  const pinia = walletStore({ gradidoID })
+  const store = useWalletStore(pinia)
   const key = ref(routeKey)
   const back = ref(fallback)
   let api
@@ -28,7 +30,7 @@ const mountPref = (gradidoID, routeKey = '/overview', fallback = 'bookings') => 
         return api
       },
     },
-    { global: { plugins: [store] } },
+    { global: { plugins: [pinia] } },
   )
   return { wrapper, store, key, back, api: () => api }
 }
@@ -119,7 +121,7 @@ describe('useRightSidePref', () => {
     await nextTick()
     expect(wrapper.text()).toBe('bookings')
 
-    store.state.gradidoID = 'member-1'
+    store.gradidoID = 'member-1'
     await nextTick()
 
     expect(wrapper.text()).toBe('bookings')
@@ -140,7 +142,7 @@ describe('useRightSidePref', () => {
     api().choose('bookings')
     await nextTick()
 
-    store.state.gradidoID = 'member-1'
+    store.gradidoID = 'member-1'
     await nextTick()
 
     expect(wrapper.text()).toBe('bookings')
@@ -159,7 +161,7 @@ describe('useRightSidePref', () => {
 
     expect(wrapper.text()).toBe('bookings')
 
-    store.state.gradidoID = 'member-1'
+    store.gradidoID = 'member-1'
     await nextTick()
 
     expect(wrapper.text()).toBe('contacts')

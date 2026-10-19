@@ -6,7 +6,8 @@ import { dirname, join } from 'node:path'
 import { startChatUpdates, stopChatUpdates } from '@/composables/useChatUpdates'
 import { nextTick } from 'vue'
 import { createRouter, createWebHistory, RouterLink } from 'vue-router'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
+import { useWalletStore } from '@/store/useWalletStore'
 import Navbar from './Navbar.vue'
 import { BImg, BNavbar, BNavbarBrand, BNavbarNav } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
@@ -49,16 +50,14 @@ const i18n = createI18n({
   },
 })
 
-const createVuexStore = (state = {}) =>
-  createStore({
-    state: () => ({
-      firstName: 'Testy',
-      lastName: 'User',
-      gradidoID: 'current-user-id',
-      email: 'test@example.com',
-      username: 'username',
-      ...state,
-    }),
+const createWalletStore = (state = {}) =>
+  walletStore({
+    firstName: 'Testy',
+    lastName: 'User',
+    gradidoID: 'current-user-id',
+    email: 'test@example.com',
+    username: 'username',
+    ...state,
   })
 
 const router = createRouter({
@@ -71,7 +70,7 @@ describe('Navbar', () => {
   let store
 
   const mountComponent = (storeState = {}) => {
-    store = createVuexStore(storeState)
+    store = createWalletStore(storeState)
     return mount(Navbar, {
       global: {
         plugins: [store, router, i18n],
@@ -350,7 +349,7 @@ describe('Navbar', () => {
    */
   describe('the letters in the circle', () => {
     const mountWithRealButton = () => {
-      store = createVuexStore({ firstName: 'Bernd', lastName: 'Hückstädt', username: 'bernd' })
+      store = createWalletStore({ firstName: 'Bernd', lastName: 'Hückstädt', username: 'bernd' })
       return mount(Navbar, {
         global: {
           plugins: [store, router, i18n],
@@ -372,7 +371,7 @@ describe('Navbar', () => {
     it('changes the letters with a new user name and keeps the colour', async () => {
       const navbar = mountWithRealButton()
 
-      store.state.username = 'sonnenblume'
+      useWalletStore(store).username = 'sonnenblume'
       await nextTick()
 
       const circle = navbar.findComponent(AppAvatar)

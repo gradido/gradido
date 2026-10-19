@@ -19,8 +19,8 @@ import { LIST_AVATAR_SIZE } from '@/constants'
  * screen, so this is where the marker under the amount has to be held.
  */
 
-vi.mock('vuex', () => ({
-  useStore: () => ({ state: { firstName: 'Max', lastName: 'Mustermann' } }),
+vi.mock('@/store/useWalletStore', () => ({
+  useWalletStore: () => ({ firstName: 'Max', lastName: 'Mustermann' }),
 }))
 
 // ⚠️ The values are carried into the answer rather than dropped. A mock that returns the

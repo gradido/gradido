@@ -16,8 +16,8 @@ import { chatMessageImage } from '@/graphql/chat.graphql'
 // turned into bytes at once. The cache would keep every picture as some 44,000 characters for the
 // life of the tab, on top of this store.
 //
-// Not in the vuex store, for the reason useMemberAvatars gives: that store is written whole into
-// localStorage on every mutation.
+// Not in the store, for the reason useMemberAvatars gives: that store is written whole into
+// localStorage on every change.
 
 /**
  * How many pictures are asked for at once. The server serves ten per HTTP request (it counts by

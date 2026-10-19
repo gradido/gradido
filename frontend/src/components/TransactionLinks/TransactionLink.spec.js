@@ -10,6 +10,7 @@ import {
   requestGreetingPicture,
 } from '@/composables/useGreetingPictures'
 import { clearLinkDraft, useLinkDraft } from '@/composables/useLinkDraft'
+import { walletStore } from '@test/walletStore'
 
 vi.mock('@/components/AppModal', () => ({
   default: {
@@ -84,7 +85,7 @@ vi.mock('vue-router', () => ({
 }))
 
 // The member whose list this is, as far as the row reads the store.
-const EMMA = { state: { username: 'Oma-Emma', gradidoID: 'uuid-emma' } }
+const EMMA = { username: 'Oma-Emma', gradidoID: 'uuid-emma' }
 
 describe('TransactionLink.vue', () => {
   let wrapper
@@ -145,9 +146,8 @@ describe('TransactionLink.vue', () => {
   const mountLink = (props, global = {}) => {
     wrapper = mount(TransactionLink, {
       global: {
-        plugins: [i18n],
+        plugins: [i18n, walletStore(EMMA)],
         mocks: { $filters: { GDD: filters.GDD } },
-        provide: { store: EMMA },
         ...global,
         stubs: {
           // The photo of a greeting has its own spec; here it is what the row hands it.
@@ -370,9 +370,8 @@ describe('TransactionLink.vue', () => {
       mount(TransactionLink, {
         attachTo: document.body,
         global: {
-          plugins: [i18n],
+          plugins: [i18n, walletStore(EMMA)],
           mocks: { $filters: { GDD: filters.GDD } },
-          provide: { store: EMMA },
           components: { BDropdown, BDropdownItem },
           stubs: {
             BCard: true,
@@ -870,7 +869,7 @@ describe('TransactionLink.vue', () => {
             return () => null
           },
         },
-        { global: { provide: { store } } },
+        { global: { plugins: [walletStore(store)] } },
       )
       return draft
     }
@@ -1112,12 +1111,12 @@ describe('TransactionLink.vue', () => {
     it('hands nothing on from a tap after the member has signed out', async () => {
       mountLink(
         { greeting: GREETING, memo: MEMO, validUntil: OPEN },
-        { provide: { store: { state: { username: '', gradidoID: null } } } },
+        { plugins: [i18n, walletStore({ username: '', gradidoID: null })] },
       )
 
       await duplicate().trigger('click')
 
-      expect(handedOver({ state: { gradidoID: 'uuid-dave' } }).takeGreeting()).toBeNull()
+      expect(handedOver({ gradidoID: 'uuid-dave' }).takeGreeting()).toBeNull()
     })
   })
 })

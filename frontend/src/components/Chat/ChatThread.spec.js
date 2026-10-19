@@ -97,9 +97,7 @@ vi.mock('@/composables/useToast', () => ({
   }),
 }))
 
-vi.mock('vuex', () => ({
-  useStore: () => ({ state: storeState }),
-}))
+vi.mock('@/store/useWalletStore', () => ({ useWalletStore: () => storeState }))
 
 // The face beside somebody else's message in a group (P5) can open large (useAvatarZoom), and its
 // words come from the app's i18n instance.

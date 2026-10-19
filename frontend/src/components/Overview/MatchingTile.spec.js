@@ -3,7 +3,8 @@
 import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import { createI18n } from 'vue-i18n'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
+import { useWalletStore } from '@/store/useWalletStore'
 import { createRouter, createWebHistory } from 'vue-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import de from '@/locales/de.json'
@@ -38,34 +39,21 @@ const router = createRouter({
 
 const HOME = { latitude: 49.28, longitude: 9.69 }
 
-// Real mutations: one case moves the member onto the map while the tile is on screen.
+// The real store: one case moves the member onto the map while the tile is on screen.
 const storeWith = (state) =>
-  createStore({
-    state: () => ({ gradidoID: 'a-member', gmsAllowed: false, userLocation: null, ...state }),
-    mutations: {
-      gradidoID: (s, value) => {
-        s.gradidoID = value
-      },
-      gmsAllowed: (s, value) => {
-        s.gmsAllowed = value
-      },
-      userLocation: (s, value) => {
-        s.userLocation = value
-      },
-    },
-  })
+  walletStore({ gradidoID: 'a-member', gmsAllowed: false, userLocation: null, ...state })
 
 const mountTile = (state = {}, props = {}, language = i18n) => {
-  const store = storeWith(state)
+  const pinia = storeWith(state)
   const wrapper = mount(MatchingTile, {
     props,
     global: {
-      plugins: [language, router, store],
+      plugins: [language, router, pinia],
       // The two icons come from the build's resolver, which the tests do not run.
       stubs: { ITablerHeartHandshake: true, IMdiChevronRight: true },
     },
   })
-  return { wrapper, store }
+  return { wrapper, store: useWalletStore(pinia) }
 }
 
 // A member who stands on the map: a home, and the permission to be found.
@@ -156,7 +144,7 @@ describe('MatchingTile', () => {
 
   /**
    * ⛔ What the tile is, is decided when it is set up, and stays for as long as the overview
-   * stands. The store can still change under it: the home tab commits what it saved when the
+   * stands. The store can still change under it: the home tab sets what it saved when the
    * server's answer is in, and a member who went on to the overview before that would see
    * the tile turn into another one under their finger, or vanish and pull up the tiles below
    * it (the second reader's finding, 11.10.2026). The next visit decides anew.
@@ -166,8 +154,8 @@ describe('MatchingTile', () => {
       const { wrapper, store } = mountTile({}, { count: 773 })
       const painted = wrapper.html()
 
-      store.commit('userLocation', HOME)
-      store.commit('gmsAllowed', true)
+      store.setUserLocation(HOME)
+      store.setGmsAllowed(true)
       await nextTick()
 
       expect(tile(wrapper).exists()).toBe(true)
@@ -180,7 +168,7 @@ describe('MatchingTile', () => {
         const { wrapper, store } = mountTile(ON_THE_MAP, { entries, count: 773 })
         const painted = wrapper.html()
 
-        store.commit('gmsAllowed', false)
+        store.setGmsAllowed(false)
         await nextTick()
 
         expect(tile(wrapper).exists()).toBe(false)
@@ -191,7 +179,7 @@ describe('MatchingTile', () => {
     it('does not appear where there was none, for a member who had arrived', async () => {
       const { wrapper, store } = mountTile(ON_THE_MAP, { entries: 3, count: 773 })
 
-      store.commit('gmsAllowed', false)
+      store.setGmsAllowed(false)
       await nextTick()
 
       expect(anyTile(wrapper).exists()).toBe(false)
@@ -215,9 +203,9 @@ describe('MatchingTile', () => {
       expect(tile(wrapper).exists()).toBe(false)
 
       // The order of the sign-out action in store.js.
-      store.commit('gradidoID', null)
-      store.commit('gmsAllowed', null)
-      store.commit('userLocation', null)
+      store.setGradidoID(null)
+      store.setGmsAllowed(null)
+      store.setUserLocation(null)
       await nextTick()
 
       expect(tile(wrapper).exists()).toBe(false)
@@ -227,7 +215,7 @@ describe('MatchingTile', () => {
       const { wrapper, store } = mountTile()
       expect(tile(wrapper).exists()).toBe(true)
 
-      store.commit('gradidoID', null)
+      store.setGradidoID(null)
       await nextTick()
 
       expect(tile(wrapper).exists()).toBe(false)
@@ -254,7 +242,7 @@ describe('MatchingTile', () => {
     it('does not come in late for somebody who is named only afterwards', async () => {
       const { wrapper, store } = mountTile({ gradidoID: null })
 
-      store.commit('gradidoID', 'a-member')
+      store.setGradidoID('a-member')
       await nextTick()
 
       expect(anyTile(wrapper).exists()).toBe(false)
@@ -266,7 +254,7 @@ describe('MatchingTile', () => {
       const { wrapper, store } = mountTile()
       expect(tile(wrapper).exists()).toBe(true)
 
-      store.commit('gradidoID', 'somebody-else')
+      store.setGradidoID('somebody-else')
       await nextTick()
 
       expect(anyTile(wrapper).exists()).toBe(false)
@@ -559,12 +547,12 @@ describe('MatchingTile', () => {
       expect(anyTile(wrapper).exists()).toBe(true)
 
       // The order of the sign-out action in store.js.
-      store.commit('gradidoID', null)
+      store.setGradidoID(null)
       await nextTick()
       expect(anyTile(wrapper).exists()).toBe(false)
 
-      store.commit('gmsAllowed', null)
-      store.commit('userLocation', null)
+      store.setGmsAllowed(null)
+      store.setUserLocation(null)
       await nextTick()
       expect(anyTile(wrapper).exists()).toBe(false)
     })

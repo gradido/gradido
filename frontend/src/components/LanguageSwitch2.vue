@@ -16,20 +16,20 @@
         v-for="lang in sortedLocales"
         :key="lang.code"
         class="ls-item"
-        :class="{ 'ls-item-active': lang.code === store.state.language }"
+        :class="{ 'ls-item-active': lang.code === store.language }"
         role="option"
-        :aria-selected="lang.code === store.state.language"
+        :aria-selected="lang.code === store.language"
         @click="select(lang.code)"
       >
         <span class="ls-item-name">{{ lang.name }}</span>
-        <IBiCheck v-if="lang.code === store.state.language" class="ls-check" aria-hidden="true" />
+        <IBiCheck v-if="lang.code === store.language" class="ls-check" aria-hidden="true" />
       </li>
     </ul>
   </div>
 </template>
 
 <script setup>
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useI18n } from 'vue-i18n'
 import { useMutation } from '@vue/apollo-composable'
 import { useAppToast } from '@/composables/useToast'
@@ -38,7 +38,7 @@ import { onMounted, onUnmounted, ref, computed } from 'vue'
 import { updateUserInfos } from '@/graphql/mutations'
 import { sessionRuns } from '@/routes/guards'
 
-const store = useStore()
+const store = useWalletStore()
 const { t, locale } = useI18n()
 const { mutate } = useMutation(updateUserInfos)
 const { toastSuccess, toastError } = useAppToast()
@@ -51,22 +51,22 @@ const getLocaleObject = (localeCode) => {
 }
 
 const currentName = computed(() => {
-  const current = getLocaleObject(store.state.language)
-  return current ? current.name : store.state.language || ''
+  const current = getLocaleObject(store.language)
+  return current ? current.name : store.language || ''
 })
 
 // Current language first, the rest sorted alphabetically by autonym (the language's own name).
 const sortedLocales = computed(() => {
   const enabled = locales.filter((lang) => lang.enabled)
-  const current = enabled.find((lang) => lang.code === store.state.language)
+  const current = enabled.find((lang) => lang.code === store.language)
   const rest = enabled
-    .filter((lang) => lang.code !== store.state.language)
+    .filter((lang) => lang.code !== store.language)
     .sort((a, b) => a.name.localeCompare(b.name))
   return current ? [current, ...rest] : rest
 })
 
 const setLocale = (newLocale) => {
-  store.commit('language', newLocale)
+  store.setLanguage(newLocale)
 }
 
 const saveLocale = async (newLocale) => {
@@ -77,7 +77,7 @@ const saveLocale = async (newLocale) => {
   // until somebody signs in again, and asked with it the server signs the member out: the
   // wallet then sends them to the sign-in page, and what they had typed on a public page --
   // the event-matching builder, the registration -- is gone.
-  if (store.state.gradidoID && sessionRuns(store.state)) {
+  if (store.gradidoID && sessionRuns(store)) {
     try {
       await mutate({ locale: newLocale })
       toastSuccess(t('settings.language.success'))
@@ -87,7 +87,7 @@ const saveLocale = async (newLocale) => {
   } else {
     // Not logged in (yet, or any more): remember this deliberate choice so the next login keeps
     // it (and syncs it to the account) instead of overwriting it with the account language.
-    store.commit('setPreLoginLanguage', newLocale)
+    store.setPreLoginLanguage(newLocale)
   }
 }
 
@@ -107,7 +107,7 @@ const getNavigatorLang = () => {
 }
 
 const setCurrentLanguage = () => {
-  let newLocale = store.state.language || getNavigatorLang() || 'en'
+  let newLocale = store.language || getNavigatorLang() || 'en'
   if (!getLocaleObject(newLocale)) {
     newLocale = 'en'
   }

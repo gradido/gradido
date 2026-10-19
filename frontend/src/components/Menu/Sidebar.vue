@@ -29,7 +29,7 @@
                before the field existed, or the moment right after a login -- and for
                not-known the answer is the one every existing account has: a person. -->
           <BNavItem
-            v-if="$store.state.creationAllowed !== false"
+            v-if="store.creationAllowed !== false"
             ref="contributionsLink"
             to="/contributions"
             class="mb-3"
@@ -133,7 +133,7 @@
             </div>
           </BNavItem>
           <BNavItem
-            v-if="$store.state.role"
+            v-if="store.role"
             class="mb-3 text-light"
             active-class="active-route"
             @click="$emit('admin')"
@@ -177,6 +177,7 @@ import { useRoute } from 'vue-router'
 import { ref, watch, computed, onMounted } from 'vue'
 import CONFIG from '@/config'
 import { chatUnreadConversations } from '@/composables/useChatUpdates'
+import { useWalletStore } from '@/store/useWalletStore'
 
 // Read once: the flag is baked in at build time, it cannot change while the app runs.
 const matchingActive = CONFIG.MATCHING_ACTIVE
@@ -194,6 +195,7 @@ const logo = '/img/brand/gradido-logo.png'
 const emit = defineEmits(['closeSidebar'])
 
 const route = useRoute()
+const store = useWalletStore()
 const contributionsLink = ref(null)
 const matchingLink = ref(null)
 

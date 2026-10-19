@@ -162,7 +162,7 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, ref, shallowRef, toRaw, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useApolloClient, useMutation, useQuery } from '@vue/apollo-composable'
 import ChatBubble from '@/components/Chat/ChatBubble.vue'
 import ChatComposeBar from '@/components/Chat/ChatComposeBar.vue'
@@ -339,7 +339,7 @@ const hasMore = computed(() => Boolean(page.value?.hasMore))
  * id, not whether the conversation exists. They only stand in the thread where they fall in
  * time, as bubbles of their own.
  */
-const store = useStore()
+const store = useWalletStore()
 const {
   transfers,
   settled: transfersSettled,
@@ -349,7 +349,7 @@ const {
 } = useChatTransfers(apolloClient, memberRef, {
   // The member's own switch (Einstellungen › Nachrichten), on unless switched off: null is a
   // store from before the field. Never in a group: a transfer is between two (E-050 F6).
-  enabled: !inGroup && store.state.transfersInChat !== false,
+  enabled: !inGroup && store.transfersInChat !== false,
 })
 
 /** The group's name, where this is a group's thread (P5). */
@@ -373,8 +373,7 @@ const openedByMe = computed(
     Boolean(props.group.createdBy?.gradidoID) &&
     // By the Gradido ID alone, as the group's window asks it: in P5 every member is of this
     // community (E-026).
-    props.group.createdBy.gradidoID.toLowerCase() ===
-      String(store.state.gradidoID ?? '').toLowerCase(),
+    props.group.createdBy.gradidoID.toLowerCase() === String(store.gradidoID ?? '').toLowerCase(),
 )
 
 /** What an empty thread says. Two written-out keys each, for the i18n lint. */
@@ -467,7 +466,7 @@ const transferBubble = (booking) => {
     // For a greeting that carries a photo in the place of a motif: the link the photo is asked
     // for by, and whose photo it is -- the sender of the booking, by the name the card showed.
     linkId: booking.linkId ?? null,
-    greetingSender: mine ? memberAlias(store.state.username, store.state.gradidoID) : props.alias,
+    greetingSender: mine ? memberAlias(store.username, store.gradidoID) : props.alias,
     // The picture the sender added to the transfer (ZE-016): a motif, or that it is a photo of
     // their own -- null for every other transfer, and for a booking made from a greeting.
     picture: booking.picture ?? null,
@@ -651,15 +650,15 @@ const composeBar = ref(null)
 const returnTo = inGroup ? { groupUuid } : memberRef
 const noteReturn = () => {
   if (document.hidden) {
-    noteChatReturn(store.state.gradidoID, returnTo, composeBar.value?.draft() ?? '')
+    noteChatReturn(store.gradidoID, returnTo, composeBar.value?.draft() ?? '')
   } else {
-    dropChatReturnNote(store.state.gradidoID)
+    dropChatReturnNote(store.gradidoID)
   }
 }
 document.addEventListener('visibilitychange', noteReturn)
 onBeforeUnmount(() => {
   document.removeEventListener('visibilitychange', noteReturn)
-  dropChatReturnNote(store.state.gradidoID)
+  dropChatReturnNote(store.gradidoID)
 })
 
 /**
@@ -681,7 +680,7 @@ const writerOf = (message) =>
  * picture. When it arrived, its caption, and the button that opened it, for the focus to go back to.
  */
 const openImage = ({ message, image, opener }) => {
-  const ownName = store.state.username || store.state.firstName || ''
+  const ownName = store.username || store.firstName || ''
   openChatImageView({
     imageUuid: image.imageUuid,
     width: image.width,
@@ -701,10 +700,10 @@ const openImage = ({ message, image, opener }) => {
  * uuid --; the bar reads and writes.
  */
 const draft = chatDraftFor(
-  () => store.state.gradidoID,
+  () => store.gradidoID,
   inGroup
     ? chatGroupDraftKey(groupUuid)
-    : props.memberKey || chatMemberKey(memberRef, store.state.communityUuid),
+    : props.memberKey || chatMemberKey(memberRef, store.communityUuid),
 )
 
 /**
@@ -1303,7 +1302,7 @@ onBeforeUnmount(stopReactions)
  * see is not offered (offersChatReactions; the server refuses it as well). Taken once, as the
  * pair is.
  */
-const reactionsOffered = inGroup || offersChatReactions(props.member, store.state.communityUuid)
+const reactionsOffered = inGroup || offersChatReactions(props.member, store.communityUuid)
 
 /**
  * The messages a reaction of the member's is on its way for, by their uuid -- held for the

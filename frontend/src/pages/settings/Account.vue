@@ -61,7 +61,7 @@
 <script setup>
 import SettingsSection from '@/components/UserSettings/SettingsSection.vue'
 import { computed, ref } from 'vue'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useI18n } from 'vue-i18n'
 import { useMutation } from '@vue/apollo-composable'
 import { updateUserInfos } from '@/graphql/mutations'
@@ -74,14 +74,13 @@ import { BRow, BCol, BForm, BFormInput, BButton } from 'bootstrap-vue-next'
 
 const { t } = useI18n()
 const { toastError, toastSuccess } = useAppToast()
-const store = useStore()
-const state = store.state
+const store = useWalletStore()
 
-const firstName = ref(state.firstName || '')
-const lastName = ref(state.lastName || '')
+const firstName = ref(store.firstName || '')
+const lastName = ref(store.lastName || '')
 
 const isButtonVisible = computed(() => {
-  return firstName.value !== state.firstName || lastName.value !== state.lastName
+  return firstName.value !== store.firstName || lastName.value !== store.lastName
 })
 
 const { mutate: updateUserData } = useMutation(updateUserInfos)
@@ -92,8 +91,8 @@ const onSubmit = async () => {
       firstName: firstName.value,
       lastName: lastName.value,
     })
-    store.commit('firstName', firstName.value)
-    store.commit('lastName', lastName.value)
+    store.setFirstName(firstName.value)
+    store.setLastName(lastName.value)
     toastSuccess(t('settings.name.change-success'))
   } catch (error) {
     toastError(error)

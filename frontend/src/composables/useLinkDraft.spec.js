@@ -2,12 +2,14 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { clearLinkDraft, useLinkDraft } from './useLinkDraft'
+import { useWalletStore } from '@/store/useWalletStore'
+import { walletStore } from '@test/walletStore'
 
 /**
  * The handover from a link in the member's own list to the way a link is made ("Duplizieren").
  * Used as the wallet uses it: inside a component, with the store of whoever is signed in.
  */
-const withStore = (store) => {
+const withStore = (pinia) => {
   let draft
   mount(
     {
@@ -16,11 +18,11 @@ const withStore = (store) => {
         return () => null
       },
     },
-    { global: { provide: { store } } },
+    { global: { plugins: [pinia] } },
   )
   return draft
 }
-const as = (gradidoID) => withStore({ state: { gradidoID } })
+const as = (gradidoID) => withStore(walletStore({ gradidoID }))
 
 const PLAIN = { id: 7, amount: 12.5, memo: 'Danke fürs Mähen!', greeting: null }
 const GREETING = {
@@ -142,11 +144,11 @@ describe('useLinkDraft', () => {
     // The member is read when something is handed over and when it is taken, not when the
     // component was set up: a session can end and another begin under a component that stays.
     it('asks who is signed in at the moment of taking', () => {
-      const store = { state: { gradidoID: 'emma' } }
-      const draft = withStore(store)
+      const pinia = walletStore({ gradidoID: 'emma' })
+      const draft = withStore(pinia)
       draft.put(PLAIN)
 
-      store.state.gradidoID = 'dave'
+      useWalletStore(pinia).gradidoID = 'dave'
 
       expect(draft.takeLink()).toBeNull()
     })

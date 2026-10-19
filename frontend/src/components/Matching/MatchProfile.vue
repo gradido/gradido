@@ -192,7 +192,7 @@
 import { computed, nextTick, reactive, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useApolloClient } from '@vue/apollo-composable'
 import ChatComposeBar from '@/components/Chat/ChatComposeBar.vue'
 import {
@@ -238,7 +238,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 const router = useRouter()
-const store = useStore()
+const store = useWalletStore()
 const { t, locale } = useI18n()
 const { client: apolloClient } = useApolloClient()
 
@@ -355,7 +355,7 @@ const helloPerson = computed(() => {
   const gradidoID = props.match?.uuid
   const communityUuid = props.match?.community?.uuid
   if (!props.modelValue || !gradidoID || !communityUuid) return null
-  const own = String(store.state.gradidoID ?? '').toLowerCase()
+  const own = String(store.gradidoID ?? '').toLowerCase()
   if (own && String(gradidoID).toLowerCase() === own) return null
   return { gradidoID, communityUuid }
 })
@@ -381,10 +381,7 @@ const helloKey = computed(() =>
  */
 const helloDraft = computed(() =>
   helloPerson.value
-    ? chatDraftFor(
-        () => store.state.gradidoID,
-        chatMemberKey(helloPerson.value, store.state.communityUuid),
-      )
+    ? chatDraftFor(() => store.gradidoID, chatMemberKey(helloPerson.value, store.communityUuid))
     : null,
 )
 
@@ -431,7 +428,7 @@ const helloWaits = computed(() => helloSending.value || helloStanding.value !== 
 const helloWords = computed(() =>
   chatHelloText(t, {
     name: props.match?.name ?? '',
-    signature: chatHelloSignature(store.state.username),
+    signature: chatHelloSignature(store.username),
     distance: chatHelloDistance({
       home: props.ownPosition,
       theirs: props.match?.position ?? null,

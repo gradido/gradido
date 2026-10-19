@@ -60,15 +60,16 @@ vi.mock('bootstrap-vue-next', () => ({
 
 const { focused } = vi.hoisted(() => ({ focused: [] }))
 const storeState = reactive({ firstName: 'Ira', creationAllowed: true })
+// What the component set on the store, as [field, value].
 const committed = []
-vi.mock('vuex', () => ({
-  useStore: () => ({
-    state: storeState,
-    commit: (name, value) => {
-      committed.push([name, value])
-      storeState[name] = value
-    },
-  }),
+vi.mock('@/store/useWalletStore', () => ({
+  useWalletStore: () =>
+    Object.assign(storeState, {
+      setCreationAllowed: (value) => {
+        committed.push(['creationAllowed', value])
+        storeState.creationAllowed = value
+      },
+    }),
 }))
 
 const routePath = ref('/overview')

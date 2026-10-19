@@ -45,7 +45,7 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import Transaction from '@/components/Transaction'
 import { usePagerFit } from '@/composables/usePagerFit'
 
@@ -60,11 +60,11 @@ const props = defineProps({
 })
 const emit = defineEmits(['update:modelValue'])
 
-const store = useStore()
+const store = useWalletStore()
 const { pagerLimit, pagerNoEnds } = usePagerFit()
 
 const currentPage = ref(props.modelValue)
-const link = 'https://gradido.net/' + store.state.language + '/memberships/'
+const link = 'https://gradido.net/' + store.language + '/memberships/'
 
 watch(
   () => props.modelValue,

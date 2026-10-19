@@ -3,14 +3,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import App from './App'
 import DashboardLayout from '@/layouts/DashboardLayout'
 import AuthLayout from '@/layouts/AuthLayout'
-
-// Mock the store
-const createMockStore = (state = {}) => ({
-  state: {
-    darkMode: false,
-    ...state,
-  },
-})
+import { walletStore } from '@test/walletStore'
 
 // Mock the route
 const createMockRoute = (meta = {}) => ({
@@ -27,9 +20,7 @@ describe('App', () => {
   const createWrapper = (options = {}) => {
     return shallowMount(App, {
       global: {
-        provide: {
-          store: createMockStore(options.state),
-        },
+        plugins: [walletStore({ darkMode: false, ...options.state })],
         mocks: {
           $route: createMockRoute(options.routeMeta),
         },

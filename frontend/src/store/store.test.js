@@ -1,7 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { ref } from 'vue'
 import { mount } from '@vue/test-utils'
-import { mutations, actions, store, THEME_MODE_STORAGE_KEY } from './store'
+import { createPinia } from 'pinia'
+import { store, THEME_MODE_STORAGE_KEY } from './store'
+import { useWalletStore } from './useWalletStore'
+import { walletStore } from '../../test/walletStore'
 import i18n from '../i18n'
 import jwtDecode from 'jwt-decode'
 import { avatarZoomState, openAvatarZoom } from '@/composables/useAvatarZoom'
@@ -82,52 +85,43 @@ vi.mock('jwt-decode', () => ({
   default: vi.fn(() => ({ exp: '1234' })),
 }))
 
-const {
-  language,
-  gradidoID,
-  token,
-  firstName,
-  lastName,
-  username,
-  newsletterState,
-  gmsAllowed,
-  humhubAllowed,
-  gmsPublishLocation,
-  publisherId,
-  eventMatchingEntry,
-  role,
-  hasElopage,
-  hideAmountGDD,
-  hideAmountGDT,
-  email,
-  setDarkMode,
-  setThemeMode,
-  redirectPath,
-} = mutations
+/** A store of its own, holding `state`. */
+const walletOf = (state = {}) => {
+  const wallet = useWalletStore(createPinia())
+  wallet.$patch(state)
+  return wallet
+}
 
-const { login, logout, applyTheme } = actions
+/** Every setter `wallet`'s actions call from now on, as `[name, value]`. */
+const settersOf = (wallet) => {
+  const calls = []
+  wallet.$onAction(({ name, args }) => {
+    if (name.startsWith('set')) calls.push([name, ...args])
+  })
+  return calls
+}
 
-describe('Vuex store', () => {
-  describe('mutations', () => {
+describe('Pinia store', () => {
+  describe('setters', () => {
     describe('language', () => {
       it('sets the state of language', () => {
-        const state = { language: 'en' }
-        language(state, 'de')
-        expect(state.language).toEqual('de')
+        const wallet = walletOf({ language: 'en' })
+        wallet.setLanguage('de')
+        expect(wallet.language).toEqual('de')
       })
 
       it('sets the i18n locale', () => {
-        const state = { language: 'en' }
-        language(state, 'de')
+        const wallet = walletOf({ language: 'en' })
+        wallet.setLanguage('de')
         expect(i18n.global.locale.value).toBe('de')
       })
     })
 
     describe('gradidoID', () => {
       it('sets the state of gradidoID', () => {
-        const state = { gradidoID: 'old-id' }
-        gradidoID(state, 'new-id')
-        expect(state.gradidoID).toEqual('new-id')
+        const wallet = walletOf({ gradidoID: 'old-id' })
+        wallet.setGradidoID('new-id')
+        expect(wallet.gradidoID).toEqual('new-id')
       })
     })
 
@@ -138,17 +132,17 @@ describe('Vuex store', () => {
       })
 
       it('sets the state of token', () => {
-        const state = { token: null }
-        token(state, '1234')
-        expect(state.token).toEqual('1234')
+        const wallet = walletOf({ token: null })
+        wallet.setToken('1234')
+        expect(wallet.token).toEqual('1234')
       })
 
       describe('token has a value', () => {
         it('sets the state of tokenTime', () => {
-          const state = { token: null, tokenTime: null }
-          token(state, 'token')
+          const wallet = walletOf({ token: null, tokenTime: null })
+          wallet.setToken('token')
           expect(jwtDecode).toHaveBeenCalledWith('token')
-          expect(state.tokenTime).toEqual('1234')
+          expect(wallet.tokenTime).toEqual('1234')
         })
 
         // When the session ends by this device's clock: the token's own lifetime from now. The
@@ -159,16 +153,16 @@ describe('Vuex store', () => {
           vi.useFakeTimers()
           vi.setSystemTime((1000000 + 7200) * 1000)
           jwtDecode.mockReturnValueOnce({ iat: 1000000, exp: 1003600 })
-          const state = { token: null, tokenTime: null }
-          token(state, 'token')
+          const wallet = walletOf({ token: null, tokenTime: null })
+          wallet.setToken('token')
           vi.useRealTimers()
-          expect(state.tokenTime).toBe(1000000 + 7200 + 3600)
+          expect(wallet.tokenTime).toBe(1000000 + 7200 + 3600)
         })
 
         it('keeps the token for both apps, with when it was received', () => {
           vi.useFakeTimers()
           vi.setSystemTime(1000000 * 1000)
-          token({ token: null, tokenTime: null }, 'token')
+          walletOf({ token: null, tokenTime: null }).setToken('token')
           vi.useRealTimers()
           expect(JSON.parse(localStorage.getItem('auth-token'))).toEqual({
             token: 'token',
@@ -184,26 +178,26 @@ describe('Vuex store', () => {
           vi.useFakeTimers()
           vi.setSystemTime((1000000 + 600) * 1000)
           jwtDecode.mockReturnValueOnce({ iat: 1000000, exp: 1003600 })
-          const state = { token: null, tokenTime: null }
-          token(state, 'token')
+          const wallet = walletOf({ token: null, tokenTime: null })
+          wallet.setToken('token')
           vi.useRealTimers()
-          expect(state.tokenTime).toBe(1003600)
+          expect(wallet.tokenTime).toBe(1003600)
         })
       })
 
       describe('token has null value', () => {
         it('sets the state of tokenTime to null', () => {
           vi.clearAllMocks()
-          const state = { token: null, tokenTime: '123' }
-          token(state, null)
+          const wallet = walletOf({ token: null, tokenTime: '123' })
+          wallet.setToken(null)
           expect(jwtDecode).not.toHaveBeenCalled()
-          expect(state.tokenTime).toEqual(null)
+          expect(wallet.tokenTime).toEqual(null)
         })
 
         // And with it the admin interface's session: both keep the one token.
         it('removes the token kept for both apps', () => {
           localStorage.setItem('auth-token', JSON.stringify({ token: 'token', at: 1 }))
-          token({ token: 'token', tokenTime: '123' }, null)
+          walletOf({ token: 'token', tokenTime: '123' }).setToken(null)
           expect(localStorage.getItem('auth-token')).toBeNull()
         })
       })
@@ -213,37 +207,37 @@ describe('Vuex store', () => {
 
     describe('setDarkMode', () => {
       it('sets the state of darkMode', () => {
-        const state = { darkMode: false }
-        setDarkMode(state, true)
-        expect(state.darkMode).toBe(true)
+        const wallet = walletOf({ darkMode: false })
+        wallet.setDarkMode(true)
+        expect(wallet.darkMode).toBe(true)
       })
     })
 
     describe('setThemeMode', () => {
       it('sets a valid theme mode', () => {
-        const state = { themeMode: 'system' }
-        setThemeMode(state, 'dark')
-        expect(state.themeMode).toBe('dark')
+        const wallet = walletOf({ themeMode: 'system' })
+        wallet.setThemeMode('dark')
+        expect(wallet.themeMode).toBe('dark')
       })
 
       it('falls back to system for an invalid value', () => {
-        const state = { themeMode: 'dark' }
-        setThemeMode(state, 'nonsense')
-        expect(state.themeMode).toBe('system')
+        const wallet = walletOf({ themeMode: 'dark' })
+        wallet.setThemeMode('nonsense')
+        expect(wallet.themeMode).toBe('system')
       })
     })
 
     describe('redirectPath', () => {
       it('sets the state of redirectPath', () => {
-        const state = { redirectPath: '/overview' }
-        redirectPath(state, '/dashboard')
-        expect(state.redirectPath).toEqual('/dashboard')
+        const wallet = walletOf({ redirectPath: '/overview' })
+        wallet.setRedirectPath('/dashboard')
+        expect(wallet.redirectPath).toEqual('/dashboard')
       })
 
       it('sets default redirectPath if null is provided', () => {
-        const state = { redirectPath: '/overview' }
-        redirectPath(state, null)
-        expect(state.redirectPath).toEqual('/overview')
+        const wallet = walletOf({ redirectPath: '/overview' })
+        wallet.setRedirectPath(null)
+        expect(wallet.redirectPath).toEqual('/overview')
       })
     })
 
@@ -258,35 +252,33 @@ describe('Vuex store', () => {
       }
 
       it('holds the entry of the link', () => {
-        const state = { eventMatchingEntry: null }
-        eventMatchingEntry(state, entry)
-        expect(state.eventMatchingEntry).toEqual(entry)
+        const wallet = walletOf({ eventMatchingEntry: null })
+        wallet.setEventMatchingEntry(entry)
+        expect(wallet.eventMatchingEntry).toEqual(entry)
       })
 
       it('lets it go', () => {
-        const state = { eventMatchingEntry: entry }
-        eventMatchingEntry(state, null)
-        expect(state.eventMatchingEntry).toBeNull()
+        const wallet = walletOf({ eventMatchingEntry: entry })
+        wallet.setEventMatchingEntry(null)
+        expect(wallet.eventMatchingEntry).toBeNull()
       })
 
       // One value for "nothing held", whatever a caller hands over.
       it('holds null, never undefined', () => {
-        const state = { eventMatchingEntry: entry }
-        eventMatchingEntry(state, undefined)
-        expect(state.eventMatchingEntry).toBeNull()
+        const wallet = walletOf({ eventMatchingEntry: entry })
+        wallet.setEventMatchingEntry(undefined)
+        expect(wallet.eventMatchingEntry).toBeNull()
       })
     })
   })
 
   describe('actions', () => {
     describe('login', () => {
-      const commit = vi.fn()
-      const state = {}
-      // The mock is shared by every test below, so without this the call-count
-      // assertions only hold while they happen to run first, and reordering the block
-      // breaks them for a reason that has nothing to do with the store.
+      let wallet
+      let calls
       beforeEach(() => {
-        commit.mockClear()
+        wallet = walletOf()
+        calls = settersOf(wallet)
       })
       const commitedData = {
         gradidoID: 'my-gradido-id',
@@ -308,9 +300,9 @@ describe('Vuex store', () => {
         darkMode: true,
       }
 
-      it('calls twenty-three commits', () => {
-        login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenCalledTimes(23)
+      it('calls twenty-three setters', () => {
+        wallet.login(commitedData)
+        expect(calls).toHaveLength(23)
       })
 
       /**
@@ -323,7 +315,7 @@ describe('Vuex store', () => {
         letOldChatDraftsGoMock.mockClear()
         forgetChatDraftsMock.mockClear()
 
-        login({ commit, state }, commitedData)
+        wallet.login(commitedData)
 
         expect(letOldChatDraftsGoMock).toHaveBeenCalledTimes(1)
         expect(forgetChatDraftsMock).not.toHaveBeenCalled()
@@ -341,58 +333,59 @@ describe('Vuex store', () => {
        * member's uuid.
        */
       it('stores the community the member belongs to, and null where the answer does not say', () => {
-        const localCommit = vi.fn()
-        login({ commit: localCommit, state: {} }, { ...commitedData, communityUuid: 'home-uuid' })
-        expect(localCommit).toHaveBeenCalledWith('communityUuid', 'home-uuid')
-        localCommit.mockClear()
-        login({ commit: localCommit, state: {} }, commitedData)
-        expect(localCommit).toHaveBeenCalledWith('communityUuid', null)
+        const localCalls = settersOf(wallet)
+        wallet.login({ ...commitedData, communityUuid: 'home-uuid' })
+        expect(localCalls).toContainEqual(['setCommunityUuid', 'home-uuid'])
+        localCalls.length = 0
+        wallet.login(commitedData)
+        expect(localCalls).toContainEqual(['setCommunityUuid', null])
       })
 
       // ES-021: the "Create" menu item hangs on this. A login answer carries no such field,
       // so it lands as null -- "not known", which the menu shows as a person -- and the
       // verifyLogin answer that guards.js hands in carries the real value.
       it('stores whether the account may create, and null where the answer does not say', () => {
-        const localCommit = vi.fn()
-        login({ commit: localCommit, state: {} }, { ...commitedData, creationAllowed: false })
-        expect(localCommit).toHaveBeenCalledWith('creationAllowed', false)
-        localCommit.mockClear()
-        login({ commit: localCommit, state: {} }, commitedData)
-        expect(localCommit).toHaveBeenCalledWith('creationAllowed', null)
+        const localCalls = settersOf(wallet)
+        wallet.login({ ...commitedData, creationAllowed: false })
+        expect(localCalls).toContainEqual(['setCreationAllowed', false])
+        localCalls.length = 0
+        wallet.login(commitedData)
+        expect(localCalls).toContainEqual(['setCreationAllowed', null])
       })
 
       // The transfers in the conversations (Einstellungen › Nachrichten): the member's own
       // switch, off only where they switched it off. An answer without the field lands as null,
       // "not known", which the thread and the settings page read as on.
       it('stores whether the transfers stand in the conversations, and null where the answer does not say', () => {
-        const localCommit = vi.fn()
-        login({ commit: localCommit, state: {} }, { ...commitedData, transfersInChat: false })
-        expect(localCommit).toHaveBeenCalledWith('transfersInChat', false)
-        localCommit.mockClear()
-        login({ commit: localCommit, state: {} }, commitedData)
-        expect(localCommit).toHaveBeenCalledWith('transfersInChat', null)
+        const localCalls = settersOf(wallet)
+        wallet.login({ ...commitedData, transfersInChat: false })
+        expect(localCalls).toContainEqual(['setTransfersInChat', false])
+        localCalls.length = 0
+        wallet.login(commitedData)
+        expect(localCalls).toContainEqual(['setTransfersInChat', null])
       })
 
       // EM-013: the confirm-reminder modal derives its deadline from these two. `?? null`
       // in the action keeps a caller that does not select the fields from writing
       // undefined into the persisted store.
       it('stores the confirmation state and the account age', () => {
-        const localCommit = vi.fn()
-        login(
-          { commit: localCommit, state: {} },
-          { ...commitedData, emailChecked: false, createdAt: '2026-08-25T06:00:00.000Z' },
-        )
-        expect(localCommit).toHaveBeenCalledWith('emailChecked', false)
-        expect(localCommit).toHaveBeenCalledWith('accountCreatedAt', '2026-08-25T06:00:00.000Z')
+        const localCalls = settersOf(wallet)
+        wallet.login({
+          ...commitedData,
+          emailChecked: false,
+          createdAt: '2026-08-25T06:00:00.000Z',
+        })
+        expect(localCalls).toContainEqual(['setEmailChecked', false])
+        expect(localCalls).toContainEqual(['setAccountCreatedAt', '2026-08-25T06:00:00.000Z'])
       })
 
       // Read from the payload now -- BOTH answers that reach this action carry the
       // picture: guards.js hands in a verifyLogin result, Login.vue a login result, and
       // the login joins the picture onto the user row it reads.
       it("stores the member's own picture", () => {
-        const localCommit = vi.fn()
-        login({ commit: localCommit, state: {} }, { ...commitedData, avatar: 'base64-picture' })
-        expect(localCommit).toHaveBeenCalledWith('avatar', 'base64-picture')
+        const localCalls = settersOf(wallet)
+        wallet.login({ ...commitedData, avatar: 'base64-picture' })
+        expect(localCalls).toContainEqual(['setAvatar', 'base64-picture'])
       })
 
       // ⛔ And null, never undefined, where the answer does not say. A session expires
@@ -401,9 +394,9 @@ describe('Vuex store', () => {
       // browser; `data.avatar` alone would leave it standing and show one member another
       // member's face.
       it("forgets the previous member's picture when the answer carries none", () => {
-        const localCommit = vi.fn()
-        login({ commit: localCommit, state: {} }, commitedData)
-        expect(localCommit).toHaveBeenCalledWith('avatar', null)
+        const localCalls = settersOf(wallet)
+        wallet.login(commitedData)
+        expect(localCalls).toContainEqual(['setAvatar', null])
       })
 
       // The switch that says who may see that picture. Own-view only -- a field resolver
@@ -417,31 +410,29 @@ describe('Vuex store', () => {
       // letting an absent field through as undefined would leave the previous member's
       // setting in the persisted store.
       it("stores the member's picture-visibility setting, false included", () => {
-        const localCommit = vi.fn()
-        login({ commit: localCommit, state: {} }, { ...commitedData, avatarVisibleToMembers: true })
-        expect(localCommit).toHaveBeenCalledWith('avatarVisibleToMembers', true)
-        localCommit.mockClear()
-        login(
-          { commit: localCommit, state: {} },
-          { ...commitedData, avatarVisibleToMembers: false },
-        )
-        expect(localCommit).toHaveBeenCalledWith('avatarVisibleToMembers', false)
-        localCommit.mockClear()
-        login({ commit: localCommit, state: {} }, commitedData)
-        expect(localCommit).toHaveBeenCalledWith('avatarVisibleToMembers', null)
+        const localCalls = settersOf(wallet)
+        wallet.login({ ...commitedData, avatarVisibleToMembers: true })
+        expect(localCalls).toContainEqual(['setAvatarVisibleToMembers', true])
+        localCalls.length = 0
+        wallet.login({ ...commitedData, avatarVisibleToMembers: false })
+        expect(localCalls).toContainEqual(['setAvatarVisibleToMembers', false])
+        localCalls.length = 0
+        wallet.login(commitedData)
+        expect(localCalls).toContainEqual(['setAvatarVisibleToMembers', null])
       })
 
       it('uses the account language when there is no deliberate pre-login choice', () => {
-        const localCommit = vi.fn()
-        login({ commit: localCommit, state: {} }, commitedData)
-        expect(localCommit).toHaveBeenCalledWith('language', 'de')
+        const localCalls = settersOf(wallet)
+        wallet.login(commitedData)
+        expect(localCalls).toContainEqual(['setLanguage', 'de'])
       })
 
       it('prefers a deliberate pre-login language over the account language and clears it', () => {
-        const localCommit = vi.fn()
-        login({ commit: localCommit, state: { preLoginLanguage: 'it' } }, commitedData)
-        expect(localCommit).toHaveBeenCalledWith('language', 'it')
-        expect(localCommit).toHaveBeenCalledWith('setPreLoginLanguage', null)
+        const localCalls = settersOf(wallet)
+        wallet.$patch({ preLoginLanguage: 'it' })
+        wallet.login(commitedData)
+        expect(localCalls).toContainEqual(['setLanguage', 'it'])
+        expect(localCalls).toContainEqual(['setPreLoginLanguage', null])
       })
 
       // ... (other login action tests remain largely the same)
@@ -465,7 +456,7 @@ describe('Vuex store', () => {
           // The fixture proves itself: the first creation waits.
           expect(firstLoginWindow.value).toBeNull()
 
-          login({ commit, state }, commitedData)
+          wallet.login(commitedData)
 
           expect(firstLoginWindow.value).toBe('firstCreation')
           forgetFirstLoginWindows()
@@ -479,7 +470,7 @@ describe('Vuex store', () => {
           expect(eventLinkAnswerUnderway.value).toBe(true)
           expect(eventLinkInvitationOver(member).value).toBe(true)
 
-          login({ commit, state }, commitedData)
+          wallet.login(commitedData)
 
           expect(eventLinkSentence(member).value).toBeNull()
           expect(eventLinkAnswerUnderway.value).toBe(false)
@@ -490,7 +481,7 @@ describe('Vuex store', () => {
         it('leaves what the windows said', () => {
           setFirstLoginWindowWanted('alias', true)
 
-          login({ commit, state }, commitedData)
+          wallet.login(commitedData)
 
           expect(firstLoginWindow.value).toBe('alias')
           forgetFirstLoginWindows()
@@ -498,21 +489,20 @@ describe('Vuex store', () => {
       })
 
       it('does not set the theme from server data (theme is device-local)', () => {
-        login({ commit, state }, commitedData)
-        expect(commit).not.toHaveBeenCalledWith('setDarkMode', expect.anything())
-        expect(commit).not.toHaveBeenCalledWith('setThemeMode', expect.anything())
+        wallet.login(commitedData)
+        expect(calls).not.toContainEqual(['setDarkMode', expect.anything()])
+        expect(calls).not.toContainEqual(['setThemeMode', expect.anything()])
       })
     })
 
     describe('logout', () => {
-      const commit = vi.fn()
-      const dispatch = vi.fn()
-      const state = { themeMode: 'dark', gradidoID: 'user-one' }
-      // See the login block above: shared mocks, so the count assertion below is only
-      // meaningful once each test starts from zero.
+      let wallet
+      let calls
       beforeEach(() => {
-        commit.mockClear()
-        dispatch.mockClear()
+        wallet = walletOf({ themeMode: 'dark', gradidoID: 'user-one' })
+        // What the theme makes of the device's preference is applyTheme's own test, below.
+        wallet.applyTheme = vi.fn()
+        calls = settersOf(wallet)
         forgetParkedAmountMock.mockClear()
         forgetLegacyMapPrefsMock.mockClear()
         forgetChatReturnMock.mockClear()
@@ -530,40 +520,40 @@ describe('Vuex store', () => {
        * exactly those devices the old keys were never cleared. Every account passes here.
        */
       it('sweeps away the map settings the whole device used to share', () => {
-        logout({ commit, state, dispatch })
+        wallet.logout()
         expect(forgetLegacyMapPrefsMock).toHaveBeenCalled()
       })
 
-      it('calls twenty-seven commits', () => {
-        logout({ commit, state, dispatch })
-        expect(commit).toHaveBeenCalledTimes(27)
+      it('calls twenty-seven setters', () => {
+        wallet.logout()
+        expect(calls).toHaveLength(27)
       })
 
       // What an event link offered goes with whoever signs out, like the publisher's id. (For
       // a browser nobody signs out of, it ends by itself: keptEventMatchingEntry.)
       it('lets the entry of an event link go', () => {
-        logout({ commit, state, dispatch })
-        expect(commit).toHaveBeenCalledWith('eventMatchingEntry', null)
+        wallet.logout()
+        expect(calls).toContainEqual(['setEventMatchingEntry', null])
       })
 
       // The next member on this device starts from "not known", not from the last one's switch.
       it('forgets the switch for the transfers in the conversations', () => {
-        logout({ commit, state, dispatch })
-        expect(commit).toHaveBeenCalledWith('transfersInChat', null)
+        wallet.logout()
+        expect(calls).toContainEqual(['setTransfersInChat', null])
       })
 
       // ... (other logout action tests remain largely the same)
 
       it('keeps the device-local theme across logout', () => {
-        logout({ commit, state, dispatch })
-        expect(commit).toHaveBeenCalledWith('setThemeMode', 'dark')
-        expect(dispatch).toHaveBeenCalledWith('applyTheme')
-        expect(commit).not.toHaveBeenCalledWith('setDarkMode', false)
+        wallet.logout()
+        expect(calls).toContainEqual(['setThemeMode', 'dark'])
+        expect(wallet.applyTheme).toHaveBeenCalled()
+        expect(calls).not.toContainEqual(['setDarkMode', false])
       })
 
       /**
        * ⛔ An amount parked mid-sale must not stay on a device somebody has walked away
-       * from. The ID is read BEFORE `commit('gradidoID', null)`, two lines into this action
+       * from. The ID is read BEFORE `setGradidoID(null)`, two lines into this action
        * -- reading it after would give null, there would be no key, and the amount would sit
        * there until it expired.
        *
@@ -573,22 +563,16 @@ describe('Vuex store', () => {
        */
       it('takes a parked amount off the device, keyed by who is leaving', () => {
         /**
-         * ⛔ This commit mock APPLIES the mutation, unlike the shared one above, and that is
-         * the whole test. A mock that only records the call cannot tell "read before the
-         * clear" from "read after it" -- the assertion below would pass either way, on a
-         * state object whose gradidoID never changes. With the mutation applied, reading it
-         * one line later gives null, there is no key, and the amount stays on the device.
+         * ⛔ The real store, whose setter APPLIES the change, and that is the whole test. A
+         * mock that only records the call cannot tell "read before the clear" from "read after
+         * it" -- the assertion below would pass either way, on a state whose gradidoID never
+         * changes. With the change applied, reading it one line later gives null, there is no
+         * key, and the amount stays on the device.
          */
-        const applyingCommit = vi.fn((mutation, value) => {
-          if (mutation === 'gradidoID') {
-            localState.gradidoID = value
-          }
-        })
-        const localState = { themeMode: 'dark', gradidoID: 'user-one' }
-        logout({ commit: applyingCommit, state: localState, dispatch })
+        wallet.logout()
 
-        expect(applyingCommit).toHaveBeenCalledWith('gradidoID', null)
-        expect(localState.gradidoID).toBeNull()
+        expect(calls).toContainEqual(['setGradidoID', null])
+        expect(wallet.gradidoID).toBeNull()
         expect(forgetParkedAmountMock).toHaveBeenCalledWith('user-one')
       })
 
@@ -599,13 +583,9 @@ describe('Vuex store', () => {
        * reason the test above gives.
        */
       it('lets the way back into a conversation go, keyed by who is leaving', () => {
-        const localState = { themeMode: 'dark', gradidoID: 'user-one' }
-        const applyingCommit = vi.fn((mutation, value) => {
-          if (mutation === 'gradidoID') localState.gradidoID = value
-        })
-        logout({ commit: applyingCommit, state: localState, dispatch })
+        wallet.logout()
 
-        expect(localState.gradidoID).toBeNull()
+        expect(wallet.gradidoID).toBeNull()
         expect(forgetChatReturnMock).toHaveBeenCalledWith('user-one')
       })
 
@@ -617,15 +597,11 @@ describe('Vuex store', () => {
        */
       describe('what was written in the conversations and not sent', () => {
         const signOut = (how, signedIn = 'user-one') => {
-          const localState = { themeMode: 'dark', gradidoID: signedIn }
-          const applyingCommit = vi.fn((mutation, value) => {
-            if (mutation === 'gradidoID') localState.gradidoID = value
-          })
+          wallet.$patch({ gradidoID: signedIn })
           forgetChatDraftsMock.mockClear()
-          if (how === 'nothing said')
-            logout({ commit: applyingCommit, state: localState, dispatch })
-          else logout({ commit: applyingCommit, state: localState, dispatch }, how)
-          expect(localState.gradidoID).toBeNull()
+          if (how === 'nothing said') wallet.logout()
+          else wallet.logout(how)
+          expect(wallet.gradidoID).toBeNull()
         }
 
         it('is taken off the device where the member signed out by their own word', () => {
@@ -661,9 +637,9 @@ describe('Vuex store', () => {
         })
       })
 
-      it('commits redirectPath', () => {
-        logout({ commit, state, dispatch })
-        expect(commit).toHaveBeenCalledWith('redirectPath', '/overview')
+      it('sets redirectPath back', () => {
+        wallet.logout()
+        expect(calls).toContainEqual(['setRedirectPath', '/overview'])
       })
 
       // Nothing here reloads the page, so the previous member's answers stay in the
@@ -673,7 +649,7 @@ describe('Vuex store', () => {
       // because the cached answer said the question had been settled.
       it('throws out the previous member´s cached answers', async () => {
         clearApolloCacheMock.mockClear()
-        await logout({ commit, state, dispatch })
+        await wallet.logout()
         expect(clearApolloCacheMock).toHaveBeenCalled()
       })
 
@@ -695,7 +671,7 @@ describe('Vuex store', () => {
         // below pass without the logout doing anything at all.
         expect(avatarZoomState.value).not.toBeNull()
 
-        logout({ commit, state, dispatch })
+        wallet.logout()
 
         expect(avatarZoomState.value).toBeNull()
       })
@@ -714,7 +690,7 @@ describe('Vuex store', () => {
           // The fixture proves itself: a picture that was never kept would pass below unforgotten.
           expect(chatImage('image-1')).toEqual({ state: 'ready', src: 'blob:a-picture' })
 
-          logout({ commit, state, dispatch })
+          wallet.logout()
 
           expect(chatImage('image-1')).toBeNull()
           expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:a-picture')
@@ -733,7 +709,7 @@ describe('Vuex store', () => {
         // The fixture proves itself: a photo that was never kept would pass below unforgotten.
         expect(greetingPicture(4711)?.state).toBe('ready')
 
-        logout({ commit, state, dispatch })
+        wallet.logout()
 
         expect(greetingPicture(4711)).toBeNull()
       })
@@ -751,7 +727,7 @@ describe('Vuex store', () => {
         // The fixture proves itself: a photo that was never kept would pass below unforgotten.
         expect(transactionPicture(815)?.state).toBe('ready')
 
-        logout({ commit, state, dispatch })
+        wallet.logout()
 
         expect(transactionPicture(815)).toBeNull()
       })
@@ -771,7 +747,7 @@ describe('Vuex store', () => {
         // The fixture proves itself: a view never opened would pass below unclosed.
         expect(chatImageViewState.value).not.toBeNull()
 
-        logout({ commit, state, dispatch })
+        wallet.logout()
 
         expect(chatImageViewState.value).toBeNull()
       })
@@ -794,7 +770,7 @@ describe('Vuex store', () => {
         // without the logout doing anything at all.
         expect(contactsPanelState.page.rows).toHaveLength(1)
 
-        logout({ commit, state, dispatch })
+        wallet.logout()
 
         // Both slots, and the word that was typed -- a search is one member's business too.
         expect(contactsPanelState.page.rows).toEqual([])
@@ -823,7 +799,7 @@ describe('Vuex store', () => {
         startChatUpdates({ query })
         await vi.waitFor(() => expect(chatUnreadConversations.value).toBe(4))
 
-        logout({ commit, state, dispatch })
+        wallet.logout()
 
         expect(chatUnreadConversations.value).toBe(0)
         // Asked to ask again, it asks nobody: the beat is gone.
@@ -843,7 +819,7 @@ describe('Vuex store', () => {
         // without the logout doing anything at all.
         expect(firstLoginWindow.value).toBe('alias')
 
-        logout({ commit, state, dispatch })
+        wallet.logout()
 
         expect(firstLoginWindow.value).toBeNull()
       })
@@ -868,7 +844,7 @@ describe('Vuex store', () => {
         expect(eventLinkInvitationOver(member).value).toBe(true)
         expect(firstLoginWindow.value).toBeNull()
 
-        logout({ commit, state, dispatch })
+        wallet.logout()
 
         expect(eventLinkSentence(member).value).toBeNull()
         expect(eventLinkAnswerUnderway.value).toBe(false)
@@ -888,7 +864,7 @@ describe('Vuex store', () => {
         const link = { id: 7, amount: 12.5, memo: 'Für Sarah', greeting: null }
         // Read as the same member would read it: what empties it here is the sign-out alone,
         // not the handover's own rule that it goes to nobody else.
-        const member = { state: { gradidoID: 'user-one' } }
+        const member = walletStore({ gradidoID: 'user-one' })
         const handover = () => {
           let draft
           mount(
@@ -898,7 +874,7 @@ describe('Vuex store', () => {
                 return () => null
               },
             },
-            { global: { provide: { store: member } } },
+            { global: { plugins: [member] } },
           )
           return draft
         }
@@ -907,7 +883,7 @@ describe('Vuex store', () => {
         expect(handover().takeLink()).toEqual(link)
         handover().put(link)
 
-        logout({ commit, state, dispatch })
+        wallet.logout()
 
         expect(handover().takeLink()).toBeNull()
       })
@@ -919,7 +895,7 @@ describe('Vuex store', () => {
           removeItem: removeItemMock,
           clear: clearMock,
         })
-        logout({ commit, state, dispatch })
+        wallet.logout()
         expect(removeItemMock).toHaveBeenCalledWith('gradido-frontend')
         expect(clearMock).not.toHaveBeenCalled()
         vi.unstubAllGlobals()
@@ -928,31 +904,31 @@ describe('Vuex store', () => {
 
     describe('applyTheme', () => {
       it('sets darkMode true when themeMode is dark', () => {
-        const commit = vi.fn()
-        applyTheme({ state: { themeMode: 'dark' }, commit })
-        expect(commit).toHaveBeenCalledWith('setDarkMode', true)
+        const wallet = walletOf({ themeMode: 'dark' })
+        wallet.applyTheme()
+        expect(wallet.darkMode).toBe(true)
       })
 
       it('sets darkMode false when themeMode is light', () => {
-        const commit = vi.fn()
-        applyTheme({ state: { themeMode: 'light' }, commit })
-        expect(commit).toHaveBeenCalledWith('setDarkMode', false)
+        const wallet = walletOf({ themeMode: 'light' })
+        wallet.applyTheme()
+        expect(wallet.darkMode).toBe(false)
       })
 
       it('follows the OS preference when themeMode is system', () => {
-        const commit = vi.fn()
         const original = window.matchMedia
         window.matchMedia = vi.fn(() => ({ matches: true }))
-        applyTheme({ state: { themeMode: 'system' }, commit })
-        expect(commit).toHaveBeenCalledWith('setDarkMode', true)
+        const wallet = walletOf({ themeMode: 'system' })
+        wallet.applyTheme()
+        expect(wallet.darkMode).toBe(true)
         window.matchMedia = original
       })
 
       it('mirrors the theme mode into the dedicated storage key', () => {
-        const commit = vi.fn()
         const setItem = vi.fn()
         vi.stubGlobal('localStorage', { setItem })
-        applyTheme({ state: { themeMode: 'dark' }, commit })
+        const wallet = walletOf({ themeMode: 'dark' })
+        wallet.applyTheme()
         expect(setItem).toHaveBeenCalledWith(THEME_MODE_STORAGE_KEY, 'dark')
         vi.unstubAllGlobals()
       })
@@ -973,29 +949,29 @@ describe('Vuex store', () => {
     })
 
     it('is left out of the blob', () => {
-      store.commit('token', 'token')
+      store.setToken('token')
       const blob = JSON.parse(localStorage.getItem('gradido-frontend'))
       expect(blob).not.toHaveProperty('token')
       expect(blob).not.toHaveProperty('tokenTime')
       expect(JSON.parse(localStorage.getItem('auth-token')).token).toBe('token')
-      store.commit('token', null)
+      store.setToken(null)
     })
 
     it('is renewed here where another window renews it', () => {
-      store.commit('token', tokenOf(BIBI, { iat: 1 }))
+      store.setToken(tokenOf(BIBI, { iat: 1 }))
       localStorage.setItem(
         'auth-token',
         JSON.stringify({ token: tokenOf(BIBI, { iat: 2 }), at: Date.now() }),
       )
       window.dispatchEvent(new StorageEvent('storage', { key: 'auth-token' }))
-      expect(store.state.token).toBe(tokenOf(BIBI, { iat: 2 }))
+      expect(store.token).toBe(tokenOf(BIBI, { iat: 2 }))
     })
 
     it('signs out here where another window signs out', () => {
-      store.commit('token', 'token')
+      store.setToken('token')
       localStorage.removeItem('auth-token')
       window.dispatchEvent(new StorageEvent('storage', { key: 'auth-token' }))
-      expect(store.state.token).toBeNull()
+      expect(store.token).toBeNull()
     })
 
     // Last: each of these opens a store of its own, which goes on listening to the windows
@@ -1012,16 +988,16 @@ describe('Vuex store', () => {
         kept: tokenOf(BIBI),
         blob: { token: 'from-the-blob', tokenTime: 1, gradidoID: BIBI, firstName: 'Bibi' },
       })
-      expect(opened.state.token).toBe(tokenOf(BIBI))
-      expect(opened.state.tokenTime).toBe('1234')
-      expect(opened.state.firstName).toBe('Bibi')
+      expect(opened.token).toBe(tokenOf(BIBI))
+      expect(opened.tokenTime).toBe('1234')
+      expect(opened.firstName).toBe('Bibi')
     })
 
     // ⛔ Bob's token under Bibi's name, picture and settings: the wallet opens on the sign-in.
     it('is not opened with where the blob holds the profile of somebody else', async () => {
       const opened = await openedOn({ kept: tokenOf(BOB), blob: { gradidoID: BIBI } })
-      expect(opened.state.token).toBeNull()
-      expect(opened.state.tokenTime).toBeNull()
+      expect(opened.token).toBeNull()
+      expect(opened.tokenTime).toBeNull()
       // Nor removed: it is Bob's session, in the admin interface or another window.
       expect(JSON.parse(localStorage.getItem('auth-token')).token).toBe(tokenOf(BOB))
     })

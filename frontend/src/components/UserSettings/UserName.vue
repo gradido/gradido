@@ -1,6 +1,6 @@
 <template>
   <div id="username-form">
-    <!-- div v-if="store.state.username">
+    <!-- div v-if="store.username">
       <label>{{ $t('form.username') }}</label>
       <BFormGroup
         class="mb-3"
@@ -33,7 +33,7 @@
           </BCol>
           <!-- BCol class="col-12">
             <div
-              v-if="!store.state.username"
+              v-if="!store.username"
               class="alert gradido-border-radius"
               data-test="username-alert"
             >
@@ -116,7 +116,7 @@
 
 <script setup>
 import { computed, ref } from 'vue'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useMutation, useQuery } from '@vue/apollo-composable'
 import { useI18n } from 'vue-i18n'
 import { BRow, BCol, BFormInput, BFormGroup, BForm, BButton, BModal } from 'bootstrap-vue-next'
@@ -126,7 +126,7 @@ import { aliasStatus } from '@/graphql/user.graphql'
 import { useAppToast } from '@/composables/useToast'
 import { useForm } from 'vee-validate'
 
-const store = useStore()
+const store = useWalletStore()
 const { toastError, toastSuccess } = useAppToast()
 const { t, locale } = useI18n()
 
@@ -191,7 +191,7 @@ const applyChange = async () => {
   showConfirm.value = false
   try {
     await updateUserInfo({ alias: values.username })
-    store.commit('username', values.username)
+    store.setUsername(values.username)
     toastSuccess(t('settings.username.change-success'))
     await refetchStatus()
   } catch (error) {
@@ -206,9 +206,9 @@ const applyChange = async () => {
   }
 }
 
-const username = computed(() => store.state.username || '')
+const username = computed(() => store.username || '')
 
-const newUsername = computed(() => values.username && values.username !== store.state.username)
+const newUsername = computed(() => values.username && values.username !== store.username)
 
 const disabled = (err) => {
   // The quota only blocks TAKING a name. Coming back to one the member already owns

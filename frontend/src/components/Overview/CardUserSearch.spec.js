@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
 import { createI18n } from 'vue-i18n'
 import de from '@/locales/de.json'
 import CardUserSearch from './CardUserSearch.vue'
@@ -24,7 +24,7 @@ const i18n = createI18n({ legacy: false, locale: 'de', messages: { de } })
 const mountCard = (userLocation) =>
   mount(CardUserSearch, {
     global: {
-      plugins: [createStore({ state: { gmsAllowed: true, userLocation }, mutations: {} }), i18n],
+      plugins: [walletStore({ gmsAllowed: true, userLocation }), i18n],
       stubs: { RouterLink: { template: '<a><slot /></a>' } },
     },
   })

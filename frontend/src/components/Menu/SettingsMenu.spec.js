@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, afterAll, vi } from 'vitest'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
 
 const mockConfig = { GMS_ACTIVE: false, HUMHUB_ACTIVE: false }
 vi.mock('@/config', () => ({
@@ -35,6 +35,8 @@ vi.mock('@vue/apollo-composable', () => ({
   },
 }))
 vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key) => key }) }))
+// The wallet store sets the language on the app's own i18n, which this spec does not build.
+vi.mock('@/i18n', () => ({ default: { global: { locale: { value: 'en' } } } }))
 
 const RouterLinkStub = { props: ['to'], template: '<a :to="to"><slot /></a>' }
 
@@ -50,13 +52,11 @@ const mountMenu = async ({
   return mount(SettingsMenu, {
     global: {
       plugins: [
-        createStore({
-          state: () => ({
-            avatarVisibleToMembers: avatar,
-            newsletterState: newsletter,
-            transfersInChat: transfers,
-            role,
-          }),
+        walletStore({
+          avatarVisibleToMembers: avatar,
+          newsletterState: newsletter,
+          transfersInChat: transfers,
+          role,
         }),
       ],
       stubs: { RouterLink: RouterLinkStub, 'settings-menu-icon': true },

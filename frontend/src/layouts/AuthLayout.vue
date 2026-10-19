@@ -118,10 +118,10 @@ import AuthNavbar from '@/components/Auth/AuthNavbar'
 import AuthCarousel from '@/components/Auth/AuthCarousel'
 import AuthFooter from '@/components/Auth/AuthFooter'
 import CONFIG from '@/config'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 
 const communityName = CONFIG.COMMUNITY_NAME
-const store = useStore()
+const store = useWalletStore()
 const project = computed(() => {
   const urlParams = new URLSearchParams(window.location.search)
   return urlParams.get('project')
@@ -139,14 +139,14 @@ const { result: projectBannerResult, loading: projectBannerLoading } = useQuery(
 
 onBeforeMount(() => {
   // clear state
-  store.commit('project', null)
+  store.setProject(null)
 })
 const isDesktop = computed(() => window.innerWidth > 768)
 
 // put project value into store, if projectBrandingBanner query don't throw an error, so project exists
 watchEffect(() => {
   if (projectBannerResult.value) {
-    store.commit('project', project.value)
+    store.setProject(project.value)
   }
 })
 </script>

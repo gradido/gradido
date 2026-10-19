@@ -1,7 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { nextTick, ref, watch } from 'vue'
-import { createStore } from 'vuex'
+import { nextTick, reactive, ref, watch } from 'vue'
 import { createI18n } from 'vue-i18n'
 import AliasFirstChoice from './AliasFirstChoice.vue'
 import {
@@ -106,6 +105,9 @@ vi.mock('@/graphql/user.graphql', () => ({ aliasStatus: 'ALIAS_STATUS' }))
 vi.mock('@/graphql/queries', () => ({ checkUsername: 'CHECK_USERNAME' }))
 vi.mock('@/graphql/mutations', () => ({ adoptAlias: 'ADOPT', updateUserInfos: 'UPDATE' }))
 vi.mock('@/config', () => ({ default: { COMMUNITY_URL: 'https://gradido.net' } }))
+// The store is a fake: the real one pulls in the language and the queries this spec mocks away.
+const mockWallet = vi.hoisted(() => ({ current: null }))
+vi.mock('@/store/useWalletStore', () => ({ useWalletStore: () => mockWallet.current }))
 
 const toastErrorMock = vi.fn()
 vi.mock('@/composables/useToast', () => ({
@@ -141,15 +143,15 @@ const i18n = createI18n({
 // module they share, what that answer means to it (useFirstLoginWindow).
 const mounted = []
 const mountComponent = (username = 'BerndH') => {
+  mockWallet.current = reactive({
+    username,
+    setUsername(value) {
+      this.username = value
+    },
+  })
   const wrapper = mount(AliasFirstChoice, {
     global: {
-      plugins: [
-        createStore({
-          state: () => ({ username }),
-          mutations: { username: (state, value) => (state.username = value) },
-        }),
-        i18n,
-      ],
+      plugins: [i18n],
     },
   })
   mounted.push(wrapper)

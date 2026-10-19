@@ -15,7 +15,7 @@ import { computed, reactive, ref } from 'vue'
  *
  * ⛔ DERIVED, not claimed. The obvious build is a token each window sets on open and clears
  * on close; it was rejected for a measured reason. This wallet's store is persisted whole
- * into localStorage (`vuex-persistedstate` in store.js, no `paths`), so a token written
+ * into localStorage (store.js saves it whole), so a token written
  * there survives a closed tab -- and a token left behind by a window that never got to
  * clear it would lock out all three windows for good, silently. Here there is nothing to
  * leave behind: each window says only whether it WOULD show, and who is on screen follows

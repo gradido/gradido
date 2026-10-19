@@ -5,7 +5,8 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { reactive, ref } from 'vue'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
+import { useWalletStore } from '@/store/useWalletStore'
 import { createI18n } from 'vue-i18n'
 // The app registers these through createBootstrap(); the save button has to be a
 // real button here, because that is where the enabled state is read.
@@ -87,21 +88,16 @@ vi.mock('@/composables/useEntryDraft', () => ({
 
 const i18n = createI18n({ legacy: false, locale: 'de', messages: { de } })
 
-const store = createStore({
-  state: { gradidoID: 'a-member', gmsAllowed: true, gmsPublishLocation: 'GMS_LOCATION_TYPE_EXACT' },
-  // Real mutations, not no-ops: the find button reads findability and the position off
-  // this store now, so a store that cannot be changed could only ever measure one half of
-  // the rule -- and it was the half that is easiest to delete unnoticed.
-  mutations: {
-    gmsAllowed: (state, value) => {
-      state.gmsAllowed = value
-    },
-    gmsPublishLocation: () => {},
-    userLocation: (state, value) => {
-      state.userLocation = value
-    },
-  },
+const pinia = walletStore({
+  gradidoID: 'a-member',
+  gmsAllowed: true,
+  gmsPublishLocation: 'GMS_LOCATION_TYPE_EXACT',
 })
+// Real setters, not no-ops: the find button reads findability and the position off
+// this store now, so a store that cannot be changed could only ever measure one half of
+// the rule -- and it was the half that is easiest to delete unnoticed.
+const store = useWalletStore(pinia)
+store.setGmsPublishLocation = () => {}
 
 // The map is exercised by its own spec; here it only has to be able to report a
 // picked position, which is what onPickPosition reads.
@@ -131,7 +127,7 @@ const mountPage = (tab = 'entries', extraStubs = {}, options = {}, language = i1
   wrapper = mount(Matching, {
     ...options,
     global: {
-      plugins: [store, language],
+      plugins: [pinia, language],
       components: { BButton, BRow, BCol },
       stubs: {
         UserLocationMap: UserLocationMapStub,
@@ -192,9 +188,9 @@ beforeEach(() => {
   window.localStorage.clear()
   // The store is shared by the whole file; put it back so no case inherits the answers of
   // the one before it.
-  store.state.gradidoID = 'a-member'
-  store.state.gmsAllowed = true
-  store.state.userLocation = null
+  store.gradidoID = 'a-member'
+  store.gmsAllowed = true
+  store.userLocation = null
   forgetEventLinkArrival()
 })
 
@@ -424,7 +420,7 @@ describe('Matching', () => {
           await writeEntry(page)
           expect(told()).toBe('0')
 
-          store.state.gradidoID = null
+          store.gradidoID = null
           confirm({})
           await flushPromises()
 
@@ -564,14 +560,14 @@ describe('Matching', () => {
       const page = mountPage('entries')
       await answer(page, { latitude: 48.2, longitude: 11.6 })
 
-      expect(store.state.userLocation).toEqual({ latitude: 48.2, longitude: 11.6 })
+      expect(store.userLocation).toEqual({ latitude: 48.2, longitude: 11.6 })
 
       await answer(page, {})
 
-      expect(store.state.userLocation).toBeNull()
+      expect(store.userLocation).toBeNull()
     })
 
-    // ...but only when it actually differs. Every mutation makes vuex-persistedstate
+    // ...but only when it actually differs. Every change makes store.js
     // serialize the WHOLE store and write it to localStorage synchronously, and the store
     // carries the member's avatar as base64 -- so an unconditional commit would put a
     // ~12 KB write behind every answer of a network-only query, to store two floats that
@@ -581,11 +577,11 @@ describe('Matching', () => {
       const place = { latitude: 48.2, longitude: 11.6 }
       await answer(page, place)
 
-      const commit = vi.spyOn(store, 'commit')
+      const setUserLocation = vi.spyOn(store, 'setUserLocation')
       await answer(page, { ...place })
 
-      expect(commit).not.toHaveBeenCalledWith('userLocation', expect.anything())
-      commit.mockRestore()
+      expect(setUserLocation).not.toHaveBeenCalled()
+      setUserLocation.mockRestore()
     })
 
     it.each([
@@ -605,7 +601,7 @@ describe('Matching', () => {
     // not enough, the member has to allow it to travel. Delete the findability half of
     // the gate and this is the case that goes red.
     it('holds a member back who has a position but is not findable', async () => {
-      store.state.gmsAllowed = false
+      store.gmsAllowed = false
       const page = mountPage('entries')
       await answer(page, { latitude: 48.2, longitude: 11.6 })
 
@@ -626,7 +622,7 @@ describe('Matching', () => {
       }
       const showMe = (page) => page.find('[data-test="find-gate-show-me"]')
       const openWindow = async (tab) => {
-        store.state.gmsAllowed = false
+        store.gmsAllowed = false
         const page = mountPage(tab, openOnly)
         await answer(page, null)
         await findButton(page).trigger('click')
@@ -669,7 +665,7 @@ describe('Matching', () => {
       // said it shows the member on the map and changed nothing (coderabbit on #4124). No
       // router here that could cover for it: the query stays what it is, as it would.
       it('stands the switch on again for a member who is here with the yes and took it back', async () => {
-        store.state.gmsAllowed = false
+        store.gmsAllowed = false
         place.query = { findable: 'yes' }
         const page = mountPage('position', openOnly)
         await answer(page, null)
@@ -733,10 +729,7 @@ describe('Matching', () => {
     const beschriftung = (page) => page.find('.find-btn').text()
 
     it('offers the list when THIS member last used the list', () => {
-      window.localStorage.setItem(
-        `pref.gms.map.${store.state.gradidoID}.mode`,
-        JSON.stringify('liste'),
-      )
+      window.localStorage.setItem(`pref.gms.map.${store.gradidoID}.mode`, JSON.stringify('liste'))
       expect(beschriftung(mountPage('entries'))).toContain('Liste')
     })
 
@@ -1147,7 +1140,7 @@ describe('Matching', () => {
           mutate.mockResolvedValueOnce(answer(true))
           mountPage('entries', shownModal)
           refetch().mockImplementationOnce(async () => {
-            store.state.gradidoID = null
+            store.gradidoID = null
             throw new Error('no list')
           })
           await flushPromises()
@@ -1162,7 +1155,7 @@ describe('Matching', () => {
           mutate.mockReturnValueOnce(new Promise((resolve) => (made = resolve)))
           mountPage('entries', shownModal)
           list()
-          store.state.gradidoID = null
+          store.gradidoID = null
 
           made(answer(true))
           await flushPromises()
@@ -1275,7 +1268,7 @@ describe('Matching', () => {
           let refused
           mutate.mockReturnValueOnce(new Promise((resolve, reject) => (refused = reject)))
           mountPage('entries', shownModal)
-          store.state.gradidoID = null
+          store.gradidoID = null
 
           refused(graphQLRefusal('Invalid length'))
           await flushPromises()
@@ -1348,7 +1341,7 @@ describe('Matching', () => {
           let made
           mutate.mockReturnValueOnce(new Promise((resolve) => (made = resolve)))
           mountPage('entries', shownModal)
-          store.state.gradidoID = null
+          store.gradidoID = null
 
           made(answer(true))
           await flushPromises()
@@ -1527,7 +1520,7 @@ describe('Matching', () => {
       const hint = (page) => page.find('.border-top .text-end.small').text()
 
       const openWithoutHome = async (extraStubs = {}, options = {}) => {
-        store.state.gmsAllowed = false
+        store.gmsAllowed = false
         const page = mountPage('position', extraStubs, options)
         fire(userLocationQuery, { userLocation: noHome })
         await page.vm.$nextTick()
@@ -1556,7 +1549,7 @@ describe('Matching', () => {
       // Until the location has answered nobody knows, and "set your home first" would
       // reach members who have one.
       it('says nothing about a missing home before the location has answered', () => {
-        store.state.gmsAllowed = false
+        store.gmsAllowed = false
         const page = mountPage('position')
 
         expect(findableSwitch(page).props('locked')).toBe(false)
@@ -1586,7 +1579,7 @@ describe('Matching', () => {
       // refused it - has to be able to leave.
       it('lets a member switch off who is findable without one', async () => {
         const page = await openWithoutHome()
-        store.state.gmsAllowed = true
+        store.gmsAllowed = true
         await page.vm.$nextTick()
         expect(findableSwitch(page).props('locked')).toBe(false)
 
@@ -1666,8 +1659,8 @@ describe('Matching', () => {
         confirm: confirmButton(page).text(),
       })
       const open = async ({ findable, home = true, stubs = spoken }) => {
-        store.state.gmsAllowed = findable
-        if (home) store.state.userLocation = { ...location.userLocation }
+        store.gmsAllowed = findable
+        if (home) store.userLocation = { ...location.userLocation }
         const page = mountPage('position', stubs)
         fire(userLocationQuery, { userLocation: home ? location : noHome })
         await page.vm.$nextTick()
@@ -1728,7 +1721,7 @@ describe('Matching', () => {
           expect(mutate).toHaveBeenCalledWith({ gmsAllowed: false })
           expect(toast.success).toHaveBeenCalledTimes(1)
           expect(toast.success).toHaveBeenCalledWith(NOW_OFF)
-          expect(store.state.gmsAllowed).toBe(false)
+          expect(store.gmsAllowed).toBe(false)
           expect(push).not.toHaveBeenCalled()
         })
 
@@ -1881,7 +1874,7 @@ describe('Matching', () => {
         expect(words(page)).toEqual(LEAVE)
 
         await confirm(page)
-        expect(store.state.gmsAllowed).toBe(false)
+        expect(store.gmsAllowed).toBe(false)
         expect(words(page)).toEqual(LEAVE)
 
         await moveHome(page)
@@ -1917,7 +1910,7 @@ describe('Matching', () => {
         expect(toast.success).not.toHaveBeenCalled()
         expect(toast.error).toHaveBeenCalledWith('the server is away')
         // Nothing was saved: still on the map, and the draft still stands.
-        expect(store.state.gmsAllowed).toBe(true)
+        expect(store.gmsAllowed).toBe(true)
         expect(saveButton(page).attributes('disabled')).toBeUndefined()
       })
 
@@ -1948,7 +1941,7 @@ describe('Matching', () => {
         },
       }
       const saveWith = async (error) => {
-        store.state.gmsAllowed = false
+        store.gmsAllowed = false
         const page = mountPage('position', confirmOnly)
         fire(userLocationQuery, { userLocation: location })
         await page.vm.$nextTick()
@@ -2003,7 +1996,7 @@ describe('Matching', () => {
         await confirmButton(page).trigger('click')
       }
       const arrive = async ({ home, findable = false, yes = true, stubs = {}, options = {} }) => {
-        store.state.gmsAllowed = findable
+        store.gmsAllowed = findable
         place.query = yes ? { findable: 'yes' } : {}
         const page = mountPage('position', { ...confirmOnly, ...stubs }, options)
         fire(userLocationQuery, { userLocation: home ? location : noHome })
@@ -2076,7 +2069,7 @@ describe('Matching', () => {
         await flushPromises()
 
         // Saved all the same - only the journey is no longer theirs.
-        expect(store.state.gmsAllowed).toBe(true)
+        expect(store.gmsAllowed).toBe(true)
         expect(push).not.toHaveBeenCalled()
       })
 
@@ -2156,7 +2149,7 @@ describe('Matching', () => {
       })
 
       it('leaves a member alone who is on the map already', async () => {
-        store.state.userLocation = { ...location.userLocation }
+        store.userLocation = { ...location.userLocation }
         const page = await arrive({ home: true, findable: true })
 
         expect(findableSwitch(page).props('initialValue')).toBe(true)
@@ -2177,14 +2170,14 @@ describe('Matching', () => {
         await flushPromises()
 
         expect(mutate).toHaveBeenCalledWith({ gmsAllowed: true })
-        expect(store.state.gmsAllowed).toBe(true)
+        expect(store.gmsAllowed).toBe(true)
         expect(push).not.toHaveBeenCalled()
       })
 
       // The yes belongs to the home tab's address. Typed onto another tab it is nothing,
       // and it must not wait there as a draft for the moment the member comes over.
       it('ignores the yes on another tab', async () => {
-        store.state.gmsAllowed = false
+        store.gmsAllowed = false
         place.query = { findable: 'yes' }
         const page = mountPage('entries', confirmOnly)
         fire(userLocationQuery, { userLocation: location })

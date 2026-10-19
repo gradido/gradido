@@ -16,7 +16,7 @@ import CONFIG from '../config'
 /**
  * Whether the stored session still runs: a token, and more than five seconds before it ends --
  * the margin the redeem page allows too (TransactionLink.vue). `tokenTime` is when the session
- * ends by this device's clock, in seconds (the `token` mutation in store.js). The language
+ * ends by this device's clock, in seconds (`setToken` in useWalletStore.js). The language
  * switch asks the same before it saves a language to the account (LanguageSwitch2.vue).
  */
 export const sessionRuns = (state) =>
@@ -43,7 +43,7 @@ const addNavigationGuards = (router, store, apollo) => {
   router.beforeEach((to, from, next) => {
     const publisherId = to.query.pid
     if (publisherId) {
-      store.commit('publisherId', publisherId)
+      store.setPublisherId(publisherId)
       delete to.query.pid
     }
     next()
@@ -82,7 +82,7 @@ const addNavigationGuards = (router, store, apollo) => {
       // take no variables share one cache key, so they would answer from that account's
       // cache until the network catches up.
       await clearApolloCache()
-      store.commit('token', token)
+      store.setToken(token)
       await apollo
         .query({
           query: verifyLogin,
@@ -92,18 +92,18 @@ const addNavigationGuards = (router, store, apollo) => {
           // The picture and its visibility switch are part of the login action now -- both
           // answers carry them, so dispatching one is enough and the two commits that
           // used to stand here would only write the same values again.
-          store.dispatch('login', result.data.verifyLogin)
+          store.login(result.data.verifyLogin)
           // The address is not: no login answer selects it. This is what makes the
           // settings page tell the truth after an address change, because the store's copy
           // is only ever written where somebody holds a fresh answer from the server, and
           // this guard is the one place a member passes through regularly without signing
           // in again. Without it the page shows the address of the last sign-in until the
           // next one - a reload does not help, because the store is persisted.
-          store.commit('email', result.data.verifyLogin.emailContact?.email ?? '')
+          store.setEmail(result.data.verifyLogin.emailContact?.email ?? '')
           next(page ?? { path: '/overview' })
         })
         .catch(() => {
-          store.dispatch('logout')
+          store.logout()
           if (page) {
             next(page)
           } else {
@@ -140,8 +140,8 @@ const addNavigationGuards = (router, store, apollo) => {
   // the address, which the browser keeps in its history.
   router.beforeEach((to, from, next) => {
     if (from !== START_LOCATION) return next()
-    const back = takeChatReturn(store.state.gradidoID)
-    if (to.query.project || !sessionRuns(store.state)) return next()
+    const back = takeChatReturn(store.gradidoID)
+    if (to.query.project || !sessionRuns(store)) return next()
     if (to.name === 'Login' && to.params.code) {
       return next({ name: 'Redeem', params: { code: to.params.code }, query: to.query })
     }
@@ -190,19 +190,19 @@ const addNavigationGuards = (router, store, apollo) => {
     if (to.name !== 'EventMatchingLanding') return next()
     const entry = readEventMatchingLink(to.query)
     if (!entry) return next({ path: '/login' })
-    if (!sessionRuns(store.state)) {
-      if (store.state.token) {
+    if (!sessionRuns(store)) {
+      if (store.token) {
         try {
-          await store.dispatch('logout')
+          await store.logout()
         } catch {
           // The sign-in is gone already; what failed was housekeeping.
         }
       }
-      store.commit('eventMatchingEntry', eventMatchingEntryToKeep(entry))
+      store.setEventMatchingEntry(eventMatchingEntryToKeep(entry))
       // The link is the visitor's latest wish for after a sign-in. A page that waited there
       // from an earlier visit (`redirectPath`, written below for somebody signed out) is older
       // and goes; one asked for after this is younger, and the link's entry goes (Login.vue).
-      store.commit('redirectPath', '/overview')
+      store.setRedirectPath('/overview')
       return next()
     }
     if (from !== START_LOCATION) {
@@ -223,13 +223,13 @@ const addNavigationGuards = (router, store, apollo) => {
   // does, and the link waits at the form like that of anybody signed out. The logout comes
   // first because it sets the way back to the overview itself.
   router.beforeEach(async (to, from, next) => {
-    if (to.meta.requiresAuth && !sessionRuns(store.state)) {
+    if (to.meta.requiresAuth && !sessionRuns(store)) {
       // The logout takes the token in its first commit. What can fail after that is clearing up
       // -- storage refused in a private window, the cache -- and that must neither keep the
       // member from the form nor lose the link: both go on either way.
-      if (store.state.token) {
+      if (store.token) {
         try {
-          await store.dispatch('logout')
+          await store.logout()
         } catch {
           // The sign-in is gone already; what failed was housekeeping.
         }
@@ -241,7 +241,7 @@ const addNavigationGuards = (router, store, apollo) => {
       // clicks such a link is almost always signed out, so this is the normal path for
       // them, not the edge case - with `path` every one of those wishes was dropped at
       // the login and the person landed on the right page with the wish gone.
-      store.commit('redirectPath', to.fullPath)
+      store.setRedirectPath(to.fullPath)
       next({ path: '/login' })
     } else {
       next()
@@ -254,7 +254,7 @@ const addNavigationGuards = (router, store, apollo) => {
   // the member a page of error toasts. `=== false`, not a falsy check: null is "not known",
   // and for not-known the answer is the one every existing account has.
   router.beforeEach((to, from, next) => {
-    if (to.path.startsWith('/contributions') && store.state.creationAllowed === false) {
+    if (to.path.startsWith('/contributions') && store.creationAllowed === false) {
       next({ path: '/overview' })
     } else {
       next()
@@ -273,7 +273,7 @@ const addNavigationGuards = (router, store, apollo) => {
   // of its own. /matching/position carries no flag, so it is never gated: it is where both
   // answers are given.
   router.beforeEach((to, from, next) => {
-    if (to.meta.requiresFindable && !mayFind(store.state)) {
+    if (to.meta.requiresFindable && !mayFind(store)) {
       next({ path: '/matching/position' })
     } else {
       next()

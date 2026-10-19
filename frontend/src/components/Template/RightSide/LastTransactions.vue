@@ -153,7 +153,7 @@ import VariantIcon from '@/components/VariantIcon.vue'
 import ContactWindow from '@/components/Contacts/ContactWindow.vue'
 import FavoriteHeart from '@/components/FavoriteHeart.vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { computed } from 'vue'
 import { useApolloClient } from '@vue/apollo-composable'
 import AppAvatar from '@/components/AppAvatar.vue'
@@ -172,7 +172,7 @@ const props = defineProps({
 
 const router = useRouter()
 const route = useRoute()
-const store = useStore()
+const store = useWalletStore()
 const { client: apolloClient } = useApolloClient()
 
 /**
@@ -184,7 +184,7 @@ const { client: apolloClient } = useApolloClient()
 const { windowOpen, selected, openMember } = useContactWindow(apolloClient)
 
 const handleRedirect = (id) => {
-  store.dispatch('changeTransactionToHighlightId', id)
+  store.changeTransactionToHighlightId(id)
   if (route.name !== 'Transactions') router.replace({ name: 'Transactions' })
 }
 

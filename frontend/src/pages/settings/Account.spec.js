@@ -2,13 +2,15 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi } from 'vitest'
 import flushPromises from 'flush-promises'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
 import { BButton, BCol, BForm, BFormInput, BRow } from 'bootstrap-vue-next'
 import Account from './Account.vue'
 
 const mockMutate = vi.fn()
 vi.mock('@vue/apollo-composable', () => ({ useMutation: () => ({ mutate: mockMutate }) }))
 vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key) => key }) }))
+// The wallet store sets the language on the app's own i18n, which this spec does not build.
+vi.mock('@/i18n', () => ({ default: { global: { locale: { value: 'en' } } } }))
 vi.mock('@/composables/useToast', () => ({
   useAppToast: () => ({ toastError: vi.fn(), toastSuccess: vi.fn() }),
 }))
@@ -16,15 +18,7 @@ vi.mock('@/composables/useToast', () => ({
 const mountAccount = () =>
   mount(Account, {
     global: {
-      plugins: [
-        createStore({
-          state: () => ({ firstName: 'John', lastName: 'Doe' }),
-          mutations: {
-            firstName: (state, value) => (state.firstName = value),
-            lastName: (state, value) => (state.lastName = value),
-          },
-        }),
-      ],
+      plugins: [walletStore({ firstName: 'John', lastName: 'Doe' })],
       stubs: {
         BRow,
         BCol,

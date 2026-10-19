@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { ref } from 'vue'
 import UserName from './UserName.vue'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
 import { createI18n } from 'vue-i18n'
 
 vi.mock('@/components/Inputs/InputUsername', () => ({
@@ -46,17 +46,10 @@ const i18n = createI18n({
   },
 })
 
-const createVuexStore = (initialState = {}) =>
-  createStore({
-    state: () => ({
-      username: null,
-      ...initialState,
-    }),
-    mutations: {
-      username(state, newUsername) {
-        state.username = newUsername
-      },
-    },
+const createWalletStore = (initialState = {}) =>
+  walletStore({
+    username: null,
+    ...initialState,
   })
 
 const mutationMock = vi.fn()
@@ -108,7 +101,7 @@ describe('UserName Form', () => {
   let wrapper
 
   const mountComponent = (storeState = {}) => {
-    const store = createVuexStore(storeState)
+    const store = createWalletStore(storeState)
     return mount(UserName, {
       global: {
         plugins: [store, i18n],
@@ -351,7 +344,7 @@ describe('UserName Form', () => {
       await wrapper.find('[data-test="confirm-change"]').trigger('click')
 
       expect(mutationMock).toHaveBeenCalledWith({ alias: 'newUser' })
-      expect(wrapper.vm.store.state.username).toBe('newUser')
+      expect(wrapper.vm.store.username).toBe('newUser')
       expect(toastSuccessMock).toHaveBeenCalledWith('Username changed successfully')
     })
 

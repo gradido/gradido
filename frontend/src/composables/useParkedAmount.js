@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 
 /**
  * The amount the calculator hands to a card payment.
@@ -57,10 +57,10 @@ export const forgetParkedAmount = (gradidoID) => {
 export const PARKED_AMOUNT_TTL_MS = 10 * 60 * 1000
 
 export const useParkedAmount = () => {
-  const store = useStore()
+  const store = useWalletStore()
 
   const storageKey = () => {
-    const { gradidoID } = store.state
+    const { gradidoID } = store
     return gradidoID ? `${KEY_PREFIX}${gradidoID}` : null
   }
 

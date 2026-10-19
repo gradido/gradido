@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { onBeforeUnmount, ref } from 'vue'
 import { useQuery } from '@vue/apollo-composable'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { FIRST_ANSWER_PATIENCE_MS } from '@/composables/useMapMemberCount'
 import { listMatchingEntries } from '@/graphql/queries'
 import { ENTRIES_TO_ARRIVE } from '@/utils/newMatchingEntry'
@@ -96,20 +96,20 @@ export const rememberOwnMatchingEntries = (gradidoID, count) => {
  * `entries` is written at most once, on the way to `settled`, and never after it.
  */
 export function useOwnMatchingEntries() {
-  const store = useStore()
+  const store = useWalletStore()
   const entries = ref(null)
   const settled = ref(true)
 
   // Decided when the overview is set up, and not looked at again: the tile reads the store
   // once as well, so that a save still under way on another page cannot change it later.
-  if (!standsOnTheMap(store.state)) {
+  if (!standsOnTheMap(store)) {
     return { settled, entries }
   }
 
   // Whose entries are asked about. Held here and not read when the answer comes: signing
   // out empties the store while the overview still stands, and an answer on its way then
   // is still this member's and nobody else's.
-  const member = store.state.gradidoID
+  const member = store.gradidoID
   const heard = remembered(member)
   entries.value = heard ?? null
 

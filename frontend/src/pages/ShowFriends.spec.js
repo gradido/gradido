@@ -4,7 +4,8 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { ref, unref } from 'vue'
 import { createI18n } from 'vue-i18n'
 import { createRouter, createWebHistory } from 'vue-router'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
+import { useWalletStore } from '@/store/useWalletStore'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import ShowFriends from './ShowFriends.vue'
 import OwnCodeView from '@/components/QrCode/OwnCodeView'
@@ -122,17 +123,19 @@ const router = createRouter({
 
 const share = vi.fn()
 const writeText = vi.fn()
-// The store's own sign-out, as the header dispatches it.
+// The store's own sign-out, as the header calls it.
 const storeLogout = vi.fn()
+
+const signedInAs = (state) => {
+  const pinia = walletStore(state)
+  useWalletStore(pinia).logout = storeLogout
+  return pinia
+}
 
 const mountPage = (state = { username: 'alice', gradidoID: 'uuid-1' }) =>
   mount(ShowFriends, {
     global: {
-      plugins: [
-        i18n,
-        router,
-        createStore({ state: () => state, actions: { logout: storeLogout } }),
-      ],
+      plugins: [i18n, router, signedInAs(state)],
       stubs: {
         IMdiCoffeeOutline: true,
         IMdiEmailOutline: true,
@@ -518,7 +521,7 @@ describe('ShowFriends', () => {
       await flushPromises()
       expect(wrapper.find('[data-test="show-friends-confirm-first"]').exists()).toBe(true)
 
-      wrapper.vm.$store.state.emailChecked = true
+      useWalletStore(wrapper.vm.$pinia).emailChecked = true
       await flushPromises()
 
       expect(wrapper.find('[data-test="show-friends-confirm-first"]').exists()).toBe(false)

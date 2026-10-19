@@ -33,7 +33,7 @@
 
 <script setup>
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useApolloClient, useMutation } from '@vue/apollo-composable'
@@ -55,14 +55,14 @@ import {
 import { SHOW_ME_ON_THE_MAP, invitedOntoTheMap } from '@/utils/showMeOnTheMap'
 import CONFIG from '@/config'
 
-const store = useStore()
+const store = useWalletStore()
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
 const { client } = useApolloClient()
 const { mutate: settleMutation } = useMutation(settleEventMatchingArrival)
 
-const member = computed(() => store.state.gradidoID || null)
+const member = computed(() => store.gradidoID || null)
 
 /**
  * How long the account's answer is waited for -- the first creation waits with it (`undecided`
@@ -118,7 +118,7 @@ watch(
     fromServer.value = undefined
     // Nobody signed in, a member on the map, a wallet without one: `invitedOntoTheMap` asks all
     // three, as for the overview's tile.
-    if (!invitedOntoTheMap(store.state)) {
+    if (!invitedOntoTheMap(store)) {
       fromServer.value = null
       return
     }
@@ -164,7 +164,7 @@ const onSettings = computed(() => route.path.startsWith('/settings'))
  * creation waits for the next start from the moment the invitation is due, wherever the member
  * stands: on the home tab the window does not open, it leads there (KA-015).
  */
-const due = computed(() => !over.value && Boolean(sentence.value) && invitedOntoTheMap(store.state))
+const due = computed(() => !over.value && Boolean(sentence.value) && invitedOntoTheMap(store))
 watch(due, (value) => value && holdFirstCreationForThisSession(), { immediate: true })
 
 const wants = computed(() => due.value && !onSettings.value && !onHomeTab.value)
@@ -235,7 +235,7 @@ watch(onScreen, (shown) => {
 // On the map without the window -- the overview's tile, the home tab, or there already when the
 // link was opened: nobody to invite.
 watch(
-  () => Boolean(sentence.value) && !invitedOntoTheMap(store.state),
+  () => Boolean(sentence.value) && !invitedOntoTheMap(store),
   (onTheMap) => onTheMap && finish(),
   { immediate: true },
 )

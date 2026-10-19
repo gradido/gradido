@@ -175,7 +175,7 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useApolloClient, useQuery } from '@vue/apollo-composable'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { BFormInput, BPagination, BSpinner } from 'bootstrap-vue-next'
 import ChatGroupCreate from '@/components/ChatGroups/ChatGroupCreate.vue'
 import ChatGroupRow from '@/components/ChatGroups/ChatGroupRow.vue'
@@ -316,10 +316,10 @@ watch(openedGroup, (group) => {
  * who is no contact yet belongs to it is the pair's to say too, for the address line; the server's
  * answer (`homeCommunity`) takes its place with the contact row.
  */
-const store = useStore()
+const store = useWalletStore()
 const openGroupMember = (user) => {
   if (!user?.gradidoID) return
-  const home = store.state.communityUuid
+  const home = store.communityUuid
   const key = chatMemberKey(user, home)
   const contact = contacts.value.find((held) => chatMemberKey(held.user, home) === key)
   if (contact) {

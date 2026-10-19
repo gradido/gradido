@@ -2,7 +2,7 @@
 
 import { useApolloClient } from '@vue/apollo-composable'
 import { useI18n } from 'vue-i18n'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import CONFIG from '@/config'
 import { useAppToast } from '@/composables/useToast'
 import { avatarFull } from '@/graphql/queries'
@@ -72,7 +72,7 @@ const buildSheet = (doc, card) => {
 }
 
 export const useGradidoCard = () => {
-  const store = useStore()
+  const store = useWalletStore()
   const { t } = useI18n()
   const { toastError } = useAppToast()
   const { client } = useApolloClient()
@@ -96,7 +96,7 @@ export const useGradidoCard = () => {
   }
 
   const memberName = () => {
-    const { firstName, lastName } = store.state
+    const { firstName, lastName } = store
     return `${firstName ?? ''} ${lastName ?? ''}`.trim()
   }
 
@@ -118,15 +118,14 @@ export const useGradidoCard = () => {
    * - **the file name of the download**, which is what a print shop reads off the file.
    */
   const printedName = (realName) => {
-    const { username, gradidoID } = store.state
+    const { username, gradidoID } = store
     return realName ? memberName() : memberAlias(username, gradidoID)
   }
 
   /**
    * The everyday picture, as a data URI, or null. Held in the store as bare base64.
    */
-  const storedPicture = () =>
-    store.state.avatar ? `data:image/jpeg;base64,${store.state.avatar}` : null
+  const storedPicture = () => (store.avatar ? `data:image/jpeg;base64,${store.avatar}` : null)
 
   /**
    * @param {object} [options]
@@ -141,7 +140,7 @@ export const useGradidoCard = () => {
     realName = true,
     preview = false,
   } = {}) => {
-    const { firstName, lastName, username, gradidoID } = store.state
+    const { firstName, lastName, username, gradidoID } = store
     const alias = memberAlias(username, gradidoID)
     const { host, link } = gradidoAddress(alias)
     // The disc's letters are the first two of the user name, whether the real name is printed

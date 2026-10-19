@@ -10,8 +10,8 @@ vi.mock('@vue/apollo-composable', () => ({
 // The composable no longer reads the store. The mock stays so that a gate on `gmsAllowed`,
 // put back, finds a store to read from and the test below can say so - without it such a gate
 // would throw, and every test would fail for a reason that names nothing.
-vi.mock('vuex', () => ({
-  useStore: () => ({ state }),
+vi.mock('@/store/useWalletStore', () => ({
+  useWalletStore: () => state,
 }))
 
 // What the backend hands out (the operator's GMS_DASHBOARD_URL, closed with a slash); the API

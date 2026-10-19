@@ -19,13 +19,13 @@
 </template>
 <script setup>
 import { ref, computed, watch, watchPostEffect } from 'vue'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { updateUserInfos } from '@/graphql/mutations'
 import { useMutation } from '@vue/apollo-composable'
 import { BFormCheckbox } from 'bootstrap-vue-next'
 import { useAppToast } from '@/composables/useToast'
 
-const store = useStore()
+const store = useWalletStore()
 const { toastSuccess, toastError } = useAppToast()
 
 const props = defineProps({
@@ -76,7 +76,8 @@ const onChange = async (evtPayload) => {
   variables[props.attrName] = evtPayload
   try {
     await updateUserData({ ...variables })
-    store.commit(props.attrName, evtPayload)
+    // The switch is named after the field it stands for, and each of them is set as it is.
+    store.$patch({ [props.attrName]: evtPayload })
     emit('value-changed', evtPayload)
     toastSuccess(evtPayload ? props.enabledText : props.disabledText)
   } catch (error) {

@@ -59,7 +59,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useMutation } from '@vue/apollo-composable'
 import { useI18n } from 'vue-i18n'
 import { updateUserInfos } from '@/graphql/mutations'
@@ -71,12 +71,12 @@ const props = defineProps({
   showStatus: { type: Boolean, default: false },
 })
 
-const store = useStore()
+const store = useWalletStore()
 const { mutate } = useMutation(updateUserInfos)
 const { t, n } = useI18n()
 const { toastError } = useAppToast()
 
-const hideAmount = computed(() => store.state.hideAmountGDT)
+const hideAmount = computed(() => store.hideAmountGDT)
 
 const updateHideAmountGDT = async () => {
   // ⛔ Read ONCE, before the waiting. `hideAmount` is a computed on the store, so asking it
@@ -90,14 +90,14 @@ const updateHideAmountGDT = async () => {
       hideAmountGDT: hidden,
     })
 
-    store.commit('hideAmountGDT', hidden)
+    store.setHideAmountGDT(hidden)
     // ⛔ No toast either way. Hiding or showing the balance is a switch whose whole result
     // is on screen the moment it lands -- the number is there or it is not -- so a message
     // saying so afterwards only repeats what the eye has already seen. Switched quickly back
     // and forth they piled up on top of each other. (Bernd, 27.08.2026)
     //
     // ⚠️ The failure still speaks, and the reason is the opposite of what stood here at
-    // first: `store.commit` above sits INSIDE the try, after the awaited mutation, so a
+    // first: `store.setHideAmountGDT` above sits INSIDE the try, after the awaited mutation, so a
     // rejected save never reaches it and nothing changes on this device. The click simply
     // does nothing -- and a control that does nothing, silently, is the one case the eye
     // cannot report. That is what `toastError` is for.

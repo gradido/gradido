@@ -1,21 +1,17 @@
 // AI-GENERATED — not an architecture reference
 import { mount } from '@vue/test-utils'
 import { describe, it, expect } from 'vitest'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
+import { useWalletStore } from '@/store/useWalletStore'
 import { BCol, BRow } from 'bootstrap-vue-next'
 import Notifications from './Notifications.vue'
 
 const mountNotifications = (transfersInChat = null) => {
-  const store = createStore({
-    state: () => ({ newsletterState: false, transfersInChat }),
-    mutations: {
-      newsletterState: (state, value) => (state.newsletterState = value),
-      transfersInChat: (state, value) => (state.transfersInChat = value),
-    },
-  })
+  const pinia = walletStore({ newsletterState: false, transfersInChat })
+  const store = useWalletStore(pinia)
   const wrapper = mount(Notifications, {
     global: {
-      plugins: [store],
+      plugins: [pinia],
       stubs: {
         BRow,
         BCol,
@@ -44,7 +40,7 @@ describe('the notifications section', () => {
     const { wrapper, store } = mountNotifications()
     expect(wrapper.text()).toContain('settings.newsletter.newsletterFalse')
 
-    store.commit('newsletterState', true)
+    store.setNewsletterState(true)
     await wrapper.vm.$nextTick()
 
     expect(wrapper.text()).toContain('settings.newsletter.newsletterTrue')
@@ -78,12 +74,12 @@ describe('the notifications section', () => {
       const { wrapper, store } = mountNotifications(null)
       expect(state(wrapper).text()).toBe('settings.transfersInChat.on')
 
-      store.commit('transfersInChat', false)
+      store.setTransfersInChat(false)
       await wrapper.vm.$nextTick()
       expect(state(wrapper).text()).toBe('settings.transfersInChat.off')
       expect(theSwitch(wrapper).props('initialValue')).toBe(false)
 
-      store.commit('transfersInChat', true)
+      store.setTransfersInChat(true)
       await wrapper.vm.$nextTick()
       expect(state(wrapper).text()).toBe('settings.transfersInChat.on')
     })

@@ -59,7 +59,7 @@
 
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useRoute, useRouter } from 'vue-router'
 import { useMutation } from '@vue/apollo-composable'
 import { BButton, BModal } from 'bootstrap-vue-next'
@@ -76,7 +76,7 @@ import {
 // change one, change both.
 const CONFIRMATION_GRACE_HOURS = 24
 
-const store = useStore()
+const store = useWalletStore()
 const route = useRoute()
 const router = useRouter()
 const { toastError } = useAppToast()
@@ -86,10 +86,9 @@ const resent = ref(false)
 const resending = ref(false)
 
 const deadline = computed(() =>
-  store.state.accountCreatedAt
+  store.accountCreatedAt
     ? new Date(
-        new Date(store.state.accountCreatedAt).getTime() +
-          CONFIRMATION_GRACE_HOURS * 60 * 60 * 1000,
+        new Date(store.accountCreatedAt).getTime() + CONFIRMATION_GRACE_HOURS * 60 * 60 * 1000,
       )
     : null,
 )
@@ -111,7 +110,7 @@ const overdue = computed(() => !!deadline.value && now.value > deadline.value.ge
 
 const deadlineText = computed(() =>
   deadline.value
-    ? deadline.value.toLocaleString(store.state.language || undefined, {
+    ? deadline.value.toLocaleString(store.language || undefined, {
         dateStyle: 'medium',
         timeStyle: 'short',
       })
@@ -124,7 +123,7 @@ const deadlineText = computed(() =>
 // they have to be told about.
 const wants = computed(
   () =>
-    store.state.emailChecked === false &&
+    store.emailChecked === false &&
     // `overdue` overrides `dismissed`: past the deadline the modal returns on every
     // route change — coming back from the settings without having corrected anything
     // must not leave the account silently narrowed down with no explanation in sight.

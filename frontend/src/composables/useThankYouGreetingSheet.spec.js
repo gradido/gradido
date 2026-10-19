@@ -34,7 +34,7 @@ vi.mock('@/composables/useToast', () => ({
 }))
 
 const storeState = { username: 'Oma-Emma', gradidoID: '0b1e9a52-7c1d-4a0e-9d55-2f6a8f3c1e77' }
-vi.mock('vuex', () => ({ useStore: () => ({ state: storeState }) }))
+vi.mock('@/store/useWalletStore', () => ({ useWalletStore: () => storeState }))
 
 // The Apollo client is asked for only where the server has to be asked for the small rendition.
 const apollo = vi.hoisted(() => ({ client: null, asked: 0 }))

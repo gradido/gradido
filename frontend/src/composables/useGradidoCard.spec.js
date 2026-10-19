@@ -32,8 +32,8 @@ const storeState = {
   gradidoID: 'uuid-1',
   avatar: 'SMALLPICTURE',
 }
-vi.mock('vuex', () => ({
-  useStore: () => ({ state: storeState }),
+vi.mock('@/store/useWalletStore', () => ({
+  useWalletStore: () => storeState,
 }))
 
 vi.mock('vue-i18n', () => ({

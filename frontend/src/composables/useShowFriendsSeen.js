@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 
 import { ref, watch } from 'vue'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 
 /**
  * Whether this member has already opened the page for showing Gradido to somebody, on
@@ -14,8 +14,8 @@ import { useStore } from 'vuex'
  * ⛔ Not a setting (E-020) and nothing to click away: the member answers it by going to
  * the page, which is the only thing the tile asks of them.
  *
- * ⛔ Not in the vuex store: `createPersistedState` writes the WHOLE store to localStorage
- * on every mutation, the way `useRightSidePref` explains.
+ * ⛔ Not in the store: store.js writes the WHOLE store to localStorage
+ * on every change, the way `useRightSidePref` explains.
  *
  * Key: `show-friends-seen:<gradidoID>` -- ⛔ never a shared key without the id. It is null
  * before the login answer arrives and again after signing out, and one shared key would
@@ -29,7 +29,7 @@ const KEY_PREFIX = 'show-friends-seen:'
 const storageKey = (gradidoID) => (gradidoID ? `${KEY_PREFIX}${gradidoID}` : null)
 
 export const useShowFriendsSeen = () => {
-  const store = useStore()
+  const store = useWalletStore()
   const seen = ref(false)
 
   /**
@@ -47,7 +47,7 @@ export const useShowFriendsSeen = () => {
   let pendingVisit = false
 
   const read = () => {
-    const key = storageKey(store.state.gradidoID)
+    const key = storageKey(store.gradidoID)
     if (!key) {
       // Nobody named: nothing can be read, and a visit made in this gap is all there is.
       seen.value = pendingVisit
@@ -75,10 +75,10 @@ export const useShowFriendsSeen = () => {
    * rather than with the token the route guard checks, and it changes when somebody else
    * signs in on this device.
    */
-  watch(() => store.state.gradidoID, read, { immediate: true })
+  watch(() => store.gradidoID, read, { immediate: true })
 
   const markSeen = () => {
-    const key = storageKey(store.state.gradidoID)
+    const key = storageKey(store.gradidoID)
     seen.value = true
     if (!key) {
       pendingVisit = true

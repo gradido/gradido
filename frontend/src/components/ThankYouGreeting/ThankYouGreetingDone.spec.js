@@ -19,8 +19,8 @@ vi.mock('@/utils/chatImageSave', () => ({
 
 const toast = vi.hoisted(() => ({ toastSuccess: vi.fn(), toastError: vi.fn() }))
 vi.mock('@/composables/useToast', () => ({ useAppToast: () => toast }))
-vi.mock('vuex', () => ({
-  useStore: () => ({ state: { username: 'Oma-Emma', gradidoID: 'uuid-emma' } }),
+vi.mock('@/store/useWalletStore', () => ({
+  useWalletStore: () => ({ username: 'Oma-Emma', gradidoID: 'uuid-emma' }),
 }))
 
 const LINK = 'https://ki-playground.gradido.net/redeem/a3f9c2d41b7e19981fa0c4e2'

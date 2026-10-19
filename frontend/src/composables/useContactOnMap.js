@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { ref } from 'vue'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import CONFIG from '@/config'
 import { isUsablePlace, useMatches } from '@/composables/useMatches'
 import { mayFind } from '@/utils/matchingPosition'
@@ -54,7 +54,7 @@ export function contactMapPair(member, state) {
  * guess, and nothing is said -- a missing mark is no error the member could act on.
  */
 export const useContactOnMap = () => {
-  const store = useStore()
+  const store = useWalletStore()
   const { profile } = useMatches()
 
   /** The pair to show on the map, once the GMS has said the person stands there; else null. */
@@ -73,7 +73,7 @@ export const useContactOnMap = () => {
     asked += 1
     const mine = asked
     onMap.value = null
-    const pair = contactMapPair(member, store.state)
+    const pair = contactMapPair(member, store)
     if (!pair) return
     let there = false
     try {

@@ -2,7 +2,8 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { nextTick } from 'vue'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
+import { useWalletStore } from '@/store/useWalletStore'
 import {
   readChatWindowLarge,
   rememberChatWindowLarge,
@@ -12,7 +13,7 @@ import {
 const KEY = (gradidoID) => `chat-window-large:${gradidoID}`
 
 /**
- * A component, because the composable reads the vuex store and watches it -- as a chat window
+ * A component, because the composable reads the wallet store and watches it -- as a chat window
  * does. Each one stands for one chat window of the page.
  */
 const mountWindow = (store) => {
@@ -30,15 +31,7 @@ const mountWindow = (store) => {
   return { wrapper, api: () => api }
 }
 
-const storeOf = (gradidoID) =>
-  createStore({
-    state: { gradidoID },
-    mutations: {
-      gradidoID: (state, id) => {
-        state.gradidoID = id
-      },
-    },
-  })
+const storeOf = (gradidoID) => walletStore({ gradidoID })
 
 describe('useChatWindowSize', () => {
   let made
@@ -135,11 +128,11 @@ describe('useChatWindowSize', () => {
     const { wrapper } = openWindow(store)
     expect(wrapper.text()).toBe('usual')
 
-    store.commit('gradidoID', 'member-2')
+    useWalletStore(store).setGradidoID('member-2')
     await nextTick()
     expect(wrapper.text()).toBe('large')
 
-    store.commit('gradidoID', 'member-1')
+    useWalletStore(store).setGradidoID('member-1')
     await nextTick()
     expect(wrapper.text()).toBe('usual')
   })
@@ -148,7 +141,7 @@ describe('useChatWindowSize', () => {
   it('remembers the switch for whoever is named when it is pressed', async () => {
     const store = storeOf('member-1')
     const { api } = openWindow(store)
-    store.commit('gradidoID', 'member-2')
+    useWalletStore(store).setGradidoID('member-2')
     await nextTick()
 
     api().toggleLarge()
@@ -167,7 +160,7 @@ describe('useChatWindowSize', () => {
     const { wrapper } = openWindow(store)
     expect(wrapper.text()).toBe('large')
 
-    store.commit('gradidoID', null)
+    useWalletStore(store).setGradidoID(null)
     await nextTick()
     expect(wrapper.text()).toBe('large')
     // …and nothing was written for it: what the member left is still theirs.
@@ -179,11 +172,11 @@ describe('useChatWindowSize', () => {
     window.localStorage.setItem(KEY('member-1'), '1')
     const store = storeOf('member-1')
     const first = openWindow(store)
-    store.commit('gradidoID', null)
+    useWalletStore(store).setGradidoID(null)
     await nextTick()
     first.wrapper.unmount()
 
-    store.commit('gradidoID', 'member-2')
+    useWalletStore(store).setGradidoID('member-2')
     const second = openWindow(store)
     expect(second.wrapper.text()).toBe('usual')
   })

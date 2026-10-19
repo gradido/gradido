@@ -3,10 +3,10 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import SessionLogoutTimeout from './SessionLogoutTimeout.vue'
 import { useLazyQuery } from '@vue/apollo-composable'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 
-vi.mock('vuex', () => ({
-  useStore: vi.fn(),
+vi.mock('@/store/useWalletStore', () => ({
+  useWalletStore: vi.fn(),
 }))
 
 vi.mock('@vue/apollo-composable', () => ({
@@ -46,10 +46,8 @@ describe('SessionLogoutTimeout', () => {
   let wrapper
 
   const createWrapper = (tokenTime = setTokenTime(120)) => {
-    vi.mocked(useStore).mockReturnValue({
-      state: {
-        tokenTime,
-      },
+    vi.mocked(useWalletStore).mockReturnValue({
+      tokenTime,
     })
     return mount(SessionLogoutTimeout, {
       global: {

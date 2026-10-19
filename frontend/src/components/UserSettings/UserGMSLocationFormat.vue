@@ -15,14 +15,14 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useMutation } from '@vue/apollo-composable'
 import { updateUserInfos } from '@/graphql/mutations'
 import { BDropdown, BDropdownItem } from 'bootstrap-vue-next'
 import { useAppToast } from '@/composables/useToast'
 
 const { t } = useI18n()
-const store = useStore()
+const store = useWalletStore()
 const { toastError, toastSuccess } = useAppToast()
 
 // Optional toast overrides so the Matching page can show accuracy-specific
@@ -36,7 +36,7 @@ const props = defineProps({
   defer: { type: Boolean, default: false },
 })
 
-const selectedOption = ref(store.state.gmsPublishLocation)
+const selectedOption = ref(store.gmsPublishLocation)
 const dropdownOptions = [
   {
     label: t('settings.GMS.publish-location.exact'),
@@ -77,7 +77,7 @@ const update = async (option) => {
         : props.approximateToast || fallback,
     )
     selectedOption.value = option.value
-    store.commit('gmsPublishLocation', option.value)
+    store.setGmsPublishLocation(option.value)
     emit('gmsPublishLocation', option.value)
   } catch (error) {
     toastError(error.message)

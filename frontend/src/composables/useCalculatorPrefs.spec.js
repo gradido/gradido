@@ -6,13 +6,13 @@ import { useCalculatorPrefs } from './useCalculatorPrefs'
 /** What the till remembers about itself -- on the device, bound to whoever is signed in. */
 
 /**
- * ⚠️ `reactive`, not a plain object: vuex hands out a reactive state, and the composable
+ * ⚠️ `reactive`, not a plain object: the store is reactive, and the composable
  * watches `gradidoID` on it. A plain stand-in would never fire that watcher -- the tests
  * below would pass against a version that reads the ID exactly once, which is the fault
  * they exist for.
  */
 const state = reactive({ gradidoID: 'user-one' })
-vi.mock('vuex', () => ({ useStore: () => ({ state }) }))
+vi.mock('@/store/useWalletStore', () => ({ useWalletStore: () => state }))
 
 const KEY = 'calculator-prefs:user-one'
 

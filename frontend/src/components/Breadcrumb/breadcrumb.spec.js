@@ -3,7 +3,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import Breadcrumb from './breadcrumb.vue'
-import { createStore } from 'vuex'
+import { walletStore } from '@test/walletStore'
 
 vi.mock('@/config', () => ({ default: { COMMUNITY_NAME: 'KI Playground' } }))
 
@@ -12,8 +12,10 @@ vi.mock('vue-router', () => ({ useRoute: () => route }))
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({ t: (key, values) => (values ? `${key}:${JSON.stringify(values)}` : key) }),
 }))
+// The store sets the language of the app's i18n; that one is built with the real vue-i18n.
+vi.mock('@/i18n', () => ({ default: { global: { locale: { value: 'de' } } } }))
 
-const store = createStore({ state: () => ({ firstName: 'Margret' }) })
+const store = walletStore({ firstName: 'Margret' })
 
 const mountWith = (meta) => {
   route.meta = meta

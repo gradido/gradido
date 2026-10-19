@@ -348,7 +348,7 @@
 import { computed, onBeforeUnmount, provide, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { useStore } from 'vuex'
+import { useWalletStore } from '@/store/useWalletStore'
 import { useMutation } from '@vue/apollo-composable'
 import { BModal } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
@@ -406,7 +406,7 @@ const emit = defineEmits(['update:modelValue', 'contactMade'])
 
 const { t, d } = useI18n()
 const router = useRouter()
-const store = useStore()
+const store = useWalletStore()
 const { toastSuccess, toastError } = useAppToast()
 const { mutate: saveMuted } = useMutation(setChatConversationMuted)
 
@@ -433,7 +433,7 @@ const avatar = computed(() => display.value?.avatar ?? {})
  * community. A key that wrote the two differently made a new thread under a reading eye, and
  * dropped an answer about the bell that was on its way.
  */
-const threadKey = computed(() => chatMemberKey(props.contact?.user, store.state.communityUuid))
+const threadKey = computed(() => chatMemberKey(props.contact?.user, store.communityUuid))
 
 /** The search in the conversation (E-057, useChatWindowSearch): closed with the window, and anew for another person. */
 const { searchOpen, searchTyped, searchFound, searchToggle, toggleSearch, closeSearch, takeFound } =
