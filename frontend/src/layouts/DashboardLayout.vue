@@ -350,6 +350,7 @@ import { useRightSidePref } from '@/composables/useRightSidePref'
 import { useViewport } from '@/composables/useViewport'
 import { routeSection } from '@/utils/routeSection'
 import { isMapWindowOfAdmin } from '@/utils/adminMapWindow'
+import { handOverAddress, sharesOrigin } from '@/utils/authToken'
 import CONFIG from '@/config'
 import { LAST_TRANSACTIONS_PAGE_SIZE } from '@/constants'
 import { useAppToast } from '@/composables/useToast'
@@ -741,8 +742,11 @@ const admin = () => {
     window.close()
     return
   }
-  window.location.assign(CONFIG.ADMIN_AUTH_URL + store.state.token)
-  store.dispatch('logout') // logout without redirect
+  window.location.assign(handOverAddress(CONFIG.ADMIN_AUTH_URL, store.state.token))
+  // Signed out only where the admin interface is on another origin (development), as it always
+  // was: there the token went along in the address. On one origin both apps hold the one token
+  // (utils/authToken.js), and signing out here would sign the admin interface out as well.
+  if (!sharesOrigin(CONFIG.ADMIN_AUTH_URL)) store.dispatch('logout') // logout without redirect
 }
 </script>
 <style>

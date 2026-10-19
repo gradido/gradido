@@ -8,8 +8,7 @@ import { describe, expect, it } from 'vitest'
 /**
  * ⛔ What stands behind a member's name -- the pin onto the wallet's map, the bubble into a
  * conversation, or the arrow into the send form -- reads a handful of things off the member: the pair it addresses the wallet by,
- * whether the member stands on the map, whether the account was deleted, and the member's
- * number. A field a document never asks for arrives as `undefined` -- and the answer to that
+ * whether the member stands on the map, and whether the account was deleted. A field a document never asks for arrives as `undefined` -- and the answer to that
  * is to stay away. No pin and no arrow for anybody, nothing crashes, and no component spec
  * notices, because each of them invents its own rows. So this holds the documents against the
  * component instead, in both places it stands: the member search and the member under a
@@ -38,20 +37,13 @@ const readOffTheMember = () => [
 
 const fieldsOf = (block) => withoutComments(block).split(/\s+/).filter(Boolean)
 
-// The member's number has two names: `userId` on a row of the member search (UserAdmin), `id`
-// with the member of a contribution (User). The component reads whichever is there.
-const NUMBER_IN_THE_SEARCH = 'userId'
-const NUMBER_WITH_A_CONTRIBUTION = 'id'
-
 describe('what stands behind a member reads, and what the documents ask for', () => {
-  it('reads the pair, the yes or no, the deletion and the number, and nothing else', () => {
+  it('reads the pair, the yes or no and the deletion, and nothing else', () => {
     expect(readOffTheMember().sort()).toEqual([
       'communityUuid',
       'deletedAt',
       'findableOnMap',
       'gradidoID',
-      NUMBER_WITH_A_CONTRIBUTION,
-      NUMBER_IN_THE_SEARCH,
     ])
   })
 
@@ -60,7 +52,7 @@ describe('what stands behind a member reads, and what the documents ask for', ()
 
     // The search proves itself: this is the block that carries the row.
     expect(fieldsOf(rows)).toContain('alias')
-    for (const field of readOffTheMember().filter((f) => f !== NUMBER_WITH_A_CONTRIBUTION)) {
+    for (const field of readOffTheMember()) {
       expect(fieldsOf(rows)).toContain(field)
     }
   })
@@ -71,7 +63,7 @@ describe('what stands behind a member reads, and what the documents ask for', ()
     )[1]
 
     expect(fieldsOf(fragment)).toContain('alias')
-    for (const field of readOffTheMember().filter((f) => f !== NUMBER_IN_THE_SEARCH)) {
+    for (const field of readOffTheMember()) {
       expect(fieldsOf(fragment)).toContain(field)
     }
   })
@@ -83,6 +75,16 @@ describe('what stands behind a member reads, and what the documents ask for', ()
     const refs = read('./contactRefs.js').match(/contactRefs \{([^}]*)\}/)[1]
 
     expect(fieldsOf(refs).sort()).toEqual(['communityUuid', 'gradidoID'])
+  })
+
+  // The moderator is told apart from the member by the same pair (utils/theModerator): a
+  // moderator signed in without it would be nobody, and get the arrow behind their own name.
+  it('asks for the pair of the moderator who signs in', () => {
+    const fields = fieldsOf(read('./verifyLogin.js').match(/verifyLogin \{([^}]*)\}/)[1])
+
+    expect(fields).toContain('gradidoID')
+    expect(fields).toContain('communityUuid')
+    expect(fields).not.toContain('id')
   })
 
   // The list and the one row that replaces a row of it after the moderator acted: both hand

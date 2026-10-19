@@ -13,11 +13,14 @@ vi.mock('@vue/apollo-composable')
 vi.mock('vue-i18n')
 vi.mock('@/composables/useToast')
 
-const createVuexStore = (moderatorId = 0) => {
+// The moderator, named by the pair as every member is; a row is theirs where it names the same.
+const MODERATOR = { gradidoID: 'moderator-gid', communityUuid: 'home' }
+
+const createVuexStore = () => {
   return createStore({
     state: {
       moderator: {
-        id: moderatorId,
+        ...MODERATOR,
         name: 'test moderator',
       },
     },
@@ -106,11 +109,12 @@ describe('DeletedUserFormular', () => {
 
   describe('when user is a moderator', () => {
     beforeEach(() => {
-      store = createVuexStore(1)
+      store = createVuexStore()
       wrapper = mount(DeletedUserFormular, {
         props: {
           item: {
             userId: 1,
+            ...MODERATOR,
             deletedAt: null,
           },
         },

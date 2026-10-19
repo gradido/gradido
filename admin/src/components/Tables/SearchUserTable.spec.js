@@ -126,7 +126,8 @@ describe('SearchUserTable', () => {
       state: {
         token: 'valid-token',
         moderator: {
-          id: 0,
+          gradidoID: 'moderator-gid',
+          communityUuid: 'home',
           name: 'test moderator',
           role: 'ADMIN',
         },

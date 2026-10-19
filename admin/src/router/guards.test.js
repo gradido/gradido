@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import addNavigationGuards from './guards'
 import { verifyLogin } from '../graphql/verifyLogin'
 import CONFIG from '../config'
@@ -122,6 +122,38 @@ describe('Navigation Guards', () => {
         apolloQueryMock.mockRejectedValue(new Error('Auth error'))
         await firstGuard({ path: '/authenticate', query: { token: 'valid-token' } }, {}, next)
         expect(next).toHaveBeenCalledWith({ path: '/not-found' })
+      })
+
+      // The cases above have the wallet on another origin, as in development. On a deployment
+      // it shares this one, and the one token both apps keep (utils/authToken): that one is
+      // taken, and one in the address is not.
+      describe('with the wallet on this origin', () => {
+        beforeEach(() => {
+          CONFIG.WALLET_AUTH_URL = `${window.location.origin}/authenticate?token=`
+        })
+
+        afterEach(() => {
+          delete CONFIG.WALLET_AUTH_URL
+          localStorage.removeItem('auth-token')
+        })
+
+        it('takes the token kept for both apps, and not the one in the address', async () => {
+          localStorage.setItem(
+            'auth-token',
+            JSON.stringify({ token: 'handed-token', at: Date.now() }),
+          )
+          await firstGuard({ path: '/authenticate', query: { token: 'from-a-link' } }, {}, next)
+          expect(storeCommitMock).toHaveBeenCalledWith('token', 'handed-token')
+          expect(storeCommitMock).not.toHaveBeenCalledWith('token', 'from-a-link')
+          expect(next).toHaveBeenCalledWith({ path: '/' })
+        })
+
+        it('signs nobody in by a token in the address alone', async () => {
+          await firstGuard({ path: '/authenticate', query: { token: 'from-a-link' } }, {}, next)
+          expect(storeCommitMock).not.toHaveBeenCalledWith('token', expect.anything())
+          expect(apolloQueryMock).not.toHaveBeenCalled()
+          expect(next).toHaveBeenCalledWith()
+        })
       })
     })
   })

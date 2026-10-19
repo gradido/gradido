@@ -4,6 +4,7 @@ import { createMemoryHistory, createRouter, createWebHistory } from 'vue-router'
 import { verifyLogin } from '../graphql/queries'
 import { useEntryDraft } from '../composables/useEntryDraft'
 import { takeHeldChatText } from '../utils/chatReturn'
+import CONFIG from '../config'
 
 vi.mock('../graphql/queries', () => ({
   verifyLogin: 'mocked-verify-login-query',
@@ -136,6 +137,42 @@ describe('navigation guards', () => {
       expect(apolloQueryMock).toHaveBeenCalled()
       expect(storeDispatchMock).toHaveBeenCalledWith('logout')
       expect(router.currentRoute.value.path).toBe('/authenticate')
+    })
+
+    // The cases above have the admin interface on another origin, as in development. On a
+    // deployment it shares this one, and the one token both apps keep (utils/authToken): that
+    // one is taken, and one in the address is not.
+    describe('with the admin interface on this origin', () => {
+      const adminAuthUrl = CONFIG.ADMIN_AUTH_URL
+
+      beforeEach(() => {
+        CONFIG.ADMIN_AUTH_URL = `${window.location.origin}/admin/authenticate?token=`
+      })
+
+      afterEach(() => {
+        CONFIG.ADMIN_AUTH_URL = adminAuthUrl
+        localStorage.removeItem('auth-token')
+      })
+
+      it('takes the token kept for both apps, and not the one in the address', async () => {
+        localStorage.setItem(
+          'auth-token',
+          JSON.stringify({ token: 'handed-token', at: Date.now() }),
+        )
+
+        await router.push({ path: '/authenticate', query: { token: 'from-a-link' } })
+
+        expect(storeCommitMock).toHaveBeenCalledWith('token', 'handed-token')
+        expect(storeCommitMock).not.toHaveBeenCalledWith('token', 'from-a-link')
+        expect(router.currentRoute.value.path).toBe('/overview')
+      })
+
+      it('signs nobody in by a token in the address alone', async () => {
+        await router.push({ path: '/authenticate', query: { token: 'from-a-link' } })
+
+        expect(storeCommitMock).not.toHaveBeenCalledWith('token', expect.anything())
+        expect(apolloQueryMock).not.toHaveBeenCalled()
+      })
     })
 
     // The hand-over with a page to go on to: the admin interface opens the wallet's map in a

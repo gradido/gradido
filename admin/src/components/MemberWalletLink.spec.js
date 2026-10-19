@@ -223,36 +223,45 @@ describe('MemberWalletLink', () => {
       // Nobody sends to themselves: the wallet's form would take the moderator for the
       // recipient, and the server would refuse the transfer.
       describe('or who is the moderator', () => {
-        const signedInAs = (id) =>
-          createStore({ state: { token: TOKEN, moderator: { id, role: 'ADMIN' } } })
+        const signedInAs = (moderator) =>
+          createStore({ state: { token: TOKEN, moderator: { ...moderator, role: 'ADMIN' } } })
+        const asRaeuber = signedInAs({
+          gradidoID: RAEUBER.gradidoID,
+          communityUuid: RAEUBER.communityUuid,
+        })
 
+        // Told apart by the pair, as every member is, and not by the database's row number.
         it.each([
-          ['on their row of the member search', { ...RAEUBER, userId: 3 }],
-          ['under a contribution of their own', { ...RAEUBER, userId: undefined, id: 3 }],
+          ['on their row', RAEUBER],
+          [
+            'however the pair is written',
+            { ...RAEUBER, gradidoID: RAEUBER.gradidoID.toUpperCase() },
+          ],
         ])('gets no arrow %s', (_name, member) => {
-          const wrapper = createWrapper({ member, plugins: [sentences('en'), signedInAs(3)] })
+          const wrapper = createWrapper({ member, plugins: [sentences('en'), asRaeuber] })
           expect(wrapper.find('button').exists()).toBe(false)
         })
 
         it.each([
-          ['on the row of somebody else', { ...RAEUBER, userId: 4 }],
-          ['under the contribution of somebody else', { ...RAEUBER, userId: undefined, id: 4 }],
+          ['on the row of somebody else', { ...RAEUBER, gradidoID: BOB.gradidoID }],
+          [
+            'on the row of the same id in another community',
+            { ...RAEUBER, communityUuid: '0a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d' },
+          ],
         ])('gets it %s', async (_name, member) => {
-          const wrapper = createWrapper({ member, plugins: [sentences('en'), signedInAs(3)] })
+          const wrapper = createWrapper({ member, plugins: [sentences('en'), asRaeuber] })
           // With a moderator signed in, the server is asked first whom they are in contact with.
           await flushPromises()
           expect(arrowOf(wrapper).exists()).toBe(true)
         })
 
-        // A moderator whose number is not known yet is nobody's row: 0 is no member, and a
-        // member without a number is not the moderator without one.
+        // A moderator whose pair is not known yet is nobody's row.
         it.each([
           ['a store that does not know the moderator', createStore({ state: { token: TOKEN } })],
-          ['a moderator without a number', signedInAs(undefined)],
+          ['a moderator without a pair', signedInAs({})],
         ])('gets it with %s', (_name, aStore) => {
-          const { userId, ...withoutNumber } = RAEUBER
           const wrapper = createWrapper({
-            member: withoutNumber,
+            member: RAEUBER,
             plugins: [sentences('en'), aStore],
           })
           expect(arrowOf(wrapper).exists()).toBe(true)
@@ -265,7 +274,10 @@ describe('MemberWalletLink', () => {
   // das Sende-Symbol kommen, sondern ein Chat-Symbol. Das sollte dann gleich zum Gesprächs-Faden
   // mit diesem Nutzer führen."
   describe('a member the moderator is in contact with', () => {
-    const MODERATOR = 7
+    const MODERATOR = {
+      gradidoID: '5e4d3c2b-1a09-4f8e-b7d6-c5b4a3928170',
+      communityUuid: BIBI.communityUuid,
+    }
     const T0 = Date.parse('2026-10-13T12:00:00Z')
     const pair = ({ communityUuid, gradidoID }) => ({ communityUuid, gradidoID })
     const bubbleOf = (wrapper) => wrapper.find('[data-test="member-chat-bubble"]')
@@ -283,7 +295,7 @@ describe('MemberWalletLink', () => {
 
     beforeEach(() => {
       store = createStore({
-        state: { token: TOKEN, moderator: { id: MODERATOR, role: 'ADMIN' } },
+        state: { token: TOKEN, moderator: { ...MODERATOR, role: 'ADMIN' } },
         mutations: { token: (state, token) => (state.token = token) },
         actions: { logout: vi.fn() },
       })
@@ -603,7 +615,7 @@ describe('MemberWalletLink', () => {
 
       // Nobody writes to themselves.
       it('gets the pin alone on the moderator’s own row, and the server is not asked', async () => {
-        const wrapper = await settled({ member: { ...ON_MAP, userId: MODERATOR } })
+        const wrapper = await settled({ member: { ...ON_MAP, ...MODERATOR } })
 
         expect(pinOf(wrapper).exists()).toBe(true)
         expect(wrapper.findAll('button')).toHaveLength(1)
@@ -614,7 +626,7 @@ describe('MemberWalletLink', () => {
 
     it.each([
       ['whose account was deleted', { ...RAEUBER, deletedAt: '2026-10-12T16:08:33.000Z' }],
-      ['who is the moderator themselves', { ...RAEUBER, userId: MODERATOR }],
+      ['who is the moderator themselves', { ...RAEUBER, ...MODERATOR }],
     ])('gets nothing where they are one %s, and the server is not asked', async (_name, member) => {
       const wrapper = await settled({ member })
 
@@ -880,7 +892,7 @@ describe('MemberWalletLink', () => {
 
       it.each([
         ['whose account was deleted', { ...RAEUBER, deletedAt: '2026-10-12T16:08:33.000Z' }],
-        ['who is the moderator themselves', { ...RAEUBER, userId: MODERATOR }],
+        ['who is the moderator themselves', { ...RAEUBER, ...MODERATOR }],
       ])('asks nothing for a member %s', async (_name, member) => {
         await settled({ member })
         await comeBack()
@@ -1158,10 +1170,10 @@ describe('MemberWalletLink', () => {
 
     it('gets the pin alone on the moderator’s own row', () => {
       const wrapper = createWrapper({
-        member: { ...BIBI, userId: 3 },
+        member: BIBI,
         plugins: [
           sentences('en'),
-          createStore({ state: { token: TOKEN, moderator: { id: 3, role: 'ADMIN' } } }),
+          createStore({ state: { token: TOKEN, moderator: { ...BIBI, role: 'ADMIN' } } }),
         ],
       })
       expect(pinOf(wrapper).exists()).toBe(true)

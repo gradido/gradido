@@ -27,7 +27,8 @@ vi.mock('vuex', () => ({
   useStore: vi.fn(() => ({
     state: {
       moderator: {
-        id: 0,
+        gradidoID: 'moderator-gid',
+        communityUuid: 'home',
         name: 'test moderator',
         role: 'ADMIN',
       },
@@ -105,6 +106,8 @@ describe('ChangeUserRoleFormular', () => {
       propsData = {
         item: {
           userId: 0,
+          gradidoID: 'moderator-gid',
+          communityUuid: 'home',
           role: 'ADMIN',
         },
       }
@@ -214,7 +217,8 @@ describe('ChangeUserRoleFormular', () => {
       vi.mocked(useStore).mockReturnValue({
         state: {
           moderator: {
-            id: 0,
+            gradidoID: 'moderator-gid',
+            communityUuid: 'home',
             name: 'test moderator',
             role: 'MODERATOR',
           },
@@ -243,7 +247,14 @@ describe('ChangeUserRoleFormular', () => {
     let creationMutate
     const asAdmin = () =>
       vi.mocked(useStore).mockReturnValue({
-        state: { moderator: { id: 0, name: 'test moderator', role: 'ADMIN' } },
+        state: {
+          moderator: {
+            gradidoID: 'moderator-gid',
+            communityUuid: 'home',
+            name: 'test moderator',
+            role: 'ADMIN',
+          },
+        },
       })
     const flush = () => new Promise((resolve) => setTimeout(resolve, 0))
 
@@ -274,7 +285,14 @@ describe('ChangeUserRoleFormular', () => {
 
     it('shows a moderator where the switch stands, without a switch', () => {
       vi.mocked(useStore).mockReturnValue({
-        state: { moderator: { id: 0, name: 'test moderator', role: 'MODERATOR' } },
+        state: {
+          moderator: {
+            gradidoID: 'moderator-gid',
+            communityUuid: 'home',
+            name: 'test moderator',
+            role: 'MODERATOR',
+          },
+        },
       })
       propsData = { item: { userId: 1, role: null, creationAllowed: false } }
       wrapper = createWrapper()

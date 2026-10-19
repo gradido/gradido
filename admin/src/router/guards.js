@@ -1,11 +1,20 @@
 import { verifyLogin } from '../graphql/verifyLogin'
 import CONFIG from '../config'
+import { takeHandedOverToken } from '../utils/authToken'
 
 const addNavigationGuards = (router, store, apollo, i18n) => {
   // store token on `authenticate`
+  //
+  // ⛔ The token comes out of localStorage where the wallet shares this origin, and out of the
+  // address only where it does not (utils/authToken.js): on a deployment, a link with `?token=`
+  // signs nobody in.
   router.beforeEach(async (to, from, next) => {
-    if (to.path === '/authenticate' && to.query && to.query.token) {
-      store.commit('token', to.query.token)
+    const token =
+      to.path === '/authenticate'
+        ? takeHandedOverToken(to.query?.token, CONFIG.WALLET_AUTH_URL)
+        : null
+    if (token) {
+      store.commit('token', token)
       await apollo
         .query({
           query: verifyLogin,

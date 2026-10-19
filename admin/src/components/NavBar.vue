@@ -135,6 +135,7 @@ import MemberAvatar from '@/components/MemberAvatar.vue'
 import { NAV_AVATAR_SIZE } from '@/constants'
 import { avatarLettering } from '@/utils/avatarLettering'
 import { redirectTo } from '@/utils/redirect'
+import { handOverAddress, sharesOrigin } from '@/utils/authToken'
 
 const HELP_URL = 'https://gradido.net/coin/moderators-tutorial/'
 
@@ -243,8 +244,11 @@ const handleLogout = async () => {
 }
 
 const handleWallet = () => {
-  redirectTo(CONFIG.WALLET_AUTH_URL + store.state.token)
-  store.dispatch('logout') // logout without redirect
+  redirectTo(handOverAddress(CONFIG.WALLET_AUTH_URL, store.state.token))
+  // Signed out only where the wallet is on another origin (development), as it always was:
+  // there the token went along in the address. On one origin both apps hold the one token
+  // (utils/authToken.js), and signing out here would sign the wallet out as well.
+  if (!sharesOrigin(CONFIG.WALLET_AUTH_URL)) store.dispatch('logout') // logout without redirect
 }
 </script>
 

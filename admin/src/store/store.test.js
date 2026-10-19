@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { createStore } from 'vuex'
 import createPersistedState from 'vuex-persistedstate'
 import CONFIG from '../config'
@@ -9,6 +9,9 @@ vi.mock('../config', () => ({
     DEBUG_DISABLE_AUTH: false,
   },
 }))
+
+// The storage the real store was created with; the tests below put a mock in its place.
+const storageOfTheStore = window.localStorage
 
 describe('Vuex Store', () => {
   let testStore
@@ -158,11 +161,87 @@ describe('Vuex Store', () => {
       testStore.dispatch('logout')
 
       expect(localStorageMock.clear).not.toHaveBeenCalled()
-      // Exactly one removal, and it is the admin's own blob. Naming the theme key alone
+      // Exactly two removals: the admin's own blob, and the token both apps keep -- signing
+      // out here signs the wallet out as well (utils/authToken.js). Naming the theme key alone
       // would still pass if the logout started removing some other key the wallet owns;
       // counting closes that off without having to list every key there is.
-      expect(localStorageMock.removeItem).toHaveBeenCalledTimes(1)
+      expect(localStorageMock.removeItem).toHaveBeenCalledTimes(2)
       expect(localStorageMock.removeItem).toHaveBeenCalledWith('gradido-admin')
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith('auth-token')
+    })
+  })
+
+  // The token lives where both apps keep it (utils/authToken.js), not in the admin's own blob.
+  describe('the token kept for both apps', () => {
+    // Tokens naming a member, as the server writes them (the subject is all that is read here).
+    const tokenOf = (sub, more = {}) =>
+      `h.${btoa(JSON.stringify({ sub, ...more })).replace(/=+$/, '')}.s`
+    const BIBI = '1b2c3d4e-5f60-4a7b-8c9d-0e1f2a3b4c5d'
+    const BOB = '7a6b5c4d-3e2f-4a1b-8c0d-9e8f7a6b5c4d'
+
+    beforeEach(() => {
+      Object.defineProperty(window, 'localStorage', { value: storageOfTheStore, writable: true })
+    })
+
+    afterEach(() => {
+      storageOfTheStore.removeItem('auth-token')
+      storageOfTheStore.removeItem('gradido-admin')
+    })
+
+    it('is kept by the token commit, and left out of the blob', () => {
+      store.commit('token', 'token')
+      expect(JSON.parse(storageOfTheStore.getItem('auth-token')).token).toBe('token')
+      expect(JSON.parse(storageOfTheStore.getItem('gradido-admin'))).not.toHaveProperty('token')
+      store.commit('token', null)
+      expect(storageOfTheStore.getItem('auth-token')).toBeNull()
+    })
+
+    it('is renewed here where another window renews it', () => {
+      store.commit('token', tokenOf(BIBI, { iat: 1 }))
+      storageOfTheStore.setItem(
+        'auth-token',
+        JSON.stringify({ token: tokenOf(BIBI, { iat: 2 }), at: Date.now() }),
+      )
+      window.dispatchEvent(new StorageEvent('storage', { key: 'auth-token' }))
+      expect(store.state.token).toBe(tokenOf(BIBI, { iat: 2 }))
+    })
+
+    it('signs out here where another window signs out', () => {
+      store.commit('token', 'token')
+      storageOfTheStore.removeItem('auth-token')
+      window.dispatchEvent(new StorageEvent('storage', { key: 'auth-token' }))
+      expect(store.state.token).toBeNull()
+    })
+
+    // Last: each of these opens a store of its own, which goes on listening to the windows
+    // around it -- an event of a test after them would reach it too.
+    const openedOn = async ({ kept, blob }) => {
+      storageOfTheStore.setItem('auth-token', JSON.stringify({ token: kept, at: Date.now() }))
+      storageOfTheStore.setItem('gradido-admin', JSON.stringify(blob))
+      vi.resetModules()
+      return (await import('./store')).default
+    }
+
+    it('is what the admin interface opens with, and not a token in a blob saved before', async () => {
+      const opened = await openedOn({
+        kept: tokenOf(BIBI),
+        blob: { token: 'from-the-blob', moderator: { gradidoID: BIBI }, openCreations: 3 },
+      })
+      expect(opened.state.token).toBe(tokenOf(BIBI))
+      expect(opened.state.openCreations).toBe(3)
+    })
+
+    // ⛔ Bob's token under the role of Bibi: the page sends to not-found, and the way over from
+    // the wallet brings the moderator anew.
+    it.each([
+      ['the moderator of somebody else', { moderator: { gradidoID: BIBI, role: 'ADMIN' } }],
+      ['a moderator without a pair, saved before', { moderator: { id: 3, role: 'ADMIN' } }],
+      ['no moderator', {}],
+    ])('is not opened with where the blob holds %s', async (_name, blob) => {
+      const opened = await openedOn({ kept: tokenOf(BOB), blob })
+      expect(opened.state.token).toBeNull()
+      // Nor removed: it is Bob's session, in the wallet.
+      expect(JSON.parse(storageOfTheStore.getItem('auth-token')).token).toBe(tokenOf(BOB))
     })
   })
 
