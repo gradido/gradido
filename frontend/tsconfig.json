@@ -8,6 +8,7 @@
     "jsxImportSource": "vue",
     "strict": true,
     "noEmit": true,
+    "allowJs": true,
     "isolatedModules": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,

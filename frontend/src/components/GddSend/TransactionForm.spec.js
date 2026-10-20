@@ -118,7 +118,7 @@ describe('TransactionForm', () => {
   })
 
   // ⛔ The admin interface opens the wallet on /send/<community>/<member>#send-form, in a window
-  // 760 px high: the arrow behind a member's name (admin/src/components/MemberWalletLink.vue).
+  // 760 px high: the arrow behind a member's name (admin/src/components/MemberWalletLink.tsx).
   // The router scrolls to that hash, so the form has to be the element of this id -- the two
   // apps share no code, and a word changed on one side alone is a page that opens at its top,
   // with the form and the member in it below the fold.

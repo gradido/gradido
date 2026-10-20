@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppToast } from '@/composables/useToast'
-import ConfirmRegisterMailFormular from './ConfirmRegisterMailFormular.vue'
+import { ConfirmRegisterMailFormular } from './ConfirmRegisterMailFormular'
 
 vi.mock('@vue/apollo-composable')
 vi.mock('vue-i18n')
@@ -68,6 +68,7 @@ describe('ConfirmRegisterMailFormular', () => {
 
     useI18n.mockReturnValue({
       t: mockT,
+      d: () => 'some date',
     })
 
     useAppToast.mockReturnValue({
@@ -163,6 +164,10 @@ describe('ConfirmRegisterMailFormular', () => {
       status.value.adminEmailStatus.pendingSince = new Date().toISOString()
       wrapper = mountComponent()
       expect(wrapper.find('[data-test="email-pending"]').exists()).toBe(true)
+      expect(mockT).toHaveBeenCalledWith('unregister_mail.pending', {
+        email: 'bob-new@baumeister.de',
+        date: 'some date',
+      })
     })
   })
 })

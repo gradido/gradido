@@ -5,7 +5,7 @@ import { store } from './store'
 import { useAdminStore } from './useAdminStore'
 
 vi.mock('../config', () => ({
-  default: {
+  CONFIG: {
     DEBUG_DISABLE_AUTH: false,
   },
 }))
@@ -144,7 +144,7 @@ describe('Pinia Store', () => {
 
       expect(localStorageMock.clear).not.toHaveBeenCalled()
       // Exactly two removals: the admin's own blob, and the token both apps keep -- signing
-      // out here signs the wallet out as well (utils/authToken.js). Naming the theme key alone
+      // out here signs the wallet out as well (utils/authToken.ts). Naming the theme key alone
       // would still pass if the logout started removing some other key the wallet owns;
       // counting closes that off without having to list every key there is.
       expect(localStorageMock.removeItem).toHaveBeenCalledTimes(2)
@@ -153,7 +153,7 @@ describe('Pinia Store', () => {
     })
   })
 
-  // The token lives where both apps keep it (utils/authToken.js), not in the admin's own blob.
+  // The token lives where both apps keep it (utils/authToken.ts), not in the admin's own blob.
   describe('the token kept for both apps', () => {
     // Tokens naming a member, as the server writes them (the subject is all that is read here).
     const tokenOf = (sub, more = {}) =>
@@ -248,7 +248,7 @@ describe('Pinia Store', () => {
     it('sets correct initial state when DEBUG_DISABLE_AUTH is true', async () => {
       Object.defineProperty(window, 'localStorage', { value: storageOfTheStore, writable: true })
       vi.resetModules()
-      const { default: config } = await import('../config')
+      const { CONFIG: config } = await import('../config')
       config.DEBUG_DISABLE_AUTH = true
       const debugStore = (await import('./store')).store
       expect(debugStore.token).toBe('validToken')

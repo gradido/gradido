@@ -1,8 +1,12 @@
 import { mount } from '@vue/test-utils'
 import { BButton, BCard, BCardText, BCollapse } from 'bootstrap-vue-next'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { adminStore } from '../../../test/adminStore'
-import ContributionLink from './ContributionLink.vue'
+import { ContributionLink } from './ContributionLink'
+
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({ t: (key) => key }),
+}))
 
 const createAdminStore = (role = 'ADMIN') => adminStore({ moderator: { role } })
 
@@ -65,8 +69,12 @@ describe('ContributionLink', () => {
     expect(wrapper.text()).toContain('contributionLink.noContributionLinks')
   })
 
+  const isFormVisible = () => wrapper.findComponent(BCollapse).props('modelValue')
+  const form = () => wrapper.findComponent({ name: 'ContributionLinkForm' })
+  const list = () => wrapper.findComponent({ name: 'ContributionLinkList' })
+
   it('has contribution form not visible by default', () => {
-    expect(wrapper.vm.visible).toBe(false)
+    expect(isFormVisible()).toBe(false)
   })
 
   describe('click on create new contribution', () => {
@@ -75,56 +83,92 @@ describe('ContributionLink', () => {
     })
 
     it('shows the contribution form', () => {
-      expect(wrapper.vm.visible).toBe(true)
+      expect(isFormVisible()).toBe(true)
     })
 
     it('hides the form when clicked again', async () => {
       await wrapper.find('[data-test="new-contribution-link-button"]').trigger('click')
-      expect(wrapper.vm.visible).toBe(false)
+      expect(isFormVisible()).toBe(false)
     })
   })
 
   describe('edit contribution link', () => {
     beforeEach(async () => {
-      wrapper.vm.editContributionLinkData(mockItems[0])
+      list().vm.$emit('edit-contribution-link-data', mockItems[0])
+      await wrapper.vm.$nextTick()
     })
 
     it('shows the contribution form', () => {
-      expect(wrapper.vm.visible).toBe(true)
+      expect(isFormVisible()).toBe(true)
     })
 
-    it('sets editContributionLink to true', () => {
-      expect(wrapper.vm.editContributionLink).toBe(true)
+    it('puts the form into edit mode', () => {
+      expect(form().props('editContributionLink')).toBe(true)
     })
 
-    it('sets contributionLinkData', () => {
-      expect(wrapper.vm.contributionLinkData).toEqual(mockItems[0])
+    it('hands the form the link to edit', () => {
+      expect(form().props('contributionLinkData')).toEqual(mockItems[0])
     })
 
     it('hides new contribution button', () => {
       expect(wrapper.find('[data-test="new-contribution-link-button"]').exists()).toBe(false)
     })
+
+    it('keeps the form open when the list asks to edit once more', async () => {
+      list().vm.$emit('edit-contribution-link-data', mockItems[0])
+      await wrapper.vm.$nextTick()
+      expect(isFormVisible()).toBe(true)
+    })
   })
 
-  describe('closeContributionForm', () => {
-    beforeEach(() => {
-      wrapper.vm.visible = true
-      wrapper.vm.editContributionLink = true
-      wrapper.vm.contributionLinkData = mockItems[0]
-      wrapper.vm.closeContributionForm()
+  describe('close-contribution-form', () => {
+    beforeEach(async () => {
+      list().vm.$emit('edit-contribution-link-data', mockItems[0])
+      await wrapper.vm.$nextTick()
+      form().vm.$emit('close-contribution-form')
+      await wrapper.vm.$nextTick()
     })
 
     it('hides the form', () => {
-      expect(wrapper.vm.visible).toBe(false)
+      expect(isFormVisible()).toBe(false)
     })
 
-    it('resets editContributionLink', () => {
-      expect(wrapper.vm.editContributionLink).toBe(false)
+    it('takes the form out of edit mode', () => {
+      expect(form().props('editContributionLink')).toBe(false)
     })
 
-    it('resets contributionLinkData', () => {
-      expect(wrapper.vm.contributionLinkData).toEqual({})
+    it('empties the link the form edits', () => {
+      expect(form().props('contributionLinkData')).toEqual({})
     })
+
+    it('does the same when the list asks for it', async () => {
+      list().vm.$emit('edit-contribution-link-data', mockItems[0])
+      await wrapper.vm.$nextTick()
+      list().vm.$emit('close-contribution-form')
+      await wrapper.vm.$nextTick()
+      expect(isFormVisible()).toBe(false)
+      expect(form().props('editContributionLink')).toBe(false)
+    })
+  })
+
+  describe('close-contribution-form while the form is closed', () => {
+    it('leaves an edit in progress alone', async () => {
+      // closing only resets what an open form shows
+      list().vm.$emit('edit-contribution-link-data', mockItems[0])
+      await wrapper.vm.$nextTick()
+      wrapper.findComponent(BCollapse).vm.$emit('update:modelValue', false)
+      await wrapper.vm.$nextTick()
+      form().vm.$emit('close-contribution-form')
+      await wrapper.vm.$nextTick()
+      expect(form().props('editContributionLink')).toBe(true)
+      expect(form().props('contributionLinkData')).toEqual(mockItems[0])
+    })
+  })
+
+  it('passes on get-contribution-links from the form and from the list', async () => {
+    form().vm.$emit('get-contribution-links')
+    list().vm.$emit('get-contribution-links')
+    expect(wrapper.emitted('get-contribution-links')).toHaveLength(2)
   })
 
   // Creating one is an administrator's job — offering the button to a moderator would only

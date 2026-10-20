@@ -1,10 +1,12 @@
 import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import CreationGroups from './CreationGroups.vue'
+import { CreationGroups } from './CreationGroups'
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
-    t: (key) => key,
+    // The values are kept in the returned string so that a test can see which numbers went
+    // into a sentence, not only which key was picked.
+    t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key),
     d: (value) => String(value),
   }),
 }))
@@ -58,7 +60,9 @@ const mockBFormGroup = {
 const mockBFormInput = {
   name: 'BFormInput',
   props: ['modelValue'],
-  template: '<input data-testid="mock-bforminput" />',
+  emits: ['update:modelValue'],
+  template:
+    '<input data-testid="mock-bforminput" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
 }
 const mockBButton = {
   name: 'BButton',
@@ -66,7 +70,8 @@ const mockBButton = {
 }
 const mockBModal = {
   name: 'BModal',
-  template: '<div class="mock-bmodal"><slot></slot></div>',
+  props: ['modelValue', 'title', 'okTitle', 'okDisabled'],
+  template: '<div class="mock-bmodal" :data-open="String(modelValue)"><slot></slot></div>',
 }
 const mockBFormCheckbox = {
   name: 'BFormCheckbox',
@@ -88,7 +93,7 @@ describe('CreationGroups', () => {
           BFormCheckbox: mockBFormCheckbox,
         },
         mocks: {
-          $t: (key) => key,
+          $t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key),
         },
       },
     })
@@ -98,6 +103,30 @@ describe('CreationGroups', () => {
     creationGroupsResult.value = { creationGroups: [] }
     wrapper = createWrapper()
   })
+
+  const flushPromises = () => new Promise((resolve) => setTimeout(resolve))
+  const modal = () => wrapper.findComponent(mockBModal)
+  const isOpen = () => modal().attributes('data-open') === 'true'
+  const isSearching = () => modal().text().includes('creationGroupsAdmin.adoption.searching')
+  // The counts as the panel shows them, read back from the sentences it prints.
+  const shownCounts = () => {
+    const exact = modal()
+      .text()
+      .match(/foundExact \{"count":(\d+)/)
+    if (!exact) {
+      return null
+    }
+    const loose = modal()
+      .text()
+      .match(/foundLoose \{"count":(\d+)/)
+    return { exact: Number(exact[1]), loose: loose ? Number(loose[1]) : 0 }
+  }
+  // The button that opens the adoption panel for the row at this index.
+  const clickCheck = (row) => wrapper.findAll('ul li')[row].findAll('button')[0].trigger('click')
+  const openAdoption = async (row) => {
+    await clickCheck(row)
+    await flushPromises()
+  }
 
   it('renders the group management page for an admin', () => {
     expect(wrapper.find('.creation-groups').exists()).toBe(true)
@@ -114,23 +143,34 @@ describe('CreationGroups', () => {
   })
 
   describe('suggested tag', () => {
+    const inputs = () => wrapper.findAll('[data-testid="mock-bforminput"]')
+    const suggestionFor = async (name) => {
+      await inputs()[0].setValue(name)
+      return inputs()[1].element.value
+    }
+
     // Umlauts are valid in a tag, so the suggestion must keep them instead of dropping
     // them — German as well as Scandinavian ones.
-    it('keeps German umlauts', () => {
-      expect(wrapper.vm.slugify('Freiwillige Feuerwehr Grünwald')).toBe(
+    it('keeps umlauts and ß', async () => {
+      expect(await suggestionFor('Freiwillige Feuerwehr Grünwald')).toBe(
         'freiwillige-feuerwehr-grünwald',
       )
-      expect(wrapper.vm.slugify('Straßenfest Köln')).toBe('straßenfest-köln')
+      expect(await suggestionFor('Straßenfest Köln')).toBe('straßenfest-köln')
     })
 
-    it('keeps Scandinavian letters', () => {
-      expect(wrapper.vm.slugify('Ålesund Kystlag')).toBe('ålesund-kystlag')
-      expect(wrapper.vm.slugify('Nørrebro Fællesskab')).toBe('nørrebro-fællesskab')
+    it('keeps Scandinavian letters', async () => {
+      expect(await suggestionFor('Ålesund Kystlag')).toBe('ålesund-kystlag')
+      expect(await suggestionFor('Nørrebro Fællesskab')).toBe('nørrebro-fællesskab')
     })
 
-    it('drops punctuation and collapses hyphens', () => {
-      expect(wrapper.vm.slugify('Gruppe 42 – Süd!')).toBe('gruppe-42-süd')
-      expect(wrapper.vm.slugify('  Rand  ')).toBe('rand')
+    it('drops punctuation and trims hyphens and whitespace', async () => {
+      expect(await suggestionFor('Gruppe 42 – Süd!')).toBe('gruppe-42-süd')
+      expect(await suggestionFor('  Rand  ')).toBe('rand')
+    })
+
+    it('stops suggesting once the tag was typed by hand', async () => {
+      await inputs()[1].setValue('eigener-tag')
+      expect(await suggestionFor('Ganz anders')).toBe('eigener-tag')
     })
   })
 
@@ -157,8 +197,8 @@ describe('CreationGroups', () => {
         hashtagsAdoptedAt: '2026-08-01T10:00:00.000Z',
         hashtagsAdoptedCount: 987,
       })
-      expect(w.find('[data-test="adoption-state-7"]').text()).toBe(
-        'creationGroupsAdmin.adoption.stateAdopted',
+      expect(w.find('[data-test="adoption-state-7"]').text()).toMatch(
+        /^creationGroupsAdmin\.adoption\.stateAdopted \{"date":".+","count":987\}$/,
       )
     })
 
@@ -169,8 +209,8 @@ describe('CreationGroups', () => {
         hashtagsAdoptedAt: '2026-08-01T10:00:00.000Z',
         hashtagsAdoptedCount: 0,
       })
-      expect(w.find('[data-test="adoption-state-7"]').text()).toBe(
-        'creationGroupsAdmin.adoption.stateNothing',
+      expect(w.find('[data-test="adoption-state-7"]').text()).toMatch(
+        /^creationGroupsAdmin\.adoption\.stateNothing \{"date":".+"\}$/,
       )
     })
   })
@@ -191,22 +231,23 @@ describe('CreationGroups', () => {
     })
 
     it('asks the server again for the second group', async () => {
-      await wrapper.vm.openAdoption({ id: 1, tag: 'amstetten', name: 'Amstetten' })
-      await wrapper.vm.openAdoption({ id: 2, tag: 'feuerwehr', name: 'Feuerwehr' })
+      await openAdoption(0)
+      await openAdoption(1)
 
       expect(clientQuery).toHaveBeenCalledTimes(2)
       expect(clientQuery.mock.calls[1][0].variables).toEqual({ id: 2 })
       // The counts shown must be the SECOND group's, not the first one's and not zero.
-      expect(wrapper.vm.counts).toEqual({ exact: 20, loose: 2 })
+      expect(shownCounts()).toEqual({ exact: 20, loose: 2 })
+      expect(modal().props('title')).toContain('"group":"Feuerwehr"')
     })
 
     // A missing answer is not an empty result. Reading it as zero is what hid the bug.
     it('reports a failed search instead of showing it as "nothing found"', async () => {
       clientQuery.mockResolvedValueOnce({ data: null })
-      await wrapper.vm.openAdoption({ id: 1, tag: 'amstetten', name: 'Amstetten' })
+      await openAdoption(0)
 
-      expect(wrapper.vm.counts).toBeNull()
-      expect(wrapper.vm.adoptionOpen).toBe(false)
+      expect(shownCounts()).toBeNull()
+      expect(isOpen()).toBe(false)
     })
   })
 
@@ -241,8 +282,8 @@ describe('CreationGroups', () => {
       const first = pending()
       const second = pending()
 
-      const firstRun = wrapper.vm.openAdoption(amstetten)
-      const secondRun = wrapper.vm.openAdoption(feuerwehr)
+      await clickCheck(0)
+      await clickCheck(1)
 
       // The two searches answer in the order they were made, so say out loud which group
       // each one was actually about. Without this the test would still pass if both
@@ -251,23 +292,24 @@ describe('CreationGroups', () => {
       expect(second().id).toBe(feuerwehr.id)
 
       first().resolve({ data: { legacyHashtagCounts: { exact: 10, loose: 1 } } })
-      await firstRun
+      await flushPromises()
       // The second search is still running, so the panel must still be searching.
-      expect(wrapper.vm.counts).toBeNull()
-      expect(wrapper.vm.countsLoading).toBe(true)
+      expect(shownCounts()).toBeNull()
+      expect(isSearching()).toBe(true)
+      // Nothing to confirm yet: the first group's numbers must not have armed the button.
+      expect(modal().props('okDisabled')).toBe(true)
 
       second().resolve({ data: { legacyHashtagCounts: { exact: 20, loose: 2 } } })
-      await secondRun
-      expect(wrapper.vm.counts).toEqual({ exact: 20, loose: 2 })
-      expect(wrapper.vm.countsLoading).toBe(false)
+      await flushPromises()
+      expect(shownCounts()).toEqual({ exact: 20, loose: 2 })
+      expect(isSearching()).toBe(false)
     })
 
     it('leaves the second group’s panel open when the first search fails late', async () => {
       const first = pending()
 
-      const firstRun = wrapper.vm.openAdoption(amstetten)
-      const secondRun = wrapper.vm.openAdoption(feuerwehr)
-      await secondRun
+      await clickCheck(0)
+      await openAdoption(1)
 
       // Same here: which group each search was about, not just the order they answered in.
       // The second one runs on the standard mock, so its id is read off the call.
@@ -275,10 +317,10 @@ describe('CreationGroups', () => {
       expect(clientQuery.mock.calls[1][0].variables).toEqual({ id: feuerwehr.id })
 
       first().reject(new Error('the first search broke'))
-      await firstRun
+      await flushPromises()
 
-      expect(wrapper.vm.adoptionOpen).toBe(true)
-      expect(wrapper.vm.counts).toEqual({ exact: 20, loose: 2 })
+      expect(isOpen()).toBe(true)
+      expect(shownCounts()).toEqual({ exact: 20, loose: 2 })
     })
   })
 })

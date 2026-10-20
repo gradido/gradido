@@ -1,0 +1,26 @@
+// AI-GENERATED — not an architecture reference
+import gql from 'graphql-tag'
+
+export const createContributionLink = gql`
+  mutation (
+    $validFrom: String!
+    $validTo: String!
+    $name: String!
+    $amount: GradidoUnit!
+    $memo: String!
+    $cycle: String!
+    $maxPerCycle: Int! = 1
+  ) {
+    createContributionLink(
+      validFrom: $validFrom
+      validTo: $validTo
+      name: $name
+      amount: $amount
+      memo: $memo
+      cycle: $cycle
+      maxPerCycle: $maxPerCycle
+    ) {
+      link
+    }
+  }
+`

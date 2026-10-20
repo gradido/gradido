@@ -1,19 +1,22 @@
 import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import MemberAvatar from '@/components/MemberAvatar.vue'
+import { MemberAvatar } from '@/components/MemberAvatar'
 import { fetchMemberAvatars, forgetAllMemberAvatars } from '@/composables/useMemberAvatars'
 import { closeMemberAvatarZoom, memberAvatarZoomState } from '@/composables/useMemberAvatarZoom'
 import { LIST_AVATAR_SIZE } from '@/constants'
-import ContributionMessagesListItem from './ContributionMessagesListItem.vue'
+import { ContributionMessagesListItem } from './ContributionMessagesListItem'
 
 // The avatar builds its label through `useI18n`, which needs an i18n instance this file does
 // not install.
 vi.mock('vue-i18n', () => ({
-  useI18n: () => ({ t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key) }),
+  useI18n: () => ({
+    t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key),
+    d: (date) => date.toISOString(),
+  }),
 }))
 
 vi.mock('@/components/ContributionMessages/ParseMessage', () => ({
-  default: {
+  ParseMessage: {
     name: 'ParseMessage',
     template: '<div>{{ message }}</div>',
     props: ['message'],
@@ -24,11 +27,6 @@ const createWrapper = (propsData) => {
   return mount(ContributionMessagesListItem, {
     props: propsData,
     global: {
-      mocks: {
-        $t: (key) => key,
-        $d: vi.fn((date) => date.toISOString()),
-        $n: vi.fn((n) => n.toString()),
-      },
       stubs: {
         BAvatar: true,
         VariantIcon: true,
@@ -150,6 +148,47 @@ This message also contains a link: https://gradido.net/de/
       )
       expect(wrapper.find('[data-test="moderator-message"]').text()).toContain('350.00')
     })
+  })
+})
+
+describe('the box a message stands in', () => {
+  const boxOf = (message) =>
+    createWrapper({
+      contributionUserId: 108,
+      message: {
+        id: 120,
+        message: 'text',
+        createdAt: '2022-08-29T12:23:27.000Z',
+        userAlias: 'peterl',
+        ...message,
+      },
+    }).find('.contribution-messages-list-item > div')
+
+  it('marks a note only the moderation sees, and says so', () => {
+    const box = boxOf({ type: 'MODERATOR', userId: 107 })
+    expect(box.classes()).toEqual(
+      expect.arrayContaining(['text-end', 'is-moderator', 'is-moderator-hidden-message']),
+    )
+    expect(box.text()).toContain('moderator.request')
+  })
+
+  it("marks the history of the member's own contribution", () => {
+    const box = boxOf({ type: 'HISTORY', userId: 108, message: 'a\n---\nb\n---\n1' })
+    expect(box.classes()).toEqual(
+      expect.arrayContaining(['text-start', 'is-user', 'is-user-history-message']),
+    )
+    expect(box.text()).toContain('moderator.history')
+  })
+
+  it('marks a message of the moderation', () => {
+    const box = boxOf({ type: 'DIALOG', userId: 107 })
+    expect(box.classes()).toEqual(expect.arrayContaining(['is-moderator', 'is-moderator-message']))
+    expect(box.text()).not.toContain('moderator.request')
+  })
+
+  it("marks the member's own message", () => {
+    const box = boxOf({ type: 'DIALOG', userId: 108 })
+    expect(box.classes()).toEqual(expect.arrayContaining(['is-user', 'is-user-message']))
   })
 })
 

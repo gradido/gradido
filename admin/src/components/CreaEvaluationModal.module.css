@@ -1,0 +1,116 @@
+.creaOriginal {
+  white-space: pre-line;
+}
+
+/* Separates the checklist's resubmission groups (E-026). Tighter above than a stock
+   <hr> so the rule reads as belonging to the heading below it, not floating between. */
+.creaSectionRule {
+  margin: 1rem 0 0.5rem;
+}
+
+.creaTitleLogo {
+  display: block;
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
+  border-radius: 20%;
+}
+
+/* Footer: primary action ("Bewerten") on the right, "Schließen" centred. */
+.creaFooter {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 0.5rem;
+}
+
+.creaFooterSide {
+  display: flex;
+  flex: 1 1 0;
+}
+
+.creaFooterSideRight {
+  justify-content: flex-end;
+}
+
+/* Crea-scoped Gradido palette for the decision buttons + verdict badge.
+   .palette sits on the evaluation block, which holds every button and badge these rules
+   reach; in the .vue they were :deep() rules under the component's scope attribute. The admin
+   otherwise ships stock Bootstrap; these three tones match the wallet toast colours
+   (green #047006 / gold #c58d38 / red #c62828). Gold carries dark text for contrast.
+   We override Bootstrap's own --bs-btn-* variables so hover/active/disabled follow. */
+.palette :global(.btn-success) {
+  --bs-btn-bg: #047006;
+  --bs-btn-border-color: #047006;
+  --bs-btn-hover-bg: #035c05;
+  --bs-btn-hover-border-color: #035c05;
+  --bs-btn-active-bg: #035c05;
+  --bs-btn-active-border-color: #035c05;
+  --bs-btn-disabled-bg: #047006;
+  --bs-btn-disabled-border-color: #047006;
+}
+
+.palette :global(.btn-outline-success) {
+  --bs-btn-color: #047006;
+  --bs-btn-border-color: #047006;
+  --bs-btn-hover-bg: #047006;
+  --bs-btn-hover-border-color: #047006;
+  --bs-btn-active-bg: #047006;
+  --bs-btn-active-border-color: #047006;
+}
+
+.palette :global(.btn-warning) {
+  --bs-btn-bg: #c58d38;
+  --bs-btn-border-color: #c58d38;
+  --bs-btn-color: #2c2c2c;
+  --bs-btn-hover-bg: #b57f2f;
+  --bs-btn-hover-border-color: #b57f2f;
+  --bs-btn-hover-color: #2c2c2c;
+  --bs-btn-active-bg: #b57f2f;
+  --bs-btn-active-border-color: #b57f2f;
+  --bs-btn-active-color: #2c2c2c;
+  --bs-btn-disabled-bg: #c58d38;
+  --bs-btn-disabled-border-color: #c58d38;
+  --bs-btn-disabled-color: #2c2c2c;
+}
+
+.palette :global(.btn-outline-warning) {
+  --bs-btn-color: #8a5f1c;
+  --bs-btn-border-color: #c58d38;
+  --bs-btn-hover-bg: #c58d38;
+  --bs-btn-hover-border-color: #c58d38;
+  --bs-btn-hover-color: #2c2c2c;
+  --bs-btn-active-bg: #c58d38;
+  --bs-btn-active-border-color: #c58d38;
+  --bs-btn-active-color: #2c2c2c;
+}
+
+.palette :global(.btn-danger) {
+  --bs-btn-bg: #c62828;
+  --bs-btn-border-color: #c62828;
+  --bs-btn-hover-bg: #a81f1f;
+  --bs-btn-hover-border-color: #a81f1f;
+  --bs-btn-active-bg: #a81f1f;
+  --bs-btn-active-border-color: #a81f1f;
+  --bs-btn-disabled-bg: #c62828;
+  --bs-btn-disabled-border-color: #c62828;
+}
+
+.palette :global(.btn-outline-danger) {
+  --bs-btn-color: #c62828;
+  --bs-btn-border-color: #c62828;
+  --bs-btn-hover-bg: #c62828;
+  --bs-btn-hover-border-color: #c62828;
+  --bs-btn-active-bg: #c62828;
+  --bs-btn-active-border-color: #c62828;
+}
+
+.palette :global(.badge.text-bg-success) {
+  color: #fff;
+  background-color: #047006;
+}
+
+.palette :global(.badge.text-bg-warning) {
+  color: #2c2c2c;
+  background-color: #c58d38;
+}

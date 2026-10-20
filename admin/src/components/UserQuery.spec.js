@@ -1,8 +1,7 @@
 import { mount } from '@vue/test-utils'
-import { BFormInput, BInputGroupText } from 'bootstrap-vue-next'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useI18n } from 'vue-i18n'
-import UserQuery from './UserQuery.vue'
+import { UserQuery } from './UserQuery'
 
 vi.mock('vue-i18n')
 
@@ -18,13 +17,6 @@ describe('UserQuery', () => {
         modelValue: '',
         placeholder: '',
       },
-      global: {
-        stubs: {
-          BFormInput,
-          BInputGroupText,
-          IIcBaselineClose: true,
-        },
-      },
     })
   })
 
@@ -35,17 +27,19 @@ describe('UserQuery', () => {
 
   it('uses default placeholder when not provided', async () => {
     expect(mockT).toHaveBeenCalledWith('user_search')
-    expect(wrapper.vm.placeholderText).toBe('user_search')
+    expect(wrapper.find('.test-input-criteria').attributes('placeholder')).toBe('user_search')
   })
 
   it('uses provided placeholder', async () => {
     await wrapper.setProps({ placeholder: 'Custom Placeholder' })
-    expect(wrapper.vm.placeholderText).toBe('Custom Placeholder')
+    expect(wrapper.find('.test-input-criteria').attributes('placeholder')).toBe(
+      'Custom Placeholder',
+    )
   })
 
-  it('updates currentValue when modelValue prop changes', async () => {
+  it('shows the new value when modelValue prop changes', async () => {
     await wrapper.setProps({ modelValue: 'New Value' })
-    expect(wrapper.vm.currentValue).toBe('New Value')
+    expect(wrapper.find('.test-input-criteria').element.value).toBe('New Value')
   })
 
   it('emits update:modelValue event when currentValue changes', async () => {
@@ -59,7 +53,8 @@ describe('UserQuery', () => {
     await wrapper.setProps({ modelValue: 'Initial Value' })
     const clearButton = wrapper.find('.test-click-clear-criteria')
     await clearButton.trigger('click')
-    expect(wrapper.vm.currentValue).toBe('')
+    expect(wrapper.find('.test-input-criteria').element.value).toBe('')
+    expect(wrapper.emitted('update:modelValue').at(-1)).toEqual([''])
   })
 
   it('handles edge case: empty string input', async () => {

@@ -1,0 +1,15 @@
+.appOutdatedBar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.6rem 1rem;
+  background-color: var(--bs-warning, #f3cd7c);
+  color: #000;
+  text-align: center;
+}
+
+.appOutdatedText {
+  font-weight: 500;
+}

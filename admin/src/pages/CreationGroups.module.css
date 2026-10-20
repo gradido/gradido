@@ -1,0 +1,33 @@
+.creationGroupsBody {
+  max-width: 720px;
+}
+
+.creationGroupsForm {
+  max-width: 640px;
+}
+
+.creationGroupRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid rgb(0 0 0 / 7.5%);
+}
+
+.creationGroupName {
+  font-weight: 500;
+}
+
+.creationGroup {
+  font-size: 0.9em;
+}
+
+.creationGroupInput {
+  max-width: 220px;
+}
+
+/* Discreet but present: adopting the old hashtags is a one-off tidy-up, not a state the
+   moderator has to live with. */
+.adoptionState {
+  font-size: 0.85em;
+}

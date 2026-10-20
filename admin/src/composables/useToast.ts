@@ -1,0 +1,52 @@
+// AI-GENERATED — not an architecture reference
+import { useToastController } from 'bootstrap-vue-next'
+import { useI18n } from 'vue-i18n'
+
+export function useAppToast() {
+  const { t } = useI18n()
+  const { show } = useToastController()
+  const toastSuccess = (message: string) => {
+    toast(message, {
+      title: t('success'),
+      variant: 'success',
+    })
+  }
+
+  const toastError = (message: string) => {
+    toast(message, {
+      title: t('error'),
+      variant: 'danger',
+    })
+  }
+
+  const toastWarning = (message: string) => {
+    toast(message, {
+      title: t('notice'),
+      variant: 'warning',
+    })
+  }
+
+  const toast = (message: string, options: Record<string, unknown> = {}) => {
+    if (message.replace) {
+      message = message.replace(/^GraphQL error: /, '')
+    }
+    options = {
+      solid: true,
+      toaster: 'b-toaster-top-right',
+      headerClass: 'gdd-toaster-title',
+      bodyClass: 'gdd-toaster-body',
+      toastClass: 'gdd-toaster',
+      ...options,
+      body: message,
+    }
+
+    show!({ props: { ...options } })
+  }
+
+  return {
+    toastSuccess,
+    toastError,
+    toastWarning,
+    toast,
+  }
+}

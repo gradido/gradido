@@ -1,0 +1,167 @@
+.chatContainer {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  font-size: 12px;
+}
+
+.chatToggleButton {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  border: 1px solid darkblue;
+}
+
+.chatClearButton {
+  font-size: 12px;
+}
+
+/* Half the former 250x142: the button sat over the contribution list and got in the way. */
+.bgCreaImg {
+  background-image: url('../../public/img/Crea.webp');
+  background-size: cover;
+  background-position: center;
+  width: 125px;
+  height: 71px;
+  z-index: 100;
+}
+
+.chatWindow {
+  width: 550px;
+
+  /* Crea's chat answers are letters now - paragraphs, a salutation and a closing line,
+     the same shape as in the contribution window. Half again as much room for the
+     conversation, and a four-row input, because what gets pasted in here is a whole
+     contribution. */
+  height: 480px;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgb(0 0 0 / 10%);
+  display: flex;
+  flex-direction: column;
+}
+
+.copyClipboardButton {
+  position: absolute;
+  top: 20%;
+  right: -12%;
+  padding-top: 2px;
+  padding-left: 6px;
+  padding-right: 6px;
+}
+
+.messagesScrollContainer {
+  border-radius: 8px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.messages {
+  padding: 10px;
+  background-color: #f9f9f9;
+}
+
+.message {
+  margin-bottom: 10px;
+}
+
+.messageContent {
+  padding: 8px;
+  border-radius: 8px;
+  max-width: 80%;
+  word-wrap: break-word;
+
+  /* Crea's line breaks come through as text, so the message needs no markup at all. */
+  white-space: pre-wrap;
+}
+
+.signatureHint {
+  font-size: 11px;
+}
+
+.message:global(.user) {
+  text-align: right;
+}
+
+.message:global(.user) .messageContent {
+  background-color: white;
+  color: black;
+  margin-left: auto;
+  border: 1px solid #e9ecef;
+}
+
+.message:global(.assistant) {
+  text-align: left;
+}
+
+.message:global(.assistant) .messageContent {
+  background-color: #e9ecef;
+  color: black;
+  margin-right: auto;
+}
+
+.message:global(.error) {
+  text-align: center;
+}
+
+.message:global(.error) .messageContent {
+  background-color: #f1e5e5;
+  color: rgb(194 12 12);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.inputArea {
+  display: flex;
+  padding: 10px;
+  border-top: 1px solid #ccc;
+  background-color: white;
+}
+
+.inputArea textarea {
+  flex: 1;
+  margin-right: 10px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  padding: 8px;
+}
+
+.inputArea button {
+  border-radius: 4px;
+}
+
+/* Animations für den Einblendeffekt. The TransitionGroup sets these class names itself,
+   so they stay global, under the list they animate. */
+.messages > :global(.chat-enter-active),
+.messages > :global(.chat-leave-active) {
+  transition:
+    transform 0.5s ease-out,
+    opacity 0.5s;
+}
+
+.messages > :global(.chat-enter-from) {
+  transform: translateY(30px);
+  opacity: 0;
+}
+
+.messages > :global(.chat-enter-to) {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.slideUpAnimation {
+  animation: slide-up 1s ease-out;
+  opacity: 1;
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}

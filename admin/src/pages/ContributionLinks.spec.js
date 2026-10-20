@@ -3,8 +3,8 @@ import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 import { useAppToast } from '@/composables/useToast'
-import { listContributionLinks } from '@/graphql/listContributionLinks.js'
-import ContributionLinks from '@/pages/ContributionLinks.vue'
+import { listContributionLinks } from '@/graphql/listContributionLinks'
+import { ContributionLinks } from '@/pages/ContributionLinks'
 
 vi.mock('@vue/apollo-composable', () => ({
   useQuery: vi.fn(),

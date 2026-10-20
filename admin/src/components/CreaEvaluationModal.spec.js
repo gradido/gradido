@@ -1,8 +1,9 @@
 import { useApolloClient, useMutation } from '@vue/apollo-composable'
 import { mount } from '@vue/test-utils'
+import { BBadge, BButton, BFormInput, BFormTextarea, BSpinner } from 'bootstrap-vue-next'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
-import CreaEvaluationModal from './CreaEvaluationModal.vue'
+import { CreaEvaluationModal } from './CreaEvaluationModal'
 
 // This file exists because the [ANREDE] fill moved OUT of the tested backend and INTO
 // this component. Without it the salutation handling had no test on either side of the
@@ -47,6 +48,18 @@ const stubs = {
     emits: ['shown', 'hidden'],
   },
 }
+// The real controls, so the tests can type and click: in the app the build resolves them by
+// name, which the tests leave out.
+const components = { BBadge, BButton, BFormInput, BFormTextarea, BSpinner }
+
+// What the moderator sees and does, read off the rendered modal. The draft is the tall
+// field under "crea.response"; the other two textareas (context, signature) are two rows.
+const responseField = (wrapper) => wrapper.find('textarea[rows="16"]')
+const buttonNamed = (wrapper, label) => wrapper.findAll('button').find((b) => b.text() === label)
+const settle = async () => {
+  await new Promise((resolve) => setTimeout(resolve, 0))
+  await nextTick()
+}
 
 describe('CreaEvaluationModal — salutation', () => {
   let mutate
@@ -55,14 +68,20 @@ describe('CreaEvaluationModal — salutation', () => {
   const mountModal = (over = {}) =>
     mount(CreaEvaluationModal, {
       props: { contribution: contribution(over) },
-      global: { stubs },
+      global: { stubs, components },
     })
 
   // Opens the modal and lets the evaluation settle.
   const open = async (wrapper) => {
     wrapper.findComponent({ name: 'BModal' }).vm.$emit('shown')
-    await new Promise((resolve) => setTimeout(resolve, 0))
-    await nextTick()
+    await settle()
+  }
+
+  // Picks another outcome than Crea's and asks for a reply written for it.
+  const rewriteFor = async (wrapper, decision) => {
+    await buttonNamed(wrapper, `crea.decision.${decision}`).trigger('click')
+    await buttonNamed(wrapper, 'crea.rewrite').trigger('click')
+    await settle()
   }
 
   beforeEach(() => {
@@ -92,8 +111,8 @@ describe('CreaEvaluationModal — salutation', () => {
   it('fills the placeholder from the name heuristic when nothing is stored', async () => {
     const wrapper = mountModal()
     await open(wrapper)
-    expect(wrapper.vm.responseText).toContain('Lieber Thomas')
-    expect(wrapper.vm.responseText).not.toContain(SALUTATION_PLACEHOLDER)
+    expect(responseField(wrapper).element.value).toContain('Lieber Thomas')
+    expect(responseField(wrapper).element.value).not.toContain(SALUTATION_PLACEHOLDER)
   })
 
   // The regression this file was written for. A rewrite must render with the SAME
@@ -102,12 +121,10 @@ describe('CreaEvaluationModal — salutation', () => {
   it('keeps the placeholder filled after a rewrite for another decision', async () => {
     const wrapper = mountModal()
     await open(wrapper)
-    wrapper.vm.chosenDecision = 'deny'
-    await nextTick()
-    await wrapper.vm.rewriteForDecision()
-    await nextTick()
-    expect(wrapper.vm.responseText).not.toContain(SALUTATION_PLACEHOLDER)
-    expect(wrapper.vm.responseText).toContain('Lieber Thomas')
+    await rewriteFor(wrapper, 'deny')
+    expect(mutate).toHaveBeenCalledTimes(2)
+    expect(responseField(wrapper).element.value).not.toContain(SALUTATION_PLACEHOLDER)
+    expect(responseField(wrapper).element.value).toContain('Lieber Thomas')
   })
 
   // Once the draft has been rendered any other way, the watcher's "did the moderator
@@ -116,23 +133,19 @@ describe('CreaEvaluationModal — salutation', () => {
   it('still follows the salutation field after a rewrite', async () => {
     const wrapper = mountModal()
     await open(wrapper)
-    wrapper.vm.chosenDecision = 'deny'
-    await nextTick()
-    await wrapper.vm.rewriteForDecision()
-    await nextTick()
-    wrapper.vm.salutation = 'Hallo Tom'
-    await nextTick()
-    expect(wrapper.vm.responseText).toContain('Hallo Tom')
-    expect(wrapper.vm.responseText).not.toContain(SALUTATION_PLACEHOLDER)
+    await rewriteFor(wrapper, 'deny')
+    await wrapper.find('#crea-salutation').setValue('Hallo Tom')
+    expect(responseField(wrapper).element.value).toContain('Hallo Tom')
+    expect(responseField(wrapper).element.value).not.toContain(SALUTATION_PLACEHOLDER)
   })
 
   it('falls back to the heuristic when the moderator empties the field', async () => {
     const wrapper = mountModal({ user: { firstName: 'Thomas', salutation: 'Lieber Tom' } })
     await open(wrapper)
-    wrapper.vm.salutation = ''
-    await nextTick()
-    expect(wrapper.vm.responseText).toContain('Lieber Thomas')
-    expect(wrapper.vm.responseText).not.toContain(SALUTATION_PLACEHOLDER)
+    expect(wrapper.find('#crea-salutation').element.value).toBe('Lieber Tom')
+    await wrapper.find('#crea-salutation').setValue('')
+    expect(responseField(wrapper).element.value).toContain('Lieber Thomas')
+    expect(responseField(wrapper).element.value).not.toContain(SALUTATION_PLACEHOLDER)
   })
 
   // The counterpart of the backend's own placeholder test. The two packages hand this
@@ -141,7 +154,7 @@ describe('CreaEvaluationModal — salutation', () => {
   it('expects exactly the placeholders the backend emits', async () => {
     const wrapper = mountModal()
     await open(wrapper)
-    expect(wrapper.vm.responseText).toContain(SIGNATURE_PLACEHOLDER)
+    expect(responseField(wrapper).element.value).toContain(SIGNATURE_PLACEHOLDER)
     expect(RAW_REPLY).toContain('[ANREDE]')
   })
 })
@@ -167,13 +180,39 @@ describe('CreaEvaluationModal — resubmission grouping', () => {
   const mountBatch = (clicked = 1) =>
     mount(CreaEvaluationModal, {
       props: { contribution: siblings().find((c) => c.id === clicked) },
-      global: { stubs, mocks: { $t: (key) => key } },
+      global: { stubs, components, mocks: { $t: (key) => key } },
     })
 
   const open = async (wrapper) => {
     wrapper.findComponent({ name: 'BModal' }).vm.$emit('shown')
-    await new Promise((resolve) => setTimeout(resolve, 0))
-    await nextTick()
+    await settle()
+  }
+
+  // The ticked contributions. Which ones, not in which order: the batch input is built by
+  // filtering the loaded list, so the order of the ticks carries no meaning.
+  const tickedIds = (wrapper) =>
+    wrapper
+      .findAll('input[id^="crea-pick-"]')
+      .filter((input) => input.element.checked)
+      .map((input) => Number(input.attributes('id').replace('crea-pick-', '')))
+      .sort((a, b) => a - b)
+
+  // The heading each checkbox sits under, as the moderator reads the list from the top:
+  // '' for the untouched group, which carries none.
+  const groupOf = (wrapper) => {
+    const groups = {}
+    let heading = ''
+    const box = wrapper.find('input[id^="crea-pick-"]').element.closest('.border')
+    for (const element of box.children) {
+      if (element.matches('p.crea-section-heading')) {
+        heading = element.textContent.trim()
+      }
+      const pick = element.querySelector('input[id^="crea-pick-"]')
+      if (pick) {
+        groups[Number(pick.id.replace('crea-pick-', ''))] = heading
+      }
+    }
+    return groups
   }
 
   // The ids of the checkboxes in the order they are rendered, which is what the moderator
@@ -216,13 +255,13 @@ describe('CreaEvaluationModal — resubmission grouping', () => {
     const wrapper = mountBatch()
     await open(wrapper)
     expect(headings(wrapper)).toEqual(['crea.resubmissionDue', 'crea.resubmission'])
-    expect(wrapper.findAll('hr.crea-section-rule')).toHaveLength(2)
+    expect(wrapper.findAll('hr')).toHaveLength(2)
   })
 
   it('preselects only what was never put off', async () => {
     const wrapper = mountBatch()
     await open(wrapper)
-    expect(wrapper.vm.selectedIds).toEqual([1, 4])
+    expect(tickedIds(wrapper)).toEqual([1, 4])
   })
 
   // Bernd's call, and the reason the middle group exists at all: a due contribution has
@@ -230,15 +269,15 @@ describe('CreaEvaluationModal — resubmission grouping', () => {
   it('leaves a due resubmission unticked', async () => {
     const wrapper = mountBatch()
     await open(wrapper)
-    expect(wrapper.vm.selectedIds).not.toContain(2)
-    expect(wrapper.vm.groupedContributions.due.map((c) => c.id)).toEqual([2])
+    expect(tickedIds(wrapper)).not.toContain(2)
+    expect(groupOf(wrapper)[2]).toBe('crea.resubmissionDue')
   })
 
   // Whichever button was pressed, that contribution is the one the moderator asked about.
   it('keeps the clicked contribution ticked inside the put-off group', async () => {
     const wrapper = mountBatch(3)
     await open(wrapper)
-    expect(wrapper.vm.selectedIds).toEqual([1, 3, 4])
+    expect(tickedIds(wrapper)).toEqual([1, 3, 4])
     expect(renderedIds(wrapper).at(-1)).toBe('crea-pick-3')
   })
 
@@ -249,10 +288,10 @@ describe('CreaEvaluationModal — resubmission grouping', () => {
     ])
     const wrapper = mount(CreaEvaluationModal, {
       props: { contribution: contribution({ id: 8, resubmissionAt: future() }) },
-      global: { stubs, mocks: { $t: (key) => key } },
+      global: { stubs, components, mocks: { $t: (key) => key } },
     })
     await open(wrapper)
-    expect(wrapper.vm.selectedIds).toEqual([8])
+    expect(tickedIds(wrapper)).toEqual([8])
   })
 
   // Nothing put off means nothing to separate: the participant whose contributions were
@@ -262,8 +301,8 @@ describe('CreaEvaluationModal — resubmission grouping', () => {
     const wrapper = mountBatch()
     await open(wrapper)
     expect(headings(wrapper)).toEqual([])
-    expect(wrapper.findAll('hr.crea-section-rule')).toHaveLength(0)
-    expect(wrapper.vm.selectedIds).toEqual([5, 6])
+    expect(wrapper.findAll('hr')).toHaveLength(0)
+    expect(tickedIds(wrapper)).toEqual([5, 6])
   })
 
   // A null date must not read as 1970 and drop the contribution into the due group -
@@ -275,11 +314,11 @@ describe('CreaEvaluationModal — resubmission grouping', () => {
     ])
     const wrapper = mount(CreaEvaluationModal, {
       props: { contribution: contribution({ id: 9 }) },
-      global: { stubs, mocks: { $t: (key) => key } },
+      global: { stubs, components, mocks: { $t: (key) => key } },
     })
     await open(wrapper)
-    expect(wrapper.vm.groupedContributions.open.map((c) => c.id)).toEqual([9])
-    expect(wrapper.vm.selectedIds).toEqual([9])
+    expect(groupOf(wrapper)).toEqual({ 9: '', 10: 'crea.resubmissionDue' })
+    expect(tickedIds(wrapper)).toEqual([9])
   })
 
   // A moderator's ask: with a long list, ticking the two she wants beats unticking the
@@ -290,9 +329,9 @@ describe('CreaEvaluationModal — resubmission grouping', () => {
   it('clears the whole checklist in one click', async () => {
     const wrapper = mountBatch()
     await open(wrapper)
-    expect(wrapper.vm.selectedIds).toEqual([1, 4])
+    expect(tickedIds(wrapper)).toEqual([1, 4])
     await toggleAll(wrapper).trigger('click')
-    expect(wrapper.vm.selectedIds).toEqual([])
+    expect(tickedIds(wrapper)).toEqual([])
   })
 
   // The way back takes the resubmission groups with it. They start unticked by design
@@ -303,7 +342,7 @@ describe('CreaEvaluationModal — resubmission grouping', () => {
     await open(wrapper)
     await toggleAll(wrapper).trigger('click')
     await toggleAll(wrapper).trigger('click')
-    expect(wrapper.vm.selectedIds).toEqual([1, 4, 2, 3])
+    expect(tickedIds(wrapper)).toEqual([1, 2, 3, 4])
   })
 
   it('names the direction the next click would take', async () => {

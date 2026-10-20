@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useI18n } from 'vue-i18n'
-import NotFoundPage from './NotFoundPage.vue'
+import { NotFoundPage } from './NotFoundPage'
 
 // Mock vue-i18n
 vi.mock('vue-i18n')

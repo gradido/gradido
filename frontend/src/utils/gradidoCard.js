@@ -23,7 +23,7 @@
  * No white margin here, unlike the thank-you cheque. That one gets pasted into letters and
  * text pages, where the margin keeps three of them on a page. A card is printed and cut.
  *
- * The QR is not built here. It arrives as a finished canvas from utils/qrCode.js -- the
+ * The QR is not built here. It arrives as a finished canvas from utils/qrCode.ts -- the
  * same generator the modal uses, so what gets printed is the code the screen would show.
  *
  * ## The contact lines, and why they are free-form
@@ -177,7 +177,7 @@ const MIDDLE_ROW = mm(28)
 // P-018 in the project notes holds it there.
 const QR_MAX = mm(28)
 
-// utils/qrCode.js draws one module as an 8 x 8 block (`cellSize: 8`), so the canvas that
+// utils/qrCode.ts draws one module as an 8 x 8 block (`cellSize: 8`), so the canvas that
 // arrives here is always `modules * 8` pixels wide -- and at 300 dpi those 8 pixels are
 // 0.677 mm, comfortably above what a phone camera needs off paper. That is what makes
 // "draw it at its own size" the right default rather than a coincidence.

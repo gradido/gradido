@@ -1,0 +1,10 @@
+/* The rows are Bootstrap's list items: their classes stay global, the list scopes them. */
+.spaces > :global(.list-group-item-action:hover:not(.active)) {
+  background-color: #ececec;
+  color: #0056b3;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.spaces > :global(.list-group-item-action.active) > a {
+  color: white;
+}

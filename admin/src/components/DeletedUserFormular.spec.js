@@ -7,7 +7,7 @@ import { useAppToast } from '@/composables/useToast'
 import { adminStore } from '../../test/adminStore'
 import { deleteUser } from '../graphql/deleteUser'
 import { unDeleteUser } from '../graphql/unDeleteUser'
-import DeletedUserFormular from './DeletedUserFormular.vue'
+import { DeletedUserFormular } from './DeletedUserFormular'
 
 vi.mock('@vue/apollo-composable')
 vi.mock('vue-i18n')

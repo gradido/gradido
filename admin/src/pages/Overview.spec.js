@@ -12,7 +12,7 @@ import { communityFigures } from '@/graphql/communityFigures.graphql'
 import { communityStatistics } from '@/graphql/communityStatistics'
 import { useAdminStore } from '@/store/useAdminStore'
 import { adminStore } from '../../test/adminStore'
-import Overview from './Overview.vue'
+import { Overview } from './Overview'
 
 vi.mock('@vue/apollo-composable')
 vi.mock('@/composables/useToast')
@@ -579,9 +579,14 @@ describe('Overview', () => {
         const heading = weeksTable().find('h3')
         expect(region.attributes('aria-labelledby')).toBe(heading.attributes('id'))
         expect(region.find('table').classes().join(' ')).not.toMatch(/stacked/)
-        // The labels stand still while the weeks roll: they name their rows and groups.
+        // The labels stand still while the weeks roll: they name their rows and groups, and carry
+        // what the head of their column carries.
+        const labelClasses = region.find('thead th').classes()
+        expect(labelClasses.length).toBeGreaterThan(0)
         expect(
-          region.findAll('tbody th').every((th) => th.classes().includes('figures-weeks-label')),
+          region
+            .findAll('tbody th')
+            .every((th) => labelClasses.every((labelClass) => th.classes().includes(labelClass))),
         ).toBe(true)
       })
 

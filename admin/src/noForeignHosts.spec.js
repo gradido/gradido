@@ -62,16 +62,8 @@ const styleAddresses = (css) => {
   return found
 }
 
-/** What a file contributes to the stylesheets: all of it, or the style blocks of a component. */
-const stylesOf = (file) => {
-  const text = read(file)
-  if (!file.endsWith('.vue')) {
-    return text
-  }
-  return [...text.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)]
-    .map(([, body]) => body)
-    .join('\n')
-}
+/** What a file contributes to the stylesheets. */
+const stylesOf = (file) => read(file)
 
 // Walked by hand: `readdirSync(dir, { recursive: true })` is silently ignored by a Node older
 // than 18.17, and a guard that only saw the top level would stay green for ever.
@@ -81,7 +73,7 @@ const styleFiles = (dir) =>
     if (statSync(path).isDirectory()) {
       return styleFiles(path)
     }
-    return /\.(?:scss|css|vue)$/.test(name) ? [path] : []
+    return /\.(?:scss|css)$/.test(name) ? [path] : []
   })
 
 describe('how the guard reads', () => {
@@ -100,7 +92,7 @@ describe('how the guard reads', () => {
       <link rel="stylesheet" href="https://fonts.example/css?family=Some+Font:300,400">
       <link rel=stylesheet href=//cdn.example/releases/v5/css/all.css crossorigin="anonymous">
       <!-- <script src="https://cdn.example/old.js"></script> -->
-      <script type="module" src="/src/main.js"></script>
+      <script type="module" src="/src/main.ts"></script>
     </head>`
     expect(embeds(html).filter(({ address }) => isForeign(address))).toEqual([
       { tag: 'link', address: 'https://fonts.example/css?family=Some+Font:300,400' },
@@ -130,7 +122,7 @@ describe('index.html', () => {
   const found = embeds(read(resolve(here, '../index.html')))
 
   it('is really read: its own script and icon are seen', () => {
-    expect(found).toContainEqual({ tag: 'script', address: '/src/main.js' })
+    expect(found).toContainEqual({ tag: 'script', address: '/src/main.ts' })
     expect(found).toContainEqual({ tag: 'link', address: '/favicon.png' })
   })
 
@@ -146,7 +138,7 @@ describe('the styles under src', () => {
   )
 
   it('are really read: all of them, and the addresses in them', () => {
-    expect(files.length).toBeGreaterThan(50)
+    expect(files.length).toBeGreaterThan(25)
     // The forty faces of Open Sans, which the cheque is drawn in, are forty addresses.
     expect(addresses.length).toBeGreaterThan(40)
     expect(addresses).toContainEqual({

@@ -22,7 +22,7 @@
  * two declarations of one family in a page fetch every file twice.
  *
  * The admin has a file of the same name that declares the family first, because the admin's
- * pages do not know it. Same name, same call -- which is what lets thankYouCheque.js stay
+ * pages do not know it. Same name, same call -- which is what lets thankYouCheque.ts stay
  * byte-identical in both.
  */
 

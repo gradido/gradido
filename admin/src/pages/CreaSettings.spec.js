@@ -2,8 +2,8 @@
 import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick, ref } from 'vue'
-import { searchUsers } from '@/graphql/searchUsers.js'
-import CreaSettings from './CreaSettings.vue'
+import { searchUsers } from '@/graphql/searchUsers'
+import { CreaSettings } from './CreaSettings'
 
 // ⛔ Hoisted and stable. The previous mock built fresh, uncaptured spies per call, so
 // nothing could see which message was raised - swapping the success and conflict arms
@@ -170,6 +170,16 @@ const mockBButton = {
 describe('CreaSettings', () => {
   let wrapper
   const keyingSave = () => wrapper.find('[data-test="matching-keying-save"]')
+  // What the form holds, read where it is shown: the model in the first input, the effort in
+  // the second select (the first is the preset picker), the two switches in the two boxes.
+  const formShown = () => ({
+    model: wrapper.findAllComponents({ name: 'BFormInput' })[0].props('modelValue'),
+    effort: wrapper.findAllComponents({ name: 'BFormSelect' })[1].props('modelValue'),
+    fastMode: wrapper.findAllComponents({ name: 'BFormCheckbox' })[0].props('modelValue'),
+    matchingKeyingActive: wrapper
+      .findAllComponents({ name: 'BFormCheckbox' })[1]
+      .props('modelValue'),
+  })
 
   const createWrapper = () =>
     mount(CreaSettings, {
@@ -181,7 +191,6 @@ describe('CreaSettings', () => {
           BFormCheckbox: mockBFormCheckbox,
           BButton: mockBButton,
         },
-        mocks: { $t: (key) => key },
       },
     })
 
@@ -271,7 +280,7 @@ describe('CreaSettings', () => {
     // otherwise the gate would be guarding an empty form and the test above would pass
     // for the wrong reason.
     it('shows what the server holds', () => {
-      expect(wrapper.vm.form).toEqual({
+      expect(formShown()).toEqual({
         model: 'claude-opus-5',
         effort: 'high',
         fastMode: true,
@@ -293,8 +302,8 @@ describe('CreaSettings', () => {
       expect(boxes).toHaveLength(2)
       await boxes[1].find('input').setValue(false)
 
-      expect(wrapper.vm.form.matchingKeyingActive).toBe(false)
-      expect(wrapper.vm.form.fastMode).toBe(true)
+      expect(formShown().matchingKeyingActive).toBe(false)
+      expect(formShown().fastMode).toBe(true)
     })
 
     // The whole payload, not one key. The rewrite of `apiInput` was performed around
@@ -355,7 +364,7 @@ describe('CreaSettings', () => {
       // The mutation answers with the three fields it owns; without the spread in
       // `save()` the switch would come back `undefined`, render as unticked whatever
       // the truth is, and the next matching Save would send that.
-      expect(wrapper.vm.form.matchingKeyingActive).toBe(true)
+      expect(formShown().matchingKeyingActive).toBe(true)
     })
 
     it('takes the stored switch from the answer, not the one it sent', async () => {
@@ -365,7 +374,7 @@ describe('CreaSettings', () => {
 
       // Somebody else wrote in between: the box follows the database rather than the
       // click, and the message says so instead of claiming a save.
-      expect(wrapper.vm.form.matchingKeyingActive).toBe(false)
+      expect(formShown().matchingKeyingActive).toBe(false)
     })
 
     it('shuts the matching Save while its own save is in flight', async () => {
@@ -405,7 +414,7 @@ describe('CreaSettings', () => {
       // ...answered consistently with it, so no conflict...
       expect(toastError).not.toHaveBeenCalled()
       // ...and the newer click is still there, unsaved rather than overwritten.
-      expect(wrapper.vm.form.matchingKeyingActive).toBe(false)
+      expect(formShown().matchingKeyingActive).toBe(false)
     })
 
     it('gives each section its own Save', () => {
@@ -464,7 +473,7 @@ describe('CreaSettings', () => {
       wrapper = createWrapper()
       await nextTick()
 
-      expect(wrapper.vm.form.matchingKeyingActive).toBe(false)
+      expect(formShown().matchingKeyingActive).toBe(false)
       expect(warning().exists()).toBe(false)
     })
 
@@ -475,7 +484,7 @@ describe('CreaSettings', () => {
       await nextTick()
 
       await keyingBox().setValue(true)
-      expect(wrapper.vm.form.matchingKeyingActive).toBe(true)
+      expect(formShown().matchingKeyingActive).toBe(true)
       expect(warning().exists()).toBe(true)
 
       await keyingSave().trigger('click')
@@ -531,6 +540,12 @@ describe('CreaSettings', () => {
   describe('the first-creation signer', () => {
     const signerSave = () => wrapper.findAll('button')[2]
     const signerRemove = () => wrapper.findAll('button')[3]
+    const signerShown = () => wrapper.find('[data-test="first-creation-signer"]').text()
+    const signerInput = () => wrapper.findComponent('[data-test="signer-query"]')
+    const signerSelect = () => wrapper.findComponent('[data-test="signer-choice"]')
+    // Typed and picked the way the admin does it: through the input and the select.
+    const typeQuery = (value) => signerInput().vm.$emit('update:modelValue', value)
+    const choose = (value) => signerSelect().vm.$emit('update:modelValue', value)
 
     beforeEach(async () => {
       wrapper = createWrapper()
@@ -584,15 +599,19 @@ describe('CreaSettings', () => {
         },
       }
       // One letter is not a search yet.
-      wrapper.vm.signerQuery = 'b'
+      typeQuery('b')
       await nextTick()
-      expect(wrapper.vm.signerOptions).toEqual([])
+      expect(signerSelect().exists()).toBe(false)
       expect(signerSave().attributes('disabled')).toBeDefined()
 
-      wrapper.vm.signerQuery = 'bo'
+      typeQuery('bo')
       await nextTick()
-      expect(wrapper.vm.signerOptions.map((option) => option.value)).toEqual([5, 7])
-      wrapper.vm.signerChoice = 5
+      expect(
+        signerSelect()
+          .props('options')
+          .map((option) => option.value),
+      ).toEqual([5, 7])
+      choose(5)
       await nextTick()
       expect(signerSave().attributes('disabled')).toBeUndefined()
 
@@ -600,8 +619,8 @@ describe('CreaSettings', () => {
       expect(signerMutate).toHaveBeenCalledWith({ userId: 5 })
       expect(toastSuccess).toHaveBeenCalledWith('crea.settings.savedSigner')
       // The page shows what the server stored, and the picker is empty again.
-      expect(wrapper.vm.signer).toMatchObject({ userId: 5, role: 'MODERATOR' })
-      expect(wrapper.vm.signerQuery).toBe('')
+      expect(signerShown()).toContain('"name":"Bob Baumeister","role":"MODERATOR"')
+      expect(signerInput().props('modelValue')).toBe('')
       expect(saveMutate).not.toHaveBeenCalled()
       expect(keyingMutate).not.toHaveBeenCalled()
     })
@@ -616,9 +635,9 @@ describe('CreaSettings', () => {
           ],
         },
       }
-      wrapper.vm.signerQuery = 'bo'
+      typeQuery('bo')
       await nextTick()
-      wrapper.vm.signerChoice = 5
+      choose(5)
       await nextTick()
       expect(signerSave().attributes('disabled')).toBeUndefined()
 
@@ -630,7 +649,7 @@ describe('CreaSettings', () => {
         },
       }
       await nextTick()
-      expect(wrapper.vm.signerChoice).toBeNull()
+      expect(signerSelect().props('modelValue')).toBeNull()
       expect(signerSave().attributes('disabled')).toBeDefined()
       await signerSave().trigger('click')
       expect(signerMutate).not.toHaveBeenCalled()
@@ -644,13 +663,20 @@ describe('CreaSettings', () => {
       await signerRemove().trigger('click')
       expect(signerMutate).toHaveBeenCalledWith({ userId: null })
       expect(toastSuccess).toHaveBeenCalledWith('crea.settings.removedSigner')
-      expect(wrapper.vm.signer).toBeNull()
       expect(wrapper.text()).toContain('crea.settings.noSigner')
     })
 
     it('turns a refusal code into a sentence', async () => {
       signerMutate.mockRejectedValueOnce(new Error('FIRST_CREATION_SIGNER_UNAVAILABLE: SCOPED'))
-      wrapper.vm.signerChoice = 5
+      signerSearchResult.value = {
+        searchUsers: {
+          userCount: 1,
+          userList: [{ userId: 5, firstName: 'Bob', lastName: 'Baumeister', role: 'MODERATOR' }],
+        },
+      }
+      typeQuery('bo')
+      await nextTick()
+      choose(5)
       await nextTick()
       await signerSave().trigger('click')
       expect(toastError).toHaveBeenCalledWith(
@@ -658,7 +684,7 @@ describe('CreaSettings', () => {
       )
       expect(toastSuccess).not.toHaveBeenCalled()
       // The stored signer is untouched.
-      expect(wrapper.vm.signer).toMatchObject({ userId: 7 })
+      expect(signerShown()).toContain('"name":"Peter Lustig","role":"ADMIN"')
     })
   })
 })

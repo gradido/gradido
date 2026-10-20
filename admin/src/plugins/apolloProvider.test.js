@@ -3,14 +3,14 @@ import { provideApolloClient } from '@vue/apollo-composable'
 import gql from 'graphql-tag'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { redirectTo } from '@/utils/redirect'
-import CONFIG from '../config'
+import { CONFIG } from '../config'
 import { store } from '../store/store'
 import { apolloClient } from './apolloProvider'
 
 vi.mock('@vue/apollo-composable')
 vi.mock('@/utils/redirect')
 vi.mock('../config', () => ({
-  default: {
+  CONFIG: {
     GRAPHQL_URI: 'http://test-graphql-uri.com',
     WALLET_LOGIN_URL: 'http://test-wallet-login-url.com',
   },

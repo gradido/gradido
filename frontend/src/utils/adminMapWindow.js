@@ -3,7 +3,7 @@
 /**
  * The name of the window the admin interface opens beside itself for a look into the wallet:
  * the pin behind a member's name there shows the map on them, the arrow the send form to them
- * (admin/src/components/MemberWalletLink.vue, admin/src/utils/mapWindow.js). It was the map's
+ * (admin/src/components/MemberWalletLink.tsx, admin/src/utils/mapWindow.ts). It was the map's
  * alone at first, and the word says so still. The two apps share no code, so the name is
  * written down in both and held by a test in each.
  */

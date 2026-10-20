@@ -6,8 +6,8 @@ import { NAV_AVATAR_SIZE } from '@/constants'
 import { useAdminStore } from '@/store/useAdminStore'
 import { redirectTo } from '@/utils/redirect'
 import { adminStore } from '../../test/adminStore'
-import CONFIG from '../config'
-import NavBar from './NavBar'
+import { CONFIG } from '../config'
+import { NavBar } from './NavBar'
 
 // The route the bar believes it is on. Reactive, so a test can move to another page.
 const route = vi.hoisted(() => ({ current: null }))
@@ -171,7 +171,7 @@ describe('NavBar', () => {
       const help = menu('information').findAll('.dropdown-item').at(-1)
       expect(help.attributes('target')).toBe('_blank')
       expect(help.attributes('rel')).toContain('noopener')
-      expect(help.findComponent({ name: 'IBiBoxArrowUpRight' }).exists()).toBe(true)
+      expect(help.find('.navbar-external').exists()).toBe(true)
       // Nothing else leaves the interface.
       expect(wrapper.findAll('[target="_blank"]')).toHaveLength(2)
     })
@@ -354,7 +354,7 @@ describe('NavBar', () => {
   describe('wallet', () => {
     it('changes window location to wallet and logs out', async () => {
       const { logout } = useAdminStore(store)
-      await wrapper.vm.handleWallet()
+      await wrapper.find('[data-test="navbar-wallet"]').trigger('click')
       expect(redirectTo).toHaveBeenCalledWith(CONFIG.WALLET_AUTH_URL + 'valid-token')
       expect(logout).toHaveBeenCalled()
     })
@@ -366,7 +366,7 @@ describe('NavBar', () => {
       const walletAuthUrl = CONFIG.WALLET_AUTH_URL
       CONFIG.WALLET_AUTH_URL = `${window.location.origin}/authenticate?token=`
       const { logout } = useAdminStore(store)
-      await wrapper.vm.handleWallet()
+      await wrapper.find('[data-test="navbar-wallet"]').trigger('click')
       expect(redirectTo).toHaveBeenCalledWith(CONFIG.WALLET_AUTH_URL)
       expect(logout).not.toHaveBeenCalled()
       CONFIG.WALLET_AUTH_URL = walletAuthUrl
@@ -376,7 +376,7 @@ describe('NavBar', () => {
   describe('logout', () => {
     it('redirects to login page and logs out', async () => {
       const { logout } = useAdminStore(store)
-      await wrapper.vm.handleLogout()
+      await wrapper.find('[data-test="navbar-logout"]').trigger('click')
       expect(redirectTo).toHaveBeenCalledWith(CONFIG.WALLET_LOGIN_URL)
       expect(logout).toHaveBeenCalled()
     })

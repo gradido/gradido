@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
 // The colour rule has no home of its own either: the wallet and the admin share no
-// package, and thankYouCheque.js needs it in both. What the copies must not do is
+// package, and thankYouCheque.ts needs it in both. What the copies must not do is
 // drift -- a member whose initials are blue in the wallet must not be brown on a
 // printed cheque.
 //
@@ -21,6 +21,6 @@ const read = (relativePath) => readFileSync(resolve(here, relativePath), 'utf8')
 
 describe('avatarColor', () => {
   it('is byte-identical to the wallet copy', () => {
-    expect(read('./avatarColor.js')).toBe(read('../../../frontend/src/utils/avatarColor.js'))
+    expect(read('./avatarColor.ts')).toBe(read('../../../frontend/src/utils/avatarColor.ts'))
   })
 })

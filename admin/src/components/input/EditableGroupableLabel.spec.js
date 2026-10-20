@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { BFormGroup, BFormInput } from 'bootstrap-vue-next'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import EditableGroupableLabel from './EditableGroupableLabel.vue'
+import { EditableGroupableLabel } from './EditableGroupableLabel'
 
 const modelValue = 'test label value'
 const label = 'Test Label'
@@ -78,6 +78,12 @@ describe('EditableGroupableLabel', () => {
     await input.vm.$emit('update:model-value', newValue)
 
     expect(valueChangedMock).toHaveBeenCalled()
+  })
+
+  it('reports a typed value', async () => {
+    const label = wrapper.findComponent({ name: 'EditableGroupableLabel' })
+    await wrapper.find('input').setValue('typed value')
+    expect(label.emitted('update:model-value')).toEqual([['typed value']])
   })
 
   it('calls editableGroup.invalidValues when value is reverted to original', async () => {

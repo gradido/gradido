@@ -6,11 +6,11 @@ import { createI18n } from 'vue-i18n'
 import { forgetModeratorContacts } from '@/composables/useModeratorContacts'
 import { contactRefs } from '@/graphql/contactRefs'
 import { adminStore } from '../../../test/adminStore'
-import MemberWalletLink from '../MemberWalletLink.vue'
-import SearchUserTable from './SearchUserTable.vue'
+import { MemberWalletLink } from '../MemberWalletLink'
+import { SearchUserTable } from './SearchUserTable'
 
-vi.mock('../CreationFormular.vue', () => ({
-  default: {
+vi.mock('../CreationFormular', () => ({
+  CreationFormular: {
     template:
       '<div class="component-creation-formular"><button @click="emitUpdateUserData">Update User Data</button></div>',
     methods: {
@@ -21,39 +21,41 @@ vi.mock('../CreationFormular.vue', () => ({
     props: ['item'],
   },
 }))
-vi.mock('../ConfirmRegisterMailFormular.vue', () => ({
-  default: {
+vi.mock('../ConfirmRegisterMailFormular', () => ({
+  ConfirmRegisterMailFormular: {
     template: '<div class="confirm-register-mail-formular"><slot></slot></div>',
   },
 }))
-vi.mock('../CreationTransactionList.vue', () => ({
-  default: {
+vi.mock('../CreationTransactionList', () => ({
+  CreationTransactionList: {
     template: '<div class="creation-transaction-list"><slot></slot></div>',
   },
 }))
-vi.mock('../TransactionLinkList.vue', () => ({
-  default: {
+vi.mock('../TransactionLinkList', () => ({
+  TransactionLinkList: {
     template: '<div class="transaction-link-list"><slot></slot></div>',
   },
 }))
-vi.mock('../ChangeUserRoleFormular.vue', () => ({
-  default: {
+vi.mock('../ChangeUserRoleFormular', () => ({
+  ChangeUserRoleFormular: {
+    // Shows the role of the row it is handed, as the real form reads it from there.
     template:
-      '<div class="change-user-role-formular"><button @click="emitUpdateRole">Update Role</button></div>',
+      '<div class="change-user-role-formular" :data-role="String(item.role)"><button @click="emitUpdateRole">Update Role</button></div>',
+    props: ['item'],
     methods: {
       emitUpdateRole() {
-        this.$emit('updateRole', { userId: 1, role: 'ADMIN' })
+        this.$emit('update-role', { userId: 1, role: 'ADMIN' })
       },
     },
   },
 }))
-vi.mock('../DeletedUserFormular.vue', () => ({
-  default: {
+vi.mock('../DeletedUserFormular', () => ({
+  DeletedUserFormular: {
     template:
       '<div class="deleted-user-formular"><button @click="emitUpdateDeletedAt">Update Deleted At</button></div>',
     methods: {
       emitUpdateDeletedAt() {
-        this.$emit('updateDeletedAt', { userId: 1, deletedAt: new Date() })
+        this.$emit('update-deleted-at', { userId: 1, deletedAt: new Date() })
       },
     },
   },
@@ -205,9 +207,9 @@ describe('SearchUserTable', () => {
         const creationFormular = wrapper.find('.component-creation-formular')
         await creationFormular.find('button').trigger('click')
 
-        await wrapper.vm.$nextTick() // Wait for the next tick to ensure reactivity has updated
-
-        expect(wrapper.vm.myItems[1].creation).toEqual([250, 500, 750])
+        // The creation column of the open row, through the field's formatter.
+        const creationCell = wrapper.findAll('tbody > tr').at(1).findAll('td').at(3)
+        expect(creationCell.text()).toBe('250 | 500 | 750')
       })
     })
   })
@@ -264,6 +266,8 @@ describe('SearchUserTable', () => {
     const arrowIn = (row) => usernameCell(row).find('[data-test="member-send-arrow"]')
 
     const bubbleIn = (row) => usernameCell(row).find('[data-test="member-chat-bubble"]')
+    // An open row shows its details, with the form of the role among them.
+    const rowIsOpen = () => wrapper.find('.change-user-role-formular').exists()
 
     beforeEach(async () => {
       wrapper = createWrapper({ items: rows, fields })
@@ -351,7 +355,7 @@ describe('SearchUserTable', () => {
           expect(address.searchParams.get('redirect')).toBe(
             `/contacts?with=${rows[row].gradidoID}&community=${COMMUNITY}`,
           )
-          expect(wrapper.vm.myItems.some((item) => item._showDetails)).toBe(false)
+          expect(rowIsOpen()).toBe(false)
           vi.restoreAllMocks()
         },
       )
@@ -421,10 +425,11 @@ describe('SearchUserTable', () => {
       it('does not open the row it stands in', async () => {
         await pinIn(0).trigger('click')
         await arrowIn(1).trigger('click')
-        expect(wrapper.vm.myItems.some((item) => item._showDetails)).toBe(false)
+        expect(rowIsOpen()).toBe(false)
 
         await usernameCell(0).trigger('click')
-        expect(wrapper.vm.myItems[0]._showDetails).toBe(true)
+        expect(rowIsOpen()).toBe(true)
+        expect(wrapper.find('.change-user-role-formular').attributes('data-role')).toBe('null')
       })
     })
 
@@ -437,7 +442,7 @@ describe('SearchUserTable', () => {
       const deletedIconIn = (row) => memberRows().at(row).find('.test-deleted-icon')
       // The form under the open row, as the spec replaces it: it reports what the server said.
       const formReports = (report) =>
-        wrapper.findComponent('.deleted-user-formular').vm.$emit('updateDeletedAt', report)
+        wrapper.findComponent('.deleted-user-formular').vm.$emit('update-deleted-at', report)
 
       beforeEach(async () => {
         await usernameCell(0).trigger('click')
@@ -475,7 +480,7 @@ describe('SearchUserTable', () => {
       it('keeps the row open, with the way to bring the member back', async () => {
         await formReports({ userId: rows[0].userId, deletedAt: DELETED })
 
-        expect(wrapper.vm.myItems[0]._showDetails).toBe(true)
+        expect(rowIsOpen()).toBe(true)
         expect(wrapper.findAll('.deleted-user-formular')).toHaveLength(1)
       })
 
@@ -512,11 +517,12 @@ describe('SearchUserTable', () => {
     // again it reads the role off the row.
     it('notes a new role in its own row, and tells the page', async () => {
       await usernameCell(0).trigger('click')
-      expect(wrapper.vm.myItems[0].role).toBeNull()
+      const form = () => wrapper.find('.change-user-role-formular')
+      expect(form().attributes('data-role')).toBe('null')
 
-      await wrapper.find('.change-user-role-formular button').trigger('click')
+      await form().find('button').trigger('click')
 
-      expect(wrapper.vm.myItems[0].role).toBe('ADMIN')
+      expect(form().attributes('data-role')).toBe('ADMIN')
       expect(wrapper.emitted('update-role')).toEqual([[1, 'ADMIN']])
     })
   })

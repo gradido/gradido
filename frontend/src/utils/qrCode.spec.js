@@ -22,6 +22,6 @@ const read = (relativePath) => readFileSync(resolve(here, relativePath), 'utf8')
 
 describe('qrCode', () => {
   it('is byte-identical to the admin copy', () => {
-    expect(read('./qrCode.js')).toBe(read('../../../admin/src/utils/qrCode.js'))
+    expect(read('./qrCode.ts')).toBe(read('../../../admin/src/utils/qrCode.ts'))
   })
 })

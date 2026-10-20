@@ -1,9 +1,9 @@
 import { shallowMount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createRouter, createWebHistory } from 'vue-router'
-import defaultLayout from '@/layouts/defaultLayout'
+import { defaultLayout } from '@/layouts/defaultLayout'
 import { adminStore } from '../test/adminStore'
-import App from './App.vue'
+import { App } from './App'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -14,7 +14,7 @@ const createAdminStore = (initialState = { token: null }) => {
   return adminStore(initialState)
 }
 
-describe('App.vue', () => {
+describe('App', () => {
   let store
   let wrapper
 

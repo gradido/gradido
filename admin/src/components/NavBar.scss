@@ -1,0 +1,142 @@
+.bg-light-dark {
+  background-color: #343a40;
+}
+
+/* The elements below are drawn by the library's components, which a scoped block does not
+   reach. The root class keeps the rules to this bar and puts them above Bootstrap's own. */
+.component-nabvar {
+  .navbar-home {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    min-width: 0;
+    font-size: 1rem;
+    font-weight: 500;
+  }
+
+  .navbar-coin {
+    flex: none;
+    width: 2rem;
+    height: 2rem;
+  }
+
+  /* The name gives way first when the bar runs out of room. */
+  .navbar-community {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .navbar-nav .nav-link {
+    white-space: nowrap;
+  }
+
+  /* Bootstrap's ring is a quarter-opaque blue, which on this dark bar is next to nothing
+     (1.2 : 1), and inside a menu the focus is only the hover tint. A keyboard needs to see
+     where it stands. */
+  .navbar-home:focus-visible,
+  .nav-link:focus-visible,
+  .dropdown-item:focus-visible {
+    outline: 2px solid var(--bs-white);
+    outline-offset: -2px;
+    box-shadow: none;
+  }
+
+  .navbar-external {
+    margin-left: 0.25rem;
+    font-size: 0.875em;
+    vertical-align: -0.0625em;
+  }
+
+  /* The menus hang in the bar's own dark scheme. The page chosen is marked the way the bar
+     marks it: white on a lighter ground, not Bootstrap's blue. */
+  .dropdown-menu {
+    --bs-dropdown-link-active-bg: var(--bs-gray-700);
+    --bs-dropdown-link-active-color: var(--bs-white);
+  }
+
+  .navbar-account .nav-link {
+    display: flex;
+    align-items: center;
+    padding: 0.375rem 0.5rem;
+  }
+
+  .navbar-account-head {
+    max-width: 18rem;
+    padding: 0.25rem 1rem 0.375rem;
+  }
+
+  .navbar-account-name {
+    overflow: hidden;
+    font-weight: 500;
+    color: var(--bs-emphasis-color);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .navbar-account-role {
+    font-size: 0.875rem;
+    color: var(--bs-secondary-color);
+
+    &::first-letter {
+      text-transform: uppercase;
+    }
+  }
+
+  @media (width >= 992px) {
+    .navbar-home {
+      flex: 0 1 auto;
+      margin-right: 0.5rem;
+
+      /* The line stands after the name: it parts where one is from where one can go. */
+      &::after {
+        flex: none;
+        width: 1px;
+        height: 1.25rem;
+        margin-left: 0.5rem;
+        content: '';
+        background-color: rgb(255 255 255 / 25%);
+      }
+    }
+  }
+
+  @media (width < 992px) {
+    /* One row: name, the moderator's menu, the opener. The entries open below it. */
+    .navbar-home {
+      flex: 1 1 0;
+      margin-right: 0.75rem;
+    }
+
+    .navbar-account {
+      order: 1;
+    }
+
+    .navbar-toggler {
+      order: 2;
+      min-height: 2.75rem;
+      margin-left: 0.25rem;
+    }
+
+    .navbar-collapse {
+      order: 3;
+    }
+
+    /* 44 px for a finger. */
+    .navbar-collapse .nav-link,
+    .navbar-account .dropdown-item {
+      padding-top: 0.625rem;
+      padding-bottom: 0.625rem;
+    }
+
+    .navbar-group-heading {
+      padding: 0.75rem 0 0.25rem;
+      font-size: 0.8125rem;
+      color: rgb(255 255 255 / 60%);
+    }
+
+    .navbar-group-entry .nav-link {
+      padding-left: 1rem;
+    }
+  }
+}

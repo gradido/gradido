@@ -4,10 +4,13 @@ import { BButton, BCol, BListGroup, BListGroupItem, BRow } from 'bootstrap-vue-n
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick, ref } from 'vue'
 import { useAppToast } from '@/composables/useToast'
-import FederationVisualize from './FederationVisualize.vue'
+import { FederationVisualize } from './FederationVisualize'
 
 vi.mock('@vue/apollo-composable')
 vi.mock('@/composables/useToast')
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({ t: (key) => key }),
+}))
 
 describe('FederationVisualize', () => {
   let wrapper
@@ -68,7 +71,9 @@ describe('FederationVisualize', () => {
   it('calls refetch when refresh button is clicked', async () => {
     const refreshButton = wrapper.find('[data-test="federation-communities-refresh-btn"]')
     await refreshButton.trigger('click')
-    expect(mockRefetch).toHaveBeenCalled()
+    expect(mockRefetch).toHaveBeenCalledTimes(1)
+    // what the template hands it: the click itself
+    expect(mockRefetch.mock.calls[0][0]).toBeInstanceOf(MouseEvent)
   })
 
   it('displays communities when data is loaded', async () => {

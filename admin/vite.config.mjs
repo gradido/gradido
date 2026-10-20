@@ -1,11 +1,7 @@
 import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 import commonjs from 'vite-plugin-commonjs'
 import Icons from 'unplugin-icons/vite'
-import Components from 'unplugin-vue-components/vite'
-import IconsResolve from 'unplugin-icons/resolver'
-import { BootstrapVueNextResolver } from 'bootstrap-vue-next'
 import EnvironmentPlugin from 'vite-plugin-environment'
 
 
@@ -15,11 +11,9 @@ import { existsSync, constants } from 'node:fs'
 import { validate, browserUrls } from 'config-schema'
 
 import path from 'node:path'
-import { createRequire } from 'node:module'
 import dotenv from 'dotenv'
 dotenv.config() // load env vars from .env
 
-const require = createRequire(import.meta.url)
 
 export default defineConfig(async ({ command }) => {
   const { vitePluginGraphqlLoader } = await import('vite-plugin-graphql-loader')
@@ -29,7 +23,7 @@ export default defineConfig(async ({ command }) => {
     process.env.BUILD_COMMIT = execSync('git rev-parse HEAD').toString().trim()
   }
   // read and checked here, and once more in the browser from the values handed over below
-  const CONFIG = require('./src/config')
+  const { CONFIG } = await import('./src/config')
   // make sure that all urls used in browser have the same protocol to prevent mixed content errors
   validate(browserUrls, [
     CONFIG.ADMIN_AUTH_URL,
@@ -54,16 +48,11 @@ export default defineConfig(async ({ command }) => {
         '@': path.resolve(__dirname, './src'),
         assets: path.join(__dirname, 'src/assets'),
       },
-      extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.vue'],
+      extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json'],
     },
 
     plugins: [
-      vue(),
       vueJsx(),
-      Components({
-        resolvers: [IconsResolve(), BootstrapVueNextResolver()],
-        dts: true,
-      }),
       Icons({
         compiler: 'vue3',
       }),

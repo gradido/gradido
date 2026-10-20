@@ -9,7 +9,7 @@ import {
   deleteChatVideoServer,
   updateChatVideoServer,
 } from '@/graphql/chatVideoServers.graphql'
-import ChatSettings from './ChatSettings.vue'
+import { ChatSettings } from './ChatSettings'
 
 // Stable spies: a test has to see WHICH message was raised.
 const { toastSuccess, toastError } = vi.hoisted(() => ({
@@ -178,9 +178,11 @@ describe('ChatSettings', () => {
 
   it('lists every server with its address, operator, prefix and note', () => {
     const wrapper = mountPage()
-    const rows = wrapper.findAll('.chat-server-row')
+    const rows = wrapper.findAll('[data-test^="server-"]')
     expect(rows).toHaveLength(3)
-    expect(rows[0].find('.chat-server-address').text()).toBe('https://fairmeeting.net/')
+    // The address stands right above the details.
+    const address = rows[0].find('[data-test="details-1"]').element.previousElementSibling
+    expect(address.textContent.trim()).toBe('https://fairmeeting.net/')
     // One separator between every two parts, the same on both sides.
     expect(wrapper.find('[data-test="details-1"]').text()).toBe(
       'fairmeeting (fairkom) · chatAdmin.servers.prefix:{"prefix":"GradidoAkademie"} · Akademie-Lizenz',
@@ -279,7 +281,7 @@ describe('ChatSettings', () => {
     it('sends the tick as it was set', async () => {
       const wrapper = mountPage()
       await wrapper.find('[data-test="form-base-url"]').setValue('https://fairmeeting.net/')
-      await checkboxIn(wrapper, '.chat-server-form').setValue(false)
+      await wrapper.find('input[data-test="form-active"]').setValue(false)
       await wrapper.find('[data-test="form-add"]').trigger('click')
       await flushPromises()
       expect(sent.create.mock.calls[0][0].input.active).toBe(false)

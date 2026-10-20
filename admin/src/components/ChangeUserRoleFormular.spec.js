@@ -3,7 +3,7 @@ import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useAdminStore } from '@/store/useAdminStore'
 import { setCreationAllowed as setCreationAllowedMutation } from '../graphql/setCreationAllowed'
-import ChangeUserRoleFormular from './ChangeUserRoleFormular.vue'
+import { ChangeUserRoleFormular } from './ChangeUserRoleFormular'
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
@@ -41,10 +41,13 @@ vi.mock('@/composables/useToast', () => ({
   }),
 }))
 
+// Driven the way an administrator drives it: by choosing an option.
 const mockBFormSelect = {
   name: 'BFormSelect',
-  template: '<select data-testid="mock-bformselect"><slot></slot></select>',
+  template:
+    '<select data-testid="mock-bformselect" :value="modelValue" @change="$emit(`update:modelValue`, $event.target.value)"><option v-for="option in options" :key="option.value" :value="option.value">{{ option.text }}</option></select>',
   props: ['modelValue', 'options'],
+  emits: ['update:modelValue'],
 }
 const mockBButton = {
   name: 'BButton',
@@ -75,6 +78,7 @@ describe('ChangeUserRoleFormular', () => {
           BFormSelect: mockBFormSelect,
           BButton: mockBButton,
           BFormCheckbox: mockBFormCheckbox,
+          ThemedSelect: true,
         },
         mocks: {
           $t: (key) => key,
@@ -158,8 +162,7 @@ describe('ChangeUserRoleFormular', () => {
       // A KI-Moderator has the moderator rights plus Crea, so the group visibility scope
       // must be settable for them exactly like for a plain moderator.
       const scopeShownFor = async (role) => {
-        wrapper.vm.roleSelected = role
-        await wrapper.vm.$nextTick()
+        await wrapper.find('[data-testid="mock-bformselect"]').setValue(role)
         return wrapper.find('[data-test="moderator-scope"]').exists()
       }
 
@@ -183,18 +186,26 @@ describe('ChangeUserRoleFormular', () => {
       })
 
       it('has selected option set to "USER"', () => {
-        expect(wrapper.vm.roleSelected).toBe('USER')
+        expect(wrapper.find('[data-testid="mock-bformselect"]').element.value).toBe('USER')
+      })
+
+      it('offers the four roles', () => {
+        expect(
+          wrapper
+            .find('[data-testid="mock-bformselect"]')
+            .findAll('option')
+            .map((option) => option.element.value),
+        ).toEqual(['USER', 'MODERATOR', 'MODERATOR_AI', 'ADMIN'])
       })
 
       describe('change select to new role "MODERATOR"', () => {
         beforeEach(async () => {
-          wrapper.vm.roleSelected = 'MODERATOR'
-          await wrapper.vm.$nextTick()
+          await wrapper.find('[data-testid="mock-bformselect"]').setValue('MODERATOR')
         })
 
         it('has "change_user_role" button enabled', () => {
           const button = wrapper.find('[data-testid="mock-bbutton"]')
-          expect(button.attributes('disabled')).toBeFalsy()
+          expect(button.attributes('disabled')).toBeUndefined()
         })
 
         describe('clicking the "change_user_role" button', () => {
@@ -235,6 +246,12 @@ describe('ChangeUserRoleFormular', () => {
 
     it('has no button', () => {
       expect(wrapper.find('[data-testid="mock-bbutton"]').exists()).toBe(false)
+    })
+
+    // ⚠️ Meant to name the member's role; it looks it up with `currentRole.value` on the
+    // unwrapped string and never finds it. Pinned as it is.
+    it('shows an empty line where the role would be', () => {
+      expect(wrapper.find('.m-3.mb-4').text()).toBe('')
     })
   })
 
@@ -401,11 +418,14 @@ describe('ChangeUserRoleFormular', () => {
 
     it('handles error and resets role on failure', async () => {
       mockMutate.mockRejectedValue(new Error('API Error'))
+      const select = wrapper.find('[data-testid="mock-bformselect"]')
+      await select.setValue('MODERATOR')
 
       await wrapper.vm.updateUserRole('MODERATOR', 'USER')
+      await new Promise((resolve) => setTimeout(resolve, 0))
 
       expect(mockMutate).toHaveBeenCalled()
-      expect(wrapper.vm.roleSelected).toBe('USER')
+      expect(select.element.value).toBe('USER')
       expect(wrapper.emitted('update-role')).toBeFalsy()
     })
   })

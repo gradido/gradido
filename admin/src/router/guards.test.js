@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import CONFIG from '../config'
+import { CONFIG } from '../config'
 import { verifyLogin } from '../graphql/verifyLogin'
 import { addNavigationGuards } from './guards'
 
@@ -8,7 +8,7 @@ vi.mock('../graphql/verifyLogin', () => ({
 }))
 
 vi.mock('../config', () => ({
-  default: {
+  CONFIG: {
     DEBUG_DISABLE_AUTH: false,
   },
 }))

@@ -356,15 +356,24 @@
 //   })
 // })
 
-import { mount } from '@vue/test-utils'
-import { BCol, BFormGroup, BListGroup, BListGroupItem, BRow } from 'bootstrap-vue-next'
+import { flushPromises, mount } from '@vue/test-utils'
+import {
+  BButton,
+  BCol,
+  BFormGroup,
+  BListGroup,
+  BListGroupItem,
+  BRow,
+  createBootstrap,
+  vBTooltip,
+} from 'bootstrap-vue-next'
 import { formatDistanceToNow } from 'date-fns'
 import { de, enUS as en, es, fr, nl } from 'date-fns/locale'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { adminStore } from '../../../test/adminStore'
-import CommunityVisualizeItem from './CommunityVisualizeItem.vue'
+import { CommunityVisualizeItem } from './CommunityVisualizeItem'
 
 vi.mock('@/composables/useToast', () => ({
   useAppToast: vi.fn(() => ({
@@ -463,7 +472,7 @@ describe('CommunityVisualizeItem', () => {
         ...props,
       },
       global: {
-        plugins: [store],
+        plugins: [store, createBootstrap()],
         mocks: {
           $t: (key) => key,
           $i18n: {
@@ -476,18 +485,21 @@ describe('CommunityVisualizeItem', () => {
           BListGroup,
           BListGroupItem,
           BFormGroup,
+          BButton,
           'variant-icon': true,
-          'editable-group': true,
           'editable-groupable-label': true,
           coordinates: true,
           'federation-visualize-item': true,
         },
+        // in the build the resolver imports it where the template names it
         directives: {
-          'b-tooltip': {},
+          'b-tooltip': vBTooltip,
         },
       },
     })
   }
+
+  const columns = () => wrapper.findAll('.community-visualize-item > .row:first-child > div')
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -550,12 +562,12 @@ describe('CommunityVisualizeItem', () => {
           addSuffix: true,
           locale: dateLocale,
         })
-        expect(wrapper.vm.lastAnnouncedAt).toBe(expectedString)
+        expect(columns()[3].text()).toBe(expectedString)
       })
 
       it('computes empty string when lastAnnouncedAt is null', () => {
         wrapper = createWrapper({ item: createItem({ federatedCommunities: [] }) })
-        expect(wrapper.vm.lastAnnouncedAt).toBe('')
+        expect(columns()[3].text()).toBe('')
       })
     })
 
@@ -580,12 +592,12 @@ describe('CommunityVisualizeItem', () => {
           addSuffix: true,
           locale: dateLocale,
         })
-        expect(wrapper.vm.createdAt).toBe(expectedString)
+        expect(columns()[4].text()).toBe(expectedString)
       })
 
       it('computes empty string when createdAt is null', () => {
         wrapper = createWrapper({ item: createItem({ createdAt: null }) })
-        expect(wrapper.vm.createdAt).toBe('')
+        expect(columns()[4].text()).toBe('')
       })
     })
   })
@@ -606,14 +618,37 @@ describe('CommunityVisualizeItem', () => {
     })
   })
 
-  describe('handleUpdateHomeCommunity', () => {
-    beforeEach(() => {
+  // The fields of the home community sit in the edit slot of the EditableGroup, which opens
+  // with the details. They are stubs here, so the group never hears of a change and keeps its
+  // save button disabled -- the save is therefore asked of the group directly.
+  describe('editing the home community', () => {
+    const openEditing = async () => {
+      await wrapper.find('.row').trigger('click')
+      await wrapper.findComponent({ name: 'EditableGroup' }).find('button').trigger('click')
+    }
+    const labels = () => wrapper.findAllComponents({ name: 'EditableGroupableLabel' })
+    const coordinates = () => wrapper.findComponent({ name: 'Coordinates' })
+    const save = async () => {
+      wrapper.findComponent({ name: 'EditableGroup' }).vm.$emit('save')
+      await flushPromises()
+    }
+
+    beforeEach(async () => {
       wrapper = createWrapper()
+      await openEditing()
+    })
+
+    it('hands the fields what the community has', () => {
+      expect(labels().map((label) => label.props('modelValue'))).toEqual(['<api key>', null])
+      expect(labels().map((label) => label.props('idName'))).toEqual([
+        'home-community-api-key',
+        'home-community-hiero-topic-id',
+      ])
     })
 
     it('updates gms api key', async () => {
-      wrapper.vm.gmsApiKey = 'changed key'
-      await wrapper.vm.handleUpdateHomeCommunity()
+      await labels()[0].vm.$emit('update:modelValue', 'changed key')
+      await save()
 
       expect(mockMutate).toHaveBeenCalledWith({
         uuid: 1,
@@ -622,8 +657,8 @@ describe('CommunityVisualizeItem', () => {
     })
 
     it('updates location', async () => {
-      wrapper.vm.location = { latitude: 1.121, longitude: 17.212 }
-      await wrapper.vm.handleUpdateHomeCommunity()
+      await coordinates().vm.$emit('update:modelValue', { latitude: 1.121, longitude: 17.212 })
+      await save()
 
       expect(mockMutate).toHaveBeenCalledWith({
         uuid: 1,
@@ -633,9 +668,9 @@ describe('CommunityVisualizeItem', () => {
     })
 
     it('updates both gms api key and location', async () => {
-      wrapper.vm.gmsApiKey = 'changed key'
-      wrapper.vm.location = { latitude: 1.121, longitude: 17.212 }
-      await wrapper.vm.handleUpdateHomeCommunity()
+      await labels()[0].vm.$emit('update:modelValue', 'changed key')
+      await coordinates().vm.$emit('update:modelValue', { latitude: 1.121, longitude: 17.212 })
+      await save()
 
       expect(mockMutate).toHaveBeenCalledWith({
         uuid: 1,
@@ -643,16 +678,23 @@ describe('CommunityVisualizeItem', () => {
         location: { latitude: 1.121, longitude: 17.212 },
       })
     })
-  })
 
-  describe('resetHomeCommunityEditable', () => {
-    it('resets gms api key and location', () => {
-      wrapper.vm.gmsApiKey = 'changed key'
-      wrapper.vm.location = { latitude: 1.121, longitude: 17.212 }
-      wrapper.vm.resetHomeCommunityEditable()
+    it('shows the saved values once the group is closed', async () => {
+      await labels()[0].vm.$emit('update:modelValue', 'changed key')
+      await save()
+      await wrapper.find('.close-button').trigger('click')
 
-      expect(wrapper.vm.gmsApiKey).toBe('<api key>')
-      expect(wrapper.vm.location).toEqual(wrapper.vm.originalLocation)
+      expect(wrapper.find('.details').text()).toContain('changed key')
+    })
+
+    it('resets gms api key and location', async () => {
+      await labels()[0].vm.$emit('update:modelValue', 'changed key')
+      await coordinates().vm.$emit('update:modelValue', { latitude: 1.121, longitude: 17.212 })
+      await wrapper.find('.close-button').trigger('click')
+
+      expect(wrapper.find('.details').text()).toContain('<api key>')
+      expect(wrapper.find('.details').text()).not.toContain('changed key')
+      expect(wrapper.find('.details').text()).not.toContain('geo-coordinates.format')
     })
   })
 })
