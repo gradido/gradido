@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { BFormGroup, BFormInput } from 'bootstrap-vue-next'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import Coordinates from './Coordinates.vue'
+import { Coordinates } from './Coordinates'
 
 const modelValue = {
   latitude: 56.78,
@@ -45,6 +45,7 @@ describe('Coordinates', () => {
   }
 
   beforeEach(() => {
+    vi.clearAllMocks()
     wrapper = createWrapper()
   })
 
@@ -63,10 +64,13 @@ describe('Coordinates', () => {
     await latitudeInput.setValue('34.56')
     await longitudeInput.setValue('78.90')
 
-    expect(wrapper.vm.inputValue).toStrictEqual({
+    expect(wrapper.emitted('update:modelValue').at(-1)[0]).toStrictEqual({
       latitude: 34.56,
       longitude: '78.90',
     })
+    expect(wrapper.find('#home-community-latitude-longitude-smart').element.value).toBe(
+      '34.56, 78.9',
+    )
   })
 
   it('emits input event with updated values', async () => {
@@ -75,11 +79,11 @@ describe('Coordinates', () => {
 
     await latitudeInput.setValue('34.56')
     expect(wrapper.emitted('input')).toBeTruthy()
-    expect(wrapper.vm.inputValue.latitude).toBe('34.56')
+    expect(latitudeInput.element.value).toBe('34.56')
 
     await longitudeInput.setValue('78.9')
     expect(wrapper.emitted('input')).toBeTruthy()
-    expect(wrapper.vm.inputValue.longitude).toBe('78.9')
+    expect(longitudeInput.element.value).toBe('78.9')
   })
 
   /**
@@ -122,12 +126,12 @@ describe('Coordinates', () => {
     await latitudeLongitudeInput.setValue('34.56, 78.90')
     await latitudeLongitudeInput.trigger('input')
 
-    await wrapper.vm.$nextTick()
-
-    expect(wrapper.vm.inputValue).toStrictEqual({
+    expect(wrapper.emitted('update:modelValue').at(-1)[0]).toStrictEqual({
       latitude: 34.56,
       longitude: 78.9,
     })
+    expect(wrapper.find('#home-community-latitude').element.value).toBe('34.56')
+    expect(wrapper.find('#home-community-longitude').element.value).toBe('78.9')
   })
 
   it('validates coordinates correctly', async () => {
@@ -137,11 +141,14 @@ describe('Coordinates', () => {
     await latitudeInput.setValue('invalid')
     await longitudeInput.setValue('78.90')
 
-    expect(wrapper.vm.isValid).toBe(false)
+    expect(wrapper.find('.is-invalid').exists()).toBe(true)
+    expect(mockEditableGroup.invalidValues).toHaveBeenLastCalledWith()
+    expect(mockEditableGroup.valueChanged).not.toHaveBeenCalled()
 
     await latitudeInput.setValue('34.56')
     await longitudeInput.setValue('78.90')
 
-    expect(wrapper.vm.isValid).toBe(true)
+    expect(wrapper.find('.is-invalid').exists()).toBe(false)
+    expect(mockEditableGroup.valueChanged).toHaveBeenCalled()
   })
 })

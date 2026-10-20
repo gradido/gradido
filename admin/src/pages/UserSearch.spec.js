@@ -1,7 +1,9 @@
 import { useQuery } from '@vue/apollo-composable'
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
+import { BButton } from 'bootstrap-vue-next'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import UserSearch from './UserSearch.vue'
+import { nextTick } from 'vue'
+import { UserSearch } from './UserSearch'
 
 // Mock the composables and components
 vi.mock('@vue/apollo-composable')
@@ -10,16 +12,21 @@ vi.mock('../composables/useCreationMonths', () => ({
     creationLabel: () => 'Creation Date',
   }),
 }))
-const { mockToastSuccess } = vi.hoisted(() => ({ mockToastSuccess: vi.fn() }))
+const { mockToastSuccess, mockT, route } = vi.hoisted(() => ({
+  mockToastSuccess: vi.fn(),
+  mockT: vi.fn((key) => key), // Mock translation function
+  route: { query: {} },
+}))
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({ t: mockT }),
+}))
 vi.mock('@/composables/useToast', () => ({
   useAppToast: () => ({
     toastSuccess: mockToastSuccess,
   }),
 }))
 vi.mock('vue-router', () => ({
-  useRoute: () => ({
-    query: {},
-  }),
+  useRoute: () => route,
 }))
 
 // Mock icon components
@@ -79,9 +86,8 @@ const mockSearchUsers = {
 
 describe('UserSearch', () => {
   let wrapper
-  const mockT = vi.fn((key) => key) // Mock translation function
 
-  const mountPage = () =>
+  const mountPage = (stubs = {}) =>
     mount(UserSearch, {
       global: {
         stubs: {
@@ -91,6 +97,7 @@ describe('UserSearch', () => {
           BButton: true,
           IBiEnvelope: mockIconComponent,
           IBiXCircle: mockIconComponent,
+          ...stubs,
         },
         mocks: {
           $t: mockT,
@@ -99,6 +106,7 @@ describe('UserSearch', () => {
     })
 
   beforeEach(() => {
+    route.query = {}
     mockToastSuccess.mockClear()
     // Mock the useQuery composable, with a copy per test: the page writes role changes into
     // the list it was handed.
@@ -116,7 +124,7 @@ describe('UserSearch', () => {
 
   it('uses correct translation keys', async () => {
     // Force a re-render
-    await wrapper.vm.$nextTick()
+    await nextTick()
 
     expect(mockT).toHaveBeenCalledWith('user_search')
   })
@@ -161,6 +169,56 @@ describe('UserSearch', () => {
     const button = wrapper.find('.deletedUserSearch')
     await button.trigger('click')
     expect(useQuery().refetch).toHaveBeenCalled()
+  })
+
+  describe('the filter buttons', () => {
+    // The words of a button, behind its icon
+    const label = (button) => button.text().replace(/^Icon\s*/, '')
+
+    beforeEach(() => {
+      wrapper = mountPage({ BButton })
+    })
+
+    it('says all addresses before a filter is set', () => {
+      expect(label(wrapper.find('.unconfirmedRegisterMails'))).toBe('all_emails')
+      expect(label(wrapper.find('.deletedUserSearch'))).toBe('all_emails')
+    })
+
+    it('switches to the unconfirmed addresses and back', async () => {
+      const button = wrapper.find('.unconfirmedRegisterMails')
+      await button.trigger('click')
+      expect(label(button)).toBe('unregistered_emails')
+      expect(useQuery.mock.lastCall[1].filters).toEqual({ byActivated: false, byDeleted: null })
+      await button.trigger('click')
+      expect(label(button)).toBe('all_emails')
+    })
+
+    it('switches to the deleted members and back', async () => {
+      const button = wrapper.find('.deletedUserSearch')
+      await button.trigger('click')
+      expect(label(button)).toBe('deleted_user')
+      expect(useQuery.mock.lastCall[1].filters).toEqual({ byActivated: null, byDeleted: true })
+      await button.trigger('click')
+      expect(label(button)).toBe('all_emails')
+    })
+  })
+
+  describe('opened with a search in the address', () => {
+    beforeEach(async () => {
+      route.query = { search: 'bibi' }
+      wrapper = mountPage()
+      await flushPromises()
+    })
+
+    it('fills the query field with it and searches', () => {
+      expect(wrapper.findComponent({ name: 'UserQuery' }).props('modelValue')).toBe('bibi')
+      expect(useQuery().refetch).toHaveBeenCalledWith({ query: 'bibi' })
+    })
+  })
+
+  it('hands the table the members and the pagination their count', () => {
+    expect(wrapper.findComponent({ name: 'SearchUserTable' }).props('items')).toHaveLength(4)
+    expect(wrapper.findComponent({ name: 'BPagination' }).props('totalRows')).toBe(4)
   })
 
   // SearchUserTable re-emits ChangeUserRoleFormular's `{ userId, role }` as two arguments,

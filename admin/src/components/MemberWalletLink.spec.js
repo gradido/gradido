@@ -10,14 +10,25 @@ import {
   MODERATOR_CONTACTS_RETURN_MS,
   MODERATOR_CONTACTS_WAIT_MS,
 } from '@/composables/useModeratorContacts'
-import CONFIG from '@/config'
+import { CONFIG } from '@/config'
 import { contactRefs } from '@/graphql/contactRefs'
 import { verifyLogin } from '@/graphql/verifyLogin'
 import de from '@/locales/de.json'
 import en from '@/locales/en.json'
 import { useAdminStore } from '@/store/useAdminStore'
 import { adminStore } from '../../test/adminStore'
-import MemberWalletLink from './MemberWalletLink.vue'
+import { MemberWalletLink } from './MemberWalletLink'
+import classes from './MemberWalletLink.module.css'
+
+// The icons are imported by the component, and an imported icon carries no name a stub could
+// match. Each is replaced by a component of the name the stubs below go by.
+vi.mock('~icons/bi/geo-alt-fill', () => ({
+  default: { name: 'IBiGeoAltFill', render: () => null },
+}))
+vi.mock('~icons/bi/send', () => ({ default: { name: 'IBiSend', render: () => null } }))
+vi.mock('~icons/mdi/chat-outline', () => ({
+  default: { name: 'IMdiChatOutline', render: () => null },
+}))
 
 const mockToastWarning = vi.fn()
 vi.mock('@/composables/useToast', () => ({
@@ -366,7 +377,7 @@ describe('MemberWalletLink', () => {
         expect(room.element.tagName).toBe('SPAN')
         expect(room.attributes('aria-hidden')).toBe('true')
         // The same box as the button that follows: nothing in the row moves when it comes.
-        expect(room.classes()).toContain('member-wallet-link')
+        expect(room.classes()).toEqual([classes.memberWalletLink])
       })
 
       it('shows the bubble when the answer names them', async () => {
@@ -545,8 +556,8 @@ describe('MemberWalletLink', () => {
           expect(room.exists()).toBe(true)
           expect(room.element.tagName).toBe('SPAN')
           expect(room.attributes('aria-hidden')).toBe('true')
-          // The same box as the button that follows.
-          expect(room.classes()).toContain('member-wallet-link')
+          // The same box as the button that follows -- and as the pin beside it.
+          expect(room.classes()).toEqual(pinOf(wrapper).classes())
           // Behind the pin, not ahead of it.
           expect(room.element.previousElementSibling).toBe(pinOf(wrapper).element)
         })
@@ -1167,7 +1178,7 @@ describe('MemberWalletLink', () => {
     it('holds the pin and the button behind it in one element', () => {
       const [pin, arrow] = createWrapper().findAll('button')
       expect(pin.element.parentElement).toBe(arrow.element.parentElement)
-      expect(pin.element.parentElement.classList.contains('member-wallet-links')).toBe(true)
+      expect(pin.element.parentElement.classList.contains(classes.memberWalletLinks)).toBe(true)
     })
 
     it('gets the pin alone on the moderator’s own row', () => {
@@ -1352,7 +1363,7 @@ describe('MemberWalletLink', () => {
       })
 
       // Where the sign-in ran out, the answer says so and the admin interface signs out by
-      // itself (plugins/apolloProvider.js). The pin leaves that, and every other failure,
+      // itself (plugins/apolloProvider.ts). The pin leaves that, and every other failure,
       // alone: no word, no sign-out of its own, and no rejection left without a handler.
       //
       // ⛔ The rejection comes from a plain function and a promise of its own. Vitest follows

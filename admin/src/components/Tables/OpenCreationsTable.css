@@ -1,0 +1,56 @@
+.btn-warning {
+  background-color: #e1a908;
+  border-color: #e1a908;
+}
+
+.table-danger {
+  --bs-table-bg: #e78d8d;
+  --bs-table-striped-bg: #e57373;
+  --bs-table-hover-bg: #e06a6a;
+}
+
+/* The group dropdown sits on a coloured contribution row. A white box would pull the eye
+   away from the text it belongs to, so the control stays transparent and lets the row
+   colour through -- striped, hovered or plain, it always matches by itself. It only firms
+   up while it is being used. Element + class so it wins over .form-select whatever the
+   stylesheet order is. */
+.group-select {
+  max-width: 28rem;
+}
+
+/* The inline picker is now a BDropdown (its option list follows the app theme in every
+   browser, unlike a native <select> popup). Keep the toggle transparent so the row colour
+   shows through; it only firms up while it is being used. */
+.group-select > .btn.themed-select-toggle {
+  background-color: transparent;
+  border-color: rgb(0 0 0 / 12%);
+}
+
+.group-select > .btn.themed-select-toggle:hover,
+.group-select > .btn.themed-select-toggle:focus,
+.group-select.show > .btn.themed-select-toggle {
+  background-color: rgb(255 255 255 / 35%);
+  border-color: rgb(0 0 0 / 25%);
+}
+
+/* Crea logo used as the per-row trigger button (replaces the former robot icon) */
+.crea-logo-btn {
+  padding: 2px;
+  border: none;
+  border-radius: 20%;
+  line-height: 0;
+}
+
+.crea-logo-btn:hover,
+.crea-logo-btn:focus-visible {
+  background-color: rgb(0 0 0 / 6%);
+  box-shadow: none;
+}
+
+.crea-logo-img {
+  display: block;
+  width: 34px;
+  height: 34px;
+  object-fit: cover;
+  border-radius: 20%;
+}

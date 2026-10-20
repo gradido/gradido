@@ -1,0 +1,63 @@
+.chatSettingsBody {
+  max-width: 960px;
+}
+
+.chatServerForm {
+  max-width: 640px;
+}
+
+/* One server per row; on a narrow screen its parts wrap under each other, nothing sticks out. */
+.chatServerRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid rgb(0 0 0 / 7.5%);
+}
+
+.chatServerWhat {
+  flex: 2 1 16rem;
+  min-width: 0;
+}
+
+.chatServerAddress {
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.chatServerDetails {
+  font-size: 0.9em;
+  overflow-wrap: anywhere;
+}
+
+.chatServerState {
+  flex: 1 1 13rem;
+  min-width: 0;
+}
+
+/* The tick and the two buttons stay together, and wrap as one. */
+.chatServerControls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+}
+
+.chatServerButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chatServerEdit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.chatServerEdit > :global(.form-control) {
+  flex: 1 1 12rem;
+  min-width: 0;
+}

@@ -7,7 +7,7 @@ import { sameHost } from '@/utils/gradidoAddress'
  *
  * ## The three patterns, and nothing else
  *
- * Every Gradido QR code carries a URL (see `utils/qrCode.js` — the codes are drawn from
+ * Every Gradido QR code carries a URL (see `utils/qrCode.ts` — the codes are drawn from
  * `data: link`), and there are exactly three kinds of them:
  *
  * - `…/dk/CODE`     — a thank-you card, redeemed at `ThankYouCardPayment`

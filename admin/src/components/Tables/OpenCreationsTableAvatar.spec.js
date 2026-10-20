@@ -1,13 +1,12 @@
 // AI-GENERATED — not an architecture reference
 import { mount } from '@vue/test-utils'
-import { BTableLite } from 'bootstrap-vue-next'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import MemberAvatar from '@/components/MemberAvatar.vue'
+import { MemberAvatar } from '@/components/MemberAvatar'
 import { fetchMemberAvatars, forgetAllMemberAvatars } from '@/composables/useMemberAvatars'
 import { closeMemberAvatarZoom, memberAvatarZoomState } from '@/composables/useMemberAvatarZoom'
 import { LIST_AVATAR_SIZE } from '@/constants'
 import { adminStore } from '../../../test/adminStore'
-import OpenCreationsTable from './OpenCreationsTable.vue'
+import { OpenCreationsTable } from './OpenCreationsTable'
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({ t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key) }),
@@ -50,23 +49,7 @@ const mountTable = () =>
     },
     global: {
       plugins: [adminStore({ moderator: {} })],
-      // ⚠️ The real table, handed over explicitly: the build auto-imports it
-      // (unplugin-vue-components) and vitest does not, so without this it renders as an
-      // unknown element and no cell slot is called at all.
-      components: { BTableLite },
-      mocks: { $t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key) },
       stubs: {
-        IBiQuestionSquare: true,
-        IBiBellFill: true,
-        IBiCheck: true,
-        IBiXCircle: true,
-        IBiTrash: true,
-        IBiPencilSquare: true,
-        IBiChatDots: true,
-        IBiExclamationCircleFill: true,
-        IBiQuestionDiamond: true,
-        IBiX: true,
-        IBiSearch: true,
         BModal: true,
       },
     },
@@ -134,8 +117,6 @@ describe('the member behind a contribution', () => {
       },
       global: {
         plugins: [adminStore({ moderator: {} })],
-        components: { BTableLite },
-        mocks: { $t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key) },
         stubs: { BModal: true },
       },
     })

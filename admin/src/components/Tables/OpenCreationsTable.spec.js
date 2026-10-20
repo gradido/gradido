@@ -1,17 +1,30 @@
 import { shallowMount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { h } from 'vue'
+import IBiExclamationCircleFill from '~icons/bi/exclamation-circle-fill'
 import { adminStore } from '../../../test/adminStore'
-import OpenCreationsTable from './OpenCreationsTable.vue'
+import { OpenCreationsTable } from './OpenCreationsTable'
 
-vi.mock('../RowDetails', () => ({ default: { name: 'RowDetails' } }))
+vi.mock('../RowDetails', () => ({ RowDetails: { name: 'RowDetails' } }))
 vi.mock('../ContributionMessages/ContributionMessagesList', () => ({
-  default: { name: 'ContributionMessagesList' },
+  ContributionMessagesList: { name: 'ContributionMessagesList' },
+}))
+
+// Keeps the values a text is built with, so a test can read what a sentence names.
+const { t } = vi.hoisted(() => ({
+  t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key),
+}))
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({ t }),
 }))
 
 describe('OpenCreationsTable', () => {
   let wrapper
   let store
+  let toggles
+
+  const moderatorUser = { gradidoID: 'moderator-gid', communityUuid: 'home' }
+  const otherUser = { gradidoID: 'other-gid', communityUuid: 'home' }
 
   const mockItems = [
     { id: 1, contributionStatus: 'PENDING', userId: 2, moderatorId: null, messagesCount: 0 },
@@ -28,6 +41,90 @@ describe('OpenCreationsTable', () => {
     { key: 'confirm', label: 'Confirm' },
   ]
 
+  const creationGroups = [
+    { id: 1, tag: 'music', name: 'Musik' },
+    { id: 2, tag: 'sports', name: null },
+  ]
+
+  // Stands in for BTableLite: renders every cell slot and the details row of every item, each
+  // in an element named after its slot, with a toggleDetails per row that a test can count.
+  const slotRenderingTable = {
+    name: 'BTableLite',
+    props: { items: { type: Array, default: () => [] }, tbodyTrClass: Function },
+    render() {
+      return h(
+        'div',
+        this.items.map((item, index) =>
+          h(
+            'div',
+            { class: 'contribution-row' },
+            Object.keys(this.$slots).map((name) =>
+              h(
+                'div',
+                { 'data-slot': name },
+                this.$slots[name]({
+                  item,
+                  index,
+                  value: item[name.slice(5, -1)],
+                  detailsShowing: false,
+                  toggleDetails: toggles[index],
+                }),
+              ),
+            ),
+          ),
+        ),
+      )
+    },
+  }
+  const slotRenderingRowDetails = {
+    name: 'RowDetails',
+    props: { row: Object, slotName: String, type: String, index: Number },
+    render() {
+      return h('div', this.$slots[this.slotName]?.())
+    },
+  }
+  const slotRenderingButton = {
+    name: 'BButton',
+    render() {
+      return h('button', this.$slots.default?.())
+    },
+  }
+  const themedSelect = {
+    name: 'ThemedSelect',
+    props: { modelValue: String, options: Array },
+    render() {
+      return h('div', { class: 'themed-select-stub' })
+    },
+  }
+  const modal = {
+    name: 'BModal',
+    props: { modelValue: Boolean },
+    emits: ['hide'],
+    render() {
+      return h('div', { class: 'modal-stub' }, this.$slots.default?.())
+    },
+  }
+
+  const mountTable = (items = mockItems, props = {}) => {
+    toggles = items.map(() => vi.fn())
+    return shallowMount(OpenCreationsTable, {
+      props: { items, fields: mockFields, hideResubmission: false, creationGroups, ...props },
+      global: {
+        plugins: [store],
+        stubs: {
+          BTableLite: slotRenderingTable,
+          RowDetails: slotRenderingRowDetails,
+          BButton: slotRenderingButton,
+          ThemedSelect: themedSelect,
+          BModal: modal,
+        },
+      },
+    })
+  }
+
+  const cell = (slot, row = 0) =>
+    wrapper.findAll('.contribution-row')[row].find(`[data-slot="${slot}"]`)
+
   beforeEach(() => {
     store = adminStore({
       moderator: {
@@ -35,38 +132,7 @@ describe('OpenCreationsTable', () => {
         communityUuid: 'home',
       },
     })
-
-    wrapper = shallowMount(OpenCreationsTable, {
-      props: {
-        items: mockItems,
-        fields: mockFields,
-        hideResubmission: false,
-        creationGroups: [
-          { id: 1, tag: 'music', name: 'Musik' },
-          { id: 2, tag: 'sports', name: null },
-        ],
-      },
-      global: {
-        plugins: [store],
-        mocks: {
-          $t: (key) => key,
-        },
-        stubs: {
-          BTableLite: true,
-          BButton: true,
-          IBiQuestionSquare: true,
-          IBiBellFill: true,
-          IBiCheck: true,
-          IBiXCircle: true,
-          IBiTrash: true,
-          IBiPencilSquare: true,
-          IBiChatDots: true,
-          IBiExclamationCircleFill: true,
-          IBiQuestionDiamond: true,
-          IBiX: true,
-        },
-      },
-    })
+    wrapper = mountTable()
   })
 
   it('renders the component', () => {
@@ -74,74 +140,106 @@ describe('OpenCreationsTable', () => {
     expect(wrapper.findComponent({ name: 'BTableLite' }).exists()).toBe(true)
   })
 
-  it('applies correct row class based on status', () => {
-    const rowClass = wrapper.vm.rowClass({ contributionStatus: 'CONFIRMED' }, 'row')
-    expect(rowClass).toBe('table-success')
+  it('hands the table a row class by status', () => {
+    const rowClass = wrapper.findComponent({ name: 'BTableLite' }).props('tbodyTrClass')
+    expect(rowClass({ contributionStatus: 'CONFIRMED' }, 'row')).toBe('table-success')
+    expect(rowClass({ contributionStatus: 'DENIED' }, 'row')).toBe('table-warning')
+    expect(rowClass({ contributionStatus: 'DELETED' }, 'row')).toBe('table-danger')
+    expect(rowClass({ contributionStatus: 'IN_PROGRESS' }, 'row')).toBe('table-primary')
+    expect(rowClass({ contributionStatus: 'PENDING' }, 'row')).toBe('table-primary')
+    expect(rowClass({ contributionStatus: 'CONFIRMED' }, 'row-details')).toBeUndefined()
+    expect(rowClass(null, 'row')).toBeUndefined()
   })
 
-  it('emits show-overlay event when calling $emit', async () => {
-    const mockItem = mockItems[0]
-    await wrapper.vm.$emit('show-overlay', mockItem, 'delete')
-    expect(wrapper.emitted('show-overlay')).toBeTruthy()
-    expect(wrapper.emitted('show-overlay')[0]).toEqual([mockItem, 'delete'])
+  it.each([
+    ['cell(bookmark)', 'delete'],
+    ['cell(deny)', 'deny'],
+    ['cell(confirm)', 'confirm'],
+  ])('emits show-overlay from the %s button', async (slot, action) => {
+    await cell(slot).find('button').trigger('click')
+    expect(wrapper.emitted('show-overlay')).toEqual([[mockItems[0], action]])
   })
 
-  it('toggles row details correctly', () => {
-    const mockRow = {
-      toggleDetails: vi.fn(),
-      detailsShowing: false,
-      index: 0,
-      item: mockItems[0],
+  it('opens one details row at a time', async () => {
+    await cell('cell(editCreation)', 0).find('button').trigger('click')
+    expect(toggles[0]).toHaveBeenCalledTimes(1)
+
+    // Another row: the open one closes first.
+    await cell('cell(editCreation)', 1).find('button').trigger('click')
+    expect(toggles[0]).toHaveBeenCalledTimes(2)
+    expect(toggles[1]).toHaveBeenCalledTimes(1)
+
+    // The same row again: only it closes.
+    await cell('cell(editCreation)', 1).find('button').trigger('click')
+    expect(toggles[0]).toHaveBeenCalledTimes(2)
+    expect(toggles[1]).toHaveBeenCalledTimes(2)
+  })
+
+  it('offers the moderator no action on a contribution of their own', () => {
+    wrapper = mountTable([
+      { id: 1, contributionStatus: 'PENDING', messagesCount: 0, user: moderatorUser },
+      { id: 2, contributionStatus: 'PENDING', messagesCount: 0, user: otherUser },
+      { id: 3, contributionStatus: 'PENDING', messagesCount: 0, user: null },
+    ])
+    for (const slot of ['cell(bookmark)', 'cell(editCreation)', 'cell(deny)', 'cell(confirm)']) {
+      expect(cell(slot, 0).find('button').exists(), slot).toBe(false)
+      expect(cell(slot, 1).find('button').exists(), slot).toBe(true)
+      expect(cell(slot, 2).find('button').exists(), slot).toBe(true)
     }
-
-    wrapper.vm.rowToggleDetails(mockRow, 0)
-    expect(mockRow.toggleDetails).toHaveBeenCalled()
-    expect(wrapper.vm.openRow).toEqual(mockRow)
-    expect(wrapper.vm.slotIndex).toBe(0)
   })
 
-  it('identifies if the item belongs to the current user', () => {
-    expect(wrapper.vm.myself({ user: { gradidoID: 'moderator-gid', communityUuid: 'home' } })).toBe(
-      true,
-    )
-    expect(wrapper.vm.myself({ user: { gradidoID: 'other-gid', communityUuid: 'home' } })).toBe(
-      false,
-    )
-    expect(wrapper.vm.myself({ user: null })).toBe(false)
-  })
+  describe('what the message panel reports', () => {
+    const panel = () => wrapper.findComponent({ name: 'ContributionMessagesList' })
 
-  it('emits update-contributions event', async () => {
-    await wrapper.vm.updateContributions()
-    expect(wrapper.emitted('update-contributions')).toBeTruthy()
-  })
+    it('emits update-contributions', async () => {
+      await panel().vm.$emit('update-contributions')
+      expect(wrapper.emitted('update-contributions')).toBeTruthy()
+    })
 
-  it('emits update-status event', async () => {
-    const id = 1
-    await wrapper.vm.updateStatus(id)
-    expect(wrapper.emitted('update-status')).toBeTruthy()
-    expect(wrapper.emitted('update-status')[0]).toEqual([id])
-  })
+    it('emits update-status', async () => {
+      await panel().vm.$emit('update-status', 1)
+      expect(wrapper.emitted('update-status')).toEqual([[1]])
+    })
 
-  it('emits reload-contribution event', async () => {
-    const id = 1
-    await wrapper.vm.reloadContribution(id)
-    expect(wrapper.emitted('reload-contribution')).toBeTruthy()
-    expect(wrapper.emitted('reload-contribution')[0]).toEqual([id])
+    it('emits reload-contribution', async () => {
+      await panel().vm.$emit('reload-contribution', 1)
+      expect(wrapper.emitted('reload-contribution')).toEqual([[1]])
+    })
+
+    it('emits resubmission-saved', async () => {
+      await panel().vm.$emit('resubmission-saved', 'unchanged')
+      expect(wrapper.emitted('resubmission-saved')).toEqual([['unchanged']])
+    })
   })
 
   // Group functions: the group is editable while a contribution is open, and a change goes
   // through a confirmation because it can hand the contribution to another moderator.
   describe('changing the group', () => {
+    const item = { id: 7, contributionStatus: 'PENDING', creationGroups: [{ tag: 'music' }] }
+    const select = () => wrapper.findComponent({ name: 'ThemedSelect' })
+    const dialog = () => wrapper.findComponent({ name: 'BModal' })
+    const pick = (tag) => select().vm.$emit('update:model-value', tag)
+
+    beforeEach(() => {
+      wrapper = mountTable([item])
+    })
+
     it('offers the dropdown only while the contribution is open', () => {
-      expect(wrapper.vm.canEditGroup({ contributionStatus: 'PENDING' })).toBe(true)
-      expect(wrapper.vm.canEditGroup({ contributionStatus: 'IN_PROGRESS' })).toBe(true)
-      expect(wrapper.vm.canEditGroup({ contributionStatus: 'CONFIRMED' })).toBe(false)
-      expect(wrapper.vm.canEditGroup({ contributionStatus: 'DENIED' })).toBe(false)
-      expect(wrapper.vm.canEditGroup({ contributionStatus: 'DELETED' })).toBe(false)
+      wrapper = mountTable(
+        ['PENDING', 'IN_PROGRESS', 'CONFIRMED', 'DENIED', 'DELETED'].map((status, id) => ({
+          id,
+          contributionStatus: status,
+          creationGroups: [],
+        })),
+      )
+      const offered = [0, 1, 2, 3, 4].map((row) =>
+        cell('cell(memo)', row).findComponent({ name: 'ThemedSelect' }).exists(),
+      )
+      expect(offered).toEqual([true, true, false, false, false])
     })
 
     it('lists "no group" plus every canonical group', () => {
-      expect(wrapper.vm.groupSelectOptions).toEqual([
+      expect(select().props('options')).toEqual([
         { value: '', text: 'contribution.noGroup' },
         { value: 'music', text: 'Musik (#music)' },
         { value: 'sports', text: '#sports' },
@@ -149,45 +247,57 @@ describe('OpenCreationsTable', () => {
     })
 
     it('asks before moving, and does not emit yet', async () => {
-      wrapper.vm.onGroupPicked({ id: 7, creationGroups: [{ tag: 'music' }] }, 'sports')
-      expect(wrapper.vm.groupChangeModal).toBe(true)
-      expect(wrapper.vm.pendingGroupChange.fromLabel).toBe('Musik (#music)')
-      expect(wrapper.vm.pendingGroupChange.toLabel).toBe('#sports')
+      await pick('sports')
+      expect(dialog().props('modelValue')).toBe(true)
+      expect(dialog().text()).toContain(
+        `contribution.changeGroupQuestion ${JSON.stringify({ from: 'Musik (#music)', to: '#sports' })}`,
+      )
       expect(wrapper.emitted('assign-group')).toBeFalsy()
     })
 
     // Saving replaces the whole set, so a contribution that belongs to two groups loses one
     // of them. The dropdown can only show the first, so the question has to name both --
     // otherwise the second group disappears without ever having been on screen.
-    it('names every group it is about to replace, not just the first', () => {
-      wrapper.vm.onGroupPicked({ id: 7, creationGroups: [{ tag: 'music' }, { tag: 'sports' }] }, '')
-      expect(wrapper.vm.pendingGroupChange.fromLabel).toBe('Musik (#music), #sports')
-      expect(wrapper.vm.pendingGroupChange.toLabel).toBe('contribution.noGroup')
+    it('names every group it is about to replace, not just the first', async () => {
+      wrapper = mountTable([
+        {
+          id: 7,
+          contributionStatus: 'PENDING',
+          creationGroups: [{ tag: 'music' }, { tag: 'sports' }],
+        },
+      ])
+      await pick('')
+      expect(dialog().text()).toContain(
+        `contribution.changeGroupQuestion ${JSON.stringify({
+          from: 'Musik (#music), #sports',
+          to: 'contribution.noGroup',
+        })}`,
+      )
     })
 
     it('emits the change once confirmed', async () => {
-      wrapper.vm.onGroupPicked({ id: 7, creationGroups: [{ tag: 'music' }] }, 'sports')
-      wrapper.vm.confirmGroupChange()
+      await pick('sports')
+      await dialog().vm.$emit('hide', { trigger: 'ok' })
       expect(wrapper.emitted('assign-group')[0]).toEqual([{ contributionId: 7, tags: ['sports'] }])
-      expect(wrapper.vm.groupChangeModal).toBe(false)
+      expect(dialog().props('modelValue')).toBe(false)
     })
 
     it('sends an empty list when moving to "no group"', async () => {
-      wrapper.vm.onGroupPicked({ id: 7, creationGroups: [{ tag: 'music' }] }, '')
-      wrapper.vm.confirmGroupChange()
+      await pick('')
+      await dialog().vm.$emit('hide', { trigger: 'ok' })
       expect(wrapper.emitted('assign-group')[0]).toEqual([{ contributionId: 7, tags: [] }])
     })
 
     it('emits nothing when the change is cancelled', async () => {
-      wrapper.vm.onGroupPicked({ id: 7, creationGroups: [{ tag: 'music' }] }, 'sports')
-      wrapper.vm.cancelGroupChange()
+      await pick('sports')
+      await dialog().vm.$emit('hide', { trigger: 'cancel' })
       expect(wrapper.emitted('assign-group')).toBeFalsy()
-      expect(wrapper.vm.groupChangeModal).toBe(false)
+      expect(dialog().props('modelValue')).toBe(false)
     })
 
     it('ignores picking the group the contribution already has', async () => {
-      wrapper.vm.onGroupPicked({ id: 7, creationGroups: [{ tag: 'music' }] }, 'music')
-      expect(wrapper.vm.groupChangeModal).toBe(false)
+      await pick('music')
+      expect(dialog().props('modelValue')).toBe(false)
       expect(wrapper.emitted('assign-group')).toBeFalsy()
     })
 
@@ -195,55 +305,48 @@ describe('OpenCreationsTable', () => {
     // shown while it is waiting for its answer -- every ending that is not a saved change
     // has to put it back.
     describe('what the dropdown shows', () => {
-      const item = { id: 7, creationGroups: [{ tag: 'music' }] }
-
       it('shows the group of the contribution when nothing is pending', () => {
-        expect(wrapper.vm.displayedCreationGroup(item)).toBe('music')
-        expect(wrapper.vm.displayedCreationGroup({ id: 8, creationGroups: [] })).toBe('')
+        expect(select().props('modelValue')).toBe('music')
+        wrapper = mountTable([{ id: 8, contributionStatus: 'PENDING', creationGroups: [] }])
+        expect(select().props('modelValue')).toBe('')
       })
 
-      it('shows the picked group while the question is open', () => {
-        wrapper.vm.onGroupPicked(item, 'sports')
-        expect(wrapper.vm.displayedCreationGroup(item)).toBe('sports')
-      })
-
-      it('puts the old group back when the change is cancelled', () => {
-        wrapper.vm.onGroupPicked(item, 'sports')
-        wrapper.vm.cancelGroupChange()
-        expect(wrapper.vm.displayedCreationGroup(item)).toBe('music')
+      it('shows the picked group while the question is open', async () => {
+        await pick('sports')
+        expect(select().props('modelValue')).toBe('sports')
       })
 
       it.each(['cancel', 'close', 'esc', 'backdrop'])(
         'puts the old group back when the dialog ends with "%s"',
-        (trigger) => {
-          wrapper.vm.onGroupPicked(item, 'sports')
-          wrapper.vm.onGroupModalHide({ trigger })
-          expect(wrapper.vm.displayedCreationGroup(item)).toBe('music')
+        async (trigger) => {
+          await pick('sports')
+          await dialog().vm.$emit('hide', { trigger })
+          expect(select().props('modelValue')).toBe('music')
           expect(wrapper.emitted('assign-group')).toBeFalsy()
         },
       )
 
-      it('carries the change out and keeps showing it when the dialog ends with "ok"', () => {
-        wrapper.vm.onGroupPicked(item, 'sports')
-        wrapper.vm.onGroupModalHide({ trigger: 'ok' })
+      it('carries the change out and keeps showing it when the dialog ends with "ok"', async () => {
+        await pick('sports')
+        await dialog().vm.$emit('hide', { trigger: 'ok' })
         expect(wrapper.emitted('assign-group')[0]).toEqual([
           { contributionId: 7, tags: ['sports'] },
         ])
-        expect(wrapper.vm.displayedCreationGroup(item)).toBe('sports')
+        expect(select().props('modelValue')).toBe('sports')
       })
 
       it('puts the old group back when the backend refuses the change', async () => {
-        wrapper.vm.onGroupPicked(item, 'sports')
-        wrapper.vm.onGroupModalHide({ trigger: 'ok' })
+        await pick('sports')
+        await dialog().vm.$emit('hide', { trigger: 'ok' })
         await wrapper.setProps({ groupChangeFailures: 1 })
-        expect(wrapper.vm.displayedCreationGroup(item)).toBe('music')
+        expect(select().props('modelValue')).toBe('music')
       })
 
       it('stops showing the pick once fresh contributions arrive', async () => {
-        wrapper.vm.onGroupPicked(item, 'sports')
-        wrapper.vm.onGroupModalHide({ trigger: 'ok' })
-        await wrapper.setProps({ items: [...mockItems] })
-        expect(wrapper.vm.displayedCreationGroup(item)).toBe('music')
+        await pick('sports')
+        await dialog().vm.$emit('hide', { trigger: 'ok' })
+        await wrapper.setProps({ items: [item] })
+        expect(select().props('modelValue')).toBe('music')
       })
     })
   })
@@ -307,14 +410,10 @@ describe('OpenCreationsTable', () => {
         props: { items: openItems, fields: mockFields, hideResubmission: false },
         global: {
           plugins: [store],
-          mocks: { $t: (key) => key },
           stubs: {
             BTableLite: slotRenderingTable,
             RowDetails: slotRenderingRowDetails,
             BButton: slotRenderingButton,
-            IBiChatDots: true,
-            IBiExclamationCircleFill: true,
-            IBiQuestionDiamond: true,
           },
         },
       })
@@ -325,7 +424,7 @@ describe('OpenCreationsTable', () => {
     })
 
     it('carries the unanswered-message badge like any other', () => {
-      expect(wrapper.findAllComponents({ name: 'IBiExclamationCircleFill' })).toHaveLength(2)
+      expect(wrapper.findAllComponents(IBiExclamationCircleFill)).toHaveLength(2)
     })
 
     // The button holds an icon and nothing else, so without these a screen reader can only
@@ -390,12 +489,10 @@ describe('OpenCreationsTable', () => {
         props: { items, fields: mockFields, hideResubmission: false },
         global: {
           plugins: [store],
-          mocks: { $t: (key) => key },
           stubs: {
             BTableLite: slotRenderingTable,
             RowDetails: slotRenderingRowDetails,
             BButton: slotRenderingButton,
-            IBiSearch: true,
           },
         },
       })

@@ -1,0 +1,16 @@
+/* Make the toggle read like a form control: full width, label left, caret right. */
+.themed-select {
+  width: 100%;
+
+  > .btn.themed-select-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    text-align: left;
+  }
+
+  &.themed-select-placeholder > .btn.themed-select-toggle {
+    color: #6c757d;
+  }
+}

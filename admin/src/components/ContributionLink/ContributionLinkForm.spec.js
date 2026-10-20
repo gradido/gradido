@@ -1,6 +1,16 @@
 import { mount } from '@vue/test-utils'
+import {
+  BButton,
+  BCol,
+  BForm,
+  BFormGroup,
+  BFormInput,
+  BFormSelect,
+  BFormTextarea,
+  BRow,
+} from 'bootstrap-vue-next'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import ContributionLinkForm from './ContributionLinkForm.vue'
+import { ContributionLinkForm } from './ContributionLinkForm'
 
 // Mock external dependencies
 vi.mock('vue-i18n', () => ({
@@ -25,13 +35,6 @@ vi.mock('@/composables/useToast', () => ({
   }),
 }))
 
-const mockRouter = {
-  push: vi.fn(),
-}
-vi.mock('vue-router', () => ({
-  useRouter: () => mockRouter,
-}))
-
 describe('ContributionLinkForm', () => {
   let wrapper
 
@@ -47,17 +50,37 @@ describe('ContributionLinkForm', () => {
           $t: (key) => key,
         },
         stubs: {
-          BForm: true,
-          BRow: true,
-          BCol: true,
-          BFormGroup: true,
-          BFormInput: true,
-          BFormTextarea: true,
-          BFormSelect: true,
-          BButton: true,
+          BForm,
+          BRow,
+          BCol,
+          BFormGroup,
+          BFormInput,
+          BFormTextarea,
+          BFormSelect,
+          BButton,
         },
       },
     })
+  }
+
+  const field = (name) => wrapper.find(`.test-${name}`)
+  const fillIn = async (values) => {
+    for (const [name, value] of Object.entries(values)) {
+      await field(name).setValue(value)
+    }
+  }
+  const submit = async () => {
+    await wrapper.find('form').trigger('submit')
+    await flushPromises()
+  }
+  const flushPromises = () => new Promise((resolve) => setTimeout(resolve))
+
+  const validFormData = {
+    validFrom: '2022-06-18',
+    validTo: '2022-07-18',
+    name: 'test name',
+    memo: 'test memo',
+    amount: '100',
   }
 
   beforeEach(() => {
@@ -72,41 +95,19 @@ describe('ContributionLinkForm', () => {
     expect(wrapper.find('div.contribution-link-form').exists()).toBe(true)
   })
 
-  describe('onReset', () => {
-    it('resets the form data', async () => {
-      wrapper.vm.form = {
-        name: 'name',
-        memo: 'memo',
-        amount: 100,
-        validFrom: 'validFrom',
-        validTo: 'validTo',
-        cycle: 'ONCE',
-        maxPerCycle: 1,
-        maxAmountPerMonth: 100,
+  describe('reset', () => {
+    it('empties the fields', async () => {
+      await fillIn(validFormData)
+      await wrapper.find('form').trigger('reset')
+      for (const name of Object.keys(validFormData)) {
+        expect(field(name).element.value, name).toBe('')
       }
-      await wrapper.vm.$nextTick()
-      await wrapper.vm.onReset()
-      expect(wrapper.vm.form).toEqual({
-        validTo: null,
-        validFrom: null,
-      })
     })
   })
 
-  describe('onSubmit', () => {
-    const validFormData = {
-      validFrom: '2022-6-18',
-      validTo: '2022-7-18',
-      name: 'test name',
-      memo: 'test memo',
-      amount: '100',
-      cycle: 'ONCE',
-      maxPerCycle: 1,
-      maxAmountPerMonth: '0',
-    }
-
+  describe('submit', () => {
     beforeEach(async () => {
-      wrapper.vm.form = validFormData
+      await fillIn(validFormData)
     })
 
     it('calls the API and toasts success message on successful submission', async () => {
@@ -118,36 +119,105 @@ describe('ContributionLinkForm', () => {
         },
       })
 
-      await wrapper.vm.onSubmit()
+      await submit()
 
       expect(mockMutate).toHaveBeenCalledWith({
         ...validFormData,
+        cycle: 'ONCE',
+        maxAmountPerMonth: '0',
         id: null,
       })
 
       expect(mockToastSuccess).toHaveBeenCalledWith('https://localhost/redeem/CL-1a2345678')
     })
 
+    it('empties the fields, closes and asks for the list again after a submission', async () => {
+      mockMutate.mockResolvedValue({
+        data: { createContributionLink: { link: 'https://localhost/redeem/CL-1a2345678' } },
+      })
+
+      await submit()
+
+      expect(field('name').element.value).toBe('')
+      expect(wrapper.emitted('close-contribution-form')).toHaveLength(1)
+      expect(wrapper.emitted('get-contribution-links')).toHaveLength(1)
+    })
+
     it('toasts an error message on API error', async () => {
       mockMutate.mockRejectedValue({ message: 'OUCH!' })
 
-      await wrapper.vm.onSubmit()
+      await submit()
 
       expect(mockToastError).toHaveBeenCalledWith('OUCH!')
+      expect(wrapper.emitted('close-contribution-form')).toBeUndefined()
+    })
+  })
+
+  it('shows error when validFrom is not set', async () => {
+    await fillIn({ ...validFormData, validFrom: '' })
+    await wrapper.find('form').trigger('reset')
+    await submit()
+    expect(mockToastError).toHaveBeenCalledWith('contributionLink.noStartDate')
+    expect(mockMutate).not.toHaveBeenCalled()
+  })
+
+  it('shows error when validTo is not set', async () => {
+    const { validTo, ...withoutValidTo } = validFormData
+    await wrapper.setProps({ contributionLinkData: { ...withoutValidTo, validTo: null } })
+    await submit()
+    expect(mockToastError).toHaveBeenCalledWith('contributionLink.noEndDate')
+    expect(mockMutate).not.toHaveBeenCalled()
+  })
+
+  describe('editing a link', () => {
+    const linkToEdit = {
+      id: 7,
+      name: 'Meditation',
+      memo: 'Lorem ipsum',
+      amount: '200',
+      validFrom: '2022-04-01T00:00:00.000Z',
+      validTo: '2022-08-01T00:00:00.000Z',
+      cycle: 'ONCE',
+      maxAmountPerMonth: '0',
+    }
+
+    beforeEach(async () => {
+      wrapper = createWrapper({ editContributionLink: true })
+      await wrapper.setProps({ contributionLinkData: { ...linkToEdit } })
     })
 
-    it('shows error when validFrom is not set', async () => {
-      wrapper.vm.form = { ...validFormData, validFrom: null }
-      await wrapper.vm.$nextTick()
-      await wrapper.vm.onSubmit()
-      expect(mockToastError).toHaveBeenCalledWith('contributionLink.noStartDate')
+    it('shows the link, its dates without the time', () => {
+      expect(field('name').element.value).toBe('Meditation')
+      expect(field('validFrom').element.value).toBe('2022-04-01')
+      expect(field('validTo').element.value).toBe('2022-08-01')
     })
 
-    it('shows error when validTo is not set', async () => {
-      wrapper.vm.form = { ...validFormData, validTo: null }
-      await wrapper.vm.$nextTick()
-      await wrapper.vm.onSubmit()
-      expect(mockToastError).toHaveBeenCalledWith('contributionLink.noEndDate')
+    it('saves the change under the id of the link', async () => {
+      mockMutate.mockResolvedValue({ data: { updateContributionLink: { link: 'ignored' } } })
+
+      await submit()
+
+      expect(mockMutate).toHaveBeenCalledWith({
+        ...linkToEdit,
+        validFrom: '2022-04-01',
+        validTo: '2022-08-01',
+        id: 7,
+      })
+      expect(mockToastSuccess).toHaveBeenCalledWith('contributionLink.changeSaved')
     })
+
+    it('offers to save the change', () => {
+      expect(wrapper.find('button[type="submit"]').text()).toBe('contributionLink.saveChange')
+    })
+  })
+
+  it('offers to create a link', () => {
+    expect(wrapper.find('button[type="submit"]').text()).toBe('contributionLink.create')
+  })
+
+  it('asks to be closed from its close button', async () => {
+    const buttons = wrapper.findAll('button')
+    await buttons[buttons.length - 1].trigger('click')
+    expect(wrapper.emitted('close-contribution-form')).toHaveLength(1)
   })
 })

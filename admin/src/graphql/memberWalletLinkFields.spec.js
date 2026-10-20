@@ -28,7 +28,7 @@ const withoutComments = (source) =>
 const readOffTheMember = () => [
   ...new Set(
     [
-      ...withoutComments(read('../components/MemberWalletLink.vue')).matchAll(
+      ...withoutComments(read('../components/MemberWalletLink.tsx')).matchAll(
         /\bmember\??\.(\w+)/g,
       ),
     ].map((match) => match[1]),
@@ -48,7 +48,7 @@ describe('what stands behind a member reads, and what the documents ask for', ()
   })
 
   it('is asked for on every row of the member search', () => {
-    const rows = read('./searchUsers.js').match(/userList \{([^}]*)\}/)[1]
+    const rows = read('./searchUsers.ts').match(/userList \{([^}]*)\}/)[1]
 
     // The search proves itself: this is the block that carries the row.
     expect(fieldsOf(rows)).toContain('alias')
@@ -72,7 +72,7 @@ describe('what stands behind a member reads, and what the documents ask for', ()
   // pair that arrives without its community matches no row: every contact would keep the arrow,
   // and no component spec would notice -- each of them invents the answer.
   it('asks for the pair of everybody the moderator is in contact with', () => {
-    const refs = read('./contactRefs.js').match(/contactRefs \{([^}]*)\}/)[1]
+    const refs = read('./contactRefs.ts').match(/contactRefs \{([^}]*)\}/)[1]
 
     expect(fieldsOf(refs).sort()).toEqual(['communityUuid', 'gradidoID'])
   })
@@ -80,7 +80,7 @@ describe('what stands behind a member reads, and what the documents ask for', ()
   // The moderator is told apart from the member by the same pair (utils/theModerator): a
   // moderator signed in without it would be nobody, and get the arrow behind their own name.
   it('asks for the pair of the moderator who signs in', () => {
-    const fields = fieldsOf(read('./verifyLogin.js').match(/verifyLogin \{([^}]*)\}/)[1])
+    const fields = fieldsOf(read('./verifyLogin.ts').match(/verifyLogin \{([^}]*)\}/)[1])
 
     expect(fields).toContain('gradidoID')
     expect(fields).toContain('communityUuid')

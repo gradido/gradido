@@ -22,8 +22,8 @@ import { describe, expect, it } from 'vitest'
  * would otherwise keep the search green after somebody wrote the wrong name again.
  *
  * ⚠️ The camel forms are only rejected as an object KEY (`hideFooter:`), which is how they
- * reach a modal through `confirm({ props: … })`. `route.meta.hideFooter` is this house's
- * own flag and has nothing to do with the library.
+ * reach a modal through `confirm({ props: … })`, and as a JSX attribute (`hideFooter={…}`).
+ * `route.meta.hideFooter` is this house's own flag and has nothing to do with the library.
  */
 const here = dirname(fileURLToPath(import.meta.url))
 const ROOT = resolve(here, '..')
@@ -34,7 +34,7 @@ const sourceFiles = (dir) => {
     const path = join(dir, name)
     if (statSync(path).isDirectory()) {
       found.push(...sourceFiles(path))
-    } else if (/\.(vue|js)$/.test(name) && !/\.spec\.js$/.test(name)) {
+    } else if (/\.(tsx|ts|js)$/.test(name) && !/\.(spec|test)\.js$/.test(name)) {
       found.push(path)
     }
   }
@@ -51,9 +51,9 @@ const DEAD = [
   /hide-header-close/,
   /hide-header/,
   /hide-footer/,
-  /hideHeaderClose\s*:/,
-  /hideHeader\s*:/,
-  /hideFooter\s*:/,
+  /hideHeaderClose\s*[:=]/,
+  /hideHeader\s*[:=]/,
+  /hideFooter\s*[:=]/,
 ]
 
 describe('bootstrap-vue-next modal props', () => {
@@ -63,9 +63,9 @@ describe('bootstrap-vue-next modal props', () => {
   // trap in a comment must not count as an offender.
   it('reads this package and strips its comments', () => {
     expect(files.length).toBeGreaterThan(30)
-    expect(files.some((f) => withoutComments(readFileSync(f, 'utf8')).includes('no-header'))).toBe(
-      true,
-    )
+    expect(
+      files.some((f) => /no-header|noHeader/.test(withoutComments(readFileSync(f, 'utf8')))),
+    ).toBe(true)
   })
 
   it('never uses the Vue-2 names the library does not have', () => {

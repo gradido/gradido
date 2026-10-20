@@ -1,12 +1,13 @@
 import { mount } from '@vue/test-utils'
 import { QRCanvas } from 'qrcanvas-vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import FigureQrCode from './FigureQrCode.vue'
+import { FigureQrCode } from './FigureQrCode'
 
 // Mock QRCanvas component
 vi.mock('qrcanvas-vue', () => ({
   QRCanvas: {
     name: 'QRCanvas',
+    props: { options: { type: Object } },
     template: '<div class="mock-qr-canvas"></div>',
   },
 }))
@@ -37,33 +38,33 @@ describe('FigureQrCode', () => {
 
   it('renders the component', () => {
     expect(wrapper.find('.figure-qr-code').exists()).toBe(true)
-    expect(wrapper.find('.qrbox').exists()).toBe(true)
   })
 
   it('does not render QRCanvas initially', () => {
-    expect(wrapper.find('.canvas').exists()).toBe(false)
+    expect(wrapper.findComponent(QRCanvas).exists()).toBe(false)
   })
 
   it('renders QRCanvas after image loads', async () => {
-    expect(wrapper.vm.showQr).toBe(false)
     mockImage.onload()
     await wrapper.vm.$nextTick()
-    expect(wrapper.vm.showQr).toBe(true)
     expect(wrapper.findComponent(QRCanvas).exists()).toBe(true)
   })
 
-  it('sets correct qrOptions', () => {
-    expect(wrapper.vm.qrOptions).toEqual({
+  it('hands the canvas the link, with the loaded coin as logo', async () => {
+    mockImage.onload()
+    await wrapper.vm.$nextTick()
+    expect(wrapper.findComponent(QRCanvas).props('options')).toEqual({
       cellSize: 8,
       correctLevel: 'H',
       data: 'https://example.com',
-      logo: { image: null },
+      logo: { image: mockImage },
     })
   })
 
-  it('updates qrOptions when link prop changes', async () => {
+  it('updates the options when link prop changes', async () => {
+    mockImage.onload()
     await wrapper.setProps({ link: 'https://newexample.com' })
-    expect(wrapper.vm.qrOptions.data).toBe('https://newexample.com')
+    expect(wrapper.findComponent(QRCanvas).props('options').data).toBe('https://newexample.com')
   })
 
   it('loads the correct image', () => {

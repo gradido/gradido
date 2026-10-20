@@ -46,7 +46,7 @@ describe('adminMapWindow', () => {
     },
   })
 
-  // ⛔ The admin interface names the window by this word (admin/src/utils/mapWindow.js). The two
+  // ⛔ The admin interface names the window by this word (admin/src/utils/mapWindow.ts). The two
   // apps share no code: a name changed on one side alone is a way back that leads nowhere.
   it('knows the window by the name the admin interface gives it', () => {
     expect(ADMIN_MAP_WINDOW_NAME).toBe('gradido-wallet-map')

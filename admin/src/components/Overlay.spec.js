@@ -1,8 +1,7 @@
 import { mount } from '@vue/test-utils'
-import { BButton, BCard, BCol, BContainer, BRow } from 'bootstrap-vue-next'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useI18n } from 'vue-i18n'
-import Overlay from './Overlay.vue'
+import { Overlay } from './Overlay'
 
 vi.mock('vue-i18n')
 
@@ -38,15 +37,6 @@ describe('Overlay', () => {
     wrapper = mount(Overlay, {
       props: {
         item: mockItem,
-      },
-      global: {
-        stubs: {
-          BCard,
-          BRow,
-          BCol,
-          BContainer,
-          BButton,
-        },
       },
       slots: {
         title: '<div>Test Title</div>',

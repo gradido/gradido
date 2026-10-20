@@ -1,13 +1,14 @@
 import { useApolloClient, useMutation, useQuery } from '@vue/apollo-composable'
-import { mount } from '@vue/test-utils'
-import { BBadge, BPagination, BTab, BTabs } from 'bootstrap-vue-next'
+import { flushPromises, mount } from '@vue/test-utils'
+import { BPagination, BTabs, createBootstrap } from 'bootstrap-vue-next'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { nextTick, ref } from 'vue'
+import { h, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppToast } from '@/composables/useToast'
 import { useAdminStore } from '@/store/useAdminStore'
 import { adminStore } from '../../test/adminStore'
-import CreationConfirm from './CreationConfirm.vue'
+import { adminListContributions } from '../graphql/adminListContributions.graphql'
+import { CreationConfirm } from './CreationConfirm'
 
 vi.mock('@vue/apollo-composable')
 
@@ -23,6 +24,35 @@ vi.mock('vue-i18n')
 vi.mock('@/composables/useToast')
 
 const createAdminStore = () => adminStore({ openCreations: 0 })
+
+// The group filter: what it offers and what it shows, and a way to pick.
+const themedSelect = {
+  name: 'ThemedSelect',
+  props: { modelValue: String, options: Array },
+  render() {
+    return h('div', { class: 'themed-select-stub' })
+  },
+}
+
+// The bulk resubmission question: whether it is open, and its OK.
+const modal = {
+  name: 'BModal',
+  props: { modelValue: Boolean },
+  emits: ['ok'],
+  render() {
+    return h('div', { class: 'modal-stub' }, this.$slots.default?.())
+  },
+}
+
+const stubs = {
+  UserQuery: true,
+  BButton: true,
+  OpenCreationsTable: true,
+  Overlay: true,
+  CreaEvaluationModal: true,
+  ThemedSelect: themedSelect,
+  BModal: modal,
+}
 
 describe('CreationConfirm', () => {
   let wrapper
@@ -75,29 +105,24 @@ describe('CreationConfirm', () => {
 
     wrapper = mount(CreationConfirm, {
       global: {
-        plugins: [store],
-        stubs: {
-          UserQuery: true,
-          BButton: true,
-          BTabs,
-          BTab,
-          BBadge,
-          OpenCreationsTable: true,
-          BPagination,
-          Overlay: true,
-          IBiBellFill: true,
-          IBiCheck: true,
-          IBiXCircle: true,
-          IBiTrash: true,
-          IBiList: true,
-        },
-        mocks: {
-          $t: mockT,
-          $d: mockD,
-        },
+        plugins: [store, createBootstrap()],
+        stubs,
       },
     })
   })
+
+  const table = () => wrapper.findComponent({ name: 'OpenCreationsTable' })
+  const pagination = () => wrapper.findComponent(BPagination)
+  const search = () => wrapper.findComponent({ name: 'UserQuery' })
+  const groupFilter = (page = wrapper) => page.findComponent({ name: 'ThemedSelect' })
+  const bulkModal = () => wrapper.findComponent({ name: 'BModal' })
+  // By position: the tabs carry their data-test in `title-link-attributes`, which BTab does not
+  // know -- it lands on the tab pane, not on the link.
+  const TABS = ['open', 'confirmed', 'denied', 'deleted', 'all']
+  const openTab = (name) => wrapper.findAll('.nav-link')[TABS.indexOf(name)].trigger('click')
+  // What the page asked the list for when it was set up.
+  const firstListQuery = () =>
+    useQuery.mock.calls.findLast(([document]) => document === adminListContributions)[1]
 
   const simulateQueryResult = async (data) => {
     mockResult.value = data
@@ -108,11 +133,20 @@ describe('CreationConfirm', () => {
   }
 
   it('initializes with correct default values', () => {
-    expect(wrapper.vm.tabIndex).toBe(0)
-    expect(wrapper.vm.currentPage).toBe(1)
-    expect(wrapper.vm.pageSize).toBe(25)
-    expect(wrapper.vm.query).toBe('')
-    expect(wrapper.vm.hideResubmissionModel).toBe(true)
+    expect(firstListQuery()).toEqual({
+      filter: {
+        statusFilter: ['IN_PROGRESS', 'PENDING'],
+        query: '',
+        hideResubmission: true,
+        creationGroup: '',
+      },
+      paginated: { currentPage: 1, pageSize: 25, order: 'DESC' },
+    })
+    expect(wrapper.findComponent(BTabs).props('modelValue')).toBe(0)
+    expect(pagination().props('modelValue')).toBe(1)
+    expect(pagination().props('perPage')).toBe(25)
+    expect(search().props('modelValue')).toBe('')
+    expect(wrapper.find('input.hideResubmission').element.checked).toBe(true)
   })
 
   it('updates store and component state when open creations are fetched', async () => {
@@ -126,8 +160,8 @@ describe('CreationConfirm', () => {
     await simulateQueryResult(mockData)
 
     expect(useAdminStore(store).setOpenCreations).toHaveBeenCalledWith(5)
-    expect(wrapper.vm.rows).toBe(5)
-    expect(wrapper.vm.items).toEqual(mockData.adminListContributions.contributionList)
+    expect(pagination().props('totalRows')).toBe(5)
+    expect(table().props('items')).toEqual(mockData.adminListContributions.contributionList)
   })
 
   /**
@@ -157,8 +191,7 @@ describe('CreationConfirm', () => {
   })
 
   it('does not update store when not on the open tab', async () => {
-    wrapper.vm.tabIndex = 1
-    await nextTick()
+    await openTab('confirmed')
 
     const mockData = {
       adminListContributions: {
@@ -170,13 +203,12 @@ describe('CreationConfirm', () => {
     await simulateQueryResult(mockData)
 
     expect(useAdminStore(store).setOpenCreations).not.toHaveBeenCalledWith(10)
-    expect(wrapper.vm.rows).toBe(10)
-    expect(wrapper.vm.items).toEqual(mockData.adminListContributions.contributionList)
+    expect(pagination().props('totalRows')).toBe(10)
+    expect(table().props('items')).toEqual(mockData.adminListContributions.contributionList)
   })
 
   it('refetches data when filters change', async () => {
-    wrapper.vm.query = 'test query'
-    await nextTick()
+    await search().vm.$emit('update:modelValue', 'test query')
 
     expect(mockRefetch).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -188,8 +220,7 @@ describe('CreationConfirm', () => {
 
     // The group filter replaced the old "hide #hashtags" switch: it asks which group a
     // contribution belongs to, not whether its text happens to contain a '#'.
-    wrapper.vm.creationGroup = '*untagged'
-    await nextTick()
+    await groupFilter().vm.$emit('update:modelValue', '*untagged')
 
     expect(mockRefetch).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -203,11 +234,11 @@ describe('CreationConfirm', () => {
   it('offers all, all groups and no group before the real groups', () => {
     // The real groups follow behind; here the query is mocked away, so only the three
     // fixed entries remain -- which is exactly what this asserts.
-    expect(wrapper.vm.creationGroupFilterOptions.map((option) => option.value)).toEqual([
-      '',
-      '*grouped',
-      '*untagged',
-    ])
+    expect(
+      groupFilter()
+        .props('options')
+        .map((option) => option.value),
+    ).toEqual(['', '*grouped', '*untagged'])
   })
 
   // A scoped moderator may only work in their own groups, so the filter offers only those.
@@ -224,23 +255,8 @@ describe('CreationConfirm', () => {
       const scopedStore = adminStore({ openCreations: 0, moderator })
       return mount(CreationConfirm, {
         global: {
-          plugins: [scopedStore],
-          stubs: {
-            UserQuery: true,
-            BButton: true,
-            BTabs,
-            BTab,
-            BBadge,
-            OpenCreationsTable: true,
-            BPagination,
-            Overlay: true,
-            IBiBellFill: true,
-            IBiCheck: true,
-            IBiXCircle: true,
-            IBiTrash: true,
-            IBiList: true,
-          },
-          mocks: { $t: mockT, $d: mockD },
+          plugins: [scopedStore, createBootstrap()],
+          stubs,
         },
       })
     }
@@ -256,11 +272,11 @@ describe('CreationConfirm', () => {
         seesAllCreationGroups: false,
         visibleCreationGroups: ['firefighter', 'garden'],
       })
-      expect(scoped.vm.creationGroupFilterOptions.map((option) => option.value)).toEqual([
-        '*grouped',
-        'firefighter',
-        'garden',
-      ])
+      expect(
+        groupFilter(scoped)
+          .props('options')
+          .map((option) => option.value),
+      ).toEqual(['*grouped', 'firefighter', 'garden'])
     })
 
     it('defaults the selection to "all my groups"', () => {
@@ -269,7 +285,7 @@ describe('CreationConfirm', () => {
         seesAllCreationGroups: false,
         visibleCreationGroups: ['firefighter', 'garden'],
       })
-      expect(scoped.vm.creationGroup).toBe('*grouped')
+      expect(groupFilter(scoped).props('modelValue')).toBe('*grouped')
     })
 
     // ⚠️ A session that predates the rename. The whole store is persisted to localStorage and
@@ -285,12 +301,12 @@ describe('CreationConfirm', () => {
         seesAllGroups: false,
         visibleGroupTags: ['firefighter', 'garden'],
       })
-      expect(scoped.vm.creationGroupFilterOptions.map((option) => option.value)).toEqual([
-        '*grouped',
-        'firefighter',
-        'garden',
-      ])
-      expect(scoped.vm.creationGroup).toBe('*grouped')
+      expect(
+        groupFilter(scoped)
+          .props('options')
+          .map((option) => option.value),
+      ).toEqual(['*grouped', 'firefighter', 'garden'])
+      expect(groupFilter(scoped).props('modelValue')).toBe('*grouped')
     })
 
     it('offers only "no group" to a moderator scoped to untagged contributions', () => {
@@ -299,10 +315,12 @@ describe('CreationConfirm', () => {
         seesAllCreationGroups: false,
         visibleCreationGroups: [],
       })
-      expect(scoped.vm.creationGroupFilterOptions.map((option) => option.value)).toEqual([
-        '*untagged',
-      ])
-      expect(scoped.vm.creationGroup).toBe('*untagged')
+      expect(
+        groupFilter(scoped)
+          .props('options')
+          .map((option) => option.value),
+      ).toEqual(['*untagged'])
+      expect(groupFilter(scoped).props('modelValue')).toBe('*untagged')
     })
 
     // "No group" is not a group, so it never appears in visibleCreationGroups. Deciding from that
@@ -316,11 +334,11 @@ describe('CreationConfirm', () => {
         seesUntagged: true,
         visibleCreationGroups: ['firefighter'],
       })
-      expect(scoped.vm.creationGroupFilterOptions.map((option) => option.value)).toEqual([
-        '*grouped',
-        '*untagged',
-        'firefighter',
-      ])
+      expect(
+        groupFilter(scoped)
+          .props('options')
+          .map((option) => option.value),
+      ).toEqual(['*grouped', '*untagged', 'firefighter'])
     })
 
     it('leaves an administrator the full set', () => {
@@ -329,22 +347,25 @@ describe('CreationConfirm', () => {
         seesAllCreationGroups: true,
         visibleCreationGroups: [],
       })
-      expect(scoped.vm.creationGroupFilterOptions.map((option) => option.value)).toEqual([
-        '',
-        '*grouped',
-        '*untagged',
-        'firefighter',
-        'garden',
-        'other',
-      ])
+      expect(
+        groupFilter(scoped)
+          .props('options')
+          .map((option) => option.value),
+      ).toEqual(['', '*grouped', '*untagged', 'firefighter', 'garden', 'other'])
     })
   })
 
   it('updates tabIndex and refetches when changing tabs', async () => {
-    wrapper.vm.tabIndex = 2
-    await nextTick()
+    // Enough rows for a second page, or the real BPagination clamps it away (see below).
+    await simulateQueryResult({
+      adminListContributions: { contributionCount: 75, contributionList: openItems(75, 7) },
+    })
+    await pagination().vm.$emit('update:modelValue', 2)
+    expect(pagination().props('modelValue')).toBe(2)
 
-    expect(wrapper.vm.currentPage).toBe(1)
+    await openTab('denied')
+
+    expect(pagination().props('modelValue')).toBe(1)
     expect(mockRefetch).toHaveBeenCalledWith(
       expect.objectContaining({
         paginated: expect.objectContaining({
@@ -358,8 +379,7 @@ describe('CreationConfirm', () => {
   })
 
   it('handles pagination changes', async () => {
-    wrapper.vm.currentPage = 2
-    await nextTick()
+    await pagination().vm.$emit('update:modelValue', 2)
 
     expect(mockRefetch).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -382,14 +402,12 @@ describe('CreationConfirm', () => {
       adminListContributions: { contributionCount: 75, contributionList: openItems(75, 7) },
     })
 
-    wrapper.vm.currentPage = 3
-    await nextTick()
-    expect(wrapper.vm.currentPage).toBe(3)
+    await pagination().vm.$emit('update:modelValue', 3)
+    expect(pagination().props('modelValue')).toBe(3)
 
-    wrapper.vm.query = 'someone@example.org'
-    await nextTick()
+    await search().vm.$emit('update:modelValue', 'someone@example.org')
 
-    expect(wrapper.vm.currentPage).toBe(1)
+    expect(pagination().props('modelValue')).toBe(1)
     expect(mockRefetch).toHaveBeenLastCalledWith(
       expect.objectContaining({
         filter: expect.objectContaining({ query: 'someone@example.org' }),
@@ -411,11 +429,12 @@ describe('CreationConfirm', () => {
       adminListContributions: { contributionCount: 3, contributionList: openItems(3, 7) },
     })
 
-    wrapper.vm.onResubmissionSaved({ id: 1, resubmissionAt: '2026-08-01T08:46:00' })
-    expect(wrapper.vm.bulkResubmission.show).toBe(true)
+    await table().vm.$emit('resubmission-saved', { id: 1, resubmissionAt: '2026-08-01T08:46:00' })
+    expect(bulkModal().props('modelValue')).toBe(true)
 
     mockMutate.mockClear()
-    await wrapper.vm.applyBulkResubmission()
+    await bulkModal().vm.$emit('ok')
+    await flushPromises()
 
     const ids = mockMutate.mock.calls.map((call) => call[0].id)
     expect(ids).toEqual([2, 3])
@@ -431,8 +450,8 @@ describe('CreationConfirm', () => {
       },
     })
 
-    wrapper.vm.onResubmissionSaved({ id: 1, resubmissionAt: '2026-08-01T08:46:00' })
-    expect(wrapper.vm.bulkResubmission.show).toBe(false)
+    await table().vm.$emit('resubmission-saved', { id: 1, resubmissionAt: '2026-08-01T08:46:00' })
+    expect(bulkModal().props('modelValue')).toBe(false)
   })
 
   it('shows a neutral notice when an unchanged save has no group to propagate to', async () => {
@@ -440,13 +459,13 @@ describe('CreationConfirm', () => {
       adminListContributions: { contributionCount: 1, contributionList: openItems(1, 7) },
     })
 
-    wrapper.vm.onResubmissionSaved({
+    await table().vm.$emit('resubmission-saved', {
       id: 1,
       resubmissionAt: '2026-08-01T08:46:00',
       unchanged: true,
     })
 
-    expect(wrapper.vm.bulkResubmission.show).toBe(false)
+    expect(bulkModal().props('modelValue')).toBe(false)
     expect(mockToastWarning).toHaveBeenCalled()
   })
 
@@ -455,9 +474,9 @@ describe('CreationConfirm', () => {
       adminListContributions: { contributionCount: 3, contributionList: openItems(3, 7) },
     })
 
-    wrapper.vm.onResubmissionSaved({ id: 1, resubmissionAt: null, unchanged: true })
+    await table().vm.$emit('resubmission-saved', { id: 1, resubmissionAt: null, unchanged: true })
 
-    expect(wrapper.vm.bulkResubmission.show).toBe(false)
+    expect(bulkModal().props('modelValue')).toBe(false)
     expect(mockToastWarning).toHaveBeenCalled()
   })
 })

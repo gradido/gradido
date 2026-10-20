@@ -1,0 +1,763 @@
+// AI-GENERATED — not an architecture reference
+import { useApolloClient, useMutation, useQuery } from '@vue/apollo-composable'
+import {
+  BBadge,
+  BButton,
+  BModal,
+  BPagination,
+  BTab,
+  BTabs,
+  type ButtonVariant,
+  useModal,
+  vBTooltip,
+} from 'bootstrap-vue-next'
+import { computed, defineComponent, ref, watch, withDirectives } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { ThemedSelect } from '@/components/ThemedSelect'
+import { useDateFormatter } from '@/composables/useDateFormatter'
+import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
+import { useAppToast } from '@/composables/useToast'
+import { CONFIG } from '@/config'
+import { useAdminStore } from '@/store/useAdminStore'
+import { creationGroupOption } from '@/utils/creationGroupLabel'
+import IBiBellFill from '~icons/bi/bell-fill'
+import IBiCheck from '~icons/bi/check'
+import IBiList from '~icons/bi/list'
+import IBiTrash from '~icons/bi/trash'
+import IBiXCircle from '~icons/bi/x-circle'
+import { AiChat } from '../components/AiChat'
+import { CreaEvaluationModal } from '../components/CreaEvaluationModal'
+import { Overlay, type OverlayItem } from '../components/Overlay'
+import { type Contribution, OpenCreationsTable } from '../components/Tables/OpenCreationsTable'
+import { UserQuery } from '../components/UserQuery'
+import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
+import { adminListContributions } from '../graphql/adminListContributions.graphql'
+import { adminUpdateContribution } from '../graphql/adminUpdateContribution'
+import { confirmContribution } from '../graphql/confirmContribution'
+import { assignContributionCreationGroups, creationGroups } from '../graphql/creationGroups.graphql'
+import { denyContribution } from '../graphql/denyContribution'
+import { getContribution } from '../graphql/getContribution.graphql'
+import './CreationConfirm.css'
+
+type ListVariables = {
+  filter: {
+    statusFilter: string[]
+    query: string
+    hideResubmission: boolean
+    creationGroup: string
+  }
+  paginated: { currentPage: number; pageSize: number; order?: string }
+}
+
+// The names a session stored before the rename (see seesAllCreationGroups below).
+type PreRenameModerator = { seesAllGroups?: boolean; visibleGroupTags?: string[] } | null
+
+type CreationGroup = { tag: string; name?: string | null }
+
+type Field = {
+  key: string
+  label: string
+  class?: string
+  formatter?: (value: unknown) => string
+}
+
+type ResubmissionSaved = {
+  id: number
+  resubmissionAt: string | null
+  unchanged?: boolean
+}
+
+const FILTER_TAB_MAP = [
+  ['IN_PROGRESS', 'PENDING'],
+  ['CONFIRMED'],
+  ['DENIED'],
+  ['DELETED'],
+  ['IN_PROGRESS', 'PENDING', 'CONFIRMED', 'DENIED', 'DELETED'],
+]
+
+export const CreationConfirm = defineComponent({
+  name: 'CreationConfirm',
+  setup() {
+    const store = useAdminStore()
+    const { t } = useI18n()
+    const { toastError, toastSuccess, toastWarning } = useAppToast()
+
+    const tabIndex = ref(0)
+    const { client: apolloClient } = useApolloClient()
+    const items = ref<Contribution[]>([])
+    const overlay = ref(false)
+    const item = ref<Contribution>({} as Contribution)
+    const variant = ref('confirm')
+    const rows = ref(0)
+    const currentPage = ref(1)
+    const pageSize = ref(25)
+    const query = ref('')
+    const hideResubmissionModel = ref(true)
+    // Group functions: filter the contribution list by a single creation group.
+    const creationGroup = ref('')
+
+    const { formatDateOrDash } = useDateFormatter()
+
+    const baseFields: Record<string, Field> = {
+      name: { key: 'name', label: t('name'), class: 'no-select' },
+      firstName: { key: 'user.firstName', label: t('firstname'), class: 'no-select' },
+      lastName: { key: 'user.lastName', label: t('lastname'), class: 'no-select' },
+      amount: { key: 'amount', label: t('creation'), formatter: (value) => `${value} GDD` },
+      memo: { key: 'memo', label: t('text'), class: 'text-break' },
+      contributionDate: {
+        key: 'contributionDate',
+        label: t('created'),
+        class: 'no-select',
+        formatter: formatDateOrDash,
+      },
+      createdAt: {
+        key: 'createdAt',
+        label: t('createdAt'),
+        class: 'no-select',
+        formatter: formatDateOrDash,
+      },
+      closedAt: {
+        key: 'closedAt',
+        label: t('contributions.closed'),
+        class: 'no-select',
+        formatter: formatDateOrDash,
+      },
+    }
+
+    const role = computed(() => store.moderator?.role ?? null)
+    const isAdmin = computed(() => role.value === 'ADMIN')
+    const isAiUser = computed(() => isAdmin.value || role.value === 'MODERATOR_AI')
+    // Who sees the Crea button: AI moderators on the open tab (0) and on the "all" tab (4) --
+    // there only on still-open contributions (see creaOpenOnly), so they can jump straight
+    // from a participant's history to an open item. Administrators additionally see it on the
+    // dedicated confirmed/denied/deleted tabs to test Crea against the whole pool. Plain
+    // moderators hold no AI_SEND_MESSAGE right and see no button. This only guides the UI --
+    // the resolver's @Authorized guard is what actually enforces the right.
+    const showCreaColumn = computed(() =>
+      tabIndex.value === 0 || tabIndex.value === 4 ? isAiUser.value : isAdmin.value,
+    )
+    // The "all" tab (index 4) mixes open and closed contributions; there Crea shows only on
+    // the open (blue) rows -- the ones still to be processed. Other tabs are single-status.
+    const creaOpenOnly = computed(() => tabIndex.value === 4)
+
+    const fields = computed(() => {
+      const tabFields = [
+        // open contributions
+        [
+          { key: 'bookmark', label: t('delete') },
+          { key: 'deny', label: t('deny') },
+          { key: 'searchUser', label: '' },
+          baseFields.name,
+          baseFields.amount,
+          baseFields.memo,
+          baseFields.contributionDate,
+          { key: 'creaEvaluate', label: t('crea.column') },
+          { key: 'editCreation', label: t('details') },
+          { key: 'confirm', label: t('save') },
+        ],
+        // confirmed contributions
+        [
+          { key: 'searchUser', label: '' },
+          baseFields.name,
+          baseFields.amount,
+          baseFields.memo,
+          baseFields.contributionDate,
+          baseFields.createdAt,
+          baseFields.closedAt,
+          { key: 'creaEvaluate', label: t('crea.column') },
+          { key: 'chatCreation', label: t('details') },
+        ],
+        // denied contributions
+        [
+          { key: 'searchUser', label: '' },
+          baseFields.name,
+          baseFields.amount,
+          baseFields.memo,
+          baseFields.contributionDate,
+          baseFields.createdAt,
+          baseFields.closedAt,
+          { key: 'creaEvaluate', label: t('crea.column') },
+          { key: 'chatCreation', label: t('details') },
+        ],
+        // deleted contributions
+        [
+          { key: 'searchUser', label: '' },
+          baseFields.name,
+          baseFields.amount,
+          baseFields.memo,
+          baseFields.contributionDate,
+          baseFields.createdAt,
+          baseFields.closedAt,
+          { key: 'creaEvaluate', label: t('crea.column') },
+          { key: 'chatCreation', label: t('details') },
+        ],
+        // all contributions
+        [
+          { key: 'contributionStatus', label: t('status') },
+          { key: 'searchUser', label: '' },
+          baseFields.name,
+          baseFields.amount,
+          baseFields.memo,
+          baseFields.contributionDate,
+          baseFields.createdAt,
+          baseFields.closedAt,
+          { key: 'creaEvaluate', label: t('crea.column') },
+          { key: 'chatCreation', label: t('details') },
+        ],
+      ][tabIndex.value]
+
+      return showCreaColumn.value
+        ? tabFields
+        : tabFields.filter((field) => field.key !== 'creaEvaluate')
+    })
+
+    const statusFilter = computed(() => [...FILTER_TAB_MAP[tabIndex.value]])
+
+    const overlayTitle = computed(() => `overlay.${variant.value}.title`)
+    const overlayText = computed(() => `overlay.${variant.value}.text`)
+    const overlayQuestion = computed(() => `overlay.${variant.value}.question`)
+    const overlayBtnText = computed(() => `overlay.${variant.value}.yes`)
+    const overlayEvent = computed(() => {
+      switch (variant.value) {
+        case 'confirm':
+          return confirmCreation
+        case 'deny':
+          return denyCreation
+        case 'delete':
+          return deleteCreation
+        default:
+          return null
+      }
+    })
+    const overlayIcon = computed((): ButtonVariant => {
+      switch (variant.value) {
+        case 'confirm':
+          return 'success'
+        case 'deny':
+          return 'warning'
+        case 'delete':
+          return 'danger'
+        default:
+          return 'info'
+      }
+    })
+    const showResubmissionCheckbox = computed(() => tabIndex.value === 0)
+    const hideResubmission = computed(() =>
+      showResubmissionCheckbox.value ? hideResubmissionModel.value : false,
+    )
+
+    watch(tabIndex, () => {
+      currentPage.value = 1
+      items.value = []
+    })
+
+    // Narrowing the list has to start over at page one. Picking a group while standing on a
+    // later page would otherwise ask for a page the narrowed result does not have, and the
+    // empty table reads as "this group has nothing".
+    watch(creationGroup, () => {
+      currentPage.value = 1
+    })
+
+    // The same rule for the search, which narrows the list just as hard. Watched on the
+    // value rather than on one of its callers, because two things write it: the search
+    // field above the table and the magnifier in the row. Guarding only the magnifier
+    // would have left the typed search asking for page 3 of a two-line result.
+    watch(query, () => {
+      currentPage.value = 1
+    })
+
+    // Group functions: canonical tag options for the filter dropdown.
+    const { result: creationGroupsResult } = useQuery(creationGroups)
+
+    // A scoped moderator may only work in the groups their role covers, so the filter offers
+    // only those. The backend already restricts what they can load; this keeps the dropdown from
+    // offering choices that would return nothing. An administrator — or an unrestricted moderator
+    // — gets the full set unchanged.
+    // ⚠️ Both fields are read under their old names as well, and it matters. The whole store is
+    // persisted to localStorage, and verifyLogin only runs again at /authenticate -- so a
+    // moderator who was signed in when this deploys still carries seesAllGroups /
+    // visibleGroupTags in their browser. Reading only the new names would leave both undefined,
+    // and `?? true` would then quietly promote a scoped moderator to the administrator's view of
+    // the filter: every group in the community offered, the selection defaulting to "all", and a
+    // group they do not moderate answering with an empty table that reads as "nothing here".
+    // Nothing leaks -- the backend still enforces from the database -- but the dropdown lies
+    // until they sign in again, which may be days.
+    //
+    // A changeover aid: it can go once no live session predates the rename. The line below does
+    // the same for a field added earlier, for the same reason.
+    const moderator = computed(() => store.moderator)
+    const preRename = computed(() => store.moderator as PreRenameModerator)
+    const seesAllCreationGroups = computed(
+      () => moderator.value?.seesAllCreationGroups ?? preRename.value?.seesAllGroups ?? true,
+    )
+    const visibleCreationGroups = computed<string[]>(
+      () => moderator.value?.visibleCreationGroups ?? preRename.value?.visibleGroupTags ?? [],
+    )
+    // "No group" is not a group, so it cannot appear in the list above. Without it a scope of
+    // "one group plus the ungrouped ones" would look exactly like that one group, and the
+    // ungrouped contributions the moderator is assigned to would have no filter that reaches
+    // them. Older sessions predate the field, hence the fallback.
+    const seesUntagged = computed(() => store.moderator?.seesUntagged ?? false)
+
+    const creationGroupFilterOptions = computed(() => {
+      const allGroups: CreationGroup[] = creationGroupsResult.value?.creationGroups ?? []
+      if (seesAllCreationGroups.value) {
+        // Three answers that cover the list exactly once: everything, everything some group
+        // moderator looks after, everything nobody does — plus every group. The two '*…' values
+        // are reserved tokens the backend matches; a real slug can never be '*…', so no
+        // collision.
+        return [
+          { value: '', text: t('creationGroupFilter.all') },
+          { value: '*grouped', text: t('creationGroupFilter.grouped') },
+          { value: '*untagged', text: t('creationGroupFilter.untagged') },
+          ...allGroups.map(creationGroupOption),
+        ]
+      }
+      // Scoped moderator. The store already says which groups they cover, so the shape is
+      // decided before the full group list has even loaded.
+      if (visibleCreationGroups.value.length === 0) {
+        // Scoped to untagged contributions only — the one thing this moderator can see.
+        return [{ value: '*untagged', text: t('creationGroupFilter.untagged') }]
+      }
+      // "All my groups" plus each of them, and "no group" when the scope covers it too; never
+      // "all", never a group outside the scope.
+      return [
+        { value: '*grouped', text: t('creationGroupFilter.grouped') },
+        ...(seesUntagged.value
+          ? [{ value: '*untagged', text: t('creationGroupFilter.untagged') }]
+          : []),
+        ...allGroups
+          .filter((creationGroupItem) =>
+            visibleCreationGroups.value.includes(creationGroupItem.tag),
+          )
+          .map(creationGroupOption),
+      ]
+    })
+
+    // Keep the chosen filter among the options actually on offer. A scoped moderator has no
+    // "all" entry, so the default falls to their first option ("all my groups", or "untagged").
+    watch(
+      creationGroupFilterOptions,
+      (options) => {
+        if (options.length > 0 && !options.some((option) => option.value === creationGroup.value)) {
+          creationGroup.value = options[0].value
+        }
+      },
+      { immediate: true },
+    )
+
+    const { onResult, onError, result, refetch } = useQuery<any, ListVariables>(
+      adminListContributions,
+      {
+        filter: {
+          statusFilter: statusFilter.value,
+          query: query.value,
+          hideResubmission: hideResubmission.value,
+          creationGroup: creationGroup.value,
+        },
+        paginated: {
+          currentPage: currentPage.value,
+          pageSize: pageSize.value,
+          order: 'DESC',
+        },
+      },
+      {
+        fetchPolicy: 'no-cache',
+      },
+    )
+
+    watch([statusFilter, query, hideResubmission, creationGroup, currentPage], () => {
+      refetch({
+        filter: {
+          statusFilter: statusFilter.value,
+          query: query.value,
+          hideResubmission: hideResubmission.value,
+          creationGroup: creationGroup.value,
+        },
+        paginated: {
+          currentPage: currentPage.value,
+          pageSize: pageSize.value,
+        },
+      })
+    })
+
+    onError((error) => {
+      toastError(error.message)
+    })
+
+    onResult(() => {
+      rows.value = result.value.adminListContributions.contributionCount
+      // Copies, as SearchUserTable makes them: what Apollo Client 3 answers is frozen, and the
+      // table opens a row by writing `_showDetails` into its item.
+      items.value = result.value.adminListContributions.contributionList.map(
+        (contribution: Contribution) => ({ ...contribution }),
+      )
+      // The faces of the members whose contributions are on this page, in one round trip. Each
+      // row carries a DATE, not a picture; everything already held under that date needs
+      // nothing, so paging back and forth asks for nothing at all.
+      fetchMemberAvatars(
+        apolloClient,
+        items.value.map((contribution) => contribution.user).filter(Boolean),
+      )
+      if (statusFilter.value.toString() === FILTER_TAB_MAP[0].toString()) {
+        store.setOpenCreations(result.value.adminListContributions.contributionCount)
+      }
+    })
+
+    // Group functions: move a contribution to another group (or to none). The table asks for
+    // confirmation first; the backend refuses once the contribution is closed.
+    const {
+      mutate: assignGroupMutation,
+      onDone: onAssignGroupDone,
+      onError: onAssignGroupError,
+    } = useMutation(assignContributionCreationGroups)
+
+    const groupChangeFailures = ref(0)
+
+    const assignGroup = ({ contributionId, tags }: { contributionId: number; tags: string[] }) => {
+      assignGroupMutation({ contributionId, tags })
+    }
+
+    onAssignGroupDone(() => {
+      refetch()
+      toastSuccess(t('contribution.changeGroupDone'))
+    })
+
+    onAssignGroupError((error) => {
+      toastError(error.message)
+      // The table still shows the group the moderator picked; tell it the change did not
+      // happen.
+      groupChangeFailures.value++
+    })
+
+    const {
+      mutate: deleteMutation,
+      onDone: onDeleteDone,
+      onError: onDeleteError,
+    } = useMutation(adminDeleteContribution)
+
+    onDeleteDone(() => {
+      overlay.value = false
+      updatePendingCreations(item.value.id)
+      toastSuccess(t('creation_form.toasted_delete'))
+    })
+
+    onDeleteError((error) => {
+      overlay.value = false
+      toastError(error.message)
+    })
+
+    const {
+      mutate: denyMutation,
+      onDone: onDenayDone,
+      onError: onDenayError,
+    } = useMutation(denyContribution)
+
+    onDenayDone(() => {
+      overlay.value = false
+      updatePendingCreations(item.value.id)
+      toastSuccess(t('creation_form.toasted_denied'))
+    })
+
+    onDenayError((error) => {
+      overlay.value = false
+      toastError(error.message)
+    })
+
+    const {
+      mutate: confirmMutation,
+      onDone: onConfirmationDone,
+      onError: onConfirmationError,
+    } = useMutation(confirmContribution)
+
+    onConfirmationDone(() => {
+      overlay.value = false
+      updatePendingCreations(item.value.id)
+      toastSuccess(t('creation_form.toasted_created'))
+    })
+
+    onConfirmationError((error) => {
+      overlay.value = false
+      toastError(error.message)
+    })
+
+    // ⚠️ onResult answers `{ off }`, which has no onError: the chained call throws a TypeError
+    // once the result handler is registered, and no error handler is ever attached. Kept as
+    // the template version had it; the assertion only tells the types what the code assumes.
+    const reloadContribution = (id: number) => {
+      const resultHandler = useQuery(getContribution, { id }).onResult((result) => {
+        const contribution = result.data.contribution
+        const index = items.value.findIndex((obj) => obj.id === contribution.id)
+        items.value[index] = { ...contribution }
+      }) as unknown as { onError: (handler: (error: Error) => void) => void }
+      resultHandler.onError((error) => {
+        overlay.value = false
+        toastError(error.message)
+      })
+    }
+
+    const deleteCreation = () => {
+      deleteMutation({
+        id: item.value.id,
+      })
+    }
+
+    const denyCreation = () => {
+      denyMutation({
+        id: item.value.id,
+      })
+    }
+
+    const confirmCreation = () => {
+      confirmMutation({
+        id: item.value.id,
+      })
+    }
+
+    const updatePendingCreations = (id: number) => {
+      items.value = items.value.filter((obj) => obj.id !== id)
+      store.openCreationsMinus(1)
+    }
+
+    const showOverlay = (selectedItem: Contribution, selectedVariant: string) => {
+      overlay.value = true
+      item.value = selectedItem
+      variant.value = selectedVariant
+    }
+
+    const creaItem = ref<Contribution | null>(null)
+    const { show: showCreaModal } = useModal('crea-evaluation-modal')
+    const openCreaModal = (selectedItem: Contribution) => {
+      creaItem.value = selectedItem
+      showCreaModal()
+    }
+
+    const updateStatus = (id: number) => {
+      const target = items.value.find((obj) => obj.id === id)
+      if (target) {
+        target.messagesCount++
+        target.contributionStatus = 'IN_PROGRESS'
+      }
+    }
+
+    // Bulk resubmission: after a moderator saves a reminder on one contribution, offer to
+    // apply it to all displayed contributions -- but only when the list shows a SINGLE
+    // participant (all rows same userId, e.g. filtered to one user) and holds more than one
+    // open contribution. This never touches other participants' contributions.
+    const { mutate: updateContributionMutation } = useMutation(adminUpdateContribution)
+    const bulkResubmission = ref<{
+      show: boolean
+      resubmissionAt: string | null
+      name: string
+      currentId: number | null
+    }>({ show: false, resubmissionAt: null, name: '', currentId: null })
+
+    // Clearing a reminder (resubmissionAt === null) makes the modal speak of "removing",
+    // otherwise of "applying" the date.
+    const isBulkClearing = computed(() => bulkResubmission.value.resubmissionAt === null)
+    const bulkTitle = computed(() =>
+      isBulkClearing.value ? t('bulkResubmission.titleRemove') : t('bulkResubmission.title'),
+    )
+    const bulkQuestion = computed(() => {
+      const name = bulkResubmission.value.name
+      return isBulkClearing.value
+        ? t('bulkResubmission.questionRemove', { name })
+        : t('bulkResubmission.question', { name })
+    })
+
+    const displayedOpenItems = () =>
+      items.value.filter((c) => FILTER_TAB_MAP[0].includes(c.contributionStatus))
+    const isSingleParticipant = () => new Set(items.value.map((c) => c.userId)).size === 1
+
+    const onResubmissionSaved = ({ id, resubmissionAt, unchanged }: ResubmissionSaved) => {
+      // Offer to propagate only when there is something to spread: a reminder value (a
+      // date), or a real save (a removal propagates the clearing). A no-op with no reminder
+      // has nothing to propagate -- show a neutral notice instead of opening the prompt.
+      const canPropagate = resubmissionAt != null || !unchanged
+      if (canPropagate && isSingleParticipant() && displayedOpenItems().length > 1) {
+        const user = items.value[0]?.user
+        const name = user ? `${user.firstName} ${user.lastName}` : ''
+        bulkResubmission.value = { show: true, resubmissionAt, name, currentId: id }
+      } else if (unchanged) {
+        // Nothing changed and nothing (or no group) to propagate to: a neutral notice
+        // instead of the backend's red "wasn't changed" error.
+        toastWarning(t('bulkResubmission.noChange'))
+      }
+    }
+
+    const applyBulkResubmission = async () => {
+      const { resubmissionAt, currentId } = bulkResubmission.value
+      // The current contribution was already saved individually -- exclude it so we never
+      // re-send an unchanged value. A backend "wasn't changed at all" rejection (another
+      // displayed contribution already holds this exact date, or already had no reminder
+      // when clearing) is a harmless no-op: it must not abort the batch or raise an error.
+      const targets = displayedOpenItems().filter((c) => c.id !== currentId)
+      const results = await Promise.allSettled(
+        targets.map((c) => updateContributionMutation({ id: c.id, resubmissionAt })),
+      )
+      const failure = results.find(
+        (r): r is PromiseRejectedResult =>
+          r.status === 'rejected' && !r.reason?.message?.includes("wasn't changed"),
+      )
+      if (failure) {
+        toastError(failure.reason.message)
+      } else {
+        toastSuccess(
+          isBulkClearing.value
+            ? t('bulkResubmission.successRemove')
+            : t('bulkResubmission.success'),
+        )
+      }
+      refetch()
+    }
+
+    // `title-link-attributes` is no prop of BTab and `hide-ellipsis` none of BPagination in this
+    // bootstrap-vue-next: both fall through as attributes, as they did in the template.
+    // Hyphenated, so the types let them pass too.
+    // The listeners of the table are hyphenated as well: its events are declared kebab-case,
+    // and that is the name the types give their handlers.
+    return () => (
+      <div class='creation-confirm'>
+        <UserQuery v-model={query.value} class='mb-2 mt-2' placeholder={t('user_memo_search')} />
+        <p class='mb-2 d-flex align-items-center'>
+          <span class='me-2'>{t('creationGroupFilter.label')}</span>
+          <ThemedSelect
+            v-model={creationGroup.value}
+            options={creationGroupFilterOptions.value}
+            class='creation-group-filter'
+            style='max-width: 24rem'
+            data-test='creation-group-filter'
+          />
+        </p>
+        {showResubmissionCheckbox.value ? (
+          <p class='mb-4'>
+            <input v-model={hideResubmissionModel.value} type='checkbox' class='hideResubmission' />
+            {withDirectives(<span class='ms-2'>{t('hide_resubmission')}</span>, [
+              [vBTooltip, t('hide_resubmission_tooltip')],
+            ])}
+          </p>
+        ) : null}
+        <div>
+          <BTabs v-model={tabIndex.value} contentClass='mt-3' fill>
+            <BTab active title-link-attributes={{ 'data-test': 'open' }}>
+              {{
+                title: () => [
+                  <IBiBellFill style='color: #0d6efd' />,
+                  ' ',
+                  t('contributions.open'),
+                  ' ',
+                  store.openCreations > 0 ? (
+                    <BBadge variant='danger'>{store.openCreations}</BBadge>
+                  ) : null,
+                ],
+              }}
+            </BTab>
+            <BTab title-link-attributes={{ 'data-test': 'confirmed' }}>
+              {{
+                title: () => [
+                  <IBiCheck style='color: #198754' />,
+                  ' ',
+                  t('contributions.confirms'),
+                ],
+              }}
+            </BTab>
+            <BTab title-link-attributes={{ 'data-test': 'denied' }}>
+              {{
+                title: () => [
+                  <IBiXCircle style='color: #ffc107' />,
+                  ' ',
+                  t('contributions.denied'),
+                ],
+              }}
+            </BTab>
+            <BTab title-link-attributes={{ 'data-test': 'deleted' }}>
+              {{
+                title: () => [<IBiTrash style='color: #dc3545' />, ' ', t('contributions.deleted')],
+              }}
+            </BTab>
+            <BTab title-link-attributes={{ 'data-test': 'all' }}>
+              {{
+                title: () => [<IBiList />, ' ', t('contributions.all')],
+              }}
+            </BTab>
+          </BTabs>
+        </div>
+        <OpenCreationsTable
+          class='mt-4'
+          items={items.value}
+          fields={fields.value}
+          hideResubmission={hideResubmission.value}
+          creaOpenOnly={creaOpenOnly.value}
+          creationGroups={creationGroupsResult.value?.creationGroups ?? []}
+          groupChangeFailures={groupChangeFailures.value}
+          onAssign-group={assignGroup}
+          onShow-overlay={showOverlay}
+          onUpdate-status={updateStatus}
+          onReload-contribution={reloadContribution}
+          onUpdate-contributions={() => refetch()}
+          onSearch-for-email={(email: string) => {
+            query.value = email
+          }}
+          onCrea-evaluate={openCreaModal}
+          onResubmission-saved={onResubmissionSaved}
+        />
+
+        <BPagination
+          v-model={currentPage.value}
+          pills
+          size='lg'
+          perPage={pageSize.value}
+          totalRows={rows.value}
+          align='center'
+          hide-ellipsis={true}
+        />
+        {CONFIG.ANTHROPIC_ACTIVE && isAiUser.value ? <AiChat /> : null}
+        {overlay.value ? (
+          <div
+            id='overlay'
+            onDblclick={() => {
+              overlay.value = false
+            }}
+          >
+            <Overlay
+              item={item.value as unknown as OverlayItem}
+              onOverlay-cancel={() => {
+                overlay.value = false
+              }}
+            >
+              {{
+                // The texts of the variant: overlay.confirm|delete|deny.*, keys the template
+                // built at runtime as well. ESLint's i18n check cannot follow them.
+                /* eslint-disable @intlify/vue-i18n/no-dynamic-keys */
+                title: () => t(overlayTitle.value),
+                text: () => <p>{t(overlayText.value)}</p>,
+                question: () => <p>{t(overlayQuestion.value)}</p>,
+                'submit-btn': () => (
+                  <BButton
+                    size='md'
+                    variant={overlayIcon.value}
+                    class='m-3 text-end'
+                    onClick={overlayEvent.value ?? undefined}
+                  >
+                    {t(overlayBtnText.value)}
+                  </BButton>
+                ),
+                /* eslint-enable @intlify/vue-i18n/no-dynamic-keys */
+              }}
+            </Overlay>
+          </div>
+        ) : null}
+        <CreaEvaluationModal contribution={creaItem.value} />
+        <BModal
+          v-model={bulkResubmission.value.show}
+          title={bulkTitle.value}
+          okTitle={t('bulkResubmission.confirm')}
+          cancelTitle={t('bulkResubmission.cancel')}
+          onOk={applyBulkResubmission}
+        >
+          {bulkQuestion.value}
+        </BModal>
+      </div>
+    )
+  },
+})

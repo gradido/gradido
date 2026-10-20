@@ -2,7 +2,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import { AVATAR_COLOR_PALETTE } from '@/utils/avatarColor'
-import MemberAvatar from './MemberAvatar.vue'
+import { MemberAvatar } from './MemberAvatar'
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({

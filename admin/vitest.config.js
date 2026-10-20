@@ -1,24 +1,14 @@
 import { defineConfig } from 'vite'
-import Vue from '@vitejs/plugin-vue'
 import path from 'path'
 import { availableParallelism } from 'node:os'
-
-// export default defineConfig({
-//   plugins: [Vue()],
-//   test: {
-//     globals: true,
-//     environment: 'jsdom',
-//   },
-// })
 
 export default defineConfig(async () => {
   const { vitePluginGraphqlLoader } = await import('vite-plugin-graphql-loader')
   const { default: VueJsx } = await import('@vitejs/plugin-vue-jsx')
-  // resolves the explicit `~icons/…` imports of .tsx files; .vue templates get theirs by name
-  // through unplugin-vue-components, which the tests leave out
+  // resolves the `~icons/…` imports
   const { default: Icons } = await import('unplugin-icons/vite')
   return {
-    plugins: [Vue(), VueJsx(), Icons({ compiler: 'vue3' }), vitePluginGraphqlLoader()],
+    plugins: [VueJsx(), Icons({ compiler: 'vue3' }), vitePluginGraphqlLoader()],
     test: {
       globals: true,
       environment: 'jsdom',
@@ -60,7 +50,7 @@ export default defineConfig(async () => {
       alias: {
         '@': path.resolve(__dirname, './src'),
       },
-      extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.vue'],
+      extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json'],
     },
   }
 })

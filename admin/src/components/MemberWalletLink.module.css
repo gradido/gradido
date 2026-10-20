@@ -1,0 +1,41 @@
+/* Without it a line may break between two buttons standing side by side. */
+.memberWalletLinks {
+  white-space: nowrap;
+}
+
+/* The pin, the bubble, the arrow: a square of 24 px to press, standing in a line of text.
+   The line counts it as 20 px high (the negative margins above and below): with all of its
+   24 px a line grew by 1.8 px, and a row with a pin was taller than one without. Its right edge gives 2 px back as well,
+   because every pixel a cell of the member search gains is taken from the columns beside
+   it, which wrap sooner for it. The space ahead of it is the one the template leaves behind
+   the name; the ring of the keyboard stands in it without touching the last letter. */
+.memberWalletLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin: -0.125rem -0.125rem -0.125rem 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0.25rem;
+  background: none;
+  color: var(--bs-link-color);
+  line-height: 1;
+  vertical-align: middle;
+}
+
+/* The bubble or the arrow behind the pin, or their room: the 2 px the pin gives back are taken
+   again, so that the two squares stand edge to edge and the rings of the keyboard do not
+   overlap. */
+.memberWalletLink + .memberWalletLink {
+  margin-left: 0.125rem;
+}
+
+.memberWalletLink:hover {
+  color: var(--bs-link-hover-color);
+}
+
+.memberWalletLink:focus-visible {
+  outline: 2px solid currentcolor;
+}

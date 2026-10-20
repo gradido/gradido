@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
-import TimePicker from './TimePicker.vue'
+import { TimePicker } from './TimePicker'
 
 describe('TimePicker', () => {
   it('updates timeValue on input and emits update:modelValue event', async () => {
@@ -15,12 +15,28 @@ describe('TimePicker', () => {
     // Simulate user input
     await input.setValue('23:45')
 
-    // Check if timeValue is updated
-    expect(wrapper.vm.timeValue).toBe('23:45') // test for Vue 3 composition state directly, if possible
+    // Check if the field shows the value
+    expect(input.element.value).toBe('23:45')
 
     // Check if update:modelValue event is emitted with updated value
     expect(wrapper.emitted('update:modelValue')).toBeTruthy()
     expect(wrapper.emitted('update:modelValue')[0]).toEqual(['23:45'])
+  })
+
+  it('keeps only digits and colons, also when that leaves the value it had', async () => {
+    const wrapper = mount(TimePicker, {
+      props: {
+        modelValue: '12:34',
+      },
+    })
+
+    const input = wrapper.find('input[type="text"]')
+
+    // Filtered, the input is the value the field already holds -- it must not keep the letter
+    await input.setValue('12:34x')
+
+    expect(input.element.value).toBe('12:34')
+    expect(wrapper.emitted('update:modelValue')[0]).toEqual(['12:34'])
   })
 
   it('validates and corrects time format on blur', async () => {
@@ -40,8 +56,8 @@ describe('TimePicker', () => {
     // Trigger blur event
     await input.trigger('blur')
 
-    // Check if timeValue is corrected to valid format
-    expect(wrapper.vm.timeValue).toBe('23:59') // Maximum allowed value for hours and minutes
+    // Check if the field is corrected to valid format
+    expect(input.element.value).toBe('23:59') // Maximum allowed value for hours and minutes
 
     // Check if update:modelValue event is emitted with corrected value
     expect(wrapper.emitted('update:modelValue')).toBeTruthy()
@@ -63,7 +79,7 @@ describe('TimePicker', () => {
     await input.trigger('blur')
 
     // Check if empty input is handled correctly
-    expect(wrapper.vm.timeValue).toBe('00:00')
+    expect(input.element.value).toBe('00:00')
 
     // Check if update:modelValue event is emitted with default value
     expect(wrapper.emitted('update:modelValue')).toBeTruthy()

@@ -4,7 +4,7 @@
          wants the form in view. The arrow behind a member's name in the admin interface opens
          /send/<community>/<member>#send-form in a window 760 px high, where the form begins
          below the fold (showFormWhereAsked). The admin interface writes the word down as well
-         (admin/src/components/MemberWalletLink.vue): the two apps share no code. -->
+         (admin/src/components/MemberWalletLink.tsx): the two apps share no code. -->
     <BRow>
       <BCol cols="12">
         <BCard class="app-box-shadow gradido-border-radius" body-class="p-4">

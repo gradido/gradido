@@ -32,7 +32,7 @@ describe('what the moderation asks about the people it shows', () => {
   })
 
   it('asks for the pair and the date on every message of a thread', () => {
-    const document = read('./adminListContributionMessages.js')
+    const document = read('./adminListContributionMessages.ts')
 
     expect(document).toContain('userAlias')
     for (const field of [
@@ -51,8 +51,8 @@ describe('what the moderation asks about the people it shows', () => {
    * that document. The row's own fields are covered by the fragment above.
    */
   it('asks for every message field the thread reads', () => {
-    const reader = read('../components/ContributionMessages/slots/ContributionMessagesListItem.vue')
-    const document = read('./adminListContributionMessages.js')
+    const reader = read('../components/ContributionMessages/slots/ContributionMessagesListItem.tsx')
+    const document = read('./adminListContributionMessages.ts')
 
     const readOffTheMessage = [
       ...new Set([...reader.matchAll(/message\.(user\w+)/g)].map((match) => match[1])),

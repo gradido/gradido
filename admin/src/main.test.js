@@ -11,7 +11,7 @@ vi.mock('vue', () => ({
   })),
 }))
 
-vi.mock('./App.vue', () => ({ default: {} }))
+vi.mock('./App', () => ({ App: {} }))
 vi.mock('./store/store', () => ({
   store: { moderator: { language: 'en' } },
   pinia: {},
@@ -30,7 +30,7 @@ vi.mock('bootstrap-vue-next', () => ({ createBootstrap: vi.fn() }))
 vi.mock('./mixins/toaster', () => ({ toasters: {} }))
 vi.mock('./plugins/apolloProvider', () => ({ apolloClient: {} }))
 
-describe('main.js', () => {
+describe('main', () => {
   let app
 
   beforeEach(() => {

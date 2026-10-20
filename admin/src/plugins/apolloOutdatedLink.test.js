@@ -7,7 +7,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 vi.mock('@apollo/client/link/error')
 vi.mock('@vue/apollo-composable')
 vi.mock('../config', () => ({
-  default: {
+  CONFIG: {
     GRAPHQL_URI: 'http://test-graphql-uri.com',
     WALLET_LOGIN_URL: 'http://test-wallet-login-url.com',
   },

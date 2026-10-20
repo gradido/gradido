@@ -1,0 +1,43 @@
+.figuresToday {
+  min-height: 1.5em;
+}
+
+.figuresSince {
+  max-width: 22rem;
+}
+
+.figuresCopyStatus {
+  font-size: 0.875rem;
+}
+
+.figuresCopyText {
+  max-width: 40rem;
+  font-family: var(--bs-font-monospace);
+  font-size: 0.875rem;
+}
+
+.figuresTable,
+.figuresWeeksTable {
+  width: auto;
+}
+
+/* The labels stand still while the weeks roll sideways under them; a cell of the table paints a
+   background of its own, so nothing shows through. */
+.figuresWeeksLabel {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+}
+
+/* The Mondays on one line, the mark of the running week below its own. */
+.figuresWeeksTable thead th {
+  vertical-align: top;
+}
+
+/* Where the table above stops stacking, a label keeps to one line: the weeks roll anyway, and a
+   label broken over three lines would make every row three lines high. */
+@media (width >= 768px) {
+  .figuresWeeksLabel {
+    white-space: nowrap;
+  }
+}

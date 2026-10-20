@@ -3,7 +3,6 @@ import { readFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { flushPromises, mount } from '@vue/test-utils'
-import { BModal } from 'bootstrap-vue-next'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import {
@@ -11,9 +10,12 @@ import {
   memberAvatarZoomState,
   openMemberAvatarZoom,
 } from '@/composables/useMemberAvatarZoom'
-import MemberAvatarZoom from './MemberAvatarZoom.vue'
+import { MemberAvatarZoom } from './MemberAvatarZoom'
 
 const { mockQuery } = vi.hoisted(() => ({ mockQuery: vi.fn() }))
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({ t: (key) => key }),
+}))
 vi.mock('@vue/apollo-composable', () => ({
   useApolloClient: () => ({ client: { query: mockQuery } }),
 }))
@@ -27,8 +29,14 @@ let wrapper
 const mountZoom = () => {
   wrapper = mount(MemberAvatarZoom, {
     global: {
-      mocks: { $t: (key) => key },
-      stubs: { BModal: { template: '<div><slot /></div>', props: ['modelValue'] } },
+      stubs: {
+        BModal: {
+          name: 'BModalStub',
+          template: '<div><slot /></div>',
+          props: ['modelValue'],
+          emits: ['update:modelValue'],
+        },
+      },
     },
   })
   return wrapper
@@ -169,7 +177,6 @@ describe('MemberAvatarZoom', () => {
     mockQuery.mockResolvedValue({ data: { memberAvatarFull: null } })
     wrapper = mount(MemberAvatarZoom, {
       attachTo: document.body,
-      global: { mocks: { $t: (key) => key }, components: { BModal } },
     })
 
     openMemberAvatarZoom({ member: margret, src: 'data:image/jpeg;base64,small' })
@@ -193,23 +200,39 @@ describe('MemberAvatarZoom', () => {
    */
   it('shows the face round, in a box that cannot overflow', () => {
     const here = dirname(fileURLToPath(import.meta.url))
-    const source = readFileSync(join(here, 'MemberAvatarZoom.vue'), 'utf8').replace(
+    const source = readFileSync(join(here, 'MemberAvatarZoom.module.css'), 'utf8').replace(
       /\/\*[\s\S]*?\*\/|<!--[\s\S]*?-->/g,
       '',
     )
     const ruleOf = (selector) =>
       new RegExp(`(?:^|\\n)\\${selector}\\s*\\{([^}]*)\\}`).exec(source)?.[1] ?? ''
 
-    const image = ruleOf('.member-avatar-zoom-image')
+    const image = ruleOf('.memberAvatarZoomImage')
     expect(image).toContain('border-radius: 50%')
     expect(image).toContain('object-fit: cover')
 
     // A box of its own, square, and never wider than the window -- the old layout centred the
     // full size on a box the size of the SMALL rendition, and it spilled over the modal's
     // edges, above and below.
-    const stage = ruleOf('.member-avatar-zoom-stage')
+    const stage = ruleOf('.memberAvatarZoomStage')
     expect(stage).toContain('aspect-ratio: 1')
     expect(stage).toMatch(/width:\s*min\(/)
+  })
+
+  it('names whose picture it is, and closes when the modal is dismissed', async () => {
+    mockQuery.mockResolvedValue({ data: { memberAvatarFull: null } })
+    const wrapper = mountZoom()
+    // Without a picture open the window still has a name for screen readers
+    expect(wrapper.attributes('aria-label')).toBe('avatar.zoom-picture-plain')
+
+    openMemberAvatarZoom({ member: margret, src: 'data:image/jpeg;base64,small', label: 'Margret' })
+    await nextTick()
+    expect(wrapper.attributes('aria-label')).toBe('Margret')
+
+    wrapper.findComponent({ name: 'BModalStub' }).vm.$emit('update:modelValue', true)
+    expect(memberAvatarZoomState.value).not.toBeNull()
+    wrapper.findComponent({ name: 'BModalStub' }).vm.$emit('update:modelValue', false)
+    expect(memberAvatarZoomState.value).toBeNull()
   })
 
   // Nothing to open without a picture on this device -- enlarging letters is not a thing.
@@ -237,7 +260,7 @@ describe('MemberAvatarZoom', () => {
    */
   describe('the round, frameless presentation', () => {
     const here = dirname(fileURLToPath(import.meta.url))
-    const code = readFileSync(resolve(here, 'MemberAvatarZoom.vue'), 'utf8')
+    const code = readFileSync(resolve(here, 'MemberAvatarZoom.css'), 'utf8')
       .replace(/<!--[\s\S]*?-->/g, '')
       .replace(/\/\*[\s\S]*?\*\//g, '')
 

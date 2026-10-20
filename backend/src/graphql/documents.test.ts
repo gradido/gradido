@@ -63,7 +63,7 @@ const AT_LEAST: Record<string, number> = { admin: 50, frontend: 72 }
 
 const RULES = specifiedRules.filter((rule) => rule !== NoUnusedFragmentsRule)
 
-/** The GraphQL inside `gql\`…\`` literals. The document `.js` files carry no `${}`. */
+/** The GraphQL inside `gql\`…\`` literals. The `.js`/`.ts` documents carry no `${}`. */
 const gqlBodies = (source: string): string[] =>
   [...source.matchAll(/gql`([^`]*)`/g)].map((match) => match[1])
 
@@ -91,7 +91,7 @@ const filesUnder = (dir: string, prefix = ''): { name: string; rel: string; dir:
 
 const documentsOf = (pkg: string): { path: string; source: string; dir: string }[] =>
   filesUnder(dirOf(pkg))
-    .filter(({ name }) => /\.(graphql|js)$/.test(name) && !/\.(spec|test)\.js$/.test(name))
+    .filter(({ name }) => /\.(graphql|js|ts)$/.test(name) && !/\.(spec|test)\.(js|ts)$/.test(name))
     .flatMap(({ name, rel, dir }) => {
       const path = `${pkg}/src/graphql/${rel}`
       const raw = readFileSync(join(dir, name), 'utf8')

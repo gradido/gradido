@@ -1,19 +1,10 @@
 import { useApolloClient, useQuery } from '@vue/apollo-composable'
-import { mount } from '@vue/test-utils'
-import { BContainer } from 'bootstrap-vue-next'
+import { mount, RouterLinkStub } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { ref } from 'vue'
 import { useAppToast } from '@/composables/useToast'
-import MemberWalletLink from '../MemberWalletLink.vue'
-import ContributionMessagesList from './ContributionMessagesList.vue'
+import { MemberWalletLink } from '../MemberWalletLink'
+import { ContributionMessagesList } from './ContributionMessagesList'
 
-vi.mock('vue', async () => {
-  const actual = await vi.importActual('vue')
-  return {
-    ...actual,
-    ref: vi.fn(actual.ref),
-  }
-})
 vi.mock('@vue/apollo-composable')
 
 // The page asks for the faces of the members it shows, once per answer. The client comes
@@ -92,22 +83,26 @@ const defaultUser = {
 }
 
 describe('ContributionMessagesList', () => {
+  const formular = () => wrapper.findComponent({ name: 'ContributionMessagesFormularStub' })
   let wrapper
-  let mockMessages
+  // What the query answers, and the handler the page gave it for each answer.
+  let result
+  let answerArrived
   const mockRefetch = vi.fn()
   const mockToastError = vi.fn()
 
   beforeEach(async () => {
     vi.clearAllMocks()
 
-    mockMessages = ref([])
-    ref.mockReturnValueOnce(mockMessages)
-
+    result = { value: defaultData }
     useApolloClient.mockReturnValue({ client: { query: vi.fn() } })
     useQuery.mockReturnValue({
-      onResult: vi.fn((callback) => callback({ result: defaultData })),
+      onResult: vi.fn((callback) => {
+        answerArrived = callback
+        callback({ result: defaultData })
+      }),
       onError: vi.fn(),
-      result: { value: defaultData },
+      result,
       refetch: mockRefetch,
     })
 
@@ -127,17 +122,24 @@ describe('ContributionMessagesList', () => {
         hideResubmission: true,
       },
       global: {
-        components: {
-          BContainer,
-        },
-        mocks: {
-          $t: (key) => key,
-          $d: (date) => date,
-          $n: (number) => number,
-        },
         stubs: {
-          'contribution-messages-list-item': true,
-          'contribution-messages-formular': true,
+          'contribution-messages-list-item': {
+            name: 'ContributionMessagesListItemStub',
+            template: '<div class="item-stub" />',
+            props: ['message', 'contributionUserId'],
+          },
+          'contribution-messages-formular': {
+            name: 'ContributionMessagesFormularStub',
+            template: '<div class="formular-stub" />',
+            props: [
+              'contributionId',
+              'contributionMemo',
+              'hideResubmission',
+              'inputResubmissionDate',
+            ],
+          },
+          BTooltip: true,
+          RouterLink: RouterLinkStub,
           IBiGeoAltFill: true,
         },
       },
@@ -154,14 +156,45 @@ describe('ContributionMessagesList', () => {
     expect(wrapper.find('.contribution-messages-list').exists()).toBe(true)
   })
 
-  it('renders the correct number of messages', async () => {
-    wrapper.vm.messages = defaultData.adminListContributionMessages.messages
-    await wrapper.vm.$nextTick()
-    expect(wrapper.findAll('contribution-messages-list-item-stub')).toHaveLength(4)
+  it('renders the correct number of messages', () => {
+    expect(wrapper.findAll('.item-stub')).toHaveLength(4)
+  })
+
+  it('hands each message and the member of the contribution to its item', () => {
+    const items = wrapper.findAllComponents({ name: 'ContributionMessagesListItemStub' })
+    expect(items.map((item) => item.props())).toEqual(
+      defaultData.adminListContributionMessages.messages.map((message) => ({
+        message,
+        contributionUserId: 108,
+      })),
+    )
   })
 
   it('renders the ContributionMessagesFormular when status is PENDING', () => {
-    expect(wrapper.find('contribution-messages-formular-stub').exists()).toBe(true)
+    expect(formular().exists()).toBe(true)
+    expect(formular().props()).toEqual({
+      contributionId: 42,
+      contributionMemo: 'test memo',
+      hideResubmission: true,
+      inputResubmissionDate: undefined,
+    })
+  })
+
+  it('renders the ContributionMessagesFormular when status is IN_PROGRESS', async () => {
+    await wrapper.setProps({
+      contribution: { contributionStatus: 'IN_PROGRESS', user: defaultUser },
+    })
+    expect(formular().exists()).toBe(true)
+  })
+
+  it('links the name to the member search and the address to a mail', () => {
+    const link = wrapper.findComponent(RouterLinkStub)
+    expect(link.props('to')).toBe('/user?search=peter.lustig@example.com')
+    expect(link.attributes('title')).toBe('goTo.userSearch')
+    expect(link.text()).toBe('Peter Lustig')
+    expect(wrapper.find('a[href="mailto:peter.lustig@example.com"]').text()).toBe(
+      'peter.lustig@example.com',
+    )
   })
 
   it('does not render the ContributionMessagesFormular when status is not PENDING or IN_PROGRESS', async () => {
@@ -171,31 +204,41 @@ describe('ContributionMessagesList', () => {
         user: defaultUser,
       },
     })
-    expect(wrapper.find('contribution-messages-formular-stub').exists()).toBe(false)
+    expect(formular().exists()).toBe(false)
   })
 
   it('updates messages when result changes', async () => {
-    const newMessages = [{ id: 1, message: 'New message' }]
-    mockMessages.value = newMessages
+    result.value = {
+      adminListContributionMessages: { count: 1, messages: [{ id: 1, message: 'New message' }] },
+    }
+    answerArrived()
     await wrapper.vm.$nextTick()
-    expect(wrapper.findAll('contribution-messages-list-item-stub')).toHaveLength(1)
+    expect(wrapper.findAll('.item-stub')).toHaveLength(1)
   })
 
-  it('emits update-status event', async () => {
-    await wrapper.vm.updateStatus(4)
-    expect(wrapper.emitted('update-status')).toBeTruthy()
-    expect(wrapper.emitted('update-status')[0]).toEqual([4])
+  it('emits update-status event', () => {
+    formular().vm.$emit('update-status', 4)
+    expect(wrapper.emitted('update-status')).toEqual([[4]])
   })
 
-  it('emits reload-contribution event', async () => {
-    await wrapper.vm.reloadContribution(3)
-    expect(wrapper.emitted('reload-contribution')).toBeTruthy()
-    expect(wrapper.emitted('reload-contribution')[0]).toEqual([3])
+  it('emits reload-contribution event', () => {
+    formular().vm.$emit('reload-contribution', 3)
+    expect(wrapper.emitted('reload-contribution')).toEqual([[3]])
   })
 
-  it('emits update-contributions event', async () => {
-    await wrapper.vm.updateContributions()
-    expect(wrapper.emitted('update-contributions')).toBeTruthy()
+  it('emits update-contributions event', () => {
+    formular().vm.$emit('update-contributions')
+    expect(wrapper.emitted('update-contributions')).toEqual([[]])
+  })
+
+  it('passes a saved resubmission on', () => {
+    formular().vm.$emit('resubmission-saved', 'unchanged')
+    expect(wrapper.emitted('resubmission-saved')).toEqual([['unchanged']])
+  })
+
+  it('asks for the messages again when the formular sent one', () => {
+    formular().vm.$emit('get-list-contribution-messages')
+    expect(mockRefetch).toHaveBeenCalled()
   })
 
   // Bernd, 16.10.2026: the funnel beside the address put it into the search of the page --

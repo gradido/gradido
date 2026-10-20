@@ -1,8 +1,16 @@
-import { mount } from '@vue/test-utils'
-import { BFormRadioGroup } from 'bootstrap-vue-next'
+import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { nextTick, ref } from 'vue'
-import CreationFormular from './CreationFormular.vue'
+import { ref } from 'vue'
+import { CreationFormular } from './CreationFormular'
+
+const mocks = vi.hoisted(() => ({
+  mutate: vi.fn(),
+  refetch: vi.fn(),
+  useQuery: vi.fn(),
+  toastError: vi.fn(),
+  toastSuccess: vi.fn(),
+  openCreationsPlus: vi.fn(),
+}))
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
@@ -12,23 +20,24 @@ vi.mock('vue-i18n', () => ({
 
 vi.mock('@/composables/useToast', () => ({
   useAppToast: () => ({
-    toastError: vi.fn(),
-    toastSuccess: vi.fn(),
+    toastError: mocks.toastError,
+    toastSuccess: mocks.toastSuccess,
   }),
 }))
 
 vi.mock('@vue/apollo-composable', () => ({
   useMutation: () => ({
-    mutate: vi.fn(),
+    mutate: mocks.mutate,
   }),
-  useQuery: () => ({
-    refetch: vi.fn(),
-  }),
+  useQuery: (...args) => {
+    mocks.useQuery(...args)
+    return { refetch: mocks.refetch }
+  },
 }))
 
 vi.mock('@/store/useAdminStore', () => ({
   useAdminStore: () => ({
-    openCreationsPlus: vi.fn(),
+    openCreationsPlus: mocks.openCreationsPlus,
   }),
 }))
 
@@ -41,107 +50,158 @@ vi.mock('../composables/useCreationMonths', () => ({
   }),
 }))
 
-const mockChildComponents = {
-  BForm: { template: '<div><slot></slot></div>' },
-  BFormRadioGroup,
-  BInputGroup: { template: '<div><slot></slot></div>' },
-  BFormInput: { template: '<input />', props: ['modelValue'] },
-  BFormTextarea: { template: '<textarea></textarea>', props: ['modelValue'] },
-  BButton: { template: '<button type="button"></button>' },
-}
+const item = { userId: 7, email: 'bob@baumeister.de' }
 
 describe('CreationFormular', () => {
   let wrapper
 
-  beforeEach(() => {
-    wrapper = mount(CreationFormular, {
+  const mountFormular = (props = {}) =>
+    mount(CreationFormular, {
       global: {
-        stubs: mockChildComponents,
         mocks: {
           $t: (key) => key,
         },
       },
       props: {
         pagetype: '',
-        item: {},
+        item,
         items: [],
         creationUserData: {},
-        creation: [100, 200], // Mock creation data
+        creation: [100, 200],
+        ...props,
       },
     })
+
+  const textarea = () => wrapper.find('#textarea-state')
+  const submitButton = () => wrapper.find('.test-submit')
+  const selectJanuary = async () => {
+    await wrapper.findAll('input[type="radio"]')[0].setValue()
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    wrapper = mountFormular()
   })
 
   it('renders correctly', () => {
-    expect(wrapper.exists()).toBe(true)
+    expect(wrapper.find('.component-creation-formular').exists()).toBe(true)
+  })
+
+  it('asks for the open creations of the member', () => {
+    expect(mocks.useQuery).toHaveBeenCalledWith(expect.anything(), { userId: 7 })
   })
 
   it('initializes with default values', () => {
-    expect(wrapper.vm.text).toBe('')
-    expect(wrapper.vm.value).toBe(0)
-    expect(wrapper.vm.selected).toBe(null)
+    expect(textarea().element.value).toBe('')
+    expect(wrapper.find('input[type="number"]').exists()).toBe(false)
+    expect(wrapper.findAll('input[type="radio"]').some((radio) => radio.element.checked)).toBe(
+      false,
+    )
   })
 
-  it('updates radio options based on creationDateObjects', async () => {
-    await nextTick()
-    expect(wrapper.vm.radioOptions).toHaveLength(2)
-    expect(wrapper.vm.radioOptions[0].name).toContain('Jan')
-    expect(wrapper.vm.radioOptions[1].name).toContain('Feb')
+  it('takes memo and amount of the user data it is handed', () => {
+    wrapper = mountFormular({ creationUserData: { memo: 'a memo of ten', amount: 30 } })
+    expect(textarea().element.value).toBe('a memo of ten')
+  })
+
+  it('offers the months with what is left of each', () => {
+    const labels = wrapper.findAll('.form-check-label').map((label) => label.text())
+    expect(labels).toEqual(['Jan 100 GDD', 'Feb 200 GDD'])
   })
 
   it('handles month selection', async () => {
-    const radioGroup = wrapper.findComponent({ name: 'BFormRadioGroup' })
-    await radioGroup.vm.$emit('update:modelValue', {
-      short: 'Jan',
-      year: '2024',
-      date: '2024-01-01',
-      creation: 100,
-    })
-    expect(wrapper.vm.selected).toEqual({
-      short: 'Jan',
-      year: '2024',
-      date: '2024-01-01',
-      creation: 100,
-    })
-    expect(wrapper.vm.text).toBe('creation_form.creation_for Jan 2024')
+    await selectJanuary()
+    expect(textarea().element.value).toBe('creation_form.creation_for Jan 2024')
+    const amount = wrapper.find('input[type="number"]')
+    expect(amount.attributes('max')).toBe('100')
+    expect(amount.attributes('min')).toBe('0')
+    expect(wrapper.find('input[type="range"]').attributes('max')).toBe('100')
   })
 
-  it('disables submit button when form is invalid', async () => {
-    wrapper.vm.selected = null
-    wrapper.vm.value = 0
-    wrapper.vm.text = ''
-    await wrapper.vm.$nextTick()
-    const submitButton = wrapper.find('.test-submit')
-    expect(submitButton.attributes('disabled')).toBeDefined()
+  it('disables submit button when form is invalid', () => {
+    expect(submitButton().attributes('disabled')).toBeDefined()
+  })
+
+  it('keeps submit disabled while the amount is zero', async () => {
+    await selectJanuary()
+    expect(submitButton().attributes('disabled')).toBeDefined()
+  })
+
+  it('keeps submit disabled while the memo is shorter than ten characters', async () => {
+    await selectJanuary()
+    await wrapper.find('input[type="number"]').setValue('50')
+    await textarea().setValue('too short')
+    expect(submitButton().attributes('disabled')).toBeDefined()
   })
 
   it('enables submit button when form is valid', async () => {
-    wrapper.vm.selected = { short: 'Jan', year: '2024', date: '2024-01-01', creation: 100 }
-    wrapper.vm.value = 100
-    wrapper.vm.text = 'Valid text input'
-    await wrapper.vm.$nextTick()
-    const submitButton = wrapper.find('.test-submit')
-    expect(submitButton.attributes('disabled')).toBeUndefined()
+    await selectJanuary()
+    await wrapper.find('input[type="number"]').setValue('50')
+    expect(submitButton().attributes('disabled')).toBeUndefined()
   })
 
   it('resets form on reset button click', async () => {
-    wrapper.vm.selected = { short: 'Jan', year: '2024', date: '2024-01-01', creation: 100 }
-    wrapper.vm.value = 100
-    wrapper.vm.text = 'Some text'
-    await wrapper.vm.$nextTick()
-    const resetButton = wrapper.find('button[type="reset"]')
-    await resetButton.trigger('click')
-    expect(wrapper.vm.selected).toBe(null)
-    expect(wrapper.vm.value).toBe(0)
-    expect(wrapper.vm.text).toBe('')
+    await selectJanuary()
+    await wrapper.find('input[type="number"]').setValue('50')
+    await wrapper.find('button[type="reset"]').trigger('click')
+    expect(textarea().element.value).toBe('')
+    expect(wrapper.find('input[type="number"]').exists()).toBe(false)
+    expect(wrapper.findAll('input[type="radio"]').some((radio) => radio.element.checked)).toBe(
+      false,
+    )
   })
 
   it('displays different button text based on pagetype', async () => {
     await wrapper.setProps({ pagetype: 'PageCreationConfirm' })
-    await wrapper.vm.$nextTick()
-    expect(wrapper.vm.submitBtnText).toBe('creation_form.update_creation')
+    expect(submitButton().text()).toBe('creation_form.update_creation')
 
     await wrapper.setProps({ pagetype: '' })
-    await wrapper.vm.$nextTick()
-    expect(wrapper.vm.submitBtnText).toBe('creation_form.submit_creation')
+    expect(submitButton().text()).toBe('creation_form.submit_creation')
+  })
+
+  describe('submitting', () => {
+    beforeEach(async () => {
+      await selectJanuary()
+      await wrapper.find('input[type="number"]').setValue('50')
+    })
+
+    it('creates the contribution, tells the table and resets', async () => {
+      mocks.mutate.mockResolvedValueOnce({ data: { adminCreateContribution: [1, 2, 3] } })
+      await submitButton().trigger('click')
+      await flushPromises()
+      expect(mocks.mutate).toHaveBeenCalledWith({
+        email: 'bob@baumeister.de',
+        creationDate: '2024-01-01',
+        amount: '50',
+        memo: 'creation_form.creation_for Jan 2024',
+      })
+      expect(wrapper.emitted('update-user-data')).toEqual([[item, [1, 2, 3]]])
+      expect(mocks.openCreationsPlus).toHaveBeenCalledWith(1)
+      expect(mocks.toastSuccess).toHaveBeenCalledWith('creation_form.toasted')
+      expect(mocks.refetch).toHaveBeenCalled()
+      expect(textarea().element.value).toBe('')
+      expect(submitButton().attributes('disabled')).toBeDefined()
+    })
+
+    it('names a project account that may not create', async () => {
+      mocks.mutate.mockRejectedValueOnce(new Error('GraphQL error: CREATION_NOT_ALLOWED'))
+      await submitButton().trigger('click')
+      await flushPromises()
+      expect(mocks.toastError).toHaveBeenCalledWith('creation_form.not_allowed')
+      expect(mocks.refetch).toHaveBeenCalled()
+      expect(textarea().element.value).toBe('')
+    })
+
+    it('shows any other failure as it comes', async () => {
+      mocks.mutate.mockRejectedValueOnce(new Error('Ouch'))
+      await submitButton().trigger('click')
+      await flushPromises()
+      expect(mocks.toastError).toHaveBeenCalledWith('Ouch')
+      expect(wrapper.emitted('update-user-data')).toBeUndefined()
+    })
+  })
+
+  it('offers submitCreation to its parent', () => {
+    expect(typeof wrapper.vm.submitCreation).toBe('function')
   })
 })

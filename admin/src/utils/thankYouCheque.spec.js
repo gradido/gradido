@@ -22,6 +22,6 @@ const read = (relativePath) => readFileSync(resolve(here, relativePath), 'utf8')
 
 describe('thankYouCheque', () => {
   it('is byte-identical to the wallet copy', () => {
-    expect(read('./thankYouCheque.js')).toBe(read('../../../frontend/src/utils/thankYouCheque.js'))
+    expect(read('./thankYouCheque.ts')).toBe(read('../../../frontend/src/utils/thankYouCheque.ts'))
   })
 })

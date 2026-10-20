@@ -17,7 +17,7 @@
  * ⛔ An app that shares the origin of the other takes a token ONLY from here, never out of the
  * address -- so on a deployment a link with `?token=` signs nobody in.
  *
- * The two apps share no code: this file is written down in both (admin/src/utils/authToken.js),
+ * The two apps share no code: this file is written down in both (admin/src/utils/authToken.ts),
  * and the key is held by a test in each.
  */
 export const AUTH_TOKEN_KEY = 'auth-token'

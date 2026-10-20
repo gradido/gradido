@@ -3,7 +3,7 @@ import { mount } from '@vue/test-utils'
 import { BButton, BCard, BCardText, BModal, BTable } from 'bootstrap-vue-next'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { adminStore } from '../../../test/adminStore'
-import ContributionLinkList from './ContributionLinkList.vue'
+import { ContributionLinkList } from './ContributionLinkList'
 
 const createAdminStore = (role = 'ADMIN') => adminStore({ moderator: { role } })
 
@@ -28,7 +28,7 @@ vi.mock('@/utils/qrCode', () => ({
   renderQrCodeCanvas: (...args) => mockRenderQrCodeCanvas(...args),
 }))
 
-vi.mock('@/config', () => ({ default: { COMMUNITY_NAME: 'KI Playground' } }))
+vi.mock('@/config', () => ({ CONFIG: { COMMUNITY_NAME: 'KI Playground' } }))
 
 vi.mock('@vue/apollo-composable', () => ({
   useMutation: vi.fn(() => ({
@@ -50,23 +50,23 @@ describe('ContributionLinkList', () => {
   let wrapper
   let mutateMock
 
-  const createWrapper = (role = 'ADMIN') => {
+  const meditation = {
+    id: 1,
+    name: 'Meditation',
+    memo: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut l',
+    amount: '200',
+    validFrom: '2022-04-01',
+    validTo: '2022-08-01',
+    cycle: 'täglich',
+    maxPerCycle: '3',
+    maxAmountPerMonth: 0,
+    link: 'https://localhost/redeem/CL-1a2345678',
+  }
+
+  const createWrapper = (role = 'ADMIN', items = [meditation]) => {
     return mount(ContributionLinkList, {
       props: {
-        items: [
-          {
-            id: 1,
-            name: 'Meditation',
-            memo: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut l',
-            amount: '200',
-            validFrom: '2022-04-01',
-            validTo: '2022-08-01',
-            cycle: 'täglich',
-            maxPerCycle: '3',
-            maxAmountPerMonth: 0,
-            link: 'https://localhost/redeem/CL-1a2345678',
-          },
-        ],
+        items,
       },
       global: {
         plugins: [createAdminStore(role)],
@@ -103,10 +103,27 @@ describe('ContributionLinkList', () => {
     expect(wrapper.findComponent({ name: 'BTable' }).exists()).toBe(true)
   })
 
+  const headers = () => wrapper.findAll('th').map((th) => th.text())
+  const deleteModal = () =>
+    wrapper.findAllComponents(BModal).find((modal) => modal.props('id') === 'delete-link-modal')
+  const flushPromises = () => new Promise((resolve) => setTimeout(resolve))
+
+  it('shows the dates of a link as dates', () => {
+    expect(wrapper.text()).toContain(new Date('2022-04-01').toISOString())
+    expect(wrapper.text()).toContain(new Date('2022-08-01').toISOString())
+  })
+
   describe('edit contribution link', () => {
     it('emits editContributionLinkData', async () => {
-      await wrapper.vm.editContributionLink({ id: 1 })
-      expect(wrapper.emitted('edit-contribution-link-data')).toBeTruthy()
+      await wrapper.find('.btn-success').trigger('click')
+      expect(wrapper.emitted('edit-contribution-link-data')).toEqual([[meditation]])
+    })
+  })
+
+  describe('show contribution link', () => {
+    it('hands the link of the row to the QR code', async () => {
+      await wrapper.find('.test-show').trigger('click')
+      expect(wrapper.findComponent({ name: 'FigureQrCode' }).props('link')).toBe(meditation.link)
     })
   })
 
@@ -114,8 +131,9 @@ describe('ContributionLinkList', () => {
     describe('with success', () => {
       beforeEach(async () => {
         mutateMock.mockResolvedValue({})
-        await wrapper.vm.handleDelete({ item: { id: 1, name: 'Test' } })
-        await wrapper.vm.executeDelete()
+        await wrapper.find('.test-delete-link').trigger('click')
+        deleteModal().vm.$emit('ok')
+        await flushPromises()
       })
 
       it('calls the mutation and emits events', async () => {
@@ -132,8 +150,9 @@ describe('ContributionLinkList', () => {
     describe('with error', () => {
       beforeEach(async () => {
         mutateMock.mockRejectedValue(new Error('Something went wrong :('))
-        await wrapper.vm.handleDelete({ item: { id: 1, name: 'Test' } })
-        await wrapper.vm.executeDelete()
+        await wrapper.find('.test-delete-link').trigger('click')
+        deleteModal().vm.$emit('ok')
+        await flushPromises()
       })
 
       it('toasts an error message', () => {
@@ -150,19 +169,21 @@ describe('ContributionLinkList', () => {
     })
 
     it('leaves out the delete and edit columns', () => {
-      expect(wrapper.vm.fields).not.toContain('delete')
-      expect(wrapper.vm.fields).not.toContain('edit')
+      expect(headers()).not.toContain('Delete')
+      expect(headers()).not.toContain('Edit')
+      expect(wrapper.find('.test-delete-link').exists()).toBe(false)
     })
 
     it('keeps the column that reveals the link', () => {
-      expect(wrapper.vm.fields).toContain('show')
+      expect(headers()).toContain('Show')
+      expect(wrapper.find('.test-show').exists()).toBe(true)
     })
   })
 
   describe('as an administrator', () => {
     it('offers delete and edit', () => {
-      expect(wrapper.vm.fields).toContain('delete')
-      expect(wrapper.vm.fields).toContain('edit')
+      expect(headers()).toContain('Delete')
+      expect(headers()).toContain('Edit')
     })
   })
 
@@ -195,7 +216,7 @@ describe('ContributionLinkList', () => {
 
     it('offers the button in every row, to moderators as well', () => {
       expect(wrapper.find('.test-download-cheque').exists()).toBe(true)
-      expect(createWrapper('MODERATOR').vm.fields).toContain('cheque')
+      expect(createWrapper('MODERATOR').find('.test-download-cheque').exists()).toBe(true)
     })
 
     it('draws the code of the link that was clicked', async () => {
@@ -204,8 +225,14 @@ describe('ContributionLinkList', () => {
       expect(mockRenderQrCodeCanvas).toHaveBeenCalledWith('https://localhost/redeem/CL-1a2345678')
     })
 
+    const download = async (row) => {
+      wrapper = createWrapper('ADMIN', [row])
+      await wrapper.find('.test-download-cheque').trigger('click')
+      await flushPromises()
+    }
+
     it('puts the community, the amount and both dates on the cheque', async () => {
-      await wrapper.vm.downloadCheque(link)
+      await download(link)
 
       expect(mockDrawCheque).toHaveBeenCalledWith({
         kind: 'startingBonus',
@@ -225,7 +252,7 @@ describe('ContributionLinkList', () => {
     // A link may run without an end date. Half a sentence would read like a mistake, and
     // a date that was never set must not be invented.
     it('leaves the validity out when a date is missing', async () => {
-      await wrapper.vm.downloadCheque({ ...link, validTo: null })
+      await download({ ...link, validTo: null })
 
       expect(mockDrawCheque).toHaveBeenCalledWith(expect.objectContaining({ validLine: '' }))
     })
@@ -235,7 +262,7 @@ describe('ContributionLinkList', () => {
         new Error('cannot load image: /img/template/Blaetter.png'),
       )
 
-      await wrapper.vm.downloadCheque(link)
+      await download(link)
 
       expect(mockToastError).toHaveBeenCalledWith('cannot load image: /img/template/Blaetter.png')
       expect(anchor.click).not.toHaveBeenCalled()

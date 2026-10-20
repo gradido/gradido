@@ -1,12 +1,13 @@
 import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { markAppOutdated, resetAppOutdated } from '@/composables/useAppOutdated'
-import AppOutdatedBar from './AppOutdatedBar'
+import { AppOutdatedBar } from './AppOutdatedBar'
 
 // ⚠️ The reload is caught at the composable, not at window.location. Under the vmThreads pool
 // the global is jsdom's own window, whose location can be neither deleted nor replaced --
 // assigning an object to it is a navigation. Everything else of the composable stays real.
 const { reload } = vi.hoisted(() => ({ reload: vi.fn() }))
+vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key) => key }) }))
 vi.mock('@/composables/useAppOutdated', async (importOriginal) => {
   const actual = await importOriginal()
   return {
@@ -28,7 +29,6 @@ describe('AppOutdatedBar', () => {
     mount(AppOutdatedBar, {
       global: {
         stubs: { BButton: mockBButton },
-        mocks: { $t: (key) => key },
       },
     })
 
