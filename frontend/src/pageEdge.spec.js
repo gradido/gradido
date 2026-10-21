@@ -125,13 +125,15 @@ describe('the page edge on a phone', () => {
   })
 
   it('gives the sign-in card no margin of its own below md', () => {
-    const layout = source('layouts', 'AuthLayout.vue')
-    const template = live(layout.match(/<template>([\s\S]*)<\/template>/)[1])
-    expect(template).toContain('<div class="mx-0 mx-md-4">')
+    const layout = live(source('layouts', 'AuthLayout.tsx'))
+    expect(layout).toContain("<div class='mx-0 mx-md-4'>")
     // ... and no second one inside it: the pages wrap their form in a BContainer.
-    const narrow = mediaBodies(styles(layout), '767.98px').join('\n')
-    expect(rule(narrow, '.card-body :deep(.container)')).toContain('padding-left: 0')
-    expect(rule(narrow, '.card-body :deep(.container)')).toContain('padding-right: 0')
+    const narrow = mediaBodies(live(source('layouts', 'AuthLayout.module.scss')), '767.98px').join(
+      '\n',
+    )
+    const container = '.authTemplate .cardBody :global(.container)'
+    expect(rule(narrow, container)).toContain('padding-left: 0')
+    expect(rule(narrow, container)).toContain('padding-right: 0')
   })
 })
 

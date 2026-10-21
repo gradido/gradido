@@ -1,11 +1,10 @@
 // AI-GENERATED — not an architecture reference
 
 import { flushPromises, mount } from '@vue/test-utils'
-import { BCol, BLink, BNav, BNavItem, BRow } from 'bootstrap-vue-next'
 import { createI18n } from 'vue-i18n'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import AuthFooter from './AuthFooter.vue'
+import { AuthFooter } from './AuthFooter'
 import de from '@/locales/de.json'
 import el from '@/locales/el.json'
 import en from '@/locales/en.json'
@@ -36,10 +35,6 @@ const mountFooter = async (locale = 'de') => {
   const wrapper = mount(AuthFooter, {
     global: {
       plugins: [createI18n({ legacy: false, locale, messages: { de, en } }), router],
-      // The real ones: the link below is what the library makes of `to`, and a stub would
-      // answer to any name it is given.
-      components: { BRow, BCol, BNav, BNavItem, BLink },
-      stubs: { IBiFacebook: true, IBiTwitterX: true, IBiYoutube: true },
     },
   })
   return { wrapper, router }
@@ -133,6 +128,54 @@ describe('AuthFooter', () => {
       expect(names.de).toBe('Event-Matching')
       for (const language of ['el', 'en', 'es', 'fr', 'it', 'nl', 'pt', 'ru', 'tr']) {
         expect(names[language], language).toBe('Event Matching')
+      }
+    })
+  })
+
+  // The links show nothing but an icon. A screen reader reads each by the name it carries, and
+  // skips the icon, which would only add an unnamed picture.
+  describe('social links', () => {
+    const socialLinks = (wrapper) =>
+      wrapper.findAll('a').filter((a) => !a.element.closest('.nav-footer'))
+
+    it('names each platform it leads to', async () => {
+      const { wrapper } = await mountFooter('en')
+
+      expect(
+        socialLinks(wrapper).map((link) => [
+          link.attributes('href'),
+          link.attributes('aria-label'),
+        ]),
+      ).toEqual([
+        ['https://www.facebook.com/groups/Gradido/', 'Gradido on Facebook'],
+        ['https://twitter.com/gradido', 'Gradido on X'],
+        ['https://www.youtube.com/c/GradidoNet', 'Gradido on YouTube'],
+        ['https://t.me/Gradido', 'Gradido on Telegram'],
+      ])
+    })
+
+    it('hides every icon from screen readers', async () => {
+      const { wrapper } = await mountFooter()
+      const icons = socialLinks(wrapper).map((link) => link.find('svg'))
+
+      expect(icons).toHaveLength(4)
+      for (const icon of icons) expect(icon.attributes('aria-hidden')).toBe('true')
+    })
+
+    it('has the name in all ten languages, with the platform in it', () => {
+      for (const [language, messages] of Object.entries({
+        de,
+        el,
+        en,
+        es,
+        fr,
+        it: itLocale,
+        nl,
+        pt,
+        ru,
+        tr,
+      })) {
+        expect(messages.footer.socialLink, language).toContain('{platform}')
       }
     })
   })
