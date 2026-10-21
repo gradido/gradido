@@ -197,6 +197,19 @@ describe('ContributionMessagesList', () => {
     )
   })
 
+  // The template printed a value that is null as nothing; a template literal would print 'null'.
+  it('shows nothing for a name or public name the member has not given', async () => {
+    await wrapper.setProps({
+      contribution: {
+        id: 42,
+        contributionStatus: 'PENDING',
+        user: { ...defaultUser, firstName: null, lastName: null, publicName: null },
+      },
+    })
+    expect(wrapper.findComponent(RouterLinkStub).text()).toBe('')
+    expect(wrapper.find('.list-group-item').text()).not.toContain('null')
+  })
+
   it('does not render the ContributionMessagesFormular when status is not PENDING or IN_PROGRESS', async () => {
     await wrapper.setProps({
       contribution: {

@@ -9,7 +9,15 @@ import {
   BSpinner,
   type ColorVariant,
 } from 'bootstrap-vue-next'
-import { computed, defineComponent, Fragment, type PropType, ref, watch } from 'vue'
+import {
+  computed,
+  defineComponent,
+  Fragment,
+  type PropType,
+  ref,
+  toDisplayString,
+  watch,
+} from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useBoldShortcut } from '@/composables/useBoldShortcut'
 import { useCreaClipboard } from '@/composables/useCreaClipboard'
@@ -800,7 +808,7 @@ export const CreaEvaluationModal = defineComponent({
                 ? t('crea.contributions')
                 : t('crea.contribution')}
             {contributionTenure.value ? (
-              <small class='text-muted fw-normal'>{` (${contributionTenure.value}) `}</small>
+              <small class='text-muted fw-normal'>{` (${toDisplayString(contributionTenure.value)}) `}</small>
             ) : null}
           </strong>
           {!isBatch.value && contributionMeta.value ? (
@@ -863,7 +871,7 @@ export const CreaEvaluationModal = defineComponent({
               {result.openPoints.map((point, index) => (
                 // Keyed by position: open points carry no id, as in the .vue.
                 <li key={index}>
-                  {`${point.question} `}
+                  {`${toDisplayString(point.question)} `}
                   {point.options.length ? (
                     <small class='text-muted'>{` (${point.options.join(' / ')}) `}</small>
                   ) : null}

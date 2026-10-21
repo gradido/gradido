@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { useQuery } from '@vue/apollo-composable'
 import { BPagination } from 'bootstrap-vue-next'
-import { computed, defineComponent, onMounted, ref, withModifiers } from 'vue'
+import { computed, defineComponent, onMounted, ref, toDisplayString, withModifiers } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { spaces as spacesQuery } from '@/graphql/projectBranding.graphql'
 import classes from './ListHumhubSpaces.module.css'
@@ -68,7 +68,7 @@ export const ListHumhubSpaces = defineComponent({
             >
               <div>
                 <input v-model={selectedSpaceId.value} type='radio' value={space.id} class='me-2' />
-                {` ${space.name}`}
+                {` ${toDisplayString(space.name)}`}
               </div>
               <a
                 href={space.url}
