@@ -1,6 +1,3 @@
-import { I18n } from 'i18n'
-import { getLogger } from 'log4js'
-import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
 import de from './de.json'
 import el from './el.json'
 import en from './en.json'
@@ -12,73 +9,69 @@ import pt from './pt.json'
 import ru from './ru.json'
 import tr from './tr.json'
 
-const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.emails.localization`)
+type Catalog = Record<string, string>
 
-function flatten(obj: any, prefix: string = ''): any {
-  const result: any = {}
-  for (const key in obj) {
-    if (typeof obj[key] === 'object' && obj[key] !== null) {
-      Object.assign(result, flatten(obj[key], prefix + key + '.'))
+/** `{ emails: { general: { helloName: '…' } } }` → `{ 'emails.general.helloName': '…' }` */
+function flatten(node: Record<string, unknown>, prefix = ''): Catalog {
+  const result: Catalog = {}
+  for (const [key, value] of Object.entries(node)) {
+    if (typeof value === 'object' && value !== null) {
+      Object.assign(result, flatten(value as Record<string, unknown>, `${prefix}${key}.`))
     } else {
-      result[prefix + key] = obj[key]
+      result[prefix + key] = String(value)
     }
   }
   return result
 }
 
-export const i18n = new I18n({
-  locales: ['en', 'de', 'es', 'fr', 'nl', 'it', 'tr', 'ru', 'pt', 'el'],
-  defaultLocale: 'en',
-  staticCatalog: {
-    en: flatten(en),
-    de: flatten(de),
-    es: flatten(es),
-    fr: flatten(fr),
-    nl: flatten(nl),
-    it: flatten(it),
-    tr: flatten(tr),
-    ru: flatten(ru),
-    pt: flatten(pt),
-    el: flatten(el),
-  },
-  logDebugFn: (msg) => logger.debug(msg),
-  logWarnFn: (msg) => logger.info(msg),
-  logErrorFn: (msg) => logger.error(msg),
-  api: {
-    __: 't', // now req.__ becomes req.t
-    __n: 'tn', // and req.__n can be called as req.tn
-  },
-  register: global,
-  mustacheConfig: {
-    tags: ['{', '}'],
-    disable: false,
-  },
-})
+/** The ten languages core carries a catalog for - the languages of the wallet. */
+export const locales = ['de', 'el', 'en', 'es', 'fr', 'it', 'nl', 'pt', 'ru', 'tr'] as const
 
-/**
- * The catalog text of one key in one locale, or null when that locale has no translation.
- * Read off the static catalog rather than through `__`: this never moves the global locale
- * the mail path relies on, and it never runs Mustache.
- */
-function phraseInLocale(locale: string, key: string): string | null {
-  const catalog = i18n.getCatalog(locale) as Record<string, string> | undefined
-  const phrase = catalog?.[key]
-  return typeof phrase === 'string' ? phrase : null
+const catalogs: Record<string, Catalog> = {
+  de: flatten(de),
+  el: flatten(el),
+  en: flatten(en),
+  es: flatten(es),
+  fr: flatten(fr),
+  it: flatten(it),
+  nl: flatten(nl),
+  pt: flatten(pt),
+  ru: flatten(ru),
+  tr: flatten(tr),
+}
+
+// The catalog text of one key in one locale, or in en if the locale is invalid or translation don't exit
+// or key when that locale has no translation.
+function translate(locale: string, key: string): string {
+  if (!catalogs[locale] || !catalogs[locale][key]) {
+    locale = 'en'
+  }
+  return catalogs[locale]?.[key] ?? key
 }
 
 /** Whether `locale` carries its own text for `key` - no fallback counted. */
 export function hasPhraseInLocale(locale: string, key: string): boolean {
-  return phraseInLocale(locale, key) !== null
+  return catalogs[locale]?.[key] !== undefined
 }
 
 /**
- * One phrase in one locale, with `{name}` placeholders filled by plain replacement.
+ * One phrase in one locale, each `{name}` filled with the value as it is. For the texts the
+ * backend writes - a contribution memo, a thread message, the preview of a redeem link - and,
+ * handed to the mail templates as `t`, for the mails.
  *
- * Plain replacement and NOT Mustache on purpose: i18n renders `{name}` through Mustache's
- * escaping form, which turns an apostrophe into `&#39;` and an ampersand into `&amp;` -
- * wrong for a contribution memo, a thread message or a window text, all of which are shown
- * as plain text, and wrong for the mails too, which escape once more themselves (see
- * `translateForMail`). The values here are inserted as they are.
+ * ⛔ Not HTML-escaped, on purpose. The `i18n` package this replaced rendered `{name}` through
+ * Mustache's escaping form, which turned an apostrophe into `&#39;` and an ampersand into
+ * `&amp;` - wrong for a memo, a thread message or a window text, all shown as plain text, and
+ * wrong for the mails too: every template writes its text with `= t(…)` or `#{t(…)}`, and pug
+ * escapes that once, so whatever a person typed was escaped TWICE - a moderator's
+ * `https://gradido.net/faq` reached the member as `https:&#x2F;&#x2F;gradido.net&#x2F;faq`, and
+ * a greeting read "Hallo Chloé D&#39;Angelo,". Whoever writes the text into a document
+ * escapes it there (redeemPreview.ts does); never `!= t(…)` in a template.
+ *
+ * The filling is one pass over the phrase, so a value that contains `{name}` is inserted, not
+ * filled again; a name the call does not hand over, or hands over as null or undefined,
+ * becomes empty - what Mustache did. The phrases use nothing of Mustache but `{name}`; a test
+ * holds all ten catalogs to that.
  *
  * Falls back to English when the phrase is not translated in the requested locale, so a
  * member whose language has not received the new keys yet reads a sentence rather than a
@@ -87,38 +80,9 @@ export function hasPhraseInLocale(locale: string, key: string): boolean {
 export function translateForLocale(
   locale: string,
   key: string,
-  replacements: Record<string, string> = {},
-): string {
-  const phrase = phraseInLocale(locale, key) ?? phraseInLocale('en', key) ?? key
-  return Object.entries(replacements).reduce(
-    (text, [name, value]) => text.split(`{${name}}`).join(value),
-    phrase,
-  )
-}
-
-/**
- * `t` for the mail templates (`sendEmailTranslated` hands it to them): the phrase in the
- * receiver's locale, each `{name}` filled with the value as it is.
- *
- * ⛔ Not HTML-escaped, and that is what makes the mails right: every template writes its text
- * with `= t(…)` or `#{t(…)}`, and pug escapes that once. i18n's `__` had escaped the values
- * through Mustache before that, so whatever a person typed was escaped TWICE - a moderator's
- * `https://gradido.net/faq` reached the member as `https:&#x2F;&#x2F;gradido.net&#x2F;faq`,
- * and a greeting read "Hallo Chloé D&#39;Angelo,". Never `!= t(…)` in a template: nothing
- * else escapes this text.
- *
- * What Mustache did besides stays: one pass, so a value that contains `{name}` is inserted,
- * not filled again; a name the call does not hand over, or hands over as null or undefined,
- * becomes empty. The mail phrases use nothing of Mustache but `{name}` - a test holds all ten
- * catalogs to that. A phrase a locale lacks falls back to English, as in `translateForLocale`.
- */
-export function translateForMail(
-  locale: string,
-  key: string,
   values: Record<string, unknown> = {},
 ): string {
-  const phrase = phraseInLocale(locale, key) ?? phraseInLocale('en', key) ?? key
-  return phrase.replace(/\{(\w+)\}/g, (_placeholder, name: string) => {
+  return translate(locale, key).replace(/\{(\w+)\}/g, (_placeholder, name: string) => {
     const value = values[name]
     return value === null || value === undefined ? '' : String(value)
   })
