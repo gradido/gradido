@@ -107,7 +107,7 @@ export const ProjectBrandingItem = defineComponent({
           onClick={toggleDetails}
         >
           <BCol cols='3'>
-            {`${item.value.name} `}
+            {`${toDisplayString(item.value.name)} `}
             <br />
             {` ${toDisplayString(frontendLoginUrl.value)} `}
             {frontendLoginUrl.value
