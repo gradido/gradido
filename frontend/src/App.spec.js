@@ -2,7 +2,7 @@ import { shallowMount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach } from 'vitest'
 import App from './App'
 import DashboardLayout from '@/layouts/DashboardLayout'
-import AuthLayout from '@/layouts/AuthLayout'
+import { AuthLayout } from '@/layouts/AuthLayout'
 import { walletStore } from '@test/walletStore'
 
 // Mock the route

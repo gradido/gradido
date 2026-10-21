@@ -1,11 +1,10 @@
 // AI-GENERATED — not an architecture reference
 
 import { flushPromises, mount } from '@vue/test-utils'
-import { BCol, BLink, BNav, BNavItem, BRow } from 'bootstrap-vue-next'
 import { createI18n } from 'vue-i18n'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import AuthFooter from './AuthFooter.vue'
+import { AuthFooter } from './AuthFooter'
 import de from '@/locales/de.json'
 import el from '@/locales/el.json'
 import en from '@/locales/en.json'
@@ -36,10 +35,6 @@ const mountFooter = async (locale = 'de') => {
   const wrapper = mount(AuthFooter, {
     global: {
       plugins: [createI18n({ legacy: false, locale, messages: { de, en } }), router],
-      // The real ones: the link below is what the library makes of `to`, and a stub would
-      // answer to any name it is given.
-      components: { BRow, BCol, BNav, BNavItem, BLink },
-      stubs: { IBiFacebook: true, IBiTwitterX: true, IBiYoutube: true },
     },
   })
   return { wrapper, router }

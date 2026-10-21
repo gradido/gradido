@@ -13,7 +13,7 @@
 import { computed, onBeforeUnmount, watch } from 'vue'
 import { useWalletStore } from '@/store/useWalletStore'
 import DashboardLayout from '@/layouts/DashboardLayout'
-import AuthLayout from '@/layouts/AuthLayout'
+import { AuthLayout } from '@/layouts/AuthLayout'
 import AppOutdatedBar from '@/components/AppOutdatedBar'
 
 const store = useWalletStore()
