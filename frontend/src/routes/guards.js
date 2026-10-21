@@ -17,7 +17,7 @@ import CONFIG from '../config'
  * Whether the stored session still runs: a token, and more than five seconds before it ends --
  * the margin the redeem page allows too (TransactionLink.vue). `tokenTime` is when the session
  * ends by this device's clock, in seconds (`setToken` in useWalletStore.js). The language
- * switch asks the same before it saves a language to the account (LanguageSwitch2.vue).
+ * switch asks the same before it saves a language to the account (LanguageSwitch2.tsx).
  */
 export const sessionRuns = (state) =>
   Boolean(state.token) && Boolean(state.tokenTime) && state.tokenTime * 1000 - Date.now() > 5000

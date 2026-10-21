@@ -744,6 +744,7 @@
     "imprint": "Aviso legal",
     "inspector": "Inspector (experimental)",
     "privacy_policy": "Protección de Datos",
+    "socialLink": "Gradido en {platform}",
     "whitepaper": "Whitepaper"
   },
   "form": {

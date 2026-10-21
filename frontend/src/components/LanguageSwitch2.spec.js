@@ -1,6 +1,6 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import LanguageSwitch from './LanguageSwitch2.vue'
+import { LanguageSwitch2 as LanguageSwitch } from './LanguageSwitch2'
 import locales from '@/locales/'
 import { walletStore } from '@test/walletStore'
 import { useWalletStore } from '@/store/useWalletStore'
@@ -73,6 +73,13 @@ describe('LanguageSwitch2', () => {
     return mount(LanguageSwitch, mountOptions)
   }
 
+  // The language shown is settled when the switch mounts: from the store, else the browser's.
+  const remount = async () => {
+    wrapper.unmount()
+    wrapper = createWrapper()
+    await flushPromises()
+  }
+
   beforeEach(() => {
     vi.clearAllMocks()
     // A member whose session runs for another hour.
@@ -87,12 +94,49 @@ describe('LanguageSwitch2', () => {
     expect(wrapper.find('div.language-switch').exists()).toBe(true)
   })
 
+  describe('opening and closing the menu', () => {
+    const menu = () => wrapper.find('.ls-menu')
+    // v-show: the list stays in the page and is hidden by its style
+    const menuShown = () => menu().element.style.display !== 'none'
+
+    it('is closed at first', () => {
+      expect(menuShown()).toBe(false)
+      expect(wrapper.find('.ls-trigger').attributes('aria-expanded')).toBe('false')
+    })
+
+    it('opens and closes with the trigger', async () => {
+      await wrapper.find('.ls-trigger').trigger('click')
+      expect(menuShown()).toBe(true)
+      expect(wrapper.find('.ls-trigger').attributes('aria-expanded')).toBe('true')
+      await wrapper.find('.ls-trigger').trigger('click')
+      expect(menuShown()).toBe(false)
+    })
+
+    it('closes on a click elsewhere on the page, not on one inside it', async () => {
+      wrapper.unmount()
+      wrapper = mount(LanguageSwitch, { ...mountOptions, attachTo: document.body })
+      await wrapper.find('.ls-trigger').trigger('click')
+      wrapper.find('.ls-menu').element.click()
+      await flushPromises()
+      expect(menuShown()).toBe(true)
+      document.body.click()
+      await flushPromises()
+      expect(menuShown()).toBe(false)
+    })
+
+    it('closes when a language is chosen', async () => {
+      await wrapper.find('.ls-trigger').trigger('click')
+      await wrapper.findAll('.ls-item')[1].trigger('click')
+      expect(menuShown()).toBe(false)
+    })
+  })
+
   describe('current language label (the trigger)', () => {
     it('defaults to the navigator language English when the store is empty', async () => {
       const languageGetter = vi.spyOn(navigator, 'language', 'get')
       languageGetter.mockReturnValue('en-US')
       store.language = null
-      await wrapper.vm.setCurrentLanguage()
+      await remount()
       expect(wrapper.find('.ls-current').text()).toBe('English')
     })
 
@@ -100,13 +144,13 @@ describe('LanguageSwitch2', () => {
       const languageGetter = vi.spyOn(navigator, 'language', 'get')
       languageGetter.mockReturnValue(null)
       store.language = null
-      await wrapper.vm.setCurrentLanguage()
+      await remount()
       expect(wrapper.find('.ls-current').text()).toBe('English')
     })
 
     it('shows the stored language as its autonym', async () => {
       store.language = 'es'
-      await wrapper.vm.setCurrentLanguage()
+      await remount()
       expect(wrapper.find('.ls-current').text()).toBe('Español')
     })
   })
@@ -114,7 +158,7 @@ describe('LanguageSwitch2', () => {
   describe('the language menu', () => {
     beforeEach(async () => {
       store.language = 'de'
-      await wrapper.vm.setCurrentLanguage()
+      await remount()
     })
 
     it('offers every enabled language to choose from', () => {
@@ -140,7 +184,7 @@ describe('LanguageSwitch2', () => {
   describe('selecting a language calls the API', () => {
     beforeEach(async () => {
       store.language = 'en'
-      await wrapper.vm.setCurrentLanguage()
+      await remount()
     })
 
     it.each([['de'], ['es'], ['fr'], ['nl']])('with locale "%s"', async (code) => {
@@ -164,7 +208,7 @@ describe('LanguageSwitch2', () => {
   describe('selecting a language without a running session', () => {
     beforeEach(async () => {
       store.language = 'en'
-      await wrapper.vm.setCurrentLanguage()
+      await remount()
     })
 
     it.each([
