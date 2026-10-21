@@ -46,7 +46,9 @@ namespace gradido::crypto {
         const uint8_t* privateKey() const { return mPrivateKey; }
         // the same public key; whether either holds the private key does not matter, a private
         // key held always belongs to its public key
-        bool samePublicKey(const Keys& other) const;
+        bool samePublicKey(const Keys& other) const { return samePublicKey(other.mPublicKey); }
+        // publicKey: PUBLIC_KEY_SIZE bytes
+        bool samePublicKey(const uint8_t* publicKey) const;
 
     protected:
         // the public key belonging to a private key; non-zero for a private key that has none

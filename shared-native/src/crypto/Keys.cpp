@@ -17,9 +17,9 @@ namespace gradido::crypto {
         freePrivateKey();
     }
 
-    bool Keys::samePublicKey(const Keys& other) const
+    bool Keys::samePublicKey(const uint8_t* publicKey) const
     {
-        return sodium_memcmp(mPublicKey, other.mPublicKey, PUBLIC_KEY_SIZE) == 0;
+        return sodium_memcmp(mPublicKey, publicKey, PUBLIC_KEY_SIZE) == 0;
     }
 
     KeyResult Keys::set(const uint8_t* publicKey, const uint8_t* privateKey, PublicKeyFunction publicKeyOf)
