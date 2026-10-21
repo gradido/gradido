@@ -45,17 +45,36 @@ export const AuthFooter = defineComponent({
                 line where the text inside the card above it starts. */}
             <div class='d-flex align-items-center ms-4 ms-md-3 ms-lg-0 text-lg-end pt-1'>
               {t('followUs')}{' '}
-              <BLink href='https://www.facebook.com/groups/Gradido/' target='_blank'>
-                <IBiFacebook class='ms-3 me-3 c-grey' />
+              {/* The icons carry no text, so each link names where it leads; the platform's name
+                  is a brand and stays as it is in every language. */}
+              <BLink
+                href='https://www.facebook.com/groups/Gradido/'
+                target='_blank'
+                aria-label={t('footer.socialLink', { platform: 'Facebook' })}
+              >
+                <IBiFacebook class='ms-3 me-3 c-grey' aria-hidden='true' />
               </BLink>
-              <BLink href='https://twitter.com/gradido' target='_blank'>
-                <IBiTwitterX class='me-3 c-grey' font-scale='1' />
+              <BLink
+                href='https://twitter.com/gradido'
+                target='_blank'
+                aria-label={t('footer.socialLink', { platform: 'X' })}
+              >
+                <IBiTwitterX class='me-3 c-grey' font-scale='1' aria-hidden='true' />
               </BLink>
-              <BLink href='https://www.youtube.com/c/GradidoNet' target='_blank'>
-                <IBiYoutube class='me-3 c-grey' font-scale='1' />
+              <BLink
+                href='https://www.youtube.com/c/GradidoNet'
+                target='_blank'
+                aria-label={t('footer.socialLink', { platform: 'YouTube' })}
+              >
+                <IBiYoutube class='me-3 c-grey' font-scale='1' aria-hidden='true' />
               </BLink>
-              <BLink href='https://t.me/Gradido' target='_blank'>
+              <BLink
+                href='https://t.me/Gradido'
+                target='_blank'
+                aria-label={t('footer.socialLink', { platform: 'Telegram' })}
+              >
                 <svg
+                  aria-hidden='true'
                   xmlns='http://www.w3.org/2000/svg'
                   width='16'
                   height='16'
