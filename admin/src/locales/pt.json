@@ -628,10 +628,14 @@
     "pending": "Alteração pendente: confirmação pedida para {email} em {date}",
     "replace": {
       "button": "Corrigir endereço",
+      "confirmed": "Endereço não corrigido, porque entretanto foi confirmado. Agora só o próprio membro o pode alterar, nas suas definições.",
       "elopage_warning": "Atenção: existem compras Elopage sob {email}. Esta conta provavelmente veio do webhook – o endereço não é então uma gralha.",
+      "error": "Endereço não corrigido: {message}",
       "hint": "Apenas enquanto o endereço nunca tiver sido confirmado (p. ex. gralha no registo). O e-mail de confirmação segue depois para o endereço corrigido.",
+      "invalid": "Endereço não corrigido, porque {email} não é um endereço de e-mail válido.",
       "placeholder": "Endereço de e-mail corrigido",
       "success": "Endereço corrigido e e-mail de confirmação enviado para {email}.",
+      "taken": "Endereço não corrigido, porque {email} já pertence a uma conta. Uma conta eliminada também mantém o seu endereço. Procura o endereço acima, na pesquisa de utilizadores.",
       "title": "Corrigir um endereço nunca confirmado"
     },
     "success": "Link de confirmação enviado com sucesso para o e-mail do utilizador! ({email})",

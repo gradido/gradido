@@ -628,10 +628,14 @@
     "pending": "Değişiklik bekliyor: {email} için onay {date} tarihinde istendi",
     "replace": {
       "button": "Adresi düzelt",
+      "confirmed": "Adres düzeltilmedi, çünkü bu arada onaylandı. Artık onu yalnızca üyenin kendisi, kendi ayarlarından değiştirebilir.",
       "elopage_warning": "Dikkat: {email} altında Elopage satın alımları var. Bu hesap büyük olasılıkla webhook'tan geldi – o halde adres bir yazım hatası değil.",
+      "error": "Adres düzeltilmedi: {message}",
       "hint": "Yalnızca adres hiç onaylanmadığı sürece (ör. kayıtta yazım hatası). Onay e-postası sonra düzeltilen adrese gider.",
+      "invalid": "Adres düzeltilmedi, çünkü {email} geçerli bir e-posta adresi değil.",
       "placeholder": "Düzeltilmiş e-posta adresi",
       "success": "Adres düzeltildi ve onay e-postası {email} adresine gönderildi.",
+      "taken": "Adres düzeltilmedi, çünkü {email} zaten bir hesaba ait. Silinmiş bir hesap da adresini korur. Adresi yukarıdaki kullanıcı aramasıyla bul.",
       "title": "Hiç onaylanmamış adresi düzelt"
     },
     "success": "Onay bağlantısı kullanıcının e-postasına başarıyla gönderildi! ({email})",

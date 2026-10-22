@@ -628,10 +628,14 @@
     "pending": "Wijziging in afwachting: bevestiging aangevraagd voor {email} op {date}",
     "replace": {
       "button": "Adres corrigeren",
+      "confirmed": "Adres niet gecorrigeerd, omdat het inmiddels is bevestigd. Alleen het lid zelf kan het nu nog wijzigen, in de eigen instellingen.",
       "elopage_warning": "Let op: onder {email} zijn er Elopage-aankopen. Dit account komt waarschijnlijk uit de webhook – het adres is dan geen typefout.",
+      "error": "Adres niet gecorrigeerd: {message}",
       "hint": "Alleen zolang het adres nooit is bevestigd (bijv. typefout bij registratie). De bevestigingsmail gaat daarna naar het gecorrigeerde adres.",
+      "invalid": "Adres niet gecorrigeerd, omdat {email} geen geldig e-mailadres is.",
       "placeholder": "Gecorrigeerd e-mailadres",
       "success": "Adres gecorrigeerd en bevestigingsmail verzonden naar {email}.",
+      "taken": "Adres niet gecorrigeerd, omdat {email} al bij een account hoort. Ook een verwijderd account houdt zijn adres. Zoek het adres hierboven, bij Gebruikers zoeken.",
       "title": "Nooit bevestigd adres corrigeren"
     },
     "success": "De bevestigingslink is succesvol naar de e-mail van de gebruiker verzonden! ({email})",

@@ -628,10 +628,14 @@
     "pending": "Changement en attente : confirmation demandée pour {email} le {date}",
     "replace": {
       "button": "Corriger l'adresse",
+      "confirmed": "Adresse non corrigée, car elle a été confirmée entre-temps. Seul le membre lui-même peut maintenant la modifier, dans ses paramètres.",
       "elopage_warning": "Attention : il existe des achats Elopage sous {email}. Ce compte provient probablement du webhook – l'adresse n'est alors pas une faute de frappe.",
+      "error": "Adresse non corrigée : {message}",
       "hint": "Seulement tant que l'adresse n'a jamais été confirmée (p. ex. faute de frappe à l'inscription). L'e-mail de confirmation sera envoyé à l'adresse corrigée.",
+      "invalid": "Adresse non corrigée, car {email} n'est pas une adresse e-mail valide.",
       "placeholder": "Adresse e-mail corrigée",
       "success": "Adresse corrigée et e-mail de confirmation envoyé à {email}.",
+      "taken": "Adresse non corrigée, car {email} appartient déjà à un compte. Un compte supprimé garde lui aussi son adresse. Cherche l'adresse plus haut, dans la recherche d'utilisateurs.",
       "title": "Corriger une adresse jamais confirmée"
     },
     "success": "Le lien de confirmation a été envoyé avec succès à l'e-mail de l'utilisateur ! ({email})",
