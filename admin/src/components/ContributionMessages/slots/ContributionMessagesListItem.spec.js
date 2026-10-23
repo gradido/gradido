@@ -193,6 +193,38 @@ describe('the box a message stands in', () => {
 })
 
 /**
+ * The head of a message on a phone. Its parts follow one another without a space, so as plain
+ * text they were one word, and a narrow message broke it anywhere -- inside the date, inside the
+ * name. As boxes of their own the line breaks between them.
+ */
+describe('the head of a message', () => {
+  const headOf = (message) =>
+    createWrapper({
+      contributionUserId: 108,
+      message: {
+        id: 121,
+        message: 'text',
+        createdAt: '2022-08-29T12:23:27.000Z',
+        type: 'DIALOG',
+        userAlias: 'peterl',
+        ...message,
+      },
+    })
+
+  it.each([
+    ['of the moderation', 107, ['moderator-label', 'moderator-date', 'moderator-name']],
+    ['of the member', 108, ['user-name', 'user-date']],
+  ])('stands in boxes of their own, %s', (_, userId, parts) => {
+    const wrapper = headOf({ userId })
+    for (const part of parts) {
+      expect(wrapper.find(`[data-test="${part}"]`).classes(), part).toContain('d-inline-block')
+    }
+    // The face is a box of its own already.
+    expect(wrapper.find('[data-test="member-avatar"]').classes()).toContain('d-inline-flex')
+  })
+})
+
+/**
  * The faces of the dialogue (Bernd, 12.09.2026). The placeholders said "a person" about
  * everybody; now the circle carries whoever wrote the message -- their picture where they
  * show one, their letters where they do not.

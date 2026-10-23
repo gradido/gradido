@@ -19,3 +19,14 @@ export const LIST_AVATAR_SIZE = 48
  * its own: the button takes the tap.
  */
 export const NAV_AVATAR_SIZE = 32
+
+/**
+ * Where a window stops being a phone: from here on up the contribution page is the table it
+ * has always been, below it every row is a card (composables/useViewport).
+ *
+ * ⛔ Bootstrap's `md`, because that is where the tables stack (`stacked='md'`), and the cards
+ * are made of a stacked table: the two have to switch at the same width. On purpose not the
+ * 992 of the top bar, which is a bar and has a boundary of its own. A copy of a number the
+ * stylesheets hold; useViewport.drift.spec.js measures the two against each other.
+ */
+export const PHONE_BREAKPOINT_PX = 768

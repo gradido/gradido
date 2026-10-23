@@ -13,6 +13,7 @@ import { useI18n } from 'vue-i18n'
 import { CollapseIcon } from '@/components/CollapseIcon'
 import { MemberAvatar } from '@/components/MemberAvatar'
 import { ThemedSelect } from '@/components/ThemedSelect'
+import { useDateFormatter } from '@/composables/useDateFormatter'
 import { memberAvatarProps } from '@/composables/useMemberAvatars'
 import { openMemberAvatarZoom } from '@/composables/useMemberAvatarZoom'
 // The one size a face has in this interface, the same as in the wallet.
@@ -53,7 +54,10 @@ export type Contribution = {
   id: number
   memo: string
   userId: number
+  amount?: string
+  contributionDate?: string
   createdAt: string
+  closedAt?: string | null
   contributionStatus: string
   messagesCount: number
   user?: Member | null
@@ -105,6 +109,18 @@ export const OpenCreationsTable = defineComponent({
       type: Boolean,
       default: false,
     },
+    // Whether this tab offers Crea to this moderator at all. At the desk the page decides it by
+    // leaving the column out; a phone card has no columns, so it is told.
+    showCrea: {
+      type: Boolean,
+      default: false,
+    },
+    // The "all" tab mixes the states. At the desk a column of its own says which one a row is
+    // in; a phone card says it in its head.
+    showStatus: {
+      type: Boolean,
+      default: false,
+    },
     creationGroups: {
       type: Array as PropType<CreationGroup[]>,
       required: false,
@@ -131,6 +147,7 @@ export const OpenCreationsTable = defineComponent({
   setup(props, { emit }) {
     const store = useAdminStore()
     const { t } = useI18n()
+    const { formatDateOrDash } = useDateFormatter()
 
     const slotIndex = ref(0)
     const openRow = ref<Row | null>(null)
@@ -411,6 +428,29 @@ export const OpenCreationsTable = defineComponent({
       return null
     }
 
+    // Still being worked on: a moderator can still decide it.
+    const isOpen = (item: Contribution) =>
+      item.contributionStatus === 'PENDING' || item.contributionStatus === 'IN_PROGRESS'
+
+    // Decided and done: confirmed, denied or deleted.
+    const isClosed = (item: Contribution) =>
+      ['CONFIRMED', 'DENIED', 'DELETED'].includes(item.contributionStatus)
+
+    // The two hints the details button carries at the desk (cell `editCreation`), for a
+    // contribution with messages: one while it is pending, one while it is in progress.
+    const messageHint = (item: Contribution) => {
+      if ((item.messagesCount ?? 0) === 0) {
+        return null
+      }
+      if (item.contributionStatus === 'PENDING') {
+        return <IBiExclamationCircleFill class='text-warning' />
+      }
+      if (item.contributionStatus === 'IN_PROGRESS') {
+        return <IBiQuestionDiamond class='text-warning' />
+      }
+      return null
+    }
+
     return () => (
       <div class='open-creations-table'>
         <BTableLite
@@ -609,6 +649,121 @@ export const OpenCreationsTable = defineComponent({
                   </BButton>
                 </div>
               ) : null,
+            // The two cells of the card a row becomes on a phone (CreationConfirm hands them in
+            // place of the desk's columns, the table stacks them). The head: the face, the name
+            // and the alias, the amount and the date; for a closed contribution when it was
+            // created and closed, which the desk shows in two columns of its own.
+            'cell(phoneHead)': (row: Row) => {
+              const item = row.item
+              const user = item.user
+              return (
+                <div class='d-flex gap-2 align-items-start'>
+                  {user ? (
+                    <MemberAvatar
+                      size={LIST_AVATAR_SIZE}
+                      name={memberName(user)}
+                      {...avatarFor(user)}
+                      onZoom={() => openPicture(user)}
+                    />
+                  ) : null}
+                  {/* min-width 0: a long alias is cut off here instead of widening the card. */}
+                  <div class='flex-grow-1' style='min-width: 0'>
+                    <div class='d-flex justify-content-between gap-2'>
+                      <span class='fw-semibold text-break'>
+                        {props.showStatus ? (
+                          <span class='me-1'>{statusIcon(item.contributionStatus)}</span>
+                        ) : null}
+                        {user ? `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() : ''}
+                      </span>
+                      <span class='fw-semibold text-nowrap'>{`${item.amount} GDD`}</span>
+                    </div>
+                    <div class='d-flex justify-content-between gap-2'>
+                      <span class='small text-truncate' style='min-width: 0'>
+                        {user?.alias ?? ''}
+                      </span>
+                      <span class='small text-nowrap'>
+                        {formatDateOrDash(item.contributionDate)}
+                      </span>
+                    </div>
+                    {isClosed(item) ? (
+                      <div class='small text-body-secondary'>
+                        {`${t('createdAt')} ${formatDateOrDash(item.createdAt)} · ${t('contributions.closed')} ${formatDateOrDash(item.closedAt)}`}
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              )
+            },
+            // The buttons of the card, in two rows. The first opens what a contribution offers:
+            // its details, the filter by the member's address, Crea where this tab offers it. The
+            // second decides an open contribution, the confirmation far from the bin. Each sends
+            // what its cell at the desk sends. The moderator's own open contribution offers
+            // neither its details nor a decision, as the desk's tab "Offen" does not.
+            'cell(phoneActions)': (row: Row) => {
+              const item = row.item
+              return (
+                <div class='phone-actions'>
+                  <div class='d-flex flex-wrap align-items-center gap-2'>
+                    {isOpen(item) && myself(item) ? null : (
+                      <BButton onClick={() => rowToggleDetails(row, 0)}>
+                        <IBiChatDots /> {t('details')} {messageHint(item)}
+                      </BButton>
+                    )}
+                    {item.user?.emailContact ? (
+                      <BButton
+                        variant='link'
+                        class='phone-icon-btn text-primary'
+                        title={t('filter.byEmail')}
+                        aria-label={t('filter.byEmail')}
+                        onClick={() => emit('search-for-email', item.user?.emailContact?.email)}
+                      >
+                        <IBiSearch />
+                      </BButton>
+                    ) : null}
+                    {props.showCrea && showCreaButton(item) ? (
+                      <BButton
+                        variant='link'
+                        class='crea-logo-btn phone-icon-btn'
+                        title={t('crea.column')}
+                        onClick={() => emit('crea-evaluate', item)}
+                      >
+                        <img src={creaLogo} alt={t('crea.column')} class='crea-logo-img' />
+                      </BButton>
+                    ) : null}
+                  </div>
+                  {isOpen(item) && !myself(item) ? (
+                    <div class='d-flex flex-wrap align-items-center gap-2 mt-2'>
+                      <BButton
+                        variant='danger'
+                        class='phone-icon-btn'
+                        title={t('delete')}
+                        aria-label={t('delete')}
+                        onClick={() => emit('show-overlay', item, 'delete')}
+                      >
+                        <IBiTrash />
+                      </BButton>
+                      {/* The two words keep together, at the right. Where the line has no room
+                          for them beside the bin -- at 320px in most languages -- they take the
+                          next one rather than squeezing it. */}
+                      <div class='d-flex flex-wrap justify-content-end gap-2 ms-auto'>
+                        <BButton
+                          variant='warning'
+                          onClick={() => emit('show-overlay', item, 'deny')}
+                        >
+                          <IBiX /> {t('deny')}
+                        </BButton>
+                        <BButton
+                          variant='success'
+                          onClick={() => emit('show-overlay', item, 'confirm')}
+                        >
+                          <IBiCheck /> {t('contribution.confirm')}
+                        </BButton>
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              )
+            },
             'row-details': (row: Row) => (
               <RowDetails
                 row={row}

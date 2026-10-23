@@ -118,6 +118,7 @@
     "changeGroupDone": "Yaratım grubu değiştirildi.",
     "changeGroupHint": "Görünür gruplarına bağlı olarak katkı listende artık görünmeyebilir.",
     "changeGroupQuestion": "Bu katkı {from} grubundan {to} grubuna taşınsın mı?",
+    "confirm": "Onayla",
     "confirmedBy": "{name} tarafından onaylandı.",
     "createdBy": "{name} tarafından oluşturuldu.",
     "deletedBy": "{name} tarafından silindi.",
@@ -594,6 +595,9 @@
   "removeNotSelf": "Yönetici/moderatör olarak kendini silemezsin.",
   "reset": "Sıfırla",
   "save": "Kaydet",
+  "search": {
+    "clear": "Aramayı temizle"
+  },
   "send": "Gönder",
   "status": "Durum",
   "success": "Başarılı",

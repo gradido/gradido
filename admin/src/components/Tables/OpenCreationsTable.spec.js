@@ -1,7 +1,12 @@
-import { shallowMount } from '@vue/test-utils'
+import { mount, shallowMount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { h } from 'vue'
+import { MemberAvatar } from '@/components/MemberAvatar'
+import { LIST_AVATAR_SIZE } from '@/constants'
+import IBiBellFill from '~icons/bi/bell-fill'
+import IBiCheck from '~icons/bi/check'
 import IBiExclamationCircleFill from '~icons/bi/exclamation-circle-fill'
+import IBiQuestionDiamond from '~icons/bi/question-diamond'
 import { adminStore } from '../../../test/adminStore'
 import { OpenCreationsTable } from './OpenCreationsTable'
 
@@ -513,6 +518,241 @@ describe('OpenCreationsTable', () => {
       const panels = wrapper.findAllComponents({ name: 'ContributionMessagesList' })
       expect(panels).toHaveLength(2)
       panels.forEach((panel) => expect(panel.vm.$attrs).not.toHaveProperty('onSearchForEmail'))
+    })
+  })
+
+  /**
+   * ⛔ The REAL table and the real buttons. What is measured is that the phone cells reach the
+   * table at all -- `cell(phoneHead)` is a slot name bootstrap-vue-next gives, which a stub
+   * would answer to whatever one wrote into it -- and what a moderator can press in them.
+   */
+  describe('the card a row becomes on a phone', () => {
+    const PHONE_FIELDS = [
+      { key: 'phoneHead', label: '' },
+      { key: 'memo', label: 'text', class: 'text-break' },
+      { key: 'phoneActions', label: '' },
+    ]
+    const anna = {
+      firstName: 'Anna',
+      lastName: 'Muster',
+      alias: 'anna-m',
+      gradidoID: 'g-anna',
+      communityUuid: 'home',
+      emailContact: { email: 'anna@example.org' },
+    }
+    const open = {
+      id: 1,
+      amount: '150',
+      memo: 'Kuchenstand beim Herbstfest',
+      contributionStatus: 'PENDING',
+      contributionDate: '2026-09-01T00:00:00.000Z',
+      createdAt: '2026-10-02T08:00:00.000Z',
+      messagesCount: 0,
+      user: anna,
+    }
+    const closed = {
+      ...open,
+      id: 2,
+      contributionStatus: 'CONFIRMED',
+      closedAt: '2026-10-05T10:00:00.000Z',
+    }
+    const day = (value) => new Date(value).toLocaleDateString()
+
+    const mountCards = (items, props = {}) =>
+      mount(OpenCreationsTable, {
+        props: { items, fields: PHONE_FIELDS, hideResubmission: false, ...props },
+        global: {
+          plugins: [store],
+          stubs: { ThemedSelect: themedSelect, BModal: modal },
+        },
+      })
+
+    // The rows of contributions. bootstrap-vue-next 0.26.8 gives an opened details row no class
+    // of its own: it is the row with one cell, and a hidden row stands before it for the stripes.
+    const cardRows = () =>
+      wrapper.findAll('tbody > tr').filter((tr) => tr.findAll(':scope > td').length > 1)
+    const head = (row = 0) => cardRows()[row].findAll('td')[0]
+    const actions = (row = 0) => cardRows()[row].find('.phone-actions')
+    const named = (scope) =>
+      scope
+        .findAll('button')
+        .map((button) => button.attributes('aria-label') || button.text().trim())
+
+    it('the head cell shows the face, the name, the alias, the amount and the date', () => {
+      wrapper = mountCards([open])
+      const cells = wrapper.find('tbody > tr').findAll('td')
+      expect(cells).toHaveLength(3)
+
+      const avatar = head().findComponent(MemberAvatar)
+      expect(avatar.exists()).toBe(true)
+      expect(avatar.props('size')).toBe(LIST_AVATAR_SIZE)
+      expect(head().text()).toContain('Anna Muster')
+      expect(head().text()).toContain('anna-m')
+      expect(head().text()).toContain('150 GDD')
+      expect(head().text()).toContain(day(open.contributionDate))
+      // The text in full width, as a cell of its own between the head and the buttons.
+      expect(cells[1].text()).toContain('Kuchenstand beim Herbstfest')
+      expect(cells[2].find('.phone-actions').exists()).toBe(true)
+    })
+
+    it("a closed contribution's head names when it was created and closed", () => {
+      wrapper = mountCards([open, closed])
+      expect(head(0).text()).not.toContain('contributions.closed')
+      expect(head(1).text()).toContain(
+        `createdAt ${day(closed.createdAt)} · contributions.closed ${day(closed.closedAt)}`,
+      )
+    })
+
+    it('with showStatus the head carries the status symbol', () => {
+      wrapper = mountCards([open, closed])
+      expect(head(0).findComponent(IBiBellFill).exists()).toBe(false)
+
+      wrapper = mountCards([open, closed], { showStatus: true })
+      expect(head(0).findComponent(IBiBellFill).exists()).toBe(true)
+      expect(head(1).findComponent(IBiCheck).exists()).toBe(true)
+    })
+
+    it('the action cell offers details, the filter and, for an open contribution, delete, deny and confirm, each with its name', () => {
+      wrapper = mountCards([open])
+      expect(named(actions())).toEqual([
+        'details',
+        'filter.byEmail',
+        'delete',
+        'deny',
+        'contribution.confirm',
+      ])
+      // The two that are a symbol and nothing else carry their name as a tooltip as well.
+      for (const button of actions().findAll('.phone-icon-btn')) {
+        expect(button.attributes('title')).toBe(button.attributes('aria-label'))
+      }
+    })
+
+    // At 320px "Ablehnen" and "Bestätigen" with their symbols find no room beside the bin in
+    // most languages. They keep together, at the right, and take the next line as a pair --
+    // jsdom lays nothing out, so what is held here is the grouping that lets them.
+    it('keeps the two words of a decision together, apart from the bin', () => {
+      wrapper = mountCards([open])
+      const bin = actions().find('.btn-danger')
+      const deny = actions().find('.btn-warning')
+      const confirm = actions().find('.btn-success')
+      expect(deny.element.parentElement).toBe(confirm.element.parentElement)
+      expect(bin.element.parentElement).not.toBe(deny.element.parentElement)
+      expect([...deny.element.parentElement.classList]).toEqual(
+        expect.arrayContaining(['d-flex', 'flex-wrap', 'ms-auto']),
+      )
+      expect([...bin.element.parentElement.classList]).toContain('flex-wrap')
+    })
+
+    it('offers Crea only where the tab offers it to this moderator', () => {
+      wrapper = mountCards([open])
+      expect(actions().find('img[alt="crea.column"]').exists()).toBe(false)
+
+      wrapper = mountCards([open], { showCrea: true })
+      expect(actions().find('img[alt="crea.column"]').exists()).toBe(true)
+
+      // The "all" tab offers it on open contributions only, as at the desk.
+      wrapper = mountCards([open, closed], { showCrea: true, creaOpenOnly: true })
+      expect(actions(0).find('img[alt="crea.column"]').exists()).toBe(true)
+      expect(actions(1).find('img[alt="crea.column"]').exists()).toBe(false)
+    })
+
+    it('a closed contribution offers details and the filter only', () => {
+      wrapper = mountCards([closed])
+      expect(named(actions())).toEqual(['details', 'filter.byEmail'])
+    })
+
+    // As the desk's tab "Offen" does: no decision and no details on the moderator's own open
+    // contribution. A closed one shows its details, as the desk's other tabs do.
+    it("the moderator's own open contribution offers neither a decision nor its details", () => {
+      const own = { ...anna, gradidoID: 'moderator-gid' }
+      wrapper = mountCards([
+        { ...open, user: own },
+        { ...open, id: 3, contributionStatus: 'IN_PROGRESS', user: own },
+        { ...closed, user: own },
+      ])
+      expect(named(actions(0))).toEqual(['filter.byEmail'])
+      expect(named(actions(1))).toEqual(['filter.byEmail'])
+      expect(named(actions(2))).toEqual(['details', 'filter.byEmail'])
+    })
+
+    it('the details button carries the hints of the desk', () => {
+      wrapper = mountCards([
+        { ...open, messagesCount: 2 },
+        { ...open, id: 3, contributionStatus: 'IN_PROGRESS', messagesCount: 1 },
+        { ...open, id: 4, messagesCount: 0 },
+      ])
+      const details = (row) => actions(row).find('button')
+      expect(details(0).findComponent(IBiExclamationCircleFill).classes()).toContain('text-warning')
+      expect(details(1).findComponent(IBiQuestionDiamond).classes()).toContain('text-warning')
+      expect(details(2).find('svg + svg').exists()).toBe(false)
+    })
+
+    it('the phone buttons emit what the desk cells emit', async () => {
+      wrapper = mountCards([open], { showCrea: true })
+      const button = (name) =>
+        actions()
+          .findAll('button')
+          .find((b) => (b.attributes('aria-label') || b.text().trim()) === name)
+
+      await button('contribution.confirm').trigger('click')
+      await button('deny').trigger('click')
+      await button('delete').trigger('click')
+      expect(wrapper.emitted('show-overlay')).toEqual([
+        [open, 'confirm'],
+        [open, 'deny'],
+        [open, 'delete'],
+      ])
+
+      await button('filter.byEmail').trigger('click')
+      expect(wrapper.emitted('search-for-email')).toEqual([['anna@example.org']])
+
+      await actions().find('img[alt="crea.column"]').trigger('click')
+      expect(wrapper.emitted('crea-evaluate')).toEqual([[open]])
+
+      // Details opens the row, as the button of the desk does.
+      expect(wrapper.findComponent({ name: 'RowDetails' }).exists()).toBe(false)
+      await button('details').trigger('click')
+      expect(wrapper.findComponent({ name: 'RowDetails' }).exists()).toBe(true)
+    })
+
+    // The desk's open tab, drawn by the same real table: every column still draws what it drew,
+    // and nothing of the card reaches it.
+    it('the desk cells render as before', () => {
+      const deskFields = [
+        { key: 'bookmark', label: 'delete' },
+        { key: 'deny', label: 'deny' },
+        { key: 'searchUser', label: '' },
+        { key: 'name', label: 'name' },
+        { key: 'amount', label: 'creation', formatter: (value) => `${value} GDD` },
+        { key: 'memo', label: 'text' },
+        { key: 'contributionDate', label: 'created', formatter: day },
+        { key: 'creaEvaluate', label: 'crea.column' },
+        { key: 'editCreation', label: 'details' },
+        { key: 'confirm', label: 'save' },
+      ]
+      wrapper = mount(OpenCreationsTable, {
+        props: { items: [open], fields: deskFields, hideResubmission: false },
+        global: { plugins: [store], stubs: { ThemedSelect: themedSelect, BModal: modal } },
+      })
+      const cells = wrapper.find('tbody > tr').findAll('td')
+      expect(cells.map((cell) => named(cell))).toEqual([
+        ['delete'],
+        ['deny'],
+        ['filter.byEmail'],
+        [],
+        [],
+        [],
+        [],
+        [''],
+        ['details'],
+        ['save'],
+      ])
+      // Two spaces: the name, a space before the alias, and the space inside its <small>.
+      expect(cells[3].text()).toBe('Anna Muster  anna-m')
+      expect(cells[4].find('div').text()).toBe('150 GDD')
+      expect(cells[4].findComponent(MemberAvatar).exists()).toBe(true)
+      expect(cells[6].text()).toBe(day(open.contributionDate))
+      expect(wrapper.find('.phone-actions').exists()).toBe(false)
     })
   })
 })

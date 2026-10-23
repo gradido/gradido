@@ -1,6 +1,8 @@
 // AI-GENERATED — not an architecture reference
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
+import IBiEyeSlashFill from '~icons/bi/eye-slash-fill'
+import IBiX from '~icons/bi/x'
 import { RowDetails } from './RowDetails'
 
 const row = { item: { id: 7 } }
@@ -22,11 +24,30 @@ describe('RowDetails', () => {
     expect(wrapper.emitted('row-toggle-details')).toEqual([[row, 3]])
   })
 
-  it('names the icon by the page it sits on', () => {
-    expect(createWrapper().find('b-icon').attributes('icon')).toBe('x')
-    expect(createWrapper({ type: 'UserSearch' }).find('b-icon').attributes('icon')).toBe(
-      'eye-slash-fill',
-    )
+  // The <b-icon> it carried before drew nothing: bootstrap-vue-next has no such component, so
+  // the button showed its word and an empty unknown element.
+  it('the hide button carries an icon', () => {
+    const button = createWrapper().find('button')
+    expect(button.find('svg').exists()).toBe(true)
+    expect(button.find('b-icon').exists()).toBe(false)
+  })
+
+  it('shows a cross on the confirmation page and a closed eye everywhere else', () => {
+    expect(createWrapper().findComponent(IBiX).exists()).toBe(true)
+    expect(createWrapper().findComponent(IBiEyeSlashFill).exists()).toBe(false)
+    const elsewhere = createWrapper({ type: 'show-creation' })
+    expect(elsewhere.findComponent(IBiEyeSlashFill).exists()).toBe(true)
+    expect(elsewhere.findComponent(IBiX).exists()).toBe(false)
+  })
+
+  // Its surface comes from Bootstrap's card, which a dark mode can turn; a fixed white would not.
+  it('leaves the surface of the card to Bootstrap', () => {
+    expect(createWrapper().find('.card').classes()).not.toContain('bg-white')
+  })
+
+  // The phone rules of the contributions table reach the card by this name (OpenCreationsTable.css).
+  it('names its card for the phone rules', () => {
+    expect(createWrapper().find('.card').classes()).toContain('row-details-card')
   })
 
   it('labels the button', () => {

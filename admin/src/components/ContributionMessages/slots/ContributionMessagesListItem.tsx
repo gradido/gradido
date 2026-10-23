@@ -112,17 +112,21 @@ export const ContributionMessagesListItem = defineComponent({
       />
     )
 
+    // The parts of a message's head (label, date, name, face) stand as boxes of their own. The
+    // JSX leaves no space between them, so as plain text they were ONE word, and in a narrow
+    // message Bootstrap's `.card { overflow-wrap: break-word }` broke it anywhere -- inside the
+    // date ("2.10.20|26"), inside the name. Between boxes a line may break.
     return () => (
       <div class='contribution-messages-list-item clearfix'>
         {isModeratorMessage.value ? (
           <div class={['text-end p-2 rounded-sm mb-3', boxClass.value]}>
-            <small class='ms-4' data-test='moderator-label'>
+            <small class='ms-4 d-inline-block' data-test='moderator-label'>
               {t('moderator.moderator')}
             </small>
-            <small class='ms-2' data-test='moderator-date'>
+            <small class='ms-2 d-inline-block' data-test='moderator-date'>
               {d(new Date(props.message.createdAt), 'short')}
             </small>
-            <span class='ms-2 me-2 no-select' data-test='moderator-name'>
+            <span class='ms-2 me-2 no-select d-inline-block' data-test='moderator-name'>
               {props.message.userAlias}
             </span>
             {face()}
@@ -138,10 +142,10 @@ export const ContributionMessagesListItem = defineComponent({
         ) : (
           <div class={['text-start p-2 rounded-sm mb-3', boxClass.value]}>
             {face()}
-            <span class='ms-2 me-2 no-select' data-test='user-name'>
+            <span class='ms-2 me-2 no-select d-inline-block' data-test='user-name'>
               {props.message.userAlias}
             </span>
-            <small class='ms-2' data-test='user-date'>
+            <small class='ms-2 d-inline-block' data-test='user-date'>
               {d(new Date(props.message.createdAt), 'short')}
             </small>
             {history()}

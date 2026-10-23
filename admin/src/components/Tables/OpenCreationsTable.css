@@ -54,3 +54,71 @@
   object-fit: cover;
   border-radius: 20%;
 }
+
+/* A phone: every row is a card -- the stacked row of the table with the cells CreationConfirm
+   hands it there (head, text, buttons). Below this width the table stacks (`stacked='md'`). */
+@media (width < 768px) {
+  /* The card's inner margin sits on its cells, not on the row: Bootstrap paints a row's colour
+     into its cells, and padding on the row would leave a white frame around every card. The
+     3px line above the first cell stays as the edge between two cards; the lines between the
+     cells of one card go. */
+  .open-creations-table .b-table-stacked-md > tbody > tr > td {
+    padding: 0.125rem 0.375rem;
+    border-bottom-width: 0;
+  }
+
+  .open-creations-table .b-table-stacked-md > tbody > tr > td:first-child {
+    padding-top: 0.625rem;
+  }
+
+  .open-creations-table .b-table-stacked-md > tbody > tr > td:last-child {
+    padding-bottom: 0.875rem;
+  }
+
+  /* A little less room around the words than Bootstrap gives a button. Measured in the built
+     bundle (23.10.2026): the two words of a decision with their symbols then stand beside the
+     bin at 390px in all ten languages, at 360px in nine (not Russian), at 320px in five; where
+     they do not, they take the next line (OpenCreationsTable.tsx). */
+  .open-creations-table .phone-actions .btn {
+    min-height: 2.75rem;
+    padding-inline: 0.5rem;
+    column-gap: 0.25rem;
+  }
+
+  /* A button that is a symbol and nothing else: a square to tap, which no neighbour squeezes. */
+  .open-creations-table .phone-actions .phone-icon-btn {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+  }
+
+  .open-creations-table .group-select {
+    max-width: 100%;
+  }
+
+  /* An opened row: its card and the list in it give their side margins to the messages. The
+     card's 16px (Bootstrap's ps-3/pe-3, hence !important), its body's 16px and the container's
+     12px left a message 167px of a 320px window. */
+  .open-creations-table .row-details-card {
+    padding-inline: 0 !important;
+  }
+
+  .open-creations-table .row-details-card > .card-body {
+    padding-inline: 0.5rem;
+  }
+
+  .open-creations-table .contribution-messages-list .container {
+    padding-inline: 0;
+  }
+
+  /* The tabs of the form in an opened row (message, note, text) are buttons to tap as well. */
+  .open-creations-table .contribution-messages-formular .nav-link {
+    display: flex;
+    align-items: center;
+    min-height: 2.75rem;
+  }
+}

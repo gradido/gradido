@@ -118,6 +118,7 @@
     "changeGroupDone": "Creatiegroep gewijzigd.",
     "changeGroupHint": "Afhankelijk van je zichtbare groepen verschijnt de bijdrage daarna mogelijk niet meer in je lijst.",
     "changeGroupQuestion": "Deze bijdrage verplaatsen van {from} naar {to}?",
+    "confirm": "Bevestigen",
     "confirmedBy": "Bevestigd door {name}.",
     "createdBy": "Aangemaakt door {name}.",
     "deletedBy": "Verwijderd door {name}.",
@@ -594,6 +595,9 @@
   "removeNotSelf": "Als admin/moderator kun je jezelf niet verwijderen.",
   "reset": "Resetten",
   "save": "Opslaan",
+  "search": {
+    "clear": "Zoekopdracht wissen"
+  },
   "send": "Verzenden",
   "status": "Status",
   "success": "Succes",
