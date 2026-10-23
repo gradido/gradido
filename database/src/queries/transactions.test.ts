@@ -9,7 +9,7 @@ import { TransactionTypeId } from '../enum'
 import { transactionsTable } from '../schemas'
 import { createCommunity } from '../seeds/community'
 import { creationFactory, nMonthsBefore } from '../seeds/factory/creation'
-import { foreignReceive, transferGradidos } from '../seeds/factory/transaction'
+import { createTransaction, foreignReceive, transferGradidos } from '../seeds/factory/transaction'
 import { userFactory } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '../seeds/users/bob-baumeister'
@@ -1205,10 +1205,24 @@ describe('the newest booking with a contact (E-083)', () => {
   let stephen: DbUser
   let bookedFirst: [{ id: number }, { id: number }]
   let bookedSecond: [{ id: number }, { id: number }]
+  let creationId: number
 
   beforeAll(async () => {
     garrick = await userFactory(garrickOllivander)
     stephen = await userFactory(stephenHawking)
+    // A creation for garrick, booked with nobody whoever confirmed it -- the blocks above emptied
+    // the tables, bibi's is gone. Dated before the transfers, which only go forward from it.
+    creationId = (
+      await createTransaction(
+        GradidoUnit.fromNumber(1000),
+        'Herzlich Willkommen bei Gradido!',
+        garrick,
+        stephen,
+        TransactionTypeId.CREATION,
+        day(19),
+        day(19),
+      )
+    ).id
     bookedFirst = await transferGradidos(
       garrick,
       stephen,
@@ -1274,10 +1288,12 @@ describe('the newest booking with a contact (E-083)', () => {
   })
 
   it('hands out no creation: it was booked with nobody', async () => {
-    const [bookings] = await dbSelectTransactionsByUserId(bibi.id, 50, 0, Order.DESC)
-    const creation = bookings.find((booking) => booking.typeId === TransactionTypeId.CREATION)
-    expect(creation).toBeDefined()
-    expect(await dbSelectBookingLinesOfUser(bibi.id, [creation?.id as number])).toEqual([])
+    // The row is there, garrick's, a creation -- and still no line.
+    const [bookings] = await dbSelectTransactionsByUserId(garrick.id, 50, 0, Order.DESC)
+    expect(bookings.find((booking) => booking.id === creationId)?.typeId).toBe(
+      TransactionTypeId.CREATION,
+    )
+    expect(await dbSelectBookingLinesOfUser(garrick.id, [creationId])).toEqual([])
   })
 })
 
