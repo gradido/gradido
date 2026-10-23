@@ -287,9 +287,11 @@ export const ChangeUserRoleFormular = defineComponent({
       )
     }
 
+    // Half the padding below 768px, as the other forms of an opened member: a phone has no room
+    // to spare inside the card.
     return () => (
       <div class='change-user-role-formular'>
-        <div class='shadow p-3 mb-5 bg-white rounded'>
+        <div class='shadow p-2 p-md-3 mb-5 rounded'>
           {roleForm()}
 
           {/* ES-021: "may create" -- next to the roles, because it is a right, but NOT a role:

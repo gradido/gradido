@@ -599,6 +599,7 @@
     "clear": "Καθαρισμός αναζήτησης"
   },
   "send": "Αποστολή",
+  "show_details": "Εμφάνιση λεπτομερειών",
   "status": "Κατάσταση",
   "success": "Επιτυχία",
   "text": "Κείμενο",
@@ -679,6 +680,10 @@
     },
     "successfullyChangedTo": "Ο χρήστης είναι τώρα «{role}».",
     "tabTitle": "Ρόλος χρήστη"
+  },
+  "userStatus": {
+    "emailUnconfirmed": "Το e-mail δεν επιβεβαιώθηκε",
+    "noElopage": "χωρίς αγορά Elopage"
   },
   "user_deleted": "Ο χρήστης διαγράφηκε.",
   "user_memo_search": "Αναζήτηση χρήστη και κειμένου",

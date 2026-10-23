@@ -122,6 +122,20 @@ describe('SearchUserTable', () => {
     const i18n = createI18n({
       legacy: false,
       locale: 'en',
+      // The two dates the table writes, in the forms the admin gives English (i18n.ts).
+      datetimeFormats: {
+        en: {
+          short: { year: 'numeric', month: 'numeric', day: 'numeric' },
+          long: {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            weekday: 'long',
+            hour: 'numeric',
+            minute: 'numeric',
+          },
+        },
+      },
     })
 
     const store = adminStore({
@@ -179,6 +193,23 @@ describe('SearchUserTable', () => {
   describe('show row details', () => {
     beforeEach(async () => {
       await wrapper.findAll('tbody > tr').at(1).trigger('click')
+    })
+
+    // The card of the contribution page's opened row: on a phone it gives its side margins to
+    // the forms (App.css, `row-details-card`), and its surface is Bootstrap's card colour.
+    it('opens into the card the phone rules know, on no fixed white ground', () => {
+      const card = wrapper.find('tbody .card')
+      expect(card.classes()).toEqual(
+        expect.arrayContaining([
+          'shadow-lg',
+          'ps-3',
+          'pe-3',
+          'mb-5',
+          'rounded',
+          'row-details-card',
+        ]),
+      )
+      expect(card.classes()).not.toContain('bg-white')
     })
 
     describe('isAdmin', () => {
@@ -524,6 +555,252 @@ describe('SearchUserTable', () => {
 
       expect(form().attributes('data-role')).toBe('ADMIN')
       expect(wrapper.emitted('update-role')).toEqual([[1, 'ADMIN']])
+    })
+  })
+
+  // A member as the search delivers them, with everything the card and the seven columns read.
+  const COMMUNITY = '9f8e7d6c-5b4a-4c3d-9e2f-1a0b9c8d7e6f'
+  const member = (overrides = {}) => ({
+    userId: 7,
+    firstName: 'Carla',
+    lastName: 'Sonne',
+    alias: 'carla-sonne',
+    email: 'carla.sonne@example.org',
+    creation: [1000, 850, 400],
+    createdAt: '2025-03-12T10:00:00.000Z',
+    emailChecked: true,
+    hasElopage: true,
+    deletedAt: null,
+    role: null,
+    gradidoID: '7a8b9c0d-1e2f-4a3b-8c4d-5e6f7a8b9c0d',
+    communityUuid: COMMUNITY,
+    findableOnMap: true,
+    ...overrides,
+  })
+  const DELETED_AT = '2026-01-15T09:00:00.000Z'
+  const NBSP = '\u00a0'
+  const rowIsOpen = () => wrapper.find('.change-user-role-formular').exists()
+
+  // Below 768px UserSearch hands the table one field, `memberCard`: every member is a card that
+  // says what the seven columns say, a line each (Bernd, 23.10.2026, AO-002).
+  describe('the card of a member on a phone', () => {
+    const MONTHS = ['Aug', 'Sep', 'Oct']
+    const showCards = async (items) => {
+      wrapper = createWrapper({
+        items,
+        fields: [{ key: 'memberCard', label: '' }],
+        creationMonths: MONTHS,
+      })
+      await flushPromises()
+    }
+    const cards = () => wrapper.findAll('.member-card')
+    // The lines of a card below its head, as text.
+    const linesBelowHead = (card) =>
+      Array.from(card.element.children)
+        .slice(1)
+        .map((line) => line.textContent.trim())
+    const fold = (index) => cards().at(index).find('button.phone-icon-btn')
+
+    it('the card shows the name, the username with the way into the wallet, the address, the registration date and the three months', async () => {
+      await showCards([member()])
+      const card = cards().at(0)
+
+      expect(card.find('.fw-semibold').text()).toBe('Carla Sonne')
+      const usernameLine = card.find('small')
+      expect(usernameLine.text()).toBe('carla-sonne')
+      expect(usernameLine.find('[data-test="member-map-pin"]').exists()).toBe(true)
+      expect(usernameLine.find('[data-test="member-send-arrow"]').exists()).toBe(true)
+      expect(usernameLine.findComponent(MemberWalletLink).props('member')).toMatchObject({
+        gradidoID: member().gradidoID,
+        communityUuid: COMMUNITY,
+      })
+      expect(linesBelowHead(card)).toEqual([
+        'carla.sonne@example.org',
+        'registered_at 3/12/2025',
+        // A month keeps its amount on its line: a protected space between them.
+        `creation: Aug${NBSP}1000 · Sep${NBSP}850 · Oct${NBSP}400`,
+        'enabled',
+      ])
+      // A long address and a long name break inside the card instead of widening it.
+      expect(card.element.children[1].classList).toContain('text-break')
+      expect(card.find('.fw-semibold').classes()).toContain('text-break')
+    })
+
+    it('a member without a name is named by their username', async () => {
+      await showCards([member({ firstName: '', lastName: null })])
+      expect(cards().at(0).find('.fw-semibold').text()).toBe('carla-sonne')
+    })
+
+    it('the card names the status in words: active, deleted, e-mail not confirmed, no Elopage purchase', async () => {
+      await showCards([
+        member({ userId: 1 }),
+        // Deleted says it all: the other two are not named beside it.
+        member({ userId: 2, deletedAt: DELETED_AT, emailChecked: false, hasElopage: false }),
+        member({ userId: 3, emailChecked: false }),
+        member({ userId: 4, hasElopage: false }),
+        member({ userId: 5, emailChecked: false, hasElopage: false }),
+      ])
+      const badges = (index) =>
+        cards()
+          .at(index)
+          .findAll('.badge')
+          .map((badge) => [
+            badge.text(),
+            badge.classes().find((name) => name.startsWith('text-bg-')),
+          ])
+
+      expect(badges(0)).toEqual([['enabled', 'text-bg-success']])
+      expect(badges(1)).toEqual([['deleted', 'text-bg-danger']])
+      expect(badges(2)).toEqual([['userStatus.emailUnconfirmed', 'text-bg-warning']])
+      expect(badges(3)).toEqual([['userStatus.noElopage', 'text-bg-secondary']])
+      expect(badges(4)).toEqual([
+        ['userStatus.emailUnconfirmed', 'text-bg-warning'],
+        ['userStatus.noElopage', 'text-bg-secondary'],
+      ])
+    })
+
+    // The button opens its row itself -- once: had the table taken the press as well, the row
+    // would have opened and closed again.
+    it('the fold button opens and closes the row and says which it does', async () => {
+      await showCards([member({ userId: 1 }), member({ userId: 2 })])
+      expect(fold(1).attributes('aria-expanded')).toBe('false')
+      expect(fold(1).attributes('aria-label')).toBe('show_details')
+      expect(fold(1).attributes('title')).toBe('show_details')
+
+      await fold(1).trigger('click')
+
+      expect(rowIsOpen()).toBe(true)
+      // The details stand under the card that was pressed, the second (the table puts a hidden
+      // row of its own between them, for the stripes).
+      const rows = wrapper.findAll('tbody > tr').map((row) => row.element)
+      const second = rows.indexOf(cards().at(1).element.closest('tr'))
+      expect(second).toBe(1)
+      expect(
+        rows.findIndex((row) => row.querySelector('.change-user-role-formular')),
+      ).toBeGreaterThan(second)
+      expect(fold(1).attributes('aria-expanded')).toBe('true')
+      expect(fold(1).attributes('aria-label')).toBe('hide_details')
+      expect(fold(1).attributes('title')).toBe('hide_details')
+      expect(fold(0).attributes('aria-expanded')).toBe('false')
+
+      await fold(1).trigger('click')
+
+      expect(rowIsOpen()).toBe(false)
+      expect(fold(1).attributes('aria-expanded')).toBe('false')
+      expect(fold(1).attributes('aria-label')).toBe('show_details')
+    })
+
+    // ⛔ A real press reaches the row only after Vue has drawn the other symbol: a browser runs
+    // the page's queued work between two listeners of the press (measured in the built bundle,
+    // 23.10.2026). Its target, the symbol of before, is out of the page by then, and the table
+    // took the press for one on the row and closed it again. A click sent by a test reaches the
+    // row before any drawing, so a listener on the cell stands in for it here.
+    it('keeps the press to itself, so that the symbol drawn anew does not close the row again', async () => {
+      await showCards([member()])
+      cards()
+        .at(0)
+        .element.closest('td')
+        .addEventListener('click', (event) => event.target.remove())
+      const symbol = fold(0).element.firstElementChild
+      expect(symbol).not.toBeNull()
+
+      symbol.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await flushPromises()
+
+      expect(rowIsOpen()).toBe(true)
+      expect(fold(0).attributes('aria-expanded')).toBe('true')
+    })
+
+    it('opens the row on a press anywhere else in the card, as at the desk', async () => {
+      await showCards([member()])
+      await cards().at(0).trigger('click')
+      expect(rowIsOpen()).toBe(true)
+      expect(fold(0).attributes('aria-expanded')).toBe('true')
+    })
+  })
+
+  describe('at the desk', () => {
+    // The seven columns as UserSearch hands them.
+    const SEVEN = [
+      { key: 'email', label: 'e_mail' },
+      { key: 'firstName', label: 'firstname' },
+      { key: 'lastName', label: 'lastname' },
+      { key: 'alias', label: 'username', tdClass: 'text-break' },
+      { key: 'creation', label: 'creationLabel', formatter: (value) => value.join(' | ') },
+      { key: 'createdAt', label: 'registered_at' },
+      { key: 'status', label: 'status' },
+    ]
+    const cellsOf = (row) => wrapper.findAll('tbody > tr').at(row).findAll('td')
+
+    it('the desk cells render as before', async () => {
+      wrapper = createWrapper({ items: [member()], fields: SEVEN })
+      await flushPromises()
+      const cells = cellsOf(0)
+
+      expect(cells).toHaveLength(7)
+      expect(cells.slice(0, 5).map((cell) => cell.text())).toEqual([
+        'carla.sonne@example.org',
+        'Carla',
+        'Sonne',
+        'carla-sonne',
+        '1000 | 850 | 400',
+      ])
+      expect(cells[3].find('[data-test="member-map-pin"]').exists()).toBe(true)
+      expect(cells[5].text()).toMatch(/March 12, 2025/)
+      // An active member: no symbol, no word, the arrow alone.
+      expect(cells[6].text()).toBe('')
+      expect(wrapper.find('.member-card').exists()).toBe(false)
+    })
+
+    it('at the desk every status symbol carries its word and the arrow carries no title', async () => {
+      wrapper = createWrapper({
+        items: [
+          member({ userId: 1, deletedAt: DELETED_AT }),
+          member({ userId: 2, emailChecked: false, hasElopage: false }),
+        ],
+        fields: [{ key: 'status', label: 'status' }],
+      })
+      await flushPromises()
+      // Each word stands right behind its symbol.
+      const words = (row) =>
+        cellsOf(row)
+          .at(0)
+          .findAll('small')
+          .map((word) => [word.text(), word.element.previousElementSibling?.tagName])
+
+      expect(words(0)).toEqual([['deleted', 'DIV']])
+      expect(cellsOf(0).at(0).find('small').element.previousElementSibling.classList).toContain(
+        'test-deleted-icon',
+      )
+      expect(words(1)).toEqual([
+        ['userStatus.emailUnconfirmed', 'DIV'],
+        ['userStatus.noElopage', 'IMG'],
+      ])
+      // The words stand from 1200px on (narrower, the table grew and reached past the window
+      // with them), and a screen reader hears them from the symbols on every width: the word
+      // beside a symbol is hidden from it, its `alt` names the state.
+      const all = [0, 1].flatMap((row) => cellsOf(row).at(0).findAll('small'))
+      for (const word of all) {
+        expect(word.classes()).toEqual(expect.arrayContaining(['d-none', 'd-xl-inline']))
+        expect(word.attributes('aria-hidden')).toBe('true')
+      }
+      const alts = (row) =>
+        cellsOf(row)
+          .at(0)
+          .findAll('img')
+          .map((image) => image.attributes('alt'))
+      // The deleted symbol is two pictures; one names it.
+      expect(alts(0)).toEqual(['deleted', ''])
+      expect(alts(1)).toEqual(['userStatus.emailUnconfirmed', 'userStatus.noElopage'])
+      for (const row of [0, 1]) {
+        const cell = cellsOf(row).at(0)
+        // The arrow read `enabled`, which the search never delivers, and called every member
+        // deleted. It names nothing now and is no stop for a screen reader.
+        expect(cell.find('[title]').exists()).toBe(false)
+        expect(cell.find('svg, [aria-hidden="true"]:not(small)').attributes('aria-hidden')).toBe(
+          'true',
+        )
+      }
     })
   })
 })

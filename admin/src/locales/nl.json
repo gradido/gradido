@@ -599,6 +599,7 @@
     "clear": "Zoekopdracht wissen"
   },
   "send": "Verzenden",
+  "show_details": "Details tonen",
   "status": "Status",
   "success": "Succes",
   "text": "Tekst",
@@ -679,6 +680,10 @@
     },
     "successfullyChangedTo": "Gebruiker is nu «{role}».",
     "tabTitle": "Gebruikersrol"
+  },
+  "userStatus": {
+    "emailUnconfirmed": "E-mail niet bevestigd",
+    "noElopage": "geen Elopage-aankoop"
   },
   "user_deleted": "Gebruiker is verwijderd.",
   "user_memo_search": "Gebruikers- en tekstzoekopdracht",

@@ -1,3 +1,11 @@
 .input-group-text {
   background-color: rgb(255 252 205);
 }
+
+/* A phone: the words before the address break. On one line, as Bootstrap holds them, they were
+   wider than the card of an opened member. */
+@media (width < 768px) {
+  .component-confirm-register-mail .input-group-text {
+    white-space: normal;
+  }
+}

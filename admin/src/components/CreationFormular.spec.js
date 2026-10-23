@@ -2,6 +2,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 import { CreationFormular } from './CreationFormular'
+import classes from './CreationFormular.module.css'
 
 const mocks = vi.hoisted(() => ({
   mutate: vi.fn(),
@@ -50,6 +51,14 @@ vi.mock('../composables/useCreationMonths', () => ({
   }),
 }))
 
+// Which side of the phone boundary the window is on, set per test. jsdom has no matchMedia, so
+// the real composable would answer `unknown` everywhere.
+const { viewport } = await vi.hoisted(async () => {
+  const { ref } = await import('vue')
+  return { viewport: ref('unknown') }
+})
+vi.mock('@/composables/useViewport', () => ({ useViewport: () => viewport }))
+
 const item = { userId: 7, email: 'bob@baumeister.de' }
 
 describe('CreationFormular', () => {
@@ -80,6 +89,7 @@ describe('CreationFormular', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    viewport.value = 'unknown'
     wrapper = mountFormular()
   })
 
@@ -204,4 +214,45 @@ describe('CreationFormular', () => {
   it('offers submitCreation to its parent', () => {
     expect(typeof wrapper.vm.submitCreation).toBe('function')
   })
+
+  // Month, amount and text carry the class whose margins a phone shrinks, the amount the one that
+  // stacks it (CreationFormular.module.css). Bootstrap's m-4 would have left a phone no say.
+  it('hands the three parts of the form the classes a phone narrows', async () => {
+    await selectJanuary()
+    const parts = wrapper.findAll(`.${classes.block}`)
+    expect(parts).toHaveLength(3)
+    expect(parts[0].classes()).toContain('mt-0')
+    expect(parts[1].classes()).toEqual(expect.arrayContaining([classes.amountRow, 'd-flex']))
+    expect(parts[2].find('textarea').exists()).toBe(true)
+    expect(wrapper.findAll('.m-4')).toHaveLength(0)
+  })
+
+  // On a phone the months stand under each other, one to a line: the radios lose the inline
+  // form the library gives them side by side. The buttons stack by CSS, the submission on top
+  // (CreationFormular.module.css, held by phoneStyles.spec.js): the column is reversed, so the
+  // submission has to come after the reset in the document.
+  it.each([
+    ['mobile', false],
+    ['desktop', true],
+    ['unknown', true],
+  ])(
+    'on a phone the months stand stacked and the buttons under each other, at the desk as before (%s)',
+    async (side, sideBySide) => {
+      viewport.value = side
+      wrapper = mountFormular()
+
+      const months = wrapper.findAll('.form-check')
+      expect(months).toHaveLength(2)
+      for (const month of months) {
+        expect(month.classes('form-check-inline')).toBe(sideBySide)
+      }
+      const buttons = wrapper.findAll('button').map((button) => button.attributes('type'))
+      expect(buttons).toEqual(['reset', 'button'])
+      // The box around the form: no fixed white ground, half its padding below 768px.
+      const box = wrapper.find('.shadow').classes()
+      expect(box).not.toContain('bg-white')
+      expect(box).toEqual(expect.arrayContaining(['p-2', 'p-md-3']))
+      expect(box).not.toContain('p-3')
+    },
+  )
 })

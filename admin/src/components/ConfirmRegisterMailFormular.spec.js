@@ -83,6 +83,16 @@ describe('ConfirmRegisterMailFormular', () => {
     expect(wrapper.find('.component-confirm-register-mail').exists()).toBe(true)
   })
 
+  // Its surface is the one of the card it stands in, which a dark mode can turn; on a phone it
+  // has half its padding. The words before the address break on a phone by a rule that hangs
+  // on the root's class (ConfirmRegisterMailFormular.css, held by phoneStyles.spec.js).
+  it('the card has no fixed white ground', () => {
+    const card = wrapper.find('.component-confirm-register-mail > div')
+    expect(card.classes()).toEqual(expect.arrayContaining(['shadow', 'p-2', 'p-md-3', 'rounded']))
+    expect(card.classes()).not.toContain('bg-white')
+    expect(wrapper.find('.component-confirm-register-mail .input-group-text').exists()).toBe(true)
+  })
+
   describe('send register mail', () => {
     it('calls the API with email on button click', async () => {
       mockMutate.mockResolvedValueOnce({})

@@ -1,3 +1,36 @@
 .buttonsWrapper {
   margin: 1.5rem 2.4rem;
 }
+
+/* The three parts of the form -- month, amount, text -- with the room around them that
+   Bootstrap's `m-4` gave them, which this replaces. */
+.block {
+  margin: 1.5rem;
+}
+
+/* A phone: the form takes the width of the card it stands in. With the room of the desk the
+   text field was 126px wide at 320px, and the submit button stood 21.7px past the window
+   (measured 23.10.2026). */
+@media (width < 768px) {
+  .block {
+    margin: 0.25rem 0;
+  }
+
+  /* The amount under its label, the field and the slider in the whole width. */
+  .amountRow {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  /* The two buttons under each other, each in the whole width, the submission on top -- as the
+     decision dialog of the contribution page does. */
+  .buttonsWrapper {
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+    margin: 1rem 0;
+  }
+
+  .buttonsWrapper :global(.btn) {
+    width: 100%;
+  }
+}

@@ -599,6 +599,7 @@
     "clear": "Borrar la búsqueda"
   },
   "send": "Enviar",
+  "show_details": "Mostrar detalles",
   "status": "Estado",
   "success": "Éxito",
   "text": "Texto",
@@ -679,6 +680,10 @@
     },
     "successfullyChangedTo": "El usuario es ahora «{role}».",
     "tabTitle": "Rol del usuario"
+  },
+  "userStatus": {
+    "emailUnconfirmed": "Correo electrónico no confirmado",
+    "noElopage": "sin compra en Elopage"
   },
   "user_deleted": "El usuario está eliminado.",
   "user_memo_search": "Búsqueda de usuario y texto",
