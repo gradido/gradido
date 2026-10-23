@@ -919,6 +919,46 @@ describe('ContactResolver', () => {
       expect(row.lastChatMessageAt).not.toBeNull()
     })
 
+    // The line under each name on "Kontakte & Chat" (E-083): the beginning of the latest message,
+    // or of the latest booking where there is no message -- here every contact has one or the other.
+    it('carries the line of the latest word under each name', async () => {
+      const lineOf = Object.fromEntries(
+        (await contacts()).contacts.map((c: any) => [c.user.gradidoID, c.chatPreview]),
+      )
+      // Dora wrote from the e-mail form: its subject first, then her words.
+      expect(lineOf[dora.gradidoID]).toEqual({
+        mine: false,
+        excerpt: 'A ladder\n\nDo you still have the ladder?',
+        hasImage: false,
+        amount: null,
+        senderUser: null,
+      })
+      // bibi's own message to Frida, across the border.
+      expect(lineOf[FRIDA]).toMatchObject({
+        mine: true,
+        excerpt: 'Greetings from over here',
+        amount: null,
+      })
+      // Bookings only: the newest of each -- bob gave bibi two Gradido with "two", bibi gave
+      // peter three with "three". The amount without its sign; `mine` says who gave.
+      expect(lineOf[bob.gradidoID]).toMatchObject({ mine: false, excerpt: 'two', hasImage: false })
+      expect(Number(lineOf[bob.gradidoID].amount)).toBe(2)
+      expect(lineOf[peter.gradidoID]).toMatchObject({ mine: true, excerpt: 'three' })
+      expect(Number(lineOf[peter.gradidoID].amount)).toBe(3)
+    })
+
+    // ⛔ The wallet asks for the line through a fragment (contactFields), and the server reads the
+    // messages only where the field is asked for (extractGraphQLFieldPaths): a spread has to count.
+    it('reads the line where it is asked for through a fragment, as the wallet asks', async () => {
+      const res: any = await query({
+        query: `fragment withLine on Contact { user { gradidoID } chatPreview { excerpt } }
+          query { contactList(currentPage: 1, pageSize: 25) { contacts { ...withLine } } }`,
+      })
+      expect(res.errors).toBeUndefined()
+      const row = res.data.contactList.contacts.find((c: any) => c.user.gradidoID === FRIDA)
+      expect(row.chatPreview).toEqual({ excerpt: 'Greetings from over here' })
+    })
+
     it('names by the pairs exactly the people the list holds, those who only wrote among them', async () => {
       const refs = await pairsOfTheContactRefs()
       expect(refs).toEqual(await pairsOfTheContactList())

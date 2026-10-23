@@ -1,6 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { ContactOrigin } from '@enum/ContactOrigin'
 import { Field, Int, ObjectType } from 'type-graphql'
+import { ChatPreview } from './ChatPreview'
 import { User } from './User'
 
 /**
@@ -23,6 +24,7 @@ export class Contact {
     origin: ContactOrigin | null,
     unreadChatMessages: number,
     lastChatMessageAt: Date | null,
+    chatPreview: ChatPreview | null = null,
   ) {
     this.user = user
     this.firstAt = firstAt
@@ -33,6 +35,7 @@ export class Contact {
     this.origin = origin
     this.unreadChatMessages = unreadChatMessages
     this.lastChatMessageAt = lastChatMessageAt
+    this.chatPreview = chatPreview
   }
 
   @Field(() => User)
@@ -127,4 +130,12 @@ export class Contact {
   /** When the latest message between the two arrived here; null where there is none. */
   @Field(() => Date, { nullable: true })
   lastChatMessageAt: Date | null
+
+  /**
+   * The line under the name on "Kontakte & Chat" (E-083): the beginning of the latest message
+   * between the two, or of the latest booking where that came later; null where there is neither.
+   * Filled only where it is asked for (contactList).
+   */
+  @Field(() => ChatPreview, { nullable: true })
+  chatPreview: ChatPreview | null
 }
