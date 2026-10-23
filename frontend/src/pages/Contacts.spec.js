@@ -591,8 +591,9 @@ describe('Contacts page', () => {
         query: 'contactListQuery',
         variables: { currentPage: 1, pageSize: 1000 },
         fetchPolicy: 'network-only',
-        // ⛔ Nobody did anything on this page: the session clock stays where it was.
-        context: { renewSession: false },
+        // ⛔ Nobody did anything on this page: the session clock stays where it was. And the
+        // question leaves on its own, never merged into one still on its way.
+        context: { renewSession: false, queryDeduplication: false },
       })
     })
 
@@ -1192,8 +1193,9 @@ describe('Contacts page', () => {
         expect(asked).toEqual({
           query: 'chatGroupsQuery',
           fetchPolicy: 'network-only',
-          // ⛔ Nobody did anything on this page: the session clock stays where it was.
-          context: { renewSession: false },
+          // ⛔ Nobody did anything on this page: the session clock stays where it was. And the
+          // question leaves on its own, never merged into one still on its way.
+          context: { renewSession: false, queryDeduplication: false },
         })
       })
 

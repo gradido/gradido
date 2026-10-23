@@ -17,6 +17,7 @@ vi.mock('vue-i18n', () => ({
           ? `${key} ${JSON.stringify(values)}`
           : key,
     d: (date) => `d(${date.toISOString()})`,
+    n: (value) => `n(${value})`,
   }),
 }))
 
@@ -247,6 +248,92 @@ describe('ContactRow', () => {
       expect(rule('\\.contact-row-open')).toMatch(/display:\s*flex/)
       expect(rule('\\.contact-row-text')).toMatch(/flex:\s*1/)
       expect(rule('\\.contact-row-text')).toMatch(/min-width:\s*0/)
+    })
+  })
+
+  /**
+   * The line of the latest word under the name (E-083, Bernd, 23.10.2026): the beginning of the
+   * latest message, or of the latest booking where that came later -- in the place of the
+   * community's line where the person belongs to the member's own community.
+   */
+  describe('the line of the latest word', () => {
+    const MESSAGE = {
+      mine: false,
+      excerpt: 'Morgen um zehn im Garten?',
+      hasImage: false,
+      amount: null,
+    }
+    const BOOKING = {
+      mine: true,
+      excerpt: 'Danke für Deine Hilfe',
+      hasImage: false,
+      amount: '20.00',
+    }
+    const lineOf = () => wrapper.find('[data-test="chat-preview-line"]')
+
+    it("stands in the community's place for somebody of the member's own community", () => {
+      mountWith({ ...CONTACT, homeCommunity: true, chatPreview: MESSAGE })
+      expect(wrapper.find('[data-test="contact-community"]').exists()).toBe(false)
+      expect(lineOf().text()).toBe('Morgen um zehn im Garten?')
+    })
+
+    it('stands under the community of somebody of another community, which keeps its line', () => {
+      mountWith({
+        ...CONTACT,
+        user: { ...CONTACT.user, communityName: 'Gradido Bremen' },
+        homeCommunity: false,
+        chatPreview: MESSAGE,
+      })
+      const text = wrapper.find('[data-test="contact-row-open"]').text()
+      expect(wrapper.find('[data-test="contact-community"]').text()).toBe('Gradido Bremen')
+      expect(text.indexOf('Gradido Bremen')).toBeLessThan(text.indexOf('Morgen um zehn'))
+    })
+
+    it('leaves the row as it was where there is nothing to show', () => {
+      mountWith({ ...CONTACT, homeCommunity: true, chatPreview: null })
+      expect(lineOf().exists()).toBe(false)
+      expect(wrapper.find('[data-test="contact-community"]').text()).toBe('Gradido-Akademie')
+    })
+
+    it('stands between the name and the line of how often and how recently', () => {
+      mountWith({ ...CONTACT, homeCommunity: true, chatPreview: MESSAGE })
+      const text = wrapper.find('[data-test="contact-row-open"]').text()
+      expect(text.indexOf('Carla-Sonne')).toBeLessThan(text.indexOf('Morgen um zehn'))
+      expect(text.indexOf('Morgen um zehn')).toBeLessThan(text.indexOf('contacts.bookings:12'))
+    })
+
+    it('is part of what the button says, inside it', () => {
+      mountWith({ ...CONTACT, homeCommunity: true, chatPreview: MESSAGE })
+      expect(
+        wrapper.find('[data-test="contact-row-open"] [data-test="chat-preview-line"]').exists(),
+      ).toBe(true)
+    })
+
+    describe('dark while a message from them waits unread', () => {
+      const darkness = (contact) => {
+        mountWith({ ...CONTACT, homeCommunity: true, ...contact })
+        return lineOf().classes().includes('fw-semibold')
+      }
+
+      it('is dark for their message while something waits', () => {
+        expect(darkness({ chatPreview: MESSAGE, unreadChatMessages: 2 })).toBe(true)
+      })
+
+      it('is quiet once nothing waits', () => {
+        expect(darkness({ chatPreview: MESSAGE, unreadChatMessages: 0 })).toBe(false)
+      })
+
+      it("is quiet for one's own message, whatever waits", () => {
+        expect(darkness({ chatPreview: { ...MESSAGE, mine: true }, unreadChatMessages: 2 })).toBe(
+          false,
+        )
+      })
+
+      it('is quiet for a booking: an amount waits for nobody', () => {
+        expect(darkness({ chatPreview: { ...BOOKING, mine: false }, unreadChatMessages: 2 })).toBe(
+          false,
+        )
+      })
     })
   })
 })

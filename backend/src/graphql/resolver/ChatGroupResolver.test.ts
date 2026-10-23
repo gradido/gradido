@@ -424,6 +424,27 @@ describe('writing in a group', () => {
     expect(announcements()).toEqual([])
   })
 
+  // The line under the group's name on "Kontakte & Chat" (E-083): its latest message, and who
+  // wrote it -- nobody named for the writer's own, the writer for everybody else.
+  it("shows the latest message under the group's name, with its writer", async () => {
+    const lineOf = async () =>
+      (await groupsOfCaller()).find((group: any) => group.groupUuid === cafe.groupUuid).chatPreview
+    expect(await lineOf()).toEqual({
+      mine: true,
+      excerpt: 'Samstag um 14 Uhr?',
+      hasImage: false,
+      amount: null,
+      senderUser: null,
+    })
+    await loginAs('bibi@bloxberg.de')
+    expect(await lineOf()).toMatchObject({
+      mine: false,
+      excerpt: 'Samstag um 14 Uhr?',
+      senderUser: { gradidoID: bob.gradidoID },
+    })
+    await loginAs('bob@baumeister.de')
+  })
+
   // E-050 F5: an announcement is the owner's and the moderators'.
   it('refuses an announcement from a plain member, and files nothing', async () => {
     const before = await allMessages()

@@ -2,6 +2,7 @@
 import { ChatGroupRole } from '@enum/ChatGroupRole'
 import { dbSelectChatGroupsByMember } from 'database'
 import { Field, Int, ObjectType } from 'type-graphql'
+import { ChatPreview } from './ChatPreview'
 import { User } from './User'
 
 /** One group of dbSelectChatGroupsByMember: the group, and the member's own row in it. */
@@ -19,9 +20,15 @@ export type ChatGroupOfMember = Awaited<ReturnType<typeof dbSelectChatGroupsByMe
 export class ChatGroup {
   /**
    * `communityName`: the name of the community the group lives in (E-026) -- this one in P5.
-   * `createdBy`: who opened it, or null where their users row is gone.
+   * `createdBy`: who opened it, or null where their users row is gone. `chatPreview`: the line of
+   * its latest message (E-083), null for a group without one.
    */
-  constructor(group: ChatGroupOfMember, communityName: string | null, createdBy: User | null) {
+  constructor(
+    group: ChatGroupOfMember,
+    communityName: string | null,
+    createdBy: User | null,
+    chatPreview: ChatPreview | null = null,
+  ) {
     this.groupUuid = group.groupUuid
     this.conversationId = group.id
     // The column may hold null for a direct conversation; a group always has a name.
@@ -35,6 +42,7 @@ export class ChatGroup {
     this.memberCount = group.memberCount
     this.unreadMessages = group.unreadMessages
     this.lastMessageAt = group.lastMessageAt
+    this.chatPreview = chatPreview
   }
 
   /** What the group is known by -- to the wallet, and in the links of its mails (E-049). */
@@ -84,4 +92,11 @@ export class ChatGroup {
   /** When the latest message arrived here (E-018); null for a group without one. */
   @Field(() => Date, { nullable: true })
   lastMessageAt: Date | null
+
+  /**
+   * The line under the group's name on "Kontakte & Chat" (E-083): the beginning of its latest
+   * message, and who wrote it; null for a group without a message yet.
+   */
+  @Field(() => ChatPreview, { nullable: true })
+  chatPreview: ChatPreview | null
 }

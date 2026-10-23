@@ -995,6 +995,15 @@ export const contactList = gql`
         origin
         unreadChatMessages
         lastChatMessageAt
+        chatPreview {
+          mine
+          excerpt
+          hasImage
+          amount
+          senderUser {
+            gradidoID
+          }
+        }
       }
     }
   }
@@ -1151,6 +1160,16 @@ const chatGroupFields = `
   memberCount
   unreadMessages
   lastMessageAt
+  chatPreview {
+    mine
+    excerpt
+    hasImage
+    amount
+    senderUser {
+      gradidoID
+      alias
+    }
+  }
 `
 
 export const chatGroups = gql`

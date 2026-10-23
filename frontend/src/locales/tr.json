@@ -251,6 +251,9 @@
     "sentMailed": "Gönderildi. {name} bir e-posta alacak.",
     "toConversation": "Sohbete git"
   },
+  "chatPreview": {
+    "by": "{name}:"
+  },
   "chatSearch": {
     "capped": "Son {count} mesajda arama yapıldı.",
     "count": "{current}/{count}",

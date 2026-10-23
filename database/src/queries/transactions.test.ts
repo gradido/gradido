@@ -1,4 +1,5 @@
 // AI-GENERATED — not an architecture reference
+import { and, eq } from 'drizzle-orm'
 import { ContactOrigin, GradidoUnit, Order } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
 import { clearDatabase } from '../../migration/clear'
@@ -8,11 +9,14 @@ import { TransactionTypeId } from '../enum'
 import { transactionsTable } from '../schemas'
 import { createCommunity } from '../seeds/community'
 import { creationFactory, nMonthsBefore } from '../seeds/factory/creation'
-import { foreignReceive, transferGradidos } from '../seeds/factory/transaction'
+import { createTransaction, foreignReceive, transferGradidos } from '../seeds/factory/transaction'
 import { userFactory } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '../seeds/users/bob-baumeister'
+import { garrickOllivander } from '../seeds/users/garrick-ollivander'
 import { peterLustig } from '../seeds/users/peter-lustig'
+import { raeuberHotzenplotz } from '../seeds/users/raeuber-hotzenplotz'
+import { stephenHawking } from '../seeds/users/stephen-hawking'
 import { dbUpdateChatConversationMemberLastRead } from './chatConversationMembers'
 import { dbEnsureDirectChatConversation } from './chatConversations'
 import { dbInsertChatMessage } from './chatMessages'
@@ -20,6 +24,7 @@ import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 import {
   dbCountAndSumTransactionsOfType,
   dbCountAndSumTransactionsOfTypeByWeek,
+  dbSelectBookingLinesOfUser,
   dbSelectContactsByUserId,
   dbSelectReceivedTransferOfUser,
   dbSelectTransactionsByUserId,
@@ -200,6 +205,33 @@ describe('dbSelectContactsByUserId', () => {
     expect(first.contacts[0].gradidoId).toBe(ANNA)
   })
 
+  // The line under each name (E-083): the newest booking with each contact, and when it was booked.
+  it('points at the newest booking with each contact', async () => {
+    const page = await dbSelectContactsByUserId(bibi.id, {
+      member: memberOf(bibi),
+      limit: 25,
+      offset: 0,
+    })
+    const byId = Object.fromEntries(page.contacts.map((c) => [c.gradidoId, c]))
+    const lines = await dbSelectBookingLinesOfUser(
+      bibi.id,
+      page.contacts.map((c) => c.lastBookingId).filter((id): id is number => id !== null),
+    )
+    const memoOf = (gradidoId: string) =>
+      lines.find((line) => line.id === byId[gradidoId].lastBookingId)?.memo
+    // Three bookings with peter, the newest "four"; two with bob, the newest "five".
+    expect(memoOf(peter.gradidoID)).toBe('four')
+    expect(memoOf(bob.gradidoID)).toBe('five')
+    expect(byId[peter.gradidoID].lastBookingAt?.getTime()).toBe(day(4).getTime())
+    // A member of another community: the newest of her two bookings.
+    expect(byId[SARAH].lastBookingAt?.getTime()).toBe(day(7).getTime())
+    expect(lines.find((line) => line.id === byId[SARAH].lastBookingId)?.balanceDate.getTime()).toBe(
+      day(7).getTime(),
+    )
+    // Nobody here was written with: no message to point at.
+    expect(page.contacts.every((c) => c.lastChatMessageId === null)).toBe(true)
+  })
+
   it('does not count the creation as a contact', async () => {
     const page = await dbSelectContactsByUserId(bibi.id, {
       member: memberOf(bibi),
@@ -328,6 +360,10 @@ describe('dbSelectContactsByUserId with a person both groupings found', () => {
     // Oldest of the two, newest of the two -- not one grouping's pair of dates.
     expect(lotte[0].firstAt.getTime()).toBe(day(8).getTime())
     expect(lotte[0].lastAt.getTime()).toBe(day(9).getTime())
+    // And the newest booking is the newest of both groupings, whichever was seen first (E-083).
+    expect(lotte[0].lastBookingAt?.getTime()).toBe(day(9).getTime())
+    const [line] = await dbSelectBookingLinesOfUser(peter.id, [lotte[0].lastBookingId as number])
+    expect(line.balanceDate.getTime()).toBe(day(9).getTime())
   })
 
   it('counts her once in the page count as well', async () => {
@@ -883,6 +919,9 @@ describe('dbSelectContactsByUserId with conversations', () => {
     expect(frida?.firstAt.getTime()).toBe(day(12).getTime())
     expect(frida?.lastAt.getTime()).toBe(day(12).getTime())
     expect(frida?.lastChatMessageAt?.getTime()).toBe(day(12).getTime())
+    // The line under her name (E-083): her conversation's message, and no booking.
+    expect(frida?.lastChatMessageId).toEqual(expect.any(Number))
+    expect(frida).toMatchObject({ lastBookingId: null, lastBookingAt: null })
   })
 
   it('joins bookings, the trace and a conversation with one person into ONE contact', async () => {
@@ -895,6 +934,12 @@ describe('dbSelectContactsByUserId with conversations', () => {
       unreadChatMessages: 1,
     })
     expect(rows[0].lastChatMessageAt?.getTime()).toBe(day(21).getTime())
+    // The line under his name (E-083) can point at either: his latest message, and the latest
+    // booking with him -- each from its own bundle, joined like the dates.
+    expect(rows[0].lastChatMessageId).toBe(bobsMessage)
+    expect(rows[0].lastBookingAt?.getTime()).toBe(day(5).getTime())
+    const [line] = await dbSelectBookingLinesOfUser(bibi.id, [rows[0].lastBookingId as number])
+    expect(line.memo).toBe('five')
     // The oldest of the three events -- his arrival -- to the youngest, his message.
     expect(rows[0].firstAt.getTime()).toBe(bobArrived.getTime())
     expect(rows[0].lastAt.getTime()).toBe(day(21).getTime())
@@ -1147,5 +1192,150 @@ describe('dbCountAndSumTransactionsOfTypeByWeek', () => {
     expect(await dbCountAndSumTransactionsOfTypeByWeek(TransactionTypeId.CREATION, from)).toEqual([
       { weekStart: '2026-09-07', n: 1, gdd: 100 },
     ])
+  })
+})
+
+/**
+ * The newest booking with a contact, whose memo stands under the name on "Kontakte & Chat"
+ * (E-083), and the rows it is read from. Two members of their own, so that nothing the tests
+ * above count changes.
+ */
+describe('the newest booking with a contact (E-083)', () => {
+  let garrick: DbUser
+  let stephen: DbUser
+  let bookedFirst: [{ id: number }, { id: number }]
+  let bookedSecond: [{ id: number }, { id: number }]
+  let creationId: number
+
+  beforeAll(async () => {
+    garrick = await userFactory(garrickOllivander)
+    stephen = await userFactory(stephenHawking)
+    // A creation for garrick, booked with nobody whoever confirmed it -- the blocks above emptied
+    // the tables, bibi's is gone. Dated before the transfers, which only go forward from it.
+    creationId = (
+      await createTransaction(
+        GradidoUnit.fromNumber(1000),
+        'Herzlich Willkommen bei Gradido!',
+        garrick,
+        stephen,
+        TransactionTypeId.CREATION,
+        day(19),
+        day(19),
+      )
+    ).id
+    bookedFirst = await transferGradidos(
+      garrick,
+      stephen,
+      new GradidoUnit(10000n),
+      'booked first',
+      day(20),
+    )
+    bookedSecond = await transferGradidos(
+      garrick,
+      stephen,
+      new GradidoUnit(20000n),
+      'booked second',
+      day(21),
+    )
+    // A booking time written after the row, as dbUpdateBalanceAndDate writes it: the row with the
+    // LOWER id is now the newest booking.
+    await drizzleDb()
+      .update(transactionsTable)
+      .set({ balanceDate: day(22) })
+      .where(
+        and(eq(transactionsTable.id, bookedFirst[0].id), eq(transactionsTable.userId, garrick.id)),
+      )
+  })
+
+  it('takes the newest by booking time, not by id', async () => {
+    const page = await dbSelectContactsByUserId(garrick.id, {
+      member: memberOf(garrick),
+      limit: 25,
+      offset: 0,
+    })
+    expect(page.contacts).toHaveLength(1)
+    expect(bookedFirst[0].id).toBeLessThan(bookedSecond[0].id)
+    expect(page.contacts[0].lastBookingId).toBe(bookedFirst[0].id)
+    expect(page.contacts[0].lastBookingAt?.getTime()).toBe(day(22).getTime())
+  })
+
+  // ⚠️ The seed writes both rows of a transfer with the amount as given; the server writes the
+  // SEND row negative (TransactionResolver). So the sign is not what this asserts -- the line
+  // builder takes the amount without it either way (chatPreviews.test.ts).
+  it("hands back the member's own rows: what was given, its amount, memo and time", async () => {
+    const lines = await dbSelectBookingLinesOfUser(garrick.id, [
+      bookedFirst[0].id,
+      bookedSecond[0].id,
+    ])
+    const second = lines.find((line) => line.id === bookedSecond[0].id)
+    expect(lines).toHaveLength(2)
+    expect(second).toMatchObject({ typeId: TransactionTypeId.SEND, memo: 'booked second' })
+    expect(Number(second?.amount?.abs().toString())).toBe(2)
+    expect(second?.balanceDate.getTime()).toBe(day(21).getTime())
+  })
+
+  it('and what was received', async () => {
+    const [received] = await dbSelectBookingLinesOfUser(stephen.id, [bookedSecond[1].id])
+    expect(received).toMatchObject({ typeId: TransactionTypeId.RECEIVE, memo: 'booked second' })
+    expect(Number(received.amount?.toString())).toBe(2)
+  })
+
+  it("hands out no other member's row, no id without a row, and asks nothing for none", async () => {
+    // Garrick's SEND row, asked for as stephen's: nobody else's booking is read.
+    expect(await dbSelectBookingLinesOfUser(stephen.id, [bookedSecond[0].id])).toEqual([])
+    expect(await dbSelectBookingLinesOfUser(garrick.id, [99999999])).toEqual([])
+    expect(await dbSelectBookingLinesOfUser(garrick.id, [])).toEqual([])
+  })
+
+  it('hands out no creation: it was booked with nobody', async () => {
+    // The row is there, garrick's, a creation -- and still no line.
+    const [bookings] = await dbSelectTransactionsByUserId(garrick.id, 50, 0, Order.DESC)
+    expect(bookings.find((booking) => booking.id === creationId)?.typeId).toBe(
+      TransactionTypeId.CREATION,
+    )
+    expect(await dbSelectBookingLinesOfUser(garrick.id, [creationId])).toEqual([])
+  })
+})
+
+/**
+ * A person both groupings found, split the other way round from Lotte: the booking with the
+ * `users` row is the OLDER one, so the newest booking is in the grouping joined second. It is
+ * still the one under the name (E-083) -- the order of the groupings decides nothing.
+ */
+describe('the newest booking of a person both groupings found, in the grouping joined second', () => {
+  const MIRA = 'bbbbbbbb-1111-2222-3333-444444444444'
+  let hotzenplotz: DbUser
+  let miraRowId: number
+
+  beforeAll(async () => {
+    hotzenplotz = await userFactory(raeuberHotzenplotz)
+    const miraRow = new DbUser()
+    miraRow.gradidoID = MIRA
+    miraRow.communityUuid = FOREIGN_COMMUNITY
+    miraRow.alias = 'mira'
+    miraRow.foreign = true
+    await miraRow.save()
+    miraRowId = miraRow.id
+    await foreignReceive(
+      hotzenplotz,
+      { ...fromAfar(MIRA, 'Mira'), linkedUserId: miraRowId },
+      day(23),
+    )
+    await foreignReceive(hotzenplotz, fromAfar(MIRA, 'Mira'), day(24))
+  })
+
+  it('takes the newer of the two, whichever grouping found it', async () => {
+    const page = await dbSelectContactsByUserId(hotzenplotz.id, {
+      member: memberOf(hotzenplotz),
+      limit: 25,
+      offset: 0,
+    })
+    expect(page.contacts).toHaveLength(1)
+    expect(page.contacts[0]).toMatchObject({ linkedUserId: miraRowId, bookings: 2 })
+    expect(page.contacts[0].lastBookingAt?.getTime()).toBe(day(24).getTime())
+    const [line] = await dbSelectBookingLinesOfUser(hotzenplotz.id, [
+      page.contacts[0].lastBookingId as number,
+    ])
+    expect(line.balanceDate.getTime()).toBe(day(24).getTime())
   })
 })

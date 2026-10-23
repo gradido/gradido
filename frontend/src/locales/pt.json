@@ -251,6 +251,9 @@
     "sentMailed": "Enviada. {name} recebe um e-mail.",
     "toConversation": "Ir para a conversa"
   },
+  "chatPreview": {
+    "by": "{name}:"
+  },
   "chatSearch": {
     "capped": "A pesquisa abrangeu as últimas {count} mensagens.",
     "count": "{current} de {count}",

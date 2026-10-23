@@ -251,6 +251,9 @@
     "sentMailed": "Отправлено. {name} получит письмо по электронной почте.",
     "toConversation": "К переписке"
   },
+  "chatPreview": {
+    "by": "{name}:"
+  },
   "chatSearch": {
     "capped": "Поиск охватил последние {count} сообщений.",
     "count": "{current} из {count}",

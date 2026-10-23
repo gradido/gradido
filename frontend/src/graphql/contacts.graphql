@@ -40,6 +40,17 @@ fragment contactFields on Contact {
   # says whether the other side has read anything (E-016). The list is asked again when the
   # chat's beat sees the number of unread conversations move (useChatUpdates).
   unreadChatMessages
+  # The line under the name on "Kontakte & Chat" (E-083): the beginning of the latest message
+  # between the two, or of the latest booking where that came later -- read by ChatPreviewLine.
+  # `amount` only on a booking, without its sign (`mine` says who gave). No writer: between two the
+  # list knows both. In the fragment, as every field read off a contact (contactFields.spec.js),
+  # though only the page's rows show it.
+  chatPreview {
+    mine
+    excerpt
+    hasImage
+    amount
+  }
 }
 
 # Everyone this member has exchanged Gradido with, each once (KF-004).

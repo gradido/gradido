@@ -15,13 +15,15 @@ import {
   dbSelectFavoritesByUserId,
   getHomeCommunity,
 } from 'database'
+import { GraphQLResolveInfo } from 'graphql'
 import { getLogger } from 'log4js'
-import { Arg, Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
+import { Arg, Args, Authorized, Ctx, Info, Mutation, Query, Resolver } from 'type-graphql'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { isSameCommunity } from '@/data/Community.logic'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
+import { contactChatPreviews } from './util/chatPreviews'
 import { resolveCommunityUuid } from './util/communities'
 import {
   bookingCounterparty,
@@ -30,6 +32,7 @@ import {
   prefetchedLookups,
   remoteUserFromBooking,
 } from './util/counterparty'
+import { extractGraphQLFieldPaths } from './util/extractGraphQLFields'
 
 const createLogger = () =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.ContactResolver`)
@@ -75,6 +78,7 @@ export class ContactResolver {
     @Arg('ref', () => MemberAvatarRefInput, { nullable: true })
     ref: MemberAvatarRefInput | null | undefined,
     @Ctx() context: Context,
+    @Info() info: GraphQLResolveInfo,
   ): Promise<ContactList> {
     const user = getUser(context)
     const logger = createLogger()
@@ -84,13 +88,15 @@ export class ContactResolver {
     // given -- without a `ref` nothing waits and the rounds below are what they were.
     const counterparty = ref ? await bookingCounterparty(ref) : undefined
 
+    // The same person as `user.id`, as a conversation member: the chat bundle is asked with
+    // the pair, never with users.id -- and so are the lines under the names (E-083).
+    const member = { communityUuid: user.communityUuid, gradidoId: user.gradidoID }
+
     // Two rounds, not six: the page, the home community and the caller's hearts depend on
     // nothing; everything below depends only on the page.
     const [page, home, favoriteRows] = await Promise.all([
       dbSelectContactsByUserId(user.id, {
-        // The same person as `user.id`, as a conversation member: the chat bundle is asked
-        // with the pair, never with users.id.
-        member: { communityUuid: user.communityUuid, gradidoId: user.gradidoID },
+        member,
         search: search ?? undefined,
         counterparty,
         limit: pageSize,
@@ -177,10 +183,25 @@ export class ContactResolver {
     // The members of other communities on this page, with the date their community last
     // reported for their picture (AS-019) -- one query for the page, as the booking list does.
     // ⚠️ After the local dates above, which leave a stored foreign row at null.
-    await fillForeignMemberAvatarDates([...foreignLocals, ...remoteUsers])
+    //
+    // The line under each name (E-083) in the same wave, and only where it is asked for: two
+    // queries for the page then -- the latest messages and the latest bookings --, none for a
+    // document that does not ask. The bookings only where the member lets transfers stand in
+    // their conversations (`transfersInChat`).
+    const [, previews] = await Promise.all([
+      fillForeignMemberAvatarDates([...foreignLocals, ...remoteUsers]),
+      extractGraphQLFieldPaths(info).has('contacts.chatPreview')
+        ? contactChatPreviews(
+            user.id,
+            member,
+            people.map(({ row }) => row),
+            user.transfersInChat !== false,
+          )
+        : Promise.resolve(people.map(() => null)),
+    ])
 
     const contacts = people.map(
-      ({ row, model }) =>
+      ({ row, model }, index) =>
         new Contact(
           model,
           row.firstAt,
@@ -191,6 +212,7 @@ export class ContactResolver {
           row.origin,
           row.unreadChatMessages,
           row.lastChatMessageAt,
+          previews[index],
         ),
     )
     return new ContactList(contacts, page.count)

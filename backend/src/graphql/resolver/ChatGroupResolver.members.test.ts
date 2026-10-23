@@ -139,6 +139,9 @@ const contact = (gradidoId: string): ContactRow => ({
   origin: null,
   unreadChatMessages: 0,
   lastChatMessageAt: null,
+  lastChatMessageId: null,
+  lastBookingId: null,
+  lastBookingAt: null,
 })
 
 const findGroup = dbFindChatGroupByUuid as jest.Mock
@@ -204,6 +207,7 @@ beforeEach(() => {
       memberCount: 4,
       unreadMessages: 0,
       lastMessageAt: null,
+      lastMessageId: null,
     },
   ])
 })
