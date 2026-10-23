@@ -169,6 +169,17 @@ describe('the phone rules of the contribution page', () => {
     expect(ruleFor(phone, '.open-creations-table .group-select')?.declarations).toEqual({
       'max-width': '100%',
     })
+    // An opened row gives its side margins to the messages: the card's (over Bootstrap's
+    // ps-3/pe-3, which carry !important), its body's and the container's.
+    expect(ruleFor(phone, '.open-creations-table .row-details-card')?.declarations).toEqual({
+      'padding-inline': '0 !important',
+    })
+    expect(
+      ruleFor(phone, '.open-creations-table .row-details-card > .card-body')?.declarations,
+    ).toEqual({ 'padding-inline': '0.5rem' })
+    expect(
+      ruleFor(phone, '.open-creations-table .contribution-messages-list .container')?.declarations,
+    ).toEqual({ 'padding-inline': '0' })
     // The tabs of the form in an opened row: buttons as well, so 44px.
     expect(
       ruleFor(phone, '.open-creations-table .contribution-messages-formular .nav-link')
@@ -178,6 +189,7 @@ describe('the phone rules of the contribution page', () => {
     const desk = outsideMedia(css)
     expect(desk).not.toContain('phone-')
     expect(desk).not.toContain('b-table-stacked-md')
+    expect(desk).not.toContain('row-details-card')
   })
 
   it('sets the tab symbols above their words in CreationConfirm.css, and has no overlay any more', () => {

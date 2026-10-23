@@ -45,6 +45,11 @@ describe('RowDetails', () => {
     expect(createWrapper().find('.card').classes()).not.toContain('bg-white')
   })
 
+  // The phone rules of the contributions table reach the card by this name (OpenCreationsTable.css).
+  it('names its card for the phone rules', () => {
+    expect(createWrapper().find('.card').classes()).toContain('row-details-card')
+  })
+
   it('labels the button', () => {
     expect(createWrapper().find('button').text()).toBe('hide_details')
   })

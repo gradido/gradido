@@ -21,7 +21,7 @@ export const RowDetails = defineComponent({
     // The symbol of the button used to be a <b-icon>, which bootstrap-vue-next does not have:
     // it rendered as an unknown element and showed nothing.
     return () => (
-      <BCard class='shadow-lg ps-3 pe-3 mb-5 rounded'>
+      <BCard class='shadow-lg ps-3 pe-3 mb-5 rounded row-details-card'>
         {slots[props.slotName]?.()}
         <BButton size='sm' onClick={() => emit('row-toggle-details', props.row, props.index)}>
           {props.type === 'PageCreationConfirm' ? (

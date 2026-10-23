@@ -100,6 +100,21 @@
     max-width: 100%;
   }
 
+  /* An opened row: its card and the list in it give their side margins to the messages. The
+     card's 16px (Bootstrap's ps-3/pe-3, hence !important), its body's 16px and the container's
+     12px left a message 167px of a 320px window. */
+  .open-creations-table .row-details-card {
+    padding-inline: 0 !important;
+  }
+
+  .open-creations-table .row-details-card > .card-body {
+    padding-inline: 0.5rem;
+  }
+
+  .open-creations-table .contribution-messages-list .container {
+    padding-inline: 0;
+  }
+
   /* The tabs of the form in an opened row (message, note, text) are buttons to tap as well. */
   .open-creations-table .contribution-messages-formular .nav-link {
     display: flex;
