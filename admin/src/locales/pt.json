@@ -118,6 +118,7 @@
     "changeGroupDone": "Grupo de criação alterado.",
     "changeGroupHint": "Dependendo dos teus grupos visíveis, a contribuição pode deixar de aparecer na tua lista.",
     "changeGroupQuestion": "Mover esta contribuição de {from} para {to}?",
+    "confirm": "Confirmar",
     "confirmedBy": "Confirmado por {name}.",
     "createdBy": "Criado por {name}.",
     "deletedBy": "Eliminado por {name}.",
@@ -594,6 +595,9 @@
   "removeNotSelf": "Como administrador/moderador, não te podes eliminar a ti mesmo.",
   "reset": "Repor",
   "save": "Guardar",
+  "search": {
+    "clear": "Limpar a pesquisa"
+  },
   "send": "Enviar",
   "status": "Estado",
   "success": "Sucesso",

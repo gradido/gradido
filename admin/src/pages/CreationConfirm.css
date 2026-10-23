@@ -1,16 +1,57 @@
-#overlay {
-  position: fixed;
-  display: flex;
-  align-items: center;
-  width: 100%;
-  height: 100%;
-  inset: 0;
-  padding-left: 5%;
-  background-color: rgb(12 11 11 / 78.1%);
-  z-index: 1000000;
-  cursor: pointer;
-}
-
 .no-select {
   user-select: none;
+}
+
+/* A phone: below this width the rows are cards (OpenCreationsTable.css). */
+@media (width < 768px) {
+  /* The symbol above the word and the number at the corner, so that the five tabs stand in one
+     line (Bernd, 23.10.2026, AO-003). Measured that day: in German, English, Italian and Turkish
+     from 320px on, in all languages but Russian and Greek from 390px on. The page's own tabs
+     only: the form in an opened row has tabs of its own (message, note, text). */
+  .creation-confirm .creation-tabs .nav-link {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.125rem;
+    min-height: 3.25rem;
+    padding: 0.5rem 0.25rem;
+    font-size: 0.8125rem;
+    line-height: 1.1;
+  }
+
+  .creation-confirm .creation-tabs .nav-link svg {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+
+  .creation-confirm .tab-badge {
+    position: absolute;
+    top: 0.125rem;
+    right: 0.375rem;
+  }
+
+  /* The box and its word, as tall as a finger needs. */
+  .creation-confirm .hide-resubmission-row {
+    min-height: 2.75rem;
+  }
+
+  .creation-confirm .hide-resubmission-row label {
+    display: flex;
+    align-items: center;
+    align-self: stretch;
+  }
+
+  /* The pager shows `‹`, three numbers and `›` here (CreationConfirm.tsx). Below 576px
+     bootstrap-vue-next hides the number beside the first or the last one (`bv-d-sm-down-none`,
+     meant for the page next to an ellipsis, and this pager has none): at page 1 it would read
+     `‹ 1 3 ›`. All three stay, and the pills give up side padding instead, as in the wallet
+     (frontend/src/App.vue). */
+  .creation-confirm .b-pagination-pills.pagination-lg {
+    --bs-pagination-padding-x: 1rem;
+  }
+
+  .creation-confirm .b-pagination-pills .page-item.bv-d-sm-down-none {
+    display: list-item !important;
+  }
 }

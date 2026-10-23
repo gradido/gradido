@@ -24,3 +24,12 @@
 .is-user-history-message {
   background-color: rgb(235 226 57);
 }
+
+/* A phone: a message takes more of the narrow window, and the side it leans to still shows
+   who wrote it. */
+@media (width < 768px) {
+  .is-moderator,
+  .is-user {
+    width: 90%;
+  }
+}

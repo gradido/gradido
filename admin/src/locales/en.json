@@ -118,6 +118,7 @@
     "changeGroupDone": "Creation group changed.",
     "changeGroupHint": "Depending on your visible groups, the contribution may no longer appear in your list.",
     "changeGroupQuestion": "Move this contribution from {from} to {to}?",
+    "confirm": "Confirm",
     "confirmedBy": "Confirmed by {name}.",
     "createdBy": "Created by {name}.",
     "deletedBy": "Deleted by {name}.",
@@ -594,6 +595,9 @@
   "removeNotSelf": "As an admin/moderator, you cannot delete yourself.",
   "reset": "Reset",
   "save": "Save",
+  "search": {
+    "clear": "Clear the search"
+  },
   "send": "Send",
   "status": "Status",
   "success": "Success",

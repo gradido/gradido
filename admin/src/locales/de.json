@@ -118,6 +118,7 @@
     "changeGroupDone": "Schöpfungsgruppe geändert.",
     "changeGroupHint": "Je nach Deinem Sichtbereich erscheint der Beitrag danach nicht mehr in Deiner Liste.",
     "changeGroupQuestion": "Diesen Beitrag von {from} nach {to} verschieben?",
+    "confirm": "Bestätigen",
     "confirmedBy": "Bestätigt von {name}.",
     "createdBy": "Erstellt von {name}.",
     "deletedBy": "Gelöscht von {name}.",
@@ -594,6 +595,9 @@
   "removeNotSelf": "Als Admin/Moderator kannst du dich nicht selber löschen.",
   "reset": "Zurücksetzen",
   "save": "Speichern",
+  "search": {
+    "clear": "Eingabe löschen"
+  },
   "send": "Senden",
   "status": "Status",
   "success": "Erfolg",

@@ -12,3 +12,22 @@
 .pointer:hover {
   background-color: rgb(216 213 213);
 }
+
+/* A phone: every button and every field at least as tall as a finger needs (44px). */
+@media (width < 768px) {
+  .btn,
+  .form-control,
+  .form-select {
+    min-height: 2.75rem;
+  }
+
+  /* A button that grows keeps its words and symbols in its middle. An inline block keeps them at
+     its top, and all a button grows by would go below its word -- 13px for a small one, 31px
+     tall. A flex box drops the space between a symbol and its word, so the gap stands in. */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    column-gap: 0.375rem;
+  }
+}

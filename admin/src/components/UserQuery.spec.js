@@ -79,4 +79,14 @@ describe('UserQuery', () => {
     await input.setValue('New Value')
     expect(wrapper.props('modelValue')).toBe(originalValue)
   })
+
+  // It used to be a <div> with a click handler: no keyboard reached it, and a screen reader
+  // could not say what it was.
+  it('the clear control is a button with a name', () => {
+    const clear = wrapper.find('.test-click-clear-criteria')
+    expect(clear.element.tagName).toBe('BUTTON')
+    expect(clear.attributes('type')).toBe('button')
+    expect(clear.attributes('aria-label')).toBe('search.clear')
+    expect(clear.attributes('title')).toBe('search.clear')
+  })
 })
