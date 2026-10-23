@@ -630,6 +630,8 @@ describe('CreationConfirm', () => {
       viewport.value = 'mobile'
       await nextTick()
       expect(drawn()).toEqual(['‹', '1', '2', '3', '›'])
+      // ... and all three stay in sight below 576px, where the library hides one (App.css).
+      expect(pagination().classes()).toContain('phone-pager')
     })
 
     // The word and the number in elements of their own, so a phone can set the symbol above

@@ -114,9 +114,11 @@ export const ConfirmRegisterMailFormular = defineComponent({
       await refetchStatus()?.catch(() => undefined)
     }
 
+    // Half the padding below 768px, as the other forms of an opened member: a phone has no room
+    // to spare inside the card.
     return () => (
       <div class='component-confirm-register-mail'>
-        <div class='shadow p-3 mb-5 bg-white rounded'>
+        <div class='shadow p-2 p-md-3 mb-5 rounded'>
           {props.checked ? (
             <div>{t('unregister_mail.text_true')}</div>
           ) : (

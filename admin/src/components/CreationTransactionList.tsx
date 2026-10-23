@@ -1,8 +1,10 @@
 // AI-GENERATED — not an architecture reference
 import { useQuery } from '@vue/apollo-composable'
 import { BButton, BCollapse, BPagination, BTable, vBToggle } from 'bootstrap-vue-next'
-import { defineComponent, ref, watch, withDirectives } from 'vue'
+import { computed, defineComponent, ref, watch, withDirectives } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useViewport } from '@/composables/useViewport'
+import { DESK_PAGER_LIMIT, PHONE_PAGER_LIMIT } from '@/constants'
 import { adminListContributionsShort } from '../graphql/adminListContributions.graphql'
 
 type ContributionRow = { item: { contributionDate: string } }
@@ -14,6 +16,9 @@ export const CreationTransactionList = defineComponent({
   },
   setup(props) {
     const { t, d } = useI18n()
+    // The table and the pager of a phone: `unknown` -- no matchMedia -- keeps the desk's.
+    const viewport = useViewport()
+    const phone = computed(() => viewport.value === 'mobile')
 
     const items = ref<Record<string, unknown>[]>([])
     const rows = ref(0)
@@ -80,7 +85,16 @@ export const CreationTransactionList = defineComponent({
     return () => (
       <div class='component-creation-transaction-list'>
         <div class='h3'>{t('transactionlist.title')}</div>
-        <BTable striped hover fields={fields} items={items.value}>
+        {/* On a phone the cells of a row stand under each other, each under the name of its
+            column; at the desk the table it has always been, without the names in its cells. */}
+        <BTable
+          striped
+          hover
+          stacked='md'
+          labelStacked={phone.value}
+          fields={fields}
+          items={items.value}
+        >
           {{
             'cell(contributionDate)': (data: ContributionRow) => [
               <div class='font-weight-bold'>
@@ -91,15 +105,17 @@ export const CreationTransactionList = defineComponent({
           }}
         </BTable>
         <div>
+          {/* As on the pages: three numbers on a phone, five places and « » at the desk. */}
           <BPagination
             v-model={currentPage.value}
+            class='phone-pager'
             pills
             size='lg'
             perPage={perPage.value}
             totalRows={rows.value}
             align='center'
-            // ⚠️ No prop of BPagination: it lands on the element as an attribute, as it did
-            hide-ellipsis={true}
+            limit={phone.value ? PHONE_PAGER_LIMIT : DESK_PAGER_LIMIT}
+            noGotoEndButtons={phone.value}
           />
           {withDirectives(
             <BButton variant='light' size='sm'>

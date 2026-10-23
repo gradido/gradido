@@ -1,13 +1,13 @@
 // AI-GENERATED — not an architecture reference
 
 import { readFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
+import { basename, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { PHONE_BREAKPOINT_PX } from '@/constants'
 
 /**
- * The phone rules of the contribution page, read from the stylesheets.
+ * The phone rules of the contribution page and the member search, read from the stylesheets.
  *
  * Vitest hands every stylesheet to the tests as an empty string, and jsdom lays nothing out:
  * no test can see a rule work. So the rules are read where they are written. Comments come out
@@ -31,16 +31,49 @@ const STYLES = {
     'slots',
     'ContributionMessagesListItem.css',
   ),
+  // The member search (S2)
+  memberTable: join(here, 'components', 'Tables', 'SearchUserTable.css'),
+  creationForm: join(here, 'components', 'CreationFormular.module.css'),
+  mailForm: join(here, 'components', 'ConfirmRegisterMailFormular.css'),
+  walletLink: join(here, 'components', 'MemberWalletLink.module.css'),
 }
+// The role form has no phone block: its one rule holds on every width.
+const ROLE_FORM = join(here, 'components', 'ChangeUserRoleFormular.css')
 // Upper bounds, counted on 23.10.2026 before the delivery (CreationConfirm.css had one: the
 // backdrop of the overlay the dialog replaced). NavBar.scss is not touched by it; it is held
-// here because the dark mode will meet it first.
+// here because the dark mode will meet it first. The yellow of ConfirmRegisterMailFormular.css
+// is its own, from before; it goes with the dark mode.
 const FIXED_COLOURS_AT_MOST = {
   [STYLES.table]: 9,
   [STYLES.page]: 0,
   [STYLES.app]: 1,
   [STYLES.messages]: 4,
   [join(here, 'components', 'NavBar.scss')]: 3,
+  [STYLES.memberTable]: 0,
+  [STYLES.creationForm]: 0,
+  [STYLES.mailForm]: 1,
+  [STYLES.walletLink]: 0,
+  [ROLE_FORM]: 0,
+}
+
+// Who loads each stylesheet. A sheet that nobody imports holds its rules for no page, and the
+// tests here would not notice: they read the sheets, not the components.
+const LOADED_BY = {
+  [STYLES.app]: join(here, 'App.tsx'),
+  [STYLES.page]: join(here, 'pages', 'CreationConfirm.tsx'),
+  [STYLES.table]: join(here, 'components', 'Tables', 'OpenCreationsTable.tsx'),
+  [STYLES.messages]: join(
+    here,
+    'components',
+    'ContributionMessages',
+    'slots',
+    'ContributionMessagesListItem.tsx',
+  ),
+  [STYLES.memberTable]: join(here, 'components', 'Tables', 'SearchUserTable.tsx'),
+  [STYLES.creationForm]: join(here, 'components', 'CreationFormular.tsx'),
+  [STYLES.mailForm]: join(here, 'components', 'ConfirmRegisterMailFormular.tsx'),
+  [STYLES.walletLink]: join(here, 'components', 'MemberWalletLink.tsx'),
+  [ROLE_FORM]: join(here, 'components', 'ChangeUserRoleFormular.tsx'),
 }
 
 const PHONE = `(width < ${PHONE_BREAKPOINT_PX}px)`
@@ -109,12 +142,21 @@ const phoneRules = (css) =>
 
 const ruleFor = (list, selector) => list.find((rule) => rule.selector === selector)
 
-describe('the phone rules of the contribution page', () => {
-  it('reads the four stylesheets, and each holds a phone block', () => {
+describe('the phone rules of the contribution page and the member search', () => {
+  it('reads the stylesheets, and each holds a phone block', () => {
     for (const path of Object.values(STYLES)) {
       const css = read(path)
       expect(css.length, path).toBeGreaterThan(50)
       expect(phoneRules(css).length, path).toBeGreaterThan(0)
+    }
+  })
+
+  it('has each of these stylesheets loaded by its component', () => {
+    expect(Object.keys(LOADED_BY)).toEqual(expect.arrayContaining(Object.values(STYLES)))
+    for (const [sheet, component] of Object.entries(LOADED_BY)) {
+      const source = readFileSync(component, 'utf8')
+      const name = basename(sheet).replaceAll('.', '\\.')
+      expect(source, component).toMatch(new RegExp(`^import (\\w+ from )?'\\./${name}'$`, 'm'))
     }
   })
 
@@ -142,24 +184,60 @@ describe('the phone rules of the contribution page', () => {
     expect(outsideMedia(css)).not.toMatch(/min-height|inline-flex/)
   })
 
-  it('draws the card in OpenCreationsTable.css, on a phone only', () => {
-    const css = read(STYLES.table)
+  // What the contribution page and the member search share: both open a row into a card with
+  // tabs, both have buttons that are a symbol alone, both have a pager of three numbers.
+  it('holds the rules of an opened row, of a symbol button and of a pager in App.css', () => {
+    const css = read(STYLES.app)
     const phone = phoneRules(css)
 
-    expect(ruleFor(phone, '.open-creations-table .phone-actions .btn')?.declarations).toEqual({
-      'min-height': '2.75rem',
-      'padding-inline': '0.5rem',
-      'column-gap': '0.25rem',
-    })
     // A square of 44px that no neighbour squeezes: without `flex: none` the words beside it took
-    // half of it at 320px.
-    expect(
-      ruleFor(phone, '.open-creations-table .phone-actions .phone-icon-btn')?.declarations,
-    ).toMatchObject({
+    // half of it at 320px. Two classes: `.crea-logo-btn` brings a padding of its own, from a
+    // stylesheet loaded after this one.
+    expect(ruleFor(phone, '.btn.phone-icon-btn')?.declarations).toMatchObject({
       flex: 'none',
       width: '2.75rem',
       height: '2.75rem',
       padding: '0',
+    })
+    // An opened row gives its side margins to what it holds: the card's (over Bootstrap's
+    // ps-3/pe-3, which carry !important) and its body's.
+    expect(ruleFor(phone, '.card.row-details-card')?.declarations).toEqual({
+      'padding-inline': '0 !important',
+    })
+    expect(ruleFor(phone, '.row-details-card > .card-body')?.declarations).toEqual({
+      'padding-inline': '0.5rem',
+    })
+    // The tabs in an opened row: buttons as well, so 44px.
+    expect(ruleFor(phone, '.row-details-card .nav-link')?.declarations).toEqual({
+      display: 'flex',
+      'align-items': 'center',
+      'min-height': '2.75rem',
+    })
+    // The pager keeps all three of its numbers below 576px.
+    expect(ruleFor(phone, '.phone-pager .page-item.bv-d-sm-down-none')?.declarations).toEqual({
+      display: 'list-item !important',
+    })
+    expect(ruleFor(phone, '.phone-pager.b-pagination-pills.pagination-lg')?.declarations).toEqual({
+      '--bs-pagination-padding-x': '1rem',
+    })
+
+    const desk = outsideMedia(css)
+    expect(desk).not.toMatch(/phone-|row-details-card|nav-link|pagination/)
+  })
+
+  it('draws the card in OpenCreationsTable.css, on a phone only', () => {
+    const css = read(STYLES.table)
+    const phone = phoneRules(css)
+
+    // The words of a decision with a little less room around them; a symbol button stays the
+    // square App.css makes of it.
+    expect(
+      ruleFor(phone, '.open-creations-table .phone-actions .btn:not(.phone-icon-btn)')
+        ?.declarations,
+    ).toEqual({
+      'min-height': '2.75rem',
+      'padding-inline': '0.5rem',
+      'column-gap': '0.25rem',
     })
     // The inner margin of the card on its cells, so that the row's colour fills the card; the
     // lines between the cells go, the 3px line above the first one stays.
@@ -169,22 +247,10 @@ describe('the phone rules of the contribution page', () => {
     expect(ruleFor(phone, '.open-creations-table .group-select')?.declarations).toEqual({
       'max-width': '100%',
     })
-    // An opened row gives its side margins to the messages: the card's (over Bootstrap's
-    // ps-3/pe-3, which carry !important), its body's and the container's.
-    expect(ruleFor(phone, '.open-creations-table .row-details-card')?.declarations).toEqual({
-      'padding-inline': '0 !important',
-    })
-    expect(
-      ruleFor(phone, '.open-creations-table .row-details-card > .card-body')?.declarations,
-    ).toEqual({ 'padding-inline': '0.5rem' })
+    // The container of the messages gives its side margin as well.
     expect(
       ruleFor(phone, '.open-creations-table .contribution-messages-list .container')?.declarations,
     ).toEqual({ 'padding-inline': '0' })
-    // The tabs of the form in an opened row: buttons as well, so 44px.
-    expect(
-      ruleFor(phone, '.open-creations-table .contribution-messages-formular .nav-link')
-        ?.declarations,
-    ).toEqual({ display: 'flex', 'align-items': 'center', 'min-height': '2.75rem' })
 
     const desk = outsideMedia(css)
     expect(desk).not.toContain('phone-')
@@ -209,11 +275,6 @@ describe('the phone rules of the contribution page', () => {
     expect(ruleFor(phone, '.creation-confirm .hide-resubmission-row')?.declarations).toEqual({
       'min-height': '2.75rem',
     })
-    // The pager keeps all three of its numbers below 576px.
-    expect(
-      ruleFor(phone, '.creation-confirm .b-pagination-pills .page-item.bv-d-sm-down-none')
-        ?.declarations,
-    ).toEqual({ display: 'list-item !important' })
 
     expect(css).not.toContain('#overlay')
     expect(outsideMedia(css)).not.toMatch(/nav-link|tab-badge|pagination/)
@@ -224,12 +285,85 @@ describe('the phone rules of the contribution page', () => {
     expect(ruleFor(phone, '.is-moderator, .is-user')?.declarations).toEqual({ width: '90%' })
   })
 
+  it('draws the card of a member in SearchUserTable.css, on a phone only', () => {
+    const css = read(STYLES.memberTable)
+    // One cell to a card: its inner margin on it, the line below it gone, the 3px line above it
+    // the edge between two cards.
+    expect(
+      ruleFor(phoneRules(css), '.search-user-table .b-table-stacked-md > tbody > tr > td')
+        ?.declarations,
+    ).toEqual({ padding: '0.625rem 0.375rem 0.875rem', 'border-bottom-width': '0' })
+    expect(outsideMedia(css).trim()).toBe('')
+  })
+
+  it('lets the creation form take the width of its card on a phone, its buttons under each other', () => {
+    const css = read(STYLES.creationForm)
+    const phone = phoneRules(css)
+
+    expect(ruleFor(phone, '.block')?.declarations).toEqual({ margin: '0.25rem 0' })
+    expect(ruleFor(phone, '.amountRow')?.declarations).toEqual({
+      'flex-direction': 'column',
+      gap: '0.5rem',
+    })
+    // Reversed: the submission, which comes second, stands on top.
+    expect(ruleFor(phone, '.buttonsWrapper')?.declarations).toEqual({
+      'flex-direction': 'column-reverse',
+      gap: '0.5rem',
+      margin: '1rem 0',
+    })
+    expect(ruleFor(phone, '.buttonsWrapper :global(.btn)')?.declarations).toEqual({
+      width: '100%',
+    })
+    // At the desk the room Bootstrap's m-4 gave, and the buttons as before.
+    const desk = rules(outsideMedia(css))
+    expect(ruleFor(desk, '.block')?.declarations).toEqual({ margin: '1.5rem' })
+    expect(ruleFor(desk, '.buttonsWrapper')?.declarations).toEqual({ margin: '1.5rem 2.4rem' })
+  })
+
+  it('keeps the selects of the role form inside their card', () => {
+    const css = read(ROLE_FORM)
+    expect(ruleFor(rules(css), '.role-select')?.declarations).toEqual({
+      width: 'min(300pt, 100%)',
+    })
+    // No 300pt that the card does not hold.
+    expect(css.replaceAll('min(300pt, 100%)', '')).not.toContain('300pt')
+  })
+
+  it('lets the words before the address break on a phone, and keeps their yellow', () => {
+    const css = read(STYLES.mailForm)
+    expect(
+      ruleFor(phoneRules(css), '.component-confirm-register-mail .input-group-text')?.declarations,
+    ).toEqual({ 'white-space': 'normal' })
+    expect(ruleFor(rules(outsideMedia(css)), '.input-group-text')?.declarations).toEqual({
+      'background-color': 'rgb(255 252 205)',
+    })
+  })
+
+  it('makes the pin, the bubble and the arrow squares of 44px on a phone, 24px at the desk', () => {
+    const css = read(STYLES.walletLink)
+    // A line counts the square as 18px (44 less 2 x 13): measured in the built bundle, it grows
+    // neither the member line of an opened contribution nor the username line of a card. Lifted
+    // above the line below it, so that all of it can be pressed.
+    expect(ruleFor(phoneRules(css), '.memberWalletLink')?.declarations).toEqual({
+      width: '2.75rem',
+      height: '2.75rem',
+      position: 'relative',
+      'z-index': '1',
+      margin: '-0.8125rem -0.125rem -0.8125rem 0',
+    })
+    expect(ruleFor(rules(outsideMedia(css)), '.memberWalletLink')?.declarations).toMatchObject({
+      width: '1.5rem',
+      height: '1.5rem',
+    })
+  })
+
   it('holds no fixed colour more than before', () => {
     const counted = Object.fromEntries(
       Object.keys(FIXED_COLOURS_AT_MOST).map((path) => {
         const css = read(path)
-        // The file was read: a missing one must not pass as a file without colours.
-        expect(css.length, path).toBeGreaterThan(50)
+        // The file was read: an emptied one must not pass as a file without colours. (The
+        // stylesheet of the role form holds one rule of 45 characters.)
+        expect(css.length, path).toBeGreaterThan(40)
         const fixed =
           (css.match(/#[0-9a-f]{3,8}\b/gi) ?? []).length + (css.match(/\brgba?\(/gi) ?? []).length
         return [path, fixed]

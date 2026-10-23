@@ -599,6 +599,7 @@
     "clear": "Eingabe löschen"
   },
   "send": "Senden",
+  "show_details": "Details zeigen",
   "status": "Status",
   "success": "Erfolg",
   "text": "Text",
@@ -679,6 +680,10 @@
     },
     "successfullyChangedTo": "Nutzer ist jetzt „{role}“.",
     "tabTitle": "Nutzer-Rolle"
+  },
+  "userStatus": {
+    "emailUnconfirmed": "E-Mail nicht bestätigt",
+    "noElopage": "ohne Elopage-Kauf"
   },
   "user_deleted": "Nutzer ist gelöscht.",
   "user_memo_search": "Benutzer- und Text-Suche",

@@ -78,47 +78,21 @@
   /* A little less room around the words than Bootstrap gives a button. Measured in the built
      bundle (23.10.2026): the two words of a decision with their symbols then stand beside the
      bin at 390px in all ten languages, at 360px in nine (not Russian), at 320px in five; where
-     they do not, they take the next line (OpenCreationsTable.tsx). */
-  .open-creations-table .phone-actions .btn {
+     they do not, they take the next line (OpenCreationsTable.tsx). A button that is a symbol
+     alone stays the square App.css makes of it (`phone-icon-btn`). */
+  .open-creations-table .phone-actions .btn:not(.phone-icon-btn) {
     min-height: 2.75rem;
     padding-inline: 0.5rem;
     column-gap: 0.25rem;
-  }
-
-  /* A button that is a symbol and nothing else: a square to tap, which no neighbour squeezes. */
-  .open-creations-table .phone-actions .phone-icon-btn {
-    display: inline-flex;
-    flex: none;
-    align-items: center;
-    justify-content: center;
-    width: 2.75rem;
-    height: 2.75rem;
-    padding: 0;
   }
 
   .open-creations-table .group-select {
     max-width: 100%;
   }
 
-  /* An opened row: its card and the list in it give their side margins to the messages. The
-     card's 16px (Bootstrap's ps-3/pe-3, hence !important), its body's 16px and the container's
-     12px left a message 167px of a 320px window. */
-  .open-creations-table .row-details-card {
-    padding-inline: 0 !important;
-  }
-
-  .open-creations-table .row-details-card > .card-body {
-    padding-inline: 0.5rem;
-  }
-
+  /* An opened row gives its side margins to the messages: the card's and its body's (App.css,
+     `row-details-card`) and the container's 12px. */
   .open-creations-table .contribution-messages-list .container {
     padding-inline: 0;
-  }
-
-  /* The tabs of the form in an opened row (message, note, text) are buttons to tap as well. */
-  .open-creations-table .contribution-messages-formular .nav-link {
-    display: flex;
-    align-items: center;
-    min-height: 2.75rem;
   }
 }

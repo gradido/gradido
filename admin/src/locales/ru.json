@@ -599,6 +599,7 @@
     "clear": "Очистить поиск"
   },
   "send": "Отправить",
+  "show_details": "Показать подробности",
   "status": "Статус",
   "success": "Успех",
   "text": "Текст",
@@ -679,6 +680,10 @@
     },
     "successfullyChangedTo": "Пользователь теперь «{role}».",
     "tabTitle": "Роль пользователя"
+  },
+  "userStatus": {
+    "emailUnconfirmed": "Эл. почта не подтверждена",
+    "noElopage": "без покупки в Elopage"
   },
   "user_deleted": "Пользователь удалён.",
   "user_memo_search": "Поиск по пользователю и тексту",

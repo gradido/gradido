@@ -599,6 +599,7 @@
     "clear": "Aramayı temizle"
   },
   "send": "Gönder",
+  "show_details": "Ayrıntıları göster",
   "status": "Durum",
   "success": "Başarılı",
   "text": "Metin",
@@ -679,6 +680,10 @@
     },
     "successfullyChangedTo": "Kullanıcı artık «{role}».",
     "tabTitle": "Kullanıcı rolü"
+  },
+  "userStatus": {
+    "emailUnconfirmed": "E-posta onaylanmadı",
+    "noElopage": "Elopage satın alımı yok"
   },
   "user_deleted": "Kullanıcı silindi.",
   "user_memo_search": "Kullanıcı ve metin araması",
