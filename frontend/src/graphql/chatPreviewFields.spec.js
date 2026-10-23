@@ -57,9 +57,14 @@ const contactFieldsOf = (name) => {
 }
 
 const groups = parse(read('./chatGroups.graphql'))
-const groupFields = pathsIn(groups).pathsOf(
-  pathsIn(groups).fragments.get('chatGroupFields').selectionSet,
-)
+const groupsPaths = pathsIn(groups)
+/** The fields of a group in the answer of the operation called `name` (its one root field). */
+const groupFieldsOf = (name) => {
+  const operation = groups.definitions.find(
+    (definition) => definition.kind === Kind.OPERATION_DEFINITION && definition.name.value === name,
+  )
+  return groupsPaths.pathsOf(operation.selectionSet.selections[0].selectionSet)
+}
 
 /** What the line reads off a preview, as `preview.<field>` and, for a group's writer, `writer.<field>`. */
 const readOff = (source, name) => [
@@ -99,16 +104,21 @@ describe('the line under a name, as the lists ask for it (E-083)', () => {
     )
   })
 
-  it('asks every group answer for everything the line reads of a group, its writer too', () => {
-    expect(ofThePreview(groupFields)).toEqual([
-      'chatPreview.amount',
-      'chatPreview.excerpt',
-      'chatPreview.hasImage',
-      'chatPreview.mine',
-      'chatPreview.senderUser.alias',
-      'chatPreview.senderUser.gradidoID',
-    ])
-  })
+  // The answers a group row is drawn from: the list, and the answer a new group enters the list
+  // with (Contacts.vue, groupCreated). Renaming or taking members in asks the list again.
+  it.each(['chatGroupsQuery', 'createChatGroup'])(
+    'asks %s for everything the line reads of a group, its writer too',
+    (name) => {
+      expect(ofThePreview(groupFieldsOf(name))).toEqual([
+        'chatPreview.amount',
+        'chatPreview.excerpt',
+        'chatPreview.hasImage',
+        'chatPreview.mine',
+        'chatPreview.senderUser.alias',
+        'chatPreview.senderUser.gradidoID',
+      ])
+    },
+  )
 
   it('asks for what the rows read of the preview themselves', () => {
     const contactRow = read('../components/Contacts/ContactRow.vue')
