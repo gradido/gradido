@@ -630,7 +630,7 @@
       "button": "Corregir dirección",
       "confirmed": "No se ha corregido la dirección porque entretanto ha sido confirmada. Ahora solo el propio miembro puede cambiarla, en su configuración.",
       "elopage_warning": "Atención: hay compras de Elopage con {email}. Esta cuenta probablemente proviene del webhook; entonces la dirección no es una errata.",
-      "error": "No se ha corregido la dirección: {message}",
+      "error": "Error al corregir la dirección: {message}",
       "hint": "Solo mientras la dirección nunca haya sido confirmada (p. ej. errata en el registro). El correo de confirmación se enviará a la dirección corregida.",
       "invalid": "No se ha corregido la dirección porque {email} no es una dirección de correo válida.",
       "placeholder": "Dirección de correo corregida",

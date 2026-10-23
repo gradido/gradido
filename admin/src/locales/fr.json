@@ -630,7 +630,7 @@
       "button": "Corriger l'adresse",
       "confirmed": "Adresse non corrigée, car elle a été confirmée entre-temps. Seul le membre lui-même peut maintenant la modifier, dans ses paramètres.",
       "elopage_warning": "Attention : il existe des achats Elopage sous {email}. Ce compte provient probablement du webhook – l'adresse n'est alors pas une faute de frappe.",
-      "error": "Adresse non corrigée : {message}",
+      "error": "Erreur lors de la correction de l'adresse : {message}",
       "hint": "Seulement tant que l'adresse n'a jamais été confirmée (p. ex. faute de frappe à l'inscription). L'e-mail de confirmation sera envoyé à l'adresse corrigée.",
       "invalid": "Adresse non corrigée, car {email} n'est pas une adresse e-mail valide.",
       "placeholder": "Adresse e-mail corrigée",

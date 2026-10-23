@@ -630,7 +630,7 @@
       "button": "Correggi indirizzo",
       "confirmed": "L'indirizzo non è stato corretto, perché nel frattempo è stato confermato. Ora può cambiarlo solo il membro stesso, nelle sue impostazioni.",
       "elopage_warning": "Attenzione: sotto {email} ci sono acquisti Elopage. Questo account proviene probabilmente dal webhook: l'indirizzo allora non è un refuso.",
-      "error": "L'indirizzo non è stato corretto: {message}",
+      "error": "Errore durante la correzione dell'indirizzo: {message}",
       "hint": "Solo finché l'indirizzo non è mai stato confermato (es. refuso alla registrazione). L'e-mail di conferma andrà poi all'indirizzo corretto.",
       "invalid": "L'indirizzo non è stato corretto, perché {email} non è un indirizzo e-mail valido.",
       "placeholder": "Indirizzo e-mail corretto",

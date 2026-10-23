@@ -630,7 +630,7 @@
       "button": "Adresse korrigieren",
       "confirmed": "Adresse nicht korrigiert, weil sie inzwischen bestätigt ist. Ändern kann sie jetzt nur das Mitglied selbst, in seinen Einstellungen.",
       "elopage_warning": "Achtung: Unter {email} gibt es Elopage-Käufe. Dieses Konto stammt wahrscheinlich aus dem Webhook – die Adresse ist dann kein Tippfehler.",
-      "error": "Adresse nicht korrigiert: {message}",
+      "error": "Fehler beim Korrigieren der Adresse: {message}",
       "hint": "Nur solange die Adresse nie bestätigt wurde (z. B. Tippfehler bei der Registrierung). Die Bestätigungs-Mail geht danach an die korrigierte Adresse.",
       "invalid": "Adresse nicht korrigiert, weil {email} keine gültige E-Mail-Adresse ist.",
       "placeholder": "Korrigierte E-Mail-Adresse",

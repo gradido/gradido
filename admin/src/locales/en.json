@@ -630,7 +630,7 @@
       "button": "Correct address",
       "confirmed": "Address not corrected because it has been confirmed in the meantime. Only the member can change it now, in their settings.",
       "elopage_warning": "Caution: there are Elopage purchases under {email}. This account most likely came from the webhook – the address is then probably not a typo.",
-      "error": "Address not corrected: {message}",
+      "error": "Error correcting the address: {message}",
       "hint": "Only while the address was never confirmed (e.g. a typo at registration). The confirmation mail then goes to the corrected address.",
       "invalid": "Address not corrected because {email} is not a valid e-mail address.",
       "placeholder": "Corrected e-mail address",

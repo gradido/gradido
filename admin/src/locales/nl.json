@@ -630,7 +630,7 @@
       "button": "Adres corrigeren",
       "confirmed": "Adres niet gecorrigeerd, omdat het inmiddels is bevestigd. Alleen het lid zelf kan het nu nog wijzigen, in de eigen instellingen.",
       "elopage_warning": "Let op: onder {email} zijn er Elopage-aankopen. Dit account komt waarschijnlijk uit de webhook – het adres is dan geen typefout.",
-      "error": "Adres niet gecorrigeerd: {message}",
+      "error": "Fout bij het corrigeren van het adres: {message}",
       "hint": "Alleen zolang het adres nooit is bevestigd (bijv. typefout bij registratie). De bevestigingsmail gaat daarna naar het gecorrigeerde adres.",
       "invalid": "Adres niet gecorrigeerd, omdat {email} geen geldig e-mailadres is.",
       "placeholder": "Gecorrigeerd e-mailadres",

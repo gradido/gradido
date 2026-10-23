@@ -67,7 +67,9 @@ export const ConfirmRegisterMailFormular = defineComponent({
 
     // The correction's refusals in this page's words. The server's wording is what
     // `adminReplaceUnconfirmedEmail` in the backend's EmailChangeResolver throws, and the spec
-    // holds it; any other answer is shown as the server gave it.
+    // holds it. Those three come before anything is saved. Any other answer may follow a saved
+    // address, or the answer may have been lost on the way, so it is shown as the server gave
+    // it under a heading that claims no outcome.
     const replaceRefusal = (message: string, typed: string): string => {
       switch (message) {
         case 'Email address already in use':

@@ -630,7 +630,7 @@
       "button": "Corrigir endereço",
       "confirmed": "Endereço não corrigido, porque entretanto foi confirmado. Agora só o próprio membro o pode alterar, nas suas definições.",
       "elopage_warning": "Atenção: existem compras Elopage sob {email}. Esta conta provavelmente veio do webhook – o endereço não é então uma gralha.",
-      "error": "Endereço não corrigido: {message}",
+      "error": "Erro ao corrigir o endereço: {message}",
       "hint": "Apenas enquanto o endereço nunca tiver sido confirmado (p. ex. gralha no registo). O e-mail de confirmação segue depois para o endereço corrigido.",
       "invalid": "Endereço não corrigido, porque {email} não é um endereço de e-mail válido.",
       "placeholder": "Endereço de e-mail corrigido",

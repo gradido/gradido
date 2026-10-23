@@ -630,7 +630,7 @@
       "button": "Adresi düzelt",
       "confirmed": "Adres düzeltilmedi, çünkü bu arada onaylandı. Artık onu yalnızca üyenin kendisi, kendi ayarlarından değiştirebilir.",
       "elopage_warning": "Dikkat: {email} altında Elopage satın alımları var. Bu hesap büyük olasılıkla webhook'tan geldi – o halde adres bir yazım hatası değil.",
-      "error": "Adres düzeltilmedi: {message}",
+      "error": "Adres düzeltilirken hata: {message}",
       "hint": "Yalnızca adres hiç onaylanmadığı sürece (ör. kayıtta yazım hatası). Onay e-postası sonra düzeltilen adrese gider.",
       "invalid": "Adres düzeltilmedi, çünkü {email} geçerli bir e-posta adresi değil.",
       "placeholder": "Düzeltilmiş e-posta adresi",
