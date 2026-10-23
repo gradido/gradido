@@ -196,4 +196,12 @@
   .chatClearButton {
     font-size: 0.875rem;
   }
+
+  /* The copy button is a square of 44px on a phone (App.css). Anchored by its left edge, 4px over
+     the edge of the bubble as it stood, it grows away from the text: anchored on the right as at
+     the desk, its left edge stood 7px inside the room of the text (measured 23.10.2026). */
+  .copyClipboardButton {
+    right: auto;
+    left: calc(100% - 4px);
+  }
 }

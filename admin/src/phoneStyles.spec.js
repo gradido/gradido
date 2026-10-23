@@ -429,6 +429,11 @@ describe('the phone rules of the contribution page and the member search', () =>
       'height: min(480px, 80vh); height: min(480px, 80dvh);',
     )
     expect(ruleFor(phone, '.chatClearButton')?.declarations).toEqual({ 'font-size': '0.875rem' })
+    // The copy button, a square of 44px there, beside its bubble rather than over its text.
+    expect(ruleFor(phone, '.copyClipboardButton')?.declarations).toEqual({
+      right: 'auto',
+      left: 'calc(100% - 4px)',
+    })
 
     // At the desk the box of before: 550 × 480, 20px from the corner, 12px.
     const desk = rules(outsideMedia(css))
@@ -451,6 +456,11 @@ describe('the phone rules of the contribution page and the member search', () =>
       height: '480px',
     })
     expect(ruleFor(desk, '.chatClearButton')?.declarations).toEqual({ 'font-size': '12px' })
+    expect(ruleFor(desk, '.copyClipboardButton')?.declarations).toMatchObject({
+      position: 'absolute',
+      top: '20%',
+      right: '-12%',
+    })
   })
 
   it('lets a row of the creation groups wrap on a phone, and keeps the row of before at the desk', () => {
