@@ -90,7 +90,7 @@ export const CreationTransactionList = defineComponent({
         <BTable
           striped
           hover
-          stacked='md'
+          stacked='lg'
           labelStacked={phone.value}
           fields={fields}
           items={items.value}

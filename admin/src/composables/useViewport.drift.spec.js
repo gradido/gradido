@@ -7,14 +7,14 @@ import { describe, expect, it } from 'vitest'
 import { PHONE_BREAKPOINT_PX } from '@/constants'
 
 /**
- * ⛔ One boundary, held in three places, and this measures them against each other.
+ * ⛔ One boundary, held in four places, and this measures them against each other.
  *
- * bootstrap-vue-next stacks a table with `stacked='md'` below its own number, written into its
- * stylesheet; `useViewport` carries a copy of it to choose the cells of a card; and the phone
- * rules of the contribution page switch in four stylesheets of their own. A card drawn into a
- * table that does not stack, or rules for a phone in a window that is none, is what a gap
- * between them would cost -- the wallet had such a gap once, 33 pixels wide, with no column at
- * all in it (frontend/src/composables/useViewport.drift.spec.js).
+ * bootstrap-vue-next stacks a table with `stacked='lg'` below its own number, written into its
+ * stylesheet; every table of the admin that stacks names that width in its source; `useViewport`
+ * carries a copy of it to choose the cells of a card; and the phone rules switch in stylesheets
+ * of their own. A card drawn into a table that does not stack, or rules for a phone in a window
+ * that is none, is what a gap between them would cost -- the wallet had such a gap once, 33
+ * pixels wide, with no column at all in it (frontend/src/composables/useViewport.drift.spec.js).
  *
  * ⚠️ `fileURLToPath`, not `new URL(...)`: jsdom brings its own `URL` class and node rejects an
  * instance of it as coming from another realm.
@@ -23,19 +23,34 @@ const here = dirname(fileURLToPath(import.meta.url))
 const require = createRequire(import.meta.url)
 const libraryCss = require.resolve('bootstrap-vue-next/dist/bootstrap-vue-next.css')
 
+const src = join(here, '..')
+
 const PHONE_STYLES = [
-  join(here, '..', 'App.css'),
-  join(here, '..', 'pages', 'CreationConfirm.css'),
-  join(here, '..', 'components', 'Tables', 'OpenCreationsTable.css'),
-  join(
-    here,
-    '..',
-    'components',
-    'ContributionMessages',
-    'slots',
-    'ContributionMessagesListItem.css',
-  ),
+  join(src, 'App.css'),
+  join(src, 'pages', 'CreationConfirm.css'),
+  join(src, 'components', 'Tables', 'OpenCreationsTable.css'),
+  join(src, 'components', 'ContributionMessages', 'slots', 'ContributionMessagesListItem.css'),
+  join(src, 'components', 'Tables', 'SearchUserTable.css'),
+  join(src, 'components', 'CreationFormular.module.css'),
+  join(src, 'components', 'ConfirmRegisterMailFormular.css'),
+  join(src, 'components', 'MemberWalletLink.module.css'),
+  // The other side of the same width: where the figures table of the start page stops stacking,
+  // a label of the weeks below it keeps to one line.
+  join(src, 'pages', 'Overview.module.css'),
 ]
+
+// Every table of the admin that stacks. Each names the width in its source.
+const STACKING_TABLES = [
+  join(src, 'components', 'Tables', 'OpenCreationsTable.tsx'),
+  join(src, 'components', 'Tables', 'SearchUserTable.tsx'),
+  join(src, 'components', 'CreationTransactionList.tsx'),
+  join(src, 'components', 'TransactionLinkList.tsx'),
+  join(src, 'components', 'ContributionLink', 'ContributionLinkList.tsx'),
+  join(src, 'pages', 'Overview.tsx'),
+]
+
+// Bootstrap's names of its widths, as bootstrap-vue-next spells them in its classes.
+const BOOTSTRAP_WIDTHS = { sm: 576, md: 768, lg: 992, xl: 1200, xxl: 1400 }
 
 const withoutComments = (css) => css.replace(/\/\*[\s\S]*?\*\//g, '')
 
@@ -69,22 +84,38 @@ const mediaCarrying = (css, className) => {
 }
 
 describe('the phone boundary in JavaScript and in the stylesheets', () => {
-  it('is where bootstrap-vue-next stacks a table of `stacked="md"`', () => {
+  // Bernd, 23.10.2026 (AO-010): "Ja, die Karten-Grenze wandert auf 992 px."
+  it("the one boundary is 992 and matches the library's stacked-lg rule", () => {
+    expect(PHONE_BREAKPOINT_PX).toBe(992)
     const css = readFileSync(libraryCss, 'utf8')
     // The search proves itself: the stylesheet is there, and it has the class.
-    expect(css).toContain('.b-table-stacked-md')
-    expect(mediaCarrying(css, '.b-table-stacked-md')).toBe(
+    expect(css).toContain('.b-table-stacked-lg')
+    expect(mediaCarrying(css, '.b-table-stacked-lg')).toBe(
       `(max-width: ${PHONE_BREAKPOINT_PX - 0.02}px)`,
     )
   })
 
-  it('is the one width every phone rule of the contribution page switches at', () => {
+  it('every table that stacks, stacks at that boundary', () => {
+    const named = STACKING_TABLES.map((path) => {
+      // Comments out first: a comment that names the width must not stand in for the prop.
+      const code = withoutComments(readFileSync(path, 'utf8')).replace(/\/\/[^\n]*/g, '')
+      const widths = [...code.matchAll(/\bstacked='(\w+)'/g)].map(([, width]) => width)
+      // Each file was read and names a width: one that stopped stacking would pass silently.
+      expect(widths.length, path).toBeGreaterThan(0)
+      return widths
+    }).flat()
+    expect(named.map((width) => BOOTSTRAP_WIDTHS[width])).toEqual(
+      named.map(() => PHONE_BREAKPOINT_PX),
+    )
+  })
+
+  it('is the one width every phone rule switches at', () => {
     const widths = PHONE_STYLES.flatMap((path) =>
       [...withoutComments(readFileSync(path, 'utf8')).matchAll(/@media([^{]*)\{/g)].flatMap(
         ([, condition]) => [...condition.matchAll(/(\d+(?:\.\d+)?)px/g)].map(([, px]) => px),
       ),
     )
-    // Each of the four switches at least once -- a search that found nothing would pass.
+    // Each of them switches at least once -- a search that found nothing would pass.
     expect(widths.length).toBeGreaterThanOrEqual(PHONE_STYLES.length)
     expect(new Set(widths)).toEqual(new Set([String(PHONE_BREAKPOINT_PX)]))
   })

@@ -581,7 +581,7 @@ describe('SearchUserTable', () => {
   const NBSP = '\u00a0'
   const rowIsOpen = () => wrapper.find('.change-user-role-formular').exists()
 
-  // Below 768px UserSearch hands the table one field, `memberCard`: every member is a card that
+  // Below 992px UserSearch hands the table one field, `memberCard`: every member is a card that
   // says what the seven columns say, a line each (Bernd, 23.10.2026, AO-002).
   describe('the card of a member on a phone', () => {
     const MONTHS = ['Aug', 'Sep', 'Oct']

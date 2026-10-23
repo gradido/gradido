@@ -190,7 +190,7 @@ describe('TransactionLinkList', () => {
   })
 
   // On a phone the cells of a link stand under each other (the stylesheet stacks the table
-  // below 768px), each under the name of its column. At the desk no cell carries a name: the
+  // below 992px), each under the name of its column. At the desk no cell carries a name: the
   // table is the one it has always been.
   it.each([
     ['mobile', true],
@@ -200,7 +200,7 @@ describe('TransactionLinkList', () => {
     viewport.value = side
     await showLinks()
 
-    expect(wrapper.find('table').classes()).toContain('b-table-stacked-md')
+    expect(wrapper.find('table').classes()).toContain('b-table-stacked-lg')
     const labels = wrapper
       .findAll('tbody tr')[0]
       .findAll('td')

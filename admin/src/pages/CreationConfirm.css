@@ -3,7 +3,7 @@
 }
 
 /* A phone: below this width the rows are cards (OpenCreationsTable.css). */
-@media (width < 768px) {
+@media (width < 992px) {
   /* The symbol above the word and the number at the corner, so that the five tabs stand in one
      line (Bernd, 23.10.2026, AO-003). Measured that day: in German, English, Italian and Turkish
      from 320px on, in all languages but Russian and Greek from 390px on. The page's own tabs

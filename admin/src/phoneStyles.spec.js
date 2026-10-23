@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { basename, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
@@ -14,8 +14,8 @@ import { PHONE_BREAKPOINT_PX } from '@/constants'
  * first -- every file here explains its rules in prose, and a search over the raw text would
  * find the explanation of a rule that is gone.
  *
- * ⛔ Every phone rule stands under `(width < 768px)` and nowhere else: one boundary, the one
- * where the tables stack (composables/useViewport.ts). And no stylesheet of the delivery holds
+ * ⛔ Every phone rule stands under `(width < 992px)` and nowhere else: one boundary, the one
+ * where the tables stack and the top bar folds up (composables/useViewport.ts, AO-010). And no stylesheet of the delivery holds
  * a fixed colour more than it did before it -- a dark mode comes through `data-bs-theme` later,
  * and every colour written by hand would have to be done again (AO-008).
  */
@@ -142,6 +142,17 @@ const phoneRules = (css) =>
 
 const ruleFor = (list, selector) => list.find((rule) => rule.selector === selector)
 
+/** Every stylesheet below a folder, by a walk of its own: `readdirSync`'s `recursive` option is
+ *  ignored without a word before Node 18.17. */
+const stylesheetsBelow = (folder) =>
+  readdirSync(folder, { withFileTypes: true }).flatMap((entry) => {
+    const path = join(folder, entry.name)
+    if (entry.isDirectory()) {
+      return stylesheetsBelow(path)
+    }
+    return /\.s?css$/.test(entry.name) ? [path] : []
+  })
+
 describe('the phone rules of the contribution page and the member search', () => {
   it('reads the stylesheets, and each holds a phone block', () => {
     for (const path of Object.values(STYLES)) {
@@ -157,6 +168,20 @@ describe('the phone rules of the contribution page and the member search', () =>
       const source = readFileSync(component, 'utf8')
       const name = basename(sheet).replaceAll('.', '\\.')
       expect(source, component).toMatch(new RegExp(`^import (\\w+ from )?'\\./${name}'$`, 'm'))
+    }
+  })
+
+  // AO-010: the cards of S1 and S2 reach up to the boundary of the top bar. A rule still
+  // switching at 768 would be a second boundary, a band in which half a phone is drawn.
+  it('no stylesheet of the admin names 768 any more', () => {
+    const sheets = stylesheetsBelow(here)
+    // The walk proves itself: it reached the sheets of the pages and of the components, and it
+    // finds a width where there is one (the top bar's, in a SCSS file two folders down).
+    expect(sheets.length).toBeGreaterThan(20)
+    expect(sheets).toEqual(expect.arrayContaining(Object.values(STYLES)))
+    expect(read(join(here, 'components', 'NavBar.scss'))).toContain('992px')
+    for (const sheet of sheets) {
+      expect(read(sheet), sheet).not.toMatch(/\b768/)
     }
   })
 
@@ -242,7 +267,7 @@ describe('the phone rules of the contribution page and the member search', () =>
     // The inner margin of the card on its cells, so that the row's colour fills the card; the
     // lines between the cells go, the 3px line above the first one stays.
     expect(
-      ruleFor(phone, '.open-creations-table .b-table-stacked-md > tbody > tr > td')?.declarations,
+      ruleFor(phone, '.open-creations-table .b-table-stacked-lg > tbody > tr > td')?.declarations,
     ).toEqual({ padding: '0.125rem 0.375rem', 'border-bottom-width': '0' })
     expect(ruleFor(phone, '.open-creations-table .group-select')?.declarations).toEqual({
       'max-width': '100%',
@@ -254,7 +279,7 @@ describe('the phone rules of the contribution page and the member search', () =>
 
     const desk = outsideMedia(css)
     expect(desk).not.toContain('phone-')
-    expect(desk).not.toContain('b-table-stacked-md')
+    expect(desk).not.toContain('b-table-stacked-lg')
     expect(desk).not.toContain('row-details-card')
   })
 
@@ -290,7 +315,7 @@ describe('the phone rules of the contribution page and the member search', () =>
     // One cell to a card: its inner margin on it, the line below it gone, the 3px line above it
     // the edge between two cards.
     expect(
-      ruleFor(phoneRules(css), '.search-user-table .b-table-stacked-md > tbody > tr > td')
+      ruleFor(phoneRules(css), '.search-user-table .b-table-stacked-lg > tbody > tr > td')
         ?.declarations,
     ).toEqual({ padding: '0.625rem 0.375rem 0.875rem', 'border-bottom-width': '0' })
     expect(outsideMedia(css).trim()).toBe('')

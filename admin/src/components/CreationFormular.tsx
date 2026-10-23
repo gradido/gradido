@@ -165,12 +165,12 @@ export const CreationFormular = defineComponent({
     // The three parts of the form (month, amount, text) keep the room around them that
     // Bootstrap's `m-4` gave them at the desk; on a phone they take the width of the card
     // (CreationFormular.module.css). The `!important` of `m-4` would have left a phone no say.
-    // The box around them has half its padding below 768px, as the other forms of an opened
+    // The box around them has half its padding below 992px, as the other forms of an opened
     // member: the text field is 242px wide then at 320px, 226px with the padding of the desk.
     return () => (
       <div class='component-creation-formular'>
         {t('creation_form.form')}{' '}
-        <div class='shadow p-2 p-md-3 mb-5 rounded'>
+        <div class='shadow p-2 p-lg-3 mb-5 rounded'>
           <BForm ref={creationForm}>
             <div class={[classes.block, 'mt-0']}>
               <label>{t('creation_form.select_month')}</label>

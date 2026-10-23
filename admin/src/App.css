@@ -13,8 +13,10 @@
   background-color: rgb(216 213 213);
 }
 
-/* A phone: every button and every field at least as tall as a finger needs (44px). */
-@media (width < 768px) {
+/* A phone: every button and every field at least as tall as a finger needs (44px). "A phone"
+   here and in every stylesheet of the admin is a window below 992px, where the top bar folds up
+   and the tables stack -- a tablet held upright as well (AO-010). */
+@media (width < 992px) {
   .btn,
   .form-control,
   .form-select {

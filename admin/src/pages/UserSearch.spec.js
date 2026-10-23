@@ -150,15 +150,16 @@ describe('UserSearch', () => {
     expect(fields.find((field) => field.key === 'alias').label).toBe('username')
   })
 
-  // Measured in the built admin: without these the table reaches past the window between
-  // 768 and about 880 px (a long address next to a 20-character username).
-  it('lets the username break always and the address in the narrow band', () => {
+  // A username may always break; the address stays whole. It broke only between 768 and 850px,
+  // where the table stood until the boundary moved to 992px (AO-010): from there on it fits
+  // beside the username column, measured in the built admin with a 36-character address.
+  it('lets the username break always and keeps the address whole', () => {
     const fields = wrapper.findComponent({ name: 'SearchUserTable' }).props('fields')
     expect(fields.find((field) => field.key === 'alias').tdClass).toBe('text-break')
-    expect(fields.find((field) => field.key === 'email').tdClass).toBe('user-search-narrow-break')
+    expect(fields.find((field) => field.key === 'email')).not.toHaveProperty('tdClass')
   })
 
-  // Below 768px every member is a card: one cell that says what the seven columns say
+  // Below 992px every member is a card: one cell that says what the seven columns say
   // (SearchUserTable, the slot `cell(memberCard)`).
   describe('the fields on either side of the phone boundary', () => {
     const fieldKeys = () =>

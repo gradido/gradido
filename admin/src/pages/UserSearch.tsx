@@ -106,13 +106,14 @@ export const UserSearch = defineComponent({
     })
 
     const deskFields = computed(() => [
-      // user-search-narrow-break: see UserSearch.module.css. With the username column the
-      // address no longer fits in one piece just above 768 px.
-      { key: 'email', label: t('e_mail'), tdClass: 'user-search-narrow-break' },
+      // The address stays whole: from 992px on, where the table stands, it fits in one piece
+      // beside the username column (measured 23.10.2026 with a 36-character address).
+      { key: 'email', label: t('e_mail') },
       { key: 'firstName', label: t('firstname') },
       { key: 'lastName', label: t('lastname') },
-      // A username may always break inside a word: twenty characters without a hyphen are
-      // wider than the column gets below about 880 px.
+      // A username may always break inside a word: a name without a hyphen is one piece, and a
+      // table gives a column at least its longest piece. Twenty characters needed more than the
+      // column had below about 880 px (measured 23.10.2026, when the table stood from 768 px on).
       { key: 'alias', label: t('username'), tdClass: 'text-break' },
       {
         key: 'creation',
@@ -130,7 +131,7 @@ export const UserSearch = defineComponent({
     ])
 
     const fields = computed(() =>
-      // On a phone the table stacks its cells (`stacked='md'`), and a stacked row is a card: ONE
+      // On a phone the table stacks its cells (`stacked='lg'`), and a stacked row is a card: ONE
       // cell that says what the seven columns say, a line each (SearchUserTable, the slot
       // `cell(memberCard)`). Seven stacked cells were seven lines without their names.
       phone.value ? [{ key: 'memberCard', label: '' }] : deskFields.value,
@@ -165,7 +166,7 @@ export const UserSearch = defineComponent({
     )
 
     return () => (
-      <div class={['user-search', classes.userSearch]}>
+      <div class='user-search'>
         <div class={classes.userSearchFirstDiv}>
           <BButton
             class='unconfirmedRegisterMails'
