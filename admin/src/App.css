@@ -30,4 +30,48 @@
     justify-content: center;
     column-gap: 0.375rem;
   }
+
+  /* A button that is a symbol and nothing else: a square to tap, which no neighbour squeezes.
+     Two classes, so that it wins over Bootstrap's `.btn` and over the padding a button brings
+     from its own stylesheet (`.crea-logo-btn`), which a page's chunk loads after this one. */
+  .btn.phone-icon-btn {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+  }
+
+  /* An opened row of the contribution page or the member search: its card gives its side
+     margins to what it holds. The card's 16px (Bootstrap's ps-3/pe-3, hence !important) and its
+     body's 16px left a message 167px of a 320px window, the creation form 126px. */
+  .card.row-details-card {
+    padding-inline: 0 !important;
+  }
+
+  .row-details-card > .card-body {
+    padding-inline: 0.5rem;
+  }
+
+  /* The tabs in an opened row are buttons to tap as well. */
+  .row-details-card .nav-link {
+    display: flex;
+    align-items: center;
+    min-height: 2.75rem;
+  }
+
+  /* A pager that shows `‹`, three numbers and `›` here (PHONE_PAGER_LIMIT). Below 576px
+     bootstrap-vue-next hides the number beside the first or the last one (`bv-d-sm-down-none`,
+     meant for the page next to an ellipsis, and these pagers have none): at page 1 it would read
+     `‹ 1 3 ›`. All three stay, and the pills give up side padding instead, as in the wallet
+     (frontend/src/App.vue). */
+  .phone-pager.b-pagination-pills.pagination-lg {
+    --bs-pagination-padding-x: 1rem;
+  }
+
+  .phone-pager .page-item.bv-d-sm-down-none {
+    display: list-item !important;
+  }
 }

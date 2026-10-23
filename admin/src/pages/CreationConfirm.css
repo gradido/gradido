@@ -41,17 +41,4 @@
     align-items: center;
     align-self: stretch;
   }
-
-  /* The pager shows `‹`, three numbers and `›` here (CreationConfirm.tsx). Below 576px
-     bootstrap-vue-next hides the number beside the first or the last one (`bv-d-sm-down-none`,
-     meant for the page next to an ellipsis, and this pager has none): at page 1 it would read
-     `‹ 1 3 ›`. All three stay, and the pills give up side padding instead, as in the wallet
-     (frontend/src/App.vue). */
-  .creation-confirm .b-pagination-pills.pagination-lg {
-    --bs-pagination-padding-x: 1rem;
-  }
-
-  .creation-confirm .b-pagination-pills .page-item.bv-d-sm-down-none {
-    display: list-item !important;
-  }
 }

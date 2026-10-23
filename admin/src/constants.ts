@@ -30,3 +30,12 @@ export const NAV_AVATAR_SIZE = 32
  * stylesheets hold; useViewport.drift.spec.js measures the two against each other.
  */
 export const PHONE_BREAKPOINT_PX = 768
+
+/**
+ * The places of a pager: three page numbers on a phone, as every pager in the wallet shows
+ * there, and bootstrap-vue-next's own five at the desk (an ellipsis takes one of them). The
+ * contribution page and the member search with the two lists under an opened member use both;
+ * a pager on a phone carries the class `phone-pager` as well (App.css).
+ */
+export const PHONE_PAGER_LIMIT = 3
+export const DESK_PAGER_LIMIT = 5

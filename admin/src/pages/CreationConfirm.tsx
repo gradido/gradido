@@ -19,6 +19,7 @@ import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
 import { useAppToast } from '@/composables/useToast'
 import { useViewport } from '@/composables/useViewport'
 import { CONFIG } from '@/config'
+import { DESK_PAGER_LIMIT, PHONE_PAGER_LIMIT } from '@/constants'
 import { useAdminStore } from '@/store/useAdminStore'
 import { creationGroupOption } from '@/utils/creationGroupLabel'
 import IBiBellFill from '~icons/bi/bell-fill'
@@ -78,11 +79,6 @@ const FILTER_TAB_MAP = [
 
 // The tab that mixes every state; its rows say on their own which one they are in.
 const ALL_TAB = 4
-
-// The places of the pager: three page numbers on a phone, as every pager in the wallet shows
-// there, and bootstrap-vue-next's own five at the desk (an ellipsis takes one of them).
-const PHONE_PAGER_LIMIT = 3
-const DESK_PAGER_LIMIT = 5
 
 export const CreationConfirm = defineComponent({
   name: 'CreationConfirm',
@@ -727,9 +723,11 @@ export const CreationConfirm = defineComponent({
         {/* On a phone `‹`, three numbers and `›` -- every page stays reachable, and the pager
             fits a 320px window. At the desk as before: five places with the ellipses, and « ».
             No `noEllipsis` for the phone: with three numbers bootstrap-vue-next 0.26.8 draws no
-            ellipsis anyway (`limit <= ELLIPSIS_THRESHOLD`, which is 3). */}
+            ellipsis anyway (`limit <= ELLIPSIS_THRESHOLD`, which is 3). The class keeps all three
+            numbers in sight below 576px (App.css). */}
         <BPagination
           v-model={currentPage.value}
+          class='phone-pager'
           pills
           size='lg'
           perPage={pageSize.value}

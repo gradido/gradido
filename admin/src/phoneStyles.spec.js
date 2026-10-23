@@ -142,24 +142,60 @@ describe('the phone rules of the contribution page', () => {
     expect(outsideMedia(css)).not.toMatch(/min-height|inline-flex/)
   })
 
-  it('draws the card in OpenCreationsTable.css, on a phone only', () => {
-    const css = read(STYLES.table)
+  // What the contribution page and the member search share: both open a row into a card with
+  // tabs, both have buttons that are a symbol alone, both have a pager of three numbers.
+  it('holds the rules of an opened row, of a symbol button and of a pager in App.css', () => {
+    const css = read(STYLES.app)
     const phone = phoneRules(css)
 
-    expect(ruleFor(phone, '.open-creations-table .phone-actions .btn')?.declarations).toEqual({
-      'min-height': '2.75rem',
-      'padding-inline': '0.5rem',
-      'column-gap': '0.25rem',
-    })
     // A square of 44px that no neighbour squeezes: without `flex: none` the words beside it took
-    // half of it at 320px.
-    expect(
-      ruleFor(phone, '.open-creations-table .phone-actions .phone-icon-btn')?.declarations,
-    ).toMatchObject({
+    // half of it at 320px. Two classes: `.crea-logo-btn` brings a padding of its own, from a
+    // stylesheet loaded after this one.
+    expect(ruleFor(phone, '.btn.phone-icon-btn')?.declarations).toMatchObject({
       flex: 'none',
       width: '2.75rem',
       height: '2.75rem',
       padding: '0',
+    })
+    // An opened row gives its side margins to what it holds: the card's (over Bootstrap's
+    // ps-3/pe-3, which carry !important) and its body's.
+    expect(ruleFor(phone, '.card.row-details-card')?.declarations).toEqual({
+      'padding-inline': '0 !important',
+    })
+    expect(ruleFor(phone, '.row-details-card > .card-body')?.declarations).toEqual({
+      'padding-inline': '0.5rem',
+    })
+    // The tabs in an opened row: buttons as well, so 44px.
+    expect(ruleFor(phone, '.row-details-card .nav-link')?.declarations).toEqual({
+      display: 'flex',
+      'align-items': 'center',
+      'min-height': '2.75rem',
+    })
+    // The pager keeps all three of its numbers below 576px.
+    expect(ruleFor(phone, '.phone-pager .page-item.bv-d-sm-down-none')?.declarations).toEqual({
+      display: 'list-item !important',
+    })
+    expect(ruleFor(phone, '.phone-pager.b-pagination-pills.pagination-lg')?.declarations).toEqual({
+      '--bs-pagination-padding-x': '1rem',
+    })
+
+    const desk = outsideMedia(css)
+    expect(desk).not.toMatch(/phone-|row-details-card|nav-link|pagination/)
+  })
+
+  it('draws the card in OpenCreationsTable.css, on a phone only', () => {
+    const css = read(STYLES.table)
+    const phone = phoneRules(css)
+
+    // The words of a decision with a little less room around them; a symbol button stays the
+    // square App.css makes of it.
+    expect(
+      ruleFor(phone, '.open-creations-table .phone-actions .btn:not(.phone-icon-btn)')
+        ?.declarations,
+    ).toEqual({
+      'min-height': '2.75rem',
+      'padding-inline': '0.5rem',
+      'column-gap': '0.25rem',
     })
     // The inner margin of the card on its cells, so that the row's colour fills the card; the
     // lines between the cells go, the 3px line above the first one stays.
@@ -169,22 +205,10 @@ describe('the phone rules of the contribution page', () => {
     expect(ruleFor(phone, '.open-creations-table .group-select')?.declarations).toEqual({
       'max-width': '100%',
     })
-    // An opened row gives its side margins to the messages: the card's (over Bootstrap's
-    // ps-3/pe-3, which carry !important), its body's and the container's.
-    expect(ruleFor(phone, '.open-creations-table .row-details-card')?.declarations).toEqual({
-      'padding-inline': '0 !important',
-    })
-    expect(
-      ruleFor(phone, '.open-creations-table .row-details-card > .card-body')?.declarations,
-    ).toEqual({ 'padding-inline': '0.5rem' })
+    // The container of the messages gives its side margin as well.
     expect(
       ruleFor(phone, '.open-creations-table .contribution-messages-list .container')?.declarations,
     ).toEqual({ 'padding-inline': '0' })
-    // The tabs of the form in an opened row: buttons as well, so 44px.
-    expect(
-      ruleFor(phone, '.open-creations-table .contribution-messages-formular .nav-link')
-        ?.declarations,
-    ).toEqual({ display: 'flex', 'align-items': 'center', 'min-height': '2.75rem' })
 
     const desk = outsideMedia(css)
     expect(desk).not.toContain('phone-')
@@ -209,11 +233,6 @@ describe('the phone rules of the contribution page', () => {
     expect(ruleFor(phone, '.creation-confirm .hide-resubmission-row')?.declarations).toEqual({
       'min-height': '2.75rem',
     })
-    // The pager keeps all three of its numbers below 576px.
-    expect(
-      ruleFor(phone, '.creation-confirm .b-pagination-pills .page-item.bv-d-sm-down-none')
-        ?.declarations,
-    ).toEqual({ display: 'list-item !important' })
 
     expect(css).not.toContain('#overlay')
     expect(outsideMedia(css)).not.toMatch(/nav-link|tab-badge|pagination/)
