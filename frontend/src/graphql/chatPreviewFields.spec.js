@@ -106,7 +106,6 @@ describe('the line under a name, as the lists ask for it (E-083)', () => {
       'chatPreview.hasImage',
       'chatPreview.mine',
       'chatPreview.senderUser.alias',
-      'chatPreview.senderUser.communityUuid',
       'chatPreview.senderUser.gradidoID',
     ])
   })
