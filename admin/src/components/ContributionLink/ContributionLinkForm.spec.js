@@ -64,6 +64,7 @@ describe('ContributionLinkForm', () => {
   }
 
   const field = (name) => wrapper.find(`.test-${name}`)
+  const cycle = () => wrapper.findAll('select')[0]
   const fillIn = async (values) => {
     for (const [name, value] of Object.entries(values)) {
       await field(name).setValue(value)
@@ -103,6 +104,14 @@ describe('ContributionLinkForm', () => {
         expect(field(name).element.value, name).toBe('')
       }
     })
+
+    // The server needs a cycle for a new link. A reset took it away, the select stood empty, and
+    // creating a link failed (measured in the built admin, 23.10.2026).
+    it('sets the cycle to once again', async () => {
+      await cycle().setValue('DAILY')
+      await wrapper.find('form').trigger('reset')
+      expect(cycle().element.value).toBe('ONCE')
+    })
   })
 
   describe('submit', () => {
@@ -141,6 +150,24 @@ describe('ContributionLinkForm', () => {
       expect(field('name').element.value).toBe('')
       expect(wrapper.emitted('close-contribution-form')).toHaveLength(1)
       expect(wrapper.emitted('get-contribution-links')).toHaveLength(1)
+    })
+
+    it('creates the next link with the cycle once as well', async () => {
+      mockMutate.mockResolvedValue({
+        data: { createContributionLink: { link: 'https://localhost/redeem/CL-1a2345678' } },
+      })
+
+      await submit()
+      await fillIn(validFormData)
+      await submit()
+
+      expect(mockMutate).toHaveBeenCalledTimes(2)
+      expect(mockMutate).toHaveBeenLastCalledWith({
+        ...validFormData,
+        cycle: 'ONCE',
+        maxAmountPerMonth: '0',
+        id: null,
+      })
     })
 
     it('toasts an error message on API error', async () => {
@@ -241,6 +268,20 @@ describe('ContributionLinkForm', () => {
           validTo: '2022-08-01',
         }),
       )
+    })
+
+    // Closing the edit hands over an empty object: the form is a new link's again. It took the
+    // empty object instead -- no cycle, the select empty, and no dates the form would miss
+    // (measured in the built admin, 23.10.2026).
+    it('closing it leaves a new link, with the cycle once', async () => {
+      await cycle().setValue('DAILY')
+      await wrapper.setProps({ contributionLinkData: {}, editContributionLink: false })
+
+      expect(field('name').element.value).toBe('')
+      expect(cycle().element.value).toBe('ONCE')
+      await submit()
+      expect(mockToastError).toHaveBeenCalledWith('contributionLink.noStartDate')
+      expect(mockMutate).not.toHaveBeenCalled()
     })
   })
 

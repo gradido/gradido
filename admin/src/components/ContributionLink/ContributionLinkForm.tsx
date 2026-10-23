@@ -44,7 +44,10 @@ export const ContributionLinkForm = defineComponent({
 
     const { formatDateFromDateTime } = useDateFormatter()
 
-    const form = ref<ContributionLinkFormData>({
+    // What the form holds for a new link. The server needs a cycle: after a reset, after a link
+    // was created and after an edit was closed the select stood empty, and creating the next
+    // link failed (measured in the built admin, 23.10.2026).
+    const newLinkForm = (): ContributionLinkFormData => ({
       name: null,
       memo: null,
       amount: null,
@@ -53,6 +56,8 @@ export const ContributionLinkForm = defineComponent({
       cycle: 'ONCE',
       maxAmountPerMonth: '0',
     })
+
+    const form = ref<ContributionLinkFormData>(newLinkForm())
 
     const min = new Date().toLocaleDateString()
     const { toastError, toastSuccess } = useAppToast()
@@ -76,6 +81,11 @@ export const ContributionLinkForm = defineComponent({
     watch(
       () => props.contributionLinkData,
       (newVal) => {
+        // Closing an edit hands over an empty object: the form is a new link's again.
+        if (Object.keys(newVal).length === 0) {
+          form.value = newLinkForm()
+          return
+        }
         form.value = {
           ...(newVal as ContributionLinkFormData),
           validFrom: formatDateFromDateTime(newVal.validFrom),
@@ -85,7 +95,7 @@ export const ContributionLinkForm = defineComponent({
     )
 
     const onReset = () => {
-      form.value = { validFrom: null, validTo: null }
+      form.value = newLinkForm()
     }
 
     const onSubmit = async () => {
