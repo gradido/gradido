@@ -752,6 +752,22 @@ describe('SearchUserTable', () => {
       expect(wrapper.find('.member-card').exists()).toBe(false)
     })
 
+    // The arrow asked for a value the table never hands it and pointed down on an open row too.
+    it('points the arrow up while the row is open, and down again when it closes', async () => {
+      wrapper = createWrapper({ items: [member()], fields: SEVEN })
+      await flushPromises()
+      const arrow = () => cellsOf(0).at(6).find('[data-test^="row-caret"]').attributes('data-test')
+      expect(arrow()).toBe('row-caret-down')
+
+      await wrapper.findAll('tbody > tr').at(0).trigger('click')
+      expect(wrapper.find('.change-user-role-formular').exists()).toBe(true)
+      expect(arrow()).toBe('row-caret-up')
+
+      await wrapper.findAll('tbody > tr').at(0).trigger('click')
+      expect(wrapper.find('.change-user-role-formular').exists()).toBe(false)
+      expect(arrow()).toBe('row-caret-down')
+    })
+
     it('at the desk every status symbol carries its word and the arrow carries no title', async () => {
       wrapper = createWrapper({
         items: [

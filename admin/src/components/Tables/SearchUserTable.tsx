@@ -49,7 +49,7 @@ export type MemberRow = {
 type TableRow = {
   value: unknown
   item: MemberRow
-  detailsShowing: boolean | string
+  detailsShowing: boolean
 }
 
 // The parts of the forms under a row this table calls, as they expose them
@@ -362,14 +362,15 @@ export const SearchUserTable = defineComponent({
             </div>
           </span>
         ) : null}
-        {/* ⚠️ detailsShowing is a boolean and never 'caret-up-fill': the caret always points
-            down. Kept as it was. It is no button -- the row opens on a click anywhere in it --
-            and says nothing to a screen reader. Its title read `enabled`, which the search
-            never delivers, and called every member deleted. */}
-        {row.detailsShowing === 'caret-up-fill' ? (
-          <IPhCaretUpFill style='color: #212529' aria-hidden='true' />
+        {/* The caret points up while the row is open. It asked whether `detailsShowing` was
+            'caret-up-fill', which the table never hands it, and pointed down on an open row as
+            well. It is no button -- the row opens on a click anywhere in it -- and says nothing
+            to a screen reader. Its title read `enabled`, which the search never delivers, and
+            called every member deleted. */}
+        {row.detailsShowing ? (
+          <IPhCaretUpFill style='color: #212529' aria-hidden='true' data-test='row-caret-up' />
         ) : (
-          <IPhCaretDown style='color: #212529' aria-hidden='true' />
+          <IPhCaretDown style='color: #212529' aria-hidden='true' data-test='row-caret-down' />
         )}
       </div>
     )
