@@ -194,7 +194,7 @@ describe('contactChatPreviews', () => {
       bookingLine(11, { balanceDate: new Date('2026-10-21T10:00:00.000Z') }),
       bookingLine(12, { balanceDate: new Date('2026-10-21T10:00:00.000Z') }),
     ])
-    const previews = await contactChatPreviews(42, me, [row(1, 11), row(2, 12)])
+    const previews = await contactChatPreviews(42, me, [row(1, 11), row(2, 12)], true)
     expect(previews[0]?.amount).toBeNull()
     expect(previews[0]?.excerpt).toBe('message 1')
     expect(Number(previews[1]?.amount?.toString())).toBe(20)
@@ -203,22 +203,56 @@ describe('contactChatPreviews', () => {
   it('shows whichever there is, and nothing for a contact with neither', async () => {
     mockDatabase.dbSelectChatMessagesByIds.mockResolvedValue([messageRow(3, elfi)])
     mockDatabase.dbSelectBookingLinesOfUser.mockResolvedValue([bookingLine(13)])
-    const previews = await contactChatPreviews(42, me, [
-      row(3, null),
-      row(null, 13),
-      row(null, null),
-    ])
+    const previews = await contactChatPreviews(
+      42,
+      me,
+      [row(3, null), row(null, 13), row(null, null)],
+      true,
+    )
     expect(previews[0]?.excerpt).toBe('message 3')
     expect(previews[1]?.excerpt).toBe('Danke für Deine Hilfe')
     expect(previews[2]).toBeNull()
   })
 
   it('asks for the messages and the bookings of the whole list at once, and names no writer', async () => {
-    await contactChatPreviews(42, me, [row(1, null), row(null, 11), row(2, 12), row(null, null)])
+    // Messages from Elfi, so that a writer WOULD be looked up if a person's line named one.
+    mockDatabase.dbSelectChatMessagesByIds.mockResolvedValue([
+      messageRow(1, elfi),
+      messageRow(2, elfi),
+    ])
+    const previews = await contactChatPreviews(
+      42,
+      me,
+      [row(1, null), row(null, 11), row(2, 12), row(null, null)],
+      true,
+    )
     expect(mockDatabase.dbSelectChatMessagesByIds).toHaveBeenCalledTimes(1)
     expect(mockDatabase.dbSelectChatMessagesByIds).toHaveBeenCalledWith([1, 2])
     expect(mockDatabase.dbSelectBookingLinesOfUser).toHaveBeenCalledTimes(1)
     expect(mockDatabase.dbSelectBookingLinesOfUser).toHaveBeenCalledWith(42, [11, 12])
     expect(mockChatMemberUsers).not.toHaveBeenCalled()
+    expect(previews[0]?.senderUser).toBeNull()
+  })
+
+  // The member's own switch "Überweisungen im Chat und per E-Mail": off, no transfer stands in
+  // their conversations, and none under a name.
+  describe('for a member who keeps transfers out of their conversations', () => {
+    it('shows the latest message, however late the booking, and reads no booking', async () => {
+      mockDatabase.dbSelectChatMessagesByIds.mockResolvedValue([
+        messageRow(1, elfi, { createdAt: new Date('2026-10-20T10:00:00.000Z') }),
+      ])
+      mockDatabase.dbSelectBookingLinesOfUser.mockResolvedValue([
+        bookingLine(11, { balanceDate: new Date('2026-10-22T10:00:00.000Z') }),
+      ])
+      const previews = await contactChatPreviews(42, me, [row(1, 11)], false)
+      expect(previews[0]?.excerpt).toBe('message 1')
+      expect(previews[0]?.amount).toBeNull()
+      expect(mockDatabase.dbSelectBookingLinesOfUser).not.toHaveBeenCalled()
+    })
+
+    it('shows nothing for somebody they only exchanged Gradido with', async () => {
+      mockDatabase.dbSelectBookingLinesOfUser.mockResolvedValue([bookingLine(13)])
+      expect(await contactChatPreviews(42, me, [row(null, 13)], false)).toEqual([null])
+    })
   })
 })

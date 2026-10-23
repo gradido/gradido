@@ -99,18 +99,25 @@ export async function bookingPreviews(
  * The line under each of these contacts (E-083), in their order: of the latest message with them
  * and the latest booking, the later one (laterChatPreview); null for a contact with neither -- one
  * only on the referral trace. Both kinds for the whole list in one go each.
+ *
+ * `withBookings`: the member's own switch "Überweisungen im Chat und per E-Mail"
+ * (`users.transfers_in_chat`). Switched off, no transfer stands in their conversations, and so
+ * none stands under a name either: the line is the latest message, and the bookings are not read.
  */
 export async function contactChatPreviews(
   userId: number,
   member: ChatMemberRef,
   rows: ContactRow[],
+  withBookings: boolean,
 ): Promise<(ChatPreview | null)[]> {
   const present = (id: number | null): id is number => id !== null
   const [messages, bookings] = await Promise.all([
     chatMessagePreviews(rows.map((row) => row.lastChatMessageId).filter(present), member, {
       namingWriters: false,
     }),
-    bookingPreviews(userId, rows.map((row) => row.lastBookingId).filter(present)),
+    withBookings
+      ? bookingPreviews(userId, rows.map((row) => row.lastBookingId).filter(present))
+      : Promise.resolve(new Map<number, ChatPreview>()),
   ])
   return rows.map((row) =>
     laterChatPreview(

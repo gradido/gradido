@@ -186,7 +186,8 @@ export class ContactResolver {
     //
     // The line under each name (E-083) in the same wave, and only where it is asked for: two
     // queries for the page then -- the latest messages and the latest bookings --, none for a
-    // caller that does not ask (the seeds, a document of another app).
+    // document that does not ask. The bookings only where the member lets transfers stand in
+    // their conversations (`transfersInChat`).
     const [, previews] = await Promise.all([
       fillForeignMemberAvatarDates([...foreignLocals, ...remoteUsers]),
       extractGraphQLFieldPaths(info).has('contacts.chatPreview')
@@ -194,6 +195,7 @@ export class ContactResolver {
             user.id,
             member,
             people.map(({ row }) => row),
+            user.transfersInChat !== false,
           )
         : Promise.resolve(people.map(() => null)),
     ])

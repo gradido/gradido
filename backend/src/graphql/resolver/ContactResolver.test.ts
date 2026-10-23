@@ -959,6 +959,30 @@ describe('ContactResolver', () => {
       expect(row.chatPreview).toEqual({ excerpt: 'Greetings from over here' })
     })
 
+    // The member's own switch "Überweisungen im Chat und per E-Mail": off, no transfer stands in
+    // their conversations -- and none under a name. Their messages still do.
+    describe('for a member who keeps transfers out of their conversations', () => {
+      beforeAll(async () => {
+        await User.update({ id: bibi.id }, { transfersInChat: false })
+      })
+
+      afterAll(async () => {
+        await User.update({ id: bibi.id }, { transfersInChat: true })
+      })
+
+      it('shows no booking under a name, and the messages as before', async () => {
+        const lineOf = Object.fromEntries(
+          (await contacts()).contacts.map((c: any) => [c.user.gradidoID, c.chatPreview]),
+        )
+        expect(lineOf[bob.gradidoID]).toBeNull()
+        expect(lineOf[peter.gradidoID]).toBeNull()
+        expect(lineOf[dora.gradidoID]).toMatchObject({
+          excerpt: 'A ladder\n\nDo you still have the ladder?',
+        })
+        expect(lineOf[FRIDA]).toMatchObject({ mine: true, excerpt: 'Greetings from over here' })
+      })
+    })
+
     it('names by the pairs exactly the people the list holds, those who only wrote among them', async () => {
       const refs = await pairsOfTheContactRefs()
       expect(refs).toEqual(await pairsOfTheContactList())
