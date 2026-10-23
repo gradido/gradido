@@ -15,6 +15,7 @@ import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '../seeds/users/bob-baumeister'
 import { garrickOllivander } from '../seeds/users/garrick-ollivander'
 import { peterLustig } from '../seeds/users/peter-lustig'
+import { raeuberHotzenplotz } from '../seeds/users/raeuber-hotzenplotz'
 import { stephenHawking } from '../seeds/users/stephen-hawking'
 import { dbUpdateChatConversationMemberLastRead } from './chatConversationMembers'
 import { dbEnsureDirectChatConversation } from './chatConversations'
@@ -1270,5 +1271,55 @@ describe('the newest booking with a contact (E-083)', () => {
     expect(await dbSelectBookingLinesOfUser(stephen.id, [bookedSecond[0].id])).toEqual([])
     expect(await dbSelectBookingLinesOfUser(garrick.id, [99999999])).toEqual([])
     expect(await dbSelectBookingLinesOfUser(garrick.id, [])).toEqual([])
+  })
+
+  it('hands out no creation: it was booked with nobody', async () => {
+    const [bookings] = await dbSelectTransactionsByUserId(bibi.id, 50, 0, Order.DESC)
+    const creation = bookings.find((booking) => booking.typeId === TransactionTypeId.CREATION)
+    expect(creation).toBeDefined()
+    expect(await dbSelectBookingLinesOfUser(bibi.id, [creation?.id as number])).toEqual([])
+  })
+})
+
+/**
+ * A person both groupings found, split the other way round from Lotte: the booking with the
+ * `users` row is the OLDER one, so the newest booking is in the grouping joined second. It is
+ * still the one under the name (E-083) -- the order of the groupings decides nothing.
+ */
+describe('the newest booking of a person both groupings found, in the grouping joined second', () => {
+  const MIRA = 'bbbbbbbb-1111-2222-3333-444444444444'
+  let hotzenplotz: DbUser
+  let miraRowId: number
+
+  beforeAll(async () => {
+    hotzenplotz = await userFactory(raeuberHotzenplotz)
+    const miraRow = new DbUser()
+    miraRow.gradidoID = MIRA
+    miraRow.communityUuid = FOREIGN_COMMUNITY
+    miraRow.alias = 'mira'
+    miraRow.foreign = true
+    await miraRow.save()
+    miraRowId = miraRow.id
+    await foreignReceive(
+      hotzenplotz,
+      { ...fromAfar(MIRA, 'Mira'), linkedUserId: miraRowId },
+      day(23),
+    )
+    await foreignReceive(hotzenplotz, fromAfar(MIRA, 'Mira'), day(24))
+  })
+
+  it('takes the newer of the two, whichever grouping found it', async () => {
+    const page = await dbSelectContactsByUserId(hotzenplotz.id, {
+      member: memberOf(hotzenplotz),
+      limit: 25,
+      offset: 0,
+    })
+    expect(page.contacts).toHaveLength(1)
+    expect(page.contacts[0]).toMatchObject({ linkedUserId: miraRowId, bookings: 2 })
+    expect(page.contacts[0].lastBookingAt?.getTime()).toBe(day(24).getTime())
+    const [line] = await dbSelectBookingLinesOfUser(hotzenplotz.id, [
+      page.contacts[0].lastBookingId as number,
+    ])
+    expect(line.balanceDate.getTime()).toBe(day(24).getTime())
   })
 })
