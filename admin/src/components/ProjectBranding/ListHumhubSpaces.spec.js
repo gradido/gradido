@@ -72,6 +72,12 @@ describe('ListHumhubSpaces', () => {
     )
   })
 
+  // The name beside a radio is no label of it: a screen reader heard "radio button" alone.
+  it('each radio is named after its space', () => {
+    const radios = createWrapper().findAll('input[type="radio"]')
+    expect(radios.map((radio) => radio.attributes('aria-label'))).toEqual(['Space 1', 'Space 2'])
+  })
+
   it('marks the space it is given as chosen', () => {
     const wrapper = createWrapper({ modelValue: 2 })
     const items = wrapper.findAll('li')

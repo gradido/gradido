@@ -39,6 +39,8 @@ const STYLES = {
   // The Crea helpers of the moderation (S3)
   creaWindow: join(here, 'components', 'CreaEvaluationModal.module.css'),
   creaChat: join(here, 'components', 'AiChat.module.css'),
+  // The remaining pages (S3)
+  creationGroups: join(here, 'pages', 'CreationGroups.module.css'),
 }
 // The role form has no phone block: its one rule holds on every width.
 const ROLE_FORM = join(here, 'components', 'ChangeUserRoleFormular.css')
@@ -62,6 +64,8 @@ const FIXED_COLOURS_AT_MOST = {
   // chat's greys and the red of an error. Both go with the dark mode.
   [STYLES.creaWindow]: 52,
   [STYLES.creaChat]: 9,
+  // The line below a row of the creation groups.
+  [STYLES.creationGroups]: 1,
 }
 
 // Who loads each stylesheet. A sheet that nobody imports holds its rules for no page, and the
@@ -84,6 +88,7 @@ const LOADED_BY = {
   [ROLE_FORM]: join(here, 'components', 'ChangeUserRoleFormular.tsx'),
   [STYLES.creaWindow]: join(here, 'components', 'CreaEvaluationModal.tsx'),
   [STYLES.creaChat]: join(here, 'components', 'AiChat.tsx'),
+  [STYLES.creationGroups]: join(here, 'pages', 'CreationGroups.tsx'),
 }
 
 const PHONE = `(width < ${PHONE_BREAKPOINT_PX}px)`
@@ -446,6 +451,33 @@ describe('the phone rules of the contribution page and the member search', () =>
       height: '480px',
     })
     expect(ruleFor(desk, '.chatClearButton')?.declarations).toEqual({ 'font-size': '12px' })
+  })
+
+  it('lets a row of the creation groups wrap on a phone, and keeps the row of before at the desk', () => {
+    const css = read(STYLES.creationGroups)
+    const phone = phoneRules(css)
+    expect(ruleFor(phone, '.creationGroupRow')?.declarations).toEqual({ 'flex-wrap': 'wrap' })
+    // The two fields of an edited row, each in the whole width.
+    expect(ruleFor(phone, '.creationGroupInput')?.declarations).toEqual({
+      flex: '1 1 100%',
+      'max-width': 'none',
+    })
+    // The line its buttons start below.
+    expect(ruleFor(phone, '.creationGroupBreak')?.declarations).toEqual({
+      display: 'block',
+      'flex-basis': '100%',
+      height: '0',
+    })
+    // The tag is one word.
+    expect(ruleFor(phone, '.creationGroup')?.declarations).toEqual({ 'overflow-wrap': 'anywhere' })
+
+    // At the desk the row does not wrap, the line is not there, the fields are as narrow as
+    // before.
+    const desk = rules(outsideMedia(css))
+    expect(ruleFor(desk, '.creationGroupRow')?.declarations).not.toHaveProperty('flex-wrap')
+    expect(ruleFor(desk, '.creationGroupBreak')?.declarations).toEqual({ display: 'none' })
+    expect(ruleFor(desk, '.creationGroupInput')?.declarations).toEqual({ 'max-width': '220px' })
+    expect(ruleFor(desk, '.creationGroup')?.declarations).not.toHaveProperty('overflow-wrap')
   })
 
   it('holds no fixed colour more than before', () => {

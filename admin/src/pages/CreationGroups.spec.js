@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { CreationGroups } from './CreationGroups'
+import classes from './CreationGroups.module.css'
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
@@ -212,6 +213,52 @@ describe('CreationGroups', () => {
       expect(w.find('[data-test="adoption-state-7"]').text()).toMatch(
         /^creationGroupsAdmin\.adoption\.stateNothing \{"date":".+"\}$/,
       )
+    })
+  })
+
+  // A row wraps on a phone (CreationGroups.module.css, held by phoneStyles.spec.js): its buttons
+  // below its words, the two fields of an edited row each in the whole width. The line between
+  // words and buttons is an element of its own, which only a phone shows.
+  describe('a row', () => {
+    beforeEach(() => {
+      creationGroupsResult.value = {
+        creationGroups: [
+          { id: 7, tag: 'amstetten', name: 'Amstetten' },
+          { id: 8, tag: 'nachbarschaftshilfeoberesdonautal', name: 'Nachbarschaftshilfe' },
+        ],
+      }
+      wrapper = createWrapper()
+    })
+
+    it('a row wraps: its buttons start below the line of its words', () => {
+      for (const row of wrapper.findAll('ul li')) {
+        expect(row.classes()).toContain(classes.creationGroupRow)
+        const children = Array.from(row.element.children)
+        const firstButton = children.findIndex((child) => child.tagName === 'BUTTON')
+        const line = children[firstButton - 1]
+        expect(line.className).toBe(classes.creationGroupBreak)
+        expect(line.getAttribute('aria-hidden')).toBe('true')
+        expect(line.textContent).toBe('')
+        // ... after the words: name, tag and state stand before it.
+        expect(children.slice(0, firstButton - 1).map((child) => child.tagName)).toEqual([
+          'SPAN',
+          'SPAN',
+          'SPAN',
+        ])
+        // The tag is the word that may break anywhere on a phone.
+        expect(children[1].classList.contains(classes.creationGroup)).toBe(true)
+      }
+    })
+
+    it('an edited row gives each field its class, and has no line of its own', async () => {
+      await wrapper.findAll('ul li')[1].findAll('button')[1].trigger('click')
+      const row = wrapper.findAll('ul li')[1]
+      const fields = row.findAll('input')
+      expect(fields).toHaveLength(2)
+      for (const field of fields) {
+        expect(field.classes()).toContain(classes.creationGroupInput)
+      }
+      expect(row.find(`.${classes.creationGroupBreak}`).exists()).toBe(false)
     })
   })
 

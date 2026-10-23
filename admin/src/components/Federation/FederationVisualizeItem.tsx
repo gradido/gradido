@@ -2,6 +2,7 @@
 import { BCol, BRow, vBTooltip } from 'bootstrap-vue-next'
 import { formatDistanceToNow } from 'date-fns'
 import { computed, defineComponent, type PropType, withDirectives } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { VariantIcon } from '@/components/VariantIcon'
 import { useDateLocale } from '@/composables/useDateLocale'
 
@@ -19,6 +20,7 @@ export const FederationVisualizeItem = defineComponent({
     item: { type: Object as PropType<FederatedCommunity> },
   },
   setup(props) {
+    const { t } = useI18n()
     const item = () => props.item as FederatedCommunity
 
     const verified = computed(
@@ -41,17 +43,39 @@ export const FederationVisualizeItem = defineComponent({
     const dateWithTooltip = (dateString: string | null) =>
       withDirectives(<span>{distanceDate(dateString)}</span>, [[vBTooltip, `${dateString}`]])
 
+    // On a phone the six cells stand under each other, each with a small name of its own, as
+    // the head above them stands only from 992px on (CommunityVisualizeItem).
+    const phoneLabel = (label: string) => (
+      <span class='d-block d-lg-none text-body-secondary small'>{label}</span>
+    )
+
     return () => (
       <div class='federation-visualize-item'>
         <BRow>
-          <BCol>
+          <BCol cols='12' lg>
+            {phoneLabel(t('federation.verified'))}
             <VariantIcon icon={icon.value} variant={variant.value} />
           </BCol>
-          <BCol class='ml-1'>{item().apiVersion}</BCol>
-          <BCol>{dateWithTooltip(item().createdAt)}</BCol>
-          <BCol>{dateWithTooltip(item().lastAnnouncedAt)}</BCol>
-          <BCol>{dateWithTooltip(item().verifiedAt)}</BCol>
-          <BCol>{dateWithTooltip(item().lastErrorAt)}</BCol>
+          <BCol cols='12' lg class='ml-1'>
+            {phoneLabel(t('federation.apiVersion'))}
+            {item().apiVersion}
+          </BCol>
+          <BCol cols='12' lg>
+            {phoneLabel(t('federation.createdAt'))}
+            {dateWithTooltip(item().createdAt)}
+          </BCol>
+          <BCol cols='12' lg>
+            {phoneLabel(t('federation.lastAnnouncedAt'))}
+            {dateWithTooltip(item().lastAnnouncedAt)}
+          </BCol>
+          <BCol cols='12' lg>
+            {phoneLabel(t('federation.verifiedAt'))}
+            {dateWithTooltip(item().verifiedAt)}
+          </BCol>
+          <BCol cols='12' lg>
+            {phoneLabel(t('federation.lastErrorAt'))}
+            {dateWithTooltip(item().lastErrorAt)}
+          </BCol>
         </BRow>
       </div>
     )
