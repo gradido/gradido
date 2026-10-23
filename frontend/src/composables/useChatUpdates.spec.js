@@ -619,6 +619,28 @@ describe('useChatUpdates', () => {
       expect(changed).toHaveBeenCalledTimes(1)
     })
 
+    // ⚠️ The server hands a change on again for some seconds (CHAT_EDITS_SETTLE_MS on the server):
+    // the lists are asked again once per change, not once per answer that repeats it.
+    it('asks the lists again once for a change the server repeats, and again for a newer one', async () => {
+      const once = [chatMessage(4, { body: 'changed', editedAt: '2026-10-01T09:00:00.000Z' })]
+      const twice = [chatMessage(4, { body: 'again', editedAt: '2026-10-01T09:05:00.000Z' })]
+      server.answer(
+        update(),
+        update({ edited: once }),
+        update({ edited: once }),
+        update({ edited: twice }),
+      )
+
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+      expect(refreshContactsPanel).toHaveBeenCalledTimes(1)
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+      expect(refreshContactsPanel).toHaveBeenCalledTimes(1)
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+      expect(refreshContactsPanel).toHaveBeenCalledTimes(2)
+    })
+
     it('hands on arrivals and changes of the same answer, each to its own listeners', async () => {
       const arrived = vi.fn()
       const changed = vi.fn()

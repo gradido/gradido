@@ -72,6 +72,12 @@ const idle = () => ({
    * by the server's other clock. Null until the first answer.
    */
   reactedCursor: null,
+  /**
+   * The changed messages the lists were asked again for, by id, with the time of the change
+   * (`editedAt`): the server hands a change on again for some seconds, and the lists are asked
+   * once per change, not once per answer that repeats it.
+   */
+  listedEdits: new Map(),
   /** The pause before the next question. */
   delay: CHAT_POLL_INTERVAL_MS,
   timer: null,
@@ -156,8 +162,12 @@ const cycle = async (mine) => {
       // "Kontakte & Chat" (E-083): the list is asked again for it.
       if (update.editedCursor) beat.editedCursor = update.editedCursor
       if (update.edited?.length > 0) {
-        changed = true
         handOn(editedListeners, update.edited)
+        for (const message of update.edited) {
+          if (beat.listedEdits.get(message.id) === message.editedAt) continue
+          beat.listedEdits.set(message.id, message.editedAt)
+          changed = true
+        }
       }
       // The messages whose reactions changed, the same way, with their own cursor. Nothing is
       // asked again for them either: a reaction moves no order, no dot and no number.

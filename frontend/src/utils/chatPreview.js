@@ -39,10 +39,12 @@ const blockWords = (blocks) =>
  * @param {string} words the raw beginning the server sent (ChatPreview.excerpt)
  * @returns {string}
  */
-export const chatPreviewWords = (words) =>
-  blockWords(chatMarkdown(words ?? ''))
-    .replace(/\s+/g, ' ')
-    .trim()
+export const chatPreviewWords = (words) => {
+  const oneLine = (text) => text.replace(/\s+/g, ' ').trim()
+  // A message of signs alone ("---", which the bubble draws as a rule) still said something: its
+  // signs stand in the line, rather than an empty line under the name.
+  return oneLine(blockWords(chatMarkdown(words ?? ''))) || oneLine(words ?? '')
+}
 
 /**
  * What the line under a name says (E-083): `{ by, text, picture }`.

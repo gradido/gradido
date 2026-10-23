@@ -53,8 +53,9 @@ describe('ChatPreviewLine', () => {
     expect(line.text()).toBe('Bild')
   })
 
+  // A booking never carries a picture; were the field ever set on one, the line still shows none.
   it('shows no sign of a picture for a booking', () => {
-    const line = mountLine({ mine: true, excerpt: 'Danke', amount: '20.0000' })
+    const line = mountLine({ mine: true, excerpt: 'Danke', amount: '20.0000', hasImage: true })
     expect(line.find('[data-test="chat-preview-picture"]').exists()).toBe(false)
     expect(line.text().replace(/\s+/g, ' ')).toBe('Du: 20 GDD · Danke')
   })

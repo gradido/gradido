@@ -47,6 +47,11 @@ describe('chatPreviewWords', () => {
     expect(chatPreviewWords('https://gradido.net/faq')).toBe('https://gradido.net/faq')
   })
 
+  it('shows the signs themselves where a message is made of signs alone', () => {
+    expect(chatPreviewWords('---')).toBe('---')
+    expect(chatPreviewWords('---\n\n---')).toBe('--- ---')
+  })
+
   it('says nothing for nothing', () => {
     expect(chatPreviewWords('')).toBe('')
     expect(chatPreviewWords(null)).toBe('')
