@@ -32,14 +32,23 @@
             />
           </span>
           <!-- The community in a line of its own (mockup V02) -- not behind the name, where
-               the booking row puts it for a member of ANOTHER community only. -->
+               the booking row puts it for a member of ANOTHER community only. Where the line of
+               the latest word stands under the name of somebody of the member's own community,
+               it takes this one's place (E-083): the name it said is the member's own. -->
           <span
-            v-if="contact.user.communityName"
+            v-if="communityShown"
             class="small text-muted d-block"
             data-test="contact-community"
           >
             {{ contact.user.communityName }}
           </span>
+          <!-- The beginning of the latest message, or of the latest booking where that came later
+               (E-083). Dark while a message from them waits unread; a booking waits for nobody. -->
+          <chat-preview-line
+            v-if="contact.chatPreview"
+            :preview="contact.chatPreview"
+            :unread="previewUnread"
+          />
           <span class="small text-muted d-block" data-test="contact-meta">{{ meta }}</span>
         </span>
         <!-- At the end of the row, as in mockup V03, and inside the button: its sentence
@@ -58,6 +67,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { BCol, BRow } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
+import ChatPreviewLine from '@/components/Chat/ChatPreviewLine.vue'
 import ChatUnreadDot from '@/components/Chat/ChatUnreadDot.vue'
 import FavoriteHeart from '@/components/FavoriteHeart.vue'
 import Name from '@/components/TransactionRows/Name'
@@ -69,7 +79,7 @@ import { LIST_AVATAR_SIZE } from '@/constants'
  * gold dot while a message from them waits unread.
  *
  * `contact` is what contactListQuery delivers: { user, firstAt, lastAt, bookings,
- * unreadChatMessages }. The
+ * unreadChatMessages, chatPreview }. The
  * user is the booking row's shape, so face and name are drawn by the same helpers the
  * booking row uses -- the list cannot come to name somebody differently.
  */
@@ -92,6 +102,28 @@ const meta = computed(() => contactMeta(props.contact, { t, d }))
 // to draw one person four ways. The avatar stands outside the row's button here, so it may
 // carry the zoom.
 const avatar = computed(() => contactDisplay(props.contact, { zoomable: true }).avatar)
+
+// The community's line, unless the latest word takes its place: under somebody of the member's
+// own community (E-083, Bernd's choice "statt Gradido-Akademie"). Somebody of another community
+// keeps the name of theirs, and has the latest word under it. `homeCommunity` is the server's
+// answer -- the wallet cannot tell its own community by the name (contacts.graphql).
+const communityShown = computed(
+  () =>
+    Boolean(props.contact.user.communityName) &&
+    !(props.contact.chatPreview && props.contact.homeCommunity),
+)
+
+// A message from them waits unread: the line says it is the newest, as the dot does. Not one's
+// own, and not a booking -- an amount waits for nobody, it is booked.
+const previewUnread = computed(() => {
+  const preview = props.contact.chatPreview
+  return (
+    Boolean(preview) &&
+    !preview.mine &&
+    (preview.amount === null || preview.amount === undefined) &&
+    props.contact.unreadChatMessages > 0
+  )
+})
 </script>
 
 <style scoped>

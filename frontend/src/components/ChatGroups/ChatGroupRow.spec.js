@@ -16,6 +16,7 @@ vi.mock('vue-i18n', () => ({
           ? `${key} ${JSON.stringify(values)}`
           : key,
     d: (date, format) => `${format}(${date.toISOString()})`,
+    n: (value) => `n(${value})`,
   }),
 }))
 
@@ -162,6 +163,51 @@ describe('ChatGroupRow', () => {
       })
       const mark = mountRow({ mutedByMe: true }).find('[data-test="chat-group-muted"]')
       expect(mark.find('.chat-group-row-muted-icon').exists()).toBe(true)
+    })
+  })
+
+  /**
+   * The line of the latest message under the name (E-083): who wrote it and the beginning of its
+   * words, in the place of the community's line -- a group is named a community only where it is
+   * the member's own (chatGroupsOf).
+   */
+  describe('the line of the latest message', () => {
+    const FROM_ELFI = {
+      mine: false,
+      excerpt: 'Morgen um zehn im Garten?',
+      hasImage: false,
+      amount: null,
+      senderUser: { communityUuid: 'home', gradidoID: 'elfi-id', alias: 'Elfi' },
+    }
+    const lineOf = (row) => row.find('[data-test="chat-preview-line"]')
+
+    it("stands in the community's place, with who wrote it", () => {
+      const row = mountRow({ chatPreview: FROM_ELFI })
+      expect(row.find('[data-test="chat-group-community"]').exists()).toBe(false)
+      expect(lineOf(row).text()).toBe('chatPreview.by {"name":"Elfi"} Morgen um zehn im Garten?')
+    })
+
+    it('leaves the community where the group has no message yet', () => {
+      const row = mountRow({ chatPreview: null, lastMessageAt: null })
+      expect(lineOf(row).exists()).toBe(false)
+      expect(row.find('[data-test="chat-group-community"]').text()).toBe('KI Playground')
+    })
+
+    it("is dark while something waits unread, and not for one's own message", () => {
+      expect(lineOf(mountRow({ chatPreview: FROM_ELFI, unreadMessages: 3 })).classes()).toContain(
+        'fw-semibold',
+      )
+      expect(
+        lineOf(mountRow({ chatPreview: FROM_ELFI, unreadMessages: 0 })).classes(),
+      ).not.toContain('fw-semibold')
+      expect(
+        lineOf(
+          mountRow({
+            chatPreview: { ...FROM_ELFI, mine: true, senderUser: null },
+            unreadMessages: 3,
+          }),
+        ).classes(),
+      ).not.toContain('fw-semibold')
     })
   })
 })

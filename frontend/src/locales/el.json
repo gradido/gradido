@@ -251,6 +251,9 @@
     "sentMailed": "Στάλθηκε. Φεύγει και email προς {name}.",
     "toConversation": "Στη συνομιλία"
   },
+  "chatPreview": {
+    "by": "{name}:"
+  },
   "chatSearch": {
     "capped": "Η αναζήτηση έγινε στα τελευταία {count} μηνύματα.",
     "count": "{current} από {count}",

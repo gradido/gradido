@@ -608,8 +608,10 @@ describe('useChatUpdates', () => {
       expect(changed).toHaveBeenCalledTimes(1)
       expect(changed).toHaveBeenCalledWith(edited)
       expect(arrived).not.toHaveBeenCalled()
-      // A change moves no order and no dot: the contact list is not asked again for it.
-      expect(refreshContactsPanel).not.toHaveBeenCalled()
+      // A change moves no order and no dot, but the changed message may be the latest of its
+      // conversation, whose words stand under a name on "Kontakte & Chat" (E-083): the lists are
+      // asked again, once for the round.
+      expect(refreshContactsPanel).toHaveBeenCalledTimes(1)
 
       stop()
       server.answer(update({ edited }))
