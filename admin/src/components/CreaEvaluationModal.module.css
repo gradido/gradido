@@ -33,6 +33,15 @@
   justify-content: flex-end;
 }
 
+/* A phone: the foot may break into a second line rather than push a button past the window, in
+   a language whose words are long. Nothing else of the foot changes; its buttons are 44px tall
+   by the rule of App.css. */
+@media (width < 992px) {
+  .creaFooter {
+    flex-wrap: wrap;
+  }
+}
+
 /* Crea-scoped Gradido palette for the decision buttons + verdict badge.
    .palette sits on the evaluation block, which holds every button and badge these rules
    reach; in the .vue they were :deep() rules under the component's scope attribute. The admin

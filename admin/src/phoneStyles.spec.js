@@ -36,6 +36,9 @@ const STYLES = {
   creationForm: join(here, 'components', 'CreationFormular.module.css'),
   mailForm: join(here, 'components', 'ConfirmRegisterMailFormular.css'),
   walletLink: join(here, 'components', 'MemberWalletLink.module.css'),
+  // The Crea helpers of the moderation (S3)
+  creaWindow: join(here, 'components', 'CreaEvaluationModal.module.css'),
+  creaChat: join(here, 'components', 'AiChat.module.css'),
 }
 // The role form has no phone block: its one rule holds on every width.
 const ROLE_FORM = join(here, 'components', 'ChangeUserRoleFormular.css')
@@ -54,6 +57,11 @@ const FIXED_COLOURS_AT_MOST = {
   [STYLES.mailForm]: 1,
   [STYLES.walletLink]: 0,
   [ROLE_FORM]: 0,
+  // Counted on 23.10.2026 before S3, as this spec counts, without the comments (the window's
+  // comment names three of its colours once more): the Crea palette of the window, and the
+  // chat's greys and the red of an error. Both go with the dark mode.
+  [STYLES.creaWindow]: 52,
+  [STYLES.creaChat]: 9,
 }
 
 // Who loads each stylesheet. A sheet that nobody imports holds its rules for no page, and the
@@ -74,6 +82,8 @@ const LOADED_BY = {
   [STYLES.mailForm]: join(here, 'components', 'ConfirmRegisterMailFormular.tsx'),
   [STYLES.walletLink]: join(here, 'components', 'MemberWalletLink.tsx'),
   [ROLE_FORM]: join(here, 'components', 'ChangeUserRoleFormular.tsx'),
+  [STYLES.creaWindow]: join(here, 'components', 'CreaEvaluationModal.tsx'),
+  [STYLES.creaChat]: join(here, 'components', 'AiChat.tsx'),
 }
 
 const PHONE = `(width < ${PHONE_BREAKPOINT_PX}px)`
@@ -380,6 +390,62 @@ describe('the phone rules of the contribution page and the member search', () =>
       width: '1.5rem',
       height: '1.5rem',
     })
+  })
+
+  it('lets the foot of the Crea window break on a phone, and nothing else of it', () => {
+    const css = read(STYLES.creaWindow)
+    expect(ruleFor(phoneRules(css), '.creaFooter')?.declarations).toEqual({ 'flex-wrap': 'wrap' })
+    expect(ruleFor(rules(outsideMedia(css)), '.creaFooter')?.declarations).not.toHaveProperty(
+      'flex-wrap',
+    )
+  })
+
+  it('makes the open Crea chat a sheet over the whole width on a phone, and keeps the box at the desk', () => {
+    const css = read(STYLES.creaChat)
+    const phone = phoneRules(css)
+    expect(ruleFor(phone, '.chatContainer')?.declarations).toEqual({
+      left: '0',
+      right: '0',
+      bottom: '0',
+      'font-size': '0.875rem',
+    })
+    // The button that opens it keeps its place, 20px from the corner.
+    expect(ruleFor(phone, '.chatToggleButton')?.declarations).toEqual({
+      bottom: '20px',
+      right: '20px',
+    })
+    expect(ruleFor(phone, '.chatWindow')?.declarations).toMatchObject({
+      width: '100%',
+      'border-radius': '0.5rem 0.5rem 0 0',
+    })
+    // vh first, dvh second: an engine without dvh drops the second line and keeps the first.
+    const sheet = mediaBlocks(css).find((block) => block.condition === PHONE).body
+    expect(sheet.replace(/\s+/g, ' ')).toContain(
+      'height: min(480px, 80vh); height: min(480px, 80dvh);',
+    )
+    expect(ruleFor(phone, '.chatClearButton')?.declarations).toEqual({ 'font-size': '0.875rem' })
+
+    // At the desk the box of before: 550 × 480, 20px from the corner, 12px.
+    const desk = rules(outsideMedia(css))
+    expect(ruleFor(desk, '.chatContainer')?.declarations).toMatchObject({
+      position: 'fixed',
+      bottom: '20px',
+      right: '20px',
+      'font-size': '12px',
+    })
+    // The button that opens it stands absolutely, at every width: the container, which spans the
+    // whole width on a phone, is then no taller than what it shows -- 0px while the chat is
+    // closed, so that it lies over nothing of the page.
+    expect(ruleFor(desk, '.chatToggleButton')?.declarations).toMatchObject({
+      position: 'absolute',
+      bottom: '0',
+      right: '0',
+    })
+    expect(ruleFor(desk, '.chatWindow')?.declarations).toMatchObject({
+      width: '550px',
+      height: '480px',
+    })
+    expect(ruleFor(desk, '.chatClearButton')?.declarations).toEqual({ 'font-size': '12px' })
   })
 
   it('holds no fixed colour more than before', () => {

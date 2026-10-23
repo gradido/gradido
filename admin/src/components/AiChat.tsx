@@ -301,7 +301,13 @@ export const AiChat = defineComponent({
     const renderWindow = () => (
       <div class={classes.chatWindow}>
         <div class='d-flex justify-content-start'>
-          <BButton variant='light' class='chat-close-button mt-1 ms-1 btn-sm' onClick={closeChat}>
+          {/* A symbol and nothing else: the name is all a screen reader has of it. */}
+          <BButton
+            variant='light'
+            class='chat-close-button mt-1 ms-1 btn-sm'
+            aria-label={t('close')}
+            onClick={closeChat}
+          >
             <IIcBaselineClose />
           </BButton>
         </div>
@@ -362,12 +368,15 @@ export const AiChat = defineComponent({
         {!isChatOpen.value ? (
           // ⚠️ No variant: the .vue bound `:variant="light"`, a name defined nowhere, so the
           // button has always had BButton's default. Kept as it was.
+          // A picture of Crea and no word: the name and the tooltip say what it does.
           <BButton
             class={[
               classes.chatToggleButton,
               classes.bgCreaImg,
               { [classes.slideUpAnimation]: !hasBeenOpened.value },
             ]}
+            aria-label={t('ai.chat-open')}
+            title={t('ai.chat-open')}
             onClick={openChat}
           />
         ) : null}

@@ -165,3 +165,35 @@
     transform: translateY(0);
   }
 }
+
+/* A phone: the open chat is a sheet over the whole width at the bottom of the window, its close
+   button and "clear the chat" inside it, the words 14px. As a box of 550 × 480 anchored 20px from
+   the right it lay 250px past the left edge at 320px, with both of those buttons outside
+   (measured 23.10.2026). The container spans the width; the button that opens the chat keeps
+   its place 20px from the corner, and the container is no taller than what it shows -- closed,
+   the button stands absolutely and takes no height, so the page around it can still be pressed.
+   dvh with vh before it, as the wallet writes it: an engine without dvh drops the second line. */
+@media (width < 992px) {
+  .chatContainer {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    font-size: 0.875rem;
+  }
+
+  .chatToggleButton {
+    bottom: 20px;
+    right: 20px;
+  }
+
+  .chatWindow {
+    width: 100%;
+    height: min(480px, 80vh);
+    height: min(480px, 80dvh);
+    border-radius: 0.5rem 0.5rem 0 0;
+  }
+
+  .chatClearButton {
+    font-size: 0.875rem;
+  }
+}
