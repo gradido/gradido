@@ -151,7 +151,7 @@ export const CreationConfirm = defineComponent({
     const creaOpenOnly = computed(() => tabIndex.value === ALL_TAB)
 
     const fields = computed(() => {
-      // On a phone the table stacks its cells (`stacked='md'`), and a stacked row is a card: the
+      // On a phone the table stacks its cells (`stacked='lg'`), and a stacked row is a card: the
       // head with face, name, amount and date, the text in full width, the buttons below. The
       // same three cells on every tab: the state of a contribution decides what can be pressed
       // on its card, the tab only whether Crea is offered (`showCrea`).

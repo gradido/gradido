@@ -46,6 +46,11 @@ describe('ProjectBrandingItem', () => {
   const firstRow = (wrapper) => wrapper.find('.project-branding-item > .row')
   const columns = (wrapper) => wrapper.findAll('.project-branding-item > .row:first-child > div')
   const form = (wrapper) => wrapper.findComponent({ name: 'ProjectBrandingForm' })
+  // The value of a column, without the small name a phone shows above it (`d-lg-none`).
+  const valueIn = (column) => {
+    const label = column.find('.d-lg-none')
+    return label.exists() ? column.text().slice(label.text().length).trim() : column.text()
+  }
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -60,8 +65,8 @@ describe('ProjectBrandingItem', () => {
     expect(firstRow(wrapper).attributes('title')).toBe('Where it grows')
     expect(columns(wrapper)[0].text()).toContain('Gradido Garden')
     expect(columns(wrapper)[0].text()).toContain('https://wallet.example/login?project=garden')
-    expect(columns(wrapper)[1].text()).toBe('garden')
-    expect(columns(wrapper)[2].find('span').classes()).toEqual(['text-success'])
+    expect(valueIn(columns(wrapper)[1])).toBe('garden')
+    expect(columns(wrapper)[2].find('span:not(.d-lg-none)').classes()).toEqual(['text-success'])
     expect(wrapper.find('img').attributes()).toMatchObject({
       class: 'img-fluid',
       src: 'https://example.org/logo.png',
@@ -71,7 +76,7 @@ describe('ProjectBrandingItem', () => {
 
   it('shows a branding without new members to the space as such', () => {
     const wrapper = createWrapper(branding({ newUserToSpace: false }))
-    expect(columns(wrapper)[2].find('span').classes()).toEqual(['text-danger'])
+    expect(columns(wrapper)[2].find('span:not(.d-lg-none)').classes()).toEqual(['text-danger'])
   })
 
   it('offers no link and no copy without an alias', () => {
@@ -86,6 +91,40 @@ describe('ProjectBrandingItem', () => {
       'copy-to-clipboard',
       'delete',
     ])
+  })
+
+  // The tooltip takes the `title` away, and left the two symbols without a name.
+  it('the buttons have names', () => {
+    const buttons = createWrapper().findAll('button')
+    expect(buttons.map((button) => button.attributes('aria-label'))).toEqual([
+      'copy-to-clipboard',
+      'delete',
+    ])
+    expect(buttons.every((button) => button.text() === '')).toBe(true)
+  })
+
+  // On a phone an entry is a card: every column takes the whole width, and a value carries a
+  // small name of its own; from 992px on the columns of before, under the head of the list.
+  it('every value carries its small label below the boundary', () => {
+    const wrapper = createWrapper()
+    const label = (column) => column.find('.d-lg-none')
+    expect(columns(wrapper).map((column) => column.classes().sort())).toEqual([
+      ['col-12', 'col-lg-3', 'text-break'],
+      ['col-12', 'col-lg-2', 'text-break'],
+      ['col-12', 'col-lg-2'],
+      ['col-12', 'col-lg-3', 'me-lg-2'],
+      ['col-12', 'col-lg-1'],
+    ])
+    expect(
+      columns(wrapper).map((column) => (label(column).exists() ? label(column).text() : null)),
+    ).toEqual([null, 'alias', 'projectBranding.newUserToSpace', 'logo', null])
+    for (const column of columns(wrapper).filter((c) => label(c).exists())) {
+      expect(label(column).classes().sort()).toEqual(
+        ['d-block', 'd-lg-none', 'small', 'text-body-secondary'].sort(),
+      )
+      // ... before the value.
+      expect(column.element.firstElementChild).toBe(label(column).element)
+    }
   })
 
   it('copies the link without opening the details', async () => {

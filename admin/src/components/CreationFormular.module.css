@@ -11,7 +11,7 @@
 /* A phone: the form takes the width of the card it stands in. With the room of the desk the
    text field was 126px wide at 320px, and the submit button stood 21.7px past the window
    (measured 23.10.2026). */
-@media (width < 768px) {
+@media (width < 992px) {
   .block {
     margin: 0.25rem 0;
   }

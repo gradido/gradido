@@ -8,12 +8,3 @@
 .userSearchFirstDiv svg {
   vertical-align: text-bottom;
 }
-
-/* The table stands in columns from 768 px on (stacked="md"). Up to about 850 px an address
-   in one piece is wider than the window allows next to the username column, and the table
-   would reach past it. Only there the address may break inside a word; above, it stays whole. */
-@media (width >= 768px) and (width < 850px) {
-  .userSearch :global(td.user-search-narrow-break) {
-    overflow-wrap: anywhere;
-  }
-}

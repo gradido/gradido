@@ -153,6 +153,37 @@ describe('AiChat', () => {
     expect(bubbles(wrapper, 'assistant')).toEqual(['Hallo!\n[SIGNATUR]'])
   })
 
+  // Both are a picture or a symbol and nothing else (S3): the name is all a screen reader has.
+  it('the opener and the close button carry names', async () => {
+    const wrapper = await mountChat()
+    const opener = wrapper.find('button')
+    expect(opener.text()).toBe('')
+    expect(opener.attributes('aria-label')).toBe('ai.chat-open')
+    expect(opener.attributes('title')).toBe('ai.chat-open')
+
+    await open(wrapper)
+    // The opener is gone while the window stands, and the window closes by the named button.
+    expect(wrapper.find('button[aria-label="ai.chat-open"]').exists()).toBe(false)
+    const close = wrapper.find('.chat-close-button')
+    expect(close.text()).toBe('')
+    expect(close.attributes('aria-label')).toBe('close')
+    await close.trigger('click')
+    expect(wrapper.find('.chat-close-button').exists()).toBe(false)
+    expect(wrapper.find('button[aria-label="ai.chat-open"]').exists()).toBe(true)
+  })
+
+  // On a phone both are a square of 44px, as every button that is a symbol and nothing else:
+  // they were 35 and 33px wide at 320 × 568 (measured 23.10.2026). The rule is App.css's and
+  // holds below 992px only.
+  it('the close and the copy buttons are squares to tap on a phone', async () => {
+    const wrapper = await mountChat()
+    await open(wrapper)
+    expect(wrapper.find('.chat-close-button').classes()).toContain('phone-icon-btn')
+    const copies = wrapper.findAll('button[aria-label="copy-to-clipboard"]')
+    expect(copies).toHaveLength(1)
+    expect(copies[0].classes()).toContain('phone-icon-btn')
+  })
+
   it('keeps the window as it is when deleting the thread fails', async () => {
     deleteMutate.mockRejectedValueOnce(new Error('down'))
     const wrapper = await mountChat()

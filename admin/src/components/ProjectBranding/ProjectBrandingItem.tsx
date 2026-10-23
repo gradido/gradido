@@ -99,6 +99,13 @@ export const ProjectBrandingItem = defineComponent({
 
     const hoverTooltip = [vBTooltip, undefined, undefined, { hover: true }] as const
 
+    // On a phone every entry is a card: its columns stand under each other, and a value carries
+    // a small name of its own, as the head of the list stands only from 992px on. The tooltip
+    // takes a button's `title` away (vBTooltip), so a button carries its name as `aria-label`.
+    const phoneLabel = (label: string) => (
+      <span class='d-block d-lg-none text-body-secondary small'>{label}</span>
+    )
+
     return () => (
       <div class='project-branding-item'>
         <BRow
@@ -106,7 +113,7 @@ export const ProjectBrandingItem = defineComponent({
           title={item.value.description}
           onClick={toggleDetails}
         >
-          <BCol cols='3'>
+          <BCol cols='12' lg='3' class='text-break'>
             {`${toDisplayString(item.value.name)} `}
             <br />
             {` ${toDisplayString(frontendLoginUrl.value)} `}
@@ -115,6 +122,7 @@ export const ProjectBrandingItem = defineComponent({
                   <BButton
                     variant='secondary'
                     title={t('copy-to-clipboard')}
+                    aria-label={t('copy-to-clipboard')}
                     onClick={withModifiers(
                       () => copyToClipboard(frontendLoginUrl.value as string),
                       ['stop'],
@@ -126,8 +134,12 @@ export const ProjectBrandingItem = defineComponent({
                 )
               : null}
           </BCol>
-          <BCol cols='2'>{item.value.alias}</BCol>
-          <BCol cols='2'>
+          <BCol cols='12' lg='2' class='text-break'>
+            {phoneLabel(t('alias'))}
+            {item.value.alias}
+          </BCol>
+          <BCol cols='12' lg='2'>
+            {phoneLabel(t('projectBranding.newUserToSpace'))}
             {item.value.newUserToSpace ? (
               <span class='text-success'>
                 <IBiCheck />
@@ -138,15 +150,17 @@ export const ProjectBrandingItem = defineComponent({
               </span>
             )}
           </BCol>
-          <BCol cols='3' class='me-2'>
+          <BCol cols='12' lg='3' class='me-lg-2'>
+            {phoneLabel(t('logo'))}
             <img class='img-fluid' src={item.value.logoUrl} alt={item.value.logoUrl} />
           </BCol>
           {store.moderator!.role === 'ADMIN' ? (
-            <BCol cols='1'>
+            <BCol cols='12' lg='1'>
               {withDirectives(
                 <BButton
                   variant='danger'
                   title={t('delete')}
+                  aria-label={t('delete')}
                   onClick={withModifiers(deleteItem, ['stop'])}
                 >
                   <IBiTrash />

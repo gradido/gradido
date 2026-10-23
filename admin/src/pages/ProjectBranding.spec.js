@@ -72,6 +72,23 @@ describe('ProjectBranding', () => {
     )
   })
 
+  // The head stands from 992px on; below that an entry is a card whose values carry their own
+  // small names (ProjectBrandingItem). A head may break inside a word rather than run into the
+  // column beside it.
+  it('the header hides below the boundary and every head may break', () => {
+    const wrapper = createWrapper()
+    const head = wrapper.find('.list-group > .row')
+    expect(head.classes()).toEqual(expect.arrayContaining(['d-none', 'd-lg-flex']))
+    expect(head.findAll(':scope > div').every((column) => column.classes('text-break'))).toBe(true)
+  })
+
+  // A symbol and nothing else.
+  it('the refresh button has a name', () => {
+    const button = refreshButton(createWrapper())
+    expect(button.attributes('aria-label')).toBe('refresh')
+    expect(button.attributes('title')).toBe('refresh')
+  })
+
   it('lists the brandings', () => {
     const wrapper = createWrapper()
     expect(items(wrapper).map((item) => item.props('item'))).toEqual([branding(1), branding(2)])

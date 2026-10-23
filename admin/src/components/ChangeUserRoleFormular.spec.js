@@ -106,7 +106,7 @@ describe('ChangeUserRoleFormular', () => {
     // has half its padding, as the other forms of an opened member.
     it('the card has no fixed white ground', () => {
       const card = wrapper.find('.change-user-role-formular > div')
-      expect(card.classes()).toEqual(expect.arrayContaining(['shadow', 'p-2', 'p-md-3', 'rounded']))
+      expect(card.classes()).toEqual(expect.arrayContaining(['shadow', 'p-2', 'p-lg-3', 'rounded']))
       expect(card.classes()).not.toContain('bg-white')
     })
   })

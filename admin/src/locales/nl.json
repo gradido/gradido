@@ -149,6 +149,7 @@
       }
     },
     "saveChange": "Wijzigingen opslaan",
+    "show": "Link tonen",
     "validFrom": "Startdatum",
     "validTo": "Einddatum"
   },
@@ -590,6 +591,7 @@
     "updated": "De projectbranding-vermelding is bijgewerkt."
   },
   "redeemed": "ingewisseld",
+  "refresh": "Vernieuwen",
   "registered": "Geregistreerd",
   "registered_at": "Geregistreerd op",
   "removeNotSelf": "Als admin/moderator kun je jezelf niet verwijderen.",

@@ -38,6 +38,9 @@ export const FederationVisualize = defineComponent({
             // no props of BButton: they land on the element
             {...{ animation: animation.value, 'font-scale': '2' }}
             data-test='federation-communities-refresh-btn'
+            // A symbol and nothing else: the name is all a screen reader has of it.
+            title={t('refresh')}
+            aria-label={t('refresh')}
             // ⚠️ The click event is what refetch receives as its variables, as before.
             onClick={refetch as unknown as (event: MouseEvent) => void}
           >
@@ -45,7 +48,9 @@ export const FederationVisualize = defineComponent({
           </BButton>
         </div>
         <BListGroup>
-          <BRow>
+          {/* The heads of the columns, from 992px on. Below that every community is a card whose
+              values carry a small name of their own (CommunityVisualizeItem). */}
+          <BRow class='d-none d-lg-flex'>
             <BCol cols='1' class='ms-1'>
               {t('federation.verified')}
             </BCol>

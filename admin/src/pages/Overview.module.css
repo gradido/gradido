@@ -36,7 +36,7 @@
 
 /* Where the table above stops stacking, a label keeps to one line: the weeks roll anyway, and a
    label broken over three lines would make every row three lines high. */
-@media (width >= 768px) {
+@media (width >= 992px) {
   .figuresWeeksLabel {
     white-space: nowrap;
   }

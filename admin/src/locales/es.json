@@ -149,6 +149,7 @@
       }
     },
     "saveChange": "Guardar cambios",
+    "show": "Mostrar el enlace",
     "validFrom": "Fecha de inicio",
     "validTo": "Fecha de fin"
   },
@@ -590,6 +591,7 @@
     "updated": "La entrada de marca del proyecto se ha actualizado."
   },
   "redeemed": "canjeado",
+  "refresh": "Actualizar",
   "registered": "Registrado",
   "registered_at": "Registrado el",
   "removeNotSelf": "Como administrador/moderador, no puedes eliminarte a ti mismo.",

@@ -56,22 +56,22 @@
 }
 
 /* A phone: every row is a card -- the stacked row of the table with the cells CreationConfirm
-   hands it there (head, text, buttons). Below this width the table stacks (`stacked='md'`). */
-@media (width < 768px) {
+   hands it there (head, text, buttons). Below this width the table stacks (`stacked='lg'`). */
+@media (width < 992px) {
   /* The card's inner margin sits on its cells, not on the row: Bootstrap paints a row's colour
      into its cells, and padding on the row would leave a white frame around every card. The
      3px line above the first cell stays as the edge between two cards; the lines between the
      cells of one card go. */
-  .open-creations-table .b-table-stacked-md > tbody > tr > td {
+  .open-creations-table .b-table-stacked-lg > tbody > tr > td {
     padding: 0.125rem 0.375rem;
     border-bottom-width: 0;
   }
 
-  .open-creations-table .b-table-stacked-md > tbody > tr > td:first-child {
+  .open-creations-table .b-table-stacked-lg > tbody > tr > td:first-child {
     padding-top: 0.625rem;
   }
 
-  .open-creations-table .b-table-stacked-md > tbody > tr > td:last-child {
+  .open-creations-table .b-table-stacked-lg > tbody > tr > td:last-child {
     padding-bottom: 0.875rem;
   }
 
