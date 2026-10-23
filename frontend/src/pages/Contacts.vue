@@ -365,7 +365,7 @@ const reloadGroups = async () => {
     const { data } = await apolloClient.query({
       query: chatGroupsQuery,
       fetchPolicy: 'network-only',
-      context: { renewSession: false },
+      context: { renewSession: false, queryDeduplication: false },
     })
     if (mine !== groupReloads || !data?.chatGroups) return
     groups.value = data.chatGroups
@@ -385,7 +385,10 @@ const reloadGroups = async () => {
  * keep an unattended wallet signed in (plugins/apolloProvider.js). Said nothing on a failure:
  * the list on screen stays as it was, and the next news asks again.
  *
- * Only the newest answer counts: two of these can be on their way at once.
+ * Only the newest answer counts: two of these can be on their way at once. ⛔ And each is a
+ * question of its own (`queryDeduplication: false`): Apollo would otherwise hand a second question
+ * the answer of the first one still on its way -- one that left before the news this question is
+ * about, and that would then count as the newest (E-083: a changed message under a name).
  */
 let reloads = 0
 const reloadList = async () => {
@@ -395,7 +398,7 @@ const reloadList = async () => {
       query: contactListQuery,
       variables: LIST_VARIABLES,
       fetchPolicy: 'network-only',
-      context: { renewSession: false },
+      context: { renewSession: false, queryDeduplication: false },
     })
     if (mine !== reloads || !data?.contactList) return
     contacts.value = data.contactList.contacts

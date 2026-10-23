@@ -207,7 +207,7 @@ describe('useContactsPanel', () => {
     // Both slots, the page and the word still standing.
     expect(query).toHaveBeenCalledTimes(2)
     for (const [options] of query.mock.calls) {
-      expect(options.context).toEqual({ renewSession: false })
+      expect(options.context).toEqual({ renewSession: false, queryDeduplication: false })
     }
     releaseContactsPanel()
   })
