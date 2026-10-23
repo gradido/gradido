@@ -286,7 +286,8 @@ export const AiChat = defineComponent({
           {message.role === 'assistant' && !message.errorCode ? (
             <BButton
               variant='light'
-              class={classes.copyClipboardButton}
+              // On a phone a square of 44px (App.css), where it was 33px wide.
+              class={[classes.copyClipboardButton, 'phone-icon-btn']}
               onClick={() => copyToClipboard(message)}
               title={t('copy-to-clipboard')}
               aria-label={t('copy-to-clipboard')}
@@ -301,7 +302,14 @@ export const AiChat = defineComponent({
     const renderWindow = () => (
       <div class={classes.chatWindow}>
         <div class='d-flex justify-content-start'>
-          <BButton variant='light' class='chat-close-button mt-1 ms-1 btn-sm' onClick={closeChat}>
+          {/* A symbol and nothing else: the name is all a screen reader has of it. On a phone a
+              square of 44px (App.css), where it was 35px wide. */}
+          <BButton
+            variant='light'
+            class='chat-close-button phone-icon-btn mt-1 ms-1 btn-sm'
+            aria-label={t('close')}
+            onClick={closeChat}
+          >
             <IIcBaselineClose />
           </BButton>
         </div>
@@ -362,12 +370,15 @@ export const AiChat = defineComponent({
         {!isChatOpen.value ? (
           // ⚠️ No variant: the .vue bound `:variant="light"`, a name defined nowhere, so the
           // button has always had BButton's default. Kept as it was.
+          // A picture of Crea and no word: the name and the tooltip say what it does.
           <BButton
             class={[
               classes.chatToggleButton,
               classes.bgCreaImg,
               { [classes.slideUpAnimation]: !hasBeenOpened.value },
             ]}
+            aria-label={t('ai.chat-open')}
+            title={t('ai.chat-open')}
             onClick={openChat}
           />
         ) : null}

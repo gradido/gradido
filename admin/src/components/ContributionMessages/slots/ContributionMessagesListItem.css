@@ -27,7 +27,7 @@
 
 /* A phone: a message takes more of the narrow window, and the side it leans to still shows
    who wrote it. */
-@media (width < 768px) {
+@media (width < 992px) {
   .is-moderator,
   .is-user {
     width: 90%;

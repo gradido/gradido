@@ -149,6 +149,7 @@
       }
     },
     "saveChange": "Enregistrer les modifications",
+    "show": "Afficher le lien",
     "validFrom": "Date de début",
     "validTo": "Date de fin"
   },
@@ -590,6 +591,7 @@
     "updated": "L'entrée d'image du projet a été mise à jour."
   },
   "redeemed": "échangé",
+  "refresh": "Actualiser",
   "registered": "Inscrit",
   "registered_at": "Inscrit le",
   "removeNotSelf": "En tant qu'administrateur/modérateur, tu ne peux pas te supprimer toi-même.",

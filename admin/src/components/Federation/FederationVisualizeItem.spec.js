@@ -37,6 +37,11 @@ describe('FederationVisualizeItem', () => {
     })
 
   const columns = (wrapper) => wrapper.findAll('.federation-visualize-item > .row > div')
+  // The value of a column, without the small name a phone shows above it (`d-lg-none`).
+  const valueIn = (column) => {
+    const label = column.find('.d-lg-none')
+    return label.exists() ? column.text().slice(label.text().length).trim() : column.text()
+  }
 
   it('shows a federation verified since its last announcement as verified', () => {
     const icon = createWrapper().find('variant-icon-stub')
@@ -53,7 +58,7 @@ describe('FederationVisualizeItem', () => {
   })
 
   it('shows the api version', () => {
-    expect(columns(createWrapper())[1].text()).toBe('2_0')
+    expect(valueIn(columns(createWrapper())[1])).toBe('2_0')
     expect(columns(createWrapper())[1].classes()).toContain('ml-1')
   })
 
@@ -61,7 +66,7 @@ describe('FederationVisualizeItem', () => {
   // of the DOM sees is both. A missing date says "null" there and nothing as a distance.
   it('shows each date as a distance in the language of the interface, with the date as tooltip', () => {
     const item = createItem()
-    const texts = columns(createWrapper(item)).map((column) => column.text())
+    const texts = columns(createWrapper(item)).map(valueIn)
     const threeDays = formatDistanceToNow(threeDaysAgo, { addSuffix: true, locale: de })
     const now = formatDistanceToNow(today, { addSuffix: true, locale: de })
     expect(texts.slice(2)).toEqual([
@@ -69,6 +74,28 @@ describe('FederationVisualizeItem', () => {
       `${threeDays}${item.lastAnnouncedAt}`,
       `${now}${item.verifiedAt}`,
       'null',
+    ])
+  })
+
+  // On a phone the six cells stand under each other, each with a small name of its own; from
+  // 992px on the row of before, under the six heads (CommunityVisualizeItem).
+  it('every cell carries its small label below the boundary', () => {
+    const cells = columns(createWrapper())
+    expect(
+      cells.map((cell) =>
+        cell
+          .classes()
+          .filter((c) => c.startsWith('col'))
+          .sort(),
+      ),
+    ).toEqual(cells.map(() => ['col-12', 'col-lg']))
+    expect(cells.map((cell) => cell.find('.d-block.d-lg-none').text())).toEqual([
+      'federation.verified',
+      'federation.apiVersion',
+      'federation.createdAt',
+      'federation.lastAnnouncedAt',
+      'federation.verifiedAt',
+      'federation.lastErrorAt',
     ])
   })
 })

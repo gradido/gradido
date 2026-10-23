@@ -88,7 +88,7 @@ describe('ConfirmRegisterMailFormular', () => {
   // on the root's class (ConfirmRegisterMailFormular.css, held by phoneStyles.spec.js).
   it('the card has no fixed white ground', () => {
     const card = wrapper.find('.component-confirm-register-mail > div')
-    expect(card.classes()).toEqual(expect.arrayContaining(['shadow', 'p-2', 'p-md-3', 'rounded']))
+    expect(card.classes()).toEqual(expect.arrayContaining(['shadow', 'p-2', 'p-lg-3', 'rounded']))
     expect(card.classes()).not.toContain('bg-white')
     expect(wrapper.find('.component-confirm-register-mail .input-group-text').exists()).toBe(true)
   })

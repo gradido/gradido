@@ -48,7 +48,7 @@
    without it, the lower third of a square was the address of a member card, and a press there
    opened the row; in the member line of an opened contribution its lower edge was the next item
    of the list, which Bootstrap positions itself. */
-@media (width < 768px) {
+@media (width < 992px) {
   .memberWalletLink {
     width: 2.75rem;
     height: 2.75rem;

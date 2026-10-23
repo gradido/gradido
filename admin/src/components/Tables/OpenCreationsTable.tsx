@@ -459,7 +459,7 @@ export const OpenCreationsTable = defineComponent({
           captionTop
           striped
           hover
-          stacked='md'
+          stacked='lg'
           tbodyTrClass={rowClass as never}
         >
           {{

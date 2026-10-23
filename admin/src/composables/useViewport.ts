@@ -5,9 +5,9 @@ import { PHONE_BREAKPOINT_PX } from '@/constants'
 /**
  * Which side of this interface's phone boundary the window is on.
  *
- * Below it the contribution page draws every row as a card: the table hands the stacked rows
- * other cells than at the desk, and that is a decision JavaScript has to make -- CSS can stack
- * the cells, it cannot choose them. Everything else about the phone stays in CSS.
+ * Below it the contribution page and the member search draw every row as a card: the table hands
+ * the stacked rows other cells than at the desk, and that is a decision JavaScript has to make --
+ * CSS can stack the cells, it cannot choose them. Everything else about the phone stays in CSS.
  *
  * ⛔ The boundary is `PHONE_BREAKPOINT_PX`, a copy of the width at which the stylesheets stack
  * the tables. The drift spec beside this file measures the two against each other; a card

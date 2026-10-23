@@ -522,7 +522,7 @@ export const SearchUserTable = defineComponent({
           captionTop
           striped
           hover
-          stacked='md'
+          stacked='lg'
           selectMode='single'
           // ⚠️ No prop of BTable: it lands on the table as an attribute, as it did
           selectable-on-row-selected=''

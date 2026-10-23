@@ -149,6 +149,7 @@
       }
     },
     "saveChange": "Save Changes",
+    "show": "Show link",
     "validFrom": "Start-date",
     "validTo": "End-Date"
   },
@@ -590,6 +591,7 @@
     "updated": "Project branding entry has been updated."
   },
   "redeemed": "redeemed",
+  "refresh": "Refresh",
   "registered": "Registered",
   "registered_at": "Registered at",
   "removeNotSelf": "As an admin/moderator, you cannot delete yourself.",

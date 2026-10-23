@@ -149,6 +149,7 @@
       }
     },
     "saveChange": "Salva le modifiche",
+    "show": "Mostra il link",
     "validFrom": "Data di inizio",
     "validTo": "Data di fine"
   },
@@ -590,6 +591,7 @@
     "updated": "La voce di branding del progetto è stata aggiornata."
   },
   "redeemed": "riscattato",
+  "refresh": "Aggiorna",
   "registered": "Registrato",
   "registered_at": "Registrato il",
   "removeNotSelf": "Come amministratore/moderatore, non puoi eliminare te stesso.",

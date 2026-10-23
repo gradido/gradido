@@ -248,10 +248,10 @@ describe('CreationFormular', () => {
       }
       const buttons = wrapper.findAll('button').map((button) => button.attributes('type'))
       expect(buttons).toEqual(['reset', 'button'])
-      // The box around the form: no fixed white ground, half its padding below 768px.
+      // The box around the form: no fixed white ground, half its padding below 992px.
       const box = wrapper.find('.shadow').classes()
       expect(box).not.toContain('bg-white')
-      expect(box).toEqual(expect.arrayContaining(['p-2', 'p-md-3']))
+      expect(box).toEqual(expect.arrayContaining(['p-2', 'p-lg-3']))
       expect(box).not.toContain('p-3')
     },
   )
