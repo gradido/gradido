@@ -68,14 +68,19 @@ export const ContributionLinkForm = defineComponent({
 
     const { mutate: contributionLinkMutationUpdate } = useMutation(updateContributionLink)
 
-    // ⚠️ Takes the object the parent handed over and writes the trimmed dates into it, as the
-    // template version did.
+    // A copy of the row, with its dates trimmed to the day. The row is the list's own, and the
+    // list holds what Apollo answered, which Apollo freezes: writing the trimmed dates into it
+    // threw "Cannot assign to read only property 'validFrom'", and both date fields stayed empty
+    // (measured in the built admin, 23.10.2026). A copy also keeps what is typed here out of
+    // the list until it is saved.
     watch(
       () => props.contributionLinkData,
       (newVal) => {
-        form.value = newVal as ContributionLinkFormData
-        form.value.validFrom = formatDateFromDateTime(newVal.validFrom)
-        form.value.validTo = formatDateFromDateTime(newVal.validTo)
+        form.value = {
+          ...(newVal as ContributionLinkFormData),
+          validFrom: formatDateFromDateTime(newVal.validFrom),
+          validTo: formatDateFromDateTime(newVal.validTo),
+        }
       },
     )
 
@@ -117,11 +122,14 @@ export const ContributionLinkForm = defineComponent({
 
     return () => (
       <div class='contribution-link-form'>
-        {/* BForm declares neither event: both fall through to its <form> as native listeners */}
-        <BForm class='m-5' onSubmit={withModifiers(onSubmit, ['prevent'])} onReset={onReset}>
+        {/* BForm declares neither event: both fall through to its <form> as native listeners.
+            On a phone its margin is 8px, not 48px: at 320px the form was 220px wide and its
+            fields 124px (measured 23.10.2026). The pairs of dates and of cycles stand under each
+            other there, side by side from 992px on, as before. */}
+        <BForm class='m-2 m-lg-5' onSubmit={withModifiers(onSubmit, ['prevent'])} onReset={onReset}>
           {/* Date */}
           <BRow>
-            <BCol>
+            <BCol cols='12' lg='6'>
               <BFormGroup label={t('contributionLink.validFrom')}>
                 <BFormInput
                   v-model={form.value.validFrom}
@@ -136,7 +144,7 @@ export const ContributionLinkForm = defineComponent({
                 />
               </BFormGroup>
             </BCol>
-            <BCol>
+            <BCol cols='12' lg='6'>
               <BFormGroup label={t('contributionLink.validTo')}>
                 <BFormInput
                   v-model={form.value.validTo}
@@ -188,7 +196,7 @@ export const ContributionLinkForm = defineComponent({
             />
           </BFormGroup>
           <BRow class='mb-4'>
-            <BCol>
+            <BCol cols='12' lg='6'>
               {/* Cycle */}
               <label for='cycle'>{t('contributionLink.cycle')}</label>
               <BFormSelect
@@ -198,7 +206,7 @@ export const ContributionLinkForm = defineComponent({
                 size='lg'
               />
             </BCol>
-            <BCol>
+            <BCol cols='12' lg='6'>
               {/* maxPerCycle */}
               <label for='maxPerCycle'>{t('contributionLink.maxPerCycle')}</label>
               <BFormSelect
@@ -223,23 +231,20 @@ export const ContributionLinkForm = defineComponent({
             ></BFormInput>
           </BFormGroup>
           */}
-          <div class='mt-6'>
-            <BButton type='submit' variant='primary' class='me-2'>
+          {/* On a phone the buttons wrap with room between them, in a row as in a column; from
+              992px on the row of before, its buttons 8px apart. */}
+          <div class='mt-6 d-flex flex-wrap gap-2 d-lg-block'>
+            <BButton type='submit' variant='primary' class='me-lg-2'>
               {props.editContributionLink
                 ? t('contributionLink.saveChange')
                 : t('contributionLink.create')}
             </BButton>
-            <BButton type='reset' variant='danger' class='me-2'>
+            <BButton type='reset' variant='danger' class='me-lg-2'>
               {t('contributionLink.clear')}
             </BButton>
             <BButton onClick={withModifiers(() => emit('close-contribution-form'), ['prevent'])}>
               {t('close')}
             </BButton>
-            {
-              // ⚠️ A debugging leftover of the template version, kept 1:1: it logs on every render.
-              // biome-ignore lint/suspicious/noConsole: kept as the template had it
-              console.log(props.editContributionLink)
-            }
           </div>
         </BForm>
       </div>

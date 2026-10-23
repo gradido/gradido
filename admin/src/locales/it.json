@@ -149,6 +149,7 @@
       }
     },
     "saveChange": "Salva le modifiche",
+    "show": "Mostra il link",
     "validFrom": "Data di inizio",
     "validTo": "Data di fine"
   },

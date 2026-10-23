@@ -39,15 +39,18 @@ const PHONE_STYLES = [
   join(src, 'pages', 'Overview.module.css'),
 ]
 
-// Every table of the admin that stacks. Each names the width in its source.
-const STACKING_TABLES = [
-  join(src, 'components', 'Tables', 'OpenCreationsTable.tsx'),
-  join(src, 'components', 'Tables', 'SearchUserTable.tsx'),
-  join(src, 'components', 'CreationTransactionList.tsx'),
-  join(src, 'components', 'TransactionLinkList.tsx'),
-  join(src, 'components', 'ContributionLink', 'ContributionLinkList.tsx'),
-  join(src, 'pages', 'Overview.tsx'),
-]
+// Every table of the admin that stacks, and the width below which it does. Each names its width
+// in its source. All stack at the phone boundary but one: the starting-credit list, whose eight
+// columns stood 13.6px past a 1024px window even with its four buttons in one column, stacks
+// below 1200px (measured in the built admin, 23.10.2026).
+const STACKING_TABLES = {
+  [join(src, 'components', 'Tables', 'OpenCreationsTable.tsx')]: PHONE_BREAKPOINT_PX,
+  [join(src, 'components', 'Tables', 'SearchUserTable.tsx')]: PHONE_BREAKPOINT_PX,
+  [join(src, 'components', 'CreationTransactionList.tsx')]: PHONE_BREAKPOINT_PX,
+  [join(src, 'components', 'TransactionLinkList.tsx')]: PHONE_BREAKPOINT_PX,
+  [join(src, 'pages', 'Overview.tsx')]: PHONE_BREAKPOINT_PX,
+  [join(src, 'components', 'ContributionLink', 'ContributionLinkList.tsx')]: 1200,
+}
 
 // Bootstrap's names of its widths, as bootstrap-vue-next spells them in its classes.
 const BOOTSTRAP_WIDTHS = { sm: 576, md: 768, lg: 992, xl: 1200, xxl: 1400 }
@@ -96,17 +99,20 @@ describe('the phone boundary in JavaScript and in the stylesheets', () => {
   })
 
   it('every table that stacks, stacks at that boundary', () => {
-    const named = STACKING_TABLES.map((path) => {
+    for (const [path, expected] of Object.entries(STACKING_TABLES)) {
       // Comments out first: a comment that names the width must not stand in for the prop.
       const code = withoutComments(readFileSync(path, 'utf8')).replace(/\/\/[^\n]*/g, '')
       const widths = [...code.matchAll(/\bstacked='(\w+)'/g)].map(([, width]) => width)
       // Each file was read and names a width: one that stopped stacking would pass silently.
       expect(widths.length, path).toBeGreaterThan(0)
-      return widths
-    }).flat()
-    expect(named.map((width) => BOOTSTRAP_WIDTHS[width])).toEqual(
-      named.map(() => PHONE_BREAKPOINT_PX),
-    )
+      expect(
+        widths.map((width) => BOOTSTRAP_WIDTHS[width]),
+        path,
+      ).toEqual(widths.map(() => expected))
+    }
+    // The one exception is one, and the library stacks it where the list expects it.
+    const css = readFileSync(libraryCss, 'utf8')
+    expect(mediaCarrying(css, '.b-table-stacked-xl')).toBe('(max-width: 1199.98px)')
   })
 
   it('is the one width every phone rule switches at', () => {
