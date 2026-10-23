@@ -687,7 +687,61 @@ describe('CreationConfirm', () => {
 
   describe('the decision dialog', () => {
     const contribution = { id: 7, amount: '100', memo: 'x', user: { firstName: 'Anna' } }
+    const another = { id: 8, amount: '50', memo: 'y', user: { firstName: 'Ben' } }
     const dialog = () => wrapper.findComponent({ name: 'DecisionModal' })
+
+    // The dialog with its slots drawn, and a button that can be pressed.
+    const pressable = {
+      ...stubs,
+      BButton: {
+        name: 'BButton',
+        render() {
+          return h('button', this.$slots.default?.())
+        },
+      },
+      DecisionModal: {
+        name: 'DecisionModal',
+        props: { modelValue: Boolean, item: Object },
+        render() {
+          return h('div', { class: 'decision-stub' }, [
+            this.$slots.title?.(),
+            this.$slots['submit-btn']?.(),
+          ])
+        },
+      },
+    }
+    const mountPressable = () =>
+      mount(CreationConfirm, { global: { plugins: [store, createBootstrap()], stubs: pressable } })
+    const press = () => wrapper.find('.decision-stub button').trigger('click')
+    const listed = () =>
+      table()
+        .props('items')
+        .map((row) => row.id)
+
+    // Every decision the page sends, held until the test answers it. (The group change still
+    // listens through onDone and onError.)
+    const answersOnHold = () => {
+      const sent = []
+      useMutation.mockImplementation((mutation) => ({
+        mutate: (variables) =>
+          new Promise((resolve, reject) => {
+            sent.push({ mutation, variables, resolve, reject })
+          }),
+        onDone: vi.fn(),
+        onError: vi.fn(),
+      }))
+      return sent
+    }
+    const withTwoOpen = async () => {
+      mockToastSuccess.mockClear()
+      mockToastError.mockClear()
+      const sent = answersOnHold()
+      wrapper = mountPressable()
+      await simulateQueryResult({
+        adminListContributions: { contributionCount: 2, contributionList: [contribution, another] },
+      })
+      return sent
+    }
 
     it('confirming opens the decision modal with the contribution and closes it on cancel', async () => {
       expect(dialog().props('modelValue')).toBe(false)
@@ -717,46 +771,102 @@ describe('CreationConfirm', () => {
     ])(
       'the button in the dialog carries out "%s" for its contribution',
       async (decision, document) => {
-        const sent = []
-        useMutation.mockImplementation((mutation) => ({
-          mutate: (variables) => {
-            sent.push([mutation, variables])
-            return Promise.resolve({})
-          },
-          onDone: vi.fn(),
-          onError: vi.fn(),
-        }))
-        wrapper = mount(CreationConfirm, {
-          global: {
-            plugins: [store, createBootstrap()],
-            stubs: {
-              ...stubs,
-              BButton: {
-                name: 'BButton',
-                render() {
-                  return h('button', this.$slots.default?.())
-                },
-              },
-              DecisionModal: {
-                name: 'DecisionModal',
-                props: { modelValue: Boolean, item: Object },
-                render() {
-                  return h('div', { class: 'decision-stub' }, [
-                    this.$slots.title?.(),
-                    this.$slots['submit-btn']?.(),
-                  ])
-                },
-              },
-            },
-          },
-        })
+        const sent = answersOnHold()
+        wrapper = mountPressable()
 
         await table().vm.$emit('show-overlay', contribution, decision)
-        await wrapper.find('.decision-stub button').trigger('click')
+        await press()
 
-        expect(sent).toEqual([[document, { id: 7 }]])
+        expect(sent.map(({ mutation, variables }) => [mutation, variables])).toEqual([
+          [document, { id: 7 }],
+        ])
         expect(wrapper.find('.decision-stub').text()).toContain(`overlay.${decision}.title`)
+        // A refusal comes back to the page as an error, whoever else listens for one.
+        expect(useMutation).toHaveBeenCalledWith(document, { throws: 'always' })
       },
     )
+
+    /**
+     * ⛔ The answer belongs to the contribution the decision was sent for. The dialog can be
+     * closed while the answer is on its way, and opened for another contribution; the answer
+     * then took THAT one out of the list and closed its dialog, while the decided one stayed.
+     */
+    it('takes a late answer back to its own contribution, not to the dialog open by then', async () => {
+      const sent = await withTwoOpen()
+      await table().vm.$emit('show-overlay', contribution, 'confirm')
+      await press()
+      // Closed while the answer is on its way, and opened for Ben.
+      await dialog().vm.$emit('update:modelValue', false)
+      await table().vm.$emit('show-overlay', another, 'delete')
+
+      sent[0].resolve({})
+      await flushPromises()
+
+      expect(listed()).toEqual([8])
+      expect(mockToastSuccess).toHaveBeenCalledWith('creation_form.toasted_created')
+      expect(dialog().props('modelValue')).toBe(true)
+      expect(dialog().props('item')).toEqual(another)
+    })
+
+    it('closes the dialog when the answer comes for the contribution it shows', async () => {
+      const sent = await withTwoOpen()
+      await table().vm.$emit('show-overlay', contribution, 'deny')
+      await press()
+      expect(dialog().props('modelValue')).toBe(true)
+
+      sent[0].resolve({})
+      await flushPromises()
+
+      expect(listed()).toEqual([8])
+      expect(mockToastSuccess).toHaveBeenCalledWith('creation_form.toasted_denied')
+      expect(dialog().props('modelValue')).toBe(false)
+    })
+
+    it('sends a decision once, however often the button is pressed while it is on its way', async () => {
+      const sent = await withTwoOpen()
+      await table().vm.$emit('show-overlay', contribution, 'delete')
+      await press()
+      await press()
+
+      expect(sent).toHaveLength(1)
+      sent[0].resolve({})
+      await flushPromises()
+      expect(listed()).toEqual([8])
+      expect(mockToastSuccess.mock.calls).toEqual([['creation_form.toasted_delete']])
+    })
+
+    it('keeps a refused contribution, says why, and lets it be decided again', async () => {
+      const sent = await withTwoOpen()
+      await table().vm.$emit('show-overlay', contribution, 'confirm')
+      await press()
+
+      sent[0].reject(new Error('already confirmed'))
+      await flushPromises()
+
+      expect(mockToastError).toHaveBeenCalledWith('already confirmed')
+      expect(mockToastSuccess).not.toHaveBeenCalled()
+      expect(listed()).toEqual([7, 8])
+      expect(dialog().props('modelValue')).toBe(false)
+
+      await table().vm.$emit('show-overlay', contribution, 'confirm')
+      await press()
+      expect(sent).toHaveLength(2)
+    })
+
+    it('leaves the dialog of another contribution open when a late answer is a refusal', async () => {
+      const sent = await withTwoOpen()
+      await table().vm.$emit('show-overlay', contribution, 'confirm')
+      await press()
+      await dialog().vm.$emit('update:modelValue', false)
+      await table().vm.$emit('show-overlay', another, 'deny')
+
+      sent[0].reject(new Error('already confirmed'))
+      await flushPromises()
+
+      expect(mockToastError).toHaveBeenCalledWith('already confirmed')
+      expect(listed()).toEqual([7, 8])
+      expect(dialog().props('modelValue')).toBe(true)
+      expect(dialog().props('item')).toEqual(another)
+    })
   })
 })

@@ -455,56 +455,45 @@ export const CreationConfirm = defineComponent({
       groupChangeFailures.value++
     })
 
-    const {
-      mutate: deleteMutation,
-      onDone: onDeleteDone,
-      onError: onDeleteError,
-    } = useMutation(adminDeleteContribution)
+    // `throws: 'always'`: a refused decision comes back to `decide` as an error, whether or not
+    // anybody else listens for one.
+    const { mutate: deleteMutation } = useMutation(adminDeleteContribution, { throws: 'always' })
+    const { mutate: denyMutation } = useMutation(denyContribution, { throws: 'always' })
+    const { mutate: confirmMutation } = useMutation(confirmContribution, { throws: 'always' })
 
-    onDeleteDone(() => {
-      overlay.value = false
-      updatePendingCreations(item.value.id)
-      toastSuccess(t('creation_form.toasted_delete'))
-    })
+    // The contributions whose decision is on its way to the server: a second press sends nothing.
+    const deciding = new Set<number>()
 
-    onDeleteError((error) => {
-      overlay.value = false
-      toastError(error.message)
-    })
-
-    const {
-      mutate: denyMutation,
-      onDone: onDenayDone,
-      onError: onDenayError,
-    } = useMutation(denyContribution)
-
-    onDenayDone(() => {
-      overlay.value = false
-      updatePendingCreations(item.value.id)
-      toastSuccess(t('creation_form.toasted_denied'))
-    })
-
-    onDenayError((error) => {
-      overlay.value = false
-      toastError(error.message)
-    })
-
-    const {
-      mutate: confirmMutation,
-      onDone: onConfirmationDone,
-      onError: onConfirmationError,
-    } = useMutation(confirmContribution)
-
-    onConfirmationDone(() => {
-      overlay.value = false
-      updatePendingCreations(item.value.id)
-      toastSuccess(t('creation_form.toasted_created'))
-    })
-
-    onConfirmationError((error) => {
-      overlay.value = false
-      toastError(error.message)
-    })
+    /**
+     * Sends a decision and takes its answer back to the contribution it was sent for.
+     *
+     * ⛔ Not to whatever `item` holds when the answer comes: the dialog can be closed while the
+     * answer is on its way and opened for another contribution. The answer then took THAT one
+     * out of the list and closed its dialog, while the decided one stayed.
+     */
+    const decide = async (
+      send: (variables: { id: number }) => Promise<unknown>,
+      done: () => string,
+    ) => {
+      const decided = item.value
+      if (deciding.has(decided.id)) {
+        return
+      }
+      deciding.add(decided.id)
+      try {
+        await send({ id: decided.id })
+        updatePendingCreations(decided.id)
+        toastSuccess(done())
+      } catch (error) {
+        toastError((error as Error).message)
+      } finally {
+        deciding.delete(decided.id)
+        // The dialog closes if it still shows this contribution.
+        if (item.value.id === decided.id) {
+          overlay.value = false
+        }
+      }
+    }
 
     // ⚠️ onResult answers `{ off }`, which has no onError: the chained call throws a TypeError
     // once the result handler is registered, and no error handler is ever attached. Kept as
@@ -521,23 +510,9 @@ export const CreationConfirm = defineComponent({
       })
     }
 
-    const deleteCreation = () => {
-      deleteMutation({
-        id: item.value.id,
-      })
-    }
-
-    const denyCreation = () => {
-      denyMutation({
-        id: item.value.id,
-      })
-    }
-
-    const confirmCreation = () => {
-      confirmMutation({
-        id: item.value.id,
-      })
-    }
+    const deleteCreation = () => decide(deleteMutation, () => t('creation_form.toasted_delete'))
+    const denyCreation = () => decide(denyMutation, () => t('creation_form.toasted_denied'))
+    const confirmCreation = () => decide(confirmMutation, () => t('creation_form.toasted_created'))
 
     const updatePendingCreations = (id: number) => {
       items.value = items.value.filter((obj) => obj.id !== id)
