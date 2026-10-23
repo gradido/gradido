@@ -262,6 +262,27 @@ export async function dbSelectChatMessagesByUuids(
 }
 
 /**
+ * The messages with these ids, in one query for a whole list: the latest message of each
+ * conversation the contact list or the list of groups shows a line of (E-083). Messages marked
+ * deleted are not among them, and an id without a row has no entry. In no particular order -- the
+ * caller matches them by id.
+ *
+ * ⛔ Not asked for a member, as dbSelectChatMessagesByUuids is not: the ids are the caller's to
+ * have taken from the member's own conversations (dbSelectDirectChatContactsByMember,
+ * dbSelectChatGroupsByMember), never from a request.
+ */
+export async function dbSelectChatMessagesByIds(ids: number[]): Promise<ChatMessageSelect[]> {
+  const unique = [...new Set(ids)]
+  if (unique.length === 0) {
+    return []
+  }
+  return drizzleDb()
+    .select()
+    .from(chatMessagesTable)
+    .where(and(inArray(chatMessagesTable.id, unique), isNull(chatMessagesTable.deletedAt)))
+}
+
+/**
  * Changes the text of a message (E-060) and hands back the row as it stands afterwards. Only the
  * one who wrote it changes it: the sender's pair is part of the where clause, as the member's
  * pair is for the read pointer -- a caller naming somebody else changes nothing. Not a message

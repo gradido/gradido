@@ -100,8 +100,11 @@ export async function dbEnsureDirectChatConversation(
  * `firstAt` and `lastAt` are when the first and the latest message arrived HERE (E-018).
  * `unreadChatMessages` counts the messages with an id above the member's own read pointer
  * that somebody else wrote -- the member's own messages are never unread to them.
+ * `lastMessageId` is the latest message itself, the one whose beginning the contact list shows
+ * under the name (E-083): the highest id, as the thread orders its messages (E-018), read by
+ * the same grouping at no further cost.
  *
- * Messages marked deleted count for none of the three, as they are on no page of the thread;
+ * Messages marked deleted count for none of the four, as they are on no page of the thread;
  * a conversation left without a message has no row. So has one whose other member is
  * missing: nothing to name.
  *
@@ -122,6 +125,7 @@ export async function dbSelectDirectChatContactsByMember(member: ChatMemberRef) 
       gradidoId: partner.gradidoId,
       firstAt: sql`min(${chatMessagesTable.createdAt})`.mapWith(chatMessagesTable.createdAt),
       lastAt: sql`max(${chatMessagesTable.createdAt})`.mapWith(chatMessagesTable.createdAt),
+      lastMessageId: sql`max(${chatMessagesTable.id})`.mapWith(Number),
       unreadChatMessages:
         sql`count(case when ${aboveMyPointer} and not (${writtenByMe}) then 1 end)`.mapWith(Number),
     })
@@ -166,6 +170,7 @@ export async function dbSelectDirectChatContactsByMember(member: ChatMemberRef) 
       deletedAt: user?.deletedAt ?? null,
       firstAt: conversation.firstAt,
       lastAt: conversation.lastAt,
+      lastMessageId: conversation.lastMessageId,
       unreadChatMessages: conversation.unreadChatMessages,
     }
   })
@@ -268,8 +273,8 @@ export async function dbSelectChatGroupUuids(
 /**
  * The groups this member is in (P5), with what the list and the group's window show of each: who
  * opened it, the member's own role and mute mark, since when they are in it, how many members it
- * has, how many messages wait unread for this member, and when the latest one arrived here
- * (E-018).
+ * has, how many messages wait unread for this member, when the latest one arrived here (E-018),
+ * and which it is -- the message whose beginning the list shows under the group's name (E-083).
  *
  * Unread as everywhere in the chat: above the member's own read pointer, written by somebody
  * else, not marked deleted (dbSelectChatUnreadSummary counts it per conversation, this per
@@ -309,6 +314,12 @@ export async function dbSelectChatGroupsByMember(member: ChatMemberRef) {
         sql<Date | null>`(select ${chatMessagesTable.createdAt} from ${chatMessagesTable} where ${ofThisGroup} and ${chatMessagesTable.deletedAt} is null order by ${chatMessagesTable.id} desc limit 1)`.mapWith(
           chatMessagesTable.createdAt,
         ),
+      // The same message, by the same one step backwards from the end of the group's range.
+      lastMessageId: sql<
+        number | null
+      >`(select ${chatMessagesTable.id} from ${chatMessagesTable} where ${ofThisGroup} and ${chatMessagesTable.deletedAt} is null order by ${chatMessagesTable.id} desc limit 1)`.mapWith(
+        Number,
+      ),
     })
     .from(chatConversationsTable)
     .innerJoin(
