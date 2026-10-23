@@ -628,10 +628,14 @@
     "pending": "Cambio pendiente: confirmación solicitada para {email} el {date}",
     "replace": {
       "button": "Corregir dirección",
+      "confirmed": "No se ha corregido la dirección porque entretanto ha sido confirmada. Ahora solo el propio miembro puede cambiarla, en su configuración.",
       "elopage_warning": "Atención: hay compras de Elopage con {email}. Esta cuenta probablemente proviene del webhook; entonces la dirección no es una errata.",
+      "error": "Error al corregir la dirección: {message}",
       "hint": "Solo mientras la dirección nunca haya sido confirmada (p. ej. errata en el registro). El correo de confirmación se enviará a la dirección corregida.",
+      "invalid": "No se ha corregido la dirección porque {email} no es una dirección de correo válida.",
       "placeholder": "Dirección de correo corregida",
       "success": "Dirección corregida y correo de confirmación enviado a {email}.",
+      "taken": "No se ha corregido la dirección porque {email} ya pertenece a una cuenta. Una cuenta eliminada también conserva su dirección. Busca la dirección arriba, en la búsqueda de usuarios.",
       "title": "Corregir una dirección nunca confirmada"
     },
     "success": "¡El enlace de confirmación se ha enviado correctamente al correo del usuario! ({email})",
