@@ -464,9 +464,14 @@ export const OpenCreationsTable = defineComponent({
       return hasConversation(item) ? 'conversation' : null
     }
 
-    // The one symbol of the details button, at the desk and on a card. No conversation: the arrow
-    // that opens the row, as on the closed tabs, turned up while it is open.
+    // The one symbol of the details button, at the desk and on a card. While the row is open, the
+    // arrow turned up, whatever the row holds: the button closes it, and the row's own button at
+    // its end could go (Bernd, 24.10.2026). Closed: what is going on, and without a conversation
+    // the arrow that opens the row, as on the closed tabs.
     const detailsIcon = (item: Contribution, showing: boolean) => {
+      if (showing) {
+        return <IBiArrowUpCircle />
+      }
       switch (detailsState(item)) {
         case 'question':
           return <IBiQuestionDiamond class='text-warning' />
@@ -477,13 +482,17 @@ export const OpenCreationsTable = defineComponent({
         case 'conversation':
           return <IBiChatDots />
         default:
-          return showing ? <IBiArrowUpCircle /> : <IBiArrowDownCircle />
+          return <IBiArrowDownCircle />
       }
     }
 
     // Its name, for a screen reader and as a tooltip: the word, and what the symbol shows where it
-    // shows more than the way into the row (coderabbit, #4193).
-    const detailsName = (item: Contribution) => {
+    // shows more than the way into the row (coderabbit, #4193); while the row is open, what a press
+    // does then, as the fold of the member search says it.
+    const detailsName = (item: Contribution, showing: boolean) => {
+      if (showing) {
+        return t('hide_details')
+      }
       switch (detailsState(item)) {
         case 'question':
           return `${t('details')} – ${t('contribution.detailsState.question')}`
@@ -631,8 +640,8 @@ export const OpenCreationsTable = defineComponent({
               !myself(row.item) ? (
                 <div>
                   <BButton
-                    title={detailsName(row.item)}
-                    aria-label={detailsName(row.item)}
+                    title={detailsName(row.item, row.detailsShowing)}
+                    aria-label={detailsName(row.item, row.detailsShowing)}
                     aria-expanded={row.detailsShowing ? 'true' : 'false'}
                     onClick={() => rowToggleDetails(row, 0)}
                   >
@@ -643,11 +652,12 @@ export const OpenCreationsTable = defineComponent({
             'cell(chatCreation)': (row: Row) =>
               hasConversation(row.item) ? (
                 <BButton
-                  title={detailsName(row.item)}
-                  aria-label={detailsName(row.item)}
+                  title={detailsName(row.item, row.detailsShowing)}
+                  aria-label={detailsName(row.item, row.detailsShowing)}
+                  aria-expanded={row.detailsShowing ? 'true' : 'false'}
                   onClick={() => rowToggleDetails(row, 0)}
                 >
-                  <IBiChatDots />
+                  {detailsIcon(row.item, row.detailsShowing)}
                 </BButton>
               ) : (
                 <CollapseIcon
@@ -806,8 +816,8 @@ export const OpenCreationsTable = defineComponent({
                     {isOpen(item) && myself(item) ? null : (
                       <BButton
                         class='phone-icon-btn'
-                        title={detailsName(item)}
-                        aria-label={detailsName(item)}
+                        title={detailsName(item, row.detailsShowing)}
+                        aria-label={detailsName(item, row.detailsShowing)}
                         aria-expanded={row.detailsShowing ? 'true' : 'false'}
                         onClick={() => rowToggleDetails(row, 0)}
                       >
@@ -830,13 +840,7 @@ export const OpenCreationsTable = defineComponent({
               )
             },
             'row-details': (row: Row) => (
-              <RowDetails
-                row={row}
-                type='show-creation'
-                slotName='show-creation'
-                index={0}
-                onRow-toggle-details={() => rowToggleDetails(row, 0)}
-              >
+              <RowDetails slotName='show-creation'>
                 {{
                   // Every contribution opens the same panel, whoever wrote it. A moderator-entered
                   // one used to open an edit form instead, gated on confirmedAt -- a field the list

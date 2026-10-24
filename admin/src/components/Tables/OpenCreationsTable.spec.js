@@ -376,10 +376,12 @@ describe('OpenCreationsTable', () => {
   // confirmedAt. The list query no longer asks for that field, so the gate never held and the
   // panel stayed empty. These tests render the two slots the automatic stub swallows.
   describe('a contribution a moderator entered for someone else', () => {
-    const rowScope = (item, index) => ({
+    // The button as it stands before a press, the panel as it opens: since 24.10.2026 an open
+    // row's button shows the arrow turned up and is named for closing.
+    const rowScope = (item, index, detailsShowing = true) => ({
       item,
       index,
-      detailsShowing: true,
+      detailsShowing,
       toggleDetails: () => undefined,
     })
 
@@ -393,7 +395,7 @@ describe('OpenCreationsTable', () => {
           'div',
           this.items.map((item, index) =>
             h('div', { class: 'contribution-row' }, [
-              this.$slots['cell(editCreation)']?.(rowScope(item, index)),
+              this.$slots['cell(editCreation)']?.(rowScope(item, index, false)),
               this.$slots['row-details']?.(rowScope(item, index)),
             ]),
           ),
@@ -785,7 +787,7 @@ describe('OpenCreationsTable', () => {
       const details = (row) =>
         actions(row)
           .findAll('button')
-          .find((b) => (b.attributes('aria-label') ?? '').startsWith('details'))
+          .find((b) => b.attributes('aria-expanded') !== undefined)
       // Its name says what the symbol shows, where that is more than the way into the row
       // (coderabbit, #4193): for a screen reader, and as a tooltip.
       const NAMES = new Map([
@@ -817,6 +819,18 @@ describe('OpenCreationsTable', () => {
         expect(details(0).attributes('aria-expanded')).toBe('true')
       })
 
+      // Bernd, 24.10.2026: whatever the closed button showed, the open row's button shows the
+      // arrow turned up and is named for closing -- the card's own "hide details" went.
+      it.each(STATES)('%s: open, the arrow up, named for closing', async (_, item) => {
+        wrapper = mountCards([{ ...item, id: 9 }])
+        await details(0).trigger('click')
+        expect(details(0).findAll('svg')).toHaveLength(1)
+        expect(details(0).findComponent(IBiArrowUpCircle).exists()).toBe(true)
+        expect(details(0).attributes('aria-label')).toBe('hide_details')
+        expect(details(0).attributes('title')).toBe('hide_details')
+        expect(wrapper.text()).not.toContain('hide_details')
+      })
+
       // The desk's open tab shows the same symbol in its details column.
       it('at the desk the same', () => {
         for (const [, item, icon] of STATES.filter(
@@ -837,10 +851,30 @@ describe('OpenCreationsTable', () => {
           expect(button.findComponent(icon).exists()).toBe(true)
         }
       })
+
+      // Open, the desk's buttons show the arrow turned up too: the open tab's and, with a
+      // conversation, the closed tabs' speech bubble.
+      it('at the desk, open, the arrow up as well', async () => {
+        for (const [key, item] of [
+          ['editCreation', { ...open, ...conversation('DIALOG', false), id: 9 }],
+          ['chatCreation', { ...closed, ...conversation('DIALOG', true), id: 10 }],
+        ]) {
+          wrapper = mount(OpenCreationsTable, {
+            props: { items: [item], fields: [{ key, label: 'details' }], hideResubmission: false },
+            global: { plugins: [store], stubs: { ThemedSelect: themedSelect, BModal: modal } },
+          })
+          await wrapper.find('tbody > tr button').trigger('click')
+          const button = wrapper.find('tbody > tr button')
+          expect(button.findComponent(IBiArrowUpCircle).exists(), key).toBe(true)
+          expect(button.attributes('aria-label'), key).toBe('hide_details')
+          expect(button.attributes('aria-expanded'), key).toBe('true')
+        }
+      })
     })
 
     it('the phone buttons emit what the desk cells emit', async () => {
-      wrapper = mountCards([open], { showCrea: true })
+      // A copy: opening the row marks the item itself (`_showDetails`).
+      wrapper = mountCards([{ ...open }], { showCrea: true })
       const button = (name) =>
         actions()
           .findAll('button')
