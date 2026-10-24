@@ -368,9 +368,9 @@ export const SearchUserTable = defineComponent({
             to a screen reader. Its title read `enabled`, which the search never delivers, and
             called every member deleted. */}
         {row.detailsShowing ? (
-          <IPhCaretUpFill style='color: #212529' aria-hidden='true' data-test='row-caret-up' />
+          <IPhCaretUpFill class='row-caret' aria-hidden='true' data-test='row-caret-up' />
         ) : (
-          <IPhCaretDown style='color: #212529' aria-hidden='true' data-test='row-caret-down' />
+          <IPhCaretDown class='row-caret' aria-hidden='true' data-test='row-caret-down' />
         )}
       </div>
     )

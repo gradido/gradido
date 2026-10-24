@@ -20,6 +20,24 @@ import { describe, expect, it } from 'vitest'
  */
 const here = dirname(fileURLToPath(import.meta.url))
 const APP = join(here, 'App.css')
+// The sheets the sweep gave dark rules to (D1); the Crea helper's come with D2.
+const SWEEP = {
+  rows: join(here, 'components', 'Tables', 'OpenCreationsTable.css'),
+  messages: join(
+    here,
+    'components',
+    'ContributionMessages',
+    'slots',
+    'ContributionMessagesListItem.css',
+  ),
+  deletedUser: join(here, 'components', 'DeletedUserFormular.css'),
+  confirmMail: join(here, 'components', 'ConfirmRegisterMailFormular.css'),
+  spaces: join(here, 'components', 'ProjectBranding', 'ListHumhubSpaces.module.css'),
+  themedSelect: join(here, 'components', 'ThemedSelect.scss'),
+  timePicker: join(here, 'components', 'input', 'TimePicker.module.css'),
+  creationGroups: join(here, 'pages', 'CreationGroups.module.css'),
+  chatSettings: join(here, 'pages', 'ChatSettings.module.css'),
+}
 // The wallet's dark tones. The two apps share no package; this file is read across the tree, as
 // utils/avatarColor.spec.js reads the wallet's copy of its rule.
 const WALLET_DARK = resolve(here, '../../frontend/src/assets/scss/gradido-template-dark.scss')
@@ -247,6 +265,16 @@ describe('the dark mode of the admin', () => {
   it('the dark blocks stay within their bounds', () => {
     const DARK_COLOURS_AT_MOST = {
       [APP]: 41,
+      // The four tints of a row (ground, striped, under the pointer, border) and their muted
+      // grey, the faint whites of the group select and of the Crea button.
+      [SWEEP.rows]: 21,
+      // The four bubbles.
+      [SWEEP.messages]: 4,
+      // The yellow of the prefix, as a dark tint, in each of its two files.
+      [SWEEP.deletedUser]: 1,
+      [SWEEP.confirmMail]: 1,
+      // The light blue of a space under the pointer.
+      [SWEEP.spaces]: 1,
     }
     const counted = Object.fromEntries(
       stylesheetsBelow(here).map((sheet) => {
@@ -259,5 +287,127 @@ describe('the dark mode of the admin', () => {
     }
     // The count sees a colour where there is one.
     expect(counted[APP]).toBeGreaterThan(0)
+  })
+
+  // AO-014: Bootstrap 5.3 keeps the four row colours light in its dark mode -- 390 of the 462
+  // light islands. Every stage of a row (ground, striped, under the pointer) carries its words,
+  // its muted words and the grey of the outlined buttons at 4.5; the green of the pin and the
+  // arrows, symbols, at 3 everywhere and at 4.5 on the ground (AO-014).
+  it('the contribution rows carry dark tints for the four states', () => {
+    const dark = darkRules(read(SWEEP.rows))
+    const outlineGrey = colour(
+      declarationsOf(darkRules(app), `${DARK} .btn-outline-secondary`)['--bs-btn-color'],
+    )
+    const muted = declarationsOf(
+      dark,
+      `${DARK} .table-primary, ${DARK} .table-success, ${DARK} .table-warning, ${DARK} .table-danger`,
+    )['--bs-secondary-color']
+    expect(muted).toMatch(/^#[0-9a-f]{6}$/)
+    for (const state of ['primary', 'success', 'warning', 'danger']) {
+      const row = declarationsOf(dark, `${DARK} .table-${state}`)
+      const stages = [
+        row['--bs-table-bg'],
+        row['--bs-table-striped-bg'],
+        row['--bs-table-hover-bg'],
+      ]
+      for (const stage of stages) {
+        expect(stage, `${state}: ${stage}`).toMatch(/^#[0-9a-f]{6}$/)
+        // A dark tint: no light island any more.
+        expect(luminance(stage), `${state}: ${stage}`).toBeLessThan(0.1)
+        expect(contrast(muted, stage), `muted on ${state} ${stage}`).toBeGreaterThanOrEqual(4.5)
+        expect(contrast(outlineGrey, stage), `outline on ${stage}`).toBeGreaterThanOrEqual(4.5)
+        expect(
+          contrast(bridge['--bs-link-color'], stage),
+          `link on ${stage}`,
+        ).toBeGreaterThanOrEqual(3)
+      }
+      expect(contrast(bridge['--bs-link-color'], stages[0])).toBeGreaterThanOrEqual(4.5)
+      expect(colour(row['--bs-table-color'])).toBe(bridge['--bs-body-color'])
+      expect(colour(row['--bs-table-striped-color'])).toBe(bridge['--bs-body-color'])
+      expect(colour(row['--bs-table-hover-color'])).toBe(bridge['--bs-emphasis-color'])
+      expect(contrast(colour(row['--bs-table-color']), stages[0])).toBeGreaterThanOrEqual(4.5)
+      expect(contrast(colour(row['--bs-table-striped-color']), stages[1])).toBeGreaterThanOrEqual(
+        4.5,
+      )
+      expect(contrast(colour(row['--bs-table-hover-color']), stages[2])).toBeGreaterThanOrEqual(4.5)
+      expect(row['--bs-table-border-color'], state).toMatch(/^#[0-9a-f]{6}$/)
+    }
+    // The light rows stay as they were: the one light rule of this sheet, the red one.
+    expect(declarationsOf(rules(read(SWEEP.rows)), '.table-danger')).toEqual({
+      '--bs-table-bg': '#e78d8d',
+      '--bs-table-striped-bg': '#e57373',
+      '--bs-table-hover-bg': '#e06a6a',
+    })
+  })
+
+  it('the yellow prefix box has a dark counterpart in both of its files', () => {
+    for (const sheet of [SWEEP.deletedUser, SWEEP.confirmMail]) {
+      const all = rules(read(sheet))
+      expect(declarationsOf(all, '.input-group-text'), sheet).toEqual({
+        'background-color': 'rgb(255 252 205)',
+      })
+      const ground = declarationsOf(all, `${DARK} .input-group-text`)['background-color']
+      expect(ground, sheet).toMatch(/^#[0-9a-f]{6}$/)
+      expect(contrast(bridge['--bs-body-color'], ground), sheet).toBeGreaterThanOrEqual(4.5)
+    }
+    // The two say the same.
+    const darkOf = (sheet) =>
+      declarationsOf(rules(read(sheet)), `${DARK} .input-group-text`)['background-color']
+    expect(darkOf(SWEEP.deletedUser)).toBe(darkOf(SWEEP.confirmMail))
+    // Both rules are global, as their light twins: once the member search has loaded them, the
+    // clear box of the search field rests on this yellow too. Its ground under the pointer
+    // (App.css) stands apart from it as well.
+    const hover = colour(
+      declarationsOf(darkRules(app), `${DARK} .pointer:hover`)['background-color'],
+    )
+    expect(contrast(hover, darkOf(SWEEP.deletedUser))).toBeGreaterThanOrEqual(1.4)
+  })
+
+  it('the time picker border follows the theme', () => {
+    const css = read(SWEEP.timePicker)
+    expect(declarationsOf(rules(css), '.timerInput').border).toBe(
+      '1px solid var(--bs-border-color)',
+    )
+    expect(fixedColours(css)).toBe(0)
+  })
+
+  it('the separators of the groups and the chat servers have dark counterparts', () => {
+    for (const [sheet, row] of [
+      [SWEEP.creationGroups, '.creationGroupRow'],
+      [SWEEP.chatSettings, '.chatServerRow'],
+    ]) {
+      const all = rules(read(sheet))
+      expect(declarationsOf(all, row)['border-bottom'], sheet).toBe('1px solid rgb(0 0 0 / 7.5%)')
+      expect(declarationsOf(all, `${DARK} ${row}`), sheet).toEqual({
+        'border-bottom-color': 'var(--bs-border-color-translucent)',
+      })
+    }
+  })
+
+  it('the spaces list hover has a dark counterpart', () => {
+    const all = rules(read(SWEEP.spaces))
+    const hover = '.spaces > :global(.list-group-item-action:hover:not(.active))'
+    expect(declarationsOf(all, hover)['background-color']).toBe('#ececec')
+    const dark = declarationsOf(all, `${DARK} ${hover}`)
+    expect(colour(dark['background-color'])).toBe(bridge['--bs-secondary-bg'])
+    expect(contrast(dark.color, colour(dark['background-color']))).toBeGreaterThanOrEqual(4.5)
+  })
+
+  it('the bubbles under a contribution and the placeholder of a select carry their words at 4.5', () => {
+    const bubbles = darkRules(read(SWEEP.messages))
+    expect(bubbles).toHaveLength(4)
+    for (const bubble of bubbles) {
+      const ground = bubble.declarations['background-color']
+      expect(contrast(bridge['--bs-body-color'], ground), bubble.selector).toBeGreaterThanOrEqual(
+        4.5,
+      )
+    }
+    const placeholder = declarationsOf(
+      darkRules(read(SWEEP.themedSelect)),
+      `${DARK} .themed-select.themed-select-placeholder > .btn.themed-select-toggle`,
+    ).color
+    for (const ground of [bridge['--bs-body-bg'], bridge['--bs-tertiary-bg']]) {
+      expect(contrast(colour(placeholder), ground)).toBeGreaterThanOrEqual(4.5)
+    }
   })
 })

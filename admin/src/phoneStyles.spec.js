@@ -46,6 +46,14 @@ const STYLES = {
 }
 // The role form has no phone block: its one rule holds on every width.
 const ROLE_FORM = join(here, 'components', 'ChangeUserRoleFormular.css')
+// Sheets the dark mode touched that have no phone block either (D1).
+const NO_PHONE = {
+  deletedUser: join(here, 'components', 'DeletedUserFormular.css'),
+  spaces: join(here, 'components', 'ProjectBranding', 'ListHumhubSpaces.module.css'),
+  themedSelect: join(here, 'components', 'ThemedSelect.scss'),
+  timePicker: join(here, 'components', 'input', 'TimePicker.module.css'),
+  chatSettings: join(here, 'pages', 'ChatSettings.module.css'),
+}
 // Upper bounds, counted on 23.10.2026 before the delivery (CreationConfirm.css had one: the
 // backdrop of the overlay the dialog replaced). NavBar.scss is not touched by it; it is held
 // here because the dark mode will meet it first. The yellow of ConfirmRegisterMailFormular.css
@@ -68,6 +76,14 @@ const FIXED_COLOURS_AT_MOST = {
   [STYLES.creaChat]: 9,
   // The line below a row of the creation groups.
   [STYLES.creationGroups]: 1,
+  // Counted on 24.10.2026 before D1: the yellow of the prefix, the grey and blue under the pointer
+  // in the list of spaces, the grey of a placeholder, the line below a chat server. The border of
+  // the time picker was one too and now takes Bootstrap's variable, the same #dee2e6.
+  [NO_PHONE.deletedUser]: 1,
+  [NO_PHONE.spaces]: 2,
+  [NO_PHONE.themedSelect]: 1,
+  [NO_PHONE.timePicker]: 0,
+  [NO_PHONE.chatSettings]: 1,
 }
 
 // Who loads each stylesheet. A sheet that nobody imports holds its rules for no page, and the
@@ -91,6 +107,11 @@ const LOADED_BY = {
   [STYLES.creaWindow]: join(here, 'components', 'CreaEvaluationModal.tsx'),
   [STYLES.creaChat]: join(here, 'components', 'AiChat.tsx'),
   [STYLES.creationGroups]: join(here, 'pages', 'CreationGroups.tsx'),
+  [NO_PHONE.deletedUser]: join(here, 'components', 'DeletedUserFormular.tsx'),
+  [NO_PHONE.spaces]: join(here, 'components', 'ProjectBranding', 'ListHumhubSpaces.tsx'),
+  [NO_PHONE.themedSelect]: join(here, 'components', 'ThemedSelect.tsx'),
+  [NO_PHONE.timePicker]: join(here, 'components', 'input', 'TimePicker.tsx'),
+  [NO_PHONE.chatSettings]: join(here, 'pages', 'ChatSettings.tsx'),
 }
 
 const PHONE = `(width < ${PHONE_BREAKPOINT_PX}px)`
@@ -350,7 +371,13 @@ describe('the phone rules of the contribution page and the member search', () =>
       ruleFor(phoneRules(css), '.search-user-table .b-table-stacked-lg > tbody > tr > td')
         ?.declarations,
     ).toEqual({ padding: '0.625rem 0.375rem 0.875rem', 'border-bottom-width': '0' })
-    expect(outsideMedia(css).trim()).toBe('')
+    // At the desk nothing of the card; only the colour of the row's caret, on every width.
+    expect(rules(outsideMedia(css))).toEqual([
+      {
+        selector: '.search-user-table .row-caret',
+        declarations: { color: 'var(--bs-body-color)' },
+      },
+    ])
   })
 
   it('lets the creation form take the width of its card on a phone, its buttons under each other', () => {
