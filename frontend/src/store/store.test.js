@@ -933,6 +933,50 @@ describe('Pinia store', () => {
         vi.unstubAllGlobals()
       })
     })
+
+    // The admin interface writes the device's key too (its account menu). At boot the wallet takes
+    // it before the first applyTheme mirrors the store's mode into it (main.js).
+    describe('adoptThemeModeFromDevice', () => {
+      afterEach(() => {
+        localStorage.removeItem(THEME_MODE_STORAGE_KEY)
+        vi.restoreAllMocks()
+      })
+
+      it('takes the mode stored on this device at boot', () => {
+        localStorage.setItem(THEME_MODE_STORAGE_KEY, 'dark')
+        const wallet = walletOf({ themeMode: 'light' })
+        wallet.adoptThemeModeFromDevice()
+        expect(wallet.themeMode).toBe('dark')
+        // ... so the apply after it keeps the device's choice, instead of the blob's older one.
+        wallet.applyTheme()
+        expect(localStorage.getItem(THEME_MODE_STORAGE_KEY)).toBe('dark')
+        expect(wallet.darkMode).toBe(true)
+
+        // 'system' is a choice as well.
+        localStorage.setItem(THEME_MODE_STORAGE_KEY, 'system')
+        wallet.adoptThemeModeFromDevice()
+        expect(wallet.themeMode).toBe('system')
+      })
+
+      it('keeps its own mode when the device holds none or an unknown value', () => {
+        const wallet = walletOf({ themeMode: 'dark' })
+        wallet.adoptThemeModeFromDevice()
+        expect(wallet.themeMode).toBe('dark')
+
+        localStorage.setItem(THEME_MODE_STORAGE_KEY, 'blue')
+        wallet.adoptThemeModeFromDevice()
+        expect(wallet.themeMode).toBe('dark')
+      })
+
+      it('survives a refused storage', () => {
+        vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+          throw new DOMException('The operation is insecure.', 'SecurityError')
+        })
+        const wallet = walletOf({ themeMode: 'light' })
+        expect(() => wallet.adoptThemeModeFromDevice()).not.toThrow()
+        expect(wallet.themeMode).toBe('light')
+      })
+    })
   })
 
   // The token lives where both apps keep it (utils/authToken.js), not in the wallet's own blob.

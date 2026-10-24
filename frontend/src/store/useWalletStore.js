@@ -26,7 +26,12 @@ import { keepAuthToken, readAuthToken } from '../utils/authToken'
 // Dedicated localStorage key mirroring state.themeMode. The pre-paint script in
 // index.html reads it with a single getItem, so it never has to parse the whole
 // persisted-state blob on the blocking boot path. Kept in sync by applyTheme.
+// It is also this device's own word on the mode: the admin interface writes it too, from
+// the switch in its account menu, so at boot the wallet takes what it holds
+// (adoptThemeModeFromDevice) before applyTheme mirrors state.themeMode back into it.
 export const THEME_MODE_STORAGE_KEY = 'gradido-theme-mode'
+
+const THEME_MODES = ['system', 'light', 'dark']
 
 /** Where the wallet keeps its own state in localStorage (store.js). */
 export const STATE_KEY = 'gradido-frontend'
@@ -203,7 +208,7 @@ export const useWalletStore = defineStore('wallet', {
       this.darkMode = !!darkMode
     },
     setThemeMode(themeMode) {
-      this.themeMode = ['system', 'light', 'dark'].includes(themeMode) ? themeMode : 'system'
+      this.themeMode = THEME_MODES.includes(themeMode) ? themeMode : 'system'
     },
     setUserLocation(userLocation) {
       this.userLocation = userLocation
@@ -408,6 +413,25 @@ export const useWalletStore = defineStore('wallet', {
       // Kept at the end on purpose: everything above is local clean-up and stays
       // synchronous, so a caller that does not await still gets all of it.
       await clearApolloCache()
+    },
+    // At boot, before the first applyTheme (main.js): the mode this device keeps under
+    // THEME_MODE_STORAGE_KEY wins over the one in the blob. The admin interface writes that key
+    // as well; without this, applyTheme would mirror the blob's older mode over a choice made
+    // there. Not inside applyTheme itself: the settings page calls it right after setThemeMode,
+    // and it would put the old key back over the fresh choice. A key that is missing or unknown
+    // leaves the blob's mode.
+    adoptThemeModeFromDevice() {
+      let stored = null
+      try {
+        if (typeof localStorage !== 'undefined') {
+          stored = localStorage.getItem(THEME_MODE_STORAGE_KEY)
+        }
+      } catch (e) {
+        // storage can be unavailable (private mode); the blob's mode stays
+      }
+      if (THEME_MODES.includes(stored) && stored !== this.themeMode) {
+        this.setThemeMode(stored)
+      }
     },
     // Compute the effective dark mode from the device-local themeMode
     // (system | light | dark) plus the OS preference, then set the darkMode flag
