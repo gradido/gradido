@@ -171,13 +171,14 @@
 
   /* That edge took the row's own border colour, 1.2 to 1.6 on the card's ground: where one
      contribution ended and the next began was hard to see (Bernd, 24.10.2026). It parts them by
-     brightness, which holds for a red-green weakness as well: black at 40 % (2.4 to 2.8 on the
-     four light grounds), and in the dark the white of the line below the top bar (NavBar.scss),
-     4.0 to 4.4 on all four dark grounds. Not above an opened card's details: they are a row of
-     their own, one cell across (`colspan`), and belong to the card above them. These come after
-     the cells' other rules, as stylelint wants the more specific rule to follow. */
+     brightness, which holds for a red-green weakness as well: black at 60 %, at least 3 : 1 on the
+     four light grounds and their stripes, as WCAG asks of a boundary (coderabbit, #4195; the
+     deleted ones' red needs the 60), and in the dark the white of the line below the top bar
+     (NavBar.scss), 4.0 to 4.4 on all four dark grounds. Not above an opened card's details:
+     they are a row of their own, one cell across (`colspan`), and belong to the card above them.
+     These come after the cells' other rules: stylelint wants the more specific rule to follow. */
   .open-creations-table .b-table-stacked-lg > tbody > tr > td:first-child:not([colspan]) {
-    border-top-color: rgb(0 0 0 / 40%);
+    border-top-color: rgb(0 0 0 / 60%);
   }
 
   :root[data-bs-theme='dark']

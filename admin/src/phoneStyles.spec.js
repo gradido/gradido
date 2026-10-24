@@ -59,7 +59,7 @@ const NO_PHONE = {
 // here because the dark mode will meet it first. The yellow of ConfirmRegisterMailFormular.css
 // is its own, from before; it goes with the dark mode.
 const FIXED_COLOURS_AT_MOST = {
-  // 24.10.2026: the edge between two cards on a phone came (black at 40 %, Bernd's choice, with
+  // 24.10.2026: the edge between two cards on a phone came (black at 60 %, Bernd's choice, with
   // its dark counterpart in a dark rule), the tint of the Crea button under the pointer went. The
   // Crea logo's dark blue edge, the big Crea button's, is a named colour, which this count misses.
   [STYLES.table]: 9,

@@ -407,8 +407,8 @@ describe('the dark mode of the admin', () => {
 
   // Bernd, 24.10.2026: on a phone it was hard to see where one contribution ended and the next
   // began -- the edge above a card took the row's own border colour, 1.2 to 1.6 on its ground. It
-  // parts the cards by brightness now: black at 40 % on the light grounds, the white of the line
-  // below the top bar on the dark ones.
+  // parts the cards by brightness now: black at 60 % on the light grounds, at least 3 : 1 as WCAG
+  // asks of a boundary (coderabbit, #4195), the white of the line below the top bar on the dark ones.
   it('the edge between two cards on a phone stands out from every ground', () => {
     // The first cell of a card; an opened card's details (one cell across) keep their edge.
     const FIRST_CELL =
@@ -416,11 +416,12 @@ describe('the dark mode of the admin', () => {
     const all = rules(read(SWEEP.rows))
     const light = declarationsOf(all, FIRST_CELL)['border-top-color']
     const dark = declarationsOf(all, `${DARK} ${FIRST_CELL}`)['border-top-color']
-    expect(light).toBe('rgb(0 0 0 / 40%)')
+    expect(light).toBe('rgb(0 0 0 / 60%)')
     expect(dark).toBe('rgb(255 255 255 / 45%)')
     expect(read(join(here, 'components', 'NavBar.scss'))).toContain(dark)
 
-    // The line as it lies on a ground: black or white at the given strength over it.
+    // The line as it lies on a ground: black or white at the rule's strength over it.
+    const strength = (value) => Number(value.match(/\/ (\d+)%\)$/)[1]) / 100
     const over = (ink, alpha, ground) =>
       `#${channels(ground)
         .map((c) =>
@@ -432,13 +433,30 @@ describe('the dark mode of the admin', () => {
     const STATES = ['primary', 'success', 'warning', 'danger']
     for (const state of STATES) {
       const ground = declarationsOf(all, `${DARK} .table-${state}`)['--bs-table-bg']
-      expect(contrast(over(255, 0.45, ground), ground), state).toBeGreaterThan(4)
+      expect(contrast(over(255, strength(dark), ground), ground), state).toBeGreaterThan(4)
     }
-    // Bootstrap's light grounds of a row, and ours for a deleted one (.table-danger above).
-    const LIGHT_GROUNDS = ['#cfe2ff', '#d1e7dd', '#fff3cd', '#e78d8d']
-    expect(declarationsOf(all, '.table-danger')['--bs-table-bg']).toBe(LIGHT_GROUNDS[3])
-    for (const ground of LIGHT_GROUNDS) {
-      expect(contrast(over(0, 0.4, ground), ground), ground).toBeGreaterThan(2.4)
+    // Bootstrap's light grounds of a row and their stripes, and ours for a deleted one
+    // (.table-danger above). The line lies on its card's ground and borders the card above, which
+    // may be the other stripe.
+    const LIGHT_GROUNDS = [
+      ['#cfe2ff', '#c5d7f2'],
+      ['#d1e7dd', '#c7dbd2'],
+      ['#fff3cd', '#f2e7c3'],
+      ['#e78d8d', '#e57373'],
+    ]
+    expect(declarationsOf(all, '.table-danger')).toMatchObject({
+      '--bs-table-bg': LIGHT_GROUNDS[3][0],
+      '--bs-table-striped-bg': LIGHT_GROUNDS[3][1],
+    })
+    for (const stripes of LIGHT_GROUNDS) {
+      for (const own of stripes) {
+        for (const beside of stripes) {
+          expect(
+            contrast(over(0, strength(light), own), beside),
+            `${own} by ${beside}`,
+          ).toBeGreaterThanOrEqual(3)
+        }
+      }
     }
   })
 
