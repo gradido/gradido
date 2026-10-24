@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useI18n } from 'vue-i18n'
@@ -88,5 +91,19 @@ describe('UserQuery', () => {
     expect(clear.attributes('type')).toBe('button')
     expect(clear.attributes('aria-label')).toBe('search.clear')
     expect(clear.attributes('title')).toBe('search.clear')
+  })
+
+  // A keyboard sees where it stands: Bootstrap's ring needs a variant, which this button has not.
+  // The class is a proxy in a test (any name passes), so the stylesheet is read for its rule.
+  it('the clear button shows a ring at keyboard focus', () => {
+    const clear = wrapper.find('.test-click-clear-criteria')
+    expect(clear.classes().some((name) => /clearButton/.test(name))).toBe(true)
+    const here = dirname(fileURLToPath(import.meta.url))
+    const css = readFileSync(join(here, 'UserQuery.module.css'), 'utf8')
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/\s+/g, ' ')
+    expect(css).toContain(
+      ':global(.btn).clearButton:focus-visible { outline: 2px solid currentcolor; }',
+    )
   })
 })

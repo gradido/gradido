@@ -3,6 +3,7 @@ import { BFormInput, BInputGroupText } from 'bootstrap-vue-next'
 import { computed, defineComponent, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import IIcBaselineClose from '~icons/ic/baseline-close'
+import classes from './UserQuery.module.css'
 
 export const UserQuery = defineComponent({
   name: 'UserQuery',
@@ -48,7 +49,10 @@ export const UserQuery = defineComponent({
           />
           <button
             type='button'
-            class='btn p-0 border-0 bg-transparent test-click-clear-criteria'
+            class={[
+              'btn p-0 border-0 bg-transparent test-click-clear-criteria',
+              classes.clearButton,
+            ]}
             aria-label={t('search.clear')}
             title={t('search.clear')}
             onClick={onClear}

@@ -114,6 +114,13 @@
   box-shadow: none;
 }
 
+/* The rule above takes Bootstrap's ring away, so a keyboard saw no more than a faint tint: a ring
+   in the colour of the button's link instead, as the pin and the arrows have
+   (MemberWalletLink.module.css). Two classes, to win over Bootstrap's `.btn:focus-visible`. */
+.btn.crea-logo-btn:focus-visible {
+  outline: 2px solid currentcolor;
+}
+
 :root[data-bs-theme='dark'] .crea-logo-btn:hover,
 :root[data-bs-theme='dark'] .crea-logo-btn:focus-visible {
   background-color: rgb(255 255 255 / 10%);

@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { mount, shallowMount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { h } from 'vue'
@@ -754,5 +757,18 @@ describe('OpenCreationsTable', () => {
       expect(cells[6].text()).toBe(day(open.contributionDate))
       expect(wrapper.find('.phone-actions').exists()).toBe(false)
     })
+  })
+})
+
+// The Crea button of a row: its own rule takes Bootstrap's focus ring away (it only tints), so a
+// ring of its own shows a keyboard where it stands. Vitest hands stylesheets to the tests as empty
+// strings: the sheet itself is read, comments taken out first.
+describe('the stylesheet of the contribution rows', () => {
+  it('gives the Crea button a ring at keyboard focus', () => {
+    const here = dirname(fileURLToPath(import.meta.url))
+    const css = readFileSync(join(here, 'OpenCreationsTable.css'), 'utf8')
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/\s+/g, ' ')
+    expect(css).toContain('.btn.crea-logo-btn:focus-visible { outline: 2px solid currentcolor; }')
   })
 })
