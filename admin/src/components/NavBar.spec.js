@@ -1,7 +1,8 @@
 import { mount } from '@vue/test-utils'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { reactive } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
+import { applyTheme, THEME_MODE_STORAGE_KEY, writeThemeMode } from '@/composables/useTheme'
 import { NAV_AVATAR_SIZE } from '@/constants'
 import { useAdminStore } from '@/store/useAdminStore'
 import { redirectTo } from '@/utils/redirect'
@@ -14,6 +15,12 @@ const route = vi.hoisted(() => ({ current: null }))
 
 // Mock vue-router
 vi.mock('@/utils/redirect')
+
+// The switch of light and dark writes through the real function, watched on its way.
+vi.mock('@/composables/useTheme', async () => {
+  const actual = await vi.importActual('@/composables/useTheme')
+  return { ...actual, writeThemeMode: vi.fn(actual.writeThemeMode) }
+})
 
 vi.mock('vue-router', async () => {
   const actual = await vi.importActual('vue-router')
@@ -96,8 +103,17 @@ describe('NavBar', () => {
       ],
     })
     vi.mocked(redirectTo).mockClear()
+    vi.mocked(writeThemeMode).mockClear()
+    // Nothing stored on this device, applied as the app does when it starts (useTheme).
+    window.localStorage.clear()
+    applyTheme()
 
     wrapper = createWrapper()
+  })
+
+  afterEach(() => {
+    window.localStorage.clear()
+    document.documentElement.removeAttribute('data-bs-theme')
   })
 
   // What stands in the bar itself, in both shapes of it.
@@ -329,11 +345,114 @@ describe('NavBar', () => {
       expect(account().find('.navbar-account-role').text()).toBe(label)
     })
 
-    it('leads to the wallet and to the logout, in that order', () => {
-      const entries = account()
-        .findAll('.dropdown-item')
-        .map((item) => item.text())
-      expect(entries).toEqual(['navbar.my-account', 'navbar.logout'])
+    // The switch of light and dark, in the wallet's words (AO-012): a heading and three entries.
+    const choices = () => account().findAll('[role="menuitemradio"]')
+    // Each entry as [mode, marked as the chosen page is, what it says to a screen reader].
+    const marks = () =>
+      choices().map((item) => [
+        item.attributes('data-test').replace('navbar-theme-', ''),
+        item.classes('active'),
+        item.attributes('aria-checked'),
+      ])
+    const marked = (mode) =>
+      ['system', 'light', 'dark'].map((each) => [
+        each,
+        each === mode,
+        each === mode ? 'true' : 'false',
+      ])
+
+    it('keeps "my account" and "sign out" below the switch', () => {
+      const lines = account()
+        .findAll('.dropdown-menu > li')
+        .map((line) => {
+          if (line.classes('navbar-account-head')) {
+            return 'name and role'
+          }
+          return line.find('.dropdown-divider').exists() ? '--' : line.text()
+        })
+      expect(lines).toEqual([
+        'name and role',
+        '--',
+        'navbar.appearance',
+        'navbar.theme.system',
+        'navbar.theme.light',
+        'navbar.theme.dark',
+        '--',
+        'navbar.my-account',
+        'navbar.logout',
+      ])
+    })
+
+    it('offers the three modes under the name, the stored one marked', () => {
+      expect(account().find('.dropdown-header').text()).toBe('navbar.appearance')
+      // Nothing stored: the system's choice, as in the wallet.
+      expect(marks()).toEqual(marked('system'))
+
+      // What the device holds when the admin opens.
+      window.localStorage.setItem(THEME_MODE_STORAGE_KEY, 'dark')
+      applyTheme()
+      wrapper = createWrapper()
+      expect(marks()).toEqual(marked('dark'))
+    })
+
+    it('writes the chosen mode and applies it', async () => {
+      await account().find('[data-test="navbar-theme-dark"]').trigger('click')
+      expect(writeThemeMode).toHaveBeenLastCalledWith('dark')
+      expect(window.localStorage.getItem(THEME_MODE_STORAGE_KEY)).toBe('dark')
+      expect(document.documentElement.getAttribute('data-bs-theme')).toBe('dark')
+      expect(marks()).toEqual(marked('dark'))
+
+      await account().find('[data-test="navbar-theme-light"]').trigger('click')
+      expect(writeThemeMode).toHaveBeenLastCalledWith('light')
+      expect(window.localStorage.getItem(THEME_MODE_STORAGE_KEY)).toBe('light')
+      expect(document.documentElement.hasAttribute('data-bs-theme')).toBe(false)
+      expect(marks()).toEqual(marked('light'))
+
+      await account().find('[data-test="navbar-theme-system"]').trigger('click')
+      expect(writeThemeMode).toHaveBeenLastCalledWith('system')
+      expect(window.localStorage.getItem(THEME_MODE_STORAGE_KEY)).toBe('system')
+      expect(marks()).toEqual(marked('system'))
+    })
+
+    // Fixed to the window: hung absolutely, the open menu made the page wider than a phone.
+    it('hangs its menu fixed to the window', () => {
+      expect(account().find('.dropdown-menu').attributes('style')).toContain('position: fixed')
+      // ... and only this one: the menus of the groups hang in the wide bar, as before.
+      expect(menu('settings').find('.dropdown-menu').attributes('style')).toContain(
+        'position: absolute',
+      )
+    })
+
+    // The entry the keyboard stood on is hidden with the menu: the focus goes back to the face,
+    // as after Escape, and not to the page.
+    it('gives the focus back to the face after a choice', async () => {
+      wrapper.unmount()
+      wrapper = mount(NavBar, {
+        attachTo: document.body,
+        global: { plugins: [store, router], stubs: { IBiBoxArrowUpRight: true } },
+      })
+      const dark = account().find('[data-test="navbar-theme-dark"]')
+      dark.element.focus()
+      expect(document.activeElement).toBe(dark.element)
+
+      await dark.trigger('click')
+      expect(document.activeElement).toBe(account().find('.dropdown-toggle').element)
+      wrapper.unmount()
+    })
+
+    // The wallet's switch in another tab, or the system: the app applies it (useTheme), and the
+    // mark follows -- the class and what a screen reader hears, both after the menu was built.
+    it('moves the mark when the mode changes elsewhere', async () => {
+      window.localStorage.setItem(THEME_MODE_STORAGE_KEY, 'light')
+      applyTheme()
+      await wrapper.vm.$nextTick()
+      expect(marks()).toEqual(marked('light'))
+
+      window.localStorage.setItem(THEME_MODE_STORAGE_KEY, 'dark')
+      applyTheme()
+      await wrapper.vm.$nextTick()
+      expect(marks()).toEqual(marked('dark'))
+      expect(writeThemeMode).not.toHaveBeenCalled()
     })
 
     it('goes to the wallet from its entry', async () => {

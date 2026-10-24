@@ -54,6 +54,10 @@
   .dropdown-menu {
     --bs-dropdown-link-active-bg: var(--bs-gray-700);
     --bs-dropdown-link-active-color: var(--bs-white);
+
+    /* A heading in a menu (the switch of light and dark) reads as the muted line under the name.
+       Bootstrap's own grey, #6c757d, stands at 3.3 on this dark menu. */
+    --bs-dropdown-header-color: var(--bs-secondary-color);
   }
 
   .navbar-account .nav-link {
@@ -127,6 +131,19 @@
     .navbar-account .dropdown-item {
       padding-top: 0.625rem;
       padding-bottom: 0.625rem;
+    }
+
+    /* The moderator's menu stays inside the window, and an entry breaks into a second line rather
+       than run past it: "Seguir la configuración del sistema (predeterminado)" alone is 390 px
+       wide, and Bootstrap keeps every entry on one line. As wide as its longest entry, as at the
+       desk: hung on the narrow item of the face, the menu would shrink to its longest word. */
+    .navbar-account .dropdown-menu {
+      width: max-content;
+      max-width: calc(100vw - 1rem);
+    }
+
+    .navbar-account .dropdown-item {
+      white-space: normal;
     }
 
     .navbar-group-heading {

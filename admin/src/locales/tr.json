@@ -524,6 +524,7 @@
   },
   "name": "Ad",
   "navbar": {
+    "appearance": "Görünüm",
     "automaticContributions": "Başlangıç bakiyesi",
     "chat": "Sohbet",
     "crea": "Crea",
@@ -536,6 +537,11 @@
     "projectBranding": "Projeler",
     "projectBrandingTooltip": "Gradido girişinde kendi logonu kullan ve yeni kullanıcıları bir Humhub alanına ekle",
     "settings": "Ayarlar",
+    "theme": {
+      "dark": "Koyu",
+      "light": "Açık",
+      "system": "Sistem ayarını izle (varsayılan)"
+    },
     "user_search": "Kullanıcı arama"
   },
   "notice": "Bildirim",

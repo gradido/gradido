@@ -1,13 +1,14 @@
 // AI-GENERATED — not an architecture reference
-import { onBeforeUnmount } from 'vue'
+import { onBeforeUnmount, ref } from 'vue'
 
 /**
  * The admin's light or dark: whatever the wallet is set to on this device (AO-011).
  *
  * The wallet keeps its setting in localStorage under its own key, and the admin shares its
- * origin, so it reads the same key -- one setting per device, not one per application. The
- * admin only READS it here; nothing in it writes the key yet (frontend/src/store/useWalletStore.js
- * is the writer, `applyTheme`, mirroring `state.themeMode`).
+ * origin, so it reads the same key -- one setting per device, not one per application. Both write
+ * it: the wallet's settings page (frontend/src/store/useWalletStore.js, `applyTheme`) and the
+ * switch in the admin's account menu (`writeThemeMode` below, AO-012). The wallet takes what the
+ * key holds when it starts (`adoptThemeModeFromDevice`); this one follows it live.
  *
  * The mark is Bootstrap's own, `data-bs-theme="dark"`, on `<html>`: its dark variables follow it,
  * `color-scheme` reaches the root with it (an opened `<select>` follows the root, not what it
@@ -46,17 +47,46 @@ const systemIsDark = (): boolean =>
 export const isDark = (mode: ThemeMode): boolean =>
   mode === 'dark' || (mode === 'system' && systemIsDark())
 
-/** Marks the document dark, or takes the mark away, from the mode as it is stored now. */
-export const applyTheme = (): void => {
+/**
+ * The mode the admin shows, as of the last apply: what the switch in the account menu marks. Set
+ * by every apply, so the mark follows a change from the wallet's tab as well.
+ */
+export const themeMode = ref<ThemeMode>('system')
+
+/**
+ * Marks the document dark, or takes the mark away: from the mode as it is stored now, or from the
+ * mode just chosen in this tab.
+ */
+export const applyTheme = (mode: ThemeMode = readThemeMode()): void => {
+  themeMode.value = mode
   if (typeof document === 'undefined') {
     return
   }
   const root = document.documentElement
-  if (isDark(readThemeMode())) {
+  if (isDark(mode)) {
     root.setAttribute('data-bs-theme', 'dark')
   } else {
     root.removeAttribute('data-bs-theme')
   }
+}
+
+/**
+ * The switch in the account menu: keeps the mode for this device, where the wallet keeps it, and
+ * applies it at once -- the `storage` event never reaches the tab that wrote. A storage that
+ * refuses the write leaves the key as it was; the mode chosen holds for this page all the same
+ * (and through a change of the system's preference, `useTheme`), as it does in the wallet, which
+ * applies the mode it holds in memory.
+ */
+export const writeThemeMode = (mode: ThemeMode): void => {
+  if (!MODES.includes(mode)) {
+    return
+  }
+  try {
+    window.localStorage.setItem(THEME_MODE_STORAGE_KEY, mode)
+  } catch {
+    // A private window, or storage that is full: not kept, but applied below.
+  }
+  applyTheme(mode)
 }
 
 /**
@@ -82,7 +112,9 @@ export const useTheme = (): void => {
   // setup of the app -- the whole admin would stay blank. Where neither exists the system's
   // preference is read at every apply and simply not followed live.
   const media = typeof window.matchMedia === 'function' ? window.matchMedia(SYSTEM_DARK) : null
-  const onSystemChange = () => applyTheme()
+  // The mode applied last, not the stored one: they are the same, except after a choice the
+  // storage refused, which holds here as it does in the wallet.
+  const onSystemChange = () => applyTheme(themeMode.value)
   if (media && typeof media.addEventListener === 'function') {
     media.addEventListener('change', onSystemChange)
   } else if (media && typeof media.addListener === 'function') {
