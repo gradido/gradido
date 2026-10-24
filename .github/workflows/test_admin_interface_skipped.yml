@@ -20,6 +20,11 @@ on:
       - '.bun-version'
       - '.nvmrc'
       - '.github/workflows/test_admin_interface.yml'
+      # Wallet files the admin's specs hold their own copies against (admin/src/workflowPaths.spec.js)
+      - 'frontend/src/assets/scss/gradido-template-dark.scss'
+      - 'frontend/src/assets/fonts/open-sans/open-sans.css'
+      - 'frontend/src/utils/avatarColor.ts'
+      - 'frontend/src/utils/thankYouCheque.ts'
 
 jobs:
   build_test:
