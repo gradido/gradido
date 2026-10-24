@@ -123,6 +123,12 @@
     "createdBy": "Δημιουργήθηκε από {name}.",
     "deletedBy": "Διαγράφηκε από {name}.",
     "deniedBy": "Απορρίφθηκε από {name}.",
+    "detailsState": {
+      "answer": "απάντηση του μέλους",
+      "changed": "τροποποιήθηκε από το μέλος",
+      "conversation": "συνομιλία",
+      "question": "στάλθηκε ερώτηση"
+    },
     "noGroup": "(χωρίς ομάδα)"
   },
   "contributionLink": {

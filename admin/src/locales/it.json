@@ -123,6 +123,12 @@
     "createdBy": "Creato da {name}.",
     "deletedBy": "Eliminato da {name}.",
     "deniedBy": "Rifiutato da {name}.",
+    "detailsState": {
+      "answer": "risposta del membro",
+      "changed": "modificato dal membro",
+      "conversation": "conversazione",
+      "question": "domanda posta"
+    },
     "noGroup": "(senza gruppo)"
   },
   "contributionLink": {

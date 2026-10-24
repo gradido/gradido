@@ -158,7 +158,7 @@ export const CreationConfirm = defineComponent({
       if (phone.value) {
         return [
           { key: 'phoneHead', label: '' },
-          baseFields.memo,
+          { key: 'phoneMemo', label: '', class: 'text-break' },
           { key: 'phoneActions', label: '' },
         ]
       }
