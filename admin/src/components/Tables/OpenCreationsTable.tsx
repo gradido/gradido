@@ -21,16 +21,21 @@ import { LIST_AVATAR_SIZE } from '@/constants'
 import { useAdminStore } from '@/store/useAdminStore'
 import { creationGroupLabels, creationGroupOption } from '@/utils/creationGroupLabel'
 import { isTheModerator } from '@/utils/theModerator'
+import IBiArrowDownCircle from '~icons/bi/arrow-down-circle'
+import IBiArrowUpCircle from '~icons/bi/arrow-up-circle'
 import IBiBellFill from '~icons/bi/bell-fill'
 import IBiChatDots from '~icons/bi/chat-dots'
 import IBiCheck from '~icons/bi/check'
+import IBiCheckLg from '~icons/bi/check-lg'
 import IBiExclamationCircleFill from '~icons/bi/exclamation-circle-fill'
+import IBiPencilFill from '~icons/bi/pencil-fill'
 import IBiQuestionDiamond from '~icons/bi/question-diamond'
 import IBiQuestionSquare from '~icons/bi/question-square'
 import IBiSearch from '~icons/bi/search'
 import IBiTrash from '~icons/bi/trash'
 import IBiX from '~icons/bi/x'
 import IBiXCircle from '~icons/bi/x-circle'
+import IBiXLg from '~icons/bi/x-lg'
 import creaLogo from '../../../public/img/crea-logo.jpg'
 import {
   ContributionMessagesList,
@@ -69,6 +74,10 @@ export type Contribution = {
   moderatorUserName?: string
   updatedBy?: number
   updatedByUserName?: string
+  // The newest message of the conversation with the member (the server leaves the moderators'
+  // internal notes out): its kind and whether a moderator wrote it. Null without a conversation.
+  lastMessageType?: 'DIALOG' | 'HISTORY' | null
+  lastMessageByModerator?: boolean | null
 }
 
 type Row = {
@@ -436,20 +445,52 @@ export const OpenCreationsTable = defineComponent({
     const isClosed = (item: Contribution) =>
       ['CONFIRMED', 'DENIED', 'DELETED'].includes(item.contributionStatus)
 
-    // The two hints the details button carries at the desk (cell `editCreation`), for a
-    // contribution with messages: one while it is pending, one while it is in progress.
-    const messageHint = (item: Contribution) => {
-      if ((item.messagesCount ?? 0) === 0) {
-        return null
-      }
-      if (item.contributionStatus === 'PENDING') {
-        return <IBiExclamationCircleFill class='text-warning' />
-      }
-      if (item.contributionStatus === 'IN_PROGRESS') {
+    // The one symbol of the details button, at the desk and on a card (Bernd, 24.10.2026): what
+    // is going on with the contribution. Open with a question to the member: the question mark.
+    // Open, and the member had the last word: the exclamation mark for an answer, the pencil for
+    // a change of the contribution, which leaves a history entry (the server tells both,
+    // `lastMessageType` and `lastMessageByModerator`). A conversation with nothing waiting in it:
+    // the speech bubble. No conversation: the arrow that opens the row, as on the closed tabs,
+    // turned up while it is open.
+    const detailsIcon = (item: Contribution, showing: boolean) => {
+      const messages = (item.messagesCount ?? 0) > 0
+      if (item.contributionStatus === 'IN_PROGRESS' && messages) {
         return <IBiQuestionDiamond class='text-warning' />
       }
-      return null
+      if (item.contributionStatus === 'PENDING' && item.lastMessageByModerator === false) {
+        return item.lastMessageType === 'HISTORY' ? (
+          <IBiPencilFill class='text-warning' />
+        ) : (
+          <IBiExclamationCircleFill class='text-warning' />
+        )
+      }
+      if (messages) {
+        return <IBiChatDots />
+      }
+      return showing ? <IBiArrowUpCircle /> : <IBiArrowDownCircle />
     }
+
+    // The group of a contribution: a dropdown where it can still be changed, its name otherwise.
+    const groupControl = (item: Contribution) =>
+      canEditGroup(item) ? (
+        <ThemedSelect
+          modelValue={displayedCreationGroup(item)}
+          options={groupSelectOptions.value}
+          // no prop of ThemedSelect: it lands on its element, as it did
+          {...({ size: 'sm' } as object)}
+          class='group-select'
+          aria-label={t('contribution.changeGroup')}
+          onUpdate:modelValue={(tag: string) => onGroupPicked(item, tag)}
+        />
+      ) : (
+        <div class='fw-bold'>
+          {groupLabel(item) ? (
+            <span>{groupLabel(item)}</span>
+          ) : (
+            <span class='fw-normal fst-italic text-muted'>{t('contribution.noGroup')}</span>
+          )}
+        </div>
+      )
 
     return () => (
       <div class='open-creations-table'>
@@ -531,29 +572,7 @@ export const OpenCreationsTable = defineComponent({
               ]
             },
             'cell(memo)': (row: Row) => [
-              <div class='mb-1'>
-                {canEditGroup(row.item) ? (
-                  <ThemedSelect
-                    modelValue={displayedCreationGroup(row.item)}
-                    options={groupSelectOptions.value}
-                    // no prop of ThemedSelect: it lands on its element, as it did
-                    {...({ size: 'sm' } as object)}
-                    class='group-select'
-                    aria-label={t('contribution.changeGroup')}
-                    onUpdate:modelValue={(tag: string) => onGroupPicked(row.item, tag)}
-                  />
-                ) : (
-                  <div class='fw-bold'>
-                    {groupLabel(row.item) ? (
-                      <span>{groupLabel(row.item)}</span>
-                    ) : (
-                      <span class='fw-normal fst-italic text-muted'>
-                        {t('contribution.noGroup')}
-                      </span>
-                    )}
-                  </div>
-                )}
-              </div>,
+              <div class='mb-1'>{groupControl(row.item)}</div>,
               ' ',
               row.value,
               ' ',
@@ -586,21 +605,10 @@ export const OpenCreationsTable = defineComponent({
                   <BButton
                     title={t('details')}
                     aria-label={t('details')}
+                    aria-expanded={row.detailsShowing ? 'true' : 'false'}
                     onClick={() => rowToggleDetails(row, 0)}
                   >
-                    <IBiChatDots />
-                    {row.item.contributionStatus === 'PENDING' &&
-                    (row.item.messagesCount ?? 0) > 0 ? (
-                      <IBiExclamationCircleFill style='color: #ffc107' />
-                    ) : null}
-                    {row.item.contributionStatus === 'IN_PROGRESS' &&
-                    (row.item.messagesCount ?? 0) > 0 ? (
-                      <IBiQuestionDiamond
-                        {...{ variant: 'warning' }}
-                        style='color: #ffc107'
-                        class='ps-1'
-                      />
-                    ) : null}
+                    {detailsIcon(row.item, row.detailsShowing)}
                   </BButton>
                 </div>
               ) : null,
@@ -656,18 +664,23 @@ export const OpenCreationsTable = defineComponent({
             'cell(phoneHead)': (row: Row) => {
               const item = row.item
               const user = item.user
+              // Two columns, two rows: the face and the name, then under the face the filter by
+              // the member's address -- it finds this member's contributions -- and under the name
+              // the group, flush with it (Bernd, 24.10.2026).
               return (
-                <div class='d-flex gap-2 align-items-start'>
-                  {user ? (
-                    <MemberAvatar
-                      size={LIST_AVATAR_SIZE}
-                      name={memberName(user)}
-                      {...avatarFor(user)}
-                      onZoom={() => openPicture(user)}
-                    />
-                  ) : null}
+                <div class='phone-head'>
+                  <div class='phone-face'>
+                    {user ? (
+                      <MemberAvatar
+                        size={LIST_AVATAR_SIZE}
+                        name={memberName(user)}
+                        {...avatarFor(user)}
+                        onZoom={() => openPicture(user)}
+                      />
+                    ) : null}
+                  </div>
                   {/* min-width 0: a long alias is cut off here instead of widening the card. */}
-                  <div class='flex-grow-1' style='min-width: 0'>
+                  <div style='min-width: 0'>
                     <div class='d-flex justify-content-between gap-2'>
                       <span class='fw-semibold text-break'>
                         {props.showStatus ? (
@@ -691,35 +704,67 @@ export const OpenCreationsTable = defineComponent({
                       </div>
                     ) : null}
                   </div>
-                </div>
-              )
-            },
-            // The buttons of the card, in two rows. The first opens what a contribution offers:
-            // its details, the filter by the member's address, Crea where this tab offers it. The
-            // second decides an open contribution, the confirmation far from the bin. Each sends
-            // what its cell at the desk sends. The moderator's own open contribution offers
-            // neither its details nor a decision, as the desk's tab "Offen" does not.
-            'cell(phoneActions)': (row: Row) => {
-              const item = row.item
-              return (
-                <div class='phone-actions'>
-                  <div class='d-flex flex-wrap align-items-center gap-2'>
-                    {isOpen(item) && myself(item) ? null : (
-                      <BButton onClick={() => rowToggleDetails(row, 0)}>
-                        <IBiChatDots /> {t('details')} {messageHint(item)}
-                      </BButton>
-                    )}
-                    {item.user?.emailContact ? (
+                  <div class='phone-search'>
+                    {user?.emailContact ? (
                       <BButton
                         variant='link'
                         class='phone-icon-btn text-primary'
                         title={t('filter.byEmail')}
                         aria-label={t('filter.byEmail')}
-                        onClick={() => emit('search-for-email', item.user?.emailContact?.email)}
+                        onClick={() => emit('search-for-email', user.emailContact?.email)}
                       >
                         <IBiSearch />
                       </BButton>
                     ) : null}
+                  </div>
+                  <div class='phone-group'>{groupControl(item)}</div>
+                </div>
+              )
+            },
+            // The text of the card in full width, below its head, with what the desk adds to it.
+            'cell(phoneMemo)': (row: Row) => [
+              row.item.memo,
+              ' ',
+              isAddCommentToMemo(row.item) ? (
+                <small class='no-select'>
+                  <hr /> {getMemoComment(row.item)}
+                </small>
+              ) : null,
+            ],
+            // The buttons of the card, symbols only, in one row (Bernd, 24.10.2026). At the left
+            // what takes an open contribution off the list, the bin and the denial, which belong
+            // together; at the right Crea, the details and, last, the confirmation, far from the
+            // bin. A word for each stands in its tooltip and its accessible name. Each sends what
+            // its cell at the desk sends. The moderator's own open contribution offers neither
+            // its details nor a decision, as the desk's tab "Offen" does not.
+            'cell(phoneActions)': (row: Row) => {
+              const item = row.item
+              const decide = isOpen(item) && !myself(item)
+              return (
+                <div class='phone-actions d-flex align-items-center gap-2'>
+                  {decide ? (
+                    <BButton
+                      variant='danger'
+                      class='phone-icon-btn'
+                      title={t('delete')}
+                      aria-label={t('delete')}
+                      onClick={() => emit('show-overlay', item, 'delete')}
+                    >
+                      <IBiTrash />
+                    </BButton>
+                  ) : null}
+                  {decide ? (
+                    <BButton
+                      variant='warning'
+                      class='phone-icon-btn'
+                      title={t('deny')}
+                      aria-label={t('deny')}
+                      onClick={() => emit('show-overlay', item, 'deny')}
+                    >
+                      <IBiXLg />
+                    </BButton>
+                  ) : null}
+                  <div class='d-flex align-items-center gap-2 ms-auto'>
                     {props.showCrea && showCreaButton(item) ? (
                       <BButton
                         variant='link'
@@ -730,37 +775,29 @@ export const OpenCreationsTable = defineComponent({
                         <img src={creaLogo} alt={t('crea.column')} class='crea-logo-img' />
                       </BButton>
                     ) : null}
-                  </div>
-                  {isOpen(item) && !myself(item) ? (
-                    <div class='d-flex flex-wrap align-items-center gap-2 mt-2'>
+                    {isOpen(item) && myself(item) ? null : (
                       <BButton
-                        variant='danger'
                         class='phone-icon-btn'
-                        title={t('delete')}
-                        aria-label={t('delete')}
-                        onClick={() => emit('show-overlay', item, 'delete')}
+                        title={t('details')}
+                        aria-label={t('details')}
+                        aria-expanded={row.detailsShowing ? 'true' : 'false'}
+                        onClick={() => rowToggleDetails(row, 0)}
                       >
-                        <IBiTrash />
+                        {detailsIcon(item, row.detailsShowing)}
                       </BButton>
-                      {/* The two words keep together, at the right. Where the line has no room
-                          for them beside the bin -- at 320px in most languages -- they take the
-                          next one rather than squeezing it. */}
-                      <div class='d-flex flex-wrap justify-content-end gap-2 ms-auto'>
-                        <BButton
-                          variant='warning'
-                          onClick={() => emit('show-overlay', item, 'deny')}
-                        >
-                          <IBiX /> {t('deny')}
-                        </BButton>
-                        <BButton
-                          variant='success'
-                          onClick={() => emit('show-overlay', item, 'confirm')}
-                        >
-                          <IBiCheck /> {t('contribution.confirm')}
-                        </BButton>
-                      </div>
-                    </div>
-                  ) : null}
+                    )}
+                    {decide ? (
+                      <BButton
+                        variant='success'
+                        class='phone-icon-btn'
+                        title={t('contribution.confirm')}
+                        aria-label={t('contribution.confirm')}
+                        onClick={() => emit('show-overlay', item, 'confirm')}
+                      >
+                        <IBiCheckLg />
+                      </BButton>
+                    ) : null}
+                  </div>
                 </div>
               )
             },

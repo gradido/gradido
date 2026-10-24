@@ -157,15 +157,31 @@
     padding-bottom: 0.875rem;
   }
 
-  /* A little less room around the words than Bootstrap gives a button. Measured in the built
-     bundle (23.10.2026): the two words of a decision with their symbols then stand beside the
-     bin at 390px in all ten languages, at 360px in nine (not Russian), at 320px in five; where
-     they do not, they take the next line (OpenCreationsTable.tsx). A button that is a symbol
-     alone stays the square App.css makes of it (`phone-icon-btn`). */
-  .open-creations-table .phone-actions .btn:not(.phone-icon-btn) {
-    min-height: 2.75rem;
-    padding-inline: 0.5rem;
-    column-gap: 0.25rem;
+  /* The head of a card: the face and the name, and below them the filter by the member's
+     address under the face and the group under the name, flush with it. A grid, so that the
+     second row starts below the taller of face and name, and filter and group stand side by
+     side whatever the name takes. The face's column is the face's width (LIST_AVATAR_SIZE). */
+  .open-creations-table .phone-head {
+    display: grid;
+    grid-template-columns: 3rem minmax(0, 1fr);
+    gap: 0.5rem;
+    align-items: start;
+  }
+
+  .open-creations-table .phone-head .phone-search {
+    display: flex;
+    justify-content: center;
+    align-self: center;
+  }
+
+  .open-creations-table .phone-head .phone-group {
+    align-self: center;
+  }
+
+  /* The symbols of the card's square buttons a size up: without a word beside them they carry
+     the button alone. */
+  .open-creations-table .phone-icon-btn > svg {
+    font-size: 1.25rem;
   }
 
   .open-creations-table .group-select {

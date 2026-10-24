@@ -307,15 +307,19 @@ describe('the phone rules of the contribution page and the member search', () =>
     const css = read(STYLES.table)
     const phone = phoneRules(css)
 
-    // The words of a decision with a little less room around them; a symbol button stays the
-    // square App.css makes of it.
-    expect(
-      ruleFor(phone, '.open-creations-table .phone-actions .btn:not(.phone-icon-btn)')
-        ?.declarations,
-    ).toEqual({
-      'min-height': '2.75rem',
-      'padding-inline': '0.5rem',
-      'column-gap': '0.25rem',
+    // The head as a grid of two columns, the first as wide as the face: the filter under the face,
+    // the group under the name, side by side whatever the name takes (24.10.2026).
+    expect(ruleFor(phone, '.open-creations-table .phone-head')?.declarations).toEqual({
+      display: 'grid',
+      'grid-template-columns': '3rem minmax(0, 1fr)',
+      gap: '0.5rem',
+      'align-items': 'start',
+    })
+    // Every button of the card is a symbol now: no rule for a button with words is left, and the
+    // symbols stand a size up in their squares.
+    expect(css).not.toContain('.btn:not(.phone-icon-btn)')
+    expect(ruleFor(phone, '.open-creations-table .phone-icon-btn > svg')?.declarations).toEqual({
+      'font-size': '1.25rem',
     })
     // The inner margin of the card on its cells, so that the row's colour fills the card; the
     // lines between the cells go, the 3px line above the first one stays.

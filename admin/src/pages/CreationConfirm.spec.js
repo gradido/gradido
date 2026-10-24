@@ -516,7 +516,7 @@ describe('CreationConfirm', () => {
       await nextTick()
       for (const name of TABS) {
         await openTab(name)
-        expect(fieldKeys(), name).toEqual(['phoneHead', 'memo', 'phoneActions'])
+        expect(fieldKeys(), name).toEqual(['phoneHead', 'phoneMemo', 'phoneActions'])
       }
     })
 
