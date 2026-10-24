@@ -40,7 +40,15 @@ describe('OpenCreationsTable', () => {
 
   const mockItems = [
     { id: 1, contributionStatus: 'PENDING', userId: 2, moderatorId: null, messagesCount: 0 },
-    { id: 2, contributionStatus: 'CONFIRMED', userId: 3, moderatorId: 1, messagesCount: 2 },
+    {
+      id: 2,
+      contributionStatus: 'CONFIRMED',
+      userId: 3,
+      moderatorId: 1,
+      messagesCount: 2,
+      lastMessageType: 'DIALOG',
+      lastMessageByModerator: true,
+    },
   ]
 
   const mockFields = [
@@ -447,8 +455,8 @@ describe('OpenCreationsTable', () => {
       const buttons = wrapper.findAll('button')
       expect(buttons).toHaveLength(2)
       buttons.forEach((button) => {
-        expect(button.attributes('aria-label')).toBe('details')
-        expect(button.attributes('title')).toBe('details')
+        expect(button.attributes('aria-label')).toBe('details – contribution.detailsState.answer')
+        expect(button.attributes('title')).toBe('details – contribution.detailsState.answer')
       })
     })
   })
@@ -752,6 +760,20 @@ describe('OpenCreationsTable', () => {
           { ...open, ...conversation('HISTORY', true) },
           IBiChatDots,
         ],
+        // coderabbit, #4193: the moderators' internal notes are counted, but they are no
+        // conversation with the member.
+        [
+          'only internal notes',
+          { ...open, messagesCount: 1, lastMessageType: null, lastMessageByModerator: null },
+          IBiArrowDownCircle,
+        ],
+        // A moderator's question makes a contribution IN_PROGRESS and nothing else does; the page
+        // sets that at once, before the list knows the question.
+        [
+          'a question just sent',
+          { ...open, contributionStatus: 'IN_PROGRESS', messagesCount: 1 },
+          IBiQuestionDiamond,
+        ],
         ['no conversation', { ...open }, IBiArrowDownCircle],
         [
           'closed, with a conversation',
@@ -763,12 +785,23 @@ describe('OpenCreationsTable', () => {
       const details = (row) =>
         actions(row)
           .findAll('button')
-          .find((b) => b.attributes('aria-label') === 'details')
+          .find((b) => (b.attributes('aria-label') ?? '').startsWith('details'))
+      // Its name says what the symbol shows, where that is more than the way into the row
+      // (coderabbit, #4193): for a screen reader, and as a tooltip.
+      const NAMES = new Map([
+        [IBiExclamationCircleFill, 'details – contribution.detailsState.answer'],
+        [IBiPencilFill, 'details – contribution.detailsState.changed'],
+        [IBiQuestionDiamond, 'details – contribution.detailsState.question'],
+        [IBiChatDots, 'details – contribution.detailsState.conversation'],
+        [IBiArrowDownCircle, 'details'],
+      ])
 
       it.each(STATES)('%s', (_, item, icon) => {
         wrapper = mountCards([{ ...item, id: 9 }])
         expect(details(0).findAll('svg')).toHaveLength(1)
         expect(details(0).findComponent(icon).exists()).toBe(true)
+        expect(details(0).attributes('aria-label')).toBe(NAMES.get(icon))
+        expect(details(0).attributes('title')).toBe(NAMES.get(icon))
         // The three that ask for a moderator's eye stand out.
         const waiting = [IBiExclamationCircleFill, IBiPencilFill, IBiQuestionDiamond].includes(icon)
         expect(details(0).findComponent(icon).classes().includes('text-warning')).toBe(waiting)
@@ -798,7 +831,8 @@ describe('OpenCreationsTable', () => {
             global: { plugins: [store], stubs: { ThemedSelect: themedSelect, BModal: modal } },
           })
           const button = wrapper.find('tbody > tr button')
-          expect(button.attributes('aria-label')).toBe('details')
+          expect(button.attributes('aria-label')).toBe(NAMES.get(icon))
+          expect(button.attributes('title')).toBe(NAMES.get(icon))
           expect(button.findAll('svg')).toHaveLength(1)
           expect(button.findComponent(icon).exists()).toBe(true)
         }

@@ -445,29 +445,57 @@ export const OpenCreationsTable = defineComponent({
     const isClosed = (item: Contribution) =>
       ['CONFIRMED', 'DENIED', 'DELETED'].includes(item.contributionStatus)
 
-    // The one symbol of the details button, at the desk and on a card (Bernd, 24.10.2026): what
-    // is going on with the contribution. Open with a question to the member: the question mark.
-    // Open, and the member had the last word: the exclamation mark for an answer, the pencil for
-    // a change of the contribution, which leaves a history entry (the server tells both,
-    // `lastMessageType` and `lastMessageByModerator`). A conversation with nothing waiting in it:
-    // the speech bubble. No conversation: the arrow that opens the row, as on the closed tabs,
-    // turned up while it is open.
-    const detailsIcon = (item: Contribution, showing: boolean) => {
-      const messages = (item.messagesCount ?? 0) > 0
-      if (item.contributionStatus === 'IN_PROGRESS' && messages) {
-        return <IBiQuestionDiamond class='text-warning' />
+    // A conversation with the member: the server names its last message, the moderators'
+    // internal notes left out. `messagesCount` counts those notes as well.
+    const hasConversation = (item: Contribution) => item.lastMessageType != null
+
+    // What is going on with a contribution, for its details button (Bernd, 24.10.2026). In
+    // progress, which only a question to the member makes it: a question waits. Open, and the
+    // member had the last word: their answer, or their change of the contribution, which leaves a
+    // history entry (the server tells both, `lastMessageType` and `lastMessageByModerator`). A
+    // conversation with nothing waiting in it. Or nothing: no conversation at all.
+    const detailsState = (item: Contribution) => {
+      if (item.contributionStatus === 'IN_PROGRESS') {
+        return 'question'
       }
       if (item.contributionStatus === 'PENDING' && item.lastMessageByModerator === false) {
-        return item.lastMessageType === 'HISTORY' ? (
-          <IBiPencilFill class='text-warning' />
-        ) : (
-          <IBiExclamationCircleFill class='text-warning' />
-        )
+        return item.lastMessageType === 'HISTORY' ? 'changed' : 'answer'
       }
-      if (messages) {
-        return <IBiChatDots />
+      return hasConversation(item) ? 'conversation' : null
+    }
+
+    // The one symbol of the details button, at the desk and on a card. No conversation: the arrow
+    // that opens the row, as on the closed tabs, turned up while it is open.
+    const detailsIcon = (item: Contribution, showing: boolean) => {
+      switch (detailsState(item)) {
+        case 'question':
+          return <IBiQuestionDiamond class='text-warning' />
+        case 'answer':
+          return <IBiExclamationCircleFill class='text-warning' />
+        case 'changed':
+          return <IBiPencilFill class='text-warning' />
+        case 'conversation':
+          return <IBiChatDots />
+        default:
+          return showing ? <IBiArrowUpCircle /> : <IBiArrowDownCircle />
       }
-      return showing ? <IBiArrowUpCircle /> : <IBiArrowDownCircle />
+    }
+
+    // Its name, for a screen reader and as a tooltip: the word, and what the symbol shows where it
+    // shows more than the way into the row (coderabbit, #4193).
+    const detailsName = (item: Contribution) => {
+      switch (detailsState(item)) {
+        case 'question':
+          return `${t('details')} – ${t('contribution.detailsState.question')}`
+        case 'answer':
+          return `${t('details')} – ${t('contribution.detailsState.answer')}`
+        case 'changed':
+          return `${t('details')} – ${t('contribution.detailsState.changed')}`
+        case 'conversation':
+          return `${t('details')} – ${t('contribution.detailsState.conversation')}`
+        default:
+          return t('details')
+      }
     }
 
     // The group of a contribution: a dropdown where it can still be changed, its name otherwise.
@@ -603,8 +631,8 @@ export const OpenCreationsTable = defineComponent({
               !myself(row.item) ? (
                 <div>
                   <BButton
-                    title={t('details')}
-                    aria-label={t('details')}
+                    title={detailsName(row.item)}
+                    aria-label={detailsName(row.item)}
                     aria-expanded={row.detailsShowing ? 'true' : 'false'}
                     onClick={() => rowToggleDetails(row, 0)}
                   >
@@ -613,10 +641,10 @@ export const OpenCreationsTable = defineComponent({
                 </div>
               ) : null,
             'cell(chatCreation)': (row: Row) =>
-              (row.item.messagesCount ?? 0) > 0 ? (
+              hasConversation(row.item) ? (
                 <BButton
-                  title={t('details')}
-                  aria-label={t('details')}
+                  title={detailsName(row.item)}
+                  aria-label={detailsName(row.item)}
                   onClick={() => rowToggleDetails(row, 0)}
                 >
                   <IBiChatDots />
@@ -778,8 +806,8 @@ export const OpenCreationsTable = defineComponent({
                     {isOpen(item) && myself(item) ? null : (
                       <BButton
                         class='phone-icon-btn'
-                        title={t('details')}
-                        aria-label={t('details')}
+                        title={detailsName(item)}
+                        aria-label={detailsName(item)}
                         aria-expanded={row.detailsShowing ? 'true' : 'false'}
                         onClick={() => rowToggleDetails(row, 0)}
                       >

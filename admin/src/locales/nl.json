@@ -123,6 +123,12 @@
     "createdBy": "Aangemaakt door {name}.",
     "deletedBy": "Verwijderd door {name}.",
     "deniedBy": "Afgewezen door {name}.",
+    "detailsState": {
+      "answer": "antwoord van het lid",
+      "changed": "gewijzigd door het lid",
+      "conversation": "gesprek",
+      "question": "vraag gesteld"
+    },
     "noGroup": "(zonder groep)"
   },
   "contributionLink": {

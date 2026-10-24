@@ -123,6 +123,12 @@
     "createdBy": "{name} tarafından oluşturuldu.",
     "deletedBy": "{name} tarafından silindi.",
     "deniedBy": "{name} tarafından reddedildi.",
+    "detailsState": {
+      "answer": "üyenin yanıtı",
+      "changed": "üye tarafından değiştirildi",
+      "conversation": "yazışma",
+      "question": "soru soruldu"
+    },
     "noGroup": "(grupsuz)"
   },
   "contributionLink": {

@@ -123,6 +123,12 @@
     "createdBy": "Создано пользователем {name}.",
     "deletedBy": "Удалено пользователем {name}.",
     "deniedBy": "Отклонено пользователем {name}.",
+    "detailsState": {
+      "answer": "ответ участника",
+      "changed": "изменено участником",
+      "conversation": "переписка",
+      "question": "вопрос задан"
+    },
     "noGroup": "(без группы)"
   },
   "contributionLink": {
