@@ -27,8 +27,9 @@ import { keepAuthToken, readAuthToken } from '../utils/authToken'
 // index.html reads it with a single getItem, so it never has to parse the whole
 // persisted-state blob on the blocking boot path. Kept in sync by applyTheme.
 // It is also this device's own word on the mode: the admin interface writes it too, from
-// the switch in its account menu, so at boot the wallet takes what it holds
-// (adoptThemeModeFromDevice) before applyTheme mirrors state.themeMode back into it.
+// the switch in its account menu, so the wallet takes what it holds (adoptThemeModeFromDevice)
+// before applyTheme mirrors state.themeMode back into it -- at boot, on a change of the
+// system's light or dark, and on a sign-out: the writes that are no choice of the member's.
 export const THEME_MODE_STORAGE_KEY = 'gradido-theme-mode'
 
 const THEME_MODES = ['system', 'light', 'dark']
@@ -325,6 +326,9 @@ export const useWalletStore = defineStore('wallet', {
       // its way to the sign-in page -- with this, the next member to sign in here finds that way
       // empty.
       clearLinkDraft()
+      // What this device keeps, not what this store held since it started: an open wallet would
+      // write its older mode over a choice made in the admin interface meanwhile.
+      this.adoptThemeModeFromDevice()
       const themeMode = this.themeMode
       // Remove only this app's own persisted state. The token is not in this blob -- the
       // `setToken` above has removed it from where both apps keep it, and with it the
@@ -414,12 +418,13 @@ export const useWalletStore = defineStore('wallet', {
       // synchronous, so a caller that does not await still gets all of it.
       await clearApolloCache()
     },
-    // At boot, before the first applyTheme (main.js): the mode this device keeps under
-    // THEME_MODE_STORAGE_KEY wins over the one in the blob. The admin interface writes that key
-    // as well; without this, applyTheme would mirror the blob's older mode over a choice made
-    // there. Not inside applyTheme itself: the settings page calls it right after setThemeMode,
-    // and it would put the old key back over the fresh choice. A key that is missing or unknown
-    // leaves the blob's mode.
+    // Before every apply that is no choice of the member's -- at boot (main.js), on a change of
+    // the system's light or dark (App.vue), on a sign-out: the mode this device keeps under
+    // THEME_MODE_STORAGE_KEY wins over the one this store holds. The admin interface writes that
+    // key as well; without this, applyTheme would mirror an older mode over a choice made there.
+    // Not inside applyTheme itself: the settings page calls it right after setThemeMode, and it
+    // would put the old key back over the fresh choice. A key that is missing or unknown leaves
+    // the store's mode.
     adoptThemeModeFromDevice() {
       let stored = null
       try {

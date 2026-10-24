@@ -551,6 +551,20 @@ describe('Pinia store', () => {
         expect(calls).not.toContainEqual(['setDarkMode', false])
       })
 
+      // The admin interface writes the device's key as well: a sign-out keeps what was chosen
+      // there, and does not write the mode this store held since the wallet opened.
+      it('keeps the mode this device keeps, written elsewhere meanwhile', () => {
+        localStorage.setItem(THEME_MODE_STORAGE_KEY, 'light')
+        try {
+          wallet.logout()
+          expect(calls).toContainEqual(['setThemeMode', 'light'])
+          expect(calls).not.toContainEqual(['setThemeMode', 'dark'])
+          expect(wallet.themeMode).toBe('light')
+        } finally {
+          localStorage.removeItem(THEME_MODE_STORAGE_KEY)
+        }
+      })
+
       /**
        * ⛔ An amount parked mid-sale must not stay on a device somebody has walked away
        * from. The ID is read BEFORE `setGradidoID(null)`, two lines into this action

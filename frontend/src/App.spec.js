@@ -1,8 +1,9 @@
 import { shallowMount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import App from './App'
 import DashboardLayout from '@/layouts/DashboardLayout'
 import { AuthLayout } from '@/layouts/AuthLayout'
+import { THEME_MODE_STORAGE_KEY, useWalletStore } from '@/store/useWalletStore'
 import { walletStore } from '@test/walletStore'
 
 // Mock the route
@@ -20,7 +21,7 @@ describe('App', () => {
   const createWrapper = (options = {}) => {
     return shallowMount(App, {
       global: {
-        plugins: [walletStore({ darkMode: false, ...options.state })],
+        plugins: [options.pinia ?? walletStore({ darkMode: false, ...options.state })],
         mocks: {
           $route: createMockRoute(options.routeMeta),
         },
@@ -81,6 +82,44 @@ describe('App', () => {
     })
 
     expect(document.body.hasAttribute('data-bs-theme')).toBe(false)
+  })
+
+  // A change of the system's light or dark applies the theme anew, and the apply writes the
+  // mode back into the device's key. The admin interface writes that key too: what it chose
+  // there meanwhile is taken first, not overwritten with the mode this wallet opened with.
+  describe('a change of the system', () => {
+    let listeners
+    let original
+
+    beforeEach(() => {
+      listeners = new Set()
+      original = window.matchMedia
+      window.matchMedia = () => ({
+        matches: false,
+        addEventListener: (type, listener) => listeners.add(listener),
+        removeEventListener: (type, listener) => listeners.delete(listener),
+      })
+    })
+
+    afterEach(() => {
+      window.matchMedia = original
+      localStorage.removeItem(THEME_MODE_STORAGE_KEY)
+    })
+
+    it('takes the mode this device keeps before it applies the theme', () => {
+      const pinia = walletStore({ themeMode: 'dark', darkMode: true })
+      createWrapper({ pinia })
+      expect(listeners.size).toBe(1)
+
+      // The admin interface chose light on this device while the wallet stood open.
+      localStorage.setItem(THEME_MODE_STORAGE_KEY, 'light')
+      for (const listener of listeners) listener({ matches: true })
+
+      const store = useWalletStore(pinia)
+      expect(store.themeMode).toBe('light')
+      expect(store.darkMode).toBe(false)
+      expect(localStorage.getItem(THEME_MODE_STORAGE_KEY)).toBe('light')
+    })
   })
 
   // Installed on a home screen the status bar takes its colour from theme-color, so a
