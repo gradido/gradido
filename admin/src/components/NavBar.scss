@@ -2,6 +2,15 @@
   background-color: #343a40;
 }
 
+/* The dark mode (App.css): the bar in the dark of the window's bar above it (useTheme.ts,
+   DARK_BAR_COLOUR), so the top of the window is one black down to a thin light line, which parts
+   the bar from the page in the same dark (Bernd, 24.10.2026). The line is drawn inside the bar:
+   no pixel of the page moves. The light mode keeps its bar as it is. */
+:root[data-bs-theme='dark'] .bg-light-dark {
+  background-color: #17181a;
+  box-shadow: inset 0 -1px 0 rgb(255 255 255 / 45%);
+}
+
 /* The elements below are drawn by the library's components, which a scoped block does not
    reach. The root class keeps the rules to this bar and puts them above Bootstrap's own. */
 .component-nabvar {
