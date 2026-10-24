@@ -63,7 +63,8 @@ describe('chatPreviewLine', () => {
   it("names nobody in front of the other person's message", () => {
     expect(chatPreviewLine(message({ excerpt: 'Morgen?' }), i18n)).toEqual({
       by: '',
-      text: 'Morgen?',
+      label: '',
+      words: 'Morgen?',
       picture: false,
     })
   })
@@ -94,9 +95,11 @@ describe('chatPreviewLine', () => {
 
   describe('a picture', () => {
     it('says "Bild" where it has no words', () => {
+      // "Bild" says what is there; nobody wrote it, so it is no words (and stands upright).
       expect(chatPreviewLine(message({ excerpt: '', hasImage: true }), i18n)).toEqual({
         by: '',
-        text: 'chatThread.imageReady',
+        label: 'chatThread.imageReady',
+        words: '',
         picture: true,
       })
     })
@@ -104,7 +107,8 @@ describe('chatPreviewLine', () => {
     it('shows its caption where it has one', () => {
       expect(chatPreviewLine(message({ excerpt: 'Der Garten', hasImage: true }), i18n)).toEqual({
         by: '',
-        text: 'Der Garten',
+        label: '',
+        words: 'Der Garten',
         picture: true,
       })
     })
@@ -118,7 +122,8 @@ describe('chatPreviewLine', () => {
     it('shows the Gradido and the memo', () => {
       expect(chatPreviewLine(booking(), i18n)).toEqual({
         by: 'chatThread.you',
-        text: 'decimal(20) GDD · Danke für Deine Hilfe',
+        label: 'decimal(20) GDD',
+        words: 'Danke für Deine Hilfe',
         picture: false,
       })
     })
@@ -128,19 +133,21 @@ describe('chatPreviewLine', () => {
     })
 
     it('takes the amount without its sign, whichever way it came', () => {
-      expect(chatPreviewLine(booking({ amount: '-7.5000' }), i18n).text).toBe(
-        'decimal(7.5) GDD · Danke für Deine Hilfe',
-      )
+      expect(chatPreviewLine(booking({ amount: '-7.5000' }), i18n).label).toBe('decimal(7.5) GDD')
     })
 
     it('shows the amount alone where the memo says nothing', () => {
-      expect(chatPreviewLine(booking({ excerpt: '' }), i18n).text).toBe('decimal(20) GDD')
+      expect(chatPreviewLine(booking({ excerpt: '' }), i18n)).toMatchObject({
+        label: 'decimal(20) GDD',
+        words: '',
+      })
     })
 
     it('is a booking even for an amount of nothing', () => {
-      expect(chatPreviewLine(booking({ amount: '0' }), i18n).text).toBe(
-        'decimal(0) GDD · Danke für Deine Hilfe',
-      )
+      expect(chatPreviewLine(booking({ amount: '0' }), i18n)).toMatchObject({
+        label: 'decimal(0) GDD',
+        words: 'Danke für Deine Hilfe',
+      })
     })
   })
 })

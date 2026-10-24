@@ -1,5 +1,4 @@
 // AI-GENERATED — not an architecture reference
-import { CONTACT_META_SEPARATOR } from '@/components/Contacts/contactDisplay'
 import { chatMarkdown } from '@/utils/chatMarkdown'
 import { memberAlias } from '@/utils/gradidoAddress'
 
@@ -47,11 +46,14 @@ export const chatPreviewWords = (words) => {
 }
 
 /**
- * What the line under a name says (E-083): `{ by, text, picture }`.
+ * What the line under a name says (E-083), in its pieces: `{ by, label, words, picture }`.
  * - `by`: who it is from where that is to be said -- "Du" for one's own message or the Gradido one
  *   gave, in a group the writer the server named (as a group's message is named); '' otherwise.
- * - `text`: on a booking the Gradido and the memo ("20,00 GDD · Danke"), the amount as the thread
- *   writes it (ChatThread); on a message its words, and "Bild" for a picture without any.
+ * - `label`: what the line says of its own -- on a booking the Gradido, as the thread writes them
+ *   (ChatThread), and "Bild" for a picture without words; '' otherwise.
+ * - `words`: what somebody wrote -- a message's words, a booking's memo; '' where there are none.
+ *   The line sets them, and only them, in italics, as both booking lists set a memo (Bernd,
+ *   24.10.2026).
  * - `picture`: whether the message carries a picture, for the sign in front of the words.
  *
  * `t` and `n` come from the caller's `useI18n()`: this file is not a setup scope.
@@ -69,10 +71,10 @@ export const chatPreviewLine = (preview, { t, n }) => {
       : ''
   const words = chatPreviewWords(preview.excerpt)
   const booking = preview.amount !== null && preview.amount !== undefined
-  const text = booking
-    ? [`${n(Math.abs(Number(preview.amount)), 'decimal')} ${t('GDD')}`, words]
-        .filter(Boolean)
-        .join(CONTACT_META_SEPARATOR)
-    : words || (preview.hasImage ? t('chatThread.imageReady') : '')
-  return { by, text, picture: !booking && Boolean(preview.hasImage) }
+  const label = booking
+    ? `${n(Math.abs(Number(preview.amount)), 'decimal')} ${t('GDD')}`
+    : !words && preview.hasImage
+      ? t('chatThread.imageReady')
+      : ''
+  return { by, label, words, picture: !booking && Boolean(preview.hasImage) }
 }

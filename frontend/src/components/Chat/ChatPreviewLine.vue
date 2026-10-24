@@ -6,9 +6,9 @@
     data-test="chat-preview-line"
   >
     <!-- One line, cut off where it ends, in the size and colour of the lines around it -- dark and
-         bold while what it shows waits unread. The name and the words are two pieces with a space
-         IN the first: Vue drops the space between two elements, and a screen reader would hear
-         the two run together. (Inside the line, not over it: a comment at the top would make the
+         bold while what it shows waits unread. Its pieces carry the space or the dot after them
+         IN themselves: Vue drops the space between two elements, and a screen reader would hear
+         them run together. (Inside the line, not over it: a comment at the top would make the
          component a fragment, and the classes the row hands it would have nowhere to go.) -->
     <span v-if="line.by" class="chat-preview-line-by" data-test="chat-preview-by">
       {{ `${t('chatPreview.by', { name: line.by })} ` }}
@@ -19,13 +19,19 @@
       aria-hidden="true"
       data-test="chat-preview-picture"
     />
-    <span data-test="chat-preview-text">{{ line.text }}</span>
+    <span v-if="line.label" data-test="chat-preview-label">
+      {{ line.words ? `${line.label}${CONTACT_META_SEPARATOR}` : line.label }}
+    </span>
+    <span v-if="line.words" class="chat-preview-line-words" data-test="chat-preview-words">
+      {{ line.words }}
+    </span>
   </span>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { CONTACT_META_SEPARATOR } from '@/components/Contacts/contactDisplay'
 import { chatPreviewLine } from '@/utils/chatPreview'
 
 /**
@@ -57,6 +63,12 @@ const line = computed(() => chatPreviewLine(props.preview, { t, n }))
   text-overflow: ellipsis;
   white-space: nowrap;
   contain: inline-size;
+}
+
+/* What somebody wrote, in italics -- as both booking lists set a memo, to tell it from the
+   lines around it (Bernd, 24.10.2026). Who wrote it, the Gradido and "Bild" stay upright. */
+.chat-preview-line-words {
+  font-style: italic;
 }
 
 /* The picture's sign in front of the words, as the quotation over an answer has it. */
