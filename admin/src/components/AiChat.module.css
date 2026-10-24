@@ -205,3 +205,54 @@
     left: calc(100% - 4px);
   }
 }
+
+/* The dark mode (App.css): the window a card's ground above the page, the stream the page's own,
+   the member's bubble a field's ground, Crea's the wallet's tone for an entry under the pointer
+   (#43464c, 7.4) and an error a dark red with the red of App.css (5.8). The buttons are light
+   ones and the hint is muted text: the bridge darkens both. */
+:root[data-bs-theme='dark'] .chatWindow {
+  background-color: var(--bs-tertiary-bg);
+  border-color: var(--bs-border-color);
+  box-shadow: 0 4px 8px rgb(0 0 0 / 50%);
+}
+
+/* The whole of the stream: the list is only as tall as the messages it holds, and below it the
+   scroll box would show the window's ground -- a step of 1.3 : 1 where the light mode's two
+   whites stand at 1.05. */
+:root[data-bs-theme='dark'] .messagesScrollContainer,
+:root[data-bs-theme='dark'] .messages {
+  background-color: var(--bs-body-bg);
+}
+
+:root[data-bs-theme='dark'] .message:global(.user) .messageContent {
+  background-color: var(--bs-secondary-bg);
+  color: var(--bs-body-color);
+  border-color: var(--bs-border-color);
+}
+
+:root[data-bs-theme='dark'] .message:global(.assistant) .messageContent {
+  background-color: #43464c;
+  color: var(--bs-body-color);
+}
+
+:root[data-bs-theme='dark'] .message:global(.error) .messageContent {
+  background-color: #3a2222;
+  color: #f58080;
+}
+
+:root[data-bs-theme='dark'] .inputArea {
+  background-color: var(--bs-tertiary-bg);
+  border-top-color: var(--bs-border-color);
+}
+
+/* The field's edge as every field's in the dark, at rest only: focused, Bootstrap's blue edge wins
+   over the grey above as it does in the light mode. */
+:root[data-bs-theme='dark'] .inputArea textarea:not(:focus) {
+  border-color: var(--bs-border-color);
+}
+
+/* The wallet's --menu-border; the dark blue of the light mode is next to nothing on the page.
+   At rest only: under the pointer Bootstrap's edge takes over, as in the light mode. */
+:root[data-bs-theme='dark'] .chatToggleButton:not(:hover) {
+  border-color: #6e727a;
+}
