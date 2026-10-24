@@ -1,9 +1,12 @@
 import { shallowMount } from '@vue/test-utils'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createRouter, createWebHistory } from 'vue-router'
+import { useTheme } from '@/composables/useTheme'
 import { defaultLayout } from '@/layouts/defaultLayout'
 import { adminStore } from '../test/adminStore'
 import { App } from './App'
+
+vi.mock('@/composables/useTheme', () => ({ useTheme: vi.fn() }))
 
 const router = createRouter({
   history: createWebHistory(),
@@ -55,5 +58,12 @@ describe('App', () => {
   it('always renders BToastOrchestrator and BModalOrchestrator', () => {
     expect(wrapper.findComponent({ name: 'BToastOrchestrator' }).exists()).toBe(true)
     expect(wrapper.findComponent({ name: 'BModalOrchestrator' }).exists()).toBe(true)
+  })
+
+  // The wallet's light or dark, followed for as long as the app stands (composables/useTheme.ts).
+  it('installs the theme on setup', () => {
+    vi.mocked(useTheme).mockClear()
+    createWrapper()
+    expect(useTheme).toHaveBeenCalledTimes(1)
   })
 })

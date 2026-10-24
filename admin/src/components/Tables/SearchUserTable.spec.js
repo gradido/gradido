@@ -768,6 +768,21 @@ describe('SearchUserTable', () => {
       expect(arrow()).toBe('row-caret-down')
     })
 
+    // A colour written on the arrow itself stays in every mode: #212529 stood at 1.2 on the dark
+    // page. Its colour comes from SearchUserTable.css, the colour of the words.
+    it('the carets carry no inline colour and the caret class', async () => {
+      wrapper = createWrapper({ items: [member()], fields: SEVEN })
+      await flushPromises()
+      const caret = () => cellsOf(0).at(6).find('[data-test^="row-caret"]')
+      expect(caret().classes()).toContain('row-caret')
+      expect(caret().attributes('style') ?? '').not.toMatch(/color/)
+
+      await wrapper.findAll('tbody > tr').at(0).trigger('click')
+      expect(caret().attributes('data-test')).toBe('row-caret-up')
+      expect(caret().classes()).toContain('row-caret')
+      expect(caret().attributes('style') ?? '').not.toMatch(/color/)
+    })
+
     it('at the desk every status symbol carries its word and the arrow carries no title', async () => {
       wrapper = createWrapper({
         items: [

@@ -15,7 +15,7 @@ export const CollapseIcon = defineComponent({
     return () => (
       <div class='collapse-icon'>
         {props.visible ? (
-          <IBiArrowUpCircle class='text-black h2' />
+          <IBiArrowUpCircle class='text-body h2' />
         ) : (
           <IBiArrowDownCircle class='text-muted h2' />
         )}

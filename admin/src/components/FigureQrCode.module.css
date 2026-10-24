@@ -1,3 +1,5 @@
+/* White in both modes, with intent (AO-015): a code is read across its quiet zone, and a scanner
+   wants dark modules on a light ground. */
 .qrbox {
   padding: 20px;
   background-color: rgb(255 255 255);

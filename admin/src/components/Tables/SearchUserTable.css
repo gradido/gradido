@@ -1,5 +1,12 @@
 /* AI-GENERATED — not an architecture reference */
 
+/* The caret of a row in the colour of the words: #212529 in the light mode, as it was written on
+   the caret itself before, and the bridge's in the dark (App.css) -- the fixed one stood at 1.2 on
+   a dark row. */
+.search-user-table .row-caret {
+  color: var(--bs-body-color);
+}
+
 /* A phone: every member is a card -- the stacked row of the table with the one cell UserSearch
    hands it there (`memberCard`). Below this width the table stacks (`stacked='lg'`). */
 @media (width < 992px) {

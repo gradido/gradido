@@ -14,3 +14,9 @@
     color: #6c757d;
   }
 }
+
+/* The dark mode (App.css): the placeholder in the bridge's muted grey; #6c757d came to 3.8 on the
+   page. */
+:root[data-bs-theme='dark'] .themed-select.themed-select-placeholder > .btn.themed-select-toggle {
+  color: var(--bs-secondary-color);
+}

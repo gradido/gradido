@@ -16,8 +16,10 @@ import { PHONE_BREAKPOINT_PX } from '@/constants'
  *
  * ⛔ Every phone rule stands under `(width < 992px)` and nowhere else: one boundary, the one
  * where the tables stack and the top bar folds up (composables/useViewport.ts, AO-010). And no stylesheet of the delivery holds
- * a fixed colour more than it did before it -- a dark mode comes through `data-bs-theme` later,
- * and every colour written by hand would have to be done again (AO-008).
+ * a fixed colour more than it did before it, in its light rules: every colour written by hand
+ * needed a dark one as well (AO-008). The dark rules -- every rule whose selector names
+ * `data-bs-theme` -- are taken out before the light ones are read here; they have bounds of their
+ * own (darkModeStyles.spec.js).
  */
 const here = dirname(fileURLToPath(import.meta.url))
 const STYLES = {
@@ -44,6 +46,14 @@ const STYLES = {
 }
 // The role form has no phone block: its one rule holds on every width.
 const ROLE_FORM = join(here, 'components', 'ChangeUserRoleFormular.css')
+// Sheets the dark mode touched that have no phone block either (D1).
+const NO_PHONE = {
+  deletedUser: join(here, 'components', 'DeletedUserFormular.css'),
+  spaces: join(here, 'components', 'ProjectBranding', 'ListHumhubSpaces.module.css'),
+  themedSelect: join(here, 'components', 'ThemedSelect.scss'),
+  timePicker: join(here, 'components', 'input', 'TimePicker.module.css'),
+  chatSettings: join(here, 'pages', 'ChatSettings.module.css'),
+}
 // Upper bounds, counted on 23.10.2026 before the delivery (CreationConfirm.css had one: the
 // backdrop of the overlay the dialog replaced). NavBar.scss is not touched by it; it is held
 // here because the dark mode will meet it first. The yellow of ConfirmRegisterMailFormular.css
@@ -66,6 +76,14 @@ const FIXED_COLOURS_AT_MOST = {
   [STYLES.creaChat]: 9,
   // The line below a row of the creation groups.
   [STYLES.creationGroups]: 1,
+  // Counted on 24.10.2026 before D1: the yellow of the prefix, the grey and blue under the pointer
+  // in the list of spaces, the grey of a placeholder, the line below a chat server. The border of
+  // the time picker was one too and now takes Bootstrap's variable, the same #dee2e6.
+  [NO_PHONE.deletedUser]: 1,
+  [NO_PHONE.spaces]: 2,
+  [NO_PHONE.themedSelect]: 1,
+  [NO_PHONE.timePicker]: 0,
+  [NO_PHONE.chatSettings]: 1,
 }
 
 // Who loads each stylesheet. A sheet that nobody imports holds its rules for no page, and the
@@ -89,12 +107,20 @@ const LOADED_BY = {
   [STYLES.creaWindow]: join(here, 'components', 'CreaEvaluationModal.tsx'),
   [STYLES.creaChat]: join(here, 'components', 'AiChat.tsx'),
   [STYLES.creationGroups]: join(here, 'pages', 'CreationGroups.tsx'),
+  [NO_PHONE.deletedUser]: join(here, 'components', 'DeletedUserFormular.tsx'),
+  [NO_PHONE.spaces]: join(here, 'components', 'ProjectBranding', 'ListHumhubSpaces.tsx'),
+  [NO_PHONE.themedSelect]: join(here, 'components', 'ThemedSelect.tsx'),
+  [NO_PHONE.timePicker]: join(here, 'components', 'input', 'TimePicker.tsx'),
+  [NO_PHONE.chatSettings]: join(here, 'pages', 'ChatSettings.tsx'),
 }
 
 const PHONE = `(width < ${PHONE_BREAKPOINT_PX}px)`
 
 const withoutComments = (css) => css.replace(/\/\*[\s\S]*?\*\//g, '')
 const read = (path) => withoutComments(readFileSync(path, 'utf8'))
+
+/** What the light mode draws: the stylesheet without its dark rules. */
+const withoutDarkRules = (css) => css.replace(/[^{}]*data-bs-theme[^{}]*\{[^{}]*\}/g, '')
 
 /** Every `@media` block: its condition and what stands inside it. */
 const mediaBlocks = (css) => {
@@ -209,6 +235,16 @@ describe('the phone rules of the contribution page and the member search', () =>
     }
   })
 
+  // The native controls (an opened select, a date picker, the scrollbars) in the admin's mode:
+  // light, and dark while composables/useTheme.ts marks the document dark. On the root, and with
+  // the root's weight: Bootstrap's own dark rule ties with `:root` and loses to the light one.
+  it("App.css switches color-scheme with the document's theme", () => {
+    const flat = rules(outsideMedia(read(STYLES.app)))
+    expect(ruleFor(flat, ':root')?.declarations).toEqual({ 'color-scheme': 'light' })
+    const dark = flat.filter((rule) => rule.selector === ":root[data-bs-theme='dark']")
+    expect(dark.map((rule) => rule.declarations['color-scheme'])).toContain('dark')
+  })
+
   it('makes every button and every field 44px tall on a phone, in App.css', () => {
     const css = read(STYLES.app)
     const tall = ruleFor(phoneRules(css), '.btn, .form-control, .form-select')
@@ -221,7 +257,7 @@ describe('the phone rules of the contribution page and the member search', () =>
       'justify-content': 'center',
     })
     // At the desk nothing of it.
-    expect(outsideMedia(css)).not.toMatch(/min-height|inline-flex/)
+    expect(withoutDarkRules(outsideMedia(css))).not.toMatch(/min-height|inline-flex/)
   })
 
   // What the contribution page and the member search share: both open a row into a card with
@@ -261,7 +297,9 @@ describe('the phone rules of the contribution page and the member search', () =>
       '--bs-pagination-padding-x': '1rem',
     })
 
-    const desk = outsideMedia(css)
+    // (The dark mode gives a pager and the tabs their tones at every width: those rules are not
+    // phone rules.)
+    const desk = withoutDarkRules(outsideMedia(css))
     expect(desk).not.toMatch(/phone-|row-details-card|nav-link|pagination/)
   })
 
@@ -333,7 +371,13 @@ describe('the phone rules of the contribution page and the member search', () =>
       ruleFor(phoneRules(css), '.search-user-table .b-table-stacked-lg > tbody > tr > td')
         ?.declarations,
     ).toEqual({ padding: '0.625rem 0.375rem 0.875rem', 'border-bottom-width': '0' })
-    expect(outsideMedia(css).trim()).toBe('')
+    // At the desk nothing of the card; only the colour of the row's caret, on every width.
+    expect(rules(outsideMedia(css))).toEqual([
+      {
+        selector: '.search-user-table .row-caret',
+        declarations: { color: 'var(--bs-body-color)' },
+      },
+    ])
   })
 
   it('lets the creation form take the width of its card on a phone, its buttons under each other', () => {
@@ -491,15 +535,15 @@ describe('the phone rules of the contribution page and the member search', () =>
   })
 
   it('holds no fixed colour more than before', () => {
+    const fixedColours = (css) =>
+      (css.match(/#[0-9a-f]{3,8}\b/gi) ?? []).length + (css.match(/\brgba?\(/gi) ?? []).length
     const counted = Object.fromEntries(
       Object.keys(FIXED_COLOURS_AT_MOST).map((path) => {
         const css = read(path)
         // The file was read: an emptied one must not pass as a file without colours. (The
         // stylesheet of the role form holds one rule of 45 characters.)
         expect(css.length, path).toBeGreaterThan(40)
-        const fixed =
-          (css.match(/#[0-9a-f]{3,8}\b/gi) ?? []).length + (css.match(/\brgba?\(/gi) ?? []).length
-        return [path, fixed]
+        return [path, fixedColours(withoutDarkRules(css))]
       }),
     )
     for (const [path, most] of Object.entries(FIXED_COLOURS_AT_MOST)) {
@@ -507,5 +551,7 @@ describe('the phone rules of the contribution page and the member search', () =>
     }
     // The count sees a colour where there is one.
     expect(counted[STYLES.table]).toBeGreaterThan(0)
+    // ... and the dark rules come out before it: App.css holds the palette of the dark mode.
+    expect(fixedColours(read(STYLES.app))).toBeGreaterThan(counted[STYLES.app])
   })
 })

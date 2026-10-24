@@ -1,3 +1,9 @@
 .input-group-text {
   background-color: rgb(255 252 205);
 }
+
+/* The dark mode (App.css): the yellow as a dark tint; the words on it 9.1. The same rule stands in
+   ConfirmRegisterMailFormular.css: each of the two sheets has its own loader. */
+:root[data-bs-theme='dark'] .input-group-text {
+  background-color: #3d3a1f;
+}

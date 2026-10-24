@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { MemberAvatar } from '@/components/MemberAvatar'
@@ -334,5 +337,42 @@ describe('the face beside a message', () => {
       src: 'data:image/jpeg;base64,her-face',
     })
     wrapper.unmount()
+  })
+})
+
+// The bubbles in the dark mode (App.css): each light colour keeps its place and has a dark tint
+// beside it, under the mark on <html>. Vitest hands stylesheets to the tests as empty strings, so
+// the sheet itself is read, its comments taken out first.
+describe('the stylesheet of a message', () => {
+  const here = dirname(fileURLToPath(import.meta.url))
+  const css = readFileSync(join(here, 'ContributionMessagesListItem.css'), 'utf8').replace(
+    /\/\*[\s\S]*?\*\//g,
+    '',
+  )
+  const backgroundOf = (selector) =>
+    css
+      .match(
+        new RegExp(`(?:^|\\})\\s*${selector.replace(/[.[\]'=]/g, '\\$&')}\\s*\\{([^}]*)\\}`),
+      )?.[1]
+      .match(/background-color:\s*([^;]+);/)?.[1]
+      .trim()
+
+  it('the four bubbles have dark counterparts', () => {
+    const LIGHT = {
+      '.is-moderator-message': 'rgb(228 237 245)',
+      '.is-moderator-hidden-message': 'rgb(217 161 228)',
+      '.is-user-message': 'rgb(236 235 213)',
+      '.is-user-history-message': 'rgb(235 226 57)',
+    }
+    const DARK = {
+      '.is-moderator-message': '#263241',
+      '.is-moderator-hidden-message': '#4a2a52',
+      '.is-user-message': '#3a3a2e',
+      '.is-user-history-message': '#4a4620',
+    }
+    for (const [selector, colour] of Object.entries(LIGHT)) {
+      expect(backgroundOf(selector), selector).toBe(colour)
+      expect(backgroundOf(`:root[data-bs-theme='dark'] ${selector}`), selector).toBe(DARK[selector])
+    }
   })
 })

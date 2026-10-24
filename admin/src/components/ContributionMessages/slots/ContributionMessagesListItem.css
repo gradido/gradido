@@ -25,6 +25,25 @@
   background-color: rgb(235 226 57);
 }
 
+/* The dark mode (App.css): each bubble a dark tint of its colour -- the moderator's blue, the
+   hidden note's violet, the member's beige, the earlier text's yellow. The words on them 10.2,
+   9.5, 9.1, 7.5. */
+:root[data-bs-theme='dark'] .is-moderator-message {
+  background-color: #263241;
+}
+
+:root[data-bs-theme='dark'] .is-moderator-hidden-message {
+  background-color: #4a2a52;
+}
+
+:root[data-bs-theme='dark'] .is-user-message {
+  background-color: #3a3a2e;
+}
+
+:root[data-bs-theme='dark'] .is-user-history-message {
+  background-color: #4a4620;
+}
+
 /* A phone: a message takes more of the narrow window, and the side it leans to still shows
    who wrote it. */
 @media (width < 992px) {
