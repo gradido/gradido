@@ -285,6 +285,7 @@
    under the weekdays, and the days that cannot be chosen dimmed on the dark (2.3, as their grey is
    dim on white). The chosen day and the one under the pointer keep the picker's green. On the
    picker itself: it turns these into its own variables there. */
+/* stylelint-disable-next-line selector-class-pattern -- the library's name for its picker */
 :root[data-bs-theme='dark'] .v3dp__datepicker {
   --vdp-bg-color: var(--bs-tertiary-bg);
   --vdp-text-color: var(--bs-body-color);
