@@ -2,7 +2,13 @@
 import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent } from 'vue'
-import { THEME_MODE_STORAGE_KEY, themeMode, useTheme, writeThemeMode } from './useTheme'
+import {
+  DARK_BAR_COLOUR,
+  THEME_MODE_STORAGE_KEY,
+  themeMode,
+  useTheme,
+  writeThemeMode,
+} from './useTheme'
 
 const SYSTEM_DARK = '(prefers-color-scheme: dark)'
 
@@ -49,6 +55,10 @@ const anotherTab = {
 
 const markedDark = () => document.documentElement.getAttribute('data-bs-theme') === 'dark'
 
+/** The colours the page names for the window's bar: one in the dark, none in the light. */
+const barColours = () =>
+  [...document.querySelectorAll('meta[name="theme-color"]')].map((meta) => meta.content)
+
 const ThemedApp = defineComponent({
   setup() {
     useTheme()
@@ -64,9 +74,16 @@ describe('useTheme', () => {
     return wrapper
   }
 
+  const clearBar = () => {
+    for (const meta of document.querySelectorAll('meta[name="theme-color"]')) {
+      meta.remove()
+    }
+  }
+
   beforeEach(() => {
     window.localStorage.clear()
     document.documentElement.removeAttribute('data-bs-theme')
+    clearBar()
     // The mark of the menu lives in the module, beyond each test.
     themeMode.value = 'system'
   })
@@ -76,6 +93,7 @@ describe('useTheme', () => {
     wrapper = undefined
     window.localStorage.clear()
     document.documentElement.removeAttribute('data-bs-theme')
+    clearBar()
     delete window.matchMedia
     vi.restoreAllMocks()
   })
@@ -271,6 +289,48 @@ describe('useTheme', () => {
       expect(markedDark()).toBe(true)
       expect(themeMode.value).toBe('dark')
     })
+  })
+
+  // As an installed app the admin runs in the wallet's window, and Chrome colours its bar from the
+  // page's theme-color -- without one, from the wallet's manifest, light (24.10.2026).
+  it("names the page's dark for the window's bar in the dark, and nothing in the light", () => {
+    const system = systemPreference({ dark: false })
+    window.localStorage.setItem(THEME_MODE_STORAGE_KEY, 'dark')
+    startApp()
+    expect(barColours()).toEqual([DARK_BAR_COLOUR])
+
+    writeThemeMode('light')
+    expect(barColours()).toEqual([])
+
+    // The system's choice: the bar follows the system both ways, one tag at a time.
+    writeThemeMode('system')
+    expect(barColours()).toEqual([])
+    system.switchTo(true)
+    expect(barColours()).toEqual([DARK_BAR_COLOUR])
+    system.switchTo(false)
+    expect(barColours()).toEqual([])
+
+    // ... and the wallet's switch in another tab.
+    anotherTab.writes('dark')
+    anotherTab.tells(THEME_MODE_STORAGE_KEY)
+    expect(barColours()).toEqual([DARK_BAR_COLOUR])
+  })
+
+  it('keeps to the one tag the page named before its first paint', () => {
+    // What the script in index.html leaves in a dark head.
+    const early = document.createElement('meta')
+    early.name = 'theme-color'
+    early.content = DARK_BAR_COLOUR
+    document.head.appendChild(early)
+    systemPreference({ dark: true })
+    startApp()
+    expect(barColours()).toEqual([DARK_BAR_COLOUR])
+    expect(document.querySelector('meta[name="theme-color"]')).toBe(early)
+
+    writeThemeMode('light')
+    expect(barColours()).toEqual([])
+    writeThemeMode('dark')
+    expect(barColours()).toEqual([DARK_BAR_COLOUR])
   })
 
   // What the menu marks follows every apply: the start, another tab, the switch itself.

@@ -346,6 +346,25 @@ describe('the dark mode of the admin', () => {
     })
   })
 
+  // Bernd's choice after the Gradido calculator (24.10.2026): the calculator's blue for the open
+  // rows, its green darkened for the confirmed, gold where the olive stood, bordeaux for the
+  // deleted. Every row a little lighter striped, and again under the pointer.
+  it('the contribution rows are deep, after the Gradido calculator', () => {
+    const dark = darkRules(read(SWEEP.rows))
+    const STATES = ['primary', 'success', 'warning', 'danger']
+    const grounds = STATES.map(
+      (state) => declarationsOf(dark, `${DARK} .table-${state}`)['--bs-table-bg'],
+    )
+    expect(grounds).toEqual(['#090540', '#0e2707', '#412802', '#400515'])
+    for (const state of STATES) {
+      const row = declarationsOf(dark, `${DARK} .table-${state}`)
+      const ground = luminance(row['--bs-table-bg'])
+      const striped = luminance(row['--bs-table-striped-bg'])
+      expect(ground, state).toBeLessThan(striped)
+      expect(striped, state).toBeLessThan(luminance(row['--bs-table-hover-bg']))
+    }
+  })
+
   it('the yellow prefix box has a dark counterpart in both of its files', () => {
     for (const sheet of [SWEEP.deletedUser, SWEEP.confirmMail]) {
       const all = rules(read(sheet))

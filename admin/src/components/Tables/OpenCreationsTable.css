@@ -11,51 +11,54 @@
 
 /* The dark mode (App.css): the four colours of a contribution's row as dark tints (AO-014).
    Bootstrap 5.3 keeps .table-primary, -success, -warning and -danger light in its dark mode.
-   Open blue, confirmed green, denied amber, deleted red; the words on them 10.0 to 11.1, on the
-   striped rows 8.8 to 10.0, white under the pointer 9.6 to 11.9. */
+   Deep, after the Gradido calculator (Bernd, 24.10.2026): open in the calculator's blue, darker
+   than the page; confirmed in the calculator's green darkened, which keeps it warm; denied in
+   gold, as light as the olive it replaces; deleted in bordeaux. Each a little lighter striped
+   and again under the pointer. The words on them 10.8 to 14.9, on the striped rows 10.4 to 14.6,
+   white under the pointer 12.3 to 17.9. */
 :root[data-bs-theme='dark'] .table-primary {
-  --bs-table-bg: #0b2a5a;
-  --bs-table-striped-bg: #10336a;
-  --bs-table-hover-bg: #153c7a;
+  --bs-table-bg: #090540;
+  --bs-table-striped-bg: #0b0745;
+  --bs-table-hover-bg: #0e0b4c;
   --bs-table-color: var(--bs-body-color);
   --bs-table-striped-color: var(--bs-body-color);
   --bs-table-hover-color: var(--bs-emphasis-color);
-  --bs-table-border-color: #1f4a8f;
+  --bs-table-border-color: #15185d;
 }
 
 :root[data-bs-theme='dark'] .table-success {
-  --bs-table-bg: #0f3a22;
-  --bs-table-striped-bg: #134428;
-  --bs-table-hover-bg: #184f2f;
+  --bs-table-bg: #0e2707;
+  --bs-table-striped-bg: #0f2a08;
+  --bs-table-hover-bg: #122f0a;
   --bs-table-color: var(--bs-body-color);
   --bs-table-striped-color: var(--bs-body-color);
   --bs-table-hover-color: var(--bs-emphasis-color);
-  --bs-table-border-color: #1f5c38;
+  --bs-table-border-color: #1b3c12;
 }
 
 :root[data-bs-theme='dark'] .table-warning {
-  --bs-table-bg: #3a2d06;
-  --bs-table-striped-bg: #3f3108;
-  --bs-table-hover-bg: #44350a;
+  --bs-table-bg: #412802;
+  --bs-table-striped-bg: #452a01;
+  --bs-table-hover-bg: #4b2f01;
   --bs-table-color: var(--bs-body-color);
   --bs-table-striped-color: var(--bs-body-color);
   --bs-table-hover-color: var(--bs-emphasis-color);
-  --bs-table-border-color: #705a16;
+  --bs-table-border-color: #5a3905;
 }
 
 :root[data-bs-theme='dark'] .table-danger {
-  --bs-table-bg: #4a1f22;
-  --bs-table-striped-bg: #552327;
-  --bs-table-hover-bg: #60282c;
+  --bs-table-bg: #400515;
+  --bs-table-striped-bg: #450617;
+  --bs-table-hover-bg: #4b091b;
   --bs-table-color: var(--bs-body-color);
   --bs-table-striped-color: var(--bs-body-color);
   --bs-table-hover-color: var(--bs-emphasis-color);
-  --bs-table-border-color: #6a2d31;
+  --bs-table-border-color: #5b1425;
 }
 
 /* Muted words on such a row (a group that cannot be changed, the date on a card) in a lighter
-   grey: the bridge's #9a9b9e came to 4.0 on a striped green row, this one holds 4.7 on every
-   stage of all four colours, the one under the pointer included. */
+   grey: the bridge's #9a9b9e comes to 4.4 on a gold row under the pointer, this one holds 6.1 on
+   every stage of all four colours, the one under the pointer included. */
 :root[data-bs-theme='dark'] .table-primary,
 :root[data-bs-theme='dark'] .table-success,
 :root[data-bs-theme='dark'] .table-warning,

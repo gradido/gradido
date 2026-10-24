@@ -11,7 +11,9 @@
     // Light or dark before the first paint, from the setting the wallet keeps on this device
     // ('system' | 'light' | 'dark'; missing or unknown is 'system'), so that a dark device sees
     // no light flash. On the root element: color-scheme has to reach it, and the windows hung on
-    // the body sit below it. src/composables/useTheme.ts follows every change after this.
+    // the body sit below it. In the dark the window's bar too: as an installed app the admin runs
+    // in the wallet's window, whose bar would otherwise keep the wallet's light. Its colour is
+    // DARK_BAR_COLOUR there; src/composables/useTheme.ts follows every change after this.
     ;(function () {
       var mode = null
       try {
@@ -27,6 +29,10 @@
           window.matchMedia('(prefers-color-scheme: dark)').matches)
       ) {
         document.documentElement.setAttribute('data-bs-theme', 'dark')
+        var bar = document.createElement('meta')
+        bar.name = 'theme-color'
+        bar.content = '#17181a'
+        document.head.appendChild(bar)
       }
     })()
   </script>

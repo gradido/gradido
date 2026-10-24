@@ -54,8 +54,36 @@ export const isDark = (mode: ThemeMode): boolean =>
 export const themeMode = ref<ThemeMode>('system')
 
 /**
+ * The colour of the window's bar in the dark: the page's dark (`--bs-body-bg` of the bridge in
+ * App.css), the colour the wallet names for its bar in its own dark mode. The script in index.html
+ * names it before the first paint.
+ */
+export const DARK_BAR_COLOUR = '#17181a'
+
+/**
+ * The bar above the page, where the admin runs as an installed app -- in the wallet's window, whose
+ * scope is the whole origin. Chrome colours it from the page's `<meta name="theme-color">`, and
+ * without one from the wallet's manifest: its light #f5f5f5, a white bar over the dark admin
+ * (24.10.2026). So the dark names the page's dark; the light names nothing, and the bar stays as it
+ * always was.
+ */
+const nameBarColour = (colour: string | null): void => {
+  let meta = document.head.querySelector<HTMLMetaElement>('meta[name="theme-color"]')
+  if (colour === null) {
+    meta?.remove()
+    return
+  }
+  if (!meta) {
+    meta = document.createElement('meta')
+    meta.name = 'theme-color'
+    document.head.appendChild(meta)
+  }
+  meta.content = colour
+}
+
+/**
  * Marks the document dark, or takes the mark away: from the mode as it is stored now, or from the
- * mode just chosen in this tab.
+ * mode just chosen in this tab. The window's bar follows.
  */
 export const applyTheme = (mode: ThemeMode = readThemeMode()): void => {
   themeMode.value = mode
@@ -65,8 +93,10 @@ export const applyTheme = (mode: ThemeMode = readThemeMode()): void => {
   const root = document.documentElement
   if (isDark(mode)) {
     root.setAttribute('data-bs-theme', 'dark')
+    nameBarColour(DARK_BAR_COLOUR)
   } else {
     root.removeAttribute('data-bs-theme')
+    nameBarColour(null)
   }
 }
 
