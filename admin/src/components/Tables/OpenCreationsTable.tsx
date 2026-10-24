@@ -10,7 +10,6 @@ import {
   watch,
 } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { CollapseIcon } from '@/components/CollapseIcon'
 import { MemberAvatar } from '@/components/MemberAvatar'
 import { ThemedSelect } from '@/components/ThemedSelect'
 import { useDateFormatter } from '@/composables/useDateFormatter'
@@ -649,22 +648,19 @@ export const OpenCreationsTable = defineComponent({
                   </BButton>
                 </div>
               ) : null,
-            'cell(chatCreation)': (row: Row) =>
-              hasConversation(row.item) ? (
-                <BButton
-                  title={detailsName(row.item, row.detailsShowing)}
-                  aria-label={detailsName(row.item, row.detailsShowing)}
-                  aria-expanded={row.detailsShowing ? 'true' : 'false'}
-                  onClick={() => rowToggleDetails(row, 0)}
-                >
-                  {detailsIcon(row.item, row.detailsShowing)}
-                </BButton>
-              ) : (
-                <CollapseIcon
-                  visible={row.detailsShowing}
-                  onClick={() => rowToggleDetails(row, 0)}
-                />
-              ),
+            // The closed tabs' details column: the same button in every row. Without a
+            // conversation it used to be a bare arrow, which no keyboard reached and which had no
+            // name (coderabbit, #4194).
+            'cell(chatCreation)': (row: Row) => (
+              <BButton
+                title={detailsName(row.item, row.detailsShowing)}
+                aria-label={detailsName(row.item, row.detailsShowing)}
+                aria-expanded={row.detailsShowing ? 'true' : 'false'}
+                onClick={() => rowToggleDetails(row, 0)}
+              >
+                {detailsIcon(row.item, row.detailsShowing)}
+              </BButton>
+            ),
             'cell(deny)': (row: Row) =>
               !myself(row.item) ? (
                 <div>

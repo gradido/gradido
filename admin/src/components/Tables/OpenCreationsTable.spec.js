@@ -852,12 +852,13 @@ describe('OpenCreationsTable', () => {
         }
       })
 
-      // Open, the desk's buttons show the arrow turned up too: the open tab's and, with a
-      // conversation, the closed tabs' speech bubble.
+      // Open, the desk's buttons show the arrow turned up too: the open tab's and the closed
+      // tabs', with a conversation or without.
       it('at the desk, open, the arrow up as well', async () => {
         for (const [key, item] of [
           ['editCreation', { ...open, ...conversation('DIALOG', false), id: 9 }],
           ['chatCreation', { ...closed, ...conversation('DIALOG', true), id: 10 }],
+          ['chatCreation', { ...closed, id: 11 }],
         ]) {
           wrapper = mount(OpenCreationsTable, {
             props: { items: [item], fields: [{ key, label: 'details' }], hideResubmission: false },
@@ -869,6 +870,25 @@ describe('OpenCreationsTable', () => {
           expect(button.attributes('aria-label'), key).toBe('hide_details')
           expect(button.attributes('aria-expanded'), key).toBe('true')
         }
+      })
+
+      // A closed tab's row without a conversation: the same button as the others, named and in
+      // reach of the keyboard, the arrow down while closed (it was a bare arrow; coderabbit, #4194).
+      it('at the desk, a closed row without a conversation has the button too', () => {
+        wrapper = mount(OpenCreationsTable, {
+          props: {
+            items: [{ ...closed, id: 12 }],
+            fields: [{ key: 'chatCreation', label: 'details' }],
+            hideResubmission: false,
+          },
+          global: { plugins: [store], stubs: { ThemedSelect: themedSelect, BModal: modal } },
+        })
+        const button = wrapper.find('tbody > tr button')
+        expect(button.exists()).toBe(true)
+        expect(button.findAll('svg')).toHaveLength(1)
+        expect(button.findComponent(IBiArrowDownCircle).exists()).toBe(true)
+        expect(button.attributes('aria-label')).toBe('details')
+        expect(button.attributes('aria-expanded')).toBe('false')
       })
     })
 
