@@ -524,6 +524,7 @@
   },
   "name": "Name",
   "navbar": {
+    "appearance": "Erscheinungsbild",
     "automaticContributions": "Startguthaben",
     "chat": "Chat",
     "crea": "Crea",
@@ -536,6 +537,11 @@
     "projectBranding": "Projekte",
     "projectBrandingTooltip": "Nutze ein eigenes Logo im Gradido Login und füge neue Benutzer einem Humhub-Space hinzu",
     "settings": "Einstellungen",
+    "theme": {
+      "dark": "Dunkel",
+      "light": "Hell",
+      "system": "Systemeinstellung folgen (Standard)"
+    },
     "user_search": "Nutzersuche"
   },
   "notice": "Hinweis",

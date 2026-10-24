@@ -2,7 +2,7 @@
 import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent } from 'vue'
-import { THEME_MODE_STORAGE_KEY, useTheme } from './useTheme'
+import { THEME_MODE_STORAGE_KEY, themeMode, useTheme, writeThemeMode } from './useTheme'
 
 const SYSTEM_DARK = '(prefers-color-scheme: dark)'
 
@@ -67,6 +67,8 @@ describe('useTheme', () => {
   beforeEach(() => {
     window.localStorage.clear()
     document.documentElement.removeAttribute('data-bs-theme')
+    // The mark of the menu lives in the module, beyond each test.
+    themeMode.value = 'system'
   })
 
   afterEach(() => {
@@ -202,5 +204,90 @@ describe('useTheme', () => {
   it('throws nothing without matchMedia, and stays light for the system', () => {
     startApp()
     expect(markedDark()).toBe(false)
+  })
+
+  // The switch in the account menu (NavBar.tsx) writes the wallet's key. The `storage` event never
+  // reaches the tab that wrote, so the write applies by itself.
+  describe('writeThemeMode', () => {
+    it('stores a valid mode and applies it at once', () => {
+      systemPreference({ dark: true })
+      window.localStorage.setItem(THEME_MODE_STORAGE_KEY, 'light')
+      startApp()
+      expect(markedDark()).toBe(false)
+
+      writeThemeMode('dark')
+      expect(window.localStorage.getItem(THEME_MODE_STORAGE_KEY)).toBe('dark')
+      expect(markedDark()).toBe(true)
+      expect(themeMode.value).toBe('dark')
+
+      writeThemeMode('light')
+      expect(window.localStorage.getItem(THEME_MODE_STORAGE_KEY)).toBe('light')
+      expect(markedDark()).toBe(false)
+      expect(themeMode.value).toBe('light')
+
+      // The system's choice, and the system is dark.
+      writeThemeMode('system')
+      expect(window.localStorage.getItem(THEME_MODE_STORAGE_KEY)).toBe('system')
+      expect(markedDark()).toBe(true)
+      expect(themeMode.value).toBe('system')
+    })
+
+    it('refuses an unknown mode', () => {
+      systemPreference({ dark: false })
+      window.localStorage.setItem(THEME_MODE_STORAGE_KEY, 'dark')
+      startApp()
+
+      writeThemeMode('blue')
+      expect(window.localStorage.getItem(THEME_MODE_STORAGE_KEY)).toBe('dark')
+      expect(markedDark()).toBe(true)
+      expect(themeMode.value).toBe('dark')
+    })
+
+    it('survives a refused storage and still applies', () => {
+      systemPreference({ dark: false })
+      startApp()
+      vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+        throw new DOMException('The quota has been exceeded.', 'QuotaExceededError')
+      })
+
+      expect(() => writeThemeMode('dark')).not.toThrow()
+      // Not kept, but the page follows the choice, as the wallet's does.
+      expect(window.localStorage.getItem(THEME_MODE_STORAGE_KEY)).toBeNull()
+      expect(markedDark()).toBe(true)
+      expect(themeMode.value).toBe('dark')
+    })
+
+    it('keeps a choice the storage refused through a change of the system', () => {
+      const system = systemPreference({ dark: false })
+      startApp()
+      vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+        throw new DOMException('The quota has been exceeded.', 'QuotaExceededError')
+      })
+      writeThemeMode('dark')
+
+      // Nothing is stored, so the stored mode is the system's: it would go light here.
+      system.switchTo(true)
+      system.switchTo(false)
+      expect(markedDark()).toBe(true)
+      expect(themeMode.value).toBe('dark')
+    })
+  })
+
+  // What the menu marks follows every apply: the start, another tab, the switch itself.
+  it('themeMode follows every apply', () => {
+    systemPreference({ dark: false })
+    window.localStorage.setItem(THEME_MODE_STORAGE_KEY, 'light')
+    startApp()
+    expect(themeMode.value).toBe('light')
+
+    // The wallet's switch in another tab.
+    anotherTab.writes('dark')
+    anotherTab.tells(THEME_MODE_STORAGE_KEY)
+    expect(themeMode.value).toBe('dark')
+
+    // Another tab cleared its storage: nothing stored is the system's choice.
+    window.localStorage.clear()
+    anotherTab.tells(null)
+    expect(themeMode.value).toBe('system')
   })
 })

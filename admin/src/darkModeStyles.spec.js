@@ -20,7 +20,7 @@ import { describe, expect, it } from 'vitest'
  */
 const here = dirname(fileURLToPath(import.meta.url))
 const APP = join(here, 'App.css')
-// The sheets the sweep gave dark rules to (D1); the Crea helper's come with D2.
+// The sheets the sweep gave dark rules to (D1), and the Crea helper's window and chat (D2).
 const SWEEP = {
   rows: join(here, 'components', 'Tables', 'OpenCreationsTable.css'),
   messages: join(
@@ -37,6 +37,8 @@ const SWEEP = {
   timePicker: join(here, 'components', 'input', 'TimePicker.module.css'),
   creationGroups: join(here, 'pages', 'CreationGroups.module.css'),
   chatSettings: join(here, 'pages', 'ChatSettings.module.css'),
+  creaWindow: join(here, 'components', 'CreaEvaluationModal.module.css'),
+  creaChat: join(here, 'components', 'AiChat.module.css'),
 }
 // The wallet's dark tones. The two apps share no package; this file is read across the tree, as
 // utils/avatarColor.spec.js reads the wallet's copy of its rule.
@@ -275,6 +277,10 @@ describe('the dark mode of the admin', () => {
       [SWEEP.confirmMail]: 1,
       // The light blue of a space under the pointer.
       [SWEEP.spaces]: 1,
+      // The gold of the outlined decision (its word and its edge) and the red of App.css.
+      [SWEEP.creaWindow]: 4,
+      // The shadow of the window, Crea's bubble, the error's ground and its red, the opener's edge.
+      [SWEEP.creaChat]: 5,
     }
     const counted = Object.fromEntries(
       stylesheetsBelow(here).map((sheet) => {
@@ -409,5 +415,99 @@ describe('the dark mode of the admin', () => {
     for (const ground of [bridge['--bs-body-bg'], bridge['--bs-tertiary-bg']]) {
       expect(contrast(colour(placeholder), ground)).toBeGreaterThanOrEqual(4.5)
     }
+  })
+
+  // AO-015: the outlined decisions of Crea's window take dark tones in the window's own sheet.
+  // The bridge beats its light palette by one step of specificity for the green and the red only,
+  // and has no gold: "Rückfrage" stood at 2.5 in the dark (D1, measured 24.10.2026).
+  it('the three outline decisions of the Crea window carry dark tones', () => {
+    const css = read(SWEEP.creaWindow)
+    const dark = darkRules(css)
+    const outline = (variant) =>
+      declarationsOf(dark, `${DARK} .palette :global(.btn-outline-${variant})`)
+    const ground = colour(declarationsOf(darkRules(app), `${DARK} .modal`)['--bs-modal-bg'])
+    expect(ground).toBe(bridge['--bs-tertiary-bg'])
+
+    expect(outline('success')).toEqual({
+      '--bs-btn-color': 'var(--bs-link-color)',
+      '--bs-btn-border-color': 'var(--bs-link-color)',
+    })
+    expect(outline('warning')).toEqual({
+      '--bs-btn-color': '#c69130',
+      '--bs-btn-border-color': '#c58d38',
+    })
+    // The red of the bridge: one red in the dark admin, the flags above the buttons wear it too.
+    const red = declarationsOf(darkRules(app), `${DARK} .btn-outline-danger`)['--bs-btn-color']
+    expect(outline('danger')).toEqual({ '--bs-btn-color': red, '--bs-btn-border-color': red })
+    for (const variant of ['success', 'warning', 'danger']) {
+      const word = colour(outline(variant)['--bs-btn-color'])
+      expect(contrast(word, ground), `${variant} ${word}`).toBeGreaterThanOrEqual(4.5)
+    }
+    // These three and nothing else: the filled buttons and the badges keep their tones.
+    expect(dark).toHaveLength(3)
+
+    // Under the pointer and pressed the gold fills as in the light mode, with dark words on it.
+    const light = rules(css)
+    const gold = declarationsOf(light, '.palette :global(.btn-outline-warning)')
+    for (const stage of ['hover', 'active']) {
+      const [word, fill] = [gold[`--bs-btn-${stage}-color`], gold[`--bs-btn-${stage}-bg`]]
+      expect(contrast(word, fill), stage).toBeGreaterThanOrEqual(4.5)
+    }
+    // ... and the light palette stays as it was.
+    const lightWord = (variant) =>
+      declarationsOf(light, `.palette :global(.btn-outline-${variant})`)['--bs-btn-color']
+    expect([lightWord('success'), lightWord('warning'), lightWord('danger')]).toEqual([
+      '#047006',
+      '#8a5f1c',
+      '#c62828',
+    ])
+  })
+
+  // The chat was the last light island of the dark admin: the white window, the stream, Crea's
+  // bubble and the input area, four of them at each width (D1, measured 24.10.2026).
+  it('the Crea chat has dark counterparts for its window, its stream, its three bubbles, its input area and its opener', () => {
+    const css = read(SWEEP.creaChat)
+    const dark = darkRules(css)
+    const of = (selector) => declarationsOf(dark, `${DARK} ${selector}`)
+    const bubble = (role) => of(`.message:global(.${role}) .messageContent`)
+
+    const box = of('.chatWindow')
+    expect(colour(box['background-color'])).toBe(bridge['--bs-tertiary-bg'])
+    expect(colour(box['border-color'])).toBe(bridge['--bs-border-color'])
+    expect(box['box-shadow']).toBe('0 4px 8px rgb(0 0 0 / 50%)')
+    // The stream as a whole: the list is only as tall as its messages, the scroll box below it.
+    const stream = of(`.messagesScrollContainer, ${DARK} .messages`)
+    expect(colour(stream['background-color'])).toBe(bridge['--bs-body-bg'])
+    const input = of('.inputArea')
+    expect(colour(input['background-color'])).toBe(bridge['--bs-tertiary-bg'])
+    expect(colour(input['border-top-color'])).toBe(bridge['--bs-border-color'])
+    // The field's edge at rest only, so that a focused field keeps Bootstrap's blue.
+    expect(of('.inputArea textarea:not(:focus)')).toEqual({
+      'border-color': 'var(--bs-border-color)',
+    })
+    // At rest only: under the pointer Bootstrap's edge takes over, as in the light mode.
+    expect(of('.chatToggleButton:not(:hover)')).toEqual({ 'border-color': '#6e727a' })
+
+    expect(colour(bubble('user')['background-color'])).toBe(bridge['--bs-secondary-bg'])
+    expect(colour(bubble('user')['border-color'])).toBe(bridge['--bs-border-color'])
+    expect(bubble('assistant')['background-color']).toBe('#43464c')
+    expect(bubble('error')['background-color']).toBe('#3a2222')
+    // The red of the bridge, as in Crea's window.
+    expect(bubble('error').color).toBe(
+      declarationsOf(darkRules(app), `${DARK} .btn-outline-danger`)['--bs-btn-color'],
+    )
+    for (const role of ['user', 'assistant', 'error']) {
+      const [word, ground] = [colour(bubble(role).color), colour(bubble(role)['background-color'])]
+      // A dark ground, and the words on it at 4.5.
+      expect(luminance(ground), role).toBeLessThan(0.1)
+      expect(contrast(word, ground), `${role}: ${word} on ${ground}`).toBeGreaterThanOrEqual(4.5)
+    }
+    expect(dark).toHaveLength(8)
+
+    // The light mode stays as it was.
+    const light = rules(css)
+    expect(declarationsOf(light, '.chatWindow')['background-color']).toBe('white')
+    expect(declarationsOf(light, '.messages')['background-color']).toBe('#f9f9f9')
+    expect(declarationsOf(light, '.chatToggleButton').border).toBe('1px solid darkblue')
   })
 })

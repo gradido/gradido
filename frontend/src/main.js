@@ -67,7 +67,9 @@ loadAllRules(i18n.global, apolloClient)
 addNavigationGuards(router, store, apolloClient)
 
 // Apply the device-local theme (system | light | dark) before mount so the first
-// paint already carries the correct light/dark class.
+// paint already carries the correct light/dark class. The mode this device keeps under
+// its own key comes first: the admin interface's account menu writes it too.
+store.adoptThemeModeFromDevice()
 store.applyTheme()
 
 // Restore the persisted UI language before mount. store.js restores

@@ -524,6 +524,7 @@
   },
   "name": "Naam",
   "navbar": {
+    "appearance": "Weergave",
     "automaticContributions": "Startsaldo",
     "chat": "Chat",
     "crea": "Crea",
@@ -536,6 +537,11 @@
     "projectBranding": "Projecten",
     "projectBrandingTooltip": "Gebruik je eigen logo in de Gradido-login en voeg nieuwe gebruikers toe aan een Humhub-space",
     "settings": "Instellingen",
+    "theme": {
+      "dark": "Donker",
+      "light": "Licht",
+      "system": "Systeeminstelling volgen (standaard)"
+    },
     "user_search": "Gebruikers zoeken"
   },
   "notice": "Melding",

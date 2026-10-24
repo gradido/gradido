@@ -524,6 +524,7 @@
   },
   "name": "Имя",
   "navbar": {
+    "appearance": "Оформление",
     "automaticContributions": "Начальный баланс",
     "chat": "Чат",
     "crea": "Crea",
@@ -536,6 +537,11 @@
     "projectBranding": "Проекты",
     "projectBrandingTooltip": "Используйте собственный логотип при входе в Gradido и добавляйте новых пользователей в пространство Humhub",
     "settings": "Настройки",
+    "theme": {
+      "dark": "Тёмная",
+      "light": "Светлая",
+      "system": "Следовать настройке системы (по умолчанию)"
+    },
     "user_search": "Поиск пользователей"
   },
   "notice": "Уведомление",

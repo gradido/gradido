@@ -524,6 +524,7 @@
   },
   "name": "Όνομα",
   "navbar": {
+    "appearance": "Εμφάνιση",
     "automaticContributions": "Αρχικό υπόλοιπο",
     "chat": "Chat",
     "crea": "Crea",
@@ -536,6 +537,11 @@
     "projectBranding": "Έργα",
     "projectBrandingTooltip": "Χρησιμοποίησε το δικό σου λογότυπο στη σύνδεση Gradido και πρόσθεσε νέους χρήστες σε έναν χώρο Humhub",
     "settings": "Ρυθμίσεις",
+    "theme": {
+      "dark": "Σκοτεινό",
+      "light": "Φωτεινό",
+      "system": "Ακολούθησε τη ρύθμιση συστήματος (προεπιλογή)"
+    },
     "user_search": "Αναζήτηση χρηστών"
   },
   "notice": "Ειδοποίηση",
