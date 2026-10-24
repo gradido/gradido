@@ -266,7 +266,7 @@ describe('the dark mode of the admin', () => {
   // palette. Counted as built; a sheet that is not listed holds no fixed colour in a dark rule.
   it('the dark blocks stay within their bounds', () => {
     const DARK_COLOURS_AT_MOST = {
-      [APP]: 41,
+      [APP]: 43,
       // The four tints of a row (ground, striped, under the pointer, border) and their muted
       // grey, the faint whites of the group select and of the Crea button.
       [SWEEP.rows]: 21,
@@ -295,6 +295,43 @@ describe('the dark mode of the admin', () => {
     }
     // The count sees a colour where there is one.
     expect(counted[APP]).toBeGreaterThan(0)
+  })
+
+  // Bernd, 24.10.2026: an unchecked box ("warten auf Erinnerung?") was a black square on a card --
+  // Bootstrap gives it the page's dark and the border colour. As in the wallet: a field's ground and
+  // the grey of muted words as its edge, which a non-text control needs at 3 on what it stands on.
+  it('gives an unchecked box a field ground and an edge one can see', () => {
+    const box = declarationsOf(darkRules(app), `${DARK} .form-check-input:not(:checked)`)
+    expect(box['background-color']).toBe('var(--bs-secondary-bg)')
+    expect(box['border-color']).toBe('var(--bs-secondary-color)')
+    expect(box['--bs-form-switch-bg']).toContain('%239a9b9e')
+    const edge = colour(box['border-color'])
+    for (const ground of ['--bs-tertiary-bg', '--bs-body-bg', '--bs-secondary-bg']) {
+      expect(contrast(edge, bridge[ground]), ground).toBeGreaterThanOrEqual(3)
+    }
+    // The wallet's rule is the same pair of tokens.
+    const wallet = readFileSync(WALLET_DARK, 'utf8')
+    expect(wallet).toMatch(
+      /\.dark-mode \.form-check-input:not\(:checked\)\s*\{[^}]*background-color: var\(--surface-muted\);[^}]*border-color: var\(--text-muted\);/,
+    )
+  })
+
+  // The reminder's date picker (vue3-datepicker) was white in the dark: its window takes a
+  // window's dark through the picker's own variables, set on the picker, which turns them into
+  // its own there.
+  it("draws the date picker's window dark", () => {
+    const picker = declarationsOf(darkRules(app), `${DARK} .v3dp__datepicker`)
+    expect(picker['--vdp-bg-color']).toBe('var(--bs-tertiary-bg)')
+    expect(picker['--vdp-text-color']).toBe('var(--bs-body-color)')
+    const ground = colour(picker['--vdp-bg-color'])
+    expect(contrast(colour(picker['--vdp-text-color']), ground)).toBeGreaterThanOrEqual(4.5)
+    // The days that cannot be chosen: dim, but there.
+    const disabled = colour(picker['--vdp-disabled-color'])
+    expect(contrast(disabled, ground)).toBeGreaterThan(1.5)
+    expect(contrast(disabled, ground)).toBeLessThan(3)
+    // Its green for the chosen day and the pointer stays its own.
+    expect(picker).not.toHaveProperty('--vdp-selected-bg-color')
+    expect(picker).not.toHaveProperty('--vdp-hover-bg-color')
   })
 
   // AO-014: Bootstrap 5.3 keeps the four row colours light in its dark mode -- 390 of the 462

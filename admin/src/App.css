@@ -266,3 +266,31 @@
 :root[data-bs-theme='dark'] .pointer:hover {
   background-color: #50545b; /* the wallet's --menu-surface */
 }
+
+/* An unchecked box or switch, as the wallet has it (gradido-template-dark.scss): a field's ground,
+   the light grey of muted words as its edge, and a light thumb in a switch. Bootstrap gives it the
+   page's dark and the border colour, a black square on a card (Bernd, 24.10.2026, "warten auf
+   Erinnerung?"). The edge stands at 5.1 on a card and 6.4 on the page; a checked one keeps
+   Bootstrap's blue. */
+:root[data-bs-theme='dark'] .form-check-input:not(:checked) {
+  --bs-form-switch-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%239a9b9e'/%3e%3c/svg%3e");
+
+  background-color: var(--bs-secondary-bg);
+  border-color: var(--bs-secondary-color);
+}
+
+/* The date picker of a reminder (vue3-datepicker, ContributionMessagesFormular.tsx) draws its
+   window from variables of its own, white by default: here a window's dark with the edge and shadow
+   of a menu, the page's words, a field's ground under a heading in the pointer, the border's line
+   under the weekdays, and the days that cannot be chosen dimmed on the dark (2.3, as their grey is
+   dim on white). The chosen day and the one under the pointer keep the picker's green. On the
+   picker itself: it turns these into its own variables there. */
+/* stylelint-disable-next-line selector-class-pattern -- the library's name for its picker */
+:root[data-bs-theme='dark'] .v3dp__datepicker {
+  --vdp-bg-color: var(--bs-tertiary-bg);
+  --vdp-text-color: var(--bs-body-color);
+  --vdp-heading-hover-color: var(--bs-secondary-bg);
+  --vdp-divider-color: var(--bs-border-color);
+  --vdp-disabled-color: #5c5f66;
+  --vdp-box-shadow: 0 4px 12px rgb(0 0 0 / 50%), 0 0 0 1px var(--bs-border-color);
+}
