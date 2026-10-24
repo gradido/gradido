@@ -6,6 +6,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { compile } from 'sass'
 import { describe, expect, it } from 'vitest'
+import { DARK_BAR_COLOUR } from '@/composables/useTheme'
 
 /**
  * The stylesheet of the top bar, compiled as the build compiles it, for what the account menu
@@ -16,7 +17,10 @@ import { describe, expect, it } from 'vitest'
  * its menu's ground and muted colour are Bootstrap's dark ones, read from Bootstrap's stylesheet.
  */
 const here = dirname(fileURLToPath(import.meta.url))
-const css = compile(join(here, 'NavBar.scss')).css.replace(/\/\*[\s\S]*?\*\//g, '')
+// Without its comments, and without the `@charset` sass writes ahead of the first rule.
+const css = compile(join(here, 'NavBar.scss'))
+  .css.replace(/\/\*[\s\S]*?\*\//g, '')
+  .replace(/^@charset[^;]*;/, '')
 const bootstrap = readFileSync(
   createRequire(import.meta.url).resolve('bootstrap/dist/css/bootstrap.css'),
   'utf8',
@@ -100,5 +104,26 @@ describe('the stylesheet of the top bar', () => {
     // At the desk the menu is as wide as its longest entry, as it was.
     expect(declarationsOf(desk, '.component-nabvar .navbar-account .dropdown-menu')).toEqual({})
     expect(declarationsOf(desk, '.component-nabvar .navbar-account .dropdown-item')).toEqual({})
+  })
+
+  // Bernd (24.10.2026): in the dark the grey bar made the top restless. It takes the black of the
+  // window's bar above it, and a thin light line parts it from the page, which has that dark too.
+  it("in the dark mode, takes the black of the window's bar and a thin light line below it", () => {
+    const bar = declarationsOf(desk, ':root[data-bs-theme=dark] .bg-light-dark')
+    const app = readFileSync(join(here, '..', 'App.css'), 'utf8')
+    const bridge = app.match(/:root\[data-bs-theme='dark'\]\s*\{([^}]*)\}/)?.[1] ?? ''
+    const pageDark = bridge.match(/--bs-body-bg:\s*(#[0-9a-f]{6})/)?.[1]
+    expect(bar['background-color']).toBe(DARK_BAR_COLOUR)
+    expect(bar['background-color']).toBe(pageDark)
+
+    // The line is drawn inside the bar, so nothing below it moves; and it stands out of the black.
+    const line = bar['box-shadow']?.match(/^inset 0 -1px 0 (rgba?\([^)]*\))$/)?.[1]
+    expect(line, bar['box-shadow']).toBeDefined()
+    expect(Object.keys(bar).some((property) => property.startsWith('border'))).toBe(false)
+    const ground = parse(bar['background-color']).slice(0, 3)
+    expect(contrast(over(parse(line), ground), ground)).toBeGreaterThanOrEqual(3)
+
+    // The light mode keeps its bar.
+    expect(declarationsOf(desk, '.bg-light-dark')).toEqual({ 'background-color': '#343a40' })
   })
 })
