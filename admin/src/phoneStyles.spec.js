@@ -209,6 +209,16 @@ describe('the phone rules of the contribution page and the member search', () =>
     }
   })
 
+  // The native controls (an opened select, a date picker, the scrollbars) in the admin's mode:
+  // light, and dark while composables/useTheme.ts marks the document dark. On the root, and with
+  // the root's weight: Bootstrap's own dark rule ties with `:root` and loses to the light one.
+  it("App.css switches color-scheme with the document's theme", () => {
+    const flat = rules(outsideMedia(read(STYLES.app)))
+    expect(ruleFor(flat, ':root')?.declarations).toEqual({ 'color-scheme': 'light' })
+    const dark = flat.filter((rule) => rule.selector === ":root[data-bs-theme='dark']")
+    expect(dark.map((rule) => rule.declarations['color-scheme'])).toContain('dark')
+  })
+
   it('makes every button and every field 44px tall on a phone, in App.css', () => {
     const css = read(STYLES.app)
     const tall = ruleFor(phoneRules(css), '.btn, .form-control, .form-select')

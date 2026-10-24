@@ -7,6 +7,29 @@
 
   <title>Gradido Admin Interface</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>
+    // Light or dark before the first paint, from the setting the wallet keeps on this device
+    // ('system' | 'light' | 'dark'; missing or unknown is 'system'), so that a dark device sees
+    // no light flash. On the root element: color-scheme has to reach it, and the windows hung on
+    // the body sit below it. src/composables/useTheme.ts follows every change after this.
+    ;(function () {
+      var mode = null
+      try {
+        mode = window.localStorage.getItem('gradido-theme-mode')
+      } catch (e) {
+        // A private window may refuse the storage: then the system decides, as in useTheme.ts.
+      }
+      if (mode !== 'light' && mode !== 'dark') mode = 'system'
+      if (
+        mode === 'dark' ||
+        (mode === 'system' &&
+          window.matchMedia &&
+          window.matchMedia('(prefers-color-scheme: dark)').matches)
+      ) {
+        document.documentElement.setAttribute('data-bs-theme', 'dark')
+      }
+    })()
+  </script>
 </head>
 <body>
 <div class="wrapper" id="app"></div>

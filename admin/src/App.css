@@ -1,8 +1,16 @@
-/* Render native controls (select popups, date pickers, scrollbars) to match the admin's
-   light theme instead of the browser's OS default. The admin has one mode today; when a
-   dark mode is added, this becomes theme-dependent like the wallet. */
+/* Render native controls (select popups, date pickers, scrollbars) in the admin's mode instead
+   of the browser's OS default: light, and dark while the document carries Bootstrap's dark mark
+   (composables/useTheme.ts, from the wallet's setting). On the root, because an opened <select>
+   follows the root's color-scheme, not the one it inherits (the wallet found it,
+   frontend/src/assets/scss/gradido-template-dark.scss). The second rule weighs 0,2,0: Bootstrap's
+   own `[data-bs-theme=dark] { color-scheme: dark }` ties with `:root` and stands earlier, so the
+   light one here would win over it. */
 :root {
   color-scheme: light;
+}
+
+:root[data-bs-theme='dark'] {
+  color-scheme: dark;
 }
 
 .pointer {
