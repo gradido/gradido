@@ -268,8 +268,9 @@ describe('the dark mode of the admin', () => {
     const DARK_COLOURS_AT_MOST = {
       [APP]: 43,
       // The four tints of a row (ground, striped, under the pointer, border) and their muted
-      // grey, the faint whites of the group select and of the Crea button.
-      [SWEEP.rows]: 21,
+      // grey, the faint whites of the group select and of the Crea button, the light edge between
+      // two cards on a phone.
+      [SWEEP.rows]: 22,
       // The four bubbles.
       [SWEEP.messages]: 4,
       // The yellow of the prefix, as a dark tint, in each of its two files.
@@ -401,6 +402,43 @@ describe('the dark mode of the admin', () => {
       const striped = luminance(row['--bs-table-striped-bg'])
       expect(ground, state).toBeLessThan(striped)
       expect(striped, state).toBeLessThan(luminance(row['--bs-table-hover-bg']))
+    }
+  })
+
+  // Bernd, 24.10.2026: on a phone it was hard to see where one contribution ended and the next
+  // began -- the edge above a card took the row's own border colour, 1.2 to 1.6 on its ground. It
+  // parts the cards by brightness now: black at 40 % on the light grounds, the white of the line
+  // below the top bar on the dark ones.
+  it('the edge between two cards on a phone stands out from every ground', () => {
+    // The first cell of a card; an opened card's details (one cell across) keep their edge.
+    const FIRST_CELL =
+      '.open-creations-table .b-table-stacked-lg > tbody > tr > td:first-child:not([colspan])'
+    const all = rules(read(SWEEP.rows))
+    const light = declarationsOf(all, FIRST_CELL)['border-top-color']
+    const dark = declarationsOf(all, `${DARK} ${FIRST_CELL}`)['border-top-color']
+    expect(light).toBe('rgb(0 0 0 / 40%)')
+    expect(dark).toBe('rgb(255 255 255 / 45%)')
+    expect(read(join(here, 'components', 'NavBar.scss'))).toContain(dark)
+
+    // The line as it lies on a ground: black or white at the given strength over it.
+    const over = (ink, alpha, ground) =>
+      `#${channels(ground)
+        .map((c) =>
+          Math.round(alpha * ink + (1 - alpha) * c)
+            .toString(16)
+            .padStart(2, '0'),
+        )
+        .join('')}`
+    const STATES = ['primary', 'success', 'warning', 'danger']
+    for (const state of STATES) {
+      const ground = declarationsOf(all, `${DARK} .table-${state}`)['--bs-table-bg']
+      expect(contrast(over(255, 0.45, ground), ground), state).toBeGreaterThan(4)
+    }
+    // Bootstrap's light grounds of a row, and ours for a deleted one (.table-danger above).
+    const LIGHT_GROUNDS = ['#cfe2ff', '#d1e7dd', '#fff3cd', '#e78d8d']
+    expect(declarationsOf(all, '.table-danger')['--bs-table-bg']).toBe(LIGHT_GROUNDS[3])
+    for (const ground of LIGHT_GROUNDS) {
+      expect(contrast(over(0, 0.4, ground), ground), ground).toBeGreaterThan(2.4)
     }
   })
 

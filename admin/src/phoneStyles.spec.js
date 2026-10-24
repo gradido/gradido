@@ -59,7 +59,9 @@ const NO_PHONE = {
 // here because the dark mode will meet it first. The yellow of ConfirmRegisterMailFormular.css
 // is its own, from before; it goes with the dark mode.
 const FIXED_COLOURS_AT_MOST = {
-  [STYLES.table]: 9,
+  // One more since 24.10.2026: the edge between two cards on a phone, black at 40 % (Bernd's
+  // choice). AO-008's reason holds: its dark counterpart came with it, in a dark rule.
+  [STYLES.table]: 10,
   [STYLES.page]: 0,
   [STYLES.app]: 1,
   [STYLES.messages]: 4,
