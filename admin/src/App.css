@@ -1,16 +1,12 @@
 /* Render native controls (select popups, date pickers, scrollbars) in the admin's mode instead
-   of the browser's OS default: light, and dark while the document carries Bootstrap's dark mark
-   (composables/useTheme.ts, from the wallet's setting). On the root, because an opened <select>
-   follows the root's color-scheme, not the one it inherits (the wallet found it,
-   frontend/src/assets/scss/gradido-template-dark.scss). The second rule weighs 0,2,0: Bootstrap's
-   own `[data-bs-theme=dark] { color-scheme: dark }` ties with `:root` and stands earlier, so the
-   light one here would win over it. */
+   of the browser's OS default: light here, dark in the bridge at the end of this file while the
+   document carries Bootstrap's dark mark (composables/useTheme.ts, from the wallet's setting). On
+   the root, because an opened <select> follows the root's color-scheme, not the one it inherits
+   (the wallet found it, frontend/src/assets/scss/gradido-template-dark.scss). The dark one weighs
+   0,2,0: Bootstrap's own `[data-bs-theme=dark] { color-scheme: dark }` ties with `:root` and
+   stands earlier, so the light one here would win over it. */
 :root {
   color-scheme: light;
-}
-
-:root[data-bs-theme='dark'] {
-  color-scheme: dark;
 }
 
 .pointer {
@@ -84,4 +80,189 @@
   .phone-pager .page-item.bv-d-sm-down-none {
     display: list-item !important;
   }
+}
+
+/* The dark mode (AO-011 … AO-016). Every rule from here on stands under
+   `:root[data-bs-theme='dark']`, the mark composables/useTheme.ts puts on <html>, so the light
+   mode never meets one of them. ⛔ Always with `:root`, never a bare `[data-bs-theme='dark']`:
+   the top bar carries that attribute itself, in the light mode as well (NavBar.tsx,
+   `vBColorMode`), and a bare selector would reach into it while the page is light.
+
+   The bridge: the wallet's dark tones (frontend/src/assets/scss/gradido-template-dark.scss) laid
+   over Bootstrap's own dark variables, so that one device shows one dark in both apps (AO-013).
+   Bootstrap paints its components from these by itself. This is the one place for the palette:
+   every other stylesheet takes these variables, and a tone of its own only where Bootstrap has
+   none. darkModeStyles.spec.js holds the tones against the wallet's and reckons every text colour
+   against every ground. */
+:root[data-bs-theme='dark'] {
+  color-scheme: dark; /* see the top of this file */
+
+  --bs-body-bg: #17181a; /* --bg: the page */
+  --bs-body-bg-rgb: 23, 24, 26;
+  --bs-tertiary-bg: #2a2c30; /* --surface: cards, windows, menus, lists */
+  --bs-tertiary-bg-rgb: 42, 44, 48;
+  --bs-secondary-bg: #36383c; /* --surface-muted: fields, a step above a card */
+  --bs-secondary-bg-rgb: 54, 56, 60;
+  --bs-body-color: #e4e4e4; /* --text: 14.0 on the page, 11.0 on a card, 9.2 in a field */
+  --bs-body-color-rgb: 228, 228, 228;
+  --bs-emphasis-color: #fff;
+  --bs-emphasis-color-rgb: 255, 255, 255;
+  --bs-secondary-color: #9a9b9e; /* --text-muted: 6.4 and 5.0; 4.2 in a field, see the placeholder */
+  --bs-secondary-color-rgb: 154, 155, 158;
+  --bs-tertiary-color: #9a9b9e;
+  --bs-tertiary-color-rgb: 154, 155, 158;
+  --bs-border-color: #34363b; /* --border */
+  --bs-border-color-translucent: rgb(255 255 255 / 12%);
+  --bs-link-color: #3db85f; /* --link, the dark Gradido green (E-008): 7.0, 5.5, 4.6 */
+  --bs-link-color-rgb: 61, 184, 95;
+  --bs-link-hover-color: #3db85f;
+  --bs-link-hover-color-rgb: 61, 184, 95;
+  --bs-heading-color: inherit;
+}
+
+/* Cards, windows, menus and lists a step above the page. Bootstrap fills them with the page's
+   ground; through its own variables, so that every state of them keeps following. */
+:root[data-bs-theme='dark'] .card {
+  --bs-card-bg: var(--bs-tertiary-bg);
+  --bs-card-cap-bg: var(--bs-secondary-bg);
+  --bs-card-border-color: var(--bs-border-color);
+}
+
+:root[data-bs-theme='dark'] .modal {
+  --bs-modal-bg: var(--bs-tertiary-bg);
+  --bs-modal-border-color: var(--bs-border-color);
+}
+
+/* ⛔ Not the menus of the top bar: they hang in the bar's own dark, which stays as it is (AO-015).
+   The bar declares Bootstrap's dark variables for itself; only a rule like this one reaches in. */
+:root[data-bs-theme='dark'] .dropdown-menu:not(.navbar .dropdown-menu) {
+  --bs-dropdown-bg: var(--bs-tertiary-bg);
+  --bs-dropdown-border-color: var(--bs-border-color);
+  --bs-dropdown-link-hover-bg: #43464c; /* the wallet's --menu-hover; Bootstrap's is the menu's ground */
+}
+
+:root[data-bs-theme='dark'] .list-group {
+  --bs-list-group-bg: var(--bs-tertiary-bg);
+  --bs-list-group-action-hover-bg: var(--bs-secondary-bg);
+}
+
+:root[data-bs-theme='dark'] .pagination {
+  --bs-pagination-bg: var(--bs-tertiary-bg);
+  --bs-pagination-hover-bg: var(--bs-secondary-bg);
+  --bs-pagination-disabled-bg: var(--bs-tertiary-bg);
+}
+
+/* The tab chosen merges with the card below it. */
+:root[data-bs-theme='dark'] .nav-tabs {
+  --bs-nav-tabs-link-active-bg: var(--bs-tertiary-bg);
+  --bs-nav-tabs-link-active-color: var(--bs-body-color);
+  --bs-nav-tabs-link-active-border-color: var(--bs-border-color) var(--bs-border-color)
+    var(--bs-tertiary-bg);
+}
+
+/* Fields a step above a card, so that a field on a card is seen. Only the ground: border and
+   colour come from the bridge already, and a border set here would win over the blue of a focused
+   field and the red or green of a checked one. */
+:root[data-bs-theme='dark'] .form-control,
+:root[data-bs-theme='dark'] .form-select,
+:root[data-bs-theme='dark'] .input-group-text {
+  background-color: var(--bs-secondary-bg);
+}
+
+/* A field that takes no typing steps back to the card's ground; the rule above would draw it like
+   any other (in the light mode it goes from white to grey). */
+:root[data-bs-theme='dark'] .form-control:disabled,
+:root[data-bs-theme='dark'] .form-select:disabled {
+  background-color: var(--bs-tertiary-bg);
+}
+
+:root[data-bs-theme='dark'] .form-control::placeholder {
+  color: #aaacaf; /* 5.2 in a field, where --text-muted stands at 4.2 */
+}
+
+/* What Bootstrap 5.3 keeps in its light-mode tones in the dark: the light button, and the outlined
+   buttons and coloured words (in Bootstrap's own dark the grey outline stood at 3.3 on the page and
+   3.6 on a row that stayed light blue, measured 23.10.2026). Measured on the page and on a card. */
+:root[data-bs-theme='dark'] .btn-light {
+  --bs-btn-color: var(--bs-body-color);
+  --bs-btn-bg: var(--bs-secondary-bg);
+  --bs-btn-border-color: var(--bs-border-color);
+  --bs-btn-hover-color: var(--bs-emphasis-color);
+  --bs-btn-hover-bg: #43464c; /* the wallet's --menu-hover */
+  --bs-btn-hover-border-color: #43464c;
+  --bs-btn-active-color: var(--bs-emphasis-color);
+  --bs-btn-active-bg: #50545b; /* the wallet's --menu-surface */
+  --bs-btn-active-border-color: #50545b;
+  --bs-btn-disabled-color: var(--bs-secondary-color);
+  --bs-btn-disabled-bg: var(--bs-tertiary-bg);
+  --bs-btn-disabled-border-color: var(--bs-border-color);
+}
+
+:root[data-bs-theme='dark'] .btn-outline-secondary {
+  --bs-btn-color: #adb5bd; /* Bootstrap's gray-500: 8.6 on the page, 6.7 on a card */
+  --bs-btn-border-color: #adb5bd;
+  --bs-btn-hover-color: var(--bs-emphasis-color);
+  --bs-btn-hover-bg: #43464c;
+  --bs-btn-hover-border-color: #adb5bd;
+  --bs-btn-active-color: var(--bs-emphasis-color);
+  --bs-btn-active-bg: #50545b;
+  --bs-btn-active-border-color: #adb5bd;
+  --bs-btn-disabled-color: var(--bs-secondary-color);
+  --bs-btn-disabled-border-color: var(--bs-secondary-color);
+}
+
+/* The red: 7.0 on the page, 5.5 on a card, 4.6 in a field. The wallet's --danger #ef5350 comes to
+   4.0 on a card, the #f47b7b of the planning to 4.46 in a field. */
+:root[data-bs-theme='dark'] .btn-outline-danger {
+  --bs-btn-color: #f58080;
+  --bs-btn-border-color: #f58080;
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: #c62828; /* white on it 5.6 */
+  --bs-btn-hover-border-color: #c62828;
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: #c62828;
+  --bs-btn-active-border-color: #c62828;
+  --bs-btn-disabled-color: #f58080;
+  --bs-btn-disabled-border-color: #f58080;
+}
+
+/* Hover and pressed stay Bootstrap's own: white on its blue and its green. */
+:root[data-bs-theme='dark'] .btn-outline-primary {
+  --bs-btn-color: #6ea8fe; /* Bootstrap's dark blue: 7.4 and 5.8 */
+  --bs-btn-border-color: #6ea8fe;
+  --bs-btn-disabled-color: #6ea8fe;
+  --bs-btn-disabled-border-color: #6ea8fe;
+}
+
+:root[data-bs-theme='dark'] .btn-outline-success {
+  --bs-btn-color: var(--bs-link-color);
+  --bs-btn-border-color: var(--bs-link-color);
+  --bs-btn-disabled-color: var(--bs-link-color);
+  --bs-btn-disabled-border-color: var(--bs-link-color);
+}
+
+/* Bootstrap's coloured words carry !important, so their dark tones do as well (as the wallet's
+   do). .text-muted and .text-body-secondary need nothing: they read --bs-secondary-color. */
+:root[data-bs-theme='dark'] .text-success {
+  color: #46c04a !important; /* the wallet's --success: 7.5 and 5.9 */
+}
+
+:root[data-bs-theme='dark'] .text-danger {
+  color: #f58080 !important; /* the red of .btn-outline-danger */
+}
+
+:root[data-bs-theme='dark'] .text-primary {
+  color: #6ea8fe !important;
+}
+
+:root[data-bs-theme='dark'] .text-secondary {
+  color: var(--bs-secondary-color) !important; /* Bootstrap's #6c757d came to 3.8 on the page */
+}
+
+/* The clear box of the search field under the pointer (.pointer above, UserQuery.tsx). At rest it
+   has a field's ground, or the dark yellow of the prefixes once the member search has loaded them:
+   a step above both, as the light grey stands apart from white and yellow. (The rows of the member
+   search carry the class too, but their cells paint over a row's ground, in both modes.) */
+:root[data-bs-theme='dark'] .pointer:hover {
+  background-color: #50545b; /* the wallet's --menu-surface */
 }

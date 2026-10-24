@@ -16,8 +16,10 @@ import { PHONE_BREAKPOINT_PX } from '@/constants'
  *
  * ⛔ Every phone rule stands under `(width < 992px)` and nowhere else: one boundary, the one
  * where the tables stack and the top bar folds up (composables/useViewport.ts, AO-010). And no stylesheet of the delivery holds
- * a fixed colour more than it did before it -- a dark mode comes through `data-bs-theme` later,
- * and every colour written by hand would have to be done again (AO-008).
+ * a fixed colour more than it did before it, in its light rules: every colour written by hand
+ * needed a dark one as well (AO-008). The dark rules -- every rule whose selector names
+ * `data-bs-theme` -- are taken out before the light ones are read here; they have bounds of their
+ * own (darkModeStyles.spec.js).
  */
 const here = dirname(fileURLToPath(import.meta.url))
 const STYLES = {
@@ -95,6 +97,9 @@ const PHONE = `(width < ${PHONE_BREAKPOINT_PX}px)`
 
 const withoutComments = (css) => css.replace(/\/\*[\s\S]*?\*\//g, '')
 const read = (path) => withoutComments(readFileSync(path, 'utf8'))
+
+/** What the light mode draws: the stylesheet without its dark rules. */
+const withoutDarkRules = (css) => css.replace(/[^{}]*data-bs-theme[^{}]*\{[^{}]*\}/g, '')
 
 /** Every `@media` block: its condition and what stands inside it. */
 const mediaBlocks = (css) => {
@@ -231,7 +236,7 @@ describe('the phone rules of the contribution page and the member search', () =>
       'justify-content': 'center',
     })
     // At the desk nothing of it.
-    expect(outsideMedia(css)).not.toMatch(/min-height|inline-flex/)
+    expect(withoutDarkRules(outsideMedia(css))).not.toMatch(/min-height|inline-flex/)
   })
 
   // What the contribution page and the member search share: both open a row into a card with
@@ -271,7 +276,9 @@ describe('the phone rules of the contribution page and the member search', () =>
       '--bs-pagination-padding-x': '1rem',
     })
 
-    const desk = outsideMedia(css)
+    // (The dark mode gives a pager and the tabs their tones at every width: those rules are not
+    // phone rules.)
+    const desk = withoutDarkRules(outsideMedia(css))
     expect(desk).not.toMatch(/phone-|row-details-card|nav-link|pagination/)
   })
 
@@ -501,15 +508,15 @@ describe('the phone rules of the contribution page and the member search', () =>
   })
 
   it('holds no fixed colour more than before', () => {
+    const fixedColours = (css) =>
+      (css.match(/#[0-9a-f]{3,8}\b/gi) ?? []).length + (css.match(/\brgba?\(/gi) ?? []).length
     const counted = Object.fromEntries(
       Object.keys(FIXED_COLOURS_AT_MOST).map((path) => {
         const css = read(path)
         // The file was read: an emptied one must not pass as a file without colours. (The
         // stylesheet of the role form holds one rule of 45 characters.)
         expect(css.length, path).toBeGreaterThan(40)
-        const fixed =
-          (css.match(/#[0-9a-f]{3,8}\b/gi) ?? []).length + (css.match(/\brgba?\(/gi) ?? []).length
-        return [path, fixed]
+        return [path, fixedColours(withoutDarkRules(css))]
       }),
     )
     for (const [path, most] of Object.entries(FIXED_COLOURS_AT_MOST)) {
@@ -517,5 +524,7 @@ describe('the phone rules of the contribution page and the member search', () =>
     }
     // The count sees a colour where there is one.
     expect(counted[STYLES.table]).toBeGreaterThan(0)
+    // ... and the dark rules come out before it: App.css holds the palette of the dark mode.
+    expect(fixedColours(read(STYLES.app))).toBeGreaterThan(counted[STYLES.app])
   })
 })
