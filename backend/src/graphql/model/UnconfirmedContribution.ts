@@ -4,6 +4,8 @@ import {
 } from 'database'
 import { GradidoUnit } from 'shared'
 import { Field, Int, ObjectType } from 'type-graphql'
+import { lastConversationMessage } from '@/data/ContributionConversation.logic'
+import { ContributionMessageType } from '@/graphql/enum/ContributionMessageType'
 import { ContributionMessage } from './ContributionMessage'
 import { User } from './User'
 
@@ -20,6 +22,13 @@ export class UnconfirmedContribution {
     this.moderatorId = dbContribution.moderatorId
     this.contributionStatus = dbContribution.contributionStatus
     this.messagesCount = dbContribution.messages ? dbContribution.messages.length : 0
+    // Whose word is the last in the conversation with the member, and of which kind: the admin's
+    // details button tells the member's answer from the member's change by it.
+    const last = dbContribution.messages
+      ? lastConversationMessage(dbContribution.messages)
+      : undefined
+    this.lastMessageType = last ? (last.type as ContributionMessageType) : null
+    this.lastMessageByModerator = last ? last.isModerator : null
 
     this.messages = dbContribution.messages
       ? dbContribution.messages.map(
@@ -54,6 +63,15 @@ export class UnconfirmedContribution {
 
   @Field(() => Int)
   messagesCount: number
+
+  // The newest message of the conversation with the member, the moderators' internal notes left
+  // out (ContributionConversation.logic.ts); null where nothing was said, or where the messages
+  // were not asked for.
+  @Field(() => ContributionMessageType, { nullable: true })
+  lastMessageType: ContributionMessageType | null
+
+  @Field(() => Boolean, { nullable: true })
+  lastMessageByModerator: boolean | null
 
   @Field(() => [ContributionMessage], { nullable: true })
   messages: ContributionMessage[] | null
