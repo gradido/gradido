@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { applyTheme, THEME_MODE_STORAGE_KEY } from '@/composables/useTheme'
+import { applyTheme, DARK_BAR_COLOUR, THEME_MODE_STORAGE_KEY } from '@/composables/useTheme'
 
 // The admin is light or dark before its first paint (AO-011): a script in the head of the page
 // reads the wallet's setting and marks <html> before anything is drawn. Nothing of the page runs
@@ -22,6 +22,21 @@ const themeScript = headScripts.find((code) => code.includes('gradido-theme-mode
 const runThemeScript = () => new Function(themeScript)()
 
 const markedDark = () => document.documentElement.getAttribute('data-bs-theme') === 'dark'
+
+// The colours named for the window's bar (as an installed app the admin runs in the wallet's
+// window): the page's dark in the dark, nothing in the light.
+const barColours = () =>
+  [...document.querySelectorAll('meta[name="theme-color"]')].map((meta) => meta.content)
+const clearBar = () => {
+  for (const meta of document.querySelectorAll('meta[name="theme-color"]')) {
+    meta.remove()
+  }
+}
+
+// The page's dark: `--bs-body-bg` of the bridge in App.css, the wallet's --bg.
+const appCss = readFileSync(join(here, 'App.css'), 'utf8')
+const bridge = appCss.match(/:root\[data-bs-theme='dark'\]\s*\{([^}]*)\}/)?.[1] ?? ''
+const pageDark = bridge.match(/--bs-body-bg:\s*(#[0-9a-f]{6})/)?.[1]
 
 const systemIs = (dark) => {
   window.matchMedia = vi.fn((query) => ({
@@ -44,6 +59,7 @@ describe('the theme before the first paint', () => {
   afterEach(() => {
     window.localStorage.clear()
     document.documentElement.removeAttribute('data-bs-theme')
+    clearBar()
     delete window.matchMedia
     vi.restoreAllMocks()
   })
@@ -68,13 +84,29 @@ describe('the theme before the first paint', () => {
       }
       systemIs(systemDark)
       document.documentElement.removeAttribute('data-bs-theme')
+      clearBar()
       runThemeScript()
       expect(markedDark(), `${stored} · system dark ${systemDark}`).toBe(dark)
+      expect(barColours(), `bar: ${stored} · system dark ${systemDark}`).toEqual(
+        dark ? [DARK_BAR_COLOUR] : [],
+      )
 
+      // The composable takes over the tag the script left, and names no second one.
       document.documentElement.removeAttribute('data-bs-theme')
       applyTheme()
       expect(markedDark(), `useTheme: ${stored} · system dark ${systemDark}`).toBe(dark)
+      expect(barColours(), `useTheme bar: ${stored} · system dark ${systemDark}`).toEqual(
+        dark ? [DARK_BAR_COLOUR] : [],
+      )
     }
+  })
+
+  it("names the page's dark for the window's bar, in the page and in the composable alike", () => {
+    expect(pageDark, "no --bs-body-bg in App.css's dark bridge").toMatch(/^#[0-9a-f]{6}$/)
+    expect(DARK_BAR_COLOUR).toBe(pageDark)
+    expect(themeScript).toContain(`'${pageDark}'`)
+    expect(themeScript).toContain("'theme-color'")
+    expect(themeScript).toContain('document.head.appendChild')
   })
 
   it('and guards the storage', () => {
