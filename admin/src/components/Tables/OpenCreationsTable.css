@@ -103,38 +103,50 @@
   border-color: rgb(255 255 255 / 35%);
 }
 
-/* Crea logo used as the per-row trigger button (replaces the former robot icon) */
+/* Crea logo used as the per-row trigger button (replaces the former robot icon). As large as the
+   row's other buttons (Bernd, 24.10.2026): at the desk the size of a button with a symbol, the
+   symbol's 1.2em with Bootstrap's padding and edge (45.2 x 38); on a phone the square of
+   .btn.phone-icon-btn (App.css), which wins with its two classes. The picture fills it. */
 .crea-logo-btn {
-  padding: 2px;
+  width: calc(1.2em + 2 * var(--bs-btn-padding-x) + 2 * var(--bs-btn-border-width));
+  height: calc(
+    var(--bs-btn-line-height) * 1em + 2 * var(--bs-btn-padding-y) + 2 * var(--bs-btn-border-width)
+  );
+  padding: 0;
   border: none;
-  border-radius: 20%;
   line-height: 0;
 }
 
 .crea-logo-btn:hover,
 .crea-logo-btn:focus-visible {
-  background-color: rgb(0 0 0 / 6%);
   box-shadow: none;
 }
 
-/* The rule above takes Bootstrap's ring away, so a keyboard saw no more than a faint tint: a ring
-   in the colour of the button's link instead, as the pin and the arrows have
-   (MemberWalletLink.module.css). Two classes, to win over Bootstrap's `.btn:focus-visible`. */
+/* The rule above takes Bootstrap's ring away: a ring in the colour of the button's link instead,
+   as the pin and the arrows have (MemberWalletLink.module.css). Two classes, to win over
+   Bootstrap's `.btn:focus-visible`. */
 .btn.crea-logo-btn:focus-visible {
   outline: 2px solid currentcolor;
 }
 
-:root[data-bs-theme='dark'] .crea-logo-btn:hover,
-:root[data-bs-theme='dark'] .crea-logo-btn:focus-visible {
-  background-color: rgb(255 255 255 / 10%);
-}
-
+/* The edge of the big Crea button at the bottom right (AiChat.module.css), so that the logo reads
+   as a button as well: dark blue, in the dark the wallet's --menu-border; under the pointer the
+   colour of the button's link, where the picture left no room for the tint it had before. */
 .crea-logo-img {
   display: block;
-  width: 34px;
-  height: 34px;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  border-radius: 20%;
+  border: 1px solid darkblue;
+  border-radius: var(--bs-btn-border-radius);
+}
+
+.crea-logo-btn:hover > .crea-logo-img {
+  border-color: currentcolor;
+}
+
+:root[data-bs-theme='dark'] .crea-logo-btn:not(:hover) > .crea-logo-img {
+  border-color: #6e727a;
 }
 
 /* A phone: every row is a card -- the stacked row of the table with the cells CreationConfirm
@@ -155,6 +167,27 @@
 
   .open-creations-table .b-table-stacked-lg > tbody > tr > td:last-child {
     padding-bottom: 0.875rem;
+  }
+
+  /* That edge took the row's own border colour, 1.2 to 1.6 on the card's ground: where one
+     contribution ended and the next began was hard to see (Bernd, 24.10.2026). It parts them by
+     brightness, which holds for a red-green weakness as well: black at 60 %, at least 3 : 1 on the
+     four light grounds and their stripes, as WCAG asks of a boundary (coderabbit, #4195; the
+     deleted ones' red needs the 60), and in the dark the white of the line below the top bar
+     (NavBar.scss), 4.0 to 4.4 on all four dark grounds. Not above an opened card's details:
+     they are a row of their own, one cell across (`colspan`), and belong to the card above them.
+     These come after the cells' other rules: stylelint wants the more specific rule to follow. */
+  .open-creations-table .b-table-stacked-lg > tbody > tr > td:first-child:not([colspan]) {
+    border-top-color: rgb(0 0 0 / 60%);
+  }
+
+  :root[data-bs-theme='dark']
+    .open-creations-table
+    .b-table-stacked-lg
+    > tbody
+    > tr
+    > td:first-child:not([colspan]) {
+    border-top-color: rgb(255 255 255 / 45%);
   }
 
   /* The head of a card: the face and the name, and below them the filter by the member's

@@ -268,8 +268,9 @@ describe('the dark mode of the admin', () => {
     const DARK_COLOURS_AT_MOST = {
       [APP]: 43,
       // The four tints of a row (ground, striped, under the pointer, border) and their muted
-      // grey, the faint whites of the group select and of the Crea button.
-      [SWEEP.rows]: 21,
+      // grey, the faint whites of the group select, the light edge between two cards on a phone,
+      // and the small Crea logo's edge, the big Crea button's.
+      [SWEEP.rows]: 22,
       // The four bubbles.
       [SWEEP.messages]: 4,
       // The yellow of the prefix, as a dark tint, in each of its two files.
@@ -402,6 +403,75 @@ describe('the dark mode of the admin', () => {
       expect(ground, state).toBeLessThan(striped)
       expect(striped, state).toBeLessThan(luminance(row['--bs-table-hover-bg']))
     }
+  })
+
+  // Bernd, 24.10.2026: on a phone it was hard to see where one contribution ended and the next
+  // began -- the edge above a card took the row's own border colour, 1.2 to 1.6 on its ground. It
+  // parts the cards by brightness now: black at 60 % on the light grounds, at least 3 : 1 as WCAG
+  // asks of a boundary (coderabbit, #4195), the white of the line below the top bar on the dark ones.
+  it('the edge between two cards on a phone stands out from every ground', () => {
+    // The first cell of a card; an opened card's details (one cell across) keep their edge.
+    const FIRST_CELL =
+      '.open-creations-table .b-table-stacked-lg > tbody > tr > td:first-child:not([colspan])'
+    const all = rules(read(SWEEP.rows))
+    const light = declarationsOf(all, FIRST_CELL)['border-top-color']
+    const dark = declarationsOf(all, `${DARK} ${FIRST_CELL}`)['border-top-color']
+    expect(light).toBe('rgb(0 0 0 / 60%)')
+    expect(dark).toBe('rgb(255 255 255 / 45%)')
+    expect(read(join(here, 'components', 'NavBar.scss'))).toContain(dark)
+
+    // The line as it lies on a ground: black or white at the rule's strength over it.
+    const strength = (value) => Number(value.match(/\/ (\d+)%\)$/)[1]) / 100
+    const over = (ink, alpha, ground) =>
+      `#${channels(ground)
+        .map((c) =>
+          Math.round(alpha * ink + (1 - alpha) * c)
+            .toString(16)
+            .padStart(2, '0'),
+        )
+        .join('')}`
+    const STATES = ['primary', 'success', 'warning', 'danger']
+    for (const state of STATES) {
+      const ground = declarationsOf(all, `${DARK} .table-${state}`)['--bs-table-bg']
+      expect(contrast(over(255, strength(dark), ground), ground), state).toBeGreaterThan(4)
+    }
+    // Bootstrap's light grounds of a row and their stripes, and ours for a deleted one
+    // (.table-danger above). The line lies on its card's ground and borders the card above, which
+    // may be the other stripe.
+    const LIGHT_GROUNDS = [
+      ['#cfe2ff', '#c5d7f2'],
+      ['#d1e7dd', '#c7dbd2'],
+      ['#fff3cd', '#f2e7c3'],
+      ['#e78d8d', '#e57373'],
+    ]
+    expect(declarationsOf(all, '.table-danger')).toMatchObject({
+      '--bs-table-bg': LIGHT_GROUNDS[3][0],
+      '--bs-table-striped-bg': LIGHT_GROUNDS[3][1],
+    })
+    for (const stripes of LIGHT_GROUNDS) {
+      for (const own of stripes) {
+        for (const beside of stripes) {
+          expect(
+            contrast(over(0, strength(light), own), beside),
+            `${own} by ${beside}`,
+          ).toBeGreaterThanOrEqual(3)
+        }
+      }
+    }
+  })
+
+  // Bernd, 24.10.2026: the small Crea logo of a row takes the edge of the big Crea button at the
+  // bottom right, in both modes, so that it reads as a button as well.
+  it("the small Crea logo has the big Crea button's edge", () => {
+    const table = rules(read(SWEEP.rows))
+    const chat = rules(read(SWEEP.creaChat))
+    expect(declarationsOf(table, '.crea-logo-img').border).toBe('1px solid darkblue')
+    expect(declarationsOf(chat, '.chatToggleButton').border).toBe('1px solid darkblue')
+    const dark = declarationsOf(table, `${DARK} .crea-logo-btn:not(:hover) > .crea-logo-img`)[
+      'border-color'
+    ]
+    expect(dark).toBe(declarationsOf(chat, `${DARK} .chatToggleButton:not(:hover)`)['border-color'])
+    expect(dark).toMatch(/^#[0-9a-f]{6}$/)
   })
 
   it('the yellow prefix box has a dark counterpart in both of its files', () => {

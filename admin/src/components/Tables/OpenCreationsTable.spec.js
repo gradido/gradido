@@ -963,8 +963,8 @@ describe('OpenCreationsTable', () => {
   })
 })
 
-// The Crea button of a row: its own rule takes Bootstrap's focus ring away (it only tints), so a
-// ring of its own shows a keyboard where it stands. Vitest hands stylesheets to the tests as empty
+// The Crea button of a row: its own rule takes Bootstrap's focus ring away, so a ring of its own
+// shows a keyboard where it stands. Vitest hands stylesheets to the tests as empty
 // strings: the sheet itself is read, comments taken out first.
 describe('the stylesheet of the contribution rows', () => {
   it('gives the Crea button a ring at keyboard focus', () => {
