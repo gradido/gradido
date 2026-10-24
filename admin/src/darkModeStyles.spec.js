@@ -268,8 +268,8 @@ describe('the dark mode of the admin', () => {
     const DARK_COLOURS_AT_MOST = {
       [APP]: 43,
       // The four tints of a row (ground, striped, under the pointer, border) and their muted
-      // grey, the faint whites of the group select and of the Crea button, the light edge between
-      // two cards on a phone.
+      // grey, the faint whites of the group select, the light edge between two cards on a phone,
+      // and the small Crea logo's edge, the big Crea button's.
       [SWEEP.rows]: 22,
       // The four bubbles.
       [SWEEP.messages]: 4,
@@ -440,6 +440,20 @@ describe('the dark mode of the admin', () => {
     for (const ground of LIGHT_GROUNDS) {
       expect(contrast(over(0, 0.4, ground), ground), ground).toBeGreaterThan(2.4)
     }
+  })
+
+  // Bernd, 24.10.2026: the small Crea logo of a row takes the edge of the big Crea button at the
+  // bottom right, in both modes, so that it reads as a button as well.
+  it("the small Crea logo has the big Crea button's edge", () => {
+    const table = rules(read(SWEEP.rows))
+    const chat = rules(read(SWEEP.creaChat))
+    expect(declarationsOf(table, '.crea-logo-img').border).toBe('1px solid darkblue')
+    expect(declarationsOf(chat, '.chatToggleButton').border).toBe('1px solid darkblue')
+    const dark = declarationsOf(table, `${DARK} .crea-logo-btn:not(:hover) > .crea-logo-img`)[
+      'border-color'
+    ]
+    expect(dark).toBe(declarationsOf(chat, `${DARK} .chatToggleButton:not(:hover)`)['border-color'])
+    expect(dark).toMatch(/^#[0-9a-f]{6}$/)
   })
 
   it('the yellow prefix box has a dark counterpart in both of its files', () => {
