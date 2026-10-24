@@ -5,7 +5,6 @@ import {
 import { GradidoUnit } from 'shared'
 import { Field, Int, ObjectType } from 'type-graphql'
 import { lastConversationMessage } from '@/data/ContributionConversation.logic'
-import { ContributionMessageType } from '@/graphql/enum/ContributionMessageType'
 import { ContributionMessage } from './ContributionMessage'
 import { User } from './User'
 
@@ -27,7 +26,7 @@ export class UnconfirmedContribution {
     const last = dbContribution.messages
       ? lastConversationMessage(dbContribution.messages)
       : undefined
-    this.lastMessageType = last ? (last.type as ContributionMessageType) : null
+    this.lastMessageType = last ? last.type : null
     this.lastMessageByModerator = last ? last.isModerator : null
 
     this.messages = dbContribution.messages
@@ -66,9 +65,10 @@ export class UnconfirmedContribution {
 
   // The newest message of the conversation with the member, the moderators' internal notes left
   // out (ContributionConversation.logic.ts); null where nothing was said, or where the messages
-  // were not asked for.
-  @Field(() => ContributionMessageType, { nullable: true })
-  lastMessageType: ContributionMessageType | null
+  // were not asked for. Its type as the text the message itself carries (ContributionMessage
+  // `type`): a value outside the enum must not take the whole list down with it.
+  @Field(() => String, { nullable: true })
+  lastMessageType: string | null
 
   @Field(() => Boolean, { nullable: true })
   lastMessageByModerator: boolean | null
