@@ -46,10 +46,17 @@ export const ParseMessage = defineComponent({
       const linkified: MessagePart[] = []
       let amount: string | undefined
       if (props.type === 'HISTORY') {
+        // The record a change leaves (ContributionMessage.builder.ts): the old date, text and
+        // amount. The server also takes one of any other shape (adminCreateContributionMessage),
+        // and a part that is missing must not take the whole conversation down with it: such a
+        // record shows as it came (coderabbit, #4196). A text that holds the dashes itself keeps
+        // them; the amount is the last part.
         const split = string.split(/\n\s*---\n\s*/)
-        string = split[1]
-        linkified.push({ type: 'date', text: split[0].trim() })
-        amount = split[2].trim()
+        if (split.length >= 3) {
+          string = split.slice(1, -1).join('\n---\n')
+          linkified.push({ type: 'date', text: split[0].trim() })
+          amount = split[split.length - 1].trim()
+        }
       }
       let match: RegExpMatchArray | null
       while ((match = string.match(LINK_REGEX_PATTERN))) {
@@ -77,19 +84,22 @@ export const ParseMessage = defineComponent({
           </BLink>
         )
       }
+      // A date or an amount the record holds in another form shows as it is written.
       if (type === 'date') {
+        const date = new Date(text)
         return (
           <span>
-            {`${d(new Date(text), 'short')} `}
+            {`${Number.isNaN(date.getTime()) ? text : d(date, 'short')} `}
             <br />
           </span>
         )
       }
       if (type === 'amount') {
+        const value = Number(text)
         return (
           <span>
             <br />
-            {` ${n(Number(text), 'decimal')} GDD`}
+            {` ${Number.isFinite(value) ? n(value, 'decimal') : text} GDD`}
           </span>
         )
       }

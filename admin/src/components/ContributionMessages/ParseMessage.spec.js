@@ -67,4 +67,26 @@ describe('ParseMessage', () => {
     expect(nodes(spans[0])).toEqual(['#textD(2024-01-02T03:04:05.000Z) ', 'BR'])
     expect(nodes(spans[2])).toEqual(['BR', '#text N(100) GDD'])
   })
+
+  // The server takes a change of any shape (adminCreateContributionMessage): one with a part
+  // missing, a date or an amount in another form shows as it came, and the rest of the
+  // conversation still stands (coderabbit, #4196).
+  it('shows a change with a part missing as it came', () => {
+    const wrapper = render('only a text\n---\nand no amount', 'HISTORY')
+    expect(wrapper.text()).toBe('only a text\n---\nand no amount')
+    expect(wrapper.text()).not.toContain('GDD')
+  })
+
+  it('shows a date or an amount in another form as it is written', () => {
+    const wrapper = render('yesterday\n---\nOld memo\n---\nhundred', 'HISTORY')
+    expect(wrapper.text()).toContain('yesterday')
+    expect(wrapper.text()).toContain('Old memo')
+    expect(wrapper.text()).toContain('hundred GDD')
+  })
+
+  it('keeps the dashes of a text that holds them, the amount being the last part', () => {
+    const wrapper = render('2024-01-02T03:04:05.000Z\n---\nOne\n---\nTwo\n---\n7', 'HISTORY')
+    expect(wrapper.text()).toContain('One\n---\nTwo')
+    expect(wrapper.text()).toContain('N(7) GDD')
+  })
 })
