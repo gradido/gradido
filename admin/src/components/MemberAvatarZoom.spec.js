@@ -235,6 +235,20 @@ describe('MemberAvatarZoom', () => {
     expect(memberAvatarZoomState.value).toBeNull()
   })
 
+  // A tap on the enlarged face closes it, as in the wallet; only a tap beside the window's box
+  // did (Bernd, 25.10.2026). The area spans the box, so the room beside the face counts too.
+  it('closes on a tap on the picture', async () => {
+    mockQuery.mockResolvedValue({ data: { memberAvatarFull: null } })
+    const wrapper = mountZoom()
+    openMemberAvatarZoom({ member: margret, src: 'data:image/jpeg;base64,small', label: 'Margret' })
+    await nextTick()
+
+    const closer = wrapper.find('[data-test="member-avatar-zoom-closer"]')
+    expect(closer.find('[data-test="member-avatar-zoom-small"]').exists()).toBe(true)
+    await closer.find('[data-test="member-avatar-zoom-small"]').trigger('click')
+    expect(memberAvatarZoomState.value).toBeNull()
+  })
+
   // Nothing to open without a picture on this device -- enlarging letters is not a thing.
   it('cannot be opened for a member whose picture is not here', () => {
     openMemberAvatarZoom({ member: margret, src: '' })
