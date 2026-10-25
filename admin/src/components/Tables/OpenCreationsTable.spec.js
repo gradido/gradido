@@ -261,7 +261,7 @@ describe('OpenCreationsTable', () => {
     it('lists "no group" plus every canonical group', () => {
       expect(select().props('options')).toEqual([
         { value: '', text: 'contribution.noGroup' },
-        { value: 'music', text: 'Musik (#music)' },
+        { value: 'music', text: 'Musik' },
         { value: 'sports', text: '#sports' },
       ])
     })
@@ -270,7 +270,7 @@ describe('OpenCreationsTable', () => {
       await pick('sports')
       expect(dialog().props('modelValue')).toBe(true)
       expect(dialog().text()).toContain(
-        `contribution.changeGroupQuestion ${JSON.stringify({ from: 'Musik (#music)', to: '#sports' })}`,
+        `contribution.changeGroupQuestion ${JSON.stringify({ from: 'Musik', to: '#sports' })}`,
       )
       expect(wrapper.emitted('assign-group')).toBeFalsy()
     })
@@ -289,7 +289,7 @@ describe('OpenCreationsTable', () => {
       await pick('')
       expect(dialog().text()).toContain(
         `contribution.changeGroupQuestion ${JSON.stringify({
-          from: 'Musik (#music), #sports',
+          from: 'Musik, #sports',
           to: 'contribution.noGroup',
         })}`,
       )
