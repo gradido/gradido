@@ -144,7 +144,7 @@ export async function revertSettledReceiveTransaction(
       lastName: recipient.lastName,
       email: recipient.emailContact.email,
       language: recipient.language,
-      senderAlias: publicAlias(sender.alias, sender.gradidoID),
+      senderAlias: sender.alias,
       // ⛔ A COMMUNITY name, and never an address: this sentence is read by a THIRD
       //    PARTY, which is the whole reason the alias replaced the real name here.
       //    The live callers pass `getCommunityName(...)`; see TransactionResolver.
@@ -159,7 +159,7 @@ export async function revertSettledReceiveTransaction(
         lastName: sender.lastName,
         email: sender.emailContact.email,
         language: sender.language,
-        senderAlias: publicAlias(recipient.alias, recipient.gradidoID),
+        senderAlias: recipient.alias,
         // ⛔ A COMMUNITY name, and never an address: this sentence is read by a THIRD
         //    PARTY, which is the whole reason the alias replaced the real name here.
         //    The live callers pass `getCommunityName(...)`; see TransactionResolver.

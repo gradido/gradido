@@ -244,8 +244,6 @@
   "redeemPreview": {
     "description": "Ajudar. Oferecer. Agradecer.",
     "greetingTitle": "{name} enviou-te um postal de agradecimento",
-    "greetingTitleWithoutName": "Um postal de agradecimento para ti",
-    "linkTitle": "{name} enviou-te um agradecimento",
-    "linkTitleWithoutName": "Um agradecimento para ti"
+    "linkTitle": "{name} enviou-te um agradecimento"
   }
 }

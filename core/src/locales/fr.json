@@ -244,8 +244,6 @@
   "redeemPreview": {
     "description": "Aider. Offrir. Remercier.",
     "greetingTitle": "{name} t'a envoyé un mot de remerciement",
-    "greetingTitleWithoutName": "Un mot de remerciement pour toi",
-    "linkTitle": "{name} t'a envoyé un remerciement",
-    "linkTitleWithoutName": "Un remerciement pour toi"
+    "linkTitle": "{name} t'a envoyé un remerciement"
   }
 }

@@ -144,10 +144,11 @@ beforeAll(async () => {
   // The readers name the member who made a link: a row for the one whose account stands, and
   // one for the member whose account is deleted. (Raw rows, with what the schema requires.)
   await db.insert(usersTable).values([
-    { id: MAKER, gradidoId: gid(MAKER), communityUuid: HOME_COMMUNITY },
+    { id: MAKER, gradidoId: gid(MAKER), alias: 'maker', communityUuid: HOME_COMMUNITY },
     {
       id: GONE_MAKER,
       gradidoId: gid(GONE_MAKER),
+      alias: 'goneMaker',
       communityUuid: HOME_COMMUNITY,
       deletedAt: MAKER_DELETED_AT,
     },

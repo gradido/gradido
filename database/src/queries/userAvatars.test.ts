@@ -168,18 +168,21 @@ describe('member avatars for the booking list', () => {
       {
         id: SHOWN,
         gradidoId: gid(SHOWN),
+        alias: 'shown',
         avatarVisibleToMembers: 1,
         communityUuid: HOME_COMMUNITY,
       },
       {
         id: SWITCHED_OFF,
         gradidoId: gid(SWITCHED_OFF),
+        alias: 'switchedOff',
         avatarVisibleToMembers: 0,
         communityUuid: HOME_COMMUNITY,
       },
       {
         id: DELETED,
         gradidoId: gid(DELETED),
+        alias: 'deletedOne',
         avatarVisibleToMembers: 1,
         deletedAt: new Date(),
         communityUuid: HOME_COMMUNITY,
@@ -187,6 +190,7 @@ describe('member avatars for the booking list', () => {
       {
         id: NO_PICTURE,
         gradidoId: gid(NO_PICTURE),
+        alias: 'noPicture',
         avatarVisibleToMembers: 1,
         communityUuid: HOME_COMMUNITY,
       },
@@ -197,6 +201,7 @@ describe('member avatars for the booking list', () => {
       {
         id: FOREIGN,
         gradidoId: gid(FOREIGN),
+        alias: 'farAway',
         avatarVisibleToMembers: 1,
         foreign: 1,
         communityUuid: FOREIGN_COMMUNITY,
@@ -204,6 +209,7 @@ describe('member avatars for the booking list', () => {
       {
         id: WITH_COMMUNITY,
         gradidoId: gid(WITH_COMMUNITY),
+        alias: 'withCommunity',
         avatarVisibleToMembers: 1,
         communityUuid: HOME_COMMUNITY,
       },

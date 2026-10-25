@@ -24,7 +24,6 @@ import { getLogger } from 'log4js'
 import { v4 as uuidv4 } from 'uuid'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { isSameChatMember } from '@/data/ChatConversation.logic'
-import { PublishNameLogic } from '@/data/PublishName.logic'
 
 /*
  * How a message written in a group (P5) is filed, and the two mails of a group: "you are in the
@@ -206,13 +205,12 @@ export function mailChatGroupAdded({
   added: DbUser[]
   memberCount: number
 }): Promise<void> {
-  const adderAlias = new PublishNameLogic(adder).getPublicAlias()
   return mailOneAfterAnother(
     added,
     (recipient) =>
       sendChatGroupAddedEmail({
         ...addressOf(recipient),
-        adderAlias,
+        adderAlias: adder.alias,
         groupTitle: group.title ?? '',
         groupUuid: group.conversationUuid,
         memberCount,
@@ -238,13 +236,12 @@ export function mailChatGroupAnnouncement({
   body: string
   hasImage: boolean
 }): Promise<void> {
-  const senderAlias = new PublishNameLogic(senderUser).getPublicAlias()
   return mailOneAfterAnother(
     recipients,
     (recipient) =>
       sendChatGroupMessageEmail({
         ...addressOf(recipient),
-        senderAlias,
+        senderAlias: senderUser.alias,
         groupTitle: group.title ?? '',
         groupUuid: group.conversationUuid,
         memo: body,

@@ -78,11 +78,8 @@ export async function dbFindOldestChosenAliasSince(
 /** Record that this name now belongs to the member. */
 export async function dbInsertUserAlias(
   userAlias: UserAliasInsert,
-  tx?: DrizzleTransaction | MySql2Database,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
 ): Promise<Result<number, DBInsertFailed<UserAliasInsert> | DBDuplicateEntryError>> {
-  if (!tx) {
-    tx = drizzleDb()
-  }
   try {
     const rows = await tx.insert(userAliasesTable).values(userAlias)
     const firstRow = rows[0]
@@ -100,17 +97,6 @@ export async function dbInsertUserAlias(
     }
     throw error
   }
-}
-
-// Not a soft delete, really remove the user and his user contact from db, used in RegisterUser if something after creating user failed
-export async function dbRemoveUserAlias(userAliasId: number): Promise<number> {
-  if (userAliasId) {
-    const rows = await drizzleDb()
-      .delete(userAliasesTable)
-      .where(eq(userAliasesTable.id, userAliasId))
-    return rows[0] ? rows[0].affectedRows : 0
-  }
-  return 0
 }
 
 /**

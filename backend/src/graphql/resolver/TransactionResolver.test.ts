@@ -529,8 +529,6 @@ describe('send coins', () => {
 
     describe('send coins via alias', () => {
       beforeAll(async () => {
-        // first set alias to null, because updating alias isn't allowed
-        await User.update({ alias: 'MeisterBob' }, { alias: () => 'NULL' })
         await mutate({
           mutation: updateUserInfos,
           variables: {

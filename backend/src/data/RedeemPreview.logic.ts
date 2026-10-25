@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { TransactionLinkForPreview } from 'database'
-import { isThankYouMotif, publicAlias, ThankYouMotif } from 'shared'
+import { isThankYouMotif, ThankYouMotif } from 'shared'
 import {
   hasFormOfLinkCode,
   pictureLinkIsOpen,
@@ -72,24 +72,13 @@ export type RedeemPreview = {
   /** The code of the link as its row holds it -- not as a request wrote it. */
   code: string
   kind: 'greeting' | 'link'
-  /** The sender's username, or null where they have none to be called by. */
-  name: string | null
+  /** The sender's username -- never the identifier, never a real name (NU-021). */
+  name: string
   language: PreviewLanguage
   picture: RedeemPreviewPicture
 }
 
 const GENERAL: RedeemPreviewPicture = { kind: 'general' }
-
-/**
- * What the sender is called in the title: their username. publicAlias hands out the member's
- * identifier where there is no usable one -- then the title names nobody.
- *
- * ⛔ Never the identifier, never a real name.
- */
-const senderName = ({ alias, gradidoId }: TransactionLinkForPreview['maker']): string | null => {
-  const name = publicAlias(alias, gradidoId)
-  return name === gradidoId ? null : name
-}
 
 /**
  * The picture of an OPEN link. A photo only for a greeting without a motif -- as the page of
@@ -132,7 +121,7 @@ export const redeemPreviewOf = (
   return {
     code: found.link.code,
     kind: found.greeting ? 'greeting' : 'link',
-    name: senderName(found.maker),
+    name: found.maker.alias,
     language: previewLanguageOf(found.maker.language),
     picture: pictureOf(found, now),
   }
