@@ -1,6 +1,5 @@
 import { User } from 'database'
 import { Field, Int, ObjectType } from 'type-graphql'
-import { PublishNameLogic } from '@/data/PublishName.logic'
 import { describeModeratorCreationGroups } from '@/graphql/resolver/util/moderatorCreationGroupScope'
 
 @ObjectType()
@@ -14,7 +13,7 @@ export class AdminUser {
       throw new Error(`AdminUser without a role: user ${user.id}`)
     }
     const groups = describeModeratorCreationGroups(role)
-    this.alias = new PublishNameLogic(user).getPublicAlias()
+    this.alias = user.alias
     this.role = role.role
     this.visibleCreationGroups = groups.tags
     this.seesAllCreationGroups = groups.seesAllCreationGroups

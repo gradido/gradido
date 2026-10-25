@@ -15,7 +15,6 @@ import { Mutex } from 'redis-semaphore'
 import { Decay, DecayCalculationType, GradidoUnit } from 'shared'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { PublishNameLogic } from '@/data/PublishName.logic'
 import { LogError } from '@/server/LogError'
 
 import { contributionFrontendLink } from './contributions'
@@ -111,14 +110,12 @@ export const confirmContributionAs = async (
       // name written here outlives every later display fix. Same convention as the
       // send/receive path in TransactionResolver. Through the shared rule rather than
       // read off the column: in production every local user has an alias (migration
-      // 0116 filled them, createUser has assigned one since #3645), but a SEEDED
-      // environment has moderators without -- and a booking that stored null there
-      // would carry no public name for good.
-      transaction.userName = new PublishNameLogic(user).getPublicAlias()
+      // 0116 filled them, createUser has assigned one since #3645)
+      transaction.userName = user.alias
       transaction.userCommunityUuid = user.communityUuid
       transaction.linkedUserId = signer.id
       transaction.linkedUserGradidoID = signer.gradidoID
-      transaction.linkedUserName = new PublishNameLogic(signer).getPublicAlias()
+      transaction.linkedUserName = signer.alias
       transaction.linkedUserCommunityUuid = signer.communityUuid
       transaction.previous = lastTransaction ? lastTransaction.id : null
       transaction.amount = contribution.amount
@@ -144,7 +141,7 @@ export const confirmContributionAs = async (
         lastName: user.lastName,
         email: user.emailContact.email,
         language: user.language,
-        senderAlias: new PublishNameLogic(signer).getPublicAlias(),
+        senderAlias: signer.alias,
         contributionMemo: contribution.memo,
         contributionAmount: contribution.amount,
         contributionFrontendLink: await contributionFrontendLink(

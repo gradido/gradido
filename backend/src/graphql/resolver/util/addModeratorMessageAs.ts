@@ -14,7 +14,6 @@ import { EntityManager, FindOptionsRelations } from 'typeorm'
 
 import { Role } from '@/auth/Role'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { PublishNameLogic } from '@/data/PublishName.logic'
 import { ContributionMessageArgs } from '@/graphql/arg/ContributionMessageArgs'
 import { UpdateUnconfirmedContributionContext } from '@/interactions/updateUnconfirmedContribution/UpdateUnconfirmedContribution.context'
 import { Context, newRequestBudget } from '@/server/context'
@@ -121,7 +120,7 @@ export const addModeratorMessageAs = async (
       lastName: finalContribution.user.lastName,
       email: finalContribution.user.emailContact.email,
       language: finalContribution.user.language,
-      senderAlias: new PublishNameLogic(signer).getPublicAlias(),
+      senderAlias: signer.alias,
       contributionMemo: finalContribution.memo,
       answerable,
       contributionFrontendLink: await contributionFrontendLink(

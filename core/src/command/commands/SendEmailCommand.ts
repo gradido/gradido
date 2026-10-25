@@ -8,7 +8,7 @@ import {
   getCommunityByUuid,
 } from 'database'
 import { getLogger } from 'log4js'
-import { ALIAS_MAX_CHARS, GradidoUnit, publicAlias, uuidv4Schema } from 'shared'
+import { ALIAS_MAX_CHARS, GradidoUnit, uuidv4Schema } from 'shared'
 import * as v from 'valibot'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
 import { sendCustomEmail, sendTransactionReceivedEmail } from '../../emails/sendEmailVariants'
@@ -219,7 +219,7 @@ export class SendEmailCommand extends BaseCommand<
       lastName: recipientUser.lastName, // will be part of receiver
       email: recipientUser.emailContact.email, // will be part of receiver
       language: recipientUser.language,
-      senderAlias: publicAlias(senderUser.alias, senderUser.gradidoID),
+      senderAlias: senderUser.alias,
       // Both mails put a way back to the sender behind these; without them the templates
       // fall back to a send form with nobody in it. They were in hand here all along -
       // the command carries them as its own required fields - and simply never passed on.
@@ -371,9 +371,11 @@ export class SendEmailCommand extends BaseCommand<
    * For a message (sendCustomEmail) a sender without a row is filed now (E-034). Until then only
    * a transfer filed one, and a message from somebody who had never sent Gradido here failed with
    * "Sender user not found". Filed the way the receiving side of a transfer files its sender
-   * (federation's storeForeignUser): foreign, the pair, the alias where one came. An alias that
-   * changed over there is brought up to date; one that did not come deletes nothing. What cannot
-   * be filed leaves the sender unknown, and the command fails as it did before.
+   * (federation's storeForeignUser): foreign, the pair, the alias. A sender who comes without
+   * an alias is not filed - `users.alias` is NOT NULL (migration 0164), and the sender's
+   * community, which runs that migration too, sends it. An alias that changed over there is
+   * brought up to date; one that did not come deletes nothing. What cannot be filed leaves the
+   * sender unknown, and the command fails as it did before.
    *
    * Filed only for a pair of uuids whose community this server knows as a foreign one. A row
    * under this community's own uuid would take that alias away from this community's members
@@ -417,6 +419,10 @@ export class SendEmailCommand extends BaseCommand<
         }
         return sender
       }
+      if (alias === null) {
+        methodLogger.warn('sender not filed: the command carries no alias')
+        return null
+      }
       if (
         !v.safeParse(uuidv4Schema, senderComUuid).success ||
         !v.safeParse(uuidv4Schema, senderGradidoId).success ||
@@ -427,18 +433,11 @@ export class SendEmailCommand extends BaseCommand<
       const filed = await dbInsertForeignUser({
         communityUuid: senderComUuid,
         gradidoId: senderGradidoId,
+        alias,
       })
       if (!filed.success) {
         methodLogger.warn(`sender not filed (${filed.error.name})`)
         return null
-      }
-      if (alias !== null) {
-        const aliased = await dbUpdateForeignUserAlias(filed.value, alias)
-        if (!aliased.success) {
-          methodLogger.warn(
-            `sender filed without alias: users.id=${filed.value} (${aliased.error.name})`,
-          )
-        }
       }
       methodLogger.info(`sender filed as a member of another community: users.id=${filed.value}`)
       return await findUserByUuids(senderComUuid, senderGradidoId, true)

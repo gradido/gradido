@@ -727,6 +727,7 @@ describe('UserResolver', () => {
         for (let n = 0; n < count; n++) {
           const guest = await dbUserFactory(
             {
+              alias: `${tag}${n}`,
               email: `${tag}${n}@earlier.de`,
               firstName: 'Earlier',
               lastName: 'Guest',
@@ -1065,6 +1066,7 @@ describe('UserResolver', () => {
 
         it('opens one account with a password through one link, and the other without', async () => {
           const member = await userFactory(testEnv, {
+            alias: 'EmmaW',
             email: 'emma@wald.de',
             firstName: 'Emma',
             lastName: 'Wald',
@@ -1090,6 +1092,7 @@ describe('UserResolver', () => {
 
         it('gives the last place to one of two guests who come through two links of the member', async () => {
           const member = await userFactory(testEnv, {
+            alias: 'DaveW',
             email: 'dave@wald.de',
             firstName: 'Dave',
             lastName: 'Wald',
@@ -2242,9 +2245,6 @@ describe('UserResolver', () => {
 
         describe('valid alias', () => {
           it('updates the user in DB', async () => {
-            // Cleared first so this exercises taking a name rather than changing one;
-            // changing is covered by its own cases.
-            await User.update({ alias: 'BBB' }, { alias: () => 'NULL' })
             await mutate({
               mutation: updateUserInfos,
               variables: {
@@ -2592,13 +2592,11 @@ describe('UserResolver', () => {
               searchAdminUsers: {
                 userCount: 1,
                 userList: expect.arrayContaining([
-                  // The type carries only the alias since NU-021, and this seed user has
-                  // none -- so the gradidoID stands in (NU-018). Pinned against the
-                  // user's own identifier rather than `any(String)`: an admin who reads
-                  // as an empty row is precisely what a seeded environment produced, and
-                  // only naming the value proves which fallback ran.
+                  // The type carries only the alias since NU-021. Pinned against the
+                  // seed's own name rather than `any(String)`: an admin who reads as an
+                  // empty row is what a seeded environment once produced.
                   expect.objectContaining({
-                    alias: admin.gradidoID,
+                    alias: admin.alias,
                     role: RoleNames.ADMIN,
                   }),
                 ]),

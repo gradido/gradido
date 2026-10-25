@@ -1,6 +1,7 @@
 import { UserInterface } from './UserInterface'
 
 export const stephenHawking: UserInterface = {
+  alias: 'StephenH',
   email: 'stephen@hawking.uk',
   firstName: 'Stephen',
   lastName: 'Hawking',

@@ -13,7 +13,6 @@ import {
   TransactionLink as DbTransactionLink,
   thankYouGreetingPicturesTable,
   User,
-  usersTable,
 } from 'database'
 import { and, eq } from 'drizzle-orm'
 import { gql } from 'graphql-tag'
@@ -357,27 +356,6 @@ describe('GET /api/redeem-preview/<code>, against a database', () => {
       expect(answers[0].body).not.toContain('og:title')
       expect(answers[1]).toEqual(answers[0])
       expect(answers[2]).toEqual(answers[0])
-    }
-  })
-
-  // ⛔ Never the identifier: a member without a username is not named at all.
-  it('names nobody where the sender has no username', async () => {
-    const link = await withPhoto()
-    const drizzle = AppDatabase.getInstance().getDrizzleDataSource()
-    await drizzle.update(usersTable).set({ alias: null }).where(eq(usersTable.id, bibi.id))
-    try {
-      const answer = await previewOf(link.code)
-      const document = answer.body.toString()
-
-      expect(answer.status).toBe(200)
-      expect(document).toContain('<title>Ein Dank-Gruß für Dich</title>')
-      expect(document).not.toContain(bibi.gradidoID)
-      // Still a greeting with its photo: the motif of such a greeting is null in its row.
-      expect(lineOf(document, 'og:image')).toBe(
-        `${CONFIG.COMMUNITY_URL}/api/thank-you-greeting-picture/${link.code}`,
-      )
-    } finally {
-      await drizzle.update(usersTable).set({ alias: 'BBB' }).where(eq(usersTable.id, bibi.id))
     }
   })
 

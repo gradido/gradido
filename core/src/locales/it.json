@@ -244,8 +244,6 @@
   "redeemPreview": {
     "description": "Aiutare. Regalare. Ringraziare.",
     "greetingTitle": "{name} ti ha inviato un biglietto di ringraziamento",
-    "greetingTitleWithoutName": "Un biglietto di ringraziamento per te",
-    "linkTitle": "{name} ti ha inviato un ringraziamento",
-    "linkTitleWithoutName": "Un ringraziamento per te"
+    "linkTitle": "{name} ti ha inviato un ringraziamento"
   }
 }

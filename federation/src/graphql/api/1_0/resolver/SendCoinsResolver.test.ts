@@ -6,6 +6,7 @@ import {
   AppDatabase,
   Community as DbCommunity,
   PendingTransaction as DbPendingTransaction,
+  Transaction as DbTransaction,
   User as DbUser,
   UserContact as DbUserContact,
   dbSelectForeignMemberAvatarDates,
@@ -16,6 +17,7 @@ import { getLogger } from 'log4js'
 import {
   createKeyPair,
   encryptAndSign,
+  PendingTransactionState,
   SendCoinsJwtPayloadType,
   SendCoinsResponseJwtPayloadType,
   verifyAndDecrypt,
@@ -237,6 +239,48 @@ describe('SendCoinsResolver', () => {
             ],
           }),
         )
+      })
+    })
+
+    describe('payload without a sender alias', () => {
+      it('is refused before a pending transaction is written', async () => {
+        jest.clearAllMocks()
+        const payload = new SendCoinsJwtPayloadType(
+          'handshakeID',
+          recipientCom.communityUuid!,
+          recipUser.gradidoID,
+          new Date().toISOString(),
+          '100',
+          'X-Com-TX memo',
+          senderCom.communityUuid!,
+          sendUser.gradidoID,
+          fullName(sendUser.firstName, sendUser.lastName),
+          null,
+        )
+        const jws = await encryptAndSign(
+          payload,
+          senderCom.privateJwtKey!,
+          recipientCom.publicJwtKey!,
+        )
+        const args = new EncryptedTransferArgs()
+        args.publicKey = senderCom.publicKey.toString('hex')
+        args.jwt = jws
+        args.handshakeID = 'handshakeID'
+        expect(
+          await mutate({
+            mutation: voteForSendCoinsMutation,
+            variables: { args },
+          }),
+        ).toEqual(
+          expect.objectContaining({
+            errors: [
+              expect.objectContaining({
+                message: `voteForSendCoins without senderAlias of requesting community with publicKey=${args.publicKey}`,
+              }),
+            ],
+          }),
+        )
+        expect(await DbPendingTransaction.count()).toBe(0)
       })
     })
 
@@ -666,6 +710,56 @@ describe('SendCoinsResolver', () => {
             ],
           }),
         )
+      })
+    })
+
+    describe('payload without a sender alias', () => {
+      it('is refused before anything is booked, and the pending transaction stays', async () => {
+        jest.clearAllMocks()
+        const payload = new SendCoinsJwtPayloadType(
+          'handshakeID',
+          recipientCom.communityUuid!,
+          recipUser.gradidoID,
+          creationDate.toISOString(),
+          '100',
+          'X-Com-TX memo',
+          senderCom.communityUuid!,
+          sendUser.gradidoID,
+          fullName(sendUser.firstName, sendUser.lastName),
+          null,
+        )
+        const jws = await encryptAndSign(
+          payload,
+          senderCom.privateJwtKey!,
+          recipientCom.publicJwtKey!,
+        )
+        const args = new EncryptedTransferArgs()
+        args.publicKey = senderCom.publicKey.toString('hex')
+        args.jwt = jws
+        args.handshakeID = 'handshakeID'
+        expect(
+          await mutate({
+            mutation: settleSendCoinsMutation,
+            variables: { args },
+          }),
+        ).toEqual(
+          expect.objectContaining({
+            errors: [
+              expect.objectContaining({
+                message: `settleSendCoins without senderAlias of requesting community with publicKey=${args.publicKey}`,
+              }),
+            ],
+          }),
+        )
+        // The vote in beforeEach left one open: still open, not booked.
+        expect(
+          await DbPendingTransaction.countBy({
+            userGradidoID: recipUser.gradidoID,
+            state: PendingTransactionState.NEW,
+          }),
+        ).toBe(1)
+        expect(await DbTransaction.count()).toBe(0)
+        expect(await DbUser.countBy({ foreign: true, gradidoID: sendUser.gradidoID })).toBe(0)
       })
     })
 

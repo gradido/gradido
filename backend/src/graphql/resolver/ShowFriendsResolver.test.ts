@@ -78,8 +78,7 @@ describe('ShowFriendsResolver', () => {
             referrerAlias: null,
             latestArrival: {
               gradidoID: arrived.gradidoID,
-              // No alias of their own, so the public name is the full gradidoID.
-              alias: arrived.gradidoID,
+              alias: arrived.alias,
               first: true,
             },
           },

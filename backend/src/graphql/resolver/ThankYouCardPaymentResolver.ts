@@ -24,7 +24,6 @@ import { Mutex } from 'redis-semaphore'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { PublishNameLogic } from '@/data/PublishName.logic'
 import {
   pinMatches,
   startOfDay,
@@ -359,7 +358,7 @@ export class ThankYouCardPaymentResolver {
       // merchant, a third party to the card's owner. Through the shared rule, which this
       // line used to sidestep with a bare `||` -- that let a legacy alias of one or two
       // characters through here while every other screen showed the identifier.
-      success.payerName = new PublishNameLogic(owner).getPublicAlias()
+      success.payerName = owner.alias
       success.amount = payment.amount
 
       // Assembled here, where the data is, and SENT after the lock is gone. See below.
@@ -370,11 +369,7 @@ export class ThankYouCardPaymentResolver {
           lastName: owner.lastName,
           email: owner.emailContact.email,
           language: owner.language,
-          // The mirror of `payerName` above, and it leaks the other way: this receipt is
-          // read by the card's OWNER, and it names the merchant -- a third party to them.
-          // The salutation above (firstName/lastName) is the owner's own name in their own
-          // inbox and stays; only this line crosses to somebody else (NU-021/KLAR-09).
-          recipientName: new PublishNameLogic(recipient).getPublicAlias(),
+          recipientName: recipient.alias,
           recipientCommunity: await getCommunityName(recipient.communityUuid),
           transactionMemo: payment.memo,
           transactionAmount: payment.amount,

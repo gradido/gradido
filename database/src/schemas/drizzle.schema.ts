@@ -766,7 +766,9 @@ export const usersTable = mysqlTable(
     communityUuid: varchar('community_uuid', { length: 36 })
       .collate('utf8mb4_general_ci')
       .notNull(),
-    alias: varchar({ length: 20 }).default(sql`NULL`),
+    // Mandatory since migration 0164, for the cached copies of members of other communities
+    // (`foreign = 1`) as well: they are filed with the alias that community sent, or not at all.
+    alias: varchar({ length: 20 }).notNull(),
     emailId: int('email_id').default(sql`NULL`),
     firstName: varchar('first_name', { length: 255 }).default(sql`NULL`),
     lastName: varchar('last_name', { length: 255 }).default(sql`NULL`),

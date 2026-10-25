@@ -284,39 +284,14 @@ describe('GET /api/redeem-preview/<code>', () => {
       )
     })
 
-    // ⛔ Never the identifier, which is what publicAlias hands out for such a member.
-    it.each([
-      ['a greeting', WITH_PHOTO, 'Ein Dank-Gruß für Dich'],
-      ['a plain link', {}, 'Ein Dank für Dich'],
-    ])(
-      'writes a title that names nobody for %s of a member without a username',
-      async (_what, link, title) => {
-        findLink.mockResolvedValue(found({ ...link, maker: { alias: null } }))
+    it('writes nothing of the form of an identifier into any document', async () => {
+      for (const link of [WITH_PHOTO, WITH_MOTIF, {}]) {
+        findLink.mockResolvedValue(found(link))
 
         const { status, body } = await ask(addressOf(CODE))
 
         expect(status).toBe(200)
-        expect(body).toContain(`<title>${title}</title>`)
-        expect(previewLines(body)).toEqual(
-          expect.arrayContaining([
-            ['og:title', title],
-            ['twitter:title', title],
-          ]),
-        )
         expect(body).not.toMatch(IDENTIFIER_FORM)
-      },
-    )
-
-    it('writes nothing of the form of an identifier into any document', async () => {
-      for (const link of [WITH_PHOTO, WITH_MOTIF, {}]) {
-        for (const alias of ['Oma-Emma', 'ab', null]) {
-          findLink.mockResolvedValue(found({ ...link, maker: { alias } }))
-
-          const { status, body } = await ask(addressOf(CODE))
-
-          expect(status).toBe(200)
-          expect(body).not.toMatch(IDENTIFIER_FORM)
-        }
       }
       // The form is the one the member's identifier has.
       expect(GRADIDO_ID).toMatch(IDENTIFIER_FORM)
@@ -402,9 +377,7 @@ describe('GET /api/redeem-preview/<code>', () => {
         for (const key of [
           'redeemPreview.description',
           'redeemPreview.greetingTitle',
-          'redeemPreview.greetingTitleWithoutName',
           'redeemPreview.linkTitle',
-          'redeemPreview.linkTitleWithoutName',
         ]) {
           expect({ language, key, own: hasPhraseInLocale(language, key) }).toEqual({
             language,
