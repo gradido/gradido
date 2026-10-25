@@ -19,6 +19,7 @@
 .creation-confirm .creation-filters .creation-group-filter {
   flex: 1 1 14rem;
   max-width: 24rem;
+  min-width: 0;
 }
 
 /* A phone: below this width the rows are cards (OpenCreationsTable.css). */
