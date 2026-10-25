@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { BFormInput, BInputGroupText } from 'bootstrap-vue-next'
+import { BFormInput } from 'bootstrap-vue-next'
 import { computed, defineComponent, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import IIcBaselineClose from '~icons/ic/baseline-close'
@@ -37,10 +37,12 @@ export const UserQuery = defineComponent({
     )
 
     // The × is a button with a name: a keyboard reaches it, and a screen reader says what it
-    // does. It used to be a <div> with a click handler, which neither could use.
+    // does. It used to be a <div> with a click handler, which neither could use. It stands against
+    // the field with the field's edge; it used to sit in a box of the input group, whose ground a
+    // form elsewhere in the admin painted yellow (UserQuery.module.css).
     return () => (
       <div>
-        <div class='d-flex'>
+        <div class={['d-flex', classes.field]}>
           <BFormInput
             v-model={currentValue.value}
             type='text'
@@ -49,17 +51,12 @@ export const UserQuery = defineComponent({
           />
           <button
             type='button'
-            class={[
-              'btn p-0 border-0 bg-transparent test-click-clear-criteria',
-              classes.clearButton,
-            ]}
+            class={['btn test-click-clear-criteria', classes.clearButton]}
             aria-label={t('search.clear')}
             title={t('search.clear')}
             onClick={onClear}
           >
-            <BInputGroupText class='pointer h-100'>
-              <IIcBaselineClose aria-hidden='true' />
-            </BInputGroupText>
+            <IIcBaselineClose aria-hidden='true' />
           </button>
         </div>
       </div>

@@ -52,6 +52,16 @@ describe('UserQuery', () => {
     expect(wrapper.emitted('update:modelValue')[0]).toEqual(['New Input'])
   })
 
+  // Bernd, 25.10.2026: behind the × stood a coloured box -- an input group's, whose ground the
+  // form for a deleted member paints yellow for every such box once it was loaded. The × stands
+  // against the field with the field's edge now, with no box of its own.
+  it('draws the × without a box of the input group', () => {
+    const clearButton = wrapper.find('.test-click-clear-criteria')
+    expect(clearButton.find('.input-group-text').exists()).toBe(false)
+    expect(clearButton.find('svg').exists()).toBe(true)
+    expect(clearButton.attributes('aria-label')).toBe('search.clear')
+  })
+
   it('clears the input when clear button is clicked', async () => {
     await wrapper.setProps({ modelValue: 'Initial Value' })
     const clearButton = wrapper.find('.test-click-clear-criteria')

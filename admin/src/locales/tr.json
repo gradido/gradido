@@ -303,9 +303,8 @@
   "createdAt": "Oluşturulma",
   "creation": "Oluşturma",
   "creationGroupFilter": {
-    "all": "(tümü)",
+    "all": "(gruplu ve grupsuz)",
     "grouped": "(tüm gruplar)",
-    "label": "Creation group:",
     "untagged": "(grupsuz)"
   },
   "creationGroupsAdmin": {

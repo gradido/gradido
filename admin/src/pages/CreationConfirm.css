@@ -2,6 +2,26 @@
   user-select: none;
 }
 
+/* The search and the group's choice in one row, the search taking what the group leaves; on a
+   narrow window, where the two would not stand side by side readably, one above the other. */
+.creation-confirm .creation-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  align-items: center;
+}
+
+.creation-confirm .creation-filters .creation-search {
+  flex: 1 1 18rem;
+  min-width: 0;
+}
+
+.creation-confirm .creation-filters .creation-group-filter {
+  flex: 1 1 14rem;
+  max-width: 24rem;
+  min-width: 0;
+}
+
 /* A phone: below this width the rows are cards (OpenCreationsTable.css). */
 @media (width < 992px) {
   /* The symbol above the word and the number at the corner, so that the five tabs stand in one

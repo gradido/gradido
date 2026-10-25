@@ -1,4 +1,7 @@
-/* Make the toggle read like a form control: full width, label left, caret right. */
+/* Make the toggle read like a form control: full width, label left, caret right. A long label,
+   a group's name with its tag, breaks inside the box, and so does a long option in the open list:
+   Bootstrap keeps both on one line, and the label ran out of its box and widened the page
+   (coderabbit, #4198; Bernd, 25.10.2026). */
 .themed-select {
   width: 100%;
 
@@ -8,6 +11,13 @@
     justify-content: space-between;
     width: 100%;
     text-align: left;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .dropdown-item {
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 
   &.themed-select-placeholder > .btn.themed-select-toggle {

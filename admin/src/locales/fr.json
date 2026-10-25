@@ -303,9 +303,8 @@
   "createdAt": "Créé le",
   "creation": "Création",
   "creationGroupFilter": {
-    "all": "(toutes)",
+    "all": "(avec et sans groupe)",
     "grouped": "(tous les groupes)",
-    "label": "Creation group:",
     "untagged": "(sans groupe)"
   },
   "creationGroupsAdmin": {

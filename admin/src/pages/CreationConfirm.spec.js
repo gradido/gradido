@@ -243,6 +243,15 @@ describe('CreationConfirm', () => {
     )
   })
 
+  // Bernd, 25.10.2026: the search and the group's choice side by side, the choice without a
+  // word before it; each of its texts names the group, "(alle)" became "(mit und ohne Gruppe)".
+  it('sets the group beside the search, without a word before it', () => {
+    const row = wrapper.find('.creation-filters')
+    expect(row.findComponent({ name: 'UserQuery' }).exists()).toBe(true)
+    expect(row.findComponent({ name: 'ThemedSelect' }).exists()).toBe(true)
+    expect(wrapper.text()).not.toContain('creationGroupFilter.label')
+  })
+
   it('offers all, all groups and no group before the real groups', () => {
     // The real groups follow behind; here the query is mocked away, so only the three
     // fixed entries remain -- which is exactly what this asserts.

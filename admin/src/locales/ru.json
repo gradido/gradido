@@ -303,9 +303,8 @@
   "createdAt": "Дата создания",
   "creation": "Создание",
   "creationGroupFilter": {
-    "all": "(все)",
+    "all": "(с группой и без)",
     "grouped": "(все группы)",
-    "label": "Creation group:",
     "untagged": "(без группы)"
   },
   "creationGroupsAdmin": {
