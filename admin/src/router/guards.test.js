@@ -112,6 +112,36 @@ describe('Navigation Guards', () => {
         expect(next).toHaveBeenCalledWith({ path: '/' })
       })
 
+      // The wallet's way back (its bar "Zurück zum Admin", frontend/src/utils/adminWayBack.js)
+      // names the page a pin, a bubble or an arrow was pressed on; the sign-in goes there.
+      it('goes on to the page the wallet names, with its own query', async () => {
+        await firstGuard(
+          {
+            path: '/authenticate',
+            query: { token: 'valid-token', redirect: '/creation-confirm?tab=open' },
+          },
+          {},
+          next,
+        )
+        expect(next).toHaveBeenCalledWith('/creation-confirm?tab=open')
+      })
+
+      it.each([
+        ['another site', '//evil.example/admin'],
+        ['another site, the other way round', '/\\evil.example'],
+        ['an address of its own', 'https://evil.example/'],
+        ['no page', ''],
+        ['the sign-in itself', '/authenticate?token=x'],
+        ['more than one', ['/user', '/creation-confirm']],
+      ])('goes to the start when the wallet names %s', async (_, redirect) => {
+        await firstGuard(
+          { path: '/authenticate', query: { token: 'valid-token', redirect } },
+          {},
+          next,
+        )
+        expect(next).toHaveBeenCalledWith({ path: '/' })
+      })
+
       it('redirects to not-found if no role', async () => {
         apolloQueryMock.mockResolvedValue({
           data: {

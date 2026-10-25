@@ -7,6 +7,21 @@ import type { i18n as adminI18n } from '../i18n'
 import type { useAdminStore } from '../store/useAdminStore'
 import { takeHandedOverToken } from '../utils/authToken'
 
+/**
+ * The page a sign-in goes on to: the one the wallet names (`redirect`) when it leads back here
+ * -- its bar "Zurück zum Admin" and its menu entry "Admin" after a pin, a bubble or an arrow
+ * of this interface (frontend/src/utils/adminWayBack.js) --, where it is a page of this router;
+ * none otherwise, and the sign-in goes to the start. Never an address of another site: to a
+ * browser `//host` and `/\host` are one.
+ */
+export const pageAfterSignIn = (redirect: unknown): string | null =>
+  typeof redirect === 'string' &&
+  /^\/(?![/\\])/.test(redirect) &&
+  !/[\\\s]/.test(redirect) &&
+  !redirect.startsWith('/authenticate')
+    ? redirect
+    : null
+
 export const addNavigationGuards = (
   router: Router,
   store: ReturnType<typeof useAdminStore>,
@@ -35,7 +50,9 @@ export const addNavigationGuards = (
           if (moderator.role) {
             i18n.global.locale.value = moderator.language
             store.setModerator(moderator)
-            next({ path: '/' })
+            const page = pageAfterSignIn(to.query?.redirect)
+            // A string, so that the router reads the page's own query as well.
+            next(page ?? { path: '/' })
           } else {
             next({ path: '/not-found' })
           }

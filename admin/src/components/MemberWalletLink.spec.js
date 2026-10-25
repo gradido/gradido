@@ -103,7 +103,25 @@ describe('MemberWalletLink', () => {
   const arrowOf = (wrapper) => wrapper.find('[data-test="member-send-arrow"]')
 
   // The address the window was opened on, taken apart the way the wallet's router reads it.
-  const openedAddress = (call = 0) => new URL(window.open.mock.calls[call][0])
+  // The page to go on to names the page of this interface the press was made on as well
+  // (`admin`, the wallet's way back); the tests of the page leave it out, and it has tests of
+  // its own ('the way back to the page it was pressed on').
+  const withoutWayBack = (page) =>
+    page.replace(/([?&])admin=[^&#]*(&)?/, (_, lead, tail) => (tail ? lead : ''))
+  const openedAddress = (call = 0) => {
+    const address = new URL(window.open.mock.calls[call][0])
+    const page = address.searchParams.get('redirect')
+    if (page !== null) {
+      address.searchParams.set('redirect', withoutWayBack(page))
+    }
+    return address
+  }
+  // The page to go on to as it was handed over, `admin` and all.
+  const handedPage = (call = 0) =>
+    new URL(
+      new URL(window.open.mock.calls[call][0]).searchParams.get('redirect'),
+      'https://wallet.example',
+    )
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -1015,6 +1033,35 @@ describe('MemberWalletLink', () => {
           'The browser blocked the window. Please allow pop-ups for this site.',
         )
       })
+    })
+  })
+
+  // ⭐ Bernd, 25.10.2026: in the app on a phone the wallet opened over the admin interface "im
+  // Vollformat", and nothing led back but the menu entry "Admin", to the start of the admin
+  // interface. The page the press was made on goes along, as the router names it: the wallet
+  // keeps it for its bar "Zurück zum Admin" (frontend/src/utils/adminWayBack.js).
+  describe('the way back to the page it was pressed on', () => {
+    afterEach(() => window.history.replaceState({}, '', '/'))
+
+    it('names the page of this interface, under its base, with its own query', async () => {
+      window.history.replaceState({}, '', '/admin/creation-confirm?tab=open')
+      await pinOf(createWrapper()).trigger('click')
+
+      const page = handedPage()
+      expect(page.pathname).toBe('/matching/karte')
+      expect(page.searchParams.get('admin')).toBe('/creation-confirm?tab=open')
+      expect(page.searchParams.get('with')).toBe(BIBI.gradidoID)
+    })
+
+    // The send form opens at its anchor; a query behind the anchor would be part of it.
+    it('puts it before the anchor of the send form', async () => {
+      window.history.replaceState({}, '', '/admin/user')
+      await arrowOf(createWrapper({ member: RAEUBER, name: 'raeuber' })).trigger('click')
+
+      const page = handedPage()
+      expect(page.searchParams.get('art')).toBe('email')
+      expect(page.searchParams.get('admin')).toBe('/user')
+      expect(page.hash).toBe('#send-form')
     })
   })
 
