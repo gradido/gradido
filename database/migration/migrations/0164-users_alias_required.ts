@@ -24,7 +24,13 @@ import { transliterateToLatin } from 'shared'
  *     community would only put a wrong one on file, and `alias_key` (alias + community) could
  *     then block their real one.
  *
- * An empty string counts as no name, in `users` and in `user_aliases` alike.
+ * A value that was never a valid name counts as no name, in `users` and in `user_aliases`
+ * alike: the empty string, fewer than 3 or more than 20 characters, or characters the alias
+ * rules never allowed (`ù`, say - one such row was found in production, written past the
+ * rules by a path unknown). Such a value is replaced like a missing one, by the same ladder;
+ * the owner is asked at their next login, as for every 'migrated' name. A reserved word is
+ * NOT touched: the list grew over the years, and a member who chose `support` while that was
+ * allowed holds a valid name they use as their address.
  */
 
 const ALIAS_MAX_CHARS = 20
@@ -50,14 +56,21 @@ const RESERVED_ALIAS = [
 ]
 const BATCH_SIZE = 500
 
+// The SQL twin of the header's rule, for `column`: no name, or none that was ever valid.
+// The regex is VALID_ALIAS_REGEX without its length lookahead, which CHAR_LENGTH answers.
+const hasNoValidName = (column: string): string =>
+  `(${column} IS NULL
+    OR CHAR_LENGTH(TRIM(${column})) NOT BETWEEN 3 AND 20
+    OR ${column} NOT REGEXP '^[a-zA-Z0-9]+([_-][a-zA-Z0-9]+)*$')`
+
 const isValidAlias = (alias: string): boolean =>
   VALID_ALIAS_REGEX.test(alias) && !RESERVED_ALIAS.includes(alias.toLowerCase())
 
 const transliterateForAlias = (text: string): string =>
   transliterateToLatin(text).replace(/[^a-zA-Z0-9]/g, '')
 
-// Proposals for one local member, best first; `member<id>` last, which is always valid and
-// free unless somebody hoards its hundred variants.
+// Proposals for one local member from name and address, best first. The list can be empty;
+// nameLocalMembers then takes the first 18 characters of the gradido id.
 function aliasCandidates(
   firstName: string | null,
   lastName: string | null,
@@ -139,7 +152,7 @@ async function nameLocalMembers(queryFn: QueryFn) {
     `SELECT u.id, u.gradido_id, u.first_name, u.last_name, c.email
        FROM users u
        LEFT JOIN user_contacts c ON c.id = u.email_id
-      WHERE u.\`foreign\` = 0 AND (u.alias IS NULL OR TRIM(u.alias) = '')`,
+      WHERE u.\`foreign\` = 0 AND ${hasNoValidName('u.alias')}`,
   )
 
   // Every name somebody holds, current or earlier (`user_aliases` is unique by alias since
@@ -176,7 +189,7 @@ async function nameLocalMembers(queryFn: QueryFn) {
 async function nameForeignMembers(queryFn: QueryFn) {
   const users = await queryFn(
     `SELECT id, gradido_id, community_uuid FROM users
-      WHERE \`foreign\` = 1 AND (alias IS NULL OR TRIM(alias) = '')`,
+      WHERE \`foreign\` = 1 AND ${hasNoValidName('alias')}`,
   )
 
   // `alias_key` is alias + community: a name is taken within its community only.
@@ -211,9 +224,9 @@ async function nameForeignMembers(queryFn: QueryFn) {
 }
 
 export async function upgrade(queryFn: QueryFn) {
-  // An empty name is no name. 0116 recorded every non-null value as 'adopted', an empty
-  // string included; such a row would block nothing but is wrong, so it goes.
-  await queryFn(`DELETE FROM user_aliases WHERE TRIM(alias) = '';`)
+  // 0116 recorded every non-null value as 'adopted', an empty string or a `ù` included. Such
+  // a row blocks no valid name but is wrong, and its owner gets another name below, so it goes.
+  await queryFn(`DELETE FROM user_aliases WHERE ${hasNoValidName('alias')};`)
 
   await nameLocalMembers(queryFn)
   await nameForeignMembers(queryFn)

@@ -211,8 +211,14 @@ export class RegisterUserRole<
     )
     if (!insertUserAliasResult.success) {
       if (insertUserAliasResult.error instanceof DBDuplicateEntryError) {
-        // seems someone sneaks in a registration between our prepare user call and the start of the transaction
-        dbUser.alias = await this.getFreeAlias(dbUser.gradidoId, tx)
+        // Somebody took the name between prepareUser and this write. Looked up again over the
+        // pool, not through `tx`: the unique index that refused the insert sees the current
+        // state, a plain read in this REPEATABLE READ transaction sees its read view -- fixed by
+        // the first read before this (a variant's checks), from before that other name was
+        // committed -- and would answer the same name again. A locking read through `tx` would
+        // see it, but gap-locks the index for every name that is NOT there, and two
+        // registrations into the same gap would deadlock.
+        dbUser.alias = await this.getFreeAlias(dbUser.gradidoId)
         insertUserAliasResult = await dbInsertUserAlias(
           {
             alias: dbUser.alias,
@@ -246,19 +252,20 @@ export class RegisterUserRole<
   //
   // Over the pool, not the transaction: a plain read there would fix what the transaction
   // sees before a variant takes its lock (dbLockUserRowDrizzle). Two registrations that pick
-  // the same name at once are told apart by `alias_key` when the row is written.
-  public async getFreeAlias(gradidoId: string, tx?: DrizzleTransaction): Promise<string> {
+  // the same name at once are told apart by `alias_key` when the row is written, and the
+  // one refused looks up once more (storeUserAndUserContact).
+  public async getFreeAlias(gradidoId: string): Promise<string> {
     let aliasCandidatesArray: string[] = []
     if (this.user.alias) {
       aliasCandidatesArray.push(this.user.alias)
     }
     aliasCandidatesArray = aliasCandidatesArray.concat(aliasCandidates(this.user))
-    const existingAliases = await dbFindUserAliasesExisting(aliasCandidatesArray, tx)
+    const existingAliases = await dbFindUserAliasesExisting(aliasCandidatesArray)
 
     let aliasCandidate = findFirstFreeAlias(existingAliases, aliasCandidatesArray)
     if (!aliasCandidate) {
       const additionalAliases = additionalAliasVariants(aliasCandidatesArray)
-      const existingAliases = await dbFindUserAliasesExisting(additionalAliases, tx)
+      const existingAliases = await dbFindUserAliasesExisting(additionalAliases)
       aliasCandidate = findFirstFreeAlias(existingAliases, additionalAliases)
     }
     if (!aliasCandidate) {

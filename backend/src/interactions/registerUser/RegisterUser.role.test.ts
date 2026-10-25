@@ -347,8 +347,9 @@ describe('RegisterUserRole', () => {
     })
 
     // Somebody took the name between the lookup over the pool and the write: the name is
-    // looked up once more, through the transaction this time, written again, and the row of
-    // the account is brought up to date with it.
+    // looked up once more - over the pool again, the transaction's read view is from before
+    // that other name was committed - written again, and the row of the account is brought up
+    // to date with it.
     it('walks on to another name when the one looked up was taken in the meantime', async () => {
       mocked(dbInsertUserAlias)
         .mockResolvedValueOnce(duplicateAlias('BerndH'))
@@ -360,7 +361,7 @@ describe('RegisterUserRole', () => {
       // Not insertedUserAlias(): the role writes the new name back onto the row it handed
       // dbInsertUser, so the mock's copy of it carries the second name as well.
       expect(mocked(dbInsertUserAlias).mock.calls[0][0].alias).toBe('BerndH')
-      expect(mocked(dbFindUserAliasesExisting).mock.calls[1][1]).toBe(tx)
+      expect(mocked(dbFindUserAliasesExisting).mock.calls[1][1]).toBeUndefined()
       expect(dbInsertUserAlias).toHaveBeenLastCalledWith(
         { alias: 'BerndHue', userId: USER_ID, origin: ALIAS_ORIGIN_ASSIGNED },
         tx,
@@ -1076,7 +1077,7 @@ describe('RegisterUserFromVouchingLinkRole', () => {
       }
       // The name is looked up before, over the pool: a plain read through the transaction
       // would fix what it sees before the lock.
-      expect(mocked(dbFindUserAliasesExisting).mock.calls[0][1]).toBeUndefined()
+      expect(mocked(dbFindUserAliasesExisting).mock.calls[0]).toHaveLength(1)
       expect(tx.execute).not.toHaveBeenCalled()
     })
 
