@@ -16,6 +16,15 @@ export const router = createRouter({
       // anchor does not scroll there. Kept as it was.
       return { selector: to.hash } as unknown as Awaited<ReturnType<RouterScrollBehavior>>
     }
-    return { left: 0, top: 0 }
+    // The same page with another query stays where it stands: a page that takes the view of the
+    // way back out of its address (utils/wayBackView.ts) rolls to its row itself.
+    if (from.matched?.length && to.path === from.path) {
+      return false
+    }
+    // At once, not with Bootstrap's smooth scrolling (`scroll-behavior: smooth` on the root): in
+    // the app on an iPhone the glide to the top came after the page had rolled to the row of the
+    // way back, and took the moderator to the top again (Bernd, 25.10.2026: "kurz der richtige
+    // Bildschirm", then the top of the page).
+    return { left: 0, top: 0, behavior: 'instant' }
   },
 })

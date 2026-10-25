@@ -72,8 +72,30 @@ describe('Router', () => {
         expect(scrollBehavior({ hash: '#to' }, {})).toEqual({ selector: '#to' })
       })
 
-      it('returns top left coordinates as default', () => {
-        expect(scrollBehavior({}, {})).toEqual({ left: 0, top: 0 })
+      // At once: Bootstrap glides (`scroll-behavior: smooth`), and in the app on an iPhone the
+      // glide came after the page had rolled to the row of the way back (25.10.2026).
+      it('goes to the top of another page at once', () => {
+        const from = { path: '/user', matched: [{}] }
+        expect(scrollBehavior({ path: '/creation-confirm', matched: [{}] }, from)).toEqual({
+          left: 0,
+          top: 0,
+          behavior: 'instant',
+        })
+      })
+
+      it('goes to the top at once on the first page of a visit', () => {
+        const start = { path: '/', matched: [] }
+        expect(scrollBehavior({ path: '/', matched: [{}] }, start)).toEqual({
+          left: 0,
+          top: 0,
+          behavior: 'instant',
+        })
+      })
+
+      // The page that takes the view of the way back out of its address rolls to its row itself.
+      it('stays where it stands when only the query of the page changes', () => {
+        const from = { path: '/creation-confirm', matched: [{}] }
+        expect(scrollBehavior({ path: '/creation-confirm', matched: [{}] }, from)).toBe(false)
       })
     })
 
