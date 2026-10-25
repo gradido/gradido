@@ -99,7 +99,6 @@ export const rollToRowAndHold = (selector: string, holdMs = ROW_HOLD_MS) => {
   }
   const rowTop = () => document.querySelector(selector)?.getBoundingClientRect().top ?? null
   const heldTop = rowTop()
-  const timers: ReturnType<typeof setTimeout>[] = []
   const keep = () => {
     const top = rowTop()
     if (top === null || heldTop === null) {
@@ -113,15 +112,15 @@ export const rollToRowAndHold = (selector: string, holdMs = ROW_HOLD_MS) => {
     for (const type of MOVED_BY_HAND) {
       window.removeEventListener(type, release, true)
     }
-    for (const timer of timers) {
-      clearTimeout(timer)
-    }
+    clearInterval(checks)
+    clearTimeout(end)
   }
   window.addEventListener('scroll', keep, { passive: true })
   for (const type of MOVED_BY_HAND) {
     window.addEventListener(type, release, { capture: true, passive: true })
   }
-  // A move that brings no scroll event along is caught as well.
-  timers.push(setTimeout(keep, 300), setTimeout(keep, 1000), setTimeout(release, holdMs))
+  // A move that brings no scroll event along is caught as well, for as long as the holding lasts.
+  const checks = setInterval(keep, 250)
+  const end = setTimeout(release, holdMs)
   return true
 }

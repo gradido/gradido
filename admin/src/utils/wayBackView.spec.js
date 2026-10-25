@@ -57,6 +57,15 @@ describe('rollToRowAndHold', () => {
     expect(scroll).toHaveBeenCalledTimes(2)
   })
 
+  it('keeps checking for such a move until the holding ends', () => {
+    rollToRowAndHold('[data-contribution-id="501"]')
+    vi.advanceTimersByTime(1500)
+    moveAway()
+    vi.advanceTimersByTime(300)
+    expect(scroll).toHaveBeenCalledTimes(2)
+    expect(top).toBe(8)
+  })
+
   it('leaves small moves alone', () => {
     rollToRowAndHold('[data-contribution-id="501"]')
     top = 20
