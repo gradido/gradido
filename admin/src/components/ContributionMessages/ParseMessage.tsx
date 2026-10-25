@@ -9,6 +9,13 @@ const LINK_REGEX_PATTERN =
 
 type MessagePart = { type: 'text' | 'link' | 'date' | 'amount'; text: string }
 
+// The forms a change is written in (ContributionMessage.builder.ts): the date by
+// Date.prototype.toString, the amount by GradidoUnit.toString, a decimal with a point. Only these
+// are read as a date and a number; anything else shows as written -- `01/02/2024` reads as a
+// different day in different countries, `0x10` as 16 (coderabbit, #4196).
+const RECORD_DATE = /^[A-Z][a-z]{2} [A-Z][a-z]{2} \d{2} \d{4} \d{2}:\d{2}:\d{2} GMT[+-]\d{4}\b/
+const RECORD_AMOUNT = /^-?\d+(\.\d+)?$/
+
 // Render a minimal, safe subset of markdown: **bold**. The text is
 // HTML-escaped first, then only the bold markers become <strong>, so a
 // message can never inject markup (messages come from users too).
@@ -87,19 +94,19 @@ export const ParseMessage = defineComponent({
       // A date or an amount the record holds in another form shows as it is written.
       if (type === 'date') {
         const date = new Date(text)
+        const readable = RECORD_DATE.test(text) && !Number.isNaN(date.getTime())
         return (
           <span>
-            {`${Number.isNaN(date.getTime()) ? text : d(date, 'short')} `}
+            {`${readable ? d(date, 'short') : text} `}
             <br />
           </span>
         )
       }
       if (type === 'amount') {
-        const value = Number(text)
         return (
           <span>
             <br />
-            {` ${Number.isFinite(value) ? n(value, 'decimal') : text} GDD`}
+            {` ${RECORD_AMOUNT.test(text) ? n(Number(text), 'decimal') : text} GDD`}
           </span>
         )
       }

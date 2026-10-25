@@ -52,7 +52,11 @@ describe('ParseMessage', () => {
   })
 
   it('shows a history entry as its date, the text and the amount', () => {
-    const wrapper = render('2024-01-02T03:04:05.000Z\n---\nOld memo\n---\n100', 'HISTORY')
+    // The date as the server writes it (Date.prototype.toString).
+    const wrapper = render(
+      'Tue Jan 02 2024 03:04:05 GMT+0000 (Coordinated Universal Time)\n---\nOld memo\n---\n100',
+      'HISTORY',
+    )
     const spans = wrapper
       .findAll('span')
       .filter((span) => span.element.parentElement === wrapper.element)
@@ -84,8 +88,21 @@ describe('ParseMessage', () => {
     expect(wrapper.text()).toContain('hundred GDD')
   })
 
+  // Only the forms the server writes are read as a date and a number: `01/02/2024` is a different
+  // day in different countries, `0x10` would read as 16 (coderabbit, #4196).
+  it('reads only the forms the server writes as a date and an amount', () => {
+    const wrapper = render('01/02/2024\n---\nOld memo\n---\n0x10', 'HISTORY')
+    expect(wrapper.text()).toContain('01/02/2024')
+    expect(wrapper.text()).not.toContain('D(')
+    expect(wrapper.text()).toContain('0x10 GDD')
+    expect(wrapper.text()).not.toContain('N(')
+  })
+
   it('keeps the dashes of a text that holds them, the amount being the last part', () => {
-    const wrapper = render('2024-01-02T03:04:05.000Z\n---\nOne\n---\nTwo\n---\n7', 'HISTORY')
+    const wrapper = render(
+      'Tue Jan 02 2024 03:04:05 GMT+0000 (Coordinated Universal Time)\n---\nOne\n---\nTwo\n---\n7',
+      'HISTORY',
+    )
     expect(wrapper.text()).toContain('One\n---\nTwo')
     expect(wrapper.text()).toContain('N(7) GDD')
   })
