@@ -472,6 +472,20 @@ describe('the dark mode of the admin', () => {
     expect(dark).toMatch(/^#[0-9a-f]{6}$/)
   })
 
+  // Bernd, 25.10.2026: Bootstrap draws a tooltip in the emphasis colour, white with dark words
+  // in the dark mode. A dark layer with the page's words instead, wholly opaque: at Bootstrap's
+  // 0.9 the words behind showed through it.
+  it('draws a tooltip dark, with the words of the page, wholly opaque', () => {
+    expect(declarationsOf(darkRules(app), `${DARK} .tooltip`)).toEqual({
+      '--bs-tooltip-bg': 'var(--bs-secondary-bg)',
+      '--bs-tooltip-color': 'var(--bs-body-color)',
+      '--bs-tooltip-opacity': '1',
+    })
+    expect(contrast(bridge['--bs-body-color'], bridge['--bs-secondary-bg'])).toBeGreaterThanOrEqual(
+      4.5,
+    )
+  })
+
   // Bernd, 25.10.2026: delete and deny in a calmer red and gold, as quiet as the green of
   // confirming beside them, the gold a step lighter than the red so that the two part by
   // brightness as well, a white sign on each. What waits for the moderation stands out on the
