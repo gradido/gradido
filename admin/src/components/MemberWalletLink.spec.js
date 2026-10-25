@@ -16,6 +16,7 @@ import { verifyLogin } from '@/graphql/verifyLogin'
 import de from '@/locales/de.json'
 import en from '@/locales/en.json'
 import { useAdminStore } from '@/store/useAdminStore'
+import { WAY_BACK_VIEW } from '@/utils/wayBackView'
 import { adminStore } from '../../test/adminStore'
 import { MemberWalletLink } from './MemberWalletLink'
 import classes from './MemberWalletLink.module.css'
@@ -1062,6 +1063,18 @@ describe('MemberWalletLink', () => {
       expect(page.searchParams.get('art')).toBe('email')
       expect(page.searchParams.get('admin')).toBe('/user')
       expect(page.hash).toBe('#send-form')
+    })
+
+    // A page whose view is more than its address says provides it (utils/wayBackView.ts): the
+    // tab, the page of the list, the open row of the member whose pin was pressed.
+    it('names the view the page provides, asked for the member of its row', async () => {
+      window.history.replaceState({}, '', '/admin/creation-confirm')
+      const view = vi.fn(() => '/creation-confirm?tab=2&page=3&open=501')
+      const provide = { [DefaultApolloClient]: client, [WAY_BACK_VIEW]: view }
+      await pinOf(createWrapper({ provide })).trigger('click')
+
+      expect(view).toHaveBeenCalledWith(BIBI)
+      expect(handedPage().searchParams.get('admin')).toBe('/creation-confirm?tab=2&page=3&open=501')
     })
   })
 

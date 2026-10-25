@@ -1,8 +1,9 @@
 import { useQuery } from '@vue/apollo-composable'
 import { flushPromises, mount } from '@vue/test-utils'
 import { BButton, BPagination } from 'bootstrap-vue-next'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { nextTick } from 'vue'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { h, inject, nextTick, ref } from 'vue'
+import { WAY_BACK_VIEW } from '@/utils/wayBackView'
 import { UserSearch } from './UserSearch'
 
 // Mock the composables and components
@@ -20,10 +21,11 @@ const { viewport } = await vi.hoisted(async () => {
   return { viewport: ref('unknown') }
 })
 vi.mock('@/composables/useViewport', () => ({ useViewport: () => viewport }))
-const { mockToastSuccess, mockT, route } = vi.hoisted(() => ({
+const { mockToastSuccess, mockT, route, mockReplace } = vi.hoisted(() => ({
   mockToastSuccess: vi.fn(),
   mockT: vi.fn((key) => key), // Mock translation function
   route: { query: {} },
+  mockReplace: vi.fn(),
 }))
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({ t: mockT }),
@@ -35,6 +37,7 @@ vi.mock('@/composables/useToast', () => ({
 }))
 vi.mock('vue-router', () => ({
   useRoute: () => route,
+  useRouter: () => ({ replace: mockReplace }),
 }))
 
 // Mock icon components
@@ -115,6 +118,7 @@ describe('UserSearch', () => {
 
   beforeEach(() => {
     route.query = {}
+    mockReplace.mockClear()
     viewport.value = 'unknown'
     mockToastSuccess.mockClear()
     // Mock the useQuery composable, with a copy per test: the page writes role changes into
@@ -286,9 +290,122 @@ describe('UserSearch', () => {
       await flushPromises()
     })
 
-    it('fills the query field with it and searches', () => {
+    // Its first question is the search: it used to ask for everybody first and then again for
+    // the search (utils/wayBackView.ts, 25.10.2026).
+    it('fills the query field with it and asks for it at once', () => {
       expect(wrapper.findComponent({ name: 'UserQuery' }).props('modelValue')).toBe('bibi')
-      expect(useQuery().refetch).toHaveBeenCalledWith({ query: 'bibi' })
+      expect(useQuery.mock.lastCall[1]).toMatchObject({ query: 'bibi' })
+      expect(useQuery().refetch).not.toHaveBeenCalledWith({ query: 'bibi' })
+    })
+
+    // An entry link with a search keeps it in the address: it is a place to come to.
+    it('leaves the search in the address', () => {
+      expect(mockReplace).not.toHaveBeenCalled()
+    })
+  })
+
+  // ⭐ Bernd, 25.10.2026: on the way back from the wallet in the app on his iPhone he came to
+  // the right page, "aber nicht an der Stelle in der Liste". The admin interface loads anew
+  // there, so the page names its view in the address a pin hands the wallet, and reads it back.
+  describe('the way back from the wallet', () => {
+    // A child of the page that asks for the view, as a pin in a row does.
+    let wayBackView
+    const asker = {
+      name: 'SearchUserTable',
+      setup() {
+        wayBackView = inject(WAY_BACK_VIEW, null)
+        return () => h('div', { class: 'search-user-table-stub' })
+      },
+    }
+
+    it('names its search, its page and the member whose pin was pressed', async () => {
+      wrapper = mountPage({ SearchUserTable: asker })
+      wrapper.findComponent({ name: 'UserQuery' }).vm.$emit('update:modelValue', 'bibi')
+      wrapper.findComponent({ name: 'BPagination' }).vm.$emit('update:modelValue', 3)
+      await flushPromises()
+      expect(wayBackView({ userId: 7 })).toBe('/user?search=bibi&page=3&member=7')
+    })
+
+    it('names the plain page where it stands at its start', () => {
+      wrapper = mountPage({ SearchUserTable: asker })
+      expect(wayBackView(null)).toBe('/user')
+    })
+
+    it('asks for that search at once, and takes the view out of the address', async () => {
+      route.query = { search: 'bibi', page: '3', member: '7' }
+      wrapper = mountPage()
+      await flushPromises()
+      expect(useQuery.mock.lastCall[1]).toMatchObject({ query: 'bibi', currentPage: 1 })
+      expect(mockReplace).toHaveBeenCalledWith({ query: { search: 'bibi' } })
+    })
+
+    // A list of three hundred, which comes when the test hands it over.
+    const listOfMany = () => ({
+      searchUsers: { ...structuredClone(mockSearchUsers), userCount: 300 },
+    })
+
+    // The pager takes a page back to the first while it knows no pages, and again as it comes
+    // to know them (bootstrap-vue-next, BPagination). Asked for at once, the page was lost.
+    it('goes to that page once the first list has come, and the real pager keeps it', async () => {
+      const result = ref(null)
+      const refetch = vi.fn()
+      useQuery.mockReturnValue({ result, refetch })
+      route.query = { search: 'bibi', page: '3' }
+      wrapper = mountPage({ BPagination })
+      await flushPromises()
+      expect(refetch).not.toHaveBeenCalled()
+
+      result.value = listOfMany()
+      await flushPromises()
+      expect(wrapper.findComponent(BPagination).props('modelValue')).toBe(3)
+      expect(refetch).toHaveBeenLastCalledWith(
+        expect.objectContaining({ query: 'bibi', currentPage: 3 }),
+      )
+    })
+
+    describe('the member whose pin was pressed', () => {
+      let row
+      let scroll
+
+      beforeEach(() => {
+        row = document.createElement('tr')
+        row.dataset.userId = '7'
+        document.body.appendChild(row)
+        scroll = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined)
+      })
+
+      afterEach(() => {
+        row.remove()
+        scroll.mockRestore()
+      })
+
+      it('is rolled to in the list of the page of the view, once', async () => {
+        const result = ref(null)
+        useQuery.mockReturnValue({ result, refetch: vi.fn() })
+        route.query = { search: 'bibi', page: '3', member: '7' }
+        wrapper = mountPage()
+        await flushPromises()
+
+        // The first list, before the page of the view is set.
+        result.value = listOfMany()
+        await flushPromises()
+        expect(scroll).not.toHaveBeenCalled()
+
+        // The list of that page, and one after it.
+        result.value = listOfMany()
+        await flushPromises()
+        expect(scroll).toHaveBeenCalledTimes(1)
+        result.value = listOfMany()
+        await flushPromises()
+        expect(scroll).toHaveBeenCalledTimes(1)
+      })
+
+      it('is rolled to in the first list where the view names no page', async () => {
+        route.query = { search: 'bibi', member: '7' }
+        wrapper = mountPage()
+        await flushPromises()
+        expect(scroll).toHaveBeenCalledTimes(1)
+      })
     })
   })
 
