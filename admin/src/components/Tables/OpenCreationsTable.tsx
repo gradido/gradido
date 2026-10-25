@@ -20,21 +20,21 @@ import { LIST_AVATAR_SIZE } from '@/constants'
 import { useAdminStore } from '@/store/useAdminStore'
 import { creationGroupLabels, creationGroupOption } from '@/utils/creationGroupLabel'
 import { isTheModerator } from '@/utils/theModerator'
-import IBiArrowDownCircle from '~icons/bi/arrow-down-circle'
-import IBiArrowUpCircle from '~icons/bi/arrow-up-circle'
+import IBiArrowDown from '~icons/bi/arrow-down'
+import IBiArrowUp from '~icons/bi/arrow-up'
 import IBiBellFill from '~icons/bi/bell-fill'
 import IBiChatDots from '~icons/bi/chat-dots'
 import IBiCheck from '~icons/bi/check'
 import IBiCheckLg from '~icons/bi/check-lg'
-import IBiExclamationCircleFill from '~icons/bi/exclamation-circle-fill'
 import IBiPencilFill from '~icons/bi/pencil-fill'
-import IBiQuestionDiamond from '~icons/bi/question-diamond'
+import IBiQuestionLg from '~icons/bi/question-lg'
 import IBiQuestionSquare from '~icons/bi/question-square'
 import IBiSearch from '~icons/bi/search'
 import IBiTrash from '~icons/bi/trash'
 import IBiX from '~icons/bi/x'
 import IBiXCircle from '~icons/bi/x-circle'
 import IBiXLg from '~icons/bi/x-lg'
+import IIcRoundPriorityHigh from '~icons/ic/round-priority-high'
 import creaLogo from '../../../public/img/crea-logo.jpg'
 import {
   ContributionMessagesList,
@@ -467,21 +467,26 @@ export const OpenCreationsTable = defineComponent({
     // arrow turned up, whatever the row holds: the button closes it, and the row's own button at
     // its end could go (Bernd, 24.10.2026). Closed: what is going on, and without a conversation
     // the arrow that opens the row, as on the closed tabs.
+    // White and without a frame of its own: the button is the frame, and a diamond around one
+    // sign, a disc behind another and a circle around a third made the column restless (Bernd,
+    // 25.10.2026). Only what waits for the moderation stands out, in a bright yellow
+    // (.details-signal): the member's answer and the member's change. The answer's mark is a bold
+    // one, as heavy as the pencil -- Bootstrap's own came out thinner than the question mark.
     const detailsIcon = (item: Contribution, showing: boolean) => {
       if (showing) {
-        return <IBiArrowUpCircle />
+        return <IBiArrowUp />
       }
       switch (detailsState(item)) {
         case 'question':
-          return <IBiQuestionDiamond class='text-warning' />
+          return <IBiQuestionLg />
         case 'answer':
-          return <IBiExclamationCircleFill class='text-warning' />
+          return <IIcRoundPriorityHigh class='details-signal' />
         case 'changed':
-          return <IBiPencilFill class='text-warning' />
+          return <IBiPencilFill class='details-signal' />
         case 'conversation':
           return <IBiChatDots />
         default:
-          return <IBiArrowDownCircle />
+          return <IBiArrowDown />
       }
     }
 

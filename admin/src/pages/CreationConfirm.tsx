@@ -615,17 +615,22 @@ export const CreationConfirm = defineComponent({
     // symbol stands above the word and the number at the corner (CreationConfirm.css).
     return () => (
       <div class='creation-confirm'>
-        <UserQuery v-model={query.value} class='mb-2 mt-2' placeholder={t('user_memo_search')} />
-        <p class='mb-2 d-flex align-items-center'>
-          <span class='me-2'>{t('creationGroupFilter.label')}</span>
+        {/* The search and the group side by side, both on the page's ground with an edge, and
+            the group without a word before it: each of its choices names the group (Bernd,
+            25.10.2026). On a narrow window they stand one above the other (CreationConfirm.css). */}
+        <div class='creation-filters mt-2 mb-2'>
+          <UserQuery
+            v-model={query.value}
+            class='creation-search'
+            placeholder={t('user_memo_search')}
+          />
           <ThemedSelect
             v-model={creationGroup.value}
             options={creationGroupFilterOptions.value}
             class='creation-group-filter'
-            style='max-width: 24rem'
             data-test='creation-group-filter'
           />
-        </p>
+        </div>
         {showResubmissionCheckbox.value ? (
           // The word is the label of the box, so a tap on it ticks the box too.
           <p class='mb-4 d-flex align-items-center hide-resubmission-row'>

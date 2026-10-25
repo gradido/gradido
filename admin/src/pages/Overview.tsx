@@ -440,7 +440,9 @@ export const Overview = defineComponent({
     return () => (
       <div class='admin-overview'>
         <h2 class='h4 mb-3'>{t('figures.title')}</h2>
-        <p class={[classes.figuresToday, 'mb-2']}>
+        {/* Room below the link, so that a finger on a phone takes it and not the date field
+            (Bernd, 25.10.2026). */}
+        <p class={[classes.figuresToday, 'mb-4']}>
           {creations.value ? (
             <BLink data-test='open-creations' to='/creation-confirm'>
               {todayText.value}

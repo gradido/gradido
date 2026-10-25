@@ -62,7 +62,10 @@ const FIXED_COLOURS_AT_MOST = {
   // 24.10.2026: the edge between two cards on a phone came (black at 60 %, Bernd's choice, with
   // its dark counterpart in a dark rule), the tint of the Crea button under the pointer went. The
   // Crea logo's dark blue edge, the big Crea button's, is a named colour, which this count misses.
-  [STYLES.table]: 9,
+  // 25.10.2026: delete and deny in a calmer red and gold, each with its shade under the pointer
+  // (four), and the yellow of what waits for the moderation (one), all the same in both modes;
+  // the gold every warning button took, twice, went.
+  [STYLES.table]: 12,
   [STYLES.page]: 0,
   [STYLES.app]: 1,
   // 25.10.2026: the four bubbles' colours went; every bubble takes the grey of a field.
