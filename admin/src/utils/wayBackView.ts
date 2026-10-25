@@ -78,3 +78,49 @@ export const rollToRow = (selector: string) => {
   })
   return true
 }
+
+/** How long the row of the way back is kept in sight, unless the moderator moves first. */
+export const ROW_HOLD_MS = 3000
+// What the moderator moves the page with: any of them ends the holding.
+const MOVED_BY_HAND = ['touchstart', 'pointerdown', 'wheel', 'keydown'] as const
+
+/**
+ * Rolls to the row, then keeps it where the roll put it for a moment. In the app on an iPhone the
+ * page stood at the row and went to its top a moment later, without the moderator's doing (Bernd,
+ * 25.10.2026: "kurz der richtige Bildschirm", then the top of the page): WebKit on iOS puts a page
+ * it has just loaded back to its top once it first draws it, and here that came after the roll.
+ * Moved away in the meantime, the window rolls back to the row. A touch, a click, the wheel or a
+ * key ends the holding at once, so the moderator's own scrolling is never undone; so do a few
+ * seconds, and a row that is gone.
+ */
+export const rollToRowAndHold = (selector: string, holdMs = ROW_HOLD_MS) => {
+  if (!rollToRow(selector)) {
+    return false
+  }
+  const rowTop = () => document.querySelector(selector)?.getBoundingClientRect().top ?? null
+  const heldTop = rowTop()
+  const keep = () => {
+    const top = rowTop()
+    if (top === null || heldTop === null) {
+      release()
+    } else if (Math.abs(top - heldTop) > 24) {
+      rollToRow(selector)
+    }
+  }
+  const release = () => {
+    window.removeEventListener('scroll', keep)
+    for (const type of MOVED_BY_HAND) {
+      window.removeEventListener(type, release, true)
+    }
+    clearInterval(checks)
+    clearTimeout(end)
+  }
+  window.addEventListener('scroll', keep, { passive: true })
+  for (const type of MOVED_BY_HAND) {
+    window.addEventListener(type, release, { capture: true, passive: true })
+  }
+  // A move that brings no scroll event along is caught as well, for as long as the holding lasts.
+  const checks = setInterval(keep, 250)
+  const end = setTimeout(release, holdMs)
+  return true
+}

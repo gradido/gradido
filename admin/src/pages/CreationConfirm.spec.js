@@ -1033,6 +1033,34 @@ describe('CreationConfirm', () => {
       }
     })
 
+    // In the app on an iPhone the page stood at the row and then at its top (utils/wayBackView.ts).
+    it('keeps the contribution in sight a moment, against the page being put back to its top', async () => {
+      let top = 500
+      const row = document.createElement('tr')
+      row.dataset.contributionId = '501'
+      row.getBoundingClientRect = () => ({ top })
+      document.body.appendChild(row)
+      const scroll = vi.spyOn(window, 'scrollTo').mockImplementation(() => {
+        top = 8
+      })
+      try {
+        const page = mountAt({ open: '501' })
+        const table = () => page.findComponent({ name: 'OpenCreationsTable' })
+        await flushPromises()
+        await simulateQueryResult(listOf([501]))
+        await table().vm.$emit('opened', 501)
+        await nextTick()
+        top = 508
+        window.dispatchEvent(new Event('scroll'))
+        expect(scroll).toHaveBeenCalledTimes(2)
+        expect(top).toBe(8)
+      } finally {
+        window.dispatchEvent(new Event('keydown'))
+        row.remove()
+        scroll.mockRestore()
+      }
+    })
+
     // Closed by the moderator, it stays closed: confirming another contribution asks for the
     // list again, and that list holds it as well.
     it('hands it once: a list that comes later leaves the rows as the moderator left them', async () => {
