@@ -187,9 +187,13 @@ describe('MemberAvatarZoom', () => {
     expect(modal).not.toBeNull()
     expect(modal.querySelector('.modal-footer')).toBeNull()
     expect(modal.querySelector('.modal-header')).toBeNull()
-    // The picture is there, and it is the only thing that is.
+    // The picture is there, and it is the only thing that is: its one button is the picture
+    // itself, which closes it (25.10.2026).
     expect(modal.querySelector('[data-test="member-avatar-zoom-small"]')).not.toBeNull()
-    expect(modal.querySelectorAll('button')).toHaveLength(0)
+    const buttons = modal.querySelectorAll('button')
+    expect(buttons).toHaveLength(1)
+    expect(buttons[0].dataset.test).toBe('member-avatar-zoom-closer')
+    expect(buttons[0].querySelector('[data-test="member-avatar-zoom-small"]')).not.toBeNull()
   })
 
   /**
@@ -243,7 +247,12 @@ describe('MemberAvatarZoom', () => {
     openMemberAvatarZoom({ member: margret, src: 'data:image/jpeg;base64,small', label: 'Margret' })
     await nextTick()
 
+    // A button with a name, so that a keyboard reaches it and a screen reader says what it does
+    // (coderabbit, #4199).
     const closer = wrapper.find('[data-test="member-avatar-zoom-closer"]')
+    expect(closer.element.tagName).toBe('BUTTON')
+    expect(closer.attributes('type')).toBe('button')
+    expect(closer.attributes('aria-label')).toBe('close')
     expect(closer.find('[data-test="member-avatar-zoom-small"]').exists()).toBe(true)
     await closer.find('[data-test="member-avatar-zoom-small"]').trigger('click')
     expect(memberAvatarZoomState.value).toBeNull()

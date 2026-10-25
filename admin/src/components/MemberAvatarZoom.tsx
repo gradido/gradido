@@ -108,13 +108,16 @@ export const MemberAvatarZoom = defineComponent({
         {/* A tap on the picture closes it again, as a tap anywhere does in the wallet's zoom
             (AvatarZoom.vue). Only a tap beside the window's box did here, and a moderator had
             to go looking for that place (Bernd, 25.10.2026). The area spans the box's whole
-            width, so the room beside the round face closes it as well. */}
-        <div
+            width, so the room beside the round face closes it as well. A button, so that a
+            keyboard reaches it and a screen reader names it (coderabbit, #4199); Escape stays. */}
+        <button
+          type='button'
           class={classes.memberAvatarZoomCloser}
+          aria-label={t('close')}
           data-test='member-avatar-zoom-closer'
           onClick={closeMemberAvatarZoom}
         >
-          <div class={classes.memberAvatarZoomStage}>
+          <span class={classes.memberAvatarZoomStage}>
             {shown.value ? (
               <img
                 class={classes.memberAvatarZoomImage}
@@ -133,8 +136,8 @@ export const MemberAvatarZoom = defineComponent({
                 data-test='member-avatar-zoom-full'
               />
             ) : null}
-          </div>
-        </div>
+          </span>
+        </button>
       </BModal>
     )
   },
