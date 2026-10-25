@@ -7,6 +7,27 @@ import type { i18n as adminI18n } from '../i18n'
 import type { useAdminStore } from '../store/useAdminStore'
 import { takeHandedOverToken } from '../utils/authToken'
 
+/**
+ * The page a sign-in goes on to: the one the wallet names (`redirect`) when it leads back here
+ * -- its bar "Zurück zum Admin" and its menu entry "Admin" after a pin, a bubble or an arrow
+ * of this interface (frontend/src/utils/adminWayBack.js) --, where it is a page of this router
+ * to work on; none otherwise, and the sign-in goes to the start. Never an address of another
+ * site: to a browser `//host` and `/\host` are one. Never the sign-in or the sign-out, and never
+ * a page the router does not know, which its catch-all would answer with "not found" -- a page
+ * renamed since the press, say (coderabbit, #4200).
+ */
+export const pageAfterSignIn = (
+  redirect: unknown,
+  router: Pick<Router, 'resolve'>,
+): string | null => {
+  if (typeof redirect !== 'string' || !/^\/(?![/\\])/.test(redirect) || /[\\\s]/.test(redirect)) {
+    return null
+  }
+  const page = router.resolve(redirect)
+  const known = !page.matched.some(({ name }) => name === 'NotFound')
+  return known && !['/authenticate', '/logout'].includes(page.path) ? redirect : null
+}
+
 export const addNavigationGuards = (
   router: Router,
   store: ReturnType<typeof useAdminStore>,
@@ -35,7 +56,9 @@ export const addNavigationGuards = (
           if (moderator.role) {
             i18n.global.locale.value = moderator.language
             store.setModerator(moderator)
-            next({ path: '/' })
+            const page = pageAfterSignIn(to.query?.redirect, router)
+            // A string, so that the router reads the page's own query as well.
+            next(page ?? { path: '/' })
           } else {
             next({ path: '/not-found' })
           }

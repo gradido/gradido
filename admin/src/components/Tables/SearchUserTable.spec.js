@@ -61,6 +61,11 @@ vi.mock('../DeletedUserFormular', () => ({
   },
 }))
 
+// The page the wallet is to go on to names the page of this interface the press was made on as
+// well (`admin`, the wallet's way back, MemberWalletLink.spec.js); these tests leave it out.
+const withoutWayBack = (page) =>
+  page.replace(/([?&])admin=[^&#]*(&)?/, (_, lead, tail) => (tail ? lead : ''))
+
 const propsData = {
   items: [
     {
@@ -383,7 +388,7 @@ describe('SearchUserTable', () => {
 
           expect(window.open).toHaveBeenCalledTimes(1)
           const address = new URL(window.open.mock.calls[0][0])
-          expect(address.searchParams.get('redirect')).toBe(
+          expect(withoutWayBack(address.searchParams.get('redirect'))).toBe(
             `/contacts?with=${rows[row].gradidoID}&community=${COMMUNITY}`,
           )
           expect(rowIsOpen()).toBe(false)
@@ -396,7 +401,7 @@ describe('SearchUserTable', () => {
         await pinIn(2).trigger('click')
 
         const address = new URL(window.open.mock.calls[0][0])
-        expect(address.searchParams.get('redirect')).toBe(
+        expect(withoutWayBack(address.searchParams.get('redirect'))).toBe(
           `/matching/karte?with=${rows[2].gradidoID}&community=${COMMUNITY}`,
         )
         vi.restoreAllMocks()
@@ -435,7 +440,7 @@ describe('SearchUserTable', () => {
         expect(window.open).toHaveBeenCalledTimes(1)
         const address = new URL(window.open.mock.calls[0][0])
         expect(address.searchParams.get('token')).toBe('valid-token')
-        expect(address.searchParams.get('redirect')).toBe(
+        expect(withoutWayBack(address.searchParams.get('redirect'))).toBe(
           `/matching/karte?with=${rows[2].gradidoID}&community=${COMMUNITY}`,
         )
       })
@@ -446,7 +451,7 @@ describe('SearchUserTable', () => {
         expect(window.open).toHaveBeenCalledTimes(1)
         const address = new URL(window.open.mock.calls[0][0])
         expect(address.searchParams.get('token')).toBe('valid-token')
-        expect(address.searchParams.get('redirect')).toBe(
+        expect(withoutWayBack(address.searchParams.get('redirect'))).toBe(
           `/send/${COMMUNITY}/${rows[3].gradidoID}?art=email#send-form`,
         )
       })

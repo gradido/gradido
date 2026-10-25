@@ -1,7 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createMemoryHistory, createRouter } from 'vue-router'
 import { CONFIG } from '../config'
 import { verifyLogin } from '../graphql/verifyLogin'
 import { addNavigationGuards } from './guards'
+import { routes } from './routes'
+
+// The admin interface's own routes, for what a page after the sign-in may be: the router
+// resolves an address the way it would navigate to it, and loads no page for it.
+const realRouter = createRouter({ history: createMemoryHistory(), routes })
 
 vi.mock('../graphql/verifyLogin', () => ({
   verifyLogin: 'mocked-verify-login-query',
@@ -31,6 +37,7 @@ describe('Navigation Guards', () => {
 
     router = {
       beforeEach: vi.fn(),
+      resolve: (to) => realRouter.resolve(to),
     }
 
     store = {
@@ -109,6 +116,41 @@ describe('Navigation Guards', () => {
 
       it('redirects to home on successful authentication', async () => {
         await firstGuard({ path: '/authenticate', query: { token: 'valid-token' } }, {}, next)
+        expect(next).toHaveBeenCalledWith({ path: '/' })
+      })
+
+      // The wallet's way back (its bar "Zurück zum Admin", frontend/src/utils/adminWayBack.js)
+      // names the page a pin, a bubble or an arrow was pressed on; the sign-in goes there.
+      it('goes on to the page the wallet names, with its own query', async () => {
+        await firstGuard(
+          {
+            path: '/authenticate',
+            query: { token: 'valid-token', redirect: '/creation-confirm?tab=open' },
+          },
+          {},
+          next,
+        )
+        expect(next).toHaveBeenCalledWith('/creation-confirm?tab=open')
+      })
+
+      it.each([
+        ['another site', '//evil.example/admin'],
+        ['another site, the other way round', '/\\evil.example'],
+        ['an address of its own', 'https://evil.example/'],
+        ['no page', ''],
+        ['the sign-in itself', '/authenticate?token=x'],
+        ['the sign-out', '/logout'],
+        // A page renamed since the press, say: the catch-all would answer "not found"
+        // (coderabbit, #4200).
+        ['a page this interface does not know', '/not-an-admin-page'],
+        ['"not found" itself', '/not-found'],
+        ['more than one', ['/user', '/creation-confirm']],
+      ])('goes to the start when the wallet names %s', async (_, redirect) => {
+        await firstGuard(
+          { path: '/authenticate', query: { token: 'valid-token', redirect } },
+          {},
+          next,
+        )
         expect(next).toHaveBeenCalledWith({ path: '/' })
       })
 

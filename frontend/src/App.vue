@@ -2,6 +2,7 @@
   <div id="app" ref="app" :class="darkMode ? 'dark-mode' : ''">
     <BToastOrchestrator />
     <app-outdated-bar />
+    <admin-way-back-bar />
     <div :class="$route.meta.requiresAuth ? 'app-content' : ''">
       <component :is="$route.meta.requiresAuth ? DashboardLayout : AuthLayout" />
       <div class="goldrand position-fixed fixed-bottom zindex1000"></div>
@@ -15,6 +16,7 @@ import { useWalletStore } from '@/store/useWalletStore'
 import DashboardLayout from '@/layouts/DashboardLayout'
 import { AuthLayout } from '@/layouts/AuthLayout'
 import AppOutdatedBar from '@/components/AppOutdatedBar'
+import AdminWayBackBar from '@/components/AdminWayBackBar.vue'
 
 const store = useWalletStore()
 

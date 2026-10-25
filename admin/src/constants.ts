@@ -1,6 +1,12 @@
 // AI-GENERATED — not an architecture reference
 
 /**
+ * Where the admin interface lives on its origin: its router's base (router/router.ts), and the
+ * part of an address that comes before a page of it (components/MemberWalletLink.tsx).
+ */
+export const ROUTER_BASE = '/admin/'
+
+/**
  * The face beside a person, wherever this interface shows one: the contribution row and the
  * moderation dialogue.
  *

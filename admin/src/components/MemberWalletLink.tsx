@@ -9,6 +9,7 @@ import {
 } from '@/composables/useModeratorContacts'
 import { useAppToast } from '@/composables/useToast'
 import { CONFIG } from '@/config'
+import { ROUTER_BASE } from '@/constants'
 import { verifyLogin } from '@/graphql/verifyLogin'
 import { useAdminStore } from '@/store/useAdminStore'
 import { handOverAddress } from '@/utils/authToken'
@@ -275,11 +276,29 @@ export const MemberWalletLink = defineComponent({
     )
     const label = computed(() => face.value?.label() ?? '')
 
+    /**
+     * The wallet's page with the page of this interface the press was made on, as the router
+     * names it (`admin=/creation-confirm`): the wallet keeps it for its way back, the bar
+     * "Zurück zum Admin" and the menu entry "Admin" (frontend/src/utils/adminWayBack.js), and the
+     * sign-in leads there (router/guards.ts). In an installed app on a phone the window can be
+     * the app's only one, where nothing else led back (Bernd, 25.10.2026). Before the anchor,
+     * where a query belongs.
+     */
+    const withWayBack = (page: string) => {
+      const { pathname, search } = window.location
+      const here = pathname.startsWith(ROUTER_BASE)
+        ? `/${pathname.slice(ROUTER_BASE.length)}`
+        : pathname
+      const [path, anchor] = page.split('#')
+      const back = `admin=${encodeURIComponent(here + search)}`
+      return `${path}${path.includes('?') ? '&' : '?'}${back}${anchor === undefined ? '' : `#${anchor}`}`
+    }
+
     const openInWallet = (page: string, blockedText: string) => {
       const address =
         handOverAddress(CONFIG.WALLET_AUTH_URL, store.token) +
         '&redirect=' +
-        encodeURIComponent(page)
+        encodeURIComponent(withWayBack(page))
       // ⛔ Never this window itself: see dropMapWindowName.
       dropMapWindowName()
       const opened = window.open(address, WINDOW_NAME, WINDOW_FEATURES)
