@@ -1,5 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { mount } from '@vue/test-utils'
+import flushPromises from 'flush-promises'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
@@ -93,6 +94,35 @@ describe('AdminWayBackBar', () => {
     await nextTick()
     expect(bar(wrapper).exists()).toBe(false)
     expect(moved()).toBe(false)
+  })
+
+  // A reload, or a step back to this address later, would offer the way back again -- to a
+  // member signed in since as well (coderabbit, #4200). The rest of the address stays, the
+  // anchor of the send form too.
+  it('takes the admin page out of the address once it is kept, and leaves the rest', async () => {
+    await mountBar(`/send/home/g-carla?art=email&admin=${encodeURIComponent(ADMIN_PAGE)}#send-form`)
+    await flushPromises()
+    const now = router.currentRoute.value
+    expect(now.path).toBe('/send/home/g-carla')
+    expect(now.query).toEqual({ art: 'email' })
+    expect(now.hash).toBe('#send-form')
+  })
+
+  // The sign-in a visit from the admin interface brings can come after its first page: the page
+  // stays in the address until there is a member to keep it for.
+  it('keeps it in the address until a member is signed in, then takes it', async () => {
+    pinia = walletStore({ token: 'valid-token', gradidoID: null })
+    const wrapper = await mountBar(
+      `/matching/karte?with=g-bibi&admin=${encodeURIComponent(ADMIN_PAGE)}`,
+    )
+    await flushPromises()
+    expect(router.currentRoute.value.query.admin).toBe(ADMIN_PAGE)
+    expect(bar(wrapper).exists()).toBe(false)
+
+    useWalletStore(pinia).gradidoID = 'g-anna'
+    await flushPromises()
+    expect(bar(wrapper).exists()).toBe(true)
+    expect(router.currentRoute.value.query).toEqual({ with: 'g-bibi' })
   })
 
   it('names no other site as the way back', async () => {

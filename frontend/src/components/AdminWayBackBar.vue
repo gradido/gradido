@@ -20,12 +20,13 @@
 // to the start of the admin interface (Bernd, 25.10.2026). The bar stays while the moderator
 // moves on in the wallet; it goes with the step back.
 import { onBeforeUnmount, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import CONFIG from '@/config'
 import { useWalletStore } from '@/store/useWalletStore'
-import { goBackToAdmin, rememberWayBack, wayBackFor } from '@/utils/adminWayBack'
+import { adminPath, goBackToAdmin, rememberWayBack, wayBackFor } from '@/utils/adminWayBack'
 
 const route = useRoute()
+const router = useRouter()
 const store = useWalletStore()
 
 // The page of the admin interface this member came from, read again whenever what decides it
@@ -39,12 +40,22 @@ const readBack = () => {
 // address once the window is open, so it is kept as soon as it is seen -- for the member signed
 // in, or for the one the visit's sign-in brings where they arrive after the page. Not for
 // another member who comes later on the same address: they never were in that admin page.
+//
+// Once kept for this member, it goes from the address, as the conversation takes the member it
+// was opened on out of its own (Contacts.vue): a reload, or a step back to this address later,
+// would offer the way back again -- to a member signed in since as well (coderabbit, #4200).
+// Through the router, so that a page replacing its address after this one does not write it in
+// again; not before it is kept, or a member whose sign-in comes after the page would lose it.
 watch(
   () => [route.query.admin, store.gradidoID],
   ([page, member], [pageBefore, memberBefore] = []) => {
     const pageSeen = page !== pageBefore
     const firstMember = !memberBefore && Boolean(member)
     if (pageSeen || firstMember) rememberWayBack(page, member)
+    if (page !== undefined && member && wayBackFor(member) === adminPath(page)) {
+      const { admin: _kept, ...rest } = route.query
+      router.replace({ query: rest, hash: route.hash })
+    }
     readBack()
   },
   { immediate: true },
