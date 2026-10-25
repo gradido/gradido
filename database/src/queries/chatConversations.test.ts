@@ -248,6 +248,8 @@ describe('dbSelectDirectChatContactsByMember', () => {
   let noahRow: DbUser
   let piaRow: DbUser
   let noahsSecond: number
+  let latestWithNoah: number
+  let latestWithOlga: number
 
   beforeAll(async () => {
     noahRow = await withUserRow(NOAH, 'noahChat')
@@ -264,7 +266,7 @@ describe('dbSelectDirectChatContactsByMember', () => {
     await write(withNoah.id, MIA, 1)
     noahsSecond = (await write(withNoah.id, NOAH, 2)).id
     await write(withNoah.id, NOAH, 3)
-    await write(withNoah.id, MIA, 4)
+    latestWithNoah = (await write(withNoah.id, MIA, 4)).id
     const deleted = await write(withNoah.id, NOAH, 5)
     await db
       .update(chatMessagesTable)
@@ -275,7 +277,7 @@ describe('dbSelectDirectChatContactsByMember', () => {
     // answer FROM Olga would need a users row for her here, because the receiving server finds
     // the sender by it (SendEmailCommand) -- so without one, this is the shape that occurs.
     const withOlga = await dbEnsureDirectChatConversation(MIA, OLGA)
-    await write(withOlga.id, MIA, 7)
+    latestWithOlga = (await write(withOlga.id, MIA, 7)).id
 
     const withPia = await dbEnsureDirectChatConversation(PIA, MIA)
     await write(withPia.id, PIA, 8)
@@ -353,6 +355,16 @@ describe('dbSelectDirectChatContactsByMember', () => {
     const { [NOAH.gradidoId]: noah } = await contactsOf(MIA)
     expect(noah.firstAt.getTime()).toBe(at(1).getTime())
     expect(noah.lastAt.getTime()).toBe(at(4).getTime())
+  })
+
+  // The message whose beginning the contact list shows under the name (E-083): the latest one,
+  // whoever wrote it -- day 4 is Mia's own --, and never one marked deleted (day 5).
+  it('points at the latest message of each conversation, a deleted one not counted', async () => {
+    const { [NOAH.gradidoId]: noah, [OLGA.gradidoId]: olga } = await contactsOf(MIA)
+    expect(noah.lastMessageId).toBe(latestWithNoah)
+    expect(olga.lastMessageId).toBe(latestWithOlga)
+    // From the other side the same message.
+    expect((await contactsOf(NOAH))[MIA.gradidoId].lastMessageId).toBe(latestWithNoah)
   })
 
   it("counts as unread only the other side's messages, and no deleted one", async () => {
@@ -559,18 +571,23 @@ describe('groups (P5)', () => {
     const [afterDeletion] = await groupsOf(CARL)
     expect(afterDeletion.unreadMessages).toBe(0)
     expect(afterDeletion.lastMessageAt?.getTime()).toBe(fromDora.createdAt.getTime())
+    // The line under the group's name (E-083) shows the same message, not the deleted one.
+    expect(afterDeletion.lastMessageId).toBe(fromDora.id)
     expect(fromCarl.id).toBeLessThan(fromDora.id)
   })
 
   it('leaves the date of the latest message empty for a group without one', async () => {
     const doras = await groupsOf(DORA)
-    expect(doras.find((group) => group.id === choir.id)?.lastMessageAt).toBeNull()
+    const silent = doras.find((group) => group.id === choir.id)
+    expect(silent?.lastMessageAt).toBeNull()
+    expect(silent?.lastMessageId).toBeNull()
   })
 
   it('puts the group with the latest message first', async () => {
-    await write(choir.id, DORA, 'Probe am Montag')
+    const rehearsal = await write(choir.id, DORA, 'Probe am Montag')
     const doras = await groupsOf(DORA)
     expect(doras.map((group) => group.id)).toEqual([choir.id, cafe.id])
+    expect(doras[0].lastMessageId).toBe(rehearsal.id)
   })
 
   it("carries the member's own mute mark, and nobody else's", async () => {

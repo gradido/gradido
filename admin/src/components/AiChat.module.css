@@ -165,3 +165,94 @@
     transform: translateY(0);
   }
 }
+
+/* A phone: the open chat is a sheet over the whole width at the bottom of the window, its close
+   button and "clear the chat" inside it, the words 14px. As a box of 550 × 480 anchored 20px from
+   the right it lay 250px past the left edge at 320px, with both of those buttons outside
+   (measured 23.10.2026). The container spans the width; the button that opens the chat keeps
+   its place 20px from the corner, and the container is no taller than what it shows -- closed,
+   the button stands absolutely and takes no height, so the page around it can still be pressed.
+   dvh with vh before it, as the wallet writes it: an engine without dvh drops the second line. */
+@media (width < 992px) {
+  .chatContainer {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    font-size: 0.875rem;
+  }
+
+  .chatToggleButton {
+    bottom: 20px;
+    right: 20px;
+  }
+
+  .chatWindow {
+    width: 100%;
+    height: min(480px, 80vh);
+    height: min(480px, 80dvh);
+    border-radius: 0.5rem 0.5rem 0 0;
+  }
+
+  .chatClearButton {
+    font-size: 0.875rem;
+  }
+
+  /* The copy button is a square of 44px on a phone (App.css). Anchored by its left edge, 4px over
+     the edge of the bubble as it stood, it grows away from the text: anchored on the right as at
+     the desk, its left edge stood 7px inside the room of the text (measured 23.10.2026). */
+  .copyClipboardButton {
+    right: auto;
+    left: calc(100% - 4px);
+  }
+}
+
+/* The dark mode (App.css): the window a card's ground above the page, the stream the page's own,
+   the member's bubble a field's ground, Crea's the wallet's tone for an entry under the pointer
+   (#43464c, 7.4) and an error a dark red with the red of App.css (5.8). The buttons are light
+   ones and the hint is muted text: the bridge darkens both. */
+:root[data-bs-theme='dark'] .chatWindow {
+  background-color: var(--bs-tertiary-bg);
+  border-color: var(--bs-border-color);
+  box-shadow: 0 4px 8px rgb(0 0 0 / 50%);
+}
+
+/* The whole of the stream: the list is only as tall as the messages it holds, and below it the
+   scroll box would show the window's ground -- a step of 1.3 : 1 where the light mode's two
+   whites stand at 1.05. */
+:root[data-bs-theme='dark'] .messagesScrollContainer,
+:root[data-bs-theme='dark'] .messages {
+  background-color: var(--bs-body-bg);
+}
+
+:root[data-bs-theme='dark'] .message:global(.user) .messageContent {
+  background-color: var(--bs-secondary-bg);
+  color: var(--bs-body-color);
+  border-color: var(--bs-border-color);
+}
+
+:root[data-bs-theme='dark'] .message:global(.assistant) .messageContent {
+  background-color: #43464c;
+  color: var(--bs-body-color);
+}
+
+:root[data-bs-theme='dark'] .message:global(.error) .messageContent {
+  background-color: #3a2222;
+  color: #f58080;
+}
+
+:root[data-bs-theme='dark'] .inputArea {
+  background-color: var(--bs-tertiary-bg);
+  border-top-color: var(--bs-border-color);
+}
+
+/* The field's edge as every field's in the dark, at rest only: focused, Bootstrap's blue edge wins
+   over the grey above as it does in the light mode. */
+:root[data-bs-theme='dark'] .inputArea textarea:not(:focus) {
+  border-color: var(--bs-border-color);
+}
+
+/* The wallet's --menu-border; the dark blue of the light mode is next to nothing on the page.
+   At rest only: under the pointer Bootstrap's edge takes over, as in the light mode. */
+:root[data-bs-theme='dark'] .chatToggleButton:not(:hover) {
+  border-color: #6e727a;
+}

@@ -251,6 +251,9 @@
     "sentMailed": "Inviato. {name} riceve un'e-mail.",
     "toConversation": "Vai alla conversazione"
   },
+  "chatPreview": {
+    "by": "{name}:"
+  },
   "chatSearch": {
     "capped": "La ricerca ha riguardato gli ultimi {count} messaggi.",
     "count": "{current} di {count}",
@@ -744,6 +747,7 @@
     "imprint": "Note legali",
     "inspector": "Inspector (sperimentale)",
     "privacy_policy": "Informativa sulla privacy",
+    "socialLink": "Gradido su {platform}",
     "whitepaper": "Whitepaper"
   },
   "form": {

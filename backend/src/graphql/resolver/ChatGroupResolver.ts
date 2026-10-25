@@ -66,6 +66,7 @@ import {
 import { groupOfCaller, groupOfCallerOrFail } from './util/chatGroupOfCaller'
 import { chatMemberKey, chatMemberUsers } from './util/chatMemberUsers'
 import { chatMessagesOf } from './util/chatMessagesOf'
+import { chatMessagePreviews } from './util/chatPreviews'
 import { checkedReplyTo } from './util/chatReply'
 import { acceptedPicture, callerOf } from './util/chatRequest'
 import { resolveCommunityUuid } from './util/communities'
@@ -91,10 +92,17 @@ const countGroupList = (context: Context): void => {
 }
 
 /**
- * The groups as ChatGroup models: the name of the community each lives in, and who opened each --
- * the users of all of them in one go (chatMemberUsers), never one query per group.
+ * The groups as ChatGroup models: the name of the community each lives in, who opened each, and
+ * the line of its latest message as `caller` reads it (E-083) -- the users of all of them in one
+ * go (chatMemberUsers), the messages too (chatMessagePreviews), never one query per group.
+ *
+ * Every group answer carries the line, not only the list: the wallet asks every one of them with
+ * the same fragment (graphql/chatGroups.graphql), and the answers to a change feed the same list.
  */
-const chatGroupsOf = async (groups: ChatGroupOfMember[]): Promise<ChatGroup[]> => {
+const chatGroupsOf = async (
+  groups: ChatGroupOfMember[],
+  caller: ChatMemberRef,
+): Promise<ChatGroup[]> => {
   if (groups.length === 0) {
     return []
   }
@@ -102,9 +110,14 @@ const chatGroupsOf = async (groups: ChatGroupOfMember[]): Promise<ChatGroup[]> =
     communityUuid: group.createdByCommunityUuid,
     gradidoId: group.createdByGradidoId,
   })
-  const [founders, home] = await Promise.all([
+  // The line under each group's name (E-083): its latest message, read for all groups at once.
+  const latest = groups
+    .map((group) => group.lastMessageId)
+    .filter((id): id is number => id !== null)
+  const [founders, home, previews] = await Promise.all([
     chatMemberUsers(groups.map(founderOf)),
     getHomeCommunity(),
+    chatMessagePreviews(latest, caller, { namingWriters: true }),
   ])
   return groups.map(
     (group) =>
@@ -112,6 +125,7 @@ const chatGroupsOf = async (groups: ChatGroupOfMember[]): Promise<ChatGroup[]> =
         group,
         isSameCommunity(group.homeCommunityUuid, home?.communityUuid) ? (home?.name ?? null) : null,
         founders.get(chatMemberKey(founderOf(group))) ?? null,
+        group.lastMessageId === null ? null : (previews.get(group.lastMessageId) ?? null),
       ),
   )
 }
@@ -128,7 +142,7 @@ const chatGroupOfCaller = async (
     // The caller is in it -- put in or found there a moment ago: without their row, a bug.
     throw new LogError('CHAT_GROUP_NOT_FOUND right after writing it', conversationId)
   }
-  const [model] = await chatGroupsOf([group])
+  const [model] = await chatGroupsOf([group], caller)
   return model
 }
 
@@ -262,7 +276,8 @@ export class ChatGroupResolver {
   @Query(() => [ChatGroup])
   async chatGroups(@Ctx() context: Context): Promise<ChatGroup[]> {
     countGroupList(context)
-    return chatGroupsOf(await dbSelectChatGroupsByMember(callerOf(context)))
+    const caller = callerOf(context)
+    return chatGroupsOf(await dbSelectChatGroupsByMember(caller), caller)
   }
 
   /**

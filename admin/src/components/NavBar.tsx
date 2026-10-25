@@ -4,6 +4,7 @@ import {
   BBadge,
   BCollapse,
   BDropdownDivider,
+  BDropdownHeader,
   BDropdownItem,
   BNavbar,
   BNavbarBrand,
@@ -18,6 +19,7 @@ import { computed, defineComponent, Fragment, ref, withDirectives } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { MemberAvatar } from '@/components/MemberAvatar'
+import { type ThemeMode, themeMode, writeThemeMode } from '@/composables/useTheme'
 import { NAV_AVATAR_SIZE } from '@/constants'
 import { useAdminStore } from '@/store/useAdminStore'
 import { handOverAddress, sharesOrigin } from '@/utils/authToken'
@@ -140,6 +142,25 @@ export const NavBar = defineComponent({
         },
       }
     })
+
+    // Light, dark or the system's, for this device and with the wallet's words (AO-012): what is
+    // chosen here, the wallet takes when it opens next, and a choice there reaches this tab at once.
+    const themeChoices = computed((): { mode: ThemeMode; label: string }[] => [
+      { mode: 'system', label: t('navbar.theme.system') },
+      { mode: 'light', label: t('navbar.theme.light') },
+      { mode: 'dark', label: t('navbar.theme.dark') },
+    ])
+
+    // A choice applies at once (useTheme.ts) and closes the menu, as Bootstrap closes it on every
+    // click inside. The focus goes back to the face, as after Escape: the entry it stood on is
+    // hidden with the menu, and the browser would drop it to the page.
+    const chooseTheme = (mode: ThemeMode) => (event: MouseEvent) => {
+      writeThemeMode(mode)
+      const face = (event.currentTarget as HTMLElement)
+        .closest('.dropdown')
+        ?.querySelector<HTMLElement>('.dropdown-toggle')
+      face?.focus()
+    }
 
     // Below the breakpoint the entries are a list that covers the page. A choice closes it,
     // also the choice of the page that is already open, which changes no route.
@@ -267,6 +288,10 @@ export const NavBar = defineComponent({
             <BNavbarNav class='navbar-account'>
               <BNavItemDropdown
                 placement='bottom-end'
+                // Fixed to the window. Hung absolutely, Bootstrap's way, the open menu made the
+                // page wider than a phone, and a phone could pan it sideways: 590 px of page at
+                // 320 px on master, 734 with the switch in it (measured 24.10.2026).
+                strategy='fixed'
                 offset={ACCOUNT_MENU_OFFSET}
                 aria-label={account.value.name}
                 data-test='navbar-account'
@@ -282,6 +307,26 @@ export const NavBar = defineComponent({
                         <div class='navbar-account-name'>{account.value.name}</div>
                         <div class='navbar-account-role'>{account.value.role}</div>
                       </li>
+                      <BDropdownDivider />
+                      <BDropdownHeader>{t('navbar.appearance')}</BDropdownHeader>
+                      {/* ⚠️ The markup of BDropdownItemButton, written out: the library copies
+                          what is no prop of an entry (`role`, `aria-checked`) once, when it sets
+                          the entry up, and the menu sets its entries up with the bar -- a screen
+                          reader would hear the first mark for good. */}
+                      {themeChoices.value.map(({ mode, label }) => (
+                        <li key={mode} role='presentation'>
+                          <button
+                            type='button'
+                            class={['dropdown-item', { active: themeMode.value === mode }]}
+                            role='menuitemradio'
+                            aria-checked={themeMode.value === mode ? 'true' : 'false'}
+                            data-test={`navbar-theme-${mode}`}
+                            onClick={chooseTheme(mode)}
+                          >
+                            {label}
+                          </button>
+                        </li>
+                      ))}
                       <BDropdownDivider />
                       <BDropdownItem data-test='navbar-wallet' onClick={handleWallet}>
                         {t('navbar.my-account')}

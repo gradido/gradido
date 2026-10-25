@@ -444,9 +444,12 @@ export class ContributionResolver {
     const emailContactRequested =
       fieldPaths.has('contributionList.user.emailContact') || filter.query !== undefined
     // check if related messages were requested
-    const messagesRequested = ['messagesCount', 'messages'].some((field) =>
-      fieldPaths.has(`contributionList.${field}`),
-    )
+    const messagesRequested = [
+      'messagesCount',
+      'messages',
+      'lastMessageType',
+      'lastMessageByModerator',
+    ].some((field) => fieldPaths.has(`contributionList.${field}`))
     // Group functions: a group moderator only sees the contributions of their tags. This
     // covers BOTH moderator kinds — a MODERATOR_AI is a moderator who may additionally use
     // Crea, so the same visibility scope applies (see isScopedModeratorRole).

@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { useApolloClient, useQuery } from '@vue/apollo-composable'
 import { BContainer, BListGroup, BListGroupItem, BTooltip } from 'bootstrap-vue-next'
-import { computed, defineComponent, type PropType, ref } from 'vue'
+import { computed, defineComponent, type PropType, ref, toDisplayString } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 import { MemberWalletLink } from '@/components/MemberWalletLink'
@@ -37,9 +37,6 @@ export type Contribution = {
     [field: string]: unknown
   }
 }
-
-// The space the card leaves between its parts: a space on either side of a non-breaking one.
-const GAP = '   '
 
 export const ContributionMessagesList = defineComponent({
   name: 'ContributionMessagesList',
@@ -129,19 +126,26 @@ export const ContributionMessagesList = defineComponent({
     return () => (
       <div class='contribution-messages-list'>
         <BListGroup>
-          <BListGroupItem>
+          {/* The parts of the member line stand side by side at the desk and wrap on a phone,
+              each as a whole. The username keeps its pin and its arrow beside it: they are its
+              buttons, and the space between is the one their keyboard ring stands in
+              (MemberWalletLink.module.css). */}
+          <BListGroupItem class='d-flex flex-wrap align-items-center column-gap-3 row-gap-1'>
             {/* `title` is no prop of RouterLink: it falls through to the anchor. */}
             <RouterLink to={searchLink.value} title={t('goTo.userSearch')}>
-              {`${props.contribution.user.firstName} ${props.contribution.user.lastName}`}
+              {/* toDisplayString: as {{ }} did, a name that is null shows as nothing, not as 'null' */}
+              {`${toDisplayString(props.contribution.user.firstName)} ${toDisplayString(props.contribution.user.lastName)}`}
             </RouterLink>
-            {GAP}
-            <a href={mailtoLink.value}>{email.value}</a>
-            {`${GAP}${props.contribution.user.publicName} `}
-            <MemberWalletLink
-              member={props.contribution.user}
-              name={props.contribution.user.alias || props.contribution.user.firstName}
-            />
-            {GAP}
+            <a href={mailtoLink.value} class='text-break'>
+              {email.value}
+            </a>
+            <span>
+              {`${toDisplayString(props.contribution.user.publicName)} `}
+              <MemberWalletLink
+                member={props.contribution.user}
+                name={props.contribution.user.alias || props.contribution.user.firstName}
+              />
+            </span>
             <span>
               {humhubProfileLink.value ? (
                 <a id='humhub-username' href={humhubProfileLink.value} target='_blank'>

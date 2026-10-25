@@ -10,9 +10,9 @@ import {
   watch,
 } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { CollapseIcon } from '@/components/CollapseIcon'
 import { MemberAvatar } from '@/components/MemberAvatar'
 import { ThemedSelect } from '@/components/ThemedSelect'
+import { useDateFormatter } from '@/composables/useDateFormatter'
 import { memberAvatarProps } from '@/composables/useMemberAvatars'
 import { openMemberAvatarZoom } from '@/composables/useMemberAvatarZoom'
 // The one size a face has in this interface, the same as in the wallet.
@@ -20,16 +20,21 @@ import { LIST_AVATAR_SIZE } from '@/constants'
 import { useAdminStore } from '@/store/useAdminStore'
 import { creationGroupLabels, creationGroupOption } from '@/utils/creationGroupLabel'
 import { isTheModerator } from '@/utils/theModerator'
+import IBiArrowDownCircle from '~icons/bi/arrow-down-circle'
+import IBiArrowUpCircle from '~icons/bi/arrow-up-circle'
 import IBiBellFill from '~icons/bi/bell-fill'
 import IBiChatDots from '~icons/bi/chat-dots'
 import IBiCheck from '~icons/bi/check'
+import IBiCheckLg from '~icons/bi/check-lg'
 import IBiExclamationCircleFill from '~icons/bi/exclamation-circle-fill'
+import IBiPencilFill from '~icons/bi/pencil-fill'
 import IBiQuestionDiamond from '~icons/bi/question-diamond'
 import IBiQuestionSquare from '~icons/bi/question-square'
 import IBiSearch from '~icons/bi/search'
 import IBiTrash from '~icons/bi/trash'
 import IBiX from '~icons/bi/x'
 import IBiXCircle from '~icons/bi/x-circle'
+import IBiXLg from '~icons/bi/x-lg'
 import creaLogo from '../../../public/img/crea-logo.jpg'
 import {
   ContributionMessagesList,
@@ -53,7 +58,10 @@ export type Contribution = {
   id: number
   memo: string
   userId: number
+  amount?: string
+  contributionDate?: string
   createdAt: string
+  closedAt?: string | null
   contributionStatus: string
   messagesCount: number
   user?: Member | null
@@ -65,6 +73,10 @@ export type Contribution = {
   moderatorUserName?: string
   updatedBy?: number
   updatedByUserName?: string
+  // The newest message of the conversation with the member (the server leaves the moderators'
+  // internal notes out): its kind and whether a moderator wrote it. Null without a conversation.
+  lastMessageType?: 'DIALOG' | 'HISTORY' | null
+  lastMessageByModerator?: boolean | null
 }
 
 type Row = {
@@ -105,6 +117,18 @@ export const OpenCreationsTable = defineComponent({
       type: Boolean,
       default: false,
     },
+    // Whether this tab offers Crea to this moderator at all. At the desk the page decides it by
+    // leaving the column out; a phone card has no columns, so it is told.
+    showCrea: {
+      type: Boolean,
+      default: false,
+    },
+    // The "all" tab mixes the states. At the desk a column of its own says which one a row is
+    // in; a phone card says it in its head.
+    showStatus: {
+      type: Boolean,
+      default: false,
+    },
     creationGroups: {
       type: Array as PropType<CreationGroup[]>,
       required: false,
@@ -131,6 +155,7 @@ export const OpenCreationsTable = defineComponent({
   setup(props, { emit }) {
     const store = useAdminStore()
     const { t } = useI18n()
+    const { formatDateOrDash } = useDateFormatter()
 
     const slotIndex = ref(0)
     const openRow = ref<Row | null>(null)
@@ -411,6 +436,98 @@ export const OpenCreationsTable = defineComponent({
       return null
     }
 
+    // Still being worked on: a moderator can still decide it.
+    const isOpen = (item: Contribution) =>
+      item.contributionStatus === 'PENDING' || item.contributionStatus === 'IN_PROGRESS'
+
+    // Decided and done: confirmed, denied or deleted.
+    const isClosed = (item: Contribution) =>
+      ['CONFIRMED', 'DENIED', 'DELETED'].includes(item.contributionStatus)
+
+    // A conversation with the member: the server names its last message, the moderators'
+    // internal notes left out. `messagesCount` counts those notes as well.
+    const hasConversation = (item: Contribution) => item.lastMessageType != null
+
+    // What is going on with a contribution, for its details button (Bernd, 24.10.2026). In
+    // progress, which only a question to the member makes it: a question waits. Open, and the
+    // member had the last word: their answer, or their change of the contribution, which leaves a
+    // history entry (the server tells both, `lastMessageType` and `lastMessageByModerator`). A
+    // conversation with nothing waiting in it. Or nothing: no conversation at all.
+    const detailsState = (item: Contribution) => {
+      if (item.contributionStatus === 'IN_PROGRESS') {
+        return 'question'
+      }
+      if (item.contributionStatus === 'PENDING' && item.lastMessageByModerator === false) {
+        return item.lastMessageType === 'HISTORY' ? 'changed' : 'answer'
+      }
+      return hasConversation(item) ? 'conversation' : null
+    }
+
+    // The one symbol of the details button, at the desk and on a card. While the row is open, the
+    // arrow turned up, whatever the row holds: the button closes it, and the row's own button at
+    // its end could go (Bernd, 24.10.2026). Closed: what is going on, and without a conversation
+    // the arrow that opens the row, as on the closed tabs.
+    const detailsIcon = (item: Contribution, showing: boolean) => {
+      if (showing) {
+        return <IBiArrowUpCircle />
+      }
+      switch (detailsState(item)) {
+        case 'question':
+          return <IBiQuestionDiamond class='text-warning' />
+        case 'answer':
+          return <IBiExclamationCircleFill class='text-warning' />
+        case 'changed':
+          return <IBiPencilFill class='text-warning' />
+        case 'conversation':
+          return <IBiChatDots />
+        default:
+          return <IBiArrowDownCircle />
+      }
+    }
+
+    // Its name, for a screen reader and as a tooltip: the word, and what the symbol shows where it
+    // shows more than the way into the row (coderabbit, #4193); while the row is open, what a press
+    // does then, as the fold of the member search says it.
+    const detailsName = (item: Contribution, showing: boolean) => {
+      if (showing) {
+        return t('hide_details')
+      }
+      switch (detailsState(item)) {
+        case 'question':
+          return `${t('details')} – ${t('contribution.detailsState.question')}`
+        case 'answer':
+          return `${t('details')} – ${t('contribution.detailsState.answer')}`
+        case 'changed':
+          return `${t('details')} – ${t('contribution.detailsState.changed')}`
+        case 'conversation':
+          return `${t('details')} – ${t('contribution.detailsState.conversation')}`
+        default:
+          return t('details')
+      }
+    }
+
+    // The group of a contribution: a dropdown where it can still be changed, its name otherwise.
+    const groupControl = (item: Contribution) =>
+      canEditGroup(item) ? (
+        <ThemedSelect
+          modelValue={displayedCreationGroup(item)}
+          options={groupSelectOptions.value}
+          // no prop of ThemedSelect: it lands on its element, as it did
+          {...({ size: 'sm' } as object)}
+          class='group-select'
+          aria-label={t('contribution.changeGroup')}
+          onUpdate:modelValue={(tag: string) => onGroupPicked(item, tag)}
+        />
+      ) : (
+        <div class='fw-bold'>
+          {groupLabel(item) ? (
+            <span>{groupLabel(item)}</span>
+          ) : (
+            <span class='fw-normal fst-italic text-muted'>{t('contribution.noGroup')}</span>
+          )}
+        </div>
+      )
+
     return () => (
       <div class='open-creations-table'>
         <BTableLite
@@ -419,7 +536,7 @@ export const OpenCreationsTable = defineComponent({
           captionTop
           striped
           hover
-          stacked='md'
+          stacked='lg'
           tbodyTrClass={rowClass as never}
         >
           {{
@@ -491,29 +608,7 @@ export const OpenCreationsTable = defineComponent({
               ]
             },
             'cell(memo)': (row: Row) => [
-              <div class='mb-1'>
-                {canEditGroup(row.item) ? (
-                  <ThemedSelect
-                    modelValue={displayedCreationGroup(row.item)}
-                    options={groupSelectOptions.value}
-                    // no prop of ThemedSelect: it lands on its element, as it did
-                    {...({ size: 'sm' } as object)}
-                    class='group-select'
-                    aria-label={t('contribution.changeGroup')}
-                    onUpdate:modelValue={(tag: string) => onGroupPicked(row.item, tag)}
-                  />
-                ) : (
-                  <div class='fw-bold'>
-                    {groupLabel(row.item) ? (
-                      <span>{groupLabel(row.item)}</span>
-                    ) : (
-                      <span class='fw-normal fst-italic text-muted'>
-                        {t('contribution.noGroup')}
-                      </span>
-                    )}
-                  </div>
-                )}
-              </div>,
+              <div class='mb-1'>{groupControl(row.item)}</div>,
               ' ',
               row.value,
               ' ',
@@ -544,41 +639,28 @@ export const OpenCreationsTable = defineComponent({
               !myself(row.item) ? (
                 <div>
                   <BButton
-                    title={t('details')}
-                    aria-label={t('details')}
+                    title={detailsName(row.item, row.detailsShowing)}
+                    aria-label={detailsName(row.item, row.detailsShowing)}
+                    aria-expanded={row.detailsShowing ? 'true' : 'false'}
                     onClick={() => rowToggleDetails(row, 0)}
                   >
-                    <IBiChatDots />
-                    {row.item.contributionStatus === 'PENDING' &&
-                    (row.item.messagesCount ?? 0) > 0 ? (
-                      <IBiExclamationCircleFill style='color: #ffc107' />
-                    ) : null}
-                    {row.item.contributionStatus === 'IN_PROGRESS' &&
-                    (row.item.messagesCount ?? 0) > 0 ? (
-                      <IBiQuestionDiamond
-                        {...{ variant: 'warning' }}
-                        style='color: #ffc107'
-                        class='ps-1'
-                      />
-                    ) : null}
+                    {detailsIcon(row.item, row.detailsShowing)}
                   </BButton>
                 </div>
               ) : null,
-            'cell(chatCreation)': (row: Row) =>
-              (row.item.messagesCount ?? 0) > 0 ? (
-                <BButton
-                  title={t('details')}
-                  aria-label={t('details')}
-                  onClick={() => rowToggleDetails(row, 0)}
-                >
-                  <IBiChatDots />
-                </BButton>
-              ) : (
-                <CollapseIcon
-                  visible={row.detailsShowing}
-                  onClick={() => rowToggleDetails(row, 0)}
-                />
-              ),
+            // The closed tabs' details column: the same button in every row. Without a
+            // conversation it used to be a bare arrow, which no keyboard reached and which had no
+            // name (coderabbit, #4194).
+            'cell(chatCreation)': (row: Row) => (
+              <BButton
+                title={detailsName(row.item, row.detailsShowing)}
+                aria-label={detailsName(row.item, row.detailsShowing)}
+                aria-expanded={row.detailsShowing ? 'true' : 'false'}
+                onClick={() => rowToggleDetails(row, 0)}
+              >
+                {detailsIcon(row.item, row.detailsShowing)}
+              </BButton>
+            ),
             'cell(deny)': (row: Row) =>
               !myself(row.item) ? (
                 <div>
@@ -609,14 +691,152 @@ export const OpenCreationsTable = defineComponent({
                   </BButton>
                 </div>
               ) : null,
+            // The two cells of the card a row becomes on a phone (CreationConfirm hands them in
+            // place of the desk's columns, the table stacks them). The head: the face, the name
+            // and the alias, the amount and the date; for a closed contribution when it was
+            // created and closed, which the desk shows in two columns of its own.
+            'cell(phoneHead)': (row: Row) => {
+              const item = row.item
+              const user = item.user
+              // Two columns, two rows: the face and the name, then under the face the filter by
+              // the member's address -- it finds this member's contributions -- and under the name
+              // the group, flush with it (Bernd, 24.10.2026).
+              return (
+                <div class='phone-head'>
+                  <div class='phone-face'>
+                    {user ? (
+                      <MemberAvatar
+                        size={LIST_AVATAR_SIZE}
+                        name={memberName(user)}
+                        {...avatarFor(user)}
+                        onZoom={() => openPicture(user)}
+                      />
+                    ) : null}
+                  </div>
+                  {/* min-width 0: a long alias is cut off here instead of widening the card. */}
+                  <div style='min-width: 0'>
+                    <div class='d-flex justify-content-between gap-2'>
+                      <span class='fw-semibold text-break'>
+                        {props.showStatus ? (
+                          <span class='me-1'>{statusIcon(item.contributionStatus)}</span>
+                        ) : null}
+                        {user ? `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() : ''}
+                      </span>
+                      <span class='fw-semibold text-nowrap'>{`${item.amount} GDD`}</span>
+                    </div>
+                    <div class='d-flex justify-content-between gap-2'>
+                      <span class='small text-truncate' style='min-width: 0'>
+                        {user?.alias ?? ''}
+                      </span>
+                      <span class='small text-nowrap'>
+                        {formatDateOrDash(item.contributionDate)}
+                      </span>
+                    </div>
+                    {isClosed(item) ? (
+                      <div class='small text-body-secondary'>
+                        {`${t('createdAt')} ${formatDateOrDash(item.createdAt)} · ${t('contributions.closed')} ${formatDateOrDash(item.closedAt)}`}
+                      </div>
+                    ) : null}
+                  </div>
+                  <div class='phone-search'>
+                    {user?.emailContact ? (
+                      <BButton
+                        variant='link'
+                        class='phone-icon-btn text-primary'
+                        title={t('filter.byEmail')}
+                        aria-label={t('filter.byEmail')}
+                        onClick={() => emit('search-for-email', user.emailContact?.email)}
+                      >
+                        <IBiSearch />
+                      </BButton>
+                    ) : null}
+                  </div>
+                  <div class='phone-group'>{groupControl(item)}</div>
+                </div>
+              )
+            },
+            // The text of the card in full width, below its head, with what the desk adds to it.
+            'cell(phoneMemo)': (row: Row) => [
+              row.item.memo,
+              ' ',
+              isAddCommentToMemo(row.item) ? (
+                <small class='no-select'>
+                  <hr /> {getMemoComment(row.item)}
+                </small>
+              ) : null,
+            ],
+            // The buttons of the card, symbols only, in one row (Bernd, 24.10.2026). At the left
+            // what takes an open contribution off the list, the bin and the denial, which belong
+            // together; at the right Crea, the details and, last, the confirmation, far from the
+            // bin. A word for each stands in its tooltip and its accessible name. Each sends what
+            // its cell at the desk sends. The moderator's own open contribution offers neither
+            // its details nor a decision, as the desk's tab "Offen" does not.
+            'cell(phoneActions)': (row: Row) => {
+              const item = row.item
+              const decide = isOpen(item) && !myself(item)
+              return (
+                <div class='phone-actions d-flex align-items-center gap-2'>
+                  {decide ? (
+                    <BButton
+                      variant='danger'
+                      class='phone-icon-btn'
+                      title={t('delete')}
+                      aria-label={t('delete')}
+                      onClick={() => emit('show-overlay', item, 'delete')}
+                    >
+                      <IBiTrash />
+                    </BButton>
+                  ) : null}
+                  {decide ? (
+                    <BButton
+                      variant='warning'
+                      class='phone-icon-btn'
+                      title={t('deny')}
+                      aria-label={t('deny')}
+                      onClick={() => emit('show-overlay', item, 'deny')}
+                    >
+                      <IBiXLg />
+                    </BButton>
+                  ) : null}
+                  <div class='d-flex align-items-center gap-2 ms-auto'>
+                    {props.showCrea && showCreaButton(item) ? (
+                      <BButton
+                        variant='link'
+                        class='crea-logo-btn phone-icon-btn'
+                        title={t('crea.column')}
+                        onClick={() => emit('crea-evaluate', item)}
+                      >
+                        <img src={creaLogo} alt={t('crea.column')} class='crea-logo-img' />
+                      </BButton>
+                    ) : null}
+                    {isOpen(item) && myself(item) ? null : (
+                      <BButton
+                        class='phone-icon-btn'
+                        title={detailsName(item, row.detailsShowing)}
+                        aria-label={detailsName(item, row.detailsShowing)}
+                        aria-expanded={row.detailsShowing ? 'true' : 'false'}
+                        onClick={() => rowToggleDetails(row, 0)}
+                      >
+                        {detailsIcon(item, row.detailsShowing)}
+                      </BButton>
+                    )}
+                    {decide ? (
+                      <BButton
+                        variant='success'
+                        class='phone-icon-btn'
+                        title={t('contribution.confirm')}
+                        aria-label={t('contribution.confirm')}
+                        onClick={() => emit('show-overlay', item, 'confirm')}
+                      >
+                        <IBiCheckLg />
+                      </BButton>
+                    ) : null}
+                  </div>
+                </div>
+              )
+            },
             'row-details': (row: Row) => (
-              <RowDetails
-                row={row}
-                type='show-creation'
-                slotName='show-creation'
-                index={0}
-                onRow-toggle-details={() => rowToggleDetails(row, 0)}
-              >
+              <RowDetails slotName='show-creation'>
                 {{
                   // Every contribution opens the same panel, whoever wrote it. A moderator-entered
                   // one used to open an edit form instead, gated on confirmedAt -- a field the list

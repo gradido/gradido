@@ -39,3 +39,21 @@
 .memberWalletLink:focus-visible {
   outline: 2px solid currentcolor;
 }
+
+/* A phone: a square of 44 px, as large as a finger needs, which a line counts as 18 px high (the
+   negative margins, larger), so that it grows neither the member line of an opened contribution
+   nor the smaller username line of a member card. Counted as 24 px the one grew by 1.8 px, as
+   20 px the other by 0.3 px (measured in the built bundle, 23.10.2026). The two squares stand
+   edge to edge, as at the desk. Lifted above the line below them, which comes later in the page:
+   without it, the lower third of a square was the address of a member card, and a press there
+   opened the row; in the member line of an opened contribution its lower edge was the next item
+   of the list, which Bootstrap positions itself. */
+@media (width < 992px) {
+  .memberWalletLink {
+    width: 2.75rem;
+    height: 2.75rem;
+    position: relative;
+    z-index: 1;
+    margin: -0.8125rem -0.125rem -0.8125rem 0;
+  }
+}

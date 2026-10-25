@@ -33,12 +33,22 @@
   justify-content: flex-end;
 }
 
+/* A phone: the foot may break into a second line rather than push a button past the window, in
+   a language whose words are long. Nothing else of the foot changes; its buttons are 44px tall
+   by the rule of App.css. */
+@media (width < 992px) {
+  .creaFooter {
+    flex-wrap: wrap;
+  }
+}
+
 /* Crea-scoped Gradido palette for the decision buttons + verdict badge.
    .palette sits on the evaluation block, which holds every button and badge these rules
    reach; in the .vue they were :deep() rules under the component's scope attribute. The admin
    otherwise ships stock Bootstrap; these three tones match the wallet toast colours
    (green #047006 / gold #c58d38 / red #c62828). Gold carries dark text for contrast.
-   We override Bootstrap's own --bs-btn-* variables so hover/active/disabled follow. */
+   We override Bootstrap's own --bs-btn-* variables so hover/active/disabled follow.
+   In the dark mode the outlined three take dark tones of their own, at the end of this file. */
 .palette :global(.btn-success) {
   --bs-btn-bg: #047006;
   --bs-btn-border-color: #047006;
@@ -113,4 +123,25 @@
 .palette :global(.badge.text-bg-warning) {
   color: #2c2c2c;
   background-color: #c58d38;
+}
+
+/* The dark mode (App.css): the words of the three outlined decisions on the window's ground
+   #2a2c30 -- the green of a link (5.5), gold as text (5.0) inside the gold edge of the filled
+   one, and the red of App.css (5.5). Here and not left to the bridge: its green and red beat the
+   rules above by one step of specificity only, and it has no gold, which stood at 2.5 in the
+   dark. Under the pointer and pressed they fill as in the light mode; the filled buttons and the
+   badges keep their tones. */
+:root[data-bs-theme='dark'] .palette :global(.btn-outline-success) {
+  --bs-btn-color: var(--bs-link-color);
+  --bs-btn-border-color: var(--bs-link-color);
+}
+
+:root[data-bs-theme='dark'] .palette :global(.btn-outline-warning) {
+  --bs-btn-color: #c69130;
+  --bs-btn-border-color: #c58d38;
+}
+
+:root[data-bs-theme='dark'] .palette :global(.btn-outline-danger) {
+  --bs-btn-color: #f58080;
+  --bs-btn-border-color: #f58080;
 }

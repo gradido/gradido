@@ -188,7 +188,7 @@ export const ProjectBrandingForm = defineComponent({
             </BButton>
           </div>
         </BForm>
-        <BModal v-model={isModalVisible.value} title='Select Space' noFooter>
+        <BModal v-model={isModalVisible.value} title={t('projectBranding.selectSpace')} noFooter>
           <ListHumhubSpaces modelValue={spaceId.value} onChooseSpace={chooseSpace} />
         </BModal>
       </div>

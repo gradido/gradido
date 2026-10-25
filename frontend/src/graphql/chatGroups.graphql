@@ -28,6 +28,19 @@ fragment chatGroupFields on ChatGroup {
   memberCount
   unreadMessages
   lastMessageAt
+  # The line under the group's name on "Kontakte & Chat" (E-083): the beginning of its latest
+  # message, and who wrote it -- `senderUser` null for one's own (`mine`) and where the writer's
+  # users row is gone. Null for a group without a message. Read by ChatPreviewLine.
+  chatPreview {
+    mine
+    excerpt
+    hasImage
+    amount
+    senderUser {
+      gradidoID
+      alias
+    }
+  }
 }
 
 # The member's groups in the server's order: newest activity first -- the latest message, or the

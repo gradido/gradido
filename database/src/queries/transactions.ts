@@ -208,11 +208,22 @@ const mergeSamePerson = (rows: ContactRow[]): ContactRow[] => {
     }
     seen.bookings += row.bookings
     seen.unreadChatMessages += row.unreadChatMessages
+    // The latest message and the latest booking go with their own time: the message of the
+    // later conversation, the booking of the later grouping (one person's bookings can be split
+    // between the two groupings).
     if (
       row.lastChatMessageAt !== null &&
       (seen.lastChatMessageAt === null || row.lastChatMessageAt > seen.lastChatMessageAt)
     ) {
       seen.lastChatMessageAt = row.lastChatMessageAt
+      seen.lastChatMessageId = row.lastChatMessageId
+    }
+    if (
+      row.lastBookingAt !== null &&
+      (seen.lastBookingAt === null || row.lastBookingAt > seen.lastBookingAt)
+    ) {
+      seen.lastBookingAt = row.lastBookingAt
+      seen.lastBookingId = row.lastBookingId
     }
   }
   return contacts
@@ -297,6 +308,66 @@ export async function dbSelectReceivedTransferOfUser(
       }
 }
 
+/** A booking as the line under a contact's name shows it (E-083). */
+export interface BookingLine {
+  id: number
+  /** SEND where the member gave, RECEIVE where they were given. */
+  typeId: TransactionTypeId
+  /**
+   * The Gradido it moved, as the member's own row carries them: negative on a SEND. Null only where
+   * the row has no amount in the column of ten thousandths, which a booking of this kind always has
+   * since the column came -- the line then names no amount rather than a wrong one.
+   */
+  amount: GradidoUnit | null
+  memo: string
+  balanceDate: Date
+}
+
+/**
+ * The member's own SEND and RECEIVE rows with these ids, in one query for a whole list: the
+ * latest booking with each contact (dbSelectContactsByUserId, `lastBookingId`). Another member's
+ * row, or a row of another type, has no entry; nor has an id without a row. In no particular
+ * order -- the caller matches them by id.
+ *
+ * `balanceDate` comes from the column, which Drizzle reads as UTC, as it reads chat_messages: so
+ * the booking's time and the time of the latest message can be compared, whatever the process's
+ * time zone (see the note on the two kinds of date in dbSelectContactsByUserId).
+ */
+export async function dbSelectBookingLinesOfUser(
+  userId: number,
+  ids: number[],
+): Promise<BookingLine[]> {
+  const unique = [...new Set(ids)]
+  if (unique.length === 0) {
+    return []
+  }
+  const rows = await drizzleDb()
+    .select({
+      id: transactionsTable.id,
+      typeId: transactionsTable.typeId,
+      amount: transactionsTable.amount,
+      memo: transactionsTable.memo,
+      balanceDate: transactionsTable.balanceDate,
+    })
+    .from(transactionsTable)
+    .where(
+      and(
+        inArray(transactionsTable.id, unique),
+        eq(transactionsTable.userId, userId),
+        inArray(transactionsTable.typeId, COUNTERPARTY_TYPES),
+      ),
+    )
+  // The where clause leaves only SEND and RECEIVE rows: the column's type is what makes it
+  // nullable.
+  return rows.map((row) => ({
+    id: row.id,
+    typeId: row.typeId as TransactionTypeId,
+    amount: row.amount,
+    memo: row.memo,
+    balanceDate: row.balanceDate,
+  }))
+}
+
 export async function dbUpdateBalanceAndDate(txPart: {
   id: number
   balance: GradidoUnit
@@ -365,6 +436,18 @@ export interface ContactRow {
   unreadChatMessages: number
   /** When the latest message of that conversation arrived here; null where there is none. */
   lastChatMessageAt: Date | null
+  /**
+   * That latest message itself (chat_messages.id), whose beginning the contact list shows under
+   * the name (E-083); null where there is no conversation.
+   */
+  lastChatMessageId: number | null
+  /**
+   * The member's own row of the latest booking with them (transactions.id, SEND or RECEIVE) and
+   * its booking time -- what the line under the name shows where a booking came after the last
+   * message (E-083). Null for a contact without bookings.
+   */
+  lastBookingId: number | null
+  lastBookingAt: Date | null
 }
 
 export interface ContactsPage {
@@ -456,6 +539,15 @@ export async function dbSelectContactsByUserId(
     eq(transactionsTable.userId, userId),
     inArray(transactionsTable.typeId, COUNTERPARTY_TYPES),
   )
+  // The id of the NEWEST booking of the group, by the order the booking list shows them in
+  // (booking time, then id), first element -- the way the remote grouping takes the name off the
+  // newest booking. Not max(id): a row's booking time can be written after the row
+  // (dbUpdateBalanceAndDate), and the line under the name is to be the booking the list shows on
+  // top. Ids hold no comma, so the first element is whole.
+  const newestBookingId =
+    sql`substring_index(group_concat(${transactionsTable.id} order by ${transactionsTable.balanceDate} desc, ${transactionsTable.id} desc separator ','), ',', 1)`.mapWith(
+      Number,
+    )
 
   const localQuery = db
     .select({
@@ -467,6 +559,7 @@ export async function dbSelectContactsByUserId(
       firstAt: sql`min(${transactionsTable.balanceDate})`.mapWith(asDate),
       lastAt: sql`max(${transactionsTable.balanceDate})`.mapWith(asDate),
       bookings: sql`count(*)`.mapWith(Number),
+      lastBookingId: newestBookingId,
     })
     .from(transactionsTable)
     .innerJoin(usersTable, eq(usersTable.id, transactionsTable.linkedUserId))
@@ -490,6 +583,7 @@ export async function dbSelectContactsByUserId(
       firstAt: sql`min(${transactionsTable.balanceDate})`.mapWith(asDate),
       lastAt: sql`max(${transactionsTable.balanceDate})`.mapWith(asDate),
       bookings: sql`count(*)`.mapWith(Number),
+      lastBookingId: newestBookingId,
     })
     .from(transactionsTable)
     .where(
@@ -539,7 +633,9 @@ export async function dbSelectContactsByUserId(
 
   // What a row out of the bookings or the trace knows about a conversation: nothing, which
   // is no unread message and no last one. The chat bundle says otherwise where there is one.
-  const noChat = { unreadChatMessages: 0, lastChatMessageAt: null }
+  const noChat = { unreadChatMessages: 0, lastChatMessageAt: null, lastChatMessageId: null }
+  // And what a row out of the trace or the chat knows about bookings: none, so no latest one.
+  const noBooking = { lastBookingId: null, lastBookingAt: null }
 
   const rows: ContactRow[] = [
     ...local.map((row) => ({
@@ -553,6 +649,8 @@ export async function dbSelectContactsByUserId(
       bookings: row.bookings,
       origin: null,
       ...noChat,
+      lastBookingId: row.lastBookingId,
+      lastBookingAt: row.lastAt,
     })),
     ...remote.map((row) => ({
       linkedUserId: null,
@@ -566,6 +664,8 @@ export async function dbSelectContactsByUserId(
       bookings: row.bookings,
       origin: null,
       ...noChat,
+      lastBookingId: row.lastBookingId,
+      lastBookingAt: row.lastAt,
     })),
     // ⛔ BEHIND the two booking bundles, and that buys LESS than it looks like. Against a
     // `local` row it does decide identity: the local row is seen first and keeps it. Against
@@ -584,7 +684,7 @@ export async function dbSelectContactsByUserId(
     // `TZ=UTC` makes them equal -- and `TZ=UTC` is pinned in the start script and in every
     // package test script, which is the only reason the two can be compared here at all. A
     // process that loses that pin sorts these bundles wrongly against the booking bundles.
-    ...referrals.map((row) => ({ ...row, ...noChat })),
+    ...referrals.map((row) => ({ ...row, ...noChat, ...noBooking })),
     // The people this member has a conversation with: no bookings of their own (a booking
     // with them is its own row, joined by `mergeSamePerson`), the dates of the first and the
     // latest message, and what is unread. `lastAt` of this row IS the last message, which is
@@ -606,6 +706,8 @@ export async function dbSelectContactsByUserId(
       origin: null,
       unreadChatMessages: row.unreadChatMessages,
       lastChatMessageAt: row.lastAt,
+      lastChatMessageId: row.lastMessageId,
+      ...noBooking,
     })),
   ]
 

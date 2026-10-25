@@ -41,6 +41,7 @@ export const ConfirmRegisterMailFormular = defineComponent({
 
     const email = ref(props.email)
     const replacement = ref('')
+    const replacing = ref(false)
 
     const { mutate: activateEmail } = useMutation(sendActivationEmail)
     const { mutate: replaceMutation } = useMutation(adminReplaceUnconfirmedEmail)
@@ -64,26 +65,60 @@ export const ConfirmRegisterMailFormular = defineComponent({
       }
     }
 
+    // The correction's refusals in this page's words. The server's wording is what
+    // `adminReplaceUnconfirmedEmail` in the backend's EmailChangeResolver throws, and the spec
+    // holds it. Those three come before anything is saved. Any other answer may follow a saved
+    // address, or the answer may have been lost on the way, so it is shown as the server gave
+    // it under a heading that claims no outcome.
+    const replaceRefusal = (message: string, typed: string): string => {
+      switch (message) {
+        case 'Email address already in use':
+          return t('unregister_mail.replace.taken', { email: typed })
+        case 'The address is confirmed - only the member can change it':
+          return t('unregister_mail.replace.confirmed', { email: typed })
+        case 'Invalid email address':
+          return t('unregister_mail.replace.invalid', { email: typed })
+        default:
+          return t('unregister_mail.replace.error', { message })
+      }
+    }
+
     const replaceEmail = async () => {
+      const typed = replacement.value
+      // Locks the button until the answer is in: a second click would send the correction again
+      // while the first one is still being saved.
+      replacing.value = true
+      let corrected: string
       try {
         // No answer (null) throws here and ends in the toast below, as it did
         const { data } = (await replaceMutation({
           userId: props.userId,
-          email: replacement.value,
+          email: typed,
         })) as { data: { adminReplaceUnconfirmedEmail: string } }
-        email.value = data.adminReplaceUnconfirmedEmail
-        replacement.value = ''
-        emit('email-replaced', email.value)
-        toastSuccess(t('unregister_mail.replace.success', { email: email.value }))
-        await refetchStatus()
+        corrected = data.adminReplaceUnconfirmedEmail
       } catch (error) {
-        toastError(t('unregister_mail.error', { message: (error as Error).message }))
+        toastError(replaceRefusal((error as Error).message, typed))
+        return
+      } finally {
+        replacing.value = false
       }
+      email.value = corrected
+      // Cleared only if it still holds what was sent: whatever was typed meanwhile stays.
+      if (replacement.value === typed) {
+        replacement.value = ''
+      }
+      emit('email-replaced', corrected)
+      toastSuccess(t('unregister_mail.replace.success', { email: corrected }))
+      // The correction stands; a status that could not be fetched again does not make it a
+      // failed one.
+      await refetchStatus()?.catch(() => undefined)
     }
 
+    // Half the padding below 992px, as the other forms of an opened member: a phone has no room
+    // to spare inside the card.
     return () => (
       <div class='component-confirm-register-mail'>
-        <div class='shadow p-3 mb-5 bg-white rounded'>
+        <div class='shadow p-2 p-lg-3 mb-5 rounded'>
           {props.checked ? (
             <div>{t('unregister_mail.text_true')}</div>
           ) : (
@@ -129,7 +164,7 @@ export const ConfirmRegisterMailFormular = defineComponent({
                     />
                     <BButton
                       variant='outline-danger'
-                      disabled={!replacement.value}
+                      disabled={!replacement.value || replacing.value}
                       data-test='email-replace-button'
                       onClick={replaceEmail}
                     >

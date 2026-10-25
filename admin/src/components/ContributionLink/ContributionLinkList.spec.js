@@ -161,30 +161,77 @@ describe('ContributionLinkList', () => {
     })
   })
 
-  // Only administrators may change a starting balance. A moderator keeps the "show" column,
-  // which reveals the link and its QR code — that is what they pass on to members.
+  // Only administrators may change a starting balance. A moderator keeps the button that
+  // reveals the link and its QR code — that is what they pass on to members.
   describe('as a moderator', () => {
     beforeEach(() => {
       wrapper = createWrapper('MODERATOR')
     })
 
-    it('leaves out the delete and edit columns', () => {
-      expect(headers()).not.toContain('Delete')
-      expect(headers()).not.toContain('Edit')
+    it('leaves out the delete and edit buttons', () => {
       expect(wrapper.find('.test-delete-link').exists()).toBe(false)
+      expect(wrapper.find('.test-edit-link').exists()).toBe(false)
     })
 
-    it('keeps the column that reveals the link', () => {
-      expect(headers()).toContain('Show')
+    it('keeps the button that reveals the link', () => {
       expect(wrapper.find('.test-show').exists()).toBe(true)
     })
   })
 
   describe('as an administrator', () => {
     it('offers delete and edit', () => {
-      expect(headers()).toContain('Delete')
-      expect(headers()).toContain('Edit')
+      expect(wrapper.find('.test-delete-link').exists()).toBe(true)
+      expect(wrapper.find('.test-edit-link').exists()).toBe(true)
     })
+  })
+
+  // The heads were English ("Amount", "Memo", "Delete", "Edit", "Show", "Cheque"), and on a
+  // phone a stacked cell shows its head as its name.
+  it('every column carries its translated label', () => {
+    expect(headers()).toEqual([
+      'contributionLink.name',
+      'contributionLink.memo',
+      'contributionLink.amount',
+      'contributionLink.cycle',
+      'contributionLink.maxPerCycle',
+      'contributionLink.validFrom',
+      'contributionLink.validTo',
+      'actions',
+    ])
+  })
+
+  // Four columns of buttons made the table 85.5px wider than a 1024px window. Each button is a
+  // symbol and nothing else, so its name is all a screen reader has of it.
+  it.each([
+    ['ADMIN', ['delete', 'edit', 'contributionLink.show', 'thank-you-cheque.download']],
+    ['MODERATOR', ['contributionLink.show', 'thank-you-cheque.download']],
+  ])('the four buttons of a row stand in one cell and each has a name (%s)', (role, names) => {
+    wrapper = createWrapper(role)
+    const cells = wrapper.findAll('tbody tr')[0].findAll('td')
+    const withButtons = cells.filter((cell) => cell.find('button').exists())
+    expect(withButtons).toHaveLength(1)
+    const cell = withButtons[0]
+    // ... the last cell, side by side in a line that does not break.
+    expect(cell.element).toBe(cells[cells.length - 1].element)
+    expect(cell.find('span.text-nowrap').exists()).toBe(true)
+    const buttons = cell.findAll('span.text-nowrap > button')
+    expect(buttons.map((button) => button.attributes('aria-label'))).toEqual(names)
+    expect(buttons.map((button) => button.attributes('title'))).toEqual(names)
+    expect(buttons.every((button) => button.text() === '')).toBe(true)
+  })
+
+  // Below 1200px the cells of a link stand under each other (the library's stylesheet stacks
+  // `stacked='xl'`), each under the name of its column: with its eight columns the table stood
+  // 13.6px past a 1024px window. The names stand in every cell on every width, and the same
+  // stylesheet shows them only while the table stacks.
+  it('the table labels its stacked cells', () => {
+    expect(wrapper.find('table').classes()).toContain('b-table-stacked-xl')
+    const labels = wrapper
+      .findAll('tbody tr')[0]
+      .findAll('td')
+      .map((cell) => cell.find('label.b-table-stacked-label'))
+    expect(labels).toHaveLength(8)
+    expect(labels.map((label) => label.text())).toEqual(headers())
   })
 
   // The starting bonus cheque. The button sits in the row next to the eye, so the code

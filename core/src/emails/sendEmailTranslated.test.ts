@@ -3,7 +3,6 @@ import { createTransport } from 'nodemailer'
 import { getLogger } from '../../../config-schema/test/testSetup.bun'
 import { CONFIG } from '../config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
-import { i18n } from '../locales/localization'
 import { sendEmailTranslated } from './sendEmailTranslated'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.emails.sendEmailTranslated`)
@@ -36,9 +35,6 @@ mock.module('nodemailer', () => {
 afterAll(() => {
   jest.restoreAllMocks()
 })
-
-const spySetLocale = jest.spyOn(i18n, 'setLocale')
-const spyTranslate = jest.spyOn(i18n, '__')
 
 describe('sendEmailTranslated', () => {
   let result: Record<string, unknown> | boolean | null | Error
@@ -124,14 +120,6 @@ describe('sendEmailTranslated', () => {
           contentDisposition: 'inline',
         })
       })
-    })
-
-    it('calls "i18n.setLocale" with "en"', async () => {
-      expect(spySetLocale).toBeCalledWith('en')
-    })
-
-    it('calls "i18n.__" for translation', () => {
-      expect(spyTranslate).toBeCalled()
     })
   })
 

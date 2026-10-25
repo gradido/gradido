@@ -251,6 +251,9 @@
     "sentMailed": "Envoyé. {name} reçoit un e-mail.",
     "toConversation": "Ouvrir la conversation"
   },
+  "chatPreview": {
+    "by": "{name} :"
+  },
   "chatSearch": {
     "capped": "Les {count} derniers messages ont été parcourus.",
     "count": "{current} sur {count}",
@@ -744,6 +747,7 @@
     "imprint": "Notification légale",
     "inspector": "Inspecteur (expérimental)",
     "privacy_policy": "Politique de confidentialité",
+    "socialLink": "Gradido sur {platform}",
     "whitepaper": "Papier blanc"
   },
   "form": {

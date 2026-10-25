@@ -251,6 +251,9 @@
     "sentMailed": "Отправлено. {name} получит письмо по электронной почте.",
     "toConversation": "К переписке"
   },
+  "chatPreview": {
+    "by": "{name}:"
+  },
   "chatSearch": {
     "capped": "Поиск охватил последние {count} сообщений.",
     "count": "{current} из {count}",
@@ -744,6 +747,7 @@
     "imprint": "Импрессум (Оттиск)",
     "inspector": "Инспектор (экспериментально)",
     "privacy_policy": "Политика конфиденциальности",
+    "socialLink": "Gradido в {platform}",
     "whitepaper": "Whitepaper"
   },
   "form": {

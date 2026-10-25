@@ -1,0 +1,9 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* The × of the search field shows where a keyboard stands, as the pin and the arrows do
+   (MemberWalletLink.module.css), in the colour of the words: Bootstrap's own ring needs a button
+   variant, and this button has none. Two classes, so that it wins over Bootstrap's
+   `.btn:focus-visible { outline: 0 }` whatever the order the sheets load in. */
+:global(.btn).clearButton:focus-visible {
+  outline: 2px solid currentcolor;
+}

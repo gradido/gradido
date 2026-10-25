@@ -11,6 +11,7 @@ import {
 import { computed, defineComponent, type PropType, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppToast } from '@/composables/useToast'
+import { useViewport } from '@/composables/useViewport'
 import { useAdminStore } from '@/store/useAdminStore'
 import { useCreationMonths } from '../composables/useCreationMonths'
 import { adminCreateContribution } from '../graphql/adminCreateContribution'
@@ -65,6 +66,10 @@ export const CreationFormular = defineComponent({
     const { toastError, toastSuccess } = useAppToast()
     const { t } = useI18n()
     const store = useAdminStore()
+    // On a phone the months stand under each other, one to a line, instead of side by side.
+    // `unknown` -- no matchMedia -- keeps the desk.
+    const viewport = useViewport()
+    const phone = computed(() => viewport.value === 'mobile')
 
     const text = ref(!props.creationUserData.memo ? '' : props.creationUserData.memo)
     const value = ref(!props.creationUserData.amount ? 0 : props.creationUserData.amount)
@@ -157,12 +162,17 @@ export const CreationFormular = defineComponent({
 
     expose({ submitCreation })
 
+    // The three parts of the form (month, amount, text) keep the room around them that
+    // Bootstrap's `m-4` gave them at the desk; on a phone they take the width of the card
+    // (CreationFormular.module.css). The `!important` of `m-4` would have left a phone no say.
+    // The box around them has half its padding below 992px, as the other forms of an opened
+    // member: the text field is 242px wide then at 320px, 226px with the padding of the desk.
     return () => (
       <div class='component-creation-formular'>
         {t('creation_form.form')}{' '}
-        <div class='shadow p-3 mb-5 bg-white rounded'>
+        <div class='shadow p-2 p-lg-3 mb-5 rounded'>
           <BForm ref={creationForm}>
-            <div class='m-4 mt-0'>
+            <div class={[classes.block, 'mt-0']}>
               <label>{t('creation_form.select_month')}</label>
               <BFormRadioGroup
                 id='radio-group-month-selection'
@@ -171,10 +181,11 @@ export const CreationFormular = defineComponent({
                 valueField='item'
                 textField='name'
                 name='month-selection'
+                stacked={phone.value}
               />
             </div>
             {selected.value ? (
-              <div class='m-4 d-flex'>
+              <div class={[classes.block, classes.amountRow, 'd-flex']}>
                 <label>{t('creation_form.select_value')}</label>
                 <div>
                   <BInputGroup prepend='GDD' append='.00'>
@@ -201,7 +212,7 @@ export const CreationFormular = defineComponent({
                 </div>
               </div>
             ) : null}
-            <div class='m-4'>
+            <div class={classes.block}>
               <label>{t('creation_form.enter_text')}</label>
               <div>
                 <BFormTextarea

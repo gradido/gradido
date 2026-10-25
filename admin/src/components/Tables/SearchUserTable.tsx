@@ -1,5 +1,13 @@
 // AI-GENERATED — not an architecture reference
-import { BCard, BTab, BTable, BTabs, type TableField, useModalController } from 'bootstrap-vue-next'
+import {
+  BButton,
+  BCard,
+  BTab,
+  BTable,
+  BTabs,
+  type TableField,
+  useModalController,
+} from 'bootstrap-vue-next'
 import { computed, defineComponent, nextTick, type PropType, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppToast } from '@/composables/useToast'
@@ -17,6 +25,7 @@ import { CreationTransactionList } from '../CreationTransactionList'
 import { DeletedUserFormular } from '../DeletedUserFormular'
 import { MemberWalletLink } from '../MemberWalletLink'
 import { TransactionLinkList } from '../TransactionLinkList'
+import './SearchUserTable.css'
 
 export type MemberRow = {
   userId: number
@@ -25,6 +34,7 @@ export type MemberRow = {
   alias?: string | null
   email?: string
   creation: number[]
+  createdAt?: string
   emailChecked?: boolean
   emailConfirmationSend?: string | null
   hasElopage?: boolean
@@ -39,7 +49,7 @@ export type MemberRow = {
 type TableRow = {
   value: unknown
   item: MemberRow
-  detailsShowing: boolean | string
+  detailsShowing: boolean
 }
 
 // The parts of the forms under a row this table calls, as they expose them
@@ -70,6 +80,12 @@ export const SearchUserTable = defineComponent({
     fields: {
       type: Array as PropType<TableField<MemberRow>[]>,
       required: true,
+    },
+    // The short names of the three months of `creation`, in its order: the card a member is on
+    // a phone names each amount by its month. The page knows them (useCreationMonths).
+    creationMonths: {
+      type: Array as PropType<string[]>,
+      default: () => [],
     },
   },
   emits: ['update-role', 'update-deleted-at'],
@@ -257,58 +273,177 @@ export const SearchUserTable = defineComponent({
       { immediate: true },
     )
 
-    const statusCell = (row: TableRow) => {
-      const title = row.item.enabled ? t('enabled') : t('deleted')
-      return (
-        <div class='d-flex gap-3 justify-content-end align-items-center'>
-          {row.item.deletedAt ? (
+    /**
+     * A member's state in words (Bernd, 23.10.2026, AO-006): deleted -- or else an address not
+     * confirmed and no purchase at Elopage, either or both -- and active where none of them is.
+     * The search delivers no `enabled`. Badges on the card a member is on a phone; at the desk
+     * the same words stand beside their symbols (statusCell).
+     */
+    const statusBadges = (item: MemberRow): { word: string; tone: string }[] => {
+      if (item.deletedAt) {
+        return [{ word: t('deleted'), tone: 'text-bg-danger' }]
+      }
+      const badges: { word: string; tone: string }[] = []
+      if (!item.emailChecked) {
+        badges.push({ word: t('userStatus.emailUnconfirmed'), tone: 'text-bg-warning' })
+      }
+      if (!item.hasElopage) {
+        badges.push({ word: t('userStatus.noElopage'), tone: 'text-bg-secondary' })
+      }
+      return badges.length > 0 ? badges : [{ word: t('enabled'), tone: 'text-bg-success' }]
+    }
+
+    /**
+     * The status cell at the desk: each symbol with its word behind it (AO-006).
+     *
+     * The words stand from 1200px on. Narrower, the column they need made the others break:
+     * every row grew by one or two lines (at 768, 800 and 992 to 1024px), and the table reached
+     * past the window (51px at 950px, 14px at 992px, where it does not without them). Below
+     * 1200px the cell is the one of before, to the pixel -- hence the wrappers and margins as
+     * they were (with the words, half the margin behind them). From 1200px on the words still
+     * cost a line in the rows or in the head at some widths up to 1440px. Measured in the built
+     * bundle with a 36-character address, 23.10.2026. A screen reader hears the word from the
+     * symbol's `alt` on every width, so the word beside it is hidden from it.
+     */
+    const statusWord = (word: string) => (
+      <small class='ms-2 d-none d-xl-inline' aria-hidden='true'>
+        {word}
+      </small>
+    )
+    const statusCell = (row: TableRow) => (
+      <div class='d-flex gap-3 justify-content-end align-items-center'>
+        {row.item.deletedAt ? (
+          <span class='d-inline-flex align-items-center me-3 me-xl-2'>
             <div
-              class='me-3 test-deleted-icon position-relative rounded-circle'
+              class='test-deleted-icon position-relative rounded-circle'
               style='width: 40px; height: 40px'
             >
-              <img src={circleSlash} class='position-absolute' />
-              <img src={person} class='position-relative' style='transform: translate(50%, 30%)' />
+              <img src={circleSlash} alt={t('deleted')} class='position-absolute' />
+              <img
+                src={person}
+                alt=''
+                class='position-relative'
+                style='transform: translate(50%, 30%)'
+              />
             </div>
-          ) : null}
-          {!row.item.deletedAt ? (
-            <span class='d-flex gap-2'>
-              {!row.item.emailChecked ? (
+            {statusWord(t('deleted'))}
+          </span>
+        ) : null}
+        {!row.item.deletedAt ? (
+          <span class='d-flex gap-2'>
+            {!row.item.emailChecked ? (
+              <span class='d-inline-flex align-items-center me-3 me-xl-2'>
                 <div
-                  class='me-3 rounded-circle position-relative'
+                  class='rounded-circle position-relative'
                   style='background-color: #dc3545; width: 40px; height: 40px'
                 >
                   <img
                     src={envelope}
+                    alt={t('userStatus.emailUnconfirmed')}
                     style='transform: translate(30%, 30%); width: 25px; height: 25px'
                     class='position-absolute'
                   />
                 </div>
-              ) : null}
-              <div>
-                {!row.item.hasElopage ? (
+                {statusWord(t('userStatus.emailUnconfirmed'))}
+              </span>
+            ) : null}
+            <div>
+              {!row.item.hasElopage ? (
+                <span class='d-inline-flex align-items-center me-3 me-xl-2'>
                   <img
-                    class='me-3 rounded-circle bg-red-dark'
+                    class='rounded-circle bg-red-dark'
                     src={elopageFavicon}
+                    alt={t('userStatus.noElopage')}
                     style='background-color: #dc3545; width: 40px; height: 40px'
                   />
-                ) : null}
-              </div>
-            </span>
-          ) : null}
-          {/* ⚠️ detailsShowing is a boolean and never 'caret-up-fill': the caret always points
-              down. Kept as it was. */}
-          {row.detailsShowing === 'caret-up-fill' ? (
-            // `title` is no SVG attribute in the types; on the element it is one, as it was
-            <IPhCaretUpFill style='color: #212529' {...{ title }} />
-          ) : (
-            <IPhCaretDown style='color: #212529' {...{ title }} />
-          )}
+                  {statusWord(t('userStatus.noElopage'))}
+                </span>
+              ) : null}
+            </div>
+          </span>
+        ) : null}
+        {/* The caret points up while the row is open. It asked whether `detailsShowing` was
+            'caret-up-fill', which the table never hands it, and pointed down on an open row as
+            well. It is no button -- the row opens on a click anywhere in it -- and says nothing
+            to a screen reader. Its title read `enabled`, which the search never delivers, and
+            called every member deleted. */}
+        {row.detailsShowing ? (
+          <IPhCaretUpFill class='row-caret' aria-hidden='true' data-test='row-caret-up' />
+        ) : (
+          <IPhCaretDown class='row-caret' aria-hidden='true' data-test='row-caret-down' />
+        )}
+      </div>
+    )
+
+    /**
+     * The card a member is on a phone, in the one cell UserSearch hands the table there: what
+     * the seven columns say at the desk, a line each -- the name, the username with the way
+     * into the wallet, the address, when they registered, what they can still be credited per
+     * month, their state. The row opens on a click anywhere in it, as at the desk, and on a
+     * button of its own that says so, which opens it itself and keeps the press from the row.
+     */
+    const memberCard = (row: TableRow) => {
+      const item = row.item
+      const name = `${item.firstName ?? ''} ${item.lastName ?? ''}`.trim()
+      const open = Boolean(item._showDetails)
+      const fold = open ? t('hide_details') : t('show_details')
+      return (
+        <div class='member-card'>
+          <div class='d-flex justify-content-between align-items-start gap-2'>
+            {/* min-width 0: a long name or username breaks here instead of widening the card. */}
+            <div style='min-width: 0'>
+              <div class='fw-semibold text-break'>{name || item.alias}</div>
+              <small class='text-break'>
+                {item.alias} <MemberWalletLink member={item} name={item.alias || item.firstName} />
+              </small>
+            </div>
+            {/* ⛔ The press stays with the button. Its click draws the other symbol at once: a
+                browser runs the page's queued work between two listeners of a real press, so Vue
+                swaps the <svg> before the row hears it. The table then finds the target of the
+                press in no button any more, takes it for a press on the row and closes what the
+                button had just opened (measured in the built bundle, 23.10.2026; a click sent
+                by a test or by `element.click()` hears the row only after drawing). */}
+            <BButton
+              variant='link'
+              class='phone-icon-btn text-body'
+              aria-expanded={open ? 'true' : 'false'}
+              aria-label={fold}
+              title={fold}
+              onClick={(event: MouseEvent) => {
+                event.stopPropagation()
+                onRowClicked(item)
+              }}
+            >
+              {open ? <IPhCaretUpFill aria-hidden='true' /> : <IPhCaretDown aria-hidden='true' />}
+            </BButton>
+          </div>
+          <div class='text-break'>{item.email}</div>
+          <div class='small text-body-secondary'>
+            {item.createdAt
+              ? `${t('registered_at')} ${d(new Date(item.createdAt), 'short')}`
+              : null}
+          </div>
+          {/* A month keeps its amount on its line (a protected space): where the line breaks,
+              it breaks between two months. */}
+          <div class='small'>
+            {`${t('creation')}: `}
+            {props.creationMonths
+              .map((month, index) => `${month}\u00a0${item.creation?.[index] ?? '–'}`)
+              .join(' · ')}
+          </div>
+          <div class='d-flex flex-wrap gap-1 mt-1'>
+            {statusBadges(item).map((badge) => (
+              <span class={['badge', badge.tone]}>{badge.word}</span>
+            ))}
+          </div>
         </div>
       )
     }
 
+    // The card takes its surface from Bootstrap's `--bs-card-bg`, which a dark mode can turn. On a
+    // phone it gives its side margins to the forms and lists it holds (App.css).
     const rowDetailsSlot = (row: TableRow) => (
-      <BCard ref={rowDetails} class='shadow-lg ps-3 pe-3 mb-5 bg-white rounded'>
+      <BCard ref={rowDetails} class='shadow-lg ps-3 pe-3 mb-5 rounded row-details-card'>
         <BTabs contentClass='mt-3'>
           <BTab title={t('creation')} active disabled={row.item.deletedAt !== null}>
             {!row.item.deletedAt ? (
@@ -387,7 +522,7 @@ export const SearchUserTable = defineComponent({
           captionTop
           striped
           hover
-          stacked='md'
+          stacked='lg'
           selectMode='single'
           // ⚠️ No prop of BTable: it lands on the table as an attribute, as it did
           selectable-on-row-selected=''
@@ -407,6 +542,7 @@ export const SearchUserTable = defineComponent({
             'cell(creation)': (data: TableRow) => <div innerHTML={data.value as string} />,
             'cell(createdAt)': (data: TableRow) => d(new Date(data.value as string), 'long'),
             'cell(status)': statusCell,
+            'cell(memberCard)': memberCard,
             'row-details': rowDetailsSlot,
           }}
         </BTable>

@@ -9,13 +9,22 @@ import {
   BSpinner,
   type ColorVariant,
 } from 'bootstrap-vue-next'
-import { computed, defineComponent, Fragment, type PropType, ref, watch } from 'vue'
+import {
+  computed,
+  defineComponent,
+  Fragment,
+  type PropType,
+  ref,
+  toDisplayString,
+  watch,
+} from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useBoldShortcut } from '@/composables/useBoldShortcut'
 import { useCreaClipboard } from '@/composables/useCreaClipboard'
 import { playCreaSound, primeCreaSound } from '@/composables/useCreaSound'
 import { useCreaSupplement } from '@/composables/useCreaSupplement'
 import { useAppToast } from '@/composables/useToast'
+import { useViewport } from '@/composables/useViewport'
 import { adminListContributions } from '@/graphql/adminListContributions.graphql'
 import {
   creaEvaluateBatch,
@@ -97,6 +106,8 @@ export const CreaEvaluationModal = defineComponent({
   setup(props) {
     const { t, locale } = useI18n()
     const { toastSuccess, toastError } = useAppToast()
+    const viewport = useViewport()
+    const phone = computed(() => viewport.value === 'mobile')
 
     const modalVisible = ref(false)
     const loading = ref(false)
@@ -800,7 +811,7 @@ export const CreaEvaluationModal = defineComponent({
                 ? t('crea.contributions')
                 : t('crea.contribution')}
             {contributionTenure.value ? (
-              <small class='text-muted fw-normal'>{` (${contributionTenure.value}) `}</small>
+              <small class='text-muted fw-normal'>{` (${toDisplayString(contributionTenure.value)}) `}</small>
             ) : null}
           </strong>
           {!isBatch.value && contributionMeta.value ? (
@@ -863,7 +874,7 @@ export const CreaEvaluationModal = defineComponent({
               {result.openPoints.map((point, index) => (
                 // Keyed by position: open points carry no id, as in the .vue.
                 <li key={index}>
-                  {`${point.question} `}
+                  {`${toDisplayString(point.question)} `}
                   {point.options.length ? (
                     <small class='text-muted'>{` (${point.options.join(' / ')}) `}</small>
                   ) : null}
@@ -953,9 +964,11 @@ export const CreaEvaluationModal = defineComponent({
         <p class='mb-1'>
           <strong>{t('crea.response')}</strong>
         </p>
+        {/* Half the rows on a phone: sixteen made the window 1925px tall at 320 × 568, the
+            reply alone 398px of it (measured 23.10.2026). */}
         <BFormTextarea
           v-model={responseText.value}
-          rows={16}
+          rows={phone.value ? 8 : 16}
           class='mb-2'
           // Falls through to the <textarea>.
           onKeydown={onResponseKeydown}
@@ -1011,10 +1024,14 @@ export const CreaEvaluationModal = defineComponent({
     ]
 
     return () => (
+      // Scrollable on every width, as the decision dialog of the contribution page (AO-004): the
+      // head and the foot with "Schließen" stay in the window and the body scrolls. The whole
+      // window scrolled before, and on a 320 × 568 phone its foot lay 1365px below the edge.
       <BModal
         id='crea-evaluation-modal'
         v-model={modalVisible.value}
         size='lg'
+        scrollable
         onShown={onShown}
         onHidden={resetState}
       >

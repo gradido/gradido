@@ -70,7 +70,7 @@ const matchingRoutes = CONFIG.MATCHING_ACTIVE
 //
 // Registered only with MATCHING_ACTIVE, for the reason given above: the link it builds ends
 // in a matching entry, so on an instance without matching the page would build links that
-// lead nowhere. The footer link hangs on the same flag (AuthFooter.vue).
+// lead nowhere. The footer link hangs on the same flag (AuthFooter.tsx).
 //
 // And the entrance of such a link, `community-host/event?interest=…`: it offers whoever opens
 // it one entry for the matching. Public for the same reason as the Gradido address -- it

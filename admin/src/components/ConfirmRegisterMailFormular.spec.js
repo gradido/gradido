@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from '@vue/apollo-composable'
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -83,6 +83,16 @@ describe('ConfirmRegisterMailFormular', () => {
     expect(wrapper.find('.component-confirm-register-mail').exists()).toBe(true)
   })
 
+  // Its surface is the one of the card it stands in, which a dark mode can turn; on a phone it
+  // has half its padding. The words before the address break on a phone by a rule that hangs
+  // on the root's class (ConfirmRegisterMailFormular.css, held by phoneStyles.spec.js).
+  it('the card has no fixed white ground', () => {
+    const card = wrapper.find('.component-confirm-register-mail > div')
+    expect(card.classes()).toEqual(expect.arrayContaining(['shadow', 'p-2', 'p-lg-3', 'rounded']))
+    expect(card.classes()).not.toContain('bg-white')
+    expect(wrapper.find('.component-confirm-register-mail .input-group-text').exists()).toBe(true)
+  })
+
   describe('send register mail', () => {
     it('calls the API with email on button click', async () => {
       mockMutate.mockResolvedValueOnce({})
@@ -123,6 +133,99 @@ describe('ConfirmRegisterMailFormular', () => {
       expect(wrapper.emitted('email-replaced')[0]).toEqual(['bob@baumeister.org'])
       expect(mockToastSuccess).toHaveBeenCalledWith('unregister_mail.replace.success')
       expect(mockRefetch).toHaveBeenCalled()
+    })
+
+    describe('when the server refuses', () => {
+      const correct = async (typed) => {
+        await wrapper.find('[data-test="email-replace-input"]').setValue(typed)
+        await wrapper.find('[data-test="email-replace-button"]').trigger('click')
+        await flushPromises()
+      }
+
+      // The server's wording, as the backend's EmailChangeResolver throws it: if it changes
+      // there, the sentence falls back to the server's own text below.
+      it.each([
+        ['Email address already in use', 'unregister_mail.replace.taken'],
+        [
+          'The address is confirmed - only the member can change it',
+          'unregister_mail.replace.confirmed',
+        ],
+        ['Invalid email address', 'unregister_mail.replace.invalid'],
+      ])('says "%s" in its own words, with the address as typed', async (refusal, sentence) => {
+        mockMutate.mockRejectedValueOnce(new Error(refusal))
+        await correct('be-ate@gmx.de')
+        expect(mockT).toHaveBeenCalledWith(sentence, { email: 'be-ate@gmx.de' })
+        expect(mockToastError).toHaveBeenCalledWith(sentence)
+      })
+
+      it("shows any other answer under the correction's heading, not the confirmation link's", async () => {
+        mockMutate.mockRejectedValueOnce(new Error('OUCH!'))
+        await correct('bob@baumeister.org')
+        expect(mockT).toHaveBeenCalledWith('unregister_mail.replace.error', { message: 'OUCH!' })
+        expect(mockToastError).toHaveBeenCalledWith('unregister_mail.replace.error')
+        expect(mockToastError).not.toHaveBeenCalledWith('unregister_mail.error')
+      })
+
+      it('keeps the typed address, so it can be mended and sent again', async () => {
+        mockMutate.mockRejectedValueOnce(new Error('Email address already in use'))
+        await correct('be-ate@gmx.de')
+        expect(wrapper.find('[data-test="email-replace-input"]').element.value).toBe(
+          'be-ate@gmx.de',
+        )
+        expect(wrapper.emitted('email-replaced')).toBeUndefined()
+        expect(mockToastSuccess).not.toHaveBeenCalled()
+      })
+    })
+
+    describe('while the correction is under way', () => {
+      let answer
+      let refuse
+
+      beforeEach(async () => {
+        mockMutate.mockReturnValueOnce(
+          new Promise((resolve, reject) => {
+            answer = resolve
+            refuse = reject
+          }),
+        )
+        await wrapper.find('[data-test="email-replace-input"]').setValue('bob@baumeister.org')
+        await wrapper.find('[data-test="email-replace-button"]').trigger('click')
+      })
+
+      const button = () => wrapper.find('[data-test="email-replace-button"]')
+
+      it('locks the button, so a second click cannot ask again', () => {
+        expect(button().attributes('disabled')).toBeDefined()
+        expect(mockMutate).toHaveBeenCalledTimes(1)
+      })
+
+      it('unlocks it again after a refusal', async () => {
+        refuse(new Error('Email address already in use'))
+        await flushPromises()
+        expect(button().attributes('disabled')).toBeUndefined()
+      })
+
+      it('clears the field after the answer only if it still holds what was sent', async () => {
+        await wrapper.find('[data-test="email-replace-input"]').setValue('bob@baumeister.net')
+        answer({ data: { adminReplaceUnconfirmedEmail: 'bob@baumeister.org' } })
+        await flushPromises()
+        expect(wrapper.find('[data-test="email-replace-input"]').element.value).toBe(
+          'bob@baumeister.net',
+        )
+        expect(button().attributes('disabled')).toBeUndefined()
+      })
+    })
+
+    it('does not call a correction failed when only the status cannot be fetched again', async () => {
+      mockMutate.mockResolvedValueOnce({
+        data: { adminReplaceUnconfirmedEmail: 'bob@baumeister.org' },
+      })
+      mockRefetch.mockRejectedValueOnce(new Error('Network error'))
+      await wrapper.find('[data-test="email-replace-input"]').setValue('bob@baumeister.org')
+      await wrapper.find('[data-test="email-replace-button"]').trigger('click')
+      await flushPromises()
+      expect(mockToastSuccess).toHaveBeenCalledWith('unregister_mail.replace.success')
+      expect(mockToastError).not.toHaveBeenCalled()
     })
 
     it('warns when the address carries Elopage purchases - a webhook account is no typo', async () => {

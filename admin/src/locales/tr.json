@@ -118,10 +118,17 @@
     "changeGroupDone": "Yaratım grubu değiştirildi.",
     "changeGroupHint": "Görünür gruplarına bağlı olarak katkı listende artık görünmeyebilir.",
     "changeGroupQuestion": "Bu katkı {from} grubundan {to} grubuna taşınsın mı?",
+    "confirm": "Onayla",
     "confirmedBy": "{name} tarafından onaylandı.",
     "createdBy": "{name} tarafından oluşturuldu.",
     "deletedBy": "{name} tarafından silindi.",
     "deniedBy": "{name} tarafından reddedildi.",
+    "detailsState": {
+      "answer": "üyenin yanıtı",
+      "changed": "üye tarafından değiştirildi",
+      "conversation": "yazışma",
+      "question": "soru soruldu"
+    },
     "noGroup": "(grupsuz)"
   },
   "contributionLink": {
@@ -148,6 +155,7 @@
       }
     },
     "saveChange": "Değişiklikleri kaydet",
+    "show": "Bağlantıyı göster",
     "validFrom": "Başlangıç tarihi",
     "validTo": "Bitiş tarihi"
   },
@@ -508,7 +516,8 @@
     "request": "Giriş kaydedildi."
   },
   "moderator": {
-    "history": "Veriler değiştirildi. Bunlar eski veriler.",
+    "change": "Değişiklik",
+    "history": "Bunlar eski veriler.",
     "memo": "Metni düzenle",
     "memo-modified": "Metin {name} tarafından düzenlendi",
     "memo-tooltip": "Katkının metnini düzenle",
@@ -517,11 +526,11 @@
     "moderator": "Moderatör",
     "notice": "Not",
     "notice-tooltip": "Not yalnızca moderatörlere görünür",
-    "request": "Bu mesaj yalnızca moderatörlere görünür!",
     "show-submission-form": "hatırlatma beklensin mi?"
   },
   "name": "Ad",
   "navbar": {
+    "appearance": "Görünüm",
     "automaticContributions": "Başlangıç bakiyesi",
     "chat": "Sohbet",
     "crea": "Crea",
@@ -534,6 +543,11 @@
     "projectBranding": "Projeler",
     "projectBrandingTooltip": "Gradido girişinde kendi logonu kullan ve yeni kullanıcıları bir Humhub alanına ekle",
     "settings": "Ayarlar",
+    "theme": {
+      "dark": "Koyu",
+      "light": "Açık",
+      "system": "Sistem ayarını izle (varsayılan)"
+    },
     "user_search": "Kullanıcı arama"
   },
   "notice": "Bildirim",
@@ -589,12 +603,17 @@
     "updated": "Proje markalama girişi güncellendi."
   },
   "redeemed": "kullanıldı",
+  "refresh": "Yenile",
   "registered": "Kayıtlı",
   "registered_at": "Kayıt tarihi",
   "removeNotSelf": "Yönetici/moderatör olarak kendini silemezsin.",
   "reset": "Sıfırla",
   "save": "Kaydet",
+  "search": {
+    "clear": "Aramayı temizle"
+  },
   "send": "Gönder",
+  "show_details": "Ayrıntıları göster",
   "status": "Durum",
   "success": "Başarılı",
   "text": "Metin",
@@ -628,10 +647,14 @@
     "pending": "Değişiklik bekliyor: {email} için onay {date} tarihinde istendi",
     "replace": {
       "button": "Adresi düzelt",
+      "confirmed": "Adres düzeltilmedi, çünkü bu arada onaylandı. Artık onu yalnızca üyenin kendisi, kendi ayarlarından değiştirebilir.",
       "elopage_warning": "Dikkat: {email} altında Elopage satın alımları var. Bu hesap büyük olasılıkla webhook'tan geldi – o halde adres bir yazım hatası değil.",
+      "error": "Adres düzeltilirken hata: {message}",
       "hint": "Yalnızca adres hiç onaylanmadığı sürece (ör. kayıtta yazım hatası). Onay e-postası sonra düzeltilen adrese gider.",
+      "invalid": "Adres düzeltilmedi, çünkü {email} geçerli bir e-posta adresi değil.",
       "placeholder": "Düzeltilmiş e-posta adresi",
       "success": "Adres düzeltildi ve onay e-postası {email} adresine gönderildi.",
+      "taken": "Adres düzeltilmedi, çünkü {email} zaten bir hesaba ait. Silinmiş bir hesap da adresini korur. Adresi yukarıdaki kullanıcı aramasıyla bul.",
       "title": "Hiç onaylanmamış adresi düzelt"
     },
     "success": "Onay bağlantısı kullanıcının e-postasına başarıyla gönderildi! ({email})",
@@ -671,6 +694,10 @@
     },
     "successfullyChangedTo": "Kullanıcı artık «{role}».",
     "tabTitle": "Kullanıcı rolü"
+  },
+  "userStatus": {
+    "emailUnconfirmed": "E-posta onaylanmadı",
+    "noElopage": "Elopage satın alımı yok"
   },
   "user_deleted": "Kullanıcı silindi.",
   "user_memo_search": "Kullanıcı ve metin araması",

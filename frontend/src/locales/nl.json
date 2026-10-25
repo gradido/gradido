@@ -251,6 +251,9 @@
     "sentMailed": "Verstuurd. {name} krijgt een e-mail.",
     "toConversation": "Naar het gesprek"
   },
+  "chatPreview": {
+    "by": "{name}:"
+  },
   "chatSearch": {
     "capped": "De laatste {count} berichten zijn doorzocht.",
     "count": "{current} van {count}",
@@ -744,6 +747,7 @@
     "imprint": "Colofon",
     "inspector": "Inspecteur (experimenteel)",
     "privacy_policy": "Privacyverklaring",
+    "socialLink": "Gradido op {platform}",
     "whitepaper": "Witboek"
   },
   "form": {

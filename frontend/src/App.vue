@@ -13,7 +13,7 @@
 import { computed, onBeforeUnmount, watch } from 'vue'
 import { useWalletStore } from '@/store/useWalletStore'
 import DashboardLayout from '@/layouts/DashboardLayout'
-import AuthLayout from '@/layouts/AuthLayout'
+import { AuthLayout } from '@/layouts/AuthLayout'
 import AppOutdatedBar from '@/components/AppOutdatedBar'
 
 const store = useWalletStore()
@@ -61,12 +61,17 @@ watch(
 )
 
 // Keep following the OS while themeMode is 'system' (re-evaluate on OS
-// light/dark change). The initial apply happens in main.js before mount.
+// light/dark change). The initial apply happens in main.js before mount. The mode this
+// device keeps comes first: the admin interface may have written it since this wallet
+// opened, and the apply writes the mode back.
 let themeMediaQuery
 let themeMediaListener
 if (window.matchMedia) {
   themeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-  themeMediaListener = () => store.applyTheme()
+  themeMediaListener = () => {
+    store.adoptThemeModeFromDevice()
+    store.applyTheme()
+  }
   themeMediaQuery.addEventListener('change', themeMediaListener)
 }
 

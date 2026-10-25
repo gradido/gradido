@@ -495,7 +495,7 @@ export const Overview = defineComponent({
           </div>
         ) : null}
         {figures.value ? (
-          <BTableSimple striped stacked='md' class={classes.figuresTable} data-test='figures'>
+          <BTableSimple striped stacked='lg' class={classes.figuresTable} data-test='figures'>
             <BThead>
               <BTr>
                 <BTh />

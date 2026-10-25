@@ -1,6 +1,6 @@
 import { useQuery } from '@vue/apollo-composable'
 import { flushPromises, mount } from '@vue/test-utils'
-import { BButton } from 'bootstrap-vue-next'
+import { BButton, BPagination } from 'bootstrap-vue-next'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import { UserSearch } from './UserSearch'
@@ -10,8 +10,16 @@ vi.mock('@vue/apollo-composable')
 vi.mock('../composables/useCreationMonths', () => ({
   useCreationMonths: () => ({
     creationLabel: () => 'Creation Date',
+    creationMonthShorts: () => ['Aug', 'Sep', 'Oct'],
   }),
 }))
+// Which side of the phone boundary the window is on, set per test. jsdom has no matchMedia, so
+// the real composable would answer `unknown` everywhere.
+const { viewport } = await vi.hoisted(async () => {
+  const { ref } = await import('vue')
+  return { viewport: ref('unknown') }
+})
+vi.mock('@/composables/useViewport', () => ({ useViewport: () => viewport }))
 const { mockToastSuccess, mockT, route } = vi.hoisted(() => ({
   mockToastSuccess: vi.fn(),
   mockT: vi.fn((key) => key), // Mock translation function
@@ -107,6 +115,7 @@ describe('UserSearch', () => {
 
   beforeEach(() => {
     route.query = {}
+    viewport.value = 'unknown'
     mockToastSuccess.mockClear()
     // Mock the useQuery composable, with a copy per test: the page writes role changes into
     // the list it was handed.
@@ -141,12 +150,79 @@ describe('UserSearch', () => {
     expect(fields.find((field) => field.key === 'alias').label).toBe('username')
   })
 
-  // Measured in the built admin: without these the table reaches past the window between
-  // 768 and about 880 px (a long address next to a 20-character username).
-  it('lets the username break always and the address in the narrow band', () => {
+  // A username may always break; the address stays whole. It broke only between 768 and 850px,
+  // where the table stood until the boundary moved to 992px (AO-010): from there on it fits
+  // beside the username column, measured in the built admin with a 36-character address.
+  it('lets the username break always and keeps the address whole', () => {
     const fields = wrapper.findComponent({ name: 'SearchUserTable' }).props('fields')
     expect(fields.find((field) => field.key === 'alias').tdClass).toBe('text-break')
-    expect(fields.find((field) => field.key === 'email').tdClass).toBe('user-search-narrow-break')
+    expect(fields.find((field) => field.key === 'email')).not.toHaveProperty('tdClass')
+  })
+
+  // Below 992px every member is a card: one cell that says what the seven columns say
+  // (SearchUserTable, the slot `cell(memberCard)`).
+  describe('the fields on either side of the phone boundary', () => {
+    const fieldKeys = () =>
+      wrapper
+        .findComponent({ name: 'SearchUserTable' })
+        .props('fields')
+        .map((field) => field.key)
+    const SEVEN = ['email', 'firstName', 'lastName', 'alias', 'creation', 'createdAt', 'status']
+
+    it('on a phone the table gets one card field', async () => {
+      viewport.value = 'mobile'
+      await nextTick()
+      expect(fieldKeys()).toEqual(['memberCard'])
+      expect(wrapper.findComponent({ name: 'SearchUserTable' }).props('fields')[0].label).toBe('')
+    })
+
+    it.each(['unknown', 'desktop'])(
+      'at the desk the fields are the seven of before (%s)',
+      async (side) => {
+        viewport.value = side
+        await nextTick()
+        expect(fieldKeys()).toEqual(SEVEN)
+      },
+    )
+
+    it('goes back to the seven when the window grows past the boundary', async () => {
+      viewport.value = 'mobile'
+      await nextTick()
+      viewport.value = 'desktop'
+      await nextTick()
+      expect(fieldKeys()).toEqual(SEVEN)
+    })
+  })
+
+  // The card names each amount of `creation` by its month; the page knows the months.
+  it('hands the table the short names of the three months', () => {
+    expect(wrapper.findComponent({ name: 'SearchUserTable' }).props('creationMonths')).toEqual([
+      'Aug',
+      'Sep',
+      'Oct',
+    ])
+  })
+
+  // The real pager, counted by what it draws: names of props are the library's to give.
+  it('the pager shows three numbers and no end buttons on a phone, five and the end buttons at the desk', async () => {
+    useQuery.mockReturnValue({
+      result: { value: { searchUsers: { ...structuredClone(mockSearchUsers), userCount: 300 } } },
+      refetch: vi.fn(),
+    })
+    wrapper = mountPage({ BPagination })
+    const pager = () => wrapper.findComponent(BPagination)
+    const drawn = () =>
+      pager()
+        .findAll('li')
+        .map((item) => item.text())
+
+    expect(drawn()).toEqual(['«', '‹', '1', '2', '3', '4', '…', '›', '»'])
+
+    viewport.value = 'mobile'
+    await nextTick()
+    expect(drawn()).toEqual(['‹', '1', '2', '3', '›'])
+    // ... and all three stay in sight below 576px, where the library hides one (App.css).
+    expect(pager().classes()).toContain('phone-pager')
   })
 
   it('renders unconfirmed emails button', () => {

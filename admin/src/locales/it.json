@@ -118,10 +118,17 @@
     "changeGroupDone": "Gruppo di creazione modificato.",
     "changeGroupHint": "A seconda dei tuoi gruppi visibili, il contributo potrebbe non comparire più nel tuo elenco.",
     "changeGroupQuestion": "Spostare questo contributo da {from} a {to}?",
+    "confirm": "Conferma",
     "confirmedBy": "Confermato da {name}.",
     "createdBy": "Creato da {name}.",
     "deletedBy": "Eliminato da {name}.",
     "deniedBy": "Rifiutato da {name}.",
+    "detailsState": {
+      "answer": "risposta del membro",
+      "changed": "modificato dal membro",
+      "conversation": "conversazione",
+      "question": "domanda posta"
+    },
     "noGroup": "(senza gruppo)"
   },
   "contributionLink": {
@@ -148,6 +155,7 @@
       }
     },
     "saveChange": "Salva le modifiche",
+    "show": "Mostra il link",
     "validFrom": "Data di inizio",
     "validTo": "Data di fine"
   },
@@ -508,7 +516,8 @@
     "request": "L'inserimento è stato salvato."
   },
   "moderator": {
-    "history": "I dati sono stati modificati. Questi sono i dati precedenti.",
+    "change": "Modifica",
+    "history": "Questi sono i dati precedenti.",
     "memo": "Modifica il testo",
     "memo-modified": "Testo modificato da {name}",
     "memo-tooltip": "Modifica il testo del contributo",
@@ -517,11 +526,11 @@
     "moderator": "Moderatore",
     "notice": "Nota",
     "notice-tooltip": "La nota è visibile solo ai moderatori",
-    "request": "Questo messaggio è visibile solo ai moderatori!",
     "show-submission-form": "aspettare il promemoria?"
   },
   "name": "Nome",
   "navbar": {
+    "appearance": "Aspetto",
     "automaticContributions": "Saldo iniziale",
     "chat": "Chat",
     "crea": "Crea",
@@ -534,6 +543,11 @@
     "projectBranding": "Progetti",
     "projectBrandingTooltip": "Usa il tuo logo nel login di Gradido e aggiungi nuovi utenti a uno spazio Humhub",
     "settings": "Impostazioni",
+    "theme": {
+      "dark": "Scuro",
+      "light": "Chiaro",
+      "system": "Segui l'impostazione del sistema (predefinito)"
+    },
     "user_search": "Ricerca utenti"
   },
   "notice": "Avviso",
@@ -589,12 +603,17 @@
     "updated": "La voce di branding del progetto è stata aggiornata."
   },
   "redeemed": "riscattato",
+  "refresh": "Aggiorna",
   "registered": "Registrato",
   "registered_at": "Registrato il",
   "removeNotSelf": "Come amministratore/moderatore, non puoi eliminare te stesso.",
   "reset": "Reimposta",
   "save": "Salva",
+  "search": {
+    "clear": "Cancella la ricerca"
+  },
   "send": "Invia",
+  "show_details": "Mostra dettagli",
   "status": "Stato",
   "success": "Successo",
   "text": "Testo",
@@ -628,10 +647,14 @@
     "pending": "Modifica in sospeso: conferma richiesta per {email} il {date}",
     "replace": {
       "button": "Correggi indirizzo",
+      "confirmed": "L'indirizzo non è stato corretto, perché nel frattempo è stato confermato. Ora può cambiarlo solo il membro stesso, nelle sue impostazioni.",
       "elopage_warning": "Attenzione: sotto {email} ci sono acquisti Elopage. Questo account proviene probabilmente dal webhook: l'indirizzo allora non è un refuso.",
+      "error": "Errore durante la correzione dell'indirizzo: {message}",
       "hint": "Solo finché l'indirizzo non è mai stato confermato (es. refuso alla registrazione). L'e-mail di conferma andrà poi all'indirizzo corretto.",
+      "invalid": "L'indirizzo non è stato corretto, perché {email} non è un indirizzo e-mail valido.",
       "placeholder": "Indirizzo e-mail corretto",
       "success": "Indirizzo corretto ed e-mail di conferma inviata a {email}.",
+      "taken": "L'indirizzo non è stato corretto, perché {email} appartiene già a un account. Anche un account eliminato conserva il suo indirizzo. Cerca l'indirizzo qui sopra, nella ricerca utenti.",
       "title": "Correggere un indirizzo mai confermato"
     },
     "success": "Link di conferma inviato con successo all'e-mail dell'utente! ({email})",
@@ -671,6 +694,10 @@
     },
     "successfullyChangedTo": "L'utente è ora «{role}».",
     "tabTitle": "Ruolo dell'utente"
+  },
+  "userStatus": {
+    "emailUnconfirmed": "E-mail non confermata",
+    "noElopage": "nessun acquisto Elopage"
   },
   "user_deleted": "L'utente è stato eliminato.",
   "user_memo_search": "Ricerca utente e testo",

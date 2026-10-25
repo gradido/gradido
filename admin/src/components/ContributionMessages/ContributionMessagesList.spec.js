@@ -197,6 +197,19 @@ describe('ContributionMessagesList', () => {
     )
   })
 
+  // The template printed a value that is null as nothing; a template literal would print 'null'.
+  it('shows nothing for a name or public name the member has not given', async () => {
+    await wrapper.setProps({
+      contribution: {
+        id: 42,
+        contributionStatus: 'PENDING',
+        user: { ...defaultUser, firstName: null, lastName: null, publicName: null },
+      },
+    })
+    expect(wrapper.findComponent(RouterLinkStub).text()).toBe('')
+    expect(wrapper.find('.list-group-item').text()).not.toContain('null')
+  })
+
   it('does not render the ContributionMessagesFormular when status is not PENDING or IN_PROGRESS', async () => {
     await wrapper.setProps({
       contribution: {
@@ -355,5 +368,26 @@ describe('ContributionMessagesList', () => {
       avatarUpdatedAt: '2026-09-12T04:00:00.000Z',
     })
     expect(asked).toHaveLength(defaultData.adminListContributionMessages.messages.length)
+  })
+
+  // The parts of the member line wrap on a phone, each as a whole: the name, the address, the
+  // username with its buttons, the HumHub profile. Separated by a gap, not by spaces in the text.
+  it('the member line wraps its parts as separate children', () => {
+    const line = wrapper.find('.list-group-item')
+    expect(line.classes()).toEqual(
+      expect.arrayContaining(['d-flex', 'flex-wrap', 'column-gap-3', 'row-gap-1']),
+    )
+    const parts = [...line.element.children]
+    expect(parts.map((part) => part.textContent.trim())).toEqual([
+      'Peter Lustig',
+      'peter.lustig@example.com',
+      'peterl',
+      '',
+    ])
+    // Nothing between the parts but the gap: the non-breaking spaces that stood there are gone.
+    // (The empty text nodes are where Vue anchors a slot's fragment.)
+    const text = [...line.element.childNodes].filter((node) => node.nodeType === Node.TEXT_NODE)
+    expect(text.map((node) => node.textContent)).toEqual(text.map(() => ''))
+    expect(line.text()).not.toContain('\u00a0')
   })
 })

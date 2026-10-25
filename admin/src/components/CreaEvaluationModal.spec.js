@@ -1,7 +1,14 @@
 import { useApolloClient, useMutation } from '@vue/apollo-composable'
 import { mount } from '@vue/test-utils'
-import { BBadge, BButton, BFormInput, BFormTextarea, BSpinner } from 'bootstrap-vue-next'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import {
+  BBadge,
+  BButton,
+  BFormInput,
+  BFormTextarea,
+  BSpinner,
+  createBootstrap,
+} from 'bootstrap-vue-next'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import { CreaEvaluationModal } from './CreaEvaluationModal'
 
@@ -23,6 +30,13 @@ vi.mock('@/composables/useCreaSound', () => ({
   primeCreaSound: vi.fn(),
   playCreaSound: vi.fn(),
 }))
+// Which side of the phone boundary the window is on, set per test. jsdom has no matchMedia, so
+// the real composable would answer `unknown` everywhere.
+const { viewport } = await vi.hoisted(async () => {
+  const { ref } = await import('vue')
+  return { viewport: ref('unknown') }
+})
+vi.mock('@/composables/useViewport', () => ({ useViewport: () => viewport }))
 
 const SALUTATION_PLACEHOLDER = '[ANREDE]'
 const SIGNATURE_PLACEHOLDER = '[SIGNATUR]'
@@ -352,4 +366,92 @@ describe('CreaEvaluationModal — resubmission grouping', () => {
     await toggleAll(wrapper).trigger('click')
     expect(toggleAll(wrapper).text()).toBe('crea.selectAll')
   })
+})
+
+// The window on a phone (S3): the head and the foot stand still and the body scrolls, and the
+// reply is half as tall as at the desk.
+describe('CreaEvaluationModal — on a phone and at the desk', () => {
+  const evaluation = {
+    responseText: RAW_REPLY,
+    defaultSalutation: 'Lieber Thomas',
+    overallVerdict: 'confirm',
+    flags: [],
+    activities: [],
+    openPoints: [],
+  }
+  const mounted = []
+
+  beforeEach(() => {
+    viewport.value = 'unknown'
+    useMutation.mockReturnValue({
+      mutate: vi.fn(async () => ({ data: { creaEvaluateContribution: evaluation } })),
+    })
+    useApolloClient.mockReturnValue({
+      resolveClient: () => ({
+        query: vi.fn(async () => ({ data: { adminListContributions: { contributionList: [] } } })),
+      }),
+    })
+  })
+
+  afterEach(() => {
+    for (const wrapper of mounted.splice(0)) {
+      wrapper.unmount()
+    }
+  })
+
+  // The REAL modal, drawn in place: whether it scrolls is a class bootstrap-vue-next makes of a
+  // prop, and a stub would answer to whatever was written into it.
+  it('the modal scrolls its body', async () => {
+    const wrapper = mount(CreaEvaluationModal, {
+      props: { contribution: contribution() },
+      // No focus trap: jsdom lays nothing out, so the trap finds nothing to focus and throws a
+      // few frames after a test has ended -- into whichever test runs then.
+      attrs: { teleportDisabled: true, noTrap: true },
+      global: { components, plugins: [createBootstrap()] },
+    })
+    mounted.push(wrapper)
+    // Opened as the page opens it: the modal's own v-model turns true.
+    wrapper.findComponent({ name: 'BModal' }).vm.$emit('update:modelValue', true)
+    await settle()
+
+    const dialog = wrapper.find('.modal-dialog')
+    expect(dialog.exists()).toBe(true)
+    expect(dialog.classes()).toContain('modal-dialog-scrollable')
+    // Head, body and foot are the three parts the class keeps apart: the foot with
+    // "Schließen" stays below the body that scrolls.
+    const parts = Array.from(wrapper.find('.modal-content').element.children).map(
+      (part) => part.className.split(' ')[0],
+    )
+    expect(parts).toEqual(['modal-header', 'modal-body', 'modal-footer'])
+    expect(wrapper.find('.modal-footer').text()).toContain('crea.close')
+  })
+
+  it.each([
+    ['mobile', '8'],
+    ['desktop', '16'],
+    ['unknown', '16'],
+  ])(
+    'the answer field has eight rows on a phone and sixteen at the desk (%s)',
+    async (side, rows) => {
+      viewport.value = side
+      const wrapper = mount(CreaEvaluationModal, {
+        props: { contribution: contribution() },
+        global: { stubs, components },
+      })
+      mounted.push(wrapper)
+      wrapper.findComponent({ name: 'BModal' }).vm.$emit('shown')
+      await settle()
+
+      // The reply is the one field that holds the draft; the signature below it keeps its two
+      // rows on every width.
+      const fields = wrapper.findAll('textarea')
+      const reply = fields.find((field) => field.element.value.includes('Lieber Thomas'))
+      expect(reply.attributes('rows')).toBe(rows)
+      expect(
+        fields
+          .filter((field) => field.element !== reply.element)
+          .map((field) => field.attributes('rows')),
+      ).toEqual(['2'])
+    },
+  )
 })

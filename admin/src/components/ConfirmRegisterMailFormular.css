@@ -1,3 +1,17 @@
 .input-group-text {
   background-color: rgb(255 252 205);
 }
+
+/* The dark mode (App.css): the yellow as a dark tint; the words on it 9.1. The same rule stands in
+   DeletedUserFormular.css: each of the two sheets has its own loader. */
+:root[data-bs-theme='dark'] .input-group-text {
+  background-color: #3d3a1f;
+}
+
+/* A phone: the words before the address break. On one line, as Bootstrap holds them, they were
+   wider than the card of an opened member. */
+@media (width < 992px) {
+  .component-confirm-register-mail .input-group-text {
+    white-space: normal;
+  }
+}

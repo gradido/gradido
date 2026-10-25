@@ -118,10 +118,17 @@
     "changeGroupDone": "Creatiegroep gewijzigd.",
     "changeGroupHint": "Afhankelijk van je zichtbare groepen verschijnt de bijdrage daarna mogelijk niet meer in je lijst.",
     "changeGroupQuestion": "Deze bijdrage verplaatsen van {from} naar {to}?",
+    "confirm": "Bevestigen",
     "confirmedBy": "Bevestigd door {name}.",
     "createdBy": "Aangemaakt door {name}.",
     "deletedBy": "Verwijderd door {name}.",
     "deniedBy": "Afgewezen door {name}.",
+    "detailsState": {
+      "answer": "antwoord van het lid",
+      "changed": "gewijzigd door het lid",
+      "conversation": "gesprek",
+      "question": "vraag gesteld"
+    },
     "noGroup": "(zonder groep)"
   },
   "contributionLink": {
@@ -148,6 +155,7 @@
       }
     },
     "saveChange": "Wijzigingen opslaan",
+    "show": "Link tonen",
     "validFrom": "Startdatum",
     "validTo": "Einddatum"
   },
@@ -508,7 +516,8 @@
     "request": "De invoer is opgeslagen."
   },
   "moderator": {
-    "history": "De gegevens zijn gewijzigd. Dit zijn de oude gegevens.",
+    "change": "Wijziging",
+    "history": "Dit zijn de oude gegevens.",
     "memo": "Tekst bewerken",
     "memo-modified": "Tekst bewerkt door {name}",
     "memo-tooltip": "De tekst van de bijdrage bewerken",
@@ -517,11 +526,11 @@
     "moderator": "Moderator",
     "notice": "Notitie",
     "notice-tooltip": "De notitie is alleen zichtbaar voor moderatoren",
-    "request": "Dit bericht is alleen zichtbaar voor de moderatoren!",
     "show-submission-form": "wachten op herinnering?"
   },
   "name": "Naam",
   "navbar": {
+    "appearance": "Weergave",
     "automaticContributions": "Startsaldo",
     "chat": "Chat",
     "crea": "Crea",
@@ -534,6 +543,11 @@
     "projectBranding": "Projecten",
     "projectBrandingTooltip": "Gebruik je eigen logo in de Gradido-login en voeg nieuwe gebruikers toe aan een Humhub-space",
     "settings": "Instellingen",
+    "theme": {
+      "dark": "Donker",
+      "light": "Licht",
+      "system": "Systeeminstelling volgen (standaard)"
+    },
     "user_search": "Gebruikers zoeken"
   },
   "notice": "Melding",
@@ -589,12 +603,17 @@
     "updated": "De projectbranding-vermelding is bijgewerkt."
   },
   "redeemed": "ingewisseld",
+  "refresh": "Vernieuwen",
   "registered": "Geregistreerd",
   "registered_at": "Geregistreerd op",
   "removeNotSelf": "Als admin/moderator kun je jezelf niet verwijderen.",
   "reset": "Resetten",
   "save": "Opslaan",
+  "search": {
+    "clear": "Zoekopdracht wissen"
+  },
   "send": "Verzenden",
+  "show_details": "Details tonen",
   "status": "Status",
   "success": "Succes",
   "text": "Tekst",
@@ -628,10 +647,14 @@
     "pending": "Wijziging in afwachting: bevestiging aangevraagd voor {email} op {date}",
     "replace": {
       "button": "Adres corrigeren",
+      "confirmed": "Adres niet gecorrigeerd, omdat het inmiddels is bevestigd. Alleen het lid zelf kan het nu nog wijzigen, in de eigen instellingen.",
       "elopage_warning": "Let op: onder {email} zijn er Elopage-aankopen. Dit account komt waarschijnlijk uit de webhook – het adres is dan geen typefout.",
+      "error": "Fout bij het corrigeren van het adres: {message}",
       "hint": "Alleen zolang het adres nooit is bevestigd (bijv. typefout bij registratie). De bevestigingsmail gaat daarna naar het gecorrigeerde adres.",
+      "invalid": "Adres niet gecorrigeerd, omdat {email} geen geldig e-mailadres is.",
       "placeholder": "Gecorrigeerd e-mailadres",
       "success": "Adres gecorrigeerd en bevestigingsmail verzonden naar {email}.",
+      "taken": "Adres niet gecorrigeerd, omdat {email} al bij een account hoort. Ook een verwijderd account houdt zijn adres. Zoek het adres hierboven, bij Gebruikers zoeken.",
       "title": "Nooit bevestigd adres corrigeren"
     },
     "success": "De bevestigingslink is succesvol naar de e-mail van de gebruiker verzonden! ({email})",
@@ -671,6 +694,10 @@
     },
     "successfullyChangedTo": "Gebruiker is nu «{role}».",
     "tabTitle": "Gebruikersrol"
+  },
+  "userStatus": {
+    "emailUnconfirmed": "E-mail niet bevestigd",
+    "noElopage": "geen Elopage-aankoop"
   },
   "user_deleted": "Gebruiker is verwijderd.",
   "user_memo_search": "Gebruikers- en tekstzoekopdracht",

@@ -9,6 +9,63 @@
   --bs-table-hover-bg: #e06a6a;
 }
 
+/* The dark mode (App.css): the four colours of a contribution's row as dark tints (AO-014).
+   Bootstrap 5.3 keeps .table-primary, -success, -warning and -danger light in its dark mode.
+   Deep, after the Gradido calculator (Bernd, 24.10.2026): open in the calculator's blue, darker
+   than the page; confirmed in the calculator's green darkened, which keeps it warm; denied in
+   gold, as light as the olive it replaces; deleted in bordeaux. Each a little lighter striped
+   and again under the pointer. The words on them 10.8 to 14.9, on the striped rows 10.4 to 14.6,
+   white under the pointer 12.3 to 17.9. */
+:root[data-bs-theme='dark'] .table-primary {
+  --bs-table-bg: #090540;
+  --bs-table-striped-bg: #0b0745;
+  --bs-table-hover-bg: #0e0b4c;
+  --bs-table-color: var(--bs-body-color);
+  --bs-table-striped-color: var(--bs-body-color);
+  --bs-table-hover-color: var(--bs-emphasis-color);
+  --bs-table-border-color: #15185d;
+}
+
+:root[data-bs-theme='dark'] .table-success {
+  --bs-table-bg: #0e2707;
+  --bs-table-striped-bg: #0f2a08;
+  --bs-table-hover-bg: #122f0a;
+  --bs-table-color: var(--bs-body-color);
+  --bs-table-striped-color: var(--bs-body-color);
+  --bs-table-hover-color: var(--bs-emphasis-color);
+  --bs-table-border-color: #1b3c12;
+}
+
+:root[data-bs-theme='dark'] .table-warning {
+  --bs-table-bg: #412802;
+  --bs-table-striped-bg: #452a01;
+  --bs-table-hover-bg: #4b2f01;
+  --bs-table-color: var(--bs-body-color);
+  --bs-table-striped-color: var(--bs-body-color);
+  --bs-table-hover-color: var(--bs-emphasis-color);
+  --bs-table-border-color: #5a3905;
+}
+
+:root[data-bs-theme='dark'] .table-danger {
+  --bs-table-bg: #400515;
+  --bs-table-striped-bg: #450617;
+  --bs-table-hover-bg: #4b091b;
+  --bs-table-color: var(--bs-body-color);
+  --bs-table-striped-color: var(--bs-body-color);
+  --bs-table-hover-color: var(--bs-emphasis-color);
+  --bs-table-border-color: #5b1425;
+}
+
+/* Muted words on such a row (a group that cannot be changed, the date on a card) in a lighter
+   grey: the bridge's #9a9b9e comes to 4.4 on a gold row under the pointer, this one holds 6.1 on
+   every stage of all four colours, the one under the pointer included. */
+:root[data-bs-theme='dark'] .table-primary,
+:root[data-bs-theme='dark'] .table-success,
+:root[data-bs-theme='dark'] .table-warning,
+:root[data-bs-theme='dark'] .table-danger {
+  --bs-secondary-color: #b4b6b9;
+}
+
 /* The group dropdown sits on a coloured contribution row. A white box would pull the eye
    away from the text it belongs to, so the control stays transparent and lets the row
    colour through -- striped, hovered or plain, it always matches by itself. It only firms
@@ -33,24 +90,140 @@
   border-color: rgb(0 0 0 / 25%);
 }
 
-/* Crea logo used as the per-row trigger button (replaces the former robot icon) */
+/* On a dark row the same, in light: a faint white edge, firming up while it is used. */
+:root[data-bs-theme='dark'] .group-select > .btn.themed-select-toggle {
+  color: var(--bs-body-color);
+  border-color: rgb(255 255 255 / 20%);
+}
+
+:root[data-bs-theme='dark'] .group-select > .btn.themed-select-toggle:hover,
+:root[data-bs-theme='dark'] .group-select > .btn.themed-select-toggle:focus,
+:root[data-bs-theme='dark'] .group-select.show > .btn.themed-select-toggle {
+  background-color: rgb(255 255 255 / 10%);
+  border-color: rgb(255 255 255 / 35%);
+}
+
+/* Crea logo used as the per-row trigger button (replaces the former robot icon). As large as the
+   row's other buttons (Bernd, 24.10.2026): at the desk the size of a button with a symbol, the
+   symbol's 1.2em with Bootstrap's padding and edge (45.2 x 38); on a phone the square of
+   .btn.phone-icon-btn (App.css), which wins with its two classes. The picture fills it. */
 .crea-logo-btn {
-  padding: 2px;
+  width: calc(1.2em + 2 * var(--bs-btn-padding-x) + 2 * var(--bs-btn-border-width));
+  height: calc(
+    var(--bs-btn-line-height) * 1em + 2 * var(--bs-btn-padding-y) + 2 * var(--bs-btn-border-width)
+  );
+  padding: 0;
   border: none;
-  border-radius: 20%;
   line-height: 0;
 }
 
 .crea-logo-btn:hover,
 .crea-logo-btn:focus-visible {
-  background-color: rgb(0 0 0 / 6%);
   box-shadow: none;
 }
 
+/* The rule above takes Bootstrap's ring away: a ring in the colour of the button's link instead,
+   as the pin and the arrows have (MemberWalletLink.module.css). Two classes, to win over
+   Bootstrap's `.btn:focus-visible`. */
+.btn.crea-logo-btn:focus-visible {
+  outline: 2px solid currentcolor;
+}
+
+/* The edge of the big Crea button at the bottom right (AiChat.module.css), so that the logo reads
+   as a button as well: dark blue, in the dark the wallet's --menu-border; under the pointer the
+   colour of the button's link, where the picture left no room for the tint it had before. */
 .crea-logo-img {
   display: block;
-  width: 34px;
-  height: 34px;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  border-radius: 20%;
+  border: 1px solid darkblue;
+  border-radius: var(--bs-btn-border-radius);
+}
+
+.crea-logo-btn:hover > .crea-logo-img {
+  border-color: currentcolor;
+}
+
+:root[data-bs-theme='dark'] .crea-logo-btn:not(:hover) > .crea-logo-img {
+  border-color: #6e727a;
+}
+
+/* A phone: every row is a card -- the stacked row of the table with the cells CreationConfirm
+   hands it there (head, text, buttons). Below this width the table stacks (`stacked='lg'`). */
+@media (width < 992px) {
+  /* The card's inner margin sits on its cells, not on the row: Bootstrap paints a row's colour
+     into its cells, and padding on the row would leave a white frame around every card. The
+     3px line above the first cell stays as the edge between two cards; the lines between the
+     cells of one card go. */
+  .open-creations-table .b-table-stacked-lg > tbody > tr > td {
+    padding: 0.125rem 0.375rem;
+    border-bottom-width: 0;
+  }
+
+  .open-creations-table .b-table-stacked-lg > tbody > tr > td:first-child {
+    padding-top: 0.625rem;
+  }
+
+  .open-creations-table .b-table-stacked-lg > tbody > tr > td:last-child {
+    padding-bottom: 0.875rem;
+  }
+
+  /* That edge took the row's own border colour, 1.2 to 1.6 on the card's ground: where one
+     contribution ended and the next began was hard to see (Bernd, 24.10.2026). It parts them by
+     brightness, which holds for a red-green weakness as well: black at 60 %, at least 3 : 1 on the
+     four light grounds and their stripes, as WCAG asks of a boundary (coderabbit, #4195; the
+     deleted ones' red needs the 60), and in the dark the white of the line below the top bar
+     (NavBar.scss), 4.0 to 4.4 on all four dark grounds. Not above an opened card's details:
+     they are a row of their own, one cell across (`colspan`), and belong to the card above them.
+     These come after the cells' other rules: stylelint wants the more specific rule to follow. */
+  .open-creations-table .b-table-stacked-lg > tbody > tr > td:first-child:not([colspan]) {
+    border-top-color: rgb(0 0 0 / 60%);
+  }
+
+  :root[data-bs-theme='dark']
+    .open-creations-table
+    .b-table-stacked-lg
+    > tbody
+    > tr
+    > td:first-child:not([colspan]) {
+    border-top-color: rgb(255 255 255 / 45%);
+  }
+
+  /* The head of a card: the face and the name, and below them the filter by the member's
+     address under the face and the group under the name, flush with it. A grid, so that the
+     second row starts below the taller of face and name, and filter and group stand side by
+     side whatever the name takes. The face's column is the face's width (LIST_AVATAR_SIZE). */
+  .open-creations-table .phone-head {
+    display: grid;
+    grid-template-columns: 3rem minmax(0, 1fr);
+    gap: 0.5rem;
+    align-items: start;
+  }
+
+  .open-creations-table .phone-head .phone-search {
+    display: flex;
+    justify-content: center;
+    align-self: center;
+  }
+
+  .open-creations-table .phone-head .phone-group {
+    align-self: center;
+  }
+
+  /* The symbols of the card's square buttons a size up: without a word beside them they carry
+     the button alone. */
+  .open-creations-table .phone-icon-btn > svg {
+    font-size: 1.25rem;
+  }
+
+  .open-creations-table .group-select {
+    max-width: 100%;
+  }
+
+  /* An opened row gives its side margins to the messages: the card's and its body's (App.css,
+     `row-details-card`) and the container's 12px. */
+  .open-creations-table .contribution-messages-list .container {
+    padding-inline: 0;
+  }
 }

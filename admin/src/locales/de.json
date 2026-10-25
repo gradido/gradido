@@ -118,10 +118,17 @@
     "changeGroupDone": "Schöpfungsgruppe geändert.",
     "changeGroupHint": "Je nach Deinem Sichtbereich erscheint der Beitrag danach nicht mehr in Deiner Liste.",
     "changeGroupQuestion": "Diesen Beitrag von {from} nach {to} verschieben?",
+    "confirm": "Bestätigen",
     "confirmedBy": "Bestätigt von {name}.",
     "createdBy": "Erstellt von {name}.",
     "deletedBy": "Gelöscht von {name}.",
     "deniedBy": "Abgelehnt von {name}.",
+    "detailsState": {
+      "answer": "Antwort des Mitglieds",
+      "changed": "vom Mitglied geändert",
+      "conversation": "Gespräch",
+      "question": "Rückfrage gestellt"
+    },
     "noGroup": "(ohne Gruppe)"
   },
   "contributionLink": {
@@ -148,6 +155,7 @@
       }
     },
     "saveChange": "Änderungen speichern",
+    "show": "Link anzeigen",
     "validFrom": "Startdatum",
     "validTo": "Enddatum"
   },
@@ -508,7 +516,8 @@
     "request": "Die Eingabe wurde gespeichert."
   },
   "moderator": {
-    "history": "Die Daten wurden geändert. Dies sind die alten Daten.",
+    "change": "Änderung",
+    "history": "Dies sind die alten Daten.",
     "memo": "Text ändern",
     "memo-modified": "Text von {name} bearbeitet.",
     "memo-tooltip": "Den Beitragstext bearbeiten",
@@ -517,11 +526,11 @@
     "moderator": "Moderator",
     "notice": "Notiz",
     "notice-tooltip": "Die Notiz ist nur für Moderatoren sichtbar",
-    "request": "Diese Nachricht ist nur für die Moderatoren sichtbar!",
     "show-submission-form": "warten auf Erinnerung?"
   },
   "name": "Name",
   "navbar": {
+    "appearance": "Erscheinungsbild",
     "automaticContributions": "Startguthaben",
     "chat": "Chat",
     "crea": "Crea",
@@ -534,6 +543,11 @@
     "projectBranding": "Projekte",
     "projectBrandingTooltip": "Nutze ein eigenes Logo im Gradido Login und füge neue Benutzer einem Humhub-Space hinzu",
     "settings": "Einstellungen",
+    "theme": {
+      "dark": "Dunkel",
+      "light": "Hell",
+      "system": "Systemeinstellung folgen (Standard)"
+    },
     "user_search": "Nutzersuche"
   },
   "notice": "Hinweis",
@@ -589,12 +603,17 @@
     "updated": "Projekt Branding Eintrag wurde aktualisiert."
   },
   "redeemed": "eingelöst",
+  "refresh": "Aktualisieren",
   "registered": "Registriert",
   "registered_at": "Registriert am",
   "removeNotSelf": "Als Admin/Moderator kannst du dich nicht selber löschen.",
   "reset": "Zurücksetzen",
   "save": "Speichern",
+  "search": {
+    "clear": "Eingabe löschen"
+  },
   "send": "Senden",
+  "show_details": "Details zeigen",
   "status": "Status",
   "success": "Erfolg",
   "text": "Text",
@@ -628,10 +647,14 @@
     "pending": "Änderung ausstehend: Bestätigung an {email} angefordert am {date}",
     "replace": {
       "button": "Adresse korrigieren",
+      "confirmed": "Adresse nicht korrigiert, weil sie inzwischen bestätigt ist. Ändern kann sie jetzt nur das Mitglied selbst, in seinen Einstellungen.",
       "elopage_warning": "Achtung: Unter {email} gibt es Elopage-Käufe. Dieses Konto stammt wahrscheinlich aus dem Webhook – die Adresse ist dann kein Tippfehler.",
+      "error": "Fehler beim Korrigieren der Adresse: {message}",
       "hint": "Nur solange die Adresse nie bestätigt wurde (z. B. Tippfehler bei der Registrierung). Die Bestätigungs-Mail geht danach an die korrigierte Adresse.",
+      "invalid": "Adresse nicht korrigiert, weil {email} keine gültige E-Mail-Adresse ist.",
       "placeholder": "Korrigierte E-Mail-Adresse",
       "success": "Adresse korrigiert und Bestätigungs-Mail an {email} gesendet.",
+      "taken": "Adresse nicht korrigiert, weil {email} schon zu einem Konto gehört. Auch ein gelöschtes Konto behält seine Adresse. Such die Adresse oben in der Nutzersuche.",
       "title": "Nie bestätigte Adresse korrigieren"
     },
     "success": "Erfolgreiches Senden des Bestätigungs-Links an die E-Mail des Nutzers! ({email})",
@@ -671,6 +694,10 @@
     },
     "successfullyChangedTo": "Nutzer ist jetzt „{role}“.",
     "tabTitle": "Nutzer-Rolle"
+  },
+  "userStatus": {
+    "emailUnconfirmed": "E-Mail nicht bestätigt",
+    "noElopage": "ohne Elopage-Kauf"
   },
   "user_deleted": "Nutzer ist gelöscht.",
   "user_memo_search": "Benutzer- und Text-Suche",

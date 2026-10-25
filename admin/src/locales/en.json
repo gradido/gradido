@@ -118,10 +118,17 @@
     "changeGroupDone": "Creation group changed.",
     "changeGroupHint": "Depending on your visible groups, the contribution may no longer appear in your list.",
     "changeGroupQuestion": "Move this contribution from {from} to {to}?",
+    "confirm": "Confirm",
     "confirmedBy": "Confirmed by {name}.",
     "createdBy": "Created by {name}.",
     "deletedBy": "Deleted by {name}.",
     "deniedBy": "Rejected by {name}.",
+    "detailsState": {
+      "answer": "the member's answer",
+      "changed": "changed by the member",
+      "conversation": "conversation",
+      "question": "question asked"
+    },
     "noGroup": "(no group)"
   },
   "contributionLink": {
@@ -148,6 +155,7 @@
       }
     },
     "saveChange": "Save Changes",
+    "show": "Show link",
     "validFrom": "Start-date",
     "validTo": "End-Date"
   },
@@ -508,7 +516,8 @@
     "request": "The entry has been saved."
   },
   "moderator": {
-    "history": "The data has been changed. This is the old data.",
+    "change": "Change",
+    "history": "This is the old data.",
     "memo": "Edit text",
     "memo-modified": "Text edited by {name}",
     "memo-tooltip": "Edit the text of the contribution",
@@ -517,11 +526,11 @@
     "moderator": "Moderator",
     "notice": "Note",
     "notice-tooltip": "The note is only visible to moderators",
-    "request": "This message is only visible to the moderators!",
     "show-submission-form": "wait for reminder?"
   },
   "name": "Name",
   "navbar": {
+    "appearance": "Appearance",
     "automaticContributions": "Starting balance",
     "chat": "Chat",
     "crea": "Crea",
@@ -534,6 +543,11 @@
     "projectBranding": "Projects",
     "projectBrandingTooltip": "Use your own logo in the Gradido login and add new users to a Humhub space",
     "settings": "Settings",
+    "theme": {
+      "dark": "Dark",
+      "light": "Light",
+      "system": "Follow system setting (default)"
+    },
     "user_search": "User search"
   },
   "notice": "Notice",
@@ -589,12 +603,17 @@
     "updated": "Project branding entry has been updated."
   },
   "redeemed": "redeemed",
+  "refresh": "Refresh",
   "registered": "Registered",
   "registered_at": "Registered at",
   "removeNotSelf": "As an admin/moderator, you cannot delete yourself.",
   "reset": "Reset",
   "save": "Save",
+  "search": {
+    "clear": "Clear the search"
+  },
   "send": "Send",
+  "show_details": "Show details",
   "status": "Status",
   "success": "Success",
   "text": "Text",
@@ -628,10 +647,14 @@
     "pending": "Change pending: confirmation requested for {email} on {date}",
     "replace": {
       "button": "Correct address",
+      "confirmed": "Address not corrected because it has been confirmed in the meantime. Only the member can change it now, in their settings.",
       "elopage_warning": "Caution: there are Elopage purchases under {email}. This account most likely came from the webhook – the address is then probably not a typo.",
+      "error": "Error correcting the address: {message}",
       "hint": "Only while the address was never confirmed (e.g. a typo at registration). The confirmation mail then goes to the corrected address.",
+      "invalid": "Address not corrected because {email} is not a valid e-mail address.",
       "placeholder": "Corrected e-mail address",
       "success": "Address corrected and confirmation mail sent to {email}.",
+      "taken": "Address not corrected because {email} already belongs to an account. A deleted account keeps its address too. Search for the address in the user search above.",
       "title": "Correct a never-confirmed address"
     },
     "success": "Successfully send the confirmation link to the user's email! ({email})",
@@ -671,6 +694,10 @@
     },
     "successfullyChangedTo": "User is now \"{role}\".",
     "tabTitle": "User Role"
+  },
+  "userStatus": {
+    "emailUnconfirmed": "E-mail not confirmed",
+    "noElopage": "no Elopage purchase"
   },
   "user_deleted": "User is deleted.",
   "user_memo_search": "User and text search",

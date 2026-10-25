@@ -33,6 +33,8 @@ query adminListContributions(
       updatedByUserName
       contributionStatus
       messagesCount
+      lastMessageType
+      lastMessageByModerator
       moderatorId
       moderatorUserName
       userId

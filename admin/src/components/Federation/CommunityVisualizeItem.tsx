@@ -204,14 +204,24 @@ export const CommunityVisualizeItem = defineComponent({
       </EditableGroup>
     )
 
+    // On a phone every community is a card: its columns stand under each other, and a value
+    // carries a small name of its own, as the head of the list stands only from 992px on.
+    const phoneLabel = (label: string) => (
+      <span class='d-block d-lg-none text-body-secondary small'>{label}</span>
+    )
+
     return () => (
       <div class='community-visualize-item'>
         {/* a native click on the row, BRow hands it on as an attribute */}
         <BRow onClick={toggleDetails}>
-          <BCol cols='1'>
+          <BCol cols='12' lg='1'>
+            {phoneLabel(t('federation.verified'))}
             <VariantIcon icon={icon.value} variant={variant.value} />
           </BCol>
-          <BCol>
+          {/* An address and a key are one word each: they break anywhere rather than reach past
+              the window (the page was 362px wide at 320px, measured 23.10.2026). */}
+          <BCol cols='12' lg class='text-break'>
+            {phoneLabel(t('federation.url'))}
             <div>
               <a href={item.value.url} target='_blank'>
                 {item.value.url}
@@ -219,13 +229,20 @@ export const CommunityVisualizeItem = defineComponent({
             </div>
             <small>{`${item.value.publicKey.substring(0, 26)}…`}</small>
           </BCol>
-          <BCol>
+          <BCol cols='12' lg>
+            {phoneLabel(t('federation.name'))}
             {withDirectives(<span>{item.value.name}</span>, [
               [vBTooltip, `${item.value.description}`],
             ])}
           </BCol>
-          <BCol cols='2'>{lastAnnouncedAt.value}</BCol>
-          <BCol cols='2'>{createdAt.value}</BCol>
+          <BCol cols='12' lg='2'>
+            {phoneLabel(t('federation.lastAnnouncedAt'))}
+            {lastAnnouncedAt.value}
+          </BCol>
+          <BCol cols='12' lg='2'>
+            {phoneLabel(t('federation.createdAt'))}
+            {createdAt.value}
+          </BCol>
         </BRow>
         {details.value ? (
           <BRow class='details'>
@@ -233,7 +250,7 @@ export const CommunityVisualizeItem = defineComponent({
             <BCol {...({ colspan: '5' } as object)}>
               <BListGroup>
                 {item.value.uuid ? (
-                  <BListGroupItem>
+                  <BListGroupItem class='text-break'>
                     {t('federation.communityUuid')}&nbsp;{item.value.uuid}
                   </BListGroupItem>
                 ) : null}
@@ -242,20 +259,24 @@ export const CommunityVisualizeItem = defineComponent({
                     {t('federation.authenticatedAt')}&nbsp;{item.value.authenticatedAt}
                   </BListGroupItem>
                 ) : null}
-                <BListGroupItem>
+                {/* The public key is 64 characters without a break: the opened home community
+                    was 698px wide at 320px (measured 23.10.2026). */}
+                <BListGroupItem class='text-break'>
                   {t('federation.publicKey')}&nbsp;{item.value.publicKey}
                 </BListGroupItem>
                 {item.value.hieroTopicId && item.value.foreign ? (
-                  <BListGroupItem>
+                  <BListGroupItem class='text-break'>
                     {t('federation.hieroTopicId')}&nbsp;{item.value.hieroTopicId}
                   </BListGroupItem>
                 ) : null}
                 {!item.value.foreign ? <BListGroupItem>{homeCommunity()}</BListGroupItem> : null}
                 <BListGroupItem>
                   <BListGroup>
-                    <BRow>
+                    {/* Six heads over the six cells of a federation; "API Version" stood twice,
+                        and every head after it stood one cell to the right of its cell. From
+                        992px on, as the head of the list. */}
+                    <BRow class='d-none d-lg-flex'>
                       <BCol class='ms-1'>{t('federation.verified')}</BCol>
-                      <BCol>{t('federation.apiVersion')}</BCol>
                       <BCol>{t('federation.apiVersion')}</BCol>
                       <BCol>{t('federation.createdAt')}</BCol>
                       <BCol>{t('federation.lastAnnouncedAt')}</BCol>

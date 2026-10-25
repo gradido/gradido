@@ -3,6 +3,7 @@ import { BFormInput, BInputGroupText } from 'bootstrap-vue-next'
 import { computed, defineComponent, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import IIcBaselineClose from '~icons/ic/baseline-close'
+import classes from './UserQuery.module.css'
 
 export const UserQuery = defineComponent({
   name: 'UserQuery',
@@ -35,8 +36,8 @@ export const UserQuery = defineComponent({
       },
     )
 
-    // `append` is spread in: an attribute without a value, as the template had it, which the
-    // types of a <div> do not know.
+    // The × is a button with a name: a keyboard reaches it, and a screen reader says what it
+    // does. It used to be a <div> with a click handler, which neither could use.
     return () => (
       <div>
         <div class='d-flex'>
@@ -46,11 +47,20 @@ export const UserQuery = defineComponent({
             class='test-input-criteria'
             placeholder={placeholderText.value}
           />
-          <div {...{ append: '' }} class='test-click-clear-criteria' onClick={onClear}>
+          <button
+            type='button'
+            class={[
+              'btn p-0 border-0 bg-transparent test-click-clear-criteria',
+              classes.clearButton,
+            ]}
+            aria-label={t('search.clear')}
+            title={t('search.clear')}
+            onClick={onClear}
+          >
             <BInputGroupText class='pointer h-100'>
-              <IIcBaselineClose />
+              <IIcBaselineClose aria-hidden='true' />
             </BInputGroupText>
-          </div>
+          </button>
         </div>
       </div>
     )

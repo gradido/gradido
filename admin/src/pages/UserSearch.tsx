@@ -5,6 +5,8 @@ import { computed, defineComponent, onMounted, reactive, ref, watch, watchEffect
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { useAppToast } from '@/composables/useToast'
+import { useViewport } from '@/composables/useViewport'
+import { DESK_PAGER_LIMIT, PHONE_PAGER_LIMIT } from '@/constants'
 import IBiEnvelope from '~icons/bi/envelope'
 import IBiXCircle from '~icons/bi/x-circle'
 import type { Role } from '../components/ChangeUserRoleFormular'
@@ -33,9 +35,14 @@ export const UserSearch = defineComponent({
     const perPage = ref(25)
     const response = ref()
 
-    const { creationLabel } = useCreationMonths()
+    const { creationLabel, creationMonthShorts } = useCreationMonths()
     const { toastSuccess } = useAppToast()
     const route = useRoute()
+
+    // Below the phone boundary every member is a card. `unknown` -- no matchMedia -- keeps the
+    // desk: nothing changes where the browser cannot be asked.
+    const viewport = useViewport()
+    const phone = computed(() => viewport.value === 'mobile')
 
     const { result, refetch } = useQuery(searchUsers, {
       query: criteria.value,
@@ -98,14 +105,15 @@ export const UserSearch = defineComponent({
       }
     })
 
-    const fields = computed(() => [
-      // user-search-narrow-break: see UserSearch.module.css. With the username column the
-      // address no longer fits in one piece just above 768 px.
-      { key: 'email', label: t('e_mail'), tdClass: 'user-search-narrow-break' },
+    const deskFields = computed(() => [
+      // The address stays whole: from 992px on, where the table stands, it fits in one piece
+      // beside the username column (measured 23.10.2026 with a 36-character address).
+      { key: 'email', label: t('e_mail') },
       { key: 'firstName', label: t('firstname') },
       { key: 'lastName', label: t('lastname') },
-      // A username may always break inside a word: twenty characters without a hyphen are
-      // wider than the column gets below about 880 px.
+      // A username may always break inside a word: a name without a hyphen is one piece, and a
+      // table gives a column at least its longest piece. Twenty characters needed more than the
+      // column had below about 880 px (measured 23.10.2026, when the table stood from 768 px on).
       { key: 'alias', label: t('username'), tdClass: 'text-break' },
       {
         key: 'creation',
@@ -121,6 +129,13 @@ export const UserSearch = defineComponent({
       // { key: 'transactions_list', label: t('transaction') },
       { key: 'status', label: t('status') },
     ])
+
+    const fields = computed(() =>
+      // On a phone the table stacks its cells (`stacked='lg'`), and a stacked row is a card: ONE
+      // cell that says what the seven columns say, a line each (SearchUserTable, the slot
+      // `cell(memberCard)`). Seven stacked cells were seven lines without their names.
+      phone.value ? [{ key: 'memberCard', label: '' }] : deskFields.value,
+    )
 
     watch(
       () => currentPage.value,
@@ -151,7 +166,7 @@ export const UserSearch = defineComponent({
     )
 
     return () => (
-      <div class={['user-search', classes.userSearch]}>
+      <div class='user-search'>
         <div class={classes.userSearchFirstDiv}>
           <BButton
             class='unconfirmedRegisterMails'
@@ -181,16 +196,20 @@ export const UserSearch = defineComponent({
           {...({ type: 'PageUserSearch' } as object)}
           items={searchResult.value}
           fields={fields.value}
+          creationMonths={creationMonthShorts()}
           onUpdate-role={updateRole}
           onUpdate-deleted-at={updateDeletedAt}
         />
+        {/* As on the contribution page: on a phone `‹`, three numbers and `›`, at the desk five
+            places with the ellipses, and « ». */}
         <BPagination
           v-model={currentPage.value}
+          class='phone-pager'
           perPage={perPage.value}
           totalRows={rows.value}
           align='center'
-          // ⚠️ No prop of BPagination: it lands on the element as an attribute, as it did
-          hide-ellipsis={true}
+          limit={phone.value ? PHONE_PAGER_LIMIT : DESK_PAGER_LIMIT}
+          noGotoEndButtons={phone.value}
           pills
           size='lg'
         />
