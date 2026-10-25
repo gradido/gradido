@@ -3,7 +3,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { mount, shallowMount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { h } from 'vue'
+import { h, nextTick } from 'vue'
 import { MemberAvatar } from '@/components/MemberAvatar'
 import { LIST_AVATAR_SIZE } from '@/constants'
 import IBiArrowDown from '~icons/bi/arrow-down'
@@ -809,6 +809,57 @@ describe('OpenCreationsTable', () => {
         // 25.10.2026).
         const waiting = [IIcRoundPriorityHigh, IBiPencilFill].includes(icon)
         expect(details(0).findComponent(icon).classes().includes('details-signal')).toBe(waiting)
+      })
+
+      // The way back from the wallet (utils/wayBackView.ts): the contribution whose details held
+      // the pin opens again, through the table's own bookkeeping, so that the next press on
+      // another row closes it as any open row is closed.
+      describe('a contribution to open, from the way back', () => {
+        it('opens it once its row is there, says so, and marks every row', async () => {
+          wrapper = mountCards(
+            [
+              { ...open, id: 8 },
+              { ...open, id: 9 },
+            ],
+            { openId: 9 },
+          )
+          await nextTick()
+          expect(details(0).attributes('aria-expanded')).toBe('false')
+          expect(details(1).attributes('aria-expanded')).toBe('true')
+          expect(wrapper.emitted('opened')).toEqual([[9]])
+          expect(cardRows().map((row) => row.attributes('data-contribution-id'))).toEqual([
+            '8',
+            '9',
+          ])
+        })
+
+        it('closes it as any open row when another one is opened', async () => {
+          wrapper = mountCards(
+            [
+              { ...open, id: 8 },
+              { ...open, id: 9 },
+            ],
+            { openId: 9 },
+          )
+          await nextTick()
+          await details(0).trigger('click')
+          expect(details(0).attributes('aria-expanded')).toBe('true')
+          expect(details(1).attributes('aria-expanded')).toBe('false')
+        })
+
+        it('waits for a row it does not hold yet', async () => {
+          wrapper = mountCards([{ ...open, id: 8 }], { openId: 9 })
+          await nextTick()
+          expect(wrapper.emitted('opened')).toBeUndefined()
+          await wrapper.setProps({
+            items: [
+              { ...open, id: 8 },
+              { ...open, id: 9 },
+            ],
+          })
+          expect(details(1).attributes('aria-expanded')).toBe('true')
+          expect(wrapper.emitted('opened')).toEqual([[9]])
+        })
       })
 
       // A copy: the table keeps "open" on the item itself (`_showDetails`), which would carry
