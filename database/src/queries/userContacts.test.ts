@@ -273,6 +273,7 @@ describe('userContacts.queries', () => {
 
     beforeAll(async () => {
       guest = await userFactory({
+        alias: 'GuestC',
         email: 'guest@confirm.test',
         firstName: 'Guest',
         lastName: 'Confirm',

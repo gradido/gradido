@@ -163,10 +163,12 @@ describe('dbSelectContactsByUserId', () => {
     ])
 
     const [, sarah, bobRow, peterRow] = page.contacts
-    // peter's seed carries no alias, so the joined users row answers null -- asserted as
-    // null on purpose: `peter.alias` on the saved entity is undefined, and toMatchObject
-    // tells the two apart.
-    expect(peterRow).toMatchObject({ linkedUserId: peter.id, alias: null, bookings: 3 })
+    // The alias off the joined users row, not off the booking.
+    expect(peterRow).toMatchObject({
+      linkedUserId: peter.id,
+      alias: peterLustig.alias,
+      bookings: 3,
+    })
     expect(peterRow.firstAt.getTime()).toBe(day(1).getTime())
     expect(peterRow.lastAt.getTime()).toBe(day(4).getTime())
     expect(bobRow).toMatchObject({ linkedUserId: bob.id, bookings: 2 })

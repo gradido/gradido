@@ -69,7 +69,6 @@ import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { CREATION_NOT_ALLOWED } from '@/data/ProjectAccount.logic'
-import { PublishNameLogic } from '@/data/PublishName.logic'
 import { transactionLinkGreetingSchema } from '@/data/ThankYouGreeting.schema'
 import {
   mayAddLargePicture,
@@ -555,7 +554,7 @@ export class TransactionLinkResolver {
           // convention as the send/receive path in TransactionResolver, and through the
           // shared rule so a member without a usable alias stores their gradidoID rather
           // than nothing at all.
-          transaction.userName = new PublishNameLogic(user).getPublicAlias()
+          transaction.userName = user.alias
           transaction.previous = lastTransaction ? lastTransaction.id : null
           transaction.amount = contribution.amount
           transaction.creationDate = contribution.contributionDate
@@ -902,7 +901,7 @@ export class TransactionLinkResolver {
               lastName: recipientUser.lastName,
               email: recipientUser.emailContact.email,
               language: recipientUser.language,
-              senderAlias: new PublishNameLogic(senderUser).getPublicAlias(),
+              senderAlias: senderUser.alias,
               // ⛔ A COMMUNITY name, and never an address: this sentence is read by a THIRD
               //    PARTY, which is the whole reason the alias replaced the real name here.
               //    The live callers pass `getCommunityName(...)`; see TransactionResolver.

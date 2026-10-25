@@ -3,15 +3,12 @@ import { Point } from 'typeorm'
 
 import { approximatePoint } from '@/apis/gms/approximatePoint'
 import { CONFIG } from '@/config'
-import { PublishNameLogic } from '@/data/PublishName.logic'
 import { GmsPublishLocationType } from '@/graphql/enum/GmsPublishLocationType'
 import { GmsPublishPhoneType } from '@/graphql/enum/GmsPublishPhoneType'
 import { Point2Location } from '@/graphql/resolver/util/Location2Point'
 
 export class GmsUser {
   constructor(user: dbUser) {
-    const pnLogic = new PublishNameLogic(user)
-
     this.uuid = user.gradidoID
     // this.communityUuid = user.communityUuid
     this.language = user.language
@@ -26,7 +23,7 @@ export class GmsUser {
     // The alias, no longer steered by the publish-name setting (NU-024). The KEY the
     // GMS recognises the user by is this.uuid above and stays untouched; the next
     // upsert overwrites the display on its own.
-    this.alias = pnLogic.getPublicAlias()
+    this.alias = user.alias
     // ⛔ Through Point2Location, not straight off the column. `this.location =
     // user.location.coordinates` handed an EMPTY array on for a point without coordinates
     // -- and `[]` is truthy, so the fallback five lines down never fired and a member with

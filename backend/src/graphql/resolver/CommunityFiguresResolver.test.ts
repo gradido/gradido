@@ -144,6 +144,7 @@ beforeAll(async () => {
   await dbInsertForeignUser({
     communityUuid: '66666666-6666-4666-8666-666666666666',
     gradidoId: '66666666-6666-4666-8666-000000000001',
+    alias: 'farAway',
   })
 
   // Thanks: Bibi sent Peter 20 GDD yesterday and 5.5 GDD forty days ago -- a SEND and a RECEIVE

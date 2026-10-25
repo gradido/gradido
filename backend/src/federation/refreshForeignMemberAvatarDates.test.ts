@@ -57,6 +57,7 @@ const storedMember = async (communityUuid: string): Promise<string> => {
   row.foreign = true
   row.communityUuid = communityUuid
   row.gradidoID = uuidv4()
+  row.alias = `far${row.gradidoID.slice(0, 8)}`
   await row.save()
   return row.gradidoID
 }
@@ -264,10 +265,11 @@ describe('refreshForeignMemberAvatarDates', () => {
     beforeAll(async () => {
       await DbUser.delete({ foreign: true })
       await DbUser.insert(
-        Array.from({ length: MEMBER_AVATARS_MAX_REFS + 1 }, () => ({
+        Array.from({ length: MEMBER_AVATARS_MAX_REFS + 1 }, (_, n) => ({
           foreign: true,
           communityUuid: peerUuid,
           gradidoID: uuidv4(),
+          alias: `farMember${n}`,
         })),
       )
     })
