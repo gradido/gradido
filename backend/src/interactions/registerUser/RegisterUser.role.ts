@@ -10,6 +10,7 @@ import {
 import {
   ALIAS_ORIGIN_ASSIGNED,
   ALIAS_ORIGIN_CHOSEN,
+  DBDuplicateEntryError,
   DbUser,
   DrizzleTransaction,
   dbCountUnconfirmedVouchedAccounts,
@@ -191,7 +192,7 @@ export class RegisterUserRole<
     }
     this.userContactId = insertUserContactResult.value
     // write user.email_id
-    const affectedRows = await dbUserUpdateField(this.userId, 'emailId', this.userContactId, tx)
+    let affectedRows = await dbUserUpdateField(this.userId, 'emailId', this.userContactId, tx)
     if (affectedRows !== 1) {
       logger.error(`update emailId: ${this.userContactId} failed`)
       throw new Error('Error while updating dbUser')
@@ -200,7 +201,7 @@ export class RegisterUserRole<
     // leaves above with the row removed, and no name to take back. A name the system built is
     // a proposal, not one of the member's picks (aliasOriginIsSettled); the one they chose is
     // theirs only where it was free - getFreeAlias answers with another otherwise.
-    const result = await dbInsertUserAlias(
+    let insertUserAliasResult = await dbInsertUserAlias(
       {
         alias: dbUser.alias,
         userId: this.userId,
@@ -208,9 +209,33 @@ export class RegisterUserRole<
       },
       tx,
     )
-    if (!result.success) {
-      throw result.error
+    if (!insertUserAliasResult.success) {
+      if (insertUserAliasResult.error instanceof DBDuplicateEntryError) {
+        // seems someone sneaks in a registration between our prepare user call and the start of the transaction
+        dbUser.alias = await this.getFreeAlias(dbUser.gradidoId, tx)
+        insertUserAliasResult = await dbInsertUserAlias(
+          {
+            alias: dbUser.alias,
+            userId: this.userId,
+            origin: dbUser.alias === this.user.alias ? ALIAS_ORIGIN_CHOSEN : ALIAS_ORIGIN_ASSIGNED,
+          },
+          tx,
+        )
+        if (!insertUserAliasResult.success) {
+          logger.error(`second alias insert failed`)
+          throw insertUserAliasResult.error
+        }
+        // update alias in user table
+        affectedRows = await dbUserUpdateField(this.userId, 'alias', dbUser.alias, tx)
+        if (affectedRows !== 1) {
+          logger.error(`update alias: ${dbUser.alias} failed`)
+          throw new Error('Error while updating dbUser')
+        }
+      } else {
+        throw insertUserAliasResult.error
+      }
     }
+
     return { success: true, value: insertUserResult.value }
   }
 
@@ -222,18 +247,18 @@ export class RegisterUserRole<
   // Over the pool, not the transaction: a plain read there would fix what the transaction
   // sees before a variant takes its lock (dbLockUserRowDrizzle). Two registrations that pick
   // the same name at once are told apart by `alias_key` when the row is written.
-  public async getFreeAlias(gradidoId: string): Promise<string> {
+  public async getFreeAlias(gradidoId: string, tx?: DrizzleTransaction): Promise<string> {
     let aliasCandidatesArray: string[] = []
     if (this.user.alias) {
       aliasCandidatesArray.push(this.user.alias)
     }
     aliasCandidatesArray = aliasCandidatesArray.concat(aliasCandidates(this.user))
-    const existingAliases = await dbFindUserAliasesExisting(aliasCandidatesArray)
+    const existingAliases = await dbFindUserAliasesExisting(aliasCandidatesArray, tx)
 
     let aliasCandidate = findFirstFreeAlias(existingAliases, aliasCandidatesArray)
     if (!aliasCandidate) {
       const additionalAliases = additionalAliasVariants(aliasCandidatesArray)
-      const existingAliases = await dbFindUserAliasesExisting(additionalAliases)
+      const existingAliases = await dbFindUserAliasesExisting(additionalAliases, tx)
       aliasCandidate = findFirstFreeAlias(existingAliases, additionalAliases)
     }
     if (!aliasCandidate) {

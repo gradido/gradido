@@ -158,7 +158,7 @@ async function nameLocalMembers(queryFn: QueryFn) {
     const alias = pickFreeAlias(
       aliasCandidates(user.first_name, user.last_name, user.email),
       taken,
-    ) ?? user.gradido_id.slice(0, 19).toLowerCase()
+    ) ?? user.gradido_id.slice(0, 18).toLowerCase()
     // An alias that does not parse would still be written by raw SQL, and
     // `findUserByIdentifier` decides from the schema what KIND of identifier it was handed -
     // so its owner would be unreachable at their own gradido address. Better to stop the

@@ -47,14 +47,6 @@ describe('test publish name logic', () => {
     })
   })
 
-  // The one name the server calls a member by (NU-018/NU-024): the alias, mandatory since
-  // migration 0164.
-  describe('test getPublicAlias', () => {
-    it('is the alias', () => {
-      expect(logic.getPublicAlias()).toBe('alias')
-    })
-  })
-
   describe('test user identifier ', () => {
     it('for alias or initials with alias set', () => {
       expect(logic.getUserIdentifier(PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS)).toBe('alias')

@@ -346,6 +346,28 @@ describe('RegisterUserRole', () => {
       )
     })
 
+    // Somebody took the name between the lookup over the pool and the write: the name is
+    // looked up once more, through the transaction this time, written again, and the row of
+    // the account is brought up to date with it.
+    it('walks on to another name when the one looked up was taken in the meantime', async () => {
+      mocked(dbInsertUserAlias)
+        .mockResolvedValueOnce(duplicateAlias('BerndH'))
+        .mockResolvedValueOnce({ success: true, value: ALIAS_ID })
+      mocked(dbFindUserAliasesExisting).mockResolvedValueOnce([]).mockResolvedValueOnce(['berndh'])
+
+      await new RegisterUserRole(input()).run(logger)
+
+      // Not insertedUserAlias(): the role writes the new name back onto the row it handed
+      // dbInsertUser, so the mock's copy of it carries the second name as well.
+      expect(mocked(dbInsertUserAlias).mock.calls[0][0].alias).toBe('BerndH')
+      expect(mocked(dbFindUserAliasesExisting).mock.calls[1][1]).toBe(tx)
+      expect(dbInsertUserAlias).toHaveBeenLastCalledWith(
+        { alias: 'BerndHue', userId: USER_ID, origin: ALIAS_ORIGIN_ASSIGNED },
+        tx,
+      )
+      expect(dbUserUpdateField).toHaveBeenCalledWith(USER_ID, 'alias', 'BerndHue', tx)
+    })
+
     // The last rung, which must never fail: the gradido id is unique by itself. Cut where it
     // ends on a hex digit - one character more would end on a hyphen, and the schema refuses.
     it('falls back to the gradido id when every name is taken', async () => {
@@ -1054,7 +1076,7 @@ describe('RegisterUserFromVouchingLinkRole', () => {
       }
       // The name is looked up before, over the pool: a plain read through the transaction
       // would fix what it sees before the lock.
-      expect(mocked(dbFindUserAliasesExisting).mock.calls[0]).toHaveLength(1)
+      expect(mocked(dbFindUserAliasesExisting).mock.calls[0][1]).toBeUndefined()
       expect(tx.execute).not.toHaveBeenCalled()
     })
 

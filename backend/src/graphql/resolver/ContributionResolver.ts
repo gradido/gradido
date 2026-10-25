@@ -38,7 +38,6 @@ import { EntityManager, IsNull } from 'typeorm'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { CREATION_NOT_ALLOWED } from '@/data/ProjectAccount.logic'
-import { PublishNameLogic } from '@/data/PublishName.logic'
 import { UpdateUnconfirmedContributionContext } from '@/interactions/updateUnconfirmedContribution/UpdateUnconfirmedContribution.context'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
@@ -404,7 +403,7 @@ export class ContributionResolver {
         lastName: user.lastName,
         email: user.emailContact.email,
         language: user.language,
-        senderAlias: new PublishNameLogic(moderator).getPublicAlias(),
+        senderAlias: moderator.alias,
         contributionMemo: updateUnconfirmedContributionContext.getOldMemo(),
         contributionMemoUpdated: contribution.memo,
         contributionFrontendLink: await contributionFrontendLink(
@@ -559,7 +558,7 @@ export class ContributionResolver {
       lastName: user.lastName,
       email: user.emailContact.email,
       language: user.language,
-      senderAlias: new PublishNameLogic(moderator).getPublicAlias(),
+      senderAlias: moderator.alias,
       contributionMemo: contribution.memo,
       contributionFrontendLink: await contributionFrontendLink(
         contribution.id,
@@ -651,7 +650,7 @@ export class ContributionResolver {
       lastName: user.lastName,
       email: user.emailContact.email,
       language: user.language,
-      senderAlias: new PublishNameLogic(moderator).getPublicAlias(),
+      senderAlias: moderator.alias,
       contributionMemo: contributionToUpdate.memo,
       contributionFrontendLink: await contributionFrontendLink(
         contributionToUpdate.id,

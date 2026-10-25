@@ -28,7 +28,9 @@ export async function storeForeignUser(
           committingResult.recipGradidoID,
         )
         // A row without an alias cannot be filed: `users.alias` is NOT NULL (migration 0164),
-        // and the recipient's community, which runs that migration too, sends it.
+        // and the recipient's community, which runs that migration too, sends it. An answer
+        // without one is already turned away before anything settles
+        // (processXComPendingSendCoins); this is the guard the type still asks for.
         if (!committingResult.recipAlias) {
           logger.error(
             'recipient came without an alias, not stored as foreign user:',

@@ -16,11 +16,6 @@ import { transliterateToLatin } from './transliterate'
  * fallback for those is the email local part, the one latin thing that already belongs
  * to them.
  *
- * ⚠️ Nothing here promises a usable result. The caller checks each candidate against
- * `aliasSchema` before writing it - a migration that stores an invalid alias is worse
- * than one that stores none, because `findUserByIdentifier` decides from the schema
- * what KIND of identifier it was given, so its owner would be unreachable at their own
- * address.
  */
 
 /**
@@ -34,15 +29,25 @@ export function transliterateForAlias(text: string): string {
 }
 
 /**
- * Proposals for one person, best first. The caller takes the first that is still free,
- * appending digits for a clash - and falls back to something of its own if the list
- * runs out, which it does for a name in a script with no table here.
+ * Proposals for one person, in the order they are to be tried (findFirstFreeAlias takes the
+ * first that is free). The ladder: the first name with a growing prefix of the last name,
+ * one letter at a time up to the whole of it (`Bernd Huber` -> `BerndH`, `BerndHu`, ...,
+ * `BerndHuber`), then the first name alone, the last name alone, and last the local part of
+ * the email address without its plus tag. The shortest form first, as it is what a member
+ * expects; the longer rungs give a clash somewhere to go that still reads as a name -
+ * `BerndHu` and `BerndHo` are easier to tell apart than `BerndH1` and `BerndH2`. The numbered
+ * forms live in additionalAliasVariants and are asked about only once every plain one is
+ * taken.
  *
- * Walking further into the last name is what answers both "too short" and "that word is
- * reserved": `A B` has no second letter to take and drops through to the email, while
- * `Al Bo` gives `AlB` - unusable at two letters, usable at three. Appending a digit
- * would answer neither, since a name that reads like an office is worse than a long
- * one.
+ * Only what `aliasSchema` accepts gets onto the list, each form once. So a rung that is too
+ * short (`A B` gives `AB`), a reserved word, or one that transliterated to nothing (a script
+ * without a table) is simply skipped, and the ladder goes on to the next rung instead of
+ * numbering a bad one. That is also why the list can be EMPTY - a CJK name over an address
+ * like `ab@` - and the caller then falls back to something of its own (RegisterUserRole:
+ * the gradido id).
+ *
+ * Letters of the last name are counted per code point after NFC, so an umlaut that arrived
+ * decomposed is one step, and its replacement (`ü` -> `ue`) is never cut in half.
  */
 export function aliasCandidates(user: {
   firstName: string

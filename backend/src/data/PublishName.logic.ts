@@ -19,20 +19,6 @@ export class PublishNameLogic {
   }
 
   /**
-   * What another member is allowed to call this one (NU-018/NU-024): the alias, which
-   * every row carries since migration 0164. No publish-name setting steers it -- that
-   * setting's display role ended with NU-024, and the real name is not handed out here
-   * at all.
-   *
-   * A method for a field read, because the call sites hold a whole user: while the alias
-   * could still be missing, reading it off the user at each of them is what let the
-   * fallback drift between them.
-   */
-  public getPublicAlias(): string {
-    return this.user.alias
-  }
-
-  /**
    * get unique username
    * @param publishNameType
    * @return the alias, reduced to what humhub accepts, for PUBLISH_NAME_ALIAS_OR_INITALS;

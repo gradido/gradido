@@ -705,11 +705,8 @@ export async function dbUserUpdateField<K extends UserSingleColumn>(
   userId: number,
   field: K,
   value: UserInsert[K],
-  tx?: DrizzleTransaction | MySql2Database,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
 ): Promise<number> {
-  if (!tx) {
-    tx = drizzleDb()
-  }
   const rows = await tx
     .update(usersTable)
     .set({

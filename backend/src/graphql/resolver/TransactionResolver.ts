@@ -54,7 +54,6 @@ import { In, IsNull } from 'typeorm'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { PublishNameLogic } from '@/data/PublishName.logic'
 import { greetingLinkIdsOf, greetingOfBooking } from '@/data/Transaction.logic'
 import {
   TRANSACTION_PICTURES_MAX_PER_REQUEST,
@@ -200,25 +199,17 @@ export const executeTransaction = async (
     await queryRunner.startTransaction('REPEATABLE READ')
     logger.debug(`open Transaction to write...`)
     try {
-      // Through the shared rule, like the contribution and link paths. A bare `.alias`
-      // here wrote `null` for anybody who has not picked a name yet -- and it wrote it
-      // PERMANENTLY, into the most common booking type there is, where a legacy alias of
-      // one or two characters would also have stood while every other screen showed the
-      // identifier. Both names are read twice below, so they are worked out once.
-      const senderName = new PublishNameLogic(sender).getPublicAlias()
-      const recipientName = new PublishNameLogic(recipient).getPublicAlias()
-
       // transaction
       const transactionSend = new dbTransaction()
       transactionSend.typeId = TransactionTypeId.SEND
       transactionSend.memo = memo
       transactionSend.userId = sender.id
       transactionSend.userGradidoID = sender.gradidoID
-      transactionSend.userName = senderName
+      transactionSend.userName = sender.alias
       transactionSend.userCommunityUuid = sender.communityUuid
       transactionSend.linkedUserId = recipient.id
       transactionSend.linkedUserGradidoID = recipient.gradidoID
-      transactionSend.linkedUserName = recipientName
+      transactionSend.linkedUserName = recipient.alias
       transactionSend.linkedUserCommunityUuid = recipient.communityUuid
       transactionSend.amount = negativeAmount
       transactionSend.balance = sendBalance.balance
@@ -239,11 +230,11 @@ export const executeTransaction = async (
       transactionReceive.memo = memo
       transactionReceive.userId = recipient.id
       transactionReceive.userGradidoID = recipient.gradidoID
-      transactionReceive.userName = recipientName
+      transactionReceive.userName = recipient.alias
       transactionReceive.userCommunityUuid = recipient.communityUuid
       transactionReceive.linkedUserId = sender.id
       transactionReceive.linkedUserGradidoID = sender.gradidoID
-      transactionReceive.linkedUserName = senderName
+      transactionReceive.linkedUserName = sender.alias
       transactionReceive.linkedUserCommunityUuid = sender.communityUuid
       transactionReceive.amount = amount
       const receiveBalance = await calculateBalance(recipient.id, amount, receivedCallDate)
@@ -324,7 +315,7 @@ export const executeTransaction = async (
         email: recipient.emailContact.email,
         language: recipient.language,
         memo,
-        senderAlias: new PublishNameLogic(sender).getPublicAlias(),
+        senderAlias: sender.alias,
         // The reply button in the mail opens the conversation with the sender, so the mail
         // carries these instead of the sender's e-mail address.
         senderUuid: sender.gradidoID,
@@ -343,7 +334,7 @@ export const executeTransaction = async (
         lastName: sender.lastName,
         email: sender.emailContact.email,
         language: sender.language,
-        senderAlias: new PublishNameLogic(recipient).getPublicAlias(),
+        senderAlias: recipient.alias,
         // The community, not an address. The field used to be called `senderEmail`
         // while both live callers passed a community name, with the real address
         // commented out beside it -- a name that invited the next person to put the
