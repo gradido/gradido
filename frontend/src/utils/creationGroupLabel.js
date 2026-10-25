@@ -2,8 +2,7 @@
 // contribution lists, the selection dropdowns and the community info page. Just the name: on
 // a phone "Name (#tag)" is too wide for the double name, and the names are self-explanatory.
 // The bare "#tag" stays only as a fallback for an old inline hashtag that has no group name.
-// (The admin keeps the tag — there it identifies a mistyped tag on an old contribution — and
-// formats its own labels.)
+// (The admin writes a group the same way since 25.10.2026, in a helper of its own.)
 export const creationGroupLabel = (creationGroup) => creationGroup.name || `#${creationGroup.tag}`
 
 export const creationGroupLabels = (creationGroups) =>

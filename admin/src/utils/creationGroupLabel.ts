@@ -2,20 +2,22 @@
 // Group functions: how a group is written in the ADMIN wherever it is named -- the
 // contribution rows, the group dropdowns and the moderator scope form.
 //
-// The admin keeps the tag, unlike the wallet (see frontend/src/utils/creationGroupLabel.js, which
-// shows the name alone): here the tag is what identifies a mistyped tag on an old
-// contribution, and what a moderator reads when moving one somewhere else.
+// By its name alone, as the wallet writes it (frontend/src/utils/creationGroupLabel.js). The
+// tag stood beside the name while it was all a group was known by; that is past (Bernd,
+// 25.10.2026: the hashtags in the menus "können ersatzlos wegfallen"). The bare "#tag" stays
+// for a group without a name -- an old inline hashtag adopted into a group --, which has
+// nothing else to be known by. The page of the groups (CreationGroups.tsx) still shows each
+// tag: there a group is made and its tag kept.
 //
 // ⚠️ Written out by hand at five sites until now, which is how the copies started to drift.
 // Anything that names a group in the admin belongs here.
 //
-// The one place that deliberately does NOT use this is the adoption dialog's title
-// (CreationGroups.vue): it prints the tag separately on the two lines below, so the long form
-// would say it twice.
+// The one place that does NOT use this is the adoption dialog's title (CreationGroups.tsx): it
+// writes the same form by hand and prints the tag separately on the two lines below.
 export type CreationGroup = { name?: string | null; tag: string }
 
 export const creationGroupLabel = (creationGroup: CreationGroup) =>
-  creationGroup.name ? `${creationGroup.name} (#${creationGroup.tag})` : `#${creationGroup.tag}`
+  creationGroup.name || `#${creationGroup.tag}`
 
 export const creationGroupLabels = (creationGroups: CreationGroup[] | null | undefined) =>
   (creationGroups ?? []).map(creationGroupLabel).join(', ')
