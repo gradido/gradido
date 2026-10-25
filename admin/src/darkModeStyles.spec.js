@@ -472,6 +472,48 @@ describe('the dark mode of the admin', () => {
     expect(dark).toMatch(/^#[0-9a-f]{6}$/)
   })
 
+  // Bernd, 25.10.2026: Bootstrap draws a tooltip in the emphasis colour, white with dark words
+  // in the dark mode. A dark layer with the page's words instead, wholly opaque: at Bootstrap's
+  // 0.9 the words behind showed through it.
+  it('draws a tooltip dark, with the words of the page, wholly opaque', () => {
+    expect(declarationsOf(darkRules(app), `${DARK} .tooltip`)).toEqual({
+      '--bs-tooltip-bg': 'var(--bs-secondary-bg)',
+      '--bs-tooltip-color': 'var(--bs-body-color)',
+      '--bs-tooltip-opacity': '1',
+    })
+    expect(contrast(bridge['--bs-body-color'], bridge['--bs-secondary-bg'])).toBeGreaterThanOrEqual(
+      4.5,
+    )
+  })
+
+  // Bernd, 25.10.2026: delete and deny in a calmer red and gold, as quiet as the green of
+  // confirming beside them, the gold a step lighter than the red so that the two part by
+  // brightness as well, a white sign on each. What waits for the moderation stands out on the
+  // grey of the details button in a bright yellow.
+  it('gives delete and deny calm grounds with a white sign, and the waiting sign its yellow', () => {
+    const all = rules(read(SWEEP.rows))
+    const red = declarationsOf(all, '.open-creations-table .btn-danger')['--calm-ground']
+    const gold = declarationsOf(all, '.open-creations-table .btn-warning')['--calm-ground']
+    expect([red, gold]).toEqual(['#a74546', '#a77f2b'])
+    const both = declarationsOf(
+      all,
+      '.open-creations-table .btn-danger, .open-creations-table .btn-warning',
+    )
+    expect(both['--bs-btn-color']).toBe('var(--bs-white)')
+    expect(both['--bs-btn-bg']).toBe('var(--calm-ground)')
+    for (const ground of [red, gold]) {
+      expect(contrast('#ffffff', ground), ground).toBeGreaterThanOrEqual(3)
+    }
+    expect(luminance(gold)).toBeGreaterThan(luminance(red) * 1.5)
+    // The gold every warning button took went with it.
+    expect(declarationsOf(all, '.btn-warning')).toEqual({})
+    // Bootstrap's grey of the details button, and the same grey under the pointer.
+    const signal = declarationsOf(all, '.open-creations-table .details-signal').color
+    for (const grey of ['#6c757d', '#5c636a']) {
+      expect(contrast(signal, grey), grey).toBeGreaterThanOrEqual(3)
+    }
+  })
+
   it('the yellow prefix box has a dark counterpart in both of its files', () => {
     for (const sheet of [SWEEP.deletedUser, SWEEP.confirmMail]) {
       const all = rules(read(sheet))

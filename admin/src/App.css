@@ -141,6 +141,16 @@
   --bs-dropdown-link-hover-bg: #43464c; /* the wallet's --menu-hover; Bootstrap's is the menu's ground */
 }
 
+/* A tooltip in the dark: Bootstrap draws it in the emphasis colour, white with dark words. Here
+   a dark layer with the page's words, a step lighter than a card so that it stands off one too
+   (Bernd, 25.10.2026); its arrow takes the same ground. Wholly opaque: at Bootstrap's 0.9 the
+   words of the page behind showed through the dark layer. */
+:root[data-bs-theme='dark'] .tooltip {
+  --bs-tooltip-bg: var(--bs-secondary-bg);
+  --bs-tooltip-color: var(--bs-body-color);
+  --bs-tooltip-opacity: 1;
+}
+
 :root[data-bs-theme='dark'] .list-group {
   --bs-list-group-bg: var(--bs-tertiary-bg);
   --bs-list-group-action-hover-bg: var(--bs-secondary-bg);

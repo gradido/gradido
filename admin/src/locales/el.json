@@ -303,9 +303,8 @@
   "createdAt": "Ημερομηνία δημιουργίας",
   "creation": "Δημιουργία",
   "creationGroupFilter": {
-    "all": "(όλα)",
+    "all": "(με και χωρίς ομάδα)",
     "grouped": "(όλες οι ομάδες)",
-    "label": "Creation group:",
     "untagged": "(χωρίς ομάδα)"
   },
   "creationGroupsAdmin": {

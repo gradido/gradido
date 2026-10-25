@@ -303,9 +303,8 @@
   "createdAt": "Aangemaakt op",
   "creation": "Creatie",
   "creationGroupFilter": {
-    "all": "(alle)",
+    "all": "(met en zonder groep)",
     "grouped": "(alle groepen)",
-    "label": "Creation group:",
     "untagged": "(zonder groep)"
   },
   "creationGroupsAdmin": {

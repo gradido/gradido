@@ -1,9 +1,43 @@
 /* AI-GENERATED — not an architecture reference */
 
+/* The search field drawn as the group's choice beside it is (an outline button, ThemedSelect):
+   the page's ground and an edge, no grey field and no coloured box behind the × (Bernd,
+   25.10.2026). The edge of an outline button: Bootstrap's secondary in the light, its gray-500
+   in the dark (App.css, .btn-outline-secondary). A focused field keeps Bootstrap's blue. */
+.field :global(.form-control):not(:focus),
+.field .clearButton {
+  border-color: var(--bs-secondary);
+}
+
+.field :global(.form-control) {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  background-color: transparent;
+}
+
+/* The × stands against the field, as one with it. */
+.field .clearButton {
+  border: var(--bs-border-width) solid var(--bs-secondary);
+  border-left: 0;
+  border-radius: 0 var(--bs-border-radius) var(--bs-border-radius) 0;
+  background-color: transparent;
+  color: var(--bs-body-color);
+}
+
 /* The × of the search field shows where a keyboard stands, as the pin and the arrows do
    (MemberWalletLink.module.css), in the colour of the words: Bootstrap's own ring needs a button
    variant, and this button has none. Two classes, so that it wins over Bootstrap's
    `.btn:focus-visible { outline: 0 }` whatever the order the sheets load in. */
 :global(.btn).clearButton:focus-visible {
   outline: 2px solid currentcolor;
+}
+
+:root[data-bs-theme='dark'] .field :global(.form-control):not(:focus),
+:root[data-bs-theme='dark'] .field .clearButton {
+  border-color: var(--bs-gray-500);
+}
+
+/* The page's dark ground, over the field's grey of App.css. */
+:root[data-bs-theme='dark'] .field :global(.form-control) {
+  background-color: transparent;
 }
