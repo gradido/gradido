@@ -516,7 +516,8 @@
     "request": "A entrada foi guardada."
   },
   "moderator": {
-    "history": "Os dados foram alterados. Estes são os dados anteriores.",
+    "change": "Alteração",
+    "history": "Estes são os dados anteriores.",
     "memo": "Editar texto",
     "memo-modified": "Texto editado por {name}",
     "memo-tooltip": "Editar o texto da contribuição",
@@ -525,7 +526,6 @@
     "moderator": "Moderador",
     "notice": "Nota",
     "notice-tooltip": "A nota só é visível para os moderadores",
-    "request": "Esta mensagem só é visível para os moderadores!",
     "show-submission-form": "esperar pelo lembrete?"
   },
   "name": "Nome",

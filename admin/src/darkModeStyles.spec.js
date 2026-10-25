@@ -271,8 +271,6 @@ describe('the dark mode of the admin', () => {
       // grey, the faint whites of the group select, the light edge between two cards on a phone,
       // and the small Crea logo's edge, the big Crea button's.
       [SWEEP.rows]: 22,
-      // The four bubbles.
-      [SWEEP.messages]: 4,
       // The yellow of the prefix, as a dark tint, in each of its two files.
       [SWEEP.deletedUser]: 1,
       [SWEEP.confirmMail]: 1,
@@ -528,14 +526,16 @@ describe('the dark mode of the admin', () => {
   })
 
   it('the bubbles under a contribution and the placeholder of a select carry their words at 4.5', () => {
-    const bubbles = darkRules(read(SWEEP.messages))
-    expect(bubbles).toHaveLength(4)
-    for (const bubble of bubbles) {
-      const ground = bubble.declarations['background-color']
-      expect(contrast(bridge['--bs-body-color'], ground), bubble.selector).toBeGreaterThanOrEqual(
-        4.5,
-      )
-    }
+    // The bubbles have no dark rule of their own since 25.10.2026: every one stands in the grey
+    // of a field, which the bridge turns.
+    const messages = rules(read(SWEEP.messages))
+    expect(darkRules(read(SWEEP.messages))).toHaveLength(0)
+    expect(declarationsOf(messages, '.message-bubble')['background-color']).toBe(
+      'var(--bs-secondary-bg)',
+    )
+    expect(contrast(bridge['--bs-body-color'], bridge['--bs-secondary-bg'])).toBeGreaterThanOrEqual(
+      4.5,
+    )
     const placeholder = declarationsOf(
       darkRules(read(SWEEP.themedSelect)),
       `${DARK} .themed-select.themed-select-placeholder > .btn.themed-select-toggle`,

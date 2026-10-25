@@ -516,7 +516,8 @@
     "request": "The entry has been saved."
   },
   "moderator": {
-    "history": "The data has been changed. This is the old data.",
+    "change": "Change",
+    "history": "This is the old data.",
     "memo": "Edit text",
     "memo-modified": "Text edited by {name}",
     "memo-tooltip": "Edit the text of the contribution",
@@ -525,7 +526,6 @@
     "moderator": "Moderator",
     "notice": "Note",
     "notice-tooltip": "The note is only visible to moderators",
-    "request": "This message is only visible to the moderators!",
     "show-submission-form": "wait for reminder?"
   },
   "name": "Name",

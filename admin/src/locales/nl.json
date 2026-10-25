@@ -516,7 +516,8 @@
     "request": "De invoer is opgeslagen."
   },
   "moderator": {
-    "history": "De gegevens zijn gewijzigd. Dit zijn de oude gegevens.",
+    "change": "Wijziging",
+    "history": "Dit zijn de oude gegevens.",
     "memo": "Tekst bewerken",
     "memo-modified": "Tekst bewerkt door {name}",
     "memo-tooltip": "De tekst van de bijdrage bewerken",
@@ -525,7 +526,6 @@
     "moderator": "Moderator",
     "notice": "Notitie",
     "notice-tooltip": "De notitie is alleen zichtbaar voor moderatoren",
-    "request": "Dit bericht is alleen zichtbaar voor de moderatoren!",
     "show-submission-form": "wachten op herinnering?"
   },
   "name": "Naam",

@@ -516,7 +516,8 @@
     "request": "Giriş kaydedildi."
   },
   "moderator": {
-    "history": "Veriler değiştirildi. Bunlar eski veriler.",
+    "change": "Değişiklik",
+    "history": "Bunlar eski veriler.",
     "memo": "Metni düzenle",
     "memo-modified": "Metin {name} tarafından düzenlendi",
     "memo-tooltip": "Katkının metnini düzenle",
@@ -525,7 +526,6 @@
     "moderator": "Moderatör",
     "notice": "Not",
     "notice-tooltip": "Not yalnızca moderatörlere görünür",
-    "request": "Bu mesaj yalnızca moderatörlere görünür!",
     "show-submission-form": "hatırlatma beklensin mi?"
   },
   "name": "Ad",
