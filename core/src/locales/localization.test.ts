@@ -163,11 +163,7 @@ describe('translateForMail', () => {
 describe('the phrases of the preview of a redeem link', () => {
   const locales = ['de', 'el', 'en', 'es', 'fr', 'it', 'nl', 'pt', 'ru', 'tr']
   const namingTheSender = ['redeemPreview.greetingTitle', 'redeemPreview.linkTitle']
-  const namingNobody = [
-    'redeemPreview.description',
-    'redeemPreview.greetingTitleWithoutName',
-    'redeemPreview.linkTitleWithoutName',
-  ]
+  const namingNobody = ['redeemPreview.description']
   const catalogOf = (locale: string) => i18n.getCatalog(locale) as Record<string, string>
 
   it('are these five in each of the ten catalogs, in words of its own', () => {

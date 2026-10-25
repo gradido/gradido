@@ -191,6 +191,7 @@ beforeAll(async () => {
   peter = await userFactory(testEnv, peterLustig)
   raeuber = await userFactory(testEnv, raeuberHotzenplotz)
   ottilie = await userFactory(testEnv, {
+    alias: 'OttilieG',
     email: 'ottilie@example.org',
     firstName: 'Ottilie',
     lastName: 'Gone',

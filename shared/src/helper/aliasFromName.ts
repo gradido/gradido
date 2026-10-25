@@ -33,24 +33,6 @@ export function transliterateForAlias(text: string): string {
     .slice(0, ALIAS_MAX_CHARS)
 }
 
-/** What a member typed before the `@`, minus any `+tag` they added for themselves. */
-export function aliasStemFromEmail(email: string): string {
-  const local = email.split('@')[0]
-  return transliterateForAlias(local.split('+')[0] ?? '')
-}
-
-/**
- * The first name plus the first `taken` letters of the last name, as an alias.
- *
- * The last name is cut BEFORE it is transliterated, never after: `Hückstädt` gives
- * `BerndH`, then `BerndHue` - not `BerndHu`, a replacement cut in half. NFC and whole
- * characters, so a decomposed `ü` (u + U+0308, as macOS sends it) is not split either.
- */
-function nameWithLastNamePrefix(firstName: string, lastName: string, taken: number): string {
-  const lastPrefix = Array.from(lastName.normalize('NFC')).slice(0, taken).join('')
-  return transliterateForAlias(firstName + lastPrefix)
-}
-
 /**
  * Proposals for one person, best first. The caller takes the first that is still free,
  * appending digits for a clash - and falls back to something of its own if the list
@@ -62,12 +44,12 @@ function nameWithLastNamePrefix(firstName: string, lastName: string, taken: numb
  * would answer neither, since a name that reads like an office is worse than a long
  * one.
  */
-export function aliasCandidates(
-  firstName: string,
-  lastName: string,
-  email: string,
-  userId: number,
-): string[] {
+export function aliasCandidates(user: {
+  firstName: string
+  lastName: string
+  email: string
+}): string[] {
+  const { firstName, lastName, email } = user
   const candidates: string[] = []
 
   const push = (value: string) => {
@@ -78,33 +60,28 @@ export function aliasCandidates(
 
   const lastLength = Array.from(lastName.normalize('NFC')).length
   for (let taken = 1; taken <= lastLength; taken++) {
-    push(nameWithLastNamePrefix(firstName, lastName, taken))
+    const lastPrefix = Array.from(lastName.normalize('NFC')).slice(0, taken).join('')
+    push(transliterateForAlias(firstName + lastPrefix))
   }
   // A member with only one of the two still gets a proposal from it.
   push(transliterateForAlias(firstName))
   push(transliterateForAlias(lastName))
-  push(aliasStemFromEmail(email))
-  push(fallbackAlias(userId))
-
+  push(transliterateForAlias(email.split('@')[0].split('+')[0]))
   return candidates
 }
 
-const numberedAlias = (candidate: string, suffix: number): string =>
-  candidate.slice(0, ALIAS_MAX_CHARS - String(suffix).length) + suffix
-
 /**
- * Every name `findFirstFreeAlias` may hand out, in the order it tries them: every candidate as
- * it is first, only then each with 1..99 appended - cut short to stay within ALIAS_MAX_CHARS.
- * `BerndHue` and `BerndHo` are easier to tell apart than `BerndH1` and `BerndH2`.
- *
- * Also what the caller asks the database about, so the names looked up and the names chosen
- * from are the same list.
+ * The numbered forms of the candidates, for when every plain one is taken: each with 1..99
+ * appended, in candidate order, cut short to stay within ALIAS_MAX_CHARS. The caller asks
+ * the database about these only then, and chooses from the same list - `BerndHue` and
+ * `BerndHo` are easier to tell apart than `BerndH1` and `BerndH2`, so the plain names of the
+ * whole ladder come first.
  */
-export function aliasVariants(candidates: string[]): string[] {
-  const variants = [...candidates]
+export function additionalAliasVariants(candidates: string[]): string[] {
+  const variants = []
   for (const candidate of candidates) {
     for (let suffix = 1; suffix <= 99; suffix++) {
-      variants.push(numberedAlias(candidate, suffix))
+      variants.push(candidate.slice(0, ALIAS_MAX_CHARS - String(suffix).length) + suffix)
     }
   }
   return variants
@@ -114,25 +91,5 @@ export function findFirstFreeAlias(existing: string[], candidates: string[]): st
   // The unique key on user_aliases.alias is case-insensitive (utf8mb4_unicode_ci), so the
   // comparison is too. What is returned keeps its spelling: `BerndH`, not `berndh`.
   const taken = new Set(existing.map((alias) => alias.toLowerCase()))
-  return aliasVariants(candidates).find((alias) => !taken.has(alias.toLowerCase())) ?? null
-}
-
-// The default generated alias, tried first because it is free in most cases. The same
-// rule as the first rung of `aliasCandidates`, so both agree on what `BerndH` is.
-export function primaryAliasCandidate(firstName: string, lastName: string): string | null {
-  const candidate = nameWithLastNamePrefix(firstName, lastName, 1)
-  return v.safeParse(aliasSchema, candidate).success ? candidate : null
-}
-
-/**
- * The last rung, and the one that must never fail. A migration that throws stops
- * `start.sh` before the services come up, so there has to be something valid at the
- * end of every path - including a name in a script with no table above and an address
- * that gives nothing either.
- *
- * The member id is what makes it unique without a counter, and `gradido` is not an
- * option: the word is on the reserved list itself.
- */
-export function fallbackAlias(userId: number): string {
-  return `member${userId}`
+  return candidates.find((alias) => !taken.has(alias.toLowerCase())) ?? null
 }

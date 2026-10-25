@@ -44,11 +44,6 @@ describe('GmsUser', () => {
       expect(new GmsUser(withFullNameSetting).alias).toBe('bibi')
       expect(new GmsUser(withFullNameSetting).uuid).toBe('3a2f6f1e-6c1a-4e1a-9d3e-2f1b7c8d9e01')
     })
-
-    it('falls back to the full gradidoID without one', () => {
-      const nameless = { ...member(true), alias: null } as unknown as dbUser
-      expect(new GmsUser(nameless).alias).toBe('3a2f6f1e-6c1a-4e1a-9d3e-2f1b7c8d9e01')
-    })
   })
 
   /**

@@ -5,7 +5,6 @@ import {
   ContactOrigin,
   GradidoUnit,
   PasswordEncryptionType,
-  publicAlias,
   Result,
   Uuidv4,
   VoidResult,
@@ -377,22 +376,26 @@ export async function dbSelectUsersByUuids(
 }
 
 /**
- * Files a member of another community this server holds no row for: `foreign` and the pair,
- * nothing else. It is the row the receiving side of a transfer files for its sender
+ * Files a member of another community this server holds no row for: `foreign`, the pair and
+ * the alias, nothing else. It is the row the receiving side of a transfer files for its sender
  * (federation's `storeForeignUser`), filed here for a chat message that arrives before any
- * transfer did (E-034). The alias follows through `dbUpdateForeignUserAlias`, which also brings
- * an existing row up to date.
+ * transfer did (E-034). The alias is part of the row from the start - `users.alias` is NOT NULL
+ * (migration 0164) - and `dbUpdateForeignUserAlias` brings an existing row up to date.
  *
  * Hands back the id of the foreign row that holds the pair afterwards. A pair that is on file
- * already stays as it is (`uuid_key` turns the insert into a no-op), so two first messages
- * arriving at once end up with one row. A pair held by a member of THIS community is not
- * turned into a foreign one: there is no foreign row for it afterwards, and that comes back as
- * DBInsertFailed.
+ * already stays as it is (`uuid_key` turns the insert into a no-op, the alias included), so
+ * two first messages arriving at once end up with one row. Nothing is filed, and DBInsertFailed
+ * comes back, in two cases: a pair held by a member of THIS community is not turned into a
+ * foreign one, and an alias another row of that community still holds (`alias_key`; that row
+ * has not caught up with a rename over there) is not taken from it.
  */
 export async function dbInsertForeignUser(member: {
   communityUuid: string
   gradidoId: string
-}): Promise<Result<number, DBInsertFailed<{ communityUuid: string; gradidoId: string }>>> {
+  alias: string
+}): Promise<
+  Result<number, DBInsertFailed<{ communityUuid: string; gradidoId: string; alias: string }>>
+> {
   await drizzleDb()
     .insert(usersTable)
     .values({
@@ -400,6 +403,7 @@ export async function dbInsertForeignUser(member: {
       accountState: AccountState.FOREIGN,
       communityUuid: member.communityUuid,
       gradidoId: member.gradidoId,
+      alias: member.alias,
     })
     .onDuplicateKeyUpdate({ set: { gradidoId: sql`${usersTable.gradidoId}` } })
   const rows = await drizzleDb()
@@ -540,7 +544,7 @@ export async function dbLocalUserGradidoIdExist(
  * So: if a later round is tempted to "fix" this the way the mails were fixed -- it was
  * looked at, and this is the answer. What must not happen is the reverse: this function
  * must not grow a second caller that shows the result to MEMBERS. Everything on that side
- * goes through `publicAlias` in `shared`.
+ * hands out `users.alias`.
  */
 export async function findUserNamesByIds(userIds: number[]): Promise<Map<number, string>> {
   const users = await drizzleDb()
@@ -792,9 +796,6 @@ const confirmedArrival = (member: TraceMember, address: TraceAddress, notThisMem
  *
  * `users.referrer_id` has been written since 2022 and this was its first reader; the
  * contact list is the second and third (`dbSelectReferralContactsByUserId` below).
- * Through `publicAlias`, because the wallet puts the answer in front of the member and a
- * stored alias of one or two characters is not a name (the rule lives in `shared` so all
- * three packages give the same answer).
  *
  * A referrer whose account is gone is no answer: the wallet would offer to thank somebody
  * who cannot receive anything. That condition is `reachableOnTrace` above, shared with
@@ -806,7 +807,7 @@ const confirmedArrival = (member: TraceMember, address: TraceAddress, notThisMem
 export async function dbFindReferrerAlias(userId: number): Promise<string | null> {
   const referrer = aliasedTable(usersTable, 'referrer')
   const rows = await drizzleDb()
-    .select({ alias: referrer.alias, gradidoId: referrer.gradidoId })
+    .select({ alias: referrer.alias })
     .from(usersTable)
     .innerJoin(referrer, eq(usersTable.referrerId, referrer.id))
     .where(
@@ -817,7 +818,7 @@ export async function dbFindReferrerAlias(userId: number): Promise<string | null
       ),
     )
     .limit(1)
-  return rows.length ? publicAlias(rows[0].alias, rows[0].gradidoId) : null
+  return rows.length ? rows[0].alias : null
 }
 
 /**
@@ -866,7 +867,7 @@ export async function dbFindLatestArrival(referrerId: number): Promise<ReferralA
   return {
     userId: rows[0].id,
     gradidoId: rows[0].gradidoId,
-    alias: publicAlias(rows[0].alias, rows[0].gradidoId),
+    alias: rows[0].alias,
     firstName: rows[0].firstName,
     lastName: rows[0].lastName,
     createdAt: rows[0].createdAt,
@@ -878,12 +879,10 @@ export async function dbFindLatestArrival(referrerId: number): Promise<ReferralA
  * One arrival as the tile shows it: who they are, who they are called, when they got
  * here, and whether it is the only one.
  *
- * `gradidoId` was already being selected -- `publicAlias` needs it -- and is now handed
- * on, so the tile can offer a way to REACH this person rather than only name them
- * (ZE-010). It tells the caller nothing they were not being told already: where there is
- * no user name, `publicAlias` puts the identifier itself in `alias`, and the contact list
- * has been naming the same arrival to the same member since the referral trace became its
- * second source.
+ * `gradidoId` is handed on so the tile can offer a way to REACH this person rather than
+ * only name them (ZE-010). It tells the caller nothing they were not being told already:
+ * the contact list has been naming the same arrival to the same member since the referral
+ * trace became its second source.
  *
  * ⛔ Still no count, and still only the one latest arrival (ZE-007): a way to reach one
  * person is a mirror, a list of them with a number over it is a score.
@@ -968,11 +967,6 @@ export type ReferralContact = {
  * then both sides open at once. It is a window, not a state; an account can be inside it
  * and signed in, because assisted registration (EM-013) sets a password before the address
  * is confirmed.
- *
- * ⛔ `alias` is the stored one, raw, exactly as the booking branch of the contact list
- * hands it over -- NOT `publicAlias`. The list searches on this field, and the fallback to
- * the gradidoID would let a search for a member's id match a person no booking would match.
- * The resolver builds the name from the `users` row it loads anyway.
  *
  * ⚠️ No cap, and NOTHING measured bounds this set. The 713 counterparties measured for the
  * busiest account were counted on `transactions`; arrivals are an independent quantity, and

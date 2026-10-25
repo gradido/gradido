@@ -244,8 +244,6 @@
   "redeemPreview": {
     "description": "Help. Give. Thank.",
     "greetingTitle": "{name} sent you a thank-you greeting",
-    "greetingTitleWithoutName": "A thank-you greeting for you",
-    "linkTitle": "{name} sent you a thank-you",
-    "linkTitleWithoutName": "A thank-you for you"
+    "linkTitle": "{name} sent you a thank-you"
   }
 }

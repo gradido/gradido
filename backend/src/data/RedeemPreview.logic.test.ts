@@ -185,20 +185,6 @@ describe('redeemPreviewOf', () => {
       expect(redeemPreviewOf(found({ maker: { alias: 'Bibi_42' } }), NOW)?.name).toBe('Bibi_42')
     })
 
-    // publicAlias hands out the identifier for each of these; the preview names nobody then.
-    it.each([
-      ['no username', null],
-      ['a username of two characters', 'ab'],
-      ['a username of spaces', '    '],
-      ['an empty username', ''],
-    ])('is nobody for a member with %s -- and never the identifier', (_what, alias) => {
-      const preview = redeemPreviewOf(found({ maker: { alias } }), NOW)
-
-      expect(preview).not.toBeNull()
-      expect(preview?.name).toBeNull()
-      expect(JSON.stringify(preview)).not.toContain(GRADIDO_ID)
-    })
-
     it('never carries the identifier beside a username either', () => {
       for (const greeting of [null, WITH_PHOTO, { motif: 'bouquet' }]) {
         const preview = redeemPreviewOf(found({ greeting, pictures: [SMALL] }), NOW)

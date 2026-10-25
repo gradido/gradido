@@ -37,12 +37,20 @@ export async function storeForeignUser(args: SendCoinsArgs): Promise<boolean> {
           args.senderCommunityUuid,
           args.senderUserUuid,
         )
+        // A row without an alias cannot be filed: `users.alias` is NOT NULL (migration 0164),
+        // and the sender's community, which runs that migration too, sends it.
+        if (!args.senderAlias) {
+          logger.error(
+            'X-Com: sender came without an alias, not stored as foreign user:',
+            args.senderCommunityUuid,
+            args.senderUserUuid,
+          )
+          return false
+        }
         let foreignUser = DbUser.create()
         foreignUser.foreign = true
         foreignUser.accountState = AccountState.FOREIGN
-        if (args.senderAlias) {
-          foreignUser.alias = args.senderAlias
-        }
+        foreignUser.alias = args.senderAlias
         foreignUser.communityUuid = args.senderCommunityUuid
         if (incoming) {
           foreignUser.firstName = incoming.firstName

@@ -244,8 +244,6 @@
   "redeemPreview": {
     "description": "Yardım et. Hediye et. Teşekkür et.",
     "greetingTitle": "{name} sana bir teşekkür mesajı gönderdi",
-    "greetingTitleWithoutName": "Sana bir teşekkür mesajı",
-    "linkTitle": "{name} sana bir teşekkür gönderdi",
-    "linkTitleWithoutName": "Sana bir teşekkür"
+    "linkTitle": "{name} sana bir teşekkür gönderdi"
   }
 }

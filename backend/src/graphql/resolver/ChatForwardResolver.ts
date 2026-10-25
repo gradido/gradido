@@ -17,7 +17,6 @@ import {
   findUserByUuids,
 } from 'database'
 import { getLogger } from 'log4js'
-import { publicAlias } from 'shared'
 import { Args, Authorized, Ctx, Mutation, Resolver } from 'type-graphql'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
@@ -61,13 +60,13 @@ const firstWriterOf = (message: ChatMessageSelect): ChatMemberRef =>
     : { communityUuid: message.senderCommunityUuid, gradidoId: message.senderGradidoId }
 
 /**
- * The name the mail gives the first writer -- the name every mail gives a member (publicAlias) --,
+ * The name the mail gives the first writer -- their alias, as every mail names a member --,
  * or null where nobody by that pair is known here: the mail says "forwarded" then, and the thread
  * names nobody either (chatMessagesOf).
  */
 const nameOf = async (writer: ChatMemberRef): Promise<string | null> => {
   const [row] = await dbSelectUsersByUuids([writer])
-  return row && row.deletedAt === null ? publicAlias(row.alias, row.gradidoId) : null
+  return row && row.deletedAt === null ? row.alias : null
 }
 
 /**

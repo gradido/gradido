@@ -10,7 +10,6 @@ import {
 import {
   ALIAS_ORIGIN_ASSIGNED,
   ALIAS_ORIGIN_CHOSEN,
-  type AliasOrigin,
   DbUser,
   DrizzleTransaction,
   dbCountUnconfirmedVouchedAccounts,
@@ -41,14 +40,15 @@ import {
 import { Logger } from 'log4js'
 import random from 'random-bigint'
 import {
+  additionalAliasVariants,
   aliasCandidates,
-  aliasVariants,
+  aliasSchema,
   findFirstFreeAlias,
   PasswordEncryptionType,
-  primaryAliasCandidate,
   Result,
 } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
+import * as v from 'valibot'
 import { CONFIG } from '@/config'
 import { GUARANTOR_LIMIT } from '@/data/GuarantorCode.logic'
 import { syncHumhub } from '@/graphql/resolver/util/syncHumhub'
@@ -77,7 +77,6 @@ export class RegisterUserRole<
 > extends AbstractRegisterUserRole<T> {
   protected userId: number | null = null
   protected userContactId: number | null = null
-  protected userAliasId: number | null = null
   protected emailVerificationCode: bigint | null = null
   private gradidoIdByPasswordStart: string | null = null
   private passwordEncryptionPromise: Promise<bigint> | null = null
@@ -86,11 +85,20 @@ export class RegisterUserRole<
     return 'Default Register User'
   }
 
+  // Before the transaction, like everything that only reads: the name is looked up here, and
+  // a variant that locks the member's row (guarantorHoldsPlace) needs that lock to be the
+  // first statement of the transaction - see dbLockUserRowDrizzle.
   public async prepareUser(): Promise<UserInsert> {
     const { firstName, lastName, language, publisherId } = this.user
+    const gradidoId = uuidv4()
     return {
-      gradidoId: uuidv4(),
+      gradidoId,
       communityUuid: await dbHomeCommunityGetUuid(),
+      // The row has to carry the name (`users.alias` is NOT NULL, migration 0164), so it is
+      // found before the row is written. `aliasSchema` over the result, because not every
+      // rung was checked against it: the chosen name was (createUserSchema) and so was each
+      // candidate (aliasCandidates), the numbered forms and the fallback were not.
+      alias: v.parse(aliasSchema, await this.getFreeAlias(gradidoId)),
       firstName,
       lastName,
       passwordEncryptionType: PasswordEncryptionType.NO_PASSWORD,
@@ -126,6 +134,7 @@ export class RegisterUserRole<
     let insertUserResult = await dbInsertUser(dbUser, tx)
     // maybe gradido uuid collided? Shouldn't happen nearly never, so let's try one time again
     if (!insertUserResult.success) {
+      // Written back: a variant reads the gradido id off `dbUser` after this returns.
       dbUser.gradidoId = uuidv4()
       insertUserResult = await dbInsertUser(dbUser, tx)
     }
@@ -187,57 +196,53 @@ export class RegisterUserRole<
       logger.error(`update emailId: ${this.userContactId} failed`)
       throw new Error('Error while updating dbUser')
     }
+    // Recorded as the member's once the account stands, after the address: a taken address
+    // leaves above with the row removed, and no name to take back. A name the system built is
+    // a proposal, not one of the member's picks (aliasOriginIsSettled); the one they chose is
+    // theirs only where it was free - getFreeAlias answers with another otherwise.
+    const result = await dbInsertUserAlias(
+      {
+        alias: dbUser.alias,
+        userId: this.userId,
+        origin: dbUser.alias === this.user.alias ? ALIAS_ORIGIN_CHOSEN : ALIAS_ORIGIN_ASSIGNED,
+      },
+      tx,
+    )
+    if (!result.success) {
+      throw result.error
+    }
     return { success: true, value: insertUserResult.value }
   }
 
-  // Everybody holds a name from here on. Migration 0116 covers the members who
-  // existed when it ran; without this, every account opened after it would carry
-  // none again - and since a transaction stores `sender.alias`, their rows would
-  // have nothing where a name belongs.
+  // The name the member chose, where it is free; otherwise the first free one the system
+  // builds from their name and address (aliasCandidates), the names as they are before any
+  // with a digit appended. One query answers the usual case; the numbered forms are asked
+  // about only once every plain one is taken.
   //
-  // A name the system builds is a proposal: it is reserved for them and can be
-  // taken back, but it costs none of their four picks until they adopt it.
-  public async generateAndStoreAlias(logger: Logger, tx: DrizzleTransaction): Promise<string> {
-    const userId = this.userId
-    if (!userId) {
-      throw new Error('Missing userId')
+  // Over the pool, not the transaction: a plain read there would fix what the transaction
+  // sees before a variant takes its lock (dbLockUserRowDrizzle). Two registrations that pick
+  // the same name at once are told apart by `alias_key` when the row is written.
+  public async getFreeAlias(gradidoId: string): Promise<string> {
+    let aliasCandidatesArray: string[] = []
+    if (this.user.alias) {
+      aliasCandidatesArray.push(this.user.alias)
     }
+    aliasCandidatesArray = aliasCandidatesArray.concat(aliasCandidates(this.user))
+    const existingAliases = await dbFindUserAliasesExisting(aliasCandidatesArray)
 
-    const { firstName, lastName, email } = this.user
-    let origin: AliasOrigin = ALIAS_ORIGIN_CHOSEN
-    let alias = this.user.alias
-
-    // opertunistic first try
-    if (!alias) {
-      origin = ALIAS_ORIGIN_ASSIGNED
-      alias = primaryAliasCandidate(firstName, lastName)
+    let aliasCandidate = findFirstFreeAlias(existingAliases, aliasCandidatesArray)
+    if (!aliasCandidate) {
+      const additionalAliases = additionalAliasVariants(aliasCandidatesArray)
+      const existingAliases = await dbFindUserAliasesExisting(additionalAliases)
+      aliasCandidate = findFirstFreeAlias(existingAliases, additionalAliases)
     }
-    if (alias) {
-      const result = await dbInsertUserAlias({ alias, userId, origin }, tx)
-      if (result.success) {
-        this.userAliasId = result.value
-        return alias
-      }
+    if (!aliasCandidate) {
+      // Nothing usable from name or address (a script without transliteration, say), or every
+      // variant taken: the gradido id, which is unique by itself. 18 characters end on a hex
+      // digit; 19 would end on a hyphen, which the schema refuses.
+      return gradidoId.slice(0, 18).toLowerCase()
     }
-
-    // alias seems to be already in use, so let's try some more
-    // from here on the name is built by the system: a proposal, even if one was chosen
-    origin = ALIAS_ORIGIN_ASSIGNED
-    const aliasCandidatesArray = aliasCandidates(firstName, lastName, email, userId)
-    const existingAliases = await dbFindUserAliasesExisting(aliasVariants(aliasCandidatesArray), tx)
-
-    const aliasCandidate = findFirstFreeAlias(existingAliases, aliasCandidatesArray)
-    if (aliasCandidate) {
-      const result = await dbInsertUserAlias({ alias: aliasCandidate, userId, origin }, tx)
-      if (result.success) {
-        this.userAliasId = result.value
-        return aliasCandidate
-      }
-    }
-    logger.error(
-      `couldn't generate suitable alias from a set of ${aliasCandidatesArray.length * 100} variations`,
-    )
-    throw new Error("Couldn't generate valid alias")
+    return aliasCandidate
   }
 
   // The entry an event link offered (Event-Matching; `eventMatchingEntry`, read off
@@ -285,11 +290,6 @@ export class RegisterUserRole<
           return storeUserAndContactResult
         }
         const userId = storeUserAndContactResult.value
-        const finalAlias = await this.generateAndStoreAlias(logger, tx)
-        if ((await dbUserUpdateField(userId, 'alias', finalAlias, tx)) !== 1) {
-          logger.error(`update user with id: ${userId} with alias: ${finalAlias} failed`)
-          throw new Error('Error while storing the generated alias')
-        }
         await this.noteEventMatchingEntry(userId, tx)
         if (!this.emailVerificationCode) {
           throw new Error('Missing email verification code')
