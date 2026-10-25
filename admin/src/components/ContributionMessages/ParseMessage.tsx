@@ -30,7 +30,10 @@ export const ParseMessage = defineComponent({
       type: String,
       required: true,
     },
-    messageType: {
+    // The message's own field, as the server names it and as the wallet's twin takes it: the
+    // message object is handed over whole (v-bind), so a prop under another name never arrived,
+    // and a change of a contribution showed its raw text, dashes and all (Bernd, 25.10.2026).
+    type: {
       type: String,
       required: true,
     },
@@ -42,7 +45,7 @@ export const ParseMessage = defineComponent({
       let string = props.message
       const linkified: MessagePart[] = []
       let amount: string | undefined
-      if (props.messageType === 'HISTORY') {
+      if (props.type === 'HISTORY') {
         const split = string.split(/\n\s*---\n\s*/)
         string = split[1]
         linkified.push({ type: 'date', text: split[0].trim() })

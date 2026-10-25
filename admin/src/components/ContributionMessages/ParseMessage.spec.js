@@ -9,9 +9,9 @@ vi.mock('vue-i18n', () => ({
 
 // The moderator's own view of the message. It has to agree with what the member sees
 // in the wallet -- the two renderers are deliberately the same, so their tests are too.
-const render = (message, messageType = 'DIALOG') =>
+const render = (message, type = 'DIALOG') =>
   mount(ParseMessage, {
-    props: { message, messageType },
+    props: { message, type },
   })
 
 describe('ParseMessage', () => {

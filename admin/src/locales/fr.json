@@ -516,7 +516,8 @@
     "request": "La saisie a été enregistrée."
   },
   "moderator": {
-    "history": "Les données ont été modifiées. Voici les anciennes données.",
+    "change": "Modification",
+    "history": "Voici les anciennes données.",
     "memo": "Modifier le texte",
     "memo-modified": "Texte modifié par {name}",
     "memo-tooltip": "Modifier le texte de la contribution",
@@ -525,7 +526,6 @@
     "moderator": "Modérateur",
     "notice": "Note",
     "notice-tooltip": "La note n'est visible que pour les modérateurs",
-    "request": "Ce message n'est visible que pour les modérateurs !",
     "show-submission-form": "attendre le rappel ?"
   },
   "name": "Nom",

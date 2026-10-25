@@ -516,7 +516,8 @@
     "request": "Die Eingabe wurde gespeichert."
   },
   "moderator": {
-    "history": "Die Daten wurden geändert. Dies sind die alten Daten.",
+    "change": "Änderung",
+    "history": "Dies sind die alten Daten.",
     "memo": "Text ändern",
     "memo-modified": "Text von {name} bearbeitet.",
     "memo-tooltip": "Den Beitragstext bearbeiten",
@@ -525,7 +526,6 @@
     "moderator": "Moderator",
     "notice": "Notiz",
     "notice-tooltip": "Die Notiz ist nur für Moderatoren sichtbar",
-    "request": "Diese Nachricht ist nur für die Moderatoren sichtbar!",
     "show-submission-form": "warten auf Erinnerung?"
   },
   "name": "Name",

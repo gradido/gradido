@@ -65,7 +65,8 @@ const FIXED_COLOURS_AT_MOST = {
   [STYLES.table]: 9,
   [STYLES.page]: 0,
   [STYLES.app]: 1,
-  [STYLES.messages]: 4,
+  // 25.10.2026: the four bubbles' colours went; every bubble takes the grey of a field.
+  [STYLES.messages]: 0,
   [join(here, 'components', 'NavBar.scss')]: 3,
   [STYLES.memberTable]: 0,
   [STYLES.creationForm]: 0,
