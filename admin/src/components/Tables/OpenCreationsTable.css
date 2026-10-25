@@ -1,6 +1,34 @@
-.btn-warning {
-  background-color: #e1a908;
-  border-color: #e1a908;
+/* Delete and deny in a calmer tone, as quiet as the green of confirming and the grey of the
+   details beside them (Bernd, 25.10.2026): Bootstrap's red and the gold above stood out of the
+   row. The lightness of that green (OKLCH 0.52 and 0.62), the gold a step lighter than the red so
+   that the two part by brightness as well; a white sign on each, 5.9 and 3.7. */
+.open-creations-table .btn-danger,
+.open-creations-table .btn-warning {
+  --bs-btn-color: var(--bs-white);
+  --bs-btn-bg: var(--calm-ground);
+  --bs-btn-border-color: var(--calm-ground);
+  --bs-btn-hover-color: var(--bs-white);
+  --bs-btn-hover-bg: var(--calm-pressed);
+  --bs-btn-hover-border-color: var(--calm-pressed);
+  --bs-btn-active-color: var(--bs-white);
+  --bs-btn-active-bg: var(--calm-pressed);
+  --bs-btn-active-border-color: var(--calm-pressed);
+}
+
+.open-creations-table .btn-danger {
+  --calm-ground: #a74546;
+  --calm-pressed: #923a3b;
+}
+
+.open-creations-table .btn-warning {
+  --calm-ground: #a77f2b;
+  --calm-pressed: #957127;
+}
+
+/* What waits for the moderation, on the grey of the details button: a bright yellow, 3.3 there
+   and 4.3 under the pointer (Bootstrap's amber came to 2.9). */
+.open-creations-table .details-signal {
+  color: #ffd60a;
 }
 
 .table-danger {

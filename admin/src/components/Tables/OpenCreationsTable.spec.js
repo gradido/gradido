@@ -6,14 +6,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { h } from 'vue'
 import { MemberAvatar } from '@/components/MemberAvatar'
 import { LIST_AVATAR_SIZE } from '@/constants'
-import IBiArrowDownCircle from '~icons/bi/arrow-down-circle'
-import IBiArrowUpCircle from '~icons/bi/arrow-up-circle'
+import IBiArrowDown from '~icons/bi/arrow-down'
+import IBiArrowUp from '~icons/bi/arrow-up'
 import IBiBellFill from '~icons/bi/bell-fill'
 import IBiChatDots from '~icons/bi/chat-dots'
 import IBiCheck from '~icons/bi/check'
-import IBiExclamationCircleFill from '~icons/bi/exclamation-circle-fill'
 import IBiPencilFill from '~icons/bi/pencil-fill'
-import IBiQuestionDiamond from '~icons/bi/question-diamond'
+import IBiQuestionLg from '~icons/bi/question-lg'
+import IIcRoundPriorityHigh from '~icons/ic/round-priority-high'
 import { adminStore } from '../../../test/adminStore'
 import { OpenCreationsTable } from './OpenCreationsTable'
 
@@ -448,7 +448,7 @@ describe('OpenCreationsTable', () => {
     })
 
     it('carries the unanswered-message badge like any other', () => {
-      expect(wrapper.findAllComponents(IBiExclamationCircleFill)).toHaveLength(2)
+      expect(wrapper.findAllComponents(IIcRoundPriorityHigh)).toHaveLength(2)
     })
 
     // The button holds an icon and nothing else, so without these a screen reader can only
@@ -749,13 +749,13 @@ describe('OpenCreationsTable', () => {
         [
           'the member answered',
           { ...open, ...conversation('DIALOG', false) },
-          IBiExclamationCircleFill,
+          IIcRoundPriorityHigh,
         ],
         ['the member changed it', { ...open, ...conversation('HISTORY', false) }, IBiPencilFill],
         [
           'a question waits for the member',
           { ...open, contributionStatus: 'IN_PROGRESS', ...conversation('DIALOG', true) },
-          IBiQuestionDiamond,
+          IBiQuestionLg,
         ],
         [
           'a moderator had the last word',
@@ -767,22 +767,22 @@ describe('OpenCreationsTable', () => {
         [
           'only internal notes',
           { ...open, messagesCount: 1, lastMessageType: null, lastMessageByModerator: null },
-          IBiArrowDownCircle,
+          IBiArrowDown,
         ],
         // A moderator's question makes a contribution IN_PROGRESS and nothing else does; the page
         // sets that at once, before the list knows the question.
         [
           'a question just sent',
           { ...open, contributionStatus: 'IN_PROGRESS', messagesCount: 1 },
-          IBiQuestionDiamond,
+          IBiQuestionLg,
         ],
-        ['no conversation', { ...open }, IBiArrowDownCircle],
+        ['no conversation', { ...open }, IBiArrowDown],
         [
           'closed, with a conversation',
           { ...closed, ...conversation('DIALOG', true) },
           IBiChatDots,
         ],
-        ['closed, without one', { ...closed }, IBiArrowDownCircle],
+        ['closed, without one', { ...closed }, IBiArrowDown],
       ]
       const details = (row) =>
         actions(row)
@@ -791,11 +791,11 @@ describe('OpenCreationsTable', () => {
       // Its name says what the symbol shows, where that is more than the way into the row
       // (coderabbit, #4193): for a screen reader, and as a tooltip.
       const NAMES = new Map([
-        [IBiExclamationCircleFill, 'details – contribution.detailsState.answer'],
+        [IIcRoundPriorityHigh, 'details – contribution.detailsState.answer'],
         [IBiPencilFill, 'details – contribution.detailsState.changed'],
-        [IBiQuestionDiamond, 'details – contribution.detailsState.question'],
+        [IBiQuestionLg, 'details – contribution.detailsState.question'],
         [IBiChatDots, 'details – contribution.detailsState.conversation'],
-        [IBiArrowDownCircle, 'details'],
+        [IBiArrowDown, 'details'],
       ])
 
       it.each(STATES)('%s', (_, item, icon) => {
@@ -804,9 +804,11 @@ describe('OpenCreationsTable', () => {
         expect(details(0).findComponent(icon).exists()).toBe(true)
         expect(details(0).attributes('aria-label')).toBe(NAMES.get(icon))
         expect(details(0).attributes('title')).toBe(NAMES.get(icon))
-        // The three that ask for a moderator's eye stand out.
-        const waiting = [IBiExclamationCircleFill, IBiPencilFill, IBiQuestionDiamond].includes(icon)
-        expect(details(0).findComponent(icon).classes().includes('text-warning')).toBe(waiting)
+        // Only what waits for the moderation stands out, in yellow: the member's answer and the
+        // member's change. A question waits for the member and stays white, as the rest (Bernd,
+        // 25.10.2026).
+        const waiting = [IIcRoundPriorityHigh, IBiPencilFill].includes(icon)
+        expect(details(0).findComponent(icon).classes().includes('details-signal')).toBe(waiting)
       })
 
       // A copy: the table keeps "open" on the item itself (`_showDetails`), which would carry
@@ -815,7 +817,7 @@ describe('OpenCreationsTable', () => {
         wrapper = mountCards([{ ...open }])
         expect(details(0).attributes('aria-expanded')).toBe('false')
         await details(0).trigger('click')
-        expect(details(0).findComponent(IBiArrowUpCircle).exists()).toBe(true)
+        expect(details(0).findComponent(IBiArrowUp).exists()).toBe(true)
         expect(details(0).attributes('aria-expanded')).toBe('true')
       })
 
@@ -825,7 +827,7 @@ describe('OpenCreationsTable', () => {
         wrapper = mountCards([{ ...item, id: 9 }])
         await details(0).trigger('click')
         expect(details(0).findAll('svg')).toHaveLength(1)
-        expect(details(0).findComponent(IBiArrowUpCircle).exists()).toBe(true)
+        expect(details(0).findComponent(IBiArrowUp).exists()).toBe(true)
         expect(details(0).attributes('aria-label')).toBe('hide_details')
         expect(details(0).attributes('title')).toBe('hide_details')
         expect(wrapper.text()).not.toContain('hide_details')
@@ -866,7 +868,7 @@ describe('OpenCreationsTable', () => {
           })
           await wrapper.find('tbody > tr button').trigger('click')
           const button = wrapper.find('tbody > tr button')
-          expect(button.findComponent(IBiArrowUpCircle).exists(), key).toBe(true)
+          expect(button.findComponent(IBiArrowUp).exists(), key).toBe(true)
           expect(button.attributes('aria-label'), key).toBe('hide_details')
           expect(button.attributes('aria-expanded'), key).toBe('true')
         }
@@ -886,7 +888,7 @@ describe('OpenCreationsTable', () => {
         const button = wrapper.find('tbody > tr button')
         expect(button.exists()).toBe(true)
         expect(button.findAll('svg')).toHaveLength(1)
-        expect(button.findComponent(IBiArrowDownCircle).exists()).toBe(true)
+        expect(button.findComponent(IBiArrowDown).exists()).toBe(true)
         expect(button.attributes('aria-label')).toBe('details')
         expect(button.attributes('aria-expanded')).toBe('false')
       })
