@@ -400,6 +400,22 @@ describe('UserSearch', () => {
         expect(scroll).toHaveBeenCalledTimes(1)
       })
 
+      // In the app on an iPhone the page stood at the row and then at its top (utils/wayBackView.ts).
+      it('is kept in sight a moment, against the page being put back to its top', async () => {
+        let top = 500
+        row.getBoundingClientRect = () => ({ top })
+        scroll.mockImplementation(() => {
+          top = 8
+        })
+        route.query = { search: 'bibi', member: '7' }
+        wrapper = mountPage()
+        await flushPromises()
+        top = 508
+        window.dispatchEvent(new Event('scroll'))
+        expect(scroll).toHaveBeenCalledTimes(2)
+        window.dispatchEvent(new Event('keydown'))
+      })
+
       it('is rolled to in the first list where the view names no page', async () => {
         route.query = { search: 'bibi', member: '7' }
         wrapper = mountPage()

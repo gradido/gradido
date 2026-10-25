@@ -18,7 +18,7 @@ import { useAppToast } from '@/composables/useToast'
 import { useViewport } from '@/composables/useViewport'
 import { DESK_PAGER_LIMIT, PHONE_PAGER_LIMIT } from '@/constants'
 import {
-  rollToRow,
+  rollToRowAndHold,
   viewAddress,
   viewNumber,
   viewText,
@@ -81,7 +81,8 @@ export const UserSearch = defineComponent({
       }),
     )
 
-    // Back from the wallet: the window rolls to the member's row in the list of the view, once.
+    // Back from the wallet: the window rolls to the member's row in the list of the view, once,
+    // and keeps it there a moment against the page being put back to its top (utils/wayBackView.ts).
     // A list that comes later stays where the moderator is.
     if (askedMember !== null) {
       const stopRolling = watch(searchResult, () => {
@@ -89,7 +90,7 @@ export const UserSearch = defineComponent({
           return
         }
         stopRolling()
-        nextTick(() => rollToRow(`[data-user-id="${askedMember}"]`))
+        nextTick(() => rollToRowAndHold(`[data-user-id="${askedMember}"]`))
       })
     }
 
