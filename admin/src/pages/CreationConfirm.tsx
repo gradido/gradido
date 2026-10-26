@@ -373,7 +373,7 @@ export const CreationConfirm = defineComponent({
       { immediate: true },
     )
 
-    const { onResult, onError, result, refetch } = useQuery<any, ListVariables>(
+    const { onResult, onError, refetch } = useQuery<any, ListVariables>(
       adminListContributions,
       {
         filter: {
@@ -415,17 +415,18 @@ export const CreationConfirm = defineComponent({
     // When a refetch is done, the composable hands the query's present state out once more
     // (vue-apollo-composable, `refetch`): no list at all while a later one is on its way, or the
     // same list again. Neither is a list of its own: the one without a list threw, and drawn anew
-    // from the same list the rows lost their open details.
+    // from the same list the rows lost their open details. The rows come from the answer handed
+    // out, not from `result`: the composable sets that first, and a later answer can come between.
     let lastList: unknown = null
     onResult((answer) => {
       if (answer.loading || !answer.data || answer.data === lastList) {
         return
       }
       lastList = answer.data
-      rows.value = result.value.adminListContributions.contributionCount
+      rows.value = answer.data.adminListContributions.contributionCount
       // Copies, as SearchUserTable makes them: what Apollo Client 3 answers is frozen, and the
       // table opens a row by writing `_showDetails` into its item.
-      items.value = result.value.adminListContributions.contributionList.map(
+      items.value = answer.data.adminListContributions.contributionList.map(
         (contribution: Contribution) => ({ ...contribution }),
       )
       // The faces of the members whose contributions are on this page, in one round trip. Each
@@ -436,7 +437,7 @@ export const CreationConfirm = defineComponent({
         items.value.map((contribution) => contribution.user).filter(Boolean),
       )
       if (statusFilter.value.toString() === FILTER_TAB_MAP[0].toString()) {
-        store.setOpenCreations(result.value.adminListContributions.contributionCount)
+        store.setOpenCreations(answer.data.adminListContributions.contributionCount)
       }
     })
 

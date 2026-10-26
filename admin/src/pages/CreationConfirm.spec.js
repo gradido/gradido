@@ -168,6 +168,19 @@ describe('CreationConfirm', () => {
       expect(table().props('items')).toBe(rows)
     })
 
+    // The composable sets its `result` first and hands the answer out a tick later; another
+    // answer can come in between.
+    it('draws the rows from the answer it is handed, not from the result held beside it', async () => {
+      mockResult.value = listOf([601])
+      mockOnResultCallback({ data: listOf([501, 502]) })
+      await nextTick()
+      expect(
+        table()
+          .props('items')
+          .map((item) => item.id),
+      ).toEqual([501, 502])
+    })
+
     it('takes the same list again for no new one: the rows stay as they are', async () => {
       const list = listOf([501, 502])
       await simulateQueryResult(list)
