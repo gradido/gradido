@@ -14,12 +14,14 @@ import {
   dbSelectContactsByUserId,
   dbSelectFavoritesByUserId,
   getHomeCommunity,
+  UnreadReceivedTransfers,
 } from 'database'
 import { GraphQLResolveInfo } from 'graphql'
 import { getLogger } from 'log4js'
 import { Arg, Args, Authorized, Ctx, Info, Mutation, Query, Resolver } from 'type-graphql'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { transferPersonKey } from '@/data/ChatTransfers.logic'
 import { isSameCommunity } from '@/data/Community.logic'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
@@ -33,6 +35,7 @@ import {
   remoteUserFromBooking,
 } from './util/counterparty'
 import { extractGraphQLFieldPaths } from './util/extractGraphQLFields'
+import { unreadTransfersOfUser } from './util/unreadTransfers'
 
 const createLogger = () =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.ContactResolver`)
@@ -188,9 +191,14 @@ export class ContactResolver {
     // queries for the page then -- the latest messages and the latest bookings --, none for a
     // document that does not ask. The bookings only where the member lets transfers stand in
     // their conversations (`transfersInChat`).
-    const [, previews] = await Promise.all([
+    //
+    // The transfers the member received and has not seen (Chat E-086), in the same wave and only
+    // where the document asks what is unread: one query, by the member's own bookings above the
+    // start of the counting.
+    const asked = extractGraphQLFieldPaths(info)
+    const [, previews, transfers] = await Promise.all([
       fillForeignMemberAvatarDates([...foreignLocals, ...remoteUsers]),
-      extractGraphQLFieldPaths(info).has('contacts.chatPreview')
+      asked.has('contacts.chatPreview')
         ? contactChatPreviews(
             user.id,
             member,
@@ -198,23 +206,41 @@ export class ContactResolver {
             user.transfersInChat !== false,
           )
         : Promise.resolve(people.map(() => null)),
+      asked.has('contacts.unreadChatMessages') || asked.has('contacts.chatPreview')
+        ? unreadTransfersOfUser(user)
+        : Promise.resolve(new Map<string, UnreadReceivedTransfers>()),
     ])
 
-    const contacts = people.map(
-      ({ row, model }, index) =>
-        new Contact(
-          model,
-          row.firstAt,
-          row.lastAt,
-          row.bookings,
-          favorites.has(favoriteKey(model.communityUuid, model.gradidoID)),
-          isSameCommunity(model.communityUuid, home?.communityUuid),
-          row.origin,
-          row.unreadChatMessages,
-          row.lastChatMessageAt,
-          previews[index],
-        ),
-    )
+    const contacts = people.map(({ row, model }, index) => {
+      const transfersUnread = transfers.get(
+        transferPersonKey({ communityUuid: model.communityUuid, gradidoId: model.gradidoID }),
+      )
+      const preview = previews[index]
+      if (preview) {
+        // Whether the line shows what waits: a message of theirs while one waits -- the latest
+        // message of theirs is then above the pointer --, or their transfer, the latest booking
+        // with them, while it is one not seen.
+        preview.unread =
+          !preview.mine &&
+          (preview.amount === null
+            ? row.unreadChatMessages > 0
+            : transfersUnread !== undefined && transfersUnread.latestId === row.lastBookingId)
+      }
+      return new Contact(
+        model,
+        row.firstAt,
+        row.lastAt,
+        row.bookings,
+        favorites.has(favoriteKey(model.communityUuid, model.gradidoID)),
+        isSameCommunity(model.communityUuid, home?.communityUuid),
+        row.origin,
+        // Their messages and their transfers the member has not seen, as one count: the dot at
+        // the person says that something of theirs waits (Chat E-086).
+        row.unreadChatMessages + (transfersUnread?.count ?? 0),
+        row.lastChatMessageAt,
+        preview,
+      )
+    })
     return new ContactList(contacts, page.count)
   }
 

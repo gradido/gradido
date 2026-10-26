@@ -27,6 +27,7 @@ export class ChatPreview {
     this.amount = fields.amount
     this.senderUser = fields.senderUser
     this.at = fields.at
+    this.unread = false
   }
 
   /** Whether the member asking wrote the message, or gave the Gradido of the booking. */
@@ -58,6 +59,15 @@ export class ChatPreview {
    */
   @Field(() => User, { nullable: true })
   senderUser: User | null
+
+  /**
+   * Whether what the line shows waits unread for the member asking: a message somebody else wrote
+   * above the member's read pointer, or a transfer they received and have not seen (Chat E-086).
+   * False as the line is made; the list that hands it out says it -- for a person ContactResolver,
+   * for a group chatGroupsOf.
+   */
+  @Field(() => Boolean)
+  unread: boolean
 
   /**
    * When the message arrived here, or the booking was booked: what decides which of the two the
