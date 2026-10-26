@@ -6,7 +6,7 @@ import { h, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppToast } from '@/composables/useToast'
 import { useAdminStore } from '@/store/useAdminStore'
-import { keepLastSearch, lastSearch } from '@/utils/lastSearch'
+import { keepLastSearch, keepLastTab, lastSearch, lastTab } from '@/utils/lastSearch'
 import { adminStore } from '../../test/adminStore'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
 import {
@@ -1020,6 +1020,44 @@ describe('CreationConfirm', () => {
       await openTab('confirmed')
       await simulateQueryResult(listOf([]))
       expect(search().props('modelValue')).toBe('bibi@bloxberg.de')
+    })
+
+    // Bernd, 26.10.2026: "merk Dir auch den Reiter, so wie die Suche" -- a search kept on another
+    // tab than "open" found nothing there and gave way to the whole open list.
+    describe('the last tab', () => {
+      const activeTab = () =>
+        wrapper.findAll('.nav-link').findIndex((link) => link.classes().includes('active'))
+
+      it('is the tab the page opens on, its list asked for at once', async () => {
+        keepLastTab('/creation-confirm', 'moderator-gid', 1)
+        mountPage()
+        expect(firstListQuery().filter.statusFilter).toEqual(['CONFIRMED'])
+        await flushPromises()
+        expect(activeTab()).toBe(1)
+      })
+
+      it('is kept as the moderator picks one, the first as none', async () => {
+        mountPage()
+        await flushPromises()
+        await openTab('denied')
+        expect(lastTab('/creation-confirm', 'moderator-gid', 5)).toBe(2)
+        await openTab('open')
+        expect(lastTab('/creation-confirm', 'moderator-gid', 5)).toBe(0)
+      })
+
+      it('is shown without asking for another list and without ending the trial of the search', async () => {
+        keepLastSearch('/creation-confirm', 'moderator-gid', 'bibi@bloxberg.de')
+        keepLastTab('/creation-confirm', 'moderator-gid', 1)
+        mountPage()
+        await flushPromises()
+        expect(activeTab()).toBe(1)
+        expect(
+          mockRefetch.mock.calls.every(([asked]) => asked.filter.statusFilter[0] === 'CONFIRMED'),
+        ).toBe(true)
+        await simulateQueryResult(listOf([]))
+        expect(search().props('modelValue')).toBe('')
+        expect(activeTab()).toBe(1)
+      })
     })
 
     // The badges in the menu and on the tab count all open contributions: the page opens with
