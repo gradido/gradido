@@ -16,6 +16,7 @@ import { verifyLogin } from '@/graphql/verifyLogin'
 import de from '@/locales/de.json'
 import en from '@/locales/en.json'
 import { useAdminStore } from '@/store/useAdminStore'
+import { WAY_BACK_PAGE } from '@/utils/wayBackPage'
 import { adminStore } from '../../test/adminStore'
 import { MemberWalletLink } from './MemberWalletLink'
 import classes from './MemberWalletLink.module.css'
@@ -1062,6 +1063,21 @@ describe('MemberWalletLink', () => {
       expect(page.searchParams.get('art')).toBe('email')
       expect(page.searchParams.get('admin')).toBe('/user')
       expect(page.hash).toBe('#send-form')
+    })
+
+    // A search lives in the page, not in its address: the page names itself with it
+    // (utils/wayBackPage.ts), and the way back brings it along.
+    it('names the page with its search where the page provides it', async () => {
+      window.history.replaceState({}, '', '/admin/creation-confirm')
+      const provide = {
+        [DefaultApolloClient]: client,
+        [WAY_BACK_PAGE]: () => '/creation-confirm?query=bibi%40bloxberg.de',
+      }
+      await pinOf(createWrapper({ provide })).trigger('click')
+
+      expect(handedPage().searchParams.get('admin')).toBe(
+        '/creation-confirm?query=bibi%40bloxberg.de',
+      )
     })
   })
 

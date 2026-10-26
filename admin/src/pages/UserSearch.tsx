@@ -1,12 +1,22 @@
 // AI-GENERATED — not an architecture reference
 import { useQuery } from '@vue/apollo-composable'
 import { BButton, BPagination } from 'bootstrap-vue-next'
-import { computed, defineComponent, onMounted, reactive, ref, watch, watchEffect } from 'vue'
+import {
+  computed,
+  defineComponent,
+  onMounted,
+  provide,
+  reactive,
+  ref,
+  watch,
+  watchEffect,
+} from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { useAppToast } from '@/composables/useToast'
 import { useViewport } from '@/composables/useViewport'
 import { DESK_PAGER_LIMIT, PHONE_PAGER_LIMIT } from '@/constants'
+import { pageWithSearch, WAY_BACK_PAGE } from '@/utils/wayBackPage'
 import IBiEnvelope from '~icons/bi/envelope'
 import IBiXCircle from '~icons/bi/x-circle'
 import type { Role } from '../components/ChangeUserRoleFormular'
@@ -26,6 +36,9 @@ export const UserSearch = defineComponent({
 
     const searchResult = ref<SearchedMember[]>([])
     const criteria = ref('')
+    // The search goes along on the way back from the wallet and comes back through the address,
+    // as an entry link's does (onMounted, below; utils/wayBackPage.ts).
+    provide(WAY_BACK_PAGE, () => pageWithSearch('/user', 'search', criteria.value))
     const filters = reactive<{ byActivated: boolean | null; byDeleted: boolean | null }>({
       byActivated: null,
       byDeleted: null,

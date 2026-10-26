@@ -11,8 +11,9 @@ import {
   useModal,
   vBTooltip,
 } from 'bootstrap-vue-next'
-import { computed, defineComponent, ref, watch, withDirectives } from 'vue'
+import { computed, defineComponent, provide, ref, watch, withDirectives } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 import { ThemedSelect } from '@/components/ThemedSelect'
 import { useDateFormatter } from '@/composables/useDateFormatter'
 import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
@@ -22,6 +23,7 @@ import { CONFIG } from '@/config'
 import { DESK_PAGER_LIMIT, PHONE_PAGER_LIMIT } from '@/constants'
 import { useAdminStore } from '@/store/useAdminStore'
 import { creationGroupOption } from '@/utils/creationGroupLabel'
+import { pageWithSearch, WAY_BACK_PAGE } from '@/utils/wayBackPage'
 import IBiBellFill from '~icons/bi/bell-fill'
 import IBiCheck from '~icons/bi/check'
 import IBiList from '~icons/bi/list'
@@ -96,7 +98,11 @@ export const CreationConfirm = defineComponent({
     const rows = ref(0)
     const currentPage = ref(1)
     const pageSize = ref(25)
-    const query = ref('')
+    // The search, also as the way back from the wallet brings it along (utils/wayBackPage.ts): a
+    // member picked with the magnifier of a row is their e-mail address here.
+    const route = useRoute()
+    const query = ref(typeof route.query.query === 'string' ? route.query.query : '')
+    provide(WAY_BACK_PAGE, () => pageWithSearch('/creation-confirm', 'query', query.value))
     const hideResubmissionModel = ref(true)
     // Group functions: filter the contribution list by a single creation group.
     const creationGroup = ref('')

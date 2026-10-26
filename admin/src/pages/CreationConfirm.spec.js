@@ -2,10 +2,11 @@ import { useApolloClient, useMutation, useQuery } from '@vue/apollo-composable'
 import { flushPromises, mount } from '@vue/test-utils'
 import { BPagination, BTabs, createBootstrap } from 'bootstrap-vue-next'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { h, nextTick, ref } from 'vue'
+import { h, inject, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppToast } from '@/composables/useToast'
 import { useAdminStore } from '@/store/useAdminStore'
+import { WAY_BACK_PAGE } from '@/utils/wayBackPage'
 import { adminStore } from '../../test/adminStore'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
 import { adminListContributions } from '../graphql/adminListContributions.graphql'
@@ -33,6 +34,10 @@ const { viewport } = await vi.hoisted(async () => {
   return { viewport: ref('unknown') }
 })
 vi.mock('@/composables/useViewport', () => ({ useViewport: () => viewport }))
+
+// The address the page opens on, set per test: the way back from the wallet brings the search.
+const { route } = vi.hoisted(() => ({ route: { query: {} } }))
+vi.mock('vue-router', () => ({ useRoute: () => route }))
 
 const createAdminStore = () => adminStore({ openCreations: 0 })
 
@@ -80,6 +85,7 @@ describe('CreationConfirm', () => {
 
   beforeEach(() => {
     viewport.value = 'unknown'
+    route.query = {}
     store = createAdminStore()
     vi.spyOn(useAdminStore(store), 'setOpenCreations')
 
@@ -878,6 +884,49 @@ describe('CreationConfirm', () => {
       expect(listed()).toEqual([7, 8])
       expect(dialog().props('modelValue')).toBe(true)
       expect(dialog().props('item')).toEqual(another)
+    })
+  })
+
+  // ⭐ Bernd, 26.10.2026: in the app on a phone the admin interface loads anew on the way back
+  // from the wallet. With the search along, the list shows the member the moderator came from:
+  // "dann würde der Rückweg auf jeden Fall zum richtigen Teilnehmer führen".
+  describe('the way back from the wallet', () => {
+    // A page of its own per test, opened on the address the test sets.
+    beforeEach(() => {
+      wrapper.unmount()
+    })
+
+    const mountAt = (query, extraStubs = {}) => {
+      route.query = query
+      wrapper = mount(CreationConfirm, {
+        global: { plugins: [store, createBootstrap()], stubs: { ...stubs, ...extraStubs } },
+      })
+      return wrapper
+    }
+
+    it('starts with the search the address names', () => {
+      const page = mountAt({ query: 'bibi@bloxberg.de' })
+      expect(firstListQuery().filter.query).toBe('bibi@bloxberg.de')
+      expect(page.findComponent({ name: 'UserQuery' }).props('modelValue')).toBe('bibi@bloxberg.de')
+    })
+
+    it('names itself with its search for a pin, also with a member picked by the magnifier', async () => {
+      let wayBackPage
+      const asker = {
+        name: 'OpenCreationsTable',
+        emits: ['search-for-email'],
+        setup() {
+          wayBackPage = inject(WAY_BACK_PAGE, null)
+          return () => h('div', { class: 'open-creations-table-stub' })
+        },
+      }
+      const page = mountAt({}, { OpenCreationsTable: asker })
+      expect(wayBackPage()).toBe('/creation-confirm')
+
+      await page
+        .findComponent({ name: 'OpenCreationsTable' })
+        .vm.$emit('search-for-email', 'bibi@bloxberg.de')
+      expect(wayBackPage()).toBe('/creation-confirm?query=bibi%40bloxberg.de')
     })
   })
 })

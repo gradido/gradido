@@ -2,7 +2,8 @@ import { useQuery } from '@vue/apollo-composable'
 import { flushPromises, mount } from '@vue/test-utils'
 import { BButton, BPagination } from 'bootstrap-vue-next'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { nextTick } from 'vue'
+import { h, inject, nextTick } from 'vue'
+import { WAY_BACK_PAGE } from '@/utils/wayBackPage'
 import { UserSearch } from './UserSearch'
 
 // Mock the composables and components
@@ -290,6 +291,25 @@ describe('UserSearch', () => {
       expect(wrapper.findComponent({ name: 'UserQuery' }).props('modelValue')).toBe('bibi')
       expect(useQuery().refetch).toHaveBeenCalledWith({ query: 'bibi' })
     })
+  })
+
+  // ⭐ Bernd, 26.10.2026: the search goes along on the way back from the wallet, and comes back
+  // through the address as above.
+  it('names itself with its search for a pin', async () => {
+    let wayBackPage
+    const asker = {
+      name: 'SearchUserTable',
+      setup() {
+        wayBackPage = inject(WAY_BACK_PAGE, null)
+        return () => h('div', { class: 'search-user-table-stub' })
+      },
+    }
+    wrapper = mountPage({ SearchUserTable: asker })
+    expect(wayBackPage()).toBe('/user')
+
+    wrapper.findComponent({ name: 'UserQuery' }).vm.$emit('update:modelValue', 'bibi@bloxberg.de')
+    await flushPromises()
+    expect(wayBackPage()).toBe('/user?search=bibi%40bloxberg.de')
   })
 
   it('hands the table the members and the pagination their count', () => {

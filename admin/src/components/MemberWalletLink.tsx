@@ -1,6 +1,14 @@
 // AI-GENERATED — not an architecture reference
 import { useApolloClient } from '@vue/apollo-composable'
-import { computed, defineComponent, onBeforeUnmount, onMounted, type PropType, watch } from 'vue'
+import {
+  computed,
+  defineComponent,
+  inject,
+  onBeforeUnmount,
+  onMounted,
+  type PropType,
+  watch,
+} from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   askModeratorContacts,
@@ -15,6 +23,7 @@ import { useAdminStore } from '@/store/useAdminStore'
 import { handOverAddress } from '@/utils/authToken'
 import { dropMapWindowName, MAP_WINDOW_NAME } from '@/utils/mapWindow'
 import { isTheModerator, moderatorKey } from '@/utils/theModerator'
+import { WAY_BACK_PAGE } from '@/utils/wayBackPage'
 import IBiGeoAltFill from '~icons/bi/geo-alt-fill'
 import IBiSend from '~icons/bi/send'
 import IMdiChatOutline from '~icons/mdi/chat-outline'
@@ -283,14 +292,19 @@ export const MemberWalletLink = defineComponent({
      * sign-in leads there (router/guards.ts). In an installed app on a phone the window can be
      * the app's only one, where nothing else led back (Bernd, 25.10.2026). Before the anchor,
      * where a query belongs.
+     *
+     * Where the page names itself with its search (utils/wayBackPage.ts), that is the page: there
+     * the admin interface loads anew on the way back, and the search comes back with it.
      */
+    const wayBackPage = inject(WAY_BACK_PAGE, null)
     const withWayBack = (page: string) => {
       const { pathname, search } = window.location
-      const here = pathname.startsWith(ROUTER_BASE)
-        ? `/${pathname.slice(ROUTER_BASE.length)}`
-        : pathname
+      const here =
+        wayBackPage?.() ??
+        (pathname.startsWith(ROUTER_BASE) ? `/${pathname.slice(ROUTER_BASE.length)}` : pathname) +
+          search
       const [path, anchor] = page.split('#')
-      const back = `admin=${encodeURIComponent(here + search)}`
+      const back = `admin=${encodeURIComponent(here)}`
       return `${path}${path.includes('?') ? '&' : '?'}${back}${anchor === undefined ? '' : `#${anchor}`}`
     }
 
