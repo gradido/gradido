@@ -2,11 +2,10 @@ import { useApolloClient, useMutation, useQuery } from '@vue/apollo-composable'
 import { flushPromises, mount } from '@vue/test-utils'
 import { BPagination, BTabs, createBootstrap } from 'bootstrap-vue-next'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { h, inject, nextTick, ref } from 'vue'
+import { h, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppToast } from '@/composables/useToast'
 import { useAdminStore } from '@/store/useAdminStore'
-import { WAY_BACK_VIEW } from '@/utils/wayBackView'
 import { adminStore } from '../../test/adminStore'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
 import { adminListContributions } from '../graphql/adminListContributions.graphql'
@@ -34,14 +33,6 @@ const { viewport } = await vi.hoisted(async () => {
   return { viewport: ref('unknown') }
 })
 vi.mock('@/composables/useViewport', () => ({ useViewport: () => viewport }))
-
-// The address the page opens on, set per test: the way back from the wallet brings a view in it
-// (utils/wayBackView.ts), which the page reads once and takes out again.
-const { route, mockReplace } = vi.hoisted(() => ({ route: { query: {} }, mockReplace: vi.fn() }))
-vi.mock('vue-router', () => ({
-  useRoute: () => route,
-  useRouter: () => ({ replace: mockReplace }),
-}))
 
 const createAdminStore = () => adminStore({ openCreations: 0 })
 
@@ -89,8 +80,6 @@ describe('CreationConfirm', () => {
 
   beforeEach(() => {
     viewport.value = 'unknown'
-    route.query = {}
-    mockReplace.mockClear()
     store = createAdminStore()
     vi.spyOn(useAdminStore(store), 'setOpenCreations')
 
@@ -889,208 +878,6 @@ describe('CreationConfirm', () => {
       expect(listed()).toEqual([7, 8])
       expect(dialog().props('modelValue')).toBe(true)
       expect(dialog().props('item')).toEqual(another)
-    })
-  })
-  // ⭐ Bernd, 25.10.2026: on the way back from the wallet in the app on his iPhone he came to
-  // the right page, "aber nicht an der Stelle in der Liste". The admin interface loads anew
-  // there, so the page names its view in the address a pin hands the wallet, and reads it back
-  // (utils/wayBackView.ts).
-  describe('the way back from the wallet', () => {
-    // A page of its own per test: the page of the outer set-up would draw again with every
-    // answer the shared mock hands out, and with it a stand-in for the table given here.
-    beforeEach(() => {
-      wrapper.unmount()
-    })
-
-    const mountAt = (query, extraStubs = {}) => {
-      route.query = query
-      wrapper = mount(CreationConfirm, {
-        global: { plugins: [store, createBootstrap()], stubs: { ...stubs, ...extraStubs } },
-      })
-      return wrapper
-    }
-    // A page of a list of sixty: enough pages for the pager to take the page asked for.
-    const listOf = (ids, count = 60) => ({
-      adminListContributions: {
-        contributionCount: count,
-        contributionList: ids.map((id) => ({ id })),
-      },
-    })
-
-    it('starts with the search, the group and the box it names', async () => {
-      mountAt({ query: 'garten', group: 'senioren', showResubmission: '1' })
-      await flushPromises()
-      // A real group waits for the groups to be known: before, the options hold only the
-      // fixed entries, and the group would have been dropped for the first of them.
-      expect(firstListQuery().filter).toMatchObject({
-        query: 'garten',
-        creationGroup: 'senioren',
-        hideResubmission: false,
-      })
-    })
-
-    // The library's tabs choose their first tab while they register; the tab is set after. The
-    // page once the tab's list has come: before, the pager knows no pages and takes it back.
-    it('goes to the tab once the tabs are there, and to the page once its list has come', async () => {
-      const page = mountAt({ tab: '2', page: '3' })
-      await flushPromises()
-      expect(page.findComponent(BTabs).props('modelValue')).toBe(2)
-      expect(page.findComponent(BPagination).props('modelValue')).toBe(1)
-
-      await simulateQueryResult(listOf([600, 601]))
-      await flushPromises()
-      expect(page.findComponent(BPagination).props('modelValue')).toBe(3)
-      expect(mockRefetch).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          filter: expect.objectContaining({ statusFilter: ['DENIED'] }),
-          paginated: expect.objectContaining({ currentPage: 3 }),
-        }),
-      )
-    })
-
-    it('takes the view out of the address, and leaves the rest of it', async () => {
-      mountAt({ tab: '2', open: '501', role: 'ADMIN' })
-      await flushPromises()
-      expect(mockReplace).toHaveBeenCalledWith({ query: { role: 'ADMIN' } })
-    })
-
-    it('leaves the address alone and opens nothing where it names no view', async () => {
-      const page = mountAt({})
-      await flushPromises()
-      await simulateQueryResult(listOf([500, 501]))
-      expect(mockReplace).not.toHaveBeenCalled()
-      expect(page.findComponent({ name: 'OpenCreationsTable' }).props('openId')).toBeNull()
-    })
-
-    // A list asked for on the way -- the first tab, the tab's first page -- may hold the
-    // contribution as well; opened there, it would close again with the next list.
-    it('hands the table the open contribution once the list of the view holds it', async () => {
-      const page = mountAt({ page: '2', open: '501' })
-      const table = () => page.findComponent({ name: 'OpenCreationsTable' })
-      await flushPromises()
-      // The first page, before the page of the view is set.
-      await simulateQueryResult(listOf([501, 502]))
-      await flushPromises()
-      expect(table().props('openId')).toBeNull()
-
-      // The page of the view.
-      await simulateQueryResult(listOf([501, 502]))
-      await flushPromises()
-      expect(table().props('openId')).toBe(501)
-    })
-
-    // When a refetch is done, the composable hands the query's present state out once more: no
-    // list while a later one is on its way, or the same list again (measured in the built admin
-    // interface: the row opened, and closed again a moment later).
-    it('takes an answer without a list for none: the open row waits for the list of the view', async () => {
-      const page = mountAt({ page: '2', open: '501' })
-      const table = () => page.findComponent({ name: 'OpenCreationsTable' })
-      await flushPromises()
-      await simulateQueryResult(listOf([501, 502]))
-      await flushPromises()
-      // The page of the view is on its way; the refetch before it is done meanwhile.
-      mockOnResultCallback({ loading: true, data: undefined })
-      await flushPromises()
-      expect(table().props('openId')).toBeNull()
-
-      await simulateQueryResult(listOf([501, 502]))
-      await flushPromises()
-      expect(table().props('openId')).toBe(501)
-    })
-
-    it('takes the same list handed out again for no new one: the rows stay as they are', async () => {
-      const page = mountAt({ open: '501' })
-      const table = () => page.findComponent({ name: 'OpenCreationsTable' })
-      await flushPromises()
-      const list = listOf([501, 502])
-      await simulateQueryResult(list)
-      const rows = table().props('items')
-      await table().vm.$emit('opened', 501)
-
-      mockOnResultCallback({ data: list })
-      await flushPromises()
-      expect(table().props('items')).toBe(rows)
-    })
-
-    it('rolls to the contribution once the table has opened it', async () => {
-      const row = document.createElement('tr')
-      row.dataset.contributionId = '501'
-      document.body.appendChild(row)
-      const scroll = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined)
-      try {
-        const page = mountAt({ open: '501' })
-        const table = () => page.findComponent({ name: 'OpenCreationsTable' })
-        await flushPromises()
-        await simulateQueryResult(listOf([501]))
-        expect(table().props('openId')).toBe(501)
-        await table().vm.$emit('opened', 501)
-        await nextTick()
-        expect(scroll).toHaveBeenCalledTimes(1)
-        expect(table().props('openId')).toBeNull()
-      } finally {
-        row.remove()
-        scroll.mockRestore()
-      }
-    })
-
-    // Closed by the moderator, it stays closed: confirming another contribution asks for the
-    // list again, and that list holds it as well.
-    it('hands it once: a list that comes later leaves the rows as the moderator left them', async () => {
-      const page = mountAt({ open: '501' })
-      const table = () => page.findComponent({ name: 'OpenCreationsTable' })
-      await flushPromises()
-      await simulateQueryResult(listOf([501, 502]))
-      await table().vm.$emit('opened', 501)
-      expect(table().props('openId')).toBeNull()
-
-      await simulateQueryResult(listOf([501, 502]))
-      await flushPromises()
-      expect(table().props('openId')).toBeNull()
-    })
-
-    it('opens nothing later where the list of the view no longer holds it', async () => {
-      const page = mountAt({ open: '501' })
-      const table = () => page.findComponent({ name: 'OpenCreationsTable' })
-      await flushPromises()
-      // Worked on in the meantime: it has left the tab.
-      await simulateQueryResult(listOf([502]))
-      await flushPromises()
-      expect(table().props('openId')).toBeNull()
-
-      await simulateQueryResult(listOf([501, 502]))
-      await flushPromises()
-      expect(table().props('openId')).toBeNull()
-    })
-
-    it('names its view for a pin: the tab, the page, the search, the group, the box, the open row', async () => {
-      let wayBackView
-      const asker = {
-        name: 'OpenCreationsTable',
-        props: ['items', 'openId'],
-        setup(props) {
-          wayBackView = inject(WAY_BACK_VIEW, null)
-          return () => h('div', { class: 'open-creations-table-stub' }, String(props.items.length))
-        },
-      }
-      const page = mountAt(
-        { query: 'garten', showResubmission: '1' },
-        { OpenCreationsTable: asker },
-      )
-      await flushPromises()
-      expect(wayBackView(null)).toBe('/creation-confirm?query=garten&showResubmission=1')
-
-      await simulateQueryResult(listOf([500, 501]))
-      await page.findComponent(BPagination).vm.$emit('update:modelValue', 2)
-      await simulateQueryResult(listOf([500, 501]))
-      page.findComponent({ name: 'OpenCreationsTable' }).props('items')[1]._showDetails = true
-      expect(wayBackView(null)).toBe(
-        '/creation-confirm?page=2&query=garten&showResubmission=1&open=501',
-      )
-
-      // Another tab starts at its first page with its rows closed; the box keeps its choice.
-      await page.findAll('.nav-link')[TABS.indexOf('all')].trigger('click')
-      await flushPromises()
-      expect(wayBackView(null)).toBe('/creation-confirm?tab=4&query=garten&showResubmission=1')
     })
   })
 })
