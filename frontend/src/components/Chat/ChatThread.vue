@@ -353,6 +353,7 @@ const store = useWalletStore()
 const {
   transfers,
   settled: transfersSettled,
+  failed: transfersFailed,
   hasMore: transfersHaveMore,
   loadOlderTransfers,
   takeReaction: takeTransferReaction,
@@ -597,11 +598,12 @@ const ownInvitations = computed(() => {
 /**
  * The ids of the messages the line stands under now. The transfers between the two count once
  * their first page has answered: before that, a thank-you on its way into the thread is not known,
- * and the line would stand for a moment over it.
+ * and the line would stand for a moment over it. Nor where that page failed: its empty list is not
+ * "no thank-you since" (coderabbit, #4210).
  */
 const thanksDue = computed(() => {
   const due = new Set()
-  const transfersKnown = transfersSettled.value ? transfers.value : null
+  const transfersKnown = transfersSettled.value && !transfersFailed.value ? transfers.value : null
   for (const { message, invitation } of ownInvitations.value.values()) {
     const line = callNudgeState({
       invitation,

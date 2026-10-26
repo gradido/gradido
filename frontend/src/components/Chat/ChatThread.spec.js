@@ -6454,6 +6454,20 @@ describe('ChatThread, the suggestion to thank after a video call', () => {
 
       expect(lines()).toEqual([false, true])
     })
+
+    // A thank-you may be among what could not be read: the line stays away rather than guess
+    // (coderabbit, #4210).
+    it('is not guessed: no line where the transfers could not be read', async () => {
+      bookingsAsked.mockImplementation(async () => {
+        throw new Error('Network error')
+      })
+
+      await mountAt(45 * MINUTE)
+      expect(lines()).toEqual([false, false])
+
+      await minutePasses()
+      expect(lines()).toEqual([false, false])
+    })
   })
 
   describe('the answers', () => {
