@@ -186,6 +186,12 @@
       "subject": "Пользователь {senderAlias} принял вашу благодарность",
       "title": "Пользователь {senderAlias} принял вашу благодарность"
     },
+    "transactionReactionReceived": {
+      "hasEnjoyedYourThanks": "Пользователь {recipientAlias} ({recipientCommunity}) обрадовался вашей благодарности: {emoji}",
+      "memo": "Сообщение: {transactionMemo}",
+      "subject": "Ваша благодарность дошла",
+      "title": "Ваша благодарность дошла"
+    },
     "transactionReceived": {
       "haveReceivedAmountGDDFrom": "вы только что получили {transactionAmount} GDD от {senderAlias}.",
       "subject": "Пользователь {senderAlias} отправил вам {transactionAmount} Gradido",

@@ -19,6 +19,7 @@ import {
   sendResetPasswordEmail,
   sendThankYouCardPaidEmail,
   sendTransactionLinkRedeemedEmail,
+  sendTransactionReactionReceivedEmail,
   sendTransactionReceivedEmail,
 } from './sendEmailVariants'
 
@@ -824,6 +825,82 @@ describe('sendEmailVariants', () => {
 
       it('has the correct html as snapshot', () => {
         expect(result.originalMessage.html).toMatchSnapshot()
+      })
+    })
+  })
+
+  // The mail with everything it can carry: the memo, and the recipient named by the two uuids.
+  // What is asserted about it beyond the snapshot stands in
+  // sendEmailVariants.reactionReceived.test.ts.
+  describe('sendTransactionReactionReceivedEmail', () => {
+    beforeAll(async () => {
+      result = await sendTransactionReactionReceivedEmail({
+        firstName: 'Peter',
+        lastName: 'Lustig',
+        email: 'peter@lustig.de',
+        language: 'en',
+        recipientAlias: 'bibi',
+        recipientCommunity: 'Bloxberg',
+        emoji: '🙏',
+        recipientUuid: '3f9a1e2c-1111-4a2b-9c3d-000000000001',
+        recipientCommunityUuid: 'aaaa1111-2222-4333-8444-555566667777',
+        transactionMemo: 'You deserve it! 🙏🏼',
+        transactionAmount: GradidoUnit.fromNumber(17.65),
+      })
+    })
+
+    describe('calls "sendEmailTranslated"', () => {
+      it('with expected parameters', () => {
+        expect(sendEmailTranslatedSpy).toBeCalledWith({
+          receiver: {
+            to: 'Peter Lustig <peter@lustig.de>',
+          },
+          template: 'transactionReactionReceived',
+          locals: expect.objectContaining({
+            firstName: 'Peter',
+            lastName: 'Lustig',
+            language: 'en',
+            recipientAlias: 'bibi',
+            recipientCommunity: 'Bloxberg',
+            emoji: '🙏',
+            recipientUuid: '3f9a1e2c-1111-4a2b-9c3d-000000000001',
+            recipientCommunityUuid: 'aaaa1111-2222-4333-8444-555566667777',
+            transactionMemo: 'You deserve it! 🙏🏼',
+            transactionAmount: '17.65',
+            supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
+            communityURL: CONFIG.COMMUNITY_URL,
+          }),
+        })
+      })
+    })
+
+    describe('result', () => {
+      it('is the expected object', () => {
+        // bun testrunner bug, toMatchObject mess with 'result'
+        const resultClone = JSON.parse(JSON.stringify(result))
+        expect(resultClone).toMatchObject({
+          originalMessage: expect.objectContaining({
+            to: 'Peter Lustig <peter@lustig.de>',
+            from: 'Gradido <info@gradido.net>',
+            attachments: expect.any(Array),
+            subject: 'Your thank-you has arrived',
+            html: expect.any(String),
+            text: expect.stringContaining('YOUR THANK-YOU HAS ARRIVED'),
+          }),
+        })
+      })
+
+      it('has the correct html as snapshot', () => {
+        expect(result.originalMessage.html).toMatchSnapshot()
+      })
+
+      it('says who was glad, with the emoji, and leads into the conversation with them', () => {
+        const html: string = result.originalMessage.html
+        expect(html).toContain('<p>bibi (Bloxberg) was happy about your thank-you: 🙏</p>')
+        expect(html).toContain(
+          `${CONFIG.COMMUNITY_URL}/contacts?with=3f9a1e2c-1111-4a2b-9c3d-000000000001&amp;community=aaaa1111-2222-4333-8444-555566667777`,
+        )
+        expect(html).not.toContain('/send/')
       })
     })
   })

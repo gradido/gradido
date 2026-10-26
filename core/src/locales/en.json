@@ -186,6 +186,12 @@
       "subject": "{senderAlias} has accepted your thank-you",
       "title": "{senderAlias} has accepted your thank-you"
     },
+    "transactionReactionReceived": {
+      "hasEnjoyedYourThanks": "{recipientAlias} ({recipientCommunity}) was happy about your thank-you: {emoji}",
+      "memo": "Message: {transactionMemo}",
+      "subject": "Your thank-you has arrived",
+      "title": "Your thank-you has arrived"
+    },
     "transactionReceived": {
       "haveReceivedAmountGDDFrom": "You have just received {transactionAmount} GDD from {senderAlias}.",
       "subject": "{senderAlias} has sent you {transactionAmount} Gradido",

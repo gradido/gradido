@@ -6,6 +6,7 @@ import {
   isTransferAmongMembersHere,
   reactionKeyOf,
   reactionKeysOf,
+  reactionMailDecision,
   reactionOfBooking,
 } from './TransactionReaction.logic'
 
@@ -176,5 +177,80 @@ describe('canReactToBooking', () => {
     expect(canReactToBooking(booking(-1, TransactionTypeId.DECAY, null, null), MEMBERS_HERE)).toBe(
       false,
     )
+  })
+})
+
+/**
+ * W1, the first wave back: whether the giver -- whoever sent the transfer -- is mailed about a
+ * reaction to it. Each of the four facts on its own, and the two sequences Bernd decided
+ * (26.10.2026): another emoji stays silent, taken back and set again mails once more.
+ */
+describe('reactionMailDecision', () => {
+  const MUTED_AT = new Date('2026-10-20T10:00:00Z')
+  // A first reaction by a recipient the giver did not mute, to a giver with an address.
+  const first = { emoji: HEART, hadReaction: false, giverMutedAt: null, giverHasAddress: true }
+
+  it('mails the first reaction to a transfer', () => {
+    expect(reactionMailDecision(first)).toBe('MAIL')
+  })
+
+  it('mails nothing for a reaction taken back, whatever stood there before', () => {
+    expect(reactionMailDecision({ ...first, emoji: null })).toBe('TAKEN_BACK')
+    expect(reactionMailDecision({ ...first, emoji: null, hadReaction: true })).toBe('TAKEN_BACK')
+  })
+
+  it('mails nothing for another emoji in the place of the one before', () => {
+    expect(reactionMailDecision({ ...first, hadReaction: true })).toBe('NOT_THE_FIRST')
+    expect(reactionMailDecision({ ...first, emoji: '🌱', hadReaction: true })).toBe('NOT_THE_FIRST')
+  })
+
+  // E-024: the mute mark of the conversation is the one brake, and the giver's own.
+  it('mails nothing where the giver muted the conversation with the recipient', () => {
+    expect(reactionMailDecision({ ...first, giverMutedAt: MUTED_AT })).toBe('MUTED')
+  })
+
+  it('mails nothing where the giver has no address', () => {
+    expect(reactionMailDecision({ ...first, giverHasAddress: false })).toBe('NO_ADDRESS')
+  })
+
+  // A reaction set, taken back and set again: the row was gone in between, so the third is a
+  // first reaction once more, and mails (W1, decision 3).
+  it('mails again where the reaction was taken back and set anew', () => {
+    const steps = [
+      reactionMailDecision({ ...first }),
+      reactionMailDecision({ ...first, emoji: null, hadReaction: true }),
+      reactionMailDecision({ ...first, hadReaction: false }),
+    ]
+
+    expect(steps).toEqual(['MAIL', 'TAKEN_BACK', 'MAIL'])
+  })
+
+  // Where more than one reason applies, the first in the order above names it: nothing was set,
+  // so nothing is said about the mute mark or the address.
+  it('names the first reason that applies', () => {
+    expect(
+      reactionMailDecision({
+        emoji: null,
+        hadReaction: true,
+        giverMutedAt: MUTED_AT,
+        giverHasAddress: false,
+      }),
+    ).toBe('TAKEN_BACK')
+    expect(
+      reactionMailDecision({
+        emoji: HEART,
+        hadReaction: true,
+        giverMutedAt: MUTED_AT,
+        giverHasAddress: false,
+      }),
+    ).toBe('NOT_THE_FIRST')
+    expect(
+      reactionMailDecision({
+        emoji: HEART,
+        hadReaction: false,
+        giverMutedAt: MUTED_AT,
+        giverHasAddress: false,
+      }),
+    ).toBe('MUTED')
   })
 })
