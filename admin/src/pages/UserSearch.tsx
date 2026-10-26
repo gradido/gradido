@@ -7,7 +7,8 @@ import { useRoute } from 'vue-router'
 import { useAppToast } from '@/composables/useToast'
 import { useViewport } from '@/composables/useViewport'
 import { DESK_PAGER_LIMIT, PHONE_PAGER_LIMIT } from '@/constants'
-import { pageWithSearch, WAY_BACK_PAGE } from '@/utils/wayBackPage'
+import { useAdminStore } from '@/store/useAdminStore'
+import { takeWayBackSearch, WAY_BACK_PAGE } from '@/utils/wayBackPage'
 import IBiEnvelope from '~icons/bi/envelope'
 import IBiXCircle from '~icons/bi/x-circle'
 import type { Role } from '../components/ChangeUserRoleFormular'
@@ -28,12 +29,20 @@ export const UserSearch = defineComponent({
     const route = useRoute()
 
     const searchResult = ref<SearchedMember[]>([])
-    // The search of the address, an entry link's or the way back's from the wallet, as the first
-    // question: read once the page stood, it asked for everybody first and then again. One text
-    // only, as `searchUsers` takes one; a repeated parameter is no search.
-    const criteria = ref(typeof route.query.search === 'string' ? route.query.search : '')
-    // The search goes along on the way back from the wallet (utils/wayBackPage.ts).
-    provide(WAY_BACK_PAGE, () => pageWithSearch('/user', 'search', criteria.value))
+    const store = useAdminStore()
+
+    // The search of an entry link's address, or the one the way back from the wallet kept where
+    // its sign-in led here (utils/wayBackPage.ts), as the first question: read once the page
+    // stood, it asked for everybody first and then again. One text only, as `searchUsers` takes
+    // one; a repeated parameter is no search.
+    const criteria = ref(
+      (typeof route.query.search === 'string' ? route.query.search : null) ??
+        (route.redirectedFrom?.path === '/authenticate'
+          ? takeWayBackSearch('/user', store.moderator?.gradidoID)
+          : null) ??
+        '',
+    )
+    provide(WAY_BACK_PAGE, () => ({ page: '/user', search: criteria.value }))
     const filters = reactive<{ byActivated: boolean | null; byDeleted: boolean | null }>({
       byActivated: null,
       byDeleted: null,

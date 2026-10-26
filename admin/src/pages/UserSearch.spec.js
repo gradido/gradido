@@ -3,7 +3,8 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { BButton, BPagination } from 'bootstrap-vue-next'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { h, inject, nextTick } from 'vue'
-import { WAY_BACK_PAGE } from '@/utils/wayBackPage'
+import { keepWayBackSearch, takeWayBackSearch, WAY_BACK_PAGE } from '@/utils/wayBackPage'
+import { adminStore } from '../../test/adminStore'
 import { UserSearch } from './UserSearch'
 
 // Mock the composables and components
@@ -24,7 +25,7 @@ vi.mock('@/composables/useViewport', () => ({ useViewport: () => viewport }))
 const { mockToastSuccess, mockT, route } = vi.hoisted(() => ({
   mockToastSuccess: vi.fn(),
   mockT: vi.fn((key) => key), // Mock translation function
-  route: { query: {} },
+  route: { query: {}, redirectedFrom: undefined },
 }))
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({ t: mockT }),
@@ -111,11 +112,14 @@ describe('UserSearch', () => {
         mocks: {
           $t: mockT,
         },
+        // The moderator a search kept for the way back belongs to (utils/wayBackPage.ts).
+        plugins: [adminStore({ moderator: { gradidoID: 'moderator-gid' } })],
       },
     })
 
   beforeEach(() => {
     route.query = {}
+    route.redirectedFrom = undefined
     viewport.value = 'unknown'
     mockToastSuccess.mockClear()
     // Mock the useQuery composable, with a copy per test: the page writes role changes into
@@ -303,23 +307,40 @@ describe('UserSearch', () => {
     expect(wrapper.findComponent({ name: 'UserQuery' }).props('modelValue')).toBe('')
   })
 
-  // ⭐ Bernd, 26.10.2026: the search goes along on the way back from the wallet, and comes back
-  // through the address as above.
-  it('names itself with its search for a pin', async () => {
-    let wayBackPage
-    const asker = {
-      name: 'SearchUserTable',
-      setup() {
-        wayBackPage = inject(WAY_BACK_PAGE, null)
-        return () => h('div', { class: 'search-user-table-stub' })
-      },
-    }
-    wrapper = mountPage({ SearchUserTable: asker })
-    expect(wayBackPage()).toBe('/user')
+  // ⭐ Bernd, 26.10.2026: the search goes along on the way back from the wallet, kept in the storage
+  // both apps share (utils/wayBackPage.ts).
+  describe('the way back from the wallet', () => {
+    it('names its search for a pin', async () => {
+      let wayBackPage
+      const asker = {
+        name: 'SearchUserTable',
+        setup() {
+          wayBackPage = inject(WAY_BACK_PAGE, null)
+          return () => h('div', { class: 'search-user-table-stub' })
+        },
+      }
+      wrapper = mountPage({ SearchUserTable: asker })
+      expect(wayBackPage()).toEqual({ page: '/user', search: '' })
 
-    wrapper.findComponent({ name: 'UserQuery' }).vm.$emit('update:modelValue', 'bibi@bloxberg.de')
-    await flushPromises()
-    expect(wayBackPage()).toBe('/user?search=bibi%40bloxberg.de')
+      wrapper.findComponent({ name: 'UserQuery' }).vm.$emit('update:modelValue', 'bibi@bloxberg.de')
+      await flushPromises()
+      expect(wayBackPage()).toEqual({ page: '/user', search: 'bibi@bloxberg.de' })
+    })
+
+    it('starts with the search kept for it, where the sign-in of the way back led here', () => {
+      keepWayBackSearch({ page: '/user', search: 'bibi@bloxberg.de' }, 'moderator-gid')
+      route.redirectedFrom = { path: '/authenticate' }
+      wrapper = mountPage()
+      expect(useQuery.mock.lastCall[1]).toMatchObject({ query: 'bibi@bloxberg.de' })
+      expect(takeWayBackSearch('/user', 'moderator-gid')).toBeNull()
+    })
+
+    it('leaves a kept search alone where the page was reached otherwise', () => {
+      keepWayBackSearch({ page: '/user', search: 'bibi@bloxberg.de' }, 'moderator-gid')
+      wrapper = mountPage()
+      expect(useQuery.mock.lastCall[1]).toMatchObject({ query: '' })
+      expect(takeWayBackSearch('/user', 'moderator-gid')).toBe('bibi@bloxberg.de')
+    })
   })
 
   it('hands the table the members and the pagination their count', () => {

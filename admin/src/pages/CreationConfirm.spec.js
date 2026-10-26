@@ -6,7 +6,7 @@ import { h, inject, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppToast } from '@/composables/useToast'
 import { useAdminStore } from '@/store/useAdminStore'
-import { WAY_BACK_PAGE } from '@/utils/wayBackPage'
+import { keepWayBackSearch, takeWayBackSearch, WAY_BACK_PAGE } from '@/utils/wayBackPage'
 import { adminStore } from '../../test/adminStore'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
 import { adminListContributions } from '../graphql/adminListContributions.graphql'
@@ -35,8 +35,9 @@ const { viewport } = await vi.hoisted(async () => {
 })
 vi.mock('@/composables/useViewport', () => ({ useViewport: () => viewport }))
 
-// The address the page opens on, set per test: the way back from the wallet brings the search.
-const { route } = vi.hoisted(() => ({ route: { query: {} } }))
+// The route the page opens on, set per test: the sign-in of the way back from the wallet leads
+// here with `redirectedFrom`.
+const { route } = vi.hoisted(() => ({ route: { query: {}, redirectedFrom: undefined } }))
 vi.mock('vue-router', () => ({ useRoute: () => route }))
 
 const createAdminStore = () => adminStore({ openCreations: 0 })
@@ -86,6 +87,7 @@ describe('CreationConfirm', () => {
   beforeEach(() => {
     viewport.value = 'unknown'
     route.query = {}
+    route.redirectedFrom = undefined
     store = createAdminStore()
     vi.spyOn(useAdminStore(store), 'setOpenCreations')
 
@@ -930,28 +932,46 @@ describe('CreationConfirm', () => {
 
   // ⭐ Bernd, 26.10.2026: in the app on a phone the admin interface loads anew on the way back
   // from the wallet. With the search along, the list shows the member the moderator came from:
-  // "dann würde der Rückweg auf jeden Fall zum richtigen Teilnehmer führen".
+  // "dann würde der Rückweg auf jeden Fall zum richtigen Teilnehmer führen". The search is kept
+  // in the storage both apps share (utils/wayBackPage.ts).
   describe('the way back from the wallet', () => {
-    // A page of its own per test, opened on the address the test sets.
+    const MODERATOR = { gradidoID: 'moderator-gid', communityUuid: 'home', role: 'ADMIN' }
+
+    // A page of its own per test, for the moderator, reached as the test says.
     beforeEach(() => {
       wrapper.unmount()
     })
 
-    const mountAt = (query, extraStubs = {}) => {
-      route.query = query
+    const mountPage = ({ bySignIn = false, extraStubs = {} } = {}) => {
+      route.redirectedFrom = bySignIn ? { path: '/authenticate' } : undefined
       wrapper = mount(CreationConfirm, {
-        global: { plugins: [store, createBootstrap()], stubs: { ...stubs, ...extraStubs } },
+        global: {
+          plugins: [adminStore({ openCreations: 0, moderator: MODERATOR }), createBootstrap()],
+          stubs: { ...stubs, ...extraStubs },
+        },
       })
       return wrapper
     }
 
-    it('starts with the search the address names', () => {
-      const page = mountAt({ query: 'bibi@bloxberg.de' })
+    it('starts with the search kept for it, where the sign-in of the way back led here', () => {
+      keepWayBackSearch({ page: '/creation-confirm', search: 'bibi@bloxberg.de' }, 'moderator-gid')
+      const page = mountPage({ bySignIn: true })
       expect(firstListQuery().filter.query).toBe('bibi@bloxberg.de')
       expect(page.findComponent({ name: 'UserQuery' }).props('modelValue')).toBe('bibi@bloxberg.de')
+      // Taken: a later visit starts without it.
+      expect(takeWayBackSearch('/creation-confirm', 'moderator-gid')).toBeNull()
     })
 
-    it('names itself with its search for a pin, also with a member picked by the magnifier', async () => {
+    // At the desk the admin interface stays open beside the wallet's window: a search kept there
+    // must not turn up again when the moderator comes to this page later.
+    it('leaves a kept search alone where the page was reached otherwise', () => {
+      keepWayBackSearch({ page: '/creation-confirm', search: 'bibi@bloxberg.de' }, 'moderator-gid')
+      mountPage()
+      expect(firstListQuery().filter.query).toBe('')
+      expect(takeWayBackSearch('/creation-confirm', 'moderator-gid')).toBe('bibi@bloxberg.de')
+    })
+
+    it('names its search for a pin, also a member picked by the magnifier', async () => {
       let wayBackPage
       const asker = {
         name: 'OpenCreationsTable',
@@ -961,13 +981,13 @@ describe('CreationConfirm', () => {
           return () => h('div', { class: 'open-creations-table-stub' })
         },
       }
-      const page = mountAt({}, { OpenCreationsTable: asker })
-      expect(wayBackPage()).toBe('/creation-confirm')
+      const page = mountPage({ extraStubs: { OpenCreationsTable: asker } })
+      expect(wayBackPage()).toEqual({ page: '/creation-confirm', search: '' })
 
       await page
         .findComponent({ name: 'OpenCreationsTable' })
         .vm.$emit('search-for-email', 'bibi@bloxberg.de')
-      expect(wayBackPage()).toBe('/creation-confirm?query=bibi%40bloxberg.de')
+      expect(wayBackPage()).toEqual({ page: '/creation-confirm', search: 'bibi@bloxberg.de' })
     })
   })
 })

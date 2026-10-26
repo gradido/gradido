@@ -23,7 +23,7 @@ import { useAdminStore } from '@/store/useAdminStore'
 import { handOverAddress } from '@/utils/authToken'
 import { dropMapWindowName, MAP_WINDOW_NAME } from '@/utils/mapWindow'
 import { isTheModerator, moderatorKey } from '@/utils/theModerator'
-import { WAY_BACK_PAGE } from '@/utils/wayBackPage'
+import { forgetWayBackSearch, keepWayBackSearch, WAY_BACK_PAGE } from '@/utils/wayBackPage'
 import IBiGeoAltFill from '~icons/bi/geo-alt-fill'
 import IBiSend from '~icons/bi/send'
 import IMdiChatOutline from '~icons/mdi/chat-outline'
@@ -292,34 +292,38 @@ export const MemberWalletLink = defineComponent({
      * sign-in leads there (router/guards.ts). In an installed app on a phone the window can be
      * the app's only one, where nothing else led back (Bernd, 25.10.2026). Before the anchor,
      * where a query belongs.
-     *
-     * Where the page names itself with its search (utils/wayBackPage.ts), that is the page: there
-     * the admin interface loads anew on the way back, and the search comes back with it.
      */
-    const wayBackPage = inject(WAY_BACK_PAGE, null)
     const withWayBack = (page: string) => {
       const { pathname, search } = window.location
-      const here =
-        wayBackPage?.() ??
-        (pathname.startsWith(ROUTER_BASE) ? `/${pathname.slice(ROUTER_BASE.length)}` : pathname) +
-          search
+      const here = pathname.startsWith(ROUTER_BASE)
+        ? `/${pathname.slice(ROUTER_BASE.length)}`
+        : pathname
       const [path, anchor] = page.split('#')
-      const back = `admin=${encodeURIComponent(here)}`
+      const back = `admin=${encodeURIComponent(here + search)}`
       return `${path}${path.includes('?') ? '&' : '?'}${back}${anchor === undefined ? '' : `#${anchor}`}`
     }
+
+    // The page's search, kept for the way back in the storage both apps share, before the window
+    // opens: in the app on a phone the wallet takes this window (utils/wayBackPage.ts).
+    const wayBackPage = inject(WAY_BACK_PAGE, null)
 
     const openInWallet = (page: string, blockedText: string) => {
       const address =
         handOverAddress(CONFIG.WALLET_AUTH_URL, store.token) +
         '&redirect=' +
         encodeURIComponent(withWayBack(page))
+      const view = wayBackPage?.()
+      if (view) {
+        keepWayBackSearch(view, store.moderator?.gradidoID)
+      }
       // ⛔ Never this window itself: see dropMapWindowName.
       dropMapWindowName()
       const opened = window.open(address, WINDOW_NAME, WINDOW_FEATURES)
       if (opened) {
         opened.focus()
       } else {
-        // The browser kept the window from opening (its pop-up blocker).
+        // The browser kept the window from opening (its pop-up blocker): no way back to wait for.
+        forgetWayBackSearch()
         toastWarning(blockedText)
       }
       // After the window: it is handed the token held at the press, and has to be opened while

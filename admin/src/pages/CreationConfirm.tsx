@@ -23,7 +23,7 @@ import { CONFIG } from '@/config'
 import { DESK_PAGER_LIMIT, PHONE_PAGER_LIMIT } from '@/constants'
 import { useAdminStore } from '@/store/useAdminStore'
 import { creationGroupOption } from '@/utils/creationGroupLabel'
-import { pageWithSearch, WAY_BACK_PAGE } from '@/utils/wayBackPage'
+import { takeWayBackSearch, WAY_BACK_PAGE } from '@/utils/wayBackPage'
 import IBiBellFill from '~icons/bi/bell-fill'
 import IBiCheck from '~icons/bi/check'
 import IBiList from '~icons/bi/list'
@@ -98,11 +98,17 @@ export const CreationConfirm = defineComponent({
     const rows = ref(0)
     const currentPage = ref(1)
     const pageSize = ref(25)
-    // The search, also as the way back from the wallet brings it along (utils/wayBackPage.ts): a
-    // member picked with the magnifier of a row is their e-mail address here.
+    // The search, also as the way back from the wallet keeps it (utils/wayBackPage.ts): a member
+    // picked with the magnifier of a row is their e-mail address here. Taken only where the
+    // sign-in of the way back led to this page, so that a search kept at the desk, where the
+    // admin interface stayed open, does not turn up again on a later visit.
     const route = useRoute()
-    const query = ref(typeof route.query.query === 'string' ? route.query.query : '')
-    provide(WAY_BACK_PAGE, () => pageWithSearch('/creation-confirm', 'query', query.value))
+    const query = ref(
+      (route.redirectedFrom?.path === '/authenticate'
+        ? takeWayBackSearch('/creation-confirm', store.moderator?.gradidoID)
+        : null) ?? '',
+    )
+    provide(WAY_BACK_PAGE, () => ({ page: '/creation-confirm', search: query.value }))
     const hideResubmissionModel = ref(true)
     // Group functions: filter the contribution list by a single creation group.
     const creationGroup = ref('')
