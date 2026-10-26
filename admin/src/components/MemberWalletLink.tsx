@@ -23,7 +23,7 @@ import { useAdminStore } from '@/store/useAdminStore'
 import { handOverAddress } from '@/utils/authToken'
 import { dropMapWindowName, MAP_WINDOW_NAME } from '@/utils/mapWindow'
 import { isTheModerator, moderatorKey } from '@/utils/theModerator'
-import { WAY_BACK_VIEW } from '@/utils/wayBackView'
+import { WAY_BACK_PAGE } from '@/utils/wayBackPage'
 import IBiGeoAltFill from '~icons/bi/geo-alt-fill'
 import IBiSend from '~icons/bi/send'
 import IMdiChatOutline from '~icons/mdi/chat-outline'
@@ -293,15 +293,14 @@ export const MemberWalletLink = defineComponent({
      * the app's only one, where nothing else led back (Bernd, 25.10.2026). Before the anchor,
      * where a query belongs.
      *
-     * Where the page offers its view (utils/wayBackView.ts: the tab, the page of the list, the
-     * search, the opened row), that is the page named: there the admin interface loads anew on
-     * the way back, and the address alone would bring the moderator to the top of the list.
+     * Where the page names itself with its search (utils/wayBackPage.ts), that is the page: there
+     * the admin interface loads anew on the way back, and the search comes back with it.
      */
-    const wayBackView = inject(WAY_BACK_VIEW, null)
+    const wayBackPage = inject(WAY_BACK_PAGE, null)
     const withWayBack = (page: string) => {
       const { pathname, search } = window.location
       const here =
-        wayBackView?.(props.member) ??
+        wayBackPage?.() ??
         (pathname.startsWith(ROUTER_BASE) ? `/${pathname.slice(ROUTER_BASE.length)}` : pathname) +
           search
       const [path, anchor] = page.split('#')

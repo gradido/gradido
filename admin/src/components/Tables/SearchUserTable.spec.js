@@ -195,17 +195,6 @@ describe('SearchUserTable', () => {
     expect(wrapper.findAll('tbody > tr')).toHaveLength(4)
   })
 
-  // The page rolls the member back into view after the wallet's way back (UserSearch.tsx).
-  it('marks each row with the number of its member, and the details of an opened row with none', async () => {
-    const marks = () =>
-      wrapper.findAll('[data-user-id]').map((row) => row.attributes('data-user-id'))
-    expect(marks()).toEqual(['1', '2', '3', '4'])
-
-    await wrapper.findAll('tbody > tr').at(1).trigger('click')
-    expect(wrapper.find('tbody .card').exists()).toBe(true)
-    expect(marks()).toEqual(['1', '2', '3', '4'])
-  })
-
   describe('show row details', () => {
     beforeEach(async () => {
       await wrapper.findAll('tbody > tr').at(1).trigger('click')

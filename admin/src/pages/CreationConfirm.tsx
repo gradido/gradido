@@ -11,18 +11,9 @@ import {
   useModal,
   vBTooltip,
 } from 'bootstrap-vue-next'
-import {
-  computed,
-  defineComponent,
-  nextTick,
-  onMounted,
-  provide,
-  ref,
-  watch,
-  withDirectives,
-} from 'vue'
+import { computed, defineComponent, provide, ref, watch, withDirectives } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { ThemedSelect } from '@/components/ThemedSelect'
 import { useDateFormatter } from '@/composables/useDateFormatter'
 import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
@@ -32,15 +23,7 @@ import { CONFIG } from '@/config'
 import { DESK_PAGER_LIMIT, PHONE_PAGER_LIMIT } from '@/constants'
 import { useAdminStore } from '@/store/useAdminStore'
 import { creationGroupOption } from '@/utils/creationGroupLabel'
-import {
-  rollToRowAndHold,
-  viewAddress,
-  viewNumber,
-  viewText,
-  WAY_BACK_VIEW,
-  whenReady,
-  withoutView,
-} from '@/utils/wayBackView'
+import { pageWithSearch, WAY_BACK_PAGE } from '@/utils/wayBackPage'
 import IBiBellFill from '~icons/bi/bell-fill'
 import IBiCheck from '~icons/bi/check'
 import IBiList from '~icons/bi/list'
@@ -106,17 +89,6 @@ export const CreationConfirm = defineComponent({
     const { t } = useI18n()
     const { toastError, toastSuccess, toastWarning } = useAppToast()
 
-    // The view the moderator stood in before the wallet, where the address brings it back
-    // (utils/wayBackView.ts): read once as the page opens and taken out of the address -- it is
-    // a way back, not a place to bookmark. The search, the group and the box are the start of
-    // what the page holds; the tab, the page and the open row follow below.
-    const route = useRoute()
-    const router = useRouter()
-    const asked = route.query
-    const askedTab = viewNumber(asked.tab)
-    const askedPage = viewNumber(asked.page)
-    const askedOpen = viewNumber(asked.open)
-
     const tabIndex = ref(0)
     const { client: apolloClient } = useApolloClient()
     const items = ref<Contribution[]>([])
@@ -126,81 +98,14 @@ export const CreationConfirm = defineComponent({
     const rows = ref(0)
     const currentPage = ref(1)
     const pageSize = ref(25)
-    const query = ref(viewText(asked.query) ?? '')
-    const hideResubmissionModel = ref(asked.showResubmission !== '1')
+    // The search, also as the way back from the wallet brings it along (utils/wayBackPage.ts): a
+    // member picked with the magnifier of a row is their e-mail address here.
+    const route = useRoute()
+    const query = ref(typeof route.query.query === 'string' ? route.query.query : '')
+    provide(WAY_BACK_PAGE, () => pageWithSearch('/creation-confirm', 'query', query.value))
+    const hideResubmissionModel = ref(true)
     // Group functions: filter the contribution list by a single creation group.
-    const creationGroup = ref(viewText(asked.group) ?? '')
-    // The contribution whose details were open, handed to the table once the list of the view
-    // is there, until the table has opened it again.
-    const openId = ref<number | null>(null)
-    // Whether the tab and the page of the view are set, and whether a list asked for has not
-    // come yet -- the first is asked for as the page opens: the open row waits for both.
-    const viewApplied = ref(askedTab === null && askedPage === null)
-    const listPending = ref(true)
-
-    // The tab and the page come after the tabs are there: the library's tabs choose their first
-    // tab while they register one by one, and a tab set before is lost (bootstrap-vue-next,
-    // BTabs, `findActive`). The tab first, as choosing a tab starts its list at page one; the
-    // page once that list has come (utils/wayBackView.ts, whenReady).
-    const whenListed = () => whenReady(() => !listPending.value && rows.value > 0)
-    onMounted(async () => {
-      if (viewApplied.value) {
-        return
-      }
-      await nextTick()
-      if (askedTab !== null && askedTab > 0 && askedTab < FILTER_TAB_MAP.length) {
-        tabIndex.value = askedTab
-        await nextTick()
-      }
-      if (askedPage !== null && askedPage > 1) {
-        await whenListed()
-        currentPage.value = askedPage
-      }
-      viewApplied.value = true
-    })
-
-    const VIEW_KEYS = ['tab', 'page', 'query', 'group', 'showResubmission', 'open'] as const
-    const rest = withoutView(asked, VIEW_KEYS)
-    if (rest) {
-      router.replace({ query: rest })
-    }
-
-    // This view as an address, for a pin, a bubble or an arrow in a row (MemberWalletLink): the
-    // parts that are not the page's start, and the contribution whose details are open.
-    provide(WAY_BACK_VIEW, () =>
-      viewAddress('/creation-confirm', {
-        tab: tabIndex.value || null,
-        page: currentPage.value > 1 ? currentPage.value : null,
-        query: query.value,
-        group: creationGroup.value,
-        showResubmission: hideResubmissionModel.value ? null : 1,
-        open: items.value.find((entry) => entry._showDetails)?.id ?? null,
-      }),
-    )
-
-    // The open row of the view, handed to the table with the list of that view, and with no
-    // other: a list asked for on the way (the first tab, the tab's first page) may hold it as
-    // well, and opened there it would close again with the next list. A list that comes later
-    // leaves the rows as the moderator left them, and one the list of the view no longer
-    // holds, worked on in the meantime, does not open later either.
-    if (askedOpen !== null) {
-      const stopOpening = watch([viewApplied, listPending, items], () => {
-        if (!viewApplied.value || listPending.value) {
-          return
-        }
-        stopOpening()
-        if (items.value.some((entry) => entry.id === askedOpen)) {
-          openId.value = askedOpen
-        }
-      })
-    }
-
-    // Opened again: the window rolls to its row, where the moderator was, and keeps it there a
-    // moment against the page being put back to its top (utils/wayBackView.ts).
-    const onOpened = (id: number) => {
-      openId.value = null
-      nextTick(() => rollToRowAndHold(`[data-contribution-id="${id}"]`))
-    }
+    const creationGroup = ref('')
 
     const { formatDateOrDash } = useDateFormatter()
 
@@ -458,15 +363,9 @@ export const CreationConfirm = defineComponent({
 
     // Keep the chosen filter among the options actually on offer. A scoped moderator has no
     // "all" entry, so the default falls to their first option ("all my groups", or "untagged").
-    // A group the way back from the wallet names waits for the groups to be known: before
-    // they are, the options hold only the fixed entries, and the group would be dropped.
-    const askedGroup = viewText(asked.group)
     watch(
       creationGroupFilterOptions,
       (options) => {
-        if (askedGroup && creationGroup.value === askedGroup && !creationGroupsResult.value) {
-          return
-        }
         if (options.length > 0 && !options.some((option) => option.value === creationGroup.value)) {
           creationGroup.value = options[0].value
         }
@@ -474,7 +373,7 @@ export const CreationConfirm = defineComponent({
       { immediate: true },
     )
 
-    const { onResult, onError, result, refetch } = useQuery<any, ListVariables>(
+    const { onResult, onError, refetch } = useQuery<any, ListVariables>(
       adminListContributions,
       {
         filter: {
@@ -495,7 +394,6 @@ export const CreationConfirm = defineComponent({
     )
 
     watch([statusFilter, query, hideResubmission, creationGroup, currentPage], () => {
-      listPending.value = true
       refetch({
         filter: {
           statusFilter: statusFilter.value,
@@ -516,20 +414,19 @@ export const CreationConfirm = defineComponent({
 
     // When a refetch is done, the composable hands the query's present state out once more
     // (vue-apollo-composable, `refetch`): no list at all while a later one is on its way, or the
-    // same list again. Neither is a list of its own. Drawn anew from the same list, the rows lost
-    // their open details, and the row the way back opened closed again a moment later (measured
-    // in the built admin interface, 25.10.2026); the one without a list threw.
+    // same list again. Neither is a list of its own: the one without a list threw, and drawn anew
+    // from the same list the rows lost their open details. The rows come from the answer handed
+    // out, not from `result`: the composable sets that first, and a later answer can come between.
     let lastList: unknown = null
     onResult((answer) => {
       if (answer.loading || !answer.data || answer.data === lastList) {
         return
       }
       lastList = answer.data
-      listPending.value = false
-      rows.value = result.value.adminListContributions.contributionCount
+      rows.value = answer.data.adminListContributions.contributionCount
       // Copies, as SearchUserTable makes them: what Apollo Client 3 answers is frozen, and the
       // table opens a row by writing `_showDetails` into its item.
-      items.value = result.value.adminListContributions.contributionList.map(
+      items.value = answer.data.adminListContributions.contributionList.map(
         (contribution: Contribution) => ({ ...contribution }),
       )
       // The faces of the members whose contributions are on this page, in one round trip. Each
@@ -540,7 +437,7 @@ export const CreationConfirm = defineComponent({
         items.value.map((contribution) => contribution.user).filter(Boolean),
       )
       if (statusFilter.value.toString() === FILTER_TAB_MAP[0].toString()) {
-        store.setOpenCreations(result.value.adminListContributions.contributionCount)
+        store.setOpenCreations(answer.data.adminListContributions.contributionCount)
       }
     })
 
@@ -832,8 +729,6 @@ export const CreationConfirm = defineComponent({
           showStatus={tabIndex.value === ALL_TAB}
           creationGroups={creationGroupsResult.value?.creationGroups ?? []}
           groupChangeFailures={groupChangeFailures.value}
-          openId={openId.value}
-          onOpened={onOpened}
           onAssign-group={assignGroup}
           onShow-overlay={showOverlay}
           onUpdate-status={updateStatus}

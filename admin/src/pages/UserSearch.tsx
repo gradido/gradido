@@ -1,31 +1,13 @@
 // AI-GENERATED — not an architecture reference
 import { useQuery } from '@vue/apollo-composable'
 import { BButton, BPagination } from 'bootstrap-vue-next'
-import {
-  computed,
-  defineComponent,
-  nextTick,
-  onMounted,
-  provide,
-  reactive,
-  ref,
-  watch,
-  watchEffect,
-} from 'vue'
+import { computed, defineComponent, provide, reactive, ref, watch, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useAppToast } from '@/composables/useToast'
 import { useViewport } from '@/composables/useViewport'
 import { DESK_PAGER_LIMIT, PHONE_PAGER_LIMIT } from '@/constants'
-import {
-  rollToRowAndHold,
-  viewAddress,
-  viewNumber,
-  viewText,
-  WAY_BACK_VIEW,
-  whenReady,
-  withoutView,
-} from '@/utils/wayBackView'
+import { pageWithSearch, WAY_BACK_PAGE } from '@/utils/wayBackPage'
 import IBiEnvelope from '~icons/bi/envelope'
 import IBiXCircle from '~icons/bi/x-circle'
 import type { Role } from '../components/ChangeUserRoleFormular'
@@ -42,20 +24,16 @@ export const UserSearch = defineComponent({
   name: 'UserSearch',
   setup() {
     const { t } = useI18n()
-    const route = useRoute()
-    const router = useRouter()
 
-    // The view the moderator stood in before the wallet, where the address brings it back
-    // (utils/wayBackView.ts): the search, as the start of what the page asks; the page of the
-    // list once the first list has come (whenReady, below), and the member to roll to in the
-    // list of that page. The search was read from the address as the page was mounted, which
-    // asked first for everybody and then again; now the first answer is for the search.
-    const asked = route.query
-    const askedPage = viewNumber(asked.page)
-    const pageOfView = askedPage !== null && askedPage > 1 ? askedPage : null
-    const askedMember = viewNumber(asked.member)
+    const route = useRoute()
+
     const searchResult = ref<SearchedMember[]>([])
-    const criteria = ref(viewText(asked.search) ?? '')
+    // The search of the address, an entry link's or the way back's from the wallet, as the first
+    // question: read once the page stood, it asked for everybody first and then again. One text
+    // only, as `searchUsers` takes one; a repeated parameter is no search.
+    const criteria = ref(typeof route.query.search === 'string' ? route.query.search : '')
+    // The search goes along on the way back from the wallet (utils/wayBackPage.ts).
+    provide(WAY_BACK_PAGE, () => pageWithSearch('/user', 'search', criteria.value))
     const filters = reactive<{ byActivated: boolean | null; byDeleted: boolean | null }>({
       byActivated: null,
       byDeleted: null,
@@ -64,35 +42,6 @@ export const UserSearch = defineComponent({
     const currentPage = ref(1)
     const perPage = ref(25)
     const response = ref()
-    // Whether the page of the view is set: the member is looked for in the list that comes then.
-    const viewApplied = ref(pageOfView === null)
-
-    const rest = withoutView(asked, ['page', 'member'])
-    if (rest) {
-      router.replace({ query: rest })
-    }
-
-    // This view as an address, for a pin, a bubble or an arrow in a row (MemberWalletLink).
-    provide(WAY_BACK_VIEW, (member) =>
-      viewAddress('/user', {
-        search: criteria.value,
-        page: currentPage.value > 1 ? currentPage.value : null,
-        member: member?.userId ?? null,
-      }),
-    )
-
-    // Back from the wallet: the window rolls to the member's row in the list of the view, once,
-    // and keeps it there a moment against the page being put back to its top (utils/wayBackView.ts).
-    // A list that comes later stays where the moderator is.
-    if (askedMember !== null) {
-      const stopRolling = watch(searchResult, () => {
-        if (!viewApplied.value) {
-          return
-        }
-        stopRolling()
-        nextTick(() => rollToRowAndHold(`[data-user-id="${askedMember}"]`))
-      })
-    }
 
     const { creationLabel, creationMonthShorts } = useCreationMonths()
     const { toastSuccess } = useAppToast()
@@ -155,14 +104,6 @@ export const UserSearch = defineComponent({
       filters.byDeleted = filters.byDeleted === null ? true : null
       refetch()
     }
-
-    onMounted(async () => {
-      if (pageOfView !== null) {
-        await whenReady(() => rows.value > 0)
-        currentPage.value = pageOfView
-        viewApplied.value = true
-      }
-    })
 
     const deskFields = computed(() => [
       // The address stays whole: from 992px on, where the table stands, it fits in one piece

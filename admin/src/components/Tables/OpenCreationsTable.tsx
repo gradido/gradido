@@ -77,8 +77,6 @@ export type Contribution = {
   // internal notes out): its kind and whether a moderator wrote it. Null without a conversation.
   lastMessageType?: 'DIALOG' | 'HISTORY' | null
   lastMessageByModerator?: boolean | null
-  // Whether its details are open: the table library keeps it on the item (BTableLite).
-  _showDetails?: boolean
 }
 
 type Row = {
@@ -143,16 +141,8 @@ export const OpenCreationsTable = defineComponent({
       required: false,
       default: 0,
     },
-    // The contribution to open, once its row is there: the one whose details held the pin when
-    // the moderator went into the wallet (utils/wayBackView.ts). `opened` says it is open.
-    openId: {
-      type: Number as PropType<number | null>,
-      required: false,
-      default: null,
-    },
   },
   emits: [
-    'opened',
     'assign-group',
     'update-contributions',
     'reload-contribution',
@@ -287,37 +277,6 @@ export const OpenCreationsTable = defineComponent({
         openRow.value = row
       }
     }
-
-    // The way back from the wallet: the contribution named opens as a press on its details button
-    // opens it, so that the table knows which row is open and the next press closes it. The row
-    // stands in for the library's: its open state is the item's `_showDetails`, which the table
-    // reads back from the items (bootstrap-vue-next, BTableLite).
-    watch(
-      () => [props.openId, props.items] as const,
-      ([openId, items]) => {
-        const index = openId === null ? -1 : items.findIndex((entry) => entry.id === openId)
-        if (index < 0) {
-          return
-        }
-        const item = items[index]
-        if (!item._showDetails) {
-          rowToggleDetails(
-            {
-              item,
-              index,
-              value: undefined,
-              detailsShowing: false,
-              toggleDetails: () => {
-                item._showDetails = !item._showDetails
-              },
-            },
-            0,
-          )
-        }
-        emit('opened', openId)
-      },
-      { immediate: true },
-    )
 
     // Group functions: the group is editable while the contribution is still being worked
     // on. Once it is confirmed, denied or deleted it is closed and the group is part of the
@@ -584,11 +543,6 @@ export const OpenCreationsTable = defineComponent({
           hover
           stacked='lg'
           tbodyTrClass={rowClass as never}
-          // The row of a contribution by its id, for the way back to it (utils/wayBackView.ts).
-          tbodyTrAttrs={
-            ((entry: Contribution | null, type: string) =>
-              entry && type === 'row' ? { 'data-contribution-id': entry.id } : {}) as never
-          }
         >
           {{
             'cell(contributionStatus)': (row: Row) => statusIcon(row.item.contributionStatus),

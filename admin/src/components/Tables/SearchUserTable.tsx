@@ -517,11 +517,6 @@ export const SearchUserTable = defineComponent({
       <div class='search-user-table'>
         <BTable
           tbodyTrClass='pointer'
-          // The row of a member by their number, for the way back to it (utils/wayBackView.ts).
-          tbodyTrAttrs={
-            ((entry: MemberRow | null, type: string) =>
-              entry && type === 'row' ? { 'data-user-id': entry.userId } : {}) as never
-          }
           items={myItems.value}
           fields={props.fields}
           captionTop
