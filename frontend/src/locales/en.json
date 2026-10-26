@@ -1763,6 +1763,11 @@
       "own-words": "Your words"
     }
   },
+  "thanksNudge": {
+    "afterCall": "Would you like to thank {name} for the conversation?",
+    "notNow": "Not now",
+    "say": "Say thank you"
+  },
   "time": {
     "days": "Days",
     "hours": "Hours",

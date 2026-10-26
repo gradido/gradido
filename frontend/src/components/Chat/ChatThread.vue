@@ -100,6 +100,7 @@
                   ? isTransactionReactionUnderway(message.transactionId)
                   : reactionsUnderway.has(message.messageUuid)
               "
+              :thanks-after-call="!message.transfer && thanksDue.has(message.id)"
               @open-image="openImage"
               @open-member="emit('openMember', $event)"
               @duplicate-video="emit('duplicateVideo', $event)"
@@ -108,6 +109,8 @@
               @reply="startReply"
               @show-quoted="showQuoted"
               @react="reactTo"
+              @thank="thankAfterCall"
+              @dismiss="dismissThanks"
             />
           </ol>
         </section>
@@ -171,6 +174,7 @@ import { openChatImageView, rememberChatImage } from '@/composables/useChatImage
 import { useChatTransfers } from '@/composables/useChatTransfers'
 import { useChatThreadSearch } from '@/composables/useChatThreadSearch'
 import { useChatWindowSize } from '@/composables/useChatWindowSize'
+import { useThanksNudges } from '@/composables/useThanksNudges'
 import { useAppToast } from '@/composables/useToast'
 import {
   onChatMessages,
@@ -212,6 +216,7 @@ import { chatDraftFor, chatGroupDraftKey } from '@/utils/chatDraft'
 import { dropChatReturnNote, noteChatReturn, takeHeldChatText } from '@/utils/chatReturn'
 import { readChatVideoInvite } from '@/utils/chatVideoInvite'
 import { memberAlias } from '@/utils/gradidoAddress'
+import { callNudgeState } from '@/utils/thanksNudge'
 
 /** How many messages a page holds -- the server's own default, written out. */
 const PAGE_SIZE = 50
@@ -268,6 +273,10 @@ const props = defineProps({
  * `editVideo`: "Bearbeiten" at a video invitation of one's own (E-060) -- `{ message, invitation }`,
  * for the window's question, where its topic and its time are changed. The text of every other
  * message is changed here, in the bar.
+ *
+ * `thank`: "Danke sagen" under a video invitation of one's own (W2) -- for the window, which opens
+ * the send form with this person named, the way its own button "Gradido senden" does. The answer
+ * is remembered here already.
  */
 const emit = defineEmits([
   'chatConversation',
@@ -276,6 +285,7 @@ const emit = defineEmits([
   'duplicateVideo',
   'forwardMessage',
   'editVideo',
+  'thank',
 ])
 
 const { t, d, n, locale } = useI18n()
@@ -530,6 +540,89 @@ const view = computed(() => {
   if (timeline.value.length > 0) return 'thread'
   return transfersSettled.value ? 'empty' : 'loading'
 })
+
+/**
+ * The suggestion to thank after a video call (W2 of the waves of gratitude, utils/thanksNudge):
+ * under the member's own invitation, half an hour after the call began, "Möchtest Du Dich bei …
+ * für das Gespräch bedanken?" with "Danke sagen" and "Nicht jetzt". In a conversation of two only
+ * -- never in a group, where nothing of a transfer stands (E-050 F6) -- and only where the window
+ * can take the member to the send form with this person: the pair complete, as its button asks.
+ *
+ * ⚠️ Where the member switched the transfers in the conversation off, the thread holds none, and a
+ * thank-you sent another way does not end the line; "Nicht jetzt" does.
+ */
+const thanksOffered = !inGroup && Boolean(props.member?.gradidoID && props.member?.communityUuid)
+const { isSeen: thanksSeen, markSeen: markThanksSeen } = useThanksNudges()
+
+/**
+ * The time the line goes by: a quiet clock of the thread's own, once a minute while the thread is
+ * open, so that the line comes while the member sits in the conversation -- without asking the
+ * server anything; the chat's beat is left as it is. And at once when the page comes back into
+ * sight: the member comes back from the call, in another app or another tab.
+ */
+const THANKS_CLOCK_MS = 60 * 1000
+const now = ref(Date.now())
+if (thanksOffered) {
+  const clock = setInterval(() => {
+    now.value = Date.now()
+  }, THANKS_CLOCK_MS)
+  const backInSight = () => {
+    if (!document.hidden) now.value = Date.now()
+  }
+  document.addEventListener('visibilitychange', backInSight)
+  onBeforeUnmount(() => {
+    clearInterval(clock)
+    document.removeEventListener('visibilitychange', backInSight)
+  })
+}
+
+/**
+ * The member's own video invitations in the thread, by message id, each with what it says -- read
+ * as the window reads one to change it (`startEdit`): word for word, in the member's language and
+ * time zone now. An invitation the wallet does not read as its own words gets no line. Apart from
+ * the clock, so that its minute does not read every message again.
+ */
+const ownInvitations = computed(() => {
+  const found = new Map()
+  if (!thanksOffered) return found
+  const i18n = { t, d, locale: locale.value }
+  for (const message of messages.value) {
+    if (!message.mine) continue
+    const invitation = readChatVideoInvite(i18n, message.body)
+    if (invitation) found.set(message.id, { message, invitation })
+  }
+  return found
+})
+
+/**
+ * The ids of the messages the line stands under now. The transfers between the two count once
+ * their first page has answered: before that, a thank-you on its way into the thread is not known,
+ * and the line would stand for a moment over it.
+ */
+const thanksDue = computed(() => {
+  const due = new Set()
+  const transfersKnown = transfersSettled.value ? transfers.value : null
+  for (const { message, invitation } of ownInvitations.value.values()) {
+    const line = callNudgeState({
+      invitation,
+      message,
+      now: now.value,
+      transfers: transfersKnown,
+      seen: thanksSeen('call', message.messageUuid),
+    })
+    if (line === 'show') due.add(message.id)
+  }
+  return due
+})
+
+/** "Danke sagen": answered on this device, and to the window, which opens the send form. */
+const thankAfterCall = (message) => {
+  markThanksSeen('call', message.messageUuid)
+  emit('thank')
+}
+
+/** "Nicht jetzt": answered -- the line goes and does not come back for this call. */
+const dismissThanks = (message) => markThanksSeen('call', message.messageUuid)
 
 /** The local calendar day of a message: what the date line above a day names. */
 const dayKey = (date) =>

@@ -6233,3 +6233,272 @@ describe('ChatThread, the reaction to a transfer', () => {
     })
   })
 })
+
+/**
+ * W2 of the waves of gratitude (Bernd, 26.10.2026): half an hour after a video call the member
+ * started, a quiet line under their invitation suggests thanking the other person for it -- "Danke
+ * sagen" leads to the send form with them, "Nicht jetzt" lets it go for this call. The rule has its
+ * own spec (utils/thanksNudge); here what the thread makes of it: which bubble, with which clock,
+ * after which answer.
+ *
+ * The clock is a stand-in for `Date` and the thread's interval only: everything else that waits in
+ * the thread waits as it does in the wallet.
+ */
+describe('ChatThread, the suggestion to thank after a video call', () => {
+  let wrapper
+
+  const MINUTE = 60 * 1000
+  const DAY = 24 * 60 * MINUTE
+  const BEGAN = '2026-10-26T15:00:00.000Z'
+  const began = new Date(BEGAN).getTime()
+  const BODY = '📹 Videoanruf: Videoanruf …'
+  const CALL_NOW = {
+    room: 'https://meet.example/k7m2x9q4t8wz',
+    topic: 'Videoanruf',
+    when: null,
+    operator: 'Freifunk',
+    revision: null,
+  }
+  const plannedFor = (start) => ({
+    ...CALL_NOW,
+    when: { start: new Date(start), end: new Date(start + 60 * MINUTE) },
+  })
+
+  /** The member's invitation, written when the call began -- or the other person's. */
+  const invitation = ({ mine = true, n = 2 } = {}) => ({
+    ...message(n, { mine }),
+    body: BODY,
+    createdAt: BEGAN,
+  })
+  const before = { ...message(1, { mine: false }), createdAt: '2026-10-26T14:00:00.000Z' }
+
+  /** The wallet reads the invitation as the member's own words; every other message as none. */
+  const reads = (call) =>
+    videoInviteRead.mockImplementation((i18n, text) => (text === BODY ? call : null))
+
+  const mountAt = async (ms, { member = LENA, messages = [before, invitation()] } = {}) => {
+    vi.setSystemTime(began + ms)
+    wrapper = mount(ChatThread, {
+      props: { member, alias: 'Lena' },
+      global: { stubs: { BModal: true } },
+    })
+    server.result.value = { chatMessagesWithMember: { hasMore: false, mutedByMe: false, messages } }
+    server.loading.value = false
+    await flushPromises()
+    return wrapper
+  }
+
+  /** The bubbles, in order, and whether the line stands under each. */
+  const lines = () =>
+    wrapper
+      .findAll('[data-test="chat-bubble"]')
+      .map((row) => row.find('[data-test="thanks-nudge"]').exists())
+  /** The clock goes on by a minute, as the thread's own does. */
+  const minutePasses = async () => {
+    vi.advanceTimersByTime(MINUTE)
+    await flushPromises()
+  }
+  const answered = () => window.localStorage.getItem('thanks-nudge:me-id:call:uuid-2')
+
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval', 'Date'] })
+    reads(CALL_NOW)
+  })
+
+  afterEach(() => {
+    wrapper?.unmount()
+    wrapper = null
+    vi.useRealTimers()
+    videoInviteRead.mockReset()
+    videoInviteRead.mockImplementation(() => null)
+    bookingsAsked.mockReset()
+    noBookings()
+    markRead.mockClear()
+    delete storeState.transfersInChat
+    delete document.hidden
+    for (const key of Object.keys(window.localStorage)) {
+      if (key.startsWith('thanks-nudge:')) window.localStorage.removeItem(key)
+    }
+  })
+
+  describe('when it stands', () => {
+    it('half an hour after the call began, under the member’s invitation only', async () => {
+      await mountAt(29 * MINUTE)
+      expect(lines()).toEqual([false, false])
+
+      await minutePasses()
+
+      expect(lines()).toEqual([false, true])
+      expect(wrapper.find('[data-test="thanks-nudge-question"]').text()).toBe(
+        'thanksNudge.afterCall {"name":"Lena"}',
+      )
+    })
+
+    it('for seven days after the call began, and then no more', async () => {
+      await mountAt(7 * DAY - MINUTE)
+      expect(lines()).toEqual([false, true])
+
+      await minutePasses()
+      expect(lines()).toEqual([false, true])
+
+      await minutePasses()
+      expect(lines()).toEqual([false, false])
+    })
+
+    // A conversation opened long after: no line comes up for a call more than a week ago.
+    it('not where the thread is opened seven days and a minute after the call began', async () => {
+      await mountAt(7 * DAY + MINUTE)
+
+      expect(lines()).toEqual([false, false])
+    })
+
+    it('for a planned call, from half an hour after the time it names', async () => {
+      const start = began + DAY
+      reads(plannedFor(start))
+      await mountAt(DAY + 29 * MINUTE)
+      expect(lines()).toEqual([false, false])
+
+      await minutePasses()
+
+      expect(lines()).toEqual([false, true])
+    })
+
+    it('not for a planned call still to come, however long ago it was written', async () => {
+      reads(plannedFor(began + DAY))
+
+      await mountAt(2 * 60 * MINUTE)
+
+      expect(lines()).toEqual([false, false])
+    })
+
+    // The member comes back from the call in another app or tab: the line is there at once, not
+    // with the next minute.
+    it('at once when the page comes back into sight', async () => {
+      await mountAt(29 * MINUTE)
+      Object.defineProperty(document, 'hidden', { configurable: true, get: () => true })
+      document.dispatchEvent(new Event('visibilitychange'))
+      vi.setSystemTime(began + 31 * MINUTE)
+      await flushPromises()
+      expect(lines()).toEqual([false, false])
+
+      Object.defineProperty(document, 'hidden', { configurable: true, get: () => false })
+      document.dispatchEvent(new Event('visibilitychange'))
+      await flushPromises()
+
+      expect(lines()).toEqual([false, true])
+    })
+  })
+
+  describe('where it does not stand', () => {
+    // The one invited is not pressed to thank.
+    it('under the other person’s invitation', async () => {
+      await mountAt(45 * MINUTE, { messages: [before, invitation({ mine: false })] })
+
+      expect(lines()).toEqual([false, false])
+    })
+
+    it('under an invitation the wallet does not read as the member’s own words', async () => {
+      reads(null)
+
+      await mountAt(45 * MINUTE)
+
+      expect(lines()).toEqual([false, false])
+    })
+
+    // The window could not take the member to the send form with this person.
+    it('in a conversation whose person the window cannot send to', async () => {
+      await mountAt(45 * MINUTE, { member: { gradidoID: 'lena-id', communityUuid: null } })
+
+      expect(lines()).toEqual([false, false])
+      expect(vi.getTimerCount()).toBe(0)
+    })
+  })
+
+  describe('a thank-you since', () => {
+    it('ends it: a transfer to the person since the call began', async () => {
+      bookingsAsked.mockImplementation(async () =>
+        bookingsPage([booking(9, { at: new Date(began + 10 * MINUTE).toISOString(), sent: true })]),
+      )
+
+      await mountAt(45 * MINUTE)
+
+      // The message before, the invitation, and the transfer after it: no line anywhere.
+      expect(lines()).toEqual([false, false, false])
+    })
+
+    it('does not end it: a transfer from before the call', async () => {
+      bookingsAsked.mockImplementation(async () =>
+        bookingsPage([booking(9, { at: '2026-10-26T13:00:00.000Z', sent: true })]),
+      )
+
+      await mountAt(45 * MINUTE)
+
+      // The transfer, the message before, and the invitation with its line.
+      expect(lines()).toEqual([false, false, true])
+    })
+
+    // A thank-you on its way into the thread is not known yet: no line stands for a moment over it.
+    it('is waited for: no line before the transfers have answered', async () => {
+      let answer
+      bookingsAsked.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            answer = resolve
+          }),
+      )
+      await mountAt(45 * MINUTE)
+      expect(lines()).toEqual([false, false])
+
+      answer(bookingsPage([]))
+      await flushPromises()
+
+      expect(lines()).toEqual([false, true])
+    })
+  })
+
+  describe('the answers', () => {
+    const press = async (which) => {
+      await wrapper.find(`[data-test="thanks-nudge-${which}"]`).trigger('click')
+      await flushPromises()
+    }
+
+    it('"Nicht jetzt": the line goes, and does not come back for this call', async () => {
+      await mountAt(45 * MINUTE)
+
+      await press('no')
+
+      expect(lines()).toEqual([false, false])
+      expect(answered()).toBe('1')
+      expect(wrapper.emitted('thank')).toBeUndefined()
+
+      await minutePasses()
+      expect(lines()).toEqual([false, false])
+
+      // Nor when the conversation is opened again.
+      wrapper.unmount()
+      await mountAt(50 * MINUTE)
+      expect(lines()).toEqual([false, false])
+    })
+
+    it('"Danke sagen": answered on this device, and the window is told', async () => {
+      await mountAt(45 * MINUTE)
+
+      await press('yes')
+
+      expect(wrapper.emitted('thank')).toHaveLength(1)
+      expect(answered()).toBe('1')
+      expect(lines()).toEqual([false, false])
+    })
+  })
+
+  // A quiet clock: it asks nobody anything, and it goes with the thread.
+  it('keeps its clock while the thread is open, and stops it when the thread closes', async () => {
+    await mountAt(45 * MINUTE)
+    expect(vi.getTimerCount()).toBe(1)
+
+    wrapper.unmount()
+    wrapper = null
+
+    expect(vi.getTimerCount()).toBe(0)
+  })
+})

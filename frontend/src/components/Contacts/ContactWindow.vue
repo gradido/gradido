@@ -303,7 +303,11 @@
            in as well: it is how the thread knows this person's first message when it arrives
            in a thread that holds none yet. -->
       <!-- `ref`: the video call is sent through the thread (`deliver`), the way the compose
-           bar's messages go -- one place for the cache, the status and the words for the ear. -->
+           bar's messages go -- one place for the cache, the status and the words for the ear.
+
+           `thank`: "Danke sagen" under a video call of the member's own (W2) leads where the
+           window's button does -- the send form with this person, the window closed (`toSend`):
+           one way there, not a second one in the thread. -->
       <chat-thread
         v-if="contact.user?.gradidoID"
         :key="threadKey"
@@ -320,6 +324,7 @@
         @duplicate-video="videoCall?.duplicate($event)"
         @edit-video="videoCall?.edit($event)"
         @forward-message="forwardMessage"
+        @thank="toSend"
       />
 
       <!-- The two questions of a video call -- starting one, and joining one from its link in the
@@ -531,7 +536,8 @@ const closeWhenNavigating = (event) => {
 
 /**
  * The button: the send form with this person already named, as the profile window on the map
- * opens it. The e-mail with a subject is the form's other tab (E-031).
+ * opens it. The e-mail with a subject is the form's other tab (E-031). And "Danke sagen" under a
+ * video call of the member's own in the thread (W2), which leads to the same place.
  *
  * ⚠️ A member of another community goes down the same road: the send form is what knows
  * the federation branch, and a second way of reaching it here would be a second place for
