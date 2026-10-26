@@ -394,6 +394,13 @@ describe('the recipient reacts', () => {
  * and set anew mails again. Measured at what the mail function is handed, with a database.
  */
 describe('the giver is mailed about the first reaction', () => {
+  // The jam stands without a reaction afterwards, as the blocks below expect it.
+  afterAll(async () => {
+    await loginAs('peter@lustig.de')
+    await reacted(peters.jam.id, null)
+    clearMails()
+  })
+
   // Of everything above: three transfers got their first reaction, one of them after another
   // emoji had replaced the first -- and nothing else went out.
   it('mailed the first reaction to each of three transfers above, and nothing else', () => {
