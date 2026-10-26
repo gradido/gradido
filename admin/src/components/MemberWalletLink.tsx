@@ -292,14 +292,19 @@ export const MemberWalletLink = defineComponent({
      * sign-in leads there (router/guards.ts). In an installed app on a phone the window can be
      * the app's only one, where nothing else led back (Bernd, 25.10.2026). Before the anchor,
      * where a query belongs.
+     *
+     * The page alone, without its query: its search goes along in the storage both apps share
+     * (utils/wayBackPage.ts), and the search of an entry link (`/user?search=…`) carried in the
+     * address would win on the way back over the one the moderator typed since (coderabbit,
+     * #4205).
      */
     const withWayBack = (page: string) => {
-      const { pathname, search } = window.location
+      const { pathname } = window.location
       const here = pathname.startsWith(ROUTER_BASE)
         ? `/${pathname.slice(ROUTER_BASE.length)}`
         : pathname
       const [path, anchor] = page.split('#')
-      const back = `admin=${encodeURIComponent(here + search)}`
+      const back = `admin=${encodeURIComponent(here)}`
       return `${path}${path.includes('?') ? '&' : '?'}${back}${anchor === undefined ? '' : `#${anchor}`}`
     }
 

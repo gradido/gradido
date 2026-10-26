@@ -1044,13 +1044,15 @@ describe('MemberWalletLink', () => {
   describe('the way back to the page it was pressed on', () => {
     afterEach(() => window.history.replaceState({}, '', '/'))
 
-    it('names the page of this interface, under its base, with its own query', async () => {
-      window.history.replaceState({}, '', '/admin/creation-confirm?tab=open')
+    // Without its query: the search goes along in the storage both apps share, and an entry
+    // link's search in the address would win over the one typed since (coderabbit, #4205).
+    it('names the page of this interface, under its base, without its query', async () => {
+      window.history.replaceState({}, '', '/admin/user?search=bibi')
       await pinOf(createWrapper()).trigger('click')
 
       const page = handedPage()
       expect(page.pathname).toBe('/matching/karte')
-      expect(page.searchParams.get('admin')).toBe('/creation-confirm?tab=open')
+      expect(page.searchParams.get('admin')).toBe('/user')
       expect(page.searchParams.get('with')).toBe(BIBI.gradidoID)
     })
 
