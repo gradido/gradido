@@ -150,6 +150,34 @@ describe('CreationConfirm', () => {
     await nextTick()
   }
 
+  // When a refetch is done, the composable hands the query's state out once more: no list while
+  // a later one is on its way, or the same list again (vue-apollo-composable, `refetch`).
+  describe('an answer handed out again after a refetch', () => {
+    const listOf = (ids) => ({
+      adminListContributions: {
+        contributionCount: ids.length,
+        contributionList: ids.map((id) => ({ id })),
+      },
+    })
+
+    it('takes one without a list for none: the rows stay as they are', async () => {
+      await simulateQueryResult(listOf([501, 502]))
+      const rows = table().props('items')
+      mockOnResultCallback({ loading: true, data: undefined })
+      await nextTick()
+      expect(table().props('items')).toBe(rows)
+    })
+
+    it('takes the same list again for no new one: the rows stay as they are', async () => {
+      const list = listOf([501, 502])
+      await simulateQueryResult(list)
+      const rows = table().props('items')
+      mockOnResultCallback({ data: list })
+      await nextTick()
+      expect(table().props('items')).toBe(rows)
+    })
+  })
+
   it('initializes with correct default values', () => {
     expect(firstListQuery()).toEqual({
       filter: {

@@ -412,7 +412,16 @@ export const CreationConfirm = defineComponent({
       toastError(error.message)
     })
 
-    onResult(() => {
+    // When a refetch is done, the composable hands the query's present state out once more
+    // (vue-apollo-composable, `refetch`): no list at all while a later one is on its way, or the
+    // same list again. Neither is a list of its own: the one without a list threw, and drawn anew
+    // from the same list the rows lost their open details.
+    let lastList: unknown = null
+    onResult((answer) => {
+      if (answer.loading || !answer.data || answer.data === lastList) {
+        return
+      }
+      lastList = answer.data
       rows.value = result.value.adminListContributions.contributionCount
       // Copies, as SearchUserTable makes them: what Apollo Client 3 answers is frozen, and the
       // table opens a row by writing `_showDetails` into its item.
