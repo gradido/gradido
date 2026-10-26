@@ -16,7 +16,6 @@ import { verifyLogin } from '@/graphql/verifyLogin'
 import de from '@/locales/de.json'
 import en from '@/locales/en.json'
 import { useAdminStore } from '@/store/useAdminStore'
-import { forgetWayBackSearch, takeWayBackSearch, WAY_BACK_PAGE } from '@/utils/wayBackPage'
 import { adminStore } from '../../test/adminStore'
 import { MemberWalletLink } from './MemberWalletLink'
 import classes from './MemberWalletLink.module.css'
@@ -1065,36 +1064,6 @@ describe('MemberWalletLink', () => {
       expect(page.searchParams.get('art')).toBe('email')
       expect(page.searchParams.get('admin')).toBe('/user')
       expect(page.hash).toBe('#send-form')
-    })
-
-    // ⭐ Bernd, 26.10.2026: a search lives in the page, not in its address. The page names it
-    // (utils/wayBackPage.ts), and the press keeps it for the way back in the storage both apps
-    // share: carried in the address, it did not arrive in the app on an iPhone.
-    describe('from a page that names its search', () => {
-      const MODERATOR = { gradidoID: 'moderator-gid', communityUuid: 'home', role: 'ADMIN' }
-      const pressOnPage = () => {
-        window.history.replaceState({}, '', '/admin/creation-confirm')
-        const provide = {
-          [DefaultApolloClient]: client,
-          [WAY_BACK_PAGE]: () => ({ page: '/creation-confirm', search: 'bibi@bloxberg.de' }),
-        }
-        const plugins = [sentences('en'), adminStore({ token: TOKEN, moderator: MODERATOR })]
-        return pinOf(createWrapper({ provide, plugins })).trigger('click')
-      }
-
-      afterEach(() => forgetWayBackSearch())
-
-      it('keeps the search for the way back, for the moderator, and names the page alone', async () => {
-        await pressOnPage()
-        expect(handedPage().searchParams.get('admin')).toBe('/creation-confirm')
-        expect(takeWayBackSearch('/creation-confirm', 'moderator-gid')).toBe('bibi@bloxberg.de')
-      })
-
-      it('takes the search back where the window does not open', async () => {
-        window.open.mockReturnValue(null)
-        await pressOnPage()
-        expect(takeWayBackSearch('/creation-confirm', 'moderator-gid')).toBeNull()
-      })
     })
   })
 

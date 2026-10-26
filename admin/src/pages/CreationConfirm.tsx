@@ -11,9 +11,8 @@ import {
   useModal,
   vBTooltip,
 } from 'bootstrap-vue-next'
-import { computed, defineComponent, provide, ref, watch, withDirectives } from 'vue'
+import { computed, defineComponent, ref, watch, withDirectives } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute } from 'vue-router'
 import { ThemedSelect } from '@/components/ThemedSelect'
 import { useDateFormatter } from '@/composables/useDateFormatter'
 import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
@@ -23,7 +22,7 @@ import { CONFIG } from '@/config'
 import { DESK_PAGER_LIMIT, PHONE_PAGER_LIMIT } from '@/constants'
 import { useAdminStore } from '@/store/useAdminStore'
 import { creationGroupOption } from '@/utils/creationGroupLabel'
-import { takeWayBackSearch, WAY_BACK_PAGE } from '@/utils/wayBackPage'
+import { keepLastSearch, lastSearch } from '@/utils/lastSearch'
 import IBiBellFill from '~icons/bi/bell-fill'
 import IBiCheck from '~icons/bi/check'
 import IBiList from '~icons/bi/list'
@@ -35,7 +34,10 @@ import { type DecisionItem, DecisionModal } from '../components/DecisionModal'
 import { type Contribution, OpenCreationsTable } from '../components/Tables/OpenCreationsTable'
 import { UserQuery } from '../components/UserQuery'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
-import { adminListContributions } from '../graphql/adminListContributions.graphql'
+import {
+  adminListContributions,
+  adminListContributionsCount,
+} from '../graphql/adminListContributions.graphql'
 import { adminUpdateContribution } from '../graphql/adminUpdateContribution'
 import { confirmContribution } from '../graphql/confirmContribution'
 import { assignContributionCreationGroups, creationGroups } from '../graphql/creationGroups.graphql'
@@ -82,6 +84,9 @@ const FILTER_TAB_MAP = [
 // The tab that mixes every state; its rows say on their own which one they are in.
 const ALL_TAB = 4
 
+// The page the last search is kept for (utils/lastSearch.ts), as the router names it.
+const LAST_SEARCH_PAGE = '/creation-confirm'
+
 export const CreationConfirm = defineComponent({
   name: 'CreationConfirm',
   setup() {
@@ -98,17 +103,30 @@ export const CreationConfirm = defineComponent({
     const rows = ref(0)
     const currentPage = ref(1)
     const pageSize = ref(25)
-    // The search, also as the way back from the wallet keeps it (utils/wayBackPage.ts): a member
-    // picked with the magnifier of a row is their e-mail address here. Taken only where the
-    // sign-in of the way back led to this page, so that a search kept at the desk, where the
-    // admin interface stayed open, does not turn up again on a later visit.
-    const route = useRoute()
-    const query = ref(
-      (route.redirectedFrom?.path === '/authenticate'
-        ? takeWayBackSearch('/creation-confirm', store.moderator?.gradidoID)
-        : null) ?? '',
-    )
-    provide(WAY_BACK_PAGE, () => ({ page: '/creation-confirm', search: query.value }))
+    // The search: the last one this moderator left the page with, whenever it was
+    // (utils/lastSearch.ts), and kept again as it changes -- typed into the field above the
+    // table, or a member picked with the magnifier of a row, which is their e-mail address here.
+    const query = ref(lastSearch(LAST_SEARCH_PAGE, store.moderator?.gradidoID))
+    watch(query, (search) => keepLastSearch(LAST_SEARCH_PAGE, store.moderator?.gradidoID, search))
+    // Whether the first list still has to show that the kept search finds something (onResult).
+    let keptSearchOnTrial = query.value !== ''
+    // The count of the badges in the menu and on the tab, asked for on its own where the page
+    // opens with a search: its list counts only what the search leaves (coderabbit, #4206). With
+    // the overview's query; none where the page opens on the whole list, whose answer says it.
+    if (keptSearchOnTrial) {
+      apolloClient
+        .query({
+          query: adminListContributionsCount,
+          variables: {
+            filter: { statusFilter: ['IN_PROGRESS', 'PENDING'], hideResubmission: true },
+          },
+          fetchPolicy: 'network-only',
+        })
+        .then(({ data }) => store.setOpenCreations(data.adminListContributions.contributionCount))
+        .catch(() => {
+          // The badges keep the count they had; the list says on its own what went wrong.
+        })
+    }
     const hideResubmissionModel = ref(true)
     // Group functions: filter the contribution list by a single creation group.
     const creationGroup = ref('')
@@ -282,6 +300,7 @@ export const CreationConfirm = defineComponent({
     watch(tabIndex, () => {
       currentPage.value = 1
       items.value = []
+      keptSearchOnTrial = false
     })
 
     // Narrowing the list has to start over at page one. Picking a group while standing on a
@@ -297,6 +316,7 @@ export const CreationConfirm = defineComponent({
     // would have left the typed search asking for page 3 of a two-line result.
     watch(query, () => {
       currentPage.value = 1
+      keptSearchOnTrial = false
     })
 
     // Group functions: canonical tag options for the filter dropdown.
@@ -429,6 +449,17 @@ export const CreationConfirm = defineComponent({
         return
       }
       lastList = answer.data
+      // A kept search that finds nothing any more -- the contribution was processed by somebody
+      // else meanwhile, say -- gives way to the whole list (Bernd, 26.10.2026: "Sollte die Suche
+      // keine Treffer haben, schaltet es um auf „Alle“"). On the first list only: a search the
+      // moderator gives here stays, also where it finds nothing.
+      if (keptSearchOnTrial) {
+        keptSearchOnTrial = false
+        if (answer.data.adminListContributions.contributionCount === 0 && query.value !== '') {
+          query.value = ''
+          return
+        }
+      }
       rows.value = answer.data.adminListContributions.contributionCount
       // Copies, as SearchUserTable makes them: what Apollo Client 3 answers is frozen, and the
       // table opens a row by writing `_showDetails` into its item.
@@ -442,7 +473,9 @@ export const CreationConfirm = defineComponent({
         apolloClient,
         items.value.map((contribution) => contribution.user).filter(Boolean),
       )
-      if (statusFilter.value.toString() === FILTER_TAB_MAP[0].toString()) {
+      // The count of the badges in the menu and on the tab: all open contributions, never the
+      // few a search leaves -- the page opens with the last search now, not only after typing.
+      if (statusFilter.value.toString() === FILTER_TAB_MAP[0].toString() && query.value === '') {
         store.setOpenCreations(answer.data.adminListContributions.contributionCount)
       }
     })
