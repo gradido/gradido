@@ -287,10 +287,20 @@ describe('UserSearch', () => {
       await flushPromises()
     })
 
-    it('fills the query field with it and searches', () => {
+    // Its first question is the search: it used to ask for everybody first and then again.
+    it('fills the query field with it and asks for it at once', () => {
       expect(wrapper.findComponent({ name: 'UserQuery' }).props('modelValue')).toBe('bibi')
-      expect(useQuery().refetch).toHaveBeenCalledWith({ query: 'bibi' })
+      expect(useQuery.mock.lastCall[1]).toMatchObject({ query: 'bibi' })
+      expect(useQuery().refetch).not.toHaveBeenCalled()
     })
+  })
+
+  // `searchUsers` takes one text; a repeated parameter in the address is none.
+  it('takes no repeated search parameter for a search', () => {
+    route.query = { search: ['bibi', 'benjamin'] }
+    wrapper = mountPage()
+    expect(useQuery.mock.lastCall[1]).toMatchObject({ query: '' })
+    expect(wrapper.findComponent({ name: 'UserQuery' }).props('modelValue')).toBe('')
   })
 
   // ⭐ Bernd, 26.10.2026: the search goes along on the way back from the wallet, and comes back

@@ -1,16 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { useQuery } from '@vue/apollo-composable'
 import { BButton, BPagination } from 'bootstrap-vue-next'
-import {
-  computed,
-  defineComponent,
-  onMounted,
-  provide,
-  reactive,
-  ref,
-  watch,
-  watchEffect,
-} from 'vue'
+import { computed, defineComponent, provide, reactive, ref, watch, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { useAppToast } from '@/composables/useToast'
@@ -34,10 +25,14 @@ export const UserSearch = defineComponent({
   setup() {
     const { t } = useI18n()
 
+    const route = useRoute()
+
     const searchResult = ref<SearchedMember[]>([])
-    const criteria = ref('')
-    // The search goes along on the way back from the wallet and comes back through the address,
-    // as an entry link's does (onMounted, below; utils/wayBackPage.ts).
+    // The search of the address, an entry link's or the way back's from the wallet, as the first
+    // question: read once the page stood, it asked for everybody first and then again. One text
+    // only, as `searchUsers` takes one; a repeated parameter is no search.
+    const criteria = ref(typeof route.query.search === 'string' ? route.query.search : '')
+    // The search goes along on the way back from the wallet (utils/wayBackPage.ts).
     provide(WAY_BACK_PAGE, () => pageWithSearch('/user', 'search', criteria.value))
     const filters = reactive<{ byActivated: boolean | null; byDeleted: boolean | null }>({
       byActivated: null,
@@ -50,7 +45,6 @@ export const UserSearch = defineComponent({
 
     const { creationLabel, creationMonthShorts } = useCreationMonths()
     const { toastSuccess } = useAppToast()
-    const route = useRoute()
 
     // Below the phone boundary every member is a card. `unknown` -- no matchMedia -- keeps the
     // desk: nothing changes where the browser cannot be asked.
@@ -110,13 +104,6 @@ export const UserSearch = defineComponent({
       filters.byDeleted = filters.byDeleted === null ? true : null
       refetch()
     }
-
-    onMounted(() => {
-      const searchQuery = route.query.search
-      if (searchQuery) {
-        criteria.value = searchQuery as string
-      }
-    })
 
     const deskFields = computed(() => [
       // The address stays whole: from 992px on, where the table stands, it fits in one piece
