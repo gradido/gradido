@@ -167,9 +167,9 @@ describe('ChatGroupRow', () => {
   })
 
   /**
-   * The line of the latest message under the name (E-083): who wrote it and the beginning of its
-   * words, in the place of the community's line -- a group is named a community only where it is
-   * the member's own (chatGroupsOf).
+   * The line of the latest message (E-083): who wrote it and the beginning of its words, instead
+   * of the community's line -- a group is named a community only where it is the member's own
+   * (chatGroupsOf) --, and always the last line of the row, as in the contact row (E-085).
    */
   describe('the line of the latest message', () => {
     const FROM_ELFI = {
@@ -181,10 +181,22 @@ describe('ChatGroupRow', () => {
     }
     const lineOf = (row) => row.find('[data-test="chat-preview-line"]')
 
-    it("stands in the community's place, with who wrote it", () => {
+    it("stands instead of the community's line, with who wrote it", () => {
       const row = mountRow({ chatPreview: FROM_ELFI })
       expect(row.find('[data-test="chat-group-community"]').exists()).toBe(false)
       expect(lineOf(row).text()).toBe('chatPreview.by {"name":"Elfi"} Morgen um zehn im Garten?')
+    })
+
+    it('stands last, under how many and how recently', () => {
+      const row = mountRow({ chatPreview: FROM_ELFI })
+      const text = row.find('[data-test="chat-group-row-open"]').text()
+      expect(text.indexOf('Gradido-Café Berlin')).toBeLessThan(
+        text.indexOf('chatGroup.memberCount:5'),
+      )
+      expect(text.indexOf('chatGroup.memberCount:5')).toBeLessThan(text.indexOf('Morgen um zehn'))
+      expect([...row.find('.chat-group-row-text').element.children].at(-1)).toBe(
+        lineOf(row).element,
+      )
     })
 
     it('leaves the community where the group has no message yet', () => {

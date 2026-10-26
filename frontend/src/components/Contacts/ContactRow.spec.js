@@ -252,9 +252,10 @@ describe('ContactRow', () => {
   })
 
   /**
-   * The line of the latest word under the name (E-083, Bernd, 23.10.2026): the beginning of the
-   * latest message, or of the latest booking where that came later -- in the place of the
-   * community's line where the person belongs to the member's own community.
+   * The line of the latest word (E-083, Bernd, 23.10.2026): the beginning of the latest message,
+   * or of the latest booking where that came later -- instead of the community's line where the
+   * person belongs to the member's own community, and always the last line of the row, under how
+   * often and how recently (E-085, Bernd, 26.10.2026).
    */
   describe('the line of the latest word', () => {
     const MESSAGE = {
@@ -270,14 +271,16 @@ describe('ContactRow', () => {
       amount: '20.00',
     }
     const lineOf = () => wrapper.find('[data-test="chat-preview-line"]')
+    // The lines of the row's text, in the order it shows them.
+    const lines = () => [...wrapper.find('.contact-row-text').element.children]
 
-    it("stands in the community's place for somebody of the member's own community", () => {
+    it("stands instead of the community's line for somebody of the member's own community", () => {
       mountWith({ ...CONTACT, homeCommunity: true, chatPreview: MESSAGE })
       expect(wrapper.find('[data-test="contact-community"]').exists()).toBe(false)
       expect(lineOf().text()).toBe('Morgen um zehn im Garten?')
     })
 
-    it('stands under the community of somebody of another community, which keeps its line', () => {
+    it('stands last for somebody of another community, whose community keeps its line', () => {
       mountWith({
         ...CONTACT,
         user: { ...CONTACT.user, communityName: 'Gradido Bremen' },
@@ -286,7 +289,9 @@ describe('ContactRow', () => {
       })
       const text = wrapper.find('[data-test="contact-row-open"]').text()
       expect(wrapper.find('[data-test="contact-community"]').text()).toBe('Gradido Bremen')
-      expect(text.indexOf('Gradido Bremen')).toBeLessThan(text.indexOf('Morgen um zehn'))
+      expect(text.indexOf('Gradido Bremen')).toBeLessThan(text.indexOf('contacts.bookings:12'))
+      expect(text.indexOf('contacts.bookings:12')).toBeLessThan(text.indexOf('Morgen um zehn'))
+      expect(lines().at(-1)).toBe(lineOf().element)
     })
 
     it('leaves the row as it was where there is nothing to show', () => {
@@ -295,11 +300,26 @@ describe('ContactRow', () => {
       expect(wrapper.find('[data-test="contact-community"]').text()).toBe('Gradido-Akademie')
     })
 
-    it('stands between the name and the line of how often and how recently', () => {
+    it('stands last, under the line of how often and how recently', () => {
       mountWith({ ...CONTACT, homeCommunity: true, chatPreview: MESSAGE })
       const text = wrapper.find('[data-test="contact-row-open"]').text()
-      expect(text.indexOf('Carla-Sonne')).toBeLessThan(text.indexOf('Morgen um zehn'))
-      expect(text.indexOf('Morgen um zehn')).toBeLessThan(text.indexOf('contacts.bookings:12'))
+      expect(text.indexOf('Carla-Sonne')).toBeLessThan(text.indexOf('contacts.bookings:12'))
+      expect(text.indexOf('contacts.bookings:12')).toBeLessThan(text.indexOf('Morgen um zehn'))
+      expect(lines().at(-1)).toBe(lineOf().element)
+    })
+
+    // Where nothing has been booked yet, the line above says how the two became contacts.
+    it('stands last under the line of how the two became contacts, too', () => {
+      mountWith({
+        ...CONTACT,
+        bookings: 0,
+        origin: 'ARRIVAL',
+        homeCommunity: true,
+        chatPreview: MESSAGE,
+      })
+      const text = wrapper.find('[data-test="contact-row-open"]').text()
+      expect(text.indexOf('contacts.origin.arrival')).toBeLessThan(text.indexOf('Morgen um zehn'))
+      expect(lines().at(-1)).toBe(lineOf().element)
     })
 
     it('is part of what the button says, inside it', () => {

@@ -20,9 +20,9 @@
             {{ group.title }}
           </span>
           <!-- The community in a line of its own, as the contact row has it (E-026: in P5 the
-               group's and every member's) -- until the group has a latest message: its line takes
-               this one's place (E-083). A group is named a community only where it is the
-               member's own (chatGroupsOf), and that is the name the line stands in for. -->
+               group's and every member's) -- until the group has a latest message: its line
+               stands instead of this one (E-083). A group is named a community only where it is
+               the member's own (chatGroupsOf), and that is the name the line stands in for. -->
           <span
             v-if="group.communityName && !group.chatPreview"
             class="small text-muted d-block"
@@ -30,14 +30,15 @@
           >
             {{ group.communityName }}
           </span>
-          <!-- The beginning of the latest message and who wrote it (E-083); dark while one waits
-               unread. -->
+          <span class="small text-muted d-block" data-test="chat-group-meta">{{ meta }}</span>
+          <!-- The beginning of the latest message and who wrote it (E-083) -- always the last
+               line, under how many and how recently, as in the contact row (E-085); dark while
+               one waits unread. -->
           <chat-preview-line
             v-if="group.chatPreview"
             :preview="group.chatPreview"
             :unread="group.unreadMessages > 0 && !group.chatPreview.mine"
           />
-          <span class="small text-muted d-block" data-test="chat-group-meta">{{ meta }}</span>
         </span>
         <!-- What waits unread for the member -- also in a muted group: muting holds back the
              mails, not the messages, and the mark in the menu counts it too (E-024). -->
@@ -72,10 +73,10 @@ import { chatGroupAvatar, chatGroupMeta } from '@/components/ChatGroups/chatGrou
 import { LIST_AVATAR_SIZE } from '@/constants'
 
 /**
- * One chat group (P5) in the list on "Kontakte & Chat": its square, its name, its community -- or
- * the beginning of its latest message in that place (E-083) --, how many are in it and when the
- * latest message came -- the gold dot while one waits unread, the crossed bell where the member
- * muted it.
+ * One chat group (P5) in the list on "Kontakte & Chat": its square, its name, its community, how
+ * many are in it and when the latest message came -- and last the beginning of that message, which
+ * then stands instead of the community (E-083, E-085) --, the gold dot while one waits unread, the
+ * crossed bell where the member muted it.
  *
  * `group` is one of `chatGroupsQuery` (graphql/chatGroups.graphql). The row says which group was
  * tapped; the page owns the window, as it does for the contacts.
