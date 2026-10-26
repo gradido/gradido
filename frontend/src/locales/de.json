@@ -1766,7 +1766,9 @@
   "thanksNudge": {
     "afterCall": "Möchtest Du Dich bei {name} für das Gespräch bedanken?",
     "notNow": "Nicht jetzt",
-    "say": "Danke sagen"
+    "passOn": "Dank weitergeben?",
+    "say": "Danke sagen",
+    "someone": "Jemandem danken"
   },
   "time": {
     "days": "Tage",
