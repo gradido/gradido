@@ -72,7 +72,9 @@ export enum RIGHTS {
   TRANSACTION_PICTURE = 'TRANSACTION_PICTURE',
   // Answering a transfer with an emoji (setTransactionReaction): the recipient's, by the id of
   // their own RECEIVE row -- and that row says so. Acts outward, as a chat message does: the
-  // sender sees it. Reading a reaction is not behind it: it comes with the booking list.
+  // sender sees it, and the first reaction to a transfer mails them (W1), unless they muted
+  // the conversation; another emoji and a reaction taken back stay silent. Reading a reaction
+  // is not behind it: it comes with the booking list.
   REACT_TO_TRANSACTION = 'REACT_TO_TRANSACTION',
   // Moderator
   SEARCH_USERS = 'SEARCH_USERS',

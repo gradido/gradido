@@ -186,6 +186,12 @@
       "subject": "{senderAlias} gönderdiğin teşekkürü kabul etti",
       "title": "{senderAlias} gönderdiğin teşekkürü kabul etti"
     },
+    "transactionReactionReceived": {
+      "hasEnjoyedYourThanks": "{recipientAlias} ({recipientCommunity}) gönderdiğin teşekküre sevindi: {emoji}",
+      "memo": "Mesaj: {transactionMemo}",
+      "subject": "Teşekkürün ulaştı",
+      "title": "Teşekkürün ulaştı"
+    },
     "transactionReceived": {
       "haveReceivedAmountGDDFrom": "az önce {senderAlias} tarafından {transactionAmount} GDD aldın.",
       "subject": "{senderAlias} sana {transactionAmount} Gradido gönderdi",

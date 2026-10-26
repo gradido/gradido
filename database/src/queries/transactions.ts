@@ -265,6 +265,19 @@ export interface ReceivedTransfer {
    * for, and for a sender the booking names by their pair alone.
    */
   senderIsMemberHere: boolean
+  /**
+   * The `users` id of whoever sent the transfer (`linked_user_id`), or null where the booking
+   * names them by their pair alone. With `senderIsMemberHere` it is this server's own member:
+   * the one the mail about a first reaction goes to (W1).
+   */
+  senderUserId: number | null
+  /**
+   * The amount and the memo of the transfer, as the mail about a reaction tells the sender
+   * which thank-you is meant. The amount is null only on a row this server never booked
+   * itself: every transfer is written with its amount (executeTransaction).
+   */
+  amount: GradidoUnit | null
+  memo: string
 }
 
 /**
@@ -286,7 +299,13 @@ export async function dbSelectReceivedTransferOfUser(
   userId: number,
 ): Promise<Result<ReceivedTransfer, DBNotFoundError>> {
   const rows = await drizzleDb()
-    .select({ id: transactionsTable.id, senderForeign: usersTable.foreign })
+    .select({
+      id: transactionsTable.id,
+      senderForeign: usersTable.foreign,
+      senderUserId: transactionsTable.linkedUserId,
+      amount: transactionsTable.amount,
+      memo: transactionsTable.memo,
+    })
     .from(transactionsTable)
     .leftJoin(usersTable, eq(usersTable.id, transactionsTable.linkedUserId))
     .where(
@@ -297,10 +316,17 @@ export async function dbSelectReceivedTransferOfUser(
       ),
     )
     .limit(1)
-  return rows[0]
+  const row = rows[0]
+  return row
     ? {
         success: true,
-        value: { id: rows[0].id, senderIsMemberHere: rows[0].senderForeign === false },
+        value: {
+          id: row.id,
+          senderIsMemberHere: row.senderForeign === false,
+          senderUserId: row.senderUserId,
+          amount: row.amount,
+          memo: row.memo,
+        },
       }
     : {
         success: false,
