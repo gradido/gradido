@@ -4,7 +4,6 @@ import { forgetAllMemberAvatars } from '@/composables/useMemberAvatars'
 import { closeMemberAvatarZoom } from '@/composables/useMemberAvatarZoom'
 import { forgetModeratorContacts } from '@/composables/useModeratorContacts'
 import { keepAuthToken } from '@/utils/authToken'
-import { forgetWayBackSearch } from '@/utils/wayBackPage'
 
 /** Whom the admin interface is signed in as: the answer to verifyLogin (graphql/verifyLogin.ts). */
 export type Moderator = {
@@ -69,8 +68,8 @@ export const useAdminStore = defineStore('admin', {
       closeMemberAvatarZoom()
       // Whom this moderator is in contact with: theirs, and nobody's who signs in next.
       forgetModeratorContacts()
-      // The search kept for the way back from the wallet (utils/wayBackPage.ts): theirs as well.
-      forgetWayBackSearch()
+      // Not the last searches of the user search and the creation page (utils/lastSearch.ts):
+      // kept for each moderator, they wait for them without end (Bernd, 26.10.2026).
       // Remove only the admin's own persisted state. The token is not in this blob -- setToken
       // above has removed it from where both apps keep it, and with it the wallet's session
       // (utils/authToken.ts). The wallet and admin share one origin, so localStorage.clear()

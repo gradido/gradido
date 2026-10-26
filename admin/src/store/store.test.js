@@ -75,8 +75,6 @@ describe('Pinia Store', () => {
       expect(testStore.token).toBeNull()
       expect(testStore.moderator).toBeNull()
       expect(localStorageMock.removeItem).toHaveBeenCalledWith('gradido-admin')
-      // The search kept for the way back from the wallet (utils/wayBackPage.ts).
-      expect(localStorageMock.removeItem).toHaveBeenCalledWith('gradido-admin-way-back-search')
       expect(localStorageMock.clear).not.toHaveBeenCalled()
     })
 
@@ -145,15 +143,15 @@ describe('Pinia Store', () => {
       testStore.logout()
 
       expect(localStorageMock.clear).not.toHaveBeenCalled()
-      // Exactly three removals: the admin's own blob, the token both apps keep -- signing out
-      // here signs the wallet out as well (utils/authToken.ts) -- and the admin's own search kept
-      // for the way back from the wallet (utils/wayBackPage.ts). Naming the theme key alone
+      // Exactly two removals: the admin's own blob, and the token both apps keep -- signing
+      // out here signs the wallet out as well (utils/authToken.ts). Not the last searches of the
+      // user search and the creation page either, which wait for the moderator without end
+      // (utils/lastSearch.ts, Bernd, 26.10.2026). Naming the theme key alone
       // would still pass if the logout started removing some other key the wallet owns;
       // counting closes that off without having to list every key there is.
-      expect(localStorageMock.removeItem).toHaveBeenCalledTimes(3)
+      expect(localStorageMock.removeItem).toHaveBeenCalledTimes(2)
       expect(localStorageMock.removeItem).toHaveBeenCalledWith('gradido-admin')
       expect(localStorageMock.removeItem).toHaveBeenCalledWith('auth-token')
-      expect(localStorageMock.removeItem).toHaveBeenCalledWith('gradido-admin-way-back-search')
     })
   })
 
