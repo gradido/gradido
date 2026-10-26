@@ -11,7 +11,7 @@ import {
   useModal,
   vBTooltip,
 } from 'bootstrap-vue-next'
-import { computed, defineComponent, ref, watch, withDirectives } from 'vue'
+import { computed, defineComponent, nextTick, onMounted, ref, watch, withDirectives } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ThemedSelect } from '@/components/ThemedSelect'
 import { useDateFormatter } from '@/composables/useDateFormatter'
@@ -22,7 +22,7 @@ import { CONFIG } from '@/config'
 import { DESK_PAGER_LIMIT, PHONE_PAGER_LIMIT } from '@/constants'
 import { useAdminStore } from '@/store/useAdminStore'
 import { creationGroupOption } from '@/utils/creationGroupLabel'
-import { keepLastSearch, lastSearch } from '@/utils/lastSearch'
+import { keepLastSearch, keepLastTab, lastSearch, lastTab } from '@/utils/lastSearch'
 import IBiBellFill from '~icons/bi/bell-fill'
 import IBiCheck from '~icons/bi/check'
 import IBiList from '~icons/bi/list'
@@ -84,7 +84,7 @@ const FILTER_TAB_MAP = [
 // The tab that mixes every state; its rows say on their own which one they are in.
 const ALL_TAB = 4
 
-// The page the last search is kept for (utils/lastSearch.ts), as the router names it.
+// The page the last search and tab are kept for (utils/lastSearch.ts), as the router names it.
 const LAST_SEARCH_PAGE = '/creation-confirm'
 
 export const CreationConfirm = defineComponent({
@@ -94,7 +94,24 @@ export const CreationConfirm = defineComponent({
     const { t } = useI18n()
     const { toastError, toastSuccess, toastWarning } = useAppToast()
 
-    const tabIndex = ref(0)
+    // The tab: the one this moderator left the page on (utils/lastSearch.ts), from the first list
+    // on. The library's tabs choose their first tab while they register one by one, and a tab
+    // set before is lost (bootstrap-vue-next 0.26.8, BTabs `findActive`): they are shown it once
+    // they stand, and what the moderator picks there is the tab from then on.
+    const tabIndex = ref(
+      lastTab(LAST_SEARCH_PAGE, store.moderator?.gradidoID, FILTER_TAB_MAP.length),
+    )
+    const shownTab = ref(0)
+    watch(shownTab, (tab) => {
+      if (tab >= 0) {
+        tabIndex.value = tab
+      }
+    })
+    watch(tabIndex, (tab) => keepLastTab(LAST_SEARCH_PAGE, store.moderator?.gradidoID, tab))
+    onMounted(async () => {
+      await nextTick()
+      shownTab.value = tabIndex.value
+    })
     const { client: apolloClient } = useApolloClient()
     const items = ref<Contribution[]>([])
     const overlay = ref(false)
@@ -704,7 +721,7 @@ export const CreationConfirm = defineComponent({
           </p>
         ) : null}
         <div>
-          <BTabs v-model={tabIndex.value} class='creation-tabs' contentClass='mt-3' fill>
+          <BTabs v-model={shownTab.value} class='creation-tabs' contentClass='mt-3' fill>
             <BTab active title-link-attributes={{ 'data-test': 'open' }}>
               {{
                 title: () => [

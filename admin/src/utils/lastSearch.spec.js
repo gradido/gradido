@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { keepLastSearch, lastSearch } from './lastSearch'
+import { keepLastSearch, keepLastTab, lastSearch, lastTab } from './lastSearch'
 
 describe('the last search of a page', () => {
   afterEach(() => {
@@ -37,6 +37,29 @@ describe('the last search of a page', () => {
   it('is kept for nobody where no moderator is known', () => {
     keepLastSearch('/user', undefined, 'peter')
     expect(window.localStorage.length).toBe(0)
+  })
+
+  // Bernd, 26.10.2026: "merk Dir auch den Reiter, so wie die Suche".
+  it('keeps the tab of a page beside its search, the first tab as none', () => {
+    keepLastTab('/creation-confirm', 'moderator-gid', 3)
+    keepLastSearch('/creation-confirm', 'moderator-gid', 'bibi')
+    expect(lastTab('/creation-confirm', 'moderator-gid', 5)).toBe(3)
+    expect(lastSearch('/creation-confirm', 'moderator-gid')).toBe('bibi')
+    expect(lastTab('/creation-confirm', 'someone-else', 5)).toBe(0)
+    keepLastTab('/creation-confirm', 'moderator-gid', 0)
+    expect(lastTab('/creation-confirm', 'moderator-gid', 5)).toBe(0)
+    expect(window.localStorage.getItem('gradido-admin-last-search')).not.toContain('#tab')
+    expect(lastSearch('/creation-confirm', 'moderator-gid')).toBe('bibi')
+  })
+
+  it('takes no tab the page does not have', () => {
+    for (const tab of [7, 5, -1, 2.5, '2']) {
+      window.localStorage.setItem(
+        'gradido-admin-last-search',
+        JSON.stringify({ 'moderator-gid': { '/creation-confirm#tab': tab } }),
+      )
+      expect(lastTab('/creation-confirm', 'moderator-gid', 5)).toBe(0)
+    }
   })
 
   it('does not trip over a storage that refuses or holds something else', () => {
