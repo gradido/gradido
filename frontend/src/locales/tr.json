@@ -1763,6 +1763,13 @@
       "own-words": "Senin sözlerin"
     }
   },
+  "thanksNudge": {
+    "afterCall": "{name} kişisine görüşme için teşekkür etmek ister misin?",
+    "notNow": "Şimdi değil",
+    "passOn": "Teşekkürü başkasına aktarmak ister misin?",
+    "say": "Teşekkür et",
+    "someone": "Birine teşekkür et"
+  },
   "time": {
     "days": "Günler",
     "hours": "Saatler",
