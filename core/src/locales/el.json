@@ -186,6 +186,12 @@
       "subject": "{senderAlias} δέχτηκε το ευχαριστώ σου",
       "title": "{senderAlias} δέχτηκε το ευχαριστώ σου"
     },
+    "transactionReactionReceived": {
+      "hasEnjoyedYourThanks": "{recipientAlias} ({recipientCommunity}) χάρηκε με το ευχαριστώ σου: {emoji}",
+      "memo": "Μήνυμα: {transactionMemo}",
+      "subject": "Το ευχαριστώ σου έφτασε",
+      "title": "Το ευχαριστώ σου έφτασε"
+    },
     "transactionReceived": {
       "haveReceivedAmountGDDFrom": "μόλις έλαβες {transactionAmount} GDD από {senderAlias}.",
       "subject": "{senderAlias} σου έστειλε {transactionAmount} Gradido",

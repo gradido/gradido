@@ -1,0 +1,37 @@
+extend ../layout.pug
+
+block content
+  h2= t('emails.transactionReactionReceived.title')
+  .text-block
+    include ../includes/salutation.pug
+    //- The one piece of news (W1, the first wave back): who was glad of the thank-you, and
+    //- how they showed it. The emoji stands in this sentence and nowhere else -- never in the
+    //- subject, which mail clients garble with an emoji in it. The subject and the heading are
+    //- the same words for every such mail; the sentence carries the name.
+    p= t('emails.transactionReactionReceived.hasEnjoyedYourThanks', { recipientAlias, recipientCommunity, emoji })
+  .content
+    h2= t('emails.general.transactionDetails')
+    //- Which thank-you is meant: its amount and its memo, where there is one -- and no value
+    //- in another currency beside it.
+    div(class="p_content")= t('emails.general.amountGDD', { amountGDD: transactionAmount })
+      if transactionMemo
+        br
+        +humanText(t('emails.transactionReactionReceived.memo', { transactionMemo }))
+      br
+      = t('emails.general.detailsYouFindOnLinkToYourAccount')
+
+    //- The way to the person who reacted: their conversation, where the transfer stands.
+        Green and inside the card, as every button that leads to a person (webflow.css),
+        above the gold way into the account -- as the mail about an accepted link has it. The
+        contact page opens the window with the member `with` names, of the community
+        `community` names. Without the two uuids there is no such way, and the button is left
+        out. Each of the two is written as ONE value of the address (encodeURIComponent).
+    if recipientCommunityUuid && recipientUuid
+      div
+        a.button-5(href=`${communityURL}/contacts?with=${encodeURIComponent(recipientUuid)}&community=${encodeURIComponent(recipientCommunityUuid)}` style="margin: 25px 0 0 0")
+          include ../includes/chatbox-icon.pug
+          span #{t('emails.general.toConversation')}
+
+    a.button-3(href=`${communityURL}/transactions`) #{t('emails.general.toAccount')}
+
+    include ../includes/doNotReply.pug
