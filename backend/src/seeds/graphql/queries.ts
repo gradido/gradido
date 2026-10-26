@@ -1000,6 +1000,7 @@ export const contactList = gql`
           excerpt
           hasImage
           amount
+          unread
           senderUser {
             gradidoID
           }

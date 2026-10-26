@@ -3,6 +3,7 @@ import { SetTransactionReactionArgs } from '@arg/SetTransactionReactionArgs'
 import { databaseErrorCode } from 'core'
 import {
   dbDeleteTransactionReaction,
+  dbMarkReceivedTransferSeen,
   dbSelectReceivedTransferOfUser,
   dbSelectTransactionReactions,
   dbUpsertTransactionReaction,
@@ -134,6 +135,17 @@ export class TransactionReactionResolver {
     createLogger().info(
       `transaction reaction ${reaction === null ? 'taken back' : 'set'}: transaction_id=${transactionId}`,
     )
+    // A transfer answered with a reaction is seen (Chat E-086): it no longer counts as unread at
+    // the sender's name. A write of its own -- where it fails, the transfer stays unread until it
+    // is seen another way, and the reaction stands.
+    if (reaction !== null) {
+      await dbMarkReceivedTransferSeen(user.id, received.id).catch((error) =>
+        createLogger().warn(
+          `transfer not marked seen after a reaction: transaction_id=${transactionId}`,
+          databaseErrorCode(error),
+        ),
+      )
+    }
     // The reaction is stored. The mail about a first one is waited for, as every mail of this
     // server is, and changes nothing here.
     await notifyGiverOfReaction({ recipientUser: user, received, emoji: reaction, hadReaction })

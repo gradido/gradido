@@ -21,6 +21,7 @@ import {
   chatMessagesWithMemberQuery,
   editChatMessage,
   markChatConversationRead,
+  markChatTransfersSeen,
   newChatMessagesSince,
   sendChatMessage,
   setChatMessageReaction,
@@ -739,18 +740,115 @@ describe('ChatThread', () => {
       expect(wrapper.find('[data-test="chat-thread-empty"]').exists()).toBe(true)
     })
 
-    it('moves the read pointer by the messages alone', async () => {
+    // The pointer goes by the messages; the transfers the thread shows are marked seen apart
+    // (Chat E-086) -- up to the newest one received, by its booking.
+    it('moves the read pointer by the messages alone, and marks the transfers it shows seen apart', async () => {
       bookingsAsked.mockImplementation(async () =>
         bookingsPage([booking(99, { at: '2026-09-22T10:09:00.000Z' })]),
       )
       mountThread()
       await arrive(page([1, 2, 3]))
 
-      expect(markRead).toHaveBeenCalledTimes(1)
+      expect(markRead).toHaveBeenCalledTimes(2)
       expect(markRead).toHaveBeenCalledWith(markChatConversationRead, {
         ref: LENA,
         upToMessageId: 3,
       })
+      expect(markRead).toHaveBeenCalledWith(markChatTransfersSeen, {
+        ref: LENA,
+        upToTransactionId: 99,
+      })
+    })
+
+    /** What the thread said seen of the transfers, in order. */
+    const transfersSeen = () =>
+      markRead.mock.calls
+        .filter(([document]) => document === markChatTransfersSeen)
+        .map(([, variables]) => variables.upToTransactionId)
+
+    it('marks the newest transfer she received of those it shows, and asks the beat at once', async () => {
+      bookingsAsked.mockImplementation(async () =>
+        bookingsPage([
+          booking(99, { at: '2026-09-22T10:09:00.000Z' }),
+          booking(98, { at: '2026-09-22T10:02:30.000Z', sent: true }),
+          booking(97, { at: '2026-09-22T10:01:30.000Z' }),
+        ]),
+      )
+      mountThread()
+      await arrive(page([1, 2, 3]))
+
+      expect(transfersSeen()).toEqual([99])
+      expect(beat.pollNow).toHaveBeenCalled()
+    })
+
+    it('marks none where she received none', async () => {
+      bookingsAsked.mockImplementation(async () =>
+        bookingsPage([booking(98, { at: '2026-09-22T10:02:30.000Z', sent: true })]),
+      )
+      mountThread()
+      await arrive(page([1, 2, 3]))
+
+      expect(transfersSeen()).toEqual([])
+    })
+
+    // Beyond the horizon a transfer is not shown: it stays unread.
+    it('marks none that the horizon keeps back', async () => {
+      bookingsAsked.mockImplementation(async () =>
+        bookingsPage([booking(8, { at: '2026-09-22T10:00:30.000Z' })]),
+      )
+      mountThread()
+      await arrive(page([4, 5], { hasMore: true }))
+
+      expect(shown()).toEqual(['message 4', 'message 5'])
+      expect(transfersSeen()).toEqual([])
+    })
+
+    // The transfers can be there before the messages: the box shows "loading" then, not them.
+    it('marks none while the messages are on their way, and those it shows once they are there', async () => {
+      bookingsAsked.mockImplementation(async () =>
+        bookingsPage([booking(99, { at: '2026-09-22T10:09:00.000Z' })]),
+      )
+      mountThread()
+      await flushPromises()
+      expect(log().exists()).toBe(false)
+      expect(transfersSeen()).toEqual([])
+
+      await arrive(page([1, 2, 3]))
+
+      expect(transfersSeen()).toEqual([99])
+    })
+
+    it('marks none where the messages cannot be loaded', async () => {
+      bookingsAsked.mockImplementation(async () =>
+        bookingsPage([booking(99, { at: '2026-09-22T10:09:00.000Z' })]),
+      )
+      mountThread()
+      server.error.value = new Error('Network error')
+      server.loading.value = false
+      await flushPromises()
+
+      expect(wrapper.find('[data-test="chat-thread-error"]').exists()).toBe(true)
+      expect(transfersSeen()).toEqual([])
+    })
+
+    // A thread in a tab in the background shows nothing to anybody, as with the messages.
+    it('waits with the transfers while the page is out of sight, and marks them when it is back', async () => {
+      bookingsAsked.mockImplementation(async () =>
+        bookingsPage([booking(99, { at: '2026-09-22T10:09:00.000Z' })]),
+      )
+      pageHidden(true)
+      mountThread()
+      await arrive(page([1, 2, 3]))
+      expect(transfersSeen()).toEqual([])
+
+      pageHidden(false)
+      await flushPromises()
+
+      expect(markRead).toHaveBeenCalledWith(
+        markChatTransfersSeen,
+        { ref: LENA, upToTransactionId: 99 },
+        { context: { renewSession: false } },
+      )
     })
 
     // A message from before the oldest transfer asked for would stand beside transfers that are

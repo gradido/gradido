@@ -78,6 +78,12 @@ const idle = () => ({
    * once per change, not once per answer that repeats it.
    */
   listedEdits: new Map(),
+  /**
+   * The transfers the member has not seen, as the last answer counted them: how many, and the
+   * newest (Chat E-086) -- in one string, so that a change of either is one. Null until the first
+   * answer.
+   */
+  transfers: null,
   /** The pause before the next question. */
   delay: CHAT_POLL_INTERVAL_MS,
   timer: null,
@@ -150,6 +156,12 @@ const cycle = async (mine) => {
       // `pollChatNow`, or on another device -- and a dot in the contact list goes with it. The
       // first answer only says where one stands; the list was loaded a moment ago.
       if (beat.marker !== null && update.unreadConversations !== unread.value) moved = true
+      // A transfer arrived or was seen (Chat E-086): its dot and the line under the name are the
+      // list's, asked again as for a message -- also where the number of people stays the same,
+      // because somebody with a message waiting sent a transfer as well.
+      const transfers = `${update.unreadTransfers ?? 0}:${update.latestUnreadTransferId ?? ''}`
+      if (beat.transfers !== null && transfers !== beat.transfers) moved = true
+      beat.transfers = transfers
       beat.marker = update.latestId
       unread.value = update.unreadConversations
       if (update.messages.length > 0) {

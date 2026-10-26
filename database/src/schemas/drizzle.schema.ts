@@ -725,6 +725,27 @@ export const transactionReactionsTable = mysqlTable(
 export type TransactionReactionSelect = typeof transactionReactionsTable.$inferSelect
 export type TransactionReactionInsert = typeof transactionReactionsTable.$inferInsert
 
+// Received transfers the member has seen (migration 0165, Chat E-086): one row a transfer, hung
+// on the recipient's RECEIVE booking as a reaction is. A transfer received after the start
+// (`transactionReadsStartTable`) without a row here counts as unread -- the gold dot, the bold
+// line under the name, the mark in the menu.
+export const transactionReadsTable = mysqlTable('transaction_reads', {
+  transactionId: int('transaction_id', { unsigned: true }).primaryKey().notNull(),
+  createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+    .default(sql`current_timestamp(3)`)
+    .notNull(),
+})
+
+// One row (`id` 1): the highest booking id when migration 0165 ran. Transfers received up to it
+// count as seen.
+export const transactionReadsStartTable = mysqlTable('transaction_reads_start', {
+  id: tinyint({ unsigned: true }).primaryKey().notNull(),
+  transactionId: int('transaction_id', { unsigned: true }).notNull(),
+  createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+    .default(sql`current_timestamp(3)`)
+    .notNull(),
+})
+
 export const transactionLinksTable = mysqlTable(
   'transaction_links',
   {

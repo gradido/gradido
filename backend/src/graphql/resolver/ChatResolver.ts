@@ -3,6 +3,8 @@
 import { ChatMessagesWithMemberArgs } from '@arg/ChatMessagesWithMemberArgs'
 import { ChatVideoRoomArgs } from '@arg/ChatVideoRoomArgs'
 import { MarkChatConversationReadArgs } from '@arg/MarkChatConversationReadArgs'
+import { MarkChatTransfersSeenArgs } from '@arg/MarkChatTransfersSeenArgs'
+import { MarkTransferSeenArgs } from '@arg/MarkTransferSeenArgs'
 import { NewChatMessagesSinceArgs } from '@arg/NewChatMessagesSinceArgs'
 import { SendChatMessageArgs } from '@arg/SendChatMessageArgs'
 import { SetChatConversationMutedArgs } from '@arg/SetChatConversationMutedArgs'
@@ -20,6 +22,8 @@ import {
   ChatMessageSelect,
   dbFindDirectChatConversation,
   dbInsertEvent,
+  dbMarkReceivedTransferSeen,
+  dbMarkReceivedTransfersSeen,
   dbSelectChatConversationMember,
   dbSelectChatMessageImageForMember,
   dbSelectChatMessagesEditedAfter,
@@ -27,6 +31,7 @@ import {
   dbSelectChatMessagesReactedAfter,
   dbSelectChatMessagesSince,
   dbSelectChatUnreadSummary,
+  dbSelectDirectChatPartnersWithUnread,
   dbUpdateChatConversationMemberLastRead,
   dbUpdateChatConversationMemberMuted,
   EventType,
@@ -36,7 +41,7 @@ import {
 } from 'database'
 import { getLogger } from 'log4js'
 import { uuidv4Schema } from 'shared'
-import { Arg, Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
+import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import * as v from 'valibot'
 import { chatVideoServerPool } from '@/apis/jitsi/chatVideoServerPool'
 import { RIGHTS } from '@/auth/RIGHTS'
@@ -53,6 +58,7 @@ import {
   isSameChatMember,
   nextChatEditsPosition,
 } from '@/data/ChatConversation.logic'
+import { personsWithOnlyTransfersUnread, unreadTransfersSummary } from '@/data/ChatTransfers.logic'
 import {
   CHAT_VIDEO_ROOMS_MAX_PER_REQUEST,
   ChatVideoServer,
@@ -68,6 +74,7 @@ import { chatMessagesOf } from './util/chatMessagesOf'
 import { checkedReplyTo } from './util/chatReply'
 import { acceptedPicture, callerOf } from './util/chatRequest'
 import { isHomeCommunity, resolveCommunityUuid } from './util/communities'
+import { transactionReadsStart, unreadTransfersOfUser } from './util/unreadTransfers'
 
 const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.ChatResolver`)
 
@@ -236,7 +243,21 @@ export class ChatResolver {
       throw new LogError('Too many chat updates requested at once', served)
     }
     const caller = callerOf(context)
-    const summary = await dbSelectChatUnreadSummary(caller)
+    // The transfers the caller received and has not seen count as unread too (Chat E-086): a
+    // person once, whether a message of theirs waits as well -- the conversations are asked for
+    // their persons only where a transfer waits at all.
+    const [summary, transfers] = await Promise.all([
+      dbSelectChatUnreadSummary(caller),
+      unreadTransfersOfUser(getUser(context)),
+    ])
+    const transfersOnly =
+      transfers.size === 0
+        ? 0
+        : personsWithOnlyTransfersUnread(
+            transfers,
+            await dbSelectDirectChatPartnersWithUnread(caller),
+          )
+    const unreadTransfers = unreadTransfersSummary(transfers)
     const settled = new Date(summary.now.getTime() - CHAT_EDITS_SETTLE_MS)
     const cap = limit ?? CHAT_UPDATE_MESSAGES_DEFAULT
     const nothing: { messages: ChatMessageSelect[]; hasMore: boolean } = {
@@ -268,7 +289,7 @@ export class ChatResolver {
       // The last one handed out -- under hasMore not the highest there is, so that the next call
       // goes on right after it.
       last ? last.id : summary.latestId,
-      summary.unreadConversations,
+      summary.unreadConversations + transfersOnly,
       await chatMessagesOf(news.messages, caller),
       news.hasMore,
       await chatMessagesOf(changes.messages, caller),
@@ -291,6 +312,8 @@ export class ChatResolver {
             : null,
         ),
       ),
+      unreadTransfers.count,
+      unreadTransfers.latestId,
     )
   }
 
@@ -316,6 +339,46 @@ export class ChatResolver {
       upToMessageId,
     )
     return result.success
+  }
+
+  /**
+   * Marks the transfers the caller received from `ref` as seen, up to the booking
+   * `upToTransactionId` (Chat E-086): their conversation showed them -- the thread hands the
+   * newest transfer it showed, and the older ones stood above it. Answers how many were seen just
+   * now; 0 is no failure -- seen before, or nothing of that person's to see. Only the caller's own
+   * RECEIVE bookings from that person are taken, whatever id is handed.
+   */
+  @Authorized([RIGHTS.READ_OWN_CHAT])
+  @Mutation(() => Int)
+  async markChatTransfersSeen(
+    @Args() { ref, upToTransactionId }: MarkChatTransfersSeenArgs,
+    @Ctx() context: Context,
+  ): Promise<number> {
+    const user = getUser(context)
+    const partner = {
+      communityUuid: await resolveCommunityUuid(ref.communityUuid),
+      gradidoId: ref.gradidoID,
+    }
+    return dbMarkReceivedTransfersSeen(
+      user.id,
+      partner,
+      upToTransactionId,
+      await transactionReadsStart(),
+    )
+  }
+
+  /**
+   * Marks one transfer the caller received as seen: they opened it in the booking list (Chat
+   * E-086, Bernd: "nur wenn die Transaktion geöffnet wurde") -- that one, an older one of the same
+   * person stays unread. False where the id is no RECEIVE booking of the caller's.
+   */
+  @Authorized([RIGHTS.READ_OWN_CHAT])
+  @Mutation(() => Boolean)
+  async markTransferSeen(
+    @Args() { transactionId }: MarkTransferSeenArgs,
+    @Ctx() context: Context,
+  ): Promise<boolean> {
+    return dbMarkReceivedTransferSeen(getUser(context).id, transactionId)
   }
 
   /**

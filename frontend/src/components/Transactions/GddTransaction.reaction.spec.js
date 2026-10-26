@@ -40,16 +40,30 @@ vi.mock('@/composables/useToast', () => ({
 /**
  * The client, as the original hands it out: `client` is looked up when it is READ, and throws
  * where none is provided. A row drawn in a place without one must not read it in its setup.
+ *
+ * The opened row of what one received says the transfer seen as well (Chat E-086,
+ * GddTransaction.seen.spec.js): that question is answered here at once and kept apart, so the
+ * calls the tests read are the reactions' alone.
  */
-const apollo = vi.hoisted(() => ({ client: null }))
+const apollo = vi.hoisted(() => ({ client: null, seen: [] }))
 vi.mock('@vue/apollo-composable', () => ({
   useApolloClient: () => ({
     get client() {
       if (!apollo.client) throw new Error('Apollo client with id default not found.')
-      return apollo.client
+      const server = apollo.client
+      return {
+        mutate: (asked) => {
+          if (asked.mutation.definitions[0].name.value !== 'markTransferSeen') {
+            return server.mutate(asked)
+          }
+          apollo.seen.push(asked.variables.transactionId)
+          return Promise.resolve({ data: { markTransferSeen: true } })
+        },
+      }
     },
   }),
 }))
+vi.mock('@/composables/useChatUpdates', () => ({ pollChatNow: () => {} }))
 
 /** How often the row began and stopped listening for reactions set elsewhere. */
 const listening = vi.hoisted(() => ({ begun: 0, stopped: 0 }))
@@ -163,6 +177,7 @@ describe('GddTransaction, the reaction to a transfer', () => {
   afterEach(() => {
     wrapper?.unmount()
     apollo.client = null
+    apollo.seen.length = 0
     toasts.error.length = 0
     listening.begun = 0
     listening.stopped = 0
@@ -389,6 +404,8 @@ describe('GddTransaction, the reaction to a transfer', () => {
       expect(chip().classes()).toContain('is-mine')
       expect(pressed()).toEqual([THUMB])
       expect(toasts.error).toEqual([])
+      // The opening said the transfer seen, a question of its own.
+      expect(apollo.seen).toEqual([7])
     })
 
     it('takes the reaction back where the emoji is the booking’s already', async () => {

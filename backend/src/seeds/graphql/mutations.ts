@@ -673,6 +673,18 @@ export const markChatConversationRead = gql`
   }
 `
 
+export const markChatTransfersSeen = gql`
+  mutation ($ref: MemberAvatarRefInput!, $upToTransactionId: Int!) {
+    markChatTransfersSeen(ref: $ref, upToTransactionId: $upToTransactionId)
+  }
+`
+
+export const markTransferSeen = gql`
+  mutation ($transactionId: Int!) {
+    markTransferSeen(transactionId: $transactionId)
+  }
+`
+
 export const sendChatMessage = gql`
   mutation (
     $ref: MemberAvatarRefInput!

@@ -4,6 +4,7 @@ import { getLogger } from 'config-schema/test/testSetup'
 import {
   User as DbUser,
   dbDeleteTransactionReaction,
+  dbMarkReceivedTransferSeen,
   dbSelectReceivedTransferOfUser,
   dbSelectTransactionReactions,
   dbUpsertTransactionReaction,
@@ -30,6 +31,7 @@ jest.mock('database', () => {
     dbSelectTransactionReactions: jest.fn(),
     dbUpsertTransactionReaction: jest.fn(),
     dbDeleteTransactionReaction: jest.fn(),
+    dbMarkReceivedTransferSeen: jest.fn(),
   }
 })
 
@@ -70,6 +72,7 @@ const received = dbSelectReceivedTransferOfUser as jest.Mock
 const reactionsBefore = dbSelectTransactionReactions as jest.Mock
 const upsert = dbUpsertTransactionReaction as jest.Mock
 const takeBack = dbDeleteTransactionReaction as jest.Mock
+const markSeen = dbMarkReceivedTransferSeen as jest.Mock
 const notify = notifyGiverOfReaction as jest.Mock
 
 /**
@@ -100,6 +103,7 @@ beforeEach(() => {
   reactionsBefore.mockResolvedValue([])
   upsert.mockResolvedValue(undefined)
   takeBack.mockResolvedValue(true)
+  markSeen.mockResolvedValue(true)
 })
 
 describe('setTransactionReaction, what the resolver decides itself', () => {
@@ -149,6 +153,56 @@ describe('setTransactionReaction, what the resolver decides itself', () => {
 
     expect(upsert.mock.calls).toEqual([[777, HEART]])
     expect(reactionsBefore.mock.calls).toEqual([[[777]]])
+  })
+})
+
+/**
+ * Chat E-086: a transfer answered with a reaction is seen -- it no longer counts as unread at the
+ * sender's name (Bernd: "oder in anderer Weise reagiert wurde").
+ */
+describe('setTransactionReaction, what it says about the transfer being seen', () => {
+  it("marks the booking the read answered as seen, as the caller's", async () => {
+    received.mockResolvedValue({ success: true, value: transferFromPaul(777) })
+
+    await react(HEART)
+
+    expect(markSeen.mock.calls).toEqual([[LENA_ID, 777]])
+  })
+
+  it('marks nothing where a reaction is taken back', async () => {
+    await react(null)
+
+    expect(markSeen).not.toHaveBeenCalled()
+  })
+
+  it('marks nothing where the reaction is refused', async () => {
+    received.mockResolvedValue({ success: false, error: new Error('no such booking') })
+
+    await expect(react()).rejects.toThrow('UNKNOWN_TRANSFER')
+
+    expect(markSeen).not.toHaveBeenCalled()
+  })
+
+  // Its own write: the reaction stands, and the transfer stays unread until it is seen another way.
+  it('answers the emoji where the mark fails, with the code in the log', async () => {
+    const log = getLogger(
+      `${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.TransactionReactionResolver`,
+    )
+    markSeen.mockRejectedValue(
+      Object.assign(new Error('Failed query: insert …'), {
+        cause: { code: 'ER_LOCK_WAIT_TIMEOUT' },
+      }),
+    )
+
+    expect(await react(HEART)).toBe(HEART)
+
+    expect((log.warn as jest.Mock).mock.calls).toEqual([
+      [
+        `transfer not marked seen after a reaction: transaction_id=${RECEIVED}`,
+        'ER_LOCK_WAIT_TIMEOUT',
+      ],
+    ])
+    expect(notify).toHaveBeenCalledTimes(1)
   })
 })
 

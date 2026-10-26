@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { and, asc, eq, exists, sql } from 'drizzle-orm'
+import { aliasedTable, and, asc, eq, exists, ne, or, sql } from 'drizzle-orm'
 import { VoidResult } from 'shared'
 import { drizzleDb } from '../AppDatabase'
 import { DBNotFoundError } from '../errorTypes'
@@ -7,6 +7,7 @@ import {
   ChatConversationMemberRole,
   ChatConversationMemberSelect,
   chatConversationMembersTable,
+  chatConversationsTable,
   chatMessagesTable,
 } from '../schemas/drizzle.schema'
 
@@ -215,6 +216,50 @@ export async function dbSelectChatUnreadSummary(
     })
     .from(perConversation)
   return summary
+}
+
+/**
+ * The other member of every direct conversation in which something waits unread for `member`:
+ * the beat counts a person once, whether a message or a transfer of theirs waits (Chat E-086) --
+ * the transfers stand at the person, the messages at the conversation, and this says which
+ * persons the conversations count already. Only asked where a transfer waits at all.
+ *
+ * "Something unread" as dbSelectChatUnreadSummary reads it: a message above the member's pointer,
+ * not deleted, that somebody else wrote.
+ */
+export async function dbSelectDirectChatPartnersWithUnread(
+  member: ChatMemberRef,
+): Promise<ChatMemberRef[]> {
+  const me = aliasedTable(chatConversationMembersTable, 'me')
+  const partner = aliasedTable(chatConversationMembersTable, 'partner')
+  const ofThisConversation = sql`${chatMessagesTable.conversationId} = ${me.conversationId}`
+  const aboveThePointer = sql`${chatMessagesTable.id} > coalesce(${me.lastReadMessageId}, 0)`
+  const writtenByTheMember = sql`${chatMessagesTable.senderCommunityUuid} = ${me.communityUuid} and ${chatMessagesTable.senderGradidoId} = ${me.gradidoId}`
+  const somethingUnread = sql`exists (select 1 from ${chatMessagesTable} where ${ofThisConversation} and ${aboveThePointer} and ${chatMessagesTable.deletedAt} is null and not (${writtenByTheMember}))`
+  return drizzleDb()
+    .select({ communityUuid: partner.communityUuid, gradidoId: partner.gradidoId })
+    .from(me)
+    .innerJoin(
+      chatConversationsTable,
+      and(
+        eq(chatConversationsTable.id, me.conversationId),
+        eq(chatConversationsTable.kind, 'direct'),
+      ),
+    )
+    .innerJoin(
+      partner,
+      and(
+        eq(partner.conversationId, me.conversationId),
+        or(ne(partner.communityUuid, me.communityUuid), ne(partner.gradidoId, me.gradidoId)),
+      ),
+    )
+    .where(
+      and(
+        eq(me.communityUuid, member.communityUuid),
+        eq(me.gradidoId, member.gradidoId),
+        somethingUnread,
+      ),
+    )
 }
 
 /**

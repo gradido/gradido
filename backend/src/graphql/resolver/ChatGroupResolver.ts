@@ -119,15 +119,20 @@ const chatGroupsOf = async (
     getHomeCommunity(),
     chatMessagePreviews(latest, caller, { namingWriters: true }),
   ])
-  return groups.map(
-    (group) =>
-      new ChatGroup(
-        group,
-        isSameCommunity(group.homeCommunityUuid, home?.communityUuid) ? (home?.name ?? null) : null,
-        founders.get(chatMemberKey(founderOf(group))) ?? null,
-        group.lastMessageId === null ? null : (previews.get(group.lastMessageId) ?? null),
-      ),
-  )
+  return groups.map((group) => {
+    const preview =
+      group.lastMessageId === null ? null : (previews.get(group.lastMessageId) ?? null)
+    if (preview) {
+      // The latest message of somebody else waits whenever anything does (Chat E-086).
+      preview.unread = !preview.mine && group.unreadMessages > 0
+    }
+    return new ChatGroup(
+      group,
+      isSameCommunity(group.homeCommunityUuid, home?.communityUuid) ? (home?.name ?? null) : null,
+      founders.get(chatMemberKey(founderOf(group))) ?? null,
+      preview,
+    )
+  })
 }
 
 /** The caller's group with this id, as the list shows it. */
