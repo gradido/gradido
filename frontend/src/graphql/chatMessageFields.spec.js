@@ -103,7 +103,7 @@ describe('the fields of a chat message', () => {
   })
 
   // The beat asks for the changed messages with the cursor the last answer handed on, and takes
-  // the next one.
+  // the next one -- and for the transfers not seen yet, how many and the newest (Chat E-086).
   it('asks the beat for the changed messages by a cursor, and for the next cursor', () => {
     const operation = chat.definitions.find(
       (definition) => definition.name?.value === 'newChatMessagesSince',
@@ -130,6 +130,8 @@ describe('the fields of a chat message', () => {
       'editedCursor',
       'reacted',
       'reactedCursor',
+      'unreadTransfers',
+      'latestUnreadTransferId',
     ])
   })
 

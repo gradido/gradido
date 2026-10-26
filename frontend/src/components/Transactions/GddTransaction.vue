@@ -263,6 +263,8 @@ import { memberAlias } from '@/utils/gradidoAddress'
 import { LIST_AVATAR_SIZE } from '@/constants'
 import { useI18n } from 'vue-i18n'
 import ChatReactionChoice from '@/components/Chat/ChatReactionChoice.vue'
+import { pollChatNow } from '@/composables/useChatUpdates'
+import { markTransferSeen } from '@/graphql/chat.graphql'
 import ThankYouGreetingPhoto from '@/components/ThankYouGreeting/ThankYouGreetingPhoto.vue'
 import {
   isTransactionReactionUnderway,
@@ -300,6 +302,8 @@ watch(
     if (!now) return
     opened.value = true
     openings.value += 1
+    // Only once the row is set up: it starts closed, so this never runs before that.
+    sayTransferSeen()
   },
   { immediate: true },
 )
@@ -309,6 +313,35 @@ const { toastError } = useAppToast()
 // Asked for its client when an emoji is pressed, not here: the row is drawn in places that
 // hold none (and `client` throws where none is provided).
 const apollo = useApolloClient()
+
+/**
+ * The member opened a transfer they received: it is seen (Chat E-086, Bernd, 26.10.2026: "nur
+ * wenn die Transaktion geöffnet wurde") -- this one, not an older one of the same person. Said
+ * once a row; then the beat asks at once, and the dot at the sender and the mark in the menu go
+ * within a second. Nothing for a booking that is no transfer received from a person, and nothing
+ * where no client is at hand. A failure is let go: the transfer stays unread, and the next
+ * opening says it again.
+ */
+let seenSaid = false
+function sayTransferSeen() {
+  if (seenSaid || props.transaction.typeId !== 'RECEIVE' || !props.transaction.linkedUser) return
+  seenSaid = true
+  let asked
+  try {
+    asked = apollo.client.mutate({
+      mutation: markTransferSeen,
+      variables: { transactionId: props.transaction.id },
+    })
+  } catch {
+    seenSaid = false
+    return
+  }
+  Promise.resolve(asked)
+    .then(() => pollChatNow())
+    .catch(() => {
+      seenSaid = false
+    })
+}
 
 /**
  * The emoji the recipient of this transfer answered it with (Bernd, 11.10.2026), or null: as the

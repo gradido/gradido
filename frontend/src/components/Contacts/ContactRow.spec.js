@@ -343,30 +343,47 @@ describe('ContactRow', () => {
       ).toBe(true)
     })
 
-    describe('dark while a message from them waits unread', () => {
+    /**
+     * Dark while what the line shows waits unread -- a message of theirs, or since Chat E-086 a
+     * transfer of theirs not seen. The server says it (ChatPreview.unread): it knows the pointer and
+     * what was seen, the row does not.
+     */
+    describe('dark while what it shows waits unread', () => {
       const darkness = (contact) => {
         mountWith({ ...CONTACT, homeCommunity: true, ...contact })
         return lineOf().classes().includes('fw-semibold')
       }
 
-      it('is dark for their message while something waits', () => {
-        expect(darkness({ chatPreview: MESSAGE, unreadChatMessages: 2 })).toBe(true)
-      })
-
-      it('is quiet once nothing waits', () => {
-        expect(darkness({ chatPreview: MESSAGE, unreadChatMessages: 0 })).toBe(false)
-      })
-
-      it("is quiet for one's own message, whatever waits", () => {
-        expect(darkness({ chatPreview: { ...MESSAGE, mine: true }, unreadChatMessages: 2 })).toBe(
-          false,
+      it('is dark for their message while it waits', () => {
+        expect(darkness({ chatPreview: { ...MESSAGE, unread: true }, unreadChatMessages: 2 })).toBe(
+          true,
         )
       })
 
-      it('is quiet for a booking: an amount waits for nobody', () => {
-        expect(darkness({ chatPreview: { ...BOOKING, mine: false }, unreadChatMessages: 2 })).toBe(
-          false,
-        )
+      it('is dark for their transfer not seen', () => {
+        const transfer = { ...BOOKING, mine: false, unread: true }
+        expect(darkness({ chatPreview: transfer, unreadChatMessages: 1 })).toBe(true)
+      })
+
+      it('is quiet once it was read or seen', () => {
+        expect(
+          darkness({ chatPreview: { ...MESSAGE, unread: false }, unreadChatMessages: 0 }),
+        ).toBe(false)
+        expect(darkness({ chatPreview: { ...BOOKING, mine: false, unread: false } })).toBe(false)
+      })
+
+      // Something else of theirs waits -- an older message --, but not what the line shows.
+      it('takes the word of the server, not the count of the dot', () => {
+        expect(
+          darkness({
+            chatPreview: { ...BOOKING, mine: false, unread: false },
+            unreadChatMessages: 3,
+          }),
+        ).toBe(false)
+      })
+
+      it('is quiet for a preview from a server that does not say it', () => {
+        expect(darkness({ chatPreview: MESSAGE, unreadChatMessages: 2 })).toBe(false)
       })
     })
   })

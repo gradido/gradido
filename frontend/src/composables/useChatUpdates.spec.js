@@ -45,6 +45,8 @@ const update = ({
   editedCursor = '1759309220000-0',
   reacted = [],
   reactedCursor = '1759309220000-0',
+  unreadTransfers = 0,
+  latestUnreadTransferId = null,
 } = {}) => ({
   data: {
     newChatMessagesSince: {
@@ -56,6 +58,8 @@ const update = ({
       editedCursor,
       reacted,
       reactedCursor,
+      unreadTransfers,
+      latestUnreadTransferId,
     },
   },
 })
@@ -500,6 +504,63 @@ describe('useChatUpdates', () => {
       startChatUpdates(server.client)
       await vi.advanceTimersByTimeAsync(0)
       expect(chatUnreadConversations.value).toBe(5)
+      expect(refreshContactsPanel).not.toHaveBeenCalled()
+    })
+  })
+
+  /**
+   * Chat E-086: a transfer the member received counts as unread until it was seen. Its dot and
+   * the line under the name are the list's, asked again when one arrives or is seen -- also where
+   * the number of people stays as it was: somebody whose message waits sent a transfer as well.
+   */
+  describe('the contact list when a transfer arrived or was seen', () => {
+    it('asks the list again when a transfer arrived, the number of people the same', async () => {
+      server.answer(update({ unread: 1 }), update({ unread: 1 }))
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+      expect(refreshContactsPanel).not.toHaveBeenCalled()
+
+      server.answer(update({ unread: 1, unreadTransfers: 1, latestUnreadTransferId: 501 }))
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+      expect(refreshContactsPanel).toHaveBeenCalledTimes(1)
+      expect(refreshContactsPanel).toHaveBeenCalledWith(server.client)
+    })
+
+    it('asks the list again when a transfer was seen', async () => {
+      server.answer(update({ unreadTransfers: 2, latestUnreadTransferId: 501 }))
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+
+      // The older one of the two seen: the newest stays, the count moves.
+      server.answer(update({ unreadTransfers: 1, latestUnreadTransferId: 501 }))
+      await pollChatNow()
+      expect(refreshContactsPanel).toHaveBeenCalledTimes(1)
+    })
+
+    it('does not ask the list while the transfers stay as they were, nor for a first answer', async () => {
+      server.answer(
+        update({ unreadTransfers: 2, latestUnreadTransferId: 501 }),
+        update({ unreadTransfers: 2, latestUnreadTransferId: 501 }),
+      )
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+
+      expect(refreshContactsPanel).not.toHaveBeenCalled()
+    })
+
+    // A beat that starts anew says where one stands first: the next member's first answer brings
+    // no list along, whatever the one before had.
+    it('forgets the transfers of the beat before', async () => {
+      server.answer(update({ unreadTransfers: 2, latestUnreadTransferId: 501 }))
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+      stopChatUpdates()
+
+      server.answer(update({ unreadTransfers: 0, latestUnreadTransferId: null }))
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
       expect(refreshContactsPanel).not.toHaveBeenCalled()
     })
   })

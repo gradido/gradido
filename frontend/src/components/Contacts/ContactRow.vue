@@ -114,17 +114,10 @@ const communityShown = computed(
     !(props.contact.chatPreview && props.contact.homeCommunity),
 )
 
-// A message from them waits unread: the line says it is the newest, as the dot does. Not one's
-// own, and not a booking -- an amount waits for nobody, it is booked.
-const previewUnread = computed(() => {
-  const preview = props.contact.chatPreview
-  return (
-    Boolean(preview) &&
-    !preview.mine &&
-    (preview.amount === null || preview.amount === undefined) &&
-    props.contact.unreadChatMessages > 0
-  )
-})
+// What the line shows waits unread -- a message of theirs above the member's pointer, or a
+// transfer of theirs the member has not seen (Chat E-086, Bernd, 26.10.2026: until then a booking
+// never waited): the server's word, which knows the pointer and what was seen.
+const previewUnread = computed(() => props.contact.chatPreview?.unread === true)
 </script>
 
 <style scoped>

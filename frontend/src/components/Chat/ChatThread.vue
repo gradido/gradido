@@ -189,6 +189,7 @@ import {
   chatMessagesWithMemberQuery,
   editChatMessage,
   markChatConversationRead,
+  markChatTransfersSeen,
   sendChatMessage,
   setChatMessageReaction,
 } from '@/graphql/chat.graphql'
@@ -324,6 +325,7 @@ const { result, error, fetchMore } = useQuery(THREAD.query, threadVariables, {
   fetchPolicy: 'network-only',
 })
 const { mutate: markRead } = useMutation(inGroup ? markChatGroupRead : markChatConversationRead)
+const { mutate: markTransfersSeen } = useMutation(markChatTransfersSeen)
 const { mutate: sendToServer } = useMutation(inGroup ? sendChatGroupMessage : sendChatMessage)
 const { mutate: changeOnServer } = useMutation(editChatMessage)
 const { mutate: reactOnServer } = useMutation(setChatMessageReaction)
@@ -520,6 +522,25 @@ const timeline = computed(() => {
 })
 
 /**
+ * The newest transfer the member received that the thread shows, by its booking's id -- 0 while
+ * none stands in it (Chat E-086). A transfer beyond the horizon is not shown and not counted. The
+ * thread asks its transfers once (useChatTransfers): one that arrives later is seen with the next
+ * opening.
+ */
+const newestReceivedShown = computed(() =>
+  timeline.value.reduce(
+    (newest, item) => (item.transfer && !item.mine ? Math.max(newest, item.transactionId) : newest),
+    0,
+  ),
+)
+let transfersMarkedUpTo = 0
+watch(newestReceivedShown, (newest) => {
+  if (inGroup || newest <= transfersMarkedUpTo) return
+  transfersMarkedUpTo = newest
+  markTransfersShown(newest)
+})
+
+/**
  * What the box shows. The chat's own state (`state`) goes by the messages -- whether the
  * conversation exists, whether the next message is the first -- and the box by all it holds: a
  * pair with transfers and no message yet has a thread to show. "Empty" waits for the transfers,
@@ -632,9 +653,36 @@ const markShown = (upToMessageId, { quiet = false } = {}) => {
     .catch(() => {})
 }
 
+/**
+ * The newest received transfer that was on screen while the page was out of sight, as
+ * `unseenUpTo` is for the messages: it is marked seen once the page is back. 0 while none waits.
+ */
+let unseenTransfersUpTo = 0
+
+/**
+ * Marks the transfers the member received from this person as seen, up to the newest one the
+ * thread shows (Chat E-086, Bernd, 26.10.2026: a transfer counts as unread until it was seen) --
+ * the older ones stood above it. Only while the page is in sight, as `markShown`; the server
+ * takes only the member's own RECEIVE bookings from this person. Then the beat asks at once, so
+ * the dot and the mark in the menu go within a second. A failure is let go: the transfers stay
+ * unread until the next opening.
+ */
+const markTransfersShown = (upToTransactionId, { quiet = false } = {}) => {
+  if (document.hidden) {
+    unseenTransfersUpTo = Math.max(unseenTransfersUpTo, upToTransactionId)
+    return
+  }
+  unseenTransfersUpTo = 0
+  const options = quiet ? { context: { renewSession: false } } : undefined
+  Promise.resolve(markTransfersSeen({ ref: memberRef, upToTransactionId }, options))
+    .then(() => pollChatNow())
+    .catch(() => {})
+}
+
 const onVisibility = () => {
-  if (document.hidden || unseenUpTo === 0) return
-  markShown(unseenUpTo, { quiet: true })
+  if (document.hidden) return
+  if (unseenUpTo !== 0) markShown(unseenUpTo, { quiet: true })
+  if (unseenTransfersUpTo !== 0) markTransfersShown(unseenTransfersUpTo, { quiet: true })
 }
 document.addEventListener('visibilitychange', onVisibility)
 onBeforeUnmount(() => document.removeEventListener('visibilitychange', onVisibility))

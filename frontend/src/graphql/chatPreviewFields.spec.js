@@ -87,12 +87,14 @@ describe('the line under a name, as the lists ask for it (E-083)', () => {
 
   // A person's line names no writer: between two, the list knows both. Everything else it reads,
   // the list asks for, and nothing more.
+  // And whether it waits (Chat E-086), which the row reads.
   it('asks the contact list for everything the line reads of a person', () => {
     expect(ofThePreview(contactFieldsOf('contactListQuery'))).toEqual([
       'chatPreview.amount',
       'chatPreview.excerpt',
       'chatPreview.hasImage',
       'chatPreview.mine',
+      'chatPreview.unread',
     ])
   })
 
@@ -123,7 +125,7 @@ describe('the line under a name, as the lists ask for it (E-083)', () => {
   it('asks for what the rows read of the preview themselves', () => {
     const contactRow = read('../components/Contacts/ContactRow.vue')
     const groupRow = read('../components/ChatGroups/ChatGroupRow.vue')
-    expect(readOff(contactRow, 'preview').sort()).toEqual(['amount', 'mine'])
+    expect(readOff(contactRow, 'chatPreview').sort()).toEqual(['unread'])
     expect(readOff(groupRow, 'chatPreview').sort()).toEqual(['mine'])
   })
 })
