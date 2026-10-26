@@ -803,6 +803,34 @@ describe('ChatThread', () => {
       expect(transfersSeen()).toEqual([])
     })
 
+    // The transfers can be there before the messages: the box shows "loading" then, not them.
+    it('marks none while the messages are on their way, and those it shows once they are there', async () => {
+      bookingsAsked.mockImplementation(async () =>
+        bookingsPage([booking(99, { at: '2026-09-22T10:09:00.000Z' })]),
+      )
+      mountThread()
+      await flushPromises()
+      expect(log().exists()).toBe(false)
+      expect(transfersSeen()).toEqual([])
+
+      await arrive(page([1, 2, 3]))
+
+      expect(transfersSeen()).toEqual([99])
+    })
+
+    it('marks none where the messages cannot be loaded', async () => {
+      bookingsAsked.mockImplementation(async () =>
+        bookingsPage([booking(99, { at: '2026-09-22T10:09:00.000Z' })]),
+      )
+      mountThread()
+      server.error.value = new Error('Network error')
+      server.loading.value = false
+      await flushPromises()
+
+      expect(wrapper.find('[data-test="chat-thread-error"]').exists()).toBe(true)
+      expect(transfersSeen()).toEqual([])
+    })
+
     // A thread in a tab in the background shows nothing to anybody, as with the messages.
     it('waits with the transfers while the page is out of sight, and marks them when it is back', async () => {
       bookingsAsked.mockImplementation(async () =>

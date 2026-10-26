@@ -94,8 +94,8 @@ export async function dbSelectUnreadReceivedTransfers(
 /**
  * Marks as seen the transfers the member received from `partner` up to `upToId` and above
  * `afterId` -- what their conversation showed (Chat E-086): the thread hands the newest transfer
- * it showed, and the older ones were shown above it. Answers how many were marked now; marked
- * before is no failure, it stays as it was.
+ * it showed, and the older ones count as seen with it, as the read pointer takes the older
+ * messages. Answers how many were marked now; marked before is no failure, it stays as it was.
  *
  * Only the member's own RECEIVE bookings from that person are taken: an id of anything else marks
  * nothing. The pair is compared by the column's own rule, as a parameter takes it.

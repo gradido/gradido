@@ -522,25 +522,6 @@ const timeline = computed(() => {
 })
 
 /**
- * The newest transfer the member received that the thread shows, by its booking's id -- 0 while
- * none stands in it (Chat E-086). A transfer beyond the horizon is not shown and not counted. The
- * thread asks its transfers once (useChatTransfers): one that arrives later is seen with the next
- * opening.
- */
-const newestReceivedShown = computed(() =>
-  timeline.value.reduce(
-    (newest, item) => (item.transfer && !item.mine ? Math.max(newest, item.transactionId) : newest),
-    0,
-  ),
-)
-let transfersMarkedUpTo = 0
-watch(newestReceivedShown, (newest) => {
-  if (inGroup || newest <= transfersMarkedUpTo) return
-  transfersMarkedUpTo = newest
-  markTransfersShown(newest)
-})
-
-/**
  * What the box shows. The chat's own state (`state`) goes by the messages -- whether the
  * conversation exists, whether the next message is the first -- and the box by all it holds: a
  * pair with transfers and no message yet has a thread to show. "Empty" waits for the transfers,
@@ -550,6 +531,30 @@ const view = computed(() => {
   if (state.value === 'error' || state.value === 'loading') return state.value
   if (timeline.value.length > 0) return 'thread'
   return transfersSettled.value ? 'empty' : 'loading'
+})
+
+/**
+ * The newest transfer the member received that the thread shows, by its booking's id -- 0 while
+ * none stands in it (Chat E-086). Only while the box shows the thread: the transfers can be there
+ * before the messages, and with them a timeline the box does not draw while the messages are on
+ * their way or could not be loaded. A transfer beyond the horizon is not shown and not counted.
+ * The thread asks its transfers once (useChatTransfers): one that arrives later is seen with the
+ * next opening.
+ */
+const newestReceivedShown = computed(() =>
+  view.value === 'thread'
+    ? timeline.value.reduce(
+        (newest, item) =>
+          item.transfer && !item.mine ? Math.max(newest, item.transactionId) : newest,
+        0,
+      )
+    : 0,
+)
+let transfersMarkedUpTo = 0
+watch(newestReceivedShown, (newest) => {
+  if (inGroup || newest <= transfersMarkedUpTo) return
+  transfersMarkedUpTo = newest
+  markTransfersShown(newest)
 })
 
 /** The local calendar day of a message: what the date line above a day names. */
@@ -662,7 +667,9 @@ let unseenTransfersUpTo = 0
 /**
  * Marks the transfers the member received from this person as seen, up to the newest one the
  * thread shows (Chat E-086, Bernd, 26.10.2026: a transfer counts as unread until it was seen) --
- * the older ones stood above it. Only while the page is in sight, as `markShown`; the server
+ * and the older ones with it, as the read pointer takes the older messages: also one beyond the
+ * horizon, which the thread brings with "load older". Only while the page is in sight, as
+ * `markShown`; the server
  * takes only the member's own RECEIVE bookings from this person. Then the beat asks at once, so
  * the dot and the mark in the menu go within a second. A failure is let go: the transfers stay
  * unread until the next opening.
