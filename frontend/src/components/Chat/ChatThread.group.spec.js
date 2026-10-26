@@ -103,6 +103,16 @@ vi.mock('@/composables/useChatImages', async (importOriginal) => ({
   openChatImageView: (...args) => imageViews(...args),
 }))
 
+/**
+ * Whether a message is a video invitation word for word (utils/chatVideoInvite): null, as for
+ * every ordinary message, unless a test says what it reads -- as ChatThread.spec has it.
+ */
+const videoInviteRead = vi.hoisted(() => vi.fn(() => null))
+vi.mock('@/utils/chatVideoInvite', async (original) => ({
+  ...(await original()),
+  readChatVideoInvite: (...args) => videoInviteRead(...args),
+}))
+
 let server
 const markRead = vi.fn(async () => ({ data: { markChatGroupRead: true } }))
 const serverSends = vi.fn()
@@ -717,5 +727,38 @@ describe('ChatThread in a group', () => {
 
       expect(wrapper.find('[data-test="chat-compose-email"]').exists()).toBe(false)
     })
+  })
+
+  /**
+   * W2 of the waves of gratitude: the suggestion to thank after a video call stands in a
+   * conversation of two only -- in a group nothing of a transfer stands (E-050 F6), and nobody
+   * there would be "the other person" to thank.
+   */
+  it('suggests no thank-you under a video call of one’s own, and keeps no clock for it', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval', 'Date'] })
+    try {
+      const began = new Date('2026-10-26T15:00:00.000Z').getTime()
+      vi.setSystemTime(began + 45 * 60 * 1000)
+      const call = { room: 'https://meet.example/abc', topic: 'Videoanruf', when: null }
+      videoInviteRead.mockImplementation((i18n, text) => (text === 'the invitation' ? call : null))
+      mountThread()
+      await arrive(
+        page([
+          message(1),
+          {
+            ...message(2, { writer: 'me' }),
+            body: 'the invitation',
+            createdAt: new Date(began).toISOString(),
+          },
+        ]),
+      )
+
+      expect(wrapper.find('[data-test="thanks-nudge"]').exists()).toBe(false)
+      expect(vi.getTimerCount()).toBe(0)
+    } finally {
+      vi.useRealTimers()
+      videoInviteRead.mockReset()
+      videoInviteRead.mockImplementation(() => null)
+    }
   })
 })

@@ -196,7 +196,14 @@ describe('ContactWindow', () => {
               textOnly: Boolean,
               search: String,
             },
-            emits: ['chatConversation', 'search', 'duplicateVideo', 'editVideo', 'forwardMessage'],
+            emits: [
+              'chatConversation',
+              'search',
+              'duplicateVideo',
+              'editVideo',
+              'forwardMessage',
+              'thank',
+            ],
             inject: { join: { from: CHAT_VIDEO_JOIN, default: null } },
             mounted() {
               threadsMade.push(this.member.gradidoID)
@@ -843,6 +850,25 @@ describe('ContactWindow', () => {
     mountWindow()
     await sendButton().trigger('click')
 
+    expect(wrapper.emitted('update:modelValue')).toEqual([[false]])
+  })
+
+  /**
+   * W2: "Danke sagen" under a video call of the member's own, in the thread, leads where the
+   * button does -- the send form with this person, the window closed. One way there: the thread
+   * does not push a route of its own, which would leave this window standing over the form.
+   */
+  it('takes "Danke sagen" from the thread down the button’s road', async () => {
+    mountWindow(STRANGER)
+
+    await wrapper.findComponent({ name: 'ChatThread' }).vm.$emit('thank')
+    await flushPromises()
+
+    expect(pushSpy).toHaveBeenCalledTimes(1)
+    expect(pushSpy).toHaveBeenCalledWith({
+      path: '/send/provence-uuid/sarah-id',
+      query: { art: 'send' },
+    })
     expect(wrapper.emitted('update:modelValue')).toEqual([[false]])
   })
 
