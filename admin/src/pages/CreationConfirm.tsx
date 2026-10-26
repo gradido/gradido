@@ -34,7 +34,10 @@ import { type DecisionItem, DecisionModal } from '../components/DecisionModal'
 import { type Contribution, OpenCreationsTable } from '../components/Tables/OpenCreationsTable'
 import { UserQuery } from '../components/UserQuery'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
-import { adminListContributions } from '../graphql/adminListContributions.graphql'
+import {
+  adminListContributions,
+  adminListContributionsCount,
+} from '../graphql/adminListContributions.graphql'
 import { adminUpdateContribution } from '../graphql/adminUpdateContribution'
 import { confirmContribution } from '../graphql/confirmContribution'
 import { assignContributionCreationGroups, creationGroups } from '../graphql/creationGroups.graphql'
@@ -107,6 +110,23 @@ export const CreationConfirm = defineComponent({
     watch(query, (search) => keepLastSearch(LAST_SEARCH_PAGE, store.moderator?.gradidoID, search))
     // Whether the first list still has to show that the kept search finds something (onResult).
     let keptSearchOnTrial = query.value !== ''
+    // The count of the badges in the menu and on the tab, asked for on its own where the page
+    // opens with a search: its list counts only what the search leaves (coderabbit, #4206). With
+    // the overview's query; none where the page opens on the whole list, whose answer says it.
+    if (keptSearchOnTrial) {
+      apolloClient
+        .query({
+          query: adminListContributionsCount,
+          variables: {
+            filter: { statusFilter: ['IN_PROGRESS', 'PENDING'], hideResubmission: true },
+          },
+          fetchPolicy: 'network-only',
+        })
+        .then(({ data }) => store.setOpenCreations(data.adminListContributions.contributionCount))
+        .catch(() => {
+          // The badges keep the count they had; the list says on its own what went wrong.
+        })
+    }
     const hideResubmissionModel = ref(true)
     // Group functions: filter the contribution list by a single creation group.
     const creationGroup = ref('')

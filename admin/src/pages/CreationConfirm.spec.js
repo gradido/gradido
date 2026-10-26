@@ -9,7 +9,10 @@ import { useAdminStore } from '@/store/useAdminStore'
 import { keepLastSearch, lastSearch } from '@/utils/lastSearch'
 import { adminStore } from '../../test/adminStore'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
-import { adminListContributions } from '../graphql/adminListContributions.graphql'
+import {
+  adminListContributions,
+  adminListContributionsCount,
+} from '../graphql/adminListContributions.graphql'
 import { confirmContribution } from '../graphql/confirmContribution'
 import { denyContribution } from '../graphql/denyContribution'
 import { CreationConfirm } from './CreationConfirm'
@@ -935,11 +938,16 @@ describe('CreationConfirm', () => {
       },
     })
     let moderatorStore
+    // The count of all open contributions, asked for on its own (the overview's query).
+    const countQuery = vi.fn()
 
     // A page of its own per test, for the moderator.
     beforeEach(() => {
       wrapper.unmount()
       window.localStorage.clear()
+      countQuery.mockReset()
+      countQuery.mockResolvedValue({ data: { adminListContributions: { contributionCount: 7 } } })
+      useApolloClient.mockReturnValue({ client: { query: countQuery } })
     })
 
     const mountPage = () => {
@@ -1015,15 +1023,39 @@ describe('CreationConfirm', () => {
     })
 
     // The badges in the menu and on the tab count all open contributions: the page opens with
-    // a search now, not only after typing.
-    it('leaves the count of open contributions to a list no search narrows', async () => {
-      keepLastSearch('/creation-confirm', 'moderator-gid', 'bibi@bloxberg.de')
-      mountPage()
-      await simulateQueryResult(listOf([501]))
-      expect(moderatorStore.setOpenCreations).not.toHaveBeenCalled()
-      await search().vm.$emit('update:modelValue', '')
-      await simulateQueryResult(listOf([501, 502, 503]))
-      expect(moderatorStore.setOpenCreations).toHaveBeenCalledWith(3)
+    // a search now, not only after typing (coderabbit, #4206).
+    describe('the count of open contributions', () => {
+      it('is asked for on its own where the page opens with a search', async () => {
+        keepLastSearch('/creation-confirm', 'moderator-gid', 'bibi@bloxberg.de')
+        mountPage()
+        await flushPromises()
+        expect(countQuery).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: adminListContributionsCount,
+            variables: {
+              filter: { statusFilter: ['IN_PROGRESS', 'PENDING'], hideResubmission: true },
+            },
+          }),
+        )
+        expect(moderatorStore.setOpenCreations).toHaveBeenCalledWith(7)
+      })
+
+      it('never comes from the few a search leaves', async () => {
+        keepLastSearch('/creation-confirm', 'moderator-gid', 'bibi@bloxberg.de')
+        mountPage()
+        await flushPromises()
+        await simulateQueryResult(listOf([501]))
+        expect(moderatorStore.setOpenCreations).not.toHaveBeenCalledWith(1)
+        await search().vm.$emit('update:modelValue', '')
+        await simulateQueryResult(listOf([501, 502, 503]))
+        expect(moderatorStore.setOpenCreations).toHaveBeenLastCalledWith(3)
+      })
+
+      it('is not asked for on its own where the page opens on the whole list', async () => {
+        mountPage()
+        await flushPromises()
+        expect(countQuery).not.toHaveBeenCalled()
+      })
     })
   })
 })
