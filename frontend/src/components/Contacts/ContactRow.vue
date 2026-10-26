@@ -53,8 +53,8 @@
           />
         </span>
         <!-- At the end of the row, as in mockup V03, and inside the button: its sentence
-             becomes part of the row's name. -->
-        <chat-unread-dot :count="contact.unreadChatMessages" class="ms-2" />
+             becomes part of the row's name. Beside the last line, the latest word (E-085). -->
+        <chat-unread-dot :count="contact.unreadChatMessages" class="contact-row-dot ms-2" />
       </button>
     </BCol>
     <BCol cols="auto">
@@ -159,5 +159,15 @@ const previewUnread = computed(() => {
   display: block;
   flex: 1;
   min-width: 0;
+}
+
+/* The dot beside the last line, the latest word, as a messenger has it -- not in the middle of
+   the row, beside how often and how recently (E-085, Bernd, 26.10.2026). At the foot of the text,
+   raised by half of what a line of small text leaves around the 9 px dot (ChatUnreadDot): such a
+   line is 1.2em tall here, `.small` 80 % at the body's line height 1.5 (measured in the bundle:
+   19.2 px at 16 px, 16.32 px at 13.6 px). */
+.contact-row-dot {
+  align-self: flex-end;
+  margin-bottom: calc((1.2em - 9px) / 2);
 }
 </style>

@@ -41,8 +41,9 @@
           />
         </span>
         <!-- What waits unread for the member -- also in a muted group: muting holds back the
-             mails, not the messages, and the mark in the menu counts it too (E-024). -->
-        <chat-unread-dot :count="group.unreadMessages" class="ms-2" />
+             mails, not the messages, and the mark in the menu counts it too (E-024). Beside the
+             last line, the latest message, as in the contact row (E-085). -->
+        <chat-unread-dot :count="group.unreadMessages" class="chat-group-row-dot ms-2" />
       </button>
     </BCol>
     <!-- Where a contact has its heart: the crossed bell of a group the member muted (E-024), a
@@ -123,6 +124,13 @@ const meta = computed(() => chatGroupMeta(props.group, { t, d }))
   display: block;
   flex: 1;
   min-width: 0;
+}
+
+/* The dot beside the last line, the latest message: the contact row's rule (ContactRow), so the
+   dots of the two lists stand at one height. */
+.chat-group-row-dot {
+  align-self: flex-end;
+  margin-bottom: calc((1.2em - 9px) / 2);
 }
 
 /* One line, however long the name (the server allows 100 characters): cut with an ellipsis, as

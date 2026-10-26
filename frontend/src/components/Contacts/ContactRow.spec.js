@@ -249,6 +249,20 @@ describe('ContactRow', () => {
       expect(rule('\\.contact-row-text')).toMatch(/flex:\s*1/)
       expect(rule('\\.contact-row-text')).toMatch(/min-width:\s*0/)
     })
+
+    // Beside the last line, the latest word (E-085, Bernd, 26.10.2026): at the foot of the text,
+    // raised to the middle of a line of small text -- not in the middle of the row. Where it
+    // stands is the bundle's to measure; here the dot carries the rule, and the rule says it.
+    it('stands beside the last line, at the foot of the text', () => {
+      mountWith({ ...CONTACT, unreadChatMessages: 2 })
+      expect(dot().classes()).toContain('contact-row-dot')
+      const styles = readFileSync(resolve(here, './ContactRow.vue'), 'utf8')
+        .split('<style scoped>')[1]
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+      const rule = styles.match(/\.contact-row-dot\s*\{([^}]*)\}/)[1]
+      expect(rule).toMatch(/align-self:\s*flex-end/)
+      expect(rule).toMatch(/margin-bottom:\s*calc\(\(1\.2em - 9px\) \/ 2\)/)
+    })
   })
 
   /**
