@@ -32,9 +32,9 @@
             />
           </span>
           <!-- The community in a line of its own (mockup V02) -- not behind the name, where
-               the booking row puts it for a member of ANOTHER community only. Where the line of
-               the latest word stands under the name of somebody of the member's own community,
-               it takes this one's place (E-083): the name it said is the member's own. -->
+               the booking row puts it for a member of ANOTHER community only. Where the row shows
+               the latest word of somebody of the member's own community, it stands instead of
+               this line (E-083): the name it said is the member's own. -->
           <span
             v-if="communityShown"
             class="small text-muted d-block"
@@ -42,18 +42,19 @@
           >
             {{ contact.user.communityName }}
           </span>
+          <span class="small text-muted d-block" data-test="contact-meta">{{ meta }}</span>
           <!-- The beginning of the latest message, or of the latest booking where that came later
-               (E-083). Dark while a message from them waits unread; a booking waits for nobody. -->
+               (E-083) -- always the last line, under how often and how recently (E-085). Dark
+               while a message from them waits unread; a booking waits for nobody. -->
           <chat-preview-line
             v-if="contact.chatPreview"
             :preview="contact.chatPreview"
             :unread="previewUnread"
           />
-          <span class="small text-muted d-block" data-test="contact-meta">{{ meta }}</span>
         </span>
         <!-- At the end of the row, as in mockup V03, and inside the button: its sentence
-             becomes part of the row's name. -->
-        <chat-unread-dot :count="contact.unreadChatMessages" class="ms-2" />
+             becomes part of the row's name. Beside the last line, the latest word (E-085). -->
+        <chat-unread-dot :count="contact.unreadChatMessages" class="contact-row-dot ms-2" />
       </button>
     </BCol>
     <BCol cols="auto">
@@ -103,10 +104,10 @@ const meta = computed(() => contactMeta(props.contact, { t, d }))
 // carry the zoom.
 const avatar = computed(() => contactDisplay(props.contact, { zoomable: true }).avatar)
 
-// The community's line, unless the latest word takes its place: under somebody of the member's
+// The community's line, unless the latest word stands instead of it: for somebody of the member's
 // own community (E-083, Bernd's choice "statt Gradido-Akademie"). Somebody of another community
-// keeps the name of theirs, and has the latest word under it. `homeCommunity` is the server's
-// answer -- the wallet cannot tell its own community by the name (contacts.graphql).
+// keeps the name of theirs, and has the latest word at the end of the row. `homeCommunity` is the
+// server's answer -- the wallet cannot tell its own community by the name (contacts.graphql).
 const communityShown = computed(
   () =>
     Boolean(props.contact.user.communityName) &&
@@ -158,5 +159,15 @@ const previewUnread = computed(() => {
   display: block;
   flex: 1;
   min-width: 0;
+}
+
+/* The dot beside the last line, the latest word, as a messenger has it -- not in the middle of
+   the row, beside how often and how recently (E-085, Bernd, 26.10.2026). At the foot of the text,
+   raised by half of what a line of small text leaves around the 9 px dot (ChatUnreadDot): such a
+   line is 1.2em tall here, `.small` 80 % at the body's line height 1.5 (measured in the bundle:
+   19.2 px at 16 px, 16.32 px at 13.6 px). */
+.contact-row-dot {
+  align-self: flex-end;
+  margin-bottom: calc((1.2em - 9px) / 2);
 }
 </style>
