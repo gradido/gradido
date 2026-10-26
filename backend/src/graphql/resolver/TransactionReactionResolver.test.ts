@@ -524,8 +524,7 @@ describe('the giver is mailed about the first reaction', () => {
     expect(mailed()).toHaveLength(1)
     expect(await reactionRowsOf(wine.id)).toMatchObject([{ transactionId: wine.id, emoji: HEART }])
     expect(mailLogger.error).toHaveBeenCalledWith(
-      `transaction reaction mail failed: transaction_id=${wine.id}`,
-      expect.any(Error),
+      `transaction reaction mail failed: transaction_id=${wine.id} (Error)`,
     )
     expect(logErrorLogger.error).not.toHaveBeenCalled()
   })

@@ -1,5 +1,10 @@
 // AI-GENERATED — not an architecture reference
-import { chatMailWentOut, readChatMemberMutedAt, sendTransactionReactionReceivedEmail } from 'core'
+import {
+  chatMailWentOut,
+  databaseErrorCode,
+  readChatMemberMutedAt,
+  sendTransactionReactionReceivedEmail,
+} from 'core'
 import {
   User as DbUser,
   dbFindDirectChatConversation,
@@ -45,8 +50,9 @@ export type TransactionReactionMailOutcome = ReactionMailDecision | 'NO_GIVER' |
  *
  * ⛔ Never throws, and changes nothing: the reaction stands, whatever becomes of the mail. A
  * giver that cannot be loaded, a read that fails, a transport that refuses -- all of it is
- * logged with the booking's id, and the mutation answers as it does without a mail. The log
- * never gets the emoji (the resolver's rule for the reaction) and never an address.
+ * logged with the booking's id and the error's code, never its message (a failed statement
+ * carries its values), and the mutation answers as it does without a mail. The log never gets
+ * the emoji (the resolver's rule for the reaction) and never an address.
  *
  * Nothing is read for a reaction taken back or replaced: the rule answers those two without
  * the giver -- asked first as if the giver could be reached, and a no there stays a no.
@@ -85,7 +91,8 @@ export async function notifyGiverOfReaction({
       communityUuid: recipientUser.communityUuid,
       gradidoId: recipientUser.gradidoID,
     }
-    // The giver's own mark on the conversation of the two (E-024); no conversation, no mark.
+    // The giver's own mark on the conversation of the two (E-024); no conversation, no mark. A
+    // read that fails counts as not muted, as the chat has it (readChatMemberMutedAt).
     const conversation = giverRef
       ? await dbFindDirectChatConversation(giverRef, recipientRef)
       : null
@@ -125,7 +132,7 @@ export async function notifyGiverOfReaction({
     logger.info(`transaction reaction mail sent: ${where}`)
     return 'MAIL'
   } catch (error) {
-    logger.error(`transaction reaction mail failed: ${where}`, error)
+    logger.error(`transaction reaction mail failed: ${where} (${databaseErrorCode(error)})`)
     return 'NOT_SENT'
   }
 }

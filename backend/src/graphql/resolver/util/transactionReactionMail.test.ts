@@ -228,10 +228,10 @@ describe('notifyGiverOfReaction, where the mail does not go out', () => {
 
     await expect(notifyGiverOfReaction(first)).resolves.toBe('NOT_SENT')
 
-    expect(logger.error).toHaveBeenCalledWith(
-      'transaction reaction mail failed: transaction_id=501',
-      expect.any(Error),
-    )
+    // The code or the name of the error, never its message: a failed statement carries its values.
+    expect((logger.error as jest.Mock).mock.calls).toEqual([
+      ['transaction reaction mail failed: transaction_id=501 (Error)'],
+    ])
   })
 
   // The emoji is never written to the log, whatever happened.
