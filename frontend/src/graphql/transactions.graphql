@@ -119,7 +119,9 @@ query transactionsUserCountQuery($currentPage: Int = 1, $pageSize: Int = 25, $or
 # The recipient's reaction to a transfer, set, replaced or taken back (`emoji: null`) -- by the
 # id of their OWN booking of it (`canReact` above). Answers the emoji that stands at the
 # transfer then, or null. The sender sees it when their list or their conversation is read
-# again; no mail goes out.
+# again -- and the FIRST reaction to a transfer mails them that it arrived (W1), unless they
+# muted the conversation with the recipient; another emoji in its place and a reaction taken
+# back send no mail.
 #
 # Refused as TRANSACTION_REACTION_NOT_SET, and nothing changes: UNKNOWN_EMOJI |
 # UNKNOWN_TRANSFER (not a transfer the member received) | OTHER_COMMUNITY | NOT_STORED.
