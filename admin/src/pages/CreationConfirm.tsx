@@ -33,7 +33,7 @@ import { DESK_PAGER_LIMIT, PHONE_PAGER_LIMIT } from '@/constants'
 import { useAdminStore } from '@/store/useAdminStore'
 import { creationGroupOption } from '@/utils/creationGroupLabel'
 import {
-  rollToRowAndHold,
+  rollToRow,
   viewAddress,
   viewNumber,
   viewText,
@@ -195,11 +195,10 @@ export const CreationConfirm = defineComponent({
       })
     }
 
-    // Opened again: the window rolls to its row, where the moderator was, and keeps it there a
-    // moment against the page being put back to its top (utils/wayBackView.ts).
+    // Opened again: the window rolls to its row, where the moderator was.
     const onOpened = (id: number) => {
       openId.value = null
-      nextTick(() => rollToRowAndHold(`[data-contribution-id="${id}"]`))
+      nextTick(() => rollToRow(`[data-contribution-id="${id}"]`))
     }
 
     const { formatDateOrDash } = useDateFormatter()
