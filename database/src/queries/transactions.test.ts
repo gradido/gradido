@@ -575,8 +575,28 @@ describe('dbSelectReceivedTransferOfUser', () => {
 
     expect(found).toEqual({
       success: true,
-      value: { id: received.id, senderIsMemberHere: true },
+      value: {
+        id: received.id,
+        senderIsMemberHere: true,
+        senderUserId: peter.id,
+        amount: new GradidoUnit(20000n),
+        memo: 'three',
+      },
     })
+  })
+
+  // What the mail about a first reaction tells the sender (W1): which transfer is meant, by
+  // its amount and its memo -- and who the sender is, by their own row's id, not the
+  // recipient's.
+  it('names the sender of the transfer, its amount and its memo, from the RECEIVE row itself', async () => {
+    // Bibi sent "four" to Peter.
+    const received = await rowOf(peter, TransactionTypeId.RECEIVE, 'four')
+
+    const found = await dbSelectReceivedTransferOfUser(received.id, peter.id)
+
+    expect(found.success && found.value.senderUserId).toBe(bibi.id)
+    expect(found.success && found.value.amount).toEqual(new GradidoUnit(30000n))
+    expect(found.success && found.value.memo).toBe('four')
   })
 
   // ⛔ Only the recipient: the sender holds the transfer too, as a SEND row.
@@ -620,7 +640,14 @@ describe('dbSelectReceivedTransferOfUser', () => {
 
     expect(await dbSelectReceivedTransferOfUser(received?.id as number, bibi.id)).toEqual({
       success: true,
-      value: { id: received?.id, senderIsMemberHere: false },
+      value: {
+        id: received?.id,
+        senderIsMemberHere: false,
+        // Named by her pair alone: no `users` row, so no id.
+        senderUserId: null,
+        amount: new GradidoUnit(10000n),
+        memo: 'from afar',
+      },
     })
   })
 
@@ -638,7 +665,14 @@ describe('dbSelectReceivedTransferOfUser', () => {
     for (const booking of fromLotte) {
       expect(await dbSelectReceivedTransferOfUser(booking.id, peter.id)).toEqual({
         success: true,
-        value: { id: booking.id, senderIsMemberHere: false },
+        value: {
+          id: booking.id,
+          senderIsMemberHere: false,
+          // The id as the booking carries it: Lotte's row where the booking names it.
+          senderUserId: booking.linkedUserId,
+          amount: new GradidoUnit(10000n),
+          memo: 'from afar',
+        },
       })
     }
   })
