@@ -85,9 +85,9 @@ const THEIRS = {
 describe('ChatBubble', () => {
   let wrapper
 
-  const mountBubble = (message, alias = 'Lena') => {
+  const mountBubble = (message, alias = 'Lena', more = {}) => {
     wrapper = mount(ChatBubble, {
-      props: { message, alias },
+      props: { message, alias, ...more },
       global: {
         stubs: {
           IMdiEmailOutline: { template: '<i data-test="envelope" />' },
@@ -247,6 +247,132 @@ describe('ChatBubble', () => {
         body: `Danke! ${withChatVideoTopic(ROOM, 'Stammtisch')}`,
       })
       expect(duplicate().exists()).toBe(false)
+    })
+  })
+
+  /**
+   * W2 of the waves of gratitude: half an hour after a video call of one's own began, a quiet
+   * suggestion to thank the other person for it, under the invitation. When it stands is the
+   * thread's to decide (ChatThread, utils/thanksNudge); the bubble draws it and says what was
+   * pressed.
+   */
+  describe('the suggestion to thank after a video call', () => {
+    const ROOM = 'https://meet.systemli.org/q2w3e4r5t6y7'
+    const INVITATION = {
+      ...OWN,
+      body: `📹 Videoanruf: Stammtisch\nDer Raum: ${withChatVideoTopic(ROOM, 'Stammtisch')}`,
+    }
+    const line = () => wrapper.find('[data-test="thanks-nudge"]')
+    const yes = () => wrapper.find('[data-test="thanks-nudge-yes"]')
+    const no = () => wrapper.find('[data-test="thanks-nudge-no"]')
+
+    it('stands where the thread says so: the question with the other person’s name', () => {
+      mountBubble(INVITATION, 'Lena', { thanksAfterCall: true })
+
+      expect(wrapper.find('[data-test="thanks-nudge-question"]').text()).toBe(
+        'thanksNudge.afterCall {"name":"Lena"}',
+      )
+      expect(yes().text()).toBe('thanksNudge.say')
+      expect(no().text()).toBe('thanksNudge.notNow')
+    })
+
+    it('does not stand where the thread does not say so', () => {
+      mountBubble(INVITATION)
+
+      expect(line().exists()).toBe(false)
+    })
+
+    // Where the occasion stands: under "In den Kalender" and "Duplizieren", over the time.
+    it('stands under the invitation’s buttons and over the time, in the bubble', () => {
+      mountBubble(INVITATION, 'Lena', { thanksAfterCall: true })
+
+      const inBubble = [...wrapper.find('.chat-bubble').element.children].map(
+        (child) => child.getAttribute('data-test') ?? child.className,
+      )
+      const calendar = inBubble.indexOf('chat-bubble-calendar')
+      expect(calendar).toBeGreaterThanOrEqual(0)
+      expect(inBubble[calendar + 1]).toBe('thanks-nudge')
+      expect(inBubble[calendar + 2]).toBe('chat-bubble-meta')
+    })
+
+    it('hands the message up for "Danke sagen", and nothing else', async () => {
+      mountBubble(INVITATION, 'Lena', { thanksAfterCall: true })
+
+      await yes().trigger('click')
+
+      expect(wrapper.emitted('thank')).toEqual([[INVITATION]])
+      expect(wrapper.emitted('dismiss')).toBeUndefined()
+      expect(wrapper.emitted('duplicateVideo')).toBeUndefined()
+    })
+
+    it('hands the message up for "Nicht jetzt", and nothing else', async () => {
+      mountBubble(INVITATION, 'Lena', { thanksAfterCall: true })
+
+      await no().trigger('click')
+
+      expect(wrapper.emitted('dismiss')).toEqual([[INVITATION]])
+      expect(wrapper.emitted('thank')).toBeUndefined()
+    })
+
+    /**
+     * The line goes once "Nicht jetzt" is pressed; a keyboard that stood on it would fall out of the
+     * window with it. It goes to the thread instead, as when the button for older messages goes.
+     */
+    describe('where the keyboard goes', () => {
+      let host
+
+      const mountInThread = () => {
+        host = mount(
+          {
+            components: { ChatBubble },
+            props: ['shown'],
+            template: `<div class="chat-thread-box" tabindex="0" data-test="box">
+              <ol><chat-bubble :message="message" alias="Lena" :thanks-after-call="shown" /></ol>
+            </div>`,
+            setup: () => ({ message: INVITATION }),
+          },
+          {
+            props: { shown: true },
+            attachTo: document.body,
+            global: { stubs: { IMdiCalendarPlusOutline: true, IMdiContentDuplicate: true } },
+          },
+        )
+        return host
+      }
+
+      afterEach(() => {
+        host?.unmount()
+      })
+
+      it('to the thread, from "Nicht jetzt"', async () => {
+        mountInThread()
+        const button = host.find('[data-test="thanks-nudge-no"]')
+        button.element.focus()
+        expect(document.activeElement).toBe(button.element)
+
+        await button.trigger('click')
+        // The thread answers by taking the line away.
+        await host.setProps({ shown: false })
+        await flushPromises()
+
+        expect(host.find('[data-test="thanks-nudge"]').exists()).toBe(false)
+        expect(document.activeElement).toBe(host.find('[data-test="box"]').element)
+      })
+
+      // A press that left the keyboard where it was -- a pointer, in a browser that does not
+      // focus a pressed button -- is left there.
+      it('nowhere, where it did not stand on the line', async () => {
+        mountInThread()
+        const elsewhere = document.createElement('button')
+        document.body.appendChild(elsewhere)
+        elsewhere.focus()
+
+        await host.find('[data-test="thanks-nudge-no"]').trigger('click')
+        await flushPromises()
+
+        expect(document.activeElement).toBe(elsewhere)
+        elsewhere.remove()
+      })
     })
   })
 

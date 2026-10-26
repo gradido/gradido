@@ -1763,6 +1763,13 @@
       "own-words": "Jouw woorden"
     }
   },
+  "thanksNudge": {
+    "afterCall": "Wil je {name} bedanken voor het gesprek?",
+    "notNow": "Niet nu",
+    "passOn": "Dank doorgeven?",
+    "say": "Bedanken",
+    "someone": "Iemand bedanken"
+  },
   "time": {
     "days": "Dagen",
     "hours": "Uren",

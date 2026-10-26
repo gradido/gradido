@@ -223,6 +223,18 @@
           {{ t('chatThread.videoDuplicate') }}
         </button>
       </div>
+      <!-- Half an hour after a video call of one's own began, a quiet suggestion to thank the other
+           person for it (W2 of the waves of gratitude; the thread decides when, utils/thanksNudge):
+           under the invitation, where the occasion stands. Only the one who invited sees it. -->
+      <thanks-nudge
+        v-if="thanksAfterCall"
+        ref="thanksLine"
+        :question="t('thanksNudge.afterCall', { name: alias })"
+        :yes="t('thanksNudge.say')"
+        :no="t('thanksNudge.notNow')"
+        @yes="emit('thank', message)"
+        @no="dismissThanks"
+      />
       <div class="chat-bubble-meta">
         <!-- The reactions to the message (Bernd, 11.10.2026): each emoji once, with how many
              reacted where it is more than one, one's own set apart -- at the left end of the
@@ -352,6 +364,7 @@ import ChatMessageMenu from '@/components/Chat/ChatMessageMenu.vue'
 import ChatMessageText from '@/components/Chat/ChatMessageText'
 import ChatTransferCoin from '@/components/Chat/ChatTransferCoin.vue'
 import { ChatSearchText } from '@/components/Chat/chatSearchMarks'
+import ThanksNudge from '@/components/ThanksNudge.vue'
 import ThankYouGreetingPhoto from '@/components/ThankYouGreeting/ThankYouGreetingPhoto.vue'
 import MemoText from '@/components/TransactionRows/MemoText'
 import Name from '@/components/TransactionRows/Name.vue'
@@ -436,6 +449,12 @@ const props = defineProps({
    * press until the answer is in, and show it (ChatReactionChoice's `busy`).
    */
   reactionUnderway: { type: Boolean, default: false },
+  /**
+   * Whether the suggestion to thank stands under this message (W2): a video invitation of one's
+   * own, half an hour after the call began -- the thread decides it (utils/thanksNudge), it holds
+   * the transfers and knows what was answered on this device.
+   */
+  thanksAfterCall: { type: Boolean, default: false },
 })
 
 /**
@@ -450,7 +469,10 @@ const props = defineProps({
  * window's question. `reply`: the message, to be answered -- the thread puts it over the bar.
  * `showQuoted`: the quotation over an answer was pressed -- `message.replyTo`, for the thread to
  * go to the quoted message. `react`: an emoji of the menu's reactions was pressed --
- * `{ message, emoji }`; the thread knows whether that sets it or takes it back.
+ * `{ message, emoji }`; the thread knows whether that sets it or takes it back. `thank`: "Danke
+ * sagen" under a video invitation of one's own (W2) -- the message; the thread remembers the
+ * answer and the window opens the send form. `dismiss`: "Nicht jetzt" there -- the message; the
+ * line is not to come back for this call.
  */
 const emit = defineEmits([
   'openImage',
@@ -461,6 +483,8 @@ const emit = defineEmits([
   'reply',
   'showQuoted',
   'react',
+  'thank',
+  'dismiss',
 ])
 
 const { t, d, locale } = useI18n()
@@ -955,6 +979,22 @@ const edit = () => {
 const react = (emoji) => {
   closeMenu({ focusMore: true })
   emit('react', { message: props.message, emoji })
+}
+
+/** The suggestion to thank under the invitation (W2), for where the keyboard stood in it. */
+const thanksLine = ref(null)
+
+/**
+ * "Nicht jetzt": the line goes, and does not come back for this call -- the thread remembers it.
+ * A keyboard that stood on it would fall out of the window with it; it goes to the thread
+ * instead, where the keyboard was, as when the button for older messages goes (ChatThread).
+ */
+const dismissThanks = async () => {
+  const hadKeyboard = Boolean(thanksLine.value?.$el?.contains?.(document.activeElement))
+  emit('dismiss', props.message)
+  if (!hadKeyboard) return
+  await nextTick()
+  threadBox()?.focus({ preventScroll: true })
 }
 
 /** "Text kopieren" (E-059 F6): the subject and the text as they were written. */

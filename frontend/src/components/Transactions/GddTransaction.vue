@@ -235,6 +235,26 @@
           @react="react"
         />
       </div>
+      <!-- A thank-you received, opened (W2 of the waves of gratitude, utils/thanksNudge): under the
+           choice of a reaction, "Dank weitergeben?" -- outwards, to somebody, never back to the
+           giver. Up to seven days after it came, until answered on this device. Closed, the row
+           says nothing of it, and the right column's rows have none. A press in it is not a press
+           on the row, which would close the booking under the member's hand. -->
+      <div
+        v-if="passOnOffered"
+        class="transaction-pass-on px-1"
+        data-test="transaction-pass-on"
+        @click.stop
+      >
+        <thanks-nudge
+          ref="passOnLine"
+          :question="$t('thanksNudge.passOn')"
+          :yes="$t('thanksNudge.someone')"
+          :no="$t('thanksNudge.notNow')"
+          @yes="passOn"
+          @no="notNow"
+        />
+      </div>
       <decay-information
         :type-id="props.transaction.typeId"
         :decay="props.transaction.decay"
@@ -247,7 +267,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onBeforeUnmount, watch } from 'vue'
+import { ref, computed, nextTick, onBeforeUnmount, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { useWalletStore } from '@/store/useWalletStore'
 import { useApolloClient } from '@vue/apollo-composable'
 import CollapseIcon from '../TransactionRows/CollapseIcon'
@@ -263,13 +284,17 @@ import { memberAlias } from '@/utils/gradidoAddress'
 import { LIST_AVATAR_SIZE } from '@/constants'
 import { useI18n } from 'vue-i18n'
 import ChatReactionChoice from '@/components/Chat/ChatReactionChoice.vue'
+import ThanksNudge from '@/components/ThanksNudge.vue'
 import ThankYouGreetingPhoto from '@/components/ThankYouGreeting/ThankYouGreetingPhoto.vue'
+import { useThanksNudges } from '@/composables/useThanksNudges'
 import {
   isTransactionReactionUnderway,
   onTransactionReaction,
   reactToTransaction,
 } from '@/composables/useTransactionReactions'
 import { useAppToast } from '@/composables/useToast'
+import { SEND_TYPES } from '@/utils/sendTypes'
+import { passOnNudgeState } from '@/utils/thanksNudge'
 import { THANK_YOU_MOTIF_HEIGHT, THANK_YOU_MOTIF_WIDTH } from '@/utils/thankYouMotifs'
 import { transactionPictureShown } from '@/utils/transactionPicture'
 
@@ -285,11 +310,14 @@ const emit = defineEmits(['open-member'])
 const gddTransaction = ref(null)
 
 const store = useWalletStore()
+const router = useRouter()
 const visible = ref(false)
 /** The row has been opened at least once: what only the opened row shows is made from then on. */
 const opened = ref(false)
 /** How often it has been opened: the choice of a reaction begins anew each time. */
 const openings = ref(0)
+/** When it was opened last: the moment the suggestion to pass a thank-you on goes by (W2). */
+const openedAt = ref(0)
 
 const toggleVisible = () => {
   visible.value = !visible.value
@@ -298,6 +326,7 @@ watch(
   visible,
   (now) => {
     if (!now) return
+    openedAt.value = Date.now()
     opened.value = true
     openings.value += 1
   },
@@ -356,6 +385,51 @@ const react = async (emoji) => {
   } catch {
     toastError(t('chatThread.reactionFailed'))
   }
+}
+
+/**
+ * "Dank weitergeben?" in the opened row of a thank-you received (W2 of the waves of gratitude):
+ * from a person, up to seven days after it came, measured when the row was opened -- and not where
+ * the member answered it on this device already (useThanksNudges, by the booking's id).
+ */
+const { isSeen: thanksSeen, markSeen: markThanksSeen } = useThanksNudges()
+const passOnOffered = computed(
+  () =>
+    opened.value &&
+    passOnNudgeState({
+      transaction: props.transaction,
+      now: openedAt.value,
+      seen: thanksSeen('pass-on', props.transaction.id),
+    }) === 'show',
+)
+
+/**
+ * "Jemandem danken": the send form with nobody named -- the member chooses whom. Outwards, never
+ * back to the giver, so no name is offered.
+ */
+const passOn = () => {
+  markThanksSeen('pass-on', props.transaction.id)
+  router.push({ path: '/send', query: { art: SEND_TYPES.send } })
+}
+
+/** The line, for where the keyboard stood in it. */
+const passOnLine = ref(null)
+
+/**
+ * "Nicht jetzt": the line goes, and does not come back for this thank-you. A keyboard that stood
+ * on it would fall out of the page with it; it goes to the choice of a reaction above, where there
+ * is one, else to the name that opens the row's person.
+ */
+const notNow = async () => {
+  const hadKeyboard = Boolean(passOnLine.value?.$el?.contains?.(document.activeElement))
+  markThanksSeen('pass-on', props.transaction.id)
+  if (!hadKeyboard) return
+  await nextTick()
+  const row = gddTransaction.value
+  const next =
+    row?.querySelector('.chat-reaction-choice [tabindex="0"]') ??
+    row?.querySelector('.gdd-transaction-list-item-open')
+  next?.focus({ preventScroll: true })
 }
 
 /**

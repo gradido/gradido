@@ -1763,6 +1763,13 @@
       "own-words": "Tes mots"
     }
   },
+  "thanksNudge": {
+    "afterCall": "Veux-tu remercier {name} pour la conversation ?",
+    "notNow": "Pas maintenant",
+    "passOn": "Transmettre ce merci ?",
+    "say": "Dire merci",
+    "someone": "Remercier quelqu'un"
+  },
   "time": {
     "days": "Jours",
     "hours": "Heures",
