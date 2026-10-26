@@ -2,14 +2,17 @@ import { useApolloClient, useMutation, useQuery } from '@vue/apollo-composable'
 import { flushPromises, mount } from '@vue/test-utils'
 import { BPagination, BTabs, createBootstrap } from 'bootstrap-vue-next'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { h, inject, nextTick, ref } from 'vue'
+import { h, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppToast } from '@/composables/useToast'
 import { useAdminStore } from '@/store/useAdminStore'
-import { keepWayBackSearch, takeWayBackSearch, WAY_BACK_PAGE } from '@/utils/wayBackPage'
+import { keepLastSearch, lastSearch } from '@/utils/lastSearch'
 import { adminStore } from '../../test/adminStore'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
-import { adminListContributions } from '../graphql/adminListContributions.graphql'
+import {
+  adminListContributions,
+  adminListContributionsCount,
+} from '../graphql/adminListContributions.graphql'
 import { confirmContribution } from '../graphql/confirmContribution'
 import { denyContribution } from '../graphql/denyContribution'
 import { CreationConfirm } from './CreationConfirm'
@@ -34,11 +37,6 @@ const { viewport } = await vi.hoisted(async () => {
   return { viewport: ref('unknown') }
 })
 vi.mock('@/composables/useViewport', () => ({ useViewport: () => viewport }))
-
-// The route the page opens on, set per test: the sign-in of the way back from the wallet leads
-// here with `redirectedFrom`.
-const { route } = vi.hoisted(() => ({ route: { query: {}, redirectedFrom: undefined } }))
-vi.mock('vue-router', () => ({ useRoute: () => route }))
 
 const createAdminStore = () => adminStore({ openCreations: 0 })
 
@@ -86,8 +84,6 @@ describe('CreationConfirm', () => {
 
   beforeEach(() => {
     viewport.value = 'unknown'
-    route.query = {}
-    route.redirectedFrom = undefined
     store = createAdminStore()
     vi.spyOn(useAdminStore(store), 'setOpenCreations')
 
@@ -930,64 +926,136 @@ describe('CreationConfirm', () => {
     })
   })
 
-  // ⭐ Bernd, 26.10.2026: in the app on a phone the admin interface loads anew on the way back
-  // from the wallet. With the search along, the list shows the member the moderator came from:
-  // "dann würde der Rückweg auf jeden Fall zum richtigen Teilnehmer führen". The search is kept
-  // in the storage both apps share (utils/wayBackPage.ts).
-  describe('the way back from the wallet', () => {
+  // ⭐ Bernd, 26.10.2026: "Im Admin merken wir uns sowohl bei der Nutzer-Suche als auch bei der
+  // Schöpfung die jeweils letzte Auswahl, und die speichern wir im Local Storage. Die Speicherung
+  // ist auf unbegrenzte Zeit." (utils/lastSearch.ts)
+  describe('the last search', () => {
     const MODERATOR = { gradidoID: 'moderator-gid', communityUuid: 'home', role: 'ADMIN' }
+    const listOf = (ids) => ({
+      adminListContributions: {
+        contributionCount: ids.length,
+        contributionList: ids.map((id) => ({ id })),
+      },
+    })
+    let moderatorStore
+    // The count of all open contributions, asked for on its own (the overview's query).
+    const countQuery = vi.fn()
 
-    // A page of its own per test, for the moderator, reached as the test says.
+    // A page of its own per test, for the moderator.
     beforeEach(() => {
       wrapper.unmount()
+      window.localStorage.clear()
+      countQuery.mockReset()
+      countQuery.mockResolvedValue({ data: { adminListContributions: { contributionCount: 7 } } })
+      useApolloClient.mockReturnValue({ client: { query: countQuery } })
     })
 
-    const mountPage = ({ bySignIn = false, extraStubs = {} } = {}) => {
-      route.redirectedFrom = bySignIn ? { path: '/authenticate' } : undefined
+    const mountPage = () => {
+      const plugin = adminStore({ openCreations: 0, moderator: MODERATOR })
+      moderatorStore = useAdminStore(plugin)
+      vi.spyOn(moderatorStore, 'setOpenCreations')
       wrapper = mount(CreationConfirm, {
-        global: {
-          plugins: [adminStore({ openCreations: 0, moderator: MODERATOR }), createBootstrap()],
-          stubs: { ...stubs, ...extraStubs },
-        },
+        global: { plugins: [plugin, createBootstrap()], stubs },
       })
-      return wrapper
     }
 
-    it('starts with the search kept for it, where the sign-in of the way back led here', () => {
-      keepWayBackSearch({ page: '/creation-confirm', search: 'bibi@bloxberg.de' }, 'moderator-gid')
-      const page = mountPage({ bySignIn: true })
-      expect(firstListQuery().filter.query).toBe('bibi@bloxberg.de')
-      expect(page.findComponent({ name: 'UserQuery' }).props('modelValue')).toBe('bibi@bloxberg.de')
-      // Taken: a later visit starts without it.
-      expect(takeWayBackSearch('/creation-confirm', 'moderator-gid')).toBeNull()
-    })
-
-    // At the desk the admin interface stays open beside the wallet's window: a search kept there
-    // must not turn up again when the moderator comes to this page later.
-    it('leaves a kept search alone where the page was reached otherwise', () => {
-      keepWayBackSearch({ page: '/creation-confirm', search: 'bibi@bloxberg.de' }, 'moderator-gid')
+    it('is the one the page opens with, however it is reached', () => {
+      keepLastSearch('/creation-confirm', 'moderator-gid', 'bibi@bloxberg.de')
       mountPage()
-      expect(firstListQuery().filter.query).toBe('')
-      expect(takeWayBackSearch('/creation-confirm', 'moderator-gid')).toBe('bibi@bloxberg.de')
+      expect(firstListQuery().filter.query).toBe('bibi@bloxberg.de')
+      expect(search().props('modelValue')).toBe('bibi@bloxberg.de')
+      // Still kept: the next visit opens with it as well.
+      expect(lastSearch('/creation-confirm', 'moderator-gid')).toBe('bibi@bloxberg.de')
     })
 
-    it('names its search for a pin, also a member picked by the magnifier', async () => {
-      let wayBackPage
-      const asker = {
-        name: 'OpenCreationsTable',
-        emits: ['search-for-email'],
-        setup() {
-          wayBackPage = inject(WAY_BACK_PAGE, null)
-          return () => h('div', { class: 'open-creations-table-stub' })
-        },
-      }
-      const page = mountPage({ extraStubs: { OpenCreationsTable: asker } })
-      expect(wayBackPage()).toEqual({ page: '/creation-confirm', search: '' })
+    it('is kept as it changes, a member picked with the magnifier as well', async () => {
+      mountPage()
+      await table().vm.$emit('search-for-email', 'bibi@bloxberg.de')
+      expect(lastSearch('/creation-confirm', 'moderator-gid')).toBe('bibi@bloxberg.de')
+      await search().vm.$emit('update:modelValue', '')
+      expect(lastSearch('/creation-confirm', 'moderator-gid')).toBe('')
+    })
 
-      await page
-        .findComponent({ name: 'OpenCreationsTable' })
-        .vm.$emit('search-for-email', 'bibi@bloxberg.de')
-      expect(wayBackPage()).toEqual({ page: '/creation-confirm', search: 'bibi@bloxberg.de' })
+    it('gives way to the whole list where it finds nothing any more', async () => {
+      keepLastSearch('/creation-confirm', 'moderator-gid', 'bibi@bloxberg.de')
+      mountPage()
+      mockRefetch.mockClear()
+      await simulateQueryResult(listOf([]))
+      expect(search().props('modelValue')).toBe('')
+      expect(mockRefetch).toHaveBeenCalledWith(
+        expect.objectContaining({ filter: expect.objectContaining({ query: '' }) }),
+      )
+      expect(lastSearch('/creation-confirm', 'moderator-gid')).toBe('')
+    })
+
+    it('stays where it finds something', async () => {
+      keepLastSearch('/creation-confirm', 'moderator-gid', 'bibi@bloxberg.de')
+      mountPage()
+      await simulateQueryResult(listOf([501]))
+      expect(search().props('modelValue')).toBe('bibi@bloxberg.de')
+      expect(table().props('items')).toHaveLength(1)
+    })
+
+    it('decides on the first list only: a later one that finds nothing leaves the search', async () => {
+      keepLastSearch('/creation-confirm', 'moderator-gid', 'bibi@bloxberg.de')
+      mountPage()
+      await simulateQueryResult(listOf([501]))
+      // Asked again once the moderator confirmed it, say: the search finds nothing now.
+      await simulateQueryResult(listOf([]))
+      expect(search().props('modelValue')).toBe('bibi@bloxberg.de')
+    })
+
+    it('leaves a search alone that the moderator changed before the first list came', async () => {
+      keepLastSearch('/creation-confirm', 'moderator-gid', 'bibi@bloxberg.de')
+      mountPage()
+      await search().vm.$emit('update:modelValue', 'nobody@example.org')
+      await simulateQueryResult(listOf([]))
+      expect(search().props('modelValue')).toBe('nobody@example.org')
+    })
+
+    it('leaves it alone where the moderator chose another tab before the first list came', async () => {
+      keepLastSearch('/creation-confirm', 'moderator-gid', 'bibi@bloxberg.de')
+      mountPage()
+      await nextTick()
+      await openTab('confirmed')
+      await simulateQueryResult(listOf([]))
+      expect(search().props('modelValue')).toBe('bibi@bloxberg.de')
+    })
+
+    // The badges in the menu and on the tab count all open contributions: the page opens with
+    // a search now, not only after typing (coderabbit, #4206).
+    describe('the count of open contributions', () => {
+      it('is asked for on its own where the page opens with a search', async () => {
+        keepLastSearch('/creation-confirm', 'moderator-gid', 'bibi@bloxberg.de')
+        mountPage()
+        await flushPromises()
+        expect(countQuery).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: adminListContributionsCount,
+            variables: {
+              filter: { statusFilter: ['IN_PROGRESS', 'PENDING'], hideResubmission: true },
+            },
+          }),
+        )
+        expect(moderatorStore.setOpenCreations).toHaveBeenCalledWith(7)
+      })
+
+      it('never comes from the few a search leaves', async () => {
+        keepLastSearch('/creation-confirm', 'moderator-gid', 'bibi@bloxberg.de')
+        mountPage()
+        await flushPromises()
+        await simulateQueryResult(listOf([501]))
+        expect(moderatorStore.setOpenCreations).not.toHaveBeenCalledWith(1)
+        await search().vm.$emit('update:modelValue', '')
+        await simulateQueryResult(listOf([501, 502, 503]))
+        expect(moderatorStore.setOpenCreations).toHaveBeenLastCalledWith(3)
+      })
+
+      it('is not asked for on its own where the page opens on the whole list', async () => {
+        mountPage()
+        await flushPromises()
+        expect(countQuery).not.toHaveBeenCalled()
+      })
     })
   })
 })

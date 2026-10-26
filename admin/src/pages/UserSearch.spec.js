@@ -2,8 +2,8 @@ import { useQuery } from '@vue/apollo-composable'
 import { flushPromises, mount } from '@vue/test-utils'
 import { BButton, BPagination } from 'bootstrap-vue-next'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { h, inject, nextTick } from 'vue'
-import { keepWayBackSearch, takeWayBackSearch, WAY_BACK_PAGE } from '@/utils/wayBackPage'
+import { nextTick, ref } from 'vue'
+import { keepLastSearch, lastSearch } from '@/utils/lastSearch'
 import { adminStore } from '../../test/adminStore'
 import { UserSearch } from './UserSearch'
 
@@ -25,7 +25,7 @@ vi.mock('@/composables/useViewport', () => ({ useViewport: () => viewport }))
 const { mockToastSuccess, mockT, route } = vi.hoisted(() => ({
   mockToastSuccess: vi.fn(),
   mockT: vi.fn((key) => key), // Mock translation function
-  route: { query: {}, redirectedFrom: undefined },
+  route: { query: {} },
 }))
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({ t: mockT }),
@@ -112,14 +112,15 @@ describe('UserSearch', () => {
         mocks: {
           $t: mockT,
         },
-        // The moderator a search kept for the way back belongs to (utils/wayBackPage.ts).
+        // The moderator whose last search the page keeps (utils/lastSearch.ts).
         plugins: [adminStore({ moderator: { gradidoID: 'moderator-gid' } })],
       },
     })
 
   beforeEach(() => {
     route.query = {}
-    route.redirectedFrom = undefined
+    // No last search left behind by a test before (utils/lastSearch.ts).
+    window.localStorage.clear()
     viewport.value = 'unknown'
     mockToastSuccess.mockClear()
     // Mock the useQuery composable, with a copy per test: the page writes role changes into
@@ -307,39 +308,70 @@ describe('UserSearch', () => {
     expect(wrapper.findComponent({ name: 'UserQuery' }).props('modelValue')).toBe('')
   })
 
-  // ⭐ Bernd, 26.10.2026: the search goes along on the way back from the wallet, kept in the storage
-  // both apps share (utils/wayBackPage.ts).
-  describe('the way back from the wallet', () => {
-    it('names its search for a pin', async () => {
-      let wayBackPage
-      const asker = {
-        name: 'SearchUserTable',
-        setup() {
-          wayBackPage = inject(WAY_BACK_PAGE, null)
-          return () => h('div', { class: 'search-user-table-stub' })
-        },
-      }
-      wrapper = mountPage({ SearchUserTable: asker })
-      expect(wayBackPage()).toEqual({ page: '/user', search: '' })
-
-      wrapper.findComponent({ name: 'UserQuery' }).vm.$emit('update:modelValue', 'bibi@bloxberg.de')
-      await flushPromises()
-      expect(wayBackPage()).toEqual({ page: '/user', search: 'bibi@bloxberg.de' })
+  // ⭐ Bernd, 26.10.2026: the page opens with the last search, kept on this device for each
+  // moderator without end (utils/lastSearch.ts).
+  describe('the last search', () => {
+    const searchField = () => wrapper.findComponent({ name: 'UserQuery' })
+    const answering = (userCount) => ({
+      searchUsers: { userCount, userList: structuredClone(mockSearchUsers.userList) },
     })
 
-    it('starts with the search kept for it, where the sign-in of the way back led here', () => {
-      keepWayBackSearch({ page: '/user', search: 'bibi@bloxberg.de' }, 'moderator-gid')
-      route.redirectedFrom = { path: '/authenticate' }
+    it('is the one the page opens with, however it is reached', () => {
+      keepLastSearch('/user', 'moderator-gid', 'bibi@bloxberg.de')
       wrapper = mountPage()
       expect(useQuery.mock.lastCall[1]).toMatchObject({ query: 'bibi@bloxberg.de' })
-      expect(takeWayBackSearch('/user', 'moderator-gid')).toBeNull()
+      expect(searchField().props('modelValue')).toBe('bibi@bloxberg.de')
+      expect(lastSearch('/user', 'moderator-gid')).toBe('bibi@bloxberg.de')
     })
 
-    it('leaves a kept search alone where the page was reached otherwise', () => {
-      keepWayBackSearch({ page: '/user', search: 'bibi@bloxberg.de' }, 'moderator-gid')
+    it('is kept as it changes', async () => {
       wrapper = mountPage()
-      expect(useQuery.mock.lastCall[1]).toMatchObject({ query: '' })
-      expect(takeWayBackSearch('/user', 'moderator-gid')).toBe('bibi@bloxberg.de')
+      searchField().vm.$emit('update:modelValue', 'bibi@bloxberg.de')
+      await flushPromises()
+      expect(lastSearch('/user', 'moderator-gid')).toBe('bibi@bloxberg.de')
+    })
+
+    it('gives way to the search of an entry link, which is the last one then', () => {
+      keepLastSearch('/user', 'moderator-gid', 'peter')
+      route.query = { search: 'bibi' }
+      wrapper = mountPage()
+      expect(useQuery.mock.lastCall[1]).toMatchObject({ query: 'bibi' })
+      expect(lastSearch('/user', 'moderator-gid')).toBe('bibi')
+    })
+
+    describe('where the first answer finds nobody', () => {
+      beforeEach(() => {
+        useQuery.mockReturnValue({ result: { value: answering(0) }, refetch: vi.fn() })
+      })
+
+      it('gives way to everybody', async () => {
+        keepLastSearch('/user', 'moderator-gid', 'bibi@bloxberg.de')
+        wrapper = mountPage()
+        await flushPromises()
+        expect(searchField().props('modelValue')).toBe('')
+        expect(useQuery().refetch).toHaveBeenCalledWith({ query: '' })
+        expect(lastSearch('/user', 'moderator-gid')).toBe('')
+      })
+
+      it('leaves the search of an entry link alone', async () => {
+        route.query = { search: 'bibi' }
+        wrapper = mountPage()
+        await flushPromises()
+        expect(searchField().props('modelValue')).toBe('bibi')
+        expect(useQuery().refetch).not.toHaveBeenCalled()
+      })
+    })
+
+    it('leaves a search alone that the moderator changed before the first answer came', async () => {
+      const result = ref(null)
+      useQuery.mockReturnValue({ result, refetch: vi.fn() })
+      keepLastSearch('/user', 'moderator-gid', 'bibi@bloxberg.de')
+      wrapper = mountPage()
+      searchField().vm.$emit('update:modelValue', 'nobody@example.org')
+      await flushPromises()
+      result.value = answering(0)
+      await flushPromises()
+      expect(searchField().props('modelValue')).toBe('nobody@example.org')
     })
   })
 

@@ -1,14 +1,14 @@
 // AI-GENERATED — not an architecture reference
 import { useQuery } from '@vue/apollo-composable'
 import { BButton, BPagination } from 'bootstrap-vue-next'
-import { computed, defineComponent, provide, reactive, ref, watch, watchEffect } from 'vue'
+import { computed, defineComponent, reactive, ref, watch, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { useAppToast } from '@/composables/useToast'
 import { useViewport } from '@/composables/useViewport'
 import { DESK_PAGER_LIMIT, PHONE_PAGER_LIMIT } from '@/constants'
 import { useAdminStore } from '@/store/useAdminStore'
-import { takeWayBackSearch, WAY_BACK_PAGE } from '@/utils/wayBackPage'
+import { keepLastSearch, lastSearch } from '@/utils/lastSearch'
 import IBiEnvelope from '~icons/bi/envelope'
 import IBiXCircle from '~icons/bi/x-circle'
 import type { Role } from '../components/ChangeUserRoleFormular'
@@ -21,6 +21,9 @@ import classes from './UserSearch.module.css'
 // a row of the search answer, as the table shows it
 type SearchedMember = MemberRow
 
+// The page the last search is kept for (utils/lastSearch.ts), as the router names it.
+const LAST_SEARCH_PAGE = '/user'
+
 export const UserSearch = defineComponent({
   name: 'UserSearch',
   setup() {
@@ -31,18 +34,19 @@ export const UserSearch = defineComponent({
     const searchResult = ref<SearchedMember[]>([])
     const store = useAdminStore()
 
-    // The search of an entry link's address, or the one the way back from the wallet kept where
-    // its sign-in led here (utils/wayBackPage.ts), as the first question: read once the page
+    // The search of an entry link's address, else the last one this moderator left the page
+    // with, whenever it was (utils/lastSearch.ts), as the first question: read once the page
     // stood, it asked for everybody first and then again. One text only, as `searchUsers` takes
-    // one; a repeated parameter is no search.
-    const criteria = ref(
-      (typeof route.query.search === 'string' ? route.query.search : null) ??
-        (route.redirectedFrom?.path === '/authenticate'
-          ? takeWayBackSearch('/user', store.moderator?.gradidoID)
-          : null) ??
-        '',
+    // one; a repeated parameter is no search. Kept again as it changes, the link's as well.
+    const linkSearch = typeof route.query.search === 'string' ? route.query.search : null
+    const criteria = ref(linkSearch ?? lastSearch(LAST_SEARCH_PAGE, store.moderator?.gradidoID))
+    watch(
+      criteria,
+      (search) => keepLastSearch(LAST_SEARCH_PAGE, store.moderator?.gradidoID, search),
+      { immediate: true },
     )
-    provide(WAY_BACK_PAGE, () => ({ page: '/user', search: criteria.value }))
+    // Whether the first answer still has to show that the kept search finds somebody.
+    let keptSearchOnTrial = linkSearch === null && criteria.value !== ''
     const filters = reactive<{ byActivated: boolean | null; byDeleted: boolean | null }>({
       byActivated: null,
       byDeleted: null,
@@ -105,11 +109,13 @@ export const UserSearch = defineComponent({
     }
 
     const unconfirmedRegisterMails = () => {
+      keptSearchOnTrial = false
       filters.byActivated = filters.byActivated === null ? false : null
       refetch()
     }
 
     const deletedUserSearch = () => {
+      keptSearchOnTrial = false
       filters.byDeleted = filters.byDeleted === null ? true : null
       refetch()
     }
@@ -166,12 +172,32 @@ export const UserSearch = defineComponent({
       () => criteria.value,
       async (newValue, oldValue) => {
         if (newValue !== oldValue) {
+          keptSearchOnTrial = false
           // Only the query, as it was: the client keeps the other variables it holds
           await refetch({
             query: newValue,
           } as Parameters<typeof refetch>[0])
         }
       },
+    )
+
+    // A kept search that finds nobody any more -- a member whose account is gone -- gives way to
+    // everybody (Bernd, 26.10.2026: "Sollte die Suche keine Treffer haben, schaltet es um auf
+    // „Alle“"). On the first answer only: a search the moderator gives here, or an entry link's,
+    // stays, also where it finds nobody. After the watcher above, which asks for everybody then:
+    // the first answer can be here already, from the client's cache.
+    watch(
+      () => result.value,
+      (answer) => {
+        if (!keptSearchOnTrial || !answer) {
+          return
+        }
+        keptSearchOnTrial = false
+        if (answer.searchUsers.userCount === 0) {
+          criteria.value = ''
+        }
+      },
+      { immediate: true },
     )
 
     return () => (
