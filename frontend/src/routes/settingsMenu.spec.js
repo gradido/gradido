@@ -23,9 +23,9 @@ import routes from './routes'
 const here = dirname(fileURLToPath(import.meta.url))
 const read = (relativePath) => readFileSync(resolve(here, relativePath), 'utf8')
 
-// ⚠️ /settings/communities is left out on purpose: it is gated by GMS_ACTIVE || HUMHUB_ACTIVE
-// in all three places -- menu, list and routes -- and both flags are off under test, so the
-// source still shows the entry while the route is rightly absent. That the three gates agree
+// ⚠️ /settings/communities is left out on purpose: it is gated by HUMHUB_ACTIVE in all three
+// places -- menu, list and routes -- and the flag is off under test, so the source still
+// shows the entry while the route is rightly absent. That the three gates agree
 // is measured where each of them lives (SettingsSidebar.spec, Index.spec, router.test).
 // Both spellings: the entries live in a table in the script now (`to: '/settings/…'`), and a
 // template attribute (`to="/settings/…"`) is still what a hand-written row would use.

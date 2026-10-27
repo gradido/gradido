@@ -37,7 +37,6 @@ const i18n = createI18n({
         contacts: 'Chat',
         matching: 'Matching',
         circles: 'Circles',
-        usersearch: 'User Search',
         settings: 'Settings',
         admin_area: 'Admin',
         logout: 'Logout',
