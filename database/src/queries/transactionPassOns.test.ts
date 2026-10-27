@@ -11,7 +11,12 @@ import { userFactory } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '../seeds/users/bob-baumeister'
 import { peterLustig } from '../seeds/users/peter-lustig'
-import { dbInsertTransactionPassOn, dbSelectTransactionPassOnsOf } from './transactionPassOns'
+import {
+  dbCountTransactionPassOns,
+  dbCountTransactionPassOnsByWeek,
+  dbInsertTransactionPassOn,
+  dbSelectTransactionPassOnsOf,
+} from './transactionPassOns'
 
 const appDB = AppDatabase.getInstance()
 let db: MySql2Database
@@ -120,5 +125,60 @@ describe('dbSelectTransactionPassOnsOf', () => {
     await dbInsertTransactionPassOn(toBob.send, thanks.receive)
 
     expect(await dbSelectTransactionPassOnsOf([])).toEqual([])
+  })
+})
+
+// The counts of the admin's start page: the thank-you passed on to Bob yesterday and to Peter
+// forty days ago, each row written with its moment.
+describe('dbCountTransactionPassOns', () => {
+  const now = Date.now()
+  const daysAgo = (days: number): Date => new Date(now - days * 24 * 60 * 60 * 1000)
+
+  beforeEach(async () => {
+    await db.insert(transactionPassOnsTable).values([
+      { transactionId: toBob.send, originTransactionId: thanks.receive, createdAt: daysAgo(1) },
+      { transactionId: toPeter.send, originTransactionId: thanks.receive, createdAt: daysAgo(40) },
+    ])
+  })
+
+  // One thank-you passed on twice: two transfers, two rows.
+  it('counts every transfer that passed a thank-you on, from each moment on', async () => {
+    expect(await dbCountTransactionPassOns([daysAgo(5), daysAgo(20), null])).toEqual([1, 1, 2])
+  })
+})
+
+// By calendar week, from Monday 7 September 2026: two in its week -- one at its very last
+// moment --, none in the week after, one in the week of 21 September, one in the week before.
+describe('dbCountTransactionPassOnsByWeek', () => {
+  beforeEach(async () => {
+    await db.insert(transactionPassOnsTable).values([
+      {
+        transactionId: toBob.send,
+        originTransactionId: thanks.receive,
+        createdAt: new Date('2026-09-08T12:00:00.000Z'),
+      },
+      {
+        transactionId: toPeter.send,
+        originTransactionId: thanks.receive,
+        createdAt: new Date('2026-09-13T23:59:59.999Z'),
+      },
+      {
+        transactionId: thanks.send,
+        originTransactionId: thanks.receive,
+        createdAt: new Date('2026-09-21T00:00:00.000Z'),
+      },
+      {
+        transactionId: toBob.receive,
+        originTransactionId: thanks.receive,
+        createdAt: new Date('2026-09-06T23:59:59.999Z'),
+      },
+    ])
+  })
+
+  it('counts the transfers that passed a thank-you on in each week', async () => {
+    expect(await dbCountTransactionPassOnsByWeek(new Date('2026-09-07T00:00:00.000Z'))).toEqual([
+      { weekStart: '2026-09-07', n: 2 },
+      { weekStart: '2026-09-21', n: 1 },
+    ])
   })
 })

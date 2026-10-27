@@ -24,6 +24,10 @@ import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 import {
   dbCountAndSumTransactionsOfType,
   dbCountAndSumTransactionsOfTypeByWeek,
+  dbCountFirstSenders,
+  dbCountFirstSendersByWeek,
+  dbCountTransactionsWithPicture,
+  dbCountTransactionsWithPictureByWeek,
   dbSelectBookingLinesOfUser,
   dbSelectContactsByUserId,
   dbSelectReceivedTransferOfUser,
@@ -1373,5 +1377,151 @@ describe('the newest booking of a person both groupings found, in the grouping j
       page.contacts[0].lastBookingId as number,
     ])
     expect(line.balanceDate.getTime()).toBe(day(24).getTime())
+  })
+})
+
+// The bookings that carry a picture and the accounts that sent for the first time, for the
+// figures of the admin's start page. Rows written straight into the table, in an order of their
+// own, each with its moment. Last in the file: each block empties the database.
+
+/** A booking of one type, of one member, at a moment, with or without a picture. */
+const bookForFigures = (
+  typeId: TransactionTypeId,
+  user: DbUser,
+  balanceDate: Date,
+  transactionPictureId: number | null = null,
+) =>
+  drizzleDb()
+    .insert(transactionsTable)
+    .values({
+      typeId,
+      userId: user.id,
+      userGradidoId: user.gradidoID,
+      userCommunityUuid: user.communityUuid,
+      amount: new GradidoUnit(typeId === TransactionTypeId.SEND ? -10000n : 10000n),
+      memo: 'figures of the thanks',
+      balanceDate,
+      transactionPictureId,
+    })
+
+describe('dbCountTransactionsWithPicture', () => {
+  const now = Date.now()
+  const daysAgo = (days: number): Date => new Date(now - days * 24 * 60 * 60 * 1000)
+  // The picture a booking points at: the column has no foreign key, any number names one.
+  const PICTURE = 71
+
+  beforeAll(async () => {
+    await dbDeleteAllRowsExceptMigrations()
+    await createCommunity(false)
+    const sender = await userFactory(bibiBloxberg)
+    const recipient = await userFactory(peterLustig)
+    // Transfers with a picture yesterday and forty days ago, the picture on both rows.
+    await bookForFigures(TransactionTypeId.SEND, sender, daysAgo(1), PICTURE)
+    await bookForFigures(TransactionTypeId.RECEIVE, recipient, daysAgo(1), PICTURE)
+    await bookForFigures(TransactionTypeId.SEND, sender, daysAgo(40), PICTURE + 1)
+    await bookForFigures(TransactionTypeId.RECEIVE, recipient, daysAgo(40), PICTURE + 1)
+    // A transfer without one, two days ago.
+    await bookForFigures(TransactionTypeId.SEND, sender, daysAgo(2))
+    await bookForFigures(TransactionTypeId.RECEIVE, recipient, daysAgo(2))
+  })
+
+  it('counts the SEND rows with a picture from each moment on, without the RECEIVE rows', async () => {
+    expect(
+      await dbCountTransactionsWithPicture(TransactionTypeId.SEND, [daysAgo(5), daysAgo(20), null]),
+    ).toEqual([1, 1, 2])
+  })
+
+  it('counts no booking of another type', async () => {
+    expect(await dbCountTransactionsWithPicture(TransactionTypeId.CREATION, [null])).toEqual([0])
+  })
+})
+
+// By calendar week, from Monday 7 September 2026: two transfers with a picture in its week -- one
+// at its very last moment --, none in the week after, one in the week of 21 September, one in the
+// week before the first; and a transfer without one in the first week.
+describe('dbCountTransactionsWithPictureByWeek', () => {
+  const from = new Date('2026-09-07T00:00:00.000Z')
+
+  beforeAll(async () => {
+    await dbDeleteAllRowsExceptMigrations()
+    await createCommunity(false)
+    const sender = await userFactory(bibiBloxberg)
+    const recipient = await userFactory(peterLustig)
+    const at = (moment: string) => new Date(moment)
+    await bookForFigures(TransactionTypeId.SEND, sender, at('2026-09-08T12:00:00.000Z'), 1)
+    await bookForFigures(TransactionTypeId.RECEIVE, recipient, at('2026-09-08T12:00:00.000Z'), 1)
+    await bookForFigures(TransactionTypeId.SEND, sender, at('2026-09-13T23:59:59.999Z'), 2)
+    await bookForFigures(TransactionTypeId.SEND, sender, at('2026-09-09T12:00:00.000Z'))
+    await bookForFigures(TransactionTypeId.SEND, sender, at('2026-09-21T00:00:00.000Z'), 3)
+    await bookForFigures(TransactionTypeId.SEND, sender, at('2026-09-06T23:59:59.999Z'), 4)
+  })
+
+  it('counts the SEND rows with a picture in each week, without the RECEIVE rows', async () => {
+    expect(await dbCountTransactionsWithPictureByWeek(TransactionTypeId.SEND, from)).toEqual([
+      { weekStart: '2026-09-07', n: 2 },
+      { weekStart: '2026-09-21', n: 1 },
+    ])
+  })
+})
+
+// Four members: bibi sent first forty days ago and again yesterday, peter first three days ago
+// and again yesterday, bob first ten days ago; stephen only received, and bob's creation is no
+// transfer. Each member's later transfer is written BEFORE the first one: the first is the
+// earliest moment, not the row written first.
+describe('dbCountFirstSenders', () => {
+  const now = Date.now()
+  const daysAgo = (days: number): Date => new Date(now - days * 24 * 60 * 60 * 1000)
+
+  beforeAll(async () => {
+    await dbDeleteAllRowsExceptMigrations()
+    await createCommunity(false)
+    const bibi = await userFactory(bibiBloxberg)
+    const peter = await userFactory(peterLustig)
+    const bob = await userFactory(bobBaumeister)
+    const stephen = await userFactory(stephenHawking)
+    await bookForFigures(TransactionTypeId.SEND, bibi, daysAgo(1))
+    await bookForFigures(TransactionTypeId.SEND, bibi, daysAgo(40))
+    await bookForFigures(TransactionTypeId.SEND, peter, daysAgo(1))
+    await bookForFigures(TransactionTypeId.SEND, peter, daysAgo(3))
+    await bookForFigures(TransactionTypeId.SEND, bob, daysAgo(10))
+    await bookForFigures(TransactionTypeId.CREATION, bob, daysAgo(12))
+    await bookForFigures(TransactionTypeId.RECEIVE, stephen, daysAgo(2))
+  })
+
+  it('counts each account once, from the moment of its first SEND row on', async () => {
+    // From twenty days back: peter and bob; from five days back: peter; over all of it, bibi too.
+    expect(await dbCountFirstSenders([daysAgo(20), daysAgo(5), null])).toEqual([2, 1, 3])
+  })
+
+  it('counts an account whose first transfer is at the very moment it counts from', async () => {
+    expect(await dbCountFirstSenders([daysAgo(10)])).toEqual([2])
+  })
+})
+
+// By calendar week, from Monday 7 September 2026: bibi sent first in its week and again in the
+// week after, peter first in the week of 21 September; bob sent first in the week before the first
+// and again in it -- an account that sent before is no first sender, however often it sends.
+describe('dbCountFirstSendersByWeek', () => {
+  const from = new Date('2026-09-07T00:00:00.000Z')
+
+  beforeAll(async () => {
+    await dbDeleteAllRowsExceptMigrations()
+    await createCommunity(false)
+    const bibi = await userFactory(bibiBloxberg)
+    const peter = await userFactory(peterLustig)
+    const bob = await userFactory(bobBaumeister)
+    const at = (moment: string) => new Date(moment)
+    await bookForFigures(TransactionTypeId.SEND, bibi, at('2026-09-16T12:00:00.000Z'))
+    await bookForFigures(TransactionTypeId.SEND, bibi, at('2026-09-08T12:00:00.000Z'))
+    await bookForFigures(TransactionTypeId.SEND, peter, at('2026-09-21T00:00:00.000Z'))
+    await bookForFigures(TransactionTypeId.SEND, bob, at('2026-09-10T12:00:00.000Z'))
+    await bookForFigures(TransactionTypeId.SEND, bob, at('2026-09-06T23:59:59.999Z'))
+  })
+
+  it('counts each account once, in the week of its first SEND row', async () => {
+    expect(await dbCountFirstSendersByWeek(from)).toEqual([
+      { weekStart: '2026-09-07', n: 1 },
+      { weekStart: '2026-09-21', n: 1 },
+    ])
   })
 })

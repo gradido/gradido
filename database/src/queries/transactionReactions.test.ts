@@ -12,6 +12,8 @@ import { userFactory } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { peterLustig } from '../seeds/users/peter-lustig'
 import {
+  dbCountTransactionReactions,
+  dbCountTransactionReactionsByWeek,
   dbDeleteTransactionReaction,
   dbSelectTransactionReactions,
   dbUpsertTransactionReaction,
@@ -172,5 +174,77 @@ describe('dbSelectTransactionReactions', () => {
   it('asks nothing for an empty page, and answers none for ids without a booking', async () => {
     expect(await dbSelectTransactionReactions([])).toEqual([])
     expect(await dbSelectTransactionReactions([4_000_000_000])).toEqual([])
+  })
+})
+
+// The counts of the admin's start page: a reaction set yesterday and one set forty days ago,
+// each written with its moment. Every test starts from these two; the blocks above leave theirs.
+describe('dbCountTransactionReactions', () => {
+  const now = Date.now()
+  const daysAgo = (days: number): Date => new Date(now - days * 24 * 60 * 60 * 1000)
+  const moments = [daysAgo(5), daysAgo(20), null]
+
+  beforeEach(async () => {
+    await db.delete(transactionReactionsTable)
+    await db.insert(transactionReactionsTable).values([
+      { transactionId: first.receive, emoji: THUMB, createdAt: daysAgo(1) },
+      { transactionId: second.receive, emoji: SEEDLING, createdAt: daysAgo(40) },
+    ])
+  })
+  afterAll(async () => {
+    await db.delete(transactionReactionsTable)
+  })
+
+  it('counts the reactions from each moment on, by the moment they were set', async () => {
+    expect(await dbCountTransactionReactions(moments)).toEqual([1, 1, 2])
+  })
+
+  // The row keeps its moment: another emoji is the same answer to the same transfer.
+  it('counts a reaction whose emoji was changed once, at the moment it was first set', async () => {
+    await dbUpsertTransactionReaction(second.receive, HEART)
+
+    expect(await dbCountTransactionReactions(moments)).toEqual([1, 1, 2])
+  })
+
+  it('no longer counts a reaction that was taken back', async () => {
+    await dbDeleteTransactionReaction(first.receive)
+
+    expect(await dbCountTransactionReactions(moments)).toEqual([0, 0, 1])
+  })
+})
+
+// By calendar week, from Monday 7 September 2026: two reactions in its week -- one at its very
+// last moment --, none in the week after, one in the week of 21 September, one in the week before.
+describe('dbCountTransactionReactionsByWeek', () => {
+  beforeAll(async () => {
+    await db.delete(transactionReactionsTable)
+    await db.insert(transactionReactionsTable).values([
+      {
+        transactionId: first.receive,
+        emoji: THUMB,
+        createdAt: new Date('2026-09-08T12:00:00.000Z'),
+      },
+      {
+        transactionId: second.receive,
+        emoji: HEART,
+        createdAt: new Date('2026-09-13T23:59:59.999Z'),
+      },
+      {
+        transactionId: back.receive,
+        emoji: SEEDLING,
+        createdAt: new Date('2026-09-21T00:00:00.000Z'),
+      },
+      { transactionId: fromAfar, emoji: THUMB, createdAt: new Date('2026-09-06T23:59:59.999Z') },
+    ])
+  })
+  afterAll(async () => {
+    await db.delete(transactionReactionsTable)
+  })
+
+  it('counts the reactions in each week, by the moment they were set', async () => {
+    expect(await dbCountTransactionReactionsByWeek(new Date('2026-09-07T00:00:00.000Z'))).toEqual([
+      { weekStart: '2026-09-07', n: 2 },
+      { weekStart: '2026-09-21', n: 1 },
+    ])
   })
 })

@@ -18,6 +18,11 @@ import {
   dbUserUpdateField,
   EventType,
   TransactionTypeId,
+  thankYouGreetingPicturesTable,
+  thankYouGreetingsTable,
+  transactionLinksTable,
+  transactionPassOnsTable,
+  transactionReactionsTable,
   transactionsTable,
 } from 'database'
 import { eq } from 'drizzle-orm'
@@ -40,6 +45,8 @@ import { stephenHawking } from '@/seeds/users/stephen-hawking'
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
 let db: AppDatabase
+// The maker of the links below.
+let bibiId: number
 
 const now = Date.now()
 const daysAgo = (days: number): Date => new Date(now - days * 24 * 60 * 60 * 1000)
@@ -54,9 +61,18 @@ const note = (type: EventType, affectedUserId: number, days: number, actingUserI
     createdAt: daysAgo(days),
   })
 
-/** One booking row as the server writes it: a SEND row carries the amount negative. */
-const book = (typeId: TransactionTypeId, user: DbUser, gddCent: bigint, days: number) =>
-  db
+/**
+ * One booking row as the server writes it: a SEND row carries the amount negative. A transfer with
+ * a picture names it on both rows. Answers the id of the row.
+ */
+const book = async (
+  typeId: TransactionTypeId,
+  user: DbUser,
+  gddCent: bigint,
+  days: number,
+  transactionPictureId: number | null = null,
+): Promise<number> => {
+  const [written] = await db
     .getDrizzleDataSource()
     .insert(transactionsTable)
     .values({
@@ -67,7 +83,54 @@ const book = (typeId: TransactionTypeId, user: DbUser, gddCent: bigint, days: nu
       amount: new GradidoUnit(gddCent),
       memo: 'Danke',
       balanceDate: daysAgo(days),
+      transactionPictureId,
     })
+  return written.insertId
+}
+
+let linksMade = 0
+/**
+ * A transaction link of Bibi's, made days ago and valid for fourteen days -- a plain one, or a
+ * thank-you greeting with a motif or with a photo of her own (two renditions) --, redeemed days
+ * ago by an account, or not. Answers the id of the link.
+ */
+const makeLink = async (
+  kind: 'plain' | 'motif' | 'photo',
+  days: number,
+  redeemed?: { days: number; by: DbUser },
+): Promise<number> => {
+  const code = `f12a${++linksMade}`.padEnd(24, '0')
+  const drizzle = db.getDrizzleDataSource()
+  const [written] = await drizzle.insert(transactionLinksTable).values({
+    userId: bibiId,
+    memo: 'Danke für Deine Hilfe!',
+    code,
+    createdAt: daysAgo(days),
+    validUntil: daysAgo(days - 14),
+    redeemedAt: redeemed ? daysAgo(redeemed.days) : null,
+    redeemedBy: redeemed?.by.id ?? null,
+  })
+  if (kind !== 'plain') {
+    await drizzle.insert(thankYouGreetingsTable).values({
+      transactionLinkCode: code,
+      motif: kind === 'motif' ? 'bouquet' : null,
+      createdAt: daysAgo(days),
+    })
+  }
+  if (kind === 'photo') {
+    for (const rendition of ['small', 'large'] as const) {
+      await drizzle.insert(thankYouGreetingPicturesTable).values({
+        transactionLinkCode: code,
+        rendition,
+        width: 831,
+        height: 577,
+        image: Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0xff, 0xd9]),
+        mimeType: 'image/jpeg',
+      })
+    }
+  }
+  return written.insertId
+}
 
 /** An entry on the map, written days ago. */
 const write = async (user: DbUser, matchingType: string, days: number, active = true) => {
@@ -110,16 +173,25 @@ beforeAll(async () => {
   const raeuber = await userFactory(testEnv, raeuberHotzenplotz)
   const garrick = await userFactory(testEnv, garrickOllivander)
   const stephen = await userFactory(testEnv, stephenHawking) // deleted in 2018, says the seed
+  bibiId = bibi.id
 
   // Bob registered on his own, Räuber over Peter's address, Garrick at Peter's table (he deleted
-  // his account yesterday), Stephen with a redeem link, long ago.
+  // his account yesterday), Stephen with a redeem link, long ago: a thank-you greeting of Bibi's,
+  // with a motif, which he accepted with the account he opened through it.
   await dbUserUpdateField(raeuber.id, 'referrerId', peter.id)
   await dbUserUpdateField(garrick.id, 'referrerId', peter.id)
   await dbUserUpdateField(garrick.id, 'deletedAt', daysAgo(1))
   await note(EventType.USER_REGISTER, bob.id, 2)
   await note(EventType.USER_REGISTER, raeuber.id, 10, peter.id)
   await note(EventType.USER_REGISTER_GUARANTOR, garrick.id, 3, peter.id)
-  await note(EventType.USER_REGISTER_REDEEM, stephen.id, 40)
+  const greetingOfStephen = await makeLink('motif', 41, { days: 40, by: stephen })
+  await dbInsertEvent({
+    type: EventType.USER_REGISTER_REDEEM,
+    affectedUserId: stephen.id,
+    actingUserId: stephen.id,
+    involvedTransactionLinkId: greetingOfStephen,
+    createdAt: daysAgo(40),
+  })
   // Bob came over an event link.
   await note(EventType.EVENT_MATCHING_ENTRY_NOTE, bob.id, 2)
   // Peter showed his table code yesterday and three weeks ago.
@@ -147,13 +219,36 @@ beforeAll(async () => {
     alias: 'farAway',
   })
 
-  // Thanks: Bibi sent Peter 20 GDD yesterday and 5.5 GDD forty days ago -- a SEND and a RECEIVE
-  // row each -- and Bob's creation of 100 GDD was booked three days ago.
-  await book(TransactionTypeId.SEND, bibi, -200000n, 1)
-  await book(TransactionTypeId.RECEIVE, peter, 200000n, 1)
+  // Thanks: Bibi sent Peter 20 GDD yesterday, with a picture, and 5.5 GDD forty days ago -- a
+  // SEND and a RECEIVE row each -- and Bob's creation of 100 GDD was booked three days ago. Peter
+  // thanked Bibi with 4.5 GDD two days ago, his first transfer; she passed that thank-you on to
+  // him with hers yesterday. Peter answered both of Bibi's transfers with an emoji.
+  const picture = 1
+  const bibiSentYesterday = await book(TransactionTypeId.SEND, bibi, -200000n, 1, picture)
+  const peterGotYesterday = await book(TransactionTypeId.RECEIVE, peter, 200000n, 1, picture)
   await book(TransactionTypeId.SEND, bibi, -55000n, 40)
-  await book(TransactionTypeId.RECEIVE, peter, 55000n, 40)
+  const peterGotLongAgo = await book(TransactionTypeId.RECEIVE, peter, 55000n, 40)
   await book(TransactionTypeId.CREATION, bob, 1000000n, 3)
+  await book(TransactionTypeId.SEND, peter, -45000n, 2)
+  const bibiGotFromPeter = await book(TransactionTypeId.RECEIVE, bibi, 45000n, 2)
+  const drizzle = db.getDrizzleDataSource()
+  await drizzle.insert(transactionReactionsTable).values([
+    { transactionId: peterGotYesterday, emoji: '👍', createdAt: daysAgo(1) },
+    { transactionId: peterGotLongAgo, emoji: '🌱', createdAt: daysAgo(39) },
+  ])
+  await drizzle.insert(transactionPassOnsTable).values({
+    transactionId: bibiSentYesterday,
+    originTransactionId: bibiGotFromPeter,
+    createdAt: daysAgo(1),
+  })
+  // Thank-you greetings of Bibi's besides Stephen's: one with a photo of her own three days ago,
+  // which Räuber accepted yesterday with the account he had, and one with a motif twenty days ago,
+  // whose time ran out six days ago. A plain link Bob redeemed yesterday, and one that ran out:
+  // no greetings.
+  await makeLink('photo', 3, { days: 1, by: raeuber })
+  await makeLink('motif', 20)
+  await makeLink('plain', 2, { days: 1, by: bob })
+  await makeLink('plain', 20)
   // The map: Bibi lives in Berlin and can be found, Peter lives in Hamburg and cannot.
   await dbUserUpdateField(bibi.id, 'location', { type: 'Point', coordinates: [13.405, 52.52] })
   await dbUserUpdateField(bibi.id, 'gmsAllowed', true)
@@ -227,11 +322,25 @@ describe('communityFigures', () => {
         { key: 'firstCreationsDone', since: 1, week: 1, total: 1 },
         { key: 'firstCreationsSkipped', since: 1, week: 0, total: 1 },
         { key: 'firstCreationsReview', since: 0, week: 0, total: 1 },
-        { key: 'transfersSent', since: 1, week: 1, total: 2 },
-        // 25.5 over all of it, in whole Gradido.
-        { key: 'gddSent', since: 20, week: 20, total: 26 },
+        { key: 'transfersSent', since: 2, week: 2, total: 3 },
+        // 24.5 from the chosen day and over seven days, 30 over all of it, in whole Gradido.
+        { key: 'gddSent', since: 25, week: 25, total: 30 },
+        // Peter for the first time; Bibi sent first forty days ago.
+        { key: 'firstSenders', since: 1, week: 1, total: 2 },
+        { key: 'transfersWithPicture', since: 1, week: 1, total: 1 },
+        { key: 'thanksAnswered', since: 1, week: 1, total: 2 },
+        { key: 'thanksPassedOn', since: 1, week: 1, total: 1 },
         { key: 'creationsBooked', since: 1, week: 1, total: 1 },
         { key: 'gddCreated', since: 100, week: 100, total: 100 },
+        // No plain link anywhere: Bibi's greetings of three, twenty and forty-one days ago.
+        { key: 'greetingsSent', since: 1, week: 1, total: 3 },
+        { key: 'greetingsWithPhoto', since: 1, week: 1, total: 1 },
+        // Räuber's yesterday, Stephen's forty days ago.
+        { key: 'greetingsAccepted', since: 1, week: 1, total: 2 },
+        // Stephen opened his account through the greeting he accepted; Räuber had his.
+        { key: 'greetingsWithAccount', since: 0, week: 0, total: 1 },
+        // Ran out six days ago.
+        { key: 'greetingsExpired', since: 1, week: 1, total: 1 },
         { key: 'homesSet', since: null, week: null, total: 2 },
         { key: 'findableOnMap', since: null, week: null, total: 1 },
         { key: 'entriesInterest', since: 1, week: 1, total: 1 },
