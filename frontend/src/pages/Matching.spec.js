@@ -102,7 +102,7 @@ store.setGmsPublishLocation = () => {}
 // The map is exercised by its own spec; here it only has to be able to report a
 // picked position, which is what onPickPosition reads.
 const UserLocationMapStub = {
-  props: ['userMarkerCoords', 'communityMarkerCoords', 'showCoordinates', 'height', 'userIcon'],
+  props: ['userMarkerCoords', 'height'],
   emits: ['update:userPosition'],
   template: '<div class="map-stub" />',
 }
@@ -705,7 +705,7 @@ describe('Matching', () => {
   // centre here, and it confused wherever a home stood right on it. It still decides
   // where the map opens for a member who has no home on it yet.
   describe("the community's point", () => {
-    it('is not handed to the map, but still opens it for a member without a home', async () => {
+    it('opens the map for a member without a home', async () => {
       const page = mountPage('position')
       fire(userLocationQuery, {
         userLocation: {
@@ -717,7 +717,6 @@ describe('Matching', () => {
 
       const map = page.findComponent(UserLocationMapStub)
       expect(map.exists()).toBe(true)
-      expect(map.props('communityMarkerCoords')).toBeUndefined()
       expect(map.props('userMarkerCoords')).toEqual({ lat: 48.1, lng: 11.5 })
     })
   })

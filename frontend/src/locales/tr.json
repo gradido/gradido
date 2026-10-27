@@ -9,10 +9,6 @@
   "GDD": "GDD",
   "GDD-long": "Gradido",
   "GDT": "GDT",
-  "GMS": {
-    "desc": "Tüm toplulukların üyelerini bir haritada bul.",
-    "title": "Coğrafi Eşleştirme Sistemi GMS (geliştirme aşamasında)"
-  },
   "Humhub": {
     "desc": "Birlikte birbirimizi destekliyoruz – çember kültüründe özenle.",
     "title": "Gradido-Çemberleri"
@@ -127,19 +123,6 @@
       "button": "Yapılandır..."
     },
     "text": "Yerel çemberler, çalışma çemberleri, projeler, etkinlikler ve kongreler"
-  },
-  "card-user-search": {
-    "allowed": {
-      "button": "Üye aramasını aç...",
-      "disabled-button": "GMS çevrimdışı...",
-      "text": "Tüm toplulukların üyelerini bir haritada bul."
-    },
-    "headline": "Coğrafi üye arama (beta)",
-    "info": "Nasıl çalışır",
-    "not-allowed": {
-      "button": "Konum gir...",
-      "text": "Çevrendeki diğer üyeleri bulmak için şimdi konumunu haritaya gir!"
-    }
   },
   "chatForward": {
     "byEmailMany": "{count} kişiye ayrıca e-posta ile",
@@ -1247,8 +1230,7 @@
     "settings": "Ayarlar",
     "show-friends": "Arkadaşlarına göster",
     "thank-you-greeting": "Teşekkür mesajı",
-    "transactions": "İşlemlerin",
-    "usersearch": "Coğrafi üye arama (beta)"
+    "transactions": "İşlemlerin"
   },
   "public-profile": {
     "address": "Gradido adresi",
@@ -1346,22 +1328,11 @@
   },
   "settings": {
     "GMS": {
-      "disabled": "Veriler GMS'e aktarılmıyor",
-      "enabled": "Veriler GMS'e aktarılıyor",
       "location": {
-        "button": "Haritayı aç",
-        "label": "Tam konum",
-        "saveLocation": "Konumu Kaydet",
         "updateSuccess": "Konum başarıyla kaydedildi"
       },
-      "location-format": "Konumu haritada göster:",
       "map": {
-        "communityCoords": "Topluluk konumu: Enlem {lat}, Boylam {lng}",
-        "communityLocationLabel": "Topluluk konumu",
-        "headline": "Kullanıcının Coğrafi Konum Tespiti",
-        "search": "Konum ara",
-        "userCoords": "Konumun: Enlem {lat}, Boylam {lng}",
-        "userLocationLabel": "Konumun"
+        "search": "Konum ara"
       },
       "publish-location": {
         "approximate": "Yaklaşık konum",
@@ -1375,7 +1346,7 @@
       "visibility": "Resmimi diğer üyelere göster",
       "visibilityInfo": "Diğer üyeler resmini, örneğin paylaştığın işlemlerin yanında görür. Ayar kapalıyken şimdiye kadar olduğu gibi baş harflerin görünür."
     },
-    "community": "Çemberler & Üye arama",
+    "community": "Çemberler",
     "creationAccount": {
       "confirm": {
         "declare": "Proje hesabına geç",
@@ -1792,11 +1763,6 @@
   },
   "transaction-link": {
     "send_you": "sana gönderiyor"
-  },
-  "usersearch": {
-    "button": "Kullanıcı aramasını başlat...",
-    "headline": "Coğrafi Kullanıcı Arama",
-    "text": "Hangi topluluğa ait olursan ol, Geo Matching System ile tüm toplulukların üyelerini bir haritada bulabilirsin. Tekliflere ve ihtiyaçlara göre filtreleyebilir ve sana uygun kullanıcıları görüntüleyebilirsin.\n\nDüğmeyle, çevrendeki kullanıcıların bir haritada gösterildiği yeni bir tarayıcı penceresi açılır."
   },
   "via_card": "kart ile",
   "via_greeting": "teşekkür mesajı yoluyla",

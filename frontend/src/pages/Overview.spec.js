@@ -13,11 +13,10 @@ import { listMatchingEntries, mapMemberCount } from '@/graphql/queries'
 import { createRouter, createWebHistory } from 'vue-router'
 import { createI18n } from 'vue-i18n'
 
-// Mutable, so each case can say which of the two old services is switched on. Overview reads
-// the flags in computed properties, i.e. at render time.
+// Mutable, so each case can say whether HumHub is switched on. Overview reads the flags in
+// computed properties, i.e. at render time.
 const config = vi.hoisted(() => ({
   HUMHUB_ACTIVE: false,
-  GMS_LEGACY_ACTIVE: false,
   MATCHING_ACTIVE: false,
 }))
 vi.mock('@/config', () => ({ default: config }))
@@ -67,13 +66,6 @@ vi.mock('@/components/Overview/CardCircles', () => ({
   },
 }))
 
-vi.mock('@/components/Overview/CardUserSearch', () => ({
-  default: {
-    name: 'CardUserSearch',
-    template: '<div class="card-user-search"></div>',
-  },
-}))
-
 describe('Overview', () => {
   let wrapper
   let router
@@ -99,7 +91,6 @@ describe('Overview', () => {
     asked.clear()
     window.localStorage.clear()
     config.HUMHUB_ACTIVE = false
-    config.GMS_LEGACY_ACTIVE = false
     config.MATCHING_ACTIVE = false
     router = createRouter({
       history: createWebHistory(),
@@ -128,27 +119,23 @@ describe('Overview', () => {
   })
 
   /**
-   * ⛔ The tile hangs on nothing. The two tiles that were here hang on HumHub and the old GMS
-   * search, and with both switched off -- the default of every fresh installation -- the
-   * overview used to be empty. This line in the template is wiring: nothing else notices if
-   * it goes.
+   * ⛔ The tile hangs on nothing. The tile of the circles hangs on HumHub, and with it switched
+   * off -- the default of every fresh installation -- the overview used to be empty. This line
+   * in the template is wiring: nothing else notices if it goes.
    */
   describe('the tile for showing Gradido to somebody', () => {
-    it('is there with neither of the two old services switched on', () => {
+    it('is there with HumHub switched off', () => {
       expect(wrapper.findComponent(ShowFriendsTile).exists()).toBe(true)
       expect(wrapper.find('.card-circles').exists()).toBe(false)
-      expect(wrapper.find('.card-user-search').exists()).toBe(false)
     })
 
-    it('stands before the two old tiles where they are switched on', () => {
+    it('stands before the tile of the circles where HumHub is switched on', () => {
       config.HUMHUB_ACTIVE = true
-      config.GMS_LEGACY_ACTIVE = true
       const html = mountOverview().html()
 
       const tile = html.indexOf('data-test="show-friends-tile"')
       expect(tile).toBeGreaterThanOrEqual(0)
       expect(tile).toBeLessThan(html.indexOf('class="card-circles"'))
-      expect(tile).toBeLessThan(html.indexOf('class="card-user-search"'))
     })
   })
 

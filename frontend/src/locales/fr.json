@@ -9,10 +9,6 @@
   "GDD": "GDD",
   "GDD-long": "Gradido",
   "GDT": "GDT",
-  "GMS": {
-    "desc": "Trouve les membres de toutes les communautés sur une carte.",
-    "title": "Geo Matching System GMS (en développement)"
-  },
   "Humhub": {
     "desc": "Ensemble, nous nous soutenons mutuellement – avec attention, dans la culture des cercles.",
     "title": "Cercles Gradido"
@@ -127,19 +123,6 @@
       "button": "Configurer..."
     },
     "text": "Cercles locaux, cercles d'études, projets, événements et congrès"
-  },
-  "card-user-search": {
-    "allowed": {
-      "button": "Ouvrir la recherche de membres...",
-      "disabled-button": "GMS offline...",
-      "text": "Trouve des membres de toutes les communautés sur une carte."
-    },
-    "headline": "Recherche géographique de membres (bêta)",
-    "info": "Comment ça marche",
-    "not-allowed": {
-      "button": "Indiquer ta position...",
-      "text": "Pour trouver d'autres membres près de chez toi, indique dès maintenant ta position sur la carte !"
-    }
   },
   "chatForward": {
     "byEmailMany": "Également par e-mail aux {count} contacts",
@@ -1247,8 +1230,7 @@
     "settings": "Configuration",
     "show-friends": "Montre-le à tes amis",
     "thank-you-greeting": "Mot de remerciement",
-    "transactions": "Tes transactions",
-    "usersearch": "Recherche géographique de membres (bèta)"
+    "transactions": "Tes transactions"
   },
   "public-profile": {
     "address": "Adresse Gradido",
@@ -1346,22 +1328,11 @@
   },
   "settings": {
     "GMS": {
-      "disabled": "Les données ne sont pas exportées vers le GMS",
-      "enabled": "Les données sont exportées vers le GMS",
       "location": {
-        "button": "Clique ici !",
-        "label": "Emplacement précis",
-        "saveLocation": "Enregistrer l'emplacement",
         "updateSuccess": "Emplacement enregistré avec succès"
       },
-      "location-format": "Afficher la position sur la carte :",
       "map": {
-        "communityCoords": "Emplacement de ta communauté : Lat {lat}, Long {lng}",
-        "communityLocationLabel": "Emplacement de ta communauté",
-        "headline": "Capture de la localisation géographique de l'utilisateur",
-        "search": "Rechercher un emplacement",
-        "userCoords": "Ton emplacement : Lat {lat}, Long {lng}",
-        "userLocationLabel": "Ton emplacement"
+        "search": "Rechercher un emplacement"
       },
       "publish-location": {
         "approximate": "Position approximative",
@@ -1375,7 +1346,7 @@
       "visibility": "Montrer mon image aux autres membres",
       "visibilityInfo": "Les autres membres voient ton image, par exemple à côté des transactions que vous partagez. Quand le réglage est désactivé, ce sont tes initiales qui apparaissent, comme avant."
     },
-    "community": "Cercles et recherche de membres",
+    "community": "Cercles",
     "creationAccount": {
       "confirm": {
         "declare": "Passer en compte projet",
@@ -1792,11 +1763,6 @@
   },
   "transaction-link": {
     "send_you": "veut t'envoyer"
-  },
-  "usersearch": {
-    "button": "Commence la recherche d'utilisateurs...",
-    "headline": "Recherche géographique d'utilisateurs",
-    "text": "Quelle que soit la communauté à laquelle tu appartiens, le système de géo-matching te permet de trouver des membres de toutes les communautés sur une carte géographique. Tu peux filtrer selon les offres et les besoins et afficher les utilisateurs qui te correspondent.\n\nEn cliquant sur le bouton, une nouvelle fenêtre de navigateur s'ouvre et t'affiche les utilisateurs de ton entourage sur une carte."
   },
   "via_card": "par carte",
   "via_greeting": "par un mot",

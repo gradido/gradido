@@ -84,8 +84,8 @@ describe('router', () => {
       expect(defaultRoute.redirect()).toEqual({ path: '/login' })
     })
 
-    it('has 45 routes defined', () => {
-      expect(routes).toHaveLength(45)
+    it('has 44 routes defined', () => {
+      expect(routes).toHaveLength(44)
     })
 
     // ZE-020, F12: the layout's greeting is left out on the redeem page, so that what the
@@ -141,19 +141,19 @@ describe('router', () => {
 
       /**
        * Five entries in the news file point at the old address, and printed or mailed links
-       * keep arriving. ⛔ It has to resolve in EVERY configuration: where neither service is
+       * keep arriving. ⛔ It has to resolve in EVERY configuration: where HumHub is not
        * switched on the circles area is not registered, so a redirect straight to it would
        * land on "not found" -- and before this rebuild the same link opened the settings.
-       * Both flags are off under test, which is the case that would have broken.
+       * The flag is off under test, which is the case that would have broken.
        */
       it('keeps the old /settings/extern address alive, wherever it can land', () => {
         const old = routes.find((r) => r.path === '/settings/extern')
         expect(old.redirect()).toEqual({ path: '/settings' })
       })
 
-      // ⛔ Not merely hidden from the menu: without GMS or HumHub the page would stand empty
-      // and still be reachable by typing the address. Both flags are off under test.
-      it('does not register the circles area while neither service is switched on', () => {
+      // ⛔ Not merely hidden from the menu: without HumHub the page would stand empty and
+      // still be reachable by typing the address. The flag is off under test.
+      it('does not register the circles area while HumHub is switched off', () => {
         expect(routes.find((r) => r.path === '/settings/communities')).toBeUndefined()
       })
     })
@@ -198,7 +198,6 @@ describe('router', () => {
     testRoute('/transactions', 'Transactions')
     testRoute('/contributions', 'Contributions')
     testRoute('/information', 'InfoStatistic')
-    testRoute('/usersearch', 'UserSearch')
     testRoute('/gdt', 'Transactions')
     testRoute('/login/:code?', 'Login', false)
     testRoute('/register/:code?', 'Register', false)
