@@ -184,11 +184,17 @@ describe('the overview tiles', () => {
   // gives it back as the padding of whatever stands in it. A horizontal padding of the
   // tile's own replaces that 12px: p-3 made it 16px, and the tile stood 4px inside the
   // cards above it on every width.
-  const tiles = ['ShowFriendsTile.vue', 'CardUserSearch.vue', 'CardCircles.vue']
+  const tiles = [
+    'ThanksArrivalTile.vue',
+    'ShowFriendsTile.vue',
+    'CardUserSearch.vue',
+    'CardCircles.vue',
+  ]
 
   it.each(tiles)('%s leaves the sides of its root to the row', (file) => {
     const template = live(source('components', 'Overview', file))
-    const root = template.match(/<template>\s*<div class="([^"]*)"/)
+    // The root's class, wherever it stands among the root's attributes (a `v-if` may come first).
+    const root = template.match(/<template>\s*<div\b[^>]*?\sclass="([^"]*)"/)
     expect(root).not.toBeNull()
     const classes = root[1].split(/\s+/)
     expect(classes).toContain('py-3')
