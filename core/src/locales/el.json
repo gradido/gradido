@@ -187,10 +187,11 @@
       "title": "{senderAlias} δέχτηκε το ευχαριστώ σου"
     },
     "transactionReactionReceived": {
-      "hasEnjoyedYourThanks": "{recipientAlias} ({recipientCommunity}) χάρηκε με το ευχαριστώ σου: {emoji}",
+      "hasEnjoyedYourThanks": "{recipientAlias} ({recipientCommunity}) χάρηκε με το ευχαριστώ σου:",
       "memo": "Μήνυμα: {transactionMemo}",
       "subject": "Το ευχαριστώ σου έφτασε",
-      "title": "Το ευχαριστώ σου έφτασε"
+      "title": "Το ευχαριστώ σου έφτασε",
+      "yourThanksTo": "Το ευχαριστώ σου προς {recipientAlias}"
     },
     "transactionReceived": {
       "haveReceivedAmountGDDFrom": "μόλις έλαβες {transactionAmount} GDD από {senderAlias}.",

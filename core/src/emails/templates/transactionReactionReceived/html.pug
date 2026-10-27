@@ -4,21 +4,33 @@ block content
   h2= t('emails.transactionReactionReceived.title')
   .text-block
     include ../includes/salutation.pug
-    //- The one piece of news (W1, the first wave back): who was glad of the thank-you, and
-    //- how they showed it. The emoji stands in this sentence and nowhere else -- never in the
-    //- subject, which mail clients garble with an emoji in it. The subject and the heading are
-    //- the same words for every such mail; the sentence carries the name.
-    p= t('emails.transactionReactionReceived.hasEnjoyedYourThanks', { recipientAlias, recipientCommunity, emoji })
+    //- The one piece of news (W1, the first wave back): who was glad of the thank-you -- and
+    //- how they showed it, in a paragraph of its own and large, so that the reaction is what
+    //- the eye lands on (Bernd, 27.10.2026: at the end of the sentence it went unnoticed, and
+    //- the mail read like a second receipt of the transfer). The emoji stands here and nowhere
+    //- else -- never in the subject, which mail clients garble with an emoji in it. The subject
+    //- and the heading are the same words for every such mail; the sentence carries the name.
+    //- Its size as an inline style, not a rule in the shared stylesheet: that one stands in the
+    //- head of every mail the server sends.
+    p= t('emails.transactionReactionReceived.hasEnjoyedYourThanks', { recipientAlias, recipientCommunity })
+    p.reaction-emoji(style="font-size: 48px; line-height: 56px; margin: 8px 0 0 0;")= emoji
   .content
-    h2= t('emails.general.transactionDetails')
-    //- Which thank-you is meant: its amount and its memo, where there is one -- and no value
-    //- in another currency beside it.
+    //- Which thank-you is meant, named as the giver's own: the amount and, where there is one,
+    //- the memo -- and no value in another currency beside it. No "transaction details", and
+    //- no line that says what the two buttons below say (Bernd, 27.10.2026).
+    //- The alias stays whole: as a block that moves to the next line as one piece where the
+    //- heading does not fit ("Dein Dank an" / "Sarah-B" on a phone), and breaks inside only
+    //- where it is wider than the card by itself. The phrase is split at its placeholder, so
+    //- a language that puts the alias first (Turkish) gets the same.
+    - const [beforeAlias, afterAlias] = t('emails.transactionReactionReceived.yourThanksTo', { recipientAlias: '\u0000' }).split('\u0000')
+    h2
+      = beforeAlias
+      span.alias(style="display: inline-block; max-width: 100%; overflow-wrap: anywhere;")= recipientAlias
+      = afterAlias
     div(class="p_content")= t('emails.general.amountGDD', { amountGDD: transactionAmount })
       if transactionMemo
         br
         +humanText(t('emails.transactionReactionReceived.memo', { transactionMemo }))
-      br
-      = t('emails.general.detailsYouFindOnLinkToYourAccount')
 
     //- The way to the person who reacted: their conversation, where the transfer stands.
         Green and inside the card, as every button that leads to a person (webflow.css),

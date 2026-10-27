@@ -187,10 +187,11 @@
       "title": "{senderAlias} hat Deinen Dank angenommen"
     },
     "transactionReactionReceived": {
-      "hasEnjoyedYourThanks": "{recipientAlias} ({recipientCommunity}) hat sich über Deinen Dank gefreut: {emoji}",
+      "hasEnjoyedYourThanks": "{recipientAlias} ({recipientCommunity}) hat sich über Deinen Dank gefreut:",
       "memo": "Nachricht: {transactionMemo}",
       "subject": "Dein Dank ist angekommen",
-      "title": "Dein Dank ist angekommen"
+      "title": "Dein Dank ist angekommen",
+      "yourThanksTo": "Dein Dank an {recipientAlias}"
     },
     "transactionReceived": {
       "haveReceivedAmountGDDFrom": "Du hast soeben {transactionAmount} GDD erhalten von {senderAlias}.",

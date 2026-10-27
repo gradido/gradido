@@ -187,10 +187,11 @@
       "title": "Пользователь {senderAlias} принял вашу благодарность"
     },
     "transactionReactionReceived": {
-      "hasEnjoyedYourThanks": "Пользователь {recipientAlias} ({recipientCommunity}) обрадовался вашей благодарности: {emoji}",
+      "hasEnjoyedYourThanks": "Пользователь {recipientAlias} ({recipientCommunity}) обрадовался вашей благодарности:",
       "memo": "Сообщение: {transactionMemo}",
       "subject": "Ваша благодарность дошла",
-      "title": "Ваша благодарность дошла"
+      "title": "Ваша благодарность дошла",
+      "yourThanksTo": "Ваша благодарность пользователю {recipientAlias}"
     },
     "transactionReceived": {
       "haveReceivedAmountGDDFrom": "вы только что получили {transactionAmount} GDD от {senderAlias}.",

@@ -187,10 +187,11 @@
       "title": "{senderAlias} heeft je bedankje aangenomen"
     },
     "transactionReactionReceived": {
-      "hasEnjoyedYourThanks": "{recipientAlias} ({recipientCommunity}) was blij met je bedankje: {emoji}",
+      "hasEnjoyedYourThanks": "{recipientAlias} ({recipientCommunity}) was blij met je bedankje:",
       "memo": "Bericht: {transactionMemo}",
       "subject": "Je bedankje is aangekomen",
-      "title": "Je bedankje is aangekomen"
+      "title": "Je bedankje is aangekomen",
+      "yourThanksTo": "Je bedankje aan {recipientAlias}"
     },
     "transactionReceived": {
       "haveReceivedAmountGDDFrom": "je hebt zojuist {transactionAmount} GDD ontvangen van {senderAlias}.",
