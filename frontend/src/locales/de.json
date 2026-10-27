@@ -9,10 +9,6 @@
   "GDD": "GDD",
   "GDD-long": "Gradido",
   "GDT": "GDT",
-  "GMS": {
-    "desc": "Finde Mitglieder aller Communities auf einer Landkarte.",
-    "title": "Geo Matching System GMS (in Entwicklung)"
-  },
   "Humhub": {
     "desc": "Gemeinsam unterstützen wir einander –  achtsam in Kreiskultur.",
     "title": "Gradido-Kreise"
@@ -1346,19 +1342,12 @@
   },
   "settings": {
     "GMS": {
-      "disabled": "Daten werden nicht nach GMS exportiert",
-      "enabled": "Daten werden nach GMS exportiert",
       "location": {
-        "button": "Karte öffnen",
-        "label": "Dein Standort",
-        "saveLocation": "Standort speichern",
         "updateSuccess": "Standort erfolgreich gespeichert"
       },
-      "location-format": "Position auf Karte anzeigen:",
       "map": {
         "communityCoords": "Dein Gemeinschafts-Standort: Breitengrad {lat}, Längengrad {lng}",
         "communityLocationLabel": "Dein Gemeinschafts-Standort",
-        "headline": "Geografische Standorterfassung des Benutzers",
         "search": "Nach einem Standort suchen",
         "userCoords": "Dein Standort: Breitengrad {lat}, Längengrad {lng}",
         "userLocationLabel": "Dein Standort"
@@ -1375,7 +1364,7 @@
       "visibility": "Mein Bild anderen Mitgliedern zeigen",
       "visibilityInfo": "Andere Mitglieder sehen Dein Bild — zum Beispiel neben Euren gemeinsamen Buchungen. Wenn die Einstellung ausgeschaltet ist, erscheinen wie bisher Deine Anfangsbuchstaben."
     },
-    "community": "Kreise & Mitgliedssuche",
+    "community": "Kreise",
     "creationAccount": {
       "confirm": {
         "declare": "Auf Projekt-Konto umstellen",

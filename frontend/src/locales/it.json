@@ -9,10 +9,6 @@
   "GDD": "GDD",
   "GDD-long": "Gradido",
   "GDT": "GDT",
-  "GMS": {
-    "desc": "Trova i membri di tutte le comunità su una mappa.",
-    "title": "Geo Matching System GMS (in sviluppo)"
-  },
   "Humhub": {
     "desc": "Insieme ci sosteniamo a vicenda, con attenzione, nella cultura dei circoli.",
     "title": "Circoli Gradido"
@@ -1346,19 +1342,12 @@
   },
   "settings": {
     "GMS": {
-      "disabled": "I dati non vengono esportati verso il GMS",
-      "enabled": "I dati vengono esportati verso il GMS",
       "location": {
-        "button": "Apri la mappa",
-        "label": "La tua posizione",
-        "saveLocation": "Salva la posizione",
         "updateSuccess": "Posizione salvata con successo"
       },
-      "location-format": "Mostra la posizione sulla mappa:",
       "map": {
         "communityCoords": "La posizione della tua comunità: Latitudine {lat}, Longitudine {lng}",
         "communityLocationLabel": "La posizione della tua comunità",
-        "headline": "Rilevamento geografico della posizione dell'utente",
         "search": "Cerca una posizione",
         "userCoords": "La tua posizione: Latitudine {lat}, Longitudine {lng}",
         "userLocationLabel": "La tua posizione"
@@ -1375,7 +1364,7 @@
       "visibility": "Mostrare la mia immagine agli altri membri",
       "visibilityInfo": "Gli altri membri vedono la tua immagine, per esempio accanto alle transazioni che avete in comune. Quando l’impostazione è disattivata, compaiono le tue iniziali, come finora."
     },
-    "community": "Circoli e ricerca dei membri",
+    "community": "Circoli",
     "creationAccount": {
       "confirm": {
         "declare": "Passa a un account di progetto",

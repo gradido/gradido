@@ -9,10 +9,6 @@
   "GDD": "GDD",
   "GDD-long": "Gradido",
   "GDT": "GDT",
-  "GMS": {
-    "desc": "Tüm toplulukların üyelerini bir haritada bul.",
-    "title": "Coğrafi Eşleştirme Sistemi GMS (geliştirme aşamasında)"
-  },
   "Humhub": {
     "desc": "Birlikte birbirimizi destekliyoruz – çember kültüründe özenle.",
     "title": "Gradido-Çemberleri"
@@ -1346,19 +1342,12 @@
   },
   "settings": {
     "GMS": {
-      "disabled": "Veriler GMS'e aktarılmıyor",
-      "enabled": "Veriler GMS'e aktarılıyor",
       "location": {
-        "button": "Haritayı aç",
-        "label": "Tam konum",
-        "saveLocation": "Konumu Kaydet",
         "updateSuccess": "Konum başarıyla kaydedildi"
       },
-      "location-format": "Konumu haritada göster:",
       "map": {
         "communityCoords": "Topluluk konumu: Enlem {lat}, Boylam {lng}",
         "communityLocationLabel": "Topluluk konumu",
-        "headline": "Kullanıcının Coğrafi Konum Tespiti",
         "search": "Konum ara",
         "userCoords": "Konumun: Enlem {lat}, Boylam {lng}",
         "userLocationLabel": "Konumun"
@@ -1375,7 +1364,7 @@
       "visibility": "Resmimi diğer üyelere göster",
       "visibilityInfo": "Diğer üyeler resmini, örneğin paylaştığın işlemlerin yanında görür. Ayar kapalıyken şimdiye kadar olduğu gibi baş harflerin görünür."
     },
-    "community": "Çemberler & Üye arama",
+    "community": "Çemberler",
     "creationAccount": {
       "confirm": {
         "declare": "Proje hesabına geç",

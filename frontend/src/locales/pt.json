@@ -9,10 +9,6 @@
   "GDD": "GDD",
   "GDD-long": "Gradido",
   "GDT": "GDT",
-  "GMS": {
-    "desc": "Encontra membros de todas as comunidades num mapa.",
-    "title": "Geo Matching System GMS (em desenvolvimento)"
-  },
   "Humhub": {
     "desc": "Juntos apoiamo-nos uns aos outros – atentos numa cultura de círculo.",
     "title": "Círculos Gradido"
@@ -1346,19 +1342,12 @@
   },
   "settings": {
     "GMS": {
-      "disabled": "Os dados não são exportados para o GMS",
-      "enabled": "Os dados são exportados para o GMS",
       "location": {
-        "button": "Abrir mapa",
-        "label": "A tua localização",
-        "saveLocation": "Guardar localização",
         "updateSuccess": "Localização guardada com sucesso"
       },
-      "location-format": "Mostrar posição no mapa:",
       "map": {
         "communityCoords": "A localização da tua comunidade: Lat {lat}, Lng {lng}",
         "communityLocationLabel": "A localização da tua comunidade",
-        "headline": "Captura geográfica da localização do utilizador",
         "search": "Procurar uma localização",
         "userCoords": "A tua localização: Lat {lat}, Lng {lng}",
         "userLocationLabel": "A tua localização"
@@ -1375,7 +1364,7 @@
       "visibility": "Mostrar a minha imagem a outros membros",
       "visibilityInfo": "Os outros membros veem a tua imagem, por exemplo ao lado das transações que partilham. Quando a definição está desligada, aparecem as tuas iniciais, como até agora."
     },
-    "community": "Círculos e pesquisa de membros",
+    "community": "Círculos",
     "creationAccount": {
       "confirm": {
         "declare": "Mudar para conta de projeto",
