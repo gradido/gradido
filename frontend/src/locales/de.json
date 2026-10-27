@@ -235,6 +235,18 @@
     "sentMailed": "Gesendet. {name} bekommt eine E-Mail.",
     "toConversation": "Zum Gespräch"
   },
+  "chatNote": {
+    "done": "Fertig",
+    "failed": "Nicht gespeichert.",
+    "loadFailed": "Die Notiz konnte nicht geladen werden.",
+    "placeholderGroup": "Was möchtest Du Dir zu dieser Gruppe merken?",
+    "placeholderMember": "Was möchtest Du Dir zu {name} merken? Zum Beispiel den vollen Namen.",
+    "private": "Nur Du siehst sie.",
+    "retry": "Nochmal versuchen",
+    "saved": "Gespeichert",
+    "saving": "Wird gespeichert …",
+    "title": "Meine Notiz"
+  },
   "chatPreview": {
     "by": "{name}:"
   },

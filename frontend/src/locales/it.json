@@ -235,6 +235,18 @@
     "sentMailed": "Inviato. {name} riceve un'e-mail.",
     "toConversation": "Vai alla conversazione"
   },
+  "chatNote": {
+    "done": "Fatto",
+    "failed": "Non salvato.",
+    "loadFailed": "Non è stato possibile caricare la nota.",
+    "placeholderGroup": "Cosa vuoi ricordare di questo gruppo?",
+    "placeholderMember": "Cosa vuoi ricordare di {name}? Per esempio, il nome completo.",
+    "private": "La vedi solo tu.",
+    "retry": "Riprova",
+    "saved": "Salvato",
+    "saving": "Salvataggio …",
+    "title": "La mia nota"
+  },
   "chatPreview": {
     "by": "{name}:"
   },

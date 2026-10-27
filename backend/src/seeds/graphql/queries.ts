@@ -1288,6 +1288,12 @@ export const chatVideoServers = gql`
   }
 `
 
+export const userNote = gql`
+  query ($about: UserNoteSubjectInput!) {
+    userNote(about: $about)
+  }
+`
+
 export const favoriteList = gql`
   query {
     favoriteList {

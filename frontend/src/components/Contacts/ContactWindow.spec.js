@@ -6,6 +6,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
 import ContactWindow from './ContactWindow.vue'
 import { chatVideoRoom, chatVideoServerChoices } from '@/graphql/chat.graphql'
+import { userNoteQuery } from '@/graphql/userNotes.graphql'
 import { withChatVideoTopic } from '@/utils/chatVideoTopic'
 import { CHAT_VIDEO_JOIN } from '@/utils/chatVideoApp'
 
@@ -75,12 +76,24 @@ const serverRooms = vi.fn()
  * `client.query` as well): a test decides; unanswered, the choice is "at random" only.
  */
 const serverChoices = vi.fn()
+/**
+ * What the server answers to the question for the member's own note on the person (`client.query`
+ * as well, useChatWindowNote): a test decides; unanswered, there is none. And what it answers when
+ * the note is saved (`client.mutate`).
+ */
+const serverNote = vi.hoisted(() => vi.fn())
+const serverNoteSaves = vi.hoisted(() => vi.fn())
 vi.mock('@vue/apollo-composable', () => ({
   useMutation: () => ({ mutate: (variables) => serverMutes(variables) }),
   useApolloClient: () => ({
     client: {
       query: (options) =>
-        options.query === chatVideoServerChoices ? serverChoices(options) : serverRooms(options),
+        options.query === userNoteQuery
+          ? serverNote(options)
+          : options.query === chatVideoServerChoices
+            ? serverChoices(options)
+            : serverRooms(options),
+      mutate: (options) => serverNoteSaves(options),
     },
   }),
 }))
@@ -140,6 +153,13 @@ let searchSteps = []
 
 describe('ContactWindow', () => {
   let wrapper
+
+  beforeEach(() => {
+    serverNote.mockReset()
+    serverNote.mockResolvedValue({ data: { userNote: null } })
+    serverNoteSaves.mockReset()
+    serverNoteSaves.mockResolvedValue({ data: { setUserNote: true } })
+  })
 
   const mountWindow = (contact = CONTACT, extra = {}) => {
     wrapper = mount(ContactWindow, {
@@ -219,8 +239,9 @@ describe('ContactWindow', () => {
                 searchSteps.push(direction)
               },
             },
+            // The window lays the member's note over the thread through the slot `cover`.
             template:
-              '<div data-test="chat-thread" :data-who="member.gradidoID" :data-community="String(member.communityUuid)" :data-alias="alias" :data-key="memberKey" :data-greeting="greeting" :data-text-only="String(textOnly)" :data-search="search" />',
+              '<div data-test="chat-thread" :data-who="member.gradidoID" :data-community="String(member.communityUuid)" :data-alias="alias" :data-key="memberKey" :data-greeting="greeting" :data-text-only="String(textOnly)" :data-search="search"><slot name="cover" /></div>',
           },
           // The dialog reads the server and has a spec of its own; here it says what it was
           // opened with.
@@ -339,6 +360,110 @@ describe('ContactWindow', () => {
       await size().trigger('click')
       expect(wrapper.emitted('update:modelValue')).toBeUndefined()
       expect(threadsMade).toEqual(['carla-id'])
+    })
+  })
+
+  /**
+   * The member's own note on the person (Bernd, 27.10.2026): a button at the row's left end,
+   * beside the magnifier, that comes with the answer to the question for the note; a tap lays the
+   * note over the conversation. Saving has its own spec (useChatWindowNote.spec.js).
+   */
+  describe('the note', () => {
+    const noteButton = () => wrapper.find('[data-test="contact-window-note"]')
+    const panel = () => wrapper.find('[data-test="chat-note"]')
+
+    it('asks for the note on the person, by the pair the heart names', async () => {
+      mountWindow()
+      await flushPromises()
+      expect(serverNote).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variables: { about: { member: { gradidoID: 'carla-id', communityUuid: 'home-uuid' } } },
+        }),
+      )
+    })
+
+    it('names a member without a community by this community', async () => {
+      mountWindow({ user: { gradidoID: 'carla-id', alias: 'Carla-Sonne' } })
+      await flushPromises()
+      expect(serverNote).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variables: { about: { member: { gradidoID: 'carla-id', communityUuid: 'HOME-UUID' } } },
+        }),
+      )
+    })
+
+    // At the left end the button comes into free room: the magnifier, the switch and the cross
+    // stay where they stood before it came.
+    it('comes with the answer, at the left end of the row, beside the magnifier', async () => {
+      let answer
+      serverNote.mockReturnValueOnce(new Promise((resolve) => (answer = resolve)))
+      mountWindow()
+      await flushPromises()
+      expect(noteButton().exists()).toBe(false)
+      answer({ data: { userNote: null } })
+      await flushPromises()
+      const row = wrapper.find('.contact-window-top').element.children
+      expect(row[0].getAttribute('data-test')).toBe('contact-window-note')
+      expect(row[1].getAttribute('data-test')).toBe('contact-window-search')
+      expect(noteButton().attributes('aria-label')).toBe('chatNote.title')
+      expect(noteButton().attributes('aria-pressed')).toBe('false')
+    })
+
+    // The shape says it, not a colour.
+    it('is drawn filled where there is a note, as an outline where there is none', async () => {
+      mountWindow()
+      await flushPromises()
+      expect(noteButton().find('i-mdi-note-text-outline').exists()).toBe(true)
+      wrapper.unmount()
+
+      serverNote.mockResolvedValueOnce({ data: { userNote: 'Carla Sonnenschein' } })
+      mountWindow()
+      await flushPromises()
+      expect(noteButton().find('i-mdi-note-text').exists()).toBe(true)
+      expect(noteButton().find('i-mdi-note-text-outline').exists()).toBe(false)
+    })
+
+    it('is not there in the window`s first form, as the magnifier is not', async () => {
+      mountWindow(CONTACT, { firstContact: true })
+      await flushPromises()
+      expect(noteButton().exists()).toBe(false)
+      expect(wrapper.find('[data-test="contact-window-search"]').exists()).toBe(false)
+    })
+
+    it('lays the note over the conversation, with the words the server holds', async () => {
+      serverNote.mockResolvedValueOnce({ data: { userNote: 'Carla Sonnenschein' } })
+      mountWindow()
+      await flushPromises()
+      await noteButton().trigger('click')
+      expect(noteButton().attributes('aria-pressed')).toBe('true')
+      expect(wrapper.find('[data-test="chat-thread"] [data-test="chat-note"]').exists()).toBe(true)
+      expect(wrapper.find('[data-test="chat-note-field"]').element.value).toBe('Carla Sonnenschein')
+      expect(wrapper.find('[data-test="chat-note-field"]').attributes('placeholder')).toBe(
+        'chatNote.placeholderMember {"name":"Carla-Sonne"}',
+      )
+    })
+
+    it('closes with "Done"', async () => {
+      mountWindow()
+      await flushPromises()
+      await noteButton().trigger('click')
+      await wrapper.find('[data-test="chat-note-done"]').trigger('click')
+      await flushPromises()
+      expect(panel().exists()).toBe(false)
+      expect(noteButton().attributes('aria-pressed')).toBe('false')
+    })
+
+    it('closes the search when it opens, and the search closes it', async () => {
+      mountWindow()
+      await flushPromises()
+      const magnifier = () => wrapper.find('[data-test="contact-window-search"]')
+      await magnifier().trigger('click')
+      await noteButton().trigger('click')
+      expect(wrapper.find('[data-test="chat-search"]').exists()).toBe(false)
+      expect(panel().exists()).toBe(true)
+      await magnifier().trigger('click')
+      expect(panel().exists()).toBe(false)
+      expect(wrapper.find('[data-test="chat-search"]').exists()).toBe(true)
     })
   })
 

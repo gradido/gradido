@@ -52,6 +52,25 @@
            ⚠️ `$t('form.close')` as the accessible name, not the glyph: a screen reader
            reading "times" or nothing at all is what a bare × amounts to. -->
       <div class="contact-window-top">
+        <!-- The member's own note on this person (Bernd, 27.10.2026): beside the magnifier, at
+             the row's left end. It comes with the answer to the question for the note, and comes
+             there into free room, moving nothing; with the magnifier, not in the first form.
+             Filled where there is a note: the shape says it, not a colour. -->
+        <button
+          v-if="!firstForm && noteReady"
+          ref="noteToggle"
+          type="button"
+          class="contact-window-note-toggle"
+          :class="{ 'is-on': noteOpen }"
+          :aria-label="$t('chatNote.title')"
+          :title="$t('chatNote.title')"
+          :aria-pressed="noteOpen ? 'true' : 'false'"
+          data-test="contact-window-note"
+          @click="toggleNoteHere"
+        >
+          <i-mdi-note-text v-if="hasNote" aria-hidden="true" />
+          <i-mdi-note-text-outline v-else aria-hidden="true" />
+        </button>
         <!-- The search in the conversation (Bernd, 30.09.2026, E-057): the magnifier by the cross
              opens the bar below it and closes it again. Not in the window's
              first form: there is nothing to search yet. -->
@@ -65,7 +84,7 @@
           :title="$t('chatSearch.open')"
           :aria-pressed="searchOpen ? 'true' : 'false'"
           data-test="contact-window-search"
-          @click="toggleSearch"
+          @click="toggleSearchHere"
         >
           <i-mdi-magnify aria-hidden="true" />
         </button>
@@ -313,6 +332,7 @@
         :key="threadKey"
         ref="thread"
         class="contact-window-thread"
+        :class="{ 'is-covered': noteOpen }"
         :member="contact.user"
         :member-key="threadKey"
         :alias="alias"
@@ -325,7 +345,19 @@
         @edit-video="videoCall?.edit($event)"
         @forward-message="forwardMessage"
         @thank="toSend"
-      />
+      >
+        <template #cover>
+          <chat-note
+            v-if="noteOpen"
+            :model-value="noteText"
+            :placeholder="$t('chatNote.placeholderMember', { name: alias })"
+            :status="noteStatus"
+            @update:model-value="typeNote"
+            @retry="retryNote"
+            @close="closeNote"
+          />
+        </template>
+      </chat-thread>
 
       <!-- The two questions of a video call -- starting one, and joining one from its link in the
            thread (V2 ... V5b) -- in a component of their own, since a group's window asks them too
@@ -361,6 +393,7 @@ import ChatForwardDialog from '@/components/Chat/ChatForwardDialog.vue'
 import ChatSearchBar from '@/components/Chat/ChatSearchBar.vue'
 import ChatThread from '@/components/Chat/ChatThread.vue'
 import ChatVideoCall from '@/components/Chat/ChatVideoCall.vue'
+import ChatNote from '@/components/Chat/ChatNote.vue'
 import ChatWindowSizeToggle from '@/components/Chat/ChatWindowSizeToggle.vue'
 import FavoriteHeart from '@/components/FavoriteHeart.vue'
 import {
@@ -372,6 +405,7 @@ import {
 import { setChatConversationMuted } from '@/graphql/chat.graphql'
 import { useAppToast } from '@/composables/useToast'
 import { useChatWindowSearch } from '@/composables/useChatWindowSearch'
+import { useChatWindowNote } from '@/composables/useChatWindowNote'
 import { useChatWindowSize } from '@/composables/useChatWindowSize'
 import { useContactOnMap } from '@/composables/useContactOnMap'
 import { gradidoAddress } from '@/utils/gradidoAddress'
@@ -443,6 +477,45 @@ const threadKey = computed(() => chatMemberKey(props.contact?.user, store.commun
 /** The search in the conversation (E-057, useChatWindowSearch): closed with the window, and anew for another person. */
 const { searchOpen, searchTyped, searchFound, searchToggle, toggleSearch, closeSearch, takeFound } =
   useChatWindowSearch(() => props.modelValue, threadKey)
+
+/**
+ * The member's own note on this person (useChatWindowNote): asked for whenever the window opens
+ * on somebody, closed with the window, and anew for another person. The pair as the heart names
+ * it, a member of this community with this community's uuid (as chatMemberKey reads them).
+ */
+const {
+  noteOpen,
+  noteText,
+  noteStatus,
+  noteReady,
+  hasNote,
+  noteToggle,
+  typeNote,
+  retryNote,
+  toggleNote,
+  closeNote,
+} = useChatWindowNote(
+  () => props.modelValue,
+  () => {
+    const user = props.contact?.user
+    if (!user?.gradidoID) return null
+    return {
+      member: {
+        gradidoID: user.gradidoID,
+        communityUuid: user.communityUuid ?? store.communityUuid ?? null,
+      },
+    }
+  },
+)
+/** Note and search take turns: the one that opens closes the other. */
+const toggleNoteHere = () => {
+  if (!noteOpen.value) closeSearch({ focus: false })
+  toggleNote()
+}
+const toggleSearchHere = () => {
+  if (!searchOpen.value) closeNote({ focus: false })
+  toggleSearch()
+}
 
 /**
  * Whether the window stands large (E-077, useChatWindowSize): the switch beside the magnifier
@@ -843,7 +916,8 @@ onBeforeUnmount(() => {
 
 /* The magnifier (E-057) beside the cross and drawn as it is; while the search is open it stands
    pressed, in the link's colour -- the same button closes the search again. */
-.contact-window-search-toggle {
+.contact-window-search-toggle,
+.contact-window-note-toggle {
   appearance: none;
   border: 0;
   background: transparent;
@@ -856,12 +930,21 @@ onBeforeUnmount(() => {
 }
 
 .contact-window-search-toggle:hover,
-.contact-window-search-toggle:focus-visible {
+.contact-window-search-toggle:focus-visible,
+.contact-window-note-toggle:hover,
+.contact-window-note-toggle:focus-visible {
   color: var(--bs-body-color);
 }
 
-.contact-window-search-toggle.is-on {
+.contact-window-search-toggle.is-on,
+.contact-window-note-toggle.is-on {
   color: rgba(var(--bs-link-color-rgb), 1);
+}
+
+/* While the note lies over the conversation, the conversation's box is at least this high: a
+   short thread would leave the note a sliver. */
+.contact-window-thread.is-covered {
+  min-height: 17rem;
 }
 
 /* The search bar (ChatSearchBar) under the line of the magnifier, above the head. */

@@ -235,6 +235,18 @@
     "sentMailed": "Sent. {name} gets an e-mail.",
     "toConversation": "To the conversation"
   },
+  "chatNote": {
+    "done": "Done",
+    "failed": "Not saved.",
+    "loadFailed": "The note could not be loaded.",
+    "placeholderGroup": "What would you like to remember about this group?",
+    "placeholderMember": "What would you like to remember about {name}? For example, their full name.",
+    "private": "Only you can see it.",
+    "retry": "Try again",
+    "saved": "Saved",
+    "saving": "Saving …",
+    "title": "My note"
+  },
   "chatPreview": {
     "by": "{name}:"
   },

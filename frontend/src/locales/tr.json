@@ -235,6 +235,18 @@
     "sentMailed": "Gönderildi. {name} bir e-posta alacak.",
     "toConversation": "Sohbete git"
   },
+  "chatNote": {
+    "done": "Tamam",
+    "failed": "Kaydedilmedi.",
+    "loadFailed": "Not yüklenemedi.",
+    "placeholderGroup": "Bu grup hakkında neyi hatırlamak istiyorsun?",
+    "placeholderMember": "{name} hakkında neyi hatırlamak istiyorsun? Örneğin tam adını.",
+    "private": "Yalnızca sen görüyorsun.",
+    "retry": "Yeniden dene",
+    "saved": "Kaydedildi",
+    "saving": "Kaydediliyor …",
+    "title": "Notum"
+  },
   "chatPreview": {
     "by": "{name}:"
   },
