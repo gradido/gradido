@@ -896,7 +896,11 @@ describe('sendEmailVariants', () => {
 
       it('says who was glad, with the emoji, and leads into the conversation with them', () => {
         const html: string = result.originalMessage.html
-        expect(html).toContain('<p>bibi (Bloxberg) was happy about your thank-you: 🙏</p>')
+        expect(html).toContain('<p>bibi (Bloxberg) was happy about your thank-you:</p>')
+        expect(html).toContain('>🙏</p>')
+        expect(html).toMatch(
+          /<h2[^>]*>Your thank-you to <span class="alias"[^>]*>bibi<\/span>\s*<\/h2>/,
+        )
         expect(html).toContain(
           `${CONFIG.COMMUNITY_URL}/contacts?with=3f9a1e2c-1111-4a2b-9c3d-000000000001&amp;community=aaaa1111-2222-4333-8444-555566667777`,
         )

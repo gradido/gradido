@@ -47,8 +47,8 @@ import SettingsMenuIcon from './SettingsMenuIcon.vue'
 const { t } = useI18n()
 const store = useWalletStore()
 
-// Read once: the flags are baked in at build time, they cannot change while the app runs.
-const isCommunityService = CONFIG.GMS_LEGACY_ACTIVE || CONFIG.HUMHUB_ACTIVE
+// Read once: the flag is baked in at build time, it cannot change while the app runs.
+const isCirclesActive = CONFIG.HUMHUB_ACTIVE
 
 /**
  * The only state that is not already in the store. Two small queries, asked once when the
@@ -152,16 +152,14 @@ const entries = computed(() => {
       state: notificationsState.value,
     },
   ]
-  // The area is on its way out with the matching, and where neither service is switched on it
-  // does not exist at all -- so the entry goes, and the route is not registered either.
-  // ⚠️ No state: there are TWO switches behind it (GMS and HumHub), and one word cannot say
-  // what two switches stand at.
+  // The circles only: the old GMS member search that shared this area is gone, and its
+  // settings are the matching's (home tab). Where HumHub is not switched on the area does not
+  // exist at all -- so the entry goes, and the route is not registered either.
   //
-  // ⛔ And no "(will be dropped later)" either. That note was written for US -- it kept the
-  // area from being quietly made permanent -- but it was standing in the MEMBER's menu, where
-  // it only raises a question nobody can answer: dropped why? A screen is not a notebook.
-  // (Bernd, 24.08.2026.)
-  if (isCommunityService) {
+  // ⛔ No "(will be dropped later)". Such a note is written for US, but it would stand in the
+  // MEMBER's menu, where it only raises a question nobody can answer: dropped why? A screen is
+  // not a notebook. (Bernd, 24.08.2026.)
+  if (isCirclesActive) {
     list.push({
       to: '/settings/communities',
       test: 'communities',

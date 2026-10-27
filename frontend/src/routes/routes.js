@@ -146,10 +146,11 @@ const settingsRoutes = [
     component: () => import('@/pages/settings/FunctionTests.vue'),
     meta: { requiresAuth: true, settingsChrome: true, pageTitle: 'settings' },
   },
-  // The area exists only where one of the two services is switched on -- otherwise the page
-  // would stand empty and still be reachable by typing the address. Same reason the matching
-  // routes above are not registered without their flag.
-  ...(CONFIG.GMS_LEGACY_ACTIVE || CONFIG.HUMHUB_ACTIVE
+  // The circles exist only where HumHub is switched on -- otherwise the page would stand empty
+  // and still be reachable by typing the address. Same reason the matching routes above are
+  // not registered without their flag. (The old GMS member search shared this area until it
+  // was taken out; its settings are the matching's now.)
+  ...(CONFIG.HUMHUB_ACTIVE
     ? [
         {
           path: '/settings/communities',
@@ -159,14 +160,13 @@ const settingsRoutes = [
       ]
     : []),
   // The old address, and the only settings address that resolves in EVERY configuration --
-  // which is why the news entries point here rather than at the area itself. Where neither
-  // service is switched on the circles area is not registered at all, so a redirect straight
-  // to it would land on "not found"; before this rebuild the same link opened the settings.
+  // which is why the news entries point here rather than at the area itself. Where HumHub is
+  // not switched on the circles area is not registered at all, so a redirect straight to it
+  // would land on "not found"; before this rebuild the same link opened the settings.
   {
     path: '/settings/extern',
     redirect: () => ({
-      path:
-        CONFIG.GMS_LEGACY_ACTIVE || CONFIG.HUMHUB_ACTIVE ? '/settings/communities' : '/settings',
+      path: CONFIG.HUMHUB_ACTIVE ? '/settings/communities' : '/settings',
     }),
   },
 ]
@@ -396,14 +396,6 @@ const routes = [
     meta: {
       requiresAuth: true,
       pageTitle: 'information',
-    },
-  },
-  {
-    path: '/usersearch',
-    component: () => import('@/pages/UserSearch'),
-    meta: {
-      requiresAuth: true,
-      pageTitle: 'usersearch',
     },
   },
   // {

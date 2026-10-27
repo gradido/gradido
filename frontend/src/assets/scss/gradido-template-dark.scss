@@ -141,16 +141,6 @@ html:has(body.dark-mode) {
   color: var(--text) !important;
 }
 
-// Overview member-search tile: swap the light map screenshot for a crop of the
-// new dark glow-field map, so the tile fits the dark canvas (and previews the
-// coming GMS map). The scoped .container rule carries !important, so this needs
-// the #app.dark-mode weight.
-#app.dark-mode .card-user-search .container {
-  background-image: url('/img/svg/usersearchmap_dark.jpg') !important;
-  background-size: cover !important;
-  background-position: center !important;
-}
-
 // Overview watermark cards (Kreise / Community-News) use the same near-white
 // leaves SVG -> dark variant so they are not bright shapes on the dark canvas.
 #app.dark-mode .card-circles .card,

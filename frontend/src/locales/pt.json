@@ -9,10 +9,6 @@
   "GDD": "GDD",
   "GDD-long": "Gradido",
   "GDT": "GDT",
-  "GMS": {
-    "desc": "Encontra membros de todas as comunidades num mapa.",
-    "title": "Geo Matching System GMS (em desenvolvimento)"
-  },
   "Humhub": {
     "desc": "Juntos apoiamo-nos uns aos outros – atentos numa cultura de círculo.",
     "title": "Círculos Gradido"
@@ -127,19 +123,6 @@
       "button": "Configurar..."
     },
     "text": "Círculos locais, círculos de estudo, projetos, eventos e congressos"
-  },
-  "card-user-search": {
-    "allowed": {
-      "button": "Abrir pesquisa de membros...",
-      "disabled-button": "GMS offline...",
-      "text": "Encontra membros de todas as comunidades num mapa."
-    },
-    "headline": "Pesquisa geográfica de membros (beta)",
-    "info": "Como funciona",
-    "not-allowed": {
-      "button": "Introduzir localização...",
-      "text": "Para encontrares outros membros na tua área, introduz agora a tua localização no mapa!"
-    }
   },
   "chatForward": {
     "byEmailMany": "Também por e-mail para os {count} contactos",
@@ -1247,8 +1230,7 @@
     "settings": "Definições",
     "show-friends": "Mostra aos teus amigos",
     "thank-you-greeting": "Postal de agradecimento",
-    "transactions": "As tuas transações",
-    "usersearch": "Pesquisa geográfica de membros (beta)"
+    "transactions": "As tuas transações"
   },
   "public-profile": {
     "address": "Endereço Gradido",
@@ -1346,22 +1328,11 @@
   },
   "settings": {
     "GMS": {
-      "disabled": "Os dados não são exportados para o GMS",
-      "enabled": "Os dados são exportados para o GMS",
       "location": {
-        "button": "Abrir mapa",
-        "label": "A tua localização",
-        "saveLocation": "Guardar localização",
         "updateSuccess": "Localização guardada com sucesso"
       },
-      "location-format": "Mostrar posição no mapa:",
       "map": {
-        "communityCoords": "A localização da tua comunidade: Lat {lat}, Lng {lng}",
-        "communityLocationLabel": "A localização da tua comunidade",
-        "headline": "Captura geográfica da localização do utilizador",
-        "search": "Procurar uma localização",
-        "userCoords": "A tua localização: Lat {lat}, Lng {lng}",
-        "userLocationLabel": "A tua localização"
+        "search": "Procurar uma localização"
       },
       "publish-location": {
         "approximate": "posição aproximada",
@@ -1375,7 +1346,7 @@
       "visibility": "Mostrar a minha imagem a outros membros",
       "visibilityInfo": "Os outros membros veem a tua imagem, por exemplo ao lado das transações que partilham. Quando a definição está desligada, aparecem as tuas iniciais, como até agora."
     },
-    "community": "Círculos e pesquisa de membros",
+    "community": "Círculos",
     "creationAccount": {
       "confirm": {
         "declare": "Mudar para conta de projeto",
@@ -1798,11 +1769,6 @@
   },
   "transaction-link": {
     "send_you": "envia-te"
-  },
-  "usersearch": {
-    "button": "Iniciar a pesquisa de utilizadores...",
-    "headline": "Pesquisa geográfica de utilizadores",
-    "text": "Não importa a que comunidade pertenças, com o Geo Matching System encontras membros de todas as comunidades num mapa. Podes filtrar por ofertas e necessidades e ver os utilizadores que combinam contigo.\n\nO botão abre uma nova janela do navegador onde os utilizadores na tua área são apresentados num mapa."
   },
   "via_card": "através de um cartão",
   "via_greeting": "através de um postal",

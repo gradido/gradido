@@ -95,32 +95,49 @@ describe('the mail about a first reaction', () => {
     })
   })
 
+  // The reaction is what the eye lands on (Bernd, 27.10.2026): a paragraph of its own under
+  // the sentence, three times the size of the text -- not the tail of the sentence.
   it.each([
     ['of four bytes', HANDS],
     ['of two bytes', HEART],
-  ])('says who was glad, and shows the emoji %s in the sentence', async (_bytes, emoji) => {
-    const mail = await sent({ emoji })
+  ])(
+    'says who was glad, and shows the emoji %s large, in a paragraph of its own',
+    async (_bytes, emoji) => {
+      const mail = await sent({ emoji })
 
-    expect(mail.html).toContain(
-      `<p>Sarah-B (KI Playground) hat sich über Deinen Dank gefreut: ${emoji}</p>`,
-    )
-    expect(mail.text).toContain(
-      `Sarah-B (KI Playground) hat sich über Deinen Dank gefreut: ${emoji}`,
-    )
-    // Once, in the sentence -- and nowhere else in the html but the stylesheet-free body.
-    expect(mail.html.split(emoji)).toHaveLength(2)
-  })
+      expect(mail.html).toContain(
+        '<p>Sarah-B (KI Playground) hat sich über Deinen Dank gefreut:</p>',
+      )
+      expect(mail.html).toMatch(
+        new RegExp(`<p class="reaction-emoji" style="[^"]*font-size: 48px;[^"]*">${emoji}</p>`),
+      )
+      // In the text of the mail on a line of its own under the sentence.
+      expect(mail.text).toMatch(new RegExp(`hat sich über Deinen Dank gefreut:\\s*\\n\\s*${emoji}`))
+      // Once, in that paragraph -- and nowhere else in the html.
+      expect(mail.html.split(emoji)).toHaveLength(2)
+    },
+  )
 
-  // The card as the mail about an accepted link has it: which thank-you is meant.
-  it('keeps the card: the amount, the memo with its line breaks, the way to the details', async () => {
+  // The card names the thank-you as the giver's own (Bernd, 27.10.2026: "Transaktionsdetails"
+  // read formal, and the line about the details said what the two buttons say).
+  it('names the card "Dein Dank an …": the amount, the memo with its line breaks, nothing of a transaction', async () => {
     const mail = await sent({ transactionMemo: 'Danke für die Bank.\nSie steht wieder wie neu.' })
 
-    expect(mail.html).toContain('>Transaktionsdetails</h2>')
+    // juice writes the heading's style onto it, and pug a line break before the closing tag.
+    expect(mail.html).toMatch(
+      /<h2[^>]*>Dein Dank an <span class="alias"[^>]*>Sarah-B<\/span>\s*<\/h2>/,
+    )
+    // The alias as a block: it moves to the next line whole where the heading does not fit, and
+    // breaks inside only where it is wider than the card by itself (measured at 390 px).
+    expect(mail.html).toMatch(
+      /<span class="alias" style="display: inline-block; max-width: 100%; overflow-wrap: anywhere;">/,
+    )
+    expect(mail.html).not.toContain('Transaktionsdetails')
     expect(mail.html).toContain('Betrag: 12,50 GDD')
     expect(mail.html).toMatch(
       /<span class="human-text"[^>]*>Nachricht: Danke für die Bank\.\nSie steht wieder wie neu\.<\/span>/,
     )
-    expect(mail.html).toContain('Details zur Transaktion findest Du in Deinem Gradido-Konto.')
+    expect(mail.html).not.toContain('Details zur Transaktion')
     expect(mail.html).toContain('Bitte antworte nicht auf diese E-Mail.')
   })
 
@@ -140,7 +157,7 @@ describe('the mail about a first reaction', () => {
     expect(mail.html).not.toContain('Nachricht:')
     expect(mail.html).not.toContain('class="human-text"')
     expect(mail.html).toContain('Betrag: 12,50 GDD')
-    expect(mail.html).toContain('Details zur Transaktion findest Du in Deinem Gradido-Konto.')
+    expect(mail.html).toContain('Dein Dank an <span class="alias"')
   })
 
   describe('the button into the conversation', () => {
@@ -170,7 +187,7 @@ describe('the mail about a first reaction', () => {
 
       const order = [
         at('<div class="content"'),
-        at('Details zur Transaktion findest Du'),
+        at('Betrag: 12,50 GDD'),
         at('<div><a class="button-5"'),
         at('</a></div><a class="button-3"'),
         at('>Zum Konto</a>'),
@@ -226,8 +243,9 @@ describe('the mail about a first reaction', () => {
       expect(mail.html).toContain(`href="${CONFIG.COMMUNITY_URL}/transactions"`)
       expect(mail.html).toContain('>Zum Konto</a>')
       expect(mail.html).toContain(
-        `<p>Sarah-B (KI Playground) hat sich über Deinen Dank gefreut: ${HANDS}</p>`,
+        '<p>Sarah-B (KI Playground) hat sich über Deinen Dank gefreut:</p>',
       )
+      expect(mail.html).toContain(`>${HANDS}</p>`)
     })
   })
 })
@@ -252,10 +270,7 @@ describe('the mail about a first reaction, in every language', () => {
   const catalogue = (language: string): Catalogue =>
     JSON.parse(readFileSync(join(__dirname, '..', 'locales', `${language}.json`), 'utf8'))
   const filled = (sentence: string) =>
-    sentence
-      .replace('{recipientAlias}', 'Sarah-B')
-      .replace('{recipientCommunity}', 'KI Playground')
-      .replace('{emoji}', HANDS)
+    sentence.replace('{recipientAlias}', 'Sarah-B').replace('{recipientCommunity}', 'KI Playground')
   // Pug writes these three as entities in a text; the catalogues use the first of them.
   const inHtml = (text: string) =>
     text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -277,7 +292,7 @@ describe('the mail about a first reaction, in every language', () => {
     return result.originalMessage as { subject: string; html: string; text: string }
   }
 
-  it('has the four texts of this mail in every catalogue, and no key on stock', () => {
+  it('has the five texts of this mail in every catalogue, and no key on stock', () => {
     for (const language of LANGUAGES) {
       const { emails } = catalogue(language)
       expect(Object.keys(emails.transactionReactionReceived).sort()).toEqual([
@@ -285,13 +300,14 @@ describe('the mail about a first reaction, in every language', () => {
         'memo',
         'subject',
         'title',
+        'yourThanksTo',
       ])
       expect(emails.general.toConversation, language).toBeTruthy()
     }
   })
 
   it.each(LANGUAGES)(
-    'says the sentence of the catalogue, both names and the emoji set in: %s',
+    'says the sentence of the catalogue with both names, the emoji under it, and names the card: %s',
     async (language) => {
       const texts = catalogue(language).emails.transactionReactionReceived
       const mail = await mailIn(language)
@@ -299,10 +315,21 @@ describe('the mail about a first reaction, in every language', () => {
       expect(mail.subject).toBe(texts.subject)
       expect(mail.html).toContain(`>${inHtml(texts.title)}</h2>`)
       expect(mail.html).toContain(`<p>${inHtml(filled(texts.hasEnjoyedYourThanks))}</p>`)
-      // All three placeholders were there to be filled, and nothing of a key stands in the mail.
+      expect(mail.html).toContain(`>${HANDS}</p>`)
+      // The alias as a block of its own inside the heading, the words of the phrase around it.
+      const [beforeAlias, afterAlias] = texts.yourThanksTo.split('{recipientAlias}')
+      const literal = (text: string) => inHtml(text).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      expect(mail.html).toMatch(
+        new RegExp(
+          `<h2[^>]*>${literal(beforeAlias)}<span class="alias"[^>]*>Sarah-B</span>${literal(afterAlias)}\\s*</h2>`,
+        ),
+      )
+      // The placeholders were there to be filled, and nothing of a key stands in the mail. The
+      // emoji is the template's, not the sentence's: it stands in a paragraph of its own.
       expect(texts.hasEnjoyedYourThanks).toContain('{recipientAlias}')
       expect(texts.hasEnjoyedYourThanks).toContain('{recipientCommunity}')
-      expect(texts.hasEnjoyedYourThanks).toContain('{emoji}')
+      expect(texts.hasEnjoyedYourThanks).not.toContain('{emoji}')
+      expect(texts.yourThanksTo.split('{recipientAlias}')).toHaveLength(2)
       expect(texts.memo).toContain('{transactionMemo}')
       expect(mail.html).not.toContain('{recipient')
       expect(mail.html).not.toContain('{emoji')
@@ -328,7 +355,7 @@ describe('the mail about a first reaction, in every language', () => {
     const english = catalogue('en').emails
     for (const language of LANGUAGES.filter((code) => code !== 'en')) {
       const { transactionReactionReceived: texts } = catalogue(language).emails
-      for (const key of ['subject', 'title', 'hasEnjoyedYourThanks']) {
+      for (const key of ['subject', 'title', 'hasEnjoyedYourThanks', 'yourThanksTo']) {
         expect(texts[key], `${language} ${key}`).not.toBe(english.transactionReactionReceived[key])
       }
     }

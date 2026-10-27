@@ -187,10 +187,11 @@
       "title": "{senderAlias} gönderdiğin teşekkürü kabul etti"
     },
     "transactionReactionReceived": {
-      "hasEnjoyedYourThanks": "{recipientAlias} ({recipientCommunity}) gönderdiğin teşekküre sevindi: {emoji}",
+      "hasEnjoyedYourThanks": "{recipientAlias} ({recipientCommunity}) gönderdiğin teşekküre sevindi:",
       "memo": "Mesaj: {transactionMemo}",
       "subject": "Teşekkürün ulaştı",
-      "title": "Teşekkürün ulaştı"
+      "title": "Teşekkürün ulaştı",
+      "yourThanksTo": "{recipientAlias} için teşekkürün"
     },
     "transactionReceived": {
       "haveReceivedAmountGDDFrom": "az önce {senderAlias} tarafından {transactionAmount} GDD aldın.",

@@ -19,19 +19,15 @@
       <BRow>
         <matching-tile :count="count" :entries="entries" />
       </BRow>
-      <!-- Always: showing Gradido to somebody needs no service switched on, and the two tiles
-           below hang on HumHub and the old GMS search, which are on their way out. -->
+      <!-- Always: showing Gradido to somebody needs no service switched on, and the tile
+           below hangs on HumHub. (The old GMS member search had a tile here too; the matching
+           took its place.) -->
       <BRow>
         <show-friends-tile />
       </BRow>
       <div v-if="isHumhubActive">
         <BRow>
           <card-circles />
-        </BRow>
-      </div>
-      <div v-if="isGmsActive">
-        <BRow>
-          <card-user-search />
         </BRow>
       </div>
     </BCol>
@@ -41,7 +37,6 @@
 import { computed } from 'vue'
 // import CommunityNews from '@/components/Overview/CommunityNews'
 import CardCircles from '@/components/Overview/CardCircles'
-import CardUserSearch from '@/components/Overview/CardUserSearch'
 import MatchingTile from '@/components/Overview/MatchingTile'
 import ShowFriendsTile from '@/components/Overview/ShowFriendsTile'
 import ThanksArrivalTile from '@/components/Overview/ThanksArrivalTile'
@@ -50,7 +45,6 @@ import { useOwnMatchingEntries } from '@/composables/useOwnMatchingEntries'
 import { useThanksArrivals } from '@/composables/useThanksArrivals'
 import CONFIG from '@/config'
 
-const isGmsActive = computed(() => CONFIG.GMS_LEGACY_ACTIVE === true)
 const isHumhubActive = computed(() => CONFIG.HUMHUB_ACTIVE === true)
 
 // The thank-yous received are asked about on every opening. Of the two matching questions
