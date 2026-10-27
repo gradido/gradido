@@ -1230,8 +1230,7 @@
     "settings": "Impostazioni",
     "show-friends": "Mostralo ai tuoi amici",
     "thank-you-greeting": "Biglietto di ringraziamento",
-    "transactions": "Le tue transazioni",
-    "usersearch": "Ricerca geografica dei membri (beta)"
+    "transactions": "Le tue transazioni"
   },
   "public-profile": {
     "address": "Indirizzo Gradido",
@@ -1764,11 +1763,6 @@
   },
   "transaction-link": {
     "send_you": "ti invia"
-  },
-  "usersearch": {
-    "button": "Avvia la ricerca degli utenti...",
-    "headline": "Ricerca geografica degli utenti",
-    "text": "Non importa a quale comunità appartieni: con il Geo Matching System trovi i membri di tutte le comunità su una mappa. Puoi filtrare per offerte ed esigenze e visualizzare gli utenti più adatti a te.\n\nCon il pulsante si apre una nuova finestra del browser in cui ti vengono mostrati su una mappa gli utenti nelle tue vicinanze."
   },
   "via_card": "tramite una carta",
   "via_greeting": "tramite un biglietto",

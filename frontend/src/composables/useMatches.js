@@ -32,10 +32,10 @@ import { isPlace } from '@/utils/matchingPosition'
  * sent — the map still passes it, because a change in my entries is what makes it
  * search again, and that trigger is right.
  *
- * The token is the one the older user search already uses (UserSearch.vue):
- * `authenticateGmsUserSearch` has the wallet backend ask the GMS for a member token
- * by the home community's API key, and hands the token back together with the
- * dashboard page it was minted for. The API lives on that page's host (apiBaseOf).
+ * The token is the one the old GMS user search opened its page with (the wallet's
+ * /usersearch, since removed): `authenticateGmsUserSearch` has the wallet backend ask
+ * the GMS for a member token by the home community's API key, and hands the token back
+ * together with the dashboard page it was minted for. The API lives on that page's host (apiBaseOf).
  * It is fetched fresh on every search, `network-only`: the query has no variables,
  * so Apollo would cache one answer under one key for every member who ever logged
  * in on this browser.

@@ -1230,8 +1230,7 @@
     "settings": "Configuration",
     "show-friends": "Montre-le à tes amis",
     "thank-you-greeting": "Mot de remerciement",
-    "transactions": "Tes transactions",
-    "usersearch": "Recherche géographique de membres (bèta)"
+    "transactions": "Tes transactions"
   },
   "public-profile": {
     "address": "Adresse Gradido",
@@ -1764,11 +1763,6 @@
   },
   "transaction-link": {
     "send_you": "veut t'envoyer"
-  },
-  "usersearch": {
-    "button": "Commence la recherche d'utilisateurs...",
-    "headline": "Recherche géographique d'utilisateurs",
-    "text": "Quelle que soit la communauté à laquelle tu appartiens, le système de géo-matching te permet de trouver des membres de toutes les communautés sur une carte géographique. Tu peux filtrer selon les offres et les besoins et afficher les utilisateurs qui te correspondent.\n\nEn cliquant sur le bouton, une nouvelle fenêtre de navigateur s'ouvre et t'affiche les utilisateurs de ton entourage sur une carte."
   },
   "via_card": "par carte",
   "via_greeting": "par un mot",

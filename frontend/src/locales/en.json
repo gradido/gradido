@@ -1230,8 +1230,7 @@
     "settings": "Settings",
     "show-friends": "Show it to your friends",
     "thank-you-greeting": "Thank-you greeting",
-    "transactions": "Your transactions",
-    "usersearch": "Geographic member search (beta)"
+    "transactions": "Your transactions"
   },
   "public-profile": {
     "address": "Gradido address",
@@ -1764,11 +1763,6 @@
   },
   "transaction-link": {
     "send_you": "wants to send you"
-  },
-  "usersearch": {
-    "button": "Start user search... ",
-    "headline": "Geographical User Search",
-    "text": "No matter which community you belong to, with the Geo Matching System you can find members of all communities on a map. You can filter according to offers and needs and display the users that match you.\n\nThe button opens a new browser window in which the users in your area are displayed on a map."
   },
   "via_card": "via Card",
   "via_greeting": "via a greeting",
