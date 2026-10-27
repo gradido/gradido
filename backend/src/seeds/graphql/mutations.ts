@@ -182,6 +182,7 @@ export const sendCoins = gql`
     $memo: String!
     $motif: String
     $picture: ChatImageInput
+    $passOnOf: Int
   ) {
     sendCoins(
       recipientCommunityIdentifier: $recipientCommunityIdentifier
@@ -190,6 +191,7 @@ export const sendCoins = gql`
       memo: $memo
       motif: $motif
       picture: $picture
+      passOnOf: $passOnOf
     )
   }
 `

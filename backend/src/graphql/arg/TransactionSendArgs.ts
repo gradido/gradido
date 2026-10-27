@@ -1,7 +1,7 @@
 import { ChatImageInput } from '@input/ChatImageInput'
-import { IsString, MaxLength, MinLength, ValidateNested } from 'class-validator'
+import { IsInt, IsPositive, IsString, MaxLength, MinLength, ValidateNested } from 'class-validator'
 import { GradidoUnit, MEMO_MAX_CHARS, MEMO_MIN_CHARS } from 'shared'
-import { ArgsType, Field } from 'type-graphql'
+import { ArgsType, Field, Int } from 'type-graphql'
 import { IsPositiveGradidoUnit } from '@/graphql/validator/GradidoUnit'
 
 @ArgsType()
@@ -41,4 +41,16 @@ export class TransactionSendArgs {
   @Field(() => ChatImageInput, { nullable: true })
   @ValidateNested()
   picture?: ChatImageInput | null
+
+  /**
+   * The received thank-you this transfer passes on, where the wallet's "Jemandem danken" led to
+   * it: the id of the sender's OWN RECEIVE booking of that thank-you. Kept as the trail of the
+   * transfer (`transaction_pass_ons`) for a recipient in the sender's own community only. An id
+   * that is no such booking, and any id across the border, is dropped -- never booked, and never
+   * a refusal of the transfer.
+   */
+  @Field(() => Int, { nullable: true })
+  @IsInt()
+  @IsPositive()
+  passOnOf?: number | null
 }
