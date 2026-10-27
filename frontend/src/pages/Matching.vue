@@ -184,8 +184,7 @@
     <div v-if="tab === 'position'" class="mx-lg-2">
       <p class="small text-muted ps-lg-2 page-text">{{ $t('matching.position.intro') }}</p>
 
-      <!-- Inline map: address search (lupe) + draggable marker, reused from the
-           settings page. Coordinates readout hidden to keep the map compact.
+      <!-- Inline map: address search (lupe) + draggable house.
            Dragging only remembers — a map is easy to touch by accident, and a
            stray touch must not move where you live. Saving is the button below. -->
       <div
@@ -196,9 +195,7 @@
         <UserLocationMap
           v-if="userLocationLoaded"
           :user-marker-coords="userLocation"
-          :show-coordinates="false"
           height="320px"
-          user-icon="home"
           @update:userPosition="onPickPosition"
         />
       </div>

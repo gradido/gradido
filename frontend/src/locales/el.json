@@ -1333,11 +1333,7 @@
         "updateSuccess": "Η τοποθεσία αποθηκεύτηκε με επιτυχία"
       },
       "map": {
-        "communityCoords": "Η τοποθεσία της κοινότητάς σου: Lat {lat}, Lng {lng}",
-        "communityLocationLabel": "Η τοποθεσία της κοινότητάς σου",
-        "search": "Αναζήτηση τοποθεσίας",
-        "userCoords": "Η τοποθεσία σου: Lat {lat}, Lng {lng}",
-        "userLocationLabel": "Η τοποθεσία σου"
+        "search": "Αναζήτηση τοποθεσίας"
       },
       "publish-location": {
         "approximate": "κατά προσέγγιση θέση",

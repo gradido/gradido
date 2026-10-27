@@ -1333,11 +1333,7 @@
         "updateSuccess": "Konum başarıyla kaydedildi"
       },
       "map": {
-        "communityCoords": "Topluluk konumu: Enlem {lat}, Boylam {lng}",
-        "communityLocationLabel": "Topluluk konumu",
-        "search": "Konum ara",
-        "userCoords": "Konumun: Enlem {lat}, Boylam {lng}",
-        "userLocationLabel": "Konumun"
+        "search": "Konum ara"
       },
       "publish-location": {
         "approximate": "Yaklaşık konum",

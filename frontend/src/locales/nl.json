@@ -1333,11 +1333,7 @@
         "updateSuccess": "Locatie succesvol opgeslagen"
       },
       "map": {
-        "communityCoords": "Locatie van je gemeenschap: Lat {lat}, Lng {lng}",
-        "communityLocationLabel": "Locatie van je gemeenschap",
-        "search": "Zoek een locatie",
-        "userCoords": "Jouw locatie: Lat {lat}, Lng {lng}",
-        "userLocationLabel": "Jouw locatie"
+        "search": "Zoek een locatie"
       },
       "publish-location": {
         "approximate": "Geschatte positie",

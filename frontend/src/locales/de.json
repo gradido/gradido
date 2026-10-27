@@ -1333,11 +1333,7 @@
         "updateSuccess": "Standort erfolgreich gespeichert"
       },
       "map": {
-        "communityCoords": "Dein Gemeinschafts-Standort: Breitengrad {lat}, Längengrad {lng}",
-        "communityLocationLabel": "Dein Gemeinschafts-Standort",
-        "search": "Nach einem Standort suchen",
-        "userCoords": "Dein Standort: Breitengrad {lat}, Längengrad {lng}",
-        "userLocationLabel": "Dein Standort"
+        "search": "Nach einem Standort suchen"
       },
       "publish-location": {
         "approximate": "Ungefähre Position",

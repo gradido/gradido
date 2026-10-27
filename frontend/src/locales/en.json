@@ -1333,11 +1333,7 @@
         "updateSuccess": "Location successfully saved"
       },
       "map": {
-        "communityCoords": "Your Community Location: Lat {lat}, Lng {lng}",
-        "communityLocationLabel": "Your Community-Location",
-        "search": "Search for a location",
-        "userCoords": "Your Location: Lat {lat}, Lng {lng}",
-        "userLocationLabel": "Your Location"
+        "search": "Search for a location"
       },
       "publish-location": {
         "approximate": "approximate position",

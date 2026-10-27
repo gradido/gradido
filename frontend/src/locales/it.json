@@ -1333,11 +1333,7 @@
         "updateSuccess": "Posizione salvata con successo"
       },
       "map": {
-        "communityCoords": "La posizione della tua comunità: Latitudine {lat}, Longitudine {lng}",
-        "communityLocationLabel": "La posizione della tua comunità",
-        "search": "Cerca una posizione",
-        "userCoords": "La tua posizione: Latitudine {lat}, Longitudine {lng}",
-        "userLocationLabel": "La tua posizione"
+        "search": "Cerca una posizione"
       },
       "publish-location": {
         "approximate": "Posizione approssimativa",
