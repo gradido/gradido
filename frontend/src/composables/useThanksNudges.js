@@ -6,7 +6,9 @@ import { useWalletStore } from '@/store/useWalletStore'
  * Which thank-you suggestions (W2, utils/thanksNudge) the member has answered on THIS device --
  * "Danke sagen" or "Nicht jetzt" under a video call of their own (`call`, by the message's uuid),
  * "Jemandem danken" or "Nicht jetzt" in a thank-you received (`pass-on`, by the booking's id).
- * Once answered, the line does not come back for that occasion.
+ * Once answered, the line does not come back for that occasion. And which thank-yous received the
+ * member put aside in the tile on the overview with "Später" (W3, `arrival`, by the booking's id):
+ * the tile shows them no more, while the row in the booking list stays as it is.
  *
  * ⛔ Not a setting (E-020), and nothing kept at the account: a device of its own asks once more,
  * as the tile "Zeig es Deinen Freunden" does (useShowFriendsSeen). That is the price of keeping
@@ -26,8 +28,11 @@ import { useWalletStore } from '@/store/useWalletStore'
  */
 const KEY_PREFIX = 'thanks-nudge:'
 
-/** The two occasions: one's own video call, a thank-you received. */
-const KINDS = ['call', 'pass-on']
+/**
+ * The occasions: one's own video call, a thank-you received -- and a thank-you received put aside
+ * in the tile on the overview.
+ */
+const KINDS = ['call', 'pass-on', 'arrival']
 
 /**
  * The key of an occasion, or null where nobody is signed in or the occasion has no name yet (a
@@ -55,7 +60,7 @@ export const useThanksNudges = () => {
    * there is nothing to suggest: true. Where the device cannot be read, not answered: the line
    * stands, the harmless end of the mistake.
    *
-   * @param {'call' | 'pass-on'} kind
+   * @param {'call' | 'pass-on' | 'arrival'} kind
    * @param {string | number} id the message's uuid, or the booking's id
    */
   const isSeen = (kind, id) => {

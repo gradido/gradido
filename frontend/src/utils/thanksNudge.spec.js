@@ -1,8 +1,10 @@
 // AI-GENERATED — not an architecture reference
 import { describe, expect, it } from 'vitest'
 import {
+  THANKS_ARRIVAL_MOST,
   THANKS_NUDGE_AFTER_CALL_MS,
   THANKS_NUDGE_HOLDS_MS,
+  arrivalItems,
   callNudgeState,
   passOnNudgeState,
 } from './thanksNudge'
@@ -217,5 +219,121 @@ describe('the line in a thank-you received', () => {
 
   it('not where the time cannot be read', () => {
     expect(passOn({ transaction: booking({ balanceDate: 'not a time' }) })).toBe('hidden')
+  })
+})
+
+describe('the thank-yous the tile on the overview shows', () => {
+  const NOW = new Date('2026-10-27T05:00:00.000Z').getTime()
+  /** A moment `ago` milliseconds before NOW, as the server sends it. */
+  const before = (ago) => new Date(NOW - ago).toISOString()
+  const thanks = (id, extra = {}) => ({
+    id,
+    typeId: 'RECEIVE',
+    balanceDate: before(id * MINUTE),
+    canReact: true,
+    reaction: null,
+    linkedUser: { gradidoID: `giver-${id}`, alias: `giver${id}` },
+    ...extra,
+  })
+  const nothingSeen = () => false
+  const shown = (transactions, extra = {}) =>
+    arrivalItems({ transactions, now: NOW, seen: nothingSeen, ...extra }).map(
+      (booking) => booking.id,
+    )
+
+  it('shows at most three', () => {
+    expect(THANKS_ARRIVAL_MOST).toBe(3)
+  })
+
+  it('shows a thank-you received from a person who may be answered, with no reaction yet', () => {
+    expect(shown([thanks(1)])).toEqual([1])
+  })
+
+  it('hands back the bookings themselves, as they came', () => {
+    const booking = thanks(1)
+    expect(arrivalItems({ transactions: [booking], now: NOW, seen: nothingSeen })[0]).toBe(booking)
+  })
+
+  // The guard of the whole moment: a thank-you answered already is no longer news.
+  it('leaves out a thank-you that has a reaction', () => {
+    expect(shown([thanks(1, { reaction: '❤️' }), thanks(2)])).toEqual([2])
+  })
+
+  it('leaves out what the member may not react to', () => {
+    expect(shown([thanks(1, { canReact: false }), thanks(2)])).toEqual([2])
+    // A server that does not say so: no.
+    expect(shown([thanks(1, { canReact: undefined })])).toEqual([])
+  })
+
+  it('leaves out one’s own sending, a creation, and the decay', () => {
+    expect(
+      shown([
+        thanks(1, { typeId: 'SEND' }),
+        thanks(2, { typeId: 'CREATION' }),
+        thanks(3, { typeId: 'DECAY' }),
+        thanks(4),
+      ]),
+    ).toEqual([4])
+  })
+
+  // The row's own condition for a counterparty (GddTransaction, `hasCounterparty`).
+  it('leaves out a booking where nobody is named on the other side', () => {
+    expect(
+      shown([thanks(1, { linkedUser: null }), thanks(2, { linkedUser: { alias: 'x' } })]),
+    ).toEqual([])
+  })
+
+  it('until seven days after it came, to the millisecond', () => {
+    expect(shown([thanks(1, { balanceDate: before(7 * DAY) })])).toEqual([1])
+    expect(shown([thanks(1, { balanceDate: before(7 * DAY + 1) })])).toEqual([])
+  })
+
+  // The device's clock a little behind the server's: the thank-you has just come.
+  it('also where the booking’s time lies a little ahead of the clock', () => {
+    expect(shown([thanks(1, { balanceDate: before(-2 * MINUTE) })])).toEqual([1])
+  })
+
+  it('leaves out a booking whose time cannot be read', () => {
+    expect(shown([thanks(1, { balanceDate: 'not a time' }), thanks(2)])).toEqual([2])
+  })
+
+  // "Später" is asked by its own name and the booking's id: the line "Dank weitergeben?" in the
+  // opened row answered on this device is something else, and puts nothing aside here.
+  it('leaves out what was put aside on this device, asked as `arrival` by the booking’s id', () => {
+    const asked = []
+    const seen = (kind, id) => {
+      asked.push([kind, id])
+      return kind === 'arrival' && id === 1
+    }
+    expect(shown([thanks(1), thanks(2)], { seen })).toEqual([2])
+    expect(asked).toContainEqual(['arrival', 1])
+    expect(asked).toContainEqual(['arrival', 2])
+    expect(shown([thanks(1)], { seen: (kind) => kind === 'pass-on' })).toEqual([1])
+  })
+
+  it('puts the newest first, whatever order the list came in', () => {
+    expect(shown([thanks(3), thanks(1), thanks(2)])).toEqual([1, 2, 3])
+  })
+
+  it('puts the later id first where two came at the same moment', () => {
+    const at = before(MINUTE)
+    expect(shown([thanks(4, { balanceDate: at }), thanks(9, { balanceDate: at })])).toEqual([9, 4])
+  })
+
+  it('keeps the three newest of more', () => {
+    expect(shown([thanks(4), thanks(2), thanks(5), thanks(1), thanks(3)])).toEqual([1, 2, 3])
+  })
+
+  it('counts only what it shows towards the three', () => {
+    expect(
+      shown([thanks(1, { reaction: '👍' }), thanks(2), thanks(3), thanks(4), thanks(5)]),
+    ).toEqual([2, 3, 4])
+  })
+
+  it('shows nothing for a list without a thank-you to show, or for no list', () => {
+    expect(shown([thanks(1, { typeId: 'SEND' }), thanks(2, { reaction: '🙏' })])).toEqual([])
+    expect(shown([])).toEqual([])
+    expect(shown(null)).toEqual([])
+    expect(shown(undefined)).toEqual([])
   })
 })
