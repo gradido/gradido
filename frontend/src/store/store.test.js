@@ -35,6 +35,7 @@ import {
 } from '@/composables/useChatImages'
 import { greetingPicture, rememberGreetingPicture } from '@/composables/useGreetingPictures'
 import { useLinkDraft } from '@/composables/useLinkDraft'
+import { usePassOnDraft } from '@/composables/usePassOnDraft'
 import { requestTransactionPicture, transactionPicture } from '@/composables/useTransactionPictures'
 
 vi.mock('../i18n', () => ({
@@ -900,6 +901,37 @@ describe('Pinia store', () => {
         wallet.logout()
 
         expect(handover().takeLink()).toBeNull()
+      })
+
+      /**
+       * ⛔ A seventh, same rule: which thank-you received a transfer about to be made passes on
+       * (usePassOnDraft) waits in memory too. Without this the next member to sign in on this
+       * browser would make a transfer that passes somebody else's thank-you on.
+       */
+      it('lets go of the thank-you handed over to be passed on', () => {
+        // Read as the same member would read it: what empties it here is the sign-out alone.
+        const member = walletStore({ gradidoID: 'user-one' })
+        const handover = () => {
+          let draft
+          mount(
+            {
+              setup() {
+                draft = usePassOnDraft()
+                return () => null
+              },
+            },
+            { global: { plugins: [member] } },
+          )
+          return draft
+        }
+        // The fixture proves itself: handed over, it is found.
+        handover().put(1002)
+        expect(handover().take()).toBe(1002)
+        handover().put(1002)
+
+        wallet.logout()
+
+        expect(handover().take()).toBeNull()
       })
 
       it('removes only its own storage blob', () => {

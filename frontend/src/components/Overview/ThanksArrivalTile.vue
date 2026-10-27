@@ -192,6 +192,7 @@ import { useAmountInText } from '@/composables/useAmountInText'
 import { avatarZoomBindings } from '@/composables/useAvatarZoom'
 import { pollChatNow } from '@/composables/useChatUpdates'
 import { fetchMemberAvatars, memberAvatarProps } from '@/composables/useMemberAvatars'
+import { usePassOnDraft } from '@/composables/usePassOnDraft'
 import { useThanksNudges } from '@/composables/useThanksNudges'
 import { useAppToast } from '@/composables/useToast'
 import {
@@ -222,6 +223,7 @@ const { client: apolloClient } = useApolloClient()
 const { toastError } = useAppToast()
 const amountInText = useAmountInText()
 const { isSeen, markSeen } = useThanksNudges()
+const passOnDraft = usePassOnDraft()
 
 /**
  * Whom the tile is for, read ONCE. Signing out empties the store while the overview still
@@ -354,10 +356,21 @@ const stopReactions = onTransactionReaction(({ transactionId, reaction }) => {
 })
 onBeforeUnmount(stopReactions)
 
-/** "Jemandem danken": the send form with nobody named -- outwards, never back to the giver. */
-const passOn = (booking) => {
+/**
+ * "Jemandem danken": the send form with nobody named -- outwards, never back to the giver. Its
+ * page learns which thank-you the transfer passes on: this booking, handed over in memory
+ * (usePassOnDraft), the trail nobody is shown. Where the form is not reached, it is taken back.
+ */
+const passOn = async (booking) => {
   markSeen('pass-on', booking.id)
-  router.push({ path: '/send', query: { art: SEND_TYPES.send } })
+  const handed = passOnDraft.put(booking.id)
+  let reached = false
+  try {
+    const failure = await router.push({ path: '/send', query: { art: SEND_TYPES.send } })
+    reached = !failure
+  } finally {
+    if (!reached) passOnDraft.drop(handed)
+  }
 }
 
 /** "Nicht jetzt": the line is answered, and the thank-you leaves the tile. */

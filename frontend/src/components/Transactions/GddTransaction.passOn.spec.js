@@ -2,6 +2,7 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import GddTransaction from './GddTransaction.vue'
+import { clearPassOnDraft, usePassOnDraft } from '@/composables/usePassOnDraft'
 
 /**
  * W2 of the waves of gratitude (Bernd, 26.10.2026): in the opened row of a thank-you received,
@@ -114,8 +115,9 @@ describe('GddTransaction, the suggestion to pass a thank-you on', () => {
   afterEach(() => {
     wrapper?.unmount()
     vi.useRealTimers()
-    pushSpy.mockClear()
+    pushSpy.mockReset()
     window.localStorage.removeItem(ANSWERED)
+    clearPassOnDraft()
   })
 
   describe('where it stands', () => {
@@ -213,6 +215,30 @@ describe('GddTransaction, the suggestion to pass a thank-you on', () => {
       expect(line().exists()).toBe(false)
       // A press in it is no press on the row: the booking stays open under the member's hand.
       expect(isOpen()).toBe(true)
+    })
+
+    // The trail: the page of the form learns which thank-you its transfer passes on -- this
+    // booking, by its id, in memory and not in the address.
+    it('"Jemandem danken" hands this thank-you over to the page of the send form', async () => {
+      mountRow()
+      await openAt(DAY)
+
+      await press('yes')
+
+      expect(pushSpy).toHaveBeenCalledWith({ path: '/send', query: { art: 'send' } })
+      expect(usePassOnDraft().take()).toBe(RECEIVED.id)
+    })
+
+    it('takes it back where the send form is not reached', async () => {
+      // A navigation the router refused answers with the failure.
+      pushSpy.mockResolvedValueOnce(new Error('Navigation aborted'))
+      mountRow()
+      await openAt(DAY)
+
+      await press('yes')
+
+      expect(pushSpy).toHaveBeenCalledTimes(1)
+      expect(usePassOnDraft().take()).toBeNull()
     })
 
     it('"Nicht jetzt": answered, and the line does not come back for this thank-you', async () => {
