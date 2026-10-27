@@ -76,6 +76,18 @@ describe('the request log', () => {
     expect(takenBack).not.toContain('***')
   })
 
+  // A member's own note on a person or a group is theirs alone: what it is about stays readable,
+  // the words do not.
+  it("writes no member's own note, and still whom it is about", () => {
+    const text = logged({
+      about: { member: { communityUuid: 'c', gradidoID: 'g' } },
+      note: 'Anna Sonnenberg, Imkerin aus Pankow',
+    })
+    expect(text).not.toContain('Sonnenberg')
+    expect(text).toContain('"note": "***"')
+    expect(text).toContain('"gradidoID": "g"')
+  })
+
   // P7: one member's picture for another -- and some 80,000 characters in every line that carried
   // it. What is left of it is its size.
   it('writes no picture of a chat message, only its size', () => {
@@ -475,6 +487,15 @@ describe('the answer in the request log', () => {
     )
     expect(traced).not.toContain(picture)
     expect(traced).toBe('Response-Data: left out, it holds a picture')
+  })
+
+  it("is left out where the request read a member's own note", async () => {
+    const traced = await answerTraced(
+      { requestBudget: { ...newRequestBudget(), userNotesServed: 1 } },
+      { userNote: 'Anna Sonnenberg, Imkerin aus Pankow' },
+    )
+    expect(traced).not.toContain('Sonnenberg')
+    expect(traced).toBe('Response-Data: left out, it holds a note')
   })
 
   it('is written where the request was handed no picture of any kind', async () => {

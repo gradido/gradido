@@ -880,6 +880,12 @@ export const addFavorite = gql`
   }
 `
 
+export const setUserNote = gql`
+  mutation ($about: UserNoteSubjectInput!, $note: String!) {
+    setUserNote(about: $about, note: $note)
+  }
+`
+
 export const removeFavorite = gql`
   mutation ($ref: MemberAvatarRefInput!) {
     removeFavorite(ref: $ref)

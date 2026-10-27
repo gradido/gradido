@@ -55,6 +55,9 @@ export interface RequestBudget {
   // Reactions to transfers set or taken back (setTransactionReaction), capped at
   // TRANSACTION_REACTIONS_MAX_PER_REQUEST.
   transactionReactionsSet: number
+  // A member's own notes read or written (userNote, userNotes, setUserNote), capped at
+  // USER_NOTES_MAX_PER_REQUEST. The answer of a request that read one stays out of the log.
+  userNotesServed: number
 }
 
 /** A budget with nothing spent. The context function creates one per HTTP request. */
@@ -74,6 +77,7 @@ export const newRequestBudget = (): RequestBudget => ({
   transactionPicturesServed: 0,
   chatReactionsSet: 0,
   transactionReactionsSet: 0,
+  userNotesServed: 0,
 })
 
 export interface Context {

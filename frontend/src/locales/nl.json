@@ -235,6 +235,19 @@
     "sentMailed": "Verstuurd. {name} krijgt een e-mail.",
     "toConversation": "Naar het gesprek"
   },
+  "chatNote": {
+    "done": "Klaar",
+    "failed": "Niet opgeslagen.",
+    "failedClosed": "Je notitie is niet opgeslagen. Open hem om het opnieuw te proberen.",
+    "loadFailed": "De notitie kon niet worden geladen.",
+    "placeholderGroup": "Wat wil je onthouden over deze groep?",
+    "placeholderMember": "Wat wil je onthouden over {name}? Bijvoorbeeld de volledige naam.",
+    "private": "Alleen jij ziet hem.",
+    "retry": "Opnieuw proberen",
+    "saved": "Opgeslagen",
+    "saving": "Wordt opgeslagen …",
+    "title": "Mijn notitie"
+  },
   "chatPreview": {
     "by": "{name}:"
   },

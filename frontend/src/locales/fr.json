@@ -235,6 +235,19 @@
     "sentMailed": "Envoyé. {name} reçoit un e-mail.",
     "toConversation": "Ouvrir la conversation"
   },
+  "chatNote": {
+    "done": "Terminé",
+    "failed": "Non enregistré.",
+    "failedClosed": "Ta note n'a pas été enregistrée. Ouvre-la pour réessayer.",
+    "loadFailed": "La note n'a pas pu être chargée.",
+    "placeholderGroup": "Que veux-tu retenir sur ce groupe ?",
+    "placeholderMember": "Que veux-tu retenir sur {name} ? Par exemple, son nom complet.",
+    "private": "Toi seul la vois.",
+    "retry": "Réessayer",
+    "saved": "Enregistré",
+    "saving": "Enregistrement …",
+    "title": "Ma note"
+  },
   "chatPreview": {
     "by": "{name} :"
   },

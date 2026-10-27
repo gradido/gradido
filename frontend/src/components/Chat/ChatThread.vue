@@ -159,6 +159,10 @@
          the page, so the words are announced when they are put in -- a live region that appears
          together with its text is not. -->
     <p class="visually-hidden" role="status" data-test="chat-thread-sent">{{ sentNotice }}</p>
+
+    <!-- What the window lays over the conversation and the line to write in (the member's own
+         note, Bernd 27.10.2026): inside the thread's own box, which is positioned. -->
+    <slot name="cover" />
   </div>
 </template>
 

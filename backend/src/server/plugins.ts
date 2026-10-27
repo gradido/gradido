@@ -97,6 +97,12 @@ const filterVariables = (variables: any) => {
   if (vars?.eventMatchingEntry) {
     vars.eventMatchingEntry = '***'
   }
+  // A member's own note on a person or a group (setUserNote, `$note`): what they keep for
+  // themselves alone -- somebody's full name, where they met. Which person or group it is about
+  // stays readable. No other document of wallet or admin names a variable so; the wallet's has to.
+  if (vars?.note) {
+    vars.note = '***'
+  }
   return vars
 }
 
@@ -175,6 +181,9 @@ variables: ${JSON.stringify(filterVariables(variables), null, 2)}`)
             // rooms, over every alias.
             if (requestContext.contextValue.requestBudget?.chatVideoRoomsServed) {
               logger.trace('Response-Data: left out, it holds a video room')
+            } else if (requestContext.contextValue.requestBudget?.userNotesServed) {
+              // A member's own notes (userNote, userNotes) are theirs alone.
+              logger.trace('Response-Data: left out, it holds a note')
             } else if (
               requestContext.contextValue.requestBudget?.chatImagesServed ||
               requestContext.contextValue.requestBudget?.thankYouGreetingPicturesServed ||

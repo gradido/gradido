@@ -1032,6 +1032,39 @@ export const userFavoritesTable = mysqlTable(
 export type UserFavoriteSelect = typeof userFavoritesTable.$inferSelect
 export type UserFavoriteInsert = typeof userFavoritesTable.$inferInsert
 
+/** What a member's own note is about (migration 0167): a person, or a group they belong to. */
+export type UserNoteSubjectKind = 'member' | 'group'
+
+// A member's own notes (migration 0167). The primary key IS the rule "one note per member and
+// subject": writing it again replaces it.
+export const userNotesTable = mysqlTable(
+  'user_notes',
+  {
+    userId: int('user_id', { unsigned: true }).notNull(),
+    subjectKind: varchar('subject_kind', { length: 16 }).$type<UserNoteSubjectKind>().notNull(),
+    // A person's community; '' for a group, which its uuid alone names.
+    subjectCommunityUuid: varchar('subject_community_uuid', { length: 36 }).notNull(),
+    // A person's gradido id, or a group's uuid.
+    subjectUuid: varchar('subject_uuid', { length: 36 }).notNull(),
+    note: text().notNull(),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+    updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .onUpdateNow({ fsp: 3 })
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.userId, table.subjectKind, table.subjectCommunityUuid, table.subjectUuid],
+    }),
+  ],
+)
+
+export type UserNoteSelect = typeof userNotesTable.$inferSelect
+export type UserNoteInsert = typeof userNotesTable.$inferInsert
+
 export const userCreationGroupsTable = mysqlTable(
   'user_creation_groups',
   {

@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import ChatGroupWindow from './ChatGroupWindow.vue'
 import { chatGroupMembersQuery, setChatGroupMuted } from '@/graphql/chatGroups.graphql'
+import { userNoteQuery } from '@/graphql/userNotes.graphql'
 import { SMALL_FACE_SIZE } from '@/constants'
 import { CHAT_VIDEO_JOIN } from '@/utils/chatVideoApp'
 
@@ -54,9 +55,20 @@ const video = vi.hoisted(() => ({
   edit: vi.fn(),
   edits: vi.fn(),
 }))
+/**
+ * The question for the member's own note on the group (useChatWindowNote), apart from the members'
+ * question; unanswered, there is none. And what the server answers when it is saved.
+ */
+const noteAsked = vi.hoisted(() => vi.fn(async () => ({ data: { userNote: null } })))
+const noteSaved = vi.hoisted(() => vi.fn(async () => ({ data: { setUserNote: true } })))
 vi.mock('@vue/apollo-composable', () => ({
   useMutation: (document) => ({ mutate: (variables) => saved(document, variables) }),
-  useApolloClient: () => ({ client: { query: (options) => asked(options) } }),
+  useApolloClient: () => ({
+    client: {
+      query: (options) => (options.query === userNoteQuery ? noteAsked(options) : asked(options)),
+      mutate: (options) => noteSaved(options),
+    },
+  }),
 }))
 
 const facesAsked = vi.hoisted(() => vi.fn())
@@ -106,6 +118,39 @@ const searchSteps = []
 describe('ChatGroupWindow', () => {
   let wrapper
 
+  /**
+   * The member's own note on the group (Bernd, 27.10.2026), as in the contact window: the button
+   * comes with the answer, at the row's left end; a tap lays the note over the conversation.
+   */
+  describe('the note', () => {
+    const noteButton = () => wrapper.find('[data-test="chat-group-window-note"]')
+
+    it('asks for the note on the group by its uuid, and comes at the left end of the row', async () => {
+      mountWindow()
+      await flushPromises()
+      expect(noteAsked).toHaveBeenCalledWith(
+        expect.objectContaining({ variables: { about: { groupUuid: 'cafe-uuid' } } }),
+      )
+      const row = wrapper.find('.chat-group-window-top').element.children
+      expect(row[0].getAttribute('data-test')).toBe('chat-group-window-note')
+      expect(row[1].getAttribute('data-test')).toBe('chat-group-window-search')
+    })
+
+    it('lays the note over the conversation, and the search closes it', async () => {
+      noteAsked.mockResolvedValueOnce({ data: { userNote: 'Jeden ersten Samstag' } })
+      mountWindow()
+      await flushPromises()
+      expect(noteButton().find('i-mdi-note-text').exists()).toBe(true)
+      await noteButton().trigger('click')
+      expect(wrapper.find('[data-test="thread"] [data-test="chat-note"]').exists()).toBe(true)
+      expect(wrapper.find('[data-test="chat-note-field"]').element.value).toBe(
+        'Jeden ersten Samstag',
+      )
+      await wrapper.find('[data-test="chat-group-window-search"]').trigger('click')
+      expect(wrapper.find('[data-test="chat-note"]').exists()).toBe(false)
+    })
+  })
+
   const mountWindow = (group = {}) => {
     wrapper = mount(ChatGroupWindow, {
       props: { modelValue: true, group: { ...GROUP, ...group } },
@@ -143,8 +188,9 @@ describe('ChatGroupWindow', () => {
                 searchSteps.push(direction)
               },
             },
+            // The window lays the member's note over the thread through the slot `cover`.
             template:
-              '<div data-test="thread" :data-group="group?.groupUuid" :data-search="search" />',
+              '<div data-test="thread" :data-group="group?.groupUuid" :data-search="search"><slot name="cover" /></div>',
           },
           IMdiMagnify: true,
           IMdiChevronUp: true,
