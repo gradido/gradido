@@ -46,8 +46,9 @@ export class TransactionSendArgs {
    * The received thank-you this transfer passes on, where the wallet's "Jemandem danken" led to
    * it: the id of the sender's OWN RECEIVE booking of that thank-you. Kept as the trail of the
    * transfer (`transaction_pass_ons`) for a recipient in the sender's own community only. An id
-   * that is no such booking, and any id across the border, is dropped -- never booked, and never
-   * a refusal of the transfer.
+   * that is no such booking, and any id across the border, is dropped, and the transfer goes out
+   * all the same. Only a value that is no positive whole number is refused, like any malformed
+   * argument.
    */
   @Field(() => Int, { nullable: true })
   @IsInt()
