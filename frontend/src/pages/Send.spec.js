@@ -4,6 +4,7 @@ import Send from './Send.vue'
 import { useMutation } from '@vue/apollo-composable'
 import { sendCoins, createTransactionLink } from '@/graphql/mutations.js'
 import { SEND_TYPES } from '@/utils/sendTypes'
+import { walletStore } from '@test/walletStore'
 
 // Mock child components
 vi.mock('@/components/GddSend/TransactionForm', () => ({
@@ -25,9 +26,11 @@ vi.mock('@/components/GddSend/TransactionResultLink', () => ({
   default: { template: '<div></div>' },
 }))
 
-// Mock i18n
+// Mock i18n -- `useI18n` only: the store the page asks (usePassOnDraft) loads the wallet's own
+// i18n, which is made with the real `createI18n`.
 const t = (key) => key
-vi.mock('vue-i18n', () => ({
+vi.mock('vue-i18n', async (importOriginal) => ({
+  ...(await importOriginal()),
   useI18n: () => ({
     t,
   }),
@@ -85,6 +88,10 @@ describe('Send', () => {
         GdtBalance: 500,
       },
       global: {
+        // The page asks whether a thank-you received was handed over to be passed on
+        // (usePassOnDraft), and that asks the store who is signed in. Here nothing is handed
+        // over; Send.passOn.spec.js holds what happens where something is.
+        plugins: [walletStore({ gradidoID: 'uuid-emma' })],
         mocks: {
           $t: t, // Add this line to mock $t in the component context
         },

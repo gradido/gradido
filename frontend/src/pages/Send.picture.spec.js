@@ -8,6 +8,7 @@ import { sendCoins, createTransactionLink } from '@/graphql/mutations.js'
 import { encodeChatImage } from '@/utils/chatImage'
 import { THANK_YOU_PICTURE_SMALL } from '@/utils/thankYouPicture'
 import { SEND_TYPES } from '@/utils/sendTypes'
+import { walletStore } from '@test/walletStore'
 
 /**
  * A picture with a transfer (ZE-016), on the page that holds it: where the picture lives, what
@@ -43,7 +44,12 @@ vi.mock('@/components/GddSend/TransactionResultLink', () => ({
 }))
 
 const t = (key) => key
-vi.mock('vue-i18n', () => ({ useI18n: () => ({ t }) }))
+// `useI18n` only: the store the page asks (usePassOnDraft) loads the wallet's own i18n, which is
+// made with the real `createI18n`.
+vi.mock('vue-i18n', async (importOriginal) => ({
+  ...(await importOriginal()),
+  useI18n: () => ({ t }),
+}))
 vi.mock('vue-router', () => ({ useRouter: vi.fn(() => ({ push: vi.fn() })) }))
 vi.mock('@vue/apollo-composable', () => ({ useMutation: vi.fn() }))
 
@@ -94,7 +100,13 @@ describe('Send, a picture with a transfer', () => {
     vi.mocked(encodeChatImage).mockResolvedValue(SMALL)
     wrapper = shallowMount(Send, {
       props: { balance: 1000, GdtBalance: 500 },
-      global: { mocks: { $t: t }, stubs: { 'gdd-send': true } },
+      // The page asks the store who is signed in, for a thank-you handed over to be passed on
+      // (usePassOnDraft). Here nothing is handed over.
+      global: {
+        plugins: [walletStore({ gradidoID: 'uuid-emma' })],
+        mocks: { $t: t },
+        stubs: { 'gdd-send': true },
+      },
     })
   })
 
@@ -329,7 +341,10 @@ describe('Send, a picture with a transfer', () => {
     const FormStub = { name: 'TransactionForm' }
     const CheckStub = { name: 'TransactionConfirmationSend' }
     const mountWithSteps = () =>
-      mount(Send, { props: { balance: 1000, GdtBalance: 500 }, global: { mocks: { $t: t } } })
+      mount(Send, {
+        props: { balance: 1000, GdtBalance: 500 },
+        global: { plugins: [walletStore({ gradidoID: 'uuid-emma' })], mocks: { $t: t } },
+      })
 
     it('the form gets the page’s picture, and what the form says of it is the page’s from then on', async () => {
       const page = mountWithSteps()

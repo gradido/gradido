@@ -16,6 +16,7 @@ import {
   forgetAllMemberAvatars,
   rememberMemberAvatars,
 } from '@/composables/useMemberAvatars'
+import { clearPassOnDraft, usePassOnDraft } from '@/composables/usePassOnDraft'
 import { useThanksNudges } from '@/composables/useThanksNudges'
 import { reactToTransaction } from '@/composables/useTransactionReactions'
 import { LIST_AVATAR_SIZE } from '@/constants'
@@ -188,6 +189,22 @@ const rowAsks = (id) => {
   return answered
 }
 
+/** What the page of the send form would take of the handover: the same store, once. */
+const handedOver = () => {
+  let taken
+  mount(
+    {
+      template: '<div />',
+      setup() {
+        taken = usePassOnDraft().take()
+        return {}
+      },
+    },
+    { global: { plugins: [store] } },
+  ).unmount()
+  return taken
+}
+
 beforeEach(async () => {
   window.localStorage.clear()
   forgetAllMemberAvatars()
@@ -197,6 +214,7 @@ beforeEach(async () => {
   i18n.global.locale.value = 'en'
   store = walletStore({ gradidoID: 'member-1', communityUuid: 'home-uuid' })
   serverAnswering()
+  clearPassOnDraft()
   await router.push('/overview')
 })
 
@@ -502,6 +520,35 @@ describe('ThanksArrivalTile', () => {
       await flushPromises()
 
       expect(router.currentRoute.value.fullPath).toBe('/send?art=send')
+    })
+
+    // The trail: the page of the form learns which thank-you its transfer passes on -- this
+    // booking, by its id, in memory and not in the address.
+    it('"Thank someone" hands this thank-you over to the page of the send form', async () => {
+      mountTile([thanks(1), thanks(2)])
+      await press(2)
+
+      await lineOf(2).find('[data-test="thanks-nudge-yes"]').trigger('click')
+      await flushPromises()
+
+      expect(router.currentRoute.value.fullPath).toBe('/send?art=send')
+      expect(handedOver()).toBe(2)
+    })
+
+    it('"Thank someone" takes it back where the send form is not reached', async () => {
+      mountTile([thanks(1)])
+      await press(1)
+      const refuse = router.beforeEach(() => false)
+
+      try {
+        await lineOf(1).find('[data-test="thanks-nudge-yes"]').trigger('click')
+        await flushPromises()
+      } finally {
+        refuse()
+      }
+
+      expect(router.currentRoute.value.fullPath).toBe('/overview')
+      expect(handedOver()).toBeNull()
     })
 
     it('"Thank someone" leaves the booking row quiet about it: the same key on this device', async () => {

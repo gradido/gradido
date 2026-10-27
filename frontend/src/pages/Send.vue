@@ -84,6 +84,7 @@ import SendEmailResultError from '@/components/GddSend/SendEmailResultError'
 import TransactionResultSendError from '@/components/GddSend/TransactionResultSendError'
 import TransactionResultLink from '@/components/GddSend/TransactionResultLink'
 import { sendCoins, createTransactionLink, sendEmail as sendEmailMut } from '@/graphql/mutations.js'
+import { usePassOnDraft } from '@/composables/usePassOnDraft'
 import { useAppToast } from '@/composables/useToast'
 import { SEND_TYPES } from '@/utils/sendTypes'
 import { chatImageProblemWords, encodeChatImage } from '@/utils/chatImage'
@@ -136,6 +137,20 @@ const pictureToSend = computed(() =>
 )
 
 /**
+ * The received thank-you this visit's transfer passes on, where "Jemandem danken" led here
+ * (usePassOnDraft) -- or null. The trail of the thank-you (`passOnOf` of sendCoins); nothing of
+ * it is shown.
+ *
+ * Taken once, when the page is made, and kept HERE, beside `transactionData` as the picture is:
+ * the form is taken down between the steps, and "Zurück" finds it here. "Zurücksetzen" leaves it,
+ * a transfer that was sent lets it go, one that failed keeps it. Named with a transfer to a member
+ * of this community only -- a link, a letter and a member of another community go without it.
+ *
+ * ⛔ Never in the store, the device's storage or Apollo's cache (usePassOnDraft says why).
+ */
+const passOnOf = ref(usePassOnDraft().take())
+
+/**
  * The picture as the mutation takes it: `{ motif }`, or `{ picture }` -- the photo in the
  * chat's measure (THANK_YOU_PICTURE_SMALL), encoded now, right before it is sent --, or nothing.
  * Rejects with a ChatImageError where the photo cannot be made small enough.
@@ -157,6 +172,7 @@ const pictureArguments = async (chosen) => {
 const forgetEntries = () => {
   Object.assign(transactionData, EMPTY_TRANSACTION_DATA)
   picture.value = null
+  passOnOf.value = null
 }
 const error = ref(false)
 const errorResult = ref('')
@@ -270,13 +286,19 @@ async function sendTransaction() {
         currentTransactionStep.value = TRANSACTION_STEPS.transactionForm
         return
       }
-      // Without a picture the mutation carries neither of the two arguments.
+      // Without a picture the mutation carries neither of the two arguments -- and without a
+      // thank-you passed on to a member of this community, no `passOnOf` either.
+      const passingOn =
+        passOnOf.value && transactionData.targetCommunity?.foreign !== true
+          ? { passOnOf: passOnOf.value }
+          : {}
       await sendCoinsMutation({
         recipientCommunityIdentifier: transactionData.targetCommunity.uuid,
         recipientIdentifier: transactionData.identifier,
         amount: transactionData.amount.toString(),
         memo: transactionData.memo,
         ...withPicture,
+        ...passingOn,
       })
 
       error.value = false

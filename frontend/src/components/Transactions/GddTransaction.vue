@@ -288,6 +288,7 @@ import { pollChatNow } from '@/composables/useChatUpdates'
 import { markTransferSeen } from '@/graphql/chat.graphql'
 import ThanksNudge from '@/components/ThanksNudge.vue'
 import ThankYouGreetingPhoto from '@/components/ThankYouGreeting/ThankYouGreetingPhoto.vue'
+import { usePassOnDraft } from '@/composables/usePassOnDraft'
 import { useThanksNudges } from '@/composables/useThanksNudges'
 import {
   isTransactionReactionUnderway,
@@ -439,10 +440,22 @@ const passOnOffered = computed(
 /**
  * "Jemandem danken": the send form with nobody named -- the member chooses whom. Outwards, never
  * back to the giver, so no name is offered.
+ *
+ * The page of the form learns which thank-you its transfer passes on: this booking, handed over
+ * in memory (usePassOnDraft), the trail nobody is shown. Where the form is not reached, it is
+ * taken back.
  */
-const passOn = () => {
+const passOnDraft = usePassOnDraft()
+const passOn = async () => {
   markThanksSeen('pass-on', props.transaction.id)
-  router.push({ path: '/send', query: { art: SEND_TYPES.send } })
+  const handed = passOnDraft.put(props.transaction.id)
+  let reached = false
+  try {
+    const failure = await router.push({ path: '/send', query: { art: SEND_TYPES.send } })
+    reached = !failure
+  } finally {
+    if (!reached) passOnDraft.drop(handed)
+  }
 }
 
 /** The line, for where the keyboard stood in it. */
