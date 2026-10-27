@@ -341,7 +341,9 @@ describe('the counts of the figures page', () => {
 
   // The greetings: accepted yesterday by an account opened through it, with a photo in two
   // renditions; accepted thirty days ago with an account its maker had before; accepted twelve
-  // days ago by an account opened through it; run out two and twenty-five days ago; open; deleted.
+  // days ago by an account opened through it; run out two and twenty-five days ago; open; deleted
+  // (its greeting row left behind); filed twenty-five days ago and accepted five days ago, by an
+  // account opened through it -- filed before the chosen day, accepted after it.
   const ACCEPTED_BY_NEW = 890001
   const ACCEPTED_BY_OLD = 890002
   const ACCEPTED_BY_NEWER = 890003
@@ -349,6 +351,9 @@ describe('the counts of the figures page', () => {
   const RAN_OUT_EARLIER = 890005
   const OPEN = 890006
   const DELETED = 890007
+  const ACCEPTED_LATE = 890011
+  // A greeting with a photo whose link was never saved.
+  const ORPHAN = 890012
   // Plain links, without a greeting: one redeemed yesterday by an account opened through it, one
   // run out two days ago, and the one the old account was opened through long ago.
   const PLAIN_ACCEPTED = 890008
@@ -364,6 +369,7 @@ describe('the counts of the figures page', () => {
   const THROUGH_PLAIN = 890205
   // Opened an account through a greeting that ran out unaccepted.
   const TOO_LATE = 890206
+  const LATEST = 890207
 
   beforeAll(async () => {
     await emptyTablesOfFigures()
@@ -394,6 +400,13 @@ describe('the counts of the figures page', () => {
       { id: OPEN, createdAt: daysAgo(9), validUntil: daysAgo(-5) },
       { id: DELETED, createdAt: daysAgo(17), validUntil: daysAgo(3), deletedAt: daysAgo(10) },
       {
+        id: ACCEPTED_LATE,
+        createdAt: daysAgo(25),
+        validUntil: daysAgo(-5),
+        redeemedAt: daysAgo(5),
+        redeemedBy: LATEST,
+      },
+      {
         id: PLAIN_ACCEPTED,
         createdAt: daysAgo(4),
         validUntil: daysAgo(-10),
@@ -420,15 +433,19 @@ describe('the counts of the figures page', () => {
       RAN_OUT_EARLIER,
       OPEN,
       DELETED,
+      ACCEPTED_LATE,
     ]) {
       await writeGreeting(id, links.find((link) => link.id === id)?.createdAt as Date)
     }
+    await writeGreeting(ORPHAN, daysAgo(2))
     await writePicture(ACCEPTED_BY_NEW, 'small')
     await writePicture(ACCEPTED_BY_NEW, 'large')
     await writePicture(OPEN, 'large')
+    await writePicture(ORPHAN, 'small')
     const redeemRegistration = EventType.USER_REGISTER_REDEEM
     await noteForLink(redeemRegistration, NEW, ACCEPTED_BY_NEW, daysAgo(1))
     await noteForLink(redeemRegistration, NEWER, ACCEPTED_BY_NEWER, daysAgo(12))
+    await noteForLink(redeemRegistration, LATEST, ACCEPTED_LATE, daysAgo(5))
     await noteForLink(redeemRegistration, ALSO_THROUGH_IT, ACCEPTED_BY_OLD, daysAgo(31))
     await noteForLink(redeemRegistration, OLD, PLAIN_OF_OLD, daysAgo(200))
     await noteForLink(redeemRegistration, THROUGH_PLAIN, PLAIN_ACCEPTED, daysAgo(1))
@@ -438,22 +455,24 @@ describe('the counts of the figures page', () => {
   })
   afterAll(emptyTablesOfFigures)
 
-  it('counts the greetings sent from each moment on, by the moment they were filed', async () => {
-    expect((await dbCountThankYouGreetings(moments)).sent).toEqual([5, 1, 7])
+  // Not the greeting of the deleted link, nor the one whose link was never saved.
+  it('counts the greetings sent whose link stands, by the moment they were filed', async () => {
+    expect((await dbCountThankYouGreetings(moments)).sent).toEqual([4, 1, 7])
   })
 
   it('counts of them the ones with a photo of the own, once though it is filed twice', async () => {
     expect((await dbCountThankYouGreetings(moments)).withPicture).toEqual([2, 1, 2])
   })
 
+  // The one filed before the chosen day and accepted after it counts from the chosen day on.
   it('counts the greetings accepted, by the moment their link was redeemed, and no plain link', async () => {
-    expect((await dbCountAcceptedThankYouGreetings(moments)).accepted).toEqual([2, 1, 3])
+    expect((await dbCountAcceptedThankYouGreetings(moments)).accepted).toEqual([3, 2, 4])
   })
 
   // Not one opened through a plain link, nor one opened through the greeting by somebody who did
   // not accept it, nor the redeem of an account that was there before.
   it('counts of them the ones accepted by an account opened through the greeting itself', async () => {
-    expect((await dbCountAcceptedThankYouGreetings(moments)).withNewAccount).toEqual([2, 1, 2])
+    expect((await dbCountAcceptedThankYouGreetings(moments)).withNewAccount).toEqual([3, 2, 3])
   })
 
   // Not a plain link, not an accepted one whose time is over now, not a deleted one, not an open
@@ -465,8 +484,8 @@ describe('the counts of the figures page', () => {
 
 // By calendar week, from Monday 7 September 2026, with the running week the one of 21 September
 // up to its Thursday noon: in each count two in the first week -- one at its very last moment
-// (a link keeps whole seconds) --, none in the week after, one in the week of 21 September, one in
-// the week before the first.
+// (a link keeps whole seconds) --, none in the week after, one in the week of 21 September (two
+// accepted there, one of them filed long before), one in the week before the first.
 describe('the counts of the figures page by week', () => {
   const from = new Date('2026-09-07T00:00:00.000Z')
   const now = new Date('2026-09-24T12:00:00.000Z')
@@ -488,12 +507,19 @@ describe('the counts of the figures page by week', () => {
   const DELETED = 890316
   // A plain link, redeemed in the first week by an account opened through it.
   const PLAIN = 890321
+  // Filed long before and accepted in the week of 21 September by an account opened through it;
+  // filed in the first week, its link never saved; filed in the first week, its link deleted the
+  // day after (the greeting row left behind).
+  const ACCEPTED_LATER = 890305
+  const ORPHAN = 890306
+  const DELETED_IN_WEEK = 890317
 
   const NEW = 890401
   const OLD = 890402
   const NEWER = 890403
   const BEFORE = 890404
   const THROUGH_PLAIN = 890405
+  const LATER = 890406
 
   beforeAll(async () => {
     await emptyTablesOfFigures()
@@ -542,14 +568,33 @@ describe('the counts of the figures page by week', () => {
       redeemedAt: at('2026-09-08T12:00:00.000Z'),
       redeemedBy: THROUGH_PLAIN,
     })
+    await writeLink({
+      id: ACCEPTED_LATER,
+      createdAt: LONG_BEFORE,
+      validUntil: LONG_AFTER,
+      redeemedAt: at('2026-09-22T09:00:00.000Z'),
+      redeemedBy: LATER,
+    })
+    await writeGreeting(ACCEPTED_LATER, LONG_BEFORE)
+    await writeGreeting(ORPHAN, at('2026-09-08T13:00:00.000Z'))
+    await writePicture(ORPHAN, 'small')
+    await writeLink({
+      id: DELETED_IN_WEEK,
+      createdAt: at('2026-09-10T12:00:00.000Z'),
+      validUntil: LONG_AFTER,
+      deletedAt: at('2026-09-11T12:00:00.000Z'),
+    })
+    await writeGreeting(DELETED_IN_WEEK, at('2026-09-10T12:00:00.000Z'))
     const redeemRegistration = EventType.USER_REGISTER_REDEEM
     await noteForLink(redeemRegistration, NEW, FIRST, at('2026-09-09T10:00:00.000Z'))
     await noteForLink(redeemRegistration, NEWER, THIRD_WEEK, at('2026-09-21T00:00:00.000Z'))
     await noteForLink(redeemRegistration, BEFORE, WEEK_BEFORE, at('2026-09-06T23:59:59.000Z'))
     await noteForLink(redeemRegistration, THROUGH_PLAIN, PLAIN, at('2026-09-08T12:00:00.000Z'))
+    await noteForLink(redeemRegistration, LATER, ACCEPTED_LATER, at('2026-09-22T09:00:00.000Z'))
   })
   afterAll(emptyTablesOfFigures)
 
+  // Not the greeting whose link was never saved, nor the one whose link was deleted.
   it('counts the greetings sent in each week, and of them the ones with a photo, each once', async () => {
     expect(await dbCountThankYouGreetingsByWeek(from)).toEqual([
       { weekStart: '2026-09-07', n: 2, withPicture: 1 },
@@ -557,10 +602,11 @@ describe('the counts of the figures page by week', () => {
     ])
   })
 
+  // In the week of the redeem, whenever the greeting was filed.
   it('counts the greetings accepted in each week, and of them the ones by an account opened through them', async () => {
     expect(await dbCountAcceptedThankYouGreetingsByWeek(from)).toEqual([
       { weekStart: '2026-09-07', n: 2, withNewAccount: 1 },
-      { weekStart: '2026-09-21', n: 1, withNewAccount: 1 },
+      { weekStart: '2026-09-21', n: 2, withNewAccount: 2 },
     ])
   })
 

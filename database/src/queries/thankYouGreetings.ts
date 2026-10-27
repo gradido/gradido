@@ -158,12 +158,19 @@ export async function dbDeleteThankYouGreetingByLinkCode(
 
 // The figures of the admin's start page (CommunityFiguresResolver): sums, never who. How a count
 // answers for several moments at once: figureCounts.ts. A greeting is a link with a greeting row,
-// so the counts start from the greetings; a plain link has none and is never counted here. A
-// greeting goes with its link when the link is deleted (removeThankYouGreeting): the counts of
-// the moments before shrink then -- whoever deletes a link has taken it back.
+// so every count reads the greetings with their links; a plain link has no greeting and is never
+// counted here. A greeting goes with its link when the link is deleted (removeThankYouGreeting):
+// the counts of the moments before shrink then.
 
 /** The link of a greeting: the greeting hangs on its code. */
 const linkOfGreeting = eq(transactionLinksTable.code, thankYouGreetingsTable.transactionLinkCode)
+
+/**
+ * The greeting's link stands: it is not deleted. A greeting row left behind -- its link could not
+ * be saved, or its removal with a deleted link failed (removeThankYouGreeting only logs that) --
+ * counts nowhere: the inner join with the link and this condition keep it out.
+ */
+const linkStands = isNull(transactionLinksTable.deletedAt)
 
 /**
  * The greeting carries a photo of the sender's own: its picture is filed under the link's code,
@@ -186,7 +193,7 @@ const withOwnPicture = (): SQL =>
  * How many thank-you greetings were sent, and of them how many with a photo of the sender's own,
  * from each moment on by the moment the greeting was filed (`created_at`) -- both in one
  * statement, one number per moment. A greeting duplicated from another is a new link with a new
- * row, and counts again.
+ * row, and counts again. Only greetings whose link stands, as in every count here.
  */
 export async function dbCountThankYouGreetings(
   froms: (Date | null)[],
@@ -200,6 +207,8 @@ export async function dbCountThankYouGreetings(
       ),
     })
     .from(thankYouGreetingsTable)
+    .innerJoin(transactionLinksTable, linkOfGreeting)
+    .where(linkStands)
   return { sent: countsOfRow(row?.sent, froms), withPicture: countsOfRow(row?.withPicture, froms) }
 }
 
@@ -215,13 +224,18 @@ export async function dbCountThankYouGreetingsByWeek(
       withPicture: count(sql`case when ${withOwnPicture()} then 1 end`),
     })
     .from(thankYouGreetingsTable)
-    .where(gte(thankYouGreetingsTable.createdAt, from))
+    .innerJoin(transactionLinksTable, linkOfGreeting)
+    .where(and(linkStands, gte(thankYouGreetingsTable.createdAt, from)))
     .groupBy(week)
     .orderBy(week)
 }
 
-/** A greeting accepted: its link redeemed -- here, or across the border by a member from afar. */
-const accepted = isNotNull(transactionLinksTable.redeemedAt)
+/**
+ * A greeting accepted: its link redeemed -- here, or across the border by a member from afar --
+ * and standing (deleteTransactionLink refuses a redeemed link, so this only keeps the counts one
+ * population).
+ */
+const accepted = and(isNotNull(transactionLinksTable.redeemedAt), linkStands)
 
 /**
  * The account that accepted the greeting was opened through this very link: its registration
@@ -287,13 +301,15 @@ export async function dbCountAcceptedThankYouGreetingsByWeek(
 }
 
 /**
- * A greeting nobody accepted in time: its link neither redeemed nor deleted (a deleted link was
- * taken back, not missed), and valid until a moment before `now`.
+ * A greeting nobody accepted in time: its link not redeemed, standing, and valid until a moment
+ * before `now`. A link deleted after its time ran out -- the wallet offers to delete an expired
+ * link, after duplicating it for instance -- takes its greeting along, and the count of the
+ * moments before shrinks then.
  */
 const expiredBy = (now: Date) =>
   and(
     isNull(transactionLinksTable.redeemedAt),
-    isNull(transactionLinksTable.deletedAt),
+    linkStands,
     lt(transactionLinksTable.validUntil, now),
   )
 

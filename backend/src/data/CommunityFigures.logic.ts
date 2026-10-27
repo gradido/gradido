@@ -174,7 +174,9 @@ const FIGURES: Figures[] = [
   bookings(TransactionTypeId.SEND, 'transfersSent', 'gddSent'),
   // The accounts whose first SEND row lies in the column, each once.
   inEveryColumn('firstSenders', dbCountFirstSenders),
-  // A motif of the greeting or a photo, sent with the transfer: on the SEND row as above.
+  // A motif or a photo chosen in the send form, on the SEND row: only a transfer between two
+  // members of this community carries one. A transfer across the border sends none, and a link's
+  // booking none either -- a greeting shows its own picture and counts with the greetings below.
   inEveryColumn('transfersWithPicture', (froms) =>
     dbCountTransactionsWithPicture(TransactionTypeId.SEND, froms),
   ),
