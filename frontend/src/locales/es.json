@@ -124,19 +124,6 @@
     },
     "text": "Círculos locales, círculos de estudio, proyectos, eventos y congresos"
   },
-  "card-user-search": {
-    "allowed": {
-      "button": "Abrir búsqueda de miembros...",
-      "disabled-button": "GMS offline...",
-      "text": "Encuentra Miembros de todas las Comunidades en un Mapa."
-    },
-    "headline": "Búsqueda geográfica de miembros (beta)",
-    "info": "Así se hace",
-    "not-allowed": {
-      "button": "Introducir ubicación...",
-      "text": "Para encontrar otros miembros cerca de ti, ¡introduce ahora tu ubicación en el mapa!"
-    }
-  },
   "chatForward": {
     "byEmailMany": "También por correo electrónico a los {count} contactos",
     "byEmailOne": "También por correo electrónico a {name}",

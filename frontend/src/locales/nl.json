@@ -124,19 +124,6 @@
     },
     "text": "Lokale kringen, studiekringen, projecten, evenementen en congressen"
   },
-  "card-user-search": {
-    "allowed": {
-      "button": "Leden zoeken openen...",
-      "disabled-button": "GMS offline...",
-      "text": "Vind leden van alle gemeenschappen op een kaart."
-    },
-    "headline": "Geografisch leden zoeken (bèta)",
-    "info": "Zo gaat dat",
-    "not-allowed": {
-      "button": "Locatie invoeren",
-      "text": "Om andere leden in jouw omgeving te vinden, voer nu je locatie in op de kaart!"
-    }
-  },
   "chatForward": {
     "byEmailMany": "Ook per e-mail aan de {count} contacten",
     "byEmailOne": "Ook per e-mail aan {name}",

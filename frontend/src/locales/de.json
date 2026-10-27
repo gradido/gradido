@@ -124,19 +124,6 @@
     },
     "text": "Lokale Kreise, Studienkreise, Projekte, Events und Kongresse"
   },
-  "card-user-search": {
-    "allowed": {
-      "button": "Mitgliedssuche öffnen...",
-      "disabled-button": "GMS offline...",
-      "text": "Finde Mitglieder aller Communities auf einer Landkarte."
-    },
-    "headline": "Geografische Mitgliedssuche (beta)",
-    "info": "So gehts",
-    "not-allowed": {
-      "button": "Standort eintragen...",
-      "text": "Um andere Mitglieder in Deinem Umkreis zu finden, trage jetzt Deinen Standort auf der Karte ein!"
-    }
-  },
   "chatForward": {
     "byEmailMany": "Auch per E-Mail an die {count} Kontakte",
     "byEmailOne": "Auch per E-Mail an {name}",

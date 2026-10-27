@@ -124,19 +124,6 @@
     },
     "text": "Yerel çemberler, çalışma çemberleri, projeler, etkinlikler ve kongreler"
   },
-  "card-user-search": {
-    "allowed": {
-      "button": "Üye aramasını aç...",
-      "disabled-button": "GMS çevrimdışı...",
-      "text": "Tüm toplulukların üyelerini bir haritada bul."
-    },
-    "headline": "Coğrafi üye arama (beta)",
-    "info": "Nasıl çalışır",
-    "not-allowed": {
-      "button": "Konum gir...",
-      "text": "Çevrendeki diğer üyeleri bulmak için şimdi konumunu haritaya gir!"
-    }
-  },
   "chatForward": {
     "byEmailMany": "{count} kişiye ayrıca e-posta ile",
     "byEmailOne": "{name} kişisine ayrıca e-posta ile",
