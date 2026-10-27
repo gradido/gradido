@@ -77,6 +77,41 @@ describe('useThanksNudges', () => {
     expect(api().isSeen('call', 7)).toBe(false)
   })
 
+  /**
+   * "Später" in the tile on the overview (W3): the thank-you is put aside there, by the booking's
+   * id, under a name of its own -- and it is NOT the line "Dank weitergeben?" in the opened row,
+   * which stays the member's to answer there (and the other way round).
+   */
+  describe('a thank-you put aside in the tile on the overview', () => {
+    it('is remembered under this member, by the booking’s id', () => {
+      const { api } = host(storeWith('member-1'))
+
+      api().markSeen('arrival', 7)
+
+      expect(window.localStorage.getItem(`${KEY}member-1:arrival:7`)).toBe('1')
+      expect(api().isSeen('arrival', 7)).toBe(true)
+      expect(api().isSeen('arrival', 8)).toBe(false)
+    })
+
+    it('is read back on a later visit', () => {
+      window.localStorage.setItem(`${KEY}member-1:arrival:7`, '1')
+
+      const { api } = host(storeWith('member-1'))
+
+      expect(api().isSeen('arrival', 7)).toBe(true)
+    })
+
+    it('leaves the line in the opened row as it was, and is not left by it', () => {
+      const { api } = host(storeWith('member-1'))
+
+      api().markSeen('arrival', 7)
+      expect(api().isSeen('pass-on', 7)).toBe(false)
+
+      api().markSeen('pass-on', 8)
+      expect(api().isSeen('arrival', 8)).toBe(false)
+    })
+  })
+
   // The server compares uuids without regard to case: one occasion, whichever way it is written.
   it('takes a uuid in either case for the same occasion', () => {
     const { api } = host(storeWith('member-1'))

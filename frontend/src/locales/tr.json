@@ -1734,6 +1734,12 @@
       "own-words": "Senin sözlerin"
     }
   },
+  "thanksArrival": {
+    "answer": "Yanıtla",
+    "from": "{name}, {amount} ile sana teşekkür ediyor.",
+    "later": "Daha sonra",
+    "title": "Teşekkür sana ulaştı."
+  },
   "thanksNudge": {
     "afterCall": "{name} kişisine görüşme için teşekkür etmek ister misin?",
     "notNow": "Şimdi değil",

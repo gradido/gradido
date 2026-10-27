@@ -1734,6 +1734,12 @@
       "own-words": "Deine Worte"
     }
   },
+  "thanksArrival": {
+    "answer": "Antworten",
+    "from": "{name} dankt Dir mit {amount}.",
+    "later": "Später",
+    "title": "Dein Dank ist da."
+  },
   "thanksNudge": {
     "afterCall": "Möchtest Du Dich bei {name} für das Gespräch bedanken?",
     "notNow": "Nicht jetzt",

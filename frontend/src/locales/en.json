@@ -1734,6 +1734,12 @@
       "own-words": "Your words"
     }
   },
+  "thanksArrival": {
+    "answer": "Reply",
+    "from": "{name} thanks you with {amount}.",
+    "later": "Later",
+    "title": "Your thank-you is here."
+  },
   "thanksNudge": {
     "afterCall": "Would you like to thank {name} for the conversation?",
     "notNow": "Not now",

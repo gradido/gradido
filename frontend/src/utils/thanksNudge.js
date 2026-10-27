@@ -15,6 +15,9 @@
  * Each occasion holds for seven days (F3) and then there is quiet, also for an occasion seen for
  * the first time after a long while. Whether it was answered on this device (`seen`) is the
  * caller's to say (useThanksNudges).
+ *
+ * And the third ring (W3), the moment of arrival: which thank-yous received the tile "Dein Dank
+ * ist da." on the overview shows (`arrivalItems`), within the same seven days.
  */
 
 /** From when on the line stands under an invitation: half an hour after the call began. */
@@ -80,3 +83,36 @@ export const passOnNudgeState = ({ transaction, now, seen }) => {
   }
   return now - at(transaction.balanceDate) <= THANKS_NUDGE_HOLDS_MS ? 'show' : 'hidden'
 }
+
+/** How many thank-yous the tile on the overview shows at most (F3); the rest is the booking list's. */
+export const THANKS_ARRIVAL_MOST = 3
+
+/**
+ * The thank-yous the tile "Dein Dank ist da." on the overview shows (W3): of a list of bookings,
+ * those the member received from a person (`RECEIVE` with somebody named on the other side, as
+ * the row names its counterparty) and may react to (`canReact` -- the server's word, and the very
+ * set a first reaction mails the giver about, W1), that have no reaction yet, came within the last
+ * seven days, and that the member did not put aside on this device ("Später": `seen('arrival',
+ * id)`). The newest first, and at most THANKS_ARRIVAL_MOST of them.
+ *
+ * As for the line in the opened row, only the seven days are a bound: a booking whose time lies a
+ * little ahead of the device's clock has just come. A time nobody can read is no thank-you to show.
+ * Two that came at the same moment stand in the order of their ids, the later one first.
+ *
+ * @param {{ transactions: Array<{ id: number, typeId: string, balanceDate: string, canReact?: boolean, reaction?: string | null, linkedUser?: { gradidoID?: string } | null }> | null | undefined, now: number, seen: (kind: 'arrival', id: number) => boolean }} occasion
+ * @returns {Array} the bookings themselves, as they came
+ */
+export const arrivalItems = ({ transactions, now, seen }) =>
+  (transactions ?? [])
+    .filter(
+      (booking) =>
+        booking?.typeId === 'RECEIVE' &&
+        booking.canReact === true &&
+        !booking.reaction &&
+        Boolean(booking.linkedUser?.gradidoID) &&
+        // Written so that a time nobody can read (NaN) is no thank-you either.
+        now - at(booking.balanceDate) <= THANKS_NUDGE_HOLDS_MS &&
+        !seen('arrival', booking.id),
+    )
+    .sort((one, other) => at(other.balanceDate) - at(one.balanceDate) || other.id - one.id)
+    .slice(0, THANKS_ARRIVAL_MOST)

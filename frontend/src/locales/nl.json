@@ -1734,6 +1734,12 @@
       "own-words": "Jouw woorden"
     }
   },
+  "thanksArrival": {
+    "answer": "Antwoorden",
+    "from": "{name} bedankt jou met {amount}.",
+    "later": "Later",
+    "title": "Je bedankje is er."
+  },
   "thanksNudge": {
     "afterCall": "Wil je {name} bedanken voor het gesprek?",
     "notNow": "Niet nu",

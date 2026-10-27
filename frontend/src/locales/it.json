@@ -1734,6 +1734,12 @@
       "own-words": "Le tue parole"
     }
   },
+  "thanksArrival": {
+    "answer": "Rispondi",
+    "from": "{name} ti ringrazia con {amount}.",
+    "later": "Più tardi",
+    "title": "Il ringraziamento è arrivato."
+  },
   "thanksNudge": {
     "afterCall": "Vuoi ringraziare {name} per la conversazione?",
     "notNow": "Non ora",
