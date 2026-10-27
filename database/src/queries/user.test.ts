@@ -76,9 +76,7 @@ describe('user.queries', () => {
       await dbDeleteAllRowsExceptMigrations()
 
       const homeCom = await createCommunity(false)
-      const bibi = bibiBloxberg
-      bibi.alias = 'b-b'
-      await userFactory(bibi, homeCom)
+      await userFactory({ ...bibiBloxberg, alias: 'b-b' }, homeCom)
     })
 
     it('should return true if alias exists', async () => {
