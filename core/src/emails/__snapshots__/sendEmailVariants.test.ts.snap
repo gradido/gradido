@@ -2057,11 +2057,13 @@ exports[`sendEmailVariants sendTransactionReactionReceivedEmail result has the c
         <h2 style="margin-top: 15px; color: #383838;">Your thank-you has arrived</h2>
         <div class="text-block" style="margin-top: 20px; color: #9ca0a8;">
           <p>Hello Peter Lustig,</p>
-          <p>bibi (Bloxberg) was happy about your thank-you: 🙏</p>
+          <p>bibi (Bloxberg) was happy about your thank-you:</p>
+          <p class="reaction-emoji" style="font-size: 48px; line-height: 56px; margin: 8px 0 0 0;">🙏</p>
         </div>
         <div class="content" style="display: block; width: 88%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; box-sizing: border-box; border: 1px solid #808080; background-color: #f5f5f5;">
-          <h2 style="margin-top: 15px; color: #383838;">Transaction details</h2>
-          <div class="p_content" style="margin: 15px 0 15px 0; line-height: 26px; color: #696c72;">Amount: 17.65 GDD<br><span class="human-text" style="white-space: pre-line; overflow-wrap: anywhere; word-break: break-word;">Message: You deserve it! 🙏🏼</span><br>You can find transaction details in your Gradido account.
+          <h2 style="margin-top: 15px; color: #383838;">Your thank-you to <span class="alias" style="display: inline-block; max-width: 100%; overflow-wrap: anywhere;">bibi</span>
+          </h2>
+          <div class="p_content" style="margin: 15px 0 15px 0; line-height: 26px; color: #696c72;">Amount: 17.65 GDD<br><span class="human-text" style="white-space: pre-line; overflow-wrap: anywhere; word-break: break-word;">Message: You deserve it! 🙏🏼</span>
           </div>
           <div><a class="button-5" href="http://localhost/contacts?with=3f9a1e2c-1111-4a2b-9c3d-000000000001&amp;community=aaaa1111-2222-4333-8444-555566667777" style="display: inline-block; padding: 9px 15px; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; background-image: linear-gradient(135deg, #53900c, #6e6e6e); font-size: 20px; font-weight: 600; color: #f5f5f5; width: auto; box-shadow: none; transition: all 0.3s ease; margin: 25px 0 0 0;"><span class="chatbox-wrapper" style="margin-right: 8px;"><img class="bi-chatbox" alt="chatbox" loading="lazy" src="cid:chatboxicon" style="margin-bottom: -5px;"></span><span>Conversation</span></a></div><a class="button-3" href="http://localhost/transactions" style="display: inline-block; padding: 9px 15px; color: white; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; background-image: radial-gradient(circle farthest-corner at 0% 0%, #f9cd69, #c58d38); box-shadow: 16px 13px 35px 0 rgba(56, 56, 56, 0.3); margin: 25px 0 25px 0; width: 50%;">To account</a>
           <div class="p_content" style="margin: 15px 0 15px 0; line-height: 26px; color: #696c72;">Please do not reply to this email.</div>
