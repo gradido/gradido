@@ -1,7 +1,8 @@
 // AI-GENERATED — not an architecture reference
-import { eq, inArray } from 'drizzle-orm'
+import { and, count, eq, exists, gte, inArray, isNotNull, isNull, lt, SQL, sql } from 'drizzle-orm'
 import { VoidResult } from 'shared'
 import { drizzleDb } from '../AppDatabase'
+import { EventType } from '../enum/EventType'
 import {
   DBDuplicateEntryError,
   DBInsertFailed,
@@ -9,11 +10,21 @@ import {
   isDuplicateEntry,
 } from '../errorTypes'
 import {
+  eventsTable,
   ThankYouGreetingInsert,
   ThankYouGreetingSelect,
+  thankYouGreetingPicturesTable,
   thankYouGreetingsTable,
   transactionLinksTable,
 } from '../schemas/drizzle.schema'
+import {
+  countFields,
+  countsOfRow,
+  rowsFrom,
+  rowsFromWhere,
+  WeeklyCount,
+  weekStartOf,
+} from './figureCounts'
 
 /** A greeting's row without the name: what an error about the row carries. */
 export type ThankYouGreetingInsertWithoutName = Omit<ThankYouGreetingInsert, 'recipientName'>
@@ -143,4 +154,196 @@ export async function dbDeleteThankYouGreetingByLinkCode(
     return { success: true }
   }
   return { success: false, error: ThankYouGreetingNotFound(transactionLinkCode) }
+}
+
+// The figures of the admin's start page (CommunityFiguresResolver): sums, never who. How a count
+// answers for several moments at once: figureCounts.ts. A greeting is a link with a greeting row,
+// so every count reads the greetings with their links; a plain link has no greeting and is never
+// counted here. A greeting goes with its link when the link is deleted (removeThankYouGreeting):
+// the counts of the moments before shrink then.
+
+/** The link of a greeting: the greeting hangs on its code. */
+const linkOfGreeting = eq(transactionLinksTable.code, thankYouGreetingsTable.transactionLinkCode)
+
+/**
+ * The greeting's link stands: it is not deleted. A greeting row left behind -- its link could not
+ * be saved, or its removal with a deleted link failed (removeThankYouGreeting only logs that) --
+ * counts nowhere: the inner join with the link and this condition keep it out.
+ */
+const linkStands = isNull(transactionLinksTable.deletedAt)
+
+/**
+ * The greeting carries a photo of the sender's own: its picture is filed under the link's code,
+ * as two renditions -- counted once. The small one stays after the thank-you is accepted.
+ */
+const withOwnPicture = (): SQL =>
+  exists(
+    drizzleDb()
+      .select({ id: thankYouGreetingPicturesTable.id })
+      .from(thankYouGreetingPicturesTable)
+      .where(
+        eq(
+          thankYouGreetingPicturesTable.transactionLinkCode,
+          thankYouGreetingsTable.transactionLinkCode,
+        ),
+      ),
+  )
+
+/**
+ * How many thank-you greetings were sent, and of them how many with a photo of the sender's own,
+ * from each moment on by the moment the greeting was filed (`created_at`) -- both in one
+ * statement, one number per moment. A greeting duplicated from another is a new link with a new
+ * row, and counts again. Only greetings whose link stands, as in every count here.
+ */
+export async function dbCountThankYouGreetings(
+  froms: (Date | null)[],
+): Promise<{ sent: number[]; withPicture: number[] }> {
+  const [row] = await drizzleDb()
+    .select({
+      sent: countFields(froms, rowsFrom(thankYouGreetingsTable.createdAt)),
+      withPicture: countFields(
+        froms,
+        rowsFromWhere(thankYouGreetingsTable.createdAt, withOwnPicture()),
+      ),
+    })
+    .from(thankYouGreetingsTable)
+    .innerJoin(transactionLinksTable, linkOfGreeting)
+    .where(linkStands)
+  return { sent: countsOfRow(row?.sent, froms), withPicture: countsOfRow(row?.withPicture, froms) }
+}
+
+/** dbCountThankYouGreetings by calendar week: in each week from `from` on, in one statement. */
+export async function dbCountThankYouGreetingsByWeek(
+  from: Date,
+): Promise<(WeeklyCount & { withPicture: number })[]> {
+  const week = weekStartOf(thankYouGreetingsTable.createdAt)
+  return drizzleDb()
+    .select({
+      weekStart: week,
+      n: count(),
+      withPicture: count(sql`case when ${withOwnPicture()} then 1 end`),
+    })
+    .from(thankYouGreetingsTable)
+    .innerJoin(transactionLinksTable, linkOfGreeting)
+    .where(and(linkStands, gte(thankYouGreetingsTable.createdAt, from)))
+    .groupBy(week)
+    .orderBy(week)
+}
+
+/**
+ * A greeting accepted: its link redeemed -- here, or across the border by a member from afar --
+ * and standing (deleteTransactionLink refuses a redeemed link, so this only keeps the counts one
+ * population).
+ */
+const accepted = and(isNotNull(transactionLinksTable.redeemedAt), linkStands)
+
+/**
+ * The account that accepted the greeting was opened through this very link: its registration
+ * names the link (`USER_REGISTER_REDEEM`, RegisterUserFromTransactionLinkRole). Never across the
+ * border -- a member from afar registered in their own community -- and never an account that
+ * was there before, nor one registered through the link that did not accept it.
+ */
+const byAccountOpenedThroughIt = (): SQL =>
+  exists(
+    drizzleDb()
+      .select({ id: eventsTable.id })
+      .from(eventsTable)
+      .where(
+        and(
+          eq(eventsTable.type, EventType.USER_REGISTER_REDEEM),
+          eq(eventsTable.affectedUserId, transactionLinksTable.redeemedBy),
+          eq(eventsTable.involvedTransactionLinkId, transactionLinksTable.id),
+        ),
+      ),
+  )
+
+/**
+ * How many thank-you greetings were accepted, and of them how many by an account opened through
+ * the greeting itself, from each moment on by the moment the link was redeemed (`redeemed_at`) --
+ * both in one statement, one number per moment, so that the second is always part of the first.
+ */
+export async function dbCountAcceptedThankYouGreetings(
+  froms: (Date | null)[],
+): Promise<{ accepted: number[]; withNewAccount: number[] }> {
+  const [row] = await drizzleDb()
+    .select({
+      accepted: countFields(froms, rowsFrom(transactionLinksTable.redeemedAt)),
+      withNewAccount: countFields(
+        froms,
+        rowsFromWhere(transactionLinksTable.redeemedAt, byAccountOpenedThroughIt()),
+      ),
+    })
+    .from(thankYouGreetingsTable)
+    .innerJoin(transactionLinksTable, linkOfGreeting)
+    .where(accepted)
+  return {
+    accepted: countsOfRow(row?.accepted, froms),
+    withNewAccount: countsOfRow(row?.withNewAccount, froms),
+  }
+}
+
+/** dbCountAcceptedThankYouGreetings by calendar week: in each week from `from` on. */
+export async function dbCountAcceptedThankYouGreetingsByWeek(
+  from: Date,
+): Promise<(WeeklyCount & { withNewAccount: number })[]> {
+  const week = weekStartOf(transactionLinksTable.redeemedAt)
+  return drizzleDb()
+    .select({
+      weekStart: week,
+      n: count(),
+      withNewAccount: count(sql`case when ${byAccountOpenedThroughIt()} then 1 end`),
+    })
+    .from(thankYouGreetingsTable)
+    .innerJoin(transactionLinksTable, linkOfGreeting)
+    .where(and(accepted, gte(transactionLinksTable.redeemedAt, from)))
+    .groupBy(week)
+    .orderBy(week)
+}
+
+/**
+ * A greeting nobody accepted in time: its link not redeemed, standing, and valid until a moment
+ * before `now`. A link deleted after its time ran out -- the wallet offers to delete an expired
+ * link, after duplicating it for instance -- takes its greeting along, and the count of the
+ * moments before shrinks then.
+ */
+const expiredBy = (now: Date) =>
+  and(
+    isNull(transactionLinksTable.redeemedAt),
+    linkStands,
+    lt(transactionLinksTable.validUntil, now),
+  )
+
+/**
+ * How many thank-you greetings expired, from each moment on by the moment their validity ran out
+ * (`valid_until`) and up to `now` -- one statement, one number per moment. From the chosen day on
+ * are the greetings whose time ran out since that day; all of it, every one that ran out.
+ */
+export async function dbCountExpiredThankYouGreetings(
+  froms: (Date | null)[],
+  now: Date,
+): Promise<number[]> {
+  const [row] = await drizzleDb()
+    .select(countFields(froms, rowsFrom(transactionLinksTable.validUntil)))
+    .from(thankYouGreetingsTable)
+    .innerJoin(transactionLinksTable, linkOfGreeting)
+    .where(expiredBy(now))
+  return countsOfRow(row, froms)
+}
+
+/**
+ * dbCountExpiredThankYouGreetings by calendar week: in the week their validity ran out, in each
+ * week from `from` on -- the running week up to `now`.
+ */
+export async function dbCountExpiredThankYouGreetingsByWeek(
+  from: Date,
+  now: Date,
+): Promise<WeeklyCount[]> {
+  const week = weekStartOf(transactionLinksTable.validUntil)
+  return drizzleDb()
+    .select({ weekStart: week, n: count() })
+    .from(thankYouGreetingsTable)
+    .innerJoin(transactionLinksTable, linkOfGreeting)
+    .where(and(expiredBy(now), gte(transactionLinksTable.validUntil, from)))
+    .groupBy(week)
+    .orderBy(week)
 }

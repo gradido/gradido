@@ -232,8 +232,23 @@ export const Overview = defineComponent({
           rows: [
             ['transfersSent', t('figures.row.transfersSent')],
             ['gddSent', t('figures.row.gddSent')],
+            ['firstSenders', t('figures.row.firstSenders')],
+            ['transfersWithPicture', t('figures.row.transfersWithPicture')],
+            ['thanksAnswered', t('figures.row.thanksAnswered')],
+            ['thanksPassedOn', t('figures.row.thanksPassedOn')],
             ['creationsBooked', t('figures.row.creationsBooked')],
             ['gddCreated', t('figures.row.gddCreated')],
+          ],
+        },
+        {
+          key: 'greetings',
+          label: t('figures.group.greetings'),
+          rows: [
+            ['greetingsSent', t('figures.row.greetingsSent')],
+            ['greetingsWithPhoto', t('figures.row.greetingsWithPhoto')],
+            ['greetingsAccepted', t('figures.row.greetingsAccepted')],
+            ['greetingsWithAccount', t('figures.row.greetingsWithAccount')],
+            ['greetingsExpired', t('figures.row.greetingsExpired')],
           ],
         },
         {

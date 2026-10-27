@@ -7,7 +7,14 @@
 // CommunityFigureSeries.logic.test.ts, with the branches of the weeks (a day chosen in the running
 // week, a Sunday, the turn of a year).
 import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
-import { AppDatabase, dbInsertEvent, EventType } from 'database'
+import {
+  AppDatabase,
+  dbInsertEvent,
+  EventType,
+  thankYouGreetingsTable,
+  transactionLinksTable,
+  transactionReactionsTable,
+} from 'database'
 import { GraphQLError } from 'graphql'
 import { userFactory } from '@/seeds/factory/user'
 import { login } from '@/seeds/graphql/mutations'
@@ -69,6 +76,36 @@ beforeAll(async () => {
   await note(EventType.USER_LOGIN, bibi.id, wednesdayBack(3, 10))
   await note(EventType.USER_LOGIN, bibi.id, wednesdayBack(3, 11))
   await note(EventType.USER_LOGIN, bob.id, wednesdayBack(1, 10))
+
+  // Thank-you greetings of Bibi's: one filed in the week of the chosen day, which Bob accepted a
+  // week ago with the account he had; one filed a week ago, open; one filed before, whose time
+  // ran out a week ago.
+  const drizzle = db.getDrizzleDataSource()
+  const greetings: [code: string, filed: Date, validUntil: Date, redeemed: Date | null][] = [
+    ['f12b1'.padEnd(24, '0'), wednesdayBack(3, 12), mondayBack(-4), wednesdayBack(1, 14)],
+    ['f12b2'.padEnd(24, '0'), wednesdayBack(1, 12), mondayBack(-4), null],
+    ['f12b3'.padEnd(24, '0'), wednesdayBack(5, 12), wednesdayBack(1, 16), null],
+  ]
+  for (const [code, filed, validUntil, redeemed] of greetings) {
+    await drizzle.insert(transactionLinksTable).values({
+      userId: bibi.id,
+      memo: 'Danke für Deine Hilfe!',
+      code,
+      createdAt: filed,
+      validUntil,
+      redeemedAt: redeemed,
+      redeemedBy: redeemed ? bob.id : null,
+    })
+    await drizzle
+      .insert(thankYouGreetingsTable)
+      .values({ transactionLinkCode: code, motif: 'bouquet', createdAt: filed })
+  }
+  // Answers to two transfers, in the week of the chosen day and a week ago (no booking is needed:
+  // the table has no foreign key).
+  await drizzle.insert(transactionReactionsTable).values([
+    { transactionId: 1, emoji: '👍', createdAt: wednesdayBack(3, 13) },
+    { transactionId: 2, emoji: '🌱', createdAt: wednesdayBack(1, 13) },
+  ])
 })
 
 afterAll(async () => {
@@ -113,6 +150,13 @@ describe('communityFigureSeries', () => {
     expect(rowOf(series.rows, 'hostsWithGuest')?.counts).toEqual([1, 0, 0, 0])
     // Each account once in a week: Bibi, then Bob, then Peter, who asks.
     expect(rowOf(series.rows, 'activeAccounts')?.counts).toEqual([1, 0, 1, 1])
+    expect(rowOf(series.rows, 'thanksAnswered')?.counts).toEqual([1, 0, 1, 0])
+    // The greetings: filed in the week of the chosen day and a week ago, accepted and run out a
+    // week ago -- the one filed before is not in the weeks, its running out is.
+    expect(rowOf(series.rows, 'greetingsSent')?.counts).toEqual([1, 0, 1, 0])
+    expect(rowOf(series.rows, 'greetingsAccepted')?.counts).toEqual([0, 0, 1, 0])
+    expect(rowOf(series.rows, 'greetingsWithAccount')?.counts).toEqual([0, 0, 0, 0])
+    expect(rowOf(series.rows, 'greetingsExpired')?.counts).toEqual([0, 0, 1, 0])
     // The flows of the page, in its order -- no stocks, no returners.
     expect(series.rows.map((row: Row) => row.key)).toEqual([
       'accountsNew',
@@ -129,8 +173,17 @@ describe('communityFigureSeries', () => {
       'firstCreationsReview',
       'transfersSent',
       'gddSent',
+      'firstSenders',
+      'transfersWithPicture',
+      'thanksAnswered',
+      'thanksPassedOn',
       'creationsBooked',
       'gddCreated',
+      'greetingsSent',
+      'greetingsWithPhoto',
+      'greetingsAccepted',
+      'greetingsWithAccount',
+      'greetingsExpired',
       'entriesInterest',
       'entriesOffer',
       'entriesNeed',

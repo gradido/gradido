@@ -1,7 +1,8 @@
 // AI-GENERATED — not an architecture reference
-import { inArray } from 'drizzle-orm'
+import { count, gte, inArray } from 'drizzle-orm'
 import { drizzleDb } from '../AppDatabase'
 import { TransactionPassOnSelect, transactionPassOnsTable } from '../schemas'
+import { countFields, countsOfRow, rowsFrom, WeeklyCount, weekStartOf } from './figureCounts'
 
 /**
  * Notes that a transfer passes a received thank-you on (migration 0166): `transactionId` is the
@@ -33,4 +34,29 @@ export async function dbSelectTransactionPassOnsOf(
     .select()
     .from(transactionPassOnsTable)
     .where(inArray(transactionPassOnsTable.transactionId, transactionIds))
+}
+
+/**
+ * How many transfers passed a received thank-you on, from each moment on by the moment the trail
+ * was noted -- one statement, one number per moment (the figures of the admin's start page,
+ * figureCounts.ts). A thank-you passed on twice counts twice: each transfer is a row. Only what
+ * went through the buttons that pass a thank-you on, and only from the release that brought the
+ * trail (migration 0166).
+ */
+export async function dbCountTransactionPassOns(froms: (Date | null)[]): Promise<number[]> {
+  const [row] = await drizzleDb()
+    .select(countFields(froms, rowsFrom(transactionPassOnsTable.createdAt)))
+    .from(transactionPassOnsTable)
+  return countsOfRow(row, froms)
+}
+
+/** dbCountTransactionPassOns by calendar week: in each week from `from` on. */
+export async function dbCountTransactionPassOnsByWeek(from: Date): Promise<WeeklyCount[]> {
+  const week = weekStartOf(transactionPassOnsTable.createdAt)
+  return drizzleDb()
+    .select({ weekStart: week, n: count() })
+    .from(transactionPassOnsTable)
+    .where(gte(transactionPassOnsTable.createdAt, from))
+    .groupBy(week)
+    .orderBy(week)
 }

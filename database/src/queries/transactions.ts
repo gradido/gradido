@@ -8,7 +8,15 @@ import { DBNotFoundError } from '../errorTypes'
 import { transactionsTable, usersTable } from '../schemas'
 import { ChatMemberRef } from './chatConversationMembers'
 import { dbSelectDirectChatContactsByMember } from './chatConversations'
-import { countFields, countsOfRow, rowsFrom, WeeklyCount, weekStartOf } from './figureCounts'
+import {
+  countFields,
+  countsOfRow,
+  derivedAtOrAfter,
+  derivedRowsFrom,
+  rowsFrom,
+  WeeklyCount,
+  weekStartOf,
+} from './figureCounts'
 import { dbSelectReferralContactsByUserId, ReferralContact } from './user'
 
 export const getLastTransaction = async (
@@ -826,6 +834,86 @@ export async function dbCountAndSumTransactionsOfTypeByWeek(
     })
     .from(transactionsTable)
     .where(and(eq(transactionsTable.typeId, typeId), gte(transactionsTable.balanceDate, from)))
+    .groupBy(week)
+    .orderBy(week)
+}
+
+/** The bookings of one type that carry a picture: a motif of the greeting, or a photo. */
+const withPictureOfType = (typeId: TransactionTypeId) =>
+  and(eq(transactionsTable.typeId, typeId), isNotNull(transactionsTable.transactionPictureId))
+
+/**
+ * How many bookings of one type carry a picture (`transaction_picture_id`, migration 0154: one of
+ * the motifs of the thank-you greeting, or a photo of the sender's own), from each moment on by
+ * their booking time -- one statement, one number per moment. A transfer within this community
+ * carries its picture on both rows; ask for one side to count it once.
+ */
+export async function dbCountTransactionsWithPicture(
+  typeId: TransactionTypeId,
+  froms: (Date | null)[],
+): Promise<number[]> {
+  const [row] = await drizzleDb()
+    .select(countFields(froms, rowsFrom(transactionsTable.balanceDate)))
+    .from(transactionsTable)
+    .where(withPictureOfType(typeId))
+  return countsOfRow(row, froms)
+}
+
+/** dbCountTransactionsWithPicture by calendar week: in each week from `from` on. */
+export async function dbCountTransactionsWithPictureByWeek(
+  typeId: TransactionTypeId,
+  from: Date,
+): Promise<WeeklyCount[]> {
+  const week = weekStartOf(transactionsTable.balanceDate)
+  return drizzleDb()
+    .select({ weekStart: week, n: count() })
+    .from(transactionsTable)
+    .where(and(withPictureOfType(typeId), gte(transactionsTable.balanceDate, from)))
+    .groupBy(week)
+    .orderBy(week)
+}
+
+/**
+ * Every account with a SEND row, with the moment of its first one: a derived table, a row an
+ * account. Built for each statement that reads it.
+ */
+const firstSendOfEachAccount = () =>
+  drizzleDb()
+    .select({ firstSentAt: sql<Date>`min(${transactionsTable.balanceDate})`.as('first_sent_at') })
+    .from(transactionsTable)
+    .where(eq(transactionsTable.typeId, TransactionTypeId.SEND))
+    .groupBy(transactionsTable.userId)
+    .as('first_sends')
+
+/**
+ * How many accounts sent for the first time, from each moment on: the accounts whose FIRST SEND
+ * row (`min(balance_date)`) lies at or after it -- one statement over the SEND rows, grouped by
+ * account; `null` counts every account that ever sent. Every SEND row counts, as for the transfers
+ * sent (dbCountAndSumTransactionsOfType): across the border, and through a link, which books its
+ * SEND row when it is redeemed -- so a link's maker sends for the first time then. A deleted
+ * account still counts: its first transfer happened.
+ */
+export async function dbCountFirstSenders(froms: (Date | null)[]): Promise<number[]> {
+  const firstSends = firstSendOfEachAccount()
+  const [row] = await drizzleDb()
+    .select(
+      countFields(froms, derivedRowsFrom(firstSends.firstSentAt, transactionsTable.balanceDate)),
+    )
+    .from(firstSends)
+  return countsOfRow(row, froms)
+}
+
+/**
+ * dbCountFirstSenders by calendar week: each account once, in the week of its first SEND row, in
+ * each week from `from` on.
+ */
+export async function dbCountFirstSendersByWeek(from: Date): Promise<WeeklyCount[]> {
+  const firstSends = firstSendOfEachAccount()
+  const week = weekStartOf(firstSends.firstSentAt)
+  return drizzleDb()
+    .select({ weekStart: week, n: count() })
+    .from(firstSends)
+    .where(derivedAtOrAfter(firstSends.firstSentAt, transactionsTable.balanceDate, from))
     .groupBy(week)
     .orderBy(week)
 }
