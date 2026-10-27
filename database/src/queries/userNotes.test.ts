@@ -2,7 +2,13 @@
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
 import { userNotesTable } from '../schemas'
-import { dbDeleteUserNote, dbSelectUserNote, dbUpsertUserNote, UserNoteSubject } from './userNotes'
+import {
+  dbDeleteUserNote,
+  dbSelectUserNote,
+  dbSelectUserNotesByUserId,
+  dbUpsertUserNote,
+  UserNoteSubject,
+} from './userNotes'
 
 const appDB = AppDatabase.getInstance()
 let db: MySql2Database
@@ -93,5 +99,34 @@ describe('userNotes query test', () => {
     const heavy = '🌱'.repeat(2500)
     await dbUpsertUserNote(ME, ANNA, heavy)
     expect(await dbSelectUserNote(ME, ANNA)).toBe(heavy)
+  })
+
+  it('lists every note of the member, and nobody else’s', async () => {
+    await dbUpsertUserNote(ME, CAFE, 'on the café')
+    await dbUpsertUserNote(ME, ANNA, 'on Anna')
+    await dbUpsertUserNote(SOMEBODY_ELSE, ANNA, 'what somebody else knows of Anna')
+    const mine = await dbSelectUserNotesByUserId(ME)
+    expect(
+      mine.map(({ subjectKind, subjectCommunityUuid, subjectUuid, note }) => ({
+        subjectKind,
+        subjectCommunityUuid,
+        subjectUuid,
+        note,
+      })),
+    ).toEqual([
+      {
+        subjectKind: 'group',
+        subjectCommunityUuid: '',
+        subjectUuid: CAFE.uuid,
+        note: 'on the café',
+      },
+      {
+        subjectKind: 'member',
+        subjectCommunityUuid: COMMUNITY,
+        subjectUuid: ANNA.uuid,
+        note: 'on Anna',
+      },
+    ])
+    expect(await dbSelectUserNotesByUserId(3)).toEqual([])
   })
 })

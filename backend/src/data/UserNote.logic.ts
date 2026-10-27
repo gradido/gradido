@@ -1,10 +1,10 @@
 // AI-GENERATED — not an architecture reference
-import type { UserNoteSubject } from 'database'
+import type { UserNoteSelect, UserNoteSubject } from 'database'
 
 /**
- * How many of a member's own notes one HTTP request may read or write (userNote, setUserNote):
- * a document may repeat a field under any number of aliases (RequestBudget). The wallet asks for
- * one at a time.
+ * How many of a member's own notes one HTTP request may read or write -- userNote, setUserNote,
+ * and userNotes counted as one: a document may repeat a field under any number of aliases
+ * (RequestBudget). The wallet asks for one at a time.
  */
 export const USER_NOTES_MAX_PER_REQUEST = 5
 
@@ -47,3 +47,22 @@ export const userNoteSubjectOf = (
 
 /** An emptied note is taken away rather than kept as an empty row: whitespace alone says nothing. */
 export const isEmptyNote = (note: string): boolean => note.trim() === ''
+
+/** A note as the wallet reads it from the list: what it is about in the wallet's names, and its words. */
+export interface UserNoteEntry {
+  communityUuid: string | null
+  gradidoID: string | null
+  groupUuid: string | null
+  note: string
+}
+
+/** A row of user_notes as an entry of the list: a person by the pair, a group by its uuid. */
+export const userNoteEntryOf = (row: UserNoteSelect): UserNoteEntry =>
+  row.subjectKind === 'group'
+    ? { communityUuid: null, gradidoID: null, groupUuid: row.subjectUuid, note: row.note }
+    : {
+        communityUuid: row.subjectCommunityUuid,
+        gradidoID: row.subjectUuid,
+        groupUuid: null,
+        note: row.note,
+      }

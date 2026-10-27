@@ -1294,6 +1294,17 @@ export const userNote = gql`
   }
 `
 
+export const userNotes = gql`
+  query {
+    userNotes {
+      communityUuid
+      gradidoID
+      groupUuid
+      note
+    }
+  }
+`
+
 export const favoriteList = gql`
   query {
     favoriteList {

@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
-import { and, eq } from 'drizzle-orm'
+import { and, asc, eq } from 'drizzle-orm'
 import { drizzleDb } from '../AppDatabase'
-import { UserNoteSubjectKind, userNotesTable } from '../schemas/drizzle.schema'
+import { UserNoteSelect, UserNoteSubjectKind, userNotesTable } from '../schemas/drizzle.schema'
 
 /**
  * What a member's own note is about, as the table names it (migration 0167): a person by their
@@ -40,6 +40,25 @@ export async function dbSelectUserNote(
     .where(isNoteOf(userId, subject))
     .limit(1)
   return rows[0]?.note ?? null
+}
+
+/**
+ * Every note the member keeps, for the search of the contacts page: it finds a person or a group
+ * by the words of their note as well. One query over the member's rows -- the primary key begins
+ * with `user_id`.
+ *
+ * Ordered by the key, so that two reads give the same list.
+ */
+export async function dbSelectUserNotesByUserId(userId: number): Promise<UserNoteSelect[]> {
+  return drizzleDb()
+    .select()
+    .from(userNotesTable)
+    .where(eq(userNotesTable.userId, userId))
+    .orderBy(
+      asc(userNotesTable.subjectKind),
+      asc(userNotesTable.subjectCommunityUuid),
+      asc(userNotesTable.subjectUuid),
+    )
 }
 
 /**

@@ -10,3 +10,14 @@ query userNoteQuery($about: UserNoteSubjectInput!) {
 mutation setUserNoteMutation($about: UserNoteSubjectInput!, $note: String!) {
   setUserNote(about: $about, note: $note)
 }
+
+# Every note the member keeps, for the search of "Kontakte & Chat": a person by the pair, a group
+# by its uuid.
+query userNotesQuery {
+  userNotes {
+    communityUuid
+    gradidoID
+    groupUuid
+    note
+  }
+}

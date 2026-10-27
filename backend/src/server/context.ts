@@ -55,7 +55,7 @@ export interface RequestBudget {
   // Reactions to transfers set or taken back (setTransactionReaction), capped at
   // TRANSACTION_REACTIONS_MAX_PER_REQUEST.
   transactionReactionsSet: number
-  // A member's own notes read or written (userNote, setUserNote), capped at
+  // A member's own notes read or written (userNote, userNotes, setUserNote), capped at
   // USER_NOTES_MAX_PER_REQUEST. The answer of a request that read one stays out of the log.
   userNotesServed: number
 }

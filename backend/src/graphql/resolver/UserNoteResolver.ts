@@ -1,10 +1,22 @@
 // AI-GENERATED — not an architecture reference
 import { SetUserNoteArgs } from '@arg/SetUserNoteArgs'
 import { UserNoteSubjectInput } from '@input/UserNoteSubjectInput'
-import { dbDeleteUserNote, dbSelectUserNote, dbUpsertUserNote, UserNoteSubject } from 'database'
+import { UserNote } from '@model/UserNote'
+import {
+  dbDeleteUserNote,
+  dbSelectUserNote,
+  dbSelectUserNotesByUserId,
+  dbUpsertUserNote,
+  UserNoteSubject,
+} from 'database'
 import { Arg, Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
 import { RIGHTS } from '@/auth/RIGHTS'
-import { isEmptyNote, USER_NOTES_MAX_PER_REQUEST, userNoteSubjectOf } from '@/data/UserNote.logic'
+import {
+  isEmptyNote,
+  USER_NOTES_MAX_PER_REQUEST,
+  userNoteEntryOf,
+  userNoteSubjectOf,
+} from '@/data/UserNote.logic'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { resolveCommunityUuid } from './util/communities'
@@ -29,6 +41,19 @@ export class UserNoteResolver {
     const user = getUser(context)
     countNote(context)
     return dbSelectUserNote(user.id, await subjectOf(about))
+  }
+
+  /**
+   * Every note the member keeps, for the search of the contacts page: it finds a person or a group
+   * by the words of their note as well. Counted like one note.
+   */
+  @Authorized([RIGHTS.MANAGE_OWN_CONTACTS])
+  @Query(() => [UserNote])
+  async userNotes(@Ctx() context: Context): Promise<UserNote[]> {
+    const user = getUser(context)
+    countNote(context)
+    const rows = await dbSelectUserNotesByUserId(user.id)
+    return rows.map(userNoteEntryOf)
   }
 
   /** Writes the note anew; an emptied note takes it away. */

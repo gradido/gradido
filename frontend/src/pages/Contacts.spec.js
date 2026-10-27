@@ -54,6 +54,9 @@ vi.mock('@/graphql/contacts.graphql', () => ({
 vi.mock('@/graphql/chatGroups.graphql', () => ({
   chatGroupsQuery: 'chatGroupsQuery',
 }))
+vi.mock('@/graphql/userNotes.graphql', () => ({
+  userNotesQuery: 'userNotesQuery',
+}))
 vi.mock('@vue/apollo-composable', () => ({
   useQuery: (document, variables, options) => {
     const handler = { result: null, error: null, options }
@@ -675,6 +678,137 @@ describe('Contacts page', () => {
       await flushPromises()
 
       expect(apolloQuery.mock.calls.some(([o]) => o.query === 'contactListQuery')).toBe(false)
+    })
+  })
+
+  /**
+   * The member's own notes (Bernd, 27.10.2026): the search finds a person or a group by the words of
+   * their note as well -- the full name one wrote down finds the alias.
+   */
+  describe('the search through the notes', () => {
+    const notesAsked = () => apolloQuery.mock.calls.filter(([o]) => o.query === 'userNotesQuery')
+    const search = (words) => wrapper.find('[data-test="contacts-search"]').setValue(words)
+
+    afterEach(() => {
+      answers.delete('userNotesQuery')
+    })
+
+    it('finds a person by the words of the note on them', async () => {
+      answers.set('userNotesQuery', async () => ({
+        data: {
+          userNotes: [
+            {
+              communityUuid: 'HOME',
+              gradidoID: 'ID-2',
+              groupUuid: null,
+              note: 'Anna Sonnenberg, Imkerin aus Pankow',
+            },
+          ],
+        },
+      }))
+      mountPage()
+      fire('contactListQuery', {
+        contactList: { count: 3, contacts: [1, 2, 3].map((n) => person(n)) },
+      })
+      await nextTick()
+      await search('sonnenberg')
+      await flushPromises()
+      expect(rowsIn('contacts-page')).toEqual(['Alias2'])
+    })
+
+    it('finds a group by the words of the note on it', async () => {
+      answers.set('userNotesQuery', async () => ({
+        data: {
+          userNotes: [
+            {
+              communityUuid: null,
+              gradidoID: null,
+              groupUuid: 'GROUP-2',
+              note: 'Samstags im Café',
+            },
+          ],
+        },
+      }))
+      mountPage()
+      fire('contactListQuery', { contactList: { count: 1, contacts: [person(1)] } })
+      fire('chatGroupsQuery', {
+        chatGroups: ['group-1', 'group-2'].map((groupUuid, i) => ({
+          groupUuid,
+          conversationId: 41 + i,
+          title: `Gruppe ${i + 1}`,
+          communityName: 'Home',
+          role: 'MEMBER',
+          mutedByMe: false,
+          memberCount: 3,
+          unreadMessages: 0,
+          lastMessageAt: null,
+        })),
+      })
+      await nextTick()
+      await search('samstags')
+      await flushPromises()
+      expect(
+        wrapper
+          .findAll('[data-test="contacts-groups"] [data-test="chat-group-row"]')
+          .map((r) => r.text()),
+      ).toEqual(['Gruppe 2'])
+    })
+
+    // A note written a moment ago in a window on this page is found too; a page that is never
+    // searched asks nothing.
+    it('asks for the notes whenever a search begins, and not before', async () => {
+      mountPage()
+      fire('contactListQuery', { contactList: { count: 1, contacts: [person(1)] } })
+      await flushPromises()
+      expect(notesAsked()).toHaveLength(0)
+      await search('a')
+      await search('al')
+      await flushPromises()
+      expect(notesAsked()).toHaveLength(1)
+      await search('')
+      await search('b')
+      await flushPromises()
+      expect(notesAsked()).toHaveLength(2)
+    })
+
+    // Two searches began; the answer to the first comes after the answer to the second.
+    it('keeps the newer notes when an older answer comes late', async () => {
+      let older
+      answers.set('userNotesQuery', () => new Promise((resolve) => (older = resolve)))
+      mountPage()
+      fire('contactListQuery', {
+        contactList: { count: 3, contacts: [1, 2, 3].map((n) => person(n)) },
+      })
+      await nextTick()
+      await search('x')
+      await search('')
+      answers.set('userNotesQuery', async () => ({
+        data: {
+          userNotes: [
+            { communityUuid: 'home', gradidoID: 'id-2', groupUuid: null, note: 'Anna Sonnenberg' },
+          ],
+        },
+      }))
+      await search('sonnenberg')
+      await flushPromises()
+      expect(rowsIn('contacts-page')).toEqual(['Alias2'])
+      older({ data: { userNotes: [] } })
+      await flushPromises()
+      expect(rowsIn('contacts-page')).toEqual(['Alias2'])
+    })
+
+    it('goes by the names alone where the notes cannot be loaded', async () => {
+      answers.set('userNotesQuery', async () => {
+        throw new Error('offline')
+      })
+      mountPage()
+      fire('contactListQuery', {
+        contactList: { count: 3, contacts: [1, 2, 3].map((n) => person(n)) },
+      })
+      await nextTick()
+      await search('alias3')
+      await flushPromises()
+      expect(rowsIn('contacts-page')).toEqual(['Alias3'])
     })
   })
 

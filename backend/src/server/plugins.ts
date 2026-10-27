@@ -182,7 +182,7 @@ variables: ${JSON.stringify(filterVariables(variables), null, 2)}`)
             if (requestContext.contextValue.requestBudget?.chatVideoRoomsServed) {
               logger.trace('Response-Data: left out, it holds a video room')
             } else if (requestContext.contextValue.requestBudget?.userNotesServed) {
-              // A member's own note (userNote) is theirs alone.
+              // A member's own notes (userNote, userNotes) are theirs alone.
               logger.trace('Response-Data: left out, it holds a note')
             } else if (
               requestContext.contextValue.requestBudget?.chatImagesServed ||

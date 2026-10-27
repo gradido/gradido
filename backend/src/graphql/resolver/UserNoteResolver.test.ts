@@ -9,7 +9,7 @@ import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { USER_NOTES_MAX_PER_REQUEST } from '@/data/UserNote.logic'
 import { userFactory } from '@/seeds/factory/user'
 import { login, setUserNote } from '@/seeds/graphql/mutations'
-import { userNote } from '@/seeds/graphql/queries'
+import { userNote, userNotes } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { peterLustig } from '@/seeds/users/peter-lustig'
@@ -180,6 +180,27 @@ describe('UserNoteResolver', () => {
       await write(aboutMember(peter), 'what bob keeps about peter')
       expect(await read(aboutMember(peter))).toBe('what bob keeps about peter')
       expect(await countNotes()).toBe(2)
+    })
+
+    // The search of the contacts page reads them all: a person by the pair, a group by its uuid.
+    it('lists their own notes only', async () => {
+      await write({ groupUuid: CAFE }, 'what bob keeps about the café')
+      const res: any = await query({ query: userNotes })
+      expect(res.errors).toBeUndefined()
+      expect(res.data.userNotes).toEqual([
+        {
+          communityUuid: null,
+          gradidoID: null,
+          groupUuid: CAFE,
+          note: 'what bob keeps about the café',
+        },
+        {
+          communityUuid: peter.communityUuid,
+          gradidoID: peter.gradidoID,
+          groupUuid: null,
+          note: 'what bob keeps about peter',
+        },
+      ])
     })
   })
 })
