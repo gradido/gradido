@@ -238,6 +238,7 @@
   "chatNote": {
     "done": "Fertig",
     "failed": "Nicht gespeichert.",
+    "failedClosed": "Deine Notiz wurde nicht gespeichert. Öffne sie, um es nochmal zu versuchen.",
     "loadFailed": "Die Notiz konnte nicht geladen werden.",
     "placeholderGroup": "Was möchtest Du Dir zu dieser Gruppe merken?",
     "placeholderMember": "Was möchtest Du Dir zu {name} merken? Zum Beispiel den vollen Namen.",

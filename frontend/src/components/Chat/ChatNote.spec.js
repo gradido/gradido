@@ -102,6 +102,13 @@ describe('ChatNote', () => {
     expect(document.activeElement).toBe(panel().element)
   })
 
+  // "Try again" loads it once more: the field waits for the note as well.
+  it('cannot be written while the note loads', () => {
+    mountNote({ status: 'loading' })
+    expect(field().attributes('disabled')).toBeDefined()
+    expect(wrapper.find('[role="alert"]').exists()).toBe(false)
+  })
+
   it('names no description while nothing went wrong', () => {
     mountNote({ status: 'saved' })
     expect(field().attributes('aria-describedby')).toBeUndefined()

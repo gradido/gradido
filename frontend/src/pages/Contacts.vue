@@ -510,9 +510,9 @@ const needle = computed(() => search.value.trim().toLowerCase())
 /**
  * The member's own notes (useChatWindowNote), in lower case, by person and group: the search finds
  * them by the words of their note as well -- the full name one wrote down finds the alias (Bernd,
- * 27.10.2026). Asked for whenever a search begins, so that a note written a moment ago in a window
- * on this page is found too. Until the answer is here, and where it fails, the search goes by the
- * names alone.
+ * 27.10.2026). Asked for whenever a search begins, and again when a window on this page closes
+ * while a search stands, so that a note written there a moment ago is found too. Until the answer
+ * is here, and where it fails, the search goes by the names alone.
  */
 const noteWords = ref(new Map())
 let noteWordsAsked = 0
@@ -535,6 +535,12 @@ watch(
   () => needle.value !== '',
   (searching) => {
     if (searching) askNoteWords()
+  },
+)
+watch(
+  () => windowOpen.value || groupWindowOpen.value,
+  (aWindowOpen, before) => {
+    if (before && !aWindowOpen && needle.value) askNoteWords()
   },
 )
 const noteHas = (key) => Boolean(noteWords.value.get(key)?.includes(needle.value))

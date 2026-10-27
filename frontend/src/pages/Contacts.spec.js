@@ -771,6 +771,22 @@ describe('Contacts page', () => {
       expect(notesAsked()).toHaveLength(2)
     })
 
+    // A note written in a window on this page while the search stands is found too.
+    it('asks for the notes again when a window on the page closes while a search stands', async () => {
+      mountPage()
+      fire('contactListQuery', { contactList: { count: 2, contacts: [person(1), person(2)] } })
+      await nextTick()
+      await search('alias')
+      await flushPromises()
+      expect(notesAsked()).toHaveLength(1)
+      await wrapper.findAll('[data-test="contact-row"]')[1].trigger('click')
+      await nextTick()
+      expect(notesAsked()).toHaveLength(1)
+      wrapper.findComponent({ name: 'ContactWindow' }).vm.$emit('update:modelValue', false)
+      await flushPromises()
+      expect(notesAsked()).toHaveLength(2)
+    })
+
     // Two searches began; the answer to the first comes after the answer to the second.
     it('keeps the newer notes when an older answer comes late', async () => {
       let older

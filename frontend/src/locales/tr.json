@@ -238,6 +238,7 @@
   "chatNote": {
     "done": "Tamam",
     "failed": "Kaydedilmedi.",
+    "failedClosed": "Notun kaydedilmedi. Tekrar denemek için notu aç.",
     "loadFailed": "Not yüklenemedi.",
     "placeholderGroup": "Bu grup hakkında neyi hatırlamak istiyorsun?",
     "placeholderMember": "{name} hakkında neyi hatırlamak istiyorsun? Örneğin tam adını.",

@@ -2,6 +2,7 @@
 import { SetUserNoteArgs } from '@arg/SetUserNoteArgs'
 import { UserNoteSubjectInput } from '@input/UserNoteSubjectInput'
 import { UserNote } from '@model/UserNote'
+import { databaseErrorCode } from 'core'
 import {
   dbDeleteUserNote,
   dbSelectUserNote,
@@ -56,7 +57,13 @@ export class UserNoteResolver {
     return rows.map(userNoteEntryOf)
   }
 
-  /** Writes the note anew; an emptied note takes it away. */
+  /**
+   * Writes the note anew; an emptied note takes it away.
+   *
+   * ⛔ What the database throws does not leave this method: a failed query carries its parameters
+   * in its message, and one of them is the note. Thrown on, it would be written to the request log
+   * and sent back in the answer. The log gets the database's error code (as ChatEditResolver does).
+   */
   @Authorized([RIGHTS.MANAGE_OWN_CONTACTS])
   @Mutation(() => Boolean)
   async setUserNote(
@@ -66,10 +73,14 @@ export class UserNoteResolver {
     const user = getUser(context)
     countNote(context)
     const subject = await subjectOf(about)
-    if (isEmptyNote(note)) {
-      await dbDeleteUserNote(user.id, subject)
-    } else {
-      await dbUpsertUserNote(user.id, subject, note)
+    try {
+      if (isEmptyNote(note)) {
+        await dbDeleteUserNote(user.id, subject)
+      } else {
+        await dbUpsertUserNote(user.id, subject, note)
+      }
+    } catch (error) {
+      throw new LogError('USER_NOTE_NOT_STORED', databaseErrorCode(error))
     }
     return true
   }

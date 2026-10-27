@@ -14,8 +14,8 @@
       <span class="chat-note-title">{{ $t('chatNote.title') }}</span>
       <span class="chat-note-private">{{ $t('chatNote.private') }}</span>
     </div>
-    <!-- ⛔ Not to be written while the note could not be loaded: an empty field over a note the
-         server holds would replace it. -->
+    <!-- ⛔ Not to be written while the note is not loaded -- while it loads, and where loading
+         failed: an empty field over a note the server holds would replace it. -->
     <textarea
       ref="field"
       class="chat-note-field"
@@ -23,7 +23,7 @@
       :placeholder="placeholder"
       :aria-label="$t('chatNote.title')"
       :maxlength="MESSAGE_MAX_CHARS"
-      :disabled="status === 'loadFailed'"
+      :disabled="status === 'loadFailed' || status === 'loading'"
       :aria-describedby="trouble ? troubleId : undefined"
       data-test="chat-note-field"
       @input="emit('update:modelValue', $event.target.value)"
@@ -63,7 +63,7 @@ import { MESSAGE_MAX_CHARS } from '@/validationSchemas'
 const props = defineProps({
   modelValue: { type: String, default: '' },
   placeholder: { type: String, default: '' },
-  /** '' | 'saving' | 'saved' | 'failed' | 'loadFailed' (useChatWindowNote) */
+  /** '' | 'loading' | 'loadFailed' | 'saving' | 'saved' | 'failed' (useChatWindowNote) */
   status: { type: String, default: '' },
 })
 

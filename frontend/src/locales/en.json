@@ -238,6 +238,7 @@
   "chatNote": {
     "done": "Done",
     "failed": "Not saved.",
+    "failedClosed": "Your note was not saved. Open it to try again.",
     "loadFailed": "The note could not be loaded.",
     "placeholderGroup": "What would you like to remember about this group?",
     "placeholderMember": "What would you like to remember about {name}? For example, their full name.",

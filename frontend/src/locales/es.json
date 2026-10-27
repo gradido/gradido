@@ -238,6 +238,7 @@
   "chatNote": {
     "done": "Listo",
     "failed": "No se ha guardado.",
+    "failedClosed": "Tu nota no se ha guardado. Ábrela para intentarlo de nuevo.",
     "loadFailed": "No se ha podido cargar la nota.",
     "placeholderGroup": "¿Qué quieres recordar de este grupo?",
     "placeholderMember": "¿Qué quieres recordar de {name}? Por ejemplo, su nombre completo.",

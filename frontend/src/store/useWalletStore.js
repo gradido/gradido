@@ -13,7 +13,7 @@ import { closeChatImageView, forgetAllChatImages } from '../composables/useChatI
 import { forgetAllGreetingPictures } from '../composables/useGreetingPictures'
 import { forgetAllTransactionPictures } from '../composables/useTransactionPictures'
 import { forgetFavorites } from '../composables/useFavorites'
-import { forgetUserNotes } from '../utils/unconfirmedNotes'
+import { forgetUserNotes } from '../utils/userNoteSaves'
 import { forgetContactsPanel } from '../composables/useContactsPanel'
 import { stopChatUpdates } from '../composables/useChatUpdates'
 import { forgetParkedAmount } from '../composables/useParkedAmount'
@@ -360,8 +360,8 @@ export const useWalletStore = defineStore('wallet', {
       forgetAllTransactionPictures()
       // Same reason, same moment: the hearts are one member's, not the device's.
       forgetFavorites()
-      // And the words of a note the server has not yet confirmed (useChatWindowNote): a member's
-      // own note on a person or a group, theirs alone.
+      // And the notes being saved (utils/userNoteSaves): a member's own note on a person or a group
+      // is theirs alone, and a save still on its way must not go out with the next session.
       forgetUserNotes()
       // And the contacts the right-hand column holds, which name the people this member has
       // exchanged Gradido with -- the next member on this browser must not be handed them.

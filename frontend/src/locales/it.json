@@ -238,6 +238,7 @@
   "chatNote": {
     "done": "Fatto",
     "failed": "Non salvato.",
+    "failedClosed": "La tua nota non è stata salvata. Aprila per riprovare.",
     "loadFailed": "Non è stato possibile caricare la nota.",
     "placeholderGroup": "Cosa vuoi ricordare di questo gruppo?",
     "placeholderMember": "Cosa vuoi ricordare di {name}? Per esempio, il nome completo.",

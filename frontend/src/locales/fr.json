@@ -238,6 +238,7 @@
   "chatNote": {
     "done": "Terminé",
     "failed": "Non enregistré.",
+    "failedClosed": "Ta note n'a pas été enregistrée. Ouvre-la pour réessayer.",
     "loadFailed": "La note n'a pas pu être chargée.",
     "placeholderGroup": "Que veux-tu retenir sur ce groupe ?",
     "placeholderMember": "Que veux-tu retenir sur {name} ? Par exemple, son nom complet.",
