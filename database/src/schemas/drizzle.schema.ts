@@ -746,6 +746,27 @@ export const transactionReadsStartTable = mysqlTable('transaction_reads_start', 
     .notNull(),
 })
 
+// Transfers that pass a received thank-you on (migration 0166, the trail of the waves of
+// gratitude): one row for the sender's SEND booking of such a transfer, naming the RECEIVE
+// booking of the same member it passes on. Written after the booking (executeTransaction);
+// nothing shows it. One thank-you may be passed on by more than one transfer.
+export const transactionPassOnsTable = mysqlTable(
+  'transaction_pass_ons',
+  {
+    transactionId: int('transaction_id', { unsigned: true }).primaryKey().notNull(),
+    originTransactionId: int('origin_transaction_id', { unsigned: true }).notNull(),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+  },
+  (table) => [
+    index('transaction_pass_ons_origin_transaction_id_idx').on(table.originTransactionId),
+  ],
+)
+
+export type TransactionPassOnSelect = typeof transactionPassOnsTable.$inferSelect
+export type TransactionPassOnInsert = typeof transactionPassOnsTable.$inferInsert
+
 export const transactionLinksTable = mysqlTable(
   'transaction_links',
   {
