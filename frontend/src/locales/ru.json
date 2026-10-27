@@ -1763,6 +1763,12 @@
       "own-words": "Ваши слова"
     }
   },
+  "thanksArrival": {
+    "answer": "Ответить",
+    "from": "{name} благодарит вас и дарит {amount}.",
+    "later": "Позже",
+    "title": "Благодарность получена."
+  },
   "thanksNudge": {
     "afterCall": "Хотите поблагодарить {name} за разговор?",
     "notNow": "Не сейчас",

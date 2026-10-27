@@ -1763,6 +1763,12 @@
       "own-words": "As tuas palavras"
     }
   },
+  "thanksArrival": {
+    "answer": "Responder",
+    "from": "{name} agradece-te com {amount}.",
+    "later": "Mais tarde",
+    "title": "O agradecimento chegou."
+  },
   "thanksNudge": {
     "afterCall": "Queres agradecer a {name} pela conversa?",
     "notNow": "Agora não",
