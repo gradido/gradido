@@ -20,7 +20,23 @@ vi.mock('vue-i18n')
 
 const STORAGE_KEY = 'admin.figures.since'
 
-// The answer of communityFigures as the server gives it: every row of slices 1a and 1b.
+// The rows of slice 2, in the order of the server: four of thanks, the thank-you greetings.
+const THANKS_ROWS = [
+  { key: 'firstSenders', since: 4, week: 1, total: 120 },
+  { key: 'transfersWithPicture', since: 5, week: 2, total: 60 },
+  { key: 'thanksAnswered', since: 7, week: 3, total: 90 },
+  { key: 'thanksPassedOn', since: 2, week: 1, total: 6 },
+]
+const GREETINGS_ROWS = [
+  { key: 'greetingsSent', since: 11, week: 4, total: 70 },
+  { key: 'greetingsWithPhoto', since: 3, week: 1, total: 12 },
+  { key: 'greetingsAccepted', since: 6, week: 2, total: 41 },
+  { key: 'greetingsWithAccount', since: 2, week: 0, total: 9 },
+  { key: 'greetingsExpired', since: 1, week: 1, total: 13 },
+]
+const NEW_KEYS = [...THANKS_ROWS, ...GREETINGS_ROWS].map((row) => row.key)
+
+// The answer of communityFigures as the server gives it: every row of slices 1a, 1b and 2.
 const ROWS = [
   { key: 'accountsNew', since: 3, week: 2, total: 40 },
   { key: 'accountsViaTableCode', since: 1, week: 1, total: 5 },
@@ -38,8 +54,10 @@ const ROWS = [
   { key: 'firstCreationsReview', since: 0, week: 0, total: 2 },
   { key: 'transfersSent', since: 14, week: 5, total: 300 },
   { key: 'gddSent', since: 260, week: 80, total: 9100 },
+  ...THANKS_ROWS,
   { key: 'creationsBooked', since: 6, week: 2, total: 150 },
   { key: 'gddCreated', since: 600, week: 200, total: 15000 },
+  ...GREETINGS_ROWS,
   { key: 'homesSet', since: null, week: null, total: 50 },
   { key: 'findableOnMap', since: null, week: null, total: 31 },
   { key: 'entriesInterest', since: 3, week: 1, total: 22 },
@@ -54,13 +72,22 @@ const ROWS = [
   { key: 'videoRoomsCreated', since: 7, week: 3, total: 7 },
 ]
 
-// The answer of communityFigureSeries: three weeks, the last one running, and a few flows of the
-// page -- one in a group each but the first -- and one of a newer server.
+// The answer of communityFigureSeries: three weeks, the last one running, and some flows of the
+// page -- one in a group each but the first, the rows of slice 2 -- and one of a newer server.
 const WEEKS = ['2026-09-28T00:00:00.000Z', '2026-10-05T00:00:00.000Z', '2026-10-12T00:00:00.000Z']
 const SERIES_ROWS = [
   { key: 'accountsNew', counts: [3, 0, 2] },
   { key: 'activeAccounts', counts: [9, 7, 8] },
   { key: 'gddSent', counts: [100, 0, 160] },
+  { key: 'firstSenders', counts: [1, 0, 2] },
+  { key: 'transfersWithPicture', counts: [0, 3, 1] },
+  { key: 'thanksAnswered', counts: [4, 5, 6] },
+  { key: 'thanksPassedOn', counts: [0, 0, 1] },
+  { key: 'greetingsSent', counts: [2, 1, 3] },
+  { key: 'greetingsWithPhoto', counts: [1, 0, 1] },
+  { key: 'greetingsAccepted', counts: [0, 2, 1] },
+  { key: 'greetingsWithAccount', counts: [0, 1, 0] },
+  { key: 'greetingsExpired', counts: [1, 0, 0] },
   { key: 'entriesNeed', counts: [0, 1, 0] },
   { key: 'videoRoomsCreated', counts: [2, 3, 0] },
   { key: 'accountsNEW', counts: [1, 1, 1] },
@@ -289,12 +316,13 @@ describe('Overview', () => {
         'figures.group.accounts',
         'figures.group.firstCreation',
         'figures.group.thanks',
+        'figures.group.greetings',
         'figures.group.map',
         'figures.group.conversations',
       ])
       // For a screen reader: a group heading names the rows below it, a label its own row.
       expect(wrapper.findAll('tr.figures-group th').map((th) => th.attributes('scope'))).toEqual(
-        new Array(5).fill('rowgroup'),
+        new Array(6).fill('rowgroup'),
       )
       expect(wrapper.find('[data-test="figure-accountsNew"] th').attributes('scope')).toBe('row')
       for (const { key, since, week, total } of ROWS) {
@@ -321,6 +349,20 @@ describe('Overview', () => {
       expect(total.attributes('data-label')).toBe('figures.col.total')
     })
 
+    // A server from before slice 2: thanks with its four rows, no greetings.
+    it('leaves the greetings out, and the new rows of thanks, where the server has none of them', async () => {
+      await answerFigures(ROWS.filter((row) => !NEW_KEYS.includes(row.key)))
+      expect(groupHeadings()).toEqual([
+        'figures.group.accounts',
+        'figures.group.firstCreation',
+        'figures.group.thanks',
+        'figures.group.map',
+        'figures.group.conversations',
+      ])
+      expect(wrapper.find('[data-test="figure-firstSenders"]').exists()).toBe(false)
+      expect(cellsOf('gddSent')).toEqual(['figures.row.gddSent', '#260', '#80', '#9100'])
+    })
+
     it('leaves out a row whose key it does not know, and a group with none it knows', async () => {
       await answerFigures([
         { key: 'accountsNEW', since: 1, week: 1, total: 1 },
@@ -345,8 +387,19 @@ describe('Overview', () => {
       expect(keysIn('thanks')).toEqual([
         'transfersSent',
         'gddSent',
+        'firstSenders',
+        'transfersWithPicture',
+        'thanksAnswered',
+        'thanksPassedOn',
         'creationsBooked',
         'gddCreated',
+      ])
+      expect(keysIn('greetings')).toEqual([
+        'greetingsSent',
+        'greetingsWithPhoto',
+        'greetingsAccepted',
+        'greetingsWithAccount',
+        'greetingsExpired',
       ])
       expect(keysIn('map')).toEqual([
         'homesSet',
@@ -398,6 +451,7 @@ describe('Overview', () => {
         'figures.group.accounts',
         'figures.group.firstCreation',
         'figures.group.thanks',
+        'figures.group.greetings',
         'figures.group.map',
         'figures.group.conversations',
         'figures.group.totals',
@@ -426,7 +480,7 @@ describe('Overview', () => {
       await answerFigures()
       onStatisticsError.mock.calls[0][0]({ message: 'Totals error' })
       expect(mockToastError).toHaveBeenCalledWith('Totals error')
-      expect(groupHeadings()).toHaveLength(5)
+      expect(groupHeadings()).toHaveLength(6)
     })
   })
 
@@ -543,11 +597,24 @@ describe('Overview', () => {
         ).toEqual([
           'figures.group.accounts',
           'figures.group.thanks',
+          'figures.group.greetings',
           'figures.group.map',
           'figures.group.conversations',
         ])
         expect(weekCellsOf('accountsNew')).toEqual(['figures.row.accountsNew', '#3', '#0', '#2'])
         expect(weekCellsOf('gddSent')).toEqual(['figures.row.gddSent', '#100', '#0', '#160'])
+        expect(weekCellsOf('thanksPassedOn')).toEqual([
+          'figures.row.thanksPassedOn',
+          '#0',
+          '#0',
+          '#1',
+        ])
+        expect(weekCellsOf('greetingsWithAccount')).toEqual([
+          'figures.row.greetingsWithAccount',
+          '#0',
+          '#1',
+          '#0',
+        ])
         expect(weekCellsOf('entriesNeed')).toEqual(['figures.row.entriesNeed', '#0', '#1', '#0'])
         expect(weekCellsOf('videoRoomsCreated')).toEqual([
           'figures.row.videoRoomsCreated',
@@ -609,10 +676,13 @@ describe('Overview', () => {
     const copyStatus = () => wrapper.find('[data-test="figures-copy-status"]')
     const copyField = () => wrapper.find('[data-test="figures-copy-text"]')
 
-    // Two rows and the totals: the block is the table as text, in its order.
+    // Some rows and the totals: the block is the table as text, in its order.
     const FEW_ROWS = [
       { key: 'accountsNew', since: 3, week: 2, total: 40 },
       { key: 'gddSent', since: 260, week: 80, total: 9100 },
+      { key: 'thanksAnswered', since: 7, week: 3, total: 90 },
+      { key: 'greetingsSent', since: 11, week: 4, total: 70 },
+      { key: 'greetingsExpired', since: 1, week: 1, total: 13 },
       { key: 'membersOnMap', since: null, week: null, total: null },
     ]
     const BLOCK = [
@@ -624,6 +694,11 @@ describe('Overview', () => {
       '',
       'figures.group.thanks',
       'figures.row.gddSent: #260 · #80 · #9100',
+      'figures.row.thanksAnswered: #7 · #3 · #90',
+      '',
+      'figures.group.greetings',
+      'figures.row.greetingsSent: #11 · #4 · #70',
+      'figures.row.greetingsExpired: #1 · #1 · #13',
       '',
       'figures.group.map',
       'figures.row.membersOnMap: – · – · –',
@@ -689,6 +764,17 @@ describe('Overview', () => {
           '',
           'figures.group.thanks',
           'figures.row.gddSent: #100 · #0 · #160',
+          'figures.row.firstSenders: #1 · #0 · #2',
+          'figures.row.transfersWithPicture: #0 · #3 · #1',
+          'figures.row.thanksAnswered: #4 · #5 · #6',
+          'figures.row.thanksPassedOn: #0 · #0 · #1',
+          '',
+          'figures.group.greetings',
+          'figures.row.greetingsSent: #2 · #1 · #3',
+          'figures.row.greetingsWithPhoto: #1 · #0 · #1',
+          'figures.row.greetingsAccepted: #0 · #2 · #1',
+          'figures.row.greetingsWithAccount: #0 · #1 · #0',
+          'figures.row.greetingsExpired: #1 · #0 · #0',
           '',
           'figures.group.map',
           'figures.row.entriesNeed: #0 · #1 · #0',
