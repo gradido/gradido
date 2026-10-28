@@ -1,10 +1,13 @@
 import { getHomeCommunityDrizzle } from 'database'
-import { Elysia } from 'elysia'
+import { Elysia, StatusMap } from 'elysia'
 import { communityInfoWireSchema, signatureNonceSchema, signedJsonResponse } from 'shared'
 import * as v from 'valibot'
-import { statusNumber } from './utils'
 
-export const peerApiRoutesV1 = new Elysia({ prefix: 'v1' })
+function statusNumber(status?: number | keyof StatusMap): number {
+  return typeof status === 'string' ? StatusMap[status] : (status ?? 200)
+}
+
+export const apiRoutesV1 = new Elysia({ prefix: 'v1' })
   // public routes, signed with the home community's Ed25519 key (RFC 9421),
   // as the answer to the request that brought the nonce
   .get(
@@ -18,4 +21,4 @@ export const peerApiRoutesV1 = new Elysia({ prefix: 'v1' })
     },
   )
 
-export const peerApiRoutes = new Elysia({ prefix: 'peer-api' }).use(peerApiRoutesV1)
+export const apiRoutes = new Elysia({ prefix: 'peer-api' }).use(apiRoutesV1)

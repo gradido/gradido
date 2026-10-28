@@ -3,7 +3,7 @@ import 'reflect-metadata'
 import { ApolloServer, HeaderMap } from '@apollo/server'
 import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled'
 import { ElysiaApolloServer } from '@elysia/apollo'
-import { peerApiRoutes } from 'core'
+import { apiRoutes } from 'core'
 import { AppDatabase } from 'database'
 import { type AnyElysia, Elysia } from 'elysia'
 import { helmet } from 'elysia-helmet'
@@ -63,7 +63,7 @@ export const createServer = async (
     // Without originAgentCluster: elysia-helmet 3.1.0 writes its value into
     // Cross-Origin-Resource-Policy instead (tobias-kaerst-software/elysia-helmet#12).
     .use(helmet({ originAgentCluster: false }))
-    .use(peerApiRoutes)
+    .use(apiRoutes)
     // starts apollo and answers a POST with it
     .use(await apollo.createHandler({ path: apiPath, enablePlayground: false }))
     // The plugin answers a GET with a landing page of its own, whatever the plugins above say.

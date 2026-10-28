@@ -34,12 +34,12 @@ const mockDatabase = {
   drizzleDb: jest.fn(),
   getHomeCommunityDrizzle: jest.fn(),
 }
-const mockGetPeerApiClient = jest.fn()
+const mockGetApiClient = jest.fn()
 
 jest.mock('log4js', () => ({ getLogger: () => mockLogger }))
 jest.mock('database', () => mockDatabase)
 jest.mock('core', () => ({
-  PeerApiClientCache: { getInstance: () => ({ get: mockGetPeerApiClient }) },
+  ApiClientCache: { getInstance: () => ({ get: mockGetApiClient }) },
 }))
 
 type ValidateCommunitiesModule = typeof import('./validateCommunities')
@@ -103,12 +103,12 @@ const peerClient = (answers: { communityInfos?: unknown } = {}) => ({
 describe('federatedCommunityGetInfoCheckPublicKey', () => {
   it('asks the client of the announced endpoint and public key', async () => {
     const fedCom = federatedCommunity(1)
-    mockGetPeerApiClient.mockReturnValue(peerClient())
+    mockGetApiClient.mockReturnValue(peerClient())
 
     await federatedCommunityGetInfoCheckPublicKey(fedCom)
 
-    expect(mockGetPeerApiClient).toHaveBeenCalledTimes(1)
-    const [url, keyPair] = mockGetPeerApiClient.mock.calls[0] as [string, Ed25519KeyPair]
+    expect(mockGetApiClient).toHaveBeenCalledTimes(1)
+    const [url, keyPair] = mockGetApiClient.mock.calls[0] as [string, Ed25519KeyPair]
     expect(url).toBe(END_POINT)
     // the announced key, as a key pair without private key
     expect(keyPair.publicKeyToBuffer()).toEqual(fedCom.publicKey)
@@ -117,7 +117,7 @@ describe('federatedCommunityGetInfoCheckPublicKey', () => {
 
   it('hands out the parsed answer as foreign community at the announced endpoint', async () => {
     const fedCom = federatedCommunity(1)
-    mockGetPeerApiClient.mockReturnValue(
+    mockGetApiClient.mockReturnValue(
       peerClient({ communityInfos: { data: communityInfoOf(fedCom.publicKey) } }),
     )
 
@@ -139,7 +139,7 @@ describe('federatedCommunityGetInfoCheckPublicKey', () => {
   })
 
   it('hands out nothing without an answer', async () => {
-    mockGetPeerApiClient.mockReturnValue(peerClient({ communityInfos: { data: null } }))
+    mockGetApiClient.mockReturnValue(peerClient({ communityInfos: { data: null } }))
 
     expect(await federatedCommunityGetInfoCheckPublicKey(federatedCommunity(1))).toBeNull()
     expect(mockLogger.warn).toHaveBeenCalledWith(
@@ -150,7 +150,7 @@ describe('federatedCommunityGetInfoCheckPublicKey', () => {
 
   it('names why there is no answer', async () => {
     const reason = new Error('invalid response signature: signature does not match')
-    mockGetPeerApiClient.mockReturnValue(
+    mockGetApiClient.mockReturnValue(
       peerClient({ communityInfos: { data: null, error: { status: 503, value: reason } } }),
     )
 
@@ -161,7 +161,7 @@ describe('federatedCommunityGetInfoCheckPublicKey', () => {
   it('hands out nothing when the answer carries another public key', async () => {
     const fedCom = federatedCommunity(1)
     const otherKey = Buffer.alloc(32, 9)
-    mockGetPeerApiClient.mockReturnValue(
+    mockGetApiClient.mockReturnValue(
       peerClient({ communityInfos: { data: communityInfoOf(otherKey) } }),
     )
 
@@ -175,7 +175,7 @@ describe('federatedCommunityGetInfoCheckPublicKey', () => {
 
   it('hands out nothing when the answer carries the uuid of the home community', async () => {
     const fedCom = federatedCommunity(1)
-    mockGetPeerApiClient.mockReturnValue(
+    mockGetApiClient.mockReturnValue(
       peerClient({
         communityInfos: {
           data: { ...communityInfoOf(fedCom.publicKey), communityUuid: HOME_UUID },
@@ -188,7 +188,7 @@ describe('federatedCommunityGetInfoCheckPublicKey', () => {
 
   it('rejects an answer that is no valid community info', async () => {
     const fedCom = federatedCommunity(1)
-    mockGetPeerApiClient.mockReturnValue(
+    mockGetApiClient.mockReturnValue(
       peerClient({
         communityInfos: { data: { ...communityInfoOf(fedCom.publicKey), hieroTopicId: 'x' } },
       }),
@@ -217,7 +217,7 @@ describe('validateCommunities', () => {
   }
   // every community answers with its own key, except those named
   const answering = (silent: number[] = []) => {
-    mockGetPeerApiClient.mockImplementation((_url: string, keyPair: Ed25519KeyPair) => {
+    mockGetApiClient.mockImplementation((_url: string, keyPair: Ed25519KeyPair) => {
       const publicKey = keyPair.publicKeyToBuffer()
       return silent.includes(publicKey[0])
         ? peerClient()
@@ -311,7 +311,7 @@ describe('validateCommunities', () => {
 
   it('logs an answer that could not be read and goes on with the others', async () => {
     batches([federatedCommunity(1), federatedCommunity(2)])
-    mockGetPeerApiClient.mockImplementation((_url: string, keyPair: Ed25519KeyPair) => {
+    mockGetApiClient.mockImplementation((_url: string, keyPair: Ed25519KeyPair) => {
       const publicKey = keyPair.publicKeyToBuffer()
       return publicKey[0] === 1
         ? peerClient({ communityInfos: { data: { name: 'not a community info' } } })

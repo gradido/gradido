@@ -1,11 +1,11 @@
 import { treaty } from '@elysia/eden'
 import { createSignatureNonce, FEDERATION_REQUEST_TIMEOUT_MS, verifySignedResponse } from 'shared'
 import { Ed25519KeyPair } from 'shared-native'
-import { peerApiRoutes } from '../server'
+import { apiRoutes } from './apiRoutes'
 
-export type ElysiaApiRoutesClientType = ReturnType<typeof treaty<typeof peerApiRoutes>>
+export type ElysiaApiRoutesClientType = ReturnType<typeof treaty<typeof apiRoutes>>
 
-export class PeerApiClient {
+export class ApiClient {
   private elysiaJsClientEncryptSign: ElysiaApiRoutesClientType
   private elysiaJsClient: ElysiaApiRoutesClientType
   public publicJwtKey: string | undefined
@@ -18,11 +18,11 @@ export class PeerApiClient {
     private readonly timeoutMs = FEDERATION_REQUEST_TIMEOUT_MS,
   ) {
     const self = this
-    this.elysiaJsClientEncryptSign = treaty<typeof peerApiRoutes>(url, {
+    this.elysiaJsClientEncryptSign = treaty<typeof apiRoutes>(url, {
       // @ts-expect-error Bun's typeof fetch requires preconnect, https://github.com/oven-sh/bun/issues/27070
       fetcher: (url, options) => self.fetchInTime(url, self.preprocessRequest(options)),
     })
-    this.elysiaJsClient = treaty<typeof peerApiRoutes>(url, {
+    this.elysiaJsClient = treaty<typeof apiRoutes>(url, {
       // @ts-expect-error Bun's typeof fetch requires preconnect, https://github.com/oven-sh/bun/issues/27070
       fetcher: (url, options) => self.fetchVerified(url, options),
     })

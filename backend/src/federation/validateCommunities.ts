@@ -1,4 +1,4 @@
-import { PeerApiClientCache } from 'core'
+import { ApiClientCache } from 'core'
 import {
   CommunitiesInsert,
   CommunityUniqueKey,
@@ -173,7 +173,7 @@ async function federatedCommunityGetInfoCheckPublicKey(fedComB: FederatedCommuni
 
   // the announced public key as a key pair, as soon as it is used as a key
   const keyPair = new Ed25519KeyPair(fedComB.publicKey)
-  const peerClient = PeerApiClientCache.getInstance().get(fedComB.endPoint, keyPair)
+  const peerClient = ApiClientCache.getInstance().get(fedComB.endPoint, keyPair)
   // the client refuses an answer whose signature does not verify against that key
   const { data: rawPubComInfo, error } = await peerClient.getCommunityInfos()
   // TODO: write last error into db

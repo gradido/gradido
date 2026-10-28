@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test'
 import { treaty } from '@elysia/eden'
-import { Elysia } from 'elysia'
+import { Elysia, StatusMap } from 'elysia'
 import {
   AppContext,
   createSignatureNonce,
@@ -11,8 +11,11 @@ import {
 } from 'shared'
 import { Ed25519KeyPair, X25519KeyPair } from 'shared-native'
 import * as v from 'valibot'
-import { statusNumber } from '../server/utils'
-import { PeerApiClient } from './PeerApiClient'
+import { ApiClient } from './ApiClient'
+
+function statusNumber(status?: number | keyof StatusMap): number {
+  return typeof status === 'string' ? StatusMap[status] : (status ?? 200)
+}
 
 // a home community with fresh keys, its row as the dht-node writes it: privateKey = seed || publicKey
 const signKeys = Ed25519KeyPair.generate().toBuffer()
@@ -88,9 +91,9 @@ afterAll(() => {
 })
 const urlOf = (peer: Pick<Elysia, 'server'>) => `http://localhost:${peer.server?.port}/`
 
-describe('PeerApiClient.getCommunityInfos', () => {
+describe('ApiClient.getCommunityInfos', () => {
   it('hands out the answer signed by the announced key for this request', async () => {
-    const { data, error } = await new PeerApiClient(
+    const { data, error } = await new ApiClient(
       urlOf(honestPeer),
       communityKeyPair,
     ).getCommunityInfos()
@@ -100,7 +103,7 @@ describe('PeerApiClient.getCommunityInfos', () => {
   })
 
   it('refuses the answer under another announced key', async () => {
-    const { data, error } = await new PeerApiClient(
+    const { data, error } = await new ApiClient(
       urlOf(honestPeer),
       new Ed25519KeyPair(Ed25519KeyPair.generate().publicKeyToBuffer()),
     ).getCommunityInfos()
@@ -109,7 +112,7 @@ describe('PeerApiClient.getCommunityInfos', () => {
   })
 
   it('refuses a signed answer to another request', async () => {
-    const { data, error } = await new PeerApiClient(
+    const { data, error } = await new ApiClient(
       urlOf(replayingPeer),
       communityKeyPair,
     ).getCommunityInfos()
@@ -119,7 +122,7 @@ describe('PeerApiClient.getCommunityInfos', () => {
   })
 
   it('refuses a signed answer of another route', async () => {
-    const { data, error } = await new PeerApiClient(
+    const { data, error } = await new ApiClient(
       urlOf(otherRoutePeer),
       communityKeyPair,
     ).getCommunityInfos()
@@ -130,7 +133,7 @@ describe('PeerApiClient.getCommunityInfos', () => {
 
   it('gives up a community that does not answer in time', async () => {
     const started = performance.now()
-    const { data, error } = await new PeerApiClient(
+    const { data, error } = await new ApiClient(
       urlOf(silentPeer),
       communityKeyPair,
       50,

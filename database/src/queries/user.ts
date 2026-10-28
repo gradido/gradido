@@ -389,6 +389,7 @@ export async function dbSelectUsersByUuids(
  * foreign one, and an alias another row of that community still holds (`alias_key`; that row
  * has not caught up with a rename over there) is not taken from it.
  */
+
 export async function dbInsertForeignUser(member: {
   communityUuid: string
   gradidoId: string

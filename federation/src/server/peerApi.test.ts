@@ -4,7 +4,7 @@
 // the other end is this test; what the route and the client decide on their own is tested in core.
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test'
 import { cleanDB } from '@test/helpers'
-import { PeerApiClient } from 'core'
+import { ApiClient } from 'core'
 import { AppDatabase, dbInsertHomeCommunity, getHomeCommunityDrizzle } from 'database'
 import type { AnyElysia } from 'elysia'
 import { getLogger } from 'log4js'
@@ -63,7 +63,7 @@ afterAll(async () => {
 
 describe('GET peer-api/v1/communityInfos', () => {
   it('hands the peer the home community, signed by its key', async () => {
-    const { data, error } = await new PeerApiClient(
+    const { data, error } = await new ApiClient(
       url,
       new Ed25519KeyPair(homeKeys.publicKey),
     ).getCommunityInfos()
@@ -84,7 +84,7 @@ describe('GET peer-api/v1/communityInfos', () => {
   })
 
   it('is refused by a peer that expects another key', async () => {
-    const { data, error } = await new PeerApiClient(
+    const { data, error } = await new ApiClient(
       url,
       new Ed25519KeyPair(Ed25519KeyPair.generate().publicKeyToBuffer()),
     ).getCommunityInfos()
