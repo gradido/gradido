@@ -49,6 +49,7 @@ it('writes the kinds of the blocks to the log, never their words', async () => {
   await expect(
     client.evaluateContribution({ text: 'Vorlesen' }, '[MITGLIED] ist Rentnerin seit Januar 2025.'),
   ).rejects.toThrow('Crea returned no structured result')
-  expect(mockLogger.error).toHaveBeenCalledWith('no text block in anthropic response', ['thinking'])
+  // The kinds of the blocks, whatever the words of the message (AGENTS.md: no log text in tests).
+  expect(mockLogger.error).toHaveBeenCalledWith(expect.any(String), ['thinking'])
   expect(JSON.stringify(mockLogger.error.mock.calls)).not.toContain('Rentnerin')
 })
