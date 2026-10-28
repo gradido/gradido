@@ -13,7 +13,10 @@ export class SetUserNoteArgs {
   @ValidateNested()
   about: UserNoteSubjectInput
 
-  /** As long as a chat message may be: what the wallet's field lets through. Empty is allowed. */
+  /**
+   * As long as a chat message may be, counted as validator.js counts (an emoji is one character):
+   * at least what the wallet's field lets through, which counts UTF-16 code units. Empty is allowed.
+   */
   @Field(() => String)
   @IsString()
   @MaxLength(MESSAGE_MAX_CHARS)
