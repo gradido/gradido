@@ -194,7 +194,7 @@ variables: ${JSON.stringify(filterVariables(variables), null, 2)}`)
               logger.trace('Response-Data: left out, it holds a note')
             } else if (requestContext.contextValue.requestBudget?.userRemarksServed) {
               // The moderation's remark on a member (userRemark, setUserRemark) is for the
-              // moderators alone.
+              // moderators alone -- and so is Crea's answer where she read one (CreaResolver).
               logger.trace('Response-Data: left out, it holds a remark')
             } else if (
               requestContext.contextValue.requestBudget?.chatImagesServed ||

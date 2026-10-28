@@ -52,3 +52,9 @@
   color: var(--bs-link-color);
   text-decoration: underline;
 }
+
+/* Without the frame of a list row: in the box at the top of Crea's window, which has a frame of its
+   own. The space above and below the list row had. */
+.plain {
+  padding: 0.25rem 0 0.5rem;
+}
