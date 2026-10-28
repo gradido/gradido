@@ -670,6 +670,239 @@ describe('CreaEvaluationModal — the remark on the member', () => {
     expect(creaInputs()).toEqual([])
   })
 
+  // coderabbit (#4222): an answer for an earlier opening -- the window closed, or opened since --
+  // changes nothing, and a window closed while the words were saved asks Crea nothing.
+  // Crea's answers held back until a test hands them out, in the order she was asked.
+  const holdAnswers = () => {
+    const answers = []
+    useMutation.mockImplementation(() => ({
+      mutate: vi.fn((vars) => {
+        calls.push(['crea', vars])
+        return new Promise((resolve, reject) => answers.push({ resolve, reject }))
+      }),
+    }))
+    return answers
+  }
+  // The saves of the remark held back until a test lets them through.
+  const holdSaves = () => {
+    const saves = []
+    useApolloClient.mockReturnValue({
+      resolveClient: () => ({
+        query: vi.fn(async ({ query }) =>
+          query === userRemark
+            ? { data: { userRemark: REMARK } }
+            : { data: { adminListContributions: { contributionList: siblings } } },
+        ),
+        mutate: vi.fn(
+          ({ variables }) =>
+            new Promise((resolve) => {
+              saves.push(() =>
+                resolve({ data: { setUserRemark: { ...REMARK, remark: variables.remark } } }),
+              )
+            }),
+        ),
+      }),
+    })
+    return async () => {
+      // Closing saves what waits as well: let that through too.
+      for (let round = 0; round < 2; round++) {
+        for (const save of saves.splice(0)) {
+          save()
+        }
+        await settle()
+      }
+    }
+  }
+  const answer = (text) => ({
+    data: {
+      creaEvaluateContribution: {
+        ...EVALUATION,
+        responseText: `[ANREDE],\n\n${text}\n\n[SIGNATUR]`,
+      },
+      creaEvaluateBatch: { ...EVALUATION, responseText: `[ANREDE],\n\n${text}\n\n[SIGNATUR]` },
+    },
+  })
+  const rewritten = (text) => ({
+    data: {
+      creaRewriteResponse: {
+        responseText: `[ANREDE],\n\n${text}\n\n[SIGNATUR]`,
+        memoSupplement: null,
+      },
+      creaRewriteBatch: {
+        responseText: `[ANREDE],\n\n${text}\n\n[SIGNATUR]`,
+        memoSupplement: null,
+      },
+    },
+  })
+  const close = (wrapper) => wrapper.findComponent({ name: 'BModal' }).vm.$emit('hidden')
+  const carla = () =>
+    contribution({
+      id: 2,
+      userId: 43,
+      memo: 'Vorlesen',
+      user: { firstName: 'Carla', lastName: 'Sonne', salutation: null },
+    })
+  const twoOf = (member) => [member, { ...member, id: member.id + 100, memo: 'Gartenarbeit' }]
+
+  it.each([
+    [
+      'a single contribution',
+      async (wrapper) => {
+        await write(wrapper, 'Kind, 5 Jahre alt')
+        await wrapper.find('[data-test="crea-evaluate-again"]').trigger('click')
+      },
+    ],
+    [
+      'several contributions',
+      async (wrapper) => {
+        await write(wrapper, 'Kind, 5 Jahre alt')
+        await wrapper.find('[data-test="crea-evaluate-batch"]').trigger('click')
+      },
+      () => twoOf(contribution()),
+    ],
+    [
+      'a rewrite',
+      async (wrapper) => {
+        await buttonNamed(wrapper, 'crea.decision.deny').trigger('click')
+        await write(wrapper, 'Kind, 5 Jahre alt')
+        await buttonNamed(wrapper, 'crea.rewrite').trigger('click')
+      },
+    ],
+  ])(
+    'asks Crea nothing for %s when the window closed while the words were saved',
+    async (_kind, ask, list) => {
+      siblings = list?.() ?? []
+      const letSavesThrough = holdSaves()
+      const wrapper = mountModal()
+      await open(wrapper)
+      const before = creaInputs().length
+      await ask(wrapper)
+      await settle()
+      close(wrapper)
+      await letSavesThrough()
+      expect(creaInputs()).toHaveLength(before)
+    },
+  )
+
+  it.each([
+    ['a single contribution', async () => undefined, () => []],
+    [
+      'several contributions',
+      async (wrapper) => {
+        await wrapper.find('[data-test="crea-evaluate-batch"]').trigger('click')
+      },
+      () => twoOf(contribution()),
+    ],
+  ])(
+    'lets a late answer for %s change nothing in the window opened since',
+    async (_kind, ask, list) => {
+      const answers = holdAnswers()
+      siblings = list()
+      const wrapper = mountModal()
+      await open(wrapper)
+      await ask(wrapper)
+      await settle()
+      close(wrapper)
+      // Opened again, for Carla's two contributions: nothing is asked until "Bewerten".
+      siblings = twoOf(carla())
+      await wrapper.setProps({ contribution: carla() })
+      await open(wrapper)
+      expect(answers).toHaveLength(1)
+      answers[0].resolve(answer('Für Thomas'))
+      await settle()
+      expect(responseField(wrapper).exists()).toBe(false)
+    },
+  )
+
+  it.each([
+    ['a single contribution', async () => undefined, () => []],
+    [
+      'several contributions',
+      async (wrapper) => {
+        await wrapper.find('[data-test="crea-evaluate-batch"]').trigger('click')
+      },
+      () => twoOf(contribution()),
+    ],
+  ])(
+    'keeps the window opened since waiting for its own answer where a late one for %s fails',
+    async (_kind, ask, list) => {
+      const answers = holdAnswers()
+      siblings = list()
+      const wrapper = mountModal()
+      await open(wrapper)
+      await ask(wrapper)
+      await settle()
+      close(wrapper)
+      await open(wrapper)
+      await ask(wrapper)
+      await settle()
+      expect(answers).toHaveLength(2)
+      answers[0].reject(new Error('Network error'))
+      await settle()
+      expect(wrapper.find('.spinner-border').exists()).toBe(true)
+      answers[1].resolve(answer('Die eigene Antwort'))
+      await settle()
+      expect(wrapper.find('.alert-danger').exists()).toBe(false)
+      expect(responseField(wrapper).element.value).toContain('Die eigene Antwort')
+    },
+  )
+
+  it.each([
+    ['a single contribution', async () => undefined, () => []],
+    [
+      'several contributions',
+      async (wrapper) => {
+        await wrapper.find('[data-test="crea-evaluate-batch"]').trigger('click')
+      },
+      () => twoOf(contribution()),
+    ],
+  ])(
+    'lets a late rewrite for %s change nothing in the window opened since, which rewrites on its own',
+    async (_kind, ask, list) => {
+      const answers = holdAnswers()
+      siblings = list()
+      const wrapper = mountModal()
+      await open(wrapper)
+      await ask(wrapper)
+      await settle()
+      answers[0].resolve(answer('Erste Antwort'))
+      await settle()
+      await buttonNamed(wrapper, 'crea.decision.deny').trigger('click')
+      await buttonNamed(wrapper, 'crea.rewrite').trigger('click')
+      await settle()
+      close(wrapper)
+      await open(wrapper)
+      await ask(wrapper)
+      await settle()
+      answers[2].resolve(answer('Neue Antwort'))
+      await settle()
+      await buttonNamed(wrapper, 'crea.decision.deny').trigger('click')
+      await buttonNamed(wrapper, 'crea.rewrite').trigger('click')
+      await settle()
+      expect(answers).toHaveLength(4)
+      answers[1].resolve(rewritten('Für die erste Öffnung'))
+      await settle()
+      expect(responseField(wrapper).element.value).not.toContain('Für die erste Öffnung')
+      expect(buttonNamed(wrapper, 'crea.rewrite').attributes('disabled')).toBeDefined()
+    },
+  )
+
+  it('tells nothing of a late rewrite that failed', async () => {
+    const answers = holdAnswers()
+    const wrapper = mountModal()
+    await open(wrapper)
+    answers[0].resolve(answer('Erste Antwort'))
+    await settle()
+    await buttonNamed(wrapper, 'crea.decision.deny').trigger('click')
+    await buttonNamed(wrapper, 'crea.rewrite').trigger('click')
+    await settle()
+    close(wrapper)
+    await open(wrapper)
+    answers[1].reject(new Error('Network error'))
+    await settle()
+    expect(toastError).not.toHaveBeenCalled()
+  })
+
   it('shows the contributions of the member it was opened for, not of one opened before', async () => {
     const listOf = (userId) =>
       [1, 2].map((n) =>

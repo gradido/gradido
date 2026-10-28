@@ -516,6 +516,16 @@ export const CreaEvaluationModal = defineComponent({
       moderatorContext.value = ''
     }
 
+    // Each opening of the window. What an earlier one still awaits -- the member's contributions, the
+    // remark, Crea's answer -- changes nothing in a closed window or in one opened since for another
+    // member, and a closed window asks Crea nothing more: it would pay for nobody.
+    let opening = 0
+    // Marks the opening a call starts in; the answer says whether the window still shows it.
+    const sameOpening = () => {
+      const mine = opening
+      return () => mine === opening
+    }
+
     const runEvaluation = async () => {
       resetState()
       await evaluateSingle()
@@ -528,6 +538,7 @@ export const CreaEvaluationModal = defineComponent({
       if (!props.contribution) {
         return
       }
+      const current = sameOpening()
       loading.value = true
       inactive.value = false
       errorMessage.value = ''
@@ -535,11 +546,20 @@ export const CreaEvaluationModal = defineComponent({
       primeCreaSound()
       try {
         await remark.flush()
+        if (!current()) {
+          return
+        }
         remarkJudged.value = remark.saved.value?.remark ?? null
         const response = await evaluateMutation({ input: buildInput(props.contribution) })
+        if (!current()) {
+          return
+        }
         applyEvaluation(response?.data.creaEvaluateContribution)
         playCreaSound()
       } catch (error) {
+        if (!current()) {
+          return
+        }
         // Crea stays dormant on staging until the API key (DO-5) is set; the resolver
         // then throws "Anthropic API is not enabled". Show a calm hint, not an error.
         if (/not enabled/i.test((error as Error).message)) {
@@ -548,7 +568,9 @@ export const CreaEvaluationModal = defineComponent({
           errorMessage.value = (error as Error).message
         }
       } finally {
-        loading.value = false
+        if (current()) {
+          loading.value = false
+        }
       }
     }
 
@@ -594,6 +616,7 @@ export const CreaEvaluationModal = defineComponent({
       if (selectedIds.value.length === 0) {
         return
       }
+      const current = sameOpening()
       loading.value = true
       inactive.value = false
       errorMessage.value = ''
@@ -601,17 +624,28 @@ export const CreaEvaluationModal = defineComponent({
       primeCreaSound()
       try {
         await remark.flush()
+        if (!current()) {
+          return
+        }
         const response = await evaluateBatchMutation({ input: buildBatchInput() })
+        if (!current()) {
+          return
+        }
         applyEvaluation(response?.data.creaEvaluateBatch)
         playCreaSound()
       } catch (error) {
+        if (!current()) {
+          return
+        }
         if (/not enabled/i.test((error as Error).message)) {
           inactive.value = true
         } else {
           errorMessage.value = (error as Error).message
         }
       } finally {
-        loading.value = false
+        if (current()) {
+          loading.value = false
+        }
       }
     }
 
@@ -623,10 +657,14 @@ export const CreaEvaluationModal = defineComponent({
       if (!isDeviation.value) {
         return
       }
+      const current = sameOpening()
       rewriting.value = true
       primeCreaSound()
       try {
         await remark.flush()
+        if (!current()) {
+          return
+        }
         if (isBatch.value) {
           // Batch deviation (E-020): one fresh joint reply for the chosen outcome. No
           // memoSupplement in batch mode ("Text ergänzen" is single-contribution, E-019).
@@ -637,6 +675,9 @@ export const CreaEvaluationModal = defineComponent({
               moderatorContext: moderatorContext.value.trim() || null,
             },
           })
+          if (!current()) {
+            return
+          }
           const result = response?.data.creaRewriteBatch
           rawResponseText.value = result.responseText
           applyDraft()
@@ -653,6 +694,9 @@ export const CreaEvaluationModal = defineComponent({
               moderatorContext: moderatorContext.value.trim() || null,
             },
           })
+          if (!current()) {
+            return
+          }
           const result = response?.data.creaRewriteResponse
           rawResponseText.value = result.responseText
           applyDraft()
@@ -664,15 +708,16 @@ export const CreaEvaluationModal = defineComponent({
         // arrived after the moderator deviated.
         playCreaSound()
       } catch (error) {
-        toastError((error as Error).message)
+        if (current()) {
+          toastError((error as Error).message)
+        }
       } finally {
-        rewriting.value = false
+        if (current()) {
+          rewriting.value = false
+        }
       }
     }
 
-    // The modal stays mounted, so re-read the signature from the browser every time
-    // it opens. Reading it only once at setup meant a signature stored in an earlier
-    // session (or after a re-login) never showed up without a full page reload.
     // The remark on the member, read on its own: the window opens from the row, not from the card.
     // Not read, the button stays unpressable; Crea reads the remark from the server all the same.
     const loadRemark = async (userId: number | null): Promise<void> => {
@@ -691,17 +736,17 @@ export const CreaEvaluationModal = defineComponent({
       }
     }
 
-    // Each opening of the window: what an earlier one still awaits must not act on a later one, or
-    // on a closed window -- it would ask Crea, and pay, for nobody.
-    let opening = 0
-
     const onShown = async () => {
-      const thisOpening = ++opening
+      opening += 1
+      const current = sameOpening()
       remarkMember.value = props.contribution?.userId ?? null
       if (remarkMember.value !== null) {
         remarkNames.set(remarkMember.value, contributionUserName.value)
       }
       const remarkRead = loadRemark(remarkMember.value)
+      // The modal stays mounted, so re-read the signature from the browser every time
+      // it opens. Reading it only once at setup meant a signature stored in an earlier
+      // session (or after a re-login) never showed up without a full page reload.
       moderatorSignature.value = loadSignature()
       // Before the query, not after it: a slow connection must not move a contribution from
       // one group to another, and the moderator asked for this list when they opened it.
@@ -716,7 +761,7 @@ export const CreaEvaluationModal = defineComponent({
       } catch {
         siblings = []
       }
-      if (thisOpening !== opening) {
+      if (!current()) {
         return
       }
       // Those rows were just read with fetchPolicy "no-cache", so they carry the participant's
@@ -740,7 +785,7 @@ export const CreaEvaluationModal = defineComponent({
         contributions.value = []
         // Judged at once: with the remark in the window, so that a change to it can be seen.
         await remarkRead
-        if (thisOpening !== opening) {
+        if (!current()) {
           return
         }
         runEvaluation()
