@@ -355,6 +355,169 @@ describe('ContributionMessagesList', () => {
     })
   })
 
+  // The moderation's remark on the member (Bernd, 28.10.2026): its button behind the pin and the
+  // arrow, the words under the member line, the field in their place while it is written.
+  describe('the remark on the member', () => {
+    const BY_BERND = {
+      remark: 'Bürgermeisterin von Lieblingsstadt',
+      updatedAt: '2026-10-28T08:40:00.000Z',
+      updatedByName: 'Bernd Hückstädt',
+    }
+    const toggle = () => wrapper.find('[data-test="member-remark-toggle"]')
+    const line = () => wrapper.find('[data-test="member-remark"]')
+    const editor = () => wrapper.find('[data-test="member-remark-editor"]')
+    const answerWith = async (userRemark) => {
+      result.value = { ...defaultData, userRemark }
+      answerArrived()
+      await wrapper.vm.$nextTick()
+    }
+
+    // One round trip: the remark comes with the messages, so the card takes its shape once.
+    it('is asked for with the messages, by the number of the member', () => {
+      expect(useQuery).toHaveBeenCalledWith(
+        expect.anything(),
+        { contributionId: 42, userId: 108 },
+        { fetchPolicy: 'no-cache' },
+      )
+    })
+
+    it('has its button in the member line, and no words where there is no remark', () => {
+      expect(toggle().exists()).toBe(true)
+      expect(toggle().attributes('disabled')).toBeUndefined()
+      expect(line().exists()).toBe(false)
+    })
+
+    it('shows the words under the member line, ahead of the dates', async () => {
+      await answerWith(BY_BERND)
+      expect(line().text()).toContain('Bürgermeisterin von Lieblingsstadt')
+      const items = wrapper.findAll('.list-group-item')
+      expect(items[1].attributes('data-test')).toBe('member-remark')
+      expect(items[2].text()).toContain('registered')
+    })
+
+    it('stands behind the pin and the arrow, ahead of the HumHub profile, on one line with them', async () => {
+      await wrapper.setProps({
+        contribution: {
+          id: 42,
+          memo: 'test memo',
+          userId: 108,
+          contributionStatus: 'PENDING',
+          user: {
+            ...defaultUser,
+            alias: 'peterl',
+            gradidoID: '1b2c3d4e-5f60-4a7b-8c9d-0e1f2a3b4c5d',
+            communityUuid: '9f8e7d6c-5b4a-4c3d-9e2f-1a0b9c8d7e6f',
+            findableOnMap: true,
+          },
+        },
+      })
+      const card = wrapper.find('.list-group-item').html()
+      const sendArrow = card.indexOf('data-test="member-send-arrow"')
+      const remark = card.indexOf('data-test="member-remark-toggle"')
+      const humhub = card.indexOf('humhub-username')
+      expect(sendArrow).toBeGreaterThan(-1)
+      expect(remark).toBeGreaterThan(sendArrow)
+      expect(humhub).toBeGreaterThan(remark)
+      expect(toggle().element.parentElement.classList).toContain('text-nowrap')
+      expect(
+        toggle().element.parentElement.contains(
+          wrapper.find('[data-test="member-send-arrow"]').element,
+        ),
+      ).toBe(true)
+    })
+
+    it('is named after the member as the pin and the arrow are', async () => {
+      await wrapper.setProps({
+        contribution: { id: 42, userId: 108, contributionStatus: 'PENDING', user: defaultUser },
+      })
+      expect(wrapper.findComponent({ name: 'MemberRemarkToggle' }).props('name')).toBe('Peter')
+      await wrapper.setProps({
+        contribution: {
+          id: 42,
+          userId: 108,
+          contributionStatus: 'PENDING',
+          user: { ...defaultUser, alias: 'peterl' },
+        },
+      })
+      expect(wrapper.findComponent({ name: 'MemberRemarkToggle' }).props('name')).toBe('peterl')
+    })
+
+    it('opens the field in the place of the words, and "Fertig" brings them back', async () => {
+      wrapper.unmount()
+      wrapper = mount(ContributionMessagesList, {
+        props: {
+          contribution: {
+            id: 42,
+            memo: 'test memo',
+            userId: 108,
+            contributionStatus: 'PENDING',
+            user: defaultUser,
+          },
+          hideResubmission: true,
+        },
+        attachTo: document.body,
+        global: {
+          stubs: {
+            'contribution-messages-list-item': true,
+            'contribution-messages-formular': true,
+            BTooltip: true,
+            RouterLink: RouterLinkStub,
+          },
+        },
+      })
+      await answerWith(BY_BERND)
+      await toggle().trigger('click')
+      expect(line().exists()).toBe(false)
+      expect(editor().exists()).toBe(true)
+      expect(wrapper.find('textarea').element.value).toBe('Bürgermeisterin von Lieblingsstadt')
+      expect(toggle().attributes('aria-controls')).toBe(wrapper.find('textarea').attributes('id'))
+
+      await wrapper.find('[data-test="member-remark-done"]').trigger('click')
+      await wrapper.vm.$nextTick()
+      await wrapper.vm.$nextTick()
+      expect(editor().exists()).toBe(false)
+      expect(line().exists()).toBe(true)
+      // The keyboard goes back to the button that opened the field.
+      expect(document.activeElement).toBe(toggle().element)
+    })
+
+    it('says so in a toast where a save fails that nobody sees fail', async () => {
+      const mutate = vi.fn().mockRejectedValue(new Error('Network error'))
+      useApolloClient.mockReturnValue({
+        client: { query: vi.fn() },
+        resolveClient: () => ({ mutate }),
+      })
+      wrapper.unmount()
+      wrapper = mount(ContributionMessagesList, {
+        props: {
+          contribution: {
+            id: 42,
+            memo: 'test memo',
+            userId: 108,
+            contributionStatus: 'PENDING',
+            user: { ...defaultUser, alias: 'peterl' },
+          },
+          hideResubmission: true,
+        },
+        global: {
+          stubs: {
+            'contribution-messages-list-item': true,
+            'contribution-messages-formular': true,
+            BTooltip: true,
+            RouterLink: RouterLinkStub,
+          },
+        },
+      })
+      await toggle().trigger('click')
+      await wrapper.find('textarea').setValue('Tochter von Ramona')
+      await wrapper.find('[data-test="member-remark-done"]').trigger('click')
+      await vi.waitFor(() => expect(mockToastError).toHaveBeenCalledWith('remark.failedClosed'))
+      expect(mutate).toHaveBeenCalledWith(
+        expect.objectContaining({ variables: { userId: 108, remark: 'Tochter von Ramona' } }),
+      )
+    })
+  })
+
   /**
    * ⛔ ONE round trip for the whole thread, with every author in it -- not one per message.
    * A moderator who wrote three of them is one member, and the picture store keys by member.
