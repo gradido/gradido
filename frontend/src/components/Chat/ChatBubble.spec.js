@@ -314,6 +314,57 @@ describe('ChatBubble', () => {
       expect(wrapper.emitted('thank')).toBeUndefined()
     })
 
+    // In a group's thread (Bernd, 28.10.2026): whom to thank is chosen among the members.
+    describe('in a group', () => {
+      const ANNA = { communityUuid: 'home-uuid', gradidoID: 'anna-id', alias: 'Anna-Sonne' }
+      const CARLA = { communityUuid: 'home-uuid', gradidoID: 'carla-id', alias: 'Carla-Sonne' }
+      const MEMBERS = [
+        { key: 'home-uuid:anna-id', label: 'Anna-Sonne', avatar: null, user: ANNA },
+        { key: 'home-uuid:carla-id', label: 'Carla-Sonne', avatar: null, user: CARLA },
+      ]
+      const inGroup = { thanksAfterCall: true, thanksMembers: MEMBERS }
+      const question = () => wrapper.find('[data-test="thanks-nudge-question"]').text()
+      const choices = () => wrapper.findAll('[data-test="thanks-nudge-choice"]')
+
+      it('asks without a name, with "Jemandem danken"', () => {
+        mountBubble(INVITATION, 'Gradido-Café', inGroup)
+
+        expect(question()).toBe('thanksNudge.afterGroupCall')
+        expect(yes().text()).toBe('thanksNudge.someone')
+        expect(choices()).toHaveLength(0)
+      })
+
+      it('shows the members on "Jemandem danken", asks whom, and hands nothing up yet', async () => {
+        mountBubble(INVITATION, 'Gradido-Café', inGroup)
+
+        await yes().trigger('click')
+
+        expect(question()).toBe('thanksNudge.whom')
+        expect(choices().map((choice) => choice.text())).toEqual(['Anna-Sonne', 'Carla-Sonne'])
+        expect(wrapper.emitted('thank')).toBeUndefined()
+      })
+
+      it('hands up the message and the member chosen', async () => {
+        mountBubble(INVITATION, 'Gradido-Café', inGroup)
+        await yes().trigger('click')
+
+        await choices()[1].trigger('click')
+
+        expect(wrapper.emitted('thank')).toEqual([[INVITATION, CARLA]])
+        expect(wrapper.emitted('dismiss')).toBeUndefined()
+      })
+
+      it('keeps "Nicht jetzt" while the members are shown', async () => {
+        mountBubble(INVITATION, 'Gradido-Café', inGroup)
+        await yes().trigger('click')
+
+        await no().trigger('click')
+
+        expect(wrapper.emitted('dismiss')).toEqual([[INVITATION]])
+        expect(wrapper.emitted('thank')).toBeUndefined()
+      })
+    })
+
     /**
      * The line goes once "Nicht jetzt" is pressed; a keyboard that stood on it would fall out of the
      * window with it. It goes to the thread instead, as when the button for older messages goes.

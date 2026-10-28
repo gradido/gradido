@@ -242,9 +242,9 @@ afterEach(() => {
 describe('ChatThread in a group', () => {
   let wrapper
 
-  const mountThread = (group = {}) => {
+  const mountThread = (group = {}, more = {}) => {
     wrapper = mount(ChatThread, {
-      props: { group: { ...GROUP, ...group } },
+      props: { group: { ...GROUP, ...group }, ...more },
       global: {
         stubs: {
           IMdiChatOutline: true,
@@ -730,35 +730,137 @@ describe('ChatThread in a group', () => {
   })
 
   /**
-   * W2 of the waves of gratitude: the suggestion to thank after a video call stands in a
-   * conversation of two only -- in a group nothing of a transfer stands (E-050 F6), and nobody
-   * there would be "the other person" to thank.
+   * W2 of the waves of gratitude in a group (Bernd, 28.10.2026): under the member's own video
+   * invitation, half an hour after the call began, "Möchtest Du Dich für das Gespräch bedanken?"
+   * -- "Jemandem danken" shows the other members, and one tap on one takes the member to the send
+   * form with them. Nothing of a transfer stands in a group (E-050 F6): only the answer ends it.
    */
-  it('suggests no thank-you under a video call of one’s own, and keeps no clock for it', async () => {
-    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval', 'Date'] })
-    try {
-      const began = new Date('2026-10-26T15:00:00.000Z').getTime()
-      vi.setSystemTime(began + 45 * 60 * 1000)
-      const call = { room: 'https://meet.example/abc', topic: 'Videoanruf', when: null }
-      videoInviteRead.mockImplementation((i18n, text) => (text === 'the invitation' ? call : null))
-      mountThread()
-      await arrive(
-        page([
-          message(1),
-          {
-            ...message(2, { writer: 'me' }),
-            body: 'the invitation',
-            createdAt: new Date(began).toISOString(),
-          },
-        ]),
-      )
+  describe('the suggestion to thank after a video call of one’s own', () => {
+    const BEGAN = new Date('2026-10-26T15:00:00.000Z').getTime()
+    const MINUTE = 60 * 1000
+    const CALL = { room: 'https://meet.example/abc', topic: 'Videoanruf', when: null }
+    const MEMBERS = ['me', 'anna', 'carla'].map((writer) => ({
+      user: { ...WRITERS[writer], communityName: 'Home', avatarUpdatedAt: null },
+      role: writer === 'anna' ? 'OWNER' : 'MEMBER',
+      joinedAt: '2026-09-27T10:00:00.000Z',
+    }))
+    const invitation = (writer = 'me') => ({
+      ...message(2, { writer }),
+      body: 'the invitation',
+      createdAt: new Date(BEGAN).toISOString(),
+    })
 
-      expect(wrapper.find('[data-test="thanks-nudge"]').exists()).toBe(false)
-      expect(vi.getTimerCount()).toBe(0)
-    } finally {
+    const line = () => wrapper.find('[data-test="thanks-nudge"]')
+    const question = () => wrapper.find('[data-test="thanks-nudge-question"]').text()
+    const names = () =>
+      wrapper.findAll('[data-test="thanks-nudge-choice-name"]').map((name) => name.text())
+    const press = async (selector) => {
+      await wrapper.find(selector).trigger('click')
+      await flushPromises()
+    }
+    const mountAt = async (minutes, { members = MEMBERS, writer = 'me' } = {}) => {
+      vi.setSystemTime(BEGAN + minutes * MINUTE)
+      mountThread({}, { groupMembers: members })
+      await arrive(page([message(1), invitation(writer)]))
+    }
+
+    beforeEach(() => {
+      vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval', 'Date'] })
+      videoInviteRead.mockImplementation((i18n, text) => (text === 'the invitation' ? CALL : null))
+    })
+
+    afterEach(() => {
+      wrapper?.unmount()
+      wrapper = null
       vi.useRealTimers()
       videoInviteRead.mockReset()
       videoInviteRead.mockImplementation(() => null)
-    }
+      for (const key of Object.keys(window.localStorage)) {
+        if (key.startsWith('thanks-nudge:')) window.localStorage.removeItem(key)
+      }
+    })
+
+    it('stands half an hour after the call began, asking without a name, with "Jemandem danken"', async () => {
+      await mountAt(29)
+      expect(line().exists()).toBe(false)
+
+      vi.advanceTimersByTime(MINUTE)
+      await flushPromises()
+
+      expect(bubbles()[1].find('[data-test="thanks-nudge"]').exists()).toBe(true)
+      expect(question()).toBe('thanksNudge.afterGroupCall')
+      expect(wrapper.find('[data-test="thanks-nudge-yes"]').text()).toBe('thanksNudge.someone')
+    })
+
+    it('shows the other members by name on "Jemandem danken", the member not among them', async () => {
+      await mountAt(45)
+
+      await press('[data-test="thanks-nudge-yes"]')
+
+      expect(question()).toBe('thanksNudge.whom')
+      expect(names()).toEqual(['Anna-Sonne', 'Carla-Sonne'])
+      // Nothing is answered by opening the choice: a window closed now finds the line again.
+      expect(window.localStorage.getItem('thanks-nudge:me-id:call:uuid-2')).toBeNull()
+    })
+
+    it('takes a member chosen to the window, and answers the line on this device', async () => {
+      await mountAt(45)
+      await press('[data-test="thanks-nudge-yes"]')
+
+      await wrapper.findAll('[data-test="thanks-nudge-choice"]')[1].trigger('click')
+      await flushPromises()
+
+      expect(wrapper.emitted('thank')).toEqual([[MEMBERS[2].user]])
+      expect(window.localStorage.getItem('thanks-nudge:me-id:call:uuid-2')).toBe('1')
+      expect(line().exists()).toBe(false)
+    })
+
+    it('"Nicht jetzt": the line goes, and the window is told nothing', async () => {
+      await mountAt(45)
+
+      await press('[data-test="thanks-nudge-no"]')
+
+      expect(line().exists()).toBe(false)
+      expect(wrapper.emitted('thank')).toBeUndefined()
+      expect(window.localStorage.getItem('thanks-nudge:me-id:call:uuid-2')).toBe('1')
+    })
+
+    // Nobody to choose: before the window has the members, or where the member is alone in it.
+    it('not before the window has the members, nor where the member is alone in the group', async () => {
+      await mountAt(45, { members: [] })
+      expect(line().exists()).toBe(false)
+      wrapper.unmount()
+
+      await mountAt(45, { members: [MEMBERS[0]] })
+      expect(line().exists()).toBe(false)
+    })
+
+    // Who cannot be named in the send form is not offered: a member without their community.
+    it('offers only members the send form can name', async () => {
+      const lost = { ...MEMBERS[1], user: { ...MEMBERS[1].user, communityUuid: null } }
+      await mountAt(45, { members: [MEMBERS[0], lost, MEMBERS[2]] })
+
+      await press('[data-test="thanks-nudge-yes"]')
+
+      expect(names()).toEqual(['Carla-Sonne'])
+    })
+
+    // The one invited is not pressed to thank.
+    it('not under somebody else’s invitation in the group', async () => {
+      await mountAt(45, { writer: 'anna' })
+
+      expect(line().exists()).toBe(false)
+    })
+
+    // The line comes while the member sits in the group's conversation.
+    it('keeps its quiet clock while the group’s thread is open, and stops it when it closes', async () => {
+      await mountAt(45)
+      expect(vi.getTimerCount()).toBe(1)
+
+      wrapper.unmount()
+      wrapper = null
+
+      expect(vi.getTimerCount()).toBe(0)
+    })
   })
 })

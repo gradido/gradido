@@ -28,6 +28,10 @@ vi.mock('vue-i18n', () => ({
 const storeState = vi.hoisted(() => ({ gradidoID: 'me-id', communityUuid: 'home-uuid' }))
 vi.mock('@/store/useWalletStore', () => ({ useWalletStore: () => storeState }))
 
+/** Where the window leads: the send form with a member chosen under a call (W2). */
+const routerPush = vi.hoisted(() => vi.fn())
+vi.mock('vue-router', () => ({ useRouter: () => ({ push: routerPush }) }))
+
 const { toastSuccess, toastError } = vi.hoisted(() => ({
   toastSuccess: vi.fn(),
   toastError: vi.fn(),
@@ -174,8 +178,15 @@ describe('ChatGroupWindow', () => {
           // The thread has its own specs (ChatThread.group.spec.js); here: which group it gets.
           ChatThread: {
             name: 'ChatThread',
-            props: { group: Object, search: String },
-            emits: ['openMember', 'search', 'duplicateVideo', 'editVideo', 'forwardMessage'],
+            props: { group: Object, search: String, groupMembers: Array },
+            emits: [
+              'openMember',
+              'search',
+              'duplicateVideo',
+              'editVideo',
+              'forwardMessage',
+              'thank',
+            ],
             inject: { join: { from: CHAT_VIDEO_JOIN, default: null } },
             methods: {
               deliver(message) {
@@ -677,6 +688,52 @@ describe('ChatGroupWindow', () => {
   it('hands the thread its group', () => {
     mountWindow()
     expect(find('thread').attributes('data-group')).toBe('cafe-uuid')
+  })
+
+  /**
+   * W2 in a group (Bernd, 28.10.2026): under a video call of the member's own, "Jemandem danken"
+   * shows the members -- the window hands its members to the thread, and takes a member chosen
+   * to the send form with them, the way the contact window's "Gradido senden" goes.
+   */
+  describe('the thanks after a video call', () => {
+    const thread = () => wrapper.findComponent({ name: 'ChatThread' })
+
+    beforeEach(() => {
+      routerPush.mockClear()
+    })
+
+    it('hands the thread the members it holds', async () => {
+      mountWindow()
+      expect(thread().props('groupMembers')).toEqual([])
+
+      await flushPromises()
+
+      expect(thread().props('groupMembers')).toEqual(MEMBERS)
+    })
+
+    it('takes a member chosen to the send form with them named, and closes', async () => {
+      mountWindow()
+      await flushPromises()
+
+      await thread().vm.$emit('thank', MEMBERS[2].user)
+
+      expect(routerPush).toHaveBeenCalledWith({
+        path: '/send/home-uuid/carla-id',
+        query: { art: 'send' },
+      })
+      expect(wrapper.emitted('update:modelValue')).toEqual([[false]])
+    })
+
+    // Nobody the send form could name: nothing happens, and the window stays.
+    it('goes nowhere for a member without a community', async () => {
+      mountWindow()
+      await flushPromises()
+
+      await thread().vm.$emit('thank', { ...MEMBERS[2].user, communityUuid: null })
+
+      expect(routerPush).not.toHaveBeenCalled()
+      expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+    })
   })
 
   // E-053: a name tapped over a message or in the list of members -- the page knows who is a
