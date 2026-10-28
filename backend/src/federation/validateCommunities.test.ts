@@ -1,5 +1,5 @@
 // Unit tests: each function on its own, everything it calls replaced. No database, no network -
-// the queries are tested against the database in `database`, the peer client in `core`.
+// the queries are tested against the database in `database`, the ApiClient in `core`.
 //
 // Written to run under jest (today) and `bun test --isolate` (later) alike:
 // - only `jest.fn` / `jest.mock` and the mock methods both know; bun has no `jest.requireActual`

@@ -322,7 +322,7 @@ The nonce is the only part of the signed data the requesting side chooses. It is
 
 The public JWT key arrives inside the signed answer. It used to be fetched from the url without any signature, so whoever answered at the url could hand out a key of its own; now it is vouched for by the key the DHT announced.
 
-The implementation is `shared/src/crypto/signedResponse.ts` (on top of [http-message-sig](https://www.npmjs.com/package/http-message-sig)), used by the `communityInfos` route of the peer api and by `PeerApiClient`.
+The implementation is `shared/src/crypto/signedResponse.ts` (on top of [http-message-sig](https://www.npmjs.com/package/http-message-sig)), used by the `communityInfos` route in `core/src/crossCommunity/apiRoutes.ts` and by `ApiClient` beside it.
 
 #### Why the former handshake was replaced
 

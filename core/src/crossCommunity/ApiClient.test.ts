@@ -44,7 +44,7 @@ const communityInfo = {
   hieroTopicId: null,
 }
 
-// answers on the path of the peer api and signs like the public routes in peerApi.ts;
+// answers on the path of the peer api and signs like the public routes in apiRoutes.ts;
 // answerNonce decides which nonce goes into the signature, answerRequest which request
 const peerAnswering = (
   answerNonce: (requestNonce: string) => string,
