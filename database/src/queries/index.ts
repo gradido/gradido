@@ -44,6 +44,7 @@ export * from './userContacts'
 export * from './userContacts.typeorm'
 export * from './userFavorites'
 export * from './userNotes'
+export * from './userRemarks'
 export * from './userRoles'
 
 export const LOG4JS_QUERIES_CATEGORY_NAME = `${LOG4JS_BASE_CATEGORY_NAME}.queries`

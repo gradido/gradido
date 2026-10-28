@@ -886,6 +886,16 @@ export const setUserNote = gql`
   }
 `
 
+export const setUserRemark = gql`
+  mutation ($userId: Int!, $remark: String!) {
+    setUserRemark(userId: $userId, remark: $remark) {
+      remark
+      updatedAt
+      updatedByName
+    }
+  }
+`
+
 export const removeFavorite = gql`
   mutation ($ref: MemberAvatarRefInput!) {
     removeFavorite(ref: $ref)

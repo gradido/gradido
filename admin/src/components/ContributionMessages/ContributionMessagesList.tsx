@@ -1,12 +1,22 @@
 // AI-GENERATED — not an architecture reference
 import { useApolloClient, useQuery } from '@vue/apollo-composable'
 import { BContainer, BListGroup, BListGroupItem, BTooltip } from 'bootstrap-vue-next'
-import { computed, defineComponent, type PropType, ref, toDisplayString } from 'vue'
+import {
+  computed,
+  defineComponent,
+  nextTick,
+  type PropType,
+  ref,
+  toDisplayString,
+  useId,
+} from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
+import { MemberRemarkEditor, MemberRemarkLine, MemberRemarkToggle } from '@/components/MemberRemark'
 import { MemberWalletLink } from '@/components/MemberWalletLink'
 import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
 import { useAppToast } from '@/composables/useToast'
+import { useUserRemark } from '@/composables/useUserRemark'
 import { CONFIG } from '@/config'
 import IArcticonsCircles from '~icons/arcticons/circles'
 import { adminListContributionMessages } from '../../graphql/adminListContributionMessages'
@@ -82,10 +92,33 @@ export const ContributionMessagesList = defineComponent({
 
     const messages = ref<ContributionMessage[]>([])
 
+    // How the card speaks of the member: as the pin and the arrow name them.
+    const memberName = computed(
+      () => props.contribution.user.alias || props.contribution.user.firstName || '',
+    )
+
+    // The moderation's remark on the member (Bernd, 28.10.2026): read with the messages, in the
+    // same answer, so that the card takes its shape once and not twice.
+    const remark = useUserRemark(
+      () => props.contribution.userId,
+      () => toastError(t('remark.failedClosed', { name: memberName.value })),
+    )
+    const remarkFieldId = useId()
+    const remarkToggle = ref<{ $el?: HTMLElement } | null>(null)
+    // "Fertig" or Escape: the field closes, and the keyboard goes back to the button that opened it.
+    const closeRemark = () => {
+      remark.close()
+      nextTick(() => remarkToggle.value?.$el?.focus())
+    }
+
+    // The member the question is about: its answer is that member's remark, whatever the card
+    // shows by the time it comes.
+    const askedAbout = props.contribution.userId
     const { onResult, onError, result, refetch } = useQuery(
       adminListContributionMessages,
       {
         contributionId: props.contribution.id,
+        userId: askedAbout,
       },
       {
         fetchPolicy: 'no-cache',
@@ -98,6 +131,7 @@ export const ContributionMessagesList = defineComponent({
 
     onResult(() => {
       messages.value = result.value.adminListContributionMessages.messages
+      remark.take(askedAbout, result.value.userRemark ?? null)
       // The faces of everybody who wrote in this thread, in one round trip. Each message carries
       // a DATE, not a picture: everything already held under that date needs nothing, so opening
       // the same thread twice asks for nothing at all.
@@ -127,9 +161,9 @@ export const ContributionMessagesList = defineComponent({
       <div class='contribution-messages-list'>
         <BListGroup>
           {/* The parts of the member line stand side by side at the desk and wrap on a phone,
-              each as a whole. The username keeps its pin and its arrow beside it: they are its
-              buttons, and the space between is the one their keyboard ring stands in
-              (MemberWalletLink.module.css). */}
+              each as a whole. The username keeps its buttons beside it where the line has room
+              -- on a narrow phone they go to the next line together; the space between is the
+              one their keyboard ring stands in (MemberWalletLink.module.css). */}
           <BListGroupItem class='d-flex flex-wrap align-items-center column-gap-3 row-gap-1'>
             {/* `title` is no prop of RouterLink: it falls through to the anchor. */}
             <RouterLink to={searchLink.value} title={t('goTo.userSearch')}>
@@ -141,10 +175,20 @@ export const ContributionMessagesList = defineComponent({
             </a>
             <span>
               {`${toDisplayString(props.contribution.user.publicName)} `}
-              <MemberWalletLink
-                member={props.contribution.user}
-                name={props.contribution.user.alias || props.contribution.user.firstName}
-              />
+              {/* One line for the buttons: the remark's stands behind the pin and the arrow or the
+                  bubble, and never alone on a line of its own. */}
+              <span class='text-nowrap'>
+                <MemberWalletLink
+                  member={props.contribution.user}
+                  name={props.contribution.user.alias || props.contribution.user.firstName}
+                />
+                <MemberRemarkToggle
+                  ref={remarkToggle}
+                  state={remark}
+                  name={memberName.value}
+                  controls={remarkFieldId}
+                />
+              </span>
             </span>
             <span>
               {humhubProfileLink.value ? (
@@ -159,6 +203,17 @@ export const ContributionMessagesList = defineComponent({
               </BTooltip>
             </span>
           </BListGroupItem>
+          {/* The remark under the member line -- or, while it is written, the field in its place. */}
+          {remark.open.value ? (
+            <MemberRemarkEditor
+              state={remark}
+              name={memberName.value}
+              fieldId={remarkFieldId}
+              onDone={closeRemark}
+            />
+          ) : (
+            <MemberRemarkLine state={remark} />
+          )}
           <BListGroupItem>
             {`${t('registered')}: ${new Date(props.contribution.user.createdAt).toLocaleDateString()}, ${t('createdAt')}: ${new Date(props.contribution.createdAt).toLocaleDateString()}`}
           </BListGroupItem>

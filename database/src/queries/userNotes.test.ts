@@ -94,9 +94,10 @@ describe('userNotes query test', () => {
     expect(await dbSelectUserNote(ME, ANNA)).toBeNull()
   })
 
-  it('keeps a note as long as a chat message may be, in letters that take four bytes each', async () => {
-    // 5000 characters as MaxLength counts them (UTF-16 code units): 2500 emoji of four bytes.
-    const heavy = '🌱'.repeat(2500)
+  it('keeps a note as long as the server takes one, in letters that take four bytes each', async () => {
+    // MESSAGE_MAX_CHARS (5000) as MaxLength counts them -- validator.js counts an emoji as one
+    // character, where the wallet's field counts two: 5000 emoji, some 20,000 bytes in the `text`.
+    const heavy = '🌱'.repeat(5000)
     await dbUpsertUserNote(ME, ANNA, heavy)
     expect(await dbSelectUserNote(ME, ANNA)).toBe(heavy)
   })

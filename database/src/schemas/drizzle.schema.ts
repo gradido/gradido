@@ -1065,6 +1065,26 @@ export const userNotesTable = mysqlTable(
 export type UserNoteSelect = typeof userNotesTable.$inferSelect
 export type UserNoteInsert = typeof userNotesTable.$inferInsert
 
+// The moderation's remark on a member (migration 0168). The primary key IS the rule "one remark
+// per member": every moderator writes on the same row, and writing it again replaces it.
+export const userRemarksTable = mysqlTable('user_remarks', {
+  // The member the remark is about.
+  userId: int('user_id', { unsigned: true }).primaryKey().notNull(),
+  remark: text().notNull(),
+  // The moderator who wrote it last.
+  updatedBy: int('updated_by', { unsigned: true }).notNull(),
+  createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+    .default(sql`current_timestamp(3)`)
+    .notNull(),
+  updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 })
+    .default(sql`current_timestamp(3)`)
+    .onUpdateNow({ fsp: 3 })
+    .notNull(),
+})
+
+export type UserRemarkSelect = typeof userRemarksTable.$inferSelect
+export type UserRemarkInsert = typeof userRemarksTable.$inferInsert
+
 export const userCreationGroupsTable = mysqlTable(
   'user_creation_groups',
   {

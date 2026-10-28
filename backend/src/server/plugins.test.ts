@@ -88,6 +88,15 @@ describe('the request log', () => {
     expect(text).toContain('"gradidoID": "g"')
   })
 
+  // The moderation's remark on a member is for the moderators alone: whom it is about stays
+  // readable, the words do not.
+  it('writes no remark of the moderation, and still whom it is about', () => {
+    const text = logged({ userId: 101, remark: 'Bürgermeisterin von Lieblingsstadt' })
+    expect(text).not.toContain('Lieblingsstadt')
+    expect(text).toContain('"remark": "***"')
+    expect(text).toContain('"userId": 101')
+  })
+
   // P7: one member's picture for another -- and some 80,000 characters in every line that carried
   // it. What is left of it is its size.
   it('writes no picture of a chat message, only its size', () => {
@@ -496,6 +505,15 @@ describe('the answer in the request log', () => {
     )
     expect(traced).not.toContain('Sonnenberg')
     expect(traced).toBe('Response-Data: left out, it holds a note')
+  })
+
+  it("is left out where the request read or wrote the moderation's remark on a member", async () => {
+    const traced = await answerTraced(
+      { requestBudget: { ...newRequestBudget(), userRemarksServed: 1 } },
+      { userRemark: { remark: 'Bürgermeisterin von Lieblingsstadt' } },
+    )
+    expect(traced).not.toContain('Lieblingsstadt')
+    expect(traced).toBe('Response-Data: left out, it holds a remark')
   })
 
   it('is written where the request was handed no picture of any kind', async () => {
