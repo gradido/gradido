@@ -4,7 +4,9 @@ import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, ref } from 'vue'
 import { setUserRemark } from '@/graphql/userRemark'
+import { useAdminStore } from '@/store/useAdminStore'
 import {
+  forgetUserRemarks,
   REMARK_SAVE_PAUSE_MS,
   type UserRemark,
   type UserRemarkState,
@@ -29,13 +31,12 @@ const answerFor = (remark: string): UserRemark | null =>
 describe('useUserRemark', () => {
   let mutate: ReturnType<typeof vi.fn>
   let failedUnseen: ReturnType<typeof vi.fn>
-  let state: UserRemarkState
-  let wrapper: ReturnType<typeof mount>
-  const member = ref(LEONI)
+  let cards: ReturnType<typeof mount>[]
 
-  // The composable as a card holds it, in a component of its own: it saves when the card goes.
-  const mountCard = () => {
-    wrapper = mount(
+  /** A card as the contributions page holds one: the composable, for the member it shows. */
+  const mountCard = (member = ref(LEONI)) => {
+    let state: UserRemarkState | undefined
+    const wrapper = mount(
       defineComponent({
         setup() {
           state = useUserRemark(() => member.value, failedUnseen)
@@ -43,13 +44,16 @@ describe('useUserRemark', () => {
         },
       }),
     )
+    cards.push(wrapper)
+    return { state: state as UserRemarkState, wrapper, member }
   }
 
   const sent = () => mutate.mock.calls.map(([options]) => options.variables)
 
   beforeEach(() => {
     vi.useFakeTimers()
-    member.value = LEONI
+    forgetUserRemarks()
+    cards = []
     mutate = vi.fn(async ({ variables }) => ({
       data: { setUserRemark: answerFor(variables.remark) },
     }))
@@ -57,20 +61,23 @@ describe('useUserRemark', () => {
     vi.mocked(useApolloClient).mockReturnValue({
       resolveClient: () => ({ mutate }),
     } as unknown as ReturnType<typeof useApolloClient>)
-    mountCard()
   })
 
   afterEach(() => {
-    wrapper.unmount()
+    for (const card of cards) {
+      card.unmount()
+    }
+    forgetUserRemarks()
     vi.useRealTimers()
   })
 
   it('takes the remark the server holds, and keeps nothing writable until then', () => {
+    const { state } = mountCard()
     expect(state.loaded.value).toBe(false)
     state.toggle()
     expect(state.open.value).toBe(false)
 
-    state.take(BY_BERND)
+    state.take(LEONI, BY_BERND)
     expect(state.loaded.value).toBe(true)
     expect(state.saved.value).toEqual(BY_BERND)
     expect(state.draft.value).toBe(BY_BERND.remark)
@@ -79,7 +86,8 @@ describe('useUserRemark', () => {
   })
 
   it('saves a pause after the last key, not before', async () => {
-    state.take(null)
+    const { state } = mountCard()
+    state.take(LEONI, null)
     state.toggle()
     state.input('Tochter von Ramona')
     await vi.advanceTimersByTimeAsync(REMARK_SAVE_PAUSE_MS - 1)
@@ -91,7 +99,8 @@ describe('useUserRemark', () => {
   })
 
   it('counts the pause from the last key: words typed slowly go out once, whole', async () => {
-    state.take(null)
+    const { state } = mountCard()
+    state.take(LEONI, null)
     state.toggle()
     state.input('Tochter')
     await vi.advanceTimersByTimeAsync(REMARK_SAVE_PAUSE_MS - 200)
@@ -103,7 +112,8 @@ describe('useUserRemark', () => {
   })
 
   it('keeps what the server answered, and says it is saved', async () => {
-    state.take(null)
+    const { state } = mountCard()
+    state.take(LEONI, null)
     state.toggle()
     state.input('Tochter von Ramona')
     expect(state.status.value).toBe('idle')
@@ -115,7 +125,8 @@ describe('useUserRemark', () => {
   it('says it saves while the answer is on its way', async () => {
     let answer: (value: unknown) => void = () => undefined
     mutate.mockImplementationOnce(() => new Promise((resolve) => (answer = resolve)))
-    state.take(null)
+    const { state } = mountCard()
+    state.take(LEONI, null)
     state.toggle()
     state.input('Tochter von Ramona')
     await vi.advanceTimersByTimeAsync(REMARK_SAVE_PAUSE_MS)
@@ -130,7 +141,8 @@ describe('useUserRemark', () => {
   it('saves one after the other, the words typed meanwhile with the next', async () => {
     let answerFirst: (value: unknown) => void = () => undefined
     mutate.mockImplementationOnce(() => new Promise((resolve) => (answerFirst = resolve)))
-    state.take(null)
+    const { state } = mountCard()
+    state.take(LEONI, null)
     state.toggle()
     state.input('Tochter')
     await vi.advanceTimersByTimeAsync(REMARK_SAVE_PAUSE_MS)
@@ -145,10 +157,12 @@ describe('useUserRemark', () => {
       { userId: LEONI, remark: 'Tochter von Ramona' },
     ])
     expect(state.saved.value?.remark).toBe('Tochter von Ramona')
+    expect(state.draft.value).toBe('Tochter von Ramona')
   })
 
   it('saves at once when the field is closed', async () => {
-    state.take(null)
+    const { state } = mountCard()
+    state.take(LEONI, null)
     state.toggle()
     state.input('Rentner seit Januar 25')
     state.close()
@@ -161,7 +175,8 @@ describe('useUserRemark', () => {
   })
 
   it('sends nothing where the words are what the server holds', async () => {
-    state.take(BY_BERND)
+    const { state } = mountCard()
+    state.take(LEONI, BY_BERND)
     state.toggle()
     state.close()
     state.toggle()
@@ -173,32 +188,46 @@ describe('useUserRemark', () => {
     expect(mutate).not.toHaveBeenCalled()
   })
 
-  it('takes the remark away with the words emptied, and then holds none', async () => {
-    state.take(BY_BERND)
+  it('takes the remark away with the words emptied, and the field holds nothing then', async () => {
+    const { state } = mountCard()
+    state.take(LEONI, BY_BERND)
     state.toggle()
     state.input('  ')
     state.close()
     await vi.runAllTimersAsync()
     expect(sent()).toEqual([{ userId: LEONI, remark: '  ' }])
     expect(state.saved.value).toBeNull()
-    // Whitespace is no remark: closing again sends nothing more.
+    expect(state.draft.value).toBe('')
     state.toggle()
     state.close()
     await vi.runAllTimersAsync()
     expect(mutate).toHaveBeenCalledTimes(1)
   })
 
-  it('says so where a save fails in the open field, keeps the words, and tries again', async () => {
+  // Whitespace alone is no remark: where there is none, there is nothing to take away either.
+  it('sends nothing for whitespace where there is no remark', async () => {
+    const { state } = mountCard()
+    state.take(LEONI, null)
+    state.toggle()
+    state.input('   ')
+    await vi.advanceTimersByTimeAsync(REMARK_SAVE_PAUSE_MS)
+    state.close()
+    await vi.runAllTimersAsync()
+    expect(mutate).not.toHaveBeenCalled()
+  })
+
+  it('says so where a save fails in the open field, keeps the words, and tries again on closing', async () => {
     mutate.mockRejectedValueOnce(new Error('Network error'))
-    state.take(BY_BERND)
+    const { state } = mountCard()
+    state.take(LEONI, BY_BERND)
     state.toggle()
     state.input('Tochter von Ramona')
     await vi.advanceTimersByTimeAsync(REMARK_SAVE_PAUSE_MS)
     expect(state.status.value).toBe('failed')
     expect(state.saved.value).toEqual(BY_BERND)
+    expect(state.draft.value).toBe('Tochter von Ramona')
     expect(failedUnseen).not.toHaveBeenCalled()
 
-    // Closed and opened again, the words that were not saved are still there.
     state.close()
     await vi.runAllTimersAsync()
     expect(state.saved.value?.remark).toBe('Tochter von Ramona')
@@ -207,7 +236,8 @@ describe('useUserRemark', () => {
 
   it('tries again on request', async () => {
     mutate.mockRejectedValueOnce(new Error('Network error'))
-    state.take(null)
+    const { state } = mountCard()
+    state.take(LEONI, null)
     state.toggle()
     state.input('Tochter von Ramona')
     await vi.advanceTimersByTimeAsync(REMARK_SAVE_PAUSE_MS)
@@ -220,18 +250,21 @@ describe('useUserRemark', () => {
 
   it('keeps unsaved words in the field when it is opened again', async () => {
     mutate.mockRejectedValue(new Error('Network error'))
-    state.take(BY_BERND)
+    const { state } = mountCard()
+    state.take(LEONI, BY_BERND)
     state.toggle()
     state.input('Tochter von Ramona')
     state.close()
     await vi.runAllTimersAsync()
     state.toggle()
     expect(state.draft.value).toBe('Tochter von Ramona')
+    expect(state.status.value).toBe('failed')
   })
 
   it('reports a save that fails where nobody sees the field', async () => {
     mutate.mockRejectedValueOnce(new Error('Network error'))
-    state.take(null)
+    const { state } = mountCard()
+    state.take(LEONI, null)
     state.toggle()
     state.input('Tochter von Ramona')
     state.close()
@@ -239,64 +272,154 @@ describe('useUserRemark', () => {
     expect(failedUnseen).toHaveBeenCalledTimes(1)
   })
 
+  // The second reader's case A (28.10.2026): a failed save, then a message sent in the same card
+  // -- its answer brings the remark again and must not take the words that wait.
+  it('takes only the first answer: a later one leaves the words that wait to be saved', async () => {
+    mutate.mockRejectedValueOnce(new Error('Network error'))
+    const { state } = mountCard()
+    state.take(LEONI, BY_BERND)
+    state.toggle()
+    state.input('Tochter von Ramona')
+    state.close()
+    await vi.runAllTimersAsync()
+    expect(state.status.value).toBe('failed')
+
+    state.take(LEONI, BY_BERND)
+    expect(state.draft.value).toBe('Tochter von Ramona')
+    state.toggle()
+    state.retry()
+    await vi.runAllTimersAsync()
+    expect(sent()).toEqual([
+      { userId: LEONI, remark: 'Tochter von Ramona' },
+      { userId: LEONI, remark: 'Tochter von Ramona' },
+    ])
+    expect(state.saved.value?.remark).toBe('Tochter von Ramona')
+  })
+
+  // Case B: an answer read before a save went through comes after it was sent.
+  it('does not bring an older remark back while a save is on its way', async () => {
+    let answer: (value: unknown) => void = () => undefined
+    mutate.mockImplementationOnce(() => new Promise((resolve) => (answer = resolve)))
+    const { state } = mountCard()
+    state.take(LEONI, BY_BERND)
+    state.toggle()
+    state.input('Tochter von Ramona')
+    state.close()
+    await vi.advanceTimersByTimeAsync(0)
+    state.take(LEONI, BY_BERND)
+    answer({ data: { setUserRemark: answerFor('Tochter von Ramona') } })
+    await vi.runAllTimersAsync()
+    expect(state.saved.value?.remark).toBe('Tochter von Ramona')
+    expect(state.draft.value).toBe('Tochter von Ramona')
+    expect(mutate).toHaveBeenCalledTimes(1)
+  })
+
+  // The second reader's case 2: opening another contribution of the same member closes the first
+  // one in the same moment. The next card shows the words just typed, and its own answer -- read
+  // before they were saved -- does not replace them.
+  it('shows the next card of the member the words the last one typed and has not saved', async () => {
+    let answer: (value: unknown) => void = () => undefined
+    mutate.mockImplementationOnce(() => new Promise((resolve) => (answer = resolve)))
+    const first = mountCard()
+    first.state.take(LEONI, BY_BERND)
+    first.state.toggle()
+    first.state.input('Tochter von Ramona')
+
+    const next = mountCard()
+    first.wrapper.unmount()
+    expect(next.state.loaded.value).toBe(true)
+    expect(next.state.draft.value).toBe('Tochter von Ramona')
+    expect(next.state.status.value).toBe('saving')
+
+    next.state.take(LEONI, BY_BERND)
+    expect(next.state.draft.value).toBe('Tochter von Ramona')
+    answer({ data: { setUserRemark: answerFor('Tochter von Ramona') } })
+    await vi.runAllTimersAsync()
+    expect(next.state.saved.value?.remark).toBe('Tochter von Ramona')
+    expect(sent()).toEqual([{ userId: LEONI, remark: 'Tochter von Ramona' }])
+  })
+
   it('saves what is not saved yet when the card goes away', async () => {
-    state.take(null)
+    const { state, wrapper } = mountCard()
+    state.take(LEONI, null)
     state.toggle()
     state.input('Rentner seit Januar 25')
     wrapper.unmount()
     await vi.advanceTimersByTimeAsync(0)
     expect(sent()).toEqual([{ userId: LEONI, remark: 'Rentner seit Januar 25' }])
-    mountCard()
   })
 
-  it('reports it where that save fails, for nobody sees the card any more', async () => {
+  it('reports it where that save fails, and the words wait for the next card of the member', async () => {
     mutate.mockRejectedValueOnce(new Error('Network error'))
-    state.take(null)
+    const { state, wrapper } = mountCard()
+    state.take(LEONI, null)
     state.toggle()
     state.input('Rentner seit Januar 25')
     wrapper.unmount()
     await vi.runAllTimersAsync()
     expect(failedUnseen).toHaveBeenCalledTimes(1)
-    mountCard()
+
+    const next = mountCard()
+    next.state.take(LEONI, null)
+    expect(next.state.draft.value).toBe('Rentner seit Januar 25')
+    expect(next.state.status.value).toBe('failed')
+    next.state.toggle()
+    next.state.retry()
+    await vi.runAllTimersAsync()
+    expect(next.state.saved.value?.remark).toBe('Rentner seit Januar 25')
   })
 
   it('saves nothing when a card goes away that holds nothing new', async () => {
-    state.take(BY_BERND)
+    const { state, wrapper } = mountCard()
+    state.take(LEONI, BY_BERND)
     wrapper.unmount()
     await vi.runAllTimersAsync()
     expect(mutate).not.toHaveBeenCalled()
-    mountCard()
   })
 
-  // ⛔ An answer belongs to the member it was written for: the card may show somebody else by now.
-  it('drops the answer for a member the card no longer shows', async () => {
-    let answer: (value: unknown) => void = () => undefined
-    mutate.mockImplementationOnce(() => new Promise((resolve) => (answer = resolve)))
-    state.take(null)
+  it('forgets the member once no card shows them and nothing waits: the next card reads anew', async () => {
+    const { state, wrapper } = mountCard()
+    state.take(LEONI, BY_BERND)
+    wrapper.unmount()
+    await vi.runAllTimersAsync()
+
+    const next = mountCard()
+    expect(next.state.loaded.value).toBe(false)
+    next.state.take(LEONI, answerFor('Tochter von Ramona'))
+    expect(next.state.saved.value?.remark).toBe('Tochter von Ramona')
+  })
+
+  // A browser is used by more than one moderator: what one could not save is not the next one's.
+  it('shows another moderator nothing of the words the last one could not save', async () => {
+    const store = useAdminStore()
+    store.setModerator({ gradidoID: 'aaaa', communityUuid: 'home' } as never)
+    mutate.mockRejectedValueOnce(new Error('Network error'))
+    const { state, wrapper } = mountCard()
+    state.take(LEONI, BY_BERND)
     state.toggle()
-    state.input('on Leoni')
-    await vi.advanceTimersByTimeAsync(REMARK_SAVE_PAUSE_MS)
+    state.input('Tochter von Ramona')
+    wrapper.unmount()
+    await vi.runAllTimersAsync()
+
+    store.setModerator({ gradidoID: 'bbbb', communityUuid: 'home' } as never)
+    const next = mountCard()
+    expect(next.state.loaded.value).toBe(false)
+    next.state.take(LEONI, BY_BERND)
+    expect(next.state.draft.value).toBe(BY_BERND.remark)
+    expect(next.state.status.value).toBe('idle')
+  })
+
+  // An answer belongs to the member it was asked about: a card that came to show somebody else by
+  // then changes nothing it shows.
+  it('takes an answer for the member it was asked about, not for the one the card shows now', async () => {
+    const member = ref(LEONI)
+    const { state } = mountCard(member)
     member.value = 109
-    answer({ data: { setUserRemark: answerFor('on Leoni') } })
-    await vi.runAllTimersAsync()
+    await vi.advanceTimersByTimeAsync(0)
+    state.take(LEONI, BY_BERND)
+    expect(state.loaded.value).toBe(false)
     expect(state.saved.value).toBeNull()
-    expect(state.status.value).not.toBe('saved')
-  })
-
-  // A colleague may write meanwhile: an open field that nobody touched follows the server, so that
-  // closing it does not write the old words over theirs.
-  it('lets an untouched open field follow a new answer, and keeps words that were changed', async () => {
-    state.take(BY_BERND)
-    state.toggle()
-    state.take(answerFor('Tochter von Ramona'))
-    expect(state.draft.value).toBe('Tochter von Ramona')
-    state.close()
-    await vi.runAllTimersAsync()
-    expect(mutate).not.toHaveBeenCalled()
-
-    state.toggle()
-    state.input('Tochter von Ramona, Rentnerin')
-    state.take(BY_BERND)
-    expect(state.draft.value).toBe('Tochter von Ramona, Rentnerin')
+    state.take(109, answerFor('on Marta'))
+    expect(state.saved.value?.remark).toBe('on Marta')
   })
 })

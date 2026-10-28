@@ -14,7 +14,10 @@ export class SetUserRemarkArgs {
   @IsPositive()
   userId: number
 
-  /** At most USER_REMARK_MAX_CHARS: what the admin's field lets through. Empty is allowed. */
+  /**
+   * At most USER_REMARK_MAX_CHARS characters as validator.js counts them (an emoji one): at least
+   * what the admin's field lets through, which counts UTF-16 code units. Empty is allowed.
+   */
   @Field(() => String)
   @IsString()
   @MaxLength(USER_REMARK_MAX_CHARS)

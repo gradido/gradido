@@ -94,9 +94,10 @@ describe('userRemarks query test', () => {
     expect(await dbSelectUserRemark(LEONI)).toBeNull()
   })
 
-  it('keeps a remark as long as one may be, in letters that take four bytes each', async () => {
-    // USER_REMARK_MAX_CHARS (2000) as MaxLength counts them (UTF-16 code units): 1000 emoji.
-    const heavy = '🌱'.repeat(1000)
+  it('keeps a remark as long as the server takes one, in letters that take four bytes each', async () => {
+    // USER_REMARK_MAX_CHARS (2000) as MaxLength counts them -- validator.js counts an emoji as one
+    // character: 2000 emoji, some 8,000 bytes in the `text` column.
+    const heavy = '🌱'.repeat(2000)
     await dbUpsertUserRemark(LEONI, heavy, bibi.id, AT)
     expect((await dbSelectUserRemark(LEONI))?.remark).toBe(heavy)
   })

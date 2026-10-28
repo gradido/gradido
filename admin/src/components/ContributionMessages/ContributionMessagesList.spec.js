@@ -2,6 +2,7 @@ import { useApolloClient, useQuery } from '@vue/apollo-composable'
 import { mount, RouterLinkStub } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useAppToast } from '@/composables/useToast'
+import { forgetUserRemarks } from '@/composables/useUserRemark'
 import { MemberWalletLink } from '../MemberWalletLink'
 import { ContributionMessagesList } from './ContributionMessagesList'
 
@@ -93,6 +94,8 @@ describe('ContributionMessagesList', () => {
 
   beforeEach(async () => {
     vi.clearAllMocks()
+    // The remarks are held for the whole admin interface (useUserRemark): every test starts with none.
+    forgetUserRemarks()
 
     result = { value: defaultData }
     useApolloClient.mockReturnValue({ client: { query: vi.fn() } })
@@ -366,9 +369,33 @@ describe('ContributionMessagesList', () => {
     const toggle = () => wrapper.find('[data-test="member-remark-toggle"]')
     const line = () => wrapper.find('[data-test="member-remark"]')
     const editor = () => wrapper.find('[data-test="member-remark-editor"]')
-    const answerWith = async (userRemark) => {
+    // The card takes the remark from its FIRST answer only (a later one, after a message was sent,
+    // must not replace words that wait to be saved): a card whose first answer carries one.
+    const mountWithRemark = async (userRemark, options = {}) => {
+      wrapper.unmount()
+      forgetUserRemarks()
       result.value = { ...defaultData, userRemark }
-      answerArrived()
+      wrapper = mount(ContributionMessagesList, {
+        props: {
+          contribution: {
+            id: 42,
+            memo: 'test memo',
+            userId: 108,
+            contributionStatus: 'PENDING',
+            user: defaultUser,
+          },
+          hideResubmission: true,
+        },
+        ...options,
+        global: {
+          stubs: {
+            'contribution-messages-list-item': true,
+            'contribution-messages-formular': true,
+            BTooltip: true,
+            RouterLink: RouterLinkStub,
+          },
+        },
+      })
       await wrapper.vm.$nextTick()
     }
 
@@ -388,11 +415,19 @@ describe('ContributionMessagesList', () => {
     })
 
     it('shows the words under the member line, ahead of the dates', async () => {
-      await answerWith(BY_BERND)
+      await mountWithRemark(BY_BERND)
       expect(line().text()).toContain('Bürgermeisterin von Lieblingsstadt')
       const items = wrapper.findAll('.list-group-item')
       expect(items[1].attributes('data-test')).toBe('member-remark')
       expect(items[2].text()).toContain('registered')
+    })
+
+    it('keeps the remark of its first answer when the messages are asked for again', async () => {
+      await mountWithRemark(BY_BERND)
+      result.value = { ...defaultData, userRemark: null }
+      answerArrived()
+      await wrapper.vm.$nextTick()
+      expect(line().text()).toContain('Bürgermeisterin von Lieblingsstadt')
     })
 
     it('stands behind the pin and the arrow, ahead of the HumHub profile, on one line with them', async () => {
@@ -443,29 +478,7 @@ describe('ContributionMessagesList', () => {
     })
 
     it('opens the field in the place of the words, and "Fertig" brings them back', async () => {
-      wrapper.unmount()
-      wrapper = mount(ContributionMessagesList, {
-        props: {
-          contribution: {
-            id: 42,
-            memo: 'test memo',
-            userId: 108,
-            contributionStatus: 'PENDING',
-            user: defaultUser,
-          },
-          hideResubmission: true,
-        },
-        attachTo: document.body,
-        global: {
-          stubs: {
-            'contribution-messages-list-item': true,
-            'contribution-messages-formular': true,
-            BTooltip: true,
-            RouterLink: RouterLinkStub,
-          },
-        },
-      })
-      await answerWith(BY_BERND)
+      await mountWithRemark(BY_BERND, { attachTo: document.body })
       await toggle().trigger('click')
       expect(line().exists()).toBe(false)
       expect(editor().exists()).toBe(true)

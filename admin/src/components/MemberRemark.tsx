@@ -14,8 +14,10 @@ import walletLinkClasses from './MemberWalletLink.module.css'
  * at its place in the card of an opened contribution (ContributionMessagesList); the state is the
  * card's (composables/useUserRemark).
  *
- * The length the field lets through is the server's (shared/src/const/frontendReadable.ts);
- * userRemark.drift.spec.ts holds the two together.
+ * The length the field lets through is the server's number (shared/src/const/frontendReadable.ts),
+ * and userRemark.drift.spec.ts holds the two together. They count differently: `maxlength` in
+ * UTF-16 code units (an emoji is two), the server's check as validator.js does (an emoji is one).
+ * The field is the stricter of the two, so whatever it lets through, the server takes.
  */
 export const USER_REMARK_MAX_CHARS = 2000
 
@@ -147,7 +149,12 @@ export const MemberRemarkEditor = defineComponent({
     }
 
     return () => (
-      <BListGroupItem class={classes.remarkEditor} data-test='member-remark-editor'>
+      // Escape anywhere in the field's part -- the words, "Noch einmal", "Fertig" -- closes it.
+      <BListGroupItem
+        class={classes.remarkEditor}
+        data-test='member-remark-editor'
+        onKeydown={onKeydown}
+      >
         <label for={props.fieldId} class='form-label fw-semibold mb-0'>
           {t('remark.title', { name: props.name })}
         </label>
@@ -161,7 +168,6 @@ export const MemberRemarkEditor = defineComponent({
           aria-describedby={failed.value ? `${privateId} ${troubleId}` : privateId}
           data-test='member-remark-field'
           onInput={(event: Event) => props.state.input((event.target as HTMLTextAreaElement).value)}
-          onKeydown={onKeydown}
         />
         <div id={privateId} class='form-text mt-0'>
           {t('remark.private', { name: props.name })}

@@ -146,6 +146,14 @@ describe('MemberRemarkEditor', () => {
     expect(state.input).toHaveBeenLastCalledWith('Tochter von Ramona')
   })
 
+  // Escape closes the field wherever the keyboard stands in it, not only in the words.
+  it('closes with Escape from "Fertig" and from "Noch einmal" as well', async () => {
+    mountEditor(stateWith({ open: true, status: 'failed' }))
+    await wrapper.find('[data-test="member-remark-done"]').trigger('keydown', { key: 'Escape' })
+    await wrapper.find('[data-test="member-remark-retry"]').trigger('keydown', { key: 'Escape' })
+    expect(wrapper.emitted('done')).toHaveLength(2)
+  })
+
   it('closes with "Fertig" and with Escape', async () => {
     mountEditor(stateWith({ open: true }))
     await wrapper.find('[data-test="member-remark-done"]').trigger('click')
