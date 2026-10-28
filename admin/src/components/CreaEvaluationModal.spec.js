@@ -22,12 +22,21 @@ import { CreaEvaluationModal } from './CreaEvaluationModal'
 // received a reply literally beginning "[ANREDE],".
 
 vi.mock('@vue/apollo-composable')
+// What the window said, with the words it put in: a message names its member through them.
+const { said, toastError } = vi.hoisted(() => ({ said: [], toastError: vi.fn() }))
 vi.mock('vue-i18n', () => ({
   // `d` for the remark's field, which says when it was written last.
-  useI18n: () => ({ t: (key) => key, d: () => 'date', locale: { value: 'de' } }),
+  useI18n: () => ({
+    t: (key, values) => {
+      said.push([key, values])
+      return key
+    },
+    d: () => 'date',
+    locale: { value: 'de' },
+  }),
 }))
 vi.mock('@/composables/useToast', () => ({
-  useAppToast: () => ({ toastSuccess: vi.fn(), toastError: vi.fn() }),
+  useAppToast: () => ({ toastSuccess: vi.fn(), toastError }),
 }))
 vi.mock('@/composables/useCreaSound', () => ({
   primeCreaSound: vi.fn(),
@@ -502,6 +511,8 @@ describe('CreaEvaluationModal — the remark on the member', () => {
     forgetUserRemarks()
     calls = []
     siblings = []
+    said.length = 0
+    toastError.mockClear()
     useMutation.mockImplementation(() => ({
       mutate: vi.fn(async (vars) => {
         calls.push(['crea', vars])
@@ -580,5 +591,160 @@ describe('CreaEvaluationModal — the remark on the member', () => {
     expect(wrapper.find('[data-test="member-remark-toggle"]').exists()).toBe(false)
     await open(wrapper)
     expect(wrapper.find('[data-test="member-remark"]').text()).toContain(REMARK.remark)
+  })
+
+  // The second reader's findings (28.10.2026).
+  it('keeps a salutation typed and not saved when "Bewerten" is pressed again', async () => {
+    const wrapper = mountModal()
+    await open(wrapper)
+    await wrapper.find('#crea-salutation').setValue('Liebe Carla')
+    await write(wrapper, 'Rentnerin seit Januar 2025, Tochter von Ramona')
+    await wrapper.find('[data-test="crea-evaluate-again"]').trigger('click')
+    await settle()
+    expect(creaInputs()).toHaveLength(2)
+    expect(wrapper.find('#crea-salutation').element.value).toBe('Liebe Carla')
+  })
+
+  it('offers no second "Bewerten" while a reply is rewritten', async () => {
+    useMutation.mockImplementation(() => ({
+      mutate: vi.fn((vars) => {
+        calls.push(['crea', vars])
+        // The rewrite stays on its way.
+        return vars.input.moderatorDecision
+          ? new Promise(() => undefined)
+          : Promise.resolve({ data: { creaEvaluateContribution: EVALUATION } })
+      }),
+    }))
+    const wrapper = mountModal()
+    await open(wrapper)
+    await buttonNamed(wrapper, 'crea.decision.deny').trigger('click')
+    await buttonNamed(wrapper, 'crea.rewrite').trigger('click')
+    await settle()
+    await write(wrapper, 'Kind, 5 Jahre alt')
+    expect(wrapper.find('[data-test="crea-evaluate-again"]').attributes('disabled')).toBeDefined()
+  })
+
+  it('asks Crea nothing for a window closed while the remark was read', async () => {
+    let answer = () => undefined
+    useApolloClient.mockReturnValue({
+      resolveClient: () => ({
+        query: vi.fn(({ query }) =>
+          query === userRemark
+            ? new Promise((resolve) => {
+                answer = () => resolve({ data: { userRemark: REMARK } })
+              })
+            : Promise.resolve({ data: { adminListContributions: { contributionList: [] } } }),
+        ),
+        mutate: vi.fn(),
+      }),
+    })
+    const wrapper = mountModal()
+    wrapper.findComponent({ name: 'BModal' }).vm.$emit('shown')
+    await settle()
+    wrapper.findComponent({ name: 'BModal' }).vm.$emit('hidden')
+    answer()
+    await settle()
+    expect(creaInputs()).toEqual([])
+  })
+
+  it('shows the contributions of the member it was opened for, not of one opened before', async () => {
+    const listOf = (userId) =>
+      [1, 2].map((n) =>
+        contribution({ id: userId * 10 + n, userId, memo: `Beitrag ${userId}-${n}` }),
+      )
+    let answerFirst = () => undefined
+    useApolloClient.mockReturnValue({
+      resolveClient: () => ({
+        query: vi.fn(({ query, variables }) => {
+          if (query === userRemark) {
+            return Promise.resolve({ data: { userRemark: null } })
+          }
+          const list = {
+            data: { adminListContributions: { contributionList: listOf(variables.filter.userId) } },
+          }
+          // The first member's list is still on its way when the window opens for the second.
+          return variables.filter.userId === 7
+            ? new Promise((resolve) => {
+                answerFirst = () => resolve(list)
+              })
+            : Promise.resolve(list)
+        }),
+        mutate: vi.fn(),
+      }),
+    })
+    const wrapper = mount(CreaEvaluationModal, {
+      props: { contribution: contribution({ id: 71, userId: 7 }) },
+      global: { stubs: withFoot, components },
+    })
+    await open(wrapper)
+    wrapper.findComponent({ name: 'BModal' }).vm.$emit('hidden')
+    await wrapper.setProps({ contribution: contribution({ id: 421 }) })
+    await open(wrapper)
+    expect(wrapper.text()).toContain('Beitrag 42-2')
+    answerFirst()
+    await settle()
+    expect(wrapper.text()).toContain('Beitrag 42-2')
+    expect(wrapper.text()).not.toContain('Beitrag 7-2')
+  })
+
+  it('names the member whose words could not be saved, also once the window shows another', async () => {
+    let failSave = () => undefined
+    useApolloClient.mockReturnValue({
+      resolveClient: () => ({
+        query: vi.fn(async ({ query }) =>
+          query === userRemark
+            ? { data: { userRemark: REMARK } }
+            : { data: { adminListContributions: { contributionList: [] } } },
+        ),
+        mutate: vi.fn(
+          () =>
+            new Promise((_resolve, reject) => {
+              failSave = () => reject(new Error('Network error'))
+            }),
+        ),
+      }),
+    })
+    const wrapper = mountModal()
+    await open(wrapper)
+    await write(wrapper, 'Kind, 5 Jahre alt')
+    // Closing saves what waits; the window opens for Carla before the server answers.
+    wrapper.findComponent({ name: 'BModal' }).vm.$emit('hidden')
+    await settle()
+    await wrapper.setProps({
+      contribution: contribution({
+        id: 2,
+        userId: 43,
+        user: { firstName: 'Carla', lastName: 'Sonne', salutation: null },
+      }),
+    })
+    await open(wrapper)
+    failSave()
+    await settle()
+    expect(toastError).toHaveBeenCalledWith('remark.failedClosed')
+    expect(said).toContainEqual(['remark.failedClosed', { name: 'Thomas Muster' }])
+    expect(said).not.toContainEqual(['remark.failedClosed', { name: 'Carla Sonne' }])
+  })
+
+  it('still offers "Bewerten" where the words could not be saved: Crea read the remark before them', async () => {
+    useApolloClient.mockReturnValue({
+      resolveClient: () => ({
+        query: vi.fn(async ({ query }) =>
+          query === userRemark
+            ? { data: { userRemark: REMARK } }
+            : { data: { adminListContributions: { contributionList: [] } } },
+        ),
+        mutate: vi.fn(async ({ variables }) => {
+          calls.push(['remark', variables])
+          throw new Error('Network error')
+        }),
+      }),
+    })
+    const wrapper = mountModal()
+    await open(wrapper)
+    await write(wrapper, 'Kind, 5 Jahre alt')
+    await wrapper.find('[data-test="crea-evaluate-again"]').trigger('click')
+    await settle()
+    expect(creaInputs()).toHaveLength(2)
+    expect(wrapper.find('[data-test="crea-evaluate-again"]').exists()).toBe(true)
   })
 })

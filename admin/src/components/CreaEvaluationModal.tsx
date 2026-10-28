@@ -423,9 +423,11 @@ export const CreaEvaluationModal = defineComponent({
     // saves what waits. Held only while the window is open: closing it saves the rest, and the next
     // opening reads the remark anew.
     const remarkMember = ref<number | null>(null)
+    // Whom a failed save is about, by member: it may be told after the window shows somebody else.
+    const remarkNames = new Map<number, string>()
     const remark = useUserRemark(
       () => remarkMember.value,
-      () => toastError(t('remark.failedClosed', { name: contributionUserName.value })),
+      (userId) => toastError(t('remark.failedClosed', { name: remarkNames.get(userId) ?? '' })),
     )
     const remarkFieldId = useId()
     const remarkToggle = ref<{ $el?: HTMLElement } | null>(null)
@@ -435,7 +437,8 @@ export const CreaEvaluationModal = defineComponent({
     }
     // What the server keeps of the words in the field: whitespace alone is no remark.
     const keptRemark = () => (remark.draft.value.trim() === '' ? null : remark.draft.value)
-    // The remark the last evaluation of a single contribution was asked with; undefined before one.
+    // The remark the server held when the last evaluation of a single contribution was asked for --
+    // what Crea read, also where the words in the field could not be saved; undefined before one.
     const remarkJudged = ref<string | null | undefined>(undefined)
     // A single contribution is judged the moment the window opens. Where the remark is changed after
     // that, "Bewerten" comes into the foot, to judge it again with the new words.
@@ -514,15 +517,25 @@ export const CreaEvaluationModal = defineComponent({
     }
 
     const runEvaluation = async () => {
+      resetState()
+      await evaluateSingle()
+    }
+
+    // The single contribution judged by Crea. Called again from the foot ("Bewerten" once the remark
+    // changed), it keeps what the moderator typed and has not saved, as the batch re-run does
+    // (applyEvaluation); only a fresh opening starts from nothing (runEvaluation).
+    const evaluateSingle = async () => {
       if (!props.contribution) {
         return
       }
-      resetState()
       loading.value = true
+      inactive.value = false
+      errorMessage.value = ''
+      evaluation.value = null
       primeCreaSound()
       try {
         await remark.flush()
-        remarkJudged.value = keptRemark()
+        remarkJudged.value = remark.saved.value?.remark ?? null
         const response = await evaluateMutation({ input: buildInput(props.contribution) })
         applyEvaluation(response?.data.creaEvaluateContribution)
         playCreaSound()
@@ -678,8 +691,16 @@ export const CreaEvaluationModal = defineComponent({
       }
     }
 
+    // Each opening of the window: what an earlier one still awaits must not act on a later one, or
+    // on a closed window -- it would ask Crea, and pay, for nobody.
+    let opening = 0
+
     const onShown = async () => {
+      const thisOpening = ++opening
       remarkMember.value = props.contribution?.userId ?? null
+      if (remarkMember.value !== null) {
+        remarkNames.set(remarkMember.value, contributionUserName.value)
+      }
       const remarkRead = loadRemark(remarkMember.value)
       moderatorSignature.value = loadSignature()
       // Before the query, not after it: a slow connection must not move a contribution from
@@ -694,6 +715,9 @@ export const CreaEvaluationModal = defineComponent({
         siblings = await loadSiblings()
       } catch {
         siblings = []
+      }
+      if (thisOpening !== opening) {
+        return
       }
       // Those rows were just read with fetchPolicy "no-cache", so they carry the participant's
       // current salutation - unlike the list behind the modal, which may predate another
@@ -716,11 +740,15 @@ export const CreaEvaluationModal = defineComponent({
         contributions.value = []
         // Judged at once: with the remark in the window, so that a change to it can be seen.
         await remarkRead
+        if (thisOpening !== opening) {
+          return
+        }
         runEvaluation()
       }
     }
 
     const onHidden = () => {
+      opening += 1
       resetState()
       remarkMember.value = null
     }
@@ -819,11 +847,12 @@ export const CreaEvaluationModal = defineComponent({
               {t('crea.evaluate')}
             </BButton>
           ) : remarkChangedSinceJudged.value ? (
+            // Not while a reply is rewritten: its answer would land in the new evaluation.
             <BButton
               variant='primary'
-              disabled={loading.value}
+              disabled={loading.value || rewriting.value}
               data-test='crea-evaluate-again'
-              onClick={runEvaluation}
+              onClick={evaluateSingle}
             >
               {t('crea.evaluate')}
             </BButton>
@@ -881,8 +910,9 @@ export const CreaEvaluationModal = defineComponent({
     const renderContribution = () => (
       <div class='border rounded p-2 mb-3'>
         <div class='d-flex justify-content-between align-items-baseline mb-1'>
-          {/* The remark's button behind the name, as it stands in the member line of the card. */}
-          <span class='d-inline-flex align-items-center flex-wrap column-gap-1'>
+          {/* The remark's button behind the name, as it stands in the member line of the card: on a
+              narrow phone the name breaks, the button stays beside it. */}
+          <span class='d-inline-flex align-items-center column-gap-1'>
             <strong>
               {contributionUserName.value
                 ? contributionUserName.value

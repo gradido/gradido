@@ -294,6 +294,8 @@ describe('useUserRemark', () => {
     state.close()
     await vi.runAllTimersAsync()
     expect(failedUnseen).toHaveBeenCalledTimes(1)
+    // By member: Crea's window may show somebody else by the time it is told.
+    expect(failedUnseen).toHaveBeenCalledWith(LEONI)
   })
 
   // The second reader's case A (28.10.2026): a failed save, then a message sent in the same card

@@ -75,7 +75,7 @@ type Entry = {
   saving: Promise<void> | null
   saveAgain: boolean
   // The latest card's: who is told of a failure nobody sees, and how the server is reached.
-  onFailedUnseen: () => void
+  onFailedUnseen: (userId: number) => void
   client: () => Client | null
 }
 
@@ -155,7 +155,7 @@ const save = (key: string, entry: Entry): Promise<void> => {
     } catch {
       entry.status.value = 'failed'
       if (entry.openIn.size === 0) {
-        entry.onFailedUnseen()
+        entry.onFailedUnseen(entry.userId)
       }
     } finally {
       entry.saving = null
@@ -183,7 +183,7 @@ const save = (key: string, entry: Entry): Promise<void> => {
  */
 export const useUserRemark = (
   userId: () => number | null,
-  onFailedUnseen: () => void,
+  onFailedUnseen: (userId: number) => void,
 ): UserRemarkState => {
   const store = useAdminStore()
   // Resolved at the save: where a spec mocks the composable away it answers undefined, and
