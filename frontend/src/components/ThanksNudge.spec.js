@@ -140,12 +140,14 @@ describe('ThanksNudge', () => {
       expect(own).not.toMatch(/white-space:\s*nowrap/)
     })
 
-    // A large group does not stretch the thread: its members scroll within the line.
-    it('lets a large group scroll within the line', () => {
+    // ⛔ No box that scrolls inside the scrolling thread: on a phone it holds the thumb, and the
+    // last members were reached only by scrolling it (measured at 320 px, 28.10.2026).
+    it('lets the members stand in the thread’s own scroll, with none of their own', () => {
       const own = rule(code, '\\.thanks-nudge-choices')
 
-      expect(own).toMatch(/max-height:/)
-      expect(own).toMatch(/overflow-y:\s*auto/)
+      expect(own).toBeDefined()
+      expect(own).not.toMatch(/max-height:/)
+      expect(own).not.toMatch(/overflow(-y)?:\s*(auto|scroll)/)
     })
   })
 

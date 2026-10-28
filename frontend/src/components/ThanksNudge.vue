@@ -155,14 +155,14 @@ watch(
 
 /* The members to choose from (a group's thread): small outlined pills as the chat's "In den
    Kalender", a face before the name. A long name breaks inside its pill rather than hanging out
-   of the bubble; a large group scrolls within the line instead of stretching the thread. */
+   of the bubble. No scroll of their own: on a phone a box that scrolls inside the scrolling
+   thread holds the thumb (measured at 320 px: the fifth of five members was only reached by
+   scrolling the box), so the members stand in the thread's own scroll. */
 .thanks-nudge-choices {
   display: flex;
   flex-wrap: wrap;
   gap: 0.35rem 0.45rem;
-  max-height: 10.5rem;
   margin-bottom: 0.35rem;
-  overflow-y: auto;
 }
 
 .thanks-nudge-choice {
