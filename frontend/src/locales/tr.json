@@ -1755,10 +1755,12 @@
   },
   "thanksNudge": {
     "afterCall": "{name} kişisine görüşme için teşekkür etmek ister misin?",
+    "afterGroupCall": "Görüşme için teşekkür etmek ister misin?",
     "notNow": "Şimdi değil",
     "passOn": "Teşekkürü başkasına aktarmak ister misin?",
     "say": "Teşekkür et",
-    "someone": "Birine teşekkür et"
+    "someone": "Birine teşekkür et",
+    "whom": "Kime teşekkür etmek istersin?"
   },
   "time": {
     "days": "Günler",

@@ -1755,10 +1755,12 @@
   },
   "thanksNudge": {
     "afterCall": "Would you like to thank {name} for the conversation?",
+    "afterGroupCall": "Would you like to say thank you for the conversation?",
     "notNow": "Not now",
     "passOn": "Pass the thanks on?",
     "say": "Say thank you",
-    "someone": "Thank someone"
+    "someone": "Thank someone",
+    "whom": "Who would you like to thank?"
   },
   "time": {
     "days": "Days",

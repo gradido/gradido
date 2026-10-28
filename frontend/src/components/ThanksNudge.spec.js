@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { mount } from '@vue/test-utils'
+import { nextTick } from 'vue'
 import { afterEach, describe, expect, it } from 'vitest'
 import ThanksNudge from './ThanksNudge.vue'
 
@@ -123,10 +124,102 @@ describe('ThanksNudge', () => {
       expect(rule(code, '\\.thanks-nudge-no')).not.toMatch(/white-space:\s*nowrap/)
     })
 
-    it('rings either button for the keyboard', () => {
+    it('rings every button for the keyboard', () => {
       expect(code).toMatch(
-        /\.thanks-nudge-yes:focus-visible,\s*\.thanks-nudge-no:focus-visible\s*\{[^}]*outline:\s*2px solid/,
+        /\.thanks-nudge-yes:focus-visible,\s*\.thanks-nudge-choice:focus-visible,\s*\.thanks-nudge-no:focus-visible\s*\{[^}]*outline:\s*2px solid/,
       )
+    })
+
+    // The members to choose from look like the chat's small pills ("In den Kalender"): outlined in
+    // gold, no ground -- quieter than the way there, which they replace.
+    it('draws a member to choose as the chat’s small outlined pill', () => {
+      const own = rule(code, '\\.thanks-nudge-choice')
+
+      expect(own).toMatch(/border:\s*1px solid var\(--gold/)
+      expect(own).toMatch(/background:\s*transparent/)
+      expect(own).not.toMatch(/white-space:\s*nowrap/)
+    })
+
+    // ⛔ No box that scrolls inside the scrolling thread: on a phone it holds the thumb, and the
+    // last members were reached only by scrolling it (measured at 320 px, 28.10.2026).
+    it('lets the members stand in the thread’s own scroll, with none of their own', () => {
+      const own = rule(code, '\\.thanks-nudge-choices')
+
+      expect(own).toBeDefined()
+      expect(own).not.toMatch(/max-height:/)
+      expect(own).not.toMatch(/overflow(-y)?:\s*(auto|scroll)/)
+    })
+  })
+
+  // In a group's thread (Bernd, 28.10.2026) "Jemandem danken" opens the members: one tap on one.
+  describe('the choice of a member', () => {
+    const ANNA = { key: 'anna', label: 'Anna', avatar: { initials: 'AN', colorIndex: 2 } }
+    const CARLA = { key: 'carla', label: 'Carla', avatar: null }
+    const CHOOSING = { ...WORDS, question: 'Wem möchtest Du danken?', choices: [ANNA, CARLA] }
+    const choices = () => wrapper.findAll('[data-test="thanks-nudge-choice"]')
+
+    it('offers the members in place of the way there, each by name, and keeps "not now"', () => {
+      mountLine(CHOOSING)
+
+      expect(yes().exists()).toBe(false)
+      const names = choices().map((choice) => choice.find('[data-test="thanks-nudge-choice-name"]'))
+      expect(names.map((name) => name.text())).toEqual(['Anna', 'Carla'])
+      // The face is the name's picture, not words of its own: the ear hears the name only.
+      expect(choices()[0].find('.thanks-nudge-face').attributes('aria-hidden')).toBe('true')
+      expect(no().text()).toBe('Nicht jetzt')
+      expect(wrapper.find('[data-test="thanks-nudge-question"]').text()).toBe(
+        'Wem möchtest Du danken?',
+      )
+    })
+
+    it('says whom the member chose, and nothing else', async () => {
+      mountLine(CHOOSING)
+
+      await choices()[1].trigger('click')
+
+      expect(wrapper.emitted('choose')).toEqual([['carla']])
+      expect(wrapper.emitted('yes')).toBeUndefined()
+      expect(wrapper.emitted('no')).toBeUndefined()
+    })
+
+    it('draws a face where the member has one, and none where not', () => {
+      mountLine(CHOOSING)
+
+      const face = choices()[0].findComponent({ name: 'AppAvatar' })
+      expect(face.exists()).toBe(true)
+      expect(face.props('initials')).toBe('AN')
+      expect(choices()[1].findComponent({ name: 'AppAvatar' }).exists()).toBe(false)
+    })
+
+    it('has buttons that send no form', () => {
+      mountLine(CHOOSING)
+
+      for (const choice of choices()) expect(choice.attributes('type')).toBe('button')
+    })
+
+    // The keyboard stood on "Jemandem danken", which is gone: it goes to the first member.
+    it('takes the keyboard from the way there to the first member', async () => {
+      wrapper = mount(ThanksNudge, { props: WORDS, attachTo: document.body })
+      yes().element.focus()
+      expect(document.activeElement).toBe(yes().element)
+
+      await wrapper.setProps({ question: CHOOSING.question, choices: CHOOSING.choices })
+      await nextTick()
+
+      expect(document.activeElement).toBe(choices()[0].element)
+    })
+
+    it('leaves a keyboard that stands elsewhere where it is', async () => {
+      const elsewhere = document.createElement('button')
+      document.body.appendChild(elsewhere)
+      wrapper = mount(ThanksNudge, { props: WORDS, attachTo: document.body })
+      elsewhere.focus()
+
+      await wrapper.setProps({ question: CHOOSING.question, choices: CHOOSING.choices })
+      await nextTick()
+
+      expect(document.activeElement).toBe(elsewhere)
+      elsewhere.remove()
     })
   })
 })

@@ -170,12 +170,14 @@
         class="chat-group-window-thread"
         :class="{ 'is-covered': noteOpen }"
         :group="group"
+        :group-members="members"
         :search="searchOpen ? searchTyped : ''"
         @open-member="openWriter"
         @search="takeFound"
         @duplicate-video="videoCall?.duplicate($event)"
         @edit-video="videoCall?.edit($event)"
         @forward-message="forwardMessage"
+        @thank="toSendMember"
       >
         <template #cover>
           <chat-note
@@ -225,6 +227,7 @@
 <script setup>
 import { computed, provide, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import { useWalletStore } from '@/store/useWalletStore'
 import { useApolloClient, useMutation } from '@vue/apollo-composable'
 import { BModal } from 'bootstrap-vue-next'
@@ -252,6 +255,7 @@ import { managesChatGroup } from '@/utils/chatGroupRoles'
 import { chatMemberKey } from '@/utils/chatMemberKey'
 import { CHAT_VIDEO_JOIN } from '@/utils/chatVideoApp'
 import { memberAlias } from '@/utils/gradidoAddress'
+import { SEND_TYPES } from '@/utils/sendTypes'
 
 /**
  * One chat group (P5), opened from the list on "Kontakte & Chat". One window for the page, as for
@@ -359,6 +363,22 @@ const strip = computed(() =>
 const membersChanged = () => {
   loadMembers()
   emit('changed')
+}
+
+const router = useRouter()
+
+/**
+ * A member chosen under a video call of the member's own in this group (W2, Bernd 28.10.2026):
+ * the send form with them named, the window closed -- the road the contact window's "Gradido
+ * senden" takes (ContactWindow `toSend`), a member of another community included: the send form
+ * is what knows the federation branch.
+ */
+const toSendMember = (user) => {
+  const community = user?.communityUuid
+  const person = user?.gradidoID
+  if (!community || !person) return
+  emit('update:modelValue', false)
+  router.push({ path: `/send/${community}/${person}`, query: { art: SEND_TYPES.send } })
 }
 
 /** The member left the group: the window closes, and the page's list lets the group go. */

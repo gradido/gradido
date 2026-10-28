@@ -171,6 +171,43 @@ describe('the line after a video call', () => {
       ).toBe('show')
     })
   })
+
+  // A group's thread holds no transfers (E-050 F6), and whom to thank is the member's choice
+  // among the members (Bernd, 28.10.2026): only the answer ends the line there.
+  describe('in a group', () => {
+    it('stands without the transfers, which a group’s thread does not hold', () => {
+      expect(call({ group: true, transfers: null })).toBe('show')
+    })
+
+    it('keeps the half hour and the seven days, to the millisecond', () => {
+      const at = (now) => call({ group: true, transfers: null, now })
+      expect(at(began + THANKS_NUDGE_AFTER_CALL_MS - 1)).toBe('hidden')
+      expect(at(began + THANKS_NUDGE_AFTER_CALL_MS)).toBe('show')
+      expect(at(began + THANKS_NUDGE_HOLDS_MS)).toBe('show')
+      expect(at(began + THANKS_NUDGE_HOLDS_MS + 1)).toBe('hidden')
+    })
+
+    // A call planned in the group, the invitation duplicated from last week's.
+    it('counts from the planned beginning there too', () => {
+      const start = began + 7 * DAY
+      const occasion = { group: true, transfers: null, invitation: planned(start) }
+      expect(call({ ...occasion, now: start + 29 * MINUTE })).toBe('hidden')
+      expect(call({ ...occasion, now: start + 30 * MINUTE })).toBe('show')
+    })
+
+    it('is not ended by a transfer: only the answer ends it', () => {
+      const later = new Date(began + 10 * MINUTE).toISOString()
+      expect(call({ group: true, transfers: [transfer('SEND', later)] })).toBe('show')
+      expect(call({ group: true, transfers: null, seen: true })).toBe('hidden')
+    })
+
+    it('not under somebody else’s invitation, a forwarded copy, or one that did not arrive', () => {
+      const inGroup = { group: true, transfers: null }
+      expect(call({ ...inGroup, message: ownMessage({ mine: false }) })).toBe('hidden')
+      expect(call({ ...inGroup, message: ownMessage({ forwarded: true }) })).toBe('hidden')
+      expect(call({ ...inGroup, message: ownMessage({ deliveryState: 'FAILED' }) })).toBe('hidden')
+    })
+  })
 })
 
 describe('the line in a thank-you received', () => {
