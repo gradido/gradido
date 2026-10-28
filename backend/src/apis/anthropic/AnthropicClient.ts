@@ -717,7 +717,11 @@ export class AnthropicClient {
   private firstTextBlock(message: Anthropic.Message): string {
     const block = message.content.find((content) => content.type === 'text')
     if (!block || block.type !== 'text') {
-      logger.error('no text block in anthropic response', message.content)
+      // Only the kinds of the blocks: their text may speak of the moderation's remark on the member.
+      logger.error(
+        'no text block in anthropic response',
+        message.content.map((content) => content.type),
+      )
       throw new Error('Crea returned no structured result')
     }
     return block.text

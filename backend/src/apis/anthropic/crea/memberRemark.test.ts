@@ -25,10 +25,23 @@ describe('withoutMemberNames', () => {
     )
   })
 
-  it('takes a name with its genitive and in any case', () => {
+  it('takes a name with its genitive, capitalised in any way', () => {
     expect(withoutMemberNames("Carlas Tochter, CARLA's Garten, carla’s Hund", names)).toBe(
-      `${MEMBER_PLACEHOLDER} Tochter, ${MEMBER_PLACEHOLDER} Garten, ${MEMBER_PLACEHOLDER} Hund`,
+      `${MEMBER_PLACEHOLDER} Tochter, ${MEMBER_PLACEHOLDER} Garten, carla’s Hund`,
     )
+  })
+
+  it('leaves a word in small letters that a name happens to be, unless written as the name is', () => {
+    expect(withoutMemberNames('82 Jahre alt, Frau Alt', ['Gisela', 'Alt'])).toBe(
+      `82 Jahre alt, Frau ${MEMBER_PLACEHOLDER}`,
+    )
+    expect(withoutMemberNames('benni hilft', ['benni'])).toBe(`${MEMBER_PLACEHOLDER} hilft`)
+  })
+
+  it('takes the capitalised parts of a name on their own', () => {
+    expect(
+      withoutMemberNames('Lena und Frau Gradido, Sohn von Ramona', ['Anna-Lena', 'von Gradido']),
+    ).toBe(`${MEMBER_PLACEHOLDER} und Frau ${MEMBER_PLACEHOLDER}, Sohn von Ramona`)
   })
 
   it("leaves a name inside another word, and other people's names", () => {

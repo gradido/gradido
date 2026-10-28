@@ -19,23 +19,36 @@ const escapeForPattern = (text: string): string => text.replace(/[.*+?^${}()|[\]
  * The remark with the member's own names -- first name, last name, username -- written as
  * [MITGLIED], as the salutation leaves the name to the code (E-012). A name counts where it stands
  * as a word of its own, with a genitive s or without ("Carlas Tochter"); inside another word it
- * stays ("Annabell" for "Anna"). One pass, the longest name first: "Carla-Sonne" goes as one, and
- * a member called "Mitglied" does not take the placeholder apart again.
+ * stays ("Annabell" for "Anna"). The capitalised parts of a name count on their own as well:
+ * "Gradido" of "von Gradido", "Lena" of "Anna-Lena" -- "von" stays a word.
+ *
+ * A name is found in any case, but a word in small letters only counts where it is written as the
+ * name is ("benni"): "82 Jahre alt" stays for a member called Alt. One pass, the longest name
+ * first: "Carla-Sonne" goes as one, and a member called "Mitglied" does not take the placeholder
+ * apart again.
  *
  * Other people's names ("Tochter von Ramona") stay: nothing tells them from other words. The field
- * says who reads the remark (remark.private in the admin interface).
+ * says who reads the remark (remark.privateWithCrea in the admin interface).
  */
 export function withoutMemberNames(remark: string, names: readonly string[]): string {
-  const wanted = [...new Set(names.map((name) => name.trim()).filter((name) => name.length >= 2))]
+  const parts = names.flatMap((name) =>
+    name.split(/[\s-]+/).filter((part) => /^\p{Lu}/u.test(part)),
+  )
+  const wanted = [
+    ...new Set([...names, ...parts].map((name) => name.trim()).filter((name) => name.length >= 2)),
+  ]
   if (wanted.length === 0) {
     return remark
   }
   wanted.sort((a, b) => b.length - a.length)
+  const exact = new Set(wanted)
   const pattern = new RegExp(
-    `(?<![\\p{L}\\p{N}])(?:${wanted.map(escapeForPattern).join('|')})(?:s|'s|’s)?(?![\\p{L}\\p{N}])`,
+    `(?<![\\p{L}\\p{N}])(${wanted.map(escapeForPattern).join('|')})(?:s|'s|’s)?(?![\\p{L}\\p{N}])`,
     'giu',
   )
-  return remark.replace(pattern, MEMBER_PLACEHOLDER)
+  return remark.replace(pattern, (found: string, name: string) =>
+    /^\p{Lu}/u.test(found) || exact.has(name) ? MEMBER_PLACEHOLDER : found,
+  )
 }
 
 /**
