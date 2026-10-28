@@ -839,9 +839,11 @@ export const CreaEvaluationModal = defineComponent({
         </BButton>
         <span class={[classes.creaFooterSide, classes.creaFooterSideRight]}>
           {isBatch.value ? (
+            // Not while a reply is rewritten: its answer would land in the new evaluation.
             <BButton
               variant='primary'
-              disabled={loading.value || selectedIds.value.length === 0}
+              disabled={loading.value || rewriting.value || selectedIds.value.length === 0}
+              data-test='crea-evaluate-batch'
               onClick={runBatchEvaluation}
             >
               {t('crea.evaluate')}

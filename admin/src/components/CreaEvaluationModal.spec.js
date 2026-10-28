@@ -624,6 +624,29 @@ describe('CreaEvaluationModal — the remark on the member', () => {
     expect(wrapper.find('[data-test="crea-evaluate-again"]').attributes('disabled')).toBeDefined()
   })
 
+  // Found beside it, older than the remark: the same late answer in the batch.
+  it('offers no "Bewerten" for several contributions either while a reply is rewritten', async () => {
+    siblings = [contribution(), contribution({ id: 2, memo: 'Vorlesen im Kindergarten' })]
+    useMutation.mockImplementation(() => ({
+      mutate: vi.fn((vars) => {
+        calls.push(['crea', vars])
+        return vars.input.moderatorDecision
+          ? new Promise(() => undefined)
+          : Promise.resolve({ data: { creaEvaluateBatch: EVALUATION } })
+      }),
+    }))
+    const wrapper = mountModal()
+    await open(wrapper)
+    const evaluate = () => wrapper.find('[data-test="crea-evaluate-batch"]')
+    await evaluate().trigger('click')
+    await settle()
+    expect(evaluate().attributes('disabled')).toBeUndefined()
+    await buttonNamed(wrapper, 'crea.decision.deny').trigger('click')
+    await buttonNamed(wrapper, 'crea.rewrite').trigger('click')
+    await settle()
+    expect(evaluate().attributes('disabled')).toBeDefined()
+  })
+
   it('asks Crea nothing for a window closed while the remark was read', async () => {
     let answer = () => undefined
     useApolloClient.mockReturnValue({
