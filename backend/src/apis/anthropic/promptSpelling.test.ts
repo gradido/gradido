@@ -28,6 +28,8 @@ const FILES = [
   // The first creation. Here NOBODY stands in between: the line goes into the message, the
   // contribution thread and the mail exactly as the model wrote it.
   'crea/firstCreation.ts',
+  // The moderation's remark on the member: its rules travel in the same user message.
+  'crea/memberRemark.ts',
 ]
 
 /*

@@ -3,6 +3,7 @@ import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { type Plugin, ref } from 'vue'
 import type { RemarkStatus, UserRemark, UserRemarkState } from '@/composables/useUserRemark'
+import { CONFIG } from '@/config'
 import { i18n } from '@/i18n'
 import IMdiNoteText from '~icons/mdi/note-text'
 import IMdiNoteTextOutline from '~icons/mdi/note-text-outline'
@@ -32,6 +33,7 @@ const stateWith = (fields: {
   toggle: vi.fn(),
   close: vi.fn(),
   retry: vi.fn(),
+  flush: vi.fn(async () => undefined),
 })
 
 describe('MemberRemarkToggle', () => {
@@ -214,5 +216,56 @@ describe('MemberRemarkEditor', () => {
   it('ties no trouble to the field while there is none', () => {
     mountEditor(stateWith({ open: true }))
     expect((field().attributes('aria-describedby') as string).split(' ')).toHaveLength(1)
+  })
+})
+
+// Crea's window has a frame of its own (Bernd's choice "A, ohne Rahmen", 28.10.2026).
+describe('plain', () => {
+  it('draws the line and the field without the frame of a list row', () => {
+    const line = mount(MemberRemarkLine, {
+      props: { state: stateWith({ saved: BY_BERND }), plain: true },
+    })
+    expect(line.find('[data-test="member-remark"]').classes()).not.toContain('list-group-item')
+    const field = mount(MemberRemarkEditor, {
+      props: {
+        state: stateWith({ saved: BY_BERND, open: true }),
+        name: 'Leoni',
+        fieldId: 'f',
+        plain: true,
+      },
+    })
+    expect(field.find('[data-test="member-remark-editor"]').classes()).not.toContain(
+      'list-group-item',
+    )
+  })
+
+  it('keeps the frame in the card', () => {
+    const line = mount(MemberRemarkLine, { props: { state: stateWith({ saved: BY_BERND }) } })
+    expect(line.find('[data-test="member-remark"]').classes()).toContain('list-group-item')
+  })
+})
+
+describe('who reads the remark', () => {
+  const hint = () => {
+    const wrapper = mount(MemberRemarkEditor, {
+      props: { state: stateWith({ open: true }), name: 'Leoni', fieldId: 'f' },
+    })
+    const describedBy = wrapper.find('textarea').attributes('aria-describedby') ?? ''
+    return wrapper.find(`#${describedBy}`).text()
+  }
+  const was = CONFIG.ANTHROPIC_ACTIVE
+
+  afterEach(() => {
+    CONFIG.ANTHROPIC_ACTIVE = was
+  })
+
+  it('names Crea where she is switched on', () => {
+    CONFIG.ANTHROPIC_ACTIVE = true
+    expect(hint()).toBe('remark.privateWithCrea')
+  })
+
+  it('names the moderators only where she is not', () => {
+    CONFIG.ANTHROPIC_ACTIVE = false
+    expect(hint()).toBe('remark.private')
   })
 })

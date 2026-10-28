@@ -3,6 +3,7 @@ import { useApolloClient, useMutation } from '@vue/apollo-composable'
 import {
   BBadge,
   BButton,
+  BFormCheckbox,
   BFormInput,
   BFormTextarea,
   BModal,
@@ -13,17 +14,21 @@ import {
   computed,
   defineComponent,
   Fragment,
+  nextTick,
   type PropType,
   ref,
   toDisplayString,
+  useId,
   watch,
 } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { MemberRemarkEditor, MemberRemarkLine, MemberRemarkToggle } from '@/components/MemberRemark'
 import { useBoldShortcut } from '@/composables/useBoldShortcut'
 import { useCreaClipboard } from '@/composables/useCreaClipboard'
 import { playCreaSound, primeCreaSound } from '@/composables/useCreaSound'
 import { useCreaSupplement } from '@/composables/useCreaSupplement'
 import { useAppToast } from '@/composables/useToast'
+import { useUserRemark } from '@/composables/useUserRemark'
 import { useViewport } from '@/composables/useViewport'
 import { adminListContributions } from '@/graphql/adminListContributions.graphql'
 import {
@@ -33,6 +38,7 @@ import {
   creaRewriteResponse,
   setCreaSalutation,
 } from '@/graphql/crea.graphql'
+import { userRemark } from '@/graphql/userRemark'
 import { tenureBucket } from '@/utils/tenure'
 import IBiCopy from '~icons/bi/copy'
 import creaLogo from '../../public/img/crea-logo.jpg'
@@ -413,6 +419,46 @@ export const CreaEvaluationModal = defineComponent({
       return count === 1 ? t('crea.tenure.year') : t('crea.tenure.years', { count })
     })
 
+    // The moderation's remark on the member (Bernd, 28.10.2026): shown and written here with the
+    // card's own parts, and read by Crea from the server, which is why every call to Crea first
+    // saves what waits. Held only while the window is open: closing it saves the rest, and the next
+    // opening reads the remark anew.
+    const remarkMember = ref<number | null>(null)
+    // Whom a failed save is about, by member: it may be told after the window shows somebody else.
+    const remarkNames = new Map<number, string>()
+    const remark = useUserRemark(
+      () => remarkMember.value,
+      (userId) => toastError(t('remark.failedClosed', { name: remarkNames.get(userId) ?? '' })),
+    )
+    const remarkFieldId = useId()
+    const remarkToggle = ref<{ $el?: HTMLElement } | null>(null)
+    const closeRemark = () => {
+      remark.close()
+      nextTick(() => remarkToggle.value?.$el?.focus())
+    }
+    // What the server keeps of the words in the field: whitespace alone is no remark.
+    const keptRemark = () => (remark.draft.value.trim() === '' ? null : remark.draft.value)
+    // Crea reads the remark only where the moderator lets her, in this window, off at each opening
+    // (Bernd, 28.10.2026: "nur bewusst einschaltbar"): it is about the member, who does not see it.
+    const creaReadsRemark = ref(false)
+    // What Crea would read now: the words in the field, where she is let read them.
+    const remarkForCrea = () => (creaReadsRemark.value ? keptRemark() : null)
+    // A single contribution of a member with a remark waits for "Bewerten": the moderator decides
+    // first whether Crea reads it. Without a remark it is judged the moment the window opens.
+    const awaitingEvaluation = ref(false)
+    // What Crea read in the last evaluation of a single contribution: the remark the server held when
+    // she was asked, also where the words in the field could not be saved, or null where she was not
+    // let read it; undefined before one.
+    const remarkJudged = ref<string | null | undefined>(undefined)
+    // Where what Crea would read changed after that -- the switch, or the words with it on --
+    // "Bewerten" comes into the foot, to judge it again.
+    const remarkChangedSinceJudged = computed(
+      () =>
+        remarkJudged.value !== undefined &&
+        remark.loaded.value &&
+        remarkForCrea() !== remarkJudged.value,
+    )
+
     const { mutate: evaluateMutation } = useMutation(creaEvaluateContribution)
     const { mutate: rewriteMutation } = useMutation(creaRewriteResponse)
     const { mutate: evaluateBatchMutation } = useMutation(creaEvaluateBatch)
@@ -435,6 +481,9 @@ export const CreaEvaluationModal = defineComponent({
       salutation: salutationFor(contribution),
       // Pseudonymous handle for the record — the user id, never a name (E-010).
       personPseudonym: contribution.userId != null ? String(contribution.userId) : null,
+      // The member, for the backend to read the moderation's remark on them -- only where the
+      // moderator lets Crea read it: the id, never the words.
+      userId: creaReadsRemark.value ? (contribution.userId ?? null) : null,
       date: contribution.contributionDate ?? null,
       uiLanguage: locale.value,
     })
@@ -456,6 +505,9 @@ export const CreaEvaluationModal = defineComponent({
       salutationSettled.value = false
       contributions.value = []
       selectedIds.value = []
+      remarkJudged.value = undefined
+      creaReadsRemark.value = false
+      awaitingEvaluation.value = false
     }
 
     // Where an arriving evaluation lands - shared by the single and the batch path so the
@@ -477,27 +529,64 @@ export const CreaEvaluationModal = defineComponent({
       moderatorContext.value = ''
     }
 
+    // Each opening of the window. What an earlier one still awaits -- the member's contributions, the
+    // remark, Crea's answer -- changes nothing in a closed window or in one opened since for another
+    // member, and a closed window asks Crea nothing more: it would pay for nobody.
+    let opening = 0
+    // Marks the opening a call starts in; the answer says whether the window still shows it.
+    const sameOpening = () => {
+      const mine = opening
+      return () => mine === opening
+    }
+
     const runEvaluation = async () => {
+      resetState()
+      await evaluateSingle()
+    }
+
+    // The single contribution judged by Crea. Called again from the foot ("Bewerten" once the remark
+    // changed), it keeps what the moderator typed and has not saved, as the batch re-run does
+    // (applyEvaluation); only a fresh opening starts from nothing (runEvaluation).
+    const evaluateSingle = async () => {
       if (!props.contribution) {
         return
       }
-      resetState()
+      const current = sameOpening()
+      awaitingEvaluation.value = false
       loading.value = true
+      inactive.value = false
+      errorMessage.value = ''
+      evaluation.value = null
       primeCreaSound()
       try {
+        await remark.flush()
+        if (!current()) {
+          return
+        }
+        remarkJudged.value = creaReadsRemark.value ? (remark.saved.value?.remark ?? null) : null
         const response = await evaluateMutation({ input: buildInput(props.contribution) })
+        if (!current()) {
+          return
+        }
         applyEvaluation(response?.data.creaEvaluateContribution)
         playCreaSound()
       } catch (error) {
+        if (!current()) {
+          return
+        }
         // Crea stays dormant on staging until the API key (DO-5) is set; the resolver
         // then throws "Anthropic API is not enabled". Show a calm hint, not an error.
         if (/not enabled/i.test((error as Error).message)) {
           inactive.value = true
         } else {
           errorMessage.value = (error as Error).message
+          // "Bewerten" stays, to try again: closing the window would turn "Crea liest mit" off.
+          awaitingEvaluation.value = true
         }
       } finally {
-        loading.value = false
+        if (current()) {
+          loading.value = false
+        }
       }
     }
 
@@ -533,6 +622,7 @@ export const CreaEvaluationModal = defineComponent({
       recipientFirstName: props.contribution?.user?.firstName ?? null,
       salutation: salutationFor(props.contribution),
       uiLanguage: locale.value,
+      userId: creaReadsRemark.value ? (props.contribution?.userId ?? null) : null,
     })
 
     // Batch evaluation: judge the ticked contributions together into ONE verdict + ONE
@@ -542,23 +632,36 @@ export const CreaEvaluationModal = defineComponent({
       if (selectedIds.value.length === 0) {
         return
       }
+      const current = sameOpening()
       loading.value = true
       inactive.value = false
       errorMessage.value = ''
       evaluation.value = null
       primeCreaSound()
       try {
+        await remark.flush()
+        if (!current()) {
+          return
+        }
         const response = await evaluateBatchMutation({ input: buildBatchInput() })
+        if (!current()) {
+          return
+        }
         applyEvaluation(response?.data.creaEvaluateBatch)
         playCreaSound()
       } catch (error) {
+        if (!current()) {
+          return
+        }
         if (/not enabled/i.test((error as Error).message)) {
           inactive.value = true
         } else {
           errorMessage.value = (error as Error).message
         }
       } finally {
-        loading.value = false
+        if (current()) {
+          loading.value = false
+        }
       }
     }
 
@@ -570,9 +673,14 @@ export const CreaEvaluationModal = defineComponent({
       if (!isDeviation.value) {
         return
       }
+      const current = sameOpening()
       rewriting.value = true
       primeCreaSound()
       try {
+        await remark.flush()
+        if (!current()) {
+          return
+        }
         if (isBatch.value) {
           // Batch deviation (E-020): one fresh joint reply for the chosen outcome. No
           // memoSupplement in batch mode ("Text ergänzen" is single-contribution, E-019).
@@ -583,6 +691,9 @@ export const CreaEvaluationModal = defineComponent({
               moderatorContext: moderatorContext.value.trim() || null,
             },
           })
+          if (!current()) {
+            return
+          }
           const result = response?.data.creaRewriteBatch
           rawResponseText.value = result.responseText
           applyDraft()
@@ -599,6 +710,9 @@ export const CreaEvaluationModal = defineComponent({
               moderatorContext: moderatorContext.value.trim() || null,
             },
           })
+          if (!current()) {
+            return
+          }
           const result = response?.data.creaRewriteResponse
           rawResponseText.value = result.responseText
           applyDraft()
@@ -610,16 +724,45 @@ export const CreaEvaluationModal = defineComponent({
         // arrived after the moderator deviated.
         playCreaSound()
       } catch (error) {
-        toastError((error as Error).message)
+        if (current()) {
+          toastError((error as Error).message)
+        }
       } finally {
-        rewriting.value = false
+        if (current()) {
+          rewriting.value = false
+        }
       }
     }
 
-    // The modal stays mounted, so re-read the signature from the browser every time
-    // it opens. Reading it only once at setup meant a signature stored in an earlier
-    // session (or after a re-login) never showed up without a full page reload.
+    // The remark on the member, read on its own: the window opens from the row, not from the card.
+    // Not read, the button stays unpressable; Crea reads the remark from the server all the same.
+    const loadRemark = async (userId: number | null): Promise<void> => {
+      if (userId === null || !apolloClient) {
+        return
+      }
+      try {
+        const { data } = await apolloClient.resolveClient().query({
+          query: userRemark,
+          variables: { userId },
+          fetchPolicy: 'no-cache',
+        })
+        remark.take(userId, data?.userRemark ?? null)
+      } catch {
+        // The window works without it.
+      }
+    }
+
     const onShown = async () => {
+      opening += 1
+      const current = sameOpening()
+      remarkMember.value = props.contribution?.userId ?? null
+      if (remarkMember.value !== null) {
+        remarkNames.set(remarkMember.value, contributionUserName.value)
+      }
+      const remarkRead = loadRemark(remarkMember.value)
+      // The modal stays mounted, so re-read the signature from the browser every time
+      // it opens. Reading it only once at setup meant a signature stored in an earlier
+      // session (or after a re-login) never showed up without a full page reload.
       moderatorSignature.value = loadSignature()
       // Before the query, not after it: a slow connection must not move a contribution from
       // one group to another, and the moderator asked for this list when they opened it.
@@ -633,6 +776,9 @@ export const CreaEvaluationModal = defineComponent({
         siblings = await loadSiblings()
       } catch {
         siblings = []
+      }
+      if (!current()) {
+        return
       }
       // Those rows were just read with fetchPolicy "no-cache", so they carry the participant's
       // current salutation - unlike the list behind the modal, which may predate another
@@ -653,8 +799,24 @@ export const CreaEvaluationModal = defineComponent({
         selectedIds.value = siblings.filter((c) => preselected.has(c.id)).map((c) => c.id)
       } else {
         contributions.value = []
-        runEvaluation()
+        // With the remark in the window: a member who has one waits for "Bewerten", so that the
+        // moderator decides first whether Crea reads it; anybody else is judged at once.
+        await remarkRead
+        if (!current()) {
+          return
+        }
+        if (keptRemark() === null) {
+          runEvaluation()
+        } else {
+          awaitingEvaluation.value = true
+        }
       }
+    }
+
+    const onHidden = () => {
+      opening += 1
+      resetState()
+      remarkMember.value = null
     }
 
     // Storing the salutation is an explicit act with a visible confirmation. It used to
@@ -743,10 +905,22 @@ export const CreaEvaluationModal = defineComponent({
         </BButton>
         <span class={[classes.creaFooterSide, classes.creaFooterSideRight]}>
           {isBatch.value ? (
+            // Not while a reply is rewritten: its answer would land in the new evaluation.
             <BButton
               variant='primary'
-              disabled={loading.value || selectedIds.value.length === 0}
+              disabled={loading.value || rewriting.value || selectedIds.value.length === 0}
+              data-test='crea-evaluate-batch'
               onClick={runBatchEvaluation}
+            >
+              {t('crea.evaluate')}
+            </BButton>
+          ) : awaitingEvaluation.value || remarkChangedSinceJudged.value ? (
+            // Not while a reply is rewritten: its answer would land in the new evaluation.
+            <BButton
+              variant='primary'
+              disabled={loading.value || rewriting.value}
+              data-test='crea-evaluate-single'
+              onClick={evaluateSingle}
             >
               {t('crea.evaluate')}
             </BButton>
@@ -804,20 +978,57 @@ export const CreaEvaluationModal = defineComponent({
     const renderContribution = () => (
       <div class='border rounded p-2 mb-3'>
         <div class='d-flex justify-content-between align-items-baseline mb-1'>
-          <strong>
-            {contributionUserName.value
-              ? contributionUserName.value
-              : isBatch.value
-                ? t('crea.contributions')
-                : t('crea.contribution')}
-            {contributionTenure.value ? (
-              <small class='text-muted fw-normal'>{` (${toDisplayString(contributionTenure.value)}) `}</small>
+          {/* The remark's button behind the name, as it stands in the member line of the card: on a
+              narrow phone the name breaks, the button stays beside it. */}
+          <span class='d-inline-flex align-items-center column-gap-1'>
+            <strong>
+              {contributionUserName.value
+                ? contributionUserName.value
+                : isBatch.value
+                  ? t('crea.contributions')
+                  : t('crea.contribution')}
+              {contributionTenure.value ? (
+                <small class='text-muted fw-normal'>{` (${toDisplayString(contributionTenure.value)}) `}</small>
+              ) : null}
+            </strong>
+            {remarkMember.value !== null ? (
+              <MemberRemarkToggle
+                ref={remarkToggle}
+                state={remark}
+                name={contributionUserName.value}
+                controls={remarkFieldId}
+              />
             ) : null}
-          </strong>
+          </span>
           {!isBatch.value && contributionMeta.value ? (
             <span class='text-muted small ms-3'>{contributionMeta.value}</span>
           ) : null}
         </div>
+        {remarkMember.value === null ? null : remark.open.value ? (
+          <MemberRemarkEditor
+            plain
+            state={remark}
+            name={contributionUserName.value}
+            fieldId={remarkFieldId}
+            onDone={closeRemark}
+          />
+        ) : (
+          <MemberRemarkLine plain state={remark} />
+        )}
+        {remarkMember.value !== null && keptRemark() !== null ? (
+          // Off at each opening: Crea reads the remark only where the moderator lets her.
+          <BFormCheckbox
+            modelValue={creaReadsRemark.value}
+            onUpdate:modelValue={(value: unknown) => {
+              creaReadsRemark.value = value as boolean
+            }}
+            switch
+            class='mb-2'
+            data-test='crea-reads-remark'
+          >
+            {t('crea.readsRemark')}
+          </BFormCheckbox>
+        ) : null}
         {isBatch.value ? (
           renderChecklist()
         ) : (
@@ -1033,7 +1244,7 @@ export const CreaEvaluationModal = defineComponent({
         size='lg'
         scrollable
         onShown={onShown}
-        onHidden={resetState}
+        onHidden={onHidden}
       >
         {{ title: renderTitle, footer: renderFooter, default: renderBody }}
       </BModal>

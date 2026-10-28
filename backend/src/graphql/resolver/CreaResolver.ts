@@ -35,6 +35,7 @@ import { CONFIG } from '@/config'
 import { resolveSigner } from '@/interactions/firstCreation/Signer.role'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
+import { remarkForCrea } from './util/remarkForCrea'
 
 @Resolver()
 export class CreaResolver {
@@ -42,11 +43,15 @@ export class CreaResolver {
   @Mutation(() => CreaEvaluation)
   async creaEvaluateContribution(
     @Arg('input') input: CreaContributionInput,
+    @Ctx() context: Context,
   ): Promise<CreaEvaluation> {
     const client = AnthropicClient.getInstance()
     let evaluation: CreaEvaluation
     if (client) {
-      evaluation = await client.evaluateContribution(input)
+      evaluation = await client.evaluateContribution(
+        input,
+        await remarkForCrea(context, input.userId),
+      )
     } else if (CONFIG.CREA_STUB) {
       // Staging preview before the API key (DO-5): a canned evaluation that still
       // runs the deterministic layer and persists, so the whole UI/DB path works.
@@ -74,13 +79,14 @@ export class CreaResolver {
   @Mutation(() => CreaRewriteResult)
   async creaRewriteResponse(
     @Arg('input') input: CreaContributionInput,
+    @Ctx() context: Context,
   ): Promise<CreaRewriteResult> {
     if (!input.moderatorDecision) {
       throw new Error('moderatorDecision is required to rewrite the response')
     }
     const client = AnthropicClient.getInstance()
     if (client) {
-      return client.rewriteResponse(input)
+      return client.rewriteResponse(input, await remarkForCrea(context, input.userId))
     }
     if (CONFIG.CREA_STUB) {
       return buildStubRewrite(input)
@@ -97,10 +103,13 @@ export class CreaResolver {
    */
   @Authorized([RIGHTS.AI_SEND_MESSAGE])
   @Mutation(() => CreaBatchEvaluation)
-  async creaEvaluateBatch(@Arg('input') input: CreaBatchInput): Promise<CreaBatchEvaluation> {
+  async creaEvaluateBatch(
+    @Arg('input') input: CreaBatchInput,
+    @Ctx() context: Context,
+  ): Promise<CreaBatchEvaluation> {
     const client = AnthropicClient.getInstance()
     if (client) {
-      return client.evaluateBatch(input)
+      return client.evaluateBatch(input, await remarkForCrea(context, input.userId))
     }
     if (CONFIG.CREA_STUB) {
       return buildStubBatch(input)
@@ -116,13 +125,16 @@ export class CreaResolver {
    */
   @Authorized([RIGHTS.AI_SEND_MESSAGE])
   @Mutation(() => CreaRewriteResult)
-  async creaRewriteBatch(@Arg('input') input: CreaBatchInput): Promise<CreaRewriteResult> {
+  async creaRewriteBatch(
+    @Arg('input') input: CreaBatchInput,
+    @Ctx() context: Context,
+  ): Promise<CreaRewriteResult> {
     if (!input.moderatorDecision) {
       throw new Error('moderatorDecision is required to rewrite the batch response')
     }
     const client = AnthropicClient.getInstance()
     if (client) {
-      return client.rewriteBatch(input)
+      return client.rewriteBatch(input, await remarkForCrea(context, input.userId))
     }
     if (CONFIG.CREA_STUB) {
       return buildStubBatchRewrite(input)

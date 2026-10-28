@@ -3,6 +3,7 @@ import { mount } from '@vue/test-utils'
 import {
   BBadge,
   BButton,
+  BFormCheckbox,
   BFormInput,
   BFormTextarea,
   BSpinner,
@@ -10,6 +11,8 @@ import {
 } from 'bootstrap-vue-next'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
+import { forgetUserRemarks } from '@/composables/useUserRemark'
+import { userRemark } from '@/graphql/userRemark'
 import { CreaEvaluationModal } from './CreaEvaluationModal'
 
 // This file exists because the [ANREDE] fill moved OUT of the tested backend and INTO
@@ -20,11 +23,21 @@ import { CreaEvaluationModal } from './CreaEvaluationModal'
 // received a reply literally beginning "[ANREDE],".
 
 vi.mock('@vue/apollo-composable')
+// What the window said, with the words it put in: a message names its member through them.
+const { said, toastError } = vi.hoisted(() => ({ said: [], toastError: vi.fn() }))
 vi.mock('vue-i18n', () => ({
-  useI18n: () => ({ t: (key) => key, locale: { value: 'de' } }),
+  // `d` for the remark's field, which says when it was written last.
+  useI18n: () => ({
+    t: (key, values) => {
+      said.push([key, values])
+      return key
+    },
+    d: () => 'date',
+    locale: { value: 'de' },
+  }),
 }))
 vi.mock('@/composables/useToast', () => ({
-  useAppToast: () => ({ toastSuccess: vi.fn(), toastError: vi.fn() }),
+  useAppToast: () => ({ toastSuccess: vi.fn(), toastError }),
 }))
 vi.mock('@/composables/useCreaSound', () => ({
   primeCreaSound: vi.fn(),
@@ -64,7 +77,7 @@ const stubs = {
 }
 // The real controls, so the tests can type and click: in the app the build resolves them by
 // name, which the tests leave out.
-const components = { BBadge, BButton, BFormInput, BFormTextarea, BSpinner }
+const components = { BBadge, BButton, BFormCheckbox, BFormInput, BFormTextarea, BSpinner }
 
 // What the moderator sees and does, read off the rendered modal. The draft is the tall
 // field under "crea.response"; the other two textareas (context, signature) are two rows.
@@ -454,4 +467,663 @@ describe('CreaEvaluationModal — on a phone and at the desk', () => {
       ).toEqual(['2'])
     },
   )
+})
+
+// The moderation's remark on the member in Crea's window (Bernd, 28.10.2026): shown and written with
+// the card's parts, read by Crea from the server -- so every call to Crea first saves what waits.
+describe('CreaEvaluationModal — the remark on the member', () => {
+  // What reaches the server, in order: the remark's saves and the calls to Crea.
+  let calls
+  let siblings
+  // What the server holds on the member; null for a member without a remark.
+  let remarkOnServer
+  const REMARK = {
+    remark: 'Rentnerin seit Januar 2025',
+    updatedAt: '2026-10-28T08:40:00.000Z',
+    updatedByName: 'Bernd Hückstädt',
+  }
+  const EVALUATION = {
+    responseText: RAW_REPLY,
+    defaultSalutation: 'Lieber Thomas',
+    overallVerdict: 'confirm',
+    flags: [],
+    activities: [],
+    openPoints: [],
+  }
+
+  // With the foot, where "Bewerten" stands.
+  const withFoot = {
+    BModal: { ...stubs.BModal, template: '<div><slot /><slot name="footer" /></div>' },
+  }
+  const mountModal = () =>
+    mount(CreaEvaluationModal, {
+      props: { contribution: contribution() },
+      global: { stubs: withFoot, components },
+    })
+  const open = async (wrapper) => {
+    wrapper.findComponent({ name: 'BModal' }).vm.$emit('shown')
+    await settle()
+  }
+  const write = async (wrapper, words) => {
+    await wrapper.find('[data-test="member-remark-toggle"]').trigger('click')
+    await wrapper.find('[data-test="member-remark-field"]').setValue(words)
+  }
+  const creaInputs = () => calls.filter(([kind]) => kind === 'crea').map(([, vars]) => vars.input)
+  // "Crea liest mit", off at each opening.
+  const readsSwitch = (wrapper) => {
+    const found = wrapper.find('[data-test="crea-reads-remark"]')
+    return found.exists() && found.element.tagName !== 'INPUT' ? found.find('input') : found
+  }
+  const letCreaRead = (wrapper) => readsSwitch(wrapper).setValue(true)
+  const evaluateSingle = (wrapper) => wrapper.find('[data-test="crea-evaluate-single"]')
+
+  beforeEach(() => {
+    forgetUserRemarks()
+    calls = []
+    siblings = []
+    remarkOnServer = REMARK
+    said.length = 0
+    toastError.mockClear()
+    useMutation.mockImplementation(() => ({
+      mutate: vi.fn(async (vars) => {
+        calls.push(['crea', vars])
+        return { data: { creaEvaluateContribution: EVALUATION, creaEvaluateBatch: EVALUATION } }
+      }),
+    }))
+    useApolloClient.mockReturnValue({
+      resolveClient: () => ({
+        query: vi.fn(async ({ query }) =>
+          query === userRemark
+            ? { data: { userRemark: remarkOnServer } }
+            : { data: { adminListContributions: { contributionList: siblings } } },
+        ),
+        mutate: vi.fn(async ({ variables }) => {
+          calls.push(['remark', variables])
+          return { data: { setUserRemark: { ...REMARK, remark: variables.remark } } }
+        }),
+      }),
+    })
+  })
+
+  afterEach(() => {
+    forgetUserRemarks()
+  })
+
+  // Bernd, 28.10.2026: Crea reads the remark only where the moderator turns "Crea liest mit" on.
+  it('shows the remark with "Crea liest mit" off, and waits for "Bewerten"', async () => {
+    const wrapper = mountModal()
+    await open(wrapper)
+    expect(wrapper.find('[data-test="member-remark"]').text()).toContain(REMARK.remark)
+    expect(
+      wrapper.find('[data-test="member-remark-toggle"]').attributes('disabled'),
+    ).toBeUndefined()
+    expect(readsSwitch(wrapper).element.checked).toBe(false)
+    expect(creaInputs()).toEqual([])
+    expect(evaluateSingle(wrapper).exists()).toBe(true)
+  })
+
+  it('judges a member without a remark at once, without the member, and shows no switch', async () => {
+    remarkOnServer = null
+    const wrapper = mountModal()
+    await open(wrapper)
+    expect(creaInputs()).toEqual([expect.objectContaining({ userId: null })])
+    expect(readsSwitch(wrapper).exists()).toBe(false)
+    expect(evaluateSingle(wrapper).exists()).toBe(false)
+  })
+
+  it('asks Crea with the member only once "Crea liest mit" is on, never with the words', async () => {
+    const wrapper = mountModal()
+    await open(wrapper)
+    await evaluateSingle(wrapper).trigger('click')
+    await settle()
+    expect(creaInputs()).toEqual([expect.objectContaining({ userId: null })])
+    // Judged without the remark, as asked: nothing more to judge until the switch moves.
+    expect(evaluateSingle(wrapper).exists()).toBe(false)
+    await letCreaRead(wrapper)
+    await evaluateSingle(wrapper).trigger('click')
+    await settle()
+    expect(creaInputs()[1]).toEqual(expect.objectContaining({ userId: 42 }))
+    expect(evaluateSingle(wrapper).exists()).toBe(false)
+    // A rewrite reads it as well, while the switch is on.
+    await buttonNamed(wrapper, 'crea.decision.deny').trigger('click')
+    await buttonNamed(wrapper, 'crea.rewrite').trigger('click')
+    await settle()
+    expect(creaInputs()[2]).toEqual(
+      expect.objectContaining({ userId: 42, moderatorDecision: 'deny' }),
+    )
+    expect(JSON.stringify(creaInputs())).not.toContain(REMARK.remark)
+  })
+
+  it('asks Crea for several contributions with the member only once "Crea liest mit" is on', async () => {
+    siblings = [contribution(), contribution({ id: 2, memo: 'Vorlesen im Kindergarten' })]
+    const wrapper = mountModal()
+    await open(wrapper)
+    await wrapper.find('[data-test="crea-evaluate-batch"]').trigger('click')
+    await settle()
+    await letCreaRead(wrapper)
+    await wrapper.find('[data-test="crea-evaluate-batch"]').trigger('click')
+    await settle()
+    expect(creaInputs()).toEqual([
+      expect.objectContaining({ userId: null }),
+      expect.objectContaining({ userId: 42 }),
+    ])
+  })
+
+  it('turns "Crea liest mit" off at each opening', async () => {
+    const wrapper = mountModal()
+    await open(wrapper)
+    await letCreaRead(wrapper)
+    expect(readsSwitch(wrapper).element.checked).toBe(true)
+    wrapper.findComponent({ name: 'BModal' }).vm.$emit('hidden')
+    await settle()
+    await open(wrapper)
+    expect(readsSwitch(wrapper).element.checked).toBe(false)
+  })
+
+  // coderabbit (#4222): a failed evaluation leaves "Bewerten" in the foot -- closing the window
+  // would turn the switch off -- but not where Crea is not switched on at all.
+  it('keeps "Bewerten" where an evaluation failed, to try again, but not where Crea is off', async () => {
+    const failures = [new Error('Network error'), new Error('Anthropic API is not enabled')]
+    useMutation.mockImplementation(() => ({
+      mutate: vi.fn(async (vars) => {
+        calls.push(['crea', vars])
+        throw failures.shift()
+      }),
+    }))
+    const wrapper = mountModal()
+    await open(wrapper)
+    await letCreaRead(wrapper)
+    await evaluateSingle(wrapper).trigger('click')
+    await settle()
+    expect(wrapper.find('.alert-danger').exists()).toBe(true)
+    expect(evaluateSingle(wrapper).exists()).toBe(true)
+    expect(readsSwitch(wrapper).element.checked).toBe(true)
+    await evaluateSingle(wrapper).trigger('click')
+    await settle()
+    expect(creaInputs()).toHaveLength(2)
+    expect(wrapper.find('.alert-info').exists()).toBe(true)
+    expect(evaluateSingle(wrapper).exists()).toBe(false)
+  })
+
+  it('saves the words typed in the window before Crea is asked', async () => {
+    siblings = [contribution(), contribution({ id: 2, memo: 'Vorlesen im Kindergarten' })]
+    const wrapper = mountModal()
+    await open(wrapper)
+    await write(wrapper, 'Kind, 5 Jahre alt')
+    await letCreaRead(wrapper)
+    await buttonNamed(wrapper, 'crea.evaluate').trigger('click')
+    await settle()
+    expect(calls).toEqual([
+      ['remark', { userId: 42, remark: 'Kind, 5 Jahre alt' }],
+      ['crea', { input: expect.objectContaining({ userId: 42 }) }],
+    ])
+  })
+
+  it('offers "Bewerten" again once the remark Crea reads changed, and judges anew', async () => {
+    const wrapper = mountModal()
+    await open(wrapper)
+    await letCreaRead(wrapper)
+    await evaluateSingle(wrapper).trigger('click')
+    await settle()
+    expect(creaInputs()).toHaveLength(1)
+    expect(evaluateSingle(wrapper).exists()).toBe(false)
+    await write(wrapper, 'Rentner seit Januar 2025, Kind von Ramona')
+    const again = evaluateSingle(wrapper)
+    expect(again.exists()).toBe(true)
+    await again.trigger('click')
+    await settle()
+    expect(calls.slice(1)).toEqual([
+      ['remark', { userId: 42, remark: 'Rentner seit Januar 2025, Kind von Ramona' }],
+      ['crea', { input: expect.objectContaining({ userId: 42 }) }],
+    ])
+    expect(evaluateSingle(wrapper).exists()).toBe(false)
+  })
+
+  it('saves what waits when the window closes, and reads the remark anew on the next opening', async () => {
+    const wrapper = mountModal()
+    await open(wrapper)
+    await write(wrapper, 'Mutter von zwei Kindern')
+    wrapper.findComponent({ name: 'BModal' }).vm.$emit('hidden')
+    await settle()
+    expect(calls.filter(([kind]) => kind === 'remark')).toEqual([
+      ['remark', { userId: 42, remark: 'Mutter von zwei Kindern' }],
+    ])
+    expect(wrapper.find('[data-test="member-remark-toggle"]').exists()).toBe(false)
+    await open(wrapper)
+    expect(wrapper.find('[data-test="member-remark"]').text()).toContain(REMARK.remark)
+  })
+
+  // The second reader's findings (28.10.2026).
+  it('keeps a salutation typed and not saved when "Bewerten" is pressed again', async () => {
+    const wrapper = mountModal()
+    await open(wrapper)
+    await evaluateSingle(wrapper).trigger('click')
+    await settle()
+    await wrapper.find('#crea-salutation').setValue('Liebe Carla')
+    await letCreaRead(wrapper)
+    await evaluateSingle(wrapper).trigger('click')
+    await settle()
+    expect(creaInputs()).toHaveLength(2)
+    expect(wrapper.find('#crea-salutation').element.value).toBe('Liebe Carla')
+  })
+
+  it('offers no second "Bewerten" while a reply is rewritten', async () => {
+    useMutation.mockImplementation(() => ({
+      mutate: vi.fn((vars) => {
+        calls.push(['crea', vars])
+        // The rewrite stays on its way.
+        return vars.input.moderatorDecision
+          ? new Promise(() => undefined)
+          : Promise.resolve({ data: { creaEvaluateContribution: EVALUATION } })
+      }),
+    }))
+    const wrapper = mountModal()
+    await open(wrapper)
+    await evaluateSingle(wrapper).trigger('click')
+    await settle()
+    await buttonNamed(wrapper, 'crea.decision.deny').trigger('click')
+    await buttonNamed(wrapper, 'crea.rewrite').trigger('click')
+    await settle()
+    await letCreaRead(wrapper)
+    expect(evaluateSingle(wrapper).attributes('disabled')).toBeDefined()
+  })
+
+  // Found beside it, older than the remark: the same late answer in the batch.
+  it('offers no "Bewerten" for several contributions either while a reply is rewritten', async () => {
+    siblings = [contribution(), contribution({ id: 2, memo: 'Vorlesen im Kindergarten' })]
+    useMutation.mockImplementation(() => ({
+      mutate: vi.fn((vars) => {
+        calls.push(['crea', vars])
+        return vars.input.moderatorDecision
+          ? new Promise(() => undefined)
+          : Promise.resolve({ data: { creaEvaluateBatch: EVALUATION } })
+      }),
+    }))
+    const wrapper = mountModal()
+    await open(wrapper)
+    const evaluate = () => wrapper.find('[data-test="crea-evaluate-batch"]')
+    await evaluate().trigger('click')
+    await settle()
+    expect(evaluate().attributes('disabled')).toBeUndefined()
+    await buttonNamed(wrapper, 'crea.decision.deny').trigger('click')
+    await buttonNamed(wrapper, 'crea.rewrite').trigger('click')
+    await settle()
+    expect(evaluate().attributes('disabled')).toBeDefined()
+  })
+
+  it('asks Crea nothing for a window closed while the remark was read', async () => {
+    let answer = () => undefined
+    useApolloClient.mockReturnValue({
+      resolveClient: () => ({
+        query: vi.fn(({ query }) =>
+          query === userRemark
+            ? new Promise((resolve) => {
+                // A member without a remark, who would be judged at once.
+                answer = () => resolve({ data: { userRemark: null } })
+              })
+            : Promise.resolve({ data: { adminListContributions: { contributionList: [] } } }),
+        ),
+        mutate: vi.fn(),
+      }),
+    })
+    const wrapper = mountModal()
+    wrapper.findComponent({ name: 'BModal' }).vm.$emit('shown')
+    await settle()
+    wrapper.findComponent({ name: 'BModal' }).vm.$emit('hidden')
+    answer()
+    await settle()
+    expect(creaInputs()).toEqual([])
+  })
+
+  // coderabbit (#4222): an answer for an earlier opening -- the window closed, or opened since --
+  // changes nothing, and a window closed while the words were saved asks Crea nothing.
+  // Crea's answers held back until a test hands them out, in the order she was asked.
+  const holdAnswers = () => {
+    const answers = []
+    useMutation.mockImplementation(() => ({
+      mutate: vi.fn((vars) => {
+        calls.push(['crea', vars])
+        return new Promise((resolve, reject) => answers.push({ resolve, reject }))
+      }),
+    }))
+    return answers
+  }
+  // The saves of the remark held back until a test lets them through.
+  const holdSaves = () => {
+    const saves = []
+    useApolloClient.mockReturnValue({
+      resolveClient: () => ({
+        query: vi.fn(async ({ query }) =>
+          query === userRemark
+            ? { data: { userRemark: remarkOnServer } }
+            : { data: { adminListContributions: { contributionList: siblings } } },
+        ),
+        mutate: vi.fn(
+          ({ variables }) =>
+            new Promise((resolve) => {
+              saves.push(() =>
+                resolve({ data: { setUserRemark: { ...REMARK, remark: variables.remark } } }),
+              )
+            }),
+        ),
+      }),
+    })
+    return async () => {
+      // Closing saves what waits as well: let that through too.
+      for (let round = 0; round < 2; round++) {
+        for (const save of saves.splice(0)) {
+          save()
+        }
+        await settle()
+      }
+    }
+  }
+  const answer = (text) => ({
+    data: {
+      creaEvaluateContribution: {
+        ...EVALUATION,
+        responseText: `[ANREDE],\n\n${text}\n\n[SIGNATUR]`,
+      },
+      creaEvaluateBatch: { ...EVALUATION, responseText: `[ANREDE],\n\n${text}\n\n[SIGNATUR]` },
+    },
+  })
+  const rewritten = (text) => ({
+    data: {
+      creaRewriteResponse: {
+        responseText: `[ANREDE],\n\n${text}\n\n[SIGNATUR]`,
+        memoSupplement: null,
+      },
+      creaRewriteBatch: {
+        responseText: `[ANREDE],\n\n${text}\n\n[SIGNATUR]`,
+        memoSupplement: null,
+      },
+    },
+  })
+  const close = (wrapper) => wrapper.findComponent({ name: 'BModal' }).vm.$emit('hidden')
+  const carla = () =>
+    contribution({
+      id: 2,
+      userId: 43,
+      memo: 'Vorlesen',
+      user: { firstName: 'Carla', lastName: 'Sonne', salutation: null },
+    })
+  const twoOf = (member) => [member, { ...member, id: member.id + 100, memo: 'Gartenarbeit' }]
+
+  const nothingFirst = async () => undefined
+  it.each([
+    [
+      'a single contribution',
+      nothingFirst,
+      async (wrapper) => {
+        await write(wrapper, 'Kind, 5 Jahre alt')
+        await evaluateSingle(wrapper).trigger('click')
+      },
+    ],
+    [
+      'several contributions',
+      nothingFirst,
+      async (wrapper) => {
+        await write(wrapper, 'Kind, 5 Jahre alt')
+        await wrapper.find('[data-test="crea-evaluate-batch"]').trigger('click')
+      },
+      () => twoOf(contribution()),
+    ],
+    [
+      'a rewrite',
+      async (wrapper) => {
+        await evaluateSingle(wrapper).trigger('click')
+        await settle()
+      },
+      async (wrapper) => {
+        await buttonNamed(wrapper, 'crea.decision.deny').trigger('click')
+        await write(wrapper, 'Kind, 5 Jahre alt')
+        await buttonNamed(wrapper, 'crea.rewrite').trigger('click')
+      },
+    ],
+  ])(
+    'asks Crea nothing for %s when the window closed while the words were saved',
+    async (_kind, first, ask, list) => {
+      siblings = list?.() ?? []
+      const letSavesThrough = holdSaves()
+      const wrapper = mountModal()
+      await open(wrapper)
+      await first(wrapper)
+      const before = creaInputs().length
+      await ask(wrapper)
+      await settle()
+      close(wrapper)
+      await letSavesThrough()
+      expect(creaInputs()).toHaveLength(before)
+    },
+  )
+
+  it.each([
+    ['a single contribution', async () => undefined, () => []],
+    [
+      'several contributions',
+      async (wrapper) => {
+        await wrapper.find('[data-test="crea-evaluate-batch"]').trigger('click')
+      },
+      () => twoOf(contribution()),
+    ],
+  ])(
+    'lets a late answer for %s change nothing in the window opened since',
+    async (_kind, ask, list) => {
+      const answers = holdAnswers()
+      // A member without a remark: a single contribution is judged the moment the window opens.
+      remarkOnServer = null
+      siblings = list()
+      const wrapper = mountModal()
+      await open(wrapper)
+      await ask(wrapper)
+      await settle()
+      close(wrapper)
+      // Opened again, for Carla's two contributions: nothing is asked until "Bewerten".
+      siblings = twoOf(carla())
+      await wrapper.setProps({ contribution: carla() })
+      await open(wrapper)
+      expect(answers).toHaveLength(1)
+      answers[0].resolve(answer('Für Thomas'))
+      await settle()
+      expect(responseField(wrapper).exists()).toBe(false)
+    },
+  )
+
+  it.each([
+    ['a single contribution', async () => undefined, () => []],
+    [
+      'several contributions',
+      async (wrapper) => {
+        await wrapper.find('[data-test="crea-evaluate-batch"]').trigger('click')
+      },
+      () => twoOf(contribution()),
+    ],
+  ])(
+    'keeps the window opened since waiting for its own answer where a late one for %s fails',
+    async (_kind, ask, list) => {
+      const answers = holdAnswers()
+      // A member without a remark: a single contribution is judged the moment the window opens.
+      remarkOnServer = null
+      siblings = list()
+      const wrapper = mountModal()
+      await open(wrapper)
+      await ask(wrapper)
+      await settle()
+      close(wrapper)
+      await open(wrapper)
+      await ask(wrapper)
+      await settle()
+      expect(answers).toHaveLength(2)
+      answers[0].reject(new Error('Network error'))
+      await settle()
+      expect(wrapper.find('.spinner-border').exists()).toBe(true)
+      answers[1].resolve(answer('Die eigene Antwort'))
+      await settle()
+      expect(wrapper.find('.alert-danger').exists()).toBe(false)
+      expect(responseField(wrapper).element.value).toContain('Die eigene Antwort')
+    },
+  )
+
+  it.each([
+    ['a single contribution', async () => undefined, () => []],
+    [
+      'several contributions',
+      async (wrapper) => {
+        await wrapper.find('[data-test="crea-evaluate-batch"]').trigger('click')
+      },
+      () => twoOf(contribution()),
+    ],
+  ])(
+    'lets a late rewrite for %s change nothing in the window opened since, which rewrites on its own',
+    async (_kind, ask, list) => {
+      const answers = holdAnswers()
+      // A member without a remark: a single contribution is judged the moment the window opens.
+      remarkOnServer = null
+      siblings = list()
+      const wrapper = mountModal()
+      await open(wrapper)
+      await ask(wrapper)
+      await settle()
+      answers[0].resolve(answer('Erste Antwort'))
+      await settle()
+      await buttonNamed(wrapper, 'crea.decision.deny').trigger('click')
+      await buttonNamed(wrapper, 'crea.rewrite').trigger('click')
+      await settle()
+      close(wrapper)
+      await open(wrapper)
+      await ask(wrapper)
+      await settle()
+      answers[2].resolve(answer('Neue Antwort'))
+      await settle()
+      await buttonNamed(wrapper, 'crea.decision.deny').trigger('click')
+      await buttonNamed(wrapper, 'crea.rewrite').trigger('click')
+      await settle()
+      expect(answers).toHaveLength(4)
+      answers[1].resolve(rewritten('Für die erste Öffnung'))
+      await settle()
+      expect(responseField(wrapper).element.value).not.toContain('Für die erste Öffnung')
+      expect(buttonNamed(wrapper, 'crea.rewrite').attributes('disabled')).toBeDefined()
+    },
+  )
+
+  it('tells nothing of a late rewrite that failed', async () => {
+    const answers = holdAnswers()
+    remarkOnServer = null
+    const wrapper = mountModal()
+    await open(wrapper)
+    answers[0].resolve(answer('Erste Antwort'))
+    await settle()
+    await buttonNamed(wrapper, 'crea.decision.deny').trigger('click')
+    await buttonNamed(wrapper, 'crea.rewrite').trigger('click')
+    await settle()
+    close(wrapper)
+    await open(wrapper)
+    answers[1].reject(new Error('Network error'))
+    await settle()
+    expect(toastError).not.toHaveBeenCalled()
+  })
+
+  it('shows the contributions of the member it was opened for, not of one opened before', async () => {
+    const listOf = (userId) =>
+      [1, 2].map((n) =>
+        contribution({ id: userId * 10 + n, userId, memo: `Beitrag ${userId}-${n}` }),
+      )
+    let answerFirst = () => undefined
+    useApolloClient.mockReturnValue({
+      resolveClient: () => ({
+        query: vi.fn(({ query, variables }) => {
+          if (query === userRemark) {
+            return Promise.resolve({ data: { userRemark: null } })
+          }
+          const list = {
+            data: { adminListContributions: { contributionList: listOf(variables.filter.userId) } },
+          }
+          // The first member's list is still on its way when the window opens for the second.
+          return variables.filter.userId === 7
+            ? new Promise((resolve) => {
+                answerFirst = () => resolve(list)
+              })
+            : Promise.resolve(list)
+        }),
+        mutate: vi.fn(),
+      }),
+    })
+    const wrapper = mount(CreaEvaluationModal, {
+      props: { contribution: contribution({ id: 71, userId: 7 }) },
+      global: { stubs: withFoot, components },
+    })
+    await open(wrapper)
+    wrapper.findComponent({ name: 'BModal' }).vm.$emit('hidden')
+    await wrapper.setProps({ contribution: contribution({ id: 421 }) })
+    await open(wrapper)
+    expect(wrapper.text()).toContain('Beitrag 42-2')
+    answerFirst()
+    await settle()
+    expect(wrapper.text()).toContain('Beitrag 42-2')
+    expect(wrapper.text()).not.toContain('Beitrag 7-2')
+  })
+
+  it('names the member whose words could not be saved, also once the window shows another', async () => {
+    let failSave = () => undefined
+    useApolloClient.mockReturnValue({
+      resolveClient: () => ({
+        query: vi.fn(async ({ query }) =>
+          query === userRemark
+            ? { data: { userRemark: REMARK } }
+            : { data: { adminListContributions: { contributionList: [] } } },
+        ),
+        mutate: vi.fn(
+          () =>
+            new Promise((_resolve, reject) => {
+              failSave = () => reject(new Error('Network error'))
+            }),
+        ),
+      }),
+    })
+    const wrapper = mountModal()
+    await open(wrapper)
+    await write(wrapper, 'Kind, 5 Jahre alt')
+    // Closing saves what waits; the window opens for Carla before the server answers.
+    wrapper.findComponent({ name: 'BModal' }).vm.$emit('hidden')
+    await settle()
+    await wrapper.setProps({
+      contribution: contribution({
+        id: 2,
+        userId: 43,
+        user: { firstName: 'Carla', lastName: 'Sonne', salutation: null },
+      }),
+    })
+    await open(wrapper)
+    failSave()
+    await settle()
+    expect(toastError).toHaveBeenCalledWith('remark.failedClosed')
+    expect(said).toContainEqual(['remark.failedClosed', { name: 'Thomas Muster' }])
+    expect(said).not.toContainEqual(['remark.failedClosed', { name: 'Carla Sonne' }])
+  })
+
+  it('still offers "Bewerten" where the words could not be saved: Crea read the remark before them', async () => {
+    useApolloClient.mockReturnValue({
+      resolveClient: () => ({
+        query: vi.fn(async ({ query }) =>
+          query === userRemark
+            ? { data: { userRemark: REMARK } }
+            : { data: { adminListContributions: { contributionList: [] } } },
+        ),
+        mutate: vi.fn(async ({ variables }) => {
+          calls.push(['remark', variables])
+          throw new Error('Network error')
+        }),
+      }),
+    })
+    const wrapper = mountModal()
+    await open(wrapper)
+    await letCreaRead(wrapper)
+    await evaluateSingle(wrapper).trigger('click')
+    await settle()
+    await write(wrapper, 'Kind, 5 Jahre alt')
+    await evaluateSingle(wrapper).trigger('click')
+    await settle()
+    expect(creaInputs()).toHaveLength(2)
+    expect(evaluateSingle(wrapper).exists()).toBe(true)
+  })
 })

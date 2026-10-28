@@ -10,9 +10,10 @@ import {
 } from 'database'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { RIGHTS } from '@/auth/RIGHTS'
-import { isEmptyRemark, USER_REMARKS_MAX_PER_REQUEST } from '@/data/UserRemark.logic'
+import { isEmptyRemark } from '@/data/UserRemark.logic'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
+import { countRemark } from './util/countRemark'
 
 /**
  * The moderation's remark on a member (Bernd, 28.10.2026): beside the pin and the arrow of an
@@ -75,18 +76,5 @@ export class UserRemarkResolver {
     } catch (error) {
       throw new LogError('USER_REMARK_NOT_STORED', databaseErrorCode(error))
     }
-  }
-}
-
-/**
- * ⛔ Counted in the HTTP request's budget: a document may repeat a field under any number of
- * aliases (RequestBudget). The count also keeps the answer of a request that read a remark out of
- * the log (plugins.ts).
- */
-const countRemark = (context: Context): void => {
-  context.requestBudget.userRemarksServed += 1
-  const served = context.requestBudget.userRemarksServed
-  if (served > USER_REMARKS_MAX_PER_REQUEST) {
-    throw new LogError('Too many remarks asked for at once', served)
   }
 }
