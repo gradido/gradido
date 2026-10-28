@@ -261,6 +261,30 @@ describe('useUserRemark', () => {
     expect(state.status.value).toBe('failed')
   })
 
+  // coderabbit (#4220): a save that failed before its first await ran `finally` before
+  // `entry.saving` held its promise -- the lock stayed, and nothing was ever sent again.
+  it('stays free for the next save where one fails before it reaches the server', async () => {
+    vi.mocked(useApolloClient).mockReturnValueOnce({
+      resolveClient: () => {
+        throw new Error('no client')
+      },
+    } as unknown as ReturnType<typeof useApolloClient>)
+    const first = mountCard()
+    first.state.take(LEONI, null)
+    first.state.toggle()
+    first.state.input('Tochter von Ramona')
+    await vi.advanceTimersByTimeAsync(REMARK_SAVE_PAUSE_MS)
+    expect(first.state.status.value).toBe('failed')
+    expect(mutate).not.toHaveBeenCalled()
+
+    // The next card of the member reaches the server again.
+    const next = mountCard()
+    next.state.retry()
+    await vi.runAllTimersAsync()
+    expect(sent()).toEqual([{ userId: LEONI, remark: 'Tochter von Ramona' }])
+    expect(next.state.status.value).toBe('saved')
+  })
+
   it('reports a save that fails where nobody sees the field', async () => {
     mutate.mockRejectedValueOnce(new Error('Network error'))
     const { state } = mountCard()
@@ -333,6 +357,8 @@ describe('useUserRemark', () => {
 
     next.state.take(LEONI, BY_BERND)
     expect(next.state.draft.value).toBe('Tochter von Ramona')
+    // The save leaves a tick after it was started (it yields before anything can fail).
+    await vi.advanceTimersByTimeAsync(0)
     answer({ data: { setUserRemark: answerFor('Tochter von Ramona') } })
     await vi.runAllTimersAsync()
     expect(next.state.saved.value?.remark).toBe('Tochter von Ramona')

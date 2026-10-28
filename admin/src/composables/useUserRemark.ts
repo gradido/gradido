@@ -128,6 +128,10 @@ const save = (key: string, entry: Entry): Promise<void> => {
   const remark = entry.draft.value
   entry.status.value = 'saving'
   entry.saving = (async () => {
+    // ⛔ Yield once before anything can fail: an async function runs up to its first `await` at
+    // once, and a failure there ran `finally` before `entry.saving` held this promise -- the lock
+    // stayed, and nothing was ever sent again (coderabbit, #4220).
+    await Promise.resolve()
     try {
       const client = entry.client()
       if (!client) {
