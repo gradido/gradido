@@ -27,6 +27,7 @@ import {
   type FirstCreationAnswer,
   type FirstCreationModelEntry,
 } from './crea/firstCreation'
+import { memberRemarkSection } from './crea/memberRemark'
 import { CREA_BATCH_SCHEMA, CREA_OUTPUT_SCHEMA, CREA_REWRITE_SCHEMA } from './crea/outputSchema'
 import { applyCreaDeterministics } from './crea/postprocess'
 import {
@@ -171,7 +172,10 @@ export class AnthropicClient {
    * the user message. Thin slice (DO-1): one contribution, no history, no
    * persistence yet.
    */
-  public async evaluateContribution(input: CreaContributionInput): Promise<CreaEvaluation> {
+  public async evaluateContribution(
+    input: CreaContributionInput,
+    remark?: string | null,
+  ): Promise<CreaEvaluation> {
     const params = await resolveCreaModelParams()
     const message = await this.createMessage(
       {
@@ -188,7 +192,7 @@ export class AnthropicClient {
             cache_control: { type: 'ephemeral' },
           },
         ],
-        messages: [{ role: 'user', content: this.buildUserMessage(input) }],
+        messages: [{ role: 'user', content: this.buildUserMessage(input, remark) }],
         output_config: params.effort
           ? { effort: params.effort, format: { type: 'json_schema', schema: CREA_OUTPUT_SCHEMA } }
           : { format: { type: 'json_schema', schema: CREA_OUTPUT_SCHEMA } },
@@ -218,7 +222,10 @@ export class AnthropicClient {
    * rules prefix is reused (cache read), so only the small output is billed anew.
    * No persistence.
    */
-  public async rewriteResponse(input: CreaContributionInput): Promise<CreaRewriteResult> {
+  public async rewriteResponse(
+    input: CreaContributionInput,
+    remark?: string | null,
+  ): Promise<CreaRewriteResult> {
     const params = await resolveCreaModelParams()
     const message = await this.createMessage(
       {
@@ -232,7 +239,7 @@ export class AnthropicClient {
             cache_control: { type: 'ephemeral' },
           },
         ],
-        messages: [{ role: 'user', content: this.buildRewriteUserMessage(input) }],
+        messages: [{ role: 'user', content: this.buildRewriteUserMessage(input, remark) }],
         output_config: params.effort
           ? { effort: params.effort, format: { type: 'json_schema', schema: CREA_REWRITE_SCHEMA } }
           : { format: { type: 'json_schema', schema: CREA_REWRITE_SCHEMA } },
@@ -269,7 +276,10 @@ export class AnthropicClient {
    * copy-paste flow). Reuses the cached rules prefix; the salutation is resolved
    * locally and both placeholders are left for the client (E-012 / E-014).
    */
-  public async evaluateBatch(input: CreaBatchInput): Promise<CreaBatchEvaluation> {
+  public async evaluateBatch(
+    input: CreaBatchInput,
+    remark?: string | null,
+  ): Promise<CreaBatchEvaluation> {
     const params = await resolveCreaModelParams()
     const message = await this.createMessage(
       {
@@ -283,7 +293,7 @@ export class AnthropicClient {
             cache_control: { type: 'ephemeral' },
           },
         ],
-        messages: [{ role: 'user', content: this.buildBatchUserMessage(input) }],
+        messages: [{ role: 'user', content: this.buildBatchUserMessage(input, remark) }],
         output_config: params.effort
           ? { effort: params.effort, format: { type: 'json_schema', schema: CREA_BATCH_SCHEMA } }
           : { format: { type: 'json_schema', schema: CREA_BATCH_SCHEMA } },
@@ -317,7 +327,10 @@ export class AnthropicClient {
    * confirm deviation it also carries memoSupplement (E-019), which the moderator appends
    * to one of the contributions via "Text ergaenzen".
    */
-  public async rewriteBatch(input: CreaBatchInput): Promise<CreaRewriteResult> {
+  public async rewriteBatch(
+    input: CreaBatchInput,
+    remark?: string | null,
+  ): Promise<CreaRewriteResult> {
     const params = await resolveCreaModelParams()
     const message = await this.createMessage(
       {
@@ -331,7 +344,7 @@ export class AnthropicClient {
             cache_control: { type: 'ephemeral' },
           },
         ],
-        messages: [{ role: 'user', content: this.buildBatchRewriteUserMessage(input) }],
+        messages: [{ role: 'user', content: this.buildBatchRewriteUserMessage(input, remark) }],
         output_config: params.effort
           ? { effort: params.effort, format: { type: 'json_schema', schema: CREA_REWRITE_SCHEMA } }
           : { format: { type: 'json_schema', schema: CREA_REWRITE_SCHEMA } },
@@ -710,12 +723,15 @@ export class AnthropicClient {
     return block.text
   }
 
-  private buildUserMessage(input: CreaContributionInput): string {
+  // The moderation's remark on the member, where there is one, follows the contribution in every
+  // prompt below (crea/memberRemark.ts): in the user message, so the cached prefix stays the same.
+  private buildUserMessage(input: CreaContributionInput, remark?: string | null): string {
     return [
       '## Aktuell zu bewerten (ein Beitrag)',
       '',
       input.text,
       '',
+      ...memberRemarkSection(remark),
       ...this.systemFacts(input),
     ].join('\n')
   }
@@ -725,12 +741,13 @@ export class AnthropicClient {
    * target decision and optional context. Crea reformulates only the reply text
    * for that outcome (rule chapter 11); it does not re-evaluate.
    */
-  private buildRewriteUserMessage(input: CreaContributionInput): string {
+  private buildRewriteUserMessage(input: CreaContributionInput, remark?: string | null): string {
     const lines: string[] = [
       '## Beitrag (unverändert)',
       '',
       input.text,
       '',
+      ...memberRemarkSection(remark),
       ...this.systemFacts(input),
       '',
       '## Moderator-Vorgabe (weicht von Deiner Empfehlung ab)',
@@ -753,7 +770,7 @@ export class AnthropicClient {
    * The batch instruction goes into the USER message (not the cached system prefix) so
    * the cached rules prefix stays byte-identical and keeps hitting the cache.
    */
-  private buildBatchUserMessage(input: CreaBatchInput): string {
+  private buildBatchUserMessage(input: CreaBatchInput, remark?: string | null): string {
     const lines: string[] = [
       '## Mehrere Beiträge desselben Teilnehmers (Sammel-Bewertung)',
       'Es folgen mehrere Beiträge DERSELBEN Person. Bilde EIN Gesamturteil und schreibe EINE Antwort, die alle Beiträge gemeinsam würdigt (nicht je Beitrag getrennt). Beziehe Dich, wo hilfreich, auf einzelne Beiträge. Fällt ein einzelner Beitrag aus der Reihe, sprich ihn in der Antwort an.',
@@ -770,6 +787,7 @@ export class AnthropicClient {
       const heading = `### Beitrag ${index + 1}${meta.length ? ` (${meta.join(', ')})` : ''}`
       lines.push(heading, contribution.text, '')
     })
+    lines.push(...memberRemarkSection(remark))
     lines.push(
       '## Fakten aus dem System',
       `- Anrede: mit dem Platzhalter ${SALUTATION_PLACEHOLDER} beginnen (der Code füllt den Namen lokal ein)`,
@@ -784,7 +802,7 @@ export class AnthropicClient {
    * decision and optional context. Crea reformulates ONE joint reply for that outcome;
    * it does not re-evaluate.
    */
-  private buildBatchRewriteUserMessage(input: CreaBatchInput): string {
+  private buildBatchRewriteUserMessage(input: CreaBatchInput, remark?: string | null): string {
     const lines: string[] = ['## Mehrere Beiträge desselben Teilnehmers (unverändert)', '']
     input.contributions.forEach((contribution, index) => {
       const meta: string[] = []
@@ -797,6 +815,7 @@ export class AnthropicClient {
       const heading = `### Beitrag ${index + 1}${meta.length ? ` (${meta.join(', ')})` : ''}`
       lines.push(heading, contribution.text, '')
     })
+    lines.push(...memberRemarkSection(remark))
     lines.push(
       '## Fakten aus dem System',
       `- Anrede: mit dem Platzhalter ${SALUTATION_PLACEHOLDER} beginnen (der Code füllt den Namen lokal ein)`,

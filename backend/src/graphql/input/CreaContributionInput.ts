@@ -1,5 +1,5 @@
-import { IsBoolean, IsNumber, IsOptional, IsString } from 'class-validator'
-import { Field, Float, InputType } from 'type-graphql'
+import { IsBoolean, IsInt, IsNumber, IsOptional, IsPositive, IsString } from 'class-validator'
+import { Field, Float, InputType, Int } from 'type-graphql'
 
 // One "Vorgang" for Crea: the contribution text plus the deterministic
 // money/context facts the software supplies (design doc `G`, chapter 5).
@@ -55,6 +55,15 @@ export class CreaContributionInput {
   @IsOptional()
   @IsString()
   moderatorSignature?: string | null
+
+  // The member the contribution is from: the backend reads the moderation's remark on them and
+  // gives it to Crea without their names (Bernd, 28.10.2026; crea/memberRemark.ts). The id, not the
+  // remark: the remark stays out of the request log (server/plugins.ts).
+  @Field(() => Int, { nullable: true })
+  @IsOptional()
+  @IsInt()
+  @IsPositive()
+  userId?: number | null
 
   // Persistence metadata (E-007/E-010); the admin UI (DO-4) supplies these. When
   // contributionRef is present, the resolver persists crea_records rows.

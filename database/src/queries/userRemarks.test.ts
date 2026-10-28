@@ -8,7 +8,12 @@ import { userFactory } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { peterLustig } from '../seeds/users/peter-lustig'
 import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
-import { dbDeleteUserRemark, dbSelectUserRemark, dbUpsertUserRemark } from './userRemarks'
+import {
+  dbDeleteUserRemark,
+  dbSelectUserRemark,
+  dbSelectUserRemarkWithMemberNames,
+  dbUpsertUserRemark,
+} from './userRemarks'
 
 const appDB = AppDatabase.getInstance()
 let db: MySql2Database
@@ -100,5 +105,28 @@ describe('userRemarks query test', () => {
     const heavy = '🌱'.repeat(2000)
     await dbUpsertUserRemark(LEONI, heavy, bibi.id, AT)
     expect((await dbSelectUserRemark(LEONI))?.remark).toBe(heavy)
+  })
+})
+
+describe("the remark with the member's names, for Crea", () => {
+  it('answers null where the moderation keeps no remark on the member', async () => {
+    expect(await dbSelectUserRemarkWithMemberNames(bibi.id)).toBeNull()
+  })
+
+  it('brings the names of the member the remark is about, not of the moderator who wrote it', async () => {
+    // peter wrote it, the remark is about bibi.
+    await dbUpsertUserRemark(bibi.id, 'Rentnerin seit Januar 2025', peter.id, AT)
+    expect(await dbSelectUserRemarkWithMemberNames(bibi.id)).toEqual({
+      remark: 'Rentnerin seit Januar 2025',
+      memberNames: ['Bibi', 'Bloxberg', 'BBB'],
+    })
+  })
+
+  it('brings no names where the member has no account here', async () => {
+    await dbUpsertUserRemark(LEONI, 'Tochter von Ramona', bibi.id, AT)
+    expect(await dbSelectUserRemarkWithMemberNames(LEONI)).toEqual({
+      remark: 'Tochter von Ramona',
+      memberNames: [],
+    })
   })
 })

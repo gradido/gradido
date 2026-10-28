@@ -10,6 +10,7 @@ import {
   dbGetFirstCreationSignerUserId,
   dbInsertEvent,
   dbIsMatchingKeyingActive,
+  dbSelectUserRemarkWithMemberNames,
   dbSetFirstCreationSignerUserId,
   dbUpdateHomeCommunity,
   EventType,
@@ -17,6 +18,7 @@ import {
 import { SALUTATION_MAX_LENGTH } from 'shared'
 import { Arg, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { AnthropicClient } from '@/apis/anthropic/AnthropicClient'
+import { withoutMemberNames } from '@/apis/anthropic/crea/memberRemark'
 import { metaFromInput, persistCreaRecords } from '@/apis/anthropic/crea/records'
 import {
   type CreaEffort,
@@ -35,6 +37,7 @@ import { CONFIG } from '@/config'
 import { resolveSigner } from '@/interactions/firstCreation/Signer.role'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
+import { countRemark } from './util/countRemark'
 
 @Resolver()
 export class CreaResolver {
@@ -42,11 +45,15 @@ export class CreaResolver {
   @Mutation(() => CreaEvaluation)
   async creaEvaluateContribution(
     @Arg('input') input: CreaContributionInput,
+    @Ctx() context: Context,
   ): Promise<CreaEvaluation> {
     const client = AnthropicClient.getInstance()
     let evaluation: CreaEvaluation
     if (client) {
-      evaluation = await client.evaluateContribution(input)
+      evaluation = await client.evaluateContribution(
+        input,
+        await remarkForCrea(context, input.userId),
+      )
     } else if (CONFIG.CREA_STUB) {
       // Staging preview before the API key (DO-5): a canned evaluation that still
       // runs the deterministic layer and persists, so the whole UI/DB path works.
@@ -74,13 +81,14 @@ export class CreaResolver {
   @Mutation(() => CreaRewriteResult)
   async creaRewriteResponse(
     @Arg('input') input: CreaContributionInput,
+    @Ctx() context: Context,
   ): Promise<CreaRewriteResult> {
     if (!input.moderatorDecision) {
       throw new Error('moderatorDecision is required to rewrite the response')
     }
     const client = AnthropicClient.getInstance()
     if (client) {
-      return client.rewriteResponse(input)
+      return client.rewriteResponse(input, await remarkForCrea(context, input.userId))
     }
     if (CONFIG.CREA_STUB) {
       return buildStubRewrite(input)
@@ -97,10 +105,13 @@ export class CreaResolver {
    */
   @Authorized([RIGHTS.AI_SEND_MESSAGE])
   @Mutation(() => CreaBatchEvaluation)
-  async creaEvaluateBatch(@Arg('input') input: CreaBatchInput): Promise<CreaBatchEvaluation> {
+  async creaEvaluateBatch(
+    @Arg('input') input: CreaBatchInput,
+    @Ctx() context: Context,
+  ): Promise<CreaBatchEvaluation> {
     const client = AnthropicClient.getInstance()
     if (client) {
-      return client.evaluateBatch(input)
+      return client.evaluateBatch(input, await remarkForCrea(context, input.userId))
     }
     if (CONFIG.CREA_STUB) {
       return buildStubBatch(input)
@@ -116,13 +127,16 @@ export class CreaResolver {
    */
   @Authorized([RIGHTS.AI_SEND_MESSAGE])
   @Mutation(() => CreaRewriteResult)
-  async creaRewriteBatch(@Arg('input') input: CreaBatchInput): Promise<CreaRewriteResult> {
+  async creaRewriteBatch(
+    @Arg('input') input: CreaBatchInput,
+    @Ctx() context: Context,
+  ): Promise<CreaRewriteResult> {
     if (!input.moderatorDecision) {
       throw new Error('moderatorDecision is required to rewrite the batch response')
     }
     const client = AnthropicClient.getInstance()
     if (client) {
-      return client.rewriteBatch(input)
+      return client.rewriteBatch(input, await remarkForCrea(context, input.userId))
     }
     if (CONFIG.CREA_STUB) {
       return buildStubBatchRewrite(input)
@@ -295,6 +309,24 @@ export class CreaResolver {
     const model = input.model?.trim() || defaultCreaModel()
     return client.probeModel(model, input.effort as CreaEffort, input.fastMode ?? false)
   }
+}
+
+/**
+ * The moderation's remark on the member, as Crea is given it (Bernd, 28.10.2026): without the
+ * member's own names (E-012). Read here, not sent by the admin interface, so the remark stays out
+ * of the request log; counted like every read of one, so the answer, which may speak of it, stays
+ * out as well (plugins.ts).
+ *
+ * Only for a caller who may read the remark: today every holder of AI_SEND_MESSAGE is a moderator,
+ * and this keeps it so should the sets ever part. The stub preview reads none.
+ */
+async function remarkForCrea(context: Context, userId?: number | null): Promise<string | null> {
+  if (!userId || !context.role?.hasRight(RIGHTS.MANAGE_USER_REMARKS)) {
+    return null
+  }
+  countRemark(context)
+  const found = await dbSelectUserRemarkWithMemberNames(userId)
+  return found ? withoutMemberNames(found.remark, found.memberNames) : null
 }
 
 /** The stored signer for the admin page, or null when nobody is configured. */
