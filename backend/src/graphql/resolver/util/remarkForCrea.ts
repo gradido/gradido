@@ -11,8 +11,10 @@ import { countRemark } from './countRemark'
  * of the request log; counted like every read of one, so the answer, which may speak of it, stays
  * out as well (plugins.ts). Counted before the read: a document asking too often reads nothing.
  *
- * Only for a caller who may read the remark: today every holder of AI_SEND_MESSAGE is a moderator,
- * and this keeps it so should the sets ever part. The stub preview reads none.
+ * Only where the admin interface names the member, which it does only when the moderator lets Crea
+ * read the remark ("Crea liest mit", off at each opening of the window); and only for a caller who
+ * may read it: today every holder of AI_SEND_MESSAGE is a moderator, and this keeps it so should
+ * the sets ever part. The stub preview reads none.
  */
 export async function remarkForCrea(
   context: Context,

@@ -3,6 +3,7 @@ import { useApolloClient, useMutation } from '@vue/apollo-composable'
 import {
   BBadge,
   BButton,
+  BFormCheckbox,
   BFormInput,
   BFormTextarea,
   BModal,
@@ -437,16 +438,25 @@ export const CreaEvaluationModal = defineComponent({
     }
     // What the server keeps of the words in the field: whitespace alone is no remark.
     const keptRemark = () => (remark.draft.value.trim() === '' ? null : remark.draft.value)
-    // The remark the server held when the last evaluation of a single contribution was asked for --
-    // what Crea read, also where the words in the field could not be saved; undefined before one.
+    // Crea reads the remark only where the moderator lets her, in this window, off at each opening
+    // (Bernd, 28.10.2026: "nur bewusst einschaltbar"): it is about the member, who does not see it.
+    const creaReadsRemark = ref(false)
+    // What Crea would read now: the words in the field, where she is let read them.
+    const remarkForCrea = () => (creaReadsRemark.value ? keptRemark() : null)
+    // A single contribution of a member with a remark waits for "Bewerten": the moderator decides
+    // first whether Crea reads it. Without a remark it is judged the moment the window opens.
+    const awaitingEvaluation = ref(false)
+    // What Crea read in the last evaluation of a single contribution: the remark the server held when
+    // she was asked, also where the words in the field could not be saved, or null where she was not
+    // let read it; undefined before one.
     const remarkJudged = ref<string | null | undefined>(undefined)
-    // A single contribution is judged the moment the window opens. Where the remark is changed after
-    // that, "Bewerten" comes into the foot, to judge it again with the new words.
+    // Where what Crea would read changed after that -- the switch, or the words with it on --
+    // "Bewerten" comes into the foot, to judge it again.
     const remarkChangedSinceJudged = computed(
       () =>
         remarkJudged.value !== undefined &&
         remark.loaded.value &&
-        keptRemark() !== remarkJudged.value,
+        remarkForCrea() !== remarkJudged.value,
     )
 
     const { mutate: evaluateMutation } = useMutation(creaEvaluateContribution)
@@ -471,8 +481,9 @@ export const CreaEvaluationModal = defineComponent({
       salutation: salutationFor(contribution),
       // Pseudonymous handle for the record — the user id, never a name (E-010).
       personPseudonym: contribution.userId != null ? String(contribution.userId) : null,
-      // The member, for the backend to read the moderation's remark on them: the id, never the words.
-      userId: contribution.userId ?? null,
+      // The member, for the backend to read the moderation's remark on them -- only where the
+      // moderator lets Crea read it: the id, never the words.
+      userId: creaReadsRemark.value ? (contribution.userId ?? null) : null,
       date: contribution.contributionDate ?? null,
       uiLanguage: locale.value,
     })
@@ -495,6 +506,8 @@ export const CreaEvaluationModal = defineComponent({
       contributions.value = []
       selectedIds.value = []
       remarkJudged.value = undefined
+      creaReadsRemark.value = false
+      awaitingEvaluation.value = false
     }
 
     // Where an arriving evaluation lands - shared by the single and the batch path so the
@@ -539,6 +552,7 @@ export const CreaEvaluationModal = defineComponent({
         return
       }
       const current = sameOpening()
+      awaitingEvaluation.value = false
       loading.value = true
       inactive.value = false
       errorMessage.value = ''
@@ -549,7 +563,7 @@ export const CreaEvaluationModal = defineComponent({
         if (!current()) {
           return
         }
-        remarkJudged.value = remark.saved.value?.remark ?? null
+        remarkJudged.value = creaReadsRemark.value ? (remark.saved.value?.remark ?? null) : null
         const response = await evaluateMutation({ input: buildInput(props.contribution) })
         if (!current()) {
           return
@@ -606,7 +620,7 @@ export const CreaEvaluationModal = defineComponent({
       recipientFirstName: props.contribution?.user?.firstName ?? null,
       salutation: salutationFor(props.contribution),
       uiLanguage: locale.value,
-      userId: props.contribution?.userId ?? null,
+      userId: creaReadsRemark.value ? (props.contribution?.userId ?? null) : null,
     })
 
     // Batch evaluation: judge the ticked contributions together into ONE verdict + ONE
@@ -783,12 +797,17 @@ export const CreaEvaluationModal = defineComponent({
         selectedIds.value = siblings.filter((c) => preselected.has(c.id)).map((c) => c.id)
       } else {
         contributions.value = []
-        // Judged at once: with the remark in the window, so that a change to it can be seen.
+        // With the remark in the window: a member who has one waits for "Bewerten", so that the
+        // moderator decides first whether Crea reads it; anybody else is judged at once.
         await remarkRead
         if (!current()) {
           return
         }
-        runEvaluation()
+        if (keptRemark() === null) {
+          runEvaluation()
+        } else {
+          awaitingEvaluation.value = true
+        }
       }
     }
 
@@ -893,12 +912,12 @@ export const CreaEvaluationModal = defineComponent({
             >
               {t('crea.evaluate')}
             </BButton>
-          ) : remarkChangedSinceJudged.value ? (
+          ) : awaitingEvaluation.value || remarkChangedSinceJudged.value ? (
             // Not while a reply is rewritten: its answer would land in the new evaluation.
             <BButton
               variant='primary'
               disabled={loading.value || rewriting.value}
-              data-test='crea-evaluate-again'
+              data-test='crea-evaluate-single'
               onClick={evaluateSingle}
             >
               {t('crea.evaluate')}
@@ -994,6 +1013,20 @@ export const CreaEvaluationModal = defineComponent({
         ) : (
           <MemberRemarkLine plain state={remark} />
         )}
+        {remarkMember.value !== null && keptRemark() !== null ? (
+          // Off at each opening: Crea reads the remark only where the moderator lets her.
+          <BFormCheckbox
+            modelValue={creaReadsRemark.value}
+            onUpdate:modelValue={(value: unknown) => {
+              creaReadsRemark.value = value as boolean
+            }}
+            switch
+            class='mb-2'
+            data-test='crea-reads-remark'
+          >
+            {t('crea.readsRemark')}
+          </BFormCheckbox>
+        ) : null}
         {isBatch.value ? (
           renderChecklist()
         ) : (

@@ -3,6 +3,7 @@ import { mount } from '@vue/test-utils'
 import {
   BBadge,
   BButton,
+  BFormCheckbox,
   BFormInput,
   BFormTextarea,
   BSpinner,
@@ -76,7 +77,7 @@ const stubs = {
 }
 // The real controls, so the tests can type and click: in the app the build resolves them by
 // name, which the tests leave out.
-const components = { BBadge, BButton, BFormInput, BFormTextarea, BSpinner }
+const components = { BBadge, BButton, BFormCheckbox, BFormInput, BFormTextarea, BSpinner }
 
 // What the moderator sees and does, read off the rendered modal. The draft is the tall
 // field under "crea.response"; the other two textareas (context, signature) are two rows.
@@ -474,6 +475,8 @@ describe('CreaEvaluationModal — the remark on the member', () => {
   // What reaches the server, in order: the remark's saves and the calls to Crea.
   let calls
   let siblings
+  // What the server holds on the member; null for a member without a remark.
+  let remarkOnServer
   const REMARK = {
     remark: 'Rentnerin seit Januar 2025',
     updatedAt: '2026-10-28T08:40:00.000Z',
@@ -506,11 +509,19 @@ describe('CreaEvaluationModal — the remark on the member', () => {
     await wrapper.find('[data-test="member-remark-field"]').setValue(words)
   }
   const creaInputs = () => calls.filter(([kind]) => kind === 'crea').map(([, vars]) => vars.input)
+  // "Crea liest mit", off at each opening.
+  const readsSwitch = (wrapper) => {
+    const found = wrapper.find('[data-test="crea-reads-remark"]')
+    return found.exists() && found.element.tagName !== 'INPUT' ? found.find('input') : found
+  }
+  const letCreaRead = (wrapper) => readsSwitch(wrapper).setValue(true)
+  const evaluateSingle = (wrapper) => wrapper.find('[data-test="crea-evaluate-single"]')
 
   beforeEach(() => {
     forgetUserRemarks()
     calls = []
     siblings = []
+    remarkOnServer = REMARK
     said.length = 0
     toastError.mockClear()
     useMutation.mockImplementation(() => ({
@@ -523,7 +534,7 @@ describe('CreaEvaluationModal — the remark on the member', () => {
       resolveClient: () => ({
         query: vi.fn(async ({ query }) =>
           query === userRemark
-            ? { data: { userRemark: REMARK } }
+            ? { data: { userRemark: remarkOnServer } }
             : { data: { adminListContributions: { contributionList: siblings } } },
         ),
         mutate: vi.fn(async ({ variables }) => {
@@ -538,15 +549,75 @@ describe('CreaEvaluationModal — the remark on the member', () => {
     forgetUserRemarks()
   })
 
-  it('shows the remark under the name, and asks Crea with the member, never with the words', async () => {
+  // Bernd, 28.10.2026: Crea reads the remark only where the moderator turns "Crea liest mit" on.
+  it('shows the remark with "Crea liest mit" off, and waits for "Bewerten"', async () => {
     const wrapper = mountModal()
     await open(wrapper)
     expect(wrapper.find('[data-test="member-remark"]').text()).toContain(REMARK.remark)
     expect(
       wrapper.find('[data-test="member-remark-toggle"]').attributes('disabled'),
     ).toBeUndefined()
-    expect(creaInputs()).toEqual([expect.objectContaining({ userId: 42 })])
+    expect(readsSwitch(wrapper).element.checked).toBe(false)
+    expect(creaInputs()).toEqual([])
+    expect(evaluateSingle(wrapper).exists()).toBe(true)
+  })
+
+  it('judges a member without a remark at once, without the member, and shows no switch', async () => {
+    remarkOnServer = null
+    const wrapper = mountModal()
+    await open(wrapper)
+    expect(creaInputs()).toEqual([expect.objectContaining({ userId: null })])
+    expect(readsSwitch(wrapper).exists()).toBe(false)
+    expect(evaluateSingle(wrapper).exists()).toBe(false)
+  })
+
+  it('asks Crea with the member only once "Crea liest mit" is on, never with the words', async () => {
+    const wrapper = mountModal()
+    await open(wrapper)
+    await evaluateSingle(wrapper).trigger('click')
+    await settle()
+    expect(creaInputs()).toEqual([expect.objectContaining({ userId: null })])
+    // Judged without the remark, as asked: nothing more to judge until the switch moves.
+    expect(evaluateSingle(wrapper).exists()).toBe(false)
+    await letCreaRead(wrapper)
+    await evaluateSingle(wrapper).trigger('click')
+    await settle()
+    expect(creaInputs()[1]).toEqual(expect.objectContaining({ userId: 42 }))
+    expect(evaluateSingle(wrapper).exists()).toBe(false)
+    // A rewrite reads it as well, while the switch is on.
+    await buttonNamed(wrapper, 'crea.decision.deny').trigger('click')
+    await buttonNamed(wrapper, 'crea.rewrite').trigger('click')
+    await settle()
+    expect(creaInputs()[2]).toEqual(
+      expect.objectContaining({ userId: 42, moderatorDecision: 'deny' }),
+    )
     expect(JSON.stringify(creaInputs())).not.toContain(REMARK.remark)
+  })
+
+  it('asks Crea for several contributions with the member only once "Crea liest mit" is on', async () => {
+    siblings = [contribution(), contribution({ id: 2, memo: 'Vorlesen im Kindergarten' })]
+    const wrapper = mountModal()
+    await open(wrapper)
+    await wrapper.find('[data-test="crea-evaluate-batch"]').trigger('click')
+    await settle()
+    await letCreaRead(wrapper)
+    await wrapper.find('[data-test="crea-evaluate-batch"]').trigger('click')
+    await settle()
+    expect(creaInputs()).toEqual([
+      expect.objectContaining({ userId: null }),
+      expect.objectContaining({ userId: 42 }),
+    ])
+  })
+
+  it('turns "Crea liest mit" off at each opening', async () => {
+    const wrapper = mountModal()
+    await open(wrapper)
+    await letCreaRead(wrapper)
+    expect(readsSwitch(wrapper).element.checked).toBe(true)
+    wrapper.findComponent({ name: 'BModal' }).vm.$emit('hidden')
+    await settle()
+    await open(wrapper)
+    expect(readsSwitch(wrapper).element.checked).toBe(false)
   })
 
   it('saves the words typed in the window before Crea is asked', async () => {
@@ -554,6 +625,7 @@ describe('CreaEvaluationModal — the remark on the member', () => {
     const wrapper = mountModal()
     await open(wrapper)
     await write(wrapper, 'Kind, 5 Jahre alt')
+    await letCreaRead(wrapper)
     await buttonNamed(wrapper, 'crea.evaluate').trigger('click')
     await settle()
     expect(calls).toEqual([
@@ -562,13 +634,16 @@ describe('CreaEvaluationModal — the remark on the member', () => {
     ])
   })
 
-  it('offers "Bewerten" again for a single contribution once the remark changed, and judges anew', async () => {
+  it('offers "Bewerten" again once the remark Crea reads changed, and judges anew', async () => {
     const wrapper = mountModal()
     await open(wrapper)
+    await letCreaRead(wrapper)
+    await evaluateSingle(wrapper).trigger('click')
+    await settle()
     expect(creaInputs()).toHaveLength(1)
-    expect(wrapper.find('[data-test="crea-evaluate-again"]').exists()).toBe(false)
+    expect(evaluateSingle(wrapper).exists()).toBe(false)
     await write(wrapper, 'Rentner seit Januar 2025, Kind von Ramona')
-    const again = wrapper.find('[data-test="crea-evaluate-again"]')
+    const again = evaluateSingle(wrapper)
     expect(again.exists()).toBe(true)
     await again.trigger('click')
     await settle()
@@ -576,7 +651,7 @@ describe('CreaEvaluationModal — the remark on the member', () => {
       ['remark', { userId: 42, remark: 'Rentner seit Januar 2025, Kind von Ramona' }],
       ['crea', { input: expect.objectContaining({ userId: 42 }) }],
     ])
-    expect(wrapper.find('[data-test="crea-evaluate-again"]').exists()).toBe(false)
+    expect(evaluateSingle(wrapper).exists()).toBe(false)
   })
 
   it('saves what waits when the window closes, and reads the remark anew on the next opening', async () => {
@@ -597,9 +672,11 @@ describe('CreaEvaluationModal — the remark on the member', () => {
   it('keeps a salutation typed and not saved when "Bewerten" is pressed again', async () => {
     const wrapper = mountModal()
     await open(wrapper)
+    await evaluateSingle(wrapper).trigger('click')
+    await settle()
     await wrapper.find('#crea-salutation').setValue('Liebe Carla')
-    await write(wrapper, 'Rentnerin seit Januar 2025, Tochter von Ramona')
-    await wrapper.find('[data-test="crea-evaluate-again"]').trigger('click')
+    await letCreaRead(wrapper)
+    await evaluateSingle(wrapper).trigger('click')
     await settle()
     expect(creaInputs()).toHaveLength(2)
     expect(wrapper.find('#crea-salutation').element.value).toBe('Liebe Carla')
@@ -617,11 +694,13 @@ describe('CreaEvaluationModal — the remark on the member', () => {
     }))
     const wrapper = mountModal()
     await open(wrapper)
+    await evaluateSingle(wrapper).trigger('click')
+    await settle()
     await buttonNamed(wrapper, 'crea.decision.deny').trigger('click')
     await buttonNamed(wrapper, 'crea.rewrite').trigger('click')
     await settle()
-    await write(wrapper, 'Kind, 5 Jahre alt')
-    expect(wrapper.find('[data-test="crea-evaluate-again"]').attributes('disabled')).toBeDefined()
+    await letCreaRead(wrapper)
+    expect(evaluateSingle(wrapper).attributes('disabled')).toBeDefined()
   })
 
   // Found beside it, older than the remark: the same late answer in the batch.
@@ -654,7 +733,8 @@ describe('CreaEvaluationModal — the remark on the member', () => {
         query: vi.fn(({ query }) =>
           query === userRemark
             ? new Promise((resolve) => {
-                answer = () => resolve({ data: { userRemark: REMARK } })
+                // A member without a remark, who would be judged at once.
+                answer = () => resolve({ data: { userRemark: null } })
               })
             : Promise.resolve({ data: { adminListContributions: { contributionList: [] } } }),
         ),
@@ -690,7 +770,7 @@ describe('CreaEvaluationModal — the remark on the member', () => {
       resolveClient: () => ({
         query: vi.fn(async ({ query }) =>
           query === userRemark
-            ? { data: { userRemark: REMARK } }
+            ? { data: { userRemark: remarkOnServer } }
             : { data: { adminListContributions: { contributionList: siblings } } },
         ),
         mutate: vi.fn(
@@ -744,16 +824,19 @@ describe('CreaEvaluationModal — the remark on the member', () => {
     })
   const twoOf = (member) => [member, { ...member, id: member.id + 100, memo: 'Gartenarbeit' }]
 
+  const nothingFirst = async () => undefined
   it.each([
     [
       'a single contribution',
+      nothingFirst,
       async (wrapper) => {
         await write(wrapper, 'Kind, 5 Jahre alt')
-        await wrapper.find('[data-test="crea-evaluate-again"]').trigger('click')
+        await evaluateSingle(wrapper).trigger('click')
       },
     ],
     [
       'several contributions',
+      nothingFirst,
       async (wrapper) => {
         await write(wrapper, 'Kind, 5 Jahre alt')
         await wrapper.find('[data-test="crea-evaluate-batch"]').trigger('click')
@@ -763,6 +846,10 @@ describe('CreaEvaluationModal — the remark on the member', () => {
     [
       'a rewrite',
       async (wrapper) => {
+        await evaluateSingle(wrapper).trigger('click')
+        await settle()
+      },
+      async (wrapper) => {
         await buttonNamed(wrapper, 'crea.decision.deny').trigger('click')
         await write(wrapper, 'Kind, 5 Jahre alt')
         await buttonNamed(wrapper, 'crea.rewrite').trigger('click')
@@ -770,11 +857,12 @@ describe('CreaEvaluationModal — the remark on the member', () => {
     ],
   ])(
     'asks Crea nothing for %s when the window closed while the words were saved',
-    async (_kind, ask, list) => {
+    async (_kind, first, ask, list) => {
       siblings = list?.() ?? []
       const letSavesThrough = holdSaves()
       const wrapper = mountModal()
       await open(wrapper)
+      await first(wrapper)
       const before = creaInputs().length
       await ask(wrapper)
       await settle()
@@ -797,6 +885,8 @@ describe('CreaEvaluationModal — the remark on the member', () => {
     'lets a late answer for %s change nothing in the window opened since',
     async (_kind, ask, list) => {
       const answers = holdAnswers()
+      // A member without a remark: a single contribution is judged the moment the window opens.
+      remarkOnServer = null
       siblings = list()
       const wrapper = mountModal()
       await open(wrapper)
@@ -827,6 +917,8 @@ describe('CreaEvaluationModal — the remark on the member', () => {
     'keeps the window opened since waiting for its own answer where a late one for %s fails',
     async (_kind, ask, list) => {
       const answers = holdAnswers()
+      // A member without a remark: a single contribution is judged the moment the window opens.
+      remarkOnServer = null
       siblings = list()
       const wrapper = mountModal()
       await open(wrapper)
@@ -860,6 +952,8 @@ describe('CreaEvaluationModal — the remark on the member', () => {
     'lets a late rewrite for %s change nothing in the window opened since, which rewrites on its own',
     async (_kind, ask, list) => {
       const answers = holdAnswers()
+      // A member without a remark: a single contribution is judged the moment the window opens.
+      remarkOnServer = null
       siblings = list()
       const wrapper = mountModal()
       await open(wrapper)
@@ -889,6 +983,7 @@ describe('CreaEvaluationModal — the remark on the member', () => {
 
   it('tells nothing of a late rewrite that failed', async () => {
     const answers = holdAnswers()
+    remarkOnServer = null
     const wrapper = mountModal()
     await open(wrapper)
     answers[0].resolve(answer('Erste Antwort'))
@@ -997,10 +1092,13 @@ describe('CreaEvaluationModal — the remark on the member', () => {
     })
     const wrapper = mountModal()
     await open(wrapper)
+    await letCreaRead(wrapper)
+    await evaluateSingle(wrapper).trigger('click')
+    await settle()
     await write(wrapper, 'Kind, 5 Jahre alt')
-    await wrapper.find('[data-test="crea-evaluate-again"]').trigger('click')
+    await evaluateSingle(wrapper).trigger('click')
     await settle()
     expect(creaInputs()).toHaveLength(2)
-    expect(wrapper.find('[data-test="crea-evaluate-again"]').exists()).toBe(true)
+    expect(evaluateSingle(wrapper).exists()).toBe(true)
   })
 })

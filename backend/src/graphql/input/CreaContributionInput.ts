@@ -57,8 +57,9 @@ export class CreaContributionInput {
   moderatorSignature?: string | null
 
   // The member the contribution is from: the backend reads the moderation's remark on them and
-  // gives it to Crea without their names (Bernd, 28.10.2026; crea/memberRemark.ts). The id, not the
-  // remark: the remark stays out of the request log (server/plugins.ts).
+  // gives it to Crea without their names (Bernd, 28.10.2026; crea/memberRemark.ts). Sent only where
+  // the moderator lets Crea read it ("Crea liest mit", off at each opening of the window). The id,
+  // not the remark: the remark stays out of the request log (server/plugins.ts).
   @Field(() => Int, { nullable: true })
   @IsOptional()
   @IsInt()

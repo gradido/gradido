@@ -3,7 +3,9 @@
 /**
  * The moderation's remark on a member, as Crea reads it (Bernd, 28.10.2026): "Rentnerin seit
  * Januar 2025", "Kind, 5 Jahre alt" -- what a contribution seldom says, and what chapter 7 of the
- * rules misses ("Es gibt kein Profilfeld für den Status"). The remark is that field.
+ * rules misses ("Es gibt kein Profilfeld für den Status"). The remark is that field. Crea reads it
+ * only where the moderator lets her, in the window, each time anew ("Crea liest mit"): it is about
+ * the member, who does not see it.
  *
  * It travels in the user message, after the contributions, and never in the cached rules prefix:
  * the prefix stays byte for byte the same for every call (E-011), and a member without a remark
