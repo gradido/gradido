@@ -620,6 +620,31 @@ describe('CreaEvaluationModal — the remark on the member', () => {
     expect(readsSwitch(wrapper).element.checked).toBe(false)
   })
 
+  // coderabbit (#4222): a failed evaluation leaves "Bewerten" in the foot -- closing the window
+  // would turn the switch off -- but not where Crea is not switched on at all.
+  it('keeps "Bewerten" where an evaluation failed, to try again, but not where Crea is off', async () => {
+    const failures = [new Error('Network error'), new Error('Anthropic API is not enabled')]
+    useMutation.mockImplementation(() => ({
+      mutate: vi.fn(async (vars) => {
+        calls.push(['crea', vars])
+        throw failures.shift()
+      }),
+    }))
+    const wrapper = mountModal()
+    await open(wrapper)
+    await letCreaRead(wrapper)
+    await evaluateSingle(wrapper).trigger('click')
+    await settle()
+    expect(wrapper.find('.alert-danger').exists()).toBe(true)
+    expect(evaluateSingle(wrapper).exists()).toBe(true)
+    expect(readsSwitch(wrapper).element.checked).toBe(true)
+    await evaluateSingle(wrapper).trigger('click')
+    await settle()
+    expect(creaInputs()).toHaveLength(2)
+    expect(wrapper.find('.alert-info').exists()).toBe(true)
+    expect(evaluateSingle(wrapper).exists()).toBe(false)
+  })
+
   it('saves the words typed in the window before Crea is asked', async () => {
     siblings = [contribution(), contribution({ id: 2, memo: 'Vorlesen im Kindergarten' })]
     const wrapper = mountModal()

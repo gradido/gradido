@@ -580,6 +580,8 @@ export const CreaEvaluationModal = defineComponent({
           inactive.value = true
         } else {
           errorMessage.value = (error as Error).message
+          // "Bewerten" stays, to try again: closing the window would turn "Crea liest mit" off.
+          awaitingEvaluation.value = true
         }
       } finally {
         if (current()) {
