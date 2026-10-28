@@ -1755,10 +1755,12 @@
   },
   "thanksNudge": {
     "afterCall": "Wil je {name} bedanken voor het gesprek?",
+    "afterGroupCall": "Wil je bedankt zeggen voor het gesprek?",
     "notNow": "Niet nu",
     "passOn": "Dank doorgeven?",
     "say": "Bedanken",
-    "someone": "Iemand bedanken"
+    "someone": "Iemand bedanken",
+    "whom": "Wie wil je bedanken?"
   },
   "time": {
     "days": "Dagen",
