@@ -1294,6 +1294,16 @@ export const userNote = gql`
   }
 `
 
+export const userRemark = gql`
+  query ($userId: Int!) {
+    userRemark(userId: $userId) {
+      remark
+      updatedAt
+      updatedByName
+    }
+  }
+`
+
 export const userNotes = gql`
   query {
     userNotes {

@@ -58,6 +58,9 @@ export interface RequestBudget {
   // A member's own notes read or written (userNote, userNotes, setUserNote), capped at
   // USER_NOTES_MAX_PER_REQUEST. The answer of a request that read one stays out of the log.
   userNotesServed: number
+  // The moderation's remarks on members read or written (userRemark, setUserRemark), capped at
+  // USER_REMARKS_MAX_PER_REQUEST. The answer of a request that read one stays out of the log.
+  userRemarksServed: number
 }
 
 /** A budget with nothing spent. The context function creates one per HTTP request. */
@@ -78,6 +81,7 @@ export const newRequestBudget = (): RequestBudget => ({
   chatReactionsSet: 0,
   transactionReactionsSet: 0,
   userNotesServed: 0,
+  userRemarksServed: 0,
 })
 
 export interface Context {

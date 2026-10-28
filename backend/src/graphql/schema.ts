@@ -38,6 +38,7 @@ import { TransactionReactionResolver } from './resolver/TransactionReactionResol
 import { TransactionResolver } from './resolver/TransactionResolver'
 import { UserCreationGroupResolver } from './resolver/UserCreationGroupResolver'
 import { UserNoteResolver } from './resolver/UserNoteResolver'
+import { UserRemarkResolver } from './resolver/UserRemarkResolver'
 import { UserResolver } from './resolver/UserResolver'
 import { DurationScalar } from './scalar/Duration'
 import { LocationScalar } from './scalar/Location'
@@ -86,6 +87,7 @@ export const schema = (): Promise<GraphQLSchema> => {
       TransactionResolver,
       UserCreationGroupResolver,
       UserNoteResolver,
+      UserRemarkResolver,
       UserResolver,
     ],
     authChecker: isAuthorized,

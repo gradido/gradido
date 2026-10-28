@@ -31,4 +31,7 @@ export const MODERATOR_RIGHTS = [
   // would void the guard on the day it ships.
   RIGHTS.VIEW_USER_REAL_NAME,
   RIGHTS.VIEW_USER_EMAIL_STATUS,
+  // The remark the moderation keeps on a member (Bernd, 28.10.2026: "alle ab der Berechtigung
+  // Moderator"): KI-moderators and administrators hold it through their sets as well (ROLES.ts).
+  RIGHTS.MANAGE_USER_REMARKS,
 ]

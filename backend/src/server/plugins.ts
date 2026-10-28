@@ -103,6 +103,14 @@ const filterVariables = (variables: any) => {
   if (vars?.note) {
     vars.note = '***'
   }
+  // The moderation's remark on a member (setUserRemark, `$remark` in the admin's
+  // graphql/userRemark.ts): what the moderators know of a person -- whose daughter,
+  // which office --, written in the line before the moderator's id. Whom it is about stays
+  // readable (`$userId`). No other document of wallet or admin names a variable so; the admin's
+  // has to.
+  if (vars?.remark) {
+    vars.remark = '***'
+  }
   return vars
 }
 
@@ -184,6 +192,10 @@ variables: ${JSON.stringify(filterVariables(variables), null, 2)}`)
             } else if (requestContext.contextValue.requestBudget?.userNotesServed) {
               // A member's own notes (userNote, userNotes) are theirs alone.
               logger.trace('Response-Data: left out, it holds a note')
+            } else if (requestContext.contextValue.requestBudget?.userRemarksServed) {
+              // The moderation's remark on a member (userRemark, setUserRemark) is for the
+              // moderators alone.
+              logger.trace('Response-Data: left out, it holds a remark')
             } else if (
               requestContext.contextValue.requestBudget?.chatImagesServed ||
               requestContext.contextValue.requestBudget?.thankYouGreetingPicturesServed ||

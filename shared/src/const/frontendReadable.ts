@@ -46,3 +46,11 @@ export const CHAT_REACTION_EMOJI_ROWS: readonly (readonly string[])[] = [
   ['🌱', '🌻', '🌈', '☀️', '🍀', '🎉', '🎁', '🎂'],
   ['☕', '🍰', '🏡', '🚲', '📅', '✅', '❓', '❗'],
 ]
+
+// How long the moderation's remark on a member may be (migration 0168, setUserRemark): what the
+// admin interface's field lets through, counted as MaxLength counts (UTF-16 code units). A few
+// lines of hints -- "Bürgermeisterin von Lieblingsstadt", "Tochter von Ramona" --, not a file.
+//
+// The admin interface has no dependency on `shared`; userRemark.drift.spec.ts there holds its
+// copy against this one.
+export const USER_REMARK_MAX_CHARS = 2000
