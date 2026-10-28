@@ -623,6 +623,7 @@
     "lastChanged": "Son değişiklik: {name}, {date}",
     "lastChangedNoName": "Son değişiklik: {date}",
     "private": "Tüm moderatörler görür, {name} görmez.",
+    "privateWithCrea": "Tüm moderatörler ve Crea görür, {name} görmez.",
     "retry": "Tekrar dene",
     "saved": "Kaydedildi",
     "saving": "Kaydediliyor…",

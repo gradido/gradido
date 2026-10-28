@@ -34,7 +34,7 @@ describe('useUserRemark', () => {
   let cards: ReturnType<typeof mount>[]
 
   /** A card as the contributions page holds one: the composable, for the member it shows. */
-  const mountCard = (member = ref(LEONI)) => {
+  const mountCard = (member = ref<number | null>(LEONI)) => {
     let state: UserRemarkState | undefined
     const wrapper = mount(
       defineComponent({
@@ -447,5 +447,89 @@ describe('useUserRemark', () => {
     expect(state.saved.value).toBeNull()
     state.take(109, answerFor('on Marta'))
     expect(state.saved.value?.remark).toBe('on Marta')
+  })
+
+  // Crea's window holds the member only while it is open (Bernd, 28.10.2026): the composable is
+  // told "nobody" in between.
+  it('holds nothing while the card shows nobody: no field, nothing to save', async () => {
+    const { state } = mountCard(ref<number | null>(null))
+    state.take(LEONI, BY_BERND)
+    state.toggle()
+    state.input('Rentnerin seit Januar 2025')
+    await state.flush()
+    expect(state.loaded.value).toBe(false)
+    expect(state.saved.value).toBeNull()
+    expect(state.open.value).toBe(false)
+    expect(state.draft.value).toBe('')
+    expect(mutate).not.toHaveBeenCalled()
+  })
+
+  it('takes the member up when the window opens, and lets them go with the words when it closes', async () => {
+    const member = ref<number | null>(null)
+    const { state } = mountCard(member)
+    member.value = LEONI
+    await vi.advanceTimersByTimeAsync(0)
+    state.take(LEONI, BY_BERND)
+    expect(state.saved.value).toEqual(BY_BERND)
+    state.toggle()
+    state.input('Rentnerin seit Januar 2025')
+    member.value = null
+    await vi.advanceTimersByTimeAsync(0)
+    expect(sent()).toEqual([{ userId: LEONI, remark: 'Rentnerin seit Januar 2025' }])
+    expect(state.open.value).toBe(false)
+    expect(state.loaded.value).toBe(false)
+  })
+
+  it('saves at once on flush, before the pause is over, and answers once the server did', async () => {
+    const { state } = mountCard()
+    state.take(LEONI, BY_BERND)
+    state.toggle()
+    state.input('Rentnerin seit Januar 2025')
+    let answered = false
+    const flushed = state.flush().then(() => {
+      answered = true
+    })
+    expect(answered).toBe(false)
+    await flushed
+    expect(sent()).toEqual([{ userId: LEONI, remark: 'Rentnerin seit Januar 2025' }])
+    expect(state.saved.value?.remark).toBe('Rentnerin seit Januar 2025')
+    await vi.advanceTimersByTimeAsync(REMARK_SAVE_PAUSE_MS)
+    expect(mutate).toHaveBeenCalledTimes(1)
+  })
+
+  it('waits on flush for a save on its way and the words typed after it', async () => {
+    let release: () => void = () => undefined
+    mutate.mockImplementationOnce(
+      ({ variables }) =>
+        new Promise((resolve) => {
+          release = () => resolve({ data: { setUserRemark: answerFor(variables.remark) } })
+        }),
+    )
+    const { state } = mountCard()
+    state.take(LEONI, BY_BERND)
+    state.toggle()
+    state.input('Rentnerin')
+    await vi.advanceTimersByTimeAsync(REMARK_SAVE_PAUSE_MS)
+    state.input('Rentnerin seit Januar 2025')
+    let answered = false
+    const flushed = state.flush().then(() => {
+      answered = true
+    })
+    await vi.advanceTimersByTimeAsync(0)
+    expect(answered).toBe(false)
+    release()
+    await flushed
+    expect(sent()).toEqual([
+      { userId: LEONI, remark: 'Rentnerin' },
+      { userId: LEONI, remark: 'Rentnerin seit Januar 2025' },
+    ])
+    expect(state.saved.value?.remark).toBe('Rentnerin seit Januar 2025')
+  })
+
+  it('sends nothing on flush where nothing waits', async () => {
+    const { state } = mountCard()
+    state.take(LEONI, BY_BERND)
+    await state.flush()
+    expect(mutate).not.toHaveBeenCalled()
   })
 })

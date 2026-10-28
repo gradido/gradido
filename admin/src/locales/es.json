@@ -623,6 +623,7 @@
     "lastChanged": "Último cambio: {name}, {date}",
     "lastChangedNoName": "Último cambio: {date}",
     "private": "La ven todos los moderadores, no {name}.",
+    "privateWithCrea": "La ven todos los moderadores y Crea, no {name}.",
     "retry": "Reintentar",
     "saved": "Guardado",
     "saving": "Guardando…",

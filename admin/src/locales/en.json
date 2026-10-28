@@ -623,6 +623,7 @@
     "lastChanged": "Last changed by {name}, {date}",
     "lastChangedNoName": "Last changed {date}",
     "private": "All moderators see it, {name} does not.",
+    "privateWithCrea": "All moderators and Crea see it, {name} does not.",
     "retry": "Try again",
     "saved": "Saved",
     "saving": "Saving…",

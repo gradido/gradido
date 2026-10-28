@@ -10,6 +10,8 @@ import {
 } from 'bootstrap-vue-next'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
+import { forgetUserRemarks } from '@/composables/useUserRemark'
+import { userRemark } from '@/graphql/userRemark'
 import { CreaEvaluationModal } from './CreaEvaluationModal'
 
 // This file exists because the [ANREDE] fill moved OUT of the tested backend and INTO
@@ -21,7 +23,8 @@ import { CreaEvaluationModal } from './CreaEvaluationModal'
 
 vi.mock('@vue/apollo-composable')
 vi.mock('vue-i18n', () => ({
-  useI18n: () => ({ t: (key) => key, locale: { value: 'de' } }),
+  // `d` for the remark's field, which says when it was written last.
+  useI18n: () => ({ t: (key) => key, d: () => 'date', locale: { value: 'de' } }),
 }))
 vi.mock('@/composables/useToast', () => ({
   useAppToast: () => ({ toastSuccess: vi.fn(), toastError: vi.fn() }),
@@ -454,4 +457,128 @@ describe('CreaEvaluationModal — on a phone and at the desk', () => {
       ).toEqual(['2'])
     },
   )
+})
+
+// The moderation's remark on the member in Crea's window (Bernd, 28.10.2026): shown and written with
+// the card's parts, read by Crea from the server -- so every call to Crea first saves what waits.
+describe('CreaEvaluationModal — the remark on the member', () => {
+  // What reaches the server, in order: the remark's saves and the calls to Crea.
+  let calls
+  let siblings
+  const REMARK = {
+    remark: 'Rentnerin seit Januar 2025',
+    updatedAt: '2026-10-28T08:40:00.000Z',
+    updatedByName: 'Bernd Hückstädt',
+  }
+  const EVALUATION = {
+    responseText: RAW_REPLY,
+    defaultSalutation: 'Lieber Thomas',
+    overallVerdict: 'confirm',
+    flags: [],
+    activities: [],
+    openPoints: [],
+  }
+
+  // With the foot, where "Bewerten" stands.
+  const withFoot = {
+    BModal: { ...stubs.BModal, template: '<div><slot /><slot name="footer" /></div>' },
+  }
+  const mountModal = () =>
+    mount(CreaEvaluationModal, {
+      props: { contribution: contribution() },
+      global: { stubs: withFoot, components },
+    })
+  const open = async (wrapper) => {
+    wrapper.findComponent({ name: 'BModal' }).vm.$emit('shown')
+    await settle()
+  }
+  const write = async (wrapper, words) => {
+    await wrapper.find('[data-test="member-remark-toggle"]').trigger('click')
+    await wrapper.find('[data-test="member-remark-field"]').setValue(words)
+  }
+  const creaInputs = () => calls.filter(([kind]) => kind === 'crea').map(([, vars]) => vars.input)
+
+  beforeEach(() => {
+    forgetUserRemarks()
+    calls = []
+    siblings = []
+    useMutation.mockImplementation(() => ({
+      mutate: vi.fn(async (vars) => {
+        calls.push(['crea', vars])
+        return { data: { creaEvaluateContribution: EVALUATION, creaEvaluateBatch: EVALUATION } }
+      }),
+    }))
+    useApolloClient.mockReturnValue({
+      resolveClient: () => ({
+        query: vi.fn(async ({ query }) =>
+          query === userRemark
+            ? { data: { userRemark: REMARK } }
+            : { data: { adminListContributions: { contributionList: siblings } } },
+        ),
+        mutate: vi.fn(async ({ variables }) => {
+          calls.push(['remark', variables])
+          return { data: { setUserRemark: { ...REMARK, remark: variables.remark } } }
+        }),
+      }),
+    })
+  })
+
+  afterEach(() => {
+    forgetUserRemarks()
+  })
+
+  it('shows the remark under the name, and asks Crea with the member, never with the words', async () => {
+    const wrapper = mountModal()
+    await open(wrapper)
+    expect(wrapper.find('[data-test="member-remark"]').text()).toContain(REMARK.remark)
+    expect(
+      wrapper.find('[data-test="member-remark-toggle"]').attributes('disabled'),
+    ).toBeUndefined()
+    expect(creaInputs()).toEqual([expect.objectContaining({ userId: 42 })])
+    expect(JSON.stringify(creaInputs())).not.toContain(REMARK.remark)
+  })
+
+  it('saves the words typed in the window before Crea is asked', async () => {
+    siblings = [contribution(), contribution({ id: 2, memo: 'Vorlesen im Kindergarten' })]
+    const wrapper = mountModal()
+    await open(wrapper)
+    await write(wrapper, 'Kind, 5 Jahre alt')
+    await buttonNamed(wrapper, 'crea.evaluate').trigger('click')
+    await settle()
+    expect(calls).toEqual([
+      ['remark', { userId: 42, remark: 'Kind, 5 Jahre alt' }],
+      ['crea', { input: expect.objectContaining({ userId: 42 }) }],
+    ])
+  })
+
+  it('offers "Bewerten" again for a single contribution once the remark changed, and judges anew', async () => {
+    const wrapper = mountModal()
+    await open(wrapper)
+    expect(creaInputs()).toHaveLength(1)
+    expect(wrapper.find('[data-test="crea-evaluate-again"]').exists()).toBe(false)
+    await write(wrapper, 'Rentner seit Januar 2025, Kind von Ramona')
+    const again = wrapper.find('[data-test="crea-evaluate-again"]')
+    expect(again.exists()).toBe(true)
+    await again.trigger('click')
+    await settle()
+    expect(calls.slice(1)).toEqual([
+      ['remark', { userId: 42, remark: 'Rentner seit Januar 2025, Kind von Ramona' }],
+      ['crea', { input: expect.objectContaining({ userId: 42 }) }],
+    ])
+    expect(wrapper.find('[data-test="crea-evaluate-again"]').exists()).toBe(false)
+  })
+
+  it('saves what waits when the window closes, and reads the remark anew on the next opening', async () => {
+    const wrapper = mountModal()
+    await open(wrapper)
+    await write(wrapper, 'Mutter von zwei Kindern')
+    wrapper.findComponent({ name: 'BModal' }).vm.$emit('hidden')
+    await settle()
+    expect(calls.filter(([kind]) => kind === 'remark')).toEqual([
+      ['remark', { userId: 42, remark: 'Mutter von zwei Kindern' }],
+    ])
+    expect(wrapper.find('[data-test="member-remark-toggle"]').exists()).toBe(false)
+    await open(wrapper)
+    expect(wrapper.find('[data-test="member-remark"]').text()).toContain(REMARK.remark)
+  })
 })

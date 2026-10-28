@@ -623,6 +623,7 @@
     "lastChanged": "Laatst gewijzigd: {name}, {date}",
     "lastChangedNoName": "Laatst gewijzigd: {date}",
     "private": "Alle moderatoren zien dit, {name} niet.",
+    "privateWithCrea": "Alle moderatoren en Crea zien dit, {name} niet.",
     "retry": "Opnieuw proberen",
     "saved": "Opgeslagen",
     "saving": "Bezig met opslaan…",

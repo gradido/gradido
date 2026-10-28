@@ -623,6 +623,7 @@
     "lastChanged": "Zuletzt: {name}, {date}",
     "lastChangedNoName": "Zuletzt: {date}",
     "private": "Sehen alle Moderatoren, nicht {name}.",
+    "privateWithCrea": "Sehen alle Moderatoren und Crea, nicht {name}.",
     "retry": "Noch einmal",
     "saved": "Gespeichert",
     "saving": "Wird gespeichert …",

@@ -13,17 +13,21 @@ import {
   computed,
   defineComponent,
   Fragment,
+  nextTick,
   type PropType,
   ref,
   toDisplayString,
+  useId,
   watch,
 } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { MemberRemarkEditor, MemberRemarkLine, MemberRemarkToggle } from '@/components/MemberRemark'
 import { useBoldShortcut } from '@/composables/useBoldShortcut'
 import { useCreaClipboard } from '@/composables/useCreaClipboard'
 import { playCreaSound, primeCreaSound } from '@/composables/useCreaSound'
 import { useCreaSupplement } from '@/composables/useCreaSupplement'
 import { useAppToast } from '@/composables/useToast'
+import { useUserRemark } from '@/composables/useUserRemark'
 import { useViewport } from '@/composables/useViewport'
 import { adminListContributions } from '@/graphql/adminListContributions.graphql'
 import {
@@ -33,6 +37,7 @@ import {
   creaRewriteResponse,
   setCreaSalutation,
 } from '@/graphql/crea.graphql'
+import { userRemark } from '@/graphql/userRemark'
 import { tenureBucket } from '@/utils/tenure'
 import IBiCopy from '~icons/bi/copy'
 import creaLogo from '../../public/img/crea-logo.jpg'
@@ -413,6 +418,34 @@ export const CreaEvaluationModal = defineComponent({
       return count === 1 ? t('crea.tenure.year') : t('crea.tenure.years', { count })
     })
 
+    // The moderation's remark on the member (Bernd, 28.10.2026): shown and written here with the
+    // card's own parts, and read by Crea from the server, which is why every call to Crea first
+    // saves what waits. Held only while the window is open: closing it saves the rest, and the next
+    // opening reads the remark anew.
+    const remarkMember = ref<number | null>(null)
+    const remark = useUserRemark(
+      () => remarkMember.value,
+      () => toastError(t('remark.failedClosed', { name: contributionUserName.value })),
+    )
+    const remarkFieldId = useId()
+    const remarkToggle = ref<{ $el?: HTMLElement } | null>(null)
+    const closeRemark = () => {
+      remark.close()
+      nextTick(() => remarkToggle.value?.$el?.focus())
+    }
+    // What the server keeps of the words in the field: whitespace alone is no remark.
+    const keptRemark = () => (remark.draft.value.trim() === '' ? null : remark.draft.value)
+    // The remark the last evaluation of a single contribution was asked with; undefined before one.
+    const remarkJudged = ref<string | null | undefined>(undefined)
+    // A single contribution is judged the moment the window opens. Where the remark is changed after
+    // that, "Bewerten" comes into the foot, to judge it again with the new words.
+    const remarkChangedSinceJudged = computed(
+      () =>
+        remarkJudged.value !== undefined &&
+        remark.loaded.value &&
+        keptRemark() !== remarkJudged.value,
+    )
+
     const { mutate: evaluateMutation } = useMutation(creaEvaluateContribution)
     const { mutate: rewriteMutation } = useMutation(creaRewriteResponse)
     const { mutate: evaluateBatchMutation } = useMutation(creaEvaluateBatch)
@@ -435,6 +468,8 @@ export const CreaEvaluationModal = defineComponent({
       salutation: salutationFor(contribution),
       // Pseudonymous handle for the record — the user id, never a name (E-010).
       personPseudonym: contribution.userId != null ? String(contribution.userId) : null,
+      // The member, for the backend to read the moderation's remark on them: the id, never the words.
+      userId: contribution.userId ?? null,
       date: contribution.contributionDate ?? null,
       uiLanguage: locale.value,
     })
@@ -456,6 +491,7 @@ export const CreaEvaluationModal = defineComponent({
       salutationSettled.value = false
       contributions.value = []
       selectedIds.value = []
+      remarkJudged.value = undefined
     }
 
     // Where an arriving evaluation lands - shared by the single and the batch path so the
@@ -485,6 +521,8 @@ export const CreaEvaluationModal = defineComponent({
       loading.value = true
       primeCreaSound()
       try {
+        await remark.flush()
+        remarkJudged.value = keptRemark()
         const response = await evaluateMutation({ input: buildInput(props.contribution) })
         applyEvaluation(response?.data.creaEvaluateContribution)
         playCreaSound()
@@ -533,6 +571,7 @@ export const CreaEvaluationModal = defineComponent({
       recipientFirstName: props.contribution?.user?.firstName ?? null,
       salutation: salutationFor(props.contribution),
       uiLanguage: locale.value,
+      userId: props.contribution?.userId ?? null,
     })
 
     // Batch evaluation: judge the ticked contributions together into ONE verdict + ONE
@@ -548,6 +587,7 @@ export const CreaEvaluationModal = defineComponent({
       evaluation.value = null
       primeCreaSound()
       try {
+        await remark.flush()
         const response = await evaluateBatchMutation({ input: buildBatchInput() })
         applyEvaluation(response?.data.creaEvaluateBatch)
         playCreaSound()
@@ -573,6 +613,7 @@ export const CreaEvaluationModal = defineComponent({
       rewriting.value = true
       primeCreaSound()
       try {
+        await remark.flush()
         if (isBatch.value) {
           // Batch deviation (E-020): one fresh joint reply for the chosen outcome. No
           // memoSupplement in batch mode ("Text ergänzen" is single-contribution, E-019).
@@ -619,7 +660,27 @@ export const CreaEvaluationModal = defineComponent({
     // The modal stays mounted, so re-read the signature from the browser every time
     // it opens. Reading it only once at setup meant a signature stored in an earlier
     // session (or after a re-login) never showed up without a full page reload.
+    // The remark on the member, read on its own: the window opens from the row, not from the card.
+    // Not read, the button stays unpressable; Crea reads the remark from the server all the same.
+    const loadRemark = async (userId: number | null): Promise<void> => {
+      if (userId === null || !apolloClient) {
+        return
+      }
+      try {
+        const { data } = await apolloClient.resolveClient().query({
+          query: userRemark,
+          variables: { userId },
+          fetchPolicy: 'no-cache',
+        })
+        remark.take(userId, data?.userRemark ?? null)
+      } catch {
+        // The window works without it.
+      }
+    }
+
     const onShown = async () => {
+      remarkMember.value = props.contribution?.userId ?? null
+      const remarkRead = loadRemark(remarkMember.value)
       moderatorSignature.value = loadSignature()
       // Before the query, not after it: a slow connection must not move a contribution from
       // one group to another, and the moderator asked for this list when they opened it.
@@ -653,8 +714,15 @@ export const CreaEvaluationModal = defineComponent({
         selectedIds.value = siblings.filter((c) => preselected.has(c.id)).map((c) => c.id)
       } else {
         contributions.value = []
+        // Judged at once: with the remark in the window, so that a change to it can be seen.
+        await remarkRead
         runEvaluation()
       }
+    }
+
+    const onHidden = () => {
+      resetState()
+      remarkMember.value = null
     }
 
     // Storing the salutation is an explicit act with a visible confirmation. It used to
@@ -750,6 +818,15 @@ export const CreaEvaluationModal = defineComponent({
             >
               {t('crea.evaluate')}
             </BButton>
+          ) : remarkChangedSinceJudged.value ? (
+            <BButton
+              variant='primary'
+              disabled={loading.value}
+              data-test='crea-evaluate-again'
+              onClick={runEvaluation}
+            >
+              {t('crea.evaluate')}
+            </BButton>
           ) : null}
         </span>
       </div>
@@ -804,20 +881,42 @@ export const CreaEvaluationModal = defineComponent({
     const renderContribution = () => (
       <div class='border rounded p-2 mb-3'>
         <div class='d-flex justify-content-between align-items-baseline mb-1'>
-          <strong>
-            {contributionUserName.value
-              ? contributionUserName.value
-              : isBatch.value
-                ? t('crea.contributions')
-                : t('crea.contribution')}
-            {contributionTenure.value ? (
-              <small class='text-muted fw-normal'>{` (${toDisplayString(contributionTenure.value)}) `}</small>
+          {/* The remark's button behind the name, as it stands in the member line of the card. */}
+          <span class='d-inline-flex align-items-center flex-wrap column-gap-1'>
+            <strong>
+              {contributionUserName.value
+                ? contributionUserName.value
+                : isBatch.value
+                  ? t('crea.contributions')
+                  : t('crea.contribution')}
+              {contributionTenure.value ? (
+                <small class='text-muted fw-normal'>{` (${toDisplayString(contributionTenure.value)}) `}</small>
+              ) : null}
+            </strong>
+            {remarkMember.value !== null ? (
+              <MemberRemarkToggle
+                ref={remarkToggle}
+                state={remark}
+                name={contributionUserName.value}
+                controls={remarkFieldId}
+              />
             ) : null}
-          </strong>
+          </span>
           {!isBatch.value && contributionMeta.value ? (
             <span class='text-muted small ms-3'>{contributionMeta.value}</span>
           ) : null}
         </div>
+        {remarkMember.value === null ? null : remark.open.value ? (
+          <MemberRemarkEditor
+            plain
+            state={remark}
+            name={contributionUserName.value}
+            fieldId={remarkFieldId}
+            onDone={closeRemark}
+          />
+        ) : (
+          <MemberRemarkLine plain state={remark} />
+        )}
         {isBatch.value ? (
           renderChecklist()
         ) : (
@@ -1033,7 +1132,7 @@ export const CreaEvaluationModal = defineComponent({
         size='lg'
         scrollable
         onShown={onShown}
-        onHidden={resetState}
+        onHidden={onHidden}
       >
         {{ title: renderTitle, footer: renderFooter, default: renderBody }}
       </BModal>
