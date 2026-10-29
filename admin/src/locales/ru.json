@@ -721,8 +721,7 @@
     "tabTitle": "Роль пользователя"
   },
   "userStatus": {
-    "emailUnconfirmed": "Эл. почта не подтверждена",
-    "noElopage": "без покупки в Elopage"
+    "emailUnconfirmed": "Эл. почта не подтверждена"
   },
   "user_deleted": "Пользователь удалён.",
   "user_memo_search": "Поиск по пользователю и тексту",

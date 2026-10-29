@@ -721,8 +721,7 @@
     "tabTitle": "Ρόλος χρήστη"
   },
   "userStatus": {
-    "emailUnconfirmed": "Το e-mail δεν επιβεβαιώθηκε",
-    "noElopage": "χωρίς αγορά Elopage"
+    "emailUnconfirmed": "Το e-mail δεν επιβεβαιώθηκε"
   },
   "user_deleted": "Ο χρήστης διαγράφηκε.",
   "user_memo_search": "Αναζήτηση χρήστη και κειμένου",

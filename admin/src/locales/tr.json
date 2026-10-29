@@ -721,8 +721,7 @@
     "tabTitle": "Kullanıcı rolü"
   },
   "userStatus": {
-    "emailUnconfirmed": "E-posta onaylanmadı",
-    "noElopage": "Elopage satın alımı yok"
+    "emailUnconfirmed": "E-posta onaylanmadı"
   },
   "user_deleted": "Kullanıcı silindi.",
   "user_memo_search": "Kullanıcı ve metin araması",

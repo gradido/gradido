@@ -140,7 +140,6 @@ export const UserSearch = defineComponent({
       { key: 'createdAt', label: t('registered_at') },
       // { key: 'show_details', label: t('details') },
       // { key: 'confirm_mail', label: t('confirmed') },
-      // { key: 'has_elopage', label: 'elopage' },
       // { key: 'transactions_list', label: t('transaction') },
       { key: 'status', label: t('status') },
     ])
