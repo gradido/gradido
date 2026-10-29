@@ -1,7 +1,9 @@
 import { treaty } from '@elysia/eden'
 import { createSignatureNonce, FEDERATION_REQUEST_TIMEOUT_MS, verifySignedResponse } from 'shared'
 import { Ed25519KeyPair } from 'shared-native'
+import * as v from 'valibot'
 import { apiRoutes } from './apiRoutes'
+import { CrossGroupTransaction, crossGroupTransactionWireSchema } from './schema'
 
 export type ElysiaApiRoutesClientType = ReturnType<typeof treaty<typeof apiRoutes>>
 
@@ -80,6 +82,12 @@ export class ApiClient {
     return this.elysiaJsClient['peer-api'].v1.communityInfos.get({
       query: { nonce: createSignatureNonce() },
     })
+  }
+
+  public emailTransactionReceived(tx: CrossGroupTransaction) {
+    return this.elysiaJsClientEncryptSign['peer-api'].v1.emailTransactionReceived.post(
+      v.parse(crossGroupTransactionWireSchema, tx)
+    )
   }
 
   public toString(): string {

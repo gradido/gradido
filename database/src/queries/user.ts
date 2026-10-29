@@ -1,7 +1,21 @@
-import { and, count, desc, eq, gte, inArray, isNotNull, isNull, ne, or, sql } from 'drizzle-orm'
+import {
+  and,
+  count,
+  desc,
+  eq,
+  getColumns,
+  gte,
+  inArray,
+  isNotNull,
+  isNull,
+  ne,
+  or,
+  sql,
+} from 'drizzle-orm'
 import { alias as aliasedTable, type BuildAliasTable, unionAll } from 'drizzle-orm/mysql-core'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import {
+  Alias,
   aliasSchema,
   ContactOrigin,
   emailSchema,
@@ -13,7 +27,6 @@ import {
   uuidv4Schema,
   VoidResult,
 } from 'shared'
-import { Alias } from 'typeorm/query-builder/Alias'
 import * as v from 'valibot'
 import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
 import { AccountState, EventType } from '../enum'
@@ -145,34 +158,24 @@ export async function dbFindUserById(
 
 export async function dbFindUserWithContactById(
   userId: number,
-  tx?: DrizzleTransaction | MySql2Database,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
 ): Promise<DbUser | null> {
-  if (!tx) {
-    tx = drizzleDb()
-  }
   const rows = await tx
     .select({
-      user: usersTable,
+      ...getColumns(usersTable),
       emailContact: userContactsTable,
     })
     .from(usersTable)
     .innerJoin(userContactsTable, eq(usersTable.emailId, userContactsTable.id))
     .where(and(eq(usersTable.id, userId), isNull(usersTable.deletedAt)))
 
-  const item = rows[0]
-  if (item) {
-    return { ...item.user, emailContact: item.emailContact }
-  }
-  return null
+  return rows[0] ?? null
 }
 
 export async function dbInsertUser(
   user: UserInsert,
-  tx?: DrizzleTransaction | MySql2Database,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
 ): Promise<Result<number, DBInsertFailed<UserInsert> | DBDuplicateEntryError>> {
-  if (!tx) {
-    tx = drizzleDb()
-  }
   try {
     const rows = await tx.insert(usersTable).values(user)
     const firstRow = rows[0]

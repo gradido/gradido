@@ -1,4 +1,9 @@
-import { dbFindUserByIdentifier, getHomeCommunityDrizzle, UserSelect } from 'database'
+import {
+  dbFindUserByIdentifier,
+  dbFindUserContact,
+  getHomeCommunityDrizzle,
+  UserSelect,
+} from 'database'
 import { LOG4JS_BASE_CATEGORY_NAME } from 'database/src/config/const'
 import { Elysia, StatusMap, status } from 'elysia'
 import { getLogger } from 'log4js'
@@ -10,8 +15,9 @@ import {
   Uuidv4,
 } from 'shared'
 import * as v from 'valibot'
+import { sendTransactionReceivedEmail } from '../emails'
 import { CrossCommunityError, xcomError } from './errorTypes'
-import { CrossGroupTransaction, crossGroupTransactionSchema, InvolvedParties } from './schema'
+import { crossGroupTransactionSchema, crossGroupTransactionWireSchema, InvolvedParties } from './schema'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.emails.sendEmailTranslated`)
 
@@ -31,15 +37,42 @@ export const apiRoutesV1 = new Elysia({ prefix: 'v1' })
   .post(
     'emailTransactionReceived',
     async ({ body }) => {
+      // change from wire format to runtime format
+      const tx = v.parse(crossGroupTransactionSchema, body)
       const userResult = await auth(body)
       if (!userResult.success) {
         logger.debug(userResult.error.message)
         return status(userResult.error.status)
       }
-      
+      const user = userResult.value
+      if (user.transfersInChat !== false && user.emailId) {
+        const userContact = await dbFindUserContact(user.emailId)
+        if (!userContact) {
+          logger.error(`missing user contact for user ${user.emailId}`)
+          return status('Not Found')
+        }
+        const emailSendResult = await sendTransactionReceivedEmail({
+          ...user,
+          senderAlias: tx.sender.alias, // change parmater structure in sendTransactionReceivedEmail
+          firstName: user.firstName ?? '', // TODO: change to Not NULL
+          lastName: user.lastName ?? '', // TODO: change to Not NULL
+          email: userContact?.email,
+          memo: tx.memo,
+          transactionAmount: tx.amount, // change parmater structure in sendTransactionReceivedEmail
+        })
+        const e = `Transaction Received Email couldn't be sended to user: ${user.id}`
+        if (typeof emailSendResult !== 'object') {
+          if (logger.isDebugEnabled()) {
+            logger.debug(e, JSON.stringify(emailSendResult, null, 2))
+          } else {
+            logger.warn(e)
+          }
+        }
+      }
+      return status('OK')
     },
     {
-      body: crossGroupTransactionSchema,
+      body: crossGroupTransactionWireSchema,
     },
   )
 
@@ -65,10 +98,7 @@ async function auth(
   }
 
   // second check if receiver user exists in this community
-  const recipientUser = await dbFindUserByIdentifier(
-    recipient.identifier,
-    recipient.communityUuid,
-  )
+  const recipientUser = await dbFindUserByIdentifier(recipient.identifier, recipient.communityUuid)
   if (!recipientUser) {
     const e = `User with identifier ${recipient.identifier} not found`
     return xcomError('Not Found', e)
