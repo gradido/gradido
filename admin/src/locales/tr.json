@@ -207,6 +207,7 @@
     "openPoints": "Open points",
     "previewBanner": "Preview without AI connection – a sample result. Layout, database and salutation/signature are real.",
     "readsRemark": "Crea da okur",
+    "readsRemarkHint": "Yalnızca açıklamalar kişisel veri içermiyorsa etkinleştirin!",
     "reasoning": "Reasoning",
     "response": "Suggested reply",
     "resubmission": "Hatırlatma",

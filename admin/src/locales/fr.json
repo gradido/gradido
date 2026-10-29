@@ -207,6 +207,7 @@
     "openPoints": "Open points",
     "previewBanner": "Preview without AI connection – a sample result. Layout, database and salutation/signature are real.",
     "readsRemark": "Crea la lit aussi",
+    "readsRemarkHint": "N’activer que si les remarques ne contiennent aucune donnée personnelle !",
     "reasoning": "Reasoning",
     "response": "Suggested reply",
     "resubmission": "Rappel",

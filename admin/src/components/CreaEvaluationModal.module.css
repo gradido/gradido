@@ -3,7 +3,8 @@
 }
 
 /* Separates the checklist's resubmission groups (E-026). Tighter above than a stock
-   <hr> so the rule reads as belonging to the heading below it, not floating between. */
+   <hr> so the rule reads as belonging to the heading below it, not floating between.
+   The same rule sets the remark and "Crea liest mit" off from the contributions. */
 .creaSectionRule {
   margin: 1rem 0 0.5rem;
 }

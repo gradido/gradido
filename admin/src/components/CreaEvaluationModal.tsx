@@ -1016,18 +1016,26 @@ export const CreaEvaluationModal = defineComponent({
           <MemberRemarkLine plain state={remark} />
         )}
         {remarkMember.value !== null && keptRemark() !== null ? (
-          // Off at each opening: Crea reads the remark only where the moderator lets her.
-          <BFormCheckbox
-            modelValue={creaReadsRemark.value}
-            onUpdate:modelValue={(value: unknown) => {
-              creaReadsRemark.value = value as boolean
-            }}
-            switch
-            class='mb-2'
-            data-test='crea-reads-remark'
-          >
-            {t('crea.readsRemark')}
-          </BFormCheckbox>
+          // Off at each opening: Crea reads the remark only where the moderator lets her. Under
+          // the switch Bernd's warning (29.10.2026) and the rule of the resubmission groups, which
+          // sets the remark off from the contributions.
+          <>
+            <BFormCheckbox
+              modelValue={creaReadsRemark.value}
+              onUpdate:modelValue={(value: unknown) => {
+                creaReadsRemark.value = value as boolean
+              }}
+              switch
+              class='mb-0'
+              data-test='crea-reads-remark'
+            >
+              {t('crea.readsRemark')}
+            </BFormCheckbox>
+            <p class='mt-1 mb-0 text-muted small' data-test='crea-reads-remark-hint'>
+              {t('crea.readsRemarkHint')}
+            </p>
+            <hr class={classes.creaSectionRule} />
+          </>
         ) : null}
         {isBatch.value ? (
           renderChecklist()

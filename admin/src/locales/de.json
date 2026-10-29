@@ -207,6 +207,7 @@
     "openPoints": "Offene Punkte",
     "previewBanner": "Vorschau ohne KI-Verbindung – ein Beispiel-Ergebnis. Optik, Datenbank und Anrede/Signatur sind echt.",
     "readsRemark": "Crea liest mit",
+    "readsRemarkHint": "Nur einschalten, wenn die Bemerkungen keine persönlichen Daten enthalten!",
     "reasoning": "Begründung",
     "response": "Antwortvorschlag",
     "resubmission": "Wiedervorlage",
