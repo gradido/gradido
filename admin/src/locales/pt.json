@@ -721,8 +721,7 @@
     "tabTitle": "Função do utilizador"
   },
   "userStatus": {
-    "emailUnconfirmed": "E-mail não confirmado",
-    "noElopage": "sem compra Elopage"
+    "emailUnconfirmed": "E-mail não confirmado"
   },
   "user_deleted": "O utilizador está eliminado.",
   "user_memo_search": "Pesquisa de utilizador e texto",

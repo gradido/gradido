@@ -574,7 +574,6 @@ describe('SearchUserTable', () => {
     creation: [1000, 850, 400],
     createdAt: '2025-03-12T10:00:00.000Z',
     emailChecked: true,
-    hasElopage: true,
     deletedAt: null,
     role: null,
     gradidoID: '7a8b9c0d-1e2f-4a3b-8c4d-5e6f7a8b9c0d',
@@ -636,14 +635,12 @@ describe('SearchUserTable', () => {
       expect(cards().at(0).find('.fw-semibold').text()).toBe('carla-sonne')
     })
 
-    it('the card names the status in words: active, deleted, e-mail not confirmed, no Elopage purchase', async () => {
+    it('the card names the status in words: active, deleted, e-mail not confirmed', async () => {
       await showCards([
         member({ userId: 1 }),
-        // Deleted says it all: the other two are not named beside it.
-        member({ userId: 2, deletedAt: DELETED_AT, emailChecked: false, hasElopage: false }),
+        // Deleted says it all: the unconfirmed address is not named beside it.
+        member({ userId: 2, deletedAt: DELETED_AT, emailChecked: false }),
         member({ userId: 3, emailChecked: false }),
-        member({ userId: 4, hasElopage: false }),
-        member({ userId: 5, emailChecked: false, hasElopage: false }),
       ])
       const badges = (index) =>
         cards()
@@ -657,11 +654,6 @@ describe('SearchUserTable', () => {
       expect(badges(0)).toEqual([['enabled', 'text-bg-success']])
       expect(badges(1)).toEqual([['deleted', 'text-bg-danger']])
       expect(badges(2)).toEqual([['userStatus.emailUnconfirmed', 'text-bg-warning']])
-      expect(badges(3)).toEqual([['userStatus.noElopage', 'text-bg-secondary']])
-      expect(badges(4)).toEqual([
-        ['userStatus.emailUnconfirmed', 'text-bg-warning'],
-        ['userStatus.noElopage', 'text-bg-secondary'],
-      ])
     })
 
     // The button opens its row itself -- once: had the table taken the press as well, the row
@@ -792,7 +784,8 @@ describe('SearchUserTable', () => {
       wrapper = createWrapper({
         items: [
           member({ userId: 1, deletedAt: DELETED_AT }),
-          member({ userId: 2, emailChecked: false, hasElopage: false }),
+          member({ userId: 2, emailChecked: false }),
+          member({ userId: 3 }),
         ],
         fields: [{ key: 'status', label: 'status' }],
       })
@@ -808,10 +801,8 @@ describe('SearchUserTable', () => {
       expect(cellsOf(0).at(0).find('small').element.previousElementSibling.classList).toContain(
         'test-deleted-icon',
       )
-      expect(words(1)).toEqual([
-        ['userStatus.emailUnconfirmed', 'DIV'],
-        ['userStatus.noElopage', 'IMG'],
-      ])
+      expect(words(1)).toEqual([['userStatus.emailUnconfirmed', 'DIV']])
+      expect(words(2)).toEqual([])
       // The words stand from 1200px on (narrower, the table grew and reached past the window
       // with them), and a screen reader hears them from the symbols on every width: the word
       // beside a symbol is hidden from it, its `alt` names the state.
@@ -827,8 +818,9 @@ describe('SearchUserTable', () => {
           .map((image) => image.attributes('alt'))
       // The deleted symbol is two pictures; one names it.
       expect(alts(0)).toEqual(['deleted', ''])
-      expect(alts(1)).toEqual(['userStatus.emailUnconfirmed', 'userStatus.noElopage'])
-      for (const row of [0, 1]) {
+      expect(alts(1)).toEqual(['userStatus.emailUnconfirmed'])
+      expect(alts(2)).toEqual([])
+      for (const row of [0, 1, 2]) {
         const cell = cellsOf(row).at(0)
         // The arrow read `enabled`, which the search never delivers, and called every member
         // deleted. It names nothing now and is no stop for a screen reader.

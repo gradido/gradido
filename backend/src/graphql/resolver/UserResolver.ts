@@ -1535,26 +1535,22 @@ export class UserResolver {
       clientTimezoneOffset,
     )
 
-    const adminUsers = await Promise.all(
-      users.map(async (user) => {
-        let emailConfirmationSend = ''
-        if (!user.emailContact?.emailChecked) {
-          if (user.emailContact?.updatedAt) {
-            emailConfirmationSend = user.emailContact?.updatedAt.toISOString()
-          } else {
-            emailConfirmationSend = user.emailContact?.createdAt.toISOString()
-          }
+    const adminUsers = users.map((user) => {
+      let emailConfirmationSend = ''
+      if (!user.emailContact?.emailChecked) {
+        if (user.emailContact?.updatedAt) {
+          emailConfirmationSend = user.emailContact?.updatedAt.toISOString()
+        } else {
+          emailConfirmationSend = user.emailContact?.createdAt.toISOString()
         }
-        const userCreations = creations.find((c) => c.id === user.id)
-        const adminUser = new UserAdmin(
-          user,
-          userCreations ? userCreations.creations : getFullUserCreation(),
-          await hasElopageBuys(user.id),
-          emailConfirmationSend,
-        )
-        return adminUser
-      }),
-    )
+      }
+      const userCreations = creations.find((c) => c.id === user.id)
+      return new UserAdmin(
+        user,
+        userCreations ? userCreations.creations : getFullUserCreation(),
+        emailConfirmationSend,
+      )
+    })
     return {
       userCount: count,
       userList: adminUsers,

@@ -721,8 +721,7 @@
     "tabTitle": "Gebruikersrol"
   },
   "userStatus": {
-    "emailUnconfirmed": "E-mail niet bevestigd",
-    "noElopage": "geen Elopage-aankoop"
+    "emailUnconfirmed": "E-mail niet bevestigd"
   },
   "user_deleted": "Gebruiker is verwijderd.",
   "user_memo_search": "Gebruikers- en tekstzoekopdracht",

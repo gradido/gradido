@@ -721,8 +721,7 @@
     "tabTitle": "Nutzer-Rolle"
   },
   "userStatus": {
-    "emailUnconfirmed": "E-Mail nicht bestätigt",
-    "noElopage": "ohne Elopage-Kauf"
+    "emailUnconfirmed": "E-Mail nicht bestätigt"
   },
   "user_deleted": "Nutzer ist gelöscht.",
   "user_memo_search": "Benutzer- und Text-Suche",
