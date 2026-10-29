@@ -3,6 +3,7 @@ import { BButton, BListGroupItem } from 'bootstrap-vue-next'
 import { computed, defineComponent, onMounted, type PropType, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { UserRemarkState } from '@/composables/useUserRemark'
+import { CONFIG } from '@/config'
 import IMdiNoteText from '~icons/mdi/note-text'
 import IMdiNoteTextOutline from '~icons/mdi/note-text-outline'
 import classes from './MemberRemark.module.css'
@@ -68,24 +69,40 @@ export const MemberRemarkToggle = defineComponent({
 /**
  * The remark under the member line while the field is closed: its words, line breaks kept. Only
  * where there is one.
+ *
+ * `plain`: without the frame of a list row, for a place that has a frame of its own -- the box
+ * at the top of Crea's window (Bernd's choice "A, ohne Rahmen", 28.10.2026).
  */
 export const MemberRemarkLine = defineComponent({
   name: 'MemberRemarkLine',
   props: {
     state: { type: Object as PropType<UserRemarkState>, required: true },
+    plain: { type: Boolean, default: false },
   },
   setup(props) {
     const { t } = useI18n()
-    return () =>
-      props.state.saved.value ? (
+    return () => {
+      const saved = props.state.saved.value
+      if (!saved) {
+        return null
+      }
+      const content = [
+        <IMdiNoteText aria-hidden='true' />,
+        <span class={classes.remarkText}>
+          <span class='visually-hidden'>{`${t('remark.label')}: `}</span>
+          {saved.remark}
+        </span>,
+      ]
+      return props.plain ? (
+        <div class={[classes.remarkLine, classes.plain]} data-test='member-remark'>
+          {content}
+        </div>
+      ) : (
         <BListGroupItem class={classes.remarkLine} data-test='member-remark'>
-          <IMdiNoteText aria-hidden='true' />
-          <span class={classes.remarkText}>
-            <span class='visually-hidden'>{`${t('remark.label')}: `}</span>
-            {props.state.saved.value.remark}
-          </span>
+          {content}
         </BListGroupItem>
-      ) : null
+      )
+    }
   },
 })
 
@@ -100,6 +117,8 @@ export const MemberRemarkEditor = defineComponent({
     state: { type: Object as PropType<UserRemarkState>, required: true },
     name: { type: String, default: '' },
     fieldId: { type: String, required: true },
+    // Without the frame of a list row, as MemberRemarkLine.
+    plain: { type: Boolean, default: false },
   },
   emits: ['done'],
   setup(props, { emit }) {
@@ -148,68 +167,84 @@ export const MemberRemarkEditor = defineComponent({
       }
     }
 
-    return () => (
-      // Escape anywhere in the field's part -- the words, "Noch einmal", "Fertig" -- closes it.
-      <BListGroupItem
-        class={classes.remarkEditor}
-        data-test='member-remark-editor'
-        onKeydown={onKeydown}
-      >
-        <label for={props.fieldId} class='form-label fw-semibold mb-0'>
-          {t('remark.title', { name: props.name })}
-        </label>
-        <textarea
-          ref={field}
-          id={props.fieldId}
-          class={['form-control', classes.remarkField]}
-          rows={3}
-          maxlength={USER_REMARK_MAX_CHARS}
-          value={props.state.draft.value}
-          aria-describedby={failed.value ? `${privateId} ${troubleId}` : privateId}
-          data-test='member-remark-field'
-          onInput={(event: Event) => props.state.input((event.target as HTMLTextAreaElement).value)}
-        />
-        <div id={privateId} class='form-text mt-0'>
-          {t('remark.private', { name: props.name })}
-        </div>
-        <div class={['small', classes.remarkFoot]}>
-          {lastChanged.value ? (
-            <span class='text-body-secondary' data-test='member-remark-last-changed'>
-              {lastChanged.value}
-            </span>
-          ) : null}
-          {/* What goes wrong is said at once (role="alert"); saving and saved are only to be
-              seen: announced after every pause in typing, they would talk over the words. */}
-          {failed.value ? (
-            <span id={troubleId} class={classes.remarkStatus} role='alert'>
-              {`${t('remark.failed')} `}
-              <button
-                type='button'
-                class={classes.remarkRetry}
-                data-test='member-remark-retry'
-                onClick={() => props.state.retry()}
-              >
-                {t('remark.retry')}
-              </button>
-            </span>
-          ) : (
-            <span
-              class={['text-body-secondary', classes.remarkStatus]}
-              data-test='member-remark-status'
+    const renderContent = () => [
+      <label for={props.fieldId} class='form-label fw-semibold mb-0'>
+        {t('remark.title', { name: props.name })}
+      </label>,
+      <textarea
+        ref={field}
+        id={props.fieldId}
+        class={['form-control', classes.remarkField]}
+        rows={3}
+        maxlength={USER_REMARK_MAX_CHARS}
+        value={props.state.draft.value}
+        aria-describedby={failed.value ? `${privateId} ${troubleId}` : privateId}
+        data-test='member-remark-field'
+        onInput={(event: Event) => props.state.input((event.target as HTMLTextAreaElement).value)}
+      />,
+      <div id={privateId} class='form-text mt-0'>
+        {/* Who reads the words: Crea as well, where she is switched on (Bernd, 28.10.2026). */}
+        {CONFIG.ANTHROPIC_ACTIVE
+          ? t('remark.privateWithCrea', { name: props.name })
+          : t('remark.private', { name: props.name })}
+      </div>,
+      <div class={['small', classes.remarkFoot]}>
+        {lastChanged.value ? (
+          <span class='text-body-secondary' data-test='member-remark-last-changed'>
+            {lastChanged.value}
+          </span>
+        ) : null}
+        {/* What goes wrong is said at once (role="alert"); saving and saved are only to be
+            seen: announced after every pause in typing, they would talk over the words. */}
+        {failed.value ? (
+          <span id={troubleId} class={classes.remarkStatus} role='alert'>
+            {`${t('remark.failed')} `}
+            <button
+              type='button'
+              class={classes.remarkRetry}
+              data-test='member-remark-retry'
+              onClick={() => props.state.retry()}
             >
-              {statusWords.value}
-            </span>
-          )}
-          <BButton
-            size='sm'
-            variant='outline-primary'
-            data-test='member-remark-done'
-            onClick={() => emit('done')}
+              {t('remark.retry')}
+            </button>
+          </span>
+        ) : (
+          <span
+            class={['text-body-secondary', classes.remarkStatus]}
+            data-test='member-remark-status'
           >
-            {t('remark.done')}
-          </BButton>
+            {statusWords.value}
+          </span>
+        )}
+        <BButton
+          size='sm'
+          variant='outline-primary'
+          data-test='member-remark-done'
+          onClick={() => emit('done')}
+        >
+          {t('remark.done')}
+        </BButton>
+      </div>,
+    ]
+
+    // Escape anywhere in the field's part -- the words, "Noch einmal", "Fertig" -- closes it.
+    return () =>
+      props.plain ? (
+        <div
+          class={[classes.remarkEditor, classes.plain]}
+          data-test='member-remark-editor'
+          onKeydown={onKeydown}
+        >
+          {renderContent()}
         </div>
-      </BListGroupItem>
-    )
+      ) : (
+        <BListGroupItem
+          class={classes.remarkEditor}
+          data-test='member-remark-editor'
+          onKeydown={onKeydown}
+        >
+          {renderContent()}
+        </BListGroupItem>
+      )
   },
 })

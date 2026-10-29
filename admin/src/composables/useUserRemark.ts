@@ -38,6 +38,9 @@ export type UserRemarkState = {
   toggle: () => void
   close: () => void
   retry: () => void
+  // Saves now what waits for its pause, and answers once the server holds the words in the field
+  // -- or has refused them. Crea reads the remark from the server (Bernd, 28.10.2026).
+  flush: () => Promise<void>
 }
 
 type Client = {
@@ -72,7 +75,7 @@ type Entry = {
   saving: Promise<void> | null
   saveAgain: boolean
   // The latest card's: who is told of a failure nobody sees, and how the server is reached.
-  onFailedUnseen: () => void
+  onFailedUnseen: (userId: number) => void
   client: () => Client | null
 }
 
@@ -152,7 +155,7 @@ const save = (key: string, entry: Entry): Promise<void> => {
     } catch {
       entry.status.value = 'failed'
       if (entry.openIn.size === 0) {
-        entry.onFailedUnseen()
+        entry.onFailedUnseen(entry.userId)
       }
     } finally {
       entry.saving = null
@@ -174,10 +177,13 @@ const save = (key: string, entry: Entry): Promise<void> => {
  *
  * `onFailedUnseen` is called where a save fails that nobody sees fail: no card of the member has
  * its field open.
+ *
+ * `userId` may answer null: a card that shows nobody now -- Crea's window while it is closed --
+ * holds nothing, and what it held is let go as when a card goes away.
  */
 export const useUserRemark = (
-  userId: () => number,
-  onFailedUnseen: () => void,
+  userId: () => number | null,
+  onFailedUnseen: (userId: number) => void,
 ): UserRemarkState => {
   const store = useAdminStore()
   // Resolved at the save: where a spec mocks the composable away it answers undefined, and
@@ -234,15 +240,22 @@ export const useUserRemark = (
     }
   }
 
-  const current = shallowRef(attach(userId()))
-  // A card that comes to show somebody else lets the first one go.
+  const attachOrNot = (id: number | null) => (id === null ? null : attach(id))
+  const current = shallowRef(attachOrNot(userId()))
+  // A card that comes to show somebody else -- or nobody -- lets the first one go.
   watch(userId, (id) => {
     const before = current.value
     open.value = false
-    current.value = attach(id)
-    detach(before)
+    current.value = attachOrNot(id)
+    if (before) {
+      detach(before)
+    }
   })
-  onBeforeUnmount(() => detach(current.value))
+  onBeforeUnmount(() => {
+    if (current.value) {
+      detach(current.value)
+    }
+  })
 
   const take = (forMember: number, remark: UserRemark | null) => {
     const entry = entries.get(keyOf(forMember))
@@ -255,6 +268,9 @@ export const useUserRemark = (
   }
 
   const input = (text: string) => {
+    if (!current.value) {
+      return
+    }
     const { key, entry } = current.value
     entry.draft.value = text
     stopPause(entry)
@@ -265,8 +281,11 @@ export const useUserRemark = (
   }
 
   const close = () => {
-    const { key, entry } = current.value
     open.value = false
+    if (!current.value) {
+      return
+    }
+    const { key, entry } = current.value
     entry.openIn.delete(card)
     save(key, entry)
   }
@@ -276,8 +295,8 @@ export const useUserRemark = (
       close()
       return
     }
-    const { entry } = current.value
-    if (!entry.loaded.value) {
+    const entry = current.value?.entry
+    if (!entry?.loaded.value) {
       return
     }
     open.value = true
@@ -285,20 +304,25 @@ export const useUserRemark = (
   }
 
   const retry = () => {
-    const { key, entry } = current.value
-    save(key, entry)
+    if (current.value) {
+      save(current.value.key, current.value.entry)
+    }
   }
 
+  const flush = () =>
+    current.value ? save(current.value.key, current.value.entry) : Promise.resolve()
+
   return {
-    loaded: computed(() => current.value.entry.loaded.value),
-    saved: computed(() => current.value.entry.saved.value),
-    draft: computed(() => current.value.entry.draft.value),
+    loaded: computed(() => current.value?.entry.loaded.value ?? false),
+    saved: computed(() => current.value?.entry.saved.value ?? null),
+    draft: computed(() => current.value?.entry.draft.value ?? ''),
     open,
-    status: computed(() => current.value.entry.status.value),
+    status: computed(() => current.value?.entry.status.value ?? 'idle'),
     take,
     input,
     toggle,
     close,
     retry,
+    flush,
   }
 }

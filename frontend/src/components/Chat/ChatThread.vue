@@ -101,6 +101,7 @@
                   : reactionsUnderway.has(message.messageUuid)
               "
               :thanks-after-call="!message.transfer && thanksDue.has(message.id)"
+              :thanks-members="inGroup ? thanksMembers : null"
               @open-image="openImage"
               @open-member="emit('openMember', $event)"
               @duplicate-video="emit('duplicateVideo', $event)"
@@ -186,7 +187,7 @@ import {
   onChatMessagesReacted,
   pollChatNow,
 } from '@/composables/useChatUpdates'
-import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
+import { fetchMemberAvatars, memberAvatarProps } from '@/composables/useMemberAvatars'
 import {
   isTransactionReactionUnderway,
   onTransactionReaction,
@@ -259,6 +260,12 @@ const props = defineProps({
    * searches itself for it (useChatThreadSearch) and says what it found (`search`).
    */
   search: { type: String, default: '' },
+  /**
+   * The group's members as its window holds them (chatGroupMembersQuery): whom the member may
+   * thank after a video call of their own in the group (W2, Bernd 28.10.2026). Null in the thread
+   * with one person; empty while the window has not had them yet.
+   */
+  groupMembers: { type: Array, default: null },
 })
 
 /**
@@ -280,8 +287,9 @@ const props = defineProps({
  * message is changed here, in the bar.
  *
  * `thank`: "Danke sagen" under a video invitation of one's own (W2) -- for the window, which opens
- * the send form with this person named, the way its own button "Gradido senden" does. The answer
- * is remembered here already.
+ * the send form with this person named, the way its own button "Gradido senden" does. In a
+ * group's thread the user of the member chosen comes with it, and the send form names them. The
+ * answer is remembered here already.
  */
 const emit = defineEmits([
   'chatConversation',
@@ -575,15 +583,40 @@ watch(newestReceivedShown, (newest) => {
 /**
  * The suggestion to thank after a video call (W2 of the waves of gratitude, utils/thanksNudge):
  * under the member's own invitation, half an hour after the call began, "Möchtest Du Dich bei …
- * für das Gespräch bedanken?" with "Danke sagen" and "Nicht jetzt". In a conversation of two only
- * -- never in a group, where nothing of a transfer stands (E-050 F6) -- and only where the window
- * can take the member to the send form with this person: the pair complete, as its button asks.
+ * für das Gespräch bedanken?" with "Danke sagen" and "Nicht jetzt" -- where the window can take
+ * the member to the send form with this person: the pair complete, as its button asks.
  *
  * ⚠️ Where the member switched the transfers in the conversation off, the thread holds none, and a
  * thank-you sent another way does not end the line; "Nicht jetzt" does.
+ *
+ * In a group's thread (Bernd, 28.10.2026): "Möchtest Du Dich für das Gespräch bedanken?" with
+ * "Jemandem danken", which shows the members to choose from -- one tap on one takes the member
+ * to the send form with them. Nothing of a transfer stands in a group (E-050 F6), so only the
+ * answer ends the line there.
  */
-const thanksOffered = !inGroup && Boolean(props.member?.gradidoID && props.member?.communityUuid)
+const thanksOffered = inGroup || Boolean(props.member?.gradidoID && props.member?.communityUuid)
 const { isSeen: thanksSeen, markSeen: markThanksSeen } = useThanksNudges()
+
+/** The member themselves among a group's members, as the members' dialog knows them. */
+const isMe = (user) =>
+  String(user?.gradidoID ?? '').toLowerCase() === String(store.gradidoID ?? '').toLowerCase()
+
+/**
+ * Whom the member may thank in a group's thread: the members but themselves, in the order the
+ * window holds them, each with name and face (ThanksNudge's `choices`) -- only who can be named in
+ * the send form, as the contact window's button asks.
+ */
+const thanksMembers = computed(() =>
+  (props.groupMembers ?? [])
+    .map((member) => member.user)
+    .filter((user) => user?.gradidoID && user.communityUuid && !isMe(user))
+    .map((user) => ({
+      key: chatMemberKey(user),
+      label: memberAlias(user.alias, user.gradidoID),
+      avatar: memberAvatarProps(user),
+      user,
+    })),
+)
 
 /**
  * The time the line goes by: a quiet clock of the thread's own, once a minute while the thread is
@@ -633,13 +666,16 @@ const ownInvitations = computed(() => {
  */
 const thanksDue = computed(() => {
   const due = new Set()
+  // In a group there is nobody to choose before the window has the members.
+  if (inGroup && !thanksMembers.value.length) return due
   const transfersKnown = transfersSettled.value && !transfersFailed.value ? transfers.value : null
   for (const { message, invitation } of ownInvitations.value.values()) {
     const line = callNudgeState({
       invitation,
       message,
       now: now.value,
-      transfers: transfersKnown,
+      transfers: inGroup ? null : transfersKnown,
+      group: inGroup,
       seen: thanksSeen('call', message.messageUuid),
     })
     if (line === 'show') due.add(message.id)
@@ -647,10 +683,14 @@ const thanksDue = computed(() => {
   return due
 })
 
-/** "Danke sagen": answered on this device, and to the window, which opens the send form. */
-const thankAfterCall = (message) => {
+/**
+ * "Danke sagen", or a member chosen in a group's thread: answered on this device, and to the
+ * window, which opens the send form -- with the member chosen, in a group.
+ */
+const thankAfterCall = (message, user) => {
   markThanksSeen('call', message.messageUuid)
-  emit('thank')
+  if (user) emit('thank', user)
+  else emit('thank')
 }
 
 /** "Nicht jetzt": answered -- the line goes and does not come back for this call. */

@@ -110,6 +110,10 @@ describe('GddTransaction, the suggestion to pass a thank-you on', () => {
 
   beforeEach(() => {
     vi.useFakeTimers({ toFake: ['Date'] })
+    // The clock starts when the thank-you came, not at the real today: Vue drops an event older
+    // than the moment its handler was attached, so a row mounted "now" and opened at a moment
+    // before it would never open.
+    vi.setSystemTime(CAME)
   })
 
   afterEach(() => {

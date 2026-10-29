@@ -8,7 +8,8 @@
  *
  * - After a video call: under one's own invitation in a conversation of two, half an hour after
  *   the call began. Bernd (26.10.2026): the end of a call cannot be measured -- it runs on a Jitsi
- *   server of its own --, its beginning can, and whoever invited is most likely in it.
+ *   server of its own --, its beginning can, and whoever invited is most likely in it. And in a
+ *   group's thread (Bernd, 28.10.2026): there the member chooses whom to thank among the members.
  * - After a thank-you received: in the opened row of the booking, "pass it on" -- outwards, never
  *   back to the giver (the waves run outwards; a thank-you that expects one back is the market).
  *
@@ -42,23 +43,28 @@ const at = (value) => new Date(value).getTime()
  *   there was no call.
  * - `transfers`: the transfers between the two as the thread holds them, or null while they are
  *   not known yet -- then no line, so none stands for a moment over a thank-you on its way.
- * - `seen`: the member answered the line on this device already ("Danke sagen", "Nicht jetzt").
+ * - `group`: the invitation went to a group. A group's thread holds no transfers (E-050 F6), and
+ *   whom the member thanks is theirs to choose among the members: `transfers` is not asked there,
+ *   and only the member's answer ends the line.
+ * - `seen`: the member answered the line on this device already ("Danke sagen", "Jemandem
+ *   danken", "Nicht jetzt").
  *
  * The call began at the time the invitation names where it is planned, else when the message was
  * written. An invitation that was changed (E-060) is read as it stands now: its time is the one
  * it shows. A thank-you sent to the person since the call began ends the occasion: it was said.
  *
- * @param {{ invitation: { when: { start: Date } | null } | null, message: { mine: boolean, forwarded?: boolean, createdAt: string, deliveryState?: string | null }, now: number, transfers: Array<{ typeId: string, balanceDate: string }> | null, seen: boolean }} occasion
+ * @param {{ invitation: { when: { start: Date } | null } | null, message: { mine: boolean, forwarded?: boolean, createdAt: string, deliveryState?: string | null }, now: number, transfers: Array<{ typeId: string, balanceDate: string }> | null, group?: boolean, seen: boolean }} occasion
  * @returns {'hidden' | 'show'}
  */
-export const callNudgeState = ({ invitation, message, now, transfers, seen }) => {
+export const callNudgeState = ({ invitation, message, now, transfers, group = false, seen }) => {
   if (!invitation || !message?.mine || message.forwarded || seen) return 'hidden'
   if (message.deliveryState === 'FAILED') return 'hidden'
-  if (!transfers) return 'hidden'
+  if (!group && !transfers) return 'hidden'
   const start = at(invitation.when?.start ?? message.createdAt)
   const since = now - start
   // Written so that a time nobody can read (NaN) is no occasion either.
   if (!(since >= THANKS_NUDGE_AFTER_CALL_MS && since <= THANKS_NUDGE_HOLDS_MS)) return 'hidden'
+  if (group) return 'show'
   const thanked = transfers.some(
     (booking) => booking.typeId === 'SEND' && at(booking.balanceDate) >= start,
   )
