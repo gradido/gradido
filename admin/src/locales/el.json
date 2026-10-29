@@ -207,6 +207,7 @@
     "openPoints": "Open points",
     "previewBanner": "Preview without AI connection – a sample result. Layout, database and salutation/signature are real.",
     "readsRemark": "Η Crea τη διαβάζει επίσης",
+    "readsRemarkHint": "Ενεργοποιήστε μόνο αν οι παρατηρήσεις δεν περιέχουν προσωπικά δεδομένα!",
     "reasoning": "Reasoning",
     "response": "Suggested reply",
     "resubmission": "Υπενθύμιση",

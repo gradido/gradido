@@ -515,6 +515,7 @@ describe('CreaEvaluationModal — the remark on the member', () => {
     return found.exists() && found.element.tagName !== 'INPUT' ? found.find('input') : found
   }
   const letCreaRead = (wrapper) => readsSwitch(wrapper).setValue(true)
+  const readsHint = (wrapper) => wrapper.find('[data-test="crea-reads-remark-hint"]')
   const evaluateSingle = (wrapper) => wrapper.find('[data-test="crea-evaluate-single"]')
 
   beforeEach(() => {
@@ -569,6 +570,23 @@ describe('CreaEvaluationModal — the remark on the member', () => {
     expect(creaInputs()).toEqual([expect.objectContaining({ userId: null })])
     expect(readsSwitch(wrapper).exists()).toBe(false)
     expect(evaluateSingle(wrapper).exists()).toBe(false)
+    expect(readsHint(wrapper).exists()).toBe(false)
+    expect(wrapper.findAll('hr')).toHaveLength(0)
+  })
+
+  // Bernd, 29.10.2026: under the switch, in small letters, when to turn it on; under that the
+  // rule of the resubmission groups, before the contribution.
+  it('warns under "Crea liest mit" and rules the remark off from the contribution', async () => {
+    const wrapper = mountModal()
+    await open(wrapper)
+    const hint = readsHint(wrapper)
+    expect(hint.text()).toBe('crea.readsRemarkHint')
+    expect(hint.classes()).toEqual(expect.arrayContaining(['small', 'text-muted']))
+    expect(hint.element.previousElementSibling).toBe(
+      readsSwitch(wrapper).element.closest('.form-check'),
+    )
+    expect(hint.element.nextElementSibling.tagName).toBe('HR')
+    expect(wrapper.findAll('hr')).toHaveLength(1)
   })
 
   it('asks Crea with the member only once "Crea liest mit" is on, never with the words', async () => {

@@ -207,6 +207,7 @@
     "openPoints": "Open points",
     "previewBanner": "Preview without AI connection – a sample result. Layout, database and salutation/signature are real.",
     "readsRemark": "A Crea também lê",
+    "readsRemarkHint": "Ativar apenas se as observações não contiverem dados pessoais!",
     "reasoning": "Reasoning",
     "response": "Suggested reply",
     "resubmission": "Lembrete",
