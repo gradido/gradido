@@ -1,11 +1,19 @@
-import { getHomeCommunityDrizzle } from 'database'
-import { Elysia, StatusMap } from 'elysia'
-import { communityInfoWireSchema, signatureNonceSchema, signedJsonResponse } from 'shared'
+import { dbFindUserByIdentifier, getHomeCommunityDrizzle, UserSelect } from 'database'
+import { LOG4JS_BASE_CATEGORY_NAME } from 'database/src/config/const'
+import { Elysia, StatusMap, status } from 'elysia'
+import { getLogger } from 'log4js'
+import {
+  communityInfoWireSchema,
+  Result,
+  signatureNonceSchema,
+  signedJsonResponse,
+  Uuidv4,
+} from 'shared'
 import * as v from 'valibot'
+import { CrossCommunityError, xcomError } from './errorTypes'
+import { CrossGroupTransaction, crossGroupTransactionSchema, InvolvedParties } from './schema'
 
-function statusNumber(status?: number | keyof StatusMap): number {
-  return typeof status === 'string' ? StatusMap[status] : (status ?? 200)
-}
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.emails.sendEmailTranslated`)
 
 export const apiRoutesV1 = new Elysia({ prefix: 'v1' })
   // public routes, signed with the home community's Ed25519 key (RFC 9421),
@@ -20,5 +28,52 @@ export const apiRoutesV1 = new Elysia({ prefix: 'v1' })
         signedJsonResponse(responseValue, statusNumber(set.status), query.nonce, request),
     },
   )
+  .post(
+    'emailTransactionReceived',
+    async ({ body }) => {
+      const userResult = await auth(body)
+      if (!userResult.success) {
+        logger.debug(userResult.error.message)
+        return status(userResult.error.status)
+      }
+      
+    },
+    {
+      body: crossGroupTransactionSchema,
+    },
+  )
+
+function statusNumber(status?: number | keyof StatusMap): number {
+  return typeof status === 'string' ? StatusMap[status] : (status ?? 200)
+}
+// check if tx came from correct community and if recipient user exist and if, return it
+async function auth(
+  parties: InvolvedParties,
+  senderCommunityUuid: Uuidv4, // actual community uuid from sender, verified by signature)
+): Promise<Result<UserSelect, CrossCommunityError>> {
+  const { sender, recipient } = parties
+  // first, check if we are in fact the correct recipient community
+  const homeCom = await getHomeCommunityDrizzle()
+  if (homeCom.communityUuid !== recipient.communityUuid) {
+    const e = `We got a cross transaction for another community: ${recipient.communityUuid}`
+    return xcomError('Unauthorized', e)
+  }
+  // and the sender is the correct sender community
+  if (senderCommunityUuid !== sender.communityUuid) {
+    const e = `We got a cross transaction from a wrong community: expected: ${sender.communityUuid}, actual: ${senderCommunityUuid}`
+    return xcomError('Unauthorized', e)
+  }
+
+  // second check if receiver user exists in this community
+  const recipientUser = await dbFindUserByIdentifier(
+    recipient.identifier,
+    recipient.communityUuid,
+  )
+  if (!recipientUser) {
+    const e = `User with identifier ${recipient.identifier} not found`
+    return xcomError('Not Found', e)
+  }
+  return { success: true, value: recipientUser }
+}
 
 export const apiRoutes = new Elysia({ prefix: 'peer-api' }).use(apiRoutesV1)

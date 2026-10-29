@@ -149,3 +149,14 @@ export const locationPointSchema = v.object({
 
 export type LocationPointInput = v.InferInput<typeof locationPointSchema>
 export type LocationPoint = v.InferOutput<typeof locationPointSchema>
+
+export const gddAmountSchema = v.instance(GradidoUnit)
+export const gddAmountStringSchema = v.pipe(
+  v.union([v.pipe(v.string(), v.decimal()), v.instance(GradidoUnit)]),
+  v.transform((input) => {
+    if (typeof input === 'string') {
+      return input
+    }
+    return input.toString(4)
+  }),
+)

@@ -2,13 +2,19 @@ import { and, count, desc, eq, gte, inArray, isNotNull, isNull, ne, or, sql } fr
 import { alias as aliasedTable, type BuildAliasTable, unionAll } from 'drizzle-orm/mysql-core'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import {
+  aliasSchema,
   ContactOrigin,
+  emailSchema,
   GradidoUnit,
   PasswordEncryptionType,
   Result,
+  UserIdentifier,
   Uuidv4,
+  uuidv4Schema,
   VoidResult,
 } from 'shared'
+import { Alias } from 'typeorm/query-builder/Alias'
+import * as v from 'valibot'
 import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
 import { AccountState, EventType } from '../enum'
 import {
@@ -231,6 +237,65 @@ export async function dbFindUserIdByUuids(
     .where(and(eq(usersTable.communityUuid, communityUuid), eq(usersTable.gradidoId, gradidoID)))
     .limit(1)
   return rows[0]?.id ?? null
+}
+
+/*
+ * Find user by gradido id, assuming that there should be normally no collision between gradido ids from different communities
+ * but this function handle this nearly impossible case nevertheless.
+ * With communityIdentifier on collision, it will retry with community identifier, without it will return DBDuplicateEntryError
+ */
+export async function dbFindUserByGradidoId(
+  gradidoId: Uuidv4,
+  communityUuid?: Uuidv4,
+): Promise<Result<UserSelect, DBNotFoundError | DBDuplicateEntryError>> {
+  let rows = await drizzleDb().select().from(usersTable).where(eq(usersTable.gradidoId, gradidoId))
+  if (rows.length === 1) {
+    return { success: true, value: rows[0] }
+  }
+  if (!rows.length) {
+    return { success: false, error: new DBNotFoundError('users', `gradido_id = ${gradidoId}`) }
+  }
+  if (communityUuid) {
+    rows = await drizzleDb()
+      .select()
+      .from(usersTable)
+      .where(and(eq(usersTable.gradidoId, gradidoId), eq(usersTable.communityUuid, communityUuid)))
+    if (rows.length === 1) {
+      return { success: true, value: rows[0] }
+    } else {
+      return { success: false, error: new DBNotFoundError('users', `gradido_id = ${gradidoId}`) }
+    }
+  }
+  return { success: false, error: new DBDuplicateEntryError('users', 'gradido_id', gradidoId) }
+}
+
+// if searched by alias, there is a high probability for collision with other communities, so we need also the community uuid here
+export async function dbFindUserByAlias(
+  alias: Alias,
+  communityUuid: Uuidv4,
+): Promise<UserSelect | null> {
+  const rows = await drizzleDb()
+    .select()
+    .from(usersTable)
+    .where(and(eq(usersTable.alias, alias), eq(usersTable.communityUuid, communityUuid)))
+  return rows[0] ?? null
+}
+
+// communityIdentifier as hint for filter especially on alias case or on gradido id duplicates
+export async function dbFindUserByIdentifier(
+  userIdentifier: UserIdentifier,
+  communityUuid: Uuidv4,
+): Promise<UserSelect | null> {
+  // fast path on gradido id, I assume that nearly no collision will occur, even with ignoring community identifier
+  if (v.safeParse(uuidv4Schema, userIdentifier).success) {
+    const findUserResult = await dbFindUserByGradidoId(userIdentifier, communityUuid)
+    return findUserResult.success ? findUserResult.value : null
+    // emails are unique and currently only stored for our own users, so we don't need to check the community identifier here either
+  } else if (v.safeParse(emailSchema, userIdentifier).success) {
+    return dbFindUserByEmail(userIdentifier)
+  } else {
+    return dbFindUserByAlias(v.parse(aliasSchema, userIdentifier), communityUuid)
+  }
 }
 
 export async function dbIsHomeCommunityUserExistByUuid(gradidoId: Uuidv4): Promise<boolean> {
