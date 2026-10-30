@@ -363,9 +363,12 @@
     "update_creation": "Creatie bijwerken"
   },
   "dashboard": {
+    "resubmission": "Daarnaast: {n} met herinnering",
     "today": "Vandaag: {n} open creaties",
     "todayNone": "Vandaag: geen open creaties",
     "todayOne": "Vandaag: één open creatie",
+    "waitingForMember": "{n} wacht op het lid | {n} wachten op het lid",
+    "waitingForModeration": "{n} wacht op de moderatie | {n} wachten op de moderatie",
     "welcome": "Welkom in het beheergedeelte"
   },
   "delete": "Verwijderen",

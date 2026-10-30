@@ -363,9 +363,12 @@
     "update_creation": "Schöpfung aktualisieren"
   },
   "dashboard": {
+    "resubmission": "Außerdem: {n} auf Wiedervorlage",
     "today": "Heute: {n} offene Schöpfungen",
     "todayNone": "Heute: keine offenen Schöpfungen",
     "todayOne": "Heute: eine offene Schöpfung",
+    "waitingForMember": "{n} wartet auf das Mitglied | {n} warten auf das Mitglied",
+    "waitingForModeration": "{n} wartet auf die Moderation | {n} warten auf die Moderation",
     "welcome": "Willkommen im Admin-Bereich"
   },
   "delete": "Löschen",

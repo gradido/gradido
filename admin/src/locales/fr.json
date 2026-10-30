@@ -363,9 +363,12 @@
     "update_creation": "Mettre à jour la création"
   },
   "dashboard": {
+    "resubmission": "En plus : {n} avec rappel",
     "today": "Aujourd'hui : {n} créations ouvertes",
     "todayNone": "Aujourd'hui : aucune création ouverte",
     "todayOne": "Aujourd'hui : une création ouverte",
+    "waitingForMember": "{n} attend le membre | {n} attend le membre | {n} attendent le membre",
+    "waitingForModeration": "{n} attend la modération | {n} attend la modération | {n} attendent la modération",
     "welcome": "Bienvenue dans l'espace d'administration"
   },
   "delete": "Supprimer",

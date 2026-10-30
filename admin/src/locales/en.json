@@ -363,9 +363,12 @@
     "update_creation": "Creation update"
   },
   "dashboard": {
+    "resubmission": "Also: {n} on resubmission",
     "today": "Today: {n} open creations",
     "todayNone": "Today: no open creations",
     "todayOne": "Today: one open creation",
+    "waitingForMember": "{n} is waiting for the member | {n} are waiting for the member",
+    "waitingForModeration": "{n} is waiting for moderation | {n} are waiting for moderation",
     "welcome": "Welcome to the admin area"
   },
   "delete": "Delete",

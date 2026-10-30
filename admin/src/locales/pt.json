@@ -363,9 +363,12 @@
     "update_creation": "Atualizar a criação"
   },
   "dashboard": {
+    "resubmission": "Além disso: {n} com lembrete",
     "today": "Hoje: {n} criações abertas",
     "todayNone": "Hoje: nenhuma criação aberta",
     "todayOne": "Hoje: uma criação aberta",
+    "waitingForMember": "{n} aguarda o membro | {n} aguardam o membro",
+    "waitingForModeration": "{n} aguarda a moderação | {n} aguardam a moderação",
     "welcome": "Damos-te as boas-vindas à área de administração"
   },
   "delete": "Eliminar",
