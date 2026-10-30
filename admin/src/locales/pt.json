@@ -19,7 +19,6 @@
     "signature-missing": "A tua assinatura ainda não está definida — podes indicá-la na janela Crea de uma contribuição."
   },
   "alias": "Alias",
-  "all_emails": "Todos os utilizadores",
   "appOutdated": {
     "reload": "Recarregar",
     "text": "Existe uma versão mais recente."
@@ -366,7 +365,6 @@
   "delete": "Eliminar",
   "delete_user": "Eliminar utilizador",
   "deleted": "eliminado",
-  "deleted_user": "Todos os utilizadores eliminados",
   "deny": "Rejeitar",
   "description": "Descrição",
   "details": "Detalhes",
@@ -686,7 +684,6 @@
     "text_false": "O último e-mail foi enviado ao membro ({email}) em {date}.",
     "text_true": "O e-mail foi confirmado."
   },
-  "unregistered_emails": "Apenas utilizadores não registados",
   "userRole": {
     "creationAllowed": {
       "help": "A project account (association, project, business) does not create, it receives thanks. The member can switch it off; only an administrator switches it back on.",
@@ -719,6 +716,15 @@
     },
     "successfullyChangedTo": "O utilizador é agora «{role}».",
     "tabTitle": "Função do utilizador"
+  },
+  "userSearch": {
+    "hits": "{count} resultado | {count} resultados",
+    "tabs": {
+      "all": "Todos",
+      "deleted": "Eliminados",
+      "enabled": "Ativados",
+      "unconfirmed": "Não confirmados"
+    }
   },
   "userStatus": {
     "emailUnconfirmed": "E-mail não confirmado"

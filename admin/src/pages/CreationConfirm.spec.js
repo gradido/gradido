@@ -709,7 +709,8 @@ describe('CreationConfirm', () => {
       expect(links.map((link) => link.find('svg').classes())).toEqual([
         ['text-primary'],
         ['text-success'],
-        ['text-warning'],
+        // Plain `text-warning` stood at 1.63:1 on the light ground; this yellow holds on both.
+        ['text-warning-emphasis'],
         ['text-danger'],
         [],
       ])

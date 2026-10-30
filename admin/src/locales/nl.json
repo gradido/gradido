@@ -19,7 +19,6 @@
     "signature-missing": "Je ondertekening is nog niet ingesteld — je vult die in het Crea-venster van een bijdrage in."
   },
   "alias": "Alias",
-  "all_emails": "Alle gebruikers",
   "appOutdated": {
     "reload": "Opnieuw laden",
     "text": "Nieuwe versie beschikbaar."
@@ -366,7 +365,6 @@
   "delete": "Verwijderen",
   "delete_user": "Gebruiker verwijderen",
   "deleted": "verwijderd",
-  "deleted_user": "Alle verwijderde gebruikers",
   "deny": "Afwijzen",
   "description": "Beschrijving",
   "details": "Details",
@@ -686,7 +684,6 @@
     "text_false": "De laatste e-mail is op {date} naar het lid ({email}) verzonden.",
     "text_true": "De e-mail is bevestigd."
   },
-  "unregistered_emails": "Alleen niet-geregistreerde gebruikers",
   "userRole": {
     "creationAllowed": {
       "help": "A project account (association, project, business) does not create, it receives thanks. The member can switch it off; only an administrator switches it back on.",
@@ -719,6 +716,15 @@
     },
     "successfullyChangedTo": "Gebruiker is nu «{role}».",
     "tabTitle": "Gebruikersrol"
+  },
+  "userSearch": {
+    "hits": "{count} resultaat | {count} resultaten",
+    "tabs": {
+      "all": "Alle",
+      "deleted": "Verwijderd",
+      "enabled": "Geactiveerd",
+      "unconfirmed": "Onbevestigd"
+    }
   },
   "userStatus": {
     "emailUnconfirmed": "E-mail niet bevestigd"

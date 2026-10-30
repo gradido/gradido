@@ -684,7 +684,7 @@ export const CreationConfirm = defineComponent({
     // The listeners of the table are hyphenated as well: its events are declared kebab-case,
     // and that is the name the types give their handlers.
     // The title of a tab keeps its word and its number in elements of their own: on a phone the
-    // symbol stands above the word and the number at the corner (CreationConfirm.css).
+    // symbol stands above the word and the number at the corner (App.css, CreationConfirm.css).
     return () => (
       <div class='creation-confirm'>
         {/* The search and the group side by side, both on the page's ground with an edge, and
@@ -721,7 +721,7 @@ export const CreationConfirm = defineComponent({
           </p>
         ) : null}
         <div>
-          <BTabs v-model={shownTab.value} class='creation-tabs' contentClass='mt-3' fill>
+          <BTabs v-model={shownTab.value} class='creation-tabs page-tabs' contentClass='mt-3' fill>
             <BTab active title-link-attributes={{ 'data-test': 'open' }}>
               {{
                 title: () => [
@@ -749,7 +749,7 @@ export const CreationConfirm = defineComponent({
             <BTab title-link-attributes={{ 'data-test': 'denied' }}>
               {{
                 title: () => [
-                  <IBiXCircle class='text-warning' />,
+                  <IBiXCircle class='text-warning-emphasis' />,
                   ' ',
                   <span class='tab-word'>{t('contributions.denied')}</span>,
                 ],
