@@ -363,9 +363,12 @@
     "update_creation": "Oluşturmayı güncelle"
   },
   "dashboard": {
+    "resubmission": "Ayrıca hatırlatmalı: {n}",
     "today": "Bugün: {n} açık oluşturma",
     "todayNone": "Bugün: açık oluşturma yok",
     "todayOne": "Bugün: bir açık oluşturma",
+    "waitingForMember": "Üyeyi bekleyen: {n}",
+    "waitingForModeration": "Moderasyonu bekleyen: {n}",
     "welcome": "Yönetim alanına hoş geldin"
   },
   "delete": "Sil",
