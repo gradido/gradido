@@ -362,6 +362,12 @@
     "toasted_update": "{email} için açık oluşturma ({value} GDD) değiştirildi ve onaya hazır.",
     "update_creation": "Oluşturmayı güncelle"
   },
+  "dashboard": {
+    "today": "Bugün: {n} açık oluşturma",
+    "todayNone": "Bugün: açık oluşturma yok",
+    "todayOne": "Bugün: bir açık oluşturma",
+    "welcome": "Yönetim alanına hoş geldin"
+  },
   "delete": "Sil",
   "delete_user": "Kullanıcıyı sil",
   "deleted": "silindi",
@@ -460,10 +466,7 @@
       "videoRoomsCreated": "Video rooms handed out"
     },
     "since": "Reference date",
-    "title": "Figures",
-    "today": "Today: {n} open creations",
-    "todayNone": "Today: no open creations",
-    "todayOne": "Today: one open creation",
+    "title": "İstatistik",
     "weekCurrent": "in progress",
     "weeks": "By week"
   },
@@ -552,6 +555,7 @@
     "projectBranding": "Projeler",
     "projectBrandingTooltip": "Gradido girişinde kendi logonu kullan ve yeni kullanıcıları bir Humhub alanına ekle",
     "settings": "Ayarlar",
+    "statistic": "İstatistik",
     "theme": {
       "dark": "Koyu",
       "light": "Açık",

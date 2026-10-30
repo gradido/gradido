@@ -362,6 +362,12 @@
     "toasted_update": "Η ανοιχτή δημιουργία ({value} GDD) για {email} τροποποιήθηκε και είναι έτοιμη για επιβεβαίωση.",
     "update_creation": "Ενημέρωση δημιουργίας"
   },
+  "dashboard": {
+    "today": "Σήμερα: {n} ανοιχτές δημιουργίες",
+    "todayNone": "Σήμερα: καμία ανοιχτή δημιουργία",
+    "todayOne": "Σήμερα: μία ανοιχτή δημιουργία",
+    "welcome": "Καλώς ήρθες στον χώρο διαχείρισης"
+  },
   "delete": "Διαγραφή",
   "delete_user": "Διαγραφή χρήστη",
   "deleted": "διαγράφηκε",
@@ -460,10 +466,7 @@
       "videoRoomsCreated": "Video rooms handed out"
     },
     "since": "Reference date",
-    "title": "Figures",
-    "today": "Today: {n} open creations",
-    "todayNone": "Today: no open creations",
-    "todayOne": "Today: one open creation",
+    "title": "Στατιστικά",
     "weekCurrent": "in progress",
     "weeks": "By week"
   },
@@ -552,6 +555,7 @@
     "projectBranding": "Έργα",
     "projectBrandingTooltip": "Χρησιμοποίησε το δικό σου λογότυπο στη σύνδεση Gradido και πρόσθεσε νέους χρήστες σε έναν χώρο Humhub",
     "settings": "Ρυθμίσεις",
+    "statistic": "Στατιστικά",
     "theme": {
       "dark": "Σκοτεινό",
       "light": "Φωτεινό",

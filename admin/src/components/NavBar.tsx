@@ -87,6 +87,7 @@ export const NavBar = defineComponent({
     const groups = computed(() => {
       const information: MenuEntry[] = [
         ...(isAdmin.value ? [page('federation', '/federation', t('navbar.instances'))] : []),
+        page('statistic', '/statistic', t('navbar.statistic')),
         { href: HELP_URL, label: t('help.help'), active: false },
       ]
       const settings = [

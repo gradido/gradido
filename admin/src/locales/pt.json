@@ -362,6 +362,12 @@
     "toasted_update": "A criação aberta ({value} GDD) para {email} foi alterada e está pronta para confirmação.",
     "update_creation": "Atualizar a criação"
   },
+  "dashboard": {
+    "today": "Hoje: {n} criações abertas",
+    "todayNone": "Hoje: nenhuma criação aberta",
+    "todayOne": "Hoje: uma criação aberta",
+    "welcome": "Damos-te as boas-vindas à área de administração"
+  },
   "delete": "Eliminar",
   "delete_user": "Eliminar utilizador",
   "deleted": "eliminado",
@@ -460,10 +466,7 @@
       "videoRoomsCreated": "Video rooms handed out"
     },
     "since": "Reference date",
-    "title": "Figures",
-    "today": "Today: {n} open creations",
-    "todayNone": "Today: no open creations",
-    "todayOne": "Today: one open creation",
+    "title": "Estatística",
     "weekCurrent": "in progress",
     "weeks": "By week"
   },
@@ -552,6 +555,7 @@
     "projectBranding": "Projetos",
     "projectBrandingTooltip": "Usa o teu próprio logótipo no início de sessão do Gradido e adiciona novos utilizadores a um espaço Humhub",
     "settings": "Definições",
+    "statistic": "Estatística",
     "theme": {
       "dark": "Escuro",
       "light": "Claro",

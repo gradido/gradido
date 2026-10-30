@@ -362,6 +362,12 @@
     "toasted_update": "De openstaande creatie ({value} GDD) voor {email} is gewijzigd en staat klaar voor bevestiging.",
     "update_creation": "Creatie bijwerken"
   },
+  "dashboard": {
+    "today": "Vandaag: {n} open creaties",
+    "todayNone": "Vandaag: geen open creaties",
+    "todayOne": "Vandaag: één open creatie",
+    "welcome": "Welkom in het beheergedeelte"
+  },
   "delete": "Verwijderen",
   "delete_user": "Gebruiker verwijderen",
   "deleted": "verwijderd",
@@ -460,10 +466,7 @@
       "videoRoomsCreated": "Video rooms handed out"
     },
     "since": "Reference date",
-    "title": "Figures",
-    "today": "Today: {n} open creations",
-    "todayNone": "Today: no open creations",
-    "todayOne": "Today: one open creation",
+    "title": "Statistiek",
     "weekCurrent": "in progress",
     "weeks": "By week"
   },
@@ -552,6 +555,7 @@
     "projectBranding": "Projecten",
     "projectBrandingTooltip": "Gebruik je eigen logo in de Gradido-login en voeg nieuwe gebruikers toe aan een Humhub-space",
     "settings": "Instellingen",
+    "statistic": "Statistiek",
     "theme": {
       "dark": "Donker",
       "light": "Licht",

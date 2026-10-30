@@ -362,6 +362,12 @@
     "toasted_update": "La création ouverte ({value} GDD) pour {email} a été modifiée et est prête à être confirmée.",
     "update_creation": "Mettre à jour la création"
   },
+  "dashboard": {
+    "today": "Aujourd'hui : {n} créations ouvertes",
+    "todayNone": "Aujourd'hui : aucune création ouverte",
+    "todayOne": "Aujourd'hui : une création ouverte",
+    "welcome": "Bienvenue dans l'espace d'administration"
+  },
   "delete": "Supprimer",
   "delete_user": "Supprimer l'utilisateur",
   "deleted": "supprimé",
@@ -460,10 +466,7 @@
       "videoRoomsCreated": "Video rooms handed out"
     },
     "since": "Reference date",
-    "title": "Figures",
-    "today": "Today: {n} open creations",
-    "todayNone": "Today: no open creations",
-    "todayOne": "Today: one open creation",
+    "title": "Statistique",
     "weekCurrent": "in progress",
     "weeks": "By week"
   },
@@ -552,6 +555,7 @@
     "projectBranding": "Projets",
     "projectBrandingTooltip": "Utilise ton propre logo sur la page de connexion de Gradido et ajoute de nouveaux utilisateurs à un espace Humhub",
     "settings": "Configuration",
+    "statistic": "Statistique",
     "theme": {
       "dark": "Sombre",
       "light": "Clair",
