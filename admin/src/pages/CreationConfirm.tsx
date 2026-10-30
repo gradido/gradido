@@ -749,7 +749,7 @@ export const CreationConfirm = defineComponent({
             <BTab title-link-attributes={{ 'data-test': 'denied' }}>
               {{
                 title: () => [
-                  <IBiXCircle class='text-warning' />,
+                  <IBiXCircle class='text-warning-emphasis' />,
                   ' ',
                   <span class='tab-word'>{t('contributions.denied')}</span>,
                 ],
