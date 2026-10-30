@@ -347,17 +347,37 @@ describe('the phone rules of the contribution page and the member search', () =>
     expect(desk).not.toContain('row-details-card')
   })
 
-  it('sets the tab symbols above their words in CreationConfirm.css, and has no overlay any more', () => {
-    const css = read(STYLES.page)
-    const phone = phoneRules(css)
-
+  it('sets the tab symbols above their words in App.css, for both pages that have such tabs', () => {
     expect(
-      ruleFor(phone, '.creation-confirm .creation-tabs .nav-link')?.declarations,
+      ruleFor(phoneRules(read(STYLES.app)), '.page-tabs .nav-link')?.declarations,
     ).toMatchObject({
       display: 'flex',
       'flex-direction': 'column',
       'align-items': 'center',
     })
+    for (const page of ['CreationConfirm.tsx', 'UserSearch.tsx']) {
+      expect(readFileSync(join(here, 'pages', page), 'utf8')).toMatch(
+        /<BTabs[^>]*class='[^']*\bpage-tabs\b/,
+      )
+    }
+  })
+
+  // Bernd, 30.10.2026: toasts and the notifications of the system lie over the × of a field that
+  // reaches the right edge. This one ends before them; on a phone it is narrower anyway.
+  it('ends the search field of the member search before the messages at the top right', () => {
+    const css = read(join(here, 'pages', 'UserSearch.module.css'))
+    expect(ruleFor(rules(outsideMedia(css)), '.searchField')?.declarations).toEqual({
+      'max-width': '36rem',
+    })
+    expect(readFileSync(join(here, 'pages', 'UserSearch.tsx'), 'utf8')).toMatch(
+      /<UserQuery[^>]*classes\.searchField/,
+    )
+  })
+
+  it('keeps the number at the corner of its tab in CreationConfirm.css, and has no overlay any more', () => {
+    const css = read(STYLES.page)
+    const phone = phoneRules(css)
+
     expect(ruleFor(phone, '.creation-confirm .tab-badge')?.declarations).toMatchObject({
       position: 'absolute',
     })

@@ -19,7 +19,6 @@
     "signature-missing": "Η υπογραφή σου δεν έχει οριστεί ακόμη — τη συμπληρώνεις στο παράθυρο Crea μιας συνεισφοράς."
   },
   "alias": "Ψευδώνυμο",
-  "all_emails": "Όλοι οι χρήστες",
   "appOutdated": {
     "reload": "Ανανέωση",
     "text": "Υπάρχει νεότερη έκδοση."
@@ -366,7 +365,6 @@
   "delete": "Διαγραφή",
   "delete_user": "Διαγραφή χρήστη",
   "deleted": "διαγράφηκε",
-  "deleted_user": "Όλοι οι διαγραμμένοι χρήστες",
   "deny": "Απόρριψη",
   "description": "Περιγραφή",
   "details": "Λεπτομέρειες",
@@ -686,7 +684,6 @@
     "text_false": "Το τελευταίο email στάλθηκε στο μέλος ({email}) στις {date}.",
     "text_true": "Το email επιβεβαιώθηκε."
   },
-  "unregistered_emails": "Μόνο μη εγγεγραμμένοι χρήστες",
   "userRole": {
     "creationAllowed": {
       "help": "A project account (association, project, business) does not create, it receives thanks. The member can switch it off; only an administrator switches it back on.",
@@ -719,6 +716,15 @@
     },
     "successfullyChangedTo": "Ο χρήστης είναι τώρα «{role}».",
     "tabTitle": "Ρόλος χρήστη"
+  },
+  "userSearch": {
+    "hits": "{count} αποτέλεσμα | {count} αποτελέσματα",
+    "tabs": {
+      "all": "Όλοι",
+      "deleted": "Διαγραμμένοι",
+      "enabled": "Ενεργοί",
+      "unconfirmed": "Μη επιβεβαιωμένοι"
+    }
   },
   "userStatus": {
     "emailUnconfirmed": "Το e-mail δεν επιβεβαιώθηκε"

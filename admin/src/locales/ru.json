@@ -19,7 +19,6 @@
     "signature-missing": "Ваша подпись ещё не задана — её можно указать в окне Crea любого вклада."
   },
   "alias": "Псевдоним",
-  "all_emails": "Все пользователи",
   "appOutdated": {
     "reload": "Обновить",
     "text": "Доступна более новая версия."
@@ -366,7 +365,6 @@
   "delete": "Удалить",
   "delete_user": "Удалить пользователя",
   "deleted": "удалено",
-  "deleted_user": "Все удалённые пользователи",
   "deny": "Отклонить",
   "description": "Описание",
   "details": "Подробности",
@@ -686,7 +684,6 @@
     "text_false": "Последнее письмо было отправлено участнику ({email}) {date}.",
     "text_true": "Письмо подтверждено."
   },
-  "unregistered_emails": "Только незарегистрированные пользователи",
   "userRole": {
     "creationAllowed": {
       "help": "A project account (association, project, business) does not create, it receives thanks. The member can switch it off; only an administrator switches it back on.",
@@ -719,6 +716,15 @@
     },
     "successfullyChangedTo": "Пользователь теперь «{role}».",
     "tabTitle": "Роль пользователя"
+  },
+  "userSearch": {
+    "hits": "Найдено: {count}",
+    "tabs": {
+      "all": "Все",
+      "deleted": "Удалённые",
+      "enabled": "Активные",
+      "unconfirmed": "Неподтверждённые"
+    }
   },
   "userStatus": {
     "emailUnconfirmed": "Эл. почта не подтверждена"

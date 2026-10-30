@@ -19,7 +19,6 @@
     "signature-missing": "İmzan henüz ayarlanmadı — bir katkının Crea penceresinde girebilirsin."
   },
   "alias": "Takma ad",
-  "all_emails": "Tüm kullanıcılar",
   "appOutdated": {
     "reload": "Yenile",
     "text": "Daha yeni bir sürüm mevcut."
@@ -366,7 +365,6 @@
   "delete": "Sil",
   "delete_user": "Kullanıcıyı sil",
   "deleted": "silindi",
-  "deleted_user": "Tüm silinen kullanıcılar",
   "deny": "Reddet",
   "description": "Açıklama",
   "details": "Ayrıntılar",
@@ -686,7 +684,6 @@
     "text_false": "Son e-posta, {email} üyesine {date} tarihinde gönderildi.",
     "text_true": "E-posta onaylandı."
   },
-  "unregistered_emails": "Yalnızca kayıtsız kullanıcılar",
   "userRole": {
     "creationAllowed": {
       "help": "A project account (association, project, business) does not create, it receives thanks. The member can switch it off; only an administrator switches it back on.",
@@ -719,6 +716,15 @@
     },
     "successfullyChangedTo": "Kullanıcı artık «{role}».",
     "tabTitle": "Kullanıcı rolü"
+  },
+  "userSearch": {
+    "hits": "{count} sonuç",
+    "tabs": {
+      "all": "Tümü",
+      "deleted": "Silinmiş",
+      "enabled": "Etkin",
+      "unconfirmed": "Onaylanmamış"
+    }
   },
   "userStatus": {
     "emailUnconfirmed": "E-posta onaylanmadı"

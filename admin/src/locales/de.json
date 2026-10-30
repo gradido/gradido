@@ -19,7 +19,6 @@
     "signature-missing": "Deine Signatur ist noch nicht gesetzt — Du trägst sie im Crea-Fenster eines Beitrags ein."
   },
   "alias": "Alias",
-  "all_emails": "Alle Nutzer",
   "appOutdated": {
     "reload": "Neu laden",
     "text": "Es gibt eine neuere Fassung."
@@ -366,7 +365,6 @@
   "delete": "Löschen",
   "delete_user": "Nutzer löschen",
   "deleted": "gelöscht",
-  "deleted_user": "Alle gelöschten Nutzer",
   "deny": "Ablehnen",
   "description": "Beschreibung",
   "details": "Details",
@@ -686,7 +684,6 @@
     "text_false": " Die letzte Email wurde am {date} Uhr an das Mitglied ({email}) gesendet.",
     "text_true": " Die Email wurde bestätigt."
   },
-  "unregistered_emails": "Nur unregistrierte Nutzer",
   "userRole": {
     "creationAllowed": {
       "help": "Ein Projekt-Konto (Verein, Projekt, Geschäft) schöpft nicht, es empfängt Dank. Ausschalten kann das Mitglied selbst; einschalten nur ein Administrator.",
@@ -719,6 +716,15 @@
     },
     "successfullyChangedTo": "Nutzer ist jetzt „{role}“.",
     "tabTitle": "Nutzer-Rolle"
+  },
+  "userSearch": {
+    "hits": "{count} Treffer",
+    "tabs": {
+      "all": "Alle",
+      "deleted": "Gelöscht",
+      "enabled": "Aktiviert",
+      "unconfirmed": "Unbestätigt"
+    }
   },
   "userStatus": {
     "emailUnconfirmed": "E-Mail nicht bestätigt"
