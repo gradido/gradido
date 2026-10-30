@@ -129,7 +129,7 @@ export const CreationConfirm = defineComponent({
     let keptSearchOnTrial = query.value !== ''
     // The count of the badges in the menu and on the tab, asked for on its own where the page
     // opens with a search: its list counts only what the search leaves (coderabbit, #4206). With
-    // the overview's query; none where the page opens on the whole list, whose answer says it.
+    // the start page's query; none where the page opens on the whole list, whose answer says it.
     if (keptSearchOnTrial) {
       apolloClient
         .query({

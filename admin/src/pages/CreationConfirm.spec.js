@@ -939,7 +939,7 @@ describe('CreationConfirm', () => {
       },
     })
     let moderatorStore
-    // The count of all open contributions, asked for on its own (the overview's query).
+    // The count of all open contributions, asked for on its own (the start page's query).
     const countQuery = vi.fn()
 
     // A page of its own per test, for the moderator.

@@ -362,6 +362,12 @@
     "toasted_update": "`Offene Schöpfung {value} GDD) für {email} wurde geändert und liegt zur Bestätigung bereit",
     "update_creation": "Schöpfung aktualisieren"
   },
+  "dashboard": {
+    "today": "Heute: {n} offene Schöpfungen",
+    "todayNone": "Heute: keine offenen Schöpfungen",
+    "todayOne": "Heute: eine offene Schöpfung",
+    "welcome": "Willkommen im Admin-Bereich"
+  },
   "delete": "Löschen",
   "delete_user": "Nutzer löschen",
   "deleted": "gelöscht",
@@ -460,10 +466,7 @@
       "videoRoomsCreated": "Videoräume vergeben"
     },
     "since": "Stichtag",
-    "title": "Zahlen",
-    "today": "Heute: {n} offene Schöpfungen",
-    "todayNone": "Heute: keine offenen Schöpfungen",
-    "todayOne": "Heute: eine offene Schöpfung",
+    "title": "Statistik",
     "weekCurrent": "läuft",
     "weeks": "Nach Wochen"
   },
@@ -552,6 +555,7 @@
     "projectBranding": "Projekte",
     "projectBrandingTooltip": "Nutze ein eigenes Logo im Gradido Login und füge neue Benutzer einem Humhub-Space hinzu",
     "settings": "Einstellungen",
+    "statistic": "Statistik",
     "theme": {
       "dark": "Dunkel",
       "light": "Hell",

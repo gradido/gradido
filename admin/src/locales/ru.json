@@ -362,6 +362,12 @@
     "toasted_update": "Открытое создание ({value} GDD) для {email} изменено и готово к подтверждению.",
     "update_creation": "Обновить создание"
   },
+  "dashboard": {
+    "today": "Сегодня: открытых созданий — {n}",
+    "todayNone": "Сегодня: нет открытых созданий",
+    "todayOne": "Сегодня: одно открытое создание",
+    "welcome": "Добро пожаловать в раздел администрирования"
+  },
   "delete": "Удалить",
   "delete_user": "Удалить пользователя",
   "deleted": "удалено",
@@ -460,10 +466,7 @@
       "videoRoomsCreated": "Video rooms handed out"
     },
     "since": "Reference date",
-    "title": "Figures",
-    "today": "Today: {n} open creations",
-    "todayNone": "Today: no open creations",
-    "todayOne": "Today: one open creation",
+    "title": "Статистика",
     "weekCurrent": "in progress",
     "weeks": "By week"
   },
@@ -552,6 +555,7 @@
     "projectBranding": "Проекты",
     "projectBrandingTooltip": "Используйте собственный логотип при входе в Gradido и добавляйте новых пользователей в пространство Humhub",
     "settings": "Настройки",
+    "statistic": "Статистика",
     "theme": {
       "dark": "Тёмная",
       "light": "Светлая",
